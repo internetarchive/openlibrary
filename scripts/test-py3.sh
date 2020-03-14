@@ -14,6 +14,7 @@ pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests \
     openlibrary/plugins/upstream/tests/test_addbook.py \
     openlibrary/plugins/upstream/tests/test_forms.py \
     openlibrary/plugins/upstream/tests/test_merge_authors.py \
+    openlibrary/plugins/upstream/tests/test_related_carousels.py \
     openlibrary/plugins/upstream/tests/test_utils.py \
     openlibrary/plugins/worksearch/tests/test_worksearch.py \
     openlibrary/tests/core/test_cache.py \
@@ -59,8 +60,7 @@ pytest openlibrary/coverstore/tests/test_coverstore.py \
 # plugins: All failing tests run in allow failures (|| true) mode
 pytest \
     openlibrary/plugins/openlibrary/tests/test_home.py \
-    openlibrary/plugins/openlibrary/tests/test_stats.py \
-    openlibrary/plugins/upstream/tests/test_related_carousels.py || true
+    openlibrary/plugins/openlibrary/tests/test_stats.py || true
 
 # openlibrary/tests: All failing tests run in allow failures (|| true) mode
 pytest openlibrary/tests/accounts/test_models.py \

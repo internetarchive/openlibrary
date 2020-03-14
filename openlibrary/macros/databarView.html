@@ -9,7 +9,8 @@ $else:
     $if not page.is_fake_record():
         <div id="editButton">
           <!-- FIXME: accesskey / keyboard shortcut needs i18n -->
-          <a class="linkButton larger" href="$edit_url" title="$_('Edit this template')" accesskey="e">$_("Edit")</a>
+          <a class="linkButton larger" href="$edit_url" title="$_('Edit this template')"
+             data-ol-link-track="CTAClick|Edit" accesskey="e">$_("Edit")</a>
         </div>
     <div id="editInfo">
         $if "superfast" in ctx.features:

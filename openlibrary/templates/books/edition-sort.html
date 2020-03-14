@@ -85,7 +85,8 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
           </ul>
         $else:
           <form>
-            <input type="submit" class="cta-btn cta-btn--missing" disabled value="$_('Not in Library')">
+            <input type="submit" class="cta-btn cta-btn--missing" 
+                   data-ol-link-track="CTAClick|NotInLibrary" disabled value="$_('Not in Library')">
           </form>
           $if book.ocaid:
             $:macros.daisy(book, protected=True)
