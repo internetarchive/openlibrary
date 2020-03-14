@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-03-13 20:13-0400\n"
+"POT-Creation-Date: 2020-03-13 21:21-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -223,7 +223,7 @@ msgstr ""
 msgid "name missing"
 msgstr ""
 
-#: view.html:11 view.html:47
+#: view.html:11 view.html:14 view.html:47
 #, python-format
 msgid "%(page_title)s | Open Library"
 msgstr ""
@@ -773,13 +773,13 @@ msgstr ""
 msgid "admin page"
 msgstr ""
 
-#: books.html:86 home.html:7 home.html:10 index.html:40 lists.html:10
+#: books.html:89 home.html:7 home.html:10 index.html:40 lists.html:10
 #: nav_head.html:48 nav_head.html:73 search_head.html:70 view.html:31
 #: view.html:60 widget.html:234
 msgid "Lists"
 msgstr ""
 
-#: books.html:50 books.html:73 view.html:46
+#: books.html:53 books.html:76 view.html:46
 msgid "Reading Log"
 msgstr ""
 
@@ -818,7 +818,7 @@ msgstr ""
 msgid "Add another"
 msgstr ""
 
-#: editions.html:17
+#: editions.html:17 openlibrary/templates/work_search.html:271
 msgid "Merge duplicates"
 msgstr ""
 
@@ -966,6 +966,10 @@ msgstr ""
 msgid "My Books"
 msgstr ""
 
+#: books.html:27 widget.html:110
+msgid "Currently Reading"
+msgstr ""
+
 #: books.html:28
 #, python-format
 msgid "Books %(username)s is reading"
@@ -979,66 +983,74 @@ msgid ""
 msgstr ""
 
 #: books.html:31
+msgid "Want To Read"
+msgstr ""
+
+#: books.html:32
 #, python-format
 msgid "Books %(username)s wants to read"
 msgstr ""
 
-#: books.html:32
+#: books.html:33
 #, python-format
 msgid ""
 "%(username)s wants to read %(total)d books. Join %(username)s on "
 "OpenLibrary.org and share the books that you'll soon be reading!"
 msgstr ""
 
-#: books.html:34
+#: books.html:35 widget.html:108 widget.html:171
+msgid "Already Read"
+msgstr ""
+
+#: books.html:36
 #, python-format
 msgid "Books %(username)s has read"
 msgstr ""
 
-#: books.html:35
+#: books.html:37
 #, python-format
 msgid ""
 "%(username)s has read %(total)d books. Join %(username)s on "
 "OpenLibrary.org and tell the world about the books that you care about."
 msgstr ""
 
-#: books.html:37
+#: books.html:39 books.html:84
+msgid "Sponsorships"
+msgstr ""
+
+#: books.html:40
 #, python-format
 msgid "Books %(userdisplayname)s is sponsoring"
 msgstr ""
 
-#: books.html:62
+#: books.html:65
 msgid "Your reading log is currently set to public"
 msgstr ""
 
-#: books.html:65
+#: books.html:68
 msgid "Your reading log is currently set to private"
 msgstr ""
 
-#: books.html:67
+#: books.html:70
 msgid "Manage your privacy settings"
 msgstr ""
 
-#: books.html:74
+#: books.html:77
 #, python-format
 msgid "Currently Reading (%(count)d)"
 msgstr ""
 
-#: books.html:75
+#: books.html:78
 #, python-format
 msgid "Want to Read (%(count)d)"
 msgstr ""
 
-#: books.html:76
+#: books.html:79
 #, python-format
 msgid "Already Read (%(count)d)"
 msgstr ""
 
-#: books.html:81
-msgid "Sponsorships"
-msgstr ""
-
-#: books.html:113
+#: books.html:116
 msgid "No books are on this shelf"
 msgstr ""
 
@@ -2883,14 +2895,6 @@ msgstr ""
 msgid "Remove from your list?"
 msgstr ""
 
-#: widget.html:108 widget.html:171
-msgid "Already Read"
-msgstr ""
-
-#: widget.html:110
-msgid "Currently Reading"
-msgstr ""
-
 #: widget.html:112 widget.html:151 widget.html:260
 msgid "Want to Read"
 msgstr ""
@@ -3593,12 +3597,18 @@ msgstr ""
 msgid "Click to remove this facet"
 msgstr ""
 
+#: openlibrary/templates/work_search.html:205
+#, python-format
+msgid "%(title)s - search"
+msgstr ""
+
 #: openlibrary/templates/work_search.html:217
 msgid "No results found."
 msgstr ""
 
 #: openlibrary/templates/work_search.html:220
-msgid "Showing books with similar text to:"
+#, python-format
+msgid "Showing books with similar text to: <strong>%(query)s</strong>"
 msgstr ""
 
 #: openlibrary/templates/work_search.html:258
@@ -3611,6 +3621,10 @@ msgstr ""
 
 #: openlibrary/templates/work_search.html:259
 msgid "filters"
+msgstr ""
+
+#: openlibrary/templates/work_search.html:271
+msgid "Merge duplicate authors from this search"
 msgstr ""
 
 #: openlibrary/templates/work_search.html:283
