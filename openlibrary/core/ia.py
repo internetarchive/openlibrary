@@ -198,7 +198,7 @@ class IAEditionSearch:
         """
         try:
             import urllib2  # to port to requests
-            request = urllib2.Request(url)
+            request = six.moves.urllib.request.Request(url)
             # Internet Archive Elastic Search (which powers some of our
             # carousel queries) needs Open Library to forward user IPs so
             # we can attribute requests to end-users
