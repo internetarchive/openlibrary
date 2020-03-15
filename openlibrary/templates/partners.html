@@ -1,0 +1,29 @@
+$def with (isbns=None)
+
+$ num_isbns = isbns and len(isbns) or 0
+
+$if num_isbns:
+  $ msg = '<p class="alert info">Successfully submitted %s isbns for matching. The Internet Archive typically replies with overlap results within 1 business week. If you do not receive a reply, please contact <a href="mailto:chrisfreeland@archive.org?subject=Open Libraries Partner Program">chrisfreeland@archive.org</a>. Thank you!</p>' % num_isbns
+  $:msg
+
+<div id="contentBody">
+  <h2>About Internet Archive &amp; Open Library</h2>
+  <p>The <a href="https://archive.org/about/" rel="nofollow">Internet Archive</a> is a non-profit 501(c)(3) dedicated to the mission of Universal Access to All Knowledge. The run services such as <a href="https://openlibrary.org" rel="nofollow">OpenLibrary.org</a>, the <a href="http://web.archive.org" rel="nofollow">Wayback Machine</a>, and <a href="http://Archive.org" rel="nofollow">Archive.org</a>.
+  </p>
+  <p>In 2007 the <a href="https://archive.org/about/" rel="nofollow">Internet Archive</a> received official recognition as a <a href="https://web.archive.org/web/20150914165436/http://blog.librarylaw.com/librarylaw/2007/07/internet-archiv.html?cid=77778944#comment-6a00d8341c69e553ef00e3981f224f8833" rel="nofollow">Special Library</a> (Rush Brandis, California State Library) by the State of California. <a href="https://blog.archive.org/2011/02/22/in-library-ebook-lending-program-launched/" rel="nofollow">For 9 years</a>, the Internet Archive has been enabling patrons to read and borrow books from Open Library using <a href="https://controlleddigitallending.org" rel="nofollow">Controlled Digital Lending</a>.
+  </p>
+  <h2>Enabling Libraries to go Digital</h2>
+  <p>In <a href="https://blog.archive.org/2017/06/11/ama-about-openlibraries-our-proposal-for-macarthurs-100change/" rel="nofollow">2017</a>, the Internet Archive announced the <a href="http://openlibraries.online/" rel="nofollow">Open Libraries</a> partnership program which enables libraries across the United States to leverage Internet Archive's <a href="https://controlleddigitallending.org" rel="nofollow">Controlled Digital Lending</a> system to make their out of circulation materials digitally accessible to patrons through OpenLibrary.org and Archive.org.
+  </p>
+  <h2>Run a free, no-obligation overlap</h2>
+  <p>Does your library, university, or archive have out of circulation books which patrons may benefit from accessing in digital format? Find out how much of your collection is already available online. Use the form below to upload a list of your <code>isbns</code> and perform a free, no-obligation overlap to see which of your books are already digitally available in Internet Archive's repository.
+  </p>
+  <p>If you'd like to pursue next steps, <a href="http://openlibraries.online/learn" rel="nofollow">register for an upcoming Webinar</a> or <a href="http://openlibraries.online/join/" rel="nofollow">read more about joining our Open Libraries partner program</a>.
+  </p>
+
+  $if num_isbns:
+    $:msg
+
+  $:macros.PartnerForm()
+
+</div>
