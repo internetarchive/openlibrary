@@ -10,7 +10,7 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
     <h1>
         $page.name
         <span class="count" id="coversCount">
-            <em>Publisher</em> - <strong><span>$sprintf(ungettext("%s work", "%s works", page.work_count), commify(page.work_count))</span></strong>
+            <em>Publisher</em> - <strong><span>$sprintf(ungettext("%s work on the subject: "+page.name, "%s works on the subject: "+page.name, page.work_count), commify(page.work_count))</span></strong>
             $if page.ebook_count > 0:
                 / <span class="ebookcount"><span id="ebooks">$sprintf(ungettext("%s ebook", "%s ebooks", page.ebook_count), commify(page.ebook_count))</span></span>
             $else:
