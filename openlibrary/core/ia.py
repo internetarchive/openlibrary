@@ -204,7 +204,7 @@ class IAEditionSearch:
             # we can attribute requests to end-users
             client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
             request.add_header('x-client-id', client_ip)
-            response = urllib2.urlopen(
+            response = six.moves.urllib.request.urlopen(
                 request, timeout=h.http_request_timeout()).read()
             return simplejson.loads(response).get('response', {})
         except Exception:
