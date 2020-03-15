@@ -7,12 +7,14 @@ $ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), 
 <div id="scrollHere"></div>
 
 <div class="page-heading-search-box">
-    <h1 class="inline">
-        $page.name
-    </h1>
+    
+        <!-- $page.name -->
+    
     <span class="heading">
         <span class="count" id="coversCount">
+          <h2 class="inline">
             <strong><span>$ungettext("1 work on the subject: "+page.name, "%(count)s works on the subject: "+page.name, page.work_count, count=commify(page.work_count))</span></strong>
+          </h2>
         </span>
     </span>
     <a href="#search" class="shift">$_('Search for books with subject %(name)s.', name=page.name)</a>
