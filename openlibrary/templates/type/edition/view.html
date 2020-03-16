@@ -2,8 +2,10 @@ $def with (page, show_other_editions=False)
 
 $ work = page.works and page.works[0] or None
 $ ocaid = page.get('ocaid')
+$ bad_chars = ["'", "^", "\\", "\"", "<", ">"]
 $ book_title = page.get('title', '') if page.title else (work.title if work else '')
 $ work_title = work.title if work else page.get('title', '')
+$ work_title = ''.join(i for i in work_title if not i in bad_chars)
 $ book_subtitle = page.subtitle if page.get('subtitle') else (work.subtitle if work and work.get('subtitle') else '')
 $ title_suffix = cond(page.publish_date, u"({0} edition)".format(page.publish_date), "(edition)")
 $ title = book_title + " " + title_suffix
@@ -141,6 +143,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
     <div class="navEdition sansserif">
         $ edition_count = work.edition_count if work and work.edition_count else 1
         $ url = work.url() if work else ''
+        $ url = ''.join(i for i in url if not i in bad_chars)
         $:ungettext('<a href="%(url)s"><strong>1 edition</strong></a> of <strong class="booktitle">%(title)s</strong> found in the catalog.','<a href="%(url)s"><strong>%(count)d editions</strong></a> of <strong class="booktitle">%(title)s</strong> found in the catalog.', edition_count, url=url,count=edition_count, title=truncate(work_title, 60))
         $if work:
             <span><a href="/books/add?work=$work.key" title="$_('Add another edition of') $book_title">$_("Add another edition")</a>?</span>
