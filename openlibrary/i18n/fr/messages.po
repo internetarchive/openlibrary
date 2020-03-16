@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-03-13 21:21-0400\n"
+"POT-Creation-Date: 2020-03-15 22:35-0400\n"
 "PO-Revision-Date: 2020-01-18 20:35-0500\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
@@ -1762,32 +1762,31 @@ msgstr "En dire un peu plus?"
 
 #: edit.html:69
 msgid ""
-"<p class=\"alert thanks\">Thank you for adding that book! Any more "
-"information you could provide would be wonderful!</p>"
+"Thank you for adding that book! Any more information you could provide "
+"would be wonderful!"
 msgstr ""
-"<p class=\"alert thanks\">Merci d'avoir ajouté ce livre&nsbp;! Ce serait "
-"formidable si vous pouviez fournir plus d'informations!</p>"
+"Merci d'avoir ajouté ce livre&nsbp;! Ce serait formidable "
+"si vous pouviez fournir plus d'informations !"
 
 #: edit.html:72
 #, python-format
 msgid ""
-"<p class=\"alert thanks\">We already know about <b>%(work_title)s</b>, "
-"but not the <b>%(year)s %(publisher)s edition</b>. Thanks! Do you know "
-"any more about this edition?</p>"
+"We already know about <b>%(work_title)s</b>, but not the <b>%(year)s "
+"%(publisher)s edition</b>. Thanks! Do you know any more about this "
+"edition?"
 msgstr ""
-"<p class=\"alert thanks\">Nous connaissons déjà <b>%(work_title)s</b>, "
-"mais pas l'<b>édition %(year)s %(publisher)s</b>. Merci! Que connaissez-"
-"vous de plus sur cette édition?</p>"
+"Nous connaissons déjà <b>%(work_title)s</b>, mais pas "
+"l'<b>édition %(year)s %(publisher)s</b>. Merci! "
+"Que connaissez-vous de plus sur cette édition ?"
 
 #: edit.html:75
 #, python-format
 msgid ""
-"<p class=\"alert info\">We already know about the <b>%(year)s "
-"%(publisher)s edition</b> of <b>%(work_title)s</b>, but please, tell us "
-"more!</p>"
+"We already know about the <b>%(year)s %(publisher)s edition</b> of "
+"<b>%(work_title)s</b>, but please, tell us more!"
 msgstr ""
-"<p class=\"alert info\">Nous connaissons déjà l'<b>édition %(year)s "
-"%(publisher)s</b> de <b>%(work_title)s</b> mais dites-nous en plus!</p>"
+"Nous connaissons déjà l'<b>édition %(year)s %(publisher)s</b> de "
+"<b>%(work_title)s</b>, mais dites-nous en plus !"
 
 #: edit.html:77
 msgid "Editing..."
@@ -4985,25 +4984,7 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ msgid "Only letters and numbers, please, and at least 3 characters."
 #~ msgstr "Uniquement des lettres et des chiffres, et au moins 3 caractères."
 
-#~ msgid ""
-#~ "Your URL: https://openlibrary.org/people/<span "
-#~ "id=\"userUrl\">screenname</span>"
-#~ msgstr ""
-#~ "Votre URL: https://openlibrary.org/people/<span "
-#~ "id=\"userUrl\">screenname</span>"
-
-#~ msgid ""
-#~ "There's no description for this book "
-#~ "yet. Can you <b><a href='%s'>add "
-#~ "one</a></b>?"
-#~ msgstr ""
-#~ "Il n'y a pas encore de description"
-#~ " pour ce livre. Pouvez-vous <b><a "
-#~ "href='%s'> en ajouter un?</a></b>"
-
-#~ msgid "Add another edition of"
-#~ msgstr "Ajouter un autre édition de "
-
 #~ msgid "Add another edition of %(worktitle)s"
 #~ msgstr "Ajoutez une autre édition de %(worktitle)s"
+
 

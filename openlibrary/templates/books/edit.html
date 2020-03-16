@@ -62,13 +62,13 @@ window.q.push( function(){
         mode = find_mode()
         if mode == "new_work":
             title = _("Add a little more?")
-            note = _('<p class="alert thanks">Thank you for adding that book! Any more information you could provide would be wonderful!</p>')
+            note = "<p class="alert thanks">" + _("Thank you for adding that book! Any more information you could provide would be wonderful!") + "</p>"
         elif mode == "new_edition":
             title = _("Add a little more?")
-            note = _('<p class="alert thanks">We already know about <b>%(work_title)s</b>, but not the <b>%(year)s %(publisher)s edition</b>. Thanks! Do you know any more about this edition?</p>', work_title=work.title, year=edition.publish_date, publisher="; ".join(edition.publishers))
+            note = "<p class="alert thanks">" + _("We already know about <b>%(work_title)s</b>, but not the <b>%(year)s %(publisher)s edition</b>. Thanks! Do you know any more about this edition?", work_title=work.title, year=edition.publish_date, publisher="; ".join(edition.publishers)) + "</p>"
         elif mode == "existing_record":
             title = _("Add a little more?")
-            note = _('<p class="alert info">We already know about the <b>%(year)s %(publisher)s edition</b> of <b>%(work_title)s</b>, but please, tell us more!</p>', year=edition.publish_date, publisher="; ".join(edition.publishers), work_title=work.title)
+            note = "<p class="alert info">" + _("We already know about the <b>%(year)s %(publisher)s edition</b> of <b>%(work_title)s</b>, but please, tell us more!", year=edition.publish_date, publisher="; ".join(edition.publishers), work_title=work.title) + "</p>"
         else:
             title = _("Editing...")
             note = ""

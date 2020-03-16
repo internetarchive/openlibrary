@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-03-13 21:21-0400\n"
+"POT-Creation-Date: 2020-03-15 22:35-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1644,24 +1644,23 @@ msgstr ""
 
 #: edit.html:69
 msgid ""
-"<p class=\"alert thanks\">Thank you for adding that book! Any more "
-"information you could provide would be wonderful!</p>"
+"Thank you for adding that book! Any more information you could provide "
+"would be wonderful!"
 msgstr ""
 
 #: edit.html:72
 #, python-format
 msgid ""
-"<p class=\"alert thanks\">We already know about <b>%(work_title)s</b>, "
-"but not the <b>%(year)s %(publisher)s edition</b>. Thanks! Do you know "
-"any more about this edition?</p>"
+"We already know about <b>%(work_title)s</b>, but not the <b>%(year)s "
+"%(publisher)s edition</b>. Thanks! Do you know any more about this "
+"edition?"
 msgstr ""
 
 #: edit.html:75
 #, python-format
 msgid ""
-"<p class=\"alert info\">We already know about the <b>%(year)s "
-"%(publisher)s edition</b> of <b>%(work_title)s</b>, but please, tell us "
-"more!</p>"
+"We already know about the <b>%(year)s %(publisher)s edition</b> of "
+"<b>%(work_title)s</b>, but please, tell us more!"
 msgstr ""
 
 #: edit.html:77
