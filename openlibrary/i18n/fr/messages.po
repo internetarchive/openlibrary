@@ -642,15 +642,15 @@ msgstr "par %(name)s"
 #, python-format
 msgid "- 1 edition"
 msgid_plural "- %(count)s editions"
-msgstr[0] "1 édition"
-msgstr[1] "%(count)s éditions"
+msgstr[0] "- 1 édition"
+msgstr[1] "- %(count)s éditions"
 
 #: embed.html:115 view.html:224
 #, python-format
 msgid "- 1 work"
 msgid_plural "- %(count)s works"
-msgstr[0] "1 œuvre"
-msgstr[1] "%(count)s œuvres"
+msgstr[0] "- 1 œuvre"
+msgstr[1] "- %(count)s œuvres"
 
 #: exports.html:30
 msgid "Export"
@@ -659,7 +659,7 @@ msgstr "Exporter"
 #: exports.html:31
 #, python-format
 msgid "as %(json_link)s, %(html_link)s, or %(bibtex_link)s"
-msgstr "au format %(json_link)s, %(html_link)s, ou %(bibtex_link)s"
+msgstr "au format %(json_link)s, %(html_link)s ou %(bibtex_link)s"
 
 #: exports.html:35 exports.html:55
 msgid "Subscribe"
@@ -678,7 +678,7 @@ msgstr "Exportation non disponible"
 #, python-format
 msgid ""
 "Only lists with up to %(max)s editions can be exported. This one has "
-"%s(count)."
+"%(count)s."
 msgstr ""
 "Seules les listes contenant jusqu'à %(max) éditions peuvent être "
 "exportées. Celui-ci a %(count)s."
@@ -695,12 +695,12 @@ msgstr ""
 #: view.html:8
 #, python-format
 msgid "%(name)s | Lists | Open Library"
-msgstr "%(name)s | Open Library"
+msgstr "%(name)s | Listes | Open Library"
 
 #: view.html:14
 #, python-format
 msgid "%(title)s: %(description)s"
-msgstr "%(title)s: %(description)s"
+msgstr "%(title)s : %(description)s"
 
 #: view.html:21
 msgid "View the list on Open Library."
@@ -732,7 +732,7 @@ msgid ""
 "whole list. Are you sure you want to continue?"
 msgstr ""
 "Vous êtes sur le point de supprimer le dernier élément de la liste. Cela "
-"supprimera toute la liste. Es-tu sur de vouloir continuer?"
+"supprimera toute la liste. Êtes-vous sûr de vouloir continuer?"
 
 #: view.html:220
 #, python-format
@@ -4707,4 +4707,3 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 
 #~ msgid "Only letters and numbers, please, and at least 3 characters."
 #~ msgstr "Uniquement des lettres et des chiffres, et au moins 3 caractères."
-
