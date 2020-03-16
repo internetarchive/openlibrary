@@ -98,7 +98,7 @@ window.q.push(function(){
         modal: true,
         resizable: false,
         buttons: {
-            $_("Yes, I'm sure"): function() {
+            "$_('Yes, I\'m sure')": function() {
                 var list_key = $:json_encode(list.key);
                 var seed_id = "#" + \$(this).data("seed-id");
                 var seed = \$(seed_id).find("span.seed-key").html();
@@ -116,7 +116,7 @@ window.q.push(function(){
                     \$("#remove-seed-dialog").addClass('hidden');
                 });
             },
-            $_('No, cancel'): function() {
+            "$_('No, cancel')": function() {
                 \$(this).dialog("close");
                 \$("#remove-seed-dialog").addClass('hidden');
             }
@@ -129,7 +129,7 @@ window.q.push(function(){
         modal: true,
         resizable: false,
         buttons: {
-            $_("Yes, I'm sure"): function() {
+            "$_('Yes, I\'m sure')": function() {
                 var list_key = $:json_encode(list.key);
                 var _this = this;
 
@@ -138,7 +138,7 @@ window.q.push(function(){
                     window.location.reload();
                 });
             },
-            $_('No, cancel'): function() {
+            "$_('No, cancel')": function() {
                 \$(this).dialog("close");
             }
         }
