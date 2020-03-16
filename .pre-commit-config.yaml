@@ -1,0 +1,14 @@
+default_language_version:
+  python: python3.8
+repos:
+  - repo: local
+    hooks:
+      - id: make-lint-diff
+        name: make lint-diff
+        entry: /usr/bin/make lint-diff
+        language: script
+      # The following hook works but takes several seconds...
+      #- id: make-lint
+      #  name: make lint
+      #  entry: /usr/bin/make lint
+      #  language: script
