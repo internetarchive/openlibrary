@@ -327,7 +327,7 @@ class SolrProcessor:
                         v = v.strip()
                         if v not in identifiers[k]:
                             identifiers[k].append(v)
-        return sorted(editions, key=lambda e: int(e.get('pub_year', 0)) or -sys.maxsize)
+        return sorted(editions, key=lambda e: int(e.get('pub_year') or -sys.maxsize))
 
     def get_author(self, a):
         """
