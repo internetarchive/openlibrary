@@ -1,4 +1,3 @@
-import web
 from openlibrary.core import helpers as h
 
 def test_sanitize():

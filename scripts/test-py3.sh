@@ -1,6 +1,7 @@
 #!/bin/sh
 
 pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests \
+    openlibrary/catalog/add_book/tests/test_add_book.py \
     openlibrary/coverstore/tests/test_code.py \
     openlibrary/coverstore/tests/test_webapp.py \
     openlibrary/plugins/admin/tests/test_services.py \
@@ -10,6 +11,7 @@ pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests \
     openlibrary/plugins/importapi/tests/test_import_edition_builder.py \
     openlibrary/plugins/openlibrary/tests/test_borrow_home.py \
     openlibrary/plugins/openlibrary/tests/test_lists.py \
+    openlibrary/plugins/openlibrary/tests/test_stats.py \
     openlibrary/plugins/upstream/tests/test_account.py \
     openlibrary/plugins/upstream/tests/test_addbook.py \
     openlibrary/plugins/upstream/tests/test_forms.py \
@@ -17,9 +19,19 @@ pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests \
     openlibrary/plugins/upstream/tests/test_related_carousels.py \
     openlibrary/plugins/upstream/tests/test_utils.py \
     openlibrary/plugins/worksearch/tests/test_worksearch.py \
+    openlibrary/catalog/add_book/tests/test_load_book.py \
+    openlibrary/catalog/add_book/tests/test_match.py \
+    openlibrary/catalog/marc/tests/test_marc_binary.py \
+    openlibrary/catalog/marc/tests/test_marc_html.py \
+    openlibrary/catalog/merge/test_amazon.py \
+    openlibrary/catalog/merge/test_merge.py \
+    openlibrary/catalog/merge/test_merge_marc.py \
+    openlibrary/catalog/merge/test_names.py \
+    openlibrary/catalog/merge/test_normalize.py \
     openlibrary/tests/core/test_cache.py \
     openlibrary/tests/core/test_connections.py \
     openlibrary/tests/core/test_helpers.py \
+    openlibrary/tests/core/test_ia.py \
     openlibrary/tests/core/test_i18n.py \
     openlibrary/tests/core/test_init.py \
     openlibrary/tests/core/test_lending.py \
@@ -32,37 +44,27 @@ pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests \
     openlibrary/tests/core/test_sponsors.py \
     openlibrary/tests/core/test_vendors.py \
     openlibrary/tests/core/test_waitinglist.py
-    # Remove catalog tests as discussed in #3150
-    # openlibrary/catalog/marc/tests/test_marc_binary.py \
-    # openlibrary/catalog/marc/tests/test_marc_html.py \
-    # openlibrary/catalog/merge/test_amazon.py \
-    # openlibrary/catalog/merge/test_merge.py \
-    # openlibrary/catalog/merge/test_merge_marc.py \
-    # openlibrary/catalog/merge/test_names.py \
-    # openlibrary/catalog/merge/test_normalize.py \
 
 # The following sections allow us to quickly spot tests that are fixed
 
 # catalog: All failing tests run in allow failures (|| true) mode
-# Remove catalog tests as discussed in #3150
-# pytest openlibrary/catalog/add_book/test_add_book.py \
-#   openlibrary/catalog/add_book/test_load_book.py \
-#   openlibrary/catalog/add_book/test_merge.py \
-#   openlibrary/catalog/marc/tests/test_marc.py \
-#   openlibrary/catalog/marc/tests/test_parse.py \
-#   openlibrary/tests/catalog/test_get_ia.py \
-#   openlibrary/tests/catalog/test_utils.py || true
+pytest \
+    openlibrary/catalog/marc/tests/test_get_subjects.py \
+    openlibrary/catalog/marc/tests/test_marc.py \
+    openlibrary/catalog/marc/tests/test_parse.py \
+    openlibrary/tests/catalog/test_get_ia.py \
+    openlibrary/tests/catalog/test_utils.py || true
 
 # coverstore: All failing tests run in allow failures (|| true) mode
-pytest openlibrary/coverstore/tests/test_coverstore.py \
+pytest \
+    openlibrary/coverstore/tests/test_coverstore.py \
     openlibrary/coverstore/tests/test_doctests.py || true
 
 # plugins: All failing tests run in allow failures (|| true) mode
 pytest \
-    openlibrary/plugins/openlibrary/tests/test_home.py \
-    openlibrary/plugins/openlibrary/tests/test_stats.py || true
+    openlibrary/plugins/openlibrary/tests/test_home.py || true
 
 # openlibrary/tests: All failing tests run in allow failures (|| true) mode
-pytest openlibrary/tests/accounts/test_models.py \
-    openlibrary/tests/core/test_ia.py \
+pytest \
+    openlibrary/tests/accounts/test_models.py \
     openlibrary/tests/solr/test_update_work.py || true

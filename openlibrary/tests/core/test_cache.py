@@ -1,5 +1,4 @@
 import time
-import simplejson
 
 from openlibrary.core import cache
 from openlibrary.mocks import mock_memcache

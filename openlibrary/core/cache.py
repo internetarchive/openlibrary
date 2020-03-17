@@ -67,8 +67,12 @@ class memcache_memoize:
                 self._memcache = memcache.Client(servers)
             else:
                 web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
-                import mockcache
-                self._memcache = mockcache.Client()
+                try:
+                    import mockcache  # Only supports legacy Python
+                    self._memcache = mockcache.Client()
+                except ImportError:  # Python 3
+                    from pymemcache.test.utils import MockMemcacheClient
+                    self._memcache = MockMemcacheClient()
 
         return self._memcache
 

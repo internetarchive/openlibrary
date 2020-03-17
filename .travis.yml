@@ -12,12 +12,12 @@ jobs:
       python: "3.8"
       before_script: true  # override npm install below
       script:
-        - source scripts/test-py3.sh
         # On pull requests, run all flake8 tests on modified code
         # if clause avoids `fatal: ambiguous argument 'origin/master'` on git push
         - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]; then
-            git diff origin/master -U0 | flake8 --diff --max-line-length=88;
+            make lint-diff;
           fi
+        - source scripts/test-py3.sh
     - name: “Python 3.8 on bionic”
       python: "3.8"
   allow_failures:

@@ -324,6 +324,8 @@ class sponsorship_eligibility_check(delegate.page):
             else models.Edition.from_isbn(_id)
             
         )
+        if not edition:
+            return simplejson.dumps({"status": "error", "reason": "Invalid ISBN 13"})
         return simplejson.dumps(qualifies_for_sponsorship(edition))
 
 

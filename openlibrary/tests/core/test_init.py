@@ -1,5 +1,3 @@
-import tempfile
-
 from openlibrary.core.init import Init
 
 class TestService:
