@@ -1,6 +1,7 @@
 #!/bin/sh
 
 pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests \
+    openlibrary/catalog/add_book/tests/test_add_book.py \
     openlibrary/coverstore/tests/test_code.py \
     openlibrary/coverstore/tests/test_webapp.py \
     openlibrary/plugins/admin/tests/test_services.py \
@@ -43,8 +44,7 @@ pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests \
 # The following sections allow us to quickly spot tests that are fixed
 
 # catalog: All failing tests run in allow failures (|| true) mode
-pytest openlibrary/catalog/add_book/tests/test_add_book.py \
-    openlibrary/catalog/marc/tests/test_get_subjects.py \
+pytest openlibrary/catalog/marc/tests/test_get_subjects.py \
     openlibrary/catalog/marc/tests/test_marc.py \
     openlibrary/catalog/marc/tests/test_parse.py \
     openlibrary/tests/catalog/test_get_ia.py \

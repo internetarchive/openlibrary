@@ -383,14 +383,14 @@ class Test_From_MARC:
         assert edition['pagination'] == 'viii, 264 p.'
         # 8 subjects, 650
         assert len(edition['subjects']) == 8
-        assert edition['subjects'] == [u'Action and adventure films',
-                                       u'Miscellanea',
-                                       u'Physics',
-                                       u'Cinematography',
-                                       u'Special effects',
-                                       u'Physics in motion pictures',
-                                       u'Science fiction films',
-                                       u'Popular works']
+        assert sorted(edition['subjects']) == [u'Action and adventure films',
+                                               u'Cinematography',
+                                               u'Miscellanea',
+                                               u'Physics',
+                                               u'Physics in motion pictures',
+                                               u'Popular works',
+                                               u'Science fiction films',
+                                               u'Special effects']
         # Edition description from 520
         desc = ('Explains the basic laws of physics, covering such topics '
                 'as mechanics, forces, and energy, while deconstructing '
