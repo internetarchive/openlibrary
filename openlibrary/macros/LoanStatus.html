@@ -77,16 +77,16 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
     $ isbn = (page.isbn_13 and page.isbn_13[0] or page.isbn_10 and page.isbn_10[0])
     <a href="$(sponsorship['sponsor_url'])"
        class="cta-btn cta-btn--sponsor"
-       data-ol-link-track="book-sponsorship">Sponsor eBook</a>
+       data-ol-link-track="CTAClick|Sponsor">Sponsor eBook</a>
     <p>
       We don’t have this book yet. You can add it to our Lending
       Library with a $sponsorship['price']['total_price_display'] tax deductible donation.
       <a href="/sponsorship" target="_blank">Learn More</a>
     </p>
   $else:
-    <a href="$work.key" class="cta-btn cta-btn--missing">$_('Not in Library')</a>
+    <a href="$work.key" class="cta-btn cta-btn--missing" data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
 
-$if ocaid and page.is_access_restricted() and availability_status.startswith('borrow') and editions_page:
+$if ocaid and page.is_access_restricted() and editions_page:
   $:macros.BookPreview(ocaid, render_preview_floater)
 
 $if ocaid and page.is_access_restricted():

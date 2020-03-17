@@ -26,22 +26,22 @@ $ book_title = item.get('title', '')
       $if book_status == "open" :
         $ public_url = canonical_url("/books/" + item["availability"]["openlibrary_edition"] + "/x/borrow")
         <div class="cta open" type="submit">
-          <a data-ol-link-track="embed|read"  target="_blank" href="$public_url" title="Read &quot;$book_title&quot;">Read</a>
+          <a data-ol-link-track="Embed|Read"  target="_blank" href="$public_url" title="Read &quot;$book_title&quot;">Read</a>
 	</div>
       $elif book_status == "borrow_available" :
         $ borrow_url = canonical_url("/borrow/ia/" + item["availability"]["identifier"])
         <div class="cta available" type="submit">
-          <a data-ol-link-track="embed|borrow" target="_blank" href="$borrow_url" title="Borrow &quot;$book_title&quot;">Borrow</a>
+          <a data-ol-link-track="Embed|Borrow" target="_blank" href="$borrow_url" title="Borrow &quot;$book_title&quot;">Borrow</a>
 	</div>
       $elif book_status == "borrow_unavailable":
         $ waitlist_url = canonical_url("/borrow/ia/" + item["availability"]["identifier"] + "?action=join-waitinglist")
         <form class="cta waitlist" method="POST" action="$waitlist_url" target="_blank">
           <input type="hidden" name="action" value="join-waitinglist">
-          <button data-ol-link-track="embed|waitlist" type="submit" title="Join waitlist for &quot;$book_title&quot;">Join Waitlist</button>
+          <button data-ol-link-track="Embed|JoinWaitlist" type="submit" title="Join waitlist for &quot;$book_title&quot;">Join Waitlist</button>
         </form>
       $else:
         <div class="cta open">
-          <a data-ol-link-track="embed|learn" target="_blank" href="$(canonical_url(item['key']))" title="Learn more about &quot;$book_title&quot; at OpenLibrary">Learn More</a>
+          <a data-ol-link-track="Embed|Learn" target="_blank" href="$(canonical_url(item['key']))" title="Learn more about &quot;$book_title&quot; at OpenLibrary">Learn More</a>
 	</div>
       <p class="service">on <a target="_blank" href="$(canonical_url('/'))">openlibrary.org</a></p>
     </div>

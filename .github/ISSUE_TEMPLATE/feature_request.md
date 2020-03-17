@@ -2,7 +2,7 @@
 name: Feature request
 about: Suggest an idea for this project
 title: ''
-labels: "Type: Feature, State: Backlogged, Needs: Triage"
+labels: "Type: Feature, Needs: Triage"
 assignees: ''
 ---
 
