@@ -7,7 +7,7 @@ $def breadcrumbs():
     $ d = dict(recentchanges=_("Recent Changes"))
     $ p = ""
     $for k in path.split("/"):
-        $ label = d.get(k, k);
+        $ label = d.get(k, k)
         $if loop.last:
             $label <br><br>
         $else:
