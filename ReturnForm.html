@@ -1,0 +1,15 @@
+$def with (loan)
+
+$# "do_return" is a fake "title" for the book that can be used for stats
+$ return_url = loan['book'] + '/do_return/borrow'
+
+<style type="text/css">
+form.returnbook {
+    position: relative;
+    left: 3em;
+}
+</style>
+<form class="returnbook" action="$return_url" method="post">
+<input type="submit" value="Return book" />
+<input type="hidden" name="action" value="return" />
+</form>
