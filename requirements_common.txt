@@ -7,7 +7,8 @@ Genshi==0.7.1
 gunicorn==19.9.0
 internetarchive==1.8.5
 lxml==4.4.1
-Pillow==7.0.0
+Pillow==6.2.2; python_version < '3.0'
+Pillow==7.0.0; python_version >= '3.0'
 pymarc==3.2.0; python_version < '3.6'
 pymarc==4.0.0; python_version >= '3.6'
 python-memcached==1.59
