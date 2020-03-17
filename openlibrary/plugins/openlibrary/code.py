@@ -7,6 +7,7 @@ from __future__ import print_function
 import web
 import simplejson
 import os
+import sys
 import socket
 import random
 import datetime
@@ -244,6 +245,7 @@ class addauthor(delegate.page):
 
 class clonebook(delegate.page):
     def GET(self):
+        from infogami.core.code import edit
         i = web.input('key')
         page = web.ctx.site.get(i.key)
         if page is None:
@@ -862,6 +864,7 @@ def setup():
     merge_editions.setup()
     authors.setup()
 
+    from openlibrary.plugins.openlibrary import api
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))
 
     if infogami.config.get('dev_instance') is True:
