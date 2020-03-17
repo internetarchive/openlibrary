@@ -28,6 +28,7 @@ pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests \
     openlibrary/tests/core/test_cache.py \
     openlibrary/tests/core/test_connections.py \
     openlibrary/tests/core/test_helpers.py \
+    openlibrary/tests/core/test_ia.py \
     openlibrary/tests/core/test_i18n.py \
     openlibrary/tests/core/test_init.py \
     openlibrary/tests/core/test_lending.py \
@@ -62,5 +63,4 @@ pytest openlibrary/plugins/books/tests/test_dynlinks.py \
 
 # openlibrary/tests: All failing tests run in allow failures (|| true) mode
 pytest openlibrary/tests/accounts/test_models.py \
-    openlibrary/tests/core/test_ia.py \
     openlibrary/tests/solr/test_update_work.py || true
