@@ -18,7 +18,6 @@ import web
 import simplejson
 import logging
 
-from infogami import config
 from openlibrary.solr.solrwriter import SolrWriter
 from ..core import ia, helpers as h
 from ..core.ia import get_ia_db

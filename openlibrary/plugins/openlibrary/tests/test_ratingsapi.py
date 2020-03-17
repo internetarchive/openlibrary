@@ -1,11 +1,8 @@
-from py.test import config
-import web
 import simplejson
 
 import cookielib
 from six.moves import urllib
 
-from openlibrary.plugins.openlibrary.api import ratings
 from openlibrary import accounts
 from openlibrary.core import models
 

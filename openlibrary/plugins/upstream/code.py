@@ -8,20 +8,14 @@ import datetime
 
 from infogami import config
 from infogami.infobase import client
-from infogami.utils import delegate, app, types
+from infogami.utils import delegate
 from infogami.utils.view import public, safeint, render
-from infogami.utils.context import context
 
-from utils import render_template
-
-from openlibrary import accounts
 
 import utils
 import addbook
 import models
 import covers
-import borrow
-import recentchanges
 import merge_authors
 
 

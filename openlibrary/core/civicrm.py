@@ -1,7 +1,6 @@
 import json
 import requests
 
-from infogami import config
 from openlibrary.core import lending 
 
 CIVI_ISBN = 'custom_52'

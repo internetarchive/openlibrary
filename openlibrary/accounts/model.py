@@ -631,7 +631,6 @@ def audit_accounts(email, password, require_link=False,
         test (bool) - not currently used; is there to allow testing in
                       the absence of archive.org dependency
     """
-    from openlibrary.core import lending
 
     if s3_access_key and s3_secret_key:
         r = InternetArchiveAccount.s3auth(s3_access_key, s3_secret_key)

@@ -11,10 +11,7 @@
 """
 
 import pytest
-from openlibrary.catalog.merge.amazon import (
-        attempt_merge,
-        compare_authors, compare_publisher,
-        full_title, build_titles, compare_title)
+from openlibrary.catalog.merge.amazon import attempt_merge
 
 pytestmark = pytest.mark.skip('Skip Legacy Amazon record matching tests.')
 

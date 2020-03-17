@@ -1,8 +1,6 @@
 from __future__ import print_function
 import web
-import pdb
 
-from infogami import utils
 from infogami.utils import delegate
 from infogami.infobase.client import Thing
 from infogami.utils import view, template
@@ -13,8 +11,6 @@ import re
 import web
 import time
 import simplejson
-from functools import partial
-from gzip import open as gzopen
 from collections import defaultdict
 
 import six

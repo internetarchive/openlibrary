@@ -19,7 +19,6 @@ from openlibrary.core import lending
 
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.upstream.utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
-from openlibrary.plugins.upstream import account
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
 

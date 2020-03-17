@@ -1,5 +1,4 @@
 from .. import account
-import web
 import re
 import pytest
 

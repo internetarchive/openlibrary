@@ -1,14 +1,12 @@
 """Utility to move files from local disk to tar files and update the paths in the db.
 """
 from __future__ import print_function
-import sys
 import tarfile
 import web
 import os
 import time
 
 from openlibrary.coverstore import config, db
-from openlibrary.coverstore.coverlib import find_image_path
 
 import six
 

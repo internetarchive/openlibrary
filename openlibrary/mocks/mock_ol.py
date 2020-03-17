@@ -1,9 +1,7 @@
-import os
 import pytest
 import re
 import web
 from infogami import config
-from infogami.infobase import client
 from infogami.utils import delegate
 try:  # newer versions of web.py
     from web.browser import AppBrowser

@@ -2,7 +2,6 @@
 """
 import simplejson
 import web
-import re
 
 from infogami.infobase import client
 
@@ -11,14 +10,13 @@ from openlibrary.core import helpers as h
 #TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 
-from openlibrary.core.lists.model import ListMixin, Seed
+from openlibrary.core.lists.model import ListMixin
 from . import cache, waitinglist
 
 from six.moves import urllib

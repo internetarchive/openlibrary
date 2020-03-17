@@ -5,14 +5,12 @@ import sys
 import web
 import sys
 import codecs
-from catalog.utils.query import query_iter, set_staging, withKey
+from catalog.utils.query import query_iter
 
-from catalog.merge.merge_marc import *
-from catalog.utils.query import get_mc, withKey
+from catalog.utils.query import get_mc
 import catalog.merge.amazon as merge_amazon
 import catalog.merge.merge_marc as merge_marc
 from catalog.merge.merge_bot.merge import amazon_and_marc, get_record
-from pprint import pformat
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 #set_staging(True)

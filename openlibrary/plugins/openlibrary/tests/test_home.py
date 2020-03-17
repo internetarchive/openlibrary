@@ -1,17 +1,11 @@
 import datetime
-import pytest
-import sys
 import web
 
-from infogami.utils.view import render_template
-from infogami.utils import template, context
-from openlibrary.i18n import gettext
 from openlibrary.core.admin import Stats
 from bs4 import BeautifulSoup
 
 import six
 
-from openlibrary import core
 from openlibrary.plugins.openlibrary import home
 
 class MockDoc(dict):

@@ -1,15 +1,12 @@
 """Plugin to provide admin interface.
 """
 import os
-import sys
 import web
 import subprocess
 import datetime
 import traceback
 import logging
 import simplejson
-import yaml
-from copy import copy
 
 from infogami import config
 from infogami.utils import delegate
@@ -24,11 +21,10 @@ import openlibrary
 
 from openlibrary import accounts
 
-from openlibrary.core import lending, admin as admin_stats, helpers as h, imports, cache
+from openlibrary.core import admin as admin_stats, helpers as h, imports, cache
 from openlibrary.core.waitinglist import Stats as WLStats
 from openlibrary.plugins.upstream import forms, spamcheck
 from openlibrary.plugins.upstream.account import send_forgot_password_email
-from openlibrary.plugins.admin import services
 
 
 logger = logging.getLogger("openlibrary.admin")

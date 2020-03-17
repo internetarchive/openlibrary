@@ -1,5 +1,4 @@
 import datetime
-from openlibrary.mocks.mock_infobase import MockSite
 
 
 class TestMockSite:

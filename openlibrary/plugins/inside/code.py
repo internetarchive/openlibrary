@@ -1,8 +1,5 @@
-import logging
-import re
 from time import time
 
-import simplejson
 import web
 
 from infogami.utils import delegate

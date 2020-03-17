@@ -3,7 +3,6 @@
 
 from __future__ import print_function
 import re
-import anydbm
 from time import time
 from collections import defaultdict
 

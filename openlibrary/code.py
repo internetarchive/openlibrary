@@ -32,9 +32,6 @@ def setup():
 
     load_views()
 
-    # load actions
-    from . import actions
-
     logger.info("loading complete.")
 
 def setup_logging():

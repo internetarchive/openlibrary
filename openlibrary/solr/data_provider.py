@@ -6,7 +6,6 @@ data required for solr.
 Multiple data providers are supported, each is good for different use case.
 """
 import web
-import simplejson
 import logging
 from openlibrary.core import ia
 
@@ -101,7 +100,7 @@ class BetterDataProvider(LegacyDataProvider):
         infogami._setup()
         delegate.fakeload()
 
-        from openlibrary.solr.process_stats import get_ia_db, get_db
+        from openlibrary.solr.process_stats import get_db
         self.db = get_db()
         #self.ia_db = get_ia_db()
         self.ia_db = ia_database

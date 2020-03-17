@@ -8,7 +8,6 @@ import re
 import random
 import xml.etree.ElementTree as etree
 import datetime
-import gzip
 import logging
 
 import six
@@ -25,7 +24,7 @@ from infogami.infobase.client import Thing, Changeset, storify
 
 from openlibrary.core.helpers import commify, parse_datetime
 from openlibrary.core.middleware import GZipMiddleware
-from openlibrary.core import cache, ab
+from openlibrary.core import cache
 
 class MultiDict(MutableMapping):
     """Ordered Dictionary that can store multiple values.

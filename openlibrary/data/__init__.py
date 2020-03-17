@@ -1,7 +1,6 @@
 """Library for managing Open Library data"""
 
 import simplejson
-import re
 
 from dump import pgdecode
 

@@ -4,7 +4,6 @@ import simplejson
 import traceback
 import web
 
-from infogami.utils import delegate
 from infogami import config
 
 from openlibrary.utils import solr

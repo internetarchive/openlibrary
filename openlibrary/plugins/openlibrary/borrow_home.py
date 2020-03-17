@@ -2,12 +2,10 @@
 """
 import simplejson
 import web
-import random
 import datetime
 
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
-from infogami.utils.view import render_template
 
 from openlibrary.core import helpers as h
 from openlibrary.plugins.worksearch.subjects import SubjectEngine

@@ -1,10 +1,5 @@
 import web
-import hmac
 import logging
-import random
-import uuid
-import datetime
-import time
 import simplejson
 
 from infogami.utils import delegate
@@ -14,23 +9,20 @@ from infogami.utils.view import (
 )
 
 from infogami.infobase.client import ClientException
-from infogami.utils.context import context
-import infogami.core.code as core
 
 from openlibrary import accounts
 from openlibrary.i18n import gettext as _
-from openlibrary.core import helpers as h, lending
+from openlibrary.core import helpers as lending
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
-    audit_accounts, Account, OpenLibraryAccount, InternetArchiveAccount, valid_email)
+    audit_accounts, OpenLibraryAccount, InternetArchiveAccount, valid_email)
 from openlibrary.core.sponsorships import get_sponsored_editions
 
 from openlibrary.plugins.upstream import borrow, forms, utils
 
 from six.moves import range
-from six.moves import urllib
 
 
 logger = logging.getLogger("openlibrary.account")
@@ -269,7 +261,6 @@ class account_login_json(delegate.page):
         payload is json. Instead, if login attempted w/ json
         credentials, requires Archive.org s3 keys.
         """
-        from openlibrary.plugins.openlibrary.code import BadRequest
         d = simplejson.loads(web.data())
         access = d.get('access', None)
         secret = d.get('secret', None)

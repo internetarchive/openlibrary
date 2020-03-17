@@ -24,7 +24,6 @@ from __future__ import print_function
 from openlibrary.utils import olmemcache
 import simplejson
 import web
-import os
 import datetime
 import sys
 import time

@@ -1,5 +1,3 @@
-import web
-
 import socket
 import datetime
 import subprocess

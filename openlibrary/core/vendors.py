@@ -11,7 +11,7 @@ from paapi5_python_sdk.get_items_resource import GetItemsResource
 from paapi5_python_sdk.partner_type import PartnerType
 
 from infogami.utils.view import public
-from openlibrary.core import lending, cache, helpers as h
+from openlibrary.core import cache, helpers as h
 from openlibrary.utils import dateutil
 from openlibrary.utils.isbn import (
     normalize_isbn, isbn_13_to_isbn_10, isbn_10_to_isbn_13)

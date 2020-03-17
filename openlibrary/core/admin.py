@@ -4,8 +4,6 @@
 import calendar
 import datetime
 import web
-from infogami import config
-from infogami.utils import stats
 
 from openlibrary.core import cache
 

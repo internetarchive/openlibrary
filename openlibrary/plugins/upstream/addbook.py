@@ -2,7 +2,6 @@
 
 import web
 import simplejson
-from collections import defaultdict
 from six import StringIO
 import csv
 import datetime
@@ -14,10 +13,8 @@ from infogami.utils import delegate
 from infogami.utils.view import safeint, add_flash_message
 from infogami.infobase.client import ClientException
 
-from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.utils import is_author_olid, is_work_olid
 from openlibrary.utils.solr import Solr
-from openlibrary.i18n import gettext as _
 from openlibrary import accounts
 import logging
 
@@ -28,7 +25,6 @@ from openlibrary.plugins.upstream.account import as_admin
 from openlibrary.plugins.recaptcha import recaptcha
 
 import six
-from six.moves import urllib
 
 
 logger = logging.getLogger("openlibrary.book")

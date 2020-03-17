@@ -11,7 +11,6 @@ import six
 
 from openlibrary.core import formats, cache
 import openlibrary.core.helpers as h
-from openlibrary.utils import dateutil
 from openlibrary.plugins.worksearch import subjects
 
 

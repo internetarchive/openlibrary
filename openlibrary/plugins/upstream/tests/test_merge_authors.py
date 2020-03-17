@@ -1,7 +1,6 @@
 import web
 
 from infogami.infobase import client, common
-from infogami.utils import delegate
 
 from .. import merge_authors
 

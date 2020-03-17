@@ -5,7 +5,6 @@ import argparse
 import datetime
 import itertools
 import json
-import os
 import sys
 import time
 

@@ -1,7 +1,7 @@
 'Merge editions'
 import web
 import re
-from openlibrary.utils import uniq, dicthash
+from openlibrary.utils import uniq
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from collections import defaultdict

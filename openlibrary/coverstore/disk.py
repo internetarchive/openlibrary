@@ -70,7 +70,6 @@ class WARCDisk:
         'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
         """
         # this is required for warc.WARCRecord. Testing to fail early.
-        import uuid
 
         self.root = root
         if not os.path.exists(root):

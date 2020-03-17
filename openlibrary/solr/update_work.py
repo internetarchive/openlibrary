@@ -15,11 +15,9 @@ from six.moves.http_client import HTTPConnection
 import web
 from lxml.etree import tostring, Element, SubElement
 
-from infogami.infobase.client import ClientException
 from openlibrary import config
-from openlibrary.catalog.utils.query import set_query_host, base_url as get_ol_base_url
+from openlibrary.catalog.utils.query import set_query_host
 from openlibrary.core import helpers as h
-from openlibrary.core import ia
 from openlibrary.solr.data_provider import get_data_provider
 from openlibrary.utils.isbn import opposite_isbn
 
