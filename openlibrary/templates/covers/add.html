@@ -25,6 +25,35 @@ $if status:
 </div>
 
 <script type="text/javascript">
+  Filevalidation = () =>{
+      var fi = document.getElementById('coverFile'); 
+      if (fi.files.length > 0) { 
+          for (var i = 0; i <= fi.files.length - 1; i++) { 
+              var fsize = fi.files.item(i).size; 
+              var filname=fi.files.item(i).type;
+              var filtyp=filname.split('/')[0];
+              var file = (fsize / 1024); 
+              // The type of the file. 
+              if(!filtyp.startsWith('image')){
+                document.getElementById('imageUploadSize').innerHTML = 
+                '<b>Max Size Upload: 30MB.</b>';
+                document.getElementById("coverFile").value = "";
+                alert("Please provide a valid image.");
+              }
+              // The size of the file. 
+              else if (file > 30720) { 
+                document.getElementById("coverFile").value = "";
+                document.getElementById('imageUploadSize').innerHTML = 
+                '<b>Max Size Upload: 30MB.</b>'; 
+                alert("Please provide a file less than 30mb."); 
+              } 
+              else { 
+                document.getElementById('imageUploadSize').innerHTML = '<b>'
+                  + file.toFixed(2) + 'KB</b>'; 
+              } 
+          } 
+      } 
+  };
 <!--
 window.q.push(function(){
     // page may not be loaded via iframe
@@ -110,10 +139,9 @@ window.q.push(function(){
                     <label id="imageBrowse" for="coverFile">$_("Choose a JPG, GIF or PNG on your computer,")</label>
                 </div>
                 <div class="input">
-                    <input type="file" name="file" id="coverFile" value=""/>
+                    <input type="file" name="file" id="coverFile" value="" onchange="Filevalidation()"/>
                 </div>
             </div>
-
             <div class="formElement">
                 <div class="label">
                     <label id="imageWeb" for="imageUrl"><span class="highlight">$:_("<u>Or</u></span>, paste in the image URL if it's on the web.")</label>
@@ -122,12 +150,11 @@ window.q.push(function(){
                     <input type="text" name="url" id="imageUrl" value="$data.get('url', 'http://')" onClick="if(!this._haschanged && this.value == 'http://'){this.value=''};this._haschanged=true;"/>
                 </div>
             </div>
-
+            <p id="imageUploadSize"><b>Max Size Upload: 30MB.</b></p>
             <div class="formElement" style="margin: $('15px 0px 0px 15px;' if doc.type.key == "/type/work" else '50px 0px 0px 30px;')">
                 <button type="submit" name="upload" id="imageUpload" value="$_('Submit')" class="largest">$_("Submit")</button>
                 <a class="dialog--close-parent red" href="javascript:;">$_("Cancel")</a>
             </div>
-
         </div>
     </div>
 </form>
