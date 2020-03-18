@@ -65,7 +65,7 @@ class AmazonAPI:
 
 
     def __init__(self, key, secret, tag, host='webservices.amazon.com',
-                 region='us-east-1', throttling=0.9):
+                 region='us-east-1', throttling=0.9, max_throttle_wait=0.5):
         """
         Creates an instance containing your API credentials.
 
@@ -74,13 +74,15 @@ class AmazonAPI:
         :param tag (string): affiliate string
         :param host (string): which server to query
         :param region (string): which regional host to query
-        :param throttling (float): Reduce this value to wait longer
-          between API calls.
+        :param throttling (float): Seconds to wait between amazon calls
+        :param float max_throttle_wait: Maximum number of seconds
+        to block while waiting for throttling
         :return: Amazon metadata for one product
         :rtype: dict
         """
         self.tag = tag
         self.throttling = throttling
+        self.max_throttle_wait = max_throttle_wait
         self.last_query_time = time.time()
 
         self.api = DefaultApi(
@@ -103,27 +105,26 @@ class AmazonAPI:
         """
         item_ids = asins if type(asins) is list else [asins]
 
-        # Wait before doing the request
-        wait_time = 1 / self.throttling - (time.time() - self.last_query_time)
-        if wait_time > 0:
+        # Throttle requests
+        sec_since_last_call = time.time() - self.last_query_time
+        if sec_since_last_call < self.throttling:
+            # Error rather than waiting more than max_throttle_wait; callers can recall
+            wait_time = self.throttling - sec_since_last_call
+            assert(wait_time < self.max_throttle_wait)
             time.sleep(wait_time)
         self.last_query_time = time.time()
 
-        try:
-            _resources = (self.RESOURCES[resources] if resources
-                          else self.RESOURCES['import'])
-            request = GetItemsRequest(partner_tag=self.tag,
-                                      partner_type=PartnerType.ASSOCIATES,
-                                      marketplace=marketplace,
-                                      item_ids=item_ids,
-                                      resources=_resources,
-                                      **kwargs)
-            response = self.api.get_items(request)
-            products = response.items_result.items
-            return (products if not serialize else
-                    [self.serialize(p) for p in products])
-        except Exception as exception:
-            raise exception
+        _resources = self.RESOURCES[resources or 'import']
+        request = GetItemsRequest(partner_tag=self.tag,
+                                  partner_type=PartnerType.ASSOCIATES,
+                                  marketplace=marketplace,
+                                  item_ids=item_ids,
+                                  resources=_resources,
+                                  **kwargs)
+        response = self.api.get_items(request)
+        products = response.items_result.items
+        return (products if not serialize else
+                [self.serialize(p) for p in products])
 
     @staticmethod
     def serialize(product):
