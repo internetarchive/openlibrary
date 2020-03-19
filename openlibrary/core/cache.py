@@ -525,17 +525,22 @@ class PrefixKeyFunc:
         """
         return simplejson.dumps(value, separators=(",", ":"), sort_keys=True)
 
+
 def method_memoize(f):
-    """object-local memoize.
-
-    Works only for functions without any arguments.
-
-    TODO: support arguments.
+    """
+    object-local memoize.
+    Works only for functions with simple arguments; i.e. JSON serializeable
     """
     @functools.wraps(f)
-    def g(self):
+    def g(self, *args, **kwargs):
         cache = self.__dict__.setdefault('_memoize_cache', {})
-        if f.__name__ not in cache:
-            cache[f.__name__] = f(self)
-        return cache[f.__name__]
+        key = simplejson.dumps({
+            'function': f.__name__,
+            'args': args,
+            'kwargs': kwargs,
+        }, sort_keys=True)
+
+        if key not in cache:
+            cache[key] = f(self, *args, **kwargs)
+        return cache[key]
     return g
