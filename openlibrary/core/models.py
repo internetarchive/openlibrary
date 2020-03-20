@@ -15,7 +15,7 @@ from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings
-from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10
+from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 
 from openlibrary.core.lists.model import ListMixin, Seed
@@ -414,6 +414,11 @@ class Edition(Thing):
         :rtype: edition|None
         :return: an open library work for this isbn
         """
+        isbn = canonical(isbn)
+
+        if len(isbn) not in [10, 13]:
+            return None  # consider raising ValueError
+
         isbn13 = to_isbn_13(isbn)
         isbn10 = isbn_13_to_isbn_10(isbn)
 

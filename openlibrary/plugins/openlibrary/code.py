@@ -28,6 +28,7 @@ from infogami.core.db import ValidationException
 
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
+from openlibrary.core.models import Edition
 from openlibrary.core.lending import get_work_availability, get_edition_availability
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
@@ -360,6 +361,32 @@ class health(delegate.page):
         raise web.HTTPError('200 OK', {}, 'OK')
 
 
+class isbn_lookup(delegate.page):
+
+    path = r'/isbn/([0-9xX-]+)'
+
+    def GET(self, isbn):
+        from openlibrary.core.models import Edition
+
+        # Preserve the url type (e.g. `.json`) and query params
+        ext = ''
+        if web.ctx.encoding and web.ctx.path.endswith('.' + web.ctx.encoding):
+            ext = '.' + web.ctx.encoding
+        if web.ctx.env.get('QUERY_STRING'):
+            ext += '?' + web.ctx.env['QUERY_STRING']
+
+        try:
+            ed = Edition.from_isbn(isbn)
+            if ed:
+                return web.found(ed.key + ext)
+        except Exception as e:
+            logger.error(e)
+            return e.message
+
+        web.ctx.status = '404 Not Found'
+        return render.notfound(web.ctx.path, create=False)
+
+
 class bookpage(delegate.page):
     """
     Load an edition bookpage by identifier: isbn, oclc, lccn, or ia (ocaid).
@@ -367,16 +394,12 @@ class bookpage(delegate.page):
     otherwise, return a 404.
     """
 
-    path = r'/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^/]*)(/.*)?'
+    path = r'/(oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^/]*)(/.*)?'
 
     def GET(self, key, value, suffix=''):
         key = key.lower()
-        if key == 'isbn':
-            if len(value) == 13:
-                key = 'isbn_13'
-            else:
-                key = 'isbn_10'
-        elif key == 'oclc':
+
+        if key == 'oclc':
             key = 'oclc_numbers'
         elif key == 'ia':
             key = 'ocaid'
@@ -409,14 +432,7 @@ class bookpage(delegate.page):
                     return web.found(result[0] + ext)
             # If nothing matched, try this as a last resort:
             return web.found('/books/ia:' + value + ext)
-        elif key.startswith('isbn'):
-            try:
-               ed_key = create_edition_from_amazon_metadata(value)
-            except Exception as e:
-                logger.error(e)
-                return e.message
-            if ed_key:
-                return web.found(ed_key + ext)
+
         web.ctx.status = '404 Not Found'
         return render.notfound(web.ctx.path, create=False)
 
