@@ -7,7 +7,7 @@ $ edition_key = edition.key if edition else None
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ users_work_read_status = read_status or work.get_users_read_status(username) if work and username else None
 $ users_work_rating = rating or work.get_users_rating(username) if work and username else None
-$ pidentifier = page.url() if page.url().startswith("/publishers/") else None
+
 $if "lists" not in ctx.features:
     $return
 
@@ -93,15 +93,6 @@ $jsdef show_list(list):
 
 $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl, readinglogonly):
     <div class="dropit">
-        $if pidentifier:
-          <style type="text/css">
-
-            #subjectLists
-            {
-              display: none;
-            }
-          </style>
-        $else:
           $if edition_key and not work_key:
             <div class="dropper on edition-page-lists-dropdown">
           $else:
@@ -192,10 +183,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                 </div>
             </div>
           $else:
-              $if username:    
-                <script type="text/javascript">
-                  console.log("C2: ");                 
-                </script>            
+              $if username:
                 <div class="reading-lists">
                   <a href="javascript:;" class="dropclick">
                     <h3>$_('Add to List')</h3>
@@ -211,6 +199,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                     </p>
                   </div>
                 </div>
+
               $else:
                 <a href="/account/login?redir=$pageurl" class="dropclick plain">
                   <h3>$('Add to List')</h3>
@@ -225,7 +214,6 @@ $jsdef render_widget_display(lists, limit):
             $:show_list(list)
 
 $jsdef render_head():
-  $if not pidentifier:
     $if seed_type == "subject":
         <div class="head">
           <h3>Lists</h3>
@@ -394,11 +382,9 @@ $if ctx.user:
     var work_key = '$(work_key)';
     var edition_key = '$(edition_key)';
     var username = '$(username or "")';
-    console.log("Checking in 2 "+$:(json_encode(page_url)).includes("/publishers/"));
-    function reload_widget() 
-    {
-        \$("#widget-head").html(render_head());
 
+    function reload_widget() {
+        \$("#widget-head").html(render_head());
         \$("#widget-add").html(render_widget_add(user_lists, work_key, edition_key, users_work_read_status, username, page_url));
 
         \$("#widget-lists").html(render_widget_display(page_lists, 3));

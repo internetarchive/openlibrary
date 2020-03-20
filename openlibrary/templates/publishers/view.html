@@ -157,7 +157,7 @@ $jsdef renderPublishers(publishers):
         <span class="count">$sprintf(ungettext("%s edition", "%s editions", p.count), commify(p.count))</span>
          <br/>
 
-$if "lists" in ctx.features:
+$if "lists" not in ctx.features:
     <div class="spacer"></div>
     <div id="subjectLists" class="widget-box">
         $:render_template("lists/widget", page, include_rating=False)
