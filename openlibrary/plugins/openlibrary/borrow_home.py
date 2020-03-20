@@ -251,8 +251,6 @@ def _get_loan_key(loan):
     return "loans/" + loan.get("uuid") or loan["_key"]
 
 
-
-
 def setup():
     from openlibrary.core import msgbroker
     msgbroker.subscribe("loan-created", on_loan_created_statsdb)
