@@ -92,7 +92,7 @@
     "sinon": "7.3.2",
     "slick-carousel": "1.6.0",
     "style-loader": "1.1.2",
-    "stylelint": "9.5.0",
+    "stylelint": "13.2.1",
     "stylelint-declaration-use-variable": "1.7.2",
     "svgo": "1.3.2",
     "webpack": "4.41.5",
