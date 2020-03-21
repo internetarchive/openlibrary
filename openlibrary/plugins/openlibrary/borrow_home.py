@@ -252,6 +252,6 @@ def _get_loan_key(loan):
 
 
 def setup():
-    from openlibrary.core import msgbroker
-    msgbroker.subscribe("loan-created", on_loan_created_statsdb)
-    msgbroker.subscribe("loan-completed", on_loan_completed_statsdb)
+    import eventer
+    eventer.trigger("loan-created", on_loan_created_statsdb)
+    eventer.trigger("loan-completed", on_loan_completed_statsdb)

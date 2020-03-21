@@ -2,6 +2,7 @@
 
 import copy
 import datetime
+import eventer
 import time
 import hmac
 import re
@@ -16,7 +17,6 @@ from infogami.utils.view import public, render_template
 from infogami.infobase.utils import parse_datetime
 
 from openlibrary.core import stats
-from openlibrary.core import msgbroker
 from openlibrary.core import lending
 from openlibrary.core import vendors
 from openlibrary.core import waitinglist
@@ -1005,7 +1005,7 @@ def on_loan_delete(loan):
     # update the waiting list and ebook document.
     waitinglist.update_waitinglist(loan['ocaid'])
 
-msgbroker.subscribe("loan-created", on_loan_update)
-msgbroker.subscribe("loan-completed", on_loan_delete)
+eventer.bind("loan-created", on_loan_update)
+eventer.bind("loan-completed", on_loan_delete)
 lending.setup(config)
 vendors.setup(config)

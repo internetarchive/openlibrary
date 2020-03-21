@@ -8,6 +8,7 @@ import time
 import logging
 import uuid
 import hmac
+import eventer
 
 from infogami.utils.view import public
 from infogami.utils import delegate
@@ -18,7 +19,6 @@ from openlibrary.utils import dateutil
 from six.moves import urllib
 
 from . import ia
-from . import msgbroker
 from . import helpers as h
 
 logger = logging.getLogger(__name__)
@@ -414,7 +414,7 @@ def create_loan(identifier, resource_type, user_key, book_key=None):
 
     if ia_loan:
         loan = Loan.from_ia_loan(ia_loan)
-        msgbroker.send_message("loan-created", loan)
+        eventer.trigger("loan-created", loan)
         sync_loan(identifier)
         return loan
 
@@ -482,7 +482,7 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
     # fire loan-completed event
     if is_loan_completed and ebook.get('loan'):
         _d = dict(ebook['loan'], returned_at=time.time())
-        msgbroker.send_message("loan-completed", _d)
+        eventer.trigger("loan-completed", _d)
     logger.info("END sync_loan %s", identifier)
 
 
@@ -607,7 +607,7 @@ class Loan(dict):
         web.ctx.site.store[self['_key']] = self
 
         # Inform listers that a loan is created/updated
-        msgbroker.send_message("loan-created", self)
+        eventer.trigger("loan-created", self)
 
     def is_expired(self):
         return self['expiry'] and self['expiry'] < datetime.datetime.utcnow().isoformat()
@@ -640,7 +640,7 @@ class Loan(dict):
 
         sync_loan(self['ocaid'])
         # Inform listers that a loan is completed
-        msgbroker.send_message("loan-completed", loan)
+        eventer.trigger("loan-completed", loan)
 
 def resolve_identifier(identifier):
     """Returns the OL book key for given IA identifier.
