@@ -4,12 +4,14 @@ from infogami.infobase import client
 import logging
 import web
 
-import eventer
 
 logger = logging.getLogger("openlibrary.events")
 
+# TODO This entire module is a giant NOOP. It should just be removed
+
 def on_page_edit(page):
     pass
+
 
 class EditHook(client.hook):
     """Ugly Interface provided by Infobase to get event notifications.
@@ -19,9 +21,10 @@ class EditHook(client.hook):
         # The argument passes by Infobase is not a thing object.
         # Create a thing object to pass to event listeners.
         page = web.ctx.site.get(page['key'])
-        eventer.trigger("page.edit", page)
+        on_page_edit(page)
+
 
 def setup():
     """Installs handlers for various events.
     """
-    eventer.bind("page.edit", on_page_edit)
+    pass

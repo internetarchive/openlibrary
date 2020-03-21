@@ -1,23 +1,20 @@
 """Infobase event hooks for Open Library.
 
-Triggers and handles various events from Infobase. All the events are triggered using eventer.
+Triggers and handles various events from Infobase.
 
-List of events:
-
-    * infobase.all: Triggered for any change in Infobase. The infobase event object is passed as argument.
-    * infobase.edit: Triggered for edits. Changeset is passed as argument.
 """
 
 import logging
 import web
-import eventer
 from infogami.infobase import config, server
 from openlibrary.utils import olmemcache
 
 logger = logging.getLogger("openlibrary.olbase")
 
+
 def setup():
     setup_event_listener()
+
 
 def setup_event_listener():
     logger.info("setting up infobase events for Open Library")
@@ -25,12 +22,12 @@ def setup_event_listener():
     ol = server.get_site('openlibrary.org')
     ib = server._infobase
 
-    # Convert infobase event into generic eventer event
-    ib.add_event_listener(lambda event: eventer.trigger("infobase.all", event))
+    # Register primary infobase event callback
+    ib.add_event_listener(lambda event: handle_subevents(event))
 
-@eventer.bind("infobase.all")
-def trigger_subevents(event):
-    """Trigger infobase.edit event for edits.
+
+def handle_subevents(event):
+    """Handle infobase event for edits.
     """
     if event.name in ['save', 'save_many']:
         changeset = event.data['changeset']
@@ -39,9 +36,9 @@ def trigger_subevents(event):
         keys = [c['key'] for c in changeset['changes']]
         logger.info("Edit by %s, changeset_id=%s, changes=%s", author, changeset["id"], keys)
 
-        eventer.trigger("infobase.edit", changeset)
+        invalidate_memcache(changeset)
 
-@eventer.bind("infobase.edit")
+
 def invalidate_memcache(changeset):
     """Invalidate memcache entries effected by this change.
     """
@@ -51,6 +48,7 @@ def invalidate_memcache(changeset):
         if keys:
             logger.info("invalidating %s", keys)
             memcache_client.delete_multi(keys)
+
 
 class MemcacheInvalidater:
     """Class to find keys to invalidate from memcache on edit.
@@ -95,7 +93,7 @@ class MemcacheInvalidater:
         """Returns the edition_count entries effected by this change."""
         docs = changeset['docs'] + changeset['old_docs']
         return set(k for doc in docs
-                     for k in self.find_edition_counts_for_doc(doc))
+                   for k in self.find_edition_counts_for_doc(doc))
 
     def find_edition_counts_for_doc(self, doc):
         """Returns the memcache keys to be invalided for edition_counts effected by editing this doc.
