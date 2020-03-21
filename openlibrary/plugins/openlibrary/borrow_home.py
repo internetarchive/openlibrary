@@ -252,6 +252,4 @@ def _get_loan_key(loan):
 
 
 def setup():
-    import eventer
-    eventer.trigger("loan-created", on_loan_created_statsdb)
-    eventer.trigger("loan-completed", on_loan_completed_statsdb)
+    pass

@@ -2,7 +2,6 @@
 
 import copy
 import datetime
-import eventer
 import time
 import hmac
 import re
@@ -1005,7 +1004,5 @@ def on_loan_delete(loan):
     # update the waiting list and ebook document.
     waitinglist.update_waitinglist(loan['ocaid'])
 
-eventer.bind("loan-created", on_loan_update)
-eventer.bind("loan-completed", on_loan_delete)
 lending.setup(config)
 vendors.setup(config)

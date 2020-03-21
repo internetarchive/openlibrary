@@ -7,15 +7,18 @@ import datetime
 import time
 import logging
 import uuid
-import hmac
-import eventer
 
 from infogami.utils.view import public
 from infogami.utils import delegate
-from openlibrary.core import cache
+
 from openlibrary.accounts.model import OpenLibraryAccount
-from openlibrary.plugins.upstream import acs4
+from openlibrary.core import cache
 from openlibrary.utils import dateutil
+
+# TODO References from core to plugins shouldn't happen, so this needs to be reorganized
+from openlibrary.plugins.openlibrary import borrow_home
+from openlibrary.plugins.upstream import borrow
+
 from six.moves import urllib
 
 from . import ia
@@ -93,6 +96,17 @@ def setup(config):
     config_http_request_timeout = config.get('http_request_timeout')
 
 
+def loan_created(loan):
+    # TODO References from core to plugins shouldn't happen, so this needs to be reorganized
+    borrow.on_loan_update(loan)
+    borrow_home.on_loan_created_statsdb(loan)
+
+
+def loan_completed(loan):
+    borrow.on_loan_delete(loan)
+    borrow_home.on_loan_completed_statsdb(loan)
+
+
 def get_work_authors_and_related_subjects(work_id):
     if 'env' not in web.ctx:
         delegate.fakeload()
@@ -101,6 +115,7 @@ def get_work_authors_and_related_subjects(work_id):
         'authors': work.get_author_names(blacklist=['anonymous']) if work else [],
         'subjects': work.get_related_books_subjects() if work else []
     }
+
 
 @public
 def cached_work_authors_and_subjects(work_id):
@@ -414,7 +429,7 @@ def create_loan(identifier, resource_type, user_key, book_key=None):
 
     if ia_loan:
         loan = Loan.from_ia_loan(ia_loan)
-        eventer.trigger("loan-created", loan)
+        loan_created(loan)
         sync_loan(identifier)
         return loan
 
@@ -479,10 +494,10 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
         # Log the error in such cases, don't crash.
         logger.error("failed to update ebook for %s", identifier, exc_info=True)
 
-    # fire loan-completed event
+    # call loan-completed callbacks
     if is_loan_completed and ebook.get('loan'):
         _d = dict(ebook['loan'], returned_at=time.time())
-        eventer.trigger("loan-completed", _d)
+        loan_completed(_d)
     logger.info("END sync_loan %s", identifier)
 
 
@@ -606,8 +621,8 @@ class Loan(dict):
 
         web.ctx.site.store[self['_key']] = self
 
-        # Inform listers that a loan is created/updated
-        eventer.trigger("loan-created", self)
+        # Inform listeners that a loan is created/updated
+        loan_created(self)
 
     def is_expired(self):
         return self['expiry'] and self['expiry'] < datetime.datetime.utcnow().isoformat()
@@ -639,8 +654,8 @@ class Loan(dict):
             web.ctx.site.store.delete(self['_key'])
 
         sync_loan(self['ocaid'])
-        # Inform listers that a loan is completed
-        eventer.trigger("loan-completed", loan)
+        # Inform listeners that a loan is completed
+        loan_completed(loan)
 
 def resolve_identifier(identifier):
     """Returns the OL book key for given IA identifier.
