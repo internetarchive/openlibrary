@@ -3,8 +3,9 @@
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#ctabtn
  * This stylesheet will only apply if JS is present on the page.
  */
+
+// `a` specificity is needed to override default anchor styles
  .cta-btn,
- // override default anchor styles
  a.cta-btn {
    &--available {
      &--load {
