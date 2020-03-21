@@ -266,6 +266,8 @@ def update_waitinglist(identifier):
     _wl_api.request("loan.sync", identifier=identifier)
     return on_waitinglist_update(identifier)
 
+    # FIXME: Everything below here is dead code due to the return statement above!
+
     book = _get_book(identifier)
     book_key = book.key
 

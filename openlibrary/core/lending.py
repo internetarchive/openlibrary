@@ -543,6 +543,7 @@ class Loan(dict):
             'resource_type': 'bookreader',
             'resource_id': 'bookreader:%s' % identifier,
             'loaned_at': loaned_at,
+            # FIXME: duplicate keys in this dict
             'resource_type': resource_type,
             'resource_id': resource_id,
             'loan_link': loan_link,
@@ -600,6 +601,7 @@ class Loan(dict):
         # loans stored at IA are not supposed to be saved at OL.
         # This call must have been made in mistake.
         if self.get("stored_at") == "ia":
+            # TODO: Log a warning
             return
 
         web.ctx.site.store[self['_key']] = self
