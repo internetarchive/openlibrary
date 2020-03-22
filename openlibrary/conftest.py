@@ -20,7 +20,8 @@ from openlibrary.mocks.mock_memcache import mock_memcache
 # TODO (cclauss): Undo Python 2 workaround for vendoring in an out-of-date infogami
 import web
 web.utf8 = web.safestr
-from infogami.utils.view import render_template as infobase_render_template  # noqa: F401
+from infogami.utils.view import (render_template as
+                                 infobase_render_template)  # noqa: F401
 from openlibrary.core import helpers  # noqa: F401
 from openlibrary.mocks.mock_ol import ol  # noqa: F401
 
