@@ -42,6 +42,7 @@ $if user_loan:
     <input type="submit" value="Return eBook" class="cta-btn cta-btn--available" id="return_ebook"/>
   </form>
 
+
 $elif ocaid and not page.is_access_restricted() and editions_page:
   $:macros.ReadButton(ocaid, listen=True)
   $:macros.BookSearchInside(ocaid)
@@ -70,6 +71,7 @@ $elif (availability_status == 'borrow_unavailable'):
     <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
       <input type="hidden" name="action" value="join-waitinglist"/>
       <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="Join Waitlist"/>
+    </form>
 
 $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
   $ sponsorship = qualifies_for_sponsorship(page)

@@ -2,8 +2,9 @@
  * CtaBtn
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#ctabtn
  */
+
+// `a` specificity is needed to override default anchor styles
 .cta-btn,
-// override default anchor styles
 a.cta-btn {
   font-size: 14px;
   color: @white;
@@ -11,6 +12,7 @@ a.cta-btn {
   display: block;
   border: 0;
   border-radius: 5px;
+  margin-top: 5px;
   box-sizing: border-box;
   cursor: pointer;
   font-family: @lucida_sans_serif-1;
