@@ -1,6 +1,9 @@
 os: linux
 dist: bionic
 language: python
+env:
+  global:
+    - BUNDLESIZE_GITHUB_TOKEN=$GITHUB_TOKEN
 jobs:
   include:
     - name: “Python 2.7 on xenial”
