@@ -10,7 +10,7 @@ from infogami.infobase.tests.pytest_wildcard import Wildcard
 from infogami.utils import template
 # from infogami.utils.view import render_template as infobase_render_template
 from openlibrary.i18n import gettext
-from openlibrary.core import helpers
+# from openlibrary.core import helpers
 
 from openlibrary.mocks.mock_infobase import mock_site
 from openlibrary.mocks.mock_ia import mock_ia
@@ -21,6 +21,7 @@ from openlibrary.mocks.mock_ol import ol
 import web
 web.utf8 = web.safestr
 from infogami.utils.view import render_template as infobase_render_template  # noqa: F401
+from openlibrary.core import helpers  # noqa: F401
 
 
 @pytest.fixture(autouse=True)
