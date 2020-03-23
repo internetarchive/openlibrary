@@ -127,3 +127,38 @@ class Test_memoize:
         assert self.get("3") == {"square": 9}
         assert double(3) == 6
         assert self.get("3") == {"square": 9, "double": 6}
+
+
+class Test_method_memoize:
+    def test_handles_no_args(self):
+        class A:
+            def __init__(self):
+                self.result = 0
+
+            @cache.method_memoize
+            def foo(self):
+                self.result += 1
+                return self.result
+
+        a = A()
+        assert a.foo() == 1
+        assert a.foo() == 1
+        assert a.result == 1
+
+    def test_handles_args(self):
+        class A:
+            def __init__(self):
+                self.result = 1
+
+            @cache.method_memoize
+            def foo(self, multiplier):
+                self.result *= multiplier
+                return self.result
+
+        a = A()
+        assert a.foo(2) == 2
+        assert a.foo(2) == 2
+        assert a.result == 2
+        assert a.foo(3) == 6
+        assert a.foo(2) == 2
+        assert a.result == 6

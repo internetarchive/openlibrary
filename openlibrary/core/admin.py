@@ -3,6 +3,8 @@
 
 import calendar
 import datetime
+
+import requests
 import web
 from infogami import config
 from infogami.utils import stats
@@ -57,6 +59,41 @@ class Stats:
         """
         return sum(x[1] for x in self.get_counts(ndays))
 
+
+class LoanStats(Stats):
+    """
+    Temporary (2020-03-19) override of Stats for loans, due to bug
+    which caused 1mo of loans stats to be missing from regular
+    stats db. This implementation uses graphite, but only on prod,
+    so that we don't forget.
+    """
+
+    @cache.method_memoize
+    def _get_graphite_data(self, ndays):
+        try:
+            r = requests.get('http://graphite.us.archive.org/render', params={
+                'target': 'hitcount(stats.ol.loans.bookreader, "1d")',
+                'from': '-%ddays' % ndays,
+                'tz': 'UTC',
+                'format': 'json',
+            })
+            return r.json()[0]['datapoints']
+        except (requests.exceptions.RequestException, ValueError, AttributeError):
+            return None
+
+    def get_counts(self, ndays=28, times=False):
+        # Let dev.openlibrary.org show the true state of things
+        if 'dev' in config.features:
+            return Stats.get_counts(self, ndays, times)
+
+        graphite_data = self._get_graphite_data(ndays)
+        if graphite_data:
+            # convert timestamp seconds to ms (as required by API)
+            return [[timestamp * 1000, count] for [count, timestamp] in graphite_data]
+        else:
+            return Stats.get_counts(self, ndays, times)
+
+
 @cache.memoize(engine="memcache", key="admin._get_count_docs", expires=5*60)
 def _get_count_docs(ndays):
     """Returns the count docs from admin stats database.
@@ -75,16 +112,17 @@ def _get_count_docs(ndays):
 def get_stats(ndays = 30):
     """Returns the stats for the past `ndays`"""
     docs = _get_count_docs(ndays)
-    retval = dict(human_edits = Stats(docs, "human_edits", "human_edits"),
-                  bot_edits   = Stats(docs, "bot_edits", "bot_edits"),
-                  lists       = Stats(docs, "lists", "total_lists"),
-                  visitors    = Stats(docs, "visitors", "visitors"),
-                  loans       = Stats(docs, "loans", "loans"),
-                  members     = Stats(docs, "members", "total_members"),
-                  works       = Stats(docs, "works", "total_works"),
-                  editions    = Stats(docs, "editions", "total_editions"),
-                  ebooks      = Stats(docs, "ebooks", "total_ebooks"),
-                  covers      = Stats(docs, "covers", "total_covers"),
-                  authors     = Stats(docs, "authors", "total_authors"),
-                  subjects    = Stats(docs, "subjects", "total_subjects"))
-    return retval
+    return {
+        'human_edits': Stats(docs, "human_edits", "human_edits"),
+        'bot_edits': Stats(docs, "bot_edits", "bot_edits"),
+        'lists': Stats(docs, "lists", "total_lists"),
+        'visitors': Stats(docs, "visitors", "visitors"),
+        'loans': LoanStats(docs, "loans", "loans"),
+        'members': Stats(docs, "members", "total_members"),
+        'works': Stats(docs, "works", "total_works"),
+        'editions': Stats(docs, "editions", "total_editions"),
+        'ebooks': Stats(docs, "ebooks", "total_ebooks"),
+        'covers': Stats(docs, "covers", "total_covers"),
+        'authors': Stats(docs, "authors", "total_authors"),
+        'subjects': Stats(docs, "subjects", "total_subjects"),
+    }
