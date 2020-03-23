@@ -366,8 +366,6 @@ class isbn_lookup(delegate.page):
     path = r'/isbn/([0-9xX-]+)'
 
     def GET(self, isbn):
-        from openlibrary.core.models import Edition
-
         # Preserve the url type (e.g. `.json`) and query params
         ext = ''
         if web.ctx.encoding and web.ctx.path.endswith('.' + web.ctx.encoding):
