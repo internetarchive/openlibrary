@@ -1,20 +1,3 @@
 $def with(edition_key)
 
-<style type="text/css">
-.darkgreen.local-date-time {
-    position: relative;
-    top: -1em;
-    left: 2.8em;
-  }
-form.LoanReadForm {
-    position: relative;
-    top: 0.6em;
-    left: 3em;
-}
-</style>
-
-<form class="LoanReadForm" method="POST" action="$edition_key/_doread/borrow"><input type="hidden" name="action" value="read" /><input type="text" name="ol_host" value="" class="hidden ol_host" /><input type="submit" value="Read Online" /></form><br />
-
-<script type="text/javascript">
-    jQuery('.ol_host').attr('value', location.host);
-</script>
+<form class="LoanReadForm" method="POST" action="$edition_key/_doread/borrow"><input type="hidden" name="action" value="read" /><input type="text" name="ol_host" value="" class="hidden ol_host" /><input type="submit" class="readbook" value="$_('Read Online')" /></form><br />
