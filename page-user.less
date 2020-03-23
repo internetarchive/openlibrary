@@ -91,30 +91,42 @@ body#user {
   }
 }
 form.returnbook {
-    position: relative;
-    left: 3em;
+  position: relative;
+  left: 3em;
 }
 .darkgreen.local-date-time {
-    position: relative;
-    top: -1em;
-    left: 2.8em;
-  }
-form.LoanReadForm {
-    position: relative;
-    top: 0.6em;
-    left: 3em;
+  position: relative;
+  top: -1em;
+  left: 2.8em;
 }
-.readbook, .returnb {
-webkit-transition: 0.15s all ease-in-out;
-    -o-transition: 0.15s all ease-in-out;
-    transition: 0.15s all ease-in-out;
-    cursor: pointer;
-    background: #808080;
-    color: #fff;
-    border-radius: 4px;
-    border: none;
-    padding: 3px 4px;
-    text-decoration: none;
+form.LoanReadForm {
+  position: relative;
+  top: .6em;
+  left: 3em;
+}
+.readbook {
+  -webkit-transition: .15s all ease-in-out;
+  -o-transition: .15s all ease-in-out;
+  transition: .15s all ease-in-out;
+  cursor: pointer;
+  background-color: @grey-e5e5e5;
+  color: @white-fff;
+  border-radius: 4px;
+  border: none;
+  padding: 3px 4px;
+  text-decoration: none;
+}
+.returnb {
+  -webkit-transition: .15s all ease-in-out;
+  -o-transition: .15s all ease-in-out;
+  transition: .15s all ease-in-out;
+  cursor: pointer;
+  background-color: @grey-e5e5e5;
+  color: @white-fff;
+  border-radius: 4px;
+  border: none;
+  padding: 3px 4px;
+  text-decoration: none;
 }
 // Import all common components
 @import (less) "legacy.less";
