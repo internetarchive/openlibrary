@@ -1,0 +1,84 @@
+@import (less) "less/font-families.less";
+
+.category {
+  &-icon {
+    margin: 0 auto;
+    width: 30px;
+  }
+}
+
+a {
+  &.category-nostyle {
+    text-decoration: none;
+    display: block;
+  }
+}
+
+img {
+  &.category-img {
+    display: block;
+    margin-top: 5px;
+    // stylelint-disable declaration-block-no-duplicate-properties
+    -webkit-filter: grayscale(100%);
+    -moz-filter: grayscale(100%);
+    -ms-filter: grayscale(100%);
+    -o-filter: grayscale(100%);
+    filter: grayscale(100%);
+    filter: @grey; /* IE 6-9 */
+    // stylelint-enable declaration-block-no-duplicate-properties
+  }
+}
+
+p {
+  &.category-count {
+    text-align: center;
+    font-size: .7em;
+    line-height: 1;
+    color: @grey;
+    padding: 0;
+    margin: 0;
+    margin-top: 5px;
+    font-style: italic;
+  }
+  &.category-title {
+    font-size: .875em;
+    text-align: center;
+    line-height: 1;
+    margin: 0;
+    margin-top: 5px;
+  }
+}
+// FIXME: Selector should be weakened OR removed
+.carousel {
+  .category-item {
+    font-family: @georgia_serif-1;
+  }
+}
+
+/* Style for carousel items */
+.carousel .category-item {
+  background-color: @grey-e9e9e9;
+  border-radius: 8px;
+  margin: 4px;
+  box-shadow: 1px 1px 2px @grey-808080;
+}
+
+.carousel .category-item:active {
+  transform: scale(0.8)!important;
+  outline: none;
+  border: none;
+}
+
+a.category-nostyle {
+  text-decoration: none;
+  display: block;
+  outline: none;
+  border: none;
+}
+
+p.category-count {
+  font-size: .7em;
+  color: @grey-333;
+  padding: 0;
+  font-style: italic;
+}
