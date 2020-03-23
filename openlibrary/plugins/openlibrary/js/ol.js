@@ -138,13 +138,9 @@ export default function init(){
         }
 
         if (localStorage.getItem('mode') !== 'everything') {
-            $(form).append('<input type="hidden" name="m" value="edit"/>');
-            url = `${url + (url.indexOf('?') > -1 ? '&' : '?')}m=edit`;
             $(form).append('<input type="hidden" name="has_fulltext" value="true"/>');
-            url = `${url + (url.indexOf('?') > -1 ? '&' : '?')}has_fulltext=true`;
         } if (localStorage.getItem('mode') === 'printdisabled') {
             $(form).append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
-            url = `${url + (url.indexOf('?') > -1 ? '&' : '?')}subject_facet=Protected DAISY`;
         }
         $(form).attr('action', url);
     }
