@@ -28,7 +28,7 @@ from infogami.core.db import ValidationException
 
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
-from openlibrary.core.models import Edition
+from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.core.lending import get_work_availability, get_edition_availability
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
