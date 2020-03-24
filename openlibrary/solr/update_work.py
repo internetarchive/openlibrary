@@ -641,7 +641,7 @@ class SolrProcessor:
         if has_fulltext:
             add('public_scan_b', public_scan)
         if all_collection:
-            add('ia_collection_s', ';'.join(sorted(all_collection)))
+            add('ia_collection_s', ';'.join(all_collection))
         if lending_edition:
             add('lending_edition_s', lending_edition)
             add('lending_identifier_s', lending_ia_identifier)
