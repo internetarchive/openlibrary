@@ -388,7 +388,6 @@ class isbn_lookup(delegate.page):
 class bookpage(delegate.page):
     """
     Load an edition bookpage by identifier: isbn, oclc, lccn, or ia (ocaid).
-    If not found, try to import it by ISBN,
     otherwise, return a 404.
     """
 
