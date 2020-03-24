@@ -41,7 +41,8 @@ pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests \
     openlibrary/tests/core/test_ratings.py \
     openlibrary/tests/core/test_sponsors.py \
     openlibrary/tests/core/test_vendors.py \
-    openlibrary/tests/core/test_waitinglist.py
+    openlibrary/tests/core/test_waitinglist.py \
+    openlibrary/tests/solr/test_update_work.py 
 
 # The following sections allow us to quickly spot tests that are fixed
 
@@ -62,5 +63,4 @@ pytest openlibrary/plugins/books/tests/test_dynlinks.py \
     openlibrary/plugins/upstream/tests/test_merge_authors.py || true
 
 # openlibrary/tests: All failing tests run in allow failures (|| true) mode
-pytest openlibrary/tests/accounts/test_models.py \
-    openlibrary/tests/solr/test_update_work.py || true
+pytest openlibrary/tests/accounts/test_models.py || true
