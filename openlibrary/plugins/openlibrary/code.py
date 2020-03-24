@@ -392,7 +392,7 @@ class bookpage(delegate.page):
     otherwise, return a 404.
     """
 
-    path = r'/(oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^/]*)(/.*)?'
+    path = r'/(oclc|lccn|ia|OCLC|LCCN|IA)/([^/]*)(/.*)?'
 
     def GET(self, key, value, suffix=''):
         key = key.lower()
