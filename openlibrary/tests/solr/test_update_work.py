@@ -10,7 +10,7 @@ work_counter = 0
 
 def sorted_split_semicolon(s):
     """
-    >>> sort_split_semi("z;c;x;a;y;b")
+    >>> sorted_split_semicolon("z;c;x;a;y;b")
     ['a', 'b', 'c', 'x', 'y', 'z']
     """
     return sorted(s.split(';'))
