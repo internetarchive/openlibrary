@@ -24,7 +24,7 @@ COPY requirements*.txt ./
 RUN pip install --disable-pip-version-check -r requirements_test.txt
 
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
 # Expose Open Library, Infobase, and Coverstore
 EXPOSE 80 7000 8081 3000

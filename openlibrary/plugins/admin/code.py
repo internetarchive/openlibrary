@@ -728,7 +728,7 @@ def setup():
     register_admin_page('/admin/graphs', _graphs, label="")
     register_admin_page('/admin/logs', show_log, label="")
     register_admin_page('/admin/permissions', permissions, label="")
-    register_admin_page('/admin/solr', solr, label="")
+    register_admin_page('/admin/solr', solr, label="", librarians=True)
     register_admin_page('/admin/sync', sync_ol_ia, label="", librarians=True)
     register_admin_page('/admin/staffpicks', add_work_to_staff_picks, label="")
 
