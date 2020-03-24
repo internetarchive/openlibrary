@@ -363,7 +363,7 @@ class health(delegate.page):
 
 class isbn_lookup(delegate.page):
 
-    path = r'/isbn/([0-9xX-]+)'
+    path = r'/(?:isbn|ISBN)/([0-9xX-]+)'
 
     def GET(self, isbn):
         # Preserve the url type (e.g. `.json`) and query params
