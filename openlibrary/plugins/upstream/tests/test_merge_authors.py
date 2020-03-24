@@ -56,7 +56,7 @@ class MockSite(client.Site):
 
 def test_MockSite():
     site = MockSite()
-    assert site.docs.keys() == []
+    assert list(site.docs) == []
 
     site.add([{
             "key": "a",
@@ -66,7 +66,7 @@ def test_MockSite():
             "type": {"key": "/type/object"}
         }
     ])
-    assert site.docs.keys() == ["a", "b"]
+    assert list(site.docs) == ["a", "b"]
 
 testdata = web.storage({
     "a": {
