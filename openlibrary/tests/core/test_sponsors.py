@@ -1,7 +1,6 @@
-import pytest
 from web import storage
 from openlibrary.core import sponsorships
-from openlibrary.core.sponsorships import get_sponsored_editions, do_we_want_it, qualifies_for_sponsorship
+from openlibrary.core.sponsorships import do_we_want_it
 
 class TestSponsorship:
 
@@ -44,7 +43,7 @@ class TestSponsorship:
         # Simulating exception / API call failure ...
         monkeypatch.setattr(sponsorships.lending, 'get_work_availability',
                             lambda work_id: mock_availability__need)
-        monkeypatch.setattr(sponsorships.requests, 'get', lambda url: {'invalid': 'json'})
+        monkeypatch.setattr(sponsorships.requests, 'get', lambda url, **kwargs: {'invalid': 'json'})
         dwwi, matches = do_we_want_it(isbn, work_id)
         assert dwwi == False
         assert matches == []
@@ -52,18 +51,14 @@ class TestSponsorship:
         # Check archive.org promise items, previous sponsorships ...
         monkeypatch.setattr(sponsorships.lending, 'get_work_availability',
                             lambda work_id: mock_availability__need)
-        monkeypatch.setattr(sponsorships.requests, 'get', lambda url: None)
+        monkeypatch.setattr(sponsorships.requests, 'get', lambda url, **kwargs: None)
         dwwi, matches = do_we_want_it(isbn, work_id)
         assert dwwi == False
         assert matches == []
 
         # We need a copy ...
         r = storage({'json': lambda: {"response": 1}})
-        monkeypatch.setattr(sponsorships.requests, 'get', lambda url: r)
+        monkeypatch.setattr(sponsorships.requests, 'get', lambda url, **kwargs: r)
         dwwi, matches = do_we_want_it(isbn, work_id)
         assert dwwi == True
         assert matches == []
-
-    def qualifies_for_sponsorship(self, monkeypatch):
-        # XXX TODO
-        work = mock_site.quicksave("/works/OL1W", "/type/work", title="Foo")

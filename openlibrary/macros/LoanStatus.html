@@ -12,8 +12,7 @@ $ meta_fields = page.get_ia_meta_fields() or {}
 $ user_loan = None
 $ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
-$ availability = page.availability or page.get_realtime_availability()
-$ availability_status = availability.get('status', 'error')
+$ availability_status = page.availability.get('status', 'error')
 $ current_and_available_loans = []
 
 $if ocaid:
@@ -43,6 +42,7 @@ $if user_loan:
     <input type="submit" value="Return eBook" class="cta-btn cta-btn--available" id="return_ebook"/>
   </form>
 
+
 $elif ocaid and not page.is_access_restricted() and editions_page:
   $:macros.ReadButton(ocaid, listen=True)
   $:macros.BookSearchInside(ocaid)
@@ -51,14 +51,14 @@ $elif (availability_status == 'borrow_available') or my_turn_to_borrow:
   $:macros.ReadButton(ocaid, borrow=True, listen=True)
 
 $elif (availability_status == 'borrow_unavailable'):
-  $ wlsize = availability.get('num_waitlist', 0)
+  $ wlsize = page.availability.get('num_waitlist', 0)
   $if waiting_loan:
     <p class="waitinglist-message">
       $ spot = ctx.user.get_waiting_loan_for(page)['position']
       $if spot == 1:
-          You are <strong>next</strong> on the waiting list
+          $:_('You are <strong>next</strong> on the waiting list')
       $else:
-          You are <strong>#$(spot)</strong> of $(wlsize) on the waiting list.
+          $:_('You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list.', spot=spot, wlsize=wlsize)
     </p>
     <form method="POST" action="$borrow_link" class="leave-waitlist waitinglist-form">
       <input type="hidden" name="action" value="leave-waitinglist"/>
@@ -71,23 +71,24 @@ $elif (availability_status == 'borrow_unavailable'):
     <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
       <input type="hidden" name="action" value="join-waitinglist"/>
       <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="Join Waitlist"/>
+    </form>
 
 $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
   $ sponsorship = qualifies_for_sponsorship(page)
-  $if  sponsorship.get('is_eligible'):
+  $if sponsorship.get('is_eligible'):
     $ isbn = (page.isbn_13 and page.isbn_13[0] or page.isbn_10 and page.isbn_10[0])
     <a href="$(sponsorship['sponsor_url'])"
        class="cta-btn cta-btn--sponsor"
-       data-ol-link-track="book-sponsorship">Sponsor eBook</a>
+       data-ol-link-track="CTAClick|Sponsor">Sponsor eBook</a>
     <p>
       We don’t have this book yet. You can add it to our Lending
       Library with a $sponsorship['price']['total_price_display'] tax deductible donation.
       <a href="/sponsorship" target="_blank">Learn More</a>
     </p>
   $else:
-    <a href="$work.key" class="cta-btn cta-btn--missing">$_('Not in Library')</a>
+    <a href="$work.key" class="cta-btn cta-btn--missing" data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
 
-$if ocaid and page.is_access_restricted() and availability_status.startswith('borrow') and editions_page:
+$if ocaid and page.is_access_restricted() and editions_page:
   $:macros.BookPreview(ocaid, render_preview_floater)
 
 $if ocaid and page.is_access_restricted():

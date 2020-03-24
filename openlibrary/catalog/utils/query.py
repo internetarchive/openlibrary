@@ -1,10 +1,11 @@
 from __future__ import print_function
-import urllib
-import urllib2
 import web
 import simplejson as json
 from time import sleep
 import sys
+
+from six.moves import urllib
+
 
 query_host = 'openlibrary.org'
 
@@ -14,8 +15,8 @@ def urlopen(url, data=None):
     headers = {
         'User-Agent': user_agent
     }
-    req = urllib2.Request(url, data, headers)
-    return urllib2.urlopen(req)
+    req = urllib.request.Request(url, data, headers)
+    return urllib.request.urlopen(req)
 
 def jsonload(url):
     return json.load(urlopen(url))
@@ -64,7 +65,7 @@ def get_all_ia():
         q['offset'] += limit
 
 def query(q):
-    url = query_url() + urllib.quote(json.dumps(q))
+    url = query_url() + urllib.parse.quote(json.dumps(q))
     ret = None
     for i in range(20):
         try:

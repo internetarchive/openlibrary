@@ -8,9 +8,6 @@ import time
 import logging
 import uuid
 import hmac
-import urllib
-import urllib2
-from amazon.api import AmazonAPI
 
 from infogami.utils.view import public
 from infogami.utils import delegate
@@ -18,6 +15,7 @@ from openlibrary.core import cache
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.plugins.upstream import acs4
 from openlibrary.utils import dateutil
+from six.moves import urllib
 
 from . import ia
 from . import msgbroker
@@ -61,8 +59,6 @@ config_bookreader_host = None
 config_internal_tests_api_key = None
 config_amz_api = None
 
-amazon_api = None
-
 def setup(config):
     """Initializes this module from openlibrary config.
     """
@@ -70,8 +66,8 @@ def setup(config):
         config_ia_access_secret, config_bookreader_host, \
         config_ia_ol_shared_key, config_ia_ol_xauth_s3, \
         config_internal_tests_api_key, config_ia_loan_api_url, \
-        config_http_request_timeout, config_amz_api, amazon_api, \
-        config_ia_availability_api_v1_url, config_ia_availability_api_v2_url, \
+        config_http_request_timeout, config_ia_availability_api_v1_url, \
+        config_ia_availability_api_v2_url, \
         config_ia_ol_metadata_write_s3, config_ia_xauth_api_url, \
         config_http_request_timeout, config_ia_s3_auth_url, \
         config_ia_users_loan_history, config_ia_loan_api_developer_key, \
@@ -95,14 +91,7 @@ def setup(config):
     config_ia_civicrm_api = config.get('ia_civicrm_api')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')
-    config_amz_api = config.get('amazon_api')
 
-    try:
-        amazon_api = AmazonAPI(
-            config_amz_api.key, config_amz_api.secret,
-            config_amz_api.id, MaxQPS=0.9)
-    except AttributeError:
-        amazon_api = None
 
 def get_work_authors_and_related_subjects(work_id):
     if 'env' not in web.ctx:
@@ -202,7 +191,7 @@ def get_random_available_ia_edition():
              "+AND+loans__status__status:AVAILABLE"\
              "&fl=identifier,openlibrary_edition,loans__status__status"\
              "&output=json&rows=1&sort[]=random" % (config_bookreader_host))
-        content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
+        content = urllib.request.urlopen(url=url, timeout=config_http_request_timeout).read()
         items = simplejson.loads(content).get('response', {}).get('docs', [])
         return items[0]["openlibrary_edition"]
     except Exception as e:
@@ -222,7 +211,7 @@ def get_available(limit=None, page=1, subject=None, query=None,
         limit=limit, page=page, subject=subject, query=query,
         work_id=work_id, _type=_type, sorts=sorts)
     try:
-        request = urllib2.Request(url=url)
+        request = urllib.request.Request(url=url)
 
         # Internet Archive Elastic Search (which powers some of our
         # carousel queries) needs Open Library to forward user IPs so
@@ -230,7 +219,7 @@ def get_available(limit=None, page=1, subject=None, query=None,
         client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
         request.add_header('x-client-id', client_ip)
 
-        content = urllib2.urlopen(request, timeout=config_http_request_timeout).read()
+        content = urllib.request.urlopen(request, timeout=config_http_request_timeout).read()
         items = simplejson.loads(content).get('response', {}).get('docs', [])
         results = {}
         for item in items:
@@ -250,7 +239,7 @@ def get_availability(key, ids):
     """
     url = '%s?%s=%s' % (config_ia_availability_api_v2_url, key, ','.join(ids))
     try:
-        content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
+        content = urllib.request.urlopen(url=url, timeout=config_http_request_timeout).read()
         return simplejson.loads(content).get('responses', {})
     except Exception as e:
         return {'error': 'request_timeout', 'details': str(e)}
@@ -265,47 +254,48 @@ def get_availability_of_editions(ol_edition_ids):
     return get_availability('openlibrary_edition', ol_edition_ids)
 
 @public
-def get_realtime_availability_of_ocaid(ocaid):
-    url = 'https://archive.org/metadata/%s?dontcache=1' % ocaid
-    statuses = {
-        'available': 'borrow_available',
-        'unavailable': 'borrow_unavailable',
-        'private': 'private',
-        'error': 'error'
-    }
-    try:
-        content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
-        metadata = simplejson.loads(content).get('metadata', {})
-        statuses = {'available': 'borrow_available', 'unavailable': 'borrow_unavailable', 'error': 'error'}
-        status = metadata.get('loans__status__status', 'error').lower()
-        return {
-            'status': statuses[status],
-            'num_waitlist': int(metadata.get('loans__status__num_waitlist', 0)),
-            'num_loans': int(metadata.get('loans__status__num_loans', 0))
-        }
-    except Exception as e:
-        return {'error': 'request_timeout'}
-
-@public
-def add_availability(editions):
+def add_availability(items):
     """
-    Adds API v2 'availability' key to editions, e.g. for work's editions table
-    :param list of dict editions:
+    Adds API v2 'availability' key to dicts
+    :param list of dict items: items with fields containing ocaids
     :rtype: list of dict
     """
-    def get_ocaid(ed):
-        if ed.get('ocaid') or ed.get('identifier') or ed.get('ia'):
-            return ed.get('ocaid') or ed.get('identifier') or (
-                ed['ia'][0] if isinstance(ed['ia'], list) else ed['ia'])
+    def get_ocaid(item):
+        possible_fields = [
+            'ocaid',  # In editions
+            'identifier',  # In ?? not editions/works/solr
+            'ia',  # In solr work records and worksearch get_docs
+            'lending_identifier',  # In solr works records + worksearch get_doc
+        ]
+        # SOLR WORK RECORDS ONLY:
+        # Open Library only has access to a list of archive.org IDs
+        # and solr isn't currently equipped with the information
+        # necessary to determine which editions may be openly
+        # available. Using public domain date as a heuristic
+        # Long term solution is a full reindex, but this hack will work in the
+        # vast majority of cases for now.
+        # NOTE: there is still a risk pre-1923 books will get a print-diabled-only
+        # or lendable edition.
+        # Note: guaranteed to be int-able if none None
+        US_PD_YEAR = 1923
+        if float(item.get('first_publish_year') or '-inf') > US_PD_YEAR:
+            # Prefer `lending_identifier` over `ia` (push `ia` to bottom)
+            possible_fields.remove('ia')
+            possible_fields.append('ia')
 
-    ocaids = [get_ocaid(ed) for ed in editions]
-    ocaids = [ocaid for ocaid in ocaids if ocaid]
+        for field in possible_fields:
+            if item.get(field):
+                return item[field][0] if isinstance(item[field], list) else item[field]
+
+    ocaids = [ocaid for ocaid in map(get_ocaid, items) if ocaid]
     availabilities = get_availability_of_ocaids(ocaids)
-    for ed in editions:
-        ocaid = get_ocaid(ed)
-        success = ocaid and availabilities.get(ocaid)
-        ed['availability'] = availabilities.get(ocaid) if success else {'status': 'error'}
-    return editions
+    for item in items:
+        ocaid = get_ocaid(item)
+        if ocaid and availabilities.get(ocaid):
+            item['availability'] = availabilities.get(ocaid)
+        else:
+            item['availability'] = {'status': 'error'}
+    return items
 
 @public
 def get_availability_of_ocaid(ocaid):
@@ -351,7 +341,7 @@ def is_loaned_out_on_ia(identifier):
     """
     url = "https://archive.org/services/borrow/%s?action=status" % identifier
     try:
-        response = simplejson.loads(urllib2.urlopen(url).read())
+        response = simplejson.loads(urllib.request.urlopen(url).read())
         return response and response.get('checkedout')
     except:
         return None
@@ -614,7 +604,7 @@ class Loan(dict):
 
         web.ctx.site.store[self['_key']] = self
 
-        # Inform listers that a loan is creted/updated
+        # Inform listers that a loan is created/updated
         msgbroker.send_message("loan-created", self)
 
     def is_expired(self):
@@ -724,7 +714,7 @@ class ACS4Item(object):
     def get_data(self):
         url = '%s/item/%s' % (config_loanstatus_url, self.identifier)
         try:
-            return simplejson.loads(urllib2.urlopen(url).read())
+            return simplejson.loads(urllib.request.urlopen(url).read())
         except IOError:
             logger.error("unable to conact BSS server", exc_info=True)
 
@@ -808,10 +798,10 @@ class IA_Lending_API:
         if config_ia_loan_api_developer_key:
             params['developer'] = config_ia_loan_api_developer_key
         params['token'] = config_ia_ol_shared_key
-        payload = urllib.urlencode(params)
+        payload = urllib.parse.urlencode(params)
 
         try:
-            jsontext = urllib2.urlopen(config_ia_loan_api_url, payload,
+            jsontext = urllib.request.urlopen(config_ia_loan_api_url, payload,
                                        timeout=config_http_request_timeout).read()
             logger.info("POST response: %s", jsontext)
             return simplejson.loads(jsontext)

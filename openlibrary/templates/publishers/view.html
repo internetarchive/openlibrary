@@ -21,7 +21,7 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 </div>
 
 <div class="contentBody">
-  $:render_template("books/custom_carousel", books=page.works, key="subjects", load_more={"url": page.key + "/works.json", "limit": len(page.works)})
+  $:render_template("books/custom_carousel", books=page.works, key="subjects", load_more={"url": page.key + ".json", "limit": len(page.works)})
 
 	<div class="head">
 	    <h2>
@@ -156,12 +156,6 @@ $jsdef renderPublishers(publishers):
         </span>
         <span class="count">$sprintf(ungettext("%s edition", "%s editions", p.count), commify(p.count))</span>
          <br/>
-
-$if "lists" in ctx.features:
-    <div class="spacer"></div>
-    <div id="subjectLists" class="widget-box">
-        $:render_template("lists/widget", page, include_rating=False)
-    </div>
 
 <div class="section clearfix"></div>
 

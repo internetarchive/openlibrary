@@ -1,18 +1,17 @@
 import re
-from openlibrary.catalog.utils import pick_first_date, tidy_isbn, flip_name, remove_trailing_dot, remove_trailing_number_dot
-from get_subjects import subjects_for_work
-from collections import defaultdict
-from marc_base import BadMARC, NoTitle, MarcException
 
-re_question = re.compile('^\?+$')
-re_lccn = re.compile('(...\d+).*')
-re_letters = re.compile('[A-Za-z]')
-re_oclc = re.compile('^\(OCoLC\).*?0*(\d+)')
+from openlibrary.catalog.marc.get_subjects import subjects_for_work
+from openlibrary.catalog.marc.marc_base import BadMARC, NoTitle, MarcException
+from openlibrary.catalog.utils import pick_first_date, tidy_isbn, flip_name, remove_trailing_dot, remove_trailing_number_dot
+
+re_question = re.compile(r'^\?+$')
+re_lccn = re.compile(r'([ \dA-Za-z\-]{3}[\d/-]+).*')
+re_oclc = re.compile(r'^\(OCoLC\).*?0*(\d+)')
 re_ocolc = re.compile('^ocolc *$', re.I)
-re_ocn_or_ocm = re.compile('^oc[nm]0*(\d+) *$')
-re_int = re.compile ('\d{2,}')
-re_number_dot = re.compile('\d{3,}\.$')
-re_bracket_field = re.compile('^\s*(\[.*\])\.?\s*$')
+re_ocn_or_ocm = re.compile(r'^oc[nm]0*(\d+) *$')
+re_int = re.compile(r'\d{2,}')
+re_number_dot = re.compile(r'\d{3,}\.$')
+re_bracket_field = re.compile(r'^\s*(\[.*\])\.?\s*$')
 foc = '[from old catalog]'
 
 def strip_foc(s):
@@ -23,26 +22,26 @@ class SeeAlsoAsTitle(MarcException):
 
 want = [
     '001',
-    '003', # for OCLC
-    '008', # publish date, country and language
-    '010', # lccn
-    '020', # isbn
-    '035', # oclc
-    '050', # lc classification
-    '082', # dewey
-    '100', '110', '111', # authors
+    '003',  # for OCLC
+    '008',  # publish date, country and language
+    '010',  # lccn
+    '020',  # isbn
+    '035',  # oclc
+    '050',  # lc classification
+    '082',  # dewey
+    '100', '110', '111',  # authors
     '130', '240', # work title
-    '245', # title
-    '250', # edition
-    '260', # publisher
-    '300', # pagination
-    '440', '490', '830' # series
-    ] + [str(i) for i in range(500,595)] + [ # notes + toc + description
-    #'600', '610', '611', '630', '648', '650', '651', '662', # subjects
-    '700', '710', '711', '720', # contributions
-    '246', '730', '740', # other titles
-    '852', # location
-    '856'] # URL
+    '245',  # title
+    '250',  # edition
+    '260',  # publisher
+    '300',  # pagination
+    '440', '490', '830'  # series
+    ] + [str(i) for i in range(500, 588)] + [  # notes + toc + description
+    # 6XX subjects are extracted separately by get_subjects.subjects_for_work()
+    '700', '710', '711', '720',  # contributions
+    '246', '730', '740',  # other titles
+    '852',  # location
+    '856']  # URL
 
 def read_lccn(rec):
     fields = rec.get_fields('010')
@@ -58,10 +57,11 @@ def read_lccn(rec):
             m = re_lccn.search(lccn)
             if not m:
                 continue
-            lccn = re_letters.sub('', m.group(1)).strip()
+            lccn = m.group(1).strip()
+            # zero-pad any dashes so the final digit group has size = 6
+            lccn = lccn.replace('-', '0'*(7 - (len(lccn) - lccn.find('-'))))
             if lccn:
                 found.append(lccn)
-
     return found
 
 def remove_duplicates(seq):
@@ -164,11 +164,12 @@ def read_work_titles(rec):
     return remove_duplicates(found)
 
 def read_title(rec):
+    STRIP_CHARS = r' /,;:='
     fields = rec.get_fields('245')
     if not fields:
         fields = rec.get_fields('740')
     if not fields:
-        raise NoTitle("No Title found in either 245 or 740 fields.")
+        raise NoTitle('No Title found in either 245 or 740 fields.')
 
 #   example MARC record with multiple titles:
 #   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:299505697:862
@@ -182,31 +183,32 @@ def read_title(rec):
 #   MARC record with 245a missing:
 #   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:516779055:1304
     if 'a' in contents:
-        title = ' '.join(x.strip(' /,;:') for x in contents['a'])
+        title = ' '.join(x.strip(STRIP_CHARS) for x in contents['a'])
     elif b_and_p:
-        title = b_and_p.pop(0).strip(' /,;:')
+        title = b_and_p.pop(0).strip(STRIP_CHARS)
 # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:183427199:255
     if title in ('See.', 'See also.'):
-        raise SeeAlsoAsTitle("Title is: %s" % title)
+        raise SeeAlsoAsTitle('Title is: %s' % title)
 # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:5654086:483
 # scrapbooksofmoun03tupp
     if title is None:
         subfields = list(fields[0].get_all_subfields())
         title = ' '.join(v for k, v in subfields)
-        if not title: # ia:scrapbooksofmoun03tupp
-            raise NoTitle("No title found from joining subfields.")
+        if not title:  # ia:scrapbooksofmoun03tupp
+            raise NoTitle('No title found from joining subfields.')
     ret['title'] = remove_trailing_dot(title)
     if b_and_p:
-        ret["subtitle"] = ' : '.join(remove_trailing_dot(x.strip(' /,;:')) for x in b_and_p)
+        ret['subtitle'] = ' : '.join(
+            remove_trailing_dot(x.strip(STRIP_CHARS)) for x in b_and_p)
     if 'c' in contents:
-        ret["by_statement"] = remove_trailing_dot(' '.join(contents['c']))
+        ret['by_statement'] = remove_trailing_dot(' '.join(contents['c']))
     if 'h' in contents:
         h = ' '.join(contents['h']).strip(' ')
         m = re_bracket_field.match(h)
         if m:
             h = m.group(1)
         assert h
-        ret["physical_format"] = h
+        ret['physical_format'] = h
     return ret
 
 def read_edition_name(rec):
@@ -409,11 +411,6 @@ def read_description(rec):
     found = []
     for f in fields:
         this = [i for i in f.get_subfield_values(['a']) if i]
-        #if len(this) != 1:
-        #    print f.get_all_subfields()
-        # multiple 'a' subfields
-        # marc_loc_updates/v37.i47.records.utf8:5325207:1062
-        # 520: $aManpower policy;$aNusa Tenggara Barat Province
         found += this
     if found:
         return "\n\n".join(found).strip(' ')
@@ -423,7 +420,6 @@ def read_url(rec):
     for f in rec.get_fields('856'):
         contents = f.get_contents(['3', 'u'])
         if not contents.get('u', []):
-            #print repr(f.ind1(), f.ind2()), list(f.get_all_subfields())
             continue
         if '3' not in contents:
             found += [{ 'url': u.strip(' ') } for u in contents['u']]
@@ -632,7 +628,3 @@ def read_edition(rec):
             edition.update(v)
 
     return edition
-
-if __name__ == '__main__':
-    import sys
-    loc = sys.argv[1]

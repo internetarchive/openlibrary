@@ -8,11 +8,10 @@ Changes:
 """
 import _init_path
 
+from six.moves import urllib
 import yaml
 import logging
 import json
-import urllib
-import urllib2
 import argparse
 import datetime
 import time
@@ -37,6 +36,7 @@ def parse_arguments():
     parser.add_argument('-c', '--config')
     parser.add_argument('--debugger', action="store_true", help="Wait for a debugger to attach before beginning.")
     parser.add_argument('--state-file', default="solr-update.state")
+    parser.add_argument('--exclude-edits-containing', help="Don't index matching edits")
     parser.add_argument('--ol-url', default="http://openlibrary.org/")
     parser.add_argument('--socket-timeout', type=int, default=10)
     parser.add_argument('--load-ia-scans', dest="load_ia_scans", action="store_true", default=False)
@@ -55,9 +55,14 @@ def get_default_offset():
 
 
 class InfobaseLog:
-    def __init__(self, hostname):
+    def __init__(self, hostname, exclude=None):
+        """
+        :param str hostname:
+        :param str|None exclude: if specified, excludes records that include the string
+        """
         self.base_url = 'http://%s/openlibrary.org/log' % hostname
         self.offset = get_default_offset()
+        self.exclude = exclude
 
     def tell(self):
         return self.offset
@@ -72,8 +77,8 @@ class InfobaseLog:
             url = "%s/%s?limit=100" % (self.base_url, self.offset)
             logger.debug("Reading log from %s", url)
             try:
-                jsontext = urllib2.urlopen(url).read()
-            except urllib2.URLError as e:
+                jsontext = urllib.request.urlopen(url).read()
+            except urllib.error.URLError as e:
                 logger.error("Failed to open URL %s", url, exc_info=True)
                 if e.args and e.args[0].args == (111, 'Connection refused'):
                     logger.error('make sure infogami server is working, connection refused from %s', url)
@@ -92,6 +97,8 @@ class InfobaseLog:
                 return
 
             for record in data:
+                if self.exclude and self.exclude in json.dumps(record):
+                    continue
                 yield record
 
             self.offset = d['offset']
@@ -254,7 +261,8 @@ def main():
     state_file = args.state_file
     offset = read_state_file(state_file)
 
-    logfile = InfobaseLog(config.get('infobase_server'))
+    logfile = InfobaseLog(config.get('infobase_server'),
+                          exclude=args.exclude_edits_containing)
     logfile.seek(offset)
 
     solr = Solr()

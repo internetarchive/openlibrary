@@ -1,13 +1,13 @@
 """
-Hook to show mark details in Open Library.
+Hook to show MARC or other source record details in Open Library.
 """
 from .. import app
 
 import web
-import urllib2
-import os.path
-import sys
 import re
+
+from six.moves import urllib
+
 
 class old_show_marc(app.view):
     path = "/show-marc/(.*)"
@@ -22,8 +22,8 @@ class show_ia(app.view):
         error_404 = False
         url = 'http://www.archive.org/download/%s/%s_meta.mrc' % (ia, ia)
         try:
-            data = urllib2.urlopen(url).read()
-        except urllib2.HTTPError as e:
+            data = urllib.request.urlopen(url).read()
+        except urllib.error.HTTPError as e:
             if e.code == 404:
                 error_404 = True
             else:
@@ -32,8 +32,8 @@ class show_ia(app.view):
         if error_404: # no MARC record
             url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
             try:
-                data = urllib2.urlopen(url).read()
-            except urllib2.HTTPError as e:
+                data = urllib.request.urlopen(url).read()
+            except urllib.error.HTTPError as e:
                 return "ERROR:" + str(e)
             raise web.seeother('http://www.archive.org/details/' + ia)
 
@@ -65,6 +65,7 @@ class show_ia(app.view):
         template.v2 = True
         return template
 
+
 class show_amazon(app.view):
     path = "/show-records/amazon:(.*)"
 
@@ -72,6 +73,16 @@ class show_amazon(app.view):
         template = app.render_template("showamazon", asin)
         template.v2 = True
         return template
+
+
+class show_bwb(app.view):
+    path = "/show-records/bwb:(.*)"
+
+    def GET(self, isbn):
+        template = app.render_template("showbwb", isbn)
+        template.v2 = True
+        return template
+
 
 re_bad_meta_mrc = re.compile('^([^/]+)_meta\.mrc$')
 re_lc_sanfranpl = re.compile('^sanfranpl(\d+)/sanfranpl(\d+)\.out')
@@ -106,14 +117,14 @@ class show_marc(app.view):
         r0, r1 = offset, offset+100000
         url = 'http://www.archive.org/download/%s'% filename
 
-        ureq = urllib2.Request(url,
+        ureq = urllib.request.Request(url,
                                None,
                                {'Range':'bytes=%d-%d'% (r0, r1)},
                                )
 
         try:
-            result = urllib2.urlopen(ureq).read(100000)
-        except urllib2.HTTPError as e:
+            result = urllib.request.urlopen(ureq).read(100000)
+        except urllib.error.HTTPError as e:
             return "ERROR:" + str(e)
 
         len_in_rec = int(result[:5])

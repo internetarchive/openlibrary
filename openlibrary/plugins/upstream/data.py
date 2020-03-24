@@ -6,14 +6,15 @@ from infogami.utils import delegate
 from infogami.utils.view import public
 
 import simplejson
-import urllib2
+
+from six.moves import urllib
 
 
 IA_BASE_URL = config.get('ia_base_url')
 
 
 def wget(url):
-    return urllib2.urlopen(url).read()
+    return urllib.request.urlopen(url).read()
 
 
 def get_ol_dumps():

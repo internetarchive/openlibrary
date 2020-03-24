@@ -14,7 +14,8 @@ import itertools
 from dump import read_tsv, log
 
 def subdict(d, properties):
-    return dict((k, v) for k, v in d.iteritems() if k in set(properties))
+    unique_properties = set(properties)
+    return {k: v for k, v in d.items() if k in unique_properties}
 
 def process_edition(doc):
     properties = [

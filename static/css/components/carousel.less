@@ -36,6 +36,17 @@
     height: 100%;
     margin: 0 10px;
     min-height: 1px;
+    overflow: hidden;
+    box-sizing: border-box;
+
+    // :focus state for when selected
+    // e.g. "pick one of existing covers" on change cover.
+    // Is .selected redundant?
+    &:focus,
+    &.selected {
+      border: 5px solid @orange;
+      outline: 0;
+    }
   }
 
   // Modifiers
@@ -153,6 +164,18 @@
     padding: 4px 4px 0;
     font-size: 0.6875em;
     font-style: oblique;
+  }
+}
+
+.slick {
+  // This is a fix for firefox + Librejs
+  // because the slick css passed through js
+  // and librejs is breaking on utf8 chars
+  &-next::before {
+    content: '→' !important;
+  }
+  &-prev::before {
+    content: '←' !important;
   }
 }
 

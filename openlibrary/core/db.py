@@ -28,7 +28,7 @@ def _proxy(method_name):
         stats.end()
         return result
     f.__name__ = method_name
-    f.__doc__ = "Equivalant to get_db().%s(*args, **kwargs).""" % method_name
+    f.__doc__ = "Equivalent to get_db().%s(*args, **kwargs).""" % method_name
     return f
 
 query = _proxy("query")

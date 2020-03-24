@@ -14,7 +14,7 @@ def load(config_file):
     The loaded config will be available via runtime_config var in this module.
     This doesn't affect the global config.
 
-    WARNING: This function is depricated, please use load_config instead.
+    WARNING: This function is deprecated, please use load_config instead.
     """
     # for historic reasons
     global runtime_config

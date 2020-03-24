@@ -1,6 +1,6 @@
 from __future__ import print_function
 import re
-from normalize import normalize
+from openlibrary.catalog.merge.normalize import normalize
 
 re_split_parts = re.compile('(.*?[. ]+)')
 re_marc_name = re.compile('^(.*), (.*)$')

@@ -83,7 +83,7 @@ class browse(delegate.page):
 
 
 class ratings(delegate.page):
-    path = "/works/OL(\d+)W/ratings"
+    path = r"/works/OL(\d+)W/ratings"
     encoding = "json"
 
     def POST(self, work_id):
@@ -128,10 +128,23 @@ class ratings(delegate.page):
 # not a value tied to this logged in user. This is being used as debugging.
 
 class work_bookshelves(delegate.page):
-    path = "/works/OL(\d+)W/bookshelves"
+    path = r"/works/OL(\d+)W/bookshelves"
     encoding = "json"
 
+    @jsonapi
+    def GET(self, work_id):
+        from openlibrary.core.models import Bookshelves
+
+        result = {'counts': {}}
+        counts = Bookshelves.get_num_users_by_bookshelf_by_work_id(work_id)
+        for (shelf_name, shelf_id) in Bookshelves.PRESET_BOOKSHELVES_JSON.items():
+            result['counts'][shelf_name] = counts.get(shelf_id, 0)
+
+        return simplejson.dumps(result)
+
     def POST(self, work_id):
+        from openlibrary.core.models import Bookshelves
+
         user = accounts.get_current_user()
         i = web.input(edition_id=None, action="add", redir=False, bookshelf_id=None)
         key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
@@ -140,24 +153,25 @@ class work_bookshelves(delegate.page):
             raise web.seeother('/account/login?redirect=%s' % key)
 
         username = user.key.split('/')[2]
-        current_status = models.Bookshelves.get_users_read_status_of_work(username, work_id)
+        current_status = Bookshelves.get_users_read_status_of_work(username, work_id)
 
         try:
             bookshelf_id = int(i.bookshelf_id)
-            if bookshelf_id not in models.Bookshelves.PRESET_BOOKSHELVES.values():
+            shelf_ids = Bookshelves.PRESET_BOOKSHELVES.values()
+            if bookshelf_id != -1 and bookshelf_id not in shelf_ids:
                 raise ValueError
         except ValueError:
             return delegate.RawText(simplejson.dumps({
                 'error': 'Invalid bookshelf'
             }), content_type="application/json")
 
-        if bookshelf_id == current_status:
-            work_bookshelf = models.Bookshelves.remove(
-                username=username, work_id=work_id, bookshelf_id=i.bookshelf_id)
+        if bookshelf_id == current_status or bookshelf_id == -1:
+            work_bookshelf = Bookshelves.remove(
+                username=username, work_id=work_id, bookshelf_id=current_status)
 
         else:
             edition_id = int(i.edition_id.split('/')[2][2:-1]) if i.edition_id else None
-            work_bookshelf = models.Bookshelves.add(
+            work_bookshelf = Bookshelves.add(
                 username=username, bookshelf_id=bookshelf_id,
                 work_id=work_id, edition_id=edition_id)
 
@@ -169,7 +183,7 @@ class work_bookshelves(delegate.page):
 
 
 class work_editions(delegate.page):
-    path = "(/works/OL\d+W)/editions"
+    path = r"(/works/OL\d+W)/editions"
     encoding = "json"
 
     def GET(self, key):
@@ -211,7 +225,7 @@ class work_editions(delegate.page):
 
 
 class author_works(delegate.page):
-    path = "(/authors/OL\d+A)/works"
+    path = r"(/authors/OL\d+A)/works"
     encoding = "json"
 
     def GET(self, key):
@@ -310,6 +324,8 @@ class sponsorship_eligibility_check(delegate.page):
             else models.Edition.from_isbn(_id)
             
         )
+        if not edition:
+            return simplejson.dumps({"status": "error", "reason": "Invalid ISBN 13"})
         return simplejson.dumps(qualifies_for_sponsorship(edition))
 
 

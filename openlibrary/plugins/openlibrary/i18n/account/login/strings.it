@@ -1,9 +1,0 @@
-username = u'Nome utente'
-remember_me = u'Ricordati di me'
-password = u'Password'
-forgot_password = u'Hai dimenticato il tuo nome utente o la password?'
-create_new_account = u"In caso contrario, <a href='%s'> creare un nuovo account </ a> - si prende un solo secondo."
-ol_id = u'Accedi con Open Biblioteca ID'
-login = u'Entra'
-foo = u'foo'
-login_stmt = u'Se hai gi\xe0 un account, accedi'

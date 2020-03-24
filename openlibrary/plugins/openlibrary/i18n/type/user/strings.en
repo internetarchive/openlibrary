@@ -1,5 +1,0 @@
-website = u'Website'
-users_activity = u"%s's wiki activity"
-displayname = u'Display Name'
-description = u'Description'
-email = u'E-Mail'

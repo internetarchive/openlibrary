@@ -134,6 +134,7 @@ function initAvailability() {
                                 .attr('href', `/borrow/ia/${book_ocaid}`);
                             $(`${selector}[data-key=${book_key}]`)
                                 .addClass('cta-btn--available').addClass(btnClassName)
+                            // FIXME: This is not translatable!
                             $(`${selector}[data-key=${book_key}]`)
                                 .text('Borrow');
                             // since we've found an available edition to
@@ -151,6 +152,7 @@ function initAvailability() {
                                 .attr('title', 'Join waitlist');
                             $(`${selector}[data-key=${book_key}]`)
                                 .addClass('cta-btn--unavailable').addClass(btnClassName);
+                            // FIXME: Hardcoded English text!
                             $(`${selector}[data-key=${book_key}]`)
                                 .text('Join Waitlist');
                             delete books[book_key];
@@ -168,6 +170,7 @@ function initAvailability() {
                                 .removeClass('borrow-link');
                             $(`${selector}[data-key=${book_key}]`)
                                 .addClass('check-book-availability').addClass(btnClassName);
+                            // FIXME: This is not translatable!
                             $(`${selector}[data-key=${book_key}]`)
                                 .text('Check Availability');
                             delete books[book_key];
@@ -202,6 +205,7 @@ function initAvailability() {
             return;
         }
 
+        results = $('a.results');
         worksAndEditions = getWorksAndEditionsFromElements($('a.results'));
         editions = worksAndEditions.editions;
         works = worksAndEditions.works;
@@ -230,15 +234,15 @@ function initAvailability() {
                                 if (work.status === 'open' || work.status === 'borrow_available') {
                                     $(cta).append(`<a href="/books/${work.openlibrary_edition}/x/borrow" ` +
                                                   'class="cta-btn cta-btn--available" ' +
-                                                  `data-ol-link-track="${work.status}">${
-                                                      work.status === 'open' ? 'Read' : ' Borrow'
+                                                  `data-ol-link-track="CTAClick|${work.status === 'open' ? 'Read' : 'Borrow'}">${
+                                                      work.status === 'open' ? 'Read' : 'Borrow'
                                                   }</a>`);
                                 } else if (work.status === 'borrow_unavailable') {
                                     $(cta).append(`${'<form method="POST" ' +
                                                   'action="/books/'}${work.openlibrary_edition}/x/borrow?action=join-waitinglist" ` +
                                                   'class="join-waitlist waitinglist-form">' +
                                                   '<input type="hidden" name="action" value="join-waitinglist">' +
-                                                  `<button type="submit" class="cta-btn cta-btn--unavailable" data-ol-link-track="${work.status}">` +
+                                                  '<button type="submit" class="cta-btn cta-btn--unavailable" data-ol-link-track="CTAClick|JoinWaitlist">' +
                                                   `Join Waitlist${
                                                       work.num_waitlist !== '0' ? ` <span class="cta-btn__badge">${work.num_waitlist}</span>` : ''
                                                   }</button></form>${

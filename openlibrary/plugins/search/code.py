@@ -1,6 +1,5 @@
 from __future__ import print_function
 import web
-import stopword
 import pdb
 
 from infogami import utils
@@ -12,15 +11,16 @@ from infogami.plugins.api.code import jsonapi
 
 import re
 import web
-import solr_client
 import time
 import simplejson
 from functools import partial
 from gzip import open as gzopen
-import cPickle
 from collections import defaultdict
 
 import six
+
+from openlibrary.plugins.search import facet_hash, solr_client
+from openlibrary.plugins.search.collapse import collapse_groups
 
 render = template.render
 
@@ -70,7 +70,7 @@ def lookup_ocaid(ocaid):
     w = web.ctx.site.get(ocat[0]) if ocat else None
     return w
 
-from collapse import collapse_groups
+
 class fullsearch(delegate.page):
     def POST(self):
         errortext = None
@@ -135,7 +135,6 @@ class fullsearch(delegate.page):
 
     GET = POST
 
-import facet_hash
 facet_token = view.public(facet_hash.facet_token)
 
 class Timestamp(object):
@@ -294,7 +293,7 @@ class search_api:
         def format(val, prettyprint=False, callback=None):
             if callback is not None:
                 if (not isinstance(callback, str) or
-                        not re.match('[a-z][a-z0-9\.]*$', callback, re.I)):
+                        not re.match(r'[a-z][a-z0-9\.]*$', callback, re.I)):
                     val = self.error_val
                     callback = None
 

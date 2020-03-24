@@ -11,7 +11,7 @@ from infogami import config
 from infogami.utils import stats
 import openlibrary.core.stats
 
-import filters as stats_filters
+import openlibrary.plugins.openlibrary.filters as stats_filters
 
 l = logging.getLogger("openlibrary.stats")
 

@@ -1,27 +1,26 @@
 from __future__ import print_function
 import datetime
-import httplib
 import logging
 import os
 import re
 import sys
 import time
-import urllib
-import urllib2
 from collections import defaultdict
 from unicodedata import normalize
 
 import simplejson as json
 import six
+from six.moves import urllib
+from six.moves.http_client import HTTPConnection
 import web
 from lxml.etree import tostring, Element, SubElement
 
-from data_provider import get_data_provider
 from infogami.infobase.client import ClientException
 from openlibrary import config
 from openlibrary.catalog.utils.query import set_query_host, base_url as get_ol_base_url
 from openlibrary.core import helpers as h
 from openlibrary.core import ia
+from openlibrary.solr.data_provider import get_data_provider
 from openlibrary.utils.isbn import opposite_isbn
 
 logger = logging.getLogger("openlibrary.solr")
@@ -31,7 +30,7 @@ re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
 re_bad_char = re.compile('[\x01\x0b\x1a-\x1e]')
 re_edition_key = re.compile(r"/books/([^/]+)")
 re_iso_date = re.compile(r'^(\d{4})-\d\d-\d\d$')
-re_solr_field = re.compile('^[-\w]+$', re.U)
+re_solr_field = re.compile(r'^[-\w]+$', re.U)
 re_year = re.compile(r'(\d{4})$')
 
 data_provider = None
@@ -45,8 +44,8 @@ def urlopen(url, data=None):
     headers = {
         'User-Agent': user_agent
     }
-    req = urllib2.Request(url, data, headers)
-    return urllib2.urlopen(req)
+    req = urllib.request.Request(url, data, headers)
+    return urllib.request.urlopen(req)
 
 def get_solr():
     """
@@ -206,7 +205,7 @@ def get_work_subjects(w):
         'subject_people': 'person',
     }
 
-    for db_field, solr_field in field_map.iteritems():
+    for db_field, solr_field in field_map.items():
         if not w.get(db_field, None):
             continue
         cur = subjects.setdefault(solr_field, {})
@@ -317,7 +316,7 @@ class SolrProcessor:
                 e['public_scan'] = ('lendinglibrary' not in collection) and ('printdisabled' not in collection)
 
             if 'identifiers' in e:
-                for k, id_list in e['identifiers'].iteritems():
+                for k, id_list in e['identifiers'].items():
                     k_orig = k
                     k = k.replace('.', '_').replace(',', '_').replace('(', '').replace(')', '').replace(':', '_').replace('/', '').replace('#', '').lower()
                     m = re_solr_field.match(k)
@@ -328,7 +327,7 @@ class SolrProcessor:
                         v = v.strip()
                         if v not in identifiers[k]:
                             identifiers[k].append(v)
-        return sorted(editions, key=lambda e: e.get('pub_year', None))
+        return sorted(editions, key=lambda e: int(e.get('pub_year') or -sys.maxsize))
 
     def get_author(self, a):
         """
@@ -432,7 +431,7 @@ class SolrProcessor:
             'subject_people': 'person',
         }
 
-        for db_field, solr_field in field_map.iteritems():
+        for db_field, solr_field in field_map.items():
             if not w.get(db_field, None):
                 continue
             cur = subjects.setdefault(solr_field, {})
@@ -816,7 +815,7 @@ def solr_update(requests, debug=False, commitWithin=60000):
     :param bool debug:
     :param int commitWithin: Solr commitWithin, in ms
     """
-    h1 = httplib.HTTPConnection(get_solr())
+    h1 = HTTPConnection(get_solr())
     url = 'http://%s/solr/update' % get_solr()
 
     logger.info("POSTing update to %s", url)
@@ -1080,7 +1079,7 @@ def get_subject(key):
         'facet.limit': 100
     }
     base_url = 'http://' + get_solr() + '/solr/select'
-    url = base_url + '?' + urllib.urlencode(params)
+    url = base_url + '?' + urllib.parse.urlencode(params)
     result = json.load(urlopen(url))
 
     work_count = result['response']['numFound']
@@ -1453,7 +1452,7 @@ def solr_escape(query):
     :param str query:
     :rtype: str
     """
-    return re.sub('([\s\-+!()|&{}\[\]^\"~*?:\\\\])', r'\\\1', query)
+    return re.sub(r'([\s\-+!()|&{}\[\]^"~*?:\\])', r'\\\1', query)
 
 def do_updates(keys):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")

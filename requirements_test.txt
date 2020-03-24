@@ -5,6 +5,7 @@
 -r requirements_common.txt
 flake8==3.7.9
 mockcache==1.0.3; python_version < '3.0'
+pymemcache==3.0.0; python_version >= '3.0'
 ptvsd==4.3.2
-pytest==4.6.6; python_version < '3.0'
-pytest==5.2.2; python_version >= '3.0'
+pytest==4.6.9; python_version < '3.0'
+pytest==5.4.1; python_version >= '3.0'

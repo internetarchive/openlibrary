@@ -2,15 +2,15 @@
 """
 
 from infogami.plugins.api.code import add_hook
-from infogami import config
+from infogami.infobase.client import ClientException
+
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.catalog.marc.marc_binary import MarcBinary, MarcException
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog import add_book
 from openlibrary.catalog.get_ia import get_marc_record_from_ia, get_from_archive_bulk
-from openlibrary import accounts
-from openlibrary import records
+from openlibrary import accounts, records
 from openlibrary.core import ia
 
 import web
@@ -18,15 +18,15 @@ import web
 import base64
 import json
 import re
-import urllib
 
-import import_opds
-import import_rdf
-import import_edition_builder
+from openlibrary.plugins.importapi import (import_edition_builder, import_opds,
+                                           import_rdf)
 from lxml import etree
 import logging
 
-IA_BASE_URL = config.get('ia_base_url')
+from six.moves import urllib
+
+
 MARC_LENGTH_POS = 5
 logger = logging.getLogger('openlibrary.importapi')
 
@@ -38,7 +38,7 @@ def parse_meta_headers(edition_builder):
     # we don't yet support augmenting complex fields like author or language
     # string_keys = ['title', 'title_prefix', 'description']
 
-    re_meta = re.compile('HTTP_X_ARCHIVE_META(?:\d{2})?_(.*)')
+    re_meta = re.compile(r'HTTP_X_ARCHIVE_META(?:\d{2})?_(.*)')
     for k, v in web.ctx.env.items():
         m = re_meta.match(k)
         if m:
@@ -76,15 +76,16 @@ def parse_data(data):
         obj = json.loads(data)
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
         format = 'json'
-    else:
+    elif data[:MARC_LENGTH_POS].isdigit():
         #Marc Binary
         if len(data) < MARC_LENGTH_POS or len(data) != int(data[:MARC_LENGTH_POS]):
             raise DataError('no-marc-record')
         rec = MarcBinary(data)
-
         edition = read_edition(rec)
         edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
         format = 'marc'
+    else:
+        raise DataError('unrecognised-import-format')
 
     parse_meta_headers(edition_builder)
     return edition_builder.get_dict(), format
@@ -116,16 +117,19 @@ class importapi:
             return self.error(str(e), 'Failed to parse import data')
 
         if not edition:
-            return self.error('unknown_error', 'Failed to parse import data')
+            return self.error('unknown-error', 'Failed to parse import data')
 
         try:
             reply = add_book.load(edition)
+            # TODO: If any records have been created, return a 201, otherwise 200
+            return json.dumps(reply)
         except add_book.RequiredField as e:
             return self.error('missing-required-field', str(e))
-        return json.dumps(reply)
+        except ClientException as e:
+            return self.error('bad-request', **json.loads(e.json))
 
     def reject_non_book_marc(self, marc_record, **kwargs):
-        details = "Item rejected"
+        details = 'Item rejected'
         # Is the item a serial instead of a book?
         marc_leaders = marc_record.leader()
         if marc_leaders[7] == 's':
@@ -169,7 +173,7 @@ class ia_importapi(importapi):
         # First check whether this is a non-book, bulk-marc item
         if bulk_marc:
             # Get binary MARC by identifier = ocaid/filename:offset:length
-            re_bulk_identifier = re.compile("([^/]*)/([^:]*):(\d*):(\d*)")
+            re_bulk_identifier = re.compile(r"([^/]*)/([^:]*):(\d*):(\d*)")
             try:
                 ocaid, filename, offset, length = re_bulk_identifier.match(identifier).groups()
                 data, next_offset, next_length = get_from_archive_bulk(identifier)
@@ -206,45 +210,36 @@ class ia_importapi(importapi):
             return json.dumps(result)
 
         # Case 1 - Is this a valid Archive.org item?
-        try:
-            item_json = ia.get_item_json(identifier)
-            item_server = item_json['server']
-            item_path = item_json['dir']
-        except KeyError:
-            return self.error("invalid-ia-identifier", "%s not found" % identifier)
-        metadata = ia.extract_item_metadata(item_json)
+        metadata = ia.get_metadata(identifier)
         if not metadata:
-            return self.error("invalid-ia-identifier")
+            return self.error('invalid-ia-identifier', '%s not found' % identifier)
 
         # Case 2 - Does the item have an openlibrary field specified?
         # The scan operators search OL before loading the book and add the
         # OL key if a match is found. We can trust them and attach the item
         # to that edition.
-        if metadata.get("mediatype") == "texts" and metadata.get("openlibrary"):
+        if metadata.get('mediatype') == 'texts' and metadata.get('openlibrary'):
             edition_data = self.get_ia_record(metadata)
-            edition_data["openlibrary"] = metadata["openlibrary"]
+            edition_data['openlibrary'] = metadata['openlibrary']
             edition_data = self.populate_edition_data(edition_data, identifier)
             return self.load_book(edition_data)
 
         # Case 3 - Can the item be loaded into Open Library?
-        status = ia.get_item_status(identifier, metadata,
-                                    item_server=item_server, item_path=item_path)
+        status = ia.get_item_status(identifier, metadata)
         if status != 'ok':
-            return self.error(status, "Prohibited Item")
+            return self.error(status, 'Prohibited Item %s' % identifier)
 
         # Case 4 - Does this item have a marc record?
-        marc_record = self.get_marc_record(identifier)
+        marc_record = get_marc_record_from_ia(identifier)
         if marc_record:
             self.reject_non_book_marc(marc_record)
             try:
                 edition_data = read_edition(marc_record)
             except MarcException as e:
-                logger.error("failed to read from MARC record %s: %s", identifier, str(e))
-                return self.error("invalid-marc-record")
-
+                logger.error('failed to read from MARC record %s: %s', identifier, str(e))
+                return self.error('invalid-marc-record')
         elif require_marc:
-            return self.error("no-marc-record")
-
+            return self.error('no-marc-record')
         else:
             try:
                 edition_data = self.get_ia_record(metadata)
@@ -253,7 +248,6 @@ class ia_importapi(importapi):
 
         # Add IA specific fields: ocaid, source_records, and cover
         edition_data = self.populate_edition_data(edition_data, identifier)
-
         return self.load_book(edition_data)
 
     def get_ia_record(self, metadata):
@@ -313,15 +307,9 @@ class ia_importapi(importapi):
         :return: Edition record
         """
         edition['ocaid'] = identifier
-        edition['source_records'] = "ia:" + identifier
-        edition['cover'] = "{0}/download/{1}/{1}/page/title.jpg".format(IA_BASE_URL, identifier)
+        edition['source_records'] = 'ia:' + identifier
+        edition['cover'] = ia.get_cover_url(identifier)
         return edition
-
-    def get_marc_record(self, identifier):
-        try:
-            return get_marc_record_from_ia(identifier)
-        except IOError:
-            return None
 
     def find_edition(self, identifier):
         """
@@ -419,6 +407,7 @@ class ils_search:
         # step 4: format the result
         d = self.format_result(matches, auth_header, keys)
         return json.dumps(d)
+
 
     def error(self, reason):
         d = json.dumps({ "status" : "error", "reason" : reason})
@@ -569,9 +558,9 @@ class ils_cover_upload:
 
     def build_url(self, url, **params):
         if '?' in url:
-            return url + "&" + urllib.urlencode(params)
+            return url + "&" + urllib.parse.urlencode(params)
         else:
-            return url + "?" + urllib.urlencode(params)
+            return url + "?" + urllib.parse.urlencode(params)
 
     def login(self, authstring):
         if not authstring:

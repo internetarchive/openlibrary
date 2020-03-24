@@ -1,8 +1,0 @@
-change_language = u'Cambiar idioma'
-begin_editing = u'Para comenzar a editar el i18n cuerdas,'
-change_language_statement = u'La Biblioteca Abierta interfaz se compone de una serie de cadenas que puede ser traducido por los usuarios a trav\xe9s de una innovadora interfaz de wiki. Puedes traducir o a\xf1adir cualquier cadena en uno de nuestros idiomas disponibles. Actualmente, apoyamos Ingl\xe9s, espa\xf1ol, e italiano. Ay\xfadenos a construir la Biblioteca Abierta de la mejora de nuestras traducciones!'
-try_language = u'Prueba Open Biblioteca en un idioma diferente'
-change_language_statement3 = u'Usted puede ver c\xf3mo se ve toda traducci\xf3n seleccion\xe1ndolo en el men\xfa desplegable que aparece a continuaci\xf3n. Nota: En este momento, la traducci\xf3n es s\xf3lo para la interfaz de usuario de las cadenas y no de contenido.'
-change_language_statement2 = u'A\xf1adir un nuevo idioma es f\xe1cil. Simplemente seleccione su idioma de esta lista de dos letras del c\xf3digo ISO del pa\xeds, y en lugar de "xx" con que al final de esta URL:'
-click_here = u'clic aqu\xed.'
-change_language_statement4 = u'Haga clic en "Crear It" y usted podr\xe1 comenzar a traducir!'

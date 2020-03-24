@@ -27,22 +27,6 @@ $ available_loans = page.get_available_loans()
         </p>
 
         <p>
-          IP address: $user_ip
-        </p>
-
-        <p>
-          you are in library? (inlibrary flag set):
-          $if "inlibrary" in ctx.features:
-             yes
-          $else:
-             no
-        </p>
-
-        <p>
-          which library: $get_library()
-        </p>
-
-        <p>
           work subjects: $page.works[0].get_subjects()
         </p>
 

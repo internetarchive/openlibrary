@@ -1,6 +1,6 @@
 import web
 import os
-from StringIO import StringIO
+from six import StringIO
 
 arc_dir = '/2/edward/amazon/arc'
 urls = (

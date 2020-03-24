@@ -842,7 +842,7 @@ msgstr "¿De qué trata?"
 
 #: edit.html:176
 msgid "Add Excerpts"
-msgstr "Añadir extractros"
+msgstr "Añadir extractos"
 
 #: edit.html:216
 msgid "Delete this book?"
@@ -998,7 +998,7 @@ msgstr "Hay dos formas de obtener la imagen de portada en Open Library"
 
 #: edit/addcover.html:14
 msgid "Either choose a JPG, GIF or PNG on your computer,"
-msgstr "Elije un JPG, GIF o PNG en tu ordenador,"
+msgstr "Elige un JPG, GIF o PNG en tu ordenador,"
 
 #: edit/addcover.html:22
 msgid "<u>Or</u></span>, paste in a URL to an image if it's on the web."
@@ -1442,7 +1442,7 @@ msgstr "<strong>Escoge una</strong> de las portadas existentes,"
 
 #: add.html:102
 msgid "Choose a JPG, GIF or PNG on your computer,"
-msgstr "Elije un JPG, GIF o PNG en su ordenador,"
+msgstr "Elige un JPG, GIF o PNG en tu ordenador,"
 
 #: add.html:111
 msgid "<u>Or</u></span>, paste in the image URL if it's on the web."

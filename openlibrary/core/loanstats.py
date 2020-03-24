@@ -5,13 +5,14 @@ Unlike other parts of openlibrary, this modules talks to the database directly.
 import re
 import time
 import datetime
-import urllib
 import logging
 import simplejson
 import web
 from infogami import config
-from . import inlibrary
 from .. import i18n
+
+from six.moves import urllib
+
 
 logger = logging.getLogger(__name__)
 
@@ -66,10 +67,10 @@ class LoanStats:
 
         logger.info("SOLR query %s", params)
 
-        q = urllib.urlencode(params, doseq=True)
+        q = urllib.parse.urlencode(params, doseq=True)
         url = self.base_url + "/select?" + q
         logger.info("urlopen %s", url)
-        response = urllib.urlopen(url).read()
+        response = urllib.request.urlopen(url).read()
         return simplejson.loads(response)
 
     def solrescape(self, text):
@@ -221,7 +222,8 @@ class LoanStats:
     def make_facet(self, name, key, count):
         type = None
         if name == "library_s":
-            title = self._get_library_title(key)
+            # Deprecated, but retained for historical stats
+            title = key
             slug = key
         elif name == "region_s":
             title = key.upper()
@@ -248,12 +250,6 @@ class LoanStats:
             title = key
             slug = key.lower().replace(" ", "_")
         return web.storage(title=title, count=count, slug=slug, type=type)
-
-    def _get_library_title(self, key):
-        if self._library_titles is None:
-            libraries = inlibrary.get_libraries()
-            self._library_titles = dict((lib.key.split("/")[-1], lib.title) for lib in libraries)
-        return self._library_titles.get(key, key)
 
     def date2millis(self, date):
         return time.mktime(date.timetuple()) * 1000
