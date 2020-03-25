@@ -225,13 +225,13 @@ def strip_count(counts):
     for i, j in counts:
         foo.setdefault(i.rstrip('.').lower() if isinstance(i, six.string_types) else i, []).append((i, j))
     ret = {}
-    for k, v in foo.iteritems():
+    for k, v in foo.items():
         m = max(v, key=lambda x: len(x[1]))[0]
         bar = []
         for i, j in v:
             bar.extend(j)
         ret[m] = bar
-    return sorted(ret.iteritems(), cmp=lambda x,y: cmp(len(y[1]), len(x[1]) ))
+    return sorted(ret.items(), cmp=lambda x, y: cmp(len(y[1]), len(x[1])))
 
 def fmt_author(a):
     if 'birth_date' in a or 'death_date' in a:

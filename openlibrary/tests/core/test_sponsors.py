@@ -1,7 +1,6 @@
-import pytest
 from web import storage
 from openlibrary.core import sponsorships
-from openlibrary.core.sponsorships import get_sponsored_editions, do_we_want_it, qualifies_for_sponsorship
+from openlibrary.core.sponsorships import do_we_want_it
 
 class TestSponsorship:
 

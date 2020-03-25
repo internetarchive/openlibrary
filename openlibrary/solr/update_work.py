@@ -205,7 +205,7 @@ def get_work_subjects(w):
         'subject_people': 'person',
     }
 
-    for db_field, solr_field in field_map.iteritems():
+    for db_field, solr_field in field_map.items():
         if not w.get(db_field, None):
             continue
         cur = subjects.setdefault(solr_field, {})
@@ -316,7 +316,7 @@ class SolrProcessor:
                 e['public_scan'] = ('lendinglibrary' not in collection) and ('printdisabled' not in collection)
 
             if 'identifiers' in e:
-                for k, id_list in e['identifiers'].iteritems():
+                for k, id_list in e['identifiers'].items():
                     k_orig = k
                     k = k.replace('.', '_').replace(',', '_').replace('(', '').replace(')', '').replace(':', '_').replace('/', '').replace('#', '').lower()
                     m = re_solr_field.match(k)
@@ -327,7 +327,7 @@ class SolrProcessor:
                         v = v.strip()
                         if v not in identifiers[k]:
                             identifiers[k].append(v)
-        return sorted(editions, key=lambda e: e.get('pub_year', None))
+        return sorted(editions, key=lambda e: int(e.get('pub_year') or -sys.maxsize))
 
     def get_author(self, a):
         """
@@ -431,7 +431,7 @@ class SolrProcessor:
             'subject_people': 'person',
         }
 
-        for db_field, solr_field in field_map.iteritems():
+        for db_field, solr_field in field_map.items():
             if not w.get(db_field, None):
                 continue
             cur = subjects.setdefault(solr_field, {})
@@ -977,7 +977,7 @@ class UpdateRequest:
         node = dict2element(self.doc)
         root = Element("add")
         root.append(node)
-        return tostring(root).encode('utf-8')
+        return tostring(root, encoding="unicode")
 
     def tojson(self):
         """
@@ -1183,7 +1183,7 @@ def make_delete_query(keys):
     for key in keys:
         query = SubElement(delete_query,'query')
         query.text = 'key:%s' % key
-    return tostring(delete_query)
+    return tostring(delete_query, encoding="unicode")
 
 def update_author(akey, a=None, handle_redirects=True):
     """

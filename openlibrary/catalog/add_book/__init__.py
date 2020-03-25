@@ -24,9 +24,9 @@ A record is loaded by calling the load function.
 """
 import json
 import re
-import six
+
 from six.moves import urllib
-import unicodedata
+import unicodedata as ucd
 import web
 
 from collections import defaultdict
@@ -42,11 +42,12 @@ from openlibrary.core import lending
 from openlibrary.utils.isbn import normalize_isbn
 
 from openlibrary.catalog.add_book.load_book import build_query, east_in_by_statement, import_author, InvalidLanguage
-from openlibrary.catalog.add_book.merge import try_merge
+from openlibrary.catalog.add_book.match import editions_match
 
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 re_lang = re.compile('^/languages/([a-z]{3})$')
+ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 
 
 type_map = {
@@ -82,13 +83,16 @@ subject_fields = ['subjects', 'subject_places', 'subject_times', 'subject_people
 def strip_accents(s):
     """http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string
     """
-    if isinstance(s, str):
+    try:
+        s.encode('ascii')
         return s
-    assert isinstance(s, six.text_type)
-    return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
+    except UnicodeEncodeError:
+        return ''.join((c for c in ucd.normalize('NFD', s) if ucd.category(c) != 'Mn'))
 
 
-def normalize(s): # strip non-alphanums and truncate at 25 chars
+def normalize(s):
+    """ Strip non-alphanums and truncate at 25 chars.
+    """
     norm = strip_accents(s).lower()
     norm = norm.replace(' and ', ' ')
     if norm.startswith('the '):
@@ -115,6 +119,28 @@ def get_title(e):
         return e['title']
     wt = e['work_titles'][0]
     return e['title'] if wt in bad_titles else e['title']
+
+
+def split_subtitle(full_title):
+    """
+    Splits a title into (title, subtitle),
+    strips parenthetical tags. Used for bookseller
+    catalogs which do not pre-separate subtitles.
+
+    :param str full_title:
+    :rtype: (str, str | None)
+    :return: (title, subtitle | None)
+    """
+
+    # strip parenthetical blocks wherever they occur
+    # can handle 1 level of nesting
+    re_parens_strip = re.compile(r'\(([^\)\(]*|[^\(]*\([^\)]*\)[^\)]*)\)')
+    clean_title = re.sub(re_parens_strip, '', full_title)
+
+    titles = clean_title.split(':')
+    subtitle = titles.pop().strip() if len(titles) > 1 else None
+    title = ISBD_UNIT_PUNCT.join([unit.strip() for unit in titles])
+    return (title, subtitle)
 
 
 def find_matching_work(e):
@@ -214,11 +240,11 @@ def add_cover(cover_url, ekey, account=None):
     :rtype: int or None
     :return: Cover id, or None if upload did not succeed
     """
-    olid = ekey.split("/")[-1]
+    olid = ekey.split('/')[-1]
     coverstore_url = config.get('coverstore_url').rstrip('/')
     upload_url = coverstore_url + '/b/upload2'
-    if upload_url.startswith("//"):
-        upload_url = "{0}:{1}".format(web.ctx.get("protocol", "http"), upload_url)
+    if upload_url.startswith('//'):
+        upload_url = '{0}:{1}'.format(web.ctx.get('protocol', 'http'), upload_url)
     user = account or accounts.get_current_user()
     params = {
         'author': user.get('key') or user.get('_key'),
@@ -246,6 +272,7 @@ def add_cover(cover_url, ekey, account=None):
         return
     cover_id = int(reply['id'])
     return cover_id
+
 
 def get_ia_item(ocaid):
     import internetarchive as ia
@@ -352,7 +379,7 @@ def build_pool(rec):
     if isbns:
         pool['isbn'] = set(editions_matched(rec, 'isbn_', isbns))
 
-    return dict((k, list(v)) for k, v in pool.iteritems() if v)
+    return dict((k, list(v)) for k, v in pool.items() if v)
 
 
 def early_exit(rec):
@@ -420,7 +447,7 @@ def find_exact_match(rec, edition_pool):
     :return: edition key
     """
     seen = set()
-    for field, editions in edition_pool.iteritems():
+    for field, editions in edition_pool.items():
         for ekey in editions:
             if ekey in seen:
                 continue
@@ -463,7 +490,7 @@ def find_match(e1, edition_pool):
     :return: None or the edition key '/books/OL...M' of the best edition match for e1 in edition_pool
     """
     seen = set()
-    for k, v in edition_pool.iteritems():
+    for k, v in edition_pool.items():
         for edition_key in v:
             if edition_key in seen:
                 continue
@@ -478,10 +505,10 @@ def find_match(e1, edition_pool):
                 if is_redirect(thing):
                     edition_key = thing['location']
                     # FIXME: this updates edition_key, but leaves thing as redirect,
-                    # which will raise an exception in try_merge()
+                    # which will raise an exception in editions_match()
             if not found:
                 continue
-            if try_merge(e1, edition_key, thing):
+            if editions_match(e1, thing):
                 return edition_key
 
 
@@ -620,8 +647,15 @@ def load(rec, account=None):
     for field in required_fields:
         if not rec.get(field):
             raise RequiredField(field)
-    if isinstance(rec['source_records'], six.string_types):
+    if not isinstance(rec['source_records'], list):
         rec['source_records'] = [rec['source_records']]
+
+    # Split subtitle if required and not already present
+    if ':' in rec.get('title') and not rec.get('subtitle'):
+        title, subtitle = split_subtitle(rec.get('title'))
+        if subtitle:
+            rec['title'] = title
+            rec['subtitle'] = subtitle
 
     rec = normalize_record_isbns(rec)
 

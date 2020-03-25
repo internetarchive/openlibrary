@@ -1,7 +1,5 @@
 from openlibrary.core import models
 
-# this should be moved to openlibrary.core
-from openlibrary.plugins.upstream.models import UnitParser
 
 class MockSite:
     def get(self, key):

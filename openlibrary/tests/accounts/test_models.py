@@ -11,7 +11,6 @@ def test_verify_hash():
 class TestInternetArchiveAccount:
     def test_xauth_http_error_without_json(self, monkeypatch):
         xauth = InternetArchiveAccount.xauth
-
         resp = Response()
         resp.status_code = 500
         resp._content = b'Internal Server Error'
@@ -21,7 +20,6 @@ class TestInternetArchiveAccount:
 
     def test_xauth_http_error_with_json(self, monkeypatch):
         xauth = InternetArchiveAccount.xauth
-
         resp = Response()
         resp.status_code = 400
         resp._content = b'{"error": "Unknown Parameter Blah"}'

@@ -67,8 +67,12 @@ class memcache_memoize:
                 self._memcache = memcache.Client(servers)
             else:
                 web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
-                import mockcache
-                self._memcache = mockcache.Client()
+                try:
+                    import mockcache  # Only supports legacy Python
+                    self._memcache = mockcache.Client()
+                except ImportError:  # Python 3
+                    from pymemcache.test.utils import MockMemcacheClient
+                    self._memcache = MockMemcacheClient()
 
         return self._memcache
 
@@ -83,7 +87,7 @@ class memcache_memoize:
         return prefix + self._random_string(10)
 
     def _random_string(self, n):
-        chars = string.letters + string.digits
+        chars = string.ascii_letters + string.digits
         return "".join(random.choice(chars) for i in range(n))
 
     def __call__(self, *args, **kw):
@@ -521,17 +525,22 @@ class PrefixKeyFunc:
         """
         return simplejson.dumps(value, separators=(",", ":"), sort_keys=True)
 
+
 def method_memoize(f):
-    """object-local memoize.
-
-    Works only for functions without any arguments.
-
-    TODO: support arguments.
+    """
+    object-local memoize.
+    Works only for functions with simple arguments; i.e. JSON serializeable
     """
     @functools.wraps(f)
-    def g(self):
+    def g(self, *args, **kwargs):
         cache = self.__dict__.setdefault('_memoize_cache', {})
-        if f.__name__ not in cache:
-            cache[f.__name__] = f(self)
-        return cache[f.__name__]
+        key = simplejson.dumps({
+            'function': f.__name__,
+            'args': args,
+            'kwargs': kwargs,
+        }, sort_keys=True)
+
+        if key not in cache:
+            cache[key] = f(self, *args, **kwargs)
+        return cache[key]
     return g
