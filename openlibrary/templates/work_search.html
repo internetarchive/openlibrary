@@ -207,7 +207,7 @@ $ )
         $# this commit to revert.
         <center>
             <span class="red">$_("No results found.")</span>
-            <a href="/search/inside?$urlencode(dict(q=query))">$_('Search for books containing "%s"?' % query)</a>
+            <a href="/search/inside?$urlencode(dict(q=query))">$_('Search for books containing the phrase "%s"?' % query)</a>
         </center>
 
     $elif param and not error and len(docs):
