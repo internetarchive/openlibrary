@@ -1,6 +1,6 @@
 $def with (test)
 <style>
-#myBtn {
+#scrollToTop {
   display: none;
   position: fixed;
   bottom: 20px;
@@ -16,23 +16,23 @@ $def with (test)
   border-radius: 4px;
 }
 
-#myBtn:hover {
+#scrollToTop:hover {
   background-color: #555;
 }
 </style>
-<button onclick="topFunction()"id="myBtn" title="Go to top">Top</button>
+<button onclick="topFunction()"id="scrollToTop" title="Go to top">Top</button>
 <script>
     //Get the button
-var mybutton = document.getElementById("myBtn");
+var sccrollButton = document.getElementById("scrollToTop");
 
 // When the user scrolls down 20px from the top of the document, show the button
 window.onscroll = function() {scrollFunction()};
 
 function scrollFunction() {
   if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
-    mybutton.style.display = "block";
+    sccrollButton.style.display = "block";
   } else {
-    mybutton.style.display = "none";
+    sccrollButton.style.display = "none";
   }
 }
 
