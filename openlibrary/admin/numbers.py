@@ -19,12 +19,9 @@ main harness. They can be utility functions.
 
 """
 import calendar
-import datetime
 import functools
 import logging
-import os
 import tempfile
-import time
 
 from six.moves import urllib
 
