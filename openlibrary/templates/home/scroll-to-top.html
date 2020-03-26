@@ -23,16 +23,16 @@ $def with (test)
 <button onclick="topFunction()"id="scrollToTop" title="Go to top">Top</button>
 <script>
     //Get the button
-var sccrollButton = document.getElementById("scrollToTop");
+var scrollButton = document.getElementById("scrollToTop");
 
 // When the user scrolls down 20px from the top of the document, show the button
 window.onscroll = function() {scrollFunction()};
 
 function scrollFunction() {
   if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
-    sccrollButton.style.display = "block";
+    scrollButton.style.display = "block";
   } else {
-    sccrollButton.style.display = "none";
+    scrollButton.style.display = "none";
   }
 }
 
