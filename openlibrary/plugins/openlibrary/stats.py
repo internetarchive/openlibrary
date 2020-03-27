@@ -65,7 +65,17 @@ def stats_hook():
         # don't let errors in stats collection break the app.
         print(str(e), file=web.debug)
 
+    # This name is misleading. It gets incremented for more than just pages.
+    # E.g. *.json requests (even ajax), image requests. Although I can't
+    # see any *.js requests? So not sure exactly when we're called here.
+    # FURTHERMORE: pages that get e.g. 500 status codes don't get here
+    # either; that needs to be in an internalerrors hook
     openlibrary.core.stats.increment('ol.pageviews')
+
+    response_code = 'not_specified'
+    if web.ctx and hasattr(web.ctx, 'status'):
+        response_code = web.ctx.status.split(' ')[0]
+    openlibrary.core.stats.increment('ol.response-codes.' + response_code)
 
     memcache_hits = 0
     memcache_misses = 0

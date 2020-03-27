@@ -782,12 +782,19 @@ def save_error():
     print('error saved to', path, file=web.debug)
     return name
 
-
+# TODO: move this stats stuff to plugins\openlibrary\stats.py
 def internalerror():
     i = web.input(_method='GET', debug='false')
     name = save_error()
 
-    openlibrary.core.stats.increment('ol.internal-errors', 1)
+    # Can't have sub-metrics, so can't add more info
+    openlibrary.core.stats.increment('ol.internal-errors')
+
+    # Mirrors code in plugins\openlibrary\stats.py that runs on pageload
+    response_code = 'not_specified'
+    if web.ctx and hasattr(web.ctx, 'status'):
+        response_code = web.ctx.status.split(' ')[0]
+    openlibrary.core.stats.increment('ol.response-codes.' + response_code)
 
     if i.debug.lower() == 'true':
         raise web.debugerror()
