@@ -1,4 +1,5 @@
 $def with (test)
+<!-- To be placed in the right css directory -->
 <style>
 #scrollToTop {
   display: none;
@@ -12,7 +13,7 @@ $def with (test)
   background-color:#3b98fc;
   color: white;
   cursor: pointer;
-  padding: 15px;
+  padding: 2px 10px 2px 10px;
   border-radius: 4px;
 }
 
@@ -20,7 +21,9 @@ $def with (test)
   background-color: #555;
 }
 </style>
-<button onclick="topFunction()"id="scrollToTop" title="$_('Scroll to top')">$_('Top')</button>
+<button onclick="topFunction()"id="scrollToTop" title="$_('Scroll to top')">🡹</button>
+
+<!-- To be placed in the right js directory -->
 <script>
     //Get the button
 var scrollButton = document.getElementById("scrollToTop");
@@ -29,7 +32,7 @@ var scrollButton = document.getElementById("scrollToTop");
 window.onscroll = function() {scrollFunction()};
 
 function scrollFunction() {
-  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+  if (document.body.scrollTop > 30 || document.documentElement.scrollTop > 30) {
     scrollButton.style.display = "block";
   } else {
     scrollButton.style.display = "none";
