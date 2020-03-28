@@ -34,7 +34,7 @@ import '../../../../static/css/js-all.less';
 import Promise from 'promise-polyfill';
 import { confirmDialog, initDialogs } from './dialog';
 import initTabs from './tabs.js';
-
+import Filevalidation from './FileValidation.js';
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
 // closePopup used in openlibrary/templates/covers/saved.html
@@ -76,6 +76,7 @@ jQuery(function () {
     // expose ol_confirm_dialog method
     $.fn.ol_confirm_dialog = confirmDialog;
     initTabs($('#tabsAddbook,#tabsAddauthor,.tabs:not(.ui-tabs)'));
+    $("#coverFile").change(Filevalidation);
     initValidate($);
     autocompleteInit($);
     addNewFieldInit($);
