@@ -82,7 +82,7 @@ window.q.push(function(){
                                 $for cover in doc.get_edition_covers():
                                     <div class="book carousel__item" data-id="$cover.id">
                                         <div class="book-cover">
-                                            <img src="$cover.url(size='M')"
+                                            <img srcset="$cover.url(size='M')"
                                                 width="100" class="bookcover"/>
                                         </div>
                                     </div>

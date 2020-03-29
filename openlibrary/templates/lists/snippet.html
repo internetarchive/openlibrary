@@ -3,7 +3,7 @@ $def with (list)
     $ cover = list.get_cover() or list.get_default_cover()
     $ cover_url = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
     $ title = _("Cover of: %(listname)s", listname=list)
-    <a href="$list.key"><img src="$cover_url" height="58" alt="$title" title="$title"/></a>
+    <a href="$list.key"><img srcset="$cover_url" height="58" alt="$title" title="$title"/></a>
 </span>
 <span class="details">
     <span class="resultTitle">

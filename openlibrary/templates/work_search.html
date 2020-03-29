@@ -93,7 +93,7 @@ $if param and not error and num_found:
         <span class="darkgreen"><strong>$ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))</strong></span>
 &nbsp;
       $if num_found > 1:
-        <span class="tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" style="margin-right:10px;"/>
+        <span class="tools"><img srcset="/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" style="margin-right:10px;"/>
           $if sort == 'editions':
             <a href="$changequery(sort=None)">$_("Relevance")</a> | <strong class="lightgreen">$_("Most Editions")</strong> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
           $elif sort == 'old':
@@ -157,7 +157,7 @@ $ )
             $if any(header in param for header, label in facet_map):
                 <!-- facet_map: $:facet_map -->
                 <!-- facet_counts: $:facet_counts -->
-                <p class="collapse darkgray"><span class="tools"><img src="/images/icons/icon_search-facet.png" alt="Search facets" width="11" height="10" style="margin-right:5px;"/><strong>
+                <p class="collapse darkgray"><span class="tools"><img srcset="/images/icons/icon_search-facet.png" alt="Search facets" width="11" height="10" style="margin-right:5px;"/><strong>
                 $for header, label in facet_map:
                     $ counts = facet_counts[header]
                     $for k, display, count in counts:
