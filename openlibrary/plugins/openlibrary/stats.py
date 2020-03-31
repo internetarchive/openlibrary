@@ -3,6 +3,9 @@
 from __future__ import print_function
 
 import logging
+import os
+import re
+import sys
 import time
 import traceback
 
@@ -159,6 +162,17 @@ def _get_path_page_name(path):
     return result
 
 
+def _get_top_level_path_for_metric(full_path):
+    """
+    Normalize + shorten the string since it could be user-entered
+    :param basestring full_path:
+    :rtype: str
+    """
+    path_parts = full_path.strip('/').split('/')
+    path = path_parts[0] or 'home'
+    return path.replace('.', '_')[:50]
+
+
 class GraphiteRequestStats:
     def __init__(self):
         self.start = None  # type: float
@@ -188,8 +202,8 @@ class GraphiteRequestStats:
 
         if hasattr(web.ctx, 'path') and web.ctx.path:
             self.path_page_name = _get_path_page_name(web.ctx.path)
-            path_parts = web.ctx.path.strip('/').split('/')
-            self.path_level_one = path_parts[0].replace('.', '_') or 'home'
+            # This can be entered by a user to be anything! We record 404s.
+            self.path_level_one = _get_top_level_path_for_metric(web.ctx.path)
 
         if hasattr(web.ctx, 'status'):
             self.response_code = web.ctx.status.split(' ')[0]
@@ -214,7 +228,7 @@ class GraphiteRequestStats:
             self.response_code,
             self.user,
             self.path_level_one,
-            self.path_page_name,
+            'class_' + self.path_page_name,
             self.time_bucket,
             'count',
         ])
@@ -231,6 +245,65 @@ def page_unload_hook():
     graphite_stats.increment(web.ctx.graphiteRequestStats.to_metric())
 
 
+def increment_error_count(key):
+    """
+    :param str key: e.g. ol.exceptions or el.internal-errors-segmented
+    """
+    top_url_path = 'none'
+    page_class = 'none'
+    if web.ctx and hasattr(web.ctx, 'path') and web.ctx.path:
+        top_url_path = _get_top_level_path_for_metric(web.ctx.path)
+        page_class = _get_path_page_name(web.ctx.path)
+
+    exception_type, exception_value, tback = sys.exc_info()
+    exception_type_name = exception_type.__name__
+    # Log exception file
+    path = find_topmost_useful_file(exception_value, tback)
+    path = os.path.split(path)
+
+    # log just filename, unless it's code.py (cause that's useless!)
+    ol_file = path[1]
+    if path[1] in ('code.py', 'index.html', 'edit.html', 'view.html'):
+        ol_file = os.path.split(path[0])[1] + '_' + _encode_key_part(path[1])
+
+    metric_parts = [
+        top_url_path,
+        'class_' + page_class,
+        ol_file,
+        exception_type_name,
+        'count',
+    ]
+    metric = '.'.join([_encode_key_part(p) for p in metric_parts])
+    graphite_stats.increment(key + '.' + metric)
+
+
+TEMPLATE_SYNTAX_ERROR_RE = re.compile(r"File '([^']+?)'")
+
+
+def find_topmost_useful_file(exception, tback):
+    """
+    Find the topmast path in the traceback stack that's useful to report.
+
+    :param BaseException exception: error from e.g. sys.exc_inf()
+    :param TracebackType tback: traceback from e.g. sys.exc_inf()
+    :rtype: basestring
+    :return: full path
+    """
+    file_path = 'none'
+    while tback is not None:
+        cur_file = tback.tb_frame.f_code.co_filename
+        if '/openlibrary' in cur_file:
+            file_path = cur_file
+        tback = tback.tb_next
+
+    if file_path.endswith('template.py') and hasattr(exception, 'msg'):
+        m = TEMPLATE_SYNTAX_ERROR_RE.search(exception.msg)
+        if m:
+            file_path = m.group(1)
+
+    return file_path
+
+
 def setup():
     """
     This function is called from the main application startup
@@ -245,3 +318,4 @@ def setup():
 
     delegate.app.add_processor(web.loadhook(page_load_hook))
     delegate.app.add_processor(web.unloadhook(page_unload_hook))
+    delegate.add_exception_hook(lambda: increment_error_count('ol.exceptions'))
