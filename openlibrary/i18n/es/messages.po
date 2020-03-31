@@ -3321,7 +3321,7 @@ msgstr "Pedir prestado \"%(title)s\""
 #: openlibrary/templates/widget.html:44
 #, python-format
 msgid "Join waitlist for &quot;%(title)s&quot;"
-msgstr "Unirse a la lista de espera para &quot;%(title)s&quot;"
+msgstr "Unirse a la lista de espera para «%(title)s»"
 
 #: openlibrary/macros/AvailabilityButton.html:60
 #: openlibrary/templates/widget.html:44
@@ -3331,7 +3331,7 @@ msgstr "Unirse a la lista de espera"
 #: openlibrary/templates/widget.html:48
 #, python-format
 msgid "Learn more about &quot;%(title)s&quot; at OpenLibrary"
-msgstr "Aprende más sobre &quot;%(title)s&quot; en Open Library"
+msgstr "Aprende más sobre «%(title)s» en Open Library"
 
 #: openlibrary/macros/LoanStatus.html:92 openlibrary/templates/widget.html:48
 msgid "Learn More"
