@@ -76,8 +76,6 @@ def stats_hook():
     # This name is misleading. It gets incremented for more than just pages.
     # E.g. *.json requests (even ajax), image requests. Although I can't
     # see any *.js requests? So not sure exactly when we're called here.
-    # FURTHERMORE: pages that get e.g. 500 status codes don't get here
-    # either; that needs to be in an internalerrors hook
     graphite_stats.increment('ol.pageviews')
 
     memcache_hits = 0
@@ -282,7 +280,7 @@ TEMPLATE_SYNTAX_ERROR_RE = re.compile(r"File '([^']+?)'")
 
 def find_topmost_useful_file(exception, tback):
     """
-    Find the topmast path in the traceback stack that's useful to report.
+    Find the topmost path in the traceback stack that's useful to report.
 
     :param BaseException exception: error from e.g. sys.exc_inf()
     :param TracebackType tback: traceback from e.g. sys.exc_inf()

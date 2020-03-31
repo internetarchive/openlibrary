@@ -44,7 +44,4 @@ def setup():
 
     # Host is e.g. ol-web4.blah.archive.org ; we just want the first subdomain
     first_subdomain = host.split('.')[0] or 'unknown'
-    stats.increment('ol.server.%s.started' % first_subdomain)
-    stats.increment('ol.server.%s.version.%s' % (first_subdomain, version))
-
-
+    stats.increment('ol.servers.%s.started' % first_subdomain)
