@@ -74,8 +74,10 @@ export default function init(){
     }
 
     renderInstantSearchResults = function(q) {
-        var facet_value = searchFacets[localStorage.getItem('facet')];
-        var url, facet;
+        const facet_value = searchFacets[localStorage.getItem('facet')];
+        // Not implemented; also, this call is _expensive_ and should not be done!
+        if (facet_value === 'inside') return;
+
         if (q === '') {
             return;
         }
@@ -83,9 +85,8 @@ export default function init(){
             q = marshalBookSearchQuery(q);
         }
 
-        url = composeSearchUrl(q, true, 10);
-
-        facet = facet_value === 'all'? 'books' : facet_value;
+        const url = composeSearchUrl(q, true, 10);
+        const facet = facet_value === 'all'? 'books' : facet_value;
         $searchResults.css('opacity', 0.5);
         $.getJSON(url, function(data) {
             var d;
