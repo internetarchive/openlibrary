@@ -75,6 +75,9 @@ export default function init(){
 
     renderInstantSearchResults = function(q) {
         var facet_value = searchFacets[localStorage.getItem('facet')];
+        // Not implemented; also, this call is _expensive_ and should not be done!
+        if (facet_value === 'inside') return;
+
         var url, facet;
         if (q === '') {
             return;
