@@ -42,6 +42,10 @@ $if user_loan:
     <input type="submit" value="Return eBook" class="cta-btn cta-btn--available" id="return_ebook"/>
   </form>
 
+$elif editions_page and ocaid and not page.ia_metadata:
+  <div class="cta-button-group">
+    <a href="$work.key" class="cta-btn cta-btn--missing" data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
+  </div>
 
 $elif ocaid and not page.is_access_restricted() and editions_page:
   $:macros.ReadButton(ocaid, listen=True)
