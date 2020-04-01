@@ -3,9 +3,9 @@ from requests.models import Response
 
 
 def test_verify_hash():
-    secret_key = "aqXwLJVOcV"
-    hash = model.generate_hash(secret_key, "foo")
-    assert model.verify_hash(secret_key, "foo", hash)
+    secret_key = b"aqXwLJVOcV"
+    hash = model.generate_hash(secret_key, b"foo")
+    assert model.verify_hash(secret_key, b"foo", hash)
 
 
 class TestInternetArchiveAccount:
