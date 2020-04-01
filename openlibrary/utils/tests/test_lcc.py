@@ -1,0 +1,51 @@
+import pytest
+
+from openlibrary.utils.lcc import short_lcc_to_sortable_lcc, sortable_lcc_to_short_lcc
+
+
+TESTS = [
+    ('PZ-0073.00000000', 'pz73', 'lower case'),
+    ('PZ-0000.00000000', 'PZ', 'just class'),
+    ('PZ-0123.00000000 [P]', 'PZ123 [P]', 'keeps brackets at end'),
+]
+
+
+@pytest.mark.parametrize("sortable_lcc,short_lcc,name", TESTS,
+                         ids=[t[2] for t in TESTS])
+def test_to_sortable(sortable_lcc, short_lcc, name):
+    assert short_lcc_to_sortable_lcc(short_lcc) == sortable_lcc
+
+
+@pytest.mark.parametrize("sortable_lcc,short_lcc,name", TESTS,
+                         ids=[t[2] for t in TESTS])
+def test_to_short_lcc(sortable_lcc, short_lcc, name):
+    assert sortable_lcc_to_short_lcc(sortable_lcc) == short_lcc.strip(' ').upper()
+
+
+# Note: we don't handle all of these _entirely_ correctly as the paper says they should
+# be, but we handle enough (See lcc.py)
+# Src: https://ejournals.bc.edu/index.php/ital/article/download/11585/9839/
+WAGNER_2019_EXAMPLES = [
+    ('B--1190.00000000 1951', 'B1190 1951', 'no Cutter string'),
+    ('DT-0423.00000000.E26 9th.ed. 2012', 'DT423.E26 9th.ed. 2012', 'compound spec'),
+    ('E--0505.50000000 102nd.F57 1999', 'E505.5 102nd.F57 1999', 'ordinal in classif.'),
+    ('HB-3717.00000000 1929.E37 2015', 'HB3717 1929.E37 2015 ', 'date in classif.'),
+    ('KBD0000.00000000.G189s', 'KBD.G189s ', 'no caption number, no specification'),
+    ('N--8354.00000000.B67 2000x', 'N8354.B67 2000x', 'date with suffix '),
+    ('PS-0634.00000000.B4 1958-63', 'PS634.B4 1958-63', 'hyphenated range of dates'),
+    ('PS-3557.00000000.A28R4 1955', 'PS3557.A28R4 1955', '"double Cutter"'),
+    ('PZ-0008.30000000.G276Lo 1971', 'PZ8.3.G276Lo 1971 ', 'Cutter with "work mark"'),
+    ('PZ-0073.00000000.S758345255 2011', 'PZ73.S758345255 2011', 'long Cutter decimal'),
+]
+
+
+@pytest.mark.parametrize("sortable_lcc,short_lcc,name", WAGNER_2019_EXAMPLES,
+                         ids=[t[2] for t in WAGNER_2019_EXAMPLES])
+def test_wagner_2019_to_sortable(sortable_lcc, short_lcc, name):
+    assert short_lcc_to_sortable_lcc(short_lcc) == sortable_lcc
+
+
+@pytest.mark.parametrize("sortable_lcc,short_lcc,name", WAGNER_2019_EXAMPLES,
+                         ids=[t[2] for t in WAGNER_2019_EXAMPLES])
+def test_wagner_2019_to_short_lcc(sortable_lcc, short_lcc, name):
+    assert sortable_lcc_to_short_lcc(sortable_lcc) == short_lcc.strip()
