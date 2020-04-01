@@ -156,7 +156,7 @@ $var title: $page.title
 
             $if page.links or (page.wikipedia and page.wikipedia.startswith("http")):
                 <div class="section">
-                    <h3>$_('Links <span class="gray small sansserif">outside Open Library</span>')</h3>
+                    <h3>$:_('Links <span class="gray small sansserif">outside Open Library</span>')</h3>
                     <ul class="booklinks sansserif">
                     $if page.wikipedia and page.wikipedia.startswith("http"):
                         <li><a href="$page.wikipedia">$_('Wikipedia')</a></li>

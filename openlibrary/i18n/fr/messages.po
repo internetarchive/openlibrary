@@ -984,7 +984,7 @@ msgstr "Modifié par %(authorlink)s."
 
 #: view.html:161
 msgid "added anonymously."
-msgstr "Ajouteé anonymement."
+msgstr "ajouté anonymement."
 
 #: view.html:170
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
@@ -1216,7 +1216,7 @@ msgstr ""
 msgid "1 book"
 msgid_plural "%(count)d books"
 msgstr[0] "1 livre"
-msgstr[1] "%(count)s livres"
+msgstr[1] "%(count)d livres"
 
 #: borrow.html:178
 msgid "Status"
@@ -1765,7 +1765,7 @@ msgid ""
 "Thank you for adding that book! Any more information you could provide "
 "would be wonderful!"
 msgstr ""
-"Merci d'avoir ajouté ce livre&nsbp;! Ce serait formidable "
+"Merci d'avoir ajouté ce livre ! Ce serait formidable "
 "si vous pouviez fournir plus d'informations !"
 
 #: edit.html:72
@@ -3247,7 +3247,7 @@ msgstr "Essayez autre chose?"
 msgid "1 ebook"
 msgid_plural "%(count)s ebooks"
 msgstr[0] "1 ebook"
-msgstr[1] "%(count)s ebookss"
+msgstr[1] "%(count)s ebooks"
 
 #: openlibrary/templates/subjects.html:44 view.html:32
 msgid "Publishing History"
@@ -3720,17 +3720,17 @@ msgstr "qui a écrit le plus de livres à ce sujet"
 #: openlibrary/templates/widget.html:33
 #, python-format
 msgid "Read \"%(title)s\""
-msgstr "Lire \"%(title)s\""
+msgstr "Lire « %(title)s »"
 
 #: openlibrary/templates/widget.html:38
 #, python-format
 msgid "Borrow \"%(title)s\""
-msgstr "Emprunter \"%(title)s\""
+msgstr "Emprunter « %(title)s »"
 
 #: openlibrary/templates/widget.html:44
 #, python-format
 msgid "Join waitlist for &quot;%(title)s&quot;"
-msgstr "Rejoindre la liste d'attente pour &quot;%(title)s&quot;"
+msgstr "Rejoindre la liste d'attente pour « %(title)s »"
 
 #: openlibrary/macros/AvailabilityButton.html:60
 #: openlibrary/templates/widget.html:44
@@ -3740,7 +3740,7 @@ msgstr "Rejoindre la liste d'attente"
 #: openlibrary/templates/widget.html:48
 #, python-format
 msgid "Learn more about &quot;%(title)s&quot; at OpenLibrary"
-msgstr "En savoir plus sur &quot;%(title)s&quot; à OpenLibrary"
+msgstr "En savoir plus sur « %(title)s » à OpenLibrary"
 
 #: openlibrary/macros/LoanStatus.html:90 openlibrary/templates/widget.html:48
 msgid "Learn More"
@@ -3862,7 +3862,7 @@ msgstr "Filtrer les résultats pour la disponibilité des livres électroniques"
 #: openlibrary/templates/work_search.html:288
 #, python-format
 msgid "Filter results for %(facet)s"
-msgstr "Filtrer les résultats pour %(facet)ss"
+msgstr "Filtrer les résultats pour %(facet)s"
 
 #: openlibrary/templates/work_search.html:291
 msgid "more"
@@ -4986,5 +4986,4 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 
 #~ msgid "Add another edition of %(worktitle)s"
 #~ msgstr "Ajoutez une autre édition de %(worktitle)s"
-
 
