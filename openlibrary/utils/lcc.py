@@ -86,15 +86,19 @@ But it works for subject-related range queries, so we consider it sufficient.
 """
 import re
 
-LCC_PARTS_RE = re.compile(
-    r'^'
-    r'(?P<letters>[A-Z]{1,3}-*)'  # trailing dash only valid in sortable LCCs; not real
-    r'\s*?'
-    r'(?P<number>\d{1,4}(\.\d+)?)?'
-    r'\s*?'
-    r'\.?(?P<cutter1>[^\d\s]+\S+)?'
-    r'(?P<rest>.*)?'
-    r'$', re.IGNORECASE)
+from openlibrary.utils.ddc import collapse_multiple_space
+
+LCC_PARTS_RE = re.compile(r'''
+    ^
+    # trailing dash only valid in "sortable" LCCs
+    # Include W, even though technically part of NLM system
+    (?P<letters>[A-HJ-NP-VWZ]{1,3}-{0,2})
+    \s?
+    (?P<number>\d{1,4}(\.\d+)?)?
+    (?P<cutter1>[\s.][^\d\s\[]{1,3}\d+\S*)?
+    (?P<rest>\s.*)?
+    $
+''', re.IGNORECASE | re.X)
 
 
 def short_lcc_to_sortable_lcc(lcc):
@@ -110,7 +114,8 @@ def short_lcc_to_sortable_lcc(lcc):
     parts = m.groupdict()
     parts['letters'] = parts['letters'].upper().ljust(3, '-')
     parts['number'] = float(parts['number'] or 0)
-    parts['cutter1'] = '.' + parts['cutter1'] if parts['cutter1'] else ''
+    parts['cutter1'] = '.' + parts['cutter1'].lstrip(' .') if parts['cutter1'] else ''
+    parts['rest'] = ' ' + parts['rest'].strip() if parts['rest'] else ''
 
     return '%(letters)s%(number)013.8f%(cutter1)s%(rest)s' % parts
 
@@ -125,7 +130,8 @@ def sortable_lcc_to_short_lcc(lcc):
     parts = m.groupdict()
     parts['letters'] = parts['letters'].strip('-')
     parts['number'] = parts['number'].strip('0').strip('.')  # Need to do in order!
-    parts['cutter1'] = '.' + parts['cutter1'] if parts['cutter1'] else ''
+    parts['cutter1'] = parts['cutter1'].strip(' ') if parts['cutter1'] else ''
+    parts['rest'] = ' ' + parts['rest'].strip() if parts['rest'] else ''
 
     return '%(letters)s%(number)s%(cutter1)s%(rest)s' % parts
 
@@ -136,7 +142,7 @@ def clean_raw_lcc(raw_lcc):
     :param basestring raw_lcc:
     :rtype: basestring
     """
-    lcc = raw_lcc.strip(' ').replace('\\', '')
+    lcc = collapse_multiple_space(raw_lcc.replace('\\', ' ').strip(' '))
     if ((lcc.startswith('[') and lcc.endswith(']')) or
             (lcc.startswith('(') and lcc.endswith(')'))):
         lcc = lcc[1:-1]

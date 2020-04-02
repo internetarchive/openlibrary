@@ -36,6 +36,10 @@ def collapse_multiple_space(s):
 
 
 def normalize_ddc(ddc):
+    """
+    :param str ddc:
+    :rtype: list of str
+    """
     ddc = collapse_multiple_space(ddc.strip()).replace('/', '').replace("'", '')
 
     results = []

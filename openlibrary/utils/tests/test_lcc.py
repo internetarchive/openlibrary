@@ -4,22 +4,49 @@ from openlibrary.utils.lcc import short_lcc_to_sortable_lcc, sortable_lcc_to_sho
 
 
 TESTS = [
-    ('PZ-0073.00000000', 'pz73', 'lower case'),
-    ('PZ-0000.00000000', 'PZ', 'just class'),
-    ('PZ-0123.00000000 [P]', 'PZ123 [P]', 'keeps brackets at end'),
+    ('PZ-0073.00000000', 'pz73', 'PZ73', 'lower case'),
+    ('PZ-0000.00000000', 'PZ', 'PZ', 'just class'),
+    ('PZ-0123.00000000 [P]', 'PZ123 [P]', 'PZ123 [P]', 'keeps brackets at end'),
+    ('BP-0166.94000000.S277 1999', '\\BP\\166.94\\.S277\\1999', 'BP166.94.S277 1999',
+     'backslashes instead of spaces'),
+    ('LC-6252.00000000.T4 T4 vol. 33, no. 10', '[LC6252.T4 T4 vol. 33, no. 10]',
+     'LC6252.T4 T4 vol. 33, no. 10', 'brackets')
 ]
 
 
-@pytest.mark.parametrize("sortable_lcc,short_lcc,name", TESTS,
-                         ids=[t[2] for t in TESTS])
-def test_to_sortable(sortable_lcc, short_lcc, name):
-    assert short_lcc_to_sortable_lcc(short_lcc) == sortable_lcc
+@pytest.mark.parametrize("sortable_lcc,raw_lcc,short_lcc,name", TESTS,
+                         ids=[t[-1] for t in TESTS])
+def test_to_sortable(sortable_lcc, raw_lcc, short_lcc, name):
+    assert short_lcc_to_sortable_lcc(raw_lcc) == sortable_lcc
 
 
-@pytest.mark.parametrize("sortable_lcc,short_lcc,name", TESTS,
-                         ids=[t[2] for t in TESTS])
-def test_to_short_lcc(sortable_lcc, short_lcc, name):
-    assert sortable_lcc_to_short_lcc(sortable_lcc) == short_lcc.strip(' ').upper()
+@pytest.mark.parametrize("sortable_lcc,raw_lcc,short_lcc,name", TESTS,
+                         ids=[t[-1] for t in TESTS])
+def test_to_short_lcc(sortable_lcc, raw_lcc, short_lcc, name):
+    assert sortable_lcc_to_short_lcc(sortable_lcc) == short_lcc
+
+
+INVALID_TESTS = [
+    ('6113 .136', 'dewey decimal'),
+    ('9608 BOOK NOT YET IN LC', 'noise'),
+    ('#M8184', 'hash prefixed'),
+    ('', 'empty'),
+    ('MLCS 92/14990', 'too much class'),
+    ('PZ123.234.234', 'too much decimal'),
+    # The following are "real world" data from open library
+    ('IN PROCESS', 'noise'),
+    ('African Section Pamphlet Coll', 'real ol data'),
+    ('Microfilm 99/20', 'real ol data'),
+    ('Microfilm 61948 E', 'real ol data'),
+    ('Microfiche 92/80965 (G)', 'real ol data'),
+    ('MLCSN+', 'real ol data'),
+    ('UNCLASSIFIED 809 (S)', 'real ol data'),
+]
+
+
+@pytest.mark.parametrize("text,name", INVALID_TESTS, ids=[t[-1] for t in INVALID_TESTS])
+def test_invalid_lccs(text, name):
+    assert short_lcc_to_sortable_lcc(text) is None
 
 
 # Note: we don't handle all of these _entirely_ correctly as the paper says they should
@@ -40,12 +67,12 @@ WAGNER_2019_EXAMPLES = [
 
 
 @pytest.mark.parametrize("sortable_lcc,short_lcc,name", WAGNER_2019_EXAMPLES,
-                         ids=[t[2] for t in WAGNER_2019_EXAMPLES])
+                         ids=[t[-1] for t in WAGNER_2019_EXAMPLES])
 def test_wagner_2019_to_sortable(sortable_lcc, short_lcc, name):
     assert short_lcc_to_sortable_lcc(short_lcc) == sortable_lcc
 
 
 @pytest.mark.parametrize("sortable_lcc,short_lcc,name", WAGNER_2019_EXAMPLES,
-                         ids=[t[2] for t in WAGNER_2019_EXAMPLES])
+                         ids=[t[-1] for t in WAGNER_2019_EXAMPLES])
 def test_wagner_2019_to_short_lcc(sortable_lcc, short_lcc, name):
     assert sortable_lcc_to_short_lcc(sortable_lcc) == short_lcc.strip()
