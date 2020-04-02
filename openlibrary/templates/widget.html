@@ -10,7 +10,7 @@ $ book_title = item.get('title', '')
   <head>
     <meta charset="utf-8">
     <title>$book_title</title>
-    <link rel="stylesheet" type="text/css" href="$(canonical_url('/static/build/page-book-widget.css'))">
+    <link rel="preload" type="text/css" href="$(canonical_url('/static/build/page-book-widget.css'))" as = "stylesheet">
   </head>
   <body id="book-widget">
     <div class="widget">

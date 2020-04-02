@@ -20,7 +20,7 @@ $def with (page)
     <link href="/static/images/openlibrary-192x192.png" rel="icon" sizes="192x192" />
     <link href="/static/images/openlibrary-128x128.png" rel="icon" sizes="128x128" />
     $ style = 'build/page-%s.css'%ctx.get('bodyid', 'user')
-    <link href="$static_url(style)" rel="stylesheet" type="text/css" />
+    <link href="$static_url(style)" rel="preload" type="text/css" as = "style" />
 
 
  <script>
@@ -51,7 +51,7 @@ $def with (page)
     be emptied at the bottom of the page -->
     <script type="text/javascript">window.q = [];</script>
     $if "dev" in ctx.features:
-        <link href="$static_url('build/page-dev.css')" rel="stylesheet" type="text/css"/>
+        <link href="$static_url('build/page-dev.css')" rel="preload" type="text/css" as = "style"/>
 
     <meta name="google-site-verification" content="KrqcZD4l5BLNVyjzSi2sjZBiwgmkJ1W7n6w7ThD7A74" />
     <meta name="google-site-verification" content="vtXGm8q3UgP-f6qXTvQBo85uh3nmIYIotVqqdJDpyz4" />
