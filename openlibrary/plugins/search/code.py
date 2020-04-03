@@ -29,8 +29,6 @@ if hasattr(config, 'plugin_search'):
     sconfig = config.plugin_search
 
 sconfig.setdefault('solr', None)
-sconfig.setdefault('fulltext_solr', None)
-sconfig.setdefault('fulltext_shards', [])
 
 def parse_host(host_and_port):
     """
@@ -43,14 +41,7 @@ def parse_host(host_and_port):
     return (h, int(p))
 
 solr_server_address = parse_host(sconfig.solr)
-solr_fulltext_address = parse_host(sconfig.fulltext_solr)
-solr_fulltext_shards = map(parse_host, sconfig.fulltext_shards)
 
-if solr_fulltext_address is not None:
-    if hasattr(sconfig, 'solr_pagetext_address'):
-        solr_pagetext_address = parse_host(sconfig.solr_pagetext_address)
-    else:
-        solr_pagetext_address = solr_fulltext_address
 
 if solr_server_address:
     solr = solr_client.Solr_client(solr_server_address)
@@ -58,11 +49,6 @@ if solr_server_address:
 else:
     solr = None
 
-if solr_fulltext_address:
-    solr_fulltext = solr_client.Solr_client(solr_fulltext_address,
-                                            shards=solr_fulltext_shards)
-    solr_pagetext = solr_client.Solr_client(solr_pagetext_address,
-                                            shards=solr_fulltext_shards)
 
 def lookup_ocaid(ocaid):
     ocat = web.ctx.site.things(dict(type='/type/edition', ocaid=ocaid))
@@ -71,93 +57,8 @@ def lookup_ocaid(ocaid):
     return w
 
 
-class fullsearch(delegate.page):
-    def POST(self):
-        errortext = None
-        out = []
-
-        i = web.input(q = None,
-                      rows = 20,
-                      offset = 0,
-                      _unicode=False
-                      )
-
-        class Result_nums: pass
-        nums = Result_nums()
-        timings = Timestamp()
-
-        nums.offset = int(i.get('offset', '0') or 0)
-        nums.rows = int(i.get('rows', '0') or 20)
-        nums.total_nbr = 0
-        q = i.q
-
-        if not q:
-            errortext='you need to enter some search terms'
-            return render.fullsearch(q, out,
-                                     nums,
-                                     [], # timings
-                                     errortext=errortext)
-
-        try:
-            q = re.sub('[\r\n]+', ' ', q).strip()
-            nums.total_nbr, results = \
-                       solr_fulltext.fulltext_search(q,
-                                                     start=nums.offset,
-                                                     rows=nums.rows)
-            timings.update('fulltext done')
-            t_ocaid = 0.0
-            for ocaid in results:
-                try:
-                    pts = solr_pagetext.pagetext_search(ocaid, q)
-                    t_temp = time.time()
-                    oln_thing = lookup_ocaid(ocaid)
-                    t_ocaid += time.time() - t_temp
-                    if oln_thing is None:
-                        # print >> web.debug, 'No oln_thing found for', ocaid
-                        pass
-                    else:
-                        out.append((oln_thing, ocaid,
-                                    collapse_groups(solr_pagetext.pagetext_search
-                                                    (ocaid, q))))
-                except IndexError as e:
-                    print(('fullsearch index error', e, e.args), file=web.debug)
-                    pass
-            timings.update('pagetext done (oca lookups: %.4f sec)'% t_ocaid)
-        except IOError as e:
-            errortext = 'fulltext search is temporarily unavailable (%s)' % \
-                        str(e)
-
-        return render.fullsearch(q,
-                                 out,
-                                 nums,
-                                 timings.results(),
-                                 errortext=errortext)
-
-    GET = POST
-
 facet_token = view.public(facet_hash.facet_token)
 
-class Timestamp(object):
-    def __init__(self):
-        self.t0 = time.time()
-        self.ts = []
-    def update(self, msg):
-        self.ts.append((msg, time.time()-self.t0))
-    def results(self):
-        return (time.ctime(self.t0), self.ts)
-
-# this is in progress, not used yet.
-class Timestamp1(object):
-    def __init__(self, key=None):
-        self.td = defaultdict(float)
-        self.last_t = time.time()
-        self.key = key
-        self.switch(key)
-    def switch(self, key):
-        t = time.time()
-        self.td[self.key] += self.last_t - t
-        self.last_t = t
-        self.key = key
 
 def munch_qresults_stored(qresults):
     def mk_author(a,ak):

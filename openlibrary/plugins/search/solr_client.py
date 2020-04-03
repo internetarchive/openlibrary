@@ -220,40 +220,6 @@ class Solr_client(object):
 
     advanced_search = search
 
-    def fulltext_search(self, query, rows=None, start=None):
-        """Does an advanced search on fulltext:blah.
-        You get back a pair (x,y) where x is the total # of hits
-        and y is a list of identifiers like ["foo", "bar", etc.]"""
-
-        query = self._prefix_query('fulltext', query)
-        result_list = self.raw_search(query, rows=rows, start=start)
-        e = ElementTree()
-        try:
-            e.parse(StringIO(result_list))
-        except SyntaxError as e:
-            raise SolrError(e)
-
-        total_nbr_text = e.find('info/range_info/total_nbr').text
-        # total_nbr_text = e.find('result').get('numFound')  # for raw xml
-        total_nbr = int(total_nbr_text) if total_nbr_text else 0
-
-        out = []
-        for r in e.getiterator('hit'):
-            for d in r.find('metadata'):
-                for x in list(d.getiterator()):
-                    if x.tag == "identifier":
-                        xid = six.text_type(x.text).encode('utf-8')
-                        if xid.startswith('OCA/'):
-                            xid = xid[4:]
-                        elif xid.endswith('.txt'):
-                            xid = xid.split('/')[-1].split('_')[0]
-                        elif xid.endswith('_ZZ'):
-                            xid = xid[:-3]
-                        out.append(xid)
-                        break
-        return (total_nbr, out)
-
-
     def pagetext_search(self, locator, query, rows=None, start=None):
         """Does an advanced search on
                pagetext:blah locator:identifier
