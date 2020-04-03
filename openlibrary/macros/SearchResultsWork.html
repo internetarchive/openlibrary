@@ -1,8 +1,13 @@
 $def with (doc, decorations=None, cta=True, availability=None, user=None, extra=None)
 
+$ availability = availability or doc.get('availability')
 $ is_work = doc.get('type', {}).get('key') == '/type/work'
-$ book_url = doc.url() if is_work else doc.key
+$ work_url = doc.url() if is_work else doc.key
+$ book_url = work_url
 $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
+$if availability and availability.get('openlibrary_edition') and not is_bot():
+  $ book_url += '?edition=%s' % availability.get('openlibrary_edition')
+
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book">
   <span class="bookcover">
     $if doc.get('cover_i') or cover_ids:
@@ -33,13 +38,16 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
           $for a in doc.authors:
             <a itemprop="author" href="$(a.get('url') or a.get('key') or a.author.get('url') or a.author.key)" class="results">$(a.name or a.author.name)</a>$(',' if not loop.last else '')
       </span>
-      <span class="resultPublisher">
-        $if doc.edition_count:
-          $ungettext('1 edition', '%(count)d editions', doc.edition_count, count=doc.edition_count)
-          $if doc.first_publish_year:
-              $_('- first published in %(year)s', year=doc.first_publish_year)
+      $if doc.edition_count or doc.first_publish_year:
+        <span class="resultPublisher">
+            $if doc.edition_count:
+              <a href="$work_url">
+                $ungettext('1 edition', '%(count)d editions', doc.edition_count, count=doc.edition_count)</a>
+            $if doc.first_publish_year:
+              - $_('first published in %(year)s', year=doc.first_publish_year)
       </span>
 
+      $# Used for e.g. reading log class, "Want to Read" btn, etc
       $if extra:
         <div class="serp-extras">
           $:extra
@@ -62,8 +70,8 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
         </div>
       $if cta:
         <div class="searchResultItemCTA-lending">
-          $if availability or doc.get('availability'):
-            $:macros.AvailabilityButton(doc, doc.get('availability') or availability, user)
+          $if availability:
+            $:macros.AvailabilityButton(doc, availability, user)
         </div>
   </div>
 </li>
