@@ -6,8 +6,7 @@ import web
 
 from infogami.utils import delegate
 from infogami import config
-
-from openlibrary.utils import solr
+from openlibrary.plugins.worksearch.search import get_solr
 
 class search_api:
     error_val = {'status':'error'}
@@ -36,13 +35,8 @@ class search_api:
             traceback.print_exc()
             return {'status':'error'}
 
-    def get_solr(self):
-        c = config.get("plugin_worksearch")
-        host = c and c.get('solr')
-        return host and solr.Solr("http://" + host + "/solr")
-
     def solr_select(self, query):
-        solr = self.get_solr()
+        solr = get_solr()
         response = solr.select(query)
         docs = response['docs']
         return ["/books/" + doc["key"] for doc in docs]

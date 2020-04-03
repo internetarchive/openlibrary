@@ -15,8 +15,8 @@ from infogami.utils.view import safeint, add_flash_message
 from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
+from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils import is_author_olid, is_work_olid
-from openlibrary.utils.solr import Solr
 from openlibrary.i18n import gettext as _
 from openlibrary import accounts
 import logging
@@ -32,11 +32,6 @@ from six.moves import urllib
 
 
 logger = logging.getLogger("openlibrary.book")
-
-
-def get_solr():
-    base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
-    return Solr(base_url)
 
 
 def get_recaptcha():
