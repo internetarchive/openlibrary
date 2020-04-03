@@ -7,6 +7,7 @@ import subprocess
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render_template, public
+from openlibrary.core import stats
 
 status_info = {}
 feature_flags = {}
@@ -32,9 +33,15 @@ def get_features_enabled():
 def setup():
     "Basic startup status for the server"
     global status_info, feature_flags
-    status_info = {"Software version" : get_software_version(),
-                   "Host" : socket.gethostname(),
-                   "Start time" : datetime.datetime.utcnow()
-                   }
+    version = get_software_version()
+    host = socket.gethostname()
+    status_info = {
+        "Software version": version,
+        "Host": host,
+        "Start time": datetime.datetime.utcnow(),
+    }
     feature_flags = get_features_enabled()
 
+    # Host is e.g. ol-web4.blah.archive.org ; we just want the first subdomain
+    first_subdomain = host.split('.')[0] or 'unknown'
+    stats.increment('ol.servers.%s.started' % first_subdomain)
