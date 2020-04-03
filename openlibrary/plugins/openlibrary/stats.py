@@ -154,7 +154,7 @@ def _get_path_page_name(path):
         pageClass, _ = find_mode()
 
     result = pageClass.__name__
-    if hasattr(pageClass, 'encoding'):
+    if hasattr(pageClass, 'encoding') and not result.endswith(pageClass.encoding):
         result += '_' + pageClass.encoding
 
     return result
