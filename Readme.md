@@ -58,6 +58,10 @@ Once you've read the overview of OpenLibrary Backend technologies, it's highly e
 
 - [Infogami Developer Tutorial](https://openlibrary.org/dev/docs/infogami)
 
+After reading the tech and developments for a background on Infogami, the most recent files can be viewed and worked on.
+
+- [Infogami master files](https://github.com/internetarchive/infogami)
+
 ## Running tests
 
 Open Library tests can be run using pytest. Kindly look up on our [Testing Document](https://github.com/internetarchive/openlibrary/wiki/Testing) for more details
