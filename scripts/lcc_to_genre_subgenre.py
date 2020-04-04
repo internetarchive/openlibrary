@@ -19,8 +19,10 @@ with open(os.path.join(here, "lc_classifiers_letters_and_numbers.json")) as in_f
 out_file = None
 
 
-def get_ol_book_info(olid: str = "OL26617202M") -> str:
+def get_ol_book_info(olid="OL26617202M"):
     """
+    def get_ol_book_info(olid: str = "OL26617202M") -> str:
+
     >>> get_ol_book_info()  # doctest: +ELLIPSIS
     {'olid:OL26617202M': ...
     """
@@ -28,8 +30,10 @@ def get_ol_book_info(olid: str = "OL26617202M") -> str:
     return requests.get(url + olid).json()
 
 
-def olid_to_lc_classifications(olid: str = "OL1025841M") -> list:
+def olid_to_lc_classifications(olid="OL1025841M"):
     """
+    def olid_to_lc_classifications(olid: str = "OL1025841M") -> list:
+
     >>> olid_to_lc_classifications()
     ['HB1951 .R64 1995']
     """
