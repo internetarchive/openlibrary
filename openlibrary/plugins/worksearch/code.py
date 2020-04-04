@@ -1,6 +1,3 @@
-import six
-from six.moves.urllib.parse import urlencode
-
 import web
 import re
 from lxml.etree import XML, XMLSyntaxError
@@ -16,7 +13,10 @@ from openlibrary.utils.isbn import normalize_isbn, opposite_isbn
 from unicodedata import normalize
 import logging
 
+import six
 from six.moves import urllib
+from six.moves.urllib.parse import urlencode
+
 
 logger = logging.getLogger("openlibrary.worksearch")
 
@@ -497,8 +497,15 @@ class search(delegate.page):
     def GET(self, subject=None):
         i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[], public_scan_b=[])
         if subject:
-            i.subject_facet.append(subject.capitalize())
-            i.setdefault('q', 'subject:%s' % subject)
+            _facet = subject['subject_type']
+            _subj = unicode(subject['name'])
+
+            # Setting the subject_facet
+            i['%s_facet' % _facet].append(_subj)
+
+            # Setting the query
+            i.setdefault('q', u'%s:"%s"' % (_facet, _subj))
+
         # Send to full-text Search Inside if checkbox checked
         if i.get('search-fulltext'):
             raise web.seeother('/search/inside?' + urllib.parse.urlencode({'q': i.get('q', '')}))
@@ -696,7 +703,8 @@ class subject_search(delegate.page):
     def GET(self):
         return render_template('search/subjects.tmpl', self.get_results)
 
-    def get_results(self, q, offset=0, limit=100):
+    @staticmethod
+    def get_results(q, offset=0, limit=100):
         valid_fields = ['key', 'name', 'subject_type', 'work_count']
         q = escape_colon(escape_bracket(q), valid_fields)
         params = {

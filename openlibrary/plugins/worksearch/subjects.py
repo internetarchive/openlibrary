@@ -47,31 +47,22 @@ class subjects(delegate.page):
     path = '(/subjects/[^/]+)'
 
     def GET(self, key):
-        from openlibrary.plugins.worksearch.code import search
-        s = key.split('/')[2]
-        return search().GET(subject=s)
+        from openlibrary.plugins.worksearch.code import search, subject_search
 
+        # Make sure the /subjects url looks right
         nkey = self.normalize_key(key)
         if nkey != key:
             raise web.redirect(nkey)
 
-        # this needs to be updated to include:
-        #q=public_scan_b:true+OR+lending_edition_s:*
-        subj = get_subject(key, details=True, filters={
-            'public_scan_b': 'false',
-            'lending_edition_s': '*'
-        })
+        # Nauhty hack to make 'subject' work like 'person', etc
+        if ':' not in key:
+            key = key.replace('/subjects/', '/subjects/subject:', 1)
 
-        subj.v2 = True
-        delegate.context.setdefault('bodyid', 'subject')
-        if not subj or subj.work_count == 0:
+        subjs = subject_search.get_results('key:"%s"' % key).get('response', {}).get('docs')
+        if not subjs or subjs[0]['work_count'] == 0:
             web.ctx.status = "404 Not Found"
-            page = render_template('subjects/notfound.tmpl', key)
-        else:
-            page = render_template("subjects", page=subj)
-
-        page.v2 = True
-        return page
+            return render_template('subjects/notfound.tmpl', key)
+        return search().GET(subject=subjs[0])
 
     def normalize_key(self, key):
         key = key.lower()
