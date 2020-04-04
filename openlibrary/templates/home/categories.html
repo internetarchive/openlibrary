@@ -15,7 +15,7 @@ $if subjects:
           $ presentable_subject_name = subject_name.replace('_', ' ').title()
           <div class="category-item carousel__item">
             <a class="category-nostyle" data-ol-link-track="CarouselCategories"
-               href="/subjects/$(subject_name)#sort=date_published&ebooks=true">
+               href="/subjects/$(subject_name)?sort=new&has_fulltext=true">
               <div class="category-icon">
                 <img class="category-img" src="/static/images/categories/$(subject_name).svg"
                     width="30" height="30"
