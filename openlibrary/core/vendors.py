@@ -1,6 +1,7 @@
+import logging
 import re
-import simplejson
 import requests
+import simplejson
 import time
 from dateutil import parser as isoparser
 from decimal import Decimal
@@ -9,6 +10,7 @@ from paapi5_python_sdk.api.default_api import DefaultApi
 from paapi5_python_sdk.get_items_request import GetItemsRequest
 from paapi5_python_sdk.get_items_resource import GetItemsResource
 from paapi5_python_sdk.partner_type import PartnerType
+from paapi5_python_sdk.rest import ApiException
 
 from infogami.utils.view import public
 from openlibrary.core import lending, cache, helpers as h
@@ -17,6 +19,9 @@ from openlibrary.utils.isbn import (
     normalize_isbn, isbn_13_to_isbn_10, isbn_10_to_isbn_13)
 from openlibrary.catalog.add_book import load
 from openlibrary import accounts
+
+
+logger = logging.getLogger("openlibrary.vendors")
 
 amazon_api = None
 config_amz_api = None
@@ -101,29 +106,30 @@ class AmazonAPI:
         uniquely identify an item or product URL. (Max 10) Seperated
         by comma or as a list.
         """
-        item_ids = asins if type(asins) is list else [asins]
-
         # Wait before doing the request
         wait_time = 1 / self.throttling - (time.time() - self.last_query_time)
         if wait_time > 0:
             time.sleep(wait_time)
         self.last_query_time = time.time()
 
+        item_ids = asins if type(asins) is list else [asins]
+        _resources = self.RESOURCES[resources or 'import']
         try:
-            _resources = (self.RESOURCES[resources] if resources
-                          else self.RESOURCES['import'])
             request = GetItemsRequest(partner_tag=self.tag,
                                       partner_type=PartnerType.ASSOCIATES,
                                       marketplace=marketplace,
                                       item_ids=item_ids,
                                       resources=_resources,
                                       **kwargs)
-            response = self.api.get_items(request)
-            products = response.items_result.items
-            return (products if not serialize else
-                    [self.serialize(p) for p in products])
-        except Exception as exception:
-            raise exception
+        except ApiException:
+            logger.error("Amazon fetch failed for: %s" % ', '.join(item_ids),
+                         exc_info=True)
+            return None
+        response = self.api.get_items(request)
+        products = response.items_result.items
+        return (products if not serialize else
+                [self.serialize(p) for p in products])
+
 
     @staticmethod
     def serialize(product):
@@ -167,7 +173,20 @@ class AmazonAPI:
         attribution = item_info and getattr(item_info, 'by_line_info')
         price = (getattr(product, 'offers') and product.offers.listings
                  and product.offers.listings[0].price)
-
+        brand = (attribution and getattr(attribution, 'brand') and
+                 getattr(attribution.brand, 'display_value'))
+        manufacturer = (
+            item_info and
+            getattr(item_info, 'by_line_info') and
+            getattr(item_info.by_line_info, 'manufacturer') and
+            item_info.by_line_info.manufacturer.display_value
+        )
+        product_group = (
+            item_info and
+            getattr(item_info, 'classifications',) and
+            getattr(item_info.classifications, 'product_group') and
+            item_info.classifications.product_group.display_value
+        )
         try:
             publish_date = edition_info and isoparser.parse(
                 edition_info.publication_date.display_value
@@ -183,18 +202,19 @@ class AmazonAPI:
             'isbn_13': [isbn_10_to_isbn_13(product.asin)],
             'price': price and price.display_amount,
             'price_amt': price and price.amount and int(100 * price.amount),
-            'title': item_info and item_info.title and item_info.title.display_value,
+            'title': (item_info and item_info.title and
+                      getattr(item_info.title, 'display_value')),
             'cover': (images and images.primary and images.primary.large and
                       images.primary.large.url),
             'authors': attribution and [{'name': contrib.name}
                         for contrib in attribution.contributors],
-            'publishers': (attribution and attribution.brand and
-                           [attribution.brand.display_value]),
+            'publishers': list(set(p for p in (brand, manufacturer) if p)),
             'number_of_pages': (edition_info and edition_info.pages_count and
                                 edition_info.pages_count.display_value),
             'edition_num': (edition_info and edition_info.edition and
                             edition_info.edition.display_value),
             'publish_date': publish_date,
+            'product_group': product_group,
             'physical_format': (
                 item_info and item_info.classifications and
                 getattr(item_info.classifications.binding, 'display_value', '').lower()
