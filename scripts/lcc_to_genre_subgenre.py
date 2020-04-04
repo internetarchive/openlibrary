@@ -5,6 +5,7 @@ from __future__ import print_function
 import json
 import os
 import string
+import requests  # python3 -m pip install requests
 
 # from typing import Tuple
 
@@ -18,17 +19,39 @@ with open(os.path.join(here, "lc_classifiers_letters_and_numbers.json")) as in_f
 out_file = None
 
 
+def get_ol_book_info(olid: str = "OL26617202M") -> str:
+    """
+    >>> get_ol_book_info()  # doctest: +ELLIPSIS
+    {'olid:OL26617202M': ...
+    """
+    url = "https://openlibrary.org/api/books?jscmd=details&format=json&bibkeys=olid:"
+    return requests.get(url + olid).json()
+
+
+def olid_to_lc_classifications(olid: str = "OL1025841M") -> list:
+    """
+    >>> olid_to_lc_classifications()
+    ['HB1951 .R64 1995']
+    """
+    return get_ol_book_info(olid)["olid:" + olid]["details"]["lc_classifications"]
+
+
 def parse_lcc(lcc):
     """
     def parse_lcc(lcc: str) -> Tuple[str, int]:
 
     >>> parse_lcc("HB1951 .R64 1995")
     ('HB', 1951)
+    >>> parse_lcc("OL1025841M")
+    ('HB', 1951)
     >>> parse_lcc("DP402.C8 O46 1995")
     ('DP', 402)
     >>> parse_lcc("CS879 .R3 1995")
     ('CS', 879)
     """
+    lcc = lcc.strip().upper()
+    if lcc.startswith("OL"):
+        return parse_lcc(olid_to_lc_classifications(lcc)[0])
     lcc = lcc.replace(" ", "").replace(".", " ").replace("/", " ").split()[0].upper()
     chars = ""
     for i, char in enumerate(lcc):
