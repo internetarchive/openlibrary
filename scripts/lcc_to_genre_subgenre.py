@@ -95,21 +95,26 @@ def lcc_to_subject(lcc):
     return [item["subject"] for item in data if item["start"] <= number <= item["stop"]]
 
 
-def lcc_to_genre_subgenre(lcc):
+def lcc_to_class_subclass(lcc):
     """
-    def lcc_to_genre_subgenre(lcc: str) -> list:
+    def lcc_to_class_subclass(lcc: str) -> list:
     """
-    genre_subgenre = letters_only(lcc)
-    if len(genre_subgenre) != 2:
-        for subgenre in lcc_to_subject(lcc):
-            if subgenre not in genre_subgenre:
-                genre_subgenre.append(subgenre)
-                if len(genre_subgenre) >= 2:
+    class_subclass = letters_only(lcc)
+    if len(class_subclass) != 2:
+        if len(lcc) > 2:  # Drop the last char and redo
+            return lcc_to_class_subclass(lcc[:-1])
+        print("Falling thru...", lcc)
+        if out_file:
+            print("Falling thru...", lcc, file=out_file)
+        for subclass in lcc_to_subject(lcc):
+            if subclass not in class_subclass:
+                class_subclass.append(subclass)
+                if len(class_subclass) >= 2:
                     break
         print("Needed numbers:", lcc)
         if out_file:
             print("Needed numbers:", lcc, file=out_file)
-    return genre_subgenre
+    return class_subclass
 
 
 if __name__ == "__main__":
@@ -123,7 +128,7 @@ if __name__ == "__main__":
             lcc = input("Or leave blank to quit: ").strip().upper()
             if not lcc:
                 break
-            genre_subgenre = lcc_to_genre_subgenre(lcc)
-            print(lcc, genre_subgenre)
-            if len(genre_subgenre) != 2:
-                print(lcc, genre_subgenre, file=out_file)
+            class_subclass = lcc_to_class_subclass(lcc)
+            print(lcc, class_subclass)
+            if len(class_subclass) != 2:
+                print(lcc, class_subclass, file=out_file)
