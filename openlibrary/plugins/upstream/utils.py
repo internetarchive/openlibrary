@@ -735,11 +735,18 @@ class Request:
         readable_path = web.ctx.get('readable_path', web.ctx.path) or ''
         query = web.ctx.query or ''
 
-        queries_to_exclude = '|'.join(['sort', 'mode', 'v', 'type', 'debug'])
-        regex_string = r'(?<=(\?|\&))(%s)=.*?(\&|$)' % queries_to_exclude
-        query = re.sub(regex_string, '', query)
-        if query == '?':
-            query = ''
+        if len(query) > 0:
+            queries_to_exclude = ['sort', 'mode', 'v', 'type', 'debug']
+            parameters = query.split('&')
+            pattern = re.compile('.*?(?==)')
+
+            for param in parameters:
+                p = pattern.match(param).group().replace('?', '')
+                if p in queries_to_exclude:
+                    parameters.remove(param)
+            query = '&'.join(parameters)
+            if '?' not in query and len(query) > 0:
+                query = '?' + query
 
         host = web.ctx.host or ''
         url = (host + readable_path + query)

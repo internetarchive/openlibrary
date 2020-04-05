@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from .. import utils
+import web
 
 def test_url_quote():
     assert utils.url_quote('https://foo bar') == 'https%3A%2F%2Ffoo+bar'
@@ -40,3 +41,37 @@ def test_item_image():
     assert utils.item_image('//foo') == 'https://foo'
     assert utils.item_image(None, 'bar') == 'bar'
     assert utils.item_image(None) == None
+
+
+def test_canonical_url():
+    web.ctx.path = '/authors/Ayn_Rand'
+    web.ctx.query = ''
+    web.ctx.host = 'www.openlibrary.org'
+    request = utils.Request()
+
+    url = 'https://www.openlibrary.org/authors/Ayn_Rand'
+    assert request.canonical_url == url
+
+    web.ctx.query = '?sort=newest'
+    url = 'https://www.openlibrary.org/authors/Ayn_Rand'
+    assert request.canonical_url == url
+
+    web.ctx.query = '?page=2'
+    url = 'https://www.openlibrary.org/authors/Ayn_Rand?page=2'
+    assert request.canonical_url == url
+
+    web.ctx.query = '?page=2&sort=newest'
+    url = 'https://www.openlibrary.org/authors/Ayn_Rand?page=2'
+    assert request.canonical_url == url
+
+    web.ctx.query = '?sort=newest&page=2'
+    url = 'https://www.openlibrary.org/authors/Ayn_Rand?page=2'
+    assert request.canonical_url == url
+
+    web.ctx.query = '?sort=newest&page=2&mode=e'
+    url = 'https://www.openlibrary.org/authors/Ayn_Rand?page=2'
+    assert request.canonical_url == url
+
+    web.ctx.query = '?sort=newest&page=2&mode=e&test=query'
+    url = 'https://www.openlibrary.org/authors/Ayn_Rand?page=2&test=query'
+    assert request.canonical_url == url
