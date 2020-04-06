@@ -739,11 +739,16 @@ class Request:
             queries_to_exclude = ['sort', 'mode', 'v', 'type', 'debug']
             parameters = query.split('&')
             pattern = re.compile('.*?(?==)')
+            params_to_remove = []
 
             for param in parameters:
                 p = pattern.match(param).group().replace('?', '')
                 if p in queries_to_exclude:
-                    parameters.remove(param)
+                    params_to_remove.append(param)
+
+            for p in params_to_remove:
+                parameters.remove(p)
+
             query = '&'.join(parameters)
             if '?' not in query and len(query) > 0:
                 query = '?' + query
