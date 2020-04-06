@@ -30,8 +30,8 @@
 @import (less) "legacy-wmd.less";
 
 @import (less) "components/read-panel.less";
-@import (less) 'components/diff.less';
-@import (less) 'components/iconochive.less';
+@import (less) "components/diff.less";
+@import (less) "components/iconochive.less";
 @import (less) "components/carousel.less";
 @import (less) "components/editions.less";
 @import (less) "components/header.less";
@@ -95,13 +95,15 @@ table {
       text-align: right;
     }
   }
-  // openlibrary/templates/lib/history.html
-  &#pageHistory,
+
+  // `#pageHistory` used inside openlibrary/templates/lib/history.html
+  // `.changeHistory` used inside:
   // openlibrary/templates/admin/imports.html
   // openlibrary/templates/admin/imports_by_date.html
   // openlibrary/templates/admin/ip/view.html
   // openlibrary/templates/admin/people/edits.html
   // openlibrary/templates/merge/editions2.html
+  &#pageHistory,
   &.changeHistory {
     th {
       border-bottom: 1px solid @grey-e7e7e7;
@@ -730,8 +732,8 @@ form {
 
 // openlibrary/templates/account/verify/failed.html
 // openlibrary/templates/form.html
+// FIXME: `div.valid` is possibly unused/or used in JS?
 div.invalid,
-// possibly unused/or used in JS?
 div.valid {
   float: left;
   font-size: 1.0em !important;
@@ -998,7 +1000,7 @@ hr.forgot-padding {
 }
 
 /* FOOTER */
-@import (less) 'components/footer.less';
+@import (less) "components/footer.less";
 
 /* CONTENT */
 div.contentWide,
@@ -1209,7 +1211,7 @@ div#searchResults {
 
 /* SEARCH FACETS */
 
-@import (less) 'components/search-results-container.less';
+@import (less) "components/search-results-container.less";
 
 // openlibrary/templates/work_search.html
 div#searchFacets {
@@ -1425,9 +1427,9 @@ tr {
   }
 }
 
-// openlibrary/templates/type/author/edit.html
+// `input.addweb` is used in openlibrary/templates/type/author/edit.html
+// `select#select-id` is used in openlibrary/templates/books/edit/edition.html
 input.addweb,
-// openlibrary/templates/books/edit/edition.html
 select#select-id {
   max-width: 300px;
 }
@@ -1682,13 +1684,16 @@ ul#siteSearch {
     font-family: @lucida_sans_serif-1;
     color: @grey;
   }
-  // openlibrary/macros/SearchResults.html
-  // openlibrary/macros/SearchResultsWork.html
+
+  // `span.resultTitle .bookauthor` is used in:
+  // * openlibrary/macros/SearchResults.html
+  // * openlibrary/macros/SearchResultsWork.html
+  // `span.resultPublisher` is used in
+  // * openlibrary/macros/SearchResultsWork.htm
+  // * openlibrary/templates/books/check.html
+  // * openlibrary/templates/books/show.html
+  // * openlibrary/templates/books/works-show.html
   span.resultTitle .bookauthor,
-  // openlibrary/macros/SearchResultsWork.htm
-  // openlibrary/templates/books/check.html
-  // openlibrary/templates/books/show.html
-  // openlibrary/templates/books/works-show.html
   span.resultPublisher {
     font-size: .75em;
     color: @grey;
@@ -1882,7 +1887,7 @@ div.postSubmit {
   }
 }
 
-@import (less) 'components/listLists.less';
+@import (less) "components/listLists.less";
 
 // openlibrary/templates/lists/widget.html
 .heart-adjust {
@@ -1939,8 +1944,6 @@ div#subjectLists {
 }
 
 /* LIBRARIES */
-
-@import (less) "components/header.less";
 
 // use manage-covers instead
 // openlibrary/templates/type/edition-history/view.html
@@ -2045,7 +2048,6 @@ div#subjectLists {
   }
 }
 @import (less) "components/searchResultItemCta.less";
-@import (less) "components/work.less";
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
   span {

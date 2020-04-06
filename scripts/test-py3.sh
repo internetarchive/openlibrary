@@ -1,6 +1,6 @@
 #!/bin/sh
 
-pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests \
+pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests openlibrary/tests \
     openlibrary/catalog/add_book/tests/test_add_book.py \
     openlibrary/coverstore/tests/test_code.py \
     openlibrary/coverstore/tests/test_webapp.py \
@@ -43,7 +43,8 @@ pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests \
     openlibrary/tests/core/test_ratings.py \
     openlibrary/tests/core/test_sponsors.py \
     openlibrary/tests/core/test_vendors.py \
-    openlibrary/tests/core/test_waitinglist.py
+    openlibrary/tests/core/test_waitinglist.py \
+    openlibrary/tests/solr/test_update_work.py 
 
 # The following sections allow us to quickly spot tests that are fixed
 
@@ -63,8 +64,3 @@ pytest \
 # plugins: All failing tests run in allow failures (|| true) mode
 pytest \
     openlibrary/plugins/openlibrary/tests/test_home.py || true
-
-# openlibrary/tests: All failing tests run in allow failures (|| true) mode
-pytest \
-    openlibrary/tests/accounts/test_models.py \
-    openlibrary/tests/solr/test_update_work.py || true

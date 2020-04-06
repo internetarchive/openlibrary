@@ -59,8 +59,9 @@ $ _x = ctx.setdefault('usergroup', 'admin')
       <th>Total Unscanned Books</th>
       <td>$summary['total_unscanned_books']</td>
       $if ctx.user and ctx.user.is_admin():
-        $ isbns = ','.join([s['identifier'].replace('isbn_', '') for s in summary['books'] if s.get('repub_state') == '-1'])
-        <td><a href="https://8882k.csb.app/?isbns=$isbns">Print Slips</a></td>
+        $ isbns = '|'.join([s['identifier'].replace('isbn_', '') for s in summary['books'] if s.get('repub_state') == '-1' and s.get('book_price')])
+        <!-- https://codesandbox.io/s/vue-template-8882k -->
+        <td><a href="https://8882k.codesandbox.io/#isbns=$isbns">Print Slips</a></td>
     </tr>
     <tr>
       <th>Average Scan Cost</th>
@@ -77,7 +78,7 @@ $ _x = ctx.setdefault('usergroup', 'admin')
       <td class="earnings--$('loss' if adj_profit_loss < 0 else 'profit')">\$$(adj_profit_loss / 100.)</td>
     </tr>
   </table>
-  
+
   <hr>
 
   <table class="sponsor">
@@ -85,7 +86,7 @@ $ _x = ctx.setdefault('usergroup', 'admin')
       <tr>
         <th>#</th>
         <th>Cover</th>
-        <th>IDs</th>      
+        <th>IDs</th>
         <th>Title</th>
         <th>Status</th>
       </tr>
@@ -93,6 +94,7 @@ $ _x = ctx.setdefault('usergroup', 'admin')
     <tbody>
       $ summary['books'].sort(key=lambda b: summary['status_ids'][b['status']])
       $for book in summary['books']:
+        $ isbn = book['identifier'].replace('isbn_', '')
         <tr>
           <td>$loop.index</td>
           <td>
@@ -103,6 +105,12 @@ $ _x = ctx.setdefault('usergroup', 'admin')
             <ul>
               <li>
                 <a href="https://archive.org/details/$book['identifier']">$book['identifier']</a>
+              </li>
+              <li>
+                <a href="https://archive.org/editxml/$book['identifier']">Edit XML</a>
+              </li>
+              <li>
+                <a href="https://www.betterworldbooks.com/product/detail/-$(isbn)">BWB Link</a>
               </li>
               $if book.get('openlibrary_edition'):
                 <li>

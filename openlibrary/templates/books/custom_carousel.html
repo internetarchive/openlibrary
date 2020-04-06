@@ -1,5 +1,10 @@
 $def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False)
 
+$ ctx.setdefault("links", [])
+$ slick_font = '<link rel="preload" href="/static/css/fonts/slick.woff" as="font" type="font/woff">'
+$if slick_font not in ctx.links:
+  $ ctx.links.append(slick_font)
+
 $def render_carousel_cover(book, lazy):
   $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
   $ cover_host = '//covers.openlibrary.org'
@@ -50,7 +55,7 @@ $def render_carousel_cover(book, lazy):
     <div class="book-cover">
       <a href="$(url)">
         $if cover_url:
-          <img class="bookcover"
+          <img class="bookcover" loading="lazy"
             width="130" height="200"
             title="$('%s%s'%(title,byline))"
             $img_attr="$(cover_url)"/>

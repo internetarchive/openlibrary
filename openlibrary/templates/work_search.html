@@ -202,18 +202,13 @@ $ )
     $if param and not docs:
         $ query = query_param('q')
         $ page = int(query_param('page') or 1)
-        $ results = fulltext_search(query, page)
-        <div class="serp-ctx">
-          <div><span class="red">$_("No results found.")</span></div>
-
-          $if results:
-            <div class="show-similar">$_("Showing books with similar text to:") <strong>$(query)</strong></div>
-        </div>
-
-        $if results:
-          $if 'error' in results:
-            <div class="searchResultsError">$results['error']</div>
-          $:macros.FulltextResults(query, results, page=page)
+        $# Temporarily (2020-03-26) disable automatically showing full-text
+        $# results because of performance issues due to increased load. See
+        $# this commit to revert.
+        <center>
+            <span class="red">$_("No results found.")</span>
+            <a href="/search/inside?$urlencode(dict(q=query))">$_('Search for books containing the phrase "%s"?' % query)</a>
+        </center>
 
     $elif param and not error and len(docs):
         <div class="shift">$ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))</div>

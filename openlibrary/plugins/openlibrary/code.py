@@ -28,10 +28,11 @@ from infogami.core.db import ValidationException
 
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
+from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.core.lending import get_work_availability, get_edition_availability
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
-
+from openlibrary.plugins.openlibrary.stats import increment_error_count  # noqa: E402
 from openlibrary.plugins.openlibrary import processors
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
@@ -360,23 +361,42 @@ class health(delegate.page):
         raise web.HTTPError('200 OK', {}, 'OK')
 
 
+class isbn_lookup(delegate.page):
+
+    path = r'/(?:isbn|ISBN)/([0-9xX-]+)'
+
+    def GET(self, isbn):
+        # Preserve the url type (e.g. `.json`) and query params
+        ext = ''
+        if web.ctx.encoding and web.ctx.path.endswith('.' + web.ctx.encoding):
+            ext = '.' + web.ctx.encoding
+        if web.ctx.env.get('QUERY_STRING'):
+            ext += '?' + web.ctx.env['QUERY_STRING']
+
+        try:
+            ed = Edition.from_isbn(isbn)
+            if ed:
+                return web.found(ed.key + ext)
+        except Exception as e:
+            logger.error(e)
+            return e.message
+
+        web.ctx.status = '404 Not Found'
+        return render.notfound(web.ctx.path, create=False)
+
+
 class bookpage(delegate.page):
     """
     Load an edition bookpage by identifier: isbn, oclc, lccn, or ia (ocaid).
-    If not found, try to import it by ISBN,
     otherwise, return a 404.
     """
 
-    path = r'/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^/]*)(/.*)?'
+    path = r'/(oclc|lccn|ia|OCLC|LCCN|IA)/([^/]*)(/.*)?'
 
     def GET(self, key, value, suffix=''):
         key = key.lower()
-        if key == 'isbn':
-            if len(value) == 13:
-                key = 'isbn_13'
-            else:
-                key = 'isbn_10'
-        elif key == 'oclc':
+
+        if key == 'oclc':
             key = 'oclc_numbers'
         elif key == 'ia':
             key = 'ocaid'
@@ -409,14 +429,7 @@ class bookpage(delegate.page):
                     return web.found(result[0] + ext)
             # If nothing matched, try this as a last resort:
             return web.found('/books/ia:' + value + ext)
-        elif key.startswith('isbn'):
-            try:
-               ed_key = create_edition_from_amazon_metadata(value)
-            except Exception as e:
-                logger.error(e)
-                return e.message
-            if ed_key:
-                return web.found(ed_key + ext)
+
         web.ctx.status = '404 Not Found'
         return render.notfound(web.ctx.path, create=False)
 
@@ -769,12 +782,14 @@ def save_error():
     print('error saved to', path, file=web.debug)
     return name
 
-
 def internalerror():
     i = web.input(_method='GET', debug='false')
     name = save_error()
 
-    openlibrary.core.stats.increment('ol.internal-errors', 1)
+    # TODO: move this stats stuff to plugins\openlibrary\stats.py
+    # Can't have sub-metrics, so can't add more info
+    openlibrary.core.stats.increment('ol.internal-errors')
+    increment_error_count('ol.internal-errors-segmented')
 
     if i.debug.lower() == 'true':
         raise web.debugerror()

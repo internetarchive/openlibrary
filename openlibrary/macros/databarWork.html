@@ -8,7 +8,10 @@ $else:
     $ edit_url = page.key + "?m=edit"
 
 $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
-$ prices = page.key.startswith('/books/')
+
+$# Disable price temporarily: NEL causing too much traffic to BWB!
+$# Was: page.key.startswith('/books/')
+$ prices = False
 
 $ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
 $ isbn_13 = page.get_isbn13()
@@ -51,7 +54,7 @@ $if isbn_10 and not asin:
           });
         </script>
 
-        $if page.get('ocaid') and not page.is_access_restricted():
+        $if page.get('ocaid') and not page.is_access_restricted() and page.ia_metadata:
             $:macros.DownloadOptions(page)
 
         $:macros.WorldcatLink(isbn=isbn_13, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
