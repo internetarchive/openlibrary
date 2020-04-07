@@ -6,7 +6,7 @@ $def with (page)
         <span class="count">$_("First published in %(year)s", year=page.first_publish_year)</span>
     </h2>
     <div class="small sansserif brown">
-      <a href="/books/add?work=$page.key" title="$_('Add another edition of %(worktitle)s', worktitle=page.title)">$_("Add another")</a>?
+      <a href="/books/add?work=$page.key" title="$_('Add another edition of %(work)s', work=page.title)">$_("Add another")</a>?
     </div>
 </div>
 

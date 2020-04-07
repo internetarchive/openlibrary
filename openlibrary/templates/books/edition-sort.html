@@ -49,7 +49,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
           $elif book.publish_date:
             $book.publish_date
           $elif book.publishers:
-            $_("Publish date unknown, %s", (', '.join(book.publishers)))
+            $_("Publish date unknown, %(publisher)s", publisher=', '.join(book.publishers))
           $else:
             $_("Publisher unknown")
         </div>

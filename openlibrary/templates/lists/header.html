@@ -2,7 +2,7 @@ $def with (doc, lists)
 
 $def render_author():
     $#<!-- Need to insert author photo $:render_template('covers/book_cover_small', doc.works[0]) -->
-    <h1>$:_('<a href="$doc.key">%(name)s</a> / Lists', name=doc.name)</h1>
+    <h1>$:_('<a href="%(href)s">%(name)s</a> / Lists', href=doc.key, name=doc.name)</h1>
     <p class="collapse large brown sansserif">
     <!-- Include number of works: ### works -->
     </p>
@@ -12,7 +12,7 @@ $def render_author():
 
 $def render_edition():
     $#<!-- Need to insert book cover $:render_template('covers/book_cover_small', doc.works[0]) -->
-    <h1 class="collapse"><a href="$doc.key">$doc.title</a> / Lists</h1>
+    <h1 class="collapse">$:_('<a href="%(href)s">%(name)s</a> / Lists', href=doc.key, name=doc.title)</h1>
     <p class="collapse large brown sansserif">
     <!-- IF YEAR: doc.publish_date, (Need to pull in Edition info for header) -->
     <!-- IF PUBLISHER: doc.publishers -->
@@ -23,22 +23,22 @@ $def render_edition():
     </p>
 
 $def render_work():
-    <h1>$:_('<a href="$doc.key">%(name)s</a> / Lists', name=doc.title)</h1>
+    <h1>$:_('<a href="%(href)s">%(name)s</a> / Lists', href=doc.key, name=doc.title)</h1>
     <p class="sansserif lightgreen large">
         $:ungettext("This work is on <strong>1 list</strong>.", "This work is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
     </p>
 
 $def render_user():
-    <h1 class="collapse">$:_('<a href="$doc.key">%(name)s</a> / Lists', name=doc.displayname)</h1>
+    <h1 class="collapse">$:_('<a href="%(href)s">%(name)s</a> / Lists', href=doc.key, name=doc.displayname)</h1>
     <p class="collapse large brown sansserif">
-        $ungettext("%(name)s has %(count)s list.", "%(name)s has %(count)s lists.", len(lists), name=doc.displayname, count=commify(len(lists)))
+        $ungettext("%(name)s has 1 list.", "%(name)s has %(count)s lists.", len(lists), name=doc.displayname, count=commify(len(lists)))
     </p>
 
 $def render_subject():
-    <h1><a href="$doc.key">$doc.name</a> / Lists</h1>
+    <h1>$:_('<a href="%(href)s">%(name)s</a> / Lists', href=doc.key, name=doc.name)</h1>
 
     <p class="sansserif lightgreen large">
-        $:ungettext("This subject is on <strong>1 list</strong>.", "This subject is on <strong>%s lists</strong>.", len(lists), count=commify(len(lists)))
+        $:ungettext("This subject is on <strong>1 list</strong>.", "This subject is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
     </p>
 
 $ type = doc.get("type") and doc.type.key

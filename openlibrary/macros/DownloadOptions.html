@@ -10,16 +10,16 @@ $ djvutxt = page.get_ia_download_link("_djvu.txt")
 $if downloadbook or djvutxt or epub or mobi:
   <hr>
   <div class="cta-section">
-    <p class="cta-section-title">Download Options</p>
+    <p class="cta-section-title">$_('Download Options')</p>
     <ul class="ebook-download-options">
       $if downloadbook:
-        <li><a href="$downloadbook" title="Download a PDF from Internet Archive">PDF</a></li>
+        <li><a href="$downloadbook" title="$_('Download a PDF from Internet Archive')">$_('PDF')</a></li>
       $if djvutxt:
-        <li><a href="$djvutxt" title="Download a text version from Internet Archive">Plain text</a></li>
+        <li><a href="$djvutxt" title="$_('Download a text version from Internet Archive')">$_('Plain text')</a></li>
       $if epub:
-        <li><a href="$epub" title="Download an ePub from Internet Archive">ePub</a></li>
+        <li><a href="$epub" title="$_('Download an ePub from Internet Archive')">$_('ePub')</a></li>
       $if mobi:
-        <li><a href="$mobi" title="Download a MOBI file from Internet Archive">MOBI</a></li>
-      <li><a href="$page.url('/daisy')" title="Download open DAISY from Internet Archive (print-disabled format)">DAISY</a></li>
+        <li><a href="$mobi" title="$_('Download a MOBI file from Internet Archive')">$_('MOBI')</a></li>
+      <li><a href="$page.url('/daisy')" title="$_('Download open DAISY from Internet Archive (print-disabled format)')">$_('DAISY')</a></li>
     </ul>
   </div>

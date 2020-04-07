@@ -17,7 +17,7 @@ $ show_wikipedia_citation_link = page.wp_citation_fields
         </h2>
         <ul class="pageHistory__list inline">
         $if h.initial:
-            <li class="title inline">$_("Created %s", datestr(h.initial[0].created))</li>
+            <li class="title inline">$_("Created %(date)s", date=datestr(h.initial[0].created))</li>
         $if page.url:
             $ url = page.url(m='history')
         $else:
@@ -85,9 +85,9 @@ $ show_wikipedia_citation_link = page.wp_citation_fields
                     $else:
                         $ author_link = '<span>%s</span>' % (_('an anonymous user'))
                     $if v.revision == 1:
-                        $:_("Created by %s", author_link)
+                        $:_("Created by %(user)s", user=author_link)
                     $else:
-                        $:_("Edited by %s", author_link)
+                        $:_("Edited by %(user)s", user=author_link)
                 </td>
                 <td class="detail">$:render_template("history/comment", v)</td>
 

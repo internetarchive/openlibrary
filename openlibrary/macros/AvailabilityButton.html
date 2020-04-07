@@ -43,9 +43,9 @@ $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
         <div class="waitlist-msg">
           $ spot = waiting_loan['position']
           $if spot == 1:
-              You're <strong>next</strong> in line
+              $:_("You're <strong>next</strong> in line")
           $else:
-              There are <strong>#$(spot-1)</strong> readers ahead of you
+              $:ungettext("There is <strong>#1</strong> reader ahead of you", "There are <strong>#%(count)d</strong> readers ahead of you", spot-1, count=spot-1)
         </div>
 
     $else:
@@ -53,7 +53,7 @@ $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
           <form method="POST" action="$(read_link)?action=join-waitinglist" class="join-waitlist waitinglist-form">
             <input type="hidden" name="action" value="join-waitinglist"/>
             <button type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook">
-              Join Waitlist
+              $_('Join Waitlist')
               $if wlsize and int(wlsize):
                 <span class="cta-btn__badge">$wlsize</span>
             </button>
@@ -61,7 +61,7 @@ $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
         </span>
         $if not wlsize or int(wlsize) == 0:
           <div class="waitlist-msg">
-            Be first in line!
+            $_('Be first in line!')
           </div>
 
 $else:

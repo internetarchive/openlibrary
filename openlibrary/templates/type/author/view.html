@@ -84,7 +84,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
        <div class="message" style="display: none;">
             <div id="preMerge" style="display: none;">
                 <p class="larger collapse"><strong>$_('Merging Authors...')</strong></p>
-                <p class="collapse adjust"><img src="/images/ajax-loader-bar.gif" width="220" height="19" alt="In progress..."/></p>
+                <p class="collapse adjust"><img src="/images/ajax-loader-bar.gif" width="220" height="19" alt="$_('In progress...')"/></p>
                 <p class="smaller lightgreen collapse">$_('Duplicates')</p>
                 <p class="small collapse">
                     <ul>
@@ -132,7 +132,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 </h2>
                 <p id="books"><span class="tools">
                 $if books.num_found > 1:
-                    <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:5px;"/>
+                    <img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" style="margin-right:5px;"/>
                     $if books.sort == 'editions':
                         <strong class="lightgreen">$_('Most Editions')</strong> | <a href="$changequery(sort='old')#editions">$_('First Published')</a> | <a href="$changequery(sort='new')#editions">$_('Most Recent')</a>
                     $elif books.sort == 'old':
@@ -145,9 +145,9 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
                 <p>
                   $if input(mode="everything").mode == "everything":
-                    $:_('Showing all works by author. Would you like to see <a href=%(url)s>only ebooks</a>?', url=changequery(mode='ebook'))
+                    $:_('Showing all works by author. Would you like to see <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebook'))
                   $else:
-                    $:_('Showing ebooks only. Would you like to see <a href=%(url)s>everything</a> by this author?', url=changequery(mode='everything'))
+                    $:_('Showing ebooks only. Would you like to see <a href="%(url)s">everything</a> by this author?', url=changequery(mode='everything'))
                 </p>
 
                 $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books.num_found)

@@ -39,7 +39,7 @@ $if user_loan:
   $ return_url = page.url().rsplit('/', 1)[0] + '/do_return/borrow'
   <form action="$return_url" method="post" class="waitinglist-form return-book">
     <input type="hidden" name="action" value="return" />
-    <input type="submit" value="Return eBook" class="cta-btn cta-btn--available" id="return_ebook"/>
+    <input type="submit" value="$_('Return eBook')" class="cta-btn cta-btn--available" id="return_ebook"/>
   </form>
 
 $elif editions_page and ocaid and not page.ia_metadata:
@@ -66,15 +66,18 @@ $elif (availability_status == 'borrow_unavailable'):
     </p>
     <form method="POST" action="$borrow_link" class="leave-waitlist waitinglist-form">
       <input type="hidden" name="action" value="leave-waitinglist"/>
-      <input type="submit" class="cta-btn" id="unwaitlist_ebook" value="Leave waiting list"/>
+      <input type="submit" class="cta-btn" id="unwaitlist_ebook" value="$_('Leave waiting list')"/>
     </form>
   $else:
     <p class="waitinglist-message">
-      $("Readers waiting for this title: %s" % wlsize if wlsize else "You'll be next in line.")
+      $if wlsize:
+        $_("Readers waiting for this title: %(count)d", count=wlsize)
+      $else:
+        $_("You'll be next in line.")
     </p>
     <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
       <input type="hidden" name="action" value="join-waitinglist"/>
-      <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="Join Waitlist"/>
+      <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="_$('Join Waitlist')"/>
     </form>
 
 $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
@@ -83,11 +86,10 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
     $ isbn = (page.isbn_13 and page.isbn_13[0] or page.isbn_10 and page.isbn_10[0])
     <a href="$(sponsorship['sponsor_url'])"
        class="cta-btn cta-btn--sponsor"
-       data-ol-link-track="CTAClick|Sponsor">Sponsor eBook</a>
+       data-ol-link-track="CTAClick|Sponsor">$_('Sponsor eBook')</a>
     <p>
-      We don’t have this book yet. You can add it to our Lending
-      Library with a $sponsorship['price']['total_price_display'] tax deductible donation.
-      <a href="/sponsorship" target="_blank">Learn More</a>
+      $_("We don’t have this book yet. You can add it to our Lending Library with a %(price)s tax deductible donation.", price=sponsorship['price']['total_price_display'])
+      <a href="/sponsorship" target="_blank">$_('Learn More')</a>
     </p>
   $else:
     <a href="$work.key" class="cta-btn cta-btn--missing" data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>

@@ -11,7 +11,6 @@ $# :param bool public:
 $ title = _('My Books')
 $ urlbase = ctx.path.rsplit('/', 1)[0]
 $ owners_page = not urlbase.startswith('/people')
-$ header_title = key.title().replace('-', ' ')
 $ username = user.key.split('/')[-1]
 $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 
@@ -21,15 +20,19 @@ $ userDisplayName = user.displayname or ctx.user.displayname
 $ userKey = user.key or ctx.user.key
 
 $if key == 'currently-reading':
+  $ header_title = _("Currently Reading")
   $ og_title = _("Books %(username)s is reading", username=userDisplayName)
   $ og_description = _("%(username)s is reading %(total)d books. Join %(username)s on OpenLibrary.org and tell the world what you're reading.", username=userDisplayName, total=total_items)
 $elif key == 'want-to-read':
+  $ header_title = _("Want To Read")
   $ og_title = _("Books %(username)s wants to read", username=userDisplayName)
   $ og_description = _("%(username)s wants to read %(total)d books. Join %(username)s on OpenLibrary.org and share the books that you'll soon be reading!", username=userDisplayName, total=total_items)
 $elif key == 'already-read':
+  $ header_title = _("Already Read")
   $ og_title = _("Books %(username)s has read", username=userDisplayName)
   $ og_description = _("%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about.", username=userDisplayName, total=total_items)
 $elif key == 'sponsorships':
+  $ header_title = _("Sponsorships")
   $ og_title = _("Books %(userdisplayname)s is sponsoring", userdisplayname=userDisplayName)
   $ og_description = "{username} is sponsoring {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=userDisplayName, total=total_items)
 

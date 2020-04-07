@@ -10,9 +10,9 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
     <h1>
         $page.name
         <span class="count" id="coversCount">
-            <em>Publisher</em> - <strong><span>$sprintf(ungettext("%s work", "%s works", page.work_count), commify(page.work_count))</span></strong>
+            <em>Publisher</em> - <strong><span>$ungettext("1 work", "%(count)s works", page.work_count, count=commify(page.work_count))</span></strong>
             $if page.ebook_count > 0:
-                / <span class="ebookcount"><span id="ebooks">$sprintf(ungettext("%s ebook", "%s ebooks", page.ebook_count), commify(page.ebook_count))</span></span>
+                / <span class="ebookcount"><span id="ebooks">$ungettext("1 ebook", "%(count)s ebooks", page.ebook_count, count=commify(page.ebook_count))</span></span>
             $else:
                 / 0 ebooks
             <span class="clickdata"></span>
@@ -124,7 +124,7 @@ $jsdef renderAuthors(authors):
         <span class="tag">
             <a href="$a.key" title="$_('See more books by, and learn about, this author')">$a.name</a>,
         </span>
-        <span class="count">$sprintf(ungettext("%s book", "%s books", a.count), commify(a.count))</span>
+        <span class="count">$ungettext("1 book", "%(count)s books", a.count, count=commify(a.count))</span>
         <br/>
 <div id="resultsAuthors" class="widget-box">
     <div class="head">
@@ -154,7 +154,7 @@ $jsdef renderPublishers(publishers):
             $else:
                 <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')&amp;publisher_facet=$p.name.replace('"', '\\"').replace('&','%26')" title="$_('Get more information about this publisher')">$p.name</a>,
         </span>
-        <span class="count">$sprintf(ungettext("%s edition", "%s editions", p.count), commify(p.count))</span>
+        <span class="count">$ungettext("1 edition", "%(count)s editions", p.count, count=commify(p.count))</span>
          <br/>
 
 <div class="section clearfix"></div>
