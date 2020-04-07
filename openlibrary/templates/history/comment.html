@@ -14,9 +14,9 @@ $if record_id:
        $ record_type = ''
        $if record.source_name not in ('amazon.com', 'Better World Books'):
             $ record_type = 'item' if record.source_name == 'Internet Archive' else 'MARC'
-       $_('Imported from') $:link(record.source_url, record.source_name) <a href="$record.url">$record_type record</a>.
+       $:_('Imported from %(source)s  <a href="%(url)s">%(type)s record</a>.', source=link(record.source_url, record.source_name), url=record.url, type=record_type)
     $else:
-        Found a <a href="$record.url">matching record</a> from $:link(record.source_url, record.source_name).
+        $:_('Found a <a href="%(url)s">matching record</a> from %(source)s.', url=record.url, source=link(record.source_url, record.source_name))
 $elif 'history_v2' in ctx.features:
     $ t = get_template('recentchanges/' + v.kind + '/comment') or get_template('recentchanges/default/comment')
     $:t(v, v.thing)

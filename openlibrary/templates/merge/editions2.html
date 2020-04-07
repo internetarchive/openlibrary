@@ -3,7 +3,7 @@ $def with (master, editions, all_keys, merged, possible_values)
 $var title: $_("Merge Editions")
 
 <div id="contentHead">
-    <span class="lightgreen sansserief">$(_("Merging %d editions of") % len(editions))</span>
+    <span class="lightgreen sansserief">$_("Merging %(count)d editions of", count=len(editions))</span>
     <h1>$master.title</h1>
 </div>
 
@@ -16,7 +16,7 @@ function use_value(k, ekey) {
 <div id="contentBody">
 
     <div id="mergeHead" class="sansserif">
-        <div class="smallest lightgreen">Master</div>
+        <div class="smallest lightgreen">$_('Master')</div>
 
         <div id="recordMaster">
             <div class="edition">
@@ -24,7 +24,7 @@ function use_value(k, ekey) {
             </div>
         </div>
 
-        <div class="smallest lightgreen">Duplicates</div>
+        <div class="smallest lightgreen">$_('Duplicates')</div>
         <div id="recordDuplicates">
             $for e in editions:
                 $if e.key == master.key:
@@ -36,9 +36,9 @@ function use_value(k, ekey) {
 
     </div>
 
-    <h2>Merge Preview</h2>
+    <h2>$_('Merge Preview')</h2>
 
-    <p>Please review the merged values before saving.</p>
+    <p>$_('Please review the merged values before saving.')</p>
 
     <table class="changeHistory">
         <tr>

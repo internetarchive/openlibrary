@@ -78,7 +78,7 @@ $else:
                 $if len(loans) == 1:
                     $_("1 Current Loan")
                 $else:
-                    $len(loans) $_("Current Loans")
+                    $_("%(count)d Current Loans", count=len(loans))
                 </th>
                 <th class="expires">$_("Loan Expires")</th>
                 <th class="actions">$_("Loan actions")</th>
@@ -133,15 +133,15 @@ $else:
   <!--
     $for loan in loans:
         $:macros.BorrowTrouble(loan['expiry'])
-    <h3>How To Return eBooks through Adobe Digital Editions</h3>
+    <h3>$_("How To Return eBooks through Adobe Digital Editions")</h3>
     <ol class="sansserif small">
-        <li>Open Adobe Digital Editions</li>
-        <li>Click the Library icon at the upper left corner</li>
-        <li>Move your mouse over the cover of the eBook you wish to return</li>
-        <li>Find the arrow at the upper left of the cover and open the eBook menu</li>
-        <li>Click "Return Borrowed Item"</li>
-        <li>Click "Return" to confirm</li>
-        <li>Done!</li>
+        <li>$_('Open Adobe Digital Editions')</li>
+        <li>$_('Click the Library icon at the upper left corner')</li>
+        <li>$_('Move your mouse over the cover of the eBook you wish to return')</li>
+        <li>$_('Find the arrow at the upper left of the cover and open the eBook menu')</li>
+        <li>$_('Click "Return Borrowed Item"')</li>
+        <li>$_('Click "Return" to confirm')</li>
+        <li>$_('Done!')</li>
     </ol>
     -->
 
@@ -169,7 +169,7 @@ $else:
         <thead>
             <tr>
                 <th class="titles" colspan="2">
-                $ungettext("%d book", "%d books", len(waitinglist), len(waitinglist))
+                $ungettext("1 book", "%(count)d books", len(waitinglist), count=len(waitinglist))
                 </th>
                 <th class="status">$_("Status")</th>
                 <th class="actions">$_("Actions")</th>
@@ -194,7 +194,7 @@ $else:
                     </span>
                     <div class="date">
                         $ ndays = record.get_waiting_in_days()
-                        $ungettext("Waiting for %d day", "Waiting for %d days", ndays, ndays)
+                        $ungettext("Waiting for 1 day", "Waiting for %(count)d days", ndays, count=ndays)
                     </div>
                     <div class="smallest lightgreen sansserif waitrank">
                         $if status == "waiting":

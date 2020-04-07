@@ -761,7 +761,8 @@ def setup():
         'request': Request(),
         'logger': logging.getLogger("openlibrary.template"),
         'sum': sum,
-        'get_donation_include': get_donation_include
+        'get_donation_include': get_donation_include,
+        'websafe': web.websafe,
     })
 
     from openlibrary.core import helpers as h

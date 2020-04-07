@@ -370,7 +370,7 @@ $if ctx.user:
     <script type="text/javascript">
     var seed = $:json_encode(seed);
     var seed_type = $:json_encode(seed_type);
-    var title = $:json_encode(title);
+    var title = $:json_encode(websafe(title));
 
     var user_lists = $:json_encode(user_lists);
     var page_lists = $:json_encode(page_lists);
