@@ -141,7 +141,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
     <div class="navEdition sansserif">
         $ edition_count = work.edition_count if work and work.edition_count else 1
         $ url = work.url() if work else ''
-        $:ungettext('<a href="%(url)s"><strong>1 edition</strong></a> of <strong class="booktitle">%(title)s</strong> found in the catalog.','<a href="%(url)s"><strong>%(count)d editions</strong></a> of <strong class="booktitle">%(title)s</strong> found in the catalog.', edition_count, url=url,count=edition_count, title=truncate(work_title, 60))
+        $:ungettext('<a href="%(url)s"><strong>1 edition</strong></a> of <strong class="booktitle">%(title)s</strong> found in the catalog.','<a href="%(url)s"><strong>%(count)d editions</strong></a> of <strong class="booktitle">%(title)s</strong> found in the catalog.', edition_count, url=url,count=edition_count, title=websafe(truncate(work_title, 60)))
         $if work:
             <span><a href="/books/add?work=$work.key" title="$_('Add another edition of') $book_title">$_("Add another edition")</a>?</span>
     </div>
