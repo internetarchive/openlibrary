@@ -1,6 +1,6 @@
 #!/bin/sh
 
-pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests \
+pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests openlibrary/tests \
     openlibrary/catalog/add_book/tests/test_add_book.py \
     openlibrary/coverstore/tests/test_code.py \
     openlibrary/coverstore/tests/test_webapp.py \
