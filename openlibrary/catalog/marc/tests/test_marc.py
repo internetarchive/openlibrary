@@ -18,7 +18,7 @@ class MockField:
         return contents
 
     def get_all_subfields(self):
-        return self.get_subfields(self.contents.keys())
+        return self.get_subfields(self.contents)
 
     def get_subfields(self, want):
         for w in want:

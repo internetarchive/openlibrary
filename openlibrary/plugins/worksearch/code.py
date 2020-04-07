@@ -95,7 +95,7 @@ field_name_map = {
     'publishers': 'publisher',
 }
 
-all_fields += field_name_map.keys()
+all_fields += list(field_name_map)
 re_fields = re.compile('(-?' + '|'.join(all_fields) + r'):', re.I)
 
 plurals = dict((f + 's', f) for f in ('publisher', 'author'))

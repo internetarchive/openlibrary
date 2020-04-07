@@ -96,7 +96,7 @@ class BasicMergeEngine:
         """Converts references to any of the duplicates in the given doc to the master.
         """
         if isinstance(doc, dict):
-            if len(doc) == 1 and doc.keys() == ['key']:
+            if list(doc) == ['key']:
                 key = doc['key']
                 if key in duplicates:
                     return {"key": master}

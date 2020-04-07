@@ -154,7 +154,7 @@ class MockSite:
         limit = query.pop('limit', 100)
         offset = query.pop('offset', 0)
 
-        keys = set(self.docs.keys())
+        keys = set(self.docs)
 
         for k, v in query.items():
             if isinstance(v, dict):

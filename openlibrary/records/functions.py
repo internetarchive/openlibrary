@@ -161,7 +161,7 @@ def massage_search_results(things, input_query = {}):
     """
     if things:
         best = things[0]
-        doc = thing_to_doc(best, input_query.keys())
+        doc = thing_to_doc(best, list(input_query))
         matches = things_to_matches(things)
     else:
         doc = build_create_input(input_query)
@@ -221,13 +221,14 @@ def author_to_doc(thing):
     return thing.dict()
 
 
-def thing_to_doc(thing, keys = []):
+def thing_to_doc(thing, keys=None):
     """Converts an infobase 'thing' into an entry that can be used in
     the 'doc' field of the search results.
 
     If keys provided, it will remove all keys in the item except the
     ones specified in the 'keys'.
     """
+    keys = keys or []
     typ = str(thing['type'])
     key = str(thing['key'])
 
@@ -248,7 +249,7 @@ def thing_to_doc(thing, keys = []):
     if keys:
         keys += ['key', 'type', 'authors', 'work']
         keys = set(keys)
-        for i in doc.keys():
+        for i in doc:
             if i not in keys:
                 doc.pop(i)
 
@@ -385,7 +386,7 @@ def doc_to_things(doc):
             if i in db_thing:
                 db_thing.pop(i)
 
-        for i in db_thing.keys():
+        for i in db_thing:
             if i in doc:
                 db_thing.pop(i)
         doc.update(db_thing)

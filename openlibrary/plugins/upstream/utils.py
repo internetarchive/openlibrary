@@ -42,11 +42,11 @@ class MultiDict(MutableMapping):
         Traceback (most recent call last):
             ...
         KeyError: 'z'
-        >>> d.keys()
+        >>> list(d)
         ['x', 'x', 'y']
-        >>> d.items()
+        >>> list(d.items())
         [('x', 1), ('x', 2), ('y', 3)]
-        >>> d.multi_items()
+        >>> list(d.multi_items())
         [('x', [1, 2]), ('y', [3])]
     """
     def __init__(self, items=(), **kw):
@@ -74,7 +74,7 @@ class MultiDict(MutableMapping):
             yield key
 
     def __len__(self):
-        return len(self.keys())
+        return len(list(self.keys()))
 
     def getall(self, key):
         return [v for k, v in self._items if k == key]
@@ -174,8 +174,8 @@ def unflatten(d, seperator="--"):
     def makelist(d):
         """Convert d into a list if all the keys of d are integers."""
         if isinstance(d, dict):
-            if all(isint(k) for k in d.keys()):
-                return [makelist(d[k]) for k in sorted(d.keys(), key=int)]
+            if all(isint(k) for k in d):
+                return [makelist(d[k]) for k in sorted(d, key=int)]
             else:
                 return web.storage((k, makelist(v)) for k, v in d.items())
         else:
