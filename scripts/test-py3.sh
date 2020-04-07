@@ -1,6 +1,6 @@
 #!/bin/sh
 
-pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests \
+pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests openlibrary/tests \
     openlibrary/catalog/add_book/tests/test_add_book.py \
     openlibrary/coverstore/tests/test_code.py \
     openlibrary/coverstore/tests/test_webapp.py \
@@ -25,24 +25,7 @@ pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests \
     openlibrary/catalog/merge/test_merge.py \
     openlibrary/catalog/merge/test_merge_marc.py \
     openlibrary/catalog/merge/test_names.py \
-    openlibrary/catalog/merge/test_normalize.py \
-    openlibrary/tests/core/test_cache.py \
-    openlibrary/tests/core/test_connections.py \
-    openlibrary/tests/core/test_helpers.py \
-    openlibrary/tests/core/test_ia.py \
-    openlibrary/tests/core/test_i18n.py \
-    openlibrary/tests/core/test_init.py \
-    openlibrary/tests/core/test_lending.py \
-    openlibrary/tests/core/test_lists_engine.py \
-    openlibrary/tests/core/test_models.py \
-    openlibrary/tests/core/test_olmarkdown.py \
-    openlibrary/tests/core/test_processors.py \
-    openlibrary/tests/core/test_processors_invalidation.py \
-    openlibrary/tests/core/test_ratings.py \
-    openlibrary/tests/core/test_sponsors.py \
-    openlibrary/tests/core/test_vendors.py \
-    openlibrary/tests/core/test_waitinglist.py \
-    openlibrary/tests/solr/test_update_work.py 
+    openlibrary/catalog/merge/test_normalize.py
 
 # The following sections allow us to quickly spot tests that are fixed
 
@@ -61,6 +44,3 @@ pytest openlibrary/coverstore/tests/test_coverstore.py \
 pytest openlibrary/plugins/books/tests/test_dynlinks.py \
     openlibrary/plugins/openlibrary/tests/test_home.py \
     openlibrary/plugins/upstream/tests/test_merge_authors.py || true
-
-# openlibrary/tests: All failing tests run in allow failures (|| true) mode
-pytest openlibrary/tests/accounts/test_models.py || true
