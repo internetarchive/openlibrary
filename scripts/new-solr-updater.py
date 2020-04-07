@@ -9,6 +9,7 @@ Changes:
 import _init_path
 
 from six.moves import urllib
+from dateutil import parser as isoparser
 import yaml
 import logging
 import json
@@ -20,6 +21,7 @@ import sys
 import re
 import socket
 
+from openlibrary.core import stats
 from openlibrary.solr import update_work
 from openlibrary.config import load_config
 from infogami import config
@@ -39,6 +41,8 @@ def parse_arguments():
     parser.add_argument('--exclude-edits-containing', help="Don't index matching edits")
     parser.add_argument('--ol-url', default="http://openlibrary.org/")
     parser.add_argument('--socket-timeout', type=int, default=10)
+    parser.add_argument('--stats', default='unspecified',
+                        help="Log stats to graphite under ol.solr.solr-updater.THIS")
     parser.add_argument('--load-ia-scans', dest="load_ia_scans", action="store_true", default=False)
     parser.add_argument('--no-commit', dest="commit", action="store_false", default=True)
     return parser.parse_args()
@@ -103,9 +107,16 @@ class InfobaseLog:
 
             self.offset = d['offset']
 
-def parse_log(records):
+
+def parse_log(records, stats_prefix):
+    latest_change_time = None
     for rec in records:
         action = rec.get('action')
+        timestr = rec.get('timestamp')
+
+        if timestr:
+            latest_change_time = isoparser.parse(timestr)
+
         if action == 'save':
             key = rec['data'].get('key')
             if key:
@@ -154,6 +165,10 @@ def parse_log(records):
                 ol_key = "/works/ia:" + key.split("/")[-1]
                 yield ol_key
 
+    if latest_change_time:
+        delay = datetime.datetime.now() - latest_change_time
+        stats.put(stats_prefix + '.edit_delay', delay.total_seconds() * 1000)  # in ms
+
 def is_allowed_itemid(identifier):
     if not re.match("^[a-zA-Z0-9_.-]*$", identifier):
         return False
@@ -189,7 +204,8 @@ def update_keys(keys):
     return count
 
 class Solr:
-    def __init__(self):
+    def __init__(self, stats_prefix):
+        self.stats_prefix = stats_prefix
         self.reset()
 
     def reset(self):
@@ -210,13 +226,19 @@ class Solr:
         if self.total_docs > 100 or dt > 60:
             logger.info("doing solr commit (%d docs updated, last commit was %0.1f seconds ago)", self.total_docs, dt)
             self._solr_commit()
+            stats.put(self.stats_prefix + '.commits.docs', self.total_docs)
             self.reset()
         else:
             logger.debug("skipping solr commit (%d docs updated, last commit was %0.1f seconds ago)", self.total_docs, dt)
 
     def _solr_commit(self):
         logger.info("BEGIN commit")
+        stats.increment(self.stats_prefix + '.commits.started')
+        start = time.time()
         update_work.solr_update(['<commit/>'])
+        duration = time.time() - start
+        stats.increment(self.stats_prefix + '.commits.completed')
+        stats.put(self.stats_prefix + '.commits.duration', duration * 1000)  # to ms
         logger.info("END commit")
 
 
@@ -258,6 +280,7 @@ def main():
     logger.info("loading config from %s", args.config)
     load_config(args.config)
 
+    stats_prefix = 'ol.solr.solr-updater.' + args.stats.strip('.')
     state_file = args.state_file
     offset = read_state_file(state_file)
 
@@ -265,11 +288,12 @@ def main():
                           exclude=args.exclude_edits_containing)
     logfile.seek(offset)
 
-    solr = Solr()
+    solr = Solr(stats_prefix)
 
+    stats.increment(stats_prefix + '.started')
     while True:
         records = logfile.read_records()
-        keys = parse_log(records)
+        keys = parse_log(records, stats_prefix)
         count = update_keys(keys)
 
         if logfile.tell() != offset:
