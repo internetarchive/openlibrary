@@ -17,24 +17,29 @@ with open(os.path.join(here, "lc_classifiers_letters_only.json")) as in_file:
     lcc_letters_only = json.load(in_file)
 with open(os.path.join(here, "lc_classifiers_letters_and_numbers.json")) as in_file:
     lcc_letters_and_numbers = json.load(in_file)
+# Make corrections...
+# "D": "World History and History of Europe" -->
+lcc_letters_only["D"] = "World History and History of Europe, Asia, Africa, Australia, New Zealand, Etc."
 out_file = None
 
 
 def get_ol_book_info(olid="OL26617202M"):
     """
     def get_ol_book_info(olid: str = "OL26617202M") -> str:
-
     >>> get_ol_book_info()  # doctest: +ELLIPSIS
     {'olid:OL26617202M': ...
     """
-    url = "https://openlibrary.org/api/books?jscmd=details&format=json&bibkeys=olid:"
-    return requests.get(url + olid).json()
+    params = {
+        "bibkeys": "olid:" + olid,
+        "format": "json",
+        "jscmd": "details",
+    }
+    return requests.get("https://openlibrary.org/api/books", params=params).json()
 
 
 def olid_to_lc_classifications(olid="OL1025841M"):
     """
     def olid_to_lc_classifications(olid: str = "OL1025841M") -> list:
-
     >>> olid_to_lc_classifications()
     ['HB1951 .R64 1995']
     """
@@ -44,7 +49,6 @@ def olid_to_lc_classifications(olid="OL1025841M"):
 def parse_lcc(lcc):
     """
     def parse_lcc(lcc: str) -> Tuple[str, int]:
-
     >>> parse_lcc("HB1951 .R64 1995")
     ('HB', 1951)
     >>> parse_lcc("OL1025841M")
@@ -53,6 +57,10 @@ def parse_lcc(lcc):
     ('DP', 402)
     >>> parse_lcc("CS879 .R3 1995")
     ('CS', 879)
+    >>> parse_lcc("PR2782 H3 H4")
+    ('PR', 2782)
+    >>> parse_lcc("OL24614660M")
+    ('PR', 2782)
     """
     lcc = lcc.strip().upper()
     if lcc.startswith("OL"):  # User entered an OL number so convert it to LCC
@@ -67,14 +75,13 @@ def parse_lcc(lcc):
     return chars, 0
 
 
-def lcc_to_classification(lcc):
+def get_lcc_classes(lcc):
     """
-    def lcc_to_classification(lcc: str) -> list:
-
-    >>> lcc_to_classification("ZA3201")  # doctest: +NORMALIZE_WHITESPACE
+    def get_lcc_classes(lcc: str) -> list:
+    >>> get_lcc_classes("ZA3201")  # doctest: +NORMALIZE_WHITESPACE
     ['Bibliography. Library Science. Information resources',
      'Information resources (General)', 'Information superhighway']
-    >>> lcc_to_classification("za3201")  # doctest: +NORMALIZE_WHITESPACE
+    >>> get_lcc_classes("za3201")  # doctest: +NORMALIZE_WHITESPACE
     ['Bibliography. Library Science. Information resources',
      'Information resources (General)', 'Information superhighway']
     """
@@ -88,6 +95,39 @@ def lcc_to_classification(lcc):
     return classification
 
 
+lcc_to_classification = get_lcc_classes  # TODO: backward compatibility -- remove
+
+
+def find_classification_strings(lcc="", strings=None):
+    test_cases = {
+        "DP402.C8 O46 1995": [
+            "World History and History of Europe Asia, Africa, Australia, New Zealand, Etc.",
+            "History of Spain",
+            "Local history and description",
+            "Other cities, towns, etc., A-Z",
+        ],
+    }
+    if lcc and strings:
+        chars, number = parse_lcc(lcc)
+        try:
+            assert strings[0] == lcc_letters_only[chars[0]], (
+                f"First letter is wrong {lcc}: {strings[0]} == {lcc_letters_only[chars[0]]}")
+        except AssertionError as e:
+            print(e)
+        found = get_lcc_classes(lcc)
+        for i, s in enumerate(strings):
+            if s in found:
+                continue
+            print(i, s)
+            for key, value in lcc_letters_and_numbers.items():
+                got_one = "\n".join(f"  {key}: {item}" for item in value if s in item["subject"])
+                if got_one:
+                    print(got_one)
+    else:
+        for key, value in test_cases.items():
+            find_classification_strings(key, value)
+
+
 if __name__ == "__main__":
     import doctest
 
@@ -99,7 +139,7 @@ if __name__ == "__main__":
             lcc = input("Or leave blank to quit: ").strip().upper()
             if not lcc:
                 break
-            class_subclass = lcc_to_classification(lcc)
+            class_subclass = get_lcc_classes(lcc)
             print(lcc, class_subclass)
             # if len(class_subclass) != 2:
             print(lcc, class_subclass, file=out_file)
