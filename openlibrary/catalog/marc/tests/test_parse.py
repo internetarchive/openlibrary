@@ -7,6 +7,7 @@ from openlibrary.catalog.marc.marc_xml import DataField, MarcXml
 from lxml import etree
 import os
 import simplejson
+from six.moves.collections_abc import Iterable
 
 collection_tag = '{http://www.loc.gov/MARC21/slim}collection'
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
@@ -54,14 +55,20 @@ class TestParseMARCXML:
         assert edition_marc_xml
         j = simplejson.load(open(expect_filename))
         assert j, 'Unable to open test data: %s' % expect_filename
-        assert sorted(edition_marc_xml) == sorted(j), ('Processed MARCXML fields do '
-                                                       'not match expectations in %s'
-                                                       % expect_filename)
-        for k in edition_marc_xml:
-            assert edition_marc_xml[k] == j[k], ('Processed MARCXML values do not '
-                                                 'match expectations in %s'
-                                                 % expect_filename)
-        assert edition_marc_xml == j
+        assert sorted(edition_marc_xml) == sorted(j), (
+            'Processed MARCXML fields do not match expectations in %s' %
+            expect_filename
+        )
+        msg = (
+            'Processed MARCXML values do not match expectations in %s' %
+            expect_filename
+        )
+        for key, value in edition_marc_xml.items():
+            if isinstance(value, Iterable):  # can not sort a list of dicts
+                assert len(value) == len(j[key]), msg
+                assert all(item in value for item in j[key]), msg
+            else:
+                assert value == j[key], msg
 
 
 class TestParseMARCBinary:
@@ -83,15 +90,20 @@ class TestParseMARCBinary:
             assert False, 'Expectations file %s not found: template generated in %s. Please review and commit this file.' % (expect_filename, '/bin_expect')
         j = simplejson.load(open(expect_filename))
         assert j, 'Unable to open test data: %s' % expect_filename
-        assert sorted(edition_marc_bin) == sorted(j), ('Processed binary MARC fields '
-                                                       'do not match expectations in '
-                                                       '%s' % expect_filename)
-        for k in edition_marc_bin:
-            if isinstance(j[k], list):
-                for item1, item2 in zip(edition_marc_bin[k], j[k]):
-                    assert item1 == item2
-            assert edition_marc_bin[k] == j[k], 'Processed binary MARC values do not match expectations in %s' % expect_filename
-        assert edition_marc_bin == j
+        assert sorted(edition_marc_bin) == sorted(j), (
+            'Processed binary MARC fields do not match expectations in %s' %
+            expect_filename
+        )
+        msg = (
+            'Processed binary MARC values do not match expectations in %s' %
+            expect_filename
+        )
+        for key, value in edition_marc_bin.items():
+            if isinstance(value, Iterable):  # can not sort a list of dicts
+                assert len(value) == len(j[key]), msg
+                assert all(item in value for item in j[key]), msg
+            else:
+                assert value == j[key], msg
 
     def test_raises_see_also(self):
         filename = '%s/bin_input/talis_see_also.mrc' % test_data
