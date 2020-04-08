@@ -314,6 +314,8 @@ def setup():
     register_filter("loggedin", stats_filters.loggedin)
     register_filter("not_loggedin", stats_filters.not_loggedin)
 
-    delegate.app.add_processor(web.loadhook(page_load_hook))
-    delegate.app.add_processor(web.unloadhook(page_unload_hook))
-    delegate.add_exception_hook(lambda: increment_error_count('ol.exceptions'))
+    # Disabled temporarily (2020-04-07); they (the first two more specifically) looked
+    # like they were causing too much load on graphite servers.
+    # delegate.app.add_processor(web.loadhook(page_load_hook))
+    # delegate.app.add_processor(web.unloadhook(page_unload_hook))
+    # delegate.add_exception_hook(lambda: increment_error_count('ol.exceptions'))
