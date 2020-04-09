@@ -28,11 +28,6 @@ if hasattr(config, 'plugin_worksearch'):
 
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
-re_author_facet = re.compile(r'^(OL\d+A) (.*)$')
-def read_author_facet(af):
-    # example input: "OL26783A Leo Tolstoy"
-    return re_author_facet.match(af).groups()
-
 
 ALL_FIELDS = [
     "key",
@@ -92,13 +87,36 @@ FIELD_NAME_MAP = {
     'by': 'author_name',
     'publishers': 'publisher',
 }
+subject_types = {
+    'places': 'place',
+    'times': 'time',
+    'people': 'person',
+    'subjects': 'subject',
+}
+olid_urls = {'A': 'authors', 'M': 'books', 'W': 'works'}
+
+re_isbn_field = re.compile(r'^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
+re_author_key = re.compile(r'(OL\d+A)')
+re_fields = re.compile(r'(-?%s):' % '|'.join(ALL_FIELDS + FIELD_NAME_MAP.keys()), re.I)
+re_op = re.compile(' +(OR|AND)$')
+re_author_facet = re.compile(r'^(OL\d+A) (.*)$')
+re_pre = re.compile(r'<pre>(.*)</pre>', re.S)
+re_subject_types = re.compile('^(places|times|people)/(.*)')
+re_olid = re.compile(r'^OL\d+([AMW])$')
+
+plurals = dict((f + 's', f) for f in ('publisher', 'author'))
+
+
+def read_author_facet(af):
+    # example input: "OL26783A Leo Tolstoy"
+    return re_author_facet.match(af).groups()
+
 
 def get_language_name(code):
-    l = web.ctx.site.get('/languages/' + code)
-    return l.name if l else "'%s' unknown" % code
+    lang = web.ctx.site.get('/languages/' + code)
+    return lang.name if lang else "'%s' unknown" % code
 
 def read_facets(root):
-    bool_map = dict(true='yes', false='no')
     e_facet_counts = root.find("lst[@name='facet_counts']")
     e_facet_fields = e_facet_counts.find("lst[@name='facet_fields']")
     facets = {}
@@ -131,14 +149,6 @@ def read_facets(root):
             facets[name].append((k, display, e.text))
     return facets
 
-
-re_isbn_field = re.compile(r'^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
-re_author_key = re.compile(r'(OL\d+A)')
-re_fields = re.compile(r'(-?%s):' % '|'.join(ALL_FIELDS + FIELD_NAME_MAP.keys()), re.I)
-
-plurals = dict((f + 's', f) for f in ('publisher', 'author'))
-
-re_op = re.compile(' +(OR|AND)$')
 
 def parse_query_fields(q):
     found = [(m.start(), m.end()) for m in re_fields.finditer(q)]
@@ -314,8 +324,6 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
     reply = solr_result.read()
     return (reply, url, q_list)
 
-re_pre = re.compile(r'<pre>(.*)</pre>', re.S)
-
 def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
     (reply, solr_select, q_list) = run_solr_query(
         param, rows, page, sort, spellcheck_count)
@@ -424,16 +432,6 @@ def get_doc(doc): # called from work_search template
         doc.checked_out = "false"
     return doc
 
-re_subject_types = re.compile('^(places|times|people)/(.*)')
-subject_types = {
-    'places': 'place',
-    'times': 'time',
-    'people': 'person',
-    'subjects': 'subject',
-}
-
-re_year_range = re.compile(r'^(\d{4})-(\d{4})$')
-
 def work_object(w): # called by works_by_author
     ia = w.get('ia', [])
     obj = dict(
@@ -462,10 +460,6 @@ def work_object(w): # called by works_by_author
         if w.get(f):
             obj[f] = w[f]
     return web.storage(obj)
-
-
-re_olid = re.compile(r'^OL\d+([AMW])$')
-olid_urls = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
 class search(delegate.page):
     def redirect_if_needed(self, i):
