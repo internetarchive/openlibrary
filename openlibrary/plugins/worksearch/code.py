@@ -594,13 +594,6 @@ def top_books_from_author(akey, rows=5, offset=0):
 def do_merge():
     return
 
-class improve_search(delegate.page):
-    def GET(self):
-        i = web.input(q=None)
-        boost = dict((f, i[f]) for f in search_fields if f in i)
-        template = render.improve_search(search_fields, boost, i.q, simple_search)
-        template.v2 = True
-        return template
 
 class advancedsearch(delegate.page):
     path = "/advancedsearch"
