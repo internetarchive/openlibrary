@@ -33,13 +33,65 @@ def read_author_facet(af):
     # example input: "OL26783A Leo Tolstoy"
     return re_author_facet.match(af).groups()
 
-search_fields = ["key", "redirects", "title", "subtitle", "alternative_title", "alternative_subtitle", "edition_key", "by_statement", "publish_date", "lccn", "ia", "oclc", "isbn", "contributor", "publish_place", "publisher", "first_sentence", "author_key", "author_name", "author_alternative_name", "subject", "person", "place", "time"]
 
-all_fields = search_fields + ["has_fulltext", "title_suggest", "edition_count", "publish_year", "language", "number_of_pages", "ia_count", "publisher_facet", "author_facet", "first_publish_year"] + ['%s_key' % f for f in ('subject', 'person', 'place', 'time')]
-
-facet_fields = ["has_fulltext", "author_facet", "language", "first_publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet", "public_scan_b"]
-
-facet_list_fields = [i for i in facet_fields if i not in ("has_fulltext")]
+ALL_FIELDS = [
+    "key",
+    "redirects",
+    "title",
+    "subtitle",
+    "alternative_title",
+    "alternative_subtitle",
+    "edition_key",
+    "by_statement",
+    "publish_date",
+    "lccn",
+    "ia",
+    "oclc",
+    "isbn",
+    "contributor",
+    "publish_place",
+    "publisher",
+    "first_sentence",
+    "author_key",
+    "author_name",
+    "author_alternative_name",
+    "subject",
+    "person",
+    "place",
+    "time",
+    "has_fulltext",
+    "title_suggest",
+    "edition_count",
+    "publish_year",
+    "language",
+    "number_of_pages",
+    "ia_count",
+    "publisher_facet",
+    "author_facet",
+    "first_publish_year",
+    "subject_key",
+    "person_key",
+    "place_key",
+    "time_key",
+]
+FACET_FIELDS = [
+    "has_fulltext",
+    "author_facet",
+    "language",
+    "first_publish_year",
+    "publisher_facet",
+    "subject_facet",
+    "person_facet",
+    "place_facet",
+    "time_facet",
+    "public_scan_b",
+]
+FIELD_NAME_MAP = {
+    'author': 'author_name',
+    'authors': 'author_name',
+    'by': 'author_name',
+    'publishers': 'publisher',
+}
 
 def get_language_name(code):
     l = web.ctx.site.get('/languages/' + code)
@@ -81,18 +133,8 @@ def read_facets(root):
 
 
 re_isbn_field = re.compile(r'^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
-
 re_author_key = re.compile(r'(OL\d+A)')
-
-field_name_map = {
-    'author': 'author_name',
-    'authors': 'author_name',
-    'by': 'author_name',
-    'publishers': 'publisher',
-}
-
-all_fields += list(field_name_map)
-re_fields = re.compile('(-?' + '|'.join(all_fields) + r'):', re.I)
+re_fields = re.compile(r'(-?%s):' % '|'.join(ALL_FIELDS + FIELD_NAME_MAP.keys()), re.I)
 
 plurals = dict((f + 's', f) for f in ('publisher', 'author'))
 
@@ -107,8 +149,8 @@ def parse_query_fields(q):
         op_found = None
         f = found[field_num]
         field_name = q[f[0]:f[1]-1].lower()
-        if field_name in field_name_map:
-            field_name = field_name_map[field_name]
+        if field_name in FIELD_NAME_MAP:
+            field_name = FIELD_NAME_MAP[field_name]
         if field_num == len(found)-1:
             v = q[f[1]:].strip()
         else:
@@ -217,7 +259,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
         ('facet', 'true'),
     ]
 
-    for facet in facet_fields:
+    for facet in FACET_FIELDS:
         params.append(('facet.field', facet))
 
     if q_list:
@@ -249,7 +291,9 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
             del param['has_fulltext']
         params.append(('fq', 'has_fulltext:%s' % v))
 
-    for field in facet_list_fields:
+    for field in FACET_FIELDS:
+        if field == 'has_fulltext':
+            continue
         if field == 'author_facet':
             field = 'author_key'
         if field not in param:
@@ -494,7 +538,8 @@ class search(delegate.page):
                 q_list.append(k + ':' + v)
         page = render.work_search(
             i, ' '.join(q_list), do_search, get_doc,
-            get_availability_of_ocaids, fulltext_search)
+            get_availability_of_ocaids, fulltext_search,
+            FACET_FIELDS)
         page.v2 = True
         return page
 
