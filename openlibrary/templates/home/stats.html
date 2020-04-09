@@ -1,4 +1,3 @@
-
 $def with (stats=None)
 $if stats:
     <div id="home-stats">
@@ -49,4 +48,3 @@ $if stats:
     <script type="text/json+graph" id="graph-json-edits-graph">$:json_encode(stats["human_edits"].get_counts(28, True))</script>
     <script type="text/json+graph" id="graph-json-lists-graph">$:json_encode(stats["lists"].get_counts(28, True))</script>
     <script type="text/json+graph" id="graph-json-ebooks-graph">$:json_encode(stats["loans"].get_counts(28, True))</script>
-
