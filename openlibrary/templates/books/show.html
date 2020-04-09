@@ -4,7 +4,7 @@ $def with (book)
   <span class="bookcover">
     $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
     $ urlB= book.get_cover_url("M") or "/images/icons/avatar_book-lg.png"
-    <a href="$book.key"><img itemprop="image" src="$url" srcset= "$url,$urlB 2x" height="60"/></a>
+    <a href="$book.key"><img itemprop="image" src="$url" srcset= "$urlB 2x" height="60"/></a>
   </span>
   <span class="details">
     <span class="resultTitle">
