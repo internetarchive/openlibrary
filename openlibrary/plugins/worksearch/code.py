@@ -13,7 +13,17 @@ from openlibrary.core.lending import get_availability_of_ocaids, add_availabilit
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.inside.code import fulltext_search
 from openlibrary.utils import escape_bracket
+from openlibrary.utils.ddc import (
+    normalize_ddc,
+    normalize_ddc_prefix,
+    normalize_ddc_range,
+)
 from openlibrary.utils.isbn import normalize_isbn, opposite_isbn
+from openlibrary.utils.lcc import (
+    normalize_lcc_prefix,
+    normalize_lcc_range,
+    short_lcc_to_sortable_lcc,
+)
 from unicodedata import normalize
 import logging
 
@@ -63,10 +73,14 @@ ALL_FIELDS = [
     "publisher_facet",
     "author_facet",
     "first_publish_year",
+    # Subjects
     "subject_key",
     "person_key",
     "place_key",
     "time_key",
+    # Classifications
+    "lcc",
+    "ddc",
 ]
 FACET_FIELDS = [
     "has_fulltext",
@@ -93,6 +107,7 @@ re_isbn_field = re.compile(r'^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
 re_author_key = re.compile(r'(OL\d+A)')
 re_fields = re.compile(r'(-?%s):' % '|'.join(ALL_FIELDS + list(FIELD_NAME_MAP)), re.I)
 re_op = re.compile(' +(OR|AND)$')
+re_range = re.compile(r'\[(?P<start>.*) TO (?P<end>.*)\]')
 re_author_facet = re.compile(r'^(OL\d+A) (.*)$')
 re_pre = re.compile(r'<pre>(.*)</pre>', re.S)
 re_subject_types = re.compile('^(places|times|people)/(.*)')
@@ -167,6 +182,37 @@ def parse_query_fields(q):
             isbn = normalize_isbn(v)
             if isbn:
                 v = isbn
+        if field_name == 'lcc':
+            # e.g. lcc:[NC1 TO NC1000] to lcc:[NC-0001.00000000 TO NC-1000.00000000]
+            # for proper range search
+            m = re_range.match(v)
+            if m:
+                lcc_range = [m.group('start').strip(), m.group('end').strip()]
+                normed = normalize_lcc_range(*lcc_range)
+                v = '[%s TO %s]' % (
+                    normed[0] or lcc_range[0],
+                    normed[1] or lcc_range[1])
+            elif '*' in v and not v.startswith('*'):
+                parts = v.split('*', 1)
+                lcc_prefix = normalize_lcc_prefix(parts[0])
+                v = (lcc_prefix or parts[0]) + '*'.join(parts[1:])
+            else:
+                v = short_lcc_to_sortable_lcc(v) or v
+        if field_name == 'ddc':
+            m = re_range.match(v)
+            if m:
+                raw = [m.group('start').strip(), m.group('end').strip()]
+                normed = normalize_ddc_range(*raw)
+                v = '[%s TO %s]' % (
+                    normed[0] or raw[0],
+                    normed[1] or raw[1])
+            elif v.endswith('*'):
+                v = normalize_ddc_prefix(v[:-1]) + '*'
+            else:
+                normed = normalize_ddc(v)
+                if normed:
+                    v = normed[0]
+
         yield {'field': field_name, 'value': v.replace(':', r'\:')}
         if op_found:
             yield {'op': op_found }

@@ -1,6 +1,10 @@
 import pytest
 
-from openlibrary.utils.ddc import normalize_ddc
+from openlibrary.utils.ddc import (
+    normalize_ddc,
+    normalize_ddc_prefix,
+    normalize_ddc_range,
+)
 
 # Src: https://www.oclc.org/bibformats/en/0xx/082.html
 TESTS_FROM_OCLC = [
@@ -51,3 +55,33 @@ def test_noramlize_ddc(raw_ddc, expected, name):
                          ids=[t[2] for t in TESTS_FROM_OCLC])
 def test_normalize_ddc_with_oclc_spec(raw_ddc, expected, name):
     assert normalize_ddc(raw_ddc) == expected
+
+
+PREFIX_TESTS = [
+    ('0', '0', 'Single number'),
+    ('j', 'j', 'Only juvenile'),
+    ('12', '12', 'Integer'),
+    ('12.3', '012.3', 'Decimal'),
+    ('12.300', '012.300', 'Trailing decimal zeros'),
+    ('100', '100', 'Trailing zeros'),
+    ('noise', 'noise', 'Noise')
+]
+
+
+@pytest.mark.parametrize("prefix,normed,name", PREFIX_TESTS,
+                         ids=[t[-1] for t in PREFIX_TESTS])
+def test_normalize_ddc_prefix(prefix, normed, name):
+    assert normalize_ddc_prefix(prefix) == normed
+
+
+RANGE_TESTS = [
+    (['0', '3'], ['000', '003'], 'Single numbers'),
+    (['100', '300'], ['100', '300'], 'Single numbers'),
+    (['100', '*'], ['100', '*'], 'Star'),
+]
+
+
+@pytest.mark.parametrize("raw,normed,name", RANGE_TESTS,
+                         ids=[t[-1] for t in RANGE_TESTS])
+def test_normalize_ddc_range(raw, normed, name):
+    assert normalize_ddc_range(*raw) == normed

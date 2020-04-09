@@ -102,3 +102,51 @@ def normalize_ddc(ddc):
         results.append(prefix + number + suffix)
 
     return results
+
+
+def normalize_ddc_range(start, end):
+    """
+    Normalizes the pieces of a lucene (i.e. solr)-style range.
+    E.g. ('23.23', '*')
+    :param str start:
+    :param str end:
+
+    >>> normalize_ddc_range('23.23', '*')
+    ['023.23', '*']
+    """
+
+    ddc_range_norm = []
+    for ddc in start, end:
+        if ddc == '*':
+            ddc_range_norm.append('*')
+        else:
+            normed = normalize_ddc(ddc)
+            if normed:
+                ddc_range_norm.append(normed[0])
+            else:
+                ddc_range_norm.append(None)
+    return ddc_range_norm
+
+
+def normalize_ddc_prefix(prefix):
+    """
+    Normalizes a DDC prefix to be used in searching. Integer prefixes are not modified
+    :param str prefix:
+    :rtype: str
+
+    >>> normalize_ddc_prefix('1')
+    '1'
+    >>> normalize_ddc_prefix('1.1')
+    '001.1'
+    """
+    # 23.* should become 023*
+    # 23.45* should become 023.45*
+    if '.' in prefix:
+        normed = normalize_ddc(prefix)
+        if normed:
+            return normed[0]
+    # 0* should stay as is
+    # 23* should stay as is
+    # j* should stay as is
+    else:
+        return prefix

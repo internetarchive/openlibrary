@@ -95,7 +95,7 @@ LCC_PARTS_RE = re.compile(r'''
     (?P<letters>[A-HJ-NP-VWZ][A-Z-]{0,2})
     \s?
     (?P<number>\d{1,4}(\.\d+)?)?
-    (?P<cutter1>[\s.][^\d\s\[]{1,3}\d+\S*)?
+    (?P<cutter1>[\s.][^\d\s\[]{1,3}\d*\S*)?
     (?P<rest>\s.*)?
     $
 ''', re.IGNORECASE | re.X)
@@ -147,3 +147,39 @@ def clean_raw_lcc(raw_lcc):
             (lcc.startswith('(') and lcc.endswith(')'))):
         lcc = lcc[1:-1]
     return lcc
+
+
+def normalize_lcc_prefix(prefix):
+    """
+    :param str prefix: An LCC prefix
+    :return: Prefix transformed to be a prefix for sortable LCC
+    :rtype: str|None
+    """
+    if re.match(r'^[A-Z]+$', prefix, re.I):
+        return prefix
+    else:
+        # A123* should be normalized to A--0123*
+        # A123.* should be normalized to A--0123.*
+        # A123.C* should be normalized to A--0123.00000000C*
+        lcc_norm = short_lcc_to_sortable_lcc(prefix.rstrip('.'))
+        if lcc_norm:
+            result = lcc_norm.rstrip('0')
+            if '.' in prefix and prefix.endswith('0'):
+                zeros_to_add = len(prefix) - len(prefix.rstrip('0'))
+                result += '0' * zeros_to_add
+            return result.rstrip('.')
+        else:
+            return None
+
+
+def normalize_lcc_range(start, end):
+    """
+    :param str start: LCC prefix to start range
+    :param str end: LCC prefix to end range
+    :return: range with prefixes being prefixes for sortable LCCs
+    :rtype: [str, str]
+    """
+    return [
+        lcc if lcc == '*' else short_lcc_to_sortable_lcc(lcc)
+        for lcc in (start, end)
+    ]
