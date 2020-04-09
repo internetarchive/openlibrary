@@ -87,13 +87,7 @@ FIELD_NAME_MAP = {
     'by': 'author_name',
     'publishers': 'publisher',
 }
-subject_types = {
-    'places': 'place',
-    'times': 'time',
-    'people': 'person',
-    'subjects': 'subject',
-}
-olid_urls = {'A': 'authors', 'M': 'books', 'W': 'works'}
+OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
 re_isbn_field = re.compile(r'^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
 re_author_key = re.compile(r'(OL\d+A)')
@@ -521,7 +515,7 @@ class search(delegate.page):
         if q:
             m = re_olid.match(q)
             if m:
-                raise web.seeother('/%s/%s' % (olid_urls[m.group(1)], q))
+                raise web.seeother('/%s/%s' % (OLID_URLS[m.group(1)], q))
             m = re_isbn_field.match(q)
             if m:
                 self.isbn_redirect(m.group(1))
