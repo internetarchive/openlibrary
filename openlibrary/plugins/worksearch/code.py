@@ -19,8 +19,6 @@ import logging
 from six.moves import urllib
 
 logger = logging.getLogger("openlibrary.worksearch")
-re_to_esc = re.compile(r'[\[\]:]')
-
 
 if hasattr(config, 'plugin_worksearch'):
     solr_host = config.plugin_worksearch.get('solr', 'localhost')
@@ -89,6 +87,7 @@ FIELD_NAME_MAP = {
 }
 OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
+re_to_esc = re.compile(r'[\[\]:]')
 re_isbn_field = re.compile(r'^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
 re_author_key = re.compile(r'(OL\d+A)')
 re_fields = re.compile(r'(-?%s):' % '|'.join(ALL_FIELDS + FIELD_NAME_MAP.keys()), re.I)
