@@ -18,11 +18,7 @@ import logging
 
 from six.moves import urllib
 
-
-ftoken_db = None
-
 logger = logging.getLogger("openlibrary.worksearch")
-
 re_to_esc = re.compile(r'[\[\]:]')
 
 
@@ -423,9 +419,6 @@ def work_object(w): # called by works_by_author
             obj[f] = w[f]
     return web.storage(obj)
 
-def get_facet(facets, f, limit=None):
-    return list(web.group(facets[f][:limit * 2] if limit else facets[f], 2))
-
 
 re_olid = re.compile(r'^OL\d+([AMW])$')
 olid_urls = {'A': 'authors', 'M': 'books', 'W': 'works'}
@@ -471,19 +464,11 @@ class search(delegate.page):
             raise web.seeother(editions[0])
 
     def GET(self):
-        global ftoken_db
         i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[], public_scan_b=[])
 
         # Send to full-text Search Inside if checkbox checked
         if i.get('search-fulltext'):
             raise web.seeother('/search/inside?' + urllib.parse.urlencode({'q': i.get('q', '')}))
-
-        if i.get('ftokens') and ',' not in i.ftokens:
-            token = i.ftokens
-            #if ftoken_db is None:
-            #    ftoken_db = dbm.open('/olsystem/ftokens', 'r')
-            #if ftoken_db.get(token):
-            #    raise web.seeother('/subjects/' + ftoken_db[token].decode('utf-8').lower().replace(' ', '_'))
 
         if i.get('wisbn'):
             i.isbn = i.wisbn
@@ -572,11 +557,6 @@ def sorted_work_editions(wkey, json_data=None):
     # TODO: Deep JSON structure defense - for now, let it blow up so easier to detect
     return reply["response"]['docs'][0].get('edition_key', [])
 
-def simple_search(q, offset=0, rows=20, sort=None):
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*%%2Cscore&qt=standard&wt=json" % (web.urlquote(q), offset, rows)
-    if sort:
-        solr_select += "&sort=" + web.urlquote(sort)
-    return parse_json_from_solr_query(solr_select)
 
 def top_books_from_author(akey, rows=5, offset=0):
     q = 'author_key:(' + akey + ')'
@@ -591,9 +571,6 @@ def top_books_from_author(akey, rows=5, offset=0):
         'total': response['numFound'],
     }
 
-def do_merge():
-    return
-
 
 class advancedsearch(delegate.page):
     path = "/advancedsearch"
@@ -603,10 +580,6 @@ class advancedsearch(delegate.page):
         template.v2 = True
         return template
 
-class merge_author_works(delegate.page):
-    path = r"/authors/(OL\d+A)/merge-works"
-    def GET(self, key):
-        works = works_by_author(key)
 
 def escape_colon(q, vf):
     if ':' not in q:
