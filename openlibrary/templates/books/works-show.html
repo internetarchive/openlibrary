@@ -3,7 +3,8 @@ $def with (book)
 <span itemscope itemtype="https://schema.org/Book">
   <span class="bookcover">
     $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
-    <a href="$book.key"><img itemprop="image" src="$url" height="60"/></a>
+    $ urlB= book.get_cover_url("M") or "/images/icons/avatar_book-lg.png"
+    <a href="$book.key"><img itemprop="image" src="$url" srcset= "$urlB 2x" height="60"/></a>
   </span>
   <span class="resultTitle">
     <span class="details">
