@@ -14,7 +14,7 @@ $ available_loans = page.get_available_loans()
 
         <h1 class="sansserif">Borrow - Administration</h1>
         <p>
-            can_borrow - can this book ever be borrowed: $can_borrow(page)
+            can_borrow - can this book ever be borrowed: $(page.in_borrowable_collection())
         </p>
 
 

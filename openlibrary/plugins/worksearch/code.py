@@ -815,9 +815,6 @@ class search_json(delegate.page):
         return delegate.RawText(json.dumps(response, indent=True))
 
 def setup():
-    from openlibrary.plugins.worksearch import searchapi
-    searchapi.setup()
-
     from openlibrary.plugins.worksearch import subjects
 
     # subjects module needs read_author_facet and solr_select_url.

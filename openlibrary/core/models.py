@@ -286,10 +286,6 @@ class Edition(Thing):
         return (('lendinglibrary' in collections or 'inlibrary' in collections)
                 and not self.is_in_private_collection())
 
-    def can_borrow(self):
-        """This method should be deprecated in favor of in_borrowable_collection"""
-        return self.in_borrowable_collection()
-
     def get_waitinglist(self):
         """Returns list of records for all users currently waiting for this book."""
         return waitinglist.get_waitinglist_for_book(self.key)
@@ -744,9 +740,6 @@ class User(Thing):
         """
         loan = self.get_loan_for(book)
         return loan is not None
-
-    #def can_borrow_edition(edition, _type):
-
 
     def get_loan_for(self, book):
         """Returns the loan object for given book.
