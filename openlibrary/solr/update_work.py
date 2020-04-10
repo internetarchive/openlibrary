@@ -21,7 +21,9 @@ from openlibrary.catalog.utils.query import set_query_host, base_url as get_ol_b
 from openlibrary.core import helpers as h
 from openlibrary.core import ia
 from openlibrary.solr.data_provider import get_data_provider, DataProvider
+from openlibrary.utils.ddc import normalize_ddc
 from openlibrary.utils.isbn import opposite_isbn
+from openlibrary.utils.lcc import short_lcc_to_sortable_lcc
 
 logger = logging.getLogger("openlibrary.solr")
 
@@ -509,6 +511,32 @@ class SolrProcessor:
                            if db_key in e
                            for v in e[db_key])
             add_list(solr_key, values)
+
+        # Need this to enable in pytest, which have config.runtime_config = {}
+        conf = config.runtime_config or {
+            'plugin_worksearch': {
+                'has_classifications': True
+            }}
+        if conf.get('plugin_worksearch', {}).get('has_classifications', False):
+            raw_lccs = set(lcc
+                           for ed in editions
+                           for lcc in ed.get('lc_classifications', []))
+            lccs = set(lcc for lcc in map(short_lcc_to_sortable_lcc, raw_lccs) if lcc)
+            if lccs:
+                add_list("lcc", lccs)
+                # Choose the... idk, longest for sorting?
+                add("lcc_sort", sorted(lccs, key=len, reverse=True)[0])
+
+            raw_ddcs = set(ddc
+                           for ed in editions
+                           for ddc in ed.get('dewey_decimal_class', []))
+            ddcs = set(ddc
+                       for raw_ddc in raw_ddcs
+                       for ddc in normalize_ddc(raw_ddc))
+            if ddcs:
+                add_list("ddc", ddcs)
+                # Choose longest, since has most precision?
+                add("ddc_sort", sorted(ddcs, key=len, reverse=True)[0])
 
         add_list("isbn", self.get_isbns(editions))
         add("last_modified_i", self.get_last_modified(w, editions))

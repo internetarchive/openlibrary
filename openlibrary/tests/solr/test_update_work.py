@@ -1,3 +1,5 @@
+import pytest
+
 from openlibrary.solr import update_work
 from openlibrary.solr.data_provider import DataProvider
 from openlibrary.solr.update_work import build_data
@@ -353,6 +355,75 @@ class Test_build_data:
         assert d['author_key'] == ['OL1A', 'OL2A']
         assert d['author_facet'] == ['OL1A Author One', 'OL2A Author Two']
         assert d['author_alternative_name'] == ["Author 1"]
+
+    LCC_TESTS = {
+        'Remove dupes': (['A', 'A'], ['A--0000.00000000'], 0),
+        'Ignores garbage': (['$9.99'], None, None),
+        'Handles none': ([], None, None),
+        'Handles empty string': ([''], None, None),
+        'Stores multiple': (
+            ['A123', 'B42'],
+            ['A--0123.00000000', 'B--0042.00000000'], None),
+        'Handles full LCC': (
+            ['PT2603.0.E46 Z589 1991'],
+            ['PT-2603.00000000.E46 Z589 1991'], 0),
+        'Stores longest for sorting': (
+            ['A123.C14', 'B42'],
+            ['A--0123.00000000.C14', 'B--0042.00000000'], 0),
+        'Ignores ISBNs/DDCs': (
+            ['9781234123411', 'ML410', '123.4'],
+            ['ML-0410.00000000'], 0),
+    }
+
+    @pytest.mark.parametrize("doc_lccs,solr_lccs,sort_lcc_index",
+                             LCC_TESTS.values(), ids=LCC_TESTS.keys())
+    def test_lccs(self, doc_lccs, solr_lccs, sort_lcc_index):
+        work = make_work()
+        update_work.data_provider = FakeDataProvider([
+            work,
+            make_edition(work, lc_classifications=doc_lccs),
+        ])
+        d = build_data(work)
+        if solr_lccs:
+            assert sorted(d.get('lcc')) == solr_lccs
+            if sort_lcc_index is not None:
+                assert d.get('lcc_sort') == solr_lccs[sort_lcc_index]
+        else:
+            assert 'lcc' not in d
+            assert 'lcc_sort' not in d
+
+    DDC_TESTS = {
+        'Remove dupes': (['123.5', '123.5'], ['123.5'], 0),
+        'Handles none': ([], None, None),
+        'Handles empty string': ([''], None, None),
+        'Stores multiple': (['05', '123.5'], ['005', '123.5'], 1),
+        'Handles full DDC': (['j132.452939 [B]'], ['j132.452939 B'], 0),
+        'Handles alternate DDCs': (
+            ['132.5 153.6'], ['132.5', '153.6'], 0),
+        'Stores longest for sorting': (
+            ['123.4', '123.41422'],
+            ['123.4', '123.41422'], 1),
+        'Ignores ISBNs/LCCs': (
+            ['9781234123411', 'ML410', '132.3'],
+            ['132.3'], 0),
+    }
+
+    @pytest.mark.parametrize("doc_ddcs,solr_ddcs,sort_ddc_index",
+                             DDC_TESTS.values(), ids=DDC_TESTS.keys())
+    def test_ddcs(self, doc_ddcs, solr_ddcs, sort_ddc_index):
+        work = make_work()
+        update_work.data_provider = FakeDataProvider([
+            work,
+            make_edition(work, dewey_decimal_class=doc_ddcs),
+        ])
+        d = build_data(work)
+        if solr_ddcs:
+            assert sorted(d.get('ddc')) == solr_ddcs
+            assert d.get('ddc_sort') == solr_ddcs[sort_ddc_index]
+        else:
+            assert 'ddc' not in d
+            assert 'ddc_sort' not in d
+
 
 class Test_update_items():
     @classmethod

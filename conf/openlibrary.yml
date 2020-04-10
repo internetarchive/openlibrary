@@ -51,6 +51,9 @@ plugin_worksearch:
         db: openlibrary_ebook_count
         host: localhost
 
+    # Temporary (2020-04-09) field to use until classifications are in production solr
+    has_classifications: false
+
 http_request_timeout: 10
 
 stats_solr: solr:8080
