@@ -37,7 +37,7 @@ pytest \
     openlibrary/catalog/marc/tests/test_marc.py \
     openlibrary/catalog/marc/tests/test_parse.py \
     openlibrary/tests/catalog/test_get_ia.py \
-    openlibrary/tests/catalog/test_utils.py || true
+    || true
 
 # coverstore: All failing tests run in allow failures (|| true) mode
 pytest \
@@ -45,6 +45,4 @@ pytest \
     openlibrary/coverstore/tests/test_doctests.py || true
 
 # plugins: All failing tests run in allow failures (|| true) mode
-pytest openlibrary/plugins/books/tests/test_dynlinks.py \
-    openlibrary/plugins/openlibrary/tests/test_home.py \
-    openlibrary/plugins/upstream/tests/test_merge_authors.py || true
+pytest openlibrary/plugins/openlibrary/tests/test_home.py || true
