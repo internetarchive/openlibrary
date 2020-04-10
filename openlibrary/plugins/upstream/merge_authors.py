@@ -50,18 +50,14 @@ class BasicRedirectEngine:
         """
         Converts references to any of the duplicates in the given doc to the master.
 
-        :param A doc:
+        :param doc:
         :param str master:
         :param list of str duplicates:
-        :rtype: A
+        :rtype: Any
         """
         if isinstance(doc, dict):
             if list(doc) == ['key']:
-                key = doc['key']
-                if key in duplicates:
-                    return {"key": master}
-                else:
-                    return doc
+                return {"key": master} if doc['key'] in duplicates else doc
             else:
                 return dict(
                     (k, self.update_backreferences(v, master, duplicates))
