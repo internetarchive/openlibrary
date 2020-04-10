@@ -82,8 +82,16 @@ const Carousel = {
 
         addWork = function(work) {
             var availability = work.availability.status;
-            var cover_id = work.covers? work.covers[0] : work.cover_id;
             var ocaid = work.availability.identifier;
+            var cover = {
+                type: 'id',
+                id: work.covers? work.covers[0] : work.cover_id || work.cover_i
+            };
+            if (!cover.id && ocaid) {
+              cover.type = 'ia';
+              cover.id = ocaid;
+            }
+
             var cls = availabilityStatuses[availability].cls;
             var url = (cls == 'cta-btn--available') ?
                 (`/borrow/ia/${ocaid}`) : (cls == 'cta-btn--unavailable') ?
@@ -97,7 +105,7 @@ const Carousel = {
                   '<a href="'}${work.key}" ${isClickable}>` +
                     `<img class="bookcover" width="130" height="200" title="${
                         work.title}" ` +
-                      `src="//covers.openlibrary.org/b/id/${cover_id}-M.jpg">` +
+                      `src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg">` +
                   '</a>' +
                 '</div>' +
                 '<div class="book-cta">' +
@@ -153,8 +161,16 @@ const Carousel = {
                         url: url,
                         type: 'GET',
                         success: function(subject_results) {
-                            $.each(subject_results.works, function(work_idx) {
-                                var work = subject_results.works[work_idx];
+                            console.log(subject_results);
+                            console.log('here');
+                            var works = subject_results.works;
+                            if(!works) {
+                              works = subject_results.docs;
+                            }
+                            console.log('works');
+                            console.log(subject_results);
+                            $.each(works, function(work_idx) {
+                                var work = works[work_idx];
                                 var lastSlidePos = $(`${selector}.slick-slider`)
                                     .slick('getSlick').$slides.length - 1;
                                 $(selector).slick('slickAdd', addWork(work), lastSlidePos);
