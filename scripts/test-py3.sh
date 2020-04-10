@@ -56,7 +56,6 @@ pytest \
     openlibrary/catalog/marc/tests/test_marc.py \
     openlibrary/catalog/marc/tests/test_parse.py \
     openlibrary/tests/catalog/test_get_ia.py \
-    openlibrary/tests/catalog/test_utils.py \
     || true
 
 # coverstore: All failing tests run in allow failures (|| true) mode
