@@ -1,0 +1,15 @@
+FROM olbase
+
+ENV PYTHONPATH=/openlibrary
+
+USER root
+WORKDIR /openlibrary
+RUN pip install -r requirements_test.txt
+
+# For real-time profiling; faster python
+RUN pip install cprofilev Cython
+
+# Build cython files
+RUN ./scripts/solr_builder/build-cython.sh
+
+EXPOSE 4000

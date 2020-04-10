@@ -5,8 +5,14 @@ RUN apt-get -qq update && \
     ln -s /var/log/tomcat7/ /usr/share/tomcat7/logs && \
     ln -s /etc/tomcat7/ /usr/share/tomcat7/conf
 
-COPY conf/solr/conf/schema.xml /etc/solr/conf/
+# Environment; one of 'prod' or 'dev'
+ARG ENV=dev
+COPY conf/solr/conf/* /etc/solr/conf/
+RUN ln -sf /etc/solr/conf/solrconfig-$ENV.xml /etc/solr/conf/solrconfig.xml
+# Increase memory on prod
+RUN if [ "$ENV" = "prod" ] ; then \
+    echo 'export JAVA_OPTS="${JAVA_OPTS} -Djava.awt.headless=true -Xmx10g -Xms10g -XX:+UseConcMarkSweepGC"' > /usr/share/tomcat7/bin/setenv.sh ; \
+fi
 
 EXPOSE 8080
-
 CMD ["/usr/share/tomcat7/bin/catalina.sh", "run"]

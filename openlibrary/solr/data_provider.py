@@ -5,9 +5,10 @@ data required for solr.
 
 Multiple data providers are supported, each is good for different use case.
 """
-import web
-import simplejson
 import logging
+
+import web
+
 from openlibrary.core import ia
 
 logger = logging.getLogger("openlibrary.solr.data_provider")
@@ -26,35 +27,74 @@ def get_data_provider(type="default",ia_db=''):
 
 
 class DataProvider:
-    """DataProvider is the interface for solr updater
+    """
+    DataProvider is the interface for solr updater
     to get additional information for building solr index.
 
     This is an abstract class and multiple implementations are provided
     in this module.
     """
+
     def get_document(self, key):
         """Returns the document with specified key from the database.
+
+        :param str key: type-prefixed key (ex: /books/OL1M)
+        :rtype: dict
         """
         raise NotImplementedError()
 
     def get_metadata(self, identifier):
-        """Returns archive.org metadata for given identifier.
+        """
+        Returns archive.org metadata for given identifier.
+
+        :param str identifier: Internet Archive id (aka ocaid)
+        :return:
+        :rtype: web.storage or None
         """
         raise NotImplementedError()
 
     def preload_documents(self, keys):
+        """
+        Preload a set of documents in a single request. Should make subsequent calls to
+        get_document faster.
+
+        :param list of str keys: type-prefixed keys to load (ex: /books/OL1M)
+        :return: None
+        """
         pass
 
     def preload_metadata(self, identifiers):
+        """
+        :param list of str identifiers: list of Internet Archive ids (aka ocaids)
+        :return:
+        """
         pass
 
-    def preload_editions_of_works(self, works):
+    def preload_editions_of_works(self, work_keys):
+        """
+        Preload the editions of the provided works. Should make subsequent calls to
+        get_editions_of_work faster.
+
+        :param list of str work_keys: type-prefixed keys to work keys (ex: /works/OL1W)
+        :return: None
+        """
         pass
 
     def find_redirects(self, key):
+        """
+        Returns keys of all things which redirect to this one.
+
+        :param str key: type-prefixed key
+        :rtype: list of str
+        """
         raise NotImplementedError()
 
     def get_editions_of_work(self, work):
+        """
+
+        :param dict work: work object
+        :rtype: list of dict
+        """
         raise NotImplementedError()
 
 class LegacyDataProvider(DataProvider):
@@ -64,8 +104,7 @@ class LegacyDataProvider(DataProvider):
         self._withKey = withKey
 
     def find_redirects(self, key):
-        """Returns keys of all things which are redirected to this one.
-        """
+        """Returns keys of all things which are redirected to this one."""
         logger.info("find_redirects %s", key)
         q = {'type': '/type/redirect', 'location': key}
         return [r['key'] for r in self._query_iter(q)]
@@ -101,14 +140,13 @@ class BetterDataProvider(LegacyDataProvider):
         infogami._setup()
         delegate.fakeload()
 
-        from openlibrary.solr.process_stats import get_ia_db, get_db
+        from openlibrary.solr.process_stats import get_db
         self.db = get_db()
         #self.ia_db = get_ia_db()
         self.ia_db = ia_database
 
     def get_metadata(self, identifier):
-        """Alternate implementation of ia.get_metadata() that uses IA db directly.
-        """
+        """Alternate implementation of ia.get_metadata() that uses IA db directly."""
         logger.info("get_metadata %s", identifier)
         self.preload_metadata([identifier])
         if self.metadata_cache.get(identifier):
