@@ -105,7 +105,7 @@ def test_make_redirect_doc():
 
 
 class TestBasicRedirectEngine:
-    def test_update_backreferences(self):
+    def test_update_references(self):
         engine = BasicRedirectEngine()
         doc = {
             "key": "/a",
@@ -125,7 +125,7 @@ class TestBasicRedirectEngine:
             }]
         }
 
-        assert engine.update_backreferences(doc, "/c", ["/b"]) == {
+        assert engine.update_references(doc, "/c", ["/b"]) == {
             "key": "/a",
             "type": {"key": "/type/object"},
             "x1": [{"key": "/c"}],
@@ -188,7 +188,7 @@ class TestAuthorRedirectEngine:
         web.ctx.site = MockSite()
 
     def test_fix_edition(self):
-        update_backreferences = AuthorRedirectEngine().update_backreferences
+        update_references = AuthorRedirectEngine().update_references
         edition = {
             "key": "/books/OL2M",
             "authors": [{"key": "/authors/OL2A"}],
@@ -196,21 +196,21 @@ class TestAuthorRedirectEngine:
         }
 
         # edition having duplicate author
-        assert update_backreferences(edition, "/authors/OL1A", ["/authors/OL2A"]) == {
+        assert update_references(edition, "/authors/OL1A", ["/authors/OL2A"]) == {
             "key": "/books/OL2M",
             "authors": [{"key": "/authors/OL1A"}],
             "title": "book 1"
         }
 
         # edition not having duplicate author
-        assert update_backreferences(edition, "/authors/OL1A", ["/authors/OL3A"]) == {
+        assert update_references(edition, "/authors/OL1A", ["/authors/OL3A"]) == {
             "key": "/books/OL2M",
             "authors": [{"key": "/authors/OL2A"}],
             "title": "book 1"
         }
 
     def test_fix_work(self):
-        update_backreferences = AuthorRedirectEngine().update_backreferences
+        update_references = AuthorRedirectEngine().update_references
         work = {
             "key": "/works/OL2W",
             "authors": [{
@@ -221,7 +221,7 @@ class TestAuthorRedirectEngine:
         }
 
         # work having duplicate author
-        assert update_backreferences(work, "/authors/OL1A", ["/authors/OL2A"]) == {
+        assert update_references(work, "/authors/OL1A", ["/authors/OL2A"]) == {
             "key": "/works/OL2W",
             "authors": [{
                 "type": {"key": "/type/author_role"},
@@ -231,7 +231,7 @@ class TestAuthorRedirectEngine:
         }
 
         # work not having duplicate author
-        assert update_backreferences(work, "/authors/OL1A", ["/authors/OL3A"]) == {
+        assert update_references(work, "/authors/OL1A", ["/authors/OL3A"]) == {
             "key": "/works/OL2W",
             "authors": [{
                 "type": {"key": "/type/author_role"},

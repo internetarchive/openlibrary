@@ -15,7 +15,8 @@ from openlibrary.utils import uniq, dicthash
 
 class BasicRedirectEngine:
     """
-    Creates redirects whilst updating backrefs
+    Creates redirects whilst updating any references to the now-defunct record to point
+    to the newly identified canonical record.
     """
     def make_redirects(self, master, duplicates):
         """
@@ -27,13 +28,13 @@ class BasicRedirectEngine:
         docs_to_save = [make_redirect_doc(key, master) for key in duplicates]
 
         # find the references of each duplicate and convert them
-        references = self.find_all_backreferences(duplicates)
+        references = self.find_all_references(duplicates)
         docs = get_many(references)
         docs_to_save.extend(
-            self.update_backreferences(doc, master, duplicates) for doc in docs)
+            self.update_references(doc, master, duplicates) for doc in docs)
         return docs_to_save
 
-    def find_backreferences(self, key):
+    def find_references(self, key):
         """
         Returns keys of all the docs which have a reference to the given key.
         All the subclasses must provide an implementation for this method.
@@ -42,11 +43,11 @@ class BasicRedirectEngine:
         """
         raise NotImplementedError()
 
-    def find_all_backreferences(self, keys):
-        backrefs = set(ref for key in keys for ref in self.find_backreferences(key))
-        return list(backrefs)
+    def find_all_references(self, keys):
+        refs = set(ref for key in keys for ref in self.find_references(key))
+        return list(refs)
 
-    def update_backreferences(self, doc, master, duplicates):
+    def update_references(self, doc, master, duplicates):
         """
         Converts references to any of the duplicates in the given doc to the master.
 
@@ -60,10 +61,10 @@ class BasicRedirectEngine:
                 return {"key": master} if doc['key'] in duplicates else doc
             else:
                 return dict(
-                    (k, self.update_backreferences(v, master, duplicates))
+                    (k, self.update_references(v, master, duplicates))
                     for k, v in doc.items())
         elif isinstance(doc, list):
-            values = [self.update_backreferences(v, master, duplicates) for v in doc]
+            values = [self.update_references(v, master, duplicates) for v in doc]
             return uniq(values, key=dicthash)
         else:
             return doc
@@ -127,7 +128,7 @@ class BasicMergeEngine:
 
 
 class AuthorRedirectEngine(BasicRedirectEngine):
-    def find_backreferences(self, key):
+    def find_references(self, key):
         q = {
             "type": "/type/edition",
             "authors": key,
