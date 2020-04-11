@@ -281,8 +281,21 @@ def uniq(values, key=None):
 def affiliate_id(affiliate):
     return config.get('affiliate_ids', {}).get(affiliate, '')
 
+
+def ia_domain():
+    return config.get('ia_base_url', 'https://archive.org')
+
+
+def http_request_timeout():
+    return config.get('http_request_timeout')
+
+
 def bookreader_host():
     return config.get('bookreader_host', '')
+
+
+def default_imageurl():
+    return '/images/icons/avatar_book.png'
 
 def private_collections():
     """Collections which are lendable but should not be linked from OL

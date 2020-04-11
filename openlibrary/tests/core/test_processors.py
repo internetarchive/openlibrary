@@ -28,7 +28,7 @@ class MockSite:
             olid = data['olid']
             return web.storage(key=self.olids.get(olid))
 
-    def _get_backreferences(self):
+    def _get_backreferences(self, *args, **kwargs):
         return {}
 
 def test_MockSite():
