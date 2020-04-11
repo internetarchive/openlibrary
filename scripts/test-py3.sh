@@ -28,6 +28,7 @@ pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests open
     openlibrary/catalog/merge/test_merge_marc.py \
     openlibrary/catalog/merge/test_names.py \
     openlibrary/catalog/merge/test_normalize.py
+RETURN_CODE=$?
 
 # The following sections allow us to quickly spot tests that are fixed
 
@@ -42,7 +43,10 @@ pytest \
 # coverstore: All failing tests run in allow failures (|| true) mode
 pytest \
     openlibrary/coverstore/tests/test_coverstore.py \
-    openlibrary/coverstore/tests/test_doctests.py || true
+    openlibrary/coverstore/tests/test_doctests.py \
+    || true
 
 # plugins: All failing tests run in allow failures (|| true) mode
 pytest openlibrary/plugins/openlibrary/tests/test_home.py || true
+
+exit ${RETURN_CODE}
