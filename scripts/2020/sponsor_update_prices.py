@@ -8,7 +8,7 @@ BWB_URL = 'https://www.betterworldbooks.com'
 if __name__ == "__main__":
     data = {
         'user': 'openlibrary+sponsorship@archive.org',
-        'password': getpass('password: ') 
+        'password': getpass('password: ')
     }
     s = requests.Session()
     s.post('%s/account/login' % BWB_URL, data=data)
@@ -20,6 +20,3 @@ if __name__ == "__main__":
     for item in order['Items']:
         i = ia.get_item('isbn_%s' % item['ISBN'].strip())
         i.modify_metadata(metadata={'book_price': int(item['Price'] * 100)})
-
-
-    
