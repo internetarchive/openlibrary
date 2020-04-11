@@ -13,6 +13,9 @@ from openlibrary.core import cache
 @public
 def get_editions_by_ia_query(query='', sorts=None, page=1, limit=None,
                              timeout=cache.DEFAULT_CACHE_LIFETIME):
+    """
+    TODO: Currently (2020-04-10) unused; will be used in custom_carousel
+    """
     def editions_by_ia_query(query='', sorts=None, page=1, limit=None):
         # Enable method to be cacheable
         if 'env' not in web.ctx:
