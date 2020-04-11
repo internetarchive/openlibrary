@@ -170,7 +170,8 @@ class IAEditionSearch:
             'sort[]': sorts or '',
             'fl[]': [
                 'identifier', cls.AVAILABILITY_STATUS, 'openlibrary_edition',
-                'openlibrary_work'
+                'openlibrary_work', 'loans__status__num_waitlist',
+                'loans__status__num_loans',
             ],
             'output': 'json'
         }
@@ -227,21 +228,18 @@ class IAEditionSearch:
         """
         To avoid a 2nd network call to `lending.add_availability` reconstruct
         availability info ad-hoc from archive.org advancedsearch results
-        :param Edition edition:
+        :param openlibrary.core.models.Edition edition:
         :param dict item_index: mapping ocaid -> metadata item
         :rtype: Edition
         :return: edition, modified to include availability
         """
         item = item_index[edition.ocaid]
-        availability_status = (
-            ('borrow_%s' % item[cls.AVAILABILITY_STATUS].lower())
-            if item.get(cls.AVAILABILITY_STATUS) else 'open')
-        edition['availability'] = {
-            'status': availability_status,
-            'identifier': item.get('identifier', ''),
-            'openlibrary_edition': item.get('openlibrary_edition', ''),
-            'openlibrary_work': item.get('openlibrary_work', '')
-        }
+        edition.set_availability(
+            identifier=item.get('identifier', ''),
+            status=item.get(cls.AVAILABILITY_STATUS, 'error'),
+            num_loans=int(item.get('loans__status__num_loans', 0)),
+            num_waitlist=int(item.get('loans__status__num_waitlist', 0)),
+        )
         return edition
 
     @staticmethod

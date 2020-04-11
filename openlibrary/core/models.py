@@ -344,21 +344,37 @@ class Edition(Thing):
         ocaid = self.get('ocaid')
         return get_metadata_direct(ocaid, cache=False) if ocaid else {}
 
-    @property
-    @cache.method_memoize
-    def availability(self):
+    def set_availability(self, identifier, status, num_waitlist, num_loans):
+        """
+        Converts availability info from IA to a normalized dict (see return for fields)
+        :param str identifier: ocaid
+        :param 'available' | 'unavailable' | 'private' | 'error' status:
+        :param int num_waitlist:
+        :param int num_loans:
+        :rtype: dict
+        """
         statuses = {
             'available': 'borrow_available',
             'unavailable': 'borrow_unavailable',
             'private': 'private',
-            'error': 'error'
+            'error': 'error',
         }
-        status = self.ia_metadata.get('loans__status__status', 'error').lower()
-        return {
-            'status': statuses[status],
-            'num_waitlist': int(self.ia_metadata.get('loans__status__num_waitlist', 0)),
-            'num_loans': int(self.ia_metadata.get('loans__status__num_loans', 0))
+        self._availability = {
+            'status': statuses[status.lower()],
+            'identifier': identifier,
+            'num_waitlist': num_waitlist,
+            'num_loans': num_loans,
         }
+        return self._availability
+
+    @property
+    def availability(self):
+        return self._availability or self.set_availability(
+            identifier=self.ia_metadata.get('identifier', ''),
+            status=self.ia_metadata.get('loans__status__status', 'error'),
+            num_loans=int(self.ia_metadata.get('loans__status__num_loans', 0)),
+            num_waitlist=int(self.ia_metadata.get('loans__status__num_waitlist', 0)),
+        )
 
     @property
     @cache.method_memoize
