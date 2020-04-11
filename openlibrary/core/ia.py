@@ -14,6 +14,7 @@ from infogami.utils import stats
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
 from openlibrary.utils.dateutil import date_n_days_ago
+from six.moves.urllib.parse import urlencode
 
 
 logger = logging.getLogger('openlibrary.ia')
@@ -23,10 +24,12 @@ VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
 
 
 class IAEditionSearch:
+    """
+    Enables one to query archive.org editions, and return OL editions w availability.
+    """
 
-    MAX_LIMIT = 20
+    MAX_EDITIONS_LIMIT = 20
     AVAILABILITY_STATUS = 'loans__status__status'
-    RESPONSE_FIELDS = 'fl[]'
     VALID_SORTS = [
         '__random', '__sort', 'addeddate', 'avg_rating',
         'call_number', 'createdate', 'creatorSorter',
@@ -84,9 +87,8 @@ class IAEditionSearch:
         :param str query: an elasticsearch archive.org  advancedsearch query
         :param list sorts: a list of ES strs for sorting
         :param page int: which page to start on
-        :param limit int: limit results per page (default cls.MAX_LIMIT)
+        :param limit int: limit results per page (default cls.MAX_EDITIONS_LIMIT)
         :rtype: list of dict representation of editions
-        :returns:
         """
         from openlibrary.core.models import Edition
         q = cls._expand_api_query(query)
@@ -118,6 +120,7 @@ class IAEditionSearch:
         """_request requires sorts to be a list of valid sort options.
         Discard invalid sorts and marshal to list.
         XXX broken for encoding of + -> %2B in +ASC, +DESC
+        :rtype: list of str
         """
         if sorts:
             # If it's a string, split and turn to list
@@ -151,13 +154,21 @@ class IAEditionSearch:
 
     @classmethod
     def _clean_params(cls, q='', sorts=None, page=1, limit=None):
-        _limit = limit or cls.MAX_LIMIT
+        """
+        Adds defaults and constructs params dict
+        :param str q:
+        :param Optional[List[str]]sorts:
+        :param int page:
+        :param int|None limit:
+        :rtype: dict
+        """
+        _limit = limit or cls.MAX_EDITIONS_LIMIT
         return {
             'q': q,
             'page': page,
-            'rows': min(_limit, cls.MAX_LIMIT),
+            'rows': min(_limit, cls.MAX_EDITIONS_LIMIT),
             'sort[]': sorts or '',
-            cls.RESPONSE_FIELDS: [
+            'fl[]': [
                 'identifier', cls.AVAILABILITY_STATUS, 'openlibrary_edition',
                 'openlibrary_work'
             ],
@@ -166,17 +177,17 @@ class IAEditionSearch:
 
     @classmethod
     def _compose_advancedsearch_url(cls, **params):
-        import urllib
+        # We need this to be http, so that we see the urls being called in the logs
+        # internally for rate limiting
         return 'http://%s/advancedsearch.php?%s' % (
-            h.bookreader_host() or 'archive.org', urllib.urlencode(params, doseq=True))
+            h.bookreader_host() or 'archive.org', urlencode(params, doseq=True))
 
     @classmethod
     def _compose_browsable_url(cls, query, sorts=None):
         """If the client wants to explore this query in the browser, it will
-        have to be converted to user a human readable version of the
-        advancedsearch API
+        have to be converted to a human readable version of the advancedsearch API
         :param str query:
-        :param list sorts:
+        :param list of str sorts:
         :rtype: str
         :return: a url for humans to view this query on archive.org
         """
@@ -185,8 +196,8 @@ class IAEditionSearch:
             _sort = '-' + _sort.split(' ')[0]
         elif ' asc' in _sort:
             _sort = _sort.split(' ')[0]
-        return '%s/search.php?query=%s&sort=%s' % (
-            h.ia_domain(), query, _sort)
+        return '%s/search.php?%s' % (
+            h.ia_domain(), urlencode({'query': query, 'sort': _sort}))
 
     @classmethod
     def _request(cls, url):
@@ -197,7 +208,7 @@ class IAEditionSearch:
         :return: the `response` content of the advancesearch
         """
         try:
-            import urllib2  # to port to requests
+            # TODO switch to requests
             request = six.moves.urllib.request.Request(url)
             # Internet Archive Elastic Search (which powers some of our
             # carousel queries) needs Open Library to forward user IPs so
@@ -207,15 +218,19 @@ class IAEditionSearch:
             response = six.moves.urllib.request.urlopen(
                 request, timeout=h.http_request_timeout()).read()
             return simplejson.loads(response).get('response', {})
-        except Exception:
+        except Exception:  # TODO make more specific
+            logger.error("IAEditionSearch._request error", exc_info=True)
             return []
 
     @classmethod
     def _add_availability_to_edition(cls, edition, item_index):
         """
-        To avoid a 2nd network call to `lending.add_availability`
-        reconstruct availability info ad-hoc from archive.org
-        advancedsearch results
+        To avoid a 2nd network call to `lending.add_availability` reconstruct
+        availability info ad-hoc from archive.org advancedsearch results
+        :param Edition edition:
+        :param dict item_index: mapping ocaid -> metadata item
+        :rtype: Edition
+        :return: edition, modified to include availability
         """
         item = item_index[edition.ocaid]
         availability_status = (

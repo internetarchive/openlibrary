@@ -40,7 +40,7 @@ def test_ia_search_queries():
         'mediatype:texts AND !noindex:* AND openlibrary_work:(*) AND '
         'loans__status__status:AVAILABLE AND test'
     )
-    assert(ia.IAEditionSearch.MAX_LIMIT == 20)
+    assert(ia.IAEditionSearch.MAX_EDITIONS_LIMIT == 20)
     advancedsearch_url = (
         'http://archive.org/advancedsearch.php?'
         'rows=20&q=mediatype%3Atexts+AND+%21noindex%3A%2A+AND+'
@@ -60,7 +60,7 @@ def test_ia_search_queries():
     _params = ia.IAEditionSearch._clean_params(q=_expanded_query)
     assert(_expanded_query == prepared_query)
     assert(ia.IAEditionSearch._clean_params(
-        q='test', limit=200).get('rows') == ia.IAEditionSearch.MAX_LIMIT)
+        q='test', limit=200).get('rows') == ia.IAEditionSearch.MAX_EDITIONS_LIMIT)
     composed_url = ia.IAEditionSearch._compose_advancedsearch_url(**_params)
     assert(composed_url == advancedsearch_url)
     assert(ia.IAEditionSearch._compose_browsable_url(prepared_query) == browse_url)

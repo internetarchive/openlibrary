@@ -205,7 +205,7 @@ class Edition(Thing):
         """
         Ensures `ocaid` property, normalizes `authors` as array, sets cover_url
 
-        :param dict or web.storage edition:
+        :param dict or web.storage or Edition edition:
         :rtype: Edition
         """
         work = edition.works and edition.works[0]
