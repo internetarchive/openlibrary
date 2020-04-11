@@ -5,17 +5,20 @@ import re
 import simplejson
 import web
 
+
+
 from collections import defaultdict
 from isbnlib import canonical
 
 from infogami import config
 from infogami.infobase import client
+from infogami.utils.view import public
 from infogami.utils.view import safeint
+from infogami.utils import delegate
 from infogami.utils import stats
 
-from openlibrary.core import models, ia
+from openlibrary.core import cache, models, ia, lending
 from openlibrary.core.models import Image
-from openlibrary.core import lending
 
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.upstream.utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
@@ -24,6 +27,7 @@ from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
 from openlibrary.plugins.worksearch.search import get_solr
 
+from openlibrary.utils import dateutil
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
 import six
@@ -587,24 +591,42 @@ class Work(models.Work):
         cover = self.get_cover(use_solr=use_solr)
         return cover and cover.url(size)
 
+    def get_ia_by_author(self, blacklist=None):
+        authors_query = ''
+        authors = self.get_author_names(blacklist=blacklist)
+        if authors:
+            authors_last_first = [','.join(a.split(' ', 1)[::-1]) for a in authors]
+            authors_query = '(%s)' % ' OR '.join([
+                'creator:"%s"' % author for author in authors + authors_last_first])
+        return authors_query
+
     def get_author_names(self, blacklist=None):
-        author_names = []
+        # how do I get the result of this function
+        # to be the output of a function which takes (work.key)
+
+        blacklist = blacklist or ['anonymous']
+        authors = []
+        authors_last_first = []
         for author in self.get_authors():
             author_name = (author if isinstance(author, six.string_types)
                            else author.name)
             if not blacklist or author_name.lower() not in blacklist:
-                author_names.append(author_name)
-        return author_names
+                authors.append(author_name)
+                authors_last_first.append(','.join(author_name.split(' ', 1)[::-1]))
+        query = ' OR '.join(['creator:"%s"' % author for author in authors + authors_last_first])
+        query = query and '(%s)' % query
+        return authors, query
 
+    @cache.method_memoize
     def get_authors(self):
-        authors =  [a.author for a in self.authors]
+        authors = [a.author for a in self.authors]
         authors = [follow_redirect(a) for a in authors]
         authors = [a for a in authors if a and a.type.key == "/type/author"]
         return authors
 
+    @cache.method_memoize
     def get_subjects(self):
         """Return subject strings."""
-        subjects = self.subjects
 
         def flip(name):
             if name.count(",") == 1:
@@ -612,9 +634,11 @@ class Work(models.Work):
                 return b.strip() + " " + a.strip()
             return name
 
+        subjects = self.subjects
         if subjects and not isinstance(subjects[0], six.string_types):
             subjects = [flip(s.name) for s in subjects]
         return subjects
+
 
     @staticmethod
     def filter_problematic_subjects(subjects, filter_unicode=True):
@@ -645,8 +669,10 @@ class Work(models.Work):
                 ok_subjects.append(subject)
         return ok_subjects        
 
-    def get_related_books_subjects(self, filter_unicode=True):
-        return self.filter_problematic_subjects(self.get_subjects(), filter_unicode)
+    def get_ia_by_subject(self, filter_unicode=True):
+        subjects = self.filter_problematic_subjects(self.get_subjects(), filter_unicode)
+        subjects_query = ' OR '.join(['subject:"%s"' % s for s in subjects])
+        return subjects_query and '(%s)' % subjects_query
 
     def get_representative_edition(self):
         """When we have confidence we can direct patrons to the best edition
@@ -699,6 +725,7 @@ class Work(models.Work):
         exisiting = set(int(c.id) for c in self.get_covers())
         covers = [e.get_cover() for e in editions]
         return [c for c in covers if c and int(c.id) not in exisiting]
+
 
 class Subject(client.Thing):
     def _get_solr_result(self):
@@ -761,6 +788,23 @@ class Subject(client.Thing):
     def get_publishers(self):
         d = self._get_solr_result()
         return [web.storage(name=p, count=count) for p, count in d['facets']['publishers']]
+
+@public
+def cached_ia_related_editions_queries(work_id):
+    def _cache_queries(work_id):
+        if 'env' not in web.ctx:
+            delegate.fakeload()
+        work = web.ctx.site.get(work_id)
+        return {
+            'authors': work.get_ia_by_author(),
+            'subjects': work.get_ia_by_subject(),
+        }
+    try:
+        return cache.memcache_memoize(
+            _cache_queries, 'works_authors_and_subjects',
+            timeout=dateutil.HALF_DAY_SECS)(work_id)
+    except AttributeError:
+        return {'authors': '', 'subject': ''}
 
 
 class SubjectPlace(Subject):

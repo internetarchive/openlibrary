@@ -27,3 +27,6 @@ def get_editions_by_ia_query(query='', sorts=None, page=1, limit=None,
         editions_by_ia_query, 'editions.search_ia', timeout=timeout)(
             query=query, sorts=sorts, page=page, limit=limit)
     return storify(results)
+
+def setup():
+    pass

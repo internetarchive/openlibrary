@@ -146,6 +146,11 @@ class IAEditionSearch:
         if query in cls.PRESET_QUERIES:
             query = cls.PRESET_QUERIES[query]
 
+        # Expand work_id queries (related)
+        # XXX
+        if '\[/works/OL[0-9]+W\:([a-z])\]':
+            pass
+
         q = 'mediatype:texts AND !noindex:* AND openlibrary_work:(*)'
         # Add availability if none present (e.g. borrowable only)
         if cls.AVAILABILITY_STATUS not in query:
@@ -233,13 +238,14 @@ class IAEditionSearch:
         :rtype: Edition
         :return: edition, modified to include availability
         """
-        item = item_index[edition.ocaid]
-        edition.set_availability(
-            identifier=item.get('identifier', ''),
-            status=item.get(cls.AVAILABILITY_STATUS, 'error'),
-            num_loans=int(item.get('loans__status__num_loans', 0)),
-            num_waitlist=int(item.get('loans__status__num_waitlist', 0)),
-        )
+        item = item_index.get(edition.ocaid)
+        if item:
+            edition.set_availability(
+                identifier=item.get('identifier', ''),
+                status=item.get(cls.AVAILABILITY_STATUS, 'error'),
+                num_loans=int(item.get('loans__status__num_loans', 0)),
+                num_waitlist=int(item.get('loans__status__num_waitlist', 0)),
+            )
         return edition
 
     @staticmethod

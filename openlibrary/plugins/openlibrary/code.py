@@ -865,11 +865,13 @@ def setup_context_defaults():
 
 
 def setup():
-    from openlibrary.plugins.openlibrary import (home, borrow_home, stats, support,
-                                                 events, design, status, authors)
+    from openlibrary.plugins.openlibrary import (
+        home, borrow_home, stats, support,
+        events, design, status, authors, carousels)
 
     home.setup()
     design.setup()
+    carousels.setup()
     borrow_home.setup()
     stats.setup()
     support.setup()

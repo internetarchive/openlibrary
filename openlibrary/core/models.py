@@ -211,12 +211,12 @@ class Edition(Thing):
         work = edition.works and edition.works[0]
 
         def _get_cover_url(edition, work):
-            ol_covers = (
+            ol_covers = [
                 doc.get_cover().url('M') for doc in [edition, work]
                 if doc and doc.get_cover()
-            )
+            ]
             if ol_covers:
-                return next(ol_covers)
+                return ol_covers[0]
 
             if edition.ocaid:
                 return '%s/services/img/%s' % (
