@@ -140,7 +140,7 @@ def raise_non_book_marc(marc_record, **kwargs):
     # Is the item a serial instead of a book?
     marc_leaders = marc_record.leader()
     if marc_leaders[7] == 's':
-        raise BookImportError(('item-is-serial', detail, kwargs))
+        raise BookImportError(('item-is-serial', details, kwargs))
 
     # insider note: follows Archive.org's approach of
     # Item::isMARCXMLforMonograph() which excludes non-books
