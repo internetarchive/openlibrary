@@ -30,8 +30,15 @@ from six.moves import urllib
 MARC_LENGTH_POS = 5
 logger = logging.getLogger('openlibrary.importapi')
 
+
+
 class DataError(ValueError):
     pass
+
+
+class BookImportError(Exception):
+    pass
+
 
 def parse_meta_headers(edition_builder):
     # parse S3-style http headers
@@ -128,17 +135,17 @@ class importapi:
         except ClientException as e:
             return self.error('bad-request', **json.loads(e.json))
 
-    def reject_non_book_marc(self, marc_record, **kwargs):
-        details = 'Item rejected'
-        # Is the item a serial instead of a book?
-        marc_leaders = marc_record.leader()
-        if marc_leaders[7] == 's':
-            return self.error('item-is-serial', details, **kwargs)
+def raise_non_book_marc(marc_record, **kwargs):
+    details = 'Item rejected'
+    # Is the item a serial instead of a book?
+    marc_leaders = marc_record.leader()
+    if marc_leaders[7] == 's':
+        raise BookImportError(('item-is-serial', detail, kwargs))
 
-        # insider note: follows Archive.org's approach of
-        # Item::isMARCXMLforMonograph() which excludes non-books
-        if not (marc_leaders[7] == 'm' and marc_leaders[6] == 'a'):
-            return self.error('item-not-book', details, **kwargs)
+    # insider note: follows Archive.org's approach of
+    # Item::isMARCXMLforMonograph() which excludes non-books
+    if not (marc_leaders[7] == 'm' and marc_leaders[6] == 'a'):
+        raise BookImportError(('item-not-book', details, kwargs))
 
 
 class ia_importapi(importapi):
@@ -154,7 +161,52 @@ class ia_importapi(importapi):
             "require_marc": "true",
             "bulk_marc": "false"
         }
-    """
+    """    
+
+    @classmethod
+    def ia_import(cls, identifier, require_marc=True):
+        # Case 1 - Is this a valid Archive.org item?
+        metadata = ia.get_metadata(identifier)
+        if not metadata:
+            raise BookImportError(('invalid-ia-identifier', '%s not found' % identifier))
+
+        # Case 2 - Does the item have an openlibrary field specified?
+        # The scan operators search OL before loading the book and add the
+        # OL key if a match is found. We can trust them and attach the item
+        # to that edition.
+        if metadata.get('mediatype') == 'texts' and metadata.get('openlibrary'):
+            edition_data = cls.get_ia_record(metadata)
+            edition_data['openlibrary'] = metadata['openlibrary']
+            edition_data = cls.populate_edition_data(edition_data, identifier)
+            return cls.load_book(edition_data)
+
+        # Case 3 - Can the item be loaded into Open Library?
+        status = ia.get_item_status(identifier, metadata)
+        if status != 'ok':
+            raise BookImportError((status, 'Prohibited Item %s' % identifier))
+
+        # Case 4 - Does this item have a marc record?
+        marc_record = get_marc_record_from_ia(identifier)
+        if require_marc and not marc_record:
+            raise BookImportError(('no-marc-record',))
+        if marc_record:
+            raise_non_book_marc(marc_record)
+            try:
+                edition_data = read_edition(marc_record)
+            except MarcException as e:
+                logger.error('failed to read from MARC record %s: %s', identifier, str(e))
+                raise BookImportError(('invalid-marc-record',))
+        else:
+            try:
+                edition_data = get_ia_record(metadata)
+            except KeyError:
+                raise BookImportError(('invalid-ia-metadata',))
+
+        # Add IA specific fields: ocaid, source_records, and cover
+        edition_data = cls.populate_edition_data(edition_data, identifier)
+        return cls.load_book(edition_data)
+
+
     def POST(self):
         web.header('Content-Type', 'application/json')
 
@@ -202,55 +254,26 @@ class ia_importapi(importapi):
                 edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in _ids]
 
             # Don't add the book if the MARC record is a non-book item
-            self.reject_non_book_marc(rec, **next_data)
+            try:
+                raise_non_book_marc(rec, **next_data)
+            except BookImportError as e:
+                return self.error(*e)
             result = add_book.load(edition)
 
             # Add next_data to the response as location of next record:
             result.update(next_data)
             return json.dumps(result)
 
-        # Case 1 - Is this a valid Archive.org item?
-        metadata = ia.get_metadata(identifier)
-        if not metadata:
-            return self.error('invalid-ia-identifier', '%s not found' % identifier)
+        try:
+            data = self.ia_import(identifier, require_marc=require_marc)
+        except BookImportError as e:
+            return self.error(*e)
 
-        # Case 2 - Does the item have an openlibrary field specified?
-        # The scan operators search OL before loading the book and add the
-        # OL key if a match is found. We can trust them and attach the item
-        # to that edition.
-        if metadata.get('mediatype') == 'texts' and metadata.get('openlibrary'):
-            edition_data = self.get_ia_record(metadata)
-            edition_data['openlibrary'] = metadata['openlibrary']
-            edition_data = self.populate_edition_data(edition_data, identifier)
-            return self.load_book(edition_data)
+        return data
 
-        # Case 3 - Can the item be loaded into Open Library?
-        status = ia.get_item_status(identifier, metadata)
-        if status != 'ok':
-            return self.error(status, 'Prohibited Item %s' % identifier)
 
-        # Case 4 - Does this item have a marc record?
-        marc_record = get_marc_record_from_ia(identifier)
-        if marc_record:
-            self.reject_non_book_marc(marc_record)
-            try:
-                edition_data = read_edition(marc_record)
-            except MarcException as e:
-                logger.error('failed to read from MARC record %s: %s', identifier, str(e))
-                return self.error('invalid-marc-record')
-        elif require_marc:
-            return self.error('no-marc-record')
-        else:
-            try:
-                edition_data = self.get_ia_record(metadata)
-            except KeyError:
-                return self.error("invalid-ia-metadata")
-
-        # Add IA specific fields: ocaid, source_records, and cover
-        edition_data = self.populate_edition_data(edition_data, identifier)
-        return self.load_book(edition_data)
-
-    def get_ia_record(self, metadata):
+    @staticmethod
+    def get_ia_record(metadata):
         """
         Generate Edition record from Archive.org metadata, in lieu of a MARC record
 
@@ -285,7 +308,8 @@ class ia_importapi(importapi):
             d['oclc'] = oclc
         return d
 
-    def load_book(self, edition_data):
+    @staticmethod
+    def load_book(edition_data):
         """
         Takes a well constructed full Edition record and sends it to add_book
         to check whether it is already in the system, and to add it, and a Work
@@ -297,7 +321,8 @@ class ia_importapi(importapi):
         result = add_book.load(edition_data)
         return json.dumps(result)
 
-    def populate_edition_data(self, edition, identifier):
+    @staticmethod
+    def populate_edition_data(edition, identifier):
         """
         Adds archive.org specific fields to a generic Edition record, based on identifier.
 
@@ -311,7 +336,8 @@ class ia_importapi(importapi):
         edition['cover'] = ia.get_cover_url(identifier)
         return edition
 
-    def find_edition(self, identifier):
+    @staticmethod
+    def find_edition(identifier):
         """
         Checks if the given identifier has already been imported into OL.
 
@@ -332,7 +358,8 @@ class ia_importapi(importapi):
         if keys:
             return keys[0]
 
-    def status_matched(self, key):
+    @staticmethod
+    def status_matched(key):
         reply = {
             'success': True,
             'edition': {'key': key, 'status': 'matched'}

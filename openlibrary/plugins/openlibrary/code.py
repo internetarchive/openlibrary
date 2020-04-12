@@ -418,7 +418,7 @@ class bookpage(delegate.page):
 
         if result:
             return web.found(result[0] + ext)
-        elif key =='ocaid':
+        elif key == 'ocaid':
             # Try a range of ocaid alternatives:
             ocaid_alternatives = [
                     {'type': '/type/edition', 'source_records': 'ia:' + value},
@@ -427,6 +427,12 @@ class bookpage(delegate.page):
                 result = web.ctx.site.things(q)
                 if result:
                     return web.found(result[0] + ext)
+
+            # Perform import, if possible
+            from openlibrary.plugins.importapi.code import ia_importapi
+            book = ia_importapi.ia_import(value, require_marc=True)
+            print(book)
+
             # If nothing matched, try this as a last resort:
             return web.found('/books/ia:' + value + ext)
 
