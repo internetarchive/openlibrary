@@ -430,8 +430,9 @@ class bookpage(delegate.page):
 
             # Perform import, if possible
             from openlibrary.plugins.importapi.code import ia_importapi
-            book = ia_importapi.ia_import(value, require_marc=True)
-            print(book)
+            from openlibrary import accounts
+            with accounts.RunAs('ImportBot'):
+                book = ia_importapi.ia_import(value, require_marc=True)
 
             # If nothing matched, try this as a last resort:
             return web.found('/books/ia:' + value + ext)
