@@ -22,9 +22,9 @@ from openlibrary.plugins.upstream.utils import get_coverstore_url, MultiDict, pa
 from openlibrary.plugins.upstream import account
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
+from openlibrary.plugins.worksearch.search import get_solr
 
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
-from openlibrary.utils.solr import Solr
 
 import six
 from six.moves import urllib
@@ -524,9 +524,6 @@ class Author(models.Author):
 
 re_year = re.compile(r'(\d{4})$')
 
-def get_solr():
-    base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
-    return Solr(base_url)
 
 class Work(models.Work):
     def get_olid(self):

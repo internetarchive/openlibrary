@@ -36,10 +36,6 @@ $ book_keys = []
 $# Added here instead of LoanStatus to avoid the js being bound to every item
 $# in a work's edition listing
 
-$if ctx.user and ctx.user.is_admin():
-    <div class="clearfix"></div>
-    <div class="small sansserif"><span class="adminOnly"><a href="/books/merge?$'&'.join('key=' + k for k in book_keys)">$_('Merge editions')</a></span></div>
-
 <!-- Admin only text doesn't need to be translated -->
 $if ctx.user and ctx.user.is_admin():
     <div class="clearfix"></div>

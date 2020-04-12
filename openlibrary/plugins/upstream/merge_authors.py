@@ -1,68 +1,109 @@
 """Merge authors.
 """
-import web
 import re
+
 import simplejson
+import six
+import web
+
+from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
-from infogami.infobase.client import ClientException
-
 from openlibrary.plugins.worksearch.code import top_books_from_author
 from openlibrary.utils import uniq, dicthash
 
-import six
+
+class BasicRedirectEngine:
+    """
+    Creates redirects whilst updating any references to the now-defunct record to point
+    to the newly identified canonical record.
+    """
+    def make_redirects(self, master, duplicates):
+        """
+        :param str master:
+        :param list of str duplicates:
+        :rtype: list of dict
+        """
+        # Create the actual redirect objects
+        docs_to_save = [make_redirect_doc(key, master) for key in duplicates]
+
+        # find the references of each duplicate and convert them
+        references = self.find_all_references(duplicates)
+        docs = get_many(references)
+        docs_to_save.extend(
+            self.update_references(doc, master, duplicates) for doc in docs)
+        return docs_to_save
+
+    def find_references(self, key):
+        """
+        Returns keys of all the docs which have a reference to the given key.
+        All the subclasses must provide an implementation for this method.
+        :param str key: e.g. /works/OL1W
+        :rtype: list of str
+        """
+        raise NotImplementedError()
+
+    def find_all_references(self, keys):
+        refs = set(ref for key in keys for ref in self.find_references(key))
+        return list(refs)
+
+    def update_references(self, doc, master, duplicates):
+        """
+        Converts references to any of the duplicates in the given doc to the master.
+
+        :param doc:
+        :param str master:
+        :param list of str duplicates:
+        :rtype: Any
+        """
+        if isinstance(doc, dict):
+            if list(doc) == ['key']:
+                return {"key": master} if doc['key'] in duplicates else doc
+            else:
+                return dict(
+                    (k, self.update_references(v, master, duplicates))
+                    for k, v in doc.items())
+        elif isinstance(doc, list):
+            values = [self.update_references(v, master, duplicates) for v in doc]
+            return uniq(values, key=dicthash)
+        else:
+            return doc
 
 
 class BasicMergeEngine:
-    """Generic merge functionality useful for all types of merges.
     """
+    Generic merge functionality useful for all types of merges.
+    """
+
+    def __init__(self, redirect_engine):
+        """
+        :param BasicRedirectEngine redirect_engine:
+        """
+        self.redirect_engine = redirect_engine
+
     def merge(self, master, duplicates):
         docs = self.do_merge(master, duplicates)
         return self.save(docs, master, duplicates)
 
     def do_merge(self, master, duplicates):
-        """Performs the merge and returns the list of docs to save.
+        """
+        Performs the merge and returns the list of docs to save.
+        :param str master: key of master doc
+        :param list of str duplicates: keys of duplicates
+        :rtype: dict
+        :return: Document to save
         """
         docs_to_save = []
+        docs_to_save.extend(self.redirect_engine.make_redirects(master, duplicates))
 
-        # mark all the duplcates as redirects to the master
-        docs_to_save.extend(self.make_redirect_doc(key, master) for key in duplicates)
-
-        # find the references of each duplicate and covert them
-        references = self.find_all_backreferences(duplicates)
-        docs = self.get_many(references)
-        docs_to_save.extend(self.convert_doc(doc, master, duplicates) for doc in docs)
-
-        # finally, merge all the duplicates into the master.
+        # Merge all the duplicates into the master.
         master_doc = web.ctx.site.get(master).dict()
-        dups = self.get_many(duplicates)
+        dups = get_many(duplicates)
         for d in dups:
             master_doc = self.merge_docs(master_doc, d)
 
         docs_to_save.append(master_doc)
         return docs_to_save
-
-    def get_many(self, keys):
-        def process(doc):
-            # some books have bad table_of_contents. Fix them to avoid failure on save.
-            if doc['type']['key'] == "/type/edition":
-                if 'table_of_contents' in doc:
-                    doc['table_of_contents'] = fix_table_of_contents(doc['table_of_contents'])
-            return doc
-        return [process(thing.dict()) for thing in web.ctx.site.get_many(list(keys))]
-
-    def find_all_backreferences(self, duplicates):
-        references = set()
-        for key in duplicates:
-            references.update(self.find_backreferences(key))
-        return list(references)
-
-    def find_backreferences(self, key):
-        """Returns keys of all the docs which have a reference to the given key.
-
-        All the subclasses must provide an implementation for this method.
-        """
-        raise NotImplementedError()
 
     def save(self, docs, master, duplicates):
         """Saves the effected docs because of merge.
@@ -71,7 +112,7 @@ class BasicMergeEngine:
         """
         raise NotImplementedError()
 
-    def merge_docs(self, master, dup, ignore=[]):
+    def merge_docs(self, master, dup):
         """Merge duplicate doc into master doc.
         """
         keys = set(list(master) + list(dup))
@@ -85,31 +126,26 @@ class BasicMergeEngine:
         else:
             return a
 
-    def make_redirect_doc(self, key, redirect):
-        return {
-            "key": key,
-            "type": {"key": "/type/redirect"},
-            "location": redirect
-        }
 
-    def convert_doc(self, doc, master, duplicates):
-        """Converts references to any of the duplicates in the given doc to the master.
-        """
-        if isinstance(doc, dict):
-            if list(doc) == ['key']:
-                key = doc['key']
-                if key in duplicates:
-                    return {"key": master}
-                else:
-                    return doc
-            else:
-                return dict((k, self.convert_doc(v, master, duplicates)) for k, v
-                            in doc.items())
-        elif isinstance(doc, list):
-            values = [self.convert_doc(v, master, duplicates) for v in doc]
-            return uniq(values, key=dicthash)
-        else:
-            return doc
+class AuthorRedirectEngine(BasicRedirectEngine):
+    def find_references(self, key):
+        q = {
+            "type": "/type/edition",
+            "authors": key,
+            "limit": 10000
+        }
+        edition_keys = web.ctx.site.things(q)
+        editions = get_many(edition_keys)
+        work_keys_1 = [w['key'] for e in editions for w in e.get('works', [])]
+
+        q = {
+            "type": "/type/work",
+            "authors": {"author": {"key": key}},
+            "limit": 10000
+        }
+        work_keys_2 = web.ctx.site.things(q)
+        return edition_keys + work_keys_1 + work_keys_2
+
 
 class AuthorMergeEngine(BasicMergeEngine):
     def merge_docs(self, master, dup):
@@ -123,27 +159,33 @@ class AuthorMergeEngine(BasicMergeEngine):
         return master
 
     def save(self, docs, master, duplicates):
-        data = {
-            "master": master,
-            "duplicates": list(duplicates)
+        # There is a bug (#89) due to which old revisions of the docs are being sent to
+        # save. Collecting all the possible information to detect the problem and
+        # saving it in datastore. See that data here:
+        # https://openlibrary.org/admin/inspect/store?type=merge-authors-debug&name=bad_merge&value=true
+        mc = self._get_memcache()
+        debug_doc = {
+            'type': 'merge-authors-debug',
+            'memcache': mc and dict(
+                (k, simplejson.loads(v))
+                for k, v in mc.get_multi([doc['key'] for doc in docs]).items()),
+            'docs': docs,
         }
 
-        # There is a bug (#89) due to which old revisions of the docs are being sent to save.
-        # Collecting all the possible information to detect the problem and saving it in datastore.
-        debug_doc = {}
-        debug_doc['type'] = 'merge-authors-debug'
-        mc = self._get_memcache()
-        debug_doc['memcache'] = mc and dict((k, simplejson.loads(v)) for k, v in mc.get_multi([doc['key'] for doc in docs]).items())
-        debug_doc['docs'] = docs
+        result = web.ctx.site.save_many(
+            docs, comment='merge authors', action="merge-authors",
+            data={
+                "master": master,
+                "duplicates": list(duplicates)
+            })
+        before_revs = dict((doc['key'], doc.get('revision')) for doc in docs)
+        after_revs = dict((row['key'], row['revision']) for row in result)
 
-        result = web.ctx.site.save_many(docs, comment='merge authors', action="merge-authors", data=data)
-
-        docrevs= dict((doc['key'], doc.get('revision')) for doc in docs)
-        revs = dict((row['key'], row['revision']) for row in result)
-
-        # Bad merges are happening when we are getting non-recent docs.
-        # That can be identified by checking difference in the revision numbers before and after save
-        bad_merge = any(revs[k]-docrevs[k] > 1 for k in revs if docrevs[k] is not None)
+        # Bad merges are happening when we are getting non-recent docs. That can be
+        # identified by checking difference in the revision numbers before/after save
+        bad_merge = any(
+            after_revs[key] > before_revs[key] + 1
+            for key in after_revs if before_revs[key] is not None)
 
         debug_doc['bad_merge'] = str(bad_merge).lower()
         debug_doc['result'] = result
@@ -156,34 +198,22 @@ class AuthorMergeEngine(BasicMergeEngine):
         from openlibrary.plugins.openlibrary import connection
         return connection._memcache
 
-    def find_backreferences(self, key):
-        q = {
-            "type": "/type/edition",
-            "authors": key,
-            "limit": 10000
-        }
-        edition_keys = web.ctx.site.things(q)
-
-        editions = self.get_many(edition_keys)
-        work_keys_1 = [w['key'] for e in editions for w in e.get('works', [])]
-
-        q = {
-            "type": "/type/work",
-            "authors": {"author": {"key": key}},
-            "limit": 10000
-        }
-        work_keys_2 = web.ctx.site.things(q)
-        return edition_keys + work_keys_1 + work_keys_2
 
 re_whitespace = re.compile(r'\s+')
+
+
 def space_squash_and_strip(s):
     return re_whitespace.sub(' ', s).strip()
+
 
 def name_eq(n1, n2):
     return space_squash_and_strip(n1) == space_squash_and_strip(n2)
 
+
 def fix_table_of_contents(table_of_contents):
-    """Some books have bad table_of_contents. This function converts them in to correct format.
+    """
+    Some books have bad table_of_contents--convert them in to correct format.
+    :param typing.List[typing.Union[str, dict]] table_of_contents:
     """
     def row(r):
         if isinstance(r, six.string_types):
@@ -205,8 +235,30 @@ def fix_table_of_contents(table_of_contents):
         r = web.storage(level=level, label=label, title=title, pagenum=pagenum)
         return r
 
-    d = [row(r) for r in table_of_contents]
-    return [row for row in d if any(row.values())]
+    return [row for row in map(row, table_of_contents) if any(row.values())]
+
+
+def get_many(keys):
+    """
+    :param list of str keys:
+    :rtype: list of dict
+    """
+    def process(doc):
+        # some books have bad table_of_contents. Fix them to avoid failure on save.
+        if doc['type']['key'] == "/type/edition" and 'table_of_contents' in doc:
+            doc['table_of_contents'] = fix_table_of_contents(doc['table_of_contents'])
+        return doc
+
+    return [process(thing.dict()) for thing in web.ctx.site.get_many(list(keys))]
+
+
+def make_redirect_doc(key, redirect):
+    return {
+        "key": key,
+        "type": {"key": "/type/redirect"},
+        "location": redirect
+    }
+
 
 class merge_authors(delegate.page):
     path = '/authors/merge'
@@ -240,10 +292,7 @@ class merge_authors(delegate.page):
         if i.master in selected:
             selected.remove(i.master)
 
-        formdata = web.storage(
-            master=i.master,
-            selected=selected
-        )
+        formdata = web.storage(master=i.master, selected=selected)
 
         if not i.master or len(selected) == 0:
             return render_template("merge/authors", keys, top_books_from_author=top_books_from_author, formdata=formdata)
@@ -251,6 +300,7 @@ class merge_authors(delegate.page):
             # redirect to the master. The master will display a progressbar and call the merge_authors_json to trigger the merge.
             master = web.ctx.site.get("/authors/" + i.master)
             raise web.seeother(master.url() + "?merge=true&duplicates=" + ",".join(selected))
+
 
 class merge_authors_json(delegate.page):
     """JSON API for merge authors.
@@ -270,12 +320,13 @@ class merge_authors_json(delegate.page):
         master = data['master']
         duplicates = data['duplicates']
 
-        engine = AuthorMergeEngine()
+        engine = AuthorMergeEngine(AuthorRedirectEngine())
         try:
             result = engine.merge(master, duplicates)
         except ClientException as e:
             raise web.badrequest(simplejson.loads(e.json))
         return delegate.RawText(simplejson.dumps(result), content_type="application/json")
+
 
 def setup():
     pass

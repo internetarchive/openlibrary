@@ -865,9 +865,8 @@ def setup_context_defaults():
 
 
 def setup():
-    from openlibrary.plugins.openlibrary import (home, borrow_home, stats,
-                                                 support, events, design, status,
-                                                 merge_editions, authors)
+    from openlibrary.plugins.openlibrary import (home, borrow_home, stats, support,
+                                                 events, design, status, authors)
 
     home.setup()
     design.setup()
@@ -876,7 +875,6 @@ def setup():
     support.setup()
     events.setup()
     status.setup()
-    merge_editions.setup()
     authors.setup()
 
     from openlibrary.plugins.openlibrary import api

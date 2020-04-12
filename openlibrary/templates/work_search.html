@@ -1,8 +1,6 @@
-$def with (input, q_param, do_search, get_doc, get_availability_of_ocaids, fulltext_search)
+$def with (input, q_param, do_search, get_doc, get_availability_of_ocaids, fulltext_search, facet_fields)
 
 $ fulltext_names = {'true': 'Ebooks', 'false': 'Exclude ebooks'}
-
-$ facet_fields = ['has_fulltext', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b']
 
 $def add_facet_url(k, v):
     $if k != 'has_fulltext':
