@@ -39,15 +39,15 @@ $def render_carousel_cover(book, lazy):
     $ cta = _('Sponsor')
     $ cta_cls = 'sponsor'
   $elif ocaid:
-    $ cta_cls = 'available'
     $if book.get('public_scan') or availability.get('status') == 'open':
+      $ cta_cls = 'available'
       $ cta_url = "//archive.org/stream/%s?ref=ol"%book.get('ia')
       $ cta = _('Read')
     $elif book.get('lending_edition') or availability.get('status') == 'borrow_available':
+      $ cta_cls = 'available'
       $ modifier = 'borrow-link'
       $ cta = _('Borrow')
-      $if book.get('lending_edition'):
-        $ cta_url = '/borrow/ia/%s' % ocaid
+      $ cta_url = '/borrow/ia/%s' % ocaid
 
   $if lazy:
     $ img_attr = 'data-lazy'
