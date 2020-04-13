@@ -87,17 +87,17 @@ const Carousel = {
                 type: 'id',
                 id: work.covers? work.covers[0] : work.cover_id || work.cover_i
             };
-            if (!cover.id && ocaid) {
-              cover.type = 'ia';
-              cover.id = ocaid;
-            }
-
             var cls = availabilityStatuses[availability].cls;
             var url = (cls == 'cta-btn--available') ?
                 (`/borrow/ia/${ocaid}`) : (cls == 'cta-btn--unavailable') ?
                     (`/books/${work.availability.openlibrary_edition}`) : work.key;
             var cta = availabilityStatuses[availability].cta;
             var isClickable = availability == 'error' ? 'disabled' : '';
+
+            if (!cover.id && ocaid) {
+                cover.type = 'ia';
+                cover.id = ocaid;
+            }
 
             return `${'<div class="book carousel__item slick-slide slick-active" ' +
                 '"aria-hidden="false" role="option">' +
@@ -161,14 +161,10 @@ const Carousel = {
                         url: url,
                         type: 'GET',
                         success: function(subject_results) {
-                            console.log(subject_results);
-                            console.log('here');
                             var works = subject_results.works;
-                            if(!works) {
-                              works = subject_results.docs;
+                            if (!works) {
+                                works = subject_results.docs;
                             }
-                            console.log('works');
-                            console.log(subject_results);
                             $.each(works, function(work_idx) {
                                 var work = works[work_idx];
                                 var lastSlidePos = $(`${selector}.slick-slider`)
