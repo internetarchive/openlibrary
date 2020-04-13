@@ -29,7 +29,7 @@
     },
     {
       "path": "static/build/carousel.*.js",
-      "maxSize": "12.1KB"
+      "maxSize": "12.2KB"
     },
     {
       "path": "static/build/all.js",
