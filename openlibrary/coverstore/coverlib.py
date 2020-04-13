@@ -3,12 +3,12 @@ from __future__ import print_function
 
 import datetime
 import os
+from io import BytesIO
 
 try:
     from PIL import Image
 except ImportError:
     import Image
-from six import StringIO
 import web
 
 from openlibrary.coverstore import config, db
@@ -61,11 +61,10 @@ def write_image(data, prefix):
         os.makedirs(dirname)
     try:
         # save original image
-        f = open(path_prefix + '.jpg', 'w')
-        f.write(data)
-        f.close()
+        with open(path_prefix + '.jpg', 'wb') as f:
+            f.write(data)
 
-        img = Image.open(StringIO(data))
+        img = Image.open(BytesIO(data))
         if img.mode != 'RGB':
             img = img.convert('RGB')
 
@@ -88,8 +87,12 @@ def resize_image(image, size):
     """Resizes image to specified size while making sure that aspect ratio is maintained."""
     # from PIL
     x, y = image.size
-    if x > size[0]: y = max(y * size[0] / x, 1); x = size[0]
-    if y > size[1]: x = max(x * size[1] / y, 1); y = size[1]
+    if x > size[0]:
+        y = max(y * size[0] // x, 1)
+        x = size[0]
+    if y > size[1]:
+        x = max(x * size[1] // y, 1)
+        y = size[1]
     size = x, y
 
     return image.resize(size, Image.ANTIALIAS)
@@ -103,17 +106,12 @@ def find_image_path(filename):
 def read_file(path):
     if ':' in path:
         path, offset, size = path.rsplit(':', 2)
-        offset = int(offset)
-        size = int(size)
-        f = open(path)
-        f.seek(offset)
-        data = f.read(size)
-        f.close()
-    else:
-        f = open(path)
-        data = f.read()
-        f.close()
-    return data
+        with open(path, 'rb') as f:
+            f.seek(int(offset))
+            return f.read(int(size))
+    with open(path, 'rb') as f:
+        return f.read()
+
 
 def read_image(d, size):
     if size:
