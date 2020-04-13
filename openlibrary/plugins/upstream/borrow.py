@@ -517,9 +517,6 @@ class ia_borrow_notify(delegate.page):
 
 ########## Public Functions
 
-@public
-def can_borrow(edition):
-    return edition.can_borrow()
 
 @public
 def is_loan_available(edition, type):

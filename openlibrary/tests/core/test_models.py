@@ -47,17 +47,17 @@ class TestEdition:
         e = self.mock_edition(MockLendableEdition)
         assert not e.is_in_private_collection()
 
-    def test_can_borrow_cuz_not_in_private_collection(self):
+    def test_in_borrowable_collection_cuz_not_in_private_collection(self):
         e = self.mock_edition(MockLendableEdition)
-        assert e.can_borrow()
+        assert e.in_borrowable_collection()
 
     def test_is_in_private_collection(self):
         e = self.mock_edition(MockPrivateEdition)
         assert e.is_in_private_collection()
 
-    def test_can_not_borrow_cuz_in_private_collection(self):
+    def test_not_in_borrowable_collection_cuz_in_private_collection(self):
         e = self.mock_edition(MockPrivateEdition)
-        assert not e.can_borrow()
+        assert not e.in_borrowable_collection()
 
 
 class TestAuthor:

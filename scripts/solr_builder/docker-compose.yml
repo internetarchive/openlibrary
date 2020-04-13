@@ -1,0 +1,70 @@
+version: '3.1'
+
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: example
+    working_dir: "/solr_builder"
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data"
+      - ".:/solr_builder"
+      - "/storage:/storage"
+    networks:
+      - db-access
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8087:8080
+    networks:
+      - db-access
+
+  solr:
+    image: olsolr:latest
+    restart: always
+    ports:
+      - 8984:8080
+    volumes:
+      - solr-data:/var/lib/solr/data
+    networks:
+      - solr-access
+
+  # Replica of production solr so we can get subjects
+  solr-backup:
+    image: olsolr:latest
+    restart: always
+    ports:
+      - 8985:8080
+    volumes:
+      - "${SOLR_BACKUP_PATH}/var/lib/solr/data:/var/lib/solr/data"
+    networks:
+      - solr-access
+
+  # We need ability to use openlibrary code
+  ol:
+    image: olpython:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.olpython
+    working_dir: "/openlibrary/scripts/solr_builder"
+    volumes:
+      # Persistent volume mount for installed git submodules
+      - ol-vendor:/openlibrary/vendor
+      # The above volume mounts are required so that the local dev bind mount below
+      # does not clobber the data generated inside the image / container
+      - "../../:/openlibrary"
+    networks:
+      - solr-access
+      - db-access
+
+volumes:
+  postgres-data:
+  solr-data:
+  ol-vendor:
+
+networks:
+  db-access:
+  solr-access:

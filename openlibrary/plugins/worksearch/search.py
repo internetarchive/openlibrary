@@ -6,6 +6,7 @@ from infogami.utils import stats
 import web
 import logging
 
+
 def get_solr():
     base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
     return Solr(base_url)

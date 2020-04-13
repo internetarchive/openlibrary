@@ -26,7 +26,7 @@ def image_dir(tmpdir):
 @pytest.mark.parametrize('prefix, path', image_formats)
 def test_write_image(prefix, path, image_dir):
     """Test writing jpg, gif and png images"""
-    data = open(join(static_dir, path)).read()
+    data = open(join(static_dir, path), 'rb').read()
     assert coverlib.write_image(data, prefix) is not None
 
     def _exists(filename):
@@ -37,14 +37,14 @@ def test_write_image(prefix, path, image_dir):
     assert _exists(prefix + '-M.jpg')
     assert _exists(prefix + '-L.jpg')
 
-    assert open(coverlib.find_image_path(prefix + '.jpg')).read() == data
+    assert open(coverlib.find_image_path(prefix + '.jpg'), 'rb').read() == data
 
 def test_bad_image(image_dir):
     prefix = config.data_root + '/bad'
-    assert coverlib.write_image('', prefix) == None
+    assert coverlib.write_image(b'', prefix) is None
 
     prefix = config.data_root + '/bad'
-    assert coverlib.write_image('not an image', prefix) == None
+    assert coverlib.write_image(b'not an image', prefix) is None
 
 def test_resize_image_aspect_ratio():
     """make sure the aspect-ratio is maintained"""
@@ -66,20 +66,19 @@ def test_resize_image_aspect_ratio():
 def test_serve_file(image_dir):
     path = static_dir + "/logos/logo-en.png"
 
-    assert coverlib.read_file('/dev/null') == ''
-    assert coverlib.read_file(path) == open(path).read()
+    assert coverlib.read_file('/dev/null') == b''
+    assert coverlib.read_file(path) == open(path, "rb").read()
 
-    assert coverlib.read_file(path + ":10:20") == open(path).read()[10:10+20]
+    assert coverlib.read_file(path + ":10:20") == open(path, "rb").read()[10:10+20]
 
 def test_server_image(image_dir):
     def write(filename, data):
-        f = open(join(config.data_root, filename), 'w')
-        f.write(data)
-        f.close()
+        with open(join(config.data_root, filename), 'wb') as f:
+            f.write(data)
 
     def do_test(d):
         def serve_image(d, size):
-            return "".join(coverlib.read_image(d, size))
+            return "".join(coverlib.read_image(d, size).decode('utf-8'))
 
         assert serve_image(d, '') == 'main image'
         assert serve_image(d, None) == 'main image'
@@ -93,19 +92,19 @@ def test_server_image(image_dir):
         assert serve_image(d, 'l') == 'L image'
 
     # test with regular images
-    write('localdisk/a.jpg', 'main image')
-    write('localdisk/a-S.jpg', 'S image')
-    write('localdisk/a-M.jpg', 'M image')
-    write('localdisk/a-L.jpg', 'L image')
+    write('localdisk/a.jpg', b'main image')
+    write('localdisk/a-S.jpg', b'S image')
+    write('localdisk/a-M.jpg', b'M image')
+    write('localdisk/a-L.jpg', b'L image')
 
     d = web.storage(id=1, filename='a.jpg', filename_s='a-S.jpg', filename_m='a-M.jpg', filename_l='a-L.jpg')
     do_test(d)
 
     # test with offsets
-    write('items/covers_0000/covers_0000_00.tar', 'xxmain imagexx')
-    write('items/s_covers_0000/s_covers_0000_00.tar', 'xxS imagexx')
-    write('items/m_covers_0000/m_covers_0000_00.tar', 'xxM imagexx')
-    write('items/l_covers_0000/l_covers_0000_00.tar', 'xxL imagexx')
+    write('items/covers_0000/covers_0000_00.tar', b'xxmain imagexx')
+    write('items/s_covers_0000/s_covers_0000_00.tar', b'xxS imagexx')
+    write('items/m_covers_0000/m_covers_0000_00.tar', b'xxM imagexx')
+    write('items/l_covers_0000/l_covers_0000_00.tar', b'xxL imagexx')
 
     d = web.storage(
         id=1,

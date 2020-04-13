@@ -217,7 +217,7 @@ ul.inner {
 
     <div class="section">
         <h3>Borrow Info</h3>
-        Borrowable? <em>$cond(can_borrow(page), "Yes", "No")</em>
+        Borrowable? <em>$cond(page.in_borrowable_collection(), "Yes", "No")</em>
         <br/>
         $if loan_users:
           Borrowed by: $:format_users(loan_users)
