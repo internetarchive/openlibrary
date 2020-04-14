@@ -7,7 +7,7 @@ $if slick_font not in ctx.links:
 
 $def render_carousel_cover(book, lazy):
   $ availability = book.get('availability', {})
-  $ ocaid = book.get('ocaid') or availability.get('identifier') or book.get('ia')
+  $ ocaid = book.get('ocaid') or availability.get('identifier')
   $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
   $ cover_host = '//covers.openlibrary.org'
   $ url = book.get('key') or book.url
@@ -38,16 +38,18 @@ $def render_carousel_cover(book, lazy):
     $ cta_url = book['eligibility']['sponsor_url']
     $ cta = _('Sponsor')
     $ cta_cls = 'sponsor'
-  $elif ocaid:
-    $if book.get('public_scan') or availability.get('status') == 'open':
-      $ cta_cls = 'available'
-      $ cta_url = "//archive.org/stream/%s?ref=ol"%book.get('ia')
-      $ cta = _('Read')
-    $elif book.get('lending_edition') or availability.get('status') == 'borrow_available':
-      $ cta_cls = 'available'
+  $if book.get('ia') or book.get('ocaid'):
+    $ cta_cls = 'available'
+    $if book.get('ocaid') or availability.get('status') == 'borrow_available' or book.get('lending_edition'):
       $ modifier = 'borrow-link'
       $ cta = _('Borrow')
-      $ cta_url = '/borrow/ia/%s' % ocaid
+      $if ocaid:
+        $ cta_url = '/borrow/ia/%s' % book.get('ocaid')
+      $else:
+        $ cta_url = "/books/%s/x/borrow" % book.get('lending_edition')
+    $else:
+      $ cta_url = "//archive.org/stream/%s?ref=ol" % book.get('ia')[0]
+      $ cta = _('Read')
 
   $if lazy:
     $ img_attr = 'data-lazy'
