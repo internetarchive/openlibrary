@@ -37,7 +37,7 @@ $code:
 $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
   <li class="prices-$key">
       <a href="$link"
-         title="_('Look for this edition for sale at %(store)s', store=name)"
+         title="$_('Look for this edition for sale at %(store)s', store=name)"
          data-ol-link-track="BuyLink|$analytics_key"
          target="_blank">$name</a>
 
