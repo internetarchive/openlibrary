@@ -85,7 +85,7 @@ const Carousel = {
             var ocaid = work.availability.identifier;
             var cover = {
                 type: 'id',
-                id: work.covers? work.covers[0] : work.cover_id || work.cover_i
+                id: work.covers ? work.covers[0] : work.cover_id || work.cover_i
             };
             var cls = availabilityStatuses[availability].cls;
             var url = (cls == 'cta-btn--available') ?
