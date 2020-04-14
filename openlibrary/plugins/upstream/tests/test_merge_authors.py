@@ -346,7 +346,7 @@ def test_dicthash():
     assert dicthash({"a": 1}) == dicthash({"a": 1})
     a_b = {"a": 1, "b": 2}
     b_a = {"b": 2, "a": 1}
-    if a_b == b_a:  # Python 2 same items in the same order
+    if a_b == b_a:  # Python 2 dicts have same items in the same order
         assert dicthash(a_b) == dicthash(b_a)
     else:  # Python 3 same items but not necessarily the same order
         assert len(dicthash(a_b)) == len(dicthash(b_a))
