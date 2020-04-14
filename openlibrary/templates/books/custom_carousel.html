@@ -39,6 +39,7 @@ $def render_carousel_cover(book, lazy):
     $ cta = _('Sponsor')
     $ cta_cls = 'sponsor'
   $if book.get('ia') or book.get('ocaid'):
+    $# See PR #3349 -- Hacky availability heuristic until #3180 lands  
     $ cta_cls = 'available'
     $if book.get('ocaid') or availability.get('status') == 'borrow_available' or book.get('lending_edition'):
       $ modifier = 'borrow-link'
