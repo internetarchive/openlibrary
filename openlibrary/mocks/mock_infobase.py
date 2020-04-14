@@ -100,11 +100,14 @@ class MockSite:
 
             foo = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
         """
+        import logging
+        logger = logging.getLogger(__name__)
         query = {
             "key": key,
             "type": {"key": type},
         }
         query.update(kw)
+        logger.error("quicksave(%s) query=%s" % (key, query))
         self.save(query)
         return self.get(key)
 
