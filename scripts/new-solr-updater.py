@@ -42,7 +42,7 @@ def parse_arguments():
     parser.add_argument('--ol-url', default="http://openlibrary.org/")
     parser.add_argument('--socket-timeout', type=int, default=10)
     parser.add_argument('--stats', default='unspecified',
-                        help="Log stats to graphite under ol.solr.solr-updater.THIS")
+                        help="Log stats to graphite under ol.solr-updater.THIS")
     parser.add_argument('--load-ia-scans', dest="load_ia_scans", action="store_true", default=False)
     parser.add_argument('--no-commit', dest="commit", action="store_false", default=True)
     return parser.parse_args()
@@ -279,8 +279,9 @@ def main():
     logger.info(str(args))
     logger.info("loading config from %s", args.config)
     load_config(args.config)
+    stats.client = stats.create_stats_client()  # This needs to happen after load_config
 
-    stats_prefix = 'ol.solr.solr-updater.' + args.stats.strip('.')
+    stats_prefix = 'ol.solr-updater.' + args.stats.strip('.')
     state_file = args.state_file
     offset = read_state_file(state_file)
 
