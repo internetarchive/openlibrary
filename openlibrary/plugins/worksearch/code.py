@@ -795,7 +795,7 @@ def work_search(query, sort=None, page=1, offset=0, limit=100):
         (reply, solr_select, q_list) = run_solr_query(query,
                                                       rows=limit,
                                                       page=page,
-                                                      sort=sort and sorts[sort] or None,
+                                                      sort=sorts.get(sort),
                                                       offset=offset,
                                                       fields="*")
         response = json.loads(reply)['response'] or ''
