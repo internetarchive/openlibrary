@@ -17,9 +17,9 @@ $if search:
     <input type="submit"/>
   </form>
 
-$ url = '/search?q=%s&has_fulltext=true' % query
+$ url = '/search?q=%s&has_fulltext=true' % urlquote(query)
 $ results = work_search({'has_fulltext': 'true', 'q': query}, sort=sort, limit=limit)
 $ books = [storage(b) for b in (results.get('docs', []))]
-$ load_more = {"url": "/search.json?q=%s&has_fulltext=true" % query, "limit": limit}
+$ load_more = {"url": "/search.json?q=%s&has_fulltext=true" % urlquote(query), "limit": limit}
 
 $:render_template("books/custom_carousel", books=books, title=title, url=url, key=key, load_more=load_more)
