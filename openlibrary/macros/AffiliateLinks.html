@@ -21,18 +21,26 @@ $code:
     'analytics_key': 'Amazon',
     'name': _('Amazon'),
     'link': 'https://www.amazon.com/dp/%s/?tag=%s' % (asin or isbn, affiliate_id('amazon')),
-  }
+  } if (asin or isbn) else None
+
+  bookshop = {
+    'key': 'bookshop-org',
+    'analytics_key': 'BookshopOrg',
+    'name': _('Bookshop.org'),
+    'link': 'https://bookshop.org/a/%s/%s' % (affiliate_id('bookshop-org'), isbn),
+  } if isbn else None
 
   # Fetch price data
   if not is_bot() and prices and isbn:
     bwb_metadata = get_betterworldbooks_metadata(isbn)
     bwb['price'] = bwb_metadata and bwb_metadata.get('price')
-    amazon['price'] = bwb_metadata and bwb_metadata.get('market_price')
-    if not amazon['price']:
+    if amazon:
+      amazon['price'] = bwb_metadata and bwb_metadata.get('market_price')
+    if amazon and not amazon['price']:
       amz_metadata = get_amazon_metadata(isbn, resources='prices')
       amazon['price'] = amz_metadata and amz_metadata.get('price')
 
-  stores = [bwb, amazon]
+  stores = [store for store in [bwb, amazon, bookshop] if store]
 
 $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
   <li class="prices-$key">
