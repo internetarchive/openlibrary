@@ -7,6 +7,7 @@ $code:
 
   bwb = {
     'key': 'betterworldbooks',
+    'analytics_key': 'BetterWorldBooks',
     'name': _('Better World Books'),
     'link': 'https://www.anrdoezrs.net/links/%s/type/dlg/http://www.betterworldbooks.com/%s' % (
       affiliate_id('betterworldbooks'),
@@ -17,6 +18,7 @@ $code:
 
   amazon = {
     'key': 'amazon',
+    'analytics_key': 'Amazon',
     'name': _('Amazon'),
     'link': 'https://www.amazon.com/dp/%s/?tag=%s' % (asin or isbn, affiliate_id('amazon')),
   }
@@ -32,9 +34,11 @@ $code:
 
   stores = [bwb, amazon]
 
-$def affiliate_link(key, name, link, price, price_note=''):
+$def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
   <li class="prices-$key">
-      <a href="$link" title="_('Look for this edition for sale at %(store)s', store=name)"
+      <a href="$link"
+         title="_('Look for this edition for sale at %(store)s', store=name)"
+         data-ol-link-track="BuyLink|$analytics_key"
          target="_blank">$name</a>
 
       $if price:
@@ -44,5 +48,5 @@ $def affiliate_link(key, name, link, price, price_note=''):
 
 <ul class="buy-options-table">
     $for store in stores:
-      $:affiliate_link(store['key'], store['name'], store['link'], store.get('price', ''), store.get('price_note', ''))
+      $:affiliate_link(store['key'], store['analytics_key'], store['name'], store['link'], store.get('price', ''), store.get('price_note', ''))
 </ul>
