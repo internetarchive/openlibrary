@@ -10,7 +10,7 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
     <h1>
         $page.name
         <span class="count" id="coversCount">
-            <em>Publisher</em> - <strong><span>$ungettext("1 work", "%(count)s works", page.work_count, count=commify(page.work_count))</span></strong>
+            <em>Publisher</em> - <strong><span>$ungettext("1 work", "%(count)d works", page.work_count, count=page.work_count)</span></strong>
             $if page.ebook_count > 0:
                 / <span class="ebookcount"><span id="ebooks">$ungettext("1 ebook", "%(count)s ebooks", page.ebook_count, count=commify(page.ebook_count))</span></span>
             $else:
