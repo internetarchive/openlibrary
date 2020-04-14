@@ -1,0 +1,25 @@
+$def with(query, title=None, sort='new', key='', limit=20, search=False)
+
+$# Takes following parameters
+$# * query (str) -- Any arbitrary Open Library search query, e.g. subject:"Textbooks"
+$# * title (str) -- A title to show above the carousel (links to /search?q=query)
+$# * sort (str) -- optional sort param defined within work_search.py `work_search`
+$# * key (str) -- unique name of the carousel in analytics
+$# * limit (int) -- initial number of books to pull
+$# * search (bool) -- whether to include search within collection
+
+$# Enable search within this query
+$if search:
+  <form action="/search" class="olform pagesearchbox">
+    <input type="hidden" name="q" value="$query"/>
+    <input type="hidden" name="has_fulltext" value="true"/>
+    <input type="text" placeholder="Search collection" name="q2"/>
+    <input type="submit"/>
+  </form>
+
+$ url = '/search?q=%s&has_fulltext=true' % urlquote(query)
+$ results = work_search({'has_fulltext': 'true', 'q': query}, sort=sort, limit=limit)
+$ books = [storage(b) for b in (results.get('docs', []))]
+$ load_more = {"url": "/search.json?q=%s&has_fulltext=true" % urlquote(query), "limit": limit}
+
+$:render_template("books/custom_carousel", books=books, title=title, url=url, key=key, load_more=load_more)

@@ -6,7 +6,7 @@ import re
 from lxml.etree import XML, XMLSyntaxError
 from infogami.utils import delegate, stats
 from infogami import config
-from infogami.utils.view import render, render_template, safeint
+from infogami.utils.view import render, render_template, safeint, public
 import simplejson as json
 from openlibrary.core.lending import get_availability_of_ocaids, add_availability
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -495,6 +495,14 @@ class search(delegate.page):
             raise web.seeother(editions[0])
 
     def GET(self):
+        # Enable patrons to search for query q2 within collection q
+        # q2 param gets removed and prepended to q via a redirect
+        _i = web.input(q='', q2='')
+        if _i.q.strip() and _i.q2.strip():
+            _i.q = _i.q2.strip() + ' ' + _i.q.strip()
+            _i.pop('q2')
+            raise web.seeother('/search?' + urllib.parse.urlencode(_i))
+
         i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[], public_scan_b=[])
 
         # Send to full-text Search Inside if checkbox checked
@@ -767,6 +775,40 @@ class author_search_json(author_search):
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response))
 
+
+@public
+def work_search(query, sort=None, page=1, offset=0, limit=100):
+    """
+    params:
+    query: dict
+    sort: str editions|old|new|scans
+    """
+    sorts = {
+        'editions': 'edition_count desc',
+        'old': 'first_publish_year asc',
+        'new': 'first_publish_year desc',
+        'scans': 'ia_count desc'
+    }
+    query['wt'] = 'json'
+
+    try:
+        (reply, solr_select, q_list) = run_solr_query(query,
+                                                      rows=limit,
+                                                      page=page,
+                                                      sort=sorts.get(sort),
+                                                      offset=offset,
+                                                      fields="*")
+        response = json.loads(reply)['response'] or ''
+    except (ValueError, IOError) as e:
+        logger.error("Error in processing search API.")
+        response = dict(start=0, numFound=0, docs=[], error=str(e))
+
+    # backward compatibility
+    response['num_found'] = response['numFound']
+    response['docs'] = add_availability(response['docs'])
+    return response
+
+
 class search_json(delegate.page):
     path = "/search"
     encoding = "json"
@@ -778,13 +820,7 @@ class search_json(delegate.page):
         else:
             query = i
 
-        sorts = dict(
-            editions='edition_count desc',
-            old='first_publish_year asc',
-            new='first_publish_year desc',
-            scans='ia_count desc')
-        sort_name = query.get('sort', None)
-        sort_value = sort_name and sorts[sort_name] or None
+        sort = query.get('sort', None)
 
         limit = safeint(query.pop("limit", "100"), default=100)
         if "offset" in query:
@@ -794,23 +830,8 @@ class search_json(delegate.page):
             offset = None
             page = safeint(query.pop("page", "1"), default=1)
 
-        query['wt'] = 'json'
+        response = work_search(query, sort=sort, page=page, offset=offset, limit=limit)
 
-        try:
-            (reply, solr_select, q_list) = run_solr_query(query,
-                                                rows=limit,
-                                                page=page,
-                                                sort=sort_value,
-                                                offset=offset,
-                                                fields="*")
-
-            response = json.loads(reply)['response'] or ''
-        except (ValueError, IOError) as e:
-            logger.error("Error in processing search API.")
-            response = dict(start=0, numFound=0, docs=[], error=str(e))
-
-        # backward compatibility
-        response['num_found'] = response['numFound']
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=True))
 
