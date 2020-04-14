@@ -77,7 +77,7 @@ const Carousel = {
             open: {cls: 'cta-btn--available', cta: 'Read'},
             borrow_available: {cls: 'cta-btn--available', cta: 'Borrow'},
             borrow_unavailable: {cls: 'cta-btn--unavailable', cta: 'Join Waitlist'},
-            error: {cls: 'cta-btn--missing', cta: 'No eBook'}
+            error: {cls: 'cta-btn--missing', cta: 'Not In Library'}
         };
 
         addWork = function(work) {
