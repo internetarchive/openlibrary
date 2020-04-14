@@ -299,7 +299,7 @@ msgstr "Emplacement"
 msgid "1 work"
 msgid_plural "%(count)d works"
 msgstr[0] "1 œuvre"
-msgstr[1] "%(count)s œuvres"
+msgstr[1] "%(count)d œuvres"
 
 #: view.html:135
 msgid "Add another?"
@@ -4039,7 +4039,7 @@ msgstr ""
 #: openlibrary/macros/LoanStatus.html:89
 #, python-format
 msgid ""
-"We don’t have this book yet. You can add it to our Lending Library with a"
+"We don't have this book yet. You can add it to our Lending Library with a"
 " %(price)s tax deductible donation."
 msgstr ""
 

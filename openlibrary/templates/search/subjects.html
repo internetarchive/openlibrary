@@ -82,7 +82,7 @@ $if q and 'error' not in results:
                     note = '<span class="black">' + _("work") + '</span>'
                 else:
                     note = doc['type']
-            <span class="count">&nbsp;&nbsp;<b>$ungettext('1 book', '%(count)s books', doc['count'], count=commify(doc['count']))</b>, $:note</span>
+            <span class="count">&nbsp;&nbsp;<b>$ungettext('1 book', '%(count)d books', doc['count'], count=doc['count'])</b>, $:note</span>
         </li>
     </ul>
     $:macros.Pager(page, num_found, results_per_page)

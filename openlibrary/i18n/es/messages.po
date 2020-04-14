@@ -3611,7 +3611,7 @@ msgstr "Patrocinar libro electrónico"
 
 #: openlibrary/macros/LoanStatus.html:91
 #, python-format
-msgid "We don’t have this book yet. You can add it to our Lending Library with a %(price)s tax deductible donation."
+msgid "We don't have this book yet. You can add it to our Lending Library with a %(price)s tax deductible donation."
 msgstr "Todavía no tenemos este libro. Puedes añadirlo a nuestra biblioteca de préstamos con una donación de %(price)s deducible de impuestos."
 
 #: openlibrary/macros/Pager.html:26

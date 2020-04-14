@@ -59,7 +59,7 @@ $var title: Search Open Library for "$q"
         $for doc in response['docs']:
             $ n = doc['name']
             $ num = doc['work_count']
-            $ wc = ungettext("1 book", "%(count)s books", num, count=commify(num))
+            $ wc = ungettext("1 book", "%(count)d books", num, count=num)
             $ date = ''
             $if 'birth_date' in doc or 'death_date' in doc:
                 $ date = doc.get('birth_date', '') + ' - ' + doc.get('death_date', '')

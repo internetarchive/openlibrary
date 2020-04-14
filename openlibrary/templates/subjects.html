@@ -12,7 +12,7 @@ $ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), 
     </h1>
     <span class="heading">
         <span class="count" id="coversCount">
-            <strong><span>$ungettext("1 work", "%(count)s works", page.work_count, count=commify(page.work_count))</span></strong>
+            <strong><span>$ungettext("1 work", "%(count)d works", page.work_count, count=page.work_count)</span></strong>
         </span>
     </span>
     <a href="#search" class="shift">$_('Search for books with subject %(name)s.', name=page.name)</a>
