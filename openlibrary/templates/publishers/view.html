@@ -124,7 +124,7 @@ $jsdef renderAuthors(authors):
         <span class="tag">
             <a href="$a.key" title="$_('See more books by, and learn about, this author')">$a.name</a>,
         </span>
-        <span class="count">$ungettext("1 book", "%(count)s books", a.count, count=commify(a.count))</span>
+        <span class="count">$ungettext("1 book", "%(count)d books", a.count, count=a.count)</span>
         <br/>
 <div id="resultsAuthors" class="widget-box">
     <div class="head">
