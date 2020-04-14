@@ -346,9 +346,10 @@ def test_dicthash():
     assert dicthash({"a": 1}) == dicthash({"a": 1})
     a_b = {"a": 1, "b": 2}
     b_a = {"b": 2, "a": 1}
-    if a_b == b_a:  # Python 2 dicts have same items in the same order
+    # a_b and b_a will have the same dicthash() in Python 2 but NOT in Python 3
+    if list(a_b.items()) == list(b_a.items()):  # Py2 dicts w/ same items in same order
         assert dicthash(a_b) == dicthash(b_a)
-    else:  # Python 3 same items but not necessarily the same order
+    else:  # Py3 dicts have the same items but not necessarily in the same order
         assert len(dicthash(a_b)) == len(dicthash(b_a))
         assert all(item in dicthash(a_b) for item in dicthash(b_a))
     assert dicthash({}) != dicthash({"a": 1})
