@@ -45,9 +45,9 @@ $def render_carousel_cover(book, lazy):
       $ modifier = 'borrow-link'
       $ cta = _('Borrow')
       $if ocaid:
-        $ cta_url = '/borrow/ia/%s' % book.get('ocaid')
+        $ cta_url = '/borrow/ia/%s?ref=ol' % ocaid
       $else:
-        $ cta_url = "/books/%s/x/borrow" % book.get('lending_edition')
+        $ cta_url = "/books/%s/x/borrow?ref=ol" % book.get('lending_edition')
     $else:
       $ cta_url = "//archive.org/stream/%s?ref=ol" % book.get('ia')[0]
       $ cta = _('Read')
