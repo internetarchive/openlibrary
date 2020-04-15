@@ -77,7 +77,7 @@ $elif (availability_status == 'borrow_unavailable'):
     </p>
     <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
       <input type="hidden" name="action" value="join-waitinglist"/>
-      <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="_$('Join Waitlist')"/>
+      <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="$_('Join Waitlist')"/>
     </form>
 
 $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
