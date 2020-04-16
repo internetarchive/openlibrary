@@ -106,11 +106,6 @@ class MockSite:
         }
         query.update(kw)
         self.save(query)
-
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error("quicksave(%s) query=%s -> %s" % (key, query, self.get(key)))
-
         return self.get(key)
 
     def _make_changeset(self, timestamp, kind, comment, data, changes, author=None):

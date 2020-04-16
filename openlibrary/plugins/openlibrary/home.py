@@ -238,7 +238,6 @@ def format_book_data(book):
     work = book.works and book.works[0]
     d.authors = get_authors(work if work else book)
     cover = work.get_cover() if work and work.get_cover() else book.get_cover()
-    logger.error("format_book_data(%s) work=%s, d.authors=%s" % (book, work, d.authors))
 
     if cover:
         d.cover_url = cover.url("M")
