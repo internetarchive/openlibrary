@@ -109,6 +109,7 @@ def cached_work_authors_and_subjects(work_id):
             get_work_authors_and_related_subjects, 'works_authors_and_subjects',
             timeout=dateutil.HALF_DAY_SECS)(work_id)
     except AttributeError:
+        logger.exception("cached_work_authors_and_subjects(%s)" % work_id)
         return {'authors': [], 'subject': []}
 
 @public
@@ -187,14 +188,15 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
 def get_random_available_ia_edition():
     """uses archive advancedsearch to raise a random book"""
     try:
-        url=("http://%s/advancedsearch.php?q=_exists_:openlibrary_work"\
-             "+AND+loans__status__status:AVAILABLE"\
-             "&fl=identifier,openlibrary_edition,loans__status__status"\
-             "&output=json&rows=1&sort[]=random" % (config_bookreader_host))
+        url = ("http://%s/advancedsearch.php?q=_exists_:openlibrary_work"
+               "+AND+loans__status__status:AVAILABLE"
+               "&fl=identifier,openlibrary_edition,loans__status__status"
+               "&output=json&rows=1&sort[]=random" % (config_bookreader_host))
         content = urllib.request.urlopen(url=url, timeout=config_http_request_timeout).read()
         items = simplejson.loads(content).get('response', {}).get('docs', [])
         return items[0]["openlibrary_edition"]
-    except Exception as e:
+    except Exception:  # TODO: Narrow exception scope
+        logger.exception("get_random_available_ia_edition(%s)" % url)
         return None
 
 def get_available(limit=None, page=1, subject=None, query=None,
@@ -227,7 +229,8 @@ def get_available(limit=None, page=1, subject=None, query=None,
                 results[item['openlibrary_work']] = item['openlibrary_edition']
         books = web.ctx.site.get_many(['/books/%s' % result for result in results.values()])
         return books
-    except Exception as e:
+    except Exception:  # TODO: Narrow exception scope
+        logger.exception("get_available(%s)" % url)
         return {'error': 'request_timeout'}
 
 
@@ -241,7 +244,8 @@ def get_availability(key, ids):
     try:
         content = urllib.request.urlopen(url=url, timeout=config_http_request_timeout).read()
         return simplejson.loads(content).get('responses', {})
-    except Exception as e:
+    except Exception as e:  # TODO: Narrow exception scope
+        logger.exception("get_availability(%s)" % url)
         return {'error': 'request_timeout', 'details': str(e)}
 
 def get_edition_availability(ol_edition_id):
@@ -343,7 +347,8 @@ def is_loaned_out_on_ia(identifier):
     try:
         response = simplejson.loads(urllib.request.urlopen(url).read())
         return response and response.get('checkedout')
-    except:
+    except Exception:  # TODO: Narrow exception scope
+        logger.exception("is_loaned_out_on_ia(%s)" % identifier)
         return None
 
 
@@ -375,13 +380,13 @@ def get_loan(identifier, user_key=None):
             return loan.delete()
     try:
         _loan = _get_ia_loan(identifier, account and userkey2userid(account.username))
-    except Exception as e:
-        pass
+    except Exception:  # TODO: Narrow exception scope
+        logger.exception("get_loan(%s) 1 of 2" % identifier)
 
     try:
         _loan = _get_ia_loan(identifier, account and account.itemname)
-    except Exception as e:
-        pass
+    except Exception:  # TODO: Narrow exception scope
+        logger.exception("get_loan(%s) 2 of 2" % identifier)
 
     return _loan
 
@@ -473,11 +478,11 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
     }
     try:
         ebook.update(**kwargs)
-    except Exception:
+    except Exception:  # TODO: Narrow exception scope
         # updating ebook document is sometimes failing with
         # "Document update conflict" error.
         # Log the error in such cases, don't crash.
-        logger.error("failed to update ebook for %s", identifier, exc_info=True)
+        logger.exception("failed to update ebook for %s", identifier)
 
     # fire loan-completed event
     if is_loan_completed and ebook.get('loan'):
@@ -716,7 +721,7 @@ class ACS4Item(object):
         try:
             return simplejson.loads(urllib.request.urlopen(url).read())
         except IOError:
-            logger.error("unable to conact BSS server", exc_info=True)
+            logger.exception("unable to conact BSS server")
 
     def has_loan(self):
         return bool(self.get_loan())
@@ -805,7 +810,7 @@ class IA_Lending_API:
                                        timeout=config_http_request_timeout).read()
             logger.info("POST response: %s", jsontext)
             return simplejson.loads(jsontext)
-        except Exception as e:
+        except Exception:  # TODO: Narrow exception scope
             logger.exception("POST failed")
             raise
 

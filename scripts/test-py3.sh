@@ -12,7 +12,7 @@ RETURN_CODE=$?
 pytest openlibrary/catalog/marc/tests/test_get_subjects.py || true
 pytest openlibrary/catalog/marc/tests/test_parse.py || true
 pytest openlibrary/tests/catalog/test_get_ia.py || true
-pytest openlibrary/coverstore/tests/test_doctests.py || true
-pytest openlibrary/plugins/openlibrary/tests/test_home.py || true
+pytest --show-capture=all openlibrary/coverstore/tests/test_doctests.py || true
+pytest --show-capture=all openlibrary/plugins/openlibrary/tests/test_home.py || true
 
 exit ${RETURN_CODE}
