@@ -1,0 +1,16 @@
+# To enable this pre-commit hook (in this case, pre-push hook), run:
+# `python3 -m pip install pre-commit` or `brew install pre-commit`
+
+# Learn more about this config here: https://pre-commit.com/
+default_language_version:
+  python: python3.8
+default_stages: [push]
+repos:
+  - repo: local
+    hooks:
+      - id: make-lint-diff
+        name: make lint-diff
+        # Running git inside docker is slow for some reason, so do that outside and pipe
+        # the results into docker.
+        entry: git diff master -U0 | docker-compose run --rm web ./scripts/flake8-diff.sh
+        language: script
