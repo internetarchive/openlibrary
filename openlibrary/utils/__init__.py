@@ -44,10 +44,11 @@ def uniq(values, key=None):
     return result
 
 def dicthash(d):
-    """Dictionaries are not hashable. This function converts dictionary into nested tuples, so that it can hashed.
+    """Dictionaries are not hashable. This function converts dictionary into nested
+    tuples, so that it can hashed.
     """
     if isinstance(d, dict):
-        return tuple((k, dicthash(v)) for k, v in d.items())
+        return tuple((k, dicthash(d[k])) for k in sorted(d))
     elif isinstance(d, list):
         return tuple(dicthash(v) for v in d)
     else:

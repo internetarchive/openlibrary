@@ -119,9 +119,11 @@ class TestMarcParse(unittest.TestCase):
                 {'subject_places': ['Great Britain'], 'subjects': ['British West Indies', 'Relations']})
                 #'West Indies, British -- Relations -- Great Britain.')
         ]
-        for (value, expect) in data:
+        for value, expect in data:
             output = subjects_for_work(MockRecord('650', value))
-            self.assertEqual(expect, output)
+            assert sorted(expect) == sorted(output)
+            for key in ('subjects', 'subject_places', 'subject_times'):
+                assert sorted(expect.get(key, [])) == sorted(output.get(key, []))
 
     def test_read_title(self):
         data = [

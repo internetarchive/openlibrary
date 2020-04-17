@@ -3810,7 +3810,7 @@ msgstr ""
 #: openlibrary/macros/LoanStatus.html:89
 #, python-format
 msgid ""
-"We don’t have this book yet. You can add it to our Lending Library with a"
+"We don't have this book yet. You can add it to our Lending Library with a"
 " %(price)s tax deductible donation."
 msgstr ""
 

@@ -15,9 +15,9 @@ $if stats:
         </div>
 
         <div class="statschart">
-          <div class="chartShow" onClick="window.location.href='/recentchanges';" title="$_('How many new Open Library members have we welcomed?')">
+          <div class="chartShow" onClick="window.location.href='/stats';" title="$_('How many new Open Library members have we welcomed?')">
             <div id="members-graph" style="width:150px;height:60px;"></div>
-            <a href="/recentchanges" title="$_('How many new Open Library members have we welcomed?')"><span class="ticks">$:commify(stats["members"].get_summary(28))</span><span class="label">$_('New Members')</span></a>
+            <a href="/stats" title="$_('How many new Open Library members have we welcomed?')"><span class="ticks">$:commify(stats["members"].get_summary(28))</span><span class="label">$_('New Members')</span></a>
           </div>
         </div>
         <div class="statschart">

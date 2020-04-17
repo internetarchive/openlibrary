@@ -88,7 +88,7 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
        class="cta-btn cta-btn--sponsor"
        data-ol-link-track="CTAClick|Sponsor">$_('Sponsor eBook')</a>
     <p>
-      $_("We don’t have this book yet. You can add it to our Lending Library with a %(price)s tax deductible donation.", price=sponsorship['price']['total_price_display'])
+      $_("We don't have this book yet. You can add it to our Lending Library with a %(price)s tax deductible donation.", price=sponsorship['price']['total_price_display'])
       <a href="/sponsorship" target="_blank">$_('Learn More')</a>
     </p>
   $else:
