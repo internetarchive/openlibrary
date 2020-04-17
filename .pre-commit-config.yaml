@@ -1,3 +1,7 @@
+# To enable this pre-commit hook (in this case, pre-push hook), run:
+# `python3 -m pip install pre-commit` or `brew install pre-commit`
+
+# Learn more about this config here: https://pre-commit.com/
 default_language_version:
   python: python3.8
 default_stages: [push]
