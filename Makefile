@@ -61,12 +61,7 @@ reindex-solr:
 	su postgres -c "psql openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://0.0.0.0/ -c conf/openlibrary.yml --data-provider=legacy"
 
 lint-diff:
-	# https://flake8.readthedocs.io/en/latest/user/error-codes.html
-	# https://pycodestyle.readthedocs.io/en/latest/intro.html#error-codes
-	# E226 missing whitespace around arithmetic operator
-	# F401 '._init_path' imported but unused
-	# W504 line break after binary operator
-	git diff master -U0 | flake8 --diff --ignore=E226,F401,W504 --max-line-length=88 --statistics
+	git diff master -U0 | ./scripts/flake8-diff.sh
 
 lint:
 	# stop the build if there are Python syntax errors or undefined names

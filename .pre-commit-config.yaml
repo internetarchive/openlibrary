@@ -6,10 +6,7 @@ repos:
     hooks:
       - id: make-lint-diff
         name: make lint-diff
-        entry: docker-compose run --rm web make lint-diff
+        # Running git inside docker is slow for some reason, so do that outside and pipe
+        # the results into docker.
+        entry: git diff master -U0 | docker-compose run --rm web ./scripts/flake8-diff.sh
         language: script
-      # The following hook works but takes several seconds...
-      #- id: make-lint
-      #  name: make lint
-      #  entry: /usr/bin/make lint
-      #  language: script
