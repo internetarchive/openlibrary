@@ -8,6 +8,7 @@ from infogami.utils import delegate, stats
 from infogami import config
 from infogami.utils.view import render, render_template, safeint, public
 import simplejson as json
+from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.core.lending import get_availability_of_ocaids, add_availability
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.inside.code import fulltext_search
@@ -482,17 +483,16 @@ class search(delegate.page):
         if need_redirect:
             raise web.seeother(web.changequery(**params))
 
+
     def isbn_redirect(self, isbn_param):
         isbn = normalize_isbn(isbn_param)
         if not isbn:
             return
-        editions = []
-        for isbn_len in (10, 13):
-            qisbn = isbn if len(isbn) == isbn_len else opposite_isbn(isbn)
-            q = {'type': '/type/edition', 'isbn_%d' % isbn_len: qisbn}
-            editions += web.ctx.site.things(q)
-        if len(editions):
-            raise web.seeother(editions[0])
+
+        ed = Edition.from_isbn(isbn)
+        if ed:
+            web.seeother(ed.key)
+
 
     def GET(self):
         # Enable patrons to search for query q2 within collection q
