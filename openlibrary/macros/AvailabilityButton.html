@@ -37,7 +37,7 @@ $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
         <span data-ol-link-track="CTAClick|LeaveWaitlist">
           <form method="POST" action="$(read_link)?action=join-waitinglist" class="leave-waitlist waitinglist-form">
             <input type="hidden" name="action" value="leave-waitinglist"/>
-            <input type="submit" class="cta-btn cta-btn--missing" id="unwaitlist_ebook" value="Leave Waitlist"/>
+            <input type="submit" class="cta-btn cta-btn--missing" id="unwaitlist_ebook" value="$_('Leave Waitlist')"/>
           </form>
         </span>
         <div class="waitlist-msg">
