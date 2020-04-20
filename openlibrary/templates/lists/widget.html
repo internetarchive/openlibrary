@@ -47,7 +47,7 @@ $code:
         return d
 
     def get_user_lists():
-        lists = ctx.user and ctx.user.get_lists(sort=False) or []
+        lists = ctx.user and ctx.user.get_lists(sort=True) or []
         return [get_list_data(list, include_cover_url=True) for list in lists]
 
     def get_page_lists():
