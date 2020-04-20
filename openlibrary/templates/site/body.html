@@ -24,7 +24,7 @@ $ show_banners = bodyid != 'form'
       </div>
       $# Paste next line into announcement variable to show the blue banner
       $# <strong>Title:</strong> Description &nbsp; <a href="#" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>
-      $ announcement = _("<strong>Together</strong>, let's build an Open Library for the World.") + ' <a class="cta-btn cta-btn--available" style="display: inline;" href="/sponsorship">Sponsor a Book</a>'
+      $ announcement = _("Parents, teachers, and students: Visit our new <a %s>K-12 Student Library</a>", 'class="cta-btn cta-btn--available" style="display: inline;" href="/k-12"')
       $if announcement:
         <div class="page-banner page-banner-body">     
          $:announcement
