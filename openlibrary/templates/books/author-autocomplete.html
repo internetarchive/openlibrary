@@ -44,8 +44,8 @@ $jsdef render_author(name_path, dict_path, i, author):
         $:render_author(name_path, dict_path, loop.index0, author)
 </div>
 <script type="text/javascript">
-document.getElementById('author-$i').disabled = false;
 window.q.push( function () {
+    \$('.author-autocomplete').prop('disabled', false );
     \$("#authors").setup_multi_input_autocomplete(
         "input.author-autocomplete",
         render_author.bind(null, "$name_path", "$dict_path"),
