@@ -342,10 +342,9 @@ def create_edition_from_amazon_metadata(id_, id_type='isbn'):
     md = get_amazon_metadata(id_, id_type=id_type)
 
     if md and md.get('product_group') == 'Book':
-        with accounts.RunAs('ImportBot'):
+        with accounts.RunAs('ImportBot') as account:
             reply = load(
-                clean_amazon_metadata_for_load(md),
-                account=accounts.get_current_user())
+                clean_amazon_metadata_for_load(md), account=account)
             if reply and reply.get('success'):
                 return reply['edition'].get('key')
 

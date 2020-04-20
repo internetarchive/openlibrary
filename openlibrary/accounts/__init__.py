@@ -34,6 +34,7 @@ class RunAs(object):
 
         # Temporarily become user
         web.ctx.conn.set_auth_token(self.tmp_account.generate_login_code())
+        return self.tmp_account
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Return auth token to original user or no-user
