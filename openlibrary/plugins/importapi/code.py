@@ -198,7 +198,7 @@ class ia_importapi(importapi):
                 raise BookImportError(('invalid-marc-record',))
         else:
             try:
-                edition_data = get_ia_record(metadata)
+                edition_data = self.get_ia_record(metadata)
             except KeyError:
                 raise BookImportError(('invalid-ia-metadata',))
 
