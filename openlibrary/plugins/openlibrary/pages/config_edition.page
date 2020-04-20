@@ -530,6 +530,12 @@
             "label": "LC Control Number"
         },
         {
+            "url": "https://learnawesome.org/items/@@@",
+            "website": "https://learnawesome.org",
+            "name": "learnawesome",
+            "label": "LearnAwesome.org"
+        },
+        {
             "url": "https://www.librarything.com/work/@@@",
             "name": "librarything",
             "label": "Library Thing"
