@@ -14,5 +14,6 @@ pytest openlibrary/catalog/marc/tests/test_parse.py || true
 pytest openlibrary/tests/catalog/test_get_ia.py || true
 pytest --show-capture=all openlibrary/coverstore/tests/test_doctests.py || true
 pytest --show-capture=all openlibrary/plugins/openlibrary/tests/test_home.py || true
+flake8 --exit-zero --count --select=E722 --show-source
 
 exit ${RETURN_CODE}
