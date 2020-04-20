@@ -1,48 +1,60 @@
 $def with (page, opts)
 
-$ prices = opts.get('prices')
-$ isbn = opts.get('isbn', '')
-$ asin = opts.get('asin', '')
+$code:
+  prices = opts.get('prices')
+  isbn = opts.get('isbn', '')
+  asin = opts.get('asin', '')
 
-$ bwb_affiliate_url = 'https://www.anrdoezrs.net/links/%s/type/dlg/http://www.betterworldbooks.com/' % affiliate_id('betterworldbooks')
-$ amazon_affiliate_url = 'https://www.amazon.com/dp/%s/?tag=%s'
+  bwb = {
+    'key': 'betterworldbooks',
+    'analytics_key': 'BetterWorldBooks',
+    'name': _('Better World Books'),
+    'link': 'https://www.anrdoezrs.net/links/%s/type/dlg/http://www.betterworldbooks.com/%s' % (
+      affiliate_id('betterworldbooks'),
+      ('-id-%s.aspx' % isbn) if isbn else ('search/results?q=' + page.title)
+    ),
+    'price_note': _(' - includes shipping')
+  }
 
-$ bwb_price = None
-$ amz_price = None
+  amazon = {
+    'key': 'amazon',
+    'analytics_key': 'Amazon',
+    'name': _('Amazon'),
+    'link': 'https://www.amazon.com/dp/%s/?tag=%s' % (asin or isbn, affiliate_id('amazon')),
+  } if (asin or isbn) else None
+
+  bookshop = {
+    'key': 'bookshop-org',
+    'analytics_key': 'BookshopOrg',
+    'name': _('Bookshop.org'),
+    'link': 'https://bookshop.org/a/%s/%s' % (affiliate_id('bookshop-org'), isbn),
+  } if isbn else None
+
+  # Fetch price data
+  if not is_bot() and prices and isbn:
+    bwb_metadata = get_betterworldbooks_metadata(isbn)
+    bwb['price'] = bwb_metadata and bwb_metadata.get('price')
+    if amazon:
+      amazon['price'] = bwb_metadata and bwb_metadata.get('market_price')
+    if amazon and not amazon['price']:
+      amz_metadata = get_amazon_metadata(isbn, resources='prices')
+      amazon['price'] = amz_metadata and amz_metadata.get('price')
+
+  stores = [store for store in [bwb, amazon, bookshop] if store]
+
+$def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
+  <li class="prices-$key">
+      <a href="$link"
+         title="$_('Look for this edition for sale at %(store)s', store=name)"
+         data-ol-link-track="BuyLink|$analytics_key"
+         target="_blank">$name</a>
+
+      $if price:
+        <br>
+        <span name="price">$price$price_note</span>
+  </li>
 
 <ul class="buy-options-table">
-  $if not is_bot():
-
-    $# Fetch price data
-    $if prices and isbn:
-      $ bwb_metadata = get_betterworldbooks_metadata(isbn)
-      $ bwb_price = bwb_metadata and bwb_metadata.get('price')
-      $ amz_price = bwb_metadata and bwb_metadata.get('market_price')
-      $if not amz_price:
-        $ amz_metadata = get_amazon_metadata(isbn, resources='prices')
-        $ amz_price = amz_metadata and amz_metadata.get('price')
-
-    <li class="prices-betterworldbooks">
-      $if isbn:
-        $ bwb_affiliate_url += '-id-%s.aspx' % isbn
-      $else:
-        $ bwb_affiliate_url += 'search/results?q=' + page.title
-
-      <a href="$bwb_affiliate_url" title="Look for this edition for sale at Better World Books"
-         target="_blank">Better World Books</a>
-
-      $if bwb_price:
-        <br>
-        <span name="price">$bwb_price - includes shipping</span>
-
-    </li>
-
-    $if asin or isbn:
-      <li class="prices-amazon">
-        <a href="$(amazon_affiliate_url % (asin or isbn, affiliate_id('amazon')))"
-           title="Look for this edition for sale at Amazon" target="_blank">Amazon</a>
-        $if amz_price:
-          <br>
-          <span name="price">$(amz_price)</span>
-      </li>
+    $for store in stores:
+      $:affiliate_link(store['key'], store['analytics_key'], store['name'], store['link'], store.get('price', ''), store.get('price_note', ''))
 </ul>
