@@ -195,9 +195,12 @@ def parse_query_fields(q):
             elif '*' in v and not v.startswith('*'):
                 parts = v.split('*', 1)
                 lcc_prefix = normalize_lcc_prefix(parts[0])
-                v = (lcc_prefix or parts[0]) + '*'.join(parts[1:])
+                v = (lcc_prefix or parts[0]) + '*' + parts[1]
             else:
-                v = short_lcc_to_sortable_lcc(v) or v
+                normed = short_lcc_to_sortable_lcc(v.strip('"'))
+                if normed:
+                    use_quotes = ' ' in normed or v.startswith('"')
+                    v = ('"%s"' if use_quotes else '%s*') % normed
         if field_name == 'ddc':
             m = re_range.match(v)
             if m:
@@ -209,7 +212,7 @@ def parse_query_fields(q):
             elif v.endswith('*'):
                 v = normalize_ddc_prefix(v[:-1]) + '*'
             else:
-                normed = normalize_ddc(v)
+                normed = normalize_ddc(v.strip('"'))
                 if normed:
                     v = normed[0]
 
