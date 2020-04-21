@@ -1,4 +1,5 @@
 from __future__ import print_function
+import pytest
 import unittest
 from openlibrary.plugins.worksearch.code import read_facets, sorted_work_editions, parse_query_fields, escape_bracket, run_solr_query, get_doc, build_q_list, escape_colon, parse_search_response
 from lxml import etree
@@ -45,62 +46,52 @@ def test_sorted_work_editions():
     expect = ["OL7536692M","OL7825368M","OL3026366M"]
     assert sorted_work_editions('OL100000W', json_data=json_data) == expect
 
-def test_query_parser_fields():
-    func = parse_query_fields
 
-    expect = [{'field': 'text', 'value': 'query here'}]
-    q = 'query here'
-    print(q)
-    assert list(func(q)) == expect
-
-    expect = [
+# {'Test name': ('query', fields[])}
+QUERY_PARSER_TESTS = {
+    'No fields': ('query here', [
+        {'field': 'text', 'value': 'query here'}
+    ]),
+    'Author field': ('title:food rules author:pollan', [
         {'field': 'title', 'value': 'food rules'},
         {'field': 'author_name', 'value': 'pollan'},
-    ]
-
-    q = 'title:food rules author:pollan'
-    assert list(func(q)) == expect
-
-    q = 'title:food rules by:pollan'
-    assert list(func(q)) == expect
-
-    q = 'Title:food rules By:pollan'
-    assert list(func(q)) == expect
-
-    expect = [
+    ]),
+    'Field aliases': ('title:food rules by:pollan', [
+        {'field': 'title', 'value': 'food rules'},
+        {'field': 'author_name', 'value': 'pollan'},
+    ]),
+    'Fields are case-insensitive aliases': ('title:food rules By:pollan', [
+        {'field': 'title', 'value': 'food rules'},
+        {'field': 'author_name', 'value': 'pollan'},
+    ]),
+    'Quotes': ('title:"food rules" author:pollan', [
         {'field': 'title', 'value': '"food rules"'},
         {'field': 'author_name', 'value': 'pollan'},
-    ]
-    q = 'title:"food rules" author:pollan'
-    assert list(func(q)) == expect
-
-    expect = [
+    ]),
+    'Leading text': ('query here title:food rules author:pollan', [
         {'field': 'text', 'value': 'query here'},
         {'field': 'title', 'value': 'food rules'},
         {'field': 'author_name', 'value': 'pollan'},
-    ]
-    q = 'query here title:food rules author:pollan'
-    assert list(func(q)) == expect
-
-    expect = [
+    ]),
+    'Colons in query': ('flatland:a romance of many dimensions', [
         {'field': 'text', 'value': r'flatland\:a romance of many dimensions'},
-    ]
-    q = 'flatland:a romance of many dimensions'
-    assert list(func(q)) == expect
+    ]),
+    'Colons in field': ('title:flatland:a romance of many dimensions', [
+        {'field': 'title', 'value': r'flatland\:a romance of many dimensions'},
+    ]),
+    'Operators': ('authors:Kim Harrison OR authors:Lynsay Sands', [
+        {'field': 'author_name', 'value': 'Kim Harrison'},
+        {'op': 'OR'},
+        {'field': 'author_name', 'value': 'Lynsay Sands'},
+    ])
+}
 
-    expect = [
-        { 'field': 'title', 'value': r'flatland\:a romance of many dimensions'},
-    ]
-    q = 'title:flatland:a romance of many dimensions'
-    assert list(func(q)) == expect
 
-    expect = [
-        { 'field': 'author_name', 'value': 'Kim Harrison' },
-        { 'op': 'OR' },
-        { 'field': 'author_name', 'value': 'Lynsay Sands' },
-    ]
-    q = 'authors:Kim Harrison OR authors:Lynsay Sands'
-    assert list(func(q)) == expect
+@pytest.mark.parametrize("query,parsed_query", QUERY_PARSER_TESTS.values(),
+                         ids=QUERY_PARSER_TESTS.keys())
+def test_query_parser_fields(query, parsed_query):
+    assert list(parse_query_fields(query)) == parsed_query
+
 
 #     def test_public_scan(lf):
 #         param = {'subject_facet': ['Lending library']}
