@@ -7,11 +7,11 @@ USER postgres
 RUN /etc/init.d/postgresql start \
   && createuser -s openlibrary \
   && createdb openlibrary \
-  && psql openlibrary < openlibrary/core/users.sql \
-  && psql openlibrary < openlibrary/core/schema.sql \
+  && psql --quiet openlibrary < openlibrary/core/users.sql \
+  && psql --quiet openlibrary < openlibrary/core/schema.sql \
   && createdb coverstore \
-  && psql coverstore < openlibrary/coverstore/schema.sql \
-  && psql openlibrary < scripts/dev-instance/dev_db.pg_dump \
+  && psql --quiet coverstore < openlibrary/coverstore/schema.sql \
+  && psql --quiet openlibrary < scripts/dev-instance/dev_db.pg_dump \
   && pg_ctlcluster 9.5 main stop
 
 USER root
