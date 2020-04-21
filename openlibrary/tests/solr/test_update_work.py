@@ -356,6 +356,7 @@ class Test_build_data:
         assert d['author_facet'] == ['OL1A Author One', 'OL2A Author Two']
         assert d['author_alternative_name'] == ["Author 1"]
 
+    # {'Test name': (doc_lccs, solr_lccs, sort_lcc_index)}
     LCC_TESTS = {
         'Remove dupes': (['A', 'A'], ['A--0000.00000000'], 0),
         'Ignores garbage': (['$9.99'], None, None),
