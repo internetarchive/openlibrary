@@ -220,7 +220,8 @@ def get_available(limit=None, page=1, subject=None, query=None,
     )
     assert url, (
         'get_available(limit={}, page={}, subject={}, query={}, work_id={}, _type={}, '
-        'sorts={}, url={})').format(limit, page, subject, query, work_id, _type, sorts
+        'sorts={}, url={})').format(limit, page, subject, query, work_id, _type, sorts,
+                                    url
     )
     try:
         request = urllib.request.Request(url=url)
