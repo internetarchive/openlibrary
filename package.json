@@ -83,7 +83,7 @@
     "jquery-migrate": "1.2.1",
     "jquery-ui": "1.12.1",
     "jquery-validation": "1.19.1",
-    "less": "3.10.3",
+    "less": "3.11.1",
     "less-loader": "5.0.0",
     "less-plugin-clean-css": "1.5.1",
     "promise-polyfill": "8.1.3",
