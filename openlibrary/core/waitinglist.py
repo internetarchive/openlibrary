@@ -263,6 +263,11 @@ def update_waitinglist(identifier):
     * When a book is checked out or returned
     * When a person joins or leaves the waiting list
     """
+    return None
+    # For books with many active loans, calls to loan.sync can be very slow / 504.
+    # It looks like, these two functions are handled on the IA side, and don't actually
+    # need to be called from Open Library. Disabling as a patch deploy for now; can
+    # likely remove remove in the near future.
     _wl_api.request("loan.sync", identifier=identifier)
     return on_waitinglist_update(identifier)
 
