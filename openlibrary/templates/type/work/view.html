@@ -191,7 +191,10 @@ $var title: $page.title
           </script>
 
         <div class="clearfix"></div>
-        $:render_template_lazy("type/work/editions_datatable", page)
+        $if page.edition_count > 20:
+            $:render_template_lazy("type/work/editions_datatable", page)
+        $else:
+            $:render_template("type/work/editions_datatable", page)
 
         $:render_macro_lazy('RelatedWorksCarousel', page)
 
