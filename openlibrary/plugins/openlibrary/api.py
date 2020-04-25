@@ -315,10 +315,10 @@ class lazy_load_render(delegate.page):
         template = templates[data['name']]
         html = template(*data['args'], **data['kwargs'])
         js = """
-        $("#%(key)s").replaceWith('%(html)s')
+        $("#%(key)s").replaceWith(%(html)s)
         """ % {
             'key': key,
-            'html': unicode(html).replace('\n', '\\n').replace("'", "\\'"),
+            'html': simplejson.dumps(unicode(html)),
         }
         self.cache.delete(key)
         return delegate.RawText(js, content_type='application/x-javascript')
