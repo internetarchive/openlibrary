@@ -1,16 +1,17 @@
-$def with (page, opts)
+$def with (opts)
 
 $code:
   prices = opts.get('prices')
   isbn = opts.get('isbn', '')
   asin = opts.get('asin', '')
+  search_text = opts.get('search_text', '')
 
   bwb = {
     'key': 'betterworldbooks',
     'analytics_key': 'BetterWorldBooks',
     'name': _('Better World Books'),
     'link': 'https://www.betterworldbooks.com/%s' % (
-      ('-id-%s.aspx' % isbn) if isbn else ('search/results?q=' + page.title.replace(' ','%20'))
+      ('-id-%s.aspx' % isbn) if isbn else ('search/results?' + urlencode(dict(q=search_text)))
     ),
     'price_note': _(' - includes shipping')
   }

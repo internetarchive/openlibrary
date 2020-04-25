@@ -1,0 +1,7 @@
+$def with (key, template_name)
+
+<!-- Lazy Rendering of $template_name -->
+<div id="$key">
+    <div style="text-align: center; opacity: 0.8">$_('Loading...')</div>
+</div>
+<script src="/_lazy-load/$(key).js" async defer></script>

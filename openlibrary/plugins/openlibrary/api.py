@@ -11,10 +11,14 @@ from collections import defaultdict
 from openlibrary.views.loanstats import get_trending_books
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import render_template  # noqa: F401 used for its side effects
+from infogami.utils.view import (
+    render,
+    render_template,
+)  # noqa: F401 used for its side effects
 from infogami.plugins.api.code import jsonapi
 from infogami.utils.view import add_flash_message
 from openlibrary import accounts
+from openlibrary.core.cache import MemcacheCache
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.utils import extract_numeric_id_from_olid
@@ -432,6 +436,40 @@ class author_works(delegate.page):
             links['next'] = web.changequery(offset=offset + limit)
 
         return {"links": links, "size": size, "entries": works}
+
+
+class lazy_load_render(delegate.page):
+    path = r'/_lazy-load/(render_(?:macro|template)_lazy_[a-z0-9-]+)\.js'
+
+    def __init__(self):
+        self.cache = MemcacheCache()
+
+    def GET(self, key):
+        data = self.cache.get(key)
+        if data is None:
+            raise web.HTTPError(
+                '404 Not Found', {'Content-Type': 'application/x-javascript'}
+            )
+        data = json.loads(data)
+        data['args'] = [
+            web.ctx.site.get(a['thing_key'])
+            if (isinstance(a, dict) and 'thing_key' in a)
+            else a
+            for a in data['args']
+        ]
+        templates = (
+            web.template.Template.globals['macros'] if 'macro' in key else render
+        )
+        template = templates[data['name']]
+        html = template(*data['args'], **data['kwargs'])
+        js = """
+        document.getElementById("{key}").outerHTML = {html};
+        """.format(
+            key=key,
+            html=json.dumps(str(html)),
+        )
+        self.cache.delete(key)
+        return delegate.RawText(js, content_type='application/x-javascript')
 
 
 class sponsorship_eligibility_check(delegate.page):
