@@ -17,6 +17,7 @@ import logging
 from HTMLParser import HTMLParser
 
 import six
+from six.moves.urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from infogami import config
 from infogami.utils import view, delegate, stats
@@ -734,28 +735,23 @@ class Request:
         """
         readable_path = web.ctx.get('readable_path', web.ctx.path) or ''
         query = web.ctx.query or ''
-
-        if len(query) > 0:
-            queries_to_exclude = ['sort', 'mode', 'v', 'type', 'debug']
-            parameters = query.split('&')
-            pattern = re.compile('.*?(?==)')
-            params_to_remove = []
-
-            for param in parameters:
-                p = pattern.match(param).group().replace('?', '')
-                if p in queries_to_exclude:
-                    params_to_remove.append(param)
-
-            for p in params_to_remove:
-                parameters.remove(p)
-
-            query = '&'.join(parameters)
-            if '?' not in query and len(query) > 0:
-                query = '?' + query
-
         host = web.ctx.host or ''
-        url = (host + readable_path + query)
-        return ("https://" + url) if url else ''
+        url = host + readable_path + query
+        if url:
+            url = "https://" + url
+            parsed_url = urlparse(url)
+
+            parsed_query = parse_qs(parsed_url.query)
+            queries_to_exclude = ['sort', 'mode', 'v', 'type', 'debug']
+
+            canonical_query = {q: v for q, v in parsed_query.items() if q not in queries_to_exclude}
+            query = urlencode(canonical_query, doseq=True)
+            parsed_url = parsed_url._replace(query=query)
+
+            url = urlunparse(parsed_url)
+
+            return url
+        return ''
 
 
 def setup():

@@ -73,7 +73,7 @@ def test_canonical_url():
     assert request.canonical_url == url
 
     web.ctx.query = '?sort=newest&page=2&mode=e&test=query'
-    url = 'https://www.openlibrary.org/authors/Ayn_Rand?page=2&test=query'
+    url = 'https://www.openlibrary.org/authors/Ayn_Rand?test=query&page=2'
     assert request.canonical_url == url
 
     web.ctx.query = '?sort=new&mode=2'
