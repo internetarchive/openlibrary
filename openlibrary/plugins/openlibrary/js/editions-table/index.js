@@ -1,7 +1,8 @@
 import './jquery.dataTables';
 import '../../../../../static/css/legacy-datatables.less';
 
-const MAX_WAIT = 25000;
+// Trust me; try loading Hamlet :/
+const MAX_WAIT = 60000;
 const WAIT_STEP = 100;
 
 let waited = -WAIT_STEP;
