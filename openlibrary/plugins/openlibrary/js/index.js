@@ -89,7 +89,7 @@ jQuery(function () {
     initAnalytics($);
     init($);
     // conditionally load functionality based on what's in the page
-    if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
+    if (/^\/works/.test(location.pathname)) {
         import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
     }

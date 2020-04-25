@@ -191,7 +191,7 @@ $var title: $page.title
           </script>
 
         <div class="clearfix"></div>
-        $:render_template("type/work/editions_datatable", page)
+        $:render_template_lazy("type/work/editions_datatable", page)
 
         $:render_macro_lazy('RelatedWorksCarousel', page)
 

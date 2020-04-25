@@ -1,7 +1,19 @@
 import './jquery.dataTables';
 import '../../../../../static/css/legacy-datatables.less';
 
+const MAX_WAIT = 25000;
+const WAIT_STEP = 100;
+
+let waited = -WAIT_STEP;
 export function initEditionsTable() {
+    if (!$('#editions').length) {
+        waited += WAIT_STEP;
+        if (waited > MAX_WAIT) {
+            throw Error("Editions table took too long to load");
+        }
+        setTimeout(initEditionsTable, WAIT_STEP);
+        return;
+    }
     var rowCount;
     $('#editions th.title').mouseover(function(){
         if ($(this).hasClass('sorting_asc')) {
