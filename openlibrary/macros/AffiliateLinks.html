@@ -1,9 +1,10 @@
-$def with (page, opts)
+$def with (opts)
 
 $code:
   prices = opts.get('prices')
   isbn = opts.get('isbn', '')
   asin = opts.get('asin', '')
+  search_text = opts.get('search_text', '')
 
   bwb = {
     'key': 'betterworldbooks',
@@ -11,7 +12,7 @@ $code:
     'name': _('Better World Books'),
     'link': 'https://www.anrdoezrs.net/links/%s/type/dlg/http://www.betterworldbooks.com/%s' % (
       affiliate_id('betterworldbooks'),
-      ('-id-%s.aspx' % isbn) if isbn else ('search/results?q=' + page.title)
+      ('-id-%s.aspx' % isbn) if isbn else ('search/results?q=' + search_text)
     ),
     'price_note': _(' - includes shipping')
   }

@@ -1,4 +1,4 @@
-$def with (page, user, editions_page=False, block_name='', render_preview_floater=True)
+$def with (page, editions_page=False, block_name='', render_preview_floater=True)
 $# Takes following parameters:
 $# * page
 $# * user
@@ -6,6 +6,7 @@ $# * editions_page renders additional data if you're seeing LoanStatus rendered 
 $# * block_name is a BEM block name
 $# * render_preview_floater whether to render the HTML for the preview floater
 
+$ user = ctx.user
 $ ocaid = page.get('ocaid')
 $ work = page.works and page.works[0]
 $ meta_fields = page.get_ia_meta_fields() or {}

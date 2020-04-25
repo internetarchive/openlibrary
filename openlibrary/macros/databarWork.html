@@ -37,7 +37,7 @@ $if isbn_10 and not asin:
 
     <div class="panel">
       <div class="btn-notice read-options" id="read-options">
-        $:macros.LoanStatus(page, ctx.user, editions_page=editions_page, block_name="read-options-panel")
+        $:render_macro_lazy('LoanStatus', page, editions_page=editions_page, block_name="read-options-panel")
 
         $# Added here instead of LoanStatus to avoid the js being bound to every item
         $# in a work's edition listing
@@ -59,7 +59,7 @@ $if isbn_10 and not asin:
         <hr>
         <div class="cta-section">
           <p class="cta-section-title">$_('Buy this book')</p>
-          $:macros.AffiliateLinks(page, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
+          $:render_macro_lazy('AffiliateLinks', {'isbn': isbn_13, 'asin': asin, 'prices': prices, 'search_text': page.title})
         </div>
 
         $if ctx.get('share_links'):

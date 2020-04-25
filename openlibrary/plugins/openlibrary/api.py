@@ -10,10 +10,11 @@ import simplejson
 
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import render
 from infogami.plugins.api.code import jsonapi
 from infogami.utils.view import add_flash_message
 from openlibrary import accounts
+from openlibrary.core.cache import MemcacheCache
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
@@ -293,6 +294,35 @@ class amazon_search_api(delegate.page):
             })
         results = search_amazon(title=i.title, author=i.author)
         return simplejson.dumps(results)
+
+
+class lazy_load_render(delegate.page):
+    path = r'/_lazy-load/(render_(?:macro|template)_lazy_[a-z0-9-]+)\.js'
+
+    def __init__(self):
+        self.cache = MemcacheCache()
+
+    def GET(self, key):
+        data = self.cache.get(key)
+        if data is None:
+            raise web.HTTPError('404 Not Found', {'Content-Type': 'application/x-javascript'})
+        data = simplejson.loads(data)
+        data['args'] = [
+            web.ctx.site.get(a['thing_key']) if (isinstance(a, dict) and 'thing_key' in a) else a
+            for a in data['args']
+        ]
+        templates = web.template.Template.globals['macros'] if 'macro' in key else render
+        template = templates[data['name']]
+        html = template(*data['args'], **data['kwargs'])
+        js = """
+        $("#%(key)s").replaceWith('%(html)s')
+        """ % {
+            'key': key,
+            'html': unicode(html).replace('\n', '\\n').replace("'", "\\'"),
+        }
+        self.cache.delete(key)
+        return delegate.RawText(js, content_type='application/x-javascript')
+
 
 class join_sponsorship_waitlist(delegate.page):
     path = r'/sponsorship/join'

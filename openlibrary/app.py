@@ -1,8 +1,15 @@
 """Utilities to build the app.
 """
+import simplejson
+
+from infogami.infobase.client import Thing
 from infogami.utils import app as _app
 from infogami.utils.view import render, public
 from infogami.utils.macro import macro
+import uuid
+
+from openlibrary.core.cache import MemcacheCache
+
 
 class view(_app.page):
     """A view is a class that defines how a page or a set of pages
@@ -60,3 +67,47 @@ def render_template(name, *a, **kw):
     if "." in name:
         name = name.rsplit(".", 1)[0]
     return render[name](*a, **kw)
+
+
+mc_cache = MemcacheCache()
+
+@macro
+@public
+def render_macro_lazy(name, *args, **kw):
+    if "." in name:
+        name = name.rsplit(".", 1)[0]
+
+    args = [
+        {'thing_key': a.key} if isinstance(a, Thing) else a
+        for a in args
+    ]
+    data = {
+        'name': name,
+        'args': args,
+        'kwargs': kw,
+    }
+    guid = str(uuid.uuid4())
+    key = "render_macro_lazy_" + guid
+    mc_cache.set(key, simplejson.dumps(data), expires=20)
+    return render['lazy_template'](key)
+
+
+@macro
+@public
+def render_template_lazy(name, *args, **kw):
+    if "." in name:
+        name = name.rsplit(".", 1)[0]
+
+    args = [
+        {'thing_key': a.key} if isinstance(a, Thing) else a
+        for a in args
+    ]
+    data = {
+        'name': name,
+        'args': args,
+        'kwargs': kw,
+    }
+    guid = str(uuid.uuid4())
+    key = "render_template_lazy_" + guid
+    mc_cache.set(key, simplejson.dumps(data), expires=20)
+    return render['lazy_template'](key)
