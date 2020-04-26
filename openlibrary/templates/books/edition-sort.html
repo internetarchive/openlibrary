@@ -112,6 +112,6 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
     <td class="icon buy inact">
       <div class="zzzz"></div>
       <div class="links">
-        $:macros.AffiliateLinks({'isbn': isbn, 'asin': asin, 'prices': False, 'search_text': book.title})
+        $:macros.AffiliateLinks({'isbn': isbn or None, 'asin': asin, 'prices': False, 'search_text': book.title})
       </div>
     </td>

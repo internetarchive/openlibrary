@@ -59,7 +59,7 @@ $if isbn_10 and not asin:
         <hr>
         <div class="cta-section">
           <p class="cta-section-title">$_('Buy this book')</p>
-          $:render_macro_lazy('AffiliateLinks', {'isbn': isbn_13, 'asin': asin, 'prices': prices, 'search_text': page.title})
+          $:render_macro_lazy('AffiliateLinks', {'isbn': isbn_13 or None, 'asin': asin, 'prices': prices, 'search_text': page.title})
         </div>
 
         $if ctx.get('share_links'):
