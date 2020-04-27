@@ -37,7 +37,10 @@ class DataError(ValueError):
 
 
 class BookImportError(Exception):
-    pass
+    def __init__(self, error_code, error='Invalid item', **kwargs):
+        self.error_code = error_code
+        self.error = error
+        self.kwargs = kwargs
 
 
 def parse_meta_headers(edition_builder):
@@ -140,12 +143,12 @@ def raise_non_book_marc(marc_record, **kwargs):
     # Is the item a serial instead of a book?
     marc_leaders = marc_record.leader()
     if marc_leaders[7] == 's':
-        raise BookImportError(('item-is-serial', details, kwargs))
+        raise BookImportError('item-is-serial', details, **kwargs)
 
     # insider note: follows Archive.org's approach of
     # Item::isMARCXMLforMonograph() which excludes non-books
     if not (marc_leaders[7] == 'm' and marc_leaders[6] == 'a'):
-        raise BookImportError(('item-not-book', details, kwargs))
+        raise BookImportError('item-not-book', details, **kwargs)
 
 
 class ia_importapi(importapi):
@@ -165,10 +168,19 @@ class ia_importapi(importapi):
 
     @classmethod
     def ia_import(cls, identifier, require_marc=True):
+        """
+        Performs logic to fetch archive.org item + metadata,
+        produces a data dict, then loads into Open Library
+
+        :param str identifier: archive.org ocaid
+        :param bool require_marc: require archive.org item have MARC record?
+        :rtype: dict
+        :returns: the data of the imported book or raises  BookImportError
+        """
         # Case 1 - Is this a valid Archive.org item?
         metadata = ia.get_metadata(identifier)
         if not metadata:
-            raise BookImportError(('invalid-ia-identifier', '%s not found' % identifier))
+            raise BookImportError('invalid-ia-identifier', '%s not found' % identifier)
 
         # Case 2 - Does the item have an openlibrary field specified?
         # The scan operators search OL before loading the book and add the
@@ -183,24 +195,24 @@ class ia_importapi(importapi):
         # Case 3 - Can the item be loaded into Open Library?
         status = ia.get_item_status(identifier, metadata)
         if status != 'ok':
-            raise BookImportError((status, 'Prohibited Item %s' % identifier))
+            raise BookImportError(status, 'Prohibited Item %s' % identifier)
 
         # Case 4 - Does this item have a marc record?
         marc_record = get_marc_record_from_ia(identifier)
         if require_marc and not marc_record:
-            raise BookImportError(('no-marc-record',))
+            raise BookImportError('no-marc-record')
         if marc_record:
             raise_non_book_marc(marc_record)
             try:
                 edition_data = read_edition(marc_record)
             except MarcException as e:
                 logger.error('failed to read from MARC record %s: %s', identifier, str(e))
-                raise BookImportError(('invalid-marc-record',))
+                raise BookImportError('invalid-marc-record')
         else:
             try:
                 edition_data = cls.get_ia_record(metadata)
             except KeyError:
-                raise BookImportError(('invalid-ia-metadata',))
+                raise BookImportError('invalid-ia-metadata')
 
         # Add IA specific fields: ocaid, source_records, and cover
         edition_data = cls.populate_edition_data(edition_data, identifier)
@@ -257,7 +269,7 @@ class ia_importapi(importapi):
             try:
                 raise_non_book_marc(rec, **next_data)
             except BookImportError as e:
-                return self.error(*e)
+                return self.error(e.error_code, e.error, **e.kwargs)
             result = add_book.load(edition)
 
             # Add next_data to the response as location of next record:
@@ -265,11 +277,9 @@ class ia_importapi(importapi):
             return json.dumps(result)
 
         try:
-            data = self.ia_import(identifier, require_marc=require_marc)
+            return self.ia_import(identifier, require_marc=require_marc)
         except BookImportError as e:
-            return self.error(*e)
-
-        return data
+            return self.error(e.error_code, e.error, **e.kwargs)
 
 
     @staticmethod
