@@ -218,7 +218,7 @@ def parse_json_from_solr_query(url):
 def execute_solr_query(url):
     stats.begin("solr", url=url)
     try:
-        solr_result = urllib.request.urlopen(url, timeout=3)
+        solr_result = urllib.request.urlopen(url, timeout=10)
     except Exception as e:
         logger.exception("Failed solr query")
         return None
