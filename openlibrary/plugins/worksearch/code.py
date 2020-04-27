@@ -175,6 +175,8 @@ def lcc_transform(raw):
             normed[0] or lcc_range[0],
             normed[1] or lcc_range[1])
     elif '*' in raw and not raw.startswith('*'):
+        # Marshals human repr into solr repr
+        # lcc:A720* should become A--0720*
         parts = raw.split('*', 1)
         lcc_prefix = normalize_lcc_prefix(parts[0])
         return (lcc_prefix or parts[0]) + '*' + parts[1]

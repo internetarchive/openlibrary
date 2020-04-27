@@ -160,7 +160,7 @@ def normalize_lcc_prefix(prefix):
     else:
         # A123* should be normalized to A--0123*
         # A123.* should be normalized to A--0123.*
-        # A123.C* should be normalized to A--0123.00000000C*
+        # A123.C* should be normalized to A--0123.00000000.C*
         lcc_norm = short_lcc_to_sortable_lcc(prefix.rstrip('.'))
         if lcc_norm:
             result = lcc_norm.rstrip('0')
