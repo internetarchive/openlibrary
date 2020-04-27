@@ -9,6 +9,7 @@
     "sourceType": "module",
     "ecmaVersion": 6
   },
+  "extends": [ "plugin:vue/base" ],
   "globals": {},
   "rules": {
     "prefer-template": "error",
