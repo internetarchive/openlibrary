@@ -1,12 +1,12 @@
 os: linux
-dist: bionic
+dist: focal
 language: python
 jobs:
   include:
     - name: “Python 2.7 on xenial”
       python: "2.7"
       dist: xenial
-    - name: “Python 2.7 on bionic”
+    - name: “Python 2.7 on focal”
       python: "2.7"
     - name: “Python 3.8 make lint and selected pytests”
       python: "3.8"
@@ -18,10 +18,10 @@ jobs:
             make lint-diff;
           fi
         - source scripts/test-py3.sh
-    - name: “Python 3.8 on bionic”
+    - name: “Python 3.8 on focal”
       python: "3.8"
   allow_failures:
-    - name: “Python 3.8 on bionic”
+    - name: “Python 3.8 on focal”
 install:
   - pip install -r requirements_test.txt
   # if Travis is running Python 3, then
