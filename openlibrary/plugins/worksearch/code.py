@@ -159,6 +159,58 @@ def read_facets(root):
     return facets
 
 
+def lcc_transform(raw):
+    """
+    Transform the lcc search field value
+    :param str raw:
+    :rtype: str
+    """
+    # e.g. lcc:[NC1 TO NC1000] to lcc:[NC-0001.00000000 TO NC-1000.00000000]
+    # for proper range search
+    m = re_range.match(raw)
+    if m:
+        lcc_range = [m.group('start').strip(), m.group('end').strip()]
+        normed = normalize_lcc_range(*lcc_range)
+        return '[%s TO %s]' % (
+            normed[0] or lcc_range[0],
+            normed[1] or lcc_range[1])
+    elif '*' in raw and not raw.startswith('*'):
+        parts = raw.split('*', 1)
+        lcc_prefix = normalize_lcc_prefix(parts[0])
+        return (lcc_prefix or parts[0]) + '*' + parts[1]
+    else:
+        normed = short_lcc_to_sortable_lcc(raw.strip('"'))
+        if normed:
+            use_quotes = ' ' in normed or raw.startswith('"')
+            return ('"%s"' if use_quotes else '%s*') % normed
+
+    # If none of the transforms took
+    return raw
+
+
+def ddc_transform(raw):
+    """
+    Transform the ddc search field value
+    :param str raw:
+    :rtype: str
+    """
+    m = re_range.match(raw)
+    if m:
+        raw = [m.group('start').strip(), m.group('end').strip()]
+        normed = normalize_ddc_range(*raw)
+        return '[%s TO %s]' % (
+            normed[0] or raw[0],
+            normed[1] or raw[1])
+    elif raw.endswith('*'):
+        return normalize_ddc_prefix(raw[:-1]) + '*'
+    else:
+        normed = normalize_ddc(raw.strip('"'))
+        if normed:
+            return normed[0]
+
+    # if none of the transforms took
+    return raw
+
 def parse_query_fields(q):
     found = [(m.start(), m.end()) for m in re_fields.finditer(q)]
     first = q[:found[0][0]].strip() if found else q.strip()
@@ -183,38 +235,9 @@ def parse_query_fields(q):
             if isbn:
                 v = isbn
         if field_name == 'lcc':
-            # e.g. lcc:[NC1 TO NC1000] to lcc:[NC-0001.00000000 TO NC-1000.00000000]
-            # for proper range search
-            m = re_range.match(v)
-            if m:
-                lcc_range = [m.group('start').strip(), m.group('end').strip()]
-                normed = normalize_lcc_range(*lcc_range)
-                v = '[%s TO %s]' % (
-                    normed[0] or lcc_range[0],
-                    normed[1] or lcc_range[1])
-            elif '*' in v and not v.startswith('*'):
-                parts = v.split('*', 1)
-                lcc_prefix = normalize_lcc_prefix(parts[0])
-                v = (lcc_prefix or parts[0]) + '*' + parts[1]
-            else:
-                normed = short_lcc_to_sortable_lcc(v.strip('"'))
-                if normed:
-                    use_quotes = ' ' in normed or v.startswith('"')
-                    v = ('"%s"' if use_quotes else '%s*') % normed
+            v = lcc_transform(v)
         if field_name == 'ddc':
-            m = re_range.match(v)
-            if m:
-                raw = [m.group('start').strip(), m.group('end').strip()]
-                normed = normalize_ddc_range(*raw)
-                v = '[%s TO %s]' % (
-                    normed[0] or raw[0],
-                    normed[1] or raw[1])
-            elif v.endswith('*'):
-                v = normalize_ddc_prefix(v[:-1]) + '*'
-            else:
-                normed = normalize_ddc(v.strip('"'))
-                if normed:
-                    v = normed[0]
+            v = ddc_transform(v)
 
         yield {'field': field_name, 'value': v.replace(':', r'\:')}
         if op_found:
