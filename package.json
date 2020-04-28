@@ -25,7 +25,7 @@
     },
     {
       "path": "static/build/markdown-editor.*.js",
-      "maxSize": "10.5KB"
+      "maxSize": "11KB"
     },
     {
       "path": "static/build/carousel.*.js",
