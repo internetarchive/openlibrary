@@ -220,12 +220,10 @@ def get_available(limit=None, page=1, subject=None, query=None,
     )
     if not url:
         fmt = (
-            "get_available(limit={}, page={}, subject={}, "
-            "query={}, work_id={}, _type={}, sorts={}, url={}"
+            "get_available(limit={}, page={}, subject={}, query={}, "
+            "work_id={}, _type={}, sorts={}"
         )
-        logger.error(
-            fmt.format(limit, page, subject, query, work_id, _type, sorts, url)
-        )
+        logger.error(fmt.format(limit, page, subject, query, work_id, _type, sorts))
     try:
         request = urllib.request.Request(url=url)
 
