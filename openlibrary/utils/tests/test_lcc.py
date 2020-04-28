@@ -1,7 +1,11 @@
 import pytest
 
-from openlibrary.utils.lcc import short_lcc_to_sortable_lcc, sortable_lcc_to_short_lcc
-
+from openlibrary.utils.lcc import (
+    normalize_lcc_prefix,
+    normalize_lcc_range,
+    short_lcc_to_sortable_lcc,
+    sortable_lcc_to_short_lcc,
+)
 
 TESTS = [
     ('PZ-0073.00000000', 'pz73', 'PZ73', 'lower case'),
@@ -76,3 +80,40 @@ def test_wagner_2019_to_sortable(sortable_lcc, short_lcc, name):
                          ids=[t[-1] for t in WAGNER_2019_EXAMPLES])
 def test_wagner_2019_to_short_lcc(sortable_lcc, short_lcc, name):
     assert sortable_lcc_to_short_lcc(sortable_lcc) == short_lcc.strip()
+
+
+PREFIX_TESTS = [
+    ('A', 'A', 'Single letter'),
+    ('ADC', 'ADC', 'multi letter'),
+    ('A5', 'A--0005', 'Alphanum'),
+    ('A5.00', 'A--0005.00', 'Alphanum'),
+    ('A10', 'A--0010', 'Alphanum trailing 0'),
+    ('A10.5', 'A--0010.5', 'Alphanum with decimal'),
+    ('A10.', 'A--0010', 'Alphanum with trailing decimal'),
+    ('A10.C', 'A--0010.00000000.C', 'Alphanum with partial cutter'),
+    ('F349.N2 A77', 'F--0349.00000000.N2 A77', '2 cutters'),
+    ('123', None, 'Invalid returns None'),
+    ('*B55', None, 'Invalid returns None'),
+]
+
+
+@pytest.mark.parametrize("prefix,normed,name", PREFIX_TESTS,
+                         ids=[t[-1] for t in PREFIX_TESTS])
+def test_normalize_lcc_prefix(prefix, normed, name):
+    assert normalize_lcc_prefix(prefix) == normed
+
+
+RANGE_TESTS = [
+    (['A', 'B'], ['A--0000.00000000', 'B--0000.00000000'], 'Single letters'),
+    (['A1', 'A100'], ['A--0001.00000000', 'A--0100.00000000'], 'Letter nums'),
+    (['A1', 'B1.13.C89'], ['A--0001.00000000', 'B--0001.13000000.C89'], 'Cutter num'),
+    (['A1', 'noise'], ['A--0001.00000000', None], 'One Invalid'),
+    (['blah', 'blah'], [None, None], 'Both invalid'),
+    (['A1', '*'], ['A--0001.00000000', '*'], 'Star'),
+]
+
+
+@pytest.mark.parametrize("raw,normed,name", RANGE_TESTS,
+                         ids=[t[-1] for t in RANGE_TESTS])
+def test_normalize_lcc_range(raw, normed, name):
+    assert normalize_lcc_range(*raw) == normed
