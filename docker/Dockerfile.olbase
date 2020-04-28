@@ -46,9 +46,6 @@ RUN add-apt-repository ppa:deadsnakes/ppa && apt-get -qq update && apt-get insta
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 RUN python3.8 get-pip.py
 
-# Install requirements
-RUN python3.8 -m pip install -r requirements_test.txt
-
 # Install LTS version of node.js
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
     && apt-get install -y nodejs
@@ -68,6 +65,7 @@ WORKDIR /openlibrary
 
 COPY requirements*.txt ./
 RUN python2 -m pip install --disable-pip-version-check --default-timeout=100 -r requirements_common.txt
+RUN python3.8 -m pip install -r requirements_test.txt
 
 USER openlibrary
 COPY package*.json ./
