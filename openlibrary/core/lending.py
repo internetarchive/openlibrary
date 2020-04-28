@@ -218,11 +218,14 @@ def get_available(limit=None, page=1, subject=None, query=None,
         limit=limit, page=page, subject=subject, query=query,
         work_id=work_id, _type=_type, sorts=sorts
     )
-    assert url, (
-        'get_available(limit={}, page={}, subject={}, query={}, work_id={}, _type={}, '
-        'sorts={}, url={})').format(limit, page, subject, query, work_id, _type, sorts,
-                                    url
-    )
+    if not url:
+        fmt = (
+            "get_available(limit={}, page={}, subject={}, "
+            "query={}, work_id={}, _type={}, sorts={}, url={}"
+        )
+        logger.error(
+            fmt.format(limit, page, subject, query, work_id, _type, sorts, url)
+        )
     try:
         request = urllib.request.Request(url=url)
 
