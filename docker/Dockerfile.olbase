@@ -24,10 +24,30 @@ RUN apt-get -qq update && apt-get install -y \
     screen \
     python-dev \
     python-pip \
-    libgeoip-dev
+    libgeoip-dev \
+    software-properties-common
 
 # Update pip to match production (Jan 2020)
-RUN pip install --upgrade --disable-pip-version-check pip==19.3.1
+RUN python2 -m pip install --upgrade --disable-pip-version-check pip==19.3.1
+
+# Install Python 3.8 in Docker
+# Instructions adapted from:
+#   - https://websiteforstudents.com/how-to-install-python-3-8-on-ubuntu-18-04-16-04/
+#   - https://gist.github.com/kura/8517802
+#   - https://github.com/pypa/get-pip/issues/43
+
+# Install Python 3.8
+RUN add-apt-repository ppa:deadsnakes/ppa && apt-get -qq update && apt-get install -y \
+    python3.8 \
+    python3.8-dev \
+    python3.8-distutils
+
+# Install pip
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+RUN python3.8 get-pip.py
+
+# Install requirements
+RUN python3.8 -m pip install -r requirements_test.txt
 
 # Install LTS version of node.js
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
@@ -47,7 +67,7 @@ RUN mkdir /openlibrary && chown openlibrary:openlibrary /openlibrary
 WORKDIR /openlibrary
 
 COPY requirements*.txt ./
-RUN pip install --disable-pip-version-check --default-timeout=100 -r requirements_common.txt
+RUN python2 -m pip install --disable-pip-version-check --default-timeout=100 -r requirements_common.txt
 
 USER openlibrary
 COPY package*.json ./
