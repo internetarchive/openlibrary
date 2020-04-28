@@ -97,7 +97,7 @@ $ sort_facet = input(sort='status').sort
       $if sort_facet == 'status':
         $ summary['books'].sort(key=lambda b: summary['status_ids'][b['status']])
       $else:
-        $ summary['books'].sort(key=lambda b: b[sort_facet])
+        $ summary['books'].sort(key=lambda b: b.get(sort_facet, ''))
       $for book in summary['books']:
         $ isbn = book['identifier'].replace('isbn_', '')
         <tr>
@@ -107,7 +107,7 @@ $ sort_facet = input(sort='status').sort
                  src="https://archive.org/services/img/$book['identifier']">
           </td>
           <td>
-            $book['publicdate']
+            $book.get('publicdate', '')
           </td>
           <td>
             <ul>
