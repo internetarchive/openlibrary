@@ -15,8 +15,8 @@ CRLF = "\r\n"
 class WARCReader:
     """Reader to read records from a warc file.
 
-    >>> from io import BytesIO
-    >>> f = BytesIO()
+    >>> from six import StringIO
+    >>> f = StringIO()
     >>> r1 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo")
     >>> r2 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "bar")
     >>> w = WARCWriter(f)
@@ -41,7 +41,7 @@ class WARCReader:
             if header is None:
                 break
             yield LazyWARCRecord(self._file, self._file.tell(), header)
-            self._file.seek(int(header.data_length), 1)
+            self._file.seek(self._file.tell() + int(header.data_length), 0)
             consume_crlf()
             consume_crlf()
 
@@ -62,7 +62,7 @@ class WARCReader:
             creation_date, record_id, content_type, {})
 
         while True:
-            line = self._file.readline().decode('utf-8')
+            line = self._file.readline()
             if line == CRLF:
                 break
             k, v = line.strip().split(':', 1)
@@ -146,12 +146,14 @@ class WARCHeader:
 
     >>> WARCHeader("WARC/0.10", 10, "resource", "subject_uri", "20080808080808", "record_42", "image/jpeg", {'hello': 'world'})
     <header: 'WARC/0.10 10 resource subject_uri 20080808080808 record_42 image/jpeg\r\nhello: world\r\n\r\n'>
+    >>> WARCHeader("WARC/0.10", b"10", "resource", "subject_uri", "20080808080808", "record_42", "image/jpeg", {'hello': 'world'})
+    <header: 'WARC/0.10 10 resource subject_uri 20080808080808 record_42 image/jpeg\r\nhello: world\r\n\r\n'>
     """
     def __init__(self, warc_id,
             data_length, record_type, subject_uri,
             creation_date, record_id, content_type, headers):
         self.warc_id = warc_id
-        self.data_length = str(data_length)
+        self.data_length = str(int(data_length))  # deal with bytes, int, and str
         self.record_type = record_type
         self.subject_uri = subject_uri
         self.creation_date = creation_date
@@ -262,7 +264,7 @@ class WARCWriter:
     >>> w.write(r2)
     179
     >>> lines = re.findall('[^\r\n]*\r\n', f.getvalue()) # break at \r\n to print in a readable way
-    >>> for line in lines: print repr(line)
+    >>> for line in lines: print(repr(line))
     'WARC/0.10 3 resource subject_uri 20080808080808 record_42 image/jpeg\r\n'
     'hello: world\r\n'
     '\r\n'
@@ -284,10 +286,10 @@ class WARCWriter:
         """Writes a record into the WARC file.
         Assumes that data_length and other attributes are correctly set in record.header.
         """
-        self.file.write(str(record.get_header()).encode('utf-8'))
+        self.file.write(str(record.get_header()))
         offset = self.file.tell()
-        self.file.write(record.get_data().encode('utf-8'))
-        self.file.write(CRLF.encode('utf-8') + CRLF.encode('utf-8'))
+        self.file.write(record.get_data())
+        self.file.write(CRLF + CRLF)
         self.file.flush()
         return offset
 
