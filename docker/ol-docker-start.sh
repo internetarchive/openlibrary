@@ -15,6 +15,16 @@ reindex-solr() {
   done
 }
 
+if [ -z "$PYTHON3" ]; then
+  # Use production infogami
+  make git
+else
+  pushd vendor/infogami
+  # Use Python 3 compatible infogami
+  git pull origin master
+  popd
+fi
+
 echo "Starting ol services."
 
 # TODO: why does nginx appear not necessary?

@@ -2,6 +2,8 @@ version: "3"
 services:
   web:
     image: oldev:latest
+    environment:
+      - PYTHON3
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
