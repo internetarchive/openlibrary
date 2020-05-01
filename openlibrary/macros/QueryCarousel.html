@@ -1,4 +1,4 @@
 $def with(query, title=None, sort='new', key='', limit=20, search=False)
 $# Also expose query carousel as a macro
 
-$:render_template_lazy("books/query_carousel", title=title, sort=sort, key=key, limit=limit, search=search)
+$:render_template_lazy("books/query_carousel", query, title=title, sort=sort, key=key, limit=limit, search=search)
