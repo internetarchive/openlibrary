@@ -429,13 +429,15 @@ class bookpage(delegate.page):
                     return web.found(result[0] + ext)
 
             # Perform import, if possible
-            from openlibrary.plugins.importapi.code import ia_importapi
+            from openlibrary.plugins.importapi.code import ia_importapi, BookImportError
             from openlibrary import accounts
             with accounts.RunAs('ImportBot'):
-                # May want to catch importapi.code.BookImportError
-                ia_importapi.ia_import(value, require_marc=True)
+                try:
+                    ia_importapi.ia_import(value, require_marc=True)
+                except BookImportError:
+                    logger.exception('Unable to import ia record')
 
-            # If nothing matched, try this as a last resort:
+            # Go the the record created, or to the dummy ia-wrapper record
             return web.found('/books/ia:' + value + ext)
 
         web.ctx.status = '404 Not Found'
