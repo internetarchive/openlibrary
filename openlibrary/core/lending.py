@@ -122,7 +122,7 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
     archive.org to see more books)
     """
     from openlibrary.plugins.openlibrary.home import CAROUSELS_PRESETS
-    query = CAROUSELS_PRESETS[query] if query in CAROUSELS_PRESETS else query
+    query = CAROUSELS_PRESETS.get(query, query)
     q = 'openlibrary_work:(*)'
 
     # If we don't provide an openlibrary_subject and no collection is
@@ -157,13 +157,18 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                         authors.append(author_name)
                         authors.append(','.join(author_name.split(' ', 1)[::-1]))
                     if authors:
-                        _q = ' OR '.join(['creator:"%s"' % author for author in authors])
+                        _q = ' OR '.join('creator:"%s"' % author for author in authors)
                 elif _type == "subjects":
                     subjects = works_authors_and_subjects.get('subjects', [])
                     if subjects:
-                        _q = ' OR '.join(['subject:"%s"' % subject for subject in subjects])
+                        _q = ' OR '.join('subject:"%s"' % subject for subject in subjects)
             if not _q:
-                return []
+                logger.error('compose_ia_url(limit={}, page={}, subject={}, query={}, '
+                    'work_id={}, _type={}, sorts={}, advanced={}) failed!'.format(
+                        limit, page, subject, query, work_id, _type, sorts, advanced
+                    )
+                )
+                return ''  # TODO: Should we just raise an excpetion instead?
             q += ' AND (%s) AND !openlibrary_work:(%s)' % (_q, work_id.split('/')[-1])
 
     if not advanced:
@@ -211,7 +216,14 @@ def get_available(limit=None, page=1, subject=None, query=None,
     """
     url = url or compose_ia_url(
         limit=limit, page=page, subject=subject, query=query,
-        work_id=work_id, _type=_type, sorts=sorts)
+        work_id=work_id, _type=_type, sorts=sorts
+    )
+    if not url:
+        fmt = (
+            "get_available(limit={}, page={}, subject={}, query={}, "
+            "work_id={}, _type={}, sorts={}"
+        )
+        logger.error(fmt.format(limit, page, subject, query, work_id, _type, sorts))
     try:
         request = urllib.request.Request(url=url)
 
