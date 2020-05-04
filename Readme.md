@@ -58,9 +58,7 @@ Once you've read the overview of OpenLibrary Backend technologies, it's highly e
 
 - [Infogami Developer Tutorial](https://openlibrary.org/dev/docs/infogami)
 
-After reading the tech and developments for a background on Infogami, the most recent files can be viewed and worked on.
-
-- [Infogami master files](https://github.com/internetarchive/infogami)
+If you want to dive into the source code for Infogami, see the [Infogami repo](https://github.com/internetarchive/infogami).
 
 ## Running tests
 
