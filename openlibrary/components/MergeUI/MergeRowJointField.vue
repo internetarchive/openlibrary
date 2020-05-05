@@ -12,33 +12,33 @@
 </template>
 
 <script>
-import MergeRowField from "./MergeRowField.vue";
+import MergeRowField from './MergeRowField.vue';
 
 export default {
-  components: {
-    MergeRowField
-  },
-  props: {
-    record: {
-      type: Object,
-      required: true
+    components: {
+        MergeRowField
     },
-    fields: {
-      type: Array,
-      required: true
+    props: {
+        record: {
+            type: Object,
+            required: true
+        },
+        fields: {
+            type: Array,
+            required: true
+        },
+        cellSelected: {
+            type: Function
+        },
+        merged: {
+            type: Object,
+            required: false
+        }
     },
-    cellSelected: {
-      type: Function
-    },
-    merged: {
-      type: Object,
-      required: false
+    computed: {
+        presentFields() {
+            return this.fields.filter(f => f in this.record);
+        }
     }
-  },
-  computed: {
-    presentFields() {
-      return this.fields.filter(f => f in this.record);
-    }
-  }
 };
 </script>

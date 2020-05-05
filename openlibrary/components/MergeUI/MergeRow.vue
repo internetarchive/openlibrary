@@ -26,35 +26,35 @@
 </template>
 
 <script>
-import MergeRowField from "./MergeRowField.vue";
-import MergeRowJointField from "./MergeRowJointField.vue";
+import MergeRowField from './MergeRowField.vue';
+import MergeRowJointField from './MergeRowJointField.vue';
 
 export default {
-  components: {
-    MergeRowField,
-    MergeRowJointField
-  },
-  props: {
-    record: {
-      type: Object,
-      required: true
+    components: {
+        MergeRowField,
+        MergeRowJointField
     },
-    fields: {
-      type: Array,
-      required: true
+    props: {
+        record: {
+            type: Object,
+            required: true
+        },
+        fields: {
+            type: Array,
+            required: true
+        },
+        cellSelected: {
+            type: Function
+        },
+        merged: {
+            type: Object,
+            required: false
+        }
     },
-    cellSelected: {
-      type: Function
-    },
-    merged: {
-      type: Object,
-      required: false
+    data() {
+        return {
+            master_key: null
+        };
     }
-  },
-  data() {
-    return {
-      master_key: null
-    };
-  }
 };
 </script>
