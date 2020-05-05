@@ -125,6 +125,8 @@ export default {
         },
 
         async editions() {
+            if (!this.records) return null;
+
             const editionPromises = await Promise.allSettled(
                 this.records.map(r => get_editions(r.key))
             );
@@ -135,6 +137,8 @@ export default {
         },
 
         async lists() {
+            if (!this.records) return null;
+
             const promises = await Promise.allSettled(
                 this.records.map(r => get_lists(r.key))
             );
@@ -144,6 +148,8 @@ export default {
             );
         },
         async bookshelves() {
+            if (!this.records) return null;
+
             const promises = await Promise.allSettled(
                 this.records.map(r => get_bookshelves(r.key))
             );
