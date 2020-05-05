@@ -65,38 +65,38 @@
 </template>
 
 <script>
-import AuthorRoleTable from "./AuthorRoleTable.vue";
-import ExcerptsTable from "./ExcerptsTable.vue";
-import TextDiff from "./TextDiff.vue";
+import AuthorRoleTable from './AuthorRoleTable.vue';
+import ExcerptsTable from './ExcerptsTable.vue';
+import TextDiff from './TextDiff.vue';
 
 export default {
-  components: {
-    AuthorRoleTable,
-    ExcerptsTable,
-    TextDiff
-  },
-  props: {
-    field: {
-      type: String,
-      required: true
+    components: {
+        AuthorRoleTable,
+        ExcerptsTable,
+        TextDiff
     },
-    value: {
-      required: true
+    props: {
+        field: {
+            type: String,
+            required: true
+        },
+        value: {
+            required: true
+        },
+        merged: {
+            type: Object,
+            required: false
+        }
     },
-    merged: {
-      type: Object,
-      required: false
+    computed: {
+        title() {
+            let title = `.${this.field}`;
+            if (this.value instanceof Array) {
+                const length = this.value.length;
+                title += ` (${length} item${length == 1 ? '' : 's'})`;
+            }
+            return title;
+        }
     }
-  },
-  computed: {
-    title() {
-      let title = "." + this.field;
-      if (this.value instanceof Array) {
-        const length = this.value.length;
-        title += ` (${length} item${length == 1 ? "" : "s"})`;
-      }
-      return title;
-    }
-  }
 };
 </script>

@@ -19,8 +19,8 @@ export default {
     computed: {
         diff() {
             const fn = {
-                'char': diffChars,
-                'word': diffWordsWithSpace,
+                char: diffChars,
+                word: diffWordsWithSpace,
             };
             return fn[this.resolution](this.left, this.right);
         }

@@ -74,12 +74,12 @@
 
 <script>
 /* eslint no-console: 0 */
-import _ from "lodash";
-import Vue from "vue";
-import AsyncComputed from "vue-async-computed";
-import MergeRow from "./MergeRow.vue";
-import EditionSnippet from "./EditionSnippet.vue";
-import { merge, get_editions, get_lists, get_bookshelves } from "./utils.js";
+import _ from 'lodash';
+import Vue from 'vue';
+import AsyncComputed from 'vue-async-computed';
+import MergeRow from './MergeRow.vue';
+import EditionSnippet from './EditionSnippet.vue';
+import { merge, get_editions, get_lists, get_bookshelves } from './utils.js';
 
 Vue.use(AsyncComputed);
 
@@ -87,140 +87,140 @@ Vue.use(AsyncComputed);
  * @param {string} olid
  */
 function fetchRecord(olid) {
-  const type = {
-    W: "works",
-    M: "books",
-    A: "authors"
-  }[olid[olid.length - 1]];
-  return fetch(`https://openlibrary.org/${type}/${olid}.json`).then(r =>
-    r.json()
-  );
+    const type = {
+        W: 'works',
+        M: 'books',
+        A: 'authors'
+    }[olid[olid.length - 1]];
+    return fetch(`https://openlibrary.org/${type}/${olid}.json`).then(r =>
+        r.json()
+    );
 }
 
 export default {
-  name: "MergeTable",
-  components: {
-    EditionSnippet,
-    MergeRow
-  },
-  data() {
-    const sorted = _.sortBy(this.olids, olid =>
-      parseFloat(olid.match(/\d+/)[0])
-    );
-    return {
-      master_key: `/works/${sorted[0]}`,
-      /** @type {{[key: string]: Boolean}} */
-      selected: _.fromPairs(this.olids.map(olid => [`/works/${olid}`, true]))
-    };
-  },
-  props: {
-    olids: Array
-  },
-  asyncComputed: {
-    async records() {
-      const sorted = _.sortBy(this.olids, olid =>
-        parseFloat(olid.match(/\d+/)[0])
-      );
-      return await Promise.all(sorted.map(fetchRecord));
+    name: 'MergeTable',
+    components: {
+        EditionSnippet,
+        MergeRow
     },
+    data() {
+        const sorted = _.sortBy(this.olids, olid =>
+            parseFloat(olid.match(/\d+/)[0])
+        );
+        return {
+            master_key: `/works/${sorted[0]}`,
+            /** @type {{[key: string]: Boolean}} */
+            selected: _.fromPairs(this.olids.map(olid => [`/works/${olid}`, true]))
+        };
+    },
+    props: {
+        olids: Array
+    },
+    asyncComputed: {
+        async records() {
+            const sorted = _.sortBy(this.olids, olid =>
+                parseFloat(olid.match(/\d+/)[0])
+            );
+            return await Promise.all(sorted.map(fetchRecord));
+        },
 
-    async editions() {
-      const editionPromises = await Promise.allSettled(
-        this.records.map(r => get_editions(r.key))
-      );
-      const editions = editionPromises.map(p => p.value || p);
-      return _.fromPairs(
-        this.records.map((work, i) => [work.key, editions[i]])
-      );
-    },
+        async editions() {
+            const editionPromises = await Promise.allSettled(
+                this.records.map(r => get_editions(r.key))
+            );
+            const editions = editionPromises.map(p => p.value || p);
+            return _.fromPairs(
+                this.records.map((work, i) => [work.key, editions[i]])
+            );
+        },
 
-    async lists() {
-      const promises = await Promise.allSettled(
-        this.records.map(r => get_lists(r.key))
-      );
-      const responses = promises.map(p => p.value || p);
-      return _.fromPairs(
-        this.records.map((work, i) => [work.key, responses[i]])
-      );
+        async lists() {
+            const promises = await Promise.allSettled(
+                this.records.map(r => get_lists(r.key))
+            );
+            const responses = promises.map(p => p.value || p);
+            return _.fromPairs(
+                this.records.map((work, i) => [work.key, responses[i]])
+            );
+        },
+        async bookshelves() {
+            const promises = await Promise.allSettled(
+                this.records.map(r => get_bookshelves(r.key))
+            );
+            const responses = promises.map(p => p.value || p);
+            return _.fromPairs(
+                this.records.map((work, i) => [work.key, responses[i].counts])
+            );
+        }
     },
-    async bookshelves() {
-      const promises = await Promise.allSettled(
-        this.records.map(r => get_bookshelves(r.key))
-      );
-      const responses = promises.map(p => p.value || p);
-      return _.fromPairs(
-        this.records.map((work, i) => [work.key, responses[i].counts])
-      );
+    methods: {
+        isCellUsed(record, field) {
+            if (!this.merge) return false;
+            return field in this.merge.sources
+                ? this.merge.sources[field].includes(record.key)
+                : record.key == this.master_key;
+        }
+    },
+    computed: {
+        fields() {
+            const at_start = ['covers'];
+            const together = ['key', 'title', 'subtitle', 'authors'];
+            const subjects = [
+                'subjects',
+                'subject_people',
+                'subject_places',
+                'subject_times'
+            ];
+            const at_end = [
+                'created',
+                'last_modified',
+                'revision',
+                'type'
+            ];
+            const exclude = [
+                'latest_revision'
+            ];
+            const recordFields = _.uniq(_.flatMap(this.records, Object.keys));
+            const middleFields = _.difference(recordFields, [
+                ...at_start,
+                ...together,
+                ...subjects,
+                ...at_end,
+                ...exclude
+            ]);
+            return [
+                ...at_start,
+                together.join('|'),
+                subjects.join('|'),
+                ...middleFields,
+                at_end.join('|')
+            ];
+        },
+
+        merge() {
+            if (!this.master_key || !this.records || !this.editions || !this.lists || !this.bookshelves)
+                return undefined;
+
+            const master = this.records.find(r => r.key == this.master_key);
+            const dupes = this.records
+                .filter(r => this.selected[r.key])
+                .filter(r => r.key != this.master_key);
+            const records = [master, ...dupes];
+            const editions_to_move = _.flatMap(
+                dupes,
+                work => this.editions[work.key].entries
+            );
+
+            const { 0: record, 1: sources } = merge(master, dupes);
+
+            const extras = {
+                edition_count: _.sum(records.map(r => this.editions[r.key].size)),
+                list_count: _.sum(records.map(r => this.lists[r.key].size))
+            };
+
+            return { record, sources, ...extras, dupes, editions_to_move };
+        }
     }
-  },
-  methods: {
-    isCellUsed(record, field) {
-      if (!this.merge) return false;
-      return field in this.merge.sources
-        ? this.merge.sources[field].includes(record.key)
-        : record.key == this.master_key;
-    }
-  },
-  computed: {
-    fields() {
-      const at_start = ["covers"];
-      const together = ["key", "title", "subtitle", "authors"];
-      const subjects = [
-        "subjects",
-        "subject_people",
-        "subject_places",
-        "subject_times"
-      ];
-      const at_end = [
-        "created",
-        "last_modified",
-        "revision",
-        "type"
-      ];
-      const exclude = [
-        "latest_revision"
-      ];
-      const recordFields = _.uniq(_.flatMap(this.records, Object.keys));
-      const middleFields = _.difference(recordFields, [
-        ...at_start,
-        ...together,
-        ...subjects,
-        ...at_end,
-        ...exclude
-      ]);
-      return [
-        ...at_start,
-        together.join("|"),
-        subjects.join("|"),
-        ...middleFields,
-        at_end.join("|")
-      ];
-    },
-
-    merge() {
-      if (!this.master_key || !this.records || !this.editions || !this.lists || !this.bookshelves)
-        return undefined;
-
-      const master = this.records.find(r => r.key == this.master_key);
-      const dupes = this.records
-        .filter(r => this.selected[r.key])
-        .filter(r => r.key != this.master_key);
-      const records = [master, ...dupes];
-      const editions_to_move = _.flatMap(
-        dupes,
-        work => this.editions[work.key].entries
-      );
-
-      const { 0: record, 1: sources } = merge(master, dupes);
-
-      const extras = {
-        edition_count: _.sum(records.map(r => this.editions[r.key].size)),
-        list_count: _.sum(records.map(r => this.lists[r.key].size))
-      };
-
-      return { record, sources, ...extras, dupes, editions_to_move };
-    }
-  }
 };
 </script>
 
