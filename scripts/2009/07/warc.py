@@ -1,1 +1,0 @@
-../../../openlibrary/coverstore/warc.py
