@@ -316,6 +316,10 @@ jQuery(function () {
             .then((module) => module.initSearchFacets());
     }
 
+    // TODO Conditionally load Integrated Librarian Environment
+    import(/* webpackChunkName: "ile" */ './ile')
+        .then((module) => module.init());
+
     if ($('#cboxPrevious').length) {
         $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});
     }
