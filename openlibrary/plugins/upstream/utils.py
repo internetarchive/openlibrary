@@ -120,8 +120,8 @@ def render_component(name, attrs=None, json_encode=True):
             val = simplejson.dumps(val)
         attrs_str += ' %s="%s"' %(key, val.replace('"', "'"))
 
-    html = '<script src="https://unpkg.com/vue"></script>'
-    html += '<script src="/static/build/components/ol-%s.min.js"></script>' % name
+    html = ''#'<script src="https://unpkg.com/vue@2.6.10"></script>'
+    html += '<script src="/static/build/components/ol-%s.js"></script>' % name
     html += '<ol-merge-u-i %s></ol-merge-u-i>' % attrs_str
     return html
 
