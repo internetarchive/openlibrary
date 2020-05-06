@@ -2,7 +2,7 @@
   <div class="edition-snippet">
     <img :src="cover_url" />
     <div class="links">
-      <a :href="`https://openlibrary.org${edition.key}`" target="_blank">OL</a>
+      <a :href="edition.key" target="_blank">OL</a>
       <a
         v-if="edition.ocaid"
         :href="`https://archive.org/details/${edition.ocaid}`"

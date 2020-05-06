@@ -14,7 +14,7 @@
                 {{excerpt[field].value || excerpt[field]}}
             </div>
             <div v-if="excerpt[field] == 'author'">
-                <a :href="`https://openlibrary.org${excerpt[field].key}`" target="_blank">
+                <a :href="excerpt[field].key" target="_blank">
                     {{excerpt[field].key.slice("/people/".length)}}
                 </a>
             </div>
