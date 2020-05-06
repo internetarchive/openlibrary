@@ -116,4 +116,8 @@ jQuery(function () {
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
+
+    // TODO Conditionally load Integrated Librarian Environment
+    import(/* webpackChunkName: "ile" */ './ile')
+    .then((module) => module.init());
 });
