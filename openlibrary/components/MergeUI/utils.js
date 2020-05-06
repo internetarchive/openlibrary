@@ -94,10 +94,7 @@ export async function do_merge(merged_record, dupes, editions) {
         ...editions
     ];
 
-    for (let edit of edits) {
-        const r = await post_save(edit, 'merge works');
-        console.log(`completed ${edit.key}; ${r.status}`)
-    }
+    await save_many(edits, 'Merge works');
 }
 
 export function make_redirect(master_key, dupe) {
@@ -120,22 +117,23 @@ export function get_bookshelves(key) {
     return fetch(`${key}/bookshelves.json`).then(r => r.json());
 }
 
+
 /**
- * @param {Object} record
- * @param {string} comment
+ * 
+ * @param {Array<Object>} items 
+ * @param {String} comment 
  */
-function post_save(record, comment) {
-    const body = new URLSearchParams({
-        body: JSON.stringify(record),
-        _comment: comment,
-        _save: '',
-    });
-    return fetch(`${record.key}.yml?m=edit`, {
-        method: 'POST',
-        credentials: 'include',
-        mode: 'cors',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: body.toString(),
+function save_many(items, comment) {
+    console.log(`Saving ${items.length} items`);
+    const headers = {
+        Opt: '"http://openlibrary.org/dev/docs/api"; ns=42',
+        '42-comment': comment
+    };
+
+    return fetch(`/api/save_many`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(items)
     });
 }
 
