@@ -3,7 +3,7 @@ $def with (page)
 $ bodyid = ctx.get('bodyid', 'user')
 $ show_banners = bodyid != 'form'
 
-<body id="$bodyid">
+<body id="$bodyid" class="$cond(ctx.user and (ctx.user.is_librarian() or ctx.user.is_admin()), 'show-librarian-tools')">
   <script>
       // Provide a signal that JS will load
       document.body.className += ' client-js';
