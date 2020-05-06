@@ -316,9 +316,11 @@ jQuery(function () {
             .then((module) => module.initSearchFacets());
     }
 
-    // TODO Conditionally load Integrated Librarian Environment
-    import(/* webpackChunkName: "ile" */ './ile')
-        .then((module) => module.init());
+    // Conditionally load Integrated Librarian Environment
+    if (document.getElementsByClassName('show-librarian-tools').length) {
+        import(/* webpackChunkName: "ile" */ './ile')
+            .then((module) => module.init());
+    }
 
     if ($('#cboxPrevious').length) {
         $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});

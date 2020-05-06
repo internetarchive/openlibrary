@@ -5,6 +5,9 @@ $ bodyclass = ctx.get('bodyclass', [])
 $ show_banners = cssfile != 'form'
 $ bodyattrs = ctx.get('bodyattrs', [])
 
+$if ctx.user and (ctx.user.is_librarian() or ctx.user.is_admin()):
+  $bodyclass.append('show-librarian-tools')
+
 <body class="$(' '.join(bodyclass))" $:(' '.join(bodyattrs))>
   <script>
       // Provide a signal that JS will load
