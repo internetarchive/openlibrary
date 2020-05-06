@@ -571,7 +571,7 @@ class Loan(dict):
             user_key = '/people/' + data['userid'][len('ol:'):]
         elif data['userid'].startswith('@'):
             account = OpenLibraryAccount.get_by_link(data['userid'])
-            user_key = ('/people/' + account.username) if  account.username else None
+            user_key = ('/people/' + account.username) if account else None
         else:
             user_key = None
 
