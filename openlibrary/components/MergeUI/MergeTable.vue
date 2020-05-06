@@ -43,7 +43,7 @@
             </div>
           </td>
           <td v-if="lists" style="white-space: nowrap;">
-            <a :href="`https://openlibrary.org${record.key}/-/lists`">{{lists[record.key].size}} list{{lists[record.key].size == 1 ? '' : 's'}}</a>
+            <a :href="`${record.key}/-/lists`">{{lists[record.key].size}} list{{lists[record.key].size == 1 ? '' : 's'}}</a>
           </td>
           <td v-else>⏳</td>
           <td v-if="bookshelves" class="bookshelf-counts" style="white-space: nowrap;">
@@ -92,9 +92,7 @@ function fetchRecord(olid) {
         M: 'books',
         A: 'authors'
     }[olid[olid.length - 1]];
-    return fetch(`https://openlibrary.org/${type}/${olid}.json`).then(r =>
-        r.json()
-    );
+    return fetch(`/${type}/${olid}.json`).then(r => r.json());
 }
 
 export default {
@@ -127,7 +125,7 @@ export default {
         async editions() {
             if (!this.records) return null;
 
-            const editionPromises = await Promise.allSettled(
+            const editionPromises = await Promise.all(
                 this.records.map(r => get_editions(r.key))
             );
             const editions = editionPromises.map(p => p.value || p);
@@ -139,7 +137,7 @@ export default {
         async lists() {
             if (!this.records) return null;
 
-            const promises = await Promise.allSettled(
+            const promises = await Promise.all(
                 this.records.map(r => get_lists(r.key))
             );
             const responses = promises.map(p => p.value || p);
@@ -150,13 +148,37 @@ export default {
         async bookshelves() {
             if (!this.records) return null;
 
-            const promises = await Promise.allSettled(
+            const promises = await Promise.all(
                 this.records.map(r => get_bookshelves(r.key))
             );
             const responses = promises.map(p => p.value || p);
             return _.fromPairs(
                 this.records.map((work, i) => [work.key, responses[i].counts])
             );
+        },
+
+        async merge() {
+            if (!this.master_key || !this.records || !this.editions || !this.lists || !this.bookshelves)
+                return undefined;
+
+            const master = this.records.find(r => r.key == this.master_key);
+            const dupes = this.records
+                .filter(r => this.selected[r.key])
+                .filter(r => r.key != this.master_key);
+            const records = [master, ...dupes];
+            const editions_to_move = _.flatMap(
+                dupes,
+                work => this.editions[work.key].entries
+            );
+
+            const [record, sources] = merge(master, dupes);
+
+            const extras = {
+                edition_count: _.sum(records.map(r => this.editions[r.key].size)),
+                list_count: _.sum(records.map(r => this.lists[r.key].size))
+            };
+
+            return { record, sources, ...extras, dupes, editions_to_move };
         }
     },
     methods: {
@@ -201,30 +223,6 @@ export default {
                 ...middleFields,
                 at_end.join('|')
             ];
-        },
-
-        merge() {
-            if (!this.master_key || !this.records || !this.editions || !this.lists || !this.bookshelves)
-                return undefined;
-
-            const master = this.records.find(r => r.key == this.master_key);
-            const dupes = this.records
-                .filter(r => this.selected[r.key])
-                .filter(r => r.key != this.master_key);
-            const records = [master, ...dupes];
-            const editions_to_move = _.flatMap(
-                dupes,
-                work => this.editions[work.key].entries
-            );
-
-            const { 0: record, 1: sources } = merge(master, dupes);
-
-            const extras = {
-                edition_count: _.sum(records.map(r => this.editions[r.key].size)),
-                list_count: _.sum(records.map(r => this.lists[r.key].size))
-            };
-
-            return { record, sources, ...extras, dupes, editions_to_move };
         }
     }
 };

@@ -109,18 +109,15 @@ export function make_redirect(master_key, dupe) {
 }
 
 export function get_editions(work_key) {
-    const url = `https://openlibrary.org${work_key}/editions.json`;
-    return fetch(url).then(r => r.json());
+    return fetch(`${work_key}/editions.json`).then(r => r.json());
 }
 
 export function get_lists(key) {
-    const url = `https://openlibrary.org${key}/lists.json`;
-    return fetch(url).then(r => r.json());
+    return fetch(`${key}/lists.json`).then(r => r.json());
 }
 
 export function get_bookshelves(key) {
-    const url = `https://openlibrary.org${key}/bookshelves.json`;
-    return fetch(url).then(r => r.json());
+    return fetch(`${key}/bookshelves.json`).then(r => r.json());
 }
 
 /**
@@ -133,7 +130,7 @@ function post_save(record, comment) {
         _comment: comment,
         _save: '',
     });
-    return fetch(`https://openlibrary.org${record.key}.yml?m=edit`, {
+    return fetch(`${record.key}.yml?m=edit`, {
         method: 'POST',
         credentials: 'include',
         mode: 'cors',
@@ -148,7 +145,7 @@ function post_save(record, comment) {
 //  */
 // function put_save(record, comment) {
 //     record._comment = comment;
-//     const url = `https://openlibrary.org${record.key}.json`;
+//     const url = `${record.key}.json`;
 //     return fetch(url, {
 //         method: 'PUT',
 //         body: JSON.stringify(record)

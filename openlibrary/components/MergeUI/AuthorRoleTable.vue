@@ -15,7 +15,7 @@
                             {{(role[field].key || role[field]).slice("/type/".length)}}
                         </div>
                         <div v-else-if="field == 'author'">
-                            <a :href="`https://openlibrary.org${role[field].key}`" target="_blank">
+                            <a :href="`${role[field].key}`" target="_blank">
                                 {{role[field].key.slice("/authors/".length)}}
                             </a>
                         </div>

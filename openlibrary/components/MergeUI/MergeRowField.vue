@@ -8,9 +8,7 @@
     <ExcerptsTable v-else-if="field == 'excerpts'" :excerpts="value" />
     <!-- Key -->
     <a
-      v-else-if="field == 'key'"
-      :href="`https://openlibrary.org${value}`"
-      target="_blank"
+      v-else-if="field == 'key'" :href="value" target="_blank"
     >{{value.slice("/works/".length)}}</a>
     <div v-else-if="field == 'covers'" class="wrapper">
       <a
