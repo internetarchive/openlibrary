@@ -94,7 +94,7 @@ export async function do_merge(merged_record, dupes, editions) {
         ...editions
     ];
 
-    await save_many(edits, 'Merge works');
+    return await save_many(edits, 'Merge works');
 }
 
 export function make_redirect(master_key, dupe) {

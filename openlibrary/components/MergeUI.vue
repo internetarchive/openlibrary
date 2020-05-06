@@ -2,7 +2,8 @@
   <div id="app">
     <MergeTable :olids="url.searchParams.get('records', '').split(',')" ref="mergeTable"/>
 
-    <button @click="doMerge">Do Merge</button>
+    <button @click="doMerge" :disabled="mergeStatus == 'Saving...'">Do Merge</button>
+    <pre v-if="mergeStatus">{{mergeStatus}}</pre>
   </div>
 </template>
 
@@ -17,15 +18,23 @@ export default {
     },
     data() {
         return {
-            url: new URL(location.toString())
+            url: new URL(location.toString()),
+            mergeStatus: null
         }
     },
     methods: {
-        doMerge() {
+        async doMerge() {
             if (!this.$refs.mergeTable.merge) return;
             const { record: master, dupes, editions_to_move } = this.$refs.mergeTable.merge;
 
-            do_merge(master, dupes, editions_to_move);
+            this.mergeStatus = 'Saving...';
+            try {
+              const r = await do_merge(master, dupes, editions_to_move);
+              this.mergeStatus = await r.json();
+            } catch (e) {
+              this.mergeStatus = e.message;
+              throw e;
+            }
         }
     }
 }
