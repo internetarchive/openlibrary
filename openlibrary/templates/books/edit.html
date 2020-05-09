@@ -96,9 +96,11 @@ window.q.push( function(){
                 <br/>
                 <div class="flash-messages">
                     <noscript>
-                    <span>$:_('Author editing requires javascript')</span>
+                        <p class="error">
+                           <span>$:_('Author editing requires javascript')</span>
+                        </p>
                     </noscript> 
-                </div> 
+                </div>  
             </div>
             $ authors = work.authors and [a.author for a in work.authors]
             $:render_template("books/author-autocomplete", authors, "authors", "work--authors")
