@@ -402,6 +402,32 @@ class account_verify_old(account_verify):
         # Show failed message without thinking.
         return render['account/verify/failed']()
 
+class real_time_email_verification(delegate.page):
+    path = "/account/email/rtverify"
+    
+    def GET(self):
+        i = web.input(email='')
+        # ia_account = InternetArchiveAccount.get(email=i.email)
+        result = {
+            'output': True,
+            'email': i.email
+        }
+        return delegate.RawText(simplejson.dumps(result),
+                                content_type="application/json")
+
+class real_time_screenName_verification(delegate.page):
+    path = "/account/sceenname/rtverify"
+    
+    def GET(self):
+        i = web.input(name='')
+        # ia_account = InternetArchiveAccount.get(email=i.email)
+        result = {
+            'output': True,
+            'name': i.name
+        }
+        return delegate.RawText(simplejson.dumps(result),
+                                content_type="application/json")
+
 class account_email_verify(delegate.page):
     path = "/account/email/verify/([0-9a-f]*)"
 
