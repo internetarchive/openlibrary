@@ -127,7 +127,7 @@ $ sort_facet = input(sort='status').sort
             </ul>
           </td>
           <td>
-            <a href="https://archive.org/details/$book['identifier']">$book['title']</a>
+            <a href="https://archive.org/details/$book['identifier']">$book.get('title')</a>
           </td>
           <td class="status--$(summary['status_ids'][book.get('status')])">
             $book.get('status')
