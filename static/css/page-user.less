@@ -92,7 +92,10 @@ body#user {
 }
 
 div#subjectsPage{
-  columns: 3;
+  columns: 2;
+  @media only screen and (min-width: @width-breakpoint-tablet) {
+    columns: 4;
+  }
   ul {
     display: inline-block;
   }
