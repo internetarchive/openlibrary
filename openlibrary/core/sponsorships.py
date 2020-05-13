@@ -141,7 +141,7 @@ def qualifies_for_sponsorship(edition):
     edition_id = edition.key.split('/')[-1]
     dwwi, matches = do_we_want_it(edition.isbn, work_id)
     if dwwi:
-        bwb_price = get_betterworldbooks_metadata(edition.isbn, thirdparty=True).get('price_amt')
+        bwb_price = get_betterworldbooks_metadata(edition.isbn).get('price_amt')
         if bwb_price:
             num_pages = int(edition_data['number_of_pages'])
             scan_price_cents = SETUP_COST_CENTS + (PAGE_COST_CENTS * num_pages)

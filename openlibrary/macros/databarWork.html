@@ -8,10 +8,7 @@ $else:
     $ edit_url = page.key + "?m=edit"
 
 $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
-
-$# Disable price temporarily: NEL causing too much traffic to BWB!
-$# Was: page.key.startswith('/books/')
-$ prices = False
+$ prices = page.key.startswith('/books/')
 
 $ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
 $ isbn_13 = page.get_isbn13()

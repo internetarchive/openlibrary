@@ -373,40 +373,19 @@ def cached_get_amazon_metadata(*args, **kwargs):
     return result
 
 @public
-def get_betterworldbooks_metadata(isbn, thirdparty=False):
+def get_betterworldbooks_metadata(isbn):
     """
     :param str isbn: Unnormalisied ISBN10 or ISBN13
-    :param bool thirdparty: If no Product API  match, scrape bwb website for 3rd party matches
     :return: Metadata for a single BWB book, currently listed on their catalog, or error dict.
     :rtype: dict
     """
 
     isbn = normalize_isbn(isbn)
     try:
-        metadata = _get_betterworldbooks_metadata(isbn)
-        if not metadata.get('price') and thirdparty:
-            return _get_betterworldbooks_thirdparty_metadata(isbn)
-        return metadata
+        return _get_betterworldbooks_metadata(isbn)
     except Exception:
         return betterworldbooks_fmt(isbn)
 
-def _get_betterworldbooks_thirdparty_metadata(isbn):
-    """Scrapes metadata from betterworldbooks website in the case the
-    Product API returns no result (i.e. includes 3rd party vendor inventory)
-
-    :param str isbn: Unnormalised ISBN10 or ISBN13
-    :return: Metadata for a single BWB book, currently listed on their catalog, or error dict.
-    :rtype: dict
-    """
-    url = '%s/product/detail/-%s' % (BETTERWORLDBOOKS_BASE_URL, isbn)
-    content = requests.get(url).text
-    results = [betterworldbooks_fmt(
-        isbn,
-        qlt=i[0].lower(),
-        price=i[1]
-    ) for i in re.findall('data-condition="(New|Used).*data-price="([0-9.]+)"', content)]
-    cheapest = sorted(results, key=lambda i: Decimal(i['price_amt']))[0]
-    return cheapest
 
 def _get_betterworldbooks_metadata(isbn):
     """Returns price and other metadata (currently minimal)
@@ -461,21 +440,6 @@ def betterworldbooks_fmt(isbn, qlt=None, price=None, market_price=None):
         'price_amt': price,
         'qlt': qlt
     }
-
-
-def check_bwb_scraper_status():
-    """
-    Check if the bwb scraper is still working; since it's checking
-    HTML, we want to know if it's stopped working.
-    :rtype: bool, str
-    """
-    # Pull a random (available) book from betterworldbooks
-    content = requests.get(BETTERWORLDBOOKS_BASE_URL).text
-    isbn = re.findall(r'isbn1="([0-9]+)"', content)[0]
-    if not isbn:
-        return False, 'ISBN missing from %s' % BETTERWORLDBOOKS_BASE_URL
-    data = _get_betterworldbooks_thirdparty_metadata(isbn)
-    return 'price_amt' in data, simplejson.dumps(data, indent=4 * ' ')
 
 
 cached_get_betterworldbooks_metadata = cache.memcache_memoize(
