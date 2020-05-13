@@ -48,7 +48,10 @@ window.q.push( function () {
     \$('.author-autocomplete').prop('disabled', false );
     \$("#authors").setup_multi_input_autocomplete(
         "input.author-autocomplete",
-        render_author.bind(null, "$name_path", "$dict_path"),
+        function () {
+            render_author.bind(null, "$name_path", "$dict_path").apply(null, arguments);
+            \$('.author-autocomplete').prop('disabled', false );
+        },
         {
             endpoint: "/authors/_autocomplete",
             // Don't render "Create new author" if searching by key
