@@ -6,6 +6,9 @@ $var title: $_("Welcome to Open Library")
 $ meta_description = "Open Library is an open, editable library catalog, building towards a web page for every book ever published."
 $ meta_image_url = "https://openlibrary.org/static/images/ol-banner.png"
 
+$add_metatag(name="title", content="Welcome to Open Library | Open Library")
+$add_metatag(name="description", content=meta_description)
+
 $add_metatag(property="og:title", content="OpenLibrary.org")
 $add_metatag(property="og:description", content=meta_description)
 $add_metatag(property="og:image", content=meta_image_url)
