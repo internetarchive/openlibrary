@@ -244,6 +244,8 @@ class account_create(delegate.page):
                 InternetArchiveAccount.create(
                     screenname=f.username.value, email=f.email.value, password=f.password.value,
                     notifications=notifications, verified=False, retries=USERNAME_RETRIES)
+                user = OpenLibraryAccount.get(email=f.email.value)
+                user.save_preferences({'public_readlog':'yes'})
                 page = render['account/verify'](username=f.username.value, email=f.email.value)
                 page.v2 = True
                 return page
@@ -579,7 +581,9 @@ class account_privacy(delegate.page):
     @require_login
     def POST(self):
         user = accounts.get_current_user()
-        user.save_preferences(web.input())
+        inst = web.input()
+        logger.log(inst)
+        user.save_preferences(inst)
         add_flash_message('note', _("Notification preferences have been updated successfully."))
         web.seeother("/account")
 
