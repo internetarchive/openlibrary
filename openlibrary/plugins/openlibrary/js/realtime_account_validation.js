@@ -1,4 +1,10 @@
 export function initRealTimeValidation() {
+
+    $('#username').on('keyup', function(){
+        var value = $(this).val();
+        $('#userUrl').addClass('darkgreen').text(value).css('font-weight','700');
+    });
+
     $('#username').on('blur', function(){
         var value = $(this).val();
         if(!value==""){
@@ -9,7 +15,6 @@ export function initRealTimeValidation() {
                     console.log(result);
                     if(result.output == true){
                         $('#usernameMessage').removeClass().addClass('darkgreen').html("Screen name is Valid <br/>").css('font-weight','700');
-                        $('#userUrl').removeClass().addClass('darkgreen').text(value).css('font-weight','700');  
                         $("label[for='username']").removeClass();
                         $(document.getElementById('username')).removeClass().addClass('required');
                     }
@@ -17,7 +22,6 @@ export function initRealTimeValidation() {
                         $(document.getElementById('username')).removeClass().addClass('required invalid');
                         $("label[for='username']").removeClass().addClass('invalid');
                         $('#usernameMessage').removeClass().addClass('invalid').html("Screen name is not Valid <br/>").css('font-weight','700');
-                        $('#userUrl').removeClass().addClass('hidden');
                     }
                 }
             });
@@ -26,9 +30,9 @@ export function initRealTimeValidation() {
             $("label[for='username']").removeClass();
             $(document.getElementById('username')).removeClass().addClass('required');
             $('#usernameMessage').removeClass().html("<br/>");
-            $('#userUrl').removeClass().text("");
         }
     });
+
     $('#password, #password2').on('blur', function(){
         var value = document.getElementById("password").value;
         var value2 = document.getElementById("password2").value;
@@ -50,6 +54,7 @@ export function initRealTimeValidation() {
             $('#password2Message').removeClass().text("");
         }
     });
+    
     $('#emailAddr').on('blur', function(){
         var value_email = $(this).val();
         if(!value_email==''){
