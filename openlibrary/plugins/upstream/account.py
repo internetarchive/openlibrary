@@ -581,9 +581,7 @@ class account_privacy(delegate.page):
     @require_login
     def POST(self):
         user = accounts.get_current_user()
-        inst = web.input()
-        logger.log(inst)
-        user.save_preferences(inst)
+        user.save_preferences(web.input())
         add_flash_message('note', _("Notification preferences have been updated successfully."))
         web.seeother("/account")
 
