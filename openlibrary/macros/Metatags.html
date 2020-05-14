@@ -1,6 +1,11 @@
 $def with(title, image, description)
 
 <!-- Open graph tags handle card for both twitter and facebook -->
+
+$add_metatag(name="title", content=title)
+$add_metatag(name="description", content=description)
+
+
 $add_metatag(property="og:title", content=title)
 $add_metatag(property="og:type", content="books.book")
 $add_metatag(property="og:image", content=image)
