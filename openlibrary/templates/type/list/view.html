@@ -11,6 +11,9 @@ $if list.description:
 
 $var title: $list.name
 
+$add_metatag(name="title", content=title_with_site)
+$add_metatag(name="description", content=meta_description)
+
 $add_metatag(property="twitter:card", content="summary")
 $add_metatag(property="twitter:site", content="@openlibrary")
 $add_metatag(property="twitter:title", content=title_with_site)
