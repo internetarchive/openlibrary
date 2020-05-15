@@ -3,6 +3,18 @@ $def with (stats=None, blog_posts=None, test=False)
 $ _x = ctx.setdefault('bodyid', 'home')
 $var title: $_("Welcome to Open Library")
 
+$ meta_description = "Open Library is an open, editable library catalog, building towards a web page for every book ever published."
+$ meta_image_url = "https://openlibrary.org/static/images/ol-banner.png"
+
+$add_metatag(property="og:title", content="OpenLibrary.org")
+$add_metatag(property="og:description", content=meta_description)
+$add_metatag(property="og:image", content=meta_image_url)
+$add_metatag(property="og:url", content="https://openlibrary.org")
+$add_metatag(property="og:site_name", content="Open Library")
+
+$add_metatag(name="twitter:image:alt", content="Open Library Logo")
+$add_metatag(name="twitter:card", content="homepage_summary")
+
 <div id="contentBody">
   $:render_template("home/categories", test=test)
 
