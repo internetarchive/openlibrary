@@ -28,7 +28,7 @@ email_not_disposable = Validator(_("Disposable email not permitted"), lambda ema
 email_domain_not_blocked = Validator(_("Your email provider is not recognized."), lambda email: not spamcheck.is_spam_email(email))
 username_validator = Validator(_("Username already used"), lambda username: not find_account(lusername=username.lower()))
 
-vlogin = RegexpValidator(r"^[A-Za-z0-9-_]{3,20}$", _('Must be between 3 and 20 letters and numbers'))
+vlogin = RegexpValidator(r"^[A-Za-z0-9-_]{3,20}$", _('Letters and numbers only please, and at least 3 characters.'))
 vpass = RegexpValidator(r".{3,20}", _('Must be between 3 and 20 characters'))
 vemail = RegexpValidator(r".*@.*", _("Must be a valid email address"))
 

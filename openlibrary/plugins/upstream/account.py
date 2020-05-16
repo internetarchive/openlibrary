@@ -6,6 +6,7 @@ import uuid
 import datetime
 import time
 import simplejson
+import re
 
 from infogami.utils import delegate
 from infogami import config
@@ -409,11 +410,17 @@ class real_time_email_verification(delegate.page):
     
     def GET(self):
         i = web.input(email='')
-        # ia_account = InternetArchiveAccount.get(email=i.email)
         result = {
-            'output': True,
-            'email': i.email
-        }
+                'output': False,
+                'message': 'Must be a valid email address'
+            }
+        if(bool(re.match('.*@.*', i.email))):
+            ol_account = OpenLibraryAccount.get(email=i.email)
+            if(not(ol_account)):
+                result.output = True
+                result.message = "Email is available"
+            else:
+                result.message = "Email already registered"
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
@@ -422,11 +429,18 @@ class real_time_screenName_verification(delegate.page):
     
     def GET(self):
         i = web.input(name='')
-        # ia_account = InternetArchiveAccount.get(email=i.email)
+        username = i.name
         result = {
-            'output': True,
-            'name': i.name
-        }
+                'output': False,
+                'message': 'Letters and numbers only please, and at least 3 characters.'
+            }
+        if(username.isalnum() and len(username)>=3):
+            ol_account = OpenLibraryAccount.get(username=username)
+            if(ol_account):
+                result.output = True
+                result.message = "Username is available"
+            else:
+                result.message = "Username already used"
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
