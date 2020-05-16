@@ -2,7 +2,7 @@ export function initRealTimeValidation() {
 
     $('#username').on('keyup', function(){
         var value = $(this).val();
-        $('#userUrl').addClass('darkgreen').text(value);
+        $('#userUrl').addClass('darkgreen').text(value).css('font-weight','700');
     });
 
     $('#username').on('blur', function(){
