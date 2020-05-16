@@ -8,20 +8,19 @@ export function initRealTimeValidation() {
     $('#username').on('blur', function(){
         var value = $(this).val();
         if (!value=='') {
-        $.ajax({
-                url: '/account/sceenname/rtverify?name='+value,
+            $.ajax({
+                url: `/account/sceenname/rtverify?name=${value}`,
                 type: 'GET',
                 success: function(result) {
-                    console.log(result);
                     if (result.output == true) {
-                        $('#usernameMessage').removeClass().addClass('darkgreen').html(result.message+' <br/>');
+                        $('#usernameMessage').removeClass().addClass('darkgreen').html(`${result.message} <br/>`);
                         $('label[for="username"]').removeClass();
                         $(document.getElementById('username')).removeClass().addClass('required');
                     }
                     else {
                         $(document.getElementById('username')).removeClass().addClass('required invalid');
                         $('label[for="username"]').removeClass().addClass('invalid');
-                        $('#usernameMessage').removeClass().addClass('invalid').html(result.message+' <br/>');
+                        $('#usernameMessage').removeClass().addClass('invalid').html(`${result.message} <br/>`);
                     }
                 }
             });
@@ -54,16 +53,15 @@ export function initRealTimeValidation() {
             $('#password2Message').removeClass().text('');
         }
     });
-    
+
     $('#emailAddr').on('blur', function(){
         var value_email = $(this).val();
         if (!value_email=='') {
-        $.ajax({
-                url: '/account/email/rtverify?email='+value_email,
+            $.ajax({
+                url: `/account/email/rtverify?email=${value_email}`,
                 type: 'GET',
                 success: function(result) {
                     if (result.output == true) {
-                        console.log(result);
                         $('#emailAddrMessage').removeClass().addClass('darkgreen').text(result.message);
                         $('label[for="emailAddr"]').removeClass();
                         $(document.getElementById('emailAddr')).removeClass().addClass('required');
