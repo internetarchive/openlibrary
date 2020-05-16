@@ -30,6 +30,8 @@ eventer
 Pygments
 OL-GeoIP
 mockcache
+callie8909
+
 """
 
 setup(
