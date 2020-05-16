@@ -244,8 +244,6 @@ class account_create(delegate.page):
                 InternetArchiveAccount.create(
                     screenname=f.username.value, email=f.email.value, password=f.password.value,
                     notifications=notifications, verified=False, retries=USERNAME_RETRIES)
-                user = OpenLibraryAccount.get(email=f.email.value)
-                user.save_preferences({'public_readlog':'yes'})
                 page = render['account/verify'](username=f.username.value, email=f.email.value)
                 page.v2 = True
                 return page

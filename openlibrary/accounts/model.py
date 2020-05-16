@@ -699,6 +699,7 @@ def audit_accounts(email, password, require_link=False,
                     ia_account.itemname, email, password,
                     displayname=ia_account.screenname,
                     verified=True, retries=5, test=test)
+                ol_account.save_preferences({'public_readlog':'yes'})
             except ValueError as e:
                 return {'error': 'max_retries_exceeded'}
 
