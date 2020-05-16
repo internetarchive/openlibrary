@@ -21,7 +21,7 @@
     },
     {
       "path": "static/build/graphs.*.js",
-      "maxSize": "17.2KB"
+      "maxSize": "17.3KB"
     },
     {
       "path": "static/build/markdown-editor.*.js",
