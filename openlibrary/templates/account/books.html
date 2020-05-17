@@ -37,6 +37,7 @@ $elif key == 'sponsorships':
   $ og_description = "{username} is sponsoring {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=userDisplayName, total=total_items)
 
 $if og_title:
+  $putctx("description", og_description)
   $add_metatag(property="og:title", content=og_title)
   $add_metatag(property="og:url", content=request.canonical_url)
   $add_metatag(property="og:site_name", content="Open Library")
