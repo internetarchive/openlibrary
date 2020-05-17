@@ -6,7 +6,9 @@ $putctx("sent_neck", True)
         <meta name="robots" content="$ctx.robots" />
 
     $if ctx.get("description"):
-    	<meta name="description" content="$ctx.description" />
+        <meta name="description" content="$ctx.description" />
+    $else:
+        <meta name="description" content="Open Library is an open, editable library catalog, building towards a web page for every book ever published." />
 
     <title>$:title | $_("Open Library")</title>
 
