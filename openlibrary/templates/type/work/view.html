@@ -38,7 +38,6 @@ $var title: $page.title
         return "; ".join(items)
 
     description = render_description()
-    putctx("description", description)
 
   $:macros.Metatags(title=title_with_site, image=meta_cover_url, description=description)
 
