@@ -5,22 +5,22 @@ export function initRealTimeValidation() {
         $('#userUrl').addClass('darkgreen').text(value).css('font-weight','700');
     });
 
-    $('#username').on('blur', function(){
+
+    function validateUsername() {
         var value = $(this).val();
         if (!value=='') {
             $.ajax({
-                url: `/account/sceenname/rtverify?name=${value}`,
+                url: `/account/validate?username=${value}`,
                 type: 'GET',
-                success: function(result) {
-                    if (result.output == true) {
-                        $('#usernameMessage').removeClass().addClass('darkgreen').html(`${result.message} <br/>`);
-                        $('label[for="username"]').removeClass();
-                        $(document.getElementById('username')).removeClass().addClass('required');
-                    }
-                    else {
+                success: function(errors) {
+                    if (errors.username) {
                         $(document.getElementById('username')).removeClass().addClass('required invalid');
                         $('label[for="username"]').removeClass().addClass('invalid');
-                        $('#usernameMessage').removeClass().addClass('invalid').html(`${result.message} <br/>`);
+                        $('#usernameMessage').removeClass().addClass('invalid').html(`${errors.username}<br>`);
+                    } else {
+                        $('#usernameMessage').removeClass().addClass('darkgreen').html('<br>');
+                        $('label[for="username"]').removeClass();
+                        $(document.getElementById('username')).removeClass().addClass('required');
                     }
                 }
             });
@@ -28,16 +28,42 @@ export function initRealTimeValidation() {
         else {
             $('label[for="username"]').removeClass();
             $(document.getElementById('username')).removeClass().addClass('required');
-            $('#usernameMessage').removeClass().html('<br/>');
+            $('#usernameMessage').removeClass().html('<br>');
         }
-    });
+    }
 
-    $('#password, #password2').on('blur', function(){
+    function validateEmail() {
+        var value_email = $(this).val();
+        if (!value_email=='') {
+            $.ajax({
+                url: `/account/validate?email=${value_email}`,
+                type: 'GET',
+                success: function(errors) {
+                    if (errors.email) {
+                        $(document.getElementById('emailAddr')).removeClass().addClass('required invalid');
+                        $('label[for="emailAddr"]').removeClass().addClass('invalid');
+                        $('#emailAddrMessage').removeClass().addClass('invalid').text(errors.email);
+                    } else {
+                        $('#emailAddrMessage').removeClass().addClass('darkgreen').html('');
+                        $('label[for="emailAddr"]').removeClass();
+                        $(document.getElementById('emailAddr')).removeClass().addClass('required');
+                    }
+                }
+            });
+        }
+        else {
+            $('label[for="emailAddr"]').removeClass();
+            $(document.getElementById('emailAddr')).removeClass().addClass('required');
+            $('#emailAddrMessage').removeClass().text('');
+        }
+    }
+
+    function validatePasswords() {
         var value = document.getElementById('password').value;
         var value2 = document.getElementById('password2').value;
         if (!value2=='' && !value=='') {
             if (value2==value) {
-                $('#password2Message').removeClass().addClass('darkgreen').text('Passwords Match');
+                $('#password2Message').removeClass().addClass('darkgreen').text('');
                 $('label[for="password2"]').removeClass();
                 $(document.getElementById('password2')).removeClass().addClass('required');
             }
@@ -52,32 +78,21 @@ export function initRealTimeValidation() {
             $(document.getElementById('password2')).removeClass().addClass('required');
             $('#password2Message').removeClass().text('');
         }
-    });
+    }
 
-    $('#emailAddr').on('blur', function(){
-        var value_email = $(this).val();
-        if (!value_email=='') {
-            $.ajax({
-                url: `/account/email/rtverify?email=${value_email}`,
-                type: 'GET',
-                success: function(result) {
-                    if (result.output == true) {
-                        $('#emailAddrMessage').removeClass().addClass('darkgreen').text(result.message);
-                        $('label[for="emailAddr"]').removeClass();
-                        $(document.getElementById('emailAddr')).removeClass().addClass('required');
-                    }
-                    else {
-                        $(document.getElementById('emailAddr')).removeClass().addClass('required invalid');
-                        $('label[for="emailAddr"]').removeClass().addClass('invalid');
-                        $('#emailAddrMessage').removeClass().addClass('invalid').text(result.message);
-                    }
-                }
-            });
+    $('#username').on('blur', validateUsername);
+    $('#emailAddr').on('blur', validateEmail);
+    $('#password, #password2').on('blur', validatePasswords);
+
+    $('#signup').on('click', function(e) {
+        e.preventDefault();
+        if (!grecaptcha.getResponse().length) {
+            alert("Please complete all fields and click the reCAPTCHA checkbox before proceeding.");
+            return;
         }
-        else {
-            $('label[for="emailAddr"]').removeClass();
-            $(document.getElementById('emailAddr')).removeClass().addClass('required');
-            $('#emailAddrMessage').removeClass().text('');
-        }
+        // This is where we'll also want to double check each of the 3 functions above:
+        // i.e. username, email, passwords (before submitting)
+        // We'll want to turn the email + username checks into functions we can re-use here
+        $(this).submit();
     });
 }

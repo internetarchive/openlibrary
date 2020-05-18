@@ -405,43 +405,42 @@ class account_verify_old(account_verify):
         # Show failed message without thinking.
         return render['account/verify/failed']()
 
-class real_time_email_verification(delegate.page):
-    path = "/account/email/rtverify"
-    
+class account_validation(delegate.page):
+    path = '/account/validate'
+
+    @staticmethod
+    def validate_username(username):
+        if not username.isalnum():
+            return 'Username may only contain numbers and letters'
+        if not (21 > len(username) > 2):
+            return 'Username must be between 3-20 characters'
+        ol_account = OpenLibraryAccount.get(username=username)
+        if ol_account:
+            return "Username unavailable"
+
+    @staticmethod
+    def validate_email(email):
+        if not (email and re.match('.*@.*\..*', email)):
+            return 'Must be a valid email address'
+
+        ol_account = OpenLibraryAccount.get(email=email)
+        if ol_account:
+            return 'Email already registered'
+
+
     def GET(self):
-        emailId = web.input(email='').email
-        result = {
-                'output': False,
-                'message': 'Must be a valid email address'
-            }
-        if re.match('.*@.*', emailId):
-            ol_account = OpenLibraryAccount.get(email=emailId)
-            if ol_account:
-                result.message = "Email already registered"
-            else:
-                result.message = "Email is available"
-                result.output = True
-        return delegate.RawText(simplejson.dumps(result),
+        i = web.input()
+        errors = {
+            'email': None,
+            'username': None
+        }
+        if i.get('email') is not None:
+            errors['email'] = self.validate_email(i.email)
+        if i.get('username') is not None:
+            errors['username'] = self.validate_username(i.username)
+        return delegate.RawText(simplejson.dumps(errors),
                                 content_type="application/json")
 
-class real_time_screenName_verification(delegate.page):
-    path = "/account/sceenname/rtverify"
-    
-    def GET(self):
-        username = web.input(name='').name
-        result = {
-                'output': False,
-                'message': 'Letters and numbers only please, and at least 3 characters.'
-            }
-        if username.isalnum() and len(username)>=3:
-            ol_account = OpenLibraryAccount.get(username=username)
-            if ol_account:
-                result.output = True
-                result.message = "Username is available"
-            else:
-                result.message = "Username already used"
-        return delegate.RawText(simplejson.dumps(result),
-                                content_type="application/json")
 
 class account_email_verify(delegate.page):
     path = "/account/email/verify/([0-9a-f]*)"
@@ -655,7 +654,7 @@ class ReadingLog(object):
 
     """Manages the user's account page books (reading log, waitlists, loans)"""
 
-    
+
 
     def __init__(self, user=None):
         self.user = user or accounts.get_current_user()
