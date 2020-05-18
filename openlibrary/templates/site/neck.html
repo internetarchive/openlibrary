@@ -8,7 +8,7 @@ $putctx("sent_neck", True)
     $if ctx.get("description"):
         <meta name="description" content="$ctx.description" />
     $else:
-        <meta name="description" content="$_('Open Library is an open, editable library catalog, building towards a web page for every book ever published.')" />
+        <meta name="description" content="$_('Open Library is an open, editable library catalog, building towards a web page for every book ever published. Read, borrow, and discover more than 3M books for free.')" />
 
     <title>$:title | $_("Open Library")</title>
 
@@ -18,4 +18,3 @@ $putctx("sent_neck", True)
     $for tag in ctx.get("metatags", []):
         $:tag
 </head>
-
