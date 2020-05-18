@@ -433,7 +433,7 @@ class real_time_screenName_verification(delegate.page):
                 'output': False,
                 'message': 'Letters and numbers only please, and at least 3 characters.'
             }
-        if(username.isalnum() and len(username)>=3):
+        if username.isalnum() and len(username)>=3:
             ol_account = OpenLibraryAccount.get(username=username)
             if ol_account:
                 result.output = True
