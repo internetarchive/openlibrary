@@ -435,7 +435,7 @@ class real_time_screenName_verification(delegate.page):
             }
         if(username.isalnum() and len(username)>=3):
             ol_account = OpenLibraryAccount.get(username=username)
-            if(ol_account):
+            if ol_account:
                 result.output = True
                 result.message = "Username is available"
             else:
