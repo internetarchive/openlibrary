@@ -409,13 +409,13 @@ class real_time_email_verification(delegate.page):
     path = "/account/email/rtverify"
     
     def GET(self):
-        i = web.input(email='')
+        emailId = web.input(email='').email
         result = {
                 'output': False,
                 'message': 'Must be a valid email address'
             }
-        if re.match('.*@.*', i.email):
-            ol_account = OpenLibraryAccount.get(email=i.email)
+        if re.match('.*@.*', emailId):
+            ol_account = OpenLibraryAccount.get(email=emailId)
             if ol_account:
                 result.message = "Email already registered"
             else:
@@ -428,8 +428,7 @@ class real_time_screenName_verification(delegate.page):
     path = "/account/sceenname/rtverify"
     
     def GET(self):
-        i = web.input(name='')
-        username = i.name
+        username = web.input(name='').name
         result = {
                 'output': False,
                 'message': 'Letters and numbers only please, and at least 3 characters.'
