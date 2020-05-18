@@ -412,7 +412,7 @@ class real_time_email_verification(delegate.page):
                 'output': False,
                 'message': 'Must be a valid email address'
             }
-        if(bool(re.match('.*@.*', i.email))):
+        if re.match('.*@.*', i.email):
             ol_account = OpenLibraryAccount.get(email=i.email)
             if(not(ol_account)):
                 result.output = True
