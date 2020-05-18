@@ -416,11 +416,11 @@ class real_time_email_verification(delegate.page):
             }
         if re.match('.*@.*', i.email):
             ol_account = OpenLibraryAccount.get(email=i.email)
-            if(not(ol_account)):
-                result.output = True
-                result.message = "Email is available"
-            else:
+            if ol_account:
                 result.message = "Email already registered"
+            else:
+                result.message = "Email is available"
+                result.output = True
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
