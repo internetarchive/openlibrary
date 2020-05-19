@@ -376,7 +376,9 @@ class OpenLibraryAccount(Account):
         ol_account = cls.get(email=email)
 
         # Update user preferences; reading log public by default
-        ol_account.get_user().save_preferences({'public_readlog':'yes'})
+        from openlibrary.accounts import RunAs
+        with RunAs(username):
+            ol_account.get_user().save_preferences({'public_readlog':'yes'})
 
         return ol_account
 

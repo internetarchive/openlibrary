@@ -1,13 +1,16 @@
-from .model import * #XXX: Fix this. Import only specific names
-
 import web
+
+# FIXME: several modules import things from accounts.model
+# directly through openlibrary.accounts
+from .model import *
+
 
 ## Unconfirmed functions (I'm not sure that these should be here)
 def get_group(name):
     """
     Returns the group named 'name'.
     """
-    return web.ctx.site.get("/usergroup/%s"%name)
+    return web.ctx.site.get("/usergroup/%s" % name)
 
 
 class RunAs(object):
