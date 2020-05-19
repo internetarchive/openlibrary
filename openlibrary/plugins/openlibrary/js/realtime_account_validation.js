@@ -5,7 +5,6 @@ export function initRealTimeValidation() {
         $('#userUrl').addClass('darkgreen').text(value).css('font-weight','700');
     });
 
-
     function validateUsername() {
         var value = $(this).val();
         if (!value=='') {
@@ -86,8 +85,8 @@ export function initRealTimeValidation() {
 
     $('#signup').on('click', function(e) {
         e.preventDefault();
-        if (!grecaptcha.getResponse().length) {
-            alert("Please complete all fields and click the reCAPTCHA checkbox before proceeding.");
+        if (! (window.grecaptcha && window.grecaptcha.getResponse().length)) {
+            alert('Please complete all fields and click the reCAPTCHA checkbox before proceeding.');
             return;
         }
         // This is where we'll also want to double check each of the 3 functions above:
