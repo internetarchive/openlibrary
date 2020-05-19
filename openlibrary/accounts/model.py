@@ -137,8 +137,7 @@ class Account(web.storage):
 
     @property
     def displayname(self):
-        key = "/people/" + self.username
-        doc = web.ctx.site.get(key)
+        doc = self.get_user()
         if doc:
             return doc.displayname or self.username
         elif "data" in self:
@@ -235,9 +234,15 @@ class Account(web.storage):
         return t and helpers.parse_datetime(t)
 
     def get_user(self):
+        """A user is where preferences are attached to an account. An
+        "Account" is outside of infogami in a separate table and is
+        used to store private user information.
+
+        :rtype: User
+        :returns: Not an Account obj, but a /people/xxx User
+        """
         key = "/people/" + self.username
-        doc = web.ctx.site.get(key)
-        return doc
+        return web.ctx.site.get(key)
 
     def get_creation_info(self):
         key = "/people/" + self.username
@@ -369,6 +374,10 @@ class OpenLibraryAccount(Account):
             web.ctx.site.activate_account(username=username)
 
         ol_account = cls.get(email=email)
+
+        # Update user preferences; reading log public by default
+        ol_account.get_user().save_preferences({'public_readlog':'yes'})
+
         return ol_account
 
     @classmethod

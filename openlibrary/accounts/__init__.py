@@ -48,13 +48,6 @@ def get_current_user():
     return web.ctx.site.get_user()
 
 
-def username_available(cls, username):
-    """Returns True if an OL username is available, or False otherwise"""
-    return bool(
-        accounts.find(username=username) or
-        accounts.find(lusername=username))
-
-
 def find(username=None, lusername=None, email=None):
     """Finds an account by username, email or lowercase username.
     """
