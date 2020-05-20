@@ -408,10 +408,10 @@ class account_validation(delegate.page):
 
     @staticmethod
     def validate_username(username):
-        if not username.isalnum():
-            return 'Username may only contain numbers and letters'
-        if not (21 > len(username) > 2):
+        if not 20 >= len(username) >= 3:
             return 'Username must be between 3-20 characters'
+        if not re.match('^[A-Za-z0-9-_]{3,20}$', username):
+            return 'Username may only contain numbers and letters'
         ol_account = OpenLibraryAccount.get(username=username)
         if ol_account:
             return "Username unavailable"
