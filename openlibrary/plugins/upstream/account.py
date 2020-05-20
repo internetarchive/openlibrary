@@ -7,6 +7,7 @@ import datetime
 import time
 import simplejson
 import re
+from six.moves.urllib.parse import unquote_plus
 
 from infogami.utils import delegate
 from infogami import config
