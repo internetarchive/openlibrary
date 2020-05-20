@@ -89,9 +89,9 @@ export function initRealTimeValidation() {
             alert('Please complete all fields and click the reCAPTCHA checkbox before proceeding.');
             return;
         }
-        // This is where we'll also want to double check each of the 3 functions above:
-        // i.e. username, email, passwords (before submitting)
-        // We'll want to turn the email + username checks into functions we can re-use here
+        validateEmail();
+        validateUsername();
+        validatePasswords();
         $(this).closest('form').submit();
     });
 }
