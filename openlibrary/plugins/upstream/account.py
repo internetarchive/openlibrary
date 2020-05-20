@@ -408,7 +408,7 @@ class account_validation(delegate.page):
 
     @staticmethod
     def validate_username(username):
-        if not 20 >= len(username) >= 3:
+        if not 3 <= len(username) <= 20:
             return 'Username must be between 3-20 characters'
         if not re.match('^[A-Za-z0-9-_]{3,20}$', username):
             return 'Username may only contain numbers and letters'
