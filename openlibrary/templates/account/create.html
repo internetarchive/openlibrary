@@ -39,7 +39,7 @@ $else:
         $if form.note:
             <div class="note">$form.note</div>
 
-        $def screenname_url(): Your URL: https://openlibrary.org/people/<span id="userUrl">$(form.username.value or _('screenname'))</span>
+        $def screenname_url(): _('Your URL'): https://openlibrary.org/people/<span id="userUrl">$(form.username.value or _('screenname'))</span>
 
         $:field(form.email)
         $:field(form.username, suffix=str(screenname_url()))
