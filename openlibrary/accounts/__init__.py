@@ -1,13 +1,16 @@
-from .model import * #XXX: Fix this. Import only specific names
-
 import web
+
+# FIXME: several modules import things from accounts.model
+# directly through openlibrary.accounts
+from .model import *
+
 
 ## Unconfirmed functions (I'm not sure that these should be here)
 def get_group(name):
     """
     Returns the group named 'name'.
     """
-    return web.ctx.site.get("/usergroup/%s"%name)
+    return web.ctx.site.get("/usergroup/%s" % name)
 
 
 class RunAs(object):
@@ -46,13 +49,6 @@ def get_current_user():
     Returns the currently logged in user. None if not logged in.
     """
     return web.ctx.site.get_user()
-
-
-def username_available(cls, username):
-    """Returns True if an OL username is available, or False otherwise"""
-    return bool(
-        accounts.find(username=username) or
-        accounts.find(lusername=username))
 
 
 def find(username=None, lusername=None, email=None):
