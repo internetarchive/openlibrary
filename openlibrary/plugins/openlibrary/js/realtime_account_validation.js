@@ -62,7 +62,7 @@ export function initRealTimeValidation() {
     function validatePasswords() {
         var value = document.getElementById('password').value;
         var value2 = document.getElementById('password2').value;
-        if (value && value2 ) {
+        if (value && value2) {
             if (value2==value) {
                 $('#password2Message').removeClass().addClass('darkgreen').text('');
                 $('label[for="password2"]').removeClass();
