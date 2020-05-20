@@ -1,3 +1,5 @@
+import { ugettext } from './i18n';
+
 export function initRealTimeValidation() {
 
     $('#username').on('keyup', function(){
