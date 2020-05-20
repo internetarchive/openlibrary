@@ -6,6 +6,7 @@ import uuid
 import datetime
 import time
 import simplejson
+import re
 
 from infogami.utils import delegate
 from infogami import config
@@ -402,6 +403,43 @@ class account_verify_old(account_verify):
         # Show failed message without thinking.
         return render['account/verify/failed']()
 
+class account_validation(delegate.page):
+    path = '/account/validate'
+
+    @staticmethod
+    def validate_username(username):
+        if not 3 <= len(username) <= 20:
+            return _('Username must be between 3-20 characters')
+        if not re.match('^[A-Za-z0-9-_]{3,20}$', username):
+            return _('Username may only contain numbers and letters')
+        ol_account = OpenLibraryAccount.get(username=username)
+        if ol_account:
+            return _("Username unavailable")
+
+    @staticmethod
+    def validate_email(email):
+        if not (email and re.match('.*@.*\..*', email)):
+            return _('Must be a valid email address')
+
+        ol_account = OpenLibraryAccount.get(email=email)
+        if ol_account:
+            return _('Email already registered')
+
+
+    def GET(self):
+        i = web.input()
+        errors = {
+            'email': None,
+            'username': None
+        }
+        if i.get('email') is not None:
+            errors['email'] = self.validate_email(i.email)
+        if i.get('username') is not None:
+            errors['username'] = self.validate_username(i.username)
+        return delegate.RawText(simplejson.dumps(errors),
+                                content_type="application/json")
+
+
 class account_email_verify(delegate.page):
     path = "/account/email/verify/([0-9a-f]*)"
 
@@ -614,7 +652,7 @@ class ReadingLog(object):
 
     """Manages the user's account page books (reading log, waitlists, loans)"""
 
-    
+
 
     def __init__(self, user=None):
         self.user = user or accounts.get_current_user()

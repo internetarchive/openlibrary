@@ -13,15 +13,6 @@ $var title: $_("Sign Up to Open Library")
 
 <div id="contentBody">
 
-<script type="text/javascript">
-window.q.push( function(){
-    \$('#username').keyup(function(){
-        var value = \$(this).val();
-        \$('#userUrl').addClass('darkgreen').text(value).css('font-weight','700');
-    });
-});
-</script>
-
 $def field(input, suffix=''):
     $# :param openlibrary.utils.form.Input input:
     $# :param str suffix: HTML to put at bottom of input
@@ -34,10 +25,8 @@ $def field(input, suffix=''):
         </div>
         <div class="input">
             $:input.render()
-            $if input.note:
-                <span class="invalid clearfix">$input.note</span>
-            $if suffix:
-                <div class="sansserif smaller lighter">$:suffix</div>
+            <span class="invalid clearfix" id="$(input.id)Message">$input.note</span>
+            <span class="sansserif smaller lighter">$:suffix</span>
         </div>
     </div>
 
@@ -50,10 +39,10 @@ $else:
         $if form.note:
             <div class="note">$form.note</div>
 
-        $def screenname_url(): https://openlibrary.org/people/<span id="userUrl">$(form.username.value or _('screenname'))</span>
+        $def screenname_url(): $_('Your URL'): https://openlibrary.org/people/<span id="userUrl">$(form.username.value or _('screenname'))</span>
 
         $:field(form.email)
-        $:field(form.username, suffix=_('Your URL: %s') % str(screenname_url()))
+        $:field(form.username, suffix=str(screenname_url()))
         $:field(form.password)
         $:field(form.password2)
 
@@ -78,7 +67,7 @@ $else:
 
         <div class="formElement bottom">
             <br/>
-            <button type="submit" name="signup" class="larger">$_("Sign Up")</button>
+            <button type="submit" name="signup" id="signup" class="larger">$_("Sign Up")</button>
             <a href="javascript:history.go(-1);" class="smaller attn">$_("Cancel")</a>
         </div>
     </form>

@@ -93,6 +93,11 @@ jQuery(function () {
         import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
     }
+    // conditionally load real time signup functionality based on class in the page
+    if (document.getElementsByClassName('olform create validate').length) {
+        import('./realtime_account_validation.js')
+            .then(module => module.initRealTimeValidation());
+    }
     // Enable any carousels in the page
     if ($carouselElements.length) {
         import(/* webpackChunkName: "carousel" */ './carousel')
