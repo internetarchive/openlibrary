@@ -7,7 +7,6 @@ import datetime
 import time
 import simplejson
 import re
-from six.moves.urllib.parse import unquote_plus
 
 from infogami.utils import delegate
 from infogami import config
@@ -434,7 +433,7 @@ class account_validation(delegate.page):
             'username': None
         }
         if i.get('email') is not None:
-            errors['email'] = self.validate_email(unquote_plus(i.email))
+            errors['email'] = self.validate_email(i.email)
         if i.get('username') is not None:
             errors['username'] = self.validate_username(i.username)
         return delegate.RawText(simplejson.dumps(errors),
