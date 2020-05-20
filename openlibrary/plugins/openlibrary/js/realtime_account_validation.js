@@ -37,7 +37,7 @@ export function initRealTimeValidation() {
         var value_email = $(this).val();
         if (!value_email=='') {
             $.ajax({
-                url: `/account/validate?email=${value_email}`,
+                url: `/account/validate?email=${encodeURIComponent(value_email)}`,
                 type: 'GET',
                 success: function(errors) {
                     if (errors.email) {
