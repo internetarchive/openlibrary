@@ -423,7 +423,7 @@ class account_validation(delegate.page):
 
         ol_account = OpenLibraryAccount.get(email=email)
         if ol_account:
-            return 'Email already registered'
+            return _('Email already registered')
 
 
     def GET(self):
