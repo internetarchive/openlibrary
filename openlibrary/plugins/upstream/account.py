@@ -414,7 +414,7 @@ class account_validation(delegate.page):
             return _('Username may only contain numbers and letters')
         ol_account = OpenLibraryAccount.get(username=username)
         if ol_account:
-            return "Username unavailable"
+            return _("Username unavailable")
 
     @staticmethod
     def validate_email(email):
