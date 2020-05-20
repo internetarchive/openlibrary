@@ -86,7 +86,7 @@ export function initRealTimeValidation() {
     $('#signup').on('click', function(e) {
         e.preventDefault();
         if (! (window.grecaptcha && window.grecaptcha.getResponse().length)) {
-            alert('Please complete all fields and click the reCAPTCHA checkbox before proceeding.');
+            alert(ugettext('Please complete all fields and click the reCAPTCHA checkbox before proceeding.'));
             return;
         }
         validateEmail();
