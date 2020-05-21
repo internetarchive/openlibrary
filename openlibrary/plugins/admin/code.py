@@ -722,7 +722,7 @@ def setup():
     register_admin_page('/admin/permissions', permissions, label="")
     register_admin_page('/admin/solr', solr, label="", librarians=True)
     register_admin_page('/admin/sync', sync_ol_ia, label="", librarians=True)
-    register_admin_page('/admin/staffpicks', add_work_to_staff_picks, label="")
+    register_admin_page('/admin/staffpicks', add_work_to_staff_picks, label="", librarians=True)
 
     register_admin_page('/admin/imports', imports_home, label="")
     register_admin_page('/admin/imports/add', imports_add, label="")
