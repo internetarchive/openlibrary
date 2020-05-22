@@ -82,6 +82,19 @@ class browse(delegate.page):
             content_type="application/json")
 
 
+class get_sponsorable_books(delegate.page):
+    path = '/sponsorship/eligible'
+    encoding = "json"
+
+    def GET(self):
+        from openlibrary.core.cache import memcache_cache
+        from openlibrary.core.sponsorships import SPONSORABLE_WORKS_CACHE_KEY
+        return delegate.RawText(
+            simplejson.dumps(
+                memcache_cache.get(SPONSORABLE_WORKS_CACHE_KEY)),
+            content_type="application/json")
+
+
 class ratings(delegate.page):
     path = r"/works/OL(\d+)W/ratings"
     encoding = "json"

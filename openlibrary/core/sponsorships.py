@@ -1,12 +1,14 @@
 import requests
 import logging
+import simplejson as json
 import web
 
 from six.moves.urllib.parse import urlencode
 
 from collections import OrderedDict
 from infogami.utils.view import public
-from openlibrary.core import lending
+from infogami import config
+from openlibrary.core import lending, cache
 from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
     get_amazon_metadata)
@@ -14,6 +16,8 @@ from openlibrary.accounts.model import get_internet_archive_id
 from openlibrary.core.civicrm import (
     get_contact_id_by_username,
     get_sponsorships_by_contact_id)
+from openlibrary.utils.dateutil import WEEK_SECS
+
 
 try:
     from booklending_utils.sponsorship import eligibility_check
@@ -25,6 +29,7 @@ except ImportError:
 logger = logging.getLogger("openlibrary.sponsorship")
 SETUP_COST_CENTS = 300
 PAGE_COST_CENTS = 12
+SPONSORABLE_WORKS_CACHE_KEY = 'sponsorable_works'
 
 def get_sponsored_editions(user):
     """
@@ -38,6 +43,7 @@ def get_sponsored_editions(user):
     archive_id = get_internet_archive_id(user.key if 'key' in user else user._key)
     contact_id = get_contact_id_by_username(archive_id)
     return get_sponsorships_by_contact_id(contact_id) if contact_id else []
+
 
 def get_sponsorable_editions():
     """This should move to an infogami type so any admin can add editions
@@ -89,6 +95,7 @@ def do_we_want_it(isbn, work_id):
         logger.error("DWWI Failed for isbn %s" % isbn, exc_info=True)
     # err on the side of false negative
     return False, []
+
 
 @public
 def qualifies_for_sponsorship(edition):
@@ -174,7 +181,58 @@ def qualifies_for_sponsorship(edition):
             'isbn': edition.isbn
         })
     })
+
+    update_sponsorable_record_in_cache(resp)
+
     return resp
+
+
+@public
+def add_sponsorability(works):
+    """@param list(Work) - a list of Open Library works"""
+    sponsorable_works = cache.memcache_cache.get(SPONSORABLE_WORKS_CACHE_KEY)
+    for w in works:
+        s = sponsorable_works.get(w)
+        if s:
+            w.sponsorship = s
+    return works
+
+
+def update_sponsorable_record_in_cache(edition_eligibility_record):
+    """
+    Adds or updates list of qualifying sponsorable items in memcache.
+
+    @param dict edition_eligibility_record - result of qualifies_for_sponsorship
+    @rtype dict
+    @returns a dict work_olid->[edition_olid] of sponsorable books
+             e.g. {OL6026422W: ["OL7488547M"]}
+    """
+
+    cached_sponsorable_works = cache.memcache_cache.get(SPONSORABLE_WORKS_CACHE_KEY) or {}
+
+    work_key = edition_eligibility_record['edition']['openlibrary_work']
+    ed_key = edition_eligibility_record['edition']['openlibrary_edition']
+    is_eligible = edition_eligibility_record.get('is_eligible', False)
+
+    known_sponsorable_editions = set(cached_sponsorable_works.get(work_key, []))
+
+    if not is_eligible and ed_key not in known_sponsorable_editions:
+        return
+
+    # Add the eligible work/edition
+    if is_eligible:
+        known_sponsorable_editions.add(ed_key)
+        cached_sponsorable_works[work_key] = list(known_sponsorable_editions)
+
+    # Remove the ineligible edition
+    elif ed_key in known_sponsorable_editions:
+        cached_sponsorable_works[work_key].remove(ed_key)
+
+    # Update memcache
+    return cache.memcache_cache.set(
+        SPONSORABLE_WORKS_CACHE_KEY,
+        cached_sponsorable_works,
+        expires=WEEK_SECS)
 
 
 def get_sponsored_books():
@@ -233,7 +291,7 @@ def summary():
     est_book_cost_cents = sum(int(i.get('est_book_price', 0)) for i in items)
     scan_cost_cents = (PAGE_COST_CENTS * total_pages_scanned) + (SETUP_COST_CENTS * len(items))
     est_scan_cost_cents = sum(int(i.get('est_scan_price', 0)) for i in items)
-    avg_scan_cost = scan_cost_cents / (len(items) - total_unscanned_books) 
+    avg_scan_cost = scan_cost_cents / (len(items) - total_unscanned_books)
 
     return {
         'books': items,
