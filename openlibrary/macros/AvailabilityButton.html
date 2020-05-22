@@ -65,8 +65,12 @@ $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
           </div>
 
 $else:
-  <a href="$page.key" class="cta-btn--missing cta-btn"
-     data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
+  $if page.get('sponsorship'):
+    <a class="cta-btn--sponsor cta-btn" href="/books/$(page.get('sponsorship')[0])">Sponsor</a>
+
+  $else:
+    <a href="$page.key" class="cta-btn--missing cta-btn"
+       data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
   $if page.ia:
     $ daisy_url = "/ia/%s/daisy" % page.ia[0]
     $:macros.daisy(page, url=daisy_url, protected=True, msg=_("Print-disabled access available"))

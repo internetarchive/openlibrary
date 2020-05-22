@@ -191,10 +191,10 @@ def qualifies_for_sponsorship(edition):
 def add_sponsorability(works):
     """@param list(Work) - a list of Open Library works"""
     sponsorable_works = cache.memcache_cache.get(SPONSORABLE_WORKS_CACHE_KEY)
-    for w in works:
-        s = sponsorable_works.get(w)
-        if s:
-            w.sponsorship = s
+    for w in works:        
+        work_id = w.key.split("/")[-1]
+        if work_id in sponsorable_works:
+            w.sponsorship = sponsorable_works[work_id]
     return works
 
 
