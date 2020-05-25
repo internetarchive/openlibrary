@@ -741,14 +741,24 @@ class public_my_books(delegate.page):
         user = web.ctx.site.get('/people/%s' % username)
         if not user:
             return render.notfound("User %s"  % username, create=False)
-        if user.preferences().get('public_readlog', 'no') == 'yes':
+        is_public = user.preferences().get('public_readlog', 'no') == 'yes'
+        if is_public:
+            logged_in_user = accounts.get_current_user()
             readlog = ReadingLog(user=user)
-            books = readlog.get_works(key, page=i.page)
             sponsorships = get_sponsored_editions(user)
+            if key == 'sponsorships':
+                books = (web.ctx.site.get(
+                    web.ctx.site.things({
+                        'type': '/type/edition',
+                        'isbn_%s' % len(s['isbn']): s['isbn']
+                    })[0]) for s in sponsorships)
+            else:
+                books = readlog.get_works(key, page=i.page)
             page = render['account/books'](
                 books, key, sponsorship_count=len(sponsorships),
-                reading_log_counts=readlog.reading_log_counts,
-                lists=readlog.lists, user=user)
+                reading_log_counts=readlog.reading_log_counts, lists=readlog.lists,
+                user=user, logged_in_user=logged_in_user, public=is_public
+            )
             page.v2 = True
             return page
         raise web.seeother(user.key)
@@ -783,32 +793,6 @@ class fake_civi(delegate.page):
         }
         entity = contributions if i.entity == 'Contribution' else contact
         return delegate.RawText(simplejson.dumps(entity), content_type="application/json")
-
-class account_my_books(delegate.page):
-    path = "/account/books/([a-zA-Z_-]+)"
-
-    @require_login
-    def GET(self, key='loans'):
-        i = web.input(page=1)
-        user = accounts.get_current_user()
-        is_public = user.preferences().get('public_readlog', 'no') == 'yes'
-        readlog = ReadingLog()
-        sponsorships = get_sponsored_editions(user)
-        if key == 'sponsorships':
-            books = (web.ctx.site.get(
-                web.ctx.site.things({
-                    'type': '/type/edition',
-                    'isbn_%s' % len(s['isbn']): s['isbn']
-                })[0]) for s in sponsorships)
-        else:
-            books = readlog.get_works(key, page=i.page)
-        page = render['account/books'](
-            books, key, sponsorship_count=len(sponsorships),
-            reading_log_counts=readlog.reading_log_counts, lists=readlog.lists,
-            user=user, public=is_public
-        )
-        page.v2 = True
-        return page
 
 class account_loans(delegate.page):
     path = "/account/loans"
