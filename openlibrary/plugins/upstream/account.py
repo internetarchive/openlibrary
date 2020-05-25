@@ -763,6 +763,15 @@ class public_my_books(delegate.page):
             return page
         raise web.seeother(user.key)
 
+class account_my_books_redirect(delegate.page):
+    path = "/account/books/([a-zA-Z_-]+)"
+
+    @require_login
+    def GET(self, key='loans'):
+        user = accounts.get_current_user()
+        username = user.key.split('/')[-1]
+        raise web.seeother('/people/%s/books/%s' % (username, key))
+
 class account_my_books(delegate.page):
     path = "/account/books"
 
