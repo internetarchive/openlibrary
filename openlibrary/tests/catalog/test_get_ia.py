@@ -7,9 +7,11 @@ from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
 
 def return_test_marc_bin(url):
+    assert url, "return_test_marc_bin({})".format(url)
     return return_test_marc_data(url, "bin_input")
 
 def return_test_marc_xml(url):
+    assert url, "return_test_marc_bin({})".format(url)
     return return_test_marc_data(url, "xml_input")
 
 def return_test_marc_data(url, test_data_subdir="xml_input"):
