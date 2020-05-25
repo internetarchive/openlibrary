@@ -758,7 +758,9 @@ class account_my_books(delegate.page):
 
     @require_login
     def GET(self):
-        raise web.seeother('/account/books/want-to-read')
+        user = accounts.get_current_user()
+        username = user.key.split('/')[-1]
+        raise web.seeother('/people/%s/books' % (username))
 
 # This would be by the civi backend which would require the api keys
 class fake_civi(delegate.page):
