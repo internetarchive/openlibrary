@@ -40,10 +40,19 @@ $else:
 
 
     <h2>$_('Reading Log')</h2>
-    $if settings and settings.get('public_readlog', 'no') == "yes":
-      <p>$:_('This user has chosen to publicly share the books they are <a href="%(username)s/books/currently-reading">currently reading</a>, <a href="%(username)s/books/already-read">have already read</a>, and <a href="%(username)s/books/want-to-read">want to read</a>!', username=page.key)</p>
+    $ user = ctx.user and ctx.user.key == page.key
+    $ is_public = settings and settings.get('public_readlog', 'no') == "yes"
+    $if user:     
+        $if is_public:
+            <p>$:_('You have chosen to publicly share the books they are <a href="%(username)s/books/currently-reading">currently reading</a>, <a href="%(username)s/books/already-read">have already read</a>, and <a href="%(username)s/books/want-to-read">want to read</a>!', username=page.key)</p>
+        $else:
+            <span>$_('You have chosen to keep your Reading Log private')</span>
+        <a href="/account/privacy">$_('Manage your privacy settings')</a>
     $else:
-      <p>$_('This user has chosen to keep their Reading Log private')</p>
+        $if is_public:
+            <p>$:_('This user has chosen to publicly share the books they are <a href="%(username)s/books/currently-reading">currently reading</a>, <a href="%(username)s/books/already-read">have already read</a>, and <a href="%(username)s/books/want-to-read">want to read</a>!', username=page.key)</p>
+        $else:
+            <p>$_('This user has chosen to keep their Reading Log private')</p>
 
     $if "lists" in ctx.features and lists:
         <script type="text/javascript">
