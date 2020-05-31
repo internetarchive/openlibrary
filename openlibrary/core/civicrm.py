@@ -28,7 +28,7 @@ def get_contact_id_by_username(username):
         headers={
             'Authorization': 'Basic %s' % lending.config_ia_civicrm_api.get('auth', '')
         })
-    contacts = r.status_code == 200 and r.json().get('values', None) 
+    contacts = r.status_code == 200 and r.json().get('values', None)
     return contacts and contacts[0].get('contact_id')
 
 
