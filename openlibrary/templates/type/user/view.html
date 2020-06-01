@@ -52,7 +52,7 @@ $else:
         $if is_public:
             <p>$:_('Here are the books %(user)s is <a href="%(username)s/books/currently-reading">currently reading</a>, <a href="%(username)s/books/already-read">have already read</a>, and <a href="%(username)s/books/want-to-read">want to read</a>!', username=page.key, user=page.displayname)</p>
         $else:
-            <p>$_('This user has chosen to keep their Reading Log private')</p>
+            <p>$_('This user has chosen to keep their') <a href="/account/books">$_('Reading Log')</a> $_('private')</p>
 
     $if "lists" in ctx.features and lists:
         <script type="text/javascript">
