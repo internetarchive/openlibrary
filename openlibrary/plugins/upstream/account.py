@@ -741,24 +741,45 @@ class public_my_books(delegate.page):
         user = web.ctx.site.get('/people/%s' % username)
         if not user:
             return render.notfound("User %s"  % username, create=False)
-        if user.preferences().get('public_readlog', 'no') == 'yes':
+        is_public = user.preferences().get('public_readlog', 'no') == 'yes'
+        logged_in_user = accounts.get_current_user()
+        if is_public or logged_in_user and logged_in_user.key.split('/')[-1] == username:
             readlog = ReadingLog(user=user)
-            books = readlog.get_works(key, page=i.page)
             sponsorships = get_sponsored_editions(user)
+            if key == 'sponsorships':
+                books = (web.ctx.site.get(
+                    web.ctx.site.things({
+                        'type': '/type/edition',
+                        'isbn_%s' % len(s['isbn']): s['isbn']
+                    })[0]) for s in sponsorships)
+            else:
+                books = readlog.get_works(key, page=i.page)
             page = render['account/books'](
                 books, key, sponsorship_count=len(sponsorships),
-                reading_log_counts=readlog.reading_log_counts,
-                lists=readlog.lists, user=user)
+                reading_log_counts=readlog.reading_log_counts, lists=readlog.lists,
+                user=user, logged_in_user=logged_in_user, public=is_public
+            )
             page.v2 = True
             return page
         raise web.seeother(user.key)
+
+class account_my_books_redirect(delegate.page):
+    path = "/account/books/([a-zA-Z_-]+)"
+
+    @require_login
+    def GET(self, key='loans'):
+        user = accounts.get_current_user()
+        username = user.key.split('/')[-1]
+        raise web.seeother('/people/%s/books/%s' % (username, key))
 
 class account_my_books(delegate.page):
     path = "/account/books"
 
     @require_login
     def GET(self):
-        raise web.seeother('/account/books/want-to-read')
+        user = accounts.get_current_user()
+        username = user.key.split('/')[-1]
+        raise web.seeother('/people/%s/books' % (username))
 
 # This would be by the civi backend which would require the api keys
 class fake_civi(delegate.page):
@@ -781,32 +802,6 @@ class fake_civi(delegate.page):
         }
         entity = contributions if i.entity == 'Contribution' else contact
         return delegate.RawText(simplejson.dumps(entity), content_type="application/json")
-
-class account_my_books(delegate.page):
-    path = "/account/books/([a-zA-Z_-]+)"
-
-    @require_login
-    def GET(self, key='loans'):
-        i = web.input(page=1)
-        user = accounts.get_current_user()
-        is_public = user.preferences().get('public_readlog', 'no') == 'yes'
-        readlog = ReadingLog()
-        sponsorships = get_sponsored_editions(user)
-        if key == 'sponsorships':
-            books = (web.ctx.site.get(
-                web.ctx.site.things({
-                    'type': '/type/edition',
-                    'isbn_%s' % len(s['isbn']): s['isbn']
-                })[0]) for s in sponsorships)
-        else:
-            books = readlog.get_works(key, page=i.page)
-        page = render['account/books'](
-            books, key, sponsorship_count=len(sponsorships),
-            reading_log_counts=readlog.reading_log_counts, lists=readlog.lists,
-            user=user, public=is_public
-        )
-        page.v2 = True
-        return page
 
 class account_loans(delegate.page):
     path = "/account/loans"
