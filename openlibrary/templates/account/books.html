@@ -11,7 +11,7 @@ $# :param bool public:
 $ title = _('My Books')
 $ urlbase = ctx.path.rsplit('/', 1)[0]
 $ username = user.key.split('/')[-1]
-$ owners_page = urlbase.startswith('/people/'+logged_in_user.key.split('/')[-1]) if logged_in_user else False
+$ owners_page = logged_in_user and urlbase.startswith('/people/'+logged_in_user.key.split('/')[-1])
 $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 
 $ current_page = int(input(page=1).page)
