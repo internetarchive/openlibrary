@@ -2,6 +2,8 @@ $def with (page)
 
 $var title: $page.displayname
 $ settings = page.get_users_settings()
+$ owners_page = ctx.user and ctx.user.key == page.key
+$ is_public = settings and settings.get('public_readlog', 'no') == "yes"
 
 $if "lists" in ctx.features:
     $ lists = page.get_lists(limit=3)
@@ -14,7 +16,7 @@ $else:
     <div class="small sansserif">
     $if page.created:
         <i>$_('Joined %(date)s', date=datestr(page.created))</i>
-    $if ctx.user and ctx.user.key == page.key:
+    $if owners_page:
         &bull;
         <a href="$homepath()/account">$_("Settings")</a>
         |
@@ -40,9 +42,7 @@ $else:
 
 
     <h2>$_('Reading Log')</h2>
-    $ user = ctx.user and ctx.user.key == page.key
-    $ is_public = settings and settings.get('public_readlog', 'no') == "yes"
-    $if user:     
+    $if owners_page:     
         $if is_public:
             <p>$:_('You have chosen to publicly share the books they are <a href="%(username)s/books/currently-reading">currently reading</a>, <a href="%(username)s/books/already-read">have already read</a>, and <a href="%(username)s/books/want-to-read">want to read</a>!', username=page.key)</p>
         $else:
