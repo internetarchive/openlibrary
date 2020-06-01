@@ -44,7 +44,7 @@ $else:
     <h2>$_('Reading Log')</h2>
     $if owners_page:     
         $if is_public:
-            <p>$:_('You have chosen to publicly share the books they are <a href="%(username)s/books/currently-reading">currently reading</a>, <a href="%(username)s/books/already-read">have already read</a>, and <a href="%(username)s/books/want-to-read">want to read</a>!', username=page.key)</p>
+            <p>$:_('You are publicly sharing the books you are <a href="%(username)s/books/currently-reading">currently reading</a>, <a href="%(username)s/books/already-read">have already read</a>, and <a href="%(username)s/books/want-to-read">want to read</a>.', username=page.key)</p>
         $else:
             <span>$_('You have chosen to make your') <a href="/account/books">$_('Reading Log')</a> $_('private').</span>
 
