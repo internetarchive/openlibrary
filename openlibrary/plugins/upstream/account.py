@@ -742,8 +742,8 @@ class public_my_books(delegate.page):
         if not user:
             return render.notfound("User %s"  % username, create=False)
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
-        if is_public:
-            logged_in_user = accounts.get_current_user()
+        logged_in_user = accounts.get_current_user()
+        if is_public or logged_in_user and logged_in_user.key.split('/')[-1] == username:
             readlog = ReadingLog(user=user)
             sponsorships = get_sponsored_editions(user)
             if key == 'sponsorships':
