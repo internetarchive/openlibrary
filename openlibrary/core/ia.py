@@ -338,7 +338,7 @@ def get_candidate_ocaids(since_days=None, since_date=None,
     qvars = {
         'c1': '%opensource%',
         'c2': '%additional_collections%',
-        'c3': '%printdisabled%'
+        'c3': '%booksgrouptest%'
     }
 
     _valid_repub_states_sql = "(%s)" % (', '.join(str(i) for i in repub_states))
