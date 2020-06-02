@@ -22,6 +22,11 @@ jobs:
       python: "3.8"
   allow_failures:
     - name: “Python 3.8 on bionic”
+# Xenial has a very old version of node, so make sure Node 12 is installed
+# and used instead. Should match Dockerfile.
+before_install:
+  - nvm install 12
+  - nvm use 12
 install:
   - pip install -r requirements_test.txt
   # if Travis is running Python 3, then
