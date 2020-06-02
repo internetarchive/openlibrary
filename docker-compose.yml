@@ -36,8 +36,10 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.olsolr
+    environment:
+      - ENV=${ENV:-dev}
     ports:
-      - 8983:8080
+      - 8983:8983
     volumes:
       - solr-data:/var/lib/solr/data
     networks:
