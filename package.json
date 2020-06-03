@@ -35,6 +35,7 @@
     "diff": "4.0.1",
     "eslint": "5.16.0",
     "eslint-plugin-vue": "5.0.0",
+    "isbn3": "1.1.1",
     "jest": "25.1.0",
     "jquery": "1.11.0",
     "jquery-migrate": "1.2.1",
