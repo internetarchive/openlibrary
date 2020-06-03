@@ -62,6 +62,7 @@
     "eslint-plugin-no-jquery": "2.6.0",
     "eslint-plugin-vue": "7.15.0",
     "flot": "0.8.3",
+    "isbn3": "1.1.1",
     "jest": "27.5.1",
     "jquery": "3.6.0",
     "jquery-colorbox": "1.6.4",
