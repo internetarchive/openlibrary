@@ -603,6 +603,11 @@ class User(Thing):
     DEFAULT_PREFERENCES = {
         'updates': 'no',
         'public_readlog': 'no'
+        # New users are now public by default for new patrons
+        # As of 2020-05, OpenLibraryAccount.create will
+        # explicitly set public_readlog: 'yes'.
+        # Legacy acconts w/ no public_readlog key
+        # will continue to default to 'no'
     }
 
     def get_status(self):

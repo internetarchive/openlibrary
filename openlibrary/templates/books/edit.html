@@ -93,6 +93,14 @@ window.q.push( function(){
             <div class="label">
                 <label for="author-$0">$_('Author')</label>
                 <span class="tip">$:_('You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href="/authors/OL23919A" target="_blank"><em>OL23919A</em></a>).')</span>
+                <br/>
+                <div class="flash-messages">
+                    <noscript>
+                        <p class="error">
+                           <span>$:_('Author editing requires javascript')</span>
+                        </p>
+                    </noscript> 
+                </div>  
             </div>
             $ authors = work.authors and [a.author for a in work.authors]
             $:render_template("books/author-autocomplete", authors, "authors", "work--authors")

@@ -2,6 +2,7 @@ $def with (summary)
 
 $ _x = ctx.setdefault('bodyid', 'admin')
 $ _x = ctx.setdefault('usergroup', 'admin')
+$ sort_facet = input(sort='status').sort
 
 <div id="contentHead">
   $:render_template("admin/menu")
@@ -86,13 +87,17 @@ $ _x = ctx.setdefault('usergroup', 'admin')
       <tr>
         <th>#</th>
         <th>Cover</th>
+        <th>Sponsor Date</th>
         <th>IDs</th>
         <th>Title</th>
         <th>Status</th>
       </tr>
     </thead>
     <tbody>
-      $ summary['books'].sort(key=lambda b: summary['status_ids'][b['status']])
+      $if sort_facet == 'status':
+        $ summary['books'].sort(key=lambda b: summary['status_ids'][b['status']])
+      $else:
+        $ summary['books'].sort(key=lambda b: b.get(sort_facet, ''))
       $for book in summary['books']:
         $ isbn = book['identifier'].replace('isbn_', '')
         <tr>
@@ -100,6 +105,9 @@ $ _x = ctx.setdefault('usergroup', 'admin')
           <td>
             <img width="50" height="75"
                  src="https://archive.org/services/img/$book['identifier']">
+          </td>
+          <td>
+            $book.get('publicdate', '')
           </td>
           <td>
             <ul>
@@ -119,7 +127,7 @@ $ _x = ctx.setdefault('usergroup', 'admin')
             </ul>
           </td>
           <td>
-            <a href="https://archive.org/details/$book['identifier']">$book['title']</a>
+            <a href="https://archive.org/details/$book['identifier']">$book.get('title')</a>
           </td>
           <td class="status--$(summary['status_ids'][book.get('status')])">
             $book.get('status')

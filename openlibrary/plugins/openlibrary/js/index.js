@@ -9,8 +9,6 @@ import '../../../../vendor/js/colorbox/1.5.14.js';
 import '../../../../vendor/js/jquery-form/jquery.form.js';
 // jquery-autocomplete#1.1 with modified
 import '../../../../vendor/js/jquery-autocomplete/jquery.autocomplete-modified.js';
-// unversioned.
-import '../../../../vendor/js/wmd/jquery.wmd.js'
 import autocompleteInit from './autocomplete';
 // Used only by the openlibrary/templates/books/edit/addfield.html template
 import addNewFieldInit from './add_new_field';
@@ -94,6 +92,11 @@ jQuery(function () {
     if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
         import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
+    }
+    // conditionally load real time signup functionality based on class in the page
+    if (document.getElementsByClassName('olform create validate').length) {
+        import('./realtime_account_validation.js')
+            .then(module => module.initRealTimeValidation());
     }
     // Enable any carousels in the page
     if ($carouselElements.length) {

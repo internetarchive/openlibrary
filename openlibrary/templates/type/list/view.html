@@ -11,6 +11,8 @@ $if list.description:
 
 $var title: $list.name
 
+$putctx("description", meta_description)
+
 $add_metatag(property="twitter:card", content="summary")
 $add_metatag(property="twitter:site", content="@openlibrary")
 $add_metatag(property="twitter:title", content=title_with_site)

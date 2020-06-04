@@ -1,7 +1,8 @@
 $def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False)
 
 $ ctx.setdefault("links", [])
-$ slick_font = '<link rel="preload" href="/static/css/fonts/slick.woff" as="font" type="font/woff">'
+$# Apparently fonts always need crossorigin for some reason
+$ slick_font = '<link rel="preload" href="/static/css/fonts/slick.woff" as="font" type="font/woff" crossorigin>'
 $if slick_font not in ctx.links:
   $ ctx.links.append(slick_font)
 

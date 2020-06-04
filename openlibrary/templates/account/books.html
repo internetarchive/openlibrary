@@ -1,4 +1,4 @@
-$def with (items, key, sponsorship_count=None, reading_log_counts=None, lists=None, user=None, public=False)
+$def with (items, key, sponsorship_count=None, reading_log_counts=None, lists=None, user=None, logged_in_user=None, public=False)
 $# Displays a user's reading log
 $# :param list items:
 $# :param Literal['currently-reading', 'want-to-read', 'already-read', 'sponsorships', 'loans', 'waitlist'] key:
@@ -10,8 +10,8 @@ $# :param bool public:
 
 $ title = _('My Books')
 $ urlbase = ctx.path.rsplit('/', 1)[0]
-$ owners_page = not urlbase.startswith('/people')
 $ username = user.key.split('/')[-1]
+$ owners_page = logged_in_user and urlbase.startswith('/people/'+logged_in_user.key.split('/')[-1])
 $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 
 $ current_page = int(input(page=1).page)
@@ -37,6 +37,7 @@ $elif key == 'sponsorships':
   $ og_description = "{username} is sponsoring {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=userDisplayName, total=total_items)
 
 $if og_title:
+  $putctx("description", og_description)
   $add_metatag(property="og:title", content=og_title)
   $add_metatag(property="og:url", content=request.canonical_url)
   $add_metatag(property="og:site_name", content="Open Library")

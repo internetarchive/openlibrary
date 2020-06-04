@@ -701,14 +701,6 @@ class sponsorship_stats:
         from openlibrary.core.sponsorships import summary
         return render_template("admin/sponsorship", summary())
 
-class status:
-    def GET(self):
-        from openlibrary.core.vendors import check_bwb_scraper_status
-        statuses = [
-            ('BetterWorldBooks Scraper', check_bwb_scraper_status())
-        ]
-        return render_template("admin/status", statuses)
-
 
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
@@ -730,14 +722,13 @@ def setup():
     register_admin_page('/admin/permissions', permissions, label="")
     register_admin_page('/admin/solr', solr, label="", librarians=True)
     register_admin_page('/admin/sync', sync_ol_ia, label="", librarians=True)
-    register_admin_page('/admin/staffpicks', add_work_to_staff_picks, label="")
+    register_admin_page('/admin/staffpicks', add_work_to_staff_picks, label="", librarians=True)
 
     register_admin_page('/admin/imports', imports_home, label="")
     register_admin_page('/admin/imports/add', imports_add, label="")
     register_admin_page('/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label="")
     register_admin_page('/admin/spamwords', spamwords, label="")
     register_admin_page('/admin/sponsorship', sponsorship_stats, label="Sponsorship")
-    register_admin_page('/admin/status', status, label="Status")
 
     import mem
 
