@@ -1,5 +1,39 @@
 $def with (page)
 
+<style type="text/css">
+  .first-published-date {
+    color: #999;
+    font-size: .8em;
+  }
+  .work-menu {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+
+  .work-menu li {
+    display: inline;
+    padding: 0px 15px;
+    padding-bottom: 5px;
+    font-size: 13px;
+  }
+
+  .work-menu li a {
+    text-decoration: none;
+    color: #666;
+  }
+
+  .work-menu li.selected {
+    border-bottom: 2px solid #0376b8;
+  }
+
+  .work-menu li.selected a {
+    color: #0376b8;
+  }
+</style>
+
+
 $ editions = []
 $if page.key.startswith('/works'):
   $ work = page
@@ -101,6 +135,8 @@ $def display_goodreads(label, ids):
 $def display_contributor(c):
     <li><span>$c.role</span><br />$c.name </li>
 
+$ authors_byline = get_authors_byline(page, include_schema=True)
+
 $:macros.Metatags(title=title_with_site, image=meta_cover_url, description=description)
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
@@ -126,29 +162,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       <strong>Orphaned Edition!</strong>
   </div>
 
-<div id="contentHead">
-
-    <table width="100%">
-      <tbody>
-        <tr>
-          <td valign="top" width="100%">
-            $:macros.databarView(page)
-
-            $ item_id = None
-            $if 'ocaid' in page:
-              $ item_id = page['ocaid']
-              $ meta_fields = page.get_ia_meta_fields()
-
-            <div class="navEdition sansserif">              
-              <a href="$(work.url() if work else '')"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <strong class="booktitle">$truncate(work_title, 60)</strong> found in the catalog.
-              $if work:
-                <span><a href="/books/add?work=$work.key" title="$_('Add another edition of') $book_title">$_("Add another edition")</a>?</span>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-</div>
+<div id="contentHead"></div>
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
     <div class="workDetails">
@@ -186,20 +200,42 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
               </div>
         </div>
 
+
+        <div class="editionAll">
+          $:macros.databarView(page)
+          <h1 class="work-title" itemprop="name">$book_title
+
+            $if work and work.first_publish_year:
+              <span class="first-published-date">($work.first_publish_year)</span>
+          </h1>
+          $if authors_byline:
+            <h2 class="edition-byline">$_("by") $:authors_byline</h2>
+        </div>
+
+
         <div class="editionAbout">
+          <ul class="work-menu">
+            <li class="selected"><a href="$page.url()">Overview</a></li>
+            $if work:
+              <li><a href="$(work.url() if work else '')#editions">View $edition_count Edition$("s" if edition_count > 1 else "")</a></li>
+            <!--<li><a href="$page.url()" title="Search libraries and vendors">Get this book</a></li>-->
+            <!--<li><a href="$page.url()" title="See where else this book is mentioned">Citations</a></li>-->
+            <!--<li><a href="$(work.url())/edit">Edit</a></li>-->
+          </ul>
 
             <div class="book-overview section sansserif">
-              <h1 class="work-title" itemprop="name">$book_title</h1>
-
-              $if page.edition_title or page.edition_name:
+              $if page.title or page.subtitle or page.edition_title or page.edition_name:
                 <h2 class="edition-title">
-                  $page.edition_title $page.edition_name
+                  $if page.title:
+                    $page.title
+                  $if page.subtitle:
+                    $page.subtitle
+                  $if page.edition_title or page.edition_name:
+                    ($page.edition_title $page.edition_name)
                 </h2>
-              $ authors_byline = get_authors_byline(page, include_schema=True)
-              $if authors_byline:
-                <h2 class="edition-byline">$_("by") $:authors_byline</h2>
 
               $:macros.StarRatingsStats(page)
+
 
               <h4 class="publisher">
                     $if page.publish_date or page.publishers or page.publish_places:
@@ -229,13 +265,14 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
         </div>
 
-        $if page.description or (work and work.description):
+        $if work and work.description:
+          <h3 class="collapse">$_("About the Book")</h3>
+          $:sanitize(format(work.description))
+
+        $if page.description:
           $if page.description:
-            <h3 class="collapse">$_("About the Edition")</h3>
+            <h3 class="collapse">$_("About this Edition")</h3>
             $:sanitize(format(page.description))
-          $else:
-            <h3 class="collapse">$_("About the Book")</h3>
-            $:sanitize(format(work.description))                  
         $else:
           <p class="workHelp">
             $:_("There's no description for this book yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=page.url('/edit')+"#about/about")
