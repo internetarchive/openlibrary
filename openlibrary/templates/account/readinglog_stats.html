@@ -1,0 +1,89 @@
+$def with (works_json, authors_json)
+
+$jsdef render_excluded_works_list(works):
+    <details>
+        <summary>$len(works) works excluded due to missing data</summary>
+        <ul>
+        $for work in works:
+            <li><a href="$work.key" style="font-style:oblique">$work.title</a>
+                $ first_publish_year = work.first_publish_year or '????'
+                <span title="First published in $first_publish_year">($first_publish_year)</span>
+                by
+                $for author in work.authors:
+                    <a href="$author.key">$author.name</a>
+                    $if not loop.last:
+                        ,
+            </li>
+        </ul>
+    </details>
+
+<pre>$works_json</pre>
+<pre>$authors_json</pre>
+
+<h2>$_('Author Stats')</h2>
+<canvas class="readinglog-stats-chart" id="author-sex"></canvas>
+
+<h2>$_('Work Stats')</h2>
+<div class="readinglog-stats-chart" id="work-subjects"></div>
+<div class="readinglog-stats-chart" id="work-subject-people"></div>
+
+
+<script type="module">
+    import 'https://unpkg.com/lodash@4.17.15/lodash.js';
+    import 'https://unpkg.com/chart.js@2.9.3/dist/Chart.js';
+    window.Chart = Chart;
+    window._ = _;
+    const config = {
+        works: $:works_json,
+        authors: $:authors_json,
+        charts: [
+            { id: 'work-subjects', key: 'subjects', exclude: ['Accessible book', 'Protected DAISY', 'In library', 'Lending library'] },
+            { id: 'work-subject-people', key: 'subject_people' },
+        ],
+    };
+    window.config = config;
+    Chart.scaleService.updateScaleDefaults('linear', { ticks: { min: 0 } });
+
+    // Add full authors to the works objects for easy reference
+    const authors_by_id = _.fromPairs(config.authors.map(a => [a.key, a]));
+    for (const work of config.works) {
+        work.authors = work.author_keys.map(key => authors_by_id[key]);
+    }
+
+    for (const chartConfig of config.charts) {
+        const container = document.getElementById(chartConfig.id);
+        const canvas = document.createElement('canvas');
+        container.append(canvas);
+
+        const grouped = {};
+        const excluded = [];
+        for (const work of config.works) {
+            if (!work[chartConfig.key] || !work[chartConfig.key].filter(x => !_.includes(chartConfig.exclude, x)).length) {
+                excluded.push(work);
+                continue;
+            }
+            for (const s of work[chartConfig.key].filter(x => !_.includes(chartConfig.exclude, x))) {
+                grouped[s] = grouped[s] || [];
+                grouped[s].push(work);
+            }
+        }
+
+        const bars = _.orderBy(_.entries(grouped), x => x[1].length, 'desc');
+        const chart = new Chart(canvas.getContext('2d'), {
+            type: 'horizontalBar',
+            data: {
+                labels: bars.map(b => b[0]),
+                datasets: [{
+                    backgroundColor: 'rgb(255, 99, 132)',
+                    borderColor: 'rgb(255, 99, 132)',
+                    data: bars.map(b => b[1].length)
+                }]
+            },
+            options: {
+                legend: { display: false }
+            }
+        });
+
+        $$(render_excluded_works_list(excluded)).appendTo(container);
+    }
+</script>

@@ -1,3 +1,5 @@
+import json
+
 import web
 import hmac
 import logging
@@ -719,10 +721,13 @@ class ReadingLog(object):
             page=page, limit=limit)]
         return web.ctx.site.get_many(work_ids)
 
-    def get_works(self, key, page=1):
+    def get_works(self, key, page=1, limit=RESULTS_PER_PAGE):
+        """
+        :rtype: list of openlibrary.plugins.upstream.models.Work
+        """
         key = key.lower()
         if key in self.KEYS:
-            return self.KEYS[key](page=page)
+            return self.KEYS[key](page=page, limit=limit)
         else: # must be a list or invalid page!
             #works = web.ctx.site.get_many([ ... ])
             raise
@@ -762,6 +767,52 @@ class public_my_books(delegate.page):
             page.v2 = True
             return page
         raise web.seeother(user.key)
+
+
+class readinglog_stats(delegate.page):
+    path = "/people/([^/]+)/books/([a-zA-Z_-]+)/stats"
+
+    def GET(self, username, key='loans'):
+        user = web.ctx.site.get('/people/%s' % username)
+        if not user:
+            return render.notfound("User %s" % username, create=False)
+        is_public = user.preferences().get('public_readlog', 'no') == 'yes'
+        cur_user = accounts.get_current_user()
+        if is_public or cur_user and cur_user.key.split('/')[-1] == username:
+            readlog = ReadingLog(user=user)
+            works = readlog.get_works(key, page=1, limit=1000)
+            works_json = [
+                {
+                    'title': w.title,
+                    'key': w.key,
+                    'author_keys': [a.author.key for a in w.get('authors', [])],
+                    'first_publish_year': w.first_publish_year or None,
+                    'subjects': w.get('subjects'),
+                    'subject_people': w.get('subject_people'),
+                    'subject_places': w.get('subject_places'),
+                    'subject_times': w.get('subject_times'),
+                } for w in works
+            ]
+            author_keys = set(
+                a
+                for work in works_json
+                for a in work['author_keys']
+            )
+            authors_json = [
+                {
+                    'key': a.key,
+                    'name': a.name,
+                    'birth_date': a.get('birth_date'),
+                }
+                for a in web.ctx.site.get_many(list(author_keys))
+            ]
+            page = render['account/readinglog_stats'](
+                json.dumps(works_json),
+                json.dumps(authors_json),
+            )
+            page.v2 = True
+            return page
+
 
 class account_my_books_redirect(delegate.page):
     path = "/account/books/([a-zA-Z_-]+)"
