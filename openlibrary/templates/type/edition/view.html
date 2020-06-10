@@ -1,15 +1,45 @@
 $def with (page)
 
 <style type="text/css">
+  .section {
+    margin-top: 20px;
+  }
+
+  .collapse {
+  }
+
+  h2.edition-byline {
+    margin: 5px;
+  }
+
   .first-published-date {
     color: #999;
     font-size: .8em;
   }
+
+  .edition-overview {
+    background: #eee;
+    padding: 10px;
+    margin: 10px 0px;
+  }
+
+  .edition-overview .edition-title {
+    margin-bottom: 0;
+    color: #333;
+  }
+
+  .edition-overview .edition-subtitle {
+    margin-top: 5px;
+    font-size: .9em;
+    font-weight: normal;
+    color: #666;
+  }
+
   .work-menu {
     border-bottom: 1px solid #ddd;
     padding-bottom: 5px;
     font-weight: bold;
-    margin-bottom: 20px;
+    margin-top: 30px;
   }
 
   .work-menu li {
@@ -34,7 +64,9 @@ $def with (page)
 </style>
 
 
+$ tab = input(tab=None).tab
 $ editions = []
+$ page_type = page.key.split('/')[1]
 $if page.key.startswith('/works'):
   $ work = page
   $ editions = work.get_sorted_editions()
@@ -148,15 +180,15 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       <form action="/admin/staffpicks" method="POST">
         <input type="hidden" value="add" name="action"/>
         <input type="hidden" name="work_id" value="$(work.key.split('/')[2])"/>
-        <input type="submit" value="Add to Staff Picks"/>
+        <input type="submit" class="cta-btn--vanilla" value="Add to Staff Picks"/>
       </form>
     $if ocaid:
       <form method="GET" action="/admin/sync">
         <input type="hidden" name="edition_id" value="$(page.key.split('/')[2])"/>
-        <input type="submit" value="Sync Archive.org ID"/>
+        <input type="submit" class="cta-btn--vanilla" value="Sync Archive.org ID"/>
       </form>
       <form method="GET" action="https://archive.org/details/$ocaid">
-        <input type="submit" value="View Book on Archive.org"/>
+        <input type="submit" class="cta-btn--vanilla" value="View Book on Archive.org"/>
       </form>
     $if not work:
       <strong>Orphaned Edition!</strong>
@@ -165,140 +197,144 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 <div id="contentHead"></div>
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
-    <div class="workDetails">
+  <div class="workDetails">
+    $if work:
+        <link itemprop="exampleOfWork" href="$work.key">
+
+    <div class="editionCover">
+      <div class="illustration edition-cover">
+          $:render_template('covers/book_cover', page)
+          $# Don't display add/change cover link for /books/ia:foo00bar pages
+          $if not page.is_fake_record():
+              $:render_template('covers/change', page, ".edition-cover .bookCover img")
+      </div>
+      <div class="mobile-borrow-cta">
+        $:macros.LoanStatus(page, ctx.user, editions_page=True, render_preview_floater=False)
+      </div>
+      $# pages like /books/ia:foo00bar are fake records created from metadata API.
+      $# Adding them to lists doesn't work. Disabling it to avoid any issues.
+      $if "lists" in ctx.features and not page.is_fake_record():
+        <div class="user-book-options">
+          <div class="Tools tools-override">
+            $:render_template("lists/widget", page, include_header=False)
+          </div>
+        </div>
+
+      $ contributors = page.get('contributors', [])
+      $if contributors:
+        <div class="section">
+            <h3 class="collapse">$_("Contributors")</h3>
+            <ul class="contributors">
+                $for c in contributors:
+                    $:display_contributor(c)
+            </ul>
+        </div>
+    </div>
+
+    <div class="editionAll">
+      $:macros.databarView(page)
+      $if work.series:
+        <h2><a href="/works/$(work.series.work)">($work.series.name)</a></h2>
+      <h1 class="work-title" itemprop="name">$book_title</h1>
+      $if page.subtitle or page.edition_title or page.edition_name:
+        <h2 class="edition-subtitle">
+          $if page.subtitle:
+            $page.subtitle
+          $if page.edition_title or page.edition_name:
+            $if page.subtitle:
+              &mdash;
+            $page.edition_title $page.edition_name
+      $if authors_byline:
+        <h2 class="edition-byline">$_("by") $:authors_byline</h2>
+    </div>
+
+    <div class="editionAbout">
+      $:macros.StarRatingsStats(work)
+
+      <h4 class="publisher">
+        $if page.publish_date or page.publishers or page.publish_places:
+        <!-- TODO: this handcrafted concatenation will be difficult to internationalize -->
+        $_('Published')
+            $if page.publish_date:
+                <strong itemprop="datePublished">$page.publish_date</strong>
+            $if page.publishers:
+                $_('by')
+                $for p in page.publishers:
+                    $if "publishers" in ctx.features:
+                      <a itemprop="publisher" href="/publishers/$p.replace(' ', '_')"
+                         title="$_('Show other books from %(publisher)s', publisher=p)"
+                         >$p</a>$cond(loop.last, "", ", ")
+                    $else:
+                      <a itemprop="publisher" href="/search?publisher_facet=$p.replace('&','%26')"
+                         title="$_('Search for other books from %(publisher)s', publisher=p)"
+                         >$p</a>$cond(loop.last, "", ", ")
+            $if page.publish_places:
+              $_('in')
+              $for p in page.publish_places:
+                 <a href="/search/subjects?q=$p.replace('&','%26')"
+                    title="$_('Search for subjects about %(place)s', place=p)"
+                    >$p</a>$cond(loop.last, "", ", ")<span class="adjust">.</span>
+        $if page.languages:
+            $def lang_span(): <span itemprop="inLanguage">$:thingrepr(page.languages)</span>
+            <br/>$:_('Written in %(language)s', language=lang_span())
+        $if page.number_of_pages:
+            &mdash; <span class="edition-pages"
+                          itemprop="numberOfPages">$page.number_of_pages</span> pages
+      </h4>
+
+      $if work:
+      <div class="section">
+        <h3 class="">$_("About the Book")</h3>
+        <div class="collapse edition-description">
+          $if work.description:
+            $:sanitize(format(work.description))
+          $else:
+            <p class="workHelp">
+              $:_("This book doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=page.url('/edit')+"#about/about")
+            </p>
+        </div>
+      </div>
+
+      <ul class="work-menu">
+        <li class="$('selected' if not tab else '')"><a href="$page.url()">Overview</a></li>
         $if work:
-            <link itemprop="exampleOfWork" href="$work.key">
+        <li>
+          <a class="$('selected' if tab == 'editions' else '')"
+             href="$(page.url())#editions"
+             >View $edition_count Edition$("s" if edition_count > 1 else "")</a>
+        </li>
+        <!--<li><a href="$page.url()" title="Search libraries and vendors">Get this book</a></li>-->
+        <!--<li><a href="$page.url()" title="See where else this book is mentioned">Citations</a></li>-->
+        <!--<li><a href="$(work.url())/edit">Edit</a></li>-->
+      </ul>
 
-        <div class="editionCover">
+        $if tab == "editions":
+          <div class="clearfix"></div>
+          $:render_template("type/work/editions_datatable", work, editions=editions, edition=page)
 
-            <div class="illustration edition-cover">
-                $:render_template('covers/book_cover', page)
-                $# Don't display add/change cover link for /books/ia:foo00bar pages
-                $if not page.is_fake_record():
-                    $:render_template('covers/change', page, ".edition-cover .bookCover img")
-            </div>
-            <div class="mobile-borrow-cta">
-              $:macros.LoanStatus(page, ctx.user, editions_page=True, render_preview_floater=False)
-            </div>
-            $# pages like /books/ia:foo00bar are fake records created from metadata API.
-            $# Adding them to lists doesn't work. Disabling it to avoid any issues.
-            $if "lists" in ctx.features and not page.is_fake_record():
-              <div class="user-book-options">
-                <div class="Tools tools-override">
-                  $:render_template("lists/widget", page, include_header=False)
-                </div>
-              </div>
-
-          $ contributors = page.get('contributors', [])
-          $if contributors:
-              <div class="section">
-                  <h3 class="collapse">$_("Contributors")</h3>
-                  <ul class="contributors">
-                      $for c in contributors:
-                          $:display_contributor(c)
-                  </ul>
-              </div>
-        </div>
-
-
-        <div class="editionAll">
-          $:macros.databarView(page)
-          <h1 class="work-title" itemprop="name">$book_title
-
-            $if work and work.first_publish_year:
-              <span class="first-published-date">($work.first_publish_year)</span>
-          </h1>
-          $if authors_byline:
-            <h2 class="edition-byline">$_("by") $:authors_byline</h2>
-        </div>
-
-
-        <div class="editionAbout">
-          <ul class="work-menu">
-            <li class="selected"><a href="$page.url()">Overview</a></li>
-            $if work:
-              <li><a href="$(work.url() if work else '')#editions">View $edition_count Edition$("s" if edition_count > 1 else "")</a></li>
-            <!--<li><a href="$page.url()" title="Search libraries and vendors">Get this book</a></li>-->
-            <!--<li><a href="$page.url()" title="See where else this book is mentioned">Citations</a></li>-->
-            <!--<li><a href="$(work.url())/edit">Edit</a></li>-->
-          </ul>
-
-            <div class="book-overview section sansserif">
-              $if page.title or page.subtitle or page.edition_title or page.edition_name:
-                <h2 class="edition-title">
-                  $if page.title:
-                    $page.title
-                  $if page.subtitle:
-                    $page.subtitle
-                  $if page.edition_title or page.edition_name:
-                    ($page.edition_title $page.edition_name)
-                </h2>
-
-              $:macros.StarRatingsStats(page)
-
-
-              <h4 class="publisher">
-                    $if page.publish_date or page.publishers or page.publish_places:
-                    <!-- TODO: this handcrafted concatenation will be difficult to internationalize -->
-                    $_('Published')
-                        $if page.publish_date:
-                            <strong itemprop="datePublished">$page.publish_date</strong>
-                        $if page.publishers:
-                            $_('by')
-                            $for p in page.publishers:
-                                $if "publishers" in ctx.features:
-                                    <a itemprop="publisher" href="/publishers/$p.replace(' ', '_')" title="$_('Show other books from %(publisher)s', publisher=p)">$p</a>$cond(loop.last, "", ", ")
-                                $else:
-                                    <a itemprop="publisher" href="/search?publisher_facet=$p.replace('&','%26')" title="$_('Search for other books from %(publisher)s', publisher=p)">$p</a>$cond(loop.last, "", ", ")
-
-                        $if page.publish_places:
-                            $_('in')
-                            $for p in page.publish_places:
-                                 <a href="/search/subjects?q=$p.replace('&','%26')" title="$_('Search for subjects about %(place)s', place=p)">$p</a>$cond(loop.last, "", ", ")
-                        <span class="adjust">.</span>
-                    $if page.languages:
-                        $def lang_span(): <span itemprop="inLanguage">$:thingrepr(page.languages)</span>
-                        <br/>$:_('Written in %(language)s', language=lang_span())
-              </h4>
-
-            $:macros.SubjectTags(work)
-
-        </div>
-
-        $if work and work.description:
-          <h3 class="collapse">$_("About the Book")</h3>
-          $:sanitize(format(work.description))
-
-        $if page.description:
-          $if page.description:
-            <h3 class="collapse">$_("About this Edition")</h3>
-            $:sanitize(format(page.description))
         $else:
-          <p class="workHelp">
-            $:_("There's no description for this book yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=page.url('/edit')+"#about/about")
-          </p>
-        $if page.first_sentence:
-            <h3 class="collapse">$_("First Sentence")</h3>
-            <p>$page.first_sentence</p>
+          <h4 class="first-published">
+            $if work and work.first_publish_year:
+            $_("First published in %s", work.first_publish_year)
+          </h4>
+            
+          $:macros.SubjectTags(work)
 
-        $ table_of_contents = page.get_table_of_contents()
-        $if table_of_contents and len(table_of_contents) > 1:
-            <div class="section">
-              <h3 class="collapse">$_("Table of Contents")</h3>
-              <table class="meta sansserif" id="toc-table">
-                <tbody>
-                $for toc in table_of_contents:
-                    <tr class="toc-level-$toc.level">
-                        <td class="toc-label">$toc.label</td>
-                        $if item_id and toc.pagenum.isdigit():
-                            <td class="toc-title"><a href="//archive.org/stream/$item_id#page/$toc.pagenum">$toc.title</a></td>
-                        $else:
-                            <td class="toc-title">$toc.title</td>
-                        <td class="toc-pagenum">$toc.pagenum</td>
-                    </tr>
-                </tbody>
-              </table>
-            </div>
+        $if (work and work.first_sentence) or page.first_sentence:
+            <h3 class="collapse">$_("First Sentence")</h3>
+            <p>"$(page.first_sentence or work.first_sentence)"</p>
+
+        <div class="edition-description section">
+          <h3 class="collapse">$_("About this Edition")</h3>
+            $if page.description:
+              $:sanitize(format(page.description))
+            $else:
+              <p class="workHelp">
+                $:_("This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=page.url('/edit')+"#about/about")
+              </p>
+        </div>
+
+        $:macros.TableOfContents(page, ocaid)
 
         $if page.notes or page.series or page.volume or page.genres or page.other_titles or page.copyright_date or page.translation_of or page.translated_from:
             <div class="section">
@@ -377,9 +413,6 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         </div>
 
     </div>
-
-    <div class="clearfix"></div>
-    $:render_template("type/work/editions_datatable", work, editions=editions, edition=page)
 
     $:macros.RelatedWorksCarousel(work)
 

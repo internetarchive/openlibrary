@@ -92,26 +92,3 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
             $:macros.daisy(book, protected=True)
       </div>
     </td>
-
-    <td class="icon locate inact">
-      <div class="zzzz"></div>
-        <div class="links">
-          $if oclc_numbers or isbn:
-            <div>$_('Libraries near you:')</div>
-            <ul>
-              <li>
-                <a href="$macros.WorldcatUrl(isbn=isbn, oclc_numbers=oclc_numbers)"
-                   title="$_('Look for this edition at WorldCat')">WorldCat</a>
-              </li>
-              $if isbn:
-                <li><a href="https://labs.library.link/services/borrow/?isbn=$(isbn_10_to_isbn_13(isbn))&embed=True&radius=500&refer=$(book.url(relative=False))">Library.link</a></li>
-            </ul>
-        </div>
-    </td>
-
-    <td class="icon buy inact">
-      <div class="zzzz"></div>
-      <div class="links">
-        $:macros.AffiliateLinks(book, {'isbn': isbn, 'asin': asin, 'prices': False})
-      </div>
-    </td>

@@ -1,23 +1,18 @@
 $def with(work)
 
-$ rating_stats = work.get_rating_stats() if work else {}
-$ stats_by_bookshelf = work.get_num_users_by_bookshelf() if work else {}
-$if rating_stats or stats_by_bookshelf:
-  $ show_ratings = rating_stats and rating_stats['avg_rating'] > 0 and rating_stats['num_ratings'] > 1
+$ rating_stats = work and work.get_rating_stats() or {}
+$ stats_by_bookshelf = work and work.get_num_users_by_bookshelf() or {}
 
-  <ul class="readers-stats" $:cond(show_ratings, 'itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating"', '')>
-      $if show_ratings:
-        <li class="avg-ratings">
-            $:('<span class="readers-stats__star">★</span>' * int(rating_stats['avg_rating'])) <span itemprop="ratingValue">$(rating_stats['avg_rating'])</span>
-        </li>
-        <li>
-          <span itemprop="reviewCount">$rating_stats['num_ratings']</span> Ratings
-        </li>
-      $if stats_by_bookshelf.get('want-to-read', 0) > 1:
-        <li class="reading-log-stat">$stats_by_bookshelf['want-to-read'] Want to read</li>
-      $if stats_by_bookshelf.get('currently-reading', 0) > 1:
-        <li class="reading-log-stat">$stats_by_bookshelf['currently-reading'] Currently reading</li>
-      $if stats_by_bookshelf.get('already-read', 0) > 1:
-        <li class="reading-log-stat">$stats_by_bookshelf['already-read'] Have read</li>
-  </ul>
+<ul class="readers-stats" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
+  <li class="avg-ratings">
+    $if rating_stats.get('avg_rating'):
+      $:('<span class="readers-stats__star">★</span>' * int(rating_stats.get('avg_rating'))) <span itemprop="ratingValue">$(rating_stats['avg_rating'])</span>
+  </li>
+  <li>
+    <span itemprop="reviewCount">$rating_stats.get('num_ratings', 0)</span> Ratings
+  </li>
+  <li class="reading-log-stat">$stats_by_bookshelf.get('want-to-read', 0) Want to read</li>
+  <li class="reading-log-stat">$stats_by_bookshelf.get('currently-reading', 0) Currently reading</li>
+  <li class="reading-log-stat">$stats_by_bookshelf.get('already-read', 0) Have read</li>
+</ul>
 

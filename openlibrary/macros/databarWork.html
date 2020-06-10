@@ -54,19 +54,25 @@ $if isbn_10 and not asin:
         $if page.get('ocaid') and not page.is_access_restricted() and page.ia_metadata:
             $:macros.DownloadOptions(page)
 
-        $:macros.WorldcatLink(isbn=isbn_13, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
-
-        <hr>
-        <div class="cta-section">
-          <p class="cta-section-title">$_('Buy this book')</p>
-          $:macros.AffiliateLinks(page, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
-        </div>
-
-        $if ctx.get('share_links'):
-          <hr>
-          $:macros.SocialShare(ctx.get('share_links'), request.home + page.key)
-
       </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="btn-notice">
+      $:macros.WorldcatLink(isbn=isbn_13, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
+    
+      <div class="cta-section">
+        <p class="cta-section-title">$_('Buy this book')</p>
+        $:macros.AffiliateLinks(page, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="btn-notice">    
+      $if ctx.get('share_links'):
+        $:macros.SocialShare(ctx.get('share_links'), request.home + page.key)
     </div>
   </div>
 
