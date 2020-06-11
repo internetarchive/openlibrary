@@ -824,7 +824,7 @@ def user_can_borrow_edition(user, edition, resource_type, action='borrow'):
     if book_is_lendable and user_is_below_loan_limit:
         if book_is_available:
             return True
-        if book_waitlistable and is_users_turn_to_borrow(user, edition):
+        if book_is_waitlistable and is_users_turn_to_borrow(user, edition):
             return True
     return False
 
