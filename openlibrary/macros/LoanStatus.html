@@ -65,7 +65,7 @@ $elif is_lendable:
     $:macros.ReadButton(ocaid, borrow=True, listen=True) 
   $elif lending_st['available_to_browse']:
     $# "BROWSE" Button
-    $:macros.ReadButton(ocaid, borrow=True, listen=True)
+    $:macros.ReadButton(ocaid, borrow=True, listen=True, action='browse')
   $elif lending_st['available_to_waitlist']:
     $ wlsize = lending_st['users_on_waitlist']
     $if waiting_loan:
