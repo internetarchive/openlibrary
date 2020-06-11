@@ -126,14 +126,6 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
     <table width="100%">
       <tbody>
         <tr>
-    $ item_id = None
-    $if 'ocaid' in page:
-        $ item_id = page['ocaid']
-        $ meta_fields = page.get_ia_meta_fields()
-        $if meta_fields:
-            $ collection = meta_fields.get('collection', [])
-            $if 'printdisabled' in collection or 'lendinglibrary' in collection:
-                $ item_id = None
 
     <td valign="top" width="100%">
     $:macros.databarView(page)
@@ -284,8 +276,8 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                 $for toc in table_of_contents:
                     <tr class="toc-level-$toc.level">
                         <td class="toc-label">$toc.label</td>
-                        $if item_id and toc.pagenum.isdigit():
-                            <td class="toc-title"><a href="//archive.org/stream/$item_id#page/$toc.pagenum">$toc.title</a></td>
+                        $if ocaid and toc.pagenum.isdigit():
+                            <td class="toc-title"><a href="//archive.org/stream/$ocaid#page/$toc.pagenum">$toc.title</a></td>
                         $else:
                             <td class="toc-title">$toc.title</td>
                         <td class="toc-pagenum">$toc.pagenum</td>

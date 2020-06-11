@@ -56,9 +56,6 @@ user_max_loans = 5
 #     BookReader loan status is always current.
 loan_fulfillment_timeout_seconds = 60*5
 
-# How long bookreader loans should last
-bookreader_loan_seconds = 60*60*24*14
-
 # How long the auth token given to the BookReader should last.  After the auth token
 # expires the BookReader will not be able to access the book.  The BookReader polls
 # OL periodically to get fresh tokens.
@@ -78,9 +75,9 @@ bookreader_stream_base = 'https://' + bookreader_host + '/stream'
 # Handler for /books/{bookid}/{title}/borrow
 class checkout_with_ocaid(delegate.page):
 
-    path = "/borrow/ia/(.*)"
+    path = "/(borrow|browse)/ia/(.*)"
 
-    def GET(self, ocaid):
+    def GET(self, action, ocaid):
         """Redirect shim: Translate an IA identifier into an OL identifier and
         then redirects user to the canonical OL borrow page.
         """
@@ -88,7 +85,7 @@ class checkout_with_ocaid(delegate.page):
         params = urllib.parse.urlencode(i)
         ia_edition = web.ctx.site.get('/books/ia:%s' % ocaid)
         edition = web.ctx.site.get(ia_edition.location)
-        url = '%s/x/borrow' % (edition.key)
+        url = '%s/x/%s' % (edition.key, action)
         raise web.seeother(url + '?' + params)
 
     def POST(self, ocaid):
@@ -101,15 +98,15 @@ class checkout_with_ocaid(delegate.page):
 
 # Handler for /books/{bookid}/{title}/borrow
 class borrow(delegate.page):
-    path = "(/books/.*)/borrow"
+    path = "(/books/.*)/(borrow|browse)"
 
-    def GET(self, key):
-        return self.POST(key)
+    def GET(self, key, action):
+        return self.POST(key, action)
 
-    def POST(self, key):
+    def POST(self, key, action='browse'):
         """Called when the user wants to borrow the edition"""
 
-        i = web.input(action='borrow', format=None, ol_host=None, _autoReadAloud=None, q="")
+        i = web.input(action=action, format=None, ol_host=None, _autoReadAloud=None, q="")
 
         if i.ol_host:
             ol_host = i.ol_host
@@ -124,7 +121,7 @@ class borrow(delegate.page):
         # to result if `open`, redirect to bookreader
         response = lending.get_availability_of_ocaid(edition.ocaid)
         availability = response[edition.ocaid] if response else {}
-        archive_url = 'https://archive.org/stream/' + edition.ocaid + '?ref=ol'
+        archive_url = get_bookreader_stream_url(edition.ocaid) + '?ref=ol'
         if i._autoReadAloud is not None:
             archive_url += '&_autoReadAloud=show'
 
@@ -155,14 +152,14 @@ class borrow(delegate.page):
         # Added so that direct bookreader links being routed through
         # here can use a single action of 'borrow', regardless of
         # whether the book has been checked out or not.
-        if action == 'borrow' and user.has_borrowed(edition):
+        if user.has_borrowed(edition):
             action = 'read'
 
         bookPath = '/stream/' + edition.ocaid
         if i._autoReadAloud is not None:
             bookPath += '?_autoReadAloud=show'
 
-        if action == 'borrow':
+        if action in ('borrow', 'browse'):
             resource_type = i.format or 'bookreader'
 
             if resource_type not in ['epub', 'pdf', 'bookreader']:
@@ -171,6 +168,14 @@ class borrow(delegate.page):
             user_meets_borrow_criteria = user_can_borrow_edition(user, edition, resource_type)
 
             if user_meets_borrow_criteria:
+                if action == 'browse':
+                    # Note: if patron has no s3_keys, we may have to log them out/in
+                    s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
+                    loan_resp = lending.initiate_s3_loan(edition.ocaid, s3_keys, action=action)
+                    print('=' * 10)
+                    print(loan_resp.json())
+                    web.seeother(archive_url)
+
                 # This must be called before the loan is initiated,
                 # otherwise the user's waitlist status will be cleared
                 # upon loan creation

@@ -204,6 +204,23 @@ def get_random_available_ia_edition():
         logger.exception("get_random_available_ia_edition(%s)" % url)
         return None
 
+
+@public
+def get_groundtruth_availability(ocaid):
+    """temporary stopgap to get ground-truth availability of books
+    including 1-hour borrows"""
+    import requests
+    from openlibrary.core.ia import get_metadata_direct
+    md = get_metadata_direct(ocaid, only_metadata=False)
+    server = md.get('d1')
+    item_path = md.get('dir')
+    url = 'https://%s/~judec/BookReader/BookReaderJSIA.php' % server
+    url += '?id=%s&itemPath=%s&server=%s' % (ocaid, item_path, server)
+    url += '&format=jsonp&subPrefix=%s&requestUri=/details/%s' % (ocaid, ocaid)
+    r = requests.get(url)
+    return r.json()['data']
+
+
 def get_available(limit=None, page=1, subject=None, query=None,
                   work_id=None, _type=None, sorts=None, url=None):
     """Experimental. Retrieves a list of available editions from
@@ -332,6 +349,22 @@ def get_work_availability(ol_work_id):
 
 def get_availability_of_works(ol_work_ids):
     return get_availability('openlibrary_work', ol_work_ids)
+
+
+def initiate_s3_loan(ocaid, s3_keys, action='browse'):
+    """Uses patrons s3 credentials to initiate a browse or borrow loan
+    on Archive.org.
+
+    :param dict s3_keys: {'access': 'xxx', 'secret': 'xxx'}
+    :param str action: 'browse' or 'borrow'
+    """
+    import requests
+    print('x' * 10)
+    print(s3_keys)
+    s3_loan_url = 'https://%s/services/loans/beta/loan/' % config_bookreader_host
+    params = '?action=%s_book&identifier=%s' % (action, ocaid)
+    return requests.post(s3_loan_url + params, data=s3_keys)
+
 
 def is_loaned_out(identifier):
     """Returns True if the given identifier is loaned out.
