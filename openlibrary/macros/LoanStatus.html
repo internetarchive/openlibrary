@@ -119,5 +119,5 @@ $if ocaid:
     $:macros.BookPreview(ocaid, render_preview_floater)
   $:macros.daisy(page, protected=is_restricted, block_name=block_name)
 
-$#debugging
-$lending_st
+$if query_param('debug'):
+  $lending_st
