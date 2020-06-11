@@ -359,8 +359,6 @@ def initiate_s3_loan(ocaid, s3_keys, action='browse'):
     :param str action: 'browse' or 'borrow'
     """
     import requests
-    print('x' * 10)
-    print(s3_keys)
     s3_loan_url = 'https://%s/services/loans/beta/loan/' % config_bookreader_host
     params = '?action=%s_book&identifier=%s' % (action, ocaid)
     return requests.post(s3_loan_url + params, data=s3_keys)

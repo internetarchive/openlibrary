@@ -140,7 +140,8 @@ class borrow(delegate.page):
             ia_itemname = account.itemname if account else None
         if not user or not ia_itemname:
             web.setcookie(config.login_cookie_name, "", expires=-1)
-            redirect_url = "/account/login?redirect=%s/borrow?action=%s" % (edition.url(), i.action)
+            redirect_url = "/account/login?redirect=%s/borrow?action=%s" % (
+                edition.url(), i.action)
             if i._autoReadAloud is not None:
                 redirect_url += '&_autoReadAloud=' + i._autoReadAloud
             raise web.seeother(redirect_url)
@@ -165,17 +166,18 @@ class borrow(delegate.page):
             if resource_type not in ['epub', 'pdf', 'bookreader']:
                 raise web.seeother(error_redirect)
 
-            user_meets_borrow_criteria = user_can_borrow_edition(user, edition, resource_type)
+            user_meets_borrow_criteria = user_can_borrow_edition(
+                user, edition, resource_type, action=action)
 
-            if user_meets_borrow_criteria:
-                if action == 'browse':
-                    # Note: if patron has no s3_keys, we may have to log them out/in
-                    s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
-                    loan_resp = lending.initiate_s3_loan(edition.ocaid, s3_keys, action=action)
-                    print('=' * 10)
-                    print(loan_resp.json())
-                    web.seeother(archive_url)
+            if not user_meets_borrow_criteria:
+                raise web.seeother(error_redirect)
 
+            if action == 'browse':
+                # Note: XXX if patron has no s3_keys, we may have to log them out/in
+                s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
+                loan_resp = lending.initiate_s3_loan(edition.ocaid, s3_keys, action=action)
+                action = 'read'
+            elif action == 'browse':
                 # This must be called before the loan is initiated,
                 # otherwise the user's waitlist status will be cleared
                 # upon loan creation
@@ -219,7 +221,7 @@ class borrow(delegate.page):
             else:
                 raise web.seeother(error_redirect)
 
-        elif action == 'return':
+        if action == 'return':
             # Check that this user has the loan
             user.update_loan_status()
             loans = get_loans(user)
@@ -246,7 +248,7 @@ class borrow(delegate.page):
             #     after the message is shown once
             raise web.seeother(edition.url())
 
-        elif action == 'read':
+        if action == 'read':
             # Look for loans for this book
             user.update_loan_status()
             loans = get_loans(user)
@@ -256,9 +258,9 @@ class borrow(delegate.page):
                         loan['_key'], edition.ocaid, bookPath,
                         ol_host, ia_userid=ia_itemname
                     ))
-        elif action == 'join-waitinglist':
+        if action == 'join-waitinglist':
             return self.POST_join_waitinglist(edition, user)
-        elif action == 'leave-waitinglist':
+        if action == 'leave-waitinglist':
             return self.POST_leave_waitinglist(edition, user, i)
 
         # Action not recognized
@@ -805,27 +807,27 @@ def resource_uses_bss(resource_id):
                 return True
     return False
 
-def user_can_borrow_edition(user, edition, resource_type):
+def user_can_borrow_edition(user, edition, resource_type, action='borrow'):
     """Returns True if the book is eligible for lending and available, and
     if the user is pemitted to borrow this edition given their current
     number of loans and their position on the waiting list (if
     applicable)
     """
-    if not edition.in_borrowable_collection():
-        return False
+    lending_data = lending.get_groundtruth_availability(edition.ocaid) or {}
+    lending_st = lending_data and lending_data['lendingInfo']['lendingStatus']
 
-    if user.get_loan_count() >= user_max_loans:
-        return False
+    book_is_lendable = lending_st.get('is_lendable', False)
+    book_is_available = lending_st.get('available_to_%s' % action, False)
+    book_is_waitlistable = lending_st.get('available_to_waitlist', False)
+    user_is_below_loan_limit = user.get_loan_count() < user_max_loans
 
-    realtime_availability = edition.availability
-    availability_status = realtime_availability['status']
-    waitlist_size = realtime_availability['num_waitlist']
+    if book_is_lendable and user_is_below_loan_limit:
+        if book_is_available:
+            return True
+        if book_waitlistable and is_users_turn_to_borrow(user, edition):
+            return True
+    return False
 
-    if waitlist_size:
-        return is_users_turn_to_borrow(user, edition)
-
-    #resource_type in [loan['resource_type'] for loan in edition.get_available_loans()]:
-    return availability_status == 'borrow_available'
 
 def is_users_turn_to_borrow(user, edition):
     """If this user is waiting on this edition, it can only borrowed if
