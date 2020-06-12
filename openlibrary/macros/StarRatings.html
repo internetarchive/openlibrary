@@ -1,10 +1,13 @@
-$def with (work_key, edition_key=None, rating=None)
+$def with (work, edition)
 
-<form id="ratingsForm" method="POST" action="$(work_key)/ratings.json"
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+$ rating = work and username and work.get_users_rating(username)
+
+<form id="ratingsForm" method="POST" action="$(work.key)/ratings.json"
       property="reviewRating" typeof="Rating" vocab="http://schema.org/" typeof="Books">
   <meta property="worstRating" content="1"/>
   <meta property="bestRating" content="5"/>
-  <input type="hidden" value="$edition_key" name="edition_id"/>
+  <input type="hidden" value="$edition.key" name="edition_id"/>
   <input type="hidden" value="true" name="redir"/>
   <div class="star-messaging">
     $if rating:
