@@ -221,7 +221,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
     </div>
 
     <div class="editionAll">
-      $:macros.databarView(page)
+      
       $if work.series:
         <h2><a href="/works/$(work.series.work)">($work.series.name)</a></h2>
       <h1 class="work-title" itemprop="name">$book_title</h1>
@@ -291,19 +291,47 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                href="$(edition.url())#editions"
                >View $edition_count Edition$("s" if edition_count > 1 else "")</a>
           </li>
+        
         <li class="$('selected' if tab == 'details' else '')">
           <a class="$('selected' if tab == 'details' else '')"
-             href="$edition.url()?tab=details">Book Details</a>
+             href="$edition.url()?tab=details">Overview</a>
         </li>
-        <!--<li><a href="$edition.url()" title="Search libraries and vendors">Get this book</a></li>-->
-        <!--<li><a href="$edition.url()" title="See where else this book is mentioned">Citations</a></li>-->
-        <!--<li><a href="$(work.url())/edit">Edit</a></li>-->
+        
+        <li class="$('selected' if tab == 'buy' else '')">
+          <a class="$('selected' if tab == 'buy' else '')"
+             href="$edition.url()?tab=buy">Get the Book</a>
+        </li>
       </ul>
 
       $if not tab:
         <div class="clearfix"></div>
         $:render_template("type/work/editions_datatable", work, editions=editions, edition=page)
 
+      $elif tab == 'buy':
+        $ prices = page.key.startswith('/books/')
+
+        $ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
+        $ isbn_13 = page.get_isbn13()
+        $ isbn_10 = page.get_isbn10()
+        
+        $ asin = None
+        $if page.get('identifiers'):
+            $if page.identifiers.get('amazon'):
+                $ asin = page.identifiers.amazon[0]
+        
+        $if isbn_10 and not asin:
+            $ asin = isbn_10
+        <div class="panel">
+          <div class="btn-notice">
+            $:macros.WorldcatLink(isbn=isbn_13, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
+          
+            <div class="cta-section">
+              <p class="cta-section-title">$_('Buy this book')</p>
+              $:macros.AffiliateLinks(page, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
+            </div>
+          </div>
+        </div>
+      
       $elif tab == 'details':
         <h4 class="first-published">
           $if work and work.first_publish_year:
@@ -408,7 +436,6 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         <!-- Don't need to translate admin only buttons (at least initially)-->
         <div class="small sansserif clearfix"><br/><span class="adminOnly"><a href="$edition.url('/borrow_admin')">View loan debugging information</a></span></div>
 
+    $:macros.databarView(page)
     $:render_template("lib/history", page)
 </div>
-
-<!-- source_records: $edition.get('source_records', []) -->

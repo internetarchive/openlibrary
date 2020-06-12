@@ -83,17 +83,6 @@ $if isbn_10 and not asin:
   </div>
 
   <div class="panel">
-    <div class="btn-notice">
-      $:macros.WorldcatLink(isbn=isbn_13, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
-    
-      <div class="cta-section">
-        <p class="cta-section-title">$_('Buy this book')</p>
-        $:macros.AffiliateLinks(page, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
-      </div>
-    </div>
-  </div>
-
-  <div class="panel">
     <div class="btn-notice">    
       $if ctx.get('share_links'):
         $:macros.SocialShare(ctx.get('share_links'), request.home + page.key)
