@@ -783,7 +783,7 @@ class readinglog_stats(delegate.page):
             works = readlog.get_works(key, page=1, limit=1000)
             works_json = [
                 {
-                    'title': w.title,
+                    'title': w.get('title'),
                     'key': w.key,
                     'author_keys': [a.author.key for a in w.get('authors', [])],
                     'first_publish_year': w.first_publish_year or None,
