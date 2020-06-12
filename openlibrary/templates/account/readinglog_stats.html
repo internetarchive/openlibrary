@@ -17,6 +17,8 @@ $jsdef render_excluded_works_list(works):
         </ul>
     </details>
 
+<p>$_('Note all charts show only the top 20 bars.')</p>
+
 <h2>$_('Author Stats')</h2>
 
 <h3>$_('Most Read Authors')</h3>
@@ -98,7 +100,7 @@ $jsdef render_excluded_works_list(works):
             }
         }
 
-        const bars = _.orderBy(_.entries(grouped), x => x[1].length, 'desc');
+        const bars = _.orderBy(_.entries(grouped), x => x[1].length, 'desc').slice(0, 20);
         const chart = new Chart(canvas.getContext('2d'), {
             type: 'horizontalBar',
             data: {
