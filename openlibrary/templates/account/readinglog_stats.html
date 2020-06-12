@@ -111,7 +111,13 @@ $jsdef render_excluded_works_list(works):
             },
             options: {
                 scales: {
-                    yAxis: [{ ticks: { beginAtZero: true, stepSize: 1 } }]
+                    xAxis: [{
+                        gridLines: { display: false }
+                    }],
+                    yAxis: [{
+                        position: 'top',
+                        ticks: { beginAtZero: true, stepSize: 1 }
+                    }]
                 },
                 legend: { display: false }
             }
