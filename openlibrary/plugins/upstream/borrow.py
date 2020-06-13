@@ -75,17 +75,17 @@ bookreader_stream_base = 'https://' + bookreader_host + '/stream'
 # Handler for /books/{bookid}/{title}/borrow
 class checkout_with_ocaid(delegate.page):
 
-    path = "/(borrow|browse)/ia/(.*)"
+    path = "/borrow/ia/(.*)"
 
-    def GET(self, action, ocaid):
+    def GET(self, ocaid):
         """Redirect shim: Translate an IA identifier into an OL identifier and
         then redirects user to the canonical OL borrow page.
         """
-        i = web.input()
+        i = web.input(action='borrow')
         params = urllib.parse.urlencode(i)
         ia_edition = web.ctx.site.get('/books/ia:%s' % ocaid)
         edition = web.ctx.site.get(ia_edition.location)
-        url = '%s/x/%s' % (edition.key, action)
+        url = '%s/x/borrow' % edition.key
         raise web.seeother(url + '?' + params)
 
     def POST(self, ocaid):
@@ -98,15 +98,15 @@ class checkout_with_ocaid(delegate.page):
 
 # Handler for /books/{bookid}/{title}/borrow
 class borrow(delegate.page):
-    path = "(/books/.*)/(borrow|browse)"
+    path = "(/books/.*)/borrow"
 
-    def GET(self, key, action):
-        return self.POST(key, action)
+    def GET(self, key):
+        return self.POST(key)
 
-    def POST(self, key, action='browse'):
+    def POST(self, key):
         """Called when the user wants to borrow the edition"""
 
-        i = web.input(action=action, format=None, ol_host=None, _autoReadAloud=None, q="")
+        i = web.input(action='borrow', format=None, ol_host=None, _autoReadAloud=None, q="")
 
         if i.ol_host:
             ol_host = i.ol_host
@@ -166,18 +166,17 @@ class borrow(delegate.page):
             if resource_type not in ['epub', 'pdf', 'bookreader']:
                 raise web.seeother(error_redirect)
 
+            s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
             user_meets_borrow_criteria = user_can_borrow_edition(
                 user, edition, resource_type, action=action)
 
-            if not user_meets_borrow_criteria:
+            if not (s3_keys or user_meets_borrow_criteria):
                 raise web.seeother(error_redirect)
 
             if action == 'browse':
-                # Note: XXX if patron has no s3_keys, we may have to log them out/in
-                s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
                 loan_resp = lending.initiate_s3_loan(edition.ocaid, s3_keys, action=action)
                 action = 'read'
-            elif action == 'browse':
+            elif action == 'borrow':
                 # This must be called before the loan is initiated,
                 # otherwise the user's waitlist status will be cleared
                 # upon loan creation
@@ -813,8 +812,7 @@ def user_can_borrow_edition(user, edition, resource_type, action='borrow'):
     number of loans and their position on the waiting list (if
     applicable)
     """
-    lending_data = lending.get_groundtruth_availability(edition.ocaid) or {}
-    lending_st = lending_data and lending_data['lendingInfo']['lendingStatus']
+    lending_st = lending.get_groundtruth_availability(edition.ocaid)
 
     book_is_lendable = lending_st.get('is_lendable', False)
     book_is_available = lending_st.get('available_to_%s' % action, False)

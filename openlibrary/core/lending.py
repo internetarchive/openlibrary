@@ -23,6 +23,8 @@ from . import helpers as h
 
 logger = logging.getLogger(__name__)
 
+S3_LOAN_URL = 'https://%s/services/loans/beta/loan/'
+
 # When we generate a loan offer (.acsm) for a user we assume that the loan has occurred.
 # Once the loan fulfillment inside Digital Editions the book status server will know
 # the loan has occurred.  We allow this timeout so that we don't delete the OL loan
@@ -204,21 +206,16 @@ def get_random_available_ia_edition():
         logger.exception("get_random_available_ia_edition(%s)" % url)
         return None
 
-
 @public
 def get_groundtruth_availability(ocaid):
     """temporary stopgap to get ground-truth availability of books
     including 1-hour borrows"""
+    # XXX Use s3 keys?
     import requests
-    from openlibrary.core.ia import get_metadata_direct
-    md = get_metadata_direct(ocaid, only_metadata=False)
-    server = md.get('d1')
-    item_path = md.get('dir')
-    url = 'https://%s/~judec/BookReader/BookReaderJSIA.php' % server
-    url += '?id=%s&itemPath=%s&server=%s' % (ocaid, item_path, server)
-    url += '&format=jsonp&subPrefix=%s&requestUri=/details/%s' % (ocaid, ocaid)
-    r = requests.get(url)
-    return r.json()['data']
+    params = '?action=availability&identifier=' + ocaid
+    url = S3_LOAN_URL % config_bookreader_host
+    r = requests.get(url + params)
+    return r.json().get('lending_status', {})
 
 
 def get_available(limit=None, page=1, subject=None, query=None,
@@ -359,9 +356,9 @@ def initiate_s3_loan(ocaid, s3_keys, action='browse'):
     :param str action: 'browse' or 'borrow'
     """
     import requests
-    s3_loan_url = 'https://%s/services/loans/beta/loan/' % config_bookreader_host
     params = '?action=%s_book&identifier=%s' % (action, ocaid)
-    return requests.post(s3_loan_url + params, data=s3_keys)
+    url = S3_LOAN_URL % config_bookreader_host
+    return requests.post(url + params, data=s3_keys)
 
 
 def is_loaned_out(identifier):

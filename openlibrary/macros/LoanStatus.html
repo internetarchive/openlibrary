@@ -13,13 +13,13 @@ $ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
 $ current_and_available_loans = []
 
-$ lending_data = ocaid and get_groundtruth_availability(ocaid) or {}
-$ lending_md = lending_data and lending_data['metadata']
-$ lending_st = lending_data and lending_data['lendingInfo']['lendingStatus']
+$ lending_st = ocaid and get_groundtruth_availability(ocaid) or {}
 
 $ is_printdisabled = lending_st.get('is_printdisabled', False)
 $ is_lendable = lending_st.get('is_lendable', False)
-$ is_restricted = lending_md.get('access-restricted-item', False)
+
+$# XXX this is a heuristic; we need access-restricted-item check!
+$ is_restricted = is_printdisabled
 $ is_open = not is_restricted
 
 $if ocaid:
@@ -54,6 +54,7 @@ $elif editions_page and ocaid and is_restricted and not is_lendable:
     <a href="$work.key" class="cta-btn cta-btn--missing"
        data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
   </div>
+
 
 $elif editions_page and ocaid and is_open:
   $:macros.ReadButton(ocaid, listen=True)
@@ -100,7 +101,7 @@ $elif is_lendable:
          data-ol-link-track="CTAClick|CheckedOut">$_('Checked Out')</a>
     </div>
 
-$elif (not page.get('ocaid') or lending_md.get('access-restricted-item')) and editions_page:
+$elif not ocaid or editions_page and not is_lendable:
   $ sponsorship = qualifies_for_sponsorship(page)
   $if sponsorship.get('is_eligible'):
     $ isbn = (page.isbn_13 and page.isbn_13[0] or page.isbn_10 and page.isbn_10[0])
@@ -115,9 +116,9 @@ $elif (not page.get('ocaid') or lending_md.get('access-restricted-item')) and ed
     <a href="$work.key" class="cta-btn cta-btn--missing" data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
 
 $if ocaid:
-  $if editions_page and not is_open:
+  $if editions_page and is_printdisabled:
     $:macros.BookPreview(ocaid, render_preview_floater)
-  $:macros.daisy(page, protected=is_restricted, block_name=block_name)
+  $:macros.daisy(page, protected=is_printdisabled, block_name=block_name)
 
 $if query_param('debug'):
   $lending_st

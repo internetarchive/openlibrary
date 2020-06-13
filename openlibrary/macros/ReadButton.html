@@ -9,7 +9,7 @@ $else:
   $ label = _("Read")
   $ title = _("Read ebook from Internet Archive")
 
-$ stream_url = "/%s/ia/%s?ref=ol" % (action, ocaid)
+$ stream_url = "/borrow/ia/%s?ref=ol&action=%s" % (ocaid, action)
 
 <div class="cta-button-group">
   <a href="$(stream_url)" title="$title" id="$(action)_ebook"
