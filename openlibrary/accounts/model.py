@@ -479,7 +479,6 @@ class OpenLibraryAccount(Account):
 
     def save_s3_keys(self, s3_keys):
         _ol_account = web.ctx.site.store.get(self._key)
-        print(_ol_account)
         _ol_account['s3_keys'] = s3_keys
         web.ctx.site.store[self._key] = _ol_account
         self.s3_keys = s3_keys
