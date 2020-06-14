@@ -17,43 +17,107 @@ $jsdef render_excluded_works_list(works):
         </ul>
     </details>
 
-<p>$_('Note all charts show only the top 20 bars.')</p>
+<style>
+    canvas { width: 100% !important; object-fit: contain; }
 
-<h2>$_('Author Stats')</h2>
+    .charts-flow {
+      display: flex;
+      flex-wrap: wrap;
+      border-top: 1px dotted #aaa;
+    }
 
-<h3>$_('Most Read Authors')</h3>
-<div class="readinglog-stats-chart" id="author-name"></div>
+    section.readinglog-chart-container {
+      width: 50%;
+      padding: 10px;
+      margin: 0;
+    }
 
-<h3>$_('Works by Author Sex')</h3>
-<div class="readinglog-stats-chart" id="author-sex"></div>
+    details {
+      font-size: 0.75em;
+    }
 
-<h3>$_('Works by Author Ethnicity')</h3>
-<div class="readinglog-stats-chart" id="author-ethnic-group"></div>
+    @media (min-width: 750px) {
+        .readinglog-chart-container:nth-child(2n+1) {
+            border-right: 1px dotted #aaa;
+        }
 
-<h3>$_('Works by Author Country of Citizenship')</h3>
-<div class="readinglog-stats-chart" id="author-country-of-citizenship"></div>
+        .readinglog-chart-container:nth-child(n) {
+            border-bottom: 1px dotted #aaa;
+        }
+    }
+    @media (max-width: 750px) {
+        section.readinglog-chart-container {
+            width: 100%;
+        }
 
-<h3>$_('Works by Author Country of Birth')</h3>
-<div class="readinglog-stats-chart" id="author-country-of-birth"></div>
+        .readinglog-chart-container {
+            border-bottom: 1px dotted #aaa;
+        }
+    }
+</style>
 
-<h2>$_('Work Stats')</h2>
+<div class="readinglog-charts" style="padding: 12px;">
+    <p>$_('Note all charts show only the top 20 bars.')</p>
 
-<h3>$_('Works by Subject')</h3>
-<div class="readinglog-stats-chart" id="work-subjects"></div>
+    <h2>$_('Author Stats')</h2>
 
-<h3>$_('Works by People')</h3>
-<div class="readinglog-stats-chart" id="work-subject-people"></div>
+    <section class="charts-flow">
+        <section class="readinglog-chart-container">
+            <h3>$_('Most Read Authors')</h3>
+            <div class="readinglog-stats-chart" id="author-name"></div>
+        </section>
 
-<h3>$_('Works by Places')</h3>
-<div class="readinglog-stats-chart" id="work-subject-places"></div>
+        <section class="readinglog-chart-container">
+            <h3>$_('Works by Author Sex')</h3>
+            <div class="readinglog-stats-chart" id="author-sex"></div>
+        </section>
 
-<h3>$_('Works by Time Period')</h3>
-<div class="readinglog-stats-chart" id="work-subject-times"></div>
+        <section class="readinglog-chart-container">
+            <h3>$_('Works by Author Ethnicity')</h3>
+            <div class="readinglog-stats-chart" id="author-ethnic-group"></div>
+        </section>
+
+        <section class="readinglog-chart-container">
+            <h3>$_('Works by Author Country of Citizenship')</h3>
+            <div class="readinglog-stats-chart" id="author-country-of-citizenship"></div>
+        </section>
+
+        <section class="readinglog-chart-container">
+            <h3>$_('Works by Author Country of Birth')</h3>
+            <div class="readinglog-stats-chart" id="author-country-of-birth"></div>
+        </section>
+    </section>
+
+    <h2>$_('Work Stats')</h2>
+
+    <section class="charts-flow">
+        <section class="readinglog-chart-container">
+            <h3>$_('Works by Subject')</h3>
+            <div class="readinglog-stats-chart" id="work-subjects"></div>
+        </section>
+
+        <section class="readinglog-chart-container">
+            <h3>$_('Works by People')</h3>
+            <div class="readinglog-stats-chart" id="work-subject-people"></div>
+        </section>
+
+        <section class="readinglog-chart-container">
+            <h3>$_('Works by Places')</h3>
+            <div class="readinglog-stats-chart" id="work-subject-places"></div>
+        </section>
+
+        <section class="readinglog-chart-container">
+            <h3>$_('Works by Time Period')</h3>
+            <div class="readinglog-stats-chart" id="work-subject-times"></div>
+        </section>
+    </section>
+</div>
 
 
 <script type="module">
     import 'https://unpkg.com/lodash@4.17.15/lodash.js';
     import 'https://unpkg.com/chart.js@2.9.3/dist/Chart.js';
+    import 'https://unpkg.com/chartjs-plugin-datalabels@0.7.0/dist/chartjs-plugin-datalabels.js';
     window.Chart = Chart;
     window._ = _;
     const config = {
@@ -101,6 +165,8 @@ $jsdef render_excluded_works_list(works):
         }
 
         const bars = _.orderBy(_.entries(grouped), x => x[1].length, 'desc').slice(0, 20);
+        canvas.height = bars.length * 20 + 5;
+        canvas.width= 400;
         const chart = new Chart(canvas.getContext('2d'), {
             type: 'horizontalBar',
             data: {
@@ -108,20 +174,25 @@ $jsdef render_excluded_works_list(works):
                 datasets: [{
                     backgroundColor: 'rgb(255, 99, 132)',
                     borderColor: 'rgb(255, 99, 132)',
+				    borderWidth: 0,
                     data: bars.map(b => b[1].length)
                 }]
             },
             options: {
+                responsive: false,
+                legend: { display: false },
                 scales: {
-                    xAxis: [{
-                        gridLines: { display: false }
-                    }],
-                    yAxis: [{
-                        position: 'top',
-                        ticks: { beginAtZero: true, stepSize: 1 }
-                    }]
+                    xAxes: [{ display: false }],
+                    yAxes: [{ barPercentage: 1, gridLines: { display: false }, stacked: true }],
                 },
-                legend: { display: false }
+                plugins: {
+                    datalabels: {
+                        color: '#FFF',
+                        anchor: 'end',
+                        align: 'left',
+                        offset: 0
+                    }
+                }
             }
         });
 
