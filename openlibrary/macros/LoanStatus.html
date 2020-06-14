@@ -13,10 +13,23 @@ $ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
 $ current_and_available_loans = []
 
-$ lending_st = ocaid and get_groundtruth_availability(ocaid) or {}
+$ availability = page.get('availability', {}).get('status')
+$ lending_st = {}
+$if editions_page and ocaid:
+  $ lending_st = get_groundtruth_availability(ocaid)
 
-$ is_printdisabled = lending_st.get('is_printdisabled', False)
-$ is_lendable = lending_st.get('is_lendable', False)
+$ is_lendable = lending_st.get('is_lendable', False) or availability in ['borrow_available', 'borrow_unavailable']
+$# there could be exception where ocaid insufficient because is_restricted but not printdisabled
+$ is_printdisabled = lending_st.get('is_printdisabled', False) or ocaid
+
+$ is_borrowable = lending_st.get('available_to_borrow') or lending_st.get('available_to_browse') or availability == 'borrow_available' or my_turn_to_borrow
+
+$# @mekarpeles -> @bfalling
+$# problem: because old availability api can't tell the difference between 1h loan and 2wk
+$# and because 1h loans don't have waitlists, old api unable to determine if
+$# borrow_unavailable implies waitlist.
+$# idea: hit lending_st iff availability == borrow_unavailable
+$ is_waitlist = lending_st.get('available_to_waitlist') or availability == 'borrow_unavailable'
 
 $# XXX this is a heuristic; we need access-restricted-item check!
 $ is_restricted = is_printdisabled
@@ -61,16 +74,11 @@ $elif editions_page and ocaid and is_open:
   $:macros.BookSearchInside(ocaid)
 
 $elif is_lendable:
-  $if my_turn_to_borrow or lending_st['available_to_borrow']:
-    $# "BORROW" Button
+  $if is_borrowable:
     $:macros.ReadButton(ocaid, borrow=True, listen=True) 
-  $elif lending_st['available_to_browse']:
-    $# "BROWSE" Button
-    $:macros.ReadButton(ocaid, borrow=True, listen=True, action='browse')
-  $elif lending_st['available_to_waitlist']:
-    $ wlsize = lending_st['users_on_waitlist']
+  $elif is_waitlist:
+    $ wlsize = lending_st.get('users_on_waitlist') or page.get('availability', {}).get('num_waitlist')
     $if waiting_loan:
-      $# "LEAVE-WAITLIST" button
       <p class="waitinglist-message">
         $ spot = ctx.user.get_waiting_loan_for(page)['position']
         $if spot == 1:
@@ -121,4 +129,4 @@ $if ocaid:
   $:macros.daisy(page, protected=is_printdisabled, block_name=block_name)
 
 $if query_param('debug'):
-  $lending_st
+  $lending_st $availability
