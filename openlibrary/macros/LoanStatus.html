@@ -6,6 +6,8 @@ $# * editions_page renders additional data if you're seeing LoanStatus rendered 
 $# * block_name is a BEM block name
 $# * render_preview_floater whether to render the HTML for the preview floater
 
+$ loanstatus_start_time = time()
+
 $ ocaid = page.get('ocaid')
 $ work = page.works and page.works[0]
 $ user_loan = None
@@ -14,9 +16,10 @@ $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and
 $ current_and_available_loans = []
 
 $ availability = page.get('availability', {}).get('status')
+
 $ lending_st = {}
 $if editions_page and ocaid:
-  $ lending_st = get_groundtruth_availability(ocaid)
+  $ lending_st = page.lending_status or get_groundtruth_availability(ocaid)
 
 $ is_lendable = lending_st.get('is_lendable', False) or availability in ['borrow_available', 'borrow_unavailable']
 $# there could be exception where ocaid insufficient because is_restricted but not printdisabled
@@ -129,4 +132,7 @@ $if ocaid:
   $:macros.daisy(page, protected=is_printdisabled, block_name=block_name)
 
 $if query_param('debug'):
+  $ loanstatus_end_time = time() - loanstatus_start_time
+  <p>LoanStatus took $("%.2f" % loanstatus_end_time) seconds</p>
   $lending_st $availability
+
