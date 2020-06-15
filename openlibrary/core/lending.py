@@ -265,13 +265,33 @@ def get_availability(key, ids):
     :param list of str ids:
     :rtype: dict
     """
+    def update_availability_schema_to_v2(v1_resp):
+        collections = v1_resp.get('collection', [])
+        v1_resp['is_restricted'] = v1_resp['status'] != 'open'
+        v1_resp['is_printdisabled'] = 'printdisabled' in collections
+        v1_resp['is_lendable'] = 'inlibrary' in collections
+        v1_resp['is_readable'] = v1_resp['status'] == 'open'
+        # TODO: Make less brittle; maybe add simplelists/copy counts to IA availability
+        # endpoint
+        v1_resp['is_browseable'] = (v1_resp['is_lendable'] and
+                                    v1_resp['status'] == 'error')
+        return v1_resp
+
     url = '%s?%s=%s' % (config_ia_availability_api_v2_url, key, ','.join(ids))
     try:
         content = urllib.request.urlopen(url=url, timeout=config_http_request_timeout).read()
-        return simplejson.loads(content).get('responses', {})
+        items = simplejson.loads(content).get('responses', {})
+        for key in items:
+            items[key] = update_availability_schema_to_v2(items[key])
+        return items
     except Exception as e:  # TODO: Narrow exception scope
         logger.exception("get_availability(%s)" % url)
-        return {'error': 'request_timeout', 'details': str(e)}
+        items = { 'error': 'request_timeout', 'details': str(e) }
+
+        for id in ids:
+            items[id] = update_availability_schema_to_v2({'status': 'error'})
+        return items
+
 
 def get_edition_availability(ol_edition_id):
     return get_availability_of_editions([ol_edition_id])
@@ -320,10 +340,8 @@ def add_availability(items):
     availabilities = get_availability_of_ocaids(ocaids)
     for item in items:
         ocaid = get_ocaid(item)
-        if ocaid and availabilities.get(ocaid):
+        if ocaid:
             item['availability'] = availabilities.get(ocaid)
-        else:
-            item['availability'] = {'status': 'error'}
     return items
 
 @public

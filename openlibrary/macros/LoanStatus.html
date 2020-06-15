@@ -15,28 +15,20 @@ $ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
 $ current_and_available_loans = []
 
-$ availability = page.get('availability', {}).get('status')
+$ availability = page.availability.get('status')
 
 $ lending_st = {}
-$if editions_page and ocaid:
-  $ lending_st = page.lending_status or get_groundtruth_availability(ocaid)
+$if editions_page and page.availability.get('is_browseable', False):
+  $ lending_st = get_groundtruth_availability(ocaid)
 
-$ is_lendable = lending_st.get('is_lendable', False) or availability in ['borrow_available', 'borrow_unavailable']
+$ is_lendable = lending_st.get('is_lendable', False) or page.availability.get('is_lendable', False)
 $# there could be exception where ocaid insufficient because is_restricted but not printdisabled
-$ is_printdisabled = lending_st.get('is_printdisabled', False) or ocaid
-
+$# ^ This will be resolved when Jude adds 'access-restricted-item' check
+$ is_printdisabled = lending_st.get('is_printdisabled', False) or page.availability.get('is_printdisabled', False)
 $ is_borrowable = lending_st.get('available_to_borrow') or lending_st.get('available_to_browse') or availability == 'borrow_available' or my_turn_to_borrow
-
-$# @mekarpeles -> @bfalling
-$# problem: because old availability api can't tell the difference between 1h loan and 2wk
-$# and because 1h loans don't have waitlists, old api unable to determine if
-$# borrow_unavailable implies waitlist.
-$# idea: hit lending_st iff availability == borrow_unavailable
 $ is_waitlist = lending_st.get('available_to_waitlist') or availability == 'borrow_unavailable'
-
-$# XXX this is a heuristic; we need access-restricted-item check!
-$ is_restricted = is_printdisabled
-$ is_open = not is_restricted
+$ is_restricted = page.availability.get('is_restricted', False)
+$ is_open = page.availability.get('is_readable', False)
 
 $if ocaid:
   $ current_and_available_loans = page.get_current_and_available_loans()
