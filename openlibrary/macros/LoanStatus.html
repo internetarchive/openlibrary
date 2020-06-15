@@ -76,7 +76,7 @@ $elif editions_page and ocaid and is_open:
   $:macros.ReadButton(ocaid, listen=True)
   $:macros.BookSearchInside(ocaid)
 
-$elif is_lendable:
+$elif ocaid and is_lendable:
   $if is_borrowable:
     $:macros.ReadButton(ocaid, borrow=True, listen=True) 
   $elif is_waitlist:
@@ -135,4 +135,3 @@ $if query_param('debug'):
   $ loanstatus_end_time = time() - loanstatus_start_time
   <p>LoanStatus took $("%.2f" % loanstatus_end_time) seconds</p>
   $lending_st $availability
-
