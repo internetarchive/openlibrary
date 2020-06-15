@@ -18,7 +18,7 @@ $ current_and_available_loans = []
 $ availability = page.availability.get('status')
 
 $ lending_st = {}
-$if editions_page and page.availability.get('is_browseable', False):
+$if editions_page and (page.availability.get('is_browseable', False) or availability == 'borrow_unavailable'):
   $ lending_st = get_groundtruth_availability(ocaid)
 
 $ is_lendable = lending_st.get('is_lendable', False) or page.availability.get('is_lendable', False)
@@ -26,7 +26,6 @@ $# there could be exception where ocaid insufficient because is_restricted but n
 $# ^ This will be resolved when Jude adds 'access-restricted-item' check
 $ is_printdisabled = lending_st.get('is_printdisabled', False) or page.availability.get('is_printdisabled', False)
 $ is_borrowable = lending_st.get('available_to_borrow') or lending_st.get('available_to_browse') or availability == 'borrow_available' or my_turn_to_borrow
-$ is_waitlist = lending_st.get('available_to_waitlist') or availability == 'borrow_unavailable'
 $ is_restricted = page.availability.get('is_restricted', False)
 $ is_open = page.availability.get('is_readable', False)
 
@@ -70,8 +69,9 @@ $elif editions_page and ocaid and is_open:
 
 $elif ocaid and is_lendable:
   $if is_borrowable:
-    $:macros.ReadButton(ocaid, borrow=True, listen=True) 
-  $elif is_waitlist:
+    $:macros.ReadButton(ocaid, borrow=True, listen=True)
+  $elif lending_st.get('available_to_waitlist', False):
+    $# lending_st is the only API which accurately tells us if a book is waitlistable
     $ wlsize = lending_st.get('users_on_waitlist') or page.get('availability', {}).get('num_waitlist')
     $if waiting_loan:
       <p class="waitinglist-message">
@@ -98,6 +98,12 @@ $elif ocaid and is_lendable:
         <input type="hidden" name="action" value="join-waitinglist"/>
         <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="$_('Join Waitlist')"/>
       </form>
+  $elif availability == 'borrow_unavailable':
+    $# This _used_ to mean that the book was waitlistable, but no longer! Now show this little cop-out button
+    <div class="cta-button-group">
+      <a href="$page.key" class="cta-btn cta-btn--available" title="$_('We were unable to determine the availability of this book! Click to check on Internet Archive.')"
+         data-ol-link-track="CTAClick|CheckAvailability">$_('Check Availability')</a>
+    </div>
   $else:
     <div class="cta-button-group">
       <a href="$work.key" class="cta-btn cta-btn--missing" title="$_('This book is currently checked out, please check back later.')"
