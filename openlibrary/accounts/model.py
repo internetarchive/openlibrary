@@ -477,6 +477,12 @@ class OpenLibraryAccount(Account):
         self.internetarchive_itemname = itemname
         stats.increment('ol.account.xauth.linked')
 
+    def save_s3_keys(self, s3_keys):
+        _ol_account = web.ctx.site.store.get(self._key)
+        _ol_account['s3_keys'] = s3_keys
+        web.ctx.site.store[self._key] = _ol_account
+        self.s3_keys = s3_keys
+
     @classmethod
     def authenticate(cls, email, password, test=False):
         ol_account = cls.get(email=email, test=test)
@@ -620,11 +626,11 @@ class InternetArchiveAccount(web.storage):
             "password": password
         })
         if not response.get('success'):
-            reason = response.get('values', {}).get('reason')
-            if reason == 'account_not_verified':
-                reason = 'ia_account_not_verified'
-            return reason
-        return "ok"
+            reason = response['values'].get('reason')
+            if reason and reason == 'account_not_verified':
+                response['values']['reason'] = 'ia_account_not_verified'
+        return response
+
 
 def audit_accounts(email, password, require_link=False,
                    s3_access_key=None, s3_secret_key=None, test=False):
@@ -650,21 +656,21 @@ def audit_accounts(email, password, require_link=False,
         r = InternetArchiveAccount.s3auth(s3_access_key, s3_secret_key)
         if not r.get('authorized', False):
             return {'error': 'invalid_s3keys'}
-        ia_login = "ok"
+        ia_login = {'success': True}
         email = r['username']
     else:
         if not valid_email(email):
             return {'error': 'invalid_email'}
         ia_login = InternetArchiveAccount.authenticate(email, password)
 
-    if any(ia_login == err for err
+    if any(ia_login['values'].get('reason') == err for err
             in ['account_blocked', 'account_locked']):
         return {'error': 'account_locked'}
 
-    if ia_login != "ok":
+    if not ia_login.get('success'):
         # Prioritize returning other errors over `account_not_found`
-        if ia_login != "account_not_found":
-            return {'error': ia_login}
+        if ia_login['values'].get('reason') != "account_not_found":
+            return {'error': ia_login['values'].get('reason')}
         return {'error': 'account_not_found'}
 
     else:
@@ -735,6 +741,9 @@ def audit_accounts(email, password, require_link=False,
         ol_account = OpenLibraryAccount.get(link=ia_account.itemname, test=test)
         if ol_account and not ol_account.itemname:
             return {'error': 'accounts_not_connected'}
+
+    s3_keys = ia_login['values']
+    ol_account.save_s3_keys(s3_keys)
 
     # When a user logs in with OL credentials, the
     # web.ctx.site.login() is called with their OL user
