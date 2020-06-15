@@ -33,7 +33,7 @@ want = [
     '130', '240', # work title
     '245',  # title
     '250',  # edition
-    '260',  # publisher
+    '260', '264',  # publisher
     '300',  # pagination
     '440', '490', '830'  # series
     ] + [str(i) for i in range(500, 588)] + [  # notes + toc + description
@@ -256,7 +256,7 @@ def read_pub_date(rec):
     return remove_trailing_number_dot(found[0]) if found else None
 
 def read_publisher(rec):
-    fields = rec.get_fields('260')
+    fields = rec.get_fields('260') or rec.get_fields('264')
     if not fields:
         return
     publisher = []
