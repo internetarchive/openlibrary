@@ -81,7 +81,7 @@ class checkout_with_ocaid(delegate.page):
         """Redirect shim: Translate an IA identifier into an OL identifier and
         then redirects user to the canonical OL borrow page.
         """
-        i = web.input(action='borrow')
+        i = web.input()
         params = urllib.parse.urlencode(i)
         ia_edition = web.ctx.site.get('/books/ia:%s' % ocaid)
         edition = web.ctx.site.get(ia_edition.location)
@@ -117,10 +117,6 @@ class borrow(delegate.page):
         if not edition:
             raise web.notfound()
 
-        # Make a call to availability v2 update the subjects according
-        # to result if `open`, redirect to bookreader
-        response = lending.get_availability_of_ocaid(edition.ocaid)
-        availability = response[edition.ocaid] if response else {}
         archive_url = get_bookreader_stream_url(edition.ocaid) + '?ref=ol'
         if i._autoReadAloud is not None:
             archive_url += '&_autoReadAloud=show'
@@ -129,6 +125,10 @@ class borrow(delegate.page):
             _q = urllib.parse.quote(i.q, safe='')
             archive_url += "#page/-/mode/2up/search/%s" % _q
 
+        # Make a call to availability v2 update the subjects according
+        # to result if `open`, redirect to bookreader
+        response = lending.get_availability_of_ocaid(edition.ocaid)
+        availability = response[edition.ocaid] if response else {}
         if availability and availability['status'] == 'open':
             raise web.seeother(archive_url)
 
@@ -167,16 +167,16 @@ class borrow(delegate.page):
                 raise web.seeother(error_redirect)
 
             s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
-            user_meets_borrow_criteria = user_can_borrow_edition(
+            borrow_access = user_can_borrow_edition(
                 user, edition, resource_type, action=action)
 
-            if not (s3_keys or user_meets_borrow_criteria):
+            if not (s3_keys or borrow_access):
                 raise web.seeother(error_redirect)
 
-            if action == 'browse':
-                loan_resp = lending.initiate_s3_loan(edition.ocaid, s3_keys, action=action)
+            if borrow_access == 'browse':
+                loan_resp = lending.initiate_s3_loan(edition.ocaid, s3_keys, action='browse')
                 action = 'read'
-            elif action == 'borrow':
+            elif borrow_access == 'borrow':
                 # This must be called before the loan is initiated,
                 # otherwise the user's waitlist status will be cleared
                 # upon loan creation
@@ -807,12 +807,12 @@ def resource_uses_bss(resource_id):
     return False
 
 def user_can_borrow_edition(user, edition, resource_type, action='borrow'):
-    """Returns True if the book is eligible for lending and available, and
-    if the user is pemitted to borrow this edition given their current
-    number of loans and their position on the waiting list (if
-    applicable)
+    """Returns the type of borrow for which patron is eligible, favoring
+    "browse" over "borrow" where available, otherwise return False if
+    patron is not eligible.
+
     """
-    lending_st = lending.get_groundtruth_availability(edition.ocaid)
+    lending_st = lending.get_groundtruth_availability(edition.ocaid, {})
 
     book_is_lendable = lending_st.get('is_lendable', False)
     book_is_available = lending_st.get('available_to_%s' % action, False)
@@ -820,10 +820,11 @@ def user_can_borrow_edition(user, edition, resource_type, action='borrow'):
     user_is_below_loan_limit = user.get_loan_count() < user_max_loans
 
     if book_is_lendable and user_is_below_loan_limit:
-        if book_is_available:
-            return True
-        if book_is_waitlistable and is_users_turn_to_borrow(user, edition):
-            return True
+        if lending_st.get('available_to_browse'):
+            return 'browse'
+        if lending_st.get('available_to_borrow') or (
+            book_is_waitlistable and is_users_turn_to_borrow(user, edition)):
+            return 'borrow'
     return False
 
 

@@ -64,6 +64,11 @@ a.cta-btn {
     border: 2px solid @link-blue;
     background: lighten(desaturate(@link-blue, 56%), 67%);
   }
+  &--vanilla {
+    border: 2px solid @light-mid-grey;
+    background: @white;
+    color: black;
+  }
 
   &--sponsor:link, &--sponsor:visited {
       color: @link-blue;
@@ -86,6 +91,11 @@ a.cta-btn {
 // Top margin to button coming after another button
 .cta-btn + form input.cta-btn, .cta-btn + .cta-btn {
   margin-top: 5px;
+}
+
+.cta-btn--small {
+  font-size: 12px;
+  padding: 5px 10px;
 }
 
 .waitinglist-message {

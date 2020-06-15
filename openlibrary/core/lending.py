@@ -8,6 +8,7 @@ import time
 import logging
 import uuid
 import hmac
+import requests
 
 from infogami.utils.view import public
 from infogami.utils import delegate
@@ -207,15 +208,13 @@ def get_random_available_ia_edition():
         return None
 
 @public
-def get_groundtruth_availability(ocaid):
+def get_groundtruth_availability(ocaid, s3_keys=None):
     """temporary stopgap to get ground-truth availability of books
     including 1-hour borrows"""
-    # XXX Use s3 keys?
-    import requests
     params = '?action=availability&identifier=' + ocaid
     url = S3_LOAN_URL % config_bookreader_host
-    r = requests.get(url + params)
-    return r.json().get('lending_status', {})
+    r = requests.post(url + params, data=s3_keys)
+    return r.json().get('lending_status')
 
 
 def get_available(limit=None, page=1, subject=None, query=None,
@@ -239,6 +238,8 @@ def get_available(limit=None, page=1, subject=None, query=None,
         )
         logger.error(fmt.format(limit, page, subject, query, work_id, _type, sorts))
     try:
+        print('=' * 10)
+        print(url)
         request = urllib.request.Request(url=url)
 
         # Internet Archive Elastic Search (which powers some of our
@@ -355,7 +356,6 @@ def initiate_s3_loan(ocaid, s3_keys, action='browse'):
     :param dict s3_keys: {'access': 'xxx', 'secret': 'xxx'}
     :param str action: 'browse' or 'borrow'
     """
-    import requests
     params = '?action=%s_book&identifier=%s' % (action, ocaid)
     url = S3_LOAN_URL % config_bookreader_host
     return requests.post(url + params, data=s3_keys)

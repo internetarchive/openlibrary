@@ -107,15 +107,15 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       <form action="/admin/staffpicks" method="POST">
         <input type="hidden" value="add" name="action"/>
         <input type="hidden" name="work_id" value="$(work.key.split('/')[2])"/>
-        <input type="submit" value="Add to Staff Picks"/>
+        <input class="cta-btn cta-btn--vanilla cta-btn--small" type="submit" value="Add to Staff Picks"/>
       </form>
     $if ocaid:
       <form method="GET" action="/admin/sync">
         <input type="hidden" name="edition_id" value="$(page.key.split('/')[2])"/>
-        <input type="submit" value="Sync Archive.org ID"/>
+        <input class="cta-btn cta-btn--vanilla cta-btn--small" type="submit" value="Sync Archive.org ID"/>
       </form>
       <form method="GET" action="https://archive.org/details/$ocaid">
-        <input type="submit" value="View Book on Archive.org"/>
+        <input class="cta-btn cta-btn--vanilla cta-btn--small" type="submit" value="View Book on Archive.org"/>
       </form>
     $if not work:
       <strong>Orphaned Edition!</strong>

@@ -1,15 +1,15 @@
-$def with(ocaid, borrow=False, listen=False, loan=None, action='borrow')
+$def with(ocaid, borrow=False, listen=False, loan=None)
 
 $if (borrow and not loan):
+  $ action = "borrow"
   $ label = _("Borrow")
-  $ duration = _("2 weeks") if action == 'borrow' else _("1 hour")
-  $ title = _("Borrow ebook from Internet Archive for %s", duration)
+  $ title = _("Borrow ebook from Internet Archive")
 $else:
   $ action = "read"
   $ label = _("Read")
   $ title = _("Read ebook from Internet Archive")
 
-$ stream_url = "/borrow/ia/%s?ref=ol&action=%s" % (ocaid, action)
+$ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
 
 <div class="cta-button-group">
   <a href="$(stream_url)" title="$title" id="$(action)_ebook"
