@@ -238,8 +238,6 @@ def get_available(limit=None, page=1, subject=None, query=None,
         )
         logger.error(fmt.format(limit, page, subject, query, work_id, _type, sorts))
     try:
-        print('=' * 10)
-        print(url)
         request = urllib.request.Request(url=url)
 
         # Internet Archive Elastic Search (which powers some of our
