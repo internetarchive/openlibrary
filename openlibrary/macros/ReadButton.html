@@ -1,9 +1,9 @@
-$def with(ocaid, borrow=False, listen=False, loan=None)
+$def with(ocaid, borrow=False, listen=False, loan=None, label='')
 
 $if (borrow and not loan):
   $ action = "borrow"
-  $ label = _("Borrow")
-  $ title = _("Borrow ebook from Internet Archive")
+  $ label = _(label or "Borrow")
+  $ title = _(label + " ebook from Internet Archive")
 $else:
   $ action = "read"
   $ label = _("Read")
