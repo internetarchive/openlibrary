@@ -101,7 +101,7 @@ $elif ocaid and is_lendable:
   $elif availability == 'borrow_unavailable':
     $# This _used_ to mean that the book was waitlistable, but no longer! Now show this little cop-out button
     <div class="cta-button-group">
-      <a href="$page.key" class="cta-btn cta-btn--available" title="$_('We were unable to determine the availability of this book! Click to check on Internet Archive.')"
+      <a href="/ia/$(ocaid)" class="cta-btn cta-btn--available" title="$_('We were unable to determine the availability of this book! Click to check on Internet Archive.')"
          data-ol-link-track="CTAClick|CheckAvailability">$_('Check Availability')</a>
     </div>
   $else:
