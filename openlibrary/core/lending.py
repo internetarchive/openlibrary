@@ -217,6 +217,18 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
     return r.json().get('lending_status')
 
 
+def initiate_s3_loan(ocaid, s3_keys, action='browse'):
+    """Uses patrons s3 credentials to initiate a browse or borrow loan
+    on Archive.org.
+
+    :param dict s3_keys: {'access': 'xxx', 'secret': 'xxx'}
+    :param str action: 'browse' or 'borrow'
+    """
+    params = '?action=%s_book&identifier=%s' % (action, ocaid)
+    url = S3_LOAN_URL % config_bookreader_host
+    return requests.post(url + params, data=s3_keys)
+
+
 def get_available(limit=None, page=1, subject=None, query=None,
                   work_id=None, _type=None, sorts=None, url=None):
     """Experimental. Retrieves a list of available editions from
@@ -363,19 +375,6 @@ def get_work_availability(ol_work_id):
 
 def get_availability_of_works(ol_work_ids):
     return get_availability('openlibrary_work', ol_work_ids)
-
-
-def initiate_s3_loan(ocaid, s3_keys, action='browse'):
-    """Uses patrons s3 credentials to initiate a browse or borrow loan
-    on Archive.org.
-
-    :param dict s3_keys: {'access': 'xxx', 'secret': 'xxx'}
-    :param str action: 'browse' or 'borrow'
-    """
-    params = '?action=%s_book&identifier=%s' % (action, ocaid)
-    url = S3_LOAN_URL % config_bookreader_host
-    return requests.post(url + params, data=s3_keys)
-
 
 def is_loaned_out(identifier):
     """Returns True if the given identifier is loaned out.
