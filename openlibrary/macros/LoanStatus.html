@@ -71,7 +71,7 @@ $elif ocaid and is_lendable:
   $if is_borrowable:
     $ label = None
     $if availability == 'borrow_unavailable' or lending_st and not lending_st.get('available_to_borrow'):
-      $ label = '1 Hour Borrow'
+      $ label = _('1 Hour Borrow')
     $:macros.ReadButton(ocaid, borrow=True, listen=True, label=label)
   $elif lending_st.get('available_to_waitlist', False):
     $# lending_st is the only API which accurately tells us if a book is waitlistable
