@@ -175,6 +175,8 @@ class borrow(delegate.page):
 
             if borrow_access == 'browse':
                 loan_resp = lending.initiate_s3_loan(edition.ocaid, s3_keys, action='browse')
+                stats.increment('ol.loans.bookreader')
+                stats.increment('ol.loans.browse')
                 action = 'read'
             elif borrow_access == 'borrow':
                 # This must be called before the loan is initiated,
@@ -204,6 +206,7 @@ class borrow(delegate.page):
                             # ol.loans.bookreader accordingly via
                             # lending.create_loan.
                             stats.increment('ol.loans.bookreader')
+                            stats.increment('ol.loans.borrow')
 
                         raise web.seeother(make_bookreader_auth_link(
                             loan.get_key(), edition.ocaid,
