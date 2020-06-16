@@ -99,16 +99,16 @@ $if og_title:
               $if key == 'loans':
                 $ edition = get_document(item['book'])
                 $ work = get_document(edition.works[0]) if (edition.get('type', {}).get('key') == '/type/work' and edition.works and edition.works[0]) else None
-                $ decorations = macros.ManageLoansButtons(item, edition) if urlbase.startswith('/account') else ''
+                $ decorations = owners_page and macros.ManageLoansButtons(item, edition) or ''
                 $:macros.SearchResultsWork(work or edition, decorations=decorations, cta=False)
               $elif key == 'waitlists':
                 $ edition = item
-                $ decorations = macros.ManageWaitlistButton(edition) if urlbase.startswith('/account') else ''
+                $ decorations = owners_page and macros.ManageWaitlistButton(edition) or ''
                 $:macros.SearchResultsWork(edition, decorations=decorations, cta=False)
               $else:
                 $ work = item
-                $ decorations = macros.ReadingLogButton(work, read_status=bookshelf_id) if bookshelf_id and urlbase.startswith('/account') else None
-                $:macros.SearchResultsWork(work, decorations=decorations)
+                $ decorations = (bookshelf_id and owners_page) and macros.ReadingLogButton(work, read_status=bookshelf_id)
+                $:macros.SearchResultsWork(work, decorations=decorations, cta=False)
           $else:
             <li>$_('No books are on this shelf')</li>
         </ul>
