@@ -299,17 +299,32 @@ class Edition(Thing):
     @property
     @cache.method_memoize
     def availability(self):
+        collections = self.ia_metadata.get('collection', [])
         statuses = {
             'available': 'borrow_available',
             'unavailable': 'borrow_unavailable',
             'private': 'private',
-            'error': 'error'
+            'error': 'error',
         }
         status = self.ia_metadata.get('loans__status__status', 'error').lower()
+        is_restricted = self.ia_metadata.get('access-restricted-item') == 'true'
+        is_printdisabled = 'printdisabled' in collections
+        is_lendable = 'inlibrary' in collections
+        is_readable = not is_printdisabled and not is_restricted
+        # TODO: Make less brittle; maybe add simplelists/copy counts to IA availability
+        # endpoint
+        is_browseable = is_lendable and status == 'error'
+
         return {
             'status': statuses[status],
             'num_waitlist': int(self.ia_metadata.get('loans__status__num_waitlist', 0)),
-            'num_loans': int(self.ia_metadata.get('loans__status__num_loans', 0))
+            'num_loans': int(self.ia_metadata.get('loans__status__num_loans', 0)),
+            'identifier': self.ia_metadata.get('identifier'),
+            'is_restricted': is_restricted,
+            'is_printdisabled': is_printdisabled,
+            'is_lendable': is_lendable,
+            'is_readable': is_readable,
+            'is_browseable': is_browseable,
         }
 
     @property

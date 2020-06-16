@@ -1,4 +1,4 @@
-$def with (page, user, editions_page=False, block_name='', render_preview_floater=True)
+$def with (page, user, editions_page=False, block_name='', render_preview_floater=True, work_key=None)
 $# Takes following parameters:
 $# * page
 $# * user
@@ -6,16 +6,30 @@ $# * editions_page renders additional data if you're seeing LoanStatus rendered 
 $# * block_name is a BEM block name
 $# * render_preview_floater whether to render the HTML for the preview floater
 
-$ ocaid = page.get('ocaid')
-$ work = page.works and page.works[0]
-$ meta_fields = page.get_ia_meta_fields() or {}
+$ loanstatus_start_time = time()
+
+$ ocaid = page.get('ocaid') or page.availability.get('identifier')
+$ work_key = work_key or (page.works and page.works[0].key)
 $ user_loan = None
 $ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
-$ availability_status = page.availability.get('status', 'error')
 $ current_and_available_loans = []
 
-$if ocaid:
+$ availability = page.availability.get('status')
+
+$ lending_st = {}
+$if editions_page and (page.availability.get('is_browseable', False) or availability == 'borrow_unavailable'):
+  $ lending_st = get_cached_groundtruth_availability(ocaid)
+
+$ is_lendable = lending_st.get('is_lendable', False) or page.availability.get('is_lendable', False)
+$# there could be exception where ocaid insufficient because is_restricted but not printdisabled
+$# ^ This will be resolved when Jude adds 'access-restricted-item' check
+$ is_printdisabled = lending_st.get('is_printdisabled', False) or page.availability.get('is_printdisabled', False)
+$ is_borrowable = lending_st.get('available_to_borrow') or lending_st.get('available_to_browse') or availability == 'borrow_available' or my_turn_to_borrow
+$ is_restricted = page.availability.get('is_restricted', False)
+$ is_readable = page.availability.get('is_readable', False)
+
+$if ocaid and page.key.startswith('/book'):
   $ current_and_available_loans = page.get_current_and_available_loans()
   $ user_loan = None
   $if ctx.user:
@@ -32,9 +46,7 @@ $if user:
             $ user_loan = current_loan
             $ break
 
-$ borrow_link = page.url() + '/borrow'
-
-$if user_loan:
+$if page.key.startswith('/book') and user_loan:
   $:macros.ReadButton(ocaid, loan=user_loan, listen=True)
   $ return_url = page.url().rsplit('/', 1)[0] + '/do_return/borrow'
   <form action="$return_url" method="post" class="waitinglist-form return-book">
@@ -42,45 +54,63 @@ $if user_loan:
     <input type="submit" value="$_('Return eBook')" class="cta-btn cta-btn--available" id="return_ebook"/>
   </form>
 
-$elif editions_page and ocaid and not page.ia_metadata:
+$elif not ocaid or (is_restricted and not is_lendable):
   <div class="cta-button-group">
-    <a href="$work.key" class="cta-btn cta-btn--missing" data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
+    <a href="$work_key" class="cta-btn cta-btn--missing"
+       data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
   </div>
 
-$elif ocaid and not page.is_access_restricted() and editions_page:
+
+$elif ocaid and is_readable:
   $:macros.ReadButton(ocaid, listen=True)
-  $:macros.BookSearchInside(ocaid)
+  $if editions_page:
+    $:macros.BookSearchInside(ocaid)
 
-$elif (availability_status == 'borrow_available') or my_turn_to_borrow:
-  $:macros.ReadButton(ocaid, borrow=True, listen=True)
-
-$elif (availability_status == 'borrow_unavailable'):
-  $ wlsize = page.availability.get('num_waitlist', 0)
-  $if waiting_loan:
-    <p class="waitinglist-message">
-      $ spot = ctx.user.get_waiting_loan_for(page)['position']
-      $if spot == 1:
+$elif ocaid and is_lendable:
+  $ borrow_link = '/ia/%s/borrow' % ocaid
+  $if is_borrowable:
+    $:macros.ReadButton(ocaid, borrow=True, listen=True)
+  $elif lending_st.get('available_to_waitlist', False):
+    $# lending_st is the only API which accurately tells us if a book is waitlistable
+    $ wlsize = lending_st.get('users_on_waitlist') or page.get('availability', {}).get('num_waitlist')
+    $if waiting_loan:
+      <p class="waitinglist-message">
+        $ spot = ctx.user.get_waiting_loan_for(page)['position']
+        $if spot == 1:
           $:_('You are <strong>next</strong> on the waiting list')
-      $else:
+        $else:
           $:_('You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list.', spot=spot, wlsize=wlsize)
-    </p>
-    <form method="POST" action="$borrow_link" class="leave-waitlist waitinglist-form">
-      <input type="hidden" name="action" value="leave-waitinglist"/>
-      <input type="submit" class="cta-btn" id="unwaitlist_ebook" value="$_('Leave waiting list')"/>
-    </form>
+      </p>
+      <form method="POST" action="$borrow_link" class="leave-waitlist waitinglist-form">
+        <input type="hidden" name="action" value="leave-waitinglist"/>
+        <input type="submit" class="cta-btn" id="unwaitlist_ebook"
+               value="$_('Leave waiting list')"/>
+      </form>
+    $else:
+      $# "JOIN-WAITLIST" button
+      <p class="waitinglist-message">
+        $if wlsize:
+          $_("Readers waiting for this title: %(count)d", count=wlsize)
+        $else:
+          $_("You'll be next in line.")
+      </p>
+      <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
+        <input type="hidden" name="action" value="join-waitinglist"/>
+        <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="$_('Join Waitlist')"/>
+      </form>
+  $elif availability == 'borrow_unavailable':
+    $# This _used_ to mean that the book was waitlistable, but no longer! Now show this little cop-out button
+    <div class="cta-button-group">
+      <a href="/ia/$(ocaid)" class="cta-btn cta-btn--available" title="$_('We were unable to determine the availability of this book! Click to check on Internet Archive.')"
+         data-ol-link-track="CTAClick|CheckAvailability">$_('Check Availability')</a>
+    </div>
   $else:
-    <p class="waitinglist-message">
-      $if wlsize:
-        $_("Readers waiting for this title: %(count)d", count=wlsize)
-      $else:
-        $_("You'll be next in line.")
-    </p>
-    <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
-      <input type="hidden" name="action" value="join-waitinglist"/>
-      <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="$_('Join Waitlist')"/>
-    </form>
+    <div class="cta-button-group">
+      <a href="$work_key" class="cta-btn cta-btn--missing" title="$_('This book is currently checked out, please check back later.')"
+         data-ol-link-track="CTAClick|CheckedOut">$_('Checked Out')</a>
+    </div>
 
-$elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
+$elif page.key.startswith('/book') and not ocaid or editions_page and not is_lendable:
   $ sponsorship = qualifies_for_sponsorship(page)
   $if sponsorship.get('is_eligible'):
     $ isbn = (page.isbn_13 and page.isbn_13[0] or page.isbn_10 and page.isbn_10[0])
@@ -92,10 +122,14 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
       <a href="/sponsorship" target="_blank">$_('Learn More')</a>
     </p>
   $else:
-    <a href="$work.key" class="cta-btn cta-btn--missing" data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
+    <a href="$work_key" class="cta-btn cta-btn--missing" data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
 
-$if ocaid and page.is_access_restricted() and editions_page:
-  $:macros.BookPreview(ocaid, render_preview_floater)
+$if ocaid:
+  $if editions_page and is_printdisabled:
+    $:macros.BookPreview(ocaid, render_preview_floater)
+  $:macros.daisy(page, url='/ia/%s/daisy' % ocaid, protected=is_printdisabled, block_name=block_name)
 
-$if ocaid and page.is_access_restricted():
-  $:macros.daisy(page, protected=page.is_access_restricted(), block_name=block_name)
+$if query_param('debug'):
+  $ loanstatus_end_time = time() - loanstatus_start_time
+  <p>LoanStatus took $("%.2f" % loanstatus_end_time) seconds</p>
+  $lending_st $page.availability

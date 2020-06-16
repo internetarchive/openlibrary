@@ -8,6 +8,7 @@ import time
 import logging
 import uuid
 import hmac
+import requests
 
 from infogami.utils.view import public
 from infogami.utils import delegate
@@ -22,6 +23,8 @@ from . import msgbroker
 from . import helpers as h
 
 logger = logging.getLogger(__name__)
+
+S3_LOAN_URL = 'https://%s/services/loans/beta/loan/'
 
 # When we generate a loan offer (.acsm) for a user we assume that the loan has occurred.
 # Once the loan fulfillment inside Digital Editions the book status server will know
@@ -204,6 +207,33 @@ def get_random_available_ia_edition():
         logger.exception("get_random_available_ia_edition(%s)" % url)
         return None
 
+@cache.memoize(engine="memcache", expires=5*dateutil.MINUTE_SECS)
+@public
+def get_cached_groundtruth_availability(ocaid):
+    return get_groundtruth_availability(ocaid)
+
+
+def get_groundtruth_availability(ocaid, s3_keys=None):
+    """temporary stopgap to get ground-truth availability of books
+    including 1-hour borrows"""
+    params = '?action=availability&identifier=' + ocaid
+    url = S3_LOAN_URL % config_bookreader_host
+    r = requests.post(url + params, data=s3_keys)
+    return r.json().get('lending_status')
+
+
+def initiate_s3_loan(ocaid, s3_keys, action='browse'):
+    """Uses patrons s3 credentials to initiate a browse or borrow loan
+    on Archive.org.
+
+    :param dict s3_keys: {'access': 'xxx', 'secret': 'xxx'}
+    :param str action: 'browse' or 'borrow'
+    """
+    params = '?action=%s_book&identifier=%s' % (action, ocaid)
+    url = S3_LOAN_URL % config_bookreader_host
+    return requests.post(url + params, data=s3_keys)
+
+
 def get_available(limit=None, page=1, subject=None, query=None,
                   work_id=None, _type=None, sorts=None, url=None):
     """Experimental. Retrieves a list of available editions from
@@ -252,13 +282,35 @@ def get_availability(key, ids):
     :param list of str ids:
     :rtype: dict
     """
+    def update_availability_schema_to_v2(v1_resp, ocaid):
+        collections = v1_resp.get('collection', [])
+        v1_resp['identifier'] = ocaid
+        v1_resp['is_restricted'] = v1_resp['status'] != 'open'
+        v1_resp['is_printdisabled'] = 'printdisabled' in collections
+        v1_resp['is_lendable'] = 'inlibrary' in collections
+        v1_resp['is_readable'] = v1_resp['status'] == 'open'
+        # TODO: Make less brittle; maybe add simplelists/copy counts to IA availability
+        # endpoint
+        v1_resp['is_browseable'] = (v1_resp['is_lendable'] and
+                                    v1_resp['status'] == 'error')
+        return v1_resp
+
     url = '%s?%s=%s' % (config_ia_availability_api_v2_url, key, ','.join(ids))
     try:
         content = urllib.request.urlopen(url=url, timeout=config_http_request_timeout).read()
-        return simplejson.loads(content).get('responses', {})
+        items = simplejson.loads(content).get('responses', {})
+        for ocaid in items:
+            items[ocaid] = update_availability_schema_to_v2(items[ocaid], ocaid)
+        return items
     except Exception as e:  # TODO: Narrow exception scope
         logger.exception("get_availability(%s)" % url)
-        return {'error': 'request_timeout', 'details': str(e)}
+        items = { 'error': 'request_timeout', 'details': str(e) }
+
+        for ocaid in ids:
+            items[ocaid] = update_availability_schema_to_v2(
+                {'status': 'error'}, ocaid)
+        return items
+
 
 def get_edition_availability(ol_edition_id):
     return get_availability_of_editions([ol_edition_id])
@@ -307,10 +359,8 @@ def add_availability(items):
     availabilities = get_availability_of_ocaids(ocaids)
     for item in items:
         ocaid = get_ocaid(item)
-        if ocaid and availabilities.get(ocaid):
+        if ocaid:
             item['availability'] = availabilities.get(ocaid)
-        else:
-            item['availability'] = {'status': 'error'}
     return items
 
 @public

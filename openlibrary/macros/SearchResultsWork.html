@@ -48,13 +48,6 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
   </span>
 
   <div class="searchResultItemCTA">
-      $if not doc.public_scan and 'printdisabled' in doc.collections:
-          <a class="cta-btn print-disabled-only hidden" href="//archive.org/download/$(doc.ia[0])/$(doc.ia[0])_daisy.zip" title="Protected DAISY">
-            <span class="actions">
-              <span class="image daisy"></span>
-            </span>
-            <span class="label">$_('Download DAISY')</span>
-          </a>
       $if decorations:
         $# should show reading log status widget if there is one in decorations, or read, or return, or leave waitlist
         <div class="decorations">
@@ -62,8 +55,8 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
         </div>
       $if cta:
         <div class="searchResultItemCTA-lending">
-          $if availability or doc.get('availability'):
-            $:macros.AvailabilityButton(doc, doc.get('availability') or availability, user)
+          $ doc['availability'] = doc.get('availability', {})
+          $:macros.LoanStatus(doc, user, editions_page=False, work_key=doc.key)
         </div>
   </div>
 </li>
