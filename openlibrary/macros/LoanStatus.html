@@ -98,7 +98,7 @@ $elif ocaid and is_lendable:
         <input type="hidden" name="action" value="join-waitinglist"/>
         <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="$_('Join Waitlist')"/>
       </form>
-  $elif availability == 'borrow_unavailable':
+  $elif availability == 'borrow_unavailable' and not lending_st:
     $# This _used_ to mean that the book was waitlistable, but no longer! Now show this little cop-out button
     <div class="cta-button-group">
       <a href="/ia/$(ocaid)" class="cta-btn cta-btn--available" title="$_('We were unable to determine the availability of this book! Click to check on Internet Archive.')"
