@@ -282,8 +282,9 @@ def get_availability(key, ids):
     :param list of str ids:
     :rtype: dict
     """
-    def update_availability_schema_to_v2(v1_resp):
+    def update_availability_schema_to_v2(v1_resp, ocaid):
         collections = v1_resp.get('collection', [])
+        v1_resp['identifier'] = ocaid
         v1_resp['is_restricted'] = v1_resp['status'] != 'open'
         v1_resp['is_printdisabled'] = 'printdisabled' in collections
         v1_resp['is_lendable'] = 'inlibrary' in collections
@@ -298,15 +299,16 @@ def get_availability(key, ids):
     try:
         content = urllib.request.urlopen(url=url, timeout=config_http_request_timeout).read()
         items = simplejson.loads(content).get('responses', {})
-        for key in items:
-            items[key] = update_availability_schema_to_v2(items[key])
+        for ocaid in items:
+            items[ocaid] = update_availability_schema_to_v2(items[ocaid], ocaid)
         return items
     except Exception as e:  # TODO: Narrow exception scope
         logger.exception("get_availability(%s)" % url)
         items = { 'error': 'request_timeout', 'details': str(e) }
 
-        for id in ids:
-            items[id] = update_availability_schema_to_v2({'status': 'error'})
+        for ocaid in ids:
+            items[ocaid] = update_availability_schema_to_v2(
+                {'status': 'error'}, ocaid)
         return items
 
 

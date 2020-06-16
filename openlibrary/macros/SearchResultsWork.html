@@ -55,6 +55,7 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
         </div>
       $if cta:
         <div class="searchResultItemCTA-lending">
+          $ doc['availability'] = doc.get('availability', {})
           $:macros.LoanStatus(doc, user, editions_page=False, work_key=doc.key)
         </div>
   </div>

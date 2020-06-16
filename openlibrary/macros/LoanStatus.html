@@ -27,7 +27,7 @@ $# ^ This will be resolved when Jude adds 'access-restricted-item' check
 $ is_printdisabled = lending_st.get('is_printdisabled', False) or page.availability.get('is_printdisabled', False)
 $ is_borrowable = lending_st.get('available_to_borrow') or lending_st.get('available_to_browse') or availability == 'borrow_available' or my_turn_to_borrow
 $ is_restricted = page.availability.get('is_restricted', False)
-$ is_open = page.availability.get('is_readable', False)
+$ is_readable = page.availability.get('is_readable', False)
 
 $if ocaid and page.key.startswith('/book'):
   $ current_and_available_loans = page.get_current_and_available_loans()
@@ -54,14 +54,14 @@ $if page.key.startswith('/book') and user_loan:
     <input type="submit" value="$_('Return eBook')" class="cta-btn cta-btn--available" id="return_ebook"/>
   </form>
 
-$elif editions_page and ocaid and is_restricted and not is_lendable:
+$elif not ocaid or (is_restricted and not is_lendable):
   <div class="cta-button-group">
     <a href="$work_key" class="cta-btn cta-btn--missing"
        data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
   </div>
 
 
-$elif ocaid and is_open:
+$elif ocaid and is_readable:
   $:macros.ReadButton(ocaid, listen=True)
   $if editions_page:
     $:macros.BookSearchInside(ocaid)
