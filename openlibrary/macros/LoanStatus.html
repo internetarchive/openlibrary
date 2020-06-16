@@ -1,4 +1,4 @@
-$def with (page, user, editions_page=False, block_name='', render_preview_floater=True)
+$def with (page, user, editions_page=False, block_name='', render_preview_floater=True, work_key=None)
 $# Takes following parameters:
 $# * page
 $# * user
@@ -8,8 +8,8 @@ $# * render_preview_floater whether to render the HTML for the preview floater
 
 $ loanstatus_start_time = time()
 
-$ ocaid = page.get('ocaid')
-$ work = page.works and page.works[0]
+$ ocaid = page.get('ocaid') or page.availability.get('identifier')
+$ work_key = work_key or (page.works and page.works[0].key)
 $ user_loan = None
 $ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
@@ -29,7 +29,7 @@ $ is_borrowable = lending_st.get('available_to_borrow') or lending_st.get('avail
 $ is_restricted = page.availability.get('is_restricted', False)
 $ is_open = page.availability.get('is_readable', False)
 
-$if ocaid:
+$if ocaid and page.key.startswith('/book'):
   $ current_and_available_loans = page.get_current_and_available_loans()
   $ user_loan = None
   $if ctx.user:
@@ -46,9 +46,7 @@ $if user:
             $ user_loan = current_loan
             $ break
 
-$ borrow_link = page.url() + '/borrow'
-
-$if user_loan:
+$if page.key.startswith('/book') and user_loan:
   $:macros.ReadButton(ocaid, loan=user_loan, listen=True)
   $ return_url = page.url().rsplit('/', 1)[0] + '/do_return/borrow'
   <form action="$return_url" method="post" class="waitinglist-form return-book">
@@ -58,16 +56,18 @@ $if user_loan:
 
 $elif editions_page and ocaid and is_restricted and not is_lendable:
   <div class="cta-button-group">
-    <a href="$work.key" class="cta-btn cta-btn--missing"
+    <a href="$work_key" class="cta-btn cta-btn--missing"
        data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
   </div>
 
 
-$elif editions_page and ocaid and is_open:
+$elif ocaid and is_open:
   $:macros.ReadButton(ocaid, listen=True)
-  $:macros.BookSearchInside(ocaid)
+  $if editions_page:
+    $:macros.BookSearchInside(ocaid)
 
 $elif ocaid and is_lendable:
+  $ borrow_link = '/ia/%s/borrow' % ocaid
   $if is_borrowable:
     $:macros.ReadButton(ocaid, borrow=True, listen=True)
   $elif lending_st.get('available_to_waitlist', False):
@@ -106,11 +106,11 @@ $elif ocaid and is_lendable:
     </div>
   $else:
     <div class="cta-button-group">
-      <a href="$work.key" class="cta-btn cta-btn--missing" title="$_('This book is currently checked out, please check back later.')"
+      <a href="$work_key" class="cta-btn cta-btn--missing" title="$_('This book is currently checked out, please check back later.')"
          data-ol-link-track="CTAClick|CheckedOut">$_('Checked Out')</a>
     </div>
 
-$elif not ocaid or editions_page and not is_lendable:
+$elif page.key.startswith('/book') and not ocaid or editions_page and not is_lendable:
   $ sponsorship = qualifies_for_sponsorship(page)
   $if sponsorship.get('is_eligible'):
     $ isbn = (page.isbn_13 and page.isbn_13[0] or page.isbn_10 and page.isbn_10[0])
@@ -122,14 +122,14 @@ $elif not ocaid or editions_page and not is_lendable:
       <a href="/sponsorship" target="_blank">$_('Learn More')</a>
     </p>
   $else:
-    <a href="$work.key" class="cta-btn cta-btn--missing" data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
+    <a href="$work_key" class="cta-btn cta-btn--missing" data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
 
 $if ocaid:
   $if editions_page and is_printdisabled:
     $:macros.BookPreview(ocaid, render_preview_floater)
-  $:macros.daisy(page, protected=is_printdisabled, block_name=block_name)
+  $:macros.daisy(page, url='/ia/%s/daisy' % ocaid, protected=is_printdisabled, block_name=block_name)
 
 $if query_param('debug'):
   $ loanstatus_end_time = time() - loanstatus_start_time
   <p>LoanStatus took $("%.2f" % loanstatus_end_time) seconds</p>
-  $lending_st $availability
+  $lending_st $page.availability
