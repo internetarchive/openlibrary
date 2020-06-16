@@ -207,7 +207,12 @@ def get_random_available_ia_edition():
         logger.exception("get_random_available_ia_edition(%s)" % url)
         return None
 
+@cache.memoize(engine="memcache", expires=5*dateutil.MINUTE_SECS)
 @public
+def get_cached_groundtruth_availability(ocaid):
+    return get_groundtruth_availability(ocaid)
+
+
 def get_groundtruth_availability(ocaid, s3_keys=None):
     """temporary stopgap to get ground-truth availability of books
     including 1-hour borrows"""

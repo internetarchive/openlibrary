@@ -19,7 +19,7 @@ $ availability = page.availability.get('status')
 
 $ lending_st = {}
 $if editions_page and (page.availability.get('is_browseable', False) or availability == 'borrow_unavailable'):
-  $ lending_st = get_groundtruth_availability(ocaid)
+  $ lending_st = get_cached_groundtruth_availability(ocaid)
 
 $ is_lendable = lending_st.get('is_lendable', False) or page.availability.get('is_lendable', False)
 $# there could be exception where ocaid insufficient because is_restricted but not printdisabled
