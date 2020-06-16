@@ -1,20 +1,21 @@
 $def with (works_json, authors_json)
 
+$jsdef render_works_list(works):
+    <ul>
+    $for work in works:
+        <li><a href="$work.key" style="font-style:oblique">$work.title</a>
+            $ first_publish_year = work.first_publish_year or '????'
+            <span title="First published in $first_publish_year">($first_publish_year)</span>
+            by
+            $for author in work.authors:
+                <a href="$author.key">$author.name</a>$cond(not loop.last, ', ', '')
+        </li>
+    </ul>
+
 $jsdef render_excluded_works_list(works):
     <details>
         <summary>$len(works) works excluded due to missing data</summary>
-        <ul>
-        $for work in works:
-            <li><a href="$work.key" style="font-style:oblique">$work.title</a>
-                $ first_publish_year = work.first_publish_year or '????'
-                <span title="First published in $first_publish_year">($first_publish_year)</span>
-                by
-                $for author in work.authors:
-                    <a href="$author.key">$author.name</a>
-                    $if not loop.last:
-                        ,
-            </li>
-        </ul>
+        $:render_works_list(works)
     </details>
 
 <style>
@@ -32,8 +33,26 @@ $jsdef render_excluded_works_list(works):
       margin: 0;
     }
 
-    details {
+    details > summary {
       font-size: 0.75em;
+    }
+
+    .selected-works {
+        position: sticky;
+        bottom: 0;
+        max-height: 160px;
+        background: white;
+        border-top: 1px dotted;
+        overflow: auto;
+    }
+    .selected-works summary {
+        padding: 5px;
+        background: #EEE;
+    }
+    .selected-works main { padding-bottom: 10px; padding-top: 5px; }
+    .selected-works--empty { display: none; }
+    .selected-works--list:empty+.selected-works--empty {
+        display: block;
     }
 
     @media (min-width: 750px) {
@@ -111,6 +130,16 @@ $jsdef render_excluded_works_list(works):
             <div class="readinglog-stats-chart" id="work-subject-times"></div>
         </section>
     </section>
+
+    <details class="selected-works" open>
+        <summary>$_('Matching works')</summary>
+        <main>
+            <div class="selected-works--list"></div>
+            <div class="selected-works--empty">
+                $_('Click on a bar to see matching works')
+            </div>
+        </main>
+    </details>
 </div>
 
 
@@ -184,6 +213,14 @@ $jsdef render_excluded_works_list(works):
                 scales: {
                     xAxes: [{ display: false }],
                     yAxes: [{ barPercentage: 1, gridLines: { display: false }, stacked: true }],
+                },
+                onClick: (e, [chartEl]) => {
+                    if (chartEl) {
+                        const bar = bars[chartEl._index];
+                        document.querySelector('.selected-works--list').innerHTML = render_works_list(bar[1]);
+                    } else {
+                        document.querySelector('.selected-works--list').innerHTML = '';
+                    }
                 },
                 plugins: {
                     datalabels: {
