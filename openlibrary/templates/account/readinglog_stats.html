@@ -48,6 +48,8 @@ $jsdef render_excluded_works_list(works):
     .selected-works summary {
         padding: 5px;
         background: #EEE;
+        position: sticky;
+        top: 0;
     }
     .selected-works main { padding-bottom: 10px; padding-top: 5px; }
     .selected-works--empty { display: none; }
@@ -106,6 +108,8 @@ $jsdef render_excluded_works_list(works):
             <div class="readinglog-stats-chart" id="author-country-of-birth"></div>
         </section>
     </section>
+
+    <small>$:_('Demographic statistics powered by <a href="https://www.wikidata.org/">Wikidata</a>')</small>
 
     <h2>$_('Work Stats')</h2>
 
