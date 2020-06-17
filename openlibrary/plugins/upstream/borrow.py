@@ -150,7 +150,6 @@ class borrow(delegate.page):
         action = i.action
 
         if action == 'return':
-            # Check that this user has the loan
             loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='return_loan')
             raise web.seeother(edition.url())
 
