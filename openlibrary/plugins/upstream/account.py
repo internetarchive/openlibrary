@@ -92,7 +92,14 @@ class xauth(delegate.page):
         i = web.input(email='', op=None)
         result = {"error": "incorrect option specified"}
         if i.op == "authenticate":
-            result = {"success": True,"version": 1}
+            result = {
+                "success": True,
+                "version": 1,
+                "values": {
+                    "access": 'foo',
+                    "secret": 'foo',
+                },
+            }
         elif i.op == "info":
             result = {
                 "success": True,
