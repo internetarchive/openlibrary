@@ -207,8 +207,9 @@ def get_random_available_ia_edition():
         logger.exception("get_random_available_ia_edition(%s)" % url)
         return None
 
-@cache.memoize(engine="memcache", expires=5*dateutil.MINUTE_SECS)
+
 @public
+@cache.memoize(engine="memcache", key="gt-availability", expires=5*dateutil.MINUTE_SECS)
 def get_cached_groundtruth_availability(ocaid):
     return get_groundtruth_availability(ocaid)
 
