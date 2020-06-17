@@ -776,9 +776,8 @@ class readinglog_stats(delegate.page):
         user = web.ctx.site.get('/people/%s' % username)
         if not user:
             return render.notfound("User %s" % username, create=False)
-        is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         cur_user = accounts.get_current_user()
-        if is_public or cur_user and cur_user.key.split('/')[-1] == username:
+        if cur_user and cur_user.key.split('/')[-1] == username:
             readlog = ReadingLog(user=user)
             works = readlog.get_works(key, page=1, limit=1000)
             works_json = [
