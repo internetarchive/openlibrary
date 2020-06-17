@@ -138,6 +138,7 @@ class borrow(delegate.page):
         if user:
             account = OpenLibraryAccount.get_by_email(user.email)
             ia_itemname = account.itemname if account else None
+            s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
         if not user or not ia_itemname:
             web.setcookie(config.login_cookie_name, "", expires=-1)
             redirect_url = "/account/login?redirect=%s/borrow?action=%s" % (
@@ -147,6 +148,10 @@ class borrow(delegate.page):
             raise web.seeother(redirect_url)
 
         action = i.action
+
+        if action == 'return':
+            loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='return_loan')
+            raise web.seeother(edition.url())
 
         # Intercept a 'borrow' action if the user has already
         # borrowed the book and convert to a 'read' action.
@@ -166,7 +171,6 @@ class borrow(delegate.page):
             if resource_type not in ['epub', 'pdf', 'bookreader']:
                 raise web.seeother(error_redirect)
 
-            s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
             borrow_access = user_can_borrow_edition(
                 user, edition, resource_type, action=action)
 
@@ -174,7 +178,7 @@ class borrow(delegate.page):
                 raise web.seeother(error_redirect)
 
             if borrow_access == 'browse':
-                loan_resp = lending.initiate_s3_loan(edition.ocaid, s3_keys, action='browse')
+                loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='browse_book')
                 stats.increment('ol.loans.bookreader')
                 stats.increment('ol.loans.browse')
                 action = 'read'
@@ -223,33 +227,6 @@ class borrow(delegate.page):
             else:
                 raise web.seeother(error_redirect)
 
-        if action == 'return':
-            # Check that this user has the loan
-            user.update_loan_status()
-            loans = get_loans(user)
-
-            # We pick the first loan that the user has for this book that is returnable.
-            # Assumes a user can't borrow multiple formats (resource_type) of the same book.
-            user_loan = None
-            for loan in loans:
-                # Handle the case of multiple edition records for the same
-                # ocaid and the user borrowed from one and returning from another
-                has_loan = (loan['book'] == edition.key or loan['ocaid'] == edition.ocaid)
-                if has_loan:
-                    user_loan = loan
-                    break
-
-            if not user_loan:
-                # $$$ add error message
-                raise web.seeother(error_redirect)
-
-            user_loan.return_loan()
-
-            # Show the page with "you've returned this". Use a dummy slug.
-            # $$$ this would do better in a session variable that can be cleared
-            #     after the message is shown once
-            raise web.seeother(edition.url())
-
         if action == 'read':
             # Look for loans for this book
             user.update_loan_status()
@@ -261,25 +238,18 @@ class borrow(delegate.page):
                         ol_host, ia_userid=ia_itemname
                     ))
         if action == 'join-waitinglist':
-            return self.POST_join_waitinglist(edition, user)
+            loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='join_waitlist')
+            stats.increment('ol.loans.joinWaitlist')
+            raise web.redirect(edition.url())
+
         if action == 'leave-waitinglist':
-            return self.POST_leave_waitinglist(edition, user, i)
+            loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='leave_waitlist')
+            stats.increment('ol.loans.leaveWaitlist')
+            raise web.redirect(edition.url())
 
         # Action not recognized
         raise web.seeother(error_redirect)
 
-    def POST_join_waitinglist(self, edition, user):
-        waitinglist.join_waitinglist(user.key, edition.key)
-        stats.increment('ol.loans.joinWaitlist')
-        raise web.redirect(edition.url())
-
-    def POST_leave_waitinglist(self, edition, user, i):
-        waitinglist.leave_waitinglist(user.key, edition.key)
-        stats.increment('ol.loans.leaveWaitlist')
-        if i.get("redirect"):
-            raise web.redirect(i.redirect)
-        else:
-            raise web.redirect(edition.url())
 
 # Handler for /books/{bookid}/{title}/_borrow_status
 class borrow_status(delegate.page):

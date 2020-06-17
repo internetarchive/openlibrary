@@ -222,14 +222,15 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
     return r.json().get('lending_status')
 
 
-def initiate_s3_loan(ocaid, s3_keys, action='browse'):
-    """Uses patrons s3 credentials to initiate a browse or borrow loan
-    on Archive.org.
+def s3_loan_api(ocaid, s3_keys, action='browse'):
+    """Uses patrons s3 credentials to initiate or return a browse or
+    borrow loan on Archive.org.
 
     :param dict s3_keys: {'access': 'xxx', 'secret': 'xxx'}
-    :param str action: 'browse' or 'borrow'
+    :param str action: 'browse_book' or 'borrow_book' or 'return_loan'
+
     """
-    params = '?action=%s_book&identifier=%s' % (action, ocaid)
+    params = '?action=%s&identifier=%s' % (action, ocaid)
     url = S3_LOAN_URL % config_bookreader_host
     return requests.post(url + params, data=s3_keys)
 
