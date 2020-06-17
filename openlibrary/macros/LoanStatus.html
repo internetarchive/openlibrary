@@ -67,7 +67,7 @@ $elif ocaid and is_readable:
     $:macros.BookSearchInside(ocaid)
 
 $elif ocaid and is_lendable:
-  $ borrow_link = '/ia/%s/borrow' % ocaid
+  $ borrow_link = '/borrow/ia/%s' % ocaid
   $if is_borrowable:
     $ label = None
     $if availability == 'borrow_unavailable' or lending_st and not lending_st.get('available_to_borrow'):

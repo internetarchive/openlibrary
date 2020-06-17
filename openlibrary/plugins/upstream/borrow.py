@@ -238,25 +238,18 @@ class borrow(delegate.page):
                         ol_host, ia_userid=ia_itemname
                     ))
         if action == 'join-waitinglist':
-            return self.POST_join_waitinglist(edition, user)
+            loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='join_waitlist')
+            stats.increment('ol.loans.joinWaitlist')
+            raise web.redirect(edition.url())
+
         if action == 'leave-waitinglist':
-            return self.POST_leave_waitinglist(edition, user, i)
+            loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='leave_waitlist')
+            stats.increment('ol.loans.leaveWaitlist')
+            raise web.redirect(edition.url())
 
         # Action not recognized
         raise web.seeother(error_redirect)
 
-    def POST_join_waitinglist(self, edition, user):
-        waitinglist.join_waitinglist(user.key, edition.key)
-        stats.increment('ol.loans.joinWaitlist')
-        raise web.redirect(edition.url())
-
-    def POST_leave_waitinglist(self, edition, user, i):
-        waitinglist.leave_waitinglist(user.key, edition.key)
-        stats.increment('ol.loans.leaveWaitlist')
-        if i.get("redirect"):
-            raise web.redirect(i.redirect)
-        else:
-            raise web.redirect(edition.url())
 
 # Handler for /books/{bookid}/{title}/_borrow_status
 class borrow_status(delegate.page):
