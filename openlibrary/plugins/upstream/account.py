@@ -776,43 +776,46 @@ class readinglog_stats(delegate.page):
         user = web.ctx.site.get('/people/%s' % username)
         if not user:
             return render.notfound("User %s" % username, create=False)
+
         cur_user = accounts.get_current_user()
-        if cur_user and cur_user.key.split('/')[-1] == username:
-            readlog = ReadingLog(user=user)
-            works = readlog.get_works(key, page=1, limit=2000)
-            works_json = [
-                {
-                    'title': w.get('title'),
-                    'key': w.key,
-                    'author_keys': [a.author.key for a in w.get('authors', [])],
-                    'first_publish_year': w.first_publish_year or None,
-                    'subjects': w.get('subjects'),
-                    'subject_people': w.get('subject_people'),
-                    'subject_places': w.get('subject_places'),
-                    'subject_times': w.get('subject_times'),
-                } for w in works
-            ]
-            author_keys = set(
-                a
-                for work in works_json
-                for a in work['author_keys']
-            )
-            authors_json = [
-                {
-                    'key': a.key,
-                    'name': a.name,
-                    'birth_date': a.get('birth_date'),
-                }
-                for a in web.ctx.site.get_many(list(author_keys))
-            ]
-            page = render['account/readinglog_stats'](
-                json.dumps(works_json),
-                json.dumps(authors_json),
-                len(works_json),
-                lang=web.ctx.lang
-            )
-            page.v2 = True
-            return page
+        if not cur_user or cur_user.key.split('/')[-1] != username:
+            return render.permission_denied(web.ctx.path, 'Permission Denied')
+
+        readlog = ReadingLog(user=user)
+        works = readlog.get_works(key, page=1, limit=2000)
+        works_json = [
+            {
+                'title': w.get('title'),
+                'key': w.key,
+                'author_keys': [a.author.key for a in w.get('authors', [])],
+                'first_publish_year': w.first_publish_year or None,
+                'subjects': w.get('subjects'),
+                'subject_people': w.get('subject_people'),
+                'subject_places': w.get('subject_places'),
+                'subject_times': w.get('subject_times'),
+            } for w in works
+        ]
+        author_keys = set(
+            a
+            for work in works_json
+            for a in work['author_keys']
+        )
+        authors_json = [
+            {
+                'key': a.key,
+                'name': a.name,
+                'birth_date': a.get('birth_date'),
+            }
+            for a in web.ctx.site.get_many(list(author_keys))
+        ]
+        page = render['account/readinglog_stats'](
+            json.dumps(works_json),
+            json.dumps(authors_json),
+            len(works_json),
+            lang=web.ctx.lang
+        )
+        page.v2 = True
+        return page
 
 
 class account_my_books_redirect(delegate.page):
