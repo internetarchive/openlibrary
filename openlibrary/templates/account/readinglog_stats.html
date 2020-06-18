@@ -4,7 +4,7 @@ $ shelf_name = str(render_template('account/readinglog_shelf_name', shelf_key)).
 $var title: $_('"%(shelf_name)s" Stats', shelf_name=shelf_name)
 
 $jsdef render_works_list(works):
-    <ul>
+    <ul class="works-list">
     $for work in works:
         <li><a href="$work.key" style="font-style:oblique">$work.title</a>
             $ first_publish_year = work.first_publish_year or '????'
@@ -58,6 +58,12 @@ $jsdef render_excluded_works_list(works, total):
     .selected-works--empty { display: none; }
     .selected-works--list:empty+.selected-works--empty {
         display: block;
+    }
+
+    /* Hanging indent */
+    .works-list > li {
+        padding-left: 22px;
+        text-indent: -22px;
     }
 
     @media (min-width: 750px) {
