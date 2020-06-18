@@ -109,8 +109,8 @@ export function get_editions(work_key) {
     return fetch(`${work_key}/editions.json`).then(r => r.json());
 }
 
-export function get_lists(key) {
-    return fetch(`${key}/lists.json`).then(r => r.json());
+export function get_lists(key, limit=10) {
+    return fetch(`${key}/lists.json?${new URLSearchParams({ limit })}`).then(r => r.json());
 }
 
 export function get_bookshelves(key) {
