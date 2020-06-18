@@ -1,4 +1,7 @@
-$def with (works_json, authors_json, works_count, lang='en')
+$def with (works_json, authors_json, works_count, owner_key, owner_name, shelf_path, shelf_key, lang='en')
+
+$ shelf_name = str(render_template('account/readinglog_shelf_name', shelf_key)).strip();
+$var title: $_('"%(shelf_name)s" Stats', shelf_name=shelf_name)
 
 $jsdef render_works_list(works):
     <ul>
@@ -77,8 +80,18 @@ $jsdef render_excluded_works_list(works, total):
     }
 </style>
 
+<div id="contentHead">
+    <div class="small sansserif grey account-settings-menu">
+      <a href="$owner_key">$owner_name</a>
+        &raquo; <a href="$shelf_path">$shelf_name</a>
+        &raquo; $_('Stats')
+    </div>
+    <h1>$_('"%(shelf_name)s" Stats', shelf_name=shelf_name)</h1>
+
+    <p>$:_('Displaying stats about <strong>%d</strong> books. Note all charts show only the top 20 bars. Note reading log stats are private.', works_count)</p>
+</div>
+
 <div class="readinglog-charts" style="padding: 12px;">
-    <p>$:_('Displaying stats about <strong>%d</strong> books. Note all charts show only the top 20 bars.', works_count)</p>
 
     <h2>$_('Author Stats')</h2>
 

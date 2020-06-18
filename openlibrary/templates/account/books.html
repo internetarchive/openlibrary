@@ -19,22 +19,25 @@ $ total_items = sponsorship_count if key == 'sponsorships' else int(reading_log_
 $ userDisplayName = user.displayname or ctx.user.displayname
 $ userKey = user.key or ctx.user.key
 
+$ header_title = str(render_template('account/readinglog_shelf_name', key)).strip()
 $if key == 'currently-reading':
-  $ header_title = _("Currently Reading")
   $ og_title = _("Books %(username)s is reading", username=userDisplayName)
   $ og_description = _("%(username)s is reading %(total)d books. Join %(username)s on OpenLibrary.org and tell the world what you're reading.", username=userDisplayName, total=total_items)
 $elif key == 'want-to-read':
-  $ header_title = _("Want To Read")
   $ og_title = _("Books %(username)s wants to read", username=userDisplayName)
   $ og_description = _("%(username)s wants to read %(total)d books. Join %(username)s on OpenLibrary.org and share the books that you'll soon be reading!", username=userDisplayName, total=total_items)
 $elif key == 'already-read':
-  $ header_title = _("Already Read")
   $ og_title = _("Books %(username)s has read", username=userDisplayName)
   $ og_description = _("%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about.", username=userDisplayName, total=total_items)
 $elif key == 'sponsorships':
   $ header_title = _("Sponsorships")
   $ og_title = _("Books %(userdisplayname)s is sponsoring", userdisplayname=userDisplayName)
   $ og_description = "{username} is sponsoring {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=userDisplayName, total=total_items)
+
+$if owners_page:
+  $var title: $header_title
+$else:
+  $var title: $userDisplayName &raquo; $header_title
 
 $if og_title:
   $putctx("description", og_description)
@@ -49,12 +52,20 @@ $if og_title:
     <div class="small sansserif grey account-settings-menu">
       <a href="$userKey">$userDisplayName</a> &raquo; $_("Reading Log")
     </div>
-    <h1>
-      $if not owners_page:
-        $username &raquo; $header_title
-      $else:
-        $header_title
-    </h1>
+    <div>
+
+    </div>
+    <div>
+      <h1 style="display:inline">
+        $if not owners_page:
+          $userDisplayName &raquo; $header_title
+        $else:
+          $header_title
+      </h1>
+
+      $if owners_page:
+        <a href="$ctx.path/stats" title="$('View stats about this shelf')">$_('Stats')</a>
+    </div>
 
     $if owners_page:
       <h3>
@@ -75,7 +86,7 @@ $if og_title:
           <li><a href="$urlbase/want-to-read" $('class=selected' if key == 'want-to-read' else '')>$_('Want to Read (%(count)d)', count=reading_log_counts['want-to-read'])</a></li>
           <li><a href="$urlbase/already-read" $('class=selected' if key == 'already-read' else '')>$_('Already Read (%(count)d)', count=reading_log_counts['already-read'])</a></li>
         </ul>
-        $if urlbase.startswith('/account') and ctx.user and ctx.user.in_sponsorship_beta():
+        $if owners_page and ctx.user and ctx.user.in_sponsorship_beta():
           <!-- only show to owners -->
           <ul class="preset-lists">
             <li class="subsection">$_('Sponsorships')</li>

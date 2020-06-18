@@ -812,7 +812,11 @@ class readinglog_stats(delegate.page):
             json.dumps(works_json),
             json.dumps(authors_json),
             len(works_json),
-            lang=web.ctx.lang
+            user.key,
+            user.displayname,
+            web.ctx.path.rsplit('/', 1)[0],
+            key,
+            lang=web.ctx.lang,
         )
         page.v2 = True
         return page
