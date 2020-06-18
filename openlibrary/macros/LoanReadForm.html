@@ -1,8 +1,6 @@
-$def with(edition_key)
+$def with(ocaid)
 
-
-<form class="LoanReadForm" method="POST" action="$edition_key/_doread/borrow"><input type="hidden" name="action" value="read" /><input type="text" name="ol_host" value="" class="hidden ol_host" /><input type="submit" value="Read Online" /></form>
-
-<script type="text/javascript">
-    jQuery('.ol_host').attr('value', location.host);
-</script>
+<form class="LoanReadForm" method="POST" action="/borrow/ia/$ocaid">
+  <input type="hidden" name="action" value="read" />
+  <input class="cta-btn cta-btn--available" type="submit" value="$_('Read')" />
+</form>
