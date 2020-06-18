@@ -50,6 +50,7 @@ def get_homepage():
     return dict(page)
 
 def get_cached_homepage():
+    return get_homepage()
     five_minutes = 5 * dateutil.MINUTE_SECS
     lang = web.ctx.get("lang", "en")
     return cache.memcache_memoize(
@@ -145,8 +146,8 @@ def readonline_carousel():
     """
     try:
         data = random_ebooks()
-        if len(data) > 60:
-            data = random.sample(data, 60)
+        if len(data) > 30:
+            data = lending.add_availability(random.sample(data, 30))
         return storify(data)
 
     except Exception:
@@ -231,12 +232,13 @@ def format_book_data(book):
     d.title = book.title or None
     d.ocaid = book.get("ocaid")
     d.eligibility = book.get("eligibility", {})
-
+    d.availability = book.get('availability', {})
     def get_authors(doc):
         return [web.storage(key=a.key, name=a.name or None) for a in doc.get_authors()]
 
     work = book.works and book.works[0]
     d.authors = get_authors(work if work else book)
+    d.work_key = book.key if book.key.startswith('/work') else work.key
     cover = work.get_cover() if work and work.get_cover() else book.get_cover()
 
     if cover:
