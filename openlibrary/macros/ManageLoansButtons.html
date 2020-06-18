@@ -20,7 +20,7 @@ $if wlsize:
 
 <div class="actions">
   $if loan['resource_type'] == 'bookreader':
-    $:macros.LoanReadForm(loan['book'])
-    $:macros.ReturnForm(loan)
+    $:macros.LoanReadForm(loan['ocaid'])
+    $:macros.ReturnForm(loan['ocaid'])
 </div>
 
