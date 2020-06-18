@@ -270,7 +270,7 @@ def get_available(limit=None, page=1, subject=None, query=None,
         for item in items:
             if item.get('openlibrary_work'):
                 results[item['openlibrary_work']] = item['openlibrary_edition']
-        books = web.ctx.site.get_many(['/books/%s' % result for result in results.values()])
+        books = add_availability(web.ctx.site.get_many(['/books/%s' % result for result in results.values()]))
         return books
     except Exception:  # TODO: Narrow exception scope
         logger.exception("get_available(%s)" % url)
