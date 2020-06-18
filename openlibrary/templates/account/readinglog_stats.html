@@ -109,7 +109,7 @@ $jsdef render_excluded_works_list(works, total):
         </section>
     </section>
 
-    <small>$:_('Demographic statistics powered by <a href="https://www.wikidata.org/">Wikidata</a>')</small>
+    <small>$:_('Demographic statistics powered by <a href="https://www.wikidata.org/">Wikidata</a>. Here\'s a <a id="wd-query-sample" href="">sample</a> of the query used.')</small>
 
     <h2>$_('Work Stats')</h2>
 
@@ -247,29 +247,34 @@ $jsdef render_excluded_works_list(works, total):
         { name: 'dob', type: 'literal', relation: 'wdt:P569' },
         { name: 'country_of_citizenship', type: 'uri', relation: 'wdt:P27' },
         { name: 'country_of_birth', type: 'uri', relation: 'wdt:P19/wdt:P131*/wdt:P17' },
-    ]
-    const sparql = `
-SELECT DISTINCT ?x ?xLabel ?olid
-    $${
-        SPARQL_FIELDS.map(f => `?$${f.name} ` + (f.type == 'uri' ? `?$${f.name}Label ` : '')).join('')
+    ];
+
+    function buildSparql(authors) {
+        return `
+            SELECT DISTINCT ?x ?xLabel ?olid
+                $${
+                    SPARQL_FIELDS.map(f => `?$${f.name} ` + (f.type == 'uri' ? `?$${f.name}Label ` : '')).join('')
+                }
+            WHERE {
+              VALUES ?olids { $${authors.map(a => `"$${a.key.split('/')[2]}"`).join(' ')} }
+              ?x wdt:P648 ?olids;
+                 wdt:P648 ?olid.
+
+              $${
+                SPARQL_FIELDS.map(f => `OPTIONAL { ?x $${f.relation} ?$${f.name}. }`)
+                .join('\n')
+              }
+
+              SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],$${config.lang},en". }
+            }
+        `;
     }
-WHERE {
-  VALUES ?olids { $${config.authors.map(a => `"$${a.key.split('/')[2]}"`).join(' ')} }
-  ?x wdt:P648 ?olids;
-     wdt:P648 ?olid.
 
-  $${
-    SPARQL_FIELDS.map(f => `OPTIONAL { ?x $${f.relation} ?$${f.name}. }`)
-    .join('\n')
-  }
-
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],$${config.lang},en". }
-}
-`;
+    document.getElementById('wd-query-sample').href = 'https://query.wikidata.org/#' + encodeURIComponent(buildSparql(config.authors.slice(0, 20)));
 
     const wdPromise = fetch('https://query.wikidata.org/sparql?format=json', {
         method: 'POST',
-        body: new URLSearchParams({query: sparql})
+        body: new URLSearchParams({query: buildSparql(config.authors)})
     })
     .then(r => r.json())
     .then(resp => {
