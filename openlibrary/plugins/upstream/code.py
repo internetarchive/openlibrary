@@ -175,8 +175,15 @@ def setup_jquery_urls():
     web.template.Template.globals['use_google_cdn'] = config.get('use_google_cdn', True)
 
 @public
-def get_document(key):
-    return web.ctx.site.get(key)
+def get_document(key, limit_redirs=5):
+    for i in range(limit_redirs):
+        doc = web.ctx.site.get(key)
+        if doc.type.key == "/type/redirect":
+            key = doc.location
+        else:
+            return doc
+    return doc
+
 
 class revert(delegate.mode):
     def GET(self, key):
