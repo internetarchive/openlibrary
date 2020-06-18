@@ -137,8 +137,9 @@ export default {
         async lists() {
             if (!this.records) return null;
 
+            // We only need the count, so set limit=0 (waaaay faster!)
             const promises = await Promise.all(
-                this.records.map(r => get_lists(r.key))
+                this.records.map(r => get_lists(r.key, 0))
             );
             const responses = promises.map(p => p.value || p);
             return _.fromPairs(
