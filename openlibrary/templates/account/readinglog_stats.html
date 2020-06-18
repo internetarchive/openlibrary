@@ -12,9 +12,9 @@ $jsdef render_works_list(works):
         </li>
     </ul>
 
-$jsdef render_excluded_works_list(works):
+$jsdef render_excluded_works_list(works, total):
     <details>
-        <summary>$len(works) works excluded due to missing data</summary>
+        <summary><meter value="$(total - len(works))" max="$total"></meter> $len(works) works excluded due to missing data</summary>
         $:render_works_list(works)
     </details>
 
@@ -237,7 +237,7 @@ $jsdef render_excluded_works_list(works):
             }
         });
 
-        $$(render_excluded_works_list(excluded)).appendTo(container);
+        $$(render_excluded_works_list(excluded, config.works.length)).appendTo(container);
     }
 
     const SPARQL_FIELDS = [
