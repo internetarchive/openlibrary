@@ -779,7 +779,7 @@ class readinglog_stats(delegate.page):
         cur_user = accounts.get_current_user()
         if cur_user and cur_user.key.split('/')[-1] == username:
             readlog = ReadingLog(user=user)
-            works = readlog.get_works(key, page=1, limit=1000)
+            works = readlog.get_works(key, page=1, limit=2000)
             works_json = [
                 {
                     'title': w.get('title'),
@@ -808,6 +808,8 @@ class readinglog_stats(delegate.page):
             page = render['account/readinglog_stats'](
                 json.dumps(works_json),
                 json.dumps(authors_json),
+                len(works_json),
+                lang=web.ctx.lang
             )
             page.v2 = True
             return page

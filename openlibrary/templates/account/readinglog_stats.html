@@ -1,4 +1,4 @@
-$def with (works_json, authors_json)
+$def with (works_json, authors_json, works_count, lang='en')
 
 $jsdef render_works_list(works):
     <ul>
@@ -51,7 +51,7 @@ $jsdef render_excluded_works_list(works, total):
         position: sticky;
         top: 0;
     }
-    .selected-works main { padding-bottom: 10px; padding-top: 5px; }
+    .selected-works main { padding: 5px 10px 10px 10px; }
     .selected-works--empty { display: none; }
     .selected-works--list:empty+.selected-works--empty {
         display: block;
@@ -78,7 +78,7 @@ $jsdef render_excluded_works_list(works, total):
 </style>
 
 <div class="readinglog-charts" style="padding: 12px;">
-    <p>$_('Note all charts show only the top 20 bars.')</p>
+    <p>$:_('Displaying stats about <strong>%d</strong> books. Note all charts show only the top 20 bars.', works_count)</p>
 
     <h2>$_('Author Stats')</h2>
 
@@ -134,17 +134,17 @@ $jsdef render_excluded_works_list(works, total):
             <div class="readinglog-stats-chart" id="work-subject-times"></div>
         </section>
     </section>
-
-    <details class="selected-works" open>
-        <summary>$_('Matching works')</summary>
-        <main>
-            <div class="selected-works--list"></div>
-            <div class="selected-works--empty">
-                $_('Click on a bar to see matching works')
-            </div>
-        </main>
-    </details>
 </div>
+
+<details class="selected-works" open>
+    <summary>$_('Matching works')</summary>
+    <main>
+        <div class="selected-works--list"></div>
+        <div class="selected-works--empty">
+            $_('Click on a bar to see matching works')
+        </div>
+    </main>
+</details>
 
 
 <script type="module">
@@ -156,6 +156,7 @@ $jsdef render_excluded_works_list(works, total):
     const config = {
         works: $:works_json,
         authors: $:authors_json,
+        lang: $:dumps(lang),
         charts: [
             { id: 'work-subjects', type: 'work-chart', key: 'subjects', exclude: ['Accessible book', 'Protected DAISY', 'In library', 'Lending library'] },
             { id: 'work-subject-people', type: 'work-chart', key: 'subject_people' },
@@ -262,7 +263,7 @@ WHERE {
     .join('\n')
   }
 
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],$${config.lang},en". }
 }
 `;
 
