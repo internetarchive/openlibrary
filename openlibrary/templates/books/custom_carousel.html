@@ -40,17 +40,18 @@ $def render_carousel_cover(book, lazy):
     $ cta = _('Sponsor')
     $ cta_cls = 'sponsor'
   $if book.get('ia') or book.get('ocaid'):
-    $# See PR #3349 -- Hacky availability heuristic until #3180 lands  
-    $ cta_cls = 'available'
+    $# See PR #3349 -- Hacky availability heuristic until #3180 lands
     $if book.get('ocaid') or availability.get('status') == 'borrow_available' or book.get('lending_edition'):
+      $ cta_cls = 'available'
       $ modifier = 'borrow-link'
       $ cta = _('Borrow')
       $if ocaid:
         $ cta_url = '/borrow/ia/%s?ref=ol' % ocaid
       $else:
         $ cta_url = "/books/%s/x/borrow?ref=ol" % book.get('lending_edition')
-    $else:
-      $ cta_url = "//archive.org/stream/%s?ref=ol" % book.get('ia')[0]
+    $elif not availability.get('is_restricted'):
+      $ cta_cls = 'available'
+      $ cta_url = "//archive.org/stream/%s?ref=ol" % book.get('identifier')
       $ cta = _('Read')
 
   $if lazy:
