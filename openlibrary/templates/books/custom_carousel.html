@@ -29,7 +29,7 @@ $def render_carousel_cover(book, lazy):
     $ byline = ''
     $ author_names = ''
   $ modifier = ''
-  $ work_key = book.key if book.key.startswith('/work') else book.work_key
+  $ work_key = book.key if book.key.startswith('/work') else book.get('work_key')
 
   $if lazy:
     $ img_attr = 'data-lazy'
