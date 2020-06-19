@@ -152,7 +152,7 @@ class borrow(delegate.page):
             loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='join_waitlist')
             stats.increment('ol.loans.joinWaitlist')
             raise web.redirect(edition.url())
-        if action == 'leave-waitinglist':
+        elif action == 'leave-waitinglist':
             loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='leave_waitlist')
             stats.increment('ol.loans.leaveWaitlist')
             raise web.redirect(edition.url())
