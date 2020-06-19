@@ -879,11 +879,14 @@ class account_loans(delegate.page):
         loans = borrow.get_loans(user)
         return render['account/borrow'](user, loans)
 
-class account_others(delegate.page):
-    path = "(/account/.*)"
-
-    def GET(self, path):
-        return render.notfound(path, create=False)
+# Disabling be cause it prevents account_my_books_redirect from working
+# for some reason. The purpose of this class is to not show the "Create" link for
+# /account pages since that doesn't make any sense.
+# class account_others(delegate.page):
+#     path = "(/account/.*)"
+#
+#     def GET(self, path):
+#         return render.notfound(path, create=False)
 
 
 def send_email_change_email(username, email):
