@@ -19,7 +19,7 @@ $ total_items = sponsorship_count if key == 'sponsorships' else int(reading_log_
 $ userDisplayName = user.displayname or ctx.user.displayname
 $ userKey = user.key or ctx.user.key
 
-$ header_title = str(render_template('account/readinglog_shelf_name', key)).strip()
+$ header_title = unicode(render_template('account/readinglog_shelf_name', key)).strip()
 $if key == 'currently-reading':
   $ og_title = _("Books %(username)s is reading", username=userDisplayName)
   $ og_description = _("%(username)s is reading %(total)d books. Join %(username)s on OpenLibrary.org and tell the world what you're reading.", username=userDisplayName, total=total_items)

@@ -1,6 +1,6 @@
 $def with (works_json, authors_json, works_count, owner_key, owner_name, shelf_path, shelf_key, lang='en')
 
-$ shelf_name = str(render_template('account/readinglog_shelf_name', shelf_key)).strip();
+$ shelf_name = unicode(render_template('account/readinglog_shelf_name', shelf_key)).strip();
 $var title: $_('"%(shelf_name)s" Stats', shelf_name=shelf_name)
 
 $jsdef render_works_list(works):
