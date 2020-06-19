@@ -150,12 +150,11 @@ $jsdef render_excluded_works_list(works, total):
     </main>
 </details>
 
-<script src="$static_url('build/readinglog_stats.js')"></script>
 <script>
-    window.q.push(initReadingLogStats.bind(null, {
+    window.READINGLOG_STATS_CONFIG = {
         works: $:works_json,
         authors: $:authors_json,
         lang: $:dumps(lang),
         charts_selector: '.readinglog-stats-chart',
-    }));
+    };
 </script>

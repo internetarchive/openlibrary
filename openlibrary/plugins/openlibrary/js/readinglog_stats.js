@@ -16,7 +16,7 @@ import 'chartjs-plugin-datalabels';
  * @param {string} config.lang
  * @param {string} config.charts_selector
  */
-window.initReadingLogStats = function (config) {
+export function init(config) {
     Chart.scaleService.updateScaleDefaults('linear', { ticks: { beginAtZero: true, stepSize: 1 } });
     const authors_by_id = fromPairs(config.authors.map(a => [a.key, a]));
 

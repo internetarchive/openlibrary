@@ -110,5 +110,4 @@ function buildEntryPoint(entry, output) {
 
 module.exports = [
     buildEntryPoint('./openlibrary/plugins/openlibrary/js/index.js', 'all'),
-    buildEntryPoint('./openlibrary/plugins/openlibrary/js/readinglog_stats.js', 'readinglog_stats'),
 ];
