@@ -108,11 +108,8 @@ class borrow(delegate.page):
 
         i = web.input(action='borrow', format=None, ol_host=None, _autoReadAloud=None, q="")
 
-        if i.ol_host:
-            ol_host = i.ol_host
-        else:
-            ol_host = 'openlibrary.org'
-
+        ol_host = i.ol_host or 'openlibrary.org'
+        action = i.action
         edition = web.ctx.site.get(key)
         if not edition:
             raise web.notfound()
@@ -139,95 +136,51 @@ class borrow(delegate.page):
             account = OpenLibraryAccount.get_by_email(user.email)
             ia_itemname = account.itemname if account else None
             s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
-        if not user or not ia_itemname:
+        if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)
             redirect_url = "/account/login?redirect=%s/borrow?action=%s" % (
-                edition.url(), i.action)
+                edition.url(), action)
             if i._autoReadAloud is not None:
                 redirect_url += '&_autoReadAloud=' + i._autoReadAloud
             raise web.seeother(redirect_url)
 
-        action = i.action
-
         if action == 'return':
             loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='return_loan')
+            stats.increment('ol.loans.return')
             raise web.seeother(edition.url())
+        elif action == 'join-waitinglist':
+            loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='join_waitlist')
+            stats.increment('ol.loans.joinWaitlist')
+            raise web.redirect(edition.url())
+        if action == 'leave-waitinglist':
+            loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='leave_waitlist')
+            stats.increment('ol.loans.leaveWaitlist')
+            raise web.redirect(edition.url())
 
         # Intercept a 'borrow' action if the user has already
         # borrowed the book and convert to a 'read' action.
         # Added so that direct bookreader links being routed through
         # here can use a single action of 'borrow', regardless of
         # whether the book has been checked out or not.
-        if user.has_borrowed(edition):
+        elif user.has_borrowed(edition):
             action = 'read'
 
-        bookPath = '/stream/' + edition.ocaid
-        if i._autoReadAloud is not None:
-            bookPath += '?_autoReadAloud=show'
-
-        if action in ('borrow', 'browse'):
-            resource_type = i.format or 'bookreader'
-
-            if resource_type not in ['epub', 'pdf', 'bookreader']:
-                raise web.seeother(error_redirect)
-
-            borrow_access = user_can_borrow_edition(
-                user, edition, resource_type, action=action)
+        elif action in ('borrow', 'browse'):
+            borrow_access = user_can_borrow_edition(user, edition)
 
             if not (s3_keys or borrow_access):
                 raise web.seeother(error_redirect)
 
-            if borrow_access == 'browse':
-                loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='browse_book')
-                stats.increment('ol.loans.bookreader')
-                stats.increment('ol.loans.browse')
-                action = 'read'
-            elif borrow_access == 'borrow':
-                # This must be called before the loan is initiated,
-                # otherwise the user's waitlist status will be cleared
-                # upon loan creation
-                track_loan = False if is_users_turn_to_borrow(user, edition) else True
-
-                loan = lending.create_loan(
-                    identifier=edition.ocaid,
-                    resource_type=resource_type,
-                    user_key=ia_itemname,
-                    book_key=key)
-
-                if loan:
-                    loan_link = loan['loan_link']
-                    if resource_type == 'bookreader':
-                        if track_loan:
-                            # As of 2017-12-14, Petabox will be
-                            # responsible for tracking borrows which
-                            # are the result of waitlist redemptions,
-                            # so we don't want to track them here to
-                            # avoid double accounting. When a reader
-                            # is at the head of a waitlist and goes to
-                            # claim their loan, Petabox now checks
-                            # whether the waitlist was initiated from
-                            # OL, and if it was, petabox tracks
-                            # ol.loans.bookreader accordingly via
-                            # lending.create_loan.
-                            stats.increment('ol.loans.bookreader')
-                            stats.increment('ol.loans.borrow')
-
-                        raise web.seeother(make_bookreader_auth_link(
-                            loan.get_key(), edition.ocaid,
-                            bookPath, ol_host,
-                            ia_userid=ia_itemname))
-                    elif resource_type == 'pdf':
-                        stats.increment('ol.loans.pdf')
-                        raise web.seeother(loan_link)
-                    elif resource_type == 'epub':
-                        stats.increment('ol.loans.epub')
-                        raise web.seeother(loan_link)
-                else:
-                    raise web.seeother(error_redirect)
-            else:
-                raise web.seeother(error_redirect)
+            loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='%s_book' % borrow_access)
+            stats.increment('ol.loans.bookreader')
+            stats.increment('ol.loans.%s' % borrow_access)
+            action = 'read'
 
         if action == 'read':
+            bookPath = '/stream/' + edition.ocaid
+            if i._autoReadAloud is not None:
+                bookPath += '?_autoReadAloud=show'
+
             # Look for loans for this book
             user.update_loan_status()
             loans = get_loans(user)
@@ -237,15 +190,6 @@ class borrow(delegate.page):
                         loan['_key'], edition.ocaid, bookPath,
                         ol_host, ia_userid=ia_itemname
                     ))
-        if action == 'join-waitinglist':
-            loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='join_waitlist')
-            stats.increment('ol.loans.joinWaitlist')
-            raise web.redirect(edition.url())
-
-        if action == 'leave-waitinglist':
-            loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='leave_waitlist')
-            stats.increment('ol.loans.leaveWaitlist')
-            raise web.redirect(edition.url())
 
         # Action not recognized
         raise web.seeother(error_redirect)
@@ -779,7 +723,7 @@ def resource_uses_bss(resource_id):
                 return True
     return False
 
-def user_can_borrow_edition(user, edition, resource_type, action='borrow'):
+def user_can_borrow_edition(user, edition):
     """Returns the type of borrow for which patron is eligible, favoring
     "browse" over "borrow" where available, otherwise return False if
     patron is not eligible.
@@ -788,7 +732,6 @@ def user_can_borrow_edition(user, edition, resource_type, action='borrow'):
     lending_st = lending.get_groundtruth_availability(edition.ocaid, {})
 
     book_is_lendable = lending_st.get('is_lendable', False)
-    book_is_available = lending_st.get('available_to_%s' % action, False)
     book_is_waitlistable = lending_st.get('available_to_waitlist', False)
     user_is_below_loan_limit = user.get_loan_count() < user_max_loans
 
