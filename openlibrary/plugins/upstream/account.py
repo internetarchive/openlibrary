@@ -830,13 +830,13 @@ class readinglog_stats(delegate.page):
 
 
 class account_my_books_redirect(delegate.page):
-    path = "/account/books/([a-zA-Z_-]+)"
+    path = "/account/books/(.*)"
 
     @require_login
-    def GET(self, key='loans'):
+    def GET(self, rest='loans'):
         user = accounts.get_current_user()
         username = user.key.split('/')[-1]
-        raise web.seeother('/people/%s/books/%s' % (username, key))
+        raise web.seeother('/people/%s/books/%s' % (username, rest))
 
 class account_my_books(delegate.page):
     path = "/account/books"
@@ -879,11 +879,14 @@ class account_loans(delegate.page):
         loans = borrow.get_loans(user)
         return render['account/borrow'](user, loans)
 
-class account_others(delegate.page):
-    path = "(/account/.*)"
-
-    def GET(self, path):
-        return render.notfound(path, create=False)
+# Disabling be cause it prevents account_my_books_redirect from working
+# for some reason. The purpose of this class is to not show the "Create" link for
+# /account pages since that doesn't make any sense.
+# class account_others(delegate.page):
+#     path = "(/account/.*)"
+#
+#     def GET(self, path):
+#         return render.notfound(path, create=False)
 
 
 def send_email_change_email(username, email):
