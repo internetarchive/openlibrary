@@ -107,6 +107,12 @@ jQuery(function () {
         import(/* webpackChunkName: "graphs" */ './graphs')
             .then((module) => module.init());
     }
+
+    if (window.READINGLOG_STATS_CONFIG) {
+        import(/* webpackChunkName: "readinglog_stats" */ './readinglog_stats')
+            .then(module => module.init(window.READINGLOG_STATS_CONFIG));
+    }
+
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
