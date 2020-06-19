@@ -830,13 +830,13 @@ class readinglog_stats(delegate.page):
 
 
 class account_my_books_redirect(delegate.page):
-    path = "/account/books/([a-zA-Z_-]+)"
+    path = "/account/books/(.*)"
 
     @require_login
-    def GET(self, key='loans'):
+    def GET(self, rest='loans'):
         user = accounts.get_current_user()
         username = user.key.split('/')[-1]
-        raise web.seeother('/people/%s/books/%s' % (username, key))
+        raise web.seeother('/people/%s/books/%s' % (username, rest))
 
 class account_my_books(delegate.page):
     path = "/account/books"
