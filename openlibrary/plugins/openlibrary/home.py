@@ -239,7 +239,7 @@ def format_book_data(book):
 
     work = book.works and book.works[0]
     d.authors = get_authors(work if work else book)
-    d.work_key = book.key if book.key.startswith('/work') else work.key
+    d.work_key = work.key if work else book.key
     cover = work.get_cover() if work and work.get_cover() else book.get_cover()
 
     if cover:

@@ -12,7 +12,7 @@ $ loanstatus_start_time = time()
 
 $ availability = page.availability if hasattr(page, 'availability') else {}
 $ ocaid = page.get('ocaid') or availability.get('identifier')
-$ work_key = work_key or (page.works and page.works[0].key)
+$ work_key = work_key or (page.get('works') and page.works[0].key)
 $ user_loan = None
 $ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
