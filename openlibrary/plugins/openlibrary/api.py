@@ -71,11 +71,7 @@ class browse(delegate.page):
             work_id=i.work_id, _type=i._type, sorts=sorts)
         result = {
             'query': url,
-            'works': [
-                work.dict() for work in lending.add_availability(
-                    lending.get_available(url=url)
-                )
-            ]
+            'works': [work.dict() for work in lending.get_available(url=url)],
         }
         return delegate.RawText(
             simplejson.dumps(result),

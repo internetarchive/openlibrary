@@ -7,8 +7,6 @@ $if slick_font not in ctx.links:
   $ ctx.links.append(slick_font)
 
 $def render_carousel_cover(book, lazy):
-  $ availability = book.get('availability', {})
-  $ ocaid = book.get('ocaid') or availability.get('identifier')
   $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
   $ cover_host = '//covers.openlibrary.org'
   $ url = book.get('key') or book.url
@@ -31,27 +29,7 @@ $def render_carousel_cover(book, lazy):
     $ byline = ''
     $ author_names = ''
   $ modifier = ''
-
-  $ cta = ('Not In Library')
-  $ cta_cls = 'missing'
-  $ cta_url = url
-  $if book.get('eligibility', {}).get('is_eligible'):
-    $ cta_url = book['eligibility']['sponsor_url']
-    $ cta = _('Sponsor')
-    $ cta_cls = 'sponsor'
-  $if book.get('ia') or book.get('ocaid'):
-    $# See PR #3349 -- Hacky availability heuristic until #3180 lands  
-    $ cta_cls = 'available'
-    $if book.get('ocaid') or availability.get('status') == 'borrow_available' or book.get('lending_edition'):
-      $ modifier = 'borrow-link'
-      $ cta = _('Borrow')
-      $if ocaid:
-        $ cta_url = '/borrow/ia/%s?ref=ol' % ocaid
-      $else:
-        $ cta_url = "/books/%s/x/borrow?ref=ol" % book.get('lending_edition')
-    $else:
-      $ cta_url = "//archive.org/stream/%s?ref=ol" % book.get('ia')[0]
-      $ cta = _('Read')
+  $ work_key = book.key if book.key.startswith('/work') else book.work_key
 
   $if lazy:
     $ img_attr = 'data-lazy'
@@ -74,9 +52,9 @@ $def render_carousel_cover(book, lazy):
           </div>
       </a>
     </div>
-    $if cta:
-      <div class="book-cta"><a class="cta-btn cta-btn--$(cta_cls) $modifier" href="$cta_url" data-ol-link-track="$key" title="$cta $book.title"
-        data-key="$(key)" data-ocaid="$(book.get('ia'))">$cta</a></div>
+    <div class="book-cta">
+      $:macros.LoanStatus(book, editions_page=False, work_key=work_key, listen=False, daisy=False)
+    </div>
   </div>
 
 $if test or (books and len(books) >= min_books):
