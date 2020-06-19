@@ -9,19 +9,16 @@ import uniqBy from 'lodash/uniqBy';
 import 'chart.js';
 import 'chartjs-plugin-datalabels';
 
+/**
+ * @param {object} config 
+ * @param {object[]} config.works
+ * @param {object[]} config.authors
+ * @param {string} config.lang
+ * @param {string} config.charts_selector
+ */
 window.initReadingLogStats = function (config) {
     Chart.scaleService.updateScaleDefaults('linear', { ticks: { beginAtZero: true, stepSize: 1 } });
     const authors_by_id = fromPairs(config.authors.map(a => [a.key, a]));
-
-    function getPath(obj, key) {
-        function main(obj, [head, ...rest]) {
-            if (typeof(obj) == 'undefined') return undefined;
-            if (!head) return obj;
-            if (head.endsWith('[]')) return obj[head.slice(0, -2)].flatMap(x => main(x, rest));
-            else return main(obj[head], rest);
-        }
-        return main(obj, key.split('.'));
-    }
 
     function createWorkChart(config, chartConfig, container, canvas) {
         const grouped = {};
@@ -119,7 +116,6 @@ window.initReadingLogStats = function (config) {
     .then(r => r.json())
     .then(resp => {
         const bindings = resp.results.bindings;
-        console.log(resp);
         const grouped = groupBy(bindings, o => o.x.value.split('/')[4]);
         const records = entries(grouped).map(([qid, bindings]) => {
             const record = { qid, olids: uniq(bindings.map(x => x.olid.value)) };
@@ -140,7 +136,7 @@ window.initReadingLogStats = function (config) {
             }
             return record;
         });
-        console.log(records);
+
         for (const record of records) {
             for (const olid of record.olids) {
                 if (`/authors/${olid}` in authors_by_id) {
@@ -155,8 +151,8 @@ window.initReadingLogStats = function (config) {
         work.authors = work.author_keys.map(key => authors_by_id[key]);
     }
 
-    for (const chartConfig of config.charts) {
-        const container = document.getElementById(chartConfig.id);
+    for (const container of document.querySelectorAll(config.charts_selector)) {
+        const chartConfig = JSON.parse(container.dataset['config']);
         const canvas = document.createElement('canvas');
         container.append(canvas);
 
@@ -166,4 +162,19 @@ window.initReadingLogStats = function (config) {
             wdPromise.then(() => createWorkChart(config, chartConfig, container, canvas));
         }
     }
+}
+
+/**
+ * @param {object} obj 
+ * @param {string} key 
+ * @return {any}
+ */
+function getPath(obj, key) {
+    function main(obj, [head, ...rest]) {
+        if (typeof(obj) == 'undefined') return undefined;
+        if (!head) return obj;
+        if (head.endsWith('[]')) return obj[head.slice(0, -2)].flatMap(x => main(x, rest));
+        else return main(obj[head], rest);
+    }
+    return main(obj, key.split('.'));
 }

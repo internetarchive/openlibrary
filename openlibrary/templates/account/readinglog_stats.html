@@ -102,30 +102,20 @@ $jsdef render_excluded_works_list(works, total):
     <h2>$_('Author Stats')</h2>
 
     <section class="charts-flow">
-        <section class="readinglog-chart-container">
-            <h3>$_('Most Read Authors')</h3>
-            <div class="readinglog-stats-chart" id="author-name"></div>
-        </section>
+        $code:
+            charts = [
+                { 'title': _('Most Read Authors'), 'type': 'work-chart', 'key': 'authors[].name' },
+                { 'title': _('Works by Author Sex'), 'type': 'wd-chart', 'key': 'authors[].wd.sexLabel[].value' },
+                { 'title': _('Works by Author Ethnicity'), 'type': 'wd-chart', 'key': 'authors[].wd.ethnic_groupLabel[].value' },
+                { 'title': _('Works by Author Country of Citizenship'), 'type': 'wd-chart', 'key': 'authors[].wd.country_of_citizenshipLabel[].value' },
+                { 'title': _('Works by Author Country of Birth'), 'type': 'wd-chart', 'key': 'authors[].wd.country_of_birthLabel[].value' },
+            ]
 
-        <section class="readinglog-chart-container">
-            <h3>$_('Works by Author Sex')</h3>
-            <div class="readinglog-stats-chart" id="author-sex"></div>
-        </section>
-
-        <section class="readinglog-chart-container">
-            <h3>$_('Works by Author Ethnicity')</h3>
-            <div class="readinglog-stats-chart" id="author-ethnic-group"></div>
-        </section>
-
-        <section class="readinglog-chart-container">
-            <h3>$_('Works by Author Country of Citizenship')</h3>
-            <div class="readinglog-stats-chart" id="author-country-of-citizenship"></div>
-        </section>
-
-        <section class="readinglog-chart-container">
-            <h3>$_('Works by Author Country of Birth')</h3>
-            <div class="readinglog-stats-chart" id="author-country-of-birth"></div>
-        </section>
+        $for chart in charts:
+            <section class="readinglog-chart-container">
+                <h3>$chart['title']</h3>
+                <div class="readinglog-stats-chart" data-config="$dumps(chart)"></div>
+            </section>
     </section>
 
     <small>$:_('Demographic statistics powered by <a href="https://www.wikidata.org/">Wikidata</a>. Here\'s a <a id="wd-query-sample" href="">sample</a> of the query used.')</small>
@@ -133,25 +123,20 @@ $jsdef render_excluded_works_list(works, total):
     <h2>$_('Work Stats')</h2>
 
     <section class="charts-flow">
-        <section class="readinglog-chart-container">
-            <h3>$_('Works by Subject')</h3>
-            <div class="readinglog-stats-chart" id="work-subjects"></div>
-        </section>
 
-        <section class="readinglog-chart-container">
-            <h3>$_('Works by People')</h3>
-            <div class="readinglog-stats-chart" id="work-subject-people"></div>
-        </section>
+        $code:
+            charts = [
+                { 'title': _('Works by Subject'), 'type': 'work-chart', 'key': 'subjects', 'exclude': ['Accessible book', 'Protected DAISY', 'In library', 'Lending library'] },
+                { 'title': _('Works by People'), 'type': 'work-chart', 'key': 'subject_people' },
+                { 'title': _('Works by Places'), 'type': 'work-chart', 'key': 'subject_places' },
+                { 'title': _('Works by Time Period'), 'type': 'work-chart', 'key': 'subject_times' },
+            ]
 
-        <section class="readinglog-chart-container">
-            <h3>$_('Works by Places')</h3>
-            <div class="readinglog-stats-chart" id="work-subject-places"></div>
-        </section>
-
-        <section class="readinglog-chart-container">
-            <h3>$_('Works by Time Period')</h3>
-            <div class="readinglog-stats-chart" id="work-subject-times"></div>
-        </section>
+        $for chart in charts:
+            <section class="readinglog-chart-container">
+                <h3>$chart['title']</h3>
+                <div class="readinglog-stats-chart" data-config="$dumps(chart)"></div>
+            </section>
     </section>
 </div>
 
@@ -171,16 +156,6 @@ $jsdef render_excluded_works_list(works, total):
         works: $:works_json,
         authors: $:authors_json,
         lang: $:dumps(lang),
-        charts: [
-            { id: 'work-subjects', type: 'work-chart', key: 'subjects', exclude: ['Accessible book', 'Protected DAISY', 'In library', 'Lending library'] },
-            { id: 'work-subject-people', type: 'work-chart', key: 'subject_people' },
-            { id: 'work-subject-places', type: 'work-chart', key: 'subject_places' },
-            { id: 'work-subject-times', type: 'work-chart', key: 'subject_times' },
-            { id: 'author-name', type: 'work-chart', key: 'authors[].name' },
-            { id: 'author-sex', type: 'wd-chart', key: 'authors[].wd.sexLabel[].value' },
-            { id: 'author-ethnic-group', type: 'wd-chart', key: 'authors[].wd.ethnic_groupLabel[].value' },
-            { id: 'author-country-of-citizenship', type: 'wd-chart', key: 'authors[].wd.country_of_citizenshipLabel[].value' },
-            { id: 'author-country-of-birth', type: 'wd-chart', key: 'authors[].wd.country_of_birthLabel[].value' },
-        ],
+        charts_selector: '.readinglog-stats-chart',
     }));
 </script>
