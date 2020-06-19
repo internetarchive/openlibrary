@@ -1,3 +1,4 @@
+// @ts-check
 import fromPairs from 'lodash/fromPairs';
 import isUndefined from 'lodash/isUndefined';
 import includes from 'lodash/includes';
@@ -10,28 +11,61 @@ import Chart from 'chart.js';
 import 'chartjs-plugin-datalabels';
 
 /**
- * @param {object} config
- * @param {object[]} config.works
- * @param {object[]} config.authors
- * @param {string} config.lang
- * @param {string} config.charts_selector
+ * @typedef {object} Work
+ * @property {string} key
+ */
+
+/**
+ * @typedef {object} Author
+ * @property {string} key
+ */
+
+/**
+ * @typedef {object} Config
+ * @property {Work[]} works
+ * @property {Author[]} authors
+ * @property {string} lang
+ * @property {string} charts_selector
+ */
+
+/**
+ * @typedef {object} ChartConfig
+ * @property {string} title
+ * @property {'wd-chart' | 'work-chart'} type
+ * @property {string} key
+ * @property {string[]} [exclude]
+ */
+
+/**
+ * @param {Config} config
  */
 export function init(config) {
     Chart.scaleService.updateScaleDefaults('linear', { ticks: { beginAtZero: true, stepSize: 1 } });
     const authors_by_id = fromPairs(config.authors.map(a => [a.key, a]));
 
+    /**
+     *
+     * @param {Config} config
+     * @param {ChartConfig} chartConfig
+     * @param {Element} container
+     * @param {HTMLCanvasElement} canvas
+     */
     function createWorkChart(config, chartConfig, container, canvas) {
+        /** @type {{[key: string]: Work[]}} */
         const grouped = {};
+        /** @type {Work[]} */
         const excluded = [];
+
         for (const work of config.works) {
-            const item = getPath(work, chartConfig.key);
-            if (!item || !item.filter(x => !isUndefined(x) && !includes(chartConfig.exclude, x)).length) {
+            const allKeys = getPath(work, chartConfig.key) || [];
+            const validKeys = allKeys.filter(key => !isUndefined(key) && !includes(chartConfig.exclude, key));
+            if (!validKeys.length) {
                 excluded.push(work);
                 continue;
             }
-            for (const s of item.filter(x => !isUndefined(x) && !includes(chartConfig.exclude, x))) {
-                grouped[s] = grouped[s] || [];
-                grouped[s].push(work);
+            for (const key of validKeys) {
+                grouped[key] = grouped[key] || [];
+                grouped[key].push(work);
             }
         }
 
@@ -170,6 +204,11 @@ export function init(config) {
  * @return {any}
  */
 function getPath(obj, key) {
+    /**
+     * @param {object} obj
+     * @param {string[]} param1
+     * @return {any}
+     */
     function main(obj, [head, ...rest]) {
         if (typeof(obj) == 'undefined') return undefined;
         if (!head) return obj;
