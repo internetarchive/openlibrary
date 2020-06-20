@@ -2,11 +2,10 @@ $def with (page, include_rating=True, include_header=True, include_widget=True, 
 
 $ edition = page if page.key.startswith("/books/") else None
 $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
-$ work_key = work.key if work else None
-$ edition_key = edition.key if edition else None
+$ work_key = work and work.key
+$ edition_key = edition and edition.key
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ users_work_read_status = read_status or work.get_users_read_status(username) if work and username else None
-$ users_work_rating = rating or work.get_users_rating(username) if work and username else None
 
 $if "lists" not in ctx.features:
     $return
@@ -238,7 +237,7 @@ $if include_header:
 
 $if include_widget:
   $if include_rating:
-    $:macros.StarRatings(work_key, edition_key=edition_key, rating=users_work_rating)
+    $:macros.StarRatings(work, edition)
   $if ctx.user or not work_key:
     <div id="widget-add" $:(not work_key and 'class="old-style-lists"')>
       $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url(), readinglog_only)
