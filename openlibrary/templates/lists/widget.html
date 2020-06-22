@@ -113,7 +113,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
             <div class="dropper on">
           $if work_key:
             <div class="log-work">
-              <form method="POST" action="$(work_key)/bookshelves.json">
+              <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
                 $if users_work_read_status == 3:
                     $ message = _("Already Read")
                 $elif users_work_read_status == 2:
@@ -138,7 +138,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                   </button>
 
                 $if edition_key:
-                  <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                  <input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>
               </form>
               $if users_work_read_status:
                 <a href="javascript:;" class="dropclick dropclick-activated">
@@ -152,32 +152,32 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
             <div class="dropdown">
               <div class="read-statuses">
                 $if users_work_read_status == 2 or users_work_read_status == 3:
-                  <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                  <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
                     <input type="hidden" name="action" value="add"/>
                     <input type="hidden" name="redir" value="true"/>
                     <input type="hidden" name="bookshelf_id" value="1"/>
                     $if edition_key:
-                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                      <input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>
                     <button class="nostyle-btn" type="submit">$_('Want to Read')</button>
                   </form>
 
                 $if users_work_read_status != 2:
-                  <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                  <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
                     <input type="hidden" name="action" value="add"/>
                     <input type="hidden" name="redir" value="true"/>
                     <input type="hidden" name="bookshelf_id" value="2"/>
                     $if edition_key:
-                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                      <input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>
                     <button class="nostyle-btn" type="submit">$('Currently Reading')</button>
                   </form>
 
                 $if users_work_read_status != 3:
-                  <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                  <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
                     <input type="hidden" name="action" value="add"/>
                     <input type="hidden" name="redir" value="true"/>
                     <input type="hidden" name="bookshelf_id" value="3"/>
                     $if edition_key:
-                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                      <input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>
                     <button class="nostyle-btn" type="submit">$_('Already Read')</button>
                   </form>
               </div>
