@@ -738,6 +738,7 @@ class ReadingLog(object):
         else: # must be a list or invalid page!
             #works = web.ctx.site.get_many([ ... ])
             raise
+
 class public_my_books(delegate.page):
     path = "/people/([^/]+)/books"
 
@@ -868,6 +869,60 @@ class fake_civi(delegate.page):
         }
         entity = contributions if i.entity == 'Contribution' else contact
         return delegate.RawText(simplejson.dumps(entity), content_type="application/json")
+
+class import_books(delegate.page):
+    path = "/account/import"
+
+    @require_login
+    def GET(self):
+        return render['account/import']()
+
+class fetch_goodreads(delegate.page):
+    path = "/account/import/goodreads"
+
+    @require_login
+    def POST(self):
+        import csv
+        import requests
+        from bs4 import BeautifulSoup
+        i = web.input(username='', password='')
+        url = 'https://www.goodreads.com'
+        user = accounts.get_current_user()
+        s = requests.Session()
+
+        r = s.get(url)
+        bs = BeautifulSoup(r.content)
+
+        r = s.post('https://www.goodreads.com/user/sign_in', data={
+            'user[email]': i.username,
+            'user[password]': i.password,
+            'authenticity_token': bs.find('input', {
+                'name': 'authenticity_token'}).get('value', ''),
+            'n': bs.find('input', {'name': 'n'}).get('value', '')
+        })
+        user_id = re.findall('\/user\/show/([0-9]+)', r.content)
+        if user_id:
+            r = s.get(
+                '%s/review_porter/export/%s/goodreads_export.csv' % (
+                    url, user_id[0]), allow_redirects=True)
+            csv_file = csv.reader(r.content.splitlines(),
+                                  delimiter=',', quotechar='"')
+            header = csv_file.next()
+            books = {}
+
+            for book in list(csv_file):
+                _book = dict(zip(header, book))
+                try:
+                    _book['ISBN'] = re.findall('[^="]+', _book['ISBN'])[0]
+                    _book['ISBN13'] = re.findall('[^="]+', _book['ISBN13'])[0]
+                    if _book['ISBN']:
+                        books[_book['ISBN']] = _book
+                except:
+                    pass
+            return render['account/import'](books)
+        return render['account/import'](r2.content)
+
+
 
 class account_loans(delegate.page):
     path = "/account/loans"

@@ -1,0 +1,25 @@
+$def with (books=None)
+
+$ title = "Import & Export Options"
+$var title: $_(title)
+
+<div id="contentHead">
+    <div class="small sansserif grey account-settings-menu">
+      <a href="$ctx.user.key">$ctx.user.displayname</a>
+      &raquo;
+      <a href="$homepath()/account">$_("Settings")</a>
+      &raquo; Privacy
+    </div>
+    <h1>$title</h1>
+</div>
+
+<div id="contentBody">
+  <h3>Import from Goodreads</h3>
+  <form method="POST" action="/account/import/goodreads?debug=true">
+    <input name="username">
+    <input name="password" type="password">
+    <input type="submit">
+  </form>
+
+  $:books
+</div>
