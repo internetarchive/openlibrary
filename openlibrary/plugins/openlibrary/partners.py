@@ -1,5 +1,5 @@
 import re
-from StringIO import StringIO
+from six.moves import StringIO
 import web
 import internetarchive as ia
 from six.moves.urllib.parse import quote
