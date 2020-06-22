@@ -32,7 +32,7 @@ export function initEditionsTable() {
         }
     });
     rowCount = $('#editions tbody tr').length;
-    if (rowCount < 16) {
+    if (rowCount < 4) {
         $('#editions').dataTable({
             aoColumns: [{sType: 'html'},null],
             aaSorting: [ [1,'asc'] ],
@@ -46,6 +46,7 @@ export function initEditionsTable() {
         $('#editions').dataTable({
             aoColumns: [{sType: 'html'},null],
             aaSorting: [ [1,'asc'] ],
+            iDisplayLength: 3,
             bPaginate: true,
             bInfo: true,
             sPaginationType: 'full_numbers',
