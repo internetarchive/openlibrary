@@ -98,7 +98,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
             <div class="dropper on">
           $if work_key:
             <div class="log-work">
-              <form method="POST" action="$(work_key)/bookshelves.json">
+              <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
                 $if users_work_read_status == 3:
                     $ message = _("Already Read")
                 $elif users_work_read_status == 2:
@@ -123,7 +123,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                   </button>
 
                 $if edition_key:
-                  <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                  <input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>
               </form>
               $if users_work_read_status:
                 <a href="javascript:;" class="dropclick dropclick-activated">
@@ -137,32 +137,32 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
             <div class="dropdown">
               <div class="read-statuses">
                 $if users_work_read_status == 2 or users_work_read_status == 3:
-                  <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                  <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
                     <input type="hidden" name="action" value="add"/>
                     <input type="hidden" name="redir" value="true"/>
                     <input type="hidden" name="bookshelf_id" value="1"/>
                     $if edition_key:
-                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                      <input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>
                     <button class="nostyle-btn" type="submit">$_('Want to Read')</button>
                   </form>
 
                 $if users_work_read_status != 2:
-                  <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                  <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
                     <input type="hidden" name="action" value="add"/>
                     <input type="hidden" name="redir" value="true"/>
                     <input type="hidden" name="bookshelf_id" value="2"/>
                     $if edition_key:
-                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                      <input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>
                     <button class="nostyle-btn" type="submit">$('Currently Reading')</button>
                   </form>
 
                 $if users_work_read_status != 3:
-                  <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                  <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
                     <input type="hidden" name="action" value="add"/>
                     <input type="hidden" name="redir" value="true"/>
                     <input type="hidden" name="bookshelf_id" value="3"/>
                     $if edition_key:
-                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                      <input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>
                     <button class="nostyle-btn" type="submit">$_('Already Read')</button>
                   </form>
               </div>
@@ -175,6 +175,9 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                       $if not list.active:
                         <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
                   </div>
+                  <p class="create checkboxes">
+                  <label for="x"><input type="checkbox" onclick="if(this.checked){myFunction()}else{myFunction1()}" id="work-check"/> <span>Use this Work</span></label>
+                  </p>
                   <p class="create"><a href="javascript:;" id="create-new-list">$_('Create a new list')</a>
                     <a aria-controls="addList"
                       class="hidden listClick dialog--open"></a>
@@ -234,32 +237,6 @@ $if include_header:
   <div id="widget-head">
     $:render_head()
   </div>
-
-$if include_widget:
-  $if include_rating:
-    $:macros.StarRatings(work, edition)
-  $if ctx.user or not work_key:
-    <div id="widget-add" $:(not work_key and 'class="old-style-lists"')>
-      $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url(), readinglog_only)
-    </div>
-  $else:
-    <div class="dropit">
-        <div class="dropper on">
-          $if work:
-            <div class="log-work">
-              <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
-                <input type="hidden" name="action" value="add"/>
-                  $if edition_key:
-                    <input type="hidden" name="edition_id" value="$(edition_key)"/>
-
-                  <button class="unactivated" type="submit">$_('Want to Read')</button>
-                </form>
-                <a href="/account/login?redir=$(page_url)" class="dropclick-prevent dropclick-unactivated">
-                  <div class="arrow arrow-unactivated"></div>
-                </a>
-            </div>
-        </div>
-    </div>
 
 $if include_showcase:
   <ul class="listLists" id="widget-lists">
@@ -381,6 +358,17 @@ $if ctx.user:
     var work_key = '$(work_key)';
     var edition_key = '$(edition_key)';
     var username = '$(username or "")';
+
+
+    function myFunction(){
+      console.log("Button checked");
+      \$("input").remove("#edition_id");
+    }
+
+    function myFunction1(){
+      console.log("Button unchecked");
+      \$(".readingLog").append(`<input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>`);
+    }
 
     function reload_widget() {
         \$("#widget-head").html(render_head());
