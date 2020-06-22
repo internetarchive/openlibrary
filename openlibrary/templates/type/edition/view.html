@@ -5,6 +5,56 @@ $def with (page)
     padding-top: 15px;
   }
 
+  .addReadMore.showlesscontent .SecSec,
+    .addReadMore.showlesscontent .readLess {
+        display: none;
+    }
+
+  .addReadMore.showmorecontent .readMore {
+      display: none;
+  }
+
+  .addReadMore .readMore,
+  .addReadMore .readLess {
+      font-weight: bold;
+      margin-left: 2px;
+      color: blue;
+      cursor: pointer;
+  }
+
+  .addReadMoreWrapTxt.showmorecontent .SecSec,
+  .addReadMoreWrapTxt.showmorecontent .readLess {
+      display: block;
+  }
+
+  .checkboxes label {
+  display: inline-block;
+  padding-right: 10px;
+  white-space: nowrap;
+  }
+
+  .checkboxes input {
+    vertical-align: middle;
+  }
+
+  .sidebar-box {
+  max-height: 140px;
+  position: relative;
+  overflow: hidden;
+  }
+
+  .sidebar-box .read-more { 
+    position: absolute; 
+    bottom: 0; 
+    left: 0;
+    width: 100%; 
+    text-align: center; 
+    margin: 0; padding: 30px 0; 
+    
+    /* "transparent" only works here because == rgba(0,0,0,0) */
+    background-image: linear-gradient(to bottom, transparent, white);
+  }
+
   .section {
     margin-top: 20px;
   }
@@ -59,6 +109,10 @@ $def with (page)
   }
 
   .work-menu li.selected {
+    border-bottom: 2px solid #0376b8;
+  }
+
+  .work-menu li:hover {
     border-bottom: 2px solid #0376b8;
   }
 
@@ -207,7 +261,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         <link itemprop="exampleOfWork" href="$work.key">
 
     <div class="editionCover">
-      $:macros.databarWork(page, editions_page=True)
+      $:macros.databarWork(edition, editions_page=True)
 
       $ contributors = edition.get('contributors', [])
       $if contributors:
@@ -220,24 +274,26 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         </div>
     </div>
 
-    <div class="editionAll">
-      
-      $if work.series:
-        <h2><a href="/works/$(work.series.work)">($work.series.name)</a></h2>
-      <h1 class="work-title" itemprop="name">$book_title</h1>
-      $if edition.subtitle or edition.edition_title or edition.edition_name:
-        <h2 class="work-subtitle">
-          $if edition.subtitle:
-            $edition.subtitle
-          $if edition.edition_title or edition.edition_name:
-            $if edition.subtitle:
-              &mdash;
-            $edition.edition_title $edition.edition_name
-      $if authors_byline:
-        <h2 class="edition-byline">$_("by") $:authors_byline</h2>
-    </div>
-
     <div class="editionAbout">
+
+      <div class="editionAll">
+        $:macros.databarView(page, edition)
+        $if work.series:
+          <h2><a href="/works/$(work.series.work)">($work.series.name)</a></h2>
+        <h1 class="work-title" itemprop="name">$book_title</h1>
+        $if edition.subtitle or edition.edition_title or edition.edition_name:
+          <h2 class="work-subtitle">
+            $if edition.subtitle:
+              $edition.subtitle
+            $if edition.edition_title or edition.edition_name:
+              $if edition.subtitle:
+                &mdash;
+              $edition.edition_title $edition.edition_name
+        $if authors_byline:
+          <h2 class="edition-byline">$_("by") $:authors_byline</h2>
+      </div>
+
+      $:macros.StarRatings(work, edition)
       $:macros.StarRatingsStats(work)
 
       <h4 class="publisher">
@@ -273,8 +329,8 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
       $if work:
         <div class="section">
-          <h3 class="">$_("About the Book")</h3>
-          <div class="collapse edition-description">
+          <h3>$_("About the Book")</h3>
+          <div class="addReadMore showlesscontent edition-description">
             $if work.description:
               $:sanitize(format(work.description))
             $else:
@@ -288,24 +344,24 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         $if work:
           <li class="$('selected' if not tab or tab == 'editions' else '')">
             <a class="$('selected' if not tab or tab == 'editions' else '')"
-               href="$(edition.url())#editions"
+               href="$(page.url())?tab=editions#editions"
                >View $edition_count Edition$("s" if edition_count > 1 else "")</a>
           </li>
         
-        <li class="$('selected' if tab == 'details' else '')">
+        <li id="details" class="$('selected' if tab == 'details' else '')">
           <a class="$('selected' if tab == 'details' else '')"
-             href="$edition.url()?tab=details">Overview</a>
+             href="$page.url()?tab=details#details">Overview</a>
         </li>
         
-        <li class="$('selected' if tab == 'buy' else '')">
+        <li id="buy" class="$('selected' if tab == 'buy' else '')">
           <a class="$('selected' if tab == 'buy' else '')"
-             href="$edition.url()?tab=buy">Get the Book</a>
+             href="$page.url()?tab=buy#buy">Get the Book</a>
         </li>
       </ul>
 
-      $if not tab:
+      $if (not tab) or tab == 'editions':
         <div class="clearfix"></div>
-        $:render_template("type/work/editions_datatable", work, editions=editions, edition=page)
+        $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
 
       $elif tab == 'buy':
         $ prices = page.key.startswith('/books/')
@@ -343,9 +399,9 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         $if (work and work.first_sentence) or edition.first_sentence:
             <h3 class="collapse">$_("First Sentence")</h3>
             <p>"$(edition.first_sentence or work.first_sentence)"</p>
-
-        <div class="edition-description section">
-          <h3 class="collapse">$_("About this Edition")</h3>
+        
+        <h3>$_("About this Edition")</h3>
+        <div class="addReadMore showlesscontent edition-description section">
             $if edition.description:
               $:sanitize(format(edition.description))
             $else:
@@ -436,6 +492,77 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         <!-- Don't need to translate admin only buttons (at least initially)-->
         <div class="small sansserif clearfix"><br/><span class="adminOnly"><a href="$edition.url('/borrow_admin')">View loan debugging information</a></span></div>
 
-    $:macros.databarView(page)
     $:render_template("lib/history", page)
 </div>
+
+<script type="text/javascript">
+
+    function AddReadMore() {
+        //This limit you can set after how much characters you want to show Read More.
+        var carLmt = 160;
+        // Text to show when text is collapsed
+        var readMoreTxt = " ... Read More";
+        // Text to show when text is expanded
+        var readLessTxt = " Read Less";
+
+
+        //Traverse all selectors with this class and manupulate HTML part to show Read More
+        \$(".addReadMore").each(function() {
+            if (\$(this).find(".firstSec").length)
+                return;
+
+            var allstr = \$(this).text();
+            if (allstr.length > carLmt) {
+                var firstSet = allstr.substring(0, carLmt);
+                var secdHalf = allstr.substring(carLmt, allstr.length);
+                var strtoadd = firstSet + "<span class='SecSec'>" + secdHalf + "</span><span class='readMore'  title='Click to Show More'>" + readMoreTxt + "</span><span class='readLess' title='Click to Show Less'>" + readLessTxt + "</span>";
+                \$(this).html(strtoadd);
+            }
+
+        });
+        //Read More and Read Less Click Event binding
+        \$(document).on("click", ".readMore,.readLess", function() {
+            \$(this).closest(".addReadMore").toggleClass("showlesscontent showmorecontent");
+        });
+    }
+    
+    \$(function() {
+        //Calling function after Page Load
+        AddReadMore();
+    });
+
+  var el, ps, up, totalHeight;
+
+  \$(".sidebar-box .button").click(function() {
+        
+    totalHeight = 0
+
+    el = \$(this);
+    p  = el.parent();
+    up = p.parent();
+    ps = up.find("p:not('.read-more')");
+    
+    // measure how tall inside should be by adding together heights of all inside paragraphs (except read-more paragraph)
+    ps.each(function() {
+      totalHeight += \$(this).outerHeight();
+    });
+          
+    up
+      .css({
+        // Set height to prevent instant jumpdown when max height is removed
+        "height": up.height(),
+        "max-height": 9999
+      })
+      .animate({
+        "height": totalHeight
+      });
+    
+    // fade out read-more
+    p.fadeOut();
+    
+    // prevent jump-down
+    return false;
+      
+  });
+
+</script>

@@ -45,11 +45,15 @@ $if isbn_10 and not asin:
               $:render_template('covers/change', page, ".edition-cover .bookCover img")
         </div>
 
-        $:macros.LoanStatus(page, allow_expensive_availability_check=editions_page, secondary_action=editions_page, check_sponsorship=editions_page, sponsorship_help=editions_page, check_loan_status=editions_page)
+        $ work = (page.works and page.works[0]) or page
+        $ edition = page.works and page
+        $ lists_widget = render_template('lists/widget', edition or work, include_rating=True, include_header=False, include_widget=True, include_showcase=False, user_lists_only=False))
+
+        $:macros.LoanStatus(page, allow_expensive_availability_check=editions_page, secondary_action=editions_page, check_sponsorship=editions_page, sponsorship_help=editions_page, check_loan_status=editions_page, post=lists_widget)
 
         $if page.get('ocaid') and not page.is_access_restricted() and page.ia_metadata:
-            $:macros.DownloadOptions(page)
-
+          $:macros.DownloadOptions(page)
+      
       </div>
     </div>
   </div>
