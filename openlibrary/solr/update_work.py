@@ -20,6 +20,7 @@ from openlibrary import config
 from openlibrary.catalog.utils.query import set_query_host, base_url as get_ol_base_url
 from openlibrary.core import helpers as h
 from openlibrary.core import ia
+from openlibrary.plugins.upstream.utils import url_quote
 from openlibrary.solr.data_provider import get_data_provider, DataProvider
 from openlibrary.utils.ddc import normalize_ddc
 from openlibrary.utils.isbn import opposite_isbn
@@ -1318,7 +1319,10 @@ def solr_select_work(edition_key):
 
     edition_key = solr_escape(edition_key)
 
-    url = 'http://' + get_solr() + '/solr/select?wt=json&q=edition_key:%s&rows=1&fl=key' % edition_key
+    url = 'http://%s/solr/select?wt=json&q=edition_key:%s&rows=1&fl=key' % (
+        get_solr(),
+        url_quote(edition_key)
+    )
     reply = json.load(urlopen(url))
     docs = reply['response'].get('docs', [])
     if docs:
