@@ -1,7 +1,6 @@
-$def with (doc, user=None, work_key=None, listen=True, daisy=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False)
+$def with (doc, work_key=None, listen=True, daisy=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False)
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
-$# * user
 $# * listen whether to display listen button
 $# * daisy whether to display daisy print-disabled link
 $# * allow_expensive_availability_check whether to check the groundtruth availability if can't get availability from specified fields
@@ -33,7 +32,7 @@ $ is_borrowable = lending_st.get('available_to_borrow') or lending_st.get('avail
 $ is_restricted = availability.get('is_restricted', False)
 $ is_readable = availability.get('is_readable', False)
 
-$if user and ocaid and doc.key.startswith('/book'):
+$if ctx.user and ocaid and doc.key.startswith('/book'):
   $ current_and_available_loans = doc.get_current_and_available_loans()
   $ user_loan = None
   $if ctx.user:
@@ -44,11 +43,10 @@ $if user and ocaid and doc.key.startswith('/book'):
 
 $ current_loans = current_and_available_loans[0] if current_and_available_loans else []
 
-$if user:
-    $for current_loan in current_loans:
-        $if current_loan['user'] == ctx.user.key:
-            $ user_loan = current_loan
-            $ break
+$for current_loan in current_loans:
+    $if current_loan['user'] == ctx.user.key:
+        $ user_loan = current_loan
+        $ break
 
 $if doc.key.startswith('/book') and user_loan:
   $:macros.ReadButton(ocaid, loan=user_loan, listen=listen)

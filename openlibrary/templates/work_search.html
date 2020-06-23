@@ -215,17 +215,13 @@ $ )
           <ul class="list-books" id="siteSearch">
             $ works = add_availability([get_doc(d) for d in docs])
 
-            $ loans = ctx.user.get_loans() if ctx.user else []
-            $ waiting_loans = ctx.user.get_waitinglist() if ctx.user else []
-            $ user = {'loans': loans, 'waitlists': waiting_loans}
-
             $for work in works:
                 $ ocaid = work.ia[0] if work.ia else None
                 $ availability = work.get('availability', {}).get('status')
                 $# if we're explicitly showing *everything*...
                 $# or if we're showing only things with ocaids which are available...
                 $if 'has_fulltext' not in param or (ocaid and availability and availability not in ['error', 'private']):
-                    $:macros.SearchResultsWork(work, user=user)
+                    $:macros.SearchResultsWork(work)
           </ul>
           $:macros.Pager(page, num_found, rows)
         </div>

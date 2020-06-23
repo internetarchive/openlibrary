@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, user=None, extra=None)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None)
 
 $ is_work = doc.get('type', {}).get('key') == '/type/work'
 $ book_url = doc.url() if is_work else doc.key
@@ -57,7 +57,7 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
       <div class="searchResultItemCTA-lending">
         $if cta:
           $ doc['availability'] = doc.get('availability', {})
-          $:macros.LoanStatus(doc, user, work_key=doc.key)
+          $:macros.LoanStatus(doc, work_key=doc.key)
       </div>
   </div>
 </li>
