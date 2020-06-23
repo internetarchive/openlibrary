@@ -45,7 +45,7 @@ $ current_loans = current_and_available_loans[0] if current_and_available_loans 
 
 $if user:
     $for current_loan in current_loans:
-        $if current_loan['user'] == user.key:
+        $if current_loan['user'] == ctx.user.key:
             $ user_loan = current_loan
             $ break
 
