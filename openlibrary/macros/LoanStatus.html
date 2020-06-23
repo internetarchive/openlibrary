@@ -1,4 +1,4 @@
-$def with (doc, user=None, editions_page=False, block_name='', render_preview_floater=True, work_key=None, listen=True, daisy=True, allow_expensive_availability_check=False)
+$def with (doc, user=None, editions_page=False, block_name='', render_preview_floater=True, work_key=None, listen=True, daisy=True, allow_expensive_availability_check=False, secondary_action=False)
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * user
@@ -8,6 +8,7 @@ $# * render_preview_floater whether to render the HTML for the preview floater
 $# * listen whether to display listen button
 $# * daisy whether to display daisy print-disabled link
 $# * allow_expensive_availability_check whether to check the groundtruth availability if can't get availability from specified fields
+$# * secondary_action whether to display the preview/search inside button
 
 $ loanstatus_start_time = time()
 
@@ -60,7 +61,7 @@ $if doc.key.startswith('/book') and user_loan:
 
 $elif ocaid and is_readable:
   $:macros.ReadButton(ocaid, listen=listen)
-  $if editions_page:
+  $if secondary_action:
     $:macros.BookSearchInside(ocaid)
 
 $elif ocaid and is_lendable:
@@ -132,7 +133,7 @@ $elif not ocaid or (is_restricted and not is_lendable):
 
 
 $if ocaid and daisy:
-  $if editions_page and is_printdisabled:
+  $if secondary_action and is_printdisabled:
     $:macros.BookPreview(ocaid, render_preview_floater)
   $:macros.daisy(doc, url='/ia/%s/daisy' % ocaid, protected=is_printdisabled, block_name=block_name)
 
