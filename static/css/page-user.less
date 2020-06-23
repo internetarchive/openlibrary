@@ -11,6 +11,7 @@
  * - /account/login
  * - /account/loans
  * - /account/privacy
+ * - /account/import
  * - /advancedsearch
  * - /authors/OL22098A/Lewis_Carroll
  * - /authors/OL22098A/Lewis_Carroll/edit
@@ -100,6 +101,28 @@ div#subjectsPage{
   ul {
     display: inline-block;
   }
+}
+
+th.toggle-all {
+  background: @primary-blue;
+}
+
+.import-table {
+  border: 2px solid @lightest-grey;
+  td, th {
+    padding: 5px;
+  }
+  tbody tr:nth-child(odd) {
+    background: @lightest-grey;
+  }
+}
+
+.olform--decoration {
+  width: 350px;
+  margin: 20px 0;
+  border: 2px solid @lightest-grey;
+  padding: 20px;
+  border-radius: 5px;
 }
 
 // Import all common components

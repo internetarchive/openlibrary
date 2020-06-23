@@ -29,7 +29,7 @@ from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
     audit_accounts, Account, OpenLibraryAccount, InternetArchiveAccount, valid_email)
 from openlibrary.core.sponsorships import get_sponsored_editions
-
+from openlibrary.plugins.worksearch import search
 from openlibrary.plugins.upstream import borrow, forms, utils
 
 from six.moves import range
@@ -877,51 +877,77 @@ class import_books(delegate.page):
     def GET(self):
         return render['account/import']()
 
+    @require_login
+    def POST(self):
+        pass
+
 class fetch_goodreads(delegate.page):
     path = "/account/import/goodreads"
+
+    @classmethod
+    def get_works_by_isbns(cls, isbns):
+        solr = search.get_solr()
+        result = solr.select(
+            query="isbn:(%s)" % ' OR '.join([isbn for isbn in isbns]),
+            rows=1000,
+            fields=[
+                'key',
+                'cover_edition_key',
+                'isbn',
+            ])
+        return result.get('docs', {})
 
     @require_login
     def POST(self):
         import csv
         import requests
         from bs4 import BeautifulSoup
-        i = web.input(username='', password='')
+        i = web.input(username='', password='', csv={}, isbns='')
         url = 'https://www.goodreads.com'
         user = accounts.get_current_user()
-        s = requests.Session()
 
-        r = s.get(url)
-        bs = BeautifulSoup(r.content)
+        if not i.csv.value:
+            s = requests.Session()
+            r = s.get(url)
+            bs = BeautifulSoup(r.content)
 
-        r = s.post('https://www.goodreads.com/user/sign_in', data={
-            'user[email]': i.username,
-            'user[password]': i.password,
-            'authenticity_token': bs.find('input', {
-                'name': 'authenticity_token'}).get('value', ''),
-            'n': bs.find('input', {'name': 'n'}).get('value', '')
-        })
-        user_id = re.findall('\/user\/show/([0-9]+)', r.content)
-        if user_id:
-            r = s.get(
-                '%s/review_porter/export/%s/goodreads_export.csv' % (
-                    url, user_id[0]), allow_redirects=True)
-            csv_file = csv.reader(r.content.splitlines(),
-                                  delimiter=',', quotechar='"')
-            header = csv_file.next()
-            books = {}
+            r = s.post('https://www.goodreads.com/user/sign_in', data={
+                'user[email]': i.username,
+                'user[password]': i.password,
+                'authenticity_token': bs.find('input', {
+                    'name': 'authenticity_token'}).get('value', ''),
+                'n': bs.find('input', {'name': 'n'}).get('value', '')
+            })
+            user_id = re.findall('\/user\/show/([0-9]+)', r.content)
+            if user_id:
+                r = s.get(
+                    '%s/review_porter/export/%s/goodreads_export.csv' % (
+                        url, user_id[0]), allow_redirects=True)
+                csv_file = r.content
 
-            for book in list(csv_file):
-                _book = dict(zip(header, book))
-                try:
-                    _book['ISBN'] = re.findall('[^="]+', _book['ISBN'])[0]
-                    _book['ISBN13'] = re.findall('[^="]+', _book['ISBN13'])[0]
-                    if _book['ISBN']:
-                        books[_book['ISBN']] = _book
-                except:
-                    pass
-            return render['account/import'](books)
-        return render['account/import'](r2.content)
-
+        csv_file = csv.reader((i.csv.value or csv_file).splitlines(),
+                              delimiter=',', quotechar='"')
+        header = csv_file.next()
+        books = {}
+        isbns = []
+        # todo, add olid to each row
+        for book in list(csv_file):
+            _book = dict(zip(header, book))
+            try:
+                _book['ISBN'] = re.findall('[^="]+', _book['ISBN'])[0]
+                _book['ISBN13'] = re.findall('[^="]+', _book['ISBN13'])[0]
+                if _book['ISBN']:
+                    isbns.append(_book['ISBN'])
+                    books[_book['ISBN']] = _book
+            except:
+                pass
+        works = self.get_works_by_isbns(isbns)
+        for isbn in books:
+            for work in works:
+                if isbn in work.get('isbn'):
+                    books[isbn]['work_id'] = work.get('key')
+                    books[isbn]['cover_id'] = work.get('cover_edition_key')                    
+        return render['account/import'](books)
 
 
 class account_loans(delegate.page):

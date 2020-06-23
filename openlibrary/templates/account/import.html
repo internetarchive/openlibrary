@@ -1,6 +1,6 @@
 $def with (books=None)
 
-$ title = "Import & Export Options"
+$ title = "Import and Export Options"
 $var title: $_(title)
 
 <div id="contentHead">
@@ -8,18 +8,68 @@ $var title: $_(title)
       <a href="$ctx.user.key">$ctx.user.displayname</a>
       &raquo;
       <a href="$homepath()/account">$_("Settings")</a>
-      &raquo; Privacy
+      &raquo; $title
     </div>
     <h1>$title</h1>
 </div>
 
 <div id="contentBody">
-  <h3>Import from Goodreads</h3>
-  <form method="POST" action="/account/import/goodreads?debug=true">
-    <input name="username">
-    <input name="password" type="password">
-    <input type="submit">
-  </form>
+  <h3>$_("Import from Goodreads")</h3>
 
-  $:books
+  $if not books:
+    <form method="POST" action="/account/import/goodreads?debug=true"
+          enctype="multipart/form-data" class="olform olform--decoration">
+      <div>
+        <input name="username" type="text">
+      </div>
+      <div>
+        <input name="password" type="password">
+      </div>
+      $_("or")
+      <div>
+        <input type="file" name="csv" />
+      </div>
+      <div>
+        <input class="cta-btn cta-btn--available cta-btn--small"
+             type="submit" value="Load Books">
+      </div>
+    </form>
+
+  $else:
+    <!-- XXX Move to js -->
+    <script type="text/javascript">
+      \$(document).on('change', 'th.toggle-all input', function(){
+        var checked = \$(this).hasClass('selected') ? 
+          \$(this).removeClass('selected') && '' : \$(this).addClass('selected') && 'checked';
+        \$('input.add-book').each(function() {
+          \$(this).prop('checked', checked);
+        });
+      });
+    </script>
+
+    <form method="POST" action="/account/import?debug=true"
+          enctype="multipart/form-data">
+      <input type="submit" class="cta-btn cta-btn--unavailable" value="Import Books">
+      $ keys = ['ISBN', 'Title', 'My Rating', 'Exclusive Shelf', 'work_id']
+      <table class="import-table">
+        <thead>
+          <tr>
+            <th class="toggle-all">
+              <input type="checkbox" class="selected" checked="checked">
+            </th>
+            $for key in keys:
+              <th>$key</th>
+        </thead>
+        <tbody>
+          $for isbn in books:
+            <tr>
+              <td><input class="add-book" value="$(books[isbn]['ISBN'])"
+                         type="checkbox" checked="checked">
+              </td>
+              $for key in keys:
+                <td>$books[isbn].get(key)</td>
+            </tr>
+        </tbody>
+      </table>
+    </form>
 </div>
