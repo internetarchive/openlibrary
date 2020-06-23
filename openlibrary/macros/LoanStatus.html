@@ -32,14 +32,13 @@ $ is_borrowable = lending_st.get('available_to_borrow') or lending_st.get('avail
 $ is_restricted = availability.get('is_restricted', False)
 $ is_readable = availability.get('is_readable', False)
 
-$if ctx.user and ocaid and doc.key.startswith('/book'):
+$if ctx.user and ocaid and hasattr(doc, 'get_current_and_available_loans'):
   $ current_and_available_loans = doc.get_current_and_available_loans()
   $ user_loan = None
-  $if ctx.user:
-    $for current_loan in current_and_available_loans[0]:
-      $if current_loan['user'] == ctx.user.key:
-        $ user_loan = current_loan
-        $ break
+  $for current_loan in current_and_available_loans[0]:
+    $if current_loan['user'] == ctx.user.key:
+      $ user_loan = current_loan
+      $ break
 
 $ current_loans = current_and_available_loans[0] if current_and_available_loans else []
 
