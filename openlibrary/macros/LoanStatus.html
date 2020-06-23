@@ -1,4 +1,4 @@
-$def with (doc, user=None, editions_page=False, block_name='', render_preview_floater=True, work_key=None, listen=True, daisy=True, allow_expensive_availability_check=False, secondary_action=False)
+$def with (doc, user=None, editions_page=False, block_name='', render_preview_floater=True, work_key=None, listen=True, daisy=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False)
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * user
@@ -9,6 +9,8 @@ $# * listen whether to display listen button
 $# * daisy whether to display daisy print-disabled link
 $# * allow_expensive_availability_check whether to check the groundtruth availability if can't get availability from specified fields
 $# * secondary_action whether to display the preview/search inside button
+$# * check_sponsorship whether to check if the book is eligible for sponsorship
+$# * sponsorship_help whether to show the sponsorship help text
 
 $ loanstatus_start_time = time()
 
@@ -111,13 +113,13 @@ $elif ocaid and is_lendable:
          data-ol-link-track="CTAClick|CheckedOut">$_('Checked Out')</a>
     </div>
 
-$elif doc.key.startswith('/book') and not ocaid or (editions_page or 'eligibility' in doc) and not is_lendable:
+$elif doc.key.startswith('/book') and not ocaid or (check_sponsorship or 'eligibility' in doc) and not is_lendable:
   $ sponsorship = doc.get('eligibility') if 'eligibility' in doc else qualifies_for_sponsorship(doc)
   $if sponsorship.get('is_eligible'):
     <a href="$(sponsorship['sponsor_url'])"
        class="cta-btn cta-btn--sponsor"
        data-ol-link-track="CTAClick|Sponsor">$_('Sponsor')</a>
-    $if editions_page:
+    $if sponsorship_help:
       <p>
         $_("We don't have this book yet. You can add it to our Lending Library with a %(price)s tax deductible donation.", price=sponsorship['price']['total_price_display'])
         <a href="/sponsorship" target="_blank">$_('Learn More')</a>
