@@ -1,8 +1,7 @@
-$def with (doc, user=None, render_preview_floater=True, work_key=None, listen=True, daisy=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False)
+$def with (doc, user=None, work_key=None, listen=True, daisy=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False)
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * user
-$# * render_preview_floater whether to render the HTML for the preview floater
 $# * listen whether to display listen button
 $# * daisy whether to display daisy print-disabled link
 $# * allow_expensive_availability_check whether to check the groundtruth availability if can't get availability from specified fields
@@ -134,7 +133,7 @@ $elif not ocaid or (is_restricted and not is_lendable):
 
 $if ocaid and daisy:
   $if secondary_action and is_printdisabled:
-    $:macros.BookPreview(ocaid, render_preview_floater)
+    $:macros.BookPreview(ocaid)
   $:macros.daisy('/ia/%s/daisy' % ocaid, protected=is_printdisabled)
 
 $if query_param('debug'):

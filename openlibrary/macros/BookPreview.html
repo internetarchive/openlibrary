@@ -1,11 +1,10 @@
-$def with (ocaid, render_floater=True)
+$def with (ocaid)
 $# :param str ocaid:
-$# :param bool render_floater: whether to render the floater's HTML
 
 <a class="cta-btn cta-btn--shell cta-btn--preview"
    data-ol-link-track="CTAClick|Preview" href="#bookPreview">$_('Preview')</a>
 
-$if render_floater:
+$if render_once('book-preview-floater'):
   <div class="hidden">
     <div class="floater" id="bookPreview">
       <div class="book-preview">
