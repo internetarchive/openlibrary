@@ -1,6 +1,6 @@
-$def with (page, user=None, editions_page=False, block_name='', render_preview_floater=True, work_key=None, listen=True, daisy=True)
+$def with (doc, user=None, editions_page=False, block_name='', render_preview_floater=True, work_key=None, listen=True, daisy=True)
 $# Takes following parameters:
-$# * page
+$# * doc - Can be a Work, Edition, or solr dict.
 $# * user
 $# * editions_page renders additional data if you're seeing LoanStatus rendered in the sidebar of an edition page v. in the work's table.
 $# * block_name is a BEM block name
@@ -10,11 +10,11 @@ $# * daisy whether to display daisy print-disabled link
 
 $ loanstatus_start_time = time()
 
-$ availability = page.availability if hasattr(page, 'availability') else {}
-$ ocaid = page.get('ocaid') or availability.get('identifier')
-$ work_key = work_key or (page.get('works') and page.works[0].key)
+$ availability = doc.availability if hasattr(doc, 'availability') else {}
+$ ocaid = doc.get('ocaid') or availability.get('identifier')
+$ work_key = work_key or (doc.get('works') and doc.works[0].key)
 $ user_loan = None
-$ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
+$ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(doc)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
 $ current_and_available_loans = []
 
@@ -32,8 +32,8 @@ $ is_borrowable = lending_st.get('available_to_borrow') or lending_st.get('avail
 $ is_restricted = availability.get('is_restricted', False)
 $ is_readable = availability.get('is_readable', False)
 
-$if user and ocaid and page.key.startswith('/book'):
-  $ current_and_available_loans = page.get_current_and_available_loans()
+$if user and ocaid and doc.key.startswith('/book'):
+  $ current_and_available_loans = doc.get_current_and_available_loans()
   $ user_loan = None
   $if ctx.user:
     $for current_loan in current_and_available_loans[0]:
@@ -49,9 +49,9 @@ $if user:
             $ user_loan = current_loan
             $ break
 
-$if page.key.startswith('/book') and user_loan:
+$if doc.key.startswith('/book') and user_loan:
   $:macros.ReadButton(ocaid, loan=user_loan, listen=listen)
-  $ return_url = page.url().rsplit('/', 1)[0] + '/do_return/borrow'
+  $ return_url = doc.url().rsplit('/', 1)[0] + '/do_return/borrow'
   <form action="$return_url" method="post" class="waitinglist-form return-book">
     <input type="hidden" name="action" value="return" />
     <input type="submit" value="$_('Return eBook')" class="cta-btn cta-btn--available" id="return_ebook"/>
@@ -74,7 +74,7 @@ $elif ocaid and is_lendable:
     $ wlsize = lending_st.get('users_on_waitlist') or availability.get('num_waitlist')
     $if waiting_loan:
       <p class="waitinglist-message">
-        $ spot = ctx.user.get_waiting_loan_for(page)['position']
+        $ spot = ctx.user.get_waiting_loan_for(doc)['position']
         $if spot == 1:
           $:_('You are <strong>next</strong> on the waiting list')
         $else:
@@ -109,8 +109,8 @@ $elif ocaid and is_lendable:
          data-ol-link-track="CTAClick|CheckedOut">$_('Checked Out')</a>
     </div>
 
-$elif page.key.startswith('/book') and not ocaid or (editions_page or 'eligibility' in page) and not is_lendable:
-  $ sponsorship = page.get('eligibility') if 'eligibility' in page else qualifies_for_sponsorship(page)
+$elif doc.key.startswith('/book') and not ocaid or (editions_page or 'eligibility' in doc) and not is_lendable:
+  $ sponsorship = doc.get('eligibility') if 'eligibility' in doc else qualifies_for_sponsorship(doc)
   $if sponsorship.get('is_eligible'):
     <a href="$(sponsorship['sponsor_url'])"
        class="cta-btn cta-btn--sponsor"
@@ -133,7 +133,7 @@ $elif not ocaid or (is_restricted and not is_lendable):
 $if ocaid and daisy:
   $if editions_page and is_printdisabled:
     $:macros.BookPreview(ocaid, render_preview_floater)
-  $:macros.daisy(page, url='/ia/%s/daisy' % ocaid, protected=is_printdisabled, block_name=block_name)
+  $:macros.daisy(doc, url='/ia/%s/daisy' % ocaid, protected=is_printdisabled, block_name=block_name)
 
 $if query_param('debug'):
   $ loanstatus_end_time = time() - loanstatus_start_time
