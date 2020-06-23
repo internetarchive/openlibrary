@@ -135,7 +135,7 @@ $elif not ocaid or (is_restricted and not is_lendable):
 $if ocaid and daisy:
   $if secondary_action and is_printdisabled:
     $:macros.BookPreview(ocaid, render_preview_floater)
-  $:macros.daisy(doc, url='/ia/%s/daisy' % ocaid, protected=is_printdisabled)
+  $:macros.daisy('/ia/%s/daisy' % ocaid, protected=is_printdisabled)
 
 $if query_param('debug'):
   $ loanstatus_end_time = time() - loanstatus_start_time
