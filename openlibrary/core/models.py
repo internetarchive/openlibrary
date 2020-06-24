@@ -772,8 +772,12 @@ class User(Thing):
             if book.key == loan['book'] or book.ocaid == loan['ocaid']:
                 return loan
 
-    def get_waiting_loan_for(self, book):
-        return waitinglist.get_waiting_loan_object(self.key, book.key)
+    def get_waiting_loan_for(self, ocaid):
+        """
+        :param str ocaid:
+        :rtype: dict (e.g. {position: number})
+        """
+        return waitinglist.get_waiting_loan_object(self.key, ocaid)
 
     def __repr__(self):
         return "<User: %s>" % repr(self.key)

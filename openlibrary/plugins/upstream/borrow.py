@@ -748,7 +748,7 @@ def is_users_turn_to_borrow(user, edition):
     """If this user is waiting on this edition, it can only borrowed if
     user is the user is the first in the waiting list.
     """
-    waiting_loan = user.get_waiting_loan_for(edition)
+    waiting_loan = user.get_waiting_loan_for(edition.ocaid)
     return (waiting_loan and waiting_loan['status'] == 'available'
             and waiting_loan['position'] == 1)
 

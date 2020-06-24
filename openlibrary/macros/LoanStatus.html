@@ -14,7 +14,7 @@ $ availability = doc.availability if hasattr(doc, 'availability') else {}
 $ ocaid = doc.get('ocaid') or availability.get('identifier')
 $ work_key = work_key or (doc.get('works') and doc.works[0].key)
 $ user_loan = None
-$ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(doc)
+$ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(ocaid)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
 $ current_and_available_loans = []
 
@@ -83,7 +83,7 @@ $elif ocaid and is_lendable:
     $ wlsize = lending_st.get('users_on_waitlist') or availability.get('num_waitlist')
     $if waiting_loan:
       <p class="waitinglist-message">
-        $ spot = ctx.user.get_waiting_loan_for(doc)['position']
+        $ spot = waiting_loan['position']
         $if spot == 1:
           $:_('You are <strong>next</strong> on the waiting list')
         $else:

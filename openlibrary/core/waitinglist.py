@@ -214,10 +214,9 @@ def is_user_waiting_for(user_key, book_key):
     if book and book.ocaid:
         return WaitingLoan.find(user_key, book.ocaid) is not None
 
-def get_waiting_loan_object(user_key, book_key):
-    book = web.ctx.site.get(book_key)
-    if book and book.ocaid:
-        return WaitingLoan.find(user_key, book.ocaid)
+def get_waiting_loan_object(user_key, ocaid):
+    if ocaid:
+        return WaitingLoan.find(user_key, ocaid)
 
 def get_waitinglist_position(user_key, book_key):
     book = web.ctx.site.get(book_key)
