@@ -55,6 +55,17 @@ $if doc.key.startswith('/book') and user_loan:
     <input type="submit" value="$_('Return eBook')" class="cta-btn cta-btn--available" id="return_ebook"/>
   </form>
 
+  $if render_once('LoanStatus:return-book-js'):
+    <script type="text/javascript">
+      window.q.push(function() {
+        \$('.return-book').submit(function(event) {
+          if (!confirm("$_('Really return this book?')")) {
+            event.preventDefault();
+          }
+        });
+      });
+    </script>
+
 $elif ocaid and is_readable:
   $:macros.ReadButton(ocaid, listen=listen)
   $if secondary_action:
