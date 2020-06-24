@@ -13,10 +13,9 @@ $ loanstatus_start_time = time()
 $ availability = doc.availability if hasattr(doc, 'availability') else {}
 $ ocaid = doc.get('ocaid') or availability.get('identifier')
 $ work_key = work_key or (doc.get('works') and doc.works[0].key)
-$ user_loan = None
-$ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(ocaid)
+
+$ waiting_loan = ocaid and ctx.user and ctx.user.get_waiting_loan_for(ocaid)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
-$ current_and_available_loans = []
 
 $ availability_st = availability.get('status')
 
@@ -32,21 +31,7 @@ $ is_borrowable = lending_st.get('available_to_borrow') or lending_st.get('avail
 $ is_restricted = availability.get('is_restricted', False)
 $ is_readable = availability.get('is_readable', False)
 
-$if ctx.user and ocaid and hasattr(doc, 'get_current_and_available_loans'):
-  $ current_and_available_loans = doc.get_current_and_available_loans()
-  $ user_loan = None
-  $for current_loan in current_and_available_loans[0]:
-    $if current_loan['user'] == ctx.user.key:
-      $ user_loan = current_loan
-      $ break
-
-$ current_loans = current_and_available_loans[0] if current_and_available_loans else []
-
-$for current_loan in current_loans:
-    $if current_loan['user'] == ctx.user.key:
-        $ user_loan = current_loan
-        $ break
-
+$ user_loan = ocaid and ctx.user and ctx.user.get_loan_for(ocaid)
 $if doc.key.startswith('/book') and user_loan:
   $:macros.ReadButton(ocaid, loan=user_loan, listen=listen)
   $ return_url = doc.url().rsplit('/', 1)[0] + '/do_return/borrow'

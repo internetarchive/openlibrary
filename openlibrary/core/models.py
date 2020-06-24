@@ -349,9 +349,6 @@ class Edition(Thing):
         return waitinglist.get_waitinglist_size(self.key)
 
 
-    def get_scanning_contributor(self):
-        return self.get_ia_meta_fields().get("contributor")
-
     def get_loans(self):
         from ..plugins.upstream import borrow
         return borrow.get_edition_loans(self)
@@ -756,18 +753,18 @@ class User(Thing):
     def has_borrowed(self, book):
         """Returns True if this user has borrowed given book.
         """
-        loan = self.get_loan_for(book)
+        loan = self.get_loan_for(book.ocaid)
         return loan is not None
 
-    def get_loan_for(self, book):
-        """Returns the loan object for given book.
+    def get_loan_for(self, ocaid):
+        """Returns the loan object for given ocaid.
 
         Returns None if this user hasn't borrowed the given book.
         """
         from ..plugins.upstream import borrow
         loans = borrow.get_loans(self)
         for loan in loans:
-            if book.key == loan['book'] or book.ocaid == loan['ocaid']:
+            if ocaid == loan['ocaid']:
                 return loan
 
     def get_waiting_loan_for(self, ocaid):
