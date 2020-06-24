@@ -1,4 +1,4 @@
-$def with (doc, work_key=None, listen=True, daisy=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False)
+$def with (doc, work_key=None, listen=True, daisy=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False)
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * listen whether to display listen button
@@ -7,6 +7,7 @@ $# * allow_expensive_availability_check whether to check the groundtruth availab
 $# * secondary_action whether to display the preview/search inside button
 $# * check_sponsorship whether to check if the book is eligible for sponsorship
 $# * sponsorship_help whether to show the sponsorship help text
+$# * check_loan_status whether to check the user's loan status to determine read button
 
 $ loanstatus_start_time = time()
 
@@ -14,7 +15,7 @@ $ availability = doc.availability if hasattr(doc, 'availability') else {}
 $ ocaid = doc.get('ocaid') or availability.get('identifier')
 $ work_key = work_key or (doc.get('works') and doc.works[0].key)
 
-$ waiting_loan = ocaid and ctx.user and ctx.user.get_waiting_loan_for(ocaid)
+$ waiting_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_waiting_loan_for(ocaid)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
 
 $ availability_st = availability.get('status')
@@ -31,8 +32,8 @@ $ is_borrowable = lending_st.get('available_to_borrow') or lending_st.get('avail
 $ is_restricted = availability.get('is_restricted', False)
 $ is_readable = availability.get('is_readable', False)
 
-$ user_loan = ocaid and ctx.user and ctx.user.get_loan_for(ocaid)
-$if doc.key.startswith('/book') and user_loan:
+$ user_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_loan_for(ocaid)
+$if user_loan:
   $:macros.ReadButton(ocaid, loan=user_loan, listen=listen)
   $ return_url = doc.url().rsplit('/', 1)[0] + '/do_return/borrow'
   <form action="$return_url" method="post" class="waitinglist-form return-book">
