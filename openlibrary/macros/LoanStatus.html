@@ -14,7 +14,7 @@ $ availability = page.availability if hasattr(page, 'availability') else {}
 $ ocaid = page.get('ocaid') or availability.get('identifier')
 $ work_key = work_key or (page.get('works') and page.works[0].key)
 $ user_loan = None
-$ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
+$ waiting_loan = editions_page and ctx.user and ctx.user.get_waiting_loan_for(page)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
 $ current_and_available_loans = []
 
@@ -32,7 +32,7 @@ $ is_borrowable = lending_st.get('available_to_borrow') or lending_st.get('avail
 $ is_restricted = availability.get('is_restricted', False)
 $ is_readable = availability.get('is_readable', False)
 
-$if user and ocaid and page.key.startswith('/book'):
+$if user and ocaid and editions_page and page.key.startswith('/book'):
   $ current_and_available_loans = page.get_current_and_available_loans()
   $ user_loan = None
   $if ctx.user:
