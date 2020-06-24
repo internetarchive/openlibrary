@@ -24,6 +24,7 @@ from . import cache, waitinglist
 from six.moves import urllib
 
 from .ia import get_metadata_direct
+from .waitinglist import WaitingLoan
 from ..accounts import OpenLibraryAccount
 
 
@@ -347,9 +348,6 @@ class Edition(Thing):
         """
         return waitinglist.get_waitinglist_size(self.key)
 
-    def get_waitinglist_position(self, user):
-        """Returns the position of this user in the waiting list."""
-        return waitinglist.get_waitinglist_position(user.key, self.key)
 
     def get_scanning_contributor(self):
         return self.get_ia_meta_fields().get("contributor")
@@ -774,10 +772,10 @@ class User(Thing):
 
     def get_waiting_loan_for(self, ocaid):
         """
-        :param str ocaid:
+        :param str or None ocaid:
         :rtype: dict (e.g. {position: number})
         """
-        return waitinglist.get_waiting_loan_object(self.key, ocaid)
+        return ocaid and WaitingLoan.find(self.key, ocaid)
 
     def __repr__(self):
         return "<User: %s>" % repr(self.key)
