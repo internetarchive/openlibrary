@@ -30,7 +30,7 @@ $# ^ This will be resolved when Jude adds 'access-restricted-item' check
 $ is_printdisabled = lending_st.get('is_printdisabled', False) or availability.get('is_printdisabled', False)
 $ is_borrowable = lending_st.get('available_to_borrow') or lending_st.get('available_to_browse') or availability_st == 'borrow_available' or my_turn_to_borrow
 $ is_restricted = availability.get('is_restricted', False)
-$ is_readable = availability.get('is_readable', False)
+$ is_readable = ocaid and availability.get('is_readable', False)
 $ borrow_link = '/borrow/ia/%s' % ocaid
 
 $ user_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_loan_for(ocaid)
