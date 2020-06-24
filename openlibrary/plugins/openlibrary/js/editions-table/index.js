@@ -72,9 +72,4 @@ export function initEditionsTable() {
             bAutoWidth: false
         });
     }
-    $('.return-book').submit(function(event) {
-        if (!confirm('Really return this book?')) {
-            event.preventDefault();
-        }
-    });
 }

@@ -460,6 +460,8 @@ def _get_ia_loan(identifier, userid):
     ia_loan = ia_lending_api.get_loan(identifier, userid)
     return ia_loan and Loan.from_ia_loan(ia_loan)
 
+
+@cache.memoize(engine="memory", key="get_loans_of_user")
 def get_loans_of_user(user_key):
     """TODO: Remove inclusion of local data; should only come from IA"""
     account = OpenLibraryAccount.get(username=user_key.split('/')[-1])

@@ -392,18 +392,25 @@ export function initBorrowAndReadLinks() {
 
 export function initPreviewButton() {
     // Colorbox modal + iframe for Book Preview Button
-    $('.cta-btn--preview').colorbox({
-        width: '100%',
-        maxWidth: '640px',
-        inline: true,
-        opacity: '0.5',
-        href: '#bookPreview',
-        onOpen() {
-            const $iframe = $('#bookPreview iframe');
-            $iframe.prop('src', $iframe.data('src'));
-        },
-        onCleanup() {
-            $('#bookPreview iframe').prop('src', '');
-        },
+    const $buttons = $('.cta-btn--preview');
+    $buttons.each((i, button) => {
+        const $button = $(button);
+        $button.colorbox({
+            width: '100%',
+            maxWidth: '640px',
+            inline: true,
+            opacity: '0.5',
+            href: '#bookPreview',
+            onOpen() {
+                const $iframe = $('#bookPreview iframe');
+                $iframe.prop('src', $button.data('iframe-src'));
+
+                const $link = $('#bookPreview .learn-more a');
+                $link[0].href = $button.data('iframe-link');
+            },
+            onCleanup() {
+                $('#bookPreview iframe').prop('src', '');
+            },
+        });
     });
 }

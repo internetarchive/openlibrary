@@ -744,6 +744,16 @@ class Request:
         return ("https://" + url) if url else ''
 
 
+@public
+def render_once(key):
+    rendered = web.ctx.setdefault('render_once', {})
+    if key in rendered:
+        return False
+    else:
+        rendered[key] = True
+        return True
+
+
 def setup():
     """Do required initialization"""
     # monkey-patch get_markdown to use OL Flavored Markdown
