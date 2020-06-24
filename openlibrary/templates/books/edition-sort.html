@@ -74,18 +74,15 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
       <div class="links">
         $if active:
           <ul class="read">
-            $if availability.get('status') == 'open':
-              <li class="read-option">$:macros.ReadButton(book.ocaid, listen=True)</li>
-
-            $elif availability.get('status') in ['borrow_available', 'borrow_unavailable']:
-              <li class="read-option">$:macros.LoanStatus(book)</li>
+            $if availability.get('status') in ['open', 'borrow_available', 'borrow_unavailable']:
+              <li class="read-option">$:macros.LoanStatus(book, check_loan_status=True)</li>
 
             $if availability.get('status') == 'open':
               $:macros.DownloadOptions(book)
           </ul>
         $else:
           <form>
-            <input type="submit" class="cta-btn cta-btn--missing" 
+            <input type="submit" class="cta-btn cta-btn--missing"
                    data-ol-link-track="CTAClick|NotInLibrary" disabled value="$_('Not in Library')">
           </form>
           $if book.ocaid:
