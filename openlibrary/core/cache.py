@@ -453,6 +453,9 @@ class memoize:
                 value = f(*args, **kwargs)
                 self.cache_set(key, value)
             return value
+
+        # Expose the memoize so that downstream functions can investigate it
+        setattr(func, 'memoize', self)
         return func
 
     def cache_get(self, key):

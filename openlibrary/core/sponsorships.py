@@ -6,7 +6,7 @@ from six.moves.urllib.parse import urlencode
 
 from collections import OrderedDict
 from infogami.utils.view import public
-from openlibrary.core import lending
+from openlibrary.core import cache, lending
 from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
     get_amazon_metadata)
@@ -14,6 +14,7 @@ from openlibrary.accounts.model import get_internet_archive_id
 from openlibrary.core.civicrm import (
     get_contact_id_by_username,
     get_sponsorships_by_contact_id)
+from openlibrary.utils.dateutil import MINUTE_SECS
 
 try:
     from booklending_utils.sponsorship import eligibility_check
@@ -90,7 +91,31 @@ def do_we_want_it(isbn, work_id):
     # err on the side of false negative
     return False, []
 
+
 @public
+def onetime_check_sponsorship(edition, force=False):
+    calls_made = web.ctx.setdefault('sponsorship_calls', 0)
+    memoize = qualifies_for_sponsorship.memoize
+    cached_value = memoize.cache_get(memoize.keyfunc(edition))
+
+    if cached_value is not None:
+        # Don't increment sponsorship calls, since it was cached!
+        logger.info("qualifies_for_sponsorship(%s) was cached" % edition.key)
+        return cached_value
+    elif force or calls_made < 1:
+        logger.info("Computing qualifies_for_sponsorship(%s)" % edition.key)
+        web.ctx['sponsorship_calls'] += 1
+        return qualifies_for_sponsorship(edition)
+    else:
+        logger.info("Can't call qualifies_for_sponsorship(%s)" % edition.key)
+        return None
+
+
+@public
+@cache.memoize(
+    engine="memcache",
+    key=lambda ed: "qualifies_for_sponsorship-%s" % ed.key,
+    expires=5*MINUTE_SECS)
 def qualifies_for_sponsorship(edition):
     """
     :param edition edition: An infogami book edition
