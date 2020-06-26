@@ -1,13 +1,57 @@
-$def with (lists, work_key, edition_key, users_work_read_status, username, pageurl, readinglogonly)
+$def with (work, edition_key=None, show_lists=True)
+
+$code:
+    def get_seed_info():
+      if work.key.startswith("/subjects/"):
+          seed = work.key.split("/")[-1]
+          if seed.split(":")[0] not in ["place", "person", "time"]:
+              seed = "subject:" + seed
+          seed = seed.replace(",", "_").replace("__", "_")
+          seed_type = "subject"
+          title = work.name
+      else:
+          seed = {"key": work.key}
+          if work.key.startswith("/authors/"):
+              seed_type = "author"
+              title = work.get('name', 'name missing')
+          elif work.key.startswith("/works"):
+              seed_type = "work"
+              title = work.get("title", "untitled")
+          else:
+              seed_type = "edition"
+              title = work.get("title", "untitled")
+      return seed, seed_type, title
+
+    def get_list_data(list, include_cover_url=True):
+      d = storage({
+          "name": list.name or "",
+          "key": list.key,
+          "active": list.has_seed(seed),
+      })
+      if include_cover_url:
+          cover = list.get_cover() or list.get_default_cover()
+          d['cover_url'] = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
+      owner = list.get_owner()
+      d['owner'] = storage(displayname=owner.displayname or "", key=owner.key)
+      return d
+
+    def get_user_lists():
+      lists = ctx.user and ctx.user.get_lists(sort=True) or []
+      return [get_list_data(list, include_cover_url=True) for list in lists]
+
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+$ seed, seed_type, title = get_seed_info()
+$ lists = get_user_lists()
+$ users_work_read_status = work.get_users_read_status(username) if work and username else None
 
 <div class="dropit">
-  $if edition_key and not work_key:
+  $if edition_key:
     <div class="dropper on edition-page-lists-dropdown">
   $else:
     <div class="dropper on">
-  $if work_key:
+  $if work.key:
     <div class="log-work">
-      <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
+      <form class="readingLog" method="POST" action="$(work.key)/bookshelves.json">
         $if users_work_read_status == 3:
             $ message = _("Already Read")
         $elif users_work_read_status == 2:
@@ -46,7 +90,7 @@ $def with (lists, work_key, edition_key, users_work_read_status, username, pageu
     <div class="dropdown">
       <div class="read-statuses">
         $if users_work_read_status == 2 or users_work_read_status == 3:
-          <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
+          <form class="readingLog" method="POST" action="$(work.key)/bookshelves.json?debug=true">
             <input type="hidden" name="action" value="add"/>
             <input type="hidden" name="redir" value="true"/>
             <input type="hidden" name="bookshelf_id" value="1"/>
@@ -56,7 +100,7 @@ $def with (lists, work_key, edition_key, users_work_read_status, username, pageu
           </form>
 
         $if users_work_read_status != 2:
-          <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
+          <form class="readingLog" method="POST" action="$(work.key)/bookshelves.json?debug=true">
             <input type="hidden" name="action" value="add"/>
             <input type="hidden" name="redir" value="true"/>
             <input type="hidden" name="bookshelf_id" value="2"/>
@@ -66,7 +110,7 @@ $def with (lists, work_key, edition_key, users_work_read_status, username, pageu
           </form>
 
         $if users_work_read_status != 3:
-          <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
+          <form class="readingLog" method="POST" action="$(work.key)/bookshelves.json?debug=true">
             <input type="hidden" name="action" value="add"/>
             <input type="hidden" name="redir" value="true"/>
             <input type="hidden" name="bookshelf_id" value="3"/>
@@ -76,7 +120,7 @@ $def with (lists, work_key, edition_key, users_work_read_status, username, pageu
           </form>
       </div>
 
-      $if not readinglogonly:
+      $if show_lists:
         <div class="reading-lists">
           <p class="reading-list-title">$_('My Reading Lists:')</p>
           <p class="create checkboxes">
@@ -112,7 +156,7 @@ $def with (lists, work_key, edition_key, users_work_read_status, username, pageu
         </div>
 
       $else:
-        <a href="/account/login?redir=$pageurl" class="dropclick plain">
+        <a href="/account/login?redir=$page.url()" class="dropclick plain">
           <h3>$('Add to List')</h3>
           <div class="arrow"></div>
         </a>

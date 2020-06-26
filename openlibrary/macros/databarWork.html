@@ -7,6 +7,11 @@ $elif page.type.key in ["/type/work", "/type/edition", "/type/author"]:
 $else:
     $ edit_url = page.key + "?m=edit"
 
+$ work = (page.works and page.works[0]) or page
+$ work_key = work and work.key
+$ edition = page.works and page
+$ edition_key = edition and edition.key
+
 $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
 $ prices = page.key.startswith('/books/')
 
@@ -21,48 +26,6 @@ $if page.get('identifiers'):
 
 $if isbn_10 and not asin:
     $ asin = isbn_10
-
-$code:
-    def get_seed_info():
-      if page.key.startswith("/subjects/"):
-          seed = page.key.split("/")[-1]
-          if seed.split(":")[0] not in ["place", "person", "time"]:
-              seed = "subject:" + seed
-          seed = seed.replace(",", "_").replace("__", "_")
-          seed_type = "subject"
-          title = page.name
-      else:
-          seed = {"key": page.key}
-          if page.key.startswith("/authors/"):
-              seed_type = "author"
-              title = page.get('name', 'name missing')
-          elif page.key.startswith("/works"):
-              seed_type = "work"
-              title = page.get("title", "untitled")
-          else:
-              seed_type = "edition"
-              title = page.get("title", "untitled")
-      return seed, seed_type, title
-    
-    def get_list_data(list, include_cover_url=True):
-      d = storage({
-          "name": list.name or "",
-          "key": list.key,
-          "active": list.has_seed(seed),
-      })
-      if include_cover_url:
-          cover = list.get_cover() or list.get_default_cover()
-          d['cover_url'] = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
-      owner = list.get_owner()
-      d['owner'] = storage(displayname=owner.displayname or "", key=owner.key)
-      return d
-
-    def get_user_lists():
-      lists = ctx.user and ctx.user.get_lists(sort=True) or []
-      return [get_list_data(list, include_cover_url=True) for list in lists]
-
-$ seed, seed_type, title = get_seed_info()
-$ user_lists = get_user_lists()
 
 <div class="Tools">
   <div id="read">
@@ -87,12 +50,9 @@ $ user_lists = get_user_lists()
               $:render_template('covers/change', page, ".edition-cover .bookCover img")
         </div>
 
-        $ work = (page.works and page.works[0]) or page
-        $ edition = page.works and page
-        $ work_key = work and work.key
-        $ edition_key = edition and edition.key
+        $ readlog_btn = work and macros.WantToReadButton(work, edition_key=edition_key, show_lists=True)
 
-        $:macros.LoanStatus(page, work_key=work_key, edition_key=edition_key, allow_expensive_availability_check=editions_page, secondary_action=editions_page, check_sponsorship=editions_page, sponsorship_help=editions_page, check_loan_status=editions_page, user_lists=user_lists)
+        $:macros.LoanStatus(page, work_key=work_key, allow_expensive_availability_check=editions_page, secondary_action=editions_page, check_sponsorship=editions_page, sponsorship_help=editions_page, check_loan_status=editions_page, readlog_btn=readlog_btn)
 
         $if page.get('ocaid') and not page.is_access_restricted() and page.ia_metadata:
           $:macros.DownloadOptions(page)
