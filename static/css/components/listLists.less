@@ -2,6 +2,15 @@
  * ListLists component
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#listslists
  */
+.workFooter {
+  ul.listLists {
+    display: flex;
+  }
+  ul.listLists li {
+    flex: 1;
+    border: 0;
+  }
+}
 ul.listLists {
   margin: 0;
   padding: 0;
@@ -34,7 +43,6 @@ ul.listLists {
       /* stylelint-enable max-nesting-depth */
     }
     .data {
-      width: 208px;
       padding: 3px 0;
     }
     .label {
