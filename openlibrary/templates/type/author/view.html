@@ -1,5 +1,4 @@
 $def with (page)
-
 $if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and query_param('merge', 'false') == 'true':
     <script type="text/javascript">
     // <!--
@@ -149,7 +148,16 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                   $else:
                     $:_('Showing ebooks only. Would you like to see <a href="%(url)s">everything</a> by this author?', url=changequery(mode='everything'))
                 </p>
-
+                <p> $olid</p>
+               <span>
+              <form action="/search" class="olform pagesearchbox">
+                <input type="hidden" name="q" value="$olid"/>
+                <input type="hidden" name="has_fulltext" value="true"/>
+                <input type="text" placeholder="Search  $title Books" name="q2"/>
+                <input type="submit"/>
+             </form>
+             </span>
+                
                 $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books.num_found)
 
                 <div id="searchResults">
