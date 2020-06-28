@@ -1,4 +1,4 @@
-$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, user_lists_only=False, readinglog_only=False, read_status=None, rating=None)
+$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, user_lists_only=False, readinglog_only=False, read_status=None, rating=None, results=3)
 
 $ edition = page if page.key.startswith("/books/") else None
 $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
@@ -240,7 +240,7 @@ $if include_header:
 
 $if include_showcase:
   <ul class="listLists" id="widget-lists">
-    $:render_widget_display(page_lists, 3)
+    $:render_widget_display(page_lists, results)
   </ul>
 
 <div id="remove-dialog" class="hidden" title="$_('Remove')">$_('Are you sure you want to remove <strong>%(title)s</strong> from your list?', title=title)</div>
