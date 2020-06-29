@@ -12,12 +12,17 @@ $ book_keys = []
         $ edition_list_start = time()
         $ editions = editions or work.get_sorted_editions()
         $ index_padding = len(str(len(editions)))
+        $if edition:
+            <tr class="highlight">
+                $:render_template("books/edition-sort", edition, 0)
+            </tr>
         $for book in editions:           
             $ book_keys.append(book['key'].replace('/books/', ''))
-            $ sort_key = str(loop.index0).zfill(index_padding)   
-            <tr $('class=highlight' if book.key == edition.key else '')>
-              $:render_template("books/edition-sort", book, sort_key)
-            </tr>
+            $ sort_key = str(loop.index0+1).zfill(index_padding)  
+            $if not(book==edition): 
+                <tr>
+                    $:render_template("books/edition-sort", book, sort_key)
+                </tr>
         $ edition_list_secs = time() - edition_list_start
     </tbody>
 </table>
@@ -26,6 +31,6 @@ $ book_keys = []
 </div>
 
 <!-- Admin only text doesn't need to be translated -->
-$if ctx.user and ctx.user.is_admin():
+$if ctx.user and ctx.user.is_admin() and query_param('debug'):
     <div class="clearfix"></div>
     <div class="small sansserif"><span class="adminOnly">Getting list of editions took $("%.2f" % edition_list_secs) seconds</span></div>
