@@ -93,9 +93,24 @@ def do_we_want_it(isbn, work_id):
 
 
 @public
-def onetime_check_sponsorship(edition, force=False):
+def onetime_check_sponsorship(doc, force=False):
+    """
+    :param dict or Edition doc:
+    :param bool force:
+    """
+    from openlibrary.plugins.upstream.models import Edition, Work
+    from openlibrary.plugins.upstream.code import get_document
+
     calls_made = web.ctx.setdefault('sponsorship_calls', 0)
     memoize = qualifies_for_sponsorship.memoize
+
+    if isinstance(doc, Edition):
+        edition = doc
+    else:
+        edition = get_document(doc['key'])
+        if isinstance(edition, Work):
+            edition = edition.get_one_edition()
+
     cached_value = memoize.cache_get(memoize.keyfunc(edition))
 
     if cached_value is not None:
