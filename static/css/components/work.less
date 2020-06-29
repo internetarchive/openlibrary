@@ -30,6 +30,126 @@ div.editionAbout {
   }
 }
 
+.book-description{
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+
+.addReadMore.showlesscontent .SecSec,
+.addReadMore.showlesscontent .readLess {
+    display: none;
+}
+
+.addReadMore.showmorecontent .readMore {
+  display: none;
+}
+
+.addReadMore .readMore,
+.addReadMore .readLess {
+  font-weight: bold;
+  margin-left: 2px;
+  color: blue;
+  cursor: pointer;
+}
+
+.addReadMoreWrapTxt.showmorecontent .SecSec,
+.addReadMoreWrapTxt.showmorecontent .readLess {
+  display: block;
+}
+
+.checkboxes label {
+display: inline-block;
+padding-right: 10px;
+white-space: nowrap;
+}
+
+.checkboxes input {
+vertical-align: middle;
+}
+
+.sidebar-box {
+max-height: 140px;
+position: relative;
+overflow: hidden;
+}
+
+.sidebar-box .read-more { 
+position: absolute; 
+bottom: 0; 
+left: 0;
+width: 100%; 
+text-align: center; 
+margin: 0; padding: 30px 0; 
+
+/* "transparent" only works here because == rgba(0,0,0,0) */
+background-image: linear-gradient(to bottom, transparent, white);
+}
+
+.section {
+margin-top: 20px;
+}
+
+.collapse {
+}
+
+h2.edition-byline {
+margin: 5px;
+}
+
+.first-published-date {
+color: #999;
+font-size: .8em;
+}
+
+.edition-overview {
+background: #eee;
+padding: 10px;
+margin: 10px 0px;
+}
+
+.edition-overview .edition-title {
+margin-bottom: 0;
+color: #333;
+}
+
+.edition-overview .edition-subtitle {
+margin-top: 5px;
+font-size: 1.4em;
+font-weight: normal;
+color: #666;
+}
+
+.work-menu {
+border-bottom: 1px solid #ddd;
+padding-bottom: 5px;
+font-weight: bold;
+margin-top: 30px;
+}
+
+.work-menu li {
+display: inline;
+padding: 0px 15px;
+padding-bottom: 5px;
+font-size: 13px;
+}
+
+.work-menu li a {
+text-decoration: none;
+color: #666;
+}
+
+.work-menu li.selected {
+border-bottom: 2px solid #0376b8;
+}
+
+.work-menu li:hover {
+border-bottom: 2px solid #0376b8;
+}
+
+.work-menu li.selected a {
+color: #0376b8;
+}
+
 .book-overview {
   padding-bottom: 10px;
   > div {
@@ -62,7 +182,7 @@ div.editionTools {
   div.edition {
     &Cover {
       float: left;
-      width: 215px;
+      width: 250px;
       margin-right: 1.5em;
       margin-bottom: 0;
     }
