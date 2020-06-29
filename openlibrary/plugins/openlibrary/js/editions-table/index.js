@@ -35,7 +35,7 @@ export function initEditionsTable() {
     if (rowCount < 4) {
         $('#editions').dataTable({
             aoColumns: [{sType: 'html'},null],
-            aaSorting: [ [1,'asc'] ],
+            aaSorting: [ [0,'asc'] ],
             bPaginate: false,
             bInfo: false,
             bFilter: false,
@@ -45,7 +45,7 @@ export function initEditionsTable() {
     } else {
         $('#editions').dataTable({
             aoColumns: [{sType: 'html'},null],
-            aaSorting: [ [1,'asc'] ],
+            aaSorting: [ [0,'asc'] ],
             iDisplayLength: 3,
             bPaginate: true,
             bInfo: true,
