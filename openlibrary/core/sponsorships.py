@@ -107,7 +107,11 @@ def onetime_check_sponsorship(doc, force=False):
     if isinstance(doc, Edition):
         edition = doc
     else:
-        edition = get_document(doc['key'])
+        key = doc['key']
+        # Handle orphans as stored in solr
+        if key.startswith('/works') and key.endswith('M'):
+            key = '/books/%s' % key.split('/')[-1]
+        edition = get_document(key)
         if isinstance(edition, Work):
             edition = edition.get_one_edition()
 
