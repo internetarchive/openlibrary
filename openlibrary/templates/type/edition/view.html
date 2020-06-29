@@ -1,127 +1,5 @@
 $def with (page)
 
-<style type="text/css">
-  .editionAll {
-    padding-top: 15px;
-  }
-
-  .addReadMore.showlesscontent .SecSec,
-    .addReadMore.showlesscontent .readLess {
-        display: none;
-    }
-
-  .addReadMore.showmorecontent .readMore {
-      display: none;
-  }
-
-  .addReadMore .readMore,
-  .addReadMore .readLess {
-      font-weight: bold;
-      margin-left: 2px;
-      color: blue;
-      cursor: pointer;
-  }
-
-  .addReadMoreWrapTxt.showmorecontent .SecSec,
-  .addReadMoreWrapTxt.showmorecontent .readLess {
-      display: block;
-  }
-
-  .checkboxes label {
-  display: inline-block;
-  padding-right: 10px;
-  white-space: nowrap;
-  }
-
-  .checkboxes input {
-    vertical-align: middle;
-  }
-
-  .sidebar-box {
-  max-height: 140px;
-  position: relative;
-  overflow: hidden;
-  }
-
-  .sidebar-box .read-more { 
-    position: absolute; 
-    bottom: 0; 
-    left: 0;
-    width: 100%; 
-    text-align: center; 
-    margin: 0; padding: 30px 0; 
-    
-    /* "transparent" only works here because == rgba(0,0,0,0) */
-    background-image: linear-gradient(to bottom, transparent, white);
-  }
-
-  .section {
-    margin-top: 20px;
-  }
-
-  .collapse {
-  }
-
-  h2.edition-byline {
-    margin: 5px;
-  }
-
-  .first-published-date {
-    color: #999;
-    font-size: .8em;
-  }
-
-  .edition-overview {
-    background: #eee;
-    padding: 10px;
-    margin: 10px 0px;
-  }
-
-  .edition-overview .edition-title {
-    margin-bottom: 0;
-    color: #333;
-  }
-
-  .edition-overview .edition-subtitle {
-    margin-top: 5px;
-    font-size: 1.4em;
-    font-weight: normal;
-    color: #666;
-  }
-
-  .work-menu {
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 5px;
-    font-weight: bold;
-    margin-top: 30px;
-  }
-
-  .work-menu li {
-    display: inline;
-    padding: 0px 15px;
-    padding-bottom: 5px;
-    font-size: 13px;
-  }
-
-  .work-menu li a {
-    text-decoration: none;
-    color: #666;
-  }
-
-  .work-menu li.selected {
-    border-bottom: 2px solid #0376b8;
-  }
-
-  .work-menu li:hover {
-    border-bottom: 2px solid #0376b8;
-  }
-
-  .work-menu li.selected a {
-    color: #0376b8;
-  }
-</style>
-
-
 $ tab = input(tab=None).tab
 $ editions = []
 $ page_type = page.key.split('/')[1]
@@ -254,8 +132,6 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       <strong>Orphaned Edition!</strong>
   </div>
 
-<div id="contentHead"></div>
-
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
   <div class="workDetails">
     $if work:
@@ -266,7 +142,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
     </div>
 
     <div class="editionAbout">
-
+      <span>Originally published as <strong>$work_title</strong> in $work.first_publish_year</span>    
       <div class="editionAll">
         $:macros.databarView(page, edition)
         $if work.series:
@@ -288,6 +164,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       $:macros.StarRatingsStats(work)
 
       <h4 class="publisher">
+        <span>
         $if edition.publish_date or edition.publishers or edition.publish_places:
         <!-- TODO: this handcrafted concatenation will be difficult to internationalize -->
         $_('Published')
@@ -312,95 +189,131 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                     >$p</a>$cond(loop.last, "", ", ")<span class="adjust">.</span>
         $if edition.languages:
             $def lang_span(): <span itemprop="inLanguage">$:thingrepr(edition.languages)</span>
-            <br/>$:_('Written in %(language)s', language=lang_span())
+            $:_('Written in %(language)s', language=lang_span())
         $if edition.number_of_pages:
             &mdash; <span class="edition-pages"
                           itemprop="numberOfPages">$edition.number_of_pages</span> pages
+        </span>
       </h4>
 
-
-
-      $if work:
-        <div class="section">
-          <div class="addReadMore showlesscontent edition-description">
-            $if book_description:
-              $:sanitize(format(book_description))
-            $else:
-              <p class="workHelp">
-                $:_("This book doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=edition.url('/edit')+"#about/about")
-              </p>
-          </div>
-        </div>
-
-      <ul class="work-menu">
-        $if work:
-          <li class="$('selected' if not tab or tab == 'editions' else '')">
-            <a class="$('selected' if not tab or tab == 'editions' else '')"
-               href="$(page.url())?tab=editions#editions"
-               >View $edition_count Edition$("s" if edition_count > 1 else "")</a>
-          </li>
-        
-        <li id="details" class="$('selected' if tab == 'details' else '')">
-          <a class="$('selected' if tab == 'details' else '')"
-             href="$page.url()?tab=details#details">Overview</a>
-        </li>
-        
-        <li id="buy" class="$('selected' if tab == 'buy' else '')">
-          <a class="$('selected' if tab == 'buy' else '')"
-             href="$page.url()?tab=buy#buy">Get the Book</a>
-        </li>
-      </ul>
-
-      $if (not tab) or tab == 'editions':
-        <div class="clearfix"></div>
-        $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
-
-      $elif tab == 'buy':
-        $ prices = page.key.startswith('/books/')
-
-        $ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
-        $ isbn_13 = page.get_isbn13()
-        $ isbn_10 = page.get_isbn10()
-        
-        $ asin = None
-        $if page.get('identifiers'):
-            $if page.identifiers.get('amazon'):
-                $ asin = page.identifiers.amazon[0]
-        
-        $if isbn_10 and not asin:
-            $ asin = isbn_10
-        <div class="panel">
-          <div class="btn-notice">
-            $:macros.WorldcatLink(isbn=isbn_13, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
-          
-            <div class="cta-section">
-              <p class="cta-section-title">$_('Buy this book')</p>
-              $:macros.AffiliateLinks(page, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
+      $if work or edition:
+        <div class="book-description">
+            <div class="addReadMore showlesscontent">
+                $if edition and edition.description:
+                    $:sanitize(format(edition.description))
+                $elif work and work.description:
+                    $:sanitize(format(work.description))
+                $else:
+                    <p class="workHelp">
+                        $:_("This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=edition.url('/edit')+"#about/about")
+                    </p>
             </div>
-          </div>
-        </div>
+        </div>    
       
-      $elif tab == 'details':
+      $:macros.SubjectTags(work, ["Subjects"])
+      
+      $:macros.EditionNavBar(["editions", "work-details", "edition-details"], ["editions"], work.edition_count)
+
+      $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
+
+      $:macros.EditionNavBar(["work-details"], ["work-details"])
+
+        <div class="section">
+            <span>
+                <strong>Title:</strong>
+                $work_title
+            </span>
+        </div>
+
         <h4 class="first-published">
-          $if work and work.first_publish_year:
+            $if work and work.first_publish_year:
             $_("First published in %s", work.first_publish_year)
         </h4>
-            
-        $:macros.SubjectTags(work)
 
-        $if (work and work.first_sentence) or edition.first_sentence:
-            <h3 class="collapse">$_("First Sentence")</h3>
-            <p>"$(edition.first_sentence or work.first_sentence)"</p>
+        $:macros.SubjectTags(work, ["Subjects", "People", "Places", "Times"])
+
+        $if not work.excerpts and work.first_sentence:
+            <p class="largest" style="margin-bottom: 20px;" title=$_("First Sentence")><em>"$work.first_sentence</em>"</p>
+
+        $if work.description:
+            <h3>$_("Work Description")</h3>
+            <div class="work-description">
+                <div class="addReadMore showlesscontent">
+                    $:sanitize(format(work.description))
+                </div>
+            </div>
+
+
+        $if work.original_languages:
+            <div class="sansserif smallest brown">$_("Original languages")</div>
+            <!-- TODO: Double check that these language names are localized -->
+            $', '.join(lang.name for lang in work.original_languages)<p>
+
+        $if work.excerpts:
+            <div class="section">
+                <h3>$_("Excerpts")</h3>
+                $for excerpt in work.excerpts:
+                    <div class="excerpt addReadMore showlesscontent">
+                        <div class="text">
+                            $for line in excerpt.excerpt.split('\n'):
+                                $line<br/>
+                        </div>
+                        <div class="attribution">
+                            $if excerpt.pages:
+                                $_("Page %(page)s", page=excerpt.pages),
+                            $if excerpt.author:
+                                $def excerpt_author_link(): <a href="$excerpt.author.key">$excerpt.author.displayname</a>
+                                $:_("added by %(authorlink)s.", authorlink=str(excerpt_author_link()).strip()))
+                            $else:
+                                $_("added anonymously.")
+                            $if excerpt.comment:
+                                "<em>$excerpt.comment</em>"
+                        </div>
+                    </div>
+            </div>
         
-        <h3>$_("About this Edition")</h3>
-        <div class="addReadMore showlesscontent edition-description section">
-            $if edition.description:
-              $:sanitize(format(edition.description))
-            $else:
-              <p class="workHelp">
-                $:_("This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=edition.url('/edit')+"#about/about")
-              </p>
-        </div>
+        $if work.links or (work.wikipedia and work.wikipedia.startswith("http")):
+            <div class="section">
+                <h3>$:_('Links <span class="gray small sansserif">outside Open Library</span>')</h3>
+                <ul class="booklinks sansserif">
+                $if work.wikipedia and work.wikipedia.startswith("http"):
+                    <li><a href="$page.wikipedia">$_('Wikipedia')</a></li>
+                $for link in work.links:
+                    <li><a href="$link.url">$link.title</a></li>
+                </ul>
+            </div>
+
+        $if work.edition_count > 1:
+            $if (work.lc_classifications or work.dewey_number):
+                <div class="section">
+                    <h3 class="collapse">$_("Classifications")</h3>
+                    <table class="meta"><tbody>
+                    $if work.lc_classifications:
+                        <tr><td class="title"><span class="title">$_('Library of Congress')</span></td>
+                        <td><span class="object">$thingrepr(work.lc_classifications)</span></td></tr>
+                    $if work.dewey_number:
+                        <tr><td class="title"><span class="title">$_('Dewey')</span></td>
+                        <td><span class="object">$thingrepr(work.dewey_number)</span></td></tr>
+                    </tbody></table>
+                </div>
+    
+      $:macros.EditionNavBar(["edition-details"], ["edition-details"])
+
+        $if edition.first_sentence:
+            <div>
+            <h3 class="collapse">$_("First Sentence")</h3>
+            <p>"$(edition.first_sentence)"</p>
+            </div>
+        
+        $if edition.description:
+            <div class="section">
+            <h3>$_("Edition Description")</h3>
+            <div class="edition-description">
+                <div class="addReadMore showlesscontent">
+                    $:sanitize(format(edition.description))
+                </div>
+            </div>
+            </div>
 
         $:macros.TableOfContents(page, ocaid)
 
@@ -458,14 +371,14 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
         $if has_any("physical_format", "pagination", "physical_dimensions", "weight"):
             <div class="section">
-            <dl class="meta">
-                <h3 class="list-header collapse">$_("The Physical Object")</h3>
-                $:display_value(_("Format"), edition.physical_format)
-                $:display_value(_("Pagination"), edition.pagination)
-                $:display_value(_("Number of pages"), edition.number_of_pages, itemprop="numberOfPages")
-                $:display_value(_("Dimensions"), edition.physical_dimensions)
-                $:display_value(_("Weight"), edition.weight)
-            </dl>
+                <dl class="meta">
+                    <h3 class="list-header collapse">$_("The Physical Object")</h3>
+                    $:display_value(_("Format"), edition.physical_format)
+                    $:display_value(_("Pagination"), edition.pagination)
+                    $:display_value(_("Number of pages"), edition.number_of_pages, itemprop="numberOfPages")
+                    $:display_value(_("Dimensions"), edition.physical_dimensions)
+                    $:display_value(_("Weight"), edition.weight)
+                </dl>
             </div>
 
         <div class="section">
@@ -482,7 +395,6 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
             </dl>
         </div>
 
-      </div>
     </div>
 
     <div class="workFooter">
@@ -491,11 +403,18 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         $# pages like /books/ia:foo00bar are fake records created from metadata API.
         $# Adding them to lists doesn't work. Disabling it to avoid any issues.
         $if "lists" in ctx.features and not page.is_fake_record():
+          <h3>Lists containing this Work:</h3>
           <div class="user-book-options">        
             <div class="Tools tools-override">
-              $:render_template("lists/widget", page, include_header=False, results=4)
+              $:render_template("lists/widget", work, include_header=False, results=3)
             </div>
-          </div>
+          </div> 
+        <h3>Lists containing this Edition:</h3>
+        <div class="user-book-options">        
+            <div class="Tools tools-override">
+                $:render_template("lists/widget", edition, include_header=False, results=3)
+            </div>
+        </div>  
       </div>
     </div>
 
@@ -506,76 +425,6 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         <div class="small sansserif clearfix"><br/><span class="adminOnly"><a href="$edition.url('/borrow_admin')">View loan debugging information</a></span></div>
 
     $:render_template("lib/history", page)
+
 </div>
 
-<script type="text/javascript">
-
-    function AddReadMore() {
-        //This limit you can set after how much characters you want to show Read More.
-        var carLmt = 160;
-        // Text to show when text is collapsed
-        var readMoreTxt = " ... Read More";
-        // Text to show when text is expanded
-        var readLessTxt = " Read Less";
-
-
-        //Traverse all selectors with this class and manupulate HTML part to show Read More
-        \$(".addReadMore").each(function() {
-            if (\$(this).find(".firstSec").length)
-                return;
-
-            var allstr = \$(this).text();
-            if (allstr.length > carLmt) {
-                var firstSet = allstr.substring(0, carLmt);
-                var secdHalf = allstr.substring(carLmt, allstr.length);
-                var strtoadd = firstSet + "<span class='SecSec'>" + secdHalf + "</span><span class='readMore'  title='Click to Show More'>" + readMoreTxt + "</span><span class='readLess' title='Click to Show Less'>" + readLessTxt + "</span>";
-                \$(this).html(strtoadd);
-            }
-
-        });
-        //Read More and Read Less Click Event binding
-        \$(document).on("click", ".readMore,.readLess", function() {
-            \$(this).closest(".addReadMore").toggleClass("showlesscontent showmorecontent");
-        });
-    }
-    
-    \$(function() {
-        //Calling function after Page Load
-        AddReadMore();
-    });
-
-  var el, ps, up, totalHeight;
-
-  \$(".sidebar-box .button").click(function() {
-        
-    totalHeight = 0
-
-    el = \$(this);
-    p  = el.parent();
-    up = p.parent();
-    ps = up.find("p:not('.read-more')");
-    
-    // measure how tall inside should be by adding together heights of all inside paragraphs (except read-more paragraph)
-    ps.each(function() {
-      totalHeight += \$(this).outerHeight();
-    });
-          
-    up
-      .css({
-        // Set height to prevent instant jumpdown when max height is removed
-        "height": up.height(),
-        "max-height": 9999
-      })
-      .animate({
-        "height": totalHeight
-      });
-    
-    // fade out read-more
-    p.fadeOut();
-    
-    // prevent jump-down
-    return false;
-      
-  });
-
-</script>
