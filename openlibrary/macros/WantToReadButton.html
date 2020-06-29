@@ -122,11 +122,11 @@ $ users_work_read_status = work.get_users_read_status(username) if work and user
 
       $if show_lists:
         <div class="reading-lists">
-          <p class="reading-list-title">$_('My Reading Lists:')</p>
-          <p class="create checkboxes">
-            <label for="x"><input type="checkbox" onclick="if(this.checked){myFunction()}else{myFunction1()}" id="work-check"/> <span>Use this Work</span></label>
-          </p>
+          <p class="reading-list-title">$_('My Reading Lists ')</p>
           <div class="my-lists">
+              <p class="list">
+                <label class="create checkboxes" for="x"><input type="checkbox" onclick="if(this.checked){myFunction()}else{myFunction1()}" id="work-check"/> <span>Use this Work</span></label>  
+              </p>
             $for i, list in enumerate(lists):
               $if not list.active:
                 <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
