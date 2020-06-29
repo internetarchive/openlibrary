@@ -209,11 +209,11 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       
       $:macros.SubjectTags(work, ["Subjects"])    
       
-      $:macros.EditionNavBar(["editions", "work-details", "edition-details"], ["editions"], work.edition_count)
+      $:macros.EditionNavBar(["all-editions", "work-details", "edition-details"], ["all-editions"], work.edition_count)
 
       $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
 
-      $:macros.EditionNavBar(["editions", "work-details", "edition-details"], ["work-details"])
+      $:macros.EditionNavBar(["all-editions", "work-details", "edition-details"], ["work-details"])
 
         <div class="section">
             <span>
@@ -294,7 +294,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                     </tbody></table>
                 </div>
     
-      $:macros.EditionNavBar(["editions", "work-details", "edition-details"], ["edition-details"])
+      $:macros.EditionNavBar(["all-editions", "work-details", "edition-details"], ["edition-details"])
 
         $if edition.first_sentence:
             <div>
