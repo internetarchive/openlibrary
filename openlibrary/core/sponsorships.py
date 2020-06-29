@@ -115,6 +115,9 @@ def onetime_check_sponsorship(doc, force=False):
         if isinstance(edition, Work):
             edition = edition.get_one_edition()
 
+    if not edition:
+        return None
+
     cached_value = memoize.cache_get(memoize.keyfunc(edition))
 
     if cached_value is not None:
