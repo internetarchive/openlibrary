@@ -133,9 +133,6 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
   </div>
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
-  <div class="workDetails">
-    $if work:
-        <link itemprop="exampleOfWork" href="$work.key">
 
     <div class="editionCover">
       $:macros.databarWork(edition, editions_page=True)
@@ -210,13 +207,13 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
             </div>
         </div>    
       
-      $:macros.SubjectTags(work, ["Subjects"])
+      $:macros.SubjectTags(work, ["Subjects"])    
       
       $:macros.EditionNavBar(["editions", "work-details", "edition-details"], ["editions"], work.edition_count)
 
       $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
 
-      $:macros.EditionNavBar(["work-details"], ["work-details"])
+      $:macros.EditionNavBar(["editions", "work-details", "edition-details"], ["work-details"])
 
         <div class="section">
             <span>
@@ -297,7 +294,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                     </tbody></table>
                 </div>
     
-      $:macros.EditionNavBar(["edition-details"], ["edition-details"])
+      $:macros.EditionNavBar(["editions", "work-details", "edition-details"], ["edition-details"])
 
         $if edition.first_sentence:
             <div>
@@ -307,12 +304,12 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         
         $if edition.description:
             <div class="section">
-            <h3>$_("Edition Description")</h3>
-            <div class="edition-description">
-                <div class="addReadMore showlesscontent">
-                    $:sanitize(format(edition.description))
+                <h3>$_("Edition Description")</h3>
+                <div class="edition-description">
+                    <div class="addReadMore showlesscontent">
+                        $:sanitize(format(edition.description))
+                    </div>
                 </div>
-            </div>
             </div>
 
         $:macros.TableOfContents(page, ocaid)
