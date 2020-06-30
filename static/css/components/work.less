@@ -47,8 +47,9 @@ div.editionAbout {
 .addReadMore .readMore,
 .addReadMore .readLess {
   margin-left: 2px;
-  color: blue;
+  color: @link-blue;
   cursor: pointer;
+  font-size: .8em;
 }
 
 .addReadMoreWrapTxt.showmorecontent .SecSec,
@@ -85,10 +86,7 @@ background-image: linear-gradient(to bottom, transparent, white);
 }
 
 .section {
-margin-top: 20px;
-}
-
-.collapse {
+  margin-top: 20px;
 }
 
 h2.edition-byline {
@@ -96,57 +94,57 @@ h2.edition-byline {
 }
 
 .first-published-date {
-color: #999;
-font-size: .8em;
+  color: @grey;
+  font-size: .8em;
 }
 
 .edition-overview {
-background: #eee;
-padding: 10px;
-margin: 10px 0px;
+  background: @light-grey;
+  padding: 10px;
+  margin: 10px 0px;
 }
 
 .edition-overview .edition-title {
-margin-bottom: 0;
-color: #333;
+  margin-bottom: 0;
+  color: @dark-grey;
 }
 
 .edition-overview .edition-subtitle {
-margin-top: 5px;
-font-size: 1.4em;
-font-weight: normal;
-color: #666;
+  margin-top: 5px;
+  font-size: 1.4em;
+  font-weight: normal;
+  color: @grey;
 }
 
 .work-menu {
-border-bottom: 1px solid #ddd;
-padding-bottom: 5px;
-font-weight: bold;
-margin-top: 30px;
+  border-bottom: 1px solid @lighter-grey;
+  padding-bottom: 5px;
+  font-weight: bold;
+  margin-top: 30px;
 }
 
 .work-menu li {
-display: inline;
-padding: 0px 15px;
-padding-bottom: 5px;
-font-size: 13px;
+  display: inline;
+  padding: 0px 15px;
+  padding-bottom: 5px;
+  font-size: 13px;
 }
 
 .work-menu li a {
-text-decoration: none;
-color: #666;
+  text-decoration: none;
+  color: @grey;
 }
 
 .work-menu li.selected {
-border-bottom: 2px solid #0376b8;
+  border-bottom: 2px solid @link-blue;
 }
 
 .work-menu li:hover {
-border-bottom: 2px solid #0376b8;
+  border-bottom: 2px solid @link-blue;
 }
 
 .work-menu li.selected a {
-color: #0376b8;
+  color: @link-blue;
 }
 
 .book-overview {
@@ -181,7 +179,7 @@ div.editionTools {
   div.edition {
     &Cover {
       float: left;
-      width: 250px;
+      width: 225px;
       margin-right: 1.5em;
       margin-bottom: 0;
     }
@@ -204,4 +202,9 @@ div.editionTools {
   .mobile-borrow-cta {
     display: none;
   }
+}
+
+.print-disabled-download {
+  text-align: center;
+  padding: 7px 0 0 0;
 }
