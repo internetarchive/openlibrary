@@ -7,7 +7,9 @@ $ edition_key = edition.key if edition else None
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ users_work_read_status = read_status or work.get_users_read_status(username) if work and username else None
 $ users_work_rating = rating or work.get_users_rating(username) if work and username else None
+$ uid = 'widget-lists-wrapper-%s' % str(random.random())
 
+<div id="$uid">
 $if "lists" not in ctx.features:
     $return
 
@@ -213,7 +215,7 @@ $jsdef render_widget_display(lists, limit):
         $if i < limit:
             $:show_list(list)
 
-$jsdef render_head():
+$jsdef render_head(seed_type, page_lists):
     $if seed_type == "subject":
         <div class="head">
           <h3>Lists</h3>
@@ -233,7 +235,7 @@ $jsdef render_head():
 
 $if include_header:
   <div id="widget-head">
-    $:render_head()
+    $:render_head(seed_type, page_lists)
   </div>
 
 $if include_widget:
@@ -261,6 +263,7 @@ $if include_widget:
             </div>
         </div>
     </div>
+
 
 $if include_showcase:
   <ul class="listLists" id="widget-lists">
@@ -306,232 +309,228 @@ $if ctx.user:
     </div>
 
     <script type="text/javascript">
-    // Lists API
+    window.q.push(function() {
+        var Lists = {
+            wantToRead: function(success) {
+                this.ajax({
+                    url: "$(work_key)/bookshelves.json",
+                    data: {
+                        action: \$('input[name=action]').val(),
+                        edition_id: \$('input[name=edition_id]').val()
+                    }
+                });
+            },
+            create: function(user, data, success, complete) {
+                this.ajax({
+                    url: user + "/lists.json",
+                    data: data,
+                    success: success,
+                    complete: complete
+                });
+            },
+            add: function(list_key, seed, success, complete) {
+                this.ajax({
+                    url: list_key + "/seeds.json",
+                    data: {
+                        'add': [seed]
+                    },
+                    success: success,
+                    complete: complete
+                });
+            },
+            remove: function(list_key, seed, success, complete) {
+                this.ajax({
+                    url: list_key + "/seeds.json",
+                    data: {
+                        'remove': [seed]
+                    },
+                    success: success,
+                    complete: complete
+                });
+            },
 
-    Lists = {
-        wantToRead: function(success) {
-            this.ajax({
-                url: "$(work_key)/bookshelves.json",
-                data: {
-                    action: \$('input[name=action]').val(),
-                    edition_id: \$('input[name=edition_id]').val()
+            ajax: function(d) {
+                \$.ajax({
+                    type: "POST",
+                    url: d.url,
+                    contentType: "application/json",
+                    data: JSON.stringify(d.data),
+                    dataType: "json",
+
+                    beforeSend: function(xhr) {
+                        xhr.setRequestHeader("Content-Type", "application/json");
+                        xhr.setRequestHeader("Accept", "application/json");
+                    },
+                    success: d.success,
+                    complete: d.complete
+                });
+            }
+        }
+
+        var \$container = \$($:json_encode(uid));
+        var seed = $:json_encode(seed);
+        var seed_type = $:json_encode(seed_type);
+        var title = $:json_encode(websafe(title));
+
+        var user_lists = $:json_encode(user_lists);
+        var page_lists = $:json_encode(page_lists);
+
+        var user_key = $:json_encode(user_key);
+        var page_url = $:(json_encode(page_url));
+
+        var users_work_read_status = $(users_work_read_status or 'null');
+        var work_key = '$(work_key)';
+        var edition_key = '$(edition_key)';
+        var username = '$(username or "")';
+
+        function reload_widget() {
+            \$container.find("#widget-head").html(render_head(seed_type, page_lists));
+            \$container.find("#widget-add").html(render_widget_add(user_lists, work_key, edition_key, users_work_read_status, username, page_url));
+
+            \$container.find("#widget-lists").html(render_widget_display(page_lists, 3));
+            setup_events();
+
+            // We've added new .dropclick element. Need to setup listeners again.
+            \$container.find('.dropclick').click(function(){
+                \$(this).closest('.dropdown').slideToggle();
+                \$(this).closest('.arrow').toggleClass("up");
+            });
+
+            // Trigger an event to allow adding listeners
+            \$(window).trigger("ol.lists");
+        }
+
+        function get_user_list_index(list) {
+            for (var i=0; i< user_lists.length; i++) {
+                if (list.key == user_lists[i].key) {
+                    return i;
+                }
+            }
+        }
+
+        function get_list(id) {
+            // strip "list_" from id.
+            id = id.substr(5);
+            return user_lists[parseInt(id)];
+        }
+
+        function add_page_list(list) {
+            page_lists.splice(0, 0, list);
+        }
+
+        function remove_page_list(list) {
+            for (var i=0; i<page_lists.length; i++) {
+                var pagelist = page_lists[i];
+                if (page_lists[i].key == list.key) {
+                    page_lists.splice(i, 1);
+                    break;
+                }
+            }
+        }
+
+        function setup_submit_event() {
+            // This form in created only at the beginning.
+            // Unlike other elements, event for this form should be setup only once.
+            \$container.find("#new-list").ol_validate({
+                submitHandler: function(form) {
+                    // disable form while waiting for response
+                    \$container.find("#new-list button").attr("disabled", true);
+
+                    var data = {
+                        name: \$container.find("#list_label").val(),
+                        description: \$container.find("#list_desc").val(),
+                        seeds: [seed]
+                    };
+
+                    Lists.create("$ctx.user.key", data, function(d) {
+                        \$.fn.colorbox.close();
+                        var list = {
+                          key: d.key,
+                          name: data.name,
+                          active: true,
+                          owner: {key: user_key},
+                          cover_url: "/images/icons/avatar_book-sm.png",
+
+                          edition_count: 1,
+                          description: websafe(data.description)
+                        };
+                        user_lists[user_lists.length] = list;
+                        add_page_list(list);
+
+                        reload_widget();
+                    }, function(){
+                        // re-enable form now that the request is finished
+                        reload_widget();
+                        \$container.find("#new-list button").attr("disabled", false);
+                    });
+                    return false;
                 }
             });
-        },
-        create: function(user, data, success, complete) {
-            this.ajax({
-                url: user + "/lists.json",
-                data: data,
-                success: success,
-                complete: complete
-            });
-        },
-        add: function(list_key, seed, success, complete) {
-            this.ajax({
-                url: list_key + "/seeds.json",
-                data: {
-                    'add': [seed]
-                },
-                success: success,
-                complete: complete
-            });
-        },
-        remove: function(list_key, seed, success, complete) {
-            this.ajax({
-                url: list_key + "/seeds.json",
-                data: {
-                    'remove': [seed]
-                },
-                success: success,
-                complete: complete
-            });
-        },
-
-        ajax: function(d) {
-            \$.ajax({
-                type: "POST",
-                url: d.url,
-                contentType: "application/json",
-                data: JSON.stringify(d.data),
-                dataType: "json",
-
-                beforeSend: function(xhr) {
-                    xhr.setRequestHeader("Content-Type", "application/json");
-                    xhr.setRequestHeader("Accept", "application/json");
-                },
-                success: d.success,
-                complete: d.complete
-            });
         }
-    }
 
-    </script>
+        function setup_events() {
+            \$container.find("#create-new-list").click(function() {
+               close_popup();
+               \$.colorbox({inline: true, opacity: "0.5", href: "#addList"});
+            });
 
-    <script type="text/javascript">
-    var seed = $:json_encode(seed);
-    var seed_type = $:json_encode(seed_type);
-    var title = $:json_encode(websafe(title));
+            \$container.find("a.add-to-list").click(function(event) {
+                event.preventDefault();
+                close_popup();
 
-    var user_lists = $:json_encode(user_lists);
-    var page_lists = $:json_encode(page_lists);
+                \$(this).unbind("click");   // ignore clicks while waiting for response
 
-    var user_key = $:json_encode(user_key);
-    var page_url = $:(json_encode(page_url));
+                var id = \$(this).attr("id");
+                var list = get_list(id);
 
-    var users_work_read_status = $(users_work_read_status or 'null');
-    var work_key = '$(work_key)';
-    var edition_key = '$(edition_key)';
-    var username = '$(username or "")';
-
-    function reload_widget() {
-        \$("#widget-head").html(render_head());
-        \$("#widget-add").html(render_widget_add(user_lists, work_key, edition_key, users_work_read_status, username, page_url));
-
-        \$("#widget-lists").html(render_widget_display(page_lists, 3));
-        setup_events();
-
-        // We've added new .dropclick element. Need to setup listeners again.
-        \$('.dropclick').click(function(){
-            \$(this).closest('.dropdown').slideToggle();
-            \$(this).closest('.arrow').toggleClass("up");
-        });
-
-        // Trigger an event to allow adding listeners
-        \$(window).trigger("ol.lists");
-    }
-
-    function get_user_list_index(list) {
-        for (var i=0; i< user_lists.length; i++) {
-            if (list.key == user_lists[i].key) {
-                return i;
-            }
-        }
-    }
-
-    function get_list(id) {
-        // strip "list_" from id.
-        id = id.substr(5);
-        return user_lists[parseInt(id)];
-    }
-
-    function add_page_list(list) {
-        page_lists.splice(0, 0, list);
-    }
-
-    function remove_page_list(list) {
-        for (var i=0; i<page_lists.length; i++) {
-            var pagelist = page_lists[i];
-            if (page_lists[i].key == list.key) {
-                page_lists.splice(i, 1);
-                break;
-            }
-        }
-    }
-
-    function setup_submit_event() {
-        // This form in created only at the beginning.
-        // Unlike other elements, event for this form should be setup only once.
-        \$("#new-list").ol_validate({
-            submitHandler: function(form) {
-                // disable form while waiting for response
-                \$("#new-list button").attr("disabled", true);
-
-                var data = {
-                    name: \$("#list_label").val(),
-                    description: \$("#list_desc").val(),
-                    seeds: [seed]
-                };
-
-                Lists.create("$ctx.user.key", data, function(d) {
-                    \$.fn.colorbox.close();
-                    var list = {
-                      key: d.key,
-                      name: data.name,
-                      active: true,
-                      owner: {key: user_key},
-                      cover_url: "/images/icons/avatar_book-sm.png",
-
-                      edition_count: 1,
-                      description: websafe(data.description)
-                    };
-                    user_lists[user_lists.length] = list;
+                Lists.add(list.key, seed, function() {
+                    list.active = true;
                     add_page_list(list);
-
-                    reload_widget();
-                }, function(){
-                    // re-enable form now that the request is finished
-                    reload_widget();
-                    \$("#new-list button").attr("disabled", false);
+                }, function(data){
+                    reload_widget();    // reload widget regardless of success or failure
                 });
                 return false;
-            }
-        });
-    }
-
-    function setup_events() {
-        \$("#create-new-list").click(function() {
-           close_popup();
-           \$.colorbox({inline: true, opacity: "0.5", href: "#addList"});
-        });
-
-        \$("a.add-to-list").click(function(event) {
-            event.preventDefault();
-            close_popup();
-
-            \$(this).unbind("click");   // ignore clicks while waiting for response
-
-            var id = \$(this).attr("id");
-            var list = get_list(id);
-
-            Lists.add(list.key, seed, function() {
-                list.active = true;
-                add_page_list(list);
-            }, function(data){
-                reload_widget();    // reload widget regardless of success or failure
             });
-            return false;
-        });
 
-        \$("a.remove-from-list").click(function(event) {
-            event.preventDefault();
-            var id = \$(this).attr("id");
-            setup_dialog();
+            \$container.find("a.remove-from-list").click(function(event) {
+                event.preventDefault();
+                var id = \$(this).attr("id");
+                setup_dialog();
 
-            \$("#remove-dialog")
-                .data("list-id", id)
-                .dialog("open");
-            return false;
-        });
-    }
-
-    function close_popup() {
-        \$(this).next('.dropdown').slideToggle();
-        \$(this).parent().find('.arrow').toggleClass("down");
-    }
-
-    function setup_dialog() {
-        \$("#remove-dialog").ol_confirm_dialog(function() {
-            var id = \$(this).data("list-id");
-            var list = get_list(id);
-            var _this = this;
-
-            Lists.remove(list.key, seed, function() {
-                list.active = false;
-                remove_page_list(list);
-                reload_widget();
-                \$(_this).dialog("close");
+                \$container.find("#remove-dialog")
+                    .data("list-id", id)
+                    .dialog("open");
+                return false;
             });
-        });
+        }
 
-    }
+        function close_popup() {
+            \$(this).next('.dropdown').slideToggle();
+            \$(this).parent().find('.arrow').toggleClass("down");
+        }
 
-    window.q.push(function(){
+        function setup_dialog() {
+            \$container.find("#remove-dialog").ol_confirm_dialog(function() {
+                var id = \$(this).data("list-id");
+                var list = get_list(id);
+                var _this = this;
+
+                Lists.remove(list.key, seed, function() {
+                    list.active = false;
+                    remove_page_list(list);
+                    reload_widget();
+                    \$(_this).dialog("close");
+                });
+            });
+
+        }
+
         setup_submit_event();
         setup_events();
 
-        var mylist = \$('.dropdown');
+        var mylist = \$container.find('.dropdown');
         var listitems = mylist.children('p.list').get();
-        var listcreate = \$('.dropdown p.create');
+        var listcreate = \$container.find('.dropdown p.create');
         var a = a;
         var b = b;
         listitems.sort(function(a, b) {
@@ -540,12 +539,13 @@ $if ctx.user:
            return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
         })
         \$.each(listitems, function(idx, itm) { mylist.append(itm); });
-        \$('.dropdown').append(listcreate);
+        \$container.find('.dropdown').append(listcreate);
 
         \$(document).on( 'click', '.book-progress-btn, .nostyle-btn', function(e) {
            \$('.book-progress-btn').text("$_('saving...')");
         });
-
     });
 
+
     </script>
+</div>
