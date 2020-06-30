@@ -1,4 +1,4 @@
-$def with (doc, work_key=None, listen=True, daisy=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False, readlog_btn=None)
+$def with (doc, work_key=None, listen=True, daisy=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False, readlog_btn=None, ratings_btn=None)
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * listen whether to display listen button
@@ -131,6 +131,8 @@ $if ocaid and secondary_action and is_printdisabled:
 
 $if readlog_btn:
   $:readlog_btn
+$if ratings_btn:
+  $:ratings_btn
 
 $if ocaid and daisy:
   $:macros.daisy('/ia/%s/daisy' % ocaid, protected=is_printdisabled)
@@ -138,4 +140,4 @@ $if ocaid and daisy:
 $if query_param('debug'):
   $ loanstatus_end_time = time() - loanstatus_start_time
   <p>LoanStatus took $("%.2f" % loanstatus_end_time) seconds</p>
-  $lending_st $availability
+  <p>$lending_st $availability</p>

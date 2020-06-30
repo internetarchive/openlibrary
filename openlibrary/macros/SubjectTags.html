@@ -4,12 +4,12 @@ $# Todo write the description of input parameter's the file takes
 
 $def render_subjects(label, subjects, prefix=""):
   $if subjects:
-    <h3>$label</h3>
-    <div class="section addReadMore showlesscontent">    
-      <div><span>
-          $for subject in subjects:
-            <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',',''))">$subject</a>$cond(not loop.last,",","")
-      </span></div>
+    <div class="section addReadMore showlesscontent">
+      <h3>$label</h3>
+      <span>
+        $for subject in subjects:
+          <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',',''))">$subject</a>$cond(not loop.last,",","")
+        </span>
     </div>
 
 $if work:

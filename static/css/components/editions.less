@@ -20,11 +20,7 @@ table#editions,
     font-weight: 600;
     text-transform: uppercase;
     line-height: normal;
-    text-align: center;
-    background-color: @lightest-grey;
-    border-bottom: 1px solid @mid-grey;
-    border-left: 5px solid @white;
-    border-right: 5px solid @white;
+    text-align: left;
     padding: 6px 0;
     outline: none;
     cursor: pointer;
@@ -80,8 +76,12 @@ table#editions,
     }
   }
 
+  tr:hover {
+    box-shadow: 0px 0px 2px 4px mix(@primary-blue, @white, 50%);
+  }
+
   .highlight {
-    box-shadow: 0px 0px 0px 5px @light-yellow;
+    box-shadow: 0px 0px 2px 4px @light-grey;
   }
 }
 
