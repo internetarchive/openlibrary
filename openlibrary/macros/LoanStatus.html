@@ -137,4 +137,4 @@ $if ocaid and daisy:
 $if query_param('debug'):
   $ loanstatus_end_time = time() - loanstatus_start_time
   <p>LoanStatus took $("%.2f" % loanstatus_end_time) seconds</p>
-  $lending_st $availability
+  <p>$lending_st $availability</p>
