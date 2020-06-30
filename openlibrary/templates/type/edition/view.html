@@ -130,12 +130,13 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
     </div>
 
     <div class="editionAbout">
-      <div class="work-line">This is an Edition of <strong>$work_title</strong> ($work.first_publish_year)</div>
       <div class="editionAll">
         $ component_times['EditTopbar'] = time()
         $:macros.databarView(page, edition)
         $ component_times['EditTopbar'] = time() - component_times['EditTopbar']
       </div>
+
+      <div class="work-line">This is an Edition of <strong>$work_title</strong> ($work.first_publish_year)</div>
 
       $:render_template("type/edition/book_title", work, edition)
 
@@ -151,7 +152,6 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       <div class="edition-oneline"
            style="display: flex;
                   border-top: 1px solid #eee;
-                  border-bottom: 1px solid #eee;
                   margin: 20px 0 10px;
                   ">
         $:render_template("type/edition/publisher_line", edition)
