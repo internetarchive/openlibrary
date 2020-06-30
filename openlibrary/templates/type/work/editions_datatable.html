@@ -1,6 +1,8 @@
 $def with (work, editions=None, edition=None)
 
 $ book_keys = []
+
+
 <table id="editions" class="editions-table editions-table--progressively-enhanced">
     <thead>
     <tr>
@@ -26,9 +28,10 @@ $ book_keys = []
         $ edition_list_secs = time() - edition_list_start
     </tbody>
 </table>
-<div class="small sansserif brown">
+
+<p class="small sansserif brown" style="text-align: right;">
   <a href="/books/add?work=$work.key" title="$_('Add another edition of %(work)s', work=work.title)">$_("Add another edition")</a>?
-</div>
+</p>
 
 <!-- Admin only text doesn't need to be translated -->
 $if ctx.user and ctx.user.is_admin() and query_param('debug'):
