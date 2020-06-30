@@ -1,7 +1,7 @@
 import './jquery.dataTables';
 import '../../../../../static/css/legacy-datatables.less';
 
-export function initEditionsTable() {
+export function initEditionsTable(itemsPerPage) {
     var rowCount;
     $('#editions th.title').mouseover(function(){
         if ($(this).hasClass('sorting_asc')) {
@@ -46,7 +46,7 @@ export function initEditionsTable() {
         $('#editions').dataTable({
             aoColumns: [{sType: 'html'},null],
             aaSorting: [ [0,'asc'] ],
-            iDisplayLength: 3,
+            iDisplayLength: itemsPerPage || 3,
             bPaginate: true,
             bInfo: true,
             sPaginationType: 'full_numbers',
