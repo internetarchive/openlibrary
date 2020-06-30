@@ -51,8 +51,9 @@ $if isbn_10 and not asin:
         </div>
 
         $ readlog_btn = work and macros.WantToReadButton(work, edition_key=edition_key)
+        $ ratings_btn = work and macros.StarRatings(work, edition)
 
-        $:macros.LoanStatus(page, work_key=work_key, allow_expensive_availability_check=editions_page, secondary_action=editions_page, check_sponsorship=editions_page, sponsorship_help=editions_page, check_loan_status=editions_page, readlog_btn=readlog_btn)
+        $:macros.LoanStatus(page, work_key=work_key, allow_expensive_availability_check=editions_page, secondary_action=editions_page, check_sponsorship=editions_page, sponsorship_help=editions_page, check_loan_status=editions_page, readlog_btn=readlog_btn, ratings_btn=ratings_btn)
 
         $if page.get('ocaid') and not page.is_access_restricted() and page.ia_metadata:
           $:macros.DownloadOptions(page)
@@ -65,18 +66,18 @@ $if isbn_10 and not asin:
     $ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
     $ isbn_13 = page.get_isbn13()
     $ isbn_10 = page.get_isbn10()
-    
+
     $ asin = None
     $if page.get('identifiers'):
         $if page.identifiers.get('amazon'):
             $ asin = page.identifiers.amazon[0]
-    
+
     $if isbn_10 and not asin:
         $ asin = isbn_10
     <div class="panel">
       <div class="btn-notice">
         $:macros.WorldcatLink(isbn=isbn_13, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
-      
+
         <div class="cta-section">
           <p class="cta-section-title">$_('Buy this book')</p>
           $:macros.AffiliateLinks(page, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
