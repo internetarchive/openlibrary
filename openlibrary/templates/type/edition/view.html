@@ -1,11 +1,16 @@
 $def with (page)
 
+$ component_times = {}
+$ component_times['TotalTime'] = time()
+
 $ tab = input(tab=None).tab
 $ editions = []
 $ page_type = page.key.split('/')[1]
 $if page.key.startswith('/works'):
   $ work = page
+  $ component_times['get_sorted_editions'] = time()
   $ editions = work.get_sorted_editions()
+  $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
   $ edition = ([e for e in editions if e.get('ocaid')] or editions)[0]
 $else:
   $ work = page.works and page.works[0] or None
@@ -111,87 +116,57 @@ $:macros.Metatags(title=title_with_site, image=meta_cover_url, description=descr
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
 $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
-  <!-- Don't need to translate admin only buttons (at least initially)-->
-  <div class="admin-bar">
-    $if work:
-      <!-- Add this whole work to staff picks -->
-      <form action="/admin/staffpicks" method="POST">
-        <input type="hidden" value="add" name="action"/>
-        <input type="hidden" name="work_id" value="$(work.key.split('/')[2])"/>
-        <input type="submit" class="cta-btn--vanilla" value="Add to Staff Picks"/>
-      </form>
-    $if ocaid:
-      <form method="GET" action="/admin/sync">
-        <input type="hidden" name="edition_id" value="$(edition.key.split('/')[2])"/>
-        <input type="submit" class="cta-btn--vanilla" value="Sync Archive.org ID"/>
-      </form>
-      <form method="GET" action="https://archive.org/details/$ocaid">
-        <input type="submit" class="cta-btn--vanilla" value="View Book on Archive.org"/>
-      </form>
-    $if not work:
-      <strong>Orphaned Edition!</strong>
-  </div>
+  $:render_template("type/edition/admin_bar", work, edition, ocaid)
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
+  <div class="workDetails">
+    $if work:
+        <link itemprop="exampleOfWork" href="$work.key">
 
     <div class="editionCover">
+      $ component_times['databarWork'] = time()
       $:macros.databarWork(edition, editions_page=True)
+      $ component_times['databarWork'] = time() - component_times['databarWork']
     </div>
 
     <div class="editionAbout">
-      <span>Originally published as <strong>$work_title</strong> in $work.first_publish_year</span>    
+      <div class="work-line">This is an Edition of <strong>$work_title</strong> ($work.first_publish_year)</div>
       <div class="editionAll">
+        $ component_times['EditTopbar'] = time()
         $:macros.databarView(page, edition)
-        $if work.series:
-          <h2><a href="/works/$(work.series.work)">($work.series.name)</a></h2>
-        <h1 class="work-title" itemprop="name">$book_title</h1>
-        $if edition.subtitle or edition.edition_title or edition.edition_name:
-          <h2 class="work-subtitle">
-            $if edition.subtitle:
-              $edition.subtitle
-            $if edition.edition_title or edition.edition_name:
-              $if edition.subtitle:
-                &mdash;
-              $edition.edition_title $edition.edition_name
-        $if authors_byline:
-          <h2 class="edition-byline">$_("by") $:authors_byline</h2>
+        $ component_times['EditTopbar'] = time() - component_times['EditTopbar']
       </div>
 
-      $:macros.StarRatings(work, edition)
-      $:macros.StarRatingsStats(work)
+      $:render_template("type/edition/book_title", work, edition)
 
-      <h4 class="publisher">
-        <span>
-        $if edition.publish_date or edition.publishers or edition.publish_places:
-        <!-- TODO: this handcrafted concatenation will be difficult to internationalize -->
-        $_('Published')
-            $if edition.publish_date:
-                <strong itemprop="datePublished">$edition.publish_date</strong>
-            $if edition.publishers:
-                $_('by')
-                $for p in edition.publishers:
-                    $if "publishers" in ctx.features:
-                      <a itemprop="publisher" href="/publishers/$p.replace(' ', '_')"
-                         title="$_('Show other books from %(publisher)s', publisher=p)"
-                         >$p</a>$cond(loop.last, "", ", ")
-                    $else:
-                      <a itemprop="publisher" href="/search?publisher_facet=$p.replace('&','%26')"
-                         title="$_('Search for other books from %(publisher)s', publisher=p)"
-                         >$p</a>$cond(loop.last, "", ", ")
-            $if edition.publish_places:
-              $_('in')
-              $for p in edition.publish_places:
-                 <a href="/search/subjects?q=$p.replace('&','%26')"
-                    title="$_('Search for subjects about %(place)s', place=p)"
-                    >$p</a>$cond(loop.last, "", ", ")<span class="adjust">.</span>
+      $if authors_byline:
+        $# authors_byline susceptible to xss!
+        <h2 class="edition-byline">$_("by") $:authors_byline</h2>
+
+      $ component_times['ReadlogStats'] = time()
+      $:macros.StarRatingsStats(work)
+      $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
+
+      $# Clean up inline styles!
+      <div class="edition-oneline"
+           style="display: flex;
+                  border-top: 1px solid #eee;
+                  border-bottom: 1px solid #eee;
+                  margin: 20px 0 10px;
+                  ">
+        $:render_template("type/edition/publisher_line", edition)
+
         $if edition.languages:
+          <h4 class="language">
             $def lang_span(): <span itemprop="inLanguage">$:thingrepr(edition.languages)</span>
             $:_('Written in %(language)s', language=lang_span())
+          </h4>
         $if edition.number_of_pages:
-            &mdash; <span class="edition-pages"
-                          itemprop="numberOfPages">$edition.number_of_pages</span> pages
-        </span>
-      </h4>
+          <h4 class="year">&mdash;
+            <span class="edition-pages"
+                  itemprop="numberOfPages">$edition.number_of_pages</span> pages
+          </h4>
+      </div>
 
       $if work or edition:
         <div class="book-description">
@@ -205,15 +180,17 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                         $:_("This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=edition.url('/edit')+"#about/about")
                     </p>
             </div>
-        </div>    
-      
-      $:macros.SubjectTags(work, ["Subjects"])    
-      
-      $:macros.EditionNavBar(["all-editions", "work-details", "edition-details"], ["all-editions"], work.edition_count)
+        </div>
 
+      $:macros.SubjectTags(work, ["Subjects"])
+
+      $:macros.EditionNavBar(["editions-list", "work-details", "edition-details"], ["editions-list"], work.edition_count)
+
+      $ component_times['EditionsTable'] = time()
       $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
+      $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
 
-      $:macros.EditionNavBar(["all-editions", "work-details", "edition-details"], ["work-details"])
+      $:macros.EditionNavBar(["editions-list", "work-details", "edition-details"], ["work-details"], work.edition_count)
 
         <div class="section">
             <span>
@@ -227,19 +204,20 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
             $_("First published in %s", work.first_publish_year)
         </h4>
 
+        $ component_times['SubjectsTags'] = time()
         $:macros.SubjectTags(work, ["Subjects", "People", "Places", "Times"])
+        $ component_times['SubjectsTags'] = time() - component_times['SubjectsTags']
 
         $if not work.excerpts and work.first_sentence:
             <p class="largest" style="margin-bottom: 20px;" title=$_("First Sentence")><em>"$work.first_sentence</em>"</p>
 
         $if work.description:
-            <h3>$_("Work Description")</h3>
-            <div class="work-description">
-                <div class="addReadMore showlesscontent">
-                    $:sanitize(format(work.description))
-                </div>
+          <h3>$_("Work Description")</h3>
+          <div class="work-description">
+            <div class="addReadMore showlesscontent">
+              $:sanitize(format(work.description))
             </div>
-
+          </div>
 
         $if work.original_languages:
             <div class="sansserif smallest brown">$_("Original languages")</div>
@@ -268,7 +246,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                         </div>
                     </div>
             </div>
-        
+
         $if work.links or (work.wikipedia and work.wikipedia.startswith("http")):
             <div class="section">
                 <h3>$:_('Links <span class="gray small sansserif">outside Open Library</span>')</h3>
@@ -293,26 +271,28 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                         <td><span class="object">$thingrepr(work.dewey_number)</span></td></tr>
                     </tbody></table>
                 </div>
-    
-      $:macros.EditionNavBar(["all-editions", "work-details", "edition-details"], ["edition-details"])
+
+      $:macros.EditionNavBar(["editions-list", "work-details", "edition-details"], ["edition-details"], work.edition_count)
 
         $if edition.first_sentence:
             <div>
             <h3 class="collapse">$_("First Sentence")</h3>
             <p>"$(edition.first_sentence)"</p>
             </div>
-        
+
         $if edition.description:
             <div class="section">
-                <h3>$_("Edition Description")</h3>
-                <div class="edition-description">
-                    <div class="addReadMore showlesscontent">
-                        $:sanitize(format(edition.description))
-                    </div>
+            <h3>$_("Edition Description")</h3>
+            <div class="edition-description">
+                <div class="addReadMore showlesscontent">
+                    $:sanitize(format(edition.description))
                 </div>
             </div>
+            </div>
 
+        $ component_times['TableOfContents'] = time()
         $:macros.TableOfContents(page, ocaid)
+        $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
 
         $if edition.notes or edition.series or edition.volume or edition.genres or edition.other_titles or edition.copyright_date or edition.translation_of or edition.translated_from:
             <div class="section">
@@ -396,32 +376,59 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
     <div class="workFooter">
       <div class="btn-notice">
-        <h2 class="home-h2"><a href="$page.url()/lists">$_('Lists including this book')</a></h2>
         $# pages like /books/ia:foo00bar are fake records created from metadata API.
         $# Adding them to lists doesn't work. Disabling it to avoid any issues.
         $if "lists" in ctx.features and not page.is_fake_record():
-          <h3>Lists containing this Work:</h3>
-          <div class="user-book-options">        
+          <h2 class="home-h2"><a href="$page.url()/lists">$_('Lists containing this Book')</a></h2>
+          <div class="user-book-options">
             <div class="Tools tools-override">
+              $ component_times['WorkListTime'] = time()
               $:render_template("lists/widget", work, include_header=False, results=3)
+              $ component_times['WorkListTime'] = time() - component_times['WorkListTime']
             </div>
-          </div> 
-        <h3>Lists containing this Edition:</h3>
-        <div class="user-book-options">        
+          </div>
+        <h2 class="home-h2"><a href="$page.url()/lists">$_('Lists containing this Edition')</a></h2>
+        <div class="user-book-options">
             <div class="Tools tools-override">
-                $:render_template("lists/widget", edition, include_header=False, results=3)
+              $ component_times['EditionListTime'] = time()
+              $:render_template("lists/widget", edition, include_header=False, results=3)
+              $ component_times['EditionListTime'] = time() - component_times['EditionListTime']
             </div>
-        </div>  
+        </div>
       </div>
     </div>
+  </div>
 
-    $:macros.RelatedWorksCarousel(work)
+  $ component_times['RelatedWorksCarousel'] = time()
+  $:macros.RelatedWorksCarousel(work)
+  $ component_times['RelatedWorksCarousel'] = time() -component_times['RelatedWorksCarousel']
 
-    $if ctx.user and ctx.user.is_admin():
-        <!-- Don't need to translate admin only buttons (at least initially)-->
-        <div class="small sansserif clearfix"><br/><span class="adminOnly"><a href="$edition.url('/borrow_admin')">View loan debugging information</a></span></div>
+  $if ctx.user and ctx.user.is_admin():
+    <!-- Don't need to translate admin only buttons (at least initially)-->
+    <div class="small sansserif clearfix"><br/><span class="adminOnly"><a href="$edition.url('/borrow_admin')">View loan debugging information</a></span></div>
 
-    $:render_template("lib/history", page)
+  $ component_times['HistoryTable'] = time()
+  $:render_template("lib/history", page)
+  $ component_times['HistoryTable'] = time() - component_times['HistoryTable']
 
+  $ component_times['TotalTime'] = time() - component_times['TotalTime']
+
+  $if query_param('debug'):
+    <table>
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>Time</th>
+          <th>%</th>
+        </tr>
+      </thead>
+      <tbody>
+        $for component in sorted(component_times.items(), key=lambda x: x[1]):
+          <tr>
+            <td>$component[0]</td>
+            <td>$("%.2f" % component[1])</td>
+            <td>$("%.2f" % (component[1] / component_times['TotalTime'] * 100.))</td>
+          </tr>
+      </tbody>
+    </table>
 </div>
-
