@@ -21,7 +21,7 @@ table#editions,
     text-transform: uppercase;
     line-height: normal;
     text-align: left;
-    padding: 6px 0;
+    padding: 10px;
     outline: none;
     cursor: pointer;
   }
@@ -68,20 +68,16 @@ table#editions,
   td.icon {
     text-align: left;
     vertical-align: top;
-    padding: 10px 0 10px 10px;
-    width: 143px;
+    padding: 15px;
 
     ul {
       margin-bottom: 0;
     }
   }
 
-  tr:hover {
-    box-shadow: 0px 0px 2px 4px mix(@primary-blue, @white, 50%);
-  }
-
   .highlight {
-    box-shadow: 0px 0px 2px 4px @light-grey;
+    box-shadow: inset 0px 0px 3px 1px @light-grey;
+    border-radius: 5px;
   }
 }
 
@@ -130,6 +126,13 @@ table#editions,
     }
   }
 }
+
+table#editions {
+  thead tr {
+    background: linear-gradient(0deg, @lightest-grey, transparent);
+  }
+}
+
 @media all and ( min-width: @width-breakpoint-desktop ) {
   table#editions {
     float: left;
@@ -146,6 +149,7 @@ table#editions,
 
   }
 }
+
 
 @media only screen and (max-width: @width-breakpoint-tablet) {
   table#editions {
@@ -205,5 +209,16 @@ table#editions,
     .cta-button-group {
       width: unset;
     }
+  }
+}
+
+tbody {
+  tr {
+    background: mix(@beige, @white, 30%);
+  }
+  tr:hover {
+    box-shadow: inset 0px 0px 3px 1px @primary-blue;
+    border-radius: 5px;
+    transition: .5s;
   }
 }
