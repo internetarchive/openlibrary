@@ -149,11 +149,20 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
 
       $# Clean up inline styles!
-      <div class="edition-oneline"
-           style="display: flex;
-                  border-top: 1px solid #eee;
-                  margin: 20px 0 10px;
-                  ">
+      <style type="text/css">
+        .edition-omniline {
+          display: flex;
+          border-top: 1px solid #eee;
+          margin: 20px 0 10px;
+        }
+        .edition-omniline h4 {
+          padding-right: 5px;
+        }
+        .edition-omniline h4:last-child {
+          padding-right: 0;
+        }
+      </style>
+      <div class="edition-omniline">
         $:render_template("type/edition/publisher_line", edition)
 
         $if edition.languages:
@@ -191,13 +200,6 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
 
       $:macros.EditionNavBar(["editions-list", "work-details", "edition-details"], ["work-details"], work.edition_count)
-
-        <div class="section">
-            <span>
-                <strong>Title:</strong>
-                $work_title
-            </span>
-        </div>
 
         <h4 class="first-published">
             $if work and work.first_publish_year:
