@@ -12,12 +12,15 @@ $def with (tab_list, selected_tab_list, edition_count=1)
         $elif tab == "edition-details":
             $ tab_value = "This Edition"
         $else:
-            $ tab_value = "View " + str(edition_count) + " Editions"
+            $ tab_value = "View " + str(edition_count) + " Edition"
+            $if edition_count > 1:
+                $ tab_value += "s"
         $if tab in selected_tab_list:
             $ tab_id = tab
             $ tab_selected = "selected"
-        <li id="$tab_id" class="$tab_selected">
-            <a class="$tab_selected"
-                href="$tab_link">$tab_value</a>
+        <li class="$tab_selected">
+            <a name="$tab_id"
+               class="$tab_selected"
+               href="$tab_link">$tab_value</a>
         </li>
 </ul>
