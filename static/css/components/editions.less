@@ -7,6 +7,7 @@
 /* stylelint-disable selector-max-specificity */
 table#editions,
 .editions-table {
+  border-collapse: collapse;                
   clear: both;
   font-family: @lucida_sans_serif-1;
 
@@ -76,8 +77,8 @@ table#editions,
   }
 
   .highlight {
-    box-shadow: inset 0px 0px 3px 1px @light-grey;
-    border-radius: 5px;
+    box-shadow: inset 0px 0px 0px 2px @beige;
+    background: mix(@beige, @white, 75%);
   }
 }
 
@@ -216,10 +217,5 @@ tbody {
   font-size: .9em;
   tr {
     background: mix(@beige, @white, 30%);
-  }
-  tr:hover {
-    box-shadow: inset 0px 0px 3px 1px @primary-blue;
-    border-radius: 5px;
-    transition: .5s;
   }
 }

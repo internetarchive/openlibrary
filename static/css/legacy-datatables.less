@@ -46,8 +46,8 @@
 .dataTables_length {
   width: 40%;
   font-size: 12px;
-  color: @brown;
-  display: none;
+  color: @grey;
+  display: inline;
 }
 
 .dataTables_filter {
@@ -55,13 +55,13 @@
   float: right;
   text-align: right;
   font-size: 12px;
-  color: @brown;
+  color: @grey;
 }
 
 .dataTables_info {
   width: 100%;
   font-size: 12px;
-  color: @brown;
+  color: @grey;
   margin-top: 20px;
 }
 
@@ -72,7 +72,7 @@
   // stylelint-enable declaration-block-no-duplicate-properties
   text-align: right;
   font-size: 12px;
-  color: @brown;
+  color: @grey;
 }
 
 /* Pagination nested */
@@ -226,7 +226,7 @@ tfoot input {
 }
 
 tfoot input.search_init {
-  color: @light-grey;
+  color: @grey;
 }
 
 td.group {
@@ -250,8 +250,8 @@ td.details {
   line-height: 20px;
 }
 
-.paging_full_numbers span.paginate_button,
-.paging_full_numbers span.paginate_active {
+.paging_full_numbers .paginate_button,
+.paging_full_numbers .paginate_active {
   font-family: @lucida_sans_serif-1;
   font-size: 11px;
   border: 1px solid @lighter-grey;
@@ -264,7 +264,7 @@ td.details {
   *cursor: hand;
 }
 
-.paging_full_numbers span.paginate_button:hover {
+.paging_full_numbers .paginate_button:hover {
   background: @link-blue;
   color: @white;
   text-decoration: none;
