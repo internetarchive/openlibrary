@@ -163,17 +163,22 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
           </h4>
       </div>
 
-      $if work or edition:
+      $if work and work.description or edition and edition.description:
         <div class="book-description">
-            <div class="addReadMore showlesscontent">
+            <div class="book-description-content restricted-view">
                 $if edition and edition.description:
                     $:sanitize(format(edition.description))
                 $elif work and work.description:
-                    $:sanitize(format(work.description))
-                $else:
-                    <p class="workHelp">
-                        $:_("This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=edition.url('/edit')+"#about/about")
-                    </p>
+                    $:sanitize(format(work.description))                    
+            </div>
+            $:macros.ReadMore("book-description")
+        </div>
+      $else:
+        <div class="book-description">
+            <div class="book-description-content">
+                <p class="workHelp">
+                    $:_("This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=edition.url('/edit')+"#about/about")
+                </p>
             </div>
         </div>
 
