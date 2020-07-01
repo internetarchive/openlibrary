@@ -7,9 +7,10 @@ $ edition_key = edition.key if edition else None
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ users_work_read_status = read_status or work.get_users_read_status(username) if work and username else None
 $ users_work_rating = rating or work.get_users_rating(username) if work and username else None
-$ uid = 'widget-lists-wrapper-%s' % str(random.random())
+$ uid = str(random.randint(1000, 9999))
+$ container_id = 'widget-lists-wrapper-%s' % str(uid)
 
-<div id="$uid">
+<div id="$container_id">
 $if "lists" not in ctx.features:
     $return
 
@@ -72,7 +73,7 @@ $ page_url = page.url()
 
 $var page_lists = page_lists
 
-$jsdef show_list(list):
+$jsdef show_list(list, user_key, get_user_list_index):
     $ remove = (list.owner.key == user_key)
     <li>
         <span class="image">
@@ -84,7 +85,7 @@ $jsdef show_list(list):
                 <a href="$list.key" title="$_('See this list')">$list.name</a>
                 $if remove:
                     $ index = get_user_list_index(list)
-                    <a href="$list.key" class="remove-from-list red smaller arial plain" id="list_$index" title="$_('Remove from your list?')">[X]</a>
+                    <a href="$list.key" class="remove-from-list red smaller arial plain" data-list-index="$index" title="$_('Remove from your list?')">[X]</a>
             </span>
             $if remove:
                 <span class="owner">from <a href="$list.owner.key">$_('You')</a></span>
@@ -176,7 +177,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                   <div class="my-lists">
                     $for i, list in enumerate(lists):
                       $if not list.active:
-                        <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
+                        <p class="list"><a href="$list.key" class="add-to-list" data-list-index="$i">$list.name</a></p>
                   </div>
                   <p class="create"><a href="javascript:;" id="create-new-list">$_('Create a new list')</a>
                     <a aria-controls="addList"
@@ -195,7 +196,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                      <div class="my-lists">
                       $for i, list in enumerate(lists):
                         $if not list.active:
-                          <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
+                          <p class="list"><a href="$list.key" class="add-to-list" data-list-index="$i">$list.name</a></p>
                     </div>
                     <p class="create"><a href="javascript:;" id="create-new-list">$_('Create a new list')</a>
                     </p>
@@ -210,12 +211,12 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
       </div>
     </div>
 
-$jsdef render_widget_display(lists, limit):
+$jsdef render_widget_display(lists, limit, user_key, get_user_list_index):
     $for i, list in enumerate(lists):
         $if i < limit:
-            $:show_list(list)
+            $:show_list(list, user_key, get_user_list_index)
 
-$jsdef render_head(seed_type, page_lists):
+$jsdef render_head(seed_type, page_lists, page_url):
     $if seed_type == "subject":
         <div class="head">
           <h3>Lists</h3>
@@ -267,12 +268,13 @@ $if include_widget:
 
 $if include_showcase:
   <ul class="listLists" id="widget-lists">
-    $:render_widget_display(page_lists, 3)
+    $:render_widget_display(page_lists, 3, user_key, get_user_list_index)
   </ul>
 
-<div id="remove-dialog" class="hidden" title="$_('Remove')">$_('Are you sure you want to remove <strong>%(title)s</strong> from your list?', title=title)</div>
+$if render_once('lists/widget.remove-dialog'):
+    <div id="remove-dialog" class="hidden" title="$_('Remove')"></div>
 
-$if ctx.user:
+$if ctx.user and render_once('lists/widget.addList'):
     <div class="hidden">
         <div class="floaterAdd" id="addList">
             <div class="floaterHead">
@@ -308,244 +310,232 @@ $if ctx.user:
         </div>
     </div>
 
+$if render_once('lists-api-js'):
     <script type="text/javascript">
-    window.q.push(function() {
-        var Lists = {
-            wantToRead: function(success) {
-                this.ajax({
-                    url: "$(work_key)/bookshelves.json",
-                    data: {
-                        action: \$('input[name=action]').val(),
-                        edition_id: \$('input[name=edition_id]').val()
-                    }
-                });
-            },
-            create: function(user, data, success, complete) {
-                this.ajax({
-                    url: user + "/lists.json",
-                    data: data,
-                    success: success,
-                    complete: complete
-                });
-            },
-            add: function(list_key, seed, success, complete) {
-                this.ajax({
-                    url: list_key + "/seeds.json",
-                    data: {
-                        'add': [seed]
-                    },
-                    success: success,
-                    complete: complete
-                });
-            },
-            remove: function(list_key, seed, success, complete) {
-                this.ajax({
-                    url: list_key + "/seeds.json",
-                    data: {
-                        'remove': [seed]
-                    },
-                    success: success,
-                    complete: complete
-                });
-            },
-
-            ajax: function(d) {
-                \$.ajax({
-                    type: "POST",
-                    url: d.url,
-                    contentType: "application/json",
-                    data: JSON.stringify(d.data),
-                    dataType: "json",
-
-                    beforeSend: function(xhr) {
-                        xhr.setRequestHeader("Content-Type", "application/json");
-                        xhr.setRequestHeader("Accept", "application/json");
-                    },
-                    success: d.success,
-                    complete: d.complete
-                });
-            }
-        }
-
-        var \$container = \$($:json_encode(uid));
-        var seed = $:json_encode(seed);
-        var seed_type = $:json_encode(seed_type);
-        var title = $:json_encode(websafe(title));
-
-        var user_lists = $:json_encode(user_lists);
-        var page_lists = $:json_encode(page_lists);
-
-        var user_key = $:json_encode(user_key);
-        var page_url = $:(json_encode(page_url));
-
-        var users_work_read_status = $(users_work_read_status or 'null');
-        var work_key = '$(work_key)';
-        var edition_key = '$(edition_key)';
-        var username = '$(username or "")';
-
-        function reload_widget() {
-            \$container.find("#widget-head").html(render_head(seed_type, page_lists));
-            \$container.find("#widget-add").html(render_widget_add(user_lists, work_key, edition_key, users_work_read_status, username, page_url));
-
-            \$container.find("#widget-lists").html(render_widget_display(page_lists, 3));
-            setup_events();
-
-            // We've added new .dropclick element. Need to setup listeners again.
-            \$container.find('.dropclick').click(function(){
-                \$(this).closest('.dropdown').slideToggle();
-                \$(this).closest('.arrow').toggleClass("up");
+    window.Lists = {
+        user_lists: $:json_encode(user_lists),
+        create: function(user_key, data, success, complete) {
+            this.ajax({
+                url: user_key + "/lists.json",
+                data: data,
+                success: success,
+                complete: complete
             });
-
-            // Trigger an event to allow adding listeners
-            \$(window).trigger("ol.lists");
-        }
-
-        function get_user_list_index(list) {
-            for (var i=0; i< user_lists.length; i++) {
-                if (list.key == user_lists[i].key) {
-                    return i;
-                }
-            }
-        }
-
-        function get_list(id) {
-            // strip "list_" from id.
-            id = id.substr(5);
-            return user_lists[parseInt(id)];
-        }
-
-        function add_page_list(list) {
-            page_lists.splice(0, 0, list);
-        }
-
-        function remove_page_list(list) {
-            for (var i=0; i<page_lists.length; i++) {
-                var pagelist = page_lists[i];
-                if (page_lists[i].key == list.key) {
-                    page_lists.splice(i, 1);
-                    break;
-                }
-            }
-        }
-
-        function setup_submit_event() {
-            // This form in created only at the beginning.
-            // Unlike other elements, event for this form should be setup only once.
-            \$container.find("#new-list").ol_validate({
-                submitHandler: function(form) {
-                    // disable form while waiting for response
-                    \$container.find("#new-list button").attr("disabled", true);
-
-                    var data = {
-                        name: \$container.find("#list_label").val(),
-                        description: \$container.find("#list_desc").val(),
-                        seeds: [seed]
-                    };
-
-                    Lists.create("$ctx.user.key", data, function(d) {
-                        \$.fn.colorbox.close();
-                        var list = {
-                          key: d.key,
-                          name: data.name,
-                          active: true,
-                          owner: {key: user_key},
-                          cover_url: "/images/icons/avatar_book-sm.png",
-
-                          edition_count: 1,
-                          description: websafe(data.description)
-                        };
-                        user_lists[user_lists.length] = list;
-                        add_page_list(list);
-
-                        reload_widget();
-                    }, function(){
-                        // re-enable form now that the request is finished
-                        reload_widget();
-                        \$container.find("#new-list button").attr("disabled", false);
-                    });
-                    return false;
-                }
+        },
+        add: function(list_key, seed, success, complete) {
+            this.ajax({
+                url: list_key + "/seeds.json",
+                data: { add: [seed] },
+                success: success,
+                complete: complete
             });
-        }
-
-        function setup_events() {
-            \$container.find("#create-new-list").click(function() {
-               close_popup();
-               \$.colorbox({inline: true, opacity: "0.5", href: "#addList"});
+        },
+        remove: function(list_key, seed, success, complete) {
+            this.ajax({
+                url: list_key + "/seeds.json",
+                data: { remove: [seed] },
+                success: success,
+                complete: complete
             });
+        },
+        ajax: function(d) {
+            \$.ajax({
+                type: "POST",
+                url: d.url,
+                contentType: "application/json",
+                data: JSON.stringify(d.data),
+                dataType: "json",
 
-            \$container.find("a.add-to-list").click(function(event) {
-                event.preventDefault();
-                close_popup();
-
-                \$(this).unbind("click");   // ignore clicks while waiting for response
-
-                var id = \$(this).attr("id");
-                var list = get_list(id);
-
-                Lists.add(list.key, seed, function() {
-                    list.active = true;
-                    add_page_list(list);
-                }, function(data){
-                    reload_widget();    // reload widget regardless of success or failure
-                });
-                return false;
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader("Content-Type", "application/json");
+                    xhr.setRequestHeader("Accept", "application/json");
+                },
+                success: d.success,
+                complete: d.complete
             });
+        },
+    };
+    </script>
 
-            \$container.find("a.remove-from-list").click(function(event) {
-                event.preventDefault();
-                var id = \$(this).attr("id");
-                setup_dialog();
+<script type="text/javascript">
+window.q.push(function() {
+    window.listWidgets = window.listWidgets || [];
 
-                \$container.find("#remove-dialog")
-                    .data("list-id", id)
-                    .dialog("open");
-                return false;
-            });
-        }
+    var \$container = \$("#$container_id");
+    var seed = $:json_encode(seed);
+    var seed_type = $:json_encode(seed_type);
+    var title = $:json_encode(websafe(title));
 
-        function close_popup() {
-            \$(this).next('.dropdown').slideToggle();
-            \$(this).parent().find('.arrow').toggleClass("down");
-        }
+    var page_lists = $:json_encode(page_lists);
+    var user_key = $:json_encode(user_key);
+    var page_url = $:json_encode(page_url);
 
-        function setup_dialog() {
-            \$container.find("#remove-dialog").ol_confirm_dialog(function() {
-                var id = \$(this).data("list-id");
-                var list = get_list(id);
-                var _this = this;
+    var users_work_read_status = $(users_work_read_status or 'null');
+    var work_key = '$(work_key)';
+    var edition_key = '$(edition_key)';
+    var username = '$(username or "")';
+    var listWidgetIndex = window.listWidgets.length;
 
-                Lists.remove(list.key, seed, function() {
-                    list.active = false;
-                    remove_page_list(list);
-                    reload_widget();
-                    \$(_this).dialog("close");
-                });
-            });
+    var remove_dialog_html = $:json_encode(_('Are you sure you want to remove <strong>%(title)s</strong> from your list?', title=title))
 
-        }
+    function reload_widget() {
+        \$container.find("#widget-head").html(render_head(seed_type, page_lists));
+        \$container.find("#widget-add").html(render_widget_add(Lists.user_lists, work_key, edition_key, users_work_read_status, username, page_url));
 
-        setup_submit_event();
+        \$container.find("#widget-lists").html(render_widget_display(page_lists, 3, user_key, get_user_list_index));
         setup_events();
 
-        var mylist = \$container.find('.dropdown');
-        var listitems = mylist.children('p.list').get();
-        var listcreate = \$container.find('.dropdown p.create');
-        var a = a;
-        var b = b;
-        listitems.sort(function(a, b) {
-           var compA = \$(a).text().toUpperCase();
-           var compB = \$(b).text().toUpperCase();
-           return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
-        })
-        \$.each(listitems, function(idx, itm) { mylist.append(itm); });
-        \$container.find('.dropdown').append(listcreate);
-
-        \$(document).on( 'click', '.book-progress-btn, .nostyle-btn', function(e) {
-           \$('.book-progress-btn').text("$_('saving...')");
+        // We've added new .dropclick element. Need to setup listeners again.
+        \$container.find('.dropclick').click(function(){
+            \$(this).closest('.dropdown').slideToggle();
+            \$(this).closest('.arrow').toggleClass("up");
         });
+    }
+
+    function get_user_list_index(list) {
+        for (var i=0; i< Lists.user_lists.length; i++) {
+            if (list.key == Lists.user_lists[i].key) {
+                return i;
+            }
+        }
+    }
+
+    function add_page_list(list) {
+        page_lists.splice(0, 0, list);
+    }
+
+    function remove_page_list(list) {
+        for (var i=0; i<page_lists.length; i++) {
+            var pagelist = page_lists[i];
+            if (page_lists[i].key == list.key) {
+                page_lists.splice(i, 1);
+                break;
+            }
+        }
+    }
+
+    function create_new_list_submit_handler(form) {
+        // disable form while waiting for response
+        \$("#addList").find("#new-list button").attr("disabled", true);
+
+        var data = {
+            name: \$("#addList").find("#list_label").val(),
+            description: \$("#addList").find("#list_desc").val(),
+            seeds: [seed]
+        };
+
+        Lists.create("$ctx.user.key", data, function(d) {
+            \$.fn.colorbox.close();
+            var list = {
+              key: d.key,
+              name: data.name,
+              active: true,
+              owner: {key: user_key},
+              cover_url: "/images/icons/avatar_book-sm.png",
+
+              edition_count: 1,
+              description: websafe(data.description)
+            };
+            Lists.user_lists[Lists.user_lists.length] = list;
+            add_page_list(list);
+
+            reload_widget();
+        }, function(){
+            // re-enable form now that the request is finished
+            reload_widget();
+            \$("#addList").find("#new-list button").attr("disabled", false);
+        });
+        return false;
+    }
+
+    function setup_events() {
+        \$container.find("#create-new-list").click(function() {
+           window.activeListWidgetIndex = listWidgetIndex;
+           close_popup();
+           \$.colorbox({
+             inline: true,
+             opacity: "0.5",
+             href: "#addList",
+             onOpen: function() {
+                \$('#addList').find("#new-list").ol_validate({
+                    // list widget index of the "active"
+                    submitHandler: function(form) {
+                        window.listWidgets[window.activeListWidgetIndex].create_new_list_submit_handler(form);
+                    }
+                });
+            }
+           });
+        });
+
+        \$container.find("a.add-to-list").click(function(event) {
+            event.preventDefault();
+            close_popup();
+
+            \$(this).unbind("click");   // ignore clicks while waiting for response
+
+            var list = Lists.user_lists[\$(this).data('list-index')];
+
+            Lists.add(list.key, seed, function() {
+                list.active = true;
+                add_page_list(list);
+            }, function(data){
+                reload_widget();    // reload widget regardless of success or failure
+            });
+            return false;
+        });
+
+        \$container.find("a.remove-from-list").click(function(event) {
+            event.preventDefault();
+            setup_dialog();
+
+            \$("#remove-dialog")
+                .html(remove_dialog_html)
+                .data("list-index", \$(this).data("list-index"))
+                .dialog("open");
+            return false;
+        });
+    }
+
+    function close_popup() {
+        \$(this).next('.dropdown').slideToggle();
+        \$(this).parent().find('.arrow').toggleClass("down");
+    }
+
+    function setup_dialog() {
+        \$("#remove-dialog").ol_confirm_dialog(function() {
+            var list = Lists.user_lists[\$(this).data("list-index")];
+            var _this = this;
+
+            Lists.remove(list.key, seed, function() {
+                list.active = false;
+                remove_page_list(list);
+                reload_widget();
+                \$(_this).dialog("close");
+            });
+        });
+    }
+
+    window.listWidgets.push({
+        create_new_list_submit_handler: create_new_list_submit_handler
     });
+    setup_events();
 
+    var mylist = \$container.find('.dropdown');
+    var listitems = mylist.children('p.list').get();
+    var listcreate = \$container.find('.dropdown p.create');
+    var a = a;
+    var b = b;
+    listitems.sort(function(a, b) {
+       var compA = \$(a).text().toUpperCase();
+       var compB = \$(b).text().toUpperCase();
+       return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
+    })
+    \$.each(listitems, function(idx, itm) { mylist.append(itm); });
+    \$container.find('.dropdown').append(listcreate);
 
-    </script>
+    \$(document).on( 'click', '.book-progress-btn, .nostyle-btn', function(e) {
+       \$('.book-progress-btn').text("$_('saving...')");
+    });
+});
+</script>
 </div>
