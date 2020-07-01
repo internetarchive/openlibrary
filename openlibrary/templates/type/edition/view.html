@@ -136,7 +136,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         $ component_times['EditTopbar'] = time() - component_times['EditTopbar']
       </div>
 
-      <div class="work-line">This is an Edition of <strong>$work_title</strong> ($work.first_publish_year)</div>
+      <div class="work-line">This is an edition of <strong>$work_title</strong> ($work.first_publish_year)</div>
 
       $:render_template("type/edition/book_title", work, edition)
 
@@ -148,20 +148,6 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       $:macros.StarRatingsStats(work)
       $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
 
-      $# Clean up inline styles!
-      <style type="text/css">
-        .edition-omniline {
-          display: flex;
-          border-top: 1px solid #eee;
-          margin: 20px 0 10px;
-        }
-        .edition-omniline h4 {
-          padding-right: 5px;
-        }
-        .edition-omniline h4:last-child {
-          padding-right: 0;
-        }
-      </style>
       <div class="edition-omniline">
         $:render_template("type/edition/publisher_line", edition)
 
@@ -216,9 +202,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         $if work.description:
           <h3>$_("Work Description")</h3>
           <div class="work-description">
-            <div class="addReadMore showlesscontent">
-              $:sanitize(format(work.description))
-            </div>
+            $:sanitize(format(work.description))
           </div>
 
         $if work.original_languages:
