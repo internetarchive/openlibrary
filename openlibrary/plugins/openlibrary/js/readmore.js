@@ -20,7 +20,7 @@ export function initReadMoreButton() {
     var all, height;
     $(".restricted-view").each(function() {
         height = $(this).outerHeight();
-        if(height<100){
+        if(height<50){
             var parent;
             parent = $(this).parent();
             $('.' + parent.attr('class')+'.read-more').addClass("hidden")
