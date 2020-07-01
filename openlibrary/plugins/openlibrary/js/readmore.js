@@ -4,7 +4,7 @@ export function initReadMoreButton() {
         el = $(this);
         p  = el.parent();
         up = p.parent();
-        $('.'+up.attr('class')+'-content').removeClass("restricted-height");
+        $('.'+up.attr('class')+'-content').removeClass("restricted-height", 300);
         $('.'+up.attr('class')+'.read-more').addClass("hidden");
         $('.'+up.attr('class')+'.read-less').removeClass("hidden");
     });
@@ -12,7 +12,7 @@ export function initReadMoreButton() {
         el = $(this);
         p  = el.parent();
         up = p.parent();
-        $('.'+up.attr('class')+'-content').addClass("restricted-height");
+        $('.'+up.attr('class')+'-content').addClass("restricted-height", 300);
         $('.'+up.attr('class')+'.read-more').removeClass("hidden");
         $('.'+up.attr('class')+'.read-less').addClass("hidden");
     });
@@ -23,7 +23,6 @@ export function initReadMoreButton() {
         if(height<50){
             var parent;
             parent = $(this).parent();
-            $('.' + parent.attr('class')+'.read-more').addClass("hidden")
         }
         else{
             $(this).addClass("restricted-height");

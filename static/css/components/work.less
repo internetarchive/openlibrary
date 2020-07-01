@@ -17,7 +17,6 @@ div.editionCover {
 
 // Center (editionAbout)
 div.editionAbout {
-  min-height: 10px;
 
   h3 {
     font-size: 14px;
@@ -28,6 +27,11 @@ div.editionAbout {
     margin: 1em 0;
     font-size: 13px;
   }
+
+  p:first-child {
+    margin: 0;
+  }
+
 }
 
 .book-description{
@@ -51,13 +55,14 @@ vertical-align: middle;
 }
 
 .restricted-height{
-  overflow: hidden; 
-  height:50px;
+  overflow: hidden;
+  height: 50px;
   background-image: linear-gradient(to bottom, transparent, white);
 }
 
-.section {
+.section, .section h6 {
   text-align: justify;
+  font-size: .8em;
 }
 
 h2.edition-byline {
