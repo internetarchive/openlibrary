@@ -1,7 +1,8 @@
-import './jquery.dataTables';
+//import './jquery.dataTables';
+import 'datatables.net-dt';
 import '../../../../../static/css/legacy-datatables.less';
 
-export function initEditionsTable() {
+export function initEditionsTable(itemsPerPage) {
     var rowCount;
     $('#editions th.title').mouseover(function(){
         if ($(this).hasClass('sorting_asc')) {
@@ -33,9 +34,9 @@ export function initEditionsTable() {
     });
     rowCount = $('#editions tbody tr').length;
     if (rowCount < 4) {
-        $('#editions').dataTable({
+        $('#editions').DataTable({
             aoColumns: [{sType: 'html'},null],
-            aaSorting: [ [0,'asc'] ],
+            order: [ [1,'asc'] ],
             bPaginate: false,
             bInfo: false,
             bFilter: false,
@@ -43,14 +44,14 @@ export function initEditionsTable() {
             bAutoWidth: false
         });
     } else {
-        $('#editions').dataTable({
+        $('#editions').DataTable({
             aoColumns: [{sType: 'html'},null],
-            aaSorting: [ [0,'asc'] ],
-            iDisplayLength: 3,
+            order: [ [1,'asc'] ],
+            lengthMenu: [ [3, 10, 25, 50, 100, -1], [3, 10, 25, 50, 100, "All"] ],
             bPaginate: true,
             bInfo: true,
             sPaginationType: 'full_numbers',
-            bFilter: false,
+            bFilter: true,
             bStateSave: false,
             bAutoWidth: false
         });

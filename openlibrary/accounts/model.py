@@ -663,7 +663,7 @@ def audit_accounts(email, password, require_link=False,
             return {'error': 'invalid_email'}
         ia_login = InternetArchiveAccount.authenticate(email, password)
 
-    if any(ia_login['values'].get('reason') == err for err
+    if 'values' in ia_login and any(ia_login['values'].get('reason') == err for err
             in ['account_blocked', 'account_locked']):
         return {'error': 'account_locked'}
 
@@ -742,8 +742,9 @@ def audit_accounts(email, password, require_link=False,
         if ol_account and not ol_account.itemname:
             return {'error': 'accounts_not_connected'}
 
-    s3_keys = ia_login['values']
-    ol_account.save_s3_keys(s3_keys)
+    if 'values' in ia_login:
+        s3_keys = ia_login['values']
+        ol_account.save_s3_keys(s3_keys)
 
     # When a user logs in with OL credentials, the
     # web.ctx.site.login() is called with their OL user
