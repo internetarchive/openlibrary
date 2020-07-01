@@ -35,28 +35,6 @@ div.editionAbout {
   margin-bottom: 20px;
 }
 
-.addReadMore.showlesscontent .SecSec,
-.addReadMore.showlesscontent .readLess {
-    display: none;
-}
-
-.addReadMore.showmorecontent .readMore {
-  display: none;
-}
-
-.addReadMore .readMore,
-.addReadMore .readLess {
-  margin-left: 2px;
-  color: @link-blue;
-  cursor: pointer;
-  font-size: .8em;
-}
-
-.addReadMoreWrapTxt.showmorecontent .SecSec,
-.addReadMoreWrapTxt.showmorecontent .readLess {
-  display: block;
-}
-
 .checkboxes label {
 display: inline-block;
 padding-right: 10px;
@@ -67,22 +45,15 @@ white-space: nowrap;
 vertical-align: middle;
 }
 
-.sidebar-box {
-max-height: 140px;
-position: relative;
-overflow: hidden;
+.restricted-view{
+  display: block;
+  z-index: 1;
 }
 
-.sidebar-box .read-more {
-position: absolute;
-bottom: 0;
-left: 0;
-width: 100%;
-text-align: center;
-margin: 0; padding: 30px 0;
-
-/* "transparent" only works here because == rgba(0,0,0,0) */
-background-image: linear-gradient(to bottom, transparent, white);
+.restricted-height{
+  overflow: hidden; 
+  height:50px;
+  background-image: linear-gradient(to bottom, transparent, white);
 }
 
 .section {
