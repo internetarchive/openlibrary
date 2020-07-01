@@ -7,12 +7,17 @@
 /* stylelint-disable selector-max-specificity */
 table#editions,
 .editions-table {
+  margin-top: 15px;
   border-collapse: collapse;                
   clear: both;
   font-family: @lucida_sans_serif-1;
 
   .cta-button-group {
     width: 180px;
+  }
+
+  thead {
+    border: 1px solid @light-grey;
   }
 
   th {
@@ -218,4 +223,8 @@ tbody {
   tr {
     background: mix(@beige, @white, 30%);
   }
+}
+
+.edition-adder {
+  text-align: right;
 }
