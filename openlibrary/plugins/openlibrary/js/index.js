@@ -99,7 +99,7 @@ jQuery(function () {
             .then(module => module.initRealTimeValidation());
     }
     // conditionally load readmore button based on class in the page
-    if (document.getElementsByClassName('addReadMore showlesscontent').length) {
+    if (document.getElementsByClassName('read-more-button').length) {
         import('./readmore.js')
             .then(module => module.initReadMoreButton());
     }
