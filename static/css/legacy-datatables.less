@@ -23,7 +23,6 @@
   font-family: @lucida_sans_serif-1;
   position: relative;
   z-index: @z-index-level-1;
-  margin: 15px 0;
   clear: both;
   zoom: 1; /* Feeling sorry for IE */
 }
@@ -44,18 +43,26 @@
 }
 
 .dataTables_length {
-  width: 40%;
+  width: 50%;
   font-size: 12px;
   color: @grey;
-  display: inline;
+  display: inline-block;
+  text-align: left;
 }
 
 .dataTables_filter {
   width: 50%;
   float: right;
-  text-align: right;
   font-size: 12px;
   color: @grey;
+  margin-bottom: 20px;
+}
+
+.dataTables_filter input {
+  margin: 5px 0 0 5px;
+  border-radius: 5px;
+  padding: 3px;
+  border: 1px solid @grey;
 }
 
 .dataTables_info {
