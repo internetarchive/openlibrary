@@ -15,6 +15,8 @@ $if "lists" not in ctx.features:
     $return
 
 $code:
+    _user_lists = ctx.user and ctx.user.get_lists(sort=True) or []
+
     def get_seed_info():
         if page.key.startswith("/subjects/"):
             seed = page.key.split("/")[-1]
@@ -45,22 +47,18 @@ $code:
         if include_cover_url:
             cover = list.get_cover() or list.get_default_cover()
             d['cover_url'] = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
+            if 'None' in d['cover_url']:
+                d['cover_url'] = "/images/icons/avatar_book-sm.png"
         owner = list.get_owner()
         d['owner'] = storage(displayname=owner.displayname or "", key=owner.key)
         return d
 
     def get_user_lists():
-        lists = ctx.user and ctx.user.get_lists(sort=True) or []
-        return [get_list_data(list, include_cover_url=True) for list in lists]
+        return [get_list_data(list, include_cover_url=True) for list in _user_lists]
 
     def get_page_lists():
         user_key = ctx.user and ctx.user.key
         return [get_list_data(list) for list in page.get_lists(sort=False)]
-
-    def get_user_list_index(list):
-        for i, ulist in enumerate(user_lists):
-            if ulist.key == list.key:
-                return i
 
 $ seed, seed_type, title = get_seed_info()
 $ user_lists = get_user_lists()
@@ -73,7 +71,7 @@ $ page_url = page.url()
 
 $var page_lists = page_lists
 
-$jsdef show_list(list, user_key, get_user_list_index):
+$jsdef show_list(list, user_key):
     $ remove = (list.owner.key == user_key)
     <li>
         <span class="image">
@@ -84,8 +82,7 @@ $jsdef show_list(list, user_key, get_user_list_index):
             <span class="label">
                 <a href="$list.key" title="$_('See this list')">$list.name</a>
                 $if remove:
-                    $ index = get_user_list_index(list)
-                    <a href="$list.key" class="remove-from-list red smaller arial plain" data-list-index="$index" title="$_('Remove from your list?')">[X]</a>
+                    <a href="$list.key" class="remove-from-list red smaller arial plain" data-list-key="$list.key" title="$_('Remove from your list?')">[X]</a>
             </span>
             $if remove:
                 <span class="owner">from <a href="$list.owner.key">$_('You')</a></span>
@@ -94,7 +91,14 @@ $jsdef show_list(list, user_key, get_user_list_index):
         </span>
     </li>
 
-$jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl, readinglogonly):
+$jsdef render_my_lists(lists, property='active'):
+    $for list in lists:
+        $if list[property]:
+            <p class="list">
+                <a href="$list.key" class="add-to-list" data-list-key="$list.key">$list.name</a>
+            </p>
+
+$jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl, readinglogonly, work_mode):
     <div class="dropit">
           $if edition_key and not work_key:
             <div class="dropper on edition-page-lists-dropdown">
@@ -175,10 +179,17 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                 <div class="reading-lists">
                   <p class="reading-list-title">$_('My Reading Lists:')</p>
                   <div class="my-lists">
-                    $for i, list in enumerate(lists):
-                      $if not list.active:
-                        <p class="list"><a href="$list.key" class="add-to-list" data-list-index="$i">$list.name</a></p>
+                    $:render_my_lists(lists)
                   </div>
+                  $if edition_key:
+                      <p class="create checkboxes">
+                        <label>
+                           <input type="checkbox" class="work-checkbox"
+                              $if work_mode:
+                                checked
+                           /> <span>$_('Use this Work')</span>
+                        </label>
+                      </p>
                   <p class="create"><a href="javascript:;" id="create-new-list">$_('Create a new list')</a>
                     <a aria-controls="addList"
                       class="hidden listClick dialog--open"></a>
@@ -193,10 +204,8 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                     <div class="arrow arrow-activated"></div>
                   </a>
                   <div class="dropdown">
-                     <div class="my-lists">
-                      $for i, list in enumerate(lists):
-                        $if not list.active:
-                          <p class="list"><a href="$list.key" class="add-to-list" data-list-index="$i">$list.name</a></p>
+                    <div class="my-lists">
+                        $:render_my_lists(lists, 'active')
                     </div>
                     <p class="create"><a href="javascript:;" id="create-new-list">$_('Create a new list')</a>
                     </p>
@@ -211,10 +220,10 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
       </div>
     </div>
 
-$jsdef render_widget_display(lists, limit, user_key, get_user_list_index):
+$jsdef render_widget_display(lists, limit, user_key):
     $for i, list in enumerate(lists):
         $if i < limit:
-            $:show_list(list, user_key, get_user_list_index)
+            $:show_list(list, user_key)
 
 $jsdef render_head(seed_type, page_lists, page_url):
     $if seed_type == "subject":
@@ -244,7 +253,7 @@ $if include_widget:
     $:macros.StarRatings(work_key, edition_key=edition_key, rating=users_work_rating)
   $if ctx.user or not work_key:
     <div id="widget-add" $:(not work_key and 'class="old-style-lists"')>
-      $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url(), readinglog_only)
+      $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url(), readinglog_only, False)
     </div>
   $else:
     <div class="dropit">
@@ -268,7 +277,7 @@ $if include_widget:
 
 $if include_showcase:
   <ul class="listLists" id="widget-lists">
-    $:render_widget_display(page_lists, 3, user_key, get_user_list_index)
+    $:render_widget_display(page_lists, 3, user_key)
   </ul>
 
 $if render_once('lists/widget.remove-dialog'):
@@ -355,7 +364,23 @@ $if render_once('lists-api-js'):
             });
         },
     };
+    Lists.user_lists_by_key = {};
+    for (var i = 0; i < Lists.user_lists.length; i++) {
+        var list = Lists.user_lists[i];
+        Lists.user_lists_by_key[list.key] = list;
+    }
     </script>
+
+$code:
+    def build_contains_dict(user_list, work_key, edition_key):
+        result = {}
+        for list in user_list:
+            result[list.key] = {}
+            if work_key and list.has_seed({"key": work_key}):
+                result[list.key][work_key] = True;
+            if edition_key and list.has_seed({"key": edition_key}):
+                result[list.key][edition_key] = True;
+        return result
 
 <script type="text/javascript">
 window.q.push(function() {
@@ -375,14 +400,16 @@ window.q.push(function() {
     var edition_key = '$(edition_key)';
     var username = '$(username or "")';
     var listWidgetIndex = window.listWidgets.length;
+    var list_contained_keys = $:json_encode(build_contains_dict(_user_lists, work_key, edition_key));
 
     var remove_dialog_html = $:json_encode(_('Are you sure you want to remove <strong>%(title)s</strong> from your list?', title=title))
 
     function reload_widget() {
         \$container.find("#widget-head").html(render_head(seed_type, page_lists));
-        \$container.find("#widget-add").html(render_widget_add(Lists.user_lists, work_key, edition_key, users_work_read_status, username, page_url));
+        \$container.find("#widget-add").html(render_widget_add(
+            Lists.user_lists, work_key, edition_key, users_work_read_status, username, page_url, \$container.find(".work-checkbox")[0].checked));
 
-        \$container.find("#widget-lists").html(render_widget_display(page_lists, 3, user_key, get_user_list_index));
+        \$container.find("#widget-lists").html(render_widget_display(page_lists, 3, user_key));
         setup_events();
 
         // We've added new .dropclick element. Need to setup listeners again.
@@ -390,14 +417,6 @@ window.q.push(function() {
             \$(this).closest('.dropdown').slideToggle();
             \$(this).closest('.arrow').toggleClass("up");
         });
-    }
-
-    function get_user_list_index(list) {
-        for (var i=0; i< Lists.user_lists.length; i++) {
-            if (list.key == Lists.user_lists[i].key) {
-                return i;
-            }
-        }
     }
 
     function add_page_list(list) {
@@ -437,6 +456,7 @@ window.q.push(function() {
               description: websafe(data.description)
             };
             Lists.user_lists[Lists.user_lists.length] = list;
+            Lists.user_lists_by_key[list.key] = list;
             add_page_list(list);
 
             reload_widget();
@@ -448,7 +468,60 @@ window.q.push(function() {
         return false;
     }
 
+    function update_my_lists() {
+        if (!edition_key) return;
+        var workMode = \$container.find(".work-checkbox")[0].checked;
+        var listsThatDontContainIt = [];
+        var listsThatContainIt = [];
+        for (var i = 0; i < Lists.user_lists.length; i++) {
+            var list = Lists.user_lists[i];
+            var key = workMode ? work_key : edition_key;
+            if (list_contained_keys[list.key][key]) {
+                listsThatContainIt.push(list);
+            } else {
+                listsThatDontContainIt.push(list);
+            }
+        }
+        \$container.find(".my-lists").html(render_my_lists(listsThatDontContainIt, 'key'));
+        // FIXME: Will remove all non-user lists
+        \$container.find("#widget-lists").html(render_widget_display(listsThatContainIt, 3, user_key));
+        setup_widget_display_events();
+    }
+
+    function setup_widget_display_events() {
+        \$container.find("a.add-to-list").click(function(event) {
+            event.preventDefault();
+            close_popup();
+
+            \$(this).unbind("click");   // ignore clicks while waiting for response
+
+            var list = Lists.user_lists_by_key[\$(this).data('list-key')];
+
+            Lists.add(list.key, seed, function() {
+                list.active = true;
+                list_contained_keys[list.key] = list_contained_keys[list.key] || {};
+                list_contained_keys[list.key][seed.key] = true;
+                add_page_list(list);
+            }, function(data){
+                reload_widget();    // reload widget regardless of success or failure
+            });
+            return false;
+        });
+
+        \$container.find("a.remove-from-list").click(function(event) {
+            event.preventDefault();
+            setup_dialog();
+
+            \$("#remove-dialog")
+                .html(remove_dialog_html)
+                .data("list-key", \$(this).data("list-key"))
+                .dialog("open");
+            return false;
+        });
+    }
+
     function setup_events() {
+        \$container.find(".work-checkbox").click(update_my_lists);
         \$container.find("#create-new-list").click(function() {
            window.activeListWidgetIndex = listWidgetIndex;
            close_popup();
@@ -467,33 +540,7 @@ window.q.push(function() {
            });
         });
 
-        \$container.find("a.add-to-list").click(function(event) {
-            event.preventDefault();
-            close_popup();
-
-            \$(this).unbind("click");   // ignore clicks while waiting for response
-
-            var list = Lists.user_lists[\$(this).data('list-index')];
-
-            Lists.add(list.key, seed, function() {
-                list.active = true;
-                add_page_list(list);
-            }, function(data){
-                reload_widget();    // reload widget regardless of success or failure
-            });
-            return false;
-        });
-
-        \$container.find("a.remove-from-list").click(function(event) {
-            event.preventDefault();
-            setup_dialog();
-
-            \$("#remove-dialog")
-                .html(remove_dialog_html)
-                .data("list-index", \$(this).data("list-index"))
-                .dialog("open");
-            return false;
-        });
+        setup_widget_display_events();
     }
 
     function close_popup() {
@@ -503,11 +550,13 @@ window.q.push(function() {
 
     function setup_dialog() {
         \$("#remove-dialog").ol_confirm_dialog(function() {
-            var list = Lists.user_lists[\$(this).data("list-index")];
+            var list = Lists.user_lists_by_key[\$(this).data("list-key")];
             var _this = this;
 
             Lists.remove(list.key, seed, function() {
                 list.active = false;
+                delete list_contained_keys[list.key][seed.key];
+                delete Lists.user_lists_by_key[list.key];
                 remove_page_list(list);
                 reload_widget();
                 \$(_this).dialog("close");
@@ -516,9 +565,23 @@ window.q.push(function() {
     }
 
     window.listWidgets.push({
-        create_new_list_submit_handler: create_new_list_submit_handler
+        create_new_list_submit_handler: create_new_list_submit_handler,
+        \$container,
+        seed,
+        seed_type,
+        title,
+        page_lists,
+        user_key,
+        page_url,
+        users_work_read_status,
+        work_key,
+        edition_key,
+        username,
+        listWidgetIndex,
     });
+
     setup_events();
+    update_my_lists();
 
     var mylist = \$container.find('.dropdown');
     var listitems = mylist.children('p.list').get();
