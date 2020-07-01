@@ -14,17 +14,18 @@ $ book_keys = []
         $ edition_list_start = time()
         $ editions = editions or work.get_sorted_editions()
         $ index_padding = len(str(len(editions)))
-        $if edition:
-            <tr class="highlight">
-                $:render_template("books/edition-sort", edition, 0)
-            </tr>
         $for book in editions:           
             $ book_keys.append(book['key'].replace('/books/', ''))
-            $ sort_key = str(loop.index0+1).zfill(index_padding)  
-            $if not(book==edition): 
-                <tr>
-                    $:render_template("books/edition-sort", book, sort_key)
-                </tr>
+            $ edition_sort_key = str(loop.index0+1).zfill(index_padding)
+            $if book.key == edition.key:
+              <tr class="highlight">
+                $# This enables us to always render a select edition first in the table (default)
+                $:render_template("books/edition-sort", book, edition_sort_key, render_first=True)
+              </tr>
+            $else:
+              <tr>
+                $:render_template("books/edition-sort", book, edition_sort_key)
+              </tr>
         $ edition_list_secs = time() - edition_list_start
     </tbody>
 </table>

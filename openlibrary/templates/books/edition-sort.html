@@ -1,6 +1,6 @@
-$def with (book, sort_key)
+$def with (book, edition_sort_key, render_first=False)
 $# :param Edition book:
-$# :param str sort_key:
+$# :param str edition_sort_key:
 
 $ availability = book.get('availability', {})
 
@@ -28,7 +28,7 @@ $ asin = isbn_10 or None
 $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
 
     <td class="book">
-      <span class="hidden sort-key">$sort_key</span>
+      <span class="hidden sort-key">$edition_sort_key</span>
       <div class="cover">
           <a href="$book.url()"><img src="$url" alt="Cover of: $book.title" title="Cover of: $book.title"/></a>
       </div>
@@ -66,11 +66,16 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
       </div>
     </td>
 
-    $ availability_class = 'zzzz' if (not availability or availability.get('status') == 'error') else 'aaaa' if (availability.get('status') == 'open') else 'bbbb' if (availability.get('status') == 'borrow_available') else 'cccc' if (availability.get('status') == 'borrow_unavailable') else 'dddd'
+    $ availability_class = ('aaaa' if render_first
+    $ else 'zzzz' if (not availability or availability.get('status') == 'error') 
+    $ else 'bbbb' if (availability.get('status') == 'open')
+    $ else 'cccc' if (availability.get('status') == 'borrow_available')
+    $ else 'dddd' if (availability.get('status') == 'borrow_unavailable')
+    $ else 'eeee')
     $ active = not (availability_class == 'zzzz')
 
     <td class="icon read $('inact' if not active else '')">
-      <div class="$(availability_class)"></div>
+      <div class="hidden">$availability_class</div>
       <div class="links">
         <ul class="read">
           <li class="read-option">$:macros.LoanStatus(book, check_loan_status=True)</li>
