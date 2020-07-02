@@ -7,17 +7,22 @@
 /* stylelint-disable selector-max-specificity */
 table#editions,
 .editions-table {
+  width: 100%;
   margin-top: 15px;
   border-collapse: collapse;                
   clear: both;
   font-family: @lucida_sans_serif-1;
 
   .cta-button-group {
-    width: 180px;
+    min-width: 180px;
   }
 
   thead {
     border: 1px solid @light-grey;
+
+    tr {
+      background: linear-gradient(0deg, @lightest-grey, transparent);
+    }
   }
 
   th {
@@ -34,6 +39,7 @@ table#editions,
 
   td.book {
     vertical-align: top;
+    display: inline-flex;
   }
 
   div.cover {
@@ -133,12 +139,6 @@ table#editions,
   }
 }
 
-table#editions {
-  thead tr {
-    background: linear-gradient(0deg, @lightest-grey, transparent);
-  }
-}
-
 @media all and ( min-width: @width-breakpoint-desktop ) {
   table#editions {
     float: left;
@@ -159,6 +159,7 @@ table#editions {
 
 @media only screen and (max-width: @width-breakpoint-tablet) {
   table#editions {
+    width: 100%;
     thead {
       display: none;
     }
