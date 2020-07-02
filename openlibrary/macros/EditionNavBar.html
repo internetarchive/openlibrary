@@ -1,26 +1,15 @@
-$def with (tab_list, selected_tab_list, edition_count=1)
+$def with (edition_count=1)
 
-<ul class="work-menu">
-    $for tab in tab_list:
-        $ tab_value = ""
-        $ tab_link = ""
-        $ tab_id = ""
-        $ tab_selected = ""
-        $ tab_link = "#" + tab
-        $if tab == "work-details":
-            $ tab_value = "Overview"
-        $elif tab == "edition-details":
-            $ tab_value = "This Edition"
-        $else:
-            $ tab_value = "View " + str(edition_count) + " Edition"
-            $if edition_count > 1:
-                $ tab_value += "s"
-        $if tab in selected_tab_list:
-            $ tab_id = tab
-            $ tab_selected = "selected"
-        <li class="$tab_selected">
-            <a name="$tab_id"
-               class="$tab_selected"
-               href="$tab_link">$tab_value</a>
-        </li>
+<ul class="work-menu sticky">
+  <li class="selected">
+    <a href="#editions-list">
+      $_("View") $(str(edition_count)) $_("Edition%s" % ('s' if edition_count > 1 else ''))
+    </a>
+  </li>
+  <li>
+    <a href="#work-details">$_("Overview")</a>
+  </li>
+  <li>
+    <a href="#edition-details">$_("This Edition")</a>
+  </li>
 </ul>
