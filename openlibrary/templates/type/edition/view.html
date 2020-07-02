@@ -136,7 +136,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         $ component_times['EditTopbar'] = time() - component_times['EditTopbar']
       </div>
 
-      <div class="work-line">An edition of <strong>$work_title</strong> ($work.first_publish_year)</div>
+      <div class="work-line">An edition of <strong><a href="$work.key">$work_title</a></strong> ($work.first_publish_year)</div>
 
       $:render_template("type/edition/book_title", work, edition)
 
@@ -189,86 +189,86 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         $:macros.ReadMore("Subjects")
     </div>
 
-      $:macros.EditionNavBar(["editions-list", "work-details", "edition-details"], ["editions-list"], work.edition_count)
+      $:macros.EditionNavBar(work.edition_count)
 
+      <a name="editions-list" class="section-anchor"></a>
       $ component_times['EditionsTable'] = time()
       $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
       $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
 
-      $:macros.EditionNavBar(["editions-list", "work-details", "edition-details"], ["work-details"], work.edition_count)
+      <a name="work-details" class="section-anchor"></a>
+      <h4 class="first-published">
+        $if work and work.first_publish_year:
+          $_("First published in %s", work.first_publish_year)
+      </h4>
 
-        <h4 class="first-published">
-            $if work and work.first_publish_year:
-            $_("First published in %s", work.first_publish_year)
-        </h4>
+      $ component_times['SubjectsTags'] = time()
+      $:macros.SubjectTags(work, ["Subjects", "People", "Places", "Times"])
+      $ component_times['SubjectsTags'] = time() - component_times['SubjectsTags']
 
-        $ component_times['SubjectsTags'] = time()
-        $:macros.SubjectTags(work, ["Subjects", "People", "Places", "Times"])
-        $ component_times['SubjectsTags'] = time() - component_times['SubjectsTags']
+      $if not work.excerpts and work.first_sentence:
+        <p class="largest" style="margin-bottom: 20px;" title=$_("First Sentence")><em>"$work.first_sentence</em>"</p>
 
-        $if not work.excerpts and work.first_sentence:
-            <p class="largest" style="margin-bottom: 20px;" title=$_("First Sentence")><em>"$work.first_sentence</em>"</p>
+      $if work.description:
+        <h3>$_("Work Description")</h3>
+        <div class="work-description">
+          $:sanitize(format(work.description))
+        </div>
 
-        $if work.description:
-          <h3>$_("Work Description")</h3>
-          <div class="work-description">
-            $:sanitize(format(work.description))
+      $if work.original_languages:
+          <div class="sansserif smallest brown">$_("Original languages")</div>
+          <!-- TODO: Double check that these language names are localized -->
+          $', '.join(lang.name for lang in work.original_languages)<p>
+
+      $if work.excerpts:
+          <div class="section">
+              <h3>$_("Excerpts")</h3>
+              $for excerpt in work.excerpts:
+                  <div class="excerpt addReadMore showlesscontent">
+                      <div class="text">
+                          $for line in excerpt.excerpt.split('\n'):
+                              $line<br/>
+                      </div>
+                      <div class="attribution">
+                          $if excerpt.pages:
+                              $_("Page %(page)s", page=excerpt.pages),
+                          $if excerpt.author:
+                              $def excerpt_author_link(): <a href="$excerpt.author.key">$excerpt.author.displayname</a>
+                              $:_("added by %(authorlink)s.", authorlink=str(excerpt_author_link()).strip()))
+                          $else:
+                              $_("added anonymously.")
+                          $if excerpt.comment:
+                              "<em>$excerpt.comment</em>"
+                      </div>
+                  </div>
           </div>
 
-        $if work.original_languages:
-            <div class="sansserif smallest brown">$_("Original languages")</div>
-            <!-- TODO: Double check that these language names are localized -->
-            $', '.join(lang.name for lang in work.original_languages)<p>
+      $if work.links or (work.wikipedia and work.wikipedia.startswith("http")):
+          <div class="section">
+              <h3>$:_('Links <span class="gray small sansserif">outside Open Library</span>')</h3>
+              <ul class="booklinks sansserif">
+              $if work.wikipedia and work.wikipedia.startswith("http"):
+                  <li><a href="$page.wikipedia">$_('Wikipedia')</a></li>
+              $for link in work.links:
+                  <li><a href="$link.url">$link.title</a></li>
+              </ul>
+          </div>
 
-        $if work.excerpts:
-            <div class="section">
-                <h3>$_("Excerpts")</h3>
-                $for excerpt in work.excerpts:
-                    <div class="excerpt addReadMore showlesscontent">
-                        <div class="text">
-                            $for line in excerpt.excerpt.split('\n'):
-                                $line<br/>
-                        </div>
-                        <div class="attribution">
-                            $if excerpt.pages:
-                                $_("Page %(page)s", page=excerpt.pages),
-                            $if excerpt.author:
-                                $def excerpt_author_link(): <a href="$excerpt.author.key">$excerpt.author.displayname</a>
-                                $:_("added by %(authorlink)s.", authorlink=str(excerpt_author_link()).strip()))
-                            $else:
-                                $_("added anonymously.")
-                            $if excerpt.comment:
-                                "<em>$excerpt.comment</em>"
-                        </div>
-                    </div>
-            </div>
+      $if work.edition_count > 1:
+          $if (work.lc_classifications or work.dewey_number):
+              <div class="section">
+                  <h3 class="collapse">$_("Classifications")</h3>
+                  <table class="meta"><tbody>
+                  $if work.lc_classifications:
+                      <tr><td class="title"><span class="title">$_('Library of Congress')</span></td>
+                      <td><span class="object">$thingrepr(work.lc_classifications)</span></td></tr>
+                  $if work.dewey_number:
+                      <tr><td class="title"><span class="title">$_('Dewey')</span></td>
+                      <td><span class="object">$thingrepr(work.dewey_number)</span></td></tr>
+                  </tbody></table>
+              </div>
 
-        $if work.links or (work.wikipedia and work.wikipedia.startswith("http")):
-            <div class="section">
-                <h3>$:_('Links <span class="gray small sansserif">outside Open Library</span>')</h3>
-                <ul class="booklinks sansserif">
-                $if work.wikipedia and work.wikipedia.startswith("http"):
-                    <li><a href="$page.wikipedia">$_('Wikipedia')</a></li>
-                $for link in work.links:
-                    <li><a href="$link.url">$link.title</a></li>
-                </ul>
-            </div>
-
-        $if work.edition_count > 1:
-            $if (work.lc_classifications or work.dewey_number):
-                <div class="section">
-                    <h3 class="collapse">$_("Classifications")</h3>
-                    <table class="meta"><tbody>
-                    $if work.lc_classifications:
-                        <tr><td class="title"><span class="title">$_('Library of Congress')</span></td>
-                        <td><span class="object">$thingrepr(work.lc_classifications)</span></td></tr>
-                    $if work.dewey_number:
-                        <tr><td class="title"><span class="title">$_('Dewey')</span></td>
-                        <td><span class="object">$thingrepr(work.dewey_number)</span></td></tr>
-                    </tbody></table>
-                </div>
-
-      $:macros.EditionNavBar(["editions-list", "work-details", "edition-details"], ["edition-details"], work.edition_count)
+      <a name="edition-details" class="section-anchor"></a>
 
         $if edition.first_sentence:
             <div>
