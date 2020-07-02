@@ -389,7 +389,7 @@ $code:
                     result[list.key][key] = True;
         return result
 
-$ default_seed_key = seed_info['seed'].get('key', seed_info['seed']);
+$ default_seed_key = seed_info['seed'].key if hasattr(seed_info['seed'], 'key') else seed_info['seed']
 
 <script type="text/javascript">
 window.q.push(function() {
