@@ -403,10 +403,16 @@ window.q.push(function() {
 
     var remove_dialog_html = $:json_encode(_('Are you sure you want to remove <strong>%(title)s</strong> from your list?', title=title))
 
+    function get_main_key() {
+        var checkbox = \$container.find(".work-checkbox")[0];
+        if (!checkbox) return seed.key;
+        else return checkbox.checked ? work_key : edition_key;
+    }
+
     function reload_widget() {
         \$container.find("#widget-head").html(render_head(seed_type, page_lists));
         \$container.find(".widget-add").html(render_widget_add(
-            Lists.user_lists, work_key, edition_key, users_work_read_status, username, page_url, \$container.find(".work-checkbox")[0].checked));
+            Lists.user_lists, work_key, edition_key, users_work_read_status, username, page_url, get_main_key()));
 
         \$container.find("#widget-lists").html(render_widget_display(page_lists, 3, user_key));
         setup_events();
@@ -465,12 +471,11 @@ window.q.push(function() {
 
     function update_my_lists() {
         if (!edition_key) return;
-        var workMode = \$container.find(".work-checkbox")[0].checked;
         var listsThatDontContainIt = [];
         var listsThatContainIt = [];
+        var key = get_main_key();
         for (var i = 0; i < Lists.user_lists.length; i++) {
             var list = Lists.user_lists[i];
-            var key = workMode ? work_key : edition_key;
             if (list_contained_keys[list.key][key]) {
                 listsThatContainIt.push(list);
             } else {
