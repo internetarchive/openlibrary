@@ -198,12 +198,12 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
       <a name="work-details" class="section-anchor"></a>
       <div class="tab-section">
-        <h3><a href="$work.key">$work_title</a></h3>
-        <h4 class="first-published">
+        <h3><a href="$work.key">$work_title</a>
           $if work and work.first_publish_year:
-            $_("First published in %s", work.first_publish_year)
-        </h4>
-
+            &mdash; <span class="first-published">
+              $_("First published in %s", work.first_publish_year)
+            </span>
+        </h3>
         <hr>
 
         $ component_times['SubjectsTags'] = time()
