@@ -11,7 +11,14 @@ $if page.key.startswith('/works'):
   $ component_times['get_sorted_editions'] = time()
   $ editions = work.get_sorted_editions()
   $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
-  $ edition = ([e for e in editions if e.get('ocaid')] or editions)[0]
+  $ edition = editions[0]
+
+  $# edition selection strategy (e.g. language, by id, first w/ ocaid)
+  $ selected_ocaid = query_param('edition')
+  $for e in editions:
+    $if e.get('ocaid'):
+      $if not selected_ocaid or selected_ocaid == e.get('ocaid'):
+        $ edition = e
 $else:
   $ work = page.works and page.works[0] or None
   $ edition = page
@@ -136,7 +143,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         $ component_times['EditTopbar'] = time() - component_times['EditTopbar']
       </div>
 
-      <div class="work-line">An edition of <a href="$work.key">$work_title</a> ($work.first_publish_year)</div>
+      <div class="work-line">An edition of <a href="$work.key?edition=$(ocaid)">$work_title</a> ($work.first_publish_year)</div>
 
       $:render_template("type/edition/book_title", work, edition)
 
