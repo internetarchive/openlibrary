@@ -256,7 +256,7 @@ def read_pub_date(rec):
     return remove_trailing_number_dot(found[0]) if found else None
 
 def read_publisher(rec):
-    fields = rec.get_fields('260') or rec.get_fields('264')
+    fields = rec.get_fields('260') or rec.get_fields('264')[:1]
     if not fields:
         return
     publisher = []
