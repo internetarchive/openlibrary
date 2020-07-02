@@ -251,7 +251,7 @@ $jsdef render_head(seed_type, page_lists, page_url):
 
 $if include_header:
   <div id="widget-head">
-    $:render_head(seed_info['type'], page_lists)
+    $:render_head(seed_info['type'], page_lists, page_url)
   </div>
 
 $if include_widget:
@@ -421,7 +421,7 @@ window.q.push(function() {
 
     function reload_widget() {
         var seed_info = get_active_seed_info();
-        \$container.find("#widget-head").html(render_head(seed_info.type, seed_info.lists));
+        \$container.find("#widget-head").html(render_head(seed_info.type, seed_info.lists, page_url));
         \$container.find(".widget-add").html(render_widget_add(
             Lists.user_lists,
             work_key,
