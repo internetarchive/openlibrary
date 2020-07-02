@@ -78,10 +78,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
       <div class="hidden">$availability_class</div>
       <div class="links">
         <ul class="read">
-          <li class="read-option">$:macros.LoanStatus(book, check_loan_status=True)</li>
-
-          $if availability.get('status') == 'open':
-            $:macros.DownloadOptions(book)
+          <li class="read-option">$:macros.LoanStatus(book)</li>
         </ul>
       </div>
     </td>
