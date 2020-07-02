@@ -136,7 +136,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         $ component_times['EditTopbar'] = time() - component_times['EditTopbar']
       </div>
 
-      <div class="work-line">An edition of <strong><a href="$work.key">$work_title</a></strong> ($work.first_publish_year)</div>
+      <div class="work-line">An edition of <a href="$work.key">$work_title</a> ($work.first_publish_year)</div>
 
       $:render_template("type/edition/book_title", work, edition)
 
@@ -197,32 +197,39 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
 
       <a name="work-details" class="section-anchor"></a>
-      <h4 class="first-published">
-        $if work and work.first_publish_year:
-          $_("First published in %s", work.first_publish_year)
-      </h4>
+      <div class="tab-section">
+        <h3><a href="$work.key">$work_title</a></h3>
+        <h4 class="first-published">
+          $if work and work.first_publish_year:
+            $_("First published in %s", work.first_publish_year)
+        </h4>
 
-      $ component_times['SubjectsTags'] = time()
-      $:macros.SubjectTags(work, ["Subjects", "People", "Places", "Times"])
-      $ component_times['SubjectsTags'] = time() - component_times['SubjectsTags']
+        <hr>
 
-      $if not work.excerpts and work.first_sentence:
-        <p class="largest" style="margin-bottom: 20px;" title=$_("First Sentence")><em>"$work.first_sentence</em>"</p>
+        $ component_times['SubjectsTags'] = time()
+        $:macros.SubjectTags(work, ["Subjects", "People", "Places", "Times"])
+        $ component_times['SubjectsTags'] = time() - component_times['SubjectsTags']
 
-      $if work.description:
-        <h3>$_("Work Description")</h3>
-        <div class="work-description">
-          $:sanitize(format(work.description))
-        </div>
+        <hr>
 
-      $if work.original_languages:
+        $if not work.excerpts and work.first_sentence:
+          <h4>$_("First Sentence")</h4>
+          <p class="largest" title=$_("First Sentence")><em>"$work.first_sentence</em>"</p>
+
+        $if work.description:
+          <h4>$_("Work Description")</h4>
+          <div class="work-description">
+            $:sanitize(format(work.description))
+          </div>
+
+        $if work.original_languages:
           <div class="sansserif smallest brown">$_("Original languages")</div>
           <!-- TODO: Double check that these language names are localized -->
           $', '.join(lang.name for lang in work.original_languages)<p>
 
-      $if work.excerpts:
+        $if work.excerpts:
           <div class="section">
-              <h3>$_("Excerpts")</h3>
+              <h4>$_("Excerpts")</h4>
               $for excerpt in work.excerpts:
                   <div class="excerpt addReadMore showlesscontent">
                       <div class="text">
@@ -243,9 +250,9 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                   </div>
           </div>
 
-      $if work.links or (work.wikipedia and work.wikipedia.startswith("http")):
+        $if work.links or (work.wikipedia and work.wikipedia.startswith("http")):
           <div class="section">
-              <h3>$:_('Links <span class="gray small sansserif">outside Open Library</span>')</h3>
+              <h4>$:_('Links <span class="gray small sansserif">outside Open Library</span>')</h4>
               <ul class="booklinks sansserif">
               $if work.wikipedia and work.wikipedia.startswith("http"):
                   <li><a href="$page.wikipedia">$_('Wikipedia')</a></li>
@@ -254,10 +261,10 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
               </ul>
           </div>
 
-      $if work.edition_count > 1:
+        $if work.edition_count > 1:
           $if (work.lc_classifications or work.dewey_number):
               <div class="section">
-                  <h3 class="collapse">$_("Classifications")</h3>
+                  <h4 class="collapse">$_("Classifications")</h4>
                   <table class="meta"><tbody>
                   $if work.lc_classifications:
                       <tr><td class="title"><span class="title">$_('Library of Congress')</span></td>
@@ -267,9 +274,10 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                       <td><span class="object">$thingrepr(work.dewey_number)</span></td></tr>
                   </tbody></table>
               </div>
+      </div>
 
       <a name="edition-details" class="section-anchor"></a>
-
+      <div class="tab-section">
         $if edition.first_sentence:
             <div>
             <h3 class="collapse">$_("First Sentence")</h3>
@@ -367,7 +375,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                 $:display_goodreads(values[0].label, values)
             </dl>
         </div>
-
+      </div>
     </div>
 
     <div class="workFooter">

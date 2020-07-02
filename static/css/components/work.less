@@ -8,6 +8,16 @@
 div.editionCover {
   min-height: 10px;
   padding-right: 1.5em;
+
+  .illustration {
+    transform: perspective(800px) rotateX(10deg);
+    transition: 0.8s;
+  }
+  .illustration:hover {
+    transform: perspective(465px) rotateX(0deg) rotateY(-10deg);
+    filter: alpha(opacity=80);
+    opacity: 0.8;
+  }
 }
 @import (less) "components/cover.less";
 @import (less) "components/illustration.less";
@@ -35,6 +45,7 @@ div.editionAbout {
 }
 
 .book-description{
+  font-size: .9em;
   margin-top: 5px;
   margin-bottom: 20px;
 }
@@ -102,7 +113,7 @@ h2.edition-byline {
     position: sticky;
     top: 0px;
     display: block;
-    background: #fff;
+    background: @white;
     z-index: 999;
     padding-top: 10px;
   }
@@ -216,4 +227,10 @@ div.editionTools {
   h4:last-child {
     padding-right: 0;
   }
+}
+
+.tab-section {
+  padding: 10px;
+  border: 1px solid @lighter-grey;
+  border-radius: 5px;
 }
