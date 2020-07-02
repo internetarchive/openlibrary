@@ -372,14 +372,13 @@ $if render_once('lists-api-js'):
     </script>
 
 $code:
-    def build_contains_dict(user_list, work_key, edition_key):
+    def build_contains_dict(user_list, work_key, edition_key, seed_key):
         result = {}
         for list in user_list:
             result[list.key] = {}
-            if work_key and list.has_seed({"key": work_key}):
-                result[list.key][work_key] = True;
-            if edition_key and list.has_seed({"key": edition_key}):
-                result[list.key][edition_key] = True;
+            for key in [work_key, edition_key, seed_key]:
+                if key and list.has_seed({"key": key}):
+                    result[list.key][work_key] = True;
         return result
 
 <script type="text/javascript">
@@ -400,7 +399,7 @@ window.q.push(function() {
     var edition_key = '$(edition_key)';
     var username = '$(username or "")';
     var listWidgetIndex = window.listWidgets.length;
-    var list_contained_keys = $:json_encode(build_contains_dict(_user_lists, work_key, edition_key));
+    var list_contained_keys = $:json_encode(build_contains_dict(_user_lists, work_key, edition_key, seed['key']));
 
     var remove_dialog_html = $:json_encode(_('Are you sure you want to remove <strong>%(title)s</strong> from your list?', title=title))
 
@@ -417,10 +416,6 @@ window.q.push(function() {
             \$(this).closest('.dropdown').slideToggle();
             \$(this).closest('.arrow').toggleClass("up");
         });
-    }
-
-    function add_page_list(list) {
-        page_lists.splice(0, 0, list);
     }
 
     function remove_page_list(list) {
@@ -443,7 +438,7 @@ window.q.push(function() {
             seeds: [seed]
         };
 
-        Lists.create("$ctx.user.key", data, function(d) {
+        Lists.create("$user_key", data, function(d) {
             \$.fn.colorbox.close();
             var list = {
               key: d.key,
@@ -457,7 +452,7 @@ window.q.push(function() {
             };
             Lists.user_lists[Lists.user_lists.length] = list;
             Lists.user_lists_by_key[list.key] = list;
-            add_page_list(list);
+            page_lists.unshift(list);
 
             reload_widget();
         }, function(){
@@ -501,7 +496,7 @@ window.q.push(function() {
                 list.active = true;
                 list_contained_keys[list.key] = list_contained_keys[list.key] || {};
                 list_contained_keys[list.key][seed.key] = true;
-                add_page_list(list);
+                page_lists.unshift(list);
             }, function(data){
                 reload_widget();    // reload widget regardless of success or failure
             });
