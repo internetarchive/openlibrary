@@ -10,7 +10,7 @@ $ users_work_rating = rating or work.get_users_rating(username) if work and user
 $ uid = str(random.randint(1000, 9999))
 $ container_id = 'widget-lists-wrapper-%s' % str(uid)
 
-<div id="$container_id">
+<div id="$container_id" class="lists-widget-container">
 $if "lists" not in ctx.features:
     $return
 
@@ -252,7 +252,7 @@ $if include_widget:
   $if include_rating:
     $:macros.StarRatings(work_key, edition_key=edition_key, rating=users_work_rating)
   $if ctx.user or not work_key:
-    <div id="widget-add" $:(not work_key and 'class="old-style-lists"')>
+    <div class="widget-add $:(not work_key and 'old-style-lists')">
       $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url(), readinglog_only, False)
     </div>
   $else:
@@ -405,7 +405,7 @@ window.q.push(function() {
 
     function reload_widget() {
         \$container.find("#widget-head").html(render_head(seed_type, page_lists));
-        \$container.find("#widget-add").html(render_widget_add(
+        \$container.find(".widget-add").html(render_widget_add(
             Lists.user_lists, work_key, edition_key, users_work_read_status, username, page_url, \$container.find(".work-checkbox")[0].checked));
 
         \$container.find("#widget-lists").html(render_widget_display(page_lists, 3, user_key));
