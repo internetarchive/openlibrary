@@ -323,7 +323,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
         ('fl', ','.join(fields or [
             'key', 'author_name', 'author_key', 'title', 'subtitle', 'edition_count',
             'ia', 'has_fulltext', 'first_publish_year', 'cover_i', 'cover_edition_key',
-            'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
+            'public_scan_b', 'lending_edition_s', 'lending_identifier_s', 'language',
             'ia_collection_s'])),
         ('fq', 'type:work'),
         ('q.op', 'AND'),
@@ -456,8 +456,8 @@ def get_doc(doc): # called from work_search template
         ak = [e.text for e in doc.find("arr[@name='author_key']")]
         an = [e.text for e in doc.find("arr[@name='author_name']")]
         authors = [web.storage(key=key, name=name, url="/authors/%s/%s" % (key, (urlsafe(name) if name is not None else 'noname'))) for key, name in zip(ak, an)]
-
     cover = doc.find("str[@name='cover_edition_key']")
+    languages = doc.find("arr[@name='language']")
     e_public_scan = doc.find("bool[@name='public_scan_b']")
     e_lending_edition = doc.find("str[@name='lending_edition_s']")
     e_lending_identifier = doc.find("str[@name='lending_identifier_s']")
@@ -482,6 +482,7 @@ def get_doc(doc): # called from work_search template
         first_edition = first_edition,
         subtitle = work_subtitle,
         cover_edition_key = (cover.text if cover is not None else None),
+        languages = languages and [lang.text for lang in languages]
     )
 
     doc.url = doc.key + '/' + urlsafe(doc.title)
@@ -614,7 +615,7 @@ def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False)
     q='author_key:' + akey
     offset = rows * (page - 1)
     fields = ['key', 'author_name', 'author_key', 'title', 'subtitle',
-        'edition_count', 'ia', 'cover_edition_key', 'has_fulltext',
+        'edition_count', 'ia', 'cover_edition_key', 'has_fulltext', 'language',
         'first_publish_year', 'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
         'ia_collection_s', 'cover_i']
     fl = ','.join(fields)
