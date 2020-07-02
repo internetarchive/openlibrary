@@ -96,8 +96,16 @@ h2.edition-byline {
   border-bottom: 1px solid @lighter-grey;
   padding-bottom: 5px;
   font-weight: bold;
-  margin-top: 40px;
-  margin-bottom: 30px;
+  margin-top: 20px;
+
+  &.sticky {
+    position: sticky;
+    top: 0px;
+    display: block;
+    background: #fff;
+    z-index: 999;
+    padding-top: 10px;
+  }
 }
 
 .work-menu li {
@@ -122,6 +130,11 @@ h2.edition-byline {
 
 .work-menu li.selected a {
   color: @link-blue;
+}
+
+a.section-anchor {
+  height: 45px;
+  display: block;
 }
 
 .book-overview {
