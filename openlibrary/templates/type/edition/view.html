@@ -394,7 +394,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
           <div class="user-book-options">
             <div class="Tools tools-override">
               $ component_times['WorkListTime'] = time()
-              $:render_template("lists/widget", work, include_header=False, results=3)
+              $:render_template("lists/widget", work, include_header=False, include_widget=False)
               $ component_times['WorkListTime'] = time() - component_times['WorkListTime']
             </div>
           </div>
@@ -402,7 +402,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         <div class="user-book-options">
             <div class="Tools tools-override">
               $ component_times['EditionListTime'] = time()
-              $:render_template("lists/widget", edition, include_header=False, results=3)
+              $:render_template("lists/widget", edition, include_header=False, include_widget=False)
               $ component_times['EditionListTime'] = time() - component_times['EditionListTime']
             </div>
         </div>
