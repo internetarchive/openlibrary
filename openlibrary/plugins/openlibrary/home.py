@@ -12,6 +12,7 @@ from infogami import config
 from openlibrary.core import admin, cache, ia, lending, \
     helpers as h
 from openlibrary.core.sponsorships import get_sponsorable_editions
+from openlibrary.plugins.upstream.models import Work
 from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
@@ -196,7 +197,9 @@ def format_list_editions(key):
                 except StopIteration:
                     continue
                 editions[e.key] = e
-    return [format_book_data(e) for e in editions.values()]
+    works = [e.works and e.works[0] for e in editions.values()]
+    Work.prefetch_solr_data_in_bulk(works)
+    return [format_book_data(e, work) for e, work in zip(editions.values(), works)]
 
 # cache the results of format_list_editions in memcache for 5 minutes
 format_list_editions = cache.memcache_memoize(format_list_editions, "home.format_list_editions", timeout=5*60)
@@ -225,7 +228,8 @@ def format_work_data(work):
     d['read_url'] = "//archive.org/stream/" + work['ia'][0]
     return d
 
-def format_book_data(book):
+
+def format_book_data(book, work=None):
     d = web.storage()
     d.key = book.get('key')
     d.url = book.url()
@@ -237,7 +241,7 @@ def format_book_data(book):
     def get_authors(doc):
         return [web.storage(key=a.key, name=a.name or None) for a in doc.get_authors()]
 
-    work = book.works and book.works[0]
+    work = work if work else book.works and book.works[0]
     d.authors = get_authors(work if work else book)
     d.work_key = work.key if work else book.key
     cover = work.get_cover() if work and work.get_cover() else book.get_cover()

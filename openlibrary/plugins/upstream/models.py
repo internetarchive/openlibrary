@@ -13,7 +13,7 @@ from infogami.infobase import client
 from infogami.utils.view import safeint
 from infogami.utils import stats
 
-from openlibrary.core import models, ia
+from openlibrary.core import models, ia, cache
 from openlibrary.core.models import Image
 from openlibrary.core import lending
 
@@ -525,6 +525,23 @@ class Author(models.Author):
 re_year = re.compile(r'(\d{4})$')
 
 
+def fetch_solr_data(keys):
+    fields = [
+        "cover_edition_key", "cover_id", "edition_key", "first_publish_year",
+        "has_fulltext", "lending_edition_s", "checked_out", "public_scan_b", "ia"]
+
+    solr = get_solr()
+    query = {"key": '(%s)' % ' OR '.join(keys)}
+    stats.begin("solr", query=query, fields=fields)
+    try:
+        return solr.select(query, fields=fields)
+    except Exception:
+        logging.getLogger("openlibrary").exception("Failed to get solr data")
+        return None
+    finally:
+        stats.end()
+
+
 class Work(models.Work):
     def get_olid(self):
         return self.key.split('/')[-1]
@@ -538,46 +555,25 @@ class Work(models.Work):
             return []
 
     def get_covers_from_solr(self):
-        try:
-            w = self._solr_data
-        except Exception as e:
-            logging.getLogger("openlibrary").exception('Unable to retrieve covers from solr')
+        if self._solr_data is None:
             return []
-        if w:
-            if 'cover_id' in w:
-                return [Image(self._site, "w", int(w['cover_id']))]
-            elif 'cover_edition_key' in w:
-                cover_edition = web.ctx.site.get("/books/" + w['cover_edition_key'])
-                cover = cover_edition and cover_edition.get_cover()
-                if cover:
-                    return [cover]
+
+        if 'cover_id' in self._solr_data:
+            return [Image(self._site, "w", int(self._solr_data['cover_id']))]
+        elif 'cover_edition_key' in self._solr_data:
+            cover_edition_key = "/books/" + self._solr_data['cover_edition_key']
+            cover_edition = web.ctx.site.get(cover_edition_key)
+            cover = cover_edition and cover_edition.get_cover()
+            if cover:
+                return [cover]
+
         return []
 
-    def _get_solr_data(self):
-        fields = [
-            "cover_edition_key", "cover_id", "edition_key", "first_publish_year",
-            "has_fulltext", "lending_edition_s", "checked_out", "public_scan_b", "ia"]
-
-        solr = get_solr()
-        stats.begin("solr", query={"key": self.key}, fields=fields)
-        try:
-            d = solr.select({"key": self.key}, fields=fields)
-        except Exception as e:
-            logging.getLogger("openlibrary").exception("Failed to get solr data")
-            return None
-        finally:
-            stats.end()
-
-        if d.num_found > 0:
-            w = d.docs[0]
-        else:
-            w = None
-
-        # Replace _solr_data property with the attribute
-        self.__dict__['_solr_data'] = w
-        return w
-
-    _solr_data = property(_get_solr_data)
+    @property
+    @cache.memoize(key=lambda work: "Work._solr_data-" + work.key)
+    def _solr_data(self):
+        d = fetch_solr_data(self.key)
+        return d.docs[0] if (d and d.num_found > 0) else None
 
     def get_cover(self, use_solr=True):
         covers = self.get_covers(use_solr=use_solr)
@@ -615,6 +611,28 @@ class Work(models.Work):
         if subjects and not isinstance(subjects[0], six.string_types):
             subjects = [flip(s.name) for s in subjects]
         return subjects
+
+    @staticmethod
+    def prefetch_solr_data_in_bulk(works):
+        """
+        Prefetches the solr data for the given works in one request.
+        :param list of Work works:
+        """
+        works = [
+            work
+            for work in works
+            if work._solr_data.memoize.cache_get(work) is None
+        ]
+
+        resp = fetch_solr_data(work.key for work in works)
+        docs_by_key = {
+            doc['key']: doc
+            for doc in resp.docs
+        }
+
+        for work in works:
+            if work.key in docs_by_key:
+                work._solr_data.memoize.cache_set(work, docs_by_key[work.key])
 
     @staticmethod
     def filter_problematic_subjects(subjects, filter_unicode=True):
