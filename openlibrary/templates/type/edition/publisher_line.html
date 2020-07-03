@@ -3,9 +3,9 @@ $def with (edition)
 <h4 class="publisher">
   $if edition.publish_date or edition.publishers or edition.publish_places:
     <!-- TODO: this handcrafted concatenation will be difficult to internationalize -->
-    $_('Published')
+    $_('This edition published')
       $if edition.publish_date:
-          <strong itemprop="datePublished">$edition.publish_date</strong>
+        $_('in') <strong itemprop="datePublished">$edition.publish_date</strong>
       $if edition.publishers:
           $_('by')
           $for p in edition.publishers:
