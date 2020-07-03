@@ -1,6 +1,3 @@
-import six
-from six.moves.urllib.parse import urlencode
-
 import web
 import re
 from lxml.etree import XML, XMLSyntaxError
@@ -12,6 +9,7 @@ from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.core.lending import get_availability_of_ocaids, add_availability
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.inside.code import fulltext_search
+from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import escape_bracket
 from openlibrary.utils.ddc import (
     normalize_ddc,
@@ -383,8 +381,6 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
         params.append(('sort', sort))
 
     params.append(('wt', param.get('wt', 'standard')))
-    params = [(k, v.encode('utf-8') if isinstance(v, six.string_types) else v)
-              for (k, v) in params]
     url = solr_select_url + '?' + urlencode(params)
     solr_result = execute_solr_query(url)
     if solr_result is None:

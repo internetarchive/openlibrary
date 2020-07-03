@@ -15,6 +15,7 @@ from infogami.utils import delegate
 from openlibrary.core import cache
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.plugins.upstream import acs4
+from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil
 from six.moves import urllib
 
@@ -180,18 +181,28 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
             _sort = '-' + _sort.split('+desc')[0]
         elif '+asc' in _sort:
             _sort = _sort.split('+asc')[0]
-        return ('https://archive.org/search.php?query=%s' % q) + \
-            (('&sort=%s' % _sort) if _sort else '')
+        params = {'query': q}
+        if _sort:
+            params['sort'] = _sort
+        return 'https://archive.org/search.php?' + urlencode(params)
 
-    fields = ['identifier', 'openlibrary_edition', 'openlibrary_work', 'loans__status__status']
-    encoded_fields = '&'.join(['fl[]=' + f for f in fields])
-    sort = ('&'.join(['sort[]=%s' % s for s in
-                      (sorts if sorts and isinstance(sorts, list)
-                       else [''])]))
     rows = limit or DEFAULT_IA_RESULTS
-    url = "http://%s/advancedsearch.php?q=%s&%s&%s&rows=%s&page=%s&output=json" % (
-        config_bookreader_host, q, encoded_fields, sort, str(rows), str(page))
-    return url
+    params = [
+        ('q', q),
+        ('fl[]', 'identifier'),
+        ('fl[]', 'openlibrary_edition'),
+        ('fl[]', 'openlibrary_work'),
+        ('fl[]', 'loans__status__status'),
+        ('rows', rows),
+        ('page', page),
+        ('output', 'json'),
+    ]
+    if not sorts or not isinstance(sorts, list):
+        sorts = ['']
+    for sort in sorts:
+        params.append(('sort[]', sort))
+    base_url = "http://%s/advancedsearch.php" % config_bookreader_host
+    return base_url + '?' + urlencode(params)
 
 def get_random_available_ia_edition():
     """uses archive advancedsearch to raise a random book"""

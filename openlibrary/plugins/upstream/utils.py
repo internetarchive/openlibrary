@@ -403,6 +403,26 @@ def url_quote(text):
         text = text.encode('utf8')
     return urllib.parse.quote_plus(text)
 
+
+@public
+def urlencode(dict_or_list_of_tuples):
+    """
+    You probably want to use this, if you're looking to urlencode parameters. This will
+    encode things to utf8 that would otherwise cause urlencode to error.
+    :param dict or list dict_or_list_of_tuples:
+    :rtype: basestring
+    """
+    from six.moves.urllib.parse import urlencode as og_urlencode
+    tuples = dict_or_list_of_tuples
+    if isinstance(dict_or_list_of_tuples, dict):
+        tuples = dict_or_list_of_tuples.items()
+    params = [
+        (k, v.encode('utf-8') if isinstance(v, six.text_type) else v)
+        for (k, v) in tuples
+    ]
+    return og_urlencode(params)
+
+
 @public
 def entity_decode(text):
     return HTMLParser().unescape(text)
