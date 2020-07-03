@@ -599,8 +599,6 @@ window.q.push(function() {
             }
            });
         });
-
-        setup_widget_display_events();
     }
 
     function close_popup() {
@@ -644,8 +642,6 @@ window.q.push(function() {
     var mylist = \$container.find('.dropdown');
     var listitems = mylist.children('p.list').get();
     var listcreate = \$container.find('.dropdown p.create');
-    var a = a;
-    var b = b;
     listitems.sort(function(a, b) {
        var compA = \$(a).text().toUpperCase();
        var compB = \$(b).text().toUpperCase();
