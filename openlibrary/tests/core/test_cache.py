@@ -128,6 +128,27 @@ class Test_memoize:
         assert double(3) == 6
         assert self.get("3") == {"square": 9, "double": 6}
 
+    def test_custom_control_of_memoize(self):
+        class Foo:
+            def __init__(self):
+                self.calls = 0
+
+            def expensive(self):
+                self.calls += 1
+                return 'hello'
+
+            @cache.memoize(engine="memory", key=lambda self: 'Foo')
+            def cheap(self):
+                return self.expensive()
+
+        foo = Foo()
+        assert hasattr(foo.cheap, 'memoize')
+        assert foo.calls == 0
+        foo.cheap.memoize.cache_set(args=[foo], val='not-hello')
+        assert foo.cheap() == 'not-hello'
+        assert foo.calls == 0
+        assert foo.cheap.memoize.cache_get(foo) == 'not-hello'
+
 
 class Test_method_memoize:
     def test_handles_no_args(self):

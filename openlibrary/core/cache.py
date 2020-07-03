@@ -482,10 +482,12 @@ class memoize:
         else:
             return self.cache.get(key)
 
-    def cache_set(self, *args, **kwargs):
+    def cache_set(self, args=None, kwargs=None, val=None):
+        args = args or []
+        kwargs = kwargs or {}
         """Set the cached value for the given args/kwargs"""
         key = self.keyfunc(*args, **kwargs)
-        return self.cache_set_by_key(key)
+        return self.cache_set_by_key(key, val)
 
     def cache_set_by_key(self, key, value):
         """Sets a key to a given value in the cache.

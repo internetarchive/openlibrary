@@ -632,7 +632,7 @@ class Work(models.Work):
 
         for work in works:
             if work.key in docs_by_key:
-                work._solr_data.memoize.cache_set(work, docs_by_key[work.key])
+                work._solr_data.memoize.cache_set(args=[work], val=docs_by_key[work.key])
 
     @staticmethod
     def filter_problematic_subjects(subjects, filter_unicode=True):
