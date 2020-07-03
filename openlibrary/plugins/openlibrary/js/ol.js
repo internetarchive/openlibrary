@@ -340,11 +340,11 @@ export function initReadingListFeature() {
 
     // Close any open dropdown list if the user clicks outside...
     $(document).on('click', function() {
-        closeDropdown($('#widget-add'));
+        closeDropdown($('.widget-add'));
     });
 
     // ... but don't let that happen if user is clicking inside dropdown
-    $(document).on('click', '#widget-add', function(e) {
+    $(document).on('click', '.widget-add', function(e) {
         e.stopPropagation();
     });
 
