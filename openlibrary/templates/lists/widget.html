@@ -197,7 +197,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                            /> <span>$_('Use this Work')</span>
                         </label>
                       </p>
-                  <p class="create"><a href="javascript:;" id="create-new-list">$_('Create a new list')</a>
+                  <p class="create"><a href="javascript:;" class="create-new-list">$_('Create a new list')</a>
                     <a aria-controls="addList"
                       class="hidden listClick dialog--open"></a>
                   </p>
@@ -214,7 +214,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                     <div class="my-lists">
                         $:render_my_lists(lists, 'active')
                     </div>
-                    <p class="create"><a href="javascript:;" id="create-new-list">$_('Create a new list')</a>
+                    <p class="create"><a href="javascript:;" class="create-new-list">$_('Create a new list')</a>
                     </p>
                   </div>
                 </div>
@@ -251,7 +251,7 @@ $jsdef render_head(seed_type, page_lists, page_url):
         </div>
 
 $if include_header:
-  <div id="widget-head">
+  <div class="lists-widget-head">
     $:render_head(seed_info['type'], page_lists, page_url)
   </div>
 
@@ -283,7 +283,7 @@ $if include_widget:
 
 
 $if include_showcase:
-  <ul class="listLists" id="widget-lists">
+  <ul class="listLists">
     $:render_widget_display(page_lists, 3, user_key)
   </ul>
 
@@ -473,7 +473,7 @@ window.q.push(function() {
 
     function reload_widget() {
         var seed_info = get_active_seed_info();
-        \$container.find("#widget-head").html(render_head(seed_info.type, seed_info.lists, page_url));
+        \$container.find(".lists-widget-head").html(render_head(seed_info.type, seed_info.lists, page_url));
         \$container.find(".widget-add").html(render_widget_add(
             Lists.user_lists,
             work_key,
@@ -546,7 +546,7 @@ window.q.push(function() {
                 return list.owner.key != Lists.user_lists[0].owner.key;
             });
         }
-        \$container.find("#widget-lists").html(render_widget_display(listsThatContainIt.concat(filteredShowcaseLists), 3, user_key));
+        \$container.find(".listLists").html(render_widget_display(listsThatContainIt.concat(filteredShowcaseLists), 3, user_key));
         setup_widget_display_events();
     }
 
@@ -582,7 +582,7 @@ window.q.push(function() {
 
     function setup_events() {
         \$container.find(".work-checkbox").click(update_my_lists);
-        \$container.find("#create-new-list").click(function() {
+        \$container.find(".create-new-list").click(function() {
            window.activeListWidgetIndex = listWidgetIndex;
            close_popup();
            \$.colorbox({
