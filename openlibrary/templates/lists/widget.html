@@ -1,4 +1,4 @@
-$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, user_lists_only=False, readinglog_only=False, read_status=None, rating=None)
+$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, user_lists_only=False, readinglog_only=False, read_status=None, rating=None, _user_lists=None)
 
 $ edition = page if page.key.startswith("/books/") else None
 $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
@@ -15,9 +15,10 @@ $if "lists" not in ctx.features:
     $return
 
 $code:
-    _user_lists = ctx.user and ctx.user.get_lists(sort=True) or []
+    _user_lists = _user_lists or (ctx.user and ctx.user.get_lists(sort=True) or [])
 
     def get_seed_info(page):
+        """Takes a thing, determines what type it is, and returns a seed summary"""
         if page.key.startswith("/subjects/"):
             seed = page.key.split("/")[-1]
             if seed.split(":")[0] not in ["place", "person", "time"]:
@@ -43,8 +44,6 @@ $code:
             "remove_dialog_html": _('Are you sure you want to remove <strong>%(title)s</strong> from your list?', title=title)
         }
 
-    seed_info = get_seed_info(page)
-
     def get_list_data(list, seed, include_cover_url=True):
         d = storage({
             "name": list.name or "",
@@ -60,18 +59,20 @@ $code:
         d['owner'] = storage(displayname=owner.displayname or "", key=owner.key)
         return d
 
-    def get_user_lists():
+    def get_user_lists(seed_info):
         return [get_list_data(list, seed_info['seed'], include_cover_url=True) for list in _user_lists]
 
-    def get_page_lists(page):
+    def get_page_lists(page, seed_info):
         user_key = ctx.user and ctx.user.key
         return [get_list_data(list, seed_info['seed']) for list in page.get_lists(sort=False)]
 
-$ user_lists = get_user_lists()
+$ seed_info = get_seed_info(page)
+$ work_seed_info= edition and work and get_seed_info(work)
+$ user_lists = get_user_lists(seed_info)
 $if user_lists_only:
     $ page_lists = [list for list in user_lists if list.active]
 $else:
-    $ page_lists = get_page_lists(page)
+    $ page_lists = get_page_lists(page, seed_info)
 $ user_key = ctx.user and ctx.user.key
 $ page_url = page.url()
 
@@ -369,7 +370,7 @@ $if render_once('lists-api-js'):
                 complete: d.complete
             });
         },
-        seed_lists: {},
+        seed_lists: {}, // seed key -> containing list key
         widgets: [],
     };
     Lists.user_lists_by_key = {};
@@ -392,6 +393,17 @@ $code:
 $ default_seed_key = seed_info['seed'].key if hasattr(seed_info['seed'], 'key') else seed_info['seed']
 
 <script type="text/javascript">
+
+/**
+activeSeed: what thing are we considering / is selected?
+user_lists - all of my lists
+mylists - set of eligible user_lists which don't contain activeSeed
+
+reload_widget - currently renders widget + showcase
+
+*/
+
+
 window.q.push(function() {
     var \$container = \$("#$container_id");
 
@@ -399,9 +411,10 @@ window.q.push(function() {
     var default_seed_info = $:json_encode(seed_info);
     default_seed_info.lists = Lists.seed_lists[$:json_encode(default_seed_key)];
     var work_seed_info = null;
-    $if work and edition:
-        Lists.seed_lists[$:json_encode(work.key)] = $:json_encode(get_page_lists(work));
-        work_seed_info = $:json_encode(get_seed_info(work));
+
+    $if work_seed_info:
+        Lists.seed_lists[$:json_encode(work.key)] = $:json_encode(get_page_lists(work, work_seed_info));
+        work_seed_info = $:json_encode(work_seed_info);
         work_seed_info.lists = Lists.seed_lists[$:json_encode(work.key)];
 
     var user_key = $:json_encode(user_key);
@@ -414,6 +427,7 @@ window.q.push(function() {
     var listWidgetIndex = Lists.widgets.length;
     var list_contained_keys = $:json_encode(build_contains_dict(_user_lists, default_seed_key, work_key));
 
+    /** Whether to use the default thing or work (if work v. edition) */
     function get_active_seed_info() {
         var checkbox = \$container.find(".work-checkbox")[0];
         return checkbox && checkbox.checked && work_seed_info ? work_seed_info : default_seed_info;
@@ -432,7 +446,7 @@ window.q.push(function() {
             false,
             work_seed_info && seed_info.type == 'work' ));
 
-        \$container.find("#widget-lists").html(render_widget_display(seed_info.lists, 3, user_key));
+        update_my_lists();
         setup_events();
 
         // We've added new .dropclick element. Need to setup listeners again.
@@ -442,6 +456,7 @@ window.q.push(function() {
         });
     }
 
+    // the active lists of this seed
     function remove_page_list(lists, list) {
         for (var i=0; i<lists.length; i++) {
             var pagelist = lists[i];
@@ -477,7 +492,6 @@ window.q.push(function() {
             };
             Lists.user_lists[Lists.user_lists.length] = list;
             Lists.user_lists_by_key[list.key] = list;
-            seed_info.lists.unshift(list);
 
             reload_widget();
         }, function(){
@@ -488,6 +502,7 @@ window.q.push(function() {
         return false;
     }
 
+    /** Prunes lists off my_lists if seed is on list */
     function update_my_lists() {
         var listsThatDontContainIt = [];
         var listsThatContainIt = [];
@@ -501,8 +516,7 @@ window.q.push(function() {
             }
         }
         \$container.find(".my-lists").html(render_my_lists(listsThatDontContainIt, 'key'));
-        // FIXME: Will remove all non-user lists
-        \$container.find("#widget-lists").html(render_widget_display(listsThatContainIt, 3, user_key));
+        \$container.find("#widget-lists").html(render_widget_display(listsThatContainIt.concat(seed_info.lists), 3, user_key));
         setup_widget_display_events();
     }
 
@@ -520,7 +534,6 @@ window.q.push(function() {
                 list.active = true;
                 list_contained_keys[list.key] = list_contained_keys[list.key] || {};
                 list_contained_keys[list.key][seed_info.seed.key || seed_info.seed] = true;
-                seed_info.lists.unshift(list);
             }, function(data){
                 reload_widget();    // reload widget regardless of success or failure
             });
@@ -596,11 +609,12 @@ window.q.push(function() {
         users_work_read_status,
         edition_key,
         username,
+        update_my_lists,
         listWidgetIndex,
     });
 
     setup_events();
-    update_my_lists();
+    update_my_lists(); // update set of eligible lists for this seed
 
     var mylist = \$container.find('.dropdown');
     var listitems = mylist.children('p.list').get();
