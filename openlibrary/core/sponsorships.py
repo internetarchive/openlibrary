@@ -102,7 +102,6 @@ def onetime_check_sponsorship(doc, force=False):
     from openlibrary.plugins.upstream.code import get_document
 
     calls_made = web.ctx.setdefault('sponsorship_calls', 0)
-    memoize = qualifies_for_sponsorship.memoize
 
     if isinstance(doc, Edition):
         edition = doc
@@ -118,7 +117,7 @@ def onetime_check_sponsorship(doc, force=False):
     if not edition:
         return None
 
-    cached_value = memoize.cache_get(memoize.keyfunc(edition))
+    cached_value = qualifies_for_sponsorship.memoize.cache_get(edition)
 
     if cached_value is not None:
         # Don't increment sponsorship calls, since it was cached!

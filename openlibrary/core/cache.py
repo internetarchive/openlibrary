@@ -448,17 +448,22 @@ class memoize:
             Otherwise, value from the cache is returned.
             """
             key = self.keyfunc(*args, **kwargs)
-            value = self.cache_get(key)
+            value = self.cache_get_by_key(key)
             if value is None:
                 value = f(*args, **kwargs)
-                self.cache_set(key, value)
+                self.cache_set_by_key(key, value)
             return value
 
         # Expose the memoize so that downstream functions can investigate it
         setattr(func, 'memoize', self)
         return func
 
-    def cache_get(self, key):
+    def cache_get(self, *args, **kwargs):
+        """Get the cached value for the given args/kwargs"""
+        key = self.keyfunc(*args, **kwargs)
+        return self.cache_get_by_key(key)
+
+    def cache_get_by_key(self, key):
         """Reads value of a key from the cache.
 
         When key is a string, this is equvivalant to::
@@ -477,7 +482,12 @@ class memoize:
         else:
             return self.cache.get(key)
 
-    def cache_set(self, key, value):
+    def cache_set(self, *args, **kwargs):
+        """Set the cached value for the given args/kwargs"""
+        key = self.keyfunc(*args, **kwargs)
+        return self.cache_set_by_key(key)
+
+    def cache_set_by_key(self, key, value):
         """Sets a key to a given value in the cache.
 
         When key is a string, this is equvivalant to::
