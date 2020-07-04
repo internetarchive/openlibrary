@@ -1,4 +1,4 @@
-$def with(work, tags=[])
+$def with(work, tags=[], limit=None)
 
 $# Todo write the description of input parameter's the file takes
 
@@ -7,7 +7,7 @@ $def render_subjects(label, subjects, prefix=""):
     <div class="section link-box">
       <h6>$label</h6>
       <span>
-        $for subject in subjects:
+        $for subject in subjects[:limit]:
           <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',',''))">$subject</a>$cond(not loop.last,",","")
       </span>
     </div>

@@ -256,8 +256,6 @@ $if include_header:
   </div>
 
 $if include_widget:
-  $if include_rating:
-    $:macros.StarRatings(work, edition)
   $if ctx.user or not work_key:
     <div class="widget-add $:(not work_key and 'old-style-lists')">
       $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url(), readinglog_only, False)
@@ -280,6 +278,8 @@ $if include_widget:
             </div>
         </div>
     </div>
+  $if include_rating:
+    $:macros.StarRatings(work, edition)
 
 
 $if include_showcase:
