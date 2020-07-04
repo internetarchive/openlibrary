@@ -285,6 +285,10 @@ def get_availability(key, ids):
     :param list of str ids:
     :rtype: dict
     """
+
+    if not ids:
+        return {}
+
     def update_availability_schema_to_v2(v1_resp, ocaid):
         collections = v1_resp.get('collection', [])
         v1_resp['identifier'] = ocaid
