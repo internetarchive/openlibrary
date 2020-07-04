@@ -526,15 +526,18 @@ re_year = re.compile(r'(\d{4})$')
 
 
 def fetch_solr_data(keys):
+    print("Fetch solr data: {}".format(keys))
     fields = [
-        "cover_edition_key", "cover_id", "edition_key", "first_publish_year",
+        "key", "cover_edition_key", "cover_id", "edition_key", "first_publish_year",
         "has_fulltext", "lending_edition_s", "checked_out", "public_scan_b", "ia"]
 
     solr = get_solr()
-    query = {"key": '(%s)' % ' OR '.join(keys)}
+    query = 'key:(%s)' % ' OR '.join(keys)
     stats.begin("solr", query=query, fields=fields)
     try:
-        return solr.select(query, fields=fields)
+        result = solr.select(query, fields=fields, rows=len(keys))
+        print("Fetched solr data: {}".format(result))
+        return result
     except Exception:
         logging.getLogger("openlibrary").exception("Failed to get solr data")
         return None
@@ -570,9 +573,12 @@ class Work(models.Work):
         return []
 
     @property
-    @cache.memoize(key=lambda work: "Work._solr_data-" + work.key)
     def _solr_data(self):
-        d = fetch_solr_data(self.key)
+        return self.fetch_solr_data()
+
+    @cache.memoize(key=lambda work: "Work._solr_data-" + work.key)
+    def fetch_solr_data(self):
+        d = fetch_solr_data([self.key])
         return d.docs[0] if (d and d.num_found > 0) else None
 
     def get_cover(self, use_solr=True):
@@ -618,13 +624,14 @@ class Work(models.Work):
         Prefetches the solr data for the given works in one request.
         :param list of Work works:
         """
+        print('PreFetch solr data: {}'.format([w.key for w in works]))
         works = [
             work
             for work in works
-            if work._solr_data.memoize.cache_get(work) is None
+            if work.fetch_solr_data.memoize.cache_get(work) is None
         ]
 
-        resp = fetch_solr_data(work.key for work in works)
+        resp = fetch_solr_data([work.key for work in works])
         docs_by_key = {
             doc['key']: doc
             for doc in resp.docs
@@ -632,7 +639,7 @@ class Work(models.Work):
 
         for work in works:
             if work.key in docs_by_key:
-                work._solr_data.memoize.cache_set(args=[work], val=docs_by_key[work.key])
+                work.fetch_solr_data.memoize.cache_set([work], val=docs_by_key[work.key])
 
     @staticmethod
     def filter_problematic_subjects(subjects, filter_unicode=True):
