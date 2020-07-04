@@ -177,10 +177,10 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
 
     if not advanced:
         _sort = sorts[0] if sorts else ''
-        if '+desc' in _sort:
-            _sort = '-' + _sort.split('+desc')[0]
-        elif '+asc' in _sort:
-            _sort = _sort.split('+asc')[0]
+        if ' desc' in _sort:
+            _sort = '-' + _sort.split(' desc')[0]
+        elif ' asc' in _sort:
+            _sort = _sort.split(' asc')[0]
         params = {'query': q}
         if _sort:
             params['sort'] = _sort
