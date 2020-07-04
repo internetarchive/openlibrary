@@ -269,8 +269,12 @@ class ListMixin:
                 d[kind].append(s)
         return d
 
-    def get_seeds(self, sort=False):
+    def get_seeds(self, sort=False, prefetch_solr_data=False):
+        from openlibrary.plugins.upstream.models import Work
         seeds = [Seed(self, s) for s in self.seeds]
+        if prefetch_solr_data:
+            Work.prefetch_solr_data_in_bulk([
+                seed.document for seed in seeds if seed.type == 'work'])
         if sort:
             seeds = h.safesort(seeds, reverse=True, key=lambda seed: seed.last_update)
         return seeds

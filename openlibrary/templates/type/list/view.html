@@ -169,7 +169,7 @@ window.q.push(function(){
             $:format(list.description)
 
         <ul id="listResults" class="list-books">
-          $for seed in list.get_seeds(sort=True)[page*page_size:page*page_size+page_size]:
+          $for seed in list.get_seeds(sort=True, prefetch_solr_data=True)[page*page_size:page*page_size+page_size]:
             <li id="seed-$loop.index" class="searchResultItem">
                 $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
                 $ cover = seed.get_cover()
