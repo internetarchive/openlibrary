@@ -176,8 +176,11 @@ def setup_jquery_urls():
 
 @public
 def get_document(key, limit_redirs=5):
+    doc = None
     for i in range(limit_redirs):
         doc = web.ctx.site.get(key)
+        if doc is None:
+            return None
         if doc.type.key == "/type/redirect":
             key = doc.location
         else:
