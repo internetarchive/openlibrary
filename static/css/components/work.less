@@ -1,7 +1,7 @@
 @import (less) "base/dl.less";
 
 .workDetails {
-  padding-bottom: 15px;
+  padding: 15px 0;
 }
 
 // Left (editionCover)
@@ -27,7 +27,7 @@
 
 // Center (editionAbout)
 div.editionAbout {
-
+  margin-bottom: 20px;
   h3 {
     font-size: 14px;
     margin: 0 0 1em;
@@ -42,6 +42,19 @@ div.editionAbout {
     margin: 0;
   }
 
+}
+
+.workFooter {
+  clear: both;
+  border-top: 1px solid @lighter-grey;
+  ul.listLists {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  ul.listLists li {
+    flex: 1;
+    border: 0;
+  }
 }
 
 .book-description{
