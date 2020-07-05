@@ -504,7 +504,7 @@ class Author(models.Author):
     def get_olid(self):
         return self.key.split('/')[-1]
 
-    def get_books(self):
+    def get_books(self, q=''):
         i = web.input(sort='editions', page=1, rows=20, mode="")
         try:
             # safegaurd from passing zero/negative offsets to solr
@@ -513,7 +513,7 @@ class Author(models.Author):
             page = 1
         return works_by_author(self.get_olid(), sort=i.sort,
                                page=page, rows=i.rows,
-                               has_fulltext=i.mode=="ebooks")
+                               has_fulltext=i.mode=="ebooks", query=q)
 
     def get_work_count(self):
         """Returns the number of works by this author.

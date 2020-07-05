@@ -382,6 +382,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
 
     params.append(('wt', param.get('wt', 'standard')))
     url = solr_select_url + '?' + urlencode(params)
+
     solr_result = execute_solr_query(url)
     if solr_result is None:
         return (None, url, q_list)
@@ -609,17 +610,22 @@ class search(delegate.page):
         return page
 
 
-def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False):
+def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False, query=None):
     # called by merge_author_works
-    q='author_key:' + akey
+    q = 'author_key:' + akey
+    if query:
+        q = query
+
     offset = rows * (page - 1)
     fields = ['key', 'author_name', 'author_key', 'title', 'subtitle',
         'edition_count', 'ia', 'cover_edition_key', 'has_fulltext',
         'first_publish_year', 'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
         'ia_collection_s', 'cover_i']
     fl = ','.join(fields)
-    fq = 'has_fulltext:true' if has_fulltext else ''  # ebooks_only
-    solr_select = solr_select_url + "?fq=type:work&q.op=AND&q=%s&fq=%s&start=%d&rows=%d&fl=%s&wt=json" % (q, fq, offset, rows, fl)
+    fq = ['author_key:OL31676A', 'type:work']
+    if has_fulltext:
+        fq.append('has_fulltext:true')
+    solr_select = solr_select_url + "?fq=%s&q.op=AND&q=%s&start=%d&rows=%d&fl=%s&wt=json" % ('&fq='.join(fq), q, offset, rows, fl)
     facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
     if sort == 'editions':
         solr_select += '&sort=edition_count+desc'
