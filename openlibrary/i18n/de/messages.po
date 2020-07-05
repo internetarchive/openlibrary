@@ -405,7 +405,7 @@ msgstr ""
 
 #: create.html:6 create.html:92 nav_head.html:106 search_head.html:74
 msgid "Sign Up"
-msgstr "Anmelden"
+msgstr "Registrieren"
 
 #: create.html:8
 msgid "Complete the form below to create a new Internet Archive account."
@@ -2324,4 +2324,3 @@ msgid ""
 "target=\"_blank\" title=\"This link to Creative Commons will open in a "
 "new window\">CC0</a>. Yippee!"
 msgstr ""
-
