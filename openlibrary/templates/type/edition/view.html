@@ -397,29 +397,23 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         </div>
       </div>
     </div>
-
+    
     <div class="workFooter">
-      <div class="btn-notice">
-        $# pages like /books/ia:foo00bar are fake records created from metadata API.
-        $# Adding them to lists doesn't work. Disabling it to avoid any issues.
-        $if "lists" in ctx.features and not page.is_fake_record():
-          <h2 class="home-h2"><a href="$page.url()/lists">$_('Lists containing this Book')</a></h2>
-          <div class="user-book-options">
-            <div class="Tools tools-override">
-              $ component_times['WorkListTime'] = time()
-              $:render_template("lists/widget", work, include_header=False, include_widget=False)
-              $ component_times['WorkListTime'] = time() - component_times['WorkListTime']
-            </div>
-          </div>
-        <h2 class="home-h2"><a href="$page.url()/lists">$_('Lists containing this Edition')</a></h2>
+      $# pages like /books/ia:foo00bar are fake records created from metadata API.
+      $# Adding them to lists doesn't work. Disabling it to avoid any issues.
+      $if "lists" in ctx.features and not page.is_fake_record():
+        <h2 class="home-h2"><a href="$page.url()/lists">$_('Lists containing this Book')</a></h2>
         <div class="user-book-options">
-            <div class="Tools tools-override">
-              $ component_times['EditionListTime'] = time()
-              $:render_template("lists/widget", edition, include_header=False, include_widget=False)
-              $ component_times['EditionListTime'] = time() - component_times['EditionListTime']
-            </div>
+          <div class="Tools tools-override">
+            $ component_times['WorkListTime'] = time()
+            $:render_template("lists/widget", work, include_header=False, include_widget=False)
+            $ component_times['WorkListTime'] = time() - component_times['WorkListTime']
+
+            $ component_times['EditionListTime'] = time()
+            $:render_template("lists/widget", edition, include_header=False, include_widget=False)
+            $ component_times['EditionListTime'] = time() - component_times['EditionListTime']
+          </div>
         </div>
-      </div>
     </div>
   </div>
 
