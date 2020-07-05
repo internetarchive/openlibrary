@@ -2,7 +2,7 @@
 import 'datatables.net-dt';
 import '../../../../../static/css/legacy-datatables.less';
 
-export function initEditionsTable(itemsPerPage) {
+export function initEditionsTable() {
     var rowCount;
     $('#editions th.title').mouseover(function(){
         if ($(this).hasClass('sorting_asc')) {
@@ -47,7 +47,7 @@ export function initEditionsTable(itemsPerPage) {
         $('#editions').DataTable({
             aoColumns: [{sType: 'html'},null],
             order: [ [1,'asc'] ],
-            lengthMenu: [ [3, 10, 25, 50, 100, -1], [3, 10, 25, 50, 100, "All"] ],
+            lengthMenu: [ [3, 10, 25, 50, 100, -1], [3, 10, 25, 50, 100, 'All'] ],
             bPaginate: true,
             bInfo: true,
             sPaginationType: 'full_numbers',
