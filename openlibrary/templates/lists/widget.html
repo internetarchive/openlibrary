@@ -197,7 +197,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                            /> <span>$_('Use this Work')</span>
                         </label>
                       </p>
-                  <p class="create"><a href="javascript:;" id="create-new-list">$_('Create a new list')</a>
+                  <p class="create"><a href="javascript:;" class="create-new-list">$_('Create a new list')</a>
                     <a aria-controls="addList"
                       class="hidden listClick dialog--open"></a>
                   </p>
@@ -214,7 +214,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                     <div class="my-lists">
                         $:render_my_lists(lists, 'active')
                     </div>
-                    <p class="create"><a href="javascript:;" id="create-new-list">$_('Create a new list')</a>
+                    <p class="create"><a href="javascript:;" class="create-new-list">$_('Create a new list')</a>
                     </p>
                   </div>
                 </div>
@@ -251,7 +251,7 @@ $jsdef render_head(seed_type, page_lists, page_url):
         </div>
 
 $if include_header:
-  <div id="widget-head">
+  <div class="lists-widget-head">
     $:render_head(seed_info['type'], page_lists, page_url)
   </div>
 
@@ -283,7 +283,7 @@ $if include_widget:
 
 
 $if include_showcase:
-  <ul class="listLists" id="widget-lists">
+  <ul class="listLists">
     $:render_widget_display(page_lists, 3, user_key)
   </ul>
 
@@ -329,12 +329,29 @@ $if ctx.user and render_once('lists/widget.addList'):
 $if render_once('lists-api-js'):
     <script type="text/javascript">
     window.Lists = {
-        user_lists: $:json_encode(user_lists),
         create: function(user_key, data, success, complete) {
             this.ajax({
                 url: user_key + "/lists.json",
                 data: data,
-                success: success,
+                success: function(resp) {
+                    var list = {
+                        key: resp.key,
+                        name: data.name,
+                        active: true,
+                        owner: {key: user_key},
+                        cover_url: "/images/icons/avatar_book-sm.png",
+
+                        edition_count: 1,
+                        description: websafe(data.description)
+                    };
+                    Lists.user_lists.push(list);
+                    Lists.user_lists_by_key[list.key] = list;
+                    for (var i = 0; i < data.seeds.length; i++) {
+                        var seed = data.seeds[i];
+                        Lists.lists_things_matrix[list.key][seed.key || seed] = true;
+                    }
+                    success && success(resp);
+                },
                 complete: complete
             });
         },
@@ -342,7 +359,11 @@ $if render_once('lists-api-js'):
             this.ajax({
                 url: list_key + "/seeds.json",
                 data: { add: [seed] },
-                success: success,
+                success: function(resp) {
+                    Lists.lists_things_matrix[list_key] = Lists.lists_things_matrix[list_key] || {};
+                    Lists.lists_things_matrix[list_key][seed.key || seed] = true;
+                    success && success(resp);
+                },
                 complete: complete
             });
         },
@@ -350,7 +371,10 @@ $if render_once('lists-api-js'):
             this.ajax({
                 url: list_key + "/seeds.json",
                 data: { remove: [seed] },
-                success: success,
+                success: function(resp) {
+                    delete Lists.lists_things_matrix[list_key][seed.key || seed];
+                    success && success(resp);
+                },
                 complete: complete
             });
         },
@@ -372,34 +396,57 @@ $if render_once('lists-api-js'):
         },
         seed_lists: {}, // seed key -> containing list key
         widgets: [],
+
+        set_user_lists: function(lists) {
+            if (this.user_lists) throw Error("Can only set user lists once!");
+
+            this.user_lists = lists;
+            this.user_lists_by_key = {};
+
+            for (var i = 0; i < this.user_lists.length; i++) {
+                var list = this.user_lists[i];
+                this.user_lists_by_key[list.key] = list;
+            }
+        },
+
+        lists_things_matrix: {},
+        add_to_list_things_matrix: function(to_add) {
+            for (var list_key in to_add) {
+                for (var thing_key in to_add[list_key]) {
+                    this.lists_things_matrix[list_key] = this.lists_things_matrix[list_key] || {};
+                    this.lists_things_matrix[list_key][thing_key] = to_add[list_key][thing_key];
+                }
+            }
+        },
+
+        has_seed: function(list_key, seed) {
+            return list_key in this.lists_things_matrix && this.lists_things_matrix[list_key][seed.key || seed];
+        }
     };
-    Lists.user_lists_by_key = {};
-    for (var i = 0; i < Lists.user_lists.length; i++) {
-        var list = Lists.user_lists[i];
-        Lists.user_lists_by_key[list.key] = list;
-    }
+
+    Lists.set_user_lists($:json_encode(user_lists));
     </script>
 
 $code:
-    def build_contains_dict(user_list, seed_key, work_key):
+    def build_contains_dict(user_list, seeds):
         result = {}
         for list in user_list:
             result[list.key] = {}
-            for key in [seed_key, work_key]:
-                if key and list.has_seed({"key": key}):
-                    result[list.key][key] = True;
+            for seed in seeds:
+                if seed and list.has_seed(seed):
+                    seed_key = seed['key'] if isinstance(seed_info['seed'], dict) else seed
+                    result[list.key][seed_key] = True;
         return result
 
-$ default_seed_key = seed_info['seed'].key if hasattr(seed_info['seed'], 'key') else seed_info['seed']
+$ default_seed_key = seed_info['seed']['key'] if isinstance(seed_info['seed'], dict) else seed_info['seed']
 
 <script type="text/javascript">
-
-
-
 window.q.push(function() {
     var \$container = \$("#$container_id");
 
     Lists.seed_lists[$:json_encode(default_seed_key)] = $:json_encode(page_lists);
+    Lists.add_to_list_things_matrix($:json_encode(build_contains_dict(_user_lists, [seed_info['seed'], work_seed_info and work_seed_info['seed']])));
+
     var default_seed_info = $:json_encode(seed_info);
     default_seed_info.lists = Lists.seed_lists[$:json_encode(default_seed_key)];
     var work_seed_info = null;
@@ -417,7 +464,6 @@ window.q.push(function() {
     var edition_key = '$(edition_key)';
     var username = '$(username or "")';
     var listWidgetIndex = Lists.widgets.length;
-    var list_contained_keys = $:json_encode(build_contains_dict(_user_lists, default_seed_key, work_key));
 
     /** Whether to use the default thing or work (if work v. edition) */
     function get_active_seed_info() {
@@ -427,7 +473,7 @@ window.q.push(function() {
 
     function reload_widget() {
         var seed_info = get_active_seed_info();
-        \$container.find("#widget-head").html(render_head(seed_info.type, seed_info.lists, page_url));
+        \$container.find(".lists-widget-head").html(render_head(seed_info.type, seed_info.lists, page_url));
         \$container.find(".widget-add").html(render_widget_add(
             Lists.user_lists,
             work_key,
@@ -470,22 +516,8 @@ window.q.push(function() {
             seeds: [seed_info.seed]
         };
 
-        Lists.create(user_key, data, function(d) {
+        Lists.create(user_key, data, function() {
             \$.fn.colorbox.close();
-            var list = {
-              key: d.key,
-              name: data.name,
-              active: true,
-              owner: {key: user_key},
-              cover_url: "/images/icons/avatar_book-sm.png",
-
-              edition_count: 1,
-              description: websafe(data.description)
-            };
-            Lists.user_lists[Lists.user_lists.length] = list;
-            Lists.user_lists_by_key[list.key] = list;
-
-            reload_widget();
         }, function(){
             // re-enable form now that the request is finished
             reload_widget();
@@ -501,14 +533,20 @@ window.q.push(function() {
         var seed_info = get_active_seed_info();
         for (var i = 0; i < Lists.user_lists.length; i++) {
             var list = Lists.user_lists[i];
-            if (list_contained_keys[list.key][seed_info.seed.key || seed_info.seed]) {
+            if (Lists.has_seed(list.key, seed_info.seed)) {
                 listsThatContainIt.push(list);
             } else {
                 listsThatDontContainIt.push(list);
             }
         }
         \$container.find(".my-lists").html(render_my_lists(listsThatDontContainIt, 'key'));
-        \$container.find("#widget-lists").html(render_widget_display(listsThatContainIt.concat(seed_info.lists), 3, user_key));
+        var filteredShowcaseLists = seed_info.lists;
+        if (Lists.user_lists.length) {
+            filteredShowcaseLists = filteredShowcaseLists.filter(function(list) {
+                return list.owner.key != Lists.user_lists[0].owner.key;
+            });
+        }
+        \$container.find(".listLists").html(render_widget_display(listsThatContainIt.concat(filteredShowcaseLists), 3, user_key));
         setup_widget_display_events();
     }
 
@@ -524,8 +562,6 @@ window.q.push(function() {
             var seed_info = get_active_seed_info();
             Lists.add(list.key, seed_info.seed, function() {
                 list.active = true;
-                list_contained_keys[list.key] = list_contained_keys[list.key] || {};
-                list_contained_keys[list.key][seed_info.seed.key || seed_info.seed] = true;
             }, function(data){
                 reload_widget();    // reload widget regardless of success or failure
             });
@@ -546,7 +582,7 @@ window.q.push(function() {
 
     function setup_events() {
         \$container.find(".work-checkbox").click(update_my_lists);
-        \$container.find("#create-new-list").click(function() {
+        \$container.find(".create-new-list").click(function() {
            window.activeListWidgetIndex = listWidgetIndex;
            close_popup();
            \$.colorbox({
@@ -563,8 +599,6 @@ window.q.push(function() {
             }
            });
         });
-
-        setup_widget_display_events();
     }
 
     function close_popup() {
@@ -580,8 +614,6 @@ window.q.push(function() {
             var seed_info = get_active_seed_info();
             Lists.remove(list.key, seed_info.seed, function() {
                 list.active = false;
-                delete list_contained_keys[list.key][seed_info.seed.key || seed_info.seed];
-                delete Lists.user_lists_by_key[list.key];
                 remove_page_list(seed_info.lists, list);
                 reload_widget();
                 \$(_this).dialog("close");
@@ -592,7 +624,6 @@ window.q.push(function() {
     Lists.widgets.push({
         create_new_list_submit_handler: create_new_list_submit_handler,
         reload_widget: reload_widget,
-        list_contained_keys: list_contained_keys,
         \$container: \$container,
         default_seed_info: default_seed_info,
         work_seed_info: work_seed_info,
@@ -611,8 +642,6 @@ window.q.push(function() {
     var mylist = \$container.find('.dropdown');
     var listitems = mylist.children('p.list').get();
     var listcreate = \$container.find('.dropdown p.create');
-    var a = a;
-    var b = b;
     listitems.sort(function(a, b) {
        var compA = \$(a).text().toUpperCase();
        var compB = \$(b).text().toUpperCase();
