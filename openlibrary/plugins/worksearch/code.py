@@ -622,7 +622,7 @@ def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False,
         'first_publish_year', 'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
         'ia_collection_s', 'cover_i']
     fl = ','.join(fields)
-    fq = ['author_key:OL31676A', 'type:work']
+    fq = ['author_key:' + akey, 'type:work']
     if has_fulltext:
         fq.append('has_fulltext:true')
     solr_select = solr_select_url + "?fq=%s&q.op=AND&q=%s&start=%d&rows=%d&fl=%s&wt=json" % ('&fq='.join(fq), q, offset, rows, fl)
