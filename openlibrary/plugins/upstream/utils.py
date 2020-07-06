@@ -311,10 +311,7 @@ def get_changes_v2(query, revision=None):
     return [process_change(c) for c in changes]
 
 def get_changes(query, revision=None):
-    if 'history_v2' in web.ctx.features:
-        return get_changes_v2(query, revision=revision)
-    else:
-        return get_changes_v1(query, revision=revision)
+    return get_changes_v2(query, revision=revision)
 
 @public
 def get_history(page):
@@ -735,6 +732,8 @@ def get_donation_include(include):
 def item_image(image_path, default=None):
     if image_path is None:
         return default
+    if image_path.startswith('https:'):
+        return image_path
     return "https:" + image_path
 
 @public
