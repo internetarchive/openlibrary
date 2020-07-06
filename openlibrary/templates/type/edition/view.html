@@ -47,13 +47,13 @@ $code:
 $code:
     def get_description(book):
         if book.publishers and book.publish_date:
-            edition = book.publish_date + ', ' + ', '.join(book.publishers)
+            ed_info = book.publish_date + ', ' + ', '.join(book.publishers)
         elif book.publish_date:
-            edition = book.publish_date
+            ed_info = book.publish_date
         elif book.publishers:
-            edition = ', '.join(book.publishers)
+            ed_info = ', '.join(book.publishers)
         else:
-            edition = 'unknown'
+            ed_info = 'unknown'
 
         title = cond(work, work.title, book.title)
         authors = cond(work, work and work.get_authors(), book.get_authors())
@@ -68,7 +68,7 @@ $code:
         if book.edition_name:
             format += " - " + book.edition_name
 
-        meta = title + author_info + ", " + edition + " edition, " + format
+        meta = title + author_info + ", " + ed_info + " edition, " + format
         return meta
     description = get_description(page)
     putctx("description", description)
@@ -203,11 +203,12 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
       <p class="preview-languages">
         $ seen = set()
-        Previews also available in:
-        $for e in previews:
-          $if e.languages[0].name not in seen:
-            $ seen.add(e.languages[0].name)
-            <a href="$work.key?edition=$(e.ocaid)">$e.languages[0].name</a>
+        $if previews:
+          Previews available in:
+          $for e in previews:
+            $if e.languages[0].name not in seen:
+              $ seen.add(e.languages[0].name)
+              <a href="$work.key?edition=$(e.ocaid)">$e.languages[0].name</a>
       </p>
 
       <a name="editions-list" class="section-anchor"></a>
