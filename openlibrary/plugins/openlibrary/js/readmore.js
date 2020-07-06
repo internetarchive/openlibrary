@@ -1,6 +1,5 @@
 export function initReadMoreButton() {
     var el, p, up, height;
-    var cls; // eslint-disable-line no-unused-vars
 
     $('.read-more-button').on('click',function(){
         el = $(this);
@@ -21,7 +20,7 @@ export function initReadMoreButton() {
     $('.restricted-view').each(function() {
         height = $(this).outerHeight();
         if (height<50) {
-            $(`.${$(this).parent().attr('class')}.read-more`).addClass("hidden");
+            $(`.${$(this).parent().attr('class')}.read-more`).addClass('hidden');
         } else {
             $(this).addClass('restricted-height');
         }
