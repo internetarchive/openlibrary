@@ -151,7 +151,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
                 <form method="GET" class="olform pagesearchbox">
                   <input type="hidden" name="has_fulltext" value="true"/>
-                  <input type="text" placeholder="Search $title Books" name="q" />
+                  <input type="text" placeholder="Search $title Books" name="q" value="$(query_param('q', ''))"/>
                   <input type="submit"/>
                 </form>
 
