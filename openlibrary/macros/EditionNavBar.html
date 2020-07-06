@@ -1,0 +1,15 @@
+$def with (edition_count=1)
+
+<ul class="work-menu sticky">
+  <li class="selected">
+    <a href="#editions-list">
+      $_("View") $(str(edition_count)) $_("Edition%s" % ('s' if edition_count > 1 else ''))
+    </a>
+  </li>
+  <li>
+    <a href="#work-details">$_("Overview")</a>
+  </li>
+  <li>
+    <a href="#edition-details">$_("This Edition")</a>
+  </li>
+</ul>
