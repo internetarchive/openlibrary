@@ -1,6 +1,5 @@
 export function initReadMoreButton() {
     var el, p, up, height;
-    var cls; // eslint-disable-line no-unused-vars
 
     $('.read-more-button').on('click',function(){
         el = $(this);
