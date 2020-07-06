@@ -169,7 +169,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         $if edition.number_of_pages:
           <h4 class="year">&mdash;
             <span class="edition-pages"
-                  itemprop="numberOfPages">$edition.number_of_pages</span> pages
+                  itemprop="numberOfPages">$edition.number_of_pages</span> $_("pages")
           </h4>
       </div>
 
