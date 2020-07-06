@@ -9,10 +9,9 @@ $ stats_by_bookshelf = work and work.get_num_users_by_bookshelf() or {}
       $:('<span class="readers-stats__star">★</span>' * int(rating_stats.get('avg_rating'))) <span itemprop="ratingValue">$(rating_stats['avg_rating'])</span>
   </li>
   <li>
-    <span itemprop="reviewCount">$rating_stats.get('num_ratings', 0)</span> Ratings
+    <span itemprop="reviewCount">$rating_stats.get('num_ratings', 0)</span> $_("Ratings")
   </li>
-  <li class="reading-log-stat">$stats_by_bookshelf.get('want-to-read', 0) Want to read</li>
-  <li class="reading-log-stat">$stats_by_bookshelf.get('currently-reading', 0) Currently reading</li>
-  <li class="reading-log-stat">$stats_by_bookshelf.get('already-read', 0) Have read</li>
+  <li class="reading-log-stat">$stats_by_bookshelf.get('want-to-read', 0) $_("Want to read")</li>
+  <li class="reading-log-stat">$stats_by_bookshelf.get('currently-reading', 0) $_("Currently reading")</li>
+  <li class="reading-log-stat">$stats_by_bookshelf.get('already-read', 0) $_("Have read")</li>
 </ul>
-
