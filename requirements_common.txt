@@ -1,3 +1,4 @@
+Cython==0.29.20
 amightygirl.paapi5-python-sdk==1.0.0
 Babel==2.7.0
 beautifulsoup4==4.6.3
