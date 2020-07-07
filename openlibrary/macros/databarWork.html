@@ -37,42 +37,71 @@ $if isbn_10 and not asin:
 
     <div class="panel">
       <div class="btn-notice read-options" id="read-options">
-        $:macros.LoanStatus(page, allow_expensive_availability_check=editions_page, secondary_action=editions_page, check_sponsorship=editions_page, sponsorship_help=editions_page, check_loan_status=editions_page)
 
-        $if page.get('ocaid') and not page.is_access_restricted() and page.ia_metadata:
-            $:macros.DownloadOptions(page)
+        <div class="illustration edition-cover">
+          $:render_template('covers/book_cover', page)
+          $# Don't display add/change cover link for /books/ia:foo00bar pages
+          $if not page.is_fake_record():
+              $:render_template('covers/change', page, ".edition-cover .bookCover img")
+        </div>
 
+        $ work = (page.works and page.works[0]) or page
+        $ edition = page.works and page
+        $ lists_widget = render_template('lists/widget', edition or work, include_rating=True, include_header=False, include_widget=True, include_showcase=False, user_lists_only=False)
+
+        $:macros.LoanStatus(page, allow_expensive_availability_check=editions_page, secondary_action=editions_page, check_sponsorship=editions_page, sponsorship_help=editions_page, check_loan_status=editions_page, post=lists_widget)
+
+        $if editions_page and page.get('ocaid') and not page.is_access_restricted() and page.ia_metadata:
+          $:macros.DownloadOptions(page)
+
+      </div>
+    </div>
+
+    $ prices = page.key.startswith('/books/')
+
+    $ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
+    $ isbn_13 = page.get_isbn13()
+    $ isbn_10 = page.get_isbn10()
+
+    $ asin = None
+    $if page.get('identifiers'):
+        $if page.identifiers.get('amazon'):
+            $ asin = page.identifiers.amazon[0]
+
+    $if isbn_10 and not asin:
+        $ asin = isbn_10
+    <div class="panel">
+      <div class="btn-notice">
         $:macros.WorldcatLink(isbn=isbn_13, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
 
-        <hr>
         <div class="cta-section">
           <p class="cta-section-title">$_('Buy this book')</p>
           $:macros.AffiliateLinks(page, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
         </div>
-
-        $if ctx.get('share_links'):
-          <hr>
-          $:macros.SocialShare(ctx.get('share_links'), request.home + page.key)
-
       </div>
     </div>
-  </div>
 
-
-$ links = page.get_links()
-$if links:
-  <div id="external-links">
-    <h3 class="header">
-      <span class="icon download"></span>
-      <span class="head">$_('External Links')</span>
-    </h3>
-    <div class="panel">
-      <ul class="booklinks sansserif">
-        $for link in links:
-          <li><a href="$link.url">$link.title</a></li>
-      </ul>
+    <div class="panel list-view">
+      <div class="btn-notice">
+          $if ctx.get('share_links'):
+            $:macros.SocialShare(ctx.get('share_links'), request.home + page.key)
+        </div>
     </div>
-  </div>
-  <div class="clearfix"></div>
 
+    $if edition and edition.sponsorship_data:
+      <div class="sponsorship-card">
+        $if edition.sponsorship_data.donor:
+          $ donor = edition.sponsorship_data.donor
+          $if edition.sponsorship_data.donor_account:
+            $ donor = edition.sponsorship_data.donor_account.render_link()
+          $:_('This book was generously donated by %(donor)s', donor=donor)
+        $else:
+          $_('This book was generously donated anonymously')
+        <hr>
+        $if edition.sponsorship_data.donor_msg:
+          <q>$edition.sponsorship_data.donor_msg</q>
+          <hr>
+        <a href="/sponsorship" class="learn-more">$_("Learn more about Book Sponsorship")</a>
+      </div>
+  </div>
 </div>
