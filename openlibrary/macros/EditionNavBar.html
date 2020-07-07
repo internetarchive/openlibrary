@@ -3,7 +3,7 @@ $def with (edition_count=1)
 <ul class="work-menu sticky">
   <li class="selected">
     <a href="#editions-list">
-      $_("View") $(str(edition_count)) $_("Edition%s" % ('s' if edition_count > 1 else ''))
+      $ungettext('View 1 Edition', 'View %(count)d Editions', edition_count, count=edition_count)
     </a>
   </li>
   <li>
