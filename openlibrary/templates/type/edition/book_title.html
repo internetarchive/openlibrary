@@ -2,8 +2,6 @@ $def with (work, edition)
 
 $ book_title = edition.get('title', '') if edition.title else (work.title if work else '')
 
-$if work.series:
-  <h2><a href="/works/$(work.series.work)">($work.series.name)</a></h2>
 
 <h1 class="work-title" itemprop="name">$book_title</h1>
 

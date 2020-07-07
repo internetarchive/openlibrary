@@ -49,12 +49,12 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
               $_('in') <a title="$(', '.join(doc.languages))">$(len(doc.languages)) $_('languages')</a>
             </span>
           $if doc.get('ia'):
-            &mdash; $(len(doc.get('ia'))) $_('previewable')
+            &mdash; $_('%s previewable' % len(doc.get('ia')))
             $if len(doc.get('ia')) > 1:
               <div class="preview-covers">
                 $for x, i in enumerate(doc.get('ia')[1:10]):
                   <a href="$(book_url)?edition=$(i)">
-                    <img width="30" height="45" src="//archive.org/download/$(i)/page/cover_w60_h60.jpg">
+                    <img width="30" height="45" loading="lazy" src="//archive.org/download/$(i)/page/cover_w60_h60.jpg">
                   </a>
               </div>
       </span>

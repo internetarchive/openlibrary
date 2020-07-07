@@ -3,7 +3,7 @@ $def with(work, tags=[], limit=None)
 $def render_subjects(label, subjects, prefix=""):
   $if subjects:
     <div class="section link-box">
-      <h6>$label</h6>
+      <h6>$_(label)</h6>
       <span>
         $for subject in subjects:
           <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',',''))">$subject</a>$cond(not loop.last,",","")
