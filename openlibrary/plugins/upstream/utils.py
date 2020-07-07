@@ -732,7 +732,7 @@ def get_donation_include(include):
 def item_image(image_path, default=None):
     if image_path is None:
         return default
-    if image_path[0:6] == 'https:':
+    if image_path.startswith('https:'):
         return image_path
     return "https:" + image_path
 
