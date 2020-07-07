@@ -50,12 +50,17 @@ class change_photo(change_cover):
 
 del delegate.modes['change_cover']     # delete change_cover mode added by openlibrary plugin
 
-class merge_work(delegate.page):
-    path = "(/works/OL\d+W)/merge"
-    def GET(self, key):
-        return "This looks like a good place for a merge UI!"
 
-    def POST(self, key):
+class merge_work(delegate.page):
+    path = "/works/merge"
+
+    def GET(self):
+        user = web.ctx.site.get_user()
+        if not user or (not user.is_admin() and not user.is_librarian()):
+            raise web.HTTPError('403 Forbidden')
+        return render_template('merge/works')
+
+    def POST(self):
         pass
 
 @web.memoize

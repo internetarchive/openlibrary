@@ -107,6 +107,25 @@ def render_template(name, *a, **kw):
         name = name.rsplit(".", 1)[0]
     return render[name](*a, **kw)
 
+
+@public
+def render_component(name, attrs=None, json_encode=True):
+    """
+    :param str name: Name of the component (excluding extension)
+    :param dict attrs: attributes to add to the component element
+    """
+    attrs = attrs or {}
+    attrs_str = ''
+    for (key, val) in attrs.items():
+        if json_encode and isinstance(val, dict) or isinstance(val, list):
+            val = simplejson.dumps(val)
+        attrs_str += ' %s="%s"' %(key, val.replace('"', "'"))
+
+    html = ''#'<script src="https://unpkg.com/vue@2.6.10"></script>'
+    html += '<script src="/static/build/components/ol-%s.js"></script>' % name
+    html += '<ol-merge-u-i %s></ol-merge-u-i>' % attrs_str
+    return html
+
 @public
 def get_error(name, *args):
     """Return error with the given name from errors.tmpl template."""
