@@ -1,6 +1,7 @@
 $def with (edition)
 
-<h4 class="publisher">
+$if edition:
+  <h4 class="publisher">
   $if edition.publish_date or edition.publishers or edition.publish_places:
     <!-- TODO: this handcrafted concatenation will be difficult to internationalize -->
     $_('This edition published')
@@ -23,4 +24,4 @@ $def with (edition)
            <a href="/search/subjects?q=$p.replace('&','%26')"
               title="$_('Search for subjects about %(place)s', place=p)"
               >$p</a>$cond(loop.last, "", ", ")<span class="adjust">.</span>
-</h4>
+  </h4>

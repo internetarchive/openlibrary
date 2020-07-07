@@ -1,7 +1,6 @@
-$def with (page, ocaid=None)
+$def with (edition, ocaid=None)
 
-
-$ table_of_contents = page.get_table_of_contents()
+$ table_of_contents = edition.get_table_of_contents()
 $if table_of_contents and len(table_of_contents) > 1:
   <div class="section">
     <h3 class="collapse">$_("Table of Contents")</h3>
