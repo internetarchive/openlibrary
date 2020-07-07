@@ -192,11 +192,11 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
             </div>
         </div>
 
-    <div class="Subjects">
-        <div class="Subjects-content restricted-view">
+    <div class="subjects">
+        <div class="subjects-content restricted-view">
         $:macros.SubjectTags(work, ["Subjects"])
         </div>
-        $:macros.ReadMore("Subjects")
+        $:macros.ReadMore("subjects")
     </div>
 
       $:macros.EditionNavBar(work.edition_count)

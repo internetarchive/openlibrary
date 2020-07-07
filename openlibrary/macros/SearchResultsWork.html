@@ -46,7 +46,7 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
           <a href="$(book_url)?edition=$(ocaid)#editions-list">$ungettext('1 edition', '%(count)d editions', doc.edition_count, count=doc.edition_count)</a>
           $if doc.get('languages'):
             <span class="languages">
-              $_('in') <a title="$(', '.join(doc.languages))">$(len(doc.languages)) $_('languages')</a>
+              $_('in') <a class="hoverlink" title="$(', '.join(doc.languages))">$(len(doc.languages)) $_('languages')</a>
             </span>
           $if doc.get('ia'):
             &mdash; $_('%s previewable' % len(doc.get('ia')))
