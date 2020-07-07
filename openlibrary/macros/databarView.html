@@ -1,10 +1,7 @@
-$def with (page, edition=None)
+$def with (page)
 
 $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
-    $if edition and page.type.key in ["/type/work"]:
-        $ edit_url = edition.url(suffix="/edit")
-    $else:
-        $ edit_url = page.url(suffix="/edit")
+    $ edit_url = page.url(suffix="/edit")
 $else:
     $ edit_url = page.key + "?m=edit"
 

@@ -2,8 +2,8 @@ $def with (page, include_rating=True, include_header=True, include_widget=True, 
 
 $ edition = page if page.key.startswith("/books/") else None
 $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
-$ work_key = work and work.key
-$ edition_key = edition and edition.key
+$ work_key = work.key if work else None
+$ edition_key = edition.key if edition else None
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ users_work_read_status = read_status or work.get_users_read_status(username) if work and username else None
 $ users_work_rating = rating or work.get_users_rating(username) if work and username else None
@@ -113,7 +113,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
             <div class="dropper on">
           $if work_key:
             <div class="log-work">
-              <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
+              <form method="POST" action="$(work_key)/bookshelves.json">
                 $if users_work_read_status == 3:
                     $ message = _("Already Read")
                 $elif users_work_read_status == 2:
@@ -138,7 +138,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                   </button>
 
                 $if edition_key:
-                  <input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>
+                  <input type="hidden" name="edition_id" value="$(edition_key)"/>
               </form>
               $if users_work_read_status:
                 <a href="javascript:;" class="dropclick dropclick-activated">
@@ -152,17 +152,17 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
             <div class="dropdown">
               <div class="read-statuses">
                 $if users_work_read_status == 2 or users_work_read_status == 3:
-                  <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                  <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
                     <input type="hidden" name="action" value="add"/>
                     <input type="hidden" name="redir" value="true"/>
                     <input type="hidden" name="bookshelf_id" value="1"/>
                     $if edition_key:
-                      <input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>
+                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
                     <button class="nostyle-btn" type="submit">$_('Want to Read')</button>
                   </form>
 
                 $if users_work_read_status != 2:
-                  <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                  <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
                     <input type="hidden" name="action" value="add"/>
                     <input type="hidden" name="redir" value="true"/>
                     <input type="hidden" name="bookshelf_id" value="2"/>
@@ -172,12 +172,12 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                   </form>
 
                 $if users_work_read_status != 3:
-                  <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                  <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
                     <input type="hidden" name="action" value="add"/>
                     <input type="hidden" name="redir" value="true"/>
                     <input type="hidden" name="bookshelf_id" value="3"/>
                     $if edition_key:
-                      <input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>
+                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
                     <button class="nostyle-btn" type="submit">$_('Already Read')</button>
                   </form>
               </div>
@@ -256,6 +256,8 @@ $if include_header:
   </div>
 
 $if include_widget:
+  $if include_rating:
+    $:macros.StarRatings(work_key, edition_key=edition_key, rating=users_work_rating)
   $if ctx.user or not work_key:
     <div class="widget-add $:(not work_key and 'old-style-lists')">
       $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url(), readinglog_only, False)
@@ -278,8 +280,6 @@ $if include_widget:
             </div>
         </div>
     </div>
-  $if include_rating:
-    $:macros.StarRatings(work, edition)
 
 
 $if include_showcase:

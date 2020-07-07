@@ -98,11 +98,6 @@ jQuery(function () {
         import('./realtime_account_validation.js')
             .then(module => module.initRealTimeValidation());
     }
-    // conditionally load readmore button based on class in the page
-    if (document.getElementsByClassName('read-more-button').length) {
-        import(/* webpackChunkName: "readmore" */ './readmore.js')
-            .then(module => module.initReadMoreButton());
-    }
     // Enable any carousels in the page
     if ($carouselElements.length) {
         import(/* webpackChunkName: "carousel" */ './carousel')

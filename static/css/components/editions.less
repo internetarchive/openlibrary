@@ -7,22 +7,11 @@
 /* stylelint-disable selector-max-specificity */
 table#editions,
 .editions-table {
-  width: 100%;
-  margin-top: 15px;
-  border-collapse: collapse;
   clear: both;
   font-family: @lucida_sans_serif-1;
 
   .cta-button-group {
-    min-width: 180px;
-  }
-
-  thead {
-    border: 1px solid @light-grey;
-
-    tr {
-      background: linear-gradient(0deg, @lightest-grey, transparent);
-    }
+    width: 180px;
   }
 
   th {
@@ -31,15 +20,18 @@ table#editions,
     font-weight: 600;
     text-transform: uppercase;
     line-height: normal;
-    text-align: left;
-    padding: 10px;
+    text-align: center;
+    background-color: @lightest-grey;
+    border-bottom: 1px solid @mid-grey;
+    border-left: 5px solid @white;
+    border-right: 5px solid @white;
+    padding: 6px 0;
     outline: none;
     cursor: pointer;
   }
 
   td.book {
     vertical-align: top;
-    display: inline-flex;
   }
 
   div.cover {
@@ -80,16 +72,12 @@ table#editions,
   td.icon {
     text-align: left;
     vertical-align: top;
-    padding: 15px;
+    padding: 10px 0 10px 10px;
+    width: 143px;
 
     ul {
       margin-bottom: 0;
     }
-  }
-
-  .highlight {
-    box-shadow: inset 0px 0px 0px 2px @beige;
-    background: mix(@beige, @white, 75%);
   }
 }
 
@@ -138,11 +126,10 @@ table#editions,
     }
   }
 }
-
 @media all and ( min-width: @width-breakpoint-desktop ) {
   table#editions {
     float: left;
-    width: 100%;
+    width: 918px;
 
     div.title {
       float: left;
@@ -156,10 +143,8 @@ table#editions,
   }
 }
 
-
 @media only screen and (max-width: @width-breakpoint-tablet) {
   table#editions {
-    width: 100%;
     thead {
       display: none;
     }
@@ -216,16 +201,6 @@ table#editions,
     .cta-button-group {
       width: unset;
     }
-  }
-}
 
-tbody {
-  font-size: .9em;
-  tr {
-    background: mix(@beige, @white, 30%);
   }
-}
-
-.edition-adder {
-  text-align: right;
 }

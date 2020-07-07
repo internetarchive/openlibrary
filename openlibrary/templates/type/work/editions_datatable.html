@@ -1,39 +1,39 @@
-$def with (work, editions=None, edition=None)
+$def with (page)
+<div class="head">
+    <h2>
+    $ungettext("1 edition", "%(count)s editions", page.edition_count, count=page.edition_count)
+    $if page.first_publish_year:
+        <span class="count">$_("First published in %(year)s", year=page.first_publish_year)</span>
+    </h2>
+    <div class="small sansserif brown">
+      <a href="/books/add?work=$page.key" title="$_('Add another edition of %(work)s', work=page.title)">$_("Add another")</a>?
+    </div>
+</div>
 
 $ book_keys = []
-
 
 <table id="editions" class="editions-table editions-table--progressively-enhanced">
     <thead>
     <tr>
         <th class="title" title=""><a href="javascript:;">$_('Edition')<span></span></a></th>
-        <th class="read" title=""><a href="javascript:;">$_('Availability')<span></span></a></th>
+        <th class="read" title=""><a href="javascript:;">$_('Read')<span></span></a></th>
+        <th class="locate" title=""><a href="javascript:;">$_('Locate')<span></span></a></th>
+        <th class="buy" title=""><a href="javascript:;">$('Buy')<span></span></a></th>
     </tr>
     </thead>
     <tbody>
         $ edition_list_start = time()
-        $ editions = editions or work.get_sorted_editions()
+        $ editions = page.get_sorted_editions()
         $ index_padding = len(str(len(editions)))
         $for book in editions:
             $ book_keys.append(book['key'].replace('/books/', ''))
-            $ edition_sort_key = str(loop.index0+1).zfill(index_padding)
-            $if book.key == edition.key:
-              <tr class="highlight">
-                $# This enables us to always render a select edition first in the table (default)
-                $:render_template("books/edition-sort", book, edition_sort_key, render_first=True)
-              </tr>
-            $else:
-              <tr>
-                $:render_template("books/edition-sort", book, edition_sort_key)
-              </tr>
+            $ sort_key = str(loop.index0).zfill(index_padding)
+            <tr>$:render_template("books/edition-sort", book, sort_key)</tr>
         $ edition_list_secs = time() - edition_list_start
     </tbody>
 </table>
-<p class="small sansserif edition-adder">
-  <a href="/books/add?work=$work.key" title="$_('Add another edition of %(work)s', work=work.title)">$_("Add another edition")</a>?
-</p>
 
 <!-- Admin only text doesn't need to be translated -->
-$if ctx.user and ctx.user.is_admin() and query_param('debug'):
+$if ctx.user and ctx.user.is_admin():
     <div class="clearfix"></div>
     <div class="small sansserif"><span class="adminOnly">Getting list of editions took $("%.2f" % edition_list_secs) seconds</span></div>
