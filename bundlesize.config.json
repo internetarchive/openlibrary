@@ -17,6 +17,10 @@
       "maxSize": "12.2KB"
     },
     {
+      "path": "static/build/readmore.js",
+      "maxSize": "2KB"
+    },
+    {
       "path": "static/build/all.js",
       "maxSize": "136KB"
     },

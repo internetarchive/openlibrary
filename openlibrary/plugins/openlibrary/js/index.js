@@ -100,7 +100,7 @@ jQuery(function () {
     }
     // conditionally load readmore button based on class in the page
     if (document.getElementsByClassName('read-more-button').length) {
-        import('./readmore.js')
+        import(/* webpackChunkName: "readmore" */'./readmore.js')
             .then(module => module.initReadMoreButton());
     }
     // Enable any carousels in the page
