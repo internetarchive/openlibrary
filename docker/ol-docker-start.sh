@@ -6,7 +6,7 @@
 CONFIG=conf/openlibrary.yml
 COVER_CONFIG=conf/coverstore.yml
 
-reindex-solr() {
+reindex_solr() {
   server=$1
   config=$2
   for thing in books authors; do
@@ -28,8 +28,8 @@ su postgres -c "/etc/init.d/postgresql start"
 su openlibrary -c "scripts/infobase-server conf/infobase.yml 7000" &
 
 # wait unit postgres is ready, then reindex solr
-export -f reindex-solr
-su openlibrary -c "until pg_isready; do sleep 5; done && reindex-solr localhost $CONFIG" &
+export -f reindex_solr
+su openlibrary -c "until pg_isready; do sleep 5; done && reindex_solr localhost $CONFIG" &
 
 # solr updater
 su solrupdater -c "python scripts/new-solr-updater.py \
