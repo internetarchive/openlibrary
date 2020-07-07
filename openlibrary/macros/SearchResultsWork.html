@@ -51,7 +51,7 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
               $_('in') <a class="hoverlink" title="$(', '.join(doc.languages))">$(len(doc.languages)) $_('languages')</a>
             </span>
           $if doc.get('ia'):
-            &mdash; $_('%s previewable', len(doc.get('ia')))
+            &mdash; $_('%s previewable' % len(doc.get('ia')))
             $if len(doc.get('ia')) > 1:
               <div class="preview-covers">
                 $for x, i in enumerate(doc.get('ia')[1:10]):
