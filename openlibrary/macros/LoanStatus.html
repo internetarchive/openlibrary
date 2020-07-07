@@ -21,7 +21,7 @@ $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and
 $ availability_st = availability.get('status')
 
 $ lending_st = {}
-$if allow_expensive_availability_check and (availability.get('is_browseable', False) or availability_st == 'borrow_unavailable'):
+$if allow_expensive_availability_check and ocaid and (availability.get('is_browseable', False) or availability_st == 'borrow_unavailable'):
   $ lending_st = get_cached_groundtruth_availability(ocaid)
 
 $ is_lendable = lending_st.get('is_lendable', False) or availability.get('is_lendable', False)
@@ -30,7 +30,7 @@ $# ^ This will be resolved when Jude adds 'access-restricted-item' check
 $ is_printdisabled = lending_st.get('is_printdisabled', False) or availability.get('is_printdisabled', False)
 $ is_borrowable = lending_st.get('available_to_borrow') or lending_st.get('available_to_browse') or availability_st == 'borrow_available' or my_turn_to_borrow
 $ is_restricted = availability.get('is_restricted', False)
-$ is_readable = ocaid and availability.get('is_readable', False)
+$ is_readable = ocaid and (lending_st.get('is_readable') or  availability.get('is_readable', False))
 $ borrow_link = '/borrow/ia/%s' % ocaid
 
 $ user_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_loan_for(ocaid)
