@@ -67,7 +67,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
     </td>
 
     $ availability_class = ('aaaa' if render_first
-    $ else 'zzzz' if (not availability or availability.get('status') == 'error') 
+    $ else 'zzzz' if (not availability or availability.get('status') == 'error')
     $ else 'bbbb' if (availability.get('status') == 'open')
     $ else 'cccc' if (availability.get('status') == 'borrow_available')
     $ else 'dddd' if (availability.get('status') == 'borrow_unavailable')

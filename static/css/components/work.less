@@ -13,11 +13,11 @@
   padding-right: 1.5em;
 
   .illustration {
-    transform: perspective(800px) rotateX(10deg) 0.8s;
+    transform: perspective(800px) rotateX(10deg);
+    transition: transform 0.8s, opacity 0.8s
   }
   .illustration:hover {
     transform: perspective(465px) rotateX(0deg) rotateY(-10deg);
-    filter: alpha(opacity=80);
     opacity: 0.8;
   }
 }
@@ -227,7 +227,7 @@ div.editionTools {
   padding: 7px 0 0 0;
 }
 
-        
+
 .edition-omniline {
   display: flex;
   border-top: 1px solid @lighter-grey;
