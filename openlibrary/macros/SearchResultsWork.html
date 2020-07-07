@@ -1,11 +1,16 @@
 $def with (doc, decorations=None, cta=True, availability=None, extra=None)
 
+$ ocaid = doc.get('availability', {}).get('identifier')
 $ is_work = doc.get('type', {}).get('key') == '/type/work'
 $ book_url = doc.url() if is_work else doc.key
 $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book">
   <span class="bookcover">
-    $if doc.get('cover_i') or cover_ids:
+    $if ocaid:
+        $# We should use "/b/ia/%s-M.jpg" and make it fetch covers if they're missing
+        $# presently, it frequently misses.
+        $ cover = "//archive.org/download/%s/page/cover_w60_h60.jpg" % ocaid
+    $elif doc.get('cover_i') or cover_ids:
         $ cover =  get_coverstore_url() + "/b/id/%s-M.jpg" % (doc.cover_i or cover_ids[0])
     $elif doc.get('cover_edition_key'):
         $ cover = get_coverstore_url() + "/b/olid/%s-M.jpg" % doc.cover_edition_key
@@ -13,14 +18,13 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
         $ cover = "//archive.org/download/%s/page/cover_w60_h60.jpg" % doc.get('ocaid')
     $else:
         $ cover = "/images/icons/avatar_book-sm.png"
-    <a href="$book_url"><img itemprop="image" src="$cover" alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
+    <a href="$(book_url)?edition=$(ocaid)"><img itemprop="image" src="$cover" alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
   </span>
-
 
   <span class="details">
       <span class="resultTitle">
          <h3 class="booktitle">
-           <a itemprop="name" href="$book_url"
+           <a itemprop="name" href="$(book_url)?edition=$(ocaid)"
               class="results">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a>
            $if doc.get('publish_date'):
              ($(doc['publish_date']))
@@ -34,12 +38,26 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
             <a itemprop="author" href="$(a.get('url') or a.get('key') or a.author.get('url') or a.author.key)" class="results">$(a.name or a.author.name)</a>$(',' if not loop.last else '')
       </span>
       <span class="resultPublisher">
-        $if doc.edition_count:
-          $ungettext('1 edition', '%(count)d editions', doc.edition_count, count=doc.edition_count)
-          $if doc.first_publish_year:
-              $_('- first published in %(year)s', year=doc.first_publish_year)
+        $if doc.get('first_publish_year'):
+          <div>
+            $_('First published in %(year)s', year=doc.first_publish_year)
+          </div>
+        $if doc.get('edition_count'):
+          <a href="$(book_url)?edition=$(ocaid)#editions-list">$ungettext('1 edition', '%(count)d editions', doc.edition_count, count=doc.edition_count)</a>
+          $if doc.get('languages'):
+            <span class="languages">
+              $_('in') <a class="hoverlink" title="$(', '.join(doc.languages))">$(len(doc.languages)) $_('languages')</a>
+            </span>
+          $if doc.get('ia'):
+            &mdash; $_('%s previewable' % len(doc.get('ia')))
+            $if len(doc.get('ia')) > 1:
+              <div class="preview-covers">
+                $for x, i in enumerate(doc.get('ia')[1:10]):
+                  <a href="$(book_url)?edition=$(i)">
+                    <img width="30" height="45" loading="lazy" src="//archive.org/download/$(i)/page/cover_w60_h60.jpg">
+                  </a>
+              </div>
       </span>
-
       $if extra:
         <div class="serp-extras">
           $:extra

@@ -1,0 +1,22 @@
+$def with(work, tags=[])
+
+$def render_subjects(label, subjects, prefix=""):
+  $if subjects:
+    <div class="section link-box">
+      <h6>$_(label)</h6>
+      <span>
+        $for subject in subjects:
+          <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',',''))">$subject</a>$cond(not loop.last,",","")
+      </span>
+    </div>
+
+$if work:
+  $for tag in tags:
+    $if tag=="Subjects":
+      $:render_subjects("Subjects", work.get_subjects())
+    $elif tag=="People":
+      $:render_subjects("People", work.subject_people, prefix="person:")
+    $elif tag=="Places":
+      $:render_subjects("Places", work.subject_places, prefix="place:")
+    $elif tag=="Times":
+      $:render_subjects("Times", work.subject_times, prefix="time:")
