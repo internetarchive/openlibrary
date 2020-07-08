@@ -217,7 +217,7 @@ $ )
 
             $for work in works:
                 $ ocaid = work.ia[0] if work.ia else None
-                $ availability = work.get('availability', {}).get('status')
+                $ availability = (work.get('availability') or {}).get('status')
                 $# if we're explicitly showing *everything*...
                 $# or if we're showing only things with ocaids which are available...
                 $if 'has_fulltext' not in param or (ocaid and availability and availability not in ['error', 'private']):

@@ -11,7 +11,7 @@ $# * check_loan_status whether to check the user's loan status to determine read
 
 $ loanstatus_start_time = time()
 
-$ availability = doc.availability if hasattr(doc, 'availability') else {}
+$ availability = (doc.availability or {}) if hasattr(doc, 'availability') else {}
 $ ocaid = doc.get('ocaid') or availability.get('identifier')
 $ work_key = work_key or (doc.get('works') and doc.works[0].key)
 
