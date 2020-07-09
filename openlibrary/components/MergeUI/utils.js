@@ -106,7 +106,10 @@ export function make_redirect(master_key, dupe) {
 }
 
 export function get_editions(work_key) {
-    return fetch(`${work_key}/editions.json`).then(r => r.json());
+    const endpoint = `${work_key}/editions.json`;
+    // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
+    const url = location.host == 'dev.openlibrary.org' ? `https://openlibrary.org${endpoint}` : endpoint;
+    return fetch(url).then(r => r.json());
 }
 
 export function get_lists(key, limit=10) {
