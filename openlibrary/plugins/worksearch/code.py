@@ -882,7 +882,8 @@ def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*'):
 
     # backward compatibility
     response['num_found'] = response['numFound']
-    response['docs'] = add_availability(response['docs'])
+    if fields == '*' or 'availability' in fields:
+        response['docs'] = add_availability(response['docs'])
     return response
 
 
