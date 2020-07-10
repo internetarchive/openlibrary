@@ -90,7 +90,7 @@ describe('SearchBar', () => {
 
         test('Only enters collapsible mode if not already there', () => {
             sb.inCollapsibleMode = true;
-            const spy = sinon.spy(sb, 'enableCollapisbleMode');
+            const spy = sinon.spy(sb, 'enableCollapsibleMode');
             sb.toggleCollapsibleModeForSmallScreens(100);
             expect(spy.callCount).toBe(0);
         });

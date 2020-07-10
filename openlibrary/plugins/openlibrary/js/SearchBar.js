@@ -44,12 +44,12 @@ const RENDER_AUTOCOMPLETE_RESULT = {
  */
 export class SearchBar {
     /**
-     * @param {HTMLElement|JQuery}
+     * @param {JQuery} $component
      * @param {Object?} urlParams
      */
-    constructor(component, urlParams={}) {
+    constructor($component, urlParams={}) {
         /** UI Elements */
-        this.$component = $(component);
+        this.$component = $component;
         this.$form = this.$component.find('form.search-bar-input');
         this.$input = this.$form.find('input[type="text"]');
         this.$results = this.$component.find('ul.search-results');
@@ -135,7 +135,7 @@ export class SearchBar {
     toggleCollapsibleModeForSmallScreens(windowWidth) {
         if (windowWidth < 568) {
             if (!this.inCollapsibleMode) {
-                this.enableCollapisbleMode();
+                this.enableCollapsibleMode();
                 this.collapse();
             }
             this.clearAutocompletionResults();
@@ -167,7 +167,7 @@ export class SearchBar {
         this.collapsed = false;
     }
 
-    enableCollapisbleMode() {
+    enableCollapsibleMode() {
         this.$form.addClass('in-collapsible-mode');
         this.inCollapsibleMode = true;
     }
@@ -230,7 +230,12 @@ export class SearchBar {
         }, 300, false));
     }
 
-    /** Cleans up and performs the query, then update the autocomplete results */
+    /**
+     * @async
+     * Awkwardly fetches the the results as well as renders them :/
+     * Cleans up and performs the query, then update the autocomplete results
+     * @returns {JQuery.jqXHR}
+     **/
     renderAutocompletionResults() {
         let q = this.$input.val();
         if (q === '' || !(this.facetEndpoint in RENDER_AUTOCOMPLETE_RESULT)) {
@@ -241,7 +246,7 @@ export class SearchBar {
         }
 
         this.$results.css('opacity', 0.5);
-        $.getJSON(SearchBar.composeSearchUrl(this.facetEndpoint, q, true, 10), data => {
+        return $.getJSON(SearchBar.composeSearchUrl(this.facetEndpoint, q, true, 10), data => {
             const renderer = RENDER_AUTOCOMPLETE_RESULT[this.facetEndpoint];
             this.$results.css('opacity', 1);
             this.clearAutocompletionResults();
