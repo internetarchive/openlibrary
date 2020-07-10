@@ -311,6 +311,8 @@ def get_availability(key, ids):
         # endpoint
         v1_resp['is_browseable'] = (v1_resp['is_lendable'] and
                                     v1_resp['status'] == 'error')
+        # For debugging
+        v1_resp['__src__'] = 'core.models.lending.get_availability'
         return v1_resp
 
     url = '%s?%s=%s' % (config_ia_availability_api_v2_url, key, ','.join(ids))
