@@ -326,7 +326,8 @@ class Edition(Thing):
             'is_lendable': is_lendable,
             'is_readable': is_readable,
             'is_browseable': is_browseable,
-            'data_src': 'core.models.Edition.availability'
+            # For debugging
+            '__src__': 'core.models.Edition.availability'
         }
 
     @property

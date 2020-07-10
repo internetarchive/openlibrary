@@ -120,7 +120,7 @@ $elif ('eligibility' in doc) or (check_sponsorship and not ocaid and not is_lend
   $else:
     <a href="$work_key" class="cta-btn cta-btn--missing" data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
 
-$elif not ocaid or not (is_readable or is_lendable):
+$else:
   <div class="cta-button-group">
     <a href="$work_key" class="cta-btn cta-btn--missing"
        data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
