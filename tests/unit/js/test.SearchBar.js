@@ -142,11 +142,11 @@ describe('SearchBar', () => {
 
         test('Advanced facet triggers redirect', () => {
             const sb = new SearchBar($(DUMMY_COMPONENT_HTML));
-            const locationStub = sandbox.stub(window.location, 'assign');
+            const navigateToStub = sandbox.stub(sb, 'navigateTo');
             const event = Object.assign(new $.Event(), { target: { value: 'advanced' }});
             sb.handleFacetSelectChange(event);
-            expect(locationStub.callCount).toBe(1);
-            expect(locationStub.args[0]).toEqual(['/advancedsearch']);
+            expect(navigateToStub.callCount).toBe(1);
+            expect(navigateToStub.args[0]).toEqual(['/advancedsearch']);
         });
 
         for (let facet of ['title', 'author', 'all']) {

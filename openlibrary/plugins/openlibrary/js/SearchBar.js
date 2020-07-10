@@ -285,10 +285,18 @@ export class SearchBar {
         // We don't want to persist advanced becaues it behaves like a button
         if (newFacet == 'advanced') {
             event.preventDefault();
-            window.location.assign('/advancedsearch');
+            this.navigateTo('/advancedsearch');
         } else {
             this.facet.write(newFacet);
         }
+    }
+
+    /**
+     * Just so we can stub/test this
+     * @param {String} path
+     */
+    navigateTo(path) {
+        window.location.assign(path);
     }
 
     /**
