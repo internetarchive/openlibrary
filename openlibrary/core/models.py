@@ -311,7 +311,7 @@ class Edition(Thing):
         is_restricted = self.ia_metadata.get('access-restricted-item') == 'true'
         is_printdisabled = 'printdisabled' in collections
         is_lendable = 'inlibrary' in collections
-        is_readable = not is_printdisabled and not is_restricted
+        is_readable = bool(collections) and not is_printdisabled and not is_restricted
         # TODO: Make less brittle; maybe add simplelists/copy counts to IA availability
         # endpoint
         is_browseable = is_lendable and status == 'error'
@@ -326,6 +326,7 @@ class Edition(Thing):
             'is_lendable': is_lendable,
             'is_readable': is_readable,
             'is_browseable': is_browseable,
+            'data_src': 'core.models.Edition.availability'
         }
 
     @property
