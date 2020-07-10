@@ -26,10 +26,7 @@ export default function init() {
 
     if ($('.siteSearch.olform').length) {
         // Only applies to search results page (as of writing)
-        new SearchPage($('.siteSearch.olform'), new SearchModeSelector($('.search-mode'), false));
-    } else {
-        // Only applies to authors page (as of writing)
-        new SearchModeSelector(true);
+        new SearchPage($('.siteSearch.olform'), new SearchModeSelector($('.search-mode')));
     }
 
     $(window).scroll(function(){

@@ -130,16 +130,10 @@ export const mode = new PersistentValue('mode', {
 export class SearchModeSelector {
     /**
      * @param {JQuery} radioButtons
-     * @param {Boolean} [autoreload] whether to reload the browser page when the buttons change
      */
-    constructor(radioButtons, autoreload=false) {
+    constructor(radioButtons) {
         this.$radioButtons = radioButtons;
-        this.change(newMode => {
-            mode.write(newMode);
-            if (autoreload) {
-                location.reload();
-            }
-        });
+        this.change(newMode => mode.write(newMode));
     }
 
     /**
