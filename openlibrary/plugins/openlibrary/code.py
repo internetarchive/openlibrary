@@ -76,11 +76,6 @@ class hooks(client.hook):
         if account and account.is_blocked():
             raise ValidationException('Your account has been suspended. You are not allowed to make any edits.')
 
-        if page.type.key == '/type/library':
-            bad = list(page.find_bad_ip_ranges(page.ip_ranges or ''))
-            if bad:
-                raise ValidationException('Bad IPs: ' + '; '.join(bad))
-
         if page.key.startswith('/a/') or page.key.startswith('/authors/'):
             if page.type.key == '/type/author':
                 return
