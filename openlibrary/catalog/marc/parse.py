@@ -418,16 +418,11 @@ def read_description(rec):
 def read_url(rec):
     found = []
     for f in rec.get_fields('856'):
-        contents = f.get_contents(['3', 'u'])
-        if not contents.get('u', []):
+        contents = f.get_contents(['u', '3', 'z'])
+        if not contents.get('u'):
             continue
-        if '3' not in contents:
-            found += [{ 'url': u.strip(' ') } for u in contents['u']]
-            continue
-        assert len(contents['3']) == 1
-        title = contents['3'][0].strip(' ')
-        found += [{ 'url': u.strip(' '), 'title': title  } for u in contents['u']]
-
+        title = (contents.get('3') or contents.get('z', ['External']))[0].strip()
+        found += [{'url':  u.strip(), 'title': title} for u in contents['u']]
     return found
 
 def read_other_titles(rec):
