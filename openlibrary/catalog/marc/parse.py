@@ -421,7 +421,7 @@ def read_url(rec):
         contents = f.get_contents(['u', '3', 'z'])
         if not contents.get('u'):
             continue
-        title = (contents.get('3') or contents.get('z', ['External']))[0].strip()
+        title = (contents.get('3') or contents.get('z', ['External source']))[0].strip()
         found += [{'url':  u.strip(), 'title': title} for u in contents['u']]
     return found
 
