@@ -3,7 +3,7 @@ services:
   web:
     image: oldev:latest
     environment:
-      - PYTHON3
+#      - PYTHON=3.8.3
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev

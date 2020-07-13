@@ -3,13 +3,13 @@ dist: focal
 language: python
 jobs:
   include:
-    - name: “Python 2.7 on xenial”
-      python: "2.7"
+    - name: “Python 2.7.6 on xenial”
+      python: "2.7.6"
       dist: xenial
-    - name: “Python 2.7 on focal”
-      python: "2.7"
-    - name: “Python 3.8 make lint and selected pytests”
-      python: "3.8"
+    - name: “Python 2.7.6 on focal”
+      python: "2.7.6"
+    - name: “Python 3.8.3 make lint and selected pytests”
+      python: "3.8.3"
       before_script: true  # override npm install below
       script:
         # On pull requests, run all flake8 tests on modified code
@@ -18,10 +18,10 @@ jobs:
             make lint-diff;
           fi
         - source scripts/test-py3.sh
-    - name: “Python 3.8 on focal”
-      python: "3.8"
+    - name: “Python 3.8.3 on focal”
+      python: "3.8.3"
   allow_failures:
-    - name: “Python 3.8 on focal”
+    - name: “Python 3.8.3 on focal”
 # Ubuntu may have an old version of node, so make sure Node 12 is installed
 # and used instead. Should match Dockerfile.
 before_install:
@@ -31,7 +31,7 @@ install:
   - pip install -r requirements_test.txt
   # if Travis is running Python 3, then
   #   refresh the git submodule ./vendor/infogami
-  - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then
+  - if [ "$TRAVIS_PYTHON_VERSION" == "3.8.3" ]; then
       pushd vendor/infogami && git pull origin master && popd;
     fi
   - make lint  # TODO: Move this to script: section after #2951 lands

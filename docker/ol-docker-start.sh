@@ -6,6 +6,18 @@
 CONFIG=conf/openlibrary.yml
 COVER_CONFIG=conf/coverstore.yml
 
+python global "${PYTHON:-2.7.6}"
+
+if [[ "$PYTHON" = python3* || -n $INFOGAMI ]]; then
+  pushd vendor/infogami
+  # Use Python 3 compatible infogami
+  git pull origin "${INFOGAMI:-master}"
+  popd
+else
+  # Use production infogami
+  make git
+fi
+
 reindex-solr() {
   server=$1
   config=$2
@@ -14,16 +26,6 @@ reindex-solr() {
       | PYTHONPATH=$PWD xargs python openlibrary/solr/update_work.py -s $server -c $config --data-provider=legacy
   done
 }
-
-if [ -z "$PYTHON3" ]; then
-  # Use production infogami
-  make git
-else
-  pushd vendor/infogami
-  # Use Python 3 compatible infogami
-  git pull origin master
-  popd
-fi
 
 echo "Starting ol services."
 
