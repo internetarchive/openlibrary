@@ -4,6 +4,7 @@ services:
     image: oldev:latest
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
+      - INFOGAMI=${INFOGAMI:-}
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
