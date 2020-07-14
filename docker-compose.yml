@@ -2,8 +2,8 @@ version: "3"
 services:
   web:
     image: oldev:latest
-#    environment:
-#      - PYTHON=3.8.3
+    environment:
+      - PYENV_VERSION=${PYENV_VERSION:-}
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
