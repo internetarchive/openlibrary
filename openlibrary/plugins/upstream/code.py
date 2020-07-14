@@ -3,7 +3,7 @@
 import os.path
 import web
 import random
-import md5
+import hashlib
 import datetime
 
 from infogami import config
@@ -63,7 +63,7 @@ class merge_work(delegate.page):
 def vendor_js():
     pardir = os.path.pardir
     path = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, 'static', 'upstream', 'js', 'vendor.js'))
-    digest = md5.md5(open(path).read()).hexdigest()
+    digest = hashlib.md5(open(path).read()).hexdigest()
     return '/static/upstream/js/vendor.js?v=' + digest
 
 @web.memoize
@@ -73,7 +73,7 @@ def static_url(path):
     """
     pardir = os.path.pardir
     fullpath = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, "static", path))
-    digest = md5.md5(open(fullpath).read()).hexdigest()
+    digest = hashlib.md5(open(fullpath).read()).hexdigest()
     return "/static/%s?v=%s" % (path, digest)
 
 class DynamicDocument:
@@ -104,7 +104,7 @@ class DynamicDocument:
 
     def md5(self):
         """Returns md5 checksum of the combined documents"""
-        return md5.md5(self.get_text()).hexdigest()
+        return hashlib.md5(self.get_text()).hexdigest()
 
 def create_dynamic_document(url, prefix):
     """Creates a handler for `url` for servering combined js/css for `prefix/*` pages"""
