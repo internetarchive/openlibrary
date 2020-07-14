@@ -730,7 +730,7 @@ def setup():
     register_admin_page('/admin/spamwords', spamwords, label="")
     register_admin_page('/admin/sponsorship', sponsorship_stats, label="Sponsorship")
 
-    import mem
+    from openlibrary.plugins.admin import mem
 
     for p in [mem._memory, mem._memory_type, mem._memory_id]:
         register_admin_page('/admin' + p.path, p)
