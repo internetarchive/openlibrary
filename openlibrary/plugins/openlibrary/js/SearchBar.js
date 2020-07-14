@@ -13,6 +13,13 @@ const FACET_TO_ENDPOINT = {
     text: '/search/inside',
 };
 const DEFAULT_FACET = 'all';
+const DEFAULT_JSON_FIELDS = [
+    'key',
+    'cover_i',
+    'title',
+    'author_name',
+    'name',
+];
 /** Functions that render autocomplete results */
 const RENDER_AUTOCOMPLETE_RESULT = {
     ['/search'](work) {
@@ -184,16 +191,15 @@ export class SearchBar {
      * @param {String} q query that's ready to get passed to the search endpoint
      * @param {Boolean} [json] whether to hit the JSON endpoint
      * @param {Number} [limit] how many items to get
+     * @param {String[]} [fields] the Solr fields to fetch (if using JSON)
      */
-    static composeSearchUrl(facetEndpoint, q, json, limit) {
+    static composeSearchUrl(facetEndpoint, q, json=false, limit=null, fields=null) {
         let url = facetEndpoint;
-        if (json) {
-            url += '.json';
-        }
+        if (json) url += '.json';
+
         url += `?q=${q}`;
-        if (limit) {
-            url += `&limit=${limit}`;
-        }
+        if (limit) url += `&limit=${limit}`;
+        if (fields) url += `&fields=${fields.map(encodeURIComponent).join(',')}`;
         url += `&mode=${SearchUtils.mode.read()}`;
         return url;
     }
@@ -246,7 +252,7 @@ export class SearchBar {
         }
 
         this.$results.css('opacity', 0.5);
-        return $.getJSON(SearchBar.composeSearchUrl(this.facetEndpoint, q, true, 10), data => {
+        return $.getJSON(SearchBar.composeSearchUrl(this.facetEndpoint, q, true, 10, DEFAULT_JSON_FIELDS), data => {
             const renderer = RENDER_AUTOCOMPLETE_RESULT[this.facetEndpoint];
             this.$results.css('opacity', 1);
             this.clearAutocompletionResults();

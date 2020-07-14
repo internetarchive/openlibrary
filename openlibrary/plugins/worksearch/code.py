@@ -854,7 +854,7 @@ class author_search_json(author_search):
 
 
 @public
-def work_search(query, sort=None, page=1, offset=0, limit=100):
+def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*'):
     """
     params:
     query: dict
@@ -874,7 +874,7 @@ def work_search(query, sort=None, page=1, offset=0, limit=100):
                                                       page=page,
                                                       sort=sorts.get(sort),
                                                       offset=offset,
-                                                      fields="*")
+                                                      fields=fields)
         response = json.loads(reply)['response'] or ''
     except (ValueError, IOError) as e:
         logger.error("Error in processing search API.")
@@ -882,7 +882,8 @@ def work_search(query, sort=None, page=1, offset=0, limit=100):
 
     # backward compatibility
     response['num_found'] = response['numFound']
-    response['docs'] = add_availability(response['docs'])
+    if fields == '*' or 'availability' in fields:
+        response['docs'] = add_availability(response['docs'])
     return response
 
 
@@ -907,7 +908,10 @@ class search_json(delegate.page):
             offset = None
             page = safeint(query.pop("page", "1"), default=1)
 
-        response = work_search(query, sort=sort, page=page, offset=offset, limit=limit)
+        fields = query.pop('fields', '*').split(',')
+
+        response = work_search(query, sort=sort, page=page, offset=offset, limit=limit,
+                               fields=fields)
 
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=True))
