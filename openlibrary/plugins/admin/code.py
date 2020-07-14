@@ -739,7 +739,7 @@ def setup():
     public(get_blocked_ips)
     delegate.app.add_processor(block_ip_processor)
 
-    import graphs
+    from openlibrary.plugins.admin import graphs
     graphs.setup()
 
 setup()
