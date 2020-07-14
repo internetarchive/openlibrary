@@ -31,15 +31,16 @@ RUN apt-get -qq update && apt-get install -y build-essential libssl-dev zlib1g-d
     xz-utils tk-dev libffi-dev liblzma-dev python-openssl git
 # Install latest pyenv (https://github.com/pyenv/pyenv-installer)
 RUN curl https://pyenv.run | bash && \
-    echo -e '\nexport PATH="/root/.pyenv/bin:$PATH"\neval "$(pyenv init -)"\neval "$(pyenv virtualenv-init -)"' >> ~/.bashrc && \
-    exec $SHELL
+    echo '\nexport PATH="/root/.pyenv/bin:$PATH"\neval "$(pyenv init -)"\neval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
+ENV PATH /root/.pyenv/bin:$PATH
+
 RUN pyenv install 2.7.6
 RUN pyenv install 3.8.3
-
 RUN pyenv global 2.7.6 3.8.3
+RUN pyenv rehash
 
 # Update pip to match production (Jan 2020)
-RUN python2 -m pip install --upgrade --disable-pip-version-check pip==19.3.1
+RUN eval "$(pyenv init -)" && python2 -m pip install --upgrade --disable-pip-version-check pip==19.3.1
 
 # Install LTS version of node.js
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
@@ -59,8 +60,8 @@ RUN mkdir /openlibrary && chown openlibrary:openlibrary /openlibrary
 WORKDIR /openlibrary
 
 COPY requirements*.txt ./
-RUN python2 -m pip install --disable-pip-version-check --default-timeout=100 -r requirements_common.txt
-RUN python3 -m pip install --default-timeout=100 -r requirements_common.txt
+RUN eval "$(pyenv init -)" && python2 -m pip install --disable-pip-version-check --default-timeout=100 -r requirements_common.txt
+RUN eval "$(pyenv init -)" && python3 -m pip install --default-timeout=100 -r requirements_common.txt
 
 USER openlibrary
 COPY package*.json ./
