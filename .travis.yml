@@ -34,6 +34,7 @@ install:
   - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then
       pushd vendor/infogami && git pull origin master && popd;
     fi
+  - pip install --upgrade node-gyp
   - make lint  # TODO: Move this to script: section after #2951 lands
 before_script: npm install
 script:
