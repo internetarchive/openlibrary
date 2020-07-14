@@ -1,9 +1,6 @@
 """Open Library Books API
 """
 
-import dynlinks
-import readlinks
-
 import re
 from six.moves import urllib
 import web
@@ -11,6 +8,8 @@ import web
 from infogami.infobase import _json as simplejson
 from infogami.utils import delegate
 from infogami.plugins.api.code import jsonapi
+
+from openlibrary.plugins.books import dynlinks, readlinks
 
 class books_json(delegate.page):
     path = "/api/books"
