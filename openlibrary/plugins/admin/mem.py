@@ -1,6 +1,6 @@
 from infogami.utils import delegate
 from infogami.utils.view import render, safeint
-import memory
+from openlibrary.plugins.admin import memory
 import web
 import gc
 
