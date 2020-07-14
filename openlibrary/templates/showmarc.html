@@ -9,6 +9,7 @@ $if format == 'raw':
 $ get_source_record = render_template("history/sources").get_source_record
 $ source_record = get_source_record("%s:%s:%s" % (filename, begin, length))
 $ title = "MARC Record from " + source_record.source_name
+$ next_url = "../%s:%s:5" % (filename, begin + length)
 
 $var title: $title
 
@@ -44,4 +45,8 @@ $var title: $title
     $else:
         <p><b>LEADER:</b> <code>$record.leader</code><br/>
         $:record.html()</p>
+   $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
+       <div>
+          <a href="$next_url" class="slick-next adminOnly right">$_("Next")</a>
+       </div>
 </div>
