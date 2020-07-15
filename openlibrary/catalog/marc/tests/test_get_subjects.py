@@ -114,7 +114,7 @@ class TestSubjects:
     @pytest.mark.parametrize('item,expected', bin_samples)
     def test_subjects_bin(self, item, expected):
         filename = os.path.dirname(__file__) + '/test_data/bin_input/' + item
-        data = open(filename).read()
+        data = open(filename, mode='rb').read()
         rec = MarcBinary(data)
         assert read_subjects(rec) == expected
 

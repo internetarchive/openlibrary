@@ -15,10 +15,10 @@ def return_test_marc_xml(url):
     return return_test_marc_data(url, "xml_input")
 
 def return_test_marc_data(url, test_data_subdir="xml_input"):
-    filename = url.split("/")[-1]
+    filename = url.split('/')[-1]
     test_data_dir = "/../../catalog/marc/tests/test_data/%s/" % test_data_subdir
     path = os.path.dirname(__file__) + test_data_dir + filename
-    return open(path)
+    return open(path, mode='rb')
 
 class TestGetIA():
     bad_marcs = ['dasrmischepriv00rein',  # binary representation of unicode interpreted as unicode codepoints
