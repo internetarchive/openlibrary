@@ -12,17 +12,12 @@ from infogami.utils import delegate, app, types
 from infogami.utils.view import public, safeint, render
 from infogami.utils.context import context
 
-from utils import render_template
+# from utils import render_template  # TODO: unused import?
 
 from openlibrary import accounts
 
-import utils
-import addbook
-import models
-import covers
-import borrow
-import recentchanges
-import merge_authors
+from openlibrary.plugins.upstream import addbook, covers, merge_authors, models, utils
+from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused imports?
 
 
 if not config.get('coverstore_url'):
@@ -258,7 +253,7 @@ def setup():
     covers.setup()
     merge_authors.setup()
 
-    import data
+    from openlibrary.plugins.upstream import data, jsdef
     data.setup()
 
     # setup template globals
@@ -277,9 +272,8 @@ def setup():
         "all": all,
         "any": any,
         "locals": locals
-    });
+    })
 
-    import jsdef
     web.template.STATEMENT_NODES["jsdef"] = jsdef.JSDefNode
 
     setup_jquery_urls()
