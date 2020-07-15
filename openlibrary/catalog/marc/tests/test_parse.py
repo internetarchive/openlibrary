@@ -76,11 +76,6 @@ class TestParseMARCBinary:
     def test_binary(self, i):
         expect_filename = "%s/bin_expect/%s" % (test_data, i)
         data = open("%s/bin_input/%s" % (test_data, i)).read()
-        if len(data) != int(data[:5]):
-            #TODO: Why are we fixing this in test expectations? Investigate.
-            #      affects histoirereligieu05cr_meta.mrc and zweibchersatir01horauoft_meta.mrc
-            data = data.decode('utf-8').encode('raw_unicode_escape')
-        assert len(data) == int(data[:5])
         rec = MarcBinary(data)
         edition_marc_bin = read_edition(rec)
         assert edition_marc_bin
