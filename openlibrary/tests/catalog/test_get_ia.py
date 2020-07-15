@@ -21,16 +21,9 @@ def return_test_marc_data(url, test_data_subdir="xml_input"):
     return open(path)
 
 class TestGetIA():
-    bad_marcs = ['1733mmoiresdel00vill', # Binary MARC reports len=734, but actually=742. Has badly converted unicode
-                                         # original unicode converted as if it were MARC8
-                 'dasrmischepriv00rein', # same as zweibchersatir01horauoft, binary representation of unicode interpreted as unicode codepoints
-                 'histoirereligieu05cr', # C3A2 in this file should be single byte MARC8 combining acute 0xE2
-                                         # Original MARC8 0xE2 interpreted as u00E2 => \xC3\xA2, leader still MARC8
-                 'lesabndioeinas00sche', # Original MARC8 0xE2 interpreted as u00E2 => \xC3\xA2, leader still MARC8
-                 'poganucpeoplethe00stowuoft', # junk / unexpected character at end of publishers in field 260
-                 'scrapbooksofmoun03tupp', # possible extra chars at end of field 505?
-                 'zweibchersatir01horauoft', # leader is unicode, chars '\xc3\x83\xc2\xbc' in mrc should be '\xc3\xbc'
-                                             # original '\xc3\xb3' was converted to '\u00c3\u00b3'
+    bad_marcs = ['dasrmischepriv00rein',  # binary representation of unicode interpreted as unicode codepoints
+                 'lesabndioeinas00sche',  # Original MARC8 0xE2 interpreted as u00E2 => \xC3\xA2, leader still MARC8
+                 'poganucpeoplethe00stowuoft',  # junk / unexpected character at end of publishers in field 260
                 ]
 
     bin_items = ['0descriptionofta1682unit',
@@ -53,7 +46,6 @@ class TestGetIA():
     xml_items = ['1733mmoiresdel00vill',     # no <?xml
                  '0descriptionofta1682unit', # has <?xml
                  'cu31924091184469',         # is <collection>
-                 #'1893manualofharm00jadauoft', # 0 byte xml file
                  '00schlgoog',
                  '13dipolarcycload00burk',
                  '39002054008678.yale.edu',
