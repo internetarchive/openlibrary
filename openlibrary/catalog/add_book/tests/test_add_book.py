@@ -20,7 +20,7 @@ def open_test_data(filename):
     """
     root = os.path.dirname(__file__)
     fullpath = os.path.join(root, 'test_data', filename)
-    return open(fullpath)
+    return open(fullpath, mode='rb')
 
 
 @pytest.fixture
