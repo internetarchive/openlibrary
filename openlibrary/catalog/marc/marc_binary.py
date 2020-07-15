@@ -29,13 +29,13 @@ def handle_wrapped_lines(_iter):
     cur_tag = None
     maybe_wrap = False
     for t, l in _iter:
-        if len(l) > 500 and l.endswith('++\x1e'):
+        if len(l) > 500 and l.endswith(b'++\x1e'):
             assert not cur_tag or cur_tag == t
             cur_tag = t
             cur_lines.append(l)
             continue
         if cur_lines:
-            yield cur_tag, cur_lines[0][:-3] + ''.join(i[2:-3] for i in cur_lines[1:]) + l[2:]
+            yield cur_tag, cur_lines[0][:-3] + b''.join(i[2:-3] for i in cur_lines[1:]) + l[2:]
             cur_tag = None
             cur_lines = []
             continue
@@ -47,12 +47,12 @@ class BinaryDataField():
     def __init__(self, rec, line):
         self.rec = rec
         if line:
-            while line[-2] == '\x1e': # ia:engineercorpsofhe00sher
+            while line[-2] == b'\x1e':  # ia:engineercorpsofhe00sher
                 line = line[:-1]
         self.line = line
 
     def translate(self, data):
-        utf8 = self.rec.leader()[9] == 'a'
+        utf8 = self.rec.leader()[9] == b'a'
         if utf8:
             try:
                 data = data.decode('utf-8')
@@ -72,12 +72,12 @@ class BinaryDataField():
 
     def remove_brackets(self):
         line = self.line
-        if line[4] == '[' and line[-2] == ']':
+        if line[4] == b'[' and line[-2] == b']':
             self.line = line[0:4] + line[5:-2] + line[-1]
 
     def get_subfields(self, want):
         want = set(want)
-        for i in self.line[3:-1].split('\x1f'):
+        for i in self.line[3:-1].split(b'\x1f'):
             if i and i[0] in want:
                 yield i[0], self.translate(i[1:])
 
@@ -92,7 +92,7 @@ class BinaryDataField():
         return [v for k, v in self.get_subfields(want)]
 
     def get_all_subfields(self):
-        for i in self.line[3:-1].split('\x1f'):
+        for i in self.line[3:-1].split(b'\x1f'):
             if i:
                 j = self.translate(i)
                 yield j[0], j[1:]
@@ -113,7 +113,7 @@ class MarcBinary(MarcBase):
         if len(data) != length:
             raise BadLength("Record length %s does not match reported length %s." % (len(data), length))
         self.data = data
-        self.directory_end = data.find('\x1e')
+        self.directory_end = data.find(b'\x1e')
         if self.directory_end == -1:
             raise BadMARC("MARC directory not found")
 
@@ -133,28 +133,28 @@ class MarcBinary(MarcBase):
         return self.data[:24]
 
     def all_fields(self):
-        marc8 = self.leader()[9] != 'a'
+        marc8 = self.leader()[9] != b'a'
         for tag, line in handle_wrapped_lines(self.get_all_tag_lines()):
             if tag.startswith('00'):
                 # marc_upei/marc-for-openlibrary-bigset.mrc:78997353:588
                 if tag == '008' and line == '':
                     continue
-                assert line[-1] == '\x1e'
+                assert line[-1] == b'\x1e'
                 yield tag, line[:-1]
             else:
                 yield tag, BinaryDataField(self, line)
 
     def read_fields(self, want):
         want = set(want)
-        marc8 = self.leader()[9] != 'a'
+        marc8 = self.leader()[9] != b'a'
         for tag, line in handle_wrapped_lines(self.get_tag_lines(want)):
             if tag not in want:
                 continue
             if tag.startswith('00'):
                 # marc_upei/marc-for-openlibrary-bigset.mrc:78997353:588
-                if tag == '008' and line == '':
+                if tag == '008' and line == b'':
                     continue
-                assert line[-1] == '\x1e'
+                assert line[-1] == b'\x1e'
                 yield tag, line[:-1]
             else:
                 yield tag, BinaryDataField(self, line)
@@ -173,17 +173,17 @@ class MarcBinary(MarcBase):
         data = self.data[self.directory_end:]
         # handle off-by-one errors in MARC records
         try:
-            if data[offset] != '\x1e':
-                offset += data[offset:].find('\x1e')
+            if data[offset] != b'\x1e':
+                offset += data[offset:].find(b'\x1e')
             last = offset+length
-            if data[last] != '\x1e':
-                length += data[last:].find('\x1e')
+            if data[last] != b'\x1e':
+                length += data[last:].find(b'\x1e')
         except IndexError:
             pass
         tag_line = data[offset + 1:offset + length + 1]
         if not line[0:2] == '00':
             # marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:636441290:1277
-            if tag_line[1:8] == '{llig}\x1f':
+            if tag_line[1:8] == b'{llig}\x1f':
                 tag_line = tag_line[0] + u'\uFE20' + tag_line[7:]
         return tag_line
 
@@ -191,7 +191,7 @@ class MarcBinary(MarcBase):
         return field  # noop on MARC binary
 
     def read_isbn(self, f):
-        if '\x1f' in f.line:
+        if b'\x1f' in f.line:
             return super(MarcBinary, self).read_isbn(f)
         else:
             m = re_isbn.match(f.line[3:-1])
