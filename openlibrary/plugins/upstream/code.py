@@ -12,7 +12,7 @@ from infogami.utils import delegate, app, types
 from infogami.utils.view import public, safeint, render
 from infogami.utils.context import context
 
-# from utils import render_template  # TODO: unused import?
+from utils import render_template  # noqa: F401  render_template used for side effects
 
 from openlibrary import accounts
 
