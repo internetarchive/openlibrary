@@ -8,7 +8,7 @@ import datetime
 
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template  # noqa: F401 used for its side effects
 
 from openlibrary.core import helpers as h
 from openlibrary.core import statsdb
