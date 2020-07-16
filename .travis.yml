@@ -33,7 +33,7 @@ before_install:
 install:
   - pip install -r requirements_test.txt
   # refresh the git submodule ./vendor/infogami on some jobs
-  - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" || "$TRAVIS_JOB_NAME" == "Python 2.7 on Infogami master" ]; then
+  - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ] || [ "$TRAVIS_JOB_NAME" == "Python 2.7 on Infogami master" ]; then
       pushd vendor/infogami && git pull origin master && popd;
     fi
   - make lint  # TODO: Move this to script: section after #2951 lands
