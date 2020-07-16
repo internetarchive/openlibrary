@@ -871,8 +871,17 @@ def setup_context_defaults():
 
 
 def setup():
-    from openlibrary.plugins.openlibrary import (home, borrow_home, stats, support,
-                                                 events, design, status, authors)
+    from openlibrary.plugins.openlibrary import (
+        home,
+        borrow_home,
+        stats,
+        support,
+        events,
+        design,
+        status,
+        authors,
+        partners,
+    )
 
     home.setup()
     design.setup()
@@ -882,6 +891,7 @@ def setup():
     events.setup()
     status.setup()
     authors.setup()
+    partners.setup()
 
     from openlibrary.plugins.openlibrary import api
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))

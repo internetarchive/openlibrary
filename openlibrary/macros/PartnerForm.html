@@ -1,0 +1,16 @@
+<form method="post" class="olform partnerform" enctype="multipart/form-data" action="/partner-with-us" >
+  <div><input type="email" autocapitalization="off"
+              placeholder="Your email" name="email" required></div>
+  <div><input type="text" placeholder="Organization's name"
+              name="org" required></div>
+  <div><input type="text" placeholder="Your name (optional)" name="name"></div>
+
+  <p><strong>Option 1:</strong> Upload a CSV file containing ISBNs.</p>
+  <input type="file" name="csv" />
+
+  <p><strong>Option 2:</strong> Enter a list of ISBNs (one-per-line, or comma separated, e.g. 1234567890, ...):</p>
+
+  <textarea width="200" placeholder="Enter isbns here" name="isbns"></textarea>
+
+  <div><input type="submit"></div>
+</form>
