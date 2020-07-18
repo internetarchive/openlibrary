@@ -428,7 +428,7 @@ class Edition(Thing):
             return None  # consider raising ValueError
 
         isbn13 = to_isbn_13(isbn)
-        isbn10 = isbn_13_to_isbn_10(isbn)
+        isbn10 = isbn_13_to_isbn_10(isbn13)
 
         # Attempt to fetch book from OL
         for isbn in [isbn13, isbn10]:
