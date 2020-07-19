@@ -142,7 +142,7 @@ class work_bookshelves(delegate.page):
         from openlibrary.core.models import Bookshelves
 
         user = accounts.get_current_user()
-        i = web.input(edition_id=None, action="add", redir=False, bookshelf_id=None)
+        i = web.input(edition_id=None, action="add", redir=False, bookshelf_id=None, dont_remove = False)
         key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
 
         if not user:
@@ -161,7 +161,7 @@ class work_bookshelves(delegate.page):
                 'error': 'Invalid bookshelf'
             }), content_type="application/json")
 
-        if bookshelf_id == current_status or bookshelf_id == -1:
+        if (not i.dont_remove) and bookshelf_id == current_status or bookshelf_id == -1:
             work_bookshelf = Bookshelves.remove(
                 username=username, work_id=work_id, bookshelf_id=current_status)
 
