@@ -1,7 +1,39 @@
-$def with (books=None)
+$def with (books=None, books_wo_isbns=None)
 
 $ title = "Import and Export Options"
 $var title: $_(title)
+
+<style>
+  table  { margin-top: 20px; table-layout: auto; width:100%;}
+  .table-fixed thead th {
+    position: sticky;
+    position: -webkit-sticky;
+    top: 0;
+    z-index: 999;
+    background-color: #fff;
+  }
+  .ldBar {
+    position: relative;
+  }
+  .ldBar.label-center > .ldBar-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    text-shadow: 0 0 3px #fff;
+  }
+  .ldBar-label:after {
+    content: " Books";
+    display: inline;
+  }
+  .ldBar.no-percent .ldBar-label:after {
+    content: "";
+  }
+  .imported {
+      font-weight: bold;
+  }
+</style>
 
 <div id="contentHead">
     <div class="small sansserif grey account-settings-menu">
@@ -15,7 +47,6 @@ $var title: $_(title)
 
 <div id="contentBody">
   <h3>$_("Import from Goodreads")</h3>
-
   $if not books:
     <form method="POST" action="/account/import/goodreads?debug=true"
           enctype="multipart/form-data" class="olform olform--decoration">
@@ -28,6 +59,7 @@ $var title: $_(title)
       $_("or")
       <div>
         <input type="file" name="csv" />
+        <br>File size limit 10MB and .csv file type only
       </div>
       <div>
         <input class="cta-btn cta-btn--available cta-btn--small"
@@ -35,27 +67,200 @@ $var title: $_(title)
       </div>
     </form>
 
-  $else:
+  $else:  
     <!-- XXX Move to js -->
     <script type="text/javascript">
-      \$(document).on('change', 'th.toggle-all input', function(){
-        var checked = \$(this).hasClass('selected') ? 
-          \$(this).removeClass('selected') && '' : \$(this).addClass('selected') && 'checked';
-        \$('input.add-book').each(function() {
-          \$(this).prop('checked', checked);
-        });
+      
+      \$(document).on('click', 'th.toggle-all input', function(){
+        var checked = \$(this).attr('checked');
+        if(!checked){
+          \$(this).removeAttr('checked');
+          \$('input.add-book').each(function() {
+          \$(this).removeAttr('checked');
+          });
+        }
+        else{
+          \$(this).attr("checked", "checked")
+          \$('input.add-book').each(function() {
+            \$(this).attr('checked', 'checked');
+          });
+        }
+        var l = \$(".add-book[checked*='checked']").size();
+        \$('.import-submit').attr('value', 'Import '+ l + ' Books');
       });
+
+      \$(document).on('click', 'input.add-book', function(){
+        var checked = \$(this).attr('checked');
+        if(!checked){
+          \$(this).removeAttr('checked');
+        }
+        else{
+          \$(this).attr("checked", "checked");
+        }
+        var l = \$(".add-book[checked*='checked']").size();
+        \$('.import-submit').attr('value', 'Import '+ l + ' Books');
+      });
+
+      function func1(value){
+        console.log(value);
+        var bar = new ldBar(".my-bar");
+        bar.set(value);
+      }
+
+      function setBar(){
+        var l = \$(".add-book[checked*='checked']").size();
+        console.log(l)
+        var bar = new ldBar(".my-bar", {
+                    "data-max": toString(l)
+                  });
+        bar.set();
+      }
+
+      function importBooks() {
+        setBar();
+        console.log("In Import Books")
+        \$('#myForm').addClass('hidden');
+        \$('#importing-table').removeClass('hidden');
+        \$('.my-bar').removeClass('hidden');
+        var count = 0;
+        var prevPromise = Promise.resolve();
+        \$('input.add-book').each(function(){
+              var input = \$(this),
+                  checked = input.attr('checked'),
+                  value = JSON.parse(input.val().replace(/'/g,"\""));
+              console.log(value);
+              console.log(value['Exclusive Shelf']);
+              console.log(value['My Rating']);
+              var shelf = value['Exclusive Shelf'];
+              var shelf_id = 0;
+              if(shelf == 'read')
+                shelf_id = 3;
+              else if(shelf == 'to-read')
+                shelf_id = 1;
+              else if(shelf == 'currently-reading')
+                shelf_id = 2;
+              if(checked && shelf_id!=0){
+                console.log("Yes----------");
+                prevPromise = prevPromise.then(function() { // prevPromise changes in each iteration
+                  return getWork(value['ISBN']); // return a new Promise
+                }).then(function(data) {
+                  console.log("Yes----------")
+                  \$("#importing-table tbody").append('<tr><td class="imported">Imported</td><td>'+value['ISBN']+'</td></tr>')
+                  var obj = JSON.parse(data)
+                  \$.ajax({
+                      url: obj['works'][0].key + '/bookshelves.json',
+                      type: 'POST',
+                      data: {
+                          dont_remove: true,
+                          edition_id: obj['key'],
+                          bookshelf_id: shelf_id
+                      },
+                      datatype: 'json',
+                      success: function() {
+                          console.log("Book Added to the Reading Log")
+                      }
+                  });
+                  if(value['My Rating']!='0'){
+                    \$.ajax({
+                      url: obj['works'][0].key + '/ratings.json',
+                      type: 'POST',
+                      data: {
+                          rating: int(value['My Rating']),
+                          edition_id: obj['key'],
+                          bookshelf_id: shelf_id
+                      },
+                      datatype: 'json',
+                      success: function() {
+                          console.log("Rating Added to the Book")
+                      }
+                    });
+                  }
+                  console.log(obj['key']);
+                  console.log(obj['works'][0].key);
+                  func1(++count);
+                }).catch(function(error) {
+                  \$("#importing-table tbody").append('<tr><td class="imported">Error</td><td>'+value['ISBN']+'</td></tr>')
+                  console.log(error);
+                  func1(++count);
+                });
+              }
+          });
+      }
+
+      function getWork(isbn) {
+        return new Promise(function(resolve, reject) {
+          var request = new XMLHttpRequest();
+
+          request.open('GET', '/isbn/' + isbn + '.json');
+          request.onload = function() {
+            if (request.status === 200) {
+              resolve(request.response); // we get the data here, so resolve the Promise
+            } else {
+              reject(Error(request.statusText)); // if status is not 200 OK, reject.
+            }
+          };
+
+          request.onerror = function() {
+            reject(Error("Error fetching data.")); // error occurred, so reject the Promise
+          };
+
+          request.send(); // send the request
+        });
+      }
+
+      function getWork(isbn) {
+        return new Promise(function(resolve, reject) {
+          var request = new XMLHttpRequest();
+
+          request.open('GET', '/isbn/' + isbn + '.json');
+          request.onload = function() {
+            if (request.status == 200) {
+              resolve(request.response); // we get the data here, so resolve the Promise
+            } else {
+              reject(Error(request.statusText)); // if status is not 200 OK, reject.
+            }
+          };
+
+          request.onerror = function() {
+            reject(Error("Error fetching data.")); // error occurred, so reject the Promise
+          };
+
+          request.send(); // send the request
+        });
+      }
+
     </script>
 
-    <form method="POST" action="/account/import?debug=true"
-          enctype="multipart/form-data">
-      <input type="submit" class="cta-btn cta-btn--unavailable" value="Import Books">
-      $ keys = ['ISBN', 'Title', 'My Rating', 'Exclusive Shelf', 'work_id']
-      <table class="import-table">
+    <div
+    data-preset="stripe"
+    class="hidden my-bar ldBar"
+    data-value="0"
+    data-min="0"
+    data-max="2"
+    style ="width:200px"
+    data-aspect-ratio="none"></div>
+
+    <table id="importing-table" class="hidden import-table table-fixed" style="height: 360px;">
+      <thead>
+        <th>
+          Status
+        </th>
+        <th>
+          ISBN
+        </th>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+
+    <form id="myForm" onsubmit="importBooks();return false">
+      <input type="submit" class="import-submit cta-btn cta-btn--unavailable" value="Import $len(books) Books">
+      $ keys = ['ISBN', 'Title', 'My Rating', 'Exclusive Shelf']
+      <table class="import-table table-fixed" style="height: 360px;">
         <thead>
           <tr>
             <th class="toggle-all">
-              <input type="checkbox" class="selected" checked="checked">
+              <input type="checkbox" checked="checked">
             </th>
             $for key in keys:
               <th>$key</th>
@@ -63,11 +268,18 @@ $var title: $_(title)
         <tbody>
           $for isbn in books:
             <tr>
-              <td><input class="add-book" value="$(books[isbn]['ISBN'])"
-                         type="checkbox" checked="checked">
+              <td>
+              <input class="add-book" value="$(books[isbn])" type="checkbox" checked="checked">
               </td>
               $for key in keys:
                 <td>$books[isbn].get(key)</td>
+            </tr>
+          $for id in books_wo_isbns:
+            <tr>
+              <td>
+              </td>
+              $for key in keys:
+                <td>$books_wo_isbns[id].get(key)</td>
             </tr>
         </tbody>
       </table>

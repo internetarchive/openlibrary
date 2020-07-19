@@ -877,10 +877,6 @@ class import_books(delegate.page):
     def GET(self):
         return render['account/import']()
 
-    @require_login
-    def POST(self):
-        pass
-
 class fetch_goodreads(delegate.page):
     path = "/account/import/goodreads"
 
@@ -929,6 +925,7 @@ class fetch_goodreads(delegate.page):
                               delimiter=',', quotechar='"')
         header = csv_file.next()
         books = {}
+        books_wo_isbns = {} 
         isbns = []
         # todo, add olid to each row
         for book in list(csv_file):
@@ -936,18 +933,18 @@ class fetch_goodreads(delegate.page):
             try:
                 _book['ISBN'] = re.findall('[^="]+', _book['ISBN'])[0]
                 _book['ISBN13'] = re.findall('[^="]+', _book['ISBN13'])[0]
+                #Todo check how does the work search work with isbn 13
                 if _book['ISBN']:
                     isbns.append(_book['ISBN'])
                     books[_book['ISBN']] = _book
+                elif _book['ISBN13']:
+                    isbns.append(_book['ISBN13'])
+                    books[_book['ISBN13']] = _book
+                else:
+                    raise Exception("No ISBN 10/13")
             except:
-                pass
-        works = self.get_works_by_isbns(isbns)
-        for isbn in books:
-            for work in works:
-                if isbn in work.get('isbn'):
-                    books[isbn]['work_id'] = work.get('key')
-                    books[isbn]['cover_id'] = work.get('cover_edition_key')                    
-        return render['account/import'](books)
+                books_wo_isbns[_book['Book Id']] = _book       
+        return render['account/import'](books, books_wo_isbns)
 
 
 class account_loans(delegate.page):
