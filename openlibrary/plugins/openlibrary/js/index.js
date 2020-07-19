@@ -103,6 +103,10 @@ jQuery(function () {
         import(/* webpackChunkName: "readmore" */ './readmore.js')
             .then(module => module.initReadMoreButton());
     }
+    // conditionally load readmore button based on class in the page
+    if (document.getElementsByClassName('ldBar').length) {
+        import('./loading-bar.js');
+    }
     // Enable any carousels in the page
     if ($carouselElements.length) {
         import(/* webpackChunkName: "carousel" */ './carousel')
