@@ -70,7 +70,7 @@ def query(q):
     for i in range(20):
         try:
             ret = urlread(url)
-            while ret.startswith('canceling statement due to statement timeout'):
+            while ret.startswith(b'canceling statement due to statement timeout'):
                 ret = urlread(url)
             if not ret:
                 print('ret == None')
