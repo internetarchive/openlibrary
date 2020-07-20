@@ -67,7 +67,8 @@ def static_url(path):
     """
     pardir = os.path.pardir
     fullpath = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, "static", path))
-    digest = hashlib.md5(open(fullpath).read()).hexdigest()
+    with open(fullpath) as in_file:
+        digest = hashlib.md5(in_file.read().encode("utf-8")).hexdigest()
     return "/static/%s?v=%s" % (path, digest)
 
 class DynamicDocument:

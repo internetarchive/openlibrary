@@ -16,7 +16,7 @@ import six
 
 logger = logging.getLogger('openlibrary.ia')
 
-IA_BASE_URL = config.get('ia_base_url')
+IA_BASE_URL = config.get('ia_base_url', 'https://archive.org')
 VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
 
 
