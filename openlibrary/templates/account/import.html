@@ -4,7 +4,12 @@ $ title = "Import and Export Options"
 $var title: $_(title)
 
 <style>
-  table  { margin-top: 20px; table-layout: auto; width:100%;}
+  .table-fixed   { 
+    margin-top: 20px; 
+    table-layout: auto; 
+    width:100%; 
+    overflow: scroll;
+  }
   .table-fixed thead th {
     position: sticky;
     position: -webkit-sticky;
@@ -12,26 +17,30 @@ $var title: $_(title)
     z-index: 999;
     background-color: #fff;
   }
-  .ldBar {
-    position: relative;
-  }
-  .ldBar.label-center > .ldBar-label {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    -webkit-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
-    text-shadow: 0 0 3px #fff;
-  }
-  .ldBar-label:after {
-    content: " Books";
-    display: inline;
-  }
-  .ldBar.no-percent .ldBar-label:after {
-    content: "";
-  }
-  .imported {
+  .error-imported {
       font-weight: bold;
+      color: red;
+  }
+  .success-imported {
+      color: green;
+      font-weight: bold;
+  }
+  tr.table-row.selected{
+    border: 2px solid green;
+  }
+  #myProgress {
+  border-radius: 10px;
+  width: 100%;
+  background-color: #ddd;
+  }
+  #myBar {
+    width: 0%;
+    border-radius: 10px;
+    height: 30px;
+    background-color: #4CAF50;
+    text-align: center;
+    line-height: 30px;
+    color: white;
   }
 </style>
 
@@ -102,32 +111,30 @@ $var title: $_(title)
       });
 
       function func1(value){
-        console.log(value);
-        var bar = new ldBar(".my-bar");
-        bar.set(value);
-      }
-
-      function setBar(){
         var l = \$(".add-book[checked*='checked']").size();
+        var elem = document.getElementById("myBar");
+        elem.style.width = value*(100/l) + "%";
+        elem.innerHTML = value  + " Books";
+        if(value*(100/l) >= 100){
+          elem.innerHTML = "";
+          \$("#myBar").append("<a href='/account/books' style='color:white'> Go to your Reading Log </a>");
+        }
         console.log(l)
-        var bar = new ldBar(".my-bar", {
-                    "data-max": toString(l)
-                  });
-        bar.set();
       }
 
       function importBooks() {
-        setBar();
+        \$('#myProgress').removeClass('hidden');
         console.log("In Import Books")
-        \$('#myForm').addClass('hidden');
-        \$('#importing-table').removeClass('hidden');
-        \$('.my-bar').removeClass('hidden');
+        \$('input.import-submit').addClass('hidden');
+        \$('th.import-status').removeClass('hidden');
         var count = 0;
         var prevPromise = Promise.resolve();
         \$('input.add-book').each(function(){
               var input = \$(this),
-                  checked = input.attr('checked'),
-                  value = JSON.parse(input.val().replace(/'/g,"\""));
+                  checked = input.attr('checked');
+              console.log(typeof input.val());
+              console.log(input.val());
+              var value = JSON.parse(input.val().replace(/'/g,"\""));
               console.log(value);
               console.log(value['Exclusive Shelf']);
               console.log(value['My Rating']);
@@ -142,10 +149,11 @@ $var title: $_(title)
               if(checked && shelf_id!=0){
                 console.log("Yes----------");
                 prevPromise = prevPromise.then(function() { // prevPromise changes in each iteration
+                  \$("tr.table-row."+value['ISBN']).addClass('selected');
                   return getWork(value['ISBN']); // return a new Promise
                 }).then(function(data) {
                   console.log("Yes----------")
-                  \$("#importing-table tbody").append('<tr><td class="imported">Imported</td><td>'+value['ISBN']+'</td></tr>')
+                  \$("tr.table-row."+value['ISBN']).append('<td class="success-imported">Imported</td>')
                   var obj = JSON.parse(data)
                   \$.ajax({
                       url: obj['works'][0].key + '/bookshelves.json',
@@ -157,33 +165,50 @@ $var title: $_(title)
                       },
                       datatype: 'json',
                       success: function() {
-                          console.log("Book Added to the Reading Log")
+                          console.log("Book Added to the Reading Log");
+                          if(value['My Rating']!='0'){
+                            \$.ajax({
+                              url: obj['works'][0].key + '/ratings.json',
+                              type: 'POST',
+                              data: {
+                                  rating: parseInt(value['My Rating']),
+                                  edition_id: obj['key'],
+                                  bookshelf_id: shelf_id
+                              },
+                              datatype: 'json',
+                              success: function() {
+                                  console.log("Rating Added to the Book");
+                                  \$("tr.table-row."+value['ISBN']).removeClass('selected');
+                              },
+                              fail: function(){
+                                  \$("tr.table-row."+value['ISBN']).append('<td class="error-imported" title="Failed to add Rating">Error</td>')
+                                  \$("tr.table-row."+value['ISBN']).removeClass('selected');
+                              }
+                            });
+                          }
+                        },
+                      fail: function(){
+                          \$("tr.table-row."+value['ISBN']).append('<td class="error-imported" title="Failed to add book to reading log">Error</td>')
+                          \$("tr.table-row."+value['ISBN']).removeClass('selected');
                       }
                   });
-                  if(value['My Rating']!='0'){
-                    \$.ajax({
-                      url: obj['works'][0].key + '/ratings.json',
-                      type: 'POST',
-                      data: {
-                          rating: int(value['My Rating']),
-                          edition_id: obj['key'],
-                          bookshelf_id: shelf_id
-                      },
-                      datatype: 'json',
-                      success: function() {
-                          console.log("Rating Added to the Book")
-                      }
-                    });
-                  }
                   console.log(obj['key']);
                   console.log(obj['works'][0].key);
                   func1(++count);
                 }).catch(function(error) {
-                  \$("#importing-table tbody").append('<tr><td class="imported">Error</td><td>'+value['ISBN']+'</td></tr>')
+                  \$("tr.table-row."+value['ISBN']).append('<td class="error-imported" title="Book not in collection">Error</td>')
+                  \$("tr.table-row."+value['ISBN']).removeClass('selected');
                   console.log(error);
                   func1(++count);
                 });
               }
+              else if(checked && shelf_id == 0){
+                \$("tr.table-row."+value['ISBN']).append('<td class="error-imported" title="Book in different Shelf">Error</td>');
+                func1(++count);
+              }
+          });
+          \$('td.books-wo-isbn').each(function(){
+              \$(this).removeClass("hidden");
           });
       }
 
@@ -231,32 +256,14 @@ $var title: $_(title)
 
     </script>
 
-    <div
-    data-preset="stripe"
-    class="hidden my-bar ldBar"
-    data-value="0"
-    data-min="0"
-    data-max="2"
-    style ="width:200px"
-    data-aspect-ratio="none"></div>
-
-    <table id="importing-table" class="hidden import-table table-fixed" style="height: 360px;">
-      <thead>
-        <th>
-          Status
-        </th>
-        <th>
-          ISBN
-        </th>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
+    <div id="myProgress" class="hidden">
+      <div id="myBar"></div>
+    </div>
 
     <form id="myForm" onsubmit="importBooks();return false">
       <input type="submit" class="import-submit cta-btn cta-btn--unavailable" value="Import $len(books) Books">
       $ keys = ['ISBN', 'Title', 'My Rating', 'Exclusive Shelf']
-      <table class="import-table table-fixed" style="height: 360px;">
+      <table class="import-table table-fixed" style="max-height: 360px;">
         <thead>
           <tr>
             <th class="toggle-all">
@@ -264,12 +271,20 @@ $var title: $_(title)
             </th>
             $for key in keys:
               <th>$key</th>
+            <th class="import-status hidden">
+              Status
+            </th>
         </thead>
         <tbody>
           $for isbn in books:
-            <tr>
+            <tr class="table-row $isbn">
               <td>
-              <input class="add-book" value="$(books[isbn])" type="checkbox" checked="checked">
+              $ dict = {'ISBN':'', 'Title':'', 'My Rating':'', 'Exclusive Shelf':''}
+              $ k = ['ISBN', 'My Rating', 'Exclusive Shelf']
+              $for key in k:
+                $if books[isbn].get(key) != '=""':
+                  $ dict[key] = books[isbn].get(key)
+              <input class="add-book" value="$(dict)" type="checkbox" checked="checked">
               </td>
               $for key in keys:
                 <td>$books[isbn].get(key)</td>
@@ -279,7 +294,11 @@ $var title: $_(title)
               <td>
               </td>
               $for key in keys:
-                <td>$books_wo_isbns[id].get(key)</td>
+                <td>
+                  $if books_wo_isbns[id].get(key) != '=""':
+                    $books_wo_isbns[id].get(key)
+                </td>
+              <td class="books-wo-isbn hidden error-imported" title='No ISBN'>Error</td>
             </tr>
         </tbody>
       </table>
