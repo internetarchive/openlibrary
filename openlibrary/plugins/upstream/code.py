@@ -6,6 +6,8 @@ import random
 import hashlib
 import datetime
 
+from six import PY3
+
 from infogami import config
 from infogami.infobase import client
 from infogami.utils import delegate, app, types
@@ -67,8 +69,11 @@ def static_url(path):
     """
     pardir = os.path.pardir
     fullpath = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, "static", path))
-    with open(fullpath) as in_file:
-        digest = hashlib.md5(in_file.read().encode("utf-8")).hexdigest()
+    with open(fullpath, 'r') as in_file:
+        data = in_file.read()
+    if PY3:
+        data = data.encode("utf-8")
+    digest = hashlib.md5(data).hexdigest()
     return "/static/%s?v=%s" % (path, digest)
 
 class DynamicDocument:
