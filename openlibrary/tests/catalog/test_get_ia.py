@@ -11,7 +11,7 @@ def return_test_marc_bin(url):
     return return_test_marc_data(url, "bin_input")
 
 def return_test_marc_xml(url):
-    assert url, "return_test_marc_bin({})".format(url)
+    assert url, "return_test_marc_xml({})".format(url)
     return return_test_marc_data(url, "xml_input")
 
 def return_test_marc_data(url, test_data_subdir="xml_input"):
