@@ -4,7 +4,7 @@ $ title = "Import and Export Options"
 $var title: $_(title)
 
 <style>
-  .table-fixed   { 
+  .table-fixed   {  
     margin-top: 20px; 
     table-layout: auto; 
     width:100%; 
@@ -127,6 +127,7 @@ $var title: $_(title)
         console.log("In Import Books")
         \$('input.import-submit').addClass('hidden');
         \$('th.import-status').removeClass('hidden');
+        \$('th.status-reason').removeClass('hidden');
         var count = 0;
         var prevPromise = Promise.resolve();
         \$('input.add-book').each(function(){
@@ -181,14 +182,14 @@ $var title: $_(title)
                                   \$("tr.table-row."+value['ISBN']).removeClass('selected');
                               },
                               fail: function(){
-                                  \$("tr.table-row."+value['ISBN']).append('<td class="error-imported" title="Failed to add Rating">Error</td>')
+                                  \$("tr.table-row."+value['ISBN']).append('<td class="error-imported">Error</td><td class="error-imported">Failed to add Rating</td>')
                                   \$("tr.table-row."+value['ISBN']).removeClass('selected');
                               }
                             });
                           }
                         },
                       fail: function(){
-                          \$("tr.table-row."+value['ISBN']).append('<td class="error-imported" title="Failed to add book to reading log">Error</td>')
+                          \$("tr.table-row."+value['ISBN']).append('<td class="error-imported">Error</td><td class="error-imported">Failed to add book to reading log</td>')
                           \$("tr.table-row."+value['ISBN']).removeClass('selected');
                       }
                   });
@@ -196,7 +197,7 @@ $var title: $_(title)
                   console.log(obj['works'][0].key);
                   func1(++count);
                 }).catch(function(error) {
-                  \$("tr.table-row."+value['ISBN']).append('<td class="error-imported" title="Book not in collection">Error</td>')
+                  \$("tr.table-row."+value['ISBN']).append('<td class="error-imported">Error</td><td class="error-imported">Book not in collection</td>')
                   \$("tr.table-row."+value['ISBN']).removeClass('selected');
                   console.log(error);
                   func1(++count);
@@ -274,6 +275,9 @@ $var title: $_(title)
             <th class="import-status hidden">
               Status
             </th>
+            <th class="status-reason hidden">
+              Reason
+            </th>
         </thead>
         <tbody>
           $for isbn in books:
@@ -298,7 +302,8 @@ $var title: $_(title)
                   $if books_wo_isbns[id].get(key) != '=""':
                     $books_wo_isbns[id].get(key)
                 </td>
-              <td class="books-wo-isbn hidden error-imported" title='No ISBN'>Error</td>
+              <td class="books-wo-isbn hidden error-imported">Error</td>
+              <td class="books-wo-isbn hidden error-imported">No ISBN</td>
             </tr>
         </tbody>
       </table>
