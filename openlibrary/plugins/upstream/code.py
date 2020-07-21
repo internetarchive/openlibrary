@@ -1,12 +1,14 @@
 """Upstream customizations."""
 
-import os.path
-import web
-import random
-import hashlib
 import datetime
+import hashlib
+import io
+import os.path
+import random
 
 from six import PY3
+
+import web
 
 from infogami import config
 from infogami.infobase import client
@@ -69,11 +71,8 @@ def static_url(path):
     """
     pardir = os.path.pardir
     fullpath = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, "static", path))
-    with open(fullpath, 'r') as in_file:
-        data = in_file.read()
-    if PY3:
-        data = data.encode("utf-8")
-    digest = hashlib.md5(data).hexdigest()
+    with io.open(fullpath, 'rb') as in_file:
+        digest = hashlib.md5(in_file.read()).hexdigest()
     return "/static/%s?v=%s" % (path, digest)
 
 class DynamicDocument:
