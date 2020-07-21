@@ -19,7 +19,7 @@ $def render_carousel_cover(book, lazy):
   $elif book.get('ia'):
     $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia')[0], fallback_cover)
   $elif book.get('cover_edition_key'):
-    $ cover_url = '%s/b/book/%s-M.jpg'%(cover_host, book.get('cover_edition_key'))
+    $ cover_url = '%s/b/olid/%s-M.jpg'%(cover_host, book.get('cover_edition_key'))
   $else:
      $ cover_url = False
   $if book.get('authors'):
