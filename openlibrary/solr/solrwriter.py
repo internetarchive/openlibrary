@@ -1,6 +1,5 @@
 """Interface to update solr.
 """
-import httplib
 import logging
 import re
 
@@ -28,7 +27,7 @@ class SolrWriter(object):
 
     def get_conn(self):
         if self.conn is None:
-            self.conn = httplib.HTTPConnection(self.host)
+            self.conn = six.moves.http_client.HTTPConnection(self.host)
         return self.conn
 
     def request(self, xml):

@@ -1,18 +1,21 @@
 """Upstream customizations."""
 
-import os.path
-import web
-import random
-import hashlib
 import datetime
+import hashlib
+import io
+import os.path
+import random
+
+from six import PY3
+
+import web
 
 from infogami import config
 from infogami.infobase import client
 from infogami.utils import delegate, app, types
 from infogami.utils.view import public, safeint, render
+from infogami.utils.view import render_template  # noqa: F401 used for its side effects
 from infogami.utils.context import context
-
-from utils import render_template  # noqa: F401  render_template used for side effects
 
 from openlibrary import accounts
 
@@ -68,7 +71,8 @@ def static_url(path):
     """
     pardir = os.path.pardir
     fullpath = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, "static", path))
-    digest = hashlib.md5(open(fullpath).read()).hexdigest()
+    with io.open(fullpath, 'rb') as in_file:
+        digest = hashlib.md5(in_file.read()).hexdigest()
     return "/static/%s?v=%s" % (path, digest)
 
 class DynamicDocument:
