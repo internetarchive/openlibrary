@@ -309,11 +309,9 @@ def parse_json(raw_file):
         return None
     return json_result
 
-def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None, offset=None, fields=None):
-    # called by do_search
-    if spellcheck_count == None:
-        spellcheck_count = default_spellcheck_count
 
+def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None,
+                   offset=None, fields=None, facet=True):
     # use page when offset is not specified
     if offset is None:
         offset = rows * (page - 1)
@@ -329,14 +327,19 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
         ('q.op', 'AND'),
         ('start', offset),
         ('rows', rows),
-
-        ('spellcheck', 'true'),
-        ('spellcheck.count', spellcheck_count),
-        ('facet', 'true'),
     ]
 
-    for facet in FACET_FIELDS:
-        params.append(('facet.field', facet))
+    if spellcheck_count is None:
+        spellcheck_count = default_spellcheck_count
+
+    if spellcheck_count:
+        params.append(('spellcheck', 'true'))
+        params.append(('spellcheck.count', spellcheck_count))
+
+    if facet:
+        params.append(('facet', 'true'))
+        for facet in FACET_FIELDS:
+            params.append(('facet.field', facet))
 
     if q_list:
         if use_dismax:
@@ -854,7 +857,8 @@ class author_search_json(author_search):
 
 
 @public
-def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*'):
+def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet=True,
+                spellcheck_count=None):
     """
     params:
     query: dict
@@ -874,7 +878,9 @@ def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*'):
                                                       page=page,
                                                       sort=sorts.get(sort),
                                                       offset=offset,
-                                                      fields=fields)
+                                                      fields=fields,
+                                                      facet=facet,
+                                                      spellcheck_count=spellcheck_count)
         response = json.loads(reply)['response'] or ''
     except (ValueError, IOError) as e:
         logger.error("Error in processing search API.")
@@ -909,9 +915,14 @@ class search_json(delegate.page):
             page = safeint(query.pop("page", "1"), default=1)
 
         fields = query.pop('fields', '*').split(',')
+        facet = query.pop('_facet', 'true').lower() in ['true']
+        spellcheck_count = safeint(
+            query.pop("_spellcheck_count", default_spellcheck_count),
+            default=default_spellcheck_count)
 
         response = work_search(query, sort=sort, page=page, offset=offset, limit=limit,
-                               fields=fields)
+                               fields=fields, facet=facet,
+                               spellcheck_count=spellcheck_count)
 
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=True))

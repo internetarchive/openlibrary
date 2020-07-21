@@ -195,9 +195,12 @@ export class SearchBar {
      */
     static composeSearchUrl(facetEndpoint, q, json=false, limit=null, fields=null) {
         let url = facetEndpoint;
-        if (json) url += '.json';
+        if (json) {
+            url += `.json?q=${q}&_facet=false&_spellcheck_count=0`;
+        } else {
+            url += `?q=${q}`;
+        }
 
-        url += `?q=${q}`;
         if (limit) url += `&limit=${limit}`;
         if (fields) url += `&fields=${fields.map(encodeURIComponent).join(',')}`;
         url += `&mode=${SearchUtils.mode.read()}`;
