@@ -43,15 +43,15 @@ $var title: $_(title)
       <table class="import-table table-fixed" style="max-height: 360px;">
         <thead>
           <tr>
-            <th class="toggle-all">
+            <th scope="col" class="toggle-all">
               <input type="checkbox" checked="checked">
             </th>
             $for key in keys:
-              <th>$key</th>
-            <th class="import-status hidden">
+              <th scope="col">$key</th>
+            <th scope="col" class="import-status hidden">
               Status
             </th>
-            <th class="status-reason hidden">
+            <th scope="col" class="status-reason hidden">
               Reason
             </th>
         </thead>

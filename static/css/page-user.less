@@ -38,6 +38,7 @@
 @import (less) "less/mixins.less";
 @import (less) "less/font-families.less";
 @import (less) "components/flash-messages.less";
+@import (less) "less/z-index.less";
 
 body#user {
   background-color: @beige;
@@ -107,59 +108,71 @@ th.toggle-all {
   background: @primary-blue;
 }
 
-.table-fixed {  
-  margin-top: 20px; 
-  table-layout: auto; 
-  width:100%; 
-  overflow: scroll;
+.import-table {
+  border: 2px solid @lightest-grey;
+  max-width:100%;
+	table-layout:fixed;
+	margin:auto;
+  th, td {
+    padding:5px 10px;
+  }
+  thead, tfoot {
+    background:#f9f9f9;
+    display:table;
+    width:100%;
+    width:calc(100% - 18px);
+  }
+  tbody {
+    height:300px;
+    overflow:auto;
+    overflow-x:hidden;
+    display:block;
+  }
+  tbody tr {
+    display:table;
+    table-layout:fixed;
+  }
+  tbody tr:nth-child(odd) {
+    background: @lightest-grey;
+  }
 }
-  
-.table-fixed thead th {
-  position: sticky;
-  position: -webkit-sticky;
-  top: 0;
-  z-index: 999;
-  background-color: #fff;
+
+.table-fixed {
+  thead th {
+    top: 0;
+    z-index: @z-index-level-5;
+    background-color: @white;
+  }
 }
 
 .error-imported {
-    font-weight: bold;
-    color: red;
+  font-weight: bold;
+  color: @red;
 }
 
 .success-imported {
-    color: green;
-    font-weight: bold;
+  color: @green;
+  font-weight: bold;
 }
 
 tr.table-row.selected{
-  border: 2px solid green;
+  border: 2px solid @green;
 }
 
 #myProgress {
   border-radius: 10px;
   width: 100%;
-  background-color: #ddd;
+  background-color: @light-grey;
 }
 
 #myBar {
   width: 0%;
   border-radius: 10px;
   height: 30px;
-  background-color: #4CAF50;
+  background-color: @green;
   text-align: center;
   line-height: 30px;
-  color: white;
-}
-
-.import-table {
-  border: 2px solid @lightest-grey;
-  td, th {
-    padding: 5px;
-  }
-  tbody tr:nth-child(odd) {
-    background: @lightest-grey;
-  }
+  color: @white;
 }
 
 .olform--decoration {
