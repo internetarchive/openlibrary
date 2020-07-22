@@ -29,7 +29,6 @@ from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
     audit_accounts, Account, OpenLibraryAccount, InternetArchiveAccount, valid_email)
 from openlibrary.core.sponsorships import get_sponsored_editions
-from openlibrary.plugins.worksearch import search
 from openlibrary.plugins.upstream import borrow, forms, utils
 
 from six.moves import range
@@ -880,70 +879,26 @@ class import_books(delegate.page):
 class fetch_goodreads(delegate.page):
     path = "/account/import/goodreads"
 
-    @classmethod
-    def get_works_by_isbns(cls, isbns):
-        solr = search.get_solr()
-        result = solr.select(
-            query="isbn:(%s)" % ' OR '.join([isbn for isbn in isbns]),
-            rows=1000,
-            fields=[
-                'key',
-                'cover_edition_key',
-                'isbn',
-            ])
-        return result.get('docs', {})
-
     @require_login
     def POST(self):
         import csv
-        import requests
-        from bs4 import BeautifulSoup
-        i = web.input(username='', password='', csv={}, isbns='')
-        url = 'https://www.goodreads.com'
-        user = accounts.get_current_user()
-
-        if not i.csv.value:
-            s = requests.Session()
-            r = s.get(url)
-            bs = BeautifulSoup(r.content)
-
-            r = s.post('https://www.goodreads.com/user/sign_in', data={
-                'user[email]': i.username,
-                'user[password]': i.password,
-                'authenticity_token': bs.find('input', {
-                    'name': 'authenticity_token'}).get('value', ''),
-                'n': bs.find('input', {'name': 'n'}).get('value', '')
-            })
-            user_id = re.findall('\/user\/show/([0-9]+)', r.content)
-            if user_id:
-                r = s.get(
-                    '%s/review_porter/export/%s/goodreads_export.csv' % (
-                        url, user_id[0]), allow_redirects=True)
-                csv_file = r.content
-
-        csv_file = csv.reader((i.csv.value or csv_file).splitlines(),
+        i = web.input(csv={})
+        csv_file = csv.reader((i.csv.value).splitlines(),
                               delimiter=',', quotechar='"')
         header = csv_file.next()
         books = {}
         books_wo_isbns = {} 
-        isbns = []
-        # todo, add olid to each row
         for book in list(csv_file):
             _book = dict(zip(header, book))
-            try:
-                _book['ISBN'] = re.findall('[^="]+', _book['ISBN'])[0]
-                _book['ISBN13'] = re.findall('[^="]+', _book['ISBN13'])[0]
-                #Todo check how does the work search work with isbn 13
-                if _book['ISBN']:
-                    isbns.append(_book['ISBN'])
-                    books[_book['ISBN']] = _book
-                elif _book['ISBN13']:
-                    isbns.append(_book['ISBN13'])
-                    books[_book['ISBN13']] = _book
-                else:
-                    raise Exception("No ISBN 10/13")
-            except:
-                books_wo_isbns[_book['Book Id']] = _book       
+            _book['ISBN'] = _book['ISBN'].replace('"','').replace('=','')
+            _book['ISBN13'] = _book['ISBN13'].replace('"','').replace('=','')
+            if _book['ISBN'] != '':
+                books[_book['ISBN']] = _book
+            elif _book['ISBN13'] != '':
+                books[_book['ISBN13']] = _book
+                books[_book['ISBN13']]['ISBN'] = _book['ISBN13']
+            else:
+                books_wo_isbns[_book['Book Id']] = _book     
         return render['account/import'](books, books_wo_isbns)
 
 
