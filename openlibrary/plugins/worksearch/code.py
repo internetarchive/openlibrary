@@ -393,7 +393,7 @@ def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
     (reply, solr_select, q_list) = run_solr_query(
         param, rows, page, sort, spellcheck_count)
     is_bad = False
-    if not reply or reply.startswith('<html'):
+    if not reply or reply.startswith(b'<html'):
         is_bad = True
     if not is_bad:
         try:

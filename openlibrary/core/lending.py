@@ -888,6 +888,8 @@ class IA_Lending_API:
             params['developer'] = config_ia_loan_api_developer_key
         params['token'] = config_ia_ol_shared_key
         payload = urllib.parse.urlencode(params)
+        if not isinstance(payload, bytes):
+            payload = payload.encode("utf-8")
 
         try:
             jsontext = urllib.request.urlopen(config_ia_loan_api_url, payload,
