@@ -107,6 +107,51 @@ th.toggle-all {
   background: @primary-blue;
 }
 
+.table-fixed {  
+  margin-top: 20px; 
+  table-layout: auto; 
+  width:100%; 
+  overflow: scroll;
+}
+  
+.table-fixed thead th {
+  position: sticky;
+  position: -webkit-sticky;
+  top: 0;
+  z-index: 999;
+  background-color: #fff;
+}
+
+.error-imported {
+    font-weight: bold;
+    color: red;
+}
+
+.success-imported {
+    color: green;
+    font-weight: bold;
+}
+
+tr.table-row.selected{
+  border: 2px solid green;
+}
+
+#myProgress {
+  border-radius: 10px;
+  width: 100%;
+  background-color: #ddd;
+}
+
+#myBar {
+  width: 0%;
+  border-radius: 10px;
+  height: 30px;
+  background-color: #4CAF50;
+  text-align: center;
+  line-height: 30px;
+  color: white;
+}
+
 .import-table {
   border: 2px solid @lightest-grey;
   td, th {
