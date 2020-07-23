@@ -30,7 +30,7 @@ $var title: $_(title)
     </form>
 
   $else:  
-    <div style="display: flex;">
+    <div class="import-buttons">
       <div id="myProgress" class="hidden">
         <div id="myBar">Importing...</div>
       </div>
@@ -60,7 +60,7 @@ $var title: $_(title)
         </thead>
         <tbody>
           $for isbn in books:
-            <tr class="table-row $isbn">
+            <tr class="table-row" isbn="$isbn">
               <td>
               $ dict = {'ISBN':'', 'Title':'', 'My Rating':'', 'Exclusive Shelf':''}
               $ k = ['ISBN', 'My Rating', 'Exclusive Shelf']

@@ -59,16 +59,14 @@ export function initGoodreadsImport() {
                 checked = input.attr('checked');
             var value = JSON.parse(input.val().replace(/'/g, '"'));
             var shelf = value['Exclusive Shelf'];
+            const shelves = {'read': 3, 'currently-reading': 2,  'to-read': 1};
             var shelf_id = 0;
-            if (shelf == 'read')
-                shelf_id = 3;
-            else if (shelf == 'to-read')
-                shelf_id = 1;
-            else if (shelf == 'currently-reading')
-                shelf_id = 2;
+            if (shelves[shelf]) {
+                shelf_id = shelves[shelf];
+            }
             if (checked && shelf_id != 0) {
                 prevPromise = prevPromise.then(function () { // prevPromise changes in each iteration
-                    $(`tr.table-row.${value['ISBN']}`).addClass('selected');
+                    $(`[isbn=${value['ISBN']}]`).addClass('selected');
                     return getWork(value['ISBN']); // return a new Promise
                 }).then(function (data) {
                     var obj = JSON.parse(data);
@@ -93,33 +91,33 @@ export function initGoodreadsImport() {
                                     },
                                     datatype: 'json',
                                     success: function () {
-                                        $(`tr.table-row.${value['ISBN']}`).append('<td class="success-imported">Imported</td>')
-                                        $(`tr.table-row.${value['ISBN']}`).removeClass('selected');
+                                        $(`[isbn=${value['ISBN']}]`).append('<td class="success-imported">Imported</td>')
+                                        $(`[isbn=${value['ISBN']}]`).removeClass('selected');
                                     },
                                     fail: function () {
-                                        $(`tr.table-row.${value['ISBN']}`).append('<td class="error-imported">Error</td><td class="error-imported">Failed to add Rating</td>')
-                                        $(`tr.table-row.${value['ISBN']}`).removeClass('selected');
+                                        $(`[isbn=${value['ISBN']}]`).append('<td class="error-imported">Error</td><td class="error-imported">Failed to add Rating</td>')
+                                        $(`[isbn=${value['ISBN']}]`).removeClass('selected');
                                     }
                                 });
                             }
                             else {
-                                $(`tr.table-row.${value['ISBN']}`).removeClass('selected');
+                                $(`[isbn=${value['ISBN']}]`).removeClass('selected');
                             }
                         },
                         fail: function () {
-                            $(`tr.table-row.${value['ISBN']}`).append('<td class="error-imported">Error</td><td class="error-imported">Failed to add book to reading log</td>')
-                            $(`tr.table-row.${value['ISBN']}`).removeClass('selected');
+                            $(`[isbn=${value['ISBN']}]`).append('<td class="error-imported">Error</td><td class="error-imported">Failed to add book to reading log</td>')
+                            $(`[isbn=${value['ISBN']}]`).removeClass('selected');
                         }
                     });
                     func1(++count);
                 }).catch(function () {
-                    $(`tr.table-row.${value['ISBN']}`).append('<td class="error-imported">Error</td><td class="error-imported">Book not in collection</td>')
-                    $(`tr.table-row.${value['ISBN']}`).removeClass('selected');
+                    $(`[isbn=${value['ISBN']}]`).append('<td class="error-imported">Error</td><td class="error-imported">Book not in collection</td>')
+                    $(`[isbn=${value['ISBN']}]`).removeClass('selected');
                     func1(++count);
                 });
             }
             else if (checked && shelf_id == 0) {
-                $(`tr.table-row.${value['ISBN']}`).append('<td class="error-imported">Error</td><td class="error-imported">Book in different Shelf</td>');
+                $(`[isbn=${value['ISBN']}]`).append('<td class="error-imported">Error</td><td class="error-imported">Book in different Shelf</td>');
                 func1(++count);
             }
         });

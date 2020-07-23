@@ -139,6 +139,10 @@ class work_bookshelves(delegate.page):
         return simplejson.dumps(result)
 
     def POST(self, work_id):
+        """
+        We can't use the action because we do want to add the book if it doesn't exist yet. 
+        If the book already exists, we don't want to remove it.
+        """
         from openlibrary.core.models import Bookshelves
 
         user = accounts.get_current_user()
