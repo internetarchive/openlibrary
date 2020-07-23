@@ -4,6 +4,9 @@ services:
     image: oldev:latest
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
+      # Branch to pull infogami from. Leave blank to use production infogami for py2, master for py3
+      # Set to "local" to not pull anything and use whatever you've got locally in vendor/infogami
+      # ^ NOTE: Also need to uncomment the infogami volume mount (below) if doing this!
       - INFOGAMI=${INFOGAMI:-}
     build:
       context: .
@@ -23,6 +26,9 @@ services:
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
       - .:/openlibrary
+      # If you're making changes to infogami, enable this, and set INFOGAMI=local when
+      # starting docker-compose
+#      - ./vendor/infogami:/openlibrary/vendor/infogami
     networks:
       - webnet
   solr:
