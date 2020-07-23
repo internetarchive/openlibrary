@@ -59,9 +59,9 @@ export function initGoodreadsImport() {
                 checked = input.attr('checked');
             var value = JSON.parse(input.val().replace(/'/g, '"'));
             var shelf = value['Exclusive Shelf'];
-            const shelves = {'read': 3, 'currently-reading': 2,  'to-read': 1};
+            const shelves = {read: 3, 'currently-reading': 2,  'to-read': 1};
             var shelf_id = 0;
-            if (shelves[shelf]) {
+            if (shelves[shelf]){
                 shelf_id = shelves[shelf];
             }
             if (checked && shelf_id != 0) {
