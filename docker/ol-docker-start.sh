@@ -8,14 +8,20 @@ COVER_CONFIG=conf/coverstore.yml
 
 python --version
 
-if [[ "$PYENV_VERSION" = 3* || -n $INFOGAMI ]]; then
-  pushd vendor/infogami
-  # Use Python 3 compatible infogami
-  git pull origin "${INFOGAMI:-master}"
-  popd
+if [[ "$INFOGAMI" = "local" ]]; then
+  # If we're using the local copy of infogami, don't pull anything
+  # and just use what's there
+  echo "Using local infogami"
 else
-  # Use production infogami
-  make git
+  if [[ "$PYENV_VERSION" = 3* || -n $INFOGAMI ]]; then
+    pushd vendor/infogami
+    # Use Python 3 compatible infogami
+    git pull origin "${INFOGAMI:-master}"
+    popd
+  else
+    # Use production infogami
+    make git
+  fi
 fi
 
 reindex-solr() {
