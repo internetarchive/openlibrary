@@ -2,7 +2,7 @@ import Promise from 'promise-polyfill';
 
 export function initGoodreadsImport() {
 
-    var l, elem, count, prevPromise, input, value, shelf, shelf_id;
+    var l, elem, count, prevPromise;
 
     $(document).on('click', 'th.toggle-all input', function () {
         var checked = $(this).attr('checked');
@@ -34,7 +34,7 @@ export function initGoodreadsImport() {
         $('.import-submit').attr('value', `Import ${l} Books`);
     });
 
-    function incrementProgessBar(value) {
+    function func1(value) {
         l = $('.add-book[checked*="checked"]').size();
         elem = document.getElementById('myBar');
         elem.style.width = `${value * (100 / l)}%`;
@@ -55,11 +55,11 @@ export function initGoodreadsImport() {
         count = 0;
         prevPromise = Promise.resolve();
         $('input.add-book').each(function () {
-            input = $(this);
-            var checked = input.attr('checked');
-            value = JSON.parse(input.val().replace(/'/g, '"'));
-            shelf = value['Exclusive Shelf'];
-            shelf_id = 0;
+            var input = $(this),
+                checked = input.attr('checked');
+            var value = JSON.parse(input.val().replace(/'/g, '"'));
+            var shelf = value['Exclusive Shelf'];
+            var shelf_id = 0;
             if (shelf == 'read')
                 shelf_id = 3;
             else if (shelf == 'to-read')
@@ -111,16 +111,16 @@ export function initGoodreadsImport() {
                             $(`tr.table-row.${value['ISBN']}`).removeClass('selected');
                         }
                     });
-                    incrementProgessBar(++count);
+                    func1(++count);
                 }).catch(function () {
                     $(`tr.table-row.${value['ISBN']}`).append('<td class="error-imported">Error</td><td class="error-imported">Book not in collection</td>')
                     $(`tr.table-row.${value['ISBN']}`).removeClass('selected');
-                    incrementProgessBar(++count);
+                    func1(++count);
                 });
             }
             else if (checked && shelf_id == 0) {
                 $(`tr.table-row.${value['ISBN']}`).append('<td class="error-imported">Error</td><td class="error-imported">Book in different Shelf</td>');
-                incrementProgessBar(++count);
+                func1(++count);
             }
         });
         $('td.books-wo-isbn').each(function () {

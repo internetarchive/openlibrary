@@ -108,41 +108,55 @@ th.toggle-all {
   background: @primary-blue;
 }
 
-.import-table {
-  border: 2px solid @lightest-grey;
-  max-width:100%;
-	table-layout:fixed;
-	margin:auto;
-  th, td {
-    padding:5px 10px;
+.div-class {
+  margin-top: 20px;
+  display: inline-block;
+  height: 360px;
+  overflow: auto;
+  width:100%;
+}
+
+.import-table{
+  border:2px;
+  th {
+    padding: 5px 10px;
   }
-  thead, tfoot {
-    background:#f9f9f9;
-    display:table;
+  td {
+    padding: 5px 10px;
+  }
+  thead {
+    th {
+      position: sticky;
+      top: 0;
+      background-color: @white;
+    }
+  }
+  tbody{
     width:100%;
-    width:calc(100% - 18px);
-  }
-  tbody {
-    height:300px;
-    overflow:auto;
-    overflow-x:hidden;
-    display:block;
-  }
-  tbody tr {
-    display:table;
-    table-layout:fixed;
-  }
-  tbody tr:nth-child(odd) {
-    background: @lightest-grey;
+    tr {
+      background-color: @white;
+    }
   }
 }
 
-.table-fixed {
-  thead th {
-    top: 0;
-    z-index: @z-index-level-5;
-    background-color: @white;
-  }
+#myProgress {
+  margin-top: 5px;
+  border-radius: 10px;
+  width: 100%;
+  background-color: @lightest-grey;
+}
+
+#myBar {
+  width: 0%;
+  border-radius: 10px;
+  padding: 4px;
+  background-color: @green;
+  text-align: center;
+  color: @white;
+}
+
+.import-table tbody tr:nth-child(odd){
+  background-color: @lightest-grey;
 }
 
 .error-imported {
@@ -157,22 +171,6 @@ th.toggle-all {
 
 tr.table-row.selected{
   border: 2px solid @green;
-}
-
-#myProgress {
-  border-radius: 10px;
-  width: 100%;
-  background-color: @light-grey;
-}
-
-#myBar {
-  width: 0%;
-  border-radius: 10px;
-  height: 30px;
-  background-color: @green;
-  text-align: center;
-  line-height: 30px;
-  color: @white;
 }
 
 .olform--decoration {

@@ -14,6 +14,7 @@ $var title: $_(title)
 </div>
 
 <div id="contentBody">
+  
   <h3>$_("Import from Goodreads")</h3>
   $if not books:
     <form method="POST" action="/account/import/goodreads"
@@ -29,18 +30,20 @@ $var title: $_(title)
     </form>
 
   $else:  
-    <div id="myProgress" class="hidden">
-      <div id="myBar">Importing...</div>
-    </div>
-    <div>
-      <button class="cancel-button hidden cta-btn cta-btn--available cta-btn--small"
-        onclick="window.location.reload();" >Cancel</button>
+    <div style="display: flex;">
+      <div id="myProgress" class="hidden">
+        <div id="myBar">Importing...</div>
+      </div>
+      <div>
+        <button class="hidden cta-btn cta-btn--available cta-btn--small cancel-button"
+          onclick="window.location.reload();" >Cancel</button>
+      </div>
     </div>
 
-    
-      <input type="submit" class="import-submit cta-btn cta-btn--unavailable" value="Import $len(books) Books">
-      $ keys = ['ISBN', 'Title', 'My Rating', 'Exclusive Shelf']
-      <table class="import-table table-fixed" style="max-height: 360px;">
+    <input type="submit" class="import-submit cta-btn cta-btn--unavailable" value="Import $len(books) Books">
+    $ keys = ['ISBN', 'Title', 'My Rating', 'Exclusive Shelf']
+    <div class="div-class">
+      <table class="import-table">
         <thead>
           <tr>
             <th scope="col" class="toggle-all">
@@ -82,4 +85,5 @@ $var title: $_(title)
             </tr>
         </tbody>
       </table>
+    </div>
 </div>
