@@ -780,15 +780,15 @@ def save_error():
         os.makedirs(dir)
 
     error = web.safestr(web.djangoerror())
-    f = open(path, 'w')
-    f.write(error)
-    f.close()
-
+    with open(path, 'w') as f:
+        f.write(error)
+    logger.error("{} saved to {}".format(error, path))
     print('error saved to', path, file=web.debug)
     return name
 
 def internalerror():
-    i = web.input(_method='GET', debug='false')
+    i = web.input(_method='GET', debug='true')  # TODO: cclauss "false"
+    logger.error("internalerror() got {}".format(increment_error_count))
     name = save_error()
 
     # TODO: move this stats stuff to plugins\openlibrary\stats.py
