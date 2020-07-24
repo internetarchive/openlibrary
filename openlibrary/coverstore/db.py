@@ -1,6 +1,8 @@
-import web
-import config
 import datetime
+
+import web
+
+from openlibrary.coverstore import config
 
 _categories = None
 _db = None
