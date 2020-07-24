@@ -41,12 +41,16 @@ class contact(delegate.page):
         if not all([email, topic, description]):
             return ""
 
-        recap = get_recaptcha()
-        if recap and not recap.validate():
-            return render_template("message.html",
-                'Recaptcha solution was incorrect',
-                'Please <a href="javascript:history.back()">go back</a> and try again.'
-            )
+        hashed_ip = hashlib.md5(web.ctx.ip).hexdigest()
+        has_emailed_recently = get_memcache().get('contact-POST-%s' % hashed_ip)
+        if has_emailed_recently:
+            recap = get_recaptcha()
+            if recap and not recap.validate():
+                return render_template(
+                    "message.html",
+                    'Recaptcha solution was incorrect',
+                    ('Please <a href="javascript:history.back()">go back</a> and try '
+                     'again.'))
 
         default_assignees = config.get("support_default_assignees",{})
         topic_key = str(topic.replace(" ","_").lower())
@@ -64,7 +68,6 @@ class contact(delegate.page):
         message = SUPPORT_EMAIL_TEMPLATE % locals()
         sendmail(email, assignee, subject, message)
 
-        hashed_ip = hashlib.md5(web.ctx.ip).hexdigest()
         get_memcache().set(
             'contact-POST-%s' % hashed_ip, "true", time=15 * MINUTE_SECS
         )
