@@ -7,12 +7,14 @@
     "watch": "webpack --watch --mode=development --progress",
     "build-assets:webpack": "NODE_ENV=production webpack --mode=production",
     "build-assets": "make js && make css",
-    "check-bundles": "npm run build-assets && bundlesize",
+    "build-assets:css": "make css",
+    "build-assets:js": "make js",
     "svg-min": "svgo --config .svgo.yml static/images/**/*.svg static/images/*.svg",
     "lint:fix": "eslint --config .eslintrc.json . --fix && stylelint --syntax less --fix static/css/",
-    "lint:js": "eslint --config .eslintrc.json .",
+    "lint:js": "npm run build-assets:js && eslint --config .eslintrc.json .",
     "test:unit": "jest --testRegex tests/unit/**/test.*.js",
-    "test": "npm run check-bundles && stylelint --syntax less static/css/ && npm run lint:js && npm run test:unit"
+    "test:css": "npm run build-assets:css && bundlesize && stylelint --syntax less static/css/",
+    "test": "npm run test:css && npm run lint:js && npm run test:unit"
   },
   "devDependencies": {
     "@babel/core": "7.2.2",

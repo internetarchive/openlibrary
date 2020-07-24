@@ -71,10 +71,16 @@ ifndef CONTINUOUS_INTEGRATION
 	$(PYTHON) -m flake8 . --count --exclude=$(FLAKE_EXCLUDE) --exit-zero --max-complexity=10 --max-line-length=$(GITHUB_EDITOR_WIDTH) --statistics
 endif
 
+test-css:
+	npm run test:css
+
 test-js:
-	npm test
+	npm run lint:js
+
+test-unit:
+	npm run test:unit
 
 test-py:
 	pytest openlibrary/tests openlibrary/mocks openlibrary/olbase openlibrary/plugins openlibrary/utils openlibrary/catalog openlibrary/coverstore scripts/tests
 
-test: test-js test-py
+test: test-css test-js test-unit test-py
