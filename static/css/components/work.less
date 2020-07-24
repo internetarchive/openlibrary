@@ -11,13 +11,9 @@
 .editionCover {
   min-height: 10px;
   padding-right: 1.5em;
-
-  .illustration {
-    transform: perspective(800px) rotateX(10deg);
-    transition: transform 0.8s, opacity 0.8s
-  }
-  .illustration:hover {
+  .cover-animation:hover {
     transform: perspective(465px) rotateX(0deg) rotateY(-10deg);
+    transition: transform 0.8s, opacity 0.8s;
     opacity: 0.8;
   }
 }
