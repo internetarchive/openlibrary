@@ -75,7 +75,7 @@ test-css:
 	npm run test:css
 
 test-js:
-	npm run lint:js
+	npm run test:js
 
 test-unit:
 	npm run test:unit
@@ -83,4 +83,5 @@ test-unit:
 test-py:
 	pytest openlibrary/tests openlibrary/mocks openlibrary/olbase openlibrary/plugins openlibrary/utils openlibrary/catalog openlibrary/coverstore scripts/tests
 
-test: test-css test-js test-unit test-py
+test: 
+	npm run test && make test-py
