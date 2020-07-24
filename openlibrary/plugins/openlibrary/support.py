@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 
 import web
 import logging
@@ -20,7 +21,9 @@ class contact(delegate.page):
         i = web.input(path=None)
         user = accounts.get_current_user()
         email = user and user.email
-        has_emailed_recently = get_memcache().get('contact-POST-%s' % web.ctx.ip)
+
+        hashed_ip = hashlib.md5(web.ctx.ip).hexdigest()
+        has_emailed_recently = get_memcache().get('contact-POST-%s' % hashed_ip)
         recaptcha = has_emailed_recently and get_recaptcha()
         template = render_template("support", email=email, url=i.path,
                                    recaptcha=recaptcha)
@@ -61,8 +64,9 @@ class contact(delegate.page):
         message = SUPPORT_EMAIL_TEMPLATE % locals()
         sendmail(email, assignee, subject, message)
 
+        hashed_ip = hashlib.md5(web.ctx.ip).hexdigest()
         get_memcache().set(
-            'contact-POST-%s' % web.ctx.ip, "true", time=15 * MINUTE_SECS
+            'contact-POST-%s' % hashed_ip, "true", time=15 * MINUTE_SECS
         )
         return render_template("email/case_created", assignee)
 
