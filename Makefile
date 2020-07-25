@@ -42,9 +42,6 @@ i18n:
 
 git:
     git submodule update --init
-	git submodule init
-	git submodule sync
-	git submodule update
 
 clean:
 	rm -rf $(BUILD)
