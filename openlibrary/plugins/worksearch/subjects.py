@@ -16,7 +16,9 @@ from six.moves import urllib
 
 from openlibrary.core.models import Subject
 from openlibrary.core.lending import add_availability
+from openlibrary.plugins.worksearch.search import work_search
 from openlibrary.utils import str_to_key, finddict
+
 
 __all__ = [
     "SubjectEngine", "get_subject"
@@ -219,7 +221,6 @@ class SubjectEngine:
         else:
             kw = {}
 
-        from search import work_search
         result = work_search(
             q, offset=offset, limit=limit, sort=sort, **kw)
         if not result:

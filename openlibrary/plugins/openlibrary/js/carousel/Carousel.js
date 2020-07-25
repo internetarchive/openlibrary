@@ -142,7 +142,7 @@ const Carousel = {
                 // this allows us to pre-load before hitting last page
                 var lastSlideOn2ndLastPage = (totalSlides - numActiveSlides);
 
-                if (!loadMore.locked && (currentLastSlide >= lastSlideOn2ndLastPage)) {
+                if (!loadMore.locked && (currentLastSlide >= lastSlideOn2ndLastPage) && (currentLastSlide < totalSlides)) {
                     loadMore.locked = true; // lock for critical section
                     document.body.style.cursor='wait'; // change mouse to spin
 

@@ -713,7 +713,7 @@ def get_donation_include(include):
     html = ''
     if include == 'true' and "dev" in web.ctx.features:
         try:
-            html += opener.open(url_banner_source + param, timeout=3).read()
+            html += opener.open(url_banner_source + param, timeout=3).read().decode("utf-8")
             # Donation banner is temporarily (Jan 2020) disabled on prod, but available on dev (so that it can be used
             # for testing). To avoid it appearing like it's working, display a warning if it loads correctly that it's
             # disabled on prod.

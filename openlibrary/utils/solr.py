@@ -94,6 +94,8 @@ class Solr:
             data = urllib.request.urlopen(url, timeout=10).read()
         else:
             logger.info("solr request: %s ...", url)
+            if not isinstance(payload, bytes):
+                payload = payload.encode("utf-8")
             request = urllib.request.Request(url, payload, {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"})
             data = urllib.request.urlopen(request, timeout=10).read()
         return self._parse_solr_result(

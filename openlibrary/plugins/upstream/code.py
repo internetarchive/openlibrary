@@ -1,28 +1,26 @@
 """Upstream customizations."""
 
-import os.path
-import web
-import random
-import md5
 import datetime
+import hashlib
+import io
+import os.path
+import random
+
+from six import PY3
+
+import web
 
 from infogami import config
 from infogami.infobase import client
 from infogami.utils import delegate, app, types
 from infogami.utils.view import public, safeint, render
+from infogami.utils.view import render_template  # noqa: F401 used for its side effects
 from infogami.utils.context import context
-
-from utils import render_template
 
 from openlibrary import accounts
 
-import utils
-import addbook
-import models
-import covers
-import borrow
-import recentchanges
-import merge_authors
+from openlibrary.plugins.upstream import addbook, covers, merge_authors, models, utils
+from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused imports?
 
 
 if not config.get('coverstore_url'):
@@ -63,7 +61,7 @@ class merge_work(delegate.page):
 def vendor_js():
     pardir = os.path.pardir
     path = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, 'static', 'upstream', 'js', 'vendor.js'))
-    digest = md5.md5(open(path).read()).hexdigest()
+    digest = hashlib.md5(open(path).read()).hexdigest()
     return '/static/upstream/js/vendor.js?v=' + digest
 
 @web.memoize
@@ -73,7 +71,8 @@ def static_url(path):
     """
     pardir = os.path.pardir
     fullpath = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, "static", path))
-    digest = md5.md5(open(fullpath).read()).hexdigest()
+    with io.open(fullpath, 'rb') as in_file:
+        digest = hashlib.md5(in_file.read()).hexdigest()
     return "/static/%s?v=%s" % (path, digest)
 
 class DynamicDocument:
@@ -104,7 +103,7 @@ class DynamicDocument:
 
     def md5(self):
         """Returns md5 checksum of the combined documents"""
-        return md5.md5(self.get_text()).hexdigest()
+        return hashlib.md5(self.get_text()).hexdigest()
 
 def create_dynamic_document(url, prefix):
     """Creates a handler for `url` for servering combined js/css for `prefix/*` pages"""
@@ -258,7 +257,7 @@ def setup():
     covers.setup()
     merge_authors.setup()
 
-    import data
+    from openlibrary.plugins.upstream import data, jsdef
     data.setup()
 
     # setup template globals
@@ -277,9 +276,8 @@ def setup():
         "all": all,
         "any": any,
         "locals": locals
-    });
+    })
 
-    import jsdef
     web.template.STATEMENT_NODES["jsdef"] = jsdef.JSDefNode
 
     setup_jquery_urls()

@@ -1,6 +1,6 @@
 $def with (doc, decorations=None, cta=True, availability=None, extra=None)
 
-$ availability = availability or doc.get('availability', {})
+$ availability = availability or doc.get('availability') or {}
 $ ocaid = availability.get('identifier')
 $ is_work = doc.get('type', {}).get('key') == '/type/work'
 $ book_url = doc.url() if is_work else doc.key

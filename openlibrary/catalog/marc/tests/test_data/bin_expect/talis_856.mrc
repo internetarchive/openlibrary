@@ -6,10 +6,12 @@
   "subtitle": "a guide to the Arab-Israeli conflict", 
   "links": [
     {
-      "url": "http://bibpurl.oclc.org/web/451"
+      "url": "http://bibpurl.oclc.org/web/451",
+      "title": "External source"
     }, 
     {
-      "url": "http://www.us-israel.org/jsourc e/myths/cover.html"
+      "url": "http://www.us-israel.org/jsource/myths/cover.html",
+      "title": "External source"
     }
   ], 
   "title": "Myths and facts", 

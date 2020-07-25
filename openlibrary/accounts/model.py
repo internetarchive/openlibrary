@@ -54,6 +54,8 @@ def verify_hash(secret_key, text, hash):
     return generate_hash(secret_key, text, salt) == hash
 
 def generate_hash(secret_key, text, salt=None):
+    if not isinstance(secret_key, bytes):
+        secret_key = secret_key.encode('utf-8')
     salt = salt or hmac.HMAC(secret_key, str(random.random()).encode('utf-8'),
                              hashlib.md5).hexdigest()[:5]
     hash = hmac.HMAC(secret_key, (salt + web.safestr(text)).encode('utf-8'),
