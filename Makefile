@@ -41,10 +41,7 @@ i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
 git:
-    git submodule update --init
-	git submodule init
-	git submodule sync
-	git submodule update
+	git submodule update --init
 
 clean:
 	rm -rf $(BUILD)
