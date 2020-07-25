@@ -225,11 +225,15 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
       <a name="work-details" class="section-anchor"></a>
       <div class="tab-section">
-        <h3><a href="$work.key">$work_title</a>
+        <h3><a href="$work.key">$work_title</a></h3>
+          $if work and work.subtitle:
+            <h4 class="work-subtitle">
+              $work.subtitle
+            </h4>
           $if work and work.first_publish_year:
-            &mdash; <span class="first-published">
+            <p class="first-published-date">
               $_("First published in %s", work.first_publish_year)
-            </span>
+            </p>
         </h3>
         <hr>
 
@@ -305,6 +309,21 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
       <a name="edition-details" class="section-anchor"></a>
       <div class="tab-section">
+        $if not page.is_fake_record():
+          $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
+            $if edition and page.type.key in ["/type/work"]:
+                $ edit_url = edition.url(suffix="/edit")
+            $else:
+                $ edit_url = page.url(suffix="/edit")
+          $else:
+            $ edit_url = page.key + "?m=edit"
+          <div id="editButton">
+            <!-- FIXME: accesskey / keyboard shortcut needs i18n -->
+            <a class="linkButton larger" href="$edit_url" title="$_('Edit this template')"
+              data-ol-link-track="CTAClick|Edit" accesskey="e">$_("Edit")</a>
+          </div>
+        $:render_template("type/edition/book_title", work, edition)
+        $:render_template("type/edition/publisher_line", edition)      
         $if not edition:
           <p>$_("No editions available")</p>
         $if edition:

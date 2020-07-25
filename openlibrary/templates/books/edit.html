@@ -82,36 +82,16 @@ window.q.push( function(){
     <form method="post" id="addWork" class="olform books validate" name="edit" action="">
 
         <input type="hidden" name="work--key" value="$work.key">
-    <div class="formElement title">
-        <div class="TitleAuthor sansserif">
-            <div class="label">
-                <label for="work-title">$_('Title')</label> <span class="tip">$:_("Use <b><i>Title: Subtitle</i></b> to add a subtitle.")</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
-            </div>
-            <div class="input">
-                <input name="work--title" type="text" id="work-title" class="required" value="$this_title"/>
-            </div>
-            <div class="label">
-                <label for="author-$0">$_('Author')</label>
-                <span class="tip">$:_('You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href="/authors/OL23919A" target="_blank"><em>OL23919A</em></a>).')</span>
-                <br/>
-                <div class="flash-messages">
-                    <noscript>
-                        <p class="error">
-                           <span>$:_('Author editing requires javascript')</span>
-                        </p>
-                    </noscript> 
-                </div>  
-            </div>
-            $ authors = work.authors and [a.author for a in work.authors]
-            $:render_template("books/author-autocomplete", authors, "authors", "work--authors")
-        </div>
-    </div>
-
+        $ authors = work.authors and [a.author for a in work.authors]
+        <h2>$this_title</h2>
+        $if authors:
+            $ all_authors = "By"
+            $for author in authors:
+                $ all_authors = all_authors + " " + author.name + ","
+            <h3>$all_authors[:-1]</h3>
         <div id="tabsAddbook">
             <ul>
-                <li><a href="#about" id="link_about">$_("What's It About?")</a></li>
-                <li><a href="#excerpts" id="link_excerpts">$_("Add Excerpts")</a></li>
-                <li><a href="#web" id="link_web">$_("Links")</a></li>
+                <li><a href="#about" id="link_about">$_("Work Details")</a></li>
                 $if edition:
                     $if edition.publishers:
                         $ edition_name = "; ".join(edition.publishers) + ' edition'
@@ -119,20 +99,37 @@ window.q.push( function(){
                         $ edition_name = "Unknown publisher" + ' edition'
 
                     $if edition.publish_date:
-                        $ edition_name = truncate(edition_name, 20) + ", " + edition.publish_date
+                        $ edition_name = edition_name + ", " + edition.publish_date
 
                     <li><a href="#edition" id="link_edition">$edition_name</a></li>
             </ul>
 
             <div id="about">
+                <div class="formElement title">
+                    <div class="TitleAuthor sansserif">
+                        <div class="label">
+                            <label for="work-title">$_('Title')</label> <span class="tip">$:_("Use <b><i>Title: Subtitle</i></b> to add a subtitle.")</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
+                        </div>
+                        <div class="input">
+                            <input name="work--title" type="text" id="work-title" class="required" value="$this_title"/>
+                        </div>
+                        <div class="label">
+                            <label for="author-$0">$_('Author')</label>
+                            <span class="tip">$:_('You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href="/authors/OL23919A" target="_blank"><em>OL23919A</em></a>).')</span>
+                            <br/>
+                            <div class="flash-messages">
+                                <noscript>
+                                    <p class="error">
+                                       <span>$:_('Author editing requires javascript')</span>
+                                    </p>
+                                </noscript> 
+                            </div>  
+                        </div>
+                        $:render_template("books/author-autocomplete", authors, "authors", "work--authors")
+                    </div>
+                </div>
                 $:render_template("books/edit/about", work)
-            </div>
-
-            <div id="excerpts">
                 $:render_template("books/edit/excerpts", work)
-            </div>
-
-            <div id="web">
                 $:render_template("books/edit/web", work, prefix="work--")
             </div>
 
