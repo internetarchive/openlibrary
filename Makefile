@@ -41,7 +41,7 @@ i18n:
 
 git:
 	git submodule init
-	git submodule update --init
+	git submodule update --init --recursive
 
 clean:
 	rm -rf $(BUILD)
