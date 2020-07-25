@@ -1,3 +1,4 @@
+q::q!
 #
 # Makefile to build css and js files, compile i18n messages and stamp
 # version information
@@ -40,6 +41,7 @@ i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
 git:
+    git submodule update --init
 	git submodule init
 	git submodule sync
 	git submodule update
