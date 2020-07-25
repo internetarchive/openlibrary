@@ -1,4 +1,3 @@
-q::q!
 #
 # Makefile to build css and js files, compile i18n messages and stamp
 # version information
