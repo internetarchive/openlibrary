@@ -18,7 +18,7 @@ PYTHON=$(if $(wildcard env),env/bin/python,python)
 
 .PHONY: all clean distclean git css js i18n lint
 
-all: git css js i18n
+all: css js i18n
 
 css:
 	mkdir -p $(BUILD)
@@ -38,11 +38,6 @@ js:
 
 i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
-
-git:
-	git submodule init
-	git submodule sync
-	git submodule update
 
 clean:
 	rm -rf $(BUILD)
@@ -78,3 +73,4 @@ test-js:
 	npm test
 
 test: test-py test-js
+
