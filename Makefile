@@ -40,6 +40,7 @@ i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
 git:
+	git submodule init
 	git submodule update --init
 
 clean:
