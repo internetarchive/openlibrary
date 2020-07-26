@@ -101,6 +101,7 @@ export function initGoodreadsImport() {
                                 });
                             }
                             else {
+                                $(`[isbn=${value['ISBN']}]`).append('<td class="success-imported">Imported</td>')
                                 $(`[isbn=${value['ISBN']}]`).removeClass('selected');
                             }
                         },
