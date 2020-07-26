@@ -13,11 +13,11 @@
   padding-right: 1.5em;
   .cover-animation {
     transform: perspective(0px) rotateX(0deg);
-    transition: transform 0.8s;
+    transition: transform 0.8s, opacity .8s;
   }
   .cover-animation:hover {
     transform: perspective(465px) rotateX(0deg) rotateY(-10deg);
-    transition: transform 0.8s, opacity 0.8s;
+    opacity .8;
   }
 }
 @import (less) "components/cover.less";
