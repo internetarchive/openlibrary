@@ -11,14 +11,13 @@
 .editionCover {
   min-height: 10px;
   padding-right: 1.5em;
-
-  .illustration {
-    transform: perspective(800px) rotateX(10deg);
-    transition: transform 0.8s, opacity 0.8s
+  .cover-animation {
+    transform: perspective(0px) rotateX(0deg);
+    transition: transform 0.8s, opacity .8s;
   }
-  .illustration:hover {
+  .cover-animation:hover {
     transform: perspective(465px) rotateX(0deg) rotateY(-10deg);
-    opacity: 0.8;
+    opacity: .8;
   }
 }
 @import (less) "components/cover.less";
