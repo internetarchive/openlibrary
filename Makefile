@@ -7,6 +7,7 @@ BUILD=static/build
 ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
 GITHUB_EDITOR_WIDTH=127
 FLAKE_EXCLUDE=./.*,scripts/20*,vendor/*,node_modules/*
+numFiles=$(shell ls ./vendor/infogami/|wc -l)
 
 define lessc
 	echo Compressing $(1).less; \
@@ -39,15 +40,12 @@ js:
 i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
-git:
-	shopt -s nullglob dotglob
-	files=(vendor/infogami/*)
-	if [ "${#files[*]}" -eq "0" ]; then
-		git submodule init
-		git submodule sync
-		git submodule update
-	fi
-	shopt -u nullglob dotglob
+git:	
+	if [ $(numFiles) -eq 0 ]; then \
+		git submodule init; \
+		git submodule sync; \
+		git submodule update; \
+	fi;
 
 clean:
 	rm -rf $(BUILD)
