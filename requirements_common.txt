@@ -13,8 +13,8 @@ pymarc==3.2.0; python_version < '3.6'
 pymarc==4.0.0; python_version >= '3.6'
 python-memcached==1.59
 simplejson==3.16.0
-web.py==0.39; python_version < '3.0'
-web.py==0.60; python_version >= '3.0'
+web.py==0.39; python_version < '3.5'
+web.py==0.61; python_version >= '3.5'
 pystatsd==0.1.6; python_version < '3.0'
 statsd==3.3.0; python_version >= '3.0'
 PyYAML==4.2b4
