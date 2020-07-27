@@ -40,9 +40,14 @@ i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
 git:
-	git submodule init
-	git submodule sync
-	git submodule update
+    	shopt -s nullglob dotglob
+    	files=(vendor/infogami/*)
+    	if [ "${#files[*]}" -eq "0" ]; then
+        	git submodule init
+        	git submodule sync
+        	git submodule update
+	fi
+    	shopt -u nullglob dotglob
 
 clean:
 	rm -rf $(BUILD)
