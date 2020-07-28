@@ -1,5 +1,15 @@
 $def with (page, edition=None)
 
+<style>
+  .work-title{
+    margin-top: 5px;
+    margin-bottom: 0;
+  }
+  .work-subtitle{
+    margin-top:0px;
+  }
+</style>
+
 $ component_times = {}
 $ component_times['TotalTime'] = time()
 
@@ -224,12 +234,12 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
 
       <a name="work-details" class="section-anchor"></a>
-      <div class="tab-section">
-        <h3><a href="$work.key">$work_title</a></h3>
+      <div class="tab-section work-info">
+        <h2 class="work-title"><a href="$work.key">$work_title</a></h2>
           $if work and work.subtitle:
-            <h4 class="work-subtitle">
+            <h3 style="margin-bottom:0px">
               $work.subtitle
-            </h4>
+            </h3>
           $if work and work.first_publish_year:
             <p class="first-published-date">
               $_("First published in %s", work.first_publish_year)
@@ -308,7 +318,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       </div>
 
       <a name="edition-details" class="section-anchor"></a>
-      <div class="tab-section">
+      <div class="tab-section edition-info">
         $if not page.is_fake_record():
           $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
             $if edition and page.type.key in ["/type/work"]:
@@ -322,11 +332,20 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
             <a class="linkButton larger" href="$edit_url" title="$_('Edit this template')"
               data-ol-link-track="CTAClick|Edit" accesskey="e">$_("Edit")</a>
           </div>
-        $:render_template("type/edition/book_title", work, edition)
-        $:render_template("type/edition/publisher_line", edition)      
         $if not edition:
           <p>$_("No editions available")</p>
         $if edition:
+          <h2 class="work-title" itemprop="name">$book_title</h2>
+          $if edition.subtitle:
+            <h3 class="" style="margin-bottom:0px">
+              $edition.subtitle
+            </h3>
+          $if edition.edition_name:
+            <div class="work-line">
+              $edition.edition_name
+            </div> 
+          $:render_template("type/edition/publisher_line", edition)    
+          <hr>  
           $if edition.first_sentence:
             <div>
             <h3 class="collapse">$_("First Sentence")</h3>

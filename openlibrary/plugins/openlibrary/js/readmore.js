@@ -18,4 +18,39 @@ export function initReadMoreButton() {
             $(this).addClass('restricted-height');
         }
     });
+    
+    // document.addEventListener('scroll', function() {
+    //     console.log('Scrolling');
+    //     if(isElementInViewport(document.getElementsByClassName('editions-table'))){
+    //         console.log('In editions-table');
+    //         $('.work-menu li').each(function(){
+    //             $(this).removeClass('selected');
+    //         });
+    //         $('.work-menu.view-all-editions').addClass('selected');
+    //     }
+    //     else if(isElementInViewport(document.getElementsByClassName('work-info'))) {
+    //         console.log('In work info');
+    //         $('.work-menu li').each(function(){
+    //             $(this).removeClass('selected');
+    //         });
+    //         $('.work-menu.work-details').addClass('selected');
+    //     }
+    //     else if(isElementInViewport(document.getElementsByClassName('edition-info'))) {
+    //         console.log('In editions info');
+    //         $('.work-menu li').each(function(){
+    //             $(this).removeClass('selected');
+    //         });
+    //         $('.work-menu.edition-details').addClass('selected');
+    //     }   
+    // });
+
+    // function isElementInViewport(el) {
+    //     console.log(el);
+    //     var rect = el.getBoundingClientRect();
+    
+    //     return rect.bottom > 0 &&
+    //         rect.right > 0 &&
+    //         rect.left < (window.innerWidth || document.documentElement.clientWidth) /* or $(window).width() */ &&
+    //         rect.top < (window.innerHeight || document.documentElement.clientHeight) /* or $(window).height() */;
+    // }
 }

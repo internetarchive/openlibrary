@@ -112,65 +112,6 @@ window.q.push(function() {
 });
 </script>
 
-
-<fieldset class="major">
-    <legend>$_("Publishing Info")</legend>
-
-    <div class="formBack">
-
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-publishers">$_("Who is the publisher?")</label>
-                <span class="tip">$_("For example"): <em>Oxford University Press; Penguin; W.W. Norton</em></span>
-            </div>
-            <div class="input">
-                <input type="text" name="edition--publishers" id="edition-publishers" value="$'; '.join(book.publishers)"/>
-            </div>
-        </div>
-
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-publish_date">$_("When was it published?")</label>
-                <span class="tip">$_("You should be able to find this in the first few pages of the book.")</span>
-            </div>
-            <div class="input">
-                <input type="text" name="edition--publish_date" id="edition-publish_date" value="$book.publish_date"/>
-            </div>
-        </div>
-
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-publish_places">$_("Where was the book published?")</label>
-                <span class="tip">$_("City, Country please.") $_("For example:") <i>New York, USA; Sydney, Australia</i></span>
-            </div>
-            <div class="input">
-                <input type="text" name="edition--publish_places" id="edition-publish_places" value="$'; '.join(book.publish_places)"/>
-            </div>
-        </div>
-
-
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-copyright_date">$_("Is there a copyright date?")</label>
-                <span class="tip">$_("The year following the copyright statement.")</span>
-            </div>
-            <div class="input">
-                <input type="text" name="edition--copyright_date" id="edition-copyright_date" value="$book.copyright_date"/>
-            </div>
-        </div>
-
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-series">$_("Is the book part of a series?")</label>
-                <span class="tip">$_("The name of the publisher's series.") $_("For example:") <i>The Story of Civilization, Part III</i></span>
-            </div>
-            <div class="input">
-                <input type="text" name="edition--series--0" id="edition-series" value="$(book.series and book.series[0] or "")"/>
-            </div>
-        </div>
-    </div>
-</fieldset>
-
 <fieldset class="major">
     <legend>$_("This Edition")</legend>
 
@@ -354,7 +295,7 @@ window.q.push(function() {
                     <input name="edition--by_statement" type="text" id="edition-by_statement" value="$book.by_statement" />
                 </div>
             </div>
-
+            
         </fieldset>
 
         <fieldset class="minor formBackRight">
@@ -435,6 +376,64 @@ window.q.push(function() {
 
     </div>
 
+</fieldset>
+
+<fieldset class="major">
+    <legend>$_("Publishing Info")</legend>
+
+    <div class="formBack">
+
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-publishers">$_("Who is the publisher?")</label>
+                <span class="tip">$_("For example"): <em>Oxford University Press; Penguin; W.W. Norton</em></span>
+            </div>
+            <div class="input">
+                <input type="text" name="edition--publishers" id="edition-publishers" value="$'; '.join(book.publishers)"/>
+            </div>
+        </div>
+
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-publish_date">$_("When was it published?")</label>
+                <span class="tip">$_("You should be able to find this in the first few pages of the book.")</span>
+            </div>
+            <div class="input">
+                <input type="text" name="edition--publish_date" id="edition-publish_date" value="$book.publish_date"/>
+            </div>
+        </div>
+
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-publish_places">$_("Where was the book published?")</label>
+                <span class="tip">$_("City, Country please.") $_("For example:") <i>New York, USA; Sydney, Australia</i></span>
+            </div>
+            <div class="input">
+                <input type="text" name="edition--publish_places" id="edition-publish_places" value="$'; '.join(book.publish_places)"/>
+            </div>
+        </div>
+
+
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-copyright_date">$_("Is there a copyright date?")</label>
+                <span class="tip">$_("The year following the copyright statement.")</span>
+            </div>
+            <div class="input">
+                <input type="text" name="edition--copyright_date" id="edition-copyright_date" value="$book.copyright_date"/>
+            </div>
+        </div>
+
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-series">$_("Is the book part of a series?")</label>
+                <span class="tip">$_("The name of the publisher's series.") $_("For example:") <i>The Story of Civilization, Part III</i></span>
+            </div>
+            <div class="input">
+                <input type="text" name="edition--series--0" id="edition-series" value="$(book.series and book.series[0] or "")"/>
+            </div>
+        </div>
+    </div>
 </fieldset>
 
 <fieldset class="major" id="identifiers">
