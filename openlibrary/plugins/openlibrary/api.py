@@ -140,13 +140,23 @@ class work_bookshelves(delegate.page):
 
     def POST(self, work_id):
         """
-        We can't use the action because we do want to add the book if it doesn't exist yet. 
-        If the book already exists, we don't want to remove it.
+        Add a work (or a work and an edition) to a bookshelf.
+        
+        GET params:
+        - edition_id str (optional)
+        - action str: e.g. "add", "remove"
+        - redir bool: if patron not logged in, redirect back to page after login
+        - bookshelf_id int: which bookshelf? e.g. the ID for "want to read"?
+        - dont_remove bool: if book exists & action== "add", don't try removal  
+
+        :param str work_id: e.g. OL123W
+        :rtype: json
+        :return: a list of bookshelves_affected
         """
         from openlibrary.core.models import Bookshelves
 
         user = accounts.get_current_user()
-        i = web.input(edition_id=None, action="add", redir=False, bookshelf_id=None, dont_remove = False)
+        i = web.input(edition_id=None, action="add", redir=False, bookshelf_id=None, dont_remove=False)
         key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
 
         if not user:
