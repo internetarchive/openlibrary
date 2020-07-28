@@ -22,7 +22,7 @@ import six
 __all__ = [
     "cached_property",
     "Cache", "MemoryCache", "MemcacheCache", "RequestCache",
-    "memoize", "memcache_memoize"
+    "memoize", "memcache_memoize", "get_memcache"
 ]
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
