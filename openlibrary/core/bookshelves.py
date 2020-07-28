@@ -163,7 +163,7 @@ class Bookshelves(object):
         `bookshelf_id`"""
         oldb = db.get_db()
         work_id = int(work_id)
-        bookself_id = int(bookshelf_id)
+        bookshelf_id = int(bookshelf_id)
         data = {'work_id': work_id, 'username': username}
 
         users_status = cls.get_users_read_status_of_work(username, work_id)
@@ -233,6 +233,7 @@ class Bookshelves(object):
         result = oldb.query(query)
         return list(result)
 
+    #Function incomplete
     @classmethod
     def search_my_readinglog(cls, q, bookshelf_id):
         oldb = db.get_db()
