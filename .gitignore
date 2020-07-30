@@ -36,6 +36,5 @@ htmlcov
 node_modules/
 .idea/
 venv/
-vendor/
 *.c
 *.so
