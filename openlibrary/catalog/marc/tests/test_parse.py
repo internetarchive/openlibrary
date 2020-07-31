@@ -74,8 +74,8 @@ class TestParseMARCXML:
 class TestParseMARCBinary:
     @pytest.mark.parametrize('i', bin_samples)
     def test_binary(self, i):
-        expect_filename = "%s/bin_expect/%s" % (test_data, i)
-        data = open("%s/bin_input/%s" % (test_data, i)).read()
+        expect_filename = '%s/bin_expect/%s' % (test_data, i)
+        data = open('%s/bin_input/%s' % (test_data, i), 'rb').read()
         rec = MarcBinary(data)
         edition_marc_bin = read_edition(rec)
         assert edition_marc_bin
@@ -102,14 +102,14 @@ class TestParseMARCBinary:
 
     def test_raises_see_also(self):
         filename = '%s/bin_input/talis_see_also.mrc' % test_data
-        with open(filename, 'r') as f:
+        with open(filename, 'rb') as f:
             rec = MarcBinary(f.read())
         with pytest.raises(SeeAlsoAsTitle):
             read_edition(rec)
 
     def test_raises_no_title(self):
         filename = '%s/bin_input/talis_no_title2.mrc' % test_data
-        with open(filename, 'r') as f:
+        with open(filename, 'rb') as f:
             rec = MarcBinary(f.read())
         with pytest.raises(NoTitle):
             read_edition(rec)
