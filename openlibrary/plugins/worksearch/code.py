@@ -312,8 +312,7 @@ def parse_json(raw_file):
 
 def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=None,
                    offset=None, fields=None, facet=True):
-    if param is None:
-        param = {}
+    param = param or {}
 
     # use page when offset is not specified
     if offset is None:
