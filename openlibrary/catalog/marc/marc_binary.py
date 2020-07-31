@@ -105,6 +105,7 @@ class BinaryDataField():
 
 class MarcBinary(MarcBase):
     def __init__(self, data):
+    # def __init__(self, data: bytes) -> None:  # Python 3 type hint
         try:
             assert len(data) and isinstance(data, bytes)
             length = int(data[:5])
