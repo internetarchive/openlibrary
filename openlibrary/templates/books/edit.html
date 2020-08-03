@@ -5,30 +5,6 @@ $ this_title = work.title + ': ' + work.subtitle if work.get('subtitle', None) e
 $var title: $this_title
 $putctx("robots", "noindex,nofollow")
 
-<style>
-    /* Defined for elements in openlibrary/templates/book/edit.html */
-    .editFormHead{
-    display:flex;
-    padding-bottom: 0px;
-    }
-
-    .editFormTitle{
-    flex: 1;
-    margin: 0px;
-
-    }
-
-    .editFormBookTitle{
-    color: black;
-    margin: 0px;
-    }
-
-    .editFormBookAuthors{
-    margin-top: 0px;
-    }
-
-</style>
-
 <script type="text/javascript">
 function limitChars(textid, limit, infodiv) {
     var text = \$('#'+textid).val();
