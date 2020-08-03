@@ -189,13 +189,5 @@ class MarcBinary(MarcBase):
         return tag_line
 
     def decode_field(self, field):
-        return field  # noop on MARC binary
-
-    def read_isbn(self, f):
-        if b'\x1f' in f.line:
-            return super(MarcBinary, self).read_isbn(f)
-        else:
-            m = re_isbn.match(f.line[3:-1])
-            if m:
-                return [m.group(1)]
-        return []
+        # noop on MARC binary
+        return field
