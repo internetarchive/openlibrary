@@ -165,9 +165,7 @@ def read_work_titles(rec):
 
 def read_title(rec):
     STRIP_CHARS = r' /,;:='
-    fields = rec.get_fields('245')
-    if not fields:
-        fields = rec.get_fields('740')
+    fields = rec.get_fields('245') or rec.get_fields('740')
     if not fields:
         raise NoTitle('No Title found in either 245 or 740 fields.')
 
