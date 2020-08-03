@@ -1,15 +1,15 @@
 $def with (edition_count=1)
 
 <ul class="work-menu sticky">
-  <li class="view-all-editions selected">
+  <li class="selected">
     <a href="#editions-list">
       $ungettext('View %(count)s Edition', 'View %(count)s Editions', edition_count, count=edition_count)
     </a>
   </li>
-  <li class="work-details">
+  <li>
     <a href="#work-details">$_("Overview")</a>
   </li>
-  <li class="edition-details">
+  <li>
     <a href="#edition-details">$_("This Edition")</a>
   </li>
 </ul>

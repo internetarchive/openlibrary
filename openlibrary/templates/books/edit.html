@@ -126,7 +126,7 @@ window.q.push( function(){
             </ul>
 
             <div id="about">
-                <fieldset class="major" id="links">
+                <fieldset class="major">
                     <legend>$_("This Work")</legend>
                     <div class="formBack">
                         <div class="formElement formBackLeft">
@@ -163,13 +163,13 @@ window.q.push( function(){
                         </div>
                     </div>
                 </fieldset>
-                <fieldset class="major" id="links">
+                <fieldset class="major">
                     <legend>$_("Add Excerpts")</legend>
-                    <div class="formBack">
+                    <div class="formBack" id="excerpts">
                         $:render_template("books/edit/excerpts", work)
                     </div>
                 </fieldset>
-                <fieldset class="major" id="links">
+                <fieldset class="major">
                     <legend>$_("Links")</legend>
                     <div class="formBack">
                         $:render_template("books/edit/web", work, prefix="work--")

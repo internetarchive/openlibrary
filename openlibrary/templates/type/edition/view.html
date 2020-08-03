@@ -318,7 +318,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       </div>
 
       <a name="edition-details" class="section-anchor"></a>
-      <div class="tab-section edition-info">
+      <div class="tab-section edition-info">  
         $if not page.is_fake_record():
           $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
             $if edition and page.type.key in ["/type/work"]:
