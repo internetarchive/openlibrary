@@ -18,7 +18,6 @@ export function initReadMoreButton() {
             $(this).addClass('restricted-height');
         }
     });
-    
     // document.addEventListener('scroll', function() {
     //     console.log('Scrolling');
     //     if(isElementInViewport(document.getElementsByClassName('editions-table'))){
@@ -41,13 +40,12 @@ export function initReadMoreButton() {
     //             $(this).removeClass('selected');
     //         });
     //         $('.work-menu.edition-details').addClass('selected');
-    //     }   
+    //     }
     // });
 
     // function isElementInViewport(el) {
     //     console.log(el);
     //     var rect = el.getBoundingClientRect();
-    
     //     return rect.bottom > 0 &&
     //         rect.right > 0 &&
     //         rect.left < (window.innerWidth || document.documentElement.clientWidth) /* or $(window).width() */ &&
