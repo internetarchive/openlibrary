@@ -25,6 +25,7 @@ jobs:
             make lint-diff;
           fi
         - source scripts/test-py3.sh
+        - source scripts/run_doctests.sh
     - name: “Python 3.8 on focal”
       python: "3.8"
   allow_failures:
