@@ -117,25 +117,7 @@ window.q.push(function() {
 
     <div class="formBack">
 
-        <div class="formElement formBackLeft">
-            <div class="label">
-                <label for="edition--works--$0">$_("What work is this an edition of?")</label>
-                <span class="tip">
-                    $_("Sometimes editions can be associated with the wrong work. You can correct that here.")
-                    $_("You can search by title or by Open Library ID (like")
-                    <a href="/works/OL262757W" target="_blank"><em>OL262757W</em></a>).
-                    <br/>
-                    $_("WARNING: Any edits made to the work from this page will be ignored.")
-                </span>
-            </div>
-            <div id="works">
-                $if book.works:
-                    $for i, work in enumerate(book.works):
-                        $:render_work_field(i, work)
-                $else:
-                    $:render_work_field(0, storage(title="", key=""))
-            </div>
-        </div>
+       
 
     <div class="formBackLeft">
         <div class="formElement">
@@ -202,6 +184,7 @@ window.q.push(function() {
         </div>
 
     </div>
+
     <div class="formBackRight">
         <div class="illustration">
             $:render_template("covers/book_cover", book)
@@ -370,6 +353,26 @@ window.q.push(function() {
             </div>
             <div class="input">
                 <textarea name="edition--description" id="edition-description" rows="3" cols="50">$book.description</textarea>
+            </div>
+        </div>
+
+        <div class="formElement formBackLeft">
+            <div class="label">
+                <label for="edition--works--$0">$_("What work is this an edition of?")</label>
+                <span class="tip">
+                    $_("Sometimes editions can be associated with the wrong work. You can correct that here.")
+                    $_("You can search by title or by Open Library ID (like")
+                    <a href="/works/OL262757W" target="_blank"><em>OL262757W</em></a>).
+                    <br/>
+                    $_("WARNING: Any edits made to the work from this page will be ignored.")
+                </span>
+            </div>
+            <div id="works">
+                $if book.works:
+                    $for i, work in enumerate(book.works):
+                        $:render_work_field(i, work)
+                $else:
+                    $:render_work_field(0, storage(title="", key=""))
             </div>
         </div>
 
