@@ -1,6 +1,6 @@
 from __future__ import division
 
-import ConfigParser
+from six.moves.configparser import ConfigParser
 import logging
 import time
 import uuid
@@ -26,7 +26,7 @@ def config_section_to_dict(config_file, section):
     :return: dict of key value pairs
     :rtype: dict
     """
-    config = ConfigParser.ConfigParser()
+    config = ConfigParser()
     config.read(config_file)
     result = {key: config.get(section, key) for key in config.options(section)}
     return result

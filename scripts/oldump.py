@@ -1,6 +1,8 @@
 #! /usr/bin/env python
-import _init_path
-from openlibrary.data import dump
+
+from . import _init_path  # noqa: F401
+
+from openlibrary.data import dump  # must be after _init_path
 
 if __name__ == "__main__":
     import sys

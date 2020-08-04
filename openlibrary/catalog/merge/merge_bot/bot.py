@@ -5,14 +5,14 @@ import sys
 import web
 import sys
 import codecs
-from catalog.utils.query import query_iter, set_staging, withKey
-
-from catalog.merge.merge_marc import *
-from catalog.utils.query import get_mc, withKey
-import catalog.merge.amazon as merge_amazon
-import catalog.merge.merge_marc as merge_marc
-from catalog.merge.merge_bot.merge import amazon_and_marc, get_record
 from pprint import pformat
+
+from openlibrary.catalog.utils.query import query_iter, withKey  #, set_staging
+from openlibrary.catalog.merge.merge_marc import *
+from openlibrary.catalog.utils.query import get_mc, withKey
+import openlibrary.catalog.merge.amazon as merge_amazon
+import openlibrary.catalog.merge.merge_marc as merge_marc
+from openlibrary.catalog.merge.merge_bot.merge import amazon_and_marc, get_record
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 #set_staging(True)

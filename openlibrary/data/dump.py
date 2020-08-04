@@ -17,7 +17,7 @@ import simplejson
 import itertools
 import gzip
 
-import db
+import openlibrary.data.db
 
 import six
 

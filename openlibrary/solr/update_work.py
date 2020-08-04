@@ -1202,7 +1202,7 @@ def make_delete_query(keys):
     Example:
 
     >>> make_delete_query(["/books/OL1M"])
-    "<delete><query>key:/books/OL1M</query></delete>"
+    '<delete><query>key:/books/OL1M</query></delete>'
 
     :param list[str] keys: Keys to create delete tags for. (ex: ["/books/OL1M"])
     :return: <delete> XML element as a string

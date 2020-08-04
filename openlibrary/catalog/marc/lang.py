@@ -1,7 +1,6 @@
-from catalog.infostore import get_site
-import web
+from infogami.infobase.server import get_site
 
-site = get_site()
+site = get_site('openlibrary.org')
 lang = set(site.things({'type': '/type/language'}))
 
 def add_lang(edition):
