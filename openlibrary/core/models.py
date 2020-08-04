@@ -3,6 +3,7 @@
 import simplejson
 import web
 import re
+import requests
 
 from infogami.infobase import client
 
@@ -47,7 +48,7 @@ class Image:
         if url.startswith("//"):
             url = "http:" + url
         try:
-            d = simplejson.loads(urllib.request.urlopen(url).read())
+            d = requests.get(url).json()
             d['created'] = h.parse_datetime(d['created'])
             if d['author'] == 'None':
                 d['author'] = None

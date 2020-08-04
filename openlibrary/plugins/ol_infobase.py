@@ -10,10 +10,10 @@ import logging.config
 import sys
 import traceback
 import re
+import requests
 import unicodedata
 
 import six
-from six.moves import urllib
 import web
 from infogami.infobase import config, common, server, cache, dbstore
 
@@ -292,7 +292,7 @@ def http_notify(site, old, new):
 
     for url in config.http_listeners:
         try:
-            response = urllib.request.urlopen(url, json).read()
+            response = requests.get(url, json).content
             print('http_notify', repr(url), repr(key), repr(response), file=web.debug)
         except:
             print('failed to send http_notify', repr(url), repr(key), file=web.debug)

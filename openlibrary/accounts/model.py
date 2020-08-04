@@ -22,8 +22,6 @@ from infogami.infobase.client import ClientException
 
 from openlibrary.core import stats, helpers
 
-from six.moves import urllib
-
 logger = logging.getLogger("openlibrary.account.model")
 
 def append_random_suffix(text, limit=9999):
@@ -596,20 +594,17 @@ class InternetArchiveAccount(web.storage):
         """Authenticates an Archive.org user based on s3 keys"""
         from openlibrary.core import lending
         url = lending.config_ia_s3_auth_url
-        try:
-            req = urllib.request.Request(url, headers={
-                'Content-Type': 'application/json',
-                'authorization': 'LOW %s:%s' % (access_key, secret_key)
-            })
-            f = urllib.request.urlopen(req)
-            response = f.read()
-            f.close()
-        except urllib.error.HTTPError as e:
+        
+        response = requests.get(url, headers={
+            'Content-Type': 'application/json',
+            'authorization': 'LOW %s:%s' % (access_key, secret_key)
+        })
+        if not response.ok:
             try:
-                response = e.read()
-            except simplejson.decoder.JSONDecodeError:
-                return {'error': e.read(), 'code': e.code}
-        return simplejson.loads(response)
+                response.raise_for_status()
+            except requests.exceptions.HTTPError as e:
+                return {'error': str(e), 'code': response.status_code}
+        return response.json()
 
     @classmethod
     def get(cls, email, test=False, _json=False, s3_key=None, s3_secret=None, xauth_url=None):

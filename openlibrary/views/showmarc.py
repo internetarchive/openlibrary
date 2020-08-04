@@ -5,8 +5,7 @@ from .. import app
 
 import web
 import re
-
-from six.moves import urllib
+import requests
 
 
 class old_show_marc(app.view):
@@ -21,20 +20,26 @@ class show_ia(app.view):
     def GET(self, ia):
         error_404 = False
         url = 'http://www.archive.org/download/%s/%s_meta.mrc' % (ia, ia)
-        try:
-            data = urllib.request.urlopen(url).read()
-        except urllib.error.HTTPError as e:
-            if e.code == 404:
+        
+        response = requests.get(url)
+        
+        if not response.ok:
+            if response.status_code == 404:
                 error_404 = True
             else:
                 return "ERROR:" + str(e)
-
+        else:
+            data = response.content
+        
         if error_404: # no MARC record
             url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
-            try:
-                data = urllib.request.urlopen(url).read()
-            except urllib.error.HTTPError as e:
-                return "ERROR:" + str(e)
+            response = requests.get(url)
+            if not response.ok:
+                try:
+                    response.raise_for_status()
+                except requests.exceptions.HTTPError as e:
+                    return "ERROR:" + str(e)
+            data = response.content
             raise web.seeother('http://www.archive.org/details/' + ia)
 
         books = web.ctx.site.things({
@@ -115,17 +120,24 @@ class show_marc(app.view):
         #print "record_locator: <code>%s</code><p/><hr>" % locator
 
         r0, r1 = offset, offset+100000
-        url = 'http://www.archive.org/download/%s'% filename
+        url = 'http://www.archive.org/download/%s'% filename      
 
-        ureq = urllib.request.Request(url,
-                               None,
-                               {'Range':'bytes=%d-%d'% (r0, r1)},
-                               )
-
-        try:
-            result = urllib.request.urlopen(ureq).read(100000)
-        except urllib.error.HTTPError as e:
-            return "ERROR:" + str(e)
+        response = requests.get(url, headers={'Range':'bytes=%d-%d'% (r0, r1)})
+        
+        if not response.ok:
+            try:
+                response.raise_for_status()
+            except requests.exceptions.HTTPError as e:
+                return "ERROR:" + str(e)
+        
+        it = response.iter_content(100000)
+        done = False
+        result = b''
+        for chunk in it:
+            if done:
+                break
+            result += chunk
+            done = True
 
         len_in_rec = int(result[:5])
         if len_in_rec != length:

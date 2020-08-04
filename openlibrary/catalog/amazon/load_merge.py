@@ -3,7 +3,7 @@ from time import time
 from catalog.marc.MARC21 import MARC21Record
 from catalog.marc.parse import pick_first_date
 
-from six.moves import urllib
+import requests
 
 
 entity_fields = ('name', 'birth_date', 'death_date', 'date')
@@ -34,9 +34,19 @@ def get_from_archive(locator):
     url = 'http://www.archive.org/download/%s'% file
 
     assert 0 < length < 100000
-
-    ureq = urllib.request.Request(url, None, {'Range':'bytes=%d-%d'% (r0, r1)},)
-    result = urllib.request.urlopen(ureq).read(100000)
+    
+    headers = {'Range':'bytes=%d-%d'% (r0, r1)}
+    response = requests.get(url, headers=headers)
+   
+    it = response.iter_content(10000)
+    takeOneChunk = False
+    result = b''
+    for chunk in it:
+        result += chunk
+        takenOneChunk = True
+        if takenOneChunk:
+            break
+    
     rec = MARC21Record(result)
     return rec
 

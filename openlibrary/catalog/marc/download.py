@@ -1,10 +1,9 @@
 #!/usr/bin/python
 # downloader so Karen doesn't need to download entire MARC files
 from __future__ import print_function
+import requests
 import web
 import web.form as form
-
-from six.moves import urllib
 
 
 urls = (
@@ -74,22 +73,35 @@ myform = form.Form(
         form.Validator('Must be less than 50000', lambda x:int(x)>50000)))
 
 def start_and_len(file, start, count):
-    f = urllib.request.urlopen("http://archive.org/download/bpl_marc/" + file)
-    pos = 0
-    num = 0
-    start_pos = None
-    while num < start + count:
-        data = f.read(5)
-        if data == '':
-            break
-        rec_len = int(data)
-        f.read(rec_len-5)
-        pos+=rec_len
-        num+=1
-        if num == start:
-            start_pos = pos
-
-    f.close()
+    f = requests.get("http://archive.org/download/bpl_marc/" + file)
+    with requests.get("http://archive.org/download/bpl_marc/" + file, stream=True) as response:
+        it = response.iter_content()
+        
+        pos = 0
+        num = 0
+        start_pos = None
+        
+        while num < start + count:
+            i = 0
+            data = b''
+            for chunk in it:
+                data += chunk
+                i += 1
+                if i == 5:
+                    break
+            if data == b'':
+                break
+            rec_len = int(data)
+            i = 0
+            for chunk in it:
+                i += 1
+                if i == rec_len-5:
+                    break
+            pos += rec_len
+            num += 1
+            if num == start:
+                start_pos = pos
+        
     return (start_pos, pos - start_pos)
 
 class index:
@@ -115,14 +127,13 @@ class get:
         web.header("Content-Type","application/octet-stream")
         r0, r1 = offset, offset+length-1
         url = "http://archive.org/download/bpl_marc/" + file
-        ureq = urllib.request.Request(url, None, {'Range':'bytes=%d-%d'% (r0, r1)},)
-        f = urllib.request.urlopen(ureq)
-        while True:
-            buf = f.read(1024)
-            if not buf:
-                break
-            web.output(buf)
-        f.close()
+
+        with requests.get(url, headers = {'Range':'bytes=%d-%d'% (r0, r1)}, stream=True) as response:
+            it = response.iter_content(1024)
+            for buf in it:
+                if not buf:
+                    break
+                web.output(buf)
 
 web.webapi.internalerror = web.debugerror
 
