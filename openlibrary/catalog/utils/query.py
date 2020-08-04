@@ -3,6 +3,7 @@ import requests
 import web
 import simplejson as json
 from time import sleep
+from six.moves import urllib
 import sys
 
 

@@ -279,9 +279,7 @@ class cover:
     def get_ia_cover_url(self, identifier, size="M"):
         url = "https://archive.org/metadata/%s/metadata" % identifier
         try:
-            jsontext = urlopen(url).read()
-#            d = requests.get(url).json().get("result", {})
-            d = simplejson.loads(jsontext).get("result", {})
+            d = requests.get(url).json().get("result", {})
         except (IOError, ValueError):
             return
 

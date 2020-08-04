@@ -66,7 +66,7 @@ class LoanStats:
 
         logger.info("SOLR query %s", params)
 
-        response = requests.get(url+ "/select", params=params)
+        response = requests.get(self.base_url + "/select", params=params)
         logger.info("urlopen %s", response.url)
         return response.json()
 

@@ -27,7 +27,10 @@ class show_ia(app.view):
             if response.status_code == 404:
                 error_404 = True
             else:
-                return "ERROR:" + str(e)
+                try:
+                    response.raise_for_status()
+                except requests.exceptions.HTTPError as e:
+                    return "ERROR:" + str(e)
         else:
             data = response.content
         
@@ -129,7 +132,7 @@ class show_marc(app.view):
                 response.raise_for_status()
             except requests.exceptions.HTTPError as e:
                 return "ERROR:" + str(e)
-        
+            
         it = response.iter_content(100000)
         done = False
         result = b''
