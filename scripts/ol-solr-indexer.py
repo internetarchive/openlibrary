@@ -12,6 +12,7 @@ __license__ = "AGPL"
 __date__ = "2015-07-29"
 __version__ = "0.1"
 
+import _init_path
 
 import sys
 import os
@@ -26,9 +27,7 @@ import json
 
 from datetime import datetime, timedelta, date
 
-from . import _init_path  # noqa: F401
-
-from openlibrary.data import db  # must be after _init_path
+from openlibrary.data import db
 from openlibrary import config
 from openlibrary.core import helpers as h
 from openlibrary.solr import update_work

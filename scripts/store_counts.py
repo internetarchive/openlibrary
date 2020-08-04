@@ -3,9 +3,9 @@
 from __future__ import print_function
 import sys
 
-from . import _init_path  # noqa: F401
+import _init_path
 
-from openlibrary.admin import stats  # must be after _init_path
+from openlibrary.admin import stats
 
 if __name__ == "__main__":
     import sys
