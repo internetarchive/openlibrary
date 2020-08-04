@@ -1,21 +1,19 @@
 #!/usr/bin/python
 
 from __future__ import print_function
-import sys
-import web
-import sys
-import codecs
-from pprint import pformat
 
-from openlibrary.catalog.utils.query import query_iter, withKey  #, set_staging
-from openlibrary.catalog.merge.merge_marc import *
-from openlibrary.catalog.utils.query import get_mc, withKey
+import codecs
+import sys
+
+import web
+
 import openlibrary.catalog.merge.amazon as merge_amazon
 import openlibrary.catalog.merge.merge_marc as merge_marc
 from openlibrary.catalog.merge.merge_bot.merge import amazon_and_marc, get_record
+from openlibrary.catalog.utils.query import get_mc, query_iter  # set_staging, withKey
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
-#set_staging(True)
+# set_staging(True)
 
 urls = (
     '/', 'index'
@@ -174,10 +172,10 @@ td { background: #eee; }
             yield i
 
     def GET(self):
-        #self.input = web.input(ol=None, isbn=None, title=None)
+        # self.input = web.input(ol=None, isbn=None, title=None)
         self.input = web.input(isbn=None, oclc=None)
         ret = self.head('Merge debug')
-#        ret += web.htmlquote(repr(dict(self.input)))
+        # ret += web.htmlquote(repr(dict(self.input)))
         for i in self.form():
             ret += i
         if self.input.isbn:
@@ -197,4 +195,3 @@ td { background: #eee; }
 
 if __name__ == "__main__":
     app.run()
-
