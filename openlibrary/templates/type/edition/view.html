@@ -1,15 +1,5 @@
 $def with (page, edition=None)
 
-<style>
-  .work-title{
-    margin-top: 5px;
-    margin-bottom: 0;
-  }
-  .work-subtitle{
-    margin-top:0px;
-  }
-</style>
-
 $ component_times = {}
 $ component_times['TotalTime'] = time()
 
@@ -237,7 +227,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       <div class="tab-section work-info">
         <h2 class="work-title"><a href="$work.key">$work_title</a></h2>
           $if work and work.subtitle:
-            <h3 style="margin-bottom:0px">
+            <h3>
               $work.subtitle
             </h3>
           $if work and work.first_publish_year:
@@ -337,7 +327,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         $if edition:
           <h2 class="work-title" itemprop="name">$book_title</h2>
           $if edition.subtitle:
-            <h3 class="" style="margin-bottom:0px">
+            <h3>
               $edition.subtitle
             </h3>
           $if edition.edition_name:
