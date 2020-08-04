@@ -15,19 +15,33 @@ $var title: $_(title)
 
 <div id="contentBody">
   
-  <h3>$_("Import from Goodreads")</h3>
   $if not books:
-    <form method="POST" action="/account/import/goodreads"
-          enctype="multipart/form-data" class="olform olform--decoration">
+    <div style="display:flex">
+      <div style="flex:1">
+        <h3>$_("Import from Goodreads")</h3>
+        <form method="POST" action="/account/import/goodreads"
+            enctype="multipart/form-data" class="olform olform--decoration">
+          <div>
+            <input type="file" name="csv" />
+            <br>File size limit 10MB and .csv file type only
+          </div>
+          <div>
+            <input class="cta-btn cta-btn--available cta-btn--small"
+                type="submit" value="Load Books">
+          </div>
+        </form>
+      </div>  
       <div>
-        <input type="file" name="csv" />
-        <br>File size limit 10MB and .csv file type only
+        <h3>$_("Export your Reading Log")</h3>
+        <form method="GET" action="/account/export"
+              enctype="multipart/form-data" class="olform olform--decoration">
+          <div>
+            <input class="cta-btn cta-btn--available cta-btn--small"
+                type="submit" value="Download (.csv format)">
+          </div>
+        </form>
       </div>
-      <div>
-        <input class="cta-btn cta-btn--available cta-btn--small"
-             type="submit" value="Load Books">
-      </div>
-    </form>
+    </div>
 
   $else:  
     <div class="import-buttons">

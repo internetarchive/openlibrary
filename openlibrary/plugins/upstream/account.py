@@ -901,6 +901,26 @@ class fetch_goodreads(delegate.page):
                 books_wo_isbns[_book['Book Id']] = _book     
         return render['account/import'](books, books_wo_isbns)
 
+class export_books(delegate.page):
+    path = "/account/export"
+
+    @require_login
+    def GET(self):
+        user = accounts.get_current_user()
+        readlog = ReadingLog(user=user)
+        sponsorships = get_sponsored_editions(user)
+        sponsorship_books = (web.ctx.site.get(
+                    web.ctx.site.things({
+                        'type': '/type/edition',
+                        'isbn_%s' % len(s['isbn']): s['isbn']
+                    })[0]) for s in sponsorships)
+        wanttoread_books = readlog.get_works('want-to-read', page=1)
+        currentlyreading_books = readlog.get_works('currently-reading', page=1)
+        alreadyread_books = readlog.get_works('already-read', page=1)
+        print("HIiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
+        print(type(wanttoread_books))
+        print(wanttoread_books)
+        return wanttoread_books
 
 class account_loans(delegate.page):
     path = "/account/loans"
