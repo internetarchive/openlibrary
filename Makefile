@@ -41,7 +41,7 @@ i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
 git:	
-	if [ $(numFiles) -eq 0 ]; then \
+	if [ -z "$DOCKER_HUB" ]; then \
 		git submodule init; \
 		git submodule sync; \
 		git submodule update; \
