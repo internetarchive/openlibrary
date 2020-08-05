@@ -42,6 +42,7 @@ i18n:
 
 git:	
 ifneq ($(DOCKER_HUB),TRUE)
+	@echo $(DOCKER_HUB)
 	git submodule init
 	git submodule sync
 	git submodule update
