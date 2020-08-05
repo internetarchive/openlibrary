@@ -7,7 +7,6 @@ BUILD=static/build
 ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
 GITHUB_EDITOR_WIDTH=127
 FLAKE_EXCLUDE=./.*,scripts/20*,vendor/*,node_modules/*
-numFiles=$(shell ls ./vendor/infogami/|wc -l)
 
 define lessc
 	echo Compressing $(1).less; \
@@ -41,9 +40,7 @@ i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
 git:	
-	env
 ifeq ($(DOCKER_HUB),FALSE)
-	@echo $(DOCKER_HUB)
 	git submodule init
 	git submodule sync
 	git submodule update
