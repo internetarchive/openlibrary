@@ -41,12 +41,11 @@ i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
 git:	
-	if [ -z $(DOCKER_HUB) ]; then \
-		echo "not executing git submodules"; \
-        	git submodule init; \
-		git submodule sync; \
-		git submodule update; \
-	fi;
+ifneq ($(DOCKER_HUB),TRUE)
+	git submodule init
+	git submodule sync
+	git submodule update
+endif
 
 clean:
 	rm -rf $(BUILD)

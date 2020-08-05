@@ -1,2 +1,2 @@
 #!/bin/bash
-export DOCKER_HUB=true
+export DOCKER_HUB=TRUE
