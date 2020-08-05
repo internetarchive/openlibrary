@@ -41,7 +41,8 @@ i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
 git:	
-ifneq ($(DOCKER_HUB),TRUE)
+	env
+ifneq ($(DOCKER_HUB),TRue)
 	@echo $(DOCKER_HUB)
 	git submodule init
 	git submodule sync
