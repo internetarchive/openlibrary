@@ -1,2 +1,2 @@
 #!/bin/bash
-docker build -t olbase:latest --build-arg DOCKER_HUB=TRUE -f docker/Dockerfile.olbase .
+docker build -t olbase:latest --build-arg DOCKER_HUB=TRUE -f Dockerfile.olbase .
