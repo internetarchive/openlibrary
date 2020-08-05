@@ -40,6 +40,7 @@ i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
 git:	
+#Do not run these on DockerHub since it recursively clones all the repos before build initiates
 ifeq ($(DOCKER_HUB),FALSE)
 	git submodule init
 	git submodule sync
