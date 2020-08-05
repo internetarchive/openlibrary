@@ -42,7 +42,7 @@ i18n:
 
 git:	
 	env
-ifneq ($(DOCKER_HUB),TRUE)
+ifeq ($(DOCKER_HUB),FALSE)
 	@echo $(DOCKER_HUB)
 	git submodule init
 	git submodule sync
