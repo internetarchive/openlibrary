@@ -32,8 +32,8 @@ $jsdef render_author_autocomplete_item(item):
         </div>
 
 $jsdef render_author(name_path, dict_path, disabled, i, author):
-    <div class="input" style="display: flex;">
-        <input style="flex:1;" name="$name_path--$i" class="author author-autocomplete" type="text" id="author-$i" value="$author.name" $cond(disabled, 'disabled', '')>
+    <div class="input">
+        <input name="$name_path--$i" class="author author-autocomplete" type="text" id="author-$i" value="$author.name" $cond(disabled, 'disabled', '')>
         <input name="$dict_path--$i--author--key" type="hidden" id="author-$i-key" value="$author.key" />
         <a href="javascript:;" class="remove red plain" title="$_('Remove this author')">[&times;]</a>&nbsp;
         <a href="javascript:;" class="add">$_("Add another author?")</a>
