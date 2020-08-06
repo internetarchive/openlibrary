@@ -16,7 +16,7 @@ def urlopen(url, data=None):
         'User-Agent': user_agent
     }
     
-    return requests.post(url, data=data, headers=headers)
+    return requests.get(url, data=data, headers=headers)
 
 def jsonload(url):
     return urlopen(url).json()
