@@ -1,10 +1,10 @@
 from __future__ import print_function
-import requests
 import web
 import simplejson as json
 from time import sleep
-from six.moves import urllib
 import sys
+
+from six.moves import urllib
 
 
 query_host = 'openlibrary.org'
@@ -15,14 +15,14 @@ def urlopen(url, data=None):
     headers = {
         'User-Agent': user_agent
     }
-    
-    return requests.post(url, data=data, headers=headers)
+    req = urllib.request.Request(url, data, headers)
+    return urllib.request.urlopen(req)
 
 def jsonload(url):
-    return urlopen(url).json()
+    return json.load(urlopen(url))
 
 def urlread(url):
-    return urlopen(url).content
+    return urlopen(url).read()
 
 def set_query_host(host):
     global query_host
