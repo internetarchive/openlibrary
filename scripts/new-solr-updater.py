@@ -222,12 +222,12 @@ class Solr:
 
 def process_args(args):
     if args.debugger:
-        import ptvsd
+        import debugpy
 
         logger.info("Enabling debugger attachment (attach if it hangs here)")
-        ptvsd.enable_attach(address=('0.0.0.0', 3000))
+        debugpy.listen(address=('0.0.0.0', 3000))
         logger.info("Waiting for debugger to attach...")
-        ptvsd.wait_for_attach()
+        debugpy.wait_for_client()
         logger.info("Debugger attached to port 3000")
 
     # Sometimes archive.org requests blocks forever.
