@@ -62,7 +62,7 @@ $def with (page)
     <!-- Drini, Google Search Console -->
     <meta name="google-site-verification" content="XYOJ9Uj0MBr6wk7kj1IkttXrqY-bbRstFMADTfEt354" />
 
-    $if any([path in request.canonical_url for path in ['/account/create', '/books/add', '/edit', '/books']]):
+    $if any([path in request.canonical_url for path in ['/account/create', '/books/add', '/edit', '/books', '/contact']]):
         <!-- Must be loaded in Sign Up and Add new Books page -->
         <!-- Must be loaded for all edit pages having link /books/*/*/edit -->
         <script src="https://www.google.com/recaptcha/api.js" async defer></script>

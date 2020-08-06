@@ -348,7 +348,7 @@ $if render_once('lists-api-js'):
                     Lists.user_lists_by_key[list.key] = list;
                     for (var i = 0; i < data.seeds.length; i++) {
                         var seed = data.seeds[i];
-                        Lists.lists_things_matrix[list.key][seed.key || seed] = true;
+                        Lists.user_lists_by_key[list.key][seed.key || seed] = true;
                     }
                     success && success(resp);
                 },
