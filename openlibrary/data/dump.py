@@ -21,7 +21,7 @@ import six
 
 from infogami.infobase.utils import flatten_dict
 
-from openlibrary.data import db, solr
+from openlibrary.data import db
 from openlibrary.data.sitemap import generate_html_index, generate_sitemaps
 from openlibrary.plugins.openlibrary.processors import urlsafe
 
@@ -324,6 +324,7 @@ def main(cmd, args):
     elif cmd == 'bsddb':
         make_bsddb(*args, **kwargs)
     elif cmd == "solrdump":
+        from openlibrary.data import solr  # noqa: E402 avoid circular import
         solr.generate_dump(*args, **kwargs)
     elif cmd == 'sitemaps':
         generate_sitemaps(*args, **kwargs)
