@@ -6,8 +6,6 @@ $var title: $this_title
 $putctx("robots", "noindex,nofollow")
 
 <script type="text/javascript">
-<!--
-
 function limitChars(textid, limit, infodiv) {
     var text = \$('#'+textid).val();
     var textlength = text.length;
@@ -42,10 +40,9 @@ window.q.push( function(){
         \$(window).scrollTop(\$("#contentHead").offset().top);
     }, 1000);
 } );
-//-->
 </script>
 
-<div id="contentHead">
+<div id="contentHead" class="editFormHead">
     $code:
         def find_mode():
             mode = query_param("mode")
@@ -72,7 +69,9 @@ window.q.push( function(){
         else:
             title = _("Editing...")
             note = ""
-    <h1>$:title</h1>
+    <h2 class="editFormTitle">$:title</h2>
+    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
+        <span class="adminOnly right"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="delete">$_("Delete Record")</button></span>
     $if not ctx.user:
         $:render_template("lib/not_logged")
     $:note
@@ -82,36 +81,14 @@ window.q.push( function(){
     <form method="post" id="addWork" class="olform books validate" name="edit" action="">
 
         <input type="hidden" name="work--key" value="$work.key">
-    <div class="formElement title">
-        <div class="TitleAuthor sansserif">
-            <div class="label">
-                <label for="work-title">$_('Title')</label> <span class="tip">$:_("Use <b><i>Title: Subtitle</i></b> to add a subtitle.")</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
-            </div>
-            <div class="input">
-                <input name="work--title" type="text" id="work-title" class="required" value="$this_title"/>
-            </div>
-            <div class="label">
-                <label for="author-$0">$_('Author')</label>
-                <span class="tip">$:_('You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href="/authors/OL23919A" target="_blank"><em>OL23919A</em></a>).')</span>
-                <br/>
-                <div class="flash-messages">
-                    <noscript>
-                        <p class="error">
-                           <span>$:_('Author editing requires javascript')</span>
-                        </p>
-                    </noscript> 
-                </div>  
-            </div>
-            $ authors = work.authors and [a.author for a in work.authors]
-            $:render_template("books/author-autocomplete", authors, "authors", "work--authors")
-        </div>
-    </div>
-
+        $ authors = work.authors and [a.author for a in work.authors]
+        <h1 class="editFormBookTitle">$this_title</h1>
+        $if authors:
+            $ all_authors = "By {},".format(" ".join(author.name for author in authors))
+            <h3 class="editFormBookAuthors">$all_authors[:-1]</h3>
         <div id="tabsAddbook">
             <ul>
-                <li><a href="#about" id="link_about">$_("What's It About?")</a></li>
-                <li><a href="#excerpts" id="link_excerpts">$_("Add Excerpts")</a></li>
-                <li><a href="#web" id="link_web">$_("Links")</a></li>
+                <li><a href="#about" id="link_about">$_("Work Details")</a></li>
                 $if edition:
                     $if edition.publishers:
                         $ edition_name = "; ".join(edition.publishers) + ' edition'
@@ -125,15 +102,49 @@ window.q.push( function(){
             </ul>
 
             <div id="about">
-                $:render_template("books/edit/about", work)
-            </div>
-
-            <div id="excerpts">
-                $:render_template("books/edit/excerpts", work)
-            </div>
-
-            <div id="web">
-                $:render_template("books/edit/web", work, prefix="work--")
+                <fieldset class="major">
+                    <legend>$_("This Work")</legend>
+                    <div class="formBack">
+                        <div class="formElement formBackLeft">
+                            <div class="formElement title">
+                                <div class="TitleAuthor sansserif">
+                                    <div class="label">
+                                        <label for="work-title">$_('Title')</label> <span class="tip">$:_("Use <b><i>Title: Subtitle</i></b> to add a subtitle.")</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
+                                    </div>
+                                    <div class="input">
+                                        <input name="work--title" type="text" id="work-title" class="required" value="$this_title"/>
+                                    </div>
+                                    <div class="label">
+                                        <label for="author-$0">$_('Author')</label>
+                                        <span class="tip">$:_('You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href="/authors/OL23919A" target="_blank"><em>OL23919A</em></a>).')</span>
+                                        <br/>
+                                        <div class="flash-messages">
+                                            <noscript>
+                                                <p class="error">
+                                                <span>$:_('Author editing requires javascript')</span>
+                                                </p>
+                                            </noscript> 
+                                        </div>  
+                                    </div>
+                                    $:render_template("books/author-autocomplete", authors, "authors", "work--authors")
+                                </div>
+                            </div>
+                            $:render_template("books/edit/about", work)
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset class="major">
+                    <legend>$_("Add Excerpts")</legend>
+                    <div class="formBack" id="excerpts">
+                        $:render_template("books/edit/excerpts", work)
+                    </div>
+                </fieldset>
+                <fieldset class="major">
+                    <legend>$_("Links")</legend>
+                    <div class="formBack">
+                        $:render_template("books/edit/web", work, prefix="work--")
+                    </div>
+                </fieldset>
             </div>
 
             $if edition:
@@ -149,11 +160,7 @@ window.q.push( function(){
 
         $:macros.EditButtons(comment=work.comment_)
 
-        $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
-            <div class="adminOnly" style="position:absolute;top:20px;right:20px;"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete this book?')" id="deleteTop">$_("Delete Record")</button></div>
-
     </form>
-
     $if edition:
         $:render_template("books/edit/addfield", edition)
 
