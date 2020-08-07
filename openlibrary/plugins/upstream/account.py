@@ -907,20 +907,19 @@ class export_books(delegate.page):
     @require_login
     def GET(self):
         user = accounts.get_current_user()
-        readlog = ReadingLog(user=user)
-        sponsorships = get_sponsored_editions(user)
-        sponsorship_books = (web.ctx.site.get(
-                    web.ctx.site.things({
-                        'type': '/type/edition',
-                        'isbn_%s' % len(s['isbn']): s['isbn']
-                    })[0]) for s in sponsorships)
-        wanttoread_books = readlog.get_works('want-to-read', page=1)
-        currentlyreading_books = readlog.get_works('currently-reading', page=1)
-        alreadyread_books = readlog.get_works('already-read', page=1)
-        print("HIiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
-        print(type(wanttoread_books))
-        print(wanttoread_books)
-        return wanttoread_books
+        username = user.key.split('/')[-1]
+        books = Bookshelves.get_users_logged_books(username, 0, limit=10000)
+        mapping = {1:'Want to Read', 2:'Currently Reading', 3:'Already Read'}
+        result = {}
+        result[0] = ['Work Id', 'Edition Id', 'Bookshelf']
+        for i in books:
+            lis = []
+            lis.append('OL'+str(i['work_id'])+'W')
+            lis.append('OL'+str(i['edition_id'])+'M')
+            lis.append(mapping[i['bookshelf_id']])
+            result[i['work_id']] = lis
+        return delegate.RawText(simplejson.dumps(result),
+                                content_type="application/json")
 
 class account_loans(delegate.page):
     path = "/account/loans"

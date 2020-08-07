@@ -33,13 +33,11 @@ $var title: $_(title)
       </div>  
       <div>
         <h3>$_("Export your Reading Log")</h3>
-        <form method="GET" action="/account/export"
-              enctype="multipart/form-data" class="olform olform--decoration">
+        <div class="olform olform--decoration">
           <div>
-            <input class="cta-btn cta-btn--available cta-btn--small"
-                type="submit" value="Download (.csv format)">
+            <button type="submit" onclick="test()" class="readingLog_download cta-btn cta-btn--available cta-btn--small">Download (.csv format)</button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
 
@@ -101,3 +99,30 @@ $var title: $_(title)
       </table>
     </div>
 </div>
+
+<script>
+
+  function test(){
+    \$.ajax({
+        url: '/account/export',
+        type: 'GET',
+        success: function(response){
+          let csvContent = "data:text/csv;charset=utf-8,";
+
+          for (var key in response){
+              let row = response[key].join(",");
+              csvContent += row + "\r\n";
+          }
+
+          var encodedUri = encodeURI(csvContent);
+          var link = document.createElement("a");
+          link.setAttribute("href", encodedUri);
+          link.setAttribute("download", "OpenLibrary_ReadingLog.csv");
+          document.body.appendChild(link); // Required for FF
+
+          link.click();;
+        }
+    });
+  }
+
+</script>
