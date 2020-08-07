@@ -108,12 +108,13 @@ class MemcacheInvalidater:
     def seed_to_key(self, seed):
         """Converts seed to key.
 
-            >>> seed_to_key({"key": "/books/OL1M"})
-            "/books/OL1M"
-            >>> seed_to_key("subject:love")
-            "/subjects/love"
-            >>> seed_to_key("place:san_francisco")
-            "/subjects/place:san_francisco"
+            >>> invalidater = MemcacheInvalidater()
+            >>> invalidater.seed_to_key({"key": "/books/OL1M"})
+            '/books/OL1M'
+            >>> invalidater.seed_to_key("subject:love")
+            '/subjects/love'
+            >>> invalidater.seed_to_key("place:san_francisco")
+            '/subjects/place:san_francisco'
         """
         if isinstance(seed, dict):
             return seed['key']
