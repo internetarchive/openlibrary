@@ -224,12 +224,16 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
 
       <a name="work-details" class="section-anchor"></a>
-      <div class="tab-section">
-        <h3><a href="$work.key">$work_title</a>
+      <div class="tab-section work-info">
+        <h2 class="work-title"><a href="$work.key">$work_title</a></h2>
+          $if work and work.subtitle:
+            <h3>
+              $work.subtitle
+            </h3>
           $if work and work.first_publish_year:
-            &mdash; <span class="first-published">
+            <p class="first-published-date">
               $_("First published in %s", work.first_publish_year)
-            </span>
+            </p>
         </h3>
         <hr>
 
@@ -304,10 +308,34 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       </div>
 
       <a name="edition-details" class="section-anchor"></a>
-      <div class="tab-section">
+      <div class="tab-section edition-info">  
+        $if not page.is_fake_record():
+          $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
+            $if edition and page.type.key in ["/type/work"]:
+                $ edit_url = edition.url(suffix="/edit")
+            $else:
+                $ edit_url = page.url(suffix="/edit")
+          $else:
+            $ edit_url = page.key + "?m=edit"
+          <div id="editButton">
+            <!-- FIXME: accesskey / keyboard shortcut needs i18n -->
+            <a class="linkButton larger" href="$edit_url" title="$_('Edit this template')"
+              data-ol-link-track="CTAClick|Edit" accesskey="e">$_("Edit")</a>
+          </div>
         $if not edition:
           <p>$_("No editions available")</p>
         $if edition:
+          <h2 class="work-title" itemprop="name">$book_title</h2>
+          $if edition.subtitle:
+            <h3>
+              $edition.subtitle
+            </h3>
+          $if edition.edition_name:
+            <div class="work-line">
+              $edition.edition_name
+            </div> 
+          $:render_template("type/edition/publisher_line", edition)    
+          <hr>  
           $if edition.first_sentence:
             <div>
             <h3 class="collapse">$_("First Sentence")</h3>
