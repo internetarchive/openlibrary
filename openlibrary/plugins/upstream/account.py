@@ -885,7 +885,7 @@ class fetch_goodreads(delegate.page):
         i = web.input(csv={})
         csv_file = csv.reader((i.csv.value).splitlines(),
                               delimiter=',', quotechar='"')
-        header = csv_file.next()
+        header = next(csv_file)
         books = {}
         books_wo_isbns = {} 
         for book in list(csv_file):
