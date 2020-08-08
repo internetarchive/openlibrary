@@ -912,12 +912,12 @@ class export_books(delegate.page):
         mapping = {1:'Want to Read', 2:'Currently Reading', 3:'Already Read'}
         result = {}
         result[0] = ['Work Id', 'Edition Id', 'Bookshelf']
-        for i in books:
-            lis = []
-            lis.append('OL'+str(i['work_id'])+'W')
-            lis.append('OL'+str(i['edition_id'])+'M')
-            lis.append(mapping[i['bookshelf_id']])
-            result[i['work_id']] = lis
+        for book in books:
+            result[book['work_id']] = [
+                'OL{}W'.format(book['work_id']),
+                'OL{}M'.format(book['edition_id']),
+                mapping[book['bookshelf_id']],
+            ]
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
