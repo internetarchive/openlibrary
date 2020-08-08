@@ -121,7 +121,8 @@ class Bookshelves(object):
 
         username (str) - who logged this book
         work_id (int) - the Open Library work ID as an int (e.g. OL123W becomes 123)
-        bookshelf_id (int) - the ID of the bookshelf, see: PRESET_BOOKSHELVES. If bookshelf_id = 0 then return books from all bookshelves.
+        bookshelf_id (int) - the ID of the bookshelf, see: PRESET_BOOKSHELVES.
+            If bookshelf_id = 0 then return books from all bookshelves.
         edition_id (int) [optional] - the specific edition logged, if applicable
         created (datetime) - date the book was logged
         """
