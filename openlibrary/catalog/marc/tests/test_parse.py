@@ -75,8 +75,8 @@ class TestParseMARCBinary:
     @pytest.mark.parametrize('i', bin_samples)
     def test_binary(self, i):
         expect_filename = '%s/bin_expect/%s' % (test_data, i)
-        data = open('%s/bin_input/%s' % (test_data, i), 'rb').read()
-        rec = MarcBinary(data)
+        with open('%s/bin_input/%s' % (test_data, i), 'rb') as f:
+            rec = MarcBinary(f.read())
         edition_marc_bin = read_edition(rec)
         assert edition_marc_bin
         if not os.path.exists(expect_filename):
