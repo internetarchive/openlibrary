@@ -16,8 +16,8 @@ $var title: $_(title)
 <div id="contentBody">
   
   $if not books:
-    <div style="display:flex">
-      <div style="flex:1">
+    <div class="import-export">
+      <div class="import">
         <h3>$_("Import from Goodreads")</h3>
         <form method="POST" action="/account/import/goodreads"
             enctype="multipart/form-data" class="olform olform--decoration">
