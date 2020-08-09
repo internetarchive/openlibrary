@@ -908,7 +908,7 @@ class export_books(delegate.page):
     def GET(self):
         user = accounts.get_current_user()
         username = user.key.split('/')[-1]
-        books = Bookshelves.get_users_logged_books(username, 0, limit=10000)
+        books = Bookshelves.get_users_logged_books(username, limit=10000)
         mapping = {1:'Want to Read', 2:'Currently Reading', 3:'Already Read'}
         result = {}
         result[0] = ['Work Id', 'Edition Id', 'Bookshelf']
