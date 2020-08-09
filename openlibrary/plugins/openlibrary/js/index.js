@@ -103,7 +103,7 @@ jQuery(function () {
         import(/* webpackChunkName: "readmore" */ './readmore.js')
             .then(module => module.initReadMoreButton());
     }
-    // conditionally load readmore button based on class in the page
+    // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
         import('./goodreads_import.js')
             .then(module => module.initGoodreadsImport());

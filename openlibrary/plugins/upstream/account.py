@@ -901,6 +901,28 @@ class fetch_goodreads(delegate.page):
                 books_wo_isbns[_book['Book Id']] = _book     
         return render['account/import'](books, books_wo_isbns)
 
+class export_books(delegate.page):
+    path = "/account/export"
+
+    @require_login
+    def GET(self):
+        user = accounts.get_current_user()
+        username = user.key.split('/')[-1]
+        books = Bookshelves.get_users_logged_books(username, limit=10000)
+        csv = []
+        csv.append('Work Id,Edition Id,Bookshelf\n')
+        mapping = {1:'Want to Read', 2:'Currently Reading', 3:'Already Read'}
+        for book in books:
+            row = [
+                'OL{}W'.format(book['work_id']),
+                'OL{}M'.format(book['edition_id']) if book['edition_id'] else '',
+                '{}\n'.format(mapping[book['bookshelf_id']])
+            ]
+            csv.append(','.join(row))
+        web.header('Content-Type','text/csv')
+        web.header('Content-disposition', 'attachment; filename=OpenLibrary_ReadingLog.csv')
+        csv = ''.join(csv)
+        return delegate.RawText(csv, content_type="text/csv")
 
 class account_loans(delegate.page):
     path = "/account/loans"
