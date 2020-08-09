@@ -103,10 +103,15 @@ jQuery(function () {
         import(/* webpackChunkName: "readmore" */ './readmore.js')
             .then(module => module.initReadMoreButton());
     }
-    // conditionally load readmore button based on class in the page
+    // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
         import('./goodreads_import.js')
             .then(module => module.initGoodreadsImport());
+    }
+    // conditionally loads export options based on class in the page
+    if (document.getElementsByClassName('readingLog_download').length) {
+        import('./export_readinglog.js')
+            .then(module => module.initExportReadingLog());
     }
     // Enable any carousels in the page
     if ($carouselElements.length) {

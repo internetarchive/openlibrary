@@ -915,8 +915,8 @@ class export_books(delegate.page):
         for book in books:
             result[book['work_id']] = [
                 'OL{}W'.format(book['work_id']),
-                'OL{}M'.format(book['edition_id']),
-                mapping[book['bookshelf_id']],
+                'OL{}M'.format(book['edition_id']) if book['edition_id'] else '',
+                mapping[book['bookshelf_id']]
             ]
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
