@@ -48,8 +48,7 @@ RUN pyenv rehash
 
 # Update Python 2's pip to match production (Jan 2020)
 RUN python2 -m pip install --upgrade --disable-pip-version-check pip==19.3.1
-RUN python3 -m pip install --upgrade pip
-RUN python3 -m pip install wheel
+RUN python3 -m pip install --upgrade pip wheel
 
 USER root
 # Add pyenv to root's bashrc as well
