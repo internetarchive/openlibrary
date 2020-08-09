@@ -910,7 +910,7 @@ class export_books(delegate.page):
         username = user.key.split('/')[-1]
         books = Bookshelves.get_users_logged_books(username, limit=10000)
         csv = []
-        csv.append('Work Id, Edition Id, Bookshelf\n')
+        csv.append('Work Id,Edition Id,Bookshelf\n')
         mapping = {1:'Want to Read', 2:'Currently Reading', 3:'Already Read'}
         for book in books:
             row = [
