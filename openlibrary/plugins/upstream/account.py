@@ -909,17 +909,20 @@ class export_books(delegate.page):
         user = accounts.get_current_user()
         username = user.key.split('/')[-1]
         books = Bookshelves.get_users_logged_books(username, limit=10000)
+        csv = []
+        csv.append('Work Id, Edition Id, Bookshelf\n')
         mapping = {1:'Want to Read', 2:'Currently Reading', 3:'Already Read'}
-        result = {}
-        result[0] = ['Work Id', 'Edition Id', 'Bookshelf']
         for book in books:
-            result[book['work_id']] = [
+            row = [
                 'OL{}W'.format(book['work_id']),
                 'OL{}M'.format(book['edition_id']) if book['edition_id'] else '',
-                mapping[book['bookshelf_id']]
+                '{}\n'.format(mapping[book['bookshelf_id']])
             ]
-        return delegate.RawText(simplejson.dumps(result),
-                                content_type="application/json")
+            csv.append(','.join(row))
+        web.header('Content-Type','text/csv')
+        web.header('Content-disposition', 'attachment; filename=OpenLibrary_ReadingLog.csv')
+        csv = ''.join(csv)
+        return delegate.RawText(csv, content_type="text/csv")
 
 class account_loans(delegate.page):
     path = "/account/loans"

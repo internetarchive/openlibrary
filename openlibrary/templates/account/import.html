@@ -33,11 +33,12 @@ $var title: $_(title)
       </div>  
       <div>
         <h3>$_("Export your Reading Log")</h3>
-        <div class="olform olform--decoration">
+        <form method="GET" action="/account/export"
+            enctype="multipart/form-data" class="olform olform--decoration">
           <div>
             <input type="submit" class="readingLog_download cta-btn cta-btn--available cta-btn--small" value="Download (.csv format)">
           </div>
-        </div>
+        </form>
       </div>
     </div>
 
