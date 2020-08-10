@@ -488,3 +488,14 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       </tbody>
     </table>
 </div>
+
+<script>
+  jQuery(window).load(function () {
+   alert('page is loaded');
+   
+    setTimeout(function () {
+        alert('page is loaded and 1 minute has passed');   
+    }, 60000); 
+    
+  });
+</script>

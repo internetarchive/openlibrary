@@ -388,7 +388,7 @@ class bookpage(delegate.page):
 
     path = r'/(oclc|lccn|ia|OCLC|LCCN|IA)/([^/]*)(/.*)?'
 
-    def GET(self, key, value, suffix=''):
+    def GET(self, key, value, suffix=''): 
         key = key.lower()
 
         if key == 'oclc':
@@ -813,6 +813,19 @@ class memory(delegate.page):
         import guppy
         h = guppy.hpy()
         return delegate.RawText(str(h.heap()))
+
+class Partials:
+    path = '/partials'
+
+    def GET(self):
+        i = web.input(_component=None)
+        print(i)
+        pass 
+        i = web.input(_component=None)
+        component = i.pop('_component')  # this guarantees that, now... `i` only has parameters for whatever component function we'll end up calling
+        # macro = components[component]
+        # macro(**i)  # passes in the remaining GET parameters that the macro needs
+        # return macro
 
 
 def is_bot():
