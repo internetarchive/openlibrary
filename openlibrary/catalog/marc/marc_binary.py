@@ -51,15 +51,15 @@ class BinaryDataField():
         """
         self.rec = rec
         if line:
-            while line[-2] == b'\x1e':  # ia:engineercorpsofhe00sher
+            while line[-2] == b'\x1e'[0]:  # ia:engineercorpsofhe00sher
                 line = line[:-1]
         self.line = line
 
     def translate(self, data):
         """
-        :param data bytes: raw MARC21 field data content, in either ut8 or marc8 encoding
+        :param data bytes: raw MARC21 field data content, in either utf8 or marc8 encoding
         :rtype: str
-        :return: A NCF normalized unicode str
+        :return: A NFC normalized unicode str
         """
         if self.rec.marc8():
             data = mnemonics.read(data)
@@ -74,7 +74,7 @@ class BinaryDataField():
 
     def remove_brackets(self):
         line = self.line
-        if line[4] == b'[' and line[-2] == b']':
+        if line[4] == b'['[0] and line[-2] == b']'[0]:
             self.line = line[0:4] + line[5:-2] + line[-1]
 
     def get_subfields(self, want):
@@ -166,7 +166,7 @@ class MarcBinary(MarcBase):
                 if tag == '008' and line == b'':
                     continue
                 assert line[-1] == b'\x1e'[0]
-                yield tag, line[:-1].decode()
+                yield tag, line[:-1].decode('utf-8')
             else:
                 yield tag, BinaryDataField(self, line)
 
