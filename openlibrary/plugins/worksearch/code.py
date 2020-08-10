@@ -310,8 +310,10 @@ def parse_json(raw_file):
     return json_result
 
 
-def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None,
+def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=None,
                    offset=None, fields=None, facet=True):
+    param = param or {}
+
     # use page when offset is not specified
     if offset is None:
         offset = rows * (page - 1)
