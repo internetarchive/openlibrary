@@ -28,7 +28,7 @@ services:
       - .:/openlibrary
       # If you're making changes to infogami, enable this, and set INFOGAMI=local when
       # starting docker-compose
-#      - ./vendor/infogami:/openlibrary/vendor/infogami
+      - ./vendor/infogami:/openlibrary/vendor/infogami
     networks:
       - webnet
   solr:
