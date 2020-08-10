@@ -6,17 +6,19 @@ from openlibrary.catalog.marc.marc_binary import BinaryDataField, MarcBinary
 test_data = "%s/test_data/bin_input/" % os.path.dirname(__file__)
 
 class MockMARC:
-    def __init__(self, leader_9):
-        # 'a' for utf-8, ' ' for MARC8
-        self.leader_9 = leader_9
+    def __init__(self, encoding):
+        """
+        :param encoding str: 'utf8' or 'marc8'
+        """
+        self.encoding = encoding
 
-    def leader(self):
-        return '#' * 9 + self.leader_9
+    def marc8(self):
+        return self.encoding == 'marc8'
 
 
 def test_wrapped_lines():
     filename = '%s/wrapped_lines' % test_data
-    with open(filename, 'r') as f:
+    with open(filename, 'rb') as f:
         rec = MarcBinary(f.read())
         ret = list(rec.read_fields(['520']))
         assert len(ret) == 2
@@ -30,18 +32,18 @@ def test_wrapped_lines():
 
 class Test_BinaryDataField:
     def test_translate(self):
-        bdf = BinaryDataField(MockMARC(' '), '')
-        assert bdf.translate('Vieira, Claudio Bara\xe2una,') == u'Vieira, Claudio Baraúna,'
+        bdf = BinaryDataField(MockMARC('marc8'), b'')
+        assert bdf.translate(b'Vieira, Claudio Bara\xe2una,') == u'Vieira, Claudio Baraúna,'
 
     def test_bad_marc_line(self):
-        line = '0 \x1f\xe2aEtude objective des ph\xe2enom\xe1enes neuro-psychiques;\x1e'
-        bdf = BinaryDataField(MockMARC(' '), line)
+        line = b'0 \x1f\xe2aEtude objective des ph\xe2enom\xe1enes neuro-psychiques;\x1e'
+        bdf = BinaryDataField(MockMARC('marc8'), line)
         assert list(bdf.get_all_subfields()) == [(u'á', u'Etude objective des phénomènes neuro-psychiques;')]
 
 class Test_MarcBinary:
     def test_all_fields(self):
         filename = '%s/onquietcomedyint00brid_meta.mrc' % test_data
-        with open(filename, 'r') as f:
+        with open(filename, 'rb') as f:
             rec = MarcBinary(f.read())
             fields = list(rec.all_fields())
             assert len(fields) == 13

@@ -45,6 +45,10 @@ def handle_wrapped_lines(_iter):
 
 class BinaryDataField():
     def __init__(self, rec, line):
+        """
+        :param rec MarcBinary:
+        :param line bytes: Content of a MARC21 binary field
+        """
         self.rec = rec
         if line:
             while line[-2] == b'\x1e':  # ia:engineercorpsofhe00sher
@@ -52,17 +56,15 @@ class BinaryDataField():
         self.line = line
 
     def translate(self, data):
-        utf8 = self.rec.leader()[9] == b'a'
-        if utf8:
-            try:
-                data = data.decode('utf-8')
-            except:
-                utf8 = False
-        if not utf8:
+        """
+        :param data bytes: raw MARC21 field data content, in either ut8 or marc8 encoding
+        :rtype: str
+        :return: A NCF normalized unicode str
+        """
+        if self.rec.marc8():
             data = mnemonics.read(data)
-            data = marc8.translate(data)
-        data = normalize('NFC', data)
-        return data
+            return marc8.translate(data)
+        return normalize('NFC', data.decode('utf8'))
 
     def ind1(self):
         return self.line[0]
@@ -107,7 +109,8 @@ class MarcBinary(MarcBase):
     def __init__(self, data):
     # def __init__(self, data: bytes) -> None:  # Python 3 type hint
         try:
-            assert len(data) and isinstance(data, bytes)
+            assert len(data)
+            assert isinstance(data, bytes)
             length = int(data[:5])
         except:
             raise BadMARC("No MARC data found")
@@ -133,40 +136,54 @@ class MarcBinary(MarcBase):
     def leader(self):
         return self.data[:24]
 
-    def all_fields(self):
-        marc8 = self.leader()[9] != b'a'
-        for tag, line in handle_wrapped_lines(self.get_all_tag_lines()):
-            if tag.startswith('00'):
-                # marc_upei/marc-for-openlibrary-bigset.mrc:78997353:588
-                if tag == '008' and line == '':
-                    continue
-                assert line[-1] == b'\x1e'
-                yield tag, line[:-1]
-            else:
-                yield tag, BinaryDataField(self, line)
+    def marc8(self):
+        """
+        Is this binary MARC21 MARC8 encoded? (utf-8 if False)
 
-    def read_fields(self, want):
-        want = set(want)
-        marc8 = self.leader()[9] != b'a'
-        for tag, line in handle_wrapped_lines(self.get_tag_lines(want)):
-            if tag not in want:
+        :rtype: bool
+        """
+        return self.leader()[9] == b' '
+
+    def all_fields(self):
+        return self.read_fields()
+
+    def read_fields(self, want=None):
+        """
+        :param want list | None: list of str, 3 digit MARC field ids, or None for all fields (no limit)
+        :rtype: generator
+        :return: Generator of (tag (str), field (str if 00x, otherwise BinaryDataField))
+        """
+        if want is None:
+            fields = self.get_all_tag_lines()
+        else:
+            fields = self.get_tag_lines(want)
+
+        for tag, line in handle_wrapped_lines(fields):
+            if want and tag not in want:
                 continue
             if tag.startswith('00'):
                 # marc_upei/marc-for-openlibrary-bigset.mrc:78997353:588
                 if tag == '008' and line == b'':
                     continue
-                assert line[-1] == b'\x1e'
-                yield tag, line[:-1]
+                assert line[-1] == 0x1e
+                yield tag, line[:-1].decode()
             else:
                 yield tag, BinaryDataField(self, line)
 
     def get_all_tag_lines(self):
         for line in self.iter_directory():
-            yield (line[:3], self.get_tag_line(line))
+            yield (line[:3].decode(), self.get_tag_line(line))
 
     def get_tag_lines(self, want):
+        """
+        Returns a list of selected fields, (tag, field contents)
+
+        :param want list: List of str, 3 digit MARC field ids
+        :rtype: list
+        :return: list of tuples (MARC tag (str), field contents ... bytes or str?)
+        """
         want = set(want)
-        return [(line[:3], self.get_tag_line(line)) for line in self.iter_directory() if line[:3] in want]
+        return [(line[:3].decode(), self.get_tag_line(line)) for line in self.iter_directory() if line[:3].decode() in want]
 
     def get_tag_line(self, line):
         length = int(line[3:7])
