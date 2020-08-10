@@ -465,6 +465,17 @@ window.q.push(function() {
     var username = '$(username or "")';
     var listWidgetIndex = Lists.widgets.length;
 
+  // display notification ------------
+
+    function not ()
+    {
+          var nt=document.getElementById("notify");
+
+          nt.className = "show";
+
+       setTimeout(function(){ nt.className = nt.className.replace("show", ""); }, 3000);
+    }
+
     /** Whether to use the default thing or work (if work v. edition) */
     function get_active_seed_info() {
         var checkbox = \$container.find(".work-checkbox")[0];
@@ -523,6 +534,10 @@ window.q.push(function() {
             reload_widget();
             \$("#addList").find("#new-list button").attr("disabled", false);
         });
+
+        // inform to load after added successfully;
+           not();
+
         return false;
     }
 

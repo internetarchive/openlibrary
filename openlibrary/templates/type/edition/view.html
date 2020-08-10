@@ -121,6 +121,8 @@ $def display_goodreads(label, ids):
 $def display_contributor(c):
     <li><span>$c.role</span><br />$c.name </li>
 
+<div id="notify" > List Added Successsfully. Reload to see changes </div>
+
 $ authors_byline = get_authors_byline(page, include_schema=True)
 
 $:macros.Metatags(title=title_with_site, image=meta_cover_url, description=description)
@@ -128,6 +130,8 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
 $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
   $:render_template("type/edition/admin_bar", work, edition, ocaid)
+
+
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
   <div class="workDetails">

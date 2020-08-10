@@ -262,3 +262,25 @@ div.editionTools {
     color: @light-mid-grey;
   }
 }
+
+#notify
+{
+  position: fixed;
+  top: 0;
+  z-index: 1000;
+  color: #fff;
+  left: 0;
+  background: #4CAF50;
+  width: 360px;
+  margin: 0 40%;
+  padding: 4px;
+  border-radius: 3px;
+  visibility: hidden;
+
+}
+
+#notify.show
+{
+  visibility:visible;
+  transition:3s;
+}
