@@ -41,7 +41,7 @@ class contact(delegate.page):
         if not all([email, topic, description]):
             return ""
 
-        hashed_ip = hashlib.md5(web.ctx.ip).hexdigest()
+        hashed_ip = hashlib.md5(web.ctx.ip.encode('utf-8')).hexdigest()
         has_emailed_recently = get_memcache().get('contact-POST-%s' % hashed_ip)
         if has_emailed_recently:
             recap = get_recaptcha()
