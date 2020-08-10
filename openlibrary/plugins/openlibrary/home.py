@@ -234,7 +234,8 @@ def format_book_data(book):
     def get_authors(doc):
         return [web.storage(key=a.key, name=a.name or None) for a in doc.get_authors()]
 
-    work = book.works and book.works[0]
+    book_works = list(book.works)  # force the evaluation of lazy objects on Python 3
+    work = book_works and book_works[0]
     d.authors = get_authors(work if work else book)
     d.work_key = work.key if work else book.key
     cover = work.get_cover() if work and work.get_cover() else book.get_cover()
