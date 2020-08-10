@@ -61,7 +61,7 @@ class merge_work(delegate.page):
 def vendor_js():
     pardir = os.path.pardir
     path = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, 'static', 'upstream', 'js', 'vendor.js'))
-    with io.open(fullpath, 'rb') as in_file:
+    with io.open(path, 'rb') as in_file:
         digest = hashlib.md5(in_file.read()).hexdigest()
     return '/static/upstream/js/vendor.js?v=' + digest
 
