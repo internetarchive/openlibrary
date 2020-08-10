@@ -165,7 +165,7 @@ class MarcBinary(MarcBase):
                 # marc_upei/marc-for-openlibrary-bigset.mrc:78997353:588
                 if tag == '008' and line == b'':
                     continue
-                assert line[-1] == 0x1e
+                assert line[-1] == b'\x1e'[0]
                 yield tag, line[:-1].decode()
             else:
                 yield tag, BinaryDataField(self, line)
