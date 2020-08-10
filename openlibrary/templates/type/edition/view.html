@@ -292,8 +292,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
               </ul>
           </div>
 
-        $# TODO: $if work.edition_count > 1:  # workaround for internetarchive/openlibrary#3633
-        $if edition_count > 1:
+        $if work.edition_count > 1:
           $if (work.lc_classifications or work.dewey_number):
               <div class="section">
                   <h4 class="collapse">$_("Classifications")</h4>
