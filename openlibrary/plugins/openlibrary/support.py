@@ -22,7 +22,7 @@ class contact(delegate.page):
         user = accounts.get_current_user()
         email = user and user.email
 
-        hashed_ip = hashlib.md5(web.ctx.ip).hexdigest()
+        hashed_ip = hashlib.md5(web.ctx.ip.encode('utf-8')).hexdigest()
         has_emailed_recently = get_memcache().get('contact-POST-%s' % hashed_ip)
         recaptcha = has_emailed_recently and get_recaptcha()
         template = render_template("support", email=email, url=i.path,
