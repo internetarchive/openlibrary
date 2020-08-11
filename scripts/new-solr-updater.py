@@ -5,6 +5,23 @@ Author: Anand Chitipothu
 Changes:
 2013-02-25: First version
 2018-02-11: Use newer config method
+
+usage: new-solr-updater.py [-h] [-c CONFIG] [--debugger] [--state-file STATE_FILE] \
+                           [--exclude-edits-containing EXCLUDE_EDITS_CONTAINING] \
+                           [--ol-url OL_URL] [--socket-timeout SOCKET_TIMEOUT]
+                           [--load-ia-scans] [--no-commit]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c CONFIG, --config CONFIG
+  --debugger            Wait for a debugger to attach before beginning.
+  --state-file STATE_FILE
+  --exclude-edits-containing EXCLUDE_EDITS_CONTAINING
+                        Don't index matching edits
+  --ol-url OL_URL
+  --socket-timeout SOCKET_TIMEOUT
+  --load-ia-scans
+  --no-commit
 """
 import _init_path
 
