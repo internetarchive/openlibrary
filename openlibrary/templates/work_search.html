@@ -19,7 +19,7 @@ $for p in ['q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor'
     $if p in input and input[p]:
         $ param[p] = input[p]
 
-$if param.keys() == ['has_fulltext']:
+$if list(param) == ['has_fulltext']:
     $ param = {}
 
 $ sorts = dict(editions='edition_count desc', old='first_publish_year asc', new='first_publish_year desc', scans='ia_count desc')
