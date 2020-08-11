@@ -39,7 +39,7 @@ errorLookup = {
     "invalid_email": "The email address you entered is invalid",
     "account_blocked": "This account has been blocked",
     "account_locked": "This account has been blocked",
-    "account_not_found": "Wrong email. Please try again",
+    "account_not_found": "No account was found with this email. Please try again",
     "account_incorrect_password": "Wrong password. Please try again",
     "account_bad_password": "Wrong password. Please try again",
     "account_not_verified": "This account must be verified before login can be completed",
