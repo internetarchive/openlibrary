@@ -22,6 +22,8 @@ $ python3 -m venv .venv
 $ source .venv/bin/activate
 $ python3 -m pip install --upgrade pip
 $ python3 -m pip install pytest pyyaml splinter
+Install Chrome and Chromedriver (see .travis.yml) for FireFox and Gekodriver
+* More info at https://chromedriver.chromium.org/
 ````
 
 ## Running tests
@@ -35,6 +37,5 @@ Verify correct Open Library host in test files.
 For now, need to manually add an Edition to a new List just once.
 
 ````
-$ cd tests/integration
-$ pytest
+$ pytest tests/integration
 ````
