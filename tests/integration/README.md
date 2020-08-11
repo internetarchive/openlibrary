@@ -22,7 +22,7 @@ $ python3 -m venv .venv
 $ source .venv/bin/activate
 $ python3 -m pip install --upgrade pip
 $ python3 -m pip install pytest pyyaml splinter
-Install Chrome and Chromedriver (see .travis.yml) for FireFox and Gekodriver
+Install Chrome and Chromedriver (see .travis.yml) or FireFox and Gekodriver
 * More info at https://chromedriver.chromium.org/
 ````
 
