@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """New script to handle solr updates.
 
 Author: Anand Chitipothu
