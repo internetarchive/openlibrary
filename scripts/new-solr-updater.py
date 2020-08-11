@@ -259,6 +259,7 @@ def main():
     load_config(args.config)
 
     state_file = args.state_file
+    assert state_file
     offset = read_state_file(state_file)
 
     logfile = InfobaseLog(config.get('infobase_server'),
