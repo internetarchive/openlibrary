@@ -27,9 +27,35 @@ jobs:
         - source scripts/test-py3.sh
     - name: “Python 3.8 on focal”
       python: "3.8"
+    - name: "Integration tests"
+      python: "3.8"
+      services:
+        - docker
+        - xvfb
+      addons:
+        chrome: stable
+      before_install:
+        - google-chrome --version  # "Google Chrome 84.0.4147.105" so install matching chromedriver
+        - wget http://chromedriver.storage.googleapis.com/84.0.4147.30/chromedriver_linux64.zip
+        - unzip chromedriver_linux64.zip -d $HOME/bin/
+        - whereis chromedriver  # chromedriver: /home/travis/bin/chromedriver
+        - # https://github.com/internetarchive/openlibrary/tree/master/docker
+        - docker build -t olbase:latest -f docker/Dockerfile.olbase .  # 8+ minutes on Travis CI
+        - docker-compose build web   # 50 seconds on Travis CI
+        - docker-compose build solr  # 32 seconds on Travis CI
+        - pushd vendor/infogami && git pull origin master && popd
+        - INFOGAMI=local PYENV_VERSION=3.8.5 docker-compose up -d
+        - google-chrome-stable --headless --no-sandbox --disable-gpu http://localhost:8080 &
+      install:
+        - pip install --upgrade pip wheel
+        - pip install --upgrade splinter pytest pyyaml
+      before_script: true  # Override the main before_script
+      script:
+        - pytest tests/integration
   allow_failures:
     - name: “Python 2.7 on Infogami master”
     - name: “Python 3.8 on focal”
+    - name: "Integration tests"
 # Ubuntu may have an old version of node, so make sure Node 12 is installed
 # and used instead. Should match Dockerfile.
 before_install:

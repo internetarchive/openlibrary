@@ -1,23 +1,55 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
-import time
-import yaml
 import atexit
+import os
+import time
+
+import yaml
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 class OLSession(object):
     def __init__(self, timeout=10, domain="https://dev.openlibrary.org"):
-        with open('auth.yaml', 'r') as f:
-            self.config = yaml.load(f)
+        # set 'here' to 'openlibrary/tests/integration' regardless of working directory
+        here = os.path.dirname(os.path.abspath(__file__))
+        with open(os.path.join(here, '../../conf/openlibrary.yml')) as f:
+            self.config = yaml.load(f, Loader=yaml.SafeLoader)
+            OPENLIBRARY_USER_AUTH = {
+                'email': 'openlibrary@example.com',
+                'password': self.config.get('admin_password', 'password'),
+            }
+            self.config['accounts'] = {
+                'ia_blocked': OPENLIBRARY_USER_AUTH,
+                'ia_unverified': OPENLIBRARY_USER_AUTH,
+                'ia_verified': 'abc',
+                'ia_verified_mixedcase': 'abc',
+                'ia_create': "tryme",
+                'ia_create_conflict': True,
+
+                'ol_blocked': OPENLIBRARY_USER_AUTH,
+                'ol_unverified': 'abc',
+                'ol_verified': 'abc',
+                'ol_create': 'tryme',
+                'ol_create_conflict': True,
+
+                'linked': OPENLIBRARY_USER_AUTH,
+                'linked_blocked': True,
+
+                'unregistered': True,
+
+                'live1': OPENLIBRARY_USER_AUTH,
+                'live2': OPENLIBRARY_USER_AUTH,
+                'live3': OPENLIBRARY_USER_AUTH,
+            }
         try:
             self.driver = webdriver.Chrome()
-        except:
+        except WebDriverException:
             self.driver = webdriver.Firefox()
+        assert self.driver
 
         self.driver.set_window_size(1200, 1200)
         self.driver.implicitly_wait(timeout)

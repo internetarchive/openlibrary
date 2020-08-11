@@ -9,7 +9,7 @@ requests. Some tests rely on the presence of certain data being present.
 
 ## Installation
 
-Tested on Python 2.7.6, 2.7.12, 3.5.4
+Tested on Python 2.7.6, 2.7.18, 3.8.5
 
 Google Chrome needs to be installed.
 
@@ -18,13 +18,16 @@ $ port install chromedriver (MacPorts)
  or
 $ brew install chromedriver (Homebrew)
 
-$ source activate openlibrary
-$ pip install splinter
-$ pip install pytest
-$ pip install pyyaml
+$ python3 -m venv .venv
+$ source .venv/bin/activate
+$ python3 -m pip install --upgrade pip
+$ python3 -m pip install pytest pyyaml splinter
 ````
 
 ## Running tests
+
+Run Open Library in Docker as discussed at:
+https://github.com/internetarchive/openlibrary/tree/master/docker
 
 Verify correct Open Library host in test files.
 - Default: `http://localhost:8080`

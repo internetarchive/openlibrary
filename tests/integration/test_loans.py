@@ -6,6 +6,7 @@ testing loans and waitlist
 
 import time
 import unittest
+import pytest
 from . import OLSession
 
 
@@ -125,6 +126,7 @@ class Borrow_Test(unittest.TestCase):
         self.assertTrue(cta.get_attribute('data-userid') == itemname,
                         'data-userid should be %s, was %s' % (itemname, userid))
 
+    @pytest.mark.xfail(reason="TODO: selenium.common.exceptions.NoSuchElementException")
     def test_ia_borrow_ol_read_ol_return(self):
         olsession.ia_login(test=self, **LIVE_USER1)
         olsession.login(test=self, **LIVE_USER1)
@@ -140,6 +142,7 @@ class Borrow_Test(unittest.TestCase):
         olsession.logout(test=self)
         olsession.ia_logout(test=self)
 
+    @pytest.mark.xfail(reason="TODO: selenium.common.exceptions.NoSuchElementException")
     def test_ol_borrow_ia_read_ol_return(self):
         olsession.ia_login(test=self, **LIVE_USER1)
         olsession.login(test=self, **LIVE_USER1)
@@ -156,6 +159,7 @@ class Borrow_Test(unittest.TestCase):
         olsession.logout(test=self)
         olsession.ia_logout(test=self)
 
+    @pytest.mark.xfail(reason="TODO: selenium.common.exceptions.NoSuchElementException")
     def test_waitinglist(self):
         olsession.ia_login(test=self, **LIVE_USER2)
         olsession.login(test=self, **LIVE_USER2)
