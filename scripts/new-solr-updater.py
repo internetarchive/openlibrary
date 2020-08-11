@@ -9,8 +9,8 @@ Changes:
 2018-02-11: Use newer config method
 
 usage: new-solr-updater.py [-h] [-c CONFIG] [--debugger] [--state-file STATE_FILE] \
-                           [--exclude-edits-containing EXCLUDE_EDITS_CONTAINING] \
-                           [--ol-url OL_URL] [--socket-timeout SOCKET_TIMEOUT]
+                           [--exclude-edits-containing EXCLUDE_EDITS_CONTAINING]   \
+                           [--ol-url OL_URL] [--socket-timeout SOCKET_TIMEOUT]     \
                            [--load-ia-scans] [--no-commit]
 
 optional arguments:
