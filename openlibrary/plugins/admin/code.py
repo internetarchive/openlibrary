@@ -638,7 +638,8 @@ class permissions:
 
 class attach_debugger:
     def GET(self):
-        return render_template("admin/attach_debugger")
+        python_version = "{}.{}.{}".format(*sys.version_info)
+        return render_template("admin/attach_debugger", python_version)
 
     def POST(self):
         import ptvsd
