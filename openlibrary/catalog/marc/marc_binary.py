@@ -134,7 +134,10 @@ class MarcBinary(MarcBase):
         return iter_dir
 
     def leader(self):
-        return self.data[:24]
+        """
+        :rtype: str
+        """
+        return self.data[:24].decode('utf-8', errors='replace')
 
     def marc8(self):
         """
@@ -142,7 +145,7 @@ class MarcBinary(MarcBase):
 
         :rtype: bool
         """
-        return self.leader()[9] == b' '
+        return self.leader()[9] == ' '
 
     def all_fields(self):
         return self.read_fields()
@@ -169,7 +172,7 @@ class MarcBinary(MarcBase):
                 # Tag contents should be strings in utf-8 by this point
                 # if not, the MARC is corrupt in some way. Attempt to rescue
                 # using 'replace' error handling. We don't want to change offsets
-                # in the leader etc.
+                # in positionaly defined control fields like 008
                 yield tag, line[:-1].decode('utf-8', errors='replace')
             else:
                 yield tag, BinaryDataField(self, line)
