@@ -166,7 +166,11 @@ class MarcBinary(MarcBase):
                 if tag == '008' and line == b'':
                     continue
                 assert line[-1] == b'\x1e'[0]
-                yield tag, line[:-1].decode('utf-8')
+                # Tag contents should be strings in utf-8 by this point
+                # if not, the MARC is corrupt in some way. Attempt to rescue
+                # using 'replace' error handling. We don't want to change offsets
+                # in the leader etc.
+                yield tag, line[:-1].decode('utf-8', errors='replace')
             else:
                 yield tag, BinaryDataField(self, line)
 
