@@ -4,6 +4,7 @@ from openlibrary.catalog.marc.get_subjects import subjects_for_work
 from openlibrary.catalog.marc.marc_base import BadMARC, NoTitle, MarcException
 from openlibrary.catalog.utils import pick_first_date, tidy_isbn, flip_name, remove_trailing_dot, remove_trailing_number_dot
 
+re_bad_char = re.compile(u'\ufffd')
 re_question = re.compile(r'^\?+$')
 re_lccn = re.compile(r'([ \dA-Za-z\-]{3}[\d/-]+).*')
 re_oclc = re.compile(r'^\(OCoLC\).*?0*(\d+)')
@@ -537,7 +538,6 @@ def update_edition(rec, edition, func, field):
     if v:
         edition[field] = v
 
-re_bad_char = re.compile(u'[\xa0\xf6]')
 
 def read_edition(rec):
     """
