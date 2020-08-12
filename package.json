@@ -29,7 +29,7 @@
     "chartjs-plugin-datalabels": "0.7.0",
     "css-loader": "3.6.0",
     "datatables.net-dt": "1.10.21",
-    "eslint": "7.1.0",
+    "eslint": "7.6.0",
     "jest": "26.2.2",
     "jquery": "1.11.0",
     "jquery-migrate": "1.2.1",
