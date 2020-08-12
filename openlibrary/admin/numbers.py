@@ -21,9 +21,8 @@ main harness. They can be utility functions.
 import calendar
 import functools
 import logging
+import requests
 import tempfile
-
-from six.moves import urllib
 
 import web
 
@@ -132,7 +131,7 @@ def admin_range__visitors(**kargs):
         sqlitefile = tempfile.mktemp(prefix="sqlite-")
         url = "http://www.archive.org/download/stats/numUniqueIPsOL.sqlite"
         logging.debug("  Downloading '%s'", url)
-        sqlite_contents = urllib.request.urlopen(url).read()
+        sqlite_contents = requests.get(url).content
         f = open(sqlitefile, "w")
         f.write(sqlite_contents)
         f.close()

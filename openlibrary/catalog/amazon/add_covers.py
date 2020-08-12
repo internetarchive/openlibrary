@@ -1,8 +1,5 @@
 from __future__ import print_function
-import simplejson
-
-from six.moves.urllib.request import urlopen
-
+import requests
 
 base = 'http://ia331526.us.archive.org:7001/openlibrary.org/log/'
 
@@ -10,7 +7,8 @@ out = open('edition_and_isbn', 'w')
 offset = '2009-06-01:0'
 while not offset.startswith('2010-03-17:'):
     url = base + offset
-    ret = simplejson.load(urlopen(url))
+    response = requests.get(url)
+    ret = response.json()
     offset, data = ret['offset'], ret['data']
     print(offset, len(data))
     for i in data:
