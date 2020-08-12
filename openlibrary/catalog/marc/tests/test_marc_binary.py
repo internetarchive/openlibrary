@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 import os
+from six import string_types
 
 from openlibrary.catalog.marc.marc_binary import BinaryDataField, MarcBinary
 
@@ -55,7 +56,7 @@ class Test_MarcBinary:
                     f008 = v
                 elif f == '100':
                     f100 = v
-            assert isinstance(f001, str)
-            assert isinstance(f008, str)
+            assert isinstance(f001, string_types)
+            assert isinstance(f008, string_types)
             assert isinstance(f100, BinaryDataField)
 
