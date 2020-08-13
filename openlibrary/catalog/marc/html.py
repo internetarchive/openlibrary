@@ -13,25 +13,25 @@ def esc_sp(s):
 class html_record():
     def __init__(self, data):
         """
-        >>> hr = html_record("00053This is the leader.Now we are beyond the leader.")
+        >>> hr = html_record(b"00053This is the leader.Now we are beyond the leader.")
         >>> hr.leader
-        '00053This is the leader.'
+        b'00053This is the leader.'
         >>> hr.is_marc8
         True
         >>> # Change "00053" to "00054"...
-        >>> hr = html_record("00054This is the leader.Now we are beyond the leader.")
+        >>> hr = html_record(b"00054This is the leader.Now we are beyond the leader.")
         Traceback (most recent call last):
         ...
         AssertionError
         >>> # Change " " to "a"...
-        >>> hr = html_record("00053Thisais the leader.Now we are beyond the leader.")
+        >>> hr = html_record(b"00053Thisais the leader.Now we are beyond the leader.")
         >>> hr.is_marc8
         False
         """
         assert len(data) == int(data[:5])
         self.data = data
         self.leader = data[:24]
-        self.is_marc8 = data[9] != 'a'
+        self.is_marc8 = data[9] != b'a'[0]
 
     def html(self):
         return '<br>\n'.join(self.html_line(t, l) for t, l in get_all_tag_lines(self.data))
@@ -46,9 +46,9 @@ class html_record():
 
     def html_line(self, tag, line):
         if tag.startswith('00'):
-            s = esc_sp(line[:-1])
+            s = esc_sp(line[:-1].decode('utf-8', errors='replace'))
         else:
-            s = esc_sp(line[0:2]) + ' ' + self.html_subfields(line)
+            s = esc_sp(line[0:2].decode('utf-8', errors='replace')) + ' ' + self.html_subfields(line)
         return u'<large>' + tag + u'</large> <code>' + s + u'</code>'
 
 
