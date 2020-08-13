@@ -37,7 +37,7 @@ class html_record():
         return '<br>\n'.join(self.html_line(t, l) for t, l in get_all_tag_lines(self.data))
 
     def html_subfields(self, line):
-        assert line[-1] == '\x1e'
+        assert line[-1] == b'\x1e'[0]
         encode = {
             'k': lambda s: '<b>$%s</b>' % esc(translate(s, self.is_marc8)),
             'v': lambda s: esc(translate(s, self.is_marc8)),

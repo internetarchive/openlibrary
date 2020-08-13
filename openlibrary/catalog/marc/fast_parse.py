@@ -17,7 +17,9 @@ re_real_book = re.compile('(pbk|hardcover|alk[^a-z]paper|cloth)', re.I)
 def translate(bytes_in, leader_says_marc8=False):
     """
     Converts MARC8 to unicode
+    :param bytes_in bytes:
     """
+    assert isinstance(bytes_in, bytes)
     marc8 = MARC8ToUnicode(quiet=True)
     if leader_says_marc8:
         data = marc8.translate(mnemonics.read(bytes_in))
@@ -487,10 +489,10 @@ def split_line(s):
     pos = -1
     marks = []
     while True:
-        pos = s.find('\x1f', pos + 1)
+        pos = s.find(b'\x1f', pos + 1)
         if pos == -1:
             break
-        if s[pos+1] != '\x1b':
+        if s[pos+1] != b'\x1b'[0]:
             marks.append(pos)
     if not marks:
         return [('v', s)]
