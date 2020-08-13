@@ -3,7 +3,6 @@ import datetime
 import logging
 import os
 import re
-import requests
 import sys
 import time
 from collections import defaultdict
@@ -11,6 +10,7 @@ from unicodedata import normalize
 
 import simplejson as json
 import six
+from six.moves import urllib
 from six.moves.http_client import HTTPConnection
 import web
 from lxml.etree import tostring, Element, SubElement
@@ -42,14 +42,14 @@ _ia_db = None
 solr_host = None
 
 
-def urlopen(url, params=None, data=None):
+def urlopen(url, data=None):
     version = "%s.%s.%s" % sys.version_info[:3]
     user_agent = 'Mozilla/5.0 (openlibrary; %s) Python/%s' % (__file__, version)
     headers = {
         'User-Agent': user_agent
     }
-    response = requests.post(url, params=params, data=data, headers=headers)
-    return response    
+    req = urllib.request.Request(url, data, headers)
+    return urllib.request.urlopen(req)
 
 def get_solr():
     """
@@ -1110,7 +1110,8 @@ def get_subject(key):
         'facet.limit': 100
     }
     base_url = 'http://' + get_solr() + '/solr/select'
-    result = urlopen(base_url, params).json()
+    url = base_url + '?' + urllib.parse.urlencode(params)
+    result = json.load(urlopen(url))
 
     work_count = result['response']['numFound']
     facets = result['facet_counts']['facet_fields'].get(facet_field, [])
@@ -1248,7 +1249,7 @@ def update_author(akey, a=None, handle_redirects=True):
 
     logger.info("urlopen %s", url)
 
-    reply = urlopen(url).json()
+    reply = json.load(urlopen(url))
     work_count = reply['response']['numFound']
     docs = reply['response'].get('docs', [])
     top_work = None
@@ -1322,7 +1323,7 @@ def solr_select_work(edition_key):
         get_solr(),
         url_quote(edition_key)
     )
-    reply = urlopen(url).json()
+    reply = json.load(urlopen(url))
     docs = reply['response'].get('docs', [])
     if docs:
         return docs[0]['key'] # /works/ prefix is in solr
