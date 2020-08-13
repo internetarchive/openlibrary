@@ -112,7 +112,7 @@ class reload:
             s = web.rstrips(s, "/") + "/_reload"
             yield "<h3>" + s + "</h3>"
             try:
-                response = requests.get(s).content
+                response = requests.get(s).text
                 yield "<p><pre>" + response[:100] + "</pre></p>"
             except:
                 yield "<p><pre>%s</pre></p>" % traceback.format_exc()
