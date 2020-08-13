@@ -25,7 +25,7 @@ jobs:
             make lint-diff;
           fi
         - source scripts/run_doctests.sh
-        - source scripts/test-py3.sh
+        - source scripts/test_py3.sh
     - name: “Python 3.8 on focal”
       python: "3.8"
   allow_failures:
@@ -42,8 +42,8 @@ install:
   - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ] || [ "$TRAVIS_JOB_NAME" == "Python 2.7 on Infogami master" ]; then
       pushd vendor/infogami && git pull origin master && popd;
     fi
-  - make lint  # TODO: Move this to script: section after #2951 lands
 before_script: npm install
 script:
+  - make lint
   - make i18n
   - make test
