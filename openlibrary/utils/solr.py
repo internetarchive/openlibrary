@@ -97,7 +97,8 @@ class Solr:
             logger.info("solr request: %s ...", url)
             if not isinstance(payload, bytes):
                 payload = payload.encode("utf-8")
-            jsonData = requests.post(url, data=payload, headers={"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"}, timeout=10).json()
+            headers={"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"}
+            jsonData = requests.post(url, data=payload, headers=headers, timeout=10).json()
         return self._parse_solr_result(
             jsonData,
             doc_wrapper=doc_wrapper,

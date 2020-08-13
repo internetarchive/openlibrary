@@ -87,8 +87,7 @@ def get_solr_edition_records(iaids):
     filter = 'title'
     q = '+OR+'.join('ia:' + id for id in iaids)
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json" % (q, filter)
-    json_data = requests.get(solr_select).content
-    reply = simplejson.loads(json_data)
+    reply = requests.get(solr_select).json()
     if reply['response']['numFound'] == 0:
         return []
     rows = reply['response']['docs']
