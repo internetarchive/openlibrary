@@ -59,8 +59,7 @@ def get_works_iaids(wkeys):
     filter = 'ia'
     q = '+OR+'.join(['key:' + wkey for wkey in wkeys])
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json&fq=type:work" % (q, filter)
-    json_data = requests.get(solr_select).content
-    reply = simplejson.loads(json_data)
+    reply = requests.get(solr_select).json()
     if reply['response']['numFound'] == 0:
         return []
     return reply
@@ -73,8 +72,7 @@ def get_eids_for_wids(wids):
     filter = 'edition_key'
     q = '+OR+'.join(wids)
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json&fq=type:work" % (q, filter)
-    json_data = requests.get(solr_select).content
-    reply = simplejson.loads(json_data)
+    reply = requests.get(solr_select).json()
     if reply['response']['numFound'] == 0:
         return []
     rows = reply['response']['docs']
