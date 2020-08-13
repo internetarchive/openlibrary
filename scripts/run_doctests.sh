@@ -45,7 +45,6 @@ pytest --doctest-modules \
         --ignore=openlibrary/plugins/search/solr_client.py \
         --ignore=openlibrary/plugins/upstream/addbook.py \
         --ignore=openlibrary/plugins/upstream/jsdef.py \
-        --ignore=openlibrary/plugins/upstream/models.py \
         --ignore=openlibrary/plugins/upstream/utils.py \
         --ignore=openlibrary/records/tests/test_functions.py \
         --ignore=openlibrary/solr/db_load_authors.py \
