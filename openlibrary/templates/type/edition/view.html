@@ -460,7 +460,8 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
   </div>
 
   $ component_times['RelatedWorksCarousel'] = time()
-  $:macros.RelatedWorksCarousel(work)
+  <div class="RelatedWorksCarousel" workId="$work.key.split('/')[-1]"> 
+  </div>
   $ component_times['RelatedWorksCarousel'] = time() -component_times['RelatedWorksCarousel']
 
   $ component_times['HistoryTable'] = time()
@@ -491,11 +492,17 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
 <script>
   jQuery(window).load(function () {
-   alert('page is loaded');
-   
-    setTimeout(function () {
-        alert('page is loaded and 1 minute has passed');   
-    }, 60000); 
-    
+   \$.ajax({
+    url: '/partials',
+    type: 'GET',
+    data: {
+      workid: \$('.RelatedWorksCarousel').attr('workId'),
+      _component: true
+    },
+    datatype: 'json',
+    success: function(response){
+      console.log(response);
+      \$('.RelatedWorksCarousel').append(response);
+    }});
   });
 </script>

@@ -814,18 +814,15 @@ class memory(delegate.page):
         h = guppy.hpy()
         return delegate.RawText(str(h.heap()))
 
-class Partials:
+class Partials(delegate.page):
     path = '/partials'
 
     def GET(self):
         i = web.input(_component=None)
-        print(i)
-        pass 
-        i = web.input(_component=None)
-        component = i.pop('_component')  # this guarantees that, now... `i` only has parameters for whatever component function we'll end up calling
-        # macro = components[component]
-        # macro(**i)  # passes in the remaining GET parameters that the macro needs
-        # return macro
+        work = web.ctx.site.get('/works/%s' % i.workid) or {}
+        return delegate.RawText(
+                render_template('books/RelatedWorksCarousel', work),
+                content_type='text/html')
 
 
 def is_bot():
