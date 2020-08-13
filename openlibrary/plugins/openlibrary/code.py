@@ -7,6 +7,7 @@ from __future__ import print_function
 import requests
 import web
 import simplejson
+import json
 import os
 import sys
 import socket
@@ -740,7 +741,7 @@ def get_cover_id(key):
     try:
         _, cat, oln = key.split('/')
         return requests.get('https://covers.openlibrary.org/%s/query?olid=%s&limit=1' % (cat, oln)).json()[0]
-    except (ValueError, IndexError, TypeError, simplejson.errors.JSONDecodeError):
+    except (IndexError, json.decoder.JSONDecodeError, TypeError, ValueError):
         return None
 
 
