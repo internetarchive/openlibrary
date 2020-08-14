@@ -1,0 +1,12 @@
+##
+## Helper docker-compose for doing local python dev. You probably want to run something like:
+## PYENV_VERSION=3.8.5 docker-compose -f docker-compose.yml -f docker-compose.infogami-local.yml up -d
+##
+
+version: "3"
+services:
+  web:
+    environment:
+      - INFOGAMI=local
+    volumes:
+      - ./vendor/infogami:/openlibrary/vendor/infogami
