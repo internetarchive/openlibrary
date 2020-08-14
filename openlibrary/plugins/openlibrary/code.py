@@ -814,15 +814,30 @@ class memory(delegate.page):
         h = guppy.hpy()
         return delegate.RawText(str(h.heap()))
 
+def _get_component(workid):
+    work = web.ctx.site.get('/works/%s' % workid) or {}
+    component = render_template('books/RelatedWorksCarousel', work)
+    res = {}
+    res[0] = str(component) 
+    return res
+
+def get_cached_component(*args, **kwargs):
+    from openlibrary.core import cache
+    from openlibrary.utils import dateutil
+    memoized_get_component_metadata = cache.memcache_memoize(
+        _get_component, "book.bookspage.component", timeout=dateutil.HALF_DAY_SECS)
+    result = memoized_get_component_metadata(*args, **kwargs)
+    if result is None:
+        result = memoized_get_component_metadata.update(*args, **kwargs)[0]
+    return result
+
 class Partials(delegate.page):
     path = '/partials'
 
     def GET(self):
-        i = web.input(_component=None)
-        work = web.ctx.site.get('/works/%s' % i.workid) or {}
-        return delegate.RawText(
-                render_template('books/RelatedWorksCarousel', work),
-                content_type='text/html')
+        i = web.input(workid=None, _component=None)
+        cached_component = get_cached_component(i.workid)
+        return delegate.RawText(simplejson.dumps(cached_component), content_type="application/json")
 
 
 def is_bot():

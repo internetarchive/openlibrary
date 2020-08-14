@@ -489,20 +489,3 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       </tbody>
     </table>
 </div>
-
-<script>
-  jQuery(window).load(function () {
-   \$.ajax({
-    url: '/partials',
-    type: 'GET',
-    data: {
-      workid: \$('.RelatedWorksCarousel').attr('workId'),
-      _component: true
-    },
-    datatype: 'json',
-    success: function(response){
-      console.log(response);
-      \$('.RelatedWorksCarousel').append(response);
-    }});
-  });
-</script>
