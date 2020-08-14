@@ -388,7 +388,7 @@ class bookpage(delegate.page):
 
     path = r'/(oclc|lccn|ia|OCLC|LCCN|IA)/([^/]*)(/.*)?'
 
-    def GET(self, key, value, suffix=''): 
+    def GET(self, key, value, suffix=''):
         key = key.lower()
 
         if key == 'oclc':
