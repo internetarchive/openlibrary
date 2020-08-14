@@ -36,8 +36,12 @@ def parse_arguments():
     parser.add_argument('-c', '--config')
     parser.add_argument('--debugger', action="store_true", help="Wait for a debugger to attach before beginning.")
     parser.add_argument('--state-file', default="solr-update.state")
-    parser.add_argument('--exclude-edits-containing', help="Don't index matching edits")
+    parser.add_argument('--exclude-edits', type=re.compile,
+                        help="Don't index matching edits")
+    parser.add_argument('--include-only', type=re.compile,
+                        help="Only index matching edits")
     parser.add_argument('--ol-url', default="http://openlibrary.org/")
+    parser.add_argument('--solr-url', type=str, help="override solr location in config")
     parser.add_argument('--socket-timeout', type=int, default=10)
     parser.add_argument('--load-ia-scans', dest="load_ia_scans", action="store_true", default=False)
     parser.add_argument('--no-commit', dest="commit", action="store_false", default=True)
@@ -55,14 +59,16 @@ def get_default_offset():
 
 
 class InfobaseLog:
-    def __init__(self, hostname, exclude=None):
+    def __init__(self, hostname, exclude_re=None, include_only_re=None):
         """
         :param str hostname:
-        :param str|None exclude: if specified, excludes records that include the string
+        :param typing.Pattern|None exclude_re: excludes records that match the regex
+        :param typing.Pattern|None include_only: includes only records that match re
         """
         self.base_url = 'http://%s/openlibrary.org/log' % hostname
         self.offset = get_default_offset()
-        self.exclude = exclude
+        self.exclude_re = exclude_re
+        self.include_only_re = include_only_re
 
     def tell(self):
         return self.offset
@@ -97,7 +103,11 @@ class InfobaseLog:
                 return
 
             for record in data:
-                if self.exclude and self.exclude in json.dumps(record):
+                logger.debug(record)
+                record_s = json.dumps(record)
+                if self.include_only_re and not self.include_only_re.search(record_s):
+                    continue
+                if self.exclude_re and self.exclude_re.search(record_s):
                     continue
                 yield record
 
@@ -258,11 +268,15 @@ def main():
     logger.info("loading config from %s", args.config)
     load_config(args.config)
 
+    if args.solr_url:
+        config.plugin_worksearch.solr = args.solr_url
+
     state_file = args.state_file
     offset = read_state_file(state_file)
 
     logfile = InfobaseLog(config.get('infobase_server'),
-                          exclude=args.exclude_edits_containing)
+                          include_only_re=args.include_only,
+                          exclude_re=args.exclude_edits)
     logfile.seek(offset)
 
     solr = Solr()
