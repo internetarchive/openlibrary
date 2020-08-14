@@ -5,7 +5,6 @@ pytest . \
        --ignore=openlibrary/catalog/marc/tests/test_parse.py \
        --ignore=openlibrary/tests/catalog/test_get_ia.py \
        --ignore=openlibrary/plugins/openlibrary/tests/test_home.py \
-       --ignore=openlibrary/records/tests \
        --ignore=tests/integration \
        --ignore=scripts/2011 \
        --ignore=infogami \
