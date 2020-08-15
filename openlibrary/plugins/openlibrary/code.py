@@ -4,8 +4,10 @@ Open Library Plugin.
 from __future__ import absolute_import
 from __future__ import print_function
 
+import requests
 import web
 import simplejson
+import json
 import os
 import sys
 import socket
@@ -733,20 +735,13 @@ def most_recent_change():
         return get_recent_changes(limit=1)[0]
 
 
-def wget(url):
-    # TODO: get rid of this, use requests instead.
-    try:
-        return urllib.request.urlopen(url).read()
-    except:
-        return ''
-
 
 @public
 def get_cover_id(key):
     try:
         _, cat, oln = key.split('/')
-        return simplejson.loads(wget('https://covers.openlibrary.org/%s/query?olid=%s&limit=1' % (cat, oln)))[0]
-    except (ValueError, IndexError, TypeError):
+        return requests.get('https://covers.openlibrary.org/%s/query?olid=%s&limit=1' % (cat, oln)).json()[0]
+    except (IndexError, json.decoder.JSONDecodeError, TypeError, ValueError):
         return None
 
 

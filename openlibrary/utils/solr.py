@@ -1,6 +1,7 @@
 """Python library for accessing Solr.
 """
 import re
+import requests
 import web
 import simplejson
 import logging
@@ -91,15 +92,15 @@ class Solr:
         if len(payload) < 500:
             url = url + "?" + payload
             logger.info("solr request: %s", url)
-            data = urllib.request.urlopen(url, timeout=10).read()
+            jsonData = requests.get(url, timeout=10).json()
         else:
             logger.info("solr request: %s ...", url)
             if not isinstance(payload, bytes):
                 payload = payload.encode("utf-8")
-            request = urllib.request.Request(url, payload, {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"})
-            data = urllib.request.urlopen(request, timeout=10).read()
+            headers={"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"}
+            jsonData = requests.post(url, data=payload, headers=headers, timeout=10).json()
         return self._parse_solr_result(
-            simplejson.loads(data),
+            jsonData,
             doc_wrapper=doc_wrapper,
             facet_wrapper=facet_wrapper)
 
