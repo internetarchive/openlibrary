@@ -824,10 +824,8 @@ def get_cached_component(*args, **kwargs):
     from openlibrary.utils import dateutil
     memoized_get_component_metadata = cache.memcache_memoize(
         _get_component, "book.bookspage.component", timeout=dateutil.HALF_DAY_SECS)
-    result = memoized_get_component_metadata(*args, **kwargs)
-    if result is None:
-        result = memoized_get_component_metadata.update(*args, **kwargs)[0]
-    return result
+    return (memoized_get_component_metadata(*args, **kwargs) or
+            memoized_get_component_metadata.update(*args, **kwargs)[0])
 
 class Partials(delegate.page):
     path = '/partials'
