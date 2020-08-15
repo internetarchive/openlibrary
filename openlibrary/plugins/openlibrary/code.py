@@ -21,11 +21,12 @@ if not hasattr(infogami.config, 'features'):
     infogami.config.features = []
 
 from infogami.utils.app import metapage
-from infogami.utils import delegate
+from infogami.utils import delegate, dateutil
 from infogami.utils.view import render, render_template, public, safeint, add_flash_message
 from infogami.infobase import client
 from infogami.core.db import ValidationException
 
+from openlibrary.core import cache
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.core.models import Edition  # noqa: E402
@@ -820,8 +821,6 @@ def _get_component(workid):
     return {0: str(component)}
 
 def get_cached_component(*args, **kwargs):
-    from openlibrary.core import cache
-    from openlibrary.utils import dateutil
     memoized_get_component_metadata = cache.memcache_memoize(
         _get_component, "book.bookspage.component", timeout=dateutil.HALF_DAY_SECS)
     return (memoized_get_component_metadata(*args, **kwargs) or
