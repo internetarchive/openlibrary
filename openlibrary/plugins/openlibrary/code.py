@@ -817,9 +817,7 @@ class memory(delegate.page):
 def _get_component(workid):
     work = web.ctx.site.get('/works/%s' % workid) or {}
     component = render_template('books/RelatedWorksCarousel', work)
-    res = {}
-    res[0] = str(component) 
-    return res
+    return {0: str(component)}
 
 def get_cached_component(*args, **kwargs):
     from openlibrary.core import cache
