@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2018-03-15 22:37+0000\n"
-"PO-Revision-Date: 2020-08-15 09:45+0200\n"
+"PO-Revision-Date: 2020-08-15 10:11+0200\n"
 "Last-Translator: justcomplaining <justcomplaining@mailbox.org>\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -364,7 +364,7 @@ msgstr "Bei Open Library registrieren"
 
 #: create.html:6 create.html:92 nav_head.html:106 search_head.html:74
 msgid "Sign Up"
-msgstr "Anmelden"
+msgstr "Registrieren"
 
 #: create.html:8
 msgid "Complete the form below to create a new Internet Archive account."
@@ -2044,7 +2044,7 @@ msgstr "E-Mail"
 
 #: openlibrary/templates/login.html:70
 msgid "Not a member of Open Library? <a href=\"/account/create\">Sign up now</a>."
-msgstr "Kein Mitglied der Open Library? <a href=\"/account/create\">Jetzt anmelden</a>."
+msgstr "Kein Mitglied der Open Library? <a href=\"/account/create\">Jetzt registrieren</a>."
 
 #: openlibrary/templates/notfound.html:3
 #, python-format
