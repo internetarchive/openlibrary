@@ -22,7 +22,7 @@ import six
 __all__ = [
     "cached_property",
     "Cache", "MemoryCache", "MemcacheCache", "RequestCache",
-    "memoize", "memcache_memoize"
+    "memoize", "memcache_memoize", "get_memcache"
 ]
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
@@ -301,8 +301,12 @@ class MemcacheCache(Cache):
             return olmemcache.Client(servers)
         else:
             web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
-            import mockcache
-            return mockcache.Client()
+            try:
+                import mockcache
+                return mockcache.Client()
+            except ImportError:
+                from pymemcache.test.utils import MockMemcacheClient
+                return MockMemcacheClient()
 
     def get(self, key):
         key = web.safestr(key)

@@ -3,8 +3,7 @@
 import web
 import simplejson
 
-import config
-
+from openlibrary.coverstore import config
 from openlibrary.utils import olmemcache
 
 __all__ = [

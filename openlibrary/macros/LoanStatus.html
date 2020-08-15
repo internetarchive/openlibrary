@@ -11,7 +11,7 @@ $# * check_loan_status whether to check the user's loan status to determine read
 
 $ loanstatus_start_time = time()
 
-$ availability = doc.availability if hasattr(doc, 'availability') else {}
+$ availability = (doc.availability or {}) if hasattr(doc, 'availability') else {}
 $ ocaid = doc.get('ocaid') or availability.get('identifier')
 $ work_key = work_key or (doc.get('works') and doc.works[0].key)
 
@@ -120,7 +120,7 @@ $elif ('eligibility' in doc) or (check_sponsorship and not ocaid and not is_lend
   $else:
     <a href="$work_key" class="cta-btn cta-btn--missing" data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
 
-$elif not ocaid or (is_restricted and not is_lendable):
+$else:
   <div class="cta-button-group">
     <a href="$work_key" class="cta-btn cta-btn--missing"
        data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>

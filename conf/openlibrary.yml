@@ -87,15 +87,15 @@ logging_config_file: conf/logging.ini
 email_config_file: conf/email.ini
 
 lists:
-    seeds_db: http://127.0.0.1:5984/seeds
-    editions_db: http://127.0.0.1:5984/editions
-    works_db: http://127.0.0.1:5984/works
-    editions_view: http://127.0.0.1:5984/editions/_fti/_design/seeds/by_seed
+    seeds_db: http://localhost:5984/seeds
+    editions_db: http://localhost:5984/editions
+    works_db: http://localhost:5984/works
+    editions_view: http://localhost:5984/editions/_fti/_design/seeds/by_seed
 
 admin:
     nagios_url: http://monitor.us.archive.org/cgi-bin/nagios3/status.cgi?hostgroup=24.openlibrary&style=detail
     statsd_server: localhost:9090
-    admin_db: http://127.0.0.1:5984/admin
+    admin_db: http://localhost:5984/admin
 
 stats: # This section is used to state what stats need to be gathered.
     pageload.all:
@@ -165,8 +165,8 @@ ia_ol_xauth_s3:
     s3_key: XXX
     s3_secret: XXX
 
-ia_loan_api_url: http://127.0.0.1/internal/fake/loans
-ia_xauth_api_url: http://127.0.0.1/internal/fake/xauth
+ia_loan_api_url: http://localhost/internal/fake/loans
+ia_xauth_api_url: http://localhost/internal/fake/xauth
 
 internal_tests_api_key: 8oPd1tx747YH374ohs48ZO5s2Nt1r9yD
 ia_availability_api_v1_url: https://archive.org/services/loans/beta/loan/index.php

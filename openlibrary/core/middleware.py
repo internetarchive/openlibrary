@@ -1,7 +1,7 @@
 """WSGI middleware used in Open Library.
 """
 import web
-from six import StringIO
+from six import BytesIO
 import gzip
 
 class GZipMiddleware:
@@ -23,7 +23,7 @@ class GZipMiddleware:
             return default
 
         def compress(text, level=9):
-            f = StringIO()
+            f = BytesIO()
             gz = gzip.GzipFile(None, 'wb', level, fileobj=f)
             gz.write(text)
             gz.close()
@@ -41,6 +41,6 @@ class GZipMiddleware:
 
         data = self.app(environ, new_start_response)
         if response.compress:
-            return [compress("".join(data), 9)]
+            return [compress(b"".join(data), 9)]
         else:
             return data

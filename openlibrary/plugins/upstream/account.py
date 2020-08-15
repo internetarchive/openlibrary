@@ -29,7 +29,6 @@ from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
     audit_accounts, Account, OpenLibraryAccount, InternetArchiveAccount, valid_email)
 from openlibrary.core.sponsorships import get_sponsored_editions
-
 from openlibrary.plugins.upstream import borrow, forms, utils
 
 from six.moves import range
@@ -738,6 +737,7 @@ class ReadingLog(object):
         else: # must be a list or invalid page!
             #works = web.ctx.site.get_many([ ... ])
             raise
+
 class public_my_books(delegate.page):
     path = "/people/([^/]+)/books"
 
@@ -868,6 +868,61 @@ class fake_civi(delegate.page):
         }
         entity = contributions if i.entity == 'Contribution' else contact
         return delegate.RawText(simplejson.dumps(entity), content_type="application/json")
+
+class import_books(delegate.page):
+    path = "/account/import"
+
+    @require_login
+    def GET(self):
+        return render['account/import']()
+
+class fetch_goodreads(delegate.page):
+    path = "/account/import/goodreads"
+
+    @require_login
+    def POST(self):
+        import csv
+        i = web.input(csv={})
+        csv_file = csv.reader((i.csv.value).splitlines(),
+                              delimiter=',', quotechar='"')
+        header = csv_file.next()
+        books = {}
+        books_wo_isbns = {} 
+        for book in list(csv_file):
+            _book = dict(zip(header, book))
+            _book['ISBN'] = _book['ISBN'].replace('"','').replace('=','')
+            _book['ISBN13'] = _book['ISBN13'].replace('"','').replace('=','')
+            if _book['ISBN'] != '':
+                books[_book['ISBN']] = _book
+            elif _book['ISBN13'] != '':
+                books[_book['ISBN13']] = _book
+                books[_book['ISBN13']]['ISBN'] = _book['ISBN13']
+            else:
+                books_wo_isbns[_book['Book Id']] = _book     
+        return render['account/import'](books, books_wo_isbns)
+
+class export_books(delegate.page):
+    path = "/account/export"
+
+    @require_login
+    def GET(self):
+        user = accounts.get_current_user()
+        username = user.key.split('/')[-1]
+        books = Bookshelves.get_users_logged_books(username, limit=10000)
+        csv = []
+        csv.append('Work Id,Edition Id,Bookshelf\n')
+        mapping = {1:'Want to Read', 2:'Currently Reading', 3:'Already Read'}
+        for book in books:
+            row = [
+                'OL{}W'.format(book['work_id']),
+                'OL{}M'.format(book['edition_id']) if book['edition_id'] else '',
+                '{}\n'.format(mapping[book['bookshelf_id']])
+            ]
+            csv.append(','.join(row))
+        web.header('Content-Type','text/csv')
+        web.header('Content-disposition', 'attachment; filename=OpenLibrary_ReadingLog.csv')
+        csv = ''.join(csv)
+        return delegate.RawText(csv, content_type="text/csv")
 
 class account_loans(delegate.page):
     path = "/account/loans"

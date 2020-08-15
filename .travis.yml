@@ -8,6 +8,13 @@ jobs:
       dist: xenial
     - name: “Python 2.7 on focal”
       python: "2.7"
+    - name: “Python 2.7 on Infogami master”
+      python: "2.7"
+      script:
+        - make i18n
+        - make test
+        - pip install safety
+        - safety check || true
     - name: “Python 3.8 make lint and selected pytests”
       python: "3.8"
       before_script: true  # override npm install below
@@ -17,10 +24,11 @@ jobs:
         - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]; then
             make lint-diff;
           fi
-        - source scripts/test-py3.sh
+        - source scripts/test_py3.sh
     - name: “Python 3.8 on focal”
       python: "3.8"
   allow_failures:
+    - name: “Python 2.7 on Infogami master”
     - name: “Python 3.8 on focal”
 # Ubuntu may have an old version of node, so make sure Node 12 is installed
 # and used instead. Should match Dockerfile.
@@ -29,13 +37,12 @@ before_install:
   - nvm use 12
 install:
   - pip install -r requirements_test.txt
-  # if Travis is running Python 3, then
-  #   refresh the git submodule ./vendor/infogami
-  - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then
+  # refresh the git submodule ./vendor/infogami on some jobs
+  - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ] || [ "$TRAVIS_JOB_NAME" == "Python 2.7 on Infogami master" ]; then
       pushd vendor/infogami && git pull origin master && popd;
     fi
-  - make lint  # TODO: Move this to script: section after #2951 lands
 before_script: npm install
 script:
+  - make lint
   - make i18n
   - make test

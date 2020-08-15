@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 
 import web
 import logging
@@ -9,6 +10,9 @@ from infogami.utils.view import render_template
 
 from openlibrary import accounts
 from openlibrary.core import stats
+from openlibrary.core.cache import get_memcache
+from openlibrary.plugins.upstream.addbook import get_recaptcha
+from openlibrary.utils.dateutil import MINUTE_SECS
 
 logger = logging.getLogger("openlibrary")
 
@@ -17,7 +21,12 @@ class contact(delegate.page):
         i = web.input(path=None)
         user = accounts.get_current_user()
         email = user and user.email
-        template = render_template("support", email=email, url=i.path)
+
+        hashed_ip = hashlib.md5(web.ctx.ip).hexdigest()
+        has_emailed_recently = get_memcache().get('contact-POST-%s' % hashed_ip)
+        recaptcha = has_emailed_recently and get_recaptcha()
+        template = render_template("support", email=email, url=i.path,
+                                   recaptcha=recaptcha)
         template.v2 = True
         return template
 
@@ -31,6 +40,17 @@ class contact(delegate.page):
         useragent = web.ctx.env.get("HTTP_USER_AGENT","")
         if not all([email, topic, description]):
             return ""
+
+        hashed_ip = hashlib.md5(web.ctx.ip).hexdigest()
+        has_emailed_recently = get_memcache().get('contact-POST-%s' % hashed_ip)
+        if has_emailed_recently:
+            recap = get_recaptcha()
+            if recap and not recap.validate():
+                return render_template(
+                    "message.html",
+                    'Recaptcha solution was incorrect',
+                    ('Please <a href="javascript:history.back()">go back</a> and try '
+                     'again.'))
 
         default_assignees = config.get("support_default_assignees",{})
         topic_key = str(topic.replace(" ","_").lower())
@@ -47,6 +67,10 @@ class contact(delegate.page):
 
         message = SUPPORT_EMAIL_TEMPLATE % locals()
         sendmail(email, assignee, subject, message)
+
+        get_memcache().set(
+            'contact-POST-%s' % hashed_ip, "true", time=15 * MINUTE_SECS
+        )
         return render_template("email/case_created", assignee)
 
 def sendmail(from_address, to_address, subject, message):

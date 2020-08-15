@@ -10,7 +10,7 @@ import simplejson
 
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template  # noqa: F401 used for its side effects
 from infogami.plugins.api.code import jsonapi
 from infogami.utils.view import add_flash_message
 from openlibrary import accounts
@@ -139,10 +139,24 @@ class work_bookshelves(delegate.page):
         return simplejson.dumps(result)
 
     def POST(self, work_id):
+        """
+        Add a work (or a work and an edition) to a bookshelf.
+        
+        GET params:
+        - edition_id str (optional)
+        - action str: e.g. "add", "remove"
+        - redir bool: if patron not logged in, redirect back to page after login
+        - bookshelf_id int: which bookshelf? e.g. the ID for "want to read"?
+        - dont_remove bool: if book exists & action== "add", don't try removal  
+
+        :param str work_id: e.g. OL123W
+        :rtype: json
+        :return: a list of bookshelves_affected
+        """
         from openlibrary.core.models import Bookshelves
 
         user = accounts.get_current_user()
-        i = web.input(edition_id=None, action="add", redir=False, bookshelf_id=None)
+        i = web.input(edition_id=None, action="add", redir=False, bookshelf_id=None, dont_remove=False)
         key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
 
         if not user:
@@ -161,7 +175,7 @@ class work_bookshelves(delegate.page):
                 'error': 'Invalid bookshelf'
             }), content_type="application/json")
 
-        if bookshelf_id == current_status or bookshelf_id == -1:
+        if (not i.dont_remove) and bookshelf_id == current_status or bookshelf_id == -1:
             work_bookshelf = Bookshelves.remove(
                 username=username, work_id=work_id, bookshelf_id=current_status)
 

@@ -39,10 +39,13 @@ js:
 i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
-git:
+git:	
+#Do not run these on DockerHub since it recursively clones all the repos before build initiates
+ifneq ($(DOCKER_HUB),TRUE)
 	git submodule init
 	git submodule sync
 	git submodule update
+endif
 
 clean:
 	rm -rf $(BUILD)
@@ -71,6 +74,17 @@ ifndef CONTINUOUS_INTEGRATION
 	$(PYTHON) -m flake8 . --count --exclude=$(FLAKE_EXCLUDE) --exit-zero --max-complexity=10 --max-line-length=$(GITHUB_EDITOR_WIDTH) --statistics
 endif
 
-test:
-	npm test
+test-css:
+	npm run test:css
+
+test-js:
+	npm run test:js
+
+test-unit:
+	npm run test:unit
+
+test-py:
 	pytest openlibrary/tests openlibrary/mocks openlibrary/olbase openlibrary/plugins openlibrary/utils openlibrary/catalog openlibrary/coverstore scripts/tests
+
+test: 
+	npm run test && make test-py

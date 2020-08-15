@@ -116,12 +116,13 @@ class Bookshelves(object):
         return dict([(i['bookshelf_id'], i['count']) for i in result]) if result else {}
 
     @classmethod
-    def get_users_logged_books(cls, username, bookshelf_id, limit=100, page=1):
+    def get_users_logged_books(cls, username, bookshelf_id=None, limit=100, page=1):
         """Returns a list of Reading Log database records for books which the user has logged. Records are described in core/schema.py and include:
 
         username (str) - who logged this book
         work_id (int) - the Open Library work ID as an int (e.g. OL123W becomes 123)
-        bookshelf_id (int) - the ID of the bookshelf, see: PRESET_BOOKSHELVES
+        bookshelf_id (int) - the ID of the bookshelf, see: PRESET_BOOKSHELVES.
+            If bookshelf_id is None, return books from all bookshelves.
         edition_id (int) [optional] - the specific edition logged, if applicable
         created (datetime) - date the book was logged
         """
@@ -136,6 +137,10 @@ class Bookshelves(object):
         query = ("SELECT * from bookshelves_books WHERE "
                  "bookshelf_id=$bookshelf_id AND username=$username "
                  "LIMIT $limit OFFSET $offset")
+        if bookshelf_id is None:
+            query = ("SELECT * from bookshelves_books WHERE "
+                 "username=$username")
+            data = { 'username': username }
         return list(oldb.query(query, vars=data))
 
     @classmethod
@@ -163,7 +168,7 @@ class Bookshelves(object):
         `bookshelf_id`"""
         oldb = db.get_db()
         work_id = int(work_id)
-        bookself_id = int(bookshelf_id)
+        bookshelf_id = int(bookshelf_id)
         data = {'work_id': work_id, 'username': username}
 
         users_status = cls.get_users_read_status_of_work(username, work_id)
@@ -233,6 +238,7 @@ class Bookshelves(object):
         result = oldb.query(query)
         return list(result)
 
+    #Function incomplete
     @classmethod
     def search_my_readinglog(cls, q, bookshelf_id):
         oldb = db.get_db()

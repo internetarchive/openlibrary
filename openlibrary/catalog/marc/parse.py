@@ -33,7 +33,7 @@ want = [
     '130', '240', # work title
     '245',  # title
     '250',  # edition
-    '260',  # publisher
+    '260', '264',  # publisher
     '300',  # pagination
     '440', '490', '830'  # series
     ] + [str(i) for i in range(500, 588)] + [  # notes + toc + description
@@ -256,7 +256,7 @@ def read_pub_date(rec):
     return remove_trailing_number_dot(found[0]) if found else None
 
 def read_publisher(rec):
-    fields = rec.get_fields('260')
+    fields = rec.get_fields('260') or rec.get_fields('264')[:1]
     if not fields:
         return
     publisher = []
@@ -418,16 +418,11 @@ def read_description(rec):
 def read_url(rec):
     found = []
     for f in rec.get_fields('856'):
-        contents = f.get_contents(['3', 'u'])
-        if not contents.get('u', []):
+        contents = f.get_contents(['u', '3', 'z'])
+        if not contents.get('u'):
             continue
-        if '3' not in contents:
-            found += [{ 'url': u.strip(' ') } for u in contents['u']]
-            continue
-        assert len(contents['3']) == 1
-        title = contents['3'][0].strip(' ')
-        found += [{ 'url': u.strip(' '), 'title': title  } for u in contents['u']]
-
+        title = (contents.get('3') or contents.get('z', ['External source']))[0].strip()
+        found += [{'url':  u.strip(), 'title': title} for u in contents['u']]
     return found
 
 def read_other_titles(rec):

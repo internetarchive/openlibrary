@@ -639,7 +639,8 @@ class permissions:
 
 class attach_debugger:
     def GET(self):
-        return render_template("admin/attach_debugger")
+        python_version = "{}.{}.{}".format(*sys.version_info)
+        return render_template("admin/attach_debugger", python_version)
 
     def POST(self):
         import ptvsd
@@ -730,7 +731,7 @@ def setup():
     register_admin_page('/admin/spamwords', spamwords, label="")
     register_admin_page('/admin/sponsorship', sponsorship_stats, label="Sponsorship")
 
-    import mem
+    from openlibrary.plugins.admin import mem
 
     for p in [mem._memory, mem._memory_type, mem._memory_id]:
         register_admin_page('/admin' + p.path, p)
@@ -739,7 +740,7 @@ def setup():
     public(get_blocked_ips)
     delegate.app.add_processor(block_ip_processor)
 
-    import graphs
+    from openlibrary.plugins.admin import graphs
     graphs.setup()
 
 setup()

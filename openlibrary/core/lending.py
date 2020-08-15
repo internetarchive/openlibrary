@@ -311,6 +311,8 @@ def get_availability(key, ids):
         # endpoint
         v1_resp['is_browseable'] = (v1_resp['is_lendable'] and
                                     v1_resp['status'] == 'error')
+        # For debugging
+        v1_resp['__src__'] = 'core.models.lending.get_availability'
         return v1_resp
 
     url = '%s?%s=%s' % (config_ia_availability_api_v2_url, key, ','.join(ids))
@@ -886,6 +888,8 @@ class IA_Lending_API:
             params['developer'] = config_ia_loan_api_developer_key
         params['token'] = config_ia_ol_shared_key
         payload = urllib.parse.urlencode(params)
+        if not isinstance(payload, bytes):
+            payload = payload.encode("utf-8")
 
         try:
             jsontext = urllib.request.urlopen(config_ia_loan_api_url, payload,

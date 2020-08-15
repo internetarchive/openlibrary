@@ -16,7 +16,9 @@ import six
 
 logger = logging.getLogger('openlibrary.ia')
 
-IA_BASE_URL = config.get('ia_base_url')
+# FIXME: We can't reference `config` in module scope like this; it will always be undefined!
+# See lending.py for an example of how to do it correctly.
+IA_BASE_URL = config.get('ia_base_url', 'https://archive.org')
 VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
 
 
