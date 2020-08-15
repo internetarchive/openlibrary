@@ -26,9 +26,6 @@ services:
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
       - .:/openlibrary
-      # If you're making changes to infogami, enable this, and set INFOGAMI=local when
-      # starting docker-compose
-#      - ./vendor/infogami:/openlibrary/vendor/infogami
     networks:
       - webnet
   solr:
