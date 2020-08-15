@@ -1,6 +1,4 @@
 import pytest
-import unittest
-import mock
 
 from openlibrary.solr import update_work
 from openlibrary.solr.data_provider import DataProvider
@@ -427,21 +425,8 @@ class Test_build_data:
             assert 'ddc' not in d
             assert 'ddc_sort' not in d
 
-def mocked_urlopen(*args, **kwargs):
-    class MockResponse:
-        def __init__(self, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
-        
-        def json(self):
-            return self.json_data
-        
-    if args[0] == "http://solr:8080/solr/select?wt=json&json.nl=arrarr&q=author_key:OL25A&sort=edition_count+desc&rows=1&fl=title,subtitle&facet=true&facet.mincount=1&facet.field=subject_facet&facet.field=time_facet&facet.field=person_facet&facet.field=place_facet":
-        return MockResponse({"facet_counts": {"facet_fields": {"place_facet": [], "person_facet": [], "subject_facet": [], "time_facet": []}},"response":{"numFound": 0}}, 200)
-            
-    return MockResponse(None, 404)
 
-class Test_update_items(unittest.TestCase):
+class Test_update_items():
     @classmethod
     def setup_class(cls):
         update_work.data_provider = FakeDataProvider()
@@ -464,11 +449,20 @@ class Test_update_items(unittest.TestCase):
         assert isinstance(requests[0], update_work.DeleteRequest)
         assert requests[0].toxml() == '<delete><query>key:/authors/OL24A</query></delete>'
 
-    @mock.patch('openlibrary.solr.update_work.urlopen', side_effect=mocked_urlopen)
     def test_update_author(self, monkeypatch):
         update_work.data_provider = FakeDataProvider([
             make_author(key='/authors/OL25A', name='Somebody')
         ])
+        # Minimal Solr response, author not found in Solr
+        solr_response = """{
+            "facet_counts": {
+                "facet_fields": {
+                    "place_facet": [], "person_facet": [], "subject_facet": [], "time_facet": []
+                }
+            },
+            "response": {"numFound": 0}
+        }"""
+        monkeypatch.setattr(update_work, 'urlopen', lambda url: StringIO(solr_response))
         requests = update_work.update_author('/authors/OL25A')
         assert len(requests) == 1
         assert isinstance(requests, list)
