@@ -78,8 +78,7 @@ USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openl
 
 
 def download(url):
-    response = requests.get(url, headers={'User-Agent': USER_AGENT})
-    return response.content
+    return requests.get(url, headers={'User-Agent': USER_AGENT}).content
 
 
 def urldecode(url):
