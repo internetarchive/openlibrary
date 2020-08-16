@@ -1,12 +1,17 @@
-#!/usr/bin/python2.5
+#!/usr/bin/python3
+
 from __future__ import print_function
-from openlibrary.catalog.marc.fast_parse import *
-from openlibrary.catalog.get_ia import get_from_archive
-import sys
+
 import codecs
 import re
+import sys
 
-sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+import _init_path
+from openlibrary.catalog.get_ia import get_from_archive
+from openlibrary.catalog.marc.fast_parse import get_all_tag_lines, translate
+
+if bytes == str:  # PY2
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
 re_subtag = re.compile('\x1f(.)([^\x1f]*)')
 
@@ -25,9 +30,12 @@ def show_book(data):
             print(tag, line[0:2], fmt_subfields(line))
 
 if __name__ == '__main__':
-    source = sys.argv[1]
-    if ':' in source:
-        data = get_from_archive(source)
-    else:
-        data = open(source).read()
-    show_book(data)
+    SAMPLE = ("openlibrary/catalog/marc/tests/test_data/bin_input/"
+              "0descriptionofta1682unit_meta.mrc")
+    sources = sys.argv[1:] or [SAMPLE]
+    for source in sources:
+        if ':' in source:
+            data = get_from_archive(source)
+        else:
+            data = open(source).read()
+        show_book(data)

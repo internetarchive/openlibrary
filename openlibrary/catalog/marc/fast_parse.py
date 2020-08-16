@@ -22,7 +22,10 @@ def translate(bytes_in, leader_says_marc8=False):
     if leader_says_marc8:
         data = marc8.translate(mnemonics.read(bytes_in))
     else:
-        data = bytes_in.decode('utf-8')
+        try:
+            data = bytes_in.decode('utf-8')
+        except AttributeError:
+            data = bytes_in
     return normalize('NFC', data)
 
 re_question = re.compile(r'^\?+$')
@@ -167,7 +170,7 @@ def read_directory(data):
         directory = data[:dir_end].decode('utf-8')[24:]
         if len(directory) % 12 != 0:
             raise BadDictionary
-    iter_dir = (directory[i*12:(i+1)*12] for i in range(len(directory) / 12))
+    iter_dir = (directory[i*12:(i+1)*12] for i in range(len(directory) // 12))
     return dir_end, iter_dir
 
 @deprecated('Use catalog.marc.MarcBinary instead.')
