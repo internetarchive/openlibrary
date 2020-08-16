@@ -37,5 +37,6 @@ if __name__ == '__main__':
         if ':' in source:
             data = get_from_archive(source)
         else:
-            data = open(source).read()
+            with open(source) as in_file:
+                data = in_file.read()
         show_book(data)
