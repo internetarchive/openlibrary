@@ -37,6 +37,12 @@ if __name__ == '__main__':
         if ':' in source:
             data = get_from_archive(source)
         else:
-            with open(source) as in_file:
+            with open(source, "r") as in_file:  # <-- TODO: (cclauss) Need help here!
                 data = in_file.read()
         show_book(data)
+
+"""
+If the source is opened in "r" mode then everything works the same on both Python 2 and
+Python 3 but if it is opened in "rb" mode then there is not change on Python 2 but on
+Python 3 only the first line `leader: b'01441nam  2200301Ia 4504'` is printed.
+"""
