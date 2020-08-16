@@ -43,6 +43,6 @@ if __name__ == '__main__':
 
 """
 If the source is opened in "r" mode then everything works the same on both Python 2 and
-Python 3 but if it is opened in "rb" mode then there is not change on Python 2 but on
+Python 3 but if it is opened in "rb" mode then there is no change on Python 2 but on
 Python 3 only the first line `leader: b'01441nam  2200301Ia 4504'` is printed.
 """
