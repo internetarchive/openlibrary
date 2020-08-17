@@ -21,7 +21,8 @@ if not hasattr(infogami.config, 'features'):
     infogami.config.features = []
 
 from infogami.utils.app import metapage
-from infogami.utils import delegate, dateutil
+from infogami.utils import delegate
+from openlibrary.utils import dateutil
 from infogami.utils.view import render, render_template, public, safeint, add_flash_message
 from infogami.infobase import client
 from infogami.core.db import ValidationException
