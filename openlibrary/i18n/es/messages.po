@@ -128,7 +128,7 @@ msgid "Passwords didn't match."
 msgstr "Las contraseñas no coinciden."
 
 #: forms.py:62
-msgid "I want to receive news, announcements, and resources from the <a href="https://archive.org/">Internet Archive</a>, the non-profit that runs Open Library."
+msgid "I want to receive news, announcements, and resources from the <a href=\"https://archive.org/\">Internet Archive</a>, the non-profit that runs Open Library."
 msgstr "Envíame un boletín mensual de <a href=\"https://archive.org/\">Internet Archive</a>, la organización sin fines de lucro que administra Open Library."
 
 #: forms.py:91
