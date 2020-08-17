@@ -135,9 +135,7 @@ msgstr ""
 
 #: forms.py:62
 msgid ""
-"Send me a monthly newsletter from the <a "
-"href=\"https://archive.org/\">Internet Archive</a>, the non-profit that "
-"runs Open Library"
+"I want to receive news, announcements, and resources from the <a href="https://archive.org/">Internet Archive</a>, the non-profit that runs Open Library."
 msgstr ""
 
 #: forms.py:91
