@@ -16,8 +16,11 @@ re_real_book = re.compile('(pbk|hardcover|alk[^a-z]paper|cloth)', re.I)
 @deprecated('Use openlibrary.catalog.marc.MarcBinary instead.')
 def translate(bytes_in, leader_says_marc8=False):
     """
-    Converts MARC8 to unicode
+    Converts a binary MARC field value to unicode str,
+    from either MARC8 or UTF8 encoded bytes.
+
     :param bytes_in bytes:
+    :rtype: str
     """
     assert isinstance(bytes_in, bytes)
     marc8 = MARC8ToUnicode(quiet=True)
@@ -26,6 +29,7 @@ def translate(bytes_in, leader_says_marc8=False):
     else:
         data = bytes_in.decode('utf-8')
     return normalize('NFC', data)
+
 
 re_question = re.compile(r'^\?+$')
 re_lccn = re.compile(r'(...\d+).*')
