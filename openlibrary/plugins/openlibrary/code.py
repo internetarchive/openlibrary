@@ -816,14 +816,14 @@ class memory(delegate.page):
         h = guppy.hpy()
         return delegate.RawText(str(h.heap()))
 
-def _get_component(workid):
+def _get_relatedcarousels_component(workid):
     work = web.ctx.site.get('/works/%s' % workid) or {}
     component = render_template('books/RelatedWorksCarousel', work)
     return {0: str(component)}
 
-def get_cached_component(*args, **kwargs):
+def get_cached_relatedcarousels_component(*args, **kwargs):
     memoized_get_component_metadata = cache.memcache_memoize(
-        _get_component, "book.bookspage.component", timeout=dateutil.HALF_DAY_SECS)
+        _get_relatedcarousels_component, "book.bookspage.component.relatedcarousels", timeout=dateutil.HALF_DAY_SECS)
     return (memoized_get_component_metadata(*args, **kwargs) or
             memoized_get_component_metadata.update(*args, **kwargs)[0])
 
@@ -832,7 +832,10 @@ class Partials(delegate.page):
 
     def GET(self):
         i = web.input(workid=None, _component=None)
-        cached_component = get_cached_component(i.workid)
+        component = i.pop("_component")
+        cached_component = {}
+        if component == "RelatedWorkCarousel":
+            cached_component = get_cached_relatedcarousels_component(**i)
         return delegate.RawText(simplejson.dumps(cached_component), content_type="application/json")
 
 

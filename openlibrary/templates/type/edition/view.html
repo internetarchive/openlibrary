@@ -461,7 +461,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
   $ component_times['RelatedWorksCarousel'] = time()
   <div class="RelatedWorksCarousel" workId="$work.key.split('/')[-1]">
-    <div class="hidden" id="loadingIndicator">
+    <div class="hidden loadingIndicator">
         <figure>
         <img src="/images/ajax-loader-bar.gif">
         <figcaption style="
