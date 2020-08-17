@@ -388,8 +388,8 @@ class stats:
 class ipstats:
     def GET(self):
         web.header('Content-Type', 'application/json')
-        json = requests.get("http://www.archive.org/download/stats/numUniqueIPsOL.json").content
-        return delegate.RawText(json)
+        text = requests.get("http://www.archive.org/download/stats/numUniqueIPsOL.json").text
+        return delegate.RawText(text)
 
 class block:
     def GET(self):
