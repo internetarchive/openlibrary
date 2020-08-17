@@ -110,8 +110,8 @@ jQuery(function () {
     }
     // conditionally loads Related Carousels based on class in the page
     if (document.getElementsByClassName('RelatedWorksCarousel').length) {
-        import('./partials.js')
-            .then(module => module.initPartials());
+        import('./carousels_partials.js')
+            .then(module => module.initCarouselsPartials());
     }
     // Enable any carousels in the page
     if ($carouselElements.length) {

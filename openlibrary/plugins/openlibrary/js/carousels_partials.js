@@ -2,7 +2,8 @@ import 'slick-carousel';
 import '../../../../static/css/components/carousel--js.less';
 import Carousel from './carousel/Carousel';
 
-export function initPartials() {
+export function initCarouselsPartials() {
+    $('#loadingIndicator').removeClass('hidden');
     jQuery(window).load(function () {
         $.ajax({
             url: '/partials',
@@ -13,6 +14,7 @@ export function initPartials() {
             },
             datatype: 'json',
             success: function (response) {
+                $('#loadingIndicator').addClass('hidden');
                 $('.RelatedWorksCarousel').append(response[0]);
                 const $carouselElements = $('.RelatedWorksCarousel .carousel--progressively-enhanced');
                 if ($carouselElements.length) {
