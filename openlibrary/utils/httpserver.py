@@ -16,7 +16,10 @@
     IOError: [Errno socket error] (61, 'Connection refused')
 """
 from __future__ import print_function
-from web.wsgiserver import CherryPyWSGIServer
+try:  # Python 3
+    from cheroot.wsgi import Server as CherryPyWSGIServer
+except ImportError:  # Python 2
+    from web.wsgiserver import CherryPyWSGIServer
 import threading
 import time
 

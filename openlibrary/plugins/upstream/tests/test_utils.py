@@ -62,4 +62,4 @@ def test_set_share_links_unicode():
 def test_item_image():
     assert utils.item_image('//foo') == 'https://foo'
     assert utils.item_image(None, 'bar') == 'bar'
-    assert utils.item_image(None) == None
+    assert utils.item_image(None) is None

@@ -40,7 +40,7 @@ want = [
     '260', # publisher
     '300', # pagination
     '440', '490', '830' # series
-    ] + map(str, range(500,590)) + [ # notes + toc + description
+    ] + [str(i) for i in range(500,590)] + [ # notes + toc + description
     '600', '610', '630', '650', '651', # subjects + genre
     '700', '710', '711', # contributions
     '246', '730', '740', # other titles
