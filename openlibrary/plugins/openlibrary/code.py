@@ -22,10 +22,12 @@ if not hasattr(infogami.config, 'features'):
 
 from infogami.utils.app import metapage
 from infogami.utils import delegate
+from openlibrary.utils import dateutil
 from infogami.utils.view import render, render_template, public, safeint, add_flash_message
 from infogami.infobase import client
 from infogami.core.db import ValidationException
 
+from openlibrary.core import cache
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.core.models import Edition  # noqa: E402
@@ -813,6 +815,28 @@ class memory(delegate.page):
         import guppy
         h = guppy.hpy()
         return delegate.RawText(str(h.heap()))
+
+def _get_relatedcarousels_component(workid):
+    work = web.ctx.site.get('/works/%s' % workid) or {}
+    component = render_template('books/RelatedWorksCarousel', work)
+    return {0: str(component)}
+
+def get_cached_relatedcarousels_component(*args, **kwargs):
+    memoized_get_component_metadata = cache.memcache_memoize(
+        _get_relatedcarousels_component, "book.bookspage.component.relatedcarousels", timeout=dateutil.HALF_DAY_SECS)
+    return (memoized_get_component_metadata(*args, **kwargs) or
+            memoized_get_component_metadata.update(*args, **kwargs)[0])
+
+class Partials(delegate.page):
+    path = '/partials'
+
+    def GET(self):
+        i = web.input(workid=None, _component=None)
+        component = i.pop("_component")
+        cached_component = {}
+        if component == "RelatedWorkCarousel":
+            cached_component = get_cached_relatedcarousels_component(**i)
+        return delegate.RawText(simplejson.dumps(cached_component), content_type="application/json")
 
 
 def is_bot():
