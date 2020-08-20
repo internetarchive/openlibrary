@@ -33,7 +33,7 @@ pytest --doctest-modules \
         --ignore=openlibrary/catalog/marc/show_records.py \
         --ignore=openlibrary/catalog/marc/tests/test_get_subjects.py \
         --ignore=openlibrary/catalog/marc/tests/test_parse.py \
-	--ignore=openlibrary/catalog/add_book/tests \
+        --ignore=openlibrary/catalog/add_book/tests \
         --ignore=openlibrary/catalog/merge/build_db.py \
         --ignore=openlibrary/catalog/merge/load_from_json.py \
         --ignore=openlibrary/core/ia.py \
