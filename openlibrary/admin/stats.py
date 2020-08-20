@@ -125,7 +125,7 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
       Total counts are simply computed and updated for the current day
       Delta counts are computed by subtracting the current total from yesterday's total
     """
-   today = datetime.datetime.now()
+    today = datetime.datetime.now()
     yesterday = today - datetime.timedelta(days = 1)
     data = {}
 
