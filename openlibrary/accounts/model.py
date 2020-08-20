@@ -570,16 +570,14 @@ class InternetArchiveAccount(web.storage):
             'secret': s3_secret or lending.config_ia_ol_xauth_s3.get('s3_secret')
         })
 
-        """
-          Currently, optional parameters, like `service` are passed as
-          **kwargs (i.e. **data). The xauthn service uses the named
-          parameter `activation-type` which contains a dash and thus
-          is unsuitable as a kwarg name. Therefore, if we're
-          performing an account `create` xauthn operation and the
-          `service` parameter is present, we need to rename `service`
-          as `activation-type` so it is forwarded correctly to xauth:
-        """
-       if op == 'create' and 'service' in data:
+        # Currently, optional parameters, like `service` are passed as
+        # **kwargs (i.e. **data). The xauthn service uses the named
+        # parameter `activation-type` which contains a dash and thus
+        # is unsuitable as a kwarg name. Therefore, if we're
+        # performing an account `create` xauthn operation and the
+        # `service` parameter is present, we need to rename `service`
+        # as `activation-type` so it is forwarded correctly to xauth:
+        if op == 'create' and 'service' in data:
             data['activation-type'] = data.pop('service')
 
         if test:
@@ -684,11 +682,9 @@ def audit_accounts(email, password, require_link=False,
         ol_account = OpenLibraryAccount.get(link=ia_account.itemname, test=test)
         link = ol_account.itemname if ol_account else None
 
-        """
-          The fact that there is no link implies no Open Library
-          account exists containing a link to this Internet Archive
-          account..
-        """
+        # The fact that there is no link implies no Open Library
+        # account exists containing a link to this Internet Archive
+        # account...
         if not link:
             # then check if there's an Open Library account which shares
             # the same email as this IA account.
@@ -696,28 +692,24 @@ def audit_accounts(email, password, require_link=False,
 
             # If an Open Library account with a matching email account exist...
             if ol_account:
-                """
-                  Check whether it is linked already, i.e. has an itemname
-                  set. We already determined that no OL account is
-                  linked to our IA account. Therefore this Open
-                  Library account having the same email as our IA
-                  account must have been linked to a different
-                  Internet Archive account.
-                """
+                # Check whether it is linked already, i.e. has an itemname
+                # set. We already determined that no OL account is
+                # linked to our IA account. Therefore this Open
+                # Library account having the same email as our IA
+                # account must have been linked to a different
+                # Internet Archive account.
                 if ol_account.itemname:
                     return {'error': 'wrong_ia_account'}
 
-        """
-          At this point, it must either be the case that (a)
-          `ol_account` already links to our IA account (in which case
-          `link` has a correct value), (b) that an unlinked
-          `ol_account` shares the same email as our IA account and
-          thus can and should be safely linked to our IA account, or
-          (c) no `ol_account` which is linked or can be linked has
-          been found and therefore, assuming
-          lending.config_ia_auth_only is enabled, we need to create
-          and link it.
-        """
+        # At this point, it must either be the case that (a)
+        # `ol_account` already links to our IA account (in which case
+        # `link` has a correct value), (b) that an unlinked
+        # `ol_account` shares the same email as our IA account and
+        # thus can and should be safely linked to our IA account, or
+        # (c) no `ol_account` which is linked or can be linked has
+        # been found and therefore, assuming
+        # lending.config_ia_auth_only is enabled, we need to create
+        # and link it.
         if not ol_account:
             if not password:
                 raise {'error': 'link_attempt_requires_password'}
@@ -731,12 +723,11 @@ def audit_accounts(email, password, require_link=False,
 
             ol_account.link(ia_account.itemname)
             stats.increment('ol.account.xauth.ia-auto-created-ol')
-        """
-          So long as there's either a linked OL account, or an unlinked OL
-          account with the same email, set them as linked (and let the
-          finalize logic link them, if needed)
-        """
-      else:
+
+        # So long as there's either a linked OL account, or an unlinked OL
+        # account with the same email, set them as linked (and let the
+        # finalize logic link them, if needed)
+        else:
             if not ol_account.itemname:
                 ol_account.link(ia_account.itemname)
                 stats.increment('ol.account.xauth.auto-linked')
@@ -756,22 +747,21 @@ def audit_accounts(email, password, require_link=False,
     if 'values' in ia_login:
         s3_keys = ia_login['values']
         ol_account.save_s3_keys(s3_keys)
-
     """
-      When a user logs in with OL credentials, the
-      web.ctx.site.login() is called with their OL user
-      credentials, which internally sets an auth_token
-      enabling the user's session.  The web.ctx.site.login
-      method requires OL credentials which are not present in
-      the case where a user logs in with their IA
-      credentials. As a result, when users login with their
-      valid IA credentials, the following kludge allows us to
-      fetch the OL account linked to their IA account, bypass
-      this web.ctx.site.login method (which requires OL
-      credentials), and directly set an auth_token to
-      enable the user's session.
+    When a user logs in with OL credentials, the
+    web.ctx.site.login() is called with their OL user
+    credentials, which internally sets an auth_token
+    enabling the user's session.  The web.ctx.site.login
+    method requires OL credentials which are not present in
+    the case where a user logs in with their IA
+    credentials. As a result, when users login with their
+    valid IA credentials, the following kludge allows us to
+    fetch the OL account linked to their IA account, bypass
+    this web.ctx.site.login method (which requires OL
+    credentials), and directly set an auth_token to
+    enable the user's session.
     """
-   web.ctx.conn.set_auth_token(ol_account.generate_login_code())
+    web.ctx.conn.set_auth_token(ol_account.generate_login_code())
     return {
         'authenticated': True,
         'ia_email': ia_account.email,
