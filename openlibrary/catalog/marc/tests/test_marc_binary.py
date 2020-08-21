@@ -6,6 +6,7 @@ from openlibrary.catalog.marc.marc_binary import BinaryDataField, MarcBinary
 
 test_data = "%s/test_data/bin_input/" % os.path.dirname(__file__)
 
+
 class MockMARC:
     def __init__(self, encoding):
         """
@@ -41,6 +42,7 @@ class Test_BinaryDataField:
         bdf = BinaryDataField(MockMARC('marc8'), line)
         assert list(bdf.get_all_subfields()) == [(u'á', u'Etude objective des phénomènes neuro-psychiques;')]
 
+
 class Test_MarcBinary:
     def test_all_fields(self):
         filename = '%s/onquietcomedyint00brid_meta.mrc' % test_data
@@ -60,3 +62,12 @@ class Test_MarcBinary:
             assert isinstance(f008, string_types)
             assert isinstance(f100, BinaryDataField)
 
+    def test_get_fields(self):
+        filename = '%s/onquietcomedyint00brid_meta.mrc' % test_data
+        with open(filename, 'rb') as f:
+            rec = MarcBinary(f.read())
+            rec.build_fields(['100', '245', '010'])
+            author_field = rec.get_fields('100')
+            assert isinstance(author_field, list)
+            assert isinstance(author_field[0], BinaryDataField)
+            name = author_field[0].get_subfields('a')
