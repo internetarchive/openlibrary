@@ -390,7 +390,7 @@ msgid ""
 "If you'd like to create a new, different Open Library account, you'll need to <a href=\"javascript:;\" onclick=\"document."
 "forms['logout'].submit()\">log out</a> and start the signup process afresh."
 msgstr ""
-"Wenn Sie ein neues Konto anlegen möchten, müssen Sie sich<a href=\"javascript:;\" onclick=\"document.forms['logout']."
+"Wenn Sie ein neues Konto anlegen möchten, müssen Sie sich <a href=\"javascript:;\" onclick=\"document.forms['logout']."
 "submit()\">abmelden</a> und den Registrierungsprozess von vorne beginnen."
 
 #: create.html:45 create.html:56 create.html:65
