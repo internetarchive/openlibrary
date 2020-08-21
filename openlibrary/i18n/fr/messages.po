@@ -596,9 +596,10 @@ msgstr "Visiter Open Library"
 msgid "Open Library logo"
 msgstr "Logo Open Library"
 
-#: books.html:86 embed.html:27 home.html:7 home.html:10 lists.html:10
-#: nav_head.html:48 nav_head.html:73 search_head.html:70 view.html:31
-#: view.html:42 view.html:60 widget.html:234
+#: books.html:86 books.html:89 embed.html:27 home.html:7 home.html:10
+#: index.html:40 lists.html:10 nav_head.html:48 nav_head.html:73
+#: search_head.html:70 view.html:31 view.html:42 view.html:60
+#: widget.html:234
 msgid "Lists"
 msgstr "Listes"
 
@@ -614,11 +615,6 @@ msgstr ""
 "Ouvrir dans le lecteur de livres en ligne. Téléchargements disponibles "
 "aux formats ePub, DAISY, PDF, TXT à partir de la page principale du livre"
 
-#: custom_carousel.html:42 custom_carousel.html:47 editions_datatable.html:23
-#: embed.html:69 openlibrary/macros/ReadButton.html:13 show.html:34
-msgid "Read"
-msgstr "Lire"
-
 #: embed.html:73
 msgid "This book is checked out"
 msgstr "Ce livre est prêté."
@@ -632,7 +628,7 @@ msgid "Borrow book"
 msgstr "Emprunter livre"
 
 #: custom_carousel.html:39 custom_carousel.html:45 embed.html:80
-#: openlibrary/macros/ReadButton.html:9
+#: openlibrary/macros/ReadButton.html:9 openlibrary/templates/widget.html:38
 msgid "Borrow"
 msgstr "Emprunter"
 
@@ -640,7 +636,7 @@ msgstr "Emprunter"
 msgid "Protected DAISY"
 msgstr "DAISY protégé"
 
-#: embed.html:85
+#: embed.html:85 openlibrary/macros/DownloadOptions.html:27
 msgid "DAISY"
 msgstr "DAISY"
 
@@ -809,12 +805,6 @@ msgstr "Emprunts"
 msgid "admin page"
 msgstr "page admin"
 
-#: books.html:89 home.html:7 home.html:10 index.html:40 lists.html:10
-#: nav_head.html:48 nav_head.html:73 search_head.html:70 view.html:31
-#: view.html:60 widget.html:234
-msgid "Lists"
-msgstr "Listes"
-
 #: books.html:53 books.html:76 view.html:46
 msgid "Reading Log"
 msgstr "Journal de lecture"
@@ -900,6 +890,7 @@ msgstr "Édition"
 
 #: custom_carousel.html:42 custom_carousel.html:47 editions_datatable.html:23
 #: openlibrary/macros/ReadButton.html:13 openlibrary/templates/widget.html:33
+#: embed.html:69 openlibrary/macros/ReadButton.html:13 show.html:34
 #: show.html:34
 msgid "Read"
 msgstr "Lire"
@@ -1750,11 +1741,6 @@ msgstr " par %(name)s"
 #: custom_carousel.html:34
 msgid "Sponsor"
 msgstr ""
-
-#: custom_carousel.html:39 custom_carousel.html:45
-#: openlibrary/macros/ReadButton.html:9 openlibrary/templates/widget.html:38
-msgid "Borrow"
-msgstr "Emprunter"
 
 #: edit.html:68 edit.html:71 edit.html:74
 msgid "Add a little more?"
@@ -3971,10 +3957,6 @@ msgstr ""
 msgid "Download open DAISY from Internet Archive (print-disabled format)"
 msgstr ""
 
-#: openlibrary/macros/DownloadOptions.html:27
-msgid "DAISY"
-msgstr ""
-
 #: openlibrary/macros/EditButtons.html:9
 msgid "Please, leave a short note about what you changed:"
 msgstr "Veuillez laisser une courte note sur ce que vous avez modifié:"
@@ -4156,9 +4138,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ msgid "Path"
 #~ msgstr "Chemin"
 
-#~ msgid "Actions"
-#~ msgstr "Actions"
-
 #~ msgid "view"
 #~ msgstr "voir"
 
@@ -4197,9 +4176,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 
 #~ msgid "Delete Your Account"
 #~ msgstr "Supprimer votre compte"
-
-#~ msgid "eBook?"
-#~ msgstr "livre électronique?"
 
 #~ msgid "Fiction?"
 #~ msgstr "Fiction?"
@@ -4507,9 +4483,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ msgid "#edits"
 #~ msgstr "# de modifications"
 
-#~ msgid "People"
-#~ msgstr "Gens"
-
 #~ msgid "Email Address:"
 #~ msgstr "Adresse de courriel:"
 
@@ -4722,9 +4695,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ "utiliser ce site et d'autres au "
 #~ "mieux."
 
-#~ msgid "View all recent changes"
-#~ msgstr "Voir tous les changements récents"
-
 #~ msgid "Document Body"
 #~ msgstr "Corps du document"
 
@@ -4745,9 +4715,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 
 #~ msgid "Go back where I came from"
 #~ msgstr "Revenir d'où je viens"
-
-#~ msgid "By <em>unknown author</em>"
-#~ msgstr "Par <em>auteur inconnu</em>"
 
 #~ msgid "Edition Title"
 #~ msgstr "Titre de l'édition"
@@ -4777,9 +4744,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 
 #~ msgid "Book Search"
 #~ msgstr "Recherche de livre"
-
-#~ msgid "Edit %(title)s"
-#~ msgstr "Modifier %(title)s"
 
 #~ msgid ""
 #~ "This only appears in the document "
@@ -4816,14 +4780,8 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ msgid "Backreferences"
 #~ msgstr "Références arrières"
 
-#~ msgid "Currently Editing:"
-#~ msgstr "Modification de:"
-
 #~ msgid "%s has been tending to"
 #~ msgstr "%s a entretenu"
-
-#~ msgid "First published in"
-#~ msgstr "Première publication dans"
 
 #~ msgid "Versions we know about"
 #~ msgstr "Version que nous connaissons"
@@ -4898,16 +4856,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ msgid "Edition Search"
 #~ msgstr "Recherche d'édition"
 
-#~ msgid ""
-#~ "Open in online Book Reader. Downloads"
-#~ " available in ePub, DAISY, PDF, TXT"
-#~ " formats from main book page"
-#~ msgstr ""
-#~ "Ouvrir dans Book Reader en ligne. "
-#~ "Téléchargements disponibles en ePub, DAISY,"
-#~ " PDF, TXT formats de la page "
-#~ "principale du livre"
-
 #~ msgid "Search Results"
 #~ msgstr "Résultats de recherche"
 
@@ -4931,23 +4879,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 
 #~ msgid "<u>Or</u></span>, paste in a URL to an image if it's on the web."
 #~ msgstr "<u>Ou</u></span>, collez une URL vers l'image si elle est sur le web."
-
-#~ msgid "Are you sure you want to remove this item from the list?"
-#~ msgstr "Êtes-vous sûr de vouloir supprimer cette article de la liste?"
-
-#~ msgid "Remove Seed"
-#~ msgstr "Supprimer cette article"
-
-#~ msgid ""
-#~ "You are about the remove the last"
-#~ " item in the list. That will "
-#~ "delete the whole list. Are you "
-#~ "sure you want to continue?"
-#~ msgstr ""
-#~ "Vous êtes sur le point de "
-#~ "supprimer le dernier élément de la "
-#~ "liste. Cela supprimera letoute la liste."
-#~ " Êtes-vous sûr de vouloir continuer?"
 
 #~ msgid "- <a href=\"$seed.document.works[0].url()\">1 edition</a> in catalog"
 #~ msgid_plural ""
@@ -4974,9 +4905,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ "read\"> ont déjà lu </a>, et <a"
 #~ " href=\"$(page.key)/books/want-to-read\"> voulez"
 #~ " lire </a>!"
-
-#~ msgid "No edits. Yet."
-#~ msgstr "Pas encore des modifications."
 
 #~ msgid "There are occasionally title variants amongst editions."
 #~ msgstr "Il y a parfois des variations de titre entre les éditions."
