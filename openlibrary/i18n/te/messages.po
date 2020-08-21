@@ -2373,9 +2373,6 @@ msgstr ""
 #~ msgid "Edit History"
 #~ msgstr "మార్పుల చరిత్ర"
 
-#~ msgid "Name"
-#~ msgstr "పేరు"
-
 #~ msgid "Email Address:"
 #~ msgstr "ఈమెయిలు చిరునామా:"
 
@@ -2396,12 +2393,6 @@ msgstr ""
 
 #~ msgid "View all recent changes"
 #~ msgstr "ఇటీవలి మార్పులన్నీ చూడండి"
-
-#~ msgid "Website"
-#~ msgstr "వెబ్సైటు"
-
-#~ msgid "Location"
-#~ msgstr "ప్రదేశం"
 
 #~ msgid "Alternate names"
 #~ msgstr "ఇతర పేర్లు"
