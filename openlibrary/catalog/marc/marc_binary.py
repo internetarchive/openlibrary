@@ -121,7 +121,7 @@ class MarcBinary(MarcBase):
             assert len(data)
             assert isinstance(data, bytes)
             length = int(data[:5])
-        except:
+        except Exception:
             raise BadMARC("No MARC data found")
         if len(data) != length:
             raise BadLength("Record length %s does not match reported length %s." % (len(data), length))
