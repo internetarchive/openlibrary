@@ -7,20 +7,15 @@ The messages file format used by the `gettext` toolset is described [here](http:
 
 In case you want to get started here are the following steps:
 
+If you're just getting started, be sure to **Fork and Clone the Repository from Github!** Install git and follow the instructions on our [Git Cheat Sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet) to get set up.
+
 ## Adding a new language
 
-1. **Clone the Repository from Github.** Install git and run the following command on the command line:
-    
-    ```bash
-    git clone https://github.com/internetarchive/openlibrary/
-    cd openlibrary/
-    ```
+1. **Create a new folder for your language.** Find your language here: https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes , and copy the two-letter ISO 639-1 code. Create a new folder in `/openlibrary/i18n/` with the code name of the language that you wish to translate to.
 
-2. **Create a new folder for your language.** Find your language here: https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes , and copy the two-letter ISO 639-1 code. Create a new folder in `/openlibrary/i18n/` with the code name of the language that you wish to translate to.
+2. **Make a copy of the latest messages to translate.** The messages template file, `/openlibrary/i18n/messages.pot` should be copied as `messages.po` (note the difference in extension, the `t` for template is dropped for the copy) to your newly created folder.
 
-3. **Make a copy of the latest messages to translate.** The messages template file, `/openlibrary/i18n/messages.pot` should be copied as `messages.po` (note the difference in extension, the `t` for template is dropped for the copy) to your newly created folder.
-
-4. **Make the translations and send a PR.** You can edit the `message.po` file using your favourite editor, or a .po specific tool such as [poedit](https://poedit.net/), and send in a Pull Request. Pull Request Guidelines can be found on our [CONTRIBUTING](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) guide.
+3. **Make the translations and send a PR.** You can edit the `message.po` file using your favourite editor, or a .po specific tool such as [poedit](https://poedit.net/), and send in a Pull Request. Pull Request Guidelines can be found on our [CONTRIBUTING](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) guide and our [Git Cheat Sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet).
 
 ## Viewing and testing your changes
 In order to open your language version of the website in the browser, you will need to setup your docker environment (see our [Docker README](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)). After having run `docker-compose up -d`, run `docker-compose exec web make i18n` to build the translation files; then e.g. http://localhost:8080/?lang=fr should work.
@@ -71,7 +66,6 @@ The codebase has now deprecated code and strings located here: https://github.co
 
 There are a small number of messages in the following languages:
 
-* es Spanish
 * hi Hindi
 * it Italian
 * kn Kannada
