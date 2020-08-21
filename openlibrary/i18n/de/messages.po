@@ -233,6 +233,10 @@ msgstr "Internetseite"
 msgid "Location"
 msgstr "Ort"
 
+#: view.html:151
+msgid "An edition of"
+msgstr "Eine Ausgabe von"
+
 #: view.html:237
 msgid "Alternative names"
 msgstr "Weitere Namen"

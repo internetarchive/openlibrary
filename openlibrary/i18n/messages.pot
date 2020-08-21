@@ -241,6 +241,10 @@ msgstr ""
 msgid "In progress..."
 msgstr ""
 
+#: view.html:151
+msgid "An edition of"
+msgstr ""
+
 #: editions2.html:31 view.html:92
 msgid "Duplicates"
 msgstr ""
@@ -3866,4 +3870,3 @@ msgstr ""
 #: openlibrary/macros/WorldcatLink.html:14
 msgid "Check WorldCat for an edition near you"
 msgstr ""
-
