@@ -29,7 +29,7 @@ If changes have been made to the `.pot` file, to reflect those changes to a give
 docker-compose run web ./scripts/i18n-messages update
 ```
 
-This will update _all_ the languages; feel free to only `git add` on your language, and not commit the others.
+See our [i18n guideline in the wiki](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide#internationalization-i18n---for-translators) for important and useful tips. This will update _all_ the languages; feel free to only `git add` on your language, and not commit the others.
 
 ## Extracting strings from HTML/python files (generating the `.pot` file)
 
