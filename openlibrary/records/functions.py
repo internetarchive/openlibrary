@@ -9,6 +9,7 @@ import copy
 import web
 
 from openlibrary.catalog.add_book import normalize
+from openlibrary.core.models import Thing
 import openlibrary.core.helpers as h
 
 class NoQueryParam(KeyError):
@@ -17,7 +18,6 @@ class NoQueryParam(KeyError):
     called but no X parameters were provided.
     """
     pass
-
 
 
 def search(params):
@@ -152,13 +152,14 @@ def find_matches_by_title_and_publishers(doc):
     ekeys = web.ctx.site.things(q)
     return ekeys
 
-def massage_search_results(things, input_query = {}):
+def massage_search_results(things, input_query=None):
     """Converts list of things into the output expected by users of the search API.
 
     If input_query is non empty, narrow return keys to the ones in
     this dictionary. Also, if the keys list is empty, use this to
     construct a response with key = None.
     """
+    input_query = input_query or {}  # Avoid a mutable default argument
     if things:
         best = things[0]
         doc = thing_to_doc(best, list(input_query))
@@ -228,9 +229,10 @@ def thing_to_doc(thing, keys=None):
     If keys provided, it will remove all keys in the item except the
     ones specified in the 'keys'.
     """
+    if not isinstance(thing, Thing):
+        thing = web.ctx.site.get(thing)
     keys = keys or []
     typ = str(thing['type'])
-    key = str(thing['key'])
 
     processors = {'/type/edition' : edition_to_doc,
                   '/type/work' : work_to_doc,
@@ -249,7 +251,7 @@ def thing_to_doc(thing, keys=None):
     if keys:
         keys += ['key', 'type', 'authors', 'work']
         keys = set(keys)
-        for i in doc:
+        for i in list(doc):
             if i not in keys:
                 doc.pop(i)
 
@@ -259,6 +261,8 @@ def things_to_matches(things):
     """Converts a list of things into a list of 'matches' used by the search API"""
     matches = []
     for thing in things:
+        if not isinstance(thing, Thing):
+            thing = web.ctx.site.get(thing)
         key = thing['key']
         if key.startswith("/books"):
             edition = key
@@ -270,10 +274,6 @@ def things_to_matches(things):
     return matches
 
 
-
-
-
-
 # Creation/updation entry point
 def create(records):
     """
@@ -283,8 +283,8 @@ def create(records):
     doc = records["doc"]
     if doc:
         things = doc_to_things(copy.deepcopy(doc))
-        ret = web.ctx.site.save_many(things, 'Import new records.')
-        return [x.key for x in ret]
+        web.ctx.site.save_many(things, 'Import new records.')
+        return [thing['key'] for thing in things]
 
 
 # Creation helpers
@@ -382,11 +382,11 @@ def doc_to_things(doc):
     if key:
         db_thing = web.ctx.site.get(key).dict()
         # Remove extra version related fields
-        for i in ['latest_revision', 'last_modified', 'revision']:
+        for i in ('latest_revision', 'last_modified', 'revision'):
             if i in db_thing:
                 db_thing.pop(i)
 
-        for i in db_thing:
+        for i in list(db_thing):
             if i in doc:
                 db_thing.pop(i)
         doc.update(db_thing)
@@ -403,5 +403,3 @@ def doc_to_things(doc):
     retval.extend(extras)
 
     return retval
-
-
