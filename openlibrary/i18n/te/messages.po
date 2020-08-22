@@ -11,11 +11,12 @@ msgstr ""
 "POT-Creation-Date: 2018-03-15 22:37+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language-Team: Telugu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.5.3\n"
+"Language: te\n"
 
 #: account.py:347 account.py:382 account.py:422 password/reset_success.html:6
 #: verify.html:5 verify/activated.html:6 verify/success.html:6
@@ -2373,9 +2374,6 @@ msgstr ""
 #~ msgid "Edit History"
 #~ msgstr "మార్పుల చరిత్ర"
 
-#~ msgid "Name"
-#~ msgstr "పేరు"
-
 #~ msgid "Email Address:"
 #~ msgstr "ఈమెయిలు చిరునామా:"
 
@@ -2396,12 +2394,6 @@ msgstr ""
 
 #~ msgid "View all recent changes"
 #~ msgstr "ఇటీవలి మార్పులన్నీ చూడండి"
-
-#~ msgid "Website"
-#~ msgstr "వెబ్సైటు"
-
-#~ msgid "Location"
-#~ msgstr "ప్రదేశం"
 
 #~ msgid "Alternate names"
 #~ msgstr "ఇతర పేర్లు"
