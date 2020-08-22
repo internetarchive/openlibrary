@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2018-03-15 22:37+0000\n"
 "PO-Revision-Date: 2020-08-20 18:49+0200\n"
-"Last-Translator: justcomplaining <justcomplaining@mailbox.org>\n"
+"Last-Translator: Bitnapper <mail@thorsten-alge.de>\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
@@ -237,9 +237,17 @@ msgstr "Ort"
 msgid "An edition of"
 msgstr "Eine Ausgabe von"
 
+#: view.html:196
+msgid "This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?"
+msgstr "Diese Ausgabe hat bisher keine Beschreibung. Können Sie einze <b><a href='%(url)s'>hinzufügen</a></b>?"
+
 #: view.html:237
 msgid "Alternative names"
 msgstr "Weitere Namen"
+
+#: view.html:251
+msgid "Work Description"
+msgstr "Beschreibung des Werks"
 
 #: books.html:14
 msgid "Reading Log"
@@ -2185,9 +2193,66 @@ msgstr "(Optional, aber sehr nützlich!)"
 #: openlibrary/macros/EditButtons.html:13
 msgid ""
 "By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://"
-"creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" title=\"This link to Creative Commons will open in a new window"
+"creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" title=\"Dieser Link aufCreative Commons wird in einem neuen Fenster geöffnet"
 "\">CC0</a>. Yippee!"
 msgstr ""
-"Mit dem Speicher der Änderungen in diesem Wikki stimmen Sie der weltweit freien Nutzung Ihres Beitrags unter <a href="
-"\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" title=\"This link to Creative Commons will open in a "
-"new window\">CC0</a> zu. Juhu!"
+"Mit dem Speichern der Änderungen in diesem Wiki stimmen Sie der weltweit freien Nutzung Ihres Beitrags unter <a href="
+"\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" title=\"Dieser Link auf Creative Commons wird in einem "
+"neuen Fenster geöffnet\">CC0</a> zu. Juhu!"
+
+#: openlibrary/macros/databarHistory.html:18
+#: openlibrary/macros/databarView.html:24
+msgid "Last edited by %(author_link)s"
+msgstr "Zuletzt bearbeitet von %(author_link)s"
+
+#: openlibrary/macros/StarRatingsStats.html:12
+msgid "Ratings"
+msgstr "Bewertungen"
+
+#: openlibrary/macros/StarRatingsStats.html:14
+msgid "Want to read"
+msgstr "Möchten es lesen"
+
+#: openlibrary/macros/StarRatingsStats.html:15
+msgid "Currently reading"
+msgstr "Lesen es aktuell"
+
+#: openlibrary/macros/StarRatingsStats.html:16
+msgid "Have read"
+msgstr "Haben es gelesen"
+
+#: openlibrary/macros/EditionNavBar.html:10
+msgid "Overview"
+msgstr "Überblick"
+
+#: editions.html:7 view.html:235  
+msgid "First published in %s"
+msgstr "Zuerst veröffentlicht %s"
+
+#: nav_foot.html:9
+msgid "Vision"
+msgstr "Vision"
+
+#: nav_foot.html:10
+msgid "Volunteer"
+msgstr "Freiwillig melden"
+
+#: nav_foot.html:11
+msgid "Careers"
+msgstr "Karriere"
+
+#: editpage.html:11
+msgid "Preview"
+msgstr "Vorschau"
+
+#: borrow.html:224
+msgid "Borrow"
+msgstr "Ausleihen"
+
+#: SocialShare.html:9
+msgid "Share this book"
+msgstr "Buch teilen"
+
+#: openlibrary/macros/WorldcatLink.html:5
+msgid "Check nearby libraries"
+msgstr "In nahegelegenen Bibliotheken finden"
