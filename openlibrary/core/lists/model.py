@@ -334,12 +334,9 @@ class Seed:
             doc = get_subject(self.get_subject_url(self.value))
         else:
             doc = self.value
-
-        # overwrite the property with the actual value so that subsequent accesses don't have to compute the value.
-        self.document = doc
         return doc
 
-    document = property(get_document)
+    document = cached_property("document", get_document)
 
     def _get_document_basekey(self):
         return self.document.key.split("/")[-1]
