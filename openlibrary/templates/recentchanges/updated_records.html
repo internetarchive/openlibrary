@@ -9,7 +9,7 @@ $ all_changes = change.get_changes() or []
 
 $ page = safeint(query_param('page', '1'))
 $ pagesize = 50
-$ pagecount = (len(all_changes)+pagesize-1)/pagesize
+$ pagecount = (len(all_changes)+pagesize-1)//pagesize
 $ offset = (page-1) * pagesize
 
 $ changes = all_changes[offset:offset+pagesize]
