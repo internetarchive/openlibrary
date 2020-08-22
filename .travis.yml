@@ -30,7 +30,6 @@ jobs:
       python: "3.8"
   allow_failures:
     - name: “Python 2.7 on Infogami master”
-    - name: “Python 3.8 on focal”
 # Ubuntu may have an old version of node, so make sure Node 12 is installed
 # and used instead. Should match Dockerfile.
 before_install:
