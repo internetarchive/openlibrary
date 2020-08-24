@@ -71,7 +71,7 @@ class add_cover(delegate.page):
             upload_url = "http:" + upload_url
 
         try:
-            response = requests.post(upload_url+"?"+urllib.parse.urlencode(params), data=data)
+            response = requests.post(upload_url, params=params, data=data)
             response.raise_for_status()
             out = response.content
         except requests.exceptions.HTTPError as e:
