@@ -10,7 +10,6 @@ from openlibrary import accounts
 from openlibrary.plugins.upstream.models import Image
 from openlibrary.plugins.upstream.utils import get_coverstore_url, render_template
 
-from six.moves import urllib
 
 
 def setup():
