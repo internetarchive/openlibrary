@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import logging
 import re
+import sys
 import simplejson
 import web
 
@@ -678,7 +679,7 @@ class Work(models.Work):
             edition_keys = web.ctx.site.things(db_query)
 
         editions = web.ctx.site.get_many(edition_keys)
-        editions.sort(key=lambda ed: ed.get_publish_year() or 0, reverse=True)
+        editions.sort(key=lambda ed: ed.get_publish_year() or -sys.maxsize, reverse=True)
 
         availability = lending.get_availability_of_ocaids([
             ed.ocaid for ed in editions if ed.ocaid
