@@ -59,7 +59,6 @@ class add_cover(delegate.page):
         user = accounts.get_current_user()
         params = {
             "author": user and user.key,
-            "data": data,
             "source_url": i.url,
             "olid": olid,
             "ip": web.ctx.ip
@@ -73,8 +72,9 @@ class add_cover(delegate.page):
 
         try:
             response = requests.post(upload_url+"?"+urllib.parse.urlencode(params), data=data)
+            response.raise_for_status()
             out = response.content
-        except urllib.error.HTTPError as e:
+        except requests.exceptions.HTTPError as e:
             out = {'error': e.read()}
 
         return web.storage(simplejson.loads(out))
