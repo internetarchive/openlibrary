@@ -1,6 +1,7 @@
 """Handle book cover/author photo upload.
 """
 import web
+import requests
 import simplejson
 
 from infogami.utils import delegate
@@ -71,8 +72,8 @@ class add_cover(delegate.page):
             upload_url = "http:" + upload_url
 
         try:
-            response = urllib.request.urlopen(upload_url, urllib.parse.urlencode(params))
-            out = response.read()
+            response = requests.post(upload_url+"?"+urllib.parse.urlencode(params), data=data)
+            out = response.content
         except urllib.error.HTTPError as e:
             out = {'error': e.read()}
 

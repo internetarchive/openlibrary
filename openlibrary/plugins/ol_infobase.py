@@ -480,7 +480,10 @@ class OLIndexer(_Indexer):
 
     def normalize_edition_title(self, title):
         if isinstance(title, str):
-            title = title.decode('utf-8', 'ignore')
+            try:
+                title = title.decode('utf-8', 'ignore')
+            except AttributeError:
+                pass
 
         if not isinstance(title, six.text_type):
             return ""
