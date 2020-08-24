@@ -745,6 +745,8 @@ def load(rec, account=None):
     # Add list fields to edition as needed
     edition_fields = [
         'local_id',
+        'lccn',
+        'lc_classifications',
         'source_records',
         ]
     for f in edition_fields:
