@@ -3,6 +3,7 @@
 import simplejson
 import web
 import re
+import sys
 
 from infogami.infobase import client
 
@@ -217,7 +218,9 @@ class Edition(Thing):
     def get_publish_year(self):
         if self.publish_date:
             m = web.re_compile(r"(\d\d\d\d)").search(self.publish_date)
-            return m and int(m.group(1))
+            if m:
+                return int(m.group(1))
+        return -sys.maxsize
 
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
