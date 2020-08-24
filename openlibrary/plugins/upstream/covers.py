@@ -73,7 +73,7 @@ class add_cover(delegate.page):
             response.raise_for_status()
             out = response.content
         except requests.exceptions.HTTPError as e:
-            out = {'error': e.read()}
+            out = {'error': e.response.text}
 
         return web.storage(simplejson.loads(out))
 
