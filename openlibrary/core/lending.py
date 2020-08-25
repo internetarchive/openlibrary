@@ -25,7 +25,7 @@ from . import helpers as h
 
 logger = logging.getLogger(__name__)
 
-S3_LOAN_URL = 'https://%s/services/loans/beta/loan/'
+S3_LOAN_URL = 'https://%s/services/loans/loan/'
 
 # When we generate a loan offer (.acsm) for a user we assume that the loan has occurred.
 # Once the loan fulfillment inside Digital Editions the book status server will know
