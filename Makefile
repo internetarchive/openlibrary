@@ -84,7 +84,7 @@ test-unit:
 	npm run test:unit
 
 test-py:
-	pytest . --durations=10 --ignore=tests/integration --ignore=scripts/2011 --ignore=infogami --ignore=vendor
+	pytest . --ignore=tests/integration --ignore=scripts/2011 --ignore=infogami --ignore=vendor
 
 test: 
 	npm run test && make test-py
