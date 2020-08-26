@@ -14,7 +14,6 @@ from infogami.utils.view import public
 from infogami.utils import delegate
 from openlibrary.core import cache
 from openlibrary.accounts.model import OpenLibraryAccount
-from openlibrary.plugins.upstream import acs4
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil
 from six.moves import urllib
