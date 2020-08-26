@@ -817,6 +817,8 @@ class memory(delegate.page):
         return delegate.RawText(str(h.heap()))
 
 def _get_relatedcarousels_component(workid):
+    if 'env' not in web.ctx:
+        delegate.fakeload()
     work = web.ctx.site.get('/works/%s' % workid) or {}
     component = render_template('books/RelatedWorksCarousel', work)
     return {0: str(component)}
