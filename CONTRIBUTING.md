@@ -11,7 +11,7 @@ A quick public tour of Open Library to get your familiar with the service and it
 
 ### Onboarding
 
-A comprehensive volunteer rrientation video to learn what it means to work on Open Library (1.5h). This video is a companion to our [Orientation Guide](https://docs.google.com/document/d/1fkTDqYFx2asuMWwSIDQRHJlnu-AGWpMrDDd9o5z8Cik/edit#). If you're looking for a good first issue, check out out [Menu of Opportunities](https://docs.google.com/document/d/1CgWXIsyn_kTZ_6n3n_zfSDuglj1yLUjVtg1EjL0Bf6E/edit#heading=h.gzsl3sqg0r51).
+A comprehensive volunteer orientation video to learn what it means to work on Open Library (1.5h). This video is a companion to our [Orientation Guide](https://docs.google.com/document/d/1fkTDqYFx2asuMWwSIDQRHJlnu-AGWpMrDDd9o5z8Cik/edit#). If you're looking for a good first issue, check out out [Menu of Opportunities](https://docs.google.com/document/d/1CgWXIsyn_kTZ_6n3n_zfSDuglj1yLUjVtg1EjL0Bf6E/edit#heading=h.gzsl3sqg0r51).
 
 [![archive org_details_openlibrary-orientation-2020_start=80](https://user-images.githubusercontent.com/978325/91350387-78272580-e79b-11ea-9e26-85cfd1d38fe1.png)](https://archive.org/details/openlibrary-orientation-2020?start=80)
 
