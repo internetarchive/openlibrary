@@ -177,3 +177,6 @@ ia_civicrm_api:
     api_key: XXX
     site_key: XXX
     auth: XXX
+
+# Dummy endpoint; where sentry logs are sent to
+#sentry_dns: 'https://examplePublicKey@o0.ingest.sentry.io/0'

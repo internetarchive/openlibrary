@@ -4,6 +4,7 @@ Open Library Plugin.
 from __future__ import absolute_import
 from __future__ import print_function
 
+import sentry_sdk
 import web
 import simplejson
 import os
@@ -798,6 +799,10 @@ def internalerror():
     openlibrary.core.stats.increment('ol.internal-errors')
     increment_error_count('ol.internal-errors-segmented')
 
+    # TODO: move this to plugins\openlibrary\sentry.py
+    if hasattr(infogami.config, 'sentry_dns'):
+        sentry_sdk.capture_exception()
+
     if i.debug.lower() == 'true':
         raise web.debugerror()
     else:
@@ -895,9 +900,19 @@ def setup_context_defaults():
 
 
 def setup():
-    from openlibrary.plugins.openlibrary import (home, borrow_home, stats, support,
-                                                 events, design, status, authors)
+    from openlibrary.plugins.openlibrary import (
+        sentry,
+        home,
+        borrow_home,
+        stats,
+        support,
+        events,
+        design,
+        status,
+        authors,
+    )
 
+    sentry.setup()
     home.setup()
     design.setup()
     borrow_home.setup()
