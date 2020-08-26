@@ -1,11 +1,21 @@
+import logging
+
 import sentry_sdk
 
 import infogami
 from infogami.utils import delegate
 
+logger = logging.getLogger("openlibrary.sentry")
+
+
+def is_enabled():
+    return hasattr(infogami.config, 'sentry') and infogami.config.sentry.enabled
+
 
 def setup():
-    if infogami.config.sentry.enabled != 'true':
+    logger.info("Setting up sentry (enabled={})".format(is_enabled()))
+
+    if not is_enabled():
         return
 
     sentry_sdk.init(dsn=infogami.config.sentry.dsn,
