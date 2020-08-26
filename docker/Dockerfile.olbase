@@ -48,7 +48,8 @@ RUN pyenv rehash
 
 # Update Python 2's pip to match production (Jan 2020)
 RUN python2 -m pip install --upgrade --disable-pip-version-check pip==19.3.1
-RUN python3 -m pip install --upgrade pip wheel
+# Use wheel to reduce Docker build time. 
+RUN python3 -m pip install --upgrade pip wheel==0.35.1
 
 USER root
 # Add pyenv to root's bashrc as well
