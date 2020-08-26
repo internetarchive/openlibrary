@@ -4,6 +4,7 @@ Open Library Plugin.
 from __future__ import absolute_import
 from __future__ import print_function
 
+import sentry_sdk
 import web
 import simplejson
 import os
@@ -35,7 +36,7 @@ from openlibrary.core.lending import get_work_availability, get_edition_availabi
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count  # noqa: E402
-from openlibrary.plugins.openlibrary import processors
+from openlibrary.plugins.openlibrary import processors, sentry
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
@@ -798,6 +799,10 @@ def internalerror():
     openlibrary.core.stats.increment('ol.internal-errors')
     increment_error_count('ol.internal-errors-segmented')
 
+    # TODO: move this to plugins\openlibrary\sentry.py
+    if sentry.is_enabled():
+        sentry_sdk.capture_exception()
+
     if i.debug.lower() == 'true':
         raise web.debugerror()
     else:
@@ -897,9 +902,19 @@ def setup_context_defaults():
 
 
 def setup():
-    from openlibrary.plugins.openlibrary import (home, borrow_home, stats, support,
-                                                 events, design, status, authors)
+    from openlibrary.plugins.openlibrary import (
+        sentry,
+        home,
+        borrow_home,
+        stats,
+        support,
+        events,
+        design,
+        status,
+        authors,
+    )
 
+    sentry.setup()
     home.setup()
     design.setup()
     borrow_home.setup()
