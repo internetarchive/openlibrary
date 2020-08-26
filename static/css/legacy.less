@@ -21,7 +21,6 @@
  */
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
-@import (less) "less/mixins.less";
 @import (less) "less/z-index.less";
 
 @import (less) "legacy-borrowBookForm.less";
@@ -307,7 +306,7 @@ q {
 .pagination {
   font-size: .75em;
   margin: 0 15px;
-  .display-flex();
+  display: flex;
   justify-content: flex-end;
   flex-wrap: wrap;
   a {
@@ -1664,7 +1663,7 @@ span.actions {
 // why not form#siteSearch ?
 ul#siteSearch {
   > li {
-    .display-flex();
+    display: flex;
   }
   // openlibrary/macros/SearchResults.html
   // openlibrary/macros/SearchResultsWork.html
@@ -1904,7 +1903,7 @@ div#subjectLists {
       font-family: @lucida_sans_serif-1;
       padding-bottom: 10px;
       padding-top: 0;
-      .display-flex();
+      display: flex;
       .image {
         display: block;
         float: left;
@@ -1987,14 +1986,14 @@ div#subjectLists {
 // openlibrary/templates/account/books.html
 .list-books {
   .book {
-    .display-flex();
+    display: flex;
   }
 }
 
 // openlibrary/macros/ReadingLogButton.html
 // openlibrary/plugins/openlibrary/js/ol.js
 .reading-log-lite {
-  .display-flex();
+  display: flex;
   padding-bottom: 5px;
   margin-bottom: 5px;
 
