@@ -5,8 +5,9 @@ from infogami.utils import delegate
 
 
 def setup():
-    if not hasattr(infogami.config, 'sentry_dns'):
+    if infogami.config.sentry.enabled != 'true':
         return
 
-    sentry_sdk.init(dsn=infogami.config.get('sentry_dns'))
+    sentry_sdk.init(dsn=infogami.config.sentry.dsn,
+                    environment=infogami.config.sentry.environment)
     delegate.add_exception_hook(lambda: sentry_sdk.capture_exception())

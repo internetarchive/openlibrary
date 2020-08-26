@@ -800,7 +800,7 @@ def internalerror():
     increment_error_count('ol.internal-errors-segmented')
 
     # TODO: move this to plugins\openlibrary\sentry.py
-    if hasattr(infogami.config, 'sentry_dns'):
+    if infogami.config.sentry.enabled == 'true':
         sentry_sdk.capture_exception()
 
     if i.debug.lower() == 'true':
