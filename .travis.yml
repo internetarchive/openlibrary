@@ -19,7 +19,7 @@ jobs:
         python: "3.8"
       - name: “Python 3.9-dev on focal”
         python: "3.9-dev"
-      allow_failures:
+  allow_failures:
     - name: “Python 2.7 on Infogami master”
     - python: "3.9-dev"
 # Ubuntu may have an old version of node, so make sure Node 12 is installed
