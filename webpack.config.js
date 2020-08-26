@@ -56,6 +56,8 @@ module.exports = {
             loader: [
                 'style-loader',
                 'css-loader',
+                // See postcss.config.js for plugins being used
+                'postcss-loader',
                 'less-loader' // compiles Less to CSS
             ]
         } ]

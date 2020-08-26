@@ -9,8 +9,8 @@ GITHUB_EDITOR_WIDTH=127
 FLAKE_EXCLUDE=./.*,scripts/20*,vendor/*,node_modules/*
 
 define lessc
-	echo Compressing $(1).less; \
-	npx lessc static/css/$(1).less $(BUILD)/$(1).css --clean-css="--s1 --advanced --compatibility=ie8"
+	echo Compiling $(1).less; \
+	npx lessc static/css/$(1).less $(BUILD)/$(1).css
 endef
 
 # Use python from local env if it exists or else default to python in the path.
@@ -25,6 +25,7 @@ css:
 	for asset in admin book edit form home lists plain subject user book-widget design dev; do \
 		$(call lessc,page-$$asset); \
 	done
+	npx postcss $(BUILD)/page-*.css --replace
 
 js:
 	mkdir -p $(BUILD)
