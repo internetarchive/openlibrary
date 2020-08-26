@@ -84,7 +84,7 @@ test-unit:
 	npm run test:unit
 
 test-py:
-	pytest openlibrary/tests openlibrary/mocks openlibrary/olbase openlibrary/plugins openlibrary/utils openlibrary/catalog openlibrary/coverstore scripts/tests
+	pytest . --ignore=tests/integration --ignore=scripts/2011 --ignore=infogami --ignore=vendor
 
 test: 
 	npm run test && make test-py
