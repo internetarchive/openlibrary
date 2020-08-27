@@ -208,11 +208,7 @@ class cover:
             return url.startswith("http://") or url.startswith("https://")
 
         def notfound():
-            if key in ["id", "olid"] and config.get("upstream_base_url"):
-                # this is only used in development
-                base = web.rstrips(config.upstream_base_url, "/")
-                raise web.redirect(base + web.ctx.fullpath)
-            elif config.default_image and i.default.lower() != "false" and not is_valid_url(i.default):
+            if config.default_image and i.default.lower() != "false" and not is_valid_url(i.default):
                 return read_file(config.default_image)
             elif is_valid_url(i.default):
                 raise web.seeother(i.default)
