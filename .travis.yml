@@ -41,12 +41,9 @@ jobs:
         - unzip chromedriver_linux64.zip -d $HOME/bin/
         - whereis chromedriver  # chromedriver: /home/travis/bin/chromedriver
         - # https://github.com/internetarchive/openlibrary/tree/master/docker
-        - # docker build -t olbase:latest -f docker/Dockerfile.olbase .  # 8+ minutes on Travis CI
         - docker pull openlibrary/olbase:latest
         - docker-compose build web   # 50 seconds on Travis CI
         - docker-compose build solr  # 32 seconds on Travis CI
-        - pushd vendor/infogami && git pull origin master && popd
-        - chmod +x docker/*.sh
         - INFOGAMI=local PYENV_VERSION=3.8.5 docker-compose up -d
         - google-chrome-stable --headless --no-sandbox --disable-gpu http://localhost:8080 &
       install:
