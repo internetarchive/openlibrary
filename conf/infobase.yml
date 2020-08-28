@@ -3,6 +3,7 @@
 db_parameters:
     engine: postgres
     database: openlibrary
+    host: db
 
 account_bot: /people/AccountBot
 user_root: /people/

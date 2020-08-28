@@ -4,9 +4,6 @@ CONFIG=conf/coverstore.yml
 
 python --version
 
-# TODO: remove this once db service added
-su postgres -c "/etc/init.d/postgresql start"
-
 # su doesn't forward any environment variables, which kinda breaks pyenv
 # So we include the variables pyenv needs here to forward
 read -r -d '' PY_ENV_VARS << EOM
