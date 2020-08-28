@@ -36,8 +36,8 @@ jobs:
       addons:
         chrome: stable
       before_install:
-        - google-chrome --version  # "Google Chrome 84.0.4147.105" so install matching chromedriver
-        - wget http://chromedriver.storage.googleapis.com/84.0.4147.30/chromedriver_linux64.zip
+        - google-chrome --version  # "Google Chrome 85.0.4183.83" so install matching chromedriver
+        - wget http://chromedriver.storage.googleapis.com/85.0.4183.83/chromedriver_linux64.zip
         - unzip chromedriver_linux64.zip -d $HOME/bin/
         - whereis chromedriver  # chromedriver: /home/travis/bin/chromedriver
         - # https://github.com/internetarchive/openlibrary/tree/master/docker
