@@ -34,18 +34,11 @@ reindex-solr() {
 
 echo "Starting ol services."
 
-# su doesn't forward any environment variables, which kinda breaks pyenv
-# So we include the variables pyenv needs here to forward
-read -r -d '' PY_ENV_VARS << EOM
-PATH="$PATH"
-PYENV_VERSION="$PYENV_VERSION"
-EOM
-
-export -f reindex-solr
-su openlibrary -c "$PY_ENV_VARS && until pg_isready --host db; do sleep 5; done && reindex-solr web $CONFIG" &
+until pg_isready --host db; do sleep 5; done
+reindex-solr web $CONFIG
 
 # solr updater
-su solrupdater -c "$PY_ENV_VARS && python scripts/new-solr-updater.py \
+python scripts/new-solr-updater.py \
   -c $CONFIG \
   --state-file solr-update.offset \
-  --ol-url http://web/"
+  --ol-url http://web/

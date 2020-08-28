@@ -17,7 +17,3 @@ RUN npm ci
 
 # Expose Open Library, Infobase, Coverstore, and debugger
 EXPOSE 80 7000 8081 3000
-
-USER root
-# runs as root in order to access su to run as openlibrary and postgres users
-CMD docker/ol-docker-start.sh

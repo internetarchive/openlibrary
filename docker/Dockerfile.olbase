@@ -9,8 +9,7 @@ ENV LC_ALL POSIX
 
 # add openlibrary users
 RUN groupadd --system openlibrary \
-  && useradd --no-log-init --system --gid openlibrary --create-home openlibrary \
-  && useradd --no-log-init --system --gid openlibrary solrupdater
+  && useradd --no-log-init --system --gid openlibrary --create-home openlibrary
 
 # Misc OL dependencies
 RUN apt-get -qq update && apt-get install -y \
