@@ -46,6 +46,7 @@ jobs:
         - docker-compose build web   # 50 seconds on Travis CI
         - docker-compose build solr  # 32 seconds on Travis CI
         - pushd vendor/infogami && git pull origin master && popd
+        - chmod +x docker/*.sh
         - INFOGAMI=local PYENV_VERSION=3.8.5 docker-compose up -d
         - google-chrome-stable --headless --no-sandbox --disable-gpu http://localhost:8080 &
       install:
