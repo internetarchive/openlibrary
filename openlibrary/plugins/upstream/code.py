@@ -61,7 +61,8 @@ class merge_work(delegate.page):
 def vendor_js():
     pardir = os.path.pardir
     path = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, 'static', 'upstream', 'js', 'vendor.js'))
-    digest = hashlib.md5(open(path).read()).hexdigest()
+    with io.open(path, 'rb') as in_file:
+        digest = hashlib.md5(in_file.read()).hexdigest()
     return '/static/upstream/js/vendor.js?v=' + digest
 
 @web.memoize
@@ -103,7 +104,7 @@ class DynamicDocument:
 
     def md5(self):
         """Returns md5 checksum of the combined documents"""
-        return hashlib.md5(self.get_text()).hexdigest()
+        return hashlib.md5(self.get_text().encode('utf-8')).hexdigest()
 
 def create_dynamic_document(url, prefix):
     """Creates a handler for `url` for servering combined js/css for `prefix/*` pages"""

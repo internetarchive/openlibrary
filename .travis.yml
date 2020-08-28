@@ -24,7 +24,8 @@ jobs:
         - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]; then
             make lint-diff;
           fi
-        - source scripts/test-py3.sh
+        - source scripts/run_doctests.sh
+        - source scripts/test_py3.sh
     - name: “Python 3.8 on focal”
       python: "3.8"
     - name: "Integration tests"
@@ -55,7 +56,6 @@ jobs:
         - pytest tests/integration
   allow_failures:
     - name: “Python 2.7 on Infogami master”
-    - name: “Python 3.8 on focal”
     - name: "Integration tests"
 # Ubuntu may have an old version of node, so make sure Node 12 is installed
 # and used instead. Should match Dockerfile.
@@ -68,8 +68,8 @@ install:
   - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ] || [ "$TRAVIS_JOB_NAME" == "Python 2.7 on Infogami master" ]; then
       pushd vendor/infogami && git pull origin master && popd;
     fi
-  - make lint  # TODO: Move this to script: section after #2951 lands
 before_script: npm install
 script:
+  - make lint
   - make i18n
   - make test

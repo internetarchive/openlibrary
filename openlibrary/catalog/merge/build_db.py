@@ -3,7 +3,6 @@
 
 from __future__ import print_function
 import re
-import anydbm
 from time import time
 from collections import defaultdict
 
@@ -23,13 +22,13 @@ archive = [
 
 path = '/0/pharos/edward/db/'
 
-re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
-re_question = re.compile('^\?+$')
-re_lccn = re.compile('(...\d+).*')
-re_oclc = re.compile ('^\(OCoLC\).*?0*(\d+)', re.IGNORECASE)
+re_isbn = re.compile(r'([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
+re_question = re.compile(r'^\?+$')
+re_lccn = re.compile(r'(...\d+).*')
+re_oclc = re.compile(r'^\(OCoLC\).*?0*(\d+)', re.IGNORECASE)
 
-re_normalize = re.compile('[^\w ]')
-re_whitespace = re.compile('\s+')
+re_normalize = re.compile(r'[^\w ]')
+re_whitespace = re.compile(r'\s+')
 
 def normalize(s):
     s = re_normalize.sub('', s.strip())

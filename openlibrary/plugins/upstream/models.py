@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import logging
 import re
+import sys
 import simplejson
 import web
 
@@ -678,7 +679,7 @@ class Work(models.Work):
             edition_keys = web.ctx.site.things(db_query)
 
         editions = web.ctx.site.get_many(edition_keys)
-        editions.sort(key=lambda ed: ed.get_publish_year(), reverse=True)
+        editions.sort(key=lambda ed: ed.get_publish_year() or -sys.maxsize, reverse=True)
 
         availability = lending.get_availability_of_ocaids([
             ed.ocaid for ed in editions if ed.ocaid
@@ -812,8 +813,11 @@ class UnitParser:
     """Parsers values like dimentions and weight.
 
         >>> p = UnitParser(["height", "width", "depth"])
-        >>> p.parse("9 x 3 x 2 inches")
-        <Storage {'units': 'inches', 'width': '3', 'depth': '2', 'height': '9'}>
+        >>> parsed = p.parse("9 x 3 x 2 inches")
+        >>> isinstance(parsed, web.utils.Storage)
+        True
+        >>> sorted(parsed.items())
+        [('depth', '2'), ('height', '9'), ('units', 'inches'), ('width', '3')]
         >>> p.format({"height": "9", "width": 3, "depth": 2, "units": "inches"})
         '9 x 3 x 2 inches'
     """

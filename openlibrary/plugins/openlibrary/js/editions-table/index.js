@@ -51,7 +51,7 @@ export function initEditionsTable() {
             bInfo: true,
             sPaginationType: 'full_numbers',
             bFilter: true,
-            bStateSave: false,
+            bStateSave: true,
             bAutoWidth: false
         });
     }

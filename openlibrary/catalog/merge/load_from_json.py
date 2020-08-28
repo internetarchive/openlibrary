@@ -3,8 +3,9 @@ from __future__ import print_function
 
 import simplejson
 import re
-from normalize import normalize
 from time import time
+
+from openlibrary.catalog.merge.normalize import normalize
 
 re_escape = re.compile(r'[\n\r\t\0\\]')
 trans = { '\n': '\\n', '\r': '\\r', '\t': '\\t', '\\': '\\\\', '\0': '', }

@@ -39,10 +39,13 @@ js:
 i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
-git:
+git:	
+#Do not run these on DockerHub since it recursively clones all the repos before build initiates
+ifneq ($(DOCKER_HUB),TRUE)
 	git submodule init
 	git submodule sync
 	git submodule update
+endif
 
 clean:
 	rm -rf $(BUILD)
@@ -81,7 +84,7 @@ test-unit:
 	npm run test:unit
 
 test-py:
-	pytest openlibrary/tests openlibrary/mocks openlibrary/olbase openlibrary/plugins openlibrary/utils openlibrary/catalog openlibrary/coverstore scripts/tests
+	pytest . --ignore=tests/integration --ignore=scripts/2011 --ignore=infogami --ignore=vendor
 
 test: 
 	npm run test && make test-py

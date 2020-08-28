@@ -1,22 +1,26 @@
 # -*- coding: UTF-8 -*-
 import os
+from six import string_types
 
 from openlibrary.catalog.marc.marc_binary import BinaryDataField, MarcBinary
 
 test_data = "%s/test_data/bin_input/" % os.path.dirname(__file__)
 
-class MockMARC:
-    def __init__(self, leader_9):
-        # 'a' for utf-8, ' ' for MARC8
-        self.leader_9 = leader_9
 
-    def leader(self):
-        return '#' * 9 + self.leader_9
+class MockMARC:
+    def __init__(self, encoding):
+        """
+        :param encoding str: 'utf8' or 'marc8'
+        """
+        self.encoding = encoding
+
+    def marc8(self):
+        return self.encoding == 'marc8'
 
 
 def test_wrapped_lines():
     filename = '%s/wrapped_lines' % test_data
-    with open(filename, 'r') as f:
+    with open(filename, 'rb') as f:
         rec = MarcBinary(f.read())
         ret = list(rec.read_fields(['520']))
         assert len(ret) == 2
@@ -30,18 +34,19 @@ def test_wrapped_lines():
 
 class Test_BinaryDataField:
     def test_translate(self):
-        bdf = BinaryDataField(MockMARC(' '), '')
-        assert bdf.translate('Vieira, Claudio Bara\xe2una,') == u'Vieira, Claudio Baraúna,'
+        bdf = BinaryDataField(MockMARC('marc8'), b'')
+        assert bdf.translate(b'Vieira, Claudio Bara\xe2una,') == u'Vieira, Claudio Baraúna,'
 
     def test_bad_marc_line(self):
-        line = '0 \x1f\xe2aEtude objective des ph\xe2enom\xe1enes neuro-psychiques;\x1e'
-        bdf = BinaryDataField(MockMARC(' '), line)
+        line = b'0 \x1f\xe2aEtude objective des ph\xe2enom\xe1enes neuro-psychiques;\x1e'
+        bdf = BinaryDataField(MockMARC('marc8'), line)
         assert list(bdf.get_all_subfields()) == [(u'á', u'Etude objective des phénomènes neuro-psychiques;')]
+
 
 class Test_MarcBinary:
     def test_all_fields(self):
         filename = '%s/onquietcomedyint00brid_meta.mrc' % test_data
-        with open(filename, 'r') as f:
+        with open(filename, 'rb') as f:
             rec = MarcBinary(f.read())
             fields = list(rec.all_fields())
             assert len(fields) == 13
@@ -53,7 +58,16 @@ class Test_MarcBinary:
                     f008 = v
                 elif f == '100':
                     f100 = v
-            assert isinstance(f001, str)
-            assert isinstance(f008, str)
+            assert isinstance(f001, string_types)
+            assert isinstance(f008, string_types)
             assert isinstance(f100, BinaryDataField)
 
+    def test_get_fields(self):
+        filename = '%s/onquietcomedyint00brid_meta.mrc' % test_data
+        with open(filename, 'rb') as f:
+            rec = MarcBinary(f.read())
+            rec.build_fields(['100', '245', '010'])
+            author_field = rec.get_fields('100')
+            assert isinstance(author_field, list)
+            assert isinstance(author_field[0], BinaryDataField)
+            name = author_field[0].get_subfields('a')

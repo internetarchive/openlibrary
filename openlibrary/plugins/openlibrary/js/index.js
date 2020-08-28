@@ -108,6 +108,11 @@ jQuery(function () {
         import('./goodreads_import.js')
             .then(module => module.initGoodreadsImport());
     }
+    // conditionally loads Related Carousels based on class in the page
+    if (document.getElementsByClassName('RelatedWorksCarousel').length) {
+        import('./carousels_partials.js')
+            .then(module => module.initCarouselsPartials());
+    }
     // Enable any carousels in the page
     if ($carouselElements.length) {
         import(/* webpackChunkName: "carousel" */ './carousel')
