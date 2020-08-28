@@ -13,10 +13,10 @@ services:
       dockerfile: docker/Dockerfile.oldev
     ports:
       - 8080:80
-      - 7000:7000
       - 3000:3000
     depends_on:
       - db
+      - infobase
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
@@ -68,6 +68,25 @@ services:
     command: docker/ol-covers-start.sh
     ports:
       - 8081:8081
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+    networks:
+      - webnet
+      - dbnet
+  infobase:
+    image: oldev:latest
+    environment:
+      - PYENV_VERSION=${PYENV_VERSION:-}
+      - INFOGAMI=${INFOGAMI:-}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    command: docker/ol-infobase-start.sh
+    ports:
+      - 7000:7000
+    depends_on:
+      - db
     volumes:
       - ol-vendor:/openlibrary/vendor
       - .:/openlibrary

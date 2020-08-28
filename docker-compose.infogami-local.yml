@@ -15,3 +15,8 @@ services:
       - INFOGAMI=local
     volumes:
       - ./vendor/infogami:/openlibrary/vendor/infogami
+  infobase:
+    environment:
+      - INFOGAMI=local
+    volumes:
+      - ./vendor/infogami:/openlibrary/vendor/infogami

@@ -45,9 +45,6 @@ PATH="$PATH"
 PYENV_VERSION="$PYENV_VERSION"
 EOM
 
-# infobase
-su openlibrary -c "$PY_ENV_VARS && scripts/infobase-server conf/infobase.yml 7000" &
-
 export -f reindex-solr
 su openlibrary -c "$PY_ENV_VARS && until pg_isready --host db; do sleep 5; done && reindex-solr localhost $CONFIG" &
 
