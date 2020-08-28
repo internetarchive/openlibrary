@@ -14,8 +14,9 @@ services:
     ports:
       - 8080:80
       - 7000:7000
-      - 8081:8081
       - 3000:3000
+    depends_on:
+      - db
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
@@ -28,6 +29,7 @@ services:
       - .:/openlibrary
     networks:
       - webnet
+      - dbnet
   solr:
     image: olsolr:latest
     build:
@@ -45,9 +47,36 @@ services:
     image: memcached
     networks:
       - webnet
-  #covers:
+  db:
+    image: postgres:9.3
+    networks:
+      - dbnet
+    volumes:
+      - .:/openlibrary
+      # Any files inside /docker-entrypoint-initdb.d/ will get run by postgres
+      # if the db is empty (which as of now is always, since we don't store the
+      # postgres data anywhere).
+      - ./docker/ol-db-init.sh:/docker-entrypoint-initdb.d/ol-db-init.sh
+  covers:
+    image: oldev:latest
+    environment:
+      - PYENV_VERSION=${PYENV_VERSION:-}
+      - INFOGAMI=${INFOGAMI:-}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    command: docker/ol-covers-start.sh
+    ports:
+      - 8081:8081
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+    networks:
+      - webnet
+      - dbnet
 networks:
   webnet:
+  dbnet:
 volumes:
   solr-data:
   ol-vendor:
