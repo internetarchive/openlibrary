@@ -189,7 +189,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
             </div>
             $:macros.ReadMore("book-description")
         </div>
-      $else:
+      $elif edition:
         <div class="book-description">
             <div class="book-description-content">
                 <p class="workHelp">
