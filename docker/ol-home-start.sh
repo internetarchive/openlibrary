@@ -23,19 +23,8 @@ else
   fi
 fi
 
-reindex-solr() {
-  server=$1
-  config=$2
-  for thing in books authors; do
-    psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep "^/$thing/" \
-      | PYTHONPATH=$PWD xargs python openlibrary/solr/update_work.py -s $server -c $config --data-provider=legacy
-  done
-}
-
-echo "Starting ol services."
-
 until pg_isready --host db; do sleep 5; done
-reindex-solr web $CONFIG
+make reindex-solr
 
 # solr updater
 python scripts/new-solr-updater.py \
