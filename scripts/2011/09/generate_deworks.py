@@ -26,6 +26,7 @@ CHANGELOG:
 2011-10-04: first version
 
 """
+from __future__ import print_function
 
 import gzip
 import logging

@@ -42,7 +42,10 @@ def group(items, key):
     return sorted(d.items(), reverse=True, key=lambda key_vlist: len(key_vlist[1]))
 
 
-web.template.Template.globals.update({"sum": sum, "group": group})
+web.template.Template.globals.update({
+    "sum": sum,
+    "group": group,
+})
 t = web.template.Template(TEMPLATE)
 
 
