@@ -21,9 +21,7 @@ At the end of this document is a detailed table of languages and their code. Cre
 The messages template file, `/openlibrary/i18n/messages.pot` should be copied as `messages.po` (note the difference in extension, the `t` for template is dropped for the copy) to your newly created folder.
 
 ## Step 4: Make the translations and send a PR
-You can edit the `message.po` file using your favourite editor, or a .po specific tool such as [Gtranslator](http://projects.gnome.org/gtranslator/), [Lokalize](http://userbase.kde.org/Lokalize), [poedit](https://poedit.net/) or [Virtaal](http://translate.sourceforge.net/wiki/virtaal/index) and send in a Pull Request. Pull Request Guidelines can be found on our [README](https://github.com/internetarchive/openlibrary/blob/master/Readme.md) and [CONTRIBUTING](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) guide.
-
-You should check the file consistency in advance with `msgfmt -v -c -o /dev/null messages.po` to avoid problems opening the file. Also check after editing manually keep the file consisten.
+You can edit the `message.po` file using your favourite editor, or a .po specific tool such as [poedit](https://poedit.net/), and send in a Pull Request. Pull Request Guidelines can be found on our [README](https://github.com/internetarchive/openlibrary/blob/master/Readme.md) and [CONTRIBUTING](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) guide.
 
 ## Viewing and testing your changes:
 In order to open your language version of the website in the browser, run the following command in the command line: `docker-compose exec web make i18n` ; then e.g. http://localhost:8080/?lang=fr should work.
