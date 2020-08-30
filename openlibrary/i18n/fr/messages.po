@@ -143,7 +143,9 @@ msgstr "Les mots de passe ne correspondent pas."
 
 #: forms.py:62
 msgid ""
-"I want to receive news, announcements, and resources from the <a href=\"https://archive.org/\">Internet Archive</a>, the non-profit that runs Open Library."
+"I want to receive news, announcements, and resources from the <a "
+"href=\"https://archive.org/\">Internet Archive</a>, the non-profit that "
+"runs Open Library."
 msgstr ""
 
 #: forms.py:91
@@ -252,6 +254,11 @@ msgstr "Fusion d'auteurs en cours..."
 #: view.html:91
 msgid "In progress..."
 msgstr "En cours..."
+
+#: view.html:151
+#, fuzzy, python-format
+msgid "An edition of"
+msgstr "1 édition"
 
 #: editions2.html:31 view.html:92
 msgid "Duplicates"
@@ -596,8 +603,7 @@ msgstr "Logo Open Library"
 
 #: books.html:86 books.html:89 embed.html:27 home.html:7 home.html:10
 #: index.html:40 lists.html:10 nav_head.html:48 nav_head.html:73
-#: search_head.html:70 view.html:31 view.html:42 view.html:60
-#: widget.html:234
+#: search_head.html:70 view.html:31 view.html:42 view.html:60 widget.html:234
 msgid "Lists"
 msgstr "Listes"
 
@@ -612,6 +618,12 @@ msgid ""
 msgstr ""
 "Ouvrir dans le lecteur de livres en ligne. Téléchargements disponibles "
 "aux formats ePub, DAISY, PDF, TXT à partir de la page principale du livre"
+
+#: custom_carousel.html:42 custom_carousel.html:47 editions_datatable.html:23
+#: embed.html:69 openlibrary/macros/ReadButton.html:13
+#: openlibrary/templates/widget.html:33 show.html:34
+msgid "Read"
+msgstr "Lire"
 
 #: embed.html:73
 msgid "This book is checked out"
@@ -680,10 +692,10 @@ msgid "Export Not Available"
 msgstr "Exportation non disponible"
 
 #: exports.html:48
-#, python-format
+#, fuzzy, python-format
 msgid ""
 "Only lists with up to %(max)s editions can be exported. This one has "
-"%(count)s."
+"%s(count)."
 msgstr ""
 "Seules les listes contenant jusqu'à %(max) éditions peuvent être "
 "exportées. Celui-ci a %(count)s."
@@ -885,13 +897,6 @@ msgstr[1] "%(count)s édition"
 #: editions_datatable.html:22
 msgid "Edition"
 msgstr "Édition"
-
-#: custom_carousel.html:42 custom_carousel.html:47 editions_datatable.html:23
-#: openlibrary/macros/ReadButton.html:13 openlibrary/templates/widget.html:33
-#: embed.html:69 openlibrary/macros/ReadButton.html:13 show.html:34
-#: show.html:34
-msgid "Read"
-msgstr "Lire"
 
 #: editions_datatable.html:24
 msgid "Locate"
@@ -1749,8 +1754,8 @@ msgid ""
 "Thank you for adding that book! Any more information you could provide "
 "would be wonderful!"
 msgstr ""
-"Merci d'avoir ajouté ce livre ! Ce serait formidable "
-"si vous pouviez fournir plus d'informations !"
+"Merci d'avoir ajouté ce livre ! Ce serait formidable si vous pouviez "
+"fournir plus d'informations !"
 
 #: edit.html:72
 #, python-format
@@ -1759,9 +1764,9 @@ msgid ""
 "%(publisher)s edition</b>. Thanks! Do you know any more about this "
 "edition?"
 msgstr ""
-"Nous connaissons déjà <b>%(work_title)s</b>, mais pas "
-"l'<b>édition %(year)s %(publisher)s</b>. Merci! "
-"Que connaissez-vous de plus sur cette édition ?"
+"Nous connaissons déjà <b>%(work_title)s</b>, mais pas l'<b>édition "
+"%(year)s %(publisher)s</b>. Merci! Que connaissez-vous de plus sur cette "
+"édition ?"
 
 #: edit.html:75
 #, python-format
@@ -3127,7 +3132,7 @@ msgid "No authors selected."
 msgstr "Pas des auteurs sélectionné"
 
 #: authors.html:50
-msgid "Please select a master author record."
+msgid "Please select a primary author record."
 msgstr "Veuillez sélectionner un enregistrement principal d'auteur principal."
 
 #: authors.html:52
@@ -3135,7 +3140,7 @@ msgid "Please select some authors to merge."
 msgstr "Veuillez sélectionner un des auteurs a fusioner."
 
 #: authors.html:55
-msgid "Select a \"master\" record that best represents the author -"
+msgid "Select a \"primary\" record that best represents the author -"
 msgstr ""
 "Sélectionnez un enregistrement \"maître\" qui représente le mieux "
 "l'auteur -"
@@ -3151,11 +3156,11 @@ msgid "Press MERGE AUTHORS."
 msgstr "Appuyer sur FUSIONNER"
 
 #: authors.html:66
-msgid "No Master record"
+msgid "No Primary record"
 msgstr "Pas de enregistrement principal"
 
 #: authors.html:67
-msgid "You must select a master record to point the duplicates toward."
+msgid "You must select a primary record to point the duplicates toward."
 msgstr ""
 "Vous devez sélectionner un enregistrement maître pour pointer les "
 "doublons vers"
@@ -3723,8 +3728,8 @@ msgstr "Rejoindre la liste d'attente"
 
 #: openlibrary/templates/widget.html:48
 #, python-format
-msgid "Learn more about &quot;%(title)s&quot; at OpenLibrary"
-msgstr "En savoir plus sur « %(title)s » à OpenLibrary"
+msgid "Learn more about &quot;%(title)s&quot; at Open Library"
+msgstr "En savoir plus sur « %(title)s » à Open Library"
 
 #: openlibrary/macros/LoanStatus.html:90 openlibrary/templates/widget.html:48
 msgid "Learn More"
@@ -4748,9 +4753,9 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ "head, and gets attached to bookmark "
 #~ "labels"
 #~ msgstr ""
-#~ "Cela n'apparaît que dans l'en-tête "
-#~ "du document, et est utilisé pour "
-#~ "les étiquettes de marque-page"
+#~ "Cela n'apparaît que dans l'en-tête du"
+#~ " document, et est utilisé pour les"
+#~ " étiquettes de marque-page"
 
 #~ msgid "This appears in the red area."
 #~ msgstr "Cela apparaîte dans la zone rouge."
@@ -4912,3 +4917,4 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 
 #~ msgid "Add another edition of %(worktitle)s"
 #~ msgstr "Ajoutez une autre édition de %(worktitle)s"
+

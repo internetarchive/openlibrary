@@ -2942,7 +2942,7 @@ msgid "No authors selected."
 msgstr ""
 
 #: authors.html:50
-msgid "Please select a master author record."
+msgid "Please select a primary author record."
 msgstr ""
 
 #: authors.html:52
@@ -2950,7 +2950,7 @@ msgid "Please select some authors to merge."
 msgstr ""
 
 #: authors.html:55
-msgid "Select a \"master\" record that best represents the author -"
+msgid "Select a \"primary\" record that best represents the author -"
 msgstr ""
 
 #: authors.html:58
@@ -2962,11 +2962,11 @@ msgid "Press MERGE AUTHORS."
 msgstr ""
 
 #: authors.html:66
-msgid "No Master record"
+msgid "No Primary record"
 msgstr ""
 
 #: authors.html:67
-msgid "You must select a master record to point the duplicates toward."
+msgid "You must select a primary record to point the duplicates toward."
 msgstr ""
 
 #: authors.html:70
@@ -3505,7 +3505,7 @@ msgstr ""
 
 #: openlibrary/templates/widget.html:48
 #, python-format
-msgid "Learn more about &quot;%(title)s&quot; at OpenLibrary"
+msgid "Learn more about &quot;%(title)s&quot; at Open Library"
 msgstr ""
 
 #: openlibrary/macros/LoanStatus.html:90 openlibrary/templates/widget.html:48
