@@ -18,7 +18,7 @@ else
     git pull origin "${INFOGAMI:-master}"
     popd
   else
-    # Use production infogami
+    # Use same version of infogami that's used on production
     make git
   fi
 fi
