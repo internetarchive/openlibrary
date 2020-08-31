@@ -742,13 +742,13 @@ def load(rec, account=None):
         e['ocaid'] = rec['ocaid']
         need_edition_save = True
 
+    # Add list fields to edition as needed
     edition_fields = [
-        'local_id', 'ia_box_id', 'ia_loaded_id', 'source_records']
-    # TODO:
-    # only consider `source_records` for newly created work
-    # or if field originally missing:
-    #if work_created and not e.get('source_records'):
-    #    edition_fields.append('source_records')
+        'local_id',
+        'lccn',
+        'lc_classifications',
+        'source_records',
+        ]
     for f in edition_fields:
         if f not in rec:
             continue

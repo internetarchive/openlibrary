@@ -642,13 +642,12 @@ class SaveBookHelper:
             if not subjects:
                 return
 
-            f = StringIO(subjects.encode('utf-8')) # no unicode in csv module
             dedup = set()
-            for s in next(csv.reader(f, dialect='excel', skipinitialspace=True)):
-                s = s.decode('utf-8')
-                if s.lower() not in dedup:
-                    yield s
-                    dedup.add(s.lower())
+            with StringIO(subjects) as f:
+                for s in next(csv.reader(f, dialect='excel', skipinitialspace=True)):
+                    if s.lower() not in dedup:
+                        yield s
+                        dedup.add(s.lower())
 
         work.subjects = list(read_subject(work.get('subjects', '')))
         work.subject_places = list(read_subject(work.get('subject_places', '')))
@@ -774,7 +773,7 @@ class book_edit(delegate.page):
 
             raise web.seeother(edition.url())
         except ClientException as e:
-            add_flash_message('error', e.message or e.json)
+            add_flash_message('error', e.args[-1] or e.json)
             return self.GET(key)
         except ValidationException as e:
             add_flash_message('error', str(e))

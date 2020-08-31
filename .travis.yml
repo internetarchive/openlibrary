@@ -28,6 +28,7 @@ before_install:
   - nvm install 12
   - nvm use 12
 install:
+  - pip install --upgrade pip wheel
   - pip install -r requirements_test.txt
   # refresh the git submodule ./vendor/infogami on some jobs
   - if [ "$TRAVIS_PYTHON_VERSION" != "2.7" ] || [ "$TRAVIS_JOB_NAME" == "Python 2.7 on Infogami master" ]; then
