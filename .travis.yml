@@ -28,17 +28,21 @@ jobs:
         - source scripts/test_py3.sh
     - name: “Python 3.8 on focal”
       python: "3.8"
+    - name: “Python 3.9-dev on focal”
+      python: "3.9-dev"
   allow_failures:
     - name: “Python 2.7 on Infogami master”
+    - python: "3.9-dev"
 # Ubuntu may have an old version of node, so make sure Node 12 is installed
 # and used instead. Should match Dockerfile.
 before_install:
   - nvm install 12
   - nvm use 12
 install:
+  - pip install --upgrade pip wheel
   - pip install -r requirements_test.txt
   # refresh the git submodule ./vendor/infogami on some jobs
-  - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ] || [ "$TRAVIS_JOB_NAME" == "Python 2.7 on Infogami master" ]; then
+  - if [ "$TRAVIS_PYTHON_VERSION" != "2.7" ] || [ "$TRAVIS_JOB_NAME" == "Python 2.7 on Infogami master" ]; then
       pushd vendor/infogami && git pull origin master && popd;
     fi
 before_script: npm install
@@ -46,3 +50,4 @@ script:
   - make lint
   - make i18n
   - make test
+  - source scripts/run_doctests.sh
