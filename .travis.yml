@@ -36,6 +36,9 @@ install:
     fi
 before_script: npm install
 script:
+  - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then
+      make lint-diff;
+    fi
   - make lint
   - make i18n
   - make test
