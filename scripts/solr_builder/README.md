@@ -20,7 +20,7 @@ docker run \
 ```
 2. Follow the steps here to finish setting up Jenkins: https://jenkins.io/doc/book/installing/#setup-wizard
 3. Follow these steps to create a new Pipeline Project using git: https://jenkins.io/doc/book/pipeline/getting-started/#defining-a-pipeline-in-scm
-    - Be sure to set the script path to the `Jenkinsfile` in this directory  
+    - Be sure to set the script path to the `Jenkinsfile` in this directory
 4. Run the pipeline!
 
 Notes:
