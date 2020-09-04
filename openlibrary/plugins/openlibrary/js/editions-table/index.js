@@ -1,8 +1,8 @@
 import 'datatables.net-dt';
 import '../../../../../static/css/legacy-datatables.less';
 
-const DEFAULT_LENGTH = 3
-const KEY = 'resultsLength'
+const DEFAULT_LENGTH = 3;
+const LS_RESULTS_LENGTH_KEY = 'editions-table.resultsLength';
 
 export function initEditionsTable() {
     var rowCount;
@@ -38,7 +38,7 @@ export function initEditionsTable() {
     });
 
     $('#editions').on('length.dt', function(e, settings, length) {
-        localStorage.setItem(KEY, length)
+        localStorage.setItem(LS_RESULTS_LENGTH_KEY, length);
     });
 
     rowCount = $('#editions tbody tr').length;
@@ -53,7 +53,7 @@ export function initEditionsTable() {
             bAutoWidth: false
         });
     } else {
-        currentLength = Number(localStorage.getItem(KEY))
+        currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY));
 
         $('#editions').DataTable({
             aoColumns: [{sType: 'html'},null],
