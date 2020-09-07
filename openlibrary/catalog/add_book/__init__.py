@@ -175,25 +175,26 @@ def find_matching_work(e):
                 return wkey
 
 
-def build_author_reply(author_in, edits):
+def build_author_reply(authors_in, edits, source):
     """
     Steps through an import record's authors, and creates new records if new,
     adding them to 'edits' to be saved later.
 
-    :param list author_in: List of import sourced author dicts [{"name:" "Some One"}, ...], possibly with dates
+    :param list authors_in: List of import sourced author dicts [{"name:" "Some One"}, ...], possibly with dates
     :param list edits: list of Things to be saved later. Is modfied by this method.
+    :param str source: Source record e.g. marc:marc_records_scriblio_net/part01.dat:26456929:680
     :rtype: tuple
     :return: (list, list) authors [{"key": "/author/OL..A"}, ...], author_reply the JSON status response to return for each author
     """
 
     authors = []
     author_reply = []
-    for a in author_in:
+    for a in authors_in:
         new_author = 'key' not in a
         if new_author:
             a['key'] = web.ctx.site.new_key('/type/author')
-            if source_records[0].startswith('marc:'):
-                a['machine_comment'] = source_records[0][5:]
+            if source.startswith('marc:'):
+                a['machine_comment'] = source[5:]
             edits.append(a)
         authors.append({'key': a['key']})
         author_reply.append({
@@ -282,10 +283,12 @@ def get_ia_item(ocaid):
     item = ia.get_item(ocaid, config=cfg)
     return item
 
+
 def modify_ia_item(item, data):
     access_key = lending.config_ia_ol_metadata_write_s3 and lending.config_ia_ol_metadata_write_s3['s3_key']
     secret_key = lending.config_ia_ol_metadata_write_s3 and lending.config_ia_ol_metadata_write_s3['s3_secret']
     return item.modify_metadata(data, access_key=access_key, secret_key=secret_key)
+
 
 def create_ol_subjects_for_ocaid(ocaid, subjects):
     item = get_ia_item(ocaid)
@@ -303,6 +306,7 @@ def create_ol_subjects_for_ocaid(ocaid, subjects):
         return ('%s failed: %s' % (item.identifier, r.content))
     else:
         return ("success for %s" % item.identifier)
+
 
 def update_ia_metadata_for_ol_edition(edition_id):
     """
@@ -579,7 +583,7 @@ def load_data(rec, account=None):
     # TOFIX: edition.authors has already been processed by import_authors() in build_query(), following line is a NOP?
     author_in = [import_author(a, eastern=east_in_by_statement(rec, a)) for a in edition.get('authors', [])]
     # build_author_reply() adds authors to edits
-    (authors, author_reply) = build_author_reply(author_in, edits)
+    (authors, author_reply) = build_author_reply(author_in, edits, rec['source_records'][0])
 
     if authors:
         edition['authors'] = authors
