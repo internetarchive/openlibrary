@@ -192,6 +192,8 @@ def build_author_reply(author_in, edits):
         new_author = 'key' not in a
         if new_author:
             a['key'] = web.ctx.site.new_key('/type/author')
+            if source_records[0].startswith('marc:'):
+                a['machine_comment'] = source_records[0][5:]
             edits.append(a)
         authors.append({'key': a['key']})
         author_reply.append({
