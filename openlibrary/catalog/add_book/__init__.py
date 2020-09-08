@@ -180,11 +180,11 @@ def build_author_reply(authors_in, edits, source):
     Steps through an import record's authors, and creates new records if new,
     adding them to 'edits' to be saved later.
 
-    :param list authors_in: List of import sourced author dicts [{"name:" "Some One"}, ...], possibly with dates
+    :param list authors_in: import author dicts [{"name:" "Bob"}, ...], maybe dates
     :param list edits: list of Things to be saved later. Is modfied by this method.
-    :param str source: Source record e.g. marc:marc_records_scriblio_net/part01.dat:26456929:680
+    :param str source: Source record e.g. marc:marc_ex/part01.dat:26456929:680
     :rtype: tuple
-    :return: (list, list) authors [{"key": "/author/OL..A"}, ...], author_reply the JSON status response to return for each author
+    :return: (list, list) authors [{"key": "/author/OL..A"}, ...], author_reply
     """
 
     authors = []
