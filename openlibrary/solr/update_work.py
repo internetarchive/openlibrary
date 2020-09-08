@@ -49,7 +49,7 @@ def urlopen(url, params=None, data=None):
         'User-Agent': user_agent
     }
     response = requests.post(url, params=params, data=data, headers=headers)
-    return response    
+    return response
 
 def get_solr():
     """
