@@ -52,6 +52,8 @@ export function initReadingListFeature() {
     function closeDropdown($container) {
         $container.find('.dropdown').slideUp(25);
         $container.find('.arrow').removeClass('up');
+
+        $('.stars').css('pointer-events', 'unset');
     }
     // Events are registered on document as HTML is subject to change due to JS inside
     // openlibrary/templates/lists/widget.html
@@ -59,6 +61,13 @@ export function initReadingListFeature() {
         $(this).next('.dropdown').slideToggle(25);
         $(this).parent().next('.dropdown').slideToggle(25);
         $(this).parent().find('.arrow').toggleClass('up');
+
+        if ($(this).parent().find('.arrow').hasClass('up')) {
+            $('.stars').css('pointer-events', 'none');
+        } else {
+            $('.stars').css('pointer-events', 'unset');
+        }
+
     }, 300, false));
 
     $(document).on('click', 'a.add-to-list', debounce(function(){

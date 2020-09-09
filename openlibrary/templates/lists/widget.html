@@ -604,6 +604,8 @@ window.q.push(function() {
     function close_popup() {
         \$(this).next('.dropdown').slideToggle();
         \$(this).parent().find('.arrow').toggleClass("down");
+
+        \$('.stars').css('pointer-events', 'unset');
     }
 
     function setup_dialog() {
