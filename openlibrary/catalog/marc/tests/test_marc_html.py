@@ -9,7 +9,7 @@ def test_html_subfields():
         (b'  end of wrapped\x1e', 'end of wrapped'),
         (b'  \x1fa<whatever>\x1e', '<b>$a</b>&lt;whatever&gt;'),
     ]
-    hr = html_record("00053This is the leader.Now we are beyond the leader.")
+    hr = html_record(b'00053This is the leader.Now we are beyond the leader.')
     for input_, output in samples:
         assert hr.html_subfields(input_) == output
 
