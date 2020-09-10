@@ -583,7 +583,8 @@ def load_data(rec, account=None):
     # TOFIX: edition.authors has already been processed by import_authors() in build_query(), following line is a NOP?
     author_in = [import_author(a, eastern=east_in_by_statement(rec, a)) for a in edition.get('authors', [])]
     # build_author_reply() adds authors to edits
-    (authors, author_reply) = build_author_reply(author_in, edits, rec['source_records'][0])
+    (authors, author_reply) = build_author_reply(author_in, edits,
+                                                 rec['source_records'][0])
 
     if authors:
         edition['authors'] = authors
