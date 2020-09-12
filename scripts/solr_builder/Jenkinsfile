@@ -272,12 +272,12 @@ pipeline {
                 stage('Copy subjects into main solr') {
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "docker-compose exec -T solr curl -s http://localhost:8080/solr/dataimport?command=full-import"
+                      sh "docker-compose exec -T solr curl -s http://localhost:8983/solr/dataimport?command=full-import"
 
                       waitUntil {
                         script {
                           def log_file = 'logs/subjects-import.xml'
-                          sh "docker-compose exec -T solr curl -s http://localhost:8080/solr/dataimport > ${log_file}"
+                          sh "docker-compose exec -T solr curl -s http://localhost:8983/solr/dataimport > ${log_file}"
                           archiveArtifacts artifacts: log_file
                           def status = sh(script: """cat ${log_file} | xmlstarlet sel -t -v "//str[@name='status']" """, returnStdout: true).trim()
                           echo status
@@ -302,7 +302,7 @@ pipeline {
           // This is kind of like a disk defrag, but it's ESSENTIAL after a big import. Shouldn't
           // really be needed after that.
           steps {
-            sh "docker-compose exec -T solr curl -s http://localhost:8080/solr/update?optimize=true"
+            sh "docker-compose exec -T solr curl -s http://localhost:8983/solr/update?optimize=true"
           }
         }
       }
@@ -316,7 +316,7 @@ pipeline {
 }
 
 String solr_query_count(String solr_name, String type_to_count) {
-  def solr_url = "http://localhost:8080/solr/select/?q=type%3A${type_to_count}&rows=0"
+  def solr_url = "http://localhost:8983/solr/select/?q=type%3A${type_to_count}&rows=0"
   def count_cmd = "docker-compose exec -T ${solr_name} curl -s '${solr_url}' | xmlstarlet sel -t -v '//result/@numFound'"
   def count = sh(script: count_cmd, returnStdout: true).trim()
   return count
@@ -324,7 +324,7 @@ String solr_query_count(String solr_name, String type_to_count) {
 
 void solr_commit(String solr_name) {
   sh(label: 'Solr commit the changes',
-    script: "docker-compose exec -T ${solr_name} curl http://localhost:8080/solr/update?commit=true")
+    script: "docker-compose exec -T ${solr_name} curl http://localhost:8983/solr/update?commit=true")
 }
 
 void insert_into_solr(String index_cmd, Integer cores, String log_file_glob, String artifact_file_name) {

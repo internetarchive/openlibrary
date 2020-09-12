@@ -29,7 +29,7 @@ services:
       - JAVA_MEM=5g
     restart: always
     ports:
-      - 8984:8080
+      - 8984:8983
     volumes:
       - solr-data:/var/lib/solr/data
     networks:
@@ -43,7 +43,7 @@ services:
       - JAVA_MEM=1g
     restart: always
     ports:
-      - 8985:8080
+      - 8985:8983
     volumes:
       - "${SOLR_BACKUP_PATH}/var/lib/solr/data:/var/lib/solr/data"
     networks:
