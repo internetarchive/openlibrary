@@ -26,7 +26,7 @@ services:
     image: olsolr:latest
     environment:
       - ENV=dev
-      - JAVA_MEM=5g
+      - JAVA_MEM=3g
     restart: always
     ports:
       - 8984:8983
@@ -40,7 +40,6 @@ services:
     image: olsolr:latest
     environment:
       - ENV=dev
-      - JAVA_MEM=1g
     restart: always
     ports:
       - 8985:8983
