@@ -24,6 +24,9 @@ services:
 
   solr:
     image: olsolr:latest
+    environment:
+      - ENV=dev
+      - JAVA_MEM=5g
     restart: always
     ports:
       - 8984:8080
@@ -35,6 +38,9 @@ services:
   # Replica of production solr so we can get subjects
   solr-backup:
     image: olsolr:latest
+    environment:
+      - ENV=dev
+      - JAVA_MEM=1g
     restart: always
     ports:
       - 8985:8080
