@@ -25,4 +25,4 @@ sixpack-client==1.2.0
 psycopg2==2.8.4
 Pygments==2.4.2
 isbnlib==3.9.3
-sentry-sdk==0.17.0
+sentry-sdk==0.17.5
