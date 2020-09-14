@@ -302,7 +302,9 @@ pipeline {
           // This is kind of like a disk defrag, but it's ESSENTIAL after a big import. Shouldn't
           // really be needed after that.
           steps {
-            sh "docker-compose exec -T solr curl -s http://localhost:8983/solr/update?optimize=true"
+            dir(env.HOST_SOLR_BUILDER_DIR) {
+              sh "docker-compose exec -T solr curl -s http://localhost:8983/solr/update?optimize=true"
+            }
           }
         }
       }
