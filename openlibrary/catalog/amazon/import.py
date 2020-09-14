@@ -15,13 +15,13 @@ import six
 from six.moves import urllib
 
 
-re_amazon = re.compile('^([A-Z0-9]{10}),(\d+):(.*)$', re.S)
+re_amazon = re.compile(r'^([A-Z0-9]{10}),(\d+):(.*)$', re.S)
 
-re_normalize = re.compile('[^\w ]')
-re_whitespace = re.compile('\s+')
-re_title_parens = re.compile('^(.+) \([^)]+?\)$')
+re_normalize = re.compile(r'[^\w ]')
+re_whitespace = re.compile(r'\s+')
+re_title_parens = re.compile(r'^(.+) \([^)]+?\)$')
 
-re_meta_marc = re.compile('([^/]+)_(meta|marc)\.(mrc|xml)')
+re_meta_marc = re.compile(r'([^/]+)_(meta|marc)\.(mrc|xml)')
 # marc:marc_ithaca_college/ic_marc.mrc:224977427:1064
 
 threshold = 875

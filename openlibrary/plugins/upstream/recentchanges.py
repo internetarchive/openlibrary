@@ -107,14 +107,14 @@ class index(delegate.page):
         return yaml.safe_dump(d, indent=4, allow_unicode=True, default_flow_style=False)
 
 class index_with_date(index):
-    path = "/recentchanges/(\d\d\d\d(?:/\d\d)?(?:/\d\d)?)(/[^/]*)?"
+    path = r"/recentchanges/(\d\d\d\d(?:/\d\d)?(?:/\d\d)?)(/[^/]*)?"
 
     def GET(self, date, kind):
         date = date.replace("/", "-")
         return self.render(kind=kind, date=date)
 
 class recentchanges_redirect(delegate.page):
-    path = "/recentchanges/goto/(\d+)"
+    path = r"/recentchanges/goto/(\d+)"
 
     def is_enabled(self):
         return features.is_enabled("recentchanges_v2")
@@ -129,7 +129,7 @@ class recentchanges_redirect(delegate.page):
         raise web.found(change.url())
 
 class recentchanges_view(delegate.page):
-    path = "/recentchanges/\d\d\d\d/\d\d/\d\d/[^/]*/(\d+)"
+    path = r"/recentchanges/\d\d\d\d/\d\d/\d\d/[^/]*/(\d+)"
 
     def is_enabled(self):
         return features.is_enabled("recentchanges_v2")

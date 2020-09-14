@@ -16,7 +16,7 @@ def setup():
     pass
 
 class add_cover(delegate.page):
-    path = "(/books/OL\d+M)/add-cover"
+    path = r"(/books/OL\d+M)/add-cover"
     cover_category = "b"
 
     def GET(self, key):
@@ -83,7 +83,7 @@ class add_cover(delegate.page):
         book._save("Added new cover", action="add-cover", data={"url": url})
 
 class add_work_cover(add_cover):
-    path = "(/works/OL\d+W)/add-cover"
+    path = r"(/works/OL\d+W)/add-cover"
     cover_category = "w"
 
     def upload(self, key, i):
@@ -93,7 +93,7 @@ class add_work_cover(add_cover):
             return add_cover.upload(self, key, i)
 
 class add_photo(add_cover):
-    path = "(/authors/OL\d+A)/add-photo"
+    path = r"(/authors/OL\d+A)/add-photo"
     cover_category = "a"
 
     def save(self, author, photoid, url=None):
@@ -101,7 +101,7 @@ class add_photo(add_cover):
         author._save("Added new photo", action="add-photo", data={"url": url})
 
 class manage_covers(delegate.page):
-    path = "(/books/OL\d+M)/manage-covers"
+    path = r"(/books/OL\d+M)/manage-covers"
     def GET(self, key):
         book = web.ctx.site.get(key)
         if not book:
@@ -133,11 +133,11 @@ class manage_covers(delegate.page):
             pass
 
 class manage_work_covers(manage_covers):
-    path = "(/works/OL\d+W)/manage-covers"
+    path = r"(/works/OL\d+W)/manage-covers"
 
 
 class manage_photos(manage_covers):
-    path = "(/authors/OL\d+A)/manage-photos"
+    path = r"(/authors/OL\d+A)/manage-photos"
 
     def get_images(self, author):
         return author.get_photos()

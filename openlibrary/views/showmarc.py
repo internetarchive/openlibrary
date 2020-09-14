@@ -84,11 +84,11 @@ class show_bwb(app.view):
         return template
 
 
-re_bad_meta_mrc = re.compile('^([^/]+)_meta\.mrc$')
-re_lc_sanfranpl = re.compile('^sanfranpl(\d+)/sanfranpl(\d+)\.out')
+re_bad_meta_mrc = re.compile(r'^([^/]+)_meta\.mrc$')
+re_lc_sanfranpl = re.compile(r'^sanfranpl(\d+)/sanfranpl(\d+)\.out')
 
 class show_marc(app.view):
-    path = "/show-records/(.*):(\d+):(\d+)"
+    path = r"/show-records/(.*):(\d+):(\d+)"
 
     def GET(self, filename, offset, length):
         m = re_bad_meta_mrc.match(filename)

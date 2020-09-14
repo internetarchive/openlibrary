@@ -218,7 +218,7 @@ def get_first_tag(data, want): # return first line of wanted tag
         if line[:3] in want:
             return get_tag_line(data, line)
 
-re_dates = re.compile('^\(?(\d+-\d*|\d*-\d+)\)?$')
+re_dates = re.compile(r'^\(?(\d+-\d*|\d*-\d+)\)?$')
 
 @deprecated
 def get_person_content(line, is_marc8=False):

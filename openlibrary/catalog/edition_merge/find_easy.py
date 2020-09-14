@@ -7,7 +7,7 @@ sys.path.append('/1/src/openlibrary')
 from openlibrary.api import OpenLibrary, Reference
 from collections import defaultdict
 
-re_edition_key = re.compile('^/books/OL(\d+)M$')
+re_edition_key = re.compile(r'^/books/OL(\d+)M$')
 re_nonword = re.compile(r'\W', re.U)
 re_edition = re.compile(' ed edition$')
 

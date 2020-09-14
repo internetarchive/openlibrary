@@ -9,7 +9,7 @@ from collections import defaultdict
 import six
 
 
-re_edition_key = re.compile('^/books/OL(\d+)M$')
+re_edition_key = re.compile(r'^/books/OL(\d+)M$')
 re_nonword = re.compile(r'\W', re.U)
 
 conn = MySQLdb.connect(db='merge_editions')

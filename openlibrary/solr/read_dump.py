@@ -5,9 +5,9 @@ import sys
 from time import time
 import web
 
-re_author_key = re.compile('^/a/OL(\d+)A$')
-re_work_key = re.compile('^/works/OL(\d+)W$')
-re_edition_key = re.compile('^/b/OL(\d+)M$')
+re_author_key = re.compile(r'^/a/OL(\d+)A$')
+re_work_key = re.compile(r'^/works/OL(\d+)W$')
+re_edition_key = re.compile(r'^/b/OL(\d+)M$')
 
 _escape_dict = {'\n': r'\n', '\r': r'\r', '\t': r'\t', '\\': r'\\'}
 def make_sub(d):

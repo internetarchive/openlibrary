@@ -6,7 +6,7 @@ import simplejson as json
 db = web.database(dbn='mysql', user='root', passwd='', db='openlibrary')
 db.printing = False
 
-re_work_key = re.compile('^/works/OL(\d+)W$')
+re_work_key = re.compile(r'^/works/OL(\d+)W$')
 
 total = 13941626
 num = 0

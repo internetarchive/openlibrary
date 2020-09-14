@@ -35,7 +35,7 @@ class static(delegate.page):
 # handlers for change photo and change cover
 
 class change_cover(delegate.mode):
-    path = "(/books/OL\d+M)/cover"
+    path = r"(/books/OL\d+M)/cover"
 
     def GET(self, key):
         page = web.ctx.site.get(key)
@@ -44,12 +44,12 @@ class change_cover(delegate.mode):
         return render.change_cover(page)
 
 class change_photo(change_cover):
-    path = "(/authors/OL\d+A)/photo"
+    path = r"(/authors/OL\d+A)/photo"
 
 del delegate.modes['change_cover']     # delete change_cover mode added by openlibrary plugin
 
 class merge_work(delegate.page):
-    path = "(/works/OL\d+W)/merge"
+    path = r"(/works/OL\d+W)/merge"
     def GET(self, key):
         return "This looks like a good place for a merge UI!"
 

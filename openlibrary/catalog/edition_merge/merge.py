@@ -10,7 +10,7 @@ from flask import Flask, render_template, request, flash, redirect, url_for, g
 from collections import defaultdict
 app = Flask(__name__)
 
-re_edition_key = re.compile('^/books/OL(\d+)M$')
+re_edition_key = re.compile(r'^/books/OL(\d+)M$')
 
 ol = OpenLibrary('http://openlibrary.org/')
 ol.login('EdwardBot', 'As1Wae9b')

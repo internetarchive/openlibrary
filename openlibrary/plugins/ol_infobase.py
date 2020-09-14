@@ -64,7 +64,7 @@ def init_plugin():
     server.app.add_mapping("/([^/]*)/count_edits_by_user", __name__ + ".count_edits_by_user")
     server.app.add_mapping("/([^/]*)/most_recent", __name__ + ".most_recent")
     server.app.add_mapping("/([^/]*)/clear_cache", __name__ + ".clear_cache")
-    server.app.add_mapping("/([^/]*)/stats/(\d\d\d\d-\d\d-\d\d)", __name__ + ".stats")
+    server.app.add_mapping(r"/([^/]*)/stats/(\d\d\d\d-\d\d-\d\d)", __name__ + ".stats")
     server.app.add_mapping("/([^/]*)/has_user", __name__ + ".has_user")
     server.app.add_mapping("/([^/]*)/olid_to_key", __name__ + ".olid_to_key")
     server.app.add_mapping("/_reload_config", __name__ + ".reload_config")

@@ -11,13 +11,13 @@ from warnings import warn
 
 from openlibrary.catalog.utils import pick_first_date
 
-re_question = re.compile('^\?+$')
-re_lccn = re.compile('(...\d+).*')
+re_question = re.compile(r'^\?+$')
+re_lccn = re.compile(r'(...\d+).*')
 re_letters = re.compile('[A-Za-z]')
-re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
-re_oclc = re.compile ('^\(OCoLC\).*?0*(\d+)')
-re_int = re.compile ('\d{2,}')
-re_number_dot = re.compile('\d{3,}\.$')
+re_isbn = re.compile(r'([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
+re_oclc = re.compile (r'^\(OCoLC\).*?0*(\d+)')
+re_int = re.compile (r'\d{2,}')
+re_number_dot = re.compile(r'\d{3,}\.$')
 
 re_translation1 = re.compile(r'^(.{,6})\btranslation of\b', re.I)
 re_translation2 = re.compile(r'^([\'"]?).*?\btranslation of\b[ :,;]*(.*)\1', re.I)

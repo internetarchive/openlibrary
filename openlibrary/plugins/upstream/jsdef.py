@@ -168,7 +168,7 @@ class JSNode:
         a = a[len("for"):-len("in")].strip() # strip `for` and `in`
 
         b = node.stmt[tok.index:-1].strip() # rest of for stmt excluding :
-        b = web.re_compile("loop.setup\((.*)\)").match(b).group(1)
+        b = web.re_compile(r"loop.setup\((.*)\)").match(b).group(1)
 
         text = ""
         text += indent + "foreach(%s, loop, function(loop, %s) {\n" % (py2js(b), a)

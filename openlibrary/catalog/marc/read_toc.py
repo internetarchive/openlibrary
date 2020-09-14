@@ -10,7 +10,7 @@ samples = [
 re_gt = re.compile('^(gt)+$')
 re_gtr = re.compile('^(gtr)+$')
 re_at = re.compile('^at+$')
-re_end_num = re.compile('\d[]. ]*$')
+re_end_num = re.compile(r'\d[]. ]*$')
 for line in open('test_data/marc_toc'):
     (loc, line) = eval(line)
     #print loc

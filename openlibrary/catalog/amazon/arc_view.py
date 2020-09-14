@@ -5,8 +5,8 @@ from six import StringIO
 arc_dir = '/2/edward/amazon/arc'
 urls = (
     '/', 'index',
-    '/(\d+\.arc)', 'arc_view',
-    '/(\d+\.arc)/(\d+)', 'page_view',
+    r'/(\d+\.arc)', 'arc_view',
+    r'/(\d+\.arc)/(\d+)', 'page_view',
 )
 app = web.application(urls, globals(), autoreload=True)
 

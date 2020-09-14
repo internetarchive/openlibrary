@@ -8,7 +8,7 @@ arc_dir = '/2/edward/amazon/arc'
 
 re_book_url = re.compile('^http://www.amazon.com/[^/]+/dp/([0-9A-Z]{10})/')
 re_result_count = re.compile('^Showing ([,0-9]+) - ([,0-9]+) of ([,0-9]+) Results$')
-re_title = re.compile('<title>Amazon.com: (.*?)(:?, Page \d+)?</title>')
+re_title = re.compile(r'<title>Amazon.com: (.*?)(:?, Page \d+)?</title>')
 crawled = set(i[:-1] for i in open('/2/edward/amazon/crawled'))
 
 # /2/edward/amazon/arc/20100311*.arc

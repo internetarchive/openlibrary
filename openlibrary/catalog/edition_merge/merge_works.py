@@ -13,13 +13,13 @@ import six
 conn = MySQLdb.connect(db='merge_editions')
 cur = conn.cursor()
 
-re_edition_key = re.compile('^/books/OL(\d+)M$')
-re_work_key = re.compile('^/works/OL(\d+)W$')
+re_edition_key = re.compile(r'^/books/OL(\d+)M$')
+re_work_key = re.compile(r'^/works/OL(\d+)W$')
 ol = OpenLibrary('http://openlibrary.org/')
 ol.login('EdwardBot', 'As1Wae9b')
 
-re_iso_date = re.compile('^(\d{4})-\d\d-\d\d$')
-re_end_year = re.compile('(\d{4})$')
+re_iso_date = re.compile(r'^(\d{4})-\d\d-\d\d$')
+re_end_year = re.compile(r'(\d{4})$')
 
 def get_publish_year(d):
     if not d:
