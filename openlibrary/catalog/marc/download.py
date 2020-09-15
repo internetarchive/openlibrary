@@ -65,13 +65,13 @@ files = (
 myform = form.Form(
     form.Dropdown('file', [(i, "%s - %d records" % (i, j)) for i, j in files]),
     form.Textbox("start",
-        form.notnull,
-        form.regexp(r'\d+', 'Must be a digit'),
-        form.Validator('Must be less than 50000', lambda x:int(x)>50000)),
+                 form.notnull,
+                 form.regexp(r'\d+', 'Must be a digit'),
+                 form.Validator('Must be less than 50000', lambda x: int(x) > 50000)),
     form.Textbox("count",
-        form.notnull,
-        form.regexp(r'\d+', 'Must be a digit'),
-        form.Validator('Must be less than 50000', lambda x:int(x)>50000)))
+                 form.notnull,
+                 form.regexp(r'\d+', 'Must be a digit'),
+                 form.Validator('Must be less than 50000', lambda x: int(x) > 50000)))
 
 def start_and_len(file, start, count):
     f = urllib.request.urlopen("http://archive.org/download/bpl_marc/" + file)

@@ -727,7 +727,8 @@ def setup():
 
     register_admin_page('/admin/imports', imports_home, label="")
     register_admin_page('/admin/imports/add', imports_add, label="")
-    register_admin_page(r'/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label="")
+    register_admin_page(r'/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date,
+                        label="")
     register_admin_page('/admin/spamwords', spamwords, label="")
     register_admin_page('/admin/sponsorship', sponsorship_stats, label="Sponsorship")
 

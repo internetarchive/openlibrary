@@ -7,7 +7,7 @@ from six.moves import urllib
 
 # http://amazon.com/other-editions/dp/0312153325 has:
 # http://www.amazon.com/gp/product/0312247869
-re_link = re.compile(r'^http://www\.amazon\.com/(?:(.*)/dp|gp/product)/(\d{9}[\dX]|B[A-Z0-9]+)$')
+re_link = re.compile(r'^http://www\.amazon\.com/(?:(.*)/dp|gp/product)/(\d{9}[\dX]|B[A-Z0-9]+)$')  # noqa: E501
 
 desc_skip = set(['(Bargain Price)', '(Kindle Book)'])
 
