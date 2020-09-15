@@ -16,7 +16,7 @@
     "test:css": "npm run build-assets:css && bundlesize && stylelint --syntax less static/css/",
     "test:js": "npm run build-assets:js && npm run lint:js",
     "test": "npm run build-assets && bundlesize && stylelint --syntax less static/css/ && npm run lint:js && npm run test:unit"
-  },  
+  },
   "devDependencies": {
     "@babel/core": "7.2.2",
     "@babel/plugin-syntax-dynamic-import": "7.8.3",
