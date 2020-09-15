@@ -25,7 +25,7 @@ from lxml import etree
 import logging
 
 from six.moves import urllib
-
+from six import PY2
 
 MARC_LENGTH_POS = 5
 logger = logging.getLogger('openlibrary.importapi')
@@ -459,7 +459,10 @@ class ils_search:
         if not authstring:
             return
         authstring = authstring.replace("Basic ","")
-        username, password = base64.decodestring(authstring).split(':')
+        if PY2:
+            username, password = base64.decodestring(authstring).split(':')
+        else:
+            username, password = base64.decodebytes(authstring).split(':')
         accounts.login(username, password)
 
     def prepare_input_data(self, rawdata):
@@ -603,7 +606,10 @@ class ils_cover_upload:
         if not authstring:
             raise self.auth_failed("No credentials provided")
         authstring = authstring.replace("Basic ","")
-        username, password = base64.decodestring(authstring).split(':')
+        if PY2:
+            username, password = base64.decodestring(authstring).split(':')
+        else:
+            username, password = base64.decodebytes(authstring).split(':')
         accounts.login(username, password)
 
     def POST(self):
