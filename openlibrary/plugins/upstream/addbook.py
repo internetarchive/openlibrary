@@ -642,12 +642,13 @@ class SaveBookHelper:
             if not subjects:
                 return
 
+            f = StringIO(subjects.encode('utf-8'))  # no unicode in csv module
             dedup = set()
-            with StringIO(subjects) as f:
-                for s in next(csv.reader(f, dialect='excel', skipinitialspace=True)):
-                    if s.lower() not in dedup:
-                        yield s
-                        dedup.add(s.lower())
+            for s in next(csv.reader(f, dialect='excel', skipinitialspace=True)):
+                s = s.decode('utf-8')
+                if s.lower() not in dedup:
+                    yield s
+                    dedup.add(s.lower())
 
         work.subjects = list(read_subject(work.get('subjects', '')))
         work.subject_places = list(read_subject(work.get('subject_places', '')))
