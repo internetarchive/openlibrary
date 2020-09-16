@@ -135,9 +135,7 @@ msgstr ""
 
 #: forms.py:62
 msgid ""
-"Send me a monthly newsletter from the <a "
-"href=\"https://archive.org/\">Internet Archive</a>, the non-profit that "
-"runs Open Library"
+"I want to receive news, announcements, and resources from the <a href=\"https://archive.org/\">Internet Archive</a>, the non-profit that runs Open Library."
 msgstr ""
 
 #: forms.py:91
@@ -239,6 +237,10 @@ msgstr ""
 
 #: view.html:91
 msgid "In progress..."
+msgstr ""
+
+#: view.html:151
+msgid "An edition of"
 msgstr ""
 
 #: editions2.html:31 view.html:92
@@ -568,9 +570,10 @@ msgstr ""
 msgid "Open Library logo"
 msgstr ""
 
-#: books.html:86 embed.html:27 home.html:7 home.html:10 lists.html:10
-#: nav_head.html:48 nav_head.html:73 search_head.html:70 view.html:31
-#: view.html:42 view.html:60 widget.html:234
+#: books.html:86 books.html:89 embed.html:27 home.html:7 home.html:10
+#: index.html:40 lists.html:10 nav_head.html:48 nav_head.html:73
+#: search_head.html:70 view.html:31 view.html:42 view.html:60
+#: widget.html:234
 msgid "Lists"
 msgstr ""
 
@@ -585,7 +588,8 @@ msgid ""
 msgstr ""
 
 #: custom_carousel.html:42 custom_carousel.html:47 editions_datatable.html:23
-#: embed.html:69 openlibrary/macros/ReadButton.html:13 show.html:34
+#: embed.html:69 openlibrary/macros/ReadButton.html:13
+#: openlibrary/templates/widget.html:33 show.html:34
 msgid "Read"
 msgstr ""
 
@@ -602,7 +606,7 @@ msgid "Borrow book"
 msgstr ""
 
 #: custom_carousel.html:39 custom_carousel.html:45 embed.html:80
-#: openlibrary/macros/ReadButton.html:9
+#: openlibrary/macros/ReadButton.html:9 openlibrary/templates/widget.html:38
 msgid "Borrow"
 msgstr ""
 
@@ -610,7 +614,7 @@ msgstr ""
 msgid "Protected DAISY"
 msgstr ""
 
-#: embed.html:85
+#: embed.html:85 openlibrary/macros/DownloadOptions.html:27
 msgid "DAISY"
 msgstr ""
 
@@ -773,12 +777,6 @@ msgstr ""
 msgid "admin page"
 msgstr ""
 
-#: books.html:89 home.html:7 home.html:10 index.html:40 lists.html:10
-#: nav_head.html:48 nav_head.html:73 search_head.html:70 view.html:31
-#: view.html:60 widget.html:234
-msgid "Lists"
-msgstr ""
-
 #: books.html:53 books.html:76 view.html:46
 msgid "Reading Log"
 msgstr ""
@@ -856,12 +854,6 @@ msgstr[1] ""
 
 #: editions_datatable.html:22
 msgid "Edition"
-msgstr ""
-
-#: custom_carousel.html:42 custom_carousel.html:47 editions_datatable.html:23
-#: openlibrary/macros/ReadButton.html:13 openlibrary/templates/widget.html:33
-#: show.html:34
-msgid "Read"
 msgstr ""
 
 #: editions_datatable.html:24
@@ -1631,11 +1623,6 @@ msgstr ""
 
 #: custom_carousel.html:34
 msgid "Sponsor"
-msgstr ""
-
-#: custom_carousel.html:39 custom_carousel.html:45
-#: openlibrary/macros/ReadButton.html:9 openlibrary/templates/widget.html:38
-msgid "Borrow"
 msgstr ""
 
 #: edit.html:68 edit.html:71 edit.html:74
@@ -3750,10 +3737,6 @@ msgstr ""
 msgid "Download open DAISY from Internet Archive (print-disabled format)"
 msgstr ""
 
-#: openlibrary/macros/DownloadOptions.html:27
-msgid "DAISY"
-msgstr ""
-
 #: openlibrary/macros/EditButtons.html:9
 msgid "Please, leave a short note about what you changed:"
 msgstr ""
@@ -3885,4 +3868,3 @@ msgstr ""
 #: openlibrary/macros/WorldcatLink.html:14
 msgid "Check WorldCat for an edition near you"
 msgstr ""
-

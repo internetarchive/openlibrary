@@ -498,10 +498,10 @@ class loans_admin:
         epub_loans = len(web.ctx.site.store.keys(type="/type/loan", name="resource_type", value="epub", limit=100000))
 
         pagesize = h.safeint(i.pagesize, 200)
-        pagecount = 1 + (total_loans-1) / pagesize
+        pagecount = 1 + (total_loans-1) // pagesize
         pageindex = max(h.safeint(i.page, 1), 1)
 
-        begin = (pageindex-1) * pagesize # pagecount starts from 1
+        begin = (pageindex-1) * pagesize  # pagecount starts from 1
         end = min(begin + pagesize, total_loans)
 
         loans = web.ctx.site.store.values(type="/type/loan", offset=begin, limit=pagesize)

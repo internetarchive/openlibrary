@@ -224,7 +224,8 @@ def marshal(data):
 def unmarshal(d):
     u"""Converts OL serialized objects to python.::
 
-        >>> unmarshal({"type": "/type/text", "value": "hello, world"})
+        >>> unmarshal({"type": "/type/text",
+        ...            "value": "hello, world"})  # doctest: +ALLOW_UNICODE
         <text: u'hello, world'>
         >>> unmarshal({"type": "/type/datetime", "value": "2009-01-02T03:04:05.006789"})
         datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)

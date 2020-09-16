@@ -17,6 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.5.3\n"
+"Language: cs\n"
 
 #: account.py:347 account.py:382 account.py:422 password/reset_success.html:6
 #: verify.html:5 verify/activated.html:6 verify/success.html:6
@@ -954,7 +955,7 @@ msgstr ""
 
 #: edit/addcover.html:31
 msgid "Upload"
-msgstr "Nahrát
+msgstr "Nahrát"
 
 #: edit/addfield.html:66
 msgid "Add a New Contributor Role"

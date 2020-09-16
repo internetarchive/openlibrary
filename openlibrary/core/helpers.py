@@ -257,10 +257,7 @@ def percentage(value, total):
         >>> percentage(0, 0)
         0.0
     """
-    if total == 0:
-        return 0
-    else:
-        return (value * 100.0)/total
+    return (value * 100.0) / total if total else 0.0
 
 def uniq(values, key=None):
     """Returns the unique entries from the given values in the original order.
