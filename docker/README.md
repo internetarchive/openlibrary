@@ -36,9 +36,7 @@ docker-machine start default # Start the docker daemon
 # a lot of RAM. Run: docker-machine stop default
 
 # build images
-docker build -t olbase:latest -f docker/Dockerfile.olbase . # 30+ min (Win10Home/Dec 2018)
-docker-compose build web # 10+ min (Win10Home/Dec 2018)
-docker-compose build solr # 5+ min (Win10Home/Dec 2018)
+docker-compose build # 15+ min (Win10Home/Dec 2018)
 
 # start the app
 docker-compose up    # Ctrl-C to stop
@@ -101,7 +99,20 @@ docker-compose exec web npm install
 docker-compose exec web npm run build-assets
 ```
 
+## Rebuilding the Docker Image
+
+If you need to make changes to the dependencies in Dockerfile.olbase, rebuild it with:
+
+```bash
+docker build -t openlibrary/olbase:latest -f docker/Dockerfile.olbase . # 30+ min (Win10Home/Dec 2018)
+```
+
+This image is automatically rebuilt when master is pushed to at https://hub.docker.com/r/openlibrary/olbase .
+
+If you're making changes you think might affect Docker Hub, you can create a branch starting with `docker-test`, e.g. `docker-test-py2py3` (no weird chars), to trigger a build in docker hub at e.g. `openlibrary/olbase:docker-test-py2py3`.
+
 ## Updating the Docker Image
+
 Pull the changes into your openlibrary repository: ```git pull```
 
 When pulling down new changes you will need to rebuild the JS/CSS assets:

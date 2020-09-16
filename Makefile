@@ -39,10 +39,13 @@ js:
 i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
-git:
+git:	
+#Do not run these on DockerHub since it recursively clones all the repos before build initiates
+ifneq ($(DOCKER_HUB),TRUE)
 	git submodule init
 	git submodule sync
 	git submodule update
+endif
 
 clean:
 	rm -rf $(BUILD)
@@ -57,8 +60,8 @@ load_sample_data:
 	curl http://localhost:8080/_dev/process_ebooks # hack to show books in returncart
 
 reindex-solr:
-	su postgres -c "psql openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://0.0.0.0/ -c conf/openlibrary.yml --data-provider=legacy"
-	su postgres -c "psql openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://0.0.0.0/ -c conf/openlibrary.yml --data-provider=legacy"
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://web/ -c conf/openlibrary.yml --data-provider=legacy
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://web/ -c conf/openlibrary.yml --data-provider=legacy
 
 lint-diff:
 	git diff master -U0 | ./scripts/flake8-diff.sh
@@ -81,7 +84,7 @@ test-unit:
 	npm run test:unit
 
 test-py:
-	pytest openlibrary/tests openlibrary/mocks openlibrary/olbase openlibrary/plugins openlibrary/utils openlibrary/catalog openlibrary/coverstore scripts/tests
+	pytest . --ignore=tests/integration --ignore=scripts/2011 --ignore=infogami --ignore=vendor
 
 test: 
 	npm run test && make test-py

@@ -31,7 +31,7 @@ div.editionAbout {
   margin-bottom: 20px;
   h3 {
     font-size: 14px;
-    margin: 0 0 1em;
+    margin: 0 0 0em;
   }
 
   p {
@@ -43,6 +43,15 @@ div.editionAbout {
     margin: 0;
   }
 
+}
+
+.work-title{
+  margin-top: 5px;
+  margin-bottom: 0;
+}
+
+.work-subtitle{
+  margin-top:0px;
 }
 
 .workFooter {
@@ -170,6 +179,19 @@ a.section-anchor {
   font-size: 12px;
 }
 
+.work-title{
+  margin-top: 5px;
+  margin-bottom: 0;
+}
+
+.work-subtitle{
+  margin-top:0px;
+}
+
+.book-subtitle{
+  margin-bottom:0px;
+}
+
 @import (less) "components/readerStats.less";
 @import (less) "components/link-box.less";
 
@@ -259,4 +281,10 @@ div.editionTools {
   a {
     color: @light-mid-grey;
   }
+}
+
+.loadingIndicator {
+  display: flex;
+  justify-content: center;
+  background: @lightest-grey;
 }

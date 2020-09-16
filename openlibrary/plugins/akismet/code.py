@@ -7,7 +7,7 @@ import socket
 # Undoing it as it might effect other parts of the system.
 timeout = socket.getdefaulttimeout()
 
-from akismet import Akismet
+from openlibrary.plugins.akismet import Akismet
 socket.setdefaulttimeout(timeout)
 import web
 

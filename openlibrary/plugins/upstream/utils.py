@@ -14,7 +14,6 @@ import logging
 import six
 from six.moves import urllib
 from six.moves.collections_abc import MutableMapping
-from six.moves.html_parser import HTMLParser
 
 from infogami import config
 from infogami.utils import view, delegate, stats
@@ -422,7 +421,10 @@ def urlencode(dict_or_list_of_tuples):
 
 @public
 def entity_decode(text):
-    return HTMLParser().unescape(text)
+    try:
+        return six.moves.html_parser.unescape(text)
+    except AttributeError:
+        return six.moves.html_parser.HTMLParser().unescape(text)
 
 @public
 def set_share_links(url='#', title='', view_context=None):

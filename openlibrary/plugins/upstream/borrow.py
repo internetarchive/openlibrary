@@ -24,7 +24,6 @@ from openlibrary.core import waitinglist
 from openlibrary.core import ab
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary import accounts
-from openlibrary.plugins.upstream import acs4
 from openlibrary.utils import dateutil
 
 from lxml import etree
@@ -411,13 +410,9 @@ class borrow_receive_notification(delegate.page):
         data = web.data()
         try:
             notify_xml = etree.fromstring(data)
-
-            # XXX verify signature?  Should be acs4 function...
-            notify_obj = acs4.el_to_o(notify_xml)
-
-            output = simplejson.dumps({'success':True})
+            output = simplejson.dumps({'success': True})
         except Exception as e:
-            output = simplejson.dumps({'success':False, 'error': str(e)})
+            output = simplejson.dumps({'success': False, 'error': str(e)})
         return delegate.RawText(output, content_type='application/json')
 
 
