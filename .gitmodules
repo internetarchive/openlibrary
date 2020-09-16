@@ -5,6 +5,3 @@
 [submodule "vendor/js/wmd"]
 	path = vendor/js/wmd
 	url = git://github.com/internetarchive/wmd.git
-[submodule "vendor/acs4_py"]
-	path = vendor/acs4_py
-	url = http://github.com/internetarchive/acs4_py.git

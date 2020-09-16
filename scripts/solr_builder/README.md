@@ -20,7 +20,7 @@ docker run \
 ```
 2. Follow the steps here to finish setting up Jenkins: https://jenkins.io/doc/book/installing/#setup-wizard
 3. Follow these steps to create a new Pipeline Project using git: https://jenkins.io/doc/book/pipeline/getting-started/#defining-a-pipeline-in-scm
-    - Be sure to set the script path to the `Jenkinsfile` in this directory  
+    - Be sure to set the script path to the `Jenkinsfile` in this directory
 4. Run the pipeline!
 
 Notes:
@@ -93,7 +93,10 @@ Copy this dump onto ol-solr0, and there run
 ```sh
 cd /opt/openlibrary
 # Build Solr
-time sudo docker-compose build --build-arg ENV=prod solr
+time sudo docker-compose build solr
+# If this fails due to docker container not getting interent access (currently a problem on ol-solr0 as of 2020-06-22). 
+# Use this:
+# sudo docker build --network=host -t olsolr:latest -f docker/Dockerfile.olsolr .
 
 # Copy file (3min; 2020-03-02 OJF)
 time scp YOU@server.openjournal.foundation:/storage/openlibrary/solr/solrbuilder-2020-03-02.tar.gz ~
@@ -103,7 +106,7 @@ time sudo docker-compose run --no-deps --rm -v $HOME:/backup solr \
     bash -c "tar xf /backup/solrbuilder-2020-03-02.tar.gz"
 
 # Start the service
-sudo docker-compose up -d --no-deps solr
+sudo ENV=prod docker-compose up -d --no-deps solr
 ```
 
 ## Resetting

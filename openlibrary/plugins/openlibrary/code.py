@@ -5,6 +5,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import requests
+import sentry_sdk
 import web
 import simplejson
 import json
@@ -24,10 +25,12 @@ if not hasattr(infogami.config, 'features'):
 
 from infogami.utils.app import metapage
 from infogami.utils import delegate
+from openlibrary.utils import dateutil
 from infogami.utils.view import render, render_template, public, safeint, add_flash_message
 from infogami.infobase import client
 from infogami.core.db import ValidationException
 
+from openlibrary.core import cache
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.core.models import Edition  # noqa: E402
@@ -35,7 +38,7 @@ from openlibrary.core.lending import get_work_availability, get_edition_availabi
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count  # noqa: E402
-from openlibrary.plugins.openlibrary import processors
+from openlibrary.plugins.openlibrary import processors, sentry
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
@@ -791,6 +794,10 @@ def internalerror():
     openlibrary.core.stats.increment('ol.internal-errors')
     increment_error_count('ol.internal-errors-segmented')
 
+    # TODO: move this to plugins\openlibrary\sentry.py
+    if sentry.is_enabled():
+        sentry_sdk.capture_exception()
+
     if i.debug.lower() == 'true':
         raise web.debugerror()
     else:
@@ -808,6 +815,30 @@ class memory(delegate.page):
         import guppy
         h = guppy.hpy()
         return delegate.RawText(str(h.heap()))
+
+def _get_relatedcarousels_component(workid):
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+    work = web.ctx.site.get('/works/%s' % workid) or {}
+    component = render_template('books/RelatedWorksCarousel', work)
+    return {0: str(component)}
+
+def get_cached_relatedcarousels_component(*args, **kwargs):
+    memoized_get_component_metadata = cache.memcache_memoize(
+        _get_relatedcarousels_component, "book.bookspage.component.relatedcarousels", timeout=dateutil.HALF_DAY_SECS)
+    return (memoized_get_component_metadata(*args, **kwargs) or
+            memoized_get_component_metadata.update(*args, **kwargs)[0])
+
+class Partials(delegate.page):
+    path = '/partials'
+
+    def GET(self):
+        i = web.input(workid=None, _component=None)
+        component = i.pop("_component")
+        cached_component = {}
+        if component == "RelatedWorkCarousel":
+            cached_component = get_cached_relatedcarousels_component(**i)
+        return delegate.RawText(simplejson.dumps(cached_component), content_type="application/json")
 
 
 def is_bot():
@@ -866,9 +897,19 @@ def setup_context_defaults():
 
 
 def setup():
-    from openlibrary.plugins.openlibrary import (home, borrow_home, stats, support,
-                                                 events, design, status, authors)
+    from openlibrary.plugins.openlibrary import (
+        sentry,
+        home,
+        borrow_home,
+        stats,
+        support,
+        events,
+        design,
+        status,
+        authors,
+    )
 
+    sentry.setup()
     home.setup()
     design.setup()
     borrow_home.setup()
