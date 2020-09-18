@@ -100,7 +100,7 @@ window.q.push(function(){
         modal: true,
         resizable: false,
         buttons: {
-            "$_('Yes, I\'m sure')": function() {
+            "$:_('Yes, I\'m sure')": function() {
                 var list_key = $:json_encode(list.key);
                 var seed_id = "#" + \$(this).data("seed-id");
                 var seed = \$(seed_id).find("span.seed-key").html();
@@ -131,7 +131,7 @@ window.q.push(function(){
         modal: true,
         resizable: false,
         buttons: {
-            "$_('Yes, I\'m sure')": function() {
+            "$:_('Yes, I\'m sure')": function() {
                 var list_key = $:json_encode(list.key);
                 var _this = this;
 
