@@ -733,7 +733,7 @@ msgstr "Supprimer cette élément"
 
 #: view.html:158
 msgid ""
-"You are about the remove the last item in the list. That will delete the "
+"You are about to remove the last item in the list. That will delete the "
 "whole list. Are you sure you want to continue?"
 msgstr ""
 "Vous êtes sur le point de supprimer le dernier élément de la liste. Cela "
