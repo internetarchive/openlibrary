@@ -1,0 +1,22 @@
+{
+    "short_name": "Open Library",
+    "name": "Open Library: One webpage for every book ever published!",
+    "description": "An open, editable library catalog, building towards a web page for every book ever published.",
+    "icons": [
+        {
+            "src": "/static/images/openlibrary-192x192.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "/static/images/openlibrary-512x512",
+            "type": "image/png",
+            "sizes": "512x512"
+        }
+    ],
+    "start_url": "/?source=pwa",
+    "background_color": "#e2dcc5",
+    "display": "standalone",
+    "scope": "/",
+    "theme_color": "#e2dcc5"
+}
