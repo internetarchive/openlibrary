@@ -114,7 +114,7 @@ PersistentValue.DEFAULT_OPTIONS = {
 
 
 const MODES = ['everything', 'ebooks', 'printdisabled'];
-const DEFAULT_MODE = 'ebooks';
+const DEFAULT_MODE = 'everything';
 /** Search mode; {@see MODES} */
 export const mode = new PersistentValue('mode', {
     default: DEFAULT_MODE,
