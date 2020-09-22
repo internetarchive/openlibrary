@@ -12,20 +12,22 @@ export function addModeInputsToForm($form, searchMode) {
     $('input[name=\'has_fulltext\']').remove();
 
     let url = $form.attr('action');
-    url = removeURLParameter(url, 'm');
-    url = removeURLParameter(url, 'has_fulltext');
-    url = removeURLParameter(url, 'subject_facet');
+    if(url) {
+        url = removeURLParameter(url, 'm');
+        url = removeURLParameter(url, 'has_fulltext');
+        url = removeURLParameter(url, 'subject_facet');
 
-    if (searchMode !== 'everything') {
-        $form.append('<input type="hidden" name="has_fulltext" value="true"/>');
-        url = `${url + (url.indexOf('?') > -1 ? '&' : '?')}has_fulltext=true`;
-    }
-    if (searchMode === 'printdisabled') {
-        $form.append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
-        url += `${url.indexOf('?') > -1 ? '&' : '?'}subject_facet=Protected DAISY`;
-    }
+        if (searchMode !== 'everything') {
+            $form.append('<input type="hidden" name="has_fulltext" value="true"/>');
+            url = `${url + (url.indexOf('?') > -1 ? '&' : '?')}has_fulltext=true`;
+        }
+        if (searchMode === 'printdisabled') {
+            $form.append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
+            url += `${url.indexOf('?') > -1 ? '&' : '?'}subject_facet=Protected DAISY`;
+        }
 
-    $form.attr('action', url);
+        $form.attr('action', url);
+    }
 }
 
 
