@@ -164,11 +164,16 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                     if subjects:
                         _q = ' OR '.join('subject:"%s"' % subject for subject in subjects)
             if not _q:
-                logger.error('compose_ia_url(limit={}, page={}, subject={}, query={}, '
-                    'work_id={}, _type={}, sorts={}, advanced={}) failed!'.format(
-                        limit, page, subject, query, work_id, _type, sorts, advanced
-                    )
-                )
+                logger.error('compose_ia_url failed!', extra={
+                    'limit': limit,
+                    'page': page,
+                    'subject': subject,
+                    'query': query,
+                    'work_id': work_id,
+                    '_type': _type,
+                    'sorts': sorts,
+                    'advanced': advanced,
+                })
                 return ''  # TODO: Should we just raise an excpetion instead?
             q += ' AND (%s) AND !openlibrary_work:(%s)' % (_q, work_id.split('/')[-1])
 
@@ -263,7 +268,15 @@ def get_available(limit=None, page=1, subject=None, query=None,
             "get_available(limit={}, page={}, subject={}, query={}, "
             "work_id={}, _type={}, sorts={}"
         )
-        logger.error(fmt.format(limit, page, subject, query, work_id, _type, sorts))
+        logger.error('get_available failed', extra={
+            'limit': limit,
+            'page': page,
+            'subject': subject,
+            'query': query,
+            'work_id': work_id,
+            '_type': _type,
+            'sorts': sorts,
+        })
     try:
         request = urllib.request.Request(url=url)
 
