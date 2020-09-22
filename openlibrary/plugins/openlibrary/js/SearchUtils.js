@@ -12,7 +12,7 @@ export function addModeInputsToForm($form, searchMode) {
     $('input[name=\'has_fulltext\']').remove();
 
     let url = $form.attr('action');
-    if(url) {
+    if (url) {
         url = removeURLParameter(url, 'm');
         url = removeURLParameter(url, 'has_fulltext');
         url = removeURLParameter(url, 'subject_facet');
