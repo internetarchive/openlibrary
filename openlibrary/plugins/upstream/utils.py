@@ -107,6 +107,12 @@ def render_template(name, *a, **kw):
     return render[name](*a, **kw)
 
 
+def kebab_case(upperCamelCase):
+    parts = re.findall(r'[A-Z][^A-Z]*', upperCamelCase)
+    return '-'.join(parts).lower()
+
+
+
 @public
 def render_component(name, attrs=None, json_encode=True):
     """
@@ -122,7 +128,10 @@ def render_component(name, attrs=None, json_encode=True):
 
     html = ''#'<script src="https://unpkg.com/vue@2.6.10"></script>'
     html += '<script src="/static/build/components/ol-%s.js"></script>' % name
-    html += '<ol-merge-u-i %s></ol-merge-u-i>' % attrs_str
+    html += '<ol-%(name)s %(attrs)s></ol-%(name)s>' % {
+        'name': kebab_case(name),
+        'attrs': attrs_str,
+    }
     return html
 
 @public

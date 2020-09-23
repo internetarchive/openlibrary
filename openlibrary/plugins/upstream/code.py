@@ -21,7 +21,7 @@ from openlibrary import accounts
 
 from openlibrary.plugins.upstream import addbook, covers, merge_authors, models, utils
 from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused imports?
-
+from openlibrary.plugins.upstream.utils import render_component
 
 if not config.get('coverstore_url'):
     config.coverstore_url = "https://covers.openlibrary.org"
@@ -53,7 +53,7 @@ class components_test(delegate.page):
     path = "/_dev/components"
 
     def GET(self):
-        return render_component('HelloWorld.vue')
+        return render_component('HelloWorld')
 
 
 class merge_work(delegate.page):
