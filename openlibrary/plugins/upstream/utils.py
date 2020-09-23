@@ -127,7 +127,11 @@ def render_component(name, attrs=None, json_encode=True):
         attrs_str += ' %s="%s"' %(key, val.replace('"', "'"))
 
     html = ''#'<script src="https://unpkg.com/vue@2.6.10"></script>'
-    html += '<script src="/static/build/components/ol-%s.js"></script>' % name
+    included = web.ctx.setdefault("included-components", [])
+    if name not in included:
+        html += '<script src="/static/build/components/ol-%s.js"></script>' % name
+        included.append(name)
+
     html += '<ol-%(name)s %(attrs)s></ol-%(name)s>' % {
         'name': kebab_case(name),
         'attrs': attrs_str,

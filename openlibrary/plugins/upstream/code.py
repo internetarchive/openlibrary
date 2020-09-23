@@ -53,7 +53,7 @@ class components_test(delegate.page):
     path = "/_dev/components"
 
     def GET(self):
-        return render_component('HelloWorld')
+        return render_component('HelloWorld') + render_component('HelloWorld')
 
 
 class merge_work(delegate.page):
