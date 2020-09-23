@@ -48,6 +48,14 @@ class change_photo(change_cover):
 
 del delegate.modes['change_cover']     # delete change_cover mode added by openlibrary plugin
 
+
+class components_test(delegate.page):
+    path = "/_dev/components"
+
+    def GET(self):
+        return render_component('HelloWorld.vue')
+
+
 class merge_work(delegate.page):
     path = "(/works/OL\d+W)/merge"
     def GET(self, key):
