@@ -26,7 +26,6 @@ import logging
 
 from six.moves import urllib
 
-
 MARC_LENGTH_POS = 5
 logger = logging.getLogger('openlibrary.importapi')
 
@@ -459,7 +458,12 @@ class ils_search:
         if not authstring:
             return
         authstring = authstring.replace("Basic ","")
-        username, password = base64.decodestring(authstring).split(':')
+        try:
+            authString = base64.decodebytes(bytes(authstring, 'utf-8'))
+            authString = authString.encode('utf-8')
+        except AttributeError:
+            authString = base64.decodestring(authstring)
+        username, password = authString.split(':')
         accounts.login(username, password)
 
     def prepare_input_data(self, rawdata):
@@ -603,7 +607,12 @@ class ils_cover_upload:
         if not authstring:
             raise self.auth_failed("No credentials provided")
         authstring = authstring.replace("Basic ","")
-        username, password = base64.decodestring(authstring).split(':')
+        try:
+            authString = base64.decodebytes(bytes(authstring, 'utf-8'))
+            authString = authString.encode('utf-8')
+        except AttributeError:
+            authString = base64.decodestring(authstring)
+        username, password = authString.split(':')
         accounts.login(username, password)
 
     def POST(self):
