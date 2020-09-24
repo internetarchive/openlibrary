@@ -53,18 +53,13 @@ export default {
 
 <style lang="less">
 .page {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
   max-width: 800px;
   margin: 0 auto;
   margin-top: 60px;
-  background: rgba(0,0,0,0.1);
   padding: 10px;
 
   input[type="number"] {
-      width: 3em;
+    width: 3em;
   }
 }
 </style>
