@@ -1,0 +1,69 @@
+<template>
+  <img
+    v-if="coverMultiresUrl"
+    class="cover"
+    loading="lazy"
+    @load="$emit('load', $event)"
+    :title="book.title"
+    :src="coverMultiresUrl.medium"
+    :srcset="`${coverMultiresUrl.large} 2x, ${coverMultiresUrl.full} 4x`"
+  >
+  <div v-else class="cover">
+    <div class="title">{{book.title}}</div>
+    <hr>
+    <div class="author">{{byline}}</div>
+  </div>
+</template>
+
+
+<script>
+export default {
+    props: {
+        book: Object
+    },
+
+    computed: {
+        byline() {
+            return this.book.author_name ? this.book.author_name.join(' ') : '';
+        },
+
+        coverMultiresUrl() {
+            const { cover_i, lending_edition_s } = this.book;
+            const fullUrl = lending_edition_s ? this.olCoverUrl(lending_edition_s, 'olid') :
+                cover_i ? this.olCoverUrl(cover_i) :
+                    null;
+
+            if (fullUrl) {
+                return {
+                    small: fullUrl.replace('.jpg', '-S.jpg'),
+                    medium: fullUrl.replace('.jpg', '-M.jpg'),
+                    large: fullUrl.replace('.jpg', '-L.jpg'),
+                    full: fullUrl,
+                };
+            }
+        },
+    },
+
+    methods: {
+    /**
+     * @param {String} id
+     * @param {'id' | 'olid'} idType
+     */
+        olCoverUrl(id, idType='id') {
+            return `https://covers.openlibrary.org/b/${idType}/${id}.jpg`;
+        }
+    }
+};
+</script>
+
+<style scoped>
+div.cover {
+  height: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+  background: #333;
+  color: white;
+  flex-direction: column;
+  justify-content: center;
+}
+</style>
