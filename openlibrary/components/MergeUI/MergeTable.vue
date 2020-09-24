@@ -236,7 +236,7 @@ export default {
 @row-height: 80px;
 
 body {
-  font-size: 0.9em;
+  font-size: .9em;
 }
 time {
   white-space: nowrap;
@@ -258,7 +258,7 @@ table {
   & > tbody > tr,
   & > tfoot > tr {
     &:hover {
-      background: rgba(200, 200, 0, 0.2);
+      background: rgba(200, 200, 0, .2);
     }
     & > td {
       position: relative;
@@ -272,7 +272,7 @@ table {
   }
 
   & > tbody .work:not(.selected) {
-    opacity: 0.5;
+    opacity: .5;
   }
 }
 
@@ -283,7 +283,7 @@ table {
 
 td.col-description {
   min-width: 200px;
-  font-size: 0.9em;
+  font-size: .9em;
 }
 
 .field-covers {
@@ -298,7 +298,7 @@ td.col-description {
 }
 .col-key--title--subtitle--authors {
   display: block;
-  border: 1px solid rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 0, 0, .5);
   border-radius: 5px;
 
   & > div {
@@ -308,9 +308,8 @@ td.col-description {
   }
 }
 
-
 .col-subjects--subject_people--subject_places--subject_times .field-container {
-  border: 1px solid rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 0, 0, .3);
 }
 
 .field-authors {
@@ -344,7 +343,7 @@ ul.reset {
   padding: 0 6px;
   text-align: center;
   margin: 0 2px 1px 0;
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, .4);
 }
 
 table {
@@ -356,13 +355,13 @@ tfoot > tr {
 }
 
 td {
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, .9);
   padding: 4px;
   box-sizing: border-box;
 }
 
 .field-container.selected {
-  background: rgba(0, 50, 200, 0.2);
+  background: rgba(0, 50, 200, .2);
 }
 
 .field-subject_people::before {
