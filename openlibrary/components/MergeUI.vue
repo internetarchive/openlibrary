@@ -29,11 +29,11 @@ export default {
 
             this.mergeStatus = 'Saving...';
             try {
-              const r = await do_merge(master, dupes, editions_to_move);
-              this.mergeStatus = await r.json();
+                const r = await do_merge(master, dupes, editions_to_move);
+                this.mergeStatus = await r.json();
             } catch (e) {
-              this.mergeStatus = e.message;
-              throw e;
+                this.mergeStatus = e.message;
+                throw e;
             }
         }
     }

@@ -122,9 +122,9 @@ export function get_bookshelves(key) {
 
 
 /**
- * 
- * @param {Array<Object>} items 
- * @param {String} comment 
+ *
+ * @param {Array<Object>} items
+ * @param {String} comment
  */
 function save_many(items, comment) {
     console.log(`Saving ${items.length} items`);
@@ -133,8 +133,8 @@ function save_many(items, comment) {
         '42-comment': comment
     };
 
-    return fetch(`/api/save_many`, {
-        method: "POST",
+    return fetch('/api/save_many', {
+        method: 'POST',
         headers,
         body: JSON.stringify(items)
     });
