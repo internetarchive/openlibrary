@@ -5,7 +5,7 @@ import logging
 import web
 from infogami import config
 from openlibrary.core.lending import get_availability_of_ocaids
-
+from openlibrary.plugins.openlibrary.home import format_book_data
 
 from six.moves import urllib
 
@@ -29,7 +29,7 @@ def fulltext_search_api(params):
         return {'error': 'Error converting search engine data to JSON'}
 
 
-def fulltext_search(q, page=1, limit=100):
+def fulltext_search(q, page=1, limit=100, js=False):
     offset = (page - 1) * limit
     ia_results = fulltext_search_api({
         'q': q, 'from': offset,
@@ -49,7 +49,7 @@ def fulltext_search(q, page=1, limit=100):
         for ed in editions:
             if ed.ocaid in ocaids:
                 idx = ocaids.index(ed.ocaid)
-                ia_results['hits']['hits'][idx]['edition'] = ed
+                ia_results['hits']['hits'][idx]['edition'] = format_book_data(ed) if js else ed
                 ia_results['hits']['hits'][idx]['availability'] = availability[ed.ocaid]
     return ia_results
 
