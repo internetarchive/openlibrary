@@ -673,7 +673,7 @@ msgid "Remove Seed"
 msgstr "Quitar elemento"
 
 #: view.html:158
-msgid "You are about the remove the last item in the list. That will delete the whole list. Are you sure you want to continue?"
+msgid "You are about to remove the last item in the list. That will delete the whole list. Are you sure you want to continue?"
 msgstr "Estás a punto de quitar el último elemento de la lista. Eso borrará toda la lista. ¿Estás seguro de que quieres continuar?"
 
 #: view.html:220
