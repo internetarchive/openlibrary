@@ -390,7 +390,7 @@ class ipstats:
         web.header('Content-Type', 'application/json')
         json = requests.get(
             "http://www.archive.org/download/stats/numUniqueIPsOL.json"
-        ).content
+        ).text
         return delegate.RawText(json)
 
 class block:
