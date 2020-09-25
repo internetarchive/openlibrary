@@ -743,7 +743,9 @@ def most_recent_change():
 def get_cover_id(key):
     try:
         _, cat, oln = key.split('/')
-        return requests.get('https://covers.openlibrary.org/%s/query?olid=%s&limit=1' % (cat, oln)).json()[0]
+        return requests.get(
+            "https://covers.openlibrary.org/%s/query?olid=%s&limit=1" % (cat, oln)
+        ).json()[0]
     except (IndexError, json.decoder.JSONDecodeError, TypeError, ValueError):
         return None
 
