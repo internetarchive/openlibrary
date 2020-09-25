@@ -5,6 +5,7 @@ import datetime
 import time
 import hmac
 import re
+import requests
 import simplejson
 import logging
 
@@ -566,7 +567,7 @@ def get_loan_status(resource_id):
 
     url = '%s/is_loaned_out/%s' % (loanstatus_url, resource_id)
     try:
-        response = simplejson.loads(urllib.request.urlopen(url).read())
+        response = requests.get(url).json()
         if len(response) == 0:
             # No outstanding loans
             return None
@@ -593,8 +594,7 @@ def get_all_loaned_out():
 
     url = '%s/is_loaned_out/' % loanstatus_url
     try:
-        response = simplejson.loads(urllib.request.urlopen(url).read())
-        return response
+        return requests.get(url).json()
     except IOError:
         raise Exception('Loan status server not available')
 
