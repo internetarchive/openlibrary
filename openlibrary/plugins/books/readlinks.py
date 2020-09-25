@@ -44,10 +44,9 @@ def get_work_iaids(wkey):
     q = 'key:' + wkey
     stats.begin('solr', url=wkey)
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json&fq=type:work" % (q, filter)
-    json_data = requests.get(solr_select).text
+    reply = requests.get(solr_select).json()
     stats.end()
-    print(json_data)
-    reply = simplejson.loads(json_data)
+    print(reply)
     if reply['response']['numFound'] == 0:
         return []
     return reply["response"]['docs'][0].get(filter, [])
