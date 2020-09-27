@@ -82,6 +82,11 @@ def do_we_want_it(isbn, work_id):
     url = '%s/book/marc/ol_dedupe.php' % lending.config_ia_domain
     r = requests.get(url, params=params)
     try:
+        r.raise_for_status() 
+    except requests.HTTPError as e:
+        logger.error("DWWI Failed for isbn %s with %s" % (isbn, e), exc_info=True)
+        return False, []
+    try:
         data = r.json()
         dwwi = data.get('response', 0)
         return dwwi==1, data.get('books', [])
