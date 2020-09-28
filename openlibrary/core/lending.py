@@ -281,7 +281,9 @@ def get_available(limit=None, page=1, subject=None, query=None,
         # we can attribute requests to end-users
         client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
 
-        response = requests.get(url, headers={'x-client-id':client_ip}, timeout=config_http_request_timeout)
+        response = requests.get(
+            url, headers={"x-client-id": client_ip}, timeout=config_http_request_timeout
+        )
         items = response.json().get('response', {}).get('docs', [])
         results = {}
         for item in items:
@@ -894,8 +896,11 @@ class IA_Lending_API:
         payload['token'] = config_ia_ol_shared_key
 
         try:
-            jsontext = requests.post(config_ia_loan_api_url, data=payload,
-                                       timeout=config_http_request_timeout).json()
+            jsontext = requests.post(
+                config_ia_loan_api_url,
+                data=payload,
+                timeout=config_http_request_timeout,
+            ).json()
             logger.info("POST response: %s", jsontext)
             return jsontext
         except Exception:  # TODO: Narrow exception scope
