@@ -1,3 +1,8 @@
+# Only run travis when pushing to master branch (and PRs)
+branches:
+  only:
+    - master
+
 os: linux
 dist: focal
 language: python
