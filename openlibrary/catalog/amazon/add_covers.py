@@ -7,8 +7,7 @@ out = open('edition_and_isbn', 'w')
 offset = '2009-06-01:0'
 while not offset.startswith('2010-03-17:'):
     url = base + offset
-    response = requests.get(url)
-    ret = response.json()
+    ret = requests.get(url).json()
     offset, data = ret['offset'], ret['data']
     print(offset, len(data))
     for i in data:

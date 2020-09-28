@@ -15,8 +15,8 @@ IA_BASE_URL = config.get('ia_base_url')
 def get_ol_dumps():
     """Get list of all archive.org items in the ol_exports collection uploaded by archive.org staff."""
     url = IA_BASE_URL + '/advancedsearch.php?q=(ol_dump+OR+ol_cdump)+AND+collection:ol_exports&fl[]=identifier&output=json&rows=1000'
-    d = requests.get(url).json()
-    return sorted(doc['identifier'] for doc in d['response']['docs'])
+    docs = requests.get(url).json()['response']['docs']
+    return sorted(doc['identifier'] for doc in docs)
 
 
 # cache the result for half an hour

@@ -594,8 +594,7 @@ def get_all_loaned_out():
 
     url = '%s/is_loaned_out/' % loanstatus_url
     try:
-        response = requests.get(url).json()
-        return response
+        return requests.get(url).json()
     except IOError:
         raise Exception('Loan status server not available')
 
