@@ -94,7 +94,7 @@ If it passes your patch is ready for review!
 Note, many issues can be fixed automatically without any manual work from your part using the following command:
 
 ```
-npm run lint:fix
+npm run lint-fix
 ```
 
 ## Submitting Pull Requests

@@ -106,6 +106,47 @@ def render_template(name, *a, **kw):
         name = name.rsplit(".", 1)[0]
     return render[name](*a, **kw)
 
+
+def kebab_case(upper_camel_case):
+    """
+    :param str upper_camel_case: Text in upper camel case (e.g. "HelloWorld")
+    :return: text in kebab case (e.g. 'hello-world')
+
+    >>> kebab_case('HelloWorld')
+    'hello-world'
+    >>> kebab_case("MergeUI")
+    'merge-u-i'
+    """
+    parts = re.findall(r'[A-Z][^A-Z]*', upper_camel_case)
+    return '-'.join(parts).lower()
+
+
+@public
+def render_component(name, attrs=None, json_encode=True):
+    """
+    :param str name: Name of the component (excluding extension)
+    :param dict attrs: attributes to add to the component element
+    """
+    attrs = attrs or {}
+    attrs_str = ''
+    for (key, val) in attrs.items():
+        if json_encode and isinstance(val, dict) or isinstance(val, list):
+            val = simplejson.dumps(val)
+        attrs_str += ' %s="%s"' % (key, val.replace('"', "'"))
+
+    html = ''
+    included = web.ctx.setdefault("included-components", [])
+    if name not in included:
+        html += '<script src="/static/build/components/ol-%s.js"></script>' % name
+        included.append(name)
+
+    html += '<ol-%(name)s %(attrs)s></ol-%(name)s>' % {
+        'name': kebab_case(name),
+        'attrs': attrs_str,
+    }
+    return html
+
+
 @public
 def get_error(name, *args):
     """Return error with the given name from errors.tmpl template."""

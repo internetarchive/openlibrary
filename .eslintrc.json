@@ -4,11 +4,12 @@
     "browser": true,
     "jquery": true
   },
-  "parser": "babel-eslint",
   "parserOptions": {
+    "parser": "babel-eslint",
     "sourceType": "module",
     "ecmaVersion": 6
   },
+  "extends": [ "plugin:vue/essential" ],
   "globals": {},
   "rules": {
     "prefer-template": "error",
