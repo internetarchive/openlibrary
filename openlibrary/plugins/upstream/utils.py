@@ -107,10 +107,18 @@ def render_template(name, *a, **kw):
     return render[name](*a, **kw)
 
 
-def kebab_case(upperCamelCase):
-    parts = re.findall(r'[A-Z][^A-Z]*', upperCamelCase)
-    return '-'.join(parts).lower()
+def kebab_case(upper_camel_case):
+    """
+    :param str upper_camel_case: Text in upper camel case (e.g. "HelloWorld")
+    :return: text in kebab case (e.g. 'hello-world')
 
+    >>> kebab_case('HelloWorld')
+    'hello-world'
+    >>> kebab_case("MergeUI")
+    'merge-u-i'
+    """
+    parts = re.findall(r'[A-Z][^A-Z]*', upper_camel_case)
+    return '-'.join(parts).lower()
 
 
 @public
@@ -124,9 +132,9 @@ def render_component(name, attrs=None, json_encode=True):
     for (key, val) in attrs.items():
         if json_encode and isinstance(val, dict) or isinstance(val, list):
             val = simplejson.dumps(val)
-        attrs_str += ' %s="%s"' %(key, val.replace('"', "'"))
+        attrs_str += ' %s="%s"' % (key, val.replace('"', "'"))
 
-    html = ''#'<script src="https://unpkg.com/vue@2.6.10"></script>'
+    html = ''
     included = web.ctx.setdefault("included-components", [])
     if name not in included:
         html += '<script src="/static/build/components/ol-%s.js"></script>' % name
@@ -137,6 +145,7 @@ def render_component(name, attrs=None, json_encode=True):
         'attrs': attrs_str,
     }
     return html
+
 
 @public
 def get_error(name, *args):

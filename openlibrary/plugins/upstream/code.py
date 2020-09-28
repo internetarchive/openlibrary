@@ -50,7 +50,7 @@ del delegate.modes['change_cover']     # delete change_cover mode added by openl
 
 
 class components_test(delegate.page):
-    path = "/_dev/components"
+    path = "/_dev/components/HelloWorld"
 
     def GET(self):
         return render_component('HelloWorld') + render_component('HelloWorld')
