@@ -37,10 +37,11 @@ def setup():
     version = get_software_version()
     if bytes != str:  # Python 3
         version = version.decode("utf-8")
+    host = socket.gethostname()
     status_info = {
         "Software version": version,
         "Python version": sys.version.split()[0],
-        "Host": socket.gethostname(),
+        "Host": host,
         "Start time": datetime.datetime.utcnow(),
     }
     feature_flags = get_features_enabled()
