@@ -1,5 +1,5 @@
 import logging
-
+import json
 import requests
 import web
 from infogami import config
@@ -18,12 +18,11 @@ def fulltext_search_api(params):
             logger.debug('base URL: ' + search_endpoint)
             logger.debug('query parameters: ' + str(params))
             return response.json()
-        except:
+        except json.decoder.JSONDecodeError:
             return {'error': 'Error converting search engine data to JSON'}
-        
+
     except:
         return {'error': 'Unable to query search engine'}
-
 
 def fulltext_search(q, page=1, limit=100):
     offset = (page - 1) * limit

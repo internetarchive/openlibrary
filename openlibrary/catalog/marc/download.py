@@ -73,14 +73,13 @@ myform = form.Form(
         form.Validator('Must be less than 50000', lambda x:int(x)>50000)))
 
 def start_and_len(file, start, count):
-    f = requests.get("http://archive.org/download/bpl_marc/" + file)
-    with requests.get("http://archive.org/download/bpl_marc/" + file, stream=True) as response:
+    with requests.get(
+        "http://archive.org/download/bpl_marc/" + file, stream=True
+    ) as response:
         it = response.iter_content()
-        
         pos = 0
         num = 0
         start_pos = None
-        
         while num < start + count:
             i = 0
             data = b''
@@ -101,7 +100,6 @@ def start_and_len(file, start, count):
             num += 1
             if num == start:
                 start_pos = pos
-        
     return (start_pos, pos - start_pos)
 
 class index:
@@ -128,7 +126,9 @@ class get:
         r0, r1 = offset, offset+length-1
         url = "http://archive.org/download/bpl_marc/" + file
 
-        with requests.get(url, headers = {'Range':'bytes=%d-%d'% (r0, r1)}, stream=True) as response:
+        with requests.get(
+            url, headers={"Range": "bytes=%d-%d" % (r0, r1)}, stream=True
+        ) as response:
             it = response.iter_content(1024)
             for buf in it:
                 if not buf:

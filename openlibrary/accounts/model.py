@@ -594,7 +594,6 @@ class InternetArchiveAccount(web.storage):
         """Authenticates an Archive.org user based on s3 keys"""
         from openlibrary.core import lending
         url = lending.config_ia_s3_auth_url
-        
         response = requests.get(url, headers={
             'Content-Type': 'application/json',
             'authorization': 'LOW %s:%s' % (access_key, secret_key)

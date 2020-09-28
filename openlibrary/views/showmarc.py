@@ -20,9 +20,9 @@ class show_ia(app.view):
     def GET(self, ia):
         error_404 = False
         url = 'http://www.archive.org/download/%s/%s_meta.mrc' % (ia, ia)
-        
+
         response = requests.get(url)
-        
+
         if not response.ok:
             if response.status_code == 404:
                 error_404 = True
@@ -33,7 +33,7 @@ class show_ia(app.view):
                     return "ERROR:" + str(e)
         else:
             data = response.content
-        
+
         if error_404: # no MARC record
             url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
             response = requests.get(url)
@@ -123,16 +123,16 @@ class show_marc(app.view):
         #print "record_locator: <code>%s</code><p/><hr>" % locator
 
         r0, r1 = offset, offset+100000
-        url = 'http://www.archive.org/download/%s'% filename      
+        url = 'http://www.archive.org/download/%s' % filename 
 
-        response = requests.get(url, headers={'Range':'bytes=%d-%d'% (r0, r1)})
-        
+        response = requests.get(url, headers={'Range': 'bytes=%d-%d' % (r0, r1)})
+
         if not response.ok:
             try:
                 response.raise_for_status()
             except requests.exceptions.HTTPError as e:
                 return "ERROR:" + str(e)
-            
+
         it = response.iter_content(100000)
         done = False
         result = b''
