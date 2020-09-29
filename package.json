@@ -38,7 +38,7 @@
     "core-js": "3.6.5",
     "css-loader": "3.6.0",
     "datatables.net-dt": "1.10.22",
-    "eslint": "6.7.2",
+    "eslint": "6.8.0",
     "eslint-plugin-vue": "6.2.2",
     "jest": "26.2.2",
     "jquery": "1.11.0",
