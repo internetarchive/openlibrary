@@ -4,6 +4,8 @@ services:
     image: oldev:latest
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
+      - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
+      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 4 --timeout 180}
       # Branch to pull infogami from. Leave blank to use production infogami for py2, master for py3
       # Set to "local" to not pull anything and use whatever you've got locally in vendor/infogami
       # ^ NOTE: Also need to uncomment the infogami volume mount (below) if doing this!
