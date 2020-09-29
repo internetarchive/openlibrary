@@ -34,7 +34,7 @@ def get_from_archive(locator):
     url = 'http://www.archive.org/download/%s'% file
 
     assert 0 < length < 100000
-    headers = {'Range': 'bytes=%d-%d'% (r0, r1)}
+    headers = {'Range': 'bytes=%d-%d' % (r0, r1)}
     response = requests.get(url, headers=headers)
     it = response.iter_content(10000)
     takenOneChunk = False
