@@ -132,7 +132,7 @@ def admin_range__visitors(**kargs):
         url = "http://www.archive.org/download/stats/numUniqueIPsOL.sqlite"
         logging.debug("  Downloading '%s'", url)
         sqlite_contents = requests.get(url).content
-        with open(sqlitefile, "w") as f:
+        with open(sqlitefile, "wb") as f:
             f.write(sqlite_contents)
     db = web.database(dbn="sqlite", db = sqlitefile)
     d = date.replace(hour = 0, minute = 0, second = 0, microsecond = 0)
