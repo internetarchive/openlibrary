@@ -71,17 +71,19 @@ export default {
                     book: {
                         options: [
                             'default',
-                            'books-3d',
-                            'spine-style',
-                            'spines-3d',
-                            'books-3d-flat'
+                            '3d',
+                            'spines',
+                            '3d-spines',
+                            '3d-flat'
                         ],
                         selected: 'default'
                     },
+
                     shelf: {
-                        options: ['default', 'visual-style'],
+                        options: ['default', 'visual'],
                         selected: 'default'
                     },
+
                     shelfLabel: {
                         options: ['slider', 'expander'],
                         selected: 'slider'
@@ -93,7 +95,7 @@ export default {
                     },
 
                     signs: {
-                        options: ['default', 'bold-signs'],
+                        options: ['default', 'bold'],
                         selected: 'default'
                     }
                 }
@@ -121,17 +123,14 @@ export default {
         },
         demoBFeatures() {
             return {
-                book3d:
-          this.settingsState.styles.book.selected === 'books-3d' ||
-          this.settingsState.styles.book.selected === 'spines-3d' ||
-          this.settingsState.styles.book.selected === 'books-3d-flat',
+                book3d: this.settingsState.styles.book.selected.startsWith('3d'),
                 shelfLabel: this.settingsState.styles.shelfLabel.selected
             };
         },
 
         demoBClass() {
             return Object.entries(this.settingsState.styles)
-                .map(([key, val]) => val.selected)
+                .map(([key, val]) => `style--${key}--${val.selected}`)
                 .join(' ');
         }
     }
@@ -207,7 +206,7 @@ body {
   }
 }
 
-.demo-b.spine-style {
+.demo-b.style--book--spines {
   .book {
     animation: 200ms slide-in;
     transition: width .2s;
@@ -236,7 +235,7 @@ body {
   }
 }
 
-.demo-b.visual-style {
+.demo-b.style--shelf--visual {
   .book-end-start {
     display: block;
   }
@@ -391,9 +390,9 @@ body {
   }
 }
 
-.demo-b.books-3d,
-.demo-b.spines-3d,
-.demo-b.books-3d-flat {
+.demo-b.style--book--3d,
+.demo-b.style--book--3d-spines,
+.demo-b.style--book--3d-flat {
   .cover {
     opacity: .8;
     transition: opacity .2s;
@@ -413,7 +412,7 @@ body {
   }
 }
 
-.demo-b.spines-3d {
+.demo-b.style--book--3d-spines {
   .book {
     margin-left: -100px;
   }
@@ -428,7 +427,7 @@ body {
   }
 }
 
-.demo-b.books-3d-flat {
+.demo-b.style--book--3d-flat {
   .css-box {
     transform: unset !important;
   }
@@ -441,7 +440,7 @@ body {
   }
 }
 
-.demo-b.wip {
+.demo-b.style--aesthetic--wip {
   background: linear-gradient(
     to bottom,
     #ebdfc5 50px,
@@ -590,7 +589,7 @@ body {
   }
 }
 
-.demo-b.bold-signs {
+.demo-b.style--signs--bold {
   padding-top: 90px;
   .bookshelf-signage {
     display: flex !important;
