@@ -11,7 +11,7 @@ $def with (work)
   xmlns:foaf='http://xmlns.com/foaf/0.1/'
 >
 
-    $ wuri = "https://openlibrary.org" + work.key
+    $ wuri = "http://openlibrary.org" + work.key
 
     $if work.subtitle:
            $ title = work.title + ": " + work.subtitle
@@ -30,7 +30,7 @@ $def with (work)
 
       $for a in work.authors:
         <dcterms:creator>
-            <rdf:Description rdf:about="https://openlibrary.org$a.author.key">
+            <rdf:Description rdf:about="http://openlibrary.org$a.author.key">
                 <foaf:name>$a.author.name</foaf:name>
             </rdf:Description>
         </dcterms:creator>
@@ -68,7 +68,7 @@ $def with (work)
     </frbr:Work>
 
     $for edition in work.editions:
-        $ eduri = "https://openlibrary.org" + edition.key
+        $ eduri = "http://openlibrary.org" + edition.key
         $if edition.subtitle:
             $ etitle = edition.title + ": " + edition.subtitle
         $else:
