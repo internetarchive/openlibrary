@@ -22,7 +22,9 @@ window.q.push(function(){
         \$(this).parent().parent().animate({backgroundColor:'#fff'},100);
     });
     \$("#include input[type=radio]").click(function(){
-        \$(".merge").find("div.master").removeClass("master");
+        var previousMaster = \$(".merge").find("div.master");
+        previousMaster.removeClass("master");
+        previousMaster.find("input[type=checkbox]").attr('checked', false);
         \$(this).parent().parent().addClass("master");
         \$(this).parent().parent().find("input[type=checkbox]").attr('checked', true);
     });
