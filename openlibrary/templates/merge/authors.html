@@ -27,6 +27,9 @@ window.q.push(function(){
         previousMaster.find("input[type=checkbox]").attr('checked', false);
         \$(this).parent().parent().addClass("master");
         \$(this).parent().parent().find("input[type=checkbox]").attr('checked', true);
+
+        \$(this).parent().parent().insertAfter(\$("div.header"));
+        \$(this).parent().parent().removeClass("mouseoverHighlight");
     });
     \$("#include input[type=checkbox]").on("change", function() {
         if (!\$(this).parent().parent().hasClass("master")) {
