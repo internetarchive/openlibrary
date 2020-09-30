@@ -1,134 +1,19 @@
 <template>
   <div id="app">
     <DemoB
-      :classification="selectedClassification"
+      :classification="settingsState.selectedClassification"
       :filter="computedFilter"
       :class="demoBClass"
       :features="demoBFeatures"
     />
 
-    <div class="floating-controls-wrapper">
-      <div class="floating-controls">
-        <details>
-          <summary>
-            <div class="chunky-icon">
-              <div class="chunky-icon--icon">
-                <FilterIcon/>
-              </div>
-              <div class="chunky-icon--label">
-                Filter
-                <span style="opacity: .55" v-if="activeFiltersCount">({{activeFiltersCount}})</span>
-              </div>
-            </div>
-          </summary>
-          <main>
-            <input class="filter" v-model="filter">
-            <small>{{computedFilter}}</small>
-            <div class="click-controls">
-              <div class="horizontal-selector">
-                <div>First Published Year</div>
-                <div class="options">
-                  <label>
-                    <input type="radio" v-model="filterOptions.year" value>Any
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterOptions.year" value="[2010 TO 9998]">New (2010+)
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterOptions.year" value="[1985 TO 9998]">Modern (1985+)
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterOptions.year" value="[* TO 1924]">Public Domain (&lt;1924)
-                  </label>
-                </div>
-              </div>
-              <div class="horizontal-selector">
-                <div>Has ebook?</div>
-                <div class="options">
-                  <label>
-                    <input type="radio" v-model="filterOptions.has_ebook" value>Any
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterOptions.has_ebook" value="true">Yes
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterOptions.has_ebook" value="false">No
-                  </label>
-                </div>
-              </div>
-              <div class="horizontal-selector">
-                <div>Age Range</div>
-                <div class="options">
-                  <label>
-                    <input type="radio" v-model="filterOptions.age" value>Any
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterOptions.age" value="juvenile">Juvenile
-                  </label>
-                </div>
-              </div>
-              <div class="horizontal-selector">
-                <div>Language</div>
-                <div class="options">
-                  <label>
-                    <input type="radio" v-model="filterOptions.language" value>Any
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterOptions.language" value="eng">English
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterOptions.language" value="ger">German
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterOptions.language" value="fre">French
-                  </label>
-                  <button title="todo">...</button>
-                </div>
-              </div>
-            </div>
-            <!-- <pre>{{parsedFilter}}</pre> -->
-          </main>
-        </details>
-        <details>
-          <summary>
-            <div class="chunky-icon">
-              <div class="chunky-icon--icon">
-                <SettingsIcon/>
-              </div>
-              <div class="chunky-icon--label">Settings</div>
-            </div>
-          </summary>
-          <main class="click-controls">
-            <div class="horizontal-selector">
-              <div>Classification</div>
-              <div class="options">
-                <label v-for="c of classifications" :key="c.name">
-                  <input type="radio" v-model="selectedClassification" :value="c">
-                  {{c.name}}
-                </label>
-              </div>
-            </div>
-            <div class="horizontal-selector" v-for="(opts, name) of styles" :key="name">
-              <div>{{name}} style</div>
-              <div class="options">
-                <label v-for="cls of opts.options" :key="cls">
-                  <input type="radio" v-model="opts.selected" :value="cls">
-                  {{cls}}
-                </label>
-              </div>
-            </div>
-          </main>
-        </details>
-      </div>
-    </div>
+    <LibraryToolbar :filterState="filterState" :settingsState="settingsState" />
   </div>
 </template>
 
 <script>
-import lucenerQueryParser from 'lucene-query-parser';
 import DemoB from './LibraryExplorer/components/DemoB';
-import SettingsIcon from './LibraryExplorer/components/icons/SettingsIcon';
-import FilterIcon from './LibraryExplorer/components/icons/FilterIcon';
+import LibraryToolbar from './LibraryExplorer/components/LibraryToolbar';
 import DDC from './LibraryExplorer/ddc.json';
 import LCC from './LibraryExplorer/lcc.json';
 
@@ -143,11 +28,9 @@ function recurForEach(node, fn) {
 }
 
 export default {
-    name: 'App',
     components: {
         DemoB,
-        FilterIcon,
-        SettingsIcon
+        LibraryToolbar,
     },
     data() {
         const classifications = [
@@ -171,86 +54,83 @@ export default {
             }
         ];
         return {
-            filter: '',
-            filterOptions: {
+            filterState: {
+                filter: '',
                 /** @type { '' | 'true' | 'false' } */
                 has_ebook: '',
                 language: '',
                 age: '',
                 year: '[1985 TO 9998]'
             },
-            selectedClassification: classifications[0],
-            classifications,
 
-            styles: {
-                book: {
-                    options: [
-                        'default',
-                        'books-3d',
-                        'spine-style',
-                        'spines-3d',
-                        'books-3d-flat'
-                    ],
-                    selected: 'default'
-                },
-                shelf: {
-                    options: ['default', 'visual-style'],
-                    selected: 'default'
-                },
-                shelfLabel: {
-                    options: ['slider', 'expander'],
-                    selected: 'slider'
-                },
+            settingsState: {
+                selectedClassification: classifications[0],
+                classifications,
 
-                aesthetic: {
-                    options: ['mockup', 'wip'],
-                    selected: 'wip'
-                },
+                styles: {
+                    book: {
+                        options: [
+                            'default',
+                            'books-3d',
+                            'spine-style',
+                            'spines-3d',
+                            'books-3d-flat'
+                        ],
+                        selected: 'default'
+                    },
+                    shelf: {
+                        options: ['default', 'visual-style'],
+                        selected: 'default'
+                    },
+                    shelfLabel: {
+                        options: ['slider', 'expander'],
+                        selected: 'slider'
+                    },
 
-                signs: {
-                    options: ['default', 'bold-signs'],
-                    selected: 'default'
+                    aesthetic: {
+                        options: ['mockup', 'wip'],
+                        selected: 'wip'
+                    },
+
+                    signs: {
+                        options: ['default', 'bold-signs'],
+                        selected: 'default'
+                    }
                 }
-            }
+            },
         };
     },
 
     computed: {
-        activeFiltersCount() {
-            return Object.values(this.filterOptions).filter(v => v).length;
-        },
         computedFilter() {
-            const filters = this.filter ? [this.filter] : [];
-            if (this.filterOptions.has_ebook) {
-                filters.push(`has_fulltext:${this.filterOptions.has_ebook}`);
+            const filters = this.filterState.filter ? [this.filterState.filter] : [];
+            if (this.filterState.has_ebook) {
+                filters.push(`has_fulltext:${this.filterState.has_ebook}`);
             }
 
-            if (this.filterOptions.language) {
-                filters.push(`language:${this.filterOptions.language}`);
+            if (this.filterState.language) {
+                filters.push(`language:${this.filterState.language}`);
             }
-            if (this.filterOptions.age) {
-                filters.push(`subject:${this.filterOptions.age}`);
+            if (this.filterState.age) {
+                filters.push(`subject:${this.filterState.age}`);
             }
-            if (this.filterOptions.year) {
-                filters.push(`first_publish_year:${this.filterOptions.year}`);
+            if (this.filterState.year) {
+                filters.push(`first_publish_year:${this.filterState.year}`);
             }
             return filters.join(' AND ');
-        },
-        parsedFilter() {
-            return lucenerQueryParser.parse(this.filter);
         },
         demoBFeatures() {
             return {
                 book3d:
-          this.styles.book.selected === 'books-3d' ||
-          this.styles.book.selected === 'spines-3d' ||
-          this.styles.book.selected === 'books-3d-flat',
-                shelfLabel: this.styles.shelfLabel.selected
+          this.settingsState.styles.book.selected === 'books-3d' ||
+          this.settingsState.styles.book.selected === 'spines-3d' ||
+          this.settingsState.styles.book.selected === 'books-3d-flat',
+                shelfLabel: this.settingsState.styles.shelfLabel.selected
             };
         },
 
         demoBClass() {
-            return Object.entries(this.styles)
+            return Object.entries(this.settingsState.styles)
                 .map(([key, val]) => val.selected)
                 .join(' ');
         }
@@ -287,108 +167,8 @@ details[open] summary ~ * {
   }
 }
 
-.floating-controls-wrapper {
-  position: -webkit-sticky;
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  display: flex;
-  justify-content: center;
-  pointer-events: none;
-
-  .chunky-icon {
-    padding: 4px;
-    margin: 4px;
-    width: 48px;
-    transition: background-color .2s;
-
-    &--icon svg {
-      width: 48px;
-      height: 24px;
-    }
-
-    &--label {
-      font-size: .8em;
-      text-align: center;
-    }
-  }
-
-  .floating-controls {
-    pointer-events: all;
-    display: flex;
-    border-radius: 4px 4px 0 0;
-    overflow: hidden;
-    box-shadow: 0 0 5px rgba(0, 0, 0, .2);
-    background: linear-gradient(
-      to bottom,
-      #e9e9e9,
-      white 10%,
-      #e9e9e9 90%,
-      #b6b6b6
-    );
-    max-width: 100%;
-    max-height: 80vh;
-
-    & > details {
-      border-right: 1px solid rgba(0, 0, 0, .2);
-      &:last-child {
-        border: 0;
-      }
-      &[open] {
-        flex: 1;
-      }
-      &[open] > summary > .chunky-icon {
-        background-color: rgba(0, 0, 0, .1);
-        display: inline-block;
-        border-radius: 4px;
-      }
-
-      & > summary {
-        &::marker,
-        &::-webkit-details-marker {
-          display: none;
-        }
-        display: inline-flex;
-        cursor: pointer;
-        transition: background-color .2s;
-        &:hover {
-          background-color: rgba(0, 0, 0, .1);
-        }
-      }
-
-      & > main {
-        padding: 8px;
-      }
-    }
-  }
-}
-.click-controls {
-  display: flex;
-  flex-wrap: wrap;
-}
-.horizontal-selector {
-  margin-right: 10px;
-
-  .options {
-    border: 1px solid currentColor;
-    border-radius: 4px;
-  }
-
-  .options label {
-    display: inline-block;
-    padding: 4px;
-  }
-}
-
 .class-slider {
   margin-bottom: 5px;
-}
-
-input.filter {
-  padding: 8px;
-  max-width: 100%;
-  width: 300px;
-  box-sizing: border-box;
 }
 
 hr {
