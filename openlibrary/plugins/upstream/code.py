@@ -60,7 +60,7 @@ class library_explorer(delegate.page):
     path = "/_dev/library_explorer"
 
     def GET(self):
-        return render_component('LibraryExplorer')
+        return render_template('library_explorer')
 
 
 class merge_work(delegate.page):
