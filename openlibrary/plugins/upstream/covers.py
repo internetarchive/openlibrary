@@ -1,6 +1,7 @@
 """Handle book cover/author photo upload.
 """
 import web
+import requests
 import simplejson
 
 from infogami.utils import delegate
@@ -9,14 +10,12 @@ from openlibrary import accounts
 from openlibrary.plugins.upstream.models import Image
 from openlibrary.plugins.upstream.utils import get_coverstore_url, render_template
 
-from six.moves import urllib
-
 
 def setup():
     pass
 
 class add_cover(delegate.page):
-    path = "(/books/OL\d+M)/add-cover"
+    path = r"(/books/OL\d+M)/add-cover"
     cover_category = "b"
 
     def GET(self, key):
@@ -71,10 +70,11 @@ class add_cover(delegate.page):
             upload_url = "http:" + upload_url
 
         try:
-            response = urllib.request.urlopen(upload_url, urllib.parse.urlencode(params))
-            out = response.read()
-        except urllib.error.HTTPError as e:
-            out = {'error': e.read()}
+            response = requests.post(upload_url, params=params)
+            response.raise_for_status()
+            out = response.content
+        except requests.exceptions.HTTPError as e:
+            out = {'error': e.response.text}
 
         return web.storage(simplejson.loads(out))
 
