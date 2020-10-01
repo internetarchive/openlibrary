@@ -2,6 +2,8 @@ from __future__ import print_function
 
 import logging
 import re
+import requests
+import sys
 import simplejson
 import web
 
@@ -27,7 +29,6 @@ from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
 import six
-from six.moves import urllib
 
 
 def follow_redirect(doc):
@@ -678,7 +679,7 @@ class Work(models.Work):
             edition_keys = web.ctx.site.things(db_query)
 
         editions = web.ctx.site.get_many(edition_keys)
-        editions.sort(key=lambda ed: ed.get_publish_year(), reverse=True)
+        editions.sort(key=lambda ed: ed.get_publish_year() or -sys.maxsize, reverse=True)
 
         availability = lending.get_availability_of_ocaids([
             ed.ocaid for ed in editions if ed.ocaid
@@ -718,8 +719,7 @@ class Subject(client.Thing):
 
         try:
             url = '%s/b/query?cmd=ids&olid=%s' % (get_coverstore_url(), ",".join(olids))
-            data = urllib.request.urlopen(url).read()
-            cover_ids = simplejson.loads(data)
+            cover_ids = requests.get(url).json()
         except IOError as e:
             print('ERROR in getting cover_ids', str(e), file=web.debug)
             cover_ids = {}

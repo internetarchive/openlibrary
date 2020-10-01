@@ -1,4 +1,4 @@
-FROM olbase
+FROM openlibrary/olbase:latest
 
 ENV PYTHONPATH=/openlibrary
 

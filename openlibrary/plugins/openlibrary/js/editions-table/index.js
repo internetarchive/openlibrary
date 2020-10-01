@@ -1,8 +1,13 @@
 import 'datatables.net-dt';
 import '../../../../../static/css/legacy-datatables.less';
 
+const DEFAULT_LENGTH = 3;
+const LS_RESULTS_LENGTH_KEY = 'editions-table.resultsLength';
+
 export function initEditionsTable() {
     var rowCount;
+    let currentLength;
+
     $('#editions th.title').mouseover(function(){
         if ($(this).hasClass('sorting_asc')) {
             $(this).attr('title','Sort latest to earliest');
@@ -31,6 +36,11 @@ export function initEditionsTable() {
             $(this).find('span').html('&nbsp;&uarr;');
         }
     });
+
+    $('#editions').on('length.dt', function(e, settings, length) {
+        localStorage.setItem(LS_RESULTS_LENGTH_KEY, length);
+    });
+
     rowCount = $('#editions tbody tr').length;
     if (rowCount < 4) {
         $('#editions').DataTable({
@@ -43,6 +53,8 @@ export function initEditionsTable() {
             bAutoWidth: false
         });
     } else {
+        currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY));
+
         $('#editions').DataTable({
             aoColumns: [{sType: 'html'},null],
             order: [ [1,'asc'] ],
@@ -51,8 +63,9 @@ export function initEditionsTable() {
             bInfo: true,
             sPaginationType: 'full_numbers',
             bFilter: true,
-            bStateSave: true,
-            bAutoWidth: false
+            bStateSave: false,
+            bAutoWidth: false,
+            pageLength: currentLength ? currentLength : DEFAULT_LENGTH
         });
     }
 }

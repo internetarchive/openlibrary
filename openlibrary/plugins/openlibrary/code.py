@@ -4,8 +4,11 @@ Open Library Plugin.
 from __future__ import absolute_import
 from __future__ import print_function
 
+import requests
+import sentry_sdk
 import web
 import simplejson
+import json
 import os
 import sys
 import socket
@@ -35,7 +38,7 @@ from openlibrary.core.lending import get_work_availability, get_edition_availabi
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count  # noqa: E402
-from openlibrary.plugins.openlibrary import processors
+from openlibrary.plugins.openlibrary import processors, sentry
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
@@ -735,20 +738,15 @@ def most_recent_change():
         return get_recent_changes(limit=1)[0]
 
 
-def wget(url):
-    # TODO: get rid of this, use requests instead.
-    try:
-        return urllib.request.urlopen(url).read()
-    except:
-        return ''
-
 
 @public
 def get_cover_id(key):
     try:
         _, cat, oln = key.split('/')
-        return simplejson.loads(wget('https://covers.openlibrary.org/%s/query?olid=%s&limit=1' % (cat, oln)))[0]
-    except (ValueError, IndexError, TypeError):
+        return requests.get(
+            "https://covers.openlibrary.org/%s/query?olid=%s&limit=1" % (cat, oln)
+        ).json()[0]
+    except (IndexError, json.decoder.JSONDecodeError, TypeError, ValueError):
         return None
 
 
@@ -798,6 +796,10 @@ def internalerror():
     openlibrary.core.stats.increment('ol.internal-errors')
     increment_error_count('ol.internal-errors-segmented')
 
+    # TODO: move this to plugins\openlibrary\sentry.py
+    if sentry.is_enabled():
+        sentry_sdk.capture_exception()
+
     if i.debug.lower() == 'true':
         raise web.debugerror()
     else:
@@ -817,6 +819,8 @@ class memory(delegate.page):
         return delegate.RawText(str(h.heap()))
 
 def _get_relatedcarousels_component(workid):
+    if 'env' not in web.ctx:
+        delegate.fakeload()
     work = web.ctx.site.get('/works/%s' % workid) or {}
     component = render_template('books/RelatedWorksCarousel', work)
     return {0: str(component)}
@@ -895,9 +899,19 @@ def setup_context_defaults():
 
 
 def setup():
-    from openlibrary.plugins.openlibrary import (home, borrow_home, stats, support,
-                                                 events, design, status, authors)
+    from openlibrary.plugins.openlibrary import (
+        sentry,
+        home,
+        borrow_home,
+        stats,
+        support,
+        events,
+        design,
+        status,
+        authors,
+    )
 
+    sentry.setup()
     home.setup()
     design.setup()
     borrow_home.setup()

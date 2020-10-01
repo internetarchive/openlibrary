@@ -642,7 +642,7 @@ class SaveBookHelper:
             if not subjects:
                 return
 
-            f = StringIO(subjects.encode('utf-8')) # no unicode in csv module
+            f = StringIO(subjects.encode('utf-8'))  # no unicode in csv module
             dedup = set()
             for s in next(csv.reader(f, dialect='excel', skipinitialspace=True)):
                 s = s.decode('utf-8')
@@ -774,7 +774,7 @@ class book_edit(delegate.page):
 
             raise web.seeother(edition.url())
         except ClientException as e:
-            add_flash_message('error', e.message or e.json)
+            add_flash_message('error', e.args[-1] or e.json)
             return self.GET(key)
         except ValidationException as e:
             add_flash_message('error', str(e))

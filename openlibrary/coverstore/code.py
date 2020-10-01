@@ -7,14 +7,11 @@ import time
 import logging
 import array
 import memcache
-
-from six.moves.urllib.request import urlopen
+import requests
 
 from openlibrary.coverstore import config, db, ratelimit
 from openlibrary.coverstore.coverlib import save_image, read_image, read_file
 from openlibrary.coverstore.utils import safeint, rm_f, random_string, ol_things, ol_get, changequery, download
-
-from six.moves import urllib
 
 
 logger = logging.getLogger("coverstore")
@@ -165,8 +162,7 @@ def _locate_item(item):
     """Locates the archive.org item in the cluster and returns the server and directory.
     """
     print(time.asctime(), "_locate_item", item, file=web.debug)
-    text = urlopen("https://archive.org/metadata/" + item).read()
-    d = simplejson.loads(text)
+    d = requests.get("https://archive.org/metadata/" + item).json()
     return d['server'], d['dir']
 
 def locate_item(item):
@@ -208,11 +204,7 @@ class cover:
             return url.startswith("http://") or url.startswith("https://")
 
         def notfound():
-            if key in ["id", "olid"] and config.get("upstream_base_url"):
-                # this is only used in development
-                base = web.rstrips(config.upstream_base_url, "/")
-                raise web.redirect(base + web.ctx.fullpath)
-            elif config.default_image and i.default.lower() != "false" and not is_valid_url(i.default):
+            if config.default_image and i.default.lower() != "false" and not is_valid_url(i.default):
                 return read_file(config.default_image)
             elif is_valid_url(i.default):
                 raise web.seeother(i.default)
@@ -283,8 +275,7 @@ class cover:
     def get_ia_cover_url(self, identifier, size="M"):
         url = "https://archive.org/metadata/%s/metadata" % identifier
         try:
-            jsontext = urlopen(url).read()
-            d = simplejson.loads(jsontext).get("result", {})
+            d = requests.get(url).json().get("result", {})
         except (IOError, ValueError):
             return
 

@@ -9,8 +9,7 @@ ENV LC_ALL POSIX
 
 # add openlibrary users
 RUN groupadd --system openlibrary \
-  && useradd --no-log-init --system --gid openlibrary --create-home openlibrary \
-  && useradd --no-log-init --system --gid openlibrary solrupdater
+  && useradd --no-log-init --system --gid openlibrary --create-home openlibrary
 
 # Misc OL dependencies
 RUN apt-get -qq update && apt-get install -y \
@@ -48,8 +47,10 @@ RUN pyenv update && pyenv install 3.8.5
 RUN pyenv global 2.7.6 3.8.5
 RUN pyenv rehash
 
-# Update pip to match production (Jan 2020)
+# Update Python 2's pip to match production (Jan 2020)
 RUN python2 -m pip install --upgrade --disable-pip-version-check pip==19.3.1
+# Use wheel to reduce Docker build time. Need this to be installed before the requirements.
+RUN python3 -m pip install --upgrade pip wheel==0.35.1
 
 USER root
 # Add pyenv to root's bashrc as well
