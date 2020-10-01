@@ -138,19 +138,11 @@ export default {
 </script>
 
 <style lang="less">
-html,
-body {
-  height: 100%;
-}
 #app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
-  // display: flex;
-  // flex-direction: column;
-  height: 100%;
-  overflow-y: auto;
 }
 
 details[open] summary ~ * {
@@ -172,13 +164,6 @@ details[open] summary ~ * {
 
 hr {
   width: 100%;
-}
-
-html,
-body {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
 }
 
 .demo-b {
