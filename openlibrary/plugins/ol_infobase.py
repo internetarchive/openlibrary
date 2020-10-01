@@ -479,6 +479,8 @@ class OLIndexer(_Indexer):
         return doc
 
     def normalize_edition_title(self, title):
+        if six.PY3 and isinstance(title, bytes):
+            title = title.decode('utf-8', 'ignore')
         if not isinstance(title, six.text_type):
             logger.info(
                 "normalize_edition_title(): type(title) is %s, not a Unicode string." %
