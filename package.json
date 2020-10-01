@@ -36,7 +36,7 @@
     "chart.js": "2.9.3",
     "chartjs-plugin-datalabels": "0.7.0",
     "core-js": "3.6.5",
-    "css-loader": "3.6.0",
+    "css-loader": "4.3.0",
     "datatables.net-dt": "1.10.22",
     "eslint": "6.8.0",
     "eslint-plugin-vue": "6.2.2",
