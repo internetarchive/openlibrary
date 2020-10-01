@@ -14,7 +14,7 @@ window.q.push(function(){
     });
     \$("div.radio:first input[type=radio]").attr("checked","checked");
     \$("div.checkbox:first input[type=checkbox]").attr("checked","checked");
-    \$("div.author:first").addClass("master");
+    \$("div.author:first").addClass("master sticky");
     \$("#include input[type=radio]").mouseover(function(){
         \$(this).parent().parent().addClass("mouseoverHighlight",300);
     });
@@ -23,9 +23,9 @@ window.q.push(function(){
     });
     \$("#include input[type=radio]").click(function(){
         var previousMaster = \$(".merge").find("div.master");
-        previousMaster.removeClass("master mergeSelection");
+        previousMaster.removeClass("master mergeSelection sticky");
         previousMaster.find("input[type=checkbox]").attr('checked', false);
-        \$(this).parent().parent().addClass("master");
+        \$(this).parent().parent().addClass("master sticky");
         \$(this).parent().parent().find("input[type=checkbox]").attr('checked', true);
     });
     \$("#include input[type=checkbox]").on("change", function() {
