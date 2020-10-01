@@ -36,10 +36,10 @@ js:
 components: $(COMPONENTS_DIR)/*.vue
 	mkdir --parents $(BUILD)
 	rm -rf $(BUILD)/components
-	# FIXME: Should not inline vue, and should not be in development mode!
+	# FIXME: Should not be in development mode!
 	for component in $^; do \
 		echo $$component; \
-		npx vue-cli-service build --mode development --no-clean --dest $(BUILD)/components --inline-vue --target wc --name "ol-$$(basename $$component .vue)" "$$component"; \
+		npx vue-cli-service build --mode development --no-clean --dest $(BUILD)/components --target wc --name "ol-$$(basename $$component .vue)" "$$component"; \
 	done
 
 i18n:
