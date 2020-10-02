@@ -17,7 +17,7 @@ from six.moves.collections_abc import MutableMapping
 
 from infogami import config
 from infogami.utils import view, delegate, stats
-from infogami.utils.view import render, get_template, public
+from infogami.utils.view import render, get_template, public, query_param
 from infogami.utils.macro import macro
 from infogami.utils.context import context
 from infogami.infobase.client import Thing, Changeset, storify
@@ -144,7 +144,9 @@ def render_component(name, attrs=None, json_encode=True):
         html += '<script src="%s"></script>' % static_url('build/vue.js')
 
     if name not in included:
-        url = static_url('build/components/ol-%s.js' % name)
+        url = static_url('build/components/production/ol-%s.min.js' % name)
+        if query_param('debug'):
+            url = static_url('build/components/development/ol-%s.js' % name)
         html += '<script src="%s"></script>' % url
         included.append(name)
 
