@@ -631,7 +631,7 @@ def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False,
     fq = ['author_key:' + akey, 'type:work']
     if has_fulltext:
         fq.append('has_fulltext:true')
-    solr_select = solr_select_url + "?fq=%s&q.op=AND&q=%s&start=%d&rows=%d&fl=%s&wt=json" % ('&fq='.join(fq), q, offset, rows, fl)
+    solr_select = solr_select_url + "?fq=%s&q.op=AND&q=%s&start=%d&rows=%d&fl=%s&wt=json" % ('&fq='.join(fq), web.urlquote(q), offset, rows, fl)
     facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
     if sort == 'editions':
         solr_select += '&sort=edition_count+desc'
