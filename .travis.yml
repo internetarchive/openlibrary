@@ -8,22 +8,22 @@ dist: focal
 language: python
 jobs:
   include:
-    - name: “Python 2.7 on xenial”
-      python: "2.7"
+    - name: Python 2.7 on xenial
+      python: 2.7
       dist: xenial
-    - name: “Python 2.7 on focal”
-      python: "2.7"
-    - name: “Python 2.7 on Infogami master”
-      python: "2.7"
+    - name: Python 2.7 on focal
+      python: 2.7
+    - name: Python 2.7 on Infogami master
+      python: 2.7
       script:
         - make i18n
         - make test-py
         - pip install safety
         - safety check || true
-    - name: “Python 3.8 on focal”
-      python: "3.8"
-    - name: “Python 3.9-dev on focal”
-      python: "3.9-dev"
+    - name: Python 3.8 on focal
+      python: 3.8
+    - name: Python 3.9-dev on focal
+      python: 3.9-dev
 
     - name: Node
       language: node_js
@@ -38,8 +38,8 @@ jobs:
         - npm run test
 
   allow_failures:
-    - name: “Python 2.7 on Infogami master”
-    - python: "3.9-dev"
+    - name: Python 2.7 on Infogami master
+    - python: 3.9-dev
 
 install:
   - pip install --upgrade pip wheel
