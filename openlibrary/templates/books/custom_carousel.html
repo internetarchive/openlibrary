@@ -39,7 +39,7 @@ $def render_carousel_cover(book, lazy):
           <img class="bookcover" loading="lazy"
             width="130" height="200"
             title="$('%s%s'%(title,byline))"
-            $img_attr ="$(cover_url)"/>
+            $img_attr="$(cover_url)"/>
         $else:
           <div class="carousel__item__blankcover">
             <div class="carousel__item__blankcover--title">$:macros.TruncateString(title, 70)</div>
