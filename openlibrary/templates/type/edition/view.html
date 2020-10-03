@@ -234,7 +234,6 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
             <p class="first-published-date">
               $_("First published in %s", work.first_publish_year)
             </p>
-        </h3>
         <hr>
 
         $ component_times['SubjectsTags'] = time()
@@ -317,7 +316,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                 $ edit_url = page.url(suffix="/edit")
           $else:
             $ edit_url = page.key + "?m=edit"
-          <div id="editButton">
+          <div class="editButton">
             <!-- FIXME: accesskey / keyboard shortcut needs i18n -->
             <a class="linkButton larger" href="$edit_url" title="$_('Edit this template')"
               data-ol-link-track="CTAClick|Edit" accesskey="e">$_("Edit")</a>
@@ -411,8 +410,8 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
           $if has_any("physical_format", "pagination", "physical_dimensions", "weight"):
             <div class="section">
+                <h3 class="list-header collapse">$_("The Physical Object")</h3>
                 <dl class="meta">
-                    <h3 class="list-header collapse">$_("The Physical Object")</h3>
                     $:display_value(_("Format"), edition.physical_format)
                     $:display_value(_("Pagination"), edition.pagination)
                     $:display_value(_("Number of pages"), edition.number_of_pages, itemprop="numberOfPages")
@@ -423,8 +422,8 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
 
           <div class="section">
+            <h3 class="list-header collapse">$_("ID Numbers")</h3>
             <dl class="meta">
-                <h3 class="list-header collapse">$_("ID Numbers")</h3>
                 $:display_identifiers("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
                 $for name, values in edition.get_identifiers().multi_items():
                     $ identifier_label = values[0].label
