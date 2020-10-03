@@ -1,6 +1,10 @@
 #!/bin/bash
 
 # CAUTION: To git clone infogami, environment variables must be set...
+if [[ -z ${GITHUB_TOKEN} ]]; then
+    echo "FATAL: Can not git clone olsystem" ;
+    exit 1 ;
+fi
 
 # apt list --installed
 sudo apt-get update
@@ -18,7 +22,7 @@ cd /opt
 ls -l  # nothing
 
 sudo git clone https://github.com/internetarchive/openlibrary
-# sudo git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/internetarchive/olsystem
+sudo git clone https://${GITHUB_USERNAME:-$USER}:${GITHUB_TOKEN}@github.com/internetarchive/olsystem
 sudo chown openlibrary /opt/*
 ls -l  # openlibrary, olsystem owned by openlibrary
 
