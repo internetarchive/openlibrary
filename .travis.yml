@@ -8,30 +8,39 @@ dist: focal
 language: python
 jobs:
   include:
-    - name: “Python 2.7 on xenial”
+    - name: Python 2.7 on xenial
       python: "2.7"
       dist: xenial
-    - name: “Python 2.7 on focal”
+    - name: Python 2.7 on focal
       python: "2.7"
-    - name: “Python 2.7 on Infogami master”
+    - name: Python 2.7 on Infogami master
       python: "2.7"
       script:
         - make i18n
-        - make test
+        - make test-py
         - pip install safety
         - safety check || true
-    - name: “Python 3.8 on focal”
+    - name: Python 3.8 on focal
       python: "3.8"
-    - name: “Python 3.9-dev on focal”
+    - name: Python 3.9-dev on focal
       python: "3.9-dev"
+
+    - name: Node
+      language: node_js
+      # Should match what's in our Dockerfile
+      node_js: "12"
+      install: npm install
+      script:
+        - npm run lint
+        - make js
+        - make css
+        - make components
+        - npm run test
+
   allow_failures:
-    - name: “Python 2.7 on Infogami master”
+    - name: Python 2.7 on Infogami master
     - python: "3.9-dev"
-# Ubuntu may have an old version of node, so make sure Node 12 is installed
-# and used instead. Should match Dockerfile.
-before_install:
-  - nvm install 12
-  - nvm use 12
+
 install:
   - pip install --upgrade pip wheel
   - pip install -r requirements_test.txt
@@ -39,12 +48,12 @@ install:
   - if [ "$TRAVIS_PYTHON_VERSION" != "2.7" ] || [ "$TRAVIS_JOB_NAME" == "Python 2.7 on Infogami master" ]; then
       pushd vendor/infogami && git pull origin master && popd;
     fi
-before_script: npm install
+
 script:
   - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then
       make lint-diff;
     fi
   - make lint
   - make i18n
-  - make test
+  - make test-py
   - source scripts/run_doctests.sh

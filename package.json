@@ -16,10 +16,8 @@
     "lint-fix": "npm run lint-fix:js && npm run lint-fix:css",
     "lint-fix:js": "eslint --fix --ext js,vue .",
     "lint-fix:css": "stylelint --fix ./**/*.{less,vue}",
-    "test:unit": "jest --testRegex tests/unit/**/test.*.js",
-    "test:css": "npm run build-assets:css && bundlesize && stylelint --syntax less static/css/",
-    "test:js": "npm run build-assets:js && npm run lint:js",
-    "test": "npm run build-assets && bundlesize && stylelint --syntax less static/css/ && npm run lint:js && npm run test:unit"
+    "test": "npm run test:js && bundlesize",
+    "test:js": "jest --testRegex tests/unit/**/test.*.js"
   },
   "devDependencies": {
     "@babel/core": "7.6.0",
