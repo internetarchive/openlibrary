@@ -27,6 +27,13 @@ sudo chown openlibrary /opt/*
 ls -l  # openlibrary, olsystem owned by openlibrary
 
 cd /opt/openlibrary
+
+git remote -v  # TEMPORARY UNTIL THIS PR LANDS...
+sudo git remote add cclauss https://github.com/cclauss/openlibrary
+sudo git fetch cclauss Setup-ol-web1
+sudo git checkout Setup-ol-web1
+git branch
+
 sudo docker-compose down && \
     sudo docker-compose up --no-deps -d memcached && \
     sudo docker-compose -f docker-compose.yml -f docker-compose.infogami-local.yml -f docker-compose.production.yml up --no-deps -d web
