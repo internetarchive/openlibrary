@@ -182,8 +182,8 @@ def get_sponsored_books():
     from internetarchive import search_items
     params = {'page': 1, 'rows': 1000, 'scope': 'all'}
     fields = ['identifier','est_book_price','est_scan_price', 'scan_price',
-              'book_price', 'repub_state', 'imagecount', 'title',
-              'openlibrary_edition', 'publicdate', 'collection']
+              'book_price', 'repub_state', 'imagecount', 'title', 'donor',
+              'openlibrary_edition', 'publicdate', 'collection', 'isbn']
 
     q = 'collection:openlibraryscanningteam'
 

@@ -17,7 +17,8 @@ class html_record():
     def __init__(self, data):
         assert len(data) == int(data[:5])
         self.data = data
-        self.is_marc8 = data[9] != b'a'[0]
+        self.leader = data[:24].decode('utf-8', errors='replace')
+        self.is_marc8 = self.leader[9] != u'a'
 
     def html(self):
         return '<br>\n'.join(self.html_line(t, l) for t, l in get_all_tag_lines(self.data))

@@ -4,12 +4,10 @@ from __future__ import print_function
 import argparse
 import datetime
 import itertools
-import json
 import os
 import sys
 import time
-
-from six.moves import urllib
+import requests
 
 
 BASE_URL = "https://openlibrary.org/recentchanges/"
@@ -47,7 +45,7 @@ def get_modified_works(frm, to):
     while frm < to:
         url = frm.strftime(BASE_URL+"%Y/%m/%d.json")
         logging.debug("Fetching changes from %s", url)
-        ret.append(extract_works(json.load(urllib.request.urlopen(url))))
+        ret.append(extract_works(requests.get(url).json()))
         frm += one_day
     return itertools.chain(*ret)
 
@@ -68,7 +66,7 @@ def poll_for_changes(start_time_file, max_chunk_size, delay):
     while True:
         url = date.strftime(BASE_URL+"%Y/%m/%d.json")
         logging.debug("-- Fetching changes from %s", url)
-        changes = list(json.load(urllib.request.urlopen(url)))
+        changes = list(requests.get(url).json())
         unseen_changes = list(x for x in changes if x['id'] not in seen)
         logging.debug("%d changes fetched", len(changes))
         logging.debug(" of which %d are unseen", len(unseen_changes))

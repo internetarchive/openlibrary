@@ -20,7 +20,7 @@ docker run \
 ```
 2. Follow the steps here to finish setting up Jenkins: https://jenkins.io/doc/book/installing/#setup-wizard
 3. Follow these steps to create a new Pipeline Project using git: https://jenkins.io/doc/book/pipeline/getting-started/#defining-a-pipeline-in-scm
-    - Be sure to set the script path to the `Jenkinsfile` in this directory  
+    - Be sure to set the script path to the `Jenkinsfile` in this directory
 4. Run the pipeline!
 
 Notes:
@@ -116,9 +116,11 @@ In order to be able to re-run the job, you need to stop/remove any of the old co
 ```sh
 # "new" solr containers/volumes
 docker rm -f -v solr_builder_solr_1
+docker volume rm solr_builder_solr-data
 
 # DB containers/volumes
 docker rm -f -v solr_builder_db_1 solr_builder_adminer_1
+docker volume rm solr_builder_postgres-data
 
 # Solr backup container
 docker rm -v solr_builder_solr-backup_1

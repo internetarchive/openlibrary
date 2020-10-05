@@ -90,6 +90,7 @@ $ sort_facet = input(sort='status').sort
         <th>Sponsor Date</th>
         <th>IDs</th>
         <th>Title</th>
+        <th>Donor</th>
         <th>Status</th>
       </tr>
     </thead>
@@ -128,6 +129,9 @@ $ sort_facet = input(sort='status').sort
           </td>
           <td>
             <a href="https://archive.org/details/$book['identifier']">$book.get('title')</a>
+          </td>
+          <td>
+            $book.get('donor')
           </td>
           <td class="status--$(summary['status_ids'][book.get('status')])">
             $book.get('status')

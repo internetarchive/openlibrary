@@ -2,6 +2,8 @@
 
 # Default to dev env
 ENV=${ENV:-dev}
+# How much memory to use
+JAVA_MEM=${JAVA_MEM:-}
 
 ln -sf /etc/solr/conf/solrconfig-$ENV.xml /etc/solr/conf/solrconfig.xml
 
@@ -11,10 +13,18 @@ if [ "$ENV" = "dev" ] ; then
 fi
 
 if [ "$ENV" = "prod" ] ; then
-    # Use more memory
-    echo 'export JAVA_OPTS="${JAVA_OPTS} -Djava.awt.headless=true -Xmx10g -Xms10g -XX:+UseConcMarkSweepGC"' > /usr/share/tomcat7/bin/setenv.sh
+    # Default to 10 G of memory on prod
+    JAVA_MEM="${JAVA_MEM:-10g}"
+
     # Load balance with haproxy
     service haproxy start
 fi
+
+# Set Tomcat's java options
+TOMCAT_JAVA_OPTS='-Djava.awt.headless=true -XX:+UseConcMarkSweepGC'
+if [ -n "$JAVA_MEM" ] ; then
+  TOMCAT_JAVA_OPTS="${TOMCAT_JAVA_OPTS} -Xmx${JAVA_MEM} -Xms${JAVA_MEM}"
+fi;
+echo 'export JAVA_OPTS="${JAVA_OPTS} '"${TOMCAT_JAVA_OPTS}"'"' > /usr/share/tomcat7/bin/setenv.sh
 
 /usr/share/tomcat7/bin/catalina.sh run
