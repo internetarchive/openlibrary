@@ -19,6 +19,7 @@ openlibrary.egg-info/
 pip-log.txt
 supervisord.pid
 vendor/apache-solr-1.4.0/
+vendor/infogami/
 vendor/solr/
 solr-update.offset
 openlibrary/mailserver/logs/lamson.err
