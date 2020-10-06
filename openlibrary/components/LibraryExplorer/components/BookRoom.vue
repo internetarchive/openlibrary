@@ -154,7 +154,7 @@ export default {
     computed: {
         signState() {
             const cases = this.activeRoom.children;
-            const i = this.activeBookcaseIndex
+            const i = this.activeBookcaseIndex;
 
             return {
                 left: cases[i - 1],
@@ -178,8 +178,15 @@ export default {
         },
 
         updateWidths() {
-            this.roomWidth = this.$el.querySelector('.book-room-shelves').scrollWidth;
-            this.viewportWidth = this.$el.getBoundingClientRect().width
+            const { max } = Math;
+            // Avoid dividing by 0 and whatnot
+            this.roomWidth = max(1, this.$el.querySelector('.book-room-shelves').scrollWidth);
+            this.viewportWidth = max(1, this.$el.getBoundingClientRect().width);
+
+            if (this.roomWidth == 1 || this.viewportWidth == 1) {
+                console.log("RECOMPUTING WIDTH");
+                setTimeout(this.updateWidths, 100);
+            }
         },
 
         updateActiveShelfOnScroll(ev) {
