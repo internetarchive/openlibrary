@@ -177,13 +177,16 @@ export default {
     border-radius: 4px 4px 0 0;
     overflow: hidden;
     box-shadow: 0 0 5px rgba(0, 0, 0, .2);
-    background: linear-gradient(
-      to bottom,
-      #e9e9e9,
-      white 10%,
-      #e9e9e9 90%,
-      #b6b6b6
-    );
+    // white/grey:
+    // background: linear-gradient(
+    //   to bottom,
+    //   #e9e9e9,
+    //   white 10%,
+    //   #e9e9e9 90%,
+    //   #b6b6b6
+    // );
+    // white/page-colored
+    background: linear-gradient(to bottom, #fff, #ebdfc5 150%);
     max-width: 100%;
     max-height: 80vh;
 
