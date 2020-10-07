@@ -39,7 +39,6 @@ jobs:
 
   allow_failures:
     - name: Python 2.7 on Infogami master
-    - python: "3.9-dev"
 
 install:
   - pip install --upgrade pip wheel
