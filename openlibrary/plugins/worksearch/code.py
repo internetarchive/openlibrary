@@ -538,6 +538,7 @@ class scan(delegate.page):
     Experimental EAN barcode scanner page to scan and add/view books by their barcodes.
     """
     path = "/barcodescanner"
+
     def GET(self):
         page = render.barcodescanner()
         page.v2 = True
