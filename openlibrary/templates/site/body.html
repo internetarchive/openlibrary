@@ -24,7 +24,7 @@ $ show_banners = bodyid != 'form'
       </div>
       $# Paste next line into announcement variable to show the blue banner
       $# <strong>Title:</strong> Description &nbsp; <a href="#" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>
-      $ announcement = _("<a %s>See what's new with book lending</a> at the Internet Archive", 'class="cta-btn cta-btn--available" style="display: inline;" href="https://blog.archive.org/2020/06/10/temporary-national-emergency-library-to-close-2-weeks-early-returning-to-traditional-controlled-digital-lending"')
+      $ announcement = None
       $if announcement:
         <div class="page-banner page-banner-body">
          $:announcement
