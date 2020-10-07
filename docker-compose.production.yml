@@ -1,0 +1,16 @@
+##
+## Production server config (wip)
+## You probably want to run:
+## docker-compose -f docker-compose.yml -f docker-compose.infogami-local.yml -f docker-compose.production.yml up -d
+##
+
+version: "3"
+services:
+  web:
+    environment:
+      - PYENV_VERSION=3.8.5
+      - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - GUNICORN_OPTS= --workers 50 --timeout 300  # 5 minutes before reload
+    volumes:
+      - ../olsystem:/olsystem
+    command: docker/ol-web1-start.sh
