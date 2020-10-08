@@ -11,11 +11,16 @@
 
       <template #book-end-start>
         <slot name="book-end-start"/>
+        <div class="book-end" v-if="offset > 0">
+          <small>{{offset}}-{{offset + results.length}} of {{numFound}}</small>
+          <button class="load-more" @click="loadPrevPage" :disabled="offset == 0">Load previous</button>
+          <a class="view-all" :href="olUrl" target="_blank">View all</a>
+        </div>
       </template>
       <template #book-end>
         <div class="book-end">
           <small>{{offset}}-{{offset + results.length}} of {{numFound}}</small>
-          <button class="load-more" @click="loadNextPage" :disabled="offset + results.length == numFound">Load more</button>
+          <button class="load-more" @click="loadNextPage" :disabled="offset + results.length == numFound">Load next</button>
           <a class="view-all" :href="olUrl" target="_blank">View all</a>
         </div>
       </template>
@@ -163,6 +168,12 @@ export default {
             await this.loadResults(newOffset);
             if (this.status == 'Loaded') this.offset = newOffset;
         },
+
+        async loadPrevPage() {
+            const newOffset = this.offset - this.limit;
+            await this.loadResults(newOffset);
+            if (this.status == 'Loaded') this.offset = newOffset;
+        }
     }
 };
 </script>
