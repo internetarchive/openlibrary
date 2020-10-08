@@ -1,6 +1,6 @@
 <template>
   <div class="ol-carousel">
-    <BooksCarousel v-if="status == 'Loaded' || this.results.length" :books="this.results">
+    <BooksCarousel v-if="status == 'Loaded' || results.length" :books="results">
       <template v-slot:cover-label="{book}">
         <slot name="cover-label" v-bind:book="book"/>
       </template>
@@ -38,30 +38,6 @@ import debounce from 'lodash/debounce';
 
 // window.Vibrant = Vibrant;
 
-function awaitIntersection(el) {
-    return new Promise((res, rej) => {
-    // User must manually load if no IntersectionObserver support
-        if (!('IntersectionObserver' in window)) {
-            rej();
-        }
-
-        // Based on https://markus.oberlehner.net/blog/lazy-load-vue-components-when-they-become-visible/
-        const observer = new IntersectionObserver(entries => {
-            // Use `intersectionRatio` because of Edge 15's
-            // lack of support for `isIntersecting`.
-            // See: https://github.com/w3c/IntersectionObserver/issues/211
-            if (entries[0].intersectionRatio <= 0) return;
-
-            // Cleanup the observer when it's not needed anymore.
-            observer.unobserve(el);
-
-            res();
-        });
-
-        observer.observe(el);
-    });
-}
-
 export default {
     components: { BooksCarousel },
     props: {
@@ -80,7 +56,12 @@ export default {
             numFound: null,
             error: null,
 
-            displayedUrl: null
+            displayedUrl: null,
+
+            /** @type {IntersectionObserver} */
+            intersectionObserver: null,
+
+            isVisible: false,
         };
     },
     computed: {
@@ -95,23 +76,45 @@ export default {
     watch: {
         query(newVal, oldVal) {
             this.node.offset = 0;
-            // FIXME leak; need a way to detach any existing observers
-            awaitIntersection(this.$el).then(() => this.debouncedLoadResults());
+            if (this.isVisible) this.debouncedLoadResults();
+        },
+
+        isVisible(newVal) {
+            if (newVal) this.reloadResults();
         }
     },
+
     created() {
         this.debouncedLoadResults = debounce(this.loadResults, 1000);
+        this.intersectionObserver = ('IntersectionObserver' in window) ? new IntersectionObserver(this.handleIntersectionChange, {
+            rootMargin: '100px'
+        }) : null;
     },
 
     mounted() {
-        awaitIntersection(this.$el).then(() => this.initResults());
+        this.intersectionObserver.observe(this.$el);
     },
+    beforeDestroy() {
+        this.intersectionObserver.unobserve(this.$el);
+    },
+
     methods: {
+        /**
+         * @param {IntersectionObserverEntry[]} entries
+         */
+        handleIntersectionChange(entries) {
+            // Use `intersectionRatio` because of Edge 15's
+            // lack of support for `isIntersecting`.
+            // See: https://github.com/w3c/IntersectionObserver/issues/211
+            const isIntersecting = entries[0].intersectionRatio > 0;
+            this.isVisible = isIntersecting;
+        },
+
         uniq(list) {
             const seen = new Set();
             return list.filter(x => !seen.has(x) && seen.add(x));
         },
-        async initResults() {
+        async reloadResults() {
             if (typeof this.node.lastOffset !== 'undefined') return;
             else return await this.loadResults();
         },
