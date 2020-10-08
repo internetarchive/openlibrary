@@ -33,7 +33,7 @@
       <!-- <ClassSlider class="bookshelf-name" :node="classification.root" /> -->
       <div class="bookshelf-wrapper" v-for="(bookshelf, i) of activeRoom.children" :key="i">
         <transition-group>
-          <div class="bookshelf bookshelf-back" v-for="node in breadcrumbs" :key="node.name"></div>
+          <div class="bookshelf bookshelf-back" v-for="node in breadcrumbs" :key="node.name || 'root'"></div>
         </transition-group>
 
         <Bookshelf

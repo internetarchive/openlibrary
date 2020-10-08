@@ -5,7 +5,7 @@
         <span class="classification-short">{{ node.short }}</span>
         {{ node.name }}
       </h2>
-      <button @click="expandBookshelf(node)" v-if="node.children">
+      <button @click="expandBookshelf(node)" v-if="node.children && node.children[0].children">
         <ExpandIcon />
       </button>
     </div>
