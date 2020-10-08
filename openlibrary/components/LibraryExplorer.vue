@@ -16,16 +16,7 @@ import BookRoom from './LibraryExplorer/components/BookRoom';
 import LibraryToolbar from './LibraryExplorer/components/LibraryToolbar';
 import DDC from './LibraryExplorer/ddc.json';
 import LCC from './LibraryExplorer/lcc.json';
-
-function recurForEach(node, fn) {
-    if (!node) return;
-    fn(node);
-    if (!node.children) return;
-    for (const child of node.children) {
-        recurForEach(child, fn);
-    }
-    return node;
-}
+import { recurForEach } from './LibraryExplorer/utils.js';
 
 export default {
     components: {
