@@ -92,7 +92,11 @@ export default {
 
 .shelf-label--classes > summary {
   display: flex;
+  padding: 10px;
 }
+
+.shelf-label--classes > summary::marker { display: none; }
+.shelf-label--classes > summary::-webkit-details-marker { display: none; }
 
 .shelf-label--classes .shelf-label--right-arrow {
   transition: transform .2s;
@@ -107,6 +111,7 @@ export default {
   column-count: 2;
   list-style: none;
   padding-left: 0;
+  margin-top: 0;
 }
 
 .shelf-label--subclasses a {

@@ -205,10 +205,9 @@ export default {
       }
 
       & > summary {
-        &::marker,
-        &::-webkit-details-marker {
-          display: none;
-        }
+        &::marker { display: none; }
+        &::-webkit-details-marker { display: none; }
+
         display: inline-flex;
         cursor: pointer;
         transition: background-color .2s;
