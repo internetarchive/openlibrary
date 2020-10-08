@@ -1,10 +1,10 @@
 <template>
   <div id="app">
-    <DemoB
+    <BookRoom
       :classification="settingsState.selectedClassification"
       :filter="computedFilter"
-      :class="demoBClass"
-      :features="demoBFeatures"
+      :class="bookRoomClass"
+      :features="bookRoomFeatures"
     />
 
     <LibraryToolbar :filterState="filterState" :settingsState="settingsState" />
@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import DemoB from './LibraryExplorer/components/DemoB';
+import BookRoom from './LibraryExplorer/components/BookRoom';
 import LibraryToolbar from './LibraryExplorer/components/LibraryToolbar';
 import DDC from './LibraryExplorer/ddc.json';
 import LCC from './LibraryExplorer/lcc.json';
@@ -29,7 +29,7 @@ function recurForEach(node, fn) {
 
 export default {
     components: {
-        DemoB,
+        BookRoom,
         LibraryToolbar,
     },
     data() {
@@ -121,14 +121,14 @@ export default {
             }
             return filters.join(' AND ');
         },
-        demoBFeatures() {
+        bookRoomFeatures() {
             return {
                 book3d: this.settingsState.styles.book.selected.startsWith('3d'),
                 shelfLabel: this.settingsState.styles.shelfLabel.selected
             };
         },
 
-        demoBClass() {
+        bookRoomClass() {
             return Object.entries(this.settingsState.styles)
                 .map(([key, val]) => `style--${key}--${val.selected}`)
                 .join(' ');
@@ -166,7 +166,14 @@ hr {
   width: 100%;
 }
 
-.demo-b {
+.book-room {
+  .class-slider .sections {
+    background: rgba(255, 255, 255, .3);
+    --highlight-color: rgba(255, 255, 255, .5);
+    border-radius: 4px;
+    height: 4px;
+  }
+
   .book-end-start {
     display: none;
   }
@@ -191,7 +198,7 @@ hr {
   }
 }
 
-.demo-b.style--book--spines {
+.book-room.style--book--spines {
   .book {
     animation: 200ms slide-in;
     transition: width .2s;
@@ -220,7 +227,7 @@ hr {
   }
 }
 
-.demo-b.style--shelf--visual {
+.book-room.style--shelf--visual {
   .book-end-start {
     display: block;
   }
@@ -375,9 +382,9 @@ hr {
   }
 }
 
-.demo-b.style--book--3d,
-.demo-b.style--book--3d-spines,
-.demo-b.style--book--3d-flat {
+.book-room.style--book--3d,
+.book-room.style--book--3d-spines,
+.book-room.style--book--3d-flat {
   .cover {
     opacity: .8;
     transition: opacity .2s;
@@ -397,7 +404,7 @@ hr {
   }
 }
 
-.demo-b.style--book--3d-spines {
+.book-room.style--book--3d-spines {
   .book {
     margin-left: -100px;
   }
@@ -412,7 +419,7 @@ hr {
   }
 }
 
-.demo-b.style--book--3d-flat {
+.book-room.style--book--3d-flat {
   .css-box {
     transform: unset !important;
   }
@@ -425,7 +432,7 @@ hr {
   }
 }
 
-.demo-b.style--aesthetic--wip {
+.book-room.style--aesthetic--wip {
   background: linear-gradient(
     to bottom,
     #ebdfc5 50px,
@@ -574,7 +581,7 @@ hr {
   }
 }
 
-.demo-b.style--signs--bold {
+.book-room.style--signs--bold {
   padding-top: 90px;
   .bookshelf-signage {
     display: flex !important;
