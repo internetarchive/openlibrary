@@ -289,7 +289,7 @@ export default {
 }
 
 .bookshelf-wrapper {
-  width: 800px;
+  width: 900px;
   max-width: 100%;
   margin: 0 30px;
   -webkit-scroll-snap-align: center;
