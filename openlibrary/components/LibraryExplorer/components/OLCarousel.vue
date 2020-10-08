@@ -14,26 +14,25 @@
       </template>
       <template #book-end>
         <div class="book-end">
-          <small>{{node.offset-results.length}}-{{node.offset}} of {{numFound}}</small>
-          <button class="load-more" @click="loadResults">Load more</button>
+          <small>{{offset}}-{{offset + results.length}} of {{numFound}}</small>
+          <button class="load-more" @click="loadNextPage" :disabled="offset + results.length == numFound">Load more</button>
           <a class="view-all" :href="olUrl" target="_blank">View all</a>
         </div>
       </template>
     </BooksCarousel>
     <transition>
-      <div class="status-text" v-if="status == 'Errored'">Something went wrong...</div>
+      <div class="status-text" v-if="status == 'Errored'">Something went wrong... <button @click="reloadResults">Retry</button></div>
     </transition>
     <transition>
       <div class="status-text" v-if="status == 'Loading'">Loading...</div>
     </transition>
-
-    <!-- <button class="load-books" @click="loadResults">Load books!</button> -->
   </div>
 </template>
 
 <script>
 import BooksCarousel from './BooksCarousel.vue';
 import debounce from 'lodash/debounce';
+import Vue from 'vue';
 // import * as Vibrant from "node-vibrant";
 
 // window.Vibrant = Vibrant;
@@ -56,8 +55,6 @@ export default {
             numFound: null,
             error: null,
 
-            displayedUrl: null,
-
             /** @type {IntersectionObserver} */
             intersectionObserver: null,
 
@@ -68,14 +65,27 @@ export default {
         olUrl() {
             return `https://dev.openlibrary.org/search?${new URLSearchParams({
                 q: this.query,
-                offset: this.node.lastOffset || 0,
+                offset: this.offset,
                 limit: this.limit
             })}`;
+        },
+
+        offset: {
+            get() { return this.node.requests[this.query]?.offset ?? 0; },
+            set(newVal) {
+                if (!this.node.requests[this.query]) {
+                    Vue.set(this.node.requests, this.query, { offset: 0 });
+                }
+                return this.node.requests[this.query].offset = newVal;
+            },
         }
     },
     watch: {
         query(newVal, oldVal) {
-            this.node.offset = 0;
+            this.status = 'Start';
+            this.results.splice(0, this.results.length);
+            this.numFound = null;
+            this.error = null;
             if (this.isVisible) this.debouncedLoadResults();
         },
 
@@ -110,35 +120,23 @@ export default {
             this.isVisible = isIntersecting;
         },
 
-        uniq(list) {
-            const seen = new Set();
-            return list.filter(x => !seen.has(x) && seen.add(x));
-        },
         async reloadResults() {
-            if (typeof this.node.lastOffset !== 'undefined') return;
-            else return await this.loadResults();
+            return await this.loadResults(this.offset);
         },
-        async loadResults() {
+
+        async loadResults(offset) {
+            // Don't re-fetch if already there
+            if (offset == this.offset && this.results.length) return;
+
             const params = new URLSearchParams({
                 q: this.query,
-                offset: this.node.offset,
+                offset,
                 limit: this.limit,
                 fields: 'key,title,author_name,cover_i,ddc,lcc,lending_edition_s'
             });
-            const url =
-        `https://dev.openlibrary.org/search.json?${params.toString()}`;
 
-            // Already showing
-            if (
-                url === this.displayedUrl &&
-        this.node.offset === this.node.lastOffset &&
-        this.query === this.node.lastQuery
-            ) {
-                return;
-            }
-            this.displayedUrl = url;
-            this.node.lastOffset = this.node.offset;
-            this.node.lastQuery = this.query;
+            const url = `https://dev.openlibrary.org/search.json?${params.toString()}`;
+
             this.status = 'Loading';
             try {
                 const r = await fetch(url, { cache: 'force-cache' }).then(r =>
@@ -147,14 +145,18 @@ export default {
                 this.status = 'Loaded';
                 this.results.splice(0, this.results.length, ...r.docs);
                 this.numFound = r.numFound;
-                if (!this.node.offset) this.node.offset = 0;
-                this.node.offset += r.docs.length;
             } catch (e) {
                 this.error = e;
                 this.status = 'Errored';
                 this.results.splice(0, this.results.length);
             }
-        }
+        },
+
+        async loadNextPage() {
+            const newOffset = this.offset + this.results.length;
+            await this.loadResults(newOffset);
+            if (this.status == 'Loaded') this.offset = newOffset;
+        },
     }
 };
 </script>
