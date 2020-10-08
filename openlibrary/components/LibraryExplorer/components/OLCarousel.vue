@@ -155,7 +155,6 @@ export default {
             } catch (e) {
                 this.error = e;
                 this.status = 'Errored';
-                this.results.splice(0, this.results.length);
             }
         },
 
