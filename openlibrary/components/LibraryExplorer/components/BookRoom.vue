@@ -184,7 +184,6 @@ export default {
             this.viewportWidth = max(1, this.$el.getBoundingClientRect().width);
 
             if (this.roomWidth == 1 || this.viewportWidth == 1) {
-                console.log("RECOMPUTING WIDTH");
                 setTimeout(this.updateWidths, 100);
             }
         },
