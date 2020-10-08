@@ -59,6 +59,9 @@ export default {
             intersectionObserver: null,
 
             isVisible: false,
+
+            /** @type {AbortController} */
+            lastFetchAbortController: null,
         };
     },
     computed: {
@@ -128,6 +131,9 @@ export default {
             // Don't re-fetch if already there
             if (offset == this.offset && this.results.length) return;
 
+            this.lastFetchAbortController?.abort();
+            if ('AbortController' in window) this.lastFetchAbortController = new AbortController();
+
             const params = new URLSearchParams({
                 q: this.query,
                 offset,
@@ -139,9 +145,10 @@ export default {
 
             this.status = 'Loading';
             try {
-                const r = await fetch(url, { cache: 'force-cache' }).then(r =>
-                    r.json()
-                );
+                const r = await fetch(url, {
+                    cache: 'force-cache',
+                    signal: this.lastFetchAbortController?.signal,
+                }).then(r => r.json());
                 this.status = 'Loaded';
                 this.results.splice(0, this.results.length, ...r.docs);
                 this.numFound = r.numFound;
