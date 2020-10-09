@@ -30,8 +30,17 @@
       </div>
     </div>
     <div class="book-room-shelves" @scroll.passive="updateActiveShelfOnScroll">
-      <!-- <ClassSlider class="bookshelf-name" :node="classification.root" /> -->
       <div class="bookshelf-wrapper" v-for="(bookshelf, i) of activeRoom.children" :key="i">
+        <div class="bookshelf-name bookshelf-signage--sign bookshelf-signage--center-sign">
+            <div class="sign-classification">{{bookshelf.short}}</div>
+            <div class="sign-label">{{bookshelf.name}}</div>
+            <div class="sign-toolbar">
+              <button @click="expandBookshelf(bookshelf)" v-if="bookshelf.children && bookshelf.children[0].children" title="Expand">
+                <ExpandIcon /> <span class="label">See more</span>
+              </button>
+            </div>
+        </div>
+
         <transition-group>
           <div class="bookshelf bookshelf-back" v-for="node in breadcrumbs" :key="node.name || 'root'"></div>
         </transition-group>
@@ -49,14 +58,15 @@
 </template>
 
 <script>
-
 import Bookshelf from './Bookshelf.vue';
 import RightArrowIcon from './icons/RightArrowIcon.vue';
+import ExpandIcon from './icons/ExpandIcon.vue';
 
 export default {
     components: {
         Bookshelf,
         RightArrowIcon,
+        ExpandIcon,
     },
     props: {
         classification: Object,
@@ -150,6 +160,10 @@ export default {
 </script>
 
 <style lang="less">
+.bookshelf-name {
+  margin: 0 auto;
+  margin-bottom: 40px;
+}
 .bookshelf-signage {
   display: flex;
   width: 100%;
@@ -177,9 +191,8 @@ export default {
   }
 
   &--sign {
-    background: #1a1a1a;
+    background: #232323;
     color: white;
-    padding: 10px;
     box-sizing: border-box;
 
     .sign-classification {
@@ -192,11 +205,40 @@ export default {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
 
-    .bookshelf-signage--sign {
-      min-width: 400px;
-      max-width: 500px;
+    min-width: 400px;
+    max-width: 500px;
+    min-height: 124px;
+
+    .sign-label {
+      flex: 1;
+      font-size: 1.3em;
+    }
+
+    padding-top: 20px;
+    .sign-toolbar {
+      background: #2c2c2c;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+
+      button {
+        font-size: 0.7em;
+        opacity: 0.95;
+      }
+
+      .label {
+        margin-left: 8px;
+      }
+
+      svg {
+        height: 14px;
+        width: 14px;
+      }
+    }
+
+    .sign-classification, .sign-label {
+      padding: 0 25px;
     }
   }
 
@@ -248,29 +290,14 @@ export default {
   flex-shrink: 0;
 }
 
-@keyframes shelf-appear {
-  from {
-    opacity: 0;
-    transform: scale(1.5);
-  }
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
 .bookshelf.bookshelf-back {
   height: 30px;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
   transition-property: transform, opacity, filter;
   transition-duration: .2s;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
 
-  transform: scale(.8) translateY(-30px);
+  transform: scale(.8) translateY(12px);
   opacity: .9;
   filter: brightness(.6);
 

@@ -1,18 +1,9 @@
 <template>
   <div class="bookshelf" :id="node.short">
-    <div class="bookshelf-name">
-      <h2>
-        <span class="classification-short">{{ node.short }}</span>
-        {{ node.name }}
-      </h2>
-      <button @click="expandBookshelf(node)" v-if="node.children && node.children[0].children">
-        <ExpandIcon />
-      </button>
-    </div>
     <div
       class="shelf"
       v-for="(lvl, i) of node.children"
-      :key="i"
+      :key="lvl.short"
       :id="lvl.short"
     >
       <OLCarousel
@@ -112,7 +103,18 @@ export default {
 };
 </script>
 
-<style >
+<style>
+@keyframes shelf-appear {
+  from {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .bookshelf {
   border: 3px solid black;
   border-radius: 4px;
@@ -124,21 +126,6 @@ export default {
   transition-property: transform, opacity, filter;
   transition-duration: .2s;
   transform-origin: top center;
-}
-
-.bookshelf-name {
-  max-width: 800px;
-  margin: auto;
-  text-align: center;
-  color: white;
-
-  margin: 20px 0;
-}
-
-.bookshelf-name h2 {
-  color: white;
-  font-weight: 300;
-  font-size: 1.5em;
 }
 
 .shelf-carousel {

@@ -451,7 +451,6 @@ hr {
     opacity: .6;
   }
   .bookshelf-wrapper {
-    margin-top: 110px;
     margin-left: 140px;
   }
   .bookshelf {
@@ -487,45 +486,24 @@ hr {
     );
     border: 0;
     padding: 10px;
+    padding-top: 36px;
     box-sizing: border-box;
     color: white;
   }
 
-  .bookshelf-name {
-    background: linear-gradient(to bottom, #333, #1a1a1a);
-    width: 500px;
-    max-width: 100%;
-    height: 3em;
-    font-weight: 400;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: auto;
-    margin-top: -120px;
-    margin-bottom: 100px;
-    border-radius: 4px;
-    position: relative;
-  }
-
   .bookshelf-name button {
-    right: 0;
     background: none;
     border: none;
     color: inherit;
-    position: absolute;
 
-    padding: 14px;
+    padding: 6px 8px;
 
-    transition: background-color 0s;
+    transition: background-color 0.2s;
     cursor: pointer;
   }
 
   .bookshelf-name button:hover {
     background: rgba(255, 255, 255, .1);
-    border-radius: 4px;
-  }
-  .bookshelf-name h2 {
-    font-size: 1em;
   }
 
   .shelf {
