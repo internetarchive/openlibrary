@@ -1,10 +1,10 @@
 <template>
-  <div class="bookshelf" :id="node.short">
+  <div class="bookshelf" :data-short="node.short">
     <div
       class="shelf"
       v-for="(lvl, i) of node.children"
       :key="lvl.short"
-      :id="lvl.short"
+      :data-short="lvl.short"
     >
       <OLCarousel
         class="shelf-carousel"
@@ -62,7 +62,7 @@
 
       <component class="shelf-label" :node="lvl" :key="i" :is="features.shelfLabel == 'slider' ? 'ClassSlider' : 'ShelfLabel'">
         <template #extra-actions>
-          <button title="Expand shelf" @click="expandBookshelf(node)" v-if="lvl.children && lvl.children.length">
+          <button title="Expand shelf" @click="expandBookshelf(node, lvl)" v-if="lvl.children && lvl.children.length">
             <ExpandIcon />
           </button>
         </template>

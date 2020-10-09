@@ -146,12 +146,17 @@ export default {
         }
     },
     methods: {
-        async expandBookshelf(bookshelf) {
+        async expandBookshelf(bookshelf, shelf=null) {
             this.expandingAnimation = true;
             await new Promise(r => setTimeout(r, 200));
             this.expandingAnimation = false;
             this.breadcrumbs.push(this.activeRoom);
             this.activeRoom = bookshelf;
+            if (shelf) {
+                // Need to scroll to this
+                await Vue.nextTick();
+                this.$el.querySelector(`[data-short="${shelf.short}"]`).scrollIntoView();
+            }
         },
         goUpTo(index) {
             this.activeRoom = this.breadcrumbs[index];
