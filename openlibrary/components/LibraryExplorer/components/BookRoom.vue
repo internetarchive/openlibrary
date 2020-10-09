@@ -153,7 +153,7 @@ export default {
             this.expandingAnimation = false;
             this.breadcrumbs.push(this.activeRoom);
             this.activeRoom = bookshelf;
-            const nodeToScrollTo = shelf.position && shelf.children ?
+            const nodeToScrollTo = shelf && shelf.position && shelf.children ?
                 shelf.children[shelf.position]
                 : (shelf || bookshelf);
             await Vue.nextTick();
