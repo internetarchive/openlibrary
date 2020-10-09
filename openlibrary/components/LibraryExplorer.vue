@@ -500,8 +500,12 @@ hr {
 
   .shelf {
     display: flex;
-    flex-direction: column-reverse;
+    flex-direction: column;
     margin-bottom: 35px;
+
+    .shelf-label { order: 1; }
+    .shelf-index { order: 2; }
+    .shelf-carousel { order: 3; }
   }
 
   .shelf-carousel {
