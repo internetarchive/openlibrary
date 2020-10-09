@@ -18,21 +18,7 @@
       </button>
     </div>
     <main>
-      <div class="sections">
-        <div
-          v-for="(section, i) in sections"
-          :key="section.short"
-          :title="section.name"
-          :style="{flex: section.count}"
-          :class="{active: index == i}"
-        >
-          <div
-            v-if="index == i"
-            class="marker"
-            :style="{left: `${100 * section.offset / section.count}%`}"
-          ></div>
-        </div>
-      </div>
+      <ShelfProgressBar :sections="sections" :index="index" />
       <div class="labels" :style="{transform: `translateX(-${100 * index}%)`}">
         <div v-for="(section, i) in sections" :key="section.short">
           {{section.name}}
@@ -54,8 +40,9 @@
 
 <script>
 import RightArrowIcon from './icons/RightArrowIcon';
+import ShelfProgressBar from './ShelfProgressBar';
 export default {
-    components: { RightArrowIcon },
+    components: { RightArrowIcon, ShelfProgressBar },
     props: {
         node: Object
     },
@@ -138,28 +125,6 @@ button:last-child {
   width: 100%;
   height: 100%;
   display: flex;
-}
-
-.sections div:not(:last-child) {
-  border-right: 1px solid var(--highlight-color, rgba(0, 0, 255, .15));
-  box-sizing: border-box;
-}
-
-.sections div {
-  transition: background .2s;
-  background: transparent;
-  position: relative;
-}
-
-.sections .marker {
-  position: absolute;
-  height: 100%;
-  border-left: 2px solid var(--highlight-color, rgba(0, 0, 255, .15));
-  border-right: 2px solid var(--highlight-color, rgba(0, 0, 255, .15));
-}
-
-.sections div.active {
-  background: var(--highlight-color, rgba(0, 0, 255, .15));
 }
 
 .lr-buttons {
