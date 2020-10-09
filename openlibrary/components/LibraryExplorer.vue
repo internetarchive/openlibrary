@@ -442,6 +442,9 @@ hr {
   }
   .bookshelf-wrapper {
     margin-left: 140px;
+    &:last-child {
+      padding-right: 70px;
+    }
   }
   .bookshelf {
     // background: linear-gradient(
