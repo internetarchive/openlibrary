@@ -5,9 +5,9 @@
     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
     xmlns:svg="http://www.w3.org/2000/svg"
     xmlns="http://www.w3.org/2000/svg"
-    width="16.15449"
-    height="15.999999"
-    viewBox="0 0 4.2742091 4.2333331"
+    width="16"
+    height="16"
+    viewBox="0 0 4.4 4.4"
     version="1.1"
   >
     <path

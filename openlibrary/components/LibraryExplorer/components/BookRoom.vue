@@ -1,12 +1,12 @@
 <template>
   <div class="book-room" :class="{'expanding-animation': expandingAnimation}">
-    <div class="room-breadcrumbs" style="position: absolute; transform: translateY(-20px)">
+    <!-- <div class="room-breadcrumbs">
       <span v-for="(node, i) of breadcrumbs" :key="i">
         <button @click="goUpTo(i)">{{i == 0 ? 'Home' : node.name}}</button>
         &gt;
       </span>
       <span v-if="breadcrumbs.length">{{activeRoom.name}}</span>
-    </div>
+    </div> -->
     <div class="lr-signs">
       <button
         class="bookshelf-name bookshelf-signage--sign bookshelf-signage--lr-sign left"
@@ -19,8 +19,7 @@
           <div class="sign-label">{{signState.left.name}}</div>
         </main>
       </button>
-      <!-- Gap -->
-      <div style="flex: 1" />
+      <!-- Gap --> <div style="flex: 1" />
       <button
         class="bookshelf-name bookshelf-signage--sign bookshelf-signage--lr-sign right"
         v-if="signState.right"
@@ -42,6 +41,13 @@
                 <div class="sign-label">{{bookshelf.name}}</div>
               </main>
               <div class="sign-toolbar">
+              <button
+                  v-if="breadcrumbs.length"
+                  @click="goUpTo(breadcrumbs.length - 1)"
+                >
+                  <RightArrowIcon style="transform: rotate(-90deg)" /> <span class="label">Go up</span>
+                </button>
+                <!-- Gap --> <div style="flex: 1" />
                 <button @click="expandBookshelf(bookshelf)" v-if="bookshelf.children && bookshelf.children[0].children" title="Expand">
                   <ExpandIcon /> <span class="label">See more</span>
                 </button>
@@ -287,17 +293,17 @@ button {
       justify-content: flex-end;
 
       button {
-        font-size: 0.7em;
+        font-size: 0.75em;
         opacity: 0.95;
       }
-
       .label {
-        margin-left: 8px;
+        margin-left: 3px;
       }
 
       svg {
         height: 14px;
         width: 14px;
+        margin-bottom: -2px;
       }
     }
 
