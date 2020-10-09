@@ -185,8 +185,6 @@ button {
   }
 
   &--lr-sign {
-    min-width: 150px;
-    width: 25%;
     max-width: 300px;
     margin: 4px;
     align-self: flex-end;
@@ -199,6 +197,15 @@ button {
     border: 0;
     &:hover {
       background: lighten(#232323, 5%);
+    }
+
+    @media (min-width: 450px) {
+      min-width: 150px;
+      width: 25%;
+    }
+    @media (max-width: 450px) {
+      .sign-label, .sign-classification { display: none; }
+      top: 75%;
     }
 
     &.left {
@@ -226,9 +233,14 @@ button {
     display: flex;
     flex-direction: column;
 
-    min-width: 400px;
+
     max-width: 500px;
     min-height: 124px;
+    width: 100%;
+
+    @media (min-width: 450px) {
+      min-width: 400px;
+    }
     .sign-body .arrow-icon { display: none; }
 
     .sign-body { flex: 1; }
