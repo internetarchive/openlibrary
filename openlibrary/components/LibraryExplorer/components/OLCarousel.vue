@@ -94,7 +94,7 @@ export default {
             this.results.splice(0, this.results.length);
             this.numFound = null;
             this.error = null;
-            if (this.isVisible) this.debouncedLoadResults();
+            if (this.isVisible) this.debouncedReloadResults();
         },
 
         isVisible(newVal) {
@@ -103,7 +103,7 @@ export default {
     },
 
     created() {
-        this.debouncedLoadResults = debounce(this.loadResults, 1000);
+        this.debouncedReloadResults = debounce(this.reloadResults, 1000);
         this.intersectionObserver = ('IntersectionObserver' in window) ? new IntersectionObserver(this.handleIntersectionChange, {
             rootMargin: '100px'
         }) : null;

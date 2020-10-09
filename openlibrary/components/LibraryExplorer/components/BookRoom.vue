@@ -217,6 +217,8 @@ button {
     background: #232323;
     color: white;
     box-sizing: border-box;
+    border-radius: 4px;
+    overflow: hidden;
 
     .sign-classification {
       opacity: .5;
