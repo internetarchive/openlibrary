@@ -90,11 +90,6 @@ export default {
                         options: ['mockup', 'wip'],
                         selected: 'wip'
                     },
-
-                    signs: {
-                        options: ['default', 'bold'],
-                        selected: 'default'
-                    }
                 }
             },
         };
@@ -548,20 +543,6 @@ hr {
   .shelf-label .sections {
     height: 4px;
     bottom: 0;
-  }
-}
-
-.book-room.style--signs--bold {
-  padding-top: 90px;
-  .bookshelf-signage {
-    display: flex !important;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-  }
-
-  .bookshelf-name {
-    display: none;
   }
 }
 </style>

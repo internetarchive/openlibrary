@@ -7,38 +7,30 @@
       </span>
       <span v-if="breadcrumbs.length">{{activeRoom.name}}</span>
     </div>
-    <div class="bookshelf-signage">
-      <div v-if="signState.left" class="bookshelf-signage--sign bookshelf-signage--lr-sign">
-        <RightArrowIcon style="transform: rotate(-180deg)"/>
-        <div class="sign-classification">{{signState.left.short}}</div>
-        <div class="sign-label">{{signState.left.name}}</div>
-      </div>
-      <div class="bookshelf-signage--center-sign">
-        <div v-if="signState.parent" class="bookshelf-signage--sign bookshelf-signage--breadcrumb-sign">
-          <div class="sign-classification">{{signState.parent.short}}</div>
-          <div class="sign-label">{{signState.parent.name}}</div>
-        </div>
-        <div class="bookshelf-signage--sign bookshelf-signage--main-sign">
-          <div class="sign-classification">{{signState.main.short}}</div>
-          <div class="sign-label">{{signState.main.name}}</div>
-        </div>
-      </div>
-      <div v-if="signState.right" class="bookshelf-signage--sign bookshelf-signage--lr-sign">
-        <RightArrowIcon/>
-        <div class="sign-classification">{{signState.right.short}}</div>
-        <div class="sign-label">{{signState.right.name}}</div>
-      </div>
-    </div>
     <div class="book-room-shelves" @scroll.passive="updateActiveShelfOnScroll">
       <div class="bookshelf-wrapper" v-for="(bookshelf, i) of activeRoom.children" :key="i">
-        <div class="bookshelf-name bookshelf-signage--sign bookshelf-signage--center-sign">
-            <div class="sign-classification">{{bookshelf.short}}</div>
-            <div class="sign-label">{{bookshelf.name}}</div>
-            <div class="sign-toolbar">
-              <button @click="expandBookshelf(bookshelf)" v-if="bookshelf.children && bookshelf.children[0].children" title="Expand">
-                <ExpandIcon /> <span class="label">See more</span>
-              </button>
-            </div>
+        <div class="bookshelf-name-wrapper">
+          <component class="bookshelf-name bookshelf-signage--sign"
+            :is="signState.left == bookshelf || signState.right == bookshelf ? 'button': 'div'"
+            @click="moveToShelf(i)"
+            :class="{
+              'bookshelf-signage--lr-sign': signState.left == bookshelf || signState.right == bookshelf,
+              'right': signState.right == bookshelf,
+              'left': signState.left == bookshelf,
+              'bookshelf-signage--center-sign': signState.left != bookshelf && signState.right != bookshelf,
+            }"
+          >
+              <main class="sign-body">
+                <RightArrowIcon class="arrow-icon" />
+                <div class="sign-classification">{{bookshelf.short}}</div>
+                <div class="sign-label">{{bookshelf.name}}</div>
+              </main>
+              <div class="sign-toolbar">
+                <button @click="expandBookshelf(bookshelf)" v-if="bookshelf.children && bookshelf.children[0].children" title="Expand">
+                  <ExpandIcon /> <span class="label">See more</span>
+                </button>
+              </div>
+          </component>
         </div>
 
         <transition-group>
@@ -154,42 +146,33 @@ export default {
             const shelves = this.activeRoom.children;
             const shelvesCount = shelves.length;
             this.activeBookcaseIndex =  Math.floor(shelvesCount * (scrollCenterX / this.roomWidth));
-        }
+        },
+
+        moveToShelf(index) {
+            this.$el.querySelector(`.bookshelf-wrapper:nth-child(${index + 1})`)
+                .scrollIntoView({
+                    behavior: 'smooth',
+                    inline: 'center',
+                    block: 'nearest'
+                });
+        },
     }
 };
 </script>
 
 <style lang="less">
+button {
+  font-family: inherit;
+  text-align: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
 .bookshelf-name {
   margin: 0 auto;
   margin-bottom: 40px;
 }
 .bookshelf-signage {
-  display: flex;
-  width: 100%;
-
-  &--center-sign {
-    flex: 1;
-  }
-
-  &--lr-sign {
-    min-width: 150px;
-    width: 25%;
-    margin: 4px;
-    align-self: flex-end;
-    line-height: 1em;
-
-    svg {
-      padding: .5em .2em;
-    }
-    &:first-child svg {
-      float: left;
-    }
-    &:last-child svg {
-      float: right;
-    }
-  }
-
   &--sign {
     background: #232323;
     color: white;
@@ -201,19 +184,55 @@ export default {
     }
   }
 
+  &--lr-sign {
+    min-width: 150px;
+    width: 25%;
+    max-width: 300px;
+    margin: 4px;
+    align-self: flex-end;
+    line-height: 1em;
+    position: fixed;
+    padding: 14px;
+    z-index: 4;
+    top: 50px;
+
+    border: 0;
+    &:hover {
+      background: lighten(#232323, 5%);
+    }
+
+    &.left {
+      left: 0;
+      .sign-body .arrow-icon {
+        float: left;
+        transform: rotateZ(-180deg);
+        margin-right: 8px;
+      }
+    }
+
+    &.right {
+      right: 0;
+      .sign-body .arrow-icon { float: right; }
+    }
+
+    .sign-toolbar { display: none; }
+
+    svg {
+      padding: .5em .2em;
+    }
+  }
+
   &--center-sign {
     display: flex;
     flex-direction: column;
-    justify-content: center;
 
     min-width: 400px;
     max-width: 500px;
     min-height: 124px;
+    .sign-body .arrow-icon { display: none; }
 
-    .sign-label {
-      flex: 1;
-      font-size: 1.3em;
-    }
+    .sign-body { flex: 1; }
+    .sign-label { font-size: 1.3em; }
 
     padding-top: 20px;
     .sign-toolbar {
@@ -264,9 +283,12 @@ export default {
   }
 }
 
-.bookshelf-signage {
-  display: none;
+.bookshelf-name-wrapper {
+  height: 190px;
+  display: flex;
+  align-items: flex-end;
 }
+
 
 .book-room.expanding-animation .bookshelf {
   transform: scale(.8);
