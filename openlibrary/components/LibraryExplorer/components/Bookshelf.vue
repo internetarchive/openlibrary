@@ -60,19 +60,13 @@
         </template>
       </OLCarousel>
 
-      <ClassSlider
-        v-if="features.shelfLabel == 'slider'"
-        class="shelf-label"
-        :node="lvl"
-        :key="i"
-      />
-      <ShelfLabel v-else :node="lvl" :key="i">
+      <component class="shelf-label" :node="lvl" :key="i" :is="features.shelfLabel == 'slider' ? 'ClassSlider' : 'ShelfLabel'">
         <template #extra-actions>
-          <button title="Expand shelf" @click="expandBookshelf(node)">
+          <button title="Expand shelf" @click="expandBookshelf(node)" v-if="lvl.children && lvl.children.length">
             <ExpandIcon />
           </button>
         </template>
-      </ShelfLabel>
+      </component>
     </div>
   </div>
 </template>

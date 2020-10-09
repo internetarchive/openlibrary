@@ -1,10 +1,22 @@
 <template>
   <div class="class-slider">
-    <button @click="updateIndex(index-1)" v-if="index > 0">
-      <RightArrowIcon style="transform: rotate(-180deg);" class="arrow-icon"/>
-      {{sections[index-1].short}}
-    </button>
-
+    <div class="lr-buttons">
+      <button @click="updateIndex(index - 1)" v-if="index > 0">
+        <RightArrowIcon
+          style="transform: rotate(-180deg)"
+          class="arrow-icon"
+          :title="sections[index - 1].short"
+        />
+      </button>
+      <div class="classification-short">{{ sections[index].short }}</div>
+      <button
+        @click="updateIndex(index + 1)"
+        v-if="index < sections.length - 1"
+        :title="sections[index + 1].short"
+      >
+        <RightArrowIcon class="arrow-icon" />
+      </button>
+    </div>
     <main>
       <div class="sections">
         <div
@@ -23,17 +35,20 @@
       </div>
       <div class="labels" :style="{transform: `translateX(-${100 * index}%)`}">
         <div v-for="(section, i) in sections" :key="section.short">
-          <span class="classification-short">{{section.short}}</span> {{section.name}}
+          {{section.name}}
           <br>
           <small>{{section.count}} books</small>
         </div>
       </div>
     </main>
-
-    <button @click="updateIndex(index+1)" v-if="index < sections.length - 1">
-      {{sections[index+1].short}}
-      <RightArrowIcon class="arrow-icon"/>
-    </button>
+    <div>
+      <slot name="extra-actions"/>
+      <!-- <select class="sort-selector">
+        <option>Popular</option>
+        <option>Newest</option>
+        <option>Shelf Order</option>
+      </select>-->
+    </div>
   </div>
 </template>
 
@@ -106,6 +121,7 @@ export default {
 button {
   border: 0;
   background: 0;
+  padding: 6px 8px;
   font: inherit;
   color: inherit;
 }
@@ -144,6 +160,22 @@ button:last-child {
 
 .sections div.active {
   background: var(--highlight-color, rgba(0, 0, 255, .15));
+}
+
+.lr-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.classification-short {
+  padding: 0 2px;
+}
+
+.classification-short:first-child {
+  padding-left: 15px;
+}
+.classification-short:last-child {
+  padding-right: 15px;
 }
 
 small {
