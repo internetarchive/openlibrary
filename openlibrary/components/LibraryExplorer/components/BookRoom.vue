@@ -33,7 +33,7 @@
       </button>
     </div>
     <div class="book-room-shelves" ref="scrollingElement" @scroll.passive="updateActiveShelfOnScroll">
-      <div class="bookshelf-wrapper" v-for="(bookshelf, i) of activeRoom.children" :key="i">
+      <div class="bookshelf-wrapper" v-for="(bookshelf, i) of activeRoom.children" :key="i" :data-short="bookshelf.short">
         <div class="bookshelf-name-wrapper">
           <div class="bookshelf-name bookshelf-signage--sign bookshelf-signage--center-sign">
               <main class="sign-body">
@@ -152,12 +152,11 @@ export default {
             this.expandingAnimation = false;
             this.breadcrumbs.push(this.activeRoom);
             this.activeRoom = bookshelf;
-            if (shelf.position && shelf.children) {
-                // Need to scroll to this
-                const node = shelf.children[shelf.position];
-                await Vue.nextTick();
-                this.$el.querySelector(`[data-short="${node.short}"]`).scrollIntoView();
-            }
+            const nodeToScrollTo = shelf.position && shelf.children ?
+                shelf.children[shelf.position]
+                : (shelf || bookshelf);
+            await Vue.nextTick();
+            this.$el.querySelector(`[data-short="${nodeToScrollTo.short}"]`).scrollIntoView();
         },
         goUpTo(index) {
             this.activeRoom = this.breadcrumbs[index];

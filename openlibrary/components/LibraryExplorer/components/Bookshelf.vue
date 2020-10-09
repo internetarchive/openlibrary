@@ -1,5 +1,5 @@
 <template>
-  <div class="bookshelf" :data-short="node.short">
+  <div class="bookshelf">
     <div
       class="shelf"
       v-for="(lvl, i) of node.children"
