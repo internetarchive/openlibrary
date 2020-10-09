@@ -62,11 +62,20 @@
 
       <component class="shelf-label" :node="lvl" :key="i" :is="features.shelfLabel == 'slider' ? 'ClassSlider' : 'ShelfLabel'">
         <template #extra-actions>
+          <button
+            :title="`See a list of the subsections of ${lvl.short}: ${lvl.name}`"
+            v-if="features.shelfLabel == 'slider'"
+            @click="showShelfIndex = !showShelfIndex"
+          >
+            <IndexIcon />
+          </button>
           <button :title="`See more books in ${lvl.short}: ${lvl.name}`" @click="expandBookshelf(node, lvl)" v-if="lvl.children && lvl.children.length">
             <ExpandIcon />
           </button>
         </template>
       </component>
+
+      <ShelfIndex class="shelf-index" :node="lvl" v-if="showShelfIndex" />
     </div>
   </div>
 </template>
@@ -76,15 +85,19 @@ import OLCarousel from './OLCarousel';
 import ClassSlider from './ClassSlider';
 import ShelfLabel from './ShelfLabel';
 import BookCover3D from './BookCover3D';
+import ShelfIndex from './ShelfIndex';
 import ExpandIcon from './icons/ExpandIcon.vue';
+import IndexIcon from './icons/IndexIcon.vue';
 
 export default {
     components: {
         OLCarousel,
         ClassSlider,
         BookCover3D,
+        ShelfIndex,
         ShelfLabel,
         ExpandIcon,
+        IndexIcon,
     },
 
     props: {
@@ -93,6 +106,12 @@ export default {
         expandBookshelf: Function,
         features: Object,
         filter: String,
+    },
+
+    data() {
+        return {
+            showShelfIndex: false,
+        };
     }
 };
 </script>

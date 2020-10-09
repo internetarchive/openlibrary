@@ -5,22 +5,7 @@
         <RightArrowIcon class="shelf-label--right-arrow"/>
         <div class="shelf-label--name">{{index == 'root' ? node.name : node.children[index].name}}</div>
       </summary>
-      <ol class="shelf-label--subclasses">
-        <li>
-          <a
-            :class="{ selected: index == 'root' }"
-            href="#"
-            @click.prevent="updateIndex('root')"
-          >All {{node.short}} ({{node.count}})</a>
-        </li>
-        <li v-for="(child, i) of node.children || []" :key="i">
-          <a
-            :class="{ selected: index == i }"
-            href="#"
-            @click.prevent="updateIndex(i)"
-          >{{child.name}} ({{child.count}})</a>
-        </li>
-      </ol>
+      <ShelfIndex :node="node" />
     </details>
     <div class="shelf-label--controls">
       <slot name="extra-actions"/>
@@ -36,32 +21,24 @@
 
 <script>
 import RightArrowIcon from './icons/RightArrowIcon.vue';
+import ShelfIndex from './ShelfIndex.vue';
 
 export default {
-    components: { RightArrowIcon },
+    components: { RightArrowIcon, ShelfIndex },
     props: {
         node: Object
     },
-    methods: {
-        updateIndex(newIndex) {
-            this.node.position = newIndex;
-        }
-    },
-    data() {
-        return {};
-    },
 
     computed: {
-        index() {
-            return typeof this.node.position === 'undefined' || !this.node.children
-                ? 'root'
-                : this.node.position;
-        },
-        sections() {
-            return this.node.children || [this.node];
-        },
-        total() {
-            return this.sections.map(s => s.count).reduce((a, b) => a + b, 0);
+        index: {
+            get() {
+                return typeof this.node.position === 'undefined' || !this.node.children
+                    ? 'root'
+                    : this.node.position;
+            },
+            set(newVal) {
+                return this.node.position = newVal;
+            },
         }
     }
 };
@@ -105,32 +82,5 @@ export default {
 
 .shelf-label--classes[open] .shelf-label--right-arrow {
   transform: rotate(90deg);
-}
-
-.shelf-label--subclasses {
-  column-count: 2;
-  list-style: none;
-  padding-left: 0;
-  margin-top: 0;
-}
-
-.shelf-label--subclasses a {
-  color: inherit;
-  text-decoration: none;
-  display: block;
-  padding: 5px;
-
-  transition: background-color .2s;
-  /* border: 1px solid white; */
-  margin: 0;
-}
-
-.shelf-label--subclasses a.selected {
-  background-color: white;
-  border-radius: 4px;
-  color: black;
-}
-.shelf-label--subclasses a:not(.selected):hover {
-  background-color: rgba(255, 255, 255, .1);
 }
 </style>
