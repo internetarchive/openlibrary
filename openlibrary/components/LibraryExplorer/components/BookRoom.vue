@@ -152,10 +152,11 @@ export default {
             this.expandingAnimation = false;
             this.breadcrumbs.push(this.activeRoom);
             this.activeRoom = bookshelf;
-            if (shelf) {
+            if (shelf.position && shelf.children) {
                 // Need to scroll to this
+                const node = shelf.children[shelf.position];
                 await Vue.nextTick();
-                this.$el.querySelector(`[data-short="${shelf.short}"]`).scrollIntoView();
+                this.$el.querySelector(`[data-short="${node.short}"]`).scrollIntoView();
             }
         },
         goUpTo(index) {

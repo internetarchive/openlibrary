@@ -62,7 +62,7 @@
 
       <component class="shelf-label" :node="lvl" :key="i" :is="features.shelfLabel == 'slider' ? 'ClassSlider' : 'ShelfLabel'">
         <template #extra-actions>
-          <button title="Expand shelf" @click="expandBookshelf(node, lvl)" v-if="lvl.children && lvl.children.length">
+          <button :title="`See more books in ${lvl.short}: ${lvl.name}`" @click="expandBookshelf(node, lvl)" v-if="lvl.children && lvl.children.length">
             <ExpandIcon />
           </button>
         </template>
