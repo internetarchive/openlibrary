@@ -430,12 +430,7 @@ hr {
 }
 
 .book-room.style--aesthetic--wip {
-  background: linear-gradient(
-    to bottom,
-    #ebdfc5 50px,
-    #dbbe9f 60vh,
-    #b89b81 100vh
-  );
+  background: linear-gradient(180deg,#ebdfc5 100px, #dbbe9f 1600px,#cba37e 4800px);
   background-position: scroll;
   font-family: "bahnschrift", -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
