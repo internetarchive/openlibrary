@@ -123,13 +123,13 @@ export default {
   background: #EEE;
 }
 
-.book {
+.shelf >>> .book {
   justify-content: flex-end;
   margin-bottom: 10px;
 }
 
-.book:first-child .book-3d,
-.book-end-start + .book .book-3d {
+.shelf >>> .book:first-child .book-3d,
+.shelf >>> .book-end-start + .book .book-3d {
   margin-left: 20px;
 }
 
