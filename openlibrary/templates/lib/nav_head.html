@@ -61,7 +61,7 @@ $def with (page)
   <ul class="navigation-component">
     <li class="browse-menu">
       <a>$_('Browse') <img class="down-arrow"
-        width="7" height="4" aria-hidden="true" alt="$_('Browse')" src="/static/images/down-arrow.png"/></a>
+        width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/></a>
       <div class="navigation-dropdown-component">
         <ul class="dropdown-menu browse-menu-options">
           <li><a href="/subjects">$_("Subjects")</a></li>
@@ -111,7 +111,7 @@ $def with (page)
     <div class="account-component">
       <div class="dropdown-avatar">
         <button class="avatar" id="userToggle" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');"></button>
-        <img class="down-arrow" aria-hidden="true" alt="$_('My Account')" src="/static/images/down-arrow.png"/>
+        <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" role="presentation" alt=""/>
       </div>
       <div class="account-dropdown navigation-dropdown-component" id="main-account-dropdown">
         <ul class="dropdown-menu">

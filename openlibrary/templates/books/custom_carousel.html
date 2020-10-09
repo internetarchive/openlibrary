@@ -30,7 +30,10 @@ $def render_carousel_cover(book, lazy):
     $ author_names = ''
   $ modifier = ''
   $ work_key = book.key if book.key.startswith('/work') else book.get('work_key')
-  $ img_attr = 'src'
+  $if lazy:
+    $ img_attr = 'data-lazy'
+  $else:
+    $ img_attr = 'src'
 
   <div class="book carousel__item">
     <div class="book-cover">
