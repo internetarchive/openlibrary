@@ -223,6 +223,15 @@ button {
       background: lighten(#232323, 5%);
     }
 
+
+    &.left .sign-body .arrow-icon {
+      float: left;
+      transform: rotateZ(-180deg);
+      margin-right: 8px;
+    }
+
+    &.right .sign-body .arrow-icon { float: right; }
+
     @media (min-width: 450px) {
       min-width: 150px;
       width: 25%;
@@ -230,18 +239,7 @@ button {
     }
     @media (max-width: 450px) {
       .sign-label, .sign-classification { display: none; }
-    }
-
-    &.left {
-      .sign-body .arrow-icon {
-        float: left;
-        transform: rotateZ(-180deg);
-        margin-right: 8px;
-      }
-    }
-
-    &.right {
-      .sign-body .arrow-icon { float: right; }
+      &.left .sign-body .arrow-icon { margin-right: 0; }
     }
 
     .sign-toolbar { display: none; }
