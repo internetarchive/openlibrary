@@ -67,6 +67,7 @@
           :filter="filter"
         />
       </div>
+      <!-- Gap --> <div style="width: 70px; height: 1px; flex-shrink: 0" />
     </div>
   </div>
 </template>
