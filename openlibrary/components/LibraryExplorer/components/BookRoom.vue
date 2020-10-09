@@ -33,7 +33,7 @@
         </main>
       </button>
     </div>
-    <div class="book-room-shelves" @scroll.passive="updateActiveShelfOnScroll">
+    <div class="book-room-shelves" ref="scrollingElement" @scroll.passive="updateActiveShelfOnScroll">
       <div class="bookshelf-wrapper" v-for="(bookshelf, i) of activeRoom.children" :key="i">
         <div class="bookshelf-name-wrapper">
           <div class="bookshelf-name bookshelf-signage--sign bookshelf-signage--center-sign">
@@ -69,6 +69,8 @@
 import Bookshelf from './Bookshelf.vue';
 import RightArrowIcon from './icons/RightArrowIcon.vue';
 import ExpandIcon from './icons/ExpandIcon.vue';
+import debounce from 'lodash/debounce';
+import Vue from 'vue';
 
 export default {
     components: {
@@ -92,9 +94,12 @@ export default {
         }
     },
     watch: {
-        classification(newVal, oldVal) {
+        async classification(newVal, oldVal) {
             this.activeRoom = newVal.root;
             this.breadcrumbs = [];
+            await Vue.nextTick();
+            this.updateWidths();
+            this.updateActiveShelfOnScroll();
         }
     },
     data() {
@@ -111,13 +116,14 @@ export default {
     },
 
     created() {
-        window.addEventListener('resize', this.updateWidths, { passive: true });
+        this.debouncedUpdateWidths = debounce(this.updateWidths);
+        window.addEventListener('resize', this.debouncedUpdateWidths, { passive: true });
     },
     mounted() {
         this.updateWidths();
     },
     destroyed() {
-        window.removeEventListener('resize', this.updateWidths);
+        window.removeEventListener('resize', this.debouncedUpdateWidths);
     },
 
     computed: {
@@ -157,8 +163,8 @@ export default {
             }
         },
 
-        updateActiveShelfOnScroll(ev) {
-            const scrollCenterX = ev.target.scrollLeft + this.viewportWidth / 2;
+        updateActiveShelfOnScroll() {
+            const scrollCenterX = this.$refs.scrollingElement.scrollLeft + this.viewportWidth / 2;
             const shelves = this.activeRoom.children;
             const shelvesCount = shelves.length;
             this.activeBookcaseIndex =  Math.floor(shelvesCount * (scrollCenterX / this.roomWidth));
