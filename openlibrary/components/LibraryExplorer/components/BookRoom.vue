@@ -7,21 +7,35 @@
       </span>
       <span v-if="breadcrumbs.length">{{activeRoom.name}}</span>
     </div>
+    <div class="lr-signs">
+      <button
+        class="bookshelf-name bookshelf-signage--sign bookshelf-signage--lr-sign left"
+        v-if="signState.left"
+        @click="moveToShelf(activeBookcaseIndex - 1)"
+      >
+        <main class="sign-body">
+          <RightArrowIcon class="arrow-icon" />
+          <div class="sign-classification">{{signState.left.short}}</div>
+          <div class="sign-label">{{signState.left.name}}</div>
+        </main>
+      </button>
+      <button
+        class="bookshelf-name bookshelf-signage--sign bookshelf-signage--lr-sign right"
+        v-if="signState.right"
+        @click="moveToShelf(activeBookcaseIndex + 1)"
+      >
+        <main class="sign-body">
+          <RightArrowIcon class="arrow-icon" />
+          <div class="sign-classification">{{signState.right.short}}</div>
+          <div class="sign-label">{{signState.right.name}}</div>
+        </main>
+      </button>
+    </div>
     <div class="book-room-shelves" @scroll.passive="updateActiveShelfOnScroll">
       <div class="bookshelf-wrapper" v-for="(bookshelf, i) of activeRoom.children" :key="i">
         <div class="bookshelf-name-wrapper">
-          <component class="bookshelf-name bookshelf-signage--sign"
-            :is="signState.left == bookshelf || signState.right == bookshelf ? 'button': 'div'"
-            @click="moveToShelf(i)"
-            :class="{
-              'bookshelf-signage--lr-sign': signState.left == bookshelf || signState.right == bookshelf,
-              'right': signState.right == bookshelf,
-              'left': signState.left == bookshelf,
-              'bookshelf-signage--center-sign': signState.left != bookshelf && signState.right != bookshelf,
-            }"
-          >
+          <div class="bookshelf-name bookshelf-signage--sign bookshelf-signage--center-sign">
               <main class="sign-body">
-                <RightArrowIcon class="arrow-icon" />
                 <div class="sign-classification">{{bookshelf.short}}</div>
                 <div class="sign-label">{{bookshelf.name}}</div>
               </main>
@@ -30,7 +44,7 @@
                   <ExpandIcon /> <span class="label">See more</span>
                 </button>
               </div>
-          </component>
+          </div>
         </div>
 
         <transition-group>
@@ -172,6 +186,19 @@ button {
   margin: 0 auto;
   margin-bottom: 40px;
 }
+
+.lr-signs {
+  position: sticky;
+  top: 10px;
+  pointer-events: none;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+
+  @media (max-width: 450px) {
+    top: 75%;
+  }
+}
 .bookshelf-signage {
   &--sign {
     background: #232323;
@@ -186,13 +213,10 @@ button {
 
   &--lr-sign {
     max-width: 300px;
-    margin: 4px;
-    align-self: flex-end;
+    margin: 0;
     line-height: 1em;
-    position: fixed;
     padding: 14px;
-    z-index: 4;
-    top: 50px;
+    pointer-events: all;
 
     border: 0;
     &:hover {
@@ -202,14 +226,13 @@ button {
     @media (min-width: 450px) {
       min-width: 150px;
       width: 25%;
+      margin: 4px;
     }
     @media (max-width: 450px) {
       .sign-label, .sign-classification { display: none; }
-      top: 75%;
     }
 
     &.left {
-      left: 0;
       .sign-body .arrow-icon {
         float: left;
         transform: rotateZ(-180deg);
@@ -218,7 +241,6 @@ button {
     }
 
     &.right {
-      right: 0;
       .sign-body .arrow-icon { float: right; }
     }
 
