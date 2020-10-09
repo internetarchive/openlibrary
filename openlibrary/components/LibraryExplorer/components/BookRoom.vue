@@ -19,6 +19,8 @@
           <div class="sign-label">{{signState.left.name}}</div>
         </main>
       </button>
+      <!-- Gap -->
+      <div style="flex: 1" />
       <button
         class="bookshelf-name bookshelf-signage--sign bookshelf-signage--lr-sign right"
         v-if="signState.right"
@@ -193,7 +195,6 @@ button {
   pointer-events: none;
   z-index: 10;
   display: flex;
-  justify-content: space-between;
 
   @media (max-width: 450px) {
     top: 75%;
@@ -243,6 +244,12 @@ button {
     }
 
     .sign-toolbar { display: none; }
+
+    .sign-label {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
 
     svg {
       padding: .5em .2em;
