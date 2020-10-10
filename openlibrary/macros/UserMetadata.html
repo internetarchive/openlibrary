@@ -1,0 +1,90 @@
+$def with (work)
+
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+
+
+<div class="cta-section" style="text-align:center; margin-top:7px;">
+  <a id="modal-link" href="javascript:;">What did you think?</a>
+</div>
+
+<div class="hidden">
+  <div id="metadata-form" class="floaterAdd">
+    <div class="floaterHead">
+      <h2>Share your thoughts</h2>
+      <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+    </div>
+  <form method="post" class="floatform" name="user-metadata" id="user-metadata" action="$(work.key)/metadata.json">
+    <div class="formElement">
+      <h3>This book was fast-paced:</h3>
+      <div class="likert-scale">
+          <label for="pacingChoice1" class="likert-label"><input type="radio" id="pacingChoice1" name="pacing" value="-10">Strongly Disagree</label>
+          <label for="pacingChoice2" class="likert-label"><input type="radio" id="pacingChoice2" name="pacing" value="-5">Disagree</label>
+          <label for="pacingChoice3" class="likert-label"><input type="radio" id="pacingChoice3" name="pacing" value="0">Neutral</label>
+          <label for="pacingChoice4" class="likert-label"><input type="radio" id="pacingChoice4" name="pacing" value="5">Agree</label>
+          <label for="pacingChoice5" class="likert-label"><input type="radio" id="pacingChoice5" name="pacing" value="10">Strongly Agree</label>
+      </div>
+    </div>
+    <div class="formElement">
+      <h3>Reading this book evoked the following emotions:</h3>
+      <div class="multi-select">
+        <label for="happiness"><input type="checkbox" name="emotion" id="happiness" value="happiness">Happiness</label>
+        <label for="sadness"><input type="checkbox" name="emotion" id="sadness" value="sadness">Sadness</label>
+        <label for="fear"><input type="checkbox" name="emotion" id="fear" value="fear">Fear</label>
+        <label for="disgust"><input type="checkbox" name="emotion" id="disgust" value="disgust">Disgust</label>
+        <label for="anger"><input type="checkbox" name="emotion" id="anger" value="anger">Anger</label>
+        <label for="suprise"><input type="checkbox" name="emotion" id="surprise" value="surprise">Surprise</label>
+      </div>
+    </div>
+    <div class="formElement">
+      <h3>What age range is this book suitable for?</h3>
+      <div class="range">
+        <div>
+          <label for="minAge">Minimum Age:</label>
+          <input id="minAge" name="minAge" type="number" min="0" step="1">
+        </div>
+        <div>
+          <label for="maxAge">Maximum Age:</label>
+          <input id="maxAge" name="maxAge" type="number" min="1" step="1">
+        </div>
+      </div>
+    </div>
+    <div class="formElement">
+        <div class="input">
+            <button type="submit">Submit</button>
+            <a class="small dialog--close plain">$_('Cancel')</a>
+        </div>
+    </div>
+  </form>
+  </div>
+</div>
+
+<script type="text/javascript">
+window.q.push(function(){
+    function displayModal() {
+        \$.colorbox({
+            inline: true,
+            opacity: "0.5",
+            href: "#metadata-form"
+        })
+    }
+
+    \$('#modal-link').click(displayModal);
+
+    \$("#user-metadata").submit(function() {
+      var metadata = \$(this).serialize();
+      
+      if(metadata) {
+        \$.ajax({
+          type: 'POST',
+          url: '$(work.key)/metadata.json',
+          data: metadata
+        });
+        \$.colorbox.close();
+      } else {
+        // TODO: Handle case where no data was submitted
+      }
+
+      return false;
+    });
+})
+</script>
