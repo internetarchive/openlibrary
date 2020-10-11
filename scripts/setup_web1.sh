@@ -1,6 +1,10 @@
 #!/bin/bash
 
-# CAUTION: To git clone infogami, environment variables must be set...
+# CAUTION: To git clone olsystem, environment variables must be set...
+if [[ -z ${GITHUB_TOKEN} ]]; then
+    echo "FATAL: Can not git clone olsystem" ;
+    exit 1 ;
+fi
 
 # apt list --installed
 sudo apt-get update
@@ -17,10 +21,13 @@ cd /opt
 ls -l  # nothing
 
 sudo git clone https://github.com/internetarchive/openlibrary
-# sudo git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/internetarchive/olsystem
+sudo git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/internetarchive/olsystem
 sudo chown openlibrary /opt/*
 ls -l  # openlibrary, olsystem owned by openlibrary
 
 cd /opt/openlibrary
+make git
+cd infogami && sudo git pull origin master && cd ..
+
 sudo docker-compose down
 USE_NGINX=true sudo docker-compose -f docker-compose.yml -f docker-compose.infogami-local.yml -f docker-compose.production.yml up --no-deps -d web
