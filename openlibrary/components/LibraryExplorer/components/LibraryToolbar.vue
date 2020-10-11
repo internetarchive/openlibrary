@@ -100,7 +100,7 @@
                 </label>
               </div>
             </div>
-            <div class="horizontal-selector" v-for="(opts, name) of settingsState.styles" :key="name">
+            <div class="horizontal-selector" v-for="(opts, name) of styles" :key="name">
               <div>{{name}} style</div>
               <div class="options">
                 <label v-for="cls of opts.options" :key="cls">
@@ -140,6 +140,11 @@ export default {
         parsedFilter() {
             return lucenerQueryParser.parse(this.filterState.filter);
         },
+
+        styles() {
+            const inDebugMode = new URLSearchParams(location.search).get('debug') == 'true';
+            return inDebugMode ? this.settingsState.styles : Object.fromEntries(Object.entries(this.settingsState.styles).filter(([_, val]) => !val.debugModeOnly));
+        }
     }
 }
 </script>

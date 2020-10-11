@@ -77,16 +77,19 @@ export default {
                     },
 
                     shelf: {
+                        debugModeOnly: true,
                         options: ['default', 'visual'],
                         selected: 'default'
                     },
 
                     shelfLabel: {
+                        debugModeOnly: true,
                         options: ['slider', 'expander'],
                         selected: 'slider'
                     },
 
                     aesthetic: {
+                        debugModeOnly: true,
                         options: ['mockup', 'wip'],
                         selected: 'wip'
                     },
