@@ -2,7 +2,6 @@ from __future__ import print_function
 import web
 from infogami.infobase import client
 import simplejson
-import sys
 
 web.ctx.ip = '127.0.0.1'
 

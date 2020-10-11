@@ -7,7 +7,6 @@ import socket
 from time import sleep
 from os.path import exists
 from datetime import date, timedelta, datetime
-import codecs
 
 from six.moves.urllib.parse import unquote
 from six.moves.urllib.request import urlopen

@@ -6,7 +6,6 @@ import datetime
 import time
 import logging
 import uuid
-import hmac
 import requests
 
 from infogami.utils.view import public

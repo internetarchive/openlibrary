@@ -1,6 +1,5 @@
 from __future__ import print_function
 from lxml import etree
-import xml.parsers.expat
 from openlibrary.catalog.marc.parse import read_edition
 from unicodedata import normalize
 
