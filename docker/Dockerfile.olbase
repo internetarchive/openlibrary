@@ -51,6 +51,7 @@ RUN pyenv rehash
 RUN python2 -m pip install --upgrade --disable-pip-version-check pip==19.3.1
 # Use wheel to reduce Docker build time. Need this to be installed before the requirements.
 RUN python3 -m pip install --upgrade pip
+RUN apt-get install -y libjpeg
 RUN python3 -m pip install --upgrade Pillow  # Install Pillow before wheel.  Workaround until Pillow 8.0
 RUN python3 -m pip install --upgrade wheel==0.35.1
 
