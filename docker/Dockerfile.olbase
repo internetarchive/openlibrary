@@ -33,7 +33,7 @@ RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
 # Python build deps: https://github.com/pyenv/pyenv/wiki/Common-build-problems#prerequisites
 RUN apt-get -qq update && apt-get install -y build-essential libssl-dev zlib1g-dev libbz2-dev \
     libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
-    xz-utils tk-dev libffi-dev liblzma-dev python-openssl git
+    xz-utils tk-dev libffi-dev liblzma-dev python-openssl git libjpeg-turbo-progs libjpeg8-dev
 
 # Install latest pyenv (https://github.com/pyenv/pyenv-installer)
 USER openlibrary
@@ -51,7 +51,6 @@ RUN pyenv rehash
 RUN python2 -m pip install --upgrade --disable-pip-version-check pip==19.3.1
 # Use wheel to reduce Docker build time. Need this to be installed before the requirements.
 RUN python3 -m pip install --upgrade pip
-RUN apt-get install -y libjpeg
 RUN python3 -m pip install --upgrade Pillow  # Install Pillow before wheel.  Workaround until Pillow 8.0
 RUN python3 -m pip install --upgrade wheel==0.35.1
 
