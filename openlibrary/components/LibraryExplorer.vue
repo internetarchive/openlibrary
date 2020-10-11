@@ -424,17 +424,15 @@ hr {
   }
 }
 
-.book-room.style--aesthetic--wip {
-  background: linear-gradient(180deg,#ebdfc5 100px, #dbbe9f 1600px,#cba37e 4800px);
-  background-position: scroll;
+#app {
   font-family: "bahnschrift", -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
     "Segoe UI Symbol";
+}
 
-  #app {
-    // FIXME
-    background: #ebdfc5;
-  }
+.book-room.style--aesthetic--wip {
+  background: linear-gradient(180deg,#ebdfc5 100px, #dbbe9f 1600px,#cba37e 4800px);
+  background-position: scroll;
 
   .classification-short {
     opacity: .6;

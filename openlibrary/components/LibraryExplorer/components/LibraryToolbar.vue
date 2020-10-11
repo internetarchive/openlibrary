@@ -157,8 +157,9 @@ export default {
   .chunky-icon {
     padding: 4px;
     margin: 4px;
-    width: 48px;
+    width: 52px;
     transition: background-color .2s;
+    text-align: center;
 
     &--icon svg {
       width: 48px;
