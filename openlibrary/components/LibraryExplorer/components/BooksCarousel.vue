@@ -60,7 +60,10 @@ export default {
   min-height: 90%;
 }
 
-.book > a { display: flex; }
+.book > a {
+  display: flex;
+  transform-style: preserve-3d;
+}
 
 .bcbook-enter,
 .bcbook-leave-to {
