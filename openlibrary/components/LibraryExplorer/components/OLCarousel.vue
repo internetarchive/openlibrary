@@ -71,7 +71,7 @@ export default {
     },
     computed: {
         olUrl() {
-            return `https://dev.openlibrary.org/search?${new URLSearchParams({
+            return `https://openlibrary.org/search?${new URLSearchParams({
                 q: this.query,
                 offset: this.offset,
                 limit: this.limit
@@ -146,7 +146,7 @@ export default {
                 fields: 'key,title,author_name,cover_i,ddc,lcc,lending_edition_s'
             });
 
-            const url = `https://dev.openlibrary.org/search.json?${params.toString()}`;
+            const url = `https://openlibrary.org/search.json?${params.toString()}`;
 
             this.status = 'Loading';
             try {
