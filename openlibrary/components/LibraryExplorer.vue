@@ -437,6 +437,14 @@ hr {
   background: linear-gradient(180deg,#ebdfc5 100px, #dbbe9f 1600px,#cba37e 4800px);
   background-position: scroll;
 
+  // Chrome-specific scroll fixes
+  .books-carousel {
+    &::-webkit-scrollbar { height: 10px; }
+    &::-webkit-scrollbar-thumb { background: rgba(255,255,255, 0.35); }
+    &::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255, 0.25); }
+    &::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+  }
+
   .classification-short {
     opacity: .6;
   }
