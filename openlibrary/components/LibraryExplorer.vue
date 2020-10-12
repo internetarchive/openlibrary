@@ -56,7 +56,7 @@ export default {
             filterState: {
                 filter: '',
                 /** @type { '' | 'true' | 'false' } */
-                has_ebook: '',
+                has_ebook: 'true',
                 language: '',
                 age: '',
                 year: '[1985 TO 9998]'

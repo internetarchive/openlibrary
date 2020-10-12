@@ -35,7 +35,7 @@
                 </div>
               </div>
               <div class="horizontal-selector">
-                <div>Has ebook?</div>
+                <div>Has ebook/preview?</div>
                 <div class="options">
                   <label>
                     <input type="radio" v-model="filterState.has_ebook" value>Any
