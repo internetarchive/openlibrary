@@ -5,14 +5,14 @@
     </div>
 
     <div class="book" v-for="(book, i) in books" :key="book.key">
-      <slot name="cover" v-bind:book="book">
-        <FlatBookCover :book="book"/>
-      </slot>
+      <a :href="`https://openlibrary.org${book.key}`" target="_blank">
+        <slot name="cover" v-bind:book="book">
+          <FlatBookCover :book="book"/>
+        </slot>
+      </a>
 
       <div class="cover-label" style="padding: 6px; text-align: center;">
-        <a :href="`https://openlibrary.org${book.key}`" target="_blank">
-          <slot name="cover-label" v-bind:book="book"/>
-        </a>
+        <slot name="cover-label" v-bind:book="book"/>
       </div>
     </div>
 
@@ -59,6 +59,8 @@ export default {
   flex-direction: column;
   min-height: 90%;
 }
+
+.book > a { display: flex; }
 
 .bcbook-enter,
 .bcbook-leave-to {
