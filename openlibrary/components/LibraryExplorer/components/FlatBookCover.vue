@@ -30,7 +30,7 @@ export default {
         coverMultiresUrl() {
             const { cover_i, lending_edition_s } = this.book;
             const fullUrl = lending_edition_s ? this.olCoverUrl(lending_edition_s, 'olid') :
-                cover_i ? this.olCoverUrl(cover_i) :
+                cover_i && cover_i != -1 ? this.olCoverUrl(cover_i) :
                     null;
 
             if (fullUrl) {
@@ -40,15 +40,17 @@ export default {
                     large: fullUrl.replace('.jpg', '-L.jpg'),
                     full: fullUrl,
                 };
+            } else {
+                return undefined;
             }
         },
     },
 
     methods: {
-    /**
-     * @param {String} id
-     * @param {'id' | 'olid'} idType
-     */
+        /**
+         * @param {String} id
+         * @param {'id' | 'olid'} idType
+         */
         olCoverUrl(id, idType='id') {
             return `https://covers.openlibrary.org/b/${idType}/${id}.jpg`;
         }
