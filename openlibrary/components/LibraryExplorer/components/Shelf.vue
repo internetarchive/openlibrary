@@ -58,7 +58,7 @@
       <template #extra-actions>
         <button
           :title="`See a list of the subsections of ${node.short}: ${node.name}`"
-          v-if="features.shelfLabel == 'slider'"
+          v-if="features.shelfLabel == 'slider' && node.children"
           :class="{selected: showShelfIndex}"
           @click="showShelfIndex = !showShelfIndex"
         >
