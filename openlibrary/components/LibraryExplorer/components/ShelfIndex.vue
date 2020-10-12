@@ -5,7 +5,10 @@
         :class="{ selected: index == 'root' }"
         href="#"
         @click.prevent="index = 'root'"
-        >All {{ node.short }} ({{ node.count }})</a
+        >
+          All {{ node.short }}
+          <span class="shelf-label--subclasses--count">{{ node.count }}</span>
+        </a
       >
     </li>
     <li v-for="(child, i) of node.children || []" :key="i">
@@ -13,7 +16,10 @@
         :class="{ selected: index == i }"
         href="#"
         @click.prevent="index = i"
-        >{{ child.name }} ({{ child.count }})</a
+        >
+          {{ child.name }}
+          <span class="shelf-label--subclasses--count">{{ child.count }}</span>
+        </a
       >
     </li>
   </ol>

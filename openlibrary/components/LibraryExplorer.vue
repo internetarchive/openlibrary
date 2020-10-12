@@ -512,6 +512,31 @@ hr {
     .shelf-label { order: 1; }
     .shelf-index { order: 2; }
     .shelf-carousel { order: 3; }
+
+    .shelf-index {
+      padding: 4px 8px;
+      opacity: 0.95;
+
+      a {
+        border-radius: 4px;
+        border: 1px solid transparent;
+      }
+      .selected {
+        background: rgba(255,255,255, 0.1);
+        border: 1px solid white;
+        border-left-width: 4px;
+        color: inherit;
+      }
+
+      .shelf-label--subclasses--count {
+        font-size: 0.8em;
+        font-weight: 300;
+        opacity: 0.8;
+        &::before {
+          content: "• "
+        }
+      }
+    }
   }
 
   .shelf-carousel {
@@ -529,7 +554,7 @@ hr {
     border: 0;
     background: none;
     color: rgba(255, 255, 255, .9);
-    font-weight: 150;
+    font-weight: 400;
     margin: 0;
     min-height: 2em;
   }
@@ -543,10 +568,15 @@ hr {
   }
 
   .shelf-label button {
-    border: 0 !important;
+    border: 0;
     border-radius: 4px;
     transition: background-color .2s;
     cursor: pointer;
+
+    &.selected {
+      border: 1px solid white;
+      background-color: rgba(255, 255, 255, .3);
+    }
   }
 
   .shelf-label button:hover {
