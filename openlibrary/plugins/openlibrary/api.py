@@ -387,38 +387,3 @@ class price_api(delegate.page):
                     metadata['ocaid'] = ed.ocaid
 
         return simplejson.dumps(metadata)
-
-
-class user_metadata(delegate.page):
-    path = r"/works/OL(\d+)W/metadata"
-    encoding = "json"
-
-    def POST(self, work_id):
-        ''' Get username '''
-        user = accounts.get_current_user()        
-        username = user.key.split('/')[2]
-
-        ''' Get user input from form '''
-        form_input = web.input(pacing=None, emotion=[], minAge=None, maxAge=None)
-        
-        def response(msg, status="success"):
-            return delegate.RawText(simplejson.dumps({
-                status: msg
-            }), content_type="application/json")
-        
-        ''' Make single inserts into DB for Likert scale metadata '''
-        models.Metadata.add(work_id, username, 'pacing_ls', form_input.pacing)
-        
-   
-        ''' Make a lower bound insert and an upper bound insert for range metadata '''
-        models.Metadata.add(work_id, username, 'age_lb', form_input.minAge)
-        models.Metadata.add(work_id, username, 'age_ub', form_input.maxAge)
-
-        ''' Make one insert for each collection item submitted '''
-        for e in form_input.emotion:
-            models.Metadata.add_emotion(work_id, username, e)
-
-        ''' Return response ''' 
-        resp = response('Added metadata')
-
-        return resp
