@@ -57,7 +57,7 @@ class components_test(delegate.page):
 
 
 class library_explorer(delegate.page):
-    path = "/_dev/library_explorer"
+    path = "/explore"
 
     def GET(self):
         return render_template('library_explorer')
