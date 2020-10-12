@@ -1,26 +1,26 @@
 <template>
   <div class="class-slider">
     <div class="lr-buttons">
-      <button @click="updateIndex(index - 1)" v-if="index > 0">
+      <button @click="index -= 1" v-if="prevSection">
         <RightArrowIcon
           style="transform: rotate(-180deg)"
           class="arrow-icon"
-          :title="sections[index - 1].short"
+          :title="prevSection.short"
         />
       </button>
-      <div class="classification-short">{{ sections[index].short }}</div>
+      <div class="classification-short">{{ activeSection.short }}</div>
       <button
-        @click="updateIndex(index + 1)"
-        v-if="index < sections.length - 1"
-        :title="sections[index + 1].short"
+        @click="index += 1"
+        v-if="nextSection"
+        :title="nextSection.short"
       >
         <RightArrowIcon class="arrow-icon" />
       </button>
     </div>
     <main>
-      <ShelfProgressBar :sections="sections" :index="index" />
+      <ShelfProgressBar :sections="progressBarSections" :index="progressBarIndex" />
       <div class="labels" :style="{transform: `translateX(-${100 * index}%)`}">
-        <div v-for="(section, i) in sections" :key="section.short">
+        <div v-for="section in sections" :key="section.short">
           {{section.name}}
           <br>
           <small>{{section.count}} books</small>
@@ -46,24 +46,41 @@ export default {
     props: {
         node: Object
     },
-    methods: {
-        updateIndex(newIndex) {
-            this.node.position = newIndex;
-        }
-    },
     data() {
         return {};
     },
 
     computed: {
-        index() {
-            return this.node.position || 0;
+        index: {
+            get() {
+                return this.node.position == 'root' ? 0 : this.node.position + 1;
+            },
+            set(newVal) {
+                this.node.position = newVal == 0 ? 'root' : newVal - 1;
+            }
         },
         sections() {
+            return [this.node, ...(this.node.children || [])];
+        },
+
+        progressBarSections() {
             return this.node.children || [this.node];
         },
-        total() {
-            return this.sections.map(s => s.count).reduce((a, b) => a + b, 0);
+
+        progressBarIndex() {
+            return this.sections.length > 1 ? this.index - 1 : this.index;
+        },
+
+        activeSection() {
+            return this.sections[this.index];
+        },
+
+        prevSection() {
+            return this.sections[this.index - 1];
+        },
+
+        nextSection() {
+            return this.sections[this.index + 1];
         }
     }
 };

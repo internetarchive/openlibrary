@@ -1,12 +1,12 @@
 [
   {
     "name": "Computer science, information & general works",
-    "short": "000s",
+    "short": "0XX",
     "query": "ddc:0*",
     "children": [
       {
         "name": "Computer science, knowledge & systems",
-        "short": "000s",
+        "short": "00X",
         "query": "ddc:00*",
         "children": [
           {
@@ -62,7 +62,7 @@
       },
       {
         "name": "Bibliographies",
-        "short": "010s",
+        "short": "01X",
         "query": "ddc:01*",
         "children": [
           {
@@ -130,7 +130,7 @@
       },
       {
         "name": "Library & information sciences",
-        "short": "020s",
+        "short": "02X",
         "query": "ddc:02*",
         "children": [
           {
@@ -198,7 +198,7 @@
       },
       {
         "name": "Encyclopedias & books of facts",
-        "short": "030s",
+        "short": "03X",
         "query": "ddc:03*",
         "children": [
           {
@@ -266,13 +266,13 @@
       },
       {
         "name": "Unassigned (formerly Biographies)",
-        "short": "040s",
+        "short": "04X",
         "query": "ddc:04*",
         "count": 428
       },
       {
         "name": "Magazines, journals & serials",
-        "short": "050s",
+        "short": "05X",
         "query": "ddc:05*",
         "children": [
           {
@@ -340,7 +340,7 @@
       },
       {
         "name": "Associations, organizations & museums",
-        "short": "060s",
+        "short": "06X",
         "query": "ddc:06*",
         "children": [
           {
@@ -408,7 +408,7 @@
       },
       {
         "name": "News media, journalism & publishing",
-        "short": "070s",
+        "short": "07X",
         "query": "ddc:07*",
         "children": [
           {
@@ -476,7 +476,7 @@
       },
       {
         "name": "Quotations",
-        "short": "080s",
+        "short": "08X",
         "query": "ddc:08*",
         "children": [
           {
@@ -544,7 +544,7 @@
       },
       {
         "name": "Manuscripts & rare books",
-        "short": "090s",
+        "short": "09X",
         "query": "ddc:09*",
         "children": [
           {
@@ -615,12 +615,12 @@
   },
   {
     "name": "Philosophy & psychology",
-    "short": "100s",
+    "short": "1XX",
     "query": "ddc:1*",
     "children": [
       {
         "name": "Philosophy",
-        "short": "100s",
+        "short": "10X",
         "query": "ddc:10*",
         "children": [
           {
@@ -688,7 +688,7 @@
       },
       {
         "name": "Metaphysics",
-        "short": "110s",
+        "short": "11X",
         "query": "ddc:11*",
         "children": [
           {
@@ -756,7 +756,7 @@
       },
       {
         "name": "Epistemology",
-        "short": "120s",
+        "short": "12X",
         "query": "ddc:12*",
         "children": [
           {
@@ -824,7 +824,7 @@
       },
       {
         "name": "Parapsychology & occultism",
-        "short": "130s",
+        "short": "13X",
         "query": "ddc:13*",
         "children": [
           {
@@ -892,7 +892,7 @@
       },
       {
         "name": "Philosophical schools of thought",
-        "short": "140s",
+        "short": "14X",
         "query": "ddc:14*",
         "children": [
           {
@@ -960,7 +960,7 @@
       },
       {
         "name": "Psychology",
-        "short": "150s",
+        "short": "15X",
         "query": "ddc:15*",
         "children": [
           {
@@ -1028,7 +1028,7 @@
       },
       {
         "name": "Philosophical logic",
-        "short": "160s",
+        "short": "16X",
         "query": "ddc:16*",
         "children": [
           {
@@ -1090,7 +1090,7 @@
       },
       {
         "name": "Ethics",
-        "short": "170s",
+        "short": "17X",
         "query": "ddc:17*",
         "children": [
           {
@@ -1158,7 +1158,7 @@
       },
       {
         "name": "Ancient, medieval, & Eastern philosophy",
-        "short": "180s",
+        "short": "18X",
         "query": "ddc:18*",
         "children": [
           {
@@ -1226,7 +1226,7 @@
       },
       {
         "name": "Modern Western philosophy (19th-century, 20th-century)",
-        "short": "190s",
+        "short": "19X",
         "query": "ddc:19*",
         "children": [
           {
@@ -1297,12 +1297,12 @@
   },
   {
     "name": "Religion",
-    "short": "200s",
+    "short": "2XX",
     "query": "ddc:2*",
     "children": [
       {
         "name": "Religion",
-        "short": "200s",
+        "short": "20X",
         "query": "ddc:20*",
         "children": [
           {
@@ -1370,7 +1370,7 @@
       },
       {
         "name": "Philosophy & theory of religion",
-        "short": "210s",
+        "short": "21X",
         "query": "ddc:21*",
         "children": [
           {
@@ -1438,7 +1438,7 @@
       },
       {
         "name": "The Bible",
-        "short": "220s",
+        "short": "22X",
         "query": "ddc:22*",
         "children": [
           {
@@ -1506,7 +1506,7 @@
       },
       {
         "name": "Christianity",
-        "short": "230s",
+        "short": "23X",
         "query": "ddc:23*",
         "children": [
           {
@@ -1574,7 +1574,7 @@
       },
       {
         "name": "Christian practice & observance",
-        "short": "240s",
+        "short": "24X",
         "query": "ddc:24*",
         "children": [
           {
@@ -1642,7 +1642,7 @@
       },
       {
         "name": "Christian orders & local church",
-        "short": "250s",
+        "short": "25X",
         "query": "ddc:25*",
         "children": [
           {
@@ -1710,7 +1710,7 @@
       },
       {
         "name": "Social & ecclesiastical theology",
-        "short": "260s",
+        "short": "26X",
         "query": "ddc:26*",
         "children": [
           {
@@ -1778,7 +1778,7 @@
       },
       {
         "name": "History of Christianity",
-        "short": "270s",
+        "short": "27X",
         "query": "ddc:27*",
         "children": [
           {
@@ -1846,7 +1846,7 @@
       },
       {
         "name": "Christian denominations",
-        "short": "280s",
+        "short": "28X",
         "query": "ddc:28*",
         "children": [
           {
@@ -1914,7 +1914,7 @@
       },
       {
         "name": "Other religions",
-        "short": "290s",
+        "short": "29X",
         "query": "ddc:29*",
         "children": [
           {
@@ -1985,12 +1985,12 @@
   },
   {
     "name": "Social sciences",
-    "short": "300s",
+    "short": "3XX",
     "query": "ddc:3*",
     "children": [
       {
         "name": "Social sciences, sociology & anthropology",
-        "short": "300s",
+        "short": "30X",
         "query": "ddc:30*",
         "children": [
           {
@@ -2058,7 +2058,7 @@
       },
       {
         "name": "Statistics",
-        "short": "310s",
+        "short": "31X",
         "query": "ddc:31*",
         "children": [
           {
@@ -2126,7 +2126,7 @@
       },
       {
         "name": "Political science",
-        "short": "320s",
+        "short": "32X",
         "query": "ddc:32*",
         "children": [
           {
@@ -2194,7 +2194,7 @@
       },
       {
         "name": "Economics",
-        "short": "330s",
+        "short": "33X",
         "query": "ddc:33*",
         "children": [
           {
@@ -2262,7 +2262,7 @@
       },
       {
         "name": "Law",
-        "short": "340s",
+        "short": "34X",
         "query": "ddc:34*",
         "children": [
           {
@@ -2330,7 +2330,7 @@
       },
       {
         "name": "Public administration & military science",
-        "short": "350s",
+        "short": "35X",
         "query": "ddc:35*",
         "children": [
           {
@@ -2398,7 +2398,7 @@
       },
       {
         "name": "Social problems & social services",
-        "short": "360s",
+        "short": "36X",
         "query": "ddc:36*",
         "children": [
           {
@@ -2466,7 +2466,7 @@
       },
       {
         "name": "Education",
-        "short": "370s",
+        "short": "37X",
         "query": "ddc:37*",
         "children": [
           {
@@ -2534,7 +2534,7 @@
       },
       {
         "name": "Commerce, communications, & transportation",
-        "short": "380s",
+        "short": "38X",
         "query": "ddc:38*",
         "children": [
           {
@@ -2602,7 +2602,7 @@
       },
       {
         "name": "Customs, etiquette, & folklore",
-        "short": "390s",
+        "short": "39X",
         "query": "ddc:39*",
         "children": [
           {
@@ -2673,12 +2673,12 @@
   },
   {
     "name": "Language",
-    "short": "400s",
+    "short": "4XX",
     "query": "ddc:4*",
     "children": [
       {
         "name": "Language",
-        "short": "400s",
+        "short": "40X",
         "query": "ddc:40*",
         "children": [
           {
@@ -2746,7 +2746,7 @@
       },
       {
         "name": "Linguistics",
-        "short": "410s",
+        "short": "41X",
         "query": "ddc:41*",
         "children": [
           {
@@ -2814,7 +2814,7 @@
       },
       {
         "name": "English & Old English languages",
-        "short": "420s",
+        "short": "42X",
         "query": "ddc:42*",
         "children": [
           {
@@ -2882,7 +2882,7 @@
       },
       {
         "name": "German & related languages",
-        "short": "430s",
+        "short": "43X",
         "query": "ddc:43*",
         "children": [
           {
@@ -2950,7 +2950,7 @@
       },
       {
         "name": "French & related languages",
-        "short": "440s",
+        "short": "44X",
         "query": "ddc:44*",
         "children": [
           {
@@ -3018,7 +3018,7 @@
       },
       {
         "name": "Italian, Romanian, & related languages",
-        "short": "450s",
+        "short": "45X",
         "query": "ddc:45*",
         "children": [
           {
@@ -3086,7 +3086,7 @@
       },
       {
         "name": "Spanish, Portuguese, Galician",
-        "short": "460s",
+        "short": "46X",
         "query": "ddc:46*",
         "children": [
           {
@@ -3154,7 +3154,7 @@
       },
       {
         "name": "Latin & Italic languages",
-        "short": "470s",
+        "short": "47X",
         "query": "ddc:47*",
         "children": [
           {
@@ -3222,7 +3222,7 @@
       },
       {
         "name": "Classical & modern Greek languages",
-        "short": "480s",
+        "short": "48X",
         "query": "ddc:48*",
         "children": [
           {
@@ -3290,7 +3290,7 @@
       },
       {
         "name": "Other languages",
-        "short": "490s",
+        "short": "49X",
         "query": "ddc:49*",
         "children": [
           {
@@ -3361,12 +3361,12 @@
   },
   {
     "name": "Science",
-    "short": "500s",
+    "short": "5XX",
     "query": "ddc:5*",
     "children": [
       {
         "name": "Science",
-        "short": "500s",
+        "short": "50X",
         "query": "ddc:50*",
         "children": [
           {
@@ -3434,7 +3434,7 @@
       },
       {
         "name": "Mathematics",
-        "short": "510s",
+        "short": "51X",
         "query": "ddc:51*",
         "children": [
           {
@@ -3502,7 +3502,7 @@
       },
       {
         "name": "Astronomy",
-        "short": "520s",
+        "short": "52X",
         "query": "ddc:52*",
         "children": [
           {
@@ -3570,7 +3570,7 @@
       },
       {
         "name": "Physics",
-        "short": "530s",
+        "short": "53X",
         "query": "ddc:53*",
         "children": [
           {
@@ -3638,7 +3638,7 @@
       },
       {
         "name": "Chemistry",
-        "short": "540s",
+        "short": "54X",
         "query": "ddc:54*",
         "children": [
           {
@@ -3706,7 +3706,7 @@
       },
       {
         "name": "Earth sciences & geology",
-        "short": "550s",
+        "short": "55X",
         "query": "ddc:55*",
         "children": [
           {
@@ -3774,7 +3774,7 @@
       },
       {
         "name": "Fossils & prehistoric life",
-        "short": "560s",
+        "short": "56X",
         "query": "ddc:56*",
         "children": [
           {
@@ -3842,7 +3842,7 @@
       },
       {
         "name": "Biology",
-        "short": "570s",
+        "short": "57X",
         "query": "ddc:57*",
         "children": [
           {
@@ -3910,7 +3910,7 @@
       },
       {
         "name": "Plants",
-        "short": "580s",
+        "short": "58X",
         "query": "ddc:58*",
         "children": [
           {
@@ -3978,7 +3978,7 @@
       },
       {
         "name": "Animals (Zoology)",
-        "short": "590s",
+        "short": "59X",
         "query": "ddc:59*",
         "children": [
           {
@@ -4049,12 +4049,12 @@
   },
   {
     "name": "Technology",
-    "short": "600s",
+    "short": "6XX",
     "query": "ddc:6*",
     "children": [
       {
         "name": "Technology",
-        "short": "600s",
+        "short": "60X",
         "query": "ddc:60*",
         "children": [
           {
@@ -4122,7 +4122,7 @@
       },
       {
         "name": "Medicine & health",
-        "short": "610s",
+        "short": "61X",
         "query": "ddc:61*",
         "children": [
           {
@@ -4190,7 +4190,7 @@
       },
       {
         "name": "Engineering",
-        "short": "620s",
+        "short": "62X",
         "query": "ddc:62*",
         "children": [
           {
@@ -4258,7 +4258,7 @@
       },
       {
         "name": "Agriculture",
-        "short": "630s",
+        "short": "63X",
         "query": "ddc:63*",
         "children": [
           {
@@ -4326,7 +4326,7 @@
       },
       {
         "name": "Home & family management",
-        "short": "640s",
+        "short": "64X",
         "query": "ddc:64*",
         "children": [
           {
@@ -4394,7 +4394,7 @@
       },
       {
         "name": "Management & public relations",
-        "short": "650s",
+        "short": "65X",
         "query": "ddc:65*",
         "children": [
           {
@@ -4450,7 +4450,7 @@
       },
       {
         "name": "Chemical engineering",
-        "short": "660s",
+        "short": "66X",
         "query": "ddc:66*",
         "children": [
           {
@@ -4518,7 +4518,7 @@
       },
       {
         "name": "Manufacturing",
-        "short": "670s",
+        "short": "67X",
         "query": "ddc:67*",
         "children": [
           {
@@ -4586,7 +4586,7 @@
       },
       {
         "name": "Manufacture for specific uses",
-        "short": "680s",
+        "short": "68X",
         "query": "ddc:68*",
         "children": [
           {
@@ -4654,7 +4654,7 @@
       },
       {
         "name": "Construction of buildings",
-        "short": "690s",
+        "short": "69X",
         "query": "ddc:69*",
         "children": [
           {
@@ -4725,12 +4725,12 @@
   },
   {
     "name": "Arts & recreation",
-    "short": "700s",
+    "short": "7XX",
     "query": "ddc:7*",
     "children": [
       {
         "name": "Arts",
-        "short": "700s",
+        "short": "70X",
         "query": "ddc:70*",
         "children": [
           {
@@ -4798,7 +4798,7 @@
       },
       {
         "name": "Area planning & landscape architecture",
-        "short": "710s",
+        "short": "71X",
         "query": "ddc:71*",
         "children": [
           {
@@ -4866,7 +4866,7 @@
       },
       {
         "name": "Architecture",
-        "short": "720s",
+        "short": "72X",
         "query": "ddc:72*",
         "children": [
           {
@@ -4934,7 +4934,7 @@
       },
       {
         "name": "Sculpture, ceramics, & metalwork",
-        "short": "730s",
+        "short": "73X",
         "query": "ddc:73*",
         "children": [
           {
@@ -5002,7 +5002,7 @@
       },
       {
         "name": "Graphic arts & decorative arts",
-        "short": "740s",
+        "short": "74X",
         "query": "ddc:74*",
         "children": [
           {
@@ -5070,7 +5070,7 @@
       },
       {
         "name": "Painting",
-        "short": "750s",
+        "short": "75X",
         "query": "ddc:75*",
         "children": [
           {
@@ -5138,7 +5138,7 @@
       },
       {
         "name": "Printmaking & prints",
-        "short": "760s",
+        "short": "76X",
         "query": "ddc:76*",
         "children": [
           {
@@ -5206,7 +5206,7 @@
       },
       {
         "name": "Photography, computer art, film, video",
-        "short": "770s",
+        "short": "77X",
         "query": "ddc:77*",
         "children": [
           {
@@ -5274,7 +5274,7 @@
       },
       {
         "name": "Music",
-        "short": "780s",
+        "short": "78X",
         "query": "ddc:78*",
         "children": [
           {
@@ -5342,7 +5342,7 @@
       },
       {
         "name": "Outline of sports, games & entertainment",
-        "short": "790s",
+        "short": "79X",
         "query": "ddc:79*",
         "children": [
           {
@@ -5413,12 +5413,12 @@
   },
   {
     "name": "Literature",
-    "short": "800s",
+    "short": "8XX",
     "query": "ddc:8*",
     "children": [
       {
         "name": "Literature, rhetoric & criticism",
-        "short": "800s",
+        "short": "80X",
         "query": "ddc:80*",
         "children": [
           {
@@ -5486,7 +5486,7 @@
       },
       {
         "name": "American literature in English",
-        "short": "810s",
+        "short": "81X",
         "query": "ddc:81*",
         "children": [
           {
@@ -5554,7 +5554,7 @@
       },
       {
         "name": "English & Old English literatures",
-        "short": "820s",
+        "short": "82X",
         "query": "ddc:82*",
         "children": [
           {
@@ -5622,7 +5622,7 @@
       },
       {
         "name": "German & related literatures",
-        "short": "830s",
+        "short": "83X",
         "query": "ddc:83*",
         "children": [
           {
@@ -5690,7 +5690,7 @@
       },
       {
         "name": "French & related literatures",
-        "short": "840s",
+        "short": "84X",
         "query": "ddc:84*",
         "children": [
           {
@@ -5758,7 +5758,7 @@
       },
       {
         "name": "Italian, Romanian, & related literatures",
-        "short": "850s",
+        "short": "85X",
         "query": "ddc:85*",
         "children": [
           {
@@ -5826,7 +5826,7 @@
       },
       {
         "name": "Spanish, Portuguese, Galician literatures",
-        "short": "860s",
+        "short": "86X",
         "query": "ddc:86*",
         "children": [
           {
@@ -5894,7 +5894,7 @@
       },
       {
         "name": "Latin & Italic literatures",
-        "short": "870s",
+        "short": "87X",
         "query": "ddc:87*",
         "children": [
           {
@@ -5962,7 +5962,7 @@
       },
       {
         "name": "Classical & modern Greek literatures",
-        "short": "880s",
+        "short": "88X",
         "query": "ddc:88*",
         "children": [
           {
@@ -6030,7 +6030,7 @@
       },
       {
         "name": "Other literatures",
-        "short": "890s",
+        "short": "89X",
         "query": "ddc:89*",
         "children": [
           {
@@ -6101,12 +6101,12 @@
   },
   {
     "name": "History & geography",
-    "short": "900s",
+    "short": "9XX",
     "query": "ddc:9*",
     "children": [
       {
         "name": "History",
-        "short": "900s",
+        "short": "90X",
         "query": "ddc:90*",
         "children": [
           {
@@ -6174,7 +6174,7 @@
       },
       {
         "name": "Geography & travel",
-        "short": "910s",
+        "short": "91X",
         "query": "ddc:91*",
         "children": [
           {
@@ -6242,7 +6242,7 @@
       },
       {
         "name": "Biography & genealogy",
-        "short": "920s",
+        "short": "92X",
         "query": "ddc:92*",
         "children": [
           {
@@ -6268,7 +6268,7 @@
       },
       {
         "name": "History of ancient world (to ca. 499)",
-        "short": "930s",
+        "short": "93X",
         "query": "ddc:93*",
         "children": [
           {
@@ -6336,7 +6336,7 @@
       },
       {
         "name": "History of Europe",
-        "short": "940s",
+        "short": "94X",
         "query": "ddc:94*",
         "children": [
           {
@@ -6404,7 +6404,7 @@
       },
       {
         "name": "History of Asia",
-        "short": "950s",
+        "short": "95X",
         "query": "ddc:95*",
         "children": [
           {
@@ -6472,7 +6472,7 @@
       },
       {
         "name": "History of Africa",
-        "short": "960s",
+        "short": "96X",
         "query": "ddc:96*",
         "children": [
           {
@@ -6540,7 +6540,7 @@
       },
       {
         "name": "History of North America",
-        "short": "970s",
+        "short": "97X",
         "query": "ddc:97*",
         "children": [
           {
@@ -6608,7 +6608,7 @@
       },
       {
         "name": "History of South America",
-        "short": "980s",
+        "short": "98X",
         "query": "ddc:98*",
         "children": [
           {
@@ -6676,7 +6676,7 @@
       },
       {
         "name": "History of other areas",
-        "short": "990s",
+        "short": "99X",
         "query": "ddc:99*",
         "children": [
           {

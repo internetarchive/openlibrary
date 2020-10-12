@@ -30,7 +30,8 @@ export default {
                 field: 'ddc',
                 fieldTransform: ddc => ddc,
                 root: recurForEach({ children: DDC }, n => {
-                    n.position = n.offset = 0;
+                    n.position = 'root';
+                    n.offset = 0;
                     n.requests = {};
                 })
             },
@@ -45,7 +46,8 @@ export default {
                         .replace(/-+/, '')
                         .replace(/0+(\.\D)/, ($0, $1) => $1),
                 root: recurForEach({ children: LCC }, n => {
-                    n.position = n.offset = 0;
+                    n.position = 'root';
+                    n.offset = 0;
                     n.requests = {};
                 })
             }
