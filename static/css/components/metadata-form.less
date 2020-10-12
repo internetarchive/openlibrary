@@ -1,32 +1,29 @@
 .likert-scale {
     display: flex;
-    justify-content: space-evenly;
-    margin-top: 5px;
+    margin-bottom: 1.5em;
 }
 
 .likert-label {
     display: flex;
     flex-direction: column;
-    width: 20%;
+    width: 16%;
     text-align: center;
 }
 
-.multi-select {
+.multi-choice {
     display: flex;
-    flex-direction: column;
     flex-wrap: wrap;
-    height: 3em;
+    margin-bottom: 1.5em;
+
+    .multi-choice-label {
+        flex: 0 0 20%;
+    }
 
     input[type="checkbox"] {
         margin-right: .3em;
     }
 }
 
-.range {
-    display:flex;
-    justify-content: space-evenly;
-    
-    input[type="number"] {
-        width: 3.5em;
-    }
+#metadata-submit {
+    margin-top: 1em;
 }
