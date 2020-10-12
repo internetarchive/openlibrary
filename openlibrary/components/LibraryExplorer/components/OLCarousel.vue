@@ -236,6 +236,7 @@ export default {
 .book-end .view-all {
   padding: 5px;
   text-align: center;
+  color: inherit;
 }
 
 .ol-carousel {
