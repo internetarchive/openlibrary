@@ -111,6 +111,23 @@
             </div>
           </main>
         </details>
+
+        <details>
+          <summary>
+            <div class="chunky-icon">
+              <div class="chunky-icon--icon">
+                <FeedbackIcon/>
+              </div>
+              <div class="chunky-icon--label">Feedback</div>
+            </div>
+          </summary>
+          <main>
+            <ul class="share-list">
+              <li><a :href="googleForms.url" target="_blank">Google Forms Feedback</a></li>
+              <li><a :href="twitterUrl" target="_blank">Share on Twitter</a></li>
+            </ul>
+          </main>
+        </details>
       </div>
     </div>
 </template>
@@ -119,11 +136,13 @@
 import lucenerQueryParser from 'lucene-query-parser';
 import SettingsIcon from './icons/SettingsIcon';
 import FilterIcon from './icons/FilterIcon';
+import FeedbackIcon from './icons/FeedbackIcon';
 
 export default {
     components: {
         FilterIcon,
-        SettingsIcon
+        SettingsIcon,
+        FeedbackIcon,
     },
 
     props: {
@@ -131,7 +150,23 @@ export default {
         settingsState: Object,
     },
 
+    data() {
+        return {
+            googleForms: {
+                url: 'https://docs.google.com/forms/d/e/1FAIpQLSe3ZypSJXr9omueQrEDI4mGc2M_v6iDNpDtPp9jrHaGn6wgpA/viewform?usp=sf_link',
+            },
+            tweet: {
+                url: 'https://dev.openlibrary.org/explore',
+                text: 'Browse millions of books in the @openlibrary Explorer',
+                hashtags: 'EmpoweringLibraries,BookLovers',
+            }
+        }
+    },
+
     computed: {
+        twitterUrl() {
+            return `https://twitter.com/intent/tweet?${new URLSearchParams(this.tweet)}`;
+        },
         activeFiltersCount() {
             return Object.values(this.filterState).filter(v => v).length;
         },
@@ -253,5 +288,23 @@ input.filter {
   max-width: 100%;
   width: 300px;
   box-sizing: border-box;
+}
+
+.share-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+
+
+  a {
+    color: inherit;
+    padding: 4px 8px;
+    transition: background-color 0.2s;
+    border-radius: 4px;
+    display: block;
+
+    &:hover { background-color: rgba(0, 0, 0, .1); }
+  }
 }
 </style>
