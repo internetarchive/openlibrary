@@ -520,6 +520,7 @@ hr {
       a {
         border-radius: 4px;
         border: 1px solid transparent;
+        line-height: 0.9em;
       }
       .selected {
         background: rgba(255,255,255, 0.1);

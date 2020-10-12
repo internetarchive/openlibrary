@@ -14,7 +14,7 @@
             </div>
           </summary>
           <main>
-            <input class="filter" v-model="filterState.filter">
+            <input class="filter" v-model="filterState.filter" placeholder="Custom filter...">
             <!-- <small>{{computedFilter}}</small> -->
             <div class="click-controls">
               <div class="horizontal-selector">
@@ -284,10 +284,13 @@ export default {
 }
 
 input.filter {
-  padding: 8px;
+  padding: 6px;
   max-width: 100%;
   width: 300px;
   box-sizing: border-box;
+  font-family: inherit;
+  border-radius: 4px;
+  border: 1px solid currentColor;
 }
 
 .share-list {
