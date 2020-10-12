@@ -153,15 +153,19 @@ export default {
             this.expandingAnimation = false;
             this.breadcrumbs.push(this.activeRoom);
             this.activeRoom = bookshelf;
-            const nodeToScrollTo = shelf && shelf.position && shelf.children ?
-                shelf.children[shelf.position]
-                : (shelf || bookshelf);
+            const nodeToScrollTo = shelf?.position == 'root' ? shelf :
+                shelf?.children && shelf?.position ? shelf.children[shelf.position]
+                    : (shelf || bookshelf);
             await Vue.nextTick();
             this.$el.querySelector(`[data-short="${nodeToScrollTo.short}"]`).scrollIntoView();
         },
-        goUpTo(index) {
+
+        async goUpTo(index) {
+            const nodeToScrollTo = this.activeRoom;
             this.activeRoom = this.breadcrumbs[index];
             this.breadcrumbs.splice(index, this.breadcrumbs.length - index);
+            await Vue.nextTick();
+            this.$el.querySelector(`[data-short="${nodeToScrollTo.short}"]`).scrollIntoView();
         },
 
         updateWidths() {
