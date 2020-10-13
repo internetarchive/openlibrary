@@ -8,6 +8,10 @@ if [[ "$USE_NGINX" ]]; then
 fi
 
 python --version
+pwd
+ls -l /
+ls -l /olsystem || true
+ls -l /opt/olsystem || true
 authbind --deep \
   scripts/openlibrary-server "$OL_CONFIG" \
   --gunicorn \
