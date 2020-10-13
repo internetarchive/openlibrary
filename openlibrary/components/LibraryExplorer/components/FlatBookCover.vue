@@ -6,7 +6,7 @@
     @load="$emit('load', $event)"
     :title="book.title"
     :src="coverMultiresUrl.medium"
-    :srcset="`${coverMultiresUrl.large} 2x, ${coverMultiresUrl.full} 4x`"
+    :srcset="`${coverMultiresUrl.large} 2x`"
   >
   <div v-else class="cover">
     <div class="title">{{book.title}}</div>
