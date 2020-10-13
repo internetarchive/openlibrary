@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "USE_NGINX is ${USE_NGINX:false}"
+echo "pwd" ; pwd
+
 if [[ "$USE_NGINX" ]]; then
   sudo mkdir /etc/nginx || true
   sudo ln --verbose --symbolic olsystem/etc/nginx/nginx.conf      /etc/nginx/nginx.conf
@@ -8,10 +11,10 @@ if [[ "$USE_NGINX" ]]; then
 fi
 
 python --version
-pwd
-ls -l /
-ls -l /olsystem || true
-ls -l /opt/olsystem || true
+echo "pwd" ; pwd
+echo "ls -l" ; ls -l /
+echo "ls -l /olsystem" ; ls -l /olsystem || true
+echo "ls -l /opt/openlibrary/olsystem" ; ls -l /opt/openlibrary/olsystem || true
 authbind --deep \
   scripts/openlibrary-server "$OL_CONFIG" \
   --gunicorn \
