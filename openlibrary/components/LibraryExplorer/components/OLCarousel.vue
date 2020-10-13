@@ -26,7 +26,7 @@
       </template>
     </BooksCarousel>
     <transition>
-      <div class="status-text" v-if="status == 'Errored'">Something went wrong... <button @click="reloadResults">Retry</button></div>
+      <div class="status-text" v-if="status == 'Errored'">Something went wrong... <button @click="reloadResults('reload')">Retry</button></div>
     </transition>
     <transition>
       <div class="status-text" v-if="status == 'Loading'">Loading...</div>
@@ -128,11 +128,11 @@ export default {
             this.isVisible = isIntersecting;
         },
 
-        async reloadResults() {
-            return await this.loadResults(this.offset);
+        async reloadResults(cache='force-cache') {
+            return await this.loadResults(this.offset, cache);
         },
 
-        async loadResults(offset) {
+        async loadResults(offset, cache='force-cache') {
             // Don't re-fetch if already there
             if (offset == this.offset && this.results.length) return;
 
@@ -151,7 +151,7 @@ export default {
             this.status = 'Loading';
             try {
                 const r = await fetch(url, {
-                    cache: 'force-cache',
+                    cache,
                     signal: this.lastFetchAbortController?.signal,
                 }).then(r => r.json());
                 this.status = 'Loaded';
