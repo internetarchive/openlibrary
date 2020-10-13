@@ -671,7 +671,7 @@ class User(Thing):
         return self.is_usergroup_member('/usergroup/sponsors')
 
     def is_beta_tester(self):
-         return self.is_usergroup_member('/usergroup/beta-testers')
+        return self.is_usergroup_member('/usergroup/beta-testers')
 
     def get_lists(self, seed=None, limit=100, offset=0, sort=True):
         """Returns all the lists of this user.
