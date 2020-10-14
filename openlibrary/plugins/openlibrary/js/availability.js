@@ -172,7 +172,7 @@ function initAvailability() {
                                 .addClass('check-book-availability').addClass(btnClassName);
                             // FIXME: This is not translatable!
                             $(`${selector}[data-key=${book_key}]`)
-                                .text('Check Availability');
+                                .text('Check');
                             delete books[book_key];
                         }
                     }
