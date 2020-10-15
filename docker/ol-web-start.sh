@@ -5,8 +5,8 @@ echo "pwd" ; pwd
 
 if [[ "$USE_NGINX" ]]; then
   sudo mkdir /etc/nginx || true
-  sudo ln --verbose --symbolic olsystem/etc/nginx/nginx.conf      /etc/nginx/nginx.conf
-  sudo ln --verbose --symbolic olsystem/etc/nginx/sites-available /etc/nginx/sites-available
+  sudo ln --verbose --symbolic /opt/olsystem/etc/nginx/nginx.conf      /etc/nginx/nginx.conf
+  sudo ln --verbose --symbolic /opt/olsystem/etc/nginx/sites-available /etc/nginx/sites-available
   sudo systemctl start nginx
 fi
 
