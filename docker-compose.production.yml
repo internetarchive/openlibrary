@@ -11,5 +11,6 @@ services:
       - PYENV_VERSION=3.9.0
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - GUNICORN_OPTS= --workers 50 --timeout 300  # 5 minutes before reload
+      - USE_NGINX=true
     volumes:
       - ../olsystem:/olsystem
