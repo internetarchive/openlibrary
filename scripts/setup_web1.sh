@@ -38,4 +38,5 @@ cd /opt/openlibrary
 sudo docker-compose down
 export DOCKER_CLIENT_TIMEOUT=500
 export COMPOSE_HTTP_TIMEOUT=500
-sudo docker-compose -f docker-compose.yml -f docker-compose.infogami-local.yml -f docker-compose.production.yml up --no-deps -d web ; sudo docker-compose logs --tail=100 -f web
+sudo docker-compose -f docker-compose.yml -f docker-compose.infogami-local.yml -f docker-compose.production.yml up --no-deps -d web
+sudo docker-compose logs --tail=100 -f web
