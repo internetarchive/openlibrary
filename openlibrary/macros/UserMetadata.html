@@ -13,184 +13,7 @@ $ has_edition = edition is not None
       <h2>Share your thoughts</h2>
       <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
     </div>
-  <form method="post" class="floatform" name="user-metadata" id="user-metadata" action="$(work.key)/metadata.json">
-    <div class="formElement">
-      <h3>What is the pace of this book?</h3>
-      <div class="likert-scale">
-        <label for="paceChoice1" class="likert-label"><input type="radio" id=paceChoice1" name="pace" value="slow">Slow</label>
-        <label for="paceChoice2" class="likert-label"><input type="radio" id=paceChoice2" name="pace" value="medium">Medium</label>
-        <label for="paceChoice3" class="likert-label"><input type="radio" id=paceChoice3" name="pace" value="fast">Fast</label>
-      </div>
-    </div>
-    <div class="formElement">
-      <h3>How entertaining is this book?</h3>
-      <div class="likert-scale">
-        <label for="entertainChoice1" class="likert-label"><input type="radio" name="entertain" id="entertainChoice1" value="N/A">N/A</label>
-        <label for="entertainChoice2" class="likert-label"><input type="radio" name="entertain" id="entertainChoice2" value="boring">Boring</label>
-        <label for="entertainChoice3" class="likert-label"><input type="radio" name="entertain" id="entertainChoice3" value="average">Average</label>
-        <label for="entertainChoice4" class="likert-label"><input type="radio" name="entertain" id="entertainChoice4" value="entertaining">Entertaining</label>
-        <label for="entertainChoice5" class="likert-label"><input type="radio" name="entertain" id="entertainChoice5" value="very entertaining">Very Entertaining</label>
-      </div>
-    </div>
-    <div class="formElement">
-      <h3>How clearly is this book written?</h3>
-      <div class="likert-scale">
-        <label for="clarityChoice1" class="likert-label"><input type="radio" name="clarity" id="clarityChoice1" value="N/A">N/A</label>
-        <label for="clarityChoice2" class="likert-label"><input type="radio" name="clarity" id="clarityChoice2" value="incomprehensible">Incomprehensible</label>
-        <label for="clarityChoice3" class="likert-label"><input type="radio" name="clarity" id="clarityChoice3" value="confusing">Confusing</label>
-        <label for="clarityChoice4" class="likert-label"><input type="radio" name="clarity" id="clarityChoice4" value="average">Average</label>
-        <label for="clarityChoice5" class="likert-label"><input type="radio" name="clarity" id="clarityChoice5" value="clear">Clear</label>
-        <label for="clarityChoice6" class="likert-label"><input type="radio" name="clarity" id="clarityChoice6" value="very clear">Very Clear</label>
-      </div>
-    </div>
-    <div class="formElement">
-      <h3>How much notation and technical jargon is used?</h3>
-      <div class="likert-scale">
-        <label for="jargonChoice1" class="likert-label"><input type="radio" name="jargon" id="jargonChoice1" value="N/A">N/A</label>
-        <label for="jargonChoice2" class="likert-label"><input type="radio" name="jargon" id="jargonChoice2" value="not technical">Not Technical</label>
-        <label for="jargonChoice3" class="likert-label"><input type="radio" name="jargon" id="jargonChoice3" value="low technicality">Low Technicality</label>
-        <label for="jargonChoice4" class="likert-label"><input type="radio" name="jargon" id="jargonChoice4" value="medium technicality">Medium Technicality</label>
-        <label for="jargonChoice5" class="likert-label"><input type="radio" name="jargon" id="jargonChoice5" value="highly technical">Highly Technical</label>
-      </div>
-    </div>
-    <div class="formElement">
-      <h3>Does this book bring anything new to the table?</h3>
-      <div class="likert-scale">
-        <label for="originalityChoice1" class="likert-label"><input type="radio" name="originality" id="originalityChoice1" value="N/A">N/A</label>
-        <label for="originalityChoice2" class="likert-label"><input type="radio" name="originality" id="originalityChoice2" value="rather unoriginal">Rather Unoriginal</label>
-        <label for="originalityChoice3" class="likert-label"><input type="radio" name="originality" id="originalityChoice3" value="very original">Very Original</label>
-        <label for="originalityChoice4" class="likert-label"><input type="radio" name="originality" id="originalityChoice4" value="genre-defining">Genre-Defining</label>
-      </div>
-    </div>
-    <div class="formElement">
-      <h3>How challenging or advanced is the subject matter of this book?</h3>
-      <div class="likert-scale">
-        <label for="difficultyChoice1" class="likert-label"><input type="radio" name="difficulty" id="difficultyChoice1" value="N/A">N/A</label>
-        <label for="difficultyChoice2" class="likert-label"><input type="radio" name="difficulty" id="difficultyChoice2" value="no prior knowledge required">No Prior Knowledge Required</label>
-        <label for="difficultyChoice3" class="likert-label"><input type="radio" name="difficulty" id="difficultyChoice3" value="good first book on topic">Good First Book on Topic</label>
-        <label for="difficultyChoice4" class="likert-label"><input type="radio" name="difficulty" id="difficultyChoice4" value="contains some advanced topics">Contains Some Advanced Topics</label>
-        <label for="difficultyChoice5" class="likert-label"><input type="radio" name="difficulty" id="difficultyChoice5" value="very difficult">Very Difficult</label>
-        <label for="difficultyChoice6" class="likert-label"><input type="radio" name="difficulty" id="difficultyChoice6" value="requires domain expertise">Requires Domain Expertise</label>
-      </div>
-    </div>
-    <div class="formElement">
-      <h3>How impactful is the content of this book?</h3>
-      <div class="likert-scale">
-        <label for="usefulnessChoice1" class="likert-label"><input type="radio" name="usefulness" id="usefulnessChoice1" value="N/A">N/A</label>
-        <label for="usefulnessChoice2" class="likert-label"><input type="radio" name="usefulness" id="usefulnessChoice2" value="not useful">Not Useful</label>
-        <label for="usefulnessChoice3" class="likert-label"><input type="radio" name="usefulness" id="usefulnessChoice3" value="somewhat useful">Somewhat Useful</label>
-        <label for="usefulnessChoice4" class="likert-label"><input type="radio" name="usefulness" id="usefulnessChoice4" value="very useful">Very Useful</label>
-        <label for="usefulnessChoice5" class="likert-label"><input type="radio" name="usefulness" id="usefulnessChoice5" value="indispensable">Indispensable</label>
-      </div>
-    </div>
-    <div class="formElement">
-      <h3>How much depth or breadth does this book cover?</h3>
-      <div class="likert-scale">
-        <label for="coverageChoice1" class="likert-label"><input type="radio" name="coverage" id="coverageChoice1" value="N/A">N/A</label>
-        <label for="coverageChoice2" class="likert-label"><input type="radio" name="coverage" id="coverageChoice2" value="meandering">Meandering</label>
-        <label for="coverageChoice3" class="likert-label"><input type="radio" name="coverage" id="coverageChoice3" value="wide">Wide</label>
-        <label for="coverageChoice4" class="likert-label"><input type="radio" name="coverage" id="coverageChoice4" value="narrow">Narrow</label>
-      </div>
-    </div>
-    <div class="formElement">
-      <h3>Are there causes to question the objectivity or accuracy of this book?</h3>
-      <div class="multi-choice">
-        <label for="objectivityChoice1" class="multi-choice-label"><input type="checkbox" name="objectivity" id="objectivityChoice1" value="N/A">N/A</label>
-        <label for="objectivityChoice2" class="multi-choice-label"><input type="checkbox" name="objectivity" id="objectivityChoice2" value="biased">Biased</label>
-        <label for="objectivityChoice3" class="multi-choice-label"><input type="checkbox" name="objectivity" id="objectivityChoice3" value="misleading">Misleading</label>
-        <label for="objectivityChoice4" class="multi-choice-label"><input type="checkbox" name="objectivity" id="objectivityChoice4" value="inaccurate">Inaccurate</label>
-        <label for="objectivityChoice5" class="multi-choice-label"><input type="checkbox" name="objectivity" id="objectivityChoice5" value="typos">Typos</label>
-        <label for="objectivityChoice6" class="multi-choice-label"><input type="checkbox" name="objectivity" id="objectivityChoice6" value="inflammatory">Inflammatory</label>
-        <label for="objectivityChoice7" class="multi-choice-label"><input type="checkbox" name="objectivity" id="objectivityChoice7" value="needs citations">Needs Citations</label>
-      </div>
-    </div>
-    <div class="formElement">
-      <h3>What are the genres of this book?</h3>
-      <div class="multi-choice">
-        <label for="genresChoice1" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice1" value="biographical">Biographical</label>
-        <label for="genresChoice2" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice2" value="textbook">Textbook</label>
-        <label for="genresChoice3" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice3" value="reference">Reference</label>
-        <label for="genresChoice4" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice4" value="technical">Technical</label>
-        <label for="genresChoice5" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice5" value="dictionary">Dictionary</label>
-        <label for="genresChoice6" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice6" value="encyclopedia">Encyclopedia</label>
-        <label for="genresChoice7" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice7" value="how-to">How-To</label>
-        <label for="genresChoice8" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice8" value="romance">Romance</label>
-        <label for="genresChoice9" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice9" value="action">Action</label>
-        <label for="genresChoice10" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice10" value="anthology">Anthology</label>
-        <label for="genresChoice11" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice11" value="classic">Classic</label>
-        <label for="genresChoice12" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice12" value="graphical">Graphical</label>
-        <label for="genresChoice13" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice13" value="crime">Crime</label>
-        <label for="genresChoice14" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice14" value="drama">Drama</label>
-        <label for="genresChoice15" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice15" value="fantasy">Fantasy</label>
-        <label for="genresChoice16" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice16" value="horror">Horror</label>
-        <label for="genresChoice17" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice17" value="humor">Humor</label>
-        <label for="genresChoice18" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice18" value="mystery">Mystery</label>
-        <label for="genresChoice19" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice19" value="paranormal">Paranormal</label>
-        <label for="genresChoice20" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice20" value="memoir">Memoir</label>
-        <label for="genresChoice21" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice21" value="poetry">Poetry</label>
-        <label for="genresChoice22" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice22" value="satire">Satire</label>
-        <label for="genresChoice23" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice23" value="philosophy">Philosophy</label>
-        <label for="genresChoice24" class="multi-choice-label"><input type="checkbox" name="genres" id="genresChoice24" value="sci-fi">Sci-Fi</label>
-      </div>
-    </div>
-    <div class="formElement">
-      <h3>Is this book a work of fact or fiction?</h3>
-      <div class="likert-scale">
-        <label for="fictionalityChoice1" class="likert-label"><input type="radio" name="fictionality" id="fictionalityChoice1" value="nonfiction">Nonfiction</label>
-        <label for="fictionalityChoice2" class="likert-label"><input type="radio" name="fictionality" id="fictionalityChoice2" value="fiction">Fiction</label>
-      </div>
-    </div>
-    <div class="formElement">
-      <h3>What are the intended age groups for this book?</h3>
-      <div class="multi-choice">
-        <label for="audienceChoice1" class="multi-choice-label"><input type="checkbox" name="audience" id="audienceChoice1" value="General audiences">General Audiences</label>
-        <label for="audienceChoice2" class="multi-choice-label"><input type="checkbox" name="audience" id="audienceChoice2" value="Baby">Baby</label>
-        <label for="audienceChoice3" class="multi-choice-label"><input type="checkbox" name="audience" id="audienceChoice3" value="Kindergarten">Kindergarten</label>
-        <label for="audienceChoice4" class="multi-choice-label"><input type="checkbox" name="audience" id="audienceChoice4" value="Elementary">Elementary</label>
-        <label for="audienceChoice5" class="multi-choice-label"><input type="checkbox" name="audience" id="audienceChoice5" value="High school">High School</label>
-        <label for="audienceChoice6" class="multi-choice-label"><input type="checkbox" name="audience" id="audienceChoice6" value="College">College</label>
-        <label for="audienceChoice7" class="multi-choice-label"><input type="checkbox" name="audience" id="audienceChoice7" value="Experts">Experts</label>
-      </div>
-    </div>
-    <div class="formElement">
-      <h3>What are the moods of this book?</h3>
-      <div class="multi-choice">
-        <label for="moodChoice1" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice1" value="cheerful">Cheerful</label>
-        <label for="moodChoice2" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice2" value="inspiring">Inspiring</label>
-        <label for="moodChoice3" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice3" value="reflective">Reflective</label>
-        <label for="moodChoice4" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice4" value="gloomy">Gloomy</label>
-        <label for="moodChoice5" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice5" value="humorous">Humorous</label>
-        <label for="moodChoice6" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice6" value="melancholy">Melancholy</label>
-        <label for="moodChoice7" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice7" value="idyllic">Idyllic</label>
-        <label for="moodChoice8" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice8" value="whimsical">Whimsical</label>
-        <label for="moodChoice9" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice9" value="romantic">Romantic</label>
-        <label for="moodChoice10" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice10" value="mysterious">Mysterious</label>
-        <label for="moodChoice11" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice11" value="ominous">Ominous</label>
-        <label for="moodChoice12" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice12" value="informative">Informative</label>
-        <label for="moodChoice13" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice13" value="calm">Calm</label>
-        <label for="moodChoice14" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice14" value="lighthearted">Lighthearted</label>
-        <label for="moodChoice15" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice15" value="hopeful">Hopeful</label>
-        <label for="moodChoice16" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice16" value="angry">Angry</label>
-        <label for="moodChoice17" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice17" value="fearful">Fearful</label>
-        <label for="moodChoice18" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice18" value="tense">Tense</label>
-        <label for="moodChoice19" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice19" value="lonely">Lonely</label>
-        <label for="moodChoice20" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice20" value="dark">Dark</label>
-        <label for="moodChoice21" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice21" value="sad">Sad</label>
-        <label for="moodChoice22" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice22" value="suspenseful">Suspenseful</label>
-        <label for="moodChoice23" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice23" value="strange">Strange</label>
-        <label for="moodChoice24" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice24" value="emotional">Emotional</label>
-        <label for="moodChoice25" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice25" value="dry">Dry</label>
-        <label for="moodChoice26" class="multi-choice-label"><input type="checkbox" name="mood" id="moodChoice26" value="scientific">Scientific</label>
-      </div>
-    </div>
-
-    <div class="formElement metadata-submit">
-        <div class="input">
-            <button type="submit">Submit</button>
-            <a class="small dialog--close plain">$_('Cancel')</a>
-        </div>
-    </div>
-  </form>
+    <form method="post" class="floatform" name="user-metadata" id="user-metadata"></form>
   </div>
 </div>
 
@@ -203,9 +26,55 @@ window.q.push(function(){
             href: "#metadata-form",
             width: "55%",
         })
+    };
+
+    function populateForm(\$form, aspects) {
+      for(aspect of aspects) {
+        var className = aspect.multi_choice ? 'multi-choice' : 'single-choice';
+        var \$choices = \$(`<div class="\${className}"></div>`);
+        var choiceIndex = aspect.schema.values.length;
+
+        for(value of aspect.schema.values) {
+          var choiceId = `\${aspect.label}Choice\${choiceIndex--}`;
+
+          \$choices.prepend(`
+            <label for="\${choiceId}" class="\${className}-label">
+					    <input type=\${aspect.multi_choice ? "checkbox": "radio"} name="\${aspect.label}" id="\${choiceId}" value="\${value}">
+					    \${value}
+				    </label>`);
+        }
+
+        \$form.append(`
+          <div class="formElement" id="\${aspect.label}-question">
+            <h3>\${aspect.description}</h3>
+            \${\$choices.prop('outerHTML')}
+          </div>`);
+      }
+
+      \$form.append(`
+        <div class="formElement metadata-submit">
+          <div class="input">
+            <button type="submit">Submit</button>
+            <a class="small dialog--close plain">$_('Cancel')</a>
+          </div>
+        </div>`);
     }
 
-    \$('#modal-link').click(displayModal);
+    \$('#modal-link').click(function() {
+      \$.ajax({
+        type: 'GET',
+        url: 'https://dev.thebestbookon.com/api/aspects',
+        contentType: 'application/json',
+        dataType: 'json'
+      })
+        .done(function(data) {
+          populateForm(\$('#user-metadata'), data.aspects);
+          displayModal();
+        })
+        .fail(function() {
+          // TODO: Handle failed API calls gracefully.
+        })
+    });
 
     \$("#user-metadata").submit(function() {
 
