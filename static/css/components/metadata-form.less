@@ -1,13 +1,14 @@
 .single-choice {
     display: flex;
     margin-bottom: 1.5em;
-}
 
-.single-choice-label {
-    display: flex;
-    flex-direction: column;
-    width: 16%;
-    text-align: center;
+    &-label {
+        display: flex;
+        flex-direction: column;
+        width: 16%;
+        text-align: center;
+        text-transform: capitalize;
+    }
 }
 
 .multi-choice {
@@ -15,8 +16,9 @@
     flex-wrap: wrap;
     margin-bottom: 1.5em;
 
-    .multi-choice-label {
+    &-label {
         flex: 0 0 20%;
+        text-transform: capitalize;
     }
 
     input[type="checkbox"] {
