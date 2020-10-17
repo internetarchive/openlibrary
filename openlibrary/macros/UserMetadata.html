@@ -55,25 +55,32 @@ window.q.push(function(){
         <div class="formElement metadata-submit">
           <div class="input">
             <button type="submit">Submit</button>
-            <a class="small dialog--close plain">$_('Cancel')</a>
+            <a class="small dialog--close plain" href="javascript:;" id="cancel-submission">$_('Cancel')</a>
           </div>
         </div>`);
     }
 
     \$('#modal-link').click(function() {
-      \$.ajax({
-        type: 'GET',
-        url: 'https://dev.thebestbookon.com/api/aspects',
-        contentType: 'application/json',
-        dataType: 'json'
-      })
-        .done(function(data) {
-          populateForm(\$('#user-metadata'), data.aspects);
-          displayModal();
+      if(\$('#user-metadata').children().length === 0) {
+        \$.ajax({
+          type: 'GET',
+          url: 'https://dev.thebestbookon.com/api/aspects',
+          contentType: 'application/json',
+          dataType: 'json'
         })
-        .fail(function() {
-          // TODO: Handle failed API calls gracefully.
-        })
+          .done(function(data) {
+            populateForm(\$('#user-metadata'), data.aspects);
+            \$('#cancel-submission').click(function() {
+              \$.colorbox.close();
+            })
+            displayModal();
+          })
+          .fail(function() {
+            // TODO: Handle failed API calls gracefully.
+          })
+      } else {
+        displayModal();
+      }
     });
 
     \$("#user-metadata").submit(function() {
