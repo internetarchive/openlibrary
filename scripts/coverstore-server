@@ -48,7 +48,7 @@ def start_gunicorn_server():
             
         def load(self):
             import six  # See #3902 if the version of six is < 1.15.0
-            if tuple(int(x) for x in six.__version__.split(".")) < (1, 12):
+            if tuple(int(x) for x in six.__version__.split(".")) < (1, 15):
                 raise ImportError(
                     "Six module {} is too old".format(six.__version__)
                 )
