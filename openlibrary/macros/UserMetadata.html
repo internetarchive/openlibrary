@@ -3,8 +3,16 @@ $def with (work, edition)
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ has_edition = edition is not None
 
+$ context = {
+  $ "username": username,
+  $ "work": work.key
+  $ }
+
+$if has_edition:
+  $ context["edition"] = edition.key
+
 <div class="cta-section" style="text-align:center; margin-top:7px;">
-  <a id="modal-link" href="javascript:;">What did you think?</a>
+  <a id="modal-link" href="javascript:;" data-context="$json_encode(context)">What did you think?</a>
 </div>
 
 <div class="hidden">
@@ -13,112 +21,6 @@ $ has_edition = edition is not None
       <h2>Share your thoughts</h2>
       <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
     </div>
-    <form method="post" class="floatform" name="user-metadata" id="user-metadata"></form>
+    <form class="floatform" name="user-metadata" id="user-metadata"></form>
   </div>
 </div>
-
-<script type="text/javascript">
-window.q.push(function(){
-    function displayModal() {
-        \$.colorbox({
-            inline: true,
-            opacity: "0.5",
-            href: "#metadata-form",
-            width: "55%",
-        })
-    };
-
-    function populateForm(\$form, aspects) {
-      for(aspect of aspects) {
-        var className = aspect.multi_choice ? 'multi-choice' : 'single-choice';
-        var \$choices = \$(`<div class="\${className}"></div>`);
-        var choiceIndex = aspect.schema.values.length;
-
-        for(value of aspect.schema.values) {
-          var choiceId = `\${aspect.label}Choice\${choiceIndex--}`;
-
-          \$choices.prepend(`
-            <label for="\${choiceId}" class="\${className}-label">
-					    <input type=\${aspect.multi_choice ? "checkbox": "radio"} name="\${aspect.label}" id="\${choiceId}" value="\${value}">
-					    \${value}
-				    </label>`);
-        }
-
-        \$form.append(`
-          <div class="formElement" id="\${aspect.label}-question">
-            <h3>\${aspect.description}</h3>
-            \${\$choices.prop('outerHTML')}
-          </div>`);
-      }
-
-      \$form.append(`
-        <div class="formElement metadata-submit">
-          <div class="input">
-            <button type="submit">Submit</button>
-            <a class="small dialog--close plain" href="javascript:;" id="cancel-submission">$_('Cancel')</a>
-          </div>
-        </div>`);
-    }
-
-    \$('#modal-link').click(function() {
-      if(\$('#user-metadata').children().length === 0) {
-        \$.ajax({
-          type: 'GET',
-          url: 'https://dev.thebestbookon.com/api/aspects',
-          contentType: 'application/json',
-          dataType: 'json'
-        })
-          .done(function(data) {
-            populateForm(\$('#user-metadata'), data.aspects);
-            \$('#cancel-submission').click(function() {
-              \$.colorbox.close();
-            })
-            displayModal();
-          })
-          .fail(function() {
-            // TODO: Handle failed API calls gracefully.
-          })
-      } else {
-        displayModal();
-      }
-    });
-
-    \$("#user-metadata").submit(function() {
-
-      var result = {};
-
-      result['username'] = '$(username)';
-      result['work_id'] = '$(work.key)'.split('/')[2];
-
-      $if has_edition:
-        result['edition_id'] = '$(edition.key)'.split('/')[2];
-
-      result['observations'] = [];
-      
-      \$(this).find("input[type=radio]:checked").each(function() {
-        var currentPair = {};
-        currentPair[\$(this).attr("name")] = \$(this).val()
-        result['observations'].push(currentPair);
-      })
-
-      \$(this).find("input[type=checkbox]:checked").each(function() {
-        var currentPair = {};
-        currentPair[\$(this).attr("name")] = \$(this).val()
-        result['observations'].push(currentPair);
-      })
-         
-      if(result['observations'].length > 0) {
-        \$.ajax({
-          type: 'POST',
-          url: 'https://dev.thebestbookon.com/api/observations.json',
-          data: JSON.stringify(result)
-        });
-        \$.colorbox.close();
-      } else {
-        // TODO: Handle case where no data was submitted
-      }
-
-      return false;
-    });
-})
-</script>
