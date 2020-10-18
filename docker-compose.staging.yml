@@ -8,7 +8,7 @@ version: "3"
 services:
   web:
     environment:
-      - PYENV_VERSION=3.9.0
+      - PYENV_VERSION=3.8.5
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - GUNICORN_OPTS= --workers 4 --timeout 180
     volumes:
