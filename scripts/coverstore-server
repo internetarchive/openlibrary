@@ -47,6 +47,11 @@ def start_gunicorn_server():
             pass
             
         def load(self):
+            import six  # See #3902 if the version of six is < 1.12.0
+            if tuple(int(x) for x in six.__version__.split(".")) < (1, 12):
+                raise ImportError(
+                    "Six module {} is too old".format(six.__version__)
+                )
             from openlibrary.coverstore import server, code
             server.load_config(configfile)
             return code.app.wsgifunc(https_middleware)
