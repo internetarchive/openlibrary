@@ -10,7 +10,7 @@ internetarchive==1.8.5
 isbnlib==3.9.3
 lxml==4.4.1
 Pillow==6.2.2; python_version < '3.0'
-Pillow==7.2.0; python_version >= '3.0'
+Pillow==8.0.0; python_version >= '3.0'
 psycopg2==2.8.4
 Pygments==2.4.2
 pymarc==3.2.0; python_version < '3.6'
