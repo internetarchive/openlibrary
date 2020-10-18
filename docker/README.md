@@ -130,7 +130,7 @@ docker-compose run --rm web make test
 
 # Launch a temporary container on Python 3 using the local Infogami and then open in local webbrowser
 docker-compose down ; \
-    PYENV_VERSION=3.9.0 docker-compose -f docker-compose.yml -f docker-compose.infogami-local.yml up -d ; \
+    PYENV_VERSION=3.8.5 docker-compose -f docker-compose.yml -f docker-compose.infogami-local.yml up -d ; \
     docker-compose logs -f --tail=10 web
 # In your browser, navigate to http://localhost:8080
 ```
