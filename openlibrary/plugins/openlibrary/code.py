@@ -840,7 +840,10 @@ class Partials(delegate.page):
         partial = {}
         if component == "RelatedWorkCarousel":
             partial = _get_relatedcarousels_component(i.workid)
-        return delegate.RawText(simplejson.dumps(partial), content_type="application/json")
+        return delegate.RawText(
+            simplejson.dumps(partial),
+            content_type="application/json"
+        )
 
 
 def is_bot():
