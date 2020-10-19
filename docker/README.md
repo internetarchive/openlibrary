@@ -121,7 +121,7 @@ Note: This is only if you already have an existing docker image, this command is
 docker-compose run --rm home make test
 
 # Launch a temporary container on Python 3 using the local Infogami and then open in local webbrowser
-# PYENV_VERSION can be set to: 2.7.6, 3.8.6, or 3.9.0
+# PYENV_VERSION can be 2.7.6, 3.8.6, or 3.9.0
 docker-compose down && \
     PYENV_VERSION=3.8.6 docker-compose -f docker-compose.yml -f docker-compose.infogami-local.yml up -d && \
     docker-compose logs -f --tail=10 web
