@@ -1,9 +1,10 @@
 $def with (page)
 
 $ bodyid = ctx.get('bodyid', 'user')
+$ bodyclass = ctx.get('bodyclass', []) 
 $ show_banners = bodyid != 'form'
 
-<body id="$bodyid">
+<body id="$bodyid" class="$(' '.join(bodyclass))"> 
   <script>
       // Provide a signal that JS will load
       document.body.className += ' client-js';
