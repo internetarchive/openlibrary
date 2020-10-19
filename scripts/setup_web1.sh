@@ -30,7 +30,7 @@ sudo chown openlibrary /opt/*
 ls -l  # containerd, olsystem, openlibrary owned by openlibrary
 
 cd /opt/openlibrary
-sudo git checkout Setup-ol-web1-again
+sudo git checkout Setup-ol-web1-yet-again
 sudo make git
 cd /opt/openlibrary/vendor/infogami && sudo git pull origin master
 
