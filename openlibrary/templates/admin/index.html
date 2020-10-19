@@ -175,11 +175,11 @@ $ stats = get_admin_stats()
   <div class="clearfix"></div>
 
   <h2>Unique Visitors</h2>
-  <img alt="Unique visitors IPs per day graph" src="//graphite.us.archive.org/render/?min=0&template=plain&lineMode=staircase&areaMode=stacked&areaAlpha=0.5&yAxisSide=right&title=openlibrary+++Unique+IPs+per+day+++(uip_openlibrary)&hideLegend=true&target=cactiStyle(alias(summarize(sumSeries(group(stats.uniqueips.openlibrary)),%221day%22),%22openlibrary+++Unique+IPs+per+day+++(uip_openlibrary)%22))&colorList=00ff00&height=200&width=900&from=-60days"/>
+  <img alt="Unique visitors IPs per day graph" src="http://graphite.us.archive.org/render/?min=0&template=plain&lineMode=staircase&areaMode=stacked&areaAlpha=0.5&yAxisSide=right&title=openlibrary+++Unique+IPs+per+day+++(uip_openlibrary)&hideLegend=true&target=cactiStyle(alias(summarize(sumSeries(group(stats.uniqueips.openlibrary)),%221day%22),%22openlibrary+++Unique+IPs+per+day+++(uip_openlibrary)%22))&colorList=00ff00&height=200&width=900&from=-60days"/>
 
   <h2>Borrows</h2>
-  <img alt="Borrows, last 3 months graph" src="//graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-3months&tz=UTC&width=900"/>
-  <img alt="Borrows, last 2 years graph" src="//graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-24months&tz=UTC&width=900"/>
+  <img alt="Borrows, last 3 months graph" src="http://graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-3months&tz=UTC&width=900"/>
+  <img alt="Borrows, last 2 years graph" src="http://graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-24months&tz=UTC&width=900"/>
 
   <div class="contentSpacer"></div>
 
