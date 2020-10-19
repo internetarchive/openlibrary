@@ -114,6 +114,21 @@ re_olid = re.compile(r'^OL\d+([AMW])$')
 plurals = dict((f + 's', f) for f in ('publisher', 'author'))
 
 
+def depunctuate(s):
+    """A developer from project Koha noticed Open Library search failing
+    for queries of the form:
+    openlibrary.org/search?author=Potter+Will&title=Green+is+the+new+red+%3A
+
+    This method attempts to sanitize fields of solr queries (for now,
+    just my removing `:`'s and stripping trailing whitespace.
+
+    :param str s: a solr field value (e.g. a title)
+    :rtype: string
+    :return: the sanitized string
+    """
+    return s.replace(':', '').strip()
+
+
 def read_author_facet(af):
     # example input: "OL26783A Leo Tolstoy"
     return re_author_facet.match(af).groups()
@@ -278,7 +293,7 @@ def build_q_list(param):
                     q_list.append("(author_name:(%(name)s) OR author_alternative_name:(%(name)s))" % {'name': v})
 
         check_params = ['title', 'publisher', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
-        q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
+        q_list += ['%s:(%s)' % (k, depunctuate(param[k])) for k in check_params if k in param]
         if param.get('isbn'):
             q_list.append('isbn:(%s)' % (normalize_isbn(param['isbn']) or param['isbn']))
     return (q_list, use_dismax)
