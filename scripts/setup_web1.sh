@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# This script is used to provision an ol-webX node _before_ docker gets on it.
 # CAUTION: To git clone olsystem, environment variables must be set...
 # Set $GITHUB_USERNAME or $USER will be used.
 # Set $GITHUB_TOKEN or this script will halt.
@@ -22,15 +22,16 @@ sudo useradd --no-log-init --system --gid openlibrary --create-home openlibrary
 cd /opt
 ls -l  # nothing
 
-# sudo git clone https://github.com/internetarchive/openlibrary
-sudo git clone https://github.com/cclauss/openlibrary
+OL_REPO=${OL_REPO:-internetarchive}
+sudo git clone https://github.com/$OL_REPO/openlibrary
 sudo git clone https://${GITHUB_USERNAME:-$USER}:${GITHUB_TOKEN}@github.com/internetarchive/olsystem
 # sudo git pull https://${GITHUB_USERNAME:-$USER}:${GITHUB_TOKEN}@github.com/internetarchive/olsystem.git master
 sudo chown openlibrary /opt/*
 ls -l  # containerd, olsystem, openlibrary owned by openlibrary
 
 cd /opt/openlibrary
-sudo git checkout Setup-ol-web1-yet-again
+OL_BRANCH=${OL_BRANCH:-master}
+sudo git checkout $OL_BRANCH
 sudo make git
 cd /opt/openlibrary/vendor/infogami && sudo git pull origin master
 
