@@ -837,10 +837,13 @@ class Partials(delegate.page):
     def GET(self):
         i = web.input(workid=None, _component=None)
         component = i.pop("_component")
-        cached_component = {}
+        partial = {}
         if component == "RelatedWorkCarousel":
-            cached_component = get_cached_relatedcarousels_component(**i)
-        return delegate.RawText(simplejson.dumps(cached_component), content_type="application/json")
+            partial = _get_relatedcarousels_component(i.workid)
+        return delegate.RawText(
+            simplejson.dumps(partial),
+            content_type="application/json"
+        )
 
 
 def is_bot():
