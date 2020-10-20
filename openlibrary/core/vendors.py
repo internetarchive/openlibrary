@@ -1,10 +1,8 @@
 import logging
 import re
 import requests
-import simplejson
 import time
 from dateutil import parser as isoparser
-from decimal import Decimal
 
 from paapi5_python_sdk.api.default_api import DefaultApi
 from paapi5_python_sdk.get_items_request import GetItemsRequest

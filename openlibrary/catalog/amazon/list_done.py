@@ -3,7 +3,6 @@ from lxml.html import fromstring, tostring
 from openlibrary.catalog.utils.arc import read_arc, read_body
 import re
 import os
-import sys
 
 arc_dir = '/2/edward/amazon/arc'
 total = 0

@@ -1,8 +1,6 @@
 """Models of various OL objects.
 """
-import simplejson
 import web
-import re
 import requests
 
 from infogami.infobase import client

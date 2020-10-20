@@ -11,8 +11,6 @@ Based on the code in http://www.monkinetic.com/2011/02/statsd.html (pystatsd cli
 # http://monkinetic.com
 
 import logging
-import socket
-import random
 
 try:
     from pystatsd import Client as StatsClient
