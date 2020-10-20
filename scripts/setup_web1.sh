@@ -20,14 +20,18 @@ sudo groupadd --system openlibrary
 sudo useradd --no-log-init --system --gid openlibrary --create-home openlibrary
 
 cd /opt
-ls -l  # nothing
+ls -Fla  # nothing
+
+sudo git clone https://${GITHUB_USERNAME:-$USER}:${GITHUB_TOKEN}@github.com/internetarchive/olsystem
+# sudo git pull https://${GITHUB_USERNAME:-$USER}:${GITHUB_TOKEN}@github.com/internetarchive/olsystem.git master
+sudo mkdir /etc/nginx
+sudo ln -sfv /opt/olsystem/etc/nginx/nginx.conf /etc/nginx/nginx.conf
+sudo ln -sfv /opt/olsystem/etc/nginx/sites-available /etc/nginx/sites-available
+ls -Fla /etc/nginx  # symlinks in place
 
 OL_REPO=${OL_REPO:-internetarchive}
 sudo git clone https://github.com/$OL_REPO/openlibrary
-sudo git clone https://${GITHUB_USERNAME:-$USER}:${GITHUB_TOKEN}@github.com/internetarchive/olsystem
-# sudo git pull https://${GITHUB_USERNAME:-$USER}:${GITHUB_TOKEN}@github.com/internetarchive/olsystem.git master
-sudo chown openlibrary /opt/*
-ls -l  # containerd, olsystem, openlibrary owned by openlibrary
+ls -Fla  # containerd, olsystem, openlibrary owned by openlibrary
 
 cd /opt/openlibrary
 OL_BRANCH=${OL_BRANCH:-master}
