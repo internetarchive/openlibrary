@@ -13,13 +13,8 @@ services:
       - PYENV_VERSION=3.8.6
     volumes:
       - ../olsystem:/olsystem
-    command:
-      - |
-        ls -Fla /etc || true
-        ls -Fla /olsystem || true
-        ls -Fla /etc/nginx || true
-        mkdir /etc/nginx || true
-        ln -sfv /olsystem/etc/nginx/nginx.conf      /etc/nginx/nginx.conf
-        ln -sfv /olsystem/etc/nginx/sites-available /etc/nginx/sites-available
-        ls -Fla /etc/nginx || true
-        systemctl start nginx
+    command: >
+      bash -c "ls -Fla /etc/nginx
+      && ln -sfv /olsystem/etc/nginx/nginx.conf /etc/nginx/nginx.conf
+      && ln -sfv /olsystem/etc/nginx/sites-available /etc/nginx/sites-available
+      && ls -Fla /etc/nginx"
