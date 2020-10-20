@@ -15,6 +15,9 @@ services:
       - ../olsystem:/olsystem
     command:
       - |
-        ln -sfv /openlibrary/conf/nginx/sites-available/openlibrary.conf /etc/nginx/sites-available/
-        ln -sfv /etc/nginx/sites-available/openlibrary.conf /etc/nginx/sites-enabled/
+        ls -Fla /etc
+        ls -Fla /etc/nginx || true
+        ln -sfv /olsystem/etc/nginx/nginx.conf      /etc/nginx/nginx.conf
+        ln -sfv /olsystem/etc/nginx/sites-available /etc/nginx/sites-available
+        ls -Fla /etc/nginx || true
         systemctl start nginx
