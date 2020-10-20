@@ -611,7 +611,7 @@ class ils_cover_upload:
             auth_str = base64.decodebytes(bytes(auth_str, 'utf-8'))
             auth_str = auth_str.decode('utf-8')
         except AttributeError:
-            auth_str = base64.decodestring(authstring)
+            auth_str = base64.decodestring(auth_str)
         username, password = auth_str.split(':')
         accounts.login(username, password)
 
