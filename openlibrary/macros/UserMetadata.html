@@ -3,6 +3,11 @@ $def with (work, edition)
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ has_edition = edition is not None
 
+$ i18n_strings = {
+  $ "close_text": _("Close"),
+  $ "submit_text": _("Submit")
+  $ }
+
 $ context = {
   $ "username": username,
   $ "work": work.key
@@ -12,13 +17,13 @@ $if has_edition:
   $ context["edition"] = edition.key
 
 <div class="cta-section" style="text-align:center; margin-top:7px;">
-  <a id="modal-link" href="javascript:;" data-context="$json_encode(context)">What did you think?</a>
+  <a id="modal-link" href="javascript:;" data-context="$json_encode(context)" data-i18n="$json_encode(i18n_strings)">$_("What did you think?")</a>
 </div>
 
 <div class="hidden">
   <div id="metadata-form" class="floaterAdd">
     <div class="floaterHead">
-      <h2>Share your thoughts</h2>
+      <h2>$_("Share your thoughts")</h2>
       <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
     </div>
     <form class="floatform" name="user-metadata" id="user-metadata"></form>

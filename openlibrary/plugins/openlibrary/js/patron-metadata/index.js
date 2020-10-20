@@ -11,6 +11,8 @@ export function initPatronMetadata() {
     }
 
     function populateForm($form, aspects) {
+        let i18nStrings = JSON.parse(document.querySelector('#modal-link').dataset.i18n);
+
         for (const aspect of aspects) {
             let className = aspect.multi_choice ? 'multi-choice' : 'single-choice';
             let $choices = $(`<div class="${className}"></div>`);
@@ -36,8 +38,8 @@ export function initPatronMetadata() {
         $form.append(`
             <div class="formElement metadata-submit">
               <div class="input">
-                <button type="submit">Submit</button>
-                <a class="small dialog--close plain" href="javascript:;" id="cancel-submission">Cancel</a>
+                <button type="submit">${i18nStrings.submit_text}</button>
+                <a class="small dialog--close plain" href="javascript:;" id="cancel-submission">${i18nStrings.close_text}</a>
               </div>
             </div>`);
     }
