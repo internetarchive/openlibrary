@@ -15,8 +15,10 @@ services:
       - ../olsystem:/olsystem
     command:
       - |
-        ls -Fla /etc
+        ls -Fla /etc || true
+        ls -Fla /olsystem || true
         ls -Fla /etc/nginx || true
+        mkdir /etc/nginx || true
         ln -sfv /olsystem/etc/nginx/nginx.conf      /etc/nginx/nginx.conf
         ln -sfv /olsystem/etc/nginx/sites-available /etc/nginx/sites-available
         ls -Fla /etc/nginx || true
