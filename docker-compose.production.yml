@@ -16,5 +16,5 @@ services:
     command:
       - |
         ln -sfv /openlibrary/conf/nginx/sites-available/openlibrary.conf /etc/nginx/sites-available/
-        && ln -sfv /etc/nginx/sites-available/openlibrary.conf /etc/nginx/sites-enabled/
-        && systemctl start nginx
+        ln -sfv /etc/nginx/sites-available/openlibrary.conf /etc/nginx/sites-enabled/
+        systemctl start nginx
