@@ -64,9 +64,9 @@ For example, to access Solr admin, go to http://localhost:8983/solr/admin/
 While running the `oldev` container, gunicorn is configured to auto-reload modified files. To see the effects of your changes in the running container, the following apply:
 
 - **Editing python files or web templates?** Simply save the file; gunicorn will auto-reload it.
-- **Editing frontend css or js?** Run `docker-compose exec web npm run-script build-assets`. This will re-generate the assets in the persistent `ol-build` volume mount (so the latest changes will be available between stopping / starting  `web` containers). Note, if you want to view the generated output you will need to attach to the container (`docker-compose exec web bash`) to examine the files in the volume, not in your local dir.
-- **Editing pip packages?** Rebuild the `web` service: `docker-compose build web`
-- **Editing npm packages?** Run `docker-compose exec web npm install` (see [#2032](https://github.com/internetarchive/openlibrary/issues/2032) for why)
+- **Editing frontend css or js?** Run `docker-compose exec home npm run-script build-assets`. This will re-generate the assets in the persistent `ol-build` volume mount (so the latest changes will be available between stopping / starting  `web` containers). Note, if you want to view the generated output you will need to attach to the container (`docker-compose exec web bash`) to examine the files in the volume, not in your local dir.
+- **Editing pip packages?** Rebuild the `home` service: `docker-compose build home`
+- **Editing npm packages?** Run `docker-compose exec home npm install` (see [#2032](https://github.com/internetarchive/openlibrary/issues/2032) for why)
 - **Editing core dependencies?** You will most likely need to do a full rebuild. This shouldn't happen too frequently. If you are making this sort of change, you will know exactly what you are doing ;)
 
 ## Useful Runtime Commands
@@ -79,16 +79,16 @@ docker-compose logs web # Show all logs (onetime)
 docker-compose logs -f --tail=10 web # Show last 10 lines and follow
 
 # Analyze a container
-docker-compose exec web bash # Launch terminal in `web` service
+docker-compose exec home bash # Launch terminal in `home` service
 
 # Run tests while container is running
-docker-compose exec web make test
+docker-compose exec home make test
 
 # Install Node.js modules (if you get an error running tests)
 # Important: npm jobs need to be run inside the Docker environment.
-docker-compose exec web npm install
+docker-compose exec home npm install
 # build JS/CSS assets:
-docker-compose exec web npm run build-assets
+docker-compose exec home npm run build-assets
 ```
 
 ## Rebuilding the Docker Image
@@ -110,7 +110,7 @@ Pull the changes into your openlibrary repository: ```git pull```
 When pulling down new changes you will need to rebuild the JS/CSS assets:
 ```bash
 # build JS/CSS assets:
-docker-compose exec web npm run build-assets
+docker-compose exec home npm run build-assets
 ```
 Note: This is only if you already have an existing docker image, this command is unnecessary the first time you build.
 
@@ -118,7 +118,7 @@ Note: This is only if you already have an existing docker image, this command is
 
 ```bash
 # Launch a temporary container and run tests
-docker-compose run --rm web make test
+docker-compose run --no-deps --rm home make test
 
 # Launch a temporary container on Python 3 using the local Infogami and then open in local webbrowser
 # PYENV_VERSION can be set to: 2.7.6, 3.8.6, or 3.9.0
