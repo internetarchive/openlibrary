@@ -110,6 +110,106 @@ def cached_work_authors_and_subjects(work_id):
         logger.exception("cached_work_authors_and_subjects(%s)" % work_id)
         return {'authors': [], 'subject': []}
 
+
+def compose_query_str(subject, query):
+    """
+    def compose_query_str(subject: str, query: str) -> str:
+
+    >>> compose_query_str("", "")  # doctest: +NORMALIZE_WHITESPACE
+    'openlibrary_work:(*) AND collection:(inlibrary) AND
+     loans__status__status:AVAILABLE'
+    >>> compose_query_str("subject", "")  # doctest: +NORMALIZE_WHITESPACE
+    'openlibrary_work:(*) AND (collection:(inlibrary) OR (!collection:(printdisabled)))
+     AND loans__status__status:AVAILABLE AND openlibrary_subject:subject'
+    >>> compose_query_str("", "query")  # doctest: +NORMALIZE_WHITESPACE
+    'openlibrary_work:(*) AND collection:(inlibrary) AND
+     loans__status__status:AVAILABLE AND query'
+    >>> compose_query_str("subject", "query")  # doctest: +NORMALIZE_WHITESPACE
+    'openlibrary_work:(*) AND (collection:(inlibrary) OR (!collection:(printdisabled)))
+     AND loans__status__status:AVAILABLE AND query AND openlibrary_subject:subject'
+    >>> compose_query_str("", "collection:")  # doctest: +NORMALIZE_WHITESPACE
+    'openlibrary_work:(*) AND (collection:(inlibrary) OR (!collection:(printdisabled)))
+     AND loans__status__status:AVAILABLE AND collection:'
+    >>> compose_query_str("subject", "collection:")  # doctest: +NORMALIZE_WHITESPACE
+    'openlibrary_work:(*) AND (collection:(inlibrary) OR (!collection:(printdisabled)))
+     AND loans__status__status:AVAILABLE AND collection: AND
+     openlibrary_subject:subject'
+    >>> compose_query_str("", "loans__status__status:")
+    'openlibrary_work:(*) AND collection:(inlibrary) AND loans__status__status:'
+    >>> compose_query_str(
+    ...     "subject", "loans__status__status:")  # doctest: +NORMALIZE_WHITESPACE
+    'openlibrary_work:(*) AND (collection:(inlibrary) OR (!collection:(printdisabled)))
+     AND loans__status__status: AND openlibrary_subject:subject'
+    """
+    # This import must be deferred and cannot be done at global scope.
+    from openlibrary.plugins.openlibrary.home import CAROUSELS_PRESETS
+    subject = subject or ''  # Deal with None
+    query = CAROUSELS_PRESETS.get(query, query) or ''
+    query_str = 'openlibrary_work:(*)'
+
+    # If we don't provide an openlibrary_subject and no collection is
+    # specified in our query, we restrict our query to the `inlibrary`
+    # collection (i.e. those books which are borrowable)
+    if not subject and 'collection:' not in query:
+        query_str += ' AND collection:(inlibrary)'
+    # In the only case where we are not restricting our search to
+    # borrowable books (i.e. `inlibrary`), we remove all the books
+    # which are `printdisabled` *outside* of `inlibrary`.
+    if 'collection:(inlibrary)' not in query_str:
+        query_str += ' AND (collection:(inlibrary) OR (!collection:(printdisabled)))'
+
+    # If no lending restrictions (e.g. borrow, read) are imposed in
+    # our query, we assume only borrowable books will be included in
+    # results (not unrestricted/open books).
+    if 'loans__status__status:' not in query:
+        query_str += ' AND loans__status__status:AVAILABLE'
+    if query:
+        query_str += " AND " + query
+    if subject:
+        query_str += " AND openlibrary_subject:" + subject
+    return query_str
+
+
+def compose_query_suffix_for_work_id(work_id, _type):
+    """
+    def compose_query_suffix_for_work_id(work_id: str, _type: str): -> str:
+
+    >>> from openlibrary.mocks.mock_memcache import Client
+    >>> memcache_client = Client()
+    >>> memcache_client.set("OL53918W", {
+    ...     'authors': ["Al", "Bob", "Carl", "David", "Edward VIII"],
+    ...     'subjects': ["Art", "Best", "Craft"],
+    ... })
+    >>> compose_query_suffix_for_work_id("", "")
+    ''
+    >>> compose_query_suffix_for_work_id("OL53918W", "")
+    ''
+    >>> compose_query_suffix_for_work_id("OL53918W", "authors")
+    ''
+    >>> compose_query_suffix_for_work_id("OL53918W", "subjects")
+    ''
+    """
+    _q = None
+    if work_id:
+        if _type.lower() in ["authors", "subjects"]:
+            works_authors_and_subjects = cached_work_authors_and_subjects(work_id)
+            if works_authors_and_subjects:
+                if _type == "authors":
+                    authors = []
+                    for author_name in works_authors_and_subjects.get('authors', []):
+                        authors.append(author_name)
+                        authors.append(','.join(author_name.split(' ', 1)[::-1]))
+                    if authors:
+                        _q = ' OR '.join('creator:"%s"' % author for author in authors)
+                elif _type == "subjects":
+                    subjects = works_authors_and_subjects.get('subjects', [])
+                    if subjects:
+                        _q = ' OR '.join('subject:"%s"' % subject for subject in subjects)
+    if _q:
+        return ' AND (%s) AND !openlibrary_work:(%s)' % (_q, work_id.split('/')[-1])
+    return ''
+
+
 @public
 def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                    _type=None, sorts=None, advanced=True):
@@ -119,31 +219,7 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
     (backed by archive.org search, so we don't have to send users to
     archive.org to see more books)
     """
-    from openlibrary.plugins.openlibrary.home import CAROUSELS_PRESETS
-    query = CAROUSELS_PRESETS.get(query, query)
-    q = 'openlibrary_work:(*)'
-
-    # If we don't provide an openlibrary_subject and no collection is
-    # specified in our query, we restrict our query to the `inlibrary`
-    # collection (i.e. those books which are borrowable)
-    if (not subject) and (not query or 'collection:' not in query):
-        q += ' AND collection:(inlibrary)'
-    # In the only case where we are not restricting our search to
-    # borrowable books (i.e. `inlibrary`), we remove all the books
-    # which are `printdisabled` *outside* of `inlibrary`.
-    if 'collection:(inlibrary)' not in q:
-        q += ' AND (collection:(inlibrary) OR (!collection:(printdisabled)))'
-
-    # If no lending restrictions (e.g. borrow, read) are imposed in
-    # our query, we assume only borrowable books will be included in
-    # results (not unrestricted/open books).
-    if (not query) or ('loans__status__status:' not in query):
-        q += ' AND loans__status__status:AVAILABLE'
-    if query:
-        q += " AND " + query
-    if subject:
-        q += " AND openlibrary_subject:" + subject
-
+    q = compose_query_str(subject, query)
     if work_id:
         if _type.lower() in ["authors", "subjects"]:
             _q = None

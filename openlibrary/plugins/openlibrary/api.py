@@ -72,6 +72,10 @@ class browse(delegate.page):
         result = {
             'query': url,
             'works': [work.dict() for work in lending.get_available(url=url)],
+        } if url else {
+            'error': 'openlibrary.core.lending.compose_ia_url() failed',
+            'query': url,
+            'works': [],
         }
         return delegate.RawText(
             simplejson.dumps(result),
