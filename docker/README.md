@@ -118,7 +118,7 @@ Note: This is only if you already have an existing docker image, this command is
 
 ```bash
 # Launch a temporary container and run tests
-docker-compose run --no-deps --rm home make test
+docker-compose run --rm home make test
 
 # Launch a temporary container on Python 3 using the local Infogami and then open in local webbrowser
 # PYENV_VERSION can be set to: 2.7.6, 3.8.6, or 3.9.0

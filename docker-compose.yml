@@ -105,8 +105,6 @@ services:
       context: .
       dockerfile: docker/Dockerfile.oldev
     command: docker/ol-home-start.sh
-    depends_on:
-      - db
     volumes:
       - ol-vendor:/openlibrary/vendor
       - ol-build:/openlibrary/static/build
