@@ -12,5 +12,5 @@ repos:
         name: make lint-diff
         # Running git inside docker is slow for some reason, so do that outside and pipe
         # the results into docker.
-        entry: git diff master -U0 | docker-compose run --rm web ./scripts/flake8-diff.sh
+        entry: git diff master -U0 | docker-compose run --no-dep --rm home ./scripts/flake8-diff.sh
         language: script
