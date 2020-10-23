@@ -49,7 +49,6 @@ export function initPatronMetadata() {
             $.ajax({
                 type: 'GET',
                 url: 'https://dev.thebestbookon.com/api/aspects',
-                contentType: 'application/json',
                 dataType: 'json'
             })
                 .done(function(data) {
@@ -97,7 +96,8 @@ export function initPatronMetadata() {
         if (result['observations'].length > 0) {
             $.ajax({
                 type: 'POST',
-                url: 'https://dev.thebestbookon.com/api/observations.json',
+                url: 'https://dev.thebestbookon.com/api/observations',
+                contentType: 'application/json',
                 data: JSON.stringify(result)
             });
             $.colorbox.close();
