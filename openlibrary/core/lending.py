@@ -184,7 +184,7 @@ def compose_query_suffix_for_work_id(work_id, _type):
     ...     "OL53918W", "authors"
     ... )  # doctest: +NORMALIZE_WHITESPACE
     ' AND (creator:"Asimov" OR creator:"Asimov" OR creator:"Robert A. Heinlein" OR
-     creator:"Heinlein,Robert A.") AND !openlibrary_work:(OL53918W)'
+     creator:"A. Heinlein,Robert") AND !openlibrary_work:(OL53918W)'
     >>> compose_query_suffix_for_work_id("OL53918W", "subjects")
     ''
     """
