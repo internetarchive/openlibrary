@@ -170,20 +170,22 @@ def compose_query_str(subject, query):
     return query_str
 
 
+test_data = {}
+
 def compose_query_suffix_for_work_id(work_id, _type):
     """
     def compose_query_suffix_for_work_id(work_id: str, _type: str): -> str:
 
     >>> from openlibrary.mocks.mock_memcache import Client
     >>> memcache_client = Client()
-    >>> test_data= {
-    ...     'authors': ["Al", "Bob", "Carl", "David", "Edward VIII"],
-    ...     'subjects': ["Art", "Best", "Craft"],
-    ... }
     >>> compose_query_suffix_for_work_id("", "")
     ''
     >>> compose_query_suffix_for_work_id("OL53918W", "")
     ''
+    >>> test_data = {
+    ...     'authors': ["Al", "Bob", "Carl", "David", "Edward VIII"],
+    ...     'subjects': ["Art", "Best", "Craft"],
+    ... }
     >>> compose_query_suffix_for_work_id("OL53918W", "authors")
     ''
     >>> compose_query_suffix_for_work_id("OL53918W", "subjects")
