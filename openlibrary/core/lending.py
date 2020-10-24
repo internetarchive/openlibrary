@@ -194,12 +194,12 @@ def compose_query_suffix_for_work_id(work_id, _type):
     if work_id:
         if _type.lower() in ["authors", "subjects"]:
             # try:
-            works_authors_and_subjects = cached_work_authors_and_subjects(work_id)
+            # works_authors_and_subjects = cached_work_authors_and_subjects(work_id)
             # except Exception:
-            #    works_authors_and_subjects = {
-            #        'authors': ["Asimov", "Robert A. Heinlein"],
-            #        'subjects': ["Art", "Best", "Craft"],
-            #    }
+            works_authors_and_subjects = {
+                'authors': ["Asimov", "Robert A. Heinlein"],
+                'subjects': ["Art", "Best", "Craft"],
+            }
             if works_authors_and_subjects:
                 if _type == "authors":
                     authors = []
