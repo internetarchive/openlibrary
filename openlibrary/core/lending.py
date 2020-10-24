@@ -188,7 +188,7 @@ def compose_query_suffix_for_work_id(work_id, _type):
     ' AND (creator:"Asimov" OR creator:"Asimov" OR creator:"Robert A. Heinlein" OR
      creator:"A. Heinlein,Robert") AND !openlibrary_work:(OL53918W)'
     >>> compose_query_suffix_for_work_id("OL53918W", "subjects")
-    ''
+    ' AND (subject:"A" OR subject:"B" OR subject:"C") AND !openlibrary_work:(OL53918W)'
     """
     _q = None
     if work_id:
