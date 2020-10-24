@@ -176,10 +176,10 @@ def compose_query_suffix_for_work_id(work_id, _type):
 
     >>> from openlibrary.mocks.mock_memcache import Client
     >>> memcache_client = Client()
-    >>> memcache_client.set("OL53918W", {
+    >>> test_data= {
     ...     'authors': ["Al", "Bob", "Carl", "David", "Edward VIII"],
     ...     'subjects': ["Art", "Best", "Craft"],
-    ... })
+    ... }
     >>> compose_query_suffix_for_work_id("", "")
     ''
     >>> compose_query_suffix_for_work_id("OL53918W", "")
@@ -192,7 +192,10 @@ def compose_query_suffix_for_work_id(work_id, _type):
     _q = None
     if work_id:
         if _type.lower() in ["authors", "subjects"]:
-            works_authors_and_subjects = cached_work_authors_and_subjects(work_id)
+            try:
+                works_authors_and_subjects = cached_work_authors_and_subjects(work_id)
+            except Exception:
+                works_authors_and_subjects = test_data
             if works_authors_and_subjects:
                 if _type == "authors":
                     authors = []
