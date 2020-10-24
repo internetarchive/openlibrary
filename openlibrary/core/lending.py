@@ -174,9 +174,7 @@ def compose_query_suffix_for_work_id(work_id, _type):
     """
     def compose_query_suffix_for_work_id(work_id: str, _type: str): -> str:
 
-    >>> from openlibrary.mocks.mock_memcache import Client
-    >>> memcache_client = Client()
-    >>> cache.memcache_memoize({"OL53918W": {
+    >>> _ = cache.memcache_memoize({"OL53918W": {
     ...     'authors': ["Asimov", "Robert A. Heinlein"],
     ...     'subjects': ["Art", "Best", "Craft"],
     ... }})
