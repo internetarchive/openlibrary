@@ -68,15 +68,19 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
     $:macros.databarView(page)
 
-    <h1>$title</h1>
-    <h2 class="author collapse">
-    $if page.birth_date or page.death_date:
-        $page.birth_date - $page.death_date
-    $else:
-        $if page.date:
-            $page.date
-    </h2>
+    <div itemscope itemtype="https://schema.org/Person">
+        <h1 itemprop="author">$title</h1>
+        <h2 class="author collapse">
+        $if page.birth_date or page.death_date:
+            <span itemprop="birthDate">$page.birth_date</span> - <span itemprop="deathDate">$page.death_date</span>
+        $else:
+            $if page.date:
+                $page.date
+        </h2>
+    </div>
+
 </div>
+
 <div id="contentBody">
 
     $if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and query_param('merge', 'false') == 'true':
@@ -175,10 +179,10 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
         $def render_subjects(label, subjects, prefix):
             $if subjects:
-                <div class="section">
+                <div class="section" itemscope itemtype="https://schema.org/CreativeWork">
                     <h6 class="collapse black uppercase">$label</h6>
                     $for subject, count in subjects:
-                        <a href="/subjects/$prefix$subject.lower().replace(' ', '_')">$subject</a>$cond(not loop.last, ",", "")
+                        <a itemprop="about" href="/subjects/$prefix$subject.lower().replace(' ', '_')">$subject</a>$cond(not loop.last, ",", "")
                 </div>
 
         <!-- SUBJECTS DISPLAY -->
@@ -194,7 +198,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 $:render_template("lists/widget", page, include_rating=False)
             </div>
 
-        <div class="section">
+        <div class="section" itemscope itemtype="https://schema.org/Thing">
             <h3>$:_('Links <span class="gray small sansserif">(outside Open Library)')</span></h3>
 
             $if page.links or page.remote_ids or (page.wikipedia and page.wikipedia.startswith("http")):
@@ -207,11 +211,11 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                         $ viaf = page.remote_ids.viaf
                         <li>VIAF: <a href="https://viaf.org/viaf/$viaf">$viaf</a></li>
                     $if page.remote_ids.wikidata:
-                        <li>Wikidata: <a href="https://tools.wmflabs.org/reasonator/?q=$page.remote_ids.wikidata">$page.remote_ids.wikidata</a></li>
+                        <li>Wikidata: <a itemprop="sameAs" href="https://tools.wmflabs.org/reasonator/?q=$page.remote_ids.wikidata">$page.remote_ids.wikidata</a></li>
                 $if page.wikipedia and page.wikipedia.startswith("http"):
-                    <li><a href="$page.wikipedia">Wikipedia</a></li>
+                    <li><a itemprop="sameAs" href="$page.wikipedia">Wikipedia</a></li>
                 $for link in page.links:
-                    <li><a href="$link.url">$link.title</a></li>
+                    <li><a itemprop="sameAs" href="$link.url">$link.title</a></li>
                 </ul>
             $else:
                 <p class="sansserif small">$_('No links yet.') <a href="$page.url('/edit')#web">$_('Add one')</a>?</p>
@@ -220,9 +224,12 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
         $if page.alternate_names:
             $if page.alternate_names != [""]:
-                <div class="section">
+                <div class="section" itemscope itemtype="https://schema.org/Thing">
                     <h3>$_("Alternative names")</h3>
-                    <ul class="booklinks sansserif"><li>$:"</li><li>".join(page.alternate_names)</li></ul>
+                    <ul class="booklinks sansserif">
+                        $for alternate_name in page.alternate_names:
+                            <li itemprop="alternateName">$alternate_name</li>
+                    </ul>
                 </div>
 
     </div>
