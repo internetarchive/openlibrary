@@ -144,35 +144,43 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
     if subject:
         q += " AND openlibrary_subject:" + subject
 
-    if work_id:
-        if _type.lower() in ["authors", "subjects"]:
-            _q = None
-            works_authors_and_subjects = cached_work_authors_and_subjects(work_id)
-            if works_authors_and_subjects:
-                if _type == "authors":
-                    authors = []
-                    for author_name in works_authors_and_subjects.get('authors', []):
-                        authors.append(author_name)
-                        authors.append(','.join(author_name.split(' ', 1)[::-1]))
-                    if authors:
-                        _q = ' OR '.join('creator:"%s"' % author for author in authors)
-                elif _type == "subjects":
-                    subjects = works_authors_and_subjects.get('subjects', [])
-                    if subjects:
-                        _q = ' OR '.join('subject:"%s"' % subject for subject in subjects)
-            if not _q:
-                logger.error('compose_ia_url failed!', extra={
-                    'limit': limit,
-                    'page': page,
-                    'subject': subject,
-                    'query': query,
-                    'work_id': work_id,
-                    '_type': _type,
-                    'sorts': sorts,
-                    'advanced': advanced,
-                })
-                return ''  # TODO: Should we just raise an excpetion instead?
-            q += ' AND (%s) AND !openlibrary_work:(%s)' % (_q, work_id.split('/')[-1])
+    if work_id and _type.lower() in ("authors", "subjects"):
+        _q = None
+        problem = "{} has no authors and subjects".format(work_id)
+        works_authors_and_subjects = cached_work_authors_and_subjects(work_id)
+        if works_authors_and_subjects:
+            if _type == "authors":
+                authors = []
+                for author_name in works_authors_and_subjects.get('authors', []):
+                    authors.append(author_name)
+                    authors.append(','.join(author_name.split(' ', 1)[::-1]))
+                if authors:
+                    _q = ' OR '.join('creator:"%s"' % author for author in authors)
+                else:
+                    problem = "{} has no authors".format(work_id)
+            elif _type == "subjects":
+                subjects = works_authors_and_subjects.get('subjects', [])
+                if subjects:
+                    _q = ' OR '.join('subject:"%s"' % subject for subject in subjects)
+                else:
+                    problem = "{} has no subjects".format(work_id)
+            else:
+                problem = "{} type {} not in authors, subjects".format(work_id, _type)
+
+        if not _q:
+            logger.error('compose_ia_url failed!', extra={
+                'limit': limit,
+                'page': page,
+                'subject': subject,
+                'query': query,
+                'work_id': work_id,
+                '_type': _type,
+                'sorts': sorts,
+                'advanced': advanced,
+                'problem': problem,
+            })
+            raise ValueError("compose_ia_url(): {}".format(problem))
+        q += ' AND (%s) AND !openlibrary_work:(%s)' % (_q, work_id.split('/')[-1])
 
     if not advanced:
         _sort = sorts[0] if sorts else ''
@@ -261,10 +269,6 @@ def get_available(limit=None, page=1, subject=None, query=None,
         work_id=work_id, _type=_type, sorts=sorts
     )
     if not url:
-        fmt = (
-            "get_available(limit={}, page={}, subject={}, query={}, "
-            "work_id={}, _type={}, sorts={}"
-        )
         logger.error('get_available failed', extra={
             'limit': limit,
             'page': page,
