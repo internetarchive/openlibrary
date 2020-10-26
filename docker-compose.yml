@@ -38,6 +38,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.olsolr
+    restart: always
     environment:
       - ENV=${ENV:-dev}
     ports:
