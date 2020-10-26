@@ -1,8 +1,9 @@
 $def with (page)
 
+$ h = None
 $if "superfast" in ctx.features and "history_v2" not in ctx.features:
     $ h = page.get_history_preview()
-$else:
+$if not h:
     $ h = get_history(page)
 
 $ versions = h.recent + h.initial

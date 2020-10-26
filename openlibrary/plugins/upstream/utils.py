@@ -17,7 +17,7 @@ from six.moves.collections_abc import MutableMapping
 
 from infogami import config
 from infogami.utils import view, delegate, stats
-from infogami.utils.view import render, get_template, public
+from infogami.utils.view import render, get_template, public, query_param
 from infogami.utils.macro import macro
 from infogami.utils.context import context
 from infogami.infobase.client import Thing, Changeset, storify
@@ -127,6 +127,8 @@ def render_component(name, attrs=None, json_encode=True):
     :param str name: Name of the component (excluding extension)
     :param dict attrs: attributes to add to the component element
     """
+    from openlibrary.plugins.upstream.code import static_url
+
     attrs = attrs or {}
     attrs_str = ''
     for (key, val) in attrs.items():
@@ -136,8 +138,16 @@ def render_component(name, attrs=None, json_encode=True):
 
     html = ''
     included = web.ctx.setdefault("included-components", [])
+
+    if len(included) == 0:
+        # Need to include Vue
+        html += '<script src="%s"></script>' % static_url('build/vue.js')
+
     if name not in included:
-        html += '<script src="/static/build/components/ol-%s.js"></script>' % name
+        url = static_url('build/components/production/ol-%s.min.js' % name)
+        if query_param('debug'):
+            url = static_url('build/components/development/ol-%s.js' % name)
+        html += '<script src="%s"></script>' % url
         included.append(name)
 
     html += '<ol-%(name)s %(attrs)s></ol-%(name)s>' % {

@@ -5,6 +5,7 @@ from openlibrary.catalog.marc.marc_base import BadMARC, NoTitle, MarcException
 from openlibrary.catalog.utils import (
     pick_first_date, remove_trailing_dot, remove_trailing_number_dot, tidy_isbn
 )
+
 re_bad_char = re.compile(u'\ufffd')
 re_question = re.compile(r'^\?+$')
 re_lccn = re.compile(r'([ \dA-Za-z\-]{3}[\d/-]+).*')

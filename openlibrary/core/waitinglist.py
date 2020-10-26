@@ -22,7 +22,6 @@ from . import db
 from . import lending
 
 
-
 logger = logging.getLogger("openlibrary.waitinglist")
 
 _wl_api = lending.ia_lending_api
