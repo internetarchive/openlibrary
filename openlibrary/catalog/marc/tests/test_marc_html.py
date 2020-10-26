@@ -1,5 +1,3 @@
-import pytest
-
 from openlibrary.catalog.marc.html import html_record
 
 

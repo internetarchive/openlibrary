@@ -1,5 +1,5 @@
 from __future__ import print_function
-from lxml.html import parse, tostring, fromstring
+from lxml.html import fromstring
 import re
 import sys
 import os
@@ -8,8 +8,6 @@ from time import sleep
 from os.path import exists
 from datetime import date, timedelta, datetime
 
-from six.moves.urllib.parse import unquote
-from six.moves.urllib.request import urlopen
 
 
 # scrap Amazon for book and author data
