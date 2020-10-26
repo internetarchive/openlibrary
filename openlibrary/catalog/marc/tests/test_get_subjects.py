@@ -1,4 +1,4 @@
-from openlibrary.catalog.marc.marc_xml import MarcXml, BadSubtag, BlankTag
+from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.get_subjects import (
     four_types, read_subjects)
