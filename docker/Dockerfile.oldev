@@ -10,7 +10,8 @@ RUN mkdir -p /var/lib/coverstore \
 USER openlibrary
 COPY requirements*.txt ./
 RUN python2 -m pip install --disable-pip-version-check -r requirements_test.txt
-RUN python3 -m pip install -r requirements_test.txt
+RUN python3.8 -m pip install -r requirements_test.txt
+RUN python3.9 -m pip install -r requirements_test.txt
 
 COPY package*.json ./
 RUN npm ci
