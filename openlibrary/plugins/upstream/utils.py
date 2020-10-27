@@ -8,7 +8,6 @@ import re
 import random
 import xml.etree.ElementTree as etree
 import datetime
-import gzip
 import logging
 
 import six

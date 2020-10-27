@@ -9,7 +9,6 @@ import traceback
 import logging
 import simplejson
 import yaml
-from copy import copy
 
 from infogami import config
 from infogami.utils import delegate
