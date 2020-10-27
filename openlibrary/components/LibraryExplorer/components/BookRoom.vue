@@ -101,7 +101,7 @@ export default {
         }
     },
     watch: {
-        async classification(newVal, oldVal) {
+        async classification(newVal) {
             this.activeRoom = newVal.root;
             this.breadcrumbs = [];
             await Vue.nextTick();

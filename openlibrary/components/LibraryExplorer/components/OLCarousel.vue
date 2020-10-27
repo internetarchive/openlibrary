@@ -89,7 +89,7 @@ export default {
         }
     },
     watch: {
-        query(newVal, oldVal) {
+        query() {
             this.status = 'Start';
             this.results.splice(0, this.results.length);
             this.numFound = null;

@@ -1,7 +1,7 @@
 <template>
   <div class="bookshelf">
     <Shelf
-      v-for="(lvl, i) of node.children"
+      v-for="lvl of node.children"
       :key="lvl.short"
       :parent="node"
       :node="lvl"

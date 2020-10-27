@@ -178,7 +178,7 @@ export default {
 
         styles() {
             const inDebugMode = new URLSearchParams(location.search).get('debug') == 'true';
-            return inDebugMode ? this.settingsState.styles : Object.fromEntries(Object.entries(this.settingsState.styles).filter(([_, val]) => !val.debugModeOnly));
+            return inDebugMode ? this.settingsState.styles : Object.fromEntries(Object.entries(this.settingsState.styles).filter(([, val]) => !val.debugModeOnly));
         }
     }
 }

@@ -4,7 +4,7 @@
       <slot name="book-end-start"/>
     </div>
 
-    <a class="book" v-for="(book, i) in books" :key="book.key" :href="`https://openlibrary.org${book.key}`" target="_blank" :title="book.title">
+    <a class="book" v-for="book in books" :key="book.key" :href="`https://openlibrary.org${book.key}`" target="_blank" :title="book.title">
       <slot name="cover" v-bind:book="book">
         <FlatBookCover :book="book"/>
       </slot>
