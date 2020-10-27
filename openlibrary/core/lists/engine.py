@@ -4,7 +4,6 @@
 import collections
 import re
 
-import simplejson
 import web
 
 import six

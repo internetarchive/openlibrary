@@ -1,11 +1,8 @@
 """Helper functions used by the List model.
 """
-from collections import defaultdict
 import datetime
-import re
 import time
 
-import simplejson
 import web
 import logging
 

@@ -2,7 +2,6 @@ from __future__ import print_function
 import simplejson
 import web
 import sys
-import traceback
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.core import helpers as h

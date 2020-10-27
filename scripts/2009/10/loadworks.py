@@ -1,7 +1,6 @@
 """Script to load works fast."""
 import sys, os
 import time
-import simplejson
 import web
 
 import _init_path
