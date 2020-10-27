@@ -12,7 +12,7 @@
     "svg-min": "svgo --config .svgo.yml static/images/**/*.svg static/images/*.svg",
     "lint": "npm run lint:js && npm run lint:css",
     "lint:js": "eslint --ext js,vue .",
-    "lint:css": "stylelint ./**/*.{less,vue}",
+    "lint:css": "stylelint ./**/*.less",
     "lint-fix": "npm run lint-fix:js && npm run lint-fix:css",
     "lint-fix:js": "eslint --fix --ext js,vue .",
     "lint-fix:css": "stylelint --fix ./**/*.{less,vue}",
