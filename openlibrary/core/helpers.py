@@ -31,8 +31,6 @@ from infogami import config
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
 
-# TODO: i18n should be moved to core or infogami
-
 __all__ = [
     "sanitize",
     "json_encode",
