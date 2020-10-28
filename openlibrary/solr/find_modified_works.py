@@ -4,7 +4,6 @@ from __future__ import print_function
 import argparse
 import datetime
 import itertools
-import os
 import sys
 import time
 import requests

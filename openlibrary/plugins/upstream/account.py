@@ -1,12 +1,7 @@
 import json
 
 import web
-import hmac
 import logging
-import random
-import uuid
-import datetime
-import time
 import simplejson
 import re
 

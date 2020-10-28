@@ -10,7 +10,6 @@ import web
 import simplejson
 import json
 import os
-import sys
 import socket
 import random
 import datetime
