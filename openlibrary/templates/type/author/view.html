@@ -198,7 +198,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 $:render_template("lists/widget", page, include_rating=False)
             </div>
 
-        <div class="section" itemscope itemtype="https://schema.org/Thing">
+        <div class="section" itemscope itemtype="https://schema.org/Person">
             <h3>$:_('Links <span class="gray small sansserif">(outside Open Library)')</span></h3>
 
             $if page.links or page.remote_ids or (page.wikipedia and page.wikipedia.startswith("http")):
@@ -206,16 +206,16 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 $if page.remote_ids:
                     $if page.remote_ids.isni:
                        $ isni = page.remote_ids.isni
-                       <li>ISNI: <a href="http://www.isni.org/$isni">$' '.join([isni[i:i+4] for i in range(0, 16, 4)])</a></li>
+                       <li>ISNI: <a itemprop="sameAs" href="http://www.isni.org/$isni">$' '.join([isni[i:i+4] for i in range(0, 16, 4)])</a></li>
                     $if page.remote_ids.viaf:
                         $ viaf = page.remote_ids.viaf
-                        <li>VIAF: <a href="https://viaf.org/viaf/$viaf">$viaf</a></li>
+                        <li>VIAF: <a itemprop="sameAs" href="https://viaf.org/viaf/$viaf">$viaf</a></li>
                     $if page.remote_ids.wikidata:
                         <li>Wikidata: <a itemprop="sameAs" href="https://tools.wmflabs.org/reasonator/?q=$page.remote_ids.wikidata">$page.remote_ids.wikidata</a></li>
                 $if page.wikipedia and page.wikipedia.startswith("http"):
                     <li><a itemprop="sameAs" href="$page.wikipedia">Wikipedia</a></li>
                 $for link in page.links:
-                    <li><a itemprop="sameAs" href="$link.url">$link.title</a></li>
+                    <li><a href="$link.url">$link.title</a></li>
                 </ul>
             $else:
                 <p class="sansserif small">$_('No links yet.') <a href="$page.url('/edit')#web">$_('Add one')</a>?</p>
