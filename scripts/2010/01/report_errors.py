@@ -5,7 +5,10 @@ from collections import defaultdict
 from optparse import OptionParser
 
 import web
-from BeautifulSoup import BeautifulSoup
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    from BeautifulSoup import BeautifulSoup
 
 TEMPLATE = """\
 $def with (hostname, date, dir, errors)
