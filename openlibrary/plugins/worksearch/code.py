@@ -879,21 +879,21 @@ def random_author_search(limit=10):
     Returns a JSON string that contains a random list of authors.  Amount of authors
     returned is set be the given limit.
     """
-    s = string.ascii_letters + string.digits
-    seed = ''.join(random.choice(s) for _ in range(10))
+    letters_and_digits = string.ascii_letters + string.digits
+    seed = ''.join(random.choice(letters_and_digits) for _ in range(10))
     rows = '&rows=%d' % (limit)
     sort = '&sort=random_%s+desc' % (seed)
     solr_select = solr_select_url + "?fq=type:author&q.op=AND&q=*&wt=json" + rows + sort
 
-    d = run_solr_search(solr_select)
+    search_results = run_solr_search(solr_select)
 
-    docs = d.get('response', {}).get('docs', [])
+    docs = search_results.get('response', {}).get('docs', [])
     for doc in docs:
         # replace /authors/OL1A with OL1A
         # The template still expects the key to be in the old format
         doc['key'] = doc['key'].split("/")[-1]
 
-    return json.dumps(d['response'])
+    return json.dumps(search_results['response'])
 
 
 @public
