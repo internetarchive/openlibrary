@@ -22,8 +22,8 @@ jobs:
         - safety check || true
     - name: Python 3.8 on focal
       python: "3.8"
-    - name: Python 3.9-dev on focal
-      python: "3.9-dev"
+    - name: Python 3.9 on focal
+      python: "3.9"
 
     - name: Node
       language: node_js
@@ -49,7 +49,7 @@ install:
     fi
 
 script:
-  - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then
+  - if [ "$TRAVIS_PYTHON_VERSION" == "3.9" ]; then
       make lint-diff;
     fi
   - make lint
