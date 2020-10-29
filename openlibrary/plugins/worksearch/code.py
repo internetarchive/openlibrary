@@ -876,16 +876,17 @@ class author_search_json(author_search):
 @public
 def random_author_search(limit=10):
     """
-    Returns a JSON string that contains a random list of authors.  Amount of authors 
+    Returns a JSON string that contains a random list of authors.  Amount of authors
     returned is set be the given limit.
     """
-    seed = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
-    rows = '&rows=%d' %(limit)
+    s = string.ascii_letters + string.digits
+    seed = ''.join(random.choice(s) for _ in range(10))
+    rows = '&rows=%d' % (limit)
     sort = '&sort=random_%s+desc' % (seed)
     solr_select = solr_select_url + "?fq=type:author&q.op=AND&q=*&wt=json" + rows + sort
 
     d = run_solr_search(solr_select)
-    
+
     docs = d.get('response', {}).get('docs', [])
     for doc in docs:
         # replace /authors/OL1A with OL1A
