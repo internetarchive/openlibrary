@@ -84,6 +84,7 @@ COPY --chown=openlibrary:openlibrary . /openlibrary
 RUN ln -s vendor/infogami/infogami infogami
 # run make to initialize git submodules, build css and js files
 RUN make
+RUN python3.9 -m pip list --outdated
 
 # Expose Open Library and Infobase
 EXPOSE 80 7000
