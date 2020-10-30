@@ -32,7 +32,7 @@ $var title: Search Open Library for "$q"
         $if num_found:
             <p class="sansserif darkgreen collapse"><strong>$ungettext('1 hit', '%(count)s hits', response['numFound'], count=commify(response['numFound']))</strong></p>
         $else:
-            <p class="sansserif red collapse"><strong>$_('No hits')</strong></span></p>
+            <p class="sansserif red collapse"><strong>$_('No hits')</strong></p>
 </div>
 
 <div id="contentMeta">
