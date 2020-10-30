@@ -198,7 +198,12 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 $:render_template("lists/widget", page, include_rating=False)
             </div>
 
-        <div class="section" itemscope itemtype="https://schema.org/Person">
+        $if page.birth_date or page.death_date:
+            $ entityTypeSchema = "https://schema.org/Person"
+        $elif page.entity_type:
+            $ entityTypeSchema = "https://schema.org/Organization"
+
+        <div class="section" itemscope itemtype=$entityTypeSchema>
             <h3>$:_('Links <span class="gray small sansserif">(outside Open Library)')</span></h3>
 
             $if page.links or page.remote_ids or (page.wikipedia and page.wikipedia.startswith("http")):
@@ -224,7 +229,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
         $if page.alternate_names:
             $if page.alternate_names != [""]:
-                <div class="section" itemscope itemtype="https://schema.org/Thing">
+                <div class="section" itemscope itemtype=$entityTypeSchema>
                     <h3>$_("Alternative names")</h3>
                     <ul class="booklinks sansserif">
                         $for alternate_name in page.alternate_names:
