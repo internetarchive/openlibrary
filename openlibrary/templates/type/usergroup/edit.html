@@ -25,9 +25,9 @@ $:render_template("lib/edit_head", page)
         <div class="label"><label for="members#0">Members:</label></div>
         <div class="input">
             $for i, m in enumerate(page.members):
-                <input id="members#$i" type="text" name="members#$i" value="$page.members[i].key"/>
+                <input class="members#$i" type="text" name="members#$i" value="$page.members[i].key"/>
             $for i in range(len(page.members), len(page.members)+5):
-                <input id="members#$i" type="text" name="members#$i" value=""/>
+                <input class="members#$i" type="text" name="members#$i" value=""/>
         </div>
     </div>
 

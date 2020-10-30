@@ -79,9 +79,9 @@ $code:
         schema_attribute = cond(include_schema, ' itemprop="author"', '')
         authors = cond(work, work and work.get_authors(), edition and edition.get_authors())
         if authors:
-            return ', '.join('<a href="%s"%s>%s</a>' % (a.url(), schema_attribute, truncate(a.name, 40)) for a in authors)
+            return ', '.join('<a href="%s">%s</a>' % (a.url(), schema_attribute, truncate(a.name, 40)) for a in authors)
         elif edition.author_names:
-            return ('<span%s>' % (schema_attribute)) + ", ".join(edition.author_names) + "</span>"
+            return ('<span>' % (schema_attribute)) + ", ".join(edition.author_names) + "</span>"
         else:
             return None
 
@@ -193,7 +193,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         <div class="book-description">
             <div class="book-description-content">
                 <p class="workHelp">
-                    $:_("This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=edition.url('/edit')+"#about/about")
+                    $:_("This edition doesn't have a description yet. Can you <b><a href="%(url)s">add one</a></b>?", url=edition.url('/edit')+"#about/about")
                 </p>
             </div>
         </div>
@@ -234,7 +234,6 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
             <p class="first-published-date">
               $_("First published in %s", work.first_publish_year)
             </p>
-        </h3>
         <hr>
 
         $ component_times['SubjectsTags'] = time()
@@ -245,7 +244,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
         $if not work.excerpts and work.first_sentence:
           <h4>$_("First Sentence")</h4>
-          <p class="largest" title=$_("First Sentence")><em>"$work.first_sentence</em>"</p>
+          <p class="largest" title=$_("First Sentence")><em>"$work.first_sentence"</em></p>
 
         $if work.description:
           <h4>$_("Work Description")</h4>
@@ -305,6 +304,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                       <td><span class="object">$thingrepr(work.dewey_number)</span></td></tr>
                   </tbody></table>
               </div>
+              </p>
       </div>
 
       <a name="edition-details" class="section-anchor"></a>
@@ -460,7 +460,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
   </div>
 
   $ component_times['RelatedWorksCarousel'] = time()
-  <div class="RelatedWorksCarousel" workId="$work.key.split('/')[-1]">
+  <div class="RelatedWorksCarousel" workid="$work.key.split('/')[-1]">
     <div class="hidden loadingIndicator">
         <figure>
         <img src="/images/ajax-loader-bar.gif">

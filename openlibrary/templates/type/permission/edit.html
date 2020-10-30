@@ -25,9 +25,9 @@ $:render_template("lib/edit_head", page)
         <div class="label"><label for="readers#0">Readers:</label></div>
         <div class="input">
             $for i, m in enumerate(page.readers):
-                <input id="readers#$i" type="text" name="readers#${i}.key" value="$page.readers[i].key"/>
+                <input class="readers#$i" type="text" name="readers#${i}.key" value="$page.readers[i].key"/>
             $for i in range(len(page.readers), len(page.readers)+2):
-                <input id="readers#$i" type="text" name="readers#${i}.key" value=""/>
+                <input class="readers#$i" type="text" name="readers#${i}.key" value=""/>
         </div>
     </div>
 
@@ -36,9 +36,9 @@ $:render_template("lib/edit_head", page)
         <div class="label"><label for="writers#0">Writers:</label></div>
         <div class="input">
             $for i, m in enumerate(page.writers):
-                <input id="writers#$i" type="text" name="writers#${i}.key" value="$page.writes[i].key"/>
+                <input class="writers#$i" type="text" name="writers#${i}.key" value="$page.writes[i].key"/>
             $for i in range(len(page.writers), len(page.writers)+2):
-                <input id="writers#$i" type="text" name="writers#${i}.key" value=""/>
+                <input class="writers#$i" type="text" name="writers#${i}.key" value=""/>
         </div>
     </div>
 
