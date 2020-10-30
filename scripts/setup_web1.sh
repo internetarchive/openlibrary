@@ -11,7 +11,7 @@ fi
 
 # apt list --installed
 sudo apt-get update
-sudo apt-get install -y docker.io docker-compose nginx
+sudo apt-get install -y docker.io docker-compose
 docker --version        # 19.03.8
 docker-compose version  #  1.25.0
 sudo systemctl start docker
