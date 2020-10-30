@@ -13,4 +13,3 @@ services:
       - PYENV_VERSION=3.8.6
     volumes:
       - ../olsystem:/olsystem
-    # command: systemctl start nginx

@@ -1,7 +1,5 @@
 #!/bin/bash
 # This script is used to provision an ol-webX node _before_ docker gets on it.
-# Assumption: nginx is up-and-running on the platform
-sudo systemctl start nginx
 
 # CAUTION: To git clone olsystem, environment variables must be set...
 # Set $GITHUB_USERNAME or $USER will be used.
