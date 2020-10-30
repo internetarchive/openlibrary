@@ -95,7 +95,7 @@ ul.inner {
         $ borrow_status = get_borrow_status(page.ocaid)
         $if current_loans:
             $ loan = current_loans[0]
-            <div class="borrowTable" class="borrow collapse current-loan">
+            <div id="borrowTable" class="borrow collapse current-loan">
             <table>
                 <thead>
                     <tr>
@@ -159,7 +159,7 @@ ul.inner {
     <div class="section">
         <h3>Waiting List</h3>
         $if waitinglist:
-            <div class="borrowTable" class="borrow collapse waitinglist">
+            <div id="borrowTable" class="borrow collapse waitinglist">
             <table>
                 <thead>
                     <tr>
@@ -344,9 +344,9 @@ ul.inner {
 
 
 <style type="text/css">
-body#plain .borrowTable {margin: 30px 0 25px;}
-body#plain .borrowTable table {width:100%;font-family:"Lucida Grande","Arial",sans-serif;}
-body#plain .borrowTable table th {
+body#plain #borrowTable {margin: 30px 0 25px;}
+body#plain #borrowTable table {width:100%;font-family:"Lucida Grande","Arial",sans-serif;}
+body#plain #borrowTable table th {
     border-bottom: 1px solid #c7c3b3;
     vertical-align: bottom;
     padding-bottom:10px;
