@@ -24,14 +24,6 @@ cd /opt
 ls -Fla  # nothing
 
 sudo git clone https://${GITHUB_USERNAME:-$USER}:${GITHUB_TOKEN}@github.com/internetarchive/olsystem
-# sudo git pull https://${GITHUB_USERNAME:-$USER}:${GITHUB_TOKEN}@github.com/internetarchive/olsystem.git master
-# sudo mkdir /etc/nginx
-# sudo ln -sfv /opt/olsystem /olsystem
-# sudo ln -sfv /opt/olsystem/etc/nginx/nginx.conf /etc/nginx/nginx.conf
-# sudo ln -sfv /opt/olsystem/etc/nginx/sites-available /etc/nginx/sites-available
-# ls -Fla /etc/nginx  # symlinks in place
-# sudo systemctl start nginx
-# sudo systemctl enable nginx
 
 OL_DOMAIN=${OL_DOMAIN:-internetarchive}
 sudo git clone https://github.com/$OL_DOMAIN/openlibrary
@@ -48,5 +40,6 @@ sudo docker-compose down
 sleep 2
 export DOCKER_CLIENT_TIMEOUT=500
 export COMPOSE_HTTP_TIMEOUT=500
+# NOTE: `cd /opt/openlibrary` and the remaining lines must be repeated manually
 sudo docker-compose -f docker-compose.yml -f docker-compose.infogami-local.yml -f docker-compose.production.yml up --no-deps -d web
 sudo docker-compose logs --tail=100 -f web
