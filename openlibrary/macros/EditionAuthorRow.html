@@ -10,19 +10,19 @@ $ class_input = (right and "formheader-data-left") or "formfield"
 <tbody id="tbody_$name">
 $if unique:
     <tr>
-        <td valign="middle" class="$class_label">$label</td>
-        <td valign="top" class="$class_input">$:thinginput(get_property_type(page.type, name), name, value)</td>
-        <td valign="top" class="formbuttons"></td>
+        <td class="$class_label valign_mid">$label</td>
+        <td class="$class_input valign_top">$:thinginput(get_property_type(page.type, name), name, value)</td>
+        <td class="formbuttons valign_top"></td>
     </tr>
 $else:
     $ value = value or [""]
     $for i, v in enumerate(value):
         <tr>
-            <td valign="middle" class="$class_label">$label</td>
-            <td valign="top" class="$class_input">$:thinginput(get_property_type(page.type, name), name + '#' + str(i), v)</td>
-            <td valign="top" class="formbuttons-identifier">
+            <td class="$class_label valign_mid">$label</td>
+            <td class="$class_input valign_top">$:thinginput(get_property_type(page.type, name), name + '#' + str(i), v)</td>
+            <td class="formbuttons-identifier valign_top">
                 $if i == len(value) - 1:
-                    <button class="control" onClick="add_row('$name')"><img src="/static/images/+.gif" alt="+" width="18" height="18" /></button>
+                    <button class="control" onclick="add_row('$name')"><img src="/static/images/+.gif" alt="+" width="18" height="18" /></button>
             </td>
         </tr>
         $ label = ""
