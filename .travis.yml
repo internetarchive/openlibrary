@@ -47,6 +47,7 @@ install:
   - if [ "$TRAVIS_PYTHON_VERSION" != "2.7" ] || [ "$TRAVIS_JOB_NAME" == "Python 2.7 on Infogami master" ]; then
       pushd vendor/infogami && git pull origin master && popd;
     fi
+  - pip list --outdated
 
 script:
   - if [ "$TRAVIS_PYTHON_VERSION" == "3.9" ]; then
