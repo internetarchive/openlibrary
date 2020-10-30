@@ -80,9 +80,8 @@ def do_we_want_it(isbn, work_id):
         'search_id': isbn
     }
     url = '%s/book/marc/ol_dedupe.php' % lending.config_ia_domain
-    r = requests.get(url, params=params)
     try:
-        data = r.json()
+        data = requests.get(url, params=params).json()
         dwwi = data.get('response', 0)
         return dwwi==1, data.get('books', [])
     except:
