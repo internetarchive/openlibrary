@@ -12,7 +12,7 @@ $if snippets:
       $for snippet in snippets:
         $if snippet: 
           <li class="fulltext-excerpt">
-            &hellip;$:(snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<mark class='highlight'><strong>").replace("}}}", "</strong></mark>"))&hellip;
+            &hellip;$:(snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<mark class="highlight"><strong>").replace("}}}", "</strong></mark>"))&hellip;
           </li>
     </ul>
   </section>
