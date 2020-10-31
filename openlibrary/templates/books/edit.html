@@ -84,7 +84,7 @@ window.q.push( function(){
         $ authors = work.authors and [a.author for a in work.authors]
         <h1 class="editFormBookTitle">$this_title</h1>
         $if authors:
-            $ all_authors = u"By {},".format(" ".join(author.name for author in authors))
+            $ all_authors = u"By {},".format(" ".join(author.name for author in authors if author.name))
             <h3 class="editFormBookAuthors">$all_authors[:-1]</h3>
         <div id="tabsAddbook">
             <ul>

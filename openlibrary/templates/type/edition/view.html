@@ -58,7 +58,7 @@ $code:
 
         title = cond(work, work.title, book.title)
         authors = cond(work, work and work.get_authors(), book.get_authors())
-        author_info = " by " + ", ".join(a.name for a in authors)
+        author_info = " by " + ", ".join(a.name if a.name else "Unknown author" for a in authors)
 
         format = ""
         if book.physical_format:
@@ -79,7 +79,7 @@ $code:
         schema_attribute = cond(include_schema, ' itemprop="author"', '')
         authors = cond(work, work and work.get_authors(), edition and edition.get_authors())
         if authors:
-            return ', '.join('<a href="%s"%s>%s</a>' % (a.url(), schema_attribute, truncate(a.name, 40)) for a in authors)
+            return ', '.join('<a href="%s"%s>%s</a>' % (a.url(), schema_attribute, truncate(a.name, 40)) if a.name else "<em>Unknown author</em>" for a in authors)
         elif edition.author_names:
             return ('<span%s>' % (schema_attribute)) + ", ".join(edition.author_names) + "</span>"
         else:
