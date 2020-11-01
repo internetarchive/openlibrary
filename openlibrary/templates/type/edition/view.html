@@ -79,9 +79,9 @@ $code:
         schema_attribute = cond(include_schema, ' itemprop="author"', '')
         authors = cond(work, work and work.get_authors(), edition and edition.get_authors())
         if authors:
-            return ', '.join('<a href="%s">%s</a>' % (a.url(), schema_attribute, truncate(a.name, 40)) for a in authors)
+            return ', '.join('<a href="%s"%s>%s</a>' % (a.url(), schema_attribute, truncate(a.name, 40)) for a in authors)
         elif edition.author_names:
-            return ('<span>' % (schema_attribute)) + ", ".join(edition.author_names) + "</span>"
+            return ('<span%s>' % (schema_attribute)) + ", ".join(edition.author_names) + "</span%s>"
         else:
             return None
 
