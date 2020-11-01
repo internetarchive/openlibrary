@@ -457,7 +457,7 @@ class ils_search:
     def login(self, auth_str):
         if not auth_str:
             return
-        auth_str = auth_str.replace("Basic ","")
+        auth_str = auth_str.replace("Basic ", "")
         try:
             auth_str = base64.decodebytes(bytes(auth_str, 'utf-8'))
             auth_str = auth_str.decode('utf-8')
@@ -606,7 +606,7 @@ class ils_cover_upload:
     def login(self, auth_str):
         if not auth_str:
             raise self.auth_failed("No credentials provided")
-        auth_str = auth_str.replace("Basic ","")
+        auth_str = auth_str.replace("Basic ", "")
         try:
             auth_str = base64.decodebytes(bytes(auth_str, 'utf-8'))
             auth_str = auth_str.decode('utf-8')
