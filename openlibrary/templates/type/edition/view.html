@@ -58,7 +58,7 @@ $code:
 
         title = cond(work, work.title, book.title)
         authors = cond(work, work and work.get_authors(), book.get_authors())
-        author_info = " by " + ", ".join(a.name if a.name else "Unknown author" for a in authors)
+        author_info = " by " + ", ".join(a.name or "Unknown author" for a in authors)
 
         format = ""
         if book.physical_format:
