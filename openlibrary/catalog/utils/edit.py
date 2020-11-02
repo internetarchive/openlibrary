@@ -2,7 +2,6 @@ from __future__ import print_function
 import re
 import requests
 import web
-import json
 from openlibrary.catalog.importer.db_read import get_mc
 from openlibrary.api import unmarshal
 from time import sleep

@@ -8,7 +8,6 @@ import re
 import random
 import xml.etree.ElementTree as etree
 import datetime
-import gzip
 import logging
 
 import six
@@ -17,7 +16,7 @@ from six.moves.collections_abc import MutableMapping
 
 from infogami import config
 from infogami.utils import view, delegate, stats
-from infogami.utils.view import render, get_template, public
+from infogami.utils.view import render, get_template, public, query_param
 from infogami.utils.macro import macro
 from infogami.utils.context import context
 from infogami.infobase.client import Thing, Changeset, storify
@@ -105,6 +104,57 @@ def render_template(name, *a, **kw):
     if "." in name:
         name = name.rsplit(".", 1)[0]
     return render[name](*a, **kw)
+
+
+def kebab_case(upper_camel_case):
+    """
+    :param str upper_camel_case: Text in upper camel case (e.g. "HelloWorld")
+    :return: text in kebab case (e.g. 'hello-world')
+
+    >>> kebab_case('HelloWorld')
+    'hello-world'
+    >>> kebab_case("MergeUI")
+    'merge-u-i'
+    """
+    parts = re.findall(r'[A-Z][^A-Z]*', upper_camel_case)
+    return '-'.join(parts).lower()
+
+
+@public
+def render_component(name, attrs=None, json_encode=True):
+    """
+    :param str name: Name of the component (excluding extension)
+    :param dict attrs: attributes to add to the component element
+    """
+    from openlibrary.plugins.upstream.code import static_url
+
+    attrs = attrs or {}
+    attrs_str = ''
+    for (key, val) in attrs.items():
+        if json_encode and isinstance(val, dict) or isinstance(val, list):
+            val = simplejson.dumps(val)
+        attrs_str += ' %s="%s"' % (key, val.replace('"', "'"))
+
+    html = ''
+    included = web.ctx.setdefault("included-components", [])
+
+    if len(included) == 0:
+        # Need to include Vue
+        html += '<script src="%s"></script>' % static_url('build/vue.js')
+
+    if name not in included:
+        url = static_url('build/components/production/ol-%s.min.js' % name)
+        if query_param('debug'):
+            url = static_url('build/components/development/ol-%s.js' % name)
+        html += '<script src="%s"></script>' % url
+        included.append(name)
+
+    html += '<ol-%(name)s %(attrs)s></ol-%(name)s>' % {
+        'name': kebab_case(name),
+        'attrs': attrs_str,
+    }
+    return html
+
 
 @public
 def get_error(name, *args):

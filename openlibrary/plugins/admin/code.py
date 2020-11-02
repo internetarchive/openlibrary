@@ -10,7 +10,6 @@ import traceback
 import logging
 import simplejson
 import yaml
-from copy import copy
 
 from infogami import config
 from infogami.utils import delegate
@@ -112,7 +111,7 @@ class reload:
             s = web.rstrips(s, "/") + "/_reload"
             yield "<h3>" + s + "</h3>"
             try:
-                response = requests.get(s).content
+                response = requests.get(s).text
                 yield "<p><pre>" + response[:100] + "</pre></p>"
             except:
                 yield "<p><pre>%s</pre></p>" % traceback.format_exc()
@@ -388,10 +387,8 @@ class stats:
 class ipstats:
     def GET(self):
         web.header('Content-Type', 'application/json')
-        json = requests.get(
-            "http://www.archive.org/download/stats/numUniqueIPsOL.json"
-        ).content
-        return delegate.RawText(json)
+        text = requests.get("http://www.archive.org/download/stats/numUniqueIPsOL.json").text
+        return delegate.RawText(text)
 
 class block:
     def GET(self):

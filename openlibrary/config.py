@@ -18,7 +18,8 @@ def load(config_file):
     """
     # for historic reasons
     global runtime_config
-    runtime_config = yaml.load(open(config_file))
+    with open(config_file) as in_file:
+        runtime_config = yaml.safe_load(in_file)
 
 
 def load_config(config_file):
@@ -33,12 +34,13 @@ def load_config(config_file):
     server.update_config(config.infobase)
 
 def setup_infobase_config(config_file):
-    """Reads the infoabse config file and assign it to config.infobase.
+    """Reads the infobase config file and assign it to config.infobase.
     The config_file is used as base to resolve relative path, if specified in the config.
     """
     if config.get("infobase_config_file"):
         dir = os.path.dirname(config_file)
         path = os.path.join(dir, config.infobase_config_file)
-        config.infobase = yaml.safe_load(open(path).read())
+        with open(path) as in_file:
+            config.infobase = yaml.safe_load(in_file)
     else:
         config.infobase = {}

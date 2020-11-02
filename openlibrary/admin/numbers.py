@@ -131,10 +131,8 @@ def admin_range__visitors(**kargs):
         sqlitefile = tempfile.mktemp(prefix="sqlite-")
         url = "http://www.archive.org/download/stats/numUniqueIPsOL.sqlite"
         logging.debug("  Downloading '%s'", url)
-        sqlite_contents = requests.get(url).content
-        f = open(sqlitefile, "w")
-        f.write(sqlite_contents)
-        f.close()
+        with open(sqlitefile, "wb") as f:
+            f.write(requests.get(url).content)
     db = web.database(dbn="sqlite", db = sqlitefile)
     d = date.replace(hour = 0, minute = 0, second = 0, microsecond = 0)
     key = calendar.timegm(d.timetuple())

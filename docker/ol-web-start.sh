@@ -2,9 +2,7 @@
 
 python --version
 authbind --deep \
-  scripts/openlibrary-server conf/openlibrary.yml \
+  scripts/openlibrary-server "$OL_CONFIG" \
   --gunicorn \
-  --reload \
-  --workers 4 \
-  --timeout 180 \
+  $GUNICORN_OPTS \
   --bind :80

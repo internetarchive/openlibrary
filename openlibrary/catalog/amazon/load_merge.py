@@ -1,5 +1,4 @@
 from __future__ import print_function
-from time import time
 from catalog.marc.MARC21 import MARC21Record
 from catalog.marc.parse import pick_first_date
 

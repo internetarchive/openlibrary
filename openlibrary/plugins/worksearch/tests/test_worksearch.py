@@ -1,6 +1,5 @@
 from __future__ import print_function
 import pytest
-import unittest
 from openlibrary.plugins.worksearch.code import read_facets, sorted_work_editions, parse_query_fields, escape_bracket, run_solr_query, get_doc, build_q_list, escape_colon, parse_search_response
 from lxml import etree
 from infogami import config
