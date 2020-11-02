@@ -128,7 +128,7 @@ $ )
       <span class="mode-options">
         <input type="radio" name="mode" value="everything" id="mode-search-everything" class="search-mode">
         <label for="mode-search-everything">$_('Everything')</label>
-        <input type="radio" name="mode" value="ebooks" id="mode-search-ebooks" class="search-mode" $('checked="checked"' if 'has_fulltext' in param else '') >
+        <input type="radio" name="mode" value="ebooks" id="mode-search-ebooks" class="search-mode" $('checked="checked"' if 'has_fulltext' in param else '')>
         <label for="mode-search-ebooks">$_('Ebooks')</label>
         <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">
         <label for="mode-search-printdisabled">$_('Print Disabled')</label>
@@ -139,7 +139,7 @@ $ )
             $if k not in sticky:
                 $continue
             $for v in values if isinstance(values, list) else [values]:
-                <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" >
+                <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" />
         </form>
 
         $if param and not error:
@@ -281,7 +281,7 @@ $elif param and len(docs):
         $ wks = '|'.join([w.key for w in works])
         $ ol = 'openlibrary.org'
         <script type="text/javascript">
-        <!--
+        
         window.q.push( function () {
             function readapi_callback(data, textStatus, jqXHR) {
                 endtime = Date.now();
@@ -301,7 +301,7 @@ $elif param and len(docs):
                 });
             }
         });
-        //-->
+        
         </script>
   </div>
 </div>
