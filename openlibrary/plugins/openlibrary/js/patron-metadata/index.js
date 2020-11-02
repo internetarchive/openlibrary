@@ -6,7 +6,7 @@ export function initPatronMetadata() {
             inline: true,
             opacity: '0.5',
             href: '#metadata-form',
-            width: '55%',
+            width: '60%',
         });
     }
 

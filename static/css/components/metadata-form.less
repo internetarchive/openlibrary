@@ -1,13 +1,19 @@
+@import (less) "../less/breakpoints.less";
+
 .single-choice {
     display: flex;
     margin-bottom: 1.5em;
 
     &-label {
-        display: flex;
-        flex-direction: column;
+        display: inline-block;
         width: 16%;
         text-align: center;
         text-transform: capitalize;
+
+        input {
+            display: block;
+            margin: 0 auto 5px;
+        }
     }
 }
 
@@ -17,7 +23,8 @@
     margin-bottom: 1.5em;
 
     &-label {
-        flex: 0 0 20%;
+        flex: 0 0 25%;
+        margin: 0.5em 0;
         text-transform: capitalize;
     }
 
@@ -28,4 +35,25 @@
 
 .metadata-submit {
     margin-top: 1em;
+}
+
+@media screen and (max-width: @width-breakpoint-tablet) {
+    .single-choice {
+        display: inline-block;
+
+        &-label {
+            display: flex;
+            width: 100%;
+            margin: 1em 0;
+            text-align: left;
+
+            input {
+                margin: auto 1em auto 0;
+            }
+        }
+    }
+
+    .multi-choice-label {
+        flex: 0 0 50%;
+    }
 }
