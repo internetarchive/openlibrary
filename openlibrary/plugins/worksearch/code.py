@@ -888,6 +888,10 @@ def random_author_search(limit=10):
     search_results = run_solr_search(solr_select)
 
     docs = search_results.get('response', {}).get('docs', [])
+  
+    assert docs, "random_author_search({}) returned no docs".format(limit)
+    assert len(docs) == limit, "random_author_search({}) returned {} docs".format(limit, len(docs))
+
     for doc in docs:
         # replace /authors/OL1A with OL1A
         # The template still expects the key to be in the old format
