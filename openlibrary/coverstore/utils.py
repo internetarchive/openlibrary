@@ -6,6 +6,7 @@ import simplejson
 import web
 
 import random
+import requests
 import socket
 import string
 
@@ -77,9 +78,7 @@ USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openl
 
 
 def download(url):
-    req = Request(url, headers={'User-Agent': USER_AGENT})
-    r = urlopen(req)
-    return r.read()
+    return requests.get(url, headers={'User-Agent': USER_AGENT}).content
 
 
 def urldecode(url):

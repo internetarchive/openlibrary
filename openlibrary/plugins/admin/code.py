@@ -1,6 +1,7 @@
 """Plugin to provide admin interface.
 """
 import os
+import requests
 import sys
 import web
 import subprocess
@@ -110,7 +111,7 @@ class reload:
             s = web.rstrips(s, "/") + "/_reload"
             yield "<h3>" + s + "</h3>"
             try:
-                response = urllib.request.urlopen(s).read()
+                response = requests.get(s).text
                 yield "<p><pre>" + response[:100] + "</pre></p>"
             except:
                 yield "<p><pre>%s</pre></p>" % traceback.format_exc()
@@ -386,8 +387,8 @@ class stats:
 class ipstats:
     def GET(self):
         web.header('Content-Type', 'application/json')
-        json = urllib.request.urlopen("http://www.archive.org/download/stats/numUniqueIPsOL.json").read()
-        return delegate.RawText(json)
+        text = requests.get("http://www.archive.org/download/stats/numUniqueIPsOL.json").text
+        return delegate.RawText(text)
 
 class block:
     def GET(self):
@@ -484,8 +485,6 @@ def get_admin_stats():
     return storify(xstats)
 
 from openlibrary.plugins.upstream import borrow
-
-from six.moves import urllib
 
 
 class loans_admin:
