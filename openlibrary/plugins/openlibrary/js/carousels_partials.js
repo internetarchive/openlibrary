@@ -3,8 +3,8 @@ import '../../../../static/css/components/carousel--js.less';
 import Carousel from './carousel/Carousel';
 
 export function initCarouselsPartials() {
-    $('.loadingIndicator').removeClass('hidden');
-    jQuery(window).load(function () {
+    
+    let fetchRelatedWorks = function() {
         $.ajax({
             url: '/partials',
             type: 'GET',
@@ -29,5 +29,13 @@ export function initCarouselsPartials() {
                 }
             }
         });
-    });
+    };
+
+    $('.loadingIndicator').removeClass('hidden');
+
+    if(document.readyState === 'complete') {
+        fetchRelatedWorks();
+    } else {
+        $(window).on('load', fetchRelatedWorks);
+    }
 }
