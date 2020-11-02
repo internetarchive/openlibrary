@@ -1,8 +1,9 @@
 import web
 
-import socket
 import datetime
+import socket
 import subprocess
+import sys
 
 from infogami import config
 from infogami.utils import delegate
@@ -34,9 +35,12 @@ def setup():
     "Basic startup status for the server"
     global status_info, feature_flags
     version = get_software_version()
+    if bytes != str:  # Python 3
+        version = version.decode("utf-8")
     host = socket.gethostname()
     status_info = {
         "Software version": version,
+        "Python version": sys.version.split()[0],
         "Host": host,
         "Start time": datetime.datetime.utcnow(),
     }

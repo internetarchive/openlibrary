@@ -7,7 +7,6 @@ from openlibrary import config
 from ftplib import FTP
 from time import sleep
 from lxml import etree
-import os
 import sys
 import httplib
 import json

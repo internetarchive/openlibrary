@@ -33,7 +33,6 @@ Finally, the list of matched keys are massaged into the proper output
 expected from the search API and returned to the client.
 
 """
-import copy
 import itertools
 import logging as Logging
 

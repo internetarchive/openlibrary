@@ -27,15 +27,24 @@ $if "type" in doc and doc.type.key == "/type/user":
                     .find(".listDelete a")
                     .click(function() {
                         \$('#delete-dialog')
-                            .ol_confirm_dialog(function(){
-                                var list_id = "#" + \$(this).data("list-id");
-                                var key = \$(list_id + " a:first").attr("href");
-                                var dialog = this;
+                            .ol_confirm_dialog(function(){},
+                            {
+                                buttons: {
+                                    "$:_('Yes, I\'m sure')": function() {
+                                        var list_id = "#" + \$(this).data("list-id");
+                                        var key = \$(list_id + " a:first").attr("href");
+                                        var dialog = this;
 
-                                \$.post(key + "/delete.json", function() {
-                                    \$(list_id).remove();
-                                    \$(dialog).dialog("close");
-                                });
+                                        \$.post(key + "/delete.json", function() {
+                                            \$(list_id).remove();
+                                            \$(dialog).dialog("close");
+                                        });
+                                    },
+                                    "$_('No, cancel')": function() {
+                                        \$(this).dialog("close");
+                                    }
+                                },
+                                closeText: "$_('Close')"
                             })
                             .data("list-id", \$(this).closest("li").attr("id"))
                             .dialog('open');

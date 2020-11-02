@@ -2,7 +2,6 @@ from __future__ import print_function
 
 import re
 
-from openlibrary.catalog.merge.names import match_name
 from openlibrary.catalog.merge.normalize import normalize
 
 # fields needed for merge process:

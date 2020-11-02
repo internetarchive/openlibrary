@@ -10,7 +10,6 @@ import traceback
 import logging
 import simplejson
 import yaml
-from copy import copy
 
 from infogami import config
 from infogami.utils import delegate
@@ -388,10 +387,11 @@ class stats:
 class ipstats:
     def GET(self):
         web.header('Content-Type', 'application/json')
-        json = requests.get(
+        text = requests.get(
             "http://www.archive.org/download/stats/numUniqueIPsOL.json"
         ).text
-        return delegate.RawText(json)
+        return delegate.RawText(text)
+
 
 class block:
     def GET(self):

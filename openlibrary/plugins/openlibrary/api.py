@@ -69,9 +69,10 @@ class browse(delegate.page):
         url = lending.compose_ia_url(
             query=i.q, limit=limit, page=page, subject=i.subject,
             work_id=i.work_id, _type=i._type, sorts=sorts)
+        works = lending.get_available(url=url) if url else []
         result = {
             'query': url,
-            'works': [work.dict() for work in lending.get_available(url=url)],
+            'works': [work.dict() for work in works],
         }
         return delegate.RawText(
             simplejson.dumps(result),

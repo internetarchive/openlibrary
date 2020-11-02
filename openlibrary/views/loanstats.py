@@ -1,6 +1,5 @@
 """Loan Stats"""
 
-import re
 import web
 from infogami.utils import delegate
 

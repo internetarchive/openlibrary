@@ -128,6 +128,12 @@ jQuery(function () {
             .then(module => module.init(window.READINGLOG_STATS_CONFIG));
     }
 
+    const pageEl = $('#page-barcodescanner');
+    if (pageEl.length) {
+        import(/* webpackChunkName: "page-barcodescanner" */ './page-barcodescanner')
+            .then((module) => module.init());
+    }
+
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });

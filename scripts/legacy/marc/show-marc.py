@@ -3,7 +3,6 @@
 from __future__ import print_function
 import web
 from time import time
-import re
 
 from MARC21 import MARC21Record, MARC21HtmlPrint, MARC21Exn
 

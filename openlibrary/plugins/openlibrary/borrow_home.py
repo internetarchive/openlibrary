@@ -3,7 +3,6 @@
 
 import simplejson
 import web
-import random
 import datetime
 
 from infogami.plugins.api.code import jsonapi
