@@ -1,5 +1,7 @@
 import web
+import random
 import re
+import string
 from lxml.etree import XML, XMLSyntaxError
 from infogami.utils import delegate, stats
 from infogami import config
@@ -869,6 +871,35 @@ class author_search_json(author_search):
         response = self.get_results(i.q, offset=offset, limit=limit)['response']
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response))
+
+
+@public
+def random_author_search(limit=10):
+    """
+    Returns a JSON string that contains a random list of authors.  Amount of authors
+    returned is set be the given limit.
+    """
+    letters_and_digits = string.ascii_letters + string.digits
+    seed = ''.join(random.choice(letters_and_digits) for _ in range(10))
+    rows = '&rows=%d' % (limit)
+    sort = '&sort=random_%s+desc' % (seed)
+    solr_select = solr_select_url + "?fq=type:author&q.op=AND&q=*&wt=json" + rows + sort
+
+    search_results = run_solr_search(solr_select)
+
+    docs = search_results.get('response', {}).get('docs', [])
+
+    assert docs, "random_author_search({}) returned no docs".format(limit)
+    assert len(docs) == limit, (
+        "random_author_search({}) returned {} docs".format(limit, len(docs))
+    )
+
+    for doc in docs:
+        # replace /authors/OL1A with OL1A
+        # The template still expects the key to be in the old format
+        doc['key'] = doc['key'].split("/")[-1]
+
+    return json.dumps(search_results['response'])
 
 
 @public
