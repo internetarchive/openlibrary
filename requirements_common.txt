@@ -17,7 +17,7 @@ pymarc==3.2.0; python_version < '3.6'
 pymarc==4.0.0; python_version >= '3.6'
 python-memcached==1.59
 PyYAML==5.3.1
-sentry-sdk==0.18.0
+sentry-sdk==0.19.1
 simplejson==3.16.0
 six==1.15.0
 sixpack-client==1.2.0
