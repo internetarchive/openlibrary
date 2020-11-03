@@ -302,7 +302,8 @@ def execute_solr_query(url):
     return solr_result
 
 def parse_json(raw_file):
-    if raw_file is None:
+    raw_file = raw_file.content
+    if not raw_file:
         logger.error("Error parsing empty search engine response")
         return None
     try:
