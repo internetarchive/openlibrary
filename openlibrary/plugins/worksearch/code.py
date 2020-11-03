@@ -819,7 +819,9 @@ class subject_search(delegate.page):
             "sort": "work_count desc"
         }
 
-        solr_select = solr_select_url + "?" + requests.compat.urlencode(params, 'utf-8')
+        solr_select = (
+            solr_select_url + "?" + requests.compat.urlencode(params, 'utf-8')
+        )
         results = run_solr_search(solr_select)
         response = results['response']
 
