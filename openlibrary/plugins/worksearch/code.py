@@ -394,7 +394,7 @@ def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=Non
     solr_result = execute_solr_query(url)
     if solr_result is None:
         return (None, url, q_list)
-    reply = solr_result.read()
+    reply = solr_result.content
     return (reply, url, q_list)
 
 def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
@@ -736,7 +736,7 @@ def run_solr_search(solr_select):
     solr_result = execute_solr_query(solr_select)
     if not solr_result:
         logger.error("run_solr_search({}) failed".format(solr_select))
-    json_data = solr_result.read() if solr_result is not None else None
+    json_data = solr_result.content if solr_result is not None else None
     return parse_search_response(json_data)
 
 def parse_search_response(json_data):
