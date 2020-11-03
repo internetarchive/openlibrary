@@ -71,7 +71,7 @@ class add_cover(delegate.page):
         try:
             payload = requests.compat.urlencode(params).encode('utf-8')
             return web.storage(requests.post(upload_url, data=payload).json())
-        except urllib.error.HTTPError as e:
+        except requests.HTTPError as e:
             return web.storage({'error': e.read()})
 
     def save(self, book, coverid, url=None):
