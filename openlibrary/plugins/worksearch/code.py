@@ -287,6 +287,8 @@ def build_q_list(param):
 
 def parse_json_from_solr_query(url):
     solr_result = execute_solr_query(url)
+    if not solr_result:
+        logger.error("parse_json_from_solr_query({}) failed.".format(url))
     return parse_json(solr_result)
 
 def execute_solr_query(url):
@@ -731,6 +733,8 @@ def escape_colon(q, vf):
 
 def run_solr_search(solr_select):
     solr_result = execute_solr_query(solr_select)
+    if not solr_result:
+        logger.error("run_solr_search({}) failed.".format(solr_select))
     json_data = solr_result.read() if solr_result is not None else None
     return parse_search_response(json_data)
 
