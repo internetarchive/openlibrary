@@ -3,6 +3,7 @@ import random
 import re
 import string
 from lxml.etree import XML, XMLSyntaxError
+import requests
 from infogami.utils import delegate, stats
 from infogami import config
 from infogami.utils.view import render, render_template, safeint, public
@@ -26,8 +27,6 @@ from openlibrary.utils.lcc import (
 )
 from unicodedata import normalize
 import logging
-
-from six.moves import urllib
 
 logger = logging.getLogger("openlibrary.worksearch")
 
@@ -288,15 +287,15 @@ def build_q_list(param):
 def parse_json_from_solr_query(url):
     solr_result = execute_solr_query(url)
     if not solr_result:
-        logger.error("parse_json_from_solr_query({}) failed.".format(url))
+        logger.error("parse_json_from_solr_query({}) failed".format(url))
     return parse_json(solr_result)
 
 def execute_solr_query(url):
     stats.begin("solr", url=url)
     try:
-        solr_result = urllib.request.urlopen(url, timeout=10)
+        solr_result = requests.get(url, timeout=10)
     except Exception as e:
-        logger.exception("Failed solr query")
+        logger.exception("execute_solr_query({}) failed".format(url))
         return None
     finally:
         stats.end()
@@ -595,13 +594,15 @@ class search(delegate.page):
         if _i.q.strip() and _i.q2.strip():
             _i.q = _i.q2.strip() + ' ' + _i.q.strip()
             _i.pop('q2')
-            raise web.seeother('/search?' + urllib.parse.urlencode(_i))
+            raise web.seeother('/search?' + requests.compat.urlencode(_i))
 
         i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[], public_scan_b=[])
 
         # Send to full-text Search Inside if checkbox checked
         if i.get('search-fulltext'):
-            raise web.seeother('/search/inside?' + urllib.parse.urlencode({'q': i.get('q', '')}))
+            raise web.seeother('/search/inside?' + requests.compat.urlencode(
+                {'q': i.get('q', '')}
+            ))
 
         if i.get('wisbn'):
             i.isbn = i.wisbn
@@ -734,7 +735,7 @@ def escape_colon(q, vf):
 def run_solr_search(solr_select):
     solr_result = execute_solr_query(solr_select)
     if not solr_result:
-        logger.error("run_solr_search({}) failed.".format(solr_select))
+        logger.error("run_solr_search({}) failed".format(solr_select))
     json_data = solr_result.read() if solr_result is not None else None
     return parse_search_response(json_data)
 
@@ -818,7 +819,7 @@ class subject_search(delegate.page):
             "sort": "work_count desc"
         }
 
-        solr_select = solr_select_url + "?" + urllib.parse.urlencode(params, 'utf-8')
+        solr_select = solr_select_url + "?" + requests.compat.urlencode(params, 'utf-8')
         results = run_solr_search(solr_select)
         response = results['response']
 
