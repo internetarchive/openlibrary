@@ -3,7 +3,7 @@ import '../../../../static/css/components/carousel--js.less';
 import Carousel from './carousel/Carousel';
 
 export function initCarouselsPartials() {
-    
+
     let fetchRelatedWorks = function() {
         $.ajax({
             url: '/partials',
@@ -33,7 +33,7 @@ export function initCarouselsPartials() {
 
     $('.loadingIndicator').removeClass('hidden');
 
-    if(document.readyState === 'complete') {
+    if (document.readyState === 'complete') {
         fetchRelatedWorks();
     } else {
         $(window).on('load', fetchRelatedWorks);
