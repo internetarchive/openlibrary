@@ -36,12 +36,9 @@ def get_features_enabled():
 def setup():
     "Basic startup status for the server"
     global status_info, feature_flags
-    version = get_software_version()
-    if bytes != str:  # Python 3
-        version = version.decode("utf-8")
     host = socket.gethostname()
     status_info = {
-        "Software version": version,
+        "Software version": get_software_version(),
         "Python version": sys.version.split()[0],
         "Host": host,
         "Start time": datetime.datetime.utcnow(),
