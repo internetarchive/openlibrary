@@ -5,6 +5,8 @@ import sentry_sdk
 import infogami
 from infogami.utils import delegate
 
+from openlibrary.plugins.openlibrary.status import get_software_version
+
 logger = logging.getLogger("openlibrary.sentry")
 
 
@@ -19,5 +21,6 @@ def setup():
         return
 
     sentry_sdk.init(dsn=infogami.config.sentry.dsn,
-                    environment=infogami.config.sentry.environment)
+                    environment=infogami.config.sentry.environment,
+                    release=get_software_version())
     delegate.add_exception_hook(lambda: sentry_sdk.capture_exception())
