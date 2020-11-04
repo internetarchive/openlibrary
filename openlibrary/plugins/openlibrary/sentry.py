@@ -1,21 +1,17 @@
 import logging
-from subprocess import PIPE, Popen, STDOUT
 
 import sentry_sdk
 
 import infogami
 from infogami.utils import delegate
 
+from openlibrary.plugins.openlibrary.status import get_software_version
+
 logger = logging.getLogger("openlibrary.sentry")
 
 
 def is_enabled():
     return hasattr(infogami.config, 'sentry') and infogami.config.sentry.enabled
-
-
-def get_software_version():  # -> str:
-    cmd = "git rev-parse --short HEAD --".split()
-    return str(Popen(cmd, stdout=PIPE, stderr=STDOUT).stdout.read().decode().strip())
 
 
 def setup():

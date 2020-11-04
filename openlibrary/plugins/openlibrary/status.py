@@ -2,8 +2,8 @@ import web
 
 import datetime
 import socket
-import subprocess
 import sys
+from subprocess import PIPE, Popen, STDOUT
 
 from infogami import config
 from infogami.utils import delegate
@@ -25,8 +25,10 @@ def get_git_revision_short_hash():
             if status_info and isinstance(status_info, dict) 
             else None)
 
-def get_software_version():
-    return subprocess.Popen("git rev-parse --short HEAD --".split(), stdout = subprocess.PIPE, stderr = subprocess.STDOUT).stdout.read().strip()
+
+def get_software_version():  # -> str:
+    cmd = "git rev-parse --short HEAD --".split()
+    return str(Popen(cmd, stdout=PIPE, stderr=STDOUT).stdout.read().decode().strip())
 
 def get_features_enabled():
     return config.features
