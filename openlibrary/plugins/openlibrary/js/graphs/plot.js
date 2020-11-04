@@ -3,12 +3,11 @@
  * need to be refactored once unit tests have been added to the repo. They
  * duplicate a lot of functionality
  */
-// jquery-flot 0.7.0
-import '../../../../../vendor/js/flot/jquery.flot.js';
-import '../../../../../vendor/js/flot/jquery.flot.selection.js';
-import '../../../../../vendor/js/flot/jquery.flot.crosshair.js';
-import '../../../../../vendor/js/flot/jquery.flot.stack.js';
-import '../../../../../vendor/js/flot/jquery.flot.pie.js';
+import 'flot/jquery.flot.js';
+import 'flot/jquery.flot.selection.js';
+import 'flot/jquery.flot.crosshair.js';
+import 'flot/jquery.flot.stack.js';
+import 'flot/jquery.flot.pie.js';
 
 /**
  * A special graph loaded on the following URLs:
