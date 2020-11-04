@@ -207,21 +207,30 @@ pipeline {
               stages {
                 stage('Insert works & orphaned editions') {
                   steps {
-                    insert_into_solr('./index-type.sh work 5 works-orphans; ./index-orphans.sh works-orphans', 6, 'works-orphans', 'works-orphans-indexing.log.gz')
+                    insert_into_solr('./index-type.sh work 5 works-orphans; ./index-orphans.sh works-orphans', 6, 'works-orphans')
                   }
                 }
                 stage('Insert authors') {
-                  steps { insert_into_solr('./index-type.sh author 6 authors', 6, 'authors', 'authors-indexing.log.gz') }
+                  steps { insert_into_solr('./index-type.sh author 6 authors', 6, 'authors') }
                 }
               }
               post {
+                always {
+                  dir(env.HOST_SOLR_BUILDER_DIR) {
+                    // Save the docker logs as artifacts
+                    sh """for key in logs/work-orphans/*; do echo "\$key: "; docker logs \$key 2>&1; done | gzip > logs/works-orphans-indexing.log.gz"""
+                    archiveArtifacts artifacts: "logs/works-orphans-indexing.log.gz"
+                    sh """for key in logs/authors/*; do echo "\$key: "; docker logs \$key 2>&1; done | gzip > logs/authors-indexing.log.gz"""
+                    archiveArtifacts artifacts: "logs/authors-indexing.log.gz"
+                  }
+                }
                 unsuccessful {
                   dir(env.HOST_SOLR_BUILDER_DIR) {
                     // sh(label: 'Remove solr service',
                     //   script:'docker-compose stop solr; docker-compose rm -f solr; docker volume rm solr_builder_solr-data')
                     sh(label: 'Stop/rm running indexers',
                       script: '''
-                      docker stop $(docker container ls -f "name=ol_run" -q)
+                      docker stop $(docker container ls -f "name=ol_run" -q) || true
                       docker rm $(docker container ls -f "name=ol_run" -aq)
                       ''')
                   }
@@ -326,7 +335,7 @@ void solr_commit(String solr_name) {
     script: "docker-compose exec -T ${solr_name} curl http://localhost:8983/solr/update?commit=true")
 }
 
-void insert_into_solr(String index_cmd, Integer cores, String log_subdir, String artifact_file_name) {
+void insert_into_solr(String index_cmd, Integer cores, String log_subdir) {
   dir(env.HOST_SOLR_BUILDER_DIR) {
     sh index_cmd
 
@@ -342,10 +351,6 @@ void insert_into_solr(String index_cmd, Integer cores, String log_subdir, String
         return running_indexers == 0
       }
     }
-
-    // Save the docker logs as artifacts
-    sh """for key in logs/${log_subdir}/*; do echo "\$key: "; docker logs \$key 2>&1 | gzip > logs/${artifact_file_name}"""
-    archiveArtifacts artifacts: "logs/${artifact_file_name}"
 
     int cores_completed = sh(
       script: """for f in progress/${log_subdir}/*; do tail -n1 \$f; done | grep 100.00% | wc -l""",
