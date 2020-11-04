@@ -273,14 +273,17 @@ def build_q_list(param):
             if m:
                 q_list.append("author_key:(%s)" % m.group(1))
             else:
-                v = re_to_esc.sub(lambda m:'\\' + m.group(), v)
+                v = re_to_esc.sub(r'\\\g<0>', v)
                 # Somehow v can be empty at this point,
                 #   passing the following with empty strings causes a severe error in SOLR
                 if v:
                     q_list.append("(author_name:(%(name)s) OR author_alternative_name:(%(name)s))" % {'name': v})
 
         check_params = ['title', 'publisher', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
-        q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
+        q_list += [
+            '%s:(%s)' % (k, re_to_esc.sub(r'\\\g<0>', param[k]))
+            for k in check_params if k in param
+        ]
         if param.get('isbn'):
             q_list.append('isbn:(%s)' % (normalize_isbn(param['isbn']) or param['isbn']))
     return (q_list, use_dismax)
@@ -621,7 +624,7 @@ class search(delegate.page):
             q_list.append(q)
         for k in ('title', 'author', 'isbn', 'subject', 'place', 'person', 'publisher'):
             if k in i:
-                v = re_to_esc.sub(lambda m:'\\' + m.group(), i[k].strip())
+                v = re_to_esc.sub(r'\\\g<0>', i[k].strip())
                 q_list.append(k + ':' + v)
         page = render.work_search(
             i, ' '.join(q_list), do_search, get_doc,
