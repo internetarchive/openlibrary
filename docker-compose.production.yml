@@ -10,7 +10,7 @@ services:
     restart: always
     hostname: "$HOSTNAME"
     environment:
-      - GUNICORN_OPTS= --workers 50 --timeout 300  # 5 minutes before reload
+      - GUNICORN_OPTS= --workers 50 --timeout 300 --max-requests 500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - PYENV_VERSION=3.8.6
     volumes:
