@@ -36,10 +36,13 @@ sudo make git
 cd /opt/openlibrary/vendor/infogami && sudo git pull origin master
 
 cd /opt/openlibrary
+docker-compose build --pull web
+
 sudo docker-compose down
-sleep 2
-export DOCKER_CLIENT_TIMEOUT=500
-export COMPOSE_HTTP_TIMEOUT=500
-# NOTE: `cd /opt/openlibrary` and the remaining lines must be repeated manually
-sudo docker-compose -f docker-compose.yml -f docker-compose.infogami-local.yml -f docker-compose.production.yml up --no-deps -d web
-sudo docker-compose logs --tail=100 -f web
+sudo docker-compose up -d --no-deps memcached
+sudo docker-compose \
+    -f docker-compose.yml \
+    -f docker-compose.infogami-local.yml \
+    -f docker-compose.production.yml \
+    up -d --no-deps web
+sudo docker-compose logs -f --tail=100 web
