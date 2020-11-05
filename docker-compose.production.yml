@@ -7,6 +7,8 @@
 version: "3"
 services:
   web:
+    restart: always
+    hostname: "$HOSTNAME"
     environment:
       - GUNICORN_OPTS= --workers 50 --timeout 300  # 5 minutes before reload
       - OL_CONFIG=/olsystem/etc/openlibrary.yml

@@ -7,6 +7,8 @@
 version: "3"
 services:
   web:
+    restart: always
+    hostname: "$HOSTNAME"
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-"3.8.6"}
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
