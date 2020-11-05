@@ -16,7 +16,8 @@ from openlibrary.core.ratings import Ratings
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 
-from openlibrary.core.lists.model import ListMixin
+# Seed might look unused, but removing it causes an error :/
+from openlibrary.core.lists.model import ListMixin, Seed
 from . import cache, waitinglist
 
 from six.moves import urllib
