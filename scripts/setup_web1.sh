@@ -36,7 +36,7 @@ sudo make git
 cd /opt/openlibrary/vendor/infogami && sudo git pull origin master
 
 cd /opt/openlibrary
-docker-compose build --pull web
+sudo docker-compose build --pull web
 
 sudo docker-compose down
 sudo docker-compose up -d --no-deps memcached
