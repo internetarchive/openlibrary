@@ -6,7 +6,7 @@ $def add_facet_url(k, v):
     $if k != 'has_fulltext':
         $changequery(page=None,**{k:param.get(k, []) + [v]})
     $else:
-        $changequery(page=None,**{k:list(v)})
+        $changequery(page=None,**{k:v})
 
 $def del_facet_url(k, v):
     $if k != 'has_fulltext':
