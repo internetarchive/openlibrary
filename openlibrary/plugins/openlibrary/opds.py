@@ -252,7 +252,7 @@ def xmlsafe(s):
     XML cannot include certain characters mainly control ones with
     byte value below 32. This function strips them all.
     """
-    if isinstance(s, str):
+    if isinstance(s, bytes):
         s = s.decode('utf-8')
-    # ignore the first 32 bytes of ASCII, which are not allowd in XML
+    # ignore the first 32 bytes of ASCII, which are not allowed in XML
     return u"".join(c for c in s if ord(c) >= 0x20)
