@@ -867,6 +867,8 @@ def ia_token_is_current(item_id, access_token):
         access_key = config.ia_access_secret
     except AttributeError:
         raise Exception("config value config.ia_access_secret is not present -- check your config")
+    if not isinstance(access_key, (bytes, bytearray)):
+        access_key = access_key.encode('utf-8')
 
     # Check if token has expired
     try:
