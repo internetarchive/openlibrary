@@ -98,10 +98,10 @@ time sudo docker-compose build solr
 # Use this:
 # sudo docker build --network=host -t olsolr:latest -f docker/Dockerfile.olsolr .
 
-# Copy file (3min; 2020-03-02 OJF)
+# Copy file (4min; 2020-11-05 ol-solr0)
 time scp YOU@server.openjournal.foundation:/storage/openlibrary/solr/solrbuilder-2020-03-02.tar.gz ~
 
-# Restore backup file
+# Restore backup file (8min; 2020-11-05 ol-solr0)
 time sudo docker-compose run --no-deps --rm -v $HOME:/backup solr \
     bash -c "tar xf /backup/solrbuilder-2020-03-02.tar.gz"
 
