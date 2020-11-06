@@ -244,8 +244,10 @@ def add_cover(cover_url, ekey, account=None):
     coverstore_url = config.get('coverstore_url').rstrip('/')
     upload_url = coverstore_url + '/b/upload2'
     if upload_url.startswith('//'):
-        upload_url = '{0}:{1}'.format(web.ctx.get('protocol', 'http'), upload_url)
+        upload_url = '{}:{}'.format(web.ctx.get('protocol', 'http'), upload_url)
     user = account or accounts.get_current_user()
+    if not user:
+        raise RuntimeError("accounts.get_current_user() failed")
     params = {
         'author': user.get('key') or user.get('_key'),
         'data': None,
