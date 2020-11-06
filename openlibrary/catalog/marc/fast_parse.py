@@ -163,7 +163,7 @@ def get_subfields(line, want, is_marc8=False):
 
 @deprecated('Use catalog.marc.MarcBinary instead.')
 def read_directory(data):
-    dir_end = data.find('\x1e')
+    dir_end = data.find(b'\x1e')
     if dir_end == -1:
         raise BadDictionary
     directory = data[24:dir_end]
@@ -178,22 +178,17 @@ def read_directory(data):
 
 @deprecated('Use catalog.marc.MarcBinary instead.')
 def get_tag_line(data, line):
+    # Still used by catalog/marc/html.py
     length = int(line[3:7])
     offset = int(line[7:12])
 
     # handle off-by-one errors in MARC records
-    try:
-        if data[offset] != '\x1e':
-            offset += data[offset:].find('\x1e')
-        last = offset+length
-        if data[last] != '\x1e':
-            length += data[last:].find('\x1e')
-    except IndexError:
-        pass
+    if data[offset] != b'\x1e':
+        offset += data[offset:].find(b'\x1e')
+    last = offset+length
+    if data[last] != b'\x1e':
+        length += data[last:].find('b\x1e')
     tag_line = data[offset + 1:offset + length + 1]
-    if not line[0:2] == '00':
-        if tag_line[1:8] == '{llig}\x1f':
-            tag_line = tag_line[0] + u'\uFE20' + tag_line[7:]
     return tag_line
 
 @deprecated
