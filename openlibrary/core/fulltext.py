@@ -49,8 +49,8 @@ def fulltext_search(q, page=1, limit=100, js=False):
         for ed in editions:
             if ed.ocaid in ocaids:
                 idx = ocaids.index(ed.ocaid)
-                ia_results['hits']['hits'][idx]['edition'] = format_book_data(ed) if js else ed
+                ia_results['hits']['hits'][idx]['edition'] = \
+                    format_book_data(ed) if js else ed
                 ia_results['hits']['hits'][idx]['availability'] = availability[ed.ocaid]
     return ia_results
-
 
