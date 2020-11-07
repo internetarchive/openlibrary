@@ -30,7 +30,7 @@ class search_inside(delegate.page):
 
 
 class search_inside_json(delegate.page):
-    path ="/search/inside"
+    path = "/search/inside"
     encoding = "json"
 
     def GET(self):
