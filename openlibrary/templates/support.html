@@ -1,4 +1,4 @@
-$def with (email=None, url=None, done=False, recaptcha=None)
+$def with (email=None, url=None, done=False, recaptcha=True)
 $# Template entry point for /contact page
 $var title: How can we help?
 
@@ -52,8 +52,20 @@ to see if your question is answered there. Thank you.</p>
 
  $if recaptcha:
    <div class="formElement">
-     <div class="g-recaptcha" data-sitekey="$:recaptcha.public_key"></div>
-   </div>
+      <div class="label smaller lighter">If you have security settings or privacy blockers installed, please disable them to see the reCAPTCHA.</div>
+      <div class="g-recaptcha" data-sitekey="6LeM2kcUAAAAAOT3o2Mmllf0NN_8LgWZC6oFCXSA">
+        <div style="width: 304px; height: 78px;">
+          <div>
+            <iframe src="https://www.google.com/recaptcha/api2/anchor?ar=1&amp;k=6LeM2kcUAAAAAOT3o2Mmllf0NN_8LgWZC6oFCXSA&amp;co=aHR0cHM6Ly9vcGVubGlicmFyeS5vcmc6NDQz&amp;hl=en&amp;v=T9w1ROdplctW2nVKvNJYXH8o&amp;size=normal&amp;cb=u1d8hfyhs1mh" width="304" height="78" role="presentation" name="a-2l8junlzaka0" frameborder="0" scrolling="no" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation allow-modals allow-popups-to-escape-sandbox allow-storage-access-by-user-activation">
+            </iframe>
+          </div>
+          <textarea id="g-recaptcha-response" name="g-recaptcha-response" class="g-recaptcha-response" style="width: 250px; height: 40px; border: 1px solid rgb(193, 193, 193); margin: 10px 25px; padding: 0px; resize: none; display: none;"></textarea>
+        </div>
+        <iframe style="display: none;"></iframe>
+      </div>
+      <div class="input">
+      </div>
+    </div>
 
  <div class="formElement bottom">
  <div class="input">
