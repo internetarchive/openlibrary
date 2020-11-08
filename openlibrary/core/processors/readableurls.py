@@ -1,13 +1,20 @@
 """Various web.py application processors used in OL.
 """
+import logging
 import os
 import web
+
+try:
+    from urllib import quote_plus
+except ImportError:
+    from urllib.parse import quote_plus
 
 from infogami.utils.view import render
 from openlibrary.core import helpers as h
 
 from six.moves import urllib
 
+logger = logging.getLogger("openlibrary.readableurls")
 
 try:
     from booklending_utils.openlibrary import is_exclusion
@@ -123,8 +130,9 @@ def get_readable_path(site, path, patterns, encoding=None):
     The patterns is a list of (path_regex, type, property_name, default_value)
     tuples.
     """
+
     def match(path):
-        for pat, type, property, default_title in patterns:
+        for pat, _type, _property, default_title in patterns:
             m = web.re_compile('^' + pat).match(path)
             if m:
                 prefix = m.group()
@@ -137,11 +145,12 @@ def get_readable_path(site, path, patterns, encoding=None):
                 if suffix:
                     suffix = "/" + suffix
 
-                return type, property, default_title, prefix, middle, suffix
+                return _type, _property, default_title, prefix, middle, suffix
         return None, None, None, None, None, None
 
-    type, property, default_title, prefix, middle, suffix = match(path)
-    if type is None:
+    _type, _property, default_title, prefix, middle, suffix = match(path)
+
+    if _type is None:
         path = web.safeunicode(path)
         return (path, path)
 
@@ -161,9 +170,9 @@ def get_readable_path(site, path, patterns, encoding=None):
     if thing:
         prefix = thing.key
 
-    if thing and thing.type.key == type:
-        title = thing.get(property) or default_title
-        middle = '/' + h.urlsafe(title.strip())
+    if thing and thing.type.key == _type:
+        title = thing.get(_property) or default_title
+        middle = '/' + quote_plus(h.urlsafe(title.strip()))
     else:
         middle = ""
 
