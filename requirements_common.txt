@@ -24,7 +24,8 @@ six==1.15.0
 sixpack-client==1.2.0
 validate_email==1.3
 web.py==0.39; python_version < '3.5'
-web.py==0.61; python_version >= '3.5'
+# web.py==0.61; python_version >= '3.5'
+git+git://github.com/webpy/webpy@Workaround-for-ctx.path; python_version >= '3.5'
 # statsd...
 pystatsd==0.1.6; python_version < '3.0'
 statsd==3.3.0; python_version >= '3.0'
