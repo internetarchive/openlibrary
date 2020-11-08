@@ -173,7 +173,7 @@ def read_directory(data):
         directory = data[:dir_end].decode('utf-8')[24:]
         if len(directory) % 12 != 0:
             raise BadDictionary
-    iter_dir = (directory[i*12:(i+1)*12] for i in range(len(directory) / 12))
+    iter_dir = (directory[i * 12:(i + 1) * 12] for i in range(len(directory) // 12))
     return dir_end, iter_dir
 
 @deprecated('Use catalog.marc.MarcBinary instead.')
@@ -185,7 +185,7 @@ def get_tag_line(data, line):
     # handle off-by-one errors in MARC records
     if data[offset] != b'\x1e':
         offset += data[offset:].find(b'\x1e')
-    last = offset+length
+    last = offset + length
     if data[last] != b'\x1e':
         length += data[last:].find('b\x1e')
     tag_line = data[offset + 1:offset + length + 1]
