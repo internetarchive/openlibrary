@@ -259,7 +259,7 @@ def add_cover(cover_url, ekey, account=None):
     for attempt in range(10):
         try:
             response = requests.post(upload_url, params=params)
-        except requests.HTTPError:
+        except HTTPError:
             sleep(2)
             continue
         body = response.content
