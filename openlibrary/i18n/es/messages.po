@@ -1249,7 +1249,7 @@ msgid "Your URL: %s"
 msgstr "Tu URL: %s"
 
 #: create.html:84
-msgid "If you have security settings or privacy blockers installed, please disable them to see the reCAPTCHA."
+msgid ""
 msgstr "Si tienes configuraciones de seguridad o bloqueadores de privacidad instalados, por favor, deshabilítalos para ver el reCAPTCHA."
 
 #: create.html:88

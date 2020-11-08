@@ -402,7 +402,7 @@ msgid "Please type in the text or number(s) below."
 msgstr "Bitte geben sie den Text oder die Ziffer(n) nachfolgend ein."
 
 #: create.html:74
-msgid "If you have security settings or privacy blockers installed, please disable them to see the reCAPTCHA."
+msgid "If you have ad blockers enabled, please disable them and refresh the page to see the reCAPTCHA."
 msgstr ""
 "Wenn Sie Sichertheits- und Datenschutz-Einstellungen, oder Ad-Blocker aktiviert haben, versuchen Sie diese zu deaktiveren, um "
 "das reCAPTCHA zu sehen."
