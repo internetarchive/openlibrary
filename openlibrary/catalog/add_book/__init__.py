@@ -24,14 +24,14 @@ A record is loaded by calling the load function.
 """
 import json
 import re
-
-from six.moves import urllib
 import unicodedata as ucd
-import web
-
 from collections import defaultdict
 from copy import copy
 from time import sleep
+
+import requests
+from requests.models import HTTPError
+import web
 
 from infogami import config
 
@@ -258,16 +258,16 @@ def add_cover(cover_url, ekey, account=None):
     reply = None
     for attempt in range(10):
         try:
-            res = urllib.request.urlopen(upload_url, urllib.parse.urlencode(params))
-        except IOError:
+            response = requests.post(upload_url, params=params)
+        except requests.HTTPError:
             sleep(2)
             continue
-        body = res.read()
-        if res.getcode() == 500:
+        body = response.content
+        if response.status_code == 500:
             raise CoverNotSaved(body)
         if body not in ['', 'None']:
             reply = json.loads(body)
-            if res.getcode() == 200 and 'id' in reply:
+            if response.status_code == 200 and 'id' in reply:
                 break
         sleep(2)
     if not reply or reply.get('message') == 'Invalid URL':
