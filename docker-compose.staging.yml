@@ -12,6 +12,6 @@ services:
     environment:
       - GUNICORN_OPTS= --workers 4 --timeout 180
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
-      - PYENV_VERSION=${PYENV_VERSION:-"3.8.6"}
+      - PYENV_VERSION=3.8.6
     volumes:
       - ../olsystem:/olsystem
