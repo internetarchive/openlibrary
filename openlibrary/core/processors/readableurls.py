@@ -168,7 +168,7 @@ def get_readable_path(site, path, patterns, encoding=None):
     if thing and thing.type.key == _type:
         title = thing.get(_property) or default_title
         try:
-            from urllib.parse import quote_plus
+            from six.moves.urllib_parse import quote_plus
             middle = '/' + quote_plus(h.urlsafe(title.strip()))
         except ImportError:
             middle = '/' + h.urlsafe(title.strip())
