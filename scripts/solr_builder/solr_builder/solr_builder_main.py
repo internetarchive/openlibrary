@@ -137,6 +137,14 @@ class LocalPostgresDataProvider(DataProvider):
 
     @staticmethod
     def _get_lite_metadata(ocaids, _recur_depth=0, _max_recur_depth=3):
+        """
+        For bulk fetch, some of the ocaids in Open Library may be bad
+        and break archive.org ES fetches. When this happens, we (up to
+        3 times) recursively split up the pool of ocaids to do as many
+        successful sub-bulk fetches as we can and then when limit is
+        reached, downstream code will fetch remaining ocaids individually
+        (and skip bad ocaids) 
+        """
         if not ocaids or _recur_depth > _max_recur_depth:
             return []
 
