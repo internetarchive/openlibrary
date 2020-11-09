@@ -4,14 +4,13 @@ $ component_times = {}
 $ component_times['TotalTime'] = time()
 
 $ tab = input(tab=None).tab
-$ editions = []
 $ page_type = page.key.split('/')[1]
 
-$ work = page if page.key.startswith('/works') else list(page.works)[0]
+$ work = page if page.key.startswith('/works') else list(page.works or [None])[0]
 $ edition = storage({})
 
 $ component_times['get_sorted_editions'] = time()
-$ editions = work.get_sorted_editions()
+$ editions = work.get_sorted_editions() if work else []
 $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
 
 $ previews = [e for e in editions if e.get('ocaid')]
@@ -27,6 +26,9 @@ $elif editions:
       $if not selected_ocaid or selected_ocaid == e.get('ocaid'):
         $ edition = e
 
+$if not work:
+  $ work = edition
+  $ work['edition_count'] = 1
 $ ocaid = edition.get('ocaid')
 $ book_title = edition.get('title', '') or (work.title if work else '')
 $ work_title = work.title if work else edition.get('title', '')
