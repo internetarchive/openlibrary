@@ -28,10 +28,10 @@ import unicodedata as ucd
 from collections import defaultdict
 from copy import copy
 from time import sleep
-from urllib.parse import urlencode
 
 import requests
 from requests.models import HTTPError
+from six.moves.urllib_parse import urlencode
 import web
 
 from infogami import config
