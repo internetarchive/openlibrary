@@ -28,6 +28,7 @@ import unicodedata as ucd
 from collections import defaultdict
 from copy import copy
 from time import sleep
+from urllib.parse import urlencode
 
 import requests
 from requests.models import HTTPError
@@ -248,13 +249,13 @@ def add_cover(cover_url, ekey, account=None):
     user = account or accounts.get_current_user()
     if not user:
         raise RuntimeError("accounts.get_current_user() failed")
-    payload = {
+    payload = urlencode({
         'author': user.get('key') or user.get('_key'),
         'data': None,
         'source_url': cover_url,
         'olid': olid,
         'ip': web.ctx.ip,
-    }
+    })
     reply = None
     for attempt in range(10):
         try:
