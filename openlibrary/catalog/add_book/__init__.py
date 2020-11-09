@@ -259,7 +259,7 @@ def add_cover(cover_url, ekey, account=None):
     reply = None
     for attempt in range(10):
         try:
-            response = requests.post(upload_url, data=payload)
+            response = requests.post(upload_url, data=payload, allow_redirects=True)
         except HTTPError:
             sleep(2)
             continue
