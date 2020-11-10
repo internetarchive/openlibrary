@@ -31,4 +31,5 @@ sudo git clone https://github.com/internetarchive/openlibrary
 cd /opt/openlibrary
 sudo make git
 cd /opt/openlibrary/vendor/infogami && sudo git pull origin master
+cd /opt/openlibrary
 ls -Fla  # containerd, olsystem, openlibrary owned by openlibrary
