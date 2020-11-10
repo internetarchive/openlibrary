@@ -44,7 +44,7 @@ cd /opt/openlibrary
 sudo docker-compose build --pull $SERVICE
 
 sudo docker-compose down
-sudo docker-compose up -d --no-deps memcached  # TODO: Does covers use memcached?
+sudo docker-compose up -d --no-deps memcached
 sudo docker-compose \
     -f docker-compose.yml \
     -f docker-compose.infogami-local.yml \
