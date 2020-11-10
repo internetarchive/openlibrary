@@ -123,11 +123,13 @@
               <div class="chunky-icon--label">Feedback</div>
             </div>
           </summary>
-          <main>
-            <ul class="share-list">
-              <li><a :href="googleForms.url" target="_blank">Google Forms Feedback</a></li>
-              <li><a :href="twitterUrl" target="_blank">Share on Twitter</a></li>
-            </ul>
+          <main class="feedback-panel">
+            <p>Welcome to Library Explorer! Library Explorer is currently in <b>beta</b>, so you might hit some bugs while you're browsing.</p>
+
+            <p>
+              If you have any feedback you'd like to give, please fill out our <a :href="googleForms.url" target="_blank">Feedback Form</a>.
+              If you like what you see, and want to share it with others, why not <a :href="twitterUrl" target="_blank">Share on Twitter</a>?
+            </p>
           </main>
         </details>
       </div>
@@ -198,6 +200,7 @@ export default {
   display: flex;
   justify-content: center;
   pointer-events: none;
+  z-index: 20;
 
   .chunky-icon {
     padding: 4px;
@@ -298,19 +301,17 @@ input.filter {
   border: 1px solid currentColor;
 }
 
-.share-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-
-
-
+.feedback-panel {
+  max-width: 300px;
+  p { line-height: 1.1em; }
   a {
     color: inherit;
-    padding: 4px 8px;
+    padding: 4px 6px;
+    margin-left: -6px;
+    margin-right: -6px;
     transition: background-color 0.2s;
     border-radius: 4px;
-    display: block;
+    display: inline-block;
 
     &:hover { background-color: rgba(0, 0, 0, .1); }
   }
