@@ -281,6 +281,8 @@ $if include_widget:
   $if include_rating:
     $:macros.StarRatings(work, edition)
 
+  $if ctx.user and ctx.user.is_beta_tester():
+    $:macros.UserMetadata(work, edition)
 
 $if include_showcase:
   <ul class="listLists">
