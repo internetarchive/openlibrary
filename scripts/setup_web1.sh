@@ -1,7 +1,9 @@
 #!/bin/bash
 # This script is used to provision an ol-webX node _before_ docker gets on it.
 
-SERVICE=${SERVICE:="web"}
+# Which Ubuntu release are we running on?  Do not fail if /etc/os-release does not exist.
+cat /etc/os-release | grep VERSION= || true  # VERSION="20.04.1 LTS (Focal Fossa)"
+SERVICE=${SERVICE:-"web"}
 
 # CAUTION: To git clone olsystem, environment variables must be set...
 # Set $GITHUB_USERNAME or $USER will be used.

@@ -1,7 +1,9 @@
 #!/bin/bash
 # This script is used to provision an ol-coversX node _before_ docker gets on it.
 
-SERVICE=${SERVICE:="covers"}
+# Which Ubuntu release are we running on?  Do not fail if /etc/os-release does not exist.
+cat /etc/os-release | grep VERSION= || true  # VERSION="20.04.1 LTS (Focal Fossa)"
+SERVICE=${SERVICE:-"covers"}
 
 # CAUTION: To git clone olsystem, environment variables must be set...
 # Set $GITHUB_USERNAME or $USER will be used.
@@ -42,7 +44,7 @@ cd /opt/openlibrary
 sudo docker-compose build --pull $SERVICE
 
 sudo docker-compose down
-# sudo docker-compose up -d --no-deps memcached  # TODO: Does covers use memcached?
+sudo docker-compose up -d --no-deps memcached  # TODO: Does covers use memcached?
 sudo docker-compose \
     -f docker-compose.yml \
     -f docker-compose.infogami-local.yml \
