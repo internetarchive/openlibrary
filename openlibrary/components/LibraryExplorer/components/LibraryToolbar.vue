@@ -59,7 +59,7 @@
                   </label>
                 </div>
               </div>
-              <div class="horizontal-selector">
+              <div class="horizontal-selector" v-if="inDebugMode">
                 <div>Language</div>
                 <div class="options">
                   <label>
@@ -74,7 +74,9 @@
                   <label>
                     <input type="radio" v-model="filterState.language" value="fre">French
                   </label>
-                  <button title="todo">...</button>
+                  <label>
+                    <input type="radio" v-model="filterState.language" value="custom">Custom
+                  </label>
                 </div>
               </div>
             </div>
@@ -176,9 +178,12 @@ export default {
             return lucenerQueryParser.parse(this.filterState.filter);
         },
 
+        inDebugMode() {
+            return new URLSearchParams(location.search).get('debug') == 'true';
+        },
+
         styles() {
-            const inDebugMode = new URLSearchParams(location.search).get('debug') == 'true';
-            return inDebugMode ? this.settingsState.styles : Object.fromEntries(Object.entries(this.settingsState.styles).filter(([, val]) => !val.debugModeOnly));
+            return this.inDebugMode ? this.settingsState.styles : Object.fromEntries(Object.entries(this.settingsState.styles).filter(([, val]) => !val.debugModeOnly));
         }
     }
 }
