@@ -3,6 +3,7 @@
 import copy
 import datetime
 import time
+import hashlib
 import hmac
 import re
 import requests
@@ -842,6 +843,16 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
         'token': make_ia_token(item_id, BOOKREADER_AUTH_SECONDS)
     }
 
+def make_access_key():
+    try:
+        access_key = config.ia_access_secret
+        if not isinstance(access_key, (bytes, bytearray)):
+            access_key = access_key.encode('utf-8')
+        return access_key
+    except AttributeError:
+        raise RuntimeError(
+            "config value config.ia_access_secret is not present -- check your config"
+        )
 
 def make_ia_token(item_id, expiry_seconds):
     """Make a key that allows a client to access the item on archive.org for the number of
@@ -851,24 +862,16 @@ def make_ia_token(item_id, expiry_seconds):
     # $hmac = hash_hmac('md5', "{$id}-{$timestamp}", configGetValue('ol-loan-secret'));
     # return "{$timestamp}-{$hmac}";
 
-    try:
-        access_key = config.ia_access_secret
-    except AttributeError:
-        raise Exception("config value config.ia_access_secret is not present -- check your config")
-
+    access_key = make_access_key()
     timestamp = int(time.time() + expiry_seconds)
     token_data = '%s-%d' % (item_id, timestamp)
 
-    token = '%d-%s' % (timestamp, hmac.new(access_key, token_data).hexdigest())
+    digest = hmac.new(access_key, token_data.encode('utf-8'), hashlib.md5).hexdigest()
+    token = '%d-%s' % (timestamp, digest)
     return token
 
 def ia_token_is_current(item_id, access_token):
-    try:
-        access_key = config.ia_access_secret
-    except AttributeError:
-        raise Exception("config value config.ia_access_secret is not present -- check your config")
-    if not isinstance(access_key, (bytes, bytearray)):
-        access_key = access_key.encode('utf-8')
+    access_key = make_access_key()
 
     # Check if token has expired
     try:
@@ -888,7 +891,7 @@ def ia_token_is_current(item_id, access_token):
         return False
 
     expected_data = '%s-%s' % (item_id, token_timestamp)
-    expected_hmac = hmac.new(access_key, expected_data).hexdigest()
+    expected_hmac = hmac.new(access_key, expected_data.encode('utf-8'), hashlib.md5).hexdigest()
 
     if token_hmac == expected_hmac:
         return True
