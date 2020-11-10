@@ -187,7 +187,7 @@ def get_tag_line(data, line):
         offset += data[offset:].find(b'\x1e')
     last = offset + length
     if data[last] != b'\x1e':
-        length += data[last:].find('b\x1e')
+        length += data[last:].find(b'\x1e')
     tag_line = data[offset + 1:offset + length + 1]
     return tag_line
 
