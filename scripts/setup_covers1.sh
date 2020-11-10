@@ -1,7 +1,7 @@
 #!/bin/bash
-# This script is used to provision an ol-webX node _before_ docker gets on it.
+# This script is used to provision an ol-coversX node _before_ docker gets on it.
 
-SERVICE=${SERVICE:="web"}
+SERVICE=${SERVICE:="covers"}
 
 # CAUTION: To git clone olsystem, environment variables must be set...
 # Set $GITHUB_USERNAME or $USER will be used.
@@ -42,7 +42,7 @@ cd /opt/openlibrary
 sudo docker-compose build --pull $SERVICE
 
 sudo docker-compose down
-sudo docker-compose up -d --no-deps memcached
+# sudo docker-compose up -d --no-deps memcached  # TODO: Does covers use memcached?
 sudo docker-compose \
     -f docker-compose.yml \
     -f docker-compose.infogami-local.yml \
