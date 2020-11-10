@@ -843,19 +843,27 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
     }
 
 
+def make_access_key():
+    try:
+        access_key = config.ia_access_secret
+    except AttributeError:
+        raise RuntimeError(
+            "config value config.ia_access_secret is not present -- check your config"
+        )
+    if not isinstance(access_key, (bytes, bytearray)):
+        access_key = access_key.encode('utf-8')
+    return access_key
+
+
 def make_ia_token(item_id, expiry_seconds):
-    """Make a key that allows a client to access the item on archive.org for the number of
-       seconds from now.
+    """Make a key that allows a client to access the item on archive.org for the number
+       of seconds from now.
     """
     # $timestamp = $time+600; //access granted for ten minutes
     # $hmac = hash_hmac('md5', "{$id}-{$timestamp}", configGetValue('ol-loan-secret'));
     # return "{$timestamp}-{$hmac}";
 
-    try:
-        access_key = config.ia_access_secret
-    except AttributeError:
-        raise Exception("config value config.ia_access_secret is not present -- check your config")
-
+    access_key = make_access_key()
     timestamp = int(time.time() + expiry_seconds)
     token_data = '%s-%d' % (item_id, timestamp)
 
@@ -863,13 +871,6 @@ def make_ia_token(item_id, expiry_seconds):
     return token
 
 def ia_token_is_current(item_id, access_token):
-    try:
-        access_key = config.ia_access_secret
-    except AttributeError:
-        raise Exception("config value config.ia_access_secret is not present -- check your config")
-    if not isinstance(access_key, (bytes, bytearray)):
-        access_key = access_key.encode('utf-8')
-
     # Check if token has expired
     try:
         token_timestamp = access_token.split('-')[0]
@@ -887,6 +888,7 @@ def ia_token_is_current(item_id, access_token):
     except:
         return False
 
+    access_key = make_access_key()
     expected_data = '%s-%s' % (item_id, token_timestamp)
     expected_hmac = hmac.new(access_key, expected_data).hexdigest()
 
