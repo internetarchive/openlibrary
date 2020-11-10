@@ -32,7 +32,8 @@ class html_record():
         return ''.join(encode[k](v) for k, v in split_line(line[2:-1]))
 
     def html_line(self, tag, line):
-        if tag.startswith(b'00'):
+        tag = str(tag)
+        if tag.startswith('00'):
             s = esc_sp(line[:-1].decode('utf-8', errors='replace'))
         else:
             s = esc_sp(line[0:2].decode('utf-8', errors='replace')) + ' ' + self.html_subfields(line)
