@@ -859,7 +859,7 @@ def ia_hash(token_data):
 def make_access_key():
     try:
         access_key = config.ia_access_secret
-        return access_key if six.PY3 else access_key.encode('utf-8')
+        return access_key if six.PY2 else access_key.encode('utf-8')
     except AttributeError:
         raise RuntimeError(
             "config value config.ia_access_secret is not present -- check your config"
