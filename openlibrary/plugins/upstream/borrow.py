@@ -854,6 +854,7 @@ def ia_hash(token_data):
         ).hexdigest()
     return hmac.new(access_key, token_data).hexdigest()
 
+
 def make_access_key():
     try:
         access_key = config.ia_access_secret
