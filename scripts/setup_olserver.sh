@@ -30,6 +30,14 @@ sudo git clone https://${GITHUB_USERNAME:-$USER}:${GITHUB_TOKEN}@github.com/inte
 sudo git clone https://github.com/internetarchive/openlibrary
 cd /opt/openlibrary
 sudo make git
-cd /opt/openlibrary/vendor/infogami && sudo git pull origin master
+cd /opt/openlibrary/vendor/infogami
+sudo git pull origin master
 cd /opt/openlibrary
+
+# Set permissions so we do not have to sudo in /scripts/run_olserver.sh
+sudo chown root:staff -R /opt/openlibrary /opt/olsystem
+sudo chmod g+w -R /opt/openlibrary /opt/olsystem
+sudo find /opt/openlibrary -type d -exec chmod g+s {} \;
+sudo find /opt/olsystem -type d -exec chmod g+s {} \;
+
 ls -Fla  # containerd, olsystem, openlibrary owned by openlibrary
