@@ -111,6 +111,7 @@ def safesort(iterable, key=None, reverse=False):
         return (k.__class__.__name__, k)
     return sorted(iterable, key=safekey, reverse=reverse)
 
+
 def days_since(then, now=None):
     delta = then - (now or datetime.now())
     return abs(delta.days)
