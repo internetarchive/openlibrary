@@ -8,6 +8,7 @@ import hmac
 import re
 import requests
 import simplejson
+import six
 import logging
 
 import web
@@ -843,12 +844,20 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
         'token': make_ia_token(item_id, BOOKREADER_AUTH_SECONDS)
     }
 
+def ia_hash(token_data):
+    access_key = make_access_key()
+    if six.PY3:
+        return hmac.new(
+            access_key,
+            token_data.encode('utf-8'),
+            hashlib.md5
+        ).hexdigest()
+    return hmac.new(access_key, token_data).hexdigest()
+
 def make_access_key():
     try:
         access_key = config.ia_access_secret
-        if not isinstance(access_key, (bytes, bytearray)):
-            access_key = access_key.encode('utf-8')
-        return access_key
+        return access_key if six.PY3 else access_key.encode('utf-8')
     except AttributeError:
         raise RuntimeError(
             "config value config.ia_access_secret is not present -- check your config"
@@ -862,12 +871,9 @@ def make_ia_token(item_id, expiry_seconds):
     # $hmac = hash_hmac('md5', "{$id}-{$timestamp}", configGetValue('ol-loan-secret'));
     # return "{$timestamp}-{$hmac}";
 
-    access_key = make_access_key()
     timestamp = int(time.time() + expiry_seconds)
     token_data = '%s-%d' % (item_id, timestamp)
-
-    digest = hmac.new(access_key, token_data.encode('utf-8'), hashlib.md5).hexdigest()
-    token = '%d-%s' % (timestamp, digest)
+    token = '%d-%s' % (timestamp, ia_hash(token_data))
     return token
 
 def ia_token_is_current(item_id, access_token):
@@ -891,7 +897,7 @@ def ia_token_is_current(item_id, access_token):
         return False
 
     expected_data = '%s-%s' % (item_id, token_timestamp)
-    expected_hmac = hmac.new(access_key, expected_data.encode('utf-8'), hashlib.md5).hexdigest()
+    expected_hmac = ia_hash(expected_data)
 
     if token_hmac == expected_hmac:
         return True
