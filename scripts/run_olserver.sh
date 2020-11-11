@@ -14,9 +14,7 @@ echo "Starting $SERVICE"
 cd /opt/openlibrary
 docker-compose build --pull $SERVICE
 docker-compose down
-if [[ $SERVICE == "web"]] || [[ $SERVICE == "covers"]]; then
-    docker-compose up -d --no-deps memcached ;
-fi
+# docker-compose up -d --no-deps memcached
 HOSTNAME=$HOSTNAME docker-compose \
     -f docker-compose.yml \
     -f docker-compose.infogami-local.yml \
