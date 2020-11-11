@@ -17,6 +17,8 @@
 
 
 <script>
+import CONFIGS from '../configs';
+
 export default {
     props: {
         book: Object
@@ -52,7 +54,7 @@ export default {
          * @param {'id' | 'olid'} idType
          */
         olCoverUrl(id, idType='id') {
-            return `https://covers.openlibrary.org/b/${idType}/${id}.jpg`;
+            return `${CONFIGS.OL_BASE_COVERS}/b/${idType}/${id}.jpg`;
         }
     }
 };

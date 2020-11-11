@@ -141,6 +141,7 @@ import lucenerQueryParser from 'lucene-query-parser';
 import SettingsIcon from './icons/SettingsIcon';
 import FilterIcon from './icons/FilterIcon';
 import FeedbackIcon from './icons/FeedbackIcon';
+import CONFIGS from '../configs';
 
 export default {
     components: {
@@ -160,7 +161,7 @@ export default {
                 url: 'https://docs.google.com/forms/d/e/1FAIpQLSe3ZypSJXr9omueQrEDI4mGc2M_v6iDNpDtPp9jrHaGn6wgpA/viewform?usp=sf_link',
             },
             tweet: {
-                url: 'https://dev.openlibrary.org/explore',
+                url: `${CONFIGS.OL_BASE_PUBLIC}/explore`,
                 text: 'Browse millions of books in the @openlibrary Explorer',
                 hashtags: 'EmpoweringLibraries,BookLovers',
             }

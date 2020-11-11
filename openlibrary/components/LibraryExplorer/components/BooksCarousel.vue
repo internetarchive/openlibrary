@@ -4,7 +4,7 @@
       <slot name="book-end-start"/>
     </div>
 
-    <a class="book" v-for="book in books" :key="book.key" :href="`https://openlibrary.org${book.key}`" target="_blank" :title="book.title">
+    <a class="book" v-for="book in books" :key="book.key" :href="`${OL_BASE_BOOKS}${book.key}`" target="_blank" :title="book.title">
       <slot name="cover" v-bind:book="book">
         <FlatBookCover :book="book"/>
       </slot>
@@ -22,13 +22,17 @@
 
 <script>
 import FlatBookCover from './FlatBookCover';
+import CONFIGS from '../configs';
+
 export default {
     components: { FlatBookCover },
     props: {
         books: Array
     },
     data() {
-        return {};
+        return {
+            OL_BASE_BOOKS: CONFIGS.OL_BASE_BOOKS
+        };
     },
     methods: {
         beforeBookLeave(el) {

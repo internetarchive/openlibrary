@@ -38,6 +38,7 @@
 import BooksCarousel from './BooksCarousel.vue';
 import debounce from 'lodash/debounce';
 import Vue from 'vue';
+import CONFIGS from '../configs';
 // import * as Vibrant from "node-vibrant";
 
 // window.Vibrant = Vibrant;
@@ -71,7 +72,7 @@ export default {
     },
     computed: {
         olUrl() {
-            return `https://openlibrary.org/search?${new URLSearchParams({
+            return `${CONFIGS.OL_BASE_SEARCH}/search?${new URLSearchParams({
                 q: this.query,
                 offset: this.offset,
                 limit: this.limit
@@ -146,7 +147,7 @@ export default {
                 fields: 'key,title,author_name,cover_i,ddc,lcc,lending_edition_s'
             });
 
-            const url = `https://openlibrary.org/search.json?${params.toString()}`;
+            const url = `${CONFIGS.OL_BASE_SEARCH}/search.json?${params.toString()}`;
 
             this.status = 'Loading';
             try {

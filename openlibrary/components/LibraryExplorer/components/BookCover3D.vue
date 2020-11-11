@@ -21,11 +21,12 @@
 </template>
 
 <script>
+import CONFIGS from '../configs';
 import CSSBox from './CSSBox';
 import FlatBookCover from './FlatBookCover';
 
 async function fetchBookLength(work_key) {
-    const url = `https://openlibrary.org/query.json?${new URLSearchParams({
+    const url = `${CONFIGS.OL_BASE_SEARCH}/query.json?${new URLSearchParams({
         type: '/type/edition',
         works: work_key,
         number_of_pages: '',
