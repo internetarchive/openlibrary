@@ -112,9 +112,7 @@ def safesort(iterable, key=None, reverse=False):
     return sorted(iterable, key=safekey, reverse=reverse)
 
 def days_since(then, now=None):
-    if now is None:
-        now = datetime.now()
-    delta = then - now
+    delta = then - (now or datetime.now())
     return abs(delta.days)
 
 def datestr(then, now=None, lang=None, relative=True):
