@@ -879,7 +879,6 @@ def make_ia_token(item_id, expiry_seconds):
     return token
 
 def ia_token_is_current(item_id, access_token):
-    access_key = make_access_key()
 
     # Check if token has expired
     try:
