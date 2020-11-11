@@ -115,6 +115,7 @@ def days_since(then, now=None):
     delta = then - (now or datetime.now())
     return abs(delta.days)
 
+
 def datestr(then, now=None, lang=None, relative=True):
     """Internationalized version of web.datestr."""
     lang = lang or web.ctx.get('lang') or "en"
