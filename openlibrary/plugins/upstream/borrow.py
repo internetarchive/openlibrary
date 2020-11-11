@@ -844,6 +844,7 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
         'token': make_ia_token(item_id, BOOKREADER_AUTH_SECONDS)
     }
 
+
 def ia_hash(token_data):
     access_key = make_access_key()
     if six.PY3:
