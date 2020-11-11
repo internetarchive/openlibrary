@@ -8,14 +8,15 @@ cd /opt/openlibrary
 git pull origin master
 cd /opt/openlibrary/vendor/infogami
 git pull origin master
-cd /opt/openlibrary
 
-export SERVICE=${SERVICE:-"web"}  # options: web, covers, infobase, home
+SERVICE=${SERVICE:-"web"}  # options: web, covers, infobase, home
 echo "Starting $SERVICE"
 cd /opt/openlibrary
 docker-compose build --pull $SERVICE
 docker-compose down
-docker-compose up -d --no-deps memcached
+if [[ $SERVICE == "web"]] || [[ $SERVICE == "covers"]]; then
+    docker-compose up -d --no-deps memcached ;
+fi
 HOSTNAME=$HOSTNAME docker-compose \
     -f docker-compose.yml \
     -f docker-compose.infogami-local.yml \
