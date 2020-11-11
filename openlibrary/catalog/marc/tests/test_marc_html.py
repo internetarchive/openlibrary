@@ -19,7 +19,7 @@ def test_html_line_marc8():
     ]
     hr = html_record(b'00053This is the leader.Now we are beyond the leader.')
     for tag, input_, output in samples:
-        expect = '<large>%s</large> <code>%s</code>' % (tag, output)
+        expect = '<large>%s</large> <code>%s</code>' % (tag.decode('utf-8'), output)
         assert hr.html_line(tag, input_) == expect
 
 
@@ -35,5 +35,5 @@ def test_html_line_utf8():
     hr = html_record(b'00053Thisais the leader.Now we are beyond the leader.')
     assert hr.is_marc8 == False
     for tag, input_, output in samples:
-        expect = '<large>%s</large> <code>%s</code>' % (tag, output)
+        expect = '<large>%s</large> <code>%s</code>' % (tag.decode('utf-8'), output)
         assert hr.html_line(tag, input_) == expect
