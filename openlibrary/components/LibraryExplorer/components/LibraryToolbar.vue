@@ -59,23 +59,29 @@
                   </label>
                 </div>
               </div>
-              <div class="horizontal-selector" v-if="inDebugMode">
+              <div class="horizontal-selector">
                 <div>Language</div>
                 <div class="options">
                   <label>
-                    <input type="radio" v-model="filterState.language" value>Any
+                    <input type="radio" v-model="quickLanguageSelect" value>Any
+                  </label>
+                  <label v-for="lang of top3Languages" :key="lang.key">
+                    <input type="radio" v-model="quickLanguageSelect" :value="lang">{{lang.name}}
                   </label>
                   <label>
-                    <input type="radio" v-model="filterState.language" value="eng">English
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterState.language" value="ger">German
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterState.language" value="fre">French
-                  </label>
-                  <label>
-                    <input type="radio" v-model="filterState.language" value="custom">Custom
+                    <input type="radio" v-model="quickLanguageSelect" value="custom">
+                    <multiselect v-model="fullLanguageSelect"
+                      placeholder="Other..."
+                      :options="langOpts"
+                      :multiple="true"
+                      :internal-search="false"
+                      :hide-selected="true"
+                      track-by="key"
+                      label="name"
+                      :loading="langLoading"
+                      @search-change="findLanguage"
+                    >
+                    </multiselect>
                   </label>
                 </div>
               </div>
@@ -142,12 +148,14 @@ import SettingsIcon from './icons/SettingsIcon';
 import FilterIcon from './icons/FilterIcon';
 import FeedbackIcon from './icons/FeedbackIcon';
 import CONFIGS from '../configs';
+import Multiselect from 'vue-multiselect';
 
 export default {
     components: {
         FilterIcon,
         SettingsIcon,
         FeedbackIcon,
+        Multiselect,
     },
 
     props: {
@@ -164,7 +172,30 @@ export default {
                 url: `${CONFIGS.OL_BASE_PUBLIC}/explore`,
                 text: 'Browse millions of books in the @openlibrary Explorer',
                 hashtags: 'EmpoweringLibraries,BookLovers',
-            }
+            },
+
+            langOpts: [],
+            topLanguages: [],
+            quickLanguageSelect: '',
+            fullLanguageSelect: [],
+            langLoading: false,
+        }
+    },
+
+    async created() {
+        this.topLanguages = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages.json`).then(r => r.json());
+        this.langOpts = this.topLanguages;
+    },
+
+    watch: {
+        quickLanguageSelect(newVal) {
+            if (newVal == '') this.filterState.languages = [];
+            else if (newVal == 'custom') this.filterState.languages = this.fullLanguageSelect;
+            else this.filterState.languages = [newVal];
+        },
+
+        fullLanguageSelect(newVal) {
+            this.filterState.languages = newVal;
         }
     },
 
@@ -176,6 +207,9 @@ export default {
             return Object.values(this.filterState).filter(v => v).length;
         },
 
+        top3Languages() {
+            return this.topLanguages.slice(0, 3);
+        },
 
         parsedFilter() {
             return lucenerQueryParser.parse(this.filterState.filter);
@@ -188,11 +222,34 @@ export default {
         styles() {
             return this.inDebugMode ? this.settingsState.styles : Object.fromEntries(Object.entries(this.settingsState.styles).filter(([, val]) => !val.debugModeOnly));
         }
+    },
+
+    methods: {
+        async findLanguage(query) {
+            this.langLoading = true;
+
+            if (!query) {
+                // fetch top languages
+                this.langOpts = this.topLanguages;
+            } else {
+                // Actually search
+                this.langOpts = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages/_autocomplete.json?${new URLSearchParams({
+                    q: query,
+                    limit: 15,
+                })}`).then(r => r.json());
+            }
+
+            this.langLoading = false;
+        },
     }
 }
 </script>
 
+
+<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
 <style lang="less">
+
+
 .floating-controls-wrapper {
   position: -webkit-sticky;
   position: sticky;
@@ -202,6 +259,37 @@ export default {
   justify-content: center;
   pointer-events: none;
   z-index: 20;
+
+  .multiselect {
+    width: auto;
+    min-height: 0;
+    display: inline-block;
+
+    .multiselect__tags {
+      background: transparent;
+      padding-top: 0;
+      min-height: 0;
+      padding-bottom: 0;
+      font-family: inherit;
+      font-size: inherit;
+      padding-left: 0;
+    }
+
+    .multiselect__select {
+      padding: 0;
+      height: 100%;
+    }
+
+    .multiselect__tag {
+      margin-bottom: -5px;
+      margin-top: 0;
+    }
+
+    .multiselect__placeholder {
+      margin: 0;
+      color: inherit;
+    }
+  }
 
   .chunky-icon {
     padding: 4px;
@@ -225,7 +313,6 @@ export default {
     pointer-events: all;
     display: flex;
     border-radius: 4px 4px 0 0;
-    overflow: hidden;
     box-shadow: 0 0 5px rgba(0, 0, 0, .2);
     // white/grey:
     // background: linear-gradient(

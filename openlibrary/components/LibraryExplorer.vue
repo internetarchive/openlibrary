@@ -57,7 +57,7 @@ export default {
                 filter: '',
                 /** @type { '' | 'true' | 'false' } */
                 has_ebook: 'true',
-                language: '',
+                languages: [],
                 age: '',
                 year: '[1985 TO 9998]'
             },
@@ -107,8 +107,9 @@ export default {
                 filters.push(`has_fulltext:${this.filterState.has_ebook}`);
             }
 
-            if (this.filterState.language) {
-                filters.push(`language:${this.filterState.language}`);
+            if (this.filterState.languages.length) {
+                const langs = this.filterState.languages.map(lang => lang.key.split('/')[2]);
+                filters.push(`language:(${langs.join(' OR ')})`);
             }
             if (this.filterState.age) {
                 filters.push(`subject:${this.filterState.age}`);
