@@ -56,6 +56,13 @@ class components_test(delegate.page):
         return render_component('HelloWorld') + render_component('HelloWorld')
 
 
+class library_explorer(delegate.page):
+    path = "/explore"
+
+    def GET(self):
+        return render_template('library_explorer')
+
+
 class merge_work(delegate.page):
     path = "(/works/OL\d+W)/merge"
     def GET(self, key):
