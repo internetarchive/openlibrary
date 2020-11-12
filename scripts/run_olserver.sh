@@ -9,7 +9,8 @@ git pull origin master
 cd /opt/openlibrary/vendor/infogami
 git pull origin master
 
-SERVICE=${SERVICE:-web}  # options: web, covers, infobase, home
+# SERVICE can be: web, covers, infobase, home
+SERVICE=${SERVICE:-web}
 echo "Starting $SERVICE"
 cd /opt/openlibrary
 docker-compose build --pull $SERVICE
