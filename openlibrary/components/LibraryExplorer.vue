@@ -125,7 +125,12 @@ export default {
                         options: ['mockup', 'wip'],
                         selected: 'wip'
                     },
-                }
+
+                    scrollbar: {
+                        options: ['default', 'thin', 'hidden'],
+                        selected: 'thin',
+                    },
+                },
             },
         };
     },
@@ -456,14 +461,6 @@ hr {
   background: linear-gradient(180deg,#ebdfc5 100px, #dbbe9f 1600px,#cba37e 4800px);
   background-position: scroll;
 
-  // Chrome-specific scroll fixes
-  .books-carousel {
-    &::-webkit-scrollbar { height: 10px; }
-    &::-webkit-scrollbar-thumb { background: rgba(255,255,255, 0.35); }
-    &::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255, 0.25); }
-    &::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-  }
-
   .classification-short {
     opacity: .6;
   }
@@ -606,5 +603,20 @@ hr {
     height: 4px;
     bottom: 0;
   }
+}
+
+.book-room.style--scrollbar--thin {
+  .books-carousel { scrollbar-width: thin; }
+
+  // Chrome-specific scroll fixes
+  .books-carousel::-webkit-scrollbar { height: 6px; }
+  .books-carousel::-webkit-scrollbar-thumb { background: rgba(255,255,255, 0.35); }
+  .books-carousel::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255, 0.25); }
+  .books-carousel::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+}
+
+.book-room.style--scrollbar--hidden {
+  .books-carousel { scrollbar-width: none; }
+  .books-carousel::-webkit-scrollbar { height: 0; }
 }
 </style>
