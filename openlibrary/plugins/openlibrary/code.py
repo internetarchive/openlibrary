@@ -173,7 +173,7 @@ def sampleload(filename='sampledump.txt.gz'):
     else:
         f = open(filename)
 
-    queries = [simplejson.loads(line) for  line in f]
+    queries = [simplejson.loads(line) for line in f]
     print(web.ctx.site.save_many(queries))
 
 
@@ -378,7 +378,7 @@ class isbn_lookup(delegate.page):
                 return web.found(ed.key + ext)
         except Exception as e:
             logger.error(e)
-            return e.message
+            return repr(e)
 
         web.ctx.status = '404 Not Found'
         return render.notfound(web.ctx.path, create=False)
@@ -526,7 +526,7 @@ class _yaml(delegate.mode):
             if e.json:
                 msg = self.dump(simplejson.loads(e.json))
             else:
-                msg = e.message
+                msg = str(e)
             raise web.HTTPError(e.status, data=msg)
 
         return simplejson.loads(d)
