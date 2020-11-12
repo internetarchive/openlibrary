@@ -18,7 +18,7 @@
             <!-- <small>{{computedFilter}}</small> -->
             <div class="click-controls">
               <div class="horizontal-selector">
-                <div>First Published Year</div>
+                <div class="label">First Published Year</div>
                 <div class="options">
                   <label>
                     <input type="radio" v-model="filterState.year" value>Any
@@ -35,7 +35,7 @@
                 </div>
               </div>
               <div class="horizontal-selector">
-                <div>Has ebook/preview?</div>
+                <div class="label">Has ebook/preview?</div>
                 <div class="options">
                   <label>
                     <input type="radio" v-model="filterState.has_ebook" value>Any
@@ -49,7 +49,7 @@
                 </div>
               </div>
               <div class="horizontal-selector">
-                <div>Age Range</div>
+                <div class="label">Age Range</div>
                 <div class="options">
                   <label>
                     <input type="radio" v-model="filterState.age" value>Any
@@ -60,7 +60,7 @@
                 </div>
               </div>
               <div class="horizontal-selector">
-                <div>Language</div>
+                <div class="label">Language</div>
                 <div class="options">
                   <label>
                     <input type="radio" v-model="quickLanguageSelect" value>Any
@@ -100,7 +100,7 @@
           </summary>
           <main class="click-controls">
             <div class="horizontal-selector">
-              <div>Classification</div>
+              <div class="label">Classification</div>
               <div class="options">
                 <label v-for="c of settingsState.classifications" :key="c.name">
                   <input type="radio" v-model="settingsState.selectedClassification" :value="c">
@@ -109,7 +109,7 @@
               </div>
             </div>
             <div class="horizontal-selector" v-for="(opts, name) of styles" :key="name">
-              <div>{{name}} style</div>
+              <div class="label">{{name}} style</div>
               <div class="options">
                 <label v-for="cls of opts.options" :key="cls">
                   <input type="radio" v-model="opts.selected" :value="cls">
@@ -204,7 +204,7 @@ export default {
             return `https://twitter.com/intent/tweet?${new URLSearchParams(this.tweet)}`;
         },
         activeFiltersCount() {
-            return Object.values(this.filterState).filter(v => v).length;
+            return Object.values(this.filterState).filter(v => v?.length).length;
         },
 
         top3Languages() {
@@ -313,16 +313,8 @@ export default {
     pointer-events: all;
     display: flex;
     border-radius: 4px 4px 0 0;
+    overflow: hidden;
     box-shadow: 0 0 5px rgba(0, 0, 0, .2);
-    // white/grey:
-    // background: linear-gradient(
-    //   to bottom,
-    //   #e9e9e9,
-    //   white 10%,
-    //   #e9e9e9 90%,
-    //   #b6b6b6
-    // );
-    // white/page-colored
     background: linear-gradient(to bottom, #fff, #ebdfc5 150%);
     max-width: 100%;
     max-height: 80vh;
@@ -367,6 +359,13 @@ export default {
 
 .horizontal-selector {
   margin-right: 10px;
+  margin-top: 5px;
+
+  .label {
+    font-size: 0.9em;
+    margin-left: 5px;
+    margin-bottom: -2px;
+  }
 
   .options {
     border: 1px solid currentColor;
@@ -375,7 +374,8 @@ export default {
 
   .options label {
     display: inline-block;
-    padding: 4px;
+    padding: 2px 4px;
+    padding-top: 3px;
   }
 }
 
@@ -385,6 +385,7 @@ input.filter {
   width: 300px;
   box-sizing: border-box;
   font-family: inherit;
+  font-size: inherit;
   border-radius: 4px;
   border: 1px solid currentColor;
 }
