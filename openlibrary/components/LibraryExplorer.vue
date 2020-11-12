@@ -18,6 +18,41 @@ import DDC from './LibraryExplorer/ddc.json';
 import LCC from './LibraryExplorer/lcc.json';
 import { recurForEach } from './LibraryExplorer/utils.js';
 
+class FilterState {
+    constructor() {
+        this.filter = '';
+        /** @type { '' | 'true' | 'false' } */
+        this.has_ebook = 'true';
+        /** @type {Array<{name: string, key: string}>} */
+        this.languages = [];
+        this.age = '';
+        this.year = '[1985 TO 9998]';
+    }
+
+    solrQueryParts() {
+        const filters = this.filter ? [this.filter] : [];
+        if (this.has_ebook) {
+            filters.push(`has_fulltext:${this.has_ebook}`);
+        }
+
+        if (this.languages.length) {
+            const langs = this.languages.map(lang => lang.key.split('/')[2]);
+            filters.push(`language:(${langs.join(' OR ')})`);
+        }
+        if (this.age) {
+            filters.push(`subject:${this.age}`);
+        }
+        if (this.year) {
+            filters.push(`first_publish_year:${this.year}`);
+        }
+        return filters;
+    }
+
+    solrQuery() {
+        return this.solrQueryParts().join(' AND ');
+    }
+}
+
 export default {
     components: {
         BookRoom,
@@ -27,6 +62,7 @@ export default {
         const classifications = [
             {
                 name: 'DDC',
+                longName: 'Dewey Decimal Classification',
                 field: 'ddc',
                 fieldTransform: ddc => ddc,
                 root: recurForEach({ children: DDC }, n => {
@@ -37,6 +73,7 @@ export default {
             },
             {
                 name: 'LCC',
+                longName: 'Library of Congress Classification',
                 field: 'lcc',
                 fieldTransform: lcc =>
                     lcc
@@ -53,14 +90,7 @@ export default {
             }
         ];
         return {
-            filterState: {
-                filter: '',
-                /** @type { '' | 'true' | 'false' } */
-                has_ebook: 'true',
-                languages: [],
-                age: '',
-                year: '[1985 TO 9998]'
-            },
+            filterState: new FilterState(),
 
             settingsState: {
                 selectedClassification: classifications[0],
@@ -102,23 +132,9 @@ export default {
 
     computed: {
         computedFilter() {
-            const filters = this.filterState.filter ? [this.filterState.filter] : [];
-            if (this.filterState.has_ebook) {
-                filters.push(`has_fulltext:${this.filterState.has_ebook}`);
-            }
-
-            if (this.filterState.languages.length) {
-                const langs = this.filterState.languages.map(lang => lang.key.split('/')[2]);
-                filters.push(`language:(${langs.join(' OR ')})`);
-            }
-            if (this.filterState.age) {
-                filters.push(`subject:${this.filterState.age}`);
-            }
-            if (this.filterState.year) {
-                filters.push(`first_publish_year:${this.filterState.year}`);
-            }
-            return filters.join(' AND ');
+            return this.filterState.solrQuery();
         },
+
         bookRoomFeatures() {
             return {
                 book3d: this.settingsState.styles.book.selected.startsWith('3d'),
@@ -140,7 +156,7 @@ export default {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
+  color: rgba(0, 0, 0, .7);
 }
 
 details[open] summary ~ * {

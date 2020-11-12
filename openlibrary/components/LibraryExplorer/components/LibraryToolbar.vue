@@ -14,8 +14,10 @@
             </div>
           </summary>
           <main>
-            <input class="filter" v-model="filterState.filter" placeholder="Custom filter...">
-            <!-- <small>{{computedFilter}}</small> -->
+            <div class="filter-wrapper">
+              <input class="filter" v-model="filterState.filter" placeholder="Custom filter...">
+              <small class="computed-filter" title="This part of your filter is determined by the controls below">{{computedFilters}}</small>
+            </div>
             <div class="click-controls">
               <div class="horizontal-selector">
                 <div class="label">First Published Year</div>
@@ -79,6 +81,7 @@
                       track-by="key"
                       label="name"
                       :loading="langLoading"
+                      selectLabel=""
                       @search-change="findLanguage"
                     >
                     </multiselect>
@@ -102,7 +105,7 @@
             <div class="horizontal-selector">
               <div class="label">Classification</div>
               <div class="options">
-                <label v-for="c of settingsState.classifications" :key="c.name">
+                <label v-for="c of settingsState.classifications" :key="c.name" :title="c.longName">
                   <input type="radio" v-model="settingsState.selectedClassification" :value="c">
                   {{c.name}}
                 </label>
@@ -207,6 +210,12 @@ export default {
             return Object.values(this.filterState).filter(v => v?.length).length;
         },
 
+        computedFilters() {
+            const parts = this.filterState.solrQueryParts();
+            const computedParts = parts[0] == this.filterState.filter ? parts.slice(1) : parts;
+            return computedParts.length ? ` AND ${computedParts.join(' AND ')}` : '';
+        },
+
         top3Languages() {
             return this.topLanguages.slice(0, 3);
         },
@@ -264,6 +273,7 @@ export default {
     width: auto;
     min-height: 0;
     display: inline-block;
+    color: currentColor;
 
     .multiselect__tags {
       background: transparent;
@@ -287,7 +297,14 @@ export default {
 
     .multiselect__placeholder {
       margin: 0;
-      color: inherit;
+      color: currentColor;
+    }
+
+    .multiselect__input:focus {
+      width: 100px !important;
+      height: 100%;
+      margin: 0;
+      padding: 2px !important;
     }
   }
 
@@ -376,18 +393,50 @@ export default {
     display: inline-block;
     padding: 2px 4px;
     padding-top: 3px;
+
+    &[title] {
+      text-decoration: underline;
+      text-decoration-style: dotted;
+    }
   }
 }
 
-input.filter {
-  padding: 6px;
-  max-width: 100%;
-  width: 300px;
-  box-sizing: border-box;
-  font-family: inherit;
-  font-size: inherit;
-  border-radius: 4px;
+.filter-wrapper {
   border: 1px solid currentColor;
+  background: white;
+
+  border-radius: 4px;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: inline-block;
+
+  input.filter {
+    max-width: 100%;
+    margin: 1px;
+    padding: 5px;
+    width: 150px;
+    font-family: inherit;
+    font-size: inherit;
+    border: 0;
+    border-radius: inherit;
+    transition: width 0.2s;
+    &:not(:placeholder-shown), &:focus {
+      width: 300px;
+    }
+  }
+
+  small.computed-filter {
+    background: rgba(125,125,125,0.2);
+    font-size: inherit;
+    display: inline-block;
+    opacity: 0.8;
+    font-style: oblique;
+    padding: 6px;
+    padding-right: 8px;
+    border-left: 1px dotted grey;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+  }
 }
 
 .feedback-panel {
