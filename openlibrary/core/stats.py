@@ -44,6 +44,7 @@ def put(key, value):
         l.debug("Putting %s as %s" % (value, key))
         client.timing(key, value)
 
+
 def increment(key, n=1, rate=1.0):
     "Increments the value of ``key`` by ``n``"
     global client
