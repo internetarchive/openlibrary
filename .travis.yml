@@ -41,8 +41,8 @@ jobs:
     - name: Python 2.7 on Infogami master
 
 install:
-  - pip install --upgrade pip wheel
-  - pip install -r requirements_test.txt
+  - pip install --upgrade pip setuptools wheel
+  - pip install --use-feature=2020-resolver -r requirements_test.txt
   # refresh the git submodule ./vendor/infogami on some jobs
   - if [ "$TRAVIS_PYTHON_VERSION" != "2.7" ] || [ "$TRAVIS_JOB_NAME" == "Python 2.7 on Infogami master" ]; then
       pushd vendor/infogami && git pull origin master && popd;
