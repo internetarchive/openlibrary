@@ -15,3 +15,4 @@ services:
       - PYENV_VERSION=3.8.6
     volumes:
       - ../olsystem:/olsystem
+      - ../booklending_utils:/booklending_utils
