@@ -432,7 +432,7 @@ class Metatag:
         self.attrs = attrs
 
     def __str__(self):
-        attrs = ' '.join('%s="%s"' % (k, websafe(v).encode('utf8')) for k, v in self.attrs.items())
+        attrs = ' '.join('%s="%s"' % (k, websafe(v)) for k, v in self.attrs.items())
         return '<%s %s />' % (self.tag, attrs)
 
     def __repr__(self):
