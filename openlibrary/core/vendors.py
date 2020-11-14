@@ -203,7 +203,7 @@ class AmazonAPI:
                 edition_info.publication_date.display_value
             ).strftime('%b %d, %Y')
         except Exception:
-            logger.exception()
+            logger.exception("serialize({})".format(product))
             publish_date = None
 
         book = {
@@ -281,7 +281,7 @@ def _get_amazon_metadata(id_, id_type='isbn', resources=None):
         try:
             return amazon_api.get_product(id_, serialize=True, resources=resources)
         except Exception:
-            logger.exception()
+            logger.exception("amazon_api.get_product({}, serialize=True)".format(id_))
             return None
 
 
