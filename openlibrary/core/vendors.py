@@ -97,10 +97,11 @@ class AmazonAPI:
         if products:
             return next(self.serialize(p) if serialize else p for p in products)
 
-    def get_items_with_retry(self, request, attempts=2, sleep_seconds=1):
+    def get_items_with_retry(self, request, attempts=2, sleep_seconds=2):
         """
         Retry after delaying sleep_seconds to deal with API rate limiting.
         """
+        logger.error("{}, {}, {}".format(id(request), attempts, sleep_seconds))
         if attempts < 1:
             return None
         try:
