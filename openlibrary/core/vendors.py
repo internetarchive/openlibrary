@@ -414,7 +414,7 @@ def _get_betterworldbooks_metadata(isbn):
     response = requests.get(url)
     if response.status_code != requests.codes.ok:
         return {'error': response.text, 'code': response.status_code}
-    response = response.content
+    response = response.text
     new_qty = re.findall("<TotalNew>([0-9]+)</TotalNew>", response)
     new_price = re.findall(r"<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
     used_price = re.findall(r"<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)
