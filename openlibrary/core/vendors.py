@@ -97,6 +97,20 @@ class AmazonAPI:
         if products:
             return next(self.serialize(p) if serialize else p for p in products)
 
+    def get_items_with_retry(self, request, attempts=2, sleep_seconds=1):
+        """
+        Retry after delaying sleep_seconds to deal with API rate limiting.
+        """
+        if attempts < 1:
+            return None
+        try:
+            return self.api.get_items(request)
+        except ApiException as e:
+            if "TooManyRequests" in e.body.get("__type", ""):
+                time.sleep(sleep_seconds)  # API is rate limited
+                return self.get_items_with_retry(request, attempts - 1)
+            raise
+
     def get_products(self, asins, serialize=False, marketplace='www.amazon.com',
                      resources=None, **kwargs):
         """
@@ -119,16 +133,13 @@ class AmazonAPI:
                                       item_ids=item_ids,
                                       resources=_resources,
                                       **kwargs)
-            response = self.api.get_items(request)
-        except ApiException as e:
+        except ApiException:
             logger.exception("Amazon fetch failed for: %s" % ', '.join(item_ids))
-            if "TooManyRequests" in e.body.get("__type", ""):
-                time.sleep(1)  # API is rate limited
             return None
+        response = self.get_items_with_retry(request)
         products = response.items_result.items
         return (products if not serialize else
                 [self.serialize(p) for p in products])
-
 
     @staticmethod
     def serialize(product):
@@ -191,6 +202,7 @@ class AmazonAPI:
                 edition_info.publication_date.display_value
             ).strftime('%b %d, %Y')
         except Exception:
+            logger.exception()
             publish_date = None
 
         book = {
