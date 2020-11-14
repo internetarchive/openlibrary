@@ -397,7 +397,7 @@ def get_betterworldbooks_metadata(isbn):
     try:
         return _get_betterworldbooks_metadata(isbn)
     except Exception:
-        logger.exception()
+        logger.exception("_get_betterworldbooks_metadata({})".format(isbn))
         return betterworldbooks_fmt(isbn)
 
 
