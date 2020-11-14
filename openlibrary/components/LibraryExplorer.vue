@@ -199,7 +199,9 @@ hr {
 
   .book {
     position: relative;
+    margin-left: 10px;
   }
+  .book-end-wrapper + .book { margin-left: 20px;}
 
   .cover-label {
     background: rgba(0, 0, 0, .5);
@@ -408,6 +410,7 @@ hr {
     opacity: .8;
     transition: opacity .2s;
   }
+  .book-end-wrapper + .book { margin-left: 60px; }
   .book:hover .cover {
     opacity: 1;
   }
@@ -428,11 +431,6 @@ hr {
     margin-left: -100px;
   }
 
-  .book:first-child .book-3d,
-  .book-end-start + .book .book-3d {
-    margin-left: 120px !important;
-  }
-
   .book:hover {
     z-index: 1;
   }
@@ -445,7 +443,9 @@ hr {
   .book {
     transform: rotateX(20deg);
     transform-style: preserve-3d;
+    margin-left: 18px;
   }
+  .book-end-wrapper + .book { margin-left: 40px; }
   .books-carousel {
     perspective: 2000px;
   }
@@ -558,13 +558,8 @@ hr {
 
   .shelf-carousel {
     border: 0;
-    background-color: #563822;
-    background-image: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, .36),
-      #563822 50px
-    );
-    margin: 0;
+    margin: 0 10px;
+    @media (max-width: 450px) { margin: 0; }
   }
 
   .class-slider.shelf-label {
