@@ -106,7 +106,7 @@ class AmazonAPI:
         try:
             return self.api.get_items(request)
         except ApiException as e:
-            if "TooManyRequests" in e.body.get("__type", ""):
+            if "TooManyRequests" in e.body:
                 time.sleep(sleep_seconds)  # API is rate limited
                 return self.get_items_with_retry(request, attempts - 1)
             raise
