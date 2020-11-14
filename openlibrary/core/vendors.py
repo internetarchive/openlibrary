@@ -119,11 +119,12 @@ class AmazonAPI:
                                       item_ids=item_ids,
                                       resources=_resources,
                                       **kwargs)
-        except ApiException:
-            logger.error("Amazon fetch failed for: %s" % ', '.join(item_ids),
-                         exc_info=True)
+            response = self.api.get_items(request)
+        except ApiException as e:
+            logger.exception("Amazon fetch failed for: %s" % ', '.join(item_ids))
+            if "TooManyRequests" in e.body.get("__type", ""):
+                time.sleep(1)  # API is rate limited
             return None
-        response = self.api.get_items(request)
         products = response.items_result.items
         return (products if not serialize else
                 [self.serialize(p) for p in products])
@@ -267,6 +268,7 @@ def _get_amazon_metadata(id_, id_type='isbn', resources=None):
         try:
             return amazon_api.get_product(id_, serialize=True, resources=resources)
         except Exception:
+            logger.exception()
             return None
 
 
@@ -382,6 +384,7 @@ def get_betterworldbooks_metadata(isbn):
     try:
         return _get_betterworldbooks_metadata(isbn)
     except Exception:
+        logger.exception()
         return betterworldbooks_fmt(isbn)
 
 
