@@ -163,10 +163,10 @@ class ia_importapi(importapi):
             "require_marc": "true",
             "bulk_marc": "false"
         }
-    """    
+    """
 
     @classmethod
-    def ia_import(cls, identifier, require_marc=True):
+    def ia_import(cls, identifier, require_marc=True, admin_override=False, jsonify=True):
         """
         Performs logic to fetch archive.org item + metadata,
         produces a data dict, then loads into Open Library
@@ -189,12 +189,13 @@ class ia_importapi(importapi):
             edition_data = cls.get_ia_record(metadata)
             edition_data['openlibrary'] = metadata['openlibrary']
             edition_data = cls.populate_edition_data(edition_data, identifier)
-            return cls.load_book(edition_data)
+            return cls.load_book(edition_data, jsonify=jsonify)
 
         # Case 3 - Can the item be loaded into Open Library?
-        status = ia.get_item_status(identifier, metadata)
-        if status != 'ok':
-            raise BookImportError(status, 'Prohibited Item %s' % identifier)
+        if not admin_override:
+            status = ia.get_item_status(identifier, metadata)
+            if status != 'ok':
+                raise BookImportError(status, 'Prohibited Item %s' % identifier)
 
         # Case 4 - Does this item have a marc record?
         marc_record = get_marc_record_from_ia(identifier)
@@ -215,8 +216,20 @@ class ia_importapi(importapi):
 
         # Add IA specific fields: ocaid, source_records, and cover
         edition_data = cls.populate_edition_data(edition_data, identifier)
-        return cls.load_book(edition_data)
+        return cls.load_book(edition_data, jsonify=jsonify)
 
+    def GET(self):
+        user = web.ctx.site.get_user()
+        if user and (user.is_admin() or user.is_librarian()):
+            i = web.input()
+            identifier = i.get('ocaid')
+            require_marc = (i.get('require_marc') == 'true') or False
+            response = self.ia_import(
+                identifier, require_marc=require_marc,
+                admin_override=True, jsonify=False
+            )
+            if response and response.get('edition'):
+                raise web.seeother(response.get('edition')['key'])
 
     def POST(self):
         web.header('Content-Type', 'application/json')
@@ -318,7 +331,7 @@ class ia_importapi(importapi):
         return d
 
     @staticmethod
-    def load_book(edition_data):
+    def load_book(edition_data, jsonify=True):
         """
         Takes a well constructed full Edition record and sends it to add_book
         to check whether it is already in the system, and to add it, and a Work
@@ -328,7 +341,7 @@ class ia_importapi(importapi):
         :rtype: dict
         """
         result = add_book.load(edition_data)
-        return json.dumps(result)
+        return json.dumps(result) if jsonify else result
 
     @staticmethod
     def populate_edition_data(edition, identifier):
