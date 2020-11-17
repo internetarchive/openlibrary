@@ -45,7 +45,7 @@ $elif page.entity_type:
 
 $ bodyattrs = ctx.setdefault('bodyattrs', [])
 $ bodyattrs.append('itemscope')
-$ bodyattrs.append('itemtype=%s' % entityTypeSchema)
+$ bodyattrs.append('itemtype="%s"' % entityTypeSchema)
 
 $ title = page.get('name', _('name missing'))
 $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
