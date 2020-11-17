@@ -28,7 +28,7 @@ $elif editions:
 
 $if not work:
   $ work = edition
-  $ work['edition_count'] = 1
+  $ work['edition_count'] = work.get('edition_count', 1)
 $ ocaid = edition.get('ocaid')
 $ book_title = edition.get('title', '') or (work.title if work else '')
 $ work_title = work.title if work else edition.get('title', '')
