@@ -64,12 +64,17 @@ $add_metatag(property="og:description", content=description)
 
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
+$if page.birth_date or page.death_date:
+    $ entityTypeSchema = "https://schema.org/Person"
+$elif page.entity_type:
+    $ entityTypeSchema = "https://schema.org/Organization"
+
 <div id="contentHead">
 
     $:macros.databarView(page)
 
-    <div itemscope itemtype="https://schema.org/Person">
-        <h1 itemprop="author">$title</h1>
+    <div itemscope itemtype=$entityTypeSchema>
+        <h1 itemprop="name">$title</h1>
         <h2 class="author collapse">
         $if page.birth_date or page.death_date:
             <span itemprop="birthDate">$page.birth_date</span> - <span itemprop="deathDate">$page.death_date</span>
@@ -81,7 +86,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
 </div>
 
-<div id="contentBody">
+<div id="contentBody" itemscope itemtype=$entityTypeSchema>
 
     $if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and query_param('merge', 'false') == 'true':
        <div class="message" style="display: none;">
@@ -113,7 +118,9 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
     <div class="contentTwothird" style="margin-bottom:0;">
 
-        $:format(page.get('bio', ''))
+        <div itemprop="description">
+            $:format(page.get('bio', ''))
+        </div>
 
         $if page.website:
             <div class="section">
@@ -172,17 +179,17 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         </div>
     </div>
     <div class="contentOnethird">
-        <div class="illustration">
+        <div class="illustration" itemprop="image">
             $:render_template("covers/author_photo", page)
             $:render_template("covers/change", page, ".bookCover img")
         </div>
 
         $def render_subjects(label, subjects, prefix):
             $if subjects:
-                <div class="section" itemscope itemtype="https://schema.org/CreativeWork">
+                <div class="section">
                     <h6 class="collapse black uppercase">$label</h6>
                     $for subject, count in subjects:
-                        <a itemprop="about" href="/subjects/$prefix$subject.lower().replace(' ', '_')">$subject</a>$cond(not loop.last, ",", "")
+                        <a itemprop="knowsAbout" href="/subjects/$prefix$subject.lower().replace(' ', '_')">$subject</a>$cond(not loop.last, ",", "")
                 </div>
 
         <!-- SUBJECTS DISPLAY -->
@@ -198,12 +205,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 $:render_template("lists/widget", page, include_rating=False)
             </div>
 
-        $if page.birth_date or page.death_date:
-            $ entityTypeSchema = "https://schema.org/Person"
-        $elif page.entity_type:
-            $ entityTypeSchema = "https://schema.org/Organization"
-
-        <div class="section" itemscope itemtype=$entityTypeSchema>
+        <div class="section">
             <h3>$:_('Links <span class="gray small sansserif">(outside Open Library)')</span></h3>
 
             $if page.links or page.remote_ids or (page.wikipedia and page.wikipedia.startswith("http")):
@@ -229,7 +231,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
         $if page.alternate_names:
             $if page.alternate_names != [""]:
-                <div class="section" itemscope itemtype=$entityTypeSchema>
+                <div class="section">
                     <h3>$_("Alternative names")</h3>
                     <ul class="booklinks sansserif">
                         $for alternate_name in page.alternate_names:
