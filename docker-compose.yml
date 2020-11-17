@@ -85,6 +85,8 @@ services:
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
       - INFOGAMI=${INFOGAMI:-}
+      - INFOBASE_CONFIG=${INFOBASE_CONFIG:-/openlibrary/conf/infobase.yml}
+      - INFOBASE_OPTS=${INFOBASE_OPTS:-}
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev

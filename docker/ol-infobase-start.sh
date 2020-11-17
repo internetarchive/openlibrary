@@ -1,4 +1,4 @@
 #!/bin/bash
 
 python --version
-scripts/infobase-server conf/infobase.yml 7000
+scripts/infobase-server "$INFOBASE_CONFIG" $INFOBASE_OPTS 7000

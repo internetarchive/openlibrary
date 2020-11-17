@@ -25,3 +25,12 @@ services:
       - PYENV_VERSION=3.8.6
     volumes:
       - ../olsystem:/olsystem
+  infobase:
+    restart: always
+    hostname: ${HOSTNAME:-$HOST}
+    environment:
+      - INFOBASE_OPTS= fastcgi
+      - INFOBASE_CONFIG=/olsystem/etc/infobase.yml
+      - PYENV_VERSION=3.8.6
+    volumes:
+      - ../olsystem:/olsystem
