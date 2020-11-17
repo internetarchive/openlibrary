@@ -38,10 +38,12 @@ $if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and qu
     //-->
     </script>
 
-$if page.birth_date or page.death_date:
-    $ entityTypeSchema = "https://schema.org/Person"
-$elif page.entity_type:
+$# Most authors are people, so only use org in the exceptional case that
+$# the record explicitly is labelled as such.
+$if page.entity_type == 'org':
     $ entityTypeSchema = "https://schema.org/Organization"
+$else:
+    $ entityTypeSchema = "https://schema.org/Person"
 
 $ bodyattrs = ctx.setdefault('bodyattrs', [])
 $ bodyattrs.append('itemscope')
