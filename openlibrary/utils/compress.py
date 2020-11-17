@@ -47,6 +47,8 @@ class Compressor(object):
         self.d_context = d.copy()
 
     def compress(self, text):
+        if not isinstance(text, str):
+            text = text.decode()
         c = self.c_context.copy()
         t = c.compress(text.encode())
         t2 = c.flush(zlib.Z_FINISH)
@@ -54,7 +56,7 @@ class Compressor(object):
 
     def decompress(self, ctext):
         if not isinstance(ctext, bytes):
-            ctext = ctext.encode("utf-8")
+            ctext = ctext.encode()
         d = self.d_context.copy()
         t = d.decompress(ctext)
         while d.unconsumed_tail:
@@ -69,6 +71,13 @@ def test_compressor():
     c = Compressor(__doc__)
     test_string = "zlib is a pretty good compression algorithm"
     ct = c.compress(test_string)
+    # print('initial length=%d, compressed=%d' % (len(test_string), len(ct)))
+    # the above string compresses from 43 bytes to 29 bytes using the
+    # current doc text as compression seed, not bad for such short input.
+    dt = c.decompress(ct)
+    assert dt == test_string, (dt, test_string)
+    # Test that utf-8 encoded bytes return the utf-8 string
+    ct = c.compress(test_string.encode("utf-8"))
     # print('initial length=%d, compressed=%d' % (len(test_string), len(ct)))
     # the above string compresses from 43 bytes to 29 bytes using the
     # current doc text as compression seed, not bad for such short input.
