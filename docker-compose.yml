@@ -92,7 +92,7 @@ services:
       dockerfile: docker/Dockerfile.oldev
     command: docker/ol-infobase-start.sh
     ports:
-      - 7050:7000
+      - 7000:7000
     depends_on:
       - db
     volumes:
