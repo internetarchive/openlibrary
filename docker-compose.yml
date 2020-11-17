@@ -85,12 +85,14 @@ services:
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
       - INFOGAMI=${INFOGAMI:-}
+      - INFOBASE_CONFIG=${INFOBASE_CONFIG:-/openlibrary/conf/infobase.yml}
+      - INFOBASE_OPTS=${INFOBASE_OPTS:-user=openlibrary;directory=/opt/openlibrary/openlibrary;redirect_stderr=true;stdout_logfile=/var/log/openlibrary/infobase.log}
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
     command: docker/ol-infobase-start.sh
     ports:
-      - 7000:7000
+      - 7050:7000
     depends_on:
       - db
     volumes:
