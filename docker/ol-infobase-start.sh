@@ -1,4 +1,4 @@
 #!/bin/bash
 
 python --version
-scripts/infobase-server "$INFOBASE_OPTS" "$INFOBASE_CONFIG" fastcgi 7000
+scripts/infobase-server "$INFOBASE_CONFIG" $INFOBASE_OPTS 7000
