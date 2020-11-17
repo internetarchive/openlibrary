@@ -66,6 +66,8 @@ services:
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
       - INFOGAMI=${INFOGAMI:-}
+      - COVERSTORE_CONFIG=${COVERSTORE_CONFIG:-/openlibrary/conf/coverstore.yml}
+      - GUNICORN_OPTS=${GUNICORN_OPTS:- --workers 1 --max-requests 250}
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
