@@ -32,6 +32,7 @@ result in compressed_record being 50% or less of the size of
 some_record, and restored_record being identical to some_record.
 """
 
+
 class Compressor(object):
     def __init__(self, seed):
         c = zlib.compressobj(9)
@@ -46,26 +47,43 @@ class Compressor(object):
         self.d_context = d.copy()
 
     def compress(self, text):
+        if not isinstance(text, str):
+            text = text.decode()
         c = self.c_context.copy()
         t = c.compress(text.encode())
         t2 = c.flush(zlib.Z_FINISH)
         return t + t2
 
     def decompress(self, ctext):
+        if not isinstance(ctext, bytes):
+            ctext = ctext.encode()
         d = self.d_context.copy()
         t = d.decompress(ctext)
         while d.unconsumed_tail:
             t += d.decompress(d.unconsumed_tail)
         return t.decode()
 
-def test():
+
+def test_compressor():
+    """
+    >>> test_compressor()  # Self-doctest this code.
+    """
     c = Compressor(__doc__)
     test_string = "zlib is a pretty good compression algorithm"
     ct = c.compress(test_string)
-    # print 'initial length=%d, compressed=%d'% (len(test_string), len(ct))
+    # print('initial length=%d, compressed=%d' % (len(test_string), len(ct)))
+    # the above string compresses from 43 bytes to 29 bytes using the
+    # current doc text as compression seed, not bad for such short input.
+    dt = c.decompress(ct)
+    assert dt == test_string, (dt, test_string)
+    # Test that utf-8 encoded bytes return the utf-8 string
+    ct = c.compress(test_string.encode("utf-8"))
+    # print('initial length=%d, compressed=%d' % (len(test_string), len(ct)))
     # the above string compresses from 43 bytes to 29 bytes using the
     # current doc text as compression seed, not bad for such short input.
     dt = c.decompress(ct)
     assert dt == test_string, (dt, test_string)
 
-test()
+
+if __name__ == "__main__":
+    test_compressor()
