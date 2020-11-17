@@ -25,9 +25,8 @@ def connect_to_pg(config_file):
     `config`. Needs a top level key `db_parameters` and under that
     `database` (or `db`) at the least. If `user` and `host` are
     provided, they're used as well."""
-    f = open(config_file)
-    config = yaml.load(f)
-    f.close()
+    with open(config_file) as f:
+        config = yaml.safe_load(f)
     conf = {}
     conf["db"] = config["db_parameters"].get("database") or config["db_parameters"].get("db")
     if not conf['db']:
@@ -47,9 +46,8 @@ def get_config_info(infobase_config):
 
     Add extra parameters here and change the point of calling.
     """
-    f = open(infobase_config)
-    config = yaml.load(f)
-    f.close()
+    with open(infobase_config) as f:
+        config = yaml.safe_load(f)
     logroot = config.get("writelog")
     return logroot
 
