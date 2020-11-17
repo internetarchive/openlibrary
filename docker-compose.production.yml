@@ -16,3 +16,8 @@ services:
     volumes:
       - ../olsystem:/olsystem
       - ../booklending_utils:/booklending_utils
+  solr:
+    environment:
+      - SOLR_CONFIG=conf/solrconfig-prod.xml
+      - HAPROXY=true
+      - EXTRA_TOMCAT_JAVA_OPTS=-Xmx10g -Xms10g

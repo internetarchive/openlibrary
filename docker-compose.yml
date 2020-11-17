@@ -40,7 +40,7 @@ services:
       dockerfile: docker/Dockerfile.olsolr
     restart: always
     environment:
-      - ENV=${ENV:-dev}
+      - SOLR_CONFIG=conf/solrconfig-dev.xml
     ports:
       - 8983:8983
     volumes:

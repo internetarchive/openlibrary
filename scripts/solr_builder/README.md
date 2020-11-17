@@ -106,7 +106,7 @@ time sudo docker-compose run --no-deps --rm -v $HOME:/backup solr \
     bash -c "tar xf /backup/solrbuilder-2020-03-02.tar.gz"
 
 # Start the service
-sudo ENV=prod docker-compose up -d --no-deps solr
+sudo docker-compose -f docker-compose.yml -f docker-compose.production.yml up -d --no-deps solr
 ```
 
 ## Resetting
