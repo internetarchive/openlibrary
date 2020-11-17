@@ -20,10 +20,8 @@ services:
     restart: always
     hostname: ${HOSTNAME:-$HOST}
     environment:
-      - GUNICORN_OPTS= --workers 30 --timeout 300 --max-requests 500
+      - GUNICORN_OPTS= --workers 30 --max-requests 500
       - COVERSTORE_CONFIG=/olsystem/etc/coverstore.yml
       - PYENV_VERSION=3.8.6
     volumes:
       - ../olsystem:/olsystem
-      - ../booklending_utils:/booklending_utils
-
