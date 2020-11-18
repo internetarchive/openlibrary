@@ -120,7 +120,8 @@ class AmazonAPI:
                                       resources=_resources,
                                       **kwargs)
         except ApiException:
-            logger.exception("Amazon fetch failed for: %s" % ', '.join(item_ids))
+            logger.error("Amazon fetch failed for: %s" % ', '.join(item_ids),
+                          exc_info=True)
             return None
         response = self.api.get_items(request)
         products = response.items_result.items
