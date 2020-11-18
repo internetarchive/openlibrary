@@ -12,10 +12,15 @@ USAGE:
     $ python ./scripts/infobase-server infobase.yaml fastcgi 7070
 """
 from __future__ import print_function
-import sys
+
+import logging
 import os
+import sys
+
 import _init_path
 import web
+
+logger = logging.getLogger("openlibrary." + __file__)
 
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable
@@ -28,7 +33,7 @@ def main(args):
     if len(args) < 1 or args[0] in ['-h', '--help']:
         print("USAGE: %s configfile [port]" % (sys.argv[0]), file=sys.stderr)
         sys.exit(1)
-    
+
     start(*args)
 
 def start(config_file, *args):
@@ -58,6 +63,7 @@ def runfcgi(func, addr=('localhost', 8000)):
     import flup.server.fcgi as flups
     # Start fcgi server with multiplexed=False
     # Noticed memory leaks when running with multiplexed=True.
+    logger.info("flups.WSGIServer({}, bindAddress={})".format(func, addr))
     return flups.WSGIServer(func, multiplexed=False, bindAddress=addr, debug=False).run()
 
 def start_gunicorn_server():
