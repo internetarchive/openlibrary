@@ -63,6 +63,11 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
           $if book.edition_name:
             - $book.edition_name
         </div>
+
+	<div class="hidden">
+		$isbn_10 $isbn_13
+	</div>
+
       </div>
     </td>
 
