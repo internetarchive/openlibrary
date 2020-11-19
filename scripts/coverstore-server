@@ -48,7 +48,7 @@ def start_gunicorn_server():
             
         def load(self):
             from openlibrary.coverstore import server, code
-            server.load_config(configfile)
+            server.setup(configfile)
             return code.app.wsgifunc(https_middleware)
             
     WSGIServer("%prog coverstore.yml --gunicorn [options]").run()

@@ -7,6 +7,7 @@ import yaml
 import web
 
 from openlibrary.coverstore import config, code, archive
+from openlibrary.utils.sentry import Sentry
 
 
 def runfcgi(func, addr=('localhost', 8000)):
@@ -32,8 +33,19 @@ def load_config(configfile):
     if 'fastcgi' in d:
         web.config.fastcgi = d['fastcgi']
 
-def main(configfile, *args):
+
+def setup(configfile):
+    # type: (str) -> None
     load_config(configfile)
+
+    sentry = Sentry(getattr(config, 'sentry', {}))
+    if sentry.enabled:
+        sentry.init()
+        sentry.bind_to_webpy_app(code.app)
+
+
+def main(configfile, *args):
+    setup(configfile)
 
     if '--archive' in args:
         archive.archive()
