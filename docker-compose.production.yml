@@ -25,6 +25,7 @@ services:
       - PYENV_VERSION=3.8.6
     volumes:
       - ../olsystem:/olsystem
+      - /1:/1
   infobase:
     restart: always
     hostname: ${HOSTNAME:-$HOST}
@@ -34,3 +35,4 @@ services:
       - PYENV_VERSION=3.8.6
     volumes:
       - ../olsystem:/olsystem
+      -  /1:/1
