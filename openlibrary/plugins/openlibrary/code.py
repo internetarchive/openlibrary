@@ -5,7 +5,6 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import requests
-import sentry_sdk
 import web
 import simplejson
 import json
@@ -37,7 +36,7 @@ from openlibrary.core.lending import get_work_availability, get_edition_availabi
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count  # noqa: E402
-from openlibrary.plugins.openlibrary import processors, sentry
+from openlibrary.plugins.openlibrary import processors
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
@@ -799,8 +798,9 @@ def internalerror():
     increment_error_count('ol.internal-errors-segmented')
 
     # TODO: move this to plugins\openlibrary\sentry.py
-    if sentry.is_enabled():
-        sentry_sdk.capture_exception()
+    from openlibrary.plugins.openlibrary.sentry import sentry
+    if sentry.enabled:
+        sentry.capture_exception_webpy()
 
     if i.debug.lower() == 'true':
         raise web.debugerror()
