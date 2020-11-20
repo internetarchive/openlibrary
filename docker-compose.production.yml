@@ -26,6 +26,18 @@ services:
     volumes:
       - ../olsystem:/olsystem
       - /1:/1
+  covers_nginx:
+    image: nginx:1.19.4
+    restart: always
+    depends_on:
+      - covers
+    volumes:
+      - ./docker/covers_nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 8081:8081
+    networks:
+      - webnet
+
   infobase:
     restart: always
     hostname: ${HOSTNAME:-$HOST}

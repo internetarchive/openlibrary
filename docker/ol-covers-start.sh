@@ -4,4 +4,4 @@ python --version
 scripts/coverstore-server "$COVERSTORE_CONFIG" \
     --gunicorn \
     $GUNICORN_OPTS \
-    --bind :8081
+    --bind :7075

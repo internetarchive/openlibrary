@@ -1,0 +1,9 @@
+# This file is applied "on top" of docker-compose.yml when docker-compose
+# is used without the -f parameter. It contains local development specific
+# configuration options which we don't want to apply to production/staging
+
+version: "3"
+services:
+  covers:
+    ports:
+      - 8081:7075
