@@ -36,3 +36,11 @@ services:
     volumes:
       - ../olsystem:/olsystem
       -  /1:/1
+  infobase_nginx:
+    image: nginx:1.4.6
+    restart: always
+    deploy:
+      replicas: 1
+    expose: 7000
+    volumes:
+      - ../olsystem/etc/nginx /etc/nginx
