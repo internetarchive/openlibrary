@@ -10,8 +10,7 @@ COPY conf/solr/haproxy.cfg /etc/haproxy/
 COPY conf/solr/start.sh /start.sh
 
 # Log management:
-COPY conf/solr/rmlog /etc/cron.daily/rmlog
-RUN chmod 755 /etc/cron.daily/rmlog
+COPY conf/solr/rmlog.sh /etc/cron.daily/rmlog
 RUN crontab /etc/crontab
 
 EXPOSE 8983
