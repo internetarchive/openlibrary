@@ -37,6 +37,9 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
           <em>$_('Unknown author')</em>
         $else:
           $for a in doc.authors:
+            $if not (hasattr(a, 'name') and a.name) and not (hasattr(a, 'author') and hasattr(a.author, 'name') and a.author.name):
+              <em>$_('Unknown author')</em>$(',' if not loop.last else '')
+              $continue
             <a itemprop="author" href="$(a.get('url') or a.get('key') or a.author.get('url') or a.author.key)" class="results">$(a.name or a.author.name)</a>$(',' if not loop.last else '')
       </span>
       <span class="resultPublisher">
