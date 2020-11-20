@@ -782,7 +782,7 @@ class book_edit(delegate.page):
             else:
                 add_flash_message("info", utils.get_message("flash_book_updated"))
 
-            raise web.seeother(edition.url())
+            raise web.seeother(urllib.parse.quote(edition.url()))
         except ClientException as e:
             add_flash_message('error', e.args[-1] or e.json)
             return self.GET(key)
