@@ -1,5 +1,6 @@
 #!/bin/bash
-
+# Start cron for log management
+cron start
 # Default to dev env
 ENV=${ENV:-dev}
 # How much memory to use

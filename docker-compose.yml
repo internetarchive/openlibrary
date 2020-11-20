@@ -47,6 +47,10 @@ services:
       - solr-data:/var/lib/solr/data
     networks:
       - webnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
   memcached:
     image: memcached
     networks:
