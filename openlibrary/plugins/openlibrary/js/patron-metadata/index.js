@@ -45,10 +45,12 @@ export function initPatronMetadata() {
     }
 
     $('#modal-link').on('click', function() {
+        let context = JSON.parse(document.querySelector('#modal-link').dataset.context);
+
         if ($('#user-metadata').children().length === 0) {
             $.ajax({
                 type: 'GET',
-                url: 'https://dev.thebestbookon.com/api/aspects',
+                url: `${context.the_best_book_on_url}/api/aspects`,
                 dataType: 'json'
             })
                 .done(function(data) {
@@ -96,7 +98,7 @@ export function initPatronMetadata() {
         if (result['observations'].length > 0) {
             $.ajax({
                 type: 'POST',
-                url: 'https://dev.thebestbookon.com/api/observations',
+                url: `${context.the_best_book_on_url}/api/observations`,
                 contentType: 'application/json',
                 data: JSON.stringify(result)
             });
