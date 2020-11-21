@@ -1,3 +1,4 @@
+import re
 import web
 
 def get_spam_words():
@@ -42,7 +43,7 @@ def is_spam(i=None):
     if i is None:
         i = web.input()
     text = str(dict(i)).lower()
-    return any(w.lower() in text for w in spamwords)
+    return any(re.search(w.lower(),text) for w in spamwords)
 
 def is_spam_email(email):
     domain = email.split("@")[-1].lower()
