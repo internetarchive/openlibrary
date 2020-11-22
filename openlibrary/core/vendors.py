@@ -126,8 +126,8 @@ class AmazonAPI:
         try:
             response = self.api.get_items(request)
         except ApiException as e:
-            if "TooManyRequestsException" in e.body.__type:
-                logger.error(e.body.__type)  # request denied due to request throttling
+            if "TooManyRequestsException" in e.body:
+                logger.error(str(e))  # request was denied due to request throttling
             else:
                 logger.exception("Amazon fetch failed for: %s" % ', '.join(item_ids))
             return None
