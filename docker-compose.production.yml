@@ -8,6 +8,8 @@ version: "3.1"
 services:
   web:
     restart: always
+    deploy:
+      replicas: 2
     hostname: "$HOSTNAME"
     environment:
       - GUNICORN_OPTS= --workers 50 --timeout 300 --max-requests 500
@@ -20,6 +22,8 @@ services:
 
   covers:
     restart: always
+    deploy:
+      replicas: 1
     hostname: "$HOSTNAME"
     environment:
       - GUNICORN_OPTS= --workers 30 --max-requests 500
@@ -49,6 +53,8 @@ services:
 
   infobase:
     restart: always
+    deploy:
+      replicas: 1
     hostname: "$HOSTNAME"
     environment:
       - INFOBASE_OPTS= fastcgi
