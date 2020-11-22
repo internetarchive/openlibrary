@@ -120,10 +120,18 @@ class AmazonAPI:
                                       resources=_resources,
                                       **kwargs)
         except ApiException:
-            logger.error("Amazon fetch failed for: %s" % ', '.join(item_ids),
-                         exc_info=True)
+            logger.exception("Amazon fetch failed for: %s" % ', '.join(item_ids))
             return None
-        response = self.api.get_items(request)
+        response = None
+        try:
+            response = self.api.get_items(request)
+        except ApiException as e:
+            if "TooManyRequestsException" in e.body.__type:
+                logger.error(e.body.__type)  # request denied due to request throttling
+            else:
+                logger.exception("Amazon fetch failed for: %s" % ', '.join(item_ids))
+            return None
+
         products = response.items_result.items
         return (products if not serialize else
                 [self.serialize(p) for p in products])
