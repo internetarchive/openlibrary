@@ -55,7 +55,7 @@ def make_path_prefix(olid, date=None):
     return "%04d/%02d/%02d/%s-%s" % (date.year, date.month, date.day, olid, random_string(5))
 
 def write_image(data, prefix):
-    # type: (bytes, str) -> Optional[Image]
+    # type: (bytes, str) -> Image
     path_prefix = find_image_path(prefix)
     dirname = os.path.dirname(path_prefix)
     if not os.path.exists(dirname):
