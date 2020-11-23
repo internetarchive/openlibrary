@@ -20,12 +20,12 @@ services:
     restart: always
     hostname: ${HOSTNAME:-$HOST}
     environment:
-      #- GUNICORN_OPTS= --workers 30 --max-requests 500
-      #- COVERSTORE_CONFIG=/olsystem/etc/coverstore.yml
+      - GUNICORN_OPTS= --workers 30 --max-requests 500
+      - COVERSTORE_CONFIG=/olsystem/etc/coverstore.yml
       - PYENV_VERSION=3.8.6
-    #volumes:
-      #- ../olsystem:/olsystem
-      #- /1:/1
+    volumes:
+      - ../olsystem:/olsystem
+      - /1:/1
   covers_nginx:
     image: nginx:1.19.4
     restart: always
@@ -36,8 +36,8 @@ services:
       - ./docker/covers_nginx.conf:/etc/nginx/sites-enabled/covers_nginx.conf:ro
       # Needs access to openlibrary for static files
       - .:/openlibrary
-      #- ../olsystem:/olsystem
-      #- /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
+      - ../olsystem:/olsystem
+      - /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
     ports:
       - 8081:8081
     networks:
