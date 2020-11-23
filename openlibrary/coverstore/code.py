@@ -1,18 +1,27 @@
 from __future__ import print_function
-import web
-import simplejson
-import os
-import datetime
-import time
-import logging
+
 import array
+import datetime
+import json
+import logging
+import os
+import time
+
 import memcache
 import requests
+import web
 
 from openlibrary.coverstore import config, db, ratelimit
-from openlibrary.coverstore.coverlib import save_image, read_image, read_file
-from openlibrary.coverstore.utils import safeint, rm_f, random_string, ol_things, ol_get, changequery, download
-
+from openlibrary.coverstore.coverlib import read_file, read_image, save_image
+from openlibrary.coverstore.utils import (
+    changequery,
+    download,
+    ol_get,
+    ol_things,
+    random_string,
+    rm_f,
+    safeint,
+)
 
 logger = logging.getLogger("coverstore")
 
@@ -122,7 +131,7 @@ class upload2:
             (code, msg) = code__msg
             _cleanup()
             e = web.badrequest()
-            e.data = simplejson.dumps({"code": code, "message": msg})
+            e.data = json.dumps({"code": code, "message": msg})
             logger.exception("upload2.POST() failed: " + e.data)
             raise e
 
@@ -144,7 +153,7 @@ class upload2:
             error(ERROR_BAD_IMAGE)
 
         _cleanup()
-        return simplejson.dumps({"ok": "true", "id": d.id})
+        return json.dumps({"ok": "true", "id": d.id})
 
 def trim_microsecond(date):
     # ignore microseconds
@@ -382,7 +391,7 @@ class cover_details:
                 if isinstance(d['created'], datetime.datetime):
                     d['created'] = d['created'].isoformat()
                     d['last_modified'] = d['last_modified'].isoformat()
-                return simplejson.dumps(d)
+                return json.dumps(d)
             else:
                 raise web.notfound("")
         else:
@@ -423,12 +432,12 @@ class query:
                 }
             result = [process(r) for r in result]
 
-        json = simplejson.dumps(result)
+        json_data = json.dumps(result)
         web.header('Content-Type', 'text/javascript')
         if i.callback:
-            return "%s(%s);" % (i.callback, json)
+            return "%s(%s);" % (i.callback, json_data)
         else:
-            return json
+            return json_data
 
 class touch:
     def POST(self, category):
