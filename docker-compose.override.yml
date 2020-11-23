@@ -6,4 +6,4 @@ version: "3"
 services:
   covers:
     ports:
-      - 8081:7075
+      - 7075:7075
