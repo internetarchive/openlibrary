@@ -76,8 +76,8 @@ services:
       context: .
       dockerfile: docker/Dockerfile.oldev
     command: docker/ol-covers-start.sh
-    ports:
-      - 8081:8081
+    expose:
+      - 7075
     volumes:
       - ol-vendor:/openlibrary/vendor
       - .:/openlibrary

@@ -17,6 +17,6 @@ COPY package*.json ./
 RUN npm ci
 
 # Expose Open Library, Infobase, Coverstore, and debugger
-EXPOSE 80 7000 8081 3000
+EXPOSE 80 7000 7075 3000
 
 ENTRYPOINT ["./docker/docker-entrypoint.sh"] 
