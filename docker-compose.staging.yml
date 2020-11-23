@@ -1,0 +1,17 @@
+##
+## Staging server config (wip)
+## You probably want to run:
+## docker-compose -f docker-compose.yml -f docker-compose.infogami-local.yml -f docker-compose.staging.yml up -d
+##
+
+version: "3"
+services:
+  web:
+    restart: always
+    hostname: ${HOSTNAME:-$HOST}
+    environment:
+      - GUNICORN_OPTS= --workers 4 --timeout 180
+      - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - PYENV_VERSION=3.8.6
+    volumes:
+      - ../olsystem:/olsystem

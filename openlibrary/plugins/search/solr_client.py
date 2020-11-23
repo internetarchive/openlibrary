@@ -4,11 +4,9 @@ from six.moves import cStringIO as StringIO
 import os
 import re
 from collections import defaultdict
-import cgi
 import web
 import simplejson
 from openlibrary.plugins.search.facet_hash import facet_token
-import pdb
 
 import six
 from six.moves.urllib.parse import quote_plus

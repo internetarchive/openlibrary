@@ -2,12 +2,10 @@
 """
 
 import web
-import simplejson
 import datetime
 import time
 import logging
 import uuid
-import hmac
 import requests
 
 from infogami.utils.view import public
@@ -16,7 +14,6 @@ from openlibrary.core import cache
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil
-from six.moves import urllib
 
 from . import ia
 from . import msgbroker
@@ -164,11 +161,16 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                     if subjects:
                         _q = ' OR '.join('subject:"%s"' % subject for subject in subjects)
             if not _q:
-                logger.error('compose_ia_url(limit={}, page={}, subject={}, query={}, '
-                    'work_id={}, _type={}, sorts={}, advanced={}) failed!'.format(
-                        limit, page, subject, query, work_id, _type, sorts, advanced
-                    )
-                )
+                logger.error('compose_ia_url failed!', extra={
+                    'limit': limit,
+                    'page': page,
+                    'subject': subject,
+                    'query': query,
+                    'work_id': work_id,
+                    '_type': _type,
+                    'sorts': sorts,
+                    'advanced': advanced,
+                })
                 return ''  # TODO: Should we just raise an excpetion instead?
             q += ' AND (%s) AND !openlibrary_work:(%s)' % (_q, work_id.split('/')[-1])
 
@@ -208,8 +210,8 @@ def get_random_available_ia_edition():
                "+AND+loans__status__status:AVAILABLE"
                "&fl=identifier,openlibrary_edition,loans__status__status"
                "&output=json&rows=1&sort[]=random" % (config_bookreader_host))
-        content = urllib.request.urlopen(url=url, timeout=config_http_request_timeout).read()
-        items = simplejson.loads(content).get('response', {}).get('docs', [])
+        response = requests.get(url, timeout=config_http_request_timeout)
+        items = response.json().get('response', {}).get('docs', [])
         return items[0]["openlibrary_edition"]
     except Exception:  # TODO: Narrow exception scope
         logger.exception("get_random_available_ia_edition(%s)" % url)
@@ -263,18 +265,25 @@ def get_available(limit=None, page=1, subject=None, query=None,
             "get_available(limit={}, page={}, subject={}, query={}, "
             "work_id={}, _type={}, sorts={}"
         )
-        logger.error(fmt.format(limit, page, subject, query, work_id, _type, sorts))
+        logger.error('get_available failed', extra={
+            'limit': limit,
+            'page': page,
+            'subject': subject,
+            'query': query,
+            'work_id': work_id,
+            '_type': _type,
+            'sorts': sorts,
+        })
     try:
-        request = urllib.request.Request(url=url)
-
         # Internet Archive Elastic Search (which powers some of our
         # carousel queries) needs Open Library to forward user IPs so
         # we can attribute requests to end-users
         client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
-        request.add_header('x-client-id', client_ip)
 
-        content = urllib.request.urlopen(request, timeout=config_http_request_timeout).read()
-        items = simplejson.loads(content).get('response', {}).get('docs', [])
+        response = requests.get(
+            url, headers={"x-client-id": client_ip}, timeout=config_http_request_timeout
+        )
+        items = response.json().get('response', {}).get('docs', [])
         results = {}
         for item in items:
             if item.get('openlibrary_work'):
@@ -314,8 +323,8 @@ def get_availability(key, ids):
 
     url = '%s?%s=%s' % (config_ia_availability_api_v2_url, key, ','.join(ids))
     try:
-        content = urllib.request.urlopen(url=url, timeout=config_http_request_timeout).read()
-        items = simplejson.loads(content).get('responses', {})
+        response = requests.get(url, timeout=config_http_request_timeout)
+        items = response.json().get('responses', {})
         for ocaid in items:
             items[ocaid] = update_availability_schema_to_v2(items[ocaid], ocaid)
         return items
@@ -424,7 +433,7 @@ def is_loaned_out_on_ia(identifier):
     """
     url = "https://archive.org/services/borrow/%s?action=status" % identifier
     try:
-        response = simplejson.loads(urllib.request.urlopen(url).read())
+        response = requests.get(url).json()
         return response and response.get('checkedout')
     except Exception:  # TODO: Narrow exception scope
         logger.exception("is_loaned_out_on_ia(%s)" % identifier)
@@ -474,8 +483,6 @@ def _get_ia_loan(identifier, userid):
     ia_loan = ia_lending_api.get_loan(identifier, userid)
     return ia_loan and Loan.from_ia_loan(ia_loan)
 
-
-@cache.memoize(engine="memory", key="get_loans_of_user")
 def get_loans_of_user(user_key):
     """TODO: Remove inclusion of local data; should only come from IA"""
     account = OpenLibraryAccount.get(username=user_key.split('/')[-1])
@@ -800,7 +807,7 @@ class ACS4Item(object):
     def get_data(self):
         url = '%s/item/%s' % (config_loanstatus_url, self.identifier)
         try:
-            return simplejson.loads(urllib.request.urlopen(url).read())
+            return requests.get(url).json()
         except IOError:
             logger.exception("unable to conact BSS server")
 
@@ -879,20 +886,20 @@ class IA_Lending_API:
     def request(self, method, **arguments):
         return self._post(method=method, **arguments)
 
-    def _post(self, **params):
-        logger.info("POST %s %s", config_ia_loan_api_url, params)
+    def _post(self, **payload):
+        logger.info("POST %s %s", config_ia_loan_api_url, payload)
         if config_ia_loan_api_developer_key:
-            params['developer'] = config_ia_loan_api_developer_key
-        params['token'] = config_ia_ol_shared_key
-        payload = urllib.parse.urlencode(params)
-        if not isinstance(payload, bytes):
-            payload = payload.encode("utf-8")
+            payload['developer'] = config_ia_loan_api_developer_key
+        payload['token'] = config_ia_ol_shared_key
 
         try:
-            jsontext = urllib.request.urlopen(config_ia_loan_api_url, payload,
-                                       timeout=config_http_request_timeout).read()
+            jsontext = requests.post(
+                config_ia_loan_api_url,
+                data=payload,
+                timeout=config_http_request_timeout,
+            ).json()
             logger.info("POST response: %s", jsontext)
-            return simplejson.loads(jsontext)
+            return jsontext
         except Exception:  # TODO: Narrow exception scope
             logger.exception("POST failed")
             raise

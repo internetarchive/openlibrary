@@ -1,6 +1,6 @@
 import logging
 
-from .solr_builder_main import main
+from solr_builder_main import main
 
 
 def parse_args():

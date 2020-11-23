@@ -128,6 +128,17 @@ jQuery(function () {
             .then(module => module.init(window.READINGLOG_STATS_CONFIG));
     }
 
+    const pageEl = $('#page-barcodescanner');
+    if (pageEl.length) {
+        import(/* webpackChunkName: "page-barcodescanner" */ './page-barcodescanner')
+            .then((module) => module.init());
+    }
+
+    if (document.getElementById('modal-link')) {
+        import(/* webpackChunkName: "patron_metadata" */ './patron-metadata')
+            .then((module) => module.initPatronMetadata());
+    }
+
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });

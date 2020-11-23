@@ -16,15 +16,26 @@ window.q.push(function(){
     \$("div.checkbox:first input[type=checkbox]").attr("checked","checked");
     \$("div.author:first").addClass("master");
     \$("#include input[type=radio]").mouseover(function(){
-        \$(this).parent().parent().animate({backgroundColor:'#fefde6'},300);
+        \$(this).parent().parent().addClass("mouseoverHighlight",300);
     });
     \$("#include input[type=radio]").mouseout(function(){
-        \$(this).parent().parent().animate({backgroundColor:'#fff'},100);
+        \$(this).parent().parent().removeClass("mouseoverHighlight",100);
     });
     \$("#include input[type=radio]").click(function(){
-        \$(".merge").find("div.master").removeClass("master");
+        var previousMaster = \$(".merge").find("div.master");
+        previousMaster.removeClass("master mergeSelection");
+        previousMaster.find("input[type=checkbox]").attr('checked', false);
         \$(this).parent().parent().addClass("master");
         \$(this).parent().parent().find("input[type=checkbox]").attr('checked', true);
+    });
+    \$("#include input[type=checkbox]").on("change", function() {
+        if (!\$(this).parent().parent().hasClass("master")) {
+            if (\$(this).is(":checked")) {
+                \$(this).parent().parent().addClass("mergeSelection");
+            } else {
+                \$(this).parent().parent().removeClass("mergeSelection");
+            }
+        }
     });
 });
 </script>

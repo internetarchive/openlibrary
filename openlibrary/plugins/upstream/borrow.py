@@ -3,9 +3,12 @@
 import copy
 import datetime
 import time
+import hashlib
 import hmac
 import re
+import requests
 import simplejson
+import six
 import logging
 
 import web
@@ -566,7 +569,7 @@ def get_loan_status(resource_id):
 
     url = '%s/is_loaned_out/%s' % (loanstatus_url, resource_id)
     try:
-        response = simplejson.loads(urllib.request.urlopen(url).read())
+        response = requests.get(url).json()
         if len(response) == 0:
             # No outstanding loans
             return None
@@ -593,8 +596,7 @@ def get_all_loaned_out():
 
     url = '%s/is_loaned_out/' % loanstatus_url
     try:
-        response = simplejson.loads(urllib.request.urlopen(url).read())
-        return response
+        return requests.get(url).json()
     except IOError:
         raise Exception('Loan status server not available')
 
@@ -843,6 +845,26 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
     }
 
 
+def ia_hash(token_data):
+    access_key = make_access_key()
+    if six.PY3:
+        return hmac.new(
+            access_key,
+            token_data.encode('utf-8'),
+            hashlib.md5
+        ).hexdigest()
+    return hmac.new(access_key, token_data).hexdigest()
+
+
+def make_access_key():
+    try:
+        access_key = config.ia_access_secret
+        return access_key if six.PY2 else access_key.encode('utf-8')
+    except AttributeError:
+        raise RuntimeError(
+            "config value config.ia_access_secret is not present -- check your config"
+        )
+
 def make_ia_token(item_id, expiry_seconds):
     """Make a key that allows a client to access the item on archive.org for the number of
        seconds from now.
@@ -851,22 +873,12 @@ def make_ia_token(item_id, expiry_seconds):
     # $hmac = hash_hmac('md5', "{$id}-{$timestamp}", configGetValue('ol-loan-secret'));
     # return "{$timestamp}-{$hmac}";
 
-    try:
-        access_key = config.ia_access_secret
-    except AttributeError:
-        raise Exception("config value config.ia_access_secret is not present -- check your config")
-
     timestamp = int(time.time() + expiry_seconds)
     token_data = '%s-%d' % (item_id, timestamp)
-
-    token = '%d-%s' % (timestamp, hmac.new(access_key, token_data).hexdigest())
+    token = '%d-%s' % (timestamp, ia_hash(token_data))
     return token
 
 def ia_token_is_current(item_id, access_token):
-    try:
-        access_key = config.ia_access_secret
-    except AttributeError:
-        raise Exception("config value config.ia_access_secret is not present -- check your config")
 
     # Check if token has expired
     try:
@@ -886,7 +898,7 @@ def ia_token_is_current(item_id, access_token):
         return False
 
     expected_data = '%s-%s' % (item_id, token_timestamp)
-    expected_hmac = hmac.new(access_key, expected_data).hexdigest()
+    expected_hmac = ia_hash(expected_data)
 
     if token_hmac == expected_hmac:
         return True

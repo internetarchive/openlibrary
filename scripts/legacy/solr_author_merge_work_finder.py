@@ -6,7 +6,6 @@ import _init_path
 from openlibrary import config
 import argparse
 import simplejson
-import re
 from six.moves.urllib.request import urlopen
 import sys
 from time import time, sleep

@@ -1,8 +1,7 @@
 #!/bin/bash
 
 python --version
-scripts/coverstore-server conf/coverstore.yml \
+scripts/coverstore-server "$COVERSTORE_CONFIG" \
     --gunicorn \
-    --workers 1 \
-    --max-requests 250 \
+    $GUNICORN_OPTS \
     --bind :8081

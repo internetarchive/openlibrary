@@ -1,7 +1,6 @@
 """Utility to move files from local disk to tar files and update the paths in the db.
 """
 from __future__ import print_function
-import sys
 import tarfile
 import web
 import os

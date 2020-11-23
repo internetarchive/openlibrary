@@ -21,7 +21,7 @@ from openlibrary import accounts
 
 from openlibrary.plugins.upstream import addbook, covers, merge_authors, models, utils
 from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused imports?
-
+from openlibrary.plugins.upstream.utils import render_component
 
 if not config.get('coverstore_url'):
     config.coverstore_url = "https://covers.openlibrary.org"
@@ -47,6 +47,21 @@ class change_photo(change_cover):
     path = "(/authors/OL\d+A)/photo"
 
 del delegate.modes['change_cover']     # delete change_cover mode added by openlibrary plugin
+
+
+class components_test(delegate.page):
+    path = "/_dev/components/HelloWorld"
+
+    def GET(self):
+        return render_component('HelloWorld') + render_component('HelloWorld')
+
+
+class library_explorer(delegate.page):
+    path = "/explore"
+
+    def GET(self):
+        return render_template('library_explorer')
+
 
 class merge_work(delegate.page):
     path = "(/works/OL\d+W)/merge"

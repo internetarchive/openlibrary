@@ -1,8 +1,6 @@
 """Helper functions used by the List model.
 """
-from collections import defaultdict
 import datetime
-import re
 import time
 
 import simplejson
@@ -319,6 +317,7 @@ class Seed:
     """
     def __init__(self, list, value):
         self._list = list
+        self._type = None
 
         self.value = value
         if isinstance(value, six.string_types):
@@ -394,6 +393,8 @@ class Seed:
         return datetime.datetime(*time.gmtime(t)[:6])
 
     def get_type(self):
+        if self._type:
+            return self._type
         type = self.document.type.key
 
         if type == "/type/edition":
@@ -406,6 +407,10 @@ class Seed:
             return "unknown"
 
     type = property(get_type)
+
+    @type.setter
+    def type(self, value):
+        self._type = value
 
     def get_title(self):
         if self.type == "work" or self.type == "edition":

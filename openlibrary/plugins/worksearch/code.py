@@ -1,5 +1,7 @@
 import web
+import random
 import re
+import string
 from lxml.etree import XML, XMLSyntaxError
 from infogami.utils import delegate, stats
 from infogami import config
@@ -271,14 +273,17 @@ def build_q_list(param):
             if m:
                 q_list.append("author_key:(%s)" % m.group(1))
             else:
-                v = re_to_esc.sub(lambda m:'\\' + m.group(), v)
+                v = re_to_esc.sub(r'\\\g<0>', v)
                 # Somehow v can be empty at this point,
                 #   passing the following with empty strings causes a severe error in SOLR
                 if v:
                     q_list.append("(author_name:(%(name)s) OR author_alternative_name:(%(name)s))" % {'name': v})
 
         check_params = ['title', 'publisher', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
-        q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
+        q_list += [
+            '%s:(%s)' % (k, re_to_esc.sub(r'\\\g<0>', param[k]))
+            for k in check_params if k in param
+        ]
         if param.get('isbn'):
             q_list.append('isbn:(%s)' % (normalize_isbn(param['isbn']) or param['isbn']))
     return (q_list, use_dismax)
@@ -532,6 +537,19 @@ def work_object(w): # called by works_by_author
             obj[f] = w[f]
     return web.storage(obj)
 
+
+class scan(delegate.page):
+    """
+    Experimental EAN barcode scanner page to scan and add/view books by their barcodes.
+    """
+    path = "/barcodescanner"
+
+    def GET(self):
+        page = render.barcodescanner()
+        page.v2 = True
+        return page
+
+
 class search(delegate.page):
     def redirect_if_needed(self, i):
         params = {}
@@ -606,7 +624,7 @@ class search(delegate.page):
             q_list.append(q)
         for k in ('title', 'author', 'isbn', 'subject', 'place', 'person', 'publisher'):
             if k in i:
-                v = re_to_esc.sub(lambda m:'\\' + m.group(), i[k].strip())
+                v = re_to_esc.sub(r'\\\g<0>', i[k].strip())
                 q_list.append(k + ':' + v)
         page = render.work_search(
             i, ' '.join(q_list), do_search, get_doc,
@@ -856,6 +874,35 @@ class author_search_json(author_search):
         response = self.get_results(i.q, offset=offset, limit=limit)['response']
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response))
+
+
+@public
+def random_author_search(limit=10):
+    """
+    Returns a JSON string that contains a random list of authors.  Amount of authors
+    returned is set be the given limit.
+    """
+    letters_and_digits = string.ascii_letters + string.digits
+    seed = ''.join(random.choice(letters_and_digits) for _ in range(10))
+    rows = '&rows=%d' % (limit)
+    sort = '&sort=random_%s+desc' % (seed)
+    solr_select = solr_select_url + "?fq=type:author&q.op=AND&q=*&wt=json" + rows + sort
+
+    search_results = run_solr_search(solr_select)
+
+    docs = search_results.get('response', {}).get('docs', [])
+
+    assert docs, "random_author_search({}) returned no docs".format(limit)
+    assert len(docs) == limit, (
+        "random_author_search({}) returned {} docs".format(limit, len(docs))
+    )
+
+    for doc in docs:
+        # replace /authors/OL1A with OL1A
+        # The template still expects the key to be in the old format
+        doc['key'] = doc['key'].split("/")[-1]
+
+    return json.dumps(search_results['response'])
 
 
 @public

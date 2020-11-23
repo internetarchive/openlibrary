@@ -1,8 +1,7 @@
 """Models of various OL objects.
 """
-import simplejson
 import web
-import re
+import requests
 
 from infogami.infobase import client
 
@@ -11,13 +10,13 @@ from openlibrary.core import helpers as h
 #TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 
+# Seed might look unused, but removing it causes an error :/
 from openlibrary.core.lists.model import ListMixin, Seed
 from . import cache, waitinglist
 
@@ -47,7 +46,7 @@ class Image:
         if url.startswith("//"):
             url = "http:" + url
         try:
-            d = simplejson.loads(urllib.request.urlopen(url).read())
+            d = requests.get(url).json()
             d['created'] = h.parse_datetime(d['created'])
             if d['author'] == 'None':
                 d['author'] = None
@@ -671,6 +670,9 @@ class User(Thing):
 
     def in_sponsorship_beta(self):
         return self.is_usergroup_member('/usergroup/sponsors')
+
+    def is_beta_tester(self):
+        return self.is_usergroup_member('/usergroup/beta-testers')
 
     def get_lists(self, seed=None, limit=100, offset=0, sort=True):
         """Returns all the lists of this user.

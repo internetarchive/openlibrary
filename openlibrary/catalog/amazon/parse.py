@@ -3,7 +3,6 @@ from lxml.html import parse, tostring
 import re
 import os
 import sys
-import web
 from warnings import warn
 from math import floor
 from pprint import pprint
