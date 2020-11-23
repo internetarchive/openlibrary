@@ -72,7 +72,8 @@ class add_cover(delegate.page):
 
         try:
             if six.PY3:
-                resp = requests.post(upload_url, data=params, files={'data': BytesIO(data)})
+                files = {'data': BytesIO(data)}
+                resp = requests.post(upload_url, data=params, files=files)
             else:
                 params['data'] = data
                 payload = requests.compat.urlencode(params).encode('utf-8')
