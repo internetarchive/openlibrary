@@ -1,6 +1,9 @@
 """Handle book cover/author photo upload.
 """
+from io import BytesIO
+
 import requests
+import six
 import web
 
 from infogami.utils import delegate
@@ -56,7 +59,6 @@ class add_cover(delegate.page):
         user = accounts.get_current_user()
         params = {
             "author": user and user.key,
-            "data": data,
             "source_url": i.url,
             "olid": olid,
             "ip": web.ctx.ip
@@ -69,8 +71,14 @@ class add_cover(delegate.page):
             upload_url = "http:" + upload_url
 
         try:
-            payload = requests.compat.urlencode(params).encode('utf-8')
-            return web.storage(requests.post(upload_url, data=payload).json())
+            if six.PY3:
+                files = {'data': BytesIO(data)}
+                resp = requests.post(upload_url, data=params, files=files)
+            else:
+                params['data'] = data
+                payload = requests.compat.urlencode(params).encode('utf-8')
+                resp = requests.post(upload_url, data=payload)
+            return web.storage(resp.json())
         except requests.HTTPError as e:
             return web.storage({'error': e.read()})
 
