@@ -430,7 +430,7 @@ class query:
         if i.callback:
             return "%s(%s);" % (i.callback, json)
         else:
-           return json
+            return json
 
 class touch:
     def POST(self, category):
