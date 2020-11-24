@@ -38,7 +38,7 @@ def setup(config):
     try:
         amazon_api = AmazonAPI(
             config_amz_api.key, config_amz_api.secret,
-            config_amz_api.id, throttling=0.9)
+            config_amz_api.id, throttling=0.8)
     except AttributeError:
         amazon_api = None
 
@@ -110,7 +110,7 @@ class AmazonAPI:
             time.sleep(wait_time)
         self.last_query_time = time.time()
 
-        item_ids = asins if type(asins) is list else [asins]
+        item_ids = asins if isinstance(asins, list) else [asins]
         _resources = self.RESOURCES[resources or 'import']
         try:
             request = GetItemsRequest(partner_tag=self.tag,
