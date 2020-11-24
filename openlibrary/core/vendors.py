@@ -35,6 +35,7 @@ ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 def setup(config):
     global config_amz_api, amazon_api
     config_amz_api = config.get('amazon_api')
+    print("CCC:", config_amz_api, file=web.debug)
     try:
         amazon_api = AmazonAPI(
             config_amz_api.key, config_amz_api.secret,
