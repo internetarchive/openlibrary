@@ -38,7 +38,7 @@ def setup(config):
     try:
         amazon_api = AmazonAPI(
             config_amz_api.key, config_amz_api.secret,
-            config_amz_api.id, throttling=0.8)
+            config_amz_api.id, throttling=0.5)
     except AttributeError:
         amazon_api = None
 
