@@ -73,12 +73,13 @@ class add_cover(delegate.page):
         try:
             if six.PY3:
                 files = {'data': BytesIO(data)}
-                resp = requests.post(upload_url, data=params, files=files)
+                response = requests.post(upload_url, data=params, files=files)
             else:
                 params['data'] = data
                 payload = requests.compat.urlencode(params).encode('utf-8')
-                resp = requests.post(upload_url, data=payload)
-            return web.storage(resp.json())
+                response = requests.post(upload_url, data=payload)
+            response.raise_for_status()
+            return web.storage(response.json())
         except requests.HTTPError as e:
             return web.storage({'error': e.read()})
 
