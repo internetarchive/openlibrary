@@ -244,7 +244,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
         $if not work.excerpts and work.first_sentence:
           <h4>$_("First Sentence")</h4>
-          <p class="largest" title=$_("First Sentence")><em>"$work.first_sentence</em>"</p>
+          <p class="largest" title=$_("First Sentence")><em>"$work.first_sentence"</em></p>
 
         $if work.description:
           <h4>$_("Work Description")</h4>
