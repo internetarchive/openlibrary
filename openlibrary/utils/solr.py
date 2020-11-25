@@ -92,7 +92,12 @@ class Solr:
         if len(payload) < 500:
             url = url + "?" + payload
             logger.info("solr request: %s", url)
-            jsonData = requests.get(url, timeout=10).json()
+            response = requests.get(url, timeout=10)
+            try:
+                response.raise_for_status()
+            except requests.HTTPError:
+                logger.exception(url)
+                raise
         else:
             logger.info("solr request: %s ...", url)
             if not isinstance(payload, bytes):
@@ -100,11 +105,14 @@ class Solr:
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
             }
-            jsonData = requests.post(
-                url, data=payload, headers=headers, timeout=10
-            ).json()
+            response = requests.post(url, data=payload, headers=headers, timeout=10)
+            try:
+                response.raise_for_status()
+            except requests.HTTPError:
+                logger.exception(url)
+                raise
         return self._parse_solr_result(
-            jsonData,
+            response.json(),
             doc_wrapper=doc_wrapper,
             facet_wrapper=facet_wrapper)
 
