@@ -189,6 +189,12 @@ def setup_jquery_urls():
     web.template.Template.globals['jqueryui_url'] = jqueryui_url
     web.template.Template.globals['use_google_cdn'] = config.get('use_google_cdn', True)
 
+
+def user_is_admin_or_librarian():
+    user = web.ctx.site.get_user()
+    return user and (user.is_admin() or user.is_librarian())
+
+
 @public
 def get_document(key, limit_redirs=5):
     doc = None
@@ -214,8 +220,7 @@ class revert(delegate.mode):
         if v is None:
             raise web.seeother(web.changequery({}))
 
-        user = web.ctx.site.get_user()
-        if not user and (user.is_admin() or user.is_librarian() and web.ctx.site.can_write(key)):
+        if not web.ctx.site.can_write(key) or not user_is_admin_or_librarian():
             return render.permission_denied(web.ctx.fullpath, "Permission denied to edit " + key + ".")
 
         thing = web.ctx.site.get(key, i.v)
