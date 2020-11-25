@@ -1,11 +1,11 @@
 """Handle book cover/author photo upload.
 """
-from io import BytesIO
 from logging import getLogger
 
 import requests
 import six
 import web
+from six import BytesIO
 
 from infogami.utils import delegate
 from infogami.utils.view import safeint
@@ -72,14 +72,9 @@ class add_cover(delegate.page):
             upload_url = "http:" + upload_url
 
         try:
-            if six.PY3:
-                files = {'data': BytesIO(data)}
-                response = requests.post(upload_url, data=params, files=files)
-            else:
-                params['data'] = data
-                payload = requests.compat.urlencode(params).encode('utf-8')
-                response = requests.post(upload_url, data=payload)
-            response.raise_for_status()
+
+            files = {'data': BytesIO(data)}
+            response = requests.post(upload_url, data=params, files=files)
             return web.storage(response.json())
         except requests.HTTPError as e:
             logger.exception(str(e))
