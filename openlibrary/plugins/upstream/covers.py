@@ -82,7 +82,7 @@ class add_cover(delegate.page):
             response.raise_for_status()
             return web.storage(response.json())
         except requests.HTTPError as e:
-            logger.exception()
+            logger.exception(str(e))
             return web.storage({'error': str(e)})
 
     def save(self, book, coverid, url=None):
