@@ -93,11 +93,6 @@ class Solr:
             url = url + "?" + payload
             logger.info("solr request: %s", url)
             response = requests.get(url, timeout=10)
-            try:
-                response.raise_for_status()
-            except requests.HTTPError:
-                logger.exception(url)
-                raise
         else:
             logger.info("solr request: %s ...", url)
             if not isinstance(payload, bytes):
@@ -106,11 +101,11 @@ class Solr:
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
             }
             response = requests.post(url, data=payload, headers=headers, timeout=10)
-            try:
-                response.raise_for_status()
-            except requests.HTTPError:
-                logger.exception(url)
-                raise
+        try:
+            response.raise_for_status()
+        except requests.HTTPError:
+            logger.exception(url)
+            raise
         return self._parse_solr_result(
             response.json(),
             doc_wrapper=doc_wrapper,
