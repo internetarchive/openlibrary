@@ -1,6 +1,7 @@
 """Handle book cover/author photo upload.
 """
 from io import BytesIO
+from logging import getLogger
 
 import requests
 import six
@@ -12,7 +13,7 @@ from openlibrary import accounts
 from openlibrary.plugins.upstream.models import Image
 from openlibrary.plugins.upstream.utils import get_coverstore_url, render_template
 
-
+logger = getLogger("openlibrary." + __file__)
 def setup():
     pass
 
@@ -81,6 +82,7 @@ class add_cover(delegate.page):
             response.raise_for_status()
             return web.storage(response.json())
         except requests.HTTPError as e:
+            logger.exception()
             return web.storage({'error': str(e)})
 
     def save(self, book, coverid, url=None):
