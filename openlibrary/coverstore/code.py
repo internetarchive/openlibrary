@@ -35,14 +35,11 @@ def get_cover_id(olkeys):
         doc = ol_get(olkey)
         if not doc:
             continue
-
-        if doc['key'].startswith("/authors"):
-            covers = doc.get('photos', [])
-        else:
-            covers = doc.get('covers', [])
-
-        # Sometimes covers is stored as [-1] to indicate no covers. Consider it as no covers.
-        if covers and covers[0] >= 0:
+        is_author = doc['key'].startswith("/authors")
+        covers = doc.get('photos' if is_author else 'covers', [])
+        # Sometimes covers is stored as [None] or [-1] to indicate no covers.
+        # If so, consider there are no covers.
+        if covers and (covers[0] or 0) >= 0:
             return covers[0]
 
 def _query(category, key, value):
