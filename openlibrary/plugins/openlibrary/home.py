@@ -46,7 +46,6 @@ def get_homepage():
         "home/index", stats=stats,
         blog_posts=blog_posts
     )
-    page.v2 = True    
     return dict(page)
 
 def get_cached_homepage():

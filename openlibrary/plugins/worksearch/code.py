@@ -545,9 +545,7 @@ class scan(delegate.page):
     path = "/barcodescanner"
 
     def GET(self):
-        page = render.barcodescanner()
-        page.v2 = True
-        return page
+        return render.barcodescanner()
 
 
 class search(delegate.page):
@@ -626,12 +624,10 @@ class search(delegate.page):
             if k in i:
                 v = re_to_esc.sub(r'\\\g<0>', i[k].strip())
                 q_list.append(k + ':' + v)
-        page = render.work_search(
+        return render.work_search(
             i, ' '.join(q_list), do_search, get_doc,
             get_availability_of_ocaids, fulltext_search,
             FACET_FIELDS)
-        page.v2 = True
-        return page
 
 
 def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False, query=None):
@@ -716,9 +712,7 @@ class advancedsearch(delegate.page):
     path = "/advancedsearch"
 
     def GET(self):
-        template = render_template("search/advancedsearch.html")
-        template.v2 = True
-        return template
+        return render_template("search/advancedsearch.html")
 
 
 def escape_colon(q, vf):
