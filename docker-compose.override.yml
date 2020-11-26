@@ -7,3 +7,6 @@ services:
   covers:
     ports:
       - 7075:7075
+  infobase:
+    ports:
+      - 7000:7000

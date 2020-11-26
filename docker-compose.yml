@@ -95,8 +95,8 @@ services:
       context: .
       dockerfile: docker/Dockerfile.oldev
     command: docker/ol-infobase-start.sh
-    ports:
-      - 7000:7000
+    expose:
+      - 7000
     depends_on:
       - db
     volumes:
