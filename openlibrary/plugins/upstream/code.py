@@ -48,11 +48,11 @@ class edit(core.edit):
         else:
             return core.edit.GET(self, key)
 
-    def POST(self, path):
-        if web.re_compile('/(people/[^/]+)').match(path) and spamcheck.is_spam():
+    def POST(self, key):
+        if web.re_compile('/(people/[^/]+)').match(key) and spamcheck.is_spam():
             return render_template('message.html', 'Oops',
                                    'Something went wrong. Please try again later.')
-        return core.edit.POST(self, path)
+        return core.edit.POST(self, key)
 
 
 
