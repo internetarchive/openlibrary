@@ -57,8 +57,6 @@ class ReadableUrlProcessor:
         out = handler()
         V2_TYPES = ['works', 'books', 'people', 'authors',
                     'publishers', 'languages', 'account']
-        if out and any(web.ctx.path.startswith('/%s/' % _type) for _type in V2_TYPES):
-            out.v2 = True
 
         # Exclude noindex items
         if web.ctx.get('exclude'):
