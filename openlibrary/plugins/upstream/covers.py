@@ -1,10 +1,11 @@
 """Handle book cover/author photo upload.
 """
-from io import BytesIO
+from logging import getLogger
 
 import requests
 import six
 import web
+from six import BytesIO
 
 from infogami.utils import delegate
 from infogami.utils.view import safeint
@@ -12,7 +13,7 @@ from openlibrary import accounts
 from openlibrary.plugins.upstream.models import Image
 from openlibrary.plugins.upstream.utils import get_coverstore_url, render_template
 
-
+logger = getLogger("openlibrary.plugins.upstream.covers")
 def setup():
     pass
 
@@ -71,16 +72,12 @@ class add_cover(delegate.page):
             upload_url = "http:" + upload_url
 
         try:
-            if six.PY3:
-                files = {'data': BytesIO(data)}
-                resp = requests.post(upload_url, data=params, files=files)
-            else:
-                params['data'] = data
-                payload = requests.compat.urlencode(params).encode('utf-8')
-                resp = requests.post(upload_url, data=payload)
-            return web.storage(resp.json())
+            files = {'data': BytesIO(data)}
+            response = requests.post(upload_url, data=params, files=files)
+            return web.storage(response.json())
         except requests.HTTPError as e:
-            return web.storage({'error': e.read()})
+            logger.exception("Covers upload failed")
+            return web.storage({'error': str(e)})
 
     def save(self, book, coverid, url=None):
         book.covers = [coverid] + [cover.id for cover in book.get_covers()]
