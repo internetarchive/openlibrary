@@ -20,6 +20,9 @@ import sys
 import _init_path
 import web
 
+from openlibrary.utils.sentry import Sentry
+
+
 logger = logging.getLogger("openlibrary." + __file__)
 
 def setup_env():
@@ -39,6 +42,11 @@ def main(args):
 def start(config_file, *args):
     from infogami.infobase import server
     server.load_config(config_file)
+
+    sentry = Sentry(getattr(server.config, 'sentry', {}))
+    if sentry.enabled:
+        sentry.init()
+        sentry.bind_to_webpy_app(server.app)
 
     # remove config from command line args
     sys.argv = [sys.argv[0]] + list(args)
