@@ -202,7 +202,7 @@ window.q.push(function() {
                         <span class="tip">$_("The name of the publisher's series.") $_("For example:") <i>The Story of Civilization, Part III</i></span>
                     </div>
                     <div class="input">
-                        <input type="text" name="edition--series--0" id="edition-series" value="$(book.series and book.series[0] or "")"/>
+                        <input type="text" name="edition--series--0" id="edition-series" value="$(book.series and book.series[0] or '')"/>
                     </div>
                 </div>
         </fieldset>
@@ -408,7 +408,7 @@ window.q.push(function() {
             </div>
             <div class="input">
                 <input type="text" name="edition--other_titles--0" id="edition-title_other" value="$(book.other_titles and book.other_titles[0])"/>
-                <div class="tip">$_("For example:") <i>Eaters of the Dead</i> $_("is an alternate title for") <i><a href='/books/OL24923038M'>The 13th Warrior</i></a>.</div>
+                <div class="tip">$_("For example:") <i>Eaters of the Dead</i> $_("is an alternate title for") <i><a href="/books/OL24923038M">The 13th Warrior</a></i>.</div>
             </div>
             $if book.other_titles and len(book.other_titles) > 1:
                 $for i, t in enumerate(book.other_titles):
