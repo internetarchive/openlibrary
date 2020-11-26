@@ -123,6 +123,7 @@ class upload2:
             _cleanup()
             e = web.badrequest()
             e.data = simplejson.dumps({"code": code, "message": msg})
+            logger.exception("upload2.POST() failed: " + e.data)
             raise e
 
         source_url = i.source_url

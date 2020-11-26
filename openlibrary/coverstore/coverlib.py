@@ -2,8 +2,10 @@
 from __future__ import print_function
 
 import datetime
+from logging import getLogger
 import os
-from io import BytesIO
+
+from six import BytesIO
 
 try:
     from PIL import Image
@@ -13,6 +15,8 @@ import web
 
 from openlibrary.coverstore import config, db
 from openlibrary.coverstore.utils import random_string, rm_f
+
+logger = getLogger("openlibrary.coverstore.coverlib")
 
 __all__ = [
     "save_image",
@@ -73,8 +77,8 @@ def write_image(data, prefix):
             path = "%s-%s.jpg" % (path_prefix, name)
             resize_image(img, size).save(path, quality=90)
         return img
-    except IOError as e:
-        print('ERROR:', str(e))
+    except IOError:
+        logger.exception("write_image() failed")
 
         # cleanup
         rm_f(prefix + '.jpg')
