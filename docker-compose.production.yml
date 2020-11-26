@@ -16,7 +16,7 @@ services:
     volumes:
       - ../booklending_utils:/booklending_utils
       - ../olsystem:/olsystem
-      - ../olsystem/etc/ia.ini:/openlibrary/.config/ia.ini
+      - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
 
   covers:
     restart: always
