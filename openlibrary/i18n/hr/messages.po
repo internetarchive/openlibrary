@@ -1,15 +1,16 @@
-# Translations template for Open Library.
+# Croatian translation for Open Library.
 # Copyright (C) 2020 Internet Archive
 # This file is distributed under the same license as the Open Library
 # project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+# Translators:
+# Milo Ivir <mail@milotype.de>, 2020.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2020-03-15 22:35-0400\n"
-"PO-Revision-Date: 2020-11-15 13:43+0100\n"
+"PO-Revision-Date: 2020-11-27 00:06+0100\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -136,7 +137,7 @@ msgstr "Potvrdi lozinku"
 
 #: forms.py:61
 msgid "Passwords didn't match."
-msgstr "Lozinke se poklapaju."
+msgstr "Lozinke se ne poklapaju."
 
 #: forms.py:62
 msgid ""
@@ -242,7 +243,7 @@ msgstr "%(page_title)s | Open Library"
 #: view.html:60
 #, python-format
 msgid "Author of %(book_titles)s"
-msgstr "Autor od %(book_titles)s"
+msgstr "Autor knjiga: %(book_titles)s"
 
 #: view.html:90
 msgid "Merging Authors..."
@@ -372,7 +373,7 @@ msgstr "Mjesta"
 #: openlibrary/templates/work_search.html:124 view.html:137 view.html:192
 #: view.html:280
 msgid "People"
-msgstr "Ljudi"
+msgstr "Osobe"
 
 #: view.html:193
 msgid "Time"
@@ -444,7 +445,7 @@ msgstr "Izdano"
 #: view.html:248
 #, python-format
 msgid "Show other books from %(publisher)s"
-msgstr "Pokaži druge knjige od %(publisher)s"
+msgstr "Prikaži ostale knjige izdavača %(publisher)s"
 
 #: view.html:250
 #, python-format
@@ -458,12 +459,12 @@ msgstr "u"
 #: view.html:255
 #, python-format
 msgid "Search for subjects about %(place)s"
-msgstr "Traži područja o %(place)s"
+msgstr "Traži područja o mjestu %(place)s"
 
 #: view.html:263
 #, python-format
 msgid "Written in %(language)s"
-msgstr "Pisano na %(language)s"
+msgstr "Jezik: %(language)s"
 
 #: openlibrary/templates/subjects.html:9
 #: openlibrary/templates/work_search.html:126 view.html:139 view.html:282
@@ -557,7 +558,7 @@ msgstr "Težina"
 
 #: edit/edition.html:448 view.html:361
 msgid "ID Numbers"
-msgstr "Brojevi ID-oznaka"
+msgstr "ID-oznake"
 
 #: view.html:385
 #, python-format
@@ -721,7 +722,7 @@ msgstr "%(title)s: %(description)s"
 
 #: view.html:21
 msgid "View the list on Open Library."
-msgstr "Prikaži popis na Open Library stranicama."
+msgstr "Pogledaj popis na Open Library."
 
 #: view.html:105 view.html:136
 msgid "Yes, I'm sure"
@@ -883,7 +884,7 @@ msgstr "Naslov nedostaje"
 #: editions.html:47
 #, python-format
 msgid "in %(language)s"
-msgstr "za %(language)s"
+msgstr "na %(language)s"
 
 #: authors.html:110 check.html:36 editions_datatable.html:8
 #: openlibrary/macros/SearchResultsWork.html:42
@@ -936,7 +937,7 @@ msgstr "Mjesta: %(placelist)s"
 #: view.html:38
 #, python-format
 msgid "People: %(peoplelist)s"
-msgstr "Ljudi: %(peoplelist)s"
+msgstr "Osobe: %(peoplelist)s"
 
 #: view.html:40
 #, python-format
@@ -1023,7 +1024,7 @@ msgstr ""
 
 #: books.html:31
 msgid "Want To Read"
-msgstr "Žele čitati"
+msgstr "Želim čitati"
 
 #: books.html:32
 #, python-format
@@ -1149,7 +1150,7 @@ msgstr "Preuzmi sada"
 
 #: borrow.html:131
 msgid "Return via<br/>Adobe Digital Editions"
-msgstr "Vrati putem <br/>Adobe Digital Editions"
+msgstr "Vrati putem<br/>Adobe Digital Editions"
 
 #: borrow.html:140
 msgid "How To Return eBooks through Adobe Digital Editions"
@@ -1201,7 +1202,7 @@ msgid ""
 "Are you sure you want to leave the waiting list of<br/><strong>TITLE</"
 "strong>?"
 msgstr ""
-"Stvarno se želiš ispisati i popisa čekanja za<br/><strong>NASLOV</strong>?"
+"Stvarno se želiš ispisati iz popisa čekanja za<br/><strong>NASLOV</strong>?"
 
 #: authors.html:66 borrow.html:176 openlibrary/templates/subjects.html:95
 #: subjects.html:89 view.html:131
@@ -1657,7 +1658,7 @@ msgstr "Dovoljno je odrediti godinu izdanja."
 #: add.html:53
 msgid ""
 "And optionally, an ID number &#151; like an ISBN &#151; would be helpful..."
-msgstr "Opcionalno dodaj identifikacijski broj poput ISBN-a …"
+msgstr "Opcionalno dodaj ID-oznaku poput ISBN-a …"
 
 #: add.html:54
 msgid "ID Type"
@@ -1744,7 +1745,8 @@ msgid ""
 "%(publisher)s edition</b>. Thanks! Do you know any more about this edition?"
 msgstr ""
 "<b>%(work_title)s</b> već poznamo, ali ne poznamo <b>izdanje %(year)s. "
-"%(publisher)s</b>. Hvala! Imaš li još podataka o ovom izdanju?"
+"godine izdavača %(publisher)s</b>. Hvala! Imaš li još podataka o ovom "
+"izdanju?"
 
 #: edit.html:75
 #, python-format
@@ -1752,8 +1754,8 @@ msgid ""
 "We already know about the <b>%(year)s %(publisher)s edition</b> of <b>"
 "%(work_title)s</b>, but please, tell us more!"
 msgstr ""
-"<b>%(year)s %(publisher)s izdanje</b> već poznamo, ali nam slobodno pošalji "
-"daljnje podatke!"
+"<b>Izdanje %(year)s. godine izdavača %(publisher)s</b> već poznamo, ali nam "
+"slobodno pošalji još podataka!"
 
 #: edit.html:77
 msgid "Editing..."
@@ -1793,7 +1795,7 @@ msgstr "Datum izdanja nepoznat, %(publisher)s"
 #: edition-sort.html:66
 #, python-format
 msgid "in %(languagelist)s"
-msgstr "za %(languagelist)s"
+msgstr "na %(languagelist)s"
 
 #: edition-sort.html:93 openlibrary/macros/AvailabilityButton.html:73
 #: openlibrary/macros/LoanStatus.html:93
@@ -2131,7 +2133,7 @@ msgstr "Odaberi ulogu."
 
 #: edit/edition.html:714
 msgid "You need to give this ROLE a name."
-msgstr "Moraš odrediti ime za ovu ULOGU."
+msgstr "Moraš zadati ime za ovu ULOGU."
 
 #: edit/edition.html:727
 msgid "Please select an identifier."
@@ -2139,7 +2141,7 @@ msgstr "Odaberi identifikatora."
 
 #: edit/edition.html:731
 msgid "You need to give a value to ID."
-msgstr "Moraš zadati vrijednost za ID."
+msgstr "Moraš zadati vrijednost za ID-oznaku."
 
 #: edit/edition.html:734
 msgid "ID ids cannot contain whitespace."
@@ -2345,11 +2347,11 @@ msgid ""
 "page for every book ever published."
 msgstr ""
 "Open Library je otvoren i urediv knjižnični katalog, smišljen za izradu web-"
-"stranica za svaku ikada objavljenu knjigu."
+"stranica za svaku ikada izdanu knjigu."
 
 #: about.html:16 nav_head.html:89 nav_head.html:90
 msgid "More"
-msgstr "Još"
+msgstr "Više"
 
 #: about.html:19
 msgid ""
@@ -2398,7 +2400,7 @@ msgstr "Knjige koje volimo"
 
 #: index.html:19
 msgid "Recently Returned"
-msgstr "Nedavno vraćene"
+msgstr "Nedavno vraćeno"
 
 #: index.html:21
 msgid "Romance"
@@ -2425,12 +2427,12 @@ msgid ""
 "Here's what's happened over the last 28 days. More <a href=\"/recentchanges"
 "\">recent changes</a>"
 msgstr ""
-"Evo što se dogodilo u zadnjih 28 dana. Još više <a href=\"/recentchanges"
-"\">nedavnih promjena</a>"
+"Evo što se dogodilo u zadnjih 28 dana. Detaljni prikaz <a href=\"/"
+"recentchanges\">nedavnih promjena</a>"
 
 #: stats.html:15 stats.html:17
 msgid "See all visitors to OpenLibrary.org"
-msgstr "Pogledaj sve posjetitelje OpenLibrary.org stranice"
+msgstr "Pogledaj sve posjetitelje stranice OpenLibrary.org"
 
 #: stats.html:17
 msgid "Unique Visitors"
@@ -2521,7 +2523,7 @@ msgstr "Kopiraj i umetni ovaj kod u tvoju Wikipedia stranicu."
 #: history.html:85 openlibrary/templates/history.html:46
 #, python-format
 msgid "View revision %s"
-msgstr "Pogledaj reviziju %s"
+msgstr "Pogledaj %s. reviziju"
 
 #: history.html:90 history.html:92
 msgid "an anonymous user"
@@ -2530,7 +2532,7 @@ msgstr "anoniman korisnik"
 #: history.html:94
 #, python-format
 msgid "Created by %(user)s"
-msgstr "Autor izradbe: %(user)s"
+msgstr "Autor: %(user)s"
 
 #: history.html:96
 #, python-format
@@ -2704,7 +2706,7 @@ msgid ""
 "\">Wayback Machine</a>, <a href=\"//archive.org/\">archive.org</a> and <a "
 "href=\"//archive-it.org\">archive-it.org</a>"
 msgstr ""
-"Open Library (Otvorena knjižnica) inicijativa je organizacije <a href=\"//"
+"Open Library (Otvorena knjižnica) je inicijativa organizacije <a href=\"//"
 "archive.org/\">Internet Archive</a> (Arhiv interneta), neprofitne "
 "organizacije 501(c)(3), za izgradnju digitalne knjižnice internetskih "
 "stranica i drugih kulturnih predmeta u digitalnom obliku. Ostali <a href=\"//"
@@ -3042,7 +3044,7 @@ msgstr "Ukloniti iz tvog popisa?"
 
 #: widget.html:112 widget.html:151 widget.html:260
 msgid "Want to Read"
-msgstr "Žele čitati"
+msgstr "Želim čitati"
 
 #: widget.html:177
 msgid "My Reading Lists:"
@@ -3190,7 +3192,7 @@ msgstr "Izdavači"
 #: notfound.html:13
 #, python-format
 msgid "We couldn't find any books published by %(publisher)s."
-msgstr "Nismo pronašli nijednu knjigu koja je izdana od %(publisher)s."
+msgstr "Nismo pronašli nijednu izdanu knjigu izdavača %(publisher)s."
 
 #: notfound.html:15
 msgid "Try something else?"
@@ -3214,9 +3216,9 @@ msgid ""
 "axis is time, and on the y axis is the count of editions published. <a href="
 "\"#subjectRelated\">Click here to skip the chart</a>."
 msgstr ""
-"Dijagram prikazuje vrijeme objavljivanja knjiga ovog izdavača. Os x označava "
-"vrijeme, os y broj objavljenih izdanja. <a href=\"#subjectRelated\">Za "
-"preskakanje prikaza dijagrama pritisni ovdje</a>."
+"Vremenski dijagram za prikaz objavljivanja knjiga ovog izdavača. Os x "
+"označava vrijeme, os y broj objavljenih izdanja. <a href=\"#subjectRelated"
+"\">Za preskakanje prikaza dijagrama pritisni ovdje</a>."
 
 #: openlibrary/templates/subjects.html:47 view.html:34
 msgid "Reset chart"
@@ -3224,7 +3226,7 @@ msgstr "Obnovi dijagram"
 
 #: openlibrary/templates/subjects.html:47 view.html:34
 msgid "or continue zooming in."
-msgstr "ili nastavi uvećati prikaz."
+msgstr "ili uvećaj prikaz."
 
 #: view.html:35
 msgid ""
@@ -3232,7 +3234,7 @@ msgid ""
 "single year, or drag across a range."
 msgstr ""
 "Dijagram prikazuje izdanja ovog izdavača u odnosu na vrijeme. Pritisni za "
-"prikaz određene godine. Povuci za prikaz raspona godina."
+"prikaz određene godine ili povuci mišem preko raspona godina."
 
 #: openlibrary/templates/subjects.html:54 view.html:90
 msgid "Editions Published"
@@ -3240,7 +3242,7 @@ msgstr "Objavljena izdanja"
 
 #: openlibrary/templates/subjects.html:56 view.html:92
 msgid "You need to have JavaScript turned on to see the nifty chart!"
-msgstr "Za prikaz ovih dijagrama JavaScript mora biti uključen!"
+msgstr "Za prikaz dijagrama JavaScript mora biti uključen!"
 
 #: openlibrary/templates/subjects.html:58 view.html:94
 msgid "Year of Publication"
@@ -3260,11 +3262,11 @@ msgstr "Pogledaj još knjiga ovog autora i saznaj više o njemu"
 
 #: view.html:136
 msgid "published most by this publisher"
-msgstr "najčešće izdano od ovog izdavača"
+msgstr "najviše izdano od ovog izdavača"
 
 #: openlibrary/templates/subjects.html:126 view.html:159
 msgid "Get more information about this publisher"
-msgstr "Daljnje informacije o ovom izdavaču"
+msgstr "Saznaj više o ovom izdavaču"
 
 #: header.html:31 index.html:7 index.html:13
 msgid "Recent Changes"
@@ -3348,7 +3350,7 @@ msgstr "ISBN"
 
 #: advancedsearch.html:47
 msgid "Full Text Search"
-msgstr "Pretraživanje teksta"
+msgstr "Pretraživanje po tekstu"
 
 #: authors.html:28
 msgid "Is the same author listed twice?"
@@ -3404,11 +3406,11 @@ msgstr[2] "Pronađeno je otprilike %(count)s rezultata u roku od %(seconds)s"
 
 #: publishers.html:9
 msgid "Publishers Search"
-msgstr "Pretraživanje izdavača"
+msgstr "Pretraživanje po izdavaču"
 
 #: subjects.html:19
 msgid "Subject Search"
-msgstr "Pretraživanje područja"
+msgstr "Pretraživanje po području"
 
 #: subjects.html:74
 msgid "time"
@@ -3440,7 +3442,7 @@ msgstr "djelo"
 
 #: around_the_library.html:52
 msgid "View all recent changes"
-msgstr "Prikaži sve nedavne promjene"
+msgstr "Pogledaj sve nedavne promjene"
 
 #: body.html:31
 msgid "<strong>Together</strong>, let's build an Open Library for the World."
@@ -3472,7 +3474,7 @@ msgstr "Tvoje postavke privatnosti"
 
 #: openlibrary/templates/account.html:21
 msgid "View"
-msgstr "Prikaz"
+msgstr "Pogledaj"
 
 #: openlibrary/templates/account.html:21
 msgid "or"
@@ -3489,11 +3491,11 @@ msgstr "Stranica tvog profila"
 
 #: openlibrary/templates/account.html:22
 msgid "View or Edit your Reading Log"
-msgstr "Prikaži ili uredi tvoj dnevnik čitanja"
+msgstr "Pogledaj ili uredi tvoj dnevnik čitanja"
 
 #: openlibrary/templates/account.html:23
 msgid "View or Edit your Lists"
-msgstr "Prikaži ili uredi tvoj popis"
+msgstr "Pogledaj ili uredi tvoj popis"
 
 #: openlibrary/templates/account.html:25
 msgid "Please contact us if you need help with anything else."
@@ -3523,7 +3525,7 @@ msgstr "Nije promijenjeno"
 #: openlibrary/templates/diff.html:39
 #, python-format
 msgid "Revision %d"
-msgstr "Revizija %d"
+msgstr "%d. revizija"
 
 #: openlibrary/templates/diff.html:44
 msgid "by Anonymous"
@@ -3539,7 +3541,7 @@ msgstr "Obje revizije su iste."
 
 #: openlibrary/templates/history.html:21
 msgid "History of edits to"
-msgstr "Povijest promjena u"
+msgstr "Kronologija promjena u"
 
 #: openlibrary/templates/history.html:29
 msgid "Revision"
@@ -3598,8 +3600,7 @@ msgstr "Zapamti me"
 msgid ""
 "Not a member of Open Library? <a href=\"/account/create\">Sign up now</a>."
 msgstr ""
-"Nisi član u Open Library? <a href=\"/account/create\">Registriraj se sada</"
-"a>."
+"Nisi član u Open Library? <a href=\"/account/create\">Registriraj se</a>."
 
 #: openlibrary/templates/notfound.html:7
 #, python-format
@@ -3625,7 +3626,7 @@ msgstr "Tražiš predložak ili makro?"
 
 #: openlibrary/templates/permission_denied.html:10
 msgid "Permission denied."
-msgstr "Dozvola odbijena."
+msgstr "Zabranjeno."
 
 #: openlibrary/templates/permission_denied.html:30
 #, python-format
@@ -3644,9 +3645,9 @@ msgid ""
 "editions published. <a href=\"#subjectRelated\">Click here to skip the "
 "chart</a>."
 msgstr ""
-"Dijagram prikazuje povijest objavljivanja izdanja djela u ovom području. Os "
-"x označava vrijeme, os y broj objavljenih izdanja. <a href=\"#subjectRelated"
-"\">Za preskakanje prikaza dijagrama pritisni ovdje</a>."
+"Vremenski dijagram za prikaz povijesti objavljivanja izdanja djela u ovom "
+"području. Os x označava vrijeme, os y broj objavljenih izdanja. <a href="
+"\"#subjectRelated\">Za preskakanje prikaza dijagrama pritisni ovdje</a>."
 
 #: openlibrary/templates/subjects.html:48
 msgid "This graph charts editions published on this subject."
@@ -3758,7 +3759,7 @@ msgstr "Pisano na"
 
 #: openlibrary/templates/work_search.html:200
 msgid "Published by"
-msgstr "Izdavač"
+msgstr "Izdavač:"
 
 #: openlibrary/templates/work_search.html:203
 msgid "Click to remove this facet"
@@ -3814,7 +3815,7 @@ msgstr "Rezultati filtra za %(facet)s"
 
 #: openlibrary/templates/work_search.html:291
 msgid "more"
-msgstr "još"
+msgstr "više"
 
 #: openlibrary/templates/work_search.html:291
 msgid "less"
@@ -3828,9 +3829,9 @@ msgstr "Ti si <strong>sljedeći/a</strong> na redu"
 #, python-format
 msgid "There is <strong>#1</strong> reader ahead of you"
 msgid_plural "There are <strong>#%(count)d</strong> readers ahead of you"
-msgstr[0] "Prije tebe je na redu <strong>1</strong> čitač"
-msgstr[1] "Prije tebe su na redu <strong>%(count)d</strong> čitača"
-msgstr[2] "Prije tebe je na redu <strong>%(count)d</strong> čitača"
+msgstr[0] "Prije tebe je na redu <strong>1</strong> čitatelj"
+msgstr[1] "Prije tebe su na redu <strong>%(count)d</strong> čitatelja"
+msgstr[2] "Prije tebe je na redu <strong>%(count)d</strong> čitatelja"
 
 #: openlibrary/macros/AvailabilityButton.html:68
 msgid "Be first in line!"
@@ -3970,7 +3971,7 @@ msgstr "Ispiši se iz popisa čekanja"
 #: openlibrary/macros/LoanStatus.html:73
 #, python-format
 msgid "Readers waiting for this title: %(count)d"
-msgstr "Broj čitača koji čekaju na ovaj naslov: %(count)d"
+msgstr "Broj čitatelja koji čekaju na ovaj naslov: %(count)d"
 
 #: openlibrary/macros/LoanStatus.html:75
 msgid "You'll be next in line."
