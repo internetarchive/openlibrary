@@ -61,7 +61,7 @@ def _query(category, key, value):
 
 ERROR_EMPTY = 1, "No image found"
 ERROR_INVALID_URL = 2, "Invalid URL"
-ERROR_BAD_IMAGE = 3, "Invalid Image"
+ERROR_BAD_IMAGE = 3, "save_image() failed"
 
 class index:
     def GET(self):
@@ -123,6 +123,7 @@ class upload2:
             _cleanup()
             e = web.badrequest()
             e.data = simplejson.dumps({"code": code, "message": msg})
+            logger.error("upload2.POST() failed: " + e.data)
             raise e
 
         source_url = i.source_url
@@ -132,6 +133,7 @@ class upload2:
             try:
                 data = download(source_url)
             except:
+                logger.exception("download({}) failed".format(source_url))
                 error(ERROR_INVALID_URL)
 
         if not data:
@@ -140,6 +142,7 @@ class upload2:
         try:
             d = save_image(data, category=category, olid=i.olid, author=i.author, source_url=i.source_url, ip=i.ip)
         except ValueError:
+            logger.exception("save_image() failed")
             error(ERROR_BAD_IMAGE)
 
         _cleanup()
