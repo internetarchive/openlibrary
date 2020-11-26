@@ -65,10 +65,8 @@ services:
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/infobase_nginx.conf:/etc/nginx/sites-enabled/infobase_nginx.conf:ro
-      # Needs access to openlibrary for static files
-      - .:/openlibrary
+      # Needs olsystem for black-listed IPs
       - ../olsystem:/olsystem
-      - /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
     ports:
       - 7000:7000
     networks:
