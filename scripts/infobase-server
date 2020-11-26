@@ -22,8 +22,8 @@ import web
 
 from openlibrary.utils.sentry import Sentry
 
-
 logger = logging.getLogger("openlibrary." + __file__)
+
 
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable
