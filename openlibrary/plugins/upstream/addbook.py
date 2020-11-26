@@ -884,20 +884,6 @@ class author_edit(delegate.page):
             return author
 
 
-class edit(core.edit):
-    """Overwrite ?m=edit behaviour for author, book and work pages."""
-    def GET(self, key):
-        page = web.ctx.site.get(key)
-
-        if web.re_compile('/(authors|books|works)/OL.*').match(key):
-            if page is None:
-                raise web.seeother(key)
-            else:
-                raise web.seeother(page.url(suffix="/edit"))
-        else:
-            return core.edit.GET(self, key)
-
-
 class daisy(delegate.page):
     path = "(/books/.*)/daisy"
 
