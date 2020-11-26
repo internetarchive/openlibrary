@@ -60,7 +60,8 @@ class subjects(delegate.page):
             'lending_edition_s': '*'
         })
 
-        subj.v2 = True
+        if subj:
+            subj.v2 = True
         delegate.context.setdefault('bodyid', 'subject')
         if not subj or subj.work_count == 0:
             web.ctx.status = "404 Not Found"
