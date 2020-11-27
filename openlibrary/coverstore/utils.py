@@ -1,15 +1,14 @@
 """Utilities for coverstore"""
 
-import os
+import json
 import mimetypes
-import simplejson
-import web
-
+import os
 import random
-import requests
 import socket
 import string
 
+import requests
+import web
 from six.moves.urllib.parse import splitquery, unquote, unquote_plus
 from six.moves.urllib.parse import urlencode as real_urlencode
 from six.moves.urllib.request import Request, urlopen
@@ -53,9 +52,9 @@ def ol_things(key, value):
             'limit': 10
         }
         try:
-            d = dict(query=simplejson.dumps(query))
+            d = dict(query=json.dumps(query))
             result = download(get_ol_url() + '/api/things?' + real_urlencode(d))
-            result = simplejson.loads(result)
+            result = json.loads(result)
             return result['result']
         except IOError:
             import traceback
@@ -68,8 +67,7 @@ def ol_get(olkey):
         return oldb.get(olkey)
     else:
         try:
-            result = download(get_ol_url() + olkey + ".json")
-            return simplejson.loads(result)
+            return json.loads(download(get_ol_url() + olkey + ".json"))
         except IOError:
             return None
 

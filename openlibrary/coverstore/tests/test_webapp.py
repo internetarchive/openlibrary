@@ -1,13 +1,12 @@
+import json
+from os import system
+from os.path import abspath, dirname, join, pardir
+
 import pytest
 import web
-import simplejson
-
-from os import system
-from os.path import abspath, join, dirname, pardir
-from openlibrary.coverstore import config, schema, code, coverlib, utils, archive
-
 from six.moves import urllib
 
+from openlibrary.coverstore import archive, code, config, coverlib, schema, utils
 
 static_dir = abspath(join(dirname(__file__), pardir, pardir, pardir, 'static'))
 
@@ -52,7 +51,7 @@ class WebTestCase:
 
     def jsonget(self, path):
         self.browser.open(path)
-        return simplejson.loads(self.browser.data)
+        return json.loads(self.browser.data)
 
     def upload(self, olid, path):
         """Uploads an image in static dir"""
@@ -61,7 +60,7 @@ class WebTestCase:
         path = join(static_dir, path)
         content_type, data = utils.urlencode({'olid': olid, 'data': open(path).read()})
         b.open('/b/upload2', data, {'Content-Type': content_type})
-        return simplejson.loads(b.data)['id']
+        return json.loads(b.data)['id']
 
     def delete(self, id, redirect_url=None):
         b = self.browser
@@ -125,7 +124,7 @@ class TestWebappWithDB(WebTestCase):
         content_type, data = utils.urlencode({'olid': 'OL1234M', 'data': filedata})
         b.open('/b/upload2', data, {'Content-Type': content_type})
         assert b.status == 200
-        id = simplejson.loads(b.data)['id']
+        id = json.loads(b.data)['id']
 
         self.verify_upload(id, filedata, {'olid': 'OL1234M'})
 
@@ -141,14 +140,14 @@ class TestWebappWithDB(WebTestCase):
         content_type, data = utils.urlencode({'olid': 'OL1234M', 'source_url': source_url})
         b.open('/b/upload2', data, {'Content-Type': content_type})
         assert b.status == 200
-        id = simplejson.loads(b.data)['id']
+        id = json.loads(b.data)['id']
 
         self.verify_upload(id, filedata, {'source_url': source_url, 'olid': 'OL1234M'})
 
     def verify_upload(self, id, data, expected_info={}):
         b = self.browser
         b.open('/b/id/%d.json' % id)
-        info = simplejson.loads(b.data)
+        info = json.loads(b.data)
         for k, v in expected_info.items():
             assert info[k] == v
 
