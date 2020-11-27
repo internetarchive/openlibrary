@@ -27,6 +27,7 @@ $elif editions:
         $ edition = e
 
 $ ocaid = edition.get('ocaid')
+$ work_key = work.key if work else edition.key
 $ book_title = edition.get('title', '') or (work.title if work else '')
 $ work_title = work.title if work else edition.get('title', '')
 $ book_subtitle = edition.get('subtitle', '')
@@ -147,7 +148,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       </div>
 
       <div class="work-line">
-        $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title</a>
+        $_("An edition of") <a href="$work_key?edition=$(ocaid)">$work_title</a>
         $if work.first_publish_year:
           ($work.first_publish_year)
       </div>
@@ -213,7 +214,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
           $for e in previews:
             $if e.languages[0].name not in seen:
               $ seen.add(e.languages[0].name)
-              <a href="$work.key?edition=$(e.ocaid)">$e.languages[0].name</a>
+              <a href="$work_key?edition=$(e.ocaid)">$e.languages[0].name</a>
       </p>
 
       <a name="editions-list" class="section-anchor"></a>
@@ -224,7 +225,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
       <a name="work-details" class="section-anchor"></a>
       <div class="tab-section work-info">
-        <h2 class="work-title"><a href="$work.key">$work_title</a></h2>
+        <h2 class="work-title"><a href="$work_key">$work_title</a></h2>
           $if work and work.subtitle:
             <h3>
               $work.subtitle
@@ -458,7 +459,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
   </div>
 
   $ component_times['RelatedWorksCarousel'] = time()
-  <div class="RelatedWorksCarousel" workId="$work.key.split('/')[-1]">
+  <div class="RelatedWorksCarousel" workId="$work_key.split('/')[-1]">
     <div class="hidden loadingIndicator">
         <figure>
         <img src="/images/ajax-loader-bar.gif">
