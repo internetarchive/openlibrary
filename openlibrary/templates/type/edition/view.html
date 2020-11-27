@@ -26,9 +26,6 @@ $elif editions:
       $if not selected_ocaid or selected_ocaid == e.get('ocaid'):
         $ edition = e
 
-$if not work:
-  $ work = edition
-  $ work['edition_count'] = work.get('edition_count', 1)
 $ ocaid = edition.get('ocaid')
 $ book_title = edition.get('title', '') or (work.title if work else '')
 $ work_title = work.title if work else edition.get('title', '')
@@ -207,7 +204,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         $:macros.ReadMore("subjects")
     </div>
 
-      $:macros.EditionNavBar(work.edition_count)
+      $:macros.EditionNavBar(edition_count)
 
       <p class="preview-languages">
         $ seen = set()
@@ -293,7 +290,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
               </ul>
           </div>
 
-        $if work.edition_count > 1:
+        $if edition_count > 1:
           $if (work.lc_classifications or work.dewey_number):
               <div class="section">
                   <h4 class="collapse">$_("Classifications")</h4>
