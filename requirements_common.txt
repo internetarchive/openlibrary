@@ -11,7 +11,7 @@ gunicorn==19.9.0; python_version < '3.0'
 gunicorn==20.0.4; python_version >= '3.0'
 internetarchive==1.8.5
 isbnlib==3.9.3
-lxml==4.4.1
+lxml==4.6.2
 Pillow==6.2.2; python_version < '3.0'
 Pillow==8.0.1; python_version >= '3.0'
 psycopg2==2.8.4
