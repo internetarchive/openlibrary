@@ -1,6 +1,7 @@
 $def with (work, editions=None, edition=None)
 
 $ book_keys = []
+$ work_key = work and work.key or edition and edition.key or "unknown"
 $ work_title = work and work.title or edition and edition.title or "unknown"
 
 
@@ -31,7 +32,7 @@ $ work_title = work and work.title or edition and edition.title or "unknown"
     </tbody>
 </table>
 <p class="small sansserif edition-adder">
-  <a href="/books/add?work=$work.key" title="$_('Add another edition of %(work)s', work=work_title)">$_("Add another edition")</a>?
+  <a href="/books/add?work=$work_key" title="$_('Add another edition of %(work)s', work=work_title)">$_("Add another edition")</a>?
 </p>
 
 <!-- Admin only text doesn't need to be translated -->
