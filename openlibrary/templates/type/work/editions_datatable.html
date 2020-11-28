@@ -12,7 +12,7 @@ $ book_keys = []
     </thead>
     <tbody>
         $ edition_list_start = time()
-        $ editions = editions or work.get_sorted_editions()
+        $ editions = editions or work and work.get_sorted_editions() or [edition]
         $ index_padding = len(str(len(editions)))
         $for book in editions:
             $ book_keys.append(book['key'].replace('/books/', ''))
