@@ -213,7 +213,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
           $for e in previews:
             $if e.languages[0].name not in seen:
               $ seen.add(e.languages[0].name)
-              <a href="$work.key?edition=$(e.ocaid)">$e.languages[0].name</a>
+              <a href="$(work or edition).key?edition=$(e.ocaid)">$e.languages[0].name</a>
       </p>
 
       <a name="editions-list" class="section-anchor"></a>
