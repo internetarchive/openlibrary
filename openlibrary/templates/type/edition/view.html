@@ -55,8 +55,8 @@ $code:
         else:
             ed_info = 'unknown'
 
-        title = cond(work, work and work.title, book and book.title) or title
-        authors = cond(work, work and work.get_authors(), book.get_authors())
+        title = (work or book).title if work or book else title
+        authors = (work or book).get_authors() if work or book else []
         author_info = " by " + ", ".join(a.name or "Unknown author" for a in authors)
 
         format = ""
@@ -147,7 +147,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       </div>
 
       <div class="work-line">
-        $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title</a>
+        $_("An edition of") <a href="$(work or edition).key?edition=$(ocaid)">$work_title</a>
         $if work.first_publish_year:
           ($work.first_publish_year)
       </div>
