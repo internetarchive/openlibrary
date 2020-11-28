@@ -33,8 +33,8 @@ $ book_subtitle = edition.get('subtitle', '')
 $ title_suffix = cond(edition.get('publish_date'), u"({0} edition)".format(edition.get('publish_date')), "(edition)")
 $ title = book_title + " " + title_suffix
 $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
-$ book_description = (edition and edition.description) or (work and work.description)
-$ edition_count = work.edition_count if work and work.edition_count else 1
+$ book_description = (edition or work).get('description', '')
+$ edition_count = work.get('edition_count', 1)
 $ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
 $ _x = ctx.setdefault('bodyid', 'book')
 
@@ -188,7 +188,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
             </div>
             $:macros.ReadMore("book-description")
         </div>
-      $elif edition and edition.get('url'):
+      $elif edition:
         <div class="book-description">
             <div class="book-description-content">
                 <p class="workHelp">
@@ -204,7 +204,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         $:macros.ReadMore("subjects")
     </div>
 
-      $:macros.EditionNavBar(work.edition_count)
+      $:macros.EditionNavBar(edition_count)
 
       <p class="preview-languages">
         $ seen = set()
