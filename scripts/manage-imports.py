@@ -71,7 +71,7 @@ def import_ocaids(*ocaids, **kwargs):
                 --config /olsystem/etc/openlibrary.yml \
                 import-all
     """
-    servername = kwargs.get('servername', None)
+    servername = kwargs.get('servername')
     require_marc = not kwargs.get('no_marc', False)
 
     date = datetime.date.today()
@@ -112,7 +112,7 @@ def add_new_scans(args):
     batch.add_items(items)
 
 def import_batch(args, **kwargs):
-    servername = kwargs.get('servername', None)
+    servername = kwargs.get('servername')
     require_marc = not kwargs.get('no_marc', False)
     batch_name = args[0]
     batch = Batch.find(batch_name)
@@ -124,7 +124,7 @@ def import_batch(args, **kwargs):
         do_import(item, servername=servername, require_marc=require_marc)
 
 def import_item(args, **kwargs):
-    servername = kwargs.get('servername', None)
+    servername = kwargs.get('servername')
     require_marc = not kwargs.get('no_marc', False)
     ia_id = args[0]
     item = ImportItem.find_by_identifier(ia_id)
@@ -134,7 +134,7 @@ def import_item(args, **kwargs):
         logger.error("%s is not found in the import queue", ia_id)
 
 def import_all(args, **kwargs):
-    servername = kwargs.get('servername', None)
+    servername = kwargs.get('servername')
     require_marc = not kwargs.get('no_marc', False)
     while True:
         items = ImportItem.find_pending()
