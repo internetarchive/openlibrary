@@ -93,3 +93,4 @@ secrets:
 volumes:
     infobase-writelog:
     infobase-errorlog:
+
