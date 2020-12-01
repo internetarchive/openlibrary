@@ -62,7 +62,8 @@ services:
       - PYENV_VERSION=3.8.6
     volumes:
       - ../olsystem:/olsystem
-      -  /1:/1
+      - infobase-writelog:/1/var/lib/openlibrary/infobase/log
+      - infobase-errorlog:/1/var/log/openlibrary/infobase-errors
   infobase_nginx:
     image: nginx:1.19.4
     restart: always
@@ -89,3 +90,6 @@ secrets:
       file: /opt/.petabox/openlibrary.org.combined.crt
     ssl_certificate_key:
       file: /opt/.petabox/openlibrary.org.nopassword.key
+volumes:
+    infobase-writelog:
+    infobase-errorlog:
