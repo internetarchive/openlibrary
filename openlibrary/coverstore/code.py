@@ -135,21 +135,29 @@ class upload2:
             logger.exception("upload2.POST() failed: " + e.data)
             raise e
 
-        source_url = i.source_url
+        source_url = i.source_url.strip()
         data = i.data
+        caught_exception = None  # useful for debugging
 
         if source_url:
             try:
                 data = download(source_url)
-            except:
+            except Exception as caught_exception:
                 error(ERROR_INVALID_URL)
 
         if not data:
             error(ERROR_EMPTY)
 
         try:
-            d = save_image(data, category=category, olid=i.olid, author=i.author, source_url=i.source_url, ip=i.ip)
-        except ValueError:
+            d = save_image(
+                data,
+                category=category,
+                olid=i.olid,
+                author=i.author,
+                source_url=source_url,
+                ip=i.ip,
+            )
+        except ValueError as caught_exception:
             error(ERROR_BAD_IMAGE)
 
         _cleanup()
