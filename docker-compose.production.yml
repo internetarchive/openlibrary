@@ -37,7 +37,7 @@ services:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/covers_nginx.conf:/etc/nginx/sites-enabled/covers_nginx.conf:ro
       # Needed for HTTPS, since this is a public server
-      - ../olsystem/etc/nginx/default-docker.conf:/etc/nginx/sites-enabled/default:ro
+      - ../olsystem/etc/nginx/sites-available/default-docker.conf:/etc/nginx/sites-enabled/default:ro
       # Needs access to openlibrary for static files
       - .:/openlibrary
       - ../olsystem:/olsystem
