@@ -9,7 +9,7 @@ flup-py3==1.0.3; python_version >= '3.0'
 Genshi==0.7.1
 gunicorn==19.9.0; python_version < '3.0'
 gunicorn==20.0.4; python_version >= '3.0'
-internetarchive==1.8.5
+internetarchive==1.9.6
 isbnlib==3.9.3
 lxml==4.4.1
 Pillow==6.2.2; python_version < '3.0'
