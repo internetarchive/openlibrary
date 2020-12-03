@@ -18,9 +18,19 @@ $ work_key = work_key or (doc.get('works') and doc.works[0].key)
 $ waiting_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_waiting_loan_for(ocaid)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
 
-$if not availability and allow_expensive_availability_check and ocaid:
-  $ availability.update(get_cached_groundtruth_availability(ocaid))
+$ availability_st = availability.get('status')
 
+$ lending_st = {}
+$if allow_expensive_availability_check and ocaid and (availability.get('is_browseable', False) or availability_st == 'borrow_unavailable'):
+  $ lending_st = get_cached_groundtruth_availability(ocaid)
+
+$ is_lendable = lending_st.get('is_lendable', False) or availability.get('is_lendable', False)
+$# there could be exception where ocaid insufficient because is_restricted but not printdisabled
+$# ^ This will be resolved when Jude adds 'access-restricted-item' check
+$ is_printdisabled = lending_st.get('is_printdisabled', False) or availability.get('is_printdisabled', False)
+$ is_borrowable = lending_st.get('available_to_borrow') or lending_st.get('available_to_browse') or availability_st == 'borrow_available' or my_turn_to_borrow
+$ is_restricted = availability.get('is_restricted', False)
+$ is_readable = ocaid and (lending_st.get('is_readable') or  availability.get('is_readable', False))
 $ borrow_link = '/borrow/ia/%s' % ocaid
 
 $ user_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_loan_for(ocaid)
@@ -43,51 +53,60 @@ $if user_loan:
       });
     </script>
 
-$elif availability.get('is_readable'):
+$elif is_readable:
   $:macros.ReadButton(ocaid, listen=listen)
   $if secondary_action:
     $:macros.BookSearchInside(ocaid)
 
-$elif availability.get('is_lendable'):
-  $if availability.get('available_to_borrow'):
-    $:macros.ReadButton(ocaid, borrow=True, listen=listen)
-  $elif availability.get('available_to_browse'):
-    $:macros.ReadButton(ocaid, borrow=True, listen=listen, label=_('1 Hour Borrow'))
-  $elif availability.get('available_to_waitlist'):
-    $ wlsize = availability.get('users_on_waitlist') or availability.get('num_waitlist')
-    $if waiting_loan:
-      <p class="waitinglist-message">
-        $ spot = waiting_loan['position']
-        $if spot == 1:
-          $:_('You are <strong>next</strong> on the waiting list')
-        $else:
-          $:_('You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list.', spot=spot, wlsize=wlsize)
-      </p>
-      <form method="POST" action="$borrow_link" class="leave-waitlist waitinglist-form">
-        <input type="hidden" name="action" value="leave-waitinglist"/>
-        <input type="submit" class="cta-btn" id="unwaitlist_ebook"
-               value="$_('Leave waiting list')"/>
-      </form>
-    $else:
-      $# "JOIN-WAITLIST" button
-      <p class="waitinglist-message">
-        $if wlsize:
-          $_("Readers waiting for this title: %(count)s", count=wlsize)
-        $else:
-          $_("You'll be next in line.")
-      </p>
-      <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
-        <input type="hidden" name="action" value="join-waitinglist"/>
-        <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="$_('Join Waitlist')"/>
-      </form>
-  $else:
-    $# Checked out
-    <div class="cta-button-group">
-      <a href="$work_key" class="cta-btn cta-btn--missing" title="$_('This book is currently checked out, please check back later.')"
-       data-ol-link-track="CTAClick|CheckedOut">$_('Checked Out')</a>
-    </div>
+$elif is_lendable and is_borrowable:
+  $ label = None
+  $if availability_st == 'borrow_unavailable' or lending_st and not lending_st.get('available_to_borrow'):
+      $ label = _('1 Hour Borrow')
+  $:macros.ReadButton(ocaid, borrow=True, listen=listen, label=label)
 
-$elif ('eligibility' in doc) or (check_sponsorship and not ocaid and not availability.get('is_lendable')):
+$elif is_lendable and lending_st.get('available_to_waitlist', False):
+  $# lending_st is the only API which accurately tells us if a book is waitlistable
+  $ wlsize = lending_st.get('users_on_waitlist') or availability.get('num_waitlist')
+  $if waiting_loan:
+    <p class="waitinglist-message">
+      $ spot = waiting_loan['position']
+      $if spot == 1:
+        $:_('You are <strong>next</strong> on the waiting list')
+      $else:
+        $:_('You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list.', spot=spot, wlsize=wlsize)
+    </p>
+    <form method="POST" action="$borrow_link" class="leave-waitlist waitinglist-form">
+      <input type="hidden" name="action" value="leave-waitinglist"/>
+      <input type="submit" class="cta-btn" id="unwaitlist_ebook"
+             value="$_('Leave waiting list')"/>
+    </form>
+  $else:
+    $# "JOIN-WAITLIST" button
+    <p class="waitinglist-message">
+      $if wlsize:
+        $_("Readers waiting for this title: %(count)d", count=wlsize)
+      $else:
+        $_("You'll be next in line.")
+    </p>
+    <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
+      <input type="hidden" name="action" value="join-waitinglist"/>
+      <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="$_('Join Waitlist')"/>
+    </form>
+
+$elif is_lendable and availability_st == 'borrow_unavailable' and not lending_st:
+  $# This _used_ to mean that the book was waitlistable, but no longer! Now show this little cop-out button
+  <div class="cta-button-group">
+    <a href="/ia/$ocaid" class="cta-btn cta-btn--available" title="$_('We were unable to determine the availability of this book! Click to check on Internet Archive.')"
+       data-ol-link-track="CTAClick|CheckAvailability">$_('Check Availability')</a>
+  </div>
+
+$elif is_lendable:
+  <div class="cta-button-group">
+    <a href="$work_key" class="cta-btn cta-btn--missing" title="$_('This book is currently checked out, please check back later.')"
+       data-ol-link-track="CTAClick|CheckedOut">$_('Checked Out')</a>
+  </div>
+
+$elif ('eligibility' in doc) or (check_sponsorship and not ocaid and not is_lendable):
   $ sponsorship = doc.get('eligibility') if 'eligibility' in doc else qualifies_for_sponsorship(doc)
   $if sponsorship.get('is_eligible'):
     <a href="$(sponsorship['sponsor_url'])"
@@ -107,15 +126,15 @@ $else:
        data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
   </div>
 
-$if ocaid and secondary_action and availability.get('is_printdisabled'):
+$if ocaid and secondary_action and is_printdisabled:
   $:macros.BookPreview(ocaid)
 
 $:post
 
 $if ocaid and daisy:
-  $:macros.daisy('/ia/%s/daisy' % ocaid, protected=availability.get('is_printdisabled'))
+  $:macros.daisy('/ia/%s/daisy' % ocaid, protected=is_printdisabled)
 
 $if query_param('debug'):
   $ loanstatus_end_time = time() - loanstatus_start_time
   <p>LoanStatus took $("%.2f" % loanstatus_end_time) seconds</p>
-  <p>$availability</p>
+  <p>$lending_st $availability</p>
