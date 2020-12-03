@@ -4,26 +4,18 @@ branches:
     - master
 
 os: linux
-dist: focal
+dist: xenial
 language: python
 jobs:
   include:
-    - name: Python 2.7 on xenial
+    - name: Python 2.7
       python: "2.7"
-      dist: xenial
-    - name: Python 2.7 on focal
-      python: "2.7"
-    - name: Python 2.7 on Infogami master
-      python: "2.7"
-      script:
-        - make i18n
-        - make test-py
-        - pip install safety
-        - safety check || true
-    - name: Python 3.8 on focal
+
+    - name: Python 3.8
       python: "3.8"
-    - name: Python 3.9 on focal
-      python: "3.9"
+      before_script:
+        # Do more aggressive linting for newly added code
+        - make lint-diff
 
     - name: Node
       language: node_js
@@ -37,23 +29,22 @@ jobs:
         - make components
         - npm run test
 
-  allow_failures:
-    - name: Python 2.7 on Infogami master
-
 install:
   - pip install --upgrade pip setuptools wheel
-  - pip install --use-feature=2020-resolver -r requirements_test.txt
-  # refresh the git submodule ./vendor/infogami on some jobs
-  - if [ "$TRAVIS_PYTHON_VERSION" != "2.7" ] || [ "$TRAVIS_JOB_NAME" == "Python 2.7 on Infogami master" ]; then
-      pushd vendor/infogami && git pull origin master && popd;
-    fi
-  - pip list --outdated
+  - pip install -r requirements_test.txt
+  # Need to also test infogami-master
+  - git clone https://github.com/internetarchive/infogami.git vendor/infogami-master
+  # Remove symlink in favour of PYTHONPATH
+  - rm infogami
 
 script:
-  - if [ "$TRAVIS_PYTHON_VERSION" == "3.9" ]; then
-      make lint-diff;
-    fi
   - make lint
   - make i18n
-  - make test-py
-  - source scripts/run_doctests.sh
+  # Python 2 should also be tested against production infogami
+  - if [ "$TRAVIS_PYTHON_VERSION" = "2.7" ]; then
+      PYTHONPATH="$PYTHONPATH:$PWD/vendor/infogami" make test-py;
+      PYTHONPATH="$PYTHONPATH:$PWD/vendor/infogami" source scripts/run_doctests.sh;
+    fi
+  # Both should be tested against infogami-master
+  - PYTHONPATH="$PYTHONPATH:$PWD/vendor/infogami-master" make test-py
+  - PYTHONPATH="$PYTHONPATH:$PWD/vendor/infogami-master" source scripts/run_doctests.sh
