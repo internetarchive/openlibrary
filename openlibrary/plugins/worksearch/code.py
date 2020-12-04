@@ -642,10 +642,18 @@ def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False,
         'first_publish_year', 'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
         'ia_collection_s', 'cover_i']
     fl = ','.join(fields)
-    fq = ['author_key:' + akey, 'type:work']
+    fq = 'author_key:' + akey 
     if has_fulltext:
         fq.append('has_fulltext:true')
-    solr_select = solr_select_url + "?fq=%s&q.op=AND&q=%s&start=%d&rows=%d&fl=%s&wt=json" % ('&fq='.join(fq), q, offset, rows, fl)
+
+    params = {
+    'fq':fq,
+    'q':q,
+    'start':offset,
+    'rows':rows,
+    'fl':fl,
+}    
+    solr_select = solr_select_url + "?fq=type:work&wt=json&q.op=AND&" + urllib.parse.urlencode(params,'utf-8')
     facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
     if sort == 'editions':
         solr_select += '&sort=edition_count+desc'
