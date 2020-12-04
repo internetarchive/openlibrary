@@ -654,7 +654,7 @@ def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False,
     }    
     solr_select = solr_select_url + "?fq=type:work&wt=json&q.op=AND&" + urllib.parse.urlencode(params,'utf-8')
     facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
-    if sort == "editions":
+    if (sort == "editions"):
         solr_select += '&sort=edition_count+desc'
     elif sort.startswith('old'):
         solr_select += '&sort=first_publish_year+asc'
