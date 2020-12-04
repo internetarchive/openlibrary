@@ -645,7 +645,6 @@ def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False,
     fq = 'author_key:' + akey 
     if has_fulltext:
         fq.append('has_fulltext:true')
-
     params = {
         'fq': fq,
         'q': q,
