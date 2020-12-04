@@ -137,7 +137,9 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
     # If no lending restrictions (e.g. borrow, read) are imposed in
     # our query, we assume only borrowable books will be included in
     # results (not unrestricted/open books).
-    lendable = '(lending___available_to_browse:true OR lending___available_to_borrow:true)'
+    lendable = (
+        '(lending___available_to_browse:true OR lending___available_to_borrow:true)'
+    )
     if (not query) or lendable not in query:
         q += ' AND ' + lendable
     if query:
