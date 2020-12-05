@@ -2,6 +2,7 @@ $def with (doc, data={}, status=None)
 
 $putctx('bodyid', 'form')
 $putctx('robots', 'noindex,nofollow')
+$ guideline = _("Cover Guidelines")
 
 $if doc.type.key == "/type/author":
     $ intro = _("There are two ways to place an author's image on Open Library")
@@ -10,17 +11,13 @@ $if doc.type.key == "/type/author":
 $elif doc.type.key == "/type/edition":
     $ intro = _("There are two ways to get a cover image on Open Library")
     $ action = doc.url('/add-cover')
-    $ guideline = _("Cover Guidelines")
 $elif doc.get_edition_covers:
     $ intro = _("There are three ways to get a cover image on Open Library")
     $ action = doc.url('/add-cover')
-    $ guideline = _("Cover Guidelines")
 $else:
     $ intro = _("There are two ways to get a cover image on Open Library")
     $ action = doc.url('/add-cover')
-    $ guideline = _("Cover Guidelines")
-
-
+    
 <div class="popAlert" id="errors" style="display: $('block' if status else 'none')">
 $if status:
     $if status.code == 1: $_("Please provide a valid image.")
