@@ -107,17 +107,15 @@ def load_config(configfile):
     if 'fastcgi' in d:
         web.config.fastcgi = d['fastcgi']
 
-    try:
-        web.amazon_api = AmazonAPI(
-            web.ol_config.amazon_api.get('key'),
-            web.ol_config.amazon_api.get('secret'),
-            web.ol_config.amazon_api.get('id'),
-            throttling=0.5
-        )
-        web.amazon_queue = set()
-    except AttributeError as e:
-        print(e)
-        web.amazon_api = None
+    web.amazon_api = None
+    args = [
+        web.ol_config.amazon_api.get('key'),
+        web.ol_config.amazon_api.get('secret'),
+        web.ol_config.amazon_api.get('id')
+    ]
+    if all(args):
+        web.amazon_api = AmazonAPI(*args, throttling=0.5)
+        logger.exception("Initializing AmazonAPI")
 
 
 def init_sentry(app):
