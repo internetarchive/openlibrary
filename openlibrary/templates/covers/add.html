@@ -11,7 +11,7 @@ $else:
     $ intro = _("There are two ways to put a cover image on Open Library")
     $ action = doc.url('/add-cover')
     $ guideline = _("Cover Guidelines")
-    
+
 <div class="popAlert" id="errors" style="display: $('block' if status else 'none')">
 $if status:
     $if status.code == 1: $_("Please provide a valid image.")
