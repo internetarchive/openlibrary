@@ -115,6 +115,7 @@ def load_config(configfile):
     ]
     if all(args):
         web.amazon_api = AmazonAPI(*args, throttling=0.5)
+        web.amazon_queue = set()
         logger.exception("Initializing AmazonAPI")
 
 
