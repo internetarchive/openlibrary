@@ -41,19 +41,20 @@ def put(key, value):
     "Records this ``value`` with the given ``key``. It is stored as a millisecond count"
     global client
     if client:
-        l.debug("Putting %s as %s"%(value, key))
+        l.debug("Putting %s as %s" % (value, key))
         client.timing(key, value)
 
-def increment(key, n=1):
+
+def increment(key, n=1, rate=1.0):
     "Increments the value of ``key`` by ``n``"
     global client
     if client:
-        l.debug("Incrementing %s"% key)
+        l.debug("Incrementing %s" % key)
         for i in range(n):
             try:
-                client.increment(key)
+                client.increment(key, sample_rate=rate)
             except AttributeError:
-                client.incr(key)
+                client.incr(key, rate=rate)
 
 
 client = create_stats_client()

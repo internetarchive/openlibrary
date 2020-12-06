@@ -1,5 +1,8 @@
 #!/bin/bash
-# This script is used to provision an ol-webX node _before_ docker gets on it.
+# This script is used to provision an ol-server node _before_ docker gets on it.
+
+# Which Ubuntu release are we running on?  Do not fail if /etc/os-release does not exist.
+cat /etc/os-release | grep VERSION= || true  # VERSION="20.04.1 LTS (Focal Fossa)"
 
 # CAUTION: To git clone olsystem, environment variables must be set...
 # Set $GITHUB_USERNAME or $USER will be used.
@@ -24,22 +27,17 @@ cd /opt
 ls -Fla  # nothing
 
 sudo git clone https://${GITHUB_USERNAME:-$USER}:${GITHUB_TOKEN}@github.com/internetarchive/olsystem
-
-OL_DOMAIN=${OL_DOMAIN:-internetarchive}
-sudo git clone https://github.com/$OL_DOMAIN/openlibrary
-ls -Fla  # containerd, olsystem, openlibrary owned by openlibrary
-
+sudo git clone https://github.com/internetarchive/openlibrary
 cd /opt/openlibrary
-OL_BRANCH=${OL_BRANCH:-master}
-sudo git checkout $OL_BRANCH
 sudo make git
-cd /opt/openlibrary/vendor/infogami && sudo git pull origin master
-
+cd /opt/openlibrary/vendor/infogami
+sudo git pull origin master
 cd /opt/openlibrary
-sudo docker-compose down
-sleep 2
-export DOCKER_CLIENT_TIMEOUT=500
-export COMPOSE_HTTP_TIMEOUT=500
-# NOTE: `cd /opt/openlibrary` and the remaining lines must be repeated manually
-sudo docker-compose -f docker-compose.yml -f docker-compose.infogami-local.yml -f docker-compose.production.yml up --no-deps -d web
-sudo docker-compose logs --tail=100 -f web
+
+# Set permissions so we do not have to sudo in /scripts/run_olserver.sh
+sudo chown root:staff -R /opt/openlibrary /opt/olsystem
+sudo chmod g+w -R /opt/openlibrary /opt/olsystem
+sudo find /opt/openlibrary -type d -exec chmod g+s {} \;
+sudo find /opt/olsystem -type d -exec chmod g+s {} \;
+
+ls -Fla  # containerd, olsystem, openlibrary owned by openlibrary

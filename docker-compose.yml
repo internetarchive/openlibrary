@@ -1,4 +1,4 @@
-version: "3"
+version: "3.1"
 services:
   web:
     image: oldev:latest
@@ -47,6 +47,10 @@ services:
       - solr-data:/var/lib/solr/data
     networks:
       - webnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
   memcached:
     image: memcached
     networks:
@@ -66,12 +70,14 @@ services:
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
       - INFOGAMI=${INFOGAMI:-}
+      - COVERSTORE_CONFIG=${COVERSTORE_CONFIG:-/openlibrary/conf/coverstore.yml}
+      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --max-requests 250}
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
     command: docker/ol-covers-start.sh
-    ports:
-      - 8081:8081
+    expose:
+      - 7075
     volumes:
       - ol-vendor:/openlibrary/vendor
       - .:/openlibrary
@@ -83,12 +89,14 @@ services:
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
       - INFOGAMI=${INFOGAMI:-}
+      - INFOBASE_CONFIG=${INFOBASE_CONFIG:-/openlibrary/conf/infobase.yml}
+      - INFOBASE_OPTS=${INFOBASE_OPTS:-}
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
     command: docker/ol-infobase-start.sh
-    ports:
-      - 7000:7000
+    expose:
+      - 7000
     depends_on:
       - db
     volumes:

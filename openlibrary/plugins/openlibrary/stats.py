@@ -88,9 +88,9 @@ def stats_hook():
                 memcache_misses += 1
 
     if memcache_hits:
-        graphite_stats.increment('ol.memcache.hits', memcache_hits)
+        graphite_stats.increment('ol.memcache.hits', memcache_hits, rate=0.025)
     if memcache_misses:
-        graphite_stats.increment('ol.memcache.misses', memcache_misses)
+        graphite_stats.increment('ol.memcache.misses', memcache_misses, rate=0.025)
 
     for name, value in stats_summary.items():
         name = name.replace(".", "_")

@@ -11,6 +11,7 @@ import datetime
 import logging
 
 import six
+from six import PY3
 from six.moves import urllib
 from six.moves.collections_abc import MutableMapping
 
@@ -432,7 +433,9 @@ class Metatag:
         self.attrs = attrs
 
     def __str__(self):
-        attrs = ' '.join('%s="%s"' % (k, websafe(v).encode('utf8')) for k, v in self.attrs.items())
+        attrs = ' '.join(
+            '%s="%s"' % (k, websafe(v) if PY3 else websafe(v).encode('utf8'))
+            for k, v in self.attrs.items())
         return '<%s %s />' % (self.tag, attrs)
 
     def __repr__(self):

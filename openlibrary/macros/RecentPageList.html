@@ -11,7 +11,7 @@ $for p in pages:
             <td>$datestr(p.last_modified) </td>
             <td> <a href="$homepath()$p.key">$p.key</a></td>
         </tr>
-<table>
+</table>
 
  <div class="historyPager small sansserif gray">
 $if page != 0:
@@ -19,5 +19,5 @@ $if page != 0:
 $if len(pages) == limit:
     <a href="$:changequery(page=page + 1)" rel="nofollow">$_("Next")</a> &rarr;
 $else:
-    $_("Next")</a> &rarr;
+    $_("Next") &rarr;
 </div>

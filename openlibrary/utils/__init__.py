@@ -1,6 +1,7 @@
 """Generic utilities"""
 
 import re
+from subprocess import PIPE, Popen, STDOUT
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
 
@@ -85,3 +86,8 @@ def is_number(s):
         return True
     except ValueError:
         return False
+
+
+def get_software_version():  # -> str:
+    cmd = "git rev-parse --short HEAD --".split()
+    return str(Popen(cmd, stdout=PIPE, stderr=STDOUT).stdout.read().decode().strip())

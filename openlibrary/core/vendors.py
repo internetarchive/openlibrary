@@ -128,7 +128,6 @@ class AmazonAPI:
         return (products if not serialize else
                 [self.serialize(p) for p in products])
 
-
     @staticmethod
     def serialize(product):
         """Takes a full Amazon product Advertising API returned AmazonProduct
@@ -190,6 +189,7 @@ class AmazonAPI:
                 edition_info.publication_date.display_value
             ).strftime('%b %d, %Y')
         except Exception:
+            logger.exception("serialize({})".format(product))
             publish_date = None
 
         book = {
@@ -267,6 +267,7 @@ def _get_amazon_metadata(id_, id_type='isbn', resources=None):
         try:
             return amazon_api.get_product(id_, serialize=True, resources=resources)
         except Exception:
+            logger.exception("amazon_api.get_product({}, serialize=True)".format(id_))
             return None
 
 
@@ -382,6 +383,7 @@ def get_betterworldbooks_metadata(isbn):
     try:
         return _get_betterworldbooks_metadata(isbn)
     except Exception:
+        logger.exception("_get_betterworldbooks_metadata({})".format(isbn))
         return betterworldbooks_fmt(isbn)
 
 
@@ -398,7 +400,7 @@ def _get_betterworldbooks_metadata(isbn):
     response = requests.get(url)
     if response.status_code != requests.codes.ok:
         return {'error': response.text, 'code': response.status_code}
-    response = response.content
+    response = response.text
     new_qty = re.findall("<TotalNew>([0-9]+)</TotalNew>", response)
     new_price = re.findall(r"<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
     used_price = re.findall(r"<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)

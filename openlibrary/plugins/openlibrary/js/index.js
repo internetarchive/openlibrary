@@ -134,6 +134,11 @@ jQuery(function () {
             .then((module) => module.init());
     }
 
+    if (document.getElementById('modal-link')) {
+        import(/* webpackChunkName: "patron_metadata" */ './patron-metadata')
+            .then((module) => module.initPatronMetadata());
+    }
+
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });

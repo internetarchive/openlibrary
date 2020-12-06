@@ -11,6 +11,7 @@ from six import PY3
 import web
 
 from infogami import config
+from infogami.core import code as core
 from infogami.infobase import client
 from infogami.utils import delegate, app, types
 from infogami.utils.view import public, safeint, render
@@ -20,6 +21,7 @@ from infogami.utils.context import context
 from openlibrary import accounts
 
 from openlibrary.plugins.upstream import addbook, covers, merge_authors, models, utils
+from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused imports?
 from openlibrary.plugins.upstream.utils import render_component
 
@@ -31,6 +33,28 @@ class static(delegate.page):
     def GET(self):
         host = 'https://%s' % web.ctx.host if 'openlibrary.org' in web.ctx.host else ''
         raise web.seeother(host + '/static' + web.ctx.path)
+
+
+class edit(core.edit):
+    """Overwrite ?m=edit behaviour for author, book, work, and people pages."""
+    def GET(self, key):
+        page = web.ctx.site.get(key)
+
+        if web.re_compile('/(authors|books|works)/OL.*').match(key):
+            if page is None:
+                raise web.seeother(key)
+            else:
+                raise web.seeother(page.url(suffix="/edit"))
+        else:
+            return core.edit.GET(self, key)
+
+    def POST(self, key):
+        if web.re_compile('/(people/[^/]+)').match(key) and spamcheck.is_spam():
+            return render_template('message.html', 'Oops',
+                                   'Something went wrong. Please try again later.')
+        return core.edit.POST(self, key)
+
+
 
 # handlers for change photo and change cover
 
@@ -54,6 +78,13 @@ class components_test(delegate.page):
 
     def GET(self):
         return render_component('HelloWorld') + render_component('HelloWorld')
+
+
+class library_explorer(delegate.page):
+    path = "/explore"
+
+    def GET(self):
+        return render_template('library_explorer')
 
 
 class merge_work(delegate.page):
@@ -182,6 +213,12 @@ def setup_jquery_urls():
     web.template.Template.globals['jqueryui_url'] = jqueryui_url
     web.template.Template.globals['use_google_cdn'] = config.get('use_google_cdn', True)
 
+
+def user_is_admin_or_librarian():
+    user = web.ctx.site.get_user()
+    return user and (user.is_admin() or user.is_librarian())
+
+
 @public
 def get_document(key, limit_redirs=5):
     doc = None
@@ -207,8 +244,7 @@ class revert(delegate.mode):
         if v is None:
             raise web.seeother(web.changequery({}))
 
-        user = web.ctx.site.get_user()
-        if not user and (user.is_admin() or user.is_librarian() and web.ctx.site.can_write(key)):
+        if not web.ctx.site.can_write(key) or not user_is_admin_or_librarian():
             return render.permission_denied(web.ctx.fullpath, "Permission denied to edit " + key + ".")
 
         thing = web.ctx.site.get(key, i.v)

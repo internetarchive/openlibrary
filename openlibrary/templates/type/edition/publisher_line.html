@@ -4,7 +4,7 @@ $if edition:
   <h4 class="publisher">
   $if edition.publish_date or edition.publishers or edition.publish_places:
     <!-- TODO: this handcrafted concatenation will be difficult to internationalize -->
-    $_('This edition published')
+    $_('This edition was published')
       $if edition.publish_date:
         $_('in') <strong itemprop="datePublished">$edition.publish_date</strong>
       $if edition.publishers:

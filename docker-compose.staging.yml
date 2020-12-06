@@ -4,14 +4,16 @@
 ## docker-compose -f docker-compose.yml -f docker-compose.infogami-local.yml -f docker-compose.staging.yml up -d
 ##
 
-version: "3"
+version: "3.1"
 services:
   web:
     restart: always
     hostname: "$HOSTNAME"
     environment:
-      - PYENV_VERSION=${PYENV_VERSION:-"3.8.6"}
-      - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - GUNICORN_OPTS= --workers 4 --timeout 180
+      - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - PYENV_VERSION=3.8.6
     volumes:
       - ../olsystem:/olsystem
+      - ../booklending_utils:/booklending_utils
+      - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini

@@ -14,9 +14,9 @@ RUN python3.8 -m pip install -r requirements_test.txt
 RUN python3.9 -m pip install -r requirements_test.txt
 
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 # Expose Open Library, Infobase, Coverstore, and debugger
-EXPOSE 80 7000 8081 3000
+EXPOSE 80 7000 7075 3000
 
 ENTRYPOINT ["./docker/docker-entrypoint.sh"] 

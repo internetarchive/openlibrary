@@ -137,8 +137,11 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
     # If no lending restrictions (e.g. borrow, read) are imposed in
     # our query, we assume only borrowable books will be included in
     # results (not unrestricted/open books).
-    if (not query) or ('loans__status__status:' not in query):
-        q += ' AND loans__status__status:AVAILABLE'
+    lendable = (
+        '(lending___available_to_browse:true OR lending___available_to_borrow:true)'
+    )
+    if (not query) or lendable not in query:
+        q += ' AND ' + lendable
     if query:
         q += " AND " + query
     if subject:
@@ -191,7 +194,6 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
         ('fl[]', 'identifier'),
         ('fl[]', 'openlibrary_edition'),
         ('fl[]', 'openlibrary_work'),
-        ('fl[]', 'loans__status__status'),
         ('rows', rows),
         ('page', page),
         ('output', 'json'),
@@ -207,8 +209,8 @@ def get_random_available_ia_edition():
     """uses archive advancedsearch to raise a random book"""
     try:
         url = ("http://%s/advancedsearch.php?q=_exists_:openlibrary_work"
-               "+AND+loans__status__status:AVAILABLE"
-               "&fl=identifier,openlibrary_edition,loans__status__status"
+               "+AND+(lending___available_to_borrow OR lending___available_to_browse)"
+               "&fl=identifier,openlibrary_edition"
                "&output=json&rows=1&sort[]=random" % (config_bookreader_host))
         response = requests.get(url, timeout=config_http_request_timeout)
         items = response.json().get('response', {}).get('docs', [])
@@ -230,7 +232,10 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
     params = '?action=availability&identifier=' + ocaid
     url = S3_LOAN_URL % config_bookreader_host
     r = requests.post(url + params, data=s3_keys)
-    return r.json().get('lending_status')
+    data = r.json().get('lending_status')
+    # For debugging
+    data['__src__'] = 'core.models.lending.get_groundtruth_availability'
+    return data
 
 
 def s3_loan_api(ocaid, s3_keys, action='browse'):
@@ -483,8 +488,6 @@ def _get_ia_loan(identifier, userid):
     ia_loan = ia_lending_api.get_loan(identifier, userid)
     return ia_loan and Loan.from_ia_loan(ia_loan)
 
-
-@cache.memoize(engine="memory", key="get_loans_of_user")
 def get_loans_of_user(user_key):
     """TODO: Remove inclusion of local data; should only come from IA"""
     account = OpenLibraryAccount.get(username=user_key.split('/')[-1])
