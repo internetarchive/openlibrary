@@ -23,70 +23,81 @@ import sys
 import web
 import yaml
 
+from openlibrary.core import cache
 from openlibrary.core.vendors import AmazonAPI
+from openlibrary.utils.isbn import (
+    normalize_isbn, isbn_13_to_isbn_10, isbn_10_to_isbn_13)
+from openlibrary.utils.dateutil import DAY_SECS
 import _init_path
 
 logger = logging.getLogger("affiliate-server")
 
-def runfcgi(func, addr=('localhost', 8000)):
-    """Runs a WSGI function as a FastCGI pre-fork server."""
-    config = dict(web.config.get("fastcgi", {}))
-
-    mode = config.pop("mode", None)
-    if mode == "prefork":
-        import flup.server.fcgi_fork as flups
-    else:
-        import flup.server.fcgi as flups
-
-    return flups.WSGIServer(func, multiplexed=True, bindAddress=addr, **config).run()
-
-web.ol_config = web.storify({})
-web.config.debug = False
-web.wsgi.runfcgi = runfcgi
-
 urls = (
-    '/isbn/([0-9X,]+)', 'Index'
+    '/isbn/([0-9X-])', 'Submit'
 )
 
-app = web.application(urls, locals())
+class Submit:
 
-class Index:
-    def GET(self, isbns, threshold=5):
+    @classmethod
+    def unpack_isbn(cls, isbn):
+        isbn = normalize_isbn(isbn)
+        isbn10 = isbn if len(isbn) == 10 else isbn.startswith('978') and isbn_13_to_isbn_10(isbn)
+        isbn13 = isbn if len(isbn) == 13 else isbn_10_to_isbn_13(isbn)
+        return isbn10, isbn13
+
+
+    def GET(self, isbn, threshold=4):
+        """
+        If the threshold is met, piggy back request and do an amazon lookup to fill cache.
+        Next, check if solution is in cache. If so, return it.
+        Otherwise, return the equivalent of a promise e.g. "submitted"
+        """
+
         if not web.amazon_api:
             return {"error": "not_configured"}
 
-        isbns = isbns.split(',')
-        hits, misses = {}, []
-        for isbn in isbns:
-            #hits[isbn] = web.amazon_cache[isbn] if isbn in web.amazon_cache else misses.append(isbn)
-            if isbn in web.amazon_cache:
-                hits[isbn] = web.amazon_cache[isbn]
-            else:
-                misses.append(isbn)
+        isbn10, isbn13 = self.unpack_isbn(isbn)
+        if not (isbn10 and isbn13):
+            return {
+                "error": "rejected_isbn",
+                "isbn10": isbn10,
+                "isbn13": isbn13
+            }
 
-        web.amazon_queue.update(misses)
-        if misses:
-            if len(web.amazon_queue) < threshold:
-                return {
-                    "status": "submitted",
-                    "threshold": threshold,
-                    "hits": hits,
-                    "queue": web.amazon_queue,
-                    "waitlist": max(len(web.amazon_queue) - threshold, 0)
-                }
+        # Cache lookup by isbn13. If there's a miss, add to queue
+        if not cache.memcache_cache.get('amazon_product_%s' % isbn13):
+            # Misses (which will get submitted to amz as ASIN) are isbn10
+            web.amazon_queue.add(isbn10)
+
+        if len(web.amazon_queue) >= threshold:
+            queue = list(web.amazon_queue)
+            web.amazon_queue = set(queue[10:])
             try:
-                queue = list(web.amazon_queue)
-                web.amazon_queue = set()
-                products = web.amazon_api.get_products(queue, serialize=True)
+                products = web.amazon_api.get_products(queue[:10], serialize=True)
                 for product in products:
-                    web.amazon_cache[product['isbn_10'][0]] = product
-                    hits[product['isbn_10'][0]] = product
+                    # Make sure we have an isbn13 for cache key
+                    cache_key = (
+                        product.get('isbn_13') and product.get('isbn_13')[0] or 
+                        isbn_10_to_isbn_13(product.get('isbn_10')[0])
+                    )
+                    cache.memcache_cache.set(
+                        'amazon_product_%' % product[cache_key],
+                        product,
+                        expires=DAY_SECS)
+                    hits[cache_key] = product
             except Exception:
-                logger.exception("amazon_api.get_product({}, serialize=True)".format(web.amazon_queue))
-                return {"status": "error"}
+                logger.exception("amazon_api.get_product({}, serialize=True)".format(queue))                
+                web.amazon_queue.update(queue)  # Careful, request may enter fail-loop from bad IDs
+
+        if cache.memcache_cache.get('amazon_product_%s' % isbn13):
+            return {
+                "status": "success",
+                "hit": cache.memcache_cache.get('amazon_product_%s' % isbn13)
+            }
         return {
-            "status": "success",
-            "hits": hits
+            "status": "submitted",
+            "queue": len(web.amazon_queue),
+            "threshold": threshold,
         }
 
 
@@ -106,7 +117,6 @@ def load_config(configfile):
             web.ol_config.amazon_api.get('id'),
             throttling=0.5
         )
-        web.amazon_cache = {}
         web.amazon_queue = set()
     except AttributeError as e:
         print(e)
@@ -174,6 +184,27 @@ def https_middleware(app):
             environ['wsgi.url_scheme'] = 'https'
         return app(environ, start_response)
     return wrapper
+
+
+def runfcgi(func, addr=('localhost', 8000)):
+    """Runs a WSGI function as a FastCGI pre-fork server."""
+    config = dict(web.config.get("fastcgi", {}))
+
+    mode = config.pop("mode", None)
+    if mode == "prefork":
+        import flup.server.fcgi_fork as flups
+    else:
+        import flup.server.fcgi as flups
+
+    return flups.WSGIServer(func, multiplexed=True, bindAddress=addr, **config).run()
+
+
+web.ol_config = web.storify({})
+web.config.debug = False
+web.wsgi.runfcgi = runfcgi
+
+app = web.application(urls, locals())
+
     
 if __name__ == "__main__":
     setup_env()
