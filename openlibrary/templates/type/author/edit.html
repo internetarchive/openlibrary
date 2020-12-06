@@ -73,6 +73,17 @@ $putctx("robots", "noindex,nofollow")
                             </div>
                         </div>
 
+                        $if not page.birth_date and not page.death_date and page.date:
+                          <div class="formElement contentQuarter" id="date">
+                                  <div class="label dateLabelAcc">
+                                      <label for="date">$_("Date")</label>
+                                  </div>
+                                 <div class="input deathInputAcc">
+                                      <input type="text" name="author--date" id="date" value="$page.date"/>
+                                  </div>
+                             </div>
+
+
                         <div class="formElement contentQuarter">
                             <div class="label tipAcc">
                                 <span class="tip">$_('We\'re not storing structured dates (yet) so a date like "21 May 2000" is recommended.')</span>
