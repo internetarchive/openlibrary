@@ -33,7 +33,7 @@ import _init_path
 logger = logging.getLogger("affiliate-server")
 
 urls = (
-    '/isbn/([0-9X-])', 'Submit'
+    '/isbn/([0-9X-]+)', 'Submit'
 )
 
 class Submit:
@@ -69,25 +69,22 @@ class Submit:
             # Misses (which will get submitted to amz as ASIN) are isbn10
             web.amazon_queue.add(isbn10)
 
-        if len(web.amazon_queue) >= threshold:
+        if len(web.amazon_queue) > threshold:
             queue = list(web.amazon_queue)
             web.amazon_queue = set(queue[10:])
-            try:
-                products = web.amazon_api.get_products(queue[:10], serialize=True)
-                for product in products:
-                    # Make sure we have an isbn13 for cache key
-                    cache_key = (
-                        product.get('isbn_13') and product.get('isbn_13')[0] or 
-                        isbn_10_to_isbn_13(product.get('isbn_10')[0])
-                    )
-                    cache.memcache_cache.set(
-                        'amazon_product_%' % product[cache_key],
-                        product,
-                        expires=DAY_SECS)
-                    hits[cache_key] = product
-            except Exception:
-                logger.exception("amazon_api.get_product({}, serialize=True)".format(queue))                
-                web.amazon_queue.update(queue)  # Careful, request may enter fail-loop from bad IDs
+            #try:
+            products = web.amazon_api.get_products(queue[:10], serialize=True)
+            for product in products:
+                # Make sure we have an isbn13 for cache key
+                cache_key = (
+                    product.get('isbn_13') and product.get('isbn_13')[0] or 
+                    isbn_10_to_isbn_13(product.get('isbn_10')[0])
+                )
+                cache.memcache_cache.set(
+                    'amazon_product_%s' % cache_key, product, expires=DAY_SECS)
+            #except Exception:
+            #    logger.exception("amazon_api.get_product({}, serialize=True)".format(queue))                
+            #    web.amazon_queue.update(queue)  # Careful, request may enter fail-loop from bad IDs
 
         if cache.memcache_cache.get('amazon_product_%s' % isbn13):
             return {
