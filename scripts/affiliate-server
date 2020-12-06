@@ -74,20 +74,20 @@ class Index:
                     "queue": web.amazon_queue,
                     "waitlist": max(len(web.amazon_queue) - threshold, 0)
                 }
-            #try:
-            products = web.amazon_api.get_products(list(web.amazon_queue), serialize=True)
-            for product in products:
-                web.amazon_cache[product['isbn_10'][0]] = product
-                hits[product['isbn_10'][0]] = product
-            #except Exception:
-            #    logger.exception("amazon_api.get_product({}, serialize=True)".format(web.amazon_queue))
-            #    return {"status": "error"}
+            try:
+                queue = list(web.amazon_queue)
+                web.amazon_queue = set()
+                products = web.amazon_api.get_products(queue, serialize=True)
+                for product in products:
+                    web.amazon_cache[product['isbn_10'][0]] = product
+                    hits[product['isbn_10'][0]] = product
+            except Exception:
+                logger.exception("amazon_api.get_product({}, serialize=True)".format(web.amazon_queue))
+                return {"status": "error"}
         return {
             "status": "success",
             "hits": hits
         }
-
-
 
 
 def load_config(configfile):
