@@ -17,9 +17,11 @@ start affiliate-server using gunicorn webserver:
 
 """
 
+import json
 import logging
 import os
 import sys
+import time
 import web
 import yaml
 
@@ -46,57 +48,65 @@ class Submit:
         return isbn10, isbn13
 
 
-    def GET(self, isbn, threshold=4):
+    def GET(self, isbn, threshold=4, wait=3):
         """
         If the threshold is met, piggy back request and do an amazon lookup to fill cache.
         Next, check if solution is in cache. If so, return it.
         Otherwise, return the equivalent of a promise e.g. "submitted"
+
+        Wait until queue exceeds threshold length or until wait period
+        exceededed (i.e. wait seconds passed)
         """
 
         if not web.amazon_api:
-            return {"error": "not_configured"}
+            return json.dumps({"error": "not_configured"})
 
         isbn10, isbn13 = self.unpack_isbn(isbn)
         if not (isbn10 and isbn13):
-            return {
+            return json.dumps({
                 "error": "rejected_isbn",
                 "isbn10": isbn10,
                 "isbn13": isbn13
-            }
+            })
 
         # Cache lookup by isbn13. If there's a miss, add to queue
         if not cache.memcache_cache.get('amazon_product_%s' % isbn13):
             # Misses (which will get submitted to amz as ASIN) are isbn10
+            # We should track when (queue % 20) occurs
             web.amazon_queue.add(isbn10)
 
-        if len(web.amazon_queue) > threshold:
+        threshold_passed = len(web.amazon_queue) > threshold
+        timer_passed = time.time() + wait > web.amazon_timer
+        if len(web.amazon_queue) and (threshold_passed or timer_passed):
+            # amz has a limit of 10 IDs but the queue may have more than 10 ids
+            # so we should only pop 10 items off the queue and keep the rest on
             queue = list(web.amazon_queue)
             web.amazon_queue = set(queue[10:])
-            #try:
-            products = web.amazon_api.get_products(queue[:10], serialize=True)
-            for product in products:
-                # Make sure we have an isbn13 for cache key
-                cache_key = (
-                    product.get('isbn_13') and product.get('isbn_13')[0] or 
-                    isbn_10_to_isbn_13(product.get('isbn_10')[0])
-                )
-                cache.memcache_cache.set(
-                    'amazon_product_%s' % cache_key, product, expires=DAY_SECS)
-            #except Exception:
-            #    logger.exception("amazon_api.get_product({}, serialize=True)".format(queue))                
-            #    web.amazon_queue.update(queue)  # Careful, request may enter fail-loop from bad IDs
+            try:
+                products = web.amazon_api.get_products(queue[:10], serialize=True)
+                for product in products:
+                    # Make sure we have an isbn13 for cache key
+                    cache_key = (
+                        product.get('isbn_13') and product.get('isbn_13')[0] or 
+                        isbn_10_to_isbn_13(product.get('isbn_10')[0])
+                    )
+                    cache.memcache_cache.set(
+                        'amazon_product_%s' % cache_key, product, expires=DAY_SECS)
+                # Reset the amazon timer
+                web.amazon_timer = time.time()
+            except Exception:
+                logger.exception("amazon_api.get_product({}, serialize=True)".format(queue))                
+                web.amazon_queue.update(queue)  # Careful, request may enter fail-loop from bad IDs
 
-        if cache.memcache_cache.get('amazon_product_%s' % isbn13):
-            return {
-                "status": "success",
-                "hit": cache.memcache_cache.get('amazon_product_%s' % isbn13)
-            }
-        return {
+        return json.dumps({
+            "status": "success",
+            "hit": cache.memcache_cache.get('amazon_product_%s' % isbn13)
+        } if cache.memcache_cache.get('amazon_product_%s' % isbn13) else {
             "status": "submitted",
             "queue": len(web.amazon_queue),
             "threshold": threshold,
-        }
-
+            "timer": web.amazon_timer
+        })
 
 def load_config(configfile):
     with open(configfile) as in_file:
@@ -114,8 +124,9 @@ def load_config(configfile):
         web.ol_config.amazon_api.get('id')
     ]
     if all(args):
-        web.amazon_api = AmazonAPI(*args, throttling=0.5)
+        web.amazon_api = AmazonAPI(*args, throttling=0.9)
         web.amazon_queue = set()
+        web.amazon_timer = time.time()
         logger.exception("Initializing AmazonAPI")
 
 
