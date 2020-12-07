@@ -40,4 +40,4 @@ class search_inside_json(delegate.page):
         page = int(i.page)
         results = fulltext_search(query, page=page, limit=limit, js=True)
         web.header('Content-Type', 'application/json')
-        return delegate.RawText(json.dumps(results, indent=True))
+        return delegate.RawText(json.dumps(results, indent=4))
