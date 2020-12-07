@@ -968,7 +968,7 @@ class search_json(delegate.page):
                                spellcheck_count=spellcheck_count)
 
         web.header('Content-Type', 'application/json')
-        return delegate.RawText(json.dumps(response, indent=True))
+        return delegate.RawText(json.dumps(response, indent=4))
 
 def setup():
     from openlibrary.plugins.worksearch import subjects
