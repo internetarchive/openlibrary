@@ -1,5 +1,5 @@
 name: npm_run_test
-on: [push]  # pull_request, 
+on: [push]  # pull_request,
 jobs:
   npm_run_test:
     runs-on: ubuntu-latest
