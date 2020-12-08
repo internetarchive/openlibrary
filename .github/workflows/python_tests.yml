@@ -1,7 +1,7 @@
-name: lint_python
+name: python_tests
 on: [push]  # pull_request,
 jobs:
-  lint_python:
+  python_tests:
     strategy:
       fail-fast: false
       matrix:
