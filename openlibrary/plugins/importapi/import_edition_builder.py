@@ -43,7 +43,7 @@ class import_edition_builder:
     def add_illustrator(self, key, val):
         self.add_list('contributions', val + u' (Illustrator)')
 
-    def __init__(self, init_dict=None):    
+    def __init__(self, init_dict=None):
         init_dict = init_dict or {}
         self.edition_dict = init_dict.copy()
 

@@ -6,7 +6,7 @@ class MockConnection:
     def __init__(self):
         self.docs = {}
 
-    def request(self, sitename, path, method="GET", data=None):    
+    def request(self, sitename, path, method="GET", data=None):
         data = data or {}
         if path == "/get":
             key = data['key']

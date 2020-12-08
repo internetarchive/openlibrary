@@ -237,7 +237,7 @@ def unflatten(d, seperator="--"):
     return makelist(d2)
 
 
-def fuzzy_find(value, options, stopwords=None):    
+def fuzzy_find(value, options, stopwords=None):
     stopwords = stopwords or []
     """Try find the option nearest to the value.
 

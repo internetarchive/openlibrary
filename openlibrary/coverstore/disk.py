@@ -65,7 +65,7 @@ class LayeredDisk:
             if data:
                 return data
 
-    def write(self, data, headers=None):    
+    def write(self, data, headers=None):
         headers = headers or {}
         return self.disks[0].write(data, headers)
 

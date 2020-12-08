@@ -53,7 +53,7 @@ class OPDS():
 
     # add()
     #___________________________________________________________________________
-    def add(self, name, value, attrs=None):    
+    def add(self, name, value, attrs=None):
         attrs = attrs or {}
         element = self.create_text_element(self.root, name, value)
         for a in attrs:
@@ -61,7 +61,7 @@ class OPDS():
 
     # add_list()
     #___________________________________________________________________________
-    def add_list(self, name, values, prefix='', attrs=None):    
+    def add_list(self, name, values, prefix='', attrs=None):
         attrs = attrs or {}
         if isinstance(values, list) or isinstance(values, tuple):
             for v in values:

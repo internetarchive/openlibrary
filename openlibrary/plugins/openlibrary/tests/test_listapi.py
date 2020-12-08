@@ -23,7 +23,7 @@ class ListAPI:
         self.opener.add_handler(
             urllib.request.HTTPCookieProcessor(self.cookiejar))
 
-    def urlopen(self, path, data=None, method=None, headers=None):    
+    def urlopen(self, path, data=None, method=None, headers=None):
         headers = headers or {}
         """url open with cookie support."""
         if not method:
