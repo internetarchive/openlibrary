@@ -160,7 +160,9 @@ class memcache_memoize:
         for name, thread in self.active_threads.items():
             thread.join()
 
-    def encode_args(self, args, kw={}):
+    def encode_args(self, args, kw=None):
+        if kw is None:
+            kw = kw or {}
         """Encodes arguments to construct the memcache key.
         """
         # strip [ and ] from key
@@ -511,7 +513,9 @@ class PrefixKeyFunc:
     def __call__(self, *a, **kw):
         return self.prefix + "-" + self.encode_args(a, kw)
 
-    def encode_args(self, args, kw={}):
+    def encode_args(self, args, kw=None):
+        if kw is None:
+            kw = kw or {}
         """Encodes arguments to construct the memcache key.
         """
         # strip [ and ] from key

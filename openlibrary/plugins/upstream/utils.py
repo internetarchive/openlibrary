@@ -236,7 +236,9 @@ def unflatten(d, seperator="--"):
         setvalue(d2, k, v)
     return makelist(d2)
 
-def fuzzy_find(value, options, stopwords=[]):
+def fuzzy_find(value, options, stopwords=None):
+    if stopwords is None:
+        stopwords = stopwords or []
     """Try find the option nearest to the value.
 
         >>> fuzzy_find("O'Reilly", ["O'Reilly Inc", "Addison-Wesley"])
