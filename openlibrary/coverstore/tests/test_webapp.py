@@ -144,9 +144,8 @@ class TestWebappWithDB(WebTestCase):
 
         self.verify_upload(id, filedata, {'source_url': source_url, 'olid': 'OL1234M'})
 
-    def verify_upload(self, id, data, expected_info=None):
-        if expected_info is None:
-            expected_info = expected_info or {}
+    def verify_upload(self, id, data, expected_info=None):    
+        expected_info = expected_info or {}
         b = self.browser
         b.open('/b/id/%d.json' % id)
         info = json.loads(b.data)

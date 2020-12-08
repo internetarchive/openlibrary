@@ -106,9 +106,7 @@ class proxy:
             self.output = simplejson.dumps(d)
 
 
-def convert_key(key, mapping=None):
-    if mapping is None:
-        mapping = mapping or convertions
+def convert_key(key, mapping=convertions):
     """
         >>> convert_key("/authors/OL1A", {'/authors/': '/a/'})
         '/a/OL1A'
@@ -125,9 +123,7 @@ def convert_key(key, mapping=None):
     return key
 
 
-def convert_dict(d, mapping=None):
-    if mapping is None:
-        mapping = mapping or convertions
+def convert_dict(d, mapping=convertions):
     """
         >>> convert_dict({'author': {'key': '/authors/OL1A'}}, {'/authors/': '/a/'})
         {'author': {'key': '/a/OL1A'}}

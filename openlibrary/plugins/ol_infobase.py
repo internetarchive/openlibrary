@@ -367,9 +367,8 @@ class MemcacheInvalidater:
 olmemcache = __import__('openlibrary.utils.olmemcache', None, None, ['x'])
 
 
-def MemcachedDict(servers=None):
-    if servers is None:
-        servers = servers or []
+def MemcachedDict(servers=None):    
+    servers = servers or []
     """Cache implementation with OL customized memcache client."""
     client = olmemcache.Client(servers)
     return cache.MemcachedDict(memcache_client=client)

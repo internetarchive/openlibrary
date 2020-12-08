@@ -141,8 +141,7 @@ class Solr_client(object):
                  server_addr = solr_server_addr,
                  shards=None,
                  pool_size = 1):
-        if shards is None:
-            shards = shards or []
+        shards = shards or []
         self.server_addr = server_addr
         self.shards = shards
 

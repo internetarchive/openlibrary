@@ -46,9 +46,8 @@ class HTTPServer:
         self.server.stop()
         self.t.join()
 
-    def request(self, path, method='GET', query=None):
-        if query is None:
-            query = query or {}
+    def request(self, path, method='GET', query=None):    
+        query = query or {}
         response = Respose()
 
         if isinstance(query, dict):
@@ -73,9 +72,8 @@ class Respose:
         self.data = "not found"
         self.headers = {}
 
-    def should_return(self, data, status="200 OK", headers=None):
-        if headers is None:
-            headers = headers or {}
+    def should_return(self, data, status="200 OK", headers=None):    
+        headers = headers or {}
         self.status = status
         self.data = data
         self.headers = headers

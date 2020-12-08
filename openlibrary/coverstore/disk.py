@@ -28,8 +28,7 @@ class Disk:
             os.makedirs(root)
 
     def write(self, data, params=None):
-        if params is None:
-            params = params or {}
+        params = params or {}
         prefix = params.get('olid', '')
         filename = self.make_filename(prefix)
         path = os.path.join(self.root, filename)
@@ -66,9 +65,8 @@ class LayeredDisk:
             if data:
                 return data
 
-    def write(self, data, headers=None):
-        if headers is None:
-            headers = headers or {}
+    def write(self, data, headers=None):    
+        headers = headers or {}
         return self.disks[0].write(data, headers)
 
 if __name__ == "__main__":
