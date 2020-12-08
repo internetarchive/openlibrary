@@ -20,17 +20,20 @@ start affiliate-server using gunicorn webserver:
 import json
 import logging
 import os
+import queue
 import sys
+import threading
 import time
+
 import web
 import yaml
 
+import _init_path
 from openlibrary.core import cache
 from openlibrary.core.vendors import AmazonAPI
+from openlibrary.utils.dateutil import DAY_SECS
 from openlibrary.utils.isbn import (
     normalize_isbn, isbn_13_to_isbn_10, isbn_10_to_isbn_13)
-from openlibrary.utils.dateutil import DAY_SECS
-import _init_path
 
 logger = logging.getLogger("affiliate-server")
 
@@ -38,11 +41,58 @@ urls = (
     '/isbn/([0-9X-]+)', 'Submit'
 )
 
+API_MAX_ITEMS_PER_CALL = 10
+API_MAX_WAIT_SECONDS = 3
+
+web.amazon_queue = queue.Queue()
+
+
+def process_batch(batch):
+    logger.info("process_amazon_batch(): {} items".format(len(batch)))
+    try:
+        products = web.amazon_api.get_products(batch, serialize=True)
+    except Exception:
+        logger.exception("amazon_api.get_product({}, serialize=True)".format(batch))
+    for product in products:
+        # Make sure we have an isbn13 for cache key
+        cache_key = (
+            product.get('isbn_13') and product.get('isbn_13')[0] or
+            isbn_10_to_isbn_13(product.get('isbn_10')[0])
+        )
+        cache.memcache_cache.set(
+            'amazon_product_%s' % cache_key, product, expires=DAY_SECS
+        )
+
+
+def seconds_remaining(start_time):
+    return max(API_MAX_WAIT_SECONDS - (time.time() - start_time), 0)
+
+
+def amazon_lookup():
+    """
+    A separate thread of execution that waits until API_THROTTLE_SECONDS
+    """
+    while True:
+        start_time = time.time()
+        batch = set()  # no duplicates
+        while len(batch) < API_MAX_ITEMS_PER_CALL and seconds_remaining(start_time):
+            try:
+                batch.add(web.amazon_queue.get(timeout=seconds_remaining(start_time)))
+            except queue.Empty:
+                pass
+        if batch:
+            time.sleep(seconds_remaining(start_time))
+            process_amazon_batch(list(batch))
+
+
+threading.Thread(target=amazon_lookup).start()
+
+
 class Submit:
 
     @classmethod
     def unpack_isbn(cls, isbn):
-        isbn = normalize_isbn(isbn)
+        isbn = normalize_isbn(isbn.replace('-', ''))
         isbn10 = isbn if len(isbn) == 10 else isbn.startswith('978') and isbn_13_to_isbn_10(isbn)
         isbn13 = isbn if len(isbn) == 13 else isbn_10_to_isbn_13(isbn)
         return isbn10, isbn13
@@ -55,58 +105,31 @@ class Submit:
         Otherwise, return the equivalent of a promise e.g. "submitted"
 
         Wait until queue exceeds threshold length or until wait period
-        exceededed (i.e. wait seconds passed)
+        exceeded (i.e. wait seconds passed)
         """
-
         if not web.amazon_api:
             return json.dumps({"error": "not_configured"})
 
         isbn10, isbn13 = self.unpack_isbn(isbn)
-        if not (isbn10 and isbn13):
+        if not isbn10 and not isbn13:
             return json.dumps({
                 "error": "rejected_isbn",
                 "isbn10": isbn10,
                 "isbn13": isbn13
             })
 
-        # Cache lookup by isbn13. If there's a miss, add to queue
-        if not cache.memcache_cache.get('amazon_product_%s' % isbn13):
-            # Misses (which will get submitted to amz as ASIN) are isbn10
-            # We should track when (queue % 20) occurs
-            web.amazon_queue.add(isbn10)
+        # Cache lookup by isbn13. If there's a hit return the product to the caller
+        product = cache.memcache_cache.get('amazon_product_%s' % isbn13)
+        if product:
+            return json.dumps({"status": "success", "hit": product})
 
-        threshold_passed = len(web.amazon_queue) > threshold
-        timer_passed = time.time() + wait > web.amazon_timer
-        if len(web.amazon_queue) and (threshold_passed or timer_passed):
-            # amz has a limit of 10 IDs but the queue may have more than 10 ids
-            # so we should only pop 10 items off the queue and keep the rest on
-            queue = list(web.amazon_queue)
-            web.amazon_queue = set(queue[10:])
-            try:
-                products = web.amazon_api.get_products(queue[:10], serialize=True)
-                for product in products:
-                    # Make sure we have an isbn13 for cache key
-                    cache_key = (
-                        product.get('isbn_13') and product.get('isbn_13')[0] or 
-                        isbn_10_to_isbn_13(product.get('isbn_10')[0])
-                    )
-                    cache.memcache_cache.set(
-                        'amazon_product_%s' % cache_key, product, expires=DAY_SECS)
-                # Reset the amazon timer
-                web.amazon_timer = time.time()
-            except Exception:
-                logger.exception("amazon_api.get_product({}, serialize=True)".format(queue))                
-                web.amazon_queue.update(queue)  # Careful, request may enter fail-loop from bad IDs
-
+        # Cache misses will be submitted to Amazon as ASINs (isbn10)
+        web.amazon_queue.put_nowait(isbn10)
         return json.dumps({
-            "status": "success",
-            "hit": cache.memcache_cache.get('amazon_product_%s' % isbn13)
-        } if cache.memcache_cache.get('amazon_product_%s' % isbn13) else {
             "status": "submitted",
-            "queue": len(web.amazon_queue),
-            "threshold": threshold,
-            "timer": web.amazon_timer
+            "queue": web.amazon_queue.qsize(),
         })
+
 
 def load_config(configfile):
     with open(configfile) as in_file:
@@ -156,23 +179,23 @@ def start_server():
 
     sys.argv = [sys.argv[0]] + list(args)
     app.run()
-    
+
 def start_gunicorn_server():
     """Starts the affiliate server using gunicorn server.
     """
     from gunicorn.app.base import Application
-    
+
     configfile = sys.argv.pop(1)
-    
+
     class WSGIServer(Application):
         def init(self, parser, opts, args):
             pass
-            
+
         def load(self):
             load_config(configfile)
             # init_setry(app)
             return app.wsgifunc(https_middleware)
-            
+
     WSGIServer("%prog openlibrary.yml --gunicorn [options]").run()
 
 
@@ -212,11 +235,11 @@ web.wsgi.runfcgi = runfcgi
 
 app = web.application(urls, locals())
 
-    
+
 if __name__ == "__main__":
     setup_env()
     if "--gunicorn" in sys.argv:
-        sys.argv.pop(sys.argv.index("--gunicorn"))        
+        sys.argv.pop(sys.argv.index("--gunicorn"))    
         start_gunicorn_server()
     else:
         start_server()
