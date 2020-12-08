@@ -678,7 +678,8 @@ class User(Thing):
 
         return self._site.things(q)
 
-    def new_list(self, name, description, seeds, tags=[]):
+    def new_list(self, name, description, seeds, tags=None):
+        tags = tags or []
         """Creates a new list object with given name, description, and seeds.
 
         seeds must be a list containing references to author, edition, work or subject strings.
