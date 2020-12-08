@@ -105,6 +105,7 @@ class proxy:
                 d['key'] = unconvert_key(d['key'])
             self.output = simplejson.dumps(d)
 
+
 def convert_key(key, mapping=None):
     if mapping is None:
         mapping = mapping or convertions
@@ -122,6 +123,7 @@ def convert_key(key, mapping=None):
             key2 = old + key[len(new):]
             return key2
     return key
+
 
 def convert_dict(d, mapping=None):
     if mapping is None:

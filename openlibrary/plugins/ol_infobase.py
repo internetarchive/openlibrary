@@ -366,6 +366,7 @@ class MemcacheInvalidater:
 # openlibrary.plugins.openlibrary masks openlibrary module
 olmemcache = __import__('openlibrary.utils.olmemcache', None, None, ['x'])
 
+
 def MemcachedDict(servers=None):
     if servers is None:
         servers = servers or []

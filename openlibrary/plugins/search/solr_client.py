@@ -139,7 +139,7 @@ class SR2(Solr_result):
 class Solr_client(object):
     def __init__(self,
                  server_addr = solr_server_addr,
-                 shards = None,
+                 shards=None,
                  pool_size = 1):
         if shards is None:
             shards = shards or []
