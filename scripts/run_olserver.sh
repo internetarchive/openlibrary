@@ -8,7 +8,10 @@ cd /opt/openlibrary
 git pull origin master
 cd /opt/openlibrary/vendor/infogami
 git pull origin master
-# TODO: Add booklending_utils for some services
+if [[ -d "/opt/booklending_utils" ]] ; then
+    cd /opt/booklending_utils
+    git pull origin master
+fi
 
 export COMPOSE_FILE="docker-compose.yml:docker-compose.infogami-local.yml:docker-compose.production.yml"
 # SERVICE can be: web, covers, infobase, home
