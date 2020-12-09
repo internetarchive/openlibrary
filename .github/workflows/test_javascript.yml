@@ -13,4 +13,4 @@ jobs:
       - run: make js
       - run: make css
       - run: make components
-      - run: npm run tes
+      - run: npm run test
