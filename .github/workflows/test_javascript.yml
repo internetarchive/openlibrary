@@ -1,0 +1,16 @@
+name: test_javascript
+on: [push] # pull_request,
+jobs:
+  test_javascript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12' # # Should match what's in our Dockerfile
+      - run: npm install
+      - run: npm run lint
+      - run: make js
+      - run: make css
+      - run: make components
+      - run: npm run tes
