@@ -12,7 +12,7 @@ $ book_keys = []
     </thead>
     <tbody>
         $ edition_list_start = time()
-        $ editions = editions or work and work.get_sorted_editions() or [edition]
+        $ editions = editions or work.get_sorted_editions()
         $ index_padding = len(str(len(editions)))
         $for book in editions:
             $ book_keys.append(book['key'].replace('/books/', ''))
@@ -30,7 +30,7 @@ $ book_keys = []
     </tbody>
 </table>
 <p class="small sansserif edition-adder">
-  <a href="/books/add?work=$(work or edition).key" title="$_('Add another edition of %(work)s', work=(work or edition).title)">$_("Add another edition")</a>?
+  <a href="/books/add?work=$work.key" title="$_('Add another edition of %(work)s', work=work.title)">$_("Add another edition")</a>?
 </p>
 
 <!-- Admin only text doesn't need to be translated -->

@@ -4,13 +4,14 @@ $ component_times = {}
 $ component_times['TotalTime'] = time()
 
 $ tab = input(tab=None).tab
+$ editions = []
 $ page_type = page.key.split('/')[1]
 
-$ work = page if page.key.startswith('/works') else list(page.works or [storage({})])[0]
+$ work = page if page.key.startswith('/works') else list(page.works)[0]
 $ edition = storage({})
 
 $ component_times['get_sorted_editions'] = time()
-$ editions = work.get_sorted_editions() if work else []
+$ editions = work.get_sorted_editions()
 $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
 
 $ previews = [e for e in editions if e.get('ocaid')]
@@ -33,8 +34,8 @@ $ book_subtitle = edition.get('subtitle', '')
 $ title_suffix = cond(edition.get('publish_date'), u"({0} edition)".format(edition.get('publish_date')), "(edition)")
 $ title = book_title + " " + title_suffix
 $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
-$ book_description = (edition or work).get('description', '')
-$ edition_count = work.get('edition_count', 1)
+$ book_description = (edition and edition.description) or (work and work.description)
+$ edition_count = work.edition_count if work and work.edition_count else 1
 $ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
 $ _x = ctx.setdefault('bodyid', 'book')
 
@@ -55,8 +56,8 @@ $code:
         else:
             ed_info = 'unknown'
 
-        title = (work or book).title if work or book else title
-        authors = (work or book).get_authors() if work or book else []
+        title = cond(work, work.title, book.title)
+        authors = cond(work, work and work.get_authors(), book.get_authors())
         author_info = " by " + ", ".join(a.name or "Unknown author" for a in authors)
 
         format = ""
@@ -147,9 +148,9 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       </div>
 
       <div class="work-line">
-        $_("An edition of") <a href="$(work or edition).key?edition=$(ocaid)">$work_title</a>
-        $if (work or edition).first_publish_year:
-          ($(work or edition).first_publish_year)
+        $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title</a>
+        $if work.first_publish_year:
+          ($work.first_publish_year)
       </div>
 
       $:render_template("type/edition/book_title", work, edition)
@@ -204,7 +205,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         $:macros.ReadMore("subjects")
     </div>
 
-      $:macros.EditionNavBar(edition_count)
+      $:macros.EditionNavBar(work.edition_count)
 
       <p class="preview-languages">
         $ seen = set()
@@ -213,7 +214,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
           $for e in previews:
             $if e.languages[0].name not in seen:
               $ seen.add(e.languages[0].name)
-              <a href="$(work or edition).key?edition=$(e.ocaid)">$e.languages[0].name</a>
+              <a href="$work.key?edition=$(e.ocaid)">$e.languages[0].name</a>
       </p>
 
       <a name="editions-list" class="section-anchor"></a>
