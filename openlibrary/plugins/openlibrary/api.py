@@ -171,7 +171,7 @@ class work_bookshelves(delegate.page):
             shelf_ids = Bookshelves.PRESET_BOOKSHELVES.values()
             if bookshelf_id != -1 and bookshelf_id not in shelf_ids:
                 raise ValueError
-        except ValueError:
+        except (TypeError, ValueError):
             return delegate.RawText(simplejson.dumps({
                 'error': 'Invalid bookshelf'
             }), content_type="application/json")
