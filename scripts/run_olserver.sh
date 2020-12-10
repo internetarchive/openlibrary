@@ -8,10 +8,8 @@ cd /opt/openlibrary
 git pull origin master
 cd /opt/openlibrary/vendor/infogami
 git pull origin master
-if [[ -d "/opt/booklending_utils" ]] ; then
-    cd /opt/booklending_utils
-    git pull origin master
-fi
+cd /opt/booklending_utils
+git pull origin master
 
 export COMPOSE_FILE="docker-compose.yml:docker-compose.infogami-local.yml:docker-compose.production.yml"
 # SERVICE can be: web, covers, infobase, home
