@@ -29,6 +29,7 @@
     "template-curly-spacing": "error",
     "quote-props": ["error", "as-needed"],
     "keyword-spacing": ["error", { "before": true, "after": true } ],
-    "key-spacing": ["error", { "mode": "strict" }]
+    "key-spacing": ["error", { "mode": "strict" }],
+    "vue/no-mutating-props": "off"
   }
 }
