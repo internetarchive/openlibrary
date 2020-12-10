@@ -13,6 +13,7 @@ services:
       - GUNICORN_OPTS= --workers 4 --timeout 180
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - PYENV_VERSION=3.8.6
+      - BEFORE_START=pip install -e /booklending_utils
     volumes:
       - ../olsystem:/olsystem
       - ../booklending_utils:/booklending_utils
