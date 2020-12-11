@@ -64,7 +64,7 @@ services:
       - PYENV_VERSION=3.8.6
     volumes:
       - ../olsystem:/olsystem
-      - /1/var/run/openlibrary/solr-update.offset:/solr-update.offset
+      - ./solr-update.offset:/solr-update.offset
   memcached:
     image: memcached
     networks:
