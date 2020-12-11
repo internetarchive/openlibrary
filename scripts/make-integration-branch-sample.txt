@@ -13,3 +13,6 @@
 # Branches from other forks:
 # https://github.com/cdrini/openlibrary.git 314/hotfix/limit-subject-results
 #
+# PRs from forks that have been deleted:
+# https://github.com/internetarchive/openlibrary/pull/4215.patch
+#
