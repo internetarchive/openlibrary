@@ -176,6 +176,23 @@ def qualifies_for_sponsorship(edition):
     return resp
 
 
+def sync_completed_sponsored_books():
+    from internetarchive import search_items
+    params = {'page': 1, 'rows': 1000, 'scope': 'all'}
+    fields = ['identifier', 'openlibrary_edition']
+    q = 'collection:openlibraryscanningteam AND collection:inlibrary'
+    
+    # XXX Note: This `search_items` query requires the `ia` tool (the
+    # one installed via virtualenv) to be configured with (scope:all)
+    # privileged s3 keys.
+    config = {'general': {'secure': False}}
+    items = search_items(q, fields=fields, params=params, config=config)
+    books = web.ctx.site.get_many([
+        '/books/%s' % i.get('openlibrary_edition') for i in items
+    ])
+    return [b for b in books if not b.ocaid]
+
+
 def get_sponsored_books():
     """Performs the `ia` query to fetch sponsored books from archive.org"""
     from internetarchive import search_items
@@ -185,13 +202,14 @@ def get_sponsored_books():
               'openlibrary_edition', 'publicdate', 'collection', 'isbn']
 
     q = 'collection:openlibraryscanningteam'
-
+    
     # XXX Note: This `search_items` query requires the `ia` tool (the
     # one installed via virtualenv) to be configured with (scope:all)
     # privileged s3 keys.
     config = {'general': {'secure': False}}
-    return search_items(q, fields=fields, params=params, config=config)
-
+    return [item for item in search_items(q, fields=fields, params=params, config=config) if 
+            not (item.get('repub_state') == '-1' and item.get('donor') in ("@alvin_wellington", "@gojust538"))
+        ]
 
 def summary():
     """

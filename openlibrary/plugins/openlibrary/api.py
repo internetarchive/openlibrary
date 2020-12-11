@@ -19,7 +19,8 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
-from openlibrary.core.sponsorships import qualifies_for_sponsorship
+from openlibrary.core.sponsorships import (
+    qualifies_for_sponsorship, sync_completed_sponsored_books)
 from openlibrary.core.vendors import (
     get_amazon_metadata, create_edition_from_amazon_metadata,
     search_amazon, get_betterworldbooks_metadata)
@@ -305,24 +306,14 @@ class amazon_search_api(delegate.page):
         results = search_amazon(title=i.title, author=i.author)
         return simplejson.dumps(results)
 
-class join_sponsorship_waitlist(delegate.page):
-    path = r'/sponsorship/join'
 
+class sync_sponsored_books(delegate.page):
+    path = r'/sponsorship/sync'
+
+    @jsonapi
     def GET(self):
-        user = accounts.get_current_user()
-        if user:
-            account = OpenLibraryAccount.get_by_email(user.email)
-            ia_itemname = account.itemname if account else None
-        if not user or not ia_itemname:
-            web.setcookie(config.login_cookie_name, "", expires=-1)
-            raise web.seeother("/account/login?redirect=/sponsorship/join")
-        try:
-            with accounts.RunAs('archive_support'):
-                models.UserGroup.from_key('sponsors-waitlist').add_user(user.key)
-        except KeyError as e:
-            add_flash_message('error', 'Unable to join waitlist: %s' % e.message)
+        return sync_completed_sponsored_books()
 
-        raise web.seeother('/sponsorship')
 
 class sponsorship_eligibility_check(delegate.page):
     path = r'/sponsorship/eligibility/(.*)'
