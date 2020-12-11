@@ -320,6 +320,7 @@ class sponsorship_eligibility_check(delegate.page):
 
     @jsonapi
     def GET(self, _id):
+        i = web.input(patron=None, scan_only=False)
         edition = (
             web.ctx.site.get('/books/%s' % _id)
             if re.match(r'OL[0-9]+M', _id)
@@ -328,7 +329,9 @@ class sponsorship_eligibility_check(delegate.page):
         )
         if not edition:
             return simplejson.dumps({"status": "error", "reason": "Invalid ISBN 13"})
-        return simplejson.dumps(qualifies_for_sponsorship(edition))
+        return simplejson.dumps(
+            qualifies_for_sponsorship(edition, scan_only=i.scan_only, patron=i.patron)
+        )
 
 
 class price_api(delegate.page):

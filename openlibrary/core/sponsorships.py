@@ -90,7 +90,7 @@ def do_we_want_it(isbn, work_id):
     return False, []
 
 @public
-def qualifies_for_sponsorship(edition):
+def qualifies_for_sponsorship(edition, scan_only=False, patron=None):
     """
     :param edition edition: An infogami book edition
     :rtype: dict
@@ -141,10 +141,10 @@ def qualifies_for_sponsorship(edition):
     dwwi, matches = do_we_want_it(edition.isbn, work_id)
     if dwwi:
         bwb_price = get_betterworldbooks_metadata(edition.isbn).get('price_amt')
-        if bwb_price:
+        if bwb_price or scan_only:
             num_pages = int(edition_data['number_of_pages'])
             scan_price_cents = SETUP_COST_CENTS + (PAGE_COST_CENTS * num_pages)
-            book_cost_cents = int(float(bwb_price) * 100)
+            book_cost_cents = int(float(bwb_price) * 100) if not scan_only else 0
             total_price_cents = scan_price_cents + book_cost_cents
             resp['price'] = {
                 'book_cost_cents': book_cost_cents,
@@ -154,7 +154,7 @@ def qualifies_for_sponsorship(edition):
                     total_price_cents / 100.
                 ),
             }
-            resp['is_eligible'] = eligibility_check(edition)
+            resp['is_eligible'] = eligibility_check(edition, patron=patron)
     else:
         resp['error'] = {
             'reason': 'matches',
@@ -177,6 +177,7 @@ def qualifies_for_sponsorship(edition):
 
 
 def sync_completed_sponsored_books():
+    import internetarchive as ia
     from internetarchive import search_items
     params = {'page': 1, 'rows': 1000, 'scope': 'all'}
     fields = ['identifier', 'openlibrary_edition']
@@ -197,6 +198,10 @@ def sync_completed_sponsored_books():
         print('saving: ' + u.ocaid)
         # TODO: Perform save
         # web.ctx.blah[u.key] = u ?
+        # If we need to modify the IA item (e.g. status=complete)
+        # send out an email?...
+        #i = ia.get_item(ocaid)
+        #i.modify_metadata(metadata={'status': 'completed'})
     return unsynced
 
 
