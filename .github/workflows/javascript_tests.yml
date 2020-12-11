@@ -1,11 +1,11 @@
-name: test_javascript
+name: javascript_tests
 on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
 jobs:
-  test_javascript:
+  javascript_tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
