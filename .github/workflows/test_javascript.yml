@@ -3,11 +3,14 @@ on: [push] # pull_request,
 jobs:
   test_javascript:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [12, 14]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: [12, 14] # # Should match what's in our Dockerfile
+          node-version: ${{ matrix.node }}  # Should match what's in our Dockerfile
       - run: npm install
       - run: npm run lint
       - run: make git
