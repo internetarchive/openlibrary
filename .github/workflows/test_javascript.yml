@@ -10,6 +10,7 @@ jobs:
           node-version: '12' # # Should match what's in our Dockerfile
       - run: npm install
       - run: npm run lint
+      - run: make git
       - run: make js
       - run: make css
       - run: make components
