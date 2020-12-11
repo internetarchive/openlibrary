@@ -90,7 +90,7 @@ services:
       - PYENV_VERSION=3.8.6
     volumes:
       - ../olsystem:/olsystem
-      - ./solr-update.offset:/solr-update.offset
+      - ./solr-updater.offset:/solr-updater.offset
 
 secrets:
     petabox_seed:
