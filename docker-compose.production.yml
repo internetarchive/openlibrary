@@ -82,20 +82,6 @@ services:
     secrets:
       - petabox_seed
 
-  solr_updater:
-    # restart: always
-    hostname: "$HOSTNAME"
-    environment:
-      - OL_CONFIG=/olsystem/etc/openlibrary.yml
-      - SOLR_UPDATER_STATE_FILE=/1/var/run/openlibrary/solr-update.offset
-      - SOLR_UPDATER_EXCLUDE_EDITS_CONTAINING=ImportBot
-      - s=600
-      - PYENV_VERSION=3.8.6
-    volumes:
-      - ../olsystem:/olsystem
-      - solr-updater-writelog:/1/var/lib/openlibrary/solr-updater/log
-      - solr-updater-errorlog:/1/var/log/openlibrary/solr-updater.log
-
 secrets:
     petabox_seed:
       file: /opt/.petabox/seed

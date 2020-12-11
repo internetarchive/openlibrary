@@ -51,6 +51,15 @@ services:
       options:
         max-size: "512m"
         max-file: "4"
+  solr_updater:
+    restart: always
+    hostname: "$HOSTNAME"
+    environment:
+      - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - PYENV_VERSION=3.8.6
+    volumes:
+      - ../olsystem:/olsystem
+      - /1/var/run/openlibrary/solr-update.offset:/solr-update.offset
   memcached:
     image: memcached
     networks:
