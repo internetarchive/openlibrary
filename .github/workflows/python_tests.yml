@@ -6,7 +6,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [2.7, 3.8]  # , 3.9]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-xenial  # Should match Dockerfile.olbase
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
