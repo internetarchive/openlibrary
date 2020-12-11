@@ -18,9 +18,12 @@ jobs:
       - run: pip install -r requirements_test.txt
       - run: pip list --outdated
       - run: make git
-      - if: matrix.python-version >= 3.0
-        run: pushd vendor/infogami && git pull origin master && popd
-      - run: make lint
       - run: make i18n
+      # Run legacy Python tests on legacy Infogami
+      - if: matrix.python-version < 3.0
+        run: make test-py && source scripts/run_doctests.sh
+      # Run both Py2 and Py3 tests on Infogami master
+      - run: pushd vendor/infogami && git pull origin master && popd
+      - run: make lint
       - run: make test-py
       - run: source scripts/run_doctests.sh
