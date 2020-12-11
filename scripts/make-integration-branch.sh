@@ -31,3 +31,6 @@ while read line; do
         git merge $branch
     fi
 done <"$BRANCHES_FILE"
+
+echo "---"
+echo "Complete; dev-merged created (SHA: $(git rev-parse --short HEAD))"
