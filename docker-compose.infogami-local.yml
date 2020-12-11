@@ -25,3 +25,8 @@ services:
       - INFOGAMI=local
     volumes:
       - ./vendor/infogami:/openlibrary/vendor/infogami
+  solr-updater:
+    environment:
+      - INFOGAMI=local
+    volumes:
+      - ./vendor/infogami:/openlibrary/vendor/infogami
