@@ -1,5 +1,9 @@
 name: test_javascript
-on: [push] # pull_request,
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 jobs:
   test_javascript:
     runs-on: ubuntu-latest
