@@ -20,6 +20,9 @@ while read line; do
         :
     elif [[ ! -z $ONLY_STARRED && $line != "**"* ]] ; then
         :
+    elif [[ $branch == "https://github.com/internetarchive/openlibrary/pull/"*".patch" ]] ; then
+        echo -e "---\n$branch"
+        curl -L $branch | git am -3
     elif [[ $branch == "https://"* ]] ; then
         echo -e "---\n$branch"
         git pull $branch
