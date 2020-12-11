@@ -21,6 +21,8 @@ jobs:
       - run: pip install --upgrade pip setuptools wheel
       - run: pip install -r requirements_test.txt
       - run: pip list --outdated
+      - if: matrix.python-version == 3.8
+        run: make lint-diff
       - run: make git
       - run: make i18n
       # Run legacy Python tests on legacy Infogami
