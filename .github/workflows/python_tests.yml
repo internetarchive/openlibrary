@@ -23,5 +23,3 @@ jobs:
       - run: make i18n
       - run: make test-py
       - run: source scripts/run_doctests.sh
-      - if: matrix.python-version >= 3.6
-        run: pip install mypy && mypy . || true
