@@ -1,0 +1,21 @@
+name: test_docker
+on: push  # [pull_request, push]
+jobs:
+  test_docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: PYENV_VERSION=2.7.6 docker-compose up -d
+      - run: docker-compose exec -T home make test
+      - run: docker-compose down
+
+      - run: PYENV_VERSION=3.8.6 docker-compose up -d
+      # - run: docker-compose exec -T home make test
+      - run: docker-compose down
+
+      - run: PYENV_VERSION=3.9.0 docker-compose up -d
+      # - run: docker-compose exec -T home make test
+      - run: docker-compose down
+
+      - run: docker system prune --force
