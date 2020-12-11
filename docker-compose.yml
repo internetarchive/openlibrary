@@ -52,6 +52,11 @@ services:
         max-size: "512m"
         max-file: "4"
   solr-updater:
+    image: oldev:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    command: docker/ol-solr-updater-start.sh
     restart: always
     hostname: "$HOSTNAME"
     environment:
