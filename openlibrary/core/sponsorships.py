@@ -190,7 +190,14 @@ def sync_completed_sponsored_books():
     books = web.ctx.site.get_many([
         '/books/%s' % i.get('openlibrary_edition') for i in items
     ])
-    return [b for b in books if not b.ocaid]
+    unsynced = [b for b in books if not b.ocaid]
+    ocaid_lookup = dict(('/books/%s' % i.get('openlibrary_edition'), i.get('identifier')) for i in items)
+    for u in unsynced:
+        u.ocaid = ocaid_lookup[u.key]
+        print('saving: ' + u.ocaid)
+        # TODO: Perform save
+        # web.ctx.blah[u.key] = u ?
+    return unsynced
 
 
 def get_sponsored_books():
