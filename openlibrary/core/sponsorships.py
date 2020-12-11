@@ -10,7 +10,8 @@ from openlibrary.core import lending
 from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
     get_amazon_metadata)
-from openlibrary.accounts.model import get_internet_archive_id
+from openlibrary import accounts
+from openlibrary.accounts.model import get_internet_archive_id, sendmail
 from openlibrary.core.civicrm import (
     get_contact_id_by_username,
     get_sponsorships_by_contact_id)
@@ -204,17 +205,35 @@ def sync_completed_sponsored_books():
         ('/books/%s' % i.get('openlibrary_edition'),  i.get('identifier'))
         for i in items
     )
-    for u in unsynced:
-        u.ocaid = ocaid_lookup[u.key]
-        print('saving: ' + u.ocaid)
-        # TODO: Perform save
-        # web.ctx.blah[u.key] = u ?
-        # If we need to modify the IA item (e.g. status=complete)
-        # send out an email?...
-        #i = ia.get_item(ocaid)
-        #i.modify_metadata(metadata={'status': 'completed'})
+    for book in unsynced:
+        book.ocaid = ocaid_lookup[book.key]
+        with accounts.RunAs('ImportBot'):
+            web.ctx.site.save(book, "Adding ocaid for completed sponsorship")
+        # TODO: If we need to modify the IA item (e.g. status=complete)
+        # i = ia.get_item(ocaid)
+        # i.modify_metadata(metadata={'status': 'completed'})
+        # TODO: send out an email?...
+        # email_sponsor(recipient, book)
     return unsynced
 
+
+def email_sponsor(recipient, book):
+    url = 'https://openlibrary.org%s' % book.key
+    resp = web.sendmail(
+        "openlibrary@archive.org",
+        recipient,
+        "Internet Archive: Your Open Library Book Sponsorship is Ready",
+        (
+            '<p>' +
+            '<a href="%s">%s</a> ' % (url, book.title) +
+            'is now available to read on Open Library!' +
+            '</p>' +
+            '<p>Thank you,</p>' +
+            '<p>The <a href="https://openlibrary.org">Open Library</a> Team</p>'
+        ),
+        headers={'Content-Type':'text/html;charset=utf-8'}
+    )
+    return resp
 
 def get_sponsored_books():
     """Performs the `ia` query to fetch sponsored books from archive.org"""
