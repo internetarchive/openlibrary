@@ -14,10 +14,12 @@ from openlibrary.accounts.model import get_internet_archive_id
 from openlibrary.core.civicrm import (
     get_contact_id_by_username,
     get_sponsorships_by_contact_id)
+import internetarchive as ia
 
 try:
-    from booklending_utils.sponsorship import eligibility_check
+    from booklending_utils.sponsorship import eligibility_check, BLOCKED_PATRONS
 except ImportError:
+    BLOCKED_PATRONS = []
     def eligibility_check(edition):
         """For testing if Internet Archive book sponsorship check unavailable"""
         return False
@@ -177,22 +179,31 @@ def qualifies_for_sponsorship(edition, scan_only=False, patron=None):
 
 
 def sync_completed_sponsored_books():
-    import internetarchive as ia
-    from internetarchive import search_items
-    params = {'page': 1, 'rows': 1000, 'scope': 'all'}
-    fields = ['identifier', 'openlibrary_edition']
-    q = 'collection:openlibraryscanningteam AND collection:inlibrary'
-    
-    # XXX Note: This `search_items` query requires the `ia` tool (the
-    # one installed via virtualenv) to be configured with (scope:all)
-    # privileged s3 keys.
-    config = {'general': {'secure': False}}
-    items = search_items(q, fields=fields, params=params, config=config)
+    """Retrieves a list of all completed sponsored books from Archive.org
+    so they can be synced with Open Library, which entails:
+
+    - adding IA ocaid into openlibrary edition
+    - alerting patrons (if possible) by email of completion
+    - possibly marking archive.org item status as complete/synced
+
+    XXX Note: This `search_items` query requires the `ia` tool (the
+    one installed via virtualenv) to be configured with (scope:all)
+    privileged s3 keys.
+    """
+    items = ia.search_items(
+        'collection:openlibraryscanningteam AND collection:inlibrary',
+        fields=['identifier', 'openlibrary_edition'],
+        params={'page': 1, 'rows': 1000, 'scope': 'all'},
+        config={'general': {'secure': False}}
+    )
     books = web.ctx.site.get_many([
         '/books/%s' % i.get('openlibrary_edition') for i in items
     ])
-    unsynced = [b for b in books if not b.ocaid]
-    ocaid_lookup = dict(('/books/%s' % i.get('openlibrary_edition'), i.get('identifier')) for i in items)
+    unsynced = [book for book in books if not book.ocaid]
+    ocaid_lookup = dict(
+        ('/books/%s' % i.get('openlibrary_edition'),  i.get('identifier'))
+        for i in items
+    )
     for u in unsynced:
         u.ocaid = ocaid_lookup[u.key]
         print('saving: ' + u.ocaid)
@@ -207,21 +218,25 @@ def sync_completed_sponsored_books():
 
 def get_sponsored_books():
     """Performs the `ia` query to fetch sponsored books from archive.org"""
-    from internetarchive import search_items
-    params = {'page': 1, 'rows': 1000, 'scope': 'all'}
-    fields = ['identifier','est_book_price','est_scan_price', 'scan_price',
-              'book_price', 'repub_state', 'imagecount', 'title', 'donor',
-              'openlibrary_edition', 'publicdate', 'collection', 'isbn']
-
-    q = 'collection:openlibraryscanningteam'
-    
     # XXX Note: This `search_items` query requires the `ia` tool (the
     # one installed via virtualenv) to be configured with (scope:all)
     # privileged s3 keys.
-    config = {'general': {'secure': False}}
-    return [item for item in search_items(q, fields=fields, params=params, config=config) if 
-            not (item.get('repub_state') == '-1' and item.get('donor') in ("@alvin_wellington", "@gojust538"))
-        ]
+    items = ia.search_items(
+        'collection:openlibraryscanningteam',
+        fields=[
+            'identifier','est_book_price','est_scan_price', 'scan_price',
+            'book_price', 'repub_state', 'imagecount', 'title', 'donor',
+            'openlibrary_edition', 'publicdate', 'collection', 'isbn'
+        ],
+        params={'page': 1, 'rows': 1000, 'scope': 'all'},
+        config={'general': {'secure': False}}
+    )
+    return [
+        item for item in items if not (
+            item.get('repub_state') == '-1' and
+            item.get('donor') in BLOCKED_PATRONS
+        )
+    ]
 
 def summary():
     """
@@ -262,7 +277,7 @@ def summary():
     est_book_cost_cents = sum(int(i.get('est_book_price', 0)) for i in items)
     scan_cost_cents = (PAGE_COST_CENTS * total_pages_scanned) + (SETUP_COST_CENTS * len(items))
     est_scan_cost_cents = sum(int(i.get('est_scan_price', 0)) for i in items)
-    avg_scan_cost = scan_cost_cents / (len(items) - total_unscanned_books) 
+    avg_scan_cost = scan_cost_cents / (len(items) - total_unscanned_books)
 
     return {
         'books': items,
