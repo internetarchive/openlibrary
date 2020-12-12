@@ -5,6 +5,7 @@
 #    exit 1
 # fi
 
+make git
 pushd /openlibrary/vendor/infogami
 git pull origin master
 popd
