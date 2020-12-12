@@ -7,6 +7,8 @@ jobs:
       - uses: actions/checkout@v2
       - run: make git
       - run: pushd vendor/infogami && git pull origin master && popd
+      - run: docker-compose build
+      # - run: docker build -t openlibrary/olbase:latest -f docker/Dockerfile.olbase .
 
       - run: PYENV_VERSION=2.7.6 docker-compose up -d
       - run: docker-compose exec -T home make test
