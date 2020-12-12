@@ -7,15 +7,19 @@ jobs:
       - uses: actions/checkout@v2
 
       - run: PYENV_VERSION=2.7.6 docker-compose up -d
+      # test legacy Python using legacy Infogami
+      - run: docker-compose exec -T home make test
+      # test legacy Python using Infogami master
+      - run: docker-compose exec -T .github/workflows/TEMP_infogami_pull_master.sh
       - run: docker-compose exec -T home make test
       - run: docker-compose down
 
       - run: PYENV_VERSION=3.8.6 docker-compose up -d
-      # - run: docker-compose exec -T home make test
+      - run: docker-compose exec -T home make test
       - run: docker-compose down
 
       - run: PYENV_VERSION=3.9.0 docker-compose up -d
-      # - run: docker-compose exec -T home make test
+      - run: docker-compose exec -T home make test
       - run: docker-compose down
 
       - run: docker system prune --force
