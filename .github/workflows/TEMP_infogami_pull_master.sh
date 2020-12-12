@@ -1,7 +1,6 @@
 #!/bin/bash
 
-if [ -z "$CI" ]
-then
+if [[ -z ${CI} ]] ; then
     echo "Only runs under continuous integration"
     exit 1
 fi
