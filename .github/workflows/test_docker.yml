@@ -2,24 +2,26 @@ name: test_docker
 on: push  # [pull_request, push]
 jobs:
   test_docker:
+    strategy:
+      fail-fast: false
+      matrix:
+        pyenv_version: [2.7.6, 3.8.6, 3.9.0]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - run: make git
+      - env:
+          COMPOSE_FILE: "docker-compose.yml:docker-compose.override.yml"
+          PYENV_VERSION: 2.7.6
+        run: docker-compose up -d --no-deps home
+      - run: docker-compose exec -T home make test
       - run: pushd vendor/infogami && git pull origin master && popd
-      # - run: docker-compose build
-      - run: docker build -t openlibrary/olbase:latest -f docker/Dockerfile.olbase .
-
-      - run: PYENV_VERSION=2.7.6 docker-compose up -d
-      - run: docker-compose exec -T home make test
       - run: docker-compose down
-
-      - run: PYENV_VERSION=3.8.6 docker-compose up -d
-      - run: docker-compose exec -T home make test
-      - run: docker-compose down
-
-      - run: PYENV_VERSION=3.9.0 docker-compose up -d
-      - run: docker-compose exec -T home make test
-      - run: docker-compose down
-
+      - env:
+          COMPOSE_FILE: "docker-compose.yml:docker-compose.override.yml:docker-compose.infogami-local.yml"
+          PYENV_VERSION: ${{ matrix.pyenv_version }}
+        run: | 
+          docker-compose up -d --no-deps home
+          docker-compose exec -T home make test
+          docker-compose down
       - run: docker system prune --force
