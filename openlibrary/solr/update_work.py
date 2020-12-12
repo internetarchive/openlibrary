@@ -71,8 +71,10 @@ def get_solr_base_url():
 
     return solr_base_url
 
+
 # TODO: Remove get_solr
 get_solr = get_solr_base_url
+
 
 def get_ia_collection_and_box_id(ia):
     """
@@ -857,9 +859,9 @@ def solr_update(requests, debug=False, commitWithin=60000):
     url = get_solr_base_url() + '/update'
     parsed_url = urlparse(url)
     if parsed_url.port:
-        h1 = HTTPConnection(parsed_url.host, parsed_url.port)
+        h1 = HTTPConnection(parsed_url.hostname, parsed_url.port)
     else:
-        h1 = HTTPConnection(parsed_url.host)
+        h1 = HTTPConnection(parsed_url.hostname)
     logger.info("POSTing update to %s", url)
     # FIXME; commit strategy / timing should be managed in config, not code
     url = url + "?commitWithin=%d" % commitWithin
@@ -1255,12 +1257,18 @@ def update_author(akey, a=None, handle_redirects=True):
     facet_fields = ['subject', 'time', 'person', 'place']
     base_url = get_solr_base_url() + '/select'
 
-    url = base_url + '?wt=json&json.nl=arrarr&q=author_key:%s&sort=edition_count+desc&rows=1&fl=title,subtitle&facet=true&facet.mincount=1' % author_id
-    url += ''.join('&facet.field=%s_facet' % f for f in facet_fields)
-
-    logger.info("urlopen %s", url)
-
-    reply = urlopen(url).json()
+    reply = requests.get(base_url, params=[
+        ('wt', 'json'),
+        ('json.nl', 'arrarr'),
+        ('q', 'author_key:%s' % author_id),
+        ('sort', 'edition_count desc'),
+        ('row', 1),
+        ('fl', 'title,subtitle'),
+        ('facet', 'true'),
+        ('facet.mincount', 1),
+    ] + [
+        ('facet.field', '%s_facet' % field) for field in facet_fields
+    ]).json()
     work_count = reply['response']['numFound']
     docs = reply['response'].get('docs', [])
     top_work = None
