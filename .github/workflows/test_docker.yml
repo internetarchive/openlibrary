@@ -6,13 +6,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - run: sudo make git
       - run: chmod +x .github/workflows/TEMP_infogami_pull_master.sh
       - run: PYENV_VERSION=2.7.6 docker-compose up -d
       # test legacy Python using legacy Infogami
       - run: docker-compose exec -T home make test
       # test legacy Python using Infogami master
-      - run: docker-compose exec -T home sudo .github/workflows/TEMP_infogami_pull_master.sh
+      - run: docker-compose exec -T home .github/workflows/TEMP_infogami_pull_master.sh
       - run: docker-compose exec -T home make test
       - run: docker-compose down
 
