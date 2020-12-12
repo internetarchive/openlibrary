@@ -146,20 +146,20 @@
     <field name="alternative_title" type="text_en_splitting" stored="false" multiValued="true"/>
     <field name="alternative_subtitle" type="text_en_splitting" stored="false" multiValued="true"/>
 
-    <field name="edition_count" type="int"/>
+    <field name="edition_count" type="pint"/>
     <field name="edition_key" type="string" multiValued="true"/>
     <field name="cover_edition_key" type="string" indexed="false"/>
     <field name="by_statement" type="text_en_splitting" stored="false" multiValued="true"/>
     <field name="publish_date" type="text_en_splitting" multiValued="true"/>
-    <field name="publish_year" type="int" multiValued="true"/>
-    <field name="first_publish_year" type="int"/>
+    <field name="publish_year" type="pint" multiValued="true"/>
+    <field name="first_publish_year" type="pint"/>
     <field name="first_edition" type="string" indexed="false"/>
     <field name="first_publisher" type="string" indexed="false"/>
     <field name="language" type="string" multiValued="true"/>
-    <field name="number_of_pages" type="int" multiValued="true"/>
+    <field name="number_of_pages" type="pint" multiValued="true"/>
     <field name="lccn" type="text_general" multiValued="true"/>
     <field name="ia" type="string" multiValued="true"/>
-    <field name="ia_count" type="int"/>
+    <field name="ia_count" type="pint"/>
     <field name="oclc" type="text_en_splitting" multiValued="true"/>
     <field name="isbn" type="string" multiValued="true"/>
     <field name="contributor" type="text_general" multiValued="true"/>
@@ -196,7 +196,7 @@
    <field name="birth_date" type="string" indexed="true" stored="true"/>
    <field name="death_date" type="string" indexed="true" stored="true"/>
    <field name="date" type="string" indexed="true" stored="true"/>
-   <field name="work_count" type="int" indexed="true" stored="true"/>
+   <field name="work_count" type="pint" indexed="true" stored="true"/>
    <field name="top_work" type="string" indexed="false" stored="true"/>
    <field name="top_subjects" type="string" indexed="false" stored="true" multiValued="true"/>
 
