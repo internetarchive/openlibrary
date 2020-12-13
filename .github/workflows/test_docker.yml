@@ -3,6 +3,8 @@ on: push  # [pull_request, push]
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      COMPOSE_FILE: "docker-compose.yml:docker-compose.override.yml"
     steps:
       - run: docker-compose build  # build just once and then test with `docker-compose up --no-build`
   test_legacy_infogami:
