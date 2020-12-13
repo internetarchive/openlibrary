@@ -125,11 +125,11 @@ def convert_key(key, mapping=None):
 
 
 def convert_dict(d, mapping=None):
-    mapping = mapping or convertions
     """
         >>> convert_dict({'author': {'key': '/authors/OL1A'}}, {'/authors/': '/a/'})
         {'author': {'key': '/a/OL1A'}}
     """
+    mapping = mapping or convertions
     if isinstance(d, dict):
         if 'key' in d:
             d['key'] = convert_key(d['key'], mapping)
