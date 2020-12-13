@@ -1,19 +1,23 @@
 name: test_docker
 on: push  # [pull_request, push]
 jobs:
+  build:
+    docker-compose build  # build just once and then test with `docker-compose up --no-build`
   test_legacy_infogami:
     runs-on: ubuntu-latest
+    needs: build
     env:
       COMPOSE_FILE: "docker-compose.yml:docker-compose.override.yml"
     steps:
       - uses: actions/checkout@v2
       - env:
           PYENV_VERSION: 2.7.6
-        run: docker-compose up -d --no-deps home
+        run: docker-compose up -d --no-build --no-deps home
       - run: docker-compose exec -T home make test
       - run: docker-compose down    
   test_infogami_master:
     runs-on: ubuntu-latest
+    needs: build
     env:
       COMPOSE_FILE: "docker-compose.yml:docker-compose.override.yml:docker-compose.infogami-local.yml"
     strategy:
@@ -25,6 +29,6 @@ jobs:
       - run: make git && pushd vendor/infogami && git pull origin master && popd
       - env:
           PYENV_VERSION: ${{ matrix.pyenv_version }}
-        run: docker-compose up -d --no-deps home
+        run: docker-compose up -d --no-build --no-deps home
       - run: docker-compose exec -T home make test
       - run: docker-compose down    
