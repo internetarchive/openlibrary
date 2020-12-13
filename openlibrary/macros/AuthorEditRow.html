@@ -5,7 +5,7 @@ $ value = page[name]
 
 <div class="formElement" id="row_$name">
 $if unique:
-    <div class="label"><label for="$name">$label</label></label>
+    <div class="label"><label for="$name">$label</label></div>
     <div class="input"><input type="text" id="$name" name="$name" value="$value"/></div>
 $else:
     $ value = value or [""]
@@ -13,7 +13,7 @@ $else:
         <div class="label"><label for="$name#$i">$label</label></div>
         <div class="input"><input type="text" id="$name#$i" name="$name#$i" value="$v"/>
             $if i == len(value) - 1:
-                <button class="plain" onClick="add_row('$name')" type="button">(+)</button>
+                <button class="plain" onclick="add_row('$name')" type="button">(+)</button>
         </div>
         $ label = ""
 </div>
