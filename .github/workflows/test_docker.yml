@@ -2,7 +2,9 @@ name: test_docker
 on: push  # [pull_request, push]
 jobs:
   build:
-    docker-compose build  # build just once and then test with `docker-compose up --no-build`
+    runs-on: ubuntu-latest
+    steps:
+      - run: docker-compose build  # build just once and then test with `docker-compose up --no-build`
   test_legacy_infogami:
     runs-on: ubuntu-latest
     needs: build
