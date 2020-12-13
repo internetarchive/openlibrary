@@ -864,8 +864,8 @@ class fetch_goodreads(delegate.page):
     def POST(self):
         import csv
         i = web.input(csv={})
-        csv_file = csv.reader((i.csv.value).splitlines(),
-                              delimiter=',', quotechar='"')
+        csv_payload = i.csv.value if isinstance(i.csv.value, str) else i.csv.value.decode()
+        csv_file = csv.reader(csv_payload.splitlines(), delimiter=',', quotechar='"')
         header = next(csv_file)
         books = {}
         books_wo_isbns = {} 
