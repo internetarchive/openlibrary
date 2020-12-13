@@ -107,11 +107,11 @@ class proxy:
 
 
 def convert_key(key, mapping=None):
-    mapping = mapping or convertions
     """
         >>> convert_key("/authors/OL1A", {'/authors/': '/a/'})
         '/a/OL1A'
     """
+    mapping = mapping or convertions
     if key is None:
         return None
     elif key == '/':
