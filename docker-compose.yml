@@ -63,7 +63,7 @@ services:
       - OL_CONFIG=conf/openlibrary.yml
       - PYENV_VERSION=3.8.6
     volumes:
-      - ./solr-updater.offset:/solr-updater.offset
+      - solr-updater.offset:/solr-updater.offset
   memcached:
     image: memcached
     networks:
