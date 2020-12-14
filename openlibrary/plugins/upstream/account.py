@@ -860,9 +860,8 @@ class import_books(delegate.page):
 class fetch_goodreads(delegate.page):
     path = "/account/import/goodreads"
 
-    @require_login
     def GET(self):
-        return render['account/import']()
+        raise web.seeother("/account/import")
 
     @require_login
     def POST(self):
