@@ -860,6 +860,9 @@ class import_books(delegate.page):
 class fetch_goodreads(delegate.page):
     path = "/account/import/goodreads"
 
+    def GET(self):
+        raise web.seeother("/account/import")
+
     @require_login
     def POST(self):
         import csv
@@ -868,7 +871,7 @@ class fetch_goodreads(delegate.page):
         csv_file = csv.reader(csv_payload.splitlines(), delimiter=',', quotechar='"')
         header = next(csv_file)
         books = {}
-        books_wo_isbns = {} 
+        books_wo_isbns = {}
         for book in list(csv_file):
             _book = dict(zip(header, book))
             _book['ISBN'] = _book['ISBN'].replace('"','').replace('=','')
@@ -879,7 +882,7 @@ class fetch_goodreads(delegate.page):
                 books[_book['ISBN13']] = _book
                 books[_book['ISBN13']]['ISBN'] = _book['ISBN13']
             else:
-                books_wo_isbns[_book['Book Id']] = _book     
+                books_wo_isbns[_book['Book Id']] = _book
         return render['account/import'](books, books_wo_isbns)
 
 class export_books(delegate.page):
