@@ -700,12 +700,10 @@
     <lst name="defaults">
       <str name="echoParams">explicit</str>
       <int name="rows">10</int>
-      <!-- Default search field
-         <str name="df">text</str> 
-        -->
-      <!-- Change from JSON to XML format (the default prior to Solr 7.0)
-         <str name="wt">xml</str> 
-        -->
+      <!-- Default search field -->
+      <str name="df">text</str>
+      <!-- Change from JSON to XML format (the default prior to Solr 7.0) -->
+      <str name="wt">xml</str>
     </lst>
     <!-- In addition to defaults, "appends" params can be specified
          to identify values which should be appended to the list of
@@ -788,7 +786,7 @@
 
   <initParams path="/update/**,/query,/select,/tvrh,/elevate,/spell,/browse">
     <lst name="defaults">
-      <str name="df">_text_</str>
+      <str name="df">text</str>
     </lst>
   </initParams>
 
@@ -802,7 +800,7 @@
                   class="solr.extraction.ExtractingRequestHandler" >
     <lst name="defaults">
       <str name="lowernames">true</str>
-      <str name="fmap.content">_text_</str>
+      <str name="fmap.content">text</str>
     </lst>
   </requestHandler>
 
@@ -867,7 +865,7 @@
     <!-- a spellchecker built from a field of the main index -->
     <lst name="spellchecker">
       <str name="name">default</str>
-      <str name="field">_text_</str>
+      <str name="field">text</str>
       <str name="classname">solr.DirectSolrSpellChecker</str>
       <!-- the spellcheck distance measure used, the default is the internal levenshtein -->
       <str name="distanceMeasure">internal</str>
