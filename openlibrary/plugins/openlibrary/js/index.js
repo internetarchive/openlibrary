@@ -103,10 +103,15 @@ jQuery(function () {
         import(/* webpackChunkName: "readmore" */ './readmore.js')
             .then(module => module.initReadMoreButton());
     }
-    // conditionally load readmore button based on class in the page
+    // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
         import('./goodreads_import.js')
             .then(module => module.initGoodreadsImport());
+    }
+    // conditionally loads Related Carousels based on class in the page
+    if (document.getElementsByClassName('RelatedWorksCarousel').length) {
+        import('./carousels_partials.js')
+            .then(module => module.initCarouselsPartials());
     }
     // Enable any carousels in the page
     if ($carouselElements.length) {
@@ -121,6 +126,17 @@ jQuery(function () {
     if (window.READINGLOG_STATS_CONFIG) {
         import(/* webpackChunkName: "readinglog_stats" */ './readinglog_stats')
             .then(module => module.init(window.READINGLOG_STATS_CONFIG));
+    }
+
+    const pageEl = $('#page-barcodescanner');
+    if (pageEl.length) {
+        import(/* webpackChunkName: "page-barcodescanner" */ './page-barcodescanner')
+            .then((module) => module.init());
+    }
+
+    if (document.getElementById('modal-link')) {
+        import(/* webpackChunkName: "patron_metadata" */ './patron-metadata')
+            .then((module) => module.initPatronMetadata());
     }
 
     $(document).on('click', '.slide-toggle', function () {

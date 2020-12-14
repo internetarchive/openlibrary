@@ -15,8 +15,6 @@ __version__ = "0.1"
 import _init_path
 
 import sys
-import os
-import re
 import logging
 import argparse
 import math
@@ -25,7 +23,7 @@ import web
 import time
 import json
 
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 
 from openlibrary.data import db
 from openlibrary import config

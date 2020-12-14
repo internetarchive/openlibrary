@@ -1,7 +1,8 @@
 """Library to talk directly to OL database to avoid expensive API calls.
 """
+import json
+
 import web
-import simplejson
 
 from openlibrary.coverstore import config
 from openlibrary.utils import olmemcache
@@ -54,15 +55,15 @@ def get(key):
     # try memcache
     memcache = get_memcache()
     if memcache:
-        json = memcache.get(key)
-        if json:
-            return simplejson.loads(json)
+        json_data = memcache.get(key)
+        if json_data:
+            return json.loads(json_data)
 
     # try db
     db = get_db()
     try:
         thing = db.query("SELECT * FROM thing WHERE key=$key", vars=locals())[0]
         data = db.query("SELECT * FROM data WHERE data.thing_id=$thing.id AND data.revision=$thing.latest_revision", vars=locals())[0]
-        return simplejson.loads(data.data)
+        return json.loads(data.data)
     except IndexError:
         return None

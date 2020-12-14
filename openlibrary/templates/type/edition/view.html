@@ -7,7 +7,7 @@ $ tab = input(tab=None).tab
 $ editions = []
 $ page_type = page.key.split('/')[1]
 
-$ work = page if page.key.startswith('/works') else page.works[0]
+$ work = page if page.key.startswith('/works') else list(page.works)[0]
 $ edition = storage({})
 
 $ component_times['get_sorted_editions'] = time()
@@ -58,7 +58,7 @@ $code:
 
         title = cond(work, work.title, book.title)
         authors = cond(work, work and work.get_authors(), book.get_authors())
-        author_info = " by " + ", ".join(a.name for a in authors)
+        author_info = " by " + ", ".join(a.name or "Unknown author" for a in authors)
 
         format = ""
         if book.physical_format:
@@ -79,7 +79,7 @@ $code:
         schema_attribute = cond(include_schema, ' itemprop="author"', '')
         authors = cond(work, work and work.get_authors(), edition and edition.get_authors())
         if authors:
-            return ', '.join('<a href="%s"%s>%s</a>' % (a.url(), schema_attribute, truncate(a.name, 40)) for a in authors)
+            return ', '.join('<a href="%s"%s>%s</a>' % (a.url(), schema_attribute, truncate(a.name, 40)) if a.name else "<em>Unknown author</em>" for a in authors)
         elif edition.author_names:
             return ('<span%s>' % (schema_attribute)) + ", ".join(edition.author_names) + "</span>"
         else:
@@ -189,7 +189,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
             </div>
             $:macros.ReadMore("book-description")
         </div>
-      $else:
+      $elif edition:
         <div class="book-description">
             <div class="book-description-content">
                 <p class="workHelp">
@@ -224,13 +224,16 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
 
       <a name="work-details" class="section-anchor"></a>
-      <div class="tab-section">
-        <h3><a href="$work.key">$work_title</a>
+      <div class="tab-section work-info">
+        <h2 class="work-title"><a href="$work.key">$work_title</a></h2>
+          $if work and work.subtitle:
+            <h3>
+              $work.subtitle
+            </h3>
           $if work and work.first_publish_year:
-            &mdash; <span class="first-published">
+            <p class="first-published-date">
               $_("First published in %s", work.first_publish_year)
-            </span>
-        </h3>
+            </p>
         <hr>
 
         $ component_times['SubjectsTags'] = time()
@@ -241,7 +244,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
         $if not work.excerpts and work.first_sentence:
           <h4>$_("First Sentence")</h4>
-          <p class="largest" title=$_("First Sentence")><em>"$work.first_sentence</em>"</p>
+          <p class="largest" title=$_("First Sentence")><em>"$work.first_sentence"</em></p>
 
         $if work.description:
           <h4>$_("Work Description")</h4>
@@ -304,10 +307,34 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       </div>
 
       <a name="edition-details" class="section-anchor"></a>
-      <div class="tab-section">
+      <div class="tab-section edition-info">  
+        $if not page.is_fake_record():
+          $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
+            $if edition and page.type.key in ["/type/work"]:
+                $ edit_url = edition.url(suffix="/edit")
+            $else:
+                $ edit_url = page.url(suffix="/edit")
+          $else:
+            $ edit_url = page.key + "?m=edit"
+          <div class="editButton">
+            <!-- FIXME: accesskey / keyboard shortcut needs i18n -->
+            <a class="linkButton larger" href="$edit_url" title="$_('Edit this template')"
+              data-ol-link-track="CTAClick|Edit" accesskey="e">$_("Edit")</a>
+          </div>
         $if not edition:
           <p>$_("No editions available")</p>
         $if edition:
+          <h2 class="work-title" itemprop="name">$book_title</h2>
+          $if edition.subtitle:
+            <h3>
+              $edition.subtitle
+            </h3>
+          $if edition.edition_name:
+            <div class="work-line">
+              $edition.edition_name
+            </div> 
+          $:render_template("type/edition/publisher_line", edition)    
+          <hr>  
           $if edition.first_sentence:
             <div>
             <h3 class="collapse">$_("First Sentence")</h3>
@@ -383,8 +410,8 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
           $if has_any("physical_format", "pagination", "physical_dimensions", "weight"):
             <div class="section">
+                <h3 class="list-header collapse">$_("The Physical Object")</h3>
                 <dl class="meta">
-                    <h3 class="list-header collapse">$_("The Physical Object")</h3>
                     $:display_value(_("Format"), edition.physical_format)
                     $:display_value(_("Pagination"), edition.pagination)
                     $:display_value(_("Number of pages"), edition.number_of_pages, itemprop="numberOfPages")
@@ -395,8 +422,8 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
 
           <div class="section">
+            <h3 class="list-header collapse">$_("ID Numbers")</h3>
             <dl class="meta">
-                <h3 class="list-header collapse">$_("ID Numbers")</h3>
                 $:display_identifiers("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
                 $for name, values in edition.get_identifiers().multi_items():
                     $ identifier_label = values[0].label
@@ -432,7 +459,17 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
   </div>
 
   $ component_times['RelatedWorksCarousel'] = time()
-  $:macros.RelatedWorksCarousel(work)
+  <div class="RelatedWorksCarousel" workId="$work.key.split('/')[-1]">
+    <div class="hidden loadingIndicator">
+        <figure>
+        <img src="/images/ajax-loader-bar.gif">
+        <figcaption style="
+            justify-content: center;
+            display: flex;
+        ">Loading Related Books</figcaption>
+        </figure>
+    </div>
+  </div>
   $ component_times['RelatedWorksCarousel'] = time() -component_times['RelatedWorksCarousel']
 
   $ component_times['HistoryTable'] = time()

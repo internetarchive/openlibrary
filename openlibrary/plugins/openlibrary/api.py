@@ -69,9 +69,10 @@ class browse(delegate.page):
         url = lending.compose_ia_url(
             query=i.q, limit=limit, page=page, subject=i.subject,
             work_id=i.work_id, _type=i._type, sorts=sorts)
+        works = lending.get_available(url=url) if url else []
         result = {
             'query': url,
-            'works': [work.dict() for work in lending.get_available(url=url)],
+            'works': [work.dict() for work in works],
         }
         return delegate.RawText(
             simplejson.dumps(result),
@@ -170,7 +171,7 @@ class work_bookshelves(delegate.page):
             shelf_ids = Bookshelves.PRESET_BOOKSHELVES.values()
             if bookshelf_id != -1 and bookshelf_id not in shelf_ids:
                 raise ValueError
-        except ValueError:
+        except (TypeError, ValueError):
             return delegate.RawText(simplejson.dumps({
                 'error': 'Invalid bookshelf'
             }), content_type="application/json")

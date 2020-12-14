@@ -104,6 +104,15 @@ div#subjectsPage{
   }
 }
 
+#authors{
+  div{
+    display: flex;
+  }
+  input.author.author-autocomplete{
+    flex: 1;
+  }
+}
+
 th.toggle-all {
   background: @primary-blue;
 }
@@ -136,6 +145,13 @@ th.toggle-all {
     tr {
       background-color: @white;
     }
+  }
+}
+
+.import-export {
+  display: flex;
+  .import {
+    flex: 1;
   }
 }
 

@@ -1,0 +1,3 @@
+#!/bin/bash
+cd ../
+docker build -t $IMAGE_NAME --build-arg DOCKER_HUB=TRUE -f "$DOCKERFILE_PATH" .

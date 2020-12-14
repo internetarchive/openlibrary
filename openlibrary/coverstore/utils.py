@@ -1,14 +1,14 @@
 """Utilities for coverstore"""
 
-import os
+import json
 import mimetypes
-import simplejson
-import web
-
+import os
 import random
 import socket
 import string
 
+import requests
+import web
 from six.moves.urllib.parse import splitquery, unquote, unquote_plus
 from six.moves.urllib.parse import urlencode as real_urlencode
 from six.moves.urllib.request import Request, urlopen
@@ -52,9 +52,9 @@ def ol_things(key, value):
             'limit': 10
         }
         try:
-            d = dict(query=simplejson.dumps(query))
+            d = dict(query=json.dumps(query))
             result = download(get_ol_url() + '/api/things?' + real_urlencode(d))
-            result = simplejson.loads(result)
+            result = json.loads(result)
             return result['result']
         except IOError:
             import traceback
@@ -67,8 +67,7 @@ def ol_get(olkey):
         return oldb.get(olkey)
     else:
         try:
-            result = download(get_ol_url() + olkey + ".json")
-            return simplejson.loads(result)
+            return json.loads(download(get_ol_url() + olkey + ".json"))
         except IOError:
             return None
 
@@ -77,9 +76,7 @@ USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openl
 
 
 def download(url):
-    req = Request(url, headers={'User-Agent': USER_AGENT})
-    r = urlopen(req)
-    return r.read()
+    return requests.get(url, headers={'User-Agent': USER_AGENT}).content
 
 
 def urldecode(url):

@@ -20,7 +20,7 @@ docker run \
 ```
 2. Follow the steps here to finish setting up Jenkins: https://jenkins.io/doc/book/installing/#setup-wizard
 3. Follow these steps to create a new Pipeline Project using git: https://jenkins.io/doc/book/pipeline/getting-started/#defining-a-pipeline-in-scm
-    - Be sure to set the script path to the `Jenkinsfile` in this directory  
+    - Be sure to set the script path to the `Jenkinsfile` in this directory
 4. Run the pipeline!
 
 Notes:
@@ -93,17 +93,20 @@ Copy this dump onto ol-solr0, and there run
 ```sh
 cd /opt/openlibrary
 # Build Solr
-time sudo docker-compose build --build-arg ENV=prod solr
+time sudo docker-compose build solr
+# If this fails due to docker container not getting interent access (currently a problem on ol-solr0 as of 2020-06-22). 
+# Use this:
+# sudo docker build --network=host -t olsolr:latest -f docker/Dockerfile.olsolr .
 
-# Copy file (3min; 2020-03-02 OJF)
+# Copy file (4min; 2020-11-05 ol-solr0)
 time scp YOU@server.openjournal.foundation:/storage/openlibrary/solr/solrbuilder-2020-03-02.tar.gz ~
 
-# Restore backup file
+# Restore backup file (8min; 2020-11-05 ol-solr0)
 time sudo docker-compose run --no-deps --rm -v $HOME:/backup solr \
     bash -c "tar xf /backup/solrbuilder-2020-03-02.tar.gz"
 
 # Start the service
-sudo docker-compose up -d --no-deps solr
+sudo ENV=prod docker-compose up -d --no-deps solr
 ```
 
 ## Resetting
@@ -113,9 +116,11 @@ In order to be able to re-run the job, you need to stop/remove any of the old co
 ```sh
 # "new" solr containers/volumes
 docker rm -f -v solr_builder_solr_1
+docker volume rm solr_builder_solr-data
 
 # DB containers/volumes
 docker rm -f -v solr_builder_db_1 solr_builder_adminer_1
+docker volume rm solr_builder_postgres-data
 
 # Solr backup container
 docker rm -v solr_builder_solr-backup_1

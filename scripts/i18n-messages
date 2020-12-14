@@ -58,7 +58,6 @@ def main(cmd):
         ]
         macro_dir = 'openlibrary/macros/'
         macros = [
-            'AvailabilityButton.html',
             'BookPreview.html',
             'databarHistory.html',
             'databarView.html',

@@ -1,5 +1,4 @@
 from catalog.infostore import get_site
-import web
 
 site = get_site()
 lang = set(site.things({'type': '/type/language'}))

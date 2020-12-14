@@ -13,7 +13,7 @@ class AttributeList(dict):
 
     >>> a = AttributeList(type='text', name='x', value=20)
     >>> a
-    <attrs: 'type="text" name="x" value="20"'>x
+    <attrs: 'type="text" name="x" value="20"'>
     """
     def copy(self):
         return AttributeList(self)

@@ -1,18 +1,17 @@
 FROM ubuntu:xenial
 
 RUN apt-get -qq update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y solr-tomcat && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y solr-tomcat haproxy cron && \
     ln -s /var/log/tomcat7/ /usr/share/tomcat7/logs && \
     ln -s /etc/tomcat7/ /usr/share/tomcat7/conf
 
-# Environment; one of 'prod' or 'dev'
-ARG ENV=dev
 COPY conf/solr/conf/* /etc/solr/conf/
-RUN ln -sf /etc/solr/conf/solrconfig-$ENV.xml /etc/solr/conf/solrconfig.xml
-# Increase memory on prod
-RUN if [ "$ENV" = "prod" ] ; then \
-    echo 'export JAVA_OPTS="${JAVA_OPTS} -Djava.awt.headless=true -Xmx10g -Xms10g -XX:+UseConcMarkSweepGC"' > /usr/share/tomcat7/bin/setenv.sh ; \
-fi
+COPY conf/solr/haproxy.cfg /etc/haproxy/
+COPY conf/solr/start.sh /start.sh
 
-EXPOSE 8080
-CMD ["/usr/share/tomcat7/bin/catalina.sh", "run"]
+# Log management:
+COPY conf/solr/rmlog.sh /etc/cron.daily/rmlog
+RUN crontab /etc/crontab
+
+EXPOSE 8983
+CMD /start.sh

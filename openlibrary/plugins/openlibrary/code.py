@@ -4,10 +4,11 @@ Open Library Plugin.
 from __future__ import absolute_import
 from __future__ import print_function
 
+import requests
 import web
 import simplejson
+import json
 import os
-import sys
 import socket
 import random
 import datetime
@@ -22,10 +23,12 @@ if not hasattr(infogami.config, 'features'):
 
 from infogami.utils.app import metapage
 from infogami.utils import delegate
+from openlibrary.utils import dateutil
 from infogami.utils.view import render, render_template, public, safeint, add_flash_message
 from infogami.infobase import client
 from infogami.core.db import ValidationException
 
+from openlibrary.core import cache
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.core.models import Edition  # noqa: E402
@@ -169,7 +172,7 @@ def sampleload(filename='sampledump.txt.gz'):
     else:
         f = open(filename)
 
-    queries = [simplejson.loads(line) for  line in f]
+    queries = [simplejson.loads(line) for line in f]
     print(web.ctx.site.save_many(queries))
 
 
@@ -374,7 +377,7 @@ class isbn_lookup(delegate.page):
                 return web.found(ed.key + ext)
         except Exception as e:
             logger.error(e)
-            return e.message
+            return repr(e)
 
         web.ctx.status = '404 Not Found'
         return render.notfound(web.ctx.path, create=False)
@@ -522,7 +525,7 @@ class _yaml(delegate.mode):
             if e.json:
                 msg = self.dump(simplejson.loads(e.json))
             else:
-                msg = e.message
+                msg = str(e)
             raise web.HTTPError(e.status, data=msg)
 
         return simplejson.loads(d)
@@ -699,7 +702,10 @@ def changequery(query=None, **kw):
         else:
             query[k] = v
 
-    query = dict((k, (map(web.safestr, v) if isinstance(v, list) else web.safestr(v))) for k, v in query.items())
+    query = dict(
+        (k, (list(map(web.safestr, v)) if isinstance(v, list) else web.safestr(v)))
+        for k, v in query.items()
+    )
     out = web.ctx.get('readable_path', web.ctx.path)
     if query:
         out += '?' + urllib.parse.urlencode(query, doseq=True)
@@ -733,20 +739,15 @@ def most_recent_change():
         return get_recent_changes(limit=1)[0]
 
 
-def wget(url):
-    # TODO: get rid of this, use requests instead.
-    try:
-        return urllib.request.urlopen(url).read()
-    except:
-        return ''
-
 
 @public
 def get_cover_id(key):
     try:
         _, cat, oln = key.split('/')
-        return simplejson.loads(wget('https://covers.openlibrary.org/%s/query?olid=%s&limit=1' % (cat, oln)))[0]
-    except (ValueError, IndexError, TypeError):
+        return requests.get(
+            "https://covers.openlibrary.org/%s/query?olid=%s&limit=1" % (cat, oln)
+        ).json()[0]
+    except (IndexError, json.decoder.JSONDecodeError, TypeError, ValueError):
         return None
 
 
@@ -796,6 +797,11 @@ def internalerror():
     openlibrary.core.stats.increment('ol.internal-errors')
     increment_error_count('ol.internal-errors-segmented')
 
+    # TODO: move this to plugins\openlibrary\sentry.py
+    from openlibrary.plugins.openlibrary.sentry import sentry
+    if sentry.enabled:
+        sentry.capture_exception_webpy()
+
     if i.debug.lower() == 'true':
         raise web.debugerror()
     else:
@@ -813,6 +819,33 @@ class memory(delegate.page):
         import guppy
         h = guppy.hpy()
         return delegate.RawText(str(h.heap()))
+
+def _get_relatedcarousels_component(workid):
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+    work = web.ctx.site.get('/works/%s' % workid) or {}
+    component = render_template('books/RelatedWorksCarousel', work)
+    return {0: str(component)}
+
+def get_cached_relatedcarousels_component(*args, **kwargs):
+    memoized_get_component_metadata = cache.memcache_memoize(
+        _get_relatedcarousels_component, "book.bookspage.component.relatedcarousels", timeout=dateutil.HALF_DAY_SECS)
+    return (memoized_get_component_metadata(*args, **kwargs) or
+            memoized_get_component_metadata.update(*args, **kwargs)[0])
+
+class Partials(delegate.page):
+    path = '/partials'
+
+    def GET(self):
+        i = web.input(workid=None, _component=None)
+        component = i.pop("_component")
+        partial = {}
+        if component == "RelatedWorkCarousel":
+            partial = _get_relatedcarousels_component(i.workid)
+        return delegate.RawText(
+            simplejson.dumps(partial),
+            content_type="application/json"
+        )
 
 
 def is_bot():
@@ -871,9 +904,19 @@ def setup_context_defaults():
 
 
 def setup():
-    from openlibrary.plugins.openlibrary import (home, borrow_home, stats, support,
-                                                 events, design, status, authors)
+    from openlibrary.plugins.openlibrary import (
+        sentry,
+        home,
+        borrow_home,
+        stats,
+        support,
+        events,
+        design,
+        status,
+        authors,
+    )
 
+    sentry.setup()
     home.setup()
     design.setup()
     borrow_home.setup()

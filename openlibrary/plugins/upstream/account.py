@@ -1,12 +1,7 @@
 import json
 
 import web
-import hmac
 import logging
-import random
-import uuid
-import datetime
-import time
 import simplejson
 import re
 
@@ -204,9 +199,7 @@ class account(delegate.page):
     @require_login
     def GET(self):
         user = accounts.get_current_user()
-        page = render.account(user)
-        page.v2 = True
-        return page
+        return render.account(user)
 
 class account_create(delegate.page):
     """New account creation.
@@ -217,9 +210,7 @@ class account_create(delegate.page):
 
     def GET(self):
         f = self.get_form()
-        page = render['account/create'](f)
-        page.v2 = True
-        return page
+        return render['account/create'](f)
 
     def get_form(self):
         """
@@ -253,15 +244,11 @@ class account_create(delegate.page):
                 InternetArchiveAccount.create(
                     screenname=f.username.value, email=f.email.value, password=f.password.value,
                     notifications=notifications, verified=False, retries=USERNAME_RETRIES)
-                page = render['account/verify'](username=f.username.value, email=f.email.value)
-                page.v2 = True
-                return page
+                return render['account/verify'](username=f.username.value, email=f.email.value)
             except ValueError:
                 f.note = LOGIN_ERRORS['max_retries_exceeded']
 
-        page = render['account/create'](f)
-        page.v2 = True
-        return page
+        return render['account/create'](f)
 
 
 del delegate.pages['/account/register']
@@ -325,9 +312,7 @@ class account_login(delegate.page):
         i = web.input(redirect=referer)
         f = forms.Login()
         f['redirect'].value = i.redirect
-        page = render.login(f)
-        page.v2 = True
-        return page
+        return render.login(f)
 
     def POST(self):
         i = web.input(username="", connect=None, password="", remember=False,
@@ -766,13 +751,11 @@ class public_my_books(delegate.page):
                     })[0]) for s in sponsorships)
             else:
                 books = readlog.get_works(key, page=i.page)
-            page = render['account/books'](
+            return render['account/books'](
                 books, key, sponsorship_count=len(sponsorships),
                 reading_log_counts=readlog.reading_log_counts, lists=readlog.lists,
                 user=user, logged_in_user=logged_in_user, public=is_public
             )
-            page.v2 = True
-            return page
         raise web.seeother(user.key)
 
 
@@ -815,7 +798,7 @@ class readinglog_stats(delegate.page):
             }
             for a in web.ctx.site.get_many(list(author_keys))
         ]
-        page = render['account/readinglog_stats'](
+        return render['account/readinglog_stats'](
             json.dumps(works_json),
             json.dumps(authors_json),
             len(works_json),
@@ -825,8 +808,6 @@ class readinglog_stats(delegate.page):
             key,
             lang=web.ctx.lang,
         )
-        page.v2 = True
-        return page
 
 
 class account_my_books_redirect(delegate.page):
@@ -879,15 +860,18 @@ class import_books(delegate.page):
 class fetch_goodreads(delegate.page):
     path = "/account/import/goodreads"
 
+    def GET(self):
+        raise web.seeother("/account/import")
+
     @require_login
     def POST(self):
         import csv
         i = web.input(csv={})
-        csv_file = csv.reader((i.csv.value).splitlines(),
-                              delimiter=',', quotechar='"')
-        header = csv_file.next()
+        csv_payload = i.csv.value if isinstance(i.csv.value, str) else i.csv.value.decode()
+        csv_file = csv.reader(csv_payload.splitlines(), delimiter=',', quotechar='"')
+        header = next(csv_file)
         books = {}
-        books_wo_isbns = {} 
+        books_wo_isbns = {}
         for book in list(csv_file):
             _book = dict(zip(header, book))
             _book['ISBN'] = _book['ISBN'].replace('"','').replace('=','')
@@ -898,9 +882,31 @@ class fetch_goodreads(delegate.page):
                 books[_book['ISBN13']] = _book
                 books[_book['ISBN13']]['ISBN'] = _book['ISBN13']
             else:
-                books_wo_isbns[_book['Book Id']] = _book     
+                books_wo_isbns[_book['Book Id']] = _book
         return render['account/import'](books, books_wo_isbns)
 
+class export_books(delegate.page):
+    path = "/account/export"
+
+    @require_login
+    def GET(self):
+        user = accounts.get_current_user()
+        username = user.key.split('/')[-1]
+        books = Bookshelves.get_users_logged_books(username, limit=10000)
+        csv = []
+        csv.append('Work Id,Edition Id,Bookshelf\n')
+        mapping = {1:'Want to Read', 2:'Currently Reading', 3:'Already Read'}
+        for book in books:
+            row = [
+                'OL{}W'.format(book['work_id']),
+                'OL{}M'.format(book['edition_id']) if book['edition_id'] else '',
+                '{}\n'.format(mapping[book['bookshelf_id']])
+            ]
+            csv.append(','.join(row))
+        web.header('Content-Type','text/csv')
+        web.header('Content-disposition', 'attachment; filename=OpenLibrary_ReadingLog.csv')
+        csv = ''.join(csv)
+        return delegate.RawText(csv, content_type="text/csv")
 
 class account_loans(delegate.page):
     path = "/account/loans"

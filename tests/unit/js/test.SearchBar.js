@@ -157,7 +157,7 @@ describe('SearchBar', () => {
                 const getJSONStub = sandbox.stub($, 'getJSON');
 
                 sb.$input.val('Harry');
-                sb.$input.focus();
+                sb.$input.triggerHandler('focus');
                 expect(getJSONStub.callCount).toBe(1);
             });
         }
@@ -168,7 +168,7 @@ describe('SearchBar', () => {
             const sb = new SearchBar($(DUMMY_COMPONENT_HTML), {facet: 'title'});
             const getJSONStub = sandbox.stub($, 'getJSON');
             sb.$input.val('title:"Harry"');
-            sb.$input.focus();
+            sb.$input.triggerHandler('focus');
             expect(getJSONStub.callCount).toBe(1);
         });
 
@@ -178,7 +178,7 @@ describe('SearchBar', () => {
             const sb = new SearchBar($(DUMMY_COMPONENT_HTML), {facet: 'title'});
             const getJSONStub = sandbox.stub($, 'getJSON');
             sb.$input.val('');
-            sb.$input.focus();
+            sb.$input.triggerHandler('focus');
             expect(getJSONStub.callCount).toBe(0);
         });
 
@@ -191,7 +191,7 @@ describe('SearchBar', () => {
 
                 sb.$input.val('foo bar');
                 sb.facet.write(facet);
-                sb.$input.focus();
+                sb.$input.triggerHandler('focus');
                 expect(getJSONStub.callCount).toBe(0);
             });
         }

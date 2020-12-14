@@ -3,6 +3,7 @@
 
 import web
 import re
+import requests
 import simplejson as json
 import logging
 from collections import defaultdict
@@ -12,7 +13,6 @@ from infogami import config
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate, stats
 from infogami.utils.view import render, render_template, safeint
-from six.moves import urllib
 
 from openlibrary.core.models import Subject
 from openlibrary.core.lending import add_availability
@@ -60,7 +60,6 @@ class subjects(delegate.page):
             'lending_edition_s': '*'
         })
 
-        subj.v2 = True
         delegate.context.setdefault('bodyid', 'subject')
         if not subj or subj.work_count == 0:
             web.ctx.status = "404 Not Found"
@@ -68,7 +67,6 @@ class subjects(delegate.page):
         else:
             page = render_template("subjects", page=subj)
 
-        page.v2 = True
         return page
 
     def normalize_key(self, key):
@@ -400,7 +398,7 @@ def execute_ebook_count_query(q):
     solr_url = root_url % (rows, start, q)
 
     stats.begin("solr", url=solr_url)
-    response = json.load(urllib.request.urlopen(solr_url))['response']
+    response = requests.get(solr_url).json()['response']
     stats.end()
 
     num_found = response['numFound']
@@ -409,7 +407,7 @@ def execute_ebook_count_query(q):
         if start:
             solr_url = root_url % (rows, start, q)
             stats.begin("solr", url=solr_url)
-            response = json.load(urllib.request.urlopen(solr_url))['response']
+            response = requests.get(solr_url).json()['response']
             stats.end()
         for doc in response['docs']:
             for k in doc['edition_key']:

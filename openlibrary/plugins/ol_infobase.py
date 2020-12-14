@@ -366,7 +366,9 @@ class MemcacheInvalidater:
 # openlibrary.plugins.openlibrary masks openlibrary module
 olmemcache = __import__('openlibrary.utils.olmemcache', None, None, ['x'])
 
-def MemcachedDict(servers=[]):
+
+def MemcachedDict(servers=None):
+    servers = servers or []
     """Cache implementation with OL customized memcache client."""
     client = olmemcache.Client(servers)
     return cache.MemcachedDict(memcache_client=client)
@@ -479,7 +481,7 @@ class OLIndexer(_Indexer):
         return doc
 
     def normalize_edition_title(self, title):
-        if isinstance(title, str):
+        if isinstance(title, bytes):
             title = title.decode('utf-8', 'ignore')
 
         if not isinstance(title, six.text_type):

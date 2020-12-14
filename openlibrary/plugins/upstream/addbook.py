@@ -2,8 +2,6 @@
 
 import web
 import simplejson
-from collections import defaultdict
-from six import StringIO
 import csv
 import datetime
 
@@ -639,13 +637,25 @@ class SaveBookHelper:
         :rtype: web.storage
         """
         def read_subject(subjects):
+            """
+            >>> list(read_subject("A,B,C,B")) == [u'A', u'B', u'C']   # str
+            True
+            >>> list(read_subject(r"A,B,C,B")) == [u'A', u'B', u'C']  # raw
+            True
+            >>> list(read_subject(u"A,B,C,B")) == [u'A', u'B', u'C']  # Unicode
+            True
+            >>> list(read_subject(""))
+            []
+            """
             if not subjects:
                 return
-
-            f = StringIO(subjects.encode('utf-8')) # no unicode in csv module
+            if six.PY2:
+                subjects = subjects.encode('utf-8')  # no unicode in csv module
+            f = six.StringIO(subjects)
             dedup = set()
             for s in next(csv.reader(f, dialect='excel', skipinitialspace=True)):
-                s = s.decode('utf-8')
+                if six.PY2:
+                    s = s.decode('utf-8')
                 if s.lower() not in dedup:
                     yield s
                     dedup.add(s.lower())
@@ -772,9 +782,9 @@ class book_edit(delegate.page):
             else:
                 add_flash_message("info", utils.get_message("flash_book_updated"))
 
-            raise web.seeother(edition.url())
+            raise web.seeother(urllib.parse.quote(edition.url()))
         except ClientException as e:
-            add_flash_message('error', e.message or e.json)
+            add_flash_message('error', e.args[-1] or e.json)
             return self.GET(key)
         except ValidationException as e:
             add_flash_message('error', str(e))
@@ -872,20 +882,6 @@ class author_edit(delegate.page):
             author.alternate_names = [name.strip() for name in alternate_names.replace("\n", ";").split(';') if name.strip()]
             author.links = author.get('links') or []
             return author
-
-
-class edit(core.edit):
-    """Overwrite ?m=edit behaviour for author, book and work pages."""
-    def GET(self, key):
-        page = web.ctx.site.get(key)
-
-        if web.re_compile('/(authors|books|works)/OL.*').match(key):
-            if page is None:
-                raise web.seeother(key)
-            else:
-                raise web.seeother(page.url(suffix="/edit"))
-        else:
-            return core.edit.GET(self, key)
 
 
 class daisy(delegate.page):

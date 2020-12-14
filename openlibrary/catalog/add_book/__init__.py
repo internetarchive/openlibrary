@@ -25,13 +25,14 @@ A record is loaded by calling the load function.
 import json
 import re
 
-from six.moves import urllib
 import unicodedata as ucd
 import web
 
 from collections import defaultdict
 from copy import copy
 from time import sleep
+
+import requests
 
 from infogami import config
 
@@ -175,23 +176,25 @@ def find_matching_work(e):
                 return wkey
 
 
-def build_author_reply(author_in, edits):
+def build_author_reply(authors_in, edits, source):
     """
     Steps through an import record's authors, and creates new records if new,
     adding them to 'edits' to be saved later.
 
-    :param list author_in: List of import sourced author dicts [{"name:" "Some One"}, ...], possibly with dates
+    :param list authors_in: import author dicts [{"name:" "Bob"}, ...], maybe dates
     :param list edits: list of Things to be saved later. Is modfied by this method.
+    :param str source: Source record e.g. marc:marc_ex/part01.dat:26456929:680
     :rtype: tuple
-    :return: (list, list) authors [{"key": "/author/OL..A"}, ...], author_reply the JSON status response to return for each author
+    :return: (list, list) authors [{"key": "/author/OL..A"}, ...], author_reply
     """
 
     authors = []
     author_reply = []
-    for a in author_in:
+    for a in authors_in:
         new_author = 'key' not in a
         if new_author:
             a['key'] = web.ctx.site.new_key('/type/author')
+            a['source_records'] = [source]
             edits.append(a)
         authors.append({'key': a['key']})
         author_reply.append({
@@ -244,8 +247,10 @@ def add_cover(cover_url, ekey, account=None):
     coverstore_url = config.get('coverstore_url').rstrip('/')
     upload_url = coverstore_url + '/b/upload2'
     if upload_url.startswith('//'):
-        upload_url = '{0}:{1}'.format(web.ctx.get('protocol', 'http'), upload_url)
+        upload_url = '{}:{}'.format(web.ctx.get('protocol', 'http'), upload_url)
     user = account or accounts.get_current_user()
+    if not user:
+        raise RuntimeError("accounts.get_current_user() failed")
     params = {
         'author': user.get('key') or user.get('_key'),
         'data': None,
@@ -256,16 +261,17 @@ def add_cover(cover_url, ekey, account=None):
     reply = None
     for attempt in range(10):
         try:
-            res = urllib.request.urlopen(upload_url, urllib.parse.urlencode(params))
-        except IOError:
+            payload = requests.compat.urlencode(params).encode('utf-8')
+            response = requests.post(upload_url, data=payload)
+        except requests.HTTPError:
             sleep(2)
             continue
-        body = res.read()
-        if res.getcode() == 500:
+        body = response.text
+        if response.status_code == 500:
             raise CoverNotSaved(body)
         if body not in ['', 'None']:
-            reply = json.loads(body)
-            if res.getcode() == 200 and 'id' in reply:
+            reply = response.json()
+            if response.status_code == 200 and 'id' in reply:
                 break
         sleep(2)
     if not reply or reply.get('message') == 'Invalid URL':
@@ -280,10 +286,12 @@ def get_ia_item(ocaid):
     item = ia.get_item(ocaid, config=cfg)
     return item
 
+
 def modify_ia_item(item, data):
     access_key = lending.config_ia_ol_metadata_write_s3 and lending.config_ia_ol_metadata_write_s3['s3_key']
     secret_key = lending.config_ia_ol_metadata_write_s3 and lending.config_ia_ol_metadata_write_s3['s3_secret']
     return item.modify_metadata(data, access_key=access_key, secret_key=secret_key)
+
 
 def create_ol_subjects_for_ocaid(ocaid, subjects):
     item = get_ia_item(ocaid)
@@ -301,6 +309,7 @@ def create_ol_subjects_for_ocaid(ocaid, subjects):
         return ('%s failed: %s' % (item.identifier, r.content))
     else:
         return ("success for %s" % item.identifier)
+
 
 def update_ia_metadata_for_ol_edition(edition_id):
     """
@@ -577,7 +586,8 @@ def load_data(rec, account=None):
     # TOFIX: edition.authors has already been processed by import_authors() in build_query(), following line is a NOP?
     author_in = [import_author(a, eastern=east_in_by_statement(rec, a)) for a in edition.get('authors', [])]
     # build_author_reply() adds authors to edits
-    (authors, author_reply) = build_author_reply(author_in, edits)
+    (authors, author_reply) = build_author_reply(author_in, edits,
+                                                 rec['source_records'][0])
 
     if authors:
         edition['authors'] = authors
@@ -742,13 +752,13 @@ def load(rec, account=None):
         e['ocaid'] = rec['ocaid']
         need_edition_save = True
 
+    # Add list fields to edition as needed
     edition_fields = [
-        'local_id', 'ia_box_id', 'ia_loaded_id', 'source_records']
-    # TODO:
-    # only consider `source_records` for newly created work
-    # or if field originally missing:
-    #if work_created and not e.get('source_records'):
-    #    edition_fields.append('source_records')
+        'local_id',
+        'lccn',
+        'lc_classifications',
+        'source_records',
+        ]
     for f in edition_fields:
         if f not in rec:
             continue

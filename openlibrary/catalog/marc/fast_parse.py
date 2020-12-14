@@ -16,14 +16,20 @@ re_real_book = re.compile('(pbk|hardcover|alk[^a-z]paper|cloth)', re.I)
 @deprecated('Use openlibrary.catalog.marc.MarcBinary instead.')
 def translate(bytes_in, leader_says_marc8=False):
     """
-    Converts MARC8 to unicode
+    Converts a binary MARC field value to unicode str,
+    from either MARC8 or UTF8 encoded bytes.
+
+    :param bytes_in bytes:
+    :rtype: str
     """
+    assert isinstance(bytes_in, bytes)
     marc8 = MARC8ToUnicode(quiet=True)
     if leader_says_marc8:
         data = marc8.translate(mnemonics.read(bytes_in))
     else:
         data = bytes_in.decode('utf-8')
     return normalize('NFC', data)
+
 
 re_question = re.compile(r'^\?+$')
 re_lccn = re.compile(r'(...\d+).*')
@@ -157,7 +163,7 @@ def get_subfields(line, want, is_marc8=False):
 
 @deprecated('Use catalog.marc.MarcBinary instead.')
 def read_directory(data):
-    dir_end = data.find('\x1e')
+    dir_end = data.find(b'\x1e')
     if dir_end == -1:
         raise BadDictionary
     directory = data[24:dir_end]
@@ -167,27 +173,22 @@ def read_directory(data):
         directory = data[:dir_end].decode('utf-8')[24:]
         if len(directory) % 12 != 0:
             raise BadDictionary
-    iter_dir = (directory[i*12:(i+1)*12] for i in range(len(directory) / 12))
+    iter_dir = (directory[i * 12:(i + 1) * 12] for i in range(len(directory) // 12))
     return dir_end, iter_dir
 
 @deprecated('Use catalog.marc.MarcBinary instead.')
 def get_tag_line(data, line):
+    # Still used by catalog/marc/html.py
     length = int(line[3:7])
     offset = int(line[7:12])
 
     # handle off-by-one errors in MARC records
-    try:
-        if data[offset] != '\x1e':
-            offset += data[offset:].find('\x1e')
-        last = offset+length
-        if data[last] != '\x1e':
-            length += data[last:].find('\x1e')
-    except IndexError:
-        pass
+    if data[offset] != b'\x1e':
+        offset += data[offset:].find(b'\x1e')
+    last = offset + length
+    if data[last] != b'\x1e':
+        length += data[last:].find(b'\x1e')
     tag_line = data[offset + 1:offset + length + 1]
-    if not line[0:2] == '00':
-        if tag_line[1:8] == '{llig}\x1f':
-            tag_line = tag_line[0] + u'\uFE20' + tag_line[7:]
     return tag_line
 
 @deprecated
@@ -487,10 +488,10 @@ def split_line(s):
     pos = -1
     marks = []
     while True:
-        pos = s.find('\x1f', pos + 1)
+        pos = s.find(b'\x1f', pos + 1)
         if pos == -1:
             break
-        if s[pos+1] != '\x1b':
+        if s[pos+1] != b'\x1b'[0]:
             marks.append(pos)
     if not marks:
         return [('v', s)]

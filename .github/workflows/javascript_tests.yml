@@ -1,0 +1,21 @@
+name: javascript_tests
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+jobs:
+  javascript_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12' # # Should match what's in our Dockerfile
+      - run: npm install
+      - run: npm run lint
+      - run: make git
+      - run: make js
+      - run: make css
+      - run: make components
+      - run: npm run test

@@ -4,8 +4,9 @@
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
-SET client_encoding = 'SQL_ASCII';
+SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 
@@ -23,13 +24,11 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 
-SET search_path = public, pg_catalog;
-
 --
 -- Name: get_olid(text); Type: FUNCTION; Schema: public; Owner: openlibrary
 --
 
-CREATE FUNCTION get_olid(text) RETURNS text
+CREATE FUNCTION public.get_olid(text) RETURNS text
     LANGUAGE sql IMMUTABLE
     AS $_$
         select regexp_replace($1, '.*(OL[0-9]+[A-Z])', E'\1') where $1 ~ '^/.*/OL[0-9]+[A-Z]$';
@@ -42,7 +41,7 @@ ALTER FUNCTION public.get_olid(text) OWNER TO openlibrary;
 -- Name: get_property_name(integer, integer); Type: FUNCTION; Schema: public; Owner: openlibrary
 --
 
-CREATE FUNCTION get_property_name(integer, integer) RETURNS text
+CREATE FUNCTION public.get_property_name(integer, integer) RETURNS text
     LANGUAGE sql
     AS $_$select property.name FROM property, thing WHERE thing.type = property.type AND thing.id=$1 AND property.id=$2;$_$;
 
@@ -54,10 +53,10 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: account; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: account; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE account (
+CREATE TABLE public.account (
     thing_id integer,
     email text,
     password text,
@@ -70,10 +69,10 @@ CREATE TABLE account (
 ALTER TABLE public.account OWNER TO openlibrary;
 
 --
--- Name: author_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: author_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE author_boolean (
+CREATE TABLE public.author_boolean (
     thing_id integer,
     key_id integer,
     value boolean,
@@ -84,10 +83,10 @@ CREATE TABLE author_boolean (
 ALTER TABLE public.author_boolean OWNER TO openlibrary;
 
 --
--- Name: author_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: author_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE author_int (
+CREATE TABLE public.author_int (
     thing_id integer,
     key_id integer,
     value integer,
@@ -98,10 +97,10 @@ CREATE TABLE author_int (
 ALTER TABLE public.author_int OWNER TO openlibrary;
 
 --
--- Name: author_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: author_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE author_ref (
+CREATE TABLE public.author_ref (
     thing_id integer,
     key_id integer,
     value integer,
@@ -112,10 +111,10 @@ CREATE TABLE author_ref (
 ALTER TABLE public.author_ref OWNER TO openlibrary;
 
 --
--- Name: author_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: author_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE author_str (
+CREATE TABLE public.author_str (
     thing_id integer,
     key_id integer,
     value character varying(2048),
@@ -126,10 +125,98 @@ CREATE TABLE author_str (
 ALTER TABLE public.author_str OWNER TO openlibrary;
 
 --
--- Name: data; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: bookshelves; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
-CREATE TABLE data (
+CREATE TABLE public.bookshelves (
+    id integer NOT NULL,
+    name text,
+    description text,
+    archived boolean DEFAULT false,
+    updated timestamp without time zone DEFAULT timezone('utc'::text, now()),
+    created timestamp without time zone DEFAULT timezone('utc'::text, now())
+);
+
+
+ALTER TABLE public.bookshelves OWNER TO postgres;
+
+--
+-- Name: bookshelves_books; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE public.bookshelves_books (
+    username text NOT NULL,
+    work_id integer NOT NULL,
+    bookshelf_id integer NOT NULL,
+    edition_id integer,
+    updated timestamp without time zone DEFAULT timezone('utc'::text, now()),
+    created timestamp without time zone DEFAULT timezone('utc'::text, now())
+);
+
+
+ALTER TABLE public.bookshelves_books OWNER TO postgres;
+
+--
+-- Name: bookshelves_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.bookshelves_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.bookshelves_id_seq OWNER TO postgres;
+
+--
+-- Name: bookshelves_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.bookshelves_id_seq OWNED BY public.bookshelves.id;
+
+
+--
+-- Name: bookshelves_votes; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE public.bookshelves_votes (
+    username text NOT NULL,
+    bookshelf_id integer NOT NULL,
+    updated timestamp without time zone DEFAULT timezone('utc'::text, now()),
+    created timestamp without time zone DEFAULT timezone('utc'::text, now())
+);
+
+
+ALTER TABLE public.bookshelves_votes OWNER TO postgres;
+
+--
+-- Name: bookshelves_votes_bookshelf_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.bookshelves_votes_bookshelf_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.bookshelves_votes_bookshelf_id_seq OWNER TO postgres;
+
+--
+-- Name: bookshelves_votes_bookshelf_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.bookshelves_votes_bookshelf_id_seq OWNED BY public.bookshelves_votes.bookshelf_id;
+
+
+--
+-- Name: data; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+--
+
+CREATE TABLE public.data (
     thing_id integer,
     revision integer,
     data text
@@ -139,10 +226,10 @@ CREATE TABLE data (
 ALTER TABLE public.data OWNER TO openlibrary;
 
 --
--- Name: datum_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: datum_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE datum_int (
+CREATE TABLE public.datum_int (
     thing_id integer,
     key_id integer,
     value integer,
@@ -153,10 +240,10 @@ CREATE TABLE datum_int (
 ALTER TABLE public.datum_int OWNER TO openlibrary;
 
 --
--- Name: datum_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: datum_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE datum_ref (
+CREATE TABLE public.datum_ref (
     thing_id integer,
     key_id integer,
     value integer,
@@ -167,10 +254,10 @@ CREATE TABLE datum_ref (
 ALTER TABLE public.datum_ref OWNER TO openlibrary;
 
 --
--- Name: datum_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: datum_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE datum_str (
+CREATE TABLE public.datum_str (
     thing_id integer,
     key_id integer,
     value character varying(2048),
@@ -181,10 +268,10 @@ CREATE TABLE datum_str (
 ALTER TABLE public.datum_str OWNER TO openlibrary;
 
 --
--- Name: edition_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: edition_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE edition_boolean (
+CREATE TABLE public.edition_boolean (
     thing_id integer,
     key_id integer,
     value boolean,
@@ -195,10 +282,10 @@ CREATE TABLE edition_boolean (
 ALTER TABLE public.edition_boolean OWNER TO openlibrary;
 
 --
--- Name: edition_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: edition_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE edition_int (
+CREATE TABLE public.edition_int (
     thing_id integer,
     key_id integer,
     value integer,
@@ -209,10 +296,10 @@ CREATE TABLE edition_int (
 ALTER TABLE public.edition_int OWNER TO openlibrary;
 
 --
--- Name: edition_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: edition_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE edition_ref (
+CREATE TABLE public.edition_ref (
     thing_id integer,
     key_id integer,
     value integer,
@@ -223,10 +310,10 @@ CREATE TABLE edition_ref (
 ALTER TABLE public.edition_ref OWNER TO openlibrary;
 
 --
--- Name: edition_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: edition_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE edition_str (
+CREATE TABLE public.edition_str (
     thing_id integer,
     key_id integer,
     value character varying(2048),
@@ -237,10 +324,10 @@ CREATE TABLE edition_str (
 ALTER TABLE public.edition_str OWNER TO openlibrary;
 
 --
--- Name: meta; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: meta; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE meta (
+CREATE TABLE public.meta (
     version integer
 );
 
@@ -248,10 +335,10 @@ CREATE TABLE meta (
 ALTER TABLE public.meta OWNER TO openlibrary;
 
 --
--- Name: property; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: property; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE property (
+CREATE TABLE public.property (
     id integer NOT NULL,
     type integer,
     name text
@@ -264,7 +351,7 @@ ALTER TABLE public.property OWNER TO openlibrary;
 -- Name: property_id_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
-CREATE SEQUENCE property_id_seq
+CREATE SEQUENCE public.property_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -278,14 +365,14 @@ ALTER TABLE public.property_id_seq OWNER TO openlibrary;
 -- Name: property_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: openlibrary
 --
 
-ALTER SEQUENCE property_id_seq OWNED BY property.id;
+ALTER SEQUENCE public.property_id_seq OWNED BY public.property.id;
 
 
 --
--- Name: publisher_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: publisher_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE publisher_boolean (
+CREATE TABLE public.publisher_boolean (
     thing_id integer,
     key_id integer,
     value boolean,
@@ -296,10 +383,10 @@ CREATE TABLE publisher_boolean (
 ALTER TABLE public.publisher_boolean OWNER TO openlibrary;
 
 --
--- Name: publisher_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: publisher_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE publisher_int (
+CREATE TABLE public.publisher_int (
     thing_id integer,
     key_id integer,
     value integer,
@@ -310,10 +397,10 @@ CREATE TABLE publisher_int (
 ALTER TABLE public.publisher_int OWNER TO openlibrary;
 
 --
--- Name: publisher_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: publisher_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE publisher_ref (
+CREATE TABLE public.publisher_ref (
     thing_id integer,
     key_id integer,
     value integer,
@@ -324,10 +411,10 @@ CREATE TABLE publisher_ref (
 ALTER TABLE public.publisher_ref OWNER TO openlibrary;
 
 --
--- Name: publisher_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: publisher_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE publisher_str (
+CREATE TABLE public.publisher_str (
     thing_id integer,
     key_id integer,
     value character varying(2048),
@@ -338,10 +425,26 @@ CREATE TABLE publisher_str (
 ALTER TABLE public.publisher_str OWNER TO openlibrary;
 
 --
--- Name: scan_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: ratings; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
-CREATE TABLE scan_boolean (
+CREATE TABLE public.ratings (
+    username text NOT NULL,
+    work_id integer NOT NULL,
+    rating integer,
+    edition_id integer,
+    updated timestamp without time zone DEFAULT timezone('utc'::text, now()),
+    created timestamp without time zone DEFAULT timezone('utc'::text, now())
+);
+
+
+ALTER TABLE public.ratings OWNER TO postgres;
+
+--
+-- Name: scan_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+--
+
+CREATE TABLE public.scan_boolean (
     thing_id integer,
     key_id integer,
     value boolean,
@@ -352,10 +455,10 @@ CREATE TABLE scan_boolean (
 ALTER TABLE public.scan_boolean OWNER TO openlibrary;
 
 --
--- Name: scan_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: scan_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE scan_int (
+CREATE TABLE public.scan_int (
     thing_id integer,
     key_id integer,
     value integer,
@@ -366,10 +469,10 @@ CREATE TABLE scan_int (
 ALTER TABLE public.scan_int OWNER TO openlibrary;
 
 --
--- Name: scan_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: scan_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE scan_ref (
+CREATE TABLE public.scan_ref (
     thing_id integer,
     key_id integer,
     value integer,
@@ -380,10 +483,10 @@ CREATE TABLE scan_ref (
 ALTER TABLE public.scan_ref OWNER TO openlibrary;
 
 --
--- Name: scan_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: scan_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE scan_str (
+CREATE TABLE public.scan_str (
     thing_id integer,
     key_id integer,
     value character varying(2048),
@@ -394,10 +497,10 @@ CREATE TABLE scan_str (
 ALTER TABLE public.scan_str OWNER TO openlibrary;
 
 --
--- Name: seq; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: seq; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE seq (
+CREATE TABLE public.seq (
     id integer NOT NULL,
     name text,
     value integer DEFAULT 0
@@ -410,7 +513,7 @@ ALTER TABLE public.seq OWNER TO openlibrary;
 -- Name: seq_id_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
-CREATE SEQUENCE seq_id_seq
+CREATE SEQUENCE public.seq_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -424,14 +527,14 @@ ALTER TABLE public.seq_id_seq OWNER TO openlibrary;
 -- Name: seq_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: openlibrary
 --
 
-ALTER SEQUENCE seq_id_seq OWNED BY seq.id;
+ALTER SEQUENCE public.seq_id_seq OWNED BY public.seq.id;
 
 
 --
--- Name: store; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: store; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE store (
+CREATE TABLE public.store (
     id integer NOT NULL,
     key text,
     json text
@@ -444,7 +547,7 @@ ALTER TABLE public.store OWNER TO openlibrary;
 -- Name: store_id_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
-CREATE SEQUENCE store_id_seq
+CREATE SEQUENCE public.store_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -458,14 +561,14 @@ ALTER TABLE public.store_id_seq OWNER TO openlibrary;
 -- Name: store_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: openlibrary
 --
 
-ALTER SEQUENCE store_id_seq OWNED BY store.id;
+ALTER SEQUENCE public.store_id_seq OWNED BY public.store.id;
 
 
 --
--- Name: store_index; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: store_index; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE store_index (
+CREATE TABLE public.store_index (
     id integer NOT NULL,
     store_id integer,
     type text,
@@ -480,7 +583,7 @@ ALTER TABLE public.store_index OWNER TO openlibrary;
 -- Name: store_index_id_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
-CREATE SEQUENCE store_index_id_seq
+CREATE SEQUENCE public.store_index_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -494,14 +597,14 @@ ALTER TABLE public.store_index_id_seq OWNER TO openlibrary;
 -- Name: store_index_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: openlibrary
 --
 
-ALTER SEQUENCE store_index_id_seq OWNED BY store_index.id;
+ALTER SEQUENCE public.store_index_id_seq OWNED BY public.store_index.id;
 
 
 --
--- Name: subject_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: subject_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE subject_boolean (
+CREATE TABLE public.subject_boolean (
     thing_id integer,
     key_id integer,
     value boolean,
@@ -512,10 +615,10 @@ CREATE TABLE subject_boolean (
 ALTER TABLE public.subject_boolean OWNER TO openlibrary;
 
 --
--- Name: subject_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: subject_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE subject_int (
+CREATE TABLE public.subject_int (
     thing_id integer,
     key_id integer,
     value integer,
@@ -526,10 +629,10 @@ CREATE TABLE subject_int (
 ALTER TABLE public.subject_int OWNER TO openlibrary;
 
 --
--- Name: subject_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: subject_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE subject_ref (
+CREATE TABLE public.subject_ref (
     thing_id integer,
     key_id integer,
     value integer,
@@ -540,10 +643,10 @@ CREATE TABLE subject_ref (
 ALTER TABLE public.subject_ref OWNER TO openlibrary;
 
 --
--- Name: subject_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: subject_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE subject_str (
+CREATE TABLE public.subject_str (
     thing_id integer,
     key_id integer,
     value character varying(2048),
@@ -554,10 +657,10 @@ CREATE TABLE subject_str (
 ALTER TABLE public.subject_str OWNER TO openlibrary;
 
 --
--- Name: thing; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: thing; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE thing (
+CREATE TABLE public.thing (
     id integer NOT NULL,
     key text,
     type integer,
@@ -573,7 +676,7 @@ ALTER TABLE public.thing OWNER TO openlibrary;
 -- Name: thing_id_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
-CREATE SEQUENCE thing_id_seq
+CREATE SEQUENCE public.thing_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -587,14 +690,14 @@ ALTER TABLE public.thing_id_seq OWNER TO openlibrary;
 -- Name: thing_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: openlibrary
 --
 
-ALTER SEQUENCE thing_id_seq OWNED BY thing.id;
+ALTER SEQUENCE public.thing_id_seq OWNED BY public.thing.id;
 
 
 --
--- Name: transaction; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: transaction; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE transaction (
+CREATE TABLE public.transaction (
     id integer NOT NULL,
     action character varying(256),
     author_id integer,
@@ -613,7 +716,7 @@ ALTER TABLE public.transaction OWNER TO openlibrary;
 -- Name: transaction_id_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
-CREATE SEQUENCE transaction_id_seq
+CREATE SEQUENCE public.transaction_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -627,14 +730,14 @@ ALTER TABLE public.transaction_id_seq OWNER TO openlibrary;
 -- Name: transaction_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: openlibrary
 --
 
-ALTER SEQUENCE transaction_id_seq OWNED BY transaction.id;
+ALTER SEQUENCE public.transaction_id_seq OWNED BY public.transaction.id;
 
 
 --
--- Name: transaction_index; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: transaction_index; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE transaction_index (
+CREATE TABLE public.transaction_index (
     tx_id integer,
     key text,
     value text
@@ -647,7 +750,7 @@ ALTER TABLE public.transaction_index OWNER TO openlibrary;
 -- Name: type_author_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
-CREATE SEQUENCE type_author_seq
+CREATE SEQUENCE public.type_author_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -661,7 +764,7 @@ ALTER TABLE public.type_author_seq OWNER TO openlibrary;
 -- Name: type_edition_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
-CREATE SEQUENCE type_edition_seq
+CREATE SEQUENCE public.type_edition_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -672,10 +775,10 @@ CREATE SEQUENCE type_edition_seq
 ALTER TABLE public.type_edition_seq OWNER TO openlibrary;
 
 --
--- Name: type_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: type_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE type_int (
+CREATE TABLE public.type_int (
     thing_id integer,
     key_id integer,
     value integer,
@@ -689,7 +792,7 @@ ALTER TABLE public.type_int OWNER TO openlibrary;
 -- Name: type_publisher_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
-CREATE SEQUENCE type_publisher_seq
+CREATE SEQUENCE public.type_publisher_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -700,10 +803,10 @@ CREATE SEQUENCE type_publisher_seq
 ALTER TABLE public.type_publisher_seq OWNER TO openlibrary;
 
 --
--- Name: type_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: type_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE type_ref (
+CREATE TABLE public.type_ref (
     thing_id integer,
     key_id integer,
     value integer,
@@ -714,10 +817,10 @@ CREATE TABLE type_ref (
 ALTER TABLE public.type_ref OWNER TO openlibrary;
 
 --
--- Name: type_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: type_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE type_str (
+CREATE TABLE public.type_str (
     thing_id integer,
     key_id integer,
     value character varying(2048),
@@ -731,7 +834,7 @@ ALTER TABLE public.type_str OWNER TO openlibrary;
 -- Name: type_work_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
-CREATE SEQUENCE type_work_seq
+CREATE SEQUENCE public.type_work_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -742,10 +845,10 @@ CREATE SEQUENCE type_work_seq
 ALTER TABLE public.type_work_seq OWNER TO openlibrary;
 
 --
--- Name: user_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: user_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE user_int (
+CREATE TABLE public.user_int (
     thing_id integer,
     key_id integer,
     value integer,
@@ -756,10 +859,10 @@ CREATE TABLE user_int (
 ALTER TABLE public.user_int OWNER TO openlibrary;
 
 --
--- Name: user_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: user_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE user_ref (
+CREATE TABLE public.user_ref (
     thing_id integer,
     key_id integer,
     value integer,
@@ -770,10 +873,10 @@ CREATE TABLE user_ref (
 ALTER TABLE public.user_ref OWNER TO openlibrary;
 
 --
--- Name: user_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: user_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE user_str (
+CREATE TABLE public.user_str (
     thing_id integer,
     key_id integer,
     value character varying(2048),
@@ -784,10 +887,10 @@ CREATE TABLE user_str (
 ALTER TABLE public.user_str OWNER TO openlibrary;
 
 --
--- Name: version; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: version; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE version (
+CREATE TABLE public.version (
     id integer NOT NULL,
     thing_id integer,
     revision integer,
@@ -801,7 +904,7 @@ ALTER TABLE public.version OWNER TO openlibrary;
 -- Name: version_id_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
-CREATE SEQUENCE version_id_seq
+CREATE SEQUENCE public.version_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -815,14 +918,14 @@ ALTER TABLE public.version_id_seq OWNER TO openlibrary;
 -- Name: version_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: openlibrary
 --
 
-ALTER SEQUENCE version_id_seq OWNED BY version.id;
+ALTER SEQUENCE public.version_id_seq OWNED BY public.version.id;
 
 
 --
--- Name: work_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: work_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE work_boolean (
+CREATE TABLE public.work_boolean (
     thing_id integer,
     key_id integer,
     value boolean,
@@ -833,10 +936,10 @@ CREATE TABLE work_boolean (
 ALTER TABLE public.work_boolean OWNER TO openlibrary;
 
 --
--- Name: work_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: work_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE work_int (
+CREATE TABLE public.work_int (
     thing_id integer,
     key_id integer,
     value integer,
@@ -847,10 +950,10 @@ CREATE TABLE work_int (
 ALTER TABLE public.work_int OWNER TO openlibrary;
 
 --
--- Name: work_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: work_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE work_ref (
+CREATE TABLE public.work_ref (
     thing_id integer,
     key_id integer,
     value integer,
@@ -861,10 +964,10 @@ CREATE TABLE work_ref (
 ALTER TABLE public.work_ref OWNER TO openlibrary;
 
 --
--- Name: work_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: work_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE TABLE work_str (
+CREATE TABLE public.work_str (
     thing_id integer,
     key_id integer,
     value character varying(2048),
@@ -875,59 +978,73 @@ CREATE TABLE work_str (
 ALTER TABLE public.work_str OWNER TO openlibrary;
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY property ALTER COLUMN id SET DEFAULT nextval('property_id_seq'::regclass);
-
-
---
--- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
---
-
-ALTER TABLE ONLY seq ALTER COLUMN id SET DEFAULT nextval('seq_id_seq'::regclass);
+ALTER TABLE ONLY public.bookshelves ALTER COLUMN id SET DEFAULT nextval('public.bookshelves_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
+-- Name: bookshelf_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY store ALTER COLUMN id SET DEFAULT nextval('store_id_seq'::regclass);
+ALTER TABLE ONLY public.bookshelves_votes ALTER COLUMN bookshelf_id SET DEFAULT nextval('public.bookshelves_votes_bookshelf_id_seq'::regclass);
 
 
 --
 -- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY store_index ALTER COLUMN id SET DEFAULT nextval('store_index_id_seq'::regclass);
+ALTER TABLE ONLY public.property ALTER COLUMN id SET DEFAULT nextval('public.property_id_seq'::regclass);
 
 
 --
 -- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY thing ALTER COLUMN id SET DEFAULT nextval('thing_id_seq'::regclass);
+ALTER TABLE ONLY public.seq ALTER COLUMN id SET DEFAULT nextval('public.seq_id_seq'::regclass);
 
 
 --
 -- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY transaction ALTER COLUMN id SET DEFAULT nextval('transaction_id_seq'::regclass);
+ALTER TABLE ONLY public.store ALTER COLUMN id SET DEFAULT nextval('public.store_id_seq'::regclass);
 
 
 --
 -- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY version ALTER COLUMN id SET DEFAULT nextval('version_id_seq'::regclass);
+ALTER TABLE ONLY public.store_index ALTER COLUMN id SET DEFAULT nextval('public.store_index_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
+--
+
+ALTER TABLE ONLY public.thing ALTER COLUMN id SET DEFAULT nextval('public.thing_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
+--
+
+ALTER TABLE ONLY public.transaction ALTER COLUMN id SET DEFAULT nextval('public.transaction_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
+--
+
+ALTER TABLE ONLY public.version ALTER COLUMN id SET DEFAULT nextval('public.version_id_seq'::regclass);
 
 
 --
 -- Data for Name: account; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY account (thing_id, email, password, active, bot, verified) FROM stdin;
+COPY public.account (thing_id, email, password, active, bot, verified) FROM stdin;
 \.
 
 
@@ -935,7 +1052,7 @@ COPY account (thing_id, email, password, active, bot, verified) FROM stdin;
 -- Data for Name: author_boolean; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY author_boolean (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.author_boolean (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -943,7 +1060,7 @@ COPY author_boolean (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: author_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY author_int (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.author_int (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -951,7 +1068,7 @@ COPY author_int (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: author_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY author_ref (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.author_ref (thing_id, key_id, value, ordering) FROM stdin;
 553	85	33	\N
 577	85	33	\N
 573	85	33	\N
@@ -968,7 +1085,7 @@ COPY author_ref (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: author_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY author_str (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.author_str (thing_id, key_id, value, ordering) FROM stdin;
 529	46	1515	\N
 530	45	Teresa of Avila	\N
 529	41	Teresa	\N
@@ -1201,10 +1318,51 @@ COPY author_str (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
+-- Data for Name: bookshelves; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.bookshelves (id, name, description, archived, updated, created) FROM stdin;
+1	Want to Read	A list of books I want to read	f	2020-11-19 03:39:09.603171	2020-11-19 03:39:09.603171
+2	Currently Reading	A list of books I am currently reading	f	2020-11-19 03:39:09.60446	2020-11-19 03:39:09.60446
+3	Already Read	A list of books I have finished reading	f	2020-11-19 03:39:09.605349	2020-11-19 03:39:09.605349
+\.
+
+
+--
+-- Data for Name: bookshelves_books; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.bookshelves_books (username, work_id, bookshelf_id, edition_id, updated, created) FROM stdin;
+\.
+
+
+--
+-- Name: bookshelves_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.bookshelves_id_seq', 3, true);
+
+
+--
+-- Data for Name: bookshelves_votes; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.bookshelves_votes (username, bookshelf_id, updated, created) FROM stdin;
+\.
+
+
+--
+-- Name: bookshelves_votes_bookshelf_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.bookshelves_votes_bookshelf_id_seq', 1, false);
+
+
+--
 -- Data for Name: data; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY data (thing_id, revision, data) FROM stdin;
+COPY public.data (thing_id, revision, data) FROM stdin;
 1	1	{"created": {"type": "/type/datetime", "value": "2013-03-20T10:27:01.223351"}, "last_modified": {"type": "/type/datetime", "value": "2013-03-20T10:27:01.223351"}, "latest_revision": 1, "key": "/type/type", "type": {"key": "/type/type"}, "id": 1, "revision": 1}
 2	1	{"last_modified": {"type": "/type/datetime", "value": "2013-03-20T10:27:01.322813"}, "latest_revision": 1, "key": "/type/key", "properties": [], "desc": "Type to store keys. A key is a string constrained to the regular expression [a-z][a-z/_]*.", "kind": "primitive", "name": "Key", "created": {"type": "/type/datetime", "value": "2013-03-20T10:27:01.322813"}, "type": {"key": "/type/type"}, "backreferences": [], "revision": 1}
 3	1	{"last_modified": {"type": "/type/datetime", "value": "2013-03-20T10:27:01.322813"}, "latest_revision": 1, "key": "/type/string", "properties": [], "desc": "Type to store unicode strings up to a maximum length of 2048.", "kind": "primitive", "name": "String", "created": {"type": "/type/datetime", "value": "2013-03-20T10:27:01.322813"}, "type": {"key": "/type/type"}, "backreferences": [], "revision": 1}
@@ -1883,6 +2041,7 @@ COPY data (thing_id, revision, data) FROM stdin;
 663	1	{"publishers": ["Harper"], "table_of_contents": [{"level": 0, "type": {"key": "/type/toc_item"}, "title": "- [v.1.] The adventures of Tom Sawyer. - [v.2.] The innocents abroad. - [v.3.] Pudd'nhead Wilson. - [v.4.] The American claimant. - [v.5.] Connecticut Yankee in King Arthur's court. - [v.6.] Roughing it. - [v.7.] Life on the Mississippi. - [v.8.] The mysterious stranger. - [v.9.] The adventures of Huckleberry Finn. - [v.10.] The gilded age. - [v.11.] A tramp abroad. -[v.12.] What is man? - [v.13.] Following the equator. - [v.14.] Tom Sawyer abroad. - [v.15.] The man that corrupted Hadleybrug. - [v.16.] In defense of Harriet Shelley. - [v.17.] Joan of Arc. - [v.18.] The 30,000 bequest. - [v.19.] Sketches, new and old. - [v.20.] Europe and elsewhere. - [v.21.] - The Prince and the pauper. - [v.22.] Mark Twain's notebook. - [v.23.] Christian Science. -[v.24.] Mark Twain's speeches"}], "series": ["American artists edition"], "last_modified": {"type": "/type/datetime", "value": "2013-03-28T07:50:50.124308"}, "latest_revision": 1, "key": "/books/OL22782947M", "publish_places": ["New York"], "oclc_number": ["3580564"], "pagination": "24 v.", "revision": 1, "title": "The complete works of Mark Twain [pseud.]", "notes": {"type": "/type/text", "value": "Binder's title, each volume has half-title page"}, "number_of_pages": 24, "created": {"type": "/type/datetime", "value": "2013-03-28T07:50:50.124308"}, "languages": [{"key": "/languages/eng"}], "subjects": ["Joan, -- of Arc, Saint, -- 1412-1431", "Voyages around the world", "Christian Science", "Mississippi River -- Description and travel"], "publish_date": "1875", "publish_country": "nyu", "works": [{"key": "/works/OL53924W"}], "type": {"key": "/type/edition"}, "location": ["NBuC"]}
 664	1	{"publishers": ["ICON Reference"], "languages": [{"key": "/languages/eng"}], "weight": "13.8 ounces", "title": "Adventures of Tom Sawyer (Webster's Chinese-Simplified Thesaurus Edition)", "number_of_pages": 264, "isbn_13": ["9780497260576"], "created": {"type": "/type/datetime", "value": "2013-03-28T07:50:50.124308"}, "physical_format": "Paperback", "isbn_10": ["0497260573"], "publish_date": "May 5, 2006", "key": "/books/OL7652936M", "last_modified": {"type": "/type/datetime", "value": "2013-03-28T07:50:50.124308"}, "latest_revision": 1, "works": [{"key": "/works/OL8193488W"}], "type": {"key": "/type/edition"}, "subjects": ["Chinese", "Foreign Language Study / Chinese", "Foreign Language Study", "Foreign Language - Dictionaries / Phrase Books", "Language"], "physical_dimensions": "9 x 6 x 0.6 inches", "revision": 1}
 665	1	{"description": {"type": "/type/text", "value": "Group of librarians. \\r\\n\\r\\nLibrarians have permission to edit all pages on the website, including the developer documentation."}, "created": {"type": "/type/datetime", "value": "2017-12-24T02:53:58.459826"}, "last_modified": {"type": "/type/datetime", "value": "2017-12-24T02:53:58.459826"}, "latest_revision": 1, "key": "/usergroup/librarians", "type": {"key": "/type/usergroup"}, "revision": 1}
+666	1	{"description": {"type": "/type/text", "value": "User Group for beta-testers.\\r\\n\\r\\nPeople in the group will get to see the beta features of Open Library."}, "created": {"type": "/type/datetime", "value": "2020-11-19T03:45:35.476156"}, "m": "edit", "last_modified": {"type": "/type/datetime", "value": "2020-11-19T03:45:35.476156"}, "latest_revision": 1, "key": "/usergroup/beta-testers", "type": {"key": "/type/usergroup"}, "revision": 1}
 \.
 
 
@@ -1890,7 +2049,7 @@ COPY data (thing_id, revision, data) FROM stdin;
 -- Data for Name: datum_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY datum_int (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.datum_int (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -1898,7 +2057,7 @@ COPY datum_int (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: datum_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY datum_ref (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.datum_ref (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -1906,7 +2065,7 @@ COPY datum_ref (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: datum_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY datum_str (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.datum_str (thing_id, key_id, value, ordering) FROM stdin;
 76	21	amh	\N
 463	22	Tatar	\N
 274	22	Khoisan (Other)	\N
@@ -3040,7 +3199,7 @@ COPY datum_str (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: edition_boolean; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY edition_boolean (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.edition_boolean (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -3048,7 +3207,7 @@ COPY edition_boolean (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: edition_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY edition_int (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.edition_int (thing_id, key_id, value, ordering) FROM stdin;
 534	58	306	\N
 533	58	184	\N
 537	58	304	\N
@@ -3115,7 +3274,7 @@ COPY edition_int (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: edition_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY edition_ref (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.edition_ref (thing_id, key_id, value, ordering) FROM stdin;
 533	62	532	\N
 534	68	172	\N
 534	62	531	\N
@@ -3259,7 +3418,7 @@ COPY edition_ref (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: edition_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY edition_str (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.edition_str (thing_id, key_id, value, ordering) FROM stdin;
 533	57	184 p.	\N
 534	57	viii, 306 p.	\N
 533	64	IA111711	\N
@@ -4605,7 +4764,7 @@ COPY edition_str (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: meta; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY meta (version) FROM stdin;
+COPY public.meta (version) FROM stdin;
 10
 \.
 
@@ -4614,7 +4773,7 @@ COPY meta (version) FROM stdin;
 -- Data for Name: property; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY property (id, type, name) FROM stdin;
+COPY public.property (id, type, name) FROM stdin;
 1	1	desc
 2	13	admins
 3	1	name
@@ -4747,6 +4906,7 @@ COPY property (id, type, name) FROM stdin;
 130	31	uri_descriptions
 131	31	other_titles
 132	31	identifiers.amazon
+133	12	m
 \.
 
 
@@ -4754,14 +4914,14 @@ COPY property (id, type, name) FROM stdin;
 -- Name: property_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('property_id_seq', 132, true);
+SELECT pg_catalog.setval('public.property_id_seq', 133, true);
 
 
 --
 -- Data for Name: publisher_boolean; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY publisher_boolean (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.publisher_boolean (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -4769,7 +4929,7 @@ COPY publisher_boolean (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: publisher_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY publisher_int (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.publisher_int (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -4777,7 +4937,7 @@ COPY publisher_int (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: publisher_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY publisher_ref (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.publisher_ref (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -4785,7 +4945,15 @@ COPY publisher_ref (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: publisher_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY publisher_str (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.publisher_str (thing_id, key_id, value, ordering) FROM stdin;
+\.
+
+
+--
+-- Data for Name: ratings; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.ratings (username, work_id, rating, edition_id, updated, created) FROM stdin;
 \.
 
 
@@ -4793,7 +4961,7 @@ COPY publisher_str (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: scan_boolean; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY scan_boolean (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.scan_boolean (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -4801,7 +4969,7 @@ COPY scan_boolean (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: scan_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY scan_int (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.scan_int (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -4809,7 +4977,7 @@ COPY scan_int (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: scan_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY scan_ref (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.scan_ref (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -4817,7 +4985,7 @@ COPY scan_ref (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: scan_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY scan_str (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.scan_str (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -4825,7 +4993,7 @@ COPY scan_str (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: seq; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY seq (id, name, value) FROM stdin;
+COPY public.seq (id, name, value) FROM stdin;
 \.
 
 
@@ -4833,14 +5001,14 @@ COPY seq (id, name, value) FROM stdin;
 -- Name: seq_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('seq_id_seq', 1, false);
+SELECT pg_catalog.setval('public.seq_id_seq', 1, false);
 
 
 --
 -- Data for Name: store; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY store (id, key, json) FROM stdin;
+COPY public.store (id, key, json) FROM stdin;
 2	account-email/admin@example.com	{"username": "admin", "type": "account-email"}
 3	account/admin	{"status": "active", "username": "admin", "type": "account", "data": {"displayname": "Administrator"}, "created_on": "2013-03-20T10:27:02.403953", "lusername": "admin", "enc_password": "ffe5d$98dfbf6d35a3b3d1d1b11bc4d708abba", "email": "admin@example.com"}
 5	account-email/userbot@example.com	{"username": "AccountBot", "type": "account-email"}
@@ -4860,14 +5028,14 @@ COPY store (id, key, json) FROM stdin;
 -- Name: store_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('store_id_seq', 31, true);
+SELECT pg_catalog.setval('public.store_id_seq', 31, true);
 
 
 --
 -- Data for Name: store_index; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY store_index (id, store_id, type, name, value) FROM stdin;
+COPY public.store_index (id, store_id, type, name, value) FROM stdin;
 9	2	account-email	_key	account-email/admin@example.com
 10	2	account-email	username	admin
 11	3	account	_key	account/admin
@@ -4924,14 +5092,14 @@ COPY store_index (id, store_id, type, name, value) FROM stdin;
 -- Name: store_index_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('store_index_id_seq', 175, true);
+SELECT pg_catalog.setval('public.store_index_id_seq', 175, true);
 
 
 --
 -- Data for Name: subject_boolean; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY subject_boolean (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.subject_boolean (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -4939,7 +5107,7 @@ COPY subject_boolean (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: subject_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY subject_int (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.subject_int (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -4947,7 +5115,7 @@ COPY subject_int (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: subject_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY subject_ref (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.subject_ref (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -4955,7 +5123,7 @@ COPY subject_ref (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: subject_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY subject_str (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.subject_str (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -4963,7 +5131,7 @@ COPY subject_str (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: thing; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY thing (id, key, type, latest_revision, created, last_modified) FROM stdin;
+COPY public.thing (id, key, type, latest_revision, created, last_modified) FROM stdin;
 2	/type/key	1	1	2013-03-20 10:27:01.322813	2013-03-20 10:27:01.322813
 3	/type/string	1	1	2013-03-20 10:27:01.322813	2013-03-20 10:27:01.322813
 4	/type/text	1	1	2013-03-20 10:27:01.322813	2013-03-20 10:27:01.322813
@@ -5629,6 +5797,7 @@ COPY thing (id, key, type, latest_revision, created, last_modified) FROM stdin;
 663	/books/OL22782947M	31	1	2013-03-28 07:50:50.124308	2013-03-28 07:50:50.124308
 664	/books/OL7652936M	31	1	2013-03-28 07:50:50.124308	2013-03-28 07:50:50.124308
 665	/usergroup/librarians	12	1	2017-12-24 02:53:58.459826	2017-12-24 02:53:58.459826
+666	/usergroup/beta-testers	12	1	2020-11-19 03:45:35.476156	2020-11-19 03:45:35.476156
 \.
 
 
@@ -5636,14 +5805,14 @@ COPY thing (id, key, type, latest_revision, created, last_modified) FROM stdin;
 -- Name: thing_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('thing_id_seq', 665, true);
+SELECT pg_catalog.setval('public.thing_id_seq', 666, true);
 
 
 --
 -- Data for Name: transaction; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY transaction (id, action, author_id, ip, comment, bot, created, changes, data) FROM stdin;
+COPY public.transaction (id, action, author_id, ip, comment, bot, created, changes, data) FROM stdin;
 1	bulk_update	\N	127.0.0.1	\N	f	2013-03-20 10:27:01.322813	[{"key": "/type/key", "revision": 1}, {"key": "/type/string", "revision": 1}, {"key": "/type/text", "revision": 1}, {"key": "/type/int", "revision": 1}, {"key": "/type/boolean", "revision": 1}, {"key": "/type/float", "revision": 1}, {"key": "/type/datetime", "revision": 1}, {"key": "/type/property", "revision": 1}, {"key": "/type/backreference", "revision": 1}, {"key": "/type/type", "revision": 2}, {"key": "/type/user", "revision": 1}, {"key": "/type/usergroup", "revision": 1}, {"key": "/type/permission", "revision": 1}, {"key": "/type/object", "revision": 1}, {"key": "/type/dict", "revision": 1}, {"key": "/type/delete", "revision": 1}, {"key": "/type/redirect", "revision": 1}, {"key": "/usergroup/everyone", "revision": 1}, {"key": "/usergroup/allusers", "revision": 1}, {"key": "/usergroup/admin", "revision": 1}, {"key": "/permission/open", "revision": 1}, {"key": "/permission/restricted", "revision": 1}, {"key": "/permission/secret", "revision": 1}]	{}
 2	new-account	24	127.0.0.1	Created new account.	f	2013-03-20 10:27:02.430771	[{"key": "/people/admin", "revision": 1}, {"key": "/people/admin/usergroup", "revision": 1}, {"key": "/people/admin/permission", "revision": 1}]	{}
 3	new-account	27	127.0.0.1	Created new account.	f	2013-03-20 10:27:02.591679	[{"key": "/people/AccountBot", "revision": 1}, {"key": "/people/AccountBot/usergroup", "revision": 1}, {"key": "/people/AccountBot/permission", "revision": 1}]	{}
@@ -5688,6 +5857,7 @@ COPY transaction (id, action, author_id, ip, comment, bot, created, changes, dat
 42	bulk_update	24	127.0.0.1	\N	f	2013-03-28 07:50:48.835814	[{"key": "/works/OL16226033W", "revision": 1}, {"key": "/works/OL15547698W", "revision": 1}, {"key": "/works/OL15673999W", "revision": 1}, {"key": "/works/OL53924W", "revision": 1}, {"key": "/works/OL5702375W", "revision": 1}, {"key": "/works/OL192489W", "revision": 1}, {"key": "/works/OL6037022W", "revision": 1}, {"key": "/works/OL15692545W", "revision": 1}, {"key": "/works/OL15437498W", "revision": 1}, {"key": "/works/OL8193488W", "revision": 1}, {"key": "/works/OL54120W", "revision": 1}, {"key": "/works/OL73243W", "revision": 1}, {"key": "/works/OL16075717W", "revision": 1}, {"key": "/works/OL1898308W", "revision": 1}, {"key": "/works/OL61982W", "revision": 1}, {"key": "/works/OL15298516W", "revision": 1}, {"key": "/works/OL20600W", "revision": 1}, {"key": "/works/OL45310W", "revision": 1}, {"key": "/works/OL15706726W", "revision": 1}, {"key": "/works/OL15400392W", "revision": 1}, {"key": "/works/OL13101191W", "revision": 1}, {"key": "/works/OL151880W", "revision": 1}, {"key": "/works/OL118420W", "revision": 1}, {"key": "/works/OL5688746W", "revision": 1}]	{}
 43	bulk_update	24	127.0.0.1	\N	f	2013-03-28 07:50:50.124308	[{"key": "/books/OL24197450M", "revision": 1}, {"key": "/books/OL24197475M", "revision": 1}, {"key": "/books/OL8011987M", "revision": 1}, {"key": "/books/OL24972169M", "revision": 1}, {"key": "/books/OL23269118M", "revision": 1}, {"key": "/books/OL9737752M", "revision": 1}, {"key": "/books/OL5820529M", "revision": 1}, {"key": "/books/OL2058361M", "revision": 1}, {"key": "/books/OL13569660M", "revision": 1}, {"key": "/books/OL24262029M", "revision": 1}, {"key": "/books/OL24405389M", "revision": 1}, {"key": "/books/OL24605334M", "revision": 1}, {"key": "/books/OL24405749M", "revision": 1}, {"key": "/books/OL13517105M", "revision": 1}, {"key": "/books/OL7652984M", "revision": 1}, {"key": "/books/OL7653004M", "revision": 1}, {"key": "/books/OL7652892M", "revision": 1}, {"key": "/books/OL3421846M", "revision": 1}, {"key": "/books/OL24291128M", "revision": 1}, {"key": "/books/OL23273793M", "revision": 1}, {"key": "/books/OL23575606M", "revision": 1}, {"key": "/books/OL7652865M", "revision": 1}, {"key": "/books/OL24260825M", "revision": 1}, {"key": "/books/OL7037695M", "revision": 1}, {"key": "/books/OL8364871M", "revision": 1}, {"key": "/books/OL24645346M", "revision": 1}, {"key": "/books/OL7637879M", "revision": 1}, {"key": "/books/OL23703735M", "revision": 1}, {"key": "/books/OL25083437M", "revision": 1}, {"key": "/books/OL24630220M", "revision": 1}, {"key": "/books/OL1890025M", "revision": 1}, {"key": "/books/OL24173003M", "revision": 1}, {"key": "/books/OL23026316M", "revision": 1}, {"key": "/books/OL24152177M", "revision": 1}, {"key": "/books/OL17099411M", "revision": 1}, {"key": "/books/OL42679M", "revision": 1}, {"key": "/books/OL24620876M", "revision": 1}, {"key": "/books/OL24630277M", "revision": 1}, {"key": "/books/OL7652951M", "revision": 1}, {"key": "/books/OL24197430M", "revision": 1}, {"key": "/books/OL6107583M", "revision": 1}, {"key": "/books/OL24755423M", "revision": 1}, {"key": "/books/OL6514192M", "revision": 1}, {"key": "/books/OL24218235M", "revision": 1}, {"key": "/books/OL14065582M", "revision": 1}, {"key": "/books/OL24375501M", "revision": 1}, {"key": "/books/OL2407849M", "revision": 1}, {"key": "/books/OL7652777M", "revision": 1}, {"key": "/books/OL6179353M", "revision": 1}, {"key": "/books/OL24503867M", "revision": 1}, {"key": "/books/OL22842654M", "revision": 1}, {"key": "/books/OL20431791M", "revision": 1}, {"key": "/books/OL7361700M", "revision": 1}, {"key": "/books/OL24293426M", "revision": 1}, {"key": "/books/OL24579688M", "revision": 1}, {"key": "/books/OL22782947M", "revision": 1}, {"key": "/books/OL7652936M", "revision": 1}]	{}
 44	update	524	10.0.2.2		f	2017-12-24 02:53:58.459826	[{"key": "/usergroup/librarians", "revision": 1}]	{}
+45	update	524	172.21.0.1		f	2020-11-19 03:45:35.476156	[{"key": "/usergroup/beta-testers", "revision": 1}]	{}
 \.
 
 
@@ -5695,14 +5865,14 @@ COPY transaction (id, action, author_id, ip, comment, bot, created, changes, dat
 -- Name: transaction_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('transaction_id_seq', 44, true);
+SELECT pg_catalog.setval('public.transaction_id_seq', 45, true);
 
 
 --
 -- Data for Name: transaction_index; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY transaction_index (tx_id, key, value) FROM stdin;
+COPY public.transaction_index (tx_id, key, value) FROM stdin;
 \.
 
 
@@ -5710,21 +5880,21 @@ COPY transaction_index (tx_id, key, value) FROM stdin;
 -- Name: type_author_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('type_author_seq', 1, false);
+SELECT pg_catalog.setval('public.type_author_seq', 1, false);
 
 
 --
 -- Name: type_edition_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('type_edition_seq', 1, false);
+SELECT pg_catalog.setval('public.type_edition_seq', 1, false);
 
 
 --
 -- Data for Name: type_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY type_int (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.type_int (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -5732,14 +5902,14 @@ COPY type_int (thing_id, key_id, value, ordering) FROM stdin;
 -- Name: type_publisher_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('type_publisher_seq', 1, false);
+SELECT pg_catalog.setval('public.type_publisher_seq', 1, false);
 
 
 --
 -- Data for Name: type_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY type_ref (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.type_ref (thing_id, key_id, value, ordering) FROM stdin;
 10	8	9	\N
 17	8	9	\N
 10	4	3	\N
@@ -5881,7 +6051,7 @@ COPY type_ref (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: type_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY type_str (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.type_str (thing_id, key_id, value, ordering) FROM stdin;
 16	6	regular	\N
 1	3	Type	\N
 6	6	primitive	\N
@@ -6168,14 +6338,14 @@ COPY type_str (thing_id, key_id, value, ordering) FROM stdin;
 -- Name: type_work_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('type_work_seq', 1, false);
+SELECT pg_catalog.setval('public.type_work_seq', 1, false);
 
 
 --
 -- Data for Name: user_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY user_int (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.user_int (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -6183,7 +6353,7 @@ COPY user_int (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: user_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY user_ref (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.user_ref (thing_id, key_id, value, ordering) FROM stdin;
 22	2	20	\N
 23	10	20	\N
 21	7	18	\N
@@ -6218,13 +6388,14 @@ COPY user_ref (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: user_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY user_str (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.user_str (thing_id, key_id, value, ordering) FROM stdin;
 19	9	Group of all registred users.	\N
 20	9	Group of admin users.	\N
 18	9	Group of all users including anonymous users.	\N
 24	14	Administrator	\N
 27	14	AccountBot	\N
 524	14	Open Library	\N
+666	133	edit	\N
 \.
 
 
@@ -6232,7 +6403,7 @@ COPY user_str (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: version; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY version (id, thing_id, revision, transaction_id) FROM stdin;
+COPY public.version (id, thing_id, revision, transaction_id) FROM stdin;
 1	1	1	\N
 2	2	1	1
 3	3	1	1
@@ -6911,6 +7082,7 @@ COPY version (id, thing_id, revision, transaction_id) FROM stdin;
 676	663	1	43
 677	664	1	43
 678	665	1	44
+679	666	1	45
 \.
 
 
@@ -6918,14 +7090,14 @@ COPY version (id, thing_id, revision, transaction_id) FROM stdin;
 -- Name: version_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('version_id_seq', 678, true);
+SELECT pg_catalog.setval('public.version_id_seq', 679, true);
 
 
 --
 -- Data for Name: work_boolean; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY work_boolean (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.work_boolean (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
 
@@ -6933,7 +7105,7 @@ COPY work_boolean (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: work_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY work_int (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.work_int (thing_id, key_id, value, ordering) FROM stdin;
 605	107	12	\N
 \.
 
@@ -6942,7 +7114,7 @@ COPY work_int (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: work_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY work_ref (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.work_ref (thing_id, key_id, value, ordering) FROM stdin;
 532	50	43	\N
 531	50	43	\N
 532	52	528	\N
@@ -7030,7 +7202,7 @@ COPY work_ref (thing_id, key_id, value, ordering) FROM stdin;
 -- Data for Name: work_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
-COPY work_str (thing_id, key_id, value, ordering) FROM stdin;
+COPY public.work_str (thing_id, key_id, value, ordering) FROM stdin;
 531	51	Spain	\N
 531	48	1930	\N
 531	49	El castillo interior	\N
@@ -7561,1369 +7733,1907 @@ COPY work_str (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Name: account_email_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: account_email_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-ALTER TABLE ONLY account
+ALTER TABLE ONLY public.account
     ADD CONSTRAINT account_email_key UNIQUE (email);
 
 
 --
--- Name: property_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: bookshelves_books_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
-ALTER TABLE ONLY property
+ALTER TABLE ONLY public.bookshelves_books
+    ADD CONSTRAINT bookshelves_books_pkey PRIMARY KEY (username, work_id, bookshelf_id);
+
+
+--
+-- Name: bookshelves_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY public.bookshelves
+    ADD CONSTRAINT bookshelves_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: bookshelves_votes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY public.bookshelves_votes
+    ADD CONSTRAINT bookshelves_votes_pkey PRIMARY KEY (username, bookshelf_id);
+
+
+--
+-- Name: property_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+--
+
+ALTER TABLE ONLY public.property
     ADD CONSTRAINT property_pkey PRIMARY KEY (id);
 
 
 --
--- Name: property_type_name_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: property_type_name_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-ALTER TABLE ONLY property
+ALTER TABLE ONLY public.property
     ADD CONSTRAINT property_type_name_key UNIQUE (type, name);
 
 
 --
--- Name: seq_name_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: ratings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
-ALTER TABLE ONLY seq
+ALTER TABLE ONLY public.ratings
+    ADD CONSTRAINT ratings_pkey PRIMARY KEY (username, work_id);
+
+
+--
+-- Name: seq_name_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+--
+
+ALTER TABLE ONLY public.seq
     ADD CONSTRAINT seq_name_key UNIQUE (name);
 
 
 --
--- Name: seq_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: seq_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-ALTER TABLE ONLY seq
+ALTER TABLE ONLY public.seq
     ADD CONSTRAINT seq_pkey PRIMARY KEY (id);
 
 
 --
--- Name: store_index_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: store_index_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-ALTER TABLE ONLY store_index
+ALTER TABLE ONLY public.store_index
     ADD CONSTRAINT store_index_pkey PRIMARY KEY (id);
 
 
 --
--- Name: store_key_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: store_key_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-ALTER TABLE ONLY store
+ALTER TABLE ONLY public.store
     ADD CONSTRAINT store_key_key UNIQUE (key);
 
 
 --
--- Name: store_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: store_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-ALTER TABLE ONLY store
+ALTER TABLE ONLY public.store
     ADD CONSTRAINT store_pkey PRIMARY KEY (id);
 
 
 --
--- Name: thing_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: thing_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-ALTER TABLE ONLY thing
+ALTER TABLE ONLY public.thing
     ADD CONSTRAINT thing_pkey PRIMARY KEY (id);
 
 
 --
--- Name: transaction_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: transaction_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-ALTER TABLE ONLY transaction
+ALTER TABLE ONLY public.transaction
     ADD CONSTRAINT transaction_pkey PRIMARY KEY (id);
 
 
 --
--- Name: version_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: version_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-ALTER TABLE ONLY version
+ALTER TABLE ONLY public.version
     ADD CONSTRAINT version_pkey PRIMARY KEY (id);
 
 
 --
--- Name: version_thing_id_revision_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: version_thing_id_revision_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-ALTER TABLE ONLY version
+ALTER TABLE ONLY public.version
     ADD CONSTRAINT version_thing_id_revision_key UNIQUE (thing_id, revision);
 
 
 --
--- Name: account_thing_active_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: account_thing_active_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX account_thing_active_idx ON account USING btree (active);
+CREATE INDEX account_thing_active_idx ON public.account USING btree (active);
 
 
 --
--- Name: account_thing_bot_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: account_thing_bot_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX account_thing_bot_idx ON account USING btree (bot);
+CREATE INDEX account_thing_bot_idx ON public.account USING btree (bot);
 
 
 --
--- Name: account_thing_email_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: account_thing_email_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX account_thing_email_idx ON account USING btree (active);
+CREATE INDEX account_thing_email_idx ON public.account USING btree (active);
 
 
 --
--- Name: account_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: account_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX account_thing_id_idx ON account USING btree (thing_id);
+CREATE INDEX account_thing_id_idx ON public.account USING btree (thing_id);
 
 
 --
--- Name: author_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: author_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX author_boolean_idx ON author_boolean USING btree (key_id, value);
+CREATE INDEX author_boolean_idx ON public.author_boolean USING btree (key_id, value);
 
 
 --
--- Name: author_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: author_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX author_boolean_thing_id_idx ON author_boolean USING btree (thing_id);
+CREATE INDEX author_boolean_thing_id_idx ON public.author_boolean USING btree (thing_id);
 
 
 --
--- Name: author_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: author_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX author_int_idx ON author_int USING btree (key_id, value);
+CREATE INDEX author_int_idx ON public.author_int USING btree (key_id, value);
 
 
 --
--- Name: author_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: author_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX author_int_thing_id_idx ON author_int USING btree (thing_id);
+CREATE INDEX author_int_thing_id_idx ON public.author_int USING btree (thing_id);
 
 
 --
--- Name: author_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: author_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX author_ref_idx ON author_ref USING btree (key_id, value);
+CREATE INDEX author_ref_idx ON public.author_ref USING btree (key_id, value);
 
 
 --
--- Name: author_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: author_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX author_ref_thing_id_idx ON author_ref USING btree (thing_id);
+CREATE INDEX author_ref_thing_id_idx ON public.author_ref USING btree (thing_id);
 
 
 --
--- Name: author_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: author_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX author_str_idx ON author_str USING btree (key_id, value);
+CREATE INDEX author_str_idx ON public.author_str USING btree (key_id, value);
 
 
 --
--- Name: author_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: author_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX author_str_thing_id_idx ON author_str USING btree (thing_id);
+CREATE INDEX author_str_thing_id_idx ON public.author_str USING btree (thing_id);
 
 
 --
--- Name: data_thing_id_revision_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: data_thing_id_revision_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE UNIQUE INDEX data_thing_id_revision_idx ON data USING btree (thing_id, revision);
+CREATE UNIQUE INDEX data_thing_id_revision_idx ON public.data USING btree (thing_id, revision);
 
 
 --
--- Name: datum_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: datum_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX datum_int_idx ON datum_int USING btree (key_id, value);
+CREATE INDEX datum_int_idx ON public.datum_int USING btree (key_id, value);
 
 
 --
--- Name: datum_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: datum_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX datum_int_thing_id_idx ON datum_int USING btree (thing_id);
+CREATE INDEX datum_int_thing_id_idx ON public.datum_int USING btree (thing_id);
 
 
 --
--- Name: datum_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: datum_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX datum_ref_idx ON datum_ref USING btree (key_id, value);
+CREATE INDEX datum_ref_idx ON public.datum_ref USING btree (key_id, value);
 
 
 --
--- Name: datum_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: datum_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX datum_ref_thing_id_idx ON datum_ref USING btree (thing_id);
+CREATE INDEX datum_ref_thing_id_idx ON public.datum_ref USING btree (thing_id);
 
 
 --
--- Name: datum_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: datum_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX datum_str_idx ON datum_str USING btree (key_id, value);
+CREATE INDEX datum_str_idx ON public.datum_str USING btree (key_id, value);
 
 
 --
--- Name: datum_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: datum_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX datum_str_thing_id_idx ON datum_str USING btree (thing_id);
+CREATE INDEX datum_str_thing_id_idx ON public.datum_str USING btree (thing_id);
 
 
 --
--- Name: edition_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: edition_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX edition_boolean_idx ON edition_boolean USING btree (key_id, value);
+CREATE INDEX edition_boolean_idx ON public.edition_boolean USING btree (key_id, value);
 
 
 --
--- Name: edition_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: edition_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX edition_boolean_thing_id_idx ON edition_boolean USING btree (thing_id);
+CREATE INDEX edition_boolean_thing_id_idx ON public.edition_boolean USING btree (thing_id);
 
 
 --
--- Name: edition_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: edition_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX edition_int_idx ON edition_int USING btree (key_id, value);
+CREATE INDEX edition_int_idx ON public.edition_int USING btree (key_id, value);
 
 
 --
--- Name: edition_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: edition_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX edition_int_thing_id_idx ON edition_int USING btree (thing_id);
+CREATE INDEX edition_int_thing_id_idx ON public.edition_int USING btree (thing_id);
 
 
 --
--- Name: edition_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: edition_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX edition_ref_idx ON edition_ref USING btree (key_id, value);
+CREATE INDEX edition_ref_idx ON public.edition_ref USING btree (key_id, value);
 
 
 --
--- Name: edition_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: edition_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX edition_ref_thing_id_idx ON edition_ref USING btree (thing_id);
+CREATE INDEX edition_ref_thing_id_idx ON public.edition_ref USING btree (thing_id);
 
 
 --
--- Name: edition_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: edition_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX edition_str_idx ON edition_str USING btree (key_id, value);
+CREATE INDEX edition_str_idx ON public.edition_str USING btree (key_id, value);
 
 
 --
--- Name: edition_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: edition_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX edition_str_thing_id_idx ON edition_str USING btree (thing_id);
+CREATE INDEX edition_str_thing_id_idx ON public.edition_str USING btree (thing_id);
 
 
 --
--- Name: publisher_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: publisher_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX publisher_boolean_idx ON publisher_boolean USING btree (key_id, value);
+CREATE INDEX publisher_boolean_idx ON public.publisher_boolean USING btree (key_id, value);
 
 
 --
--- Name: publisher_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: publisher_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX publisher_boolean_thing_id_idx ON publisher_boolean USING btree (thing_id);
+CREATE INDEX publisher_boolean_thing_id_idx ON public.publisher_boolean USING btree (thing_id);
 
 
 --
--- Name: publisher_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: publisher_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX publisher_int_idx ON publisher_int USING btree (key_id, value);
+CREATE INDEX publisher_int_idx ON public.publisher_int USING btree (key_id, value);
 
 
 --
--- Name: publisher_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: publisher_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX publisher_int_thing_id_idx ON publisher_int USING btree (thing_id);
+CREATE INDEX publisher_int_thing_id_idx ON public.publisher_int USING btree (thing_id);
 
 
 --
--- Name: publisher_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: publisher_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX publisher_ref_idx ON publisher_ref USING btree (key_id, value);
+CREATE INDEX publisher_ref_idx ON public.publisher_ref USING btree (key_id, value);
 
 
 --
--- Name: publisher_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: publisher_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX publisher_ref_thing_id_idx ON publisher_ref USING btree (thing_id);
+CREATE INDEX publisher_ref_thing_id_idx ON public.publisher_ref USING btree (thing_id);
 
 
 --
--- Name: publisher_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: publisher_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX publisher_str_idx ON publisher_str USING btree (key_id, value);
+CREATE INDEX publisher_str_idx ON public.publisher_str USING btree (key_id, value);
 
 
 --
--- Name: publisher_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: publisher_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX publisher_str_thing_id_idx ON publisher_str USING btree (thing_id);
+CREATE INDEX publisher_str_thing_id_idx ON public.publisher_str USING btree (thing_id);
 
 
 --
--- Name: scan_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: scan_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX scan_boolean_idx ON scan_boolean USING btree (key_id, value);
+CREATE INDEX scan_boolean_idx ON public.scan_boolean USING btree (key_id, value);
 
 
 --
--- Name: scan_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: scan_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX scan_boolean_thing_id_idx ON scan_boolean USING btree (thing_id);
+CREATE INDEX scan_boolean_thing_id_idx ON public.scan_boolean USING btree (thing_id);
 
 
 --
--- Name: scan_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: scan_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX scan_int_idx ON scan_int USING btree (key_id, value);
+CREATE INDEX scan_int_idx ON public.scan_int USING btree (key_id, value);
 
 
 --
--- Name: scan_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: scan_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX scan_int_thing_id_idx ON scan_int USING btree (thing_id);
+CREATE INDEX scan_int_thing_id_idx ON public.scan_int USING btree (thing_id);
 
 
 --
--- Name: scan_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: scan_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX scan_ref_idx ON scan_ref USING btree (key_id, value);
+CREATE INDEX scan_ref_idx ON public.scan_ref USING btree (key_id, value);
 
 
 --
--- Name: scan_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: scan_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX scan_ref_thing_id_idx ON scan_ref USING btree (thing_id);
+CREATE INDEX scan_ref_thing_id_idx ON public.scan_ref USING btree (thing_id);
 
 
 --
--- Name: scan_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: scan_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX scan_str_idx ON scan_str USING btree (key_id, value);
+CREATE INDEX scan_str_idx ON public.scan_str USING btree (key_id, value);
 
 
 --
--- Name: scan_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: scan_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX scan_str_thing_id_idx ON scan_str USING btree (thing_id);
+CREATE INDEX scan_str_thing_id_idx ON public.scan_str USING btree (thing_id);
 
 
 --
--- Name: store_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: store_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX store_idx ON store_index USING btree (type, name, value);
+CREATE INDEX store_idx ON public.store_index USING btree (type, name, value);
 
 
 --
--- Name: store_index_store_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: store_index_store_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX store_index_store_id_idx ON store_index USING btree (store_id);
+CREATE INDEX store_index_store_id_idx ON public.store_index USING btree (store_id);
 
 
 --
--- Name: subject_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: subject_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX subject_boolean_idx ON subject_boolean USING btree (key_id, value);
+CREATE INDEX subject_boolean_idx ON public.subject_boolean USING btree (key_id, value);
 
 
 --
--- Name: subject_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: subject_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX subject_boolean_thing_id_idx ON subject_boolean USING btree (thing_id);
+CREATE INDEX subject_boolean_thing_id_idx ON public.subject_boolean USING btree (thing_id);
 
 
 --
--- Name: subject_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: subject_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX subject_int_idx ON subject_int USING btree (key_id, value);
+CREATE INDEX subject_int_idx ON public.subject_int USING btree (key_id, value);
 
 
 --
--- Name: subject_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: subject_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX subject_int_thing_id_idx ON subject_int USING btree (thing_id);
+CREATE INDEX subject_int_thing_id_idx ON public.subject_int USING btree (thing_id);
 
 
 --
--- Name: subject_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: subject_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX subject_ref_idx ON subject_ref USING btree (key_id, value);
+CREATE INDEX subject_ref_idx ON public.subject_ref USING btree (key_id, value);
 
 
 --
--- Name: subject_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: subject_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX subject_ref_thing_id_idx ON subject_ref USING btree (thing_id);
+CREATE INDEX subject_ref_thing_id_idx ON public.subject_ref USING btree (thing_id);
 
 
 --
--- Name: subject_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: subject_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX subject_str_idx ON subject_str USING btree (key_id, value);
+CREATE INDEX subject_str_idx ON public.subject_str USING btree (key_id, value);
 
 
 --
--- Name: subject_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: subject_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX subject_str_thing_id_idx ON subject_str USING btree (thing_id);
+CREATE INDEX subject_str_thing_id_idx ON public.subject_str USING btree (thing_id);
 
 
 --
--- Name: thing_created_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: thing_created_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX thing_created_idx ON thing USING btree (created);
+CREATE INDEX thing_created_idx ON public.thing USING btree (created);
 
 
 --
--- Name: thing_key_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: thing_key_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE UNIQUE INDEX thing_key_idx ON thing USING btree (key);
+CREATE UNIQUE INDEX thing_key_idx ON public.thing USING btree (key);
 
 
 --
--- Name: thing_last_modified_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: thing_last_modified_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX thing_last_modified_idx ON thing USING btree (last_modified);
+CREATE INDEX thing_last_modified_idx ON public.thing USING btree (last_modified);
 
 
 --
--- Name: thing_latest_revision_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: thing_latest_revision_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX thing_latest_revision_idx ON thing USING btree (latest_revision);
+CREATE INDEX thing_latest_revision_idx ON public.thing USING btree (latest_revision);
 
 
 --
--- Name: thing_olid_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: thing_olid_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX thing_olid_idx ON thing USING btree (get_olid(key));
+CREATE INDEX thing_olid_idx ON public.thing USING btree (public.get_olid(key));
 
 
 --
--- Name: thing_type_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: thing_type_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX thing_type_idx ON thing USING btree (type);
+CREATE INDEX thing_type_idx ON public.thing USING btree (type);
 
 
 --
--- Name: transaction_author_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: transaction_author_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX transaction_author_id_idx ON transaction USING btree (author_id);
+CREATE INDEX transaction_author_id_idx ON public.transaction USING btree (author_id);
 
 
 --
--- Name: transaction_created_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: transaction_created_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX transaction_created_idx ON transaction USING btree (created);
+CREATE INDEX transaction_created_idx ON public.transaction USING btree (created);
 
 
 --
--- Name: transaction_index_key_value_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: transaction_index_key_value_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX transaction_index_key_value_idx ON transaction_index USING btree (key, value);
+CREATE INDEX transaction_index_key_value_idx ON public.transaction_index USING btree (key, value);
 
 
 --
--- Name: transaction_index_tx_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: transaction_index_tx_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX transaction_index_tx_id_idx ON transaction_index USING btree (tx_id);
+CREATE INDEX transaction_index_tx_id_idx ON public.transaction_index USING btree (tx_id);
 
 
 --
--- Name: transaction_ip_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: transaction_ip_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX transaction_ip_idx ON transaction USING btree (ip);
+CREATE INDEX transaction_ip_idx ON public.transaction USING btree (ip);
 
 
 --
--- Name: type_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: type_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX type_int_idx ON type_int USING btree (key_id, value);
+CREATE INDEX type_int_idx ON public.type_int USING btree (key_id, value);
 
 
 --
--- Name: type_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: type_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX type_int_thing_id_idx ON type_int USING btree (thing_id);
+CREATE INDEX type_int_thing_id_idx ON public.type_int USING btree (thing_id);
 
 
 --
--- Name: type_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: type_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX type_ref_idx ON type_ref USING btree (key_id, value);
+CREATE INDEX type_ref_idx ON public.type_ref USING btree (key_id, value);
 
 
 --
--- Name: type_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: type_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX type_ref_thing_id_idx ON type_ref USING btree (thing_id);
+CREATE INDEX type_ref_thing_id_idx ON public.type_ref USING btree (thing_id);
 
 
 --
--- Name: type_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: type_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX type_str_idx ON type_str USING btree (key_id, value);
+CREATE INDEX type_str_idx ON public.type_str USING btree (key_id, value);
 
 
 --
--- Name: type_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: type_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX type_str_thing_id_idx ON type_str USING btree (thing_id);
+CREATE INDEX type_str_thing_id_idx ON public.type_str USING btree (thing_id);
 
 
 --
--- Name: user_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: user_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX user_int_idx ON user_int USING btree (key_id, value);
+CREATE INDEX user_int_idx ON public.user_int USING btree (key_id, value);
 
 
 --
--- Name: user_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: user_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX user_int_thing_id_idx ON user_int USING btree (thing_id);
+CREATE INDEX user_int_thing_id_idx ON public.user_int USING btree (thing_id);
 
 
 --
--- Name: user_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: user_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX user_ref_idx ON user_ref USING btree (key_id, value);
+CREATE INDEX user_ref_idx ON public.user_ref USING btree (key_id, value);
 
 
 --
--- Name: user_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: user_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX user_ref_thing_id_idx ON user_ref USING btree (thing_id);
+CREATE INDEX user_ref_thing_id_idx ON public.user_ref USING btree (thing_id);
 
 
 --
--- Name: user_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: user_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX user_str_idx ON user_str USING btree (key_id, value);
+CREATE INDEX user_str_idx ON public.user_str USING btree (key_id, value);
 
 
 --
--- Name: user_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: user_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX user_str_thing_id_idx ON user_str USING btree (thing_id);
+CREATE INDEX user_str_thing_id_idx ON public.user_str USING btree (thing_id);
 
 
 --
--- Name: work_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: work_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX work_boolean_idx ON work_boolean USING btree (key_id, value);
+CREATE INDEX work_boolean_idx ON public.work_boolean USING btree (key_id, value);
 
 
 --
--- Name: work_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: work_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX work_boolean_thing_id_idx ON work_boolean USING btree (thing_id);
+CREATE INDEX work_boolean_thing_id_idx ON public.work_boolean USING btree (thing_id);
 
 
 --
--- Name: work_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: work_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX work_int_idx ON work_int USING btree (key_id, value);
+CREATE INDEX work_int_idx ON public.work_int USING btree (key_id, value);
 
 
 --
--- Name: work_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: work_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX work_int_thing_id_idx ON work_int USING btree (thing_id);
+CREATE INDEX work_int_thing_id_idx ON public.work_int USING btree (thing_id);
 
 
 --
--- Name: work_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: work_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX work_ref_idx ON work_ref USING btree (key_id, value);
+CREATE INDEX work_ref_idx ON public.work_ref USING btree (key_id, value);
 
 
 --
--- Name: work_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: work_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX work_ref_thing_id_idx ON work_ref USING btree (thing_id);
+CREATE INDEX work_ref_thing_id_idx ON public.work_ref USING btree (thing_id);
 
 
 --
--- Name: work_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: work_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX work_str_idx ON work_str USING btree (key_id, value);
+CREATE INDEX work_str_idx ON public.work_str USING btree (key_id, value);
 
 
 --
--- Name: work_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+-- Name: work_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
 --
 
-CREATE INDEX work_str_thing_id_idx ON work_str USING btree (thing_id);
+CREATE INDEX work_str_thing_id_idx ON public.work_str USING btree (thing_id);
 
 
 --
 -- Name: account_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY account
-    ADD CONSTRAINT account_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.account
+    ADD CONSTRAINT account_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: author_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY author_boolean
-    ADD CONSTRAINT author_boolean_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.author_boolean
+    ADD CONSTRAINT author_boolean_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: author_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY author_boolean
-    ADD CONSTRAINT author_boolean_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.author_boolean
+    ADD CONSTRAINT author_boolean_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: author_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY author_int
-    ADD CONSTRAINT author_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.author_int
+    ADD CONSTRAINT author_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: author_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY author_int
-    ADD CONSTRAINT author_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.author_int
+    ADD CONSTRAINT author_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: author_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY author_ref
-    ADD CONSTRAINT author_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.author_ref
+    ADD CONSTRAINT author_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: author_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY author_ref
-    ADD CONSTRAINT author_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.author_ref
+    ADD CONSTRAINT author_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: author_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY author_ref
-    ADD CONSTRAINT author_ref_value_fkey FOREIGN KEY (value) REFERENCES thing(id);
+ALTER TABLE ONLY public.author_ref
+    ADD CONSTRAINT author_ref_value_fkey FOREIGN KEY (value) REFERENCES public.thing(id);
 
 
 --
 -- Name: author_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY author_str
-    ADD CONSTRAINT author_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.author_str
+    ADD CONSTRAINT author_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: author_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY author_str
-    ADD CONSTRAINT author_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.author_str
+    ADD CONSTRAINT author_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
+
+
+--
+-- Name: bookshelves_books_bookshelf_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.bookshelves_books
+    ADD CONSTRAINT bookshelves_books_bookshelf_id_fkey FOREIGN KEY (bookshelf_id) REFERENCES public.bookshelves(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: bookshelves_votes_bookshelf_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.bookshelves_votes
+    ADD CONSTRAINT bookshelves_votes_bookshelf_id_fkey FOREIGN KEY (bookshelf_id) REFERENCES public.bookshelves(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
 -- Name: data_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY data
-    ADD CONSTRAINT data_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.data
+    ADD CONSTRAINT data_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: datum_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY datum_int
-    ADD CONSTRAINT datum_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.datum_int
+    ADD CONSTRAINT datum_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: datum_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY datum_int
-    ADD CONSTRAINT datum_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.datum_int
+    ADD CONSTRAINT datum_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: datum_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY datum_ref
-    ADD CONSTRAINT datum_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.datum_ref
+    ADD CONSTRAINT datum_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: datum_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY datum_ref
-    ADD CONSTRAINT datum_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.datum_ref
+    ADD CONSTRAINT datum_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: datum_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY datum_ref
-    ADD CONSTRAINT datum_ref_value_fkey FOREIGN KEY (value) REFERENCES thing(id);
+ALTER TABLE ONLY public.datum_ref
+    ADD CONSTRAINT datum_ref_value_fkey FOREIGN KEY (value) REFERENCES public.thing(id);
 
 
 --
 -- Name: datum_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY datum_str
-    ADD CONSTRAINT datum_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.datum_str
+    ADD CONSTRAINT datum_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: datum_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY datum_str
-    ADD CONSTRAINT datum_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.datum_str
+    ADD CONSTRAINT datum_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: edition_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY edition_boolean
-    ADD CONSTRAINT edition_boolean_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.edition_boolean
+    ADD CONSTRAINT edition_boolean_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: edition_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY edition_boolean
-    ADD CONSTRAINT edition_boolean_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.edition_boolean
+    ADD CONSTRAINT edition_boolean_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: edition_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY edition_int
-    ADD CONSTRAINT edition_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.edition_int
+    ADD CONSTRAINT edition_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: edition_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY edition_int
-    ADD CONSTRAINT edition_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.edition_int
+    ADD CONSTRAINT edition_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: edition_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY edition_ref
-    ADD CONSTRAINT edition_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.edition_ref
+    ADD CONSTRAINT edition_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: edition_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY edition_ref
-    ADD CONSTRAINT edition_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.edition_ref
+    ADD CONSTRAINT edition_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: edition_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY edition_ref
-    ADD CONSTRAINT edition_ref_value_fkey FOREIGN KEY (value) REFERENCES thing(id);
+ALTER TABLE ONLY public.edition_ref
+    ADD CONSTRAINT edition_ref_value_fkey FOREIGN KEY (value) REFERENCES public.thing(id);
 
 
 --
 -- Name: edition_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY edition_str
-    ADD CONSTRAINT edition_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.edition_str
+    ADD CONSTRAINT edition_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: edition_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY edition_str
-    ADD CONSTRAINT edition_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.edition_str
+    ADD CONSTRAINT edition_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: property_type_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY property
-    ADD CONSTRAINT property_type_fkey FOREIGN KEY (type) REFERENCES thing(id);
+ALTER TABLE ONLY public.property
+    ADD CONSTRAINT property_type_fkey FOREIGN KEY (type) REFERENCES public.thing(id);
 
 
 --
 -- Name: publisher_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY publisher_boolean
-    ADD CONSTRAINT publisher_boolean_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.publisher_boolean
+    ADD CONSTRAINT publisher_boolean_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: publisher_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY publisher_boolean
-    ADD CONSTRAINT publisher_boolean_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.publisher_boolean
+    ADD CONSTRAINT publisher_boolean_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: publisher_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY publisher_int
-    ADD CONSTRAINT publisher_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.publisher_int
+    ADD CONSTRAINT publisher_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: publisher_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY publisher_int
-    ADD CONSTRAINT publisher_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.publisher_int
+    ADD CONSTRAINT publisher_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: publisher_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY publisher_ref
-    ADD CONSTRAINT publisher_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.publisher_ref
+    ADD CONSTRAINT publisher_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: publisher_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY publisher_ref
-    ADD CONSTRAINT publisher_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.publisher_ref
+    ADD CONSTRAINT publisher_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: publisher_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY publisher_ref
-    ADD CONSTRAINT publisher_ref_value_fkey FOREIGN KEY (value) REFERENCES thing(id);
+ALTER TABLE ONLY public.publisher_ref
+    ADD CONSTRAINT publisher_ref_value_fkey FOREIGN KEY (value) REFERENCES public.thing(id);
 
 
 --
 -- Name: publisher_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY publisher_str
-    ADD CONSTRAINT publisher_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.publisher_str
+    ADD CONSTRAINT publisher_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: publisher_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY publisher_str
-    ADD CONSTRAINT publisher_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.publisher_str
+    ADD CONSTRAINT publisher_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: scan_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY scan_boolean
-    ADD CONSTRAINT scan_boolean_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.scan_boolean
+    ADD CONSTRAINT scan_boolean_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: scan_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY scan_boolean
-    ADD CONSTRAINT scan_boolean_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.scan_boolean
+    ADD CONSTRAINT scan_boolean_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: scan_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY scan_int
-    ADD CONSTRAINT scan_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.scan_int
+    ADD CONSTRAINT scan_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: scan_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY scan_int
-    ADD CONSTRAINT scan_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.scan_int
+    ADD CONSTRAINT scan_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: scan_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY scan_ref
-    ADD CONSTRAINT scan_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.scan_ref
+    ADD CONSTRAINT scan_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: scan_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY scan_ref
-    ADD CONSTRAINT scan_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.scan_ref
+    ADD CONSTRAINT scan_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: scan_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY scan_ref
-    ADD CONSTRAINT scan_ref_value_fkey FOREIGN KEY (value) REFERENCES thing(id);
+ALTER TABLE ONLY public.scan_ref
+    ADD CONSTRAINT scan_ref_value_fkey FOREIGN KEY (value) REFERENCES public.thing(id);
 
 
 --
 -- Name: scan_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY scan_str
-    ADD CONSTRAINT scan_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.scan_str
+    ADD CONSTRAINT scan_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: scan_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY scan_str
-    ADD CONSTRAINT scan_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.scan_str
+    ADD CONSTRAINT scan_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: store_index_store_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY store_index
-    ADD CONSTRAINT store_index_store_id_fkey FOREIGN KEY (store_id) REFERENCES store(id);
+ALTER TABLE ONLY public.store_index
+    ADD CONSTRAINT store_index_store_id_fkey FOREIGN KEY (store_id) REFERENCES public.store(id);
 
 
 --
 -- Name: subject_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY subject_boolean
-    ADD CONSTRAINT subject_boolean_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.subject_boolean
+    ADD CONSTRAINT subject_boolean_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: subject_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY subject_boolean
-    ADD CONSTRAINT subject_boolean_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.subject_boolean
+    ADD CONSTRAINT subject_boolean_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: subject_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY subject_int
-    ADD CONSTRAINT subject_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.subject_int
+    ADD CONSTRAINT subject_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: subject_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY subject_int
-    ADD CONSTRAINT subject_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.subject_int
+    ADD CONSTRAINT subject_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: subject_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY subject_ref
-    ADD CONSTRAINT subject_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.subject_ref
+    ADD CONSTRAINT subject_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: subject_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY subject_ref
-    ADD CONSTRAINT subject_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.subject_ref
+    ADD CONSTRAINT subject_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: subject_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY subject_ref
-    ADD CONSTRAINT subject_ref_value_fkey FOREIGN KEY (value) REFERENCES thing(id);
+ALTER TABLE ONLY public.subject_ref
+    ADD CONSTRAINT subject_ref_value_fkey FOREIGN KEY (value) REFERENCES public.thing(id);
 
 
 --
 -- Name: subject_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY subject_str
-    ADD CONSTRAINT subject_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.subject_str
+    ADD CONSTRAINT subject_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: subject_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY subject_str
-    ADD CONSTRAINT subject_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.subject_str
+    ADD CONSTRAINT subject_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: thing_type_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY thing
-    ADD CONSTRAINT thing_type_fkey FOREIGN KEY (type) REFERENCES thing(id);
+ALTER TABLE ONLY public.thing
+    ADD CONSTRAINT thing_type_fkey FOREIGN KEY (type) REFERENCES public.thing(id);
 
 
 --
 -- Name: transaction_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY transaction
-    ADD CONSTRAINT transaction_author_id_fkey FOREIGN KEY (author_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.transaction
+    ADD CONSTRAINT transaction_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: transaction_index_tx_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY transaction_index
-    ADD CONSTRAINT transaction_index_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES transaction(id);
+ALTER TABLE ONLY public.transaction_index
+    ADD CONSTRAINT transaction_index_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES public.transaction(id);
 
 
 --
 -- Name: type_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY type_int
-    ADD CONSTRAINT type_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.type_int
+    ADD CONSTRAINT type_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: type_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY type_int
-    ADD CONSTRAINT type_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.type_int
+    ADD CONSTRAINT type_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: type_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY type_ref
-    ADD CONSTRAINT type_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.type_ref
+    ADD CONSTRAINT type_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: type_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY type_ref
-    ADD CONSTRAINT type_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.type_ref
+    ADD CONSTRAINT type_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: type_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY type_ref
-    ADD CONSTRAINT type_ref_value_fkey FOREIGN KEY (value) REFERENCES thing(id);
+ALTER TABLE ONLY public.type_ref
+    ADD CONSTRAINT type_ref_value_fkey FOREIGN KEY (value) REFERENCES public.thing(id);
 
 
 --
 -- Name: type_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY type_str
-    ADD CONSTRAINT type_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.type_str
+    ADD CONSTRAINT type_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: type_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY type_str
-    ADD CONSTRAINT type_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.type_str
+    ADD CONSTRAINT type_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: user_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY user_int
-    ADD CONSTRAINT user_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.user_int
+    ADD CONSTRAINT user_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: user_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY user_int
-    ADD CONSTRAINT user_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.user_int
+    ADD CONSTRAINT user_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: user_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY user_ref
-    ADD CONSTRAINT user_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.user_ref
+    ADD CONSTRAINT user_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: user_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY user_ref
-    ADD CONSTRAINT user_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.user_ref
+    ADD CONSTRAINT user_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: user_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY user_ref
-    ADD CONSTRAINT user_ref_value_fkey FOREIGN KEY (value) REFERENCES thing(id);
+ALTER TABLE ONLY public.user_ref
+    ADD CONSTRAINT user_ref_value_fkey FOREIGN KEY (value) REFERENCES public.thing(id);
 
 
 --
 -- Name: user_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY user_str
-    ADD CONSTRAINT user_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.user_str
+    ADD CONSTRAINT user_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: user_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY user_str
-    ADD CONSTRAINT user_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.user_str
+    ADD CONSTRAINT user_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: version_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY version
-    ADD CONSTRAINT version_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.version
+    ADD CONSTRAINT version_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: version_transaction_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY version
-    ADD CONSTRAINT version_transaction_id_fkey FOREIGN KEY (transaction_id) REFERENCES transaction(id);
+ALTER TABLE ONLY public.version
+    ADD CONSTRAINT version_transaction_id_fkey FOREIGN KEY (transaction_id) REFERENCES public.transaction(id);
 
 
 --
 -- Name: work_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY work_boolean
-    ADD CONSTRAINT work_boolean_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.work_boolean
+    ADD CONSTRAINT work_boolean_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: work_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY work_boolean
-    ADD CONSTRAINT work_boolean_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.work_boolean
+    ADD CONSTRAINT work_boolean_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: work_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY work_int
-    ADD CONSTRAINT work_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.work_int
+    ADD CONSTRAINT work_int_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: work_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY work_int
-    ADD CONSTRAINT work_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.work_int
+    ADD CONSTRAINT work_int_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: work_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY work_ref
-    ADD CONSTRAINT work_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.work_ref
+    ADD CONSTRAINT work_ref_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: work_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY work_ref
-    ADD CONSTRAINT work_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.work_ref
+    ADD CONSTRAINT work_ref_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
 -- Name: work_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY work_ref
-    ADD CONSTRAINT work_ref_value_fkey FOREIGN KEY (value) REFERENCES thing(id);
+ALTER TABLE ONLY public.work_ref
+    ADD CONSTRAINT work_ref_value_fkey FOREIGN KEY (value) REFERENCES public.thing(id);
 
 
 --
 -- Name: work_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY work_str
-    ADD CONSTRAINT work_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES property(id);
+ALTER TABLE ONLY public.work_str
+    ADD CONSTRAINT work_str_key_id_fkey FOREIGN KEY (key_id) REFERENCES public.property(id);
 
 
 --
 -- Name: work_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
-ALTER TABLE ONLY work_str
-    ADD CONSTRAINT work_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES thing(id);
+ALTER TABLE ONLY public.work_str
+    ADD CONSTRAINT work_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
 
 
 --
--- Name: public; Type: ACL; Schema: -; Owner: postgres
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: postgres
 --
 
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 REVOKE ALL ON SCHEMA public FROM postgres;
 GRANT ALL ON SCHEMA public TO postgres;
+GRANT USAGE ON SCHEMA public TO readcreateaccess;
 GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- Name: TABLE account; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.account FROM PUBLIC;
+REVOKE ALL ON TABLE public.account FROM openlibrary;
+GRANT ALL ON TABLE public.account TO openlibrary;
+GRANT SELECT ON TABLE public.account TO readcreateaccess;
+
+
+--
+-- Name: TABLE author_boolean; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.author_boolean FROM PUBLIC;
+REVOKE ALL ON TABLE public.author_boolean FROM openlibrary;
+GRANT ALL ON TABLE public.author_boolean TO openlibrary;
+GRANT SELECT ON TABLE public.author_boolean TO readcreateaccess;
+
+
+--
+-- Name: TABLE author_int; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.author_int FROM PUBLIC;
+REVOKE ALL ON TABLE public.author_int FROM openlibrary;
+GRANT ALL ON TABLE public.author_int TO openlibrary;
+GRANT SELECT ON TABLE public.author_int TO readcreateaccess;
+
+
+--
+-- Name: TABLE author_ref; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.author_ref FROM PUBLIC;
+REVOKE ALL ON TABLE public.author_ref FROM openlibrary;
+GRANT ALL ON TABLE public.author_ref TO openlibrary;
+GRANT SELECT ON TABLE public.author_ref TO readcreateaccess;
+
+
+--
+-- Name: TABLE author_str; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.author_str FROM PUBLIC;
+REVOKE ALL ON TABLE public.author_str FROM openlibrary;
+GRANT ALL ON TABLE public.author_str TO openlibrary;
+GRANT SELECT ON TABLE public.author_str TO readcreateaccess;
+
+
+--
+-- Name: TABLE bookshelves; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON TABLE public.bookshelves FROM PUBLIC;
+REVOKE ALL ON TABLE public.bookshelves FROM postgres;
+GRANT ALL ON TABLE public.bookshelves TO postgres;
+GRANT SELECT ON TABLE public.bookshelves TO readcreateaccess;
+
+
+--
+-- Name: TABLE bookshelves_books; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON TABLE public.bookshelves_books FROM PUBLIC;
+REVOKE ALL ON TABLE public.bookshelves_books FROM postgres;
+GRANT ALL ON TABLE public.bookshelves_books TO postgres;
+GRANT SELECT ON TABLE public.bookshelves_books TO readcreateaccess;
+
+
+--
+-- Name: TABLE bookshelves_votes; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON TABLE public.bookshelves_votes FROM PUBLIC;
+REVOKE ALL ON TABLE public.bookshelves_votes FROM postgres;
+GRANT ALL ON TABLE public.bookshelves_votes TO postgres;
+GRANT SELECT ON TABLE public.bookshelves_votes TO readcreateaccess;
+
+
+--
+-- Name: TABLE data; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.data FROM PUBLIC;
+REVOKE ALL ON TABLE public.data FROM openlibrary;
+GRANT ALL ON TABLE public.data TO openlibrary;
+GRANT SELECT ON TABLE public.data TO readcreateaccess;
+
+
+--
+-- Name: TABLE datum_int; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.datum_int FROM PUBLIC;
+REVOKE ALL ON TABLE public.datum_int FROM openlibrary;
+GRANT ALL ON TABLE public.datum_int TO openlibrary;
+GRANT SELECT ON TABLE public.datum_int TO readcreateaccess;
+
+
+--
+-- Name: TABLE datum_ref; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.datum_ref FROM PUBLIC;
+REVOKE ALL ON TABLE public.datum_ref FROM openlibrary;
+GRANT ALL ON TABLE public.datum_ref TO openlibrary;
+GRANT SELECT ON TABLE public.datum_ref TO readcreateaccess;
+
+
+--
+-- Name: TABLE datum_str; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.datum_str FROM PUBLIC;
+REVOKE ALL ON TABLE public.datum_str FROM openlibrary;
+GRANT ALL ON TABLE public.datum_str TO openlibrary;
+GRANT SELECT ON TABLE public.datum_str TO readcreateaccess;
+
+
+--
+-- Name: TABLE edition_boolean; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.edition_boolean FROM PUBLIC;
+REVOKE ALL ON TABLE public.edition_boolean FROM openlibrary;
+GRANT ALL ON TABLE public.edition_boolean TO openlibrary;
+GRANT SELECT ON TABLE public.edition_boolean TO readcreateaccess;
+
+
+--
+-- Name: TABLE edition_int; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.edition_int FROM PUBLIC;
+REVOKE ALL ON TABLE public.edition_int FROM openlibrary;
+GRANT ALL ON TABLE public.edition_int TO openlibrary;
+GRANT SELECT ON TABLE public.edition_int TO readcreateaccess;
+
+
+--
+-- Name: TABLE edition_ref; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.edition_ref FROM PUBLIC;
+REVOKE ALL ON TABLE public.edition_ref FROM openlibrary;
+GRANT ALL ON TABLE public.edition_ref TO openlibrary;
+GRANT SELECT ON TABLE public.edition_ref TO readcreateaccess;
+
+
+--
+-- Name: TABLE edition_str; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.edition_str FROM PUBLIC;
+REVOKE ALL ON TABLE public.edition_str FROM openlibrary;
+GRANT ALL ON TABLE public.edition_str TO openlibrary;
+GRANT SELECT ON TABLE public.edition_str TO readcreateaccess;
+
+
+--
+-- Name: TABLE meta; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.meta FROM PUBLIC;
+REVOKE ALL ON TABLE public.meta FROM openlibrary;
+GRANT ALL ON TABLE public.meta TO openlibrary;
+GRANT SELECT ON TABLE public.meta TO readcreateaccess;
+
+
+--
+-- Name: TABLE property; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.property FROM PUBLIC;
+REVOKE ALL ON TABLE public.property FROM openlibrary;
+GRANT ALL ON TABLE public.property TO openlibrary;
+GRANT SELECT ON TABLE public.property TO readcreateaccess;
+
+
+--
+-- Name: TABLE publisher_boolean; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.publisher_boolean FROM PUBLIC;
+REVOKE ALL ON TABLE public.publisher_boolean FROM openlibrary;
+GRANT ALL ON TABLE public.publisher_boolean TO openlibrary;
+GRANT SELECT ON TABLE public.publisher_boolean TO readcreateaccess;
+
+
+--
+-- Name: TABLE publisher_int; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.publisher_int FROM PUBLIC;
+REVOKE ALL ON TABLE public.publisher_int FROM openlibrary;
+GRANT ALL ON TABLE public.publisher_int TO openlibrary;
+GRANT SELECT ON TABLE public.publisher_int TO readcreateaccess;
+
+
+--
+-- Name: TABLE publisher_ref; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.publisher_ref FROM PUBLIC;
+REVOKE ALL ON TABLE public.publisher_ref FROM openlibrary;
+GRANT ALL ON TABLE public.publisher_ref TO openlibrary;
+GRANT SELECT ON TABLE public.publisher_ref TO readcreateaccess;
+
+
+--
+-- Name: TABLE publisher_str; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.publisher_str FROM PUBLIC;
+REVOKE ALL ON TABLE public.publisher_str FROM openlibrary;
+GRANT ALL ON TABLE public.publisher_str TO openlibrary;
+GRANT SELECT ON TABLE public.publisher_str TO readcreateaccess;
+
+
+--
+-- Name: TABLE ratings; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON TABLE public.ratings FROM PUBLIC;
+REVOKE ALL ON TABLE public.ratings FROM postgres;
+GRANT ALL ON TABLE public.ratings TO postgres;
+GRANT SELECT ON TABLE public.ratings TO readcreateaccess;
+
+
+--
+-- Name: TABLE scan_boolean; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.scan_boolean FROM PUBLIC;
+REVOKE ALL ON TABLE public.scan_boolean FROM openlibrary;
+GRANT ALL ON TABLE public.scan_boolean TO openlibrary;
+GRANT SELECT ON TABLE public.scan_boolean TO readcreateaccess;
+
+
+--
+-- Name: TABLE scan_int; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.scan_int FROM PUBLIC;
+REVOKE ALL ON TABLE public.scan_int FROM openlibrary;
+GRANT ALL ON TABLE public.scan_int TO openlibrary;
+GRANT SELECT ON TABLE public.scan_int TO readcreateaccess;
+
+
+--
+-- Name: TABLE scan_ref; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.scan_ref FROM PUBLIC;
+REVOKE ALL ON TABLE public.scan_ref FROM openlibrary;
+GRANT ALL ON TABLE public.scan_ref TO openlibrary;
+GRANT SELECT ON TABLE public.scan_ref TO readcreateaccess;
+
+
+--
+-- Name: TABLE scan_str; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.scan_str FROM PUBLIC;
+REVOKE ALL ON TABLE public.scan_str FROM openlibrary;
+GRANT ALL ON TABLE public.scan_str TO openlibrary;
+GRANT SELECT ON TABLE public.scan_str TO readcreateaccess;
+
+
+--
+-- Name: TABLE seq; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.seq FROM PUBLIC;
+REVOKE ALL ON TABLE public.seq FROM openlibrary;
+GRANT ALL ON TABLE public.seq TO openlibrary;
+GRANT SELECT ON TABLE public.seq TO readcreateaccess;
+
+
+--
+-- Name: TABLE store; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.store FROM PUBLIC;
+REVOKE ALL ON TABLE public.store FROM openlibrary;
+GRANT ALL ON TABLE public.store TO openlibrary;
+GRANT SELECT ON TABLE public.store TO readcreateaccess;
+
+
+--
+-- Name: TABLE store_index; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.store_index FROM PUBLIC;
+REVOKE ALL ON TABLE public.store_index FROM openlibrary;
+GRANT ALL ON TABLE public.store_index TO openlibrary;
+GRANT SELECT ON TABLE public.store_index TO readcreateaccess;
+
+
+--
+-- Name: TABLE subject_boolean; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.subject_boolean FROM PUBLIC;
+REVOKE ALL ON TABLE public.subject_boolean FROM openlibrary;
+GRANT ALL ON TABLE public.subject_boolean TO openlibrary;
+GRANT SELECT ON TABLE public.subject_boolean TO readcreateaccess;
+
+
+--
+-- Name: TABLE subject_int; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.subject_int FROM PUBLIC;
+REVOKE ALL ON TABLE public.subject_int FROM openlibrary;
+GRANT ALL ON TABLE public.subject_int TO openlibrary;
+GRANT SELECT ON TABLE public.subject_int TO readcreateaccess;
+
+
+--
+-- Name: TABLE subject_ref; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.subject_ref FROM PUBLIC;
+REVOKE ALL ON TABLE public.subject_ref FROM openlibrary;
+GRANT ALL ON TABLE public.subject_ref TO openlibrary;
+GRANT SELECT ON TABLE public.subject_ref TO readcreateaccess;
+
+
+--
+-- Name: TABLE subject_str; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.subject_str FROM PUBLIC;
+REVOKE ALL ON TABLE public.subject_str FROM openlibrary;
+GRANT ALL ON TABLE public.subject_str TO openlibrary;
+GRANT SELECT ON TABLE public.subject_str TO readcreateaccess;
+
+
+--
+-- Name: TABLE thing; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.thing FROM PUBLIC;
+REVOKE ALL ON TABLE public.thing FROM openlibrary;
+GRANT ALL ON TABLE public.thing TO openlibrary;
+GRANT SELECT ON TABLE public.thing TO readcreateaccess;
+
+
+--
+-- Name: TABLE transaction; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.transaction FROM PUBLIC;
+REVOKE ALL ON TABLE public.transaction FROM openlibrary;
+GRANT ALL ON TABLE public.transaction TO openlibrary;
+GRANT SELECT ON TABLE public.transaction TO readcreateaccess;
+
+
+--
+-- Name: TABLE transaction_index; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.transaction_index FROM PUBLIC;
+REVOKE ALL ON TABLE public.transaction_index FROM openlibrary;
+GRANT ALL ON TABLE public.transaction_index TO openlibrary;
+GRANT SELECT ON TABLE public.transaction_index TO readcreateaccess;
+
+
+--
+-- Name: TABLE type_int; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.type_int FROM PUBLIC;
+REVOKE ALL ON TABLE public.type_int FROM openlibrary;
+GRANT ALL ON TABLE public.type_int TO openlibrary;
+GRANT SELECT ON TABLE public.type_int TO readcreateaccess;
+
+
+--
+-- Name: TABLE type_ref; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.type_ref FROM PUBLIC;
+REVOKE ALL ON TABLE public.type_ref FROM openlibrary;
+GRANT ALL ON TABLE public.type_ref TO openlibrary;
+GRANT SELECT ON TABLE public.type_ref TO readcreateaccess;
+
+
+--
+-- Name: TABLE type_str; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.type_str FROM PUBLIC;
+REVOKE ALL ON TABLE public.type_str FROM openlibrary;
+GRANT ALL ON TABLE public.type_str TO openlibrary;
+GRANT SELECT ON TABLE public.type_str TO readcreateaccess;
+
+
+--
+-- Name: TABLE user_int; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.user_int FROM PUBLIC;
+REVOKE ALL ON TABLE public.user_int FROM openlibrary;
+GRANT ALL ON TABLE public.user_int TO openlibrary;
+GRANT SELECT ON TABLE public.user_int TO readcreateaccess;
+
+
+--
+-- Name: TABLE user_ref; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.user_ref FROM PUBLIC;
+REVOKE ALL ON TABLE public.user_ref FROM openlibrary;
+GRANT ALL ON TABLE public.user_ref TO openlibrary;
+GRANT SELECT ON TABLE public.user_ref TO readcreateaccess;
+
+
+--
+-- Name: TABLE user_str; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.user_str FROM PUBLIC;
+REVOKE ALL ON TABLE public.user_str FROM openlibrary;
+GRANT ALL ON TABLE public.user_str TO openlibrary;
+GRANT SELECT ON TABLE public.user_str TO readcreateaccess;
+
+
+--
+-- Name: TABLE version; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.version FROM PUBLIC;
+REVOKE ALL ON TABLE public.version FROM openlibrary;
+GRANT ALL ON TABLE public.version TO openlibrary;
+GRANT SELECT ON TABLE public.version TO readcreateaccess;
+
+
+--
+-- Name: TABLE work_boolean; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.work_boolean FROM PUBLIC;
+REVOKE ALL ON TABLE public.work_boolean FROM openlibrary;
+GRANT ALL ON TABLE public.work_boolean TO openlibrary;
+GRANT SELECT ON TABLE public.work_boolean TO readcreateaccess;
+
+
+--
+-- Name: TABLE work_int; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.work_int FROM PUBLIC;
+REVOKE ALL ON TABLE public.work_int FROM openlibrary;
+GRANT ALL ON TABLE public.work_int TO openlibrary;
+GRANT SELECT ON TABLE public.work_int TO readcreateaccess;
+
+
+--
+-- Name: TABLE work_ref; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.work_ref FROM PUBLIC;
+REVOKE ALL ON TABLE public.work_ref FROM openlibrary;
+GRANT ALL ON TABLE public.work_ref TO openlibrary;
+GRANT SELECT ON TABLE public.work_ref TO readcreateaccess;
+
+
+--
+-- Name: TABLE work_str; Type: ACL; Schema: public; Owner: openlibrary
+--
+
+REVOKE ALL ON TABLE public.work_str FROM PUBLIC;
+REVOKE ALL ON TABLE public.work_str FROM openlibrary;
+GRANT ALL ON TABLE public.work_str TO openlibrary;
+GRANT SELECT ON TABLE public.work_str TO readcreateaccess;
+
+
+--
+-- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: postgres
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON TABLES  FROM PUBLIC;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE ALL ON TABLES  FROM postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT ON TABLES  TO readcreateaccess;
 
 
 --
