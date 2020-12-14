@@ -642,20 +642,22 @@ def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False,
         'first_publish_year', 'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
         'ia_collection_s', 'cover_i']
     fl = ','.join(fields)
-    fq = 'author_key:' + akey
+    fqs = ['author_key:' + akey, 'type:work']
     if has_fulltext:
-        fq.append('has_fulltext:true')
+        fqs.append('has_fulltext:true')
     params = {
-        'fq': fq,
         'q': q,
         'start': offset,
         'rows': rows,
         'fl': fl,
     }
-    solr_select = solr_select_url + "?fq=type:work&wt=json&q.op=AND&"
-    solr_select = solr_select_url + urllib.parse.urlencode(params, 'utf-8')
-    facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
-    if (sort == "editions"):
+    solr_select = solr_select_url + "?wt=json&q.op=AND&fq=" + '&fq='.join(fqs)
+    solr_select += "&" + urllib.parse.urlencode(params, 'utf-8')
+    facet_fields = [
+        "author_facet", "language", "publish_year", "publisher_facet",
+        "subject_facet", "person_facet", "place_facet", "time_facet"
+    ]
+    if sort == "editions":
         solr_select += '&sort=edition_count+desc'
     elif sort.startswith('old'):
         solr_select += '&sort=first_publish_year+asc'
@@ -663,7 +665,11 @@ def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False,
         solr_select += '&sort=first_publish_year+desc'
     elif sort.startswith('title'):
         solr_select += '&sort=title+asc'
-    solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
+    _facets = '&'.join("facet.field=" + f for f in facet_fields)
+    solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count"
+    solr_select += "&f.publish_year.facet.limit=-1&facet.limit=25"
+    solr_select += "&%s" % _facets
+    print(solr_select)
     reply = parse_json_from_solr_query(solr_select)
     if reply is None:
         return web.storage(
