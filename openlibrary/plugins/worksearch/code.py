@@ -637,39 +637,46 @@ def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False,
         q = query
 
     offset = rows * (page - 1)
-    fields = ['key', 'author_name', 'author_key', 'title', 'subtitle',
-        'edition_count', 'ia', 'cover_edition_key', 'has_fulltext', 'language',
-        'first_publish_year', 'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
-        'ia_collection_s', 'cover_i']
-    fl = ','.join(fields)
-    fqs = ['author_key:' + akey, 'type:work']
+    params = [
+        ('fq', 'author_key:' + akey),
+        ('fq', 'type:work'),
+        ('q', q),
+        ('start', offset),
+        ('rows', rows),
+        ('fl', ','.join([
+            'key', 'author_name', 'author_key', 'title', 'subtitle', 'edition_count',
+            'ia', 'cover_edition_key', 'has_fulltext', 'language', 'first_publish_year',
+            'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
+            'ia_collection_s', 'cover_i'])),
+        ('wt', 'json'),
+        ('q.op', 'AND'),
+        ('facet', 'true'),
+        ('facet.mincount', 1),
+        ('f.author_facet.facet.sort', 'count'),
+        ('f.publish_year.facet.limit', -1),
+        ('facet.limit', 25),
+    ]
+
     if has_fulltext:
-        fqs.append('has_fulltext:true')
-    params = {
-        'q': q,
-        'start': offset,
-        'rows': rows,
-        'fl': fl,
-    }
-    solr_select = solr_select_url + "?wt=json&q.op=AND&fq=" + '&fq='.join(fqs)
-    solr_select += "&" + urllib.parse.urlencode(params, 'utf-8')
+        params.append(('fq', 'has_fulltext:true'))
+
+    if sort == "editions":
+        params.append(('sort', 'edition_count desc'))
+    elif sort.startswith('old'):
+        params.append(('sort', 'first_publish_year asc'))
+    elif sort.startswith('new'):
+        params.append(('sort', 'first_publish_year desc'))
+    elif sort.startswith('title'):
+        params.append(('sort', 'title asc'))
+
     facet_fields = [
         "author_facet", "language", "publish_year", "publisher_facet",
         "subject_facet", "person_facet", "place_facet", "time_facet"
     ]
-    if sort == "editions":
-        solr_select += '&sort=edition_count+desc'
-    elif sort.startswith('old'):
-        solr_select += '&sort=first_publish_year+asc'
-    elif sort.startswith('new'):
-        solr_select += '&sort=first_publish_year+desc'
-    elif sort.startswith('title'):
-        solr_select += '&sort=title+asc'
-    _facets = '&'.join("facet.field=" + f for f in facet_fields)
-    solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count"
-    solr_select += "&f.publish_year.facet.limit=-1&facet.limit=25"
-    solr_select += "&%s" % _facets
-    print(solr_select)
+    for f in facet_fields:
+        params.append(("facet.field", f))
+
+    solr_select = solr_select_url + "?" + urllib.parse.urlencode(params)
     reply = parse_json_from_solr_query(solr_select)
     if reply is None:
         return web.storage(
