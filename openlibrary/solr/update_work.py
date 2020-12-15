@@ -72,10 +72,6 @@ def get_solr_base_url():
     return solr_base_url
 
 
-# TODO: Remove get_solr
-get_solr = get_solr_base_url
-
-
 def get_ia_collection_and_box_id(ia):
     """
     Get the collections and boxids of the provided IA id
