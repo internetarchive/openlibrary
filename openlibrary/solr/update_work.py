@@ -1298,7 +1298,7 @@ def update_author(akey, a=None, handle_redirects=True):
     d['work_count'] = work_count
     d['top_subjects'] = top_subjects
 
-    requests = []
+    solr_requests = []
     if handle_redirects:
         redirect_keys = data_provider.find_redirects(akey)
         #redirects = ''.join('<id>{}</id>'.format(k) for k in redirect_keys)
@@ -1309,11 +1309,11 @@ def update_author(akey, a=None, handle_redirects=True):
         #     logger.error('AssertionError: redirects: %r', [r['key'] for r in query_iter(q)])
         #     raise
         #if redirects:
-        #    requests.append('<delete>' + redirects + '</delete>')
+        #    solr_requests.append('<delete>' + redirects + '</delete>')
         if redirect_keys:
-            requests.append(DeleteRequest(redirect_keys))
-    requests.append(UpdateRequest(d))
-    return requests
+            solr_requests.append(DeleteRequest(redirect_keys))
+    solr_requests.append(UpdateRequest(d))
+    return solr_requests
 
 
 re_edition_key_basename = re.compile("^[a-zA-Z0-9:.-]+$")
