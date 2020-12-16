@@ -415,6 +415,21 @@ class Edition(Thing):
         # all IA scans will have scanningcenter field set
         return bool(metadata.get("scanningcenter"))
 
+    def make_work_from_orphaned_edition(self):
+        """
+        Create a dummy work from an orphaned_edition.
+        """
+        return web.ctx.site.new('', {
+            'key': '',
+            'type': {'key': '/type/work'},
+            'title': self.title,
+            'authors': [
+                {'type': {'key': '/type/author_role'}, 'author': {'key': a['key']}}
+                for a in self.get('authors', [])],
+            'editions': [self],
+            'subjects': self.get('subjects', []),
+        })
+
 def some(values):
     """Returns the first value that is True from the values iterator.
     Works like any, but returns the value instead of bool(value).
