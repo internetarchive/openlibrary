@@ -61,7 +61,7 @@ services:
     hostname: "$HOSTNAME"
     environment:
       - OL_CONFIG=conf/openlibrary.yml
-      - PYENV_VERSION=3.8.6
+- PYENV_VERSION=${PYENV_VERSION:-}
     volumes:
       - solr-updater.offset:/solr-updater.offset
   memcached:
