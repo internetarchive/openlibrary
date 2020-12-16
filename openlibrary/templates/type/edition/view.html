@@ -8,7 +8,7 @@ $ edition = page if page.key.startswith('/books') else storage({})
 $ page_type = page.key.split('/')[1]
 
 $ work = page if page.key.startswith('/works') else list(page.works + [None])[0]
-$ work = work or web.ctx.site.new('', {
+$ work = work or ctx.site.new('', {
   $ 'key': '',
   $ 'type': {'key': '/type/work'},
   $ 'title': edition.title,
