@@ -4,11 +4,19 @@ $ component_times = {}
 $ component_times['TotalTime'] = time()
 
 $ tab = input(tab=None).tab
-$ editions = []
+$ edition = page if page.key.startswith('/books') else storage({})
 $ page_type = page.key.split('/')[1]
 
-$ work = page if page.key.startswith('/works') else list(page.works)[0]
-$ edition = storage({})
+$ work = page if page.key.startswith('/works') else list(page.works + None)[0]
+$ work = work or web.ctx.site.new('', {
+  $ 'key': '',
+  $ 'type': {'key': '/type/work'},
+  $ 'title': edition.title,
+  $ 'authors': [{'type': {'key': '/type/author_role'}, 'author': {'key': a['key']}}
+    $ for a in edition.get('authors', [])],
+    $ 'editions': [edition],
+  $ 'subjects': edition.get('subjects', []),
+$ })
 
 $ component_times['get_sorted_editions'] = time()
 $ editions = work.get_sorted_editions()
