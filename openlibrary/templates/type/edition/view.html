@@ -13,6 +13,7 @@ $elif page.works:
   $ work = list(page.works)[0]
 $else:
   $ work = page.make_work_from_orphaned_edition()
+$ edition = storage({})
 
 $ component_times['get_sorted_editions'] = time()
 $ editions = work.get_sorted_editions()
