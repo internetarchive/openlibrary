@@ -26,9 +26,3 @@ fi
 echo "Waiting for postgres..."
 until pg_isready --host db; do sleep 5; done
 make reindex-solr
-
-# solr updater
-python scripts/new-solr-updater.py \
-  -c $CONFIG \
-  --state-file solr-update.offset \
-  --ol-url http://web/
