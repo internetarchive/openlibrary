@@ -122,6 +122,19 @@ services:
     networks:
       - webnet
       - dbnet
+  affiliate-server:
+    image: oldev:latest
+    environment:
+      - PYENV_VERSION=${PYENV_VERSION:-}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    command: docker/ol-affiliate-server-start.sh
+    volumes:
+      - .:/openlibrary
+    networks:
+      - webnet
+
 networks:
   webnet:
   dbnet:

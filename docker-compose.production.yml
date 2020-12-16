@@ -81,6 +81,15 @@ services:
       - webnet
     secrets:
       - petabox_seed
+  
+  affiliate-server:
+    restart: always
+    hostname: "$HOSTNAME"
+    environment:
+      - AFFILIATE_CONFIG=/olsystem/etc/openlibrary.yml
+      - PYENV_VERSION=3.8.6
+
+    
 
 secrets:
     petabox_seed:

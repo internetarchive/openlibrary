@@ -47,14 +47,20 @@ API_MAX_WAIT_SECONDS = 3
 web.amazon_queue = queue.Queue()
 
 
-def process_batch(batch):
-    logger.info("process_amazon_batch(): {} items".format(len(batch)))
+def process_amazon_batch(isbn_10s):
+    """
+    def process_amazon_batch(isbn_10s: list[str]) -> None:
+
+    Call the Amazon API to get the products for a list of isbn_10s and store
+    each product in memcache using amazon_product_{isbn_13} as the cache key.
+    """
+    logger.info("process_amazon_batch(): {} items".format(len(isbn_10s)))
     try:
-        products = web.amazon_api.get_products(batch, serialize=True)
+        products = web.amazon_api.get_products(isbn_10s, serialize=True)
     except Exception:
-        logger.exception("amazon_api.get_product({}, serialize=True)".format(batch))
+        logger.exception("amazon_api.get_product({}, serialize=True)".format(isbn_10s))
     for product in products:
-        # Make sure we have an isbn13 for cache key
+        # Make sure we have an isbn_13 for cache key
         cache_key = (
             product.get('isbn_13') and product.get('isbn_13')[0] or
             isbn_10_to_isbn_13(product.get('isbn_10')[0])
@@ -65,24 +71,31 @@ def process_batch(batch):
 
 
 def seconds_remaining(start_time):
+    """
+    def seconds_remaining(start_time: int) -> int:
+    """
     return max(API_MAX_WAIT_SECONDS - (time.time() - start_time), 0)
 
 
 def amazon_lookup():
     """
-    A separate thread of execution that waits until API_THROTTLE_SECONDS
+    def amazon_lookup() -> None:
+
+    A separate thread of execution that uses the time up to API_MAX_WAIT_SECONDS to
+    create a list of isbn_10s that is not larger than API_MAX_ITEMS_PER_CALL and then
+    passes them to process_amazon_batch()
     """
     while True:
         start_time = time.time()
-        batch = set()  # no duplicates
-        while len(batch) < API_MAX_ITEMS_PER_CALL and seconds_remaining(start_time):
+        isbn_10s = set()  # no duplicates
+        while len(isbn_10s) < API_MAX_ITEMS_PER_CALL and seconds_remaining(start_time):
             try:
-                batch.add(web.amazon_queue.get(timeout=seconds_remaining(start_time)))
+                isbn_10s.add(web.amazon_queue.get(timeout=seconds_remaining(start_time)))
             except queue.Empty:
                 pass
-        if batch:
+        if isbn_10s:
             time.sleep(seconds_remaining(start_time))
-            process_amazon_batch(list(batch))
+            process_amazon_batch(list(isbn_10s))
 
 
 threading.Thread(target=amazon_lookup).start()
@@ -97,15 +110,10 @@ class Submit:
         isbn13 = isbn if len(isbn) == 13 else isbn_10_to_isbn_13(isbn)
         return isbn10, isbn13
 
-
-    def GET(self, isbn, threshold=4, wait=3):
+    def GET(self, isbn):
         """
-        If the threshold is met, piggy back request and do an amazon lookup to fill cache.
-        Next, check if solution is in cache. If so, return it.
-        Otherwise, return the equivalent of a promise e.g. "submitted"
-
-        Wait until queue exceeds threshold length or until wait period
-        exceeded (i.e. wait seconds passed)
+        If isbn is in memcache then return the `hit`.  If not then queue the isbn to be
+        looked up and return the equivalent of a promise as `submitted`
         """
         if not web.amazon_api:
             return json.dumps({"error": "not_configured"})
@@ -148,9 +156,9 @@ def load_config(configfile):
     ]
     if all(args):
         web.amazon_api = AmazonAPI(*args, throttling=0.9)
-        web.amazon_queue = set()
-        web.amazon_timer = time.time()
-        logger.exception("Initializing AmazonAPI")
+        logger.info("AmazonAPI Initialized")
+    else:
+        raise RuntimeError("{} is missing required keys.".format(configfile))
 
 
 def init_sentry(app):
