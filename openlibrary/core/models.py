@@ -495,12 +495,14 @@ class Work(Thing):
         }
 
     def get_rating_stats(self):
+        if not self.key:  # a dummy work
+            return {'avg_rating': 0, 'num_ratings': 0}
         work_id = extract_numeric_id_from_olid(self.key)
         rating_stats = Ratings.get_rating_stats(work_id)
         if rating_stats and rating_stats['num_ratings'] > 0:
             return {
-            'avg_rating': round(rating_stats['avg_rating'],2),
-            'num_ratings': rating_stats['num_ratings']
+                'avg_rating': round(rating_stats['avg_rating'], 2),
+                'num_ratings': rating_stats['num_ratings']
             }
 
     def _get_d(self):
