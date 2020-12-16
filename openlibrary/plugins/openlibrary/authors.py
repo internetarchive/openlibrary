@@ -1,3 +1,4 @@
+
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 
@@ -9,4 +10,3 @@ class author(delegate.page):
 
     def GET(self):
         return render_template("authors/index.html")
-
