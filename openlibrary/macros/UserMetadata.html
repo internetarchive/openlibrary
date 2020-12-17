@@ -18,13 +18,13 @@ $if has_edition:
   $ context["edition"] = edition.key
 
 <div class="cta-section patron-metadata">
-  <a id="modal-link" href="javascript:;" data-context="$json_encode(context)" data-i18n="$json_encode(i18n_strings)">$_("What did you think?")</a>
+  <a id="modal-link" href="javascript:;" data-context="$json_encode(context)" data-i18n="$json_encode(i18n_strings)">$_("My book notes")</a>
 </div>
 
 <div class="hidden">
   <div id="metadata-form" class="floaterAdd">
     <div class="floaterHead">
-      <h2>$_("My notes")</h2>
+      <h2>$_("My Book Notes")</h2>
       <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
     </div>
     $if notes:
