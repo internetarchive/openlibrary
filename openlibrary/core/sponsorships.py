@@ -1,5 +1,6 @@
-import requests
+import json
 import logging
+import requests
 import web
 
 from six.moves.urllib.parse import urlencode
@@ -199,22 +200,22 @@ def sync_completed_sponsored_books():
     )
     books = web.ctx.site.get_many([
         '/books/%s' % i.get('openlibrary_edition') for i in items
+        if i.get('openlibrary_edition')
     ])
     unsynced = [book for book in books if not book.ocaid]
     ocaid_lookup = dict(
         ('/books/%s' % i.get('openlibrary_edition'),  i.get('identifier'))
         for i in items
     )
+    fixed = []
     for book in unsynced:
         book.ocaid = ocaid_lookup[book.key]
         with accounts.RunAs('ImportBot'):
-            web.ctx.site.save(book, "Adding ocaid for completed sponsorship")
-        # TODO: If we need to modify the IA item (e.g. status=complete)
-        # i = ia.get_item(ocaid)
-        # i.modify_metadata(metadata={'status': 'completed'})
-        # TODO: send out an email?...
-        # email_sponsor(recipient, book)
-    return unsynced
+            web.ctx.site.save(book.dict(), "Adding ocaid for completed sponsorship")
+            fixed.append({'key': book.key, 'ocaid': book.ocaid})
+            # TODO: send out an email?... Requires Civi.
+            # email_sponsor(recipient, book)
+    return json.dumps(fixed)
 
 
 def email_sponsor(recipient, book):
