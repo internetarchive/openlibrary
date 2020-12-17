@@ -7,7 +7,7 @@ import threading
 import functools
 
 import memcache
-import simplejson
+import json
 import web
 
 from infogami import config
@@ -179,14 +179,14 @@ class memcache_memoize:
         return key.replace(" ", "_") #XXX: temporary fix to handle spaces in the arguments
 
     def json_encode(self, value):
-        """simplejson.dumps without extra spaces.
+        """json.dumps without extra spaces.
 
         memcache doesn't like spaces in the key.
         """
-        return simplejson.dumps(value, separators=(",", ":"))
+        return json.dumps(value, separators=(",", ":"))
 
-    def json_decode(self, json):
-        return simplejson.loads(json)
+    def json_decode(self, value):
+        return json.loads(value)
 
     def memcache_set(self, args, kw, value, time):
         """Adds value and time to memcache. Key is computed from the arguments.
@@ -314,11 +314,11 @@ class MemcacheCache(Cache):
         stats.begin("memcache.get", key=key)
         value = self.memcache.get(key)
         stats.end(hit=value is not None)
-        return value and simplejson.loads(value)
+        return value and json.loads(value)
 
     def set(self, key, value, expires=0):
         key = web.safestr(key)
-        value = simplejson.dumps(value)
+        value = json.dumps(value)
         stats.begin("memcache.set", key=key)
         value = self.memcache.set(key, value, expires)
         stats.end()
@@ -326,7 +326,7 @@ class MemcacheCache(Cache):
 
     def add(self, key, value, expires=0):
         key = web.safestr(key)
-        value = simplejson.dumps(value)
+        value = json.dumps(value)
         stats.begin("memcache.add", key=key)
         value = self.memcache.add(key, value, expires)
         stats.end()
@@ -525,11 +525,11 @@ class PrefixKeyFunc:
             return a
 
     def json_encode(self, value):
-        """simplejson.dumps without extra spaces and consistent ordering of dictionary keys.
+        """json.dumps without extra spaces and consistent ordering of dictionary keys.
 
         memcache doesn't like spaces in the key.
         """
-        return simplejson.dumps(value, separators=(",", ":"), sort_keys=True)
+        return json.dumps(value, separators=(",", ":"), sort_keys=True)
 
 
 def method_memoize(f):
@@ -540,7 +540,7 @@ def method_memoize(f):
     @functools.wraps(f)
     def g(self, *args, **kwargs):
         cache = self.__dict__.setdefault('_memoize_cache', {})
-        key = simplejson.dumps({
+        key = json.dumps({
             'function': f.__name__,
             'args': args,
             'kwargs': kwargs,
