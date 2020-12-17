@@ -81,15 +81,24 @@ services:
       - webnet
     secrets:
       - petabox_seed
-  
+
   affiliate-server:
     restart: always
     hostname: "$HOSTNAME"
     environment:
-      - AFFILIATE_CONFIG=/olsystem/etc/openlibrary.yml
+      - AFFILIATE_CONFIG=openlibrary.yml
       - PYENV_VERSION=3.8.6
-
-    
+    image: oldev:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    command: docker/ol-affiliate-server-start.sh
+    ports:
+      - 31337:31337
+    volumes:
+      - /olsystem/etc/openlibrary.yml:/openlibrary.yml
+    networks:
+      - webnet
 
 secrets:
     petabox_seed:

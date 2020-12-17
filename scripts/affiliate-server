@@ -29,9 +29,9 @@ import web
 import yaml
 
 import _init_path
-from openlibrary.core import cache
+from openlibrary.core import cache, stats
 from openlibrary.core.vendors import AmazonAPI
-from openlibrary.utils.dateutil import DAY_SECS
+from openlibrary.utils.dateutil import WEEK_SECS
 from openlibrary.utils.isbn import (
     normalize_isbn, isbn_13_to_isbn_10, isbn_10_to_isbn_13)
 
@@ -42,9 +42,9 @@ urls = (
 )
 
 API_MAX_ITEMS_PER_CALL = 10
-API_MAX_WAIT_SECONDS = 3
+API_MAX_WAIT_SECONDS = 0.9
 
-web.amazon_queue = queue.Queue()
+web.amazon_queue = queue.Queue()  # a thread-safe multi-producer, multi-consumer queue
 
 
 def process_amazon_batch(isbn_10s):
@@ -66,7 +66,7 @@ def process_amazon_batch(isbn_10s):
             isbn_10_to_isbn_13(product.get('isbn_10')[0])
         )
         cache.memcache_cache.set(
-            'amazon_product_%s' % cache_key, product, expires=DAY_SECS
+            'amazon_product_%s' % cache_key, product, expires=WEEK_SECS
         )
 
 
@@ -87,10 +87,12 @@ def amazon_lookup():
     """
     while True:
         start_time = time.time()
-        isbn_10s = set()  # no duplicates
+        isbn_10s = set()  # no duplicates in the batch
         while len(isbn_10s) < API_MAX_ITEMS_PER_CALL and seconds_remaining(start_time):
-            try:
-                isbn_10s.add(web.amazon_queue.get(timeout=seconds_remaining(start_time)))
+            try:  # queue.get() will block (sleep) until successful or it times out
+                isbn_10s.add(
+                    web.amazon_queue.get(timeout=seconds_remaining(start_time))
+                )
             except queue.Empty:
                 pass
         if isbn_10s:
@@ -133,10 +135,9 @@ class Submit:
 
         # Cache misses will be submitted to Amazon as ASINs (isbn10)
         web.amazon_queue.put_nowait(isbn10)
-        return json.dumps({
-            "status": "submitted",
-            "queue": web.amazon_queue.qsize(),
-        })
+        qsize = web.amazon_queue.qsize()
+        stats.put("Amazon queue qsize", qsize, 0.05)  # send one sample in 20 to statsd
+        return json.dumps({"status": "submitted", "queue": qsize})
 
 
 def load_config(configfile):
@@ -247,7 +248,7 @@ app = web.application(urls, locals())
 if __name__ == "__main__":
     setup_env()
     if "--gunicorn" in sys.argv:
-        sys.argv.pop(sys.argv.index("--gunicorn"))    
+        sys.argv.pop(sys.argv.index("--gunicorn"))
         start_gunicorn_server()
     else:
         start_server()
