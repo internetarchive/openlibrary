@@ -2,7 +2,7 @@ import json
 
 import web
 import logging
-import simplejson
+import json
 import re
 
 from infogami.utils import delegate
@@ -64,7 +64,7 @@ class availability(delegate.page):
     def POST(self):
         """Internal private API required for testing on localhost
         """
-        return delegate.RawText(simplejson.dumps({}),
+        return delegate.RawText(json.dumps({}),
                                 content_type="application/json")
 
 class loans(delegate.page):
@@ -73,7 +73,7 @@ class loans(delegate.page):
     def POST(self):
         """Internal private API required for testing on localhost
         """
-        return delegate.RawText(simplejson.dumps({}),
+        return delegate.RawText(json.dumps({}),
                                 content_type="application/json")
 
 class xauth(delegate.page):
@@ -108,7 +108,7 @@ class xauth(delegate.page):
                 },
                 "version":1
             }
-        return delegate.RawText(simplejson.dumps(result),
+        return delegate.RawText(json.dumps(result),
                                 content_type="application/json")
 
 class internal_audit(delegate.page):
@@ -137,7 +137,7 @@ class internal_audit(delegate.page):
             except ValueError as e:
                 result = {'error': str(e)}
 
-        return delegate.RawText(simplejson.dumps(result),
+        return delegate.RawText(json.dumps(result),
                                 content_type="application/json")
 
 class account_migration(delegate.page):
@@ -147,7 +147,7 @@ class account_migration(delegate.page):
     def GET(self):
         i = web.input(username='', email='', key='')
         if i.key != lending.config_internal_tests_api_key:
-            return delegate.RawText(simplejson.dumps({
+            return delegate.RawText(json.dumps({
                 'error': 'Authentication failed for private API'
             }), content_type="application/json")
         try:
@@ -156,13 +156,13 @@ class account_migration(delegate.page):
             elif i.email:
                 ol_account = OpenLibraryAccount.get(email=i.email)
         except Exception as e:
-            return delegate.RawText(simplejson.dumps({
+            return delegate.RawText(json.dumps({
                 'error': 'bad-account'
             }), content_type="application/json")
         if ol_account:
             ol_account.enc_password = 'REDACTED'
             if ol_account.itemname:
-                return delegate.RawText(simplejson.dumps({
+                return delegate.RawText(json.dumps({
                     'status': 'link-exists',
                     'username': ol_account.username,
                     'itemname': ol_account.itemname,
@@ -172,7 +172,7 @@ class account_migration(delegate.page):
                 ia_account = InternetArchiveAccount.get(email=ol_account.email.lower())
                 if ia_account:
                     ol_account.link(ia_account.itemname)
-                    return delegate.RawText(simplejson.dumps({
+                    return delegate.RawText(json.dumps({
                         'username': ol_account.username,
                         'status': 'link-found',
                         'itemname': ia_account.itemname,
@@ -185,7 +185,7 @@ class account_migration(delegate.page):
                 ia_account = InternetArchiveAccount.create(
                     ol_account.username or ol_account.displayname,
                     ol_account.email, password, verified=True, retries=USERNAME_RETRIES)
-                return delegate.RawText(simplejson.dumps({
+                return delegate.RawText(json.dumps({
                     'username': ol_account.username,
                     'email': ol_account.email,
                     'itemname': ia_account.itemname,
@@ -266,7 +266,7 @@ class account_login_json(delegate.page):
         credentials, requires Archive.org s3 keys.
         """
         from openlibrary.plugins.openlibrary.code import BadRequest
-        d = simplejson.loads(web.data())
+        d = json.loads(web.data())
         access = d.get('access', None)
         secret = d.get('secret', None)
         test = d.get('test', False)
@@ -429,7 +429,7 @@ class account_validation(delegate.page):
             errors['email'] = self.validate_email(i.email)
         if i.get('username') is not None:
             errors['username'] = self.validate_username(i.username)
-        return delegate.RawText(simplejson.dumps(errors),
+        return delegate.RawText(json.dumps(errors),
                                 content_type="application/json")
 
 
@@ -596,7 +596,7 @@ class account_audit(delegate.page):
         email = i.get('email')
         password = i.get('password')
         result = audit_accounts(email, password, test=test)
-        return delegate.RawText(simplejson.dumps(result),
+        return delegate.RawText(json.dumps(result),
                                 content_type="application/json")
 
 class account_privacy(delegate.page):
@@ -848,7 +848,7 @@ class fake_civi(delegate.page):
             }]
         }
         entity = contributions if i.entity == 'Contribution' else contact
-        return delegate.RawText(simplejson.dumps(entity), content_type="application/json")
+        return delegate.RawText(json.dumps(entity), content_type="application/json")
 
 class import_books(delegate.page):
     path = "/account/import"

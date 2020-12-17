@@ -1,5 +1,5 @@
 import web
-import simplejson
+import json
 import babel
 import babel.core
 import babel.dates
@@ -133,7 +133,7 @@ def render_component(name, attrs=None, json_encode=True):
     attrs_str = ''
     for (key, val) in attrs.items():
         if json_encode and isinstance(val, dict) or isinstance(val, list):
-            val = simplejson.dumps(val)
+            val = json.dumps(val)
         attrs_str += ' %s="%s"' % (key, val.replace('"', "'"))
 
     html = ''
@@ -196,7 +196,7 @@ def list_recent_pages(path, limit=100, offset=0):
 
 @public
 def json_encode(d):
-    return simplejson.dumps(d)
+    return json.dumps(d)
 
 def unflatten(d, seperator="--"):
     """Convert flattened data into nested form.
@@ -619,8 +619,8 @@ class UpstreamMemcacheClient:
         compressor = OLCompressor()
         self.compress = compressor.compress
         def decompress(*args, **kw):
-            d = simplejson.loads(compressor.decompress(*args, **kw))
-            return simplejson.dumps(adapter.unconvert_dict(d))
+            d = json.loads(compressor.decompress(*args, **kw))
+            return json.dumps(adapter.unconvert_dict(d))
         self.decompress = decompress
 
     def get(self, key):
