@@ -19,7 +19,7 @@ __author__ = "Anand Chitipothu <anandology@gmail.com>"
 import os
 import re
 import datetime
-import simplejson
+import json
 import web
 import logging
 
@@ -95,7 +95,7 @@ class OpenLibrary:
         """
         headers = {'Content-Type': 'application/json'}
         try:
-            data = simplejson.dumps(dict(username=username, password=password))
+            data = json.dumps(dict(username=username, password=password))
             response = self._request('/account/login', method='POST', data=data, headers=headers)
         except urllib.error.HTTPError as e:
             response = e
@@ -106,7 +106,7 @@ class OpenLibrary:
 
     def get(self, key, v=None):
         data = self._request(key + '.json' + ('?v=%d' % v if v else '')).read()
-        return unmarshal(simplejson.loads(data))
+        return unmarshal(json.loads(data))
 
     def get_many(self, keys):
         """Get multiple documents in a single request as a dictionary.
@@ -121,8 +121,8 @@ class OpenLibrary:
             return self._get_many(keys)
 
     def _get_many(self, keys):
-        response = self._request("/api/get_many?" + urllib.parse.urlencode({"keys": simplejson.dumps(keys)}))
-        return simplejson.loads(response.read())['result']
+        response = self._request("/api/get_many?" + urllib.parse.urlencode({"keys": json.dumps(keys)}))
+        return json.loads(response.read())['result']
 
     def save(self, key, data, comment=None):
         headers = {'Content-Type': 'application/json'}
@@ -130,7 +130,7 @@ class OpenLibrary:
         if comment:
             headers['Opt'] = '"%s/dev/docs/api"; ns=42' % self.base_url
             headers['42-comment'] = comment
-        data = simplejson.dumps(data)
+        data = json.dumps(data)
         return self._request(key, method="PUT", data=data, headers=headers).read()
 
     def _call_write(self, name, query, comment, action):
@@ -145,8 +145,8 @@ class OpenLibrary:
         if action:
             headers['42-action'] = action
 
-        response = self._request('/api/' + name, method="POST", data=simplejson.dumps(query), headers=headers)
-        return simplejson.loads(response.read())
+        response = self._request('/api/' + name, method="POST", data=json.dumps(query), headers=headers)
+        return json.loads(response.read())
 
     def save_many(self, query, comment=None, action=None):
         return self._call_write('save_many', query, comment, action)
@@ -192,9 +192,9 @@ class OpenLibrary:
         if 'limit' in q and q['limit'] == False:
             return unlimited_query(q)
         else:
-            q = simplejson.dumps(q)
+            q = json.dumps(q)
             response = self._request("/query.json?" + urllib.parse.urlencode(dict(query=q)))
-            return unmarshal(simplejson.loads(response.read()))
+            return unmarshal(json.loads(response.read()))
 
     def import_ocaid(self, ocaid, require_marc=True):
         data = {'identifier': ocaid, 'require_marc': 'true' if require_marc else 'false'}
