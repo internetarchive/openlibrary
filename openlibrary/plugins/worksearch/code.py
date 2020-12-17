@@ -6,7 +6,7 @@ from lxml.etree import XML, XMLSyntaxError
 from infogami.utils import delegate, stats
 from infogami import config
 from infogami.utils.view import render, render_template, safeint, public
-import simplejson as json
+import json
 from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.core.lending import get_availability_of_ocaids, add_availability
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -309,7 +309,7 @@ def parse_json(raw_file):
         return None
     try:
         json_result = json.load(raw_file)
-    except json.JSONDecodeError as e:
+    except ValueError as e:
         logger.exception("Error parsing search engine response")
         return None
     return json_result
@@ -758,7 +758,7 @@ def parse_search_response(json_data):
         return {'error': 'Error parsing empty search engine response'}
     try:
         return json.loads(json_data)
-    except json.JSONDecodeError:
+    except ValueError:
         logger.exception("Error parsing search engine response")
         m = re_pre.search(json_data)
         if m is None:

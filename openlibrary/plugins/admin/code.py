@@ -8,7 +8,7 @@ import subprocess
 import datetime
 import traceback
 import logging
-import simplejson
+import json
 import yaml
 
 from infogami import config
@@ -170,7 +170,7 @@ class add_work_to_staff_picks:
                 results[work_id][ocaid] = create_ol_subjects_for_ocaid(
                     ocaid, subjects=subjects)
 
-        return delegate.RawText(simplejson.dumps(results), content_type="application/json")
+        return delegate.RawText(json.dumps(results), content_type="application/json")
 
 
 class sync_ol_ia:
@@ -181,7 +181,7 @@ class sync_ol_ia:
         """
         i = web.input(edition_id='')
         data = update_ia_metadata_for_ol_edition(i.edition_id)
-        return delegate.RawText(simplejson.dumps(data),
+        return delegate.RawText(json.dumps(data),
                                 content_type="application/json")
 
 class people_view:

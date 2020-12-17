@@ -12,7 +12,6 @@ from openlibrary.core import ia
 from openlibrary.core import helpers
 from openlibrary.api import OpenLibrary
 from openlibrary.plugins.books import dynlinks
-from infogami.infobase import _json as simplejson
 from infogami.utils.delegate import register_exception
 from infogami.utils import stats
 from infogami import config
