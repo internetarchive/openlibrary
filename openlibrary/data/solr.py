@@ -5,7 +5,7 @@ import os
 import sys
 import re
 import web
-import simplejson
+import json
 import subprocess
 import collections
 import glob
@@ -27,8 +27,8 @@ def process_edition(doc):
         'number_of_pages', 'pagination',
         'contributions'
     ]
-    json = simplejson.dumps(subdict(doc, properties))
-    return [(w['key'], 'edition', json) for w in doc.get('works', [])]
+    json_data = json.dumps(subdict(doc, properties))
+    return [(w['key'], 'edition', json_data) for w in doc.get('works', [])]
 
 def fix_subjects(doc):
     """In some records, the subjects are references/text instead of string. This function fixes that."""
@@ -65,7 +65,7 @@ def process_work(doc, author_db, redirect_db):
         "title", "subtitle", "translated_titles", "other_titles",
         "subjects", "subject_places", "subject_people", "subject_times", "genres",
     ]
-    yield doc['key'], "json", simplejson.dumps(subdict(doc, properties))
+    yield doc['key'], "json", json.dumps(subdict(doc, properties))
 
     authors = [a['author']['key'] for a in doc.get('authors', []) if 'author' in a and 'key' in a['author']]
     for akey in set(authors):
@@ -86,7 +86,7 @@ def process_work(doc, author_db, redirect_db):
 def process_author(doc):
     key = doc['key']
     properties = ["name", "personal_name", "alternate_names", "birth_date", "death_date", "date"]
-    return [(key, 'json', simplejson.dumps(subdict(doc, properties)))]
+    return [(key, 'json', json.dumps(subdict(doc, properties)))]
 
 class Writer:
     def __init__(self):
@@ -133,11 +133,11 @@ def process_author_dump(writer, authors_dump):
     db = bsddb.btopen('solrdump/authors.db', 'w', cachesize=1024*1024*1024)
 
     properties = ['key', 'name', 'alternate_names', 'personal_name']
-    for type, key, revision, timestamp, json in read_tsv(authors_dump):
-        author = simplejson.loads(json)
+    for type, key, revision, timestamp, json_data in read_tsv(authors_dump):
+        author = json.loads(json_data)
 
         olid = key.split("/")[-1]
-        db[olid] = simplejson.dumps(subdict(author, properties))
+        db[olid] = json.dumps(subdict(author, properties))
 
         writer.write(process_author(author))
     return db
@@ -146,8 +146,8 @@ def process_redirect_dump(writer, redirects_dump):
     import bsddb
     db = bsddb.btopen('solrdump/redirects.db', 'w', cachesize=1024*1024*1024)
 
-    for type, key, revision, timestamp, json in read_tsv(redirects_dump):
-        d = simplejson.loads(json)
+    for type, key, revision, timestamp, json_data in read_tsv(redirects_dump):
+        d = json.loads(json_data)
         if not key.startswith("/authors/") and not key.startswith("/works/"):
             continue
 
@@ -200,13 +200,13 @@ def find_redirect(redirect_db, key):
     return None
 
 def process_work_dump(writer, works_dump, author_db, redirect_db):
-    for type, key, revision, timestamp, json in read_tsv(works_dump):
-        doc = simplejson.loads(json)
+    for type, key, revision, timestamp, json_data in read_tsv(works_dump):
+        doc = json.loads(json_data)
         writer.write(process_work(doc, author_db, redirect_db))
 
 def process_edition_dump(writer, editions_dump):
-    for type, key, revision, timestamp, json in read_tsv(editions_dump):
-        doc = simplejson.loads(json)
+    for type, key, revision, timestamp, json_data in read_tsv(editions_dump):
+        doc = json.loads(json_data)
         writer.write(process_edition(doc))
 
 def generate_dump(editions_dump, works_dump, authors_dump, redirects_dump):
@@ -233,7 +233,7 @@ def phase2_process_files():
     f = open("solrdump/solrdump_works.txt", "w", 5*1024*1024)
 
     for path in glob.glob("solrdump/works_*"):
-        f.writelines("%s\t%s\n" % (key, simplejson.dumps(process_solr_work_record(key, d)))
+        f.writelines("%s\t%s\n" % (key, json.dumps(process_solr_work_record(key, d)))
             for key, d in process_triples(path))
 
 def process_work_triples(path):
@@ -322,7 +322,7 @@ def process_triples(path):
         d = collections.defaultdict(list)
         for k, name, value in chunk:
             if name in ['json', 'edition', 'author']:
-                value = simplejson.loads(value)
+                value = json.loads(value)
             d[name].append(value)
         yield key, d
 
