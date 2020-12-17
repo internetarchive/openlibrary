@@ -673,9 +673,8 @@ $if ctx.user and ctx.user.is_admin():
         </div>
     </fieldset>
 
-$if ctx.user and ctx.user.is_admin():
-    <fieldset class="major adminOnly">
-        <legend>$_("Admin Only")</legend>
+$if ctx.user:
+    <fieldset class="major">
         <div class="formElement">
             <div class="label">
                 <label for="edition-first_sentence">$_("First sentence")</label>
