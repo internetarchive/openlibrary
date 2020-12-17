@@ -7,7 +7,12 @@ $ tab = input(tab=None).tab
 $ editions = []
 $ page_type = page.key.split('/')[1]
 
-$ work = page if page.key.startswith('/works') else list(page.works)[0]
+$if page.key.startswith('/works'):
+  $ work = page
+$elif page.works:
+  $ work = list(page.works)[0]
+$else:
+  $ work = page.make_work_from_orphaned_edition()
 $ edition = storage({})
 
 $ component_times['get_sorted_editions'] = time()
