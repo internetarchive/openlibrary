@@ -307,7 +307,7 @@ class account_login(delegate.page):
     def GET(self):
         referer = web.ctx.env.get('HTTP_REFERER', '/')
         # Don't set referer on user activation
-        if '//archive.org/account/verify.php' in referer:
+        if 'archive.org' in referer:
             referer = None
         i = web.input(redirect=referer)
         f = forms.Login()
