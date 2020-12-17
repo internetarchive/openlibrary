@@ -12,6 +12,8 @@ $if list.description:
 $var title: $list.name
 
 $putctx("description", meta_description)
+$if days_since(list.created) < 30:
+  $ putctx('robots', 'noindex')
 
 $add_metatag(property="twitter:card", content="summary")
 $add_metatag(property="twitter:site", content="@openlibrary")
