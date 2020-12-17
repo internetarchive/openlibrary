@@ -181,8 +181,6 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                       <input type="hidden" name="edition_id" value="$(edition_key)"/>
                     <button class="nostyle-btn" type="submit">$_('Already Read')</button>
                   </form>
-                $if users_work_read_status:
-                  <div><a href="">Add a note</a></div>
               </div>
 
               $if not readinglogonly:
@@ -286,7 +284,8 @@ $if include_widget:
       $:macros.StarRatings(work, edition)
 
     $if ctx.user and ctx.user.is_beta_tester():
-      $:macros.UserMetadata(work, edition)
+      $:macros.UserMetadata(work, edition, notes=users_work_read_status)
+
 
 $if include_showcase:
   <ul class="listLists">

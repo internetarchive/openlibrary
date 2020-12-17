@@ -1,4 +1,4 @@
-$def with (work, edition)
+$def with (work, edition, notes=None)
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ has_edition = edition is not None
@@ -24,9 +24,14 @@ $if has_edition:
 <div class="hidden">
   <div id="metadata-form" class="floaterAdd">
     <div class="floaterHead">
-      <h2>$_("Share your thoughts")</h2>
+      <h2>$_("My notes")</h2>
       <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
     </div>
+    $if notes:
+      <form>
+        <p>My notes about this book</p>
+        <textarea name="patron-notes"></textarea>
+      </form>
     <form class="floatform" name="user-metadata" id="user-metadata"></form>
   </div>
 </div>
