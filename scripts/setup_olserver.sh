@@ -1,5 +1,9 @@
 #!/bin/bash
 # This script is used to provision an ol-server node _before_ docker gets on it.
+# It takes a few environment variables:
+#
+# DOCKER_USERS=""
+# The users who will be able to use docker (space-separted)
 
 # Which Ubuntu release are we running on?  Do not fail if /etc/os-release does not exist.
 cat /etc/os-release | grep VERSION= || true  # VERSION="20.04.1 LTS (Focal Fossa)"
@@ -19,6 +23,12 @@ docker --version        # 19.03.8
 docker-compose version  #  1.25.0
 sudo systemctl start docker
 sudo systemctl enable docker
+
+# Give certain users access to docker commands
+DOCKER_USERS="nagios $DOCKER_USERS"
+for user in $DOCKER_USERS; do
+    sudo usermod -aG docker $user
+done
 
 sudo groupadd --system openlibrary
 sudo useradd --no-log-init --system --gid openlibrary --create-home openlibrary
