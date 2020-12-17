@@ -66,11 +66,6 @@ class browse(delegate.page):
         sorts = i.sorts.split(',')
         page = int(i.page)
         limit = int(i.limit)
-
-        print("query: " + i.q)
-        print("subject: " + i.subject)
-        print("work_id: " + i.work_id)
-
         url = lending.compose_ia_url(
             query=i.q, limit=limit, page=page, subject=i.subject,
             work_id=i.work_id, _type=i._type, sorts=sorts)
