@@ -140,6 +140,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                 $if edition_key:
                   <input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>
               </form>
+              
               $if users_work_read_status:
                 <a href="javascript:;" class="dropclick dropclick-activated">
                   <div class="arrow arrow-activated"></div>
@@ -180,6 +181,8 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                       <input type="hidden" name="edition_id" value="$(edition_key)"/>
                     <button class="nostyle-btn" type="submit">$_('Already Read')</button>
                   </form>
+                $if users_work_read_status:
+                  <div><a href="">Add a note</a></div>
               </div>
 
               $if not readinglogonly:
