@@ -115,7 +115,9 @@ class AmazonAPI:
                          exc_info=True)
             return None
         response = self.api.get_items(request)
-        products = response.items_result.items
+        products = [
+            p for p in response.items_result.items if p
+        ] if response.items_result else []
         return (products if not serialize else
                 [self.serialize(p) for p in products])
 

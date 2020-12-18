@@ -86,7 +86,7 @@ services:
     restart: always
     hostname: "$HOSTNAME"
     environment:
-      - AFFILIATE_CONFIG=openlibrary.yml
+      - AFFILIATE_CONFIG=/openlibrary.yml
       - PYENV_VERSION=3.8.6
     image: oldev:latest
     build:
@@ -96,10 +96,10 @@ services:
     ports:
       - 31337:31337
     volumes:
-      - /olsystem/etc/openlibrary.yml:/openlibrary.yml
+      -  /opt/olsystem/etc/openlibrary.yml:/openlibrary.yml
+      -  .:/openlibrary
     networks:
       - webnet
-
 secrets:
     petabox_seed:
       file: /opt/.petabox/seed
@@ -112,4 +112,3 @@ secrets:
 volumes:
     infobase-writelog:
     infobase-errorlog:
-

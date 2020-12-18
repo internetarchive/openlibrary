@@ -1,4 +1,4 @@
 #!/bin/bash
 
 python --version
-python scripts/affiliate-server "$AFFILIATE_CONFIG" --bind :31337
+python scripts/affiliate-server "$AFFILIATE_CONFIG" 0.0.0.0:31337

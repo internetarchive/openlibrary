@@ -29,7 +29,10 @@ import web
 import yaml
 
 import _init_path
-from openlibrary.core import cache, stats
+
+import infogami
+from infogami import config
+from openlibrary.core import stats
 from openlibrary.core.vendors import AmazonAPI
 from openlibrary.utils.dateutil import WEEK_SECS
 from openlibrary.utils.isbn import (
@@ -59,6 +62,7 @@ def process_amazon_batch(isbn_10s):
         products = web.amazon_api.get_products(isbn_10s, serialize=True)
     except Exception:
         logger.exception("amazon_api.get_product({}, serialize=True)".format(isbn_10s))
+        products = []
     for product in products:
         # Make sure we have an isbn_13 for cache key
         cache_key = (
@@ -121,7 +125,7 @@ class Submit:
             return json.dumps({"error": "not_configured"})
 
         isbn10, isbn13 = self.unpack_isbn(isbn)
-        if not isbn10 and not isbn13:
+        if not isbn10:
             return json.dumps({
                 "error": "rejected_isbn",
                 "isbn10": isbn10,
@@ -141,19 +145,16 @@ class Submit:
 
 
 def load_config(configfile):
-    with open(configfile) as in_file:
-        d = yaml.safe_load(in_file)
-    for k, v in d.items():
-        setattr(web.ol_config, k, v)
+    infogami.load_config(configfile)
 
-    if 'fastcgi' in d:
-        web.config.fastcgi = d['fastcgi']
+    #if 'fastcgi' in d:
+    #    web.config.fastcgi = d['fastcgi']
 
     web.amazon_api = None
     args = [
-        web.ol_config.amazon_api.get('key'),
-        web.ol_config.amazon_api.get('secret'),
-        web.ol_config.amazon_api.get('id')
+        config.amazon_api.get('key'),
+        config.amazon_api.get('secret'),
+        config.amazon_api.get('id')
     ]
     if all(args):
         web.amazon_api = AmazonAPI(*args, throttling=0.9)
@@ -164,7 +165,7 @@ def load_config(configfile):
 
 def init_sentry(app):
     from openlibrary.utils.sentry import Sentry
-    sentry = Sentry(getattr(web.ol_config, 'sentry', {}))
+    sentry = Sentry(getattr(config, 'sentry', {}))
     if sentry.enabled:
         sentry.init()
         sentry.bind_to_webpy_app(app)
@@ -176,13 +177,16 @@ def setup_env():
     # required when run as fastcgi
     os.environ['REAL_SCRIPT_NAME'] = ""
 
+cache = None
+
 def start_server():
     sysargs = sys.argv[1:]
     configfile, args = sysargs[0], sysargs[1:]
 
     # type: (str) -> None
     load_config(configfile)
-
+    global cache
+    from openlibrary.core import cache
     # sentry could be loaded here
     # init_sentry(app)
 
@@ -238,7 +242,6 @@ def runfcgi(func, addr=('localhost', 8000)):
     return flups.WSGIServer(func, multiplexed=True, bindAddress=addr, **config).run()
 
 
-web.ol_config = web.storify({})
 web.config.debug = False
 web.wsgi.runfcgi = runfcgi
 
