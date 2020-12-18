@@ -33,7 +33,7 @@ class OLError(Exception):
     def __init__(self, http_error):
         self.code = http_error.code
         self.headers = http_error.headers
-        msg = http_error.msg + ": " + http_error.read()
+        msg = http_error.msg + ": " + http_error.read().decode()
         Exception.__init__(self, msg)
 
 
@@ -50,6 +50,7 @@ class OpenLibrary:
             headers['Cookie'] = self.cookie
 
         try:
+            data = data.encode() if data else data
             req = urllib.request.Request(url, data, headers)
             req.get_method = lambda: method
             return urllib.request.urlopen(req)
