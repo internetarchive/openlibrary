@@ -16,8 +16,12 @@ $if "type" in doc and doc.type.key == "/type/user":
     <style type="text/css">
         span.list-owner { display: none; }
     </style>
+    
+
     $if ctx.user and ctx.user.key == doc.key:
         <script type="text/javascript">
+        
+        
             window.q.push(function() {
                 \$("#listResults .resultTitle")
                     .prepend('' +
@@ -34,9 +38,16 @@ $if "type" in doc and doc.type.key == "/type/user":
                                         var list_id = "#" + \$(this).data("list-id");
                                         var key = \$(list_id + " a:first").attr("href");
                                         var dialog = this;
-
+                                       
+                                        var ele=\$(".collapse.large.brown.sansserif");
+                                        var arr=ele.text().trim().split(" ");
+                                        var len=arr.length-1;
+                                        arr[len-1]=parseInt(arr[len-1])-1;
+                                        arr[len]=(arr[len-1]==1?"list.":"lists.");
+                                        
                                         \$.post(key + "/delete.json", function() {
                                             \$(list_id).remove();
+                                            ele.text(arr.join(" "));
                                             \$(dialog).dialog("close");
                                         });
                                     },
