@@ -62,8 +62,13 @@ def process_amazon_batch(isbn_10s):
         products = web.amazon_api.get_products(isbn_10s, serialize=True)
     except Exception:
         logger.exception("amazon_api.get_product({}, serialize=True)".format(isbn_10s))
-        products = []
-    for product in products:
+        return
+    
+    bad_isbn_10s = []
+    for i, product in enumerate(products):
+        if not product:
+            bad_isbn_10s.append(isbn_10s[i])
+            continue
         # Make sure we have an isbn_13 for cache key
         cache_key = (
             product.get('isbn_13') and product.get('isbn_13')[0] or
@@ -72,6 +77,8 @@ def process_amazon_batch(isbn_10s):
         cache.memcache_cache.set(
             'amazon_product_%s' % cache_key, product, expires=WEEK_SECS
         )
+    if bad_isbn_10s:
+        logger.info("amazon_api.get_product({}) got no hits.".format(bad_isbn_10s))
 
 
 def seconds_remaining(start_time):
