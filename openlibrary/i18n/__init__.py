@@ -12,6 +12,7 @@ from babel.messages.extract import extract_from_file, extract_from_dir, extract_
 
 root = os.path.dirname(__file__)
 
+
 def _compile_translation(po, mo):
     try:
         catalog = read_po(open(po, 'rb'))
@@ -24,8 +25,10 @@ def _compile_translation(po, mo):
         print('failed to compile', po, file=web.debug)
         raise e
 
+
 def get_locales():
     return [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
+
 
 def extract_templetor(fileobj, keywords, comment_tags, options):
     """Extract i18n messages from web.py templates."""
@@ -39,6 +42,7 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
         print('Failed to extract ' + fileobj.name + ':', repr(e), file=web.debug)
         return []
     return extract_python(f, keywords, comment_tags, options)
+
 
 def extract_messages(dirs):
     catalog = Catalog(
@@ -74,6 +78,7 @@ def compile_translations():
         if os.path.exists(po_path):
             _compile_translation(po_path, mo_path)
 
+
 def update_translations():
     pot_path = os.path.join(root, 'messages.pot')
     template = read_po(open(pot_path, 'rb'))
@@ -93,6 +98,7 @@ def update_translations():
 
     compile_translations()
 
+
 @web.memoize
 def load_translations(lang):
     po = os.path.join(root, lang, 'messages.po')
@@ -108,10 +114,12 @@ def load_locale(lang):
     except babel.UnknownLocaleError:
         pass
 
+
 class GetText:
     def __call__(self, string, *args, **kwargs):
         """Translate a given string to the language of the current locale."""
-        translations = load_translations(web.ctx.get('lang', 'en'))
+        locale = web.cookies(i18n_code="en")
+        translations = load_translations(locale.i18n_code)
         value = (translations and translations.ugettext(string)) or string
 
         if args:
@@ -123,6 +131,7 @@ class GetText:
 
     def __getattr__(self, key):
         from infogami.utils.i18n import strings
+
         # for backward-compatability
         return strings.get('', key)
 
@@ -130,6 +139,7 @@ class LazyGetText:
     def __call__(self, string, *args, **kwargs):
         """Translate a given string lazily."""
         return LazyObject(lambda: GetText()(string, *args, **kwargs))
+
 
 class LazyObject:
     def __init__(self, creator):
@@ -147,9 +157,11 @@ class LazyObject:
     def __radd__(self, other):
         return other + self._creator()
 
+
 def ungettext(s1, s2, _n, *a, **kw):
-    translations = load_translations(web.ctx.get('lang', 'en'))
-    value = (translations and translations.ungettext(s1, s2, _n))
+    locale = web.cookies(i18n_code='en')
+    translations = load_translations(locale.i18n_code)
+    value = translations and translations.ungettext(s1, s2, _n)
     if not value:
         # fallback when translation is not provided
         if _n == 1:
@@ -164,11 +176,13 @@ def ungettext(s1, s2, _n, *a, **kw):
     else:
         return value
 
+
 def gettext_territory(code):
-    """Returns the territory name in the current locale.
-    """
-    locale = load_locale(web.ctx.get('lang', 'en'))
+    """Returns the territory name in the current locale."""
+    lang = web.cookies(i18n_code='en')
+    locale = load_translations(lang.i18n_code)
     return locale.territories.get(code, code)
+
 
 gettext = GetText()
 ugettext = gettext

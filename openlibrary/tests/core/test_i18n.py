@@ -1,7 +1,9 @@
 import web
+from openlibrary.mocks.mock_infobase import MockSite
 
 # The i18n module should be moved to core.
 from openlibrary import i18n
+
 
 class MockTranslations(dict):
     def gettext(self, message):
@@ -13,12 +15,14 @@ class MockTranslations(dict):
         else:
             return self.gettext(message2)
 
+
 class MockLoadTranslations(dict):
     def __call__(self, lang):
         return self.get(lang)
 
     def init(self, lang, translations):
         self[lang] = MockTranslations(translations)
+
 
 class Test_ungettext:
     def setup_monkeypatch(self, monkeypatch):
@@ -27,9 +31,23 @@ class Test_ungettext:
 
         monkeypatch.setattr(i18n, "load_translations", self.d)
         monkeypatch.setattr(web, "ctx", ctx)
+        self._load_fake_context()
+
+        web.ctx.site = MockSite()
+        monkeypatch.setattr(web, "setcookie", self._setcookie)
+
+    def _load_fake_context(self):
+        app = web.application()
+        env = {"PATH_INFO": "/", "HTTP_METHOD": "GET"}
+        app.load(env)
+
+    def _setcookie(self, name, value):
+        self.cookie = dict(name=name, value=value)
 
     def test_ungettext(self, monkeypatch):
         self.setup_monkeypatch(monkeypatch)
+
+        web.setcookie('i18n_code', 'es')
 
         i18n.ungettext("book", "books", 1) == "book"
         i18n.ungettext("book", "books", 2) == "books"

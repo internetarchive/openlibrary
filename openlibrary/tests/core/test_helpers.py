@@ -1,4 +1,26 @@
+import web
 from openlibrary.core import helpers as h
+from openlibrary.mocks.mock_infobase import MockSite
+
+
+def _load_fake_context():
+    app = web.application()
+    env = {"PATH_INFO": "/", "HTTP_METHOD": "GET"}
+    app.load(env)
+
+
+def _monkeypatch_web(monkeypatch):
+    monkeypatch.setattr(web, "ctx", web.storage(x=1))
+    monkeypatch.setattr(web.webapi, "ctx", web.ctx)
+
+    _load_fake_context()
+    web.ctx.site = MockSite()
+
+    def setcookie(name, value):
+        cookie = dict(name=name, value=value)
+
+    monkeypatch.setattr(web, "setcookie", setcookie)
+
 
 def test_sanitize():
     # plain html should pass through
@@ -25,6 +47,7 @@ def test_sanitize():
     # relative links should pass through
     assert h.sanitize('<a href="relpath">hello</a>') == '<a href="relpath">hello</a>'
 
+
 def test_safesort():
     from datetime import datetime
 
@@ -37,13 +60,19 @@ def test_safesort():
 
     assert h.safesort([[y2005], [None]], key=lambda x: x[0]) == [[None], [y2005]]
 
-def test_datestr():
+
+def test_datestr(monkeypatch):
     from datetime import datetime
+
     then = datetime(2010, 1, 1, 0, 0, 0)
 
-    #assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 0, 10)) == u"just moments ago"
-    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 1)) == "1 second ago"
-    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 9)) == "9 seconds ago"
+    _monkeypatch_web(monkeypatch)
+
+    web.setcookie('i18n_code', 'fr')
+
+    # assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 0, 10)) == u"just moments ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 1)) == u"1 second ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 9)) == u"9 seconds ago"
 
     assert h.datestr(then, datetime(2010, 1, 1, 0, 1, 1)) == "1 minute ago"
     assert h.datestr(then, datetime(2010, 1, 1, 0, 9, 1)) == "9 minutes ago"
@@ -69,10 +98,12 @@ def test_commify():
     assert h.commify(1234, lang="te") == "1,234"
     assert h.commify(1234567, lang="te") == "12,34,567"
 
+
 def test_truncate():
     assert h.truncate("hello", 6) == "hello"
     assert h.truncate("hello", 5) == "hello"
     assert h.truncate("hello", 4) == "hell..."
+
 
 def test_urlsafe():
     assert h.urlsafe("a b") == "a_b"
@@ -81,6 +112,7 @@ def test_urlsafe():
 
     assert h.urlsafe("?a") == "a"
     assert h.urlsafe("a?") == "a"
+
 
 def test_get_coverstore_url(monkeypatch):
     from infogami import config
@@ -95,10 +127,12 @@ def test_get_coverstore_url(monkeypatch):
     monkeypatch.setattr(config, "coverstore_url", "https://0.0.0.0:8090/", raising=False)
     assert h.get_coverstore_url() == "https://0.0.0.0:8090"
 
+
 def test_texsafe():
     assert h.texsafe("hello") == r"hello"
     assert h.texsafe("a_b") == r"a\_{}b"
     assert h.texsafe("a < b") == r"a \textless{} b"
+
 
 def test_percentage():
     assert h.percentage(1, 10) == 10.0

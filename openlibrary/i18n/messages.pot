@@ -2556,6 +2556,18 @@ msgstr ""
 msgid "Suggesting Edits"
 msgstr ""
 
+#: nav_foot.html:51
+msgid "Change Website Language"
+msgstr ""
+
+#: nav_foot.html:53
+msgid "Czech"
+msgstr ""
+
+#: nav_foot.html:58
+msgid "Telugu"
+msgstr ""
+
 #: nav_foot.html:59
 msgid ""
 "Open Library is an initiative of the <a href=\"//archive.org/\">Internet "
