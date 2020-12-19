@@ -65,9 +65,9 @@ def process_amazon_batch(isbn_10s):
         return
     
     bad_isbn_10s = []
-    for i, product in enumerate(products):
-        if not product:
-            bad_isbn_10s.append(isbn_10s[i])
+    for isbn_10, product in zip(isbn_10s, products):
+        if not product:  # amazon_api.get_products() returned None for this isbn_10
+            bad_isbn_10s.append(isbn_10)
             continue
         # Make sure we have an isbn_13 for cache key
         cache_key = (
