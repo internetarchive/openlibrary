@@ -17,11 +17,11 @@ function isScrolledIntoView(elem) {
     return false;
 }
 
-/* 
+/*
 Sets the key in the website cookie to the specified value
 */
 function setValueInCookie(key, value) {
-    document.cookie = key + "=" + value + ";" + ";path=/";
+    document.cookie = `${key}=${value};path=/`;
 }
 
 export default function init() {
@@ -158,7 +158,7 @@ export function initPreviewButton() {
 
 export function initWebsiteTranslationOptions() {
     $(document).ready(function () {
-        $("#locale-options li").on('click', function () {
+        $('#locale-options li').on('click', function () {
             var locale = $(this).attr('id');
             setValueInCookie('i18n_code', locale);
         });
