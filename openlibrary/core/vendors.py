@@ -21,27 +21,18 @@ from openlibrary import accounts
 
 logger = logging.getLogger("openlibrary.vendors")
 
-amazon_api = None
-config_amz_api = None
-
 BETTERWORLDBOOKS_BASE_URL = 'https://betterworldbooks.com'
 BETTERWORLDBOOKS_API_URL = ('https://products.betterworldbooks.com/service.aspx?'
                             'IncludeAmazon=True&ItemId=')
+affiliate_server_url = None
 BWB_AFFILIATE_LINK = 'http://www.anrdoezrs.net/links/{}/type/dlg/http://www.betterworldbooks.com/-id-%s'.format(h.affiliate_id('betterworldbooks'))
 AMAZON_FULL_DATE_RE = re.compile(r'\d{4}-\d\d-\d\d')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 
 
 def setup(config):
-    global config_amz_api, amazon_api
-    config_amz_api = config.get('amazon_api')
-    try:
-        amazon_api = AmazonAPI(
-            config_amz_api.key, config_amz_api.secret,
-            config_amz_api.id, throttling=0.9)
-    except AttributeError:
-        amazon_api = None
-
+    global affiliate_server_url
+    affiliate_server_url = config.get('affiliate_server')
 
 class AmazonAPI:
     """Amazon Product Advertising API 5.0 wrapper for Python"""
@@ -124,7 +115,9 @@ class AmazonAPI:
                          exc_info=True)
             return None
         response = self.api.get_items(request)
-        products = response.items_result.items
+        products = [
+            p for p in response.items_result.items if p
+        ] if response.items_result else []
         return (products if not serialize else
                 [self.serialize(p) for p in products])
 
@@ -258,17 +251,20 @@ def _get_amazon_metadata(id_, id_type='isbn', resources=None):
     :return: A single book item's metadata, or None.
     :rtype: dict or None
     """
+    if not affiliate_server_url:
+        return None
+
     if id_type == 'isbn':
         id_ = normalize_isbn(id_)
         if len(id_) == 13 and id_.startswith('978'):
             id_ = isbn_13_to_isbn_10(id_)
 
-    if amazon_api:
-        try:
-            return amazon_api.get_product(id_, serialize=True, resources=resources)
-        except Exception:
-            logger.exception("amazon_api.get_product({}, serialize=True)".format(id_))
-            return None
+    try:
+        r = requests.get('http://%s/isbn/%s' % (affiliate_server_url, id_))
+        return r.json().get('hit') or None
+    except requests.exceptions.ConnectionError:
+        logger.exception("Affiliate Server unreachable")
+        return None
 
 
 def split_amazon_title(full_title):
