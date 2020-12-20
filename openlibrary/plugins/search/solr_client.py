@@ -1,16 +1,17 @@
 #!/usr/bin/python
-from xml.etree.cElementTree import ElementTree
-from six.moves import cStringIO as StringIO
 import os
 import re
 from collections import defaultdict
-import web
-import simplejson
-from openlibrary.plugins.search.facet_hash import facet_token
+from xml.etree.cElementTree import ElementTree
 
+import requests
+import simplejson
 import six
+import web
+from six.moves import cStringIO as StringIO
 from six.moves.urllib.parse import quote_plus
-from six.moves.urllib.request import urlopen
+
+from openlibrary.plugins.search.facet_hash import facet_token
 
 php_location = "/petabox/setup.inc"
 
@@ -89,7 +90,8 @@ def create_query_processor(type):
 
 class SolrError(Exception): pass
 
-import traceback                        # @@
+import traceback  # @@
+
 
 def ocaid_to_olid(ocaid):
     return web.ctx.site.things(type='/type/edition',
@@ -121,9 +123,7 @@ class Solr_result(object):
 class SR2(Solr_result):
     def __init__(self, result_json):
         try:
-            e = simplejson.loads(result_json)
-            # h = e['responseHeader']
-            r = e['response']
+            r = result_json['response']
             self.total_results = r['numFound']
             self.begin = r['start']
             self.end = self.begin + len(r['docs'])
@@ -202,7 +202,7 @@ class Solr_client(object):
 
     def search(self, query, **params):
         # advanced search: directly post a Solr search which uses fieldnames etc.
-        # return list of document id's
+        # return a Solr_result
         assert isinstance(query, str)
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
@@ -210,12 +210,11 @@ class Solr_client(object):
             (server_url, self.__query_fmt(query, **params))
 
         try:
-            ru = urlopen(query_url)
-            py = ru.read()
-            ru.close()
-        except IOError:
+            response = requests.get(query_url)
+            response.raise_for_status()
+        except requests.models.HTTPError:
             raise SolrError("Search temporarily unavailable, please try later")
-        return SR2(py)
+        return SR2(response.json())
 
     advanced_search = search
 
@@ -306,10 +305,9 @@ class Solr_client(object):
         assert isinstance(query, str)
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
-        query_url = '%s?q=%s'% (server_url, self.__query_fmt(query, **params))
+        query_url = '%s?q=%s' % (server_url, self.__query_fmt(query, **params))
         # print >> web.debug, ('raw_search', ((query,params),query_url))
-        ru = urlopen(query_url)
-        return ru.read()
+        return requests.get(query_url).content
 
     # translate a basic query into an advanced query, by launching PHP
     # script, passing query to it, and getting result back.
