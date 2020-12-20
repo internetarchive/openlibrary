@@ -7,6 +7,7 @@ its experience. This does not include public facing APIs with LTS
 import web
 import re
 import simplejson
+import json
 
 from infogami import config
 from infogami.utils import delegate
@@ -19,6 +20,7 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
+from openlibrary.core.models import Booknotes
 from openlibrary.core.sponsorships import qualifies_for_sponsorship
 from openlibrary.core.vendors import (
     get_amazon_metadata, create_edition_from_amazon_metadata,
@@ -78,7 +80,6 @@ class browse(delegate.page):
             simplejson.dumps(result),
             content_type="application/json")
 
-
 class ratings(delegate.page):
     path = r"/works/OL(\d+)W/ratings"
     encoding = "json"
@@ -121,6 +122,54 @@ class ratings(delegate.page):
             raise web.seeother(key)
         return r
 
+
+class booknotes(delegate.page):
+    path = r"/works/OL(\d+)W/notes"
+    encoding = "json"
+
+    def POST(self, work_id):
+        """
+        Add a note to a work (or a work and an edition)
+        GET params:
+        - edition_id str (optional)
+        - redir bool: if patron not logged in, redirect back to page after login
+
+        :param str work_id: e.g. OL123W
+        :rtype: json
+        :return: the note
+        """
+        user = accounts.get_current_user()
+        i = web.input(notes=None, edition_id=None, redir=None)
+        edition_id = int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
+
+        if not user:
+            raise web.seeother('/account/login?redirect=%s' % key)
+
+        username = user.key.split('/')[2]
+
+        def response(msg, status="success"):
+            return delegate.RawText(simplejson.dumps({
+                status: msg
+            }), content_type="application/json")
+
+        if i.notes is None:
+            Booknotes.remove(username, work_id)
+            return response('removed note')
+
+        Booknotes.add(
+            username=username,
+            work_id=work_id,
+            notes=i.notes,
+            edition_id=edition_id
+        )
+
+        if i.redir:
+            raise web.seeother(key)
+
+        return response('note added')
+
+
+
 # The GET of work_bookshelves, work_ratings, and work_likes should return some summary of likes,
 # not a value tied to this logged in user. This is being used as debugging.
 
@@ -142,13 +191,13 @@ class work_bookshelves(delegate.page):
     def POST(self, work_id):
         """
         Add a work (or a work and an edition) to a bookshelf.
-        
+
         GET params:
         - edition_id str (optional)
         - action str: e.g. "add", "remove"
         - redir bool: if patron not logged in, redirect back to page after login
         - bookshelf_id int: which bookshelf? e.g. the ID for "want to read"?
-        - dont_remove bool: if book exists & action== "add", don't try removal  
+        - dont_remove bool: if book exists & action== "add", don't try removal
 
         :param str work_id: e.g. OL123W
         :rtype: json
@@ -333,7 +382,7 @@ class sponsorship_eligibility_check(delegate.page):
             web.ctx.site.get('/books/%s' % _id)
             if re.match(r'OL[0-9]+M', _id)
             else models.Edition.from_isbn(_id)
-            
+
         )
         if not edition:
             return simplejson.dumps({"status": "error", "reason": "Invalid ISBN 13"})

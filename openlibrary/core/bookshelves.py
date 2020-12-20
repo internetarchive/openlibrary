@@ -117,7 +117,9 @@ class Bookshelves(object):
 
     @classmethod
     def get_users_logged_books(cls, username, bookshelf_id=None, limit=100, page=1):
-        """Returns a list of Reading Log database records for books which the user has logged. Records are described in core/schema.py and include:
+        """Returns a list of Reading Log database records for books which
+        the user has logged. Records are described in core/schema.py
+        and include:
 
         username (str) - who logged this book
         work_id (int) - the Open Library work ID as an int (e.g. OL123W becomes 123)
@@ -125,6 +127,7 @@ class Bookshelves(object):
             If bookshelf_id is None, return books from all bookshelves.
         edition_id (int) [optional] - the specific edition logged, if applicable
         created (datetime) - date the book was logged
+
         """
         oldb = db.get_db()
         page = int(page) if page else 1
@@ -140,6 +143,8 @@ class Bookshelves(object):
         if bookshelf_id is None:
             query = ("SELECT * from bookshelves_books WHERE "
                  "username=$username")
+            # XXX Removing limit, offset, etc from data looks like a bug
+            # unrelated / not fixing in this PR.
             data = { 'username': username }
         return list(oldb.query(query, vars=data))
 
@@ -163,7 +168,7 @@ class Bookshelves(object):
         return result[0].bookshelf_id if result else None
 
     @classmethod
-    def add(cls, username, bookshelf_id, work_id, edition_id=None, note=None):
+    def add(cls, username, bookshelf_id, work_id, edition_id=None):
         """Adds a book with `work_id` to user's bookshelf designated by
         `bookshelf_id`"""
         oldb = db.get_db()
@@ -172,7 +177,6 @@ class Bookshelves(object):
         data = {
             'work_id': work_id,
             'username': username,
-            'note': note,
         }
 
         users_status = cls.get_users_read_status_of_work(username, work_id)
@@ -241,9 +245,3 @@ class Bookshelves(object):
                  "ORDER BY counted DESC, username LIMIT 100")
         result = oldb.query(query)
         return list(result)
-
-    #Function incomplete
-    @classmethod
-    def search_my_readinglog(cls, q, bookshelf_id):
-        oldb = db.get_db()
-        pass

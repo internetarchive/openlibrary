@@ -1,7 +1,8 @@
-$def with (work, edition, notes=None)
+$def with (work, edition)
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ has_edition = edition is not None
+$ notes = work.get_users_notes(username)
 
 $ i18n_strings = {
   $ "close_text": _("Close"),
@@ -27,11 +28,13 @@ $if has_edition:
       <h2>$_("My Book Notes")</h2>
       <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
     </div>
-    $if notes:
-      <form>
-        <p>My notes about this book</p>
-        <textarea name="patron-notes"></textarea>
-      </form>
+    <form method="POST" action="$(work.key)/notes.json">
+      <p>My personal notes about this book</p>
+      <div>
+        <textarea name="notes">$(notes.notes if notes else "")</textarea>
+      </div>
+      <input type="submit">
+    </form>
     <form class="floatform" name="user-metadata" id="user-metadata"></form>
   </div>
 </div>

@@ -12,6 +12,7 @@ from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.ratings import Ratings
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
@@ -484,6 +485,12 @@ class Work(Thing):
         work_id = extract_numeric_id_from_olid(self.key)
         status_id = Bookshelves.get_users_read_status_of_work(username, work_id)
         return status_id
+
+    def get_users_notes(self, username):
+        if not username:
+            return None
+        work_id = extract_numeric_id_from_olid(self.key)
+        return Booknotes.get_patron_booknote(username, work_id)
 
     def get_num_users_by_bookshelf(self):
         if not self.key:  # a dummy work
