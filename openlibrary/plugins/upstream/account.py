@@ -944,6 +944,7 @@ def as_admin(f):
             web.ctx.headers = []
     return g
 
+
 def process_goodreads_csv(i):
     import csv
     csv_payload = i.csv if isinstance(i.csv, str) else i.csv.decode()
@@ -953,8 +954,8 @@ def process_goodreads_csv(i):
     books_wo_isbns = {}
     for book in list(csv_file):
         _book = dict(zip(header, book))
-        _book['ISBN'] = _book['ISBN'].replace('"','').replace('=','')
-        _book['ISBN13'] = _book['ISBN13'].replace('"','').replace('=','')
+        _book['ISBN'] = _book['ISBN'].replace('"', '').replace('=', '')
+        _book['ISBN13'] = _book['ISBN13'].replace('"', '').replace('=', '')
         if _book['ISBN'] != '':
             books[_book['ISBN']] = _book
         elif _book['ISBN13'] != '':

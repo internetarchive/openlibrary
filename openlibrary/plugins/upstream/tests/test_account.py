@@ -4,6 +4,7 @@ import os
 import re
 import pytest
 
+
 def open_test_data(filename):
     """Returns a file handle to file with specified filename inside test_data directory.
     """
@@ -30,118 +31,118 @@ def test_create_list_doc(wildcard):
         "expires_on": wildcard
     }
 
-class TestGoodReadsImport:
-    def test_process_goodreads_csv(self):
-        with open_test_data('goodreads_library_export.csv') as reader:
-            csv_data = reader.read()
 
-        # account.process_goodreads_csv() should work with both strings and bytes
-        for d in [csv_data.decode(), csv_data]:
-            books, books_wo_isbns = account.process_goodreads_csv(web.storage({'csv': d}))
-            assert books == {
-               "0142402494" : {
-                  "Additional Authors" : "Florence Lamborn, Louis S. Glanzman",
-                  "Author" : "Astrid Lindgren",
-                  "Author l-f" : "Lindgren, Astrid",
-                  "Average Rating" : "4.13",
-                  "BCID" : "",
-                  "Binding" : "Mass Market Paperback",
-                  "Book Id" : "19302",
-                  "Bookshelves" : "to-read",
-                  "Bookshelves with positions" : "to-read (#2)",
-                  "Condition" : "",
-                  "Condition Description" : "",
-                  "Date Added" : "2020/12/13",
-                  "Date Read" : "",
-                  "Exclusive Shelf" : "to-read",
-                  "ISBN" : "0142402494",
-                  "ISBN13" : "9780142402498",
-                  "My Rating" : "0",
-                  "My Review" : "",
-                  "Number of Pages" : "160",
-                  "Original Publication Year" : "1945",
-                  "Original Purchase Date" : "",
-                  "Original Purchase Location" : "",
-                  "Owned Copies" : "0",
-                  "Private Notes" : "",
-                  "Publisher" : "Puffin Books",
-                  "Read Count" : "0",
-                  "Recommended By" : "",
-                  "Recommended For" : "",
-                  "Spoiler" : "",
-                  "Title" : "Pippi Longstocking (Pippi Långstrump, #1)",
-                  "Year Published" : "2005"
-               },
-               "0735214484" : {
-                  "Additional Authors" : "",
-                  "Author" : "David   Epstein",
-                  "Author l-f" : "Epstein, David",
-                  "Average Rating" : "4.16",
-                  "BCID" : "",
-                  "Binding" : "Hardcover",
-                  "Book Id" : "41795733",
-                  "Bookshelves" : "to-read",
-                  "Bookshelves with positions" : "to-read (#1)",
-                  "Condition" : "",
-                  "Condition Description" : "",
-                  "Date Added" : "2020/12/13",
-                  "Date Read" : "",
-                  "Exclusive Shelf" : "to-read",
-                  "ISBN" : "0735214484",
-                  "ISBN13" : "9780735214484",
-                  "My Rating" : "0",
-                  "My Review" : "",
-                  "Number of Pages" : "352",
-                  "Original Publication Year" : "2019",
-                  "Original Purchase Date" : "",
-                  "Original Purchase Location" : "",
-                  "Owned Copies" : "0",
-                  "Private Notes" : "",
-                  "Publisher" : "Riverhead Books",
-                  "Read Count" : "0",
-                  "Recommended By" : "",
-                  "Recommended For" : "",
-                  "Spoiler" : "",
-                  "Title" : "Range: Why Generalists Triumph in a Specialized World",
-                  "Year Published" : "2019"
-               }
-            }
+def test_process_goodreads_csv():
+    with open_test_data('goodreads_library_export.csv') as reader:
+        csv_data = reader.read()
 
-            assert  books_wo_isbns == {
-               "99999999999" : {
-                  "Additional Authors" : "",
-                  "Author" : "AuthorWith NoISBN",
-                  "Author l-f" : "NoISBN, AuthorWith",
-                  "Average Rating" : "4.16",
-                  "BCID" : "",
-                  "Binding" : "Hardcover",
-                  "Book Id" : "99999999999",
-                  "Bookshelves" : "to-read",
-                  "Bookshelves with positions" : "to-read (#1)",
-                  "Condition" : "",
-                  "Condition Description" : "",
-                  "Date Added" : "2020/12/13",
-                  "Date Read" : "",
-                  "Exclusive Shelf" : "to-read",
-                  "ISBN" : "",
-                  "ISBN13" : "",
-                  "My Rating" : "0",
-                  "My Review" : "",
-                  "Number of Pages" : "352",
-                  "Original Publication Year" : "2019",
-                  "Original Purchase Date" : "",
-                  "Original Purchase Location" : "",
-                  "Owned Copies" : "0",
-                  "Private Notes" : "",
-                  "Publisher" : "Test Publisher",
-                  "Read Count" : "0",
-                  "Recommended By" : "",
-                  "Recommended For" : "",
-                  "Spoiler" : "",
-                  "Title" : "Test Book Title With No ISBN",
-                  "Year Published" : "2019"
-               }
+    # account.process_goodreads_csv() should work with both strings and bytes
+    for d in [csv_data.decode(), csv_data]:
+        books, books_wo_isbns = account.process_goodreads_csv(web.storage({'csv': d}))
+        assert books == {
+            "0142402494": {
+                "Additional Authors": "Florence Lamborn, Louis S. Glanzman",
+                "Author": "Astrid Lindgren",
+                "Author l-f": "Lindgren, Astrid",
+                "Average Rating": "4.13",
+                "BCID": "",
+                "Binding": "Mass Market Paperback",
+                "Book Id": "19302",
+                "Bookshelves": "to-read",
+                "Bookshelves with positions": "to-read (#2)",
+                "Condition": "",
+                "Condition Description": "",
+                "Date Added": "2020/12/13",
+                "Date Read": "",
+                "Exclusive Shelf": "to-read",
+                "ISBN": "0142402494",
+                "ISBN13": "9780142402498",
+                "My Rating": "0",
+                "My Review": "",
+                "Number of Pages": "160",
+                "Original Publication Year": "1945",
+                "Original Purchase Date": "",
+                "Original Purchase Location": "",
+                "Owned Copies": "0",
+                "Private Notes": "",
+                "Publisher": "Puffin Books",
+                "Read Count": "0",
+                "Recommended By": "",
+                "Recommended For": "",
+                "Spoiler": "",
+                "Title": "Pippi Longstocking (Pippi Långstrump, #1)",
+                "Year Published": "2005"
+            },
+            "0735214484": {
+                "Additional Authors": "",
+                "Author": "David   Epstein",
+                "Author l-f": "Epstein, David",
+                "Average Rating": "4.16",
+                "BCID": "",
+                "Binding": "Hardcover",
+                "Book Id": "41795733",
+                "Bookshelves": "to-read",
+                "Bookshelves with positions": "to-read (#1)",
+                "Condition": "",
+                "Condition Description": "",
+                "Date Added": "2020/12/13",
+                "Date Read": "",
+                "Exclusive Shelf": "to-read",
+                "ISBN": "0735214484",
+                "ISBN13": "9780735214484",
+                "My Rating": "0",
+                "My Review": "",
+                "Number of Pages": "352",
+                "Original Publication Year": "2019",
+                "Original Purchase Date": "",
+                "Original Purchase Location": "",
+                "Owned Copies": "0",
+                "Private Notes": "",
+                "Publisher": "Riverhead Books",
+                "Read Count": "0",
+                "Recommended By": "",
+                "Recommended For": "",
+                "Spoiler": "",
+                "Title": "Range: Why Generalists Triumph in a Specialized World",
+                "Year Published": "2019"
             }
+        }
+
+        assert books_wo_isbns == {
+            "99999999999": {
+                "Additional Authors": "",
+                "Author": "AuthorWith NoISBN",
+                "Author l-f": "NoISBN, AuthorWith",
+                "Average Rating": "4.16",
+                "BCID": "",
+                "Binding": "Hardcover",
+                "Book Id": "99999999999",
+                "Bookshelves": "to-read",
+                "Bookshelves with positions": "to-read (#1)",
+                "Condition": "",
+                "Condition Description": "",
+                "Date Added": "2020/12/13",
+                "Date Read": "",
+                "Exclusive Shelf": "to-read",
+                "ISBN": "",
+                "ISBN13": "",
+                "My Rating": "0",
+                "My Review": "",
+                "Number of Pages": "352",
+                "Original Publication Year": "2019",
+                "Original Purchase Date": "",
+                "Original Purchase Location": "",
+                "Owned Copies": "0",
+                "Private Notes": "",
+                "Publisher": "Test Publisher",
+                "Read Count": "0",
+                "Recommended By": "",
+                "Recommended For": "",
+                "Spoiler": "",
+                "Title": "Test Book Title With No ISBN",
+                "Year Published": "2019"
+            }
+        }
 
 
 @pytest.mark.xfail
