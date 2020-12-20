@@ -865,24 +865,8 @@ class fetch_goodreads(delegate.page):
 
     @require_login
     def POST(self):
-        import csv
-        i = web.input(csv={})
-        csv_payload = i.csv.value if isinstance(i.csv.value, str) else i.csv.value.decode()
-        csv_file = csv.reader(csv_payload.splitlines(), delimiter=',', quotechar='"')
-        header = next(csv_file)
-        books = {}
-        books_wo_isbns = {}
-        for book in list(csv_file):
-            _book = dict(zip(header, book))
-            _book['ISBN'] = _book['ISBN'].replace('"','').replace('=','')
-            _book['ISBN13'] = _book['ISBN13'].replace('"','').replace('=','')
-            if _book['ISBN'] != '':
-                books[_book['ISBN']] = _book
-            elif _book['ISBN13'] != '':
-                books[_book['ISBN13']] = _book
-                books[_book['ISBN13']]['ISBN'] = _book['ISBN13']
-            else:
-                books_wo_isbns[_book['Book Id']] = _book
+        i = web.input()
+        books, books_wo_isbns = process_goodreads_csv(i)
         return render['account/import'](books, books_wo_isbns)
 
 class export_books(delegate.page):
@@ -959,3 +943,23 @@ def as_admin(f):
         finally:
             web.ctx.headers = []
     return g
+
+def process_goodreads_csv(i):
+    import csv
+    csv_payload = i.csv if isinstance(i.csv, str) else i.csv.decode()
+    csv_file = csv.reader(csv_payload.splitlines(), delimiter=',', quotechar='"')
+    header = next(csv_file)
+    books = {}
+    books_wo_isbns = {}
+    for book in list(csv_file):
+        _book = dict(zip(header, book))
+        _book['ISBN'] = _book['ISBN'].replace('"','').replace('=','')
+        _book['ISBN13'] = _book['ISBN13'].replace('"','').replace('=','')
+        if _book['ISBN'] != '':
+            books[_book['ISBN']] = _book
+        elif _book['ISBN13'] != '':
+            books[_book['ISBN13']] = _book
+            books[_book['ISBN13']]['ISBN'] = _book['ISBN13']
+        else:
+            books_wo_isbns[_book['Book Id']] = _book
+    return books, books_wo_isbns
