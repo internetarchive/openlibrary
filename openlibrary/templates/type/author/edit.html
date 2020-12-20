@@ -73,7 +73,7 @@ $putctx("robots", "noindex,nofollow")
                             </div>
                         </div>
 
-                        $if not page.birth_date and not page.death_date and page.date:
+                        $if page.date:
                           <div class="formElement contentQuarter" id="date">
                                   <div class="label dateLabelAcc">
                                       <label for="date">$_("Date")</label>
