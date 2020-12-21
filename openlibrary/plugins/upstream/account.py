@@ -953,13 +953,13 @@ def process_goodreads_csv(i):
     books_wo_isbns = {}
     for book in list(csv_file):
         _book = dict(zip(header, book))
-        _book['ISBN'] = _book['ISBN'].replace('"', '').replace('=', '')
-        _book['ISBN13'] = _book['ISBN13'].replace('"', '').replace('=', '')
-        if _book['ISBN'] != '':
-            books[_book['ISBN']] = _book
-        elif _book['ISBN13'] != '':
-            books[_book['ISBN13']] = _book
-            books[_book['ISBN13']]['ISBN'] = _book['ISBN13']
+        isbn = _book['ISBN'] = _book['ISBN'].replace('"', '').replace('=', '')
+        isbn_13 = _book['ISBN13'] = _book['ISBN13'].replace('"', '').replace('=', '')
+        if isbn != '':
+            books[isbn] = _book
+        elif isbn_13 != '':
+            books[isbn_13] = _book
+            books[isbn_13]['ISBN'] = isbn_13
         else:
             books_wo_isbns[_book['Book Id']] = _book
     return books, books_wo_isbns
