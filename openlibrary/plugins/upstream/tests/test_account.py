@@ -5,6 +5,7 @@ import web
 import os
 import re
 import pytest
+import sys
 
 
 def open_test_data(filename):
@@ -34,14 +35,12 @@ def test_create_list_doc(wildcard):
     }
 
 
-def test_process_goodreads_csv():
-    with open_test_data('goodreads_library_export.csv') as reader:
-        csv_data = reader.read()
+class TestGoodReadsImport:
+    def setup_method(self, method):
+        with open_test_data('goodreads_library_export.csv') as reader:
+            self.csv_data = reader.read()
 
-    # account.process_goodreads_csv() should work with both strings and bytes
-    for d in [csv_data.decode('utf-8'), csv_data]:
-        books, books_wo_isbns = account.process_goodreads_csv(web.storage({'csv': d}))
-        assert books == {
+        self.expected_books = {
             "0142402494": {
                 "Additional Authors": "Florence Lamborn, Louis S. Glanzman",
                 "Author": "Astrid Lindgren",
@@ -110,7 +109,7 @@ def test_process_goodreads_csv():
             }
         }
 
-        assert books_wo_isbns == {
+        self.expected_books_wo_isbns = {
             "99999999999": {
                 "Additional Authors": "",
                 "Author": "AuthorWith NoISBN",
@@ -145,6 +144,22 @@ def test_process_goodreads_csv():
                 "Year Published": "2019"
             }
         }
+
+    @pytest.mark.skipif(sys.version_info < (3, 0),
+                        reason="Python2's csv module doesn't support Unicode")
+    def test_process_goodreads_csv_with_utf8(self):
+        books, books_wo_isbns = account.process_goodreads_csv(
+            web.storage({'csv': self.csv_data.decode('utf-8')}))
+        assert books == self.expected_books
+        assert books_wo_isbns == self.expected_books_wo_isbns
+
+    def test_process_goodreads_csv_with_bytes(self):
+        # Note: In Python2, reading data as bytes returns a string, which should
+        # also be supported by account.process_goodreads_csv()
+        books, books_wo_isbns = account.process_goodreads_csv(
+            web.storage({'csv': self.csv_data}))
+        assert books == self.expected_books
+        assert books_wo_isbns == self.expected_books_wo_isbns
 
 
 @pytest.mark.xfail
