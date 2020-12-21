@@ -865,8 +865,7 @@ class fetch_goodreads(delegate.page):
 
     @require_login
     def POST(self):
-        i = web.input()
-        books, books_wo_isbns = process_goodreads_csv(i)
+        books, books_wo_isbns = process_goodreads_csv(web.input())
         return render['account/import'](books, books_wo_isbns)
 
 class export_books(delegate.page):
