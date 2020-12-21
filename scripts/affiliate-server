@@ -45,7 +45,6 @@ urls = (
 )
 
 API_MAX_ITEMS_PER_CALL = 10
-API_MAX_WAIT_SECONDS = 0.9
 
 web.amazon_queue = queue.Queue()  # a thread-safe multi-producer, multi-consumer queue
 
@@ -63,7 +62,7 @@ def process_amazon_batch(isbn_10s):
     except Exception:
         logger.exception("amazon_api.get_product({}, serialize=True)".format(isbn_10s))
         return
-    
+
     bad_isbn_10s = []
     for isbn_10, product in zip(isbn_10s, products):
         if not product:  # amazon_api.get_products() returned None for this isbn_10
@@ -85,7 +84,7 @@ def seconds_remaining(start_time):
     """
     def seconds_remaining(start_time: int) -> int:
     """
-    return max(API_MAX_WAIT_SECONDS - (time.time() - start_time), 0)
+    return max(1 / web.amazon_api.throttling - (time.time() - start_time), 0)
 
 
 def amazon_lookup():

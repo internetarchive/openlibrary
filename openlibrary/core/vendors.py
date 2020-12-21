@@ -95,13 +95,13 @@ class AmazonAPI:
         uniquely identify an item or product URL. (Max 10) Seperated
         by comma or as a list.
         """
-        # Wait before doing the request
-        wait_time = 1 / self.throttling - (time.time() - self.last_query_time)
-        if wait_time > 0:
-            time.sleep(wait_time)
-        self.last_query_time = time.time()
+        # Wait before doing request -- timeout logic moved to scripts/affiliate-server
+        # wait_time = 1 / self.throttling - (time.time() - self.last_query_time)
+        # if wait_time > 0:
+        #     time.sleep(wait_time)
+        # self.last_query_time = time.time()
 
-        item_ids = asins if type(asins) is list else [asins]
+        item_ids = asins if isinstance(asins, list) else [asins]
         _resources = self.RESOURCES[resources or 'import']
         try:
             request = GetItemsRequest(partner_tag=self.tag,
@@ -111,15 +111,11 @@ class AmazonAPI:
                                       resources=_resources,
                                       **kwargs)
         except ApiException:
-            logger.error("Amazon fetch failed for: %s" % ', '.join(item_ids),
-                         exc_info=True)
+            logger.exception("Amazon fetch failed for: %s" % ', '.join(item_ids))
             return None
         response = self.api.get_items(request)
-        products = [
-            p for p in response.items_result.items if p
-        ] if response.items_result else []
-        return (products if not serialize else
-                [self.serialize(p) for p in products])
+        products = response.items_result.items if response.items_result else []
+        return [self.serialize(p) for p in products] if serialize else products
 
     @staticmethod
     def serialize(product):
