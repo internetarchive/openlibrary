@@ -7,7 +7,7 @@ class Booknotes(object):
     def total_booknotes(cls):
         oldb = db.get_db()
         query = "SELECT count(*) from booknotes"
-        return oldb.query(query, vars=data)['count']
+        return oldb.query(query)['count']
 
 
     @classmethod
@@ -38,7 +38,6 @@ class Booknotes(object):
             query += " AND created >= $since"
         query += ' group by work_id order by cnt desc limit $limit'
         return list(oldb.query(query, vars={
-            'shelf_id': shelf_id,
             'limit': limit,
             'since': since
         }))

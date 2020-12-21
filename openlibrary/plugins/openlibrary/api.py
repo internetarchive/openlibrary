@@ -143,7 +143,7 @@ class booknotes(delegate.page):
         edition_id = int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
 
         if not user:
-            raise web.seeother('/account/login?redirect=%s' % key)
+            raise web.seeother('/account/login?redirect=/works/%s' % work_id)
 
         username = user.key.split('/')[2]
 
@@ -164,7 +164,7 @@ class booknotes(delegate.page):
         )
 
         if i.redir:
-            raise web.seeother(key)
+            raise web.seeother("/works/%s" % work_id)
 
         return response('note added')
 
