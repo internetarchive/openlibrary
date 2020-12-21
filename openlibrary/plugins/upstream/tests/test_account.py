@@ -39,7 +39,7 @@ def test_process_goodreads_csv():
         csv_data = reader.read()
 
     # account.process_goodreads_csv() should work with both strings and bytes
-    for d in [csv_data.decode(), csv_data]:
+    for d in [csv_data.decode('utf-8'), csv_data]:
         books, books_wo_isbns = account.process_goodreads_csv(web.storage({'csv': d}))
         assert books == {
             "0142402494": {
