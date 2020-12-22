@@ -315,8 +315,7 @@ class merge_authors_json(delegate.page):
         return "merge-authors" in web.ctx.features or (user and user.is_admin())
 
     def POST(self):
-        json_data = web.data()
-        data = json.loads(json_data)
+        data = json.loads(web.data())
         master = data['master']
         duplicates = data['duplicates']
 
