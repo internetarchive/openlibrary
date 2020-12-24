@@ -1,5 +1,6 @@
-import requests
+import json
 import logging
+import requests
 import web
 
 from six.moves.urllib.parse import urlencode
@@ -10,14 +11,17 @@ from openlibrary.core import lending
 from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
     get_amazon_metadata)
-from openlibrary.accounts.model import get_internet_archive_id
+from openlibrary import accounts
+from openlibrary.accounts.model import get_internet_archive_id, sendmail
 from openlibrary.core.civicrm import (
     get_contact_id_by_username,
     get_sponsorships_by_contact_id)
+import internetarchive as ia
 
 try:
-    from booklending_utils.sponsorship import eligibility_check
+    from booklending_utils.sponsorship import eligibility_check, BLOCKED_PATRONS
 except ImportError:
+    BLOCKED_PATRONS = []
     def eligibility_check(edition):
         """For testing if Internet Archive book sponsorship check unavailable"""
         return False
@@ -90,7 +94,7 @@ def do_we_want_it(isbn, work_id):
     return False, []
 
 @public
-def qualifies_for_sponsorship(edition):
+def qualifies_for_sponsorship(edition, scan_only=False, patron=None):
     """
     :param edition edition: An infogami book edition
     :rtype: dict
@@ -141,10 +145,10 @@ def qualifies_for_sponsorship(edition):
     dwwi, matches = do_we_want_it(edition.isbn, work_id)
     if dwwi:
         bwb_price = get_betterworldbooks_metadata(edition.isbn).get('price_amt')
-        if bwb_price:
+        if bwb_price or scan_only:
             num_pages = int(edition_data['number_of_pages'])
             scan_price_cents = SETUP_COST_CENTS + (PAGE_COST_CENTS * num_pages)
-            book_cost_cents = int(float(bwb_price) * 100)
+            book_cost_cents = int(float(bwb_price) * 100) if not scan_only else 0
             total_price_cents = scan_price_cents + book_cost_cents
             resp['price'] = {
                 'book_cost_cents': book_cost_cents,
@@ -154,7 +158,7 @@ def qualifies_for_sponsorship(edition):
                     total_price_cents / 100.
                 ),
             }
-            resp['is_eligible'] = eligibility_check(edition)
+            resp['is_eligible'] = eligibility_check(edition, patron=patron)
     else:
         resp['error'] = {
             'reason': 'matches',
@@ -176,22 +180,83 @@ def qualifies_for_sponsorship(edition):
     return resp
 
 
+def sync_completed_sponsored_books():
+    """Retrieves a list of all completed sponsored books from Archive.org
+    so they can be synced with Open Library, which entails:
+
+    - adding IA ocaid into openlibrary edition
+    - alerting patrons (if possible) by email of completion
+    - possibly marking archive.org item status as complete/synced
+
+    XXX Note: This `search_items` query requires the `ia` tool (the
+    one installed via virtualenv) to be configured with (scope:all)
+    privileged s3 keys.
+    """
+    items = ia.search_items(
+        'collection:openlibraryscanningteam AND collection:inlibrary',
+        fields=['identifier', 'openlibrary_edition'],
+        params={'page': 1, 'rows': 1000, 'scope': 'all'},
+        config={'general': {'secure': False}}
+    )
+    books = web.ctx.site.get_many([
+        '/books/%s' % i.get('openlibrary_edition') for i in items
+        if i.get('openlibrary_edition')
+    ])
+    unsynced = [book for book in books if not book.ocaid]
+    ocaid_lookup = dict(
+        ('/books/%s' % i.get('openlibrary_edition'),  i.get('identifier'))
+        for i in items
+    )
+    fixed = []
+    for book in unsynced:
+        book.ocaid = ocaid_lookup[book.key]
+        with accounts.RunAs('ImportBot'):
+            web.ctx.site.save(book.dict(), "Adding ocaid for completed sponsorship")
+            fixed.append({'key': book.key, 'ocaid': book.ocaid})
+            # TODO: send out an email?... Requires Civi.
+            # email_sponsor(recipient, book)
+    return json.dumps(fixed)
+
+
+def email_sponsor(recipient, book):
+    url = 'https://openlibrary.org%s' % book.key
+    resp = web.sendmail(
+        "openlibrary@archive.org",
+        recipient,
+        "Internet Archive: Your Open Library Book Sponsorship is Ready",
+        (
+            '<p>' +
+            '<a href="%s">%s</a> ' % (url, book.title) +
+            'is now available to read on Open Library!' +
+            '</p>' +
+            '<p>Thank you,</p>' +
+            '<p>The <a href="https://openlibrary.org">Open Library</a> Team</p>'
+        ),
+        headers={'Content-Type':'text/html;charset=utf-8'}
+    )
+    return resp
+
 def get_sponsored_books():
     """Performs the `ia` query to fetch sponsored books from archive.org"""
-    from internetarchive import search_items
-    params = {'page': 1, 'rows': 1000, 'scope': 'all'}
-    fields = ['identifier','est_book_price','est_scan_price', 'scan_price',
-              'book_price', 'repub_state', 'imagecount', 'title', 'donor',
-              'openlibrary_edition', 'publicdate', 'collection', 'isbn']
-
-    q = 'collection:openlibraryscanningteam'
-
     # XXX Note: This `search_items` query requires the `ia` tool (the
     # one installed via virtualenv) to be configured with (scope:all)
     # privileged s3 keys.
-    config = {'general': {'secure': False}}
-    return search_items(q, fields=fields, params=params, config=config)
-
+    items = ia.search_items(
+        'collection:openlibraryscanningteam',
+        fields=[
+            'identifier','est_book_price','est_scan_price', 'scan_price',
+            'book_price', 'repub_state', 'imagecount', 'title', 'donor',
+            'openlibrary_edition', 'publicdate', 'collection', 'isbn'
+        ],
+        params={'page': 1, 'rows': 1000, 'scope': 'all'},
+        config={'general': {'secure': False}}
+    )
+    return [
+        item for item in items if not (
+            item.get('repub_state') == '-1' and
+            item.get('donor') in BLOCKED_PATRONS
+        )
+    ]
 
 def summary():
     """
@@ -232,7 +297,7 @@ def summary():
     est_book_cost_cents = sum(int(i.get('est_book_price', 0)) for i in items)
     scan_cost_cents = (PAGE_COST_CENTS * total_pages_scanned) + (SETUP_COST_CENTS * len(items))
     est_scan_cost_cents = sum(int(i.get('est_scan_price', 0)) for i in items)
-    avg_scan_cost = scan_cost_cents / (len(items) - total_unscanned_books) 
+    avg_scan_cost = scan_cost_cents / (len(items) - total_unscanned_books)
 
     return {
         'books': items,

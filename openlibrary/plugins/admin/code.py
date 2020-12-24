@@ -16,6 +16,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render, public
 from infogami.utils.context import context
 from infogami.utils.view import add_flash_message
+from infogami.plugins.api.code import jsonapi
 
 from openlibrary.catalog.add_book import update_ia_metadata_for_ol_edition, \
     create_ol_subjects_for_ocaid
@@ -26,6 +27,9 @@ from openlibrary import accounts
 
 from openlibrary.core import lending, admin as admin_stats, helpers as h, imports, cache
 from openlibrary.core.waitinglist import Stats as WLStats
+from openlibrary.core.sponsorships import (
+    summary, sync_completed_sponsored_books)
+
 from openlibrary.plugins.upstream import forms, spamcheck
 from openlibrary.plugins.upstream.account import send_forgot_password_email
 from openlibrary.plugins.admin import services
@@ -697,8 +701,13 @@ class show_log:
 
 class sponsorship_stats:
     def GET(self):
-        from openlibrary.core.sponsorships import summary
         return render_template("admin/sponsorship", summary())
+
+
+class sync_sponsored_books(delegate.page):
+    @jsonapi
+    def GET(self):
+        return sync_completed_sponsored_books()
 
 
 def setup():
@@ -728,6 +737,7 @@ def setup():
     register_admin_page('/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label="")
     register_admin_page('/admin/spamwords', spamwords, label="")
     register_admin_page('/admin/sponsorship', sponsorship_stats, label="Sponsorship")
+    register_admin_page('/admin/sponsorship/sync', sync_sponsored_books, label="Sponsor Sync")
 
     from openlibrary.plugins.admin import mem
 
