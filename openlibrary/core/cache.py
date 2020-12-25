@@ -157,7 +157,7 @@ class memcache_memoize:
 
         Used only in testing.
         """
-        for name, thread in self.active_threads.items():
+        for name, thread in list(self.active_threads.items()):
             thread.join()
 
     def encode_args(self, args, kw=None):
