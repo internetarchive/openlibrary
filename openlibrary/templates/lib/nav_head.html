@@ -10,9 +10,8 @@ $def with (page)
           <li><a href="/account/create">$_("Sign up")</a></li>
 
         <li><a href="/books/add">$_("Add a Book")</a></li>
-        <li><a href="/random">$_("Random Book")</a></li>
+        <li><a href="/sponsorship">$_("Sponsor a Book")</a></li>
         <li><a href="/recentchanges">$_("Recent Community Edits")</a></li>
-        <li><a href="/advancedsearch">$_("Advanced Search")</a></li>
         <li><a href="/developers">$_("Developer Center")</a></li>
         <li><a href="/help">$_("Help & Support")</a></li>
       </ul>
@@ -62,41 +61,38 @@ $def with (page)
   <ul class="navigation-component">
     <li class="browse-menu">
       <a>$_('Browse') <img class="down-arrow"
-        width="7" height="4" aria-hidden="true" alt="$_('Browse')" role="presentation" src="/static/images/down-arrow.png"/></a>
+        width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/></a>
       <div class="navigation-dropdown-component">
         <ul class="dropdown-menu browse-menu-options">
-          <li><a href="/subjects/science">$_("Science")</a></li>
-          <li><a href="/subjects/biographies">$_("Biographies")</a></li>
-          <li><a href="/subjects/textbooks">$_("Textbooks")</a></li>
-          <li><a href="/subjects/science_fiction">$_("Sci-Fi")</a></li>
-          <li><a href="/subjects/romance">$_("Romance")</a></li>
-          <li><a href="/subjects/fantasy">$_("Fantasy")</a></li>
-          <li><a href="/subjects">$_("More Subjects")</a></li>
-          <li><a href="/lists">$_("Reading Lists")</a></li>
+          <li><a href="/subjects">$_("Subjects")</a></li>
+          <li><a href="/lists">$_("Lists")</a></li>
+          <li><a href="/k-12">$_("K-12 Student Library")</a></li>
+          <li><a href="/random">$_("Random Book")</a></li>
+          <li><a href="/advancedsearch">$_("Advanced Search")</a></li>
         </ul>
       </div>
     </li>
     <li class="my-books-menu">
       <a>$_('My Books') <img class="down-arrow"
-        width="7" height="4" aria-hidden="true" alt="$_('My Books')" role="presentation" src="/static/images/down-arrow.png"/></a>
+        width="7" height="4" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
       <div class="navigation-dropdown-component">
         <ul class="dropdown-menu my-books-menu-options">
           <li><a href="/account/loans">$_("My Loans")</a></li>
-          <li><a href="/account/books/want-to-read">$_("My Reading Log")</a></li>
+          <li><a href="/account/books">$_("My Reading Log")</a></li>
+          <li><a href="/account/books/already-read/stats">$_("My Reading Stats")</a></li>
           <li><a href="/account/lists">$_("My Lists")</a></li>
         </ul>
       </div>
     </li>
     <li class="more-menu">
       <a>$_('More') <img class="down-arrow"
-        width="7" height="4" aria-hidden="true" alt="$_('More')" role="presentation" src="/static/images/down-arrow.png"/></a>
+        width="7" height="4" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
       <div class="navigation-dropdown-component">
         <ul class="dropdown-menu more-menu-options">
           <li><a href="/books/add">$_("Add a Book")</a></li>
-          <li><a href="/random">$_("Random Book")</a></li>
-          <li><a href="/advancedsearch">$_("Advanced Search")</a></li>
+          <li><a href="/sponsorship">$_("Sponsor a Book")</a></li>
           <li><a href="/recentchanges">$_("Recent Community Edits")</a></li>
-        <li><a href="/developers">$_("Developer Center")</a></li>
+          <li><a href="/developers">$_("Developer Center")</a></li>
           <li><a href="/help">$_("Help & Support")</a></li>
         </ul>
       </div>
@@ -115,7 +111,7 @@ $def with (page)
     <div class="account-component">
       <div class="dropdown-avatar">
         <button class="avatar" id="userToggle" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');"></button>
-        <img class="down-arrow" aria-hidden="true" alt="$_('My Account')" role="presentation" src="/static/images/down-arrow.png"/>
+        <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" role="presentation" alt=""/>
       </div>
       <div class="account-dropdown navigation-dropdown-component" id="main-account-dropdown">
         <ul class="dropdown-menu">

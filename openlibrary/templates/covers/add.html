@@ -4,18 +4,13 @@ $putctx('bodyid', 'form')
 $putctx('robots', 'noindex,nofollow')
 
 $if doc.type.key == "/type/author":
-    $ intro = _("There are two ways to place an author's image on Open Library")
+    $ intro = _("There are two ways to put an author's image on Open Library")
     $ action = doc.url('/add-photo')
-$elif doc.type.key == "/type/edition":
-    $ intro = _("There are two ways to get a cover image on Open Library")
-    $ action = doc.url('/add-cover')
-$elif doc.get_edition_covers:
-    $ intro = _("There are three ways to get a cover image on Open Library")
-    $ action = doc.url('/add-cover')
+    $ guideline = _("Image Guidelines")
 $else:
-    $ intro = _("There are two ways to get a cover image on Open Library")
+    $ intro = _("There are two ways to put a cover image on Open Library")
     $ action = doc.url('/add-cover')
-
+    $ guideline = _("Cover Guidelines")
 
 <div class="popAlert" id="errors" style="display: $('block' if status else 'none')">
 $if status:
@@ -23,7 +18,6 @@ $if status:
     $elif status.code == 2: $_("Please provide an image URL.")
     $elif status.code == 3: $_("Please provide a valid image.")
 </div>
-
 <script type="text/javascript">
 <!--
 window.q.push(function(){
@@ -67,9 +61,8 @@ window.q.push(function(){
 
 <form class="floatform" id="addcover-form" name="bookcover" method="post" enctype="multipart/form-data" action="$action">
 
-    <div align="center" style="width:100%;">
-        <div class="centerIt">
-
+    <div class="floatform__body">
+        <div>
             $if doc.type.key == "/type/work":
                 $if doc.get_edition_covers():
                     <div class="formElement">
@@ -132,5 +125,5 @@ window.q.push(function(){
         </div>
     </div>
 </form>
-<div class="imageIntro smallest"><a href="/help/faq/editing#picture" target="blank">$:_("Cover Guidelines")</a></div>
+<div class="imageIntro smallest"><a href="/help/faq/editing#picture" target="blank">$guideline</a></div>
 

@@ -2,9 +2,8 @@ from __future__ import print_function
 import web
 import os
 
-from six import StringIO
-
 import babel
+from babel._compat import BytesIO
 from babel.support import Translations
 from babel.messages import Catalog
 from babel.messages.pofile import read_po, write_po
@@ -15,14 +14,15 @@ root = os.path.dirname(__file__)
 
 def _compile_translation(po, mo):
     try:
-        catalog = read_po(open(po))
+        catalog = read_po(open(po, 'rb'))
 
         f = open(mo, 'wb')
         write_mo(f, catalog)
         f.close()
         print('compiled', po, file=web.debug)
-    except:
+    except Exception as e:
         print('failed to compile', po, file=web.debug)
+        raise e
 
 def get_locales():
     return [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
@@ -30,12 +30,13 @@ def get_locales():
 def extract_templetor(fileobj, keywords, comment_tags, options):
     """Extract i18n messages from web.py templates."""
     try:
+        instring = fileobj.read().decode('utf-8')
         # Replace/remove inline js '\$' which interferes with the Babel python parser:
-        code = web.template.Template.generate_code(fileobj.read().replace('\$', ''), fileobj.name)
-        f = StringIO(code)
-        f.name = fileobj.name
+        cleaned_string = instring.replace('\$', '')
+        code = web.template.Template.generate_code(cleaned_string, fileobj.name)
+        f = BytesIO(code.encode('utf-8')) # Babel wants bytes, not strings
     except Exception as e:
-        print(fileobj.name + ':', str(e), file=web.debug)
+        print('Failed to extract ' + fileobj.name + ':', repr(e), file=web.debug)
         return []
     return extract_python(f, keywords, comment_tags, options)
 
@@ -59,7 +60,7 @@ def extract_messages(dirs):
             catalog.add(message, None, [(filename, lineno)], auto_comments=comments)
 
     path = os.path.join(root, 'messages.pot')
-    f = open(path, 'w')
+    f = open(path, 'wb')
     write_po(f, catalog)
     f.close()
 
@@ -75,17 +76,17 @@ def compile_translations():
 
 def update_translations():
     pot_path = os.path.join(root, 'messages.pot')
-    template = read_po(open(pot_path))
+    template = read_po(open(pot_path, 'rb'))
 
     for locale in get_locales():
         po_path = os.path.join(root, locale, 'messages.po')
         mo_path = os.path.join(root, locale, 'messages.mo')
 
         if os.path.exists(po_path):
-            catalog = read_po(open(po_path))
+            catalog = read_po(open(po_path, 'rb'))
             catalog.update(template)
 
-            f = open(po_path, 'w')
+            f = open(po_path, 'wb')
             write_po(f, catalog)
             f.close()
             print('updated', po_path)
@@ -98,7 +99,7 @@ def load_translations(lang):
     mo_path = os.path.join(root, lang, 'messages.mo')
 
     if os.path.exists(mo_path):
-        return Translations(open(mo_path))
+        return Translations(open(mo_path, 'rb'))
 
 @web.memoize
 def load_locale(lang):

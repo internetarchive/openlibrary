@@ -1,29 +1,31 @@
 """Models of various OL objects.
 """
-import urllib
-import urllib2
-import simplejson
 import web
-import re
+import requests
 
-import iptools
 from infogami.infobase import client
 
-import helpers as h
+from openlibrary.core import helpers as h
 
 #TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings
-from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10
+from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 
-# relative imports
-from lists.model import ListMixin, Seed
-from . import db, cache, iprange, inlibrary, loanstats, waitinglist, lending
+# Seed might look unused, but removing it causes an error :/
+from openlibrary.core.lists.model import ListMixin, Seed
+from . import cache, waitinglist
+
+from six.moves import urllib
+
+from .ia import get_metadata_direct
+from .waitinglist import WaitingLoan
+from ..accounts import OpenLibraryAccount
+
 
 def _get_ol_base_url():
     # Anand Oct 2013
@@ -44,7 +46,7 @@ class Image:
         if url.startswith("//"):
             url = "http:" + url
         try:
-            d = simplejson.loads(urllib2.urlopen(url).read())
+            d = requests.get(url).json()
             d['created'] = h.parse_datetime(d['created'])
             if d['author'] == 'None':
                 d['author'] = None
@@ -136,7 +138,7 @@ class Thing(client.Thing):
         else:
             u = self.key + suffix
         if params:
-            u += '?' + urllib.urlencode(params)
+            u += '?' + urllib.parse.urlencode(params)
         if not relative:
             u = _get_ol_base_url() + u
         return u
@@ -213,7 +215,7 @@ class Edition(Thing):
 
     def get_publish_year(self):
         if self.publish_date:
-            m = web.re_compile("(\d\d\d\d)").search(self.publish_date)
+            m = web.re_compile(r"(\d\d\d\d)").search(self.publish_date)
             return m and int(m.group(1))
 
     def get_lists(self, limit=50, offset=0, sort=True):
@@ -281,32 +283,39 @@ class Edition(Thing):
 
     def in_borrowable_collection(self):
         collections = self.get_ia_collections()
-        return ('lendinglibrary' in collections or
-            ('inlibrary' in collections and inlibrary.get_library() is not None)
-            ) and not self.is_in_private_collection()
-
-    def can_borrow(self):
-        """This method should be deprecated in favor of in_borrowable_collection"""
-        return self.in_borrowable_collection()
+        return (('lendinglibrary' in collections or 'inlibrary' in collections)
+                and not self.is_in_private_collection())
 
     def get_waitinglist(self):
         """Returns list of records for all users currently waiting for this book."""
         return waitinglist.get_waitinglist_for_book(self.key)
 
-    def get_realtime_availability(self):
-        return lending.get_realtime_availability_of_ocaid(self.get('ocaid'))
+    @property
+    @cache.method_memoize
+    def ia_metadata(self):
+        ocaid = self.get('ocaid')
+        return get_metadata_direct(ocaid, cache=False) if ocaid else {}
+
+    @property
+    @cache.method_memoize
+    def sponsorship_data(self):
+        was_sponsored = 'openlibraryscanningteam' in self.ia_metadata.get('collection', [])
+        if not was_sponsored:
+            return None
+
+        donor = self.ia_metadata.get('donor')
+
+        return web.storage({
+            'donor': donor,
+            'donor_account': OpenLibraryAccount.get_by_link(donor) if donor else None,
+            'donor_msg': self.ia_metadata.get('donor_msg'),
+        })
 
     def get_waitinglist_size(self, ia=False):
         """Returns the number of people on waiting list to borrow this book.
         """
         return waitinglist.get_waitinglist_size(self.key)
 
-    def get_waitinglist_position(self, user):
-        """Returns the position of this user in the waiting list."""
-        return waitinglist.get_waitinglist_position(user.key, self.key)
-
-    def get_scanning_contributor(self):
-        return self.get_ia_meta_fields().get("contributor")
 
     def get_loans(self):
         from ..plugins.upstream import borrow
@@ -379,8 +388,13 @@ class Edition(Thing):
         :rtype: edition|None
         :return: an open library work for this isbn
         """
+        isbn = canonical(isbn)
+
+        if len(isbn) not in [10, 13]:
+            return None  # consider raising ValueError
+
         isbn13 = to_isbn_13(isbn)
-        isbn10 = isbn_13_to_isbn_10(isbn)
+        isbn10 = isbn_13_to_isbn_10(isbn13)
 
         # Attempt to fetch book from OL
         for isbn in [isbn13, isbn10]:
@@ -400,6 +414,21 @@ class Edition(Thing):
         metadata = self.get_ia_meta_fields()
         # all IA scans will have scanningcenter field set
         return bool(metadata.get("scanningcenter"))
+
+    def make_work_from_orphaned_edition(self):
+        """
+        Create a dummy work from an orphaned_edition.
+        """
+        return web.ctx.site.new('', {
+            'key': '',
+            'type': {'key': '/type/work'},
+            'title': self.title,
+            'authors': [
+                {'type': {'key': '/type/author_role'}, 'author': {'key': a['key']}}
+                for a in self.get('authors', [])],
+            'editions': [self],
+            'subjects': self.get('subjects', []),
+        })
 
 def some(values):
     """Returns the first value that is True from the values iterator.
@@ -457,6 +486,8 @@ class Work(Thing):
         return status_id
 
     def get_num_users_by_bookshelf(self):
+        if not self.key:  # a dummy work
+            return {'want-to-read': 0, 'currently-reading': 0, 'already-read': 0}
         work_id = extract_numeric_id_from_olid(self.key)
         num_users_by_bookshelf = Bookshelves.get_num_users_by_bookshelf_by_work_id(work_id)
         return {
@@ -466,12 +497,14 @@ class Work(Thing):
         }
 
     def get_rating_stats(self):
+        if not self.key:  # a dummy work
+            return {'avg_rating': 0, 'num_ratings': 0}
         work_id = extract_numeric_id_from_olid(self.key)
         rating_stats = Ratings.get_rating_stats(work_id)
         if rating_stats and rating_stats['num_ratings'] > 0:
             return {
-            'avg_rating': round(rating_stats['avg_rating'],2),
-            'num_ratings': rating_stats['num_ratings']
+                'avg_rating': round(rating_stats['avg_rating'], 2),
+                'num_ratings': rating_stats['num_ratings']
             }
 
     def _get_d(self):
@@ -567,6 +600,11 @@ class User(Thing):
     DEFAULT_PREFERENCES = {
         'updates': 'no',
         'public_readlog': 'no'
+        # New users are now public by default for new patrons
+        # As of 2020-05, OpenLibraryAccount.create will
+        # explicitly set public_readlog: 'yes'.
+        # Legacy acconts w/ no public_readlog key
+        # will continue to default to 'no'
     }
 
     def get_status(self):
@@ -619,6 +657,9 @@ class User(Thing):
     def in_sponsorship_beta(self):
         return self.is_usergroup_member('/usergroup/sponsors')
 
+    def is_beta_tester(self):
+        return self.is_usergroup_member('/usergroup/beta-testers')
+
     def get_lists(self, seed=None, limit=100, offset=0, sort=True):
         """Returns all the lists of this user.
 
@@ -656,7 +697,8 @@ class User(Thing):
 
         return self._site.things(q)
 
-    def new_list(self, name, description, seeds, tags=[]):
+    def new_list(self, name, description, seeds, tags=None):
+        tags = tags or []
         """Creates a new list object with given name, description, and seeds.
 
         seeds must be a list containing references to author, edition, work or subject strings.
@@ -702,29 +744,42 @@ class User(Thing):
     def has_borrowed(self, book):
         """Returns True if this user has borrowed given book.
         """
-        loan = self.get_loan_for(book)
+        loan = self.get_loan_for(book.ocaid)
         return loan is not None
 
-    #def can_borrow_edition(edition, _type):
-
-
-    def get_loan_for(self, book):
-        """Returns the loan object for given book.
+    def get_loan_for(self, ocaid):
+        """Returns the loan object for given ocaid.
 
         Returns None if this user hasn't borrowed the given book.
         """
         from ..plugins.upstream import borrow
         loans = borrow.get_loans(self)
         for loan in loans:
-            if book.key == loan['book'] or book.ocaid == loan['ocaid']:
+            if ocaid == loan['ocaid']:
                 return loan
 
-    def get_waiting_loan_for(self, book):
-        return waitinglist.get_waiting_loan_object(self.key, book.key)
+    def get_waiting_loan_for(self, ocaid):
+        """
+        :param str or None ocaid:
+        :rtype: dict (e.g. {position: number})
+        """
+        return ocaid and WaitingLoan.find(self.key, ocaid)
 
     def __repr__(self):
         return "<User: %s>" % repr(self.key)
     __str__ = __repr__
+
+    def render_link(self, cls=None):
+        """
+        Generate an HTML link of this user
+        :param str cls: HTML class to add to the link
+        :rtype: str
+        """
+        extra_attrs = ''
+        if cls:
+            extra_attrs += 'class="%s" ' % cls
+        # Why nofollow?
+        return '<a rel="nofollow" href="%s" %s>%s</a>' % (self.key, extra_attrs, web.net.htmlquote(self.displayname))
 
 class List(Thing, ListMixin):
     """Class to represent /type/list objects in OL.
@@ -814,54 +869,6 @@ class List(Thing, ListMixin):
     def __repr__(self):
         return "<List: %s (%r)>" % (self.key, self.name)
 
-class Library(Thing):
-    """Library document.
-
-    Each library has a list of IP addresses belongs to that library.
-    """
-    def url(self, suffix="", **params):
-        return self.get_url(suffix, **params)
-
-    def find_bad_ip_ranges(self, text):
-        return iprange.find_bad_ip_ranges(text)
-
-    def parse_ip_ranges(self, text):
-        return iprange.parse_ip_ranges(text)
-
-    def get_ip_range_list(self):
-        """Returns IpRangeList object for the range of IPs of this library.
-        """
-        ranges = list(self.parse_ip_ranges(self.ip_ranges or ""))
-        return iptools.IpRangeList(*ranges)
-
-    def has_ip(self, ip):
-        """Return True if the the given ip is part of the library's ip range.
-        """
-        return ip in self.get_ip_range_list()
-
-    def get_branches(self):
-        # Library Name | Street | City | State | Zip | Country | Telephone | Website | Lat, Long
-        columns = ["name", "street", "city", "state", "zip", "country", "telephone", "website", "latlong"]
-        def parse(line):
-            branch = web.storage(zip(columns, line.strip().split("|")))
-
-            # add empty values for missing columns
-            for c in columns:
-                branch.setdefault(c, "")
-
-            try:
-                branch.lat, branch.lon = branch.latlong.split(",", 1)
-            except ValueError:
-                branch.lat = "0"
-                branch.lon = "0"
-            return branch
-        return [parse(line) for line in self.addresses.splitlines() if line.strip()]
-
-    def get_loans_per_day(self, resource_type="total"):
-        name = self.key.split("/")[-1]
-        stats = loanstats.LoanStats(library=name)
-        return stats.get_loans_per_day(resource_type=resource_type)
-
 class UserGroup(Thing):
 
     @classmethod
@@ -914,7 +921,7 @@ class Subject(web.storage):
     def url(self, suffix="", relative=True, **params):
         u = self.key + suffix
         if params:
-            u += '?' + urllib.urlencode(params)
+            u += '?' + urllib.parse.urlencode(params)
         if not relative:
             u = _get_ol_base_url() + u
         return u
@@ -937,7 +944,6 @@ def register_models():
     client.register_thing_class('/type/author', Author)
     client.register_thing_class('/type/user', User)
     client.register_thing_class('/type/list', List)
-    client.register_thing_class('/type/library', Library)
     client.register_thing_class('/type/usergroup', UserGroup)
 
 def register_types():
@@ -949,7 +955,6 @@ def register_types():
     types.register_type('^/books/[^/]*$', '/type/edition')
     types.register_type('^/works/[^/]*$', '/type/work')
     types.register_type('^/languages/[^/]*$', '/type/language')
-    types.register_type('^/libraries/[^/]*$', '/type/library')
 
     types.register_type('^/usergroup/[^/]*$', '/type/usergroup')
     types.register_type('^/permission/[^/]*$', '/type/permission')

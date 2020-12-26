@@ -17,9 +17,13 @@ import simplejson
 import itertools
 import gzip
 
-import db
-
 import six
+
+from infogami.infobase.utils import flatten_dict
+
+from openlibrary.data import db
+from openlibrary.data.sitemap import generate_html_index, generate_sitemaps
+from openlibrary.plugins.openlibrary.processors import urlsafe
 
 
 def print_dump(json_records, filter=None):
@@ -65,7 +69,7 @@ def xopen(path, mode='r'):
         return open(path, mode)
 
 def read_tsv(file, strip=True):
-    """Read a tab seperated file and return an iterator over rows."""
+    """Read a tab separated file and return an iterator over rows."""
     log("reading", file)
     if isinstance(file, six.string_types):
         file = xopen(file)
@@ -129,18 +133,6 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
         if status != 0:
             raise Exception("sort failed with status %d" % status)
 
-def pmap(f, tasks):
-    """Run tasks parallelly."""
-    try:
-        from subprocess import Pool
-
-        from multiprocessing import Pool
-        r = pool.map_async(f, tasks, callback=results.append)
-        r.wait() # Wait on the results
-
-    except ImportError:
-        Pool = None
-
 def generate_dump(cdump_file=None):
     """Generate dump from cdump.
 
@@ -196,8 +188,6 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
 def make_index(dump_file):
     """Make index with "path", "title", "created" and "last_modified" columns."""
 
-    from openlibrary.plugins.openlibrary.processors import urlsafe
-
     for type, key, revision, timestamp, json in read_tsv(dump_file):
         data = simplejson.loads(json)
         if type == '/type/edition' or type == '/type/work':
@@ -221,8 +211,6 @@ def make_index(dump_file):
 def make_bsddb(dbfile, dump_file):
     import bsddb
     db = bsddb.btopen(dbfile, 'w', cachesize=1024*1024*1024)
-
-    from infogami.infobase.utils import flatten_dict
 
     indexable_keys = set([
         "authors.key",  "works.key", # edition
@@ -270,7 +258,7 @@ def _process_data(data):
         if 'type' in data and data['type'] == '/type/datetime':
             data['value'] = data['value'].replace(' ', 'T')
 
-        return dict((k, _process_data(v)) for k, v in data.iteritems())
+        return dict((k, _process_data(v)) for k, v in data.items())
     else:
         return data
 
@@ -283,7 +271,7 @@ def _make_sub(d):
     """
     def f(a):
         return d[a.group(0)]
-    rx = re.compile("|".join(map(re.escape, d.keys())))
+    rx = re.compile("|".join(re.escape(key) for key in d))
     return lambda s: s and rx.sub(f, s)
 
 def _invert_dict(d):
@@ -316,7 +304,7 @@ def main(cmd, args):
     for a in iargs:
         if a.startswith('--'):
             name = a[2:].replace("-", "_")
-            value = iargs.next()
+            value = next(iargs)
             kwargs[name] = value
         else:
             args.append(a)
@@ -336,13 +324,11 @@ def main(cmd, args):
     elif cmd == 'bsddb':
         make_bsddb(*args, **kwargs)
     elif cmd == "solrdump":
-        import solr
+        from openlibrary.data import solr  # noqa: E402 avoid circular import
         solr.generate_dump(*args, **kwargs)
     elif cmd == 'sitemaps':
-        from sitemap import generate_sitemaps
         generate_sitemaps(*args, **kwargs)
     elif cmd == 'htmlindex':
-        from sitemap import generate_html_index
         generate_html_index(*args, **kwargs)
     else:
         print("Unknown command:", cmd, file=sys.stderr)

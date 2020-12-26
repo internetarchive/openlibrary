@@ -1,12 +1,12 @@
 #!/usr/bin/python2.5
 
 from __future__ import print_function
-import catalog.merge.merge_marc as marc
-import catalog.merge.amazon as amazon
-from catalog.utils.query import get_mc, withKey
+import openlibrary.catalog.merge.merge_marc as marc
+import openlibrary.catalog.merge.amazon as amazon
+from openlibrary.catalog.utils.query import get_mc, withKey
 
-from catalog.get_ia import get_from_archive
-import catalog.marc.fast_parse as fast_parse
+from openlibrary.catalog.get_ia import get_from_archive
+import openlibrary.catalog.marc.fast_parse as fast_parse
 
 def try_amazon(key):
     thing = withKey(key)

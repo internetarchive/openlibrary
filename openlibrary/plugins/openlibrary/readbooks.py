@@ -6,7 +6,6 @@ WARNING: This gets only the new books with revision=1.
 from __future__ import print_function
 import web
 import time
-import sys
 
 def select(query, chunk_size=50000):
     """Selects large number of rows efficiently using cursors."""

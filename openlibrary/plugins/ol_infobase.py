@@ -4,7 +4,6 @@
 from __future__ import print_function
 import os
 import datetime
-import urllib
 import simplejson
 import logging
 import logging.config
@@ -14,6 +13,7 @@ import re
 import unicodedata
 
 import six
+from six.moves import urllib
 import web
 from infogami.infobase import config, common, server, cache, dbstore
 
@@ -266,7 +266,7 @@ def get_object_data(site, thing):
             return value
 
     d = thing._get_data()
-    for k, v in d.iteritems():
+    for k, v in d.items():
         # save some space by not expanding type
         if k != 'type':
             d[k] = expand(v)
@@ -292,7 +292,7 @@ def http_notify(site, old, new):
 
     for url in config.http_listeners:
         try:
-            response = urllib.urlopen(url, json).read()
+            response = urllib.request.urlopen(url, json).read()
             print('http_notify', repr(url), repr(key), repr(response), file=web.debug)
         except:
             print('failed to send http_notify', repr(url), repr(key), file=web.debug)
@@ -366,7 +366,9 @@ class MemcacheInvalidater:
 # openlibrary.plugins.openlibrary masks openlibrary module
 olmemcache = __import__('openlibrary.utils.olmemcache', None, None, ['x'])
 
-def MemcachedDict(servers=[]):
+
+def MemcachedDict(servers=None):
+    servers = servers or []
     """Cache implementation with OL customized memcache client."""
     client = olmemcache.Client(servers)
     return cache.MemcachedDict(memcache_client=client)
@@ -391,7 +393,7 @@ def _process_data(data):
     elif isinstance(data, dict):
         if 'key' in data:
             data['key'] = _process_key(data['key'])
-        return dict((k, _process_data(v)) for k, v in data.iteritems())
+        return dict((k, _process_data(v)) for k, v in data.items())
     else:
         return data
 
@@ -479,7 +481,7 @@ class OLIndexer(_Indexer):
         return doc
 
     def normalize_edition_title(self, title):
-        if isinstance(title, str):
+        if isinstance(title, bytes):
             title = title.decode('utf-8', 'ignore')
 
         if not isinstance(title, six.text_type):

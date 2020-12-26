@@ -1,0 +1,60 @@
+{
+  "files": [
+    {
+      "path": "static/build/editions-table.*.js",
+      "maxSize": "31.0KB"
+    },
+    {
+      "path": "static/build/graphs.*.js",
+      "maxSize": "19KB"
+    },
+    {
+      "path": "static/build/markdown-editor.*.js",
+      "maxSize": "11KB"
+    },
+    {
+      "path": "static/build/carousel.*.js",
+      "maxSize": "12.2KB"
+    },
+    {
+      "path": "static/build/readmore.*.js",
+      "maxSize": "2KB"
+    },
+    {
+      "path": "static/build/all.js",
+      "maxSize": "155KB"
+    },
+    {
+      "path": "static/build/page-admin.css",
+      "maxSize": "21KB"
+    },
+    {
+      "path": "static/build/page-book.css",
+      "maxSize": "9KB"
+    },
+    {
+      "path": "static/build/page-edit.css",
+      "maxSize": "20KB"
+    },
+    {
+      "path": "static/build/page-form.css",
+      "maxSize": "20KB"
+    },
+    {
+      "path": "static/build/page-home.css",
+      "maxSize": "6KB"
+    },
+    {
+      "path": "static/build/page-plain.css",
+      "maxSize": "20KB"
+    },
+    {
+      "path": "static/build/page-subject.css",
+      "maxSize": "8KB"
+    },
+    {
+      "path": "static/build/page-user.css",
+      "maxSize": "21KB"
+    }
+  ]
+}

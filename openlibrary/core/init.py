@@ -14,7 +14,7 @@ import subprocess
 import sys
 import time
 
-import formats
+from openlibrary.core import formats
 
 class Init:
     """Init process for starting and managing OL services.

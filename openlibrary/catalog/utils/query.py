@@ -1,10 +1,11 @@
 from __future__ import print_function
-import urllib
-import urllib2
+import requests
 import web
 import simplejson as json
 from time import sleep
+from six.moves import urllib
 import sys
+
 
 query_host = 'openlibrary.org'
 
@@ -14,14 +15,14 @@ def urlopen(url, data=None):
     headers = {
         'User-Agent': user_agent
     }
-    req = urllib2.Request(url, data, headers)
-    return urllib2.urlopen(req)
+    
+    return requests.get(url, data=data, headers=headers)
 
 def jsonload(url):
-    return json.load(urlopen(url))
+    return urlopen(url).json()
 
 def urlread(url):
-    return urlopen(url).read()
+    return urlopen(url).content
 
 def set_query_host(host):
     global query_host
@@ -64,12 +65,12 @@ def get_all_ia():
         q['offset'] += limit
 
 def query(q):
-    url = query_url() + urllib.quote(json.dumps(q))
+    url = query_url() + urllib.parse.quote(json.dumps(q))
     ret = None
     for i in range(20):
         try:
             ret = urlread(url)
-            while ret.startswith('canceling statement due to statement timeout'):
+            while ret.startswith(b'canceling statement due to statement timeout'):
                 ret = urlread(url)
             if not ret:
                 print('ret == None')

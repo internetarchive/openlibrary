@@ -8,12 +8,11 @@ Upstream requires:
 
 This adapter module is a filter that sits above an Infobase server and fakes the new URL structure.
 """
-import urllib
-import urllib2
 import simplejson
 import web
 
 import six
+from six.moves import urllib
 
 
 urls = (
@@ -65,10 +64,10 @@ class proxy:
         self.before_request()
         try:
             server = web.config.infobase_server
-            req = urllib2.Request(server + self.path + '?' + urllib.urlencode(self.input), self.data, headers=headers)
+            req = urllib.request.Request(server + self.path + '?' + urllib.parse.urlencode(self.input), self.data, headers=headers)
             req.get_method = lambda: web.ctx.method
-            response = urllib2.urlopen(req)
-        except urllib2.HTTPError as e:
+            response = urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
             response = e
         self.status_code = response.code
         self.status_msg = response.msg
@@ -106,11 +105,13 @@ class proxy:
                 d['key'] = unconvert_key(d['key'])
             self.output = simplejson.dumps(d)
 
-def convert_key(key, mapping=convertions):
+
+def convert_key(key, mapping=None):
     """
         >>> convert_key("/authors/OL1A", {'/authors/': '/a/'})
         '/a/OL1A'
     """
+    mapping = mapping or convertions
     if key is None:
         return None
     elif key == '/':
@@ -122,11 +123,13 @@ def convert_key(key, mapping=convertions):
             return key2
     return key
 
-def convert_dict(d, mapping=convertions):
+
+def convert_dict(d, mapping=None):
     """
         >>> convert_dict({'author': {'key': '/authors/OL1A'}}, {'/authors/': '/a/'})
         {'author': {'key': '/a/OL1A'}}
     """
+    mapping = mapping or convertions
     if isinstance(d, dict):
         if 'key' in d:
             d['key'] = convert_key(d['key'], mapping)
@@ -233,7 +236,7 @@ class save_many(proxy):
             q = simplejson.loads(i['query'])
             q = convert_dict(q)
             i['query'] = simplejson.dumps(q)
-            self.data = urllib.urlencode(i)
+            self.data = urllib.parse.urlencode(i)
 
 class reindex(proxy):
     def before_request(self):
@@ -241,7 +244,7 @@ class reindex(proxy):
         if 'keys' in i:
             keys = [convert_key(k) for k in simplejson.loads(i['keys'])]
             i['keys'] = simplejson.dumps(keys)
-            self.data = urllib.urlencode(i)
+            self.data = urllib.parse.urlencode(i)
 
 class account(proxy):
     def before_request(self):

@@ -1,9 +1,8 @@
 """Library for managing Open Library data"""
 
 import simplejson
-import re
 
-from dump import pgdecode
+from openlibrary.data.dump import pgdecode
 
 def parse_data_table(filename):
     """Parses the dump of data table and returns an iterator with

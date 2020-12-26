@@ -1,8 +1,13 @@
-import './jquery.dataTables';
+import 'datatables.net-dt';
 import '../../../../../static/css/legacy-datatables.less';
+
+const DEFAULT_LENGTH = 3;
+const LS_RESULTS_LENGTH_KEY = 'editions-table.resultsLength';
 
 export function initEditionsTable() {
     var rowCount;
+    let currentLength;
+
     $('#editions th.title').mouseover(function(){
         if ($(this).hasClass('sorting_asc')) {
             $(this).attr('title','Sort latest to earliest');
@@ -21,24 +26,6 @@ export function initEditionsTable() {
             $(this).attr('title','Available to read');
         }
     });
-    $('#editions th.locate').mouseover(function(){
-        if ($(this).hasClass('sorting_asc')) {
-            $(this).attr('title','Are you a member of your local library?');
-        } else if ($(this).hasClass('sorting_desc')) {
-            $(this).attr('title','Sory by books likely to be at libraries near you');
-        } else {
-            $(this).attr('title','Locate this book');
-        }
-    });
-    $('#editions th.buy').mouseover(function(){
-        if ($(this).hasClass('sorting_asc')) {
-            $(this).attr('title','Books for sale to the bottom');
-        } else if ($(this).hasClass('sorting_desc')) {
-            $(this).attr('title','Bring books for sale to the top');
-        } else {
-            $(this).attr('title','Available to buy');
-        }
-    });
     $('#editions th.read span').html('&nbsp;&uarr;');
     $('#editions th').mouseup(function(){
         $('#editions th span').html('');
@@ -49,11 +36,16 @@ export function initEditionsTable() {
             $(this).find('span').html('&nbsp;&uarr;');
         }
     });
+
+    $('#editions').on('length.dt', function(e, settings, length) {
+        localStorage.setItem(LS_RESULTS_LENGTH_KEY, length);
+    });
+
     rowCount = $('#editions tbody tr').length;
-    if (rowCount < 16) {
-        $('#editions').dataTable({
-            aoColumns: [{sType: 'html'},null,null,null],
-            aaSorting: [ [1,'asc'] ],
+    if (rowCount < 4) {
+        $('#editions').DataTable({
+            aoColumns: [{sType: 'html'},null],
+            order: [ [1,'asc'] ],
             bPaginate: false,
             bInfo: false,
             bFilter: false,
@@ -61,20 +53,19 @@ export function initEditionsTable() {
             bAutoWidth: false
         });
     } else {
-        $('#editions').dataTable({
-            aoColumns: [{sType: 'html'},null,null,null],
-            aaSorting: [ [1,'asc'] ],
+        currentLength = Number(localStorage.getItem(LS_RESULTS_LENGTH_KEY));
+
+        $('#editions').DataTable({
+            aoColumns: [{sType: 'html'},null],
+            order: [ [1,'asc'] ],
+            lengthMenu: [ [3, 10, 25, 50, 100, -1], [3, 10, 25, 50, 100, 'All'] ],
             bPaginate: true,
             bInfo: true,
             sPaginationType: 'full_numbers',
-            bFilter: false,
+            bFilter: true,
             bStateSave: false,
-            bAutoWidth: false
+            bAutoWidth: false,
+            pageLength: currentLength ? currentLength : DEFAULT_LENGTH
         });
     }
-    $('.return-book').submit(function(event) {
-        if (!confirm('Really return this book?')) {
-            event.preventDefault();
-        }
-    });
 }

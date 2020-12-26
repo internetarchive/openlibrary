@@ -3,13 +3,12 @@ from lxml.html import parse, tostring
 import re
 import os
 import sys
-import web
 from warnings import warn
 from math import floor
 from pprint import pprint
-import htmlentitydefs
 
 import six
+from six.moves import html_entities
 
 
 class BrokenTitle(Exception):
@@ -21,11 +20,11 @@ class IncompletePage(Exception):
 class MissingAuthor(Exception):
     pass
 
-role_re = re.compile("^ \(([^)]+)\)")
+role_re = re.compile(r"^ \(([^)]+)\)")
 
 #: sample: ' [Paperback, Large Print]'
 
-re_title = re.compile("""
+re_title = re.compile(r"""
     (?:\ \[([A-Za-z, ]+)\])? # flags
     (?:\(\ ([^()]+|[^()]*\(.*\)[^()]*)\))?
     """, re.MULTILINE | re.X)
@@ -35,14 +34,14 @@ re_split_title = re.compile(r'''^
     (?::\ (\ *[^:]+))?$
 ''', re.X)
 
-re_missing_author = re.compile('\n\n(~  )?\(([A-Za-z, ]+)\), ')
+re_missing_author = re.compile(r'\n\n(~  )?\(([A-Za-z, ]+)\), ')
 
-re_list_price = re.compile('^\$([\d,]+)\.(\d\d)$')
-re_amazon_price = re.compile('^\$([\d,]+)\.(\d\d)$')
+re_list_price = re.compile(r'^\$([\d,]+)\.(\d\d)$')
+re_amazon_price = re.compile(r'^\$([\d,]+)\.(\d\d)$')
 # '$0.04\n      \n    '
-re_you_save = re.compile('^\$([\d,]+)\.(\d\d)\s*\((\d+)%\)\s*$')
+re_you_save = re.compile(r'^\$([\d,]+)\.(\d\d)\s*\((\d+)%\)\s*$')
 
-re_pages = re.compile('^\s*(\d+)(?:\.0)? pages\s*$')
+re_pages = re.compile(r'^\s*(\d+)(?:\.0)? pages\s*$')
 re_sales_rank = re.compile('^ #([0-9,]+) in Books')
 re_html_in_title = re.compile('</?(i|em|br)>', re.I)
 
@@ -61,11 +60,11 @@ def unescape(text):
         else:
             # named entity
             try:
-                text =  six.unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+                text =  six.unichr(html_entities.name2codepoint[text[1:-1]])
             except KeyError:
                 pass
         return text # leave as is
-    return re.sub("&#?\w+;", fixup, text)
+    return re.sub(r"&#?\w+;", fixup, text)
 
 def to_dict(k, v):
     return {k: v} if v else None
@@ -299,7 +298,7 @@ def read_li(li):
     assert b.tag == 'b'
     return b
 
-re_series = re.compile('^<li>(?:This is item <b>(\d+)</b> in|This item is part of) <a href="?/gp/series/(\d+).*?><b>The <i>(.+?)</i> Series</b></a>\.</li>')
+re_series = re.compile(r'^<li>(?:This is item <b>(\d+)</b> in|This item is part of) <a href="?/gp/series/(\d+).*?><b>The <i>(.+?)</i> Series</b></a>\.</li>')
 
 def read_series(doc):
     ul = doc.find_class('linkBullets')
@@ -381,7 +380,7 @@ def read_product_details(doc):
         found[heading] = b.tail.strip()
     return found
 
-re_pub_date = re.compile("^(.*) \((.*\d{4})\)$")
+re_pub_date = re.compile(r"^(.*) \((.*\d{4})\)$")
 re_pub_edition = re.compile("^(.*); (.*)$")
 
 def parse_publisher(edition):
@@ -395,7 +394,7 @@ def parse_publisher(edition):
             edition["publisher"] = m.group(1)
             edition["edition"] = m.group(2)
 
-re_latest_blog_posts = re.compile('\s*(.*?) latest blog posts')
+re_latest_blog_posts = re.compile(r'\s*(.*?) latest blog posts')
 re_plog_link = re.compile('^/gp/blog/([A-Z0-9]+)$')
 
 def read_plog(doc):
@@ -429,8 +428,8 @@ def read_plog(doc):
     return found
 
 re_cite = {
-    'citing': re.compile('\nThis book cites (\d+) \nbook(?:s)?:'),
-    'cited': re.compile('\n(\d+) \nbook(?:s)? \ncites? this book:')
+    'citing': re.compile(r'\nThis book cites (\d+) \nbook(?:s)?:'),
+    'cited': re.compile(r'\n(\d+) \nbook(?:s)? \ncites? this book:')
 }
 
 def read_citing(doc):
@@ -602,7 +601,7 @@ def edition_to_ol(edition):
     else:
         print('publisher missing')
 
-    for k, v in ol.iteritems():
+    for k, v in ol.items():
         if isinstance(v, six.string_types) and v[-1] == '(':
             pprint(edition)
             print(('ends with "(":', repr(k, v)))

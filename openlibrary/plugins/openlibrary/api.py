@@ -10,7 +10,7 @@ import simplejson
 
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template  # noqa: F401 used for its side effects
 from infogami.plugins.api.code import jsonapi
 from infogami.utils.view import add_flash_message
 from openlibrary import accounts
@@ -69,13 +69,10 @@ class browse(delegate.page):
         url = lending.compose_ia_url(
             query=i.q, limit=limit, page=page, subject=i.subject,
             work_id=i.work_id, _type=i._type, sorts=sorts)
+        works = lending.get_available(url=url) if url else []
         result = {
             'query': url,
-            'works': [
-                work.dict() for work in lending.add_availability(
-                    lending.get_available(url=url)
-                )
-            ]
+            'works': [work.dict() for work in works],
         }
         return delegate.RawText(
             simplejson.dumps(result),
@@ -83,7 +80,7 @@ class browse(delegate.page):
 
 
 class ratings(delegate.page):
-    path = "/works/OL(\d+)W/ratings"
+    path = r"/works/OL(\d+)W/ratings"
     encoding = "json"
 
     def POST(self, work_id):
@@ -128,14 +125,39 @@ class ratings(delegate.page):
 # not a value tied to this logged in user. This is being used as debugging.
 
 class work_bookshelves(delegate.page):
-    path = "/works/OL(\d+)W/bookshelves"
+    path = r"/works/OL(\d+)W/bookshelves"
     encoding = "json"
 
+    @jsonapi
+    def GET(self, work_id):
+        from openlibrary.core.models import Bookshelves
+
+        result = {'counts': {}}
+        counts = Bookshelves.get_num_users_by_bookshelf_by_work_id(work_id)
+        for (shelf_name, shelf_id) in Bookshelves.PRESET_BOOKSHELVES_JSON.items():
+            result['counts'][shelf_name] = counts.get(shelf_id, 0)
+
+        return simplejson.dumps(result)
+
     def POST(self, work_id):
+        """
+        Add a work (or a work and an edition) to a bookshelf.
+        
+        GET params:
+        - edition_id str (optional)
+        - action str: e.g. "add", "remove"
+        - redir bool: if patron not logged in, redirect back to page after login
+        - bookshelf_id int: which bookshelf? e.g. the ID for "want to read"?
+        - dont_remove bool: if book exists & action== "add", don't try removal  
+
+        :param str work_id: e.g. OL123W
+        :rtype: json
+        :return: a list of bookshelves_affected
+        """
         from openlibrary.core.models import Bookshelves
 
         user = accounts.get_current_user()
-        i = web.input(edition_id=None, action="add", redir=False, bookshelf_id=None)
+        i = web.input(edition_id=None, action="add", redir=False, bookshelf_id=None, dont_remove=False)
         key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
 
         if not user:
@@ -149,12 +171,12 @@ class work_bookshelves(delegate.page):
             shelf_ids = Bookshelves.PRESET_BOOKSHELVES.values()
             if bookshelf_id != -1 and bookshelf_id not in shelf_ids:
                 raise ValueError
-        except ValueError:
+        except (TypeError, ValueError):
             return delegate.RawText(simplejson.dumps({
                 'error': 'Invalid bookshelf'
             }), content_type="application/json")
 
-        if bookshelf_id == current_status or bookshelf_id == -1:
+        if (not i.dont_remove) and bookshelf_id == current_status or bookshelf_id == -1:
             work_bookshelf = Bookshelves.remove(
                 username=username, work_id=work_id, bookshelf_id=current_status)
 
@@ -172,7 +194,7 @@ class work_bookshelves(delegate.page):
 
 
 class work_editions(delegate.page):
-    path = "(/works/OL\d+W)/editions"
+    path = r"(/works/OL\d+W)/editions"
     encoding = "json"
 
     def GET(self, key):
@@ -214,7 +236,7 @@ class work_editions(delegate.page):
 
 
 class author_works(delegate.page):
-    path = "(/authors/OL\d+A)/works"
+    path = r"(/authors/OL\d+A)/works"
     encoding = "json"
 
     def GET(self, key):
@@ -283,37 +305,24 @@ class amazon_search_api(delegate.page):
         results = search_amazon(title=i.title, author=i.author)
         return simplejson.dumps(results)
 
-class join_sponsorship_waitlist(delegate.page):
-    path = r'/sponsorship/join'
-
-    def GET(self):
-        user = accounts.get_current_user()
-        if user:
-            account = OpenLibraryAccount.get_by_email(user.email)
-            ia_itemname = account.itemname if account else None
-        if not user or not ia_itemname:
-            web.setcookie(config.login_cookie_name, "", expires=-1)
-            raise web.seeother("/account/login?redirect=/sponsorship/join")
-        try:
-            with accounts.RunAs('archive_support'):
-                models.UserGroup.from_key('sponsors-waitlist').add_user(user.key)
-        except KeyError as e:
-            add_flash_message('error', 'Unable to join waitlist: %s' % e.message)
-
-        raise web.seeother('/sponsorship')
 
 class sponsorship_eligibility_check(delegate.page):
     path = r'/sponsorship/eligibility/(.*)'
 
     @jsonapi
     def GET(self, _id):
+        i = web.input(patron=None, scan_only=False)
         edition = (
             web.ctx.site.get('/books/%s' % _id)
             if re.match(r'OL[0-9]+M', _id)
             else models.Edition.from_isbn(_id)
             
         )
-        return simplejson.dumps(qualifies_for_sponsorship(edition))
+        if not edition:
+            return simplejson.dumps({"status": "error", "reason": "Invalid ISBN 13"})
+        return simplejson.dumps(
+            qualifies_for_sponsorship(edition, scan_only=i.scan_only, patron=i.patron)
+        )
 
 
 class price_api(delegate.page):

@@ -1,4 +1,4 @@
-$def with (email=None, url=None, done = False)
+$def with (email=None, url=None, done=False, recaptcha=None)
 $# Template entry point for /contact page
 $var title: How can we help?
 
@@ -50,6 +50,10 @@ to see if your question is answered there. Thank you.</p>
  <div class="input"><input type="hidden" name="url" id="url" value="$url"/></div>
 <!-- </div> -->
 
+ $if recaptcha:
+   <div class="formElement">
+     <div class="g-recaptcha" data-sitekey="$:recaptcha.public_key"></div>
+   </div>
 
  <div class="formElement bottom">
  <div class="input">

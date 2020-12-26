@@ -14,16 +14,13 @@ Each waiting instance is represented as a document in the store as follows:
 """
 import datetime
 import logging
-import urllib
-import urllib2
-import json
 import web
-from infogami import config
 from openlibrary.accounts.model import OpenLibraryAccount
 from . import helpers as h
 from .sendmail import sendmail_with_template
 from . import db
 from . import lending
+
 
 logger = logging.getLogger("openlibrary.waitinglist")
 
@@ -213,18 +210,6 @@ def is_user_waiting_for(user_key, book_key):
     if book and book.ocaid:
         return WaitingLoan.find(user_key, book.ocaid) is not None
 
-def get_waiting_loan_object(user_key, book_key):
-    book = web.ctx.site.get(book_key)
-    if book and book.ocaid:
-        return WaitingLoan.find(user_key, book.ocaid)
-
-def get_waitinglist_position(user_key, book_key):
-    book = web.ctx.site.get(book_key)
-    if book and book.ocaid:
-        w = WaitingLoan.find(user_key, book.ocaid)
-        if w:
-            return w['position']
-    return -1
 
 def join_waitinglist(user_key, book_key, itemname=None):
     """Adds a user to the waiting list of given book.
@@ -262,6 +247,11 @@ def update_waitinglist(identifier):
     * When a book is checked out or returned
     * When a person joins or leaves the waiting list
     """
+    return None
+    # For books with many active loans, calls to loan.sync can be very slow / 504.
+    # It looks like, these two functions are handled on the IA side, and don't actually
+    # need to be called from Open Library. Disabling as a patch deploy for now; can
+    # likely remove remove in the near future.
     _wl_api.request("loan.sync", identifier=identifier)
     return on_waitinglist_update(identifier)
 
@@ -305,7 +295,7 @@ def update_waitinglist(identifier):
         borrowed=str(not_available).lower(), # store as string "true" or "false"
         wl_size=len(wl))
 
-    # Start storing ebooks/$identifier so that we can handle mutliple editions
+    # Start storing ebooks/$identifier so that we can handle multiple editions
     # with same ocaid more effectively.
     update_ebook('ebooks/' + identifier,
         borrowed=str(not_available).lower(), # store as string "true" or "false"

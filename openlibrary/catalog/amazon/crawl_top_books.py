@@ -1,5 +1,5 @@
 from __future__ import print_function
-from openlibrary.catalog.amazon.crawl import read_page, write_books, get_url, get_cats
+from openlibrary.catalog.amazon.crawl import read_page, get_url, get_cats
 
 def get_serp():
     params = 'i:stripbooks,n:!1000,p_n_feature_browse-bin:618083011'

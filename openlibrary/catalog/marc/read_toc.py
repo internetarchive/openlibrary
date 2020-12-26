@@ -1,5 +1,5 @@
 from __future__ import print_function
-from catalog.marc.fast_parse import get_all_subfields
+from openlibrary.catalog.marc.fast_parse import get_all_subfields
 import re
 
 samples = [

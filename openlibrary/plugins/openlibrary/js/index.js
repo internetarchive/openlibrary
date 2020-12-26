@@ -9,8 +9,6 @@ import '../../../../vendor/js/colorbox/1.5.14.js';
 import '../../../../vendor/js/jquery-form/jquery.form.js';
 // jquery-autocomplete#1.1 with modified
 import '../../../../vendor/js/jquery-autocomplete/jquery.autocomplete-modified.js';
-// unversioned.
-import '../../../../vendor/js/wmd/jquery.wmd.js'
 import autocompleteInit from './autocomplete';
 // Used only by the openlibrary/templates/books/edit/addfield.html template
 import addNewFieldInit from './add_new_field';
@@ -95,6 +93,26 @@ jQuery(function () {
         import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
     }
+    // conditionally load real time signup functionality based on class in the page
+    if (document.getElementsByClassName('olform create validate').length) {
+        import('./realtime_account_validation.js')
+            .then(module => module.initRealTimeValidation());
+    }
+    // conditionally load readmore button based on class in the page
+    if (document.getElementsByClassName('read-more-button').length) {
+        import(/* webpackChunkName: "readmore" */ './readmore.js')
+            .then(module => module.initReadMoreButton());
+    }
+    // conditionally loads Goodreads import based on class in the page
+    if (document.getElementsByClassName('import-table').length) {
+        import('./goodreads_import.js')
+            .then(module => module.initGoodreadsImport());
+    }
+    // conditionally loads Related Carousels based on class in the page
+    if (document.getElementsByClassName('RelatedWorksCarousel').length) {
+        import('./carousels_partials.js')
+            .then(module => module.initCarouselsPartials());
+    }
     // Enable any carousels in the page
     if ($carouselElements.length) {
         import(/* webpackChunkName: "carousel" */ './carousel')
@@ -104,6 +122,23 @@ jQuery(function () {
         import(/* webpackChunkName: "graphs" */ './graphs')
             .then((module) => module.init());
     }
+
+    if (window.READINGLOG_STATS_CONFIG) {
+        import(/* webpackChunkName: "readinglog_stats" */ './readinglog_stats')
+            .then(module => module.init(window.READINGLOG_STATS_CONFIG));
+    }
+
+    const pageEl = $('#page-barcodescanner');
+    if (pageEl.length) {
+        import(/* webpackChunkName: "page-barcodescanner" */ './page-barcodescanner')
+            .then((module) => module.init());
+    }
+
+    if (document.getElementById('modal-link')) {
+        import(/* webpackChunkName: "patron_metadata" */ './patron-metadata')
+            .then((module) => module.initPatronMetadata());
+    }
+
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });

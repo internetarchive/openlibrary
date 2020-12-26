@@ -8,17 +8,16 @@ $ page = safeint(query_param('page'), 1) - 1
 $ page_size = 10
 
 $def render_seed_count(seed_count):
-    $ msg = ungettext("%s seed", "%s seeds", seed_count)
-    $:sprintf(msg, seed_count)
+    $ungettext("1 seed", "%(count)d seeds", seed_count, count=seed_count)
 
 <div id="contentHead" style="margin-bottom:0;">
     <div class="superNav">
-        <a href="/" title="Visit Open Library"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="Open Library logo" class="right"/></a>
+        <a href="/" title="$_('Visit Open Library')"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="$_('Open Library logo')" class="right"/></a>
 
         $ owner = list.get_owner()
         <a href="$owner.key">$owner.displayname</a>
         /
-        <a href="$owner.key/lists">Lists</a>
+        <a href="$owner.key/lists">$_('Lists')</a>
     </div>
     <h1>
         $list.name
@@ -30,7 +29,7 @@ $def render_seed_count(seed_count):
 <div id="contentBody">
     $def render_authors(authors):
         $if not authors:
-            <em>Unknown authors</em>
+            <em>$_('Unknown authors')</em>
         $else:
             $for a in authors:
                 <a href="$a.url()" class="results">$a.name</a>$cond(loop.last, "", ", ")
@@ -57,23 +56,23 @@ $def render_seed_count(seed_count):
                             $if 'read_url' in ebook:
                                 <a href="$ebook['read_url']" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
                                     <span class="image read"></span>
-                                    <span class="label">$_("Read")</span>
+                                    <span class="label">$_('Read')</span>
                                 </a>
                             $elif 'borrow_url' in ebook:
                                 $if ebook.get('borrowed'):
-                                    <a href="$ebook['borrow_url']" title="This book is checked out">
+                                    <a href="$ebook['borrow_url']" title="$_('This book is checked out')">
                                         <span class="image checked-out"></span>
-                                        <span class="label">Checked out</span>
+                                        <span class="label">$_('Checked out')</span>
                                     </a>
                                 $else:
-                                    <a href="$ebook['borrow_url']" title="Borrow book">
+                                    <a href="$ebook['borrow_url']" title="$_('Borrow book')">
                                         <span class="image borrow"></span>
-                                        <span class="label">Borrow</span>
+                                        <span class="label">$_('Borrow')</span>
                                     </a>
                             $elif 'daisy_url' in ebook:
-                                <a href="$ebook['daisy_url']" title="Protected DAISY">
+                                <a href="$ebook['daisy_url']" title="$_('Protected DAISY')">
                                     <span class="image daisy"></span>
-                                    <span class="label">DAISY</span>
+                                    <span class="label">$_('DAISY')</span>
                                 </a>
                         </span>
 
@@ -88,7 +87,7 @@ $def render_seed_count(seed_count):
                                 $ authors = seed.document.works[0].get_authors()
                             $else:
                                 $ authors = seed.document.get_authors()
-                        <span class="small">by $:render_authors(authors)</span>
+                        <span class="small">$:_('by %(name)s', name=render_authors(authors))</span>
                     <span class="meta">
                     $if seed.type == "author":
                         <span class="type author small">$seed.type</span>
@@ -101,9 +100,9 @@ $def render_seed_count(seed_count):
                     $elif seed.type == "person":
                         <span class="type people small">$seed.type</span>
                     $elif seed.type == "work":
-                        - $commify(seed.edition_count) edition$("s" if seed.edition_count != 1 else "")$cond(seed.ebook_count, ",")
+                        $ungettext('- 1 edition', '- %(count)s editions', seed.edition_count,  count=commify(seed.edition_count))$cond(seed.ebook_count, ",")
                     $else:
-                        - $commify(seed.work_count) work$("s" if seed.work_count != 1 else "")$cond(seed.ebook_count, ",")
+                        $ungettext('- 1 work', '- %(count)s works', seed.work_count, count=commify(seed.work_count))$cond(seed.ebook_count, ",")
                     </span>
                 </div>
             </div>

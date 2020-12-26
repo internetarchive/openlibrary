@@ -7,7 +7,6 @@ modules = [
     'openlibrary.coverstore.db',
     'openlibrary.coverstore.server',
     'openlibrary.coverstore.utils',
-    'openlibrary.coverstore.warc',
 ]
 
 @pytest.mark.parametrize('module', modules)

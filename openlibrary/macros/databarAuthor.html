@@ -13,21 +13,21 @@ $if ctx.user:
             <div class="icon list"></div>
             <div class="dropper on">
                 <a href="javascript:;" class="dropclick plain">
-                    <h3>Add to list</h3>
+                    <h3>$_('Add to list')</h3>
                     <div class="arrow"></div>
                 </a>
                 <div class="dropdown">
                     <p><span>Add to</span> <a href="javascript:;">This is a List Name</a></p>
                     <p><span>Add to</span> <a href="javascript:;">This is Another List Name Which is Longer!</a></p>
                     <p><a aria-controls="addList"
-                        class="listClick dialog--open">Create a new list</a></p>
+                        class="listClick dialog--open">$_('Create a new list')</a></p>
                 </div>
             </div>
         </div>
         <div class="hidden">
             <div class="floaterAdd" id="addList">
                 <div class="floaterHead">
-                    <h2>Create a new list</h2>
+                    <h2>$_('Create a new list')</h2>
                     <a class="dialog--close">&times;<span class="shift">$_("×")</span></a>
                 </div>
                 <form method="post" action="" class="floatform">
@@ -57,9 +57,9 @@ $if ctx.user:
                 </div>
                 <div class="formElement">
                     <div class="input">
-                        <button type="button" class="larger">Add new list</button>
+                        <button type="button" class="larger">$_('Add new list')</button>
                         &nbsp; &nbsp;
-                        <a class="small plain red dialog--close">Cancel</a>
+                        <a class="small plain red dialog--close">$_('Cancel')</a>
                     </div>
                     <div class="label"></div>
                 </div>
@@ -79,7 +79,7 @@ $if ctx.user:
             </span>
             <span class="data">
                 <span class="label"><a href="LIST LINK">List Title</a></span>
-                <span class="owner">from <a href="PROFILE LINK">ownername</a></span>
+                <span class="owner">$_('from') <a href="PROFILE LINK">ownername</a></span>
             </span>
         </li>
     </ul>

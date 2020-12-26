@@ -2,7 +2,7 @@ $def with (page)
 
 $var title: $page.name
 
-$ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10)]
+$ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), ('people', _('People'), 10), ('times', _('Times'), 10)]
 
 <div id="scrollHere"></div>
 
@@ -12,10 +12,10 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
     </h1>
     <span class="heading">
         <span class="count" id="coversCount">
-            <strong><span>$sprintf(ungettext("%s work", "%s works", page.work_count), commify(page.work_count))</span></strong>
+            <strong><span>$ungettext("1 work", "%(count)d works", page.work_count, count=page.work_count)</span></strong>
         </span>
     </span>
-    <a href="#search" class="shift">Search for books with subject ${page.name}.</a>
+    <a href="#search" class="shift">$_('Search for books with subject %(name)s.', name=page.name)</a>
 
     <form action="/search" class="olform pagesearchbox">
       <input type="hidden" name="${page.subject_type}_facet" value="$page.name" />
@@ -73,11 +73,11 @@ window.q.push( function () {
         $else:
             <span class="title"><em>$_("None found.")</em></span>
 
-    $for s, limit in subject_list:
+    $for category, label, limit in subject_list:
         <div class="contentQuarter link-box">
-          <h6 class="black collapse uppercase">$s</h6>
-          <div class="subjects" id="subjects-$s">
-            $:renderSubjects(page[s][:limit])
+          <h6 class="black collapse uppercase">$label</h6>
+          <div class="subjects" id="subjects-$category">
+            $:renderSubjects(page[category][:limit])
           </div>
         </div>
 
@@ -88,7 +88,7 @@ $jsdef renderAuthors(authors):
         <span class="tag">
             <a href="$a.key" title="$_('See more books by, and learn about, this author')">$a.name</a>,
         </span>
-        <span class="count">$sprintf(ungettext("%s book", "%s books", a.count), commify(a.count))</span>
+        <span class="count">$ungettext("1 book", "%(count)d books", a.count, count=a.count)</span>
         <br/>
 <div id="resultsAuthors" class="widget-box">
   <div class="head">
@@ -121,7 +121,7 @@ $jsdef renderPublishers(publishers):
             $else:
                 <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')&amp;publisher_facet=$p.name.replace('"', '\\"').replace('&','%26')" title="$_('Get more information about this publisher')">$p.name</a>,
         </span>
-        <span class="count">$sprintf(ungettext("%s edition", "%s editions", p.count), commify(p.count))</span>
+        <span class="count">$ungettext("1 edition", "%(count)s editions", p.count, count=commify(p.count))</span>
         <br/>
 
 $if "lists" in ctx.features:

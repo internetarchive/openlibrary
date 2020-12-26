@@ -8,7 +8,7 @@ $var title: $("Log In")
 
 <div id="contentBody">
   $if not ctx.user:
-      <p>Please enter your <a href="https://archive.org">Internet Archive</a> email and password to access your Open Library account.</p>
+      <p>$:_('Please enter your <a href="https://archive.org">Internet Archive</a> email and password to access your Open Library account.')</p>
 
   $if ctx.user:
       <p>$:_("You are already logged into Open Library as %(user)s.", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))</p>
@@ -24,7 +24,7 @@ $var title: $("Log In")
             <div class="label">
               <label for="username">$_("Email")</label>
               <span class="smaller lighter"></span>
-              &mdash; <a class="forgot-email" href="/account/email/forgot-ia">Forgot your Internet Archive email?</a>
+              &mdash; <a class="forgot-email" href="/account/email/forgot-ia">$_('Forgot your Internet Archive email?')</a>
             </div>
 
             <div class="input">
@@ -44,7 +44,7 @@ $var title: $("Log In")
         <div class="formElement">
             <div class="input">
                 <input name="remember" type="checkbox" id="remember" />
-                <label for="remember" class="small">Remember me</label>
+                <label for="remember" class="small">$_('Remember me')</label>
             </div>
         </div>
 

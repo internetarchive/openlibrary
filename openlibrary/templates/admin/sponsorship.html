@@ -2,6 +2,7 @@ $def with (summary)
 
 $ _x = ctx.setdefault('bodyid', 'admin')
 $ _x = ctx.setdefault('usergroup', 'admin')
+$ sort_facet = input(sort='status').sort
 
 <div id="contentHead">
   $:render_template("admin/menu")
@@ -59,8 +60,9 @@ $ _x = ctx.setdefault('usergroup', 'admin')
       <th>Total Unscanned Books</th>
       <td>$summary['total_unscanned_books']</td>
       $if ctx.user and ctx.user.is_admin():
-        $ isbns = ','.join([s['identifier'].replace('isbn_', '') for s in summary['books']])
-        <td><a href="https://8882k.csb.app/#isbns=$isbns">Print Slips</a></td>
+        $ isbns = '|'.join([s['identifier'].replace('isbn_', '') for s in summary['books'] if s.get('repub_state') == '-1' and s.get('book_price')])
+        <!-- https://codesandbox.io/s/vue-template-8882k -->
+        <td><a href="https://8882k.codesandbox.io/#isbns=$isbns">Print Slips</a></td>
     </tr>
     <tr>
       <th>Average Scan Cost</th>
@@ -77,7 +79,7 @@ $ _x = ctx.setdefault('usergroup', 'admin')
       <td class="earnings--$('loss' if adj_profit_loss < 0 else 'profit')">\$$(adj_profit_loss / 100.)</td>
     </tr>
   </table>
-  
+
   <hr>
 
   <table class="sponsor">
@@ -85,14 +87,20 @@ $ _x = ctx.setdefault('usergroup', 'admin')
       <tr>
         <th>#</th>
         <th>Cover</th>
-        <th>IDs</th>      
+        <th>Sponsor Date</th>
+        <th>IDs</th>
         <th>Title</th>
+        <th>Donor</th>
         <th>Status</th>
       </tr>
     </thead>
     <tbody>
-      $ summary['books'].sort(key=lambda b: summary['status_ids'][b['status']])
+      $if sort_facet == 'status':
+        $ summary['books'].sort(key=lambda b: summary['status_ids'][b['status']])
+      $else:
+        $ summary['books'].sort(key=lambda b: b.get(sort_facet, ''))
       $for book in summary['books']:
+        $ isbn = book['identifier'].replace('isbn_', '')
         <tr>
           <td>$loop.index</td>
           <td>
@@ -100,9 +108,18 @@ $ _x = ctx.setdefault('usergroup', 'admin')
                  src="https://archive.org/services/img/$book['identifier']">
           </td>
           <td>
+            $book.get('publicdate', '')
+          </td>
+          <td>
             <ul>
               <li>
                 <a href="https://archive.org/details/$book['identifier']">$book['identifier']</a>
+              </li>
+              <li>
+                <a href="https://archive.org/editxml/$book['identifier']">Edit XML</a>
+              </li>
+              <li>
+                <a href="https://www.betterworldbooks.com/product/detail/-$(isbn)">BWB Link</a>
               </li>
               $if book.get('openlibrary_edition'):
                 <li>
@@ -111,7 +128,10 @@ $ _x = ctx.setdefault('usergroup', 'admin')
             </ul>
           </td>
           <td>
-            <a href="https://archive.org/details/$book['identifier']">$book['title']</a>
+            <a href="https://archive.org/details/$book['identifier']">$book.get('title')</a>
+          </td>
+          <td>
+            $book.get('donor')
           </td>
           <td class="status--$(summary['status_ids'][book.get('status')])">
             $book.get('status')

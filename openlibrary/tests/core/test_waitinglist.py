@@ -1,8 +1,5 @@
 from openlibrary.core.waitinglist import WaitingLoan
-from openlibrary.core import db
 from openlibrary.core import lending
-import web
-import datetime
 import json
 import pytest
 

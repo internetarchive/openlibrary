@@ -1,16 +1,19 @@
 """Handle book cover/author photo upload.
 """
-import urllib
-import urllib2
+from logging import getLogger
+
+import requests
+import six
 import web
-import simplejson
+from six import BytesIO
 
 from infogami.utils import delegate
 from infogami.utils.view import safeint
-from utils import get_coverstore_url, render_template
-from models import Image
 from openlibrary import accounts
+from openlibrary.plugins.upstream.models import Image
+from openlibrary.plugins.upstream.utils import get_coverstore_url, render_template
 
+logger = getLogger("openlibrary.plugins.upstream.covers")
 def setup():
     pass
 
@@ -57,7 +60,6 @@ class add_cover(delegate.page):
         user = accounts.get_current_user()
         params = {
             "author": user and user.key,
-            "data": data,
             "source_url": i.url,
             "olid": olid,
             "ip": web.ctx.ip
@@ -70,12 +72,12 @@ class add_cover(delegate.page):
             upload_url = "http:" + upload_url
 
         try:
-            response = urllib2.urlopen(upload_url, urllib.urlencode(params))
-            out = response.read()
-        except urllib2.HTTPError as e:
-            out = {'error': e.read()}
-
-        return web.storage(simplejson.loads(out))
+            files = {'data': BytesIO(data)}
+            response = requests.post(upload_url, data=params, files=files)
+            return web.storage(response.json())
+        except requests.HTTPError as e:
+            logger.exception("Covers upload failed")
+            return web.storage({'error': str(e)})
 
     def save(self, book, coverid, url=None):
         book.covers = [coverid] + [cover.id for cover in book.get_covers()]

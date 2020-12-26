@@ -24,14 +24,15 @@ A record is loaded by calling the load function.
 """
 import json
 import re
-import six
-import unicodedata
-import urllib
+
+import unicodedata as ucd
 import web
 
 from collections import defaultdict
 from copy import copy
 from time import sleep
+
+import requests
 
 from infogami import config
 
@@ -42,11 +43,12 @@ from openlibrary.core import lending
 from openlibrary.utils.isbn import normalize_isbn
 
 from openlibrary.catalog.add_book.load_book import build_query, east_in_by_statement, import_author, InvalidLanguage
-from openlibrary.catalog.add_book.merge import try_merge
+from openlibrary.catalog.add_book.match import editions_match
 
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 re_lang = re.compile('^/languages/([a-z]{3})$')
+ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 
 
 type_map = {
@@ -67,7 +69,7 @@ class RequiredField(Exception):
     def __init__(self, f):
         self.f = f
     def __str__(self):
-        return "missing required field: '%s'" % self.f
+        return "missing required field: %s" % self.f
 
 
 # don't use any of these as work titles
@@ -82,13 +84,16 @@ subject_fields = ['subjects', 'subject_places', 'subject_times', 'subject_people
 def strip_accents(s):
     """http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string
     """
-    if isinstance(s, str):
+    try:
+        s.encode('ascii')
         return s
-    assert isinstance(s, six.text_type)
-    return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
+    except UnicodeEncodeError:
+        return ''.join((c for c in ucd.normalize('NFD', s) if ucd.category(c) != 'Mn'))
 
 
-def normalize(s): # strip non-alphanums and truncate at 25 chars
+def normalize(s):
+    """ Strip non-alphanums and truncate at 25 chars.
+    """
     norm = strip_accents(s).lower()
     norm = norm.replace(' and ', ' ')
     if norm.startswith('the '):
@@ -115,6 +120,28 @@ def get_title(e):
         return e['title']
     wt = e['work_titles'][0]
     return e['title'] if wt in bad_titles else e['title']
+
+
+def split_subtitle(full_title):
+    """
+    Splits a title into (title, subtitle),
+    strips parenthetical tags. Used for bookseller
+    catalogs which do not pre-separate subtitles.
+
+    :param str full_title:
+    :rtype: (str, str | None)
+    :return: (title, subtitle | None)
+    """
+
+    # strip parenthetical blocks wherever they occur
+    # can handle 1 level of nesting
+    re_parens_strip = re.compile(r'\(([^\)\(]*|[^\(]*\([^\)]*\)[^\)]*)\)')
+    clean_title = re.sub(re_parens_strip, '', full_title)
+
+    titles = clean_title.split(':')
+    subtitle = titles.pop().strip() if len(titles) > 1 else None
+    title = ISBD_UNIT_PUNCT.join([unit.strip() for unit in titles])
+    return (title, subtitle)
 
 
 def find_matching_work(e):
@@ -149,23 +176,25 @@ def find_matching_work(e):
                 return wkey
 
 
-def build_author_reply(author_in, edits):
+def build_author_reply(authors_in, edits, source):
     """
     Steps through an import record's authors, and creates new records if new,
     adding them to 'edits' to be saved later.
 
-    :param list author_in: List of import sourced author dicts [{"name:" "Some One"}, ...], possibly with dates
+    :param list authors_in: import author dicts [{"name:" "Bob"}, ...], maybe dates
     :param list edits: list of Things to be saved later. Is modfied by this method.
+    :param str source: Source record e.g. marc:marc_ex/part01.dat:26456929:680
     :rtype: tuple
-    :return: (list, list) authors [{"key": "/author/OL..A"}, ...], author_reply the JSON status response to return for each author
+    :return: (list, list) authors [{"key": "/author/OL..A"}, ...], author_reply
     """
 
     authors = []
     author_reply = []
-    for a in author_in:
+    for a in authors_in:
         new_author = 'key' not in a
         if new_author:
             a['key'] = web.ctx.site.new_key('/type/author')
+            a['source_records'] = [source]
             edits.append(a)
         authors.append({'key': a['key']})
         author_reply.append({
@@ -214,12 +243,14 @@ def add_cover(cover_url, ekey, account=None):
     :rtype: int or None
     :return: Cover id, or None if upload did not succeed
     """
-    olid = ekey.split("/")[-1]
+    olid = ekey.split('/')[-1]
     coverstore_url = config.get('coverstore_url').rstrip('/')
     upload_url = coverstore_url + '/b/upload2'
-    if upload_url.startswith("//"):
-        upload_url = "{0}:{1}".format(web.ctx.get("protocol", "http"), upload_url)
+    if upload_url.startswith('//'):
+        upload_url = '{}:{}'.format(web.ctx.get('protocol', 'http'), upload_url)
     user = account or accounts.get_current_user()
+    if not user:
+        raise RuntimeError("accounts.get_current_user() failed")
     params = {
         'author': user.get('key') or user.get('_key'),
         'data': None,
@@ -230,16 +261,17 @@ def add_cover(cover_url, ekey, account=None):
     reply = None
     for attempt in range(10):
         try:
-            res = urllib.urlopen(upload_url, urllib.urlencode(params))
-        except IOError:
+            payload = requests.compat.urlencode(params).encode('utf-8')
+            response = requests.post(upload_url, data=payload)
+        except requests.HTTPError:
             sleep(2)
             continue
-        body = res.read()
-        if res.getcode() == 500:
+        body = response.text
+        if response.status_code == 500:
             raise CoverNotSaved(body)
         if body not in ['', 'None']:
-            reply = json.loads(body)
-            if res.getcode() == 200 and 'id' in reply:
+            reply = response.json()
+            if response.status_code == 200 and 'id' in reply:
                 break
         sleep(2)
     if not reply or reply.get('message') == 'Invalid URL':
@@ -247,16 +279,19 @@ def add_cover(cover_url, ekey, account=None):
     cover_id = int(reply['id'])
     return cover_id
 
+
 def get_ia_item(ocaid):
     import internetarchive as ia
     cfg = {'general': {'secure': False}}
     item = ia.get_item(ocaid, config=cfg)
     return item
 
+
 def modify_ia_item(item, data):
     access_key = lending.config_ia_ol_metadata_write_s3 and lending.config_ia_ol_metadata_write_s3['s3_key']
     secret_key = lending.config_ia_ol_metadata_write_s3 and lending.config_ia_ol_metadata_write_s3['s3_secret']
     return item.modify_metadata(data, access_key=access_key, secret_key=secret_key)
+
 
 def create_ol_subjects_for_ocaid(ocaid, subjects):
     item = get_ia_item(ocaid)
@@ -274,6 +309,7 @@ def create_ol_subjects_for_ocaid(ocaid, subjects):
         return ('%s failed: %s' % (item.identifier, r.content))
     else:
         return ("success for %s" % item.identifier)
+
 
 def update_ia_metadata_for_ol_edition(edition_id):
     """
@@ -352,7 +388,7 @@ def build_pool(rec):
     if isbns:
         pool['isbn'] = set(editions_matched(rec, 'isbn_', isbns))
 
-    return dict((k, list(v)) for k, v in pool.iteritems() if v)
+    return dict((k, list(v)) for k, v in pool.items() if v)
 
 
 def early_exit(rec):
@@ -420,7 +456,7 @@ def find_exact_match(rec, edition_pool):
     :return: edition key
     """
     seen = set()
-    for field, editions in edition_pool.iteritems():
+    for field, editions in edition_pool.items():
         for ekey in editions:
             if ekey in seen:
                 continue
@@ -463,7 +499,7 @@ def find_match(e1, edition_pool):
     :return: None or the edition key '/books/OL...M' of the best edition match for e1 in edition_pool
     """
     seen = set()
-    for k, v in edition_pool.iteritems():
+    for k, v in edition_pool.items():
         for edition_key in v:
             if edition_key in seen:
                 continue
@@ -478,10 +514,10 @@ def find_match(e1, edition_pool):
                 if is_redirect(thing):
                     edition_key = thing['location']
                     # FIXME: this updates edition_key, but leaves thing as redirect,
-                    # which will raise an exception in try_merge()
+                    # which will raise an exception in editions_match()
             if not found:
                 continue
-            if try_merge(e1, edition_key, thing):
+            if editions_match(e1, thing):
                 return edition_key
 
 
@@ -550,7 +586,8 @@ def load_data(rec, account=None):
     # TOFIX: edition.authors has already been processed by import_authors() in build_query(), following line is a NOP?
     author_in = [import_author(a, eastern=east_in_by_statement(rec, a)) for a in edition.get('authors', [])]
     # build_author_reply() adds authors to edits
-    (authors, author_reply) = build_author_reply(author_in, edits)
+    (authors, author_reply) = build_author_reply(author_in, edits,
+                                                 rec['source_records'][0])
 
     if authors:
         edition['authors'] = authors
@@ -616,12 +653,19 @@ def load(rec, account=None):
     :rtype: dict
     :return: a dict to be converted into a JSON HTTP response, same as load_data()
     """
-    if not rec.get('title'):
-        raise RequiredField('title')
-    if not rec.get('source_records'):
-        raise RequiredField('source_records')
-    if isinstance(rec['source_records'], six.string_types):
+    required_fields = ['title', 'source_records']  # ['authors', 'publishers', 'publish_date']
+    for field in required_fields:
+        if not rec.get(field):
+            raise RequiredField(field)
+    if not isinstance(rec['source_records'], list):
         rec['source_records'] = [rec['source_records']]
+
+    # Split subtitle if required and not already present
+    if ':' in rec.get('title') and not rec.get('subtitle'):
+        title, subtitle = split_subtitle(rec.get('title'))
+        if subtitle:
+            rec['title'] = title
+            rec['subtitle'] = subtitle
 
     rec = normalize_record_isbns(rec)
 
@@ -679,7 +723,7 @@ def load(rec, account=None):
             w['subjects'] = work_subjects
 
     # Add cover to edition
-    if 'cover' in rec and not e.covers:
+    if 'cover' in rec and not e.get_covers():
         cover_url = rec['cover']
         cover_id = add_cover(cover_url, e.key, account=account)
         if cover_id:
@@ -687,7 +731,7 @@ def load(rec, account=None):
             need_edition_save = True
 
     # Add cover to work, if needed
-    if not w.get('covers') and e.get('covers'):
+    if not w.get('covers') and e.get_covers():
         w['covers'] = [e['covers'][0]]
         need_work_save = True
 
@@ -708,13 +752,13 @@ def load(rec, account=None):
         e['ocaid'] = rec['ocaid']
         need_edition_save = True
 
+    # Add list fields to edition as needed
     edition_fields = [
-        'local_id', 'ia_box_id', 'ia_loaded_id', 'source_records']
-    # TODO:
-    # only consider `source_records` for newly created work
-    # or if field originally missing:
-    #if work_created and not e.get('source_records'):
-    #    edition_fields.append('source_records')
+        'local_id',
+        'lccn',
+        'lc_classifications',
+        'source_records',
+        ]
     for f in edition_fields:
         if f not in rec:
             continue

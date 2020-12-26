@@ -1,8 +1,8 @@
 """Generic helper functions to use in the templates and the webapp.
 """
 import web
+from datetime import datetime
 import simplejson
-import string
 import re
 
 from six.moves.urllib.parse import urlsplit
@@ -32,13 +32,13 @@ from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
 
 # TODO: i18n should be moved to core or infogami
-from openlibrary.i18n import gettext as _
+from openlibrary.i18n import gettext as _  # noqa: F401
 
 __all__ = [
     "sanitize",
     "json_encode",
     "safesort",
-    "datestr", "format_date",
+    "days_since", "datestr", "format_date",
     "sprintf", "cond", "commify", "truncate", "datetimestr_utc",
     "urlsafe", "texsafe",
     "percentage", "affiliate_id", "bookreader_host",
@@ -114,19 +114,25 @@ def safesort(iterable, key=None, reverse=False):
         return (k.__class__.__name__, k)
     return sorted(iterable, key=safekey, reverse=reverse)
 
+
+def days_since(then, now=None):
+    delta = then - (now or datetime.now())
+    return abs(delta.days)
+
+
 def datestr(then, now=None, lang=None, relative=True):
     """Internationalized version of web.datestr."""
-    if not relative:
-        result = then.strftime("%b %d %Y")
-    else:
-        result = web.datestr(then, now)
-    if not result:
-        return result
-    elif result[0] in string.digits: # eg: 2 milliseconds ago
-        t, message = result.split(' ', 1)
-        return _("%d " + message) % int(t)
-    else:
-        return format_date(then, lang=lang)
+    lang = lang or web.ctx.get('lang') or "en"
+    if relative:
+        if now is None:
+            now = datetime.now()
+        delta = then - now
+        if abs(delta.days) < 4: # Threshold from web.py
+            return babel.dates.format_timedelta(delta,
+                                                add_direction=True,
+                                                locale=_get_babel_locale(lang))
+    return format_date(then, lang=lang)
+
 
 def datetimestr_utc(then):
     return then.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -244,7 +250,7 @@ def texsafe(text):
     """
     global _texsafe_re
     if _texsafe_re is None:
-        pattern = "[%s]" % re.escape("".join(_texsafe_map.keys()))
+        pattern = "[%s]" % re.escape("".join(list(_texsafe_map)))
         _texsafe_re = re.compile(pattern)
 
     return _texsafe_re.sub(lambda m: _texsafe_map[m.group(0)], text)
@@ -257,10 +263,7 @@ def percentage(value, total):
         >>> percentage(0, 0)
         0.0
     """
-    if total == 0:
-        return 0
-    else:
-        return (value * 100.0)/total
+    return (value * 100.0) / total if total else 0.0
 
 def uniq(values, key=None):
     """Returns the unique entries from the given values in the original order.

@@ -1,17 +1,16 @@
 #!/usr/bin/python
-from urllib import quote_plus, urlopen
 from xml.etree.cElementTree import ElementTree
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 import os
 import re
 from collections import defaultdict
-import cgi
 import web
 import simplejson
-from facet_hash import facet_token
-import pdb
+from openlibrary.plugins.search.facet_hash import facet_token
 
 import six
+from six.moves.urllib.parse import quote_plus
+from six.moves.urllib.request import urlopen
 
 php_location = "/petabox/setup.inc"
 
@@ -75,7 +74,7 @@ class SimpleQueryProcessor:
          (title:world^100 OR authors:world^15 OR subjects:world^10 OR language:world^10 OR text:world^1 OR fulltext:world^1)'
     """
     def process(self, query):
-        query = web.utf8(query)
+        query = web.safestr(query)
         tokens = query.split(' ')
         return " ".join(self.process_token(t) for t in tokens)
 
@@ -140,8 +139,9 @@ class SR2(Solr_result):
 class Solr_client(object):
     def __init__(self,
                  server_addr = solr_server_addr,
-                 shards = [],
+                 shards=None,
                  pool_size = 1):
+        shards = shards or []
         self.server_addr = server_addr
         self.shards = shards
 
@@ -191,7 +191,7 @@ class Solr_client(object):
                                              rows=1, wt='json'))
         facet_set = set(facet_list)
         for d in m['response']['docs']:
-            for k,vx in d.iteritems():
+            for k, vx in d.items():
                 kfs = k in facet_set
                 # if not kfs: continue
                 vvx = {str:(vx,), list:vx}.get(type(vx),())
@@ -199,16 +199,6 @@ class Solr_client(object):
                     if facet_token(k,v) == token:
                         return (k,v)
         return None
-
-    def isearch(self, query, loc=0):
-        # iterator interface to search
-        while True:
-            s = search(self, query, start=loc)
-            if len(s) == 0: return
-            loc += len(s)
-            for y in s:
-                if not y.startswith('OCA/'):
-                    yield y
 
     def search(self, query, **params):
         # advanced search: directly post a Solr search which uses fieldnames etc.
@@ -229,40 +219,6 @@ class Solr_client(object):
 
     advanced_search = search
 
-    def fulltext_search(self, query, rows=None, start=None):
-        """Does an advanced search on fulltext:blah.
-        You get back a pair (x,y) where x is the total # of hits
-        and y is a list of identifiers like ["foo", "bar", etc.]"""
-
-        query = self._prefix_query('fulltext', query)
-        result_list = self.raw_search(query, rows=rows, start=start)
-        e = ElementTree()
-        try:
-            e.parse(StringIO(result_list))
-        except SyntaxError as e:
-            raise SolrError(e)
-
-        total_nbr_text = e.find('info/range_info/total_nbr').text
-        # total_nbr_text = e.find('result').get('numFound')  # for raw xml
-        total_nbr = int(total_nbr_text) if total_nbr_text else 0
-
-        out = []
-        for r in e.getiterator('hit'):
-            for d in r.find('metadata'):
-                for x in list(d.getiterator()):
-                    if x.tag == "identifier":
-                        xid = six.text_type(x.text).encode('utf-8')
-                        if xid.startswith('OCA/'):
-                            xid = xid[4:]
-                        elif xid.endswith('.txt'):
-                            xid = xid.split('/')[-1].split('_')[0]
-                        elif xid.endswith('_ZZ'):
-                            xid = xid[:-3]
-                        out.append(xid)
-                        break
-        return (total_nbr, out)
-
-
     def pagetext_search(self, locator, query, rows=None, start=None):
         """Does an advanced search on
                pagetext:blah locator:identifier
@@ -277,7 +233,7 @@ class Solr_client(object):
             which this function extracts asa a locator and
             a leaf number ('adventsuburbanit00butlrich', 65). """
 
-            g = re.search('(.*)_(\d{4})\.djvu$', page_id)
+            g = re.search(r'(.*)_(\d{4})\.djvu$', page_id)
             a,b = g.group(1,2)
             return a, int(b)
 
@@ -413,7 +369,7 @@ def facet_counts(result_list, facet_fields):
 
     facets = defaultdict(lambda: defaultdict(int))
     for r in result_list:
-        for k in set(r.keys()) & set(facet_fields):
+        for k in set(r) & set(facet_fields):
             facets_k = facets[k]        # move lookup out of loop for speed
             for x in r[k]:
                 facets_k[x] += 1

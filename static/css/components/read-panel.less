@@ -2,8 +2,9 @@
  * Read Options Panel
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#read-panel
  */
-.read-options,
+
 // .Tools .btn-notice is a legacy selector. Remove at earliest opportunity.
+.read-options,
 .Tools .btn-notice {
   line-height: 1.5em;
   font-size: 1em;
@@ -11,7 +12,7 @@
   margin-bottom: 10px;
   background-color: @white;
   border-radius: 5px;
-  border: 2px solid @lighter-grey;
+  border: 1px solid @lighter-grey;
   margin-top: 0;
 
   .cta-btn {
@@ -68,13 +69,31 @@
   // stylelint-enable selector-max-specificity
 }
 
+.cta-section-title.world-cat-link{
+  margin-top:0;
+}
+
+.sponsorship-card {
+  border-radius: 5px;
+  padding: 10px;
+  border: 2px solid fade(@link-blue, 20%);
+  background: fade(lighten(desaturate(@link-blue, 56%), 67%), 50%);
+  font-size: 0.8em;
+  text-align: center;
+
+  q {
+    display: block;
+    font-style: oblique;
+    text-align: center;
+  }
+
+  hr { background: fade(@link-blue, 35%); }
+  a.learn-more { font-size: 0.9em; }
+}
+
 .Tools .booklinks li {
   list-style: none;
   font-size: 12px;
-}
-
-.buy-options-table {
-  white-space: nowrap;
 }
 
 .waitinglist-message {

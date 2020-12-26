@@ -2,7 +2,6 @@ from __future__ import print_function
 import simplejson
 import web
 import sys
-import traceback
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.core import helpers as h
@@ -51,7 +50,7 @@ def split_key(bib_key):
         value = bib_key
 
     # treat OLxxxM as OLID
-    re_olid = web.re_compile('OL\d+M(@\d+)?')
+    re_olid = web.re_compile(r'OL\d+M(@\d+)?')
     if key is None and re_olid.match(bib_key.upper()):
         key = 'olid'
         value = bib_key.upper()
@@ -332,7 +331,7 @@ def trim(d):
         >>> trim({"a": "x", "b": "", "c": [], "d": {}})
         {'a': 'x'}
     """
-    return dict((k, v) for k, v in d.iteritems() if v)
+    return dict((k, v) for k, v in d.items() if v)
 
 def get_authors(docs):
     """Returns a dict of author_key to {"key", "...", "name": "..."} for all authors in docs.

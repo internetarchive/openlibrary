@@ -1,6 +1,5 @@
 import datetime
 import pytest
-import sys
 import web
 
 from infogami.utils.view import render_template

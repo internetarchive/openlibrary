@@ -16,7 +16,7 @@ $ author_names = ", ".join(aname(a) for a in book.authors) or book.get('by_state
 $ cover_url = book.get_cover_url(size)
 
 $if size == "M":
-    <div class="coverMagic">
+    <div class="coverMagic cover-animation">
         $if cover_url:
             <div class="SRPCover bookCover">
                 <img src="$cover_url" class="cover" alt="$title $_.by $author_names"/>

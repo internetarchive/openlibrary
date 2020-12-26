@@ -1,6 +1,6 @@
-$def with (book, sort_key)
+$def with (book, edition_sort_key, render_first=False)
 $# :param Edition book:
-$# :param str sort_key:
+$# :param str edition_sort_key:
 
 $ availability = book.get('availability', {})
 
@@ -28,7 +28,7 @@ $ asin = isbn_10 or None
 $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
 
     <td class="book">
-      <span class="hidden sort-key">$sort_key</span>
+      <span class="hidden sort-key">$edition_sort_key</span>
       <div class="cover">
           <a href="$book.url()"><img src="$url" alt="Cover of: $book.title" title="Cover of: $book.title"/></a>
       </div>
@@ -37,7 +37,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
         $if book.title:
           <a href="$book.url()">
             $if book.subtitle:
-              $(book.title): $(book.subtitle)
+              $_('%(title)s: %(subtitle)s', title=book.title, subtitle=book.subtitle)
             $else:
               $book.title
           </a>
@@ -49,66 +49,41 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
           $elif book.publish_date:
             $book.publish_date
           $elif book.publishers:
-            Publish date unknown, $(', '.join(book.publishers))
+            $_("Publish date unknown, %(publisher)s", publisher=', '.join(book.publishers))
           $else:
-            Publisher unknown
+            $_("Publisher unknown")
         </div>
 
         <div class="format">
+          <!-- TODO: this section is going to be difficult to properly internationalize -->
+          <!-- Formats are store as a raw string -->
           $book.physical_format.replace('[', '').replace(']','')
           $if book.languages:
-            in $', '.join(l.name for l in book.languages)
+            $_('in %(languagelist)s', languagelist=', '.join(l.name for l in book.languages))
           $if book.edition_name:
             - $book.edition_name
         </div>
+
+	<div class="hidden">
+		$isbn_10 $isbn_13
+	</div>
+
       </div>
     </td>
 
-    $ availability_class = 'zzzz' if (not availability or availability.get('status') == 'error') else 'aaaa' if (availability.get('status') == 'open') else 'bbbb' if (availability.get('status') == 'borrow_available') else 'cccc' if (availability.get('status') == 'borrow_unavailable') else 'dddd'
+    $ availability_class = ('aaaa' if render_first
+    $ else 'zzzz' if (not availability or availability.get('status') == 'error')
+    $ else 'bbbb' if (availability.get('status') == 'open')
+    $ else 'cccc' if (availability.get('status') == 'borrow_available')
+    $ else 'dddd' if (availability.get('status') == 'borrow_unavailable')
+    $ else 'eeee')
     $ active = not (availability_class == 'zzzz')
 
     <td class="icon read $('inact' if not active else '')">
-      <div class="$(availability_class)"></div>
+      <div class="hidden">$availability_class</div>
       <div class="links">
-        $if active:
-          <ul class="read">
-            $if availability.get('status') == 'open':
-              <li class="read-option">$:macros.ReadButton(book.ocaid, listen=True)</li>
-
-            $elif availability.get('status') in ['borrow_available', 'borrow_unavailable']:
-              <li class="read-option">$:macros.LoanStatus(book, ctx.user)</li>
-
-            $if availability.get('status') == 'open':
-              $:macros.DownloadOptions(book)
-          </ul>
-        $else:
-          <form>
-            <input type="submit" class="cta-btn cta-btn--missing" disabled value="$_('Not in Library')">
-          </form>
-          $if book.ocaid:
-            $:macros.daisy(book, protected=True)
-      </div>
-    </td>
-
-    <td class="icon locate inact">
-      <div class="zzzz"></div>
-        <div class="links">
-          $if oclc_numbers or isbn:
-            <div>Libraries near you:</div>
-            <ul>
-              <li>
-                <a href="$macros.WorldcatUrl(isbn=isbn, oclc_numbers=oclc_numbers)"
-                   title="Look for this edition at WorldCat">WorldCat</a>
-              </li>
-              $if isbn:
-                <li><a href="https://labs.library.link/services/borrow/?isbn=$(isbn_10_to_isbn_13(isbn))&embed=True&radius=500&refer=$(book.url(relative=False))">Library.link</a></li>
-            </ul>
-        </div>
-    </td>
-
-    <td class="icon buy inact">
-      <div class="zzzz"></div>
-      <div class="links">
-        $:macros.AffiliateLinks(book, {'isbn': isbn, 'asin': asin, 'prices': False})
+        <ul class="read">
+          <li class="read-option">$:macros.LoanStatus(book)</li>
+        </ul>
       </div>
     </td>

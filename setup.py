@@ -1,7 +1,9 @@
-from setuptools import setup, find_packages
 import glob
 import os
+
+from setuptools import setup, find_packages
 from stat import ST_MODE, S_IEXEC, S_ISDIR
+from Cython.Build import cythonize
 
 def executable(path):
     st = os.stat(path)[ST_MODE]
@@ -38,6 +40,8 @@ setup(
     description='Open Library',
     packages=find_packages(exclude=["ez_setup"]),
     scripts=filter(executable, glob.glob('scripts/*')),
-    install_requires=dependencies.split()
+    install_requires=dependencies.split(),
+    # Used to make solrbuilder faster
+    ext_modules=cythonize("openlibrary/solr/update_work.py")
 )
 

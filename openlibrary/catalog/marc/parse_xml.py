@@ -1,7 +1,6 @@
 from __future__ import print_function
 from lxml import etree
-import xml.parsers.expat
-from parse import read_edition
+from openlibrary.catalog.marc.parse import read_edition
 from unicodedata import normalize
 
 import six
@@ -62,7 +61,7 @@ class xml_rec:
         return norm(leader.text)
 
     def fields(self):
-        return self.dataFields.keys()
+        return list(self.dataFields)
 
     def get_field(self, tag, default=None):
         if tag not in self.dataFields:

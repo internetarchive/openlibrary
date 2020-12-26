@@ -3,10 +3,10 @@
 
 import web
 import re
+import requests
 import simplejson as json
 import logging
 from collections import defaultdict
-import urllib
 import datetime
 
 from infogami import config
@@ -16,7 +16,9 @@ from infogami.utils.view import render, render_template, safeint
 
 from openlibrary.core.models import Subject
 from openlibrary.core.lending import add_availability
+from openlibrary.plugins.worksearch.search import work_search
 from openlibrary.utils import str_to_key, finddict
+
 
 __all__ = [
     "SubjectEngine", "get_subject"
@@ -43,15 +45,6 @@ SUBJECTS = [
 DEFAULT_RESULTS = 12
 MAX_RESULTS = 1000
 
-class subjects_index(delegate.page):
-    path = "/subjects"
-
-    def GET(self):
-        delegate.context.setdefault('bodyid', 'subject')
-        page = render_template("subjects/index.html")
-        page.v2 = True
-        return page
-
 class subjects(delegate.page):
     path = '(/subjects/[^/]+)'
 
@@ -67,7 +60,6 @@ class subjects(delegate.page):
             'lending_edition_s': '*'
         })
 
-        subj.v2 = True
         delegate.context.setdefault('bodyid', 'subject')
         if not subj or subj.work_count == 0:
             web.ctx.status = "404 Not Found"
@@ -75,7 +67,6 @@ class subjects(delegate.page):
         else:
             page = render_template("subjects", page=subj)
 
-        page.v2 = True
         return page
 
     def normalize_key(self, key):
@@ -228,7 +219,6 @@ class SubjectEngine:
         else:
             kw = {}
 
-        from search import work_search
         result = work_search(
             q, offset=offset, limit=limit, sort=sort, **kw)
         if not result:
@@ -375,7 +365,7 @@ def get_ebook_count(field, key, publish_year=None):
     years = find_ebook_count(field, key)
     if not years:
         return 0
-    for year, count in sorted(years.iteritems()):
+    for year, count in sorted(years.items()):
         ebook_count_db.query('insert into subjects (field, key, publish_year, ebook_count) values ($field, $key, $year, $count)', vars=locals())
 
     return db_lookup(field, key, publish_year)
@@ -408,7 +398,7 @@ def execute_ebook_count_query(q):
     solr_url = root_url % (rows, start, q)
 
     stats.begin("solr", url=solr_url)
-    response = json.load(urllib.urlopen(solr_url))['response']
+    response = requests.get(solr_url).json()['response']
     stats.end()
 
     num_found = response['numFound']
@@ -417,7 +407,7 @@ def execute_ebook_count_query(q):
         if start:
             solr_url = root_url % (rows, start, q)
             stats.begin("solr", url=solr_url)
-            response = json.load(urllib.urlopen(solr_url))['response']
+            response = requests.get(solr_url).json()['response']
             stats.end()
         for doc in response['docs']:
             for k in doc['edition_key']:

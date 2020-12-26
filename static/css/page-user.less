@@ -11,6 +11,7 @@
  * - /account/login
  * - /account/loans
  * - /account/privacy
+ * - /account/import
  * - /advancedsearch
  * - /authors/OL22098A/Lewis_Carroll
  * - /authors/OL22098A/Lewis_Carroll/edit
@@ -36,6 +37,8 @@
 @import (less) "less/breakpoints.less";
 @import (less) "less/mixins.less";
 @import (less) "less/font-families.less";
+@import (less) "components/flash-messages.less";
+@import (less) "less/z-index.less";
 
 body#user {
   background-color: @beige;
@@ -90,6 +93,114 @@ body#user {
     background-color: @beige;
   }
 }
+
+div#subjectsPage{
+  columns: 2;
+  @media only screen and (min-width: @width-breakpoint-tablet) {
+    columns: 4;
+  }
+  ul {
+    display: inline-block;
+  }
+}
+
+#authors{
+  div{
+    display: flex;
+  }
+  input.author.author-autocomplete{
+    flex: 1;
+  }
+}
+
+th.toggle-all {
+  background: @primary-blue;
+}
+
+.div-class {
+  margin-top: 20px;
+  display: inline-block;
+  height: 360px;
+  overflow: auto;
+  width:100%;
+}
+
+.import-table{
+  border:2px;
+  th {
+    padding: 5px 10px;
+  }
+  td {
+    padding: 5px 10px;
+  }
+  thead {
+    th {
+      position: sticky;
+      top: 0;
+      background-color: @white;
+    }
+  }
+  tbody{
+    width:100%;
+    tr {
+      background-color: @white;
+    }
+  }
+}
+
+.import-export {
+  display: flex;
+  .import {
+    flex: 1;
+  }
+}
+
+#myProgress {
+  margin-top: 5px;
+  border-radius: 10px;
+  width: 100%;
+  background-color: @lightest-grey;
+}
+
+#myBar {
+  width: 0%;
+  border-radius: 10px;
+  padding: 4px;
+  background-color: @green;
+  text-align: center;
+  color: @white;
+}
+
+.import-buttons{
+  display: flex;
+}
+
+.import-table tbody tr:nth-child(odd){
+  background-color: @lightest-grey;
+}
+
+.error-imported {
+  font-weight: bold;
+  color: @red;
+}
+
+.success-imported {
+  color: @green;
+  font-weight: bold;
+}
+
+tr.table-row.selected{
+  border: 2px solid @green;
+}
+
+.olform--decoration {
+  width: 350px;
+  margin: 20px 0;
+  border: 2px solid @lightest-grey;
+  padding: 20px;
+  border-radius: 5px;
+}
+
 // Import all common components
 @import (less) "legacy.less";
 // Import styles specific to the BorrowTable for user pages

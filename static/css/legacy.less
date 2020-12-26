@@ -30,8 +30,8 @@
 @import (less) "legacy-wmd.less";
 
 @import (less) "components/read-panel.less";
-@import (less) 'components/diff.less';
-@import (less) 'components/iconochive.less';
+@import (less) "components/diff.less";
+@import (less) "components/iconochive.less";
 @import (less) "components/carousel.less";
 @import (less) "components/editions.less";
 @import (less) "components/header.less";
@@ -95,13 +95,14 @@ table {
       text-align: right;
     }
   }
-  // openlibrary/templates/lib/history.html
-  &#pageHistory,
+
+  // `#pageHistory` used inside openlibrary/templates/lib/history.html
+  // `.changeHistory` used inside:
   // openlibrary/templates/admin/imports.html
   // openlibrary/templates/admin/imports_by_date.html
   // openlibrary/templates/admin/ip/view.html
   // openlibrary/templates/admin/people/edits.html
-  // openlibrary/templates/merge/editions2.html
+  &#pageHistory,
   &.changeHistory {
     th {
       border-bottom: 1px solid @grey-e7e7e7;
@@ -189,14 +190,6 @@ li {
       &:hover {
         cursor: pointer;
         border: 5px solid @link-blue;
-      }
-    }
-  }
-  &.selected {
-    img {
-      border: 5px solid @orange;
-      &:hover {
-        border: 5px solid @orange;
       }
     }
   }
@@ -619,7 +612,6 @@ div#content {
 // openlibrary/templates/form.html
 // openlibrary/templates/login.html
 // openlibrary/templates/merge/authors.html
-// openlibrary/templates/merge/editions.html
 div.note {
   font-size: 1.0em;
   font-family: @lucida_sans_serif-1;
@@ -738,8 +730,8 @@ form {
 
 // openlibrary/templates/account/verify/failed.html
 // openlibrary/templates/form.html
+// FIXME: `div.valid` is possibly unused/or used in JS?
 div.invalid,
-// possibly unused/or used in JS?
 div.valid {
   float: left;
   font-size: 1.0em !important;
@@ -932,7 +924,7 @@ div.cclicense {
 // openlibrary/macros/databarDiff.html
 // openlibrary/macros/databarEdit.html
 // openlibrary/templates/recentchanges/header.html
-div#editButton,
+div.editButton,
 div#editHistory,
 div.revert.notice {
   button {
@@ -1006,7 +998,7 @@ hr.forgot-padding {
 }
 
 /* FOOTER */
-@import (less) 'components/footer.less';
+@import (less) "components/footer.less";
 
 /* CONTENT */
 div.contentWide,
@@ -1217,7 +1209,7 @@ div#searchResults {
 
 /* SEARCH FACETS */
 
-@import (less) 'components/search-results-container.less';
+@import (less) "components/search-results-container.less";
 
 // openlibrary/templates/work_search.html
 div#searchFacets {
@@ -1354,10 +1346,10 @@ div.books {
   .coverMagic {
     float: left;
     min-width: 84px;
-    max-width: 225px;
     min-height: 115px;
     text-align: center;
     margin: 0 5px 20px 0;
+    max-width: 100%;
   }
   .SRPCover {
     float: left;
@@ -1433,9 +1425,9 @@ tr {
   }
 }
 
-// openlibrary/templates/type/author/edit.html
+// `input.addweb` is used in openlibrary/templates/type/author/edit.html
+// `select#select-id` is used in openlibrary/templates/books/edit/edition.html
 input.addweb,
-// openlibrary/templates/books/edit/edition.html
 select#select-id {
   max-width: 300px;
 }
@@ -1690,13 +1682,16 @@ ul#siteSearch {
     font-family: @lucida_sans_serif-1;
     color: @grey;
   }
-  // openlibrary/macros/SearchResults.html
-  // openlibrary/macros/SearchResultsWork.html
+
+  // `span.resultTitle .bookauthor` is used in:
+  // * openlibrary/macros/SearchResults.html
+  // * openlibrary/macros/SearchResultsWork.html
+  // `span.resultPublisher` is used in
+  // * openlibrary/macros/SearchResultsWork.htm
+  // * openlibrary/templates/books/check.html
+  // * openlibrary/templates/books/show.html
+  // * openlibrary/templates/books/works-show.html
   span.resultTitle .bookauthor,
-  // openlibrary/macros/SearchResultsWork.htm
-  // openlibrary/templates/books/check.html
-  // openlibrary/templates/books/show.html
-  // openlibrary/templates/books/works-show.html
   span.resultPublisher {
     font-size: .75em;
     color: @grey;
@@ -1735,22 +1730,6 @@ div.narrow {
     span.resultTitle {
       max-width: 500px !important;
     }
-  }
-}
-
-// openlibrary/templates/covers/change.html
-div#throbber {
-  position: absolute;
-  width: 220px;
-  height: 19px;
-  top: 280px;
-  left: 210px;
-  text-align: center;
-  background-color: transparent;
-  background-image: url(/images/ajax-loader-bar.gif);
-  background-repeat: no-repeat;
-  h3 {
-    margin-top: 35px;
   }
 }
 
@@ -1813,7 +1792,6 @@ div.addfield {
   // openlibrary/macros/RecentChanges.html
   // openlibrary/macros/RecentChangesAdmin.html
   // openlibrary/macros/RecentChangesUsers.html
-  // openlibrary/macros/RecentPageList.html
   // openlibrary/templates/admin/people/edits.html
   // openlibrary/templates/recentchanges/render.html
   // openlibrary/templates/type/list/editions.html
@@ -1827,7 +1805,6 @@ div.addfield {
   // openlibrary/macros/RecentChanges.html
   // openlibrary/macros/RecentChangesAdmin.html
   // openlibrary/macros/RecentChangesUsers.html
-  // openlibrary/macros/RecentPageList.html
   // openlibrary/templates/admin/people/edits.html
   // openlibrary/templates/recentchanges/render.html
   // openlibrary/templates/type/list/editions.html
@@ -1852,8 +1829,6 @@ div.mergeThis {
 }
 @import (less) "components/merge-form.less";
 
-// openlibrary/templates/merge/editions2.html
-// openlibrary/templates/merge/history.html
 // openlibrary/templates/recentchanges/default/view.html
 // openlibrary/templates/recentchanges/merge-authors/view.html
 // openlibrary/templates/recentchanges/undo/view.html
@@ -1906,7 +1881,7 @@ div.postSubmit {
   }
 }
 
-@import (less) 'components/listLists.less';
+@import (less) "components/listLists.less";
 
 // openlibrary/templates/lists/widget.html
 .heart-adjust {
@@ -1963,8 +1938,6 @@ div#subjectLists {
 }
 
 /* LIBRARIES */
-
-@import (less) "components/header.less";
 
 // use manage-covers instead
 // openlibrary/templates/type/edition-history/view.html
@@ -2069,7 +2042,6 @@ div#subjectLists {
   }
 }
 @import (less) "components/searchResultItemCta.less";
-@import (less) "components/work.less";
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
   span {

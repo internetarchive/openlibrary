@@ -5,7 +5,7 @@ from openlibrary.catalog.utils import remove_trailing_dot, flip_name
 re_flip_name = re.compile('^(.+), ([A-Z].+)$')
 
 # 'Rhodes, Dan (Fictitious character)'
-re_fictitious_character = re.compile('^(.+), (.+)( \(.* character\))$')
+re_fictitious_character = re.compile(r'^(.+), (.+)( \(.* character\))$')
 re_etc = re.compile('^(.+?)[, .]+etc[, .]?$', re.I)
 re_comma = re.compile('^([A-Z])([A-Za-z ]+?) *, ([A-Z][A-Z a-z]+)$')
 
@@ -47,7 +47,7 @@ def tidy_subject(s):
 def four_types(i):
     want = set(['subject', 'time', 'place', 'person'])
     ret = dict((k, i[k]) for k in want if k in i)
-    for j in (j for j in i.keys() if j not in want):
+    for j in (j for j in i if j not in want):
         for k, v in i[j].items():
             if 'subject' in ret:
                 ret['subject'][k] = ret['subject'].get(k, 0) + v
@@ -172,6 +172,6 @@ def subjects_for_work(rec):
 
     subjects = four_types(read_subjects(rec))
 
-    return dict((field_map[k], v.keys()) for k, v in subjects.items())
+    return dict((field_map[k], list(v)) for k, v in subjects.items())
 
 

@@ -15,12 +15,14 @@ class TestAddAvailability:
 
     def test_handles_ocaid_none(self):
         f = lending.add_availability
-        assert f([{}]) == [{'availability': {'status': 'error'}}]
+        assert f([{}]) == [{}]
 
     def test_handles_availability_none(self, monkeypatch):
         def mock_get_availability_of_ocaids(ocaids):
-            return {'foo': None}
+            return {'foo': {'status': 'error'}}
         monkeypatch.setattr(lending, "get_availability_of_ocaids", mock_get_availability_of_ocaids)
 
         f = lending.add_availability
-        assert f([{'ocaid': 'foo'}]) == [{'ocaid': 'foo', 'availability': {'status': 'error'}}]
+        r = f([{'ocaid': 'foo'}])
+        print(r)
+        assert r[0]['availability']['status'] == 'error'

@@ -2,20 +2,22 @@
  * CtaBtn
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#ctabtn
  */
+
+// `a` specificity is needed to override default anchor styles
 .cta-btn,
-// override default anchor styles
 a.cta-btn {
-  font-size: 14px;
+  font-size: 16px;
   color: @white;
   width: 100%;
   display: block;
   border: 0;
   border-radius: 5px;
+  margin-top: 5px;
   box-sizing: border-box;
   cursor: pointer;
   font-family: @lucida_sans_serif-1;
   text-align: center;
-  padding: 7px 20px;
+  padding: 7px;
   white-space: nowrap;
   background-color: @mid-grey;
   line-height: 1.5em;
@@ -62,6 +64,11 @@ a.cta-btn {
     border: 2px solid @link-blue;
     background: lighten(desaturate(@link-blue, 56%), 67%);
   }
+  &--vanilla {
+    border: 2px solid @light-mid-grey;
+    background: @white;
+    color: black;
+  }
 
   &--sponsor:link, &--sponsor:visited {
       color: @link-blue;
@@ -71,6 +78,13 @@ a.cta-btn {
     border: 2px solid @link-blue;
     background-color: @link-blue;
     color: @white;
+  }
+
+  &--vanilla {
+    padding: 5px;
+    background: @white;
+    border: 2px solid @light-grey;
+    border-radius: 6px;
   }
 
   &__badge {
@@ -84,6 +98,11 @@ a.cta-btn {
 // Top margin to button coming after another button
 .cta-btn + form input.cta-btn, .cta-btn + .cta-btn {
   margin-top: 5px;
+}
+
+.cta-btn--small {
+  font-size: 12px;
+  padding: 5px 10px;
 }
 
 .waitinglist-message {
@@ -101,12 +120,12 @@ a.cta-btn {
 
     &:first-child {
       flex: 1;
-      padding: 8px 16px;
+      padding: 8px;
       overflow: hidden;
     }
 
     &:not(:first-child) {
-      margin-left: 2px;
+      margin-left: 1px;
       width: 40px;
       transition: width 0.2s;
       overflow: hidden;

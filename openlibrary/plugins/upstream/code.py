@@ -1,29 +1,29 @@
 """Upstream customizations."""
 
-import os.path
-import web
-import random
-import md5
 import datetime
+import hashlib
+import io
+import os.path
+import random
+
+from six import PY3
+
+import web
 
 from infogami import config
+from infogami.core import code as core
 from infogami.infobase import client
 from infogami.utils import delegate, app, types
 from infogami.utils.view import public, safeint, render
+from infogami.utils.view import render_template  # noqa: F401 used for its side effects
 from infogami.utils.context import context
-
-from utils import render_template
 
 from openlibrary import accounts
 
-import utils
-import addbook
-import models
-import covers
-import borrow
-import recentchanges
-import merge_authors
-
+from openlibrary.plugins.upstream import addbook, covers, merge_authors, models, utils
+from openlibrary.plugins.upstream import spamcheck
+from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused imports?
+from openlibrary.plugins.upstream.utils import render_component
 
 if not config.get('coverstore_url'):
     config.coverstore_url = "https://covers.openlibrary.org"
@@ -33,6 +33,28 @@ class static(delegate.page):
     def GET(self):
         host = 'https://%s' % web.ctx.host if 'openlibrary.org' in web.ctx.host else ''
         raise web.seeother(host + '/static' + web.ctx.path)
+
+
+class edit(core.edit):
+    """Overwrite ?m=edit behaviour for author, book, work, and people pages."""
+    def GET(self, key):
+        page = web.ctx.site.get(key)
+
+        if web.re_compile('/(authors|books|works)/OL.*').match(key):
+            if page is None:
+                raise web.seeother(key)
+            else:
+                raise web.seeother(page.url(suffix="/edit"))
+        else:
+            return core.edit.GET(self, key)
+
+    def POST(self, key):
+        if web.re_compile('/(people/[^/]+)').match(key) and spamcheck.is_spam():
+            return render_template('message.html', 'Oops',
+                                   'Something went wrong. Please try again later.')
+        return core.edit.POST(self, key)
+
+
 
 # handlers for change photo and change cover
 
@@ -50,6 +72,21 @@ class change_photo(change_cover):
 
 del delegate.modes['change_cover']     # delete change_cover mode added by openlibrary plugin
 
+
+class components_test(delegate.page):
+    path = "/_dev/components/HelloWorld"
+
+    def GET(self):
+        return render_component('HelloWorld') + render_component('HelloWorld')
+
+
+class library_explorer(delegate.page):
+    path = "/explore"
+
+    def GET(self):
+        return render_template('library_explorer')
+
+
 class merge_work(delegate.page):
     path = "(/works/OL\d+W)/merge"
     def GET(self, key):
@@ -63,7 +100,8 @@ class merge_work(delegate.page):
 def vendor_js():
     pardir = os.path.pardir
     path = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, 'static', 'upstream', 'js', 'vendor.js'))
-    digest = md5.md5(open(path).read()).hexdigest()
+    with io.open(path, 'rb') as in_file:
+        digest = hashlib.md5(in_file.read()).hexdigest()
     return '/static/upstream/js/vendor.js?v=' + digest
 
 @web.memoize
@@ -73,7 +111,8 @@ def static_url(path):
     """
     pardir = os.path.pardir
     fullpath = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, "static", path))
-    digest = md5.md5(open(fullpath).read()).hexdigest()
+    with io.open(fullpath, 'rb') as in_file:
+        digest = hashlib.md5(in_file.read()).hexdigest()
     return "/static/%s?v=%s" % (path, digest)
 
 class DynamicDocument:
@@ -104,7 +143,7 @@ class DynamicDocument:
 
     def md5(self):
         """Returns md5 checksum of the combined documents"""
-        return md5.md5(self.get_text()).hexdigest()
+        return hashlib.md5(self.get_text().encode('utf-8')).hexdigest()
 
 def create_dynamic_document(url, prefix):
     """Creates a handler for `url` for servering combined js/css for `prefix/*` pages"""
@@ -174,9 +213,25 @@ def setup_jquery_urls():
     web.template.Template.globals['jqueryui_url'] = jqueryui_url
     web.template.Template.globals['use_google_cdn'] = config.get('use_google_cdn', True)
 
+
+def user_is_admin_or_librarian():
+    user = web.ctx.site.get_user()
+    return user and (user.is_admin() or user.is_librarian())
+
+
 @public
-def get_document(key):
-    return web.ctx.site.get(key)
+def get_document(key, limit_redirs=5):
+    doc = None
+    for i in range(limit_redirs):
+        doc = web.ctx.site.get(key)
+        if doc is None:
+            return None
+        if doc.type.key == "/type/redirect":
+            key = doc.location
+        else:
+            return doc
+    return doc
+
 
 class revert(delegate.mode):
     def GET(self, key):
@@ -189,8 +244,7 @@ class revert(delegate.mode):
         if v is None:
             raise web.seeother(web.changequery({}))
 
-        user = web.ctx.site.get_user()
-        if not user and (user.is_admin() or user.is_librarian() and web.ctx.site.can_write(key)):
+        if not web.ctx.site.can_write(key) or not user_is_admin_or_librarian():
             return render.permission_denied(web.ctx.fullpath, "Permission denied to edit " + key + ".")
 
         thing = web.ctx.site.get(key, i.v)
@@ -227,13 +281,13 @@ class revert(delegate.mode):
                     else:
                         return value
                 else:
-                    for k in value.keys():
+                    for k in value:
                         value[k] = process(value[k])
                     return value
             else:
                 return value
 
-        for k in thing.keys():
+        for k in thing:
             thing[k] = process(thing[k])
 
         comment = i._comment or "reverted to revision %d" % v
@@ -248,7 +302,7 @@ def setup():
     covers.setup()
     merge_authors.setup()
 
-    import data
+    from openlibrary.plugins.upstream import data, jsdef
     data.setup()
 
     # setup template globals
@@ -267,9 +321,8 @@ def setup():
         "all": all,
         "any": any,
         "locals": locals
-    });
+    })
 
-    import jsdef
     web.template.STATEMENT_NODES["jsdef"] = jsdef.JSDefNode
 
     setup_jquery_urls()

@@ -1,11 +1,15 @@
 """Various web.py application processors used in OL.
 """
+import logging
 import os
-import urllib
 import web
 
 from infogami.utils.view import render
 from openlibrary.core import helpers as h
+
+from six.moves import urllib
+
+logger = logging.getLogger("openlibrary.readableurls")
 
 try:
     from booklending_utils.openlibrary import is_exclusion
@@ -16,7 +20,7 @@ except ImportError:
 
 class ReadableUrlProcessor:
     """Open Library code works with urls like /books/OL1M and
-    /books/OL1M/edit. This processor seemlessly changes the urls to
+    /books/OL1M/edit. This processor seamlessly changes the urls to
     /books/OL1M/title and /books/OL1M/title/edit.
 
     The changequery function is also customized to support this.
@@ -41,10 +45,10 @@ class ReadableUrlProcessor:
         real_path, readable_path = get_readable_path(web.ctx.site, web.ctx.path, self.patterns, encoding=web.ctx.encoding)
 
         #@@ web.ctx.path is either quoted or unquoted depends on whether the application is running
-        #@@ using builtin-server or lighttpd. Thats probably a bug in web.py.
+        #@@ using builtin-server or lighttpd. That is probably a bug in web.py.
         #@@ take care of that case here till that is fixed.
         # @@ Also, the redirection must be done only for GET requests.
-        if readable_path != web.ctx.path and readable_path != urllib.quote(web.utf8(web.ctx.path)) and web.ctx.method == "GET":
+        if readable_path != web.ctx.path and readable_path != urllib.parse.quote(web.safestr(web.ctx.path)) and web.ctx.method == "GET":
             raise web.redirect(web.safeunicode(readable_path) + web.safeunicode(web.ctx.query))
 
         web.ctx.readable_path = readable_path
@@ -53,8 +57,6 @@ class ReadableUrlProcessor:
         out = handler()
         V2_TYPES = ['works', 'books', 'people', 'authors',
                     'publishers', 'languages', 'account']
-        if out and any(web.ctx.path.startswith('/%s/' % _type) for _type in V2_TYPES):
-            out.v2 = True
 
         # Exclude noindex items
         if web.ctx.get('exclude'):
@@ -121,8 +123,9 @@ def get_readable_path(site, path, patterns, encoding=None):
     The patterns is a list of (path_regex, type, property_name, default_value)
     tuples.
     """
+
     def match(path):
-        for pat, type, property, default_title in patterns:
+        for pat, _type, _property, default_title in patterns:
             m = web.re_compile('^' + pat).match(path)
             if m:
                 prefix = m.group()
@@ -135,11 +138,12 @@ def get_readable_path(site, path, patterns, encoding=None):
                 if suffix:
                     suffix = "/" + suffix
 
-                return type, property, default_title, prefix, middle, suffix
+                return _type, _property, default_title, prefix, middle, suffix
         return None, None, None, None, None, None
 
-    type, property, default_title, prefix, middle, suffix = match(path)
-    if type is None:
+    _type, _property, default_title, prefix, middle, suffix = match(path)
+
+    if _type is None:
         path = web.safeunicode(path)
         return (path, path)
 
@@ -159,9 +163,14 @@ def get_readable_path(site, path, patterns, encoding=None):
     if thing:
         prefix = thing.key
 
-    if thing and thing.type.key == type:
-        title = thing.get(property) or default_title
-        middle = '/' + h.urlsafe(title.strip())
+    if thing and thing.type.key == _type:
+        title = thing.get(_property) or default_title
+        try:
+            # Explicitly only run for python3 to solve #4033
+            from urllib.parse import quote_plus
+            middle = '/' + quote_plus(h.urlsafe(title.strip()))
+        except ImportError:
+            middle = '/' + h.urlsafe(title.strip())
     else:
         middle = ""
 

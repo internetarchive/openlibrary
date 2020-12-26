@@ -1,13 +1,24 @@
 @import (less) "base/dl.less";
 
 .workDetails {
-  padding-bottom: 15px;
+  padding: 20px 0;
+  .book-description {
+    text-align: justify;
+  }
 }
 
 // Left (editionCover)
-div.editionCover {
+.editionCover {
   min-height: 10px;
   padding-right: 1.5em;
+  .cover-animation {
+    transform: perspective(0px) rotateX(0deg);
+    transition: transform 0.8s, opacity .8s;
+  }
+  .cover-animation:hover {
+    transform: perspective(465px) rotateX(0deg) rotateY(-10deg);
+    opacity: .8;
+  }
 }
 @import (less) "components/cover.less";
 @import (less) "components/illustration.less";
@@ -17,28 +28,144 @@ div.editionCover {
 
 // Center (editionAbout)
 div.editionAbout {
-  min-height: 10px;
-  h2.edition-byline {
-    font-size: .9em;
-    font-weight: normal;
-    color: @dark-grey;
-    margin: 0 0 10px;
-  }
-
+  margin-bottom: 20px;
   h3 {
     font-size: 14px;
-    margin: 0 0 1em;
+    margin: 0 0 0em;
   }
 
   p {
     margin: 1em 0;
     font-size: 13px;
   }
+
+  p:first-child {
+    margin: 0;
+  }
+
 }
 
-.workDetails,
-.book-overview {
-  border-bottom: 1px solid @lightest-grey;
+.work-title{
+  margin-top: 5px;
+  margin-bottom: 0;
+}
+
+.work-subtitle{
+  margin-top:0px;
+}
+
+.workFooter {
+  clear: both;
+  border-top: 1px solid @lighter-grey;
+  ul.listLists {
+    display: flex;
+  }
+  ul.listLists li {
+    width: 33%;
+    border: 0;
+  }
+}
+
+.book-description{
+  font-size: .9em;
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+
+.checkboxes label {
+display: inline-block;
+padding-right: 10px;
+white-space: nowrap;
+}
+
+.checkboxes input {
+vertical-align: middle;
+}
+
+.restricted-view{
+  display: block;
+  z-index: 1;
+}
+
+.restricted-height{
+  overflow: hidden;
+  height: 57px;
+}
+
+.section, .section h6 {
+  font-size: .8em;
+}
+
+h2.edition-byline {
+  margin: 7px 2px 20px;
+}
+
+.first-published-date {
+  color: @grey;
+  font-size: .8em;
+}
+
+.edition-overview {
+  background: @light-grey;
+  padding: 10px;
+  margin: 10px 0px;
+}
+
+.edition-overview .edition-title {
+  margin-bottom: 0;
+  color: @dark-grey;
+}
+
+.edition-overview .edition-subtitle {
+  margin-top: 5px;
+  font-size: 1.4em;
+  font-weight: normal;
+  color: @grey;
+}
+
+.work-menu {
+  border-bottom: 1px solid @lighter-grey;
+  padding-bottom: 5px;
+  font-weight: bold;
+  margin-top: 20px;
+
+  &.sticky {
+    position: sticky;
+    top: 0px;
+    display: block;
+    background: @white;
+    z-index: 999;
+    padding-top: 10px;
+  }
+}
+
+.work-menu li {
+  display: inline;
+  padding: 0px 15px;
+  padding-bottom: 5px;
+  font-size: 13px;
+}
+
+.work-menu li a {
+  text-decoration: none;
+  color: @grey;
+}
+
+.work-menu li.selected {
+  border-bottom: 2px solid @link-blue;
+}
+
+.work-menu li:hover {
+  border-bottom: 2px solid @link-blue;
+}
+
+.work-menu li.selected a {
+  color: @link-blue;
+}
+
+a.section-anchor {
+  height: 45px;
+  display: block;
 }
 
 .book-overview {
@@ -50,6 +177,19 @@ div.editionAbout {
 
 .meta dt, .meta dd {
   font-size: 12px;
+}
+
+.work-title{
+  margin-top: 5px;
+  margin-bottom: 0;
+}
+
+.work-subtitle{
+  margin-top:0px;
+}
+
+.book-subtitle{
+  margin-bottom:0px;
 }
 
 @import (less) "components/readerStats.less";
@@ -73,16 +213,20 @@ div.editionTools {
   div.edition {
     &Cover {
       float: left;
-      width: 180px;
+      width: 225px;
       margin-right: 1.5em;
       margin-bottom: 0;
+    }
+    &About {
+     float: left;
+      width: 70%;
     }
   }
 }
 
 .admin-bar {
   padding: 5px;
-  background-color: @orange;
+  background-color: @lightest-grey;
   form {
     display: inline-block;
   }
@@ -96,4 +240,51 @@ div.editionTools {
   .mobile-borrow-cta {
     display: none;
   }
+}
+
+.print-disabled-download, .patron-metadata {
+  text-align: center;
+  padding: 7px 0 0 0;
+}
+
+
+.edition-omniline {
+  display: flex;
+  border-top: 1px solid @lighter-grey;
+  border-bottom: 1px solid @lighter-grey;
+  margin: 20px 0 10px;
+
+  h4 {
+    padding-right: 5px;
+  }
+
+  h4:last-child {
+    padding-right: 0;
+  }
+}
+
+.tab-section {
+  padding: 10px;
+  border: 1px solid @lighter-grey;
+  border-radius: 5px;
+}
+
+.preview-languages {
+  margin-bottom: -30px !important;
+  font-size: .8em;
+  color: @grey;
+}
+
+.work-line {
+  font-style: oblique;
+  color: @light-mid-grey;
+  a {
+    color: @light-mid-grey;
+  }
+}
+
+.loadingIndicator {
+  display: flex;
+  justify-content: center;
+  background: @lightest-grey;
 }

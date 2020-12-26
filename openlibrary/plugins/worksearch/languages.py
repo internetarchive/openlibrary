@@ -6,10 +6,12 @@ from infogami.utils.view import render_template, safeint
 import web
 import simplejson
 import logging
-import urllib
 
 from . import subjects
 from . import search
+
+from six.moves import urllib
+
 
 logger = logging.getLogger("openlibrary.worksearch")
 
@@ -47,9 +49,7 @@ class index(delegate.page):
         result = search.get_solr().select('*:*', rows=0, facets=['language'], facet_limit=500)
         languages = [web.storage(name=get_language_name(row.value), key='/languages/' + row.value, count=row.count)
                     for row in result['facets']['language']]
-        page = render_template("languages/index", languages)
-        page.v2 = True
-        return page
+        return render_template("languages/index", languages)
 
     def is_enabled(self):
         return True

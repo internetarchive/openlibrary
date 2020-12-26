@@ -8,6 +8,29 @@ def test_url_quote():
     assert utils.url_quote('Kabitā') == 'Kabit%C4%81'
     assert utils.url_quote(u'Kabit\u0101') == 'Kabit%C4%81'
 
+
+def test_urlencode():
+    f = utils.urlencode
+    assert f({}) == '', 'empty dict'
+    assert f([]) == '', 'empty list'
+    assert f({'q': 'hello'}) == 'q=hello', 'basic dict'
+    assert f({'q': ''}) == 'q=', 'empty param value'
+    assert f({'q': None}) == 'q=None', 'None param value'
+    assert f([('q', 'hello')]) == 'q=hello', 'basic list'
+    assert f([('x', '3'), ('x', '5')]) == 'x=3&x=5', 'list with multi keys'
+    assert f({'q': 'a b c'}) == 'q=a+b+c', 'handles spaces'
+    assert f({'q': 'a$$'}) == 'q=a%24%24', 'handles special ascii chars'
+    assert f({'q': u'héé'}) == 'q=h%C3%A9%C3%A9'
+    assert f({'q': 'héé'}) == 'q=h%C3%A9%C3%A9', 'handles unicode without the u?'
+    assert f({'q': 1}) == 'q=1', 'numbers'
+    assert f({'q': ['test']}) == 'q=%5B%27test%27%5D', 'list'
+    assert f({'q': 'αβγ'}) == 'q=%CE%B1%CE%B2%CE%B3', 'unicode without the u'
+    # Can't run this since it's a SyntaxError in python3... But it passes in Python 2
+    # assert f({'q': b'αβγ'}) == 'q=%CE%B1%CE%B2%CE%B3', 'byte-string unicode?'
+    assert f({'q': u'αβγ'.encode('utf8')}) == 'q=%CE%B1%CE%B2%CE%B3', 'uf8 encoded unicode'
+    assert f({'q': u'αβγ'}) == 'q=%CE%B1%CE%B2%CE%B3', 'unicode'
+
+
 def test_entity_decode():
     assert utils.entity_decode('&gt;foo') == '>foo'
     assert utils.entity_decode('<h1>') == '<h1>'

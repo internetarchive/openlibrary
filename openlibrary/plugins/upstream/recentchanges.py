@@ -7,11 +7,12 @@ import simplejson
 import yaml
 
 from infogami.utils import delegate
-from infogami.utils.view import public, render, render_template, add_flash_message, safeint
+from infogami.utils.view import public, render, render_template, safeint
+from infogami.utils.view import add_flash_message  # TODO: unused import?
 from infogami.utils import features
 
 from openlibrary.utils import dateutil
-from utils import get_changes
+from openlibrary.plugins.upstream.utils import get_changes
 
 
 @public
@@ -50,9 +51,7 @@ class index(delegate.page):
         if web.ctx.encoding in ["json", "yml"]:
             return self.handle_encoding(query, web.ctx.encoding)
 
-        page = render_template("recentchanges/index", query)
-        page.v2 = True
-        return page
+        return render_template("recentchanges/index", query)
 
     def handle_encoding(self, query, encoding):
         i = web.input(bot="", limit=100, offset=0, text="false")

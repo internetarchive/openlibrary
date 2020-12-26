@@ -1,6 +1,5 @@
 """Loan Stats"""
 
-import re
 import web
 from infogami.utils import delegate
 
@@ -70,9 +69,7 @@ class stats(app.view):
     def GET(self):
         counts = get_counts()
         counts.reading_log = cached_reading_log_summary()
-        template = app.render_template("admin/index", counts)
-        template.v2 = True
-        return template
+        return app.render_template("admin/index", counts)
 
 
 class lending_stats(app.view):

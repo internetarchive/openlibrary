@@ -14,7 +14,7 @@ $ available_loans = page.get_available_loans()
 
         <h1 class="sansserif">Borrow - Administration</h1>
         <p>
-            can_borrow - can this book ever be borrowed: $can_borrow(page)
+            can_borrow - can this book ever be borrowed: $(page.in_borrowable_collection())
         </p>
 
 
@@ -24,22 +24,6 @@ $ available_loans = page.get_available_loans()
 
         <p>
           You are an admin?: $ctx.user.is_admin()
-        </p>
-
-        <p>
-          IP address: $user_ip
-        </p>
-
-        <p>
-          you are in library? (inlibrary flag set):
-          $if "inlibrary" in ctx.features:
-             yes
-          $else:
-             no
-        </p>
-
-        <p>
-          which library: $get_library()
         </p>
 
         <p>
@@ -78,7 +62,7 @@ $ available_loans = page.get_available_loans()
 
         <p>
             <table>
-              <tr><th>Available loans for $page.title:</tr></th>
+              <tr><th>Available loans for $page.title:</th></tr>
               $for loan in available_loans:
                  <tr><td>$loan</td></tr>
             </table>

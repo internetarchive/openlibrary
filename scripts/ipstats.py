@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 import os
 import subprocess
 import web
-import infogami
 import _init_path
+import infogami  # must be after _init_path
 from openlibrary.config import load_config
 
 def run_piped(cmds, stdin=None):

@@ -1,21 +1,27 @@
 from __future__ import print_function
-import web
-import simplejson
-import urllib
-import os
-import datetime
-import time
-import logging
+
 import array
+import datetime
+import json
+import logging
+import os
+import time
+
 import memcache
+import requests
+import web
 
-import db
-import config
-from utils import safeint, rm_f, random_string, ol_things, ol_get, changequery, download
-
-from coverlib import save_image, read_image, read_file
-
-import ratelimit
+from openlibrary.coverstore import config, db, ratelimit
+from openlibrary.coverstore.coverlib import read_file, read_image, save_image
+from openlibrary.coverstore.utils import (
+    changequery,
+    download,
+    ol_get,
+    ol_things,
+    random_string,
+    rm_f,
+    safeint,
+)
 
 logger = logging.getLogger("coverstore")
 
@@ -38,14 +44,11 @@ def get_cover_id(olkeys):
         doc = ol_get(olkey)
         if not doc:
             continue
-
-        if doc['key'].startswith("/authors"):
-            covers = doc.get('photos', [])
-        else:
-            covers = doc.get('covers', [])
-
-        # Sometimes covers is stored as [-1] to indicate no covers. Consider it as no covers.
-        if covers and covers[0] >= 0:
+        is_author = doc['key'].startswith("/authors")
+        covers = doc.get('photos' if is_author else 'covers', [])
+        # Sometimes covers is stored as [None] or [-1] to indicate no covers.
+        # If so, consider there are no covers.
+        if covers and (covers[0] or -1) >= 0:
             return covers[0]
 
 def _query(category, key, value):
@@ -128,7 +131,8 @@ class upload2:
             (code, msg) = code__msg
             _cleanup()
             e = web.badrequest()
-            e.data = simplejson.dumps({"code": code, "message": msg})
+            e.data = json.dumps({"code": code, "message": msg})
+            logger.exception("upload2.POST() failed: " + e.data)
             raise e
 
         source_url = i.source_url
@@ -149,7 +153,7 @@ class upload2:
             error(ERROR_BAD_IMAGE)
 
         _cleanup()
-        return simplejson.dumps({"ok": "true", "id": d.id})
+        return json.dumps({"ok": "true", "id": d.id})
 
 def trim_microsecond(date):
     # ignore microseconds
@@ -165,8 +169,7 @@ def _locate_item(item):
     """Locates the archive.org item in the cluster and returns the server and directory.
     """
     print(time.asctime(), "_locate_item", item, file=web.debug)
-    text = urllib.urlopen("https://archive.org/metadata/" + item).read()
-    d = simplejson.loads(text)
+    d = requests.get("https://archive.org/metadata/" + item).json()
     return d['server'], d['dir']
 
 def locate_item(item):
@@ -208,11 +211,7 @@ class cover:
             return url.startswith("http://") or url.startswith("https://")
 
         def notfound():
-            if key in ["id", "olid"] and config.get("upstream_base_url"):
-                # this is only used in development
-                base = web.rstrips(config.upstream_base_url, "/")
-                raise web.redirect(base + web.ctx.fullpath)
-            elif config.default_image and i.default.lower() != "false" and not is_valid_url(i.default):
+            if config.default_image and i.default.lower() != "false" and not is_valid_url(i.default):
                 return read_file(config.default_image)
             elif is_valid_url(i.default):
                 raise web.seeother(i.default)
@@ -283,8 +282,7 @@ class cover:
     def get_ia_cover_url(self, identifier, size="M"):
         url = "https://archive.org/metadata/%s/metadata" % identifier
         try:
-            jsontext = urllib.urlopen(url).read()
-            d = simplejson.loads(jsontext).get("result", {})
+            d = requests.get(url).json().get("result", {})
         except (IOError, ValueError):
             return
 
@@ -393,7 +391,7 @@ class cover_details:
                 if isinstance(d['created'], datetime.datetime):
                     d['created'] = d['created'].isoformat()
                     d['last_modified'] = d['last_modified'].isoformat()
-                return simplejson.dumps(d)
+                return json.dumps(d)
             else:
                 raise web.notfound("")
         else:
@@ -434,12 +432,12 @@ class query:
                 }
             result = [process(r) for r in result]
 
-        json = simplejson.dumps(result)
+        json_data = json.dumps(result)
         web.header('Content-Type', 'text/javascript')
         if i.callback:
-            return "%s(%s);" % (i.callback, json)
+            return "%s(%s);" % (i.callback, json_data)
         else:
-           return json
+            return json_data
 
 class touch:
     def POST(self, category):

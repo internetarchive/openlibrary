@@ -1,7 +1,8 @@
 import re
+import requests
 import os.path
-import urllib2
 from bs4 import BeautifulSoup
+
 
 # http://amazon.com/other-editions/dp/0312153325 has:
 # http://www.amazon.com/gp/product/0312247869
@@ -44,12 +45,12 @@ def parse_html(html):
 
 def get_from_amazon(isbn):
     url = 'http://www.amazon.com/dp/other-editions/' + isbn
-    try:
-        return urllib2.urlopen(url).read()
-    except urllib2.HTTPError as error:
-        if error.code != 404:
-            raise
-        return ''
+    response = requests.get(url)
+    if response.ok:
+        return response.content
+    if response.status_code != 404:
+        response.raise_for_status()
+    return ''
 
 def find_others(isbn, dir):
     filename = dir + "/" + isbn

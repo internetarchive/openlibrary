@@ -1,7 +1,0 @@
-updated_by = u'actualizada por'
-full_text = u'Leer en l\xednea'
-edit = u'Editar'
-published_in = u'Publicado en'
-last_modified = u'Fecha de modificaci\xf3n'
-history = u'Historia'
-whats_new = u'\xbfQu\xe9 hay de nuevo'
