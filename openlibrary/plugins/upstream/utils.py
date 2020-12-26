@@ -27,7 +27,7 @@ from openlibrary.core.helpers import commify, parse_datetime
 from openlibrary.core.middleware import GZipMiddleware
 from openlibrary.core import cache, ab
 
-class MultiDict(nMapping):
+class MultiDict(MutableMapping):
     """Ordered Dictionary that can store multiple values.
 
         >>> d = MultiDict()
