@@ -60,7 +60,6 @@ class subjects(delegate.page):
             'lending_edition_s': '*'
         })
 
-        subj.v2 = True
         delegate.context.setdefault('bodyid', 'subject')
         if not subj or subj.work_count == 0:
             web.ctx.status = "404 Not Found"
@@ -68,7 +67,6 @@ class subjects(delegate.page):
         else:
             page = render_template("subjects", page=subj)
 
-        page.v2 = True
         return page
 
     def normalize_key(self, key):

@@ -55,7 +55,8 @@ class MockSite(client.Site):
     def _get_backreferences(self, thing):
         return {}
 
-    def save_many(self, docs, comment=None, data={}, action=None):
+    def save_many(self, docs, comment=None, data=None, action=None):
+        data = data or {}
         self.add(docs)
         return [{'key': d['key'], 'revision': 1} for d in docs]
 

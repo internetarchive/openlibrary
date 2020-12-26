@@ -199,9 +199,7 @@ class account(delegate.page):
     @require_login
     def GET(self):
         user = accounts.get_current_user()
-        page = render.account(user)
-        page.v2 = True
-        return page
+        return render.account(user)
 
 class account_create(delegate.page):
     """New account creation.
@@ -212,9 +210,7 @@ class account_create(delegate.page):
 
     def GET(self):
         f = self.get_form()
-        page = render['account/create'](f)
-        page.v2 = True
-        return page
+        return render['account/create'](f)
 
     def get_form(self):
         """
@@ -248,15 +244,11 @@ class account_create(delegate.page):
                 InternetArchiveAccount.create(
                     screenname=f.username.value, email=f.email.value, password=f.password.value,
                     notifications=notifications, verified=False, retries=USERNAME_RETRIES)
-                page = render['account/verify'](username=f.username.value, email=f.email.value)
-                page.v2 = True
-                return page
+                return render['account/verify'](username=f.username.value, email=f.email.value)
             except ValueError:
                 f.note = LOGIN_ERRORS['max_retries_exceeded']
 
-        page = render['account/create'](f)
-        page.v2 = True
-        return page
+        return render['account/create'](f)
 
 
 del delegate.pages['/account/register']
@@ -315,14 +307,12 @@ class account_login(delegate.page):
     def GET(self):
         referer = web.ctx.env.get('HTTP_REFERER', '/')
         # Don't set referer on user activation
-        if '//archive.org/account/verify.php' in referer:
+        if 'archive.org' in referer:
             referer = None
         i = web.input(redirect=referer)
         f = forms.Login()
         f['redirect'].value = i.redirect
-        page = render.login(f)
-        page.v2 = True
-        return page
+        return render.login(f)
 
     def POST(self):
         i = web.input(username="", connect=None, password="", remember=False,
@@ -761,13 +751,11 @@ class public_my_books(delegate.page):
                     })[0]) for s in sponsorships)
             else:
                 books = readlog.get_works(key, page=i.page)
-            page = render['account/books'](
+            return render['account/books'](
                 books, key, sponsorship_count=len(sponsorships),
                 reading_log_counts=readlog.reading_log_counts, lists=readlog.lists,
                 user=user, logged_in_user=logged_in_user, public=is_public
             )
-            page.v2 = True
-            return page
         raise web.seeother(user.key)
 
 
@@ -810,7 +798,7 @@ class readinglog_stats(delegate.page):
             }
             for a in web.ctx.site.get_many(list(author_keys))
         ]
-        page = render['account/readinglog_stats'](
+        return render['account/readinglog_stats'](
             json.dumps(works_json),
             json.dumps(authors_json),
             len(works_json),
@@ -820,8 +808,6 @@ class readinglog_stats(delegate.page):
             key,
             lang=web.ctx.lang,
         )
-        page.v2 = True
-        return page
 
 
 class account_my_books_redirect(delegate.page):
@@ -874,26 +860,12 @@ class import_books(delegate.page):
 class fetch_goodreads(delegate.page):
     path = "/account/import/goodreads"
 
+    def GET(self):
+        raise web.seeother("/account/import")
+
     @require_login
     def POST(self):
-        import csv
-        i = web.input(csv={})
-        csv_file = csv.reader((i.csv.value).splitlines(),
-                              delimiter=',', quotechar='"')
-        header = next(csv_file)
-        books = {}
-        books_wo_isbns = {} 
-        for book in list(csv_file):
-            _book = dict(zip(header, book))
-            _book['ISBN'] = _book['ISBN'].replace('"','').replace('=','')
-            _book['ISBN13'] = _book['ISBN13'].replace('"','').replace('=','')
-            if _book['ISBN'] != '':
-                books[_book['ISBN']] = _book
-            elif _book['ISBN13'] != '':
-                books[_book['ISBN13']] = _book
-                books[_book['ISBN13']]['ISBN'] = _book['ISBN13']
-            else:
-                books_wo_isbns[_book['Book Id']] = _book     
+        books, books_wo_isbns = process_goodreads_csv(web.input())
         return render['account/import'](books, books_wo_isbns)
 
 class export_books(delegate.page):
@@ -970,3 +942,24 @@ def as_admin(f):
         finally:
             web.ctx.headers = []
     return g
+
+
+def process_goodreads_csv(i):
+    import csv
+    csv_payload = i.csv if isinstance(i.csv, str) else i.csv.decode()
+    csv_file = csv.reader(csv_payload.splitlines(), delimiter=',', quotechar='"')
+    header = next(csv_file)
+    books = {}
+    books_wo_isbns = {}
+    for book in list(csv_file):
+        _book = dict(zip(header, book))
+        isbn = _book['ISBN'] = _book['ISBN'].replace('"', '').replace('=', '')
+        isbn_13 = _book['ISBN13'] = _book['ISBN13'].replace('"', '').replace('=', '')
+        if isbn != '':
+            books[isbn] = _book
+        elif isbn_13 != '':
+            books[isbn_13] = _book
+            books[isbn_13]['ISBN'] = isbn_13
+        else:
+            books_wo_isbns[_book['Book Id']] = _book
+    return books, books_wo_isbns

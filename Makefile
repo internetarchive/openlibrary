@@ -81,7 +81,7 @@ ifndef CONTINUOUS_INTEGRATION
 endif
 
 test-py:
-	pytest . --ignore=tests/integration --ignore=scripts/2011 --ignore=infogami --ignore=vendor
+	pytest . --ignore=tests/integration --ignore=scripts/2011 --ignore=infogami --ignore=vendor --ignore=node_modules
 
 test: 
 	make test-py && npm run test

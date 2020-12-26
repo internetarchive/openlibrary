@@ -75,7 +75,8 @@ class FakeDataProvider(DataProvider):
     docs = []
     docs_by_key = {}
 
-    def __init__(self, docs=list()):
+    def __init__(self, docs=None):
+        docs = docs or []
         """
         :param list[dict] docs: Documents in the DataProvider
         """

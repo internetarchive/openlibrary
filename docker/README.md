@@ -116,6 +116,8 @@ Note: This is only if you already have an existing docker image, this command is
 
 ## Other Commands
 
+https://github.com/internetarchive/openlibrary/wiki/Deployment-Guide#ol-web1
+
 ```bash
 # Launch a temporary container and run tests
 docker-compose run --rm home make test

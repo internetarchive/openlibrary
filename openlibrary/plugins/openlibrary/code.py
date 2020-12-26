@@ -5,7 +5,6 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import requests
-import sentry_sdk
 import web
 import simplejson
 import json
@@ -37,7 +36,7 @@ from openlibrary.core.lending import get_work_availability, get_edition_availabi
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count  # noqa: E402
-from openlibrary.plugins.openlibrary import processors, sentry
+from openlibrary.plugins.openlibrary import processors
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
@@ -173,7 +172,7 @@ def sampleload(filename='sampledump.txt.gz'):
     else:
         f = open(filename)
 
-    queries = [simplejson.loads(line) for  line in f]
+    queries = [simplejson.loads(line) for line in f]
     print(web.ctx.site.save_many(queries))
 
 
@@ -378,7 +377,7 @@ class isbn_lookup(delegate.page):
                 return web.found(ed.key + ext)
         except Exception as e:
             logger.error(e)
-            return e.message
+            return repr(e)
 
         web.ctx.status = '404 Not Found'
         return render.notfound(web.ctx.path, create=False)
@@ -526,7 +525,7 @@ class _yaml(delegate.mode):
             if e.json:
                 msg = self.dump(simplejson.loads(e.json))
             else:
-                msg = e.message
+                msg = str(e)
             raise web.HTTPError(e.status, data=msg)
 
         return simplejson.loads(d)
@@ -703,7 +702,10 @@ def changequery(query=None, **kw):
         else:
             query[k] = v
 
-    query = dict((k, (map(web.safestr, v) if isinstance(v, list) else web.safestr(v))) for k, v in query.items())
+    query = dict(
+        (k, (list(map(web.safestr, v)) if isinstance(v, list) else web.safestr(v)))
+        for k, v in query.items()
+    )
     out = web.ctx.get('readable_path', web.ctx.path)
     if query:
         out += '?' + urllib.parse.urlencode(query, doseq=True)
@@ -796,8 +798,9 @@ def internalerror():
     increment_error_count('ol.internal-errors-segmented')
 
     # TODO: move this to plugins\openlibrary\sentry.py
-    if sentry.is_enabled():
-        sentry_sdk.capture_exception()
+    from openlibrary.plugins.openlibrary.sentry import sentry
+    if sentry.enabled:
+        sentry.capture_exception_webpy()
 
     if i.debug.lower() == 'true':
         raise web.debugerror()

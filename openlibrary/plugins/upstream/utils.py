@@ -11,6 +11,7 @@ import datetime
 import logging
 
 import six
+from six import PY3
 from six.moves import urllib
 from six.moves.collections_abc import MutableMapping
 
@@ -235,7 +236,9 @@ def unflatten(d, seperator="--"):
         setvalue(d2, k, v)
     return makelist(d2)
 
-def fuzzy_find(value, options, stopwords=[]):
+
+def fuzzy_find(value, options, stopwords=None):
+    stopwords = stopwords or []
     """Try find the option nearest to the value.
 
         >>> fuzzy_find("O'Reilly", ["O'Reilly Inc", "Addison-Wesley"])
@@ -283,6 +286,12 @@ def radio_list(name, args, value):
 @public
 def get_coverstore_url():
     return config.get('coverstore_url', 'https://covers.openlibrary.org').rstrip('/')
+
+
+@public
+def get_the_best_book_on_url():
+    return config.get('tbbo_url')
+
 
 def _get_changes_v1_raw(query, revision=None):
     """Returns the raw versions response.
@@ -432,7 +441,9 @@ class Metatag:
         self.attrs = attrs
 
     def __str__(self):
-        attrs = ' '.join('%s="%s"' % (k, websafe(v).encode('utf8')) for k, v in self.attrs.items())
+        attrs = ' '.join(
+            '%s="%s"' % (k, websafe(v) if PY3 else websafe(v).encode('utf8'))
+            for k, v in self.attrs.items())
         return '<%s %s />' % (self.tag, attrs)
 
     def __repr__(self):
@@ -750,32 +761,14 @@ def get_donation_include(include):
     dev_host = web_input.pop("dev_host", "")  # e.g. `www-user`
     if dev_host and re.match('^[a-zA-Z0-9-.]+$', dev_host):
         dev_host += "."   # e.g. `www-user.`
-    url_banner_source = "https://%sarchive.org/includes/donate.php" % dev_host
-    param = '?platform=ol'
+    script_src = "https://%sarchive.org/includes/donate.js" % dev_host
     if 'ymd' in web_input:
-        param += '&ymd=' + web_input.ymd
+        script_src += '?ymd=' + web_input.ymd
 
-    # Look for presence of cookie indicating banner has been closed
-    opener = urllib.request.build_opener()
-    donation_param = web.cookies().get('donation')
-    if donation_param:
-        # Append a tuple with the cookie pair (*not* extraneous parentheses!)
-        opener.addheaders.append(('Cookie', urllib.parse.urlencode({'donation': donation_param})))
-
-    html = ''
-    if include == 'true' and "dev" in web.ctx.features:
-        try:
-            html += opener.open(url_banner_source + param, timeout=3).read().decode("utf-8")
-            # Donation banner is temporarily (Jan 2020) disabled on prod, but available on dev (so that it can be used
-            # for testing). To avoid it appearing like it's working, display a warning if it loads correctly that it's
-            # disabled on prod.
-            if '<div' in html or '<iframe' in html:
-                html = """
-                <center>WARNING: Donation banner disabled on prod; see <a href="https://github.com/internetarchive/openlibrary/issues/2853">GitHub #2853</a></center>
-                """ + html
-        except urllib.error.URLError:
-            logging.getLogger("openlibrary").error('Could not load donation banner')
-            return ''
+    html = """
+    <div id="donato"></div>
+    <script src="%s" data-platform="ol"></script>
+    """ % script_src
     return html
 
 #get_donation_include = cache.memcache_memoize(get_donation_include, key_prefix="upstream.get_donation_include", timeout=60)

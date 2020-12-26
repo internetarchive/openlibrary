@@ -4,6 +4,8 @@ $var title: $page.displayname
 $ settings = page.get_users_settings()
 $ owners_page = ctx.user and ctx.user.key == page.key
 $ is_public = settings and settings.get('public_readlog', 'no') == "yes"
+$if days_since(page.created) < 30:
+  $ putctx('robots', 'noindex')
 
 $if "lists" in ctx.features:
     $ lists = page.get_lists(limit=3)

@@ -39,6 +39,9 @@ function update_image(image) {
             \$("$cover_selector").attr('src', url)
                 .parents("div:first").show()
                 .next().hide();
+            \$("$cover_selector").attr('srcset', url)
+                .parents("div:first").show()
+                .next().hide();
         }
         else {
             // hide SRPCover and show SRPCoverBlank

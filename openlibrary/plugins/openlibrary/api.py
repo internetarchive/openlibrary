@@ -171,7 +171,7 @@ class work_bookshelves(delegate.page):
             shelf_ids = Bookshelves.PRESET_BOOKSHELVES.values()
             if bookshelf_id != -1 and bookshelf_id not in shelf_ids:
                 raise ValueError
-        except ValueError:
+        except (TypeError, ValueError):
             return delegate.RawText(simplejson.dumps({
                 'error': 'Invalid bookshelf'
             }), content_type="application/json")
@@ -305,30 +305,13 @@ class amazon_search_api(delegate.page):
         results = search_amazon(title=i.title, author=i.author)
         return simplejson.dumps(results)
 
-class join_sponsorship_waitlist(delegate.page):
-    path = r'/sponsorship/join'
-
-    def GET(self):
-        user = accounts.get_current_user()
-        if user:
-            account = OpenLibraryAccount.get_by_email(user.email)
-            ia_itemname = account.itemname if account else None
-        if not user or not ia_itemname:
-            web.setcookie(config.login_cookie_name, "", expires=-1)
-            raise web.seeother("/account/login?redirect=/sponsorship/join")
-        try:
-            with accounts.RunAs('archive_support'):
-                models.UserGroup.from_key('sponsors-waitlist').add_user(user.key)
-        except KeyError as e:
-            add_flash_message('error', 'Unable to join waitlist: %s' % e.message)
-
-        raise web.seeother('/sponsorship')
 
 class sponsorship_eligibility_check(delegate.page):
     path = r'/sponsorship/eligibility/(.*)'
 
     @jsonapi
     def GET(self, _id):
+        i = web.input(patron=None, scan_only=False)
         edition = (
             web.ctx.site.get('/books/%s' % _id)
             if re.match(r'OL[0-9]+M', _id)
@@ -337,7 +320,9 @@ class sponsorship_eligibility_check(delegate.page):
         )
         if not edition:
             return simplejson.dumps({"status": "error", "reason": "Invalid ISBN 13"})
-        return simplejson.dumps(qualifies_for_sponsorship(edition))
+        return simplejson.dumps(
+            qualifies_for_sponsorship(edition, scan_only=i.scan_only, patron=i.patron)
+        )
 
 
 class price_api(delegate.page):

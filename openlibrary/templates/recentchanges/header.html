@@ -4,7 +4,7 @@ $ label = label or change.kind.replace("_", " ").replace("-", " ").title()
 
 <div id="editTools" class="edit">
     $if change.can_undo() and "undo" in ctx.features:
-        <div id="editButton">
+        <div class="editButton">
             <form id="undo-form" method="POST">
                 <button class="larger" name="#" accesskey="u" id="undo-button" type="submit">Undo All</button>
             </form>

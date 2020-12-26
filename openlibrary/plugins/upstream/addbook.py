@@ -782,7 +782,7 @@ class book_edit(delegate.page):
             else:
                 add_flash_message("info", utils.get_message("flash_book_updated"))
 
-            raise web.seeother(edition.url())
+            raise web.seeother(urllib.parse.quote(edition.url()))
         except ClientException as e:
             add_flash_message('error', e.args[-1] or e.json)
             return self.GET(key)
@@ -882,20 +882,6 @@ class author_edit(delegate.page):
             author.alternate_names = [name.strip() for name in alternate_names.replace("\n", ";").split(';') if name.strip()]
             author.links = author.get('links') or []
             return author
-
-
-class edit(core.edit):
-    """Overwrite ?m=edit behaviour for author, book and work pages."""
-    def GET(self, key):
-        page = web.ctx.site.get(key)
-
-        if web.re_compile('/(authors|books|works)/OL.*').match(key):
-            if page is None:
-                raise web.seeother(key)
-            else:
-                raise web.seeother(page.url(suffix="/edit"))
-        else:
-            return core.edit.GET(self, key)
 
 
 class daisy(delegate.page):

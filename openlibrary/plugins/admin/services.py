@@ -5,17 +5,17 @@ for the admin panel
 from __future__ import print_function
 
 import re
+import requests
 from collections import defaultdict
 
 from bs4 import BeautifulSoup
 
-from six.moves import urllib
 
 
 class Nagios(object):
     def __init__(self, url):
         try:
-            self.data = BeautifulSoup(urllib.request.urlopen(url).read(), "lxml")
+            self.data = BeautifulSoup(requests.get(url).content, "lxml")
         except Exception as m:
             print(m)
             self.data = None

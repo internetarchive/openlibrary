@@ -31,7 +31,7 @@ $var title: $_("Add a book")
                         </span>
                         <span class="resultPublisher">$ungettext('1 edition', '%(count)s editions', work.edition_count, count=commify(work.edition_count))
                         $if work.first_publish_year:
-                            <span "smallest">&bull;</span> $_('First published in %(year)d', year=work.first_publish_year)
+                            <span class="smallest">&bull;</span> $_('First published in %(year)d', year=work.first_publish_year)
                         </span>
                     </span>
                 </span>

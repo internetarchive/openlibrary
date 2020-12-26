@@ -56,7 +56,6 @@ config_http_request_timeout = None
 config_loanstatus_url = None
 config_bookreader_host = None
 config_internal_tests_api_key = None
-config_amz_api = None
 
 def setup(config):
     """Initializes this module from openlibrary config.
@@ -114,7 +113,7 @@ def cached_work_authors_and_subjects(work_id):
 def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                    _type=None, sorts=None, advanced=True):
     """This needs to be exposed by a generalized API endpoint within
-    plugins/openlibrary/api/browse which lets lazy-load more items for
+    plugins/api/browse which lets lazy-load more items for
     the homepage carousel and support the upcoming /browse view
     (backed by archive.org search, so we don't have to send users to
     archive.org to see more books)
@@ -137,8 +136,11 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
     # If no lending restrictions (e.g. borrow, read) are imposed in
     # our query, we assume only borrowable books will be included in
     # results (not unrestricted/open books).
-    if (not query) or ('loans__status__status:' not in query):
-        q += ' AND loans__status__status:AVAILABLE'
+    lendable = (
+        '(lending___available_to_browse:true OR lending___available_to_borrow:true)'
+    )
+    if (not query) or lendable not in query:
+        q += ' AND ' + lendable
     if query:
         q += " AND " + query
     if subject:
@@ -171,7 +173,7 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                     'sorts': sorts,
                     'advanced': advanced,
                 })
-                return ''  # TODO: Should we just raise an excpetion instead?
+                return ''  # TODO: Should we just raise an exception instead?
             q += ' AND (%s) AND !openlibrary_work:(%s)' % (_q, work_id.split('/')[-1])
 
     if not advanced:
@@ -191,7 +193,6 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
         ('fl[]', 'identifier'),
         ('fl[]', 'openlibrary_edition'),
         ('fl[]', 'openlibrary_work'),
-        ('fl[]', 'loans__status__status'),
         ('rows', rows),
         ('page', page),
         ('output', 'json'),
@@ -207,8 +208,8 @@ def get_random_available_ia_edition():
     """uses archive advancedsearch to raise a random book"""
     try:
         url = ("http://%s/advancedsearch.php?q=_exists_:openlibrary_work"
-               "+AND+loans__status__status:AVAILABLE"
-               "&fl=identifier,openlibrary_edition,loans__status__status"
+               "+AND+(lending___available_to_borrow OR lending___available_to_browse)"
+               "&fl=identifier,openlibrary_edition"
                "&output=json&rows=1&sort[]=random" % (config_bookreader_host))
         response = requests.get(url, timeout=config_http_request_timeout)
         items = response.json().get('response', {}).get('docs', [])
@@ -230,7 +231,10 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
     params = '?action=availability&identifier=' + ocaid
     url = S3_LOAN_URL % config_bookreader_host
     r = requests.post(url + params, data=s3_keys)
-    return r.json().get('lending_status')
+    data = r.json().get('lending_status')
+    # For debugging
+    data['__src__'] = 'core.models.lending.get_groundtruth_availability'
+    return data
 
 
 def s3_loan_api(ocaid, s3_keys, action='browse'):
@@ -256,6 +260,7 @@ def get_available(limit=None, page=1, subject=None, query=None,
     used in such things as 'Staff Picks' carousel to retrieve a list
     of unique available books.
     """
+
     url = url or compose_ia_url(
         limit=limit, page=page, subject=subject, query=query,
         work_id=work_id, _type=_type, sorts=sorts
@@ -274,6 +279,7 @@ def get_available(limit=None, page=1, subject=None, query=None,
             '_type': _type,
             'sorts': sorts,
         })
+        return {'error': 'no_url'}
     try:
         # Internet Archive Elastic Search (which powers some of our
         # carousel queries) needs Open Library to forward user IPs so
@@ -483,8 +489,6 @@ def _get_ia_loan(identifier, userid):
     ia_loan = ia_lending_api.get_loan(identifier, userid)
     return ia_loan and Loan.from_ia_loan(ia_loan)
 
-
-@cache.memoize(engine="memory", key="get_loans_of_user")
 def get_loans_of_user(user_key):
     """TODO: Remove inclusion of local data; should only come from IA"""
     account = OpenLibraryAccount.get(username=user_key.split('/')[-1])
