@@ -16,6 +16,7 @@ from infogami.utils.view import add_flash_message
 from openlibrary import accounts
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.plugins.openlibrary.home import get_featured_subjects
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
@@ -142,13 +143,13 @@ class work_bookshelves(delegate.page):
     def POST(self, work_id):
         """
         Add a work (or a work and an edition) to a bookshelf.
-        
+
         GET params:
         - edition_id str (optional)
         - action str: e.g. "add", "remove"
         - redir bool: if patron not logged in, redirect back to page after login
         - bookshelf_id int: which bookshelf? e.g. the ID for "want to read"?
-        - dont_remove bool: if book exists & action== "add", don't try removal  
+        - dont_remove bool: if book exists & action== "add", don't try removal
 
         :param str work_id: e.g. OL123W
         :rtype: json
@@ -316,7 +317,7 @@ class sponsorship_eligibility_check(delegate.page):
             web.ctx.site.get('/books/%s' % _id)
             if re.match(r'OL[0-9]+M', _id)
             else models.Edition.from_isbn(_id)
-            
+
         )
         if not edition:
             return simplejson.dumps({"status": "error", "reason": "Invalid ISBN 13"})
@@ -373,3 +374,12 @@ class price_api(delegate.page):
                     metadata['ocaid'] = ed.ocaid
 
         return simplejson.dumps(metadata)
+
+class featured_subjects_api(delegate.page):
+    path = r'/api/featured_subjects'
+
+    @jsonapi
+    def GET(self):
+        featured_subjects = get_featured_subjects()
+
+        return simplejson.dumps(featured_subjects)
