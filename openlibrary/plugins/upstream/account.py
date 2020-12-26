@@ -911,17 +911,6 @@ class account_loans(delegate.page):
 #         return render.notfound(path, create=False)
 
 
-def send_email_change_email(username, email):
-    key = "account/%s/email" % username
-
-    doc = create_link_doc(key, username, email)
-    web.ctx.site.store[key] = doc
-
-    link = web.ctx.home + "/account/email/verify/" + doc['code']
-    msg = render_template("email/email/verify", username=username, email=email, link=link)
-    sendmail(email, msg)
-
-
 def send_forgot_password_email(username, email):
     key = "account/%s/password" % username
 
