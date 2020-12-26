@@ -15,7 +15,9 @@ from openlibrary import accounts
 from openlibrary.accounts.model import get_internet_archive_id, sendmail
 from openlibrary.core.civicrm import (
     get_contact_id_by_username,
-    get_sponsorships_by_contact_id)
+    get_sponsorships_by_contact_id,
+    get_sponsorship_by_isbn,
+)
 import internetarchive as ia
 
 try:
@@ -180,7 +182,7 @@ def qualifies_for_sponsorship(edition, scan_only=False, patron=None):
     return resp
 
 
-def sync_completed_sponsored_books():
+def sync_completed_sponsored_books(dryrun=False):
     """Retrieves a list of all completed sponsored books from Archive.org
     so they can be synced with Open Library, which entails:
 
@@ -211,14 +213,21 @@ def sync_completed_sponsored_books():
     for book in unsynced:
         book.ocaid = ocaid_lookup[book.key]
         with accounts.RunAs('ImportBot'):
-            web.ctx.site.save(book.dict(), "Adding ocaid for completed sponsorship")
+            if not dryrun:
+                web.ctx.site.save(book.dict(), "Adding ocaid for completed sponsorship")
             fixed.append({'key': book.key, 'ocaid': book.ocaid})
             # TODO: send out an email?... Requires Civi.
-            # email_sponsor(recipient, book)
+            if book.ocaid.startswith("isbn_"):
+                isbn = book.ocaid.split("_")[-1]
+                sponsorship = get_sponsorship_by_isbn(isbn)
+                contact = sponsorship and sponsorship.get("contact") 
+                email = contact and contact.get("email")
+                if not dryrun and email:
+                    email_sponsor(email, book)
     return json.dumps(fixed)
 
 
-def email_sponsor(recipient, book):
+def email_sponsor(recipient, book, bcc="mek@archive.org"):
     url = 'https://openlibrary.org%s' % book.key
     resp = web.sendmail(
         "openlibrary@archive.org",
@@ -232,6 +241,7 @@ def email_sponsor(recipient, book):
             '<p>Thank you,</p>' +
             '<p>The <a href="https://openlibrary.org">Open Library</a> Team</p>'
         ),
+        bcc=bcc,
         headers={'Content-Type':'text/html;charset=utf-8'}
     )
     return resp
