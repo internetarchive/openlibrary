@@ -118,10 +118,10 @@ jQuery(function () {
         import(/* webpackChunkName: "carousel" */ './carousel')
             .then((module) => { module.init($carouselElements);
                 $('.slick-slide').each(function () {
-                    if ($(this).attr('aria-describedby') != undefined) { 	
-                            $(this).attr('id', $(this).attr('aria-describedby'));	
-                    }	
-                });	
+                    if ($(this).attr('aria-describedby') != undefined) {
+                        $(this).attr('id',$(this).attr('aria-describedby'));
+                    }
+                });
             })
     }
     if ($('script[type="text/json+graph"]').length > 0) {
@@ -145,13 +145,13 @@ jQuery(function () {
             .then((module) => module.initPatronMetadata());
     }
 
-    if ($('#cboxPrevious').length) {  	
+    if ($('#cboxPrevious').length) {
         $('#cboxPrevious').remove();
     }
-    if ($('#cboxNext').length) {  	
+    if ($('#cboxNext').length) {
         $('#cboxNext').remove();
     }
-    if ($('#cboxSlideshow').length) {  	
+    if ($('#cboxSlideshow').length) {
         $('#cboxSlideshow').remove();
     }
 
