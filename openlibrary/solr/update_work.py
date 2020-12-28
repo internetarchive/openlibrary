@@ -6,11 +6,7 @@ import re
 import requests
 import sys
 import time
-try:
-    import urllib
-    from urllib.parse import urlparse
-except ImportError:
-     from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 from collections import defaultdict
 from unicodedata import normalize
 
