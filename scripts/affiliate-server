@@ -17,16 +17,16 @@ start affiliate-server using gunicorn webserver:
 
 """
 
+import asyncio
+import functools
 import json
 import logging
 import os
 import queue
 import sys
-import threading
 import time
 
 import web
-import yaml
 
 import _init_path
 
@@ -46,19 +46,20 @@ urls = (
 
 API_MAX_ITEMS_PER_CALL = 10
 
-web.amazon_queue = queue.Queue()  # a thread-safe multi-producer, multi-consumer queue
+web.amazon_queue = asyncio.Queue()  # a multi-producer, multi-consumer asyncio queue
 
 
-def process_amazon_batch(isbn_10s):
+def process_amazon_batch(isbn_10s: list[str]) -> None:
     """
-    def process_amazon_batch(isbn_10s: list[str]) -> None:
-
     Call the Amazon API to get the products for a list of isbn_10s and store
     each product in memcache using amazon_product_{isbn_13} as the cache key.
     """
     logger.info("process_amazon_batch(): {} items".format(len(isbn_10s)))
     try:
-        products = web.amazon_api.get_products(isbn_10s, serialize=True)
+        products = await asyncio.get_event_loop().run_in_executor(
+            None,
+            functools.partial(web.amazon_api.get_products, isbn_10s, serialize=True)
+        )
     except Exception:
         logger.exception("amazon_api.get_product({}, serialize=True)".format(isbn_10s))
         return
@@ -80,17 +81,12 @@ def process_amazon_batch(isbn_10s):
         logger.info("amazon_api.get_product({}) got no hits.".format(bad_isbn_10s))
 
 
-def seconds_remaining(start_time):
-    """
-    def seconds_remaining(start_time: int) -> int:
-    """
+def seconds_remaining(start_time: int) -> int:
     return max(1 / web.amazon_api.throttling - (time.time() - start_time), 0)
 
 
-def amazon_lookup():
+async def amazon_lookup_worker(queue: asyncio.Queue) -> None:
     """
-    def amazon_lookup() -> None:
-
     A separate thread of execution that uses the time up to API_MAX_WAIT_SECONDS to
     create a list of isbn_10s that is not larger than API_MAX_ITEMS_PER_CALL and then
     passes them to process_amazon_batch()
@@ -101,7 +97,7 @@ def amazon_lookup():
         while len(isbn_10s) < API_MAX_ITEMS_PER_CALL and seconds_remaining(start_time):
             try:  # queue.get() will block (sleep) until successful or it times out
                 isbn_10s.add(
-                    web.amazon_queue.get(timeout=seconds_remaining(start_time))
+                    asyncio.wait_for(queue.get, timeout=seconds_remaining(start_time))
                 )
             except queue.Empty:
                 pass
@@ -110,19 +106,21 @@ def amazon_lookup():
             process_amazon_batch(list(isbn_10s))
 
 
-threading.Thread(target=amazon_lookup).start()
+# threading.Thread(target=amazon_lookup).start()
 
 
 class Submit:
 
     @classmethod
-    def unpack_isbn(cls, isbn):
+    def unpack_isbn(cls, isbn: str):
         isbn = normalize_isbn(isbn.replace('-', ''))
-        isbn10 = isbn if len(isbn) == 10 else isbn.startswith('978') and isbn_13_to_isbn_10(isbn)
+        isbn10 = isbn if len(isbn) == 10 else (
+            isbn.startswith('978') and isbn_13_to_isbn_10(isbn)
+        )
         isbn13 = isbn if len(isbn) == 13 else isbn_10_to_isbn_13(isbn)
         return isbn10, isbn13
 
-    def GET(self, isbn):
+    def GET(self, isbn: str, sync: bool = False) -> str:
         """
         If isbn is in memcache then return the `hit`.  If not then queue the isbn to be
         looked up and return the equivalent of a promise as `submitted`
@@ -150,10 +148,10 @@ class Submit:
         return json.dumps({"status": "submitted", "queue": qsize})
 
 
-def load_config(configfile):
+def load_config(configfile: str) -> None:
     infogami.load_config(configfile)
 
-    #if 'fastcgi' in d:
+    # if 'fastcgi' in d:
     #    web.config.fastcgi = d['fastcgi']
 
     web.amazon_api = None
@@ -176,6 +174,7 @@ def init_sentry(app):
         sentry.init()
         sentry.bind_to_webpy_app(app)
 
+
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable
     os.environ['PYTHON_EGG_CACHE'] = "/tmp/.python-eggs"
@@ -183,7 +182,9 @@ def setup_env():
     # required when run as fastcgi
     os.environ['REAL_SCRIPT_NAME'] = ""
 
+
 cache = None
+
 
 def start_server():
     sysargs = sys.argv[1:]
@@ -198,6 +199,7 @@ def start_server():
 
     sys.argv = [sys.argv[0]] + list(args)
     app.run()
+
 
 def start_gunicorn_server():
     """Starts the affiliate server using gunicorn server.
@@ -254,6 +256,10 @@ web.wsgi.runfcgi = runfcgi
 app = web.application(urls, locals())
 
 
+async def launch_amazon_worker(queue: asyncio.Queue):
+    asyncio.create_task(amazon_lookup_worker(queue))
+
+
 if __name__ == "__main__":
     setup_env()
     if "--gunicorn" in sys.argv:
@@ -261,3 +267,4 @@ if __name__ == "__main__":
         start_gunicorn_server()
     else:
         start_server()
+    asyncio.run(launch_amazon_worker(queue))
