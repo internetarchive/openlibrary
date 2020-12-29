@@ -33,6 +33,10 @@ services:
     networks:
       - webnet
       - dbnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
   solr:
     image: olsolr:latest
     build:
@@ -84,6 +88,10 @@ services:
     networks:
       - webnet
       - dbnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
   infobase:
     image: oldev:latest
     environment:
@@ -105,6 +113,10 @@ services:
     networks:
       - webnet
       - dbnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
   home:
     image: oldev:latest
     environment:
@@ -122,6 +134,10 @@ services:
     networks:
       - webnet
       - dbnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
 networks:
   webnet:
   dbnet:
