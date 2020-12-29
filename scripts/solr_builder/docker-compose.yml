@@ -23,19 +23,6 @@ services:
       - db-access
 
   solr:
-    image: olsolr:latest
-    environment:
-      - ENV=dev
-      - JAVA_MEM=3g
-    restart: always
-    ports:
-      - 8984:8983
-    volumes:
-      - solr-data:/var/lib/solr/data
-    networks:
-      - solr-access
-
-  solr8:
     image: solr:8
     restart: on-failure
     environment:
