@@ -31,7 +31,9 @@ logger = logging.getLogger("openlibrary.api")
 
 class OLError(Exception):
     def __init__(self, e):
-        Exception.__init__(self, str(e) + ". Response: " + e.response.text)
+        self.code = e.response.status_code
+        self.headers = e.response.headers
+        Exception.__init__(self, "{}. Response: {}".format(e, e.response.text))
 
 
 class OpenLibrary:
@@ -52,7 +54,7 @@ class OpenLibrary:
                                         params=params)
             response.raise_for_status()
             return response
-        except requests.exceptions.HTTPError as e:
+        except requests.HTTPError as e:
             raise OLError(e)
 
     def autologin(self, section=None):
@@ -104,8 +106,8 @@ class OpenLibrary:
             self.cookie =  ';'.join([c.split(';')[0] for c in cookies])
 
     def get(self, key, v=None):
-        data = self._request(key + '.json', params={'v': v} if v else {})
-        return unmarshal(data.json())
+        response = self._request(key + '.json', params={'v': v} if v else {})
+        return unmarshal(response.json())
 
     def get_many(self, keys):
         """Get multiple documents in a single request as a dictionary.
@@ -130,7 +132,7 @@ class OpenLibrary:
             headers['Opt'] = '"%s/dev/docs/api"; ns=42' % self.base_url
             headers['42-comment'] = comment
         data = json.dumps(data)
-        return self._request(key, method="PUT", data=data, headers=headers).text
+        return self._request(key, method="PUT", data=data, headers=headers).content
 
     def _call_write(self, name, query, comment, action):
         headers = {'Content-Type': 'application/json'}
@@ -196,7 +198,7 @@ class OpenLibrary:
 
     def import_ocaid(self, ocaid, require_marc=True):
         data = {'identifier': ocaid, 'require_marc': 'true' if require_marc else 'false'}
-        return self._request('/api/import/ia', method='POST', data=data).text
+        return self._request('/api/import/ia', method='POST', data=data).content
 
 
 def marshal(data):
