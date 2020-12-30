@@ -22,19 +22,16 @@ import datetime
 import json
 import web
 import logging
+import requests
 
 import six
-from six.moves import urllib
 from six.moves.configparser import ConfigParser
 
 logger = logging.getLogger("openlibrary.api")
 
 class OLError(Exception):
-    def __init__(self, http_error):
-        self.code = http_error.code
-        self.headers = http_error.headers
-        msg = http_error.msg + ": " + http_error.read().decode()
-        Exception.__init__(self, msg)
+    def __init__(self, e):
+        Exception.__init__(self, str(e) + ". Response: " + e.response.text)
 
 
 class OpenLibrary:
@@ -42,19 +39,20 @@ class OpenLibrary:
         self.base_url = base_url.rstrip('/') if base_url else "https://openlibrary.org"
         self.cookie = None
 
-    def _request(self, path, method='GET', data=None, headers=None):
+    def _request(self, path, method='GET', data=None, headers=None, params=None):
         logger.info("%s %s", method, path)
         url = self.base_url + path
         headers = headers or {}
+        params = params or {}
         if self.cookie:
             headers['Cookie'] = self.cookie
 
         try:
-            data = data.encode() if data else data
-            req = urllib.request.Request(url, data, headers)
-            req.get_method = lambda: method
-            return urllib.request.urlopen(req)
-        except urllib.error.HTTPError as e:
+            response = requests.request(method, url, data=data, headers=headers,
+                                        params=params)
+            response.raise_for_status()
+            return response
+        except requests.exceptions.HTTPError as e:
             raise OLError(e)
 
     def autologin(self, section=None):
@@ -98,7 +96,7 @@ class OpenLibrary:
         try:
             data = json.dumps(dict(username=username, password=password))
             response = self._request('/account/login', method='POST', data=data, headers=headers)
-        except urllib.error.HTTPError as e:
+        except OLError as e:
             response = e
 
         if 'Set-Cookie' in response.headers:
@@ -106,8 +104,8 @@ class OpenLibrary:
             self.cookie =  ';'.join([c.split(';')[0] for c in cookies])
 
     def get(self, key, v=None):
-        data = self._request(key + '.json' + ('?v=%d' % v if v else '')).read()
-        return unmarshal(json.loads(data))
+        data = self._request(key + '.json', params={'v': v} if v else {})
+        return unmarshal(data.json())
 
     def get_many(self, keys):
         """Get multiple documents in a single request as a dictionary.
@@ -122,8 +120,8 @@ class OpenLibrary:
             return self._get_many(keys)
 
     def _get_many(self, keys):
-        response = self._request("/api/get_many?" + urllib.parse.urlencode({"keys": json.dumps(keys)}))
-        return json.loads(response.read())['result']
+        response = self._request("/api/get_many", params={"keys": json.dumps(keys)})
+        return response.json()['result']
 
     def save(self, key, data, comment=None):
         headers = {'Content-Type': 'application/json'}
@@ -132,7 +130,7 @@ class OpenLibrary:
             headers['Opt'] = '"%s/dev/docs/api"; ns=42' % self.base_url
             headers['42-comment'] = comment
         data = json.dumps(data)
-        return self._request(key, method="PUT", data=data, headers=headers).read()
+        return self._request(key, method="PUT", data=data, headers=headers).text
 
     def _call_write(self, name, query, comment, action):
         headers = {'Content-Type': 'application/json'}
@@ -147,7 +145,7 @@ class OpenLibrary:
             headers['42-action'] = action
 
         response = self._request('/api/' + name, method="POST", data=json.dumps(query), headers=headers)
-        return json.loads(response.read())
+        return response.json()
 
     def save_many(self, query, comment=None, action=None):
         return self._call_write('save_many', query, comment, action)
@@ -193,13 +191,12 @@ class OpenLibrary:
         if 'limit' in q and q['limit'] == False:
             return unlimited_query(q)
         else:
-            q = json.dumps(q)
-            response = self._request("/query.json?" + urllib.parse.urlencode(dict(query=q)))
-            return unmarshal(json.loads(response.read()))
+            response = self._request("/query.json", params=dict(query=json.dumps(q)))
+            return unmarshal(response.json())
 
     def import_ocaid(self, ocaid, require_marc=True):
         data = {'identifier': ocaid, 'require_marc': 'true' if require_marc else 'false'}
-        return self._request('/api/import/ia', method='POST', data=urllib.parse.urlencode(data)).read()
+        return self._request('/api/import/ia', method='POST', data=data).text
 
 
 def marshal(data):
