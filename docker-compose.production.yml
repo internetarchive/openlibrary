@@ -48,6 +48,10 @@ services:
       - 443:443
     networks:
       - webnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
     secrets:
       - petabox_seed
       # Needed by default-docker.conf
@@ -100,6 +104,11 @@ services:
       -  .:/openlibrary
     networks:
       - webnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
 secrets:
     petabox_seed:
       file: /opt/.petabox/seed
