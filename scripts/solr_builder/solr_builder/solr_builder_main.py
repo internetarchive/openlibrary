@@ -226,7 +226,7 @@ class LocalPostgresDataProvider(DataProvider):
 
     def cache_cached_editions_ia_metadata(self):
         ocaids = [
-            doc['ocaid'] for doc in self.cache.itervalues()
+            doc['ocaid'] for doc in self.cache.values()
             if 'ocaid' in doc]
         ocaids = list(set(ocaids))
         self.cache_ia_metadata(ocaids)
@@ -267,7 +267,7 @@ class LocalPostgresDataProvider(DataProvider):
         SELECT "JSON" FROM test
         WHERE "Key" = '%s'
         """ % key
-        row = self.query_iter(q).next()
+        row = next(self.query_iter(q))
         if row:
             return row[0]
 
@@ -378,7 +378,7 @@ def main(job, postgres="postgres.ini", ol="http://ol/",
             if self.filename:
                 with open(progress, 'a') as f:
                     f.write('\t'.join(
-                        self.fmt(k, val) for k, val in entry._asdict().iteritems()))
+                        self.fmt(k, val) for k, val in entry._asdict().items()))
                     f.write('\n')
 
         def update(self, seen=None, total=None, percent=None, elapsed=None, q_1=None,
@@ -432,7 +432,10 @@ def main(job, postgres="postgres.ini", ol="http://ol/",
 
         count = None
         if progress:
-            with open(progress, 'w', buffering=0) as f:
+            # Clear the file
+            with open(progress, 'w') as f:
+                f.write('')
+            with open(progress, 'a') as f:
                 f.write('Calculating total... ')
                 q_count = """SELECT COUNT(*) FROM(%s) AS foo""" % q
                 start = time.time()
