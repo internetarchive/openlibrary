@@ -67,7 +67,16 @@ services:
       - OL_CONFIG=conf/openlibrary.yml
       - PYENV_VERSION=${PYENV_VERSION:-}
     volumes:
-      - solr-updater.offset:/solr-updater.offset
+      # Persistent volume mount for installed git submodules
+      - ol-vendor:/openlibrary/vendor
+      # The above volume mounts is required so that the local dev bind mount below
+      # does not clobber the data generated inside the image / container
+      - .:/openlibrary
+      - solr-updater-data:/solr-updater-data
+    networks:
+      - webnet
+      - dbnet
+
   memcached:
     image: memcached
     networks:
@@ -156,7 +165,7 @@ networks:
   dbnet:
 volumes:
   solr-data:
-  solr-updater.offset:
+  solr-updater-data:
   ol-vendor:
   ol-build:
   ol-nodemodules:
