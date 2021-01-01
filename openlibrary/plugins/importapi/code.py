@@ -24,7 +24,7 @@ from openlibrary.plugins.importapi import (import_edition_builder, import_opds,
 from lxml import etree
 import logging
 
-from six.moves import urllib
+import six
 
 MARC_LENGTH_POS = 5
 logger = logging.getLogger('openlibrary.importapi')
@@ -63,8 +63,10 @@ def parse_data(data):
     :rtype: (dict|None, str|None)
     :return: (Edition record, format (rdf|opds|marcxml|json|marc)) or (None, None)
     """
+    if six.py3 and isinstance(data, bytes):
+        data = data.decode('utf-8')
     data = data.strip()
-    if -1 != data[:10].find('<?xml'):
+    if '<?xml' in data[:10]:
         root = etree.fromstring(data)
         if '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF' == root.tag:
             edition_builder = import_rdf.parse(root)
@@ -598,10 +600,7 @@ class ils_cover_upload:
         return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-Type": "application/json"}, d)
 
     def build_url(self, url, **params):
-        if '?' in url:
-            return url + "&" + urllib.parse.urlencode(params)
-        else:
-            return url + "?" + urllib.parse.urlencode(params)
+        return url + ("&" if "?" in url else "?") + six.moves.urllib.parse.urlencode(params)
 
     def login(self, auth_str):
         if not auth_str:
