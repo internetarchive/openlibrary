@@ -4,7 +4,6 @@ import logging
 import re
 import requests
 import sys
-import simplejson
 import web
 
 from collections import defaultdict

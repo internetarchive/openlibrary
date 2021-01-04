@@ -1,7 +1,7 @@
 """Handlers for adding and editing books."""
 
 import web
-import simplejson
+import json
 import csv
 import datetime
 
@@ -565,7 +565,7 @@ class SaveBookHelper:
     def process_new_fields(self, formdata):
         def f(name):
             val = formdata.get(name)
-            return val and simplejson.loads(val)
+            return val and json.loads(val)
 
         new_roles = f('select-role-json')
         new_ids = f('select-id-json')
@@ -898,7 +898,7 @@ class daisy(delegate.page):
 
 def to_json(d):
     web.header('Content-Type', 'application/json')
-    return delegate.RawText(simplejson.dumps(d))
+    return delegate.RawText(json.dumps(d))
 
 
 class languages_autocomplete(delegate.page):

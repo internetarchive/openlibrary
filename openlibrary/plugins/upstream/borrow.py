@@ -7,7 +7,7 @@ import hashlib
 import hmac
 import re
 import requests
-import simplejson
+import json
 import six
 import logging
 
@@ -228,7 +228,7 @@ class borrow_status(delegate.page):
                 'lending_subjects': [lending_subject for lending_subject in subjects]
         }
 
-        output_text = simplejson.dumps( output )
+        output_text = json.dumps( output )
 
         content_type = "application/json"
         if i.callback:
@@ -323,7 +323,7 @@ class ia_loan_status(delegate.page):
 
     def GET(self, itemid):
         d = get_borrow_status(itemid, include_resources=False, include_ia=False)
-        return delegate.RawText(simplejson.dumps(d), content_type="application/json")
+        return delegate.RawText(json.dumps(d), content_type="application/json")
 
 @public
 def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=None):
@@ -387,7 +387,7 @@ class ia_auth(delegate.page):
         # check that identifier is valid
 
         user = accounts.get_current_user()
-        auth_json = simplejson.dumps(
+        auth_json = json.dumps(
             get_ia_auth_dict(user, item_id, i.loan, i.token))
 
         output = auth_json
@@ -405,16 +405,16 @@ class borrow_receive_notification(delegate.page):
 
     def GET(self):
         web.header('Content-Type', 'application/json')
-        output = simplejson.dumps({'success': False, 'error': 'Only POST is supported'})
+        output = json.dumps({'success': False, 'error': 'Only POST is supported'})
         return delegate.RawText(output, content_type='application/json')
 
     def POST(self):
         data = web.data()
         try:
             notify_xml = etree.fromstring(data)
-            output = simplejson.dumps({'success': True})
+            output = json.dumps({'success': True})
         except Exception as e:
-            output = simplejson.dumps({'success': False, 'error': str(e)})
+            output = json.dumps({'success': False, 'error': str(e)})
         return delegate.RawText(output, content_type='application/json')
 
 
@@ -430,7 +430,7 @@ class ia_borrow_notify(delegate.page):
 
     def POST(self):
         payload = web.data()
-        d = simplejson.loads(payload)
+        d = json.loads(payload)
         identifier = d and d.get('identifier')
         if identifier:
             lending.sync_loan(identifier)
