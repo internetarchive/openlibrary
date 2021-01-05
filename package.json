@@ -27,7 +27,7 @@
     "@vue/cli": "4.5.9",
     "@vue/cli-plugin-babel": "4.5.0",
     "@vue/cli-plugin-eslint": "4.5.0",
-    "@vue/cli-service": "4.5.0",
+    "@vue/cli-service": "4.5.9",
     "babel-eslint": "10.1.0",
     "babel-loader": "8.2.2",
     "bundlesize": "0.18.0",
