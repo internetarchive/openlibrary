@@ -54,8 +54,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.olpython
-    environment: 
-      - INFOGAMI=local
     working_dir: "/openlibrary/scripts/solr_builder"
     volumes:
       # Persistent volume mount for installed git submodules
@@ -63,7 +61,6 @@ services:
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
       - "../../:/openlibrary"
-      - ../../vendor/infogami:/openlibrary/vendor/infogami
     networks:
       - solr-access
       - db-access
