@@ -19,6 +19,7 @@ pipeline {
     booleanParam(name: 'INDEX_WORKS_ORPHANS', defaultValue: true, description: 'If true, reindexes works/orphans into solr')
     booleanParam(name: 'INDEX_AUTHORS', defaultValue: true, description: 'If true, reindexes authors into solr')
     booleanParam(name: 'INTO_SOLR_COPY_SUBJECTS', defaultValue: true, description: 'If true, copies subjects into solr')
+    string(name: 'MAX_CORES', defaultValue: '4', description: 'Max number of simultaneous cores')
   }
   environment {
     // The *host* location of Jenkins directory
@@ -210,12 +211,12 @@ pipeline {
                 stage('Insert works & orphaned editions') {
                   when { expression { return params.INDEX_WORKS_ORPHANS } }
                   steps {
-                    insert_into_solr('./index-type.sh work 5 works-orphans; ./index-orphans.sh works-orphans', 6, 'works-orphans')
+                    insert_into_solr("./index-type.sh work ${params.MAX_CORES.toInteger() - 1} works-orphans; ./index-orphans.sh works-orphans", params.MAX_CORES.toInteger(), 'works-orphans')
                   }
                 }
                 stage('Insert authors') {
                   when { expression { return params.INDEX_AUTHORS } }
-                  steps { insert_into_solr('./index-type.sh author 6 authors', 6, 'authors') }
+                  steps { insert_into_solr("./index-type.sh author ${params.MAX_CORES} authors", params.MAX_CORES.toInteger(), 'authors') }
                 }
               }
               post {
