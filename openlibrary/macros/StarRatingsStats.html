@@ -6,7 +6,7 @@ $ stats_by_bookshelf = work and work.get_num_users_by_bookshelf() or {}
 <ul class="readers-stats" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
   <li class="avg-ratings">
     $if rating_stats.get('avg_rating'):
-      $:('<span class="readers-stats__star">★</span>' * int(rating_stats.get('avg_rating'))) <span itemprop="ratingValue">$(rating_stats['avg_rating'])</span>
+      $:('<span class="readers-stats__star">★</span>' * int((int(2 * float(rating_stats.get('avg_rating')))) - (int(rating_stats.get('avg_rating'))))) <span itemprop="ratingValue">$(rating_stats['avg_rating'])</span>
   </li>
   <li>
     <span itemprop="reviewCount">$rating_stats.get('num_ratings', 0)</span> $_("Ratings")
