@@ -67,7 +67,8 @@ def parse_data(data):
     def parse_data(data: Union[bytes, str]) -> Tuple[Optional[Dict], Optional[str]]:
     """
     data = data.strip()
-    if b'<?xml' in data[:10] if six.py3 and isinstance(data, bytes) else '<?xml' in data[:10]:
+    xml_preamble = b'<?xml' if six.py3 and isinstance(data, bytes) else '<?xml'
+    if xml_preamble in data[:10]:
         root = etree.fromstring(data)
         if '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF' == root.tag:
             edition_builder = import_rdf.parse(root)
