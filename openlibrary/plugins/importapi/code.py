@@ -63,10 +63,8 @@ def parse_data(data):
     :rtype: (dict|None, str|None)
     :return: (Edition record, format (rdf|opds|marcxml|json|marc)) or (None, None)
     """
-    if six.py3 and isinstance(data, bytes):
-        data = data.decode('utf-8')
     data = data.strip()
-    if '<?xml' in data[:10]:
+    if b'<?xml' in data[:10] if six.py3 and isinstance(data, bytes) else '<?xml' in data[:10]:
         root = etree.fromstring(data)
         if '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF' == root.tag:
             edition_builder = import_rdf.parse(root)
@@ -600,7 +598,8 @@ class ils_cover_upload:
         return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-Type": "application/json"}, d)
 
     def build_url(self, url, **params):
-        return url + ("&" if "?" in url else "?") + six.moves.urllib.parse.urlencode(params)
+        sep = "&" if "?" in url else "?"
+        return url + sep + six.moves.urllib.parse.urlencode(params)
 
     def login(self, auth_str):
         if not auth_str:
