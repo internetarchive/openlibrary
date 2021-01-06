@@ -62,6 +62,9 @@ def parse_data(data):
     :param str data: Raw data
     :rtype: (dict|None, str|None)
     :return: (Edition record, format (rdf|opds|marcxml|json|marc)) or (None, None)
+
+    from typing import Dict, Optional, Tuple, Union
+    def parse_data(data: Union[bytes, str]) -> Tuple[Optional[Dict], Optional[str]]:
     """
     data = data.strip()
     if b'<?xml' in data[:10] if six.py3 and isinstance(data, bytes) else '<?xml' in data[:10]:
