@@ -599,8 +599,7 @@ class InternetArchiveAccount(web.storage):
                 'Content-Type': 'application/json',
                 'authorization': 'LOW %s:%s' % (access_key, secret_key)
             })
-            if not response.ok:
-                response.raise_for_status()
+            response.raise_for_status()
             return response.json()
         except requests.HTTPError as e:
             return {'error': e.response.text, 'code': e.response.status_code}
