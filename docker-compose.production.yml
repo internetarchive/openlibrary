@@ -1,7 +1,8 @@
 ##
 ## Production server config (wip)
 ## You probably want to run:
-## docker-compose -f docker-compose.yml -f docker-compose.infogami-local.yml -f docker-compose.production.yml up -d
+## export COMPOSE_FILE="docker-compose.yml:docker-compose.production.yml"
+## docker-compose up -d
 ##
 
 version: "3.1"
@@ -12,7 +13,6 @@ services:
     environment:
       - GUNICORN_OPTS= --workers 50 --timeout 300 --max-requests 500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
-      - PYENV_VERSION=3.8.6
       - BEFORE_START=pip install -e /booklending_utils
     volumes:
       - ../booklending_utils:/booklending_utils
@@ -25,7 +25,6 @@ services:
     environment:
       - GUNICORN_OPTS= --workers 30 --max-requests 500
       - COVERSTORE_CONFIG=/olsystem/etc/coverstore.yml
-      - PYENV_VERSION=3.8.6
     volumes:
       - ../olsystem:/olsystem
       - /1:/1
@@ -64,7 +63,6 @@ services:
     environment:
       - INFOBASE_OPTS= fastcgi
       - INFOBASE_CONFIG=/olsystem/etc/infobase.yml
-      - PYENV_VERSION=3.8.6
     volumes:
       - ../olsystem:/olsystem
       - infobase-writelog:/1/var/lib/openlibrary/infobase/log
@@ -91,7 +89,6 @@ services:
     hostname: "$HOSTNAME"
     environment:
       - AFFILIATE_CONFIG=/openlibrary.yml
-      - PYENV_VERSION=3.8.6
     image: oldev:latest
     build:
       context: .
@@ -113,7 +110,6 @@ services:
     hostname: "$HOSTNAME"
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
-      - PYENV_VERSION=3.8.6
     volumes:
       - ../olsystem:/olsystem
     logging:

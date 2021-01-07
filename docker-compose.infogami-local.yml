@@ -1,6 +1,6 @@
 ##
 ## Helper docker-compose for doing local infogami dev. You probably want to run something like:
-## PYENV_VERSION=3.8.6 docker-compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.infogami-local.yml up -d
+## docker-compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.infogami-local.yml up -d
 ##
 
 version: "3.1"
