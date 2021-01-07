@@ -105,10 +105,13 @@ div#subjectsPage{
 }
 
 div#lists{
-  columns: 2;
-  @media only screen and (min-width: @width-breakpoint-tablet) {
-    columns: 3;
+  columns: 1;
+  @media only screen and (min-width: 480px) and (max-width: 959px) {
+    columns: 2;
   }
+  @media only screen and (min-width: @width-breakpoint-desktop) {
+    columns: 3;
+  }  
 }
 
 #authors{
