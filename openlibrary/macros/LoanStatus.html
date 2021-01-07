@@ -52,7 +52,7 @@ $elif availability.get('is_lendable'):
   $if availability.get('available_to_borrow'):
     $:macros.ReadButton(ocaid, borrow=True, listen=listen)
   $elif availability.get('available_to_browse'):
-    $:macros.ReadButton(ocaid, borrow=True, listen=listen, label=_('1 Hour Borrow'))
+    $:macros.ReadButton(ocaid, borrow=True, listen=listen)
   $elif availability.get('available_to_waitlist'):
     $ wlsize = availability.get('users_on_waitlist') or availability.get('num_waitlist')
     $if waiting_loan:
