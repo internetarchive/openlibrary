@@ -162,6 +162,13 @@
     <field name="ia_count" type="pint"/>
     <field name="oclc" type="text_en_splitting" multiValued="true"/>
     <field name="isbn" type="string" multiValued="true"/>
+
+    <!-- Classifications -->
+    <field name="lcc" type="string" multiValued="true" />
+    <field name="lcc_sort" type="string" stored="false" /> <!-- Need non-multiValued for sorting -->
+    <field name="ddc" type="string" multiValued="true" />
+    <field name="ddc_sort" type="string" stored="false" /> <!-- Need non-multiValued for sorting -->
+
     <field name="contributor" type="text_general" multiValued="true"/>
     <field name="publish_place" type="text_en_splitting" multiValued="true"/>
     <field name="publisher" type="text_en_splitting" multiValued="true"/>
