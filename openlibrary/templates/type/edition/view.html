@@ -407,10 +407,10 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
           $if contributors:
             <div class="section">
               <h3 class="collapse">$_("Contributors")</h3>
-              <ul class="contributors">
-                $for c in contributors:
-                  $:display_contributor(c)
-              </ul>
+              <dl class="meta">
+              $for c in contributors:
+                    $:display_value(c.role, c.name)
+              </dl>
             </div>
 
           $if has_any("physical_format", "pagination", "physical_dimensions", "weight"):
