@@ -1,5 +1,8 @@
 from __future__ import division
 
+import asyncio
+from typing import Awaitable, List, Iterable
+
 from six.moves.configparser import ConfigParser
 import logging
 import time
@@ -32,12 +35,7 @@ def config_section_to_dict(config_file, section):
     return result
 
 
-def batch_until_len(items, max_batch_len):
-    """
-    :param collections.Sized itrble:
-    :param int size:
-    :rtype: typings.Generator[list, None, None]
-    """
+def batch_until_len(items: Iterable, max_batch_len: int):
     batch_len = 0
     batch = []
     for item in items:
@@ -136,7 +134,7 @@ class LocalPostgresDataProvider(DataProvider):
         cur.close()
 
     @staticmethod
-    def _get_lite_metadata(ocaids, _recur_depth=0, _max_recur_depth=3):
+    async def _get_lite_metadata(ocaids, _recur_depth=0, _max_recur_depth=3):
         """
         For bulk fetch, some of the ocaids in Open Library may be bad
         and break archive.org ES fetches. When this happens, we (up to
@@ -167,18 +165,16 @@ class LocalPostgresDataProvider(DataProvider):
             h1, h2 = ocaids[:mid], ocaids[mid:]
             f = LocalPostgresDataProvider._get_lite_metadata
             return (
-                f(h1, _recur_depth=_recur_depth + 1) +
-                f(h2, _recur_depth=_recur_depth + 1)
+                (await f(h1, _recur_depth=_recur_depth + 1)) +
+                (await f(h2, _recur_depth=_recur_depth + 1))
             )
 
-    def cache_ia_metadata(self, ocaids):
-        """
-        :param list of str ocaids:
-        :param int batch_size:
-        :return: None
-        """
-        for b in batch_until_len(ocaids, 3000):
-            for doc in self._get_lite_metadata(b):
+    async def cache_ia_metadata(self, ocaids: List[str]):
+        batches = list(batch_until_len(ocaids, 3000))
+        # Start them all async
+        tasks = [asyncio.create_task(self._get_lite_metadata(b)) for b in batches]
+        for task in tasks:
+            for doc in await task:
                 self.ia_cache[doc['identifier']] = doc
 
     def cache_edition_works(self, lo_key, hi_key):
@@ -224,12 +220,12 @@ class LocalPostgresDataProvider(DataProvider):
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
-    def cache_cached_editions_ia_metadata(self):
+    async def cache_cached_editions_ia_metadata(self):
         ocaids = [
             doc['ocaid'] for doc in self.cache.values()
             if 'ocaid' in doc]
         ocaids = list(set(ocaids))
-        self.cache_ia_metadata(ocaids)
+        await self.cache_ia_metadata(ocaids)
 
     def find_redirects(self, key):
         """Returns keys of all things which redirect to this one."""
@@ -284,6 +280,13 @@ def simple_timeit(fn):
     return end - start, result
 
 
+async def simple_timeit_async(awaitable: Awaitable):
+    start = time.time()
+    result = await awaitable
+    end = time.time()
+    return end - start, result
+
+
 def build_job_query(job, start_at, offset, last_modified, limit):
     """
 
@@ -330,7 +333,7 @@ def build_job_query(job, start_at, offset, last_modified, limit):
     return ' '.join([q_select, q_where, q_order, q_offset, q_limit])
 
 
-def main(job, postgres="postgres.ini", ol="http://ol/",
+async def main(job, postgres="postgres.ini", ol="http://ol/",
          ol_config="../../conf/openlibrary.yml",
          start_at=None, offset=0, limit=1, last_modified=None,
          progress=None, log_file=None, log_level=logging.WARN
@@ -465,8 +468,8 @@ def main(job, postgres="postgres.ini", ol="http://ol/",
                                 cached=len(db.cache) + len(db2.cache))
 
                     # cache editions' ocaid metadata
-                    ocaids_time, _ = simple_timeit(
-                        lambda: db2.cache_cached_editions_ia_metadata())
+                    ocaids_time, _ = await simple_timeit_async(
+                        db2.cache_cached_editions_ia_metadata())
                     plog.update(q_ia=ocaids_time, ia_cache=len(db2.ia_cache))
 
                     # cache authors
@@ -476,8 +479,8 @@ def main(job, postgres="postgres.ini", ol="http://ol/",
                                 cached=len(db.cache) + len(db2.cache))
                 elif job == "orphans":
                     # cache editions' ocaid metadata
-                    ocaids_time, _ = simple_timeit(
-                        lambda: db2.cache_cached_editions_ia_metadata())
+                    ocaids_time, _ = await simple_timeit_async(
+                        db2.cache_cached_editions_ia_metadata())
                     plog.update(q_ia=ocaids_time, ia_cache=len(db2.ia_cache))
 
                     # cache authors

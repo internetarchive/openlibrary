@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 from solr_builder_main import main
@@ -49,4 +50,4 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
-    main(**args.__dict__)
+    asyncio.run(main(**args.__dict__))
