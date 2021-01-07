@@ -222,10 +222,9 @@ pipeline {
               post {
                 always {
                   dir(env.HOST_SOLR_BUILDER_DIR) {
-                    // Save the docker logs as artifacts
-                    sh """for key in logs/work-orphans/*; do echo "\$key: "; docker logs \$key 2>&1; done | gzip > logs/works-orphans-indexing.log.gz"""
+                    sh '''for name in $(ls logs/works-orphans); do docker logs ${name/.txt/} 2>&1; done | gzip > logs/works-orphans-indexing.log.gz'''
                     archiveArtifacts artifacts: "logs/works-orphans-indexing.log.gz"
-                    sh """for key in logs/authors/*; do echo "\$key: "; docker logs \$key 2>&1; done | gzip > logs/authors-indexing.log.gz"""
+                    sh '''for name in $(ls logs/authors); do docker logs ${name/.txt/} 2>&1; done | gzip > logs/authors-indexing.log.gz'''
                     archiveArtifacts artifacts: "logs/authors-indexing.log.gz"
                   }
                 }
