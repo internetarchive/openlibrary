@@ -43,6 +43,11 @@ $ book_description = (edition and edition.description) or (work and work.descrip
 $ edition_count = work.edition_count if work and work.edition_count else 1
 $ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
 $ _x = ctx.setdefault('bodyid', 'book')
+$ base_url = "https://openlibrary.org"
+$ rating_stats = work and work.get_rating_stats() or {}
+$ lang = (', '.join(lang.name for lang in edition.languages))
+$ author = (', '.join('{ "%s": "%s%s" }' % ("url", truncate(base_url, 40), a.url() ) if a.name else None for a in cond(work, work and work.get_authors(), edition and edition.get_authors())))
+
 
 $var title: $title
 
@@ -499,3 +504,57 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       </tbody>
     </table>
 </div>
+
+$def get_identifier(label):
+    $ identifier = list(values[0].value for name, values in edition.get_identifiers().multi_items() if values[0].label == label)
+    $ identifier = identifier[0] if identifier else None
+    $return identifier
+
+$def get_url(label):
+    $ url = list(values[0].url for name, values in edition.get_identifiers().multi_items() if values[0].label == label)
+    $ url = url[0] if url else None
+    $return url
+    
+
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org/",
+  "@type": "Book",
+  "@id": "$base_url/$work.key",
+  "url": "$base_url/$work.key/$book_title",
+  "name": "$book_title",
+  "author": [ $:author ],
+  "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "$rating_stats.get('avg_rating',0)",
+      "bestRating": "5",
+      "ratingCount": "$rating_stats.get('num_ratings', 0)"
+  },
+
+  "workExample": [
+      {
+          "@type": "Book",
+          "@id": "$base_url/$edition.key",
+          "isbn": "$:get_identifier("ISBN 10")",
+          "bookFormat": "http://schema.org/Paperback",
+          "inLanguage": "$lang",
+          "image": [
+              "$meta_cover_url"
+          ],
+          "datePublished": "$edition.publish_date",
+          "sameAs": [
+              "$:get_url("OCLC/WorldCat")",
+              "$:get_url("Library Thing")",
+              "$:get_url("Goodreads")"
+          ],
+          "identifier": [
+              {
+                  "@type": "PropertyValue",
+                  "propertyID": "OCLC_NUMBER",
+                  "value": "$:get_identifier("OCLC/WorldCat")"
+              }
+          ]
+      }
+  ]
+}
+</script>
