@@ -155,7 +155,7 @@ def get_from_archive_bulk(locator):
 
     assert 0 < length < MAX_MARC_LENGTH
 
-    f = urlopen_keep_trying(url, {'Range': 'bytes=%d-%d' % (r0, r1)})
+    f = urlopen_keep_trying(url, headers={'Range': 'bytes=%d-%d' % (r0, r1)})
     data = None
     if f:
         data = f.read(MAX_MARC_LENGTH)
