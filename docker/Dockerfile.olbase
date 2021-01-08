@@ -23,7 +23,9 @@ RUN apt-get -qq update && apt-get install -y \
     libxslt-dev \
     libffi-dev \
     curl \
-    screen
+    screen \
+    vim \
+    emacs
 
 # Install LTS version of node.js
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
