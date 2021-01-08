@@ -105,13 +105,8 @@ div#subjectsPage{
 }
 
 div#lists{
-  columns: 1;
-  @media only screen and (min-width: @width-breakpoint-tablet) {
-    columns: 2;
-  }
-  @media only screen and (min-width: @width-breakpoint-desktop) {
-    columns: 3;
-  }
+  display: flex;
+  flex-wrap: wrap;
 }
 
 #authors{
