@@ -55,6 +55,22 @@ services:
       # Needed by default-docker.conf
       - ssl_certificate
       - ssl_certificate_key
+  cron-jobs:
+    image: oldev:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    command: cron -f
+    restart: always
+    volumes:
+      - ../olsystem/etc/cron.d/openlibrary.ol_home0:/etc/cron.d/openlibrary.ol_home0:ro
+      - ../olsystem:/olsystem
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+      - /1/var/tmp:/1/var/tmp
+    networks:
+      - webnet
+      - dbnet
 
   infobase:
     restart: always
