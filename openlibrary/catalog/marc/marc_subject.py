@@ -54,7 +54,7 @@ archive_url = "http://archive.org/download/"
 def load_binary(ia):
     url = archive_url + ia + '/' + ia + '_meta.mrc'
     f = urlopen_keep_trying(url)
-    data = f.read()
+    data = f.text
     assert '<title>Internet Archive: Page Not Found</title>' not in data[:200]
     if len(data) != int(data[:5]):
         data = data.decode('utf-8').encode('raw_unicode_escape')
@@ -67,7 +67,7 @@ def load_binary(ia):
 def load_xml(ia):
     url = archive_url + ia + '/' + ia + '_marc.xml'
     f = urlopen_keep_trying(url)
-    root = etree.parse(f).getroot()
+    root = etree.fromstring(f.text).getroot()
     if root.tag == '{http://www.loc.gov/MARC21/slim}collection':
         root = root[0]
     return MarcXml(root)
