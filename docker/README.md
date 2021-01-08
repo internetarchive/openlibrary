@@ -91,7 +91,29 @@ docker-compose exec home npm install
 docker-compose exec home npm run build-assets
 ```
 
-## Rebuilding the Docker Image
+## Fully Resetting Your Environment
+
+Been away for a while? Are you getting strange errors you weren't getting before? Sometimes changes are made to the docker configs which could cause your local environment to break. To do a full reset of your docker environment so that you have the latest of everything:
+
+```
+# Stop the site
+docker-compose down
+
+# Build the latest oldev image, whilst also pulling the latest olbase image from docker hub
+# (Takes a while; ~20min for me)
+docker-compose build --pull
+
+# Remove any old containers; if you use docker for something special, and have containers you don't want to lose, be careful with this. But you likely don't :)
+docker container prune
+
+# Remove volumes that might have outdated dependencies/code
+docker volume rm openlibrary_ol-build openlibrary_ol-nodemodules openlibrary_ol-vendor
+
+# Bring it back up again
+docker-compose up -d
+```
+
+## Developing the Dockerfile
 
 If you need to make changes to the dependencies in Dockerfile.olbase, rebuild it with:
 
