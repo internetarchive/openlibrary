@@ -9,7 +9,7 @@ import time
 from collections import defaultdict
 from unicodedata import normalize
 
-import simplejson as json
+import json
 import six
 from six.moves.http_client import HTTPConnection
 import web
