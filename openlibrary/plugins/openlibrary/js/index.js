@@ -146,13 +146,13 @@ jQuery(function () {
     }
 
     if ($('#cboxPrevious').length) {
-        $('#cboxPrevious').attr({"aria-label":"Previous button", "aria-hidden":"true"});
+        $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});
     }
     if ($('#cboxNext').length) {
-        $('#cboxNext').attr({"aria-label":"Next button", "aria-hidden":"true"});
+        $('#cboxNext').attr({'aria-label': 'Next button', 'aria-hidden': 'true'});
     }
     if ($('#cboxSlideshow').length) {
-        $('#cboxSlideshow').attr({"aria-label":"Slideshow button", "aria-hidden":"true"});
+        $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
     }
 
     $(document).on('click', '.slide-toggle', function () {
