@@ -1,6 +1,5 @@
 FROM openlibrary/olbase:latest
 
-ENV PYENV_VERSION=3.8.6
 ENV PYTHONPATH=/openlibrary:/openlibrary/vendor/infogami
 
 USER root
