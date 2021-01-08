@@ -144,10 +144,9 @@ https://github.com/internetarchive/openlibrary/wiki/Deployment-Guide#ol-web1
 # Launch a temporary container and run tests
 docker-compose run --rm home make test
 
-# Launch a temporary container on Python 2 using the local Infogami and then open in local webbrowser
-# PYENV_VERSION can be set to: 2.7.6, 3.8.6, or 3.9.0 (default is 3.8.6)
+# Run Open Library in a local Docker a container and then open in a local webbrowser
 docker-compose down && \
-    PYENV_VERSION=2.7.6 docker-compose -f docker-compose.yml -f docker-compose.infogami-local.yml up -d && \
+    docker-compose -f docker-compose.yml up -d && \
     docker-compose logs -f --tail=10 web
 # In your browser, navigate to http://localhost:8080
 ```
