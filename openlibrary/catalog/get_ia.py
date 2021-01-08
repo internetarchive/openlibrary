@@ -97,12 +97,12 @@ def files(identifier):
     url = item_file_url(identifier, 'files.xml')
     for i in range(5):
         try:
-            tree = etree.parse(urlopen_keep_trying(url))
+            tree = etree.fromstring(urlopen_keep_trying(url))
             break
         except xml.parsers.expat.ExpatError:
             sleep(2)
     try:
-        tree = etree.parse(urlopen_keep_trying(url))
+        tree = etree.fromstring(urlopen_keep_trying(url))
     except:
         print("error reading", url)
         raise
