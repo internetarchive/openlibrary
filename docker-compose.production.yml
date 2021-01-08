@@ -39,7 +39,6 @@ services:
       # Needed for HTTPS, since this is a public server
       - ../olsystem/etc/nginx/sites-available/default-docker.conf:/etc/nginx/sites-enabled/default:ro
       # Needs access to openlibrary for static files
-      - .:/openlibrary
       - ../olsystem:/olsystem
       - /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
     ports:
@@ -98,7 +97,6 @@ services:
       - 31337:31337
     volumes:
       -  /opt/olsystem/etc/openlibrary.yml:/openlibrary.yml
-      -  .:/openlibrary
     networks:
       - webnet
     logging:
