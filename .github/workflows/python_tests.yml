@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [2.7, 3.8]  # , 3.9]
+        python-version: 3.8  # [3.8, 3.9]
     runs-on: ubuntu-16.04  # Should match Dockerfile.olbase
     steps:
       - uses: actions/checkout@v2
@@ -21,14 +21,9 @@ jobs:
       - run: pip install --upgrade pip setuptools wheel
       - run: pip install -r requirements_test.txt
       - run: pip list --outdated
-      - if: matrix.python-version == 3.8
-        run: make lint-diff
+      - run: make lint-diff
       - run: make git
       - run: make i18n
-      # Run legacy Python tests on legacy Infogami
-      - if: matrix.python-version < 3.0
-        run: make test-py && source scripts/run_doctests.sh
-      # Run both Py2 and Py3 tests on Infogami master
       - run: pushd vendor/infogami && git pull origin master && popd
       - run: make lint
       - run: make test-py
