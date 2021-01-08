@@ -123,9 +123,6 @@ $def display_goodreads(label, ids):
         $for id in ids:
             <dd><a href="$id.url">$id.value</a></dd>
 
-$def display_contributor(c):
-    <li><span>$c.role</span><br />$c.name </li>
-
 $ authors_byline = get_authors_byline(page, include_schema=True)
 
 $:macros.Metatags(title=title_with_site, image=meta_cover_url, description=description)
