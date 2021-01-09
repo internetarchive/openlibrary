@@ -412,7 +412,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
           $if has_any("physical_format", "pagination", "physical_dimensions", "weight"):
             <div class="section">
-                <h3 class="edition-header">$_("The Physical Object")</h3>
+                <h3 class="list-header collapse">$_("The Physical Object")</h3>
                 <dl class="meta">
                     $:display_value(_("Format"), edition.physical_format)
                     $:display_value(_("Pagination"), edition.pagination)
@@ -424,7 +424,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
 
           <div class="section">
-            <h3 class="edition-header">$_("ID Numbers")</h3>
+            <h3 class="list-header collapse">$_("ID Numbers")</h3>
             <dl class="meta">
                 $:display_identifiers("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
                 $for name, values in edition.get_identifiers().multi_items():
