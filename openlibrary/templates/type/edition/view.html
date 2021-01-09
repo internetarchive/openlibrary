@@ -378,7 +378,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
           $ classifications = edition.get_classifications().multi_items()
           $if classifications:
             <div class="section">
-                <h3 class="edition-header">$_("Classifications")</h3>
+                <h3 class="list-header collapse">$_("Classifications")</h3>
                 <dl class="meta">
                     $for name, values in classifications:
                         $:display_identifiers(values[0].label, values)
