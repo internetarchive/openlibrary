@@ -7,6 +7,7 @@ from dateutil import parser as isoparser
 from paapi5_python_sdk.api.default_api import DefaultApi
 from paapi5_python_sdk.get_items_request import GetItemsRequest
 from paapi5_python_sdk.get_items_resource import GetItemsResource
+from paapi5_python_sdk.search_items_request import SearchItemsRequest
 from paapi5_python_sdk.partner_type import PartnerType
 from paapi5_python_sdk.rest import ApiException
 
@@ -82,6 +83,16 @@ class AmazonAPI:
             secret_key=secret,
             host=host,
             region=region)
+
+    def search(self, keywords):
+        """Adding method to test amz searches from the CLI, unused otherwise"""
+        return self.api.search_items(
+            SearchItemsRequest(
+                partner_tag=self.tag,
+                partner_type=PartnerType.ASSOCIATES,
+                keywords=keywords,
+            )
+        )
 
     def get_product(self, asin, serialize=False, **kwargs):
         products = self.get_products([asin], **kwargs)
