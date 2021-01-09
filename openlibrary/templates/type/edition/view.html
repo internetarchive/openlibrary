@@ -339,13 +339,13 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
           <hr>  
           $if edition.first_sentence:
             <div>
-            <h3 class="collapse">$_("First Sentence")</h3>
+            <h3 class="edition-header">$_("First Sentence")</h3>
             <p>"$(edition.first_sentence)"</p>
             </div>
 
           $if edition.description:
             <div class="section">
-              <h3>$_("Edition Description")</h3>
+              <h3 class="edition-header">$_("Edition Description")</h3>
               <div class="edition-description">
                 <div class="addReadMore showlesscontent">
                   $:sanitize(format(edition.description))
@@ -360,7 +360,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
           $if edition.notes or edition.series or edition.volume or edition.genres or edition.other_titles or edition.copyright_date or edition.translation_of or edition.translated_from:
             <div class="section">
-                <h3>$_("Edition Notes")
+                <h3 class="edition-header">$_("Edition Notes")
                 </h3>
                 $if edition.notes:
                     $:format(edition.notes)
@@ -378,7 +378,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
           $ classifications = edition.get_classifications().multi_items()
           $if classifications:
             <div class="section">
-                <h3 class="list-header collapse">$_("Classifications")</h3>
+                <h3 class="edition-header">$_("Classifications")</h3>
                 <dl class="meta">
                     $for name, values in classifications:
                         $:display_identifiers(values[0].label, values)
@@ -403,7 +403,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
           $ contributors = edition.get('contributors', [])
           $if contributors:
             <div class="section">
-              <h3 class="collapse">$_("Contributors")</h3>
+              <h3 class="edition-header">$_("Contributors")</h3>
               <dl class="meta">
               $for c in contributors:
                     $:display_value(c.role, c.name)
@@ -412,7 +412,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
           $if has_any("physical_format", "pagination", "physical_dimensions", "weight"):
             <div class="section">
-                <h3 class="list-header collapse">$_("The Physical Object")</h3>
+                <h3 class="edition-header">$_("The Physical Object")</h3>
                 <dl class="meta">
                     $:display_value(_("Format"), edition.physical_format)
                     $:display_value(_("Pagination"), edition.pagination)
@@ -424,7 +424,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
 
           <div class="section">
-            <h3 class="list-header collapse">$_("ID Numbers")</h3>
+            <h3 class="edition-header">$_("ID Numbers")</h3>
             <dl class="meta">
                 $:display_identifiers("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
                 $for name, values in edition.get_identifiers().multi_items():
