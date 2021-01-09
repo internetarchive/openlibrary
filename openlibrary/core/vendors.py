@@ -85,6 +85,7 @@ class AmazonAPI:
             region=region)
 
     def search(self, keywords):
+        """Adding method to test amz searches from the CLI, unused otherwise"""
         return self.api.search_items(
             SearchItemsRequest(
                 partner_tag=self.tag,
