@@ -111,7 +111,7 @@ def get_ol_locale():
     of the Open Library supported languages.
     """
     locale_cookie = web.cookies().get('i18n_code')
-    if locale_cookie is not None:
+    if locale_cookie:
         ol_locale = locale_cookie
     else:
         browser_accepted_langs = web.ctx.env.get('HTTP_ACCEPT_LANGUAGE')
