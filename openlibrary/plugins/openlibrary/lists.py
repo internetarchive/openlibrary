@@ -314,7 +314,7 @@ class list_seeds(delegate.page):
             "remove": data.get("remove", [])
         }
 
-        d = lst._save(comment="Updated list books.", action="lists", data=changeset_data)
+        d = lst._save(comment="Updated list.", action="lists", data=changeset_data)
         web.header("Content-Type", self.content_type)
         return delegate.RawText(formats.dump(d, self.encoding))
 
