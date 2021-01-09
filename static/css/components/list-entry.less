@@ -3,8 +3,11 @@
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#listentry
  */
 .listEntry {
-  margin: 0 auto;
-  padding: 10px 20px;
+  width: 100%;
+  @media only screen and (min-width: @width-breakpoint-tablet) {
+    width: 280px;
+  }
+  margin: 20px 10px;
   .cover {
     width: 35px;
     float: left;
