@@ -4,10 +4,8 @@
  */
 .listEntry {
   width: 100%;
-  @media only screen and (min-width: @width-breakpoint-tablet) {
-    width: 280px;
-  }
   margin: 20px 10px;
+
   .cover {
     width: 35px;
     float: left;
@@ -16,10 +14,12 @@
       max-width: 25px;
     }
   }
+  
   .data {
     width: 100%;
     font-family: @lucida_sans_serif-1;
   }
+
   .name {
     font-size: .6875em;
     color: @grey;
@@ -28,6 +28,7 @@
       font-size: 1.375em;
     }
   }
+
   .description {
     p,
     li {
@@ -36,10 +37,17 @@
       margin: 0 !important;
     }
   }
+
   .meta {
     font-size: .6875em;
     color: @grey;
     line-height: 1.5em;
     margin: 3px 0;
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .listEntry {
+    width: 280px;
   }
 }
