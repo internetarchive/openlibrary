@@ -35,7 +35,7 @@ from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
 
 # TODO: i18n should be moved to core or infogami
-from openlibrary.i18n import gettext as _  # noqa: F401
+from openlibrary.i18n import get_ol_locale, gettext as _  # noqa: F401
 
 __all__ = [
     "sanitize",
@@ -112,11 +112,9 @@ def safesort(iterable, key=None, reverse=False):
     care to make that work.
     """
     key = key or (lambda x: x)
-
     def safekey(x):
         k = key(x)
         return (k.__class__.__name__, k)
-
     return sorted(iterable, key=safekey, reverse=reverse)
 
 
@@ -127,9 +125,8 @@ def days_since(then, now=None):
 
 def datestr(then, now=None, lang=None, relative=True):
     """Internationalized version of web.datestr."""
-    # Get the locale from the cookie or default to 'en'
-    locale = web.cookies(i18n_code='en')
-    lang = lang or locale.i18n_code
+    website_locale = get_ol_locale()
+    lang = lang or website_locale
     if relative:
         if now is None:
             now = datetime.now()
@@ -144,14 +141,11 @@ def datestr(then, now=None, lang=None, relative=True):
 def datetimestr_utc(then):
     return then.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-
 def format_date(date, lang=None):
-    # Get the locale from the cookie or default to 'en'
-    locale = web.cookies(i18n_code='en')
-    lang = lang or locale.i18n_code
+    website_locale = get_ol_locale()
+    lang = lang or website_locale
     locale = _get_babel_locale(lang)
     return babel.dates.format_date(date, format="long", locale=locale)
-
 
 def _get_babel_locale(lang):
     try:
@@ -247,7 +241,6 @@ _texsafe_map = {
 
 _texsafe_re = None
 
-
 def texsafe(text):
     """Escapes the special characters in the given text for using it in tex type setting.
 
@@ -267,7 +260,6 @@ def texsafe(text):
 
     return _texsafe_re.sub(lambda m: _texsafe_map[m.group(0)], text)
 
-
 def percentage(value, total):
     """Computes percentage.
 
@@ -277,7 +269,6 @@ def percentage(value, total):
         0.0
     """
     return (value * 100.0) / total if total else 0.0
-
 
 def uniq(values, key=None):
     """Returns the unique entries from the given values in the original order.
@@ -295,7 +286,6 @@ def uniq(values, key=None):
             result.append(v)
     return result
 
-
 def affiliate_id(affiliate):
     return config.get('affiliate_ids', {}).get(affiliate, '')
 
@@ -309,7 +299,6 @@ def private_collections():
 
 def private_collection_in(collections):
     return any(x in private_collections() for x in collections)
-
 
 def _get_helpers():
     _globals = globals()

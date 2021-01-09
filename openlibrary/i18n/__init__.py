@@ -12,6 +12,7 @@ from babel.messages.extract import extract_from_file, extract_from_dir, extract_
 
 root = os.path.dirname(__file__)
 
+OL_SUPPORTED_LANGAGES = ['en', 'cs', 'de', 'es', 'fr', 'te']
 
 def _compile_translation(po, mo):
     try:
@@ -25,10 +26,8 @@ def _compile_translation(po, mo):
         print('failed to compile', po, file=web.debug)
         raise e
 
-
 def get_locales():
     return [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
-
 
 def extract_templetor(fileobj, keywords, comment_tags, options):
     """Extract i18n messages from web.py templates."""
@@ -42,7 +41,6 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
         print('Failed to extract ' + fileobj.name + ':', repr(e), file=web.debug)
         return []
     return extract_python(f, keywords, comment_tags, options)
-
 
 def extract_messages(dirs):
     catalog = Catalog(
@@ -78,7 +76,6 @@ def compile_translations():
         if os.path.exists(po_path):
             _compile_translation(po_path, mo_path)
 
-
 def update_translations():
     pot_path = os.path.join(root, 'messages.pot')
     template = read_po(open(pot_path, 'rb'))
@@ -98,7 +95,6 @@ def update_translations():
 
     compile_translations()
 
-
 @web.memoize
 def load_translations(lang):
     po = os.path.join(root, lang, 'messages.po')
@@ -107,6 +103,34 @@ def load_translations(lang):
     if os.path.exists(mo_path):
         return Translations(open(mo_path, 'rb'))
 
+
+def get_ol_locale():
+    """
+    Gets the locale from the cookie and -if not found- sets it to the
+    highest priority language of the Accept-Language header, that's also part
+    of the Open Library supported languages.
+    """
+    locale_cookie = web.cookies().get('i18n_code')
+    if locale_cookie is not None:
+        ol_locale = locale_cookie
+    else:
+        browser_accepted_langs = web.ctx.env.get('HTTP_ACCEPT_LANGUAGE')
+        if browser_accepted_langs:
+            # Parse the accepted language header string into a list
+            languages = browser_accepted_langs.split(',')
+            # Remove the quality-value weights and keep only the locales
+            accepted_langs = [lang.partition(';')[0] for lang in languages]
+            # The default locale is 'en' unless we support a browser-suggested language
+            ol_locale = 'en'
+            for lang in accepted_langs:
+                if lang in OL_SUPPORTED_LANGAGES:
+                    ol_locale = lang
+                    break
+        else:
+            ol_locale = 'en'
+        web.setcookie('i18n_code', ol_locale, secure=False)
+    return ol_locale
+
 @web.memoize
 def load_locale(lang):
     try:
@@ -114,12 +138,11 @@ def load_locale(lang):
     except babel.UnknownLocaleError:
         pass
 
-
 class GetText:
     def __call__(self, string, *args, **kwargs):
         """Translate a given string to the language of the current locale."""
-        locale = web.cookies(i18n_code="en")
-        translations = load_translations(locale.i18n_code)
+        website_locale = get_ol_locale()
+        translations = load_translations(website_locale)
         value = (translations and translations.ugettext(string)) or string
 
         if args:
@@ -131,7 +154,6 @@ class GetText:
 
     def __getattr__(self, key):
         from infogami.utils.i18n import strings
-
         # for backward-compatability
         return strings.get('', key)
 
@@ -139,7 +161,6 @@ class LazyGetText:
     def __call__(self, string, *args, **kwargs):
         """Translate a given string lazily."""
         return LazyObject(lambda: GetText()(string, *args, **kwargs))
-
 
 class LazyObject:
     def __init__(self, creator):
@@ -159,8 +180,8 @@ class LazyObject:
 
 
 def ungettext(s1, s2, _n, *a, **kw):
-    locale = web.cookies(i18n_code='en')
-    translations = load_translations(locale.i18n_code)
+    website_locale = get_ol_locale()
+    translations = load_translations(website_locale)
     value = translations and translations.ungettext(s1, s2, _n)
     if not value:
         # fallback when translation is not provided
@@ -176,13 +197,11 @@ def ungettext(s1, s2, _n, *a, **kw):
     else:
         return value
 
-
 def gettext_territory(code):
     """Returns the territory name in the current locale."""
-    lang = web.cookies(i18n_code='en')
-    locale = load_translations(lang.i18n_code)
+    lang = get_ol_locale()
+    locale = load_translations(lang)
     return locale.territories.get(code, code)
-
 
 gettext = GetText()
 ugettext = gettext

@@ -14,6 +14,7 @@ from openlibrary.core import admin, cache, ia, lending, \
 from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
+from openlibrary.i18n import get_ol_locale
 
 
 import six
@@ -65,19 +66,12 @@ class home(delegate.page):
     path = "/"
 
     def GET(self):
-        # Get the locale from the cookie or -if not found- set it to the default ('en')
-        locale_cookie = web.cookies().get('i18n_code')
-        if locale_cookie is not None:
-            locale = locale_cookie
-        else:
-            web.setcookie('i18n_code', 'en', secure=False)
-            locale = 'en'
-        cached_homepage = get_cached_homepage(locale)
+        website_locale = get_ol_locale()
+        cached_homepage = get_cached_homepage(website_locale)
         # when homepage is cached, home/index.html template
         # doesn't run ctx.setdefault to set the cssfile so we must do so here:
         web.template.Template.globals['ctx']['cssfile'] = 'home'
         return web.template.TemplateResult(cached_homepage)
-
 
 class random_book(delegate.page):
     path = "/random"
@@ -98,17 +92,10 @@ def get_ia_carousel_books(query=None, subject=None, work_id=None, sorts=None,
         query = CAROUSELS_PRESETS[query]
 
     limit = limit or lending.DEFAULT_IA_RESULTS
-    books = lending.get_available(
-        limit=limit,
-        subject=subject,
-        work_id=work_id,
-        _type=_type,
-        sorts=sorts,
-        query=query,
-    )
+    books = lending.get_available(limit=limit, subject=subject, work_id=work_id,
+                                  _type=_type, sorts=sorts, query=query)
     formatted_books = [format_book_data(book) for book in books if book != 'error']
     return formatted_books
-
 
 def get_featured_subjects():
     # web.ctx must be initialized as it won't be available to the background thread.
@@ -116,21 +103,9 @@ def get_featured_subjects():
         delegate.fakeload()
 
     FEATURED_SUBJECTS = [
-        'art',
-        'science_fiction',
-        'fantasy',
-        'biographies',
-        'recipes',
-        'romance',
-        'textbooks',
-        'children',
-        'history',
-        'medicine',
-        'religion',
-        'mystery_and_detective_stories',
-        'plays',
-        'music',
-        'science',
+        'art', 'science_fiction', 'fantasy', 'biographies', 'recipes',
+        'romance', 'textbooks', 'children', 'history', 'medicine', 'religion',
+        'mystery_and_detective_stories', 'plays', 'music', 'science'
     ]
     return dict([(subject_name, subjects.get_subject('/subjects/' + subject_name, sort='edition_count'))
                  for subject_name in FEATURED_SUBJECTS])
@@ -143,7 +118,6 @@ def get_cachable_sponsorable_editions():
         delegate.fakeload()
 
     return [format_book_data(ed) for ed in get_sponsorable_editions()]
-
 
 @public
 def get_cached_sponsorable_editions():
@@ -172,7 +146,6 @@ def generic_carousel(query=None, subject=None, work_id=None, _type=None,
             sorts=sorts, limit=limit)[0]
     return storify(books) if books else books
 
-
 @public
 def readonline_carousel():
     """Return template code for books pulled from search engine.
@@ -188,7 +161,6 @@ def readonline_carousel():
     except Exception:
         logger.error("Failed to compute data for readonline_carousel", exc_info=True)
         return None
-
 
 def random_ebooks(limit=2000):
     solr = search.get_solr()
@@ -234,13 +206,11 @@ def format_list_editions(key):
                 editions[e.key] = e
     return [format_book_data(e) for e in editions.values()]
 
-
 # cache the results of format_list_editions in memcache for 5 minutes
 format_list_editions = cache.memcache_memoize(format_list_editions, "home.format_list_editions", timeout=5*60)
 
 def pick_best_edition(work):
     return next((e for e in work.editions if e.ocaid))
-
 
 def format_work_data(work):
     d = dict(work)
@@ -262,7 +232,6 @@ def format_work_data(work):
 
     d['read_url'] = "//archive.org/stream/" + work['ia'][0]
     return d
-
 
 def format_book_data(book):
     d = web.storage()
@@ -294,7 +263,6 @@ def format_book_data(book):
         else:
             d.read_url = book.url("/borrow")
     return d
-
 
 def setup():
     pass
