@@ -29,7 +29,7 @@ $add_metatag(property="og:description", content=meta_description)
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
 $jsdef render_seed_count(seed_count):
-    $ungettext("1 Book", "%(count)s Books", seed_count, count=seed_count)
+    $ungettext("1 item", "%(count)d items", seed_count, count=seed_count)
 
 <div id="contentHead" style="margin-bottom:0;">
 
