@@ -707,7 +707,9 @@ class sponsorship_stats:
 class sync_sponsored_books(delegate.page):
     @jsonapi
     def GET(self):
-        return sync_completed_sponsored_books()
+        i = web.input(dryrun=None)
+        dryrun = i.dryrun == "true"
+        return sync_completed_sponsored_books(dryrun=dryrun)
 
 
 def setup():

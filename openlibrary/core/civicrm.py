@@ -8,54 +8,78 @@ CIVI_USERNAME = 'custom_51'
 CIVI_CONTEXT = 'custom_53'
 
 
+def get_contact(username=None, contact_id=None):
+    if not (contact_id or username):
+        raise Exception("contact_id and or username required")
+    data = {
+        "entity": "Contact",
+        "action": "get",
+        "api_key": lending.config_ia_civicrm_api.get("api_key", ""),
+        "key": lending.config_ia_civicrm_api.get("site_key", ""),
+        "json": {
+            "sequential": 1,
+        }
+    }
+    if username:
+        data["json"][CIVI_USERNAME] = username
+    if contact_id:
+        data["json"]["contact_id"] = contact_id
+    data["json"] = json.dumps(data["json"])  # flatten the json field as a string
+    r = requests.get(
+        lending.config_ia_civicrm_api.get("url", ""),
+        params=data,
+        headers={
+            "Authorization": "Basic %s" % lending.config_ia_civicrm_api.get("auth", "")
+        })
+    contacts = r.status_code == 200 and r.json().get("values", None)
+    return contacts and contacts[0]
+
+
 def get_contact_id_by_username(username):
     """TODO: Use CiviCRM Explorer to replace with call to get contact_id by username"""
-    data = {
-        'entity': 'Contact',
-        'action': 'get',
-        'api_key': lending.config_ia_civicrm_api.get('api_key', ''),
-        'key': lending.config_ia_civicrm_api.get('site_key', ''),
-        'json': {
-            "sequential": 1,
-            CIVI_USERNAME: username
-        }
-    }
-    data['json'] = json.dumps(data['json'])  # flatten the json field as a string
-    r = requests.get(
-        lending.config_ia_civicrm_api.get('url', ''),
-        params=data,
-        headers={
-            'Authorization': 'Basic %s' % lending.config_ia_civicrm_api.get('auth', '')
-        })
-    contacts = r.status_code == 200 and r.json().get('values', None)
-    return contacts and contacts[0].get('contact_id')
+    contact = get_contact(username=username)
+    return contact and contact.get("contact_id")
 
 
-def get_sponsorships_by_contact_id(contact_id, isbn=None):
+def get_sponsorship_by_isbn(isbn):
+    sponsorship = get_sponsorships_by_contact_id(isbn=isbn)
+    sponsorship = sponsorship and sponsorship[0]
+    if sponsorship:
+        contact_id = sponsorship.get("contact_id")
+        sponsorship['contact'] = get_contact(contact_id=contact_id)
+    return sponsorship
+
+
+def get_sponsorships_by_contact_id(contact_id=None, isbn=None):
+    if not (contact_id or isbn):
+        raise Exception("contact_id and or isbn required")
     data = {
-        'entity': 'Contribution',
-        'action': 'get',
-        'api_key': lending.config_ia_civicrm_api.get('api_key', ''),
-        'key': lending.config_ia_civicrm_api.get('site_key', ''),
-        'json': {
+        "entity": "Contribution",
+        "action": "get",
+        "api_key": lending.config_ia_civicrm_api.get("api_key", ""),
+        "key": lending.config_ia_civicrm_api.get("site_key", ""),
+        "json": {
             "sequential": 1,
             "financial_type_id": "Book Sponsorship",
-            "contact_id": contact_id
         }
     }
+    if contact_id:
+        data["json"]["contact_id"] = contact_id
     if isbn:
-        data['json'][CIVI_ISBN] = isbn
-    data['json'] = json.dumps(data['json'])  # flatten the json field as a string
+        data["json"][CIVI_ISBN] = isbn
+    data["json"] = json.dumps(data["json"])  # flatten the json field as a string
     r = requests.get(
-        lending.config_ia_civicrm_api.get('url', ''),
+        lending.config_ia_civicrm_api.get("url", ""),
         params=data,
         headers={
-            'Authorization': 'Basic %s' % lending.config_ia_civicrm_api.get('auth', '')
+            "Authorization": "Basic %s" % lending.config_ia_civicrm_api.get("auth", "")
         })
-    txs = r.json().get('values')
+    txs = r.json().get("values")
     return [{
-        'isbn': t.pop(CIVI_ISBN),
-        'context': t.pop(CIVI_CONTEXT),
-        'receive_date': t.pop('receive_date'),
-        'total_amount': t.pop('total_amount')
+        "isbn": t.pop(CIVI_ISBN),
+        "context": t.pop(CIVI_CONTEXT),
+        "receive_date": t.pop("receive_date"),
+        "total_amount": t.pop("total_amount"),
+        "contact_id": t.pop("contact_id"),
+        "contribution_status": t.pop("contribution_status")
     } for t in txs]
