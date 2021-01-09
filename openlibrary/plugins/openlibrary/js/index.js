@@ -116,7 +116,13 @@ jQuery(function () {
     // Enable any carousels in the page
     if ($carouselElements.length) {
         import(/* webpackChunkName: "carousel" */ './carousel')
-            .then((module) => module.init($carouselElements));
+            .then((module) => { module.init($carouselElements);
+                $('.slick-slide').each(function () {
+                    if ($(this).attr('aria-describedby') != undefined) {
+                        $(this).attr('id',$(this).attr('aria-describedby'));
+                    }
+                });
+            })
     }
     if ($('script[type="text/json+graph"]').length > 0) {
         import(/* webpackChunkName: "graphs" */ './graphs')
@@ -137,6 +143,16 @@ jQuery(function () {
     if (document.getElementById('modal-link')) {
         import(/* webpackChunkName: "patron_metadata" */ './patron-metadata')
             .then((module) => module.initPatronMetadata());
+    }
+
+    if ($('#cboxPrevious').length) {
+        $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});
+    }
+    if ($('#cboxNext').length) {
+        $('#cboxNext').attr({'aria-label': 'Next button', 'aria-hidden': 'true'});
+    }
+    if ($('#cboxSlideshow').length) {
+        $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
     }
 
     $(document).on('click', '.slide-toggle', function () {
