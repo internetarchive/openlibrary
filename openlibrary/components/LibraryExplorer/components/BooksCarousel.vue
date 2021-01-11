@@ -27,12 +27,16 @@ import CONFIGS from '../configs';
 export default {
     components: { FlatBookCover },
     props: {
-        books: Array
+        books: Array,
+        observer: Object
     },
     data() {
         return {
             OL_BASE_BOOKS: CONFIGS.OL_BASE_BOOKS
         };
+    },
+    mounted() {
+        this.observer.observe(this.$el);
     },
     methods: {
         beforeBookLeave(el) {

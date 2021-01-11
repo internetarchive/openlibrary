@@ -1,6 +1,6 @@
 <template>
   <div class="ol-carousel">
-    <BooksCarousel v-if="status == 'Loaded' || results.length" :books="results">
+    <BooksCarousel :observer="intersectionObserver" :books="results">
       <template v-slot:cover-label="{book}">
         <slot name="cover-label" v-bind:book="book"/>
       </template>
@@ -106,15 +106,13 @@ export default {
     created() {
         this.debouncedReloadResults = debounce(this.reloadResults, 1000);
         this.intersectionObserver = ('IntersectionObserver' in window) ? new IntersectionObserver(this.handleIntersectionChange, {
-            rootMargin: '100px'
+            root: this.$el,
+            threshold: 1.0
         }) : null;
     },
 
-    mounted() {
-        this.intersectionObserver.observe(this.$el);
-    },
     beforeDestroy() {
-        this.intersectionObserver.unobserve(this.$el);
+        this.intersectionObserver.disconnect();
     },
 
     methods: {
