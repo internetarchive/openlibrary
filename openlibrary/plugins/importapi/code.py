@@ -30,7 +30,6 @@ MARC_LENGTH_POS = 5
 logger = logging.getLogger('openlibrary.importapi')
 
 
-
 class DataError(ValueError):
     pass
 
@@ -54,21 +53,21 @@ def parse_meta_headers(edition_builder):
             meta_key = m.group(1).lower()
             edition_builder.add(meta_key, v, restrict_keys=False)
 
+
 def parse_data(data):
     """
     Takes POSTed data and determines the format, and returns an Edition record
     suitable for adding to OL.
 
-    :param str data: Raw data
+    :param bytes data: Raw data
     :rtype: (dict|None, str|None)
     :return: (Edition record, format (rdf|opds|marcxml|json|marc)) or (None, None)
 
-    from typing import Dict, Optional, Tuple, Union
-    def parse_data(data: Union[bytes, str]) -> Tuple[Optional[Dict], Optional[str]]:
+    from typing import Dict, Optional, Tuple
+    def parse_data(data: bytes) -> Tuple[Optional[Dict], Optional[str]]:
     """
     data = data.strip()
-    xml_preamble = '<?xml' if isinstance(data, str) else b'<?xml'
-    if xml_preamble in data[:10]:
+    if b'<?xml' in data[:10]:
         root = etree.fromstring(data)
         if '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF' == root.tag:
             edition_builder = import_rdf.parse(root)
