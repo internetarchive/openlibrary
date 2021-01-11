@@ -7,9 +7,9 @@ $ stats_decimal = (float(rating_stats.get('avg_rating')))-(int(rating_stats.get(
 <ul class="readers-stats" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
   <li class="avg-ratings">
     $if rating_stats.get('avg_rating'):
-      $:('<span class="readers-stats__star"><img src="https://img.icons8.com/color/16/000000/filled-star--v1.png"/></span>' * int(rating_stats.get('avg_rating')))
+      $:('<div class="readers-stats__star"><img src="/static/images/full-star.svg"/></div>' * int(rating_stats.get('avg_rating')))
       $if (stats_decimal >= 0.5) and (stats_decimal < 1):
-        $:('<span class="readers-stats__star"><img src="https://img.icons8.com/fluent/16/000000/star-half.png"/></span>')
+        $:('<div class="readers-stats__star"><img src="/static/images/half-star.svg"/></div>')
       <span itemprop="ratingValue">$(rating_stats['avg_rating'])</span>
   </li>
   <li>
