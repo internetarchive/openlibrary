@@ -3,27 +3,23 @@
     >>> server = HTTPServer(port=8090)
     >>> server.request('/hello/world', method='GET').should_return('hello, world!', headers={'content-type': 'text/plain'})
 
-    >>> response = urllib.request.urlopen('http://0.0.0.0:8090/hello/world')
-    >>> response.read()
+    >>> response = requests.get('http://0.0.0.0:8090/hello/world')
+    >>> response.text()
     'hello, world!'
-    >>> response.info().getheader('Content-Type')
+    >>> response.headers['Content-Type']
     'text/plain'
 
     >>> server.stop()
-    >>> urllib.request.urlopen('http://0.0.0.0:8090/hello/world')
+    >>> requests.get('http://0.0.0.0:8090/hello/world')
     Traceback (most recent call last):
     ...
     IOError: [Errno socket error] (61, 'Connection refused')
 """
-from __future__ import print_function
-try:  # Python 3
-    from cheroot.wsgi import Server as CherryPyWSGIServer
-except ImportError:  # Python 2
-    from web.wsgiserver import CherryPyWSGIServer
+from cheroot.wsgi import Server as CherryPyWSGIServer
+import requests  # for doctest
 import threading
 import time
-
-from six.moves import urllib
+from urllib.parse import urlencode
 
 
 class HTTPServer:
@@ -51,7 +47,7 @@ class HTTPServer:
         response = Respose()
 
         if isinstance(query, dict):
-            query = urllib.parse.urlencode(query)
+            query = urlencode(query)
 
         self.mappings[path, method, query] = response
         return response
@@ -65,6 +61,7 @@ class HTTPServer:
                 return response(start_response)
 
         return Respose()(start_response)
+
 
 class Respose:
     def __init__(self):
@@ -81,6 +78,7 @@ class Respose:
     def __call__(self, start_response):
         start_response(self.status, self.headers.items())
         return self.data
+
 
 if __name__ == "__main__":
     import doctest
