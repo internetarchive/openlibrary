@@ -7,6 +7,7 @@ import time
 import datetime
 import logging
 import requests
+from urllib.parse import urlencode
 import web
 from infogami import config
 from .. import i18n
@@ -67,7 +68,7 @@ class LoanStats:
 
         logger.info("SOLR query %s", params)
 
-        q = requests.compat.urlencode(params, doseq=True)
+        q = urlencode(params, doseq=True)
         url = self.base_url + "/select?" + q
         logger.info("urlopen %s", url)
         return requests.get(url).json()
