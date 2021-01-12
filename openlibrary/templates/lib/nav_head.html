@@ -2,7 +2,10 @@ $def with (page)
 
 <header id="header-bar" class="header-bar">
   <div class="hamburger-component">
-    <button type="button" class="hamburger-button"><img src="/static/images/menu.png" alt="additional options menu"/></button>
+    <label for="toggle">
+      <button type="button" class="hamburger-button"><img src="/static/images/menu.png" alt="additional options menu"/></button>
+    </label>
+    <input type="checkbox" id="toggle">
     <div class="hamburger-dropdown-component navigation-dropdown-component">
       <ul class="dropdown-menu hamburger-dropdown-menu">
         $if not ctx.user:
