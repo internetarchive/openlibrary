@@ -6,17 +6,17 @@ import re
 import time
 import datetime
 import logging
-import simplejson
+import requests
+from urllib.parse import urlencode
 import web
 from infogami import config
 from .. import i18n
-
-from six.moves import urllib
 
 
 logger = logging.getLogger(__name__)
 
 re_solrescape = re.compile(r'([&|+\-!(){}\[\]^"~*?:])')
+
 
 class LoanStats:
     def __init__(self, region=None, library=None, country=None, collection=None, subject=None):
@@ -58,6 +58,7 @@ class LoanStats:
 
         if self.time_period:
             start, end = self.time_period
+
             def solrtime(t):
                 return t.isoformat() + "Z"
             params['fq'].append("start_time_dt:[%s TO %s]" % (solrtime(start), solrtime(end)))
@@ -67,11 +68,10 @@ class LoanStats:
 
         logger.info("SOLR query %s", params)
 
-        q = urllib.parse.urlencode(params, doseq=True)
+        q = urlencode(params, doseq=True)
         url = self.base_url + "/select?" + q
         logger.info("urlopen %s", url)
-        response = urllib.request.urlopen(url).read()
-        return simplejson.loads(response)
+        return requests.get(url).json()
 
     def solrescape(self, text):
         return re_solrescape.sub(r'\\\1', text)
@@ -109,7 +109,7 @@ class LoanStats:
     def _get_all_facet_counts(self):
         if not self._facet_counts:
             facets = [
-                "library_s","region_s", "country_s",
+                "library_s", "region_s", "country_s",
                 "ia_collections_id", "sponsor_s", "contributor_s",
                 "book_key_s", "author_keys_id", "resource_type_s",
                 "subject_facet", "place_facet", "person_facet", "time_facet"]
@@ -152,7 +152,7 @@ class LoanStats:
             "rows": 0,
             "facet": "on",
             "facet.mincount": 1,
-            "facet.limit": 100000, # don't limit
+            "facet.limit": 100000,  # don't limit
             "facet.field": ['start_day_s']
         }
         if resource_type != 'total':
@@ -171,7 +171,7 @@ class LoanStats:
             "rows": 0,
             "facet": "on",
             "facet.mincount": 1,
-            "facet.limit": 100000, # don't limit
+            "facet.limit": 100000,  # don't limit
             "facet.field": ['start_day_s']
         }
         if resource_type != 'total':
