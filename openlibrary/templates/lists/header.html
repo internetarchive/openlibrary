@@ -61,6 +61,8 @@ $elif type == "/type/work":
 
 $elif type == "/type/user":
     $var title: $doc.displayname
+    $if days_since(doc.created) < 30:
+       $ putctx('robots', 'noindex')
     $:render_user()
 
 $else:

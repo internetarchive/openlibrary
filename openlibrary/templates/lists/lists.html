@@ -38,7 +38,7 @@ $if "type" in doc and doc.type.key == "/type/user":
                                         \$.post(key + "/delete.json", function() {
                                             \$(list_id).remove();
                                             \$(dialog).dialog("close");
-                                            \$("#list_count").load(location.href + " #list_count ");
+                                            \$("#list_count").load(location.href + " #list_count");
                                             });
                                     },
                                     "$_('No, cancel')": function() {
