@@ -1,8 +1,7 @@
-
-import simplejson
 import logging
-
+import requests
 import web
+
 from infogami import config
 from openlibrary.core.lending import get_availability_of_ocaids
 from openlibrary.plugins.openlibrary.home import format_book_data
@@ -17,16 +16,17 @@ def fulltext_search_api(params):
     search_select = search_endpoint + '?' + urllib.parse.urlencode(params, 'utf-8')
 
     try:
-        json_data = urllib.request.urlopen(search_select, timeout=30).read()
+        response = requests.get(search_select, timeout=30)
         logger = logging.getLogger("openlibrary.inside")
         logger.debug('URL: ' + search_select)
-    except:
+        response.raise_for_status()
+    except Exception:
         return {'error': 'Unable to query search engine'}
-
-    try:
-        return simplejson.loads(json_data)
-    except:
-        return {'error': 'Error converting search engine data to JSON'}
+    else:
+        try:
+            return response.json()
+        except Exception:
+            return {'error': 'Error converting search engine data to JSON'}
 
 
 def fulltext_search(q, page=1, limit=100, js=False):
