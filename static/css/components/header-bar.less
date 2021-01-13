@@ -134,7 +134,7 @@
     order: 0;
     margin-right: 5px;
 
-    button {
+    label {
       background: transparent;
       border: none;
       cursor: pointer;
@@ -146,13 +146,16 @@
       padding: 0 3px;
     }
 
-
-    #toggle {
+    .hamburger-component__checkbox {
       opacity: 0;
-    }
+      
+      & ~ .hamburger-dropdown-component ul {
+        display: none;
+      }
 
-    #toggle:checked ~ .hamburger-dropdown-component ul {
-      display: block;
+      &:checked ~ .hamburger-dropdown-component ul {
+        display: block;
+      }
     }
   }
 
@@ -466,10 +469,10 @@
 
 .logo-component {
   margin: 0 0 5px;
-  img,
-  a {
-    display: block;
-  }
+  // img,
+  // a {
+  //   display: block;
+  // }
   a {
     color: @black;
     text-decoration: none !important;
