@@ -13,7 +13,6 @@ try:
 except ImportError:
     JSONDecodeError = ValueError
 
-
 logger = logging.getLogger("openlibrary.inside")
 
 
@@ -23,9 +22,9 @@ def fulltext_search_api(params):
     search_endpoint = config.plugin_inside['search_endpoint']
     search_select = search_endpoint + '?' + urlencode(params, 'utf-8')
 
+    logger.debug('URL: ' + search_select)
     try:
         response = requests.get(search_select, timeout=30)
-        logger.debug('URL: ' + search_select)
         response.raise_for_status()
         return response.json()
     except requests.HTTPError:
