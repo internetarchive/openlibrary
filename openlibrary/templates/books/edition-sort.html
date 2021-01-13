@@ -88,6 +88,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
         $if oclc_numbers or isbn:
           <ul>
             <li>
+              <p class="cta-section-title world-cat-link">$_('Libraries near you:')</p>
               <a href="$macros.WorldcatUrl(isbn=isbn, oclc_numbers=oclc_numbers)"
                  title="Look for this edition at WorldCat">WorldCat</a>
             </li>
