@@ -5,7 +5,7 @@ import web
 from infogami import config
 from openlibrary.core.lending import get_availability_of_ocaids
 from openlibrary.plugins.openlibrary.home import format_book_data
-from six.moves import urllib
+from six.moves.urllib.parse import urlencode
 
 # py3 uses json.decoder.JSONDecodeError
 try:
