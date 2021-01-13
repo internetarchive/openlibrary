@@ -21,7 +21,7 @@ def fulltext_search_api(params):
     if not hasattr(config, 'plugin_inside'):
         return {'error': 'Unable to prepare search engine'}
     search_endpoint = config.plugin_inside['search_endpoint']
-    search_select = search_endpoint + '?' + urllib.parse.urlencode(params, 'utf-8')
+    search_select = search_endpoint + '?' + urlencode(params, 'utf-8')
 
     try:
         response = requests.get(search_select, timeout=30)
