@@ -1,6 +1,5 @@
 from unittest.mock import Mock, patch
 
-import json
 import requests
 from infogami import config
 from openlibrary.core import fulltext
