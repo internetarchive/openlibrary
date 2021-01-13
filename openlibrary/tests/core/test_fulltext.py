@@ -1,8 +1,15 @@
 from unittest.mock import Mock, patch
 
+import json
 import requests
 from infogami import config
 from openlibrary.core import fulltext
+
+# py3 uses json.decoder.JSONDecodeError
+try:
+    from json.decoder import JSONDecodeError
+except ImportError:
+    JSONDecodeError = ValueError
 
 
 class Test_fulltext_search_api:
@@ -26,7 +33,7 @@ class Test_fulltext_search_api:
     def test_bad_json(self):
         with patch("openlibrary.core.fulltext.requests.get") as mock_get:
             config.plugin_inside = {"search_endpoint": "mock"}
-            mock_response = Mock(json=Mock(side_effect=Exception("Not JSON")))
+            mock_response = Mock(json=Mock(side_effect=json.decoder.JSONDecodeError('Not JSON', 'Not JSON', 0)))
             mock_get.return_value = mock_response
 
             response = fulltext.fulltext_search_api({"q": "hello"})

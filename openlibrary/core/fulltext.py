@@ -7,6 +7,15 @@ from openlibrary.core.lending import get_availability_of_ocaids
 from openlibrary.plugins.openlibrary.home import format_book_data
 from six.moves import urllib
 
+# py3 uses json.decoder.JSONDecodeError
+try:
+    from json.decoder import JSONDecodeError
+except ImportError:
+    JSONDecodeError = ValueError
+
+
+logger = logging.getLogger("openlibrary.inside")
+
 
 def fulltext_search_api(params):
     if not hasattr(config, 'plugin_inside'):
@@ -16,16 +25,13 @@ def fulltext_search_api(params):
 
     try:
         response = requests.get(search_select, timeout=30)
-        logger = logging.getLogger("openlibrary.inside")
         logger.debug('URL: ' + search_select)
         response.raise_for_status()
-    except Exception:
+        return response.json()
+    except requests.HTTPError:
         return {'error': 'Unable to query search engine'}
-    else:
-        try:
-            return response.json()
-        except Exception:
-            return {'error': 'Error converting search engine data to JSON'}
+    except JSONDecodeError:
+        return {'error': 'Error converting search engine data to JSON'}
 
 
 def fulltext_search(q, page=1, limit=100, js=False):
