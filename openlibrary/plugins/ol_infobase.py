@@ -4,6 +4,7 @@
 from __future__ import print_function
 
 import datetime
+import json
 import logging
 import logging.config
 import os
@@ -12,10 +13,9 @@ import sys
 import traceback
 import unicodedata
 
-import simplejson
+import requests
 import six
 import web
-from six.moves import urllib
 
 from infogami.infobase import cache, common, config, dbstore, server
 
@@ -309,7 +309,7 @@ def http_notify(site, old, new):
         # new is a thing. call format_data to get the actual data.
         data = new.format_data()
 
-    json = simplejson.dumps(data)
+    json_data = json.dumps(data)
     key = data['key']
 
     # optimize the most common case.
@@ -322,7 +322,8 @@ def http_notify(site, old, new):
 
     for url in config.http_listeners:
         try:
-            response = urllib.request.urlopen(url, json).read()
+            response = requests.get(url, json_data).text
+            response.raise_for_status()
             print('http_notify', repr(url), repr(key), repr(response), file=web.debug)
         except Exception:
             print('failed to send http_notify', repr(url), repr(key), file=web.debug)
@@ -469,19 +470,19 @@ def fix_table_of_contents(table_of_contents):
     return [row for row in d if any(row.values())]
 
 
-def process_json(key, json):
-    if key is None or json is None:
+def process_json(key, json_data):
+    if key is None or json_data is None:
         return None
     base = key[1:].split('/')[0]
     if base in ['authors', 'books', 'works', 'languages', 'people', 'usergroup', 'permission']:
-        data = simplejson.loads(json)
+        data = json.loads(json_data)
         data = _process_data(data)
 
         if base == 'books' and 'table_of_contents' in data:
             data['table_of_contents'] = fix_table_of_contents(data['table_of_contents'])
 
-        json = simplejson.dumps(data)
-    return json
+        json_data = json.dumps(data)
+    return json_data
 
 
 dbstore.process_json = process_json
