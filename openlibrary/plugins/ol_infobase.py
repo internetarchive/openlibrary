@@ -23,6 +23,7 @@ from ..utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10, normalize_isbn
 
 logger = logging.getLogger("infobase.ol")
 
+
 def init_plugin():
     """Initialize infobase plugin."""
     from infogami.infobase import common, dbstore, server, logger as infobase_logger
@@ -45,30 +46,31 @@ def init_plugin():
 
     if ol:
         # install custom indexer
-        #XXX-Anand: this might create some trouble. Commenting out.
+        # XXX-Anand: this might create some trouble. Commenting out.
         # ol.store.indexer = Indexer()
 
         if config.get('http_listeners'):
             logger.info("setting up http listeners")
             ol.add_trigger(None, http_notify)
 
-        ## memcache invalidator is not required now. It was added for future use.
-        #_cache = config.get("cache", {})
-        #if _cache.get("type") == "memcache":
-        #    logger.info("setting up memcache invalidater")
-        #    ol.add_trigger(None, MemcacheInvalidater())
+        # # memcache invalidator is not required now. It was added for future use.
+        # _cache = config.get("cache", {})
+        # if _cache.get("type") == "memcache":
+        #     logger.info("setting up memcache invalidater")
+        #     ol.add_trigger(None, MemcacheInvalidater())
 
     # hook to add count functionality
-    server.app.add_mapping("/([^/]*)/count_editions_by_author", __name__ + ".count_editions_by_author")
-    server.app.add_mapping("/([^/]*)/count_editions_by_work", __name__ + ".count_editions_by_work")
-    server.app.add_mapping("/([^/]*)/count_edits_by_user", __name__ + ".count_edits_by_user")
-    server.app.add_mapping("/([^/]*)/most_recent", __name__ + ".most_recent")
-    server.app.add_mapping("/([^/]*)/clear_cache", __name__ + ".clear_cache")
-    server.app.add_mapping("/([^/]*)/stats/(\d\d\d\d-\d\d-\d\d)", __name__ + ".stats")
-    server.app.add_mapping("/([^/]*)/has_user", __name__ + ".has_user")
-    server.app.add_mapping("/([^/]*)/olid_to_key", __name__ + ".olid_to_key")
-    server.app.add_mapping("/_reload_config", __name__ + ".reload_config")
-    server.app.add_mapping("/_inspect", __name__ + "._inspect")
+    server.app.add_mapping(r"/([^/]*)/count_editions_by_author", __name__ + ".count_editions_by_author")
+    server.app.add_mapping(r"/([^/]*)/count_editions_by_work", __name__ + ".count_editions_by_work")
+    server.app.add_mapping(r"/([^/]*)/count_edits_by_user", __name__ + ".count_edits_by_user")
+    server.app.add_mapping(r"/([^/]*)/most_recent", __name__ + ".most_recent")
+    server.app.add_mapping(r"/([^/]*)/clear_cache", __name__ + ".clear_cache")
+    server.app.add_mapping(r"/([^/]*)/stats/(\d\d\d\d-\d\d-\d\d)", __name__ + ".stats")
+    server.app.add_mapping(r"/([^/]*)/has_user", __name__ + ".has_user")
+    server.app.add_mapping(r"/([^/]*)/olid_to_key", __name__ + ".olid_to_key")
+    server.app.add_mapping(r"/_reload_config", __name__ + ".reload_config")
+    server.app.add_mapping(r"/_inspect", __name__ + "._inspect")
+
 
 def setup_logging():
     try:
@@ -81,12 +83,14 @@ def setup_logging():
         print("Unable to set logging configuration:", str(e), file=sys.stderr)
         raise
 
+
 class reload_config:
     @server.jsonify
     def POST(self):
         logging.info("reloading logging config")
         setup_logging()
         return {"ok": "true"}
+
 
 class _inspect:
     """Backdoor to inspect the running process.
@@ -98,12 +102,14 @@ class _inspect:
         try:
             import _inspect
             return _inspect.inspect()
-        except Exception as e:
+        except Exception:
             return traceback.format_exc()
+
 
 def get_db():
     site = server.get_site('openlibrary.org')
     return site.store.db
+
 
 @web.memoize
 def get_property_id(type, name):
@@ -114,11 +120,13 @@ def get_property_id(type, name):
     except IndexError:
         return None
 
+
 def get_thing_id(key):
     try:
         return get_db().where('thing', key=key)[0].id
     except IndexError:
         return None
+
 
 def count(table, type, key, value):
     pid = get_property_id(type, key)
@@ -128,11 +136,13 @@ def count(table, type, key, value):
         return 0
     return get_db().query("SELECT count(*) FROM " + table + " WHERE key_id=$pid AND value=$value_id", vars=locals())[0].count
 
+
 class count_editions_by_author:
     @server.jsonify
     def GET(self, sitename):
         i = server.input('key')
         return count('edition_ref', '/type/edition', 'authors', i.key)
+
 
 class count_editions_by_work:
     @server.jsonify
@@ -140,12 +150,14 @@ class count_editions_by_work:
         i = server.input('key')
         return count('edition_ref', '/type/edition', 'works', i.key)
 
+
 class count_edits_by_user:
     @server.jsonify
     def GET(self, sitename):
         i = server.input('key')
         author_id = get_thing_id(i.key)
         return get_db().query("SELECT count(*) as count FROM transaction WHERE author_id=$author_id", vars=locals())[0].count
+
 
 class has_user:
     @server.jsonify
@@ -160,6 +172,7 @@ class has_user:
         type_user = get_thing_id("/type/user")
         d = get_db().query("SELECT * from thing WHERE lower(key) = $key AND type=$type_user", vars=locals())
         return bool(d)
+
 
 class stats:
     @server.jsonify
@@ -203,11 +216,14 @@ class stats:
             vars=vars
         )[0].value
 
+
 most_recent_change = None
+
 
 def invalidate_most_recent_change(event):
     global most_recent_change
     most_recent_change = None
+
 
 class most_recent:
     @server.jsonify
@@ -218,12 +234,14 @@ class most_recent:
             most_recent_change = site.versions({'limit': 1})[0]
         return most_recent_change
 
+
 class clear_cache:
     @server.jsonify
     def POST(self, sitename):
         from infogami.infobase import cache
         cache.global_cache.clear()
         return {'done': True}
+
 
 class olid_to_key:
     @server.jsonify
@@ -233,6 +251,7 @@ class olid_to_key:
         key = d and d[0].key or None
         return {'olid': i.olid, 'key': key}
 
+
 def write(path, data):
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
@@ -241,18 +260,22 @@ def write(path, data):
     f.write(data)
     f.close()
 
+
 def save_error(dir, prefix):
     try:
         logger.error("Error", exc_info=True)
         error = web.djangoerror()
         now = datetime.datetime.utcnow()
-        path = '%s/%04d-%02d-%02d/%s-%02d%02d%02d.%06d.html' % (dir, \
+        path = '%s/%04d-%02d-%02d/%s-%02d%02d%02d.%06d.html' % (
+            dir,
             now.year, now.month, now.day, prefix,
-            now.hour, now.minute, now.second, now.microsecond)
+            now.hour, now.minute, now.second, now.microsecond
+        )
         logger.error('Error saved to %s', path)
         write(path, web.safestr(error))
-    except:
+    except Exception:
         logger.error('Exception in saving the error', exc_info=True)
+
 
 def get_object_data(site, thing):
     """Return expanded data of specified object."""
@@ -272,6 +295,7 @@ def get_object_data(site, thing):
             d[k] = expand(v)
     return d
 
+
 def http_notify(site, old, new):
     """Notify listeners over http."""
     if isinstance(new, dict):
@@ -285,7 +309,8 @@ def http_notify(site, old, new):
 
     # optimize the most common case.
     # The following prefixes are never cached at the client. Avoid cache invalidation in that case.
-    not_cached = ['/b/', '/a/', '/books/', '/authors/', '/works/', '/subjects/', '/publishers/', '/user/', '/usergroup/', '/people/']
+    not_cached = ['/b/', '/a/', '/books/', '/authors/', '/works/', '/subjects/', '/publishers/', '/user/',
+                  '/usergroup/', '/people/']
     for prefix in not_cached:
         if key.startswith(prefix):
             return
@@ -294,10 +319,11 @@ def http_notify(site, old, new):
         try:
             response = urllib.request.urlopen(url, json).read()
             print('http_notify', repr(url), repr(key), repr(response), file=web.debug)
-        except:
+        except Exception:
             print('failed to send http_notify', repr(url), repr(key), file=web.debug)
             import traceback
             traceback.print_exc()
+
 
 class MemcacheInvalidater:
     def __init__(self):
@@ -362,6 +388,7 @@ class MemcacheInvalidater:
     def invalidate_default(self, site, old):
         yield old.key
 
+
 # openlibrary.utils can't be imported directly because
 # openlibrary.plugins.openlibrary masks openlibrary module
 olmemcache = __import__('openlibrary.utils.olmemcache', None, None, ['x'])
@@ -373,7 +400,9 @@ def MemcachedDict(servers=None):
     client = olmemcache.Client(servers)
     return cache.MemcachedDict(memcache_client=client)
 
+
 cache.register_cache('memcache', MemcachedDict)
+
 
 def _process_key(key):
     mapping = (
@@ -387,6 +416,7 @@ def _process_key(key):
             return new + key[len(old):]
     return key
 
+
 def _process_data(data):
     if isinstance(data, list):
         return [_process_data(d) for d in data]
@@ -397,12 +427,14 @@ def _process_data(data):
     else:
         return data
 
+
 def safeint(value, default=0):
     """Convers the value to integer. Returns 0, if the conversion fails."""
     try:
         return int(value)
     except Exception:
         return default
+
 
 def fix_table_of_contents(table_of_contents):
     """Some books have bad table_of_contents. This function converts them in to correct format.
@@ -431,6 +463,7 @@ def fix_table_of_contents(table_of_contents):
     d = [row(r) for r in table_of_contents]
     return [row for row in d if any(row.values())]
 
+
 def process_json(key, json):
     if key is None or json is None:
         return None
@@ -445,11 +478,13 @@ def process_json(key, json):
         json = simplejson.dumps(data)
     return json
 
+
 dbstore.process_json = process_json
 
 _Indexer = dbstore.Indexer
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
+
 
 class OLIndexer(_Indexer):
     """OL custom indexer to index normalized_title etc.
@@ -489,7 +524,7 @@ class OLIndexer(_Indexer):
 
         # http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string
         def strip_accents(s):
-           return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
+            return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
 
         norm = strip_accents(title).lower()
         norm = norm.replace(' and ', ' ')
