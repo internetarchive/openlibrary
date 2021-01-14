@@ -6,6 +6,7 @@
 flake8==3.8.4
 mock==3.0.5; python_version < '3.3'
 mockcache==1.0.3; python_version < '3.0'
+mypy==0.790; python_version >= '3.5'
 pymemcache==3.4.0; python_version >= '3.0'
 ptvsd==4.3.2
 pytest==4.6.9; python_version < '3.0'
