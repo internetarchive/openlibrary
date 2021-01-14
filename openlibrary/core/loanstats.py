@@ -5,7 +5,6 @@ Unlike other parts of openlibrary, this modules talks to the database directly.
 import re
 import time
 import datetime
-import json
 import logging
 import requests
 from urllib.parse import urlencode
