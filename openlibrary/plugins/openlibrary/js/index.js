@@ -1,7 +1,8 @@
 import 'jquery';
 import 'jquery-migrate';
 import 'jquery-validation';
-import 'jquery-ui/ui/widgets/dialog'
+import 'jquery-ui/ui/widgets/dialog';
+import 'jquery-ui/ui/widgets/sortable';
 import 'jquery-ui/ui/widgets/tabs';
 // For dialog boxes (e.g. add to list)
 import '../../../../vendor/js/colorbox/1.5.14.js';
