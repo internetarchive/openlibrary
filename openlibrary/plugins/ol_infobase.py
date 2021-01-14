@@ -322,7 +322,7 @@ def http_notify(site, old, new):
 
     for url in config.http_listeners:
         try:
-            response = requests.get(url, json_data).text
+            response = requests.get(url, params=json_data).text
             response.raise_for_status()
             print('http_notify', repr(url), repr(key), repr(response), file=web.debug)
         except Exception:
@@ -470,19 +470,19 @@ def fix_table_of_contents(table_of_contents):
     return [row for row in d if any(row.values())]
 
 
-def process_json(key, json_data):
-    if key is None or json_data is None:
+def process_json(key, json_str):
+    if key is None or json_str is None:
         return None
     base = key[1:].split('/')[0]
     if base in ['authors', 'books', 'works', 'languages', 'people', 'usergroup', 'permission']:
-        data = json.loads(json_data)
+        data = json.loads(json_str)
         data = _process_data(data)
 
         if base == 'books' and 'table_of_contents' in data:
             data['table_of_contents'] = fix_table_of_contents(data['table_of_contents'])
 
-        json_data = json.dumps(data)
-    return json_data
+        json_str = json.dumps(data)
+    return json_str
 
 
 dbstore.process_json = process_json
