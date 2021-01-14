@@ -43,7 +43,7 @@
     "jquery": "1.11.0",
     "jquery-migrate": "1.2.1",
     "jquery-ui": "1.12.1",
-    "jquery-validation": "1.19.2",
+    "jquery-validation": "1.19.3",
     "less": "3.12.2",
     "less-loader": "7.0.1",
     "less-plugin-clean-css": "1.5.1",
