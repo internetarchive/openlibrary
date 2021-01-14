@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o xtrace
+
 # https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
 
 # This script must be run on ol-home0 to start a new deployment.
