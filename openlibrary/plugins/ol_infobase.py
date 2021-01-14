@@ -2,31 +2,36 @@
 """Open Library plugin for infobase.
 """
 from __future__ import print_function
-import os
+
 import datetime
-import simplejson
 import logging
 import logging.config
+import os
+import re
 import sys
 import traceback
-import re
 import unicodedata
 
+import simplejson
 import six
-from six.moves import urllib
 import web
-from infogami.infobase import config, common, server, cache, dbstore
+from six.moves import urllib
+
+from infogami.infobase import cache, common, config, dbstore, server
+
+from ..utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10, normalize_isbn
 
 # relative import
 from .openlibrary import schema
-from ..utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10, normalize_isbn
 
 logger = logging.getLogger("infobase.ol")
 
 
 def init_plugin():
     """Initialize infobase plugin."""
-    from infogami.infobase import common, dbstore, server, logger as infobase_logger
+    from infogami.infobase import common, dbstore
+    from infogami.infobase import logger as infobase_logger
+    from infogami.infobase import server
     dbstore.default_schema = schema.get_schema()
 
     # Replace infobase Indexer with OL custom Indexer
