@@ -6,7 +6,8 @@ set -o xtrace
 
 # This script must be run on ol-home0 to start a new deployment.
 
-if [[ ${HOSTNAME:-$HOST} != ol-home0.* ]]; then
+export HOSTNAME="${HOSTNAME:-$HOST}"
+if [[ $HOSTNAME != ol-home0.* ]]; then
     echo "FATAL: Must only be run on ol-home0" ;
     exit 1 ;
 fi
@@ -39,8 +40,7 @@ export COMPOSE_FILE="docker-compose.yml:docker-compose.production.yml"
 time docker-compose build --pull web
 docker-compose run -uroot --rm home make i18n
 
-# Add a timestamp tag to the Docker image to facilitate rapid rollback
-# echo "FROM oldev:latest" | docker build -t "oldev:$(date +%Y-%m-%d_%H-%M)" -
+# Add a git SHA tag to the Docker image to facilitate rapid rollback
 echo "FROM oldev:latest" | docker build -t "oldev:$(git rev-parse HEAD)" -
 docker image ls
 
