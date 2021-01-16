@@ -147,18 +147,6 @@
     }
   }
 
-  .hamburger-component__checkbox {
-    opacity: 0;
-    
-    & ~ .hamburger-dropdown-component ul {
-      display: none;
-    }
-
-    &:checked ~ .hamburger-dropdown-component ul {
-      display: block;
-    }
-  }
-
   .logo-component {
     -webkit-box-flex: 1;
     -ms-flex: 1;
@@ -419,6 +407,18 @@
         border-top: 4px solid currentColor;
       }
     }
+  }
+}
+
+.hamburger-component__checkbox {
+  opacity: 0;
+  
+  & ~ .hamburger-dropdown-component ul {
+    display: none;
+  }
+
+  &:checked ~ .hamburger-dropdown-component ul {
+    display: block;
   }
 }
 
