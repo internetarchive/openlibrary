@@ -145,17 +145,17 @@
       height: 44px;
       padding: 0 3px;
     }
+  }
 
-    .hamburger-component__checkbox {
-      opacity: 0;
-      
-      & ~ .hamburger-dropdown-component ul {
-        display: none;
-      }
+  .hamburger-component__checkbox {
+    opacity: 0;
+    
+    & ~ .hamburger-dropdown-component ul {
+      display: none;
+    }
 
-      &:checked ~ .hamburger-dropdown-component ul {
-        display: block;
-      }
+    &:checked ~ .hamburger-dropdown-component ul {
+      display: block;
     }
   }
 
@@ -469,10 +469,7 @@
 
 .logo-component {
   margin: 0 0 5px;
-  // img,
-  // a {
-  //   display: block;
-  // }
+
   a {
     color: @black;
     text-decoration: none !important;
