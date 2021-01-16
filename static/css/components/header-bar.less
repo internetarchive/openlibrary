@@ -134,7 +134,7 @@
     order: 0;
     margin-right: 5px;
 
-    button {
+    label {
       background: transparent;
       border: none;
       cursor: pointer;
@@ -412,6 +412,19 @@
   }
 }
 
+.hamburger-component__checkbox {
+  opacity: 0;
+  
+  & ~ .hamburger-dropdown-component ul {
+    display: none;
+  }
+
+  // stylelint-disable-next-line selector-max-specificity 
+  &:checked ~ .hamburger-dropdown-component ul {
+    display: block;
+  }
+}
+
 .account-component {
   -webkit-box-flex: 1;
   -ms-flex: 1;
@@ -459,10 +472,7 @@
 
 .logo-component {
   margin: 0 0 5px;
-  img,
-  a {
-    display: block;
-  }
+
   a {
     color: @black;
     text-decoration: none !important;

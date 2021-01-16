@@ -2,7 +2,12 @@ $def with (page)
 
 <header id="header-bar" class="header-bar">
   <div class="hamburger-component">
-    <button type="button" class="hamburger-button"><img src="/static/images/menu.png" alt="additional options menu"/></button>
+
+    <label role="button" for="toggle-hamburger" class="hamburger-button">
+      <img src="/static/images/menu.png" alt="additional options menu"/>
+    </label>
+
+    <input type="checkbox" class="hamburger-component__checkbox" id="toggle-hamburger">
     <div class="hamburger-dropdown-component navigation-dropdown-component">
       <ul class="dropdown-menu hamburger-dropdown-menu">
         $if not ctx.user:
@@ -60,8 +65,7 @@ $def with (page)
 
   <ul class="navigation-component">
     <li class="browse-menu">
-      <a>$_('Browse') <img class="down-arrow"
-        width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/></a>
+      <a>$_('Browse') <img class="down-arrow" width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/></a>
       <div class="navigation-dropdown-component">
         <ul class="dropdown-menu browse-menu-options">
           <li><a href="/subjects">$_("Subjects")</a></li>
