@@ -88,14 +88,15 @@ $elif availability.get('is_lendable'):
     </div>
 
 $elif ('eligibility' in doc) or (check_sponsorship and not ocaid and not availability.get('is_lendable')):
-  $ sponsorship = doc.get('eligibility') if 'eligibility' in doc else qualifies_for_sponsorship(doc)
+  $ sponsorship = doc.get('eligibility') if 'eligibility' in doc else qualifies_for_sponsorship(doc, donate_only=True)
   $if sponsorship.get('is_eligible'):
     <a href="$(sponsorship['sponsor_url'])"
-       class="cta-btn cta-btn--sponsor"
+       class="cta-btn cta-btn--sponsor dialog--open"
+       aria-controls="seeDonate"
        data-ol-link-track="CTAClick|Sponsor">$_('Donate Book')</a>
     $if sponsorship_help:
       <p>
-        $_("We don't have this book yet. Can you donate it to our Lending Library?")
+        $_("We don't have this book yet. Can you donate it to the Lending Library?")
         <a href="https://openlibrary.org/bookdrive" target="_blank">$_('Learn More')</a>
       </p>
   $else:

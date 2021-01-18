@@ -45,25 +45,7 @@ def get_sponsored_editions(user):
     contact_id = get_contact_id_by_username(archive_id)
     return get_sponsorships_by_contact_id(contact_id) if contact_id else []
 
-def get_sponsorable_editions():
-    """This should move to an infogami type so any admin can add editions
-    to the list. This will need to be paginated.
-    """
-    try:
-        candidates = web.ctx.site.get('/sponsorship/books').get('editions', [])
-    except AttributeError:
-        candidates = []
-
-    eligible_editions = []
-    for key in candidates:
-        ed = web.ctx.site.get(key)
-        ed.eligibility = qualifies_for_sponsorship(ed)
-        if ed.eligibility.get('is_eligible'):
-            eligible_editions.append(ed)
-    return eligible_editions
-
-
-def do_we_want_it(isbn, work_id):
+def do_we_want_it(isbn, work_id=None):
     """
     Returns True if we don't have this edition (or other editions of
     the same work), if the isbn has not been promised to us, has not
@@ -74,9 +56,13 @@ def do_we_want_it(isbn, work_id):
     :rtype: (bool, list)
     :return: bool answer to do-we-want-it, list of matching books
     """
-    availability = lending.get_work_availability(work_id)  # checks all editions
-    if availability and availability.get(work_id, {}).get('status', 'error') != 'error':
-        return False, availability
+    if work_id:
+        # if work_id and any edition has work_id, we don't want it
+        availability = lending.get_work_availability(work_id)
+        if availability:
+            work_availability = availability.get(work_id, {})
+            if work_availability.get('status', 'error') != 'error':
+                return False, availability
 
     # We don't have any of these work's editions available to borrow
     # Let's confirm this edition hasn't already been sponsored or promised
@@ -96,7 +82,7 @@ def do_we_want_it(isbn, work_id):
     return False, []
 
 @public
-def qualifies_for_sponsorship(edition, scan_only=False, patron=None):
+def qualifies_for_sponsorship(edition, scan_only=False, donate_only=False, patron=None):
     """
     :param edition edition: An infogami book edition
     :rtype: dict
@@ -144,22 +130,26 @@ def qualifies_for_sponsorship(edition, scan_only=False, patron=None):
 
     work_id = work.key.split("/")[-1]
     edition_id = edition.key.split('/')[-1]
-    dwwi, matches = do_we_want_it(edition.isbn, work_id)
+    dwwi, matches = do_we_want_it(edition.isbn)
     if dwwi:
-        bwb_price = get_betterworldbooks_metadata(edition.isbn).get('price_amt')
-        if bwb_price or scan_only:
-            num_pages = int(edition_data['number_of_pages'])
-            scan_price_cents = SETUP_COST_CENTS + (PAGE_COST_CENTS * num_pages)
-            book_cost_cents = int(float(bwb_price) * 100) if not scan_only else 0
-            total_price_cents = scan_price_cents + book_cost_cents
-            resp['price'] = {
-                'book_cost_cents': book_cost_cents,
-                'scan_price_cents': scan_price_cents,
-                'total_price_cents': total_price_cents,
-                'total_price_display': '${:,.2f}'.format(
-                    total_price_cents / 100.
-                ),
-            }
+        num_pages = int(edition_data['number_of_pages'])
+        bwb_price = None
+        if not donate_only:
+            if not scan_only:
+                bwb_price = get_betterworldbooks_metadata(edition.isbn).get('price_amt')
+            if scan_only or bwb_price:
+                scan_price_cents = SETUP_COST_CENTS + (PAGE_COST_CENTS * num_pages)
+                book_cost_cents = int(float(bwb_price) * 100) if not scan_only else 0
+                total_price_cents = scan_price_cents + book_cost_cents
+                resp['price'] = {
+                    'book_cost_cents': book_cost_cents,
+                    'scan_price_cents': scan_price_cents,
+                    'total_price_cents': total_price_cents,
+                    'total_price_display': '${:,.2f}'.format(
+                        total_price_cents / 100.
+                    ),
+                }
+        if donate_only or scan_only or bwb_price:
             resp['is_eligible'] = eligibility_check(edition, patron=patron)
     else:
         resp['error'] = {
@@ -172,12 +162,7 @@ def qualifies_for_sponsorship(edition, scan_only=False, patron=None):
     })
     resp.update({
         'edition': edition_data,
-        'sponsor_url': lending.config_ia_domain + '/donate?' + urlencode({
-            'campaign': 'pilot',
-            'type': 'sponsorship',
-            'context': 'ol',
-            'isbn': edition.isbn
-        })
+        'sponsor_url': 'https://openlibrary.org/bookdrive',
     })
     return resp
 
