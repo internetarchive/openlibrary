@@ -8,7 +8,7 @@ Upstream requires:
 
 This adapter module is a filter that sits above an Infobase server and fakes the new URL structure.
 """
-import simplejson
+import json
 import web
 
 import six
@@ -94,22 +94,24 @@ class proxy:
 
     def after_request(self):
         if self.output:
-            d = simplejson.loads(self.output)
+            d = json.loads(self.output)
             d = unconvert_dict(d)
-            self.output = simplejson.dumps(d)
+            self.output = json.dumps(d)
 
     def process_error(self):
         if self.output:
-            d = simplejson.loads(self.output)
+            d = json.loads(self.output)
             if 'key' in d:
                 d['key'] = unconvert_key(d['key'])
-            self.output = simplejson.dumps(d)
+            self.output = json.dumps(d)
 
-def convert_key(key, mapping=convertions):
+
+def convert_key(key, mapping=None):
     """
         >>> convert_key("/authors/OL1A", {'/authors/': '/a/'})
         '/a/OL1A'
     """
+    mapping = mapping or convertions
     if key is None:
         return None
     elif key == '/':
@@ -121,11 +123,13 @@ def convert_key(key, mapping=convertions):
             return key2
     return key
 
-def convert_dict(d, mapping=convertions):
+
+def convert_dict(d, mapping=None):
     """
         >>> convert_dict({'author': {'key': '/authors/OL1A'}}, {'/authors/': '/a/'})
         {'author': {'key': '/a/OL1A'}}
     """
+    mapping = mapping or convertions
     if isinstance(d, dict):
         if 'key' in d:
             d['key'] = convert_key(d['key'], mapping)
@@ -155,20 +159,20 @@ class get_many(proxy):
     def before_request(self):
         if 'keys' in self.input:
             keys = self.input['keys']
-            keys = simplejson.loads(keys)
+            keys = json.loads(keys)
             keys = [convert_key(k) for k in keys]
-            self.input['keys'] = simplejson.dumps(keys)
+            self.input['keys'] = json.dumps(keys)
 
     def after_request(self):
-        d = simplejson.loads(self.output)
+        d = json.loads(self.output)
         d = dict((unconvert_key(k), unconvert_dict(v)) for k, v in d.items())
-        self.output = simplejson.dumps(d)
+        self.output = json.dumps(d)
 
 class things(proxy):
     def before_request(self):
         if 'query' in self.input:
             q = self.input.query
-            q = simplejson.loads(q)
+            q = json.loads(q)
 
             def convert_keys(q):
                 if isinstance(q, dict):
@@ -179,67 +183,67 @@ class things(proxy):
                     return convert_key(q)
                 else:
                     return q
-            self.input.query = simplejson.dumps(convert_keys(q))
+            self.input.query = json.dumps(convert_keys(q))
 
     def after_request(self):
         if self.output:
-            d = simplejson.loads(self.output)
+            d = json.loads(self.output)
 
             if self.input.get('details', '').lower() == 'true':
                 d = unconvert_dict(d)
             else:
                 d = [unconvert_key(key) for key in d]
 
-            self.output = simplejson.dumps(d)
+            self.output = json.dumps(d)
 
 class versions(proxy):
     def before_request(self):
         if 'query' in self.input:
             q = self.input.query
-            q = simplejson.loads(q)
+            q = json.loads(q)
             if 'key' in q:
                 q['key'] = convert_key(q['key'])
             if 'author' in q:
                 q['author'] = convert_key(q['author'])
-            self.input.query = simplejson.dumps(q)
+            self.input.query = json.dumps(q)
 
     def after_request(self):
         if self.output:
-            d = simplejson.loads(self.output)
+            d = json.loads(self.output)
             for v in d:
                 v['author'] = v['author'] and unconvert_key(v['author'])
                 v['key'] = unconvert_key(v['key'])
-            self.output = simplejson.dumps(d)
+            self.output = json.dumps(d)
 
 class new_key(proxy):
     def after_request(self):
         if self.output:
-            d = simplejson.loads(self.output)
+            d = json.loads(self.output)
             d = unconvert_key(d)
-            self.output = simplejson.dumps(d)
+            self.output = json.dumps(d)
 
 class save(proxy):
     def before_request(self):
         self.path = '/%s/save%s' % (self.args[0], convert_key(self.args[1]))
-        d = simplejson.loads(self.data)
+        d = json.loads(self.data)
         d = convert_dict(d)
-        self.data = simplejson.dumps(d)
+        self.data = json.dumps(d)
 
 class save_many(proxy):
     def before_request(self):
         i = web.input(_method="POST")
         if 'query' in i:
-            q = simplejson.loads(i['query'])
+            q = json.loads(i['query'])
             q = convert_dict(q)
-            i['query'] = simplejson.dumps(q)
+            i['query'] = json.dumps(q)
             self.data = urllib.parse.urlencode(i)
 
 class reindex(proxy):
     def before_request(self):
         i = web.input(_method="POST")
         if 'keys' in i:
-            keys = [convert_key(k) for k in simplejson.loads(i['keys'])]
-            i['keys'] = simplejson.dumps(keys)
+            keys = [convert_key(k) for k in json.loads(i['keys'])]
+            i['keys'] = json.dumps(keys)
             self.data = urllib.parse.urlencode(i)
 
 class account(proxy):

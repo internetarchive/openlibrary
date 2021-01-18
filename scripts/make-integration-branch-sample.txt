@@ -1,0 +1,18 @@
+# This file stores the branches to be merged into `dev-merged` for easy dev.openlibrary.org deploy
+# These are comments and can be left in
+#
+# Instructions:
+# sudo ./scripts/make-integration-branch.sh _dev-merged.txt dev-merged;
+#
+# To pull remote branches:
+# https://github.com/internetarchive/openlibrary.git feature/barcodescan
+#
+# Branches that are local:
+# 2138/feature/create-new-work-for-edition
+#
+# Branches from other forks:
+# https://github.com/cdrini/openlibrary.git 314/hotfix/limit-subject-results
+#
+# PRs from forks that have been deleted:
+# https://github.com/internetarchive/openlibrary/pull/4215.patch
+#

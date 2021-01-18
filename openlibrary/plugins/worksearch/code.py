@@ -1,5 +1,7 @@
 import web
+import random
 import re
+import string
 from lxml.etree import XML, XMLSyntaxError
 from infogami.utils import delegate, stats
 from infogami import config
@@ -271,14 +273,17 @@ def build_q_list(param):
             if m:
                 q_list.append("author_key:(%s)" % m.group(1))
             else:
-                v = re_to_esc.sub(lambda m:'\\' + m.group(), v)
+                v = re_to_esc.sub(r'\\\g<0>', v)
                 # Somehow v can be empty at this point,
                 #   passing the following with empty strings causes a severe error in SOLR
                 if v:
                     q_list.append("(author_name:(%(name)s) OR author_alternative_name:(%(name)s))" % {'name': v})
 
         check_params = ['title', 'publisher', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
-        q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
+        q_list += [
+            '%s:(%s)' % (k, re_to_esc.sub(r'\\\g<0>', param[k]))
+            for k in check_params if k in param
+        ]
         if param.get('isbn'):
             q_list.append('isbn:(%s)' % (normalize_isbn(param['isbn']) or param['isbn']))
     return (q_list, use_dismax)
@@ -532,6 +537,17 @@ def work_object(w): # called by works_by_author
             obj[f] = w[f]
     return web.storage(obj)
 
+
+class scan(delegate.page):
+    """
+    Experimental EAN barcode scanner page to scan and add/view books by their barcodes.
+    """
+    path = "/barcodescanner"
+
+    def GET(self):
+        return render.barcodescanner()
+
+
 class search(delegate.page):
     def redirect_if_needed(self, i):
         params = {}
@@ -606,14 +622,12 @@ class search(delegate.page):
             q_list.append(q)
         for k in ('title', 'author', 'isbn', 'subject', 'place', 'person', 'publisher'):
             if k in i:
-                v = re_to_esc.sub(lambda m:'\\' + m.group(), i[k].strip())
+                v = re_to_esc.sub(r'\\\g<0>', i[k].strip())
                 q_list.append(k + ':' + v)
-        page = render.work_search(
+        return render.work_search(
             i, ' '.join(q_list), do_search, get_doc,
             get_availability_of_ocaids, fulltext_search,
             FACET_FIELDS)
-        page.v2 = True
-        return page
 
 
 def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False, query=None):
@@ -623,25 +637,46 @@ def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False,
         q = query
 
     offset = rows * (page - 1)
-    fields = ['key', 'author_name', 'author_key', 'title', 'subtitle',
-        'edition_count', 'ia', 'cover_edition_key', 'has_fulltext', 'language',
-        'first_publish_year', 'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
-        'ia_collection_s', 'cover_i']
-    fl = ','.join(fields)
-    fq = ['author_key:' + akey, 'type:work']
+    params = [
+        ('fq', 'author_key:' + akey),
+        ('fq', 'type:work'),
+        ('q', q),
+        ('start', offset),
+        ('rows', rows),
+        ('fl', ','.join([
+            'key', 'author_name', 'author_key', 'title', 'subtitle', 'edition_count',
+            'ia', 'cover_edition_key', 'has_fulltext', 'language', 'first_publish_year',
+            'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
+            'ia_collection_s', 'cover_i'])),
+        ('wt', 'json'),
+        ('q.op', 'AND'),
+        ('facet', 'true'),
+        ('facet.mincount', 1),
+        ('f.author_facet.facet.sort', 'count'),
+        ('f.publish_year.facet.limit', -1),
+        ('facet.limit', 25),
+    ]
+
     if has_fulltext:
-        fq.append('has_fulltext:true')
-    solr_select = solr_select_url + "?fq=%s&q.op=AND&q=%s&start=%d&rows=%d&fl=%s&wt=json" % ('&fq='.join(fq), q, offset, rows, fl)
-    facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
-    if sort == 'editions':
-        solr_select += '&sort=edition_count+desc'
+        params.append(('fq', 'has_fulltext:true'))
+
+    if sort == "editions":
+        params.append(('sort', 'edition_count desc'))
     elif sort.startswith('old'):
-        solr_select += '&sort=first_publish_year+asc'
+        params.append(('sort', 'first_publish_year asc'))
     elif sort.startswith('new'):
-        solr_select += '&sort=first_publish_year+desc'
+        params.append(('sort', 'first_publish_year desc'))
     elif sort.startswith('title'):
-        solr_select += '&sort=title+asc'
-    solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
+        params.append(('sort', 'title asc'))
+
+    facet_fields = [
+        "author_facet", "language", "publish_year", "publisher_facet",
+        "subject_facet", "person_facet", "place_facet", "time_facet"
+    ]
+    for f in facet_fields:
+        params.append(("facet.field", f))
+
+    solr_select = solr_select_url + "?" + urllib.parse.urlencode(params)
     reply = parse_json_from_solr_query(solr_select)
     if reply is None:
         return web.storage(
@@ -698,9 +733,7 @@ class advancedsearch(delegate.page):
     path = "/advancedsearch"
 
     def GET(self):
-        template = render_template("search/advancedsearch.html")
-        template.v2 = True
-        return template
+        return render_template("search/advancedsearch.html")
 
 
 def escape_colon(q, vf):
@@ -859,6 +892,35 @@ class author_search_json(author_search):
 
 
 @public
+def random_author_search(limit=10):
+    """
+    Returns a JSON string that contains a random list of authors.  Amount of authors
+    returned is set be the given limit.
+    """
+    letters_and_digits = string.ascii_letters + string.digits
+    seed = ''.join(random.choice(letters_and_digits) for _ in range(10))
+    rows = '&rows=%d' % (limit)
+    sort = '&sort=random_%s+desc' % (seed)
+    solr_select = solr_select_url + "?fq=type:author&q.op=AND&q=*&wt=json" + rows + sort
+
+    search_results = run_solr_search(solr_select)
+
+    docs = search_results.get('response', {}).get('docs', [])
+
+    assert docs, "random_author_search({}) returned no docs".format(limit)
+    assert len(docs) == limit, (
+        "random_author_search({}) returned {} docs".format(limit, len(docs))
+    )
+
+    for doc in docs:
+        # replace /authors/OL1A with OL1A
+        # The template still expects the key to be in the old format
+        doc['key'] = doc['key'].split("/")[-1]
+
+    return json.dumps(search_results['response'])
+
+
+@public
 def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet=True,
                 spellcheck_count=None):
     """
@@ -927,7 +989,7 @@ class search_json(delegate.page):
                                spellcheck_count=spellcheck_count)
 
         web.header('Content-Type', 'application/json')
-        return delegate.RawText(json.dumps(response, indent=True))
+        return delegate.RawText(json.dumps(response, indent=4))
 
 def setup():
     from openlibrary.plugins.worksearch import subjects

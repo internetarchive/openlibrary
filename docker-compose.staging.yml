@@ -1,0 +1,20 @@
+##
+## Staging server config (wip)
+## You probably want to run:
+## export COMPOSE_FILE="docker-compose.yml:docker-compose.staging.yml"
+## docker-compose up -d
+##
+
+version: "3.1"
+services:
+  web:
+    restart: always
+    hostname: "$HOSTNAME"
+    environment:
+      - GUNICORN_OPTS= --workers 4 --timeout 180
+      - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - BEFORE_START=pip install -e /booklending_utils
+    volumes:
+      - ../olsystem:/olsystem
+      - ../booklending_utils:/booklending_utils
+      - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini

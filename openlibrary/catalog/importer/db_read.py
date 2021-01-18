@@ -1,6 +1,6 @@
 from __future__ import print_function
 import web
-import simplejson as json
+import json
 from time import sleep
 
 from six.moves.urllib.parse import urlencode

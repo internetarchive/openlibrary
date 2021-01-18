@@ -5,7 +5,8 @@ import pytest
 
 class Client:
     """Mock memcache client."""
-    def __init__(self, servers=[]):
+    def __init__(self, servers=None):
+        servers = servers or []
         self.servers = servers
         self.cache = {}
 

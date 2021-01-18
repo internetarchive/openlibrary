@@ -1,8 +1,7 @@
 import re
+import requests
 import os.path
 from bs4 import BeautifulSoup
-
-from six.moves import urllib
 
 
 # http://amazon.com/other-editions/dp/0312153325 has:
@@ -46,12 +45,12 @@ def parse_html(html):
 
 def get_from_amazon(isbn):
     url = 'http://www.amazon.com/dp/other-editions/' + isbn
-    try:
-        return urllib.request.urlopen(url).read()
-    except urllib.error.HTTPError as error:
-        if error.code != 404:
-            raise
-        return ''
+    response = requests.get(url)
+    if response.ok:
+        return response.content
+    if response.status_code != 404:
+        response.raise_for_status()
+    return ''
 
 def find_others(isbn, dir):
     filename = dir + "/" + isbn

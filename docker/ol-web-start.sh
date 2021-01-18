@@ -1,10 +1,14 @@
 #!/bin/bash
 
 python --version
+
+# Provide a hook for us to specify pre-start tasks
+if [ -n "$BEFORE_START" ] ; then
+  $BEFORE_START
+fi
+
 authbind --deep \
-  scripts/openlibrary-server conf/openlibrary.yml \
+  scripts/openlibrary-server "$OL_CONFIG" \
   --gunicorn \
-  --reload \
-  --workers 4 \
-  --timeout 180 \
+  $GUNICORN_OPTS \
   --bind :80

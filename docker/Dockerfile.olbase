@@ -23,7 +23,9 @@ RUN apt-get -qq update && apt-get install -y \
     libxslt-dev \
     libffi-dev \
     curl \
-    screen
+    screen \
+    vim \
+    emacs
 
 # Install LTS version of node.js
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
@@ -43,14 +45,16 @@ ENV PYENV_ROOT /home/openlibrary/.pyenv
 ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
 
 RUN pyenv update && pyenv install 2.7.6
-RUN pyenv update && pyenv install 3.8.5
-RUN pyenv global 2.7.6 3.8.5
+RUN pyenv update && pyenv install 3.8.6
+RUN pyenv update && pyenv install 3.9.1
+RUN pyenv global 3.8.6 3.9.1 2.7.6
 RUN pyenv rehash
 
 # Update Python 2's pip to match production (Jan 2020)
 RUN python2 -m pip install --upgrade --disable-pip-version-check pip==19.3.1
-# Use wheel to reduce Docker build time. Need this to be installed before the requirements.
-RUN python3 -m pip install --upgrade pip wheel==0.35.1
+# Install wheel before other requirements to reduce Docker build time.
+RUN python3.8 -m pip install --upgrade pip wheel
+RUN python3.9 -m pip install --upgrade pip wheel
 
 USER root
 # Add pyenv to root's bashrc as well
@@ -71,7 +75,8 @@ WORKDIR /openlibrary
 USER openlibrary
 COPY requirements*.txt ./
 RUN python2 -m pip install --disable-pip-version-check --default-timeout=100 -r requirements_common.txt
-RUN python3 -m pip install --default-timeout=100 -r requirements_common.txt
+RUN python3.8 -m pip install --default-timeout=100 -r requirements_common.txt
+RUN python3.9 -m pip install --default-timeout=100 -r requirements_common.txt
 
 COPY package*.json ./
 RUN npm ci
@@ -81,6 +86,7 @@ COPY --chown=openlibrary:openlibrary . /openlibrary
 RUN ln -s vendor/infogami/infogami infogami
 # run make to initialize git submodules, build css and js files
 RUN make
+RUN python3.9 -m pip list --outdated
 
 # Expose Open Library and Infobase
 EXPOSE 80 7000

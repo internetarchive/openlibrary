@@ -1,6 +1,5 @@
 from __future__ import print_function
 import MySQLdb
-import datetime
 import re
 import sys
 sys.path.append('/1/src/openlibrary')

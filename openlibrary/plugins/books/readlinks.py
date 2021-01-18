@@ -5,14 +5,13 @@ editions of the same work that might be available.
 from __future__ import print_function
 import sys
 import re
+import requests
 
-from six.moves import urllib
 import web
 from openlibrary.core import ia
 from openlibrary.core import helpers
 from openlibrary.api import OpenLibrary
 from openlibrary.plugins.books import dynlinks
-from infogami.infobase import _json as simplejson
 from infogami.utils.delegate import register_exception
 from infogami.utils import stats
 from infogami import config
@@ -44,10 +43,9 @@ def get_work_iaids(wkey):
     q = 'key:' + wkey
     stats.begin('solr', url=wkey)
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json&fq=type:work" % (q, filter)
-    json_data = urllib.request.urlopen(solr_select).read()
+    reply = requests.get(solr_select).json()
     stats.end()
-    print(json_data)
-    reply = simplejson.loads(json_data)
+    print(reply)
     if reply['response']['numFound'] == 0:
         return []
     return reply["response"]['docs'][0].get(filter, [])
@@ -59,8 +57,7 @@ def get_works_iaids(wkeys):
     filter = 'ia'
     q = '+OR+'.join(['key:' + wkey for wkey in wkeys])
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json&fq=type:work" % (q, filter)
-    json_data = urllib.request.urlopen(solr_select).read()
-    reply = simplejson.loads(json_data)
+    reply = requests.get(solr_select).json()
     if reply['response']['numFound'] == 0:
         return []
     return reply
@@ -73,8 +70,7 @@ def get_eids_for_wids(wids):
     filter = 'edition_key'
     q = '+OR+'.join(wids)
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json&fq=type:work" % (q, filter)
-    json_data = urllib.request.urlopen(solr_select).read()
-    reply = simplejson.loads(json_data)
+    reply = requests.get(solr_select).json()
     if reply['response']['numFound'] == 0:
         return []
     rows = reply['response']['docs']
@@ -87,8 +83,7 @@ def get_solr_edition_records(iaids):
     filter = 'title'
     q = '+OR+'.join('ia:' + id for id in iaids)
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json" % (q, filter)
-    json_data = urllib.request.urlopen(solr_select).read()
-    reply = simplejson.loads(json_data)
+    reply = requests.get(solr_select).json()
     if reply['response']['numFound'] == 0:
         return []
     rows = reply['response']['docs']

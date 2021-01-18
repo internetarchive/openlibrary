@@ -81,7 +81,8 @@ class OL:
     def _mock_sendmail(self, request):
         self.sentmail = None
 
-        def sendmail(from_address, to_address, subject, message, headers={}, **kw):
+        def sendmail(from_address, to_address, subject, message, headers=None, **kw):
+            headers = headers or {}
             self.sentmail = EMail(kw,
                 from_address=from_address,
                 to_address=to_address,

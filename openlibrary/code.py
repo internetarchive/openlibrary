@@ -34,7 +34,7 @@ def setup():
 
     # load actions
     from . import actions
-
+    
     logger.info("loading complete.")
 
 def setup_logging():

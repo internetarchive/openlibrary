@@ -456,7 +456,7 @@ msgstr "Género"
 
 #: view.html:330
 msgid "Other Titles"
-msgstr "Otros titulos"
+msgstr "Otros títulos"
 
 #: view.html:331
 msgid "Copyright Date"
@@ -550,11 +550,11 @@ msgstr "Listas"
 
 #: embed.html:41 view.html:165
 msgid "Unknown authors"
-msgstr "Autores desconocido"
+msgstr "Autores desconocidos"
 
 #: embed.html:67
 msgid "Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page"
-msgstr "Abrir en Book Reader. en lína. Descargas disponibles en formatos ePub, DAISY, PDF, TXT desde la página principal del libro"
+msgstr "Abrir en Book Reader en línea. Descargas disponibles en formatos ePub, DAISY, PDF, TXT desde la página principal del libro"
 
 #: custom_carousel.html:47 custom_carousel.html:52 editions_datatable.html:23
 #: embed.html:69 openlibrary/macros/ReadButton.html:13
@@ -673,7 +673,7 @@ msgid "Remove Seed"
 msgstr "Quitar elemento"
 
 #: view.html:158
-msgid "You are about the remove the last item in the list. That will delete the whole list. Are you sure you want to continue?"
+msgid "You are about to remove the last item in the list. That will delete the whole list. Are you sure you want to continue?"
 msgstr "Estás a punto de quitar el último elemento de la lista. Eso borrará toda la lista. ¿Estás seguro de que quieres continuar?"
 
 #: view.html:220
@@ -685,7 +685,7 @@ msgstr[1] "- <a href=\"%(url)s\">%(count)s ediciones</a> en catálogo"
 
 #: view.html:228
 msgid "Download DAISY eBook for print disabled"
-msgstr "Descargar libro electrónico DAISY para discapacidad de lectura"
+msgstr "Descargar libro electrónico DAISY con la posibilidad de impresión desactivada"
 
 #: view.html:232
 #, python-format
@@ -1050,7 +1050,7 @@ msgstr "Devolver vía<br/>Adobe Digital Editions"
 
 #: borrow.html:140
 msgid "How To Return eBooks through Adobe Digital Editions"
-msgstr "Cómo devolver libros electrónicos a través Adobe Digital Editions"
+msgstr "Cómo devolver libros electrónicos a través de Adobe Digital Editions"
 
 #: borrow.html:142
 msgid "Open Adobe Digital Editions"
@@ -2273,7 +2273,7 @@ msgstr "Las marcas de formato deben envolver el texto afectado, por ejemplo:"
 
 #: markdown.html:76
 msgid "To \"escape\" any Markdown tags (i.e. use an asterisk as an asterisk rather than emphasizing text) place a backslash \\ prior to the character."
-msgstr "Para «escapar» de cualquier etiqueta Markdown (es decir, para usar un asterisco como asterisco en lugar de para enfatizar el texto) coloca una barra invertida \\ antes del carácter."
+msgstr "Para «escapar» de cualquier etiqueta Markdown (es decir, para usar un asterisco como asterisco en lugar de enfatizar el texto) coloca una barra invertida \\ antes del carácter."
 
 #: nav_foot.html:13
 msgid "Vision"
@@ -2644,7 +2644,7 @@ msgstr "¡Disfruta!"
 #: home.html:20
 #, python-format
 msgid "For the top 2000+ most requested eBooks in California for the print disabled <a href=\"%(url)s\">click here</a>."
-msgstr "Para los más de 2 000 libros electrónicos más solicitados en California para discapacidad de lectura, <a href=\"%(url)s\">haz clic aquí</a>."
+msgstr "Para los más de 2 000 libros electrónicos más solicitados en California con la posibilidad de impresión deshabilitada, <a href=\"%(url)s\">haz clic aquí</a>."
 
 #: home.html:24
 msgid "Find a list by name"
@@ -3339,7 +3339,7 @@ msgstr "Aprende más"
 
 #: openlibrary/templates/widget.html:50
 msgid "on "
-msgstr "en"
+msgstr "en "
 
 #: openlibrary/templates/work_search.html:108
 #: openlibrary/templates/work_search.html:110
@@ -3370,7 +3370,7 @@ msgstr "Libros electrónicos"
 
 #: openlibrary/templates/work_search.html:146
 msgid "Print Disabled"
-msgstr "Discapacidad de lectura"
+msgstr "Impresión deshabilitada"
 
 #: openlibrary/templates/work_search.html:162
 msgid "eBook"
@@ -3560,7 +3560,7 @@ msgstr "MOBI"
 
 #: openlibrary/macros/DownloadOptions.html:27
 msgid "Download open DAISY from Internet Archive (print-disabled format)"
-msgstr "Descargar DAISY abierto de Internet Archive (formato para discapacidad de lectura)"
+msgstr "Descargar DAISY abierto de Internet Archive (formato con la impresión desactivada)"
 
 #: openlibrary/macros/EditButtons.html:9
 msgid "Please, leave a short note about what you changed:"

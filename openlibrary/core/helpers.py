@@ -2,7 +2,7 @@
 """
 import web
 from datetime import datetime
-import simplejson
+import json
 import re
 
 from six.moves.urllib.parse import urlsplit
@@ -32,13 +32,13 @@ from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
 
 # TODO: i18n should be moved to core or infogami
-from openlibrary.i18n import gettext as _
+from openlibrary.i18n import gettext as _  # noqa: F401
 
 __all__ = [
     "sanitize",
     "json_encode",
     "safesort",
-    "datestr", "format_date",
+    "days_since", "datestr", "format_date",
     "sprintf", "cond", "commify", "truncate", "datetimestr_utc",
     "urlsafe", "texsafe",
     "percentage", "affiliate_id", "bookreader_host",
@@ -96,9 +96,9 @@ def sanitize(html, encoding='utf8'):
 
 
 def json_encode(d, **kw):
-    """Same as simplejson.dumps.
+    """Same as json.dumps.
     """
-    return simplejson.dumps(d, **kw)
+    return json.dumps(d, **kw)
 
 
 def safesort(iterable, key=None, reverse=False):
@@ -113,6 +113,12 @@ def safesort(iterable, key=None, reverse=False):
         k = key(x)
         return (k.__class__.__name__, k)
     return sorted(iterable, key=safekey, reverse=reverse)
+
+
+def days_since(then, now=None):
+    delta = then - (now or datetime.now())
+    return abs(delta.days)
+
 
 def datestr(then, now=None, lang=None, relative=True):
     """Internationalized version of web.datestr."""

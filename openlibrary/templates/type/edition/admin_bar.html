@@ -1,6 +1,6 @@
 $def with (work=None, edition=None, ocaid=None)
 
-$ work_id = work and work.key.split('/')[2]
+$ work_id = work and work.key and work.key.split('/')[2]
 $ edition_id = edition and edition.key.split('/')[2]
 
   <!-- Don't need to translate admin only buttons (at least initially)-->

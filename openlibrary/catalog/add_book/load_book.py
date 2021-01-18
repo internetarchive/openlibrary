@@ -1,5 +1,4 @@
 import web
-import re
 from openlibrary.catalog.utils import flip_name, author_dates_match, key_int
 
 

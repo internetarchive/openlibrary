@@ -2,7 +2,12 @@ $def with (page)
 
 <header id="header-bar" class="header-bar">
   <div class="hamburger-component">
-    <button type="button" class="hamburger-button"><img src="/static/images/menu.png" alt="additional options menu"/></button>
+
+    <label role="button" for="toggle-hamburger" class="hamburger-button">
+      <img src="/static/images/menu.png" alt="additional options menu"/>
+    </label>
+
+    <input type="checkbox" class="hamburger-component__checkbox" id="toggle-hamburger">
     <div class="hamburger-dropdown-component navigation-dropdown-component">
       <ul class="dropdown-menu hamburger-dropdown-menu">
         $if not ctx.user:
@@ -22,7 +27,7 @@ $def with (page)
     <a href="/" title="The Internet Archive's Open Library: One page for every book">
       <div class="logo-txt">
         <img class="logo-icon" src="/static/images/openlibrary-logo-tighter.svg"
-          width="194" height="47"
+          width="189" height="47"
           alt="Open Library logo"/>
       </div>
     </a>
@@ -46,8 +51,8 @@ $def with (page)
           </label>
         </div>
         <form class="search-bar-input" action="/search" method="get">
-          <input type="text" name="q" placeholder="$_('Search')" autocomplete="off">
-          <input name="mode" type="checkbox" aria-hidden="true" checked="checked" value="" id="ftokenstop" class="hidden instantsearch-mode">
+          <input type="text" name="q" placeholder="$_('Search')" aria-label="Search" autocomplete="off">
+          <input name="mode" type="checkbox" aria-hidden="true" aria-label="Search checkbox" checked="checked" value="" id="ftokenstop" class="hidden instantsearch-mode">
           <input type="submit" value="" class="search-bar-submit" aria-label="Search submit">
         </form>
       </div>
@@ -60,8 +65,7 @@ $def with (page)
 
   <ul class="navigation-component">
     <li class="browse-menu">
-      <a>$_('Browse') <img class="down-arrow"
-        width="7" height="4" aria-hidden="true" alt="$_('Browse')" role="presentation" src="/static/images/down-arrow.png"/></a>
+      <a>$_('Browse') <img class="down-arrow" width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/></a>
       <div class="navigation-dropdown-component">
         <ul class="dropdown-menu browse-menu-options">
           <li><a href="/subjects">$_("Subjects")</a></li>
@@ -72,21 +76,9 @@ $def with (page)
         </ul>
       </div>
     </li>
-    <li class="my-books-menu">
-      <a>$_('My Books') <img class="down-arrow"
-        width="7" height="4" aria-hidden="true" alt="$_('My Books')" role="presentation" src="/static/images/down-arrow.png"/></a>
-      <div class="navigation-dropdown-component">
-        <ul class="dropdown-menu my-books-menu-options">
-          <li><a href="/account/loans">$_("My Loans")</a></li>
-          <li><a href="/account/books">$_("My Reading Log")</a></li>
-          <li><a href="/account/books/already-read/stats">$_("My Reading Stats")</a></li>
-          <li><a href="/account/lists">$_("My Lists")</a></li>
-        </ul>
-      </div>
-    </li>
     <li class="more-menu">
       <a>$_('More') <img class="down-arrow"
-        width="7" height="4" aria-hidden="true" alt="$_('More')" role="presentation" src="/static/images/down-arrow.png"/></a>
+        width="7" height="4" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
       <div class="navigation-dropdown-component">
         <ul class="dropdown-menu more-menu-options">
           <li><a href="/books/add">$_("Add a Book")</a></li>
@@ -111,13 +103,15 @@ $def with (page)
     <div class="account-component">
       <div class="dropdown-avatar">
         <button class="avatar" id="userToggle" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');"></button>
-        <img class="down-arrow" aria-hidden="true" alt="$_('My Account')" role="presentation" src="/static/images/down-arrow.png"/>
+        <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" role="presentation" alt=""/>
       </div>
       <div class="account-dropdown navigation-dropdown-component" id="main-account-dropdown">
         <ul class="dropdown-menu">
+          <li><a href="$ctx.user.key">$_("My Profile")</a></li>
           <li><a href="$homepath()/account/loans">$_("My Loans")</a></li>
           <li><a href="$ctx.user.key/lists">$_("My Lists")</a></li>
-          <li><a href="$ctx.user.key">$_("My Profile")</a></li>
+          <li><a href="/account/books">$_("My Reading Log")</a></li>
+          <li><a href="/account/books/already-read/stats">$_("My Reading Stats")</a></li>
           <li><a href="$homepath()/account">$_("Settings")</a></li>
           <li>
             <form name="logout" action="/account/logout" method="post">

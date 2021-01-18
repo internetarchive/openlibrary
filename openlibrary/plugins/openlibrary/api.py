@@ -6,7 +6,7 @@ its experience. This does not include public facing APIs with LTS
 
 import web
 import re
-import simplejson
+import json
 
 from infogami import config
 from infogami.utils import delegate
@@ -33,16 +33,16 @@ class book_availability(delegate.page):
         id_type = i.type
         ids = i.ids.split(',')
         result = self.get_book_availability(id_type, ids)
-        return delegate.RawText(simplejson.dumps(result),
+        return delegate.RawText(json.dumps(result),
                                 content_type="application/json")
 
     def POST(self):
         i = web.input(type='')
-        j = simplejson.loads(web.data())
+        j = json.loads(web.data())
         id_type = i.type
         ids = j.get('ids', [])
         result = self.get_book_availability(id_type, ids)
-        return delegate.RawText(simplejson.dumps(result),
+        return delegate.RawText(json.dumps(result),
                                 content_type="application/json")
 
     def get_book_availability(self, id_type, ids):
@@ -69,12 +69,13 @@ class browse(delegate.page):
         url = lending.compose_ia_url(
             query=i.q, limit=limit, page=page, subject=i.subject,
             work_id=i.work_id, _type=i._type, sorts=sorts)
+        works = lending.get_available(url=url) if url else []
         result = {
             'query': url,
-            'works': [work.dict() for work in lending.get_available(url=url)],
+            'works': [work.dict() for work in works],
         }
         return delegate.RawText(
-            simplejson.dumps(result),
+            json.dumps(result),
             content_type="application/json")
 
 
@@ -95,7 +96,7 @@ class ratings(delegate.page):
         username = user.key.split('/')[2]
 
         def response(msg, status="success"):
-            return delegate.RawText(simplejson.dumps({
+            return delegate.RawText(json.dumps({
                 status: msg
             }), content_type="application/json")
 
@@ -136,18 +137,18 @@ class work_bookshelves(delegate.page):
         for (shelf_name, shelf_id) in Bookshelves.PRESET_BOOKSHELVES_JSON.items():
             result['counts'][shelf_name] = counts.get(shelf_id, 0)
 
-        return simplejson.dumps(result)
+        return json.dumps(result)
 
     def POST(self, work_id):
         """
         Add a work (or a work and an edition) to a bookshelf.
-        
+
         GET params:
         - edition_id str (optional)
         - action str: e.g. "add", "remove"
         - redir bool: if patron not logged in, redirect back to page after login
         - bookshelf_id int: which bookshelf? e.g. the ID for "want to read"?
-        - dont_remove bool: if book exists & action== "add", don't try removal  
+        - dont_remove bool: if book exists & action== "add", don't try removal
 
         :param str work_id: e.g. OL123W
         :rtype: json
@@ -170,8 +171,8 @@ class work_bookshelves(delegate.page):
             shelf_ids = Bookshelves.PRESET_BOOKSHELVES.values()
             if bookshelf_id != -1 and bookshelf_id not in shelf_ids:
                 raise ValueError
-        except ValueError:
-            return delegate.RawText(simplejson.dumps({
+        except (TypeError, ValueError):
+            return delegate.RawText(json.dumps({
                 'error': 'Invalid bookshelf'
             }), content_type="application/json")
 
@@ -187,7 +188,7 @@ class work_bookshelves(delegate.page):
 
         if i.redir:
             raise web.seeother(key)
-        return delegate.RawText(simplejson.dumps({
+        return delegate.RawText(json.dumps({
             'bookshelves_affected': work_bookshelf
         }), content_type="application/json")
 
@@ -206,7 +207,7 @@ class work_editions(delegate.page):
             offset = h.safeint(i.offset) or 0
 
             data = self.get_editions_data(doc, limit=limit, offset=offset)
-            return delegate.RawText(simplejson.dumps(data), content_type="application/json")
+            return delegate.RawText(json.dumps(data), content_type="application/json")
 
     def get_editions_data(self, work, limit, offset):
         if limit > 1000:
@@ -248,7 +249,7 @@ class author_works(delegate.page):
             offset = h.safeint(i.offset) or 0
 
             data = self.get_works_data(doc, limit=limit, offset=offset)
-            return delegate.RawText(simplejson.dumps(data), content_type="application/json")
+            return delegate.RawText(json.dumps(data), content_type="application/json")
 
     def get_works_data(self, author, limit, offset):
         if limit > 1000:
@@ -298,45 +299,30 @@ class amazon_search_api(delegate.page):
             return web.HTTPError('403 Forbidden')
         i = web.input(title='', author='')
         if not (i.author or i.title):
-            return simplejson.dumps({
+            return json.dumps({
                 'error': 'author or title required'
             })
         results = search_amazon(title=i.title, author=i.author)
-        return simplejson.dumps(results)
+        return json.dumps(results)
 
-class join_sponsorship_waitlist(delegate.page):
-    path = r'/sponsorship/join'
-
-    def GET(self):
-        user = accounts.get_current_user()
-        if user:
-            account = OpenLibraryAccount.get_by_email(user.email)
-            ia_itemname = account.itemname if account else None
-        if not user or not ia_itemname:
-            web.setcookie(config.login_cookie_name, "", expires=-1)
-            raise web.seeother("/account/login?redirect=/sponsorship/join")
-        try:
-            with accounts.RunAs('archive_support'):
-                models.UserGroup.from_key('sponsors-waitlist').add_user(user.key)
-        except KeyError as e:
-            add_flash_message('error', 'Unable to join waitlist: %s' % e.message)
-
-        raise web.seeother('/sponsorship')
 
 class sponsorship_eligibility_check(delegate.page):
     path = r'/sponsorship/eligibility/(.*)'
 
     @jsonapi
     def GET(self, _id):
+        i = web.input(patron=None, scan_only=False)
         edition = (
             web.ctx.site.get('/books/%s' % _id)
             if re.match(r'OL[0-9]+M', _id)
             else models.Edition.from_isbn(_id)
-            
+
         )
         if not edition:
-            return simplejson.dumps({"status": "error", "reason": "Invalid ISBN 13"})
-        return simplejson.dumps(qualifies_for_sponsorship(edition))
+            return json.dumps({"status": "error", "reason": "Invalid ISBN 13"})
+        return json.dumps(
+            qualifies_for_sponsorship(edition, scan_only=i.scan_only, patron=i.patron)
+        )
 
 
 class price_api(delegate.page):
@@ -346,7 +332,7 @@ class price_api(delegate.page):
     def GET(self):
         i = web.input(isbn='', asin='')
         if not (i.isbn or i.asin):
-            return simplejson.dumps({
+            return json.dumps({
                 'error': 'isbn or asin required'
             })
         id_ = i.asin if i.asin else normalize_isbn(i.isbn)
@@ -386,4 +372,4 @@ class price_api(delegate.page):
                 if getattr(ed, 'ocaid'):
                     metadata['ocaid'] = ed.ocaid
 
-        return simplejson.dumps(metadata)
+        return json.dumps(metadata)

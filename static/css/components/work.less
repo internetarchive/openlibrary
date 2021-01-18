@@ -29,11 +29,6 @@
 // Center (editionAbout)
 div.editionAbout {
   margin-bottom: 20px;
-  h3 {
-    font-size: 14px;
-    margin: 0 0 0em;
-  }
-
   p {
     margin: 1em 0;
     font-size: 13px;
@@ -89,11 +84,16 @@ vertical-align: middle;
 
 .restricted-height{
   overflow: hidden;
-  height: 50px;
+  height: 57px;
 }
 
 .section, .section h6 {
   font-size: .8em;
+}
+
+h3.edition-header {
+  font-size: 14px;
+  margin: 0 0 0em;
 }
 
 h2.edition-byline {
@@ -134,7 +134,7 @@ h2.edition-byline {
     top: 0px;
     display: block;
     background: @white;
-    z-index: 999;
+    z-index: @z-index-level-4;
     padding-top: 10px;
   }
 }
@@ -242,7 +242,7 @@ div.editionTools {
   }
 }
 
-.print-disabled-download {
+.print-disabled-download, .patron-metadata {
   text-align: center;
   padding: 7px 0 0 0;
 }

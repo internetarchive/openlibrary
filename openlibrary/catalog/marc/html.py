@@ -32,6 +32,7 @@ class html_record():
         return ''.join(encode[k](v) for k, v in split_line(line[2:-1]))
 
     def html_line(self, tag, line):
+        tag = tag.decode('utf-8')
         if tag.startswith('00'):
             s = esc_sp(line[:-1].decode('utf-8', errors='replace'))
         else:

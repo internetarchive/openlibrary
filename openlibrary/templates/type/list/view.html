@@ -12,6 +12,8 @@ $if list.description:
 $var title: $list.name
 
 $putctx("description", meta_description)
+$if days_since(list.created) < 30:
+  $ putctx('robots', 'noindex')
 
 $add_metatag(property="twitter:card", content="summary")
 $add_metatag(property="twitter:site", content="@openlibrary")
@@ -27,7 +29,7 @@ $add_metatag(property="og:description", content=meta_description)
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
 $jsdef render_seed_count(seed_count):
-    $ungettext("1 seed", "%(count)d seeds", seed_count, count=seed_count)
+    $ungettext("1 item", "%(count)d items", seed_count, count=seed_count)
 
 <div id="contentHead" style="margin-bottom:0;">
 
@@ -100,7 +102,7 @@ window.q.push(function(){
         modal: true,
         resizable: false,
         buttons: {
-            "$_('Yes, I\'m sure')": function() {
+            "$:_('Yes, I\'m sure')": function() {
                 var list_key = $:json_encode(list.key);
                 var seed_id = "#" + \$(this).data("seed-id");
                 var seed = \$(seed_id).find("span.seed-key").html();
@@ -131,7 +133,7 @@ window.q.push(function(){
         modal: true,
         resizable: false,
         buttons: {
-            "$_('Yes, I\'m sure')": function() {
+            "$:_('Yes, I\'m sure')": function() {
                 var list_key = $:json_encode(list.key);
                 var _this = this;
 
@@ -153,7 +155,7 @@ window.q.push(function(){
 <div id="contentBody">
     <div id="remove-seed-dialog" class="hidden" title="$_('Remove seed')">$_('Are you sure you want to remove this item from the list?')</div>
     <div id="delete-list-dialog" class="hidden" title="$_('Remove Seed')">
-        $_('You are about the remove the last item in the list. That will delete the whole list. Are you sure you want to continue?')
+        $_('You are about to remove the last item in the list. That will delete the whole list. Are you sure you want to continue?')
     </div>
 
     $def render_authors(authors):

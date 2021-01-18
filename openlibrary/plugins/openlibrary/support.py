@@ -1,4 +1,3 @@
-import datetime
 import hashlib
 
 import web
@@ -25,10 +24,8 @@ class contact(delegate.page):
         hashed_ip = hashlib.md5(web.ctx.ip.encode('utf-8')).hexdigest()
         has_emailed_recently = get_memcache().get('contact-POST-%s' % hashed_ip)
         recaptcha = has_emailed_recently and get_recaptcha()
-        template = render_template("support", email=email, url=i.path,
+        return render_template("support", email=email, url=i.path,
                                    recaptcha=recaptcha)
-        template.v2 = True
-        return template
 
     def POST(self):
         form = web.input()

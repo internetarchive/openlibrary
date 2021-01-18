@@ -26,10 +26,8 @@ import logging
 
 from six.moves import urllib
 
-
 MARC_LENGTH_POS = 5
 logger = logging.getLogger('openlibrary.importapi')
-
 
 
 class DataError(ValueError):
@@ -55,17 +53,21 @@ def parse_meta_headers(edition_builder):
             meta_key = m.group(1).lower()
             edition_builder.add(meta_key, v, restrict_keys=False)
 
+
 def parse_data(data):
     """
     Takes POSTed data and determines the format, and returns an Edition record
     suitable for adding to OL.
 
-    :param str data: Raw data
+    :param bytes data: Raw data
     :rtype: (dict|None, str|None)
     :return: (Edition record, format (rdf|opds|marcxml|json|marc)) or (None, None)
+
+    from typing import Dict, Optional, Tuple
+    def parse_data(data: bytes) -> Tuple[Optional[Dict], Optional[str]]:
     """
     data = data.strip()
-    if -1 != data[:10].find('<?xml'):
+    if b'<?xml' in data[:10]:
         root = etree.fromstring(data)
         if '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF' == root.tag:
             edition_builder = import_rdf.parse(root)
@@ -455,11 +457,16 @@ class ils_search:
         d = json.dumps({ "status" : "error", "reason" : reason})
         return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-Type": "application/json"}, d)
 
-    def login(self, authstring):
-        if not authstring:
+    def login(self, auth_str):
+        if not auth_str:
             return
-        authstring = authstring.replace("Basic ","")
-        username, password = base64.decodestring(authstring).split(':')
+        auth_str = auth_str.replace("Basic ", "")
+        try:
+            auth_str = base64.decodebytes(bytes(auth_str, 'utf-8'))
+            auth_str = auth_str.decode('utf-8')
+        except AttributeError:
+            auth_str = base64.decodestring(auth_str)
+        username, password = auth_str.split(':')
         accounts.login(username, password)
 
     def prepare_input_data(self, rawdata):
@@ -599,11 +606,16 @@ class ils_cover_upload:
         else:
             return url + "?" + urllib.parse.urlencode(params)
 
-    def login(self, authstring):
-        if not authstring:
+    def login(self, auth_str):
+        if not auth_str:
             raise self.auth_failed("No credentials provided")
-        authstring = authstring.replace("Basic ","")
-        username, password = base64.decodestring(authstring).split(':')
+        auth_str = auth_str.replace("Basic ", "")
+        try:
+            auth_str = base64.decodebytes(bytes(auth_str, 'utf-8'))
+            auth_str = auth_str.decode('utf-8')
+        except AttributeError:
+            auth_str = base64.decodestring(auth_str)
+        username, password = auth_str.split(':')
         accounts.login(username, password)
 
     def POST(self):

@@ -41,7 +41,7 @@ $var title: $_('Lists')
                     <a href="$list.key" class="title results">$:_('%(listname)s </a> from <a href="%(key)s">%(owner)s</a>', key=owner.key, listname=list.name, owner=owner.displayname)
                 </div>
                 <div class="meta">
-                    $ msg = ungettext("1 seed", "%(count)d seeds", len(list.seeds))
+                    $ msg = ungettext("1 item", "%(count)d items", len(list.seeds))
                     $sprintf(msg, count=len(list.seeds))
                     | $_('Last modified %(date)s', date=datestr(list.last_modified))
                 </div>

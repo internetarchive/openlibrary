@@ -1,19 +1,18 @@
 import logging
 import re
 import requests
-import simplejson
 import time
 from dateutil import parser as isoparser
-from decimal import Decimal
 
 from paapi5_python_sdk.api.default_api import DefaultApi
 from paapi5_python_sdk.get_items_request import GetItemsRequest
 from paapi5_python_sdk.get_items_resource import GetItemsResource
+from paapi5_python_sdk.search_items_request import SearchItemsRequest
 from paapi5_python_sdk.partner_type import PartnerType
 from paapi5_python_sdk.rest import ApiException
 
 from infogami.utils.view import public
-from openlibrary.core import lending, cache, helpers as h
+from openlibrary.core import cache, helpers as h
 from openlibrary.utils import dateutil
 from openlibrary.utils.isbn import (
     normalize_isbn, isbn_13_to_isbn_10, isbn_10_to_isbn_13)
@@ -23,27 +22,18 @@ from openlibrary import accounts
 
 logger = logging.getLogger("openlibrary.vendors")
 
-amazon_api = None
-config_amz_api = None
-
 BETTERWORLDBOOKS_BASE_URL = 'https://betterworldbooks.com'
 BETTERWORLDBOOKS_API_URL = ('https://products.betterworldbooks.com/service.aspx?'
                             'IncludeAmazon=True&ItemId=')
+affiliate_server_url = None
 BWB_AFFILIATE_LINK = 'http://www.anrdoezrs.net/links/{}/type/dlg/http://www.betterworldbooks.com/-id-%s'.format(h.affiliate_id('betterworldbooks'))
 AMAZON_FULL_DATE_RE = re.compile(r'\d{4}-\d\d-\d\d')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 
 
 def setup(config):
-    global config_amz_api, amazon_api
-    config_amz_api = config.get('amazon_api')
-    try:
-        amazon_api = AmazonAPI(
-            config_amz_api.key, config_amz_api.secret,
-            config_amz_api.id, throttling=0.9)
-    except AttributeError:
-        amazon_api = None
-
+    global affiliate_server_url
+    affiliate_server_url = config.get('affiliate_server')
 
 class AmazonAPI:
     """Amazon Product Advertising API 5.0 wrapper for Python"""
@@ -94,6 +84,16 @@ class AmazonAPI:
             host=host,
             region=region)
 
+    def search(self, keywords):
+        """Adding method to test amz searches from the CLI, unused otherwise"""
+        return self.api.search_items(
+            SearchItemsRequest(
+                partner_tag=self.tag,
+                partner_type=PartnerType.ASSOCIATES,
+                keywords=keywords,
+            )
+        )
+
     def get_product(self, asin, serialize=False, **kwargs):
         products = self.get_products([asin], **kwargs)
         if products:
@@ -126,10 +126,11 @@ class AmazonAPI:
                          exc_info=True)
             return None
         response = self.api.get_items(request)
-        products = response.items_result.items
+        products = [
+            p for p in response.items_result.items if p
+        ] if response.items_result else []
         return (products if not serialize else
                 [self.serialize(p) for p in products])
-
 
     @staticmethod
     def serialize(product):
@@ -192,6 +193,7 @@ class AmazonAPI:
                 edition_info.publication_date.display_value
             ).strftime('%b %d, %Y')
         except Exception:
+            logger.exception("serialize({})".format(product))
             publish_date = None
 
         book = {
@@ -260,16 +262,20 @@ def _get_amazon_metadata(id_, id_type='isbn', resources=None):
     :return: A single book item's metadata, or None.
     :rtype: dict or None
     """
+    if not affiliate_server_url:
+        return None
+
     if id_type == 'isbn':
         id_ = normalize_isbn(id_)
         if len(id_) == 13 and id_.startswith('978'):
             id_ = isbn_13_to_isbn_10(id_)
 
-    if amazon_api:
-        try:
-            return amazon_api.get_product(id_, serialize=True, resources=resources)
-        except Exception:
-            return None
+    try:
+        r = requests.get('http://%s/isbn/%s' % (affiliate_server_url, id_))
+        return r.json().get('hit') or None
+    except requests.exceptions.ConnectionError:
+        logger.exception("Affiliate Server unreachable")
+        return None
 
 
 def split_amazon_title(full_title):
@@ -384,6 +390,7 @@ def get_betterworldbooks_metadata(isbn):
     try:
         return _get_betterworldbooks_metadata(isbn)
     except Exception:
+        logger.exception("_get_betterworldbooks_metadata({})".format(isbn))
         return betterworldbooks_fmt(isbn)
 
 
@@ -400,7 +407,7 @@ def _get_betterworldbooks_metadata(isbn):
     response = requests.get(url)
     if response.status_code != requests.codes.ok:
         return {'error': response.text, 'code': response.status_code}
-    response = response.content
+    response = response.text
     new_qty = re.findall("<TotalNew>([0-9]+)</TotalNew>", response)
     new_price = re.findall(r"<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
     used_price = re.findall(r"<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)

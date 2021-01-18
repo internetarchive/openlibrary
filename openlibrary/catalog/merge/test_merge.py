@@ -2,7 +2,6 @@ import pytest
 
 from openlibrary.catalog.merge.merge import (
         attempt_merge,
-        compare_authors, compare_publisher,
         full_title, build_titles, compare_title)
 
 """ These tests seem to be duplicates of those in test_amazon.py,

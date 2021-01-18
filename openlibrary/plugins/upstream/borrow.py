@@ -3,9 +3,12 @@
 import copy
 import datetime
 import time
+import hashlib
 import hmac
 import re
-import simplejson
+import requests
+import json
+import six
 import logging
 
 import web
@@ -225,7 +228,7 @@ class borrow_status(delegate.page):
                 'lending_subjects': [lending_subject for lending_subject in subjects]
         }
 
-        output_text = simplejson.dumps( output )
+        output_text = json.dumps( output )
 
         content_type = "application/json"
         if i.callback:
@@ -320,7 +323,7 @@ class ia_loan_status(delegate.page):
 
     def GET(self, itemid):
         d = get_borrow_status(itemid, include_resources=False, include_ia=False)
-        return delegate.RawText(simplejson.dumps(d), content_type="application/json")
+        return delegate.RawText(json.dumps(d), content_type="application/json")
 
 @public
 def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=None):
@@ -384,7 +387,7 @@ class ia_auth(delegate.page):
         # check that identifier is valid
 
         user = accounts.get_current_user()
-        auth_json = simplejson.dumps(
+        auth_json = json.dumps(
             get_ia_auth_dict(user, item_id, i.loan, i.token))
 
         output = auth_json
@@ -402,16 +405,16 @@ class borrow_receive_notification(delegate.page):
 
     def GET(self):
         web.header('Content-Type', 'application/json')
-        output = simplejson.dumps({'success': False, 'error': 'Only POST is supported'})
+        output = json.dumps({'success': False, 'error': 'Only POST is supported'})
         return delegate.RawText(output, content_type='application/json')
 
     def POST(self):
         data = web.data()
         try:
             notify_xml = etree.fromstring(data)
-            output = simplejson.dumps({'success': True})
+            output = json.dumps({'success': True})
         except Exception as e:
-            output = simplejson.dumps({'success': False, 'error': str(e)})
+            output = json.dumps({'success': False, 'error': str(e)})
         return delegate.RawText(output, content_type='application/json')
 
 
@@ -427,7 +430,7 @@ class ia_borrow_notify(delegate.page):
 
     def POST(self):
         payload = web.data()
-        d = simplejson.loads(payload)
+        d = json.loads(payload)
         identifier = d and d.get('identifier')
         if identifier:
             lending.sync_loan(identifier)
@@ -566,7 +569,7 @@ def get_loan_status(resource_id):
 
     url = '%s/is_loaned_out/%s' % (loanstatus_url, resource_id)
     try:
-        response = simplejson.loads(urllib.request.urlopen(url).read())
+        response = requests.get(url).json()
         if len(response) == 0:
             # No outstanding loans
             return None
@@ -593,8 +596,7 @@ def get_all_loaned_out():
 
     url = '%s/is_loaned_out/' % loanstatus_url
     try:
-        response = simplejson.loads(urllib.request.urlopen(url).read())
-        return response
+        return requests.get(url).json()
     except IOError:
         raise Exception('Loan status server not available')
 
@@ -843,6 +845,26 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
     }
 
 
+def ia_hash(token_data):
+    access_key = make_access_key()
+    if six.PY3:
+        return hmac.new(
+            access_key,
+            token_data.encode('utf-8'),
+            hashlib.md5
+        ).hexdigest()
+    return hmac.new(access_key, token_data).hexdigest()
+
+
+def make_access_key():
+    try:
+        access_key = config.ia_access_secret
+        return access_key if six.PY2 else access_key.encode('utf-8')
+    except AttributeError:
+        raise RuntimeError(
+            "config value config.ia_access_secret is not present -- check your config"
+        )
+
 def make_ia_token(item_id, expiry_seconds):
     """Make a key that allows a client to access the item on archive.org for the number of
        seconds from now.
@@ -851,22 +873,12 @@ def make_ia_token(item_id, expiry_seconds):
     # $hmac = hash_hmac('md5', "{$id}-{$timestamp}", configGetValue('ol-loan-secret'));
     # return "{$timestamp}-{$hmac}";
 
-    try:
-        access_key = config.ia_access_secret
-    except AttributeError:
-        raise Exception("config value config.ia_access_secret is not present -- check your config")
-
     timestamp = int(time.time() + expiry_seconds)
     token_data = '%s-%d' % (item_id, timestamp)
-
-    token = '%d-%s' % (timestamp, hmac.new(access_key, token_data).hexdigest())
+    token = '%d-%s' % (timestamp, ia_hash(token_data))
     return token
 
 def ia_token_is_current(item_id, access_token):
-    try:
-        access_key = config.ia_access_secret
-    except AttributeError:
-        raise Exception("config value config.ia_access_secret is not present -- check your config")
 
     # Check if token has expired
     try:
@@ -886,7 +898,7 @@ def ia_token_is_current(item_id, access_token):
         return False
 
     expected_data = '%s-%s' % (item_id, token_timestamp)
-    expected_hmac = hmac.new(access_key, expected_data).hexdigest()
+    expected_hmac = ia_hash(expected_data)
 
     if token_hmac == expected_hmac:
         return True

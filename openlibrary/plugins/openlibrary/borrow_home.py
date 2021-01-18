@@ -1,9 +1,8 @@
 """Controller for /borrow page.
 """
 
-import simplejson
+import json
 import web
-import random
 import datetime
 
 from infogami.plugins.api.code import jsonapi
@@ -63,7 +62,7 @@ class borrow(delegate.page):
                                       details=i.details.lower() == "true",
                                       inlibrary=False,
                                       **filters)
-        return simplejson.dumps(subject)
+        return json.dumps(subject)
 
 class read(delegate.page):
     path = "/read"
@@ -108,7 +107,7 @@ class read(delegate.page):
             limit=i.limit,
             details=i.details.lower() == "true",
             **filters)
-        return simplejson.dumps(subject)
+        return json.dumps(subject)
 
 class borrow_about(delegate.page):
     path = "/borrow/about"
@@ -238,7 +237,7 @@ def on_loan_completed_statsdb(loan):
     }
     old = statsdb.get_entry(key)
     if old:
-        olddata = simplejson.loads(old.json)
+        olddata = json.loads(old.json)
         d = dict(olddata, **d)
     statsdb.update_entry(key, d)
 

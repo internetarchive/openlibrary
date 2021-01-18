@@ -35,7 +35,6 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
         cleaned_string = instring.replace(r'\$', '')
         code = web.template.Template.generate_code(cleaned_string, fileobj.name)
         f = BytesIO(code.encode('utf-8')) # Babel wants bytes, not strings
-        f.name = fileobj.name
     except Exception as e:
         print('Failed to extract ' + fileobj.name + ':', repr(e), file=web.debug)
         return []

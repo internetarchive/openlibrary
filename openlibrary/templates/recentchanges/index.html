@@ -22,6 +22,7 @@ $def subnav():
         $ path = path.rsplit("/", 1)[0]
 
     $ nav_items = [
+    $     (path + "/edit-book", _("Books Edited")),
     $     (path + "/merge-authors", _("Author Merges")),
     $     (path + "/add-book", _("Books Added")),
     $     (path + "/add-cover", _("Covers Added")),

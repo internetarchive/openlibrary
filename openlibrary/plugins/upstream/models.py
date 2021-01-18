@@ -2,8 +2,8 @@ from __future__ import print_function
 
 import logging
 import re
+import requests
 import sys
-import simplejson
 import web
 
 from collections import defaultdict
@@ -28,7 +28,6 @@ from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
 import six
-from six.moves import urllib
 
 
 def follow_redirect(doc):
@@ -719,8 +718,7 @@ class Subject(client.Thing):
 
         try:
             url = '%s/b/query?cmd=ids&olid=%s' % (get_coverstore_url(), ",".join(olids))
-            data = urllib.request.urlopen(url).read()
-            cover_ids = simplejson.loads(data)
+            cover_ids = requests.get(url).json()
         except IOError as e:
             print('ERROR in getting cover_ids', str(e), file=web.debug)
             cover_ids = {}

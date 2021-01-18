@@ -1,6 +1,6 @@
 from py.test import config
 import web
-import simplejson
+import json
 
 import cookielib
 from six.moves import urllib
@@ -26,7 +26,8 @@ class RatingsAPI:
         self.opener.add_handler(
             urllib.request.HTTPCookieProcessor(self.cookiejar))
 
-    def urlopen(self, path, data=None, method=None, headers={}):
+    def urlopen(self, path, data=None, method=None, headers=None):
+        headers = headers or {}
         """url open with cookie support."""
         if not method:
             if data:
@@ -48,8 +49,8 @@ class RatingsAPI:
             "content-type": "application/json"
         }
         r = self.urlopen(
-                url, data=simplejson.dumps(data), headers=headers, method="POST")
-        return simplejson.loads(r.read())
+                url, data=json.dumps(data), headers=headers, method="POST")
+        return json.loads(r.read())
 
 
 def test_rating(config, monkeypatch):

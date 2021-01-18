@@ -3,7 +3,6 @@
 from infogami.utils import delegate, stats
 from infogami.utils.view import render_template, safeint
 import web
-import simplejson
 import logging
 
 from . import subjects
@@ -21,7 +20,7 @@ class publishers(subjects.subjects):
         key = key.replace("_", " ")
         page = subjects.get_subject(key, details=True)
 
-        if page.work_count == 0:
+        if not page or page.work_count == 0:
             web.ctx.status = "404 Not Found"
             return render_template('publishers/notfound.tmpl', key)
 

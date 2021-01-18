@@ -15,7 +15,7 @@ How to run:
 from __future__ import print_function
 import sys
 import web
-import simplejson
+import json
 import logging
 
 from infogami import config
@@ -180,7 +180,7 @@ def process(data):
 
 def read_events():
     for line in sys.stdin:
-        doc = simplejson.loads(line.strip())
+        doc = json.loads(line.strip())
         yield doc
 
 def read_events_from_db(keys=None, day=None):
@@ -193,7 +193,7 @@ def read_events_from_db(keys=None, day=None):
         last_updated = LoanStats().get_last_updated()
         result = get_db().query("SELECT key, json FROM stats WHERE updated > $last_updated ORDER BY updated limit 10000", vars=locals())
     for row in result.list():
-        doc = simplejson.loads(row.json)
+        doc = json.loads(row.json)
         doc['key'] = row.key
         yield doc
 
@@ -233,7 +233,7 @@ def main(*args):
         for e in docs:
             try:
                 result = process(e['doc'])
-                print(simplejson.dumps(result))
+                print(json.dumps(result))
             except Exception:
                 logger.error("Failed to process %s", e['doc']['_id'], exc_info=True)
 

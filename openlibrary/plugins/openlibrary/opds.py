@@ -53,14 +53,16 @@ class OPDS():
 
     # add()
     #___________________________________________________________________________
-    def add(self, name, value, attrs={}):
+    def add(self, name, value, attrs=None):
+        attrs = attrs or {}
         element = self.create_text_element(self.root, name, value)
         for a in attrs:
             element.attrib[a] = attrs[a]
 
     # add_list()
     #___________________________________________________________________________
-    def add_list(self, name, values, prefix='', attrs={}):
+    def add_list(self, name, values, prefix='', attrs=None):
+        attrs = attrs or {}
         if isinstance(values, list) or isinstance(values, tuple):
             for v in values:
                 self.add(name, prefix+six.text_type(v), attrs)
@@ -252,7 +254,7 @@ def xmlsafe(s):
     XML cannot include certain characters mainly control ones with
     byte value below 32. This function strips them all.
     """
-    if isinstance(s, str):
+    if isinstance(s, bytes):
         s = s.decode('utf-8')
-    # ignore the first 32 bytes of ASCII, which are not allowd in XML
+    # ignore the first 32 bytes of ASCII, which are not allowed in XML
     return u"".join(c for c in s if ord(c) >= 0x20)

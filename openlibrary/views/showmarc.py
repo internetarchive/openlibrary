@@ -61,27 +61,21 @@ class show_ia(app.view):
         except ValueError:
             record = None
 
-        template = app.render_template("showia", ia, record, books)
-        template.v2 = True
-        return template
+        return app.render_template("showia", ia, record, books)
 
 
 class show_amazon(app.view):
     path = "/show-records/amazon:(.*)"
 
     def GET(self, asin):
-        template = app.render_template("showamazon", asin)
-        template.v2 = True
-        return template
+        return app.render_template("showamazon", asin)
 
 
 class show_bwb(app.view):
     path = "/show-records/bwb:(.*)"
 
     def GET(self, isbn):
-        template = app.render_template("showbwb", isbn)
-        template.v2 = True
-        return template
+        return app.render_template("showbwb", isbn)
 
 
 re_bad_meta_mrc = re.compile(r'^([^/]+)_meta\.mrc$')
@@ -138,6 +132,4 @@ class show_marc(app.view):
         except ValueError:
             record = None
 
-        template = app.render_template("showmarc", record, filename, offset, length, books)
-        template.v2 = True
-        return template
+        return app.render_template("showmarc", record, filename, offset, length, books)

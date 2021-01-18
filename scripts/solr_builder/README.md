@@ -6,7 +6,6 @@ This goes through building a solr instance from a dump file. To build the reinde
 ```bash
 docker run \
   -u root \
-  --rm \
   -d \
   -p 8080:8080 \
   -p 50000:50000 \
@@ -86,7 +85,7 @@ time docker run --rm \
     tar czf /backup/solrbuilder-$(date +%Y-%m-%d).tar.gz /var/lib/solr/data
 ```
 
-(Last run: 40min/13G with 2020-01 dump)
+(Last run: 41min/14G with 2020-10 dump; OJF)
 
 Copy this dump onto ol-solr0, and there run
 
@@ -98,10 +97,10 @@ time sudo docker-compose build solr
 # Use this:
 # sudo docker build --network=host -t olsolr:latest -f docker/Dockerfile.olsolr .
 
-# Copy file (3min; 2020-03-02 OJF)
+# Copy file (4min; 2020-11-05 ol-solr0)
 time scp YOU@server.openjournal.foundation:/storage/openlibrary/solr/solrbuilder-2020-03-02.tar.gz ~
 
-# Restore backup file
+# Restore backup file (8min; 2020-11-05 ol-solr0)
 time sudo docker-compose run --no-deps --rm -v $HOME:/backup solr \
     bash -c "tar xf /backup/solrbuilder-2020-03-02.tar.gz"
 
@@ -116,9 +115,11 @@ In order to be able to re-run the job, you need to stop/remove any of the old co
 ```sh
 # "new" solr containers/volumes
 docker rm -f -v solr_builder_solr_1
+docker volume rm solr_builder_solr-data
 
 # DB containers/volumes
 docker rm -f -v solr_builder_db_1 solr_builder_adminer_1
+docker volume rm solr_builder_postgres-data
 
 # Solr backup container
 docker rm -v solr_builder_solr-backup_1

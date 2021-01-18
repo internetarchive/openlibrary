@@ -1,21 +1,22 @@
 """Plugin to provide admin interface.
 """
 import os
+import requests
 import sys
 import web
 import subprocess
 import datetime
 import traceback
 import logging
-import simplejson
+import json
 import yaml
-from copy import copy
 
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render, public
 from infogami.utils.context import context
 from infogami.utils.view import add_flash_message
+from infogami.plugins.api.code import jsonapi
 
 from openlibrary.catalog.add_book import update_ia_metadata_for_ol_edition, \
     create_ol_subjects_for_ocaid
@@ -26,6 +27,9 @@ from openlibrary import accounts
 
 from openlibrary.core import lending, admin as admin_stats, helpers as h, imports, cache
 from openlibrary.core.waitinglist import Stats as WLStats
+from openlibrary.core.sponsorships import (
+    summary, sync_completed_sponsored_books)
+
 from openlibrary.plugins.upstream import forms, spamcheck
 from openlibrary.plugins.upstream.account import send_forgot_password_email
 from openlibrary.plugins.admin import services
@@ -111,7 +115,7 @@ class reload:
             s = web.rstrips(s, "/") + "/_reload"
             yield "<h3>" + s + "</h3>"
             try:
-                response = urllib.request.urlopen(s).read()
+                response = requests.get(s).text
                 yield "<p><pre>" + response[:100] + "</pre></p>"
             except:
                 yield "<p><pre>%s</pre></p>" % traceback.format_exc()
@@ -166,7 +170,7 @@ class add_work_to_staff_picks:
                 results[work_id][ocaid] = create_ol_subjects_for_ocaid(
                     ocaid, subjects=subjects)
 
-        return delegate.RawText(simplejson.dumps(results), content_type="application/json")
+        return delegate.RawText(json.dumps(results), content_type="application/json")
 
 
 class sync_ol_ia:
@@ -177,7 +181,7 @@ class sync_ol_ia:
         """
         i = web.input(edition_id='')
         data = update_ia_metadata_for_ol_edition(i.edition_id)
-        return delegate.RawText(simplejson.dumps(data),
+        return delegate.RawText(json.dumps(data),
                                 content_type="application/json")
 
 class people_view:
@@ -387,8 +391,8 @@ class stats:
 class ipstats:
     def GET(self):
         web.header('Content-Type', 'application/json')
-        json = urllib.request.urlopen("http://www.archive.org/download/stats/numUniqueIPsOL.json").read()
-        return delegate.RawText(json)
+        text = requests.get("http://www.archive.org/download/stats/numUniqueIPsOL.json").text
+        return delegate.RawText(text)
 
 class block:
     def GET(self):
@@ -485,8 +489,6 @@ def get_admin_stats():
     return storify(xstats)
 
 from openlibrary.plugins.upstream import borrow
-
-from six.moves import urllib
 
 
 class loans_admin:
@@ -699,8 +701,15 @@ class show_log:
 
 class sponsorship_stats:
     def GET(self):
-        from openlibrary.core.sponsorships import summary
         return render_template("admin/sponsorship", summary())
+
+
+class sync_sponsored_books(delegate.page):
+    @jsonapi
+    def GET(self):
+        i = web.input(dryrun=None)
+        dryrun = i.dryrun == "true"
+        return sync_completed_sponsored_books(dryrun=dryrun)
 
 
 def setup():
@@ -731,6 +740,7 @@ def setup():
                         label="")
     register_admin_page('/admin/spamwords', spamwords, label="")
     register_admin_page('/admin/sponsorship', sponsorship_stats, label="Sponsorship")
+    register_admin_page('/admin/sponsorship/sync', sync_sponsored_books, label="Sponsor Sync")
 
     from openlibrary.plugins.admin import mem
 

@@ -1,8 +1,7 @@
 """Models of various OL objects.
 """
-import simplejson
 import web
-import re
+import requests
 
 from infogami.infobase import client
 
@@ -11,13 +10,13 @@ from openlibrary.core import helpers as h
 #TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 
+# Seed might look unused, but removing it causes an error :/
 from openlibrary.core.lists.model import ListMixin, Seed
 from . import cache, waitinglist
 
@@ -47,7 +46,7 @@ class Image:
         if url.startswith("//"):
             url = "http:" + url
         try:
-            d = simplejson.loads(urllib.request.urlopen(url).read())
+            d = requests.get(url).json()
             d['created'] = h.parse_datetime(d['created'])
             if d['author'] == 'None':
                 d['author'] = None
@@ -299,39 +298,6 @@ class Edition(Thing):
 
     @property
     @cache.method_memoize
-    def availability(self):
-        collections = self.ia_metadata.get('collection', [])
-        statuses = {
-            'available': 'borrow_available',
-            'unavailable': 'borrow_unavailable',
-            'private': 'private',
-            'error': 'error',
-        }
-        status = self.ia_metadata.get('loans__status__status', 'error').lower()
-        is_restricted = self.ia_metadata.get('access-restricted-item') == 'true'
-        is_printdisabled = 'printdisabled' in collections
-        is_lendable = 'inlibrary' in collections
-        is_readable = bool(collections) and not is_printdisabled and not is_restricted
-        # TODO: Make less brittle; maybe add simplelists/copy counts to IA availability
-        # endpoint
-        is_browseable = is_lendable and status == 'error'
-
-        return {
-            'status': statuses[status],
-            'num_waitlist': int(self.ia_metadata.get('loans__status__num_waitlist', 0)),
-            'num_loans': int(self.ia_metadata.get('loans__status__num_loans', 0)),
-            'identifier': self.ia_metadata.get('identifier'),
-            'is_restricted': is_restricted,
-            'is_printdisabled': is_printdisabled,
-            'is_lendable': is_lendable,
-            'is_readable': is_readable,
-            'is_browseable': is_browseable,
-            # For debugging
-            '__src__': 'core.models.Edition.availability'
-        }
-
-    @property
-    @cache.method_memoize
     def sponsorship_data(self):
         was_sponsored = 'openlibraryscanningteam' in self.ia_metadata.get('collection', [])
         if not was_sponsored:
@@ -449,6 +415,21 @@ class Edition(Thing):
         # all IA scans will have scanningcenter field set
         return bool(metadata.get("scanningcenter"))
 
+    def make_work_from_orphaned_edition(self):
+        """
+        Create a dummy work from an orphaned_edition.
+        """
+        return web.ctx.site.new('', {
+            'key': '',
+            'type': {'key': '/type/work'},
+            'title': self.title,
+            'authors': [
+                {'type': {'key': '/type/author_role'}, 'author': {'key': a['key']}}
+                for a in self.get('authors', [])],
+            'editions': [self],
+            'subjects': self.get('subjects', []),
+        })
+
 def some(values):
     """Returns the first value that is True from the values iterator.
     Works like any, but returns the value instead of bool(value).
@@ -505,6 +486,8 @@ class Work(Thing):
         return status_id
 
     def get_num_users_by_bookshelf(self):
+        if not self.key:  # a dummy work
+            return {'want-to-read': 0, 'currently-reading': 0, 'already-read': 0}
         work_id = extract_numeric_id_from_olid(self.key)
         num_users_by_bookshelf = Bookshelves.get_num_users_by_bookshelf_by_work_id(work_id)
         return {
@@ -514,12 +497,14 @@ class Work(Thing):
         }
 
     def get_rating_stats(self):
+        if not self.key:  # a dummy work
+            return {'avg_rating': 0, 'num_ratings': 0}
         work_id = extract_numeric_id_from_olid(self.key)
         rating_stats = Ratings.get_rating_stats(work_id)
         if rating_stats and rating_stats['num_ratings'] > 0:
             return {
-            'avg_rating': round(rating_stats['avg_rating'],2),
-            'num_ratings': rating_stats['num_ratings']
+                'avg_rating': round(rating_stats['avg_rating'], 2),
+                'num_ratings': rating_stats['num_ratings']
             }
 
     def _get_d(self):
@@ -672,6 +657,9 @@ class User(Thing):
     def in_sponsorship_beta(self):
         return self.is_usergroup_member('/usergroup/sponsors')
 
+    def is_beta_tester(self):
+        return self.is_usergroup_member('/usergroup/beta-testers')
+
     def get_lists(self, seed=None, limit=100, offset=0, sort=True):
         """Returns all the lists of this user.
 
@@ -709,7 +697,8 @@ class User(Thing):
 
         return self._site.things(q)
 
-    def new_list(self, name, description, seeds, tags=[]):
+    def new_list(self, name, description, seeds, tags=None):
+        tags = tags or []
         """Creates a new list object with given name, description, and seeds.
 
         seeds must be a list containing references to author, edition, work or subject strings.

@@ -4,7 +4,6 @@
 ol/ia auth bridge tests
 """
 
-import time
 import unittest
 from . import OLSession
 

@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import MySQLdb
-import datetime
 import re
 import sys
 sys.path.append('/1/src/openlibrary')
