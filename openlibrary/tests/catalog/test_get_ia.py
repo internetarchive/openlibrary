@@ -10,8 +10,9 @@ from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
 class MockResponse:
     """MockResponse is used to pass the file back as a string instead of a file object.  This is because
     this code was moved from urllib to requests."""
-    def __init__(self, text):
-        self.text = text
+    def __init__(self, data):
+        self.text = data
+        self.content = data
 
 
 def return_test_marc_bin(url):
