@@ -13,7 +13,7 @@ The stats table in the openlibrary database is of the following schema:
 see schema.py for more details.
 """
 import logging
-import simplejson
+import json
 import datetime
 from .db import get_db
 
@@ -25,7 +25,7 @@ def add_entry(key, data, timestamp=None):
     If an entry is already present in the table, a warn message is logged
     and no changes will be made to the database.
     """
-    jsontext = simplejson.dumps(data)
+    jsontext = json.dumps(data)
     timestamp = timestamp or datetime.datetime.utcnow()
     t = timestamp.isoformat()
 
@@ -47,7 +47,7 @@ def update_entry(key, data, timestamp=None):
     If there is no entry with the given key, a new one will be added
     after logging a warn message.
     """
-    jsontext = simplejson.dumps(data)
+    jsontext = json.dumps(data)
     timestamp = timestamp or datetime.datetime.utcnow()
     t = timestamp.isoformat()
 
