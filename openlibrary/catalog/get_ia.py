@@ -27,11 +27,11 @@ class NoMARCXML(IOError):
 
 
 # TODO: there are few other modules that call this, refactor to rename later to request_keep_trying
-def urlopen_keep_trying(url, headers=None):
+def urlopen_keep_trying(url, headers=None, **kwargs):
     """Tries to request the url three times, raises HTTPError if 403, 404, or 416.  Returns a requests.Response"""
     for i in range(3):
         try:
-            resp = requests.get(url, headers=headers)
+            resp = requests.get(url, headers=headers, **kwargs)
             resp.raise_for_status()
             return resp
         except requests.HTTPError as error:
@@ -155,10 +155,10 @@ def get_from_archive_bulk(locator):
 
     assert 0 < length < MAX_MARC_LENGTH
 
-    f = urlopen_keep_trying(url, headers={'Range': 'bytes=%d-%d' % (r0, r1)})
+    f = urlopen_keep_trying(url, headers={'Range': 'bytes=%d-%d' % (r0, r1)}, stream=True)
     data = None
     if f:
-        data = f.read(MAX_MARC_LENGTH)
+        data = f.raw.read(MAX_MARC_LENGTH)
         len_in_rec = int(data[:5])
         if len_in_rec != length:
             data, next_offset, next_length = get_from_archive_bulk('%s:%d:%d' % (filename, offset, len_in_rec))
