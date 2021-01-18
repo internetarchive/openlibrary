@@ -322,9 +322,9 @@ def http_notify(site, old, new):
 
     for url in config.http_listeners:
         try:
-            response = requests.get(url, params=json_data).text
+            response = requests.get(url, params=json_data)
             response.raise_for_status()
-            print('http_notify', repr(url), repr(key), repr(response), file=web.debug)
+            print('http_notify', repr(url), repr(key), repr(response.text), file=web.debug)
         except Exception:
             print('failed to send http_notify', repr(url), repr(key), file=web.debug)
             import traceback
