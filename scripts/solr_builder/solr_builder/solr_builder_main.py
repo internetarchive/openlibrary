@@ -144,6 +144,9 @@ class LocalPostgresDataProvider(DataProvider):
         (and skip bad ocaids) 
         """
         if not ocaids or _recur_depth > _max_recur_depth:
+            logger.warning('Max recursion exceeded trying fetch IA data', extra={
+                'ocaids': ocaids
+            })
             return []
 
         r = requests.get("https://archive.org/advancedsearch.php", params={
@@ -159,15 +162,17 @@ class LocalPostgresDataProvider(DataProvider):
             r.raise_for_status()
             return r.json()['response']['docs']
         except (RequestException, ValueError, KeyError):
-            logger.exception("Error while fetching IA data")
+            logger.error(f"Error while fetching IA data: {r.status_code}: {r.json()['error']}",
+                         extra={'_recur_depth': _recur_depth})
             # there's probably a bad apple; try splitting the batch
             mid = len(ocaids) // 2
             h1, h2 = ocaids[:mid], ocaids[mid:]
             f = LocalPostgresDataProvider._get_lite_metadata
-            return (
-                (await f(h1, _recur_depth=_recur_depth + 1)) +
-                (await f(h2, _recur_depth=_recur_depth + 1))
+            halves = await asyncio.gather(
+                f(h1, _recur_depth=_recur_depth + 1),
+                f(h2, _recur_depth=_recur_depth + 1),
             )
+            return halves[0] + halves[1]
 
     async def cache_ia_metadata(self, ocaids: List[str]):
         batches = list(batch_until_len(ocaids, 3000))
