@@ -210,6 +210,8 @@
    <!-- additional fields used by documents of type subject -->
    <field name="subject_type" type="string" indexed="true" stored="true"/>
 
+    <!-- dynamic fields -->
+    <dynamicField name="id_*"  type="string"  indexed="true"  stored="true" multiValued="true"/>
 
    <!-- **** End of OpenLibrary field definitions **** -->
 
