@@ -79,7 +79,7 @@ def get_marc_record_from_ia(identifier):
 
     # If that fails, try marc.bin
     if marc_bin_filename in filenames:
-        data = urlopen_keep_trying(item_base + marc_bin_filename).text
+        data = urlopen_keep_trying(item_base + marc_bin_filename).content
         return MarcBinary(data)
 
 
