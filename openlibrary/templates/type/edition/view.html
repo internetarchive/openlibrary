@@ -85,8 +85,8 @@ $code:
         authors = cond(work, work and work.get_authors(), edition and edition.get_authors())
         if authors:
             return ', '.join('<a href="%s"%s>%s</a>' % (a.url(), schema_attribute, truncate(a.name, 40)) if a.name else "<em>Unknown author</em>" for a in authors)
-        elif edition.author_names:
-            return ('<span%s>' % (schema_attribute)) + ", ".join(edition.author_names) + "</span>"
+        elif (edition or work).author_names:
+            return ('<span%s>' % (schema_attribute)) + ", ".join((edition or work).author_names) + "</span>"
         else:
             return None
 
