@@ -28,4 +28,4 @@ jobs:
       - run: make lint
       - run: make test-py
       - run: source scripts/run_doctests.sh
-      - run: mypy --ignore-missing-imports openlibrary/openlibrary || true
+      - run: mypy --ignore-missing-imports openlibrary || true
