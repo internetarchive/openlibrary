@@ -2,7 +2,7 @@
 """
 import web
 from datetime import datetime
-import json
+import simplejson
 import re
 
 from six.moves.urllib.parse import urlsplit
@@ -96,9 +96,9 @@ def sanitize(html, encoding='utf8'):
 
 
 def json_encode(d, **kw):
-    """Same as json.dumps.
+    """Same as simplejson.dumps.
     """
-    return json.dumps(d, **kw)
+    return simplejson.dumps(d, **kw)
 
 
 def safesort(iterable, key=None, reverse=False):
