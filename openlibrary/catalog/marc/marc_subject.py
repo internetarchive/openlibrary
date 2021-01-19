@@ -54,7 +54,7 @@ archive_url = "http://archive.org/download/"
 def load_binary(ia):
     url = archive_url + ia + '/' + ia + '_meta.mrc'
     f = urlopen_keep_trying(url)
-    data = f.text
+    data = f.content
     assert '<title>Internet Archive: Page Not Found</title>' not in data[:200]
     if len(data) != int(data[:5]):
         data = data.decode('utf-8').encode('raw_unicode_escape')
