@@ -86,9 +86,9 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
           <li class="read-option">$:macros.LoanStatus(book)</li>
         </ul>
         $if oclc_numbers or isbn:
-          <ul class="world-cat-link">
+          <ul class="editions-table__world-cat-link">
             <li>
-              <p class="cta-section-title world-cat-link">$_('Libraries near you:')</p>
+              <span class="cta-section-title __world-cat-link">$_('Libraries near you:')</span>
               <a href="$macros.WorldcatUrl(isbn=isbn, oclc_numbers=oclc_numbers)"
                  title="Look for this edition at WorldCat">WorldCat</a>
             </li>
