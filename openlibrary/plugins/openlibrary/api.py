@@ -19,6 +19,7 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
+from openlibrary.core.observations import post_observation
 from openlibrary.core.sponsorships import qualifies_for_sponsorship
 from openlibrary.core.vendors import (
     get_amazon_metadata, create_edition_from_amazon_metadata,
@@ -373,3 +374,17 @@ class price_api(delegate.page):
                     metadata['ocaid'] = ed.ocaid
 
         return json.dumps(metadata)
+
+
+class observations(delegate.page):
+    path = "/observations"
+    encoding = "json"
+
+    def POST(self):
+        user = accounts.get_current_user()
+        account = OpenLibraryAccount.get_by_email(user.email)
+        s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
+
+        response = post_observation(web.data(), s3_keys)
+
+        return delegate.RawText(response)
