@@ -1,6 +1,6 @@
 <template>
   <div class="ol-carousel">
-    <BooksCarousel :observer="intersectionObserver" :books="results">
+    <BooksCarousel :style="[status!='Loaded'?{'visibility':'hidden'}:'']" :observer="intersectionObserver" :books="results">
       <template v-slot:cover-label="{book}">
         <slot name="cover-label" v-bind:book="book"/>
       </template>
