@@ -382,9 +382,11 @@ class observations(delegate.page):
 
     def POST(self):
         user = accounts.get_current_user()
-        account = OpenLibraryAccount.get_by_email(user.email)
-        s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
 
-        response = post_observation(web.data(), s3_keys)
+        if user:
+            account = OpenLibraryAccount.get_by_email(user.email)
+            s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
 
-        return delegate.RawText(response)
+            if s3_keys:
+                response = post_observation(web.data(), s3_keys)
+                return delegate.RawText(response)
