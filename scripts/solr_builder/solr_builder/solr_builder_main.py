@@ -290,7 +290,7 @@ class LocalPostgresDataProvider(DataProvider):
             return self.ia_cache[identifier]
         else:
             logger.info("IA metadata cache miss")
-            return ia.get_metadata(identifier)
+            return ia.get_metadata_direct(identifier)
 
     def get_document(self, key):
         if key in self.cache:
