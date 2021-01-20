@@ -274,6 +274,7 @@ class cover:
             web.expires(10*60) # Allow the client to cache the image for 10 mins to avoid further requests
 
         web.header('Content-Type', 'image/jpeg')
+        web.header('Access-Control-Allow-Origin', '*')
         try:
             return read_image(d, size)
         except IOError:
