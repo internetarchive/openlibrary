@@ -1,8 +1,8 @@
 ---
-name: Question
+name: Question & Discussion
 about: Propose an answerable question
 title: ''
-labels: "Type: Question, Needs: Triage"
+labels: "Type: Question, Needs: Triage, Needs: Lead, Needs: Community Discussion"
 assignees: ''
 ---
 
@@ -12,6 +12,9 @@ assignees: ''
 
 ### Additional context
 <!-- Add any other context or details here. -->
+
+### Issue resolution criteria
+<!-- When can this issue be closed? -->
 
 
 ### Stakeholders
