@@ -1,6 +1,7 @@
 from __future__ import division
 
 import asyncio
+import itertools
 from typing import Awaitable, List, Iterable
 
 from six.moves.configparser import ConfigParser
@@ -33,6 +34,42 @@ def config_section_to_dict(config_file, section):
     config.read(config_file)
     result = {key: config.get(section, key) for key in config.options(section)}
     return result
+
+
+def partition(lst: List, parts: int):
+    """
+    >>> list(partition([1,2,3,4,5,6], 1))
+    [[1, 2, 3, 4, 5, 6]]
+    >>> list(partition([1,2,3,4,5,6], 2))
+    [[1, 2, 3], [4, 5, 6]]
+    >>> list(partition([1,2,3,4,5,6], 3))
+    [[1, 2], [3, 4], [5, 6]]
+    >>> list(partition([1,2,3,4,5,6], 4))
+    [[1], [2], [3], [4, 5, 6]]
+    >>> list(partition([1,2,3,4,5,6], 5))
+    [[1], [2], [3], [4], [5, 6]]
+    >>> list(partition([1,2,3,4,5,6], 6))
+    [[1], [2], [3], [4], [5], [6]]
+    >>> list(partition([1,2,3,4,5,6], 7))
+    [[1], [2], [3], [4], [5], [6]]
+
+    >>> list(partition([1,2,3,4,5,6,7], 3))
+    [[1, 2], [3, 4], [5, 6, 7]]
+
+    >>> list(partition([], 5))
+    []
+    """
+    if not lst:
+        return
+
+    total_len = len(lst)
+    parts = min(total_len, parts)
+    size = total_len // parts
+
+    for i in range(0, parts):
+        start = i * size
+        end = total_len if (i == parts - 1) else ((i + 1) * size)
+        yield lst[start:end]
 
 
 def batch_until_len(items: Iterable, max_batch_len: int):
@@ -165,14 +202,12 @@ class LocalPostgresDataProvider(DataProvider):
             logger.error(f"Error while fetching IA data: {r.status_code}: {r.json()['error']}",
                          extra={'_recur_depth': _recur_depth})
             # there's probably a bad apple; try splitting the batch
-            mid = len(ocaids) // 2
-            h1, h2 = ocaids[:mid], ocaids[mid:]
-            f = LocalPostgresDataProvider._get_lite_metadata
-            halves = await asyncio.gather(
-                f(h1, _recur_depth=_recur_depth + 1),
-                f(h2, _recur_depth=_recur_depth + 1),
-            )
-            return halves[0] + halves[1]
+            parts = await asyncio.gather(*(
+                LocalPostgresDataProvider._get_lite_metadata(
+                    part, _recur_depth=_recur_depth + 1)
+                for part in partition(ocaids, 3)
+            ))
+            return list(itertools.chain(*parts))
 
     async def cache_ia_metadata(self, ocaids: List[str]):
         batches = list(batch_until_len(ocaids, 3000))
