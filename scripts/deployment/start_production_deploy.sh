@@ -72,22 +72,6 @@ do
     ssh $REMOTE_HOST $CONTINUE
 done
 
-echo "Press return to continue the deployment..."
-read
-
-# Reboot all hosts EXCEPT ol-web2
-FINISH="/opt/openlibrary/scripts/deployment/finish_production_deployment.sh"
-bash $FINISH
-REMOTE_HOSTS="ol-covers0 ol-web1"
-for REMOTE_HOST in $REMOTE_HOSTS
-do
-    ssh $REMOTE_HOST $FINISH
-done
-
-echo "Press return to finish the deployment..."
-read
-
-# Reboot all hosts EXCEPT ol-web2
-ssh ol-web2 $FINISH
-
 echo "Finished production deployment at $(date)"
+echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
+
