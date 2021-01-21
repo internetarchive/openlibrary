@@ -108,12 +108,15 @@ services:
     hostname: "$HOSTNAME"
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - OL_URL=https://openlibrary.org/
     volumes:
       - ../olsystem:/olsystem
     logging:
       options:
         max-size: "512m"
         max-file: "4"
+    secrets:
+      - ia_db_pw_file
   importbot:
     image: oldev:latest
     build:
@@ -137,6 +140,9 @@ services:
 secrets:
     petabox_seed:
       file: /opt/.petabox/seed
+
+    ia_db_pw_file:
+      file: /opt/.petabox/dbserver
 
     # SSL-related secrets
     ssl_certificate:
