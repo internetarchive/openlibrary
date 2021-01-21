@@ -22,6 +22,7 @@ from openlibrary.coverstore.utils import (
     rm_f,
     safeint,
 )
+from openlibrary.plugins.openlibrary.processors import CORSProcessor
 
 logger = logging.getLogger("coverstore")
 
@@ -37,6 +38,15 @@ urls = (
     '/([^ /]*)/delete', 'delete',
 )
 app = web.application(urls, locals())
+
+cors_paths = {
+    '/b/id/',
+    '/b/oclc/',
+    '/b/lccn/',
+    '/b/olid/'
+}
+app.add_processor(CORSProcessor(cors_paths))
+
 
 def get_cover_id(olkeys):
     """Return the first cover from the list of ol keys."""
@@ -274,7 +284,6 @@ class cover:
             web.expires(10*60) # Allow the client to cache the image for 10 mins to avoid further requests
 
         web.header('Content-Type', 'image/jpeg')
-        web.header('Access-Control-Allow-Origin', '*')
         try:
             return read_image(d, size)
         except IOError:
