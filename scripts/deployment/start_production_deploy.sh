@@ -68,7 +68,7 @@ done
 bash /opt/openlibrary/scripts/deployment/continue_production_deployment.sh
 for SERVER in $SERVERS
 do
-    ssh $SERVERS /opt/openlibrary/scripts/deployment/continue_production_deployment.sh
+    ssh $SERVER /opt/openlibrary/scripts/deployment/continue_production_deployment.sh
 done
 
 echo "Finished production deployment at $(date)"
