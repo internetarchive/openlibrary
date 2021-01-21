@@ -125,15 +125,13 @@ services:
     restart: always
     hostname: "$HOSTNAME"
     environment:
-      - OL_CONFIG=conf/openlibrary.yml
+      - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - OPENLIBRARY_RCFILE=/olsystem/etc/olrc-importbot
       - PYENV_VERSION=${PYENV_VERSION:-}
-    expose:
-      - 7100
-    depends_on:
-      - db
     volumes:
       - ol-vendor:/openlibrary/vendor
       - .:/openlibrary
+      - ../olsystem:/olsystem
     networks:
       - webnet
       - dbnet
