@@ -7,7 +7,7 @@ source aliases.sh
 set -o xtrace  # Display each line before running it
 
 LOG_DIR="$1"
-ORPHANS_COUNT=$(time psql -f sql/count-orphans.sql) # ~15min
+ORPHANS_COUNT=2317655
 RUN_SIG=ol_run_orphans_1
 
 mkdir -p {logs,progress}/$LOG_DIR
