@@ -15,7 +15,7 @@ docker volume rm openlibrary_ol-vendor openlibrary_ol-build openlibrary_ol-nodem
 if [[ $HOSTNAME == ol-covers0.* ]]; then
     docker-compose up -d --scale covers=2 covers_nginx memcached
 elif [[ $HOSTNAME == ol-home0.* ]]; then
-    docker-compose up -d --no-deps infobase infobase_nginx affiliate-server  # cronjobs importbot solr-updater
+    docker-compose up -d --no-deps infobase infobase_nginx affiliate-server solr-updater # cronjobs importbot
 else  # start a web node
     docker-compose run -uroot --rm home make i18n
     docker-compose up --no-deps -d web
