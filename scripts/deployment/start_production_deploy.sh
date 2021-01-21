@@ -46,32 +46,30 @@ cd /opt/olimages
 time docker save oldev:latest | gzip > oldev_latest.tar.gz
 
 # Transfer the .tar.gz image and four repo dirs to other hosts
-REMOTE_HOSTS="ol-covers0 ol-web1 ol-web2"
-for REMOTE_HOST in $REMOTE_HOSTS
+SERVERS="ol-covers0 ol-web1 ol-web2"
+for SERVER in $SERVERS
 do
     echo "Starting rsync of oldev_latest.tar.gz to $REMOTE_HOST..."
-    time rsync -a --no-owner --group --verbose oldev_latest.tar.gz "$REMOTE_HOST:/opt/olimages/"
-    if [[ $HOSTNAME == ol-web.* ]]; then
+    time rsync -a --no-owner --group --verbose oldev_latest.tar.gz "$SERVER:/opt/olimages/"
+    if [[ $HOSTNAME == ol-web* ]]; then
         REPO_DIRS="/opt/olsystem /opt/booklending_utils /opt/openlibrary /opt/openlibrary/vendor/infogami"
     else
         REPO_DIRS="/opt/olsystem /opt/openlibrary /opt/openlibrary/vendor/infogami"
     fi
     for REPO_DIR in $REPO_DIRS
     do
-        echo "Starting rsync of $REPO_DIR to $REMOTE_HOST..."
-        time rsync -a -r --no-owner --group --verbose $REPO_DIR "$REMOTE_HOST:$REPO_DIR"
+        echo "Starting rsync of $REPO_DIR to $SERVER..."
+        time rsync -a -r --no-owner --group --verbose $REPO_DIR "$SERVER:$REPO_DIR"
     done
-    echo -e "Finished rsync to $REMOTE_HOST...\n"
+    echo -e "Finished rsync to $SERVER...\n"
 done
 
 # Uncompress and tag oldev_latest.tar.gz that we have rsynced over
-CONTINUE="/opt/openlibrary/scripts/deployment/continue_production_deployment.sh"
-bash $CONTINUE
-for REMOTE_HOST in $REMOTE_HOSTS
+bash /opt/openlibrary/scripts/deployment/continue_production_deployment.sh
+for SERVER in $SERVERS
 do
-    ssh $REMOTE_HOST $CONTINUE
+    ssh $SERVERS /opt/openlibrary/scripts/deployment/continue_production_deployment.sh
 done
 
 echo "Finished production deployment at $(date)"
 echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
-
