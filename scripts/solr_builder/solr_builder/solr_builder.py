@@ -49,5 +49,19 @@ def parse_args():
 
 
 if __name__ == '__main__':
-    args = parse_args()
-    asyncio.run(main(**args.__dict__))
+    import tracemalloc
+
+    # Capture X stack frames for each allocation (default=1)
+    tracemalloc.start(25)
+    try:
+        args = parse_args()
+        asyncio.run(main(**args.__dict__))
+    finally:
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.statistics('traceback')
+
+        print("[ Top 25 ]")
+        for stat in top_stats[:25]:
+            print("%s memory blocks: %.1f KiB" % (stat.count, stat.size / 1024))
+            for line in stat.traceback.format():
+                print(line)
