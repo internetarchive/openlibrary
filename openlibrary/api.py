@@ -27,7 +27,6 @@ import requests
 import six
 from six.moves.configparser import ConfigParser
 
-
 logger = logging.getLogger("openlibrary.api")
 
 
