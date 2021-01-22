@@ -25,7 +25,6 @@ import logging
 import requests
 
 import six
-from six.moves import urllib
 from six.moves.configparser import ConfigParser
 
 
@@ -200,11 +199,8 @@ class OpenLibrary:
             return unmarshal(response.json())
 
     def import_ocaid(self, ocaid, require_marc=True):
-        data = urllib.parse.urlencode({
-            'identifier': ocaid,
-            'require_marc': 'true' if require_marc else 'false'
-        })
-        return self._request('/api/import/ia', method='POST', data=data).content
+        data = {'identifier': ocaid, 'require_marc': 'true' if require_marc else 'false'}
+        return self._request('/api/import/ia', method='POST', data=data).text
 
 
 def marshal(data):
