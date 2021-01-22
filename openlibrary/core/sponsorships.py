@@ -45,7 +45,7 @@ def get_sponsored_editions(user):
     contact_id = get_contact_id_by_username(archive_id)
     return get_sponsorships_by_contact_id(contact_id) if contact_id else []
 
-def do_we_want_it(isbn, work_id=None):
+def do_we_want_it(isbn):
     """
     Returns True if we don't have this edition (or other editions of
     the same work), if the isbn has not been promised to us, has not
@@ -56,14 +56,6 @@ def do_we_want_it(isbn, work_id=None):
     :rtype: (bool, list)
     :return: bool answer to do-we-want-it, list of matching books
     """
-    if work_id:
-        # if work_id and any edition has work_id, we don't want it
-        availability = lending.get_work_availability(work_id)
-        if availability:
-            work_availability = availability.get(work_id, {})
-            if work_availability.get('status', 'error') != 'error':
-                return False, availability
-
     # We don't have any of these work's editions available to borrow
     # Let's confirm this edition hasn't already been sponsored or promised
     params = {
@@ -128,7 +120,7 @@ def qualifies_for_sponsorship(edition, scan_only=False, donate_only=False, patro
         }
         return resp
 
-    work_id = work.key.split("/")[-1]
+    work_id = edition.works[0].key.split("/")[-1]
     edition_id = edition.key.split('/')[-1]
     dwwi, matches = do_we_want_it(edition.isbn)
     if dwwi:
