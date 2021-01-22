@@ -3,10 +3,10 @@ going through infobase API.
 """
 from __future__ import print_function
 
+import json
 import os
 import web
 import datetime
-import simplejson
 from collections import defaultdict
 
 import six
@@ -129,7 +129,7 @@ class DocumentLoader:
             try:
                 data.append(dict(thing_id=doc.pop('id'),
                                  revision=doc['revision'],
-                                 data=simplejson.dumps(doc)))
+                                 data=json.dumps(doc)))
             except UnicodeDecodeError:
                 print(repr(doc))
                 raise
@@ -190,7 +190,7 @@ class DocumentLoader:
             properties.
             """
             r = rows[doc['key']]
-            d = simplejson.loads(r.data)
+            d = json.loads(r.data)
             d.update(doc,
                      revision=r.latest_revision,
                      latest_revision=r.latest_revision,
@@ -251,7 +251,7 @@ class Reindexer:
                              " WHERE data.thing_id=thing.id AND data.revision=thing.latest_revision and thing.key in $keys",
                              vars=locals())
 
-        documents = [dict(simplejson.loads(row.data),
+        documents = [dict(json.loads(row.data),
                           id=row.id,
                           type_id=row.type)
                      for row in rows]
@@ -385,7 +385,7 @@ class Reindexer:
         elif isinstance(value, list):
             return value and self._find_datatype(value[0])
         else:
-             return None
+            return None
 
 def _test():
     loader = DocumentLoader(db='ol')
