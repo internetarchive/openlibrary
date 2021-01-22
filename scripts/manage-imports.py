@@ -38,6 +38,8 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
 
 def do_import(item, servername=None, require_marc=True):
     response = ol_import_request(item, servername=servername, require_marc=require_marc)
+    if response:
+        response = response.decode("utf-8")
     print("Response:", response, file=sys.stderr)
     if response and response.startswith("{"):
         d = json.loads(response)
