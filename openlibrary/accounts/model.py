@@ -8,7 +8,6 @@ import hashlib
 import hmac
 import random
 import string
-import simplejson
 import uuid
 import logging
 import requests
@@ -603,7 +602,8 @@ class InternetArchiveAccount(web.storage):
             return response.json()
         except requests.HTTPError as e:
             return {'error': e.response.text, 'code': e.response.status_code}
-        except simplejson.errors.JSONDecodeError as e:
+        except ValueError as e:
+            # we cannot catch json.JSONDecodeError here yet because requests will import simplejson as json first.
             return {'error': e.message, 'code': response.status_code}
 
     @classmethod
