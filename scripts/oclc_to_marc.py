@@ -3,7 +3,7 @@
 Usage: python oclc_to_marc.py oclc_1 oclc_2
 """
 from __future__ import print_function
-import simplejson
+import json
 
 from six.moves import urllib
 
@@ -11,7 +11,7 @@ from six.moves import urllib
 root = "http://openlibrary.org"
 
 def wget(path):
-    return simplejson.loads(urllib.request.urlopen(root + path).read())
+    return json.loads(urllib.request.urlopen(root + path).read())
 
 def find_marc_url(d):
     if d.get('source_records'):
