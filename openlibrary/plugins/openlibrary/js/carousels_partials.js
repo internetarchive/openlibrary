@@ -9,7 +9,7 @@ export function initCarouselsPartials() {
             url: '/partials',
             type: 'GET',
             data: {
-                workid: $('.RelatedWorksCarousel').attr('data-workId'),
+                workid: $('.RelatedWorksCarousel').data('workId'),
                 _component: 'RelatedWorkCarousel'
             },
             datatype: 'json',
