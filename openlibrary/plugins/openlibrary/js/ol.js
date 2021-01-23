@@ -110,7 +110,7 @@ export function initBorrowAndReadLinks() {
     /* eslint-disable no-unused-vars */
     // used in openlibrary/macros/AvailabilityButton.html and openlibrary/macros/LoanStatus.html
     $(document).ready(function(){
-        $('.borrow_ebook,.read_ebook').on('click', function(){
+        $('.cta-btn--borrow,.cta-btn--read').on('click', function(){
             $(this).removeClass('cta-btn cta-btn--available').addClass('cta-btn cta-btn--available--load');
         });
     });

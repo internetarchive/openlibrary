@@ -12,7 +12,7 @@ $else:
 $ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
 
 <div class="cta-button-group">
-  <a href="$(stream_url)" title="$title" class="$(action)_ebook cta-btn cta-btn--available"
+  <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--available cta-btn--$(action)"
      $if loan:
        data-userid="$(loan['userid'])"
      $elif borrow:
