@@ -19,7 +19,7 @@ $ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
        data-ol-link-track="CTAClick|Borrow"
      $else:
        data-ol-link-track="CTAClick|Read"
-     class="cta-btn cta-btn--available $(action)_ebook">$label</a>
+     class="cta-btn cta-btn--available cta-btn--$(action)">$label</a>
   $if listen:
     <a href="$(stream_url)&_autoReadAloud=show"
        title="$title using Read Aloud"

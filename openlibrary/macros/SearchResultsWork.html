@@ -23,15 +23,15 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
     <a href="$(book_url)?edition=$(ocaid)"><img itemprop="image" src="$cover" alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
   </span>
 
-  <span class="details">
-      <span class="resultTitle">
-         <span class="h3 booktitle">
+  <div class="details">
+      <div class="resultTitle">
+         <h3 class="booktitle">
            <a itemprop="name" href="$(book_url)?edition=$(ocaid)"
               class="results">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a>
            $if doc.get('publish_date'):
              ($(doc['publish_date']))
-         </span>
-      </span>
+         </h3>
+        </div>
       <span class="bookauthor">$_('by')
         $if not doc.authors:
           <em>$_('Unknown author')</em>
@@ -68,7 +68,7 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
           $:extra
         </div>
 
-  </span>
+      </div>
 
   <div class="searchResultItemCTA">
       $if decorations:
