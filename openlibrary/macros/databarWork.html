@@ -45,6 +45,8 @@ $if isbn_10 and not asin:
               $:render_template('covers/change', page, ".edition-cover .bookCover img")
         </div>
 
+        $:macros.DonateModal(page, ids={'isbn': isbn_13, 'asin': asin, 'prices': True})
+
         $ work = (page.works and page.works[0]) or page
         $ edition = page.works and page
         $ lists_widget = render_template('lists/widget', edition or work, include_rating=True, include_header=False, include_widget=True, include_showcase=False, user_lists_only=False)
