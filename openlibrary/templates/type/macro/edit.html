@@ -27,7 +27,7 @@ $:render_template("lib/edit_head", page)
     <div class="formElement title">
         <div class="label"><label for="plugin">Plugin</label></div>
         <div class="input">
-            $ plugins = ["admin", "openlibrary", "scod", "search", "upstream", "worksearch"]
+            $ plugins = ["admin", "openlibrary", "search", "upstream", "worksearch"]
             $:Dropdown("plugin", args=plugins, value=page.get("plugin", "upstream")).render()
         </div>
     </div>
