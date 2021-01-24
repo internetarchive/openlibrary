@@ -21,6 +21,14 @@ from infogami.infobase.client import ClientException
 
 from openlibrary.core import stats, helpers
 
+try:
+    try:
+        from simplejson.errors import JSONDecodeError
+    except ImportError:
+        from json.decoder import JSONDecodeError
+except ImportError:  # legacy Python
+    JSONDecodeError = ValueError
+
 logger = logging.getLogger("openlibrary.account.model")
 
 def append_random_suffix(text, limit=9999):
@@ -602,8 +610,7 @@ class InternetArchiveAccount(web.storage):
             return response.json()
         except requests.HTTPError as e:
             return {'error': e.response.text, 'code': e.response.status_code}
-        except ValueError as e:
-            # we cannot catch json.JSONDecodeError here yet because requests will import simplejson as json first.
+        except JSONDecodeError as e:
             return {'error': e.message, 'code': response.status_code}
 
     @classmethod
