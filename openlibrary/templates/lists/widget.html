@@ -181,27 +181,6 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                     <button class="nostyle-btn" type="submit">$_('Already Read')</button>
                   </form>
               </div>
-
-              $if not readinglogonly:
-                <div class="reading-lists">
-                  <p class="reading-list-title">$_('My Reading Lists:')</p>
-                  <div class="my-lists">
-                    $:render_my_lists(lists)
-                  </div>
-                  $if edition_key:
-                      <p class="create checkboxes">
-                        <label>
-                           <input type="checkbox" class="work-checkbox"
-                              $if use_work:
-                                checked
-                           /> <span>$_('Use this Work')</span>
-                        </label>
-                      </p>
-                  <p class="create"><a href="javascript:;" class="create-new-list">$_('Create a new list')</a>
-                    <a aria-controls="addList"
-                      class="hidden listClick dialog--open"></a>
-                  </p>
-                </div>
             </div>
           $else:
               $if username:
@@ -226,6 +205,26 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                 </a>
       </div>
     </div>
+      $if work_key and not readinglogonly:
+        <div class="reading-lists">
+          <p class="reading-list-title">$_('My Reading Lists:')</p>
+          <div class="my-lists">
+            $:render_my_lists(lists)
+          </div>
+          $if edition_key:
+              <p class="create checkboxes">
+                <label>
+                   <input type="checkbox" class="work-checkbox"
+                      $if use_work:
+                        checked
+                   /> <span>$_('Use this Work')</span>
+                </label>
+              </p>
+          <p class="create"><a href="javascript:;" class="create-new-list">$_('Create a new list')</a>
+            <a aria-controls="addList"
+              class="hidden listClick dialog--open"></a>
+          </p>
+        </div>
 
 $jsdef render_widget_display(lists, limit, user_key):
     $for i, list in enumerate(lists):
