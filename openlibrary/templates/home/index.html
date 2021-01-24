@@ -18,8 +18,6 @@ $add_metatag(name="twitter:card", content="homepage_summary")
 <div id="contentBody">
   $:render_template("home/categories", test=test)
 
-  $:render_template("books/custom_carousel", books=get_cached_sponsorable_editions(), title="Books to Sponsor", url="/sponsorship", key="sponsor_books", test=test)
-
   $:render_template("books/custom_carousel", books=readonline_carousel(), title=_('Classic Books'), url="/read", key="public_domain", test=test)
 
   $:render_template("home/custom_ia_carousel", title=_('Books We Love'), key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date desc"], limit=18, test=test)

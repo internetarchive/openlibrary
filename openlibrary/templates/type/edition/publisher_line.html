@@ -21,7 +21,7 @@ $if edition:
       $if edition.publish_places:
         $_('in')
         $for p in edition.publish_places:
-           <a href="/search/subjects?q=$p.replace('&','%26')"
+           <a href="/search/subjects?q=$p.replace('&','%26').replace(' ','%20')"
               title="$_('Search for subjects about %(place)s', place=p)"
               >$p</a>$cond(loop.last, "", ", ")<span class="adjust">.</span>
   </h4>

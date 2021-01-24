@@ -5,7 +5,7 @@ import os
 import re
 from collections import defaultdict
 import web
-import simplejson
+import json
 from openlibrary.plugins.search.facet_hash import facet_token
 
 import six
@@ -121,7 +121,7 @@ class Solr_result(object):
 class SR2(Solr_result):
     def __init__(self, result_json):
         try:
-            e = simplejson.loads(result_json)
+            e = json.loads(result_json)
             # h = e['responseHeader']
             r = e['response']
             self.total_results = r['numFound']
@@ -187,7 +187,7 @@ class Solr_client(object):
 
         if not re.match('^[a-z]+$', token):
             raise SolrError('invalid facet token')
-        m = simplejson.loads(self.raw_search('facet_tokens:%s'% token,
+        m = json.loads(self.raw_search('facet_tokens:%s'% token,
                                              rows=1, wt='json'))
         facet_set = set(facet_list)
         for d in m['response']['docs']:
@@ -271,7 +271,7 @@ class Solr_client(object):
             fq='facet_tokens:(%s)'% fs,
             rows=0,
             wt='json')
-        result = simplejson.loads(result_json)
+        result = json.loads(result_json)
         n = result['response']['numFound']
         return n
 
@@ -290,7 +290,7 @@ class Solr_client(object):
         # counting the facets.
         try:
             # print >> web.debug, '*** parsing result_set=', result_set
-            h1 = simplejson.loads(result_set)
+            h1 = json.loads(result_set)
         except SyntaxError as e:   # we got a solr stack dump
             # print >> web.debug, '*** syntax error result_set=(%r)'% result_set
             six.reraise(SolrError, e, result_set)

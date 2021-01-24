@@ -733,17 +733,8 @@ class book_edit(delegate.page):
         if edition is None:
             raise web.notfound()
 
-        work = edition.works and edition.works[0]
-
-        if not work:
-            # HACK: create dummy work when work is not available
-            work = web.ctx.site.new('', {
-                'key': '',
-                'type': {'key': '/type/work'},
-                'title': edition.title,
-                'authors': [{'type': {'key': '/type/author_role'}, 'author': {'key': a['key']}} for a in edition.get('authors', [])],
-                'subjects': edition.get('subjects', []),
-            })
+        work = (edition.works and edition.works[0] or
+                edition.make_work_from_orphaned_edition())
 
         return render_template('books/edit', work, edition, recaptcha=get_recaptcha())
 

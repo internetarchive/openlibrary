@@ -1,3 +1,4 @@
+import json
 import web
 import random
 import re
@@ -6,7 +7,6 @@ from lxml.etree import XML, XMLSyntaxError
 from infogami.utils import delegate, stats
 from infogami import config
 from infogami.utils.view import render, render_template, safeint, public
-import simplejson as json
 from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.core.lending import get_availability_of_ocaids, add_availability
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -18,7 +18,7 @@ from openlibrary.utils.ddc import (
     normalize_ddc_prefix,
     normalize_ddc_range,
 )
-from openlibrary.utils.isbn import normalize_isbn, opposite_isbn
+from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lcc import (
     normalize_lcc_prefix,
     normalize_lcc_range,
@@ -296,7 +296,7 @@ def execute_solr_query(url):
     stats.begin("solr", url=url)
     try:
         solr_result = urllib.request.urlopen(url, timeout=10)
-    except Exception as e:
+    except Exception:
         logger.exception("Failed solr query")
         return None
     finally:
@@ -309,7 +309,7 @@ def parse_json(raw_file):
         return None
     try:
         json_result = json.load(raw_file)
-    except json.JSONDecodeError as e:
+    except json.JSONDecodeError:
         logger.exception("Error parsing search engine response")
         return None
     return json_result

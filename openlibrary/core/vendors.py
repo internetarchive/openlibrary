@@ -272,10 +272,13 @@ def _get_amazon_metadata(id_, id_type='isbn', resources=None):
 
     try:
         r = requests.get('http://%s/isbn/%s' % (affiliate_server_url, id_))
+        r.raise_for_status()
         return r.json().get('hit') or None
     except requests.exceptions.ConnectionError:
         logger.exception("Affiliate Server unreachable")
-        return None
+    except requests.exceptions.HTTPError:
+        logger.exception("Affiliate Server: id {} not found".format(id_))
+    return None
 
 
 def split_amazon_title(full_title):

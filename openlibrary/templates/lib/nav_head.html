@@ -3,11 +3,11 @@ $def with (page)
 <header id="header-bar" class="header-bar">
   <div class="hamburger-component">
 
-    <label role="button" for="toggle-hamburger" class="hamburger-button">
+    <label for="toggle-hamburger" class="hamburger-button">
       <img src="/static/images/menu.png" alt="additional options menu"/>
     </label>
 
-    <input type="checkbox" class="hamburger-component__checkbox" id="toggle-hamburger">
+    <input role="button" type="checkbox" class="hamburger-component__checkbox" id="toggle-hamburger">
     <div class="hamburger-dropdown-component navigation-dropdown-component">
       <ul class="dropdown-menu hamburger-dropdown-menu">
         $if not ctx.user:
@@ -76,18 +76,6 @@ $def with (page)
         </ul>
       </div>
     </li>
-    <li class="my-books-menu">
-      <a>$_('My Books') <img class="down-arrow"
-        width="7" height="4" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
-      <div class="navigation-dropdown-component">
-        <ul class="dropdown-menu my-books-menu-options">
-          <li><a href="/account/loans">$_("My Loans")</a></li>
-          <li><a href="/account/books">$_("My Reading Log")</a></li>
-          <li><a href="/account/books/already-read/stats">$_("My Reading Stats")</a></li>
-          <li><a href="/account/lists">$_("My Lists")</a></li>
-        </ul>
-      </div>
-    </li>
     <li class="more-menu">
       <a>$_('More') <img class="down-arrow"
         width="7" height="4" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
@@ -119,9 +107,11 @@ $def with (page)
       </div>
       <div class="account-dropdown navigation-dropdown-component" id="main-account-dropdown">
         <ul class="dropdown-menu">
+          <li><a href="$ctx.user.key">$_("My Profile")</a></li>
           <li><a href="$homepath()/account/loans">$_("My Loans")</a></li>
           <li><a href="$ctx.user.key/lists">$_("My Lists")</a></li>
-          <li><a href="$ctx.user.key">$_("My Profile")</a></li>
+          <li><a href="/account/books">$_("My Reading Log")</a></li>
+          <li><a href="/account/books/already-read/stats">$_("My Reading Stats")</a></li>
           <li><a href="$homepath()/account">$_("Settings")</a></li>
           <li>
             <form name="logout" action="/account/logout" method="post">
