@@ -1,7 +1,7 @@
 from __future__ import print_function
 import web
 from infogami.infobase import client
-import simplejson
+import json
 
 web.ctx.ip = '127.0.0.1'
 
@@ -12,7 +12,7 @@ class Infogami:
 
     def _request(self, path, method, data):
         out = self.conn.request(self.sitename, path, method, data)
-        out = simplejson.loads(out)
+        out = json.loads(out)
         if out['status'] == 'fail':
             raise Exception(out['message'])
         return out
@@ -21,7 +21,7 @@ class Infogami:
         return self._request('/account/login', 'POST', dict(username=username, password=password))
 
     def write(self, query, comment='', machine_comment=None):
-        query = simplejson.dumps(query)
+        query = json.dumps(query)
         return self._request('/write', 'POST', dict(query=query, comment=comment, machine_comment=machine_comment))
 
     def new_key(self, type):

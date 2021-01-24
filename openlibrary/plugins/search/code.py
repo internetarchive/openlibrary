@@ -11,7 +11,7 @@ from infogami.plugins.api.code import jsonapi
 import re
 import web
 import time
-import simplejson
+import json
 from collections import defaultdict
 
 import six
@@ -196,14 +196,14 @@ class search_api:
                     callback = None
 
             if prettyprint:
-                json = simplejson.dumps(val, indent = 4)
+                json_data = json.dumps(val, indent = 4)
             else:
-                json = simplejson.dumps(val)
+                jsondata_ = json.dumps(val)
 
             if callback is None:
-                return json
+                return json_data
             else:
-                return '%s(%s)'% (callback, json)
+                return '%s(%s)'% (callback, json_data)
 
         i = web.input(q = None,
                       rows = 20,
@@ -217,7 +217,7 @@ class search_api:
         rows = int(i.get('rows', '0') or 20)
 
         try:
-            query = simplejson.loads(i.q).get('query')
+            query = json.loads(i.q).get('query')
         except (ValueError, TypeError):
             return format(self.error_val, i.prettyprint, i.callback)
 
@@ -379,12 +379,12 @@ class search_json(delegate.page):
         # query can be either specified as json with parameter query or just query parameters
         query = i.pop('query')
         if query:
-            query = simplejson.loads(i.query)
+            query = json.loads(i.query)
         else:
             query = i
 
         result = SearchProcessor().search(i)
-        return simplejson.dumps(result)
+        return json.dumps(result)
 
 # add search API if api plugin is enabled.
 if 'api' in delegate.get_plugins():

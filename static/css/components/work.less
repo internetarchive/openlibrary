@@ -24,16 +24,12 @@
 @import (less) "components/illustration.less";
 @import (less) "components/rating-form.less";
 @import (less) "components/dropper.less";
+@import (less) "components/reading-lists.less";
 @import (less) "components/listLists.less";
 
 // Center (editionAbout)
 div.editionAbout {
   margin-bottom: 20px;
-  h3 {
-    font-size: 14px;
-    margin: 0 0 0em;
-  }
-
   p {
     margin: 1em 0;
     font-size: 13px;
@@ -96,6 +92,11 @@ vertical-align: middle;
   font-size: .8em;
 }
 
+h3.edition-header {
+  font-size: 14px;
+  margin: 0 0 0em;
+}
+
 h2.edition-byline {
   margin: 7px 2px 20px;
 }
@@ -134,7 +135,7 @@ h2.edition-byline {
     top: 0px;
     display: block;
     background: @white;
-    z-index: 999;
+    z-index: @z-index-level-4;
     padding-top: 10px;
   }
 }

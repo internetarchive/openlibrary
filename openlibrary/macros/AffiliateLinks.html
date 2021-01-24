@@ -11,7 +11,7 @@ $code:
     'name': _('Better World Books'),
     'link': 'https://www.anrdoezrs.net/links/%s/type/dlg/http://www.betterworldbooks.com/%s' % (
       affiliate_id('betterworldbooks'),
-      ('-id-%s.aspx' % isbn) if isbn else ('search/results?q=' + page.title)
+      ('-id-%s.aspx' % isbn) if isbn else ('search/results?q=' + page.title.replace(' ','%20'))
     ),
     'price_note': _(' - includes shipping')
   }

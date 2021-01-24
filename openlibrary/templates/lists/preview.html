@@ -16,7 +16,7 @@ $def with (list)
                 <span class="list-owner small grey"> by  <a href="$owner.key">$owner.displayname</a></span>
 
             <div class="editions smaller">
-                $ungettext("1 seed", "%(count)d seeds", len(list.seeds), count=len(list.seeds))
+                $ungettext("1 item", "%(count)d items", len(list.seeds), count=len(list.seeds))
                 $ungettext("1 edition", "%(count)s editions", list.edition_count, count=commify(list.edition_count))
 
                 <span class="lightgreen">

@@ -2,7 +2,7 @@ import json
 
 import web
 import logging
-import simplejson
+import json
 import re
 
 from infogami.utils import delegate
@@ -64,7 +64,7 @@ class availability(delegate.page):
     def POST(self):
         """Internal private API required for testing on localhost
         """
-        return delegate.RawText(simplejson.dumps({}),
+        return delegate.RawText(json.dumps({}),
                                 content_type="application/json")
 
 class loans(delegate.page):
@@ -73,7 +73,7 @@ class loans(delegate.page):
     def POST(self):
         """Internal private API required for testing on localhost
         """
-        return delegate.RawText(simplejson.dumps({}),
+        return delegate.RawText(json.dumps({}),
                                 content_type="application/json")
 
 class xauth(delegate.page):
@@ -108,7 +108,7 @@ class xauth(delegate.page):
                 },
                 "version":1
             }
-        return delegate.RawText(simplejson.dumps(result),
+        return delegate.RawText(json.dumps(result),
                                 content_type="application/json")
 
 class internal_audit(delegate.page):
@@ -137,7 +137,7 @@ class internal_audit(delegate.page):
             except ValueError as e:
                 result = {'error': str(e)}
 
-        return delegate.RawText(simplejson.dumps(result),
+        return delegate.RawText(json.dumps(result),
                                 content_type="application/json")
 
 class account_migration(delegate.page):
@@ -147,7 +147,7 @@ class account_migration(delegate.page):
     def GET(self):
         i = web.input(username='', email='', key='')
         if i.key != lending.config_internal_tests_api_key:
-            return delegate.RawText(simplejson.dumps({
+            return delegate.RawText(json.dumps({
                 'error': 'Authentication failed for private API'
             }), content_type="application/json")
         try:
@@ -156,13 +156,13 @@ class account_migration(delegate.page):
             elif i.email:
                 ol_account = OpenLibraryAccount.get(email=i.email)
         except Exception as e:
-            return delegate.RawText(simplejson.dumps({
+            return delegate.RawText(json.dumps({
                 'error': 'bad-account'
             }), content_type="application/json")
         if ol_account:
             ol_account.enc_password = 'REDACTED'
             if ol_account.itemname:
-                return delegate.RawText(simplejson.dumps({
+                return delegate.RawText(json.dumps({
                     'status': 'link-exists',
                     'username': ol_account.username,
                     'itemname': ol_account.itemname,
@@ -172,7 +172,7 @@ class account_migration(delegate.page):
                 ia_account = InternetArchiveAccount.get(email=ol_account.email.lower())
                 if ia_account:
                     ol_account.link(ia_account.itemname)
-                    return delegate.RawText(simplejson.dumps({
+                    return delegate.RawText(json.dumps({
                         'username': ol_account.username,
                         'status': 'link-found',
                         'itemname': ia_account.itemname,
@@ -185,7 +185,7 @@ class account_migration(delegate.page):
                 ia_account = InternetArchiveAccount.create(
                     ol_account.username or ol_account.displayname,
                     ol_account.email, password, verified=True, retries=USERNAME_RETRIES)
-                return delegate.RawText(simplejson.dumps({
+                return delegate.RawText(json.dumps({
                     'username': ol_account.username,
                     'email': ol_account.email,
                     'itemname': ia_account.itemname,
@@ -266,7 +266,7 @@ class account_login_json(delegate.page):
         credentials, requires Archive.org s3 keys.
         """
         from openlibrary.plugins.openlibrary.code import BadRequest
-        d = simplejson.loads(web.data())
+        d = json.loads(web.data())
         access = d.get('access', None)
         secret = d.get('secret', None)
         test = d.get('test', False)
@@ -429,7 +429,7 @@ class account_validation(delegate.page):
             errors['email'] = self.validate_email(i.email)
         if i.get('username') is not None:
             errors['username'] = self.validate_username(i.username)
-        return delegate.RawText(simplejson.dumps(errors),
+        return delegate.RawText(json.dumps(errors),
                                 content_type="application/json")
 
 
@@ -596,7 +596,7 @@ class account_audit(delegate.page):
         email = i.get('email')
         password = i.get('password')
         result = audit_accounts(email, password, test=test)
-        return delegate.RawText(simplejson.dumps(result),
+        return delegate.RawText(json.dumps(result),
                                 content_type="application/json")
 
 class account_privacy(delegate.page):
@@ -848,7 +848,7 @@ class fake_civi(delegate.page):
             }]
         }
         entity = contributions if i.entity == 'Contribution' else contact
-        return delegate.RawText(simplejson.dumps(entity), content_type="application/json")
+        return delegate.RawText(json.dumps(entity), content_type="application/json")
 
 class import_books(delegate.page):
     path = "/account/import"
@@ -865,24 +865,7 @@ class fetch_goodreads(delegate.page):
 
     @require_login
     def POST(self):
-        import csv
-        i = web.input(csv={})
-        csv_payload = i.csv.value if isinstance(i.csv.value, str) else i.csv.value.decode()
-        csv_file = csv.reader(csv_payload.splitlines(), delimiter=',', quotechar='"')
-        header = next(csv_file)
-        books = {}
-        books_wo_isbns = {}
-        for book in list(csv_file):
-            _book = dict(zip(header, book))
-            _book['ISBN'] = _book['ISBN'].replace('"','').replace('=','')
-            _book['ISBN13'] = _book['ISBN13'].replace('"','').replace('=','')
-            if _book['ISBN'] != '':
-                books[_book['ISBN']] = _book
-            elif _book['ISBN13'] != '':
-                books[_book['ISBN13']] = _book
-                books[_book['ISBN13']]['ISBN'] = _book['ISBN13']
-            else:
-                books_wo_isbns[_book['Book Id']] = _book
+        books, books_wo_isbns = process_goodreads_csv(web.input())
         return render['account/import'](books, books_wo_isbns)
 
 class export_books(delegate.page):
@@ -928,17 +911,6 @@ class account_loans(delegate.page):
 #         return render.notfound(path, create=False)
 
 
-def send_email_change_email(username, email):
-    key = "account/%s/email" % username
-
-    doc = create_link_doc(key, username, email)
-    web.ctx.site.store[key] = doc
-
-    link = web.ctx.home + "/account/email/verify/" + doc['code']
-    msg = render_template("email/email/verify", username=username, email=email, link=link)
-    sendmail(email, msg)
-
-
 def send_forgot_password_email(username, email):
     key = "account/%s/password" % username
 
@@ -959,3 +931,24 @@ def as_admin(f):
         finally:
             web.ctx.headers = []
     return g
+
+
+def process_goodreads_csv(i):
+    import csv
+    csv_payload = i.csv if isinstance(i.csv, str) else i.csv.decode()
+    csv_file = csv.reader(csv_payload.splitlines(), delimiter=',', quotechar='"')
+    header = next(csv_file)
+    books = {}
+    books_wo_isbns = {}
+    for book in list(csv_file):
+        _book = dict(zip(header, book))
+        isbn = _book['ISBN'] = _book['ISBN'].replace('"', '').replace('=', '')
+        isbn_13 = _book['ISBN13'] = _book['ISBN13'].replace('"', '').replace('=', '')
+        if isbn != '':
+            books[isbn] = _book
+        elif isbn_13 != '':
+            books[isbn_13] = _book
+            books[isbn_13]['ISBN'] = isbn_13
+        else:
+            books_wo_isbns[_book['Book Id']] = _book
+    return books, books_wo_isbns

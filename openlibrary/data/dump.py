@@ -13,7 +13,7 @@ import os
 import web
 import re
 import time
-import simplejson
+import json
 import itertools
 import gzip
 
@@ -29,17 +29,17 @@ from openlibrary.plugins.openlibrary.processors import urlsafe
 def print_dump(json_records, filter=None):
     """Print the given json_records in the dump format.
     """
-    for i, json in enumerate(json_records):
+    for i, json_data in enumerate(json_records):
         if i % 1000000 == 0:
             log(i)
-        d = simplejson.loads(json)
+        d = json.loads(json_data)
         d.pop('id', None)
         d = _process_data(d)
 
         key = web.safestr(d['key'])
         type = d['type']['key']
         timestamp = d['last_modified']['value']
-        json = simplejson.dumps(d)
+        json_data = json.dumps(d)
 
         # skip user and admin pages
         if key.startswith("/people/") or key.startswith("/admin/"):
@@ -52,12 +52,12 @@ def print_dump(json_records, filter=None):
         if filter and filter(d) is False:
             continue
 
-        print("\t".join([type, key, str(d['revision']), timestamp, json]))
+        print("\t".join([type, key, str(d['revision']), timestamp, json_data]))
 
 def read_data_file(filename):
     for line in xopen(filename):
-        thing_id, revision, json = line.strip().split("\t")
-        yield pgdecode(json)
+        thing_id, revision, json_data = line.strip().split("\t")
+        yield pgdecode(json_data)
 
 def log(*args):
     print(time.asctime(), " ".join(str(a) for a in args), file=sys.stderr)
@@ -118,7 +118,7 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
         if i % 1000000 == 0:
             log(i)
 
-        type, key, revision, timestamp, json = line.strip().split("\t")
+        type, key, revision, timestamp, json_data = line.strip().split("\t")
         findex = hash(key) % 256
         files[findex].write(line)
 
@@ -188,8 +188,8 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
 def make_index(dump_file):
     """Make index with "path", "title", "created" and "last_modified" columns."""
 
-    for type, key, revision, timestamp, json in read_tsv(dump_file):
-        data = simplejson.loads(json)
+    for type, key, revision, timestamp, json_data in read_tsv(dump_file):
+        data = json.loads(json_data)
         if type == '/type/edition' or type == '/type/work':
             title = data.get('title', 'untitled')
             path = key + '/' + urlsafe(title)
@@ -216,9 +216,9 @@ def make_bsddb(dbfile, dump_file):
         "authors.key",  "works.key", # edition
         "authors.author.key", "subjects", "subject_places", "subject_people", "subject_times" # work
     ])
-    for type, key, revision, timestamp, json in read_tsv(dump_file):
-        db[key] = json
-        d = simplejson.loads(json)
+    for type, key, revision, timestamp, json_data in read_tsv(dump_file):
+        db[key] = json_data
+        d = json.loads(json_data)
         index = [(k, v) for k, v in flatten_dict(d) if k in indexable_keys]
         for k, v in index:
             k = web.rstrips(k, ".key")

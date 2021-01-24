@@ -19,5 +19,5 @@ cd /opt/openlibrary
 docker-compose build --pull $SERVICE
 docker-compose down
 # docker-compose up -d --no-deps memcached
-HOSTNAME=$HOSTNAME PYENV_VERSION=3.8.6 docker-compose up -d --no-deps $SERVICE
+HOSTNAME=$HOSTNAME docker-compose up -d --no-deps $SERVICE
 # docker-compose logs -f --tail=10 $SERVICE

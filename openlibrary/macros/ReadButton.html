@@ -12,14 +12,14 @@ $else:
 $ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
 
 <div class="cta-button-group">
-  <a href="$(stream_url)" title="$title" 
+  <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--available cta-btn--$(action)"
      $if loan:
        data-userid="$(loan['userid'])"
      $elif borrow:
        data-ol-link-track="CTAClick|Borrow"
      $else:
        data-ol-link-track="CTAClick|Read"
-     class="cta-btn cta-btn--available cta-btn--$(action)">$label</a>
+    >$label</a>
   $if listen:
     <a href="$(stream_url)&_autoReadAloud=show"
        title="$title using Read Aloud"

@@ -11,7 +11,6 @@ from infogami import config
 
 from openlibrary.core import admin, cache, ia, lending, \
     helpers as h
-from openlibrary.core.sponsorships import get_sponsorable_editions
 from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
@@ -103,19 +102,6 @@ def get_featured_subjects():
     ]
     return dict([(subject_name, subjects.get_subject('/subjects/' + subject_name, sort='edition_count'))
                  for subject_name in FEATURED_SUBJECTS])
-
-
-def get_cachable_sponsorable_editions():
-    if 'env' not in web.ctx:
-        delegate.fakeload()
-
-    return [format_book_data(ed) for ed in get_sponsorable_editions()]
-
-@public
-def get_cached_sponsorable_editions():
-    return storify(cache.memcache_memoize(
-        get_cachable_sponsorable_editions, "books.sponsorable_editions",
-        timeout=dateutil.HOUR_SECS)())
 
 @public
 def get_cached_featured_subjects():

@@ -22,7 +22,7 @@ Each doc is a storage object with "id", "key", "revision" and "data".
 from __future__ import print_function
 
 from openlibrary.utils import olmemcache
-import simplejson
+import json
 import web
 import datetime
 import sys
@@ -121,7 +121,7 @@ def _fill_data(docs):
         d[row.key] = row.data
 
     for doc in docs:
-        doc.data = simplejson.loads(d[doc.key])
+        doc.data = json.loads(d[doc.key])
     return docs
 
 def read_docs(keys, for_update=False):
@@ -167,7 +167,7 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
         db.multiple_insert("version", [dict(thing_id=doc.id, transaction_id=tx_id, revision=doc.revision) for doc in docs], seqname=False)
 
         debug("INSERT data")
-        data = [web.storage(thing_id=doc.id, revision=doc.revision, data=simplejson.dumps(doc.data)) for doc in docs]
+        data = [web.storage(thing_id=doc.id, revision=doc.revision, data=json.dumps(doc.data)) for doc in docs]
         db.multiple_insert("data", data, seqname=False)
 
         debug("UPDATE thing")

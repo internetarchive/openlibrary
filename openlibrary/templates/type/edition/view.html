@@ -85,8 +85,8 @@ $code:
         authors = cond(work, work and work.get_authors(), edition and edition.get_authors())
         if authors:
             return ', '.join('<a href="%s"%s>%s</a>' % (a.url(), schema_attribute, truncate(a.name, 40)) if a.name else "<em>Unknown author</em>" for a in authors)
-        elif edition.author_names:
-            return ('<span%s>' % (schema_attribute)) + ", ".join(edition.author_names) + "</span>"
+        elif (edition or work).author_names:
+            return ('<span%s>' % (schema_attribute)) + ", ".join((edition or work).author_names) + "</span>"
         else:
             return None
 
@@ -122,9 +122,6 @@ $def display_goodreads(label, ids):
         <dt>$label</dt>
         $for id in ids:
             <dd><a href="$id.url">$id.value</a></dd>
-
-$def display_contributor(c):
-    <li><span>$c.role</span><br />$c.name </li>
 
 $ authors_byline = get_authors_byline(page, include_schema=True)
 
@@ -342,13 +339,13 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
           <hr>  
           $if edition.first_sentence:
             <div>
-            <h3 class="collapse">$_("First Sentence")</h3>
+            <h3 class="edition-header">$_("First Sentence")</h3>
             <p>"$(edition.first_sentence)"</p>
             </div>
 
           $if edition.description:
             <div class="section">
-              <h3>$_("Edition Description")</h3>
+              <h3 class="edition-header">$_("Edition Description")</h3>
               <div class="edition-description">
                 <div class="addReadMore showlesscontent">
                   $:sanitize(format(edition.description))
@@ -363,7 +360,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
           $if edition.notes or edition.series or edition.volume or edition.genres or edition.other_titles or edition.copyright_date or edition.translation_of or edition.translated_from:
             <div class="section">
-                <h3>$_("Edition Notes")
+                <h3 class="edition-header">$_("Edition Notes")
                 </h3>
                 $if edition.notes:
                     $:format(edition.notes)
@@ -406,11 +403,11 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
           $ contributors = edition.get('contributors', [])
           $if contributors:
             <div class="section">
-              <h3 class="collapse">$_("Contributors")</h3>
-              <ul class="contributors">
-                $for c in contributors:
-                  $:display_contributor(c)
-              </ul>
+              <h3 class="edition-header">$_("Contributors")</h3>
+              <dl class="meta">
+              $for c in contributors:
+                    $:display_value(c.role, c.name)
+              </dl>
             </div>
 
           $if has_any("physical_format", "pagination", "physical_dimensions", "weight"):
@@ -464,7 +461,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
   </div>
 
   $ component_times['RelatedWorksCarousel'] = time()
-  <div class="RelatedWorksCarousel" workId="$work.key.split('/')[-1]">
+  <div class="RelatedWorksCarousel" data-workId="$work.key.split('/')[-1]">
     <div class="hidden loadingIndicator">
         <figure>
         <img src="/images/ajax-loader-bar.gif">
