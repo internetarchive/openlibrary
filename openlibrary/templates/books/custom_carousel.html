@@ -31,9 +31,8 @@ $def render_carousel_cover(book, lazy):
   $ modifier = ''
   $ work_key = book.key if book.key.startswith('/work') else book.get('work_key')
   $if lazy:
-    $ data_url = data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=
-    $ src_attr = 'src'
     $ img_attr = 'data-lazy'
+    $ data_url = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
   $else:
     $ img_attr = 'src'
 
@@ -44,7 +43,7 @@ $def render_carousel_cover(book, lazy):
           <img class="bookcover" loading="lazy"
             width="130" height="200"
             title="$('%s%s'%(title,byline))"
-            $src_attr="$(data_url)"
+            src="$(data_url)"
             $img_attr="$(cover_url)"/>
         $else:
           <div class="carousel__item__blankcover">
