@@ -37,9 +37,14 @@ docker image prune -f
 
 # Build the oldev Docker production image
 cd /opt/openlibrary
+d=`date +%Y-%m-%d`
+sudo git tag deploy-$d
+sudo git push origin deploy-$d
 export COMPOSE_FILE="docker-compose.yml:docker-compose.production.yml"
 time docker-compose build --pull web
 docker-compose run -uroot --rm home make i18n
+
+echo "FROM oldev:latest" | docker build -t "oldev:$(git rev-parse HEAD)" -
 
 # Compress the image in a .tar.gz file for transfer to other hosts
 cd /opt/olimages
@@ -64,11 +69,17 @@ do
     echo -e "Finished rsync to $SERVER...\n"
 done
 
-# Uncompress and tag oldev_latest.tar.gz that we have rsynced over
-bash /opt/openlibrary/scripts/deployment/continue_production_deployment.sh
 for SERVER in $SERVERS
 do
-    ssh $SERVER /opt/openlibrary/scripts/deployment/continue_production_deployment.sh
+    # ~2 - 4 min
+    time ssh $SERVER docker image prune -f
+    # Decompress the .tar.gz image that was transfered from ol-home0
+    # ~4min
+    time ssh $SERVER cd /opt/olimages && docker load < /opt/olimages/oldev_latest.tar.gz
+
+    # Add a git SHA tag to the Docker image to facilitate rapid rollback
+    ssh $SERVER cd /opt/openlibrary && echo "FROM oldev:latest" | docker build -t "oldev:$(git rev-parse HEAD)" -
+    ssh $SERVER docker image ls
 done
 
 echo "Finished production deployment at $(date)"
