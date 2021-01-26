@@ -28,4 +28,54 @@
     }
   }
 }
-/* stylelint-enable selector-max-specificity */
+tr {
+  &.row-available {
+    background: #eeecad !important;
+    .status-value {
+      color: darkgreen;
+    }
+  }
+}
+
+td.status, th.status {
+    padding: 15px;
+    text-align: center;
+}
+
+td.serial {
+    padding: 15px 0px;
+    text-align: right;
+    width: 20px;
+}
+
+.current-loan tbody tr {
+     background: #bce2a5 !important;
+}
+
+.checkedout-elsewhere {
+    padding: 15px;
+    background: #e2bca5 !important;
+    border: 1px solid #d2ac95;
+}
+
+.available {
+    padding: 15px;
+    background: #bce2a5 !important;
+    border: 1px solid #acd295;
+}
+
+.section {
+    margin: 25px 0px;
+}
+
+.section h3 {
+    margin: 1em 0em 0.5em 0em;
+}
+
+div#alert0 {
+    background-color: #eeecad !important;
+    border: 1px solid #d2ac95;
+}
+ul.inner {
+  margin-bottom: 0px !important;
+}
