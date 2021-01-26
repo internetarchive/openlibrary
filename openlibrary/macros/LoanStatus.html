@@ -43,6 +43,9 @@ $if user_loan:
       });
     </script>
 
+$elif ocaid and ctx.user and ctx.user.is_printdisabled():
+  $:macros.ReadButton(ocaid, listen=listen, printdisabled=True)
+
 $elif availability.get('is_readable'):
   $:macros.ReadButton(ocaid, listen=listen)
   $if secondary_action:
