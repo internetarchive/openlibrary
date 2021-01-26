@@ -1,5 +1,5 @@
 /**
- * Stylesheet entry point for pages with body#user
+ * Stylesheet entry point for pages with body-user
  * See:
  * - openlibrary/templates/history_framepage.html
  * - openlibrary/templates/history_framenav.html
@@ -40,58 +40,58 @@
 @import (less) "components/flash-messages.less";
 @import (less) "less/z-index.less";
 
-body#user {
+body {
   background-color: @beige;
-  /* stylelint-disable selector-max-specificity */
-  div#headerNav {
-    background-color: @beige;
+}
+/* stylelint-disable selector-max-specificity */
+div#headerNav {
+  background-color: @beige;
+}
+/* stylelint-enable selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+div#headerNav ul.links li {
+  border-top: 1px solid @beige-two;
+}
+/* stylelint-enable selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+div#headerLogo {
+  background-color: @beige;
+}
+/* stylelint-enable selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+div#background {
+  width: 100%;
+  background-color: @beige;
+}
+/* stylelint-enable selector-max-specificity */
+div.message {
+  float: left;
+  clear: both;
+  width: 100%;
+  margin-bottom: 15px;
+  background: @light-yellow;
+  p {
+    font-family: @lucida_sans_serif-7;
   }
-  /* stylelint-enable selector-max-specificity */
-  /* stylelint-disable selector-max-specificity */
-  div#headerNav ul.links li {
-    border-top: 1px solid @beige-two;
-  }
-  /* stylelint-enable selector-max-specificity */
-  /* stylelint-disable selector-max-specificity */
-  body#user div#headerLogo {
-    background-color: @beige;
-  }
-  /* stylelint-enable selector-max-specificity */
-  /* stylelint-disable selector-max-specificity */
-  div#background {
-    width: 100%;
-    background-color: @beige;
-  }
-  /* stylelint-enable selector-max-specificity */
-  div.message {
-    float: left;
-    clear: both;
-    width: 100%;
-    margin-bottom: 15px;
-    background: @light-yellow;
-    p {
-      font-family: @lucida_sans_serif-7;
-    }
-  }
-  div.siteSearch {
-    -webkit-box-ordinal-group: 4;
-    -ms-flex-order: 3;
-    order: 3;
-  }
-  div.siteSearch.darker {
-    background-color: @grey-f3f3f3;
-    padding-right: 22px;
-  }
-  /* stylelint-disable selector-max-specificity */
-  div#revertLink,
-  div#editHistory {
-    display: none;
-  }
-  /* stylelint-enable selector-max-specificity */
-  /* stylelint-disable selector-max-specificity */
-  div#headerPlace {
-    background-color: @beige;
-  }
+}
+div.siteSearch {
+  -webkit-box-ordinal-group: 4;
+  -ms-flex-order: 3;
+  order: 3;
+}
+div.siteSearch.darker {
+  background-color: @grey-f3f3f3;
+  padding-right: 22px;
+}
+/* stylelint-disable selector-max-specificity */
+div#revertLink,
+div#editHistory {
+  display: none;
+}
+/* stylelint-enable selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+div#headerPlace {
+  background-color: @beige;
 }
 
 div#subjectsPage{
