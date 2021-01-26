@@ -23,6 +23,13 @@ $code:
     'link': 'https://www.amazon.com/dp/%s/?tag=%s' % (asin or isbn, affiliate_id('amazon')),
   } if (asin or isbn) else None
 
+  bookshop = {
+    'key': 'bookshop-org',
+    'analytics_key': 'BookshopOrg',
+    'name': _('Bookshop.org'),
+    'link': 'https://bookshop.org/a/%s/%s' % (affiliate_id('bookshop-org'), isbn),
+  } if isbn else None
+
   # Fetch price data
   if not is_bot() and prices and isbn:
     bwb_metadata = get_betterworldbooks_metadata(isbn)
@@ -33,7 +40,8 @@ $code:
       amz_metadata = get_amazon_metadata(isbn, resources='prices')
       amazon['price'] = amz_metadata and amz_metadata.get('price')
 
-  stores = [store for store in [bwb, amazon] if store]
+  primary_stores = [store for store in [bwb, amazon] if store]
+  more_stores = [store for store in [bookshop] if store]
 
 $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
   <li class="prices-$key">
@@ -48,6 +56,12 @@ $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
   </li>
 
 <ul class="buy-options-table">
-    $for store in stores:
+    $for store in primary_stores:
       $:affiliate_link(store['key'], store['analytics_key'], store['name'], store['link'], store.get('price', ''), store.get('price_note', ''))
+    $if more_stores:
+      <details>
+        <summary>$_('More')</summary>
+        $for store in more_stores:
+          $:affiliate_link(store['key'], store['analytics_key'], store['name'], store['link'], store.get('price', ''), store.get('price_note', ''))
+      </details>
 </ul>
