@@ -35,7 +35,7 @@ for SERVER in $SERVERS; do
     elif [[ $SERVER == ol-dev* ]]; then
         COMPOSE_FILE=$STAGING
         dockerDown $SERVER $COMPOSE_FILE
-        ssh $SERVER "cd /opt/openlibrary; COMPOSE_FILE="$COMPOSE_FILE" HOSTNAME=$SERVER PYENV_VERSION=3.9.1 docker-compose up -d --no-deps memcached web"
+        ssh $SERVER "cd /opt/openlibrary; COMPOSE_FILE="$COMPOSE_FILE" HOSTNAME=${HOSTNAME:-$HOST} PYENV_VERSION=3.9.1 docker-compose up -d --no-deps memcached web"
     elif [[ $SERVER == ol-home0* ]]; then
         COMPOSE_FILE=$PRODUCTION
         dockerDown $SERVER $COMPOSE_FILE
@@ -44,7 +44,7 @@ for SERVER in $SERVERS; do
         COMPOSE_FILE=$PRODUCTION
         dockerDown $SERVER $COMPOSE_FILE
         ssh $SERVER "cd /opt/openlibrary; docker-compose run -uroot --rm home make i18n"
-        ssh $SERVER "cd /opt/openlibrary; COMPOSE_FILE=$COMPOSE_FILE HOSTNAME=$SERVER docker-compose up --no-deps -d web"
+        ssh $SERVER "cd /opt/openlibrary; COMPOSE_FILE=$COMPOSE_FILE HOSTNAME=${HOSTNAME:-$HOST} docker-compose up --no-deps -d web"
     else
         echo "FATAL: $SERVER is not a known host"
         exit 1
