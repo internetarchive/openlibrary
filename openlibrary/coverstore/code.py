@@ -40,10 +40,8 @@ urls = (
 app = web.application(urls, locals())
 
 cors_paths = {
-    '/b/id/',
-    '/b/oclc/',
-    '/b/lccn/',
-    '/b/olid/'
+    '/b/',
+    '/w/',
 }
 app.add_processor(CORSProcessor(cors_paths))
 
