@@ -43,7 +43,7 @@ for SERVER in $SERVERS; do
     elif [[ $SERVER == ol-web* ]]; then
         COMPOSE_FILE=$PRODUCTION
         dockerDown $SERVER $COMPOSE_FILE
-        ssh $SERVER "cd /opt/openlibrary; docker-compose run -uroot --rm home make i18n"
+        ssh $SERVER "cd /opt/openlibrary; COMPOSE_HTTP_TIMEOUT=120 docker-compose run -uroot --rm home make i18n"
         ssh $SERVER "cd /opt/openlibrary; COMPOSE_FILE=$COMPOSE_FILE HOSTNAME=${HOSTNAME:-$HOST} docker-compose up --no-deps -d web"
     else
         echo "FATAL: $SERVER is not a known host"
