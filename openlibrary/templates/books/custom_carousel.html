@@ -35,17 +35,14 @@ $def render_carousel_cover(book, lazy):
     <div class="book-cover">
       <a href="$(url)">
         $if cover_url:
+          <img class="bookcover" loading="lazy"
+            width="130" height="200"
+            title="$('%s%s'%(title,byline))"
           $if lazy:
-            <img class="bookcover" loading="lazy"
-              width="130" height="200"
-              title="$('%s%s'%(title,byline))"
-              data-lazy="$(cover_url)"
-              src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
+            data-lazy="$(cover_url)"
+            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
           $else:
-            <img class="bookcover" loading="lazy"
-              width="130" height="200"
-              title="$('%s%s'%(title,byline))"
-              src="$(cover_url)"/>
+            src="$(cover_url)"/>
         $else:
           <div class="carousel__item__blankcover">
             <div class="carousel__item__blankcover--title">$:macros.TruncateString(title, 70)</div>
