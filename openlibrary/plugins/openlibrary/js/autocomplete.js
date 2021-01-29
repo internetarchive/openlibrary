@@ -69,7 +69,7 @@ export default function($) {
                     }
                 }).then((results) => {
                     response(
-                        results.map((r, i) => {
+                        results.map((r) => {
                             return {
                                 label: highlight(options.formatItem(r), term),
                                 value: r.name
@@ -78,10 +78,12 @@ export default function($) {
                     );
 
                     // When no results if callback is defined, append a create new entry
-                    if (!results.length && (
-                        ol_ac_opts.addnew || (ol_ac_opts.addnew && ol_ac_opts.addnew(query))
+                    if (!results.length &&
+                        (
+                            ol_ac_opts.addnew ||
+                            (ol_ac_opts.addnew && ol_ac_opts.addnew(term))
                         )
-                     ) {
+                    ) {
                         response([
                             {
                                 label: options.formatItem({
