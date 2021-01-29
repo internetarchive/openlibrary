@@ -156,6 +156,12 @@ jQuery(function () {
         $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
     }
 
+    //conditionally load javascript for the wikipedia citation button 
+    if(document.getElementById('wikilink')) {
+        import('./wikipedia_citation_button.js')
+            .then((module) => module.WikipediaCitationButtonPressed());
+    }
+
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
