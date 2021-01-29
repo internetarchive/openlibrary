@@ -1,5 +1,5 @@
 export function WikipediaCitationButtonPressed() {
-    window.q.push(function(){
-        ('#wikiselect').focus(function(){this.select();})
-    });
+    $('#wikilink').click( function() {
+        $('#wikiselect').focus(function(){$(this).select();})
+    })
 }

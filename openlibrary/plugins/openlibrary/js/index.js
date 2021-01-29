@@ -158,7 +158,7 @@ jQuery(function () {
 
     //conditionally load javascript for the wikipedia citation button 
     if(document.getElementById('wikilink')) {
-        import('./wikipedia_citation_button.js')
+        import('./wikipedia_citation_button')
             .then((module) => module.WikipediaCitationButtonPressed());
     }
 
