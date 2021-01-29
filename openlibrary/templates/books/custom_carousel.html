@@ -50,6 +50,11 @@ $def render_carousel_cover(book, lazy):
               <div class="carousel__item__blankcover--authors">$:macros.TruncateString(', '.join(author_names), 30)</div>
           </div>
       </a>
+      <div class="middle">
+        <div class="text">
+          <a href="$(url)">$title</a>
+        </div>
+      </div>
     </div>
     <div class="book-cta">
       $:macros.LoanStatus(book, work_key=work_key, listen=False, daisy=False)

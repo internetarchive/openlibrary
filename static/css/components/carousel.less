@@ -97,6 +97,28 @@
   }
 }
 
+.book-cover .middle {
+  transition: .5s ease;
+  opacity: 0;
+  position: relative;
+  text-align: center;
+}
+
+.book img.bookcover:hover {
+  opacity: 0.3;
+}
+
+.book-cover:hover .middle {
+  opacity: 1;
+}
+
+.book-cover .text {
+  width: 100%;
+  background-color: #fff;
+  position: absolute;
+  bottom: 0;
+}
+
 .carousel__item .slick-loading {
   opacity: 0;
 }
