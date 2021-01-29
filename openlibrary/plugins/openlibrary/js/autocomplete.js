@@ -25,34 +25,7 @@ export default function($) {
                 return item.name;
             },
             mustMatch: true,
-            formatMatch: function(item) { return item.name; },
-            parse: function(text) {
-                // in v2, text IS the JSON
-                var rows = typeof text === 'string' ? JSON.parse(text) : text;
-                var parsed = [];
-                var i, row, query;
-                for (i=0; i < rows.length; i++) {
-                    row = rows[i];
-                    parsed.push({
-                        data: row,
-                        value: row.name,
-                        result: row.name
-                    });
-                }
-
-                // XXX: this won't work when _this is multiple values (like $("input"))
-                query = $(_this).val();
-                if (ol_ac_opts.addnew == true || (ol_ac_opts.addnew && ol_ac_opts.addnew(query))) {
-                    parsed = parsed.slice(0, ac_opts.max - 1);
-                    const name = ol_ac_opts.new_name || query;
-                    parsed.push({
-                        data: {name, key: '__new__'},
-                        value: name,
-                        result: name
-                    });
-                }
-                return parsed;
-            },
+            formatMatch: function(item) { return item.name; }
         };
 
 
@@ -72,10 +45,11 @@ export default function($) {
         $.widget('custom.autocompleteHTML', $.ui.autocomplete, {
             _renderMenu($ul, items) {
                 $ul.addClass('ac_results');
-                items.forEach((item) => {
+                items.forEach((item, i) => {
                     $('<li>')
-                        .addClass(item.even ? 'ac-even' : 'ac-odd')
+                        .addClass(i % 2 ? 'ac-even' : 'ac-odd')
                         .attr('data-value', item.value)
+                        .data('ui-autocomplete-item', item)
                         .attr('aria-label', item.value)
                         .html(item.label)
                         .appendTo($ul);
@@ -97,33 +71,34 @@ export default function($) {
                     response(
                         results.map((r, i) => {
                             return {
-                                even: i % 2 === 0,
                                 label: highlight(options.formatItem(r), term),
                                 value: r.name
                             };
                         })
                     );
+
+                    // When no results if callback is defined, append a create new entry
+                    if (!results.length && (
+                        ol_ac_opts.addnew || (ol_ac_opts.addnew && ol_ac_opts.addnew(query))
+                        )
+                     ) {
+                        response([
+                            {
+                                label: options.formatItem({
+                                    name: term,
+                                    key: '__new__',
+                                    result: term,
+                                    value: term
+                                }),
+                                value: term
+                            }
+                        ]);
+                    }
                 });
             }
         });
         $(_this)
             .autocompleteHTML(options)
-            /*
-            .result(function(event, item) {
-                var $this;
-
-                $(`#${this.id}-key`).val(item.key);
-                $this = $(this);
-
-                //adding class directly is not working when tab is pressed. setTimeout seems to be working!
-                setTimeout(function() {
-                    $this.addClass('accept');
-                }, 0);
-            })
-            .nomatch(function(){
-                $(`#${this.id}-key`).val('');
-                $(this).addClass('reject');
-            })*/
             .on('keypress', function() {
                 $(this).removeClass('accept').removeClass('reject');
             });
