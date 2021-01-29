@@ -4,7 +4,7 @@ export default function($) {
     /**
      * Some extra options for when creating an autocomplete input field
      * @typedef {Object} OpenLibraryAutocompleteOptions
-     * @property{string} endpoint - url to hit for autocomplete results
+     * @property {string} endpoint - url to hit for autocomplete results
      * @property{(boolean|Function)} [addnew] - when (or whether) to display a "Create new record"
      *     element in the autocomplete list. The function takes the query and should return a boolean.
      *     a boolean.
@@ -16,10 +16,14 @@ export default function($) {
      * @param{HTMLInputElement} _this - input element that will become autocompleting.
      * @param{OpenLibraryAutocompleteOptions} ol_ac_opts
      * @param{Object} ac_opts - options passed to $.autocomplete; see that.
+     * @param {Function} ac_opts.formatItem - optional item formatter. Returns a string of HTML for rendering as an item.
      */
     function setup_autocomplete(_this, ol_ac_opts, ac_opts) {
         var default_ac_opts = {
             autoFill: true,
+            formatItem: function (item) {
+                return item.name;
+            },
             mustMatch: true,
             formatMatch: function(item) { return item.name; },
             parse: function(text) {
@@ -51,8 +55,60 @@ export default function($) {
             },
         };
 
+
+        /**
+         * Port of code in vendor/js/jquery-autocomplete removed in e91119b
+         * @param {string} value
+         * @param {string} term to highlight in value
+         * @return {string}
+         */
+        function highlight(value, term) {
+            return value.replace(
+                new RegExp(`(?![^&;]+;)(?!<[^<>]*)(${term.replace(/([\^$()[]\{\}\*\.\+\?\|\\])/gi, '$1')})(?![^<>]*>)(?![^&;]+;)`, 'gi'),
+                '<strong>$1</strong>'
+            );
+        }
+
+        $.widget('custom.autocompleteHTML', $.ui.autocomplete, {
+            _renderMenu($ul, items) {
+                $ul.addClass('ac_results');
+                items.forEach((item) => {
+                    $('<li>')
+                        .addClass(item.even ? 'ac-even' : 'ac-odd')
+                        .attr('data-value', item.value)
+                        .attr('aria-label', item.value)
+                        .html(item.label)
+                        .appendTo($ul);
+                });
+            }
+        });
+
+        const options = $.extend(default_ac_opts, ac_opts, {
+            source: function (q, response) {
+                const term = q.term;
+                return $.ajax({
+                    url: ol_ac_opts.endpoint,
+                    data: {
+                        q: term,
+                        limit: options.max,
+                        timestamp: new Date()
+                    }
+                }).then((results) => {
+                    response(
+                        results.map((r, i) => {
+                            return {
+                                even: i % 2 === 0,
+                                label: highlight(options.formatItem(r), term),
+                                value: r.name
+                            };
+                        })
+                    );
+                });
+            }
+        });
         $(_this)
-            .autocomplete(ol_ac_opts.endpoint, $.extend(default_ac_opts, ac_opts))
+            .autocompleteHTML(options)
+            /*
             .result(function(event, item) {
                 var $this;
 
@@ -67,8 +123,8 @@ export default function($) {
             .nomatch(function(){
                 $(`#${this.id}-key`).val('');
                 $(this).addClass('reject');
-            })
-            .keypress(function() {
+            })*/
+            .on('keypress', function() {
                 $(this).removeClass('accept').removeClass('reject');
             });
     }
