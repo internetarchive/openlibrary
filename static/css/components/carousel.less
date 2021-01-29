@@ -97,7 +97,7 @@
   }
 }
 
-.book-cover .middle {
+.book-cover__title {
   transition: .5s ease;
   opacity: 0;
   position: relative;
@@ -108,13 +108,14 @@
   opacity: 0.3;
 }
 
-.book-cover:hover .middle {
+.book-cover:hover .book-cover__title {
   opacity: 1;
 }
 
-.book-cover .text {
+.book-cover__title__text {
   width: 100%;
-  background-color: #fff;
+  background-color: @primary-blue;
+  color: @white !important;
   position: absolute;
   bottom: 0;
 }
