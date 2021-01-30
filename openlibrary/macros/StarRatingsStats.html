@@ -2,14 +2,12 @@ $def with(work)
 
 $ rating_stats = work and work.get_rating_stats() or {}
 $ stats_by_bookshelf = work and work.get_num_users_by_bookshelf() or {}
-$ stats_decimal = (float(rating_stats.get('avg_rating')))-(int(rating_stats.get('avg_rating')))
 
 <ul class="readers-stats" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
   <li class="avg-ratings">
     $if rating_stats.get('avg_rating'):
-      $:('<div class="readers-stats__star"><img src="/static/images/full-star.svg"/></div>' * int(rating_stats.get('avg_rating')))
-      $if (stats_decimal >= 0.5) and (stats_decimal < 1):
-        $:('<div class="readers-stats__star"><img src="/static/images/half-star.svg"/></div>')
+      $ stats_decimal = float(rating_stats.get('avg_rating'))
+      <div class="readers-stats__star" style="--rating: $(stats_decimal);"></div>
       <span itemprop="ratingValue">$(rating_stats['avg_rating'])</span>
   </li>
   <li>
