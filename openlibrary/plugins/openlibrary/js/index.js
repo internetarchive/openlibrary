@@ -33,6 +33,8 @@ import '../../../../static/css/js-all.less';
 import Promise from 'promise-polyfill';
 import { confirmDialog, initDialogs } from './dialog';
 import initTabs from './tabs.js';
+//load javascript for the wikipedia citation button
+import WikipediaCitationButtonPressed from './wikipedia_citation_button';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -88,6 +90,7 @@ jQuery(function () {
     addFadeInFunctionsTojQuery($);
     jQueryRepeat($);
     initAnalytics($);
+    WikipediaCitationButtonPressed($);
     init($);
     // conditionally load functionality based on what's in the page
     if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
@@ -154,12 +157,6 @@ jQuery(function () {
     }
     if ($('#cboxSlideshow').length) {
         $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
-    }
-
-    //conditionally load javascript for the wikipedia citation button
-    if (document.getElementById('wikilink')) {
-        import('./wikipedia_citation_button')
-            .then((module) => module.WikipediaCitationButtonPressed());
     }
 
     $(document).on('click', '.slide-toggle', function () {

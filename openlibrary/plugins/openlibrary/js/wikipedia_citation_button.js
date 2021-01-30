@@ -1,5 +1,3 @@
-export function WikipediaCitationButtonPressed() {
-    $('#wikilink').click(function() {
-        $('#wikiselect').focus(function(){$(this).select();})
-    })
+export default function WikipediaCitationButtonPressed() {
+    $('#wikiselect').on('focus', function(){$(this).select();})
 }
