@@ -159,4 +159,6 @@ jQuery(function () {
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
+
+    $('#wikiselect').on('focus', function(){$(this).select();})
 });
