@@ -80,7 +80,7 @@ export default function($) {
                     // When no results if callback is defined, append a create new entry
                     if (!results.length &&
                         (
-                            ol_ac_opts.addnew ||
+                            ol_ac_opts.addnew === true ||
                             (ol_ac_opts.addnew && ol_ac_opts.addnew(term))
                         )
                     ) {
