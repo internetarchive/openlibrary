@@ -41,7 +41,7 @@ $jsdef render_seed_count(seed_count):
     </div>
     <h1>$list.name</h1>
     <p class="collapse sansserif">
-        <span class="darkgreen"><strong>$:render_seed_count(len(list.seeds))</strong></span>
+        <span class="darkgreen" id="item_count"><strong>$:render_seed_count(len(list.seeds))</strong></span>
     </p>
 </div>
 
@@ -111,6 +111,7 @@ window.q.push(function(){
                     \$(seed_id).remove();
                     // update seed count
                     \$("#seed-count").html(render_seed_count(get_seed_count()));
+                    \$("#item_count").load(location.href + " #item_count");
 
                     // TODO: update edition count
 
