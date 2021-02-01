@@ -4,10 +4,10 @@
 from __future__ import print_function
 
 import itertools
+import json
 import os
 import sys
 
-import simplejson
 import web
 
 changelog = """\
@@ -68,7 +68,7 @@ class Upgrader:
 
         for tx_id, changes in itertools.groupby(rows, lambda row: row.transaction_id):
             changes = [{"key": row.key, "revision": row.revision} for row in changes]
-            db.update("transaction", where="id=$tx_id", changes=simplejson.dumps(changes), vars=locals())
+            db.update("transaction", where="id=$tx_id", changes=json.dumps(changes), vars=locals())
 
     def upgrade_014(self, db):
         """Add transaction_index table."""
