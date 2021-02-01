@@ -6,6 +6,15 @@ from openlibrary.core import ia
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
 
+
+class MockResponse:
+    """MockResponse is used to pass the contents of the read file back as an object that acts like a requests.Response
+    object instead of a file object.  This is because the urlopen_keep_trying function was moved from urllib to requests."""
+    def __init__(self, data):
+        self.content = data
+        self.text = data.decode("utf-8")
+
+
 def return_test_marc_bin(url):
     assert url, "return_test_marc_bin({})".format(url)
     return return_test_marc_data(url, "bin_input")
@@ -18,7 +27,7 @@ def return_test_marc_data(url, test_data_subdir="xml_input"):
     filename = url.split('/')[-1]
     test_data_dir = "/../../catalog/marc/tests/test_data/%s/" % test_data_subdir
     path = os.path.dirname(__file__) + test_data_dir + filename
-    return open(path, mode='rb')
+    return MockResponse(open(path, mode='rb').read())
 
 class TestGetIA():
     bad_marcs = ['dasrmischepriv00rein',  # binary representation of unicode interpreted as unicode codepoints
