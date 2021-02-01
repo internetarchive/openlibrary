@@ -47,7 +47,7 @@ def bad_ia_xml(identifier):
     # need to handle 404s:
     # http://www.archive.org/details/index1858mary
     loc = "{0}/{0}_marc.xml".format(identifier)
-    return '<!--' in urlopen_keep_trying(IA_DOWNLOAD_URL + loc).content
+    return '<!--' in urlopen_keep_trying(IA_DOWNLOAD_URL + loc).text
 
 
 def get_marc_record_from_ia(identifier):
