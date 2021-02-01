@@ -12,6 +12,7 @@ import six
 from openlibrary.core import formats, cache
 import openlibrary.core.helpers as h
 from openlibrary.utils import dateutil
+from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.worksearch import subjects
 
 
@@ -153,6 +154,9 @@ class lists_json(delegate.page):
             tags=data.get('tags', []),
             seeds=seeds
         )
+
+        if spamcheck.is_spam(lst):
+            raise self.forbidden()
 
         try:
             result = site.save(lst.dict(),
@@ -310,7 +314,7 @@ class list_seeds(delegate.page):
             "remove": data.get("remove", [])
         }
 
-        d = lst._save(comment="updated list seeds.", action="lists", data=changeset_data)
+        d = lst._save(comment="Updated list.", action="lists", data=changeset_data)
         web.header("Content-Type", self.content_type)
         return delegate.RawText(formats.dump(d, self.encoding))
 

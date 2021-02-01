@@ -1,6 +1,6 @@
 # This will be moved to core soon.
 from openlibrary.plugins.openlibrary import connection as connections
-import simplejson
+import json
 
 class MockConnection:
     def __init__(self):
@@ -11,10 +11,10 @@ class MockConnection:
         if path == "/get":
             key = data['key']
             if key in self.docs:
-                return simplejson.dumps(self.docs[key])
+                return json.dumps(self.docs[key])
         if path == "/get_many":
-            keys = simplejson.loads(data['keys'])
-            return simplejson.dumps(dict((k, self.docs[k]) for k in keys))
+            keys = json.loads(data['keys'])
+            return json.dumps(dict((k, self.docs[k]) for k in keys))
         else:
             return None
 
@@ -26,8 +26,8 @@ class TestMigrationMiddleware:
             conn.conn.docs[doc['key']] = doc
 
         def get(key):
-            json = conn.request("openlibrary.org", "/get", data={"key": key})
-            return simplejson.loads(json)
+            json_data = conn.request("openlibrary.org", "/get", data={"key": key})
+            return json.loads(json_data)
 
         add({
             "key": "/books/OL1M",
@@ -74,13 +74,13 @@ class TestMigrationMiddleware:
             conn.conn.docs[doc['key']] = doc
 
         def get(key):
-            json = conn.request("openlibrary.org", "/get", data={"key": key})
-            return simplejson.loads(json)
+            json_data = conn.request("openlibrary.org", "/get", data={"key": key})
+            return json.loads(json_data)
 
         def get_many(keys):
-            data = dict(keys=simplejson.dumps(keys))
-            json = conn.request("openlibrary.org", "/get_many", data=data)
-            return simplejson.loads(json)
+            data = dict(keys=json.dumps(keys))
+            json_data = conn.request("openlibrary.org", "/get_many", data=data)
+            return json.loads(json_data)
 
         add({
             "key": "/works/OL1W",

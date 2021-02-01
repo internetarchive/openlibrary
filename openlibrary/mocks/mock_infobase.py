@@ -1,10 +1,10 @@
 """Simple implementation of mock infogami site to use in testing.
 """
 import datetime
-import web
 import glob
+import json
 import pytest
-import simplejson
+import web
 
 from infogami.infobase import client, common, account, config as infobase_config
 from infogami import config
@@ -280,7 +280,7 @@ class MockSite:
             self.account_manager.set_auth_token("/people/" + username)
         else:
             d = {"code": status}
-            raise client.ClientException("bad_data", msg="Login failed", json=simplejson.dumps(d))
+            raise client.ClientException("bad_data", msg="Login failed", json=json.dumps(d))
 
     def find_account(self, username=None, email=None):
         if username is not None:

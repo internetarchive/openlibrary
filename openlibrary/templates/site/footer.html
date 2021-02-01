@@ -9,7 +9,6 @@ $if bodyid == 'user' or 'admin':
         $:render_template("site/stats")
     $:render_template("lib/nav_foot", page)
 
-</body>
     <script src="$static_url('build/all.js')" type="text/javascript"></script>
     <!-- Must be loaded after jquery -->
     <script src="//archive.org/includes/analytics.js?v=0c15bbe" type="text/javascript"></script>
@@ -41,4 +40,5 @@ $if bodyid == 'user' or 'admin':
       archive_analytics.set_up_event_tracking();
     }
     </script>
+</body>
 </html>

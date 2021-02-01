@@ -56,7 +56,6 @@ config_http_request_timeout = None
 config_loanstatus_url = None
 config_bookreader_host = None
 config_internal_tests_api_key = None
-config_amz_api = None
 
 def setup(config):
     """Initializes this module from openlibrary config.
@@ -114,7 +113,7 @@ def cached_work_authors_and_subjects(work_id):
 def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                    _type=None, sorts=None, advanced=True):
     """This needs to be exposed by a generalized API endpoint within
-    plugins/openlibrary/api/browse which lets lazy-load more items for
+    plugins/api/browse which lets lazy-load more items for
     the homepage carousel and support the upcoming /browse view
     (backed by archive.org search, so we don't have to send users to
     archive.org to see more books)
@@ -174,7 +173,7 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                     'sorts': sorts,
                     'advanced': advanced,
                 })
-                return ''  # TODO: Should we just raise an excpetion instead?
+                return ''  # TODO: Should we just raise an exception instead?
             q += ' AND (%s) AND !openlibrary_work:(%s)' % (_q, work_id.split('/')[-1])
 
     if not advanced:
@@ -261,6 +260,7 @@ def get_available(limit=None, page=1, subject=None, query=None,
     used in such things as 'Staff Picks' carousel to retrieve a list
     of unique available books.
     """
+
     url = url or compose_ia_url(
         limit=limit, page=page, subject=subject, query=query,
         work_id=work_id, _type=_type, sorts=sorts
@@ -279,6 +279,7 @@ def get_available(limit=None, page=1, subject=None, query=None,
             '_type': _type,
             'sorts': sorts,
         })
+        return {'error': 'no_url'}
     try:
         # Internet Archive Elastic Search (which powers some of our
         # carousel queries) needs Open Library to forward user IPs so

@@ -1,31 +1,35 @@
-
-import simplejson
 import logging
 
+import requests
 import web
 from infogami import config
 from openlibrary.core.lending import get_availability_of_ocaids
 from openlibrary.plugins.openlibrary.home import format_book_data
+from six.moves.urllib.parse import urlencode
 
-from six.moves import urllib
+# py3 uses json.decoder.JSONDecodeError
+try:
+    from json.decoder import JSONDecodeError
+except ImportError:
+    JSONDecodeError = ValueError
+
+logger = logging.getLogger("openlibrary.inside")
 
 
 def fulltext_search_api(params):
     if not hasattr(config, 'plugin_inside'):
         return {'error': 'Unable to prepare search engine'}
     search_endpoint = config.plugin_inside['search_endpoint']
-    search_select = search_endpoint + '?' + urllib.parse.urlencode(params, 'utf-8')
+    search_select = search_endpoint + '?' + urlencode(params, 'utf-8')
 
+    logger.debug('URL: ' + search_select)
     try:
-        json_data = urllib.request.urlopen(search_select, timeout=30).read()
-        logger = logging.getLogger("openlibrary.inside")
-        logger.debug('URL: ' + search_select)
-    except:
+        response = requests.get(search_select, timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except requests.HTTPError:
         return {'error': 'Unable to query search engine'}
-
-    try:
-        return simplejson.loads(json_data)
-    except:
+    except JSONDecodeError:
         return {'error': 'Error converting search engine data to JSON'}
 
 

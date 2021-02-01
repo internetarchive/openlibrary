@@ -6,7 +6,6 @@ from __future__ import print_function
 
 import requests
 import web
-import simplejson
 import json
 import os
 import socket
@@ -130,7 +129,7 @@ def sampledump():
             return
         elif key in visiting:
             # This is a case of circular-dependency. Add a stub object to break it.
-            print(simplejson.dumps({
+            print(json.dumps({
                 'key': key, 'type': visiting[key]['type']
             }))
             visited.add(key)
@@ -150,7 +149,7 @@ def sampledump():
             visit(ref)
         visited.add(key)
 
-        print(simplejson.dumps(d))
+        print(json.dumps(d))
 
     keys = [
         '/scan_record',
@@ -172,7 +171,7 @@ def sampleload(filename='sampledump.txt.gz'):
     else:
         f = open(filename)
 
-    queries = [simplejson.loads(line) for line in f]
+    queries = [json.loads(line) for line in f]
     print(web.ctx.site.save_many(queries))
 
 
@@ -180,14 +179,14 @@ class routes(delegate.page):
     path = '/developers/routes'
 
     def GET(self):
-        class ModulesToStr(simplejson.JSONEncoder):
+        class ModulesToStr(json.JSONEncoder):
             def default(self, obj):
                 if isinstance(obj, metapage):
                     return obj.__module__ + '.' + obj.__name__
                 return super(ModulesToStr, self).default(obj)
 
         from openlibrary import code
-        return '<pre>%s</pre>' % simplejson.dumps(
+        return '<pre>%s</pre>' % json.dumps(
             code.delegate.pages, sort_keys=True, cls=ModulesToStr,
             indent=4, separators=(',', ': '))
 
@@ -272,9 +271,9 @@ class search(delegate.page):
         d = dict(status='200 OK', query=dict(i, escape='html'), code='/api/status/ok', result=result)
 
         if callback:
-            data = '%s(%s)' % (callback, simplejson.dumps(d))
+            data = '%s(%s)' % (callback, json.dumps(d))
         else:
-            data = simplejson.dumps(d)
+            data = json.dumps(d)
         raise web.HTTPError('200 OK', {}, data)
 
 
@@ -297,9 +296,9 @@ class blurb(delegate.page):
         result = dict(body=body, media_type='text/html', text_encoding='utf-8')
         d = dict(status='200 OK', code='/api/status/ok', result=result)
         if callback:
-            data = '%s(%s)' % (callback, simplejson.dumps(d))
+            data = '%s(%s)' % (callback, json.dumps(d))
         else:
-            data = simplejson.dumps(d)
+            data = json.dumps(d)
 
         raise web.HTTPError('200 OK', {}, data)
 
@@ -523,12 +522,12 @@ class _yaml(delegate.mode):
             d = api.request('/get', data=data)
         except client.ClientException as e:
             if e.json:
-                msg = self.dump(simplejson.loads(e.json))
+                msg = self.dump(json.loads(e.json))
             else:
                 msg = str(e)
             raise web.HTTPError(e.status, data=msg)
 
-        return simplejson.loads(d)
+        return json.loads(d)
 
     def dump(self, d):
         import yaml
@@ -652,18 +651,18 @@ class new:
             type = query['type']
             if isinstance(type, dict):
                 if 'key' not in type:
-                    raise BadRequest('Bad Type: ' + simplejson.dumps(type))
+                    raise BadRequest('Bad Type: ' + json.dumps(type))
                 type = type['key']
 
             if type not in ['/type/author', '/type/edition', '/type/work', '/type/series', '/type/publisher']:
-                raise BadRequest('Bad Type: ' + simplejson.dumps(type))
+                raise BadRequest('Bad Type: ' + json.dumps(type))
 
     def POST(self):
         if not can_write():
             raise Forbidden('Permission Denied.')
 
         try:
-            query = simplejson.loads(web.data())
+            query = json.loads(web.data())
             h = api.get_custom_headers()
             comment = h.get('comment')
             action = h.get('action')
@@ -687,7 +686,7 @@ class new:
             botname = botname.replace('.', '-')
             key = 'ol.edits.bots.'+botname
             openlibrary.core.stats.increment(key)
-        return simplejson.dumps(keys)
+        return json.dumps(keys)
 
 api and api.add_hook('new', new)
 
@@ -762,7 +761,7 @@ class invalidate(delegate.page):
         if web.ctx.ip != '127.0.0.1' and web.ctx.ip.rsplit('.', 1)[0] != local_ip.rsplit('.', 1)[0]:
             raise Forbidden('Allowed only in the local network.')
 
-        data = simplejson.loads(web.data())
+        data = json.loads(web.data())
         if not isinstance(data, list):
             data = [data]
         for d in data:
@@ -843,7 +842,7 @@ class Partials(delegate.page):
         if component == "RelatedWorkCarousel":
             partial = _get_relatedcarousels_component(i.workid)
         return delegate.RawText(
-            simplejson.dumps(partial),
+            json.dumps(partial),
             content_type="application/json"
         )
 
@@ -890,7 +889,7 @@ def setup_template_globals():
         'is_bot': is_bot,
         'time': time,
         'input': web.input,
-        'dumps': simplejson.dumps,
+        'dumps': json.dumps,
     })
 
 

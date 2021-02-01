@@ -98,7 +98,7 @@ export function initPatronMetadata() {
         if (result['observations'].length > 0) {
             $.ajax({
                 type: 'POST',
-                url: `${context.the_best_book_on_url}/api/observations`,
+                url: '/observations',
                 contentType: 'application/json',
                 data: JSON.stringify(result)
             });

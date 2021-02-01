@@ -94,6 +94,18 @@ class InfobaseLog:
             # no more data is available
             if not data:
                 logger.debug("no more records found")
+                # There's an infobase bug where we'll sometimes get 0 items, but the
+                # binary offset will have incremented...?
+                if 'offset' in d:
+                    # There's _another_ infobase bug where if you query a future date,
+                    # it'll return back 2020-12-01. To avoid solrupdater getting stuck
+                    # in a loop, only update the offset if it's newer than the current
+                    old_day, old_boffset = self.offset.split(':')
+                    old_boffset = int(old_boffset)
+                    new_day, new_boffset = d['offset'].split(':')
+                    new_boffset = int(new_boffset)
+                    if new_day >= old_day and new_boffset >= old_boffset:
+                        self.offset = d['offset']
                 return
 
             for record in data:

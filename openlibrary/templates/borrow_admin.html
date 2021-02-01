@@ -29,12 +29,6 @@ $def format_users(users):
         $else:
             <em>Unknown</em>
 
-<style type="text/css">
-ul.inner {
-    margin-bottom: 0px !important;
-}
-</style>
-
 <div id="contentHead">
     <div class="navBorrow">
         <a href="/" title="Return to home page"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="Open Library logo" class="right"/></a>
@@ -341,75 +335,3 @@ ul.inner {
         <pre>$:json_encode([doc.dict() for doc in waitinglist], indent=True)</pre>
     </div>
 </div>
-
-
-<style type="text/css">
-body#plain #borrowTable {margin: 30px 0 25px;}
-body#plain #borrowTable table {width:100%;font-family:"Lucida Grande","Arial",sans-serif;}
-body#plain #borrowTable table th {
-    border-bottom: 1px solid #c7c3b3;
-    vertical-align: bottom;
-    padding-bottom:10px;
-    font-family:"News Gothic MT","Trebuchet MS",Geneva,Helvetica,sans-serif;
-    color:#615132;
-    font-weight:600;
-    font-size:0.6875em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    text-align: center;
-}
-
-th.xtitles {
-    text-align: left !important;
-}
-
-tr.row-available .status-value {
-    color: darkgreen;
-}
-
-tr.row-available {
-    background: #eeecad !important;
-}
-
-
-td.status, th.status {
-    padding: 15px;
-    text-align: center;
-}
-
-td.serial {
-    padding: 15px 0px;
-    text-align: right;
-    width: 20px;
-}
-
-.current-loan tbody tr {
-     background: #bce2a5 !important;
-}
-
-.checkedout-elsewhere {
-    padding: 15px;
-    background: #e2bca5 !important;
-    border: 1px solid #d2ac95;
-}
-
-.available {
-    padding: 15px;
-    background: #bce2a5 !important;
-    border: 1px solid #acd295;
-}
-
-.section {
-    margin: 25px 0px;
-}
-
-.section h3 {
-    margin: 1em 0em 0.5em 0em;
-}
-
-body#plain div#alert0 {
-    background-color: #eeecad !important;
-    border: 1px solid #d2ac95;
-}
-
-</style>

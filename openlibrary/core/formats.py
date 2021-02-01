@@ -1,20 +1,11 @@
 """Library for loading and dumping data to json and yaml.
 """
-import simplejson
+import json
 import yaml
 
 __all__ = [
-    "load_json", "dump_json",
     "load_yaml", "dump_yaml"
 ]
-
-def load_json(text):
-    """Loads data from the given JSON text.
-    """
-    return simplejson.loads(text)
-
-def dump_json(data):
-    return simplejson.dumps(data)
 
 def load_yaml(text):
     return yaml.safe_load(text)
@@ -27,7 +18,7 @@ def dump_yaml(data):
 
 def load(text, format):
     if format == "json":
-        return load_json(text)
+        return json.loads(text)
     elif format == "yaml":
         return load_yaml(text)
     else:
@@ -35,7 +26,7 @@ def load(text, format):
 
 def dump(data, format):
     if format == "json":
-        return dump_json(data)
+        return json.dumps(data)
     elif format == "yml":
         return dump_yaml(data)
     else:

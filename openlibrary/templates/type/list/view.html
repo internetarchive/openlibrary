@@ -12,6 +12,8 @@ $if list.description:
 $var title: $list.name
 
 $putctx("description", meta_description)
+$if days_since(list.created) < 30:
+  $ putctx('robots', 'noindex')
 
 $add_metatag(property="twitter:card", content="summary")
 $add_metatag(property="twitter:site", content="@openlibrary")
@@ -27,7 +29,7 @@ $add_metatag(property="og:description", content=meta_description)
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
 $jsdef render_seed_count(seed_count):
-    $ungettext("1 seed", "%(count)d seeds", seed_count, count=seed_count)
+    $ungettext("1 item", "%(count)d items", seed_count, count=seed_count)
 
 <div id="contentHead" style="margin-bottom:0;">
 
@@ -184,12 +186,12 @@ window.q.push(function(){
                     $ meta_cover_url = cover_url
                 <span class="bookcover">
                     <a href="$seed.url">
-                      <img src="$cover_url"/>
+                      <img src="$cover_url" alt/>
                     </a>
                 </span>
                 <span class="seed-key hidden">$seed.key</span>
-                <span class="details">
-                    <span class="resultTitle">
+                <div class="details">
+                    <div class="resultTitle">
                         $ ebook = {}
                         $if seed.type in ['edition', 'work']:
                             $ ebook = seed.document.get_ebook_info()
@@ -227,8 +229,8 @@ window.q.push(function(){
                             <span class="time">
                                 $:_('Last updated <span>%(date)s</span>', date=datestr(seed.last_update))
                             </span>
-                    </span>
-                </span>
+                        </div>
+                </div>
                 <span class="searchResultItemCTA">
                     $if ctx.user and ctx.user.key == list.get_owner().key:
                         <span class="listDelete sansserif smaller">

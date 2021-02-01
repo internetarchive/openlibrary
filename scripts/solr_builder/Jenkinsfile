@@ -16,6 +16,8 @@ pipeline {
     booleanParam(name: 'REUSE_POSTGRES', defaultValue: false, description: 'If true, assumes a functioning postgres is running/correct')
     booleanParam(name: 'REUSE_SOLRBACKUP', defaultValue: false, description: 'If true, assumes a functioning solr-backup is running/correct')
     booleanParam(name: 'INTO_SOLR_FROM_DUMP', defaultValue: true, description: 'If true, reindexes dump into solr')
+    booleanParam(name: 'INDEX_WORKS_ORPHANS', defaultValue: true, description: 'If true, reindexes works/orphans into solr')
+    booleanParam(name: 'INDEX_AUTHORS', defaultValue: true, description: 'If true, reindexes authors into solr')
     booleanParam(name: 'INTO_SOLR_COPY_SUBJECTS', defaultValue: true, description: 'If true, copies subjects into solr')
   }
   environment {
@@ -190,10 +192,7 @@ pipeline {
                 script: 'docker-compose up --no-deps -d solr')
 
               sh(label: 'Build "lite" ol environment',
-                script: '''
-                docker build -t olbase:latest -f ../../docker/Dockerfile.olbase ../../
-                docker-compose build ol
-                ''')
+                script: 'docker-compose build --pull ol')
               
               sh(label: 'Build the cython files',
                 script: 'docker-compose run ol ./build-cython.sh')
@@ -209,22 +208,33 @@ pipeline {
               when { expression { return params.INTO_SOLR_FROM_DUMP } }
               stages {
                 stage('Insert works & orphaned editions') {
+                  when { expression { return params.INDEX_WORKS_ORPHANS } }
                   steps {
-                    insert_into_solr('./index-type.sh work 5; ./index-orphans.sh', 6, '{works,orphans}_*', 'works-orphans-indexing.log.gz')
+                    insert_into_solr('./index-type.sh work 5 works-orphans; ./index-orphans.sh works-orphans', 6, 'works-orphans')
                   }
                 }
                 stage('Insert authors') {
-                  steps { insert_into_solr('./index-type.sh author 6', 6, 'authors_*', 'authors-indexing.log.gz') }
+                  when { expression { return params.INDEX_AUTHORS } }
+                  steps { insert_into_solr('./index-type.sh author 6 authors', 6, 'authors') }
                 }
               }
               post {
+                always {
+                  dir(env.HOST_SOLR_BUILDER_DIR) {
+                    // Save the docker logs as artifacts
+                    sh """for key in logs/work-orphans/*; do echo "\$key: "; docker logs \$key 2>&1; done | gzip > logs/works-orphans-indexing.log.gz"""
+                    archiveArtifacts artifacts: "logs/works-orphans-indexing.log.gz"
+                    sh """for key in logs/authors/*; do echo "\$key: "; docker logs \$key 2>&1; done | gzip > logs/authors-indexing.log.gz"""
+                    archiveArtifacts artifacts: "logs/authors-indexing.log.gz"
+                  }
+                }
                 unsuccessful {
                   dir(env.HOST_SOLR_BUILDER_DIR) {
                     // sh(label: 'Remove solr service',
                     //   script:'docker-compose stop solr; docker-compose rm -f solr; docker volume rm solr_builder_solr-data')
                     sh(label: 'Stop/rm running indexers',
                       script: '''
-                      docker stop $(docker container ls -f "name=ol_run" -q)
+                      docker stop $(docker container ls -f "name=ol_run" -q) || true
                       docker rm $(docker container ls -f "name=ol_run" -aq)
                       ''')
                   }
@@ -329,14 +339,14 @@ void solr_commit(String solr_name) {
     script: "docker-compose exec -T ${solr_name} curl http://localhost:8983/solr/update?commit=true")
 }
 
-void insert_into_solr(String index_cmd, Integer cores, String log_file_glob, String artifact_file_name) {
+void insert_into_solr(String index_cmd, Integer cores, String log_subdir) {
   dir(env.HOST_SOLR_BUILDER_DIR) {
     sh index_cmd
 
     waitUntil {
       script {
         sh(label: 'Progress',
-          script: """for f in progress/${log_file_glob}; do printf "\$f: "; tail -n1 \$f; done;""")
+          script: """for f in progress/${log_subdir}/*; do printf "\$f: "; tail -n1 \$f; done;""")
 
         sleep 60*60 // By default this checks every 15s; that's unnecessary for a ~20 hour process
 
@@ -346,12 +356,8 @@ void insert_into_solr(String index_cmd, Integer cores, String log_file_glob, Str
       }
     }
 
-    // Save the logs as artifacts
-    sh """for f in logs/${log_file_glob}.txt; do echo "\$f: "; cat "\$f"; done | gzip > logs/${artifact_file_name}"""
-    archiveArtifacts artifacts: "logs/${artifact_file_name}"
-
     int cores_completed = sh(
-      script: """for f in progress/${log_file_glob}; do tail -n1 \$f; done | grep 100.00% | wc -l""",
+      script: """for f in progress/${log_subdir}/*; do tail -n1 \$f; done | grep 100.00% | wc -l""",
       returnStdout: true).trim() as Integer
     echo "${cores_completed}"
     echo "Assert all cores completed"

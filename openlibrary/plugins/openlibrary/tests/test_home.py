@@ -95,9 +95,8 @@ class TestHomeTemplates:
                 "cover_url": ""
             }]
 
-        monkeypatch.setattr(home, 'get_cachable_sponsorable_editions', lambda: [])
         html = six.text_type(render_template("home/index", stats=stats, test=True))
-        headers = ["Books We Love", "Recently Returned", "Kids", "Books to Sponsor",
+        headers = ["Books We Love", "Recently Returned", "Kids",
                    "Thrillers", "Romance", "Classic Books", "Textbooks"]
         for h in headers:
             assert h in html

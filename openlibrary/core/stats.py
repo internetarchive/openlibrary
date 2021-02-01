@@ -37,12 +37,12 @@ def create_stats_client(cfg = config):
         logger.critical("Couldn't create stats client - %s", e, exc_info = True)
         return False
 
-def put(key, value):
+def put(key, value, rate=1.0):
     "Records this ``value`` with the given ``key``. It is stored as a millisecond count"
     global client
     if client:
         l.debug("Putting %s as %s" % (value, key))
-        client.timing(key, value)
+        client.timing(key, value, rate)
 
 
 def increment(key, n=1, rate=1.0):

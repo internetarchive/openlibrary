@@ -1,3 +1,4 @@
+import json
 import web
 import random
 import re
@@ -6,7 +7,6 @@ from lxml.etree import XML, XMLSyntaxError
 from infogami.utils import delegate, stats
 from infogami import config
 from infogami.utils.view import render, render_template, safeint, public
-import simplejson as json
 from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.core.lending import get_availability_of_ocaids, add_availability
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -18,7 +18,7 @@ from openlibrary.utils.ddc import (
     normalize_ddc_prefix,
     normalize_ddc_range,
 )
-from openlibrary.utils.isbn import normalize_isbn, opposite_isbn
+from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lcc import (
     normalize_lcc_prefix,
     normalize_lcc_range,
@@ -296,7 +296,7 @@ def execute_solr_query(url):
     stats.begin("solr", url=url)
     try:
         solr_result = urllib.request.urlopen(url, timeout=10)
-    except Exception as e:
+    except Exception:
         logger.exception("Failed solr query")
         return None
     finally:
@@ -309,7 +309,7 @@ def parse_json(raw_file):
         return None
     try:
         json_result = json.load(raw_file)
-    except json.JSONDecodeError as e:
+    except json.JSONDecodeError:
         logger.exception("Error parsing search engine response")
         return None
     return json_result
@@ -637,33 +637,46 @@ def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False,
         q = query
 
     offset = rows * (page - 1)
-    fields = ['key', 'author_name', 'author_key', 'title', 'subtitle',
-        'edition_count', 'ia', 'cover_edition_key', 'has_fulltext', 'language',
-        'first_publish_year', 'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
-        'ia_collection_s', 'cover_i']
-    fl = ','.join(fields)
-    fq = 'author_key:' + akey
+    params = [
+        ('fq', 'author_key:' + akey),
+        ('fq', 'type:work'),
+        ('q', q),
+        ('start', offset),
+        ('rows', rows),
+        ('fl', ','.join([
+            'key', 'author_name', 'author_key', 'title', 'subtitle', 'edition_count',
+            'ia', 'cover_edition_key', 'has_fulltext', 'language', 'first_publish_year',
+            'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
+            'ia_collection_s', 'cover_i'])),
+        ('wt', 'json'),
+        ('q.op', 'AND'),
+        ('facet', 'true'),
+        ('facet.mincount', 1),
+        ('f.author_facet.facet.sort', 'count'),
+        ('f.publish_year.facet.limit', -1),
+        ('facet.limit', 25),
+    ]
+
     if has_fulltext:
-        fq.append('has_fulltext:true')
-    params = {
-        'fq': fq,
-        'q': q,
-        'start': offset,
-        'rows': rows,
-        'fl': fl,
-    }
-    solr_select = solr_select_url + "?fq=type:work&wt=json&q.op=AND&"
-    solr_select = solr_select_url + urllib.parse.urlencode(params, 'utf-8')
-    facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
-    if (sort == "editions"):
-        solr_select += '&sort=edition_count+desc'
+        params.append(('fq', 'has_fulltext:true'))
+
+    if sort == "editions":
+        params.append(('sort', 'edition_count desc'))
     elif sort.startswith('old'):
-        solr_select += '&sort=first_publish_year+asc'
+        params.append(('sort', 'first_publish_year asc'))
     elif sort.startswith('new'):
-        solr_select += '&sort=first_publish_year+desc'
+        params.append(('sort', 'first_publish_year desc'))
     elif sort.startswith('title'):
-        solr_select += '&sort=title+asc'
-    solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
+        params.append(('sort', 'title asc'))
+
+    facet_fields = [
+        "author_facet", "language", "publish_year", "publisher_facet",
+        "subject_facet", "person_facet", "place_facet", "time_facet"
+    ]
+    for f in facet_fields:
+        params.append(("facet.field", f))
+
+    solr_select = solr_select_url + "?" + urllib.parse.urlencode(params)
     reply = parse_json_from_solr_query(solr_select)
     if reply is None:
         return web.storage(

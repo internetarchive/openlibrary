@@ -31,7 +31,7 @@ https://github.com/internetarchive/openlibrary/blob/master/CODE_OF_CONDUCT.md
 
 * The core Open Library team communicates over an invite-only slack channel. You may request an invitation on our [volunteers](https://openlibrary.org/volunteer) page. 
 * If you have a quick question about getting started, anyone can ask on our [gitter chat](https://gitter.im/theopenlibrary/Lobby).
-* The Open Library hosts a video Community Call every Tuesday @ 11:30am PT, [request an invite](https://openlibrary.org/volunteer) to join us!
+* The Open Library hosts a video Community Call every Tuesday @ 10:00am PT, [request an invite](https://openlibrary.org/volunteer) to join us!
 
 Resources for Contributors
 

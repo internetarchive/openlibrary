@@ -6,7 +6,6 @@ This goes through building a solr instance from a dump file. To build the reinde
 ```bash
 docker run \
   -u root \
-  --rm \
   -d \
   -p 8080:8080 \
   -p 50000:50000 \
@@ -86,7 +85,7 @@ time docker run --rm \
     tar czf /backup/solrbuilder-$(date +%Y-%m-%d).tar.gz /var/lib/solr/data
 ```
 
-(Last run: 40min/13G with 2020-01 dump)
+(Last run: 41min/14G with 2020-10 dump; OJF)
 
 Copy this dump onto ol-solr0, and there run
 

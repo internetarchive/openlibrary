@@ -1,6 +1,6 @@
 FROM openlibrary/olbase:latest
 
-ENV PYTHONPATH=/openlibrary
+ENV PYTHONPATH=/openlibrary:/openlibrary/vendor/infogami
 
 USER root
 WORKDIR /openlibrary
