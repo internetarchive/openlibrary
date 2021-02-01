@@ -54,6 +54,7 @@ $putctx("robots", "noindex,nofollow")
                                     class="markdown olform__input--large" id="wmd-input" rows="6">$page.bio</textarea>
                             </div>
                         </div>
+                        
 
                         <div class="formElement contentQuarter" id="birthDate">
                             <div class="label birthLabelAcc">
@@ -78,6 +79,22 @@ $putctx("robots", "noindex,nofollow")
                                 <span class="tip">$_('We\'re not storing structured dates (yet) so a date like "21 May 2000" is recommended.')</span>
                             </div>
                         </div>
+
+                        <div class="clearfix"></div>
+
+                        $if page.date:
+                        
+                            <div class="formElement contentQuarter" id="date">
+                                  <div class="label dateLabelAcc">
+                                      <label for="date">$_("Date")</label>
+                                  </div>
+                                 <div class="input deathInputAcc">
+                                      <input type="text" name="author--date" id="date" value="$page.date"/>
+                                  </div>
+                            </div>
+                            <div class="formElement contentQuarter">
+                                <span class="tip">$_('This is a deprecated field. You can help improve this record by removing this date and populating the "Date of birth" and "Date of death" fields. Thanks!')</span>
+                            </div>
 
                         <div class="clearfix"></div>
 
