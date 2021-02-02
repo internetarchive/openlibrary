@@ -326,10 +326,8 @@ class account_login(delegate.page):
             return self.render_error(error, i)
 
         expires = i.remember and 3600 * 24 * 7
-
-        if email in ['mek@archive.org', 'brenton@archive.org', 'brewster@archive.org']:
-            web.setcookie('pd', 1, expires=expires)
-
+        web.setcookie('pd', int(audit.get('special_access')) or '',
+                      expires=expires)
         web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(),
                       expires=expires)
         blacklist = ["/account/login", "/account/password", "/account/email",
