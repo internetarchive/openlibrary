@@ -54,7 +54,7 @@
     "regenerator-runtime": "0.13.7",
     "sinon": "9.2.4",
     "slick-carousel": "1.6.0",
-    "style-loader": "1.1.2",
+    "style-loader": "2.0.0",
     "stylelint": "13.7.2",
     "stylelint-declaration-use-variable": "1.7.2",
     "svgo": "1.3.2",
