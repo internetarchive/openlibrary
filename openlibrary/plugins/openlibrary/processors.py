@@ -36,9 +36,7 @@ class CORSProcessor:
         self.cors_prefixes = cors_prefixes
 
     def __call__(self, handler):
-        can_share = self.is_cors_path() if self.cors_prefixes else True
-
-        if can_share or web.ctx.path.endswith(".json"):
+        if self.is_cors_path():
             self.add_cors_headers()
         if web.ctx.method == "OPTIONS":
             raise web.ok("")
@@ -46,6 +44,8 @@ class CORSProcessor:
             return handler()
 
     def is_cors_path(self):
+        if self.cors_prefixes is None or web.ctx.path.endswith(".json"):
+            return True
         for path_segment in self.cors_prefixes:
             if web.ctx.path.startswith(path_segment):
                 return True

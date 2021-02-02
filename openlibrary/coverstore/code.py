@@ -39,11 +39,7 @@ urls = (
 )
 app = web.application(urls, locals())
 
-cors_paths = {
-    '/b/',
-    '/w/',
-}
-app.add_processor(CORSProcessor(cors_paths))
+app.add_processor(CORSProcessor())
 
 
 def get_cover_id(olkeys):
