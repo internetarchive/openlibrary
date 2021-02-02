@@ -121,7 +121,7 @@ class show_marc(app.view):
         try:
             response = requests.get(url, headers=headers)
             response.raise_for_status()
-            result = response.content
+            result = response.content[:100000]
         except requests.HTTPError as e:
             return "ERROR:" + str(e)
 
