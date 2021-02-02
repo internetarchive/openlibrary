@@ -32,8 +32,7 @@ from six.moves import urllib
 logger = logging.getLogger("openlibrary.worksearch")
 
 if hasattr(config, 'plugin_worksearch'):
-    solr_host = config.plugin_worksearch.get('solr', 'localhost')
-    solr_select_url = "http://%s/solr/select" % solr_host
+    solr_select_url = config.plugin_worksearch.get('solr_base_url', 'localhost') + '/select'
 
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
@@ -390,7 +389,8 @@ def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=Non
     if sort:
         params.append(('sort', sort))
 
-    params.append(('wt', param.get('wt', 'standard')))
+    if 'wt' in param:
+        params.append(('wt', param.get('wt')))
     url = solr_select_url + '?' + urlencode(params)
 
     solr_result = execute_solr_query(url)
