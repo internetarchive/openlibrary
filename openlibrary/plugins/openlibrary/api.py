@@ -17,6 +17,7 @@ from openlibrary import accounts
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
+from openlibrary.plugins.openlibrary.home import format_book_data
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
 from openlibrary.core.observations import post_observation, get_aspects
@@ -26,6 +27,21 @@ from openlibrary.core.vendors import (
     get_amazon_metadata, create_edition_from_amazon_metadata,
     search_amazon, get_betterworldbooks_metadata)
 
+
+class get_many(delegate.page):
+    path = "/get_many"
+
+    def GET(self):
+        i = web.input(ids='')
+        ids = i.ids.split(',')
+        ktypes = {'W': 'works', 'M': 'books'}
+        keys = ['/%s/%s' % (ktypes[_id[-1]], _id) for _id in ids]
+        items = dict(
+            (i.get('key').split('/')[-1], format_book_data(i)) for i in
+            lending.add_availability(web.ctx.site.get_many(keys))
+        )
+        return delegate.RawText(json.dumps(items),
+                                content_type="application/json")
 
 class book_availability(delegate.page):
     path = "/availability/v2"
