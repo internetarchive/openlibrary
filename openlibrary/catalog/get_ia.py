@@ -21,11 +21,6 @@ IA_DOWNLOAD_URL = '%s/download/' % IA_BASE_URL
 MAX_MARC_LENGTH = 100000
 
 
-@deprecated('Rely on MarcXml to raise exceptions')
-class NoMARCXML(IOError):
-    pass
-
-
 # This function is called in openlibrary/catalog/marc/marc_subject.py as well as this file.
 def urlopen_keep_trying(url, headers=None, **kwargs):
     """Tries to request the url three times, raises HTTPError if 403, 404, or 416.  Returns a requests.Response"""
@@ -38,16 +33,6 @@ def urlopen_keep_trying(url, headers=None, **kwargs):
             if error.response.status_code in (403, 404, 416):
                 raise
         sleep(2)
-
-
-@deprecated
-def bad_ia_xml(identifier):
-    if identifier == 'revistadoinstit01paulgoog':
-        return False
-    # need to handle 404s:
-    # http://www.archive.org/details/index1858mary
-    loc = "{0}/{0}_marc.xml".format(identifier)
-    return '<!--' in urlopen_keep_trying(IA_DOWNLOAD_URL + loc).text
 
 
 def get_marc_record_from_ia(identifier):
@@ -197,13 +182,6 @@ def item_file_url(identifier, ending, host=None, path=None):
     else:
         url = '{0}{1}/{1}_{2}'.format(IA_DOWNLOAD_URL, identifier, ending)
     return url
-
-
-@deprecated
-def get_marc_ia_data(identifier, host=None, path=None):
-    url = item_file_url(identifier, 'meta.mrc', host, path)
-    f = urlopen_keep_trying(url)
-    return f.content if f else None
 
 
 def marc_formats(identifier, host=None, path=None):
