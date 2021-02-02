@@ -6,7 +6,7 @@ from .. import app
 import web
 import re
 
-from six.moves import urllib
+import requests
 
 
 class old_show_marc(app.view):
@@ -15,6 +15,7 @@ class old_show_marc(app.view):
     def GET(self, param):
         raise web.seeother('/show-records/' + param)
 
+
 class show_ia(app.view):
     path = "/show-records/ia:(.*)"
 
@@ -22,18 +23,22 @@ class show_ia(app.view):
         error_404 = False
         url = 'http://www.archive.org/download/%s/%s_meta.mrc' % (ia, ia)
         try:
-            data = urllib.request.urlopen(url).read()
-        except urllib.error.HTTPError as e:
-            if e.code == 404:
+            response = requests.get(url)
+            response.raise_for_status()
+            data = response.content
+        except requests.HTTPError as e:
+            if e.response.status_code == 404:
                 error_404 = True
             else:
                 return "ERROR:" + str(e)
 
-        if error_404: # no MARC record
+        if error_404:  # no MARC record
             url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
             try:
-                data = urllib.request.urlopen(url).read()
-            except urllib.error.HTTPError as e:
+                response = requests.get(url)
+                response.raise_for_status()
+                data = response.content
+            except requests.HTTPError as e:
                 return "ERROR:" + str(e)
             raise web.seeother('http://www.archive.org/details/' + ia)
 
@@ -78,18 +83,19 @@ class show_bwb(app.view):
         return app.render_template("showbwb", isbn)
 
 
-re_bad_meta_mrc = re.compile('^([^/]+)_meta\.mrc$')
-re_lc_sanfranpl = re.compile('^sanfranpl(\d+)/sanfranpl(\d+)\.out')
+re_bad_meta_mrc = re.compile(r'^([^/]+)_meta\.mrc$')
+re_lc_sanfranpl = re.compile(r'^sanfranpl(\d+)/sanfranpl(\d+)\.out')
+
 
 class show_marc(app.view):
-    path = "/show-records/(.*):(\d+):(\d+)"
+    path = r"/show-records/(.*):(\d+):(\d+)"
 
     def GET(self, filename, offset, length):
         m = re_bad_meta_mrc.match(filename)
         if m:
             raise web.seeother('/show-records/ia:' + m.group(1))
         m = re_lc_sanfranpl.match(filename)
-        if m: # archive.org is case-sensative
+        if m:  # archive.org is case-sensative
             mixed_case = 'SanFranPL%s/SanFranPL%s.out:%s:%s' % (m.group(1), m.group(2), offset, length)
             raise web.seeother('/show-records/' + mixed_case)
         if filename == 'collingswoodlibrarymarcdump10-27-2008/collingswood.out':
@@ -106,19 +112,17 @@ class show_marc(app.view):
         offset = int(offset)
         length = int(length)
 
-        #print "record_locator: <code>%s</code><p/><hr>" % locator
+        # print "record_locator: <code>%s</code><p/><hr>" % locator
 
         r0, r1 = offset, offset+100000
-        url = 'http://www.archive.org/download/%s'% filename
-
-        ureq = urllib.request.Request(url,
-                               None,
-                               {'Range':'bytes=%d-%d'% (r0, r1)},
-                               )
+        url = 'http://www.archive.org/download/%s' % filename
+        headers = {'Range': 'bytes=%d-%d' % (r0, r1)}
 
         try:
-            result = urllib.request.urlopen(ureq).read(100000)
-        except urllib.error.HTTPError as e:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            result = response.content
+        except requests.HTTPError as e:
             return "ERROR:" + str(e)
 
         len_in_rec = int(result[:5])
