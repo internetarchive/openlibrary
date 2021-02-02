@@ -112,7 +112,7 @@ class show_marc(app.view):
         offset = int(offset)
         length = int(length)
 
-        # print "record_locator: <code>%s</code><p/><hr>" % locator
+        # print("record_locator: <code>%s</code><p/><hr>" % locator)
 
         r0, r1 = offset, offset+100000
         url = 'http://www.archive.org/download/%s' % filename
