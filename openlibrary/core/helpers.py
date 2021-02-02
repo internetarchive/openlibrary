@@ -7,7 +7,7 @@ import re
 import six
 from six.moves.urllib.parse import urlsplit
 
-if six.PY2:  # json.dump(indent) MUST be an int on PY2
+if six.PY2:  # See #4525 json.dump(indent) MUST be an int on PY2
     import simplejson as json
 else:
     import json
