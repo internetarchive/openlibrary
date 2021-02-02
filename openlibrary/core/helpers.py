@@ -2,10 +2,15 @@
 """
 import web
 from datetime import datetime
-import json
 import re
 
+import six
 from six.moves.urllib.parse import urlsplit
+
+if six.PY2:  # See #4525 json.dump(indent) MUST be an int on PY2
+    import simplejson as json
+else:
+    import json
 
 import babel
 import babel.core
@@ -22,8 +27,6 @@ try:
     from bs4 import BeautifulSoup
 except ImportError:
     BeautifulSoup = None
-
-import six
 
 from infogami import config
 
