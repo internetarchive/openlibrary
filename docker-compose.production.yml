@@ -57,6 +57,7 @@ services:
       - ssl_certificate_key
   cron-jobs:
     image: oldev:latest
+    hostname: "$HOSTNAME"
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
