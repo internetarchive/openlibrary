@@ -10,10 +10,13 @@
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
 @import (less) "less/mixins.less";
+// TODO: Only formElement and a few common styles are actually needed in this file
+// to render this simple page. We should list them explicitly once that's possible.
+@import (less) "legacy.less";
 
 body {
   text-align: left;
-  background-color: @white;
+  background-color: @white !important;
   overflow: hidden;
 }
 
@@ -106,11 +109,6 @@ footer,
   min-height: 30px;
   margin: 25px 0 15px;
 }
-
-// Import all common components
-// TODO: Only formElement and a few common styles are actually needed
-// to render this simple page. Once all.less is refactored, list them explicitly.
-@import (less) "legacy.less";
 
 @media all and ( min-width: @width-breakpoint-desktop ) {
   body {
