@@ -72,6 +72,8 @@ services:
     networks:
       - webnet
       - dbnet
+    secrets:
+      - ia_db_pw_file
 
   infobase:
     restart: always
