@@ -112,7 +112,7 @@ window.q.push(function(){
                 remove_seed(list_key, seed, function() {
                     \$(seed_id).remove();
                     // update seed count
-                    \$("#list-items-count").html(render_seed_count(get_seed_count()));
+                    \$("#list-items-count").load(location.href + " #list-items-count");
 
                     // TODO: update edition count
 
