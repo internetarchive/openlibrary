@@ -91,7 +91,7 @@ def add_field(doc, name, value):
     else:
         field = Element("field", name=name)
         if not isinstance(value, six.string_types):
-            value = str(value)
+            value = (value or b'').decode('utf-8')
         try:
             value = strip_bad_char(value)
             if six.PY2 and isinstance(value, str):
