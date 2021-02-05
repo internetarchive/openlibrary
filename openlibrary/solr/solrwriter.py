@@ -94,7 +94,7 @@ def add_field(doc, name, value):
             value = str(value)
         try:
             value = strip_bad_char(value)
-            if isinstance(value, str):
+            if six.PY2 and isinstance(value, str):
                 value = value.decode('utf-8')
             field.text = normalize('NFC', value)
         except:
