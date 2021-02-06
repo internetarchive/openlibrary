@@ -5,21 +5,20 @@
  */
 
 // `a` specificity is needed to override default anchor styles
- .cta-btn,
- a.cta-btn {
-   &--available {
-     &--load {
-       background-color: @primary-blue !important;
-       background: url(/static/images/indicator.gif) center center no-repeat;
-       opacity: 0.6;
-     }
-   }
-   &--unavailable {
-     &--load {
-       background-color: @orange !important;
-       background: url(/static/images/indicator.gif) center center no-repeat;
-       opacity: 0.6;
-     }
-   }
- }
- 
+.cta-btn,
+a.cta-btn {
+  &--available {
+    &--load {
+      background: url(/static/images/indicator.gif) center center no-repeat;
+      background-color: @primary-blue !important;
+      opacity: .6;
+    }
+  }
+  &--unavailable {
+    &--load {
+      background: url(/static/images/indicator.gif) center center no-repeat;
+      background-color: @orange !important;
+      opacity: .6;
+    }
+  }
+}

@@ -397,7 +397,7 @@
         position: absolute;
         top: 50%;
         right: 4px;
-        content: '';
+        content: "";
         width: 0;
         height: 0;
         border-left: 4px solid transparent;
@@ -410,12 +410,12 @@
 
 .hamburger-component__checkbox {
   opacity: 0;
-  
+
   & ~ .hamburger-dropdown-component ul {
     display: none;
   }
 
-  // stylelint-disable-next-line selector-max-specificity 
+  // stylelint-disable-next-line selector-max-specificity
   &:checked ~ .hamburger-dropdown-component ul {
     display: block;
   }
@@ -544,7 +544,8 @@
 @media only screen and (min-width: 25em) {
   .header-bar {
     .logo-component {
-      // The width and height attributes of logo-icon should be equal to dimensions of /static/images/openlibrary-logo-tighter.svg
+      // The width and height attributes of logo-icon should be equal to
+      // dimensions of /static/images/openlibrary-logo-tighter.svg
       .logo-icon {
         height: 47px;
         width: 189px;
