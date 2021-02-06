@@ -309,8 +309,8 @@ class LocalPostgresDataProvider(DataProvider):
             return row[0]
 
     def clear_cache(self):
-        self.cache = dict()
-        self.ia_cache = dict()
+        self.cache.clear()
+        self.ia_cache.clear()
         pass
 
 
