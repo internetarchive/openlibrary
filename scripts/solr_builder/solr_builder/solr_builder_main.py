@@ -110,6 +110,7 @@ class LocalPostgresDataProvider(DataProvider):
         return self
 
     def __exit__(self, type, value, traceback):
+        self.clear_cache()
         self._conn.close()
 
     def query_all(self, query, cache_json=False):
