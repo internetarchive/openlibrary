@@ -25,5 +25,5 @@ for key in $PARTITION; do
   touch {logs,progress}/$LOG_DIR/$RUN_SIG.txt
   DOCKER_IMAGE_NAME=$RUN_SIG docker_solr_builder "${TYPE}s" --start-at "/$key" --limit $CHUNK_SIZE -p "progress/$LOG_DIR/$RUN_SIG.txt"
   ((ITER++))
-  sleep 60
+  sleep 5
 done;
