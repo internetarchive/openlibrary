@@ -1,59 +1,59 @@
 @import (less) "../less/breakpoints.less";
 
 .single-choice {
-    display: flex;
-    margin-bottom: 1.5em;
+  display: flex;
+  margin-bottom: 1.5em;
 
-    &-label {
-        display: inline-block;
-        width: 16%;
-        text-align: center;
-        text-transform: capitalize;
+  &-label {
+    display: inline-block;
+    width: 16%;
+    text-align: center;
+    text-transform: capitalize;
 
-        input {
-            display: block;
-            margin: 0 auto 5px;
-        }
+    input {
+      display: block;
+      margin: 0 auto 5px;
     }
+  }
 }
 
 .multi-choice {
-    display: flex;
-    flex-wrap: wrap;
-    margin-bottom: 1.5em;
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 1.5em;
 
-    &-label {
-        flex: 0 0 25%;
-        margin: 0.5em 0;
-        text-transform: capitalize;
-    }
+  &-label {
+    flex: 0 0 25%;
+    margin: .5em 0;
+    text-transform: capitalize;
+  }
 
-    input[type="checkbox"] {
-        margin-right: .3em;
-    }
+  input[type="checkbox"] {
+    margin-right: .3em;
+  }
 }
 
 .metadata-submit {
-    margin-top: 1em;
+  margin-top: 1em;
 }
 
 @media screen and (max-width: @width-breakpoint-tablet) {
-    .single-choice {
-        display: inline-block;
+  .single-choice {
+    display: inline-block;
 
-        &-label {
-            display: flex;
-            width: 100%;
-            margin: 1em 0;
-            text-align: left;
+    &-label {
+      display: flex;
+      width: 100%;
+      margin: 1em 0;
+      text-align: left;
 
-            input {
-                margin: auto 1em auto 0;
-            }
-        }
+      input {
+        margin: auto 1em auto 0;
+      }
     }
+  }
 
-    .multi-choice-label {
-        flex: 0 0 50%;
-    }
+  .multi-choice-label {
+    flex: 0 0 50%;
+  }
 }

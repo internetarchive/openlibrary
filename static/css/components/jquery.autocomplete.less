@@ -1,5 +1,6 @@
 @import (less) "../less/z-index.less";
 
+/* stylelint-disable no-descending-specificity */
 .ac_results {
   padding: 0;
   overflow: hidden;
@@ -103,7 +104,7 @@
     height: 5em;
     overflow: hidden;
     border-radius: 2px;
-    mask-image: linear-gradient(to top, rgba(0,0,0,0), black 15%);
+    mask-image: linear-gradient(to top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0) 15%);
 
     // stylelint-disable-next-line selector-max-specificity
     img {

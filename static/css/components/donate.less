@@ -1,16 +1,3 @@
-
-div.donateModal {
-  padding: 0px 10px;
-  ul li, ol li {
-    font-size: .875em;
-  }
-}
-
-h2.donation__override {
-  font-size: 1.2em !important;
-  font-weight: bold !important;
-}
-
 .donation__ {
   &info {
     display: flex;
@@ -26,7 +13,7 @@ h2.donation__override {
 
   &options {
     display: flex;
-    padding: 0px 60px;
+    padding: 0 60px;
   }
 
   &address {
@@ -47,7 +34,19 @@ h2.donation__override {
       transform: translateY(-50%);
     }
   }
-  note {
+  &note {
     color: @light-grey;
   }
+}
+
+div.donateModal {
+  padding: 0 10px;
+  ul li, ol li {
+    font-size: .875em;
+  }
+}
+
+h2.donation__override {
+  font-size: 1.2em !important;
+  font-weight: bold !important;
 }
