@@ -119,7 +119,7 @@ class ListMixin:
     def get_all_editions(self):
         """Returns all the editions of this list in arbitrary order.
 
-        The return value is an iterator over all the edtions. Each entry is a dictionary.
+        The return value is an iterator over all the editions. Each entry is a dictionary.
         (Compare the difference with get_editions.)
 
         This works even for lists with too many seeds as it doesn't try to
@@ -339,6 +339,12 @@ class Seed:
     def _get_document_basekey(self):
         return self.document.key.split("/")[-1]
 
+
+    def resolve_redir(self):
+        if self.type == 'redirect':
+            return web.ctx.site.get(self.document.location)
+        return self
+
     def get_solr_query_term(self):
         if self.type == 'edition':
             return "edition_key:" + self._get_document_basekey()
@@ -365,7 +371,7 @@ class Seed:
                 'work_count': 1,
                 'last_update': self.document.last_modified
             }
-        else:
+        elif self.type != 'redirect':
             q = self.get_solr_query_term()
             if q:
                 solr = get_solr()
@@ -402,6 +408,8 @@ class Seed:
             return "work"
         elif type == "/type/author":
             return "author"
+        elif type == "/type/redirect":
+            return "redirect"
         else:
             return "unknown"
 

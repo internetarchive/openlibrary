@@ -2,8 +2,12 @@ $def with (list)
 
 $ title = list.name
 $ title_with_site = _("%(name)s | Lists | Open Library", name=title)
+
+$ component_times = {}
+$ component_times['TotalTime'] = time()
+
 $ page = safeint(query_param('page'), 1) - 1
-$ page_size = 50
+$ page_size = 25
 $ meta_cover_url = None # Add metatag for image at end of this template, if a cover image is present
 $ meta_description = title
 $if list.description:
@@ -43,7 +47,9 @@ $jsdef render_seed_count(seed_count):
     </div>
     <h1>$list.name</h1>
     <p class="collapse sansserif">
+        $ component_times['render_seed_count'] = time()
         <span class="darkgreen" id="list-items-count"><strong>$:render_seed_count(len(list.seeds))</strong></span>
+        $ component_times['render_seed_count'] = time() - component_times['render_seed_count']
     </p>
 </div>
 
@@ -171,7 +177,15 @@ window.q.push(function(){
             $:format(list.description)
 
         <ul id="listResults" class="list-books">
-          $for seed in list.get_seeds(sort=True)[page*page_size:page*page_size+page_size]:
+          $ component_times['get_seeds'] = time()
+          $ seeds = list.get_seeds(sort=True)[page*page_size:page*page_size+page_size]
+          $ component_times['get_seeds'] = time() - component_times['get_seeds']
+
+          $for seed in seeds:
+            $ url = seed.url
+            $if seed.type == 'redirect':
+              $ seed = seed.resolve_redir()
+              $ url = seed.url()
             <li id="seed-$loop.index" class="searchResultItem">
                 $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
                 $ cover = seed.get_cover()
@@ -184,20 +198,17 @@ window.q.push(function(){
                 $if not meta_cover_url:
                     $ meta_cover_url = cover_url
                 <span class="bookcover">
-                    <a href="$seed.url">
+                    <a href="$url">
                       <img src="$cover_url" alt/>
                     </a>
                 </span>
                 <span class="seed-key hidden">$seed.key</span>
                 <div class="details">
                     <div class="resultTitle">
-                        $ ebook = {}
                         $if seed.type in ['edition', 'work']:
-                            $ ebook = seed.document.get_ebook_info()
                             $ doc = seed.document
-                            <!-- $:json_encode(ebook) -->
                         <h3 class="booktitle">
-                            <a href="$seed.url" class="results">$seed.title</a>
+                            <a href="$url" class="results">$seed.title</a>
                         </h3>
                         $ work_editions_count = 0
                         $if seed.type in ['edition', 'work']:
@@ -221,9 +232,6 @@ window.q.push(function(){
                             $ungettext('- 1 work', '- %(count)s works', seed.work_count, count=commify(seed.work_count))
                         </span>
 
-                        $if 'daisy_url' in ebook:
-                            <div class="type small"><a href="$ebook['daisy_url']" title="$_('Protected DAISY')">$_('Download DAISY eBook for print disabled')</a></div>
-
                         $if seed.last_update:
                             <span class="time">
                                 $:_('Last updated <span>%(date)s</span>', date=datestr(seed.last_update))
@@ -235,7 +243,7 @@ window.q.push(function(){
                         <span class="listDelete sansserif smaller">
                           <a href="javascript:;"><span></span>$_('Remove this item?')</a>
                         </span>
-                    $if 'daisy_url' in ebook:
+                    $if doc.ia and doc.ia[0]:
                         <a class="cta-btn print-disabled-only hidden" href="//archive.org/download/$(doc.ia[0])/$(doc.ia[0])_daisy.zip" title="$_('Protected DAISY')">
                           <span class="actions">
                             <span class="image daisy"></span>
@@ -267,18 +275,21 @@ window.q.push(function(){
                     </div>
                 </div>
 
-        $ subjects = list.get_subjects()
+        $if False:
+          $ subjects = list.get_subjects()
 
-        $:render_subjects(_("Subjects"), subjects.subjects)
-        $:render_subjects(_("People"), subjects.people)
-        $:render_subjects(_("Places"), subjects.places)
-        $:render_subjects(_("Times"), subjects.times)
+          $:render_subjects(_("Subjects"), subjects.subjects)
+          $:render_subjects(_("People"), subjects.people)
+          $:render_subjects(_("Places"), subjects.places)
+          $:render_subjects(_("Times"), subjects.times)
     </div>
 
     <div class="clearfix"></div>
 
     $:macros.Pager(page+1, len(list.seeds), page_size)
 
+    $if query_param('debug'):
+      $:macros.Profile(component_times)
 
     $:render_template("lib/history", list)
 </div>
@@ -286,3 +297,4 @@ window.q.push(function(){
 $if meta_cover_url is not None:
     $add_metatag(property="og:image", content=meta_cover_url)
     $add_metatag(property="twitter:image", content=meta_cover_url)
+
