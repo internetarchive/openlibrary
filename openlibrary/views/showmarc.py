@@ -21,7 +21,7 @@ class show_ia(app.view):
 
     def GET(self, ia):
         error_404 = False
-        url = 'http://www.archive.org/download/%s/%s_meta.mrc' % (ia, ia)
+        url = 'https://archive.org/download/%s/%s_meta.mrc' % (ia, ia)
         try:
             response = requests.get(url)
             response.raise_for_status()
@@ -33,14 +33,14 @@ class show_ia(app.view):
                 return "ERROR:" + str(e)
 
         if error_404:  # no MARC record
-            url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
+            url = 'https://archive.org/download/%s/%s_meta.xml' % (ia, ia)
             try:
                 response = requests.get(url)
                 response.raise_for_status()
                 data = response.content
             except requests.HTTPError as e:
                 return "ERROR:" + str(e)
-            raise web.seeother('http://www.archive.org/details/' + ia)
+            raise web.seeother('https://archive.org/details/' + ia)
 
         books = web.ctx.site.things({
             'type': '/type/edition',
@@ -114,7 +114,7 @@ class show_marc(app.view):
 
 
         r0, r1 = offset, offset+100000
-        url = 'https://www.archive.org/download/%s' % filename
+        url = 'https://archive.org/download/%s' % filename
         headers = {'Range': 'bytes=%d-%d' % (r0, r1)}
 
         try:
