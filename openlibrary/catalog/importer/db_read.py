@@ -4,7 +4,7 @@ import json
 from time import sleep
 
 import requests
-
+from deprecated import deprecated
 from six.moves.urllib.parse import urlencode
 
 
@@ -14,6 +14,7 @@ db = web.database(dbn='postgres', db='marc_index', host='ol-db')
 db.printing = False
 
 
+@deprecated("web does not have 'query' attribute")
 def find_author(name):  # unused
     iter = web.query('select key from thing, author_str where thing_id = id and key_id = 1 and value = $name', {'name': name})
     return [row.key for row in iter]
@@ -55,6 +56,7 @@ def api_things(): return api_url() + "things?"
 def api_get(): return api_url() + "get?key="
 
 
+@deprecated("use api_versions() instead")
 def get_versions(q):  # unused
     url = api_versions() + urlencode({'query': json.dumps(q)})
     return read_from_url(url)
