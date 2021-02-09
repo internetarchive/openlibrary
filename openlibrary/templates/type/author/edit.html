@@ -82,15 +82,14 @@ $putctx("robots", "noindex,nofollow")
 
                         <div class="clearfix"></div>
 
-                        $if page.date:
-                        
+                        $if page.date:                                            
                             <div class="formElement contentQuarter" id="date">
-                                  <div class="label dateLabelAcc">
-                                      <label for="date">$_("Date")</label>
-                                  </div>
-                                 <div class="input deathInputAcc">
-                                      <input type="text" name="author--date" id="date" value="$page.date"/>
-                                  </div>
+                                    <div class="label dateLabelAcc">
+                                        <label for="date">$_("Date")</label>
+                                    </div>
+                                    <div class="input deathInputAcc">
+                                        <input type="text" name="author--date" id="date" value="$page.date"/>
+                                    </div>
                             </div>
                             <div class="formElement contentQuarter">
                                 <span class="tip">$_('This is a deprecated field. You can help improve this record by removing this date and populating the "Date of birth" and "Date of death" fields. Thanks!')</span>
