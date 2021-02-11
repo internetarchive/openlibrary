@@ -16,15 +16,26 @@ window.q.push(function(){
     \$("div.checkbox:first input[type=checkbox]").attr("checked","checked");
     \$("div.author:first").addClass("master");
     \$("#include input[type=radio]").mouseover(function(){
-        \$(this).parent().parent().animate({backgroundColor:'#fefde6'},300);
+        \$(this).parent().parent().addClass("mouseoverHighlight",300);
     });
     \$("#include input[type=radio]").mouseout(function(){
-        \$(this).parent().parent().animate({backgroundColor:'#fff'},100);
+        \$(this).parent().parent().removeClass("mouseoverHighlight",100);
     });
     \$("#include input[type=radio]").click(function(){
-        \$(".merge").find("div.master").removeClass("master");
+        var previousMaster = \$(".merge").find("div.master");
+        previousMaster.removeClass("master mergeSelection");
+        previousMaster.find("input[type=checkbox]").attr('checked', false);
         \$(this).parent().parent().addClass("master");
         \$(this).parent().parent().find("input[type=checkbox]").attr('checked', true);
+    });
+    \$("#include input[type=checkbox]").on("change", function() {
+        if (!\$(this).parent().parent().hasClass("master")) {
+            if (\$(this).is(":checked")) {
+                \$(this).parent().parent().addClass("mergeSelection");
+            } else {
+                \$(this).parent().parent().removeClass("mergeSelection");
+            }
+        }
     });
 });
 </script>
@@ -43,7 +54,7 @@ $if not keys:
 
 $if formdata:
     $if not formdata.master:
-        <div class="note">$_("Please select a master author record.")</div>
+        <div class="note">$_("Please select a primary author record.")</div>
     $if len(formdata.selected) == 0:
         <div class="note">$_("Please select some authors to merge.")</div>
 
@@ -51,7 +62,7 @@ $if formdata:
     <li>$_('Select a "primary" record that best represents the author -')
         <input type="radio" name="radio" id="radio" checked="checked"/>
     </li>
-    <li>$_('Select author records which should be merged with the master')
+    <li>$_('Select author records which should be merged with the primary')
         -
         <input type="checkbox" name="checkbox" id="checkbox" checked="checked" />
     </li>
@@ -59,7 +70,7 @@ $if formdata:
     </li>
 </ol>
 
-<div id="noMaster" title="$_('No Primary record')" style="text-align:left;">
+<div id="noMaster" title="$_('No primary record')" style="text-align:left;">
     <p>$_('You must select a primary record to point the duplicates toward.')</p>
 </div>
 
@@ -72,7 +83,7 @@ $if formdata:
     <div class="merge" id="include">
 
         <div class="entry header">
-            <div class="data input smaller center" style="background-color:#fffdcd;min-height:25px;">$_('Master')</div>
+            <div class="data input smaller center" style="background-color:#fffdcd;min-height:25px;">$_('Primary')</div>
             <div class="data input smaller center"><strong>$_('Merge')</strong></div>
             <div class="data record smaller"><strong>$_('Authors')</strong></div>
             <div class="data count">&nbsp;</div>
