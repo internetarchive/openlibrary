@@ -10,6 +10,8 @@ services:
   web:
     restart: always
     hostname: "$HOSTNAME"
+    ports:
+      - 8080:80
     environment:
       - GUNICORN_OPTS= --workers 4 --timeout 180
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
