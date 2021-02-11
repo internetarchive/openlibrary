@@ -7,7 +7,7 @@
 
 version: "3.1"
 services:
-  www_haproxy:
+  web_haproxy:
     image: haproxy:2.3.5
     restart: always
     #depends_on:
@@ -35,7 +35,7 @@ services:
       # Needed by default-docker.conf
       - ssl_certificate
       - ssl_certificate_key
-  www_nginx:
+  web_nginx:
     image: nginx:1.19.4
     restart: always
     depends_on:
