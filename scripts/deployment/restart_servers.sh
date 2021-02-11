@@ -39,7 +39,7 @@ for SERVER in $SERVERS; do
     elif [[ $SERVER == ol-home0* ]]; then
         COMPOSE_FILE=$PRODUCTION
         dockerDown
-        ssh $SERVER "cd /opt/openlibrary; COMPOSE_FILE=$COMPOSE_FILE docker-compose up -d --no-deps infobase infobase_nginx affiliate-server importbot solr-updater"  # cronjobs
+        ssh $SERVER "cd /opt/openlibrary; COMPOSE_FILE=$COMPOSE_FILE docker-compose up -d --no-deps infobase infobase_nginx affiliate-server cron-jobs importbot solr-updater"
     elif [[ $SERVER == ol-web* ]]; then
         COMPOSE_FILE=$PRODUCTION
         dockerDown
