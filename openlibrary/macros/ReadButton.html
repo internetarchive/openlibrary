@@ -4,7 +4,7 @@ $ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
 
 $if printdisabled:
   $ action = "read"
-  $ label = _("♿ Special Access")
+  $ label = _("Special Access")
   $ title = _("Special print-disabled ebook access from Internet Archive")
   $ stream_url = "https://archive.org/details/" + ocaid
 $elif (borrow and not loan):
