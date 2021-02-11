@@ -6,7 +6,6 @@ $if printdisabled:
   $ action = "read"
   $ label = _("Special Access")
   $ title = _("Special ebook access from the Internet Archive for patrons with qualifying print disabilities")
-  $ stream_url = "https://archive.org/details/" + ocaid
 $elif (borrow and not loan):
   $ action = "borrow"
   $ label = label or _("Borrow")
