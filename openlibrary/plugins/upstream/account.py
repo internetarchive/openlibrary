@@ -325,7 +325,7 @@ class account_login(delegate.page):
         if error:
             return self.render_error(error, i)
 
-        expires = i.remember and 3600 * 24 * 7
+        expires = 3600 * 24 * 7 if i.remember else ""
         web.setcookie('pd', int(audit.get('special_access')) or '',
                       expires=expires)
         web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(),
