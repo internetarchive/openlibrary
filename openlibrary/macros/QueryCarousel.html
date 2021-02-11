@@ -20,6 +20,7 @@ $if search:
 
 $code:
   params = { 'q': query }
+  url = "/collections/february" if key=="monthly_reads" else "/search?" + urlencode(params)
   if has_fulltext_only:
     params['has_fulltext'] = 'true'
 
@@ -27,4 +28,4 @@ $code:
   books = [storage(b) for b in (results.get('docs', []))]
   load_more = {"url": "/search.json?" + urlencode(params), "limit": limit }
 
-$:render_template("books/custom_carousel", books=books, title=title, url="/search?" + urlencode(params), key=key, load_more=load_more)
+$:render_template("books/custom_carousel", books=books, title=title, url=url, key=key, load_more=load_more)
