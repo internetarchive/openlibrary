@@ -11,8 +11,9 @@ services:
       dockerfile: docker/Dockerfile.oldev
     command: docker/ol-web-start.sh
     ports:
-      - 8080:80
       - 3000:3000
+    expose:
+      - 8080:80
     depends_on:
       - db
       - infobase
