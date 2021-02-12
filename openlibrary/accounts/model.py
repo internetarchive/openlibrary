@@ -747,7 +747,10 @@ def audit_accounts(email, password, require_link=False,
             return {'error': 'accounts_not_connected'}
 
     if 'values' in ia_login:
-        s3_keys = ia_login['values']
+        s3_keys = {
+            'access': ia_login['values'].pop('access'),
+            'secret': ia_login['values'].pop('secret'),
+        }
         ol_account.save_s3_keys(s3_keys)
 
     # When a user logs in with OL credentials, the
@@ -765,6 +768,7 @@ def audit_accounts(email, password, require_link=False,
     web.ctx.conn.set_auth_token(ol_account.generate_login_code())
     return {
         'authenticated': True,
+        'special_access': getattr(ia_account, 'has_disability_access', False),
         'ia_email': ia_account.email,
         'ol_email': ol_account.email,
         'ia_username': ia_account.screenname,
