@@ -648,6 +648,9 @@ class User(Thing):
             usergroup = '/usergroup/%s' % usergroup
         return usergroup in [g.key for g in self.usergroups]
 
+    def is_printdisabled(self):
+        return web.cookies().get('pd')
+
     def is_admin(self):
         return self.is_usergroup_member('/usergroup/admin')
 

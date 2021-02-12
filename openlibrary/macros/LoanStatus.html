@@ -48,6 +48,9 @@ $elif availability.get('is_readable'):
   $if secondary_action:
     $:macros.BookSearchInside(ocaid)
 
+$elif ocaid and ctx.user and ctx.user.is_printdisabled():
+  $:macros.ReadButton(ocaid, listen=listen, printdisabled=True)
+
 $elif availability.get('is_lendable'):
   $if availability.get('available_to_borrow'):
     $:macros.ReadButton(ocaid, borrow=True, listen=listen)
