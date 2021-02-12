@@ -16,17 +16,7 @@ $add_metatag(name="twitter:image:alt", content="Open Library Logo")
 $add_metatag(name="twitter:card", content="homepage_summary")
 
 $code:
-  feb_query = {
-  'monthly_reads': 'key:(/works/OL5099301W OR /works/OL20900813W OR /works/OL19974130W OR /works/OL21376789W OR /works/OL21179764W OR /works/OL491675W OR /works/OL20848742W OR /works/OL5730175W OR /works/OL3496457W OR /works/OL18023357W OR' 
-  '/works/OL16910779W OR /works/OL16662711W OR /works/OL20857543W OR /works/OL20632743W OR /works/OL19729253W OR /works/OL17314666W OR /works/OL20858133W OR /works/OL21672239W OR /works/OL19757671W OR /works/OL1928280W OR /works/OL17874444W OR /works/OL20783908W OR'
-  '/works/OL18335154W OR /works/OL4114499W OR /works/OL20872535W OR /works/OL20153225W OR /works/OL2639036W OR /works/OL20207960W OR /works/OL20544657W OR /works/OL20854371W OR /works/OL17869588W OR /works/OL440489W OR /works/OL3191599W OR /works/OL8275668W OR'
-  '/works/OL17102898W OR /works/OL17721078W OR /works/OL20007451W OR /works/OL21180618W OR /works/OL20848626W OR /works/OL19972590W OR /works/OL1486478W OR /works/OL11952386W OR /works/OL19994722W OR /works/OL7870775W OR /works/OL20646859W OR /works/OL4648142W OR'
-  '/works/OL11999803W OR /works/OL16515210W OR /works/OL15279153W OR /works/OL20849927W OR /works/OL21179974W OR /works/OL3521634W OR /works/OL16097454W OR /works/OL9371452W OR /works/OL4802599W OR /works/OL20030448W OR /works/OL3296483W OR /works/OL17371695W OR'
-  '/works/OL22062636W OR /works/OL8990067W OR /works/OL7213898W OR /works/OL19708155W OR /works/OL17358927W OR /works/OL20853865W OR /works/OL20548582W OR /works/OL16876826W OR /works/OL13655581W OR /works/OL4370955W OR /works/OL2977588W OR /works/OL21078916W OR'
-  '/works/OL20133929W OR /works/OL16617686W OR /works/OL5706069W OR /works/OL15691480W OR /works/OL17755326W OR /works/OL15933199W OR /works/OL17893385W OR /works/OL17411311W OR /works/OL17933439W OR /works/OL4622460W OR /works/OL16025481W OR /works/OL17640891W OR'
-  '/works/OL20053695W OR /works/OL19996443W OR /works/OL19854767W OR /works/OL4582875W OR /works/OL15285884W OR /works/OL17340085W OR /works/OL20022939W OR /works/OL9242636W OR /works/OL519219W OR /works/OL17566265W OR /works/OL22074932W OR /works/OL20907796W OR'
-  '/works/OL20879942W OR /works/OL22059158W OR /works/OL17430949W OR /works/OL20935567W OR /works/OL18646141W OR /works/OL19646242W)'
-  }
+  FEB_READS = 'key:(/works/OL5099301W OR /works/OL20900813W OR /works/OL19974130W OR /works/OL21376789W OR /works/OL21179764W OR /works/OL491675W OR /works/OL20848742W OR /works/OL5730175W OR /works/OL3496457W OR /works/OL18023357W OR /works/OL16910779W OR /works/OL16662711W OR /works/OL20857543W OR /works/OL20632743W OR /works/OL19729253W OR /works/OL17314666W OR /works/OL20858133W OR /works/OL21672239W OR /works/OL19757671W OR /works/OL1928280W OR /works/OL17874444W OR /works/OL20783908W OR /works/OL18335154W OR /works/OL4114499W OR /works/OL20872535W OR /works/OL20153225W OR /works/OL2639036W OR /works/OL20207960W OR /works/OL20544657W OR /works/OL20854371W OR /works/OL17869588W OR /works/OL440489W OR /works/OL3191599W OR /works/OL8275668W OR /works/OL17102898W OR /works/OL17721078W OR /works/OL20007451W OR /works/OL21180618W OR /works/OL20848626W OR /works/OL19972590W OR /works/OL1486478W OR /works/OL11952386W OR /works/OL19994722W OR /works/OL7870775W OR /works/OL20646859W OR /works/OL4648142W OR /works/OL11999803W OR /works/OL16515210W OR /works/OL15279153W OR /works/OL20849927W OR /works/OL21179974W OR /works/OL3521634W OR /works/OL16097454W OR /works/OL9371452W OR /works/OL4802599W OR /works/OL20030448W OR /works/OL3296483W OR /works/OL17371695W OR /works/OL22062636W OR /works/OL8990067W OR /works/OL7213898W OR /works/OL19708155W OR /works/OL17358927W OR /works/OL20853865W OR /works/OL20548582W OR /works/OL16876826W OR /works/OL13655581W OR /works/OL4370955W OR /works/OL2977588W OR /works/OL21078916W OR /works/OL20133929W OR /works/OL16617686W OR /works/OL5706069W OR /works/OL15691480W OR /works/OL17755326W OR /works/OL15933199W OR /works/OL17893385W OR /works/OL17411311W OR /works/OL17933439W OR /works/OL4622460W OR /works/OL16025481W OR /works/OL17640891W OR /works/OL20053695W OR /works/OL19996443W OR /works/OL19854767W OR /works/OL4582875W OR /works/OL15285884W OR /works/OL17340085W OR /works/OL20022939W OR /works/OL9242636W OR /works/OL519219W OR /works/OL17566265W OR /works/OL22074932W OR /works/OL20907796W OR /works/OL20879942W OR /works/OL22059158W OR /works/OL17430949W OR /works/OL20935567W OR /works/OL18646141W OR /works/OL19646242W)'
 
 <div id="contentBody">
   $:render_template("home/categories", test=test)
@@ -35,7 +25,8 @@ $code:
 
   $:render_template("books/custom_carousel", books=readonline_carousel(), title=_('Classic Books'), url="/read", key="public_domain", test=test)
 
-  $:macros.QueryCarousel(query=feb_query["monthly_reads"], title=_('Books For February'), key="monthly_reads")
+  $if today().month == 2:
+    $:macros.QueryCarousel(query=FEB_READS, title=_('Books For February'), key="monthly_reads")
 
   $:render_template("home/custom_ia_carousel", title=_('Books We Love'), key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date desc"], limit=18, test=test)
 
