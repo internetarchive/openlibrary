@@ -65,7 +65,7 @@ class SolrWriter(object):
                 root.append(node)
             logger.info("flushing %d documents", len(self.pending_updates))
             self.pending_updates = []
-            xml = tostring(root).encode('utf-8')
+            xml = tostring(root).decode('utf-8')
             self.request(xml)
 
     def commit(self):
