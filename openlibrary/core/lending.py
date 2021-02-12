@@ -208,7 +208,7 @@ def get_random_available_ia_edition():
     """uses archive advancedsearch to raise a random book"""
     try:
         url = ("http://%s/advancedsearch.php?q=_exists_:openlibrary_work"
-               "+AND+(lending___available_to_borrow OR lending___available_to_browse)"
+               "+AND+(lending___available_to_borrow:true OR lending___available_to_browse:true)"
                "&fl=identifier,openlibrary_edition"
                "&output=json&rows=1&sort[]=random" % (config_bookreader_host))
         response = requests.get(url, timeout=config_http_request_timeout)
