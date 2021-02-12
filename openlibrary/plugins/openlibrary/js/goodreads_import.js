@@ -18,7 +18,7 @@ export function initGoodreadsImport() {
                 $(this).attr('checked', 'checked');
             });
         }
-        l = $('.add-book[checked*="checked"]').size();
+        l = $('.add-book[checked*="checked"]').length;
         $('.import-submit').attr('value', `Import ${l} Books`);
     });
 
@@ -30,12 +30,12 @@ export function initGoodreadsImport() {
         else {
             $(this).attr('checked', 'checked');
         }
-        l = $('.add-book[checked*="checked"]').size();
+        l = $('.add-book[checked*="checked"]').length;
         $('.import-submit').attr('value', `Import ${l} Books`);
     });
 
     function func1(value) {
-        l = $('.add-book[checked*="checked"]').size();
+        l = $('.add-book[checked*="checked"]').length;
         elem = document.getElementById('myBar');
         elem.style.width = `${value * (100 / l)}%`;
         elem.innerHTML = `${value} Books`;
