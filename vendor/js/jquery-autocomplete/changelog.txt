@@ -1,0 +1,27 @@
+1.1
+---
+* Added matchContains: "word" option, match only the start of words instead of everywhere
+* Fixed mustMatch to trigger result event when no match was found
+* Fixed the issue where an autocomplete was applied after the field had focus
+* Extended multiple complete to enable editing words not at the end of the field (doesn't work in Opera)
+
+1.0.2
+-----
+* Fixed missing semicolon
+
+1.0.1
+-----
+* Fixed element creation (<ul> to <ul/> and <li> to </li>)
+* Fixed ac_even class (was ac_event)
+* Fixed bgiframe usage: now its really optional
+* Removed the blur-on-return workaround, added a less obtrusive one only for Opera
+* Fixed hold cursor keys: Opera needs keypress, everyone else keydown to scroll through result list when holding cursor key
+* Updated package to jQuery 1.2.5, removing dimensions
+* Fixed multiple-mustMatch: Remove only the last term when no match is found
+* Fixed multiple without mustMatch: Don't select the last active when no match is found (on tab/return)
+* Fixed multiple cursor position: Put cursor at end of input after selecting a value
+
+1.0
+---
+
+* First release.
