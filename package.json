@@ -44,7 +44,7 @@
     "jquery-migrate": "1.2.1",
     "jquery-ui": "1.12.1",
     "jquery-validation": "1.19.3",
-    "less": "3.12.2",
+    "less": "3.13.1",
     "less-loader": "7.0.1",
     "less-plugin-clean-css": "1.5.1",
     "lodash": "4.17.20",
