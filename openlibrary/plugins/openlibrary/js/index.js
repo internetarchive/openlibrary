@@ -166,7 +166,7 @@ jQuery(function () {
     $('.column').sortable({
         connectWith: '.trash'
     });
-    $(''.trash').sortable({
+    $('.trash').sortable({
         connectWith: '.column'
     });
     $('.column').disableSelection();
