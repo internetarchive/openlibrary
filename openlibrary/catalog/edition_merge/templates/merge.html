@@ -9,11 +9,11 @@ td { vertical-align: top; background: #ddd };
 <body>
 <h1>Merge {{ia}}</h1>
 
-<a href="{{url_for('index')}}">back to index</a><p>
+<p><a href="{{url_for('index')}}">back to index</a></p>
 
 {% with messages = get_flashed_messages() %}
   {% if messages %}
-    <ul class=flashes>
+    <ul class="flashes">
     {% for message in messages %}
       <li>{{ message }}</li>
     {% endfor %}
@@ -23,7 +23,7 @@ td { vertical-align: top; background: #ddd };
 
 
 
-Merging editions: {{ ekeys }} into {{ master }}<p>
+<p>Merging editions: {{ ekeys }} into {{ master }}</p>
 
 <form method="post">
 <table>

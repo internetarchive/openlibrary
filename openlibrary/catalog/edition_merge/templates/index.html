@@ -10,7 +10,7 @@ td { vertical-align: top; background: #ddd };
 
 {% with messages = get_flashed_messages() %}
   {% if messages %}
-    <ul class=flashes>
+    <ul class="flashes">
     {% for message in messages %}
       <li>{{ message }}</li>
     {% endfor %}
@@ -27,12 +27,12 @@ Pages:
 <a href="?page={{ i + 1 }}">{{ i + 1}}</a>
 {% endif %}
 {% endfor %}
-<p>
+
 {% endmacro %}
 
 {{ pager() }}
 
-{{ total }} items need to be merged ({{ easy }} easy)<p>
+<p>{{ total }} items need to be merged ({{ easy }} easy)</p>
 
 <table>
 {% for ia, editions, unmerge_count in merge_list %}
