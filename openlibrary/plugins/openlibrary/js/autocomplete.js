@@ -24,10 +24,17 @@ export default function($) {
             formatItem: function (item) {
                 return item.name;
             },
+            select: function (_event, ui) {
+                var item = ui.item;
+                var $this = $(this);
+                $(`#${_this.id}-key`).val(item.key);
+                setTimeout(function() {
+                    $this.addClass('accept');
+                }, 0);
+            },
             mustMatch: true,
             formatMatch: function(item) { return item.name; }
         };
-
 
         /**
          * Port of code in vendor/js/jquery-autocomplete removed in e91119b
@@ -71,6 +78,7 @@ export default function($) {
                     response(
                         results.map((r) => {
                             return {
+                                key: r.key,
                                 label: highlight(options.formatItem(r), term),
                                 value: r.name
                             };
