@@ -163,13 +163,13 @@ jQuery(function () {
     $('#wikiselect').on('focus', function(){$(this).select();})
 
     // Functionality for manage.html
-    $(".column").sortable({
+    $('.column').sortable({
         connectWith: '.trash'
     });
-    $(".trash").sortable({
+    $(''.trash').sortable({
         connectWith: '.column'
     });
-    $(".column").disableSelection();
-    $(".trash").disableSelection();
-    $("#topNotice").hide();
+    $('.column').disableSelection();
+    $('.trash').disableSelection();
+    $('#topNotice').hide();
 });
