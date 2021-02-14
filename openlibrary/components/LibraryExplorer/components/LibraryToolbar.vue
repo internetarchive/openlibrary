@@ -2,6 +2,14 @@
     <div class="floating-controls-wrapper">
       <div class="floating-controls" :class="{open: openTabs.length > 0}">
         <div class="tab-bar">
+          <div class="chunky-icon" v-if="openTabs.length" @click="openTabs.splice(0, openTabs.length)">
+            <div class="chunky-icon--icon" style="font-size: 32px; font-weight: 100; line-height: 28px;">
+              &times;
+            </div>
+            <div class="chunky-icon--label">
+              Close
+            </div>
+          </div>
           <div class="chunky-icon" :class="{active: openTabs.includes('filter')}" @click="toggleTab('filter')">
             <div class="chunky-icon--icon">
               <FilterIcon/>
