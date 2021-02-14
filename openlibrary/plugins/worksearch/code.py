@@ -101,6 +101,16 @@ FIELD_NAME_MAP = {
     'by': 'author_name',
     'publishers': 'publisher',
 }
+SORTS = {
+    'editions': 'edition_count desc',
+    'old': 'first_publish_year asc',
+    'new': 'first_publish_year desc',
+    'scans': 'ia_count desc',
+    'lcc_sort asc': 'lcc_sort asc',
+    'lcc_sort desc': 'lcc_sort desc',
+    'ddc_sort asc': 'ddc_sort asc',
+    'ddc_sort desc': 'ddc_sort desc',
+}
 OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
 re_to_esc = re.compile(r'[\[\]:]')
@@ -629,7 +639,7 @@ class search(delegate.page):
         return render.work_search(
             i, ' '.join(q_list), do_search, get_doc,
             get_availability_of_ocaids, fulltext_search,
-            FACET_FIELDS)
+            FACET_FIELDS, SORTS)
 
 
 def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False, query=None):
@@ -930,23 +940,13 @@ def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet
     query: dict
     sort: str editions|old|new|scans
     """
-    sorts = {
-        'editions': 'edition_count desc',
-        'old': 'first_publish_year asc',
-        'new': 'first_publish_year desc',
-        'scans': 'ia_count desc',
-        'lcc_sort asc': 'lcc_sort asc',
-        'lcc_sort desc': 'lcc_sort desc',
-        'ddc_sort asc': 'ddc_sort asc',
-        'ddc_sort desc': 'ddc_sort desc',
-    }
     query['wt'] = 'json'
 
     try:
         (reply, solr_select, q_list) = run_solr_query(query,
                                                       rows=limit,
                                                       page=page,
-                                                      sort=sorts.get(sort),
+                                                      sort=SORTS.get(sort),
                                                       offset=offset,
                                                       fields=fields,
                                                       facet=facet,

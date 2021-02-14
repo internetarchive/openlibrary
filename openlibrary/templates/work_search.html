@@ -1,4 +1,4 @@
-$def with (input, q_param, do_search, get_doc, get_availability_of_ocaids, fulltext_search, facet_fields)
+$def with (input, q_param, do_search, get_doc, get_availability_of_ocaids, fulltext_search, facet_fields, valid_sorts)
 
 $ fulltext_names = {'true': 'Ebooks', 'false': 'Exclude ebooks'}
 
@@ -22,15 +22,13 @@ $for p in ['q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor'
 $if list(param) == ['has_fulltext']:
     $ param = {}
 
-$ sorts = dict(editions='edition_count desc', old='first_publish_year asc', new='first_publish_year desc', scans='ia_count desc')
-
 $ error = None
 $if param:
     $ page = int(param.get('page', 1))
     $ sort = param.get('sort', None)
     $ rows = 20
     $ search_start = time()
-    $ results = do_search(param, sorts[sort] if sort else None, page, rows=rows, spellcheck_count=3)
+    $ results = do_search(param, valid_sorts[sort] if sort else None, page, rows=rows, spellcheck_count=3)
     $ search_secs = time() - search_start
     $ docs = results.docs
     $ facet_counts = results.facet_counts
