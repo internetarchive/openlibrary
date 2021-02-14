@@ -248,6 +248,19 @@ export default {
 
         fullLanguageSelect(newVal) {
             this.filterState.languages = newVal;
+        },
+
+        ['sortState.order'](newVal) {
+            const desiredLabel = {
+                editions: 'edition_count',
+                new: 'first_publish_year',
+                old: 'first_publish_year',
+                ddc_sort: 'classification',
+                lcc_sort: 'classification',
+            }[newVal];
+            if (desiredLabel && !this.settingsState.labels.includes(desiredLabel)) {
+                this.settingsState.labels.push(desiredLabel);
+            }
         }
     },
 
