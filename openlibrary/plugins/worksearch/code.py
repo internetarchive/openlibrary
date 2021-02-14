@@ -103,13 +103,23 @@ FIELD_NAME_MAP = {
 }
 SORTS = {
     'editions': 'edition_count desc',
+
     'old': 'first_publish_year asc',
     'new': 'first_publish_year desc',
+
     'scans': 'ia_count desc',
+
+    # Classifications
+    'lcc_sort': 'lcc_sort asc',
     'lcc_sort asc': 'lcc_sort asc',
     'lcc_sort desc': 'lcc_sort desc',
+    'ddc_sort': 'ddc_sort asc',
     'ddc_sort asc': 'ddc_sort asc',
     'ddc_sort desc': 'ddc_sort desc',
+
+    'title': 'title asc',
+    'title asc': 'title asc',
+    'title desc': 'title desc',
 }
 OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
