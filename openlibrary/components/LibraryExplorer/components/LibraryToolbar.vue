@@ -274,6 +274,9 @@ export default {
     min-height: 0;
     display: inline-block;
     color: currentColor;
+    transition: background-color 0.2s;
+    border-radius: 4px;
+    &:hover, &:focus, &:focus-within { background: white; }
 
     .multiselect__tags {
       background: transparent;
@@ -293,6 +296,67 @@ export default {
     .multiselect__tag {
       margin-bottom: -5px;
       margin-top: 0;
+      display: inline-flex;
+      padding: 0;
+      align-items: center;
+
+      & > span {
+        padding-left: 6px;
+      }
+    }
+
+    .multiselect__tag-icon {
+      position: static;
+      margin-left: 0;
+      &:after {
+        font-size: 24px;
+        font-weight: 100;
+      }
+    }
+
+    .multiselect__tag {
+      margin-right: 0;
+      margin-left: 10px;
+    }
+
+    .multiselect__tags-wrap:first-child .multiselect__tag {
+      margin-left: 0;
+    }
+
+    // Jumbo up for touch devices...
+    .multiselect__tag {
+      min-height: 34px;
+    }
+    .multiselect__tag-icon {
+      width: 34px;
+      height: 34px;
+      line-height: 34px;
+    }
+
+    @media (pointer: fine) {
+      // Make drop down arrow smaller on non-touch devices
+      .multiselect__tags {
+        padding-right: 22px;
+      }
+      .multiselect__select {
+        width: 22px;
+      }
+
+      // Make the "X" button smaller for non-touch devices
+      .multiselect__tag {
+        min-height: 0;
+      }
+      .multiselect__tag-icon {
+        width: 22px;
+        height: 22px;
+        line-height: 22px;
+      }
+
+      // Make the dropdown options less spaced out for non-touch devices
+      .multiselect__option {
+        min-height: 0;
+        padding: 6px;
+      }
     }
 
     .multiselect__placeholder {
@@ -301,10 +365,17 @@ export default {
     }
 
     .multiselect__input:focus {
-      width: 100px !important;
+      width: 100% !important;
       height: 100%;
       margin: 0;
       padding: 2px !important;
+    }
+
+    .multiselect__content {
+      display: flex !important;
+      // Since this control is always at the bottom for us, have the results in
+      // reverse order, so that the likeliest match is closest to the input field.
+      flex-direction: column-reverse;
     }
   }
 
