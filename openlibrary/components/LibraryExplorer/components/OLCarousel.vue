@@ -48,6 +48,9 @@ export default {
     props: {
         query: String,
         node: Object,
+        sort: {
+            default: 'editions',
+        },
         limit: {
             type: Number,
             default: 20
@@ -75,7 +78,8 @@ export default {
             return `${CONFIGS.OL_BASE_SEARCH}/search?${new URLSearchParams({
                 q: this.query,
                 offset: this.offset,
-                limit: this.limit
+                sort: this.sort,
+                limit: this.limit,
             })}`;
         },
 
@@ -91,6 +95,14 @@ export default {
     },
     watch: {
         query() {
+            this.status = 'Start';
+            this.results.splice(0, this.results.length);
+            this.numFound = null;
+            this.error = null;
+            if (this.isVisible) this.debouncedReloadResults();
+        },
+
+        sort() {
             this.status = 'Start';
             this.results.splice(0, this.results.length);
             this.numFound = null;
@@ -144,7 +156,8 @@ export default {
                 q: this.query,
                 offset,
                 limit: this.limit,
-                fields: 'key,title,author_name,cover_i,ddc,lcc,lending_edition_s'
+                sort: this.sort,
+                fields: 'key,title,author_name,cover_i,ddc,lcc,lending_edition_s',
             });
 
             const url = `${CONFIGS.OL_BASE_SEARCH}/search.json?${params.toString()}`;

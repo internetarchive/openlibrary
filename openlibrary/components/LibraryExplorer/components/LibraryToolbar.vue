@@ -96,6 +96,35 @@
           <summary>
             <div class="chunky-icon">
               <div class="chunky-icon--icon">
+                <SortIcon/>
+              </div>
+              <div class="chunky-icon--label">Sort</div>
+            </div>
+          </summary>
+          <main class="click-controls">
+              <div class="horizontal-selector">
+                <div>Sort Order</div>
+                <div class="options">
+                  <label>
+                    <input type="radio" v-model="sortState.order" value="editions">Most Editions
+                  </label>
+                  <label>
+                    <input type="radio" v-model="sortState.order" value="new">Newest
+                  </label>
+                  <label>
+                    <input type="radio" v-model="sortState.order" value="old">Oldest
+                  </label>
+                  <label>
+                    <input type="radio" v-model="sortState.order" :value="`${settingsState.selectedClassification.field}_sort asc`">Shelf Order
+                  </label>
+                </div>
+              </div>
+          </main>
+        </details>
+        <details>
+          <summary>
+            <div class="chunky-icon">
+              <div class="chunky-icon--icon">
                 <SettingsIcon/>
               </div>
               <div class="chunky-icon--label">Settings</div>
@@ -149,6 +178,7 @@
 import lucenerQueryParser from 'lucene-query-parser';
 import SettingsIcon from './icons/SettingsIcon';
 import FilterIcon from './icons/FilterIcon';
+import SortIcon from './icons/SortIcon';
 import FeedbackIcon from './icons/FeedbackIcon';
 import CONFIGS from '../configs';
 import Multiselect from 'vue-multiselect';
@@ -156,6 +186,7 @@ import Multiselect from 'vue-multiselect';
 export default {
     components: {
         FilterIcon,
+        SortIcon,
         SettingsIcon,
         FeedbackIcon,
         Multiselect,
@@ -164,6 +195,7 @@ export default {
     props: {
         filterState: Object,
         settingsState: Object,
+        sortState: Object,
     },
 
     data() {

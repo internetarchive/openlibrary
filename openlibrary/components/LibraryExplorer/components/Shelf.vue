@@ -17,6 +17,7 @@
           ? node.children[node.position]
           : node
       "
+      :sort="sort"
     >
       <template #book-end-start>
         <div class="book-end-start">
@@ -43,7 +44,7 @@
               .join('\n')
           "
           >{{
-            classification.fieldTransform(book[classification.field][0])
+            classification.fieldTransform(classification.chooseBest(book[classification.field]))
           }}</span
         >
       </template>
@@ -105,6 +106,7 @@ export default {
         expandBookshelf: Function,
         features: Object,
         filter: String,
+        sort: String,
     },
 
     data() {

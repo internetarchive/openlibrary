@@ -9,6 +9,7 @@
       :expandBookshelf="expandBookshelf"
       :features="features"
       :filter="filter"
+      :sort="sort"
     />
   </div>
 </template>
@@ -28,6 +29,7 @@ export default {
         expandBookshelf: Function,
         features: Object,
         filter: String,
+        sort: String,
     },
 
 };

@@ -3,11 +3,12 @@
     <BookRoom
       :classification="settingsState.selectedClassification"
       :filter="computedFilter"
+      :sort="sortState.order"
       :class="bookRoomClass"
       :features="bookRoomFeatures"
     />
 
-    <LibraryToolbar :filterState="filterState" :settingsState="settingsState" />
+    <LibraryToolbar :filterState="filterState" :settingsState="settingsState" :sortState="sortState" />
   </div>
 </template>
 
@@ -17,6 +18,7 @@ import LibraryToolbar from './LibraryExplorer/components/LibraryToolbar';
 import DDC from './LibraryExplorer/ddc.json';
 import LCC from './LibraryExplorer/lcc.json';
 import { recurForEach } from './LibraryExplorer/utils.js';
+import maxBy from 'lodash/maxBy';
 
 class FilterState {
     constructor() {
@@ -65,6 +67,7 @@ export default {
                 longName: 'Dewey Decimal Classification',
                 field: 'ddc',
                 fieldTransform: ddc => ddc,
+                chooseBest: ddcs => maxBy(ddcs, ddc => ddc.replace(/[\d.]/g, '') ? ddc.length : 100 + ddc.length),
                 root: recurForEach({ children: DDC }, n => {
                     n.position = 'root';
                     n.offset = 0;
@@ -82,6 +85,7 @@ export default {
                         .replace(/\.0+$/, ' ')
                         .replace(/-+/, '')
                         .replace(/0+(\.\D)/, ($0, $1) => $1),
+                chooseBest: lccs => maxBy(lccs, lcc => lcc.length),
                 root: recurForEach({ children: LCC }, n => {
                     n.position = 'root';
                     n.offset = 0;
@@ -91,6 +95,10 @@ export default {
         ];
         return {
             filterState: new FilterState(),
+
+            sortState: {
+                order: 'editions',
+            },
 
             settingsState: {
                 selectedClassification: classifications[0],
