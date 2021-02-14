@@ -412,6 +412,8 @@ def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=Non
     return (reply, url, q_list)
 
 def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
+    if sort:
+        sort = ','.join(SORTS[s.strip()] for s in sort.split(','))
     (reply, solr_select, q_list) = run_solr_query(
         param, rows, page, sort, spellcheck_count)
     is_bad = False
@@ -639,7 +641,7 @@ class search(delegate.page):
         return render.work_search(
             i, ' '.join(q_list), do_search, get_doc,
             get_availability_of_ocaids, fulltext_search,
-            FACET_FIELDS, SORTS)
+            FACET_FIELDS)
 
 
 def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False, query=None):
@@ -941,12 +943,13 @@ def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet
     sort: str editions|old|new|scans
     """
     query['wt'] = 'json'
-
+    if sort:
+        sort = ','.join(SORTS[s.strip()] for s in sort.split(','))
     try:
         (reply, solr_select, q_list) = run_solr_query(query,
                                                       rows=limit,
                                                       page=page,
-                                                      sort=SORTS.get(sort),
+                                                      sort=sort,
                                                       offset=offset,
                                                       fields=fields,
                                                       facet=facet,

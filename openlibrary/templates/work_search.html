@@ -1,4 +1,4 @@
-$def with (input, q_param, do_search, get_doc, get_availability_of_ocaids, fulltext_search, facet_fields, valid_sorts)
+$def with (input, q_param, do_search, get_doc, get_availability_of_ocaids, fulltext_search, facet_fields)
 
 $ fulltext_names = {'true': 'Ebooks', 'false': 'Exclude ebooks'}
 
@@ -28,7 +28,7 @@ $if param:
     $ sort = param.get('sort', None)
     $ rows = 20
     $ search_start = time()
-    $ results = do_search(param, valid_sorts[sort] if sort else None, page, rows=rows, spellcheck_count=3)
+    $ results = do_search(param, sort, page, rows=rows, spellcheck_count=3)
     $ search_secs = time() - search_start
     $ docs = results.docs
     $ facet_counts = results.facet_counts
