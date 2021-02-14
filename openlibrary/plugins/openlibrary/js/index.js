@@ -159,4 +159,17 @@ jQuery(function () {
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
+
+    $('#wikiselect').on('focus', function(){$(this).select();})
+
+    // Functionality for manage.html
+    $('.column').sortable({
+        connectWith: '.trash'
+    });
+    $('.trash').sortable({
+        connectWith: '.column'
+    });
+    $('.column').disableSelection();
+    $('.trash').disableSelection();
+    $('#topNotice').hide();
 });

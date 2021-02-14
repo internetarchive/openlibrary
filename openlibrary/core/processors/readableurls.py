@@ -45,7 +45,7 @@ class ReadableUrlProcessor:
         real_path, readable_path = get_readable_path(web.ctx.site, web.ctx.path, self.patterns, encoding=web.ctx.encoding)
 
         #@@ web.ctx.path is either quoted or unquoted depends on whether the application is running
-        #@@ using builtin-server or lighttpd. That is probably a bug in web.py.
+        #@@ using builtin-server. That is probably a bug in web.py.
         #@@ take care of that case here till that is fixed.
         # @@ Also, the redirection must be done only for GET requests.
         if readable_path != web.ctx.path and readable_path != urllib.parse.quote(web.safestr(web.ctx.path)) and web.ctx.method == "GET":

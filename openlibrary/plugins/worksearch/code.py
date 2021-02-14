@@ -1,3 +1,4 @@
+import json
 import web
 import random
 import re
@@ -6,7 +7,6 @@ from lxml.etree import XML, XMLSyntaxError
 from infogami.utils import delegate, stats
 from infogami import config
 from infogami.utils.view import render, render_template, safeint, public
-import simplejson as json
 from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.core.lending import get_availability_of_ocaids, add_availability
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -18,7 +18,7 @@ from openlibrary.utils.ddc import (
     normalize_ddc_prefix,
     normalize_ddc_range,
 )
-from openlibrary.utils.isbn import normalize_isbn, opposite_isbn
+from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lcc import (
     normalize_lcc_prefix,
     normalize_lcc_range,
@@ -32,8 +32,7 @@ from six.moves import urllib
 logger = logging.getLogger("openlibrary.worksearch")
 
 if hasattr(config, 'plugin_worksearch'):
-    solr_host = config.plugin_worksearch.get('solr', 'localhost')
-    solr_select_url = "http://%s/solr/select" % solr_host
+    solr_select_url = config.plugin_worksearch.get('solr_base_url', 'localhost') + '/select'
 
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
@@ -296,7 +295,7 @@ def execute_solr_query(url):
     stats.begin("solr", url=url)
     try:
         solr_result = urllib.request.urlopen(url, timeout=10)
-    except Exception as e:
+    except Exception:
         logger.exception("Failed solr query")
         return None
     finally:
@@ -309,7 +308,7 @@ def parse_json(raw_file):
         return None
     try:
         json_result = json.load(raw_file)
-    except json.JSONDecodeError as e:
+    except json.JSONDecodeError:
         logger.exception("Error parsing search engine response")
         return None
     return json_result
@@ -390,7 +389,8 @@ def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=Non
     if sort:
         params.append(('sort', sort))
 
-    params.append(('wt', param.get('wt', 'standard')))
+    if 'wt' in param:
+        params.append(('wt', param.get('wt')))
     url = solr_select_url + '?' + urlencode(params)
 
     solr_result = execute_solr_query(url)

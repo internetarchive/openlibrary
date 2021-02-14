@@ -518,7 +518,7 @@ input {
 .search-results-stats {
   margin: 0;
   margin-bottom: 10px;
-  color: @light-grey;
+  color: @grey;
   font-size: .9em;
 }
 
@@ -706,14 +706,6 @@ fieldset {
       display: none;
     }
   }
-}
-
-// openlibrary/plugins/theme/templates/theme/git.html
-#message {
-  font-family: @lucida_sans_serif-2;
-  font-size: 14px;
-  background-color: @light-yellow;
-  padding: 15px;
 }
 
 /* ACCOUNT FORMS */
@@ -1676,7 +1668,7 @@ ul#siteSearch {
   // openlibrary/templates/lists/snippet.html
   // openlibrary/templates/type/list/embed.html
   // openlibrary/templates/type/list/view.html
-  span.resultTitle {
+  .resultTitle {
     display: block;
     margin: 0 !important;
     font-family: @lucida_sans_serif-1;
@@ -1691,7 +1683,7 @@ ul#siteSearch {
   // * openlibrary/templates/books/check.html
   // * openlibrary/templates/books/show.html
   // * openlibrary/templates/books/works-show.html
-  span.resultTitle .bookauthor,
+  .resultTitle .bookauthor,
   span.resultPublisher {
     font-size: .75em;
     color: @grey;
@@ -1809,7 +1801,7 @@ div.addfield {
   // openlibrary/templates/recentchanges/render.html
   // openlibrary/templates/type/list/editions.html
   .historyPager {
-    text-align:center;
+    text-align: center;
     margin: 20px 0;
     width: 100%;
   }

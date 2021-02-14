@@ -1,5 +1,5 @@
 from __future__ import print_function
-import simplejson
+import json
 import web
 import sys
 
@@ -406,15 +406,15 @@ def format_result(result, options):
     """
     format = options.get('format', '').lower()
     if format == 'json':
-        return simplejson.dumps(result)
+        return json.dumps(result)
     else: # js
-        json = simplejson.dumps(result)
+        json_data = json.dumps(result)
         callback = options.get("callback")
         if callback:
             # the API handles returning the data as a callback
-            return "%s" % json
+            return "%s" % json_data
         else:
-            return "var _OLBookInfo = %s;" % json
+            return "var _OLBookInfo = %s;" % json_data
 
 def dynlinks(bib_keys, options):
     # for backward-compatibility

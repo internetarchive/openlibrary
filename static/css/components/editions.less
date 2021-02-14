@@ -4,7 +4,7 @@
  */
 @import (less) "less/font-families.less";
 
-/* stylelint-disable selector-max-specificity */
+/* stylelint-disable selector-max-specificity, no-descending-specificity */
 table#editions,
 .editions-table {
   width: 100%;
@@ -14,7 +14,8 @@ table#editions,
   font-family: @lucida_sans_serif-1;
 
   .cta-button-group {
-    min-width: 180px;
+    width: 185px;
+    margin: 0 auto;
   }
 
   thead {
@@ -88,7 +89,7 @@ table#editions,
   }
 
   .highlight {
-    box-shadow: inset 0px 0px 0px 2px @beige;
+    box-shadow: inset 0 0 0 2px @beige;
     background: mix(@beige, @white, 75%);
   }
 }
@@ -96,12 +97,12 @@ table#editions,
 .lists {
   table#editions {
     h3 {
-      font-family: @lucida_sans_serif-1!important;
+      font-family: @lucida_sans_serif-1 !important;
       font-size: .75em;
       display: inline;
     }
     th {
-      font-family: @lucida_sans_serif-1!important;
+      font-family: @lucida_sans_serif-1 !important;
       background-color: transparent;
       text-align: left;
       font-weight: normal;
@@ -156,7 +157,6 @@ table#editions,
   }
 }
 
-
 @media only screen and (max-width: @width-breakpoint-tablet) {
   table#editions {
     width: 100%;
@@ -188,21 +188,24 @@ table#editions,
     .links a {
       font-size: 120%;
     }
+    .editions-table__links {
+      display: none;
+    }
 
     td.icon {
       width: 100%;
-      padding: 0px;
+      padding: 0;
     }
 
     td.icon.read {
       order: 3;
-        .read {
-          display: flex;
-          flex-direction: column;
-          ul {
-            order: -1;
-            padding: 10px 0px;
-          }
+      .read {
+        display: flex;
+        flex-direction: column;
+        ul {
+          order: -1;
+          padding: 10px 0;
+        }
       }
     }
 
@@ -210,7 +213,7 @@ table#editions,
       .links {
         display: flex;
       }
-      padding: 0px 10px;
+      padding: 0 10px;
     }
 
     .cta-button-group {
@@ -228,4 +231,8 @@ tbody {
 
 .edition-adder {
   text-align: right;
+}
+
+.editions-table__links {
+  text-align: center;
 }

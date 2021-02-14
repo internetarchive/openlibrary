@@ -11,7 +11,6 @@ from infogami import config
 
 from openlibrary.core import admin, cache, ia, lending, \
     helpers as h
-from openlibrary.core.sponsorships import get_sponsorable_editions
 from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
@@ -54,8 +53,12 @@ def get_homepage():
 def get_cached_homepage():
     five_minutes = 5 * dateutil.MINUTE_SECS
     lang = web.ctx.get("lang", "en")
+    pd = web.cookies().get('pd', False)
+    key = "home.homepage." + lang
+    if pd:
+        key += '.pd'
     return cache.memcache_memoize(
-        get_homepage, "home.homepage." + lang, timeout=five_minutes)()
+        get_homepage, key, timeout=five_minutes)()
 
 class home(delegate.page):
     path = "/"
@@ -103,19 +106,6 @@ def get_featured_subjects():
     ]
     return dict([(subject_name, subjects.get_subject('/subjects/' + subject_name, sort='edition_count'))
                  for subject_name in FEATURED_SUBJECTS])
-
-
-def get_cachable_sponsorable_editions():
-    if 'env' not in web.ctx:
-        delegate.fakeload()
-
-    return [format_book_data(ed) for ed in get_sponsorable_editions()]
-
-@public
-def get_cached_sponsorable_editions():
-    return storify(cache.memcache_memoize(
-        get_cachable_sponsorable_editions, "books.sponsorable_editions",
-        timeout=dateutil.HOUR_SECS)())
 
 @public
 def get_cached_featured_subjects():

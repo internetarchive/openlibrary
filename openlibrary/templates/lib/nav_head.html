@@ -2,7 +2,12 @@ $def with (page)
 
 <header id="header-bar" class="header-bar">
   <div class="hamburger-component">
-    <button type="button" class="hamburger-button"><img src="/static/images/menu.png" alt="additional options menu"/></button>
+
+    <label for="toggle-hamburger" class="hamburger-button">
+      <img src="/static/images/menu.png" alt="additional options menu"/>
+    </label>
+
+    <input role="button" type="checkbox" class="hamburger-component__checkbox" id="toggle-hamburger">
     <div class="hamburger-dropdown-component navigation-dropdown-component">
       <ul class="dropdown-menu hamburger-dropdown-menu">
         $if not ctx.user:
@@ -60,8 +65,7 @@ $def with (page)
 
   <ul class="navigation-component">
     <li class="browse-menu">
-      <a>$_('Browse') <img class="down-arrow"
-        width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/></a>
+      <a>$_('Browse') <img class="down-arrow" width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/></a>
       <div class="navigation-dropdown-component">
         <ul class="dropdown-menu browse-menu-options">
           <li><a href="/subjects">$_("Subjects")</a></li>
@@ -69,18 +73,6 @@ $def with (page)
           <li><a href="/k-12">$_("K-12 Student Library")</a></li>
           <li><a href="/random">$_("Random Book")</a></li>
           <li><a href="/advancedsearch">$_("Advanced Search")</a></li>
-        </ul>
-      </div>
-    </li>
-    <li class="my-books-menu">
-      <a>$_('My Books') <img class="down-arrow"
-        width="7" height="4" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
-      <div class="navigation-dropdown-component">
-        <ul class="dropdown-menu my-books-menu-options">
-          <li><a href="/account/loans">$_("My Loans")</a></li>
-          <li><a href="/account/books">$_("My Reading Log")</a></li>
-          <li><a href="/account/books/already-read/stats">$_("My Reading Stats")</a></li>
-          <li><a href="/account/lists">$_("My Lists")</a></li>
         </ul>
       </div>
     </li>
@@ -115,9 +107,11 @@ $def with (page)
       </div>
       <div class="account-dropdown navigation-dropdown-component" id="main-account-dropdown">
         <ul class="dropdown-menu">
+          <li><a href="$ctx.user.key">$_("My Profile")</a></li>
           <li><a href="$homepath()/account/loans">$_("My Loans")</a></li>
           <li><a href="$ctx.user.key/lists">$_("My Lists")</a></li>
-          <li><a href="$ctx.user.key">$_("My Profile")</a></li>
+          <li><a href="/account/books">$_("My Reading Log")</a></li>
+          <li><a href="/account/books/already-read/stats">$_("My Reading Stats")</a></li>
           <li><a href="$homepath()/account">$_("Settings")</a></li>
           <li>
             <form name="logout" action="/account/logout" method="post">

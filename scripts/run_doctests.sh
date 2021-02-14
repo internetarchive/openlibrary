@@ -54,7 +54,6 @@ pytest --doctest-modules \
         --ignore=openlibrary/solr/update_work.py \
         --ignore=openlibrary/tests/catalog/test_get_ia.py \
         --ignore=openlibrary/utils/form.py \
-        --ignore=openlibrary/utils/httpserver.py \
         --ignore=openlibrary/utils/schema.py \
         --ignore=openlibrary/utils/solr.py \
         --ignore=scripts \

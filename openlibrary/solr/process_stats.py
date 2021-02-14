@@ -149,7 +149,7 @@ def process(data):
 
     if doc.get('t_end'):
         dt = h.parse_datetime(doc.t_end) - h.parse_datetime(doc.t_start)
-        hours = dt.days * 24 + dt.seconds / 3600
+        hours = dt.days * 24 + dt.seconds // 3600
         solrdoc['duration_hours_i'] = hours
 
     #last_updated = h.parse_datetime(doc.get('t_end') or doc.get('t_start'))
@@ -242,7 +242,8 @@ def fix_subject_key(doc, name, prefix):
         doc[name] = [v.replace(prefix, '') for v in doc[name]]
 
 def update_solr(docs):
-    solr = SolrWriter("localhost:8983")
+    # stats_solr is defined in olsystem etc/openlibrary.yml
+    solr = SolrWriter(config.stats_solr or "localhost:8983")
     for doc in docs:
         # temp fix for handling already processed data
         doc = dict((k, v) for k, v in doc.items() if v is not None)

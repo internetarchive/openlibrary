@@ -1,10 +1,10 @@
-"""Python library for accessing Solr.
-"""
+"""Python library for accessing Solr"""
+
+import logging
 import re
+
 import requests
 import web
-import simplejson
-import logging
 
 from six.moves import urllib
 
@@ -92,7 +92,7 @@ class Solr:
         if len(payload) < 500:
             url = url + "?" + payload
             logger.info("solr request: %s", url)
-            jsonData = requests.get(url, timeout=10).json()
+            json_data = requests.get(url, timeout=10).json()
         else:
             logger.info("solr request: %s ...", url)
             if not isinstance(payload, bytes):
@@ -100,11 +100,11 @@ class Solr:
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
             }
-            jsonData = requests.post(
+            json_data = requests.post(
                 url, data=payload, headers=headers, timeout=10
             ).json()
         return self._parse_solr_result(
-            jsonData,
+            json_data,
             doc_wrapper=doc_wrapper,
             facet_wrapper=facet_wrapper)
 

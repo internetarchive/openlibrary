@@ -23,15 +23,15 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
     <a href="$(book_url)?edition=$(ocaid)"><img itemprop="image" src="$cover" alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
   </span>
 
-  <span class="details">
-      <span class="resultTitle">
+  <div class="details">
+      <div class="resultTitle">
          <h3 class="booktitle">
            <a itemprop="name" href="$(book_url)?edition=$(ocaid)"
               class="results">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a>
            $if doc.get('publish_date'):
              ($(doc['publish_date']))
          </h3>
-      </span>
+        </div>
       <span class="bookauthor">$_('by')
         $if not doc.authors:
           <em>$_('Unknown author')</em>
@@ -44,9 +44,9 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
       </span>
       <span class="resultPublisher">
         $if doc.get('first_publish_year'):
-          <div>
+          <span class="publishedYear">
             $_('First published in %(year)s', year=doc.first_publish_year)
-          </div>
+          </span>
         $if doc.get('edition_count'):
           <a href="$(book_url)?edition=$(ocaid)#editions-list">$ungettext('1 edition', '%(count)d editions', doc.edition_count, count=doc.edition_count)</a>
           $if doc.get('languages'):
@@ -56,19 +56,19 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
           $if doc.get('ia'):
             &mdash; $_('%s previewable', len(doc.get('ia')))
             $if len(doc.get('ia')) > 1:
-              <div class="preview-covers">
+              <span class="preview-covers">
                 $for x, i in enumerate(doc.get('ia')[1:10]):
                   <a href="$(book_url)?edition=$(i)">
-                    <img width="30" height="45" loading="lazy" src="//archive.org/download/$(i)/page/cover_w60_h60.jpg">
+                    <img width="30" height="45" loading="lazy" src="//archive.org/download/$(i)/page/cover_w60_h60.jpg" alt>
                   </a>
-              </div>
+                </span>
       </span>
       $if extra:
         <div class="serp-extras">
           $:extra
         </div>
 
-  </span>
+      </div>
 
   <div class="searchResultItemCTA">
       $if decorations:
