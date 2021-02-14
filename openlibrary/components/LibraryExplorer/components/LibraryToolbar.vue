@@ -1,19 +1,37 @@
 <template>
     <div class="floating-controls-wrapper">
-      <div class="floating-controls">
-        <details>
-          <summary>
-            <div class="chunky-icon">
-              <div class="chunky-icon--icon">
-                <FilterIcon/>
-              </div>
-              <div class="chunky-icon--label">
-                Filter
-                <span style="opacity: .55" v-if="activeFiltersCount">({{activeFiltersCount}})</span>
-              </div>
+      <div class="floating-controls" :class="{open: openTabs.length > 0}">
+        <div class="tab-bar">
+          <div class="chunky-icon" :class="{active: openTabs.includes('filter')}" @click="toggleTab('filter')">
+            <div class="chunky-icon--icon">
+              <FilterIcon/>
             </div>
-          </summary>
-          <main>
+            <div class="chunky-icon--label">
+              Filter
+              <span style="opacity: .55" v-if="activeFiltersCount">({{activeFiltersCount}})</span>
+            </div>
+          </div>
+          <div class="chunky-icon" :class="{active: openTabs.includes('sort')}" @click="toggleTab('sort')">
+            <div class="chunky-icon--icon">
+              <SortIcon/>
+            </div>
+            <div class="chunky-icon--label">Sort</div>
+          </div>
+          <div class="chunky-icon" :class="{active: openTabs.includes('settings')}" @click="toggleTab('settings')">
+            <div class="chunky-icon--icon">
+              <SettingsIcon/>
+            </div>
+            <div class="chunky-icon--label">Settings</div>
+          </div>
+          <div class="chunky-icon" :class="{active: openTabs.includes('feedback')}" @click="toggleTab('feedback')">
+            <div class="chunky-icon--icon">
+              <FeedbackIcon/>
+            </div>
+            <div class="chunky-icon--label">Feedback</div>
+          </div>
+        </div>
+        <div class="tabs-contents">
+          <main v-if="openTabs.includes('filter')">
             <div class="filter-wrapper">
               <input class="filter" v-model="filterState.filter" placeholder="Custom filter...">
               <small class="computed-filter" v-if="inDebugMode">{{computedFilters}}</small>
@@ -91,17 +109,7 @@
             </div>
             <!-- <pre>{{parsedFilter}}</pre> -->
           </main>
-        </details>
-        <details>
-          <summary>
-            <div class="chunky-icon">
-              <div class="chunky-icon--icon">
-                <SortIcon/>
-              </div>
-              <div class="chunky-icon--label">Sort</div>
-            </div>
-          </summary>
-          <main class="click-controls">
+          <main class="click-controls" v-if="openTabs.includes('sort')">
               <div class="horizontal-selector">
                 <div>Sort Order</div>
                 <div class="options">
@@ -127,17 +135,7 @@
                 </div>
               </div>
           </main>
-        </details>
-        <details>
-          <summary>
-            <div class="chunky-icon">
-              <div class="chunky-icon--icon">
-                <SettingsIcon/>
-              </div>
-              <div class="chunky-icon--label">Settings</div>
-            </div>
-          </summary>
-          <main class="click-controls">
+          <main class="click-controls" v-if="openTabs.includes('settings')">
             <div class="horizontal-selector">
               <div class="label">Classification</div>
               <div class="options">
@@ -174,18 +172,7 @@
               </div>
             </div>
           </main>
-        </details>
-
-        <details>
-          <summary>
-            <div class="chunky-icon">
-              <div class="chunky-icon--icon">
-                <FeedbackIcon/>
-              </div>
-              <div class="chunky-icon--label">Feedback</div>
-            </div>
-          </summary>
-          <main class="feedback-panel">
+          <main class="feedback-panel" v-if="openTabs.includes('feedback')">
             <p>Welcome to Library Explorer! Library Explorer is currently in <b>beta</b>, so you might hit some bugs while you're browsing.</p>
 
             <p>
@@ -193,7 +180,7 @@
               If you like what you see, and want to share it with others, why not <a :href="twitterUrl" target="_blank">Share on Twitter</a>?
             </p>
           </main>
-        </details>
+        </div>
       </div>
     </div>
 </template>
@@ -241,6 +228,9 @@ export default {
             // By default we just send sort=random to the OL API, but when shuffle
             // is clicked, we add a seed to the end (e.g. random_1235)
             randomWithSeed: 'random',
+
+            openTabs: [],
+            maxTabs: screen.width > 600 ? 5 : 1,
         }
     },
 
@@ -322,6 +312,18 @@ export default {
 
             this.langLoading = false;
         },
+
+        toggleTab(tabName) {
+            const index = this.openTabs.indexOf(tabName);
+            if (index == -1) {
+                this.openTabs.push(tabName);
+                if (this.openTabs.length > this.maxTabs) {
+                    this.openTabs.shift();
+                }
+            } else {
+                this.openTabs.splice(index, 1);
+            }
+        }
     }
 }
 </script>
@@ -472,6 +474,7 @@ export default {
   .floating-controls {
     pointer-events: all;
     display: flex;
+    flex-direction: column;
     border-radius: 4px 4px 0 0;
     overflow: hidden;
     box-shadow: 0 0 5px rgba(0, 0, 0, .2);
@@ -479,34 +482,42 @@ export default {
     max-width: 100%;
     max-height: 80vh;
 
-    & > details {
+
+    .tab-bar {
+      display: flex;
+      justify-content: center;
+      border-bottom: 1px solid rgba(0, 0, 0, .2);
+      background: linear-gradient(to bottom, #fff, #ebdfc5 150%);
+    }
+    .tab-bar > div {
       border-right: 1px solid rgba(0, 0, 0, .2);
+      margin: 0;
+      padding: 8px;
       &:last-child {
         border: 0;
       }
-      &[open] {
-        flex: 1;
-      }
-      &[open] > summary > .chunky-icon {
+
+      cursor: pointer;
+      transition: background-color .2s;
+      &:hover {
         background-color: rgba(0, 0, 0, .1);
-        display: inline-block;
-        border-radius: 4px;
       }
+      &.active {
+        background-color: rgba(0, 0, 0, .1);
+      }
+    }
+    .tabs-contents main {
+      padding: 8px;
+    }
 
-      & > summary {
-        &::marker { display: none; }
-        &::-webkit-details-marker { display: none; }
-
-        display: inline-flex;
-        cursor: pointer;
-        transition: background-color .2s;
-        &:hover {
-          background-color: rgba(0, 0, 0, .1);
+    &.open {
+      .tab-bar > div {
+        &:first-child {
+          border-left: 1px solid rgba(0, 0, 0, .2);
         }
-      }
-
-      & > main {
-        padding: 8px;
+        &:last-child {
+          border-right: 1px solid rgba(0, 0, 0, .2);
+        }
       }
     }
   }
