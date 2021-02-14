@@ -92,7 +92,7 @@ export default {
         },
         limit: {
             type: Number,
-            default: 20
+            default: screen.width > 450 ? 20 : 8,
         }
     },
     data() {
