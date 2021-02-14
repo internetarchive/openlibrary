@@ -1,7 +1,7 @@
 const urlParams = new URLSearchParams(location.search);
 
 const IS_VUE_APP =  document.title == 'Vue App';
-const OL_BASE_DEFAULT = IS_VUE_APP ? 'openlibrary.org' : urlParams.get('ol_base');
+const OL_BASE_DEFAULT = urlParams.get('ol_base') || (IS_VUE_APP ? 'openlibrary.org' : '');
 
 const CONFIGS = {
     OL_BASE_COVERS: urlParams.get('ol_base_covers') || 'covers.openlibrary.org',
