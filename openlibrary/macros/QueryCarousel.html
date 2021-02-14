@@ -1,4 +1,4 @@
-$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True)
+$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None)
 
 $# Takes following parameters
 $# * query (str) -- Any arbitrary Open Library search query, e.g. subject:"Textbooks"
@@ -20,7 +20,7 @@ $if search:
 
 $code:
   params = { 'q': query }
-  url = "/collections/february" if key=="monthly_reads" else "/search?" + urlencode(params)
+  url = url or "/search?" + urlencode(params)
   if has_fulltext_only:
     params['has_fulltext'] = 'true'
 
