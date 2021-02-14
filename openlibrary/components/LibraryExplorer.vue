@@ -6,6 +6,7 @@
       :sort="sortState.order"
       :class="bookRoomClass"
       :features="bookRoomFeatures"
+      :appSettings="settingsState"
     />
 
     <LibraryToolbar :filterState="filterState" :settingsState="settingsState" :sortState="sortState" />
@@ -103,6 +104,8 @@ export default {
             settingsState: {
                 selectedClassification: classifications[0],
                 classifications,
+
+                labels: ['classification'],
 
                 styles: {
                     book: {
@@ -218,12 +221,6 @@ hr {
     font-size: .8em;
     opacity: .9;
     line-height: .8em;
-    padding: 0;
-  }
-  .cover-label a {
-    padding: 6px;
-    color: white;
-    text-decoration: underline;
   }
 }
 

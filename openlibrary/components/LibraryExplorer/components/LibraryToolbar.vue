@@ -149,6 +149,23 @@
                 </label>
               </div>
             </div>
+            <div class="horizontal-selector">
+              <div class="label">Label Fields</div>
+              <div class="options">
+                <label>
+                  <input type="checkbox" v-model="settingsState.labels" value="classification">
+                  Classifications
+                </label>
+                <label>
+                  <input type="checkbox" v-model="settingsState.labels" value="first_publish_year">
+                  First Publish Year
+                </label>
+                <label>
+                  <input type="checkbox" v-model="settingsState.labels" value="edition_count">
+                  Number of Editions
+                </label>
+              </div>
+            </div>
           </main>
         </details>
 

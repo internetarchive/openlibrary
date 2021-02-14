@@ -7,6 +7,7 @@
       :node="lvl"
       :classification="classification"
       :expandBookshelf="expandBookshelf"
+      :labels="labels"
       :features="features"
       :filter="filter"
       :sort="sort"
@@ -27,6 +28,7 @@ export default {
         classification: Object,
         node: Object,
         expandBookshelf: Function,
+        labels: Array,
         features: Object,
         filter: String,
         sort: String,

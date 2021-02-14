@@ -64,6 +64,7 @@
           :expandBookshelf="expandBookshelf"
           :features="features"
           :classification="classification"
+          :labels="appSettings.labels"
           :filter="filter"
           :sort="sort"
         />

@@ -36,8 +36,8 @@
       </template>
 
       <template v-slot:cover-label="{ book }">
-        <span
-          v-if="book[classification.field]"
+        <div
+          v-if="book[classification.field] && labels.includes('classification')"
           :title="
             book[classification.field]
               .map(classification.fieldTransform)
@@ -45,8 +45,9 @@
           "
           >{{
             classification.fieldTransform(classification.chooseBest(book[classification.field]))
-          }}</span
-        >
+          }}</div>
+        <div v-if="labels.includes('first_publish_year')">{{book.first_publish_year}}</div>
+        <div v-if="labels.includes('edition_count')">{{book.edition_count}} editions</div>
       </template>
     </OLCarousel>
 
@@ -102,6 +103,7 @@ export default {
         node: Object,
         parent: Object,
 
+        labels: Array,
         classification: Object,
         expandBookshelf: Function,
         features: Object,
