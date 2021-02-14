@@ -48,6 +48,7 @@ export default {
     props: {
         query: String,
         node: Object,
+        fetchCoordinator: Object,
         sort: {
             default: 'editions',
         },
@@ -66,8 +67,8 @@ export default {
 
             /** @type {IntersectionObserver} */
             intersectionObserver: null,
-
             isVisible: false,
+            intersectionRatio: 0,
 
             /** @type {AbortController} */
             lastFetchAbortController: null,
@@ -138,6 +139,7 @@ export default {
             // lack of support for `isIntersecting`.
             // See: https://github.com/w3c/IntersectionObserver/issues/211
             const isIntersecting = entries[0].intersectionRatio > 0;
+            this.intersectionRatio = entries[0].intersectionRatio;
             this.isVisible = isIntersecting;
         },
 
@@ -163,6 +165,9 @@ export default {
             const url = `${CONFIGS.OL_BASE_SEARCH}/search.json?${params.toString()}`;
 
             this.status = 'Loading';
+            const fetch = this.fetchCoordinator ?
+                this.fetchCoordinator.fetch.bind(this.fetchCoordinator, { priority: () => 10 + this.intersectionRatio, name: this.query }) :
+                fetch;
             try {
                 const r = await fetch(url, {
                     cache,

@@ -25,24 +25,6 @@ import CONFIGS from '../configs';
 import CSSBox from './CSSBox';
 import FlatBookCover from './FlatBookCover';
 
-async function fetchBookLength(work_key) {
-    const url = `${CONFIGS.OL_BASE_SEARCH}/query.json?${new URLSearchParams({
-        type: '/type/edition',
-        works: work_key,
-        number_of_pages: '',
-        limit: 5
-    })}`;
-    const results = await fetch(url, { cache: 'force-cache' }).then(r =>
-        r.json()
-    );
-    const lengths = results
-        .filter(ed => ed.number_of_pages)
-        .map(ed => ed.number_of_pages);
-    if (lengths.length) {
-        return lengths[0];
-    }
-}
-
 export default {
     components: { CSSBox, FlatBookCover },
     props: {
@@ -58,7 +40,9 @@ export default {
             type: Number,
             default: 50
         },
-        book: Object
+        book: Object,
+        fetchCoordinator: Object,
+        containerIntersectionRatio: Number,
     },
 
     data() {
@@ -71,11 +55,31 @@ export default {
     methods: {
         updateWithImageMetadata(e) {
             this.finalHeight = e.target.height;
+        },
+        async fetchBookLength(work_key) {
+            const url = `${CONFIGS.OL_BASE_SEARCH}/query.json?${new URLSearchParams({
+                type: '/type/edition',
+                works: work_key,
+                number_of_pages: '',
+                limit: 5
+            })}`;
+            const fetch = this.fetchCoordinator ?
+                this.fetchCoordinator.fetch.bind(this.fetchCoordinator, {priority: () => this.containerIntersectionRatio, name: `cover ${work_key}`}) :
+                fetch;
+            const results = await fetch(url, { cache: 'force-cache' }).then(r =>
+                r.json()
+            );
+            const lengths = results
+                .filter(ed => ed.number_of_pages)
+                .map(ed => ed.number_of_pages);
+            if (lengths.length) {
+                return lengths[0];
+            }
         }
     },
 
     async mounted() {
-        const length = await fetchBookLength(this.book.key);
+        const length = await this.fetchBookLength(this.book.key);
         if (length) {
             this.finalThickness = Math.min(50, length / 10);
         }
