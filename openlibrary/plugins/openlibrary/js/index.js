@@ -161,4 +161,15 @@ jQuery(function () {
     });
 
     $('#wikiselect').on('focus', function(){$(this).select();})
+
+    // Functionality for manage.html
+    $('.column').sortable({
+        connectWith: '.trash'
+    });
+    $('.trash').sortable({
+        connectWith: '.column'
+    });
+    $('.column').disableSelection();
+    $('.trash').disableSelection();
+    $('#topNotice').hide();
 });
