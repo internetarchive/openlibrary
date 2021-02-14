@@ -482,7 +482,7 @@ export default {
   .floating-controls {
     pointer-events: all;
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     border-radius: 4px 4px 0 0;
     overflow: hidden;
     box-shadow: 0 0 5px rgba(0, 0, 0, .2);
@@ -490,11 +490,13 @@ export default {
     max-width: 100%;
     max-height: 80vh;
 
-
+    &.open .tab-bar {
+      border-top: 1px solid rgba(0, 0, 0, .2);
+    }
     .tab-bar {
       display: flex;
       justify-content: center;
-      border-bottom: 1px solid rgba(0, 0, 0, .2);
+
       background: linear-gradient(to bottom, #fff, #ebdfc5 150%);
     }
     .tab-bar > div {
