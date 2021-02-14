@@ -122,7 +122,7 @@ class FetchCoordinator {
     }
 
     enqueue(fetchRequest) {
-        console.log(`Enqueing request #${this.requestedFetches.length + 1}: ${fetchRequest.name}`);
+        // console.log(`Enqueing request #${this.requestedFetches.length + 1}: ${fetchRequest.name}`);
         this.requestedFetches.push(fetchRequest);
         this.activate();
     }
@@ -140,7 +140,7 @@ class FetchCoordinator {
         this.timeout = null;
         while ((this.maxConcurrent - this.runningRequests > 0) && this.requestedFetches.length) {
             const topRequest = maxBy(this.requestedFetches, f => f.priority());
-            console.log(`Completing request w p=${topRequest.priority()}: ${topRequest.name}`)
+            // console.log(`Completing request w p=${topRequest.priority()}: ${topRequest.name}`)
             this.runningRequests++;
             fetch(...topRequest.args)
                 .then(r => {

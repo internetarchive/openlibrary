@@ -47,15 +47,14 @@ class CarouselCoordinator {
     constructor() {
         this.maxRenderedOffscreen = Math.ceil(navigator.deviceMemory) || 8;
         this.currentlyRenderedOffscreen = [];
-        this.log = false;
     }
 
     registerRenderedOffscreenCarousel(carousel) {
         this.currentlyRenderedOffscreen.push(carousel);
-        this.log && console.log('CarouselCoordinator', `Now ffscreen -- ${carousel.query}`);
+        // console.log('CarouselCoordinator', `Now ffscreen -- ${carousel.query}`);
         if (this.currentlyRenderedOffscreen.length > this.maxRenderedOffscreen) {
             const toRemove = this.currentlyRenderedOffscreen.shift();
-            this.log && console.log('CarouselCoordinator', `Culling offscreen carousel -- ${carousel.query}`);
+            // console.log('CarouselCoordinator', `Culling offscreen carousel -- ${carousel.query}`);
             toRemove.unrender();
         }
     }
@@ -63,7 +62,7 @@ class CarouselCoordinator {
     registerOnscreenCarousel(carousel) {
         const index = this.currentlyRenderedOffscreen.indexOf(carousel);
         if (index != -1) {
-            this.log && console.log('CarouselCoordinator', `Carousel no longer offscreen -- ${carousel.query}`);
+            // console.log('CarouselCoordinator', `Carousel no longer offscreen -- ${carousel.query}`);
             this.currentlyRenderedOffscreen.splice(index, 1);
         }
     }
