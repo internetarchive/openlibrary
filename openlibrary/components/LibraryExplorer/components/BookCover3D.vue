@@ -5,12 +5,13 @@
     :width="finalWidth"
     :height="finalHeight"
     :thickness="finalThickness"
+    :style="`--book-hue: ${hashHue}`"
   >
     <template #front>
       <FlatBookCover :book="book" @load.once="updateWithImageMetadata" :cover="cover"/>
     </template>
     <template #left v-if="finalThickness > 15">
-      <div class="author">{{byline}}</div>
+      <div class="author" :style="`color: hsl(${hashHue + 60}, 25%, 65%)`">{{byline}}</div>
       <hr>
       <div
         class="title"
@@ -24,6 +25,7 @@
 import CONFIGS from '../configs';
 import CSSBox from './CSSBox';
 import FlatBookCover from './FlatBookCover';
+import { hashCode } from '../utils.js';
 
 export default {
     components: { CSSBox, FlatBookCover },
@@ -97,7 +99,11 @@ export default {
                     })
                     .join(' ')
                 : '';
-        }
+        },
+
+        hashHue() {
+            return hashCode(this.book.key) % 360;
+        },
     }
 };
 </script>
@@ -151,6 +157,11 @@ export default {
 
 .left-face {
   background: linear-gradient(to right, #222 10%, #444 50%, #444 75%, #222);
+  background: linear-gradient(to right,
+    hsl(var(--book-hue), 20%, 10%) 10%,
+    hsl(var(--book-hue), 22%, 20%) 50%,
+    hsl(var(--book-hue), 22%, 20%) 75%,
+    hsl(var(--book-hue), 20%, 10%));
   padding: 0 5px;
   padding-top: 20px;
   font-size: .8em;
@@ -185,5 +196,14 @@ export default {
 .book-3d div.cover {
   height: 100%;
 }
-</style>
 
+.left-face hr {
+  width: 50%;
+  margin: 5px auto;
+  border: 0;
+  opacity: 0.8;
+  background: transparent;
+  border-bottom: 2px dotted white;
+  border-color: hsl(var(--book-hue), 70%, 60%);
+}
+</style>

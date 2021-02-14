@@ -8,16 +8,17 @@
     :src="coverMultiresUrl.medium"
     :srcset="`${coverMultiresUrl.large} 2x`"
   >
-  <div v-else class="cover">
+  <div v-else class="cover" :style="`background: linear-gradient(to right,  hsl(${hashHue}, 20%, 16%),  hsl(${hashHue}, 20%, 10%) 6px, hsl(${hashHue}, 20%, 16%) 10px)`">
     <div class="title">{{book.title}}</div>
-    <hr>
-    <div class="author">{{byline}}</div>
+    <hr :style="`border-color: hsl(${hashHue}, 80%, 60%)`">
+    <div class="author" :style="`color: hsl(${hashHue + 30}, 25%, 70%)`">{{byline}}</div>
   </div>
 </template>
 
 
 <script>
 import CONFIGS from '../configs';
+import { hashCode } from '../utils.js';
 
 export default {
     props: {
@@ -49,6 +50,10 @@ export default {
             } else {
                 return undefined;
             }
+        },
+
+        hashHue() {
+            return hashCode(this.book.key) % 360;
         },
     },
 
@@ -89,6 +94,7 @@ div.cover {
 }
 
 .author {
+  padding: 0 10px;
   font-size: .75em;
   text-transform: uppercase;
   font-family: Roboto, Helvetica, sans-serif;
@@ -96,8 +102,11 @@ div.cover {
 }
 
 hr {
-  border-left: 20px solid transparent;
-  border-right: 20px solid transparent;
-  box-sizing: border-box;
+  width: 20%;
+  margin: 10px auto;
+  opacity: 0.8;
+  border: 0;
+  background: transparent;
+  border-bottom: 2px dotted white;
 }
 </style>
