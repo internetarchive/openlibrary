@@ -43,6 +43,34 @@ import CONFIGS from '../configs';
 
 // window.Vibrant = Vibrant;
 
+class CarouselCoordinator {
+    constructor() {
+        this.maxRenderedOffscreen = Math.ceil(navigator.deviceMemory) || 8;
+        this.currentlyRenderedOffscreen = [];
+        this.log = false;
+    }
+
+    registerRenderedOffscreenCarousel(carousel) {
+        this.currentlyRenderedOffscreen.push(carousel);
+        this.log && console.log('CarouselCoordinator', `Now ffscreen -- ${carousel.query}`);
+        if (this.currentlyRenderedOffscreen.length > this.maxRenderedOffscreen) {
+            const toRemove = this.currentlyRenderedOffscreen.shift();
+            this.log && console.log('CarouselCoordinator', `Culling offscreen carousel -- ${carousel.query}`);
+            toRemove.unrender();
+        }
+    }
+
+    registerOnscreenCarousel(carousel) {
+        const index = this.currentlyRenderedOffscreen.indexOf(carousel);
+        if (index != -1) {
+            this.log && console.log('CarouselCoordinator', `Carousel no longer offscreen -- ${carousel.query}`);
+            this.currentlyRenderedOffscreen.splice(index, 1);
+        }
+    }
+}
+
+const carouselCoordinator = new CarouselCoordinator();
+
 export default {
     components: { BooksCarousel },
     props: {
@@ -96,23 +124,22 @@ export default {
     },
     watch: {
         query() {
-            this.status = 'Start';
-            this.results.splice(0, this.results.length);
-            this.numFound = null;
-            this.error = null;
+            this.unrender();
             if (this.isVisible) this.debouncedReloadResults();
         },
 
         sort() {
-            this.status = 'Start';
-            this.results.splice(0, this.results.length);
-            this.numFound = null;
-            this.error = null;
+            this.unrender();
             if (this.isVisible) this.debouncedReloadResults();
         },
 
         isVisible(newVal) {
-            if (newVal) this.reloadResults();
+            if (newVal) {
+                carouselCoordinator.registerOnscreenCarousel(this);
+                this.reloadResults();
+            } else {
+                carouselCoordinator.registerRenderedOffscreenCarousel(this);
+            }
         }
     },
 
@@ -141,6 +168,13 @@ export default {
             const isIntersecting = entries[0].intersectionRatio > 0;
             this.intersectionRatio = entries[0].intersectionRatio;
             this.isVisible = isIntersecting;
+        },
+
+        unrender() {
+            this.status = 'Start';
+            this.results.splice(0, this.results.length);
+            this.numFound = null;
+            this.error = null;
         },
 
         async reloadResults(cache='force-cache') {
