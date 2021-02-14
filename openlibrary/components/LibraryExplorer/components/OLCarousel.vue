@@ -71,6 +71,16 @@ class CarouselCoordinator {
 
 const carouselCoordinator = new CarouselCoordinator();
 
+async function waitUntil(predicate, sleep = 100, maxSleep = 2000) {
+    for (let slept = 0; slept < maxSleep; slept += sleep) {
+        if (predicate()) return;
+        else {
+            await new Promise(res => setTimeout(res, sleep));
+        }
+    }
+    throw new Error('We waited, but nothing happened!');
+}
+
 export default {
     components: { BooksCarousel },
     props: {
@@ -150,7 +160,10 @@ export default {
         }) : null;
     },
 
-    mounted() {
+    async mounted() {
+        // We should only start observing once we're connected to the document,
+        // otherwise Chrome seems to never fire isVisible sometimes.
+        await waitUntil(() => this.$el.isConnected);
         this.intersectionObserver.observe(this.$el);
     },
     beforeDestroy() {
