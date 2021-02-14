@@ -33,12 +33,15 @@
         </div>
       </template>
 
-      <template v-slot:cover="{ book }" v-if="features.book3d">
+      <template v-slot:cover="{ book }">
         <BookCover3D
+            v-if="features.book3d"
             :width="150" :height="200" :thickness="50" :book="book"
             :fetchCoordinator="fetchCoordinator"
             :containerIntersectionRatio="$refs.olCarousel.intersectionRatio"
+            :cover="features.cover"
         />
+        <FlatBookCover v-else :book="book" :cover="features.cover" />
       </template>
 
       <template v-slot:cover-label="{ book }">
@@ -91,6 +94,7 @@ import OLCarousel from './OLCarousel';
 import ClassSlider from './ClassSlider';
 import ShelfLabel from './ShelfLabel';
 import BookCover3D from './BookCover3D';
+import FlatBookCover from './FlatBookCover';
 import ShelfIndex from './ShelfIndex';
 import ExpandIcon from './icons/ExpandIcon.vue';
 import IndexIcon from './icons/IndexIcon.vue';
@@ -165,6 +169,7 @@ export default {
         OLCarousel,
         ClassSlider,
         BookCover3D,
+        FlatBookCover,
         ShelfIndex,
         ShelfLabel,
         ExpandIcon,

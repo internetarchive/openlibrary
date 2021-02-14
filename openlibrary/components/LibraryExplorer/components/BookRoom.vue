@@ -99,7 +99,8 @@ export default {
         features: {
             default: () => ({
                 book3d: true,
-                shelfLabel: 'slider'
+                cover: 'image',
+                shelfLabel: 'slider',
             })
         }
     },

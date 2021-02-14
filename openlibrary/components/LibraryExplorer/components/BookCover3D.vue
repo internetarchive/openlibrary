@@ -7,7 +7,7 @@
     :thickness="finalThickness"
   >
     <template #front>
-      <FlatBookCover :book="book" @load.once="updateWithImageMetadata"/>
+      <FlatBookCover :book="book" @load.once="updateWithImageMetadata" :cover="cover"/>
     </template>
     <template #left v-if="finalThickness > 15">
       <div class="author">{{byline}}</div>
@@ -43,6 +43,8 @@ export default {
         book: Object,
         fetchCoordinator: Object,
         containerIntersectionRatio: Number,
+        /** @type {'image' | 'text'} */
+        cover: String,
     },
 
     data() {
@@ -168,8 +170,7 @@ export default {
 .left-face .title {
   font-size: .75em;
 }
-.left-face .title,
-.front-face .title {
+.left-face .title {
   font-family: Georgia, serif;
   font-style: oblique;
 }
@@ -181,18 +182,8 @@ export default {
   transform-origin: 0 0;
 }
 
-.front-face .title {
-  padding: 0 10px;
-}
-
 .book-3d div.cover {
   height: 100%;
-  padding: 5px;
-  box-sizing: border-box;
-  background: linear-gradient(to right, #333, #222 5px, #333 10px);
-  color: white;
-  flex-direction: column;
-  justify-content: center;
 }
 </style>
 

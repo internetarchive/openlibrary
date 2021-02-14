@@ -119,6 +119,14 @@ export default {
                         selected: 'default'
                     },
 
+                    cover: {
+                        options: [
+                            'image',
+                            'text'
+                        ],
+                        selected: 'image'
+                    },
+
                     shelf: {
                         debugModeOnly: true,
                         options: ['default', 'visual'],
@@ -154,6 +162,7 @@ export default {
         bookRoomFeatures() {
             return {
                 book3d: this.settingsState.styles.book.selected.startsWith('3d'),
+                cover: this.settingsState.styles.cover.selected,
                 shelfLabel: this.settingsState.styles.shelfLabel.selected
             };
         },

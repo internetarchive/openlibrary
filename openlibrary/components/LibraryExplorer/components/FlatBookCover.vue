@@ -1,6 +1,6 @@
 <template>
   <img
-    v-if="coverMultiresUrl"
+    v-if="cover == 'image' && coverMultiresUrl"
     class="cover"
     loading="lazy"
     @load="$emit('load', $event)"
@@ -21,7 +21,11 @@ import CONFIGS from '../configs';
 
 export default {
     props: {
-        book: Object
+        book: Object,
+        /** @type {'image' | 'text'} */
+        cover: {
+            default: 'image'
+        }
     },
 
     computed: {
@@ -69,5 +73,31 @@ div.cover {
   color: white;
   flex-direction: column;
   justify-content: center;
+
+  padding: 5px;
+  box-sizing: border-box;
+  background: linear-gradient(to right, #333, #222 5px, #333 10px);
+  color: white;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.title {
+  padding: 0 10px;
+  font-family: Georgia, serif;
+  font-style: oblique;
+}
+
+.author {
+  font-size: .75em;
+  text-transform: uppercase;
+  font-family: Roboto, Helvetica, sans-serif;
+  color: #B60;
+}
+
+hr {
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  box-sizing: border-box;
 }
 </style>
