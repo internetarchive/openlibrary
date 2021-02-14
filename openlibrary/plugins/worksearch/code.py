@@ -932,7 +932,11 @@ def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet
         'editions': 'edition_count desc',
         'old': 'first_publish_year asc',
         'new': 'first_publish_year desc',
-        'scans': 'ia_count desc'
+        'scans': 'ia_count desc',
+        'lcc_sort asc': 'lcc_sort asc',
+        'lcc_sort desc': 'lcc_sort desc',
+        'ddc_sort asc': 'ddc_sort asc',
+        'ddc_sort desc': 'ddc_sort desc',
     }
     query['wt'] = 'json'
 
