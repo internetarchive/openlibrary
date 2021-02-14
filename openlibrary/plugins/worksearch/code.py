@@ -80,6 +80,8 @@ ALL_FIELDS = [
     # Classifications
     "lcc",
     "ddc",
+    "lcc_sort",
+    "ddc_sort",
 ]
 FACET_FIELDS = [
     "has_fulltext",
@@ -235,9 +237,9 @@ def parse_query_fields(q):
             isbn = normalize_isbn(v)
             if isbn:
                 v = isbn
-        if field_name == 'lcc':
+        if field_name in ('lcc', 'lcc_sort'):
             v = lcc_transform(v)
-        if field_name == 'ddc':
+        if field_name == ('ddc', 'ddc_sort'):
             v = ddc_transform(v)
 
         yield {'field': field_name, 'value': v.replace(':', r'\:')}
