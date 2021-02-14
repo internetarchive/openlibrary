@@ -560,6 +560,12 @@ hr {
     border: 0;
     margin: 0 10px;
     @media (max-width: 450px) { margin: 0; }
+    background-color: #563822;
+    background-image: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, .36),
+      #563822 50px
+    );
   }
 
   .class-slider.shelf-label {
