@@ -16,7 +16,7 @@
           <main>
             <div class="filter-wrapper">
               <input class="filter" v-model="filterState.filter" placeholder="Custom filter...">
-              <small class="computed-filter" title="This part of your filter is determined by the controls below">{{computedFilters}}</small>
+              <small class="computed-filter" v-if="inDebugMode">{{computedFilters}}</small>
             </div>
             <div class="click-controls">
               <div class="horizontal-selector">
