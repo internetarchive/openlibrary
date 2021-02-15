@@ -8,21 +8,22 @@ Changes:
 """
 import _init_path
 
-from six.moves import urllib
-import yaml
-import logging
-import json
 import argparse
 import datetime
-import time
-import web
-import sys
+import json
+import logging
 import re
 import socket
+import sys
+import time
 
-from openlibrary.solr import update_work
-from openlibrary.config import load_config
+import requests
+import web
+import yaml
+
 from infogami import config
+from openlibrary.config import load_config
+from openlibrary.solr import update_work
 
 logger = logging.getLogger("openlibrary.solr-updater")
 
@@ -77,20 +78,20 @@ class InfobaseLog:
             url = "%s/%s?limit=100" % (self.base_url, self.offset)
             logger.debug("Reading log from %s", url)
             try:
-                jsontext = urllib.request.urlopen(url).read()
-            except urllib.error.URLError as e:
-                logger.error("Failed to open URL %s", url, exc_info=True)
-                if e.args and e.args[0].args == (111, 'Connection refused'):
-                    logger.error('make sure infogami server is working, connection refused from %s', url)
+                response = requests.get(url)
+                response.raise_for_status()
+                data = response.json()["data"]
+            except requests.HTTPError:
+                logger.exception("Failed to open URL %s" % url)
+                if response.status_code == 111:
+                    logger.error(
+                        'make sure infogami server is working, connection refused '
+                        'from %s' % url
+                    )
                     sys.exit(1)
                 raise
-
-            try:
-                d = json.loads(jsontext)
-            except:
-                logger.error("Bad JSON: %s", jsontext)
-                raise
-            data = d['data']
+            except json.JSONDecodeError:
+                logger.exception("Bad JSON: %s" % response.content)
             # no more data is available
             if not data:
                 logger.debug("no more records found")
