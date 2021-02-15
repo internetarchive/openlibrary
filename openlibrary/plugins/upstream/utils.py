@@ -818,6 +818,11 @@ def render_once(key):
         return True
 
 
+@public
+def today():
+    return datetime.datetime.today()
+
+
 def setup():
     """Do required initialization"""
     # monkey-patch get_markdown to use OL Flavored Markdown
