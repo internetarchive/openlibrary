@@ -90,14 +90,24 @@ $if param and not error and num_found:
 &nbsp;
       $if num_found > 1:
         <span class="tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" style="margin-right:10px;"/>
-          $if sort == 'editions':
-            <a href="$changequery(sort=None)">$_("Relevance")</a> | <strong class="lightgreen">$_("Most Editions")</strong> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
-          $elif sort == 'old':
-            <a href="$changequery(sort=None)">$_("Relevance")</a> |  <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <strong class="lightgreen">$_("First Published")</strong> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
-          $elif sort == 'new':
-            <a href="$changequery(sort=None)">$_("Relevance")</a> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <strong class="lightgreen">$_("Most Recent")</strong>
-          $else:
-            <strong class="lightgreen">$_("Relevance")</strong> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
+          $code:
+            sort_options = [
+              { 'sort': None, 'name': _("Relevance"), 'ga_key': 'Relevance' },
+              { 'sort': 'editions', 'name': _("Most Editions"), 'ga_key': 'Editions' },
+              { 'sort': 'old', 'name': _("First Published"), 'ga_key': 'Old' },
+              { 'sort': 'new', 'name': _("Most Recent"), 'ga_key': 'New' },
+              { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random' },
+            ]
+          $for sort_option in sort_options:
+            $ is_selected = sort_option['sort'] == sort
+            $if is_selected:
+                <strong class="lightgreen">$sort_option['name']</strong>
+            $else:
+                <a href="$changequery(sort=sort_option['sort'])"
+                   data-ol-link-track="SearchSort|$sort_option['ga_key']"
+                >$sort_option['name']</a>
+            $if not loop.last:
+                |
 
           <span class="advanced-search"><a href="/advancedsearch">$_('Advanced Search')</a></span>
         </span>
