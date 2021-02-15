@@ -117,6 +117,13 @@
                   <label>
                     <input type="radio" v-model="sortState.order" :value="`${settingsState.selectedClassification.field}_sort asc`">Shelf Order
                   </label>
+                  <label>
+                    <input type="radio" v-model="sortState.order" :value="randomWithSeed">Random
+                    <button
+                      v-if="sortState.order.startsWith('random')"
+                      @click="sortState.order = randomWithSeed = 'random_' + Date.now()"
+                    >Shuffle</button>
+                  </label>
                 </div>
               </div>
           </main>
@@ -231,6 +238,9 @@ export default {
             quickLanguageSelect: '',
             fullLanguageSelect: [],
             langLoading: false,
+            // By default we just send sort=random to the OL API, but when shuffle
+            // is clicked, we add a seed to the end (e.g. random_1235)
+            randomWithSeed: 'random',
         }
     },
 
