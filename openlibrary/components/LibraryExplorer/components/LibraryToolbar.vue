@@ -68,7 +68,7 @@
                     <input type="radio" v-model="quickLanguageSelect" value>Any
                   </label>
                   <label v-for="lang of top3Languages" :key="lang.key">
-                    <input type="radio" v-model="quickLanguageSelect" :value="lang">{{lang.name}}
+                    <input type="radio" v-model="quickLanguageSelect" :value="lang">{{lang.name.split(' / ')[0]}}
                   </label>
                   <label>
                     <input type="radio" v-model="quickLanguageSelect" value="custom">
