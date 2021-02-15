@@ -394,6 +394,7 @@ class observations(delegate.page):
 
 class aspects(delegate.page):
     path = "/aspects"
+    encoding = "json"
 
     def GET(self):
         return delegate.RawText(get_aspects())
