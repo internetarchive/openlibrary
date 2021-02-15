@@ -288,11 +288,6 @@ def get_coverstore_url():
     return config.get('coverstore_url', 'https://covers.openlibrary.org').rstrip('/')
 
 
-@public
-def get_the_best_book_on_url():
-    return config.get('tbbo_url')
-
-
 def _get_changes_v1_raw(query, revision=None):
     """Returns the raw versions response.
 
