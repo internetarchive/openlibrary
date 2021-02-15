@@ -120,6 +120,11 @@ SORTS = {
     'title': 'title asc',
     'title asc': 'title asc',
     'title desc': 'title desc',
+
+    # Random
+    'random': 'random_1 asc',
+    'random asc': 'random_1 asc',
+    'random desc': 'random_1 desc',
 }
 OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
@@ -135,6 +140,32 @@ re_subject_types = re.compile('^(places|times|people)/(.*)')
 re_olid = re.compile(r'^OL\d+([AMW])$')
 
 plurals = dict((f + 's', f) for f in ('publisher', 'author'))
+
+
+def process_sort(raw_sort):
+    """
+    :param str raw_sort:
+    :rtype: str
+
+    >>> process_sort('editions')
+    'edition_count desc'
+    >>> process_sort('editions, new')
+    'edition_count desc,first_publish_year desc'
+    >>> process_sort('random')
+    'random_1 asc'
+    >>> process_sort('random_custom_seed')
+    'random_custom_seed asc'
+    >>> process_sort('random_custom_seed desc')
+    'random_custom_seed desc'
+    >>> process_sort('random_custom_seed asc')
+    'random_custom_seed asc'
+    """
+    def process_individual_sort(sort):
+        if sort.startswith('random_'):
+            return sort if ' ' in sort else sort + ' asc'
+        else:
+            return SORTS[sort]
+    return ','.join(process_individual_sort(s.strip()) for s in raw_sort.split(','))
 
 
 def read_author_facet(af):
@@ -423,7 +454,7 @@ def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=Non
 
 def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
     if sort:
-        sort = ','.join(SORTS[s.strip()] for s in sort.split(','))
+        sort = process_sort(sort)
     (reply, solr_select, q_list) = run_solr_query(
         param, rows, page, sort, spellcheck_count)
     is_bad = False
@@ -954,7 +985,7 @@ def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet
     """
     query['wt'] = 'json'
     if sort:
-        sort = ','.join(SORTS[s.strip()] for s in sort.split(','))
+        sort = process_sort(sort)
     try:
         (reply, solr_select, q_list) = run_solr_query(query,
                                                       rows=limit,
