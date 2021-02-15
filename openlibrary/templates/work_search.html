@@ -96,10 +96,10 @@ $if param and not error and num_found:
               { 'sort': 'editions', 'name': _("Most Editions"), 'ga_key': 'Editions' },
               { 'sort': 'old', 'name': _("First Published"), 'ga_key': 'Old' },
               { 'sort': 'new', 'name': _("Most Recent"), 'ga_key': 'New' },
-              { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random' },
+              { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': sort and sort.startswith('random') },
             ]
           $for sort_option in sort_options:
-            $ is_selected = sort_option['sort'] == sort
+            $ is_selected = sort_option.get('selected') or sort_option['sort'] == sort
             $if is_selected:
                 <strong class="lightgreen">$sort_option['name']</strong>
             $else:
@@ -108,6 +108,10 @@ $if param and not error and num_found:
                 >$sort_option['name']</a>
             $if not loop.last:
                 |
+          $if sort and sort.startswith('random'):
+            (<a href="$changequery(sort='random_%s' % today().timestamp())"
+               data-ol-link-track="SearchSort|RandomShuffle"
+            >$_('Shuffle')</a>)
 
           <span class="advanced-search"><a href="/advancedsearch">$_('Advanced Search')</a></span>
         </span>
