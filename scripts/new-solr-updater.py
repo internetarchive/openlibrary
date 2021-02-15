@@ -80,7 +80,7 @@ class InfobaseLog:
             try:
                 response = requests.get(url)
                 response.raise_for_status()
-                data = response.json()["data"]
+                d = response.json()
             except requests.HTTPError:
                 logger.exception("Failed to open URL %s" % url)
                 if response.status_code == 111:
@@ -92,6 +92,7 @@ class InfobaseLog:
                 raise
             except json.JSONDecodeError:
                 logger.exception("Bad JSON: %s" % response.content)
+            data = d['data']
             # no more data is available
             if not data:
                 logger.debug("no more records found")
