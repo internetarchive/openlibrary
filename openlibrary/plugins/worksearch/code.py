@@ -117,10 +117,6 @@ SORTS = {
     'ddc_sort asc': 'ddc_sort asc',
     'ddc_sort desc': 'ddc_sort desc',
 
-    'title': 'title asc',
-    'title asc': 'title asc',
-    'title desc': 'title desc',
-
     # Random
     'random': 'random_1 asc',
     'random asc': 'random_1 asc',
