@@ -7,6 +7,7 @@
       :class="bookRoomClass"
       :features="bookRoomFeatures"
       :appSettings="settingsState"
+      :jumpTo="jumpTo"
     />
 
     <LibraryToolbar :filterState="filterState" :settingsState="settingsState" :sortState="sortState" />
@@ -62,6 +63,7 @@ export default {
         LibraryToolbar,
     },
     data() {
+        /** @type {import('./LibraryExplorer/utils').ClassificationTree[]} */
         const classifications = [
             {
                 name: 'DDC',
@@ -69,7 +71,7 @@ export default {
                 field: 'ddc',
                 fieldTransform: ddc => ddc,
                 chooseBest: ddcs => maxBy(ddcs, ddc => ddc.replace(/[\d.]/g, '') ? ddc.length : 100 + ddc.length),
-                root: recurForEach({ children: DDC }, n => {
+                root: recurForEach({ children: DDC, query: 'ddc:*' }, n => {
                     n.position = 'root';
                     n.offset = 0;
                     n.requests = {};
@@ -87,13 +89,22 @@ export default {
                         .replace(/-+/, '')
                         .replace(/0+(\.\D)/, ($0, $1) => $1),
                 chooseBest: lccs => maxBy(lccs, lcc => lcc.length),
-                root: recurForEach({ children: LCC }, n => {
+                root: recurForEach({ children: LCC, query: 'lcc:*' }, n => {
                     n.position = 'root';
                     n.offset = 0;
                     n.requests = {};
                 })
             }
         ];
+
+        const urlParams = new URLSearchParams(location.search);
+        let selectedClassification = classifications[0];
+        let jumpTo = null;
+        if (urlParams.has('jumpTo')) {
+            const [classificationName, classificationString] = urlParams.get('jumpTo').split(':');
+            selectedClassification = classifications.find(c => c.field == classificationName);
+            jumpTo = classificationString;
+        }
         return {
             filterState: new FilterState(),
 
@@ -101,8 +112,10 @@ export default {
                 order: 'editions',
             },
 
+            jumpTo,
+
             settingsState: {
-                selectedClassification: classifications[0],
+                selectedClassification,
                 classifications,
 
                 labels: ['classification'],

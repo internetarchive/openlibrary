@@ -80,6 +80,33 @@ import RightArrowIcon from './icons/RightArrowIcon.vue';
 import ExpandIcon from './icons/ExpandIcon.vue';
 import debounce from 'lodash/debounce';
 import Vue from 'vue';
+import { hierarchyFind, testLuceneSyntax } from '../utils.js';
+/** @typedef {import('../utils.js').ClassificationNode} ClassificationNode */
+
+/**
+ * @param {ClassificationNode} classificationNode
+ * @param {string} classification (e.g. 658.91500202854)
+ */
+function findClassification(classificationNode, classification) {
+    // First we find the closest matching node in the current classification tree
+    const path = hierarchyFind(
+        classificationNode,
+        node => testLuceneSyntax(node.query.split(':')[1], classification));
+    if (!path.length) return;
+
+    // Jump as deep into it as we can. I.e. the last node is the shelf, the second last the bookcase, and the 3rd last is the room.
+    if (path.length > 3) {
+        // e.g. [658, 65X, 6XX]
+        const [shelf, bookcase, room] = path.reverse();
+        path.reverse();
+        return {
+            room,
+            bookcase,
+            shelf,
+            breadcrumbs: path.slice(0, -3),
+        };
+    }
+}
 
 export default {
     components: {
@@ -88,9 +115,12 @@ export default {
         ExpandIcon,
     },
     props: {
+        /** @type {import('../utils.js').ClassificationTree} */
         classification: Object,
         appSettings: Object,
 
+        /** The classification to jump to @example 658.91500202854 */
+        jumpTo: String,
         sort: String,
         filter: {
             default: '',
@@ -114,9 +144,12 @@ export default {
         }
     },
     data() {
+        const jumpToData = this.jumpTo && findClassification(this.classification.root, this.jumpTo);
+
         return {
-            activeRoom: this.classification.root,
-            breadcrumbs: [],
+            activeRoom: jumpToData?.room || this.classification.root,
+            breadcrumbs: jumpToData?.breadcrumbs || [],
+            jumpToData,
 
             expandingAnimation: false,
 
@@ -132,6 +165,12 @@ export default {
     },
     mounted() {
         this.updateWidths();
+        if (this.jumpToData) {
+            this.$el.querySelector(`[data-short="${this.jumpToData.shelf.short}"]`).scrollIntoView({
+                inline: 'center',
+                block: 'center',
+            });
+        }
     },
     destroyed() {
         window.removeEventListener('resize', this.debouncedUpdateWidths);
@@ -151,6 +190,10 @@ export default {
         }
     },
     methods: {
+        /**
+         * @param {ClassificationNode} bookshelf something that is currently a bookcase, that will be the new room
+         * @param {ClassificationNode} [shelf] the shelf (child of bookshelf)
+         */
         async expandBookshelf(bookshelf, shelf=null) {
             this.expandingAnimation = true;
             await new Promise(r => setTimeout(r, 200));
