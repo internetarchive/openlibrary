@@ -9,7 +9,7 @@ from infogami.infobase.core import Text
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
     add_db_name, build_pool, editions_matched, isbns_from_record,
-    load, split_subtitle, strip_accents, RequiredField)
+    load, split_subtitle, RequiredField)
 
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.marc.marc_binary import MarcBinary
@@ -39,13 +39,6 @@ def test_isbns_from_record():
     assert len(result) == 2
 
 
-def test_strip_accents():
-    assert strip_accents('Plain ASCII text') == 'Plain ASCII text'
-    assert strip_accents(u'Des idées napoléoniennes') == 'Des idees napoleoniennes'
-    # It only modifies Unicode Nonspacing Mark characters:
-    assert strip_accents(u'Bokmål : Standard Østnorsk') == u'Bokmal : Standard Østnorsk'
-
-
 bookseller_titles = [
     # Original title, title, subtitle
     ['Test Title', 'Test Title', None],
@@ -58,8 +51,8 @@ bookseller_titles = [
         'Trapped in a Video Game', None],
     ["An American Marriage (Oprah's Book Club): A Novel",
         'An American Marriage', 'A Novel'],
-    ['A Novel (German Edition)',
-        'A Novel', None],
+    ['A Növel (German Edition)',
+        'A Növel', None],
     [('Vietnam Travel Guide 2019: Ho Chi Minh City - First Journey : '
       '10 Tips For an Amazing Trip'),
         'Vietnam Travel Guide 2019 : Ho Chi Minh City - First Journey',
@@ -152,14 +145,14 @@ def test_load_with_new_author(mock_site, ia_writeback):
     rec = {
         'ocaid': 'test_item',
         'title': 'Test item',
-        'authors': [{'name': 'John Doe'}],
+        'authors': [{'name': 'John Döe'}],
         'source_records': 'ia:test_item',
     }
     reply = load(rec)
     assert reply['success'] is True
     w = mock_site.get(reply['work']['key'])
     assert reply['authors'][0]['status'] == 'created'
-    assert reply['authors'][0]['name'] == 'John Doe'
+    assert reply['authors'][0]['name'] == 'John Döe'
     akey1 = reply['authors'][0]['key']
     assert akey1 == '/authors/OL1A'
     a = mock_site.get(akey1)

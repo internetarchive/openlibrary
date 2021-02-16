@@ -528,12 +528,7 @@ class OLIndexer(_Indexer):
         if not isinstance(title, six.text_type):
             return ""
 
-        # http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string
-        def strip_accents(s):
-            return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
-
-        norm = strip_accents(title).lower()
-        norm = norm.replace(' and ', ' ')
+        norm = title.lower().replace(' and ', ' ')
         if norm.startswith('the '):
             norm = norm[4:]
         elif norm.startswith('a '):

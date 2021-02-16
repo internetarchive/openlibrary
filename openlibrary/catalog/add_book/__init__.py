@@ -81,21 +81,10 @@ bad_titles = set(('Publications', 'Works. English', 'Missal', 'Works', 'Report',
 subject_fields = ['subjects', 'subject_places', 'subject_times', 'subject_people' ]
 
 
-def strip_accents(s):
-    """http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string
-    """
-    try:
-        s.encode('ascii')
-        return s
-    except UnicodeEncodeError:
-        return ''.join((c for c in ucd.normalize('NFD', s) if ucd.category(c) != 'Mn'))
-
-
 def normalize(s):
     """ Strip non-alphanums and truncate at 25 chars.
     """
-    norm = strip_accents(s).lower()
-    norm = norm.replace(' and ', ' ')
+    norm = s.lower().replace(' and ', ' ')
     if norm.startswith('the '):
         norm = norm[4:]
     elif norm.startswith('a '):
