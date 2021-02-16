@@ -154,9 +154,6 @@ def pick_first_date(dates):
 
     return { 'date': fix_l_in_date(' '.join([remove_trailing_number_dot(d) for d in dates])) }
 
-def strip_accents(s):
-    return normalize('NFKD', six.text_type(s)).encode('ASCII', 'ignore')
-
 re_drop = re.compile('[?,]')
 
 def match_with_bad_chars(a, b):
