@@ -109,7 +109,7 @@ export default {
             filterState: new FilterState(),
 
             sortState: {
-                order: 'editions',
+                order: jumpTo ? `${selectedClassification.field}_sort asc` : 'editions',
             },
 
             jumpTo,

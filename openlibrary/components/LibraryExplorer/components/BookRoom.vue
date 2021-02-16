@@ -80,7 +80,8 @@ import RightArrowIcon from './icons/RightArrowIcon.vue';
 import ExpandIcon from './icons/ExpandIcon.vue';
 import debounce from 'lodash/debounce';
 import Vue from 'vue';
-import { hierarchyFind, testLuceneSyntax } from '../utils.js';
+import { decrementStringSolr, hierarchyFind, testLuceneSyntax } from '../utils.js';
+import CONFIGS from '../configs';
 /** @typedef {import('../utils.js').ClassificationNode} ClassificationNode */
 
 /**
@@ -102,6 +103,7 @@ function findClassification(classificationNode, classification) {
     const [shelf, bookcase, room] = path.reverse();
     path.reverse();
     return {
+        classification,
         room,
         bookcase,
         shelf,
@@ -160,11 +162,27 @@ export default {
         };
     },
 
-    created() {
+    async created() {
         this.debouncedUpdateWidths = debounce(this.updateWidths);
         window.addEventListener('resize', this.debouncedUpdateWidths, { passive: true });
+
+        if (this.jumpToData?.shelf) {
+            // Find the offset of the predecessor of the requested item in its shelf
+            const predecessor = decrementStringSolr(this.jumpToData.classification, false, this.classification.field == 'ddc');
+            const shelf_query = `${this.classification.field}_sort:${this.jumpToData.shelf.query} ${this.filter}`;
+            /** @type {number} */
+            const offset = await fetch(`${CONFIGS.OL_BASE_SEARCH}/search.json?${new URLSearchParams({
+                q: `${shelf_query} AND ${this.classification.field}_sort:[* TO ${predecessor}]`,
+                limit: 0,
+            })}`).then(r => r.json()).then(r => r.numFound);
+            const olCarousel = this.$el.querySelector(`.ol-carousel[data-short="${this.jumpToData.shelf.short}"]`);
+            const pageOffset = await olCarousel.__vue__.loadPageContainingOffset(offset + 1);
+            olCarousel.querySelector(`.book:nth-of-type(${(offset + 1) - pageOffset})`).scrollIntoView({
+                inline: 'center'
+            });
+        }
     },
-    mounted() {
+    async mounted() {
         this.updateWidths();
         if (this.jumpToData) {
             this.$el.querySelector(`[data-short="${this.jumpToData.shelf.short}"]`).scrollIntoView({

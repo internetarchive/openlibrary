@@ -228,16 +228,24 @@ export default {
             }
         },
 
-        async loadNextPage() {
-            const newOffset = this.offset + this.results.length;
+        async _loadOffset(newOffset) {
             await this.loadResults(newOffset);
             if (this.status == 'Loaded') this.offset = newOffset;
         },
 
+        async loadPageContainingOffset(offset) {
+            const page = Math.floor(offset / this.limit);
+            const pageOffset = page * this.limit;
+            await this._loadOffset(pageOffset);
+            return pageOffset;
+        },
+
+        async loadNextPage() {
+            await this._loadOffset(this.offset + this.results.length);
+        },
+
         async loadPrevPage() {
-            const newOffset = this.offset - this.limit;
-            await this.loadResults(newOffset);
-            if (this.status == 'Loaded') this.offset = newOffset;
+            await this._loadOffset(this.offset - this.limit);
         }
     }
 };
