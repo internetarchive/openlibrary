@@ -94,18 +94,19 @@ function findClassification(classificationNode, classification) {
         node => testLuceneSyntax(node.query.split(':')[1], classification));
     if (!path.length) return;
 
+    // pad until length is at least 3
+    while (path.length < 3) path.push(null);
+
     // Jump as deep into it as we can. I.e. the last node is the shelf, the second last the bookcase, and the 3rd last is the room.
-    if (path.length > 3) {
-        // e.g. [658, 65X, 6XX]
-        const [shelf, bookcase, room] = path.reverse();
-        path.reverse();
-        return {
-            room,
-            bookcase,
-            shelf,
-            breadcrumbs: path.slice(0, -3),
-        };
-    }
+    // e.g. [658, 65X, 6XX]
+    const [shelf, bookcase, room] = path.reverse();
+    path.reverse();
+    return {
+        room,
+        bookcase,
+        shelf,
+        breadcrumbs: path.slice(0, -3),
+    };
 }
 
 export default {
@@ -168,7 +169,7 @@ export default {
         if (this.jumpToData) {
             this.$el.querySelector(`[data-short="${this.jumpToData.shelf.short}"]`).scrollIntoView({
                 inline: 'center',
-                block: 'center',
+                block: 'start',
             });
         }
     },
