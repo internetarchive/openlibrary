@@ -1,11 +1,14 @@
+# -*- coding: utf-8 -*-
+
 import re
 import unicodedata
 
 import six
 
-#re_brace = re.compile('{[^{}]+?}')
-re_normalize = re.compile('[^[:alpha:] ]', re.I)
+# re_brace = re.compile(r'{[^{}]+?}')
+re_normalize = re.compile(r'[^[:alpha:] ]', re.I)
 re_whitespace_and_punct = re.compile(r'[-\s,;:.]+')
+
 
 def normalize(s):
     """
@@ -13,6 +16,9 @@ def normalize(s):
     stripping extra whitespace and punctuation, and replacing ampersands.
     :param str s:
     :rtype: str
+
+    >>> normalize("  Clauß   lîves & wørks... in Lüsai, Graubünden!  😁  ")
+    'clauß lîves and wørks in lüsai graubünden! 😁'
     """
 
     if isinstance(s, six.text_type):
