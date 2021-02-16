@@ -14,7 +14,7 @@ import six
 from six import PY3
 from six.moves import urllib
 from six.moves.collections_abc import MutableMapping
-from six.moves.urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+from six.moves.urllib.parse import parse_qs, urlencode as parse_urlencode, urlparse, urlunparse
 
 from infogami import config
 from infogami.utils import view, delegate, stats
@@ -814,7 +814,7 @@ class Request:
             queries_to_exclude = ['sort', 'mode', 'v', 'type', 'debug']
 
             canonical_query = {q: v for q, v in parsed_query.items() if q not in queries_to_exclude}
-            query = urlencode(canonical_query, doseq=True)
+            query = parse_urlencode(canonical_query, doseq=True)
             parsed_url = parsed_url._replace(query=query)
 
             url = urlunparse(parsed_url)
