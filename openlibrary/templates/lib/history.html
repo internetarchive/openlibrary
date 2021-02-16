@@ -74,7 +74,7 @@ $ show_wikipedia_citation_link = page.wp_citation_fields
                     $if v.author:
                         $ author_link = v.author.render_link(cls="truncate")
                     $elif v.ip and v.ip != "127.0.0.1":
-                        $ author_link = '<a rel="nofollow" href="/recentchanges?ip=%s" title="%s">%s</a>' % (v.ip, _('an anonymous user'), v.ip)
+                        $ author_link = '<a rel="nofollow" href="/recentchanges?ip=%s">%s</a>' % (v.ip, _('an anonymous user'), v.ip)
                     $else:
                         $ author_link = '<span>%s</span>' % (_('an anonymous user'))
                     $if v.revision == 1:
