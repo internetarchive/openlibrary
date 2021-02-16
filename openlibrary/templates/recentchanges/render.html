@@ -32,7 +32,7 @@ $if "ip" in query and ctx.user and ctx.user.is_admin():
             <td class="time">$datestr(c.timestamp)</td>
             <td class="path">$:call_template("path", c)</td>
             $if c.author:
-                <td class="displayname"><a rel="nofollow" href="$c.author.key" title="$c.author.displayname">$c.author.displayname</a></td>
+                <td class="displayname"><a rel="nofollow" href="$c.author.key">$c.author.displayname</a></td>
             $elif c.ip and c.ip != '127.0.0.1':
                 $if ctx.user and ctx.user.is_admin():
                     $ ip_url = "/admin/ip/%s" % c.ip
