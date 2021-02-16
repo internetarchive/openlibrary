@@ -162,19 +162,33 @@ def normalize_lcc_prefix(prefix):
     :param str prefix: An LCC prefix
     :return: Prefix transformed to be a prefix for sortable LCC
     :rtype: str|None
+
+    >>> normalize_lcc_prefix('A123')
+    'A--0123'
+    >>> normalize_lcc_prefix('A123.')
+    'A--0123'
+    >>> normalize_lcc_prefix('A123.0')
+    'A--0123.0'
+    >>> normalize_lcc_prefix('A123.C')
+    'A--0123.00000000.C'
+    >>> normalize_lcc_prefix('A123.C0')
+    'A--0123.00000000.C0'
+    >>> normalize_lcc_prefix('E--')
+    'E--'
+    >>> normalize_lcc_prefix('PN-')
+    'PN-'
     """
     if re.match(r'^[A-Z]+$', prefix, re.I):
         return prefix
     else:
-        # A123* should be normalized to A--0123*
-        # A123.* should be normalized to A--0123.*
-        # A123.C* should be normalized to A--0123.00000000.C*
         lcc_norm = short_lcc_to_sortable_lcc(prefix.rstrip('.'))
         if lcc_norm:
             result = lcc_norm.rstrip('0')
             if '.' in prefix and prefix.endswith('0'):
                 zeros_to_add = len(prefix) - len(prefix.rstrip('0'))
                 result += '0' * zeros_to_add
+            elif result.endswith('-0000.'):
+                result = result.rstrip('0.')
             return result.rstrip('.')
         else:
             return None
