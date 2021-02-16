@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import web
 
 from infogami.infobase import client, common
@@ -14,9 +16,10 @@ from openlibrary.utils import dicthash
 
 
 def setup_module(mod):
-    #delegate.fakeload()
+    # delegate.fakeload()
 
-    # models module imports openlibrary.code, which imports ol_infobase and that expects db_parameters.
+    # models module imports openlibrary.code, which imports ol_infobase and
+    # that expects db_parameters.
     web.config.db_parameters = dict(dbn="sqlite", db=":memory:")
     from openlibrary.plugins.upstream import models
     models.setup()
@@ -68,40 +71,40 @@ def test_MockSite():
     assert list(site.docs) == []
 
     site.add([{
-            "key": "a",
+            "key": "å",
             "type": {"key": "/type/object"}
         }, {
-            "key": "b",
+            "key": "ß",
             "type": {"key": "/type/object"}
         }
     ])
-    assert list(site.docs) == ["a", "b"]
+    assert list(site.docs) == ["å", "ß"]
 
 
 TEST_AUTHORS = web.storage({
     "a": {
-        "key": "/authors/a",
+        "key": "/authors/å",
         "type": {"key": "/type/author"},
-        "name": "a"
+        "name": "å"
     },
     "b": {
-        "key": "/authors/b",
+        "key": "/authors/ß",
         "type": {"key": "/type/author"},
-        "name": "b"
+        "name": "ß"
     },
     "c": {
-        "key": "/authors/c",
+        "key": "/authors/ç",
         "type": {"key": "/type/author"},
-        "name": "c"
+        "name": "ç"
     }
 })
 
 
 def test_make_redirect_doc():
-    assert make_redirect_doc("/a", "/b") == {
-        "key": "/a",
+    assert make_redirect_doc("/å", "/ß") == {
+        "key": "/å",
         "type": {"key": "/type/redirect"},
-        "location": "/b"
+        "location": "/ß"
     }
 
 
@@ -109,35 +112,35 @@ class TestBasicRedirectEngine:
     def test_update_references(self):
         engine = BasicRedirectEngine()
         doc = {
-            "key": "/a",
+            "key": "/å",
             "type": {"key": "/type/object"},
-            "x1": [{"key": "/b"}],
-            "x2": [{"key": "/b"}, {"key": "/c"}],
+            "x1": [{"key": "/ß"}],
+            "x2": [{"key": "/ß"}, {"key": "/ç"}],
             "y1": {
-                "a": "foo",
-                "b": {"key": "/b"}
+                "å": "føo",
+                "ß": {"key": "/ß"}
             },
             "y2": [{
-                "a": "foo",
-                "b": {"key": "/b"}
+                "å": "føo",
+                "ß": {"key": "/ß"}
             }, {
-                "a": "foo",
-                "b": {"key": "/c"}
+                "å": "føo",
+                "ß": {"key": "/ç"}
             }]
         }
 
-        assert engine.update_references(doc, "/c", ["/b"]) == {
-            "key": "/a",
+        assert engine.update_references(doc, "/ç", ["/ß"]) == {
+            "key": "/å",
             "type": {"key": "/type/object"},
-            "x1": [{"key": "/c"}],
-            "x2": [{"key": "/c"}],
+            "x1": [{"key": "/ç"}],
+            "x2": [{"key": "/ç"}],
             "y1": {
-                "a": "foo",
-                "b": {"key": "/c"}
+                "å": "føo",
+                "ß": {"key": "/ç"}
             },
             "y2": [{
-                "a": "foo",
-                "b": {"key": "/c"}
+                "å": "føo",
+                "ß": {"key": "/ç"}
             }]
         }
 
@@ -146,11 +149,11 @@ class TestBasicMergeEngine:
     def test_merge_property(self):
         engine = BasicMergeEngine(BasicRedirectEngine())
 
-        assert engine.merge_property(None, "hello") == "hello"
-        assert engine.merge_property("hello", None) == "hello"
-        assert engine.merge_property("foo", "bar") == "foo"
-        assert engine.merge_property(["foo"], ["bar"]) == ["foo", "bar"]
-        assert engine.merge_property(None, ["bar"]) == ["bar"]
+        assert engine.merge_property(None, "héllo") == "héllo"
+        assert engine.merge_property("héllo", None) == "héllo"
+        assert engine.merge_property("føo", "bår") == "føo"
+        assert engine.merge_property(["føo"], ["bår"]) == ["føo", "bår"]
+        assert engine.merge_property(None, ["bår"]) == ["bår"]
 
 
 def test_get_many():
@@ -161,7 +164,7 @@ def test_get_many():
         "type": {"key": "/type/edition"},
         "table_of_contents": [{
             "type": "/type/text",
-            "value": "foo"
+            "value": "føo"
         }]
     }
     type_edition = {
@@ -179,7 +182,7 @@ def test_get_many():
             "label": "",
             "level": 0,
             "pagenum": "",
-            "title": "foo"
+            "title": "føo"
         }]
     }
 
@@ -193,21 +196,21 @@ class TestAuthorRedirectEngine:
         edition = {
             "key": "/books/OL2M",
             "authors": [{"key": "/authors/OL2A"}],
-            "title": "book 1"
+            "title": "böök 1"
         }
 
         # edition having duplicate author
         assert update_references(edition, "/authors/OL1A", ["/authors/OL2A"]) == {
             "key": "/books/OL2M",
             "authors": [{"key": "/authors/OL1A"}],
-            "title": "book 1"
+            "title": "böök 1"
         }
 
         # edition not having duplicate author
         assert update_references(edition, "/authors/OL1A", ["/authors/OL3A"]) == {
             "key": "/books/OL2M",
             "authors": [{"key": "/authors/OL2A"}],
-            "title": "book 1"
+            "title": "böök 1"
         }
 
     def test_fix_work(self):
@@ -218,7 +221,7 @@ class TestAuthorRedirectEngine:
                 "type": {"key": "/type/author_role"},
                 "author": {"key": "/authors/OL2A"}
             }],
-            "title": "book 1"
+            "title": "böök 1"
         }
 
         # work having duplicate author
@@ -228,7 +231,7 @@ class TestAuthorRedirectEngine:
                 "type": {"key": "/type/author_role"},
                 "author": {"key": "/authors/OL1A"}
             }],
-            "title": "book 1"
+            "title": "böök 1"
         }
 
         # work not having duplicate author
@@ -238,7 +241,7 @@ class TestAuthorRedirectEngine:
                 "type": {"key": "/type/author_role"},
                 "author": {"key": "/authors/OL2A"}
             }],
-            "title": "book 1"
+            "title": "böök 1"
         }
 
 
@@ -249,51 +252,51 @@ class TestAuthorMergeEngine:
 
     def test_redirection(self):
         web.ctx.site.add([TEST_AUTHORS.a, TEST_AUTHORS.b, TEST_AUTHORS.c])
-        self.engine.merge("/authors/a", ["/authors/b", "/authors/c"])
+        self.engine.merge("/authors/å", ["/authors/ß", "/authors/ç"])
 
         # assert redirection
-        assert web.ctx.site.get("/authors/b").dict() == {
-            "key": "/authors/b",
+        assert web.ctx.site.get("/authors/ß").dict() == {
+            "key": "/authors/ß",
             "type": {"key": "/type/redirect"},
-            "location": "/authors/a"
+            "location": "/authors/å"
         }
-        assert web.ctx.site.get("/authors/c").dict() == {
-            "key": "/authors/c",
+        assert web.ctx.site.get("/authors/ç").dict() == {
+            "key": "/authors/ç",
             "type": {"key": "/type/redirect"},
-            "location": "/authors/a"
+            "location": "/authors/å"
         }
 
     def test_alternate_names(self):
         web.ctx.site.add([TEST_AUTHORS.a, TEST_AUTHORS.b, TEST_AUTHORS.c])
-        self.engine.merge("/authors/a", ["/authors/b", "/authors/c"])
-        assert web.ctx.site.get("/authors/a").alternate_names == ["b", "c"]
+        self.engine.merge("/authors/å", ["/authors/ß", "/authors/ç"])
+        assert web.ctx.site.get("/authors/å").alternate_names == ["ß", "ç"]
 
     def test_photos(self):
         a = dict(TEST_AUTHORS.a, photos=[1, 2])
         b = dict(TEST_AUTHORS.b, photos=[3, 4])
 
         web.ctx.site.add([a, b])
-        self.engine.merge("/authors/a", ["/authors/b"])
+        self.engine.merge("/authors/å", ["/authors/ß"])
 
-        photos = web.ctx.site.get("/authors/a").photos
+        photos = web.ctx.site.get("/authors/å").photos
         assert photos == [1, 2, 3, 4]
 
     def test_links(self):
         link_a = {
-            "title": "link a",
-            "url": "http://example.com/a"
+            "title": "link å",
+            "url": "http://example.com/å"
         }
         link_b = {
-            "title": "link b",
-            "url": "http://example.com/b"
+            "title": "link ß",
+            "url": "http://example.com/ß"
         }
 
         a = dict(TEST_AUTHORS.a, links=[link_a])
         b = dict(TEST_AUTHORS.b, links=[link_b])
         web.ctx.site.add([a, b])
 
-        self.engine.merge("/authors/a", ["/authors/b"])
-        links = web.ctx.site.get("/authors/a").dict()['links']
+        self.engine.merge("/authors/å", ["/authors/ß"])
+        links = web.ctx.site.get("/authors/å").dict()['links']
         assert links == [link_a, link_b]
 
     def test_new_field(self):
@@ -305,8 +308,8 @@ class TestAuthorMergeEngine:
         b = dict(TEST_AUTHORS.b, birth_date=birth_date)
         web.ctx.site.add([a, b])
 
-        self.engine.merge("/authors/a", ["/authors/b"])
-        master_birth_date = web.ctx.site.get("/authors/a").get('birth_date')
+        self.engine.merge("/authors/å", ["/authors/ß"])
+        master_birth_date = web.ctx.site.get("/authors/å").get('birth_date')
         assert master_birth_date == birth_date
 
     def test_work_authors(self):
@@ -317,7 +320,7 @@ class TestAuthorMergeEngine:
             "type": {"key": "/type/work"},
             "authors": [{
                 "type": "/type/author_role",
-                "author": {"key": "/authors/b"}
+                "author": {"key": "/authors/ß"}
             }]
         }
         web.ctx.site.add([a, b, work_b])
@@ -325,34 +328,34 @@ class TestAuthorMergeEngine:
         q = {
             "type": "/type/work",
             "authors": {
-                "author": {"key": "/authors/b"}
+                "author": {"key": "/authors/ß"}
             },
             "limit": 10000
         }
         web.ctx.site.add_query(q, ["/works/OL1W"])
 
-        self.engine.merge("/authors/a", ["/authors/b"])
+        self.engine.merge("/authors/å", ["/authors/ß"])
         assert web.ctx.site.get_dict("/works/OL1W") == {
             "key": "/works/OL1W",
             "type": {"key": "/type/work"},
             "authors": [{
                 "type": "/type/author_role",
-                "author": {"key": "/authors/a"}
+                "author": {"key": "/authors/å"}
             }]
         }
 
 
 def test_dicthash():
     assert dicthash({}) == dicthash({})
-    assert dicthash({"a": 1}) == dicthash({"a": 1})
-    assert dicthash({"a": 1, "b": 2}) == dicthash({"b": 2, "a": 1})
-    assert dicthash({}) != dicthash({"a": 1})
-    assert dicthash({"b": 1}) != dicthash({"a": 1})
+    assert dicthash({"å": 1}) == dicthash({"å": 1})
+    assert dicthash({"å": 1, "ß": 2}) == dicthash({"ß": 2, "å": 1})
+    assert dicthash({}) != dicthash({"å": 1})
+    assert dicthash({"ß": 1}) != dicthash({"å": 1})
 
 
 def test_space_squash_and_strip():
     f = space_squash_and_strip
-    assert f("Hello") == f("Hello")
-    assert f("Hello") != f("hello")
+    assert f("Héllo") == f("Héllo")
+    assert f("Héllo") != f("héllo")
     assert f("") == f("")
-    assert f("hello world") == f("hello    world  ")
+    assert f("héllo wörld") == f("  héllo    wörld  ")
