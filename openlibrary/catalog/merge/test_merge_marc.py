@@ -81,14 +81,14 @@ class TestTitles:
     def test_build_unicode_titles(self):
         # Used by openlibrary.catalog.merge.merge_marc.build_marc()
         full_title = '& This ,  is a Üñîçødè title.'
-        normalized = 'and this is a üñîçødè title'
+        normalized = '& this is a üñîçødè title'
         result = build_titles(full_title)
         assert isinstance(result['titles'], list)
         assert result['full_title'] == full_title
         assert result['short_title'] == normalized
         assert result['normalized_title'] == normalized
         assert result['titles'] == [
-            '& This ,  is a Üñîçødè title.', 'and this is a üñîçødè title'
+            '& This ,  is a Üñîçødè title.', '& this is a üñîçødè title'
         ]
 
     def test_build_titles_complex(self):
