@@ -165,8 +165,15 @@ export default {
     async created() {
         this.debouncedUpdateWidths = debounce(this.updateWidths);
         window.addEventListener('resize', this.debouncedUpdateWidths, { passive: true });
-
+    },
+    async mounted() {
+        this.updateWidths();
         if (this.jumpToData?.shelf) {
+            this.$el.querySelector(`[data-short="${this.jumpToData.shelf.short}"]`).scrollIntoView({
+                inline: 'center',
+                block: 'start',
+            });
+
             // Find the offset of the predecessor of the requested item in its shelf
             const predecessor = decrementStringSolr(this.jumpToData.classification, false, this.classification.field == 'ddc');
             const shelf_query = `${this.classification.field}_sort:${this.jumpToData.shelf.query} ${this.filter}`;
@@ -179,15 +186,6 @@ export default {
             const pageOffset = await olCarousel.__vue__.loadPageContainingOffset(offset + 1);
             olCarousel.querySelector(`.book:nth-of-type(${(offset + 1) - pageOffset})`).scrollIntoView({
                 inline: 'center'
-            });
-        }
-    },
-    async mounted() {
-        this.updateWidths();
-        if (this.jumpToData) {
-            this.$el.querySelector(`[data-short="${this.jumpToData.shelf.short}"]`).scrollIntoView({
-                inline: 'center',
-                block: 'start',
             });
         }
     },
