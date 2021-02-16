@@ -164,7 +164,7 @@ def test_load_with_new_author(mock_site, ia_writeback):
     rec = {
         'ocaid': 'test_item1b',
         'title': 'Test item1b',
-        'authors': [{'name': 'Doe, John', 'entity_type': 'person'}],
+        'authors': [{'name': 'Döe, John', 'entity_type': 'person'}],
         'source_records': 'ia:test_item1b',
     }
     reply = load(rec)
@@ -210,12 +210,12 @@ def test_load_with_redirected_author(mock_site, add_languages):
     """
     redirect_author = {
         'type': {'key': '/type/redirect'},
-        'name': 'John Smith',
+        'name': 'Jöhn Smith',
         'key': '/authors/OL55A',
         'location': '/authors/OL10A'}
     final_author = {
         'type': {'key': '/type/author'},
-        'name': 'John Smith',
+        'name': 'Jöhn Smith',
         'key': '/authors/OL10A'}
     orphaned_edition = {
         'title': 'Test item HATS',
@@ -230,7 +230,7 @@ def test_load_with_redirected_author(mock_site, add_languages):
 
     rec = {
         'title': 'Test item HATS',
-        'authors': [{'name': 'John Smith'}],
+        'authors': [{'name': 'Jöhn Smith'}],
         'publishers': ['TestPub'],
         'publish_date': '1994',
         'source_records': 'ia:test_redir_author'}
@@ -653,7 +653,7 @@ def test_same_twice(mock_site, add_languages):
 def test_existing_work(mock_site, add_languages):
     author = {
         'type': {'key': '/type/author'},
-        'name': 'John Smith',
+        'name': 'Jöhn Smith',
         'key': '/authors/OL20A'}
     existing_work = {
         'authors': [{'author': '/authors/OL20A', 'type': {'key': '/type/author_role'}}],
@@ -666,7 +666,7 @@ def test_existing_work(mock_site, add_languages):
     rec = {
             'source_records': 'non-marc:test',
             'title': 'Finding Existing Works',
-            'authors': [{'name': 'John Smith'}],
+            'authors': [{'name': 'Jöhn Smith'}],
             'publishers': ['Black Spot'],
             'publish_date': 'Jan 09, 2011',
             'isbn_10': ['1250144051'],
@@ -685,7 +685,7 @@ def test_existing_work(mock_site, add_languages):
 def test_existing_work_with_subtitle(mock_site, add_languages):
     author = {
         'type': {'key': '/type/author'},
-        'name': 'John Smith',
+        'name': 'Jöhn Smith',
         'key': '/authors/OL20A'}
     existing_work = {
         'authors': [{'author': '/authors/OL20A', 'type': {'key': '/type/author_role'}}],
@@ -699,7 +699,7 @@ def test_existing_work_with_subtitle(mock_site, add_languages):
             'source_records': 'non-marc:test',
             'title': 'Finding Existing Works',
             'subtitle': 'the ongoing saga!',
-            'authors': [{'name': 'John Smith'}],
+            'authors': [{'name': 'Jöhn Smith'}],
             'publishers': ['Black Spot'],
             'publish_date': 'Jan 09, 2011',
             'isbn_10': ['1250144051'],
