@@ -91,7 +91,7 @@ function findClassification(classificationNode, classification) {
     // First we find the closest matching node in the current classification tree
     const path = hierarchyFind(
         classificationNode,
-        node => testLuceneSyntax(node.query.split(':')[1], classification));
+        node => testLuceneSyntax(node.query, classification));
     if (!path.length) return;
 
     // pad until length is at least 3

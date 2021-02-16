@@ -35,7 +35,7 @@
           ? node.children[node.position].short
           : node.short
       "
-      :query="`${
+      :query="`${sort.includes('_sort') ? classification.field + '_sort' : classification.field}:${
         node.children && node.position != 'root'
           ? node.children[node.position].query
           : node.query
@@ -177,10 +177,12 @@ export default {
         IndexIcon,
     },
     props: {
+        /** @type {import('../utils').ClassificationNode} */
         node: Object,
         parent: Object,
 
         labels: Array,
+        /** @type {import('../utils').ClassificationTree} */
         classification: Object,
         expandBookshelf: Function,
         features: Object,
