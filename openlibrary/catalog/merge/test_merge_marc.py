@@ -78,11 +78,24 @@ class TestTitles:
         assert result['normalized_title'] == normalized
         assert result['titles'] == ['This is a title.', 'this is a title']
 
+    def test_build_unicode_titles(self):
+        # Used by openlibrary.catalog.merge.merge_marc.build_marc()
+        full_title = '& This ,  is a Üñîçødè title.'
+        normalized = 'and this is a üñîçødè title'
+        result = build_titles(full_title)
+        assert isinstance(result['titles'], list)
+        assert result['full_title'] == full_title
+        assert result['short_title'] == normalized
+        assert result['normalized_title'] == normalized
+        assert result['titles'] == [
+            '& This ,  is a Üñîçødè title.', 'and this is a üñîçødè title'
+        ]
+
     def test_build_titles_complex(self):
         # TODO: There are issues with this method
         # see https://github.com/internetarchive/openlibrary/issues/2410
-        full_title = 'A test full title : subtitle (parens)'
-        full_title_period = 'A test full title : subtitle (parens).'
+        full_title = 'A test full titlé : sübtitle (parens)'
+        full_title_period = 'A test full titlé : sübtitle (parens).'
         titles_period = build_titles(full_title_period)['titles']
 
         assert isinstance(titles_period, list)
@@ -92,8 +105,8 @@ class TestTitles:
         assert full_title in titles
 
         common_titles = [
-            'a test full title subtitle (parens)',
-            'test full title subtitle (parens)',
+            'a test full titlé sübtitle (parens)',
+            'test full titlé sübtitle (parens)',
         ]
         for t in common_titles:
             assert t in titles
@@ -101,9 +114,9 @@ class TestTitles:
 
         # Missing variations:
         # assert 'test full title subtitle' in a_titles
-        assert 'test full title subtitle' in titles
+        assert 'test full titlé sübtitle' in titles
         # assert 'a test full title subtitle' in a_titles
-        assert 'a test full title subtitle' in titles
+        assert 'a test full titlé sübtitle' in titles
 
         # Check for duplicates:
         assert len(titles_period) == len(set(titles_period))
@@ -114,25 +127,29 @@ def test_build_marc():
     # used in openlibrary.catalog.add_book.load()
     # when trying to find an existing edition match
     edition = {
-            'title': 'A test title (parens)',
-            'full_title': 'A test full title : subtitle (parens).',  # required, and set by add_book.load()
+            'title': 'A test titlé (parens)',
+            'full_title': 'A test full titlé : sübtitle (parens).',  # required, and set by add_book.load()
             'source_records': ['ia:test-source']
             }
     result = build_marc(edition)
     assert isinstance(result['titles'], list)
     assert result['isbn'] == []
-    assert result['normalized_title'] == 'a test full title subtitle (parens)'
-    assert result['short_title'] == 'a test full title subtitl'
+    assert result['normalized_title'] == 'a test full titlé sübtitle (parens)'
+    assert result['short_title'] == 'a test full titlé sübtitl'
 
 
 def test_compare_publisher():
     foo = {'publishers': ['foo']}
     bar = {'publishers': ['bar']}
+    føo = {'publishers': ['føo']}
+    bär = {'publishers': ['bär']}
     foo2 = {'publishers': ['foo']}
     both = {'publishers': ['foo', 'bar']}
     assert compare_publisher({}, {}) == ('publisher', 'either missing', 0)
     assert compare_publisher(foo, {}) == ('publisher', 'either missing', 0)
     assert compare_publisher({}, bar) == ('publisher', 'either missing', 0)
+    assert compare_publisher(foo, føo) == ('publisher', 'mismatch', -25)
+    assert compare_publisher(bar, bär) == ('publisher', 'mismatch', -25)
     assert compare_publisher(foo, foo2) == ('publisher', 'match', 100)
     assert compare_publisher(foo, bar) == ('publisher', 'mismatch', -25)
     assert compare_publisher(bar, both) == ('publisher', 'match', 100)
