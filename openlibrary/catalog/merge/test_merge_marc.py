@@ -141,15 +141,15 @@ def test_build_marc():
 def test_compare_publisher():
     foo = {'publishers': ['foo']}
     bar = {'publishers': ['bar']}
-    føo = {'publishers': ['føo']}
-    bär = {'publishers': ['bär']}
+    unicode_foo = {'publishers': ['føo']}
+    unicode_bar = {'publishers': ['bär']}
     foo2 = {'publishers': ['foo']}
     both = {'publishers': ['foo', 'bar']}
     assert compare_publisher({}, {}) == ('publisher', 'either missing', 0)
     assert compare_publisher(foo, {}) == ('publisher', 'either missing', 0)
     assert compare_publisher({}, bar) == ('publisher', 'either missing', 0)
-    assert compare_publisher(foo, føo) == ('publisher', 'mismatch', -25)
-    assert compare_publisher(bar, bär) == ('publisher', 'mismatch', -25)
+    assert compare_publisher(foo, unicode_foo) == ('publisher', 'mismatch', -25)
+    assert compare_publisher(bar, unicode_bar) == ('publisher', 'mismatch', -25)
     assert compare_publisher(foo, foo2) == ('publisher', 'match', 100)
     assert compare_publisher(foo, bar) == ('publisher', 'mismatch', -25)
     assert compare_publisher(bar, both) == ('publisher', 'match', 100)
