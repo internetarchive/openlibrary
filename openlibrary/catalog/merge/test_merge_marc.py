@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import pytest
 from openlibrary.catalog.merge.merge_marc import (
     build_marc, build_titles,
