@@ -100,6 +100,10 @@ FIELD_NAME_MAP = {
     'authors': 'author_name',
     'by': 'author_name',
     'publishers': 'publisher',
+    # "Private" fields
+    # This is private because we'll change it to a multi-valued field instead of a
+    # plain string at the next opportunity, which will make it much more usable.
+    '_ia_collection': 'ia_collection_s'
 }
 SORTS = {
     'editions': 'edition_count desc',
@@ -261,6 +265,20 @@ def ddc_transform(raw):
     # if none of the transforms took
     return raw
 
+
+def ia_collection_s_transform(raw):
+    """
+    Because this field is not a multi-valued field in solr, but a simple ;-separate
+    string, we have to do searches like this for now.
+    """
+    result = raw
+    if not result.startswith('*'):
+        result = '*' + result
+    if not result.endswith('*'):
+        result += '*'
+    return result
+
+
 def parse_query_fields(q):
     found = [(m.start(), m.end()) for m in re_fields.finditer(q)]
     first = q[:found[0][0]].strip() if found else q.strip()
@@ -288,6 +306,8 @@ def parse_query_fields(q):
             v = lcc_transform(v)
         if field_name == ('ddc', 'ddc_sort'):
             v = ddc_transform(v)
+        if field_name == 'ia_collection_s':
+            v = ia_collection_s_transform(v)
 
         yield {'field': field_name, 'value': v.replace(':', r'\:')}
         if op_found:
