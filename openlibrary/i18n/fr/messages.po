@@ -1016,7 +1016,7 @@ msgid ""
 "OpenLibrary.org and tell the world what you're reading."
 msgstr ""
 "%(username)s lit %(total)d livres. Rejoignez %(username)s sur "
-"OpenLibrary.org et dites à tout le monde ce que vous lisez."
+"OpenLibrary.org et partagez vos lectures avec le reste du monde."
 
 #: books.html:31
 msgid "Want To Read"
@@ -1052,7 +1052,8 @@ msgid ""
 "OpenLibrary.org and tell the world about the books that you care about."
 msgstr ""
 "%(username)s a lu %(total)d livres. Rejoignez %(username)s sur "
-"OpenLibrary.org et dites à tout le monde les livres qui vous intéressent."
+"OpenLibrary.org et partagez les livres qui vous intéressent avec le "
+"reste du monde."
 
 #: books.html:39 books.html:84
 msgid "Sponsorships"
@@ -1930,7 +1931,7 @@ msgstr "Ville, Pays s'il-vous-plaît."
 
 #: edit/edition.html:161
 msgid "Is there a copyright date?"
-msgstr "Y a-t-il une date de copyright ?"
+msgstr "Y a-t-il une date de droits d'auteur ?"
 
 #: edit/edition.html:162
 msgid "The year following the copyright statement."
@@ -2670,7 +2671,7 @@ msgstr "Développer"
 
 #: nav_foot.html:35
 msgid "Explore Open Library Development Center"
-msgstr "Explorer le centre de développement Open Library"
+msgstr "Parcourir le centre de développement Open Library"
 
 #: nav_foot.html:35
 msgid "Development Center"
@@ -2989,7 +2990,7 @@ msgid ""
 "For the top 2000+ most requested eBooks in California for the print "
 "disabled <a href=\"%(url)s\">click here</a>."
 msgstr ""
-"Pour les 2000+ eBooks les plus demandés en Californie par les malvoyants "
+"Pour les 2000+ eBooks les plus demandés en Californie destinés aux malvoyants "
 "<a href=\"%(url)\">cliquez ici</a>."
 
 #: home.html:24
@@ -3073,7 +3074,7 @@ msgstr "Envie de lire"
 
 #: widget.html:177
 msgid "My Reading Lists:"
-msgstr "Listes de lecture :"
+msgstr "Mes listes de lecture :"
 
 #: widget.html:183 widget.html:202 widget.html:280
 msgid "Create a new list"
@@ -3789,7 +3790,7 @@ msgstr "Seulement les livres électroniques classiques"
 #: openlibrary/templates/work_search.html:194
 #, python-format
 msgid "Explore books about %(subject)s"
-msgstr "Parcourir des livres sur %(subject)s"
+msgstr "Parcourir les livres sur %(subject)s"
 
 #: openlibrary/templates/work_search.html:198
 msgid "Written in"
