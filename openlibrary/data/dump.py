@@ -8,19 +8,18 @@ Glossary:
 """
 from __future__ import print_function
 
-import sys
-import os
-import web
-import re
-import time
-import json
-import itertools
 import gzip
+import itertools
+import json
+import os
+import re
+import sys
+import time
 
 import six
+import web
 
 from infogami.infobase.utils import flatten_dict
-
 from openlibrary.data import db
 from openlibrary.data.sitemap import generate_html_index, generate_sitemaps
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -42,11 +41,11 @@ def print_dump(json_records, filter=None):
         json_data = json.dumps(d)
 
         # skip user and admin pages
-        if key.startswith("/people/") or key.startswith("/admin/"):
+        if key.startswith(("/people/", "/admin/")):
             continue
 
         # skip obsolete pages. Obsolete pages include volumes, scan_records and users marked as spam.
-        if key.startswith("/b/") or key.startswith("/scan") or key.startswith("/old/") or not key.startswith("/"):
+        if key.startswith(("/b/", "/scan", "/old/")) or not key.startswith("/"):
             continue
 
         if filter and filter(d) is False:
@@ -56,6 +55,8 @@ def print_dump(json_records, filter=None):
 
 def read_data_file(filename):
     for line in xopen(filename):
+        if six.PY3 and not isinstance(line, str):
+            line = line.decode("utf-8")
         thing_id, revision, json_data = line.strip().split("\t")
         yield pgdecode(json_data)
 
@@ -75,6 +76,8 @@ def read_tsv(file, strip=True):
         file = xopen(file)
 
     for i, line in enumerate(file):
+        if six.PY3 and not isinstance(line, str):
+            line = line.decode("utf-8")
         if i % 1000000 == 0:
             log(i)
         if strip:
@@ -106,15 +109,13 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
 
     filenames = [os.path.join(tmpdir, "%02x.txt.gz" % i) for i in range(256)]
     files = [gzip.open(f, 'w') for f in filenames]
-
-    if dump_file is None:
-        stdin = sys.stdin
-    else:
-        stdin = xopen(dump_file)
+    stdin = xopen(dump_file) if dump_file else sys.stdin
 
     # split the file into 256 chunks using hash of key
     log("splitting", dump_file)
     for i, line in enumerate(stdin):
+        if six.PY3 and not isinstance(line, str):
+            line = line.decode("utf-8")
         if i % 1000000 == 0:
             log(i)
 
@@ -164,18 +165,16 @@ def generate_idump(day, **db_parameters):
 
 def split_dump(dump_file=None, format="oldump_%s.txt"):
     """Split dump into authors, editions and works."""
-    types = ["/type/edition", "/type/author", "/type/work", "/type/redirect"]
+    types = ("/type/edition", "/type/author", "/type/work", "/type/redirect")
     files = {}
     for t in types:
         tname = t.split("/")[-1] + "s"
         files[t] = xopen(format % tname, "w")
 
-    if dump_file is None:
-        stdin = sys.stdin
-    else:
-        stdin = xopen(dump_file)
-
+    stdin = xopen(dump_file) if dump_file else sys.stdin
     for i, line in enumerate(stdin):
+        if six.PY3 and not isinstance(line, str):
+            line = line.decode("utf-8")
         if i % 1000000 == 0:
             log(i)
         type, rest = line.split("\t", 1)
@@ -190,7 +189,7 @@ def make_index(dump_file):
 
     for type, key, revision, timestamp, json_data in read_tsv(dump_file):
         data = json.loads(json_data)
-        if type == '/type/edition' or type == '/type/work':
+        if type in ('/type/edition', '/type/work'):
             title = data.get('title', 'untitled')
             path = key + '/' + urlsafe(title)
         elif type == '/type/author':
@@ -255,7 +254,7 @@ def _process_data(data):
             data['key'] = _process_key(data['key'])
 
         # convert date to ISO format
-        if 'type' in data and data['type'] == '/type/datetime':
+        if data.get('type', '') == '/type/datetime':
             data['value'] = data['value'].replace(' ', 'T')
 
         return dict((k, _process_data(v)) for k, v in data.items())
