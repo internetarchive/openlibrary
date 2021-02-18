@@ -17,7 +17,7 @@ export default function(){
          coverid = val('#coverid');
 
          if (file == '' && (url == '' || url == 'http://') && coverid == '') {
-             return error('Please choose an image or provide a URL.'');
+             return error('Please choose an image or provide a URL.');
          }
 
          function test_url(url) {
@@ -28,7 +28,7 @@ export default function(){
          }
 
          if (url != '' && url != 'http://' && !test_url(url)) {
-             return error("Please provide a valid URL.");
+             return error('Please provide a valid URL.');
          }
      });
 
