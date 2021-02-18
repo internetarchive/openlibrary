@@ -212,7 +212,7 @@ $ )
         <div class="shift">$ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))</div>
         <div class="resultsContainer search-results-container">
         <div id="searchResults">
-          <ul class="list-books" id="siteSearch">
+          <ul class="list-books">
             $ works = add_availability([get_doc(d) for d in docs])
 
             $for work in works:

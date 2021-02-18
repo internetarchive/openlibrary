@@ -1662,8 +1662,7 @@ span.actions {
 // openlibrary/templates/account/books.html
 // openlibrary/macros/SearchResults.html
 // openlibrary/macros/FulltextResults.html
-// why not form#siteSearch ?
-ul#siteSearch {
+ul.list-books {
   > li {
     .display-flex();
   }
@@ -1715,7 +1714,7 @@ ul#siteSearch {
 // openlibrary/templates/search/lists.html
 // openlibrary/templates/lists/lists.html
 div.wide {
-  ul#siteSearch {
+  ul.list-books {
     span.resultTitle {
       max-width: 850px;
     }
@@ -1726,7 +1725,7 @@ div.wide {
 // openlibrary/templates/type/list/view.html
 // openlibrary/templates/type/work/editions.html
 div.narrow {
-  ul#siteSearch {
+  ul.list-books {
     span.resultTitle {
       max-width: 500px !important;
     }

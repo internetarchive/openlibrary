@@ -158,7 +158,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books.num_found)
 
                 <div id="searchResults">
-                    <ul id="siteSearch" class="list-books">
+                    <ul class="list-books">
                       $for doc in books.works:
                          $:macros.SearchResultsWork(doc)
                     </ul>
