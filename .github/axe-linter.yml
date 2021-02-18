@@ -2,3 +2,8 @@ exclude:
   - ./docker/*
   - ./conf/*
   - ./vendor/*
+tags: # Rule all rules for WCAG 2.0 and 2.1, level A and level AA
+  - wcag2a
+  - wcag2aa
+  - wcag21a
+  - wcag21aa
