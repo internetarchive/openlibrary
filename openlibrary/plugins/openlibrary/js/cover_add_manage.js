@@ -19,7 +19,7 @@ export default function(){
         coverid = val('#coverid');
 
         if (file == '' && (url == '' || url == 'http://') && coverid == '') {
-           return error('Please choose an image or provide a URL.');
+            return error('Please choose an image or provide a URL.');
         }
 
         function test_url(url) {
@@ -36,6 +36,7 @@ export default function(){
 
     // Clicking a cover should set the form value to the data-id of that cover
     $('#popcovers .book').on('click', function() {
+        var coverid;
         $(this).toggleClass('selected').siblings().removeClass('selected');
         coverid = '';
         if ($(this).hasClass('selected')) {
