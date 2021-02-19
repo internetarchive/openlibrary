@@ -1,24 +1,23 @@
-export default function(){
+export default function () {
+
+    function val(selector) {
+        return $.trim($(selector).val());
+    }
+    function error(message) {
+        $('#errors').show().html(message);
+        event.preventDefault();
+    }
+
     // page may not be loaded via iframe
     if (parent && parent.closeThrobber) {
         parent.closeThrobber();
     }
-    $('#form.addcover-form').submit(function(event) {
-        var file;
-        var url;
-        var coverid;
-        function val(selector) {
-            return $.trim($(selector).val());
-        }
-        function error(message) {
-            $('#errors').show().html(message);
-            event.preventDefault();
-        }
-        file = val('#coverFile');
-        url = val('#imageUrl');
-        coverid = val('#coverid');
+    $('#form.addcover-form').on('submit', function(event) {
+        var file = val('#coverFile');;
+        var url = val('#imageUrl');;
+        var coverid = val('#coverid');;
 
-        if (file == '' && (url == '' || url == 'http://') && coverid == '') {
+        if (file === '' && (url === '' || url === 'http://') && coverid === '') {
             return error('Please choose an image or provide a URL.');
         }
 
