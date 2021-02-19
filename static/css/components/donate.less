@@ -1,0 +1,52 @@
+.donation__ {
+  &info {
+    display: flex;
+    img {
+      width: 75px !important;
+      margin-left: 20px;
+    }
+  }
+  &instructions li {
+    list-style: initial;
+    margin: 10px 30px;
+  }
+
+  &options {
+    display: flex;
+    padding: 0 60px;
+  }
+
+  &address {
+    flex: 1;
+  }
+  &benefits li {
+    margin: 15px 35px;
+    &:before {
+      margin-top: 8px;
+      content: "";
+      width: 20px;
+      height: 20px;
+      position: absolute;
+      background-image: url(/static/images/check.png);
+      background-size: cover;
+      background-position: 50%;
+      margin-left: -25px;
+      transform: translateY(-50%);
+    }
+  }
+  &note {
+    color: @light-grey;
+  }
+}
+
+.donate__modal {
+  padding: 0 10px;
+  ul li, ol li {
+    font-size: .875em;
+  }
+}
+
+h2.donation__override {
+  font-size: 1.2em !important;
+  font-weight: bold !important;
+}

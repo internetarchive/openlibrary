@@ -15,9 +15,10 @@ from __future__ import absolute_import, print_function
 
 from collections import namedtuple
 
-import sys
+import json
 import os
-import simplejson
+import sys
+
 import web
 
 from optparse import OptionParser
@@ -69,7 +70,7 @@ def parse_args():
     parser.add_option("-c", "--comment", dest="comment", default="", help="comment")
     parser.add_option("--src", dest="src", metavar="SOURCE_URL", default="http://openlibrary.org/", help="URL of the source server (default: %default)")
     parser.add_option("--dest", dest="dest", metavar="DEST_URL", default="http://localhost", help="URL of the destination server (default: %default)")
-    parser.add_option("-r", "--recursive", dest="recursive", action='store_true', default=False, help="Recursively fetch all the referred docs.")
+    parser.add_option("-r", "--recursive", dest="recursive", action='store_true', default=True, help="Recursively fetch all the referred docs.")
     parser.add_option("-l", "--list", dest="lists", action="append", default=[], help="copy docs from a list.")
     return parser.parse_args()
 
@@ -262,7 +263,7 @@ def copy_list(src, dest, list_key, comment):
     def jsonget(url):
         url = url.encode("utf-8")
         text = src._request(url).read()
-        return simplejson.loads(text)
+        return json.loads(text)
 
     def get(key):
         print("get", key)

@@ -58,8 +58,10 @@
 		"no-extra-semicolons": true,
 		"no-empty-source": true,
 		"font-family-no-duplicate-names": true,
-		"font-family-no-missing-generic-family-keyword": true,
+		"font-family-no-missing-generic-family-keyword": [true, {"ignoreFontFamilies": ["!important"]}],
 		"no-descending-specificity": true,
-		"string-quotes": ["double", {"avoidEscape":false}]
+		"string-quotes": ["double", {"avoidEscape":false}],
+		"declaration-bang-space-before": "always",
+		"declaration-colon-space-after": "always"
 	}
 }

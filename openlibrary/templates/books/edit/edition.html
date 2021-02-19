@@ -732,8 +732,8 @@ $if ctx.user:
                 if (data.name == "isbn_10" && data.value.length != 10) {
                     return error("#id-errors", "id-value", "$_('ID must be exactly 10 characters [0-9] or X.')".replace(/ID/, label));
                 }
-                if (data.name == "isbn_13" && data.value.length != 13) {
-                    return error("#id-errors", "id-value", "$_('ID must be exactly 13 digits [0-9].')".replace(/ID/, label));
+                if (data.name == "isbn_13" && data.value.replace(/-/g,'').length != 13) {
+                    return error("#id-errors", "id-value", "$_('ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4')".replace(/ID/, label));
                 }
                 \$("id-errors").hide();
                 return true;

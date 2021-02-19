@@ -32,18 +32,24 @@ def config_section_to_dict(config_file, section):
     return result
 
 
-def batches(itrble, size):
+def batch_until_len(items, max_batch_len):
     """
     :param collections.Sized itrble:
     :param int size:
     :rtype: typings.Generator[list, None, None]
     """
-    start = 0
-    end = 0
-    while end < len(itrble):
-        end = start + size
-        yield itrble[start:end]
-        start = end
+    batch_len = 0
+    batch = []
+    for item in items:
+        if batch_len + len(item) > max_batch_len and batch:
+            yield batch
+            batch = [item]
+            batch_len = len(item)
+        else:
+            batch.append(item)
+            batch_len += len(item)
+    if batch:
+        yield batch
 
 
 class LocalPostgresDataProvider(DataProvider):
@@ -130,30 +136,50 @@ class LocalPostgresDataProvider(DataProvider):
         cur.close()
 
     @staticmethod
-    def _get_lite_metadata(ocaids, rows=1000):
+    def _get_lite_metadata(ocaids, _recur_depth=0, _max_recur_depth=3):
+        """
+        For bulk fetch, some of the ocaids in Open Library may be bad
+        and break archive.org ES fetches. When this happens, we (up to
+        3 times) recursively split up the pool of ocaids to do as many
+        successful sub-bulk fetches as we can and then when limit is
+        reached, downstream code will fetch remaining ocaids individually
+        (and skip bad ocaids) 
+        """
+        if not ocaids or _recur_depth > _max_recur_depth:
+            return []
+
         r = requests.get("https://archive.org/advancedsearch.php", params={
             'q': "identifier:(%s)" % ' OR '.join(ocaids),
-            'rows': rows,
+            'rows': len(ocaids),
             'fl': 'identifier,boxid,collection',
             'page': 1,
             'output': 'json',
             'save': 'yes',
         })
-        r.raise_for_status()
-        return r.json()['response']
 
-    def cache_ia_metadata(self, ocaids, batch_size=750):
+        try:
+            r.raise_for_status()
+            return r.json()['response']['docs']
+        except (RequestException, ValueError, KeyError):
+            logger.exception("Error while fetching IA data")
+            # there's probably a bad apple; try splitting the batch
+            mid = len(ocaids) // 2
+            h1, h2 = ocaids[:mid], ocaids[mid:]
+            f = LocalPostgresDataProvider._get_lite_metadata
+            return (
+                f(h1, _recur_depth=_recur_depth + 1) +
+                f(h2, _recur_depth=_recur_depth + 1)
+            )
+
+    def cache_ia_metadata(self, ocaids):
         """
         :param list of str ocaids:
         :param int batch_size:
         :return: None
         """
-        for b in batches(ocaids, batch_size):
-            try:
-                for doc in self._get_lite_metadata(b, rows=batch_size)['docs']:
-                    self.ia_cache[doc['identifier']] = doc
-            except (RequestException, ValueError):
-                logger.error("Error while caching IA", exc_info=True)
+        for b in batch_until_len(ocaids, 3000):
+            for doc in self._get_lite_metadata(b):
+                self.ia_cache[doc['identifier']] = doc
 
     def cache_edition_works(self, lo_key, hi_key):
         q = """
@@ -199,9 +225,10 @@ class LocalPostgresDataProvider(DataProvider):
         self.query_all(q, cache_json=True)
 
     def cache_cached_editions_ia_metadata(self):
-        # Limit length of OCAIDs to avoid really long URLs. They just won't be cached.
-        ocaids = [doc['ocaid'] for doc in self.cache.itervalues() if
-                  'ocaid' in doc and len(doc['ocaid']) < 50]
+        ocaids = [
+            doc['ocaid'] for doc in self.cache.values()
+            if 'ocaid' in doc]
+        ocaids = list(set(ocaids))
         self.cache_ia_metadata(ocaids)
 
     def find_redirects(self, key):
@@ -222,24 +249,25 @@ class LocalPostgresDataProvider(DataProvider):
         return [r[0] for r in self.query_iter(q)]
 
     def get_metadata(self, identifier):
-        logger.info("find_metadata %s", identifier)
-
         if identifier in self.ia_cache:
+            logger.info("IA metadata cache hit")
             return self.ia_cache[identifier]
-
-        return ia.get_metadata(identifier)
+        else:
+            logger.info("IA metadata cache miss")
+            return ia.get_metadata(identifier)
 
     def get_document(self, key):
-        logger.info("get_document %s", key)
-
         if key in self.cache:
+            logger.info("get_document cache hit %s", key)
             return self.cache[key]
+
+        logger.info("get_document cache miss %s", key)
 
         q = """
         SELECT "JSON" FROM test
         WHERE "Key" = '%s'
         """ % key
-        row = self.query_iter(q).next()
+        row = next(self.query_iter(q))
         if row:
             return row[0]
 
@@ -350,7 +378,7 @@ def main(job, postgres="postgres.ini", ol="http://ol/",
             if self.filename:
                 with open(progress, 'a') as f:
                     f.write('\t'.join(
-                        self.fmt(k, val) for k, val in entry._asdict().iteritems()))
+                        self.fmt(k, val) for k, val in entry._asdict().items()))
                     f.write('\n')
 
         def update(self, seen=None, total=None, percent=None, elapsed=None, q_1=None,
@@ -404,7 +432,10 @@ def main(job, postgres="postgres.ini", ol="http://ol/",
 
         count = None
         if progress:
-            with open(progress, 'w', buffering=0) as f:
+            # Clear the file
+            with open(progress, 'w') as f:
+                f.write('')
+            with open(progress, 'a') as f:
                 f.write('Calculating total... ')
                 q_count = """SELECT COUNT(*) FROM(%s) AS foo""" % q
                 start = time.time()

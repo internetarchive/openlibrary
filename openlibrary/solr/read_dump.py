@@ -1,6 +1,6 @@
 from __future__ import print_function
 import re
-import simplejson as json
+import json
 import sys
 from time import time
 import web

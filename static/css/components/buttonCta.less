@@ -19,7 +19,7 @@ a.cta-btn {
   text-align: center;
   padding: 7px;
   white-space: nowrap;
-  background-color: @mid-grey;
+  background-color: @grey;
   line-height: 1.5em;
   text-decoration: none;
 
@@ -31,7 +31,7 @@ a.cta-btn {
   }
   // stylelint-disable-next-line selector-max-specificity
   .btn-icon.read-aloud {
-    background-image: url('/static/images/icons/read aloud.svg');
+    background-image: url(/static/images/icons/read%20aloud.svg);
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;
@@ -65,26 +65,21 @@ a.cta-btn {
     background: lighten(desaturate(@link-blue, 56%), 67%);
   }
   &--vanilla {
-    border: 2px solid @light-mid-grey;
+    padding: 5px;
+    border: 2px solid @light-grey;
     background: @white;
-    color: black;
+    color: @black;
+    border-radius: 6px;
   }
 
   &--sponsor:link, &--sponsor:visited {
-      color: @link-blue;
+    color: @link-blue;
   }
 
   &--sponsor:hover {
     border: 2px solid @link-blue;
     background-color: @link-blue;
     color: @white;
-  }
-
-  &--vanilla {
-    padding: 5px;
-    background: @white;
-    border: 2px solid @light-grey;
-    border-radius: 6px;
   }
 
   &__badge {
@@ -127,14 +122,14 @@ a.cta-btn {
     &:not(:first-child) {
       margin-left: 1px;
       width: 40px;
-      transition: width 0.2s;
+      transition: width .2s;
       overflow: hidden;
       display: flex;
+      border-radius: 2px 6px 6px 2px;
     }
-    // stylelint-disable-next-line selector-max-specificity
-    &:not(:first-child):hover { width: 100%; }
 
     &:not(:last-child) { border-radius: 6px 2px 2px 6px; }
-    &:not(:first-child) { border-radius: 2px 6px 6px 2px; }
+    // stylelint-disable-next-line selector-max-specificity
+    &:not(:first-child):hover { width: 100%; }
   }
 }

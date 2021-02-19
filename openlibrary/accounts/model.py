@@ -8,7 +8,6 @@ import hashlib
 import hmac
 import random
 import string
-import simplejson
 import uuid
 import logging
 import requests
@@ -22,7 +21,13 @@ from infogami.infobase.client import ClientException
 
 from openlibrary.core import stats, helpers
 
-from six.moves import urllib
+try:
+    try:
+        from simplejson.errors import JSONDecodeError
+    except ImportError:
+        from json.decoder import JSONDecodeError
+except ImportError:  # legacy Python
+    JSONDecodeError = ValueError
 
 logger = logging.getLogger("openlibrary.account.model")
 
@@ -597,19 +602,16 @@ class InternetArchiveAccount(web.storage):
         from openlibrary.core import lending
         url = lending.config_ia_s3_auth_url
         try:
-            req = urllib.request.Request(url, headers={
+            response = requests.get(url, headers={
                 'Content-Type': 'application/json',
                 'authorization': 'LOW %s:%s' % (access_key, secret_key)
             })
-            f = urllib.request.urlopen(req)
-            response = f.read()
-            f.close()
-        except urllib.error.HTTPError as e:
-            try:
-                response = e.read()
-            except simplejson.decoder.JSONDecodeError:
-                return {'error': e.read(), 'code': e.code}
-        return simplejson.loads(response)
+            response.raise_for_status()
+            return response.json()
+        except requests.HTTPError as e:
+            return {'error': e.response.text, 'code': e.response.status_code}
+        except JSONDecodeError as e:
+            return {'error': e.message, 'code': response.status_code}
 
     @classmethod
     def get(cls, email, test=False, _json=False, s3_key=None, s3_secret=None, xauth_url=None):
@@ -745,7 +747,10 @@ def audit_accounts(email, password, require_link=False,
             return {'error': 'accounts_not_connected'}
 
     if 'values' in ia_login:
-        s3_keys = ia_login['values']
+        s3_keys = {
+            'access': ia_login['values'].pop('access'),
+            'secret': ia_login['values'].pop('secret'),
+        }
         ol_account.save_s3_keys(s3_keys)
 
     # When a user logs in with OL credentials, the
@@ -763,6 +768,7 @@ def audit_accounts(email, password, require_link=False,
     web.ctx.conn.set_auth_token(ol_account.generate_login_code())
     return {
         'authenticated': True,
+        'special_access': getattr(ia_account, 'has_disability_access', False),
         'ia_email': ia_account.email,
         'ol_email': ol_account.email,
         'ia_username': ia_account.screenname,

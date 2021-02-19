@@ -133,11 +133,11 @@
 @height-blank-cover: 200px;
 .carousel__item__blankcover {
   position: relative;
-  padding: 33% 10px 10px 10px;
+  padding: 33% 10px 10px;
   text-align: center;
   background: @lighter-grey;
   font-size: 1em;
-  color: black;
+  color: @black;
   height: @height-blank-cover;
 
   // White border
@@ -155,14 +155,14 @@
 
   &--title {
     position: relative;
-    font-size: 0.9em;
+    font-size: .9em;
   }
 
   &--authors {
     position: relative;
-    color: hsl(0,0%,40%);
+    color: @grey;
     padding: 4px 4px 0;
-    font-size: 0.6875em;
+    font-size: .6875em;
     font-style: oblique;
   }
 }
@@ -172,10 +172,10 @@
   // because the slick css passed through js
   // and librejs is breaking on utf8 chars
   &-next::before {
-    content: '→' !important;
+    content: "→" !important;
   }
   &-prev::before {
-    content: '←' !important;
+    content: "←" !important;
   }
 }
 

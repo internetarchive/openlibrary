@@ -12,7 +12,6 @@ from openlibrary.core import ia
 from openlibrary.core import helpers
 from openlibrary.api import OpenLibrary
 from openlibrary.plugins.books import dynlinks
-from infogami.infobase import _json as simplejson
 from infogami.utils.delegate import register_exception
 from infogami.utils import stats
 from infogami import config
@@ -33,8 +32,8 @@ def ol_query(name, value):
 
 def get_solr_select_url():
     c = config.get("plugin_worksearch")
-    host = c and c.get('solr')
-    return host and ("http://" + host + "/solr/select")
+    base_url = c and c.get('solr_base_url')
+    return base_url and (base_url + "/select")
 
 
 def get_work_iaids(wkey):

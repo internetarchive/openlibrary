@@ -29,7 +29,7 @@ $add_metatag(property="og:description", content=meta_description)
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
 $jsdef render_seed_count(seed_count):
-    $ungettext("1 seed", "%(count)d seeds", seed_count, count=seed_count)
+    $ungettext("1 item", "%(count)d items", seed_count, count=seed_count)
 
 <div id="contentHead" style="margin-bottom:0;">
 
@@ -43,7 +43,7 @@ $jsdef render_seed_count(seed_count):
     </div>
     <h1>$list.name</h1>
     <p class="collapse sansserif">
-        <span class="darkgreen"><strong>$:render_seed_count(len(list.seeds))</strong></span>
+        <span class="darkgreen" id="list-items-count"><strong>$:render_seed_count(len(list.seeds))</strong></span>
     </p>
 </div>
 
@@ -112,7 +112,7 @@ window.q.push(function(){
                 remove_seed(list_key, seed, function() {
                     \$(seed_id).remove();
                     // update seed count
-                    \$("#seed-count").html(render_seed_count(get_seed_count()));
+                    \$("#list-items-count").load(location.href + " #list-items-count");
 
                     // TODO: update edition count
 
@@ -185,12 +185,12 @@ window.q.push(function(){
                     $ meta_cover_url = cover_url
                 <span class="bookcover">
                     <a href="$seed.url">
-                      <img src="$cover_url"/>
+                      <img src="$cover_url" alt/>
                     </a>
                 </span>
                 <span class="seed-key hidden">$seed.key</span>
-                <span class="details">
-                    <span class="resultTitle">
+                <div class="details">
+                    <div class="resultTitle">
                         $ ebook = {}
                         $if seed.type in ['edition', 'work']:
                             $ ebook = seed.document.get_ebook_info()
@@ -228,8 +228,8 @@ window.q.push(function(){
                             <span class="time">
                                 $:_('Last updated <span>%(date)s</span>', date=datestr(seed.last_update))
                             </span>
-                    </span>
-                </span>
+                        </div>
+                </div>
                 <span class="searchResultItemCTA">
                     $if ctx.user and ctx.user.key == list.get_owner().key:
                         <span class="listDelete sansserif smaller">

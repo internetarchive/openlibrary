@@ -3,7 +3,6 @@
 from infogami.utils import delegate, stats
 from infogami.utils.view import render_template, safeint
 import web
-import simplejson
 import logging
 
 from . import subjects

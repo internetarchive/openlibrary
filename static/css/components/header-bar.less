@@ -48,7 +48,6 @@
       position: absolute;
       z-index: @z-index-level-5;
       text-align: right;
-      width: 125px;
       // Note, it must be padding so that the gap between the icon and
       // the dropdown menu is included in the hover-trigger area (#1575)
       padding-top: 5px;
@@ -115,6 +114,7 @@
       a {
         text-decoration: none;
         color: @dark-grey;
+        white-space: nowrap;
         font-size: .9em;
         padding: 10px;
         display: block;
@@ -134,7 +134,7 @@
     order: 0;
     margin-right: 5px;
 
-    button {
+    label {
       background: transparent;
       border: none;
       cursor: pointer;
@@ -174,10 +174,7 @@
     -webkit-box-ordinal-group: 6;
     -ms-flex-order: 5;
     order: 5;
-
-    .more-menu {
-      display: none;
-    }
+    z-index: @z-index-level-5;
 
     li {
       -ms-flex-preferred-size: 100%;
@@ -228,6 +225,7 @@
     -webkit-box-flex: 1;
     -ms-flex: 1;
     flex: 1;
+    z-index: @z-index-level-4;
 
     // stylelint-disable selector-max-specificity
     // stylelint-disable max-nesting-depth
@@ -399,7 +397,7 @@
         position: absolute;
         top: 50%;
         right: 4px;
-        content: '';
+        content: "";
         width: 0;
         height: 0;
         border-left: 4px solid transparent;
@@ -407,6 +405,19 @@
         border-top: 4px solid currentColor;
       }
     }
+  }
+}
+
+.hamburger-component__checkbox {
+  opacity: 0;
+
+  & ~ .hamburger-dropdown-component ul {
+    display: none;
+  }
+
+  // stylelint-disable-next-line selector-max-specificity
+  &:checked ~ .hamburger-dropdown-component ul {
+    display: block;
   }
 }
 
@@ -457,10 +468,7 @@
 
 .logo-component {
   margin: 0 0 5px;
-  img,
-  a {
-    display: block;
-  }
+
   a {
     color: @black;
     text-decoration: none !important;
@@ -536,8 +544,11 @@
 @media only screen and (min-width: 25em) {
   .header-bar {
     .logo-component {
+      // The width and height attributes of logo-icon should be equal to
+      // dimensions of /static/images/openlibrary-logo-tighter.svg
       .logo-icon {
         height: 47px;
+        width: 189px;
       }
     }
 

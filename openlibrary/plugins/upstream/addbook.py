@@ -1,7 +1,7 @@
 """Handlers for adding and editing books."""
 
 import web
-import simplejson
+import json
 import csv
 import datetime
 
@@ -565,7 +565,7 @@ class SaveBookHelper:
     def process_new_fields(self, formdata):
         def f(name):
             val = formdata.get(name)
-            return val and simplejson.loads(val)
+            return val and json.loads(val)
 
         new_roles = f('select-role-json')
         new_ids = f('select-id-json')
@@ -733,17 +733,8 @@ class book_edit(delegate.page):
         if edition is None:
             raise web.notfound()
 
-        work = edition.works and edition.works[0]
-
-        if not work:
-            # HACK: create dummy work when work is not available
-            work = web.ctx.site.new('', {
-                'key': '',
-                'type': {'key': '/type/work'},
-                'title': edition.title,
-                'authors': [{'type': {'key': '/type/author_role'}, 'author': {'key': a['key']}} for a in edition.get('authors', [])],
-                'subjects': edition.get('subjects', []),
-            })
+        work = (edition.works and edition.works[0] or
+                edition.make_work_from_orphaned_edition())
 
         return render_template('books/edit', work, edition, recaptcha=get_recaptcha())
 
@@ -898,7 +889,7 @@ class daisy(delegate.page):
 
 def to_json(d):
     web.header('Content-Type', 'application/json')
-    return delegate.RawText(simplejson.dumps(d))
+    return delegate.RawText(json.dumps(d))
 
 
 class languages_autocomplete(delegate.page):

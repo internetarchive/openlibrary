@@ -15,7 +15,7 @@ How to run:
 from __future__ import print_function
 import sys
 import web
-import simplejson
+import json
 import logging
 
 from infogami import config
@@ -149,7 +149,7 @@ def process(data):
 
     if doc.get('t_end'):
         dt = h.parse_datetime(doc.t_end) - h.parse_datetime(doc.t_start)
-        hours = dt.days * 24 + dt.seconds / 3600
+        hours = dt.days * 24 + dt.seconds // 3600
         solrdoc['duration_hours_i'] = hours
 
     #last_updated = h.parse_datetime(doc.get('t_end') or doc.get('t_start'))
@@ -180,7 +180,7 @@ def process(data):
 
 def read_events():
     for line in sys.stdin:
-        doc = simplejson.loads(line.strip())
+        doc = json.loads(line.strip())
         yield doc
 
 def read_events_from_db(keys=None, day=None):
@@ -193,7 +193,7 @@ def read_events_from_db(keys=None, day=None):
         last_updated = LoanStats().get_last_updated()
         result = get_db().query("SELECT key, json FROM stats WHERE updated > $last_updated ORDER BY updated limit 10000", vars=locals())
     for row in result.list():
-        doc = simplejson.loads(row.json)
+        doc = json.loads(row.json)
         doc['key'] = row.key
         yield doc
 
@@ -233,7 +233,7 @@ def main(*args):
         for e in docs:
             try:
                 result = process(e['doc'])
-                print(simplejson.dumps(result))
+                print(json.dumps(result))
             except Exception:
                 logger.error("Failed to process %s", e['doc']['_id'], exc_info=True)
 
@@ -242,7 +242,8 @@ def fix_subject_key(doc, name, prefix):
         doc[name] = [v.replace(prefix, '') for v in doc[name]]
 
 def update_solr(docs):
-    solr = SolrWriter("localhost:8983")
+    # stats_solr is defined in olsystem etc/openlibrary.yml
+    solr = SolrWriter(config.stats_solr or "localhost:8983")
     for doc in docs:
         # temp fix for handling already processed data
         doc = dict((k, v) for k, v in doc.items() if v is not None)

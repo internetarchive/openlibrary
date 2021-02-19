@@ -2,7 +2,7 @@
 """
 import re
 
-import simplejson
+import json
 import six
 import web
 
@@ -167,7 +167,7 @@ class AuthorMergeEngine(BasicMergeEngine):
         debug_doc = {
             'type': 'merge-authors-debug',
             'memcache': mc and dict(
-                (k, simplejson.loads(v))
+                (k, json.loads(v))
                 for k, v in mc.get_multi([doc['key'] for doc in docs]).items()),
             'docs': docs,
         }
@@ -315,8 +315,7 @@ class merge_authors_json(delegate.page):
         return "merge-authors" in web.ctx.features or (user and user.is_admin())
 
     def POST(self):
-        json = web.data()
-        data = simplejson.loads(json)
+        data = json.loads(web.data())
         master = data['master']
         duplicates = data['duplicates']
 
@@ -324,8 +323,8 @@ class merge_authors_json(delegate.page):
         try:
             result = engine.merge(master, duplicates)
         except ClientException as e:
-            raise web.badrequest(simplejson.loads(e.json))
-        return delegate.RawText(simplejson.dumps(result), content_type="application/json")
+            raise web.badrequest(json.loads(e.json))
+        return delegate.RawText(json.dumps(result), content_type="application/json")
 
 
 def setup():

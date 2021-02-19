@@ -3,7 +3,7 @@
 This should go into infogami.
 """
 import web
-import simplejson
+import json
 import yaml
 
 from infogami.utils import delegate
@@ -85,7 +85,7 @@ class index(delegate.page):
         result = [c.dict() for c in web.ctx.site.recentchanges(query)]
 
         if encoding == "json":
-            response = simplejson.dumps(result)
+            response = json.dumps(result)
             content_type = "application/json"
         elif encoding == "yml":
             response = self.yaml_dump(result)
@@ -157,7 +157,7 @@ class recentchanges_view(delegate.page):
                 return render_template("recentchanges/default/view", change)
 
     def render_json(self, change):
-        return delegate.RawText(simplejson.dumps(change.dict()), content_type="application/json")
+        return delegate.RawText(json.dumps(change.dict()), content_type="application/json")
 
     def POST(self, id):
         if not features.is_enabled("undo"):

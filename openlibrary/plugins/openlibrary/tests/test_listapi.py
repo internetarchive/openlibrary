@@ -1,7 +1,7 @@
 from __future__ import print_function
 from py.test import config
 import web
-import simplejson
+import json
 
 import cookielib
 
@@ -42,36 +42,36 @@ class ListAPI:
         print(self.cookiejar)
 
     def create_list(self, data):
-        json = simplejson.dumps(data)
+        json_data = json.dumps(data)
         headers = {
             "content-type": "application/json"
         }
         response = self.urlopen(
             "/people/" + self.username + "/lists",
-            data=json,
+            data=json_data,
             headers=headers)
-        return simplejson.loads(response.read())
+        return json.loads(response.read())
 
     def get_lists(self):
         data = self.urlopen("/people/" + self.username + "/lists.json").read()
-        return simplejson.loads(data)
+        return json.loads(data)
 
     def get_list(self, key):
         data = self.urlopen(key + ".json").read()
-        return simplejson.loads(data)
+        return json.loads(data)
 
     def get_seeds(self, key):
         data = self.urlopen(key + "/seeds.json").read()
-        return simplejson.loads(data)
+        return json.loads(data)
 
     def update_seeds(self, key, additions, removals):
         data = {
             "add": additions,
             "remove": removals,
         }
-        json = simplejson.dumps(data)
-        response = self.urlopen(key + "/seeds.json", json)
-        return simplejson.loads(response.read())
+        json_data = json.dumps(data)
+        response = self.urlopen(key + "/seeds.json", json_data)
+        return json.loads(response.read())
 
 def test_create(config):
     api = ListAPI(config)

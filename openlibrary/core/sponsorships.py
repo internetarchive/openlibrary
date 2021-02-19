@@ -1,5 +1,6 @@
-import requests
+import json
 import logging
+import requests
 import web
 
 from six.moves.urllib.parse import urlencode
@@ -10,14 +11,19 @@ from openlibrary.core import lending
 from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
     get_amazon_metadata)
-from openlibrary.accounts.model import get_internet_archive_id
+from openlibrary import accounts
+from openlibrary.accounts.model import get_internet_archive_id, sendmail
 from openlibrary.core.civicrm import (
     get_contact_id_by_username,
-    get_sponsorships_by_contact_id)
+    get_sponsorships_by_contact_id,
+    get_sponsorship_by_isbn,
+)
+import internetarchive as ia
 
 try:
-    from booklending_utils.sponsorship import eligibility_check
+    from booklending_utils.sponsorship import eligibility_check, BLOCKED_PATRONS
 except ImportError:
+    BLOCKED_PATRONS = []
     def eligibility_check(edition):
         """For testing if Internet Archive book sponsorship check unavailable"""
         return False
@@ -39,25 +45,7 @@ def get_sponsored_editions(user):
     contact_id = get_contact_id_by_username(archive_id)
     return get_sponsorships_by_contact_id(contact_id) if contact_id else []
 
-def get_sponsorable_editions():
-    """This should move to an infogami type so any admin can add editions
-    to the list. This will need to be paginated.
-    """
-    try:
-        candidates = web.ctx.site.get('/sponsorship/books').get('editions', [])
-    except AttributeError:
-        candidates = []
-
-    eligible_editions = []
-    for key in candidates:
-        ed = web.ctx.site.get(key)
-        ed.eligibility = qualifies_for_sponsorship(ed)
-        if ed.eligibility.get('is_eligible'):
-            eligible_editions.append(ed)
-    return eligible_editions
-
-
-def do_we_want_it(isbn, work_id):
+def do_we_want_it(isbn):
     """
     Returns True if we don't have this edition (or other editions of
     the same work), if the isbn has not been promised to us, has not
@@ -68,10 +56,6 @@ def do_we_want_it(isbn, work_id):
     :rtype: (bool, list)
     :return: bool answer to do-we-want-it, list of matching books
     """
-    availability = lending.get_work_availability(work_id)  # checks all editions
-    if availability and availability.get(work_id, {}).get('status', 'error') != 'error':
-        return False, availability
-
     # We don't have any of these work's editions available to borrow
     # Let's confirm this edition hasn't already been sponsored or promised
     params = {
@@ -90,7 +74,7 @@ def do_we_want_it(isbn, work_id):
     return False, []
 
 @public
-def qualifies_for_sponsorship(edition):
+def qualifies_for_sponsorship(edition, scan_only=False, donate_only=False, patron=None):
     """
     :param edition edition: An infogami book edition
     :rtype: dict
@@ -136,25 +120,29 @@ def qualifies_for_sponsorship(edition):
         }
         return resp
 
-    work_id = work.key.split("/")[-1]
+    work_id = edition.works[0].key.split("/")[-1]
     edition_id = edition.key.split('/')[-1]
-    dwwi, matches = do_we_want_it(edition.isbn, work_id)
+    dwwi, matches = do_we_want_it(edition.isbn)
     if dwwi:
-        bwb_price = get_betterworldbooks_metadata(edition.isbn).get('price_amt')
-        if bwb_price:
-            num_pages = int(edition_data['number_of_pages'])
-            scan_price_cents = SETUP_COST_CENTS + (PAGE_COST_CENTS * num_pages)
-            book_cost_cents = int(float(bwb_price) * 100)
-            total_price_cents = scan_price_cents + book_cost_cents
-            resp['price'] = {
-                'book_cost_cents': book_cost_cents,
-                'scan_price_cents': scan_price_cents,
-                'total_price_cents': total_price_cents,
-                'total_price_display': '${:,.2f}'.format(
-                    total_price_cents / 100.
-                ),
-            }
-            resp['is_eligible'] = eligibility_check(edition)
+        num_pages = int(edition_data['number_of_pages'])
+        bwb_price = None
+        if not donate_only:
+            if not scan_only:
+                bwb_price = get_betterworldbooks_metadata(edition.isbn).get('price_amt')
+            if scan_only or bwb_price:
+                scan_price_cents = SETUP_COST_CENTS + (PAGE_COST_CENTS * num_pages)
+                book_cost_cents = int(float(bwb_price) * 100) if not scan_only else 0
+                total_price_cents = scan_price_cents + book_cost_cents
+                resp['price'] = {
+                    'book_cost_cents': book_cost_cents,
+                    'scan_price_cents': scan_price_cents,
+                    'total_price_cents': total_price_cents,
+                    'total_price_display': '${:,.2f}'.format(
+                        total_price_cents / 100.
+                    ),
+                }
+        if donate_only or scan_only or bwb_price:
+            resp['is_eligible'] = eligibility_check(edition, patron=patron)
     else:
         resp['error'] = {
             'reason': 'matches',
@@ -166,32 +154,96 @@ def qualifies_for_sponsorship(edition):
     })
     resp.update({
         'edition': edition_data,
-        'sponsor_url': lending.config_ia_domain + '/donate?' + urlencode({
-            'campaign': 'pilot',
-            'type': 'sponsorship',
-            'context': 'ol',
-            'isbn': edition.isbn
-        })
+        'sponsor_url': 'https://openlibrary.org/bookdrive',
     })
     return resp
 
 
+def sync_completed_sponsored_books(dryrun=False):
+    """Retrieves a list of all completed sponsored books from Archive.org
+    so they can be synced with Open Library, which entails:
+
+    - adding IA ocaid into openlibrary edition
+    - alerting patrons (if possible) by email of completion
+    - possibly marking archive.org item status as complete/synced
+
+    XXX Note: This `search_items` query requires the `ia` tool (the
+    one installed via virtualenv) to be configured with (scope:all)
+    privileged s3 keys.
+    """
+    items = ia.search_items(
+        'collection:openlibraryscanningteam AND collection:inlibrary',
+        fields=['identifier', 'openlibrary_edition'],
+        params={'page': 1, 'rows': 1000, 'scope': 'all'},
+        config={'general': {'secure': False}}
+    )
+    books = web.ctx.site.get_many([
+        '/books/%s' % i.get('openlibrary_edition') for i in items
+        if i.get('openlibrary_edition')
+    ])
+    unsynced = [book for book in books if not book.ocaid]
+    ocaid_lookup = dict(
+        ('/books/%s' % i.get('openlibrary_edition'),  i.get('identifier'))
+        for i in items
+    )
+    fixed = []
+    for book in unsynced:
+        book.ocaid = ocaid_lookup[book.key]
+        with accounts.RunAs('ImportBot'):
+            if not dryrun:
+                web.ctx.site.save(book.dict(), "Adding ocaid for completed sponsorship")
+            fixed.append({'key': book.key, 'ocaid': book.ocaid})
+            # TODO: send out an email?... Requires Civi.
+            if book.ocaid.startswith("isbn_"):
+                isbn = book.ocaid.split("_")[-1]
+                sponsorship = get_sponsorship_by_isbn(isbn)
+                contact = sponsorship and sponsorship.get("contact") 
+                email = contact and contact.get("email")
+                if not dryrun and email:
+                    email_sponsor(email, book)
+    return json.dumps(fixed)
+
+
+def email_sponsor(recipient, book, bcc="mek@archive.org"):
+    url = 'https://openlibrary.org%s' % book.key
+    resp = web.sendmail(
+        "openlibrary@archive.org",
+        recipient,
+        "Internet Archive: Your Open Library Book Sponsorship is Ready",
+        (
+            '<p>' +
+            '<a href="%s">%s</a> ' % (url, book.title) +
+            'is now available to read on Open Library!' +
+            '</p>' +
+            '<p>Thank you,</p>' +
+            '<p>The <a href="https://openlibrary.org">Open Library</a> Team</p>'
+        ),
+        bcc=bcc,
+        headers={'Content-Type':'text/html;charset=utf-8'}
+    )
+    return resp
+
 def get_sponsored_books():
     """Performs the `ia` query to fetch sponsored books from archive.org"""
-    from internetarchive import search_items
-    params = {'page': 1, 'rows': 1000, 'scope': 'all'}
-    fields = ['identifier','est_book_price','est_scan_price', 'scan_price',
-              'book_price', 'repub_state', 'imagecount', 'title', 'donor',
-              'openlibrary_edition', 'publicdate', 'collection', 'isbn']
-
-    q = 'collection:openlibraryscanningteam'
-
     # XXX Note: This `search_items` query requires the `ia` tool (the
     # one installed via virtualenv) to be configured with (scope:all)
     # privileged s3 keys.
-    config = {'general': {'secure': False}}
-    return search_items(q, fields=fields, params=params, config=config)
-
+    items = ia.search_items(
+        'collection:openlibraryscanningteam',
+        fields=[
+            'identifier','est_book_price','est_scan_price', 'scan_price',
+            'book_price', 'repub_state', 'imagecount', 'title', 'donor',
+            'openlibrary_edition', 'publicdate', 'collection', 'isbn'
+        ],
+        params={'page': 1, 'rows': 1000, 'scope': 'all'},
+        config={'general': {'secure': False}}
+    )
+    return [
+        item for item in items if not (
+            item.get('repub_state') == '-1' and
+            item.get('donor') in BLOCKED_PATRONS
+        )
+    ]
 
 def summary():
     """
@@ -232,7 +284,7 @@ def summary():
     est_book_cost_cents = sum(int(i.get('est_book_price', 0)) for i in items)
     scan_cost_cents = (PAGE_COST_CENTS * total_pages_scanned) + (SETUP_COST_CENTS * len(items))
     est_scan_cost_cents = sum(int(i.get('est_scan_price', 0)) for i in items)
-    avg_scan_cost = scan_cost_cents / (len(items) - total_unscanned_books) 
+    avg_scan_cost = scan_cost_cents / (len(items) - total_unscanned_books)
 
     return {
         'books': items,

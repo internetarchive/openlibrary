@@ -1,8 +1,9 @@
 import 'jquery';
 import 'jquery-migrate';
 import 'jquery-validation';
-// npm jquery-ui@1.12.1 package does not match the one we have here, so for now we load from vendor
-import '../../../../vendor/js/jquery-ui/jquery-ui-1.12.1.min.js';
+import 'jquery-ui/ui/widgets/dialog';
+import 'jquery-ui/ui/widgets/sortable';
+import 'jquery-ui/ui/widgets/tabs';
 // For dialog boxes (e.g. add to list)
 import '../../../../vendor/js/colorbox/1.5.14.js';
 // jquery.form#2.36 not on npm, no longer getting worked on
@@ -116,7 +117,13 @@ jQuery(function () {
     // Enable any carousels in the page
     if ($carouselElements.length) {
         import(/* webpackChunkName: "carousel" */ './carousel')
-            .then((module) => module.init($carouselElements));
+            .then((module) => { module.init($carouselElements);
+                $('.slick-slide').each(function () {
+                    if ($(this).attr('aria-describedby') != undefined) {
+                        $(this).attr('id',$(this).attr('aria-describedby'));
+                    }
+                });
+            })
     }
     if ($('script[type="text/json+graph"]').length > 0) {
         import(/* webpackChunkName: "graphs" */ './graphs')
@@ -139,7 +146,30 @@ jQuery(function () {
             .then((module) => module.initPatronMetadata());
     }
 
+    if ($('#cboxPrevious').length) {
+        $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});
+    }
+    if ($('#cboxNext').length) {
+        $('#cboxNext').attr({'aria-label': 'Next button', 'aria-hidden': 'true'});
+    }
+    if ($('#cboxSlideshow').length) {
+        $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
+    }
+
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
+
+    $('#wikiselect').on('focus', function(){$(this).select();})
+
+    // Functionality for manage.html
+    $('.column').sortable({
+        connectWith: '.trash'
+    });
+    $('.trash').sortable({
+        connectWith: '.column'
+    });
+    $('.column').disableSelection();
+    $('.trash').disableSelection();
+    $('#topNotice').hide();
 });
