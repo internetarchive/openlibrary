@@ -51,9 +51,10 @@ RUN curl https://pyenv.run | bash && \
 ENV PYENV_ROOT /home/openlibrary/.pyenv
 ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
 
+RUN cd $PYENV_ROOT && git pull && cd -
 RUN pyenv update && pyenv install 3.8.6
-RUN pyenv update && pyenv install 3.9.1
-RUN pyenv global 3.8.6 3.9.1
+RUN pyenv update && pyenv install 3.9.2
+RUN pyenv global 3.8.6 3.9.2
 RUN pyenv rehash
 
 # Install wheel before other requirements to reduce Docker build time.
