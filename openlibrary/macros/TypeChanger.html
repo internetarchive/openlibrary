@@ -3,6 +3,11 @@ $# Used on http://localhost:8080/about?m=edit for blank page
 $# and any generic page in the admin UI; e.g. creating a page.
 <div class="formElement pagetype collapse adminOnly" id="pageType">
     $if ctx.user and ctx.user.is_admin():
+        <style>
+            #pageType{
+                display: block;
+            }
+        </style>
         <script>
         function changeTemplate() {
             var t = document.edit['type.key'].value;
@@ -22,4 +27,9 @@ $# and any generic page in the admin UI; e.g. creating a page.
         </div>
     $else:
         <input type="hidden" name="type.key" value="$type"/>
+        <style>
+            #pageType{
+                display: none;
+            }
+        </style>
 </div>
