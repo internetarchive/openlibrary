@@ -688,7 +688,7 @@ msgid ""
 "Only lists with up to %(max)s editions can be exported. This one has "
 "%(count)s."
 msgstr ""
-"Seules les listes contenant jusqu'à %(max) éditions peuvent être "
+"Seules les listes contenant jusqu'à %(max)s éditions peuvent être "
 "exportées. Celle-ci en a %(count)s."
 
 #: exports.html:50
@@ -2715,7 +2715,7 @@ msgstr "Problèmes"
 
 #: nav_foot.html:46
 msgid "Report A Problem"
-msgstr "Signaler un problème."
+msgstr "Signaler un problème"
 
 #: nav_foot.html:47
 msgid "Suggest Edits"
@@ -2975,8 +2975,8 @@ msgid ""
 "JSON. See all your lists and any activity using the \"Lists\" link on "
 "your Account page."
 msgstr ""
-"Une fois que vous avez créé une liste, vous pouvez <strong>surveiller les"
-" mises à jour</strong> ou <strong>exporter</strong> toutes les éditions "
+"Une fois que vous avez créé une liste, vous pouvez <strong>surveiller les "
+"mises à jour</strong> ou <strong>exporter</strong> toutes les éditions "
 "d'une liste au format HTML, BibTeX ou JSON. Voir toutes vos listes et "
 "toute activité en utilisant le lien \"Listes\" sur votre page de compte."
 
@@ -2991,7 +2991,7 @@ msgid ""
 "disabled <a href=\"%(url)s\">click here</a>."
 msgstr ""
 "Pour les 2000+ eBooks les plus demandés en Californie destinés aux malvoyants "
-"<a href=\"%(url)\">cliquez ici</a>."
+"<a href=\"%(url)s\">cliquez ici</a>."
 
 #: home.html:24
 msgid "Find a list by name"
