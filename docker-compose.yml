@@ -13,7 +13,7 @@ services:
     ports:
       - 3000:3000
     expose:
-      - 8080:80
+      - 80
     depends_on:
       - db
       - infobase
