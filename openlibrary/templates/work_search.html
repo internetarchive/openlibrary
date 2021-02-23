@@ -22,15 +22,13 @@ $for p in ['q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor'
 $if list(param) == ['has_fulltext']:
     $ param = {}
 
-$ sorts = dict(editions='edition_count desc', old='first_publish_year asc', new='first_publish_year desc', scans='ia_count desc')
-
 $ error = None
 $if param:
     $ page = int(param.get('page', 1))
     $ sort = param.get('sort', None)
     $ rows = 20
     $ search_start = time()
-    $ results = do_search(param, sorts[sort] if sort else None, page, rows=rows, spellcheck_count=3)
+    $ results = do_search(param, sort, page, rows=rows, spellcheck_count=3)
     $ search_secs = time() - search_start
     $ docs = results.docs
     $ facet_counts = results.facet_counts
@@ -92,14 +90,28 @@ $if param and not error and num_found:
 &nbsp;
       $if num_found > 1:
         <span class="tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" style="margin-right:10px;"/>
-          $if sort == 'editions':
-            <a href="$changequery(sort=None)">$_("Relevance")</a> | <strong class="lightgreen">$_("Most Editions")</strong> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
-          $elif sort == 'old':
-            <a href="$changequery(sort=None)">$_("Relevance")</a> |  <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <strong class="lightgreen">$_("First Published")</strong> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
-          $elif sort == 'new':
-            <a href="$changequery(sort=None)">$_("Relevance")</a> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <strong class="lightgreen">$_("Most Recent")</strong>
-          $else:
-            <strong class="lightgreen">$_("Relevance")</strong> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
+          $code:
+            sort_options = [
+              { 'sort': None, 'name': _("Relevance"), 'ga_key': 'Relevance' },
+              { 'sort': 'editions', 'name': _("Most Editions"), 'ga_key': 'Editions' },
+              { 'sort': 'old', 'name': _("First Published"), 'ga_key': 'Old' },
+              { 'sort': 'new', 'name': _("Most Recent"), 'ga_key': 'New' },
+              { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': sort and sort.startswith('random') },
+            ]
+          $for sort_option in sort_options:
+            $ is_selected = sort_option.get('selected') or sort_option['sort'] == sort
+            $if is_selected:
+                <strong class="lightgreen">$sort_option['name']</strong>
+            $else:
+                <a href="$changequery(sort=sort_option['sort'])"
+                   data-ol-link-track="SearchSort|$sort_option['ga_key']"
+                >$sort_option['name']</a>
+            $if not loop.last:
+                |
+          $if sort and sort.startswith('random'):
+            (<a href="$changequery(sort='random_%s' % today().timestamp())"
+               data-ol-link-track="SearchSort|RandomShuffle"
+            >$_('Shuffle')</a>)
 
           <span class="advanced-search"><a href="/advancedsearch">$_('Advanced Search')</a></span>
         </span>
@@ -212,7 +224,7 @@ $ )
         <div class="shift">$ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))</div>
         <div class="resultsContainer search-results-container">
         <div id="searchResults">
-          <ul class="list-books" id="siteSearch">
+          <ul class="list-books">
             $ works = add_availability([get_doc(d) for d in docs])
 
             $for work in works:
