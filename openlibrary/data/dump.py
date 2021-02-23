@@ -108,18 +108,18 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
     M = 1024*1024
 
     filenames = [os.path.join(tmpdir, "%02x.txt.gz" % i) for i in range(256)]
-    files = [gzip.open(f, 'w') for f in filenames]
+    files = [gzip.open(f, 'wb') for f in filenames]
     stdin = xopen(dump_file) if dump_file else sys.stdin
 
     # split the file into 256 chunks using hash of key
     log("splitting", dump_file)
     for i, line in enumerate(stdin):
-        if six.PY3 and not isinstance(line, str):
-            line = line.decode("utf-8")
+        if six.PY3 and not isinstance(line, bytes):
+            line = line.encode("utf-8")
         if i % 1000000 == 0:
             log(i)
 
-        type, key, revision, timestamp, json_data = line.strip().split("\t")
+        type, key, revision, timestamp, json_data = line.strip().split(b"\t")
         findex = hash(key) % 256
         files[findex].write(line)
 
