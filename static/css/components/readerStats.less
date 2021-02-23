@@ -16,20 +16,15 @@
   }
   
   &__star {
-    --star-size: 25px;
-    --star-color: @light-grey;
-    --star-background: @gold;
-    --percent: calc(var(--rating) / 5 * 100%);
-    
+    @percent: calc(var(--rating) / 5 * 100%);
     display: inline-block;
-    font-size: var(--star-size);
+    font-size: 25px;
     font-family: Times; // make sure ★ appears correctly
     line-height: 1;
     
     &::before {
       content: '★★★★★';
-      letter-spacing: 3px;
-      background: linear-gradient(90deg, var(--star-background) var(--percent), var(--star-color) var(--percent));
+      background: linear-gradient(90deg, @gold @percent, @light-grey @percent);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
