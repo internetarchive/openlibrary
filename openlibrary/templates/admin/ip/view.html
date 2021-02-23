@@ -57,7 +57,7 @@ $def call_template(name, change):
             <td class="time">$datestr(c.timestamp)</td>
             <td class="path">$:call_template("path", c)</td>
             $if c.author:
-                <td class="displayname"><a rel="nofollow" href="$c.author.key" title="$c.author.displayname">$c.author.displayname</a></td>
+                <td class="displayname"><a rel="nofollow" href="$c.author.key">$c.author.displayname</a></td>
             $elif c.ip and c.ip != '127.0.0.1':
                 $ klass = cond(c.ip in get_blocked_ips(), 'red', "")
                 <td class="history"><a rel="nofollow" href="$changequery()" class="$klass" title="When you see numbers here, that's the IP address of the anonymous editor">$c.ip</a></td>
