@@ -24,8 +24,14 @@ RUN apt-get -qq update && apt-get install -y \
     libffi-dev \
     curl \
     screen \
+# Editors (for our convenience)
     vim \
-    emacs
+    emacs \
+# util for running things in parallel
+    parallel
+
+# Print gnu parallel citation
+RUN echo 'will cite' | parallel --citation
 
 # Install LTS version of node.js
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
