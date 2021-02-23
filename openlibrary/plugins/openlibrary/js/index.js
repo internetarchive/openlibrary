@@ -174,7 +174,7 @@ jQuery(function () {
     $('#topNotice').hide();
 
 
-
+    // Functionality for check.html
 
     $(".list-books a").click(function() {
         var li = $(this).parents('li:first');
