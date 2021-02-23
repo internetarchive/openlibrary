@@ -147,7 +147,7 @@ jQuery(function () {
     }
 
     if (document.getElementsByClassName('imageIntro').length) {
-        import('./cover_add_manage')
+        import(/* webpackChunkName: "book_cover_manage" */ './cover_add_manage')
             .then(module => module.initAddCoverImport());
     }
 

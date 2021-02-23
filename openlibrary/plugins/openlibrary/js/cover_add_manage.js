@@ -1,4 +1,4 @@
-export default function () {
+export function initAddCoverImport () {
 
     function val(selector) {
         return $.trim($(selector).val());
@@ -28,7 +28,7 @@ export default function () {
             return $.validator.url.apply(obj, [url, null]);
         }
 
-        if (url != '' && url != 'http://' && !test_url(url)) {
+        if (url !== '' && url !== 'http://' && !test_url(url)) {
             return error('Please provide a valid URL.');
         }
     });
