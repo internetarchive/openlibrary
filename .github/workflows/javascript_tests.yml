@@ -19,3 +19,5 @@ jobs:
       - run: make css
       - run: make components
       - run: npm run test
+      - run: npm install -g html-validate
+      - run: html-validate .
