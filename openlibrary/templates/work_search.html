@@ -58,7 +58,7 @@ function more(header) {
         \$("#" + header + "_more").hide();
         \$("#" + header + "_bull").hide();
     }
-    \$(facetEntry +":hidden").slice(0,facet_inc).removeClass('hidden');
+    \$(facetEntry +":hidden").slice(0,facet_inc).removeClass('ui-helper-hidden');
 }
 
 function less(header) {
@@ -74,11 +74,10 @@ function less(header) {
         \$("#" + header + "_more").show();
         \$("#" + header + "_bull").show();
     }
-    \$(facetEntry + ":not(:hidden)").slice(shown-facet_inc,shown).addClass('hidden');
+    \$(facetEntry + ":not(:hidden)").slice(shown-facet_inc,shown).addClass('ui-helper-hidden');
 }
 window.q.push(function(){
     \$(".header_bull").hide();
-    \$(".header_less").hide();
 });
 //-->
 </script>
@@ -269,7 +268,7 @@ $elif param and len(docs):
                 $if num <= start_facet_count:
                     <div class="facetEntry">
                 $else:
-                    <div class="facetEntry hidden">
+                    <div class="facetEntry ui-helper-hidden">
                 $if header == 'has_fulltext':
                     $if display == 'yes':
                        $ display = _('yes')
@@ -280,7 +279,7 @@ $elif param and len(docs):
                     <span class="small"><a href="$:add_facet_url(header, k)" title="$_('Filter results for %(facet)s', facet=display)">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
                 </div>
             $if len(counts) > start_facet_count:
-                <div class="facetMoreLess"><span class="small" onclick="more('$header');false"><a href="javascript:;" id="${header}_more" class="red">$_("more")</a></span> <span id="${header}_bull" class="header_bull small gray">&bull;</span> <span class="small" onclick="less('$header');false"><a href="javascript:;" id="${header}_less" class="red header_less">$_("less")</a></span></div>
+                <div class="facetMoreLess"><span class="small" onclick="more('$header');false"><a href="javascript:;" id="${header}_more" class="red">$_("more")</a></span> <span id="${header}_bull" class="header_bull small gray">&bull;</span> <span class="small" onclick="less('$header');false"><a href="javascript:;" id="${header}_less" class="red ui-helper-hidden">$_("less")</a></span></div>
             </div>
         </div>
 <!-- /facets -->
