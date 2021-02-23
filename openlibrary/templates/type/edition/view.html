@@ -42,7 +42,7 @@ $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
 $ book_description = (edition and edition.description) or (work and work.description)
 $ edition_count = work.edition_count if work and work.edition_count else 1
 $ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
-$ _x = ctx.setdefault('bodyid', 'book')
+$ _x = ctx.setdefault('cssfile', 'book')
 
 $var title: $title
 
