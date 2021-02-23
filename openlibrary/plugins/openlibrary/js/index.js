@@ -172,4 +172,9 @@ jQuery(function () {
     $('.column').disableSelection();
     $('.trash').disableSelection();
     $('#topNotice').hide();
+
+    // Functionality for case.html
+    $("#checkbox3").change(function(){
+      $("#textarea").val($:json_encode(last_email));
+    });
 });
