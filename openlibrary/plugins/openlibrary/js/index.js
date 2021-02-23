@@ -171,5 +171,4 @@ jQuery(function () {
     });
     $('.column').disableSelection();
     $('.trash').disableSelection();
-    $('#topNotice').hide();
 });
