@@ -61,7 +61,7 @@ $def with (stats)
   <div class="admin-section">
     <h3>$_('Most Wanted Books (All Time)')</h3>
     <div class="mybooks-list">
-      <ul class="list-books" id="siteSearch">
+      <ul class="list-books">
         $for book in stats['leaderboard']['most_wanted_all']:
             $:macros.SearchResultsWork(book['work'], decorations=ungettext("Added 1 time", "Added %(count)d times", book['cnt'], count=book['cnt']))
       </ul>
@@ -69,7 +69,7 @@ $def with (stats)
 
     <h3>$_('Most Wanted Books (This Month)')</h3>
     <div class="mybooks-list">
-      <ul class="list-books" id="siteSearch">
+      <ul class="list-books">
         $for book in stats['leaderboard']['most_wanted_month']:
             $:macros.SearchResultsWork(book['work'], decorations=ungettext("Added 1 time", "Added %(count)d times", book['cnt'], count=book['cnt']))
       </ul>
@@ -78,7 +78,7 @@ $def with (stats)
     <h2>$_('Most Logged Books')</h2>
     <h3>$_('Most Read Books (All Time)')</h3>
     <div class="mybooks-list">
-      <ul class="list-books" id="siteSearch">
+      <ul class="list-books">
         $for book in stats['leaderboard']['most_read']:
             $:macros.SearchResultsWork(book['work'], decorations=ungettext("Added 1 time", "Added %(count)d times", book['cnt'], count=book['cnt']))
       </ul>
@@ -87,7 +87,7 @@ $def with (stats)
     <h2>$_('Most Rated Books')</h2>
     <h3>$_('Most Rated Books (All Time)')</h3>
     <div class="mybooks-list">
-      <ul class="list-books" id="siteSearch">
+      <ul class="list-books">
         $for book in stats['leaderboard']['most_rated_all']:
             $:macros.SearchResultsWork(book['work'], decorations=ungettext("Added 1 time", "Added %(count)d times", book['cnt'], count=book['cnt']))
       </ul>

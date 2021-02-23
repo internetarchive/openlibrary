@@ -173,8 +173,10 @@ jQuery(function () {
     $('.trash').disableSelection();
     $('#topNotice').hide();
 
-    // Functionality for check.html
-    $("#siteSearch a").click(function() {
+
+
+
+    $(".list-books a").click(function() {
         var li = $(this).parents('li:first');
         $("input#work").val("/works/" + li.attr("id"));
         $("form#addbook").submit();
@@ -184,4 +186,7 @@ jQuery(function () {
         $("input#work").val("none-of-these");
         $("form#addbook").submit();
     });
+
+
+
 });
