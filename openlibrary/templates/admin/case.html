@@ -5,15 +5,6 @@ $var title: $case.subject ($case.creator_username)
 $ all = query_param("all", "false")
 $ filter = query_param("filter", "new")
 
-<script type="text/javascript">
-window.q.push(function() {
-    \$("#checkbox3").change(function() {
-        \$("#textarea").val($:json_encode(last_email));
-    });
-});
-</script>
-
-
 <div id="contentHead">
     $:render_template("admin/menu", "/admin")
 </div>
