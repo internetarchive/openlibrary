@@ -254,7 +254,7 @@ def _process_data(data):
             data['key'] = _process_key(data['key'])
 
         # convert date to ISO format
-        if data.get('type', '') == '/type/datetime':
+        if data.get('type') == '/type/datetime':
             data['value'] = data['value'].replace(' ', 'T')
 
         return dict((k, _process_data(v)) for k, v in data.items())
