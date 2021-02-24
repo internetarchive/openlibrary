@@ -18,6 +18,41 @@ import DDC from './LibraryExplorer/ddc.json';
 import LCC from './LibraryExplorer/lcc.json';
 import { recurForEach } from './LibraryExplorer/utils.js';
 
+class FilterState {
+    constructor() {
+        this.filter = '';
+        /** @type { '' | 'true' | 'false' } */
+        this.has_ebook = 'true';
+        /** @type {Array<{name: string, key: string}>} */
+        this.languages = [];
+        this.age = '';
+        this.year = '[1985 TO 9998]';
+    }
+
+    solrQueryParts() {
+        const filters = this.filter ? [this.filter] : [];
+        if (this.has_ebook) {
+            filters.push(`has_fulltext:${this.has_ebook}`);
+        }
+
+        if (this.languages.length) {
+            const langs = this.languages.map(lang => lang.key.split('/')[2]);
+            filters.push(`language:(${langs.join(' OR ')})`);
+        }
+        if (this.age) {
+            filters.push(`subject:${this.age}`);
+        }
+        if (this.year) {
+            filters.push(`first_publish_year:${this.year}`);
+        }
+        return filters;
+    }
+
+    solrQuery() {
+        return this.solrQueryParts().join(' AND ');
+    }
+}
+
 export default {
     components: {
         BookRoom,
@@ -27,6 +62,7 @@ export default {
         const classifications = [
             {
                 name: 'DDC',
+                longName: 'Dewey Decimal Classification',
                 field: 'ddc',
                 fieldTransform: ddc => ddc,
                 root: recurForEach({ children: DDC }, n => {
@@ -37,6 +73,7 @@ export default {
             },
             {
                 name: 'LCC',
+                longName: 'Library of Congress Classification',
                 field: 'lcc',
                 fieldTransform: lcc =>
                     lcc
@@ -53,14 +90,7 @@ export default {
             }
         ];
         return {
-            filterState: {
-                filter: '',
-                /** @type { '' | 'true' | 'false' } */
-                has_ebook: 'true',
-                language: '',
-                age: '',
-                year: '[1985 TO 9998]'
-            },
+            filterState: new FilterState(),
 
             settingsState: {
                 selectedClassification: classifications[0],
@@ -95,29 +125,21 @@ export default {
                         options: ['mockup', 'wip'],
                         selected: 'wip'
                     },
-                }
+
+                    scrollbar: {
+                        options: ['default', 'thin', 'hidden'],
+                        selected: 'thin',
+                    },
+                },
             },
         };
     },
 
     computed: {
         computedFilter() {
-            const filters = this.filterState.filter ? [this.filterState.filter] : [];
-            if (this.filterState.has_ebook) {
-                filters.push(`has_fulltext:${this.filterState.has_ebook}`);
-            }
-
-            if (this.filterState.language) {
-                filters.push(`language:${this.filterState.language}`);
-            }
-            if (this.filterState.age) {
-                filters.push(`subject:${this.filterState.age}`);
-            }
-            if (this.filterState.year) {
-                filters.push(`first_publish_year:${this.filterState.year}`);
-            }
-            return filters.join(' AND ');
+            return this.filterState.solrQuery();
         },
+
         bookRoomFeatures() {
             return {
                 book3d: this.settingsState.styles.book.selected.startsWith('3d'),
@@ -139,7 +161,7 @@ export default {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
+  color: rgba(0, 0, 0, .7);
 }
 
 details[open] summary ~ * {
@@ -177,7 +199,9 @@ hr {
 
   .book {
     position: relative;
+    margin-left: 10px;
   }
+  .book-end-wrapper + .book { margin-left: 20px;}
 
   .cover-label {
     background: rgba(0, 0, 0, .5);
@@ -386,6 +410,7 @@ hr {
     opacity: .8;
     transition: opacity .2s;
   }
+  .book-end-wrapper + .book { margin-left: 60px; }
   .book:hover .cover {
     opacity: 1;
   }
@@ -406,11 +431,6 @@ hr {
     margin-left: -100px;
   }
 
-  .book:first-child .book-3d,
-  .book-end-start + .book .book-3d {
-    margin-left: 120px !important;
-  }
-
   .book:hover {
     z-index: 1;
   }
@@ -423,7 +443,9 @@ hr {
   .book {
     transform: rotateX(20deg);
     transform-style: preserve-3d;
+    margin-left: 18px;
   }
+  .book-end-wrapper + .book { margin-left: 40px; }
   .books-carousel {
     perspective: 2000px;
   }
@@ -438,14 +460,6 @@ hr {
 .book-room.style--aesthetic--wip {
   background: linear-gradient(180deg,#ebdfc5 100px, #dbbe9f 1600px,#cba37e 4800px);
   background-position: scroll;
-
-  // Chrome-specific scroll fixes
-  .books-carousel {
-    &::-webkit-scrollbar { height: 10px; }
-    &::-webkit-scrollbar-thumb { background: rgba(255,255,255, 0.35); }
-    &::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255, 0.25); }
-    &::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
-  }
 
   .classification-short {
     opacity: .6;
@@ -544,13 +558,14 @@ hr {
 
   .shelf-carousel {
     border: 0;
+    margin: 0 10px;
+    @media (max-width: 450px) { margin: 0; }
     background-color: #563822;
     background-image: linear-gradient(
       to bottom,
       rgba(0, 0, 0, .36),
       #563822 50px
     );
-    margin: 0;
   }
 
   .class-slider.shelf-label {
@@ -589,5 +604,20 @@ hr {
     height: 4px;
     bottom: 0;
   }
+}
+
+.book-room.style--scrollbar--thin {
+  .books-carousel { scrollbar-width: thin; }
+
+  // Chrome-specific scroll fixes
+  .books-carousel::-webkit-scrollbar { height: 6px; }
+  .books-carousel::-webkit-scrollbar-thumb { background: rgba(255,255,255, 0.35); }
+  .books-carousel::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255, 0.25); }
+  .books-carousel::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+}
+
+.book-room.style--scrollbar--hidden {
+  .books-carousel { scrollbar-width: none; }
+  .books-carousel::-webkit-scrollbar { height: 0; }
 }
 </style>
