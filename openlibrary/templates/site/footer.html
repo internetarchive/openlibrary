@@ -1,10 +1,10 @@
 $def with (page=None)
 
-$ bodyid = ctx.get('bodyid', 'user')
+$ cssfile = ctx.get('cssfile', 'user')
 
 <div class="clearfix"></div>
 
-$if bodyid == 'user' or 'admin':
+$if cssfile == 'user' or 'admin':
     $if ("stats" in ctx.features) and query_param('debug'):
         $:render_template("site/stats")
     $:render_template("lib/nav_foot", page)
