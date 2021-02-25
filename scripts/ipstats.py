@@ -1,5 +1,9 @@
-#!/olsystem/bin/olenv python
+#!/usr/bin/env python3
 """
+CAUTION: This file should continue to support both Python 2 and Python 3 until
+    issues internetarchive/openlibrary#4060 and internetarchive/openlibrary#4252
+    are resolved.
+
 Store count of unique IPs per day to infobase by parsing the nginx log files directly.
 
 This file is currently (17 July 2018) run on production using cron.
