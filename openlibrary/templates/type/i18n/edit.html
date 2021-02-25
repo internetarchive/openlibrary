@@ -3,7 +3,7 @@ $def with (page)
 $ lang = page.key.split('.')[-1]
 $ namespace = find_i18n_namespace(page.key)
 
-$ _x = ctx.setdefault('bodyid', 'edit')
+$ _x = ctx.setdefault('cssfile', 'edit')
 
 $var title: $_("Edit %(title)s", title=page.key)
 
