@@ -33,9 +33,5 @@ export function initCarouselsPartials() {
 
     $('.loadingIndicator').removeClass('hidden');
 
-    if (document.readyState === 'complete') {
-        fetchRelatedWorks();
-    } else {
-        $(window).on('load', fetchRelatedWorks);
-    }
+    fetchRelatedWorks();
 }
