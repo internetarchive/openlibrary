@@ -18,10 +18,7 @@ all: git css js components i18n
 
 css: static/css/page-*.less
 	mkdir --parents $(BUILD)
-	for asset in $^; do \
-		echo "Compressing $$asset"; \
-	    npx lessc $$asset $(BUILD)/$$(basename $$asset .less).css --clean-css="--s1 --advanced --compatibility=ie8"; \
-	done
+	parallel --verbose -q npx lessc {} $(BUILD)/{/.}.css --clean-css="--s1 --advanced --compatibility=ie8" ::: $^
 
 js:
 	mkdir --parents $(BUILD)
@@ -36,11 +33,9 @@ js:
 components: $(COMPONENTS_DIR)/*.vue
 	mkdir --parents $(BUILD)
 	rm -rf $(BUILD)/components
-	for component in $^; do \
-		echo $$component; \
-		npx vue-cli-service build --no-clean --mode development --dest $(BUILD)/components/development --target wc --name "ol-$$(basename $$component .vue)" "$$component"; \
-		npx vue-cli-service build --no-clean --mode production --dest $(BUILD)/components/production --target wc --name "ol-$$(basename $$component .vue)" "$$component"; \
-	done
+	parallel --verbose -q \
+		npx vue-cli-service build --no-clean --mode {2} --dest $(BUILD)/components/{2} --target wc --name "ol-{1/.}" "{1}" \
+	::: $^ ::: production development
 
 i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
