@@ -3,11 +3,13 @@
     <BookRoom
       :classification="settingsState.selectedClassification"
       :filter="computedFilter"
+      :sort="sortState.order"
       :class="bookRoomClass"
       :features="bookRoomFeatures"
+      :appSettings="settingsState"
     />
 
-    <LibraryToolbar :filterState="filterState" :settingsState="settingsState" />
+    <LibraryToolbar :filterState="filterState" :settingsState="settingsState" :sortState="sortState" />
   </div>
 </template>
 
@@ -17,6 +19,7 @@ import LibraryToolbar from './LibraryExplorer/components/LibraryToolbar';
 import DDC from './LibraryExplorer/ddc.json';
 import LCC from './LibraryExplorer/lcc.json';
 import { recurForEach } from './LibraryExplorer/utils.js';
+import maxBy from 'lodash/maxBy';
 
 class FilterState {
     constructor() {
@@ -65,6 +68,7 @@ export default {
                 longName: 'Dewey Decimal Classification',
                 field: 'ddc',
                 fieldTransform: ddc => ddc,
+                chooseBest: ddcs => maxBy(ddcs, ddc => ddc.replace(/[\d.]/g, '') ? ddc.length : 100 + ddc.length),
                 root: recurForEach({ children: DDC }, n => {
                     n.position = 'root';
                     n.offset = 0;
@@ -82,6 +86,7 @@ export default {
                         .replace(/\.0+$/, ' ')
                         .replace(/-+/, '')
                         .replace(/0+(\.\D)/, ($0, $1) => $1),
+                chooseBest: lccs => maxBy(lccs, lcc => lcc.length),
                 root: recurForEach({ children: LCC }, n => {
                     n.position = 'root';
                     n.offset = 0;
@@ -92,9 +97,15 @@ export default {
         return {
             filterState: new FilterState(),
 
+            sortState: {
+                order: 'editions',
+            },
+
             settingsState: {
                 selectedClassification: classifications[0],
                 classifications,
+
+                labels: ['classification'],
 
                 styles: {
                     book: {
@@ -106,6 +117,14 @@ export default {
                             '3d-flat'
                         ],
                         selected: 'default'
+                    },
+
+                    cover: {
+                        options: [
+                            'image',
+                            'text'
+                        ],
+                        selected: 'image'
                     },
 
                     shelf: {
@@ -143,6 +162,7 @@ export default {
         bookRoomFeatures() {
             return {
                 book3d: this.settingsState.styles.book.selected.startsWith('3d'),
+                cover: this.settingsState.styles.cover.selected,
                 shelfLabel: this.settingsState.styles.shelfLabel.selected
             };
         },
@@ -210,12 +230,6 @@ hr {
     font-size: .8em;
     opacity: .9;
     line-height: .8em;
-    padding: 0;
-  }
-  .cover-label a {
-    padding: 6px;
-    color: white;
-    text-decoration: underline;
   }
 }
 

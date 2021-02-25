@@ -1,19 +1,45 @@
 <template>
     <div class="floating-controls-wrapper">
-      <div class="floating-controls">
-        <details>
-          <summary>
-            <div class="chunky-icon">
-              <div class="chunky-icon--icon">
-                <FilterIcon/>
-              </div>
-              <div class="chunky-icon--label">
-                Filter
-                <span style="opacity: .55" v-if="activeFiltersCount">({{activeFiltersCount}})</span>
-              </div>
+      <div class="floating-controls" :class="{open: openTabs.length > 0}">
+        <div class="tab-bar">
+          <div class="chunky-icon" v-if="openTabs.length" @click="openTabs.splice(0, openTabs.length)">
+            <div class="chunky-icon--icon" style="font-size: 32px; font-weight: 100; line-height: 28px;">
+              &times;
             </div>
-          </summary>
-          <main>
+            <div class="chunky-icon--label">
+              Close
+            </div>
+          </div>
+          <div class="chunky-icon" :class="{active: openTabs.includes('filter')}" @click="toggleTab('filter')">
+            <div class="chunky-icon--icon">
+              <FilterIcon/>
+            </div>
+            <div class="chunky-icon--label">
+              Filter
+              <span style="opacity: .55" v-if="activeFiltersCount">({{activeFiltersCount}})</span>
+            </div>
+          </div>
+          <div class="chunky-icon" :class="{active: openTabs.includes('sort')}" @click="toggleTab('sort')">
+            <div class="chunky-icon--icon">
+              <SortIcon/>
+            </div>
+            <div class="chunky-icon--label">Sort</div>
+          </div>
+          <div class="chunky-icon" :class="{active: openTabs.includes('settings')}" @click="toggleTab('settings')">
+            <div class="chunky-icon--icon">
+              <SettingsIcon/>
+            </div>
+            <div class="chunky-icon--label">Settings</div>
+          </div>
+          <div class="chunky-icon" :class="{active: openTabs.includes('feedback')}" @click="toggleTab('feedback')">
+            <div class="chunky-icon--icon">
+              <FeedbackIcon/>
+            </div>
+            <div class="chunky-icon--label">Feedback</div>
+          </div>
+        </div>
+        <div class="tabs-contents">
+          <main v-if="openTabs.includes('filter')">
             <div class="filter-wrapper">
               <input class="filter" v-model="filterState.filter" placeholder="Custom filter...">
               <small class="computed-filter" v-if="inDebugMode">{{computedFilters}}</small>
@@ -91,17 +117,33 @@
             </div>
             <!-- <pre>{{parsedFilter}}</pre> -->
           </main>
-        </details>
-        <details>
-          <summary>
-            <div class="chunky-icon">
-              <div class="chunky-icon--icon">
-                <SettingsIcon/>
+          <main class="click-controls" v-if="openTabs.includes('sort')">
+              <div class="horizontal-selector">
+                <div>Sort Order</div>
+                <div class="options">
+                  <label>
+                    <input type="radio" v-model="sortState.order" value="editions">Most Editions
+                  </label>
+                  <label>
+                    <input type="radio" v-model="sortState.order" value="new">Newest
+                  </label>
+                  <label>
+                    <input type="radio" v-model="sortState.order" value="old">Oldest
+                  </label>
+                  <label>
+                    <input type="radio" v-model="sortState.order" :value="`${settingsState.selectedClassification.field}_sort asc`">Shelf Order
+                  </label>
+                  <label>
+                    <input type="radio" v-model="sortState.order" :value="randomWithSeed">Random
+                    <button
+                      v-if="sortState.order.startsWith('random')"
+                      @click="sortState.order = randomWithSeed = 'random_' + Date.now()"
+                    >Shuffle</button>
+                  </label>
+                </div>
               </div>
-              <div class="chunky-icon--label">Settings</div>
-            </div>
-          </summary>
-          <main class="click-controls">
+          </main>
+          <main class="click-controls" v-if="openTabs.includes('settings')">
             <div class="horizontal-selector">
               <div class="label">Classification</div>
               <div class="options">
@@ -120,19 +162,25 @@
                 </label>
               </div>
             </div>
-          </main>
-        </details>
-
-        <details>
-          <summary>
-            <div class="chunky-icon">
-              <div class="chunky-icon--icon">
-                <FeedbackIcon/>
+            <div class="horizontal-selector">
+              <div class="label">Label Fields</div>
+              <div class="options">
+                <label>
+                  <input type="checkbox" v-model="settingsState.labels" value="classification">
+                  Classifications
+                </label>
+                <label>
+                  <input type="checkbox" v-model="settingsState.labels" value="first_publish_year">
+                  First Publish Year
+                </label>
+                <label>
+                  <input type="checkbox" v-model="settingsState.labels" value="edition_count">
+                  Number of Editions
+                </label>
               </div>
-              <div class="chunky-icon--label">Feedback</div>
             </div>
-          </summary>
-          <main class="feedback-panel">
+          </main>
+          <main class="feedback-panel" v-if="openTabs.includes('feedback')">
             <p>Welcome to Library Explorer! Library Explorer is currently in <b>beta</b>, so you might hit some bugs while you're browsing.</p>
 
             <p>
@@ -140,7 +188,7 @@
               If you like what you see, and want to share it with others, why not <a :href="twitterUrl" target="_blank">Share on Twitter</a>?
             </p>
           </main>
-        </details>
+        </div>
       </div>
     </div>
 </template>
@@ -149,6 +197,7 @@
 import lucenerQueryParser from 'lucene-query-parser';
 import SettingsIcon from './icons/SettingsIcon';
 import FilterIcon from './icons/FilterIcon';
+import SortIcon from './icons/SortIcon';
 import FeedbackIcon from './icons/FeedbackIcon';
 import CONFIGS from '../configs';
 import Multiselect from 'vue-multiselect';
@@ -156,6 +205,7 @@ import Multiselect from 'vue-multiselect';
 export default {
     components: {
         FilterIcon,
+        SortIcon,
         SettingsIcon,
         FeedbackIcon,
         Multiselect,
@@ -164,6 +214,7 @@ export default {
     props: {
         filterState: Object,
         settingsState: Object,
+        sortState: Object,
     },
 
     data() {
@@ -182,6 +233,12 @@ export default {
             quickLanguageSelect: '',
             fullLanguageSelect: [],
             langLoading: false,
+            // By default we just send sort=random to the OL API, but when shuffle
+            // is clicked, we add a seed to the end (e.g. random_1235)
+            randomWithSeed: 'random',
+
+            openTabs: [],
+            maxTabs: screen.width > 600 ? 5 : 1,
         }
     },
 
@@ -199,6 +256,19 @@ export default {
 
         fullLanguageSelect(newVal) {
             this.filterState.languages = newVal;
+        },
+
+        ['sortState.order'](newVal) {
+            const desiredLabel = {
+                editions: 'edition_count',
+                new: 'first_publish_year',
+                old: 'first_publish_year',
+                ddc_sort: 'classification',
+                lcc_sort: 'classification',
+            }[newVal];
+            if (desiredLabel && !this.settingsState.labels.includes(desiredLabel)) {
+                this.settingsState.labels.push(desiredLabel);
+            }
         }
     },
 
@@ -250,6 +320,18 @@ export default {
 
             this.langLoading = false;
         },
+
+        toggleTab(tabName) {
+            const index = this.openTabs.indexOf(tabName);
+            if (index == -1) {
+                this.openTabs.push(tabName);
+                if (this.openTabs.length > this.maxTabs) {
+                    this.openTabs.shift();
+                }
+            } else {
+                this.openTabs.splice(index, 1);
+            }
+        }
     }
 }
 </script>
@@ -400,6 +482,7 @@ export default {
   .floating-controls {
     pointer-events: all;
     display: flex;
+    flex-direction: column-reverse;
     border-radius: 4px 4px 0 0;
     overflow: hidden;
     box-shadow: 0 0 5px rgba(0, 0, 0, .2);
@@ -407,34 +490,44 @@ export default {
     max-width: 100%;
     max-height: 80vh;
 
-    & > details {
+    &.open .tab-bar {
+      border-top: 1px solid rgba(0, 0, 0, .2);
+    }
+    .tab-bar {
+      display: flex;
+      justify-content: center;
+
+      background: linear-gradient(to bottom, #fff, #ebdfc5 150%);
+    }
+    .tab-bar > div {
       border-right: 1px solid rgba(0, 0, 0, .2);
+      margin: 0;
+      padding: 8px;
       &:last-child {
         border: 0;
       }
-      &[open] {
-        flex: 1;
-      }
-      &[open] > summary > .chunky-icon {
+
+      cursor: pointer;
+      transition: background-color .2s;
+      &:hover {
         background-color: rgba(0, 0, 0, .1);
-        display: inline-block;
-        border-radius: 4px;
       }
+      &.active {
+        background-color: rgba(0, 0, 0, .1);
+      }
+    }
+    .tabs-contents main {
+      padding: 8px;
+    }
 
-      & > summary {
-        &::marker { display: none; }
-        &::-webkit-details-marker { display: none; }
-
-        display: inline-flex;
-        cursor: pointer;
-        transition: background-color .2s;
-        &:hover {
-          background-color: rgba(0, 0, 0, .1);
+    &.open {
+      .tab-bar > div {
+        &:first-child {
+          border-left: 1px solid rgba(0, 0, 0, .2);
         }
-      }
-
-      & > main {
-        padding: 8px;
+        &:last-child {
+          border-right: 1px solid rgba(0, 0, 0, .2);
+        }
       }
     }
   }
