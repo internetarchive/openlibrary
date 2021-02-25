@@ -53,5 +53,4 @@ export function initAddCoverImport () {
     });
     $('.column').disableSelection();
     $('.trash').disableSelection();
-    $('#topNotice').hide();
 }
