@@ -16,7 +16,7 @@ $var title: $_("Add a book")
 
 <div id="contentBody">
     <div id="searchResults">
-        <ul id="siteSearch" class="list-books">
+        <ul class="list-books">
         $for work in matches:
             <li class="workResult" id="$work.key.split('/')[-1]">
                 <span class="bookcover">
@@ -55,7 +55,7 @@ $var title: $_("Add a book")
 <script type="text/javascript">
 <!--
 window.q.push(function() {
-    \$("#siteSearch a").click(function() {
+    \$(".list-books a").click(function() {
         var li = \$(this).parents('li:first');
         \$("input#work").val("/works/" + li.attr("id"));
         \$("form#addbook").submit();

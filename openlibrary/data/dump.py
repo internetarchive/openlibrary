@@ -169,15 +169,15 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
     files = {}
     for t in types:
         tname = t.split("/")[-1] + "s"
-        files[t] = xopen(format % tname, "w")
+        files[t] = xopen(format % tname, "wb")
 
     stdin = xopen(dump_file) if dump_file else sys.stdin
     for i, line in enumerate(stdin):
-        if six.PY3 and not isinstance(line, str):
-            line = line.decode("utf-8")
+        if six.PY3 and not isinstance(line, bytes):
+            line = line.encode("utf-8")
         if i % 1000000 == 0:
             log(i)
-        type, rest = line.split("\t", 1)
+        type, rest = line.split(b"\t", 1)
         if type in files:
             files[type].write(line)
 
