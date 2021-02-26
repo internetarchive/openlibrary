@@ -18,44 +18,6 @@ $if status:
     $elif status.code == 2: $_("Please provide an image URL.")
     $elif status.code == 3: $_("Please provide a valid image.")
 </div>
-<script type="text/javascript">
-<!--
-window.q.push(function(){
-    // page may not be loaded via iframe
-    if ( parent && parent.closeThrobber ) {
-        parent.closeThrobber();
-    }
-    \$("#form.addcover-form").submit(function(event) {
-
-       function val(selector) {
-           return \$.trim(\$(selector).val());
-       }
-       function error(message) {
-           \$("#errors").show().html(message);
-           event.preventDefault();
-       }
-       var file = val("#coverFile");
-       var url = val("#imageUrl");
-       var coverid = val("#coverid");
-
-       if (file == "" && (url == "" || url == "http://" ) && coverid == "") {
-           return error("Please choose an image or provide a URL.");
-       }
-
-       function test_url(url) {
-           var obj = {
-               optional: function() { return false; }
-           }
-           return \$.validator.url.apply(obj, [url, null]);
-       }
-
-       if (url != "" && url != "http://" && !test_url(url)) {
-           return error("Please provide a valid URL.");
-       }
-   });
-});
-//-->
-</script>
 
 <div class="imageIntro">$intro</div>
 
@@ -84,19 +46,6 @@ window.q.push(function(){
                             </div>
                         </div>
                         <input type="hidden" id="coverid" name="coverid" value=""/>
-                        <script type="text/javascript">
-                        window.q.push( function () {
-                            // Clicking a cover should set the form value to the data-id of that cover
-                            \$("#popcovers .book").click(function() {
-                                \$(this).toggleClass("selected").siblings().removeClass("selected");
-                                var coverid = "";
-                                if (\$(this).hasClass("selected")) {
-                                    coverid = \$(this).data("id");
-                                }
-                                \$("#coverid").val(coverid);
-                            } );
-                        } );
-                        </script>
                     </div>
 
             <div class="formElement">
