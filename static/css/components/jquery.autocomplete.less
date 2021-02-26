@@ -3,7 +3,7 @@
 /* stylelint-disable no-descending-specificity */
 .ac_results {
   padding: 0;
-  overflow: hidden;
+  overflow: scroll;
   z-index: @z-index-level-16;
   position: absolute;
   display: none;
@@ -47,7 +47,7 @@
       line-height: normal;
 
       // stylelint-disable-next-line max-nesting-depth
-      &.ac_over {
+      &:hover {
         background-color: @light-yellow;
       }
     }
