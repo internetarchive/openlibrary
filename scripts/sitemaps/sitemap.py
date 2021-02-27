@@ -5,14 +5,15 @@ USAGE:
     python sitemaps.py suffix dump.txt.gz
 """
 
-import web
-import os
-import itertools
 import datetime
 import gzip
-import re
+import itertools
 import json
+import os
+import re
 import time
+
+import web
 
 t_sitemap = """$def with (things)
 <?xml version="1.0" encoding="UTF-8"?>
@@ -40,10 +41,7 @@ sitemap = web.template.Template(t_sitemap)
 siteindex = web.template.Template(t_siteindex)
 
 def xopen(filename):
-    if filename.endswith(".gz"):
-        return gzip.open(filename)
-    else:
-        return open(filename)
+    return gzip.open(filename) if filename.endswith(".gz") else open(filename)
 
 def urlsafe(name):
     """Slugifies the name to produce OL url slugs
@@ -68,7 +66,7 @@ def process_dump(dumpfile):
 
     The summary file contains: sort-key, path and last_modified columns.
     """
-    rows = (line.strip().split("\t") for line in xopen(dumpfile))
+    rows = (line.decode().strip().split("\t") for line in xopen(dumpfile))
     for type, key, revision, last_modified, jsontext in rows:
         if type not in ['/type/work', '/type/author']:
             continue
@@ -126,25 +124,23 @@ def write(path, text):
     try:
         text = web.safestr(text)
         log('writing', path, text.count('\n'))
-        f = gzip.open(path, 'w')
-        f.write(text)
-        f.close()
+        with gzip.open(path, 'w') as f:
+            f.write(text)
     except:
         print('write fail')
     #os.system("gzip " + path)
 
 def write_tsv(path, rows):
     lines = ("\t".join(row) + "\n" for row in rows)
-    f = open(path, "w")
-    f.writelines(lines)
-    f.close()
+    with open(path, "w") as f:
+        f.writelines(lines)
 
 def system_memory():
     """Returns system memory in MB."""
     try:
         x = os.popen("cat /proc/meminfo | grep MemTotal | sed 's/[^0-9]//g'").read()
         # proc gives memory in KB, converting it to MB
-        return int(x)/1024
+        return int(x) // 1024
     except IOError:
         # default to 1024MB
         return 1024
