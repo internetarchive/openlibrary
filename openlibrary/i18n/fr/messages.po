@@ -324,7 +324,7 @@ msgstr "Le plus d'éditions"
 #: openlibrary/templates/work_search.html:114 view.html:141 view.html:143
 #: view.html:145 view.html:147
 msgid "First Published"
-msgstr "Publication la plus ancienne"
+msgstr "Les plus anciennes"
 
 #: openlibrary/templates/work_search.html:108
 #: openlibrary/templates/work_search.html:110
@@ -332,7 +332,7 @@ msgstr "Publication la plus ancienne"
 #: openlibrary/templates/work_search.html:114 view.html:141 view.html:143
 #: view.html:145 view.html:147
 msgid "Most Recent"
-msgstr "La plus récente"
+msgstr "Les plus récentes"
 
 #: add.html:24 advancedsearch.html:17 edit.html:20 edit.html:92
 #: nav_head.html:44 search_foot.html:8 search_head.html:8 view.html:147
@@ -417,7 +417,7 @@ msgstr[1] ""
 #: editions.html:14 editions_datatable.html:13 view.html:162
 #, python-format
 msgid "Add another edition of %(work)s"
-msgstr "Ajoutez une autre édition de %(work)s"
+msgstr "Ajouter une autre édition de %(work)s"
 
 #: view.html:162
 msgid "Add another edition?"
