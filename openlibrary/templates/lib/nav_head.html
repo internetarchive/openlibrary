@@ -65,7 +65,11 @@ $def with (page)
 
   <ul class="navigation-component">
     <li class="browse-menu">
-      <a>$_('Browse') <img class="down-arrow" width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/></a>
+      <label for="toggle-browse-menu" class="browse-menu-button">$_('Browse') 
+        <img class="down-arrow" width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/>
+      </label>
+
+      <input role="button" type="checkbox" class="navigation-component__checkbox" id="toggle-browse-menu">
       <div class="navigation-dropdown-component">
         <ul class="dropdown-menu browse-menu-options">
           <li><a href="/subjects">$_("Subjects")</a></li>
@@ -77,8 +81,11 @@ $def with (page)
       </div>
     </li>
     <li class="more-menu">
-      <a>$_('More') <img class="down-arrow"
-        width="7" height="4" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
+      <label for="toggle-more-menu" class="more-menu-button">$_('More') 
+        <img class="down-arrow" width="7" height="4" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/>
+      </label>
+
+      <input role="button" type="checkbox" class="navigation-component__checkbox" id="toggle-more-menu">
       <div class="navigation-dropdown-component">
         <ul class="dropdown-menu more-menu-options">
           <li><a href="/books/add">$_("Add a Book")</a></li>
@@ -101,10 +108,16 @@ $def with (page)
 
   $if ctx.user:
     <div class="account-component">
-      <div class="dropdown-avatar">
-        <button class="avatar" id="userToggle" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');"></button>
-        <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" role="presentation" alt=""/>
+      <div class="dropdown-avatar">        
+        <label for="toggle-account" id="userToggle" class="avatar account-button" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');">
+        </label>
+
+        <label for="toggle-account" class="account-button">
+          <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" role="presentation" alt=""/>
+        </label>
       </div>
+
+      <input role="button" type="checkbox" class="account-component__checkbox" id="toggle-account">
       <div class="account-dropdown navigation-dropdown-component" id="main-account-dropdown">
         <ul class="dropdown-menu">
           <li><a href="$ctx.user.key">$_("My Profile")</a></li>
