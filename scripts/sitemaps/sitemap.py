@@ -125,7 +125,7 @@ def write(path, text):
         text = web.safestr(text)
         log('writing', path, text.count('\n'))
         with gzip.open(path, 'w') as f:
-            f.write(text)
+            f.write(text.encode())
     except Exception as e:
         print('write fail {}'.format(e))
     #os.system("gzip " + path)
