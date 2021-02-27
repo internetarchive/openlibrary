@@ -144,18 +144,9 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                     $ungettext("1 work", "%(count)d works", books.num_found, count=books.num_found)
                     <span class="count smaller"><a href="/books/add?author=$page.key">$_('Add another?')</a></span>
                 </h2>
-                <p id="books"><span class="tools">
+                <p id="books">
                 $if books.num_found > 1:
-                    <img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" style="margin-right:5px;"/>
-                    $if books.sort == 'editions':
-                        <strong class="lightgreen">$_('Most Editions')</strong> | <a href="$changequery(sort='old')#editions">$_('First Published')</a> | <a href="$changequery(sort='new')#editions">$_('Most Recent')</a>
-                    $elif books.sort == 'old':
-                        <a href="$changequery(sort=None)#editions">$_('Most Editions')</a> | <strong class="lightgreen">$_('First Published')</strong> | <a href="$changequery(sort='new')#editions">$_('Most Recent')</a>
-                    $elif books.sort == 'new':
-                        <a href="$changequery(sort=None)#editions">$_('Most Editions')</a> |  <a href="$changequery(sort='old')#editions">$_('First Published')</a> | <strong class="lightgreen">$_('Most Recent')</strong>
-                    $elif books.sort == 'title':
-                        <a href="$changequery(sort=None)#editions">$_('Most Editions')</a> |  <a href="$changequery(sort='old')#editions">$_('First Published')</a> | <a href="$changequery(sort='new')#editions">$_('Most Recent')</a> | <strong class="lightgreen">$_('Title')</strong>
-                </span>
+                    $:render_template("search/sort_options.html", exclude=('relevance'), default='editions')
 
                 <p>
                   $if input(mode="everything").mode == "everything":
