@@ -24,6 +24,9 @@ export default function($) {
             formatItem: function (item) {
                 return item.name;
             },
+            focus: function (event, ui) {
+                event.preventDefault();
+            },
             select: function (_event, ui) {
                 var item = ui.item;
                 var $this = $(this);
