@@ -126,8 +126,8 @@ def write(path, text):
         log('writing', path, text.count('\n'))
         with gzip.open(path, 'w') as f:
             f.write(text)
-    except:
-        print('write fail')
+    except Exception as e:
+        print('write fail {}'.format(e))
     #os.system("gzip " + path)
 
 def write_tsv(path, rows):
