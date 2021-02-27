@@ -24,8 +24,22 @@ export default function($) {
             formatItem: function (item) {
                 return item.name;
             },
-            focus: function (event, ui) {
-                event.preventDefault();
+            /**
+             * Adds the ac_over class to the selected autocomplete item
+             *
+             * @param {Event} _event (unused)
+             * @param {Object} ui containing item key
+             */
+            focus: function (_event, ui) {
+                const $list = $(_this).data('list');
+                if ($list) {
+                    $list.find('li').removeClass('ac_over').each((i, el) => {
+                        const $el = $(el);
+                        if ($el.data('value') === ui.item.value) {
+                            $el.addClass('ac_over');
+                        }
+                    });
+                }
             },
             select: function (_event, ui) {
                 var item = ui.item;
@@ -54,7 +68,7 @@ export default function($) {
 
         $.widget('custom.autocompleteHTML', $.ui.autocomplete, {
             _renderMenu($ul, items) {
-                $ul.addClass('ac_results');
+                $ul.addClass('ac_results').attr('id', this.ulRef);
                 items.forEach((item, i) => {
                     $('<li>')
                         .addClass(i % 2 ? 'ac-even' : 'ac-odd')
@@ -64,6 +78,8 @@ export default function($) {
                         .html(item.label)
                         .appendTo($ul);
                 });
+                // store list so we can add ac_over hover effect in `focus` event
+                $(_this).data('list', $ul);
             }
         });
 
