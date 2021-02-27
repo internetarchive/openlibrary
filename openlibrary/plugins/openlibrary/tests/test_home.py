@@ -30,16 +30,15 @@ class TestHomeTemplates:
         ctx = web.storage()
         monkeypatch.setattr(web, "ctx", ctx)
         monkeypatch.setattr(web.webapi, "ctx", web.ctx)
-        monkeypatch.setattr(home, 'get_cachable_sponsorable_editions', lambda: [])
 
         self._load_fake_context()
+        web.ctx.lang = 'en'
         web.ctx.site = MockSite()
 
     def _load_fake_context(self):
         self.app = web.application()
         self.env = {
             "PATH_INFO": "/", "HTTP_METHOD": "GET",
-            "HTTP_ACCEPT_LANGUAGE": "en-US,en;q=0.8,fr;q=0.6,ak;q=0.4,de;q=0.2"
         }
         self.app.load(self.env)
 

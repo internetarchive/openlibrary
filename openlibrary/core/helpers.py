@@ -33,9 +33,10 @@ from infogami import config
 # handy utility to parse ISO date strings
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
+from infogami.utils.i18n import i18n_loadhook
 
 # TODO: i18n should be moved to core or infogami
-from openlibrary.i18n import get_ol_locale, gettext as _  # noqa: F401
+from openlibrary.i18n import gettext as _  # noqa: F401
 
 __all__ = [
     "sanitize",
@@ -48,7 +49,7 @@ __all__ = [
     "private_collections", "private_collection_in",
 
     # functions imported from elsewhere
-    "parse_datetime", "safeint"
+    "parse_datetime", "safeint", "i18n_loadhook"
 ]
 __docformat__ = "restructuredtext en"
 
@@ -125,8 +126,7 @@ def days_since(then, now=None):
 
 def datestr(then, now=None, lang=None, relative=True):
     """Internationalized version of web.datestr."""
-    website_locale = get_ol_locale()
-    lang = lang or website_locale
+    lang = lang or web.ctx.lang
     if relative:
         if now is None:
             now = datetime.now()
@@ -142,8 +142,7 @@ def datetimestr_utc(then):
     return then.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 def format_date(date, lang=None):
-    website_locale = get_ol_locale()
-    lang = lang or website_locale
+    lang = lang or web.ctx.lang
     locale = _get_babel_locale(lang)
     return babel.dates.format_date(date, format="long", locale=locale)
 

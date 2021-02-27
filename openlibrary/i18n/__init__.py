@@ -8,11 +8,10 @@ from babel.support import Translations
 from babel.messages import Catalog
 from babel.messages.pofile import read_po, write_po
 from babel.messages.mofile import write_mo
+from infogami.utils.i18n import i18n_loadhook
 from babel.messages.extract import extract_from_file, extract_from_dir, extract_python
 
 root = os.path.dirname(__file__)
-
-OL_SUPPORTED_LANGAGES = ['en', 'cs', 'de', 'es', 'fr', 'te']
 
 def _compile_translation(po, mo):
     try:
@@ -103,34 +102,6 @@ def load_translations(lang):
     if os.path.exists(mo_path):
         return Translations(open(mo_path, 'rb'))
 
-
-def get_ol_locale():
-    """
-    Gets the locale from the cookie and -if not found- sets it to the
-    highest priority language of the Accept-Language header, that's also part
-    of the Open Library supported languages.
-    """
-    locale_cookie = web.cookies().get('i18n_code')
-    if locale_cookie:
-        ol_locale = locale_cookie
-    else:
-        browser_accepted_langs = web.ctx.env.get('HTTP_ACCEPT_LANGUAGE')
-        if browser_accepted_langs:
-            # Parse the accepted language header string into a list
-            languages = browser_accepted_langs.split(',')
-            # Remove the quality-value weights and keep only the locales
-            accepted_langs = [lang.partition(';')[0] for lang in languages]
-            # The default locale is 'en' unless we support a browser-suggested language
-            ol_locale = 'en'
-            for lang in accepted_langs:
-                if lang in OL_SUPPORTED_LANGAGES:
-                    ol_locale = lang
-                    break
-        else:
-            ol_locale = 'en'
-        web.setcookie('i18n_code', ol_locale, secure=False)
-    return ol_locale
-
 @web.memoize
 def load_locale(lang):
     try:
@@ -141,7 +112,8 @@ def load_locale(lang):
 class GetText:
     def __call__(self, string, *args, **kwargs):
         """Translate a given string to the language of the current locale."""
-        website_locale = get_ol_locale()
+        # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
+        website_locale = web.ctx.lang        
         translations = load_translations(website_locale)
         value = (translations and translations.ugettext(string)) or string
 
@@ -180,7 +152,8 @@ class LazyObject:
 
 
 def ungettext(s1, s2, _n, *a, **kw):
-    website_locale = get_ol_locale()
+    # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
+    website_locale = web.ctx.lang  
     translations = load_translations(website_locale)
     value = translations and translations.ungettext(s1, s2, _n)
     if not value:
@@ -199,7 +172,8 @@ def ungettext(s1, s2, _n, *a, **kw):
 
 def gettext_territory(code):
     """Returns the territory name in the current locale."""
-    lang = get_ol_locale()
+    # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
+    lang = web.ctx.lang  
     locale = load_translations(lang)
     return locale.territories.get(code, code)
 

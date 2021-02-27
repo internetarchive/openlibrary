@@ -158,9 +158,11 @@ export function initPreviewButton() {
 
 export function initWebsiteTranslationOptions() {
     $(document).ready(function () {
-        $('#locale-options li').on('click', function () {
-            var locale = $(this).attr('id');
-            setValueInCookie('i18n_code', locale);
+        $('#locale-options li a').on('click', function () {
+            event.preventDefault();
+            const locale = $(this).data('lang-id');
+            setValueInCookie('HTTP_LANG', locale);
+            location.reload();
         });
     });
 

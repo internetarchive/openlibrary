@@ -31,13 +31,13 @@ class Test_ungettext:
         monkeypatch.setattr(web.webapi, "ctx", web.ctx)
 
         self._load_fake_context()
+        web.ctx.lang = 'en'
         web.ctx.site = MockSite()
 
     def _load_fake_context(self):
         self.app = web.application()
         self.env = {
             "PATH_INFO": "/", "HTTP_METHOD": "GET",
-            "HTTP_ACCEPT_LANGUAGE": "en-US,en;q=0.8,fr;q=0.6,ak;q=0.4,de;q=0.2"
         }
         self.app.load(self.env)
 
@@ -74,48 +74,3 @@ class Test_ungettext:
 
         i18n.ungettext("one book", "%(n)d books", 1, n=1) == "un libre"
         i18n.ungettext("one book", "%(n)d books", 2, n=2) == "2 libres"
-
-
-class Test_get_ol_locale:
-    @classmethod
-    def setup_class(cls):
-        ctx = web.storage()
-        setattr(web, "ctx", ctx)
-        setattr(web.webapi, "ctx", web.ctx)
-
-        cls.app = web.application()
-        cls.env = {
-            "PATH_INFO": "/", "HTTP_METHOD": "GET",
-        }
-        cls.app.load(cls.env)
-        web.ctx.site = MockSite()
-
-    def test_get_ol_locale(self):
-        web.ctx.env['HTTP_ACCEPT_LANGUAGE'] = 'en-US,it;q=0.8,fr;q=0.6,cs;q=0.4,de;q=0.2'
-
-        assert i18n.get_ol_locale() == 'fr'
-
-    def test_get_ol_locale_no_header(self):
-        del web.ctx.env['HTTP_ACCEPT_LANGUAGE']
-
-        assert i18n.get_ol_locale() == 'en'
-
-    def test_get_ol_locale_no_support(self):
-        web.ctx.env['HTTP_ACCEPT_LANGUAGE'] = 'en-US,it;q=0.8,gr;q=0.6,am;q=0.4,be;q=0.2'
-
-        assert i18n.get_ol_locale() == 'en'
-
-    def test_get_ol_locale_first_preference_match(self):
-        web.ctx.env['HTTP_ACCEPT_LANGUAGE'] = 'es,de;q=0.8,fr;q=0.6,cs;q=0.4,am;q=0.2'
-
-        assert i18n.get_ol_locale() == 'es'
-
-    def test_get_ol_locale_second_preference_match(self):
-        web.ctx.env['HTTP_ACCEPT_LANGUAGE'] = 'am,de;q=0.8,fr;q=0.6,cs;q=0.4,be;q=0.2'
-
-        assert i18n.get_ol_locale() == 'de'
-
-    def test_get_ol_locale_final_preference_match(self):
-        web.ctx.env['HTTP_ACCEPT_LANGUAGE'] = 'it,am;q=0.8,be;q=0.6,gr;q=0.4,cs;q=0.2'
-
-        assert i18n.get_ol_locale() == 'cs'

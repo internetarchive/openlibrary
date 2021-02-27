@@ -7,7 +7,6 @@ def _load_fake_context():
     app = web.application()
     env = {
         "PATH_INFO": "/", "HTTP_METHOD": "GET",
-        "HTTP_ACCEPT_LANGUAGE": "en-US,en;q=0.8,fr;q=0.6,ak;q=0.4,de;q=0.2"
     }
     app.load(env)
 
@@ -17,6 +16,7 @@ def _monkeypatch_web(monkeypatch):
     monkeypatch.setattr(web.webapi, "ctx", web.ctx)
 
     _load_fake_context()
+    web.ctx.lang = 'en'
     web.ctx.site = MockSite()
 
 def test_sanitize():
