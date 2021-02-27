@@ -75,7 +75,7 @@ def process_dump(dumpfile):
         title = doc.get('name', '') if type == '/type/author' \
                 else doc.get('title', '')
 
-        path = key + "/" + urlsafe(title.strip()).encode('utf-8')
+        path = key + "/" + urlsafe(title.strip())
 
         last_modified = last_modified.replace(' ', 'T') + 'Z'
         sortkey = get_sort_key(key)
