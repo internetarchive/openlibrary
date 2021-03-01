@@ -96,10 +96,7 @@ class Stats:
         return result[0].count
 
     def get_count(self, status=None):
-        if status:
-            where = "status=$status"
-        else:
-            where = "1=1"
+        where = "status=$status" if status else "1=1"
         try:  # Database table import_item may not exist on localhost
             rows = db.select("import_item",
                 what="count(*) as count",
@@ -142,10 +139,7 @@ class Stats:
     def get_items(self, date=None, order=None, limit=None):
         """Returns all rows with given added date.
         """
-        if date:
-            where = "added_time::date = $date"
-        else:
-            where = "1 = 1"
+        where = "added_time::date = $date" if date else "1 = 1"
         return db.select("import_item",
             where=where,
             order=order,
