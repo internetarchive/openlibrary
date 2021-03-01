@@ -349,8 +349,11 @@ def build_job_query(job, start_at, offset, last_modified, limit):
     q_select = """SELECT "Key", "JSON" FROM test"""
     q_where = """WHERE "Type" = '/type/%s'""" % type
     q_order = """ORDER BY "Key" """
-    q_offset = """OFFSET %d""" % offset
+    q_offset = ""
     q_limit = ""
+
+    if offset:
+        q_offset = """OFFSET %d""" % offset
 
     if limit:
         q_limit = """LIMIT %d""" % limit
@@ -358,28 +361,24 @@ def build_job_query(job, start_at, offset, last_modified, limit):
     if last_modified:
         q_where += """ AND "LastModified" >= '%s'""" % last_modified
         q_order = ""
-        q_offset = ""
         q_limit = ""
 
     if start_at:
         q_where += """ AND "Key" >= '%s'""" % start_at
-        q_offset = ""
 
     if job == 'orphans':
         q_where += """ AND "JSON" -> 'works' -> 0 ->> 'key' IS NULL"""
-        q_order = ""
-        q_offset = ""
-        q_limit = ""
 
     return ' '.join([q_select, q_where, q_order, q_offset, q_limit])
 
 
-async def main(job, postgres="postgres.ini", ol="http://ol/",
+async def main(cmd, job, postgres="postgres.ini", ol="http://ol/",
          ol_config="../../conf/openlibrary.yml",
          start_at=None, offset=0, limit=1, last_modified=None,
          progress=None, log_file=None, log_level=logging.WARN
          ):
     """
+    :param 'index' | 'fetch-end' cmd:
     :param str job: job to complete. One of 'works', 'orphans', 'authors'
     :param str postgres: path to postgres config file
     :param str ol: openlibrary endpoint
@@ -470,8 +469,15 @@ async def main(job, postgres="postgres.ini", ol="http://ol/",
 
     # load the contents of the config?
     with LocalPostgresDataProvider(postgres) as db:
-        load_configs(ol, ol_config, db)
+        # Check to see where we should be starting from
+        if cmd == 'fetch-end':
+            next_start_query = build_job_query(job, start_at, limit, last_modified, 1)
+            next_start_results = db.query_all(next_start_query)
+            if next_start_results:
+                print(next_start_results[0][0])
+            return
 
+        load_configs(ol, ol_config, db)
         q = build_job_query(job, start_at, offset, last_modified, limit)
 
         count = None
@@ -493,7 +499,7 @@ async def main(job, postgres="postgres.ini", ol="http://ol/",
 
         start = time.time()
         seen = 0
-        for batch in db.query_batched(q, size=50, cache_json=True):
+        for batch in db.query_batched(q, size=500, cache_json=True):
             keys = [x[0] for x in batch]
             plog.update(next=keys[0], cached=len(db.cache), ia_cache=0, q_1='?',
                         q_auth='?', q_ia='?')
