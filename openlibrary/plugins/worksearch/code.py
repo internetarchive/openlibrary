@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import web
 import random
@@ -125,6 +126,8 @@ SORTS = {
     'random': 'random_1 asc',
     'random asc': 'random_1 asc',
     'random desc': 'random_1 desc',
+    'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
+    'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
 }
 OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
@@ -164,7 +167,8 @@ def process_sort(raw_sort):
         if sort.startswith('random_'):
             return sort if ' ' in sort else sort + ' asc'
         else:
-            return SORTS[sort]
+            solr_sort = SORTS[sort]
+            return solr_sort() if callable(solr_sort) else solr_sort
     return ','.join(process_individual_sort(s.strip()) for s in raw_sort.split(','))
 
 
