@@ -45,7 +45,7 @@
     "jquery-ui": "1.12.1",
     "jquery-validation": "1.19.3",
     "less": "3.13.1",
-    "less-loader": "7.0.1",
+    "less-loader": "7.3.0",
     "less-plugin-clean-css": "1.5.1",
     "lodash": "4.17.20",
     "lucene-query-parser": "^1.2.0",
