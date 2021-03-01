@@ -90,9 +90,13 @@ class Stats:
     def get_imports_per_hour(self):
         """Returns the number imports happened in past one hour duration.
         """
-        result = db.query(
-            "SELECT count(*) as count FROM import_item" +
-            " WHERE import_time > CURRENT_TIMESTAMP - interval '1' hour")
+        try:
+            result = db.query(
+                "SELECT count(*) as count FROM import_item" +
+                " WHERE import_time > CURRENT_TIMESTAMP - interval '1' hour")
+        except UndefinedTable:
+            logger.exception("Database table import_item may not exist on localhost")
+            return 0
         return result[0].count
 
     def get_count(self, status=None):
