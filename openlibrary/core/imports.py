@@ -6,6 +6,8 @@ import datetime
 import time
 import web
 
+from psycopg2.errors import UndefinedTable
+
 from . import db
 
 logger = logging.getLogger("openlibrary.imports")
@@ -98,10 +100,14 @@ class Stats:
             where = "status=$status"
         else:
             where = "1=1"
-        rows = db.select("import_item",
-            what="count(*) as count",
-            where=where,
-            vars=locals())
+        try:  # Database table import_item may not exist on localhost
+            rows = db.select("import_item",
+                what="count(*) as count",
+                where=where,
+                vars=locals())
+        except UndefinedTable:
+            logger.log_exception()
+            return 0
         return rows[0].count
 
     def get_count_by_status(self, date=None):
