@@ -97,13 +97,13 @@ class Stats:
 
     def get_count(self, status=None):
         where = "status=$status" if status else "1=1"
-        try:  # Database table import_item may not exist on localhost
+        try:
             rows = db.select("import_item",
                 what="count(*) as count",
                 where=where,
                 vars=locals())
         except UndefinedTable:
-            logger.log_exception()
+            logger.exception("Database table import_item may not exist on localhost")
             return 0
         return rows[0].count
 
