@@ -94,34 +94,33 @@ export default function($) {
                         timestamp: new Date()
                     }
                 }).then((results) => {
-                    response(
-                        results.map((r) => {
-                            return {
-                                key: r.key,
-                                label: highlight(options.formatItem(r), term),
-                                value: r.name
-                            };
-                        })
-                    );
+                    const modifiedResults = results.map((r) => {
+                        return {
+                            key: r.key,
+                            label: highlight(options.formatItem(r), term),
+                            value: r.name
+                        };
+                    });
 
                     // When no results if callback is defined, append a create new entry
-                    if (!results.length &&
-                        (
-                            ol_ac_opts.addnew === true ||
-                            (ol_ac_opts.addnew && ol_ac_opts.addnew(term))
-                        )
+                    if (
+                        ol_ac_opts.addnew === true ||
+                        (ol_ac_opts.addnew && ol_ac_opts.addnew(term))
                     ) {
-                        response([
-                            {
-                                label: options.formatItem({
-                                    name: term,
-                                    key: '__new__',
-                                    result: term,
+                        response(
+                            modifiedResults.concat([
+                                {
+                                    label: options.formatItem({
+                                        name: term,
+                                        key: '__new__',
+                                        result: term,
+                                        value: term
+                                    }),
                                     value: term
-                                }),
-                                value: term
-                            }
-                        ]);
+                                }
+                            ]));
+                    } else {
+                        response(modifiedResults);
                     }
                 });
             }
