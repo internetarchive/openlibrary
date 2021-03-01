@@ -211,12 +211,21 @@ pipeline {
                 stage('Insert works & orphaned editions') {
                   when { expression { return params.INDEX_WORKS_ORPHANS } }
                   steps {
-                    insert_into_solr("./index-type.sh work ${params.MAX_CORES.toInteger() - 1} works-orphans; ./index-orphans.sh works-orphans", params.MAX_CORES.toInteger(), 'works-orphans')
+                    dir(env.HOST_SOLR_BUILDER_DIR) {
+                      sh "./index-type.sh work ${params.MAX_CORES} works"
+                      // TODO sh "./index-orphans.sh orphan ${params.MAX_CORES} works"
+                      solr_commit('solr')
+                    }
                   }
                 }
                 stage('Insert authors') {
                   when { expression { return params.INDEX_AUTHORS } }
-                  steps { insert_into_solr("./index-type.sh author ${params.MAX_CORES} authors", params.MAX_CORES.toInteger(), 'authors') }
+                  steps {
+                    dir(env.HOST_SOLR_BUILDER_DIR) {
+                      sh "./index-type.sh author ${params.MAX_CORES} authors"
+                      solr_commit('solr')
+                    }
+                  }
                 }
               }
               post {
@@ -337,32 +346,4 @@ String solr_query_count(String solr_name, String type_to_count) {
 void solr_commit(String solr_name) {
   sh(label: 'Solr commit the changes',
     script: "docker-compose exec -T ${solr_name} curl http://localhost:8983/solr/update?commit=true")
-}
-
-void insert_into_solr(String index_cmd, Integer cores, String log_subdir) {
-  dir(env.HOST_SOLR_BUILDER_DIR) {
-    sh index_cmd
-
-    waitUntil {
-      script {
-        sh(label: 'Progress',
-          script: """for f in progress/${log_subdir}/*; do printf "\$f: "; tail -n1 \$f; done;""")
-
-        sleep 60*60 // By default this checks every 15s; that's unnecessary for a ~20 hour process
-
-        int running_indexers = sh(script: 'docker container ls -q -f "name=ol_run" | wc -l', returnStdout: true).trim() as Integer
-        echo "${running_indexers}"
-        return running_indexers == 0
-      }
-    }
-
-    int cores_completed = sh(
-      script: """for f in progress/${log_subdir}/*; do tail -n1 \$f; done | grep 100.00% | wc -l""",
-      returnStdout: true).trim() as Integer
-    echo "${cores_completed}"
-    echo "Assert all cores completed"
-    assert cores_completed == cores
-
-    solr_commit('solr')
-  }
 }
