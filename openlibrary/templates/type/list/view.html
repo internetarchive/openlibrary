@@ -264,13 +264,12 @@ window.q.push(function(){
                     </div>
                 </div>
 
-        $if False:
-          $ subjects = list.get_subjects()
+        $ subjects = list.get_subjects()
 
-          $:render_subjects(_("Subjects"), subjects.subjects)
-          $:render_subjects(_("People"), subjects.people)
-          $:render_subjects(_("Places"), subjects.places)
-          $:render_subjects(_("Times"), subjects.times)
+        $:render_subjects(_("Subjects"), subjects.subjects)
+        $:render_subjects(_("People"), subjects.people)
+        $:render_subjects(_("Places"), subjects.places)
+        $:render_subjects(_("Times"), subjects.times)
     </div>
 
     <div class="clearfix"></div>
