@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
@@ -12,47 +12,52 @@ set -e
 # openlibrary/tests/core/conftest.py
 # vendor/infogami/infogami/conftest.py
 
-pytest --doctest-modules \
-        --ignore=openlibrary/catalog/amazon/add_covers.py \
-        --ignore=openlibrary/catalog/amazon/amazon_to_arc.py \
-        --ignore=openlibrary/catalog/amazon/arc_index.py \
-        --ignore=openlibrary/catalog/amazon/crawl_top_books.py \
-        --ignore=openlibrary/catalog/amazon/extract_amazon_fields.py \
-        --ignore=openlibrary/catalog/amazon/import.py \
-        --ignore=openlibrary/catalog/amazon/list_done.py \
-        --ignore=openlibrary/catalog/amazon/load_merge.py \
-        --ignore=openlibrary/catalog/amazon/read_serp.py \
-        --ignore=openlibrary/catalog/edition_merge/find_dups.py \
-        --ignore=openlibrary/catalog/edition_merge/find_easy.py \
-        --ignore=openlibrary/catalog/edition_merge/merge.py \
-        --ignore=openlibrary/catalog/edition_merge/merge_works.py \
-        --ignore=openlibrary/catalog/edition_merge/run_merge.py \
-        --ignore=openlibrary/catalog/marc/lang.py \
-        --ignore=openlibrary/catalog/marc/read_toc.py \
-        --ignore=openlibrary/catalog/marc/show_records.py \
-        --ignore=openlibrary/catalog/marc/tests/test_get_subjects.py \
-        --ignore=openlibrary/catalog/marc/tests/test_parse.py \
-        --ignore=openlibrary/catalog/add_book/tests \
-        --ignore=openlibrary/catalog/merge/build_db.py \
-        --ignore=openlibrary/catalog/merge/load_from_json.py \
-        --ignore=openlibrary/core/ia.py \
-        --ignore=openlibrary/plugins/akismet/code.py \
-        --ignore=openlibrary/plugins/importapi/metaxml_to_json.py \
-        --ignore=openlibrary/plugins/openlibrary/dev_instance.py \
-        --ignore=openlibrary/plugins/openlibrary/tests/test_home.py \
-        --ignore=openlibrary/plugins/search/code.py \
-        --ignore=openlibrary/plugins/search/collapse.py \
-        --ignore=openlibrary/plugins/search/solr_client.py \
-        --ignore=openlibrary/plugins/upstream/addbook.py \
-        --ignore=openlibrary/plugins/upstream/jsdef.py \
-        --ignore=openlibrary/plugins/upstream/utils.py \
-        --ignore=openlibrary/records/tests/test_functions.py \
-        --ignore=openlibrary/solr/db_load_authors.py \
-        --ignore=openlibrary/solr/db_load_works.py \
-        --ignore=openlibrary/solr/read_dump.py \
-        --ignore=openlibrary/solr/update_work.py \
-        --ignore=openlibrary/tests/catalog/test_get_ia.py \
-        --ignore=openlibrary/utils/form.py \
-        --ignore=openlibrary/utils/schema.py \
-        --ignore=openlibrary/utils/solr.py \
-        openlibrary
+FILES_WITH_DOCTESTS=$(grep -l -r -F '>>>' --include=\*.py openlibrary | sort)
+FILES_TO_EXCLUDE=$(sort <<EOF
+openlibrary/catalog/amazon/add_covers.py
+openlibrary/catalog/amazon/amazon_to_arc.py
+openlibrary/catalog/amazon/arc_index.py
+openlibrary/catalog/amazon/crawl_top_books.py
+openlibrary/catalog/amazon/extract_amazon_fields.py
+openlibrary/catalog/amazon/import.py
+openlibrary/catalog/amazon/list_done.py
+openlibrary/catalog/amazon/load_merge.py
+openlibrary/catalog/amazon/read_serp.py
+openlibrary/catalog/edition_merge/find_dups.py
+openlibrary/catalog/edition_merge/find_easy.py
+openlibrary/catalog/edition_merge/merge.py
+openlibrary/catalog/edition_merge/merge_works.py
+openlibrary/catalog/edition_merge/run_merge.py
+openlibrary/catalog/marc/lang.py
+openlibrary/catalog/marc/read_toc.py
+openlibrary/catalog/marc/show_records.py
+openlibrary/catalog/marc/tests/test_get_subjects.py
+openlibrary/catalog/marc/tests/test_parse.py
+openlibrary/catalog/add_book/tests
+openlibrary/catalog/merge/build_db.py
+openlibrary/catalog/merge/load_from_json.py
+openlibrary/core/ia.py
+openlibrary/plugins/akismet/code.py
+openlibrary/plugins/importapi/metaxml_to_json.py
+openlibrary/plugins/openlibrary/dev_instance.py
+openlibrary/plugins/openlibrary/tests/test_home.py
+openlibrary/plugins/search/code.py
+openlibrary/plugins/search/collapse.py
+openlibrary/plugins/search/solr_client.py
+openlibrary/plugins/upstream/addbook.py
+openlibrary/plugins/upstream/jsdef.py
+openlibrary/plugins/upstream/utils.py
+openlibrary/records/tests/test_functions.py
+openlibrary/solr/db_load_authors.py
+openlibrary/solr/db_load_works.py
+openlibrary/solr/read_dump.py
+openlibrary/solr/update_work.py
+openlibrary/tests/catalog/test_get_ia.py
+openlibrary/tests/solr/test_update_work.py
+openlibrary/utils/form.py
+openlibrary/utils/schema.py
+openlibrary/utils/solr.py
+EOF
+)
+FILES_TO_TEST=$(join -v 1 <(echo $FILES_WITH_DOCTESTS | tr " " "\n") <(echo $FILES_TO_EXCLUDE | tr " " "\n"))
+pytest --doctest-modules $(for f in $FILES_TO_EXCLUDE; do echo " --ignore=$f "; done) $FILES_TO_TEST
