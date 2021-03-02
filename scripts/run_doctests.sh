@@ -13,7 +13,6 @@ set -e
 # vendor/infogami/infogami/conftest.py
 
 pytest --doctest-modules \
-        --ignore=infogami \
         --ignore=openlibrary/catalog/amazon/add_covers.py \
         --ignore=openlibrary/catalog/amazon/amazon_to_arc.py \
         --ignore=openlibrary/catalog/amazon/arc_index.py \
@@ -56,7 +55,4 @@ pytest --doctest-modules \
         --ignore=openlibrary/utils/form.py \
         --ignore=openlibrary/utils/schema.py \
         --ignore=openlibrary/utils/solr.py \
-        --ignore=scripts \
-        --ignore=tests \
-        --ignore=vendor \
-        .
+        openlibrary
