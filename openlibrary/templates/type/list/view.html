@@ -7,7 +7,7 @@ $ component_times = {}
 $ component_times['TotalTime'] = time()
 
 $ page = safeint(query_param('page'), 1) - 1
-$ page_size = 25
+$ page_size = 50
 $ meta_cover_url = None # Add metatag for image at end of this template, if a cover image is present
 $ meta_description = title
 $if list.description:
@@ -293,4 +293,3 @@ window.q.push(function(){
 $if meta_cover_url is not None:
     $add_metatag(property="og:image", content=meta_cover_url)
     $add_metatag(property="twitter:image", content=meta_cover_url)
-
