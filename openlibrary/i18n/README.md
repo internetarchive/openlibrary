@@ -18,7 +18,7 @@ If you're just getting started, be sure to **Fork and Clone the Repository from 
 3. **Make the translations and send a PR.** You can edit the `message.po` file using your favourite editor, or a .po specific tool such as [poedit](https://poedit.net/), and send in a Pull Request. Pull Request Guidelines can be found on our [CONTRIBUTING](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) guide and our [Git Cheat Sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet).
 
 ## Viewing and testing your changes
-In order to open your language version of the website in the browser, you will need to setup your docker environment (see our [Docker README](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)). After having run `docker-compose up -d`, run `docker-compose exec web make i18n` to build the translation files; then e.g. http://localhost:8080/?lang=fr should work.
+In order to open your language version of the website in the browser, you will need to setup your docker environment (see our [Docker README](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)). After having run `docker-compose up -d`, run `docker-compose run --rm home -uroot make i18n` to build the translation files; then e.g. http://localhost:8080/?lang=fr should work.
 To view production Open Library in a preferred language, you will need to [adjust your browser language preferences]( https://www.w3.org/International/questions/qa-lang-priorities). You can also use the `lang=` parameter on the URL with a two character language code, e.g. https://openlibrary.org/?lang=fr
 
 ## Updating an existing language
@@ -26,7 +26,7 @@ To view production Open Library in a preferred language, you will need to [adjus
 If changes have been made to the `.pot` file, to reflect those changes to a given language you need to merge the two files. After setting up your docker environment (see our [Docker README](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md), run:
 
 ```bash
-docker-compose run web ./scripts/i18n-messages update
+docker-compose run --rm home -uroot ./scripts/i18n-messages update
 ```
 
 See our [i18n guideline in the wiki](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide#internationalization-i18n---for-translators) for important and useful tips. This will update _all_ the languages; feel free to only `git add` on your language, and not commit the others.
@@ -42,7 +42,7 @@ To add i18n support to Open Library, templates and macros are modified to use ge
 The messages in the the templates and macros are extracted and `.pot` file is created. After setting up your docker environment (see our [Docker README](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md), run:
 
 ```bash
-docker-compose run web ./scripts/i18n-messages extract
+docker-compose run --rm home -uroot ./scripts/i18n-messages extract
 ```    
     
 The `.pot` file contains a `msgid` and a `msgstr` for each translation used. The `msgstr` field for each entry is filled with the translation of the required language and that file is placed at `openlibrary/i18n/$locale/messages.po`:
