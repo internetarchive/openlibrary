@@ -267,7 +267,7 @@ window.q.push(function(){
     <div class="clearfix"></div>
 
     $:macros.Pager(page+1, len(list.seeds), page_size)
-
+    $ component_times['TotalTime'] = time() - component_times['TotalTime']
     $if query_param('debug'):
       $:macros.Profile(component_times)
 

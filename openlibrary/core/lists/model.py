@@ -368,7 +368,7 @@ class Seed:
 
     def _load_solrdata(self):
         return {
-            'last_update': self.document.last_modified
+            'last_update': self.document.get('last_modified')
         }
 
     def _inttime_to_datetime(self, t):
