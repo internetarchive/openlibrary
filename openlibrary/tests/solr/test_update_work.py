@@ -452,7 +452,7 @@ class Test_update_items:
         requests = update_work.update_author('/authors/OL23A')
         assert isinstance(requests, list)
         assert isinstance(requests[0], update_work.DeleteRequest)
-        assert requests[0].toxml() == '<delete><query>key:/authors/OL23A</query></delete>'
+        assert requests[0].toxml() == '<delete><id>/authors/OL23A</id></delete>'
 
     def test_redirect_author(self):
         update_work.data_provider = FakeDataProvider([
@@ -461,7 +461,7 @@ class Test_update_items:
         requests = update_work.update_author('/authors/OL24A')
         assert isinstance(requests, list)
         assert isinstance(requests[0], update_work.DeleteRequest)
-        assert requests[0].toxml() == '<delete><query>key:/authors/OL24A</query></delete>'
+        assert requests[0].toxml() == '<delete><id>/authors/OL24A</id></delete>'
 
 
     def test_update_author(self, monkeypatch):
@@ -503,7 +503,7 @@ class Test_update_items:
         assert isinstance(del_req, update_work.DeleteRequest)
         assert del_req.toxml().startswith("<delete>")
         for olid in olids:
-            assert "<query>key:%s</query>" % olid in del_req.toxml()
+            assert "<id>%s</id>" % olid in del_req.toxml()
 
 
 class TestUpdateWork:
@@ -515,19 +515,19 @@ class TestUpdateWork:
         requests = update_work.update_work({'key': '/works/OL23W', 'type': {'key': '/type/delete'}})
         assert len(requests) == 1
         assert isinstance(requests[0], update_work.DeleteRequest)
-        assert requests[0].toxml() == '<delete><query>key:/works/OL23W</query></delete>'
+        assert requests[0].toxml() == '<delete><id>/works/OL23W</id></delete>'
 
     def test_delete_editions(self):
         requests = update_work.update_work({'key': '/works/OL23M', 'type': {'key': '/type/delete'}})
         assert len(requests) == 1
         assert isinstance(requests[0], update_work.DeleteRequest)
-        assert requests[0].toxml() == '<delete><query>key:/works/OL23M</query></delete>'
+        assert requests[0].toxml() == '<delete><id>/works/OL23M</id></delete>'
 
     def test_redirects(self):
         requests = update_work.update_work({'key': '/works/OL23W', 'type': {'key': '/type/redirect'}})
         assert len(requests) == 1
         assert isinstance(requests[0], update_work.DeleteRequest)
-        assert requests[0].toxml() == '<delete><query>key:/works/OL23W</query></delete>'
+        assert requests[0].toxml() == '<delete><id>/works/OL23W</id></delete>'
 
 
 class Test_pick_cover_edition:
