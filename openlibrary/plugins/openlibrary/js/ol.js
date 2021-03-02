@@ -157,13 +157,11 @@ export function initPreviewButton() {
 }
 
 export function initWebsiteTranslationOptions() {
-    $(document).ready(function () {
-        $('#locale-options li a').on('click', function () {
-            event.preventDefault();
-            const locale = $(this).data('lang-id');
-            setValueInCookie('HTTP_LANG', locale);
-            location.reload();
-        });
+    $('#locale-options li a').on('click', function (event) {
+        event.preventDefault();
+        const locale = $(this).data('lang-id');
+        setValueInCookie('HTTP_LANG', locale);
+        location.reload();
     });
 
 }

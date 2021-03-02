@@ -4,7 +4,7 @@ import random
 import web
 import logging
 
-from infogami.utils import delegate, i18n
+from infogami.utils import delegate
 from infogami.utils.view import render_template, public
 from infogami.infobase.client import storify
 from infogami import config
@@ -50,8 +50,9 @@ def get_homepage():
     return dict(page)
 
 
-def get_cached_homepage(lang):
+def get_cached_homepage():
     five_minutes = 5 * dateutil.MINUTE_SECS
+    lang = web.ctx.lang
     pd = web.cookies().get('pd', False)
     key = "home.homepage." + lang
     if pd:
@@ -63,10 +64,7 @@ class home(delegate.page):
     path = "/"
 
     def GET(self):
-        # Set the global web.ctx.lang var to the website locale that will be used
-        i18n.i18n_loadhook()
-        website_locale = web.ctx.lang
-        cached_homepage = get_cached_homepage(website_locale)
+        cached_homepage = get_cached_homepage()
         # when homepage is cached, home/index.html template
         # doesn't run ctx.setdefault to set the cssfile so we must do so here:
         web.template.Template.globals['ctx']['cssfile'] = 'home'

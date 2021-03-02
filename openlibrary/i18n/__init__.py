@@ -8,7 +8,6 @@ from babel.support import Translations
 from babel.messages import Catalog
 from babel.messages.pofile import read_po, write_po
 from babel.messages.mofile import write_mo
-from infogami.utils.i18n import i18n_loadhook
 from babel.messages.extract import extract_from_file, extract_from_dir, extract_python
 
 root = os.path.dirname(__file__)
@@ -113,8 +112,7 @@ class GetText:
     def __call__(self, string, *args, **kwargs):
         """Translate a given string to the language of the current locale."""
         # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
-        website_locale = web.ctx.lang        
-        translations = load_translations(website_locale)
+        translations = load_translations(web.ctx.lang)
         value = (translations and translations.ugettext(string)) or string
 
         if args:
@@ -153,8 +151,7 @@ class LazyObject:
 
 def ungettext(s1, s2, _n, *a, **kw):
     # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
-    website_locale = web.ctx.lang  
-    translations = load_translations(website_locale)
+    translations = load_translations(web.ctx.lang)
     value = translations and translations.ungettext(s1, s2, _n)
     if not value:
         # fallback when translation is not provided
@@ -173,8 +170,7 @@ def ungettext(s1, s2, _n, *a, **kw):
 def gettext_territory(code):
     """Returns the territory name in the current locale."""
     # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
-    lang = web.ctx.lang  
-    locale = load_translations(lang)
+    locale = load_locale(web.ctx.lang)
     return locale.territories.get(code, code)
 
 gettext = GetText()

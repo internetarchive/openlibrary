@@ -33,7 +33,6 @@ from infogami import config
 # handy utility to parse ISO date strings
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
-from infogami.utils.i18n import i18n_loadhook
 
 # TODO: i18n should be moved to core or infogami
 from openlibrary.i18n import gettext as _  # noqa: F401
@@ -49,7 +48,7 @@ __all__ = [
     "private_collections", "private_collection_in",
 
     # functions imported from elsewhere
-    "parse_datetime", "safeint", "i18n_loadhook"
+    "parse_datetime", "safeint"
 ]
 __docformat__ = "restructuredtext en"
 
