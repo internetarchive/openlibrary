@@ -499,7 +499,7 @@ async def main(cmd, job, postgres="postgres.ini", ol="http://ol/",
 
         start = time.time()
         seen = 0
-        for batch in db.query_batched(q, size=500, cache_json=True):
+        for batch in db.query_batched(q, size=5000, cache_json=True):
             keys = [x[0] for x in batch]
             plog.update(next=keys[0], cached=len(db.cache), ia_cache=0, q_1='?',
                         q_auth='?', q_ia='?')
