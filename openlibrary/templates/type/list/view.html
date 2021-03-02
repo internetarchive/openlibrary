@@ -206,13 +206,11 @@ window.q.push(function(){
                         <h3 class="booktitle">
                             <a href="$seed.url" class="results">$seed.title</a>
                         </h3>
-                        $ work_editions_count = 0
                         $if seed.type in ['edition', 'work']:
                             $if seed.type == "work":
                                 $ authors = seed.document.get_authors()
                             $else:
                                 $if seed.document.works:
-                                    $ work_editions_count = seed.document.works[0].edition_count
                                     $ authors = seed.document.works[0].get_authors()
                                 $else:
                                     $ authors = seed.document.get_authors()
@@ -220,12 +218,6 @@ window.q.push(function(){
                         <span class="meta">
                           <!-- FIXME: I18N using internal seed.type directly for display is not internationalizable -->
                           <span class="type small">$seed.type</span>
-                        $if seed.type == "edition" and seed.document.get('works'):
-                            $:ungettext('- <a href="%(url)s">1 edition</a> in catalog', '- <a href="%(url)s">%(count)s editions</a> in catalog', seed.work_count, count=commify(work_editions_count), url=seed.document.works[0].url())
-                        $elif seed.type == "work":
-                            $ungettext('- 1 edition', '- %(count)s editions', seed.edition_count, count=commify(seed.edition_count))
-                        $else:
-                            $ungettext('- 1 work', '- %(count)s works', seed.work_count, count=commify(seed.work_count))
                         </span>
 
                         $if seed.last_update:

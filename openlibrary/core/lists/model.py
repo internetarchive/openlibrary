@@ -367,38 +367,9 @@ class Seed:
         return self._solrdata
 
     def _load_solrdata(self):
-        if self.type == "edition":
-            return {
-                'ebook_count': int(bool(self.document.ocaid)),
-                'edition_count': 1,
-                'work_count': 1,
-                'last_update': self.document.last_modified
-            }
-        elif self.type != 'redirect':
-            # This code is fetching every document in the list from
-            # solr (1 at a time) and appears to be the source of (some of) our
-            # List performance issues.
-            q = self.get_solr_query_term()
-            if q:
-                solr = get_solr()
-                result = solr.select(q, fields=["edition_count", "ebook_count_i"])
-                last_update_i = [doc['last_update_i'] for doc in result.docs if 'last_update_i' in doc]
-                if last_update_i:
-                    last_update = self._inttime_to_datetime(last_update_i)
-                else:
-                    # if last_update is not present in solr, consider last_modfied of
-                    # that document as last_update
-                    if self.type in ['work', 'author']:
-                        last_update = self.document.last_modified
-                    else:
-                        last_update = None
-                return {
-                    'ebook_count': sum(doc.get('ebook_count_i', 0) for doc in result.docs),
-                    'edition_count': sum(doc.get('edition_count', 0) for doc in result.docs),
-                    'work_count': result.num_found,
-                    'last_update': last_update
-                }
-        return {}
+        return {
+            'last_update': self.document.last_modified
+        }
 
     def _inttime_to_datetime(self, t):
         return datetime.datetime(*time.gmtime(t)[:6])
