@@ -113,6 +113,7 @@ $else:
 
 $if ocaid and secondary_action and availability.get('is_printdisabled'):
   $:macros.BookPreview(ocaid)
+  $:macros.BookSearchInside(ocaid)
 
 $:post
 
