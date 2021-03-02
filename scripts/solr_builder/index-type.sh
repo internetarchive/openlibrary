@@ -36,10 +36,13 @@ while [ $done != "true" ]; do
 
     # Stagger starting of the runners so they don't all request a lot of
     # memory/resources at the same time
-    if [ $done != "true" ]; then sleep $((3 * 60)); fi
+    # In order to still have INSTANCES running at the same time, we want
+    # ~the time a chunk takes (~1100s, at time of writing) divided by the
+    # number of desired instances. Otherwise we'll have fewer running.
+    if [ $done != "true" ]; then sleep $((1100 / INSTANCES)); fi
 
     runners=$(docker container ls -q -f "name=ol_run" | wc -l)
   done;
 
-  if [ $done != "true" ]; then sleep $((5 * 60)); fi
+  if [ $done != "true" ]; then sleep 30; fi
 done
