@@ -231,8 +231,15 @@ pipeline {
               post {
                 always {
                   dir(env.HOST_SOLR_BUILDER_DIR) {
-                    sh '''for name in $(ls logs/works-orphans); do docker logs ${name/.txt/} 2>&1; done | gzip > logs/works-orphans-indexing.log.gz'''
-                    archiveArtifacts artifacts: "logs/works-orphans-indexing.log.gz"
+                    // Save Progress Files
+                    sh '''tail --quiet -n1 $(ls -tr progress/works/*) | gzip > progress/works-progress.txt.gz'''
+                    archiveArtifacts artifacts: "progress/works-progress.txt.gz"
+                    sh '''tail --quiet -n1 $(ls -tr progress/authors/*) | gzip > progress/authors-progress.txt.gz'''
+                    archiveArtifacts artifacts: "progress/authors-progress.txt.gz"
+
+                    // Save Logs files
+                    sh '''for name in $(ls logs/works); do docker logs ${name/.txt/} 2>&1; done | gzip > logs/works-indexing.log.gz'''
+                    archiveArtifacts artifacts: "logs/works-indexing.log.gz"
                     sh '''for name in $(ls logs/authors); do docker logs ${name/.txt/} 2>&1; done | gzip > logs/authors-indexing.log.gz'''
                     archiveArtifacts artifacts: "logs/authors-indexing.log.gz"
                   }
