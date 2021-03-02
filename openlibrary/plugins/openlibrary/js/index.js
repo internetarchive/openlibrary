@@ -147,7 +147,7 @@ jQuery(function () {
     }
 
     if (document.getElementById('excerpts')) {
-        import (/* webpackChunkName: "books_edit" */ './edit.js')
+        import (/* webpackChunkName: "book_edit" */ './edit.js')
             .then((module) => module.initEdit());
     }
 
