@@ -16,11 +16,14 @@ CHUNK_SIZE=10000
 done="false"
 next_start="//"
 
+runner_id=0
+
 while [ $done != "true" ]; do
   runners=$(docker container ls -q -f "name=ol_run" | wc -l)
   while [ $((runners < INSTANCES)) = "1" ] && [ $done != "true" ]; do
     # Actually start the job
-    RUN_SIG="ol_run_${TYPE}s_${RANDOM}"
+    RUN_SIG="ol_run_${TYPE}s_${runner_id}"
+    ((runner_id++))
     mkdir -p {logs,progress}/$LOG_DIR
     touch {logs,progress}/$LOG_DIR/$RUN_SIG.txt
     DOCKER_IMAGE_NAME=$RUN_SIG docker_solr_builder index "${TYPE}s" \
