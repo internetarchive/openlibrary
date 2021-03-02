@@ -522,6 +522,21 @@ class Author(models.Author):
         result = works_by_author(self.get_olid(), rows=0)
         return result.num_found
 
+    def as_fake_solr_record(self):
+        record = {
+            'key': self.key,
+            'name': self.name,
+            'top_subjects': [],
+            'work_count': 0,
+            'type': 'author',
+        }
+        if self.death_date:
+            record['death_date'] = self.death_date
+        if self.birth_date:
+            record['birth_date'] = self.birth_date
+        return record
+
+
 re_year = re.compile(r'(\d{4})$')
 
 
@@ -699,6 +714,15 @@ class Work(models.Work):
         exisiting = set(int(c.id) for c in self.get_covers())
         covers = [e.get_cover() for e in editions]
         return [c for c in covers if c and int(c.id) not in exisiting]
+
+    def as_fake_solr_record(self):
+        record = {
+            'key': self.key,
+            'title': self.get('title'),
+        }
+        if self.subtitle:
+            record['subtitle'] = self.subtitle
+        return record
 
 class Subject(client.Thing):
     def _get_solr_result(self):

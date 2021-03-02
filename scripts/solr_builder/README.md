@@ -51,7 +51,7 @@ echo "${DAY_BEFORE_DUMP}:0" > solr-builder.offset
 Create `/etc/supervisor/conf.d/solrbuilder-solrupdater.conf` with:
 ```
 [program:solrbuilder-solrupdater]
-command=/olsystem/bin/olenv python /opt/openlibrary/openlibrary/scripts/new-solr-updater.py
+command=python3 /opt/openlibrary/openlibrary/scripts/new-solr-updater.py
   --config /opt/openlibrary/openlibrary/conf/solrbuilder-openlibrary.yml
   --state-file /opt/openlibrary/openlibrary/solr-builder.offset
   --socket-timeout 600

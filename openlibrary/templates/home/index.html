@@ -1,6 +1,6 @@
 $def with (stats=None, blog_posts=None, test=False)
 
-$ _x = ctx.setdefault('bodyid', 'home')
+$ _x = ctx.setdefault('cssfile', 'home')
 $var title: $_("Welcome to Open Library")
 
 $ meta_description = "Open Library is an open, editable library catalog, building towards a web page for every book ever published."
@@ -15,22 +15,28 @@ $add_metatag(property="og:site_name", content="Open Library")
 $add_metatag(name="twitter:image:alt", content="Open Library Logo")
 $add_metatag(name="twitter:card", content="homepage_summary")
 
+$code:
+  FEB_READS = 'key:(/works/OL18181363W OR /works/OL3481095W OR /works/OL4360244W OR /works/OL20017931W OR /works/OL20615204W OR /works/OL2363176W OR /works/OL17869588W OR /works/OL17784026W OR /works/OL21179764W OR /works/OL8870595W OR /works/OL21054973W OR /works/OL21673730W OR /works/OL20548582W OR /works/OL15279153W OR /works/OL19992836W OR /works/OL15691480W OR /works/OL16305795W OR /works/OL19923407W OR /works/OL16529029W OR /works/OL9242636W OR /works/OL17529769W OR /works/OL3345332W OR /works/OL20013209W OR /works/OL20015483W OR /works/OL19987474W OR /works/OL19992114W OR /works/OL17893900W OR /works/OL18435803W OR /works/OL17314666W OR /works/OL17358927W OR /works/OL15933199W OR /works/OL17858931W OR /works/OL18187603W OR /works/OL16853133W OR /works/OL16894393W OR /works/OL19976062W OR /works/OL20037832W OR /works/OL16885033W OR /works/OL19708155W OR /works/OL17921756W OR /works/OL21037237W OR /works/OL17786027W OR /works/OL17345141W OR /works/OL21294275W OR /works/OL9582417W OR /works/OL9357555W OR /works/OL20907853W OR /works/OL20005568W OR /works/OL3296483W OR /works/OL11983310W OR /works/OL7159886W OR /works/OL1662667W OR /works/OL19990553W OR /works/OL15285884W OR /works/OL6888879W OR /works/OL17900435W OR /works/OL5706069W OR /works/OL2977589W OR /works/OL1593701W OR /works/OL16451688W OR /works/OL16910779W OR /works/OL18215336W OR /works/OL17371695W OR /works/OL3521634W OR /works/OL17355199W OR /works/OL5739152W OR /works/OL20016962W OR /works/OL3191599W OR /works/OL20896695W OR /works/OL19752490W OR /works/OL18335154W OR /works/OL4582875W OR /works/OL16515210W OR /works/OL16868407W OR /works/OL3459949W OR /works/OL16025481W OR /works/OL1928280W OR /works/OL6208302W OR /works/OL17566265W OR /works/OL20652811W OR /works/OL22059158W OR /works/OL4370955W OR /works/OL19998526W OR /works/OL6218060W OR /works/OL16813953W OR /works/OL21179974W OR /works/OL7213898W OR /works/OL17872185W OR /works/OL17340085W OR /works/OL21584979W OR /works/OL21078916W OR /works/OL158519W OR /works/OL4114499W OR /works/OL19638041W OR /works/OL16844793W OR /works/OL20940485W OR /works/OL17392121W OR /works/OL20030448W OR /works/OL15920474W OR /works/OL20544657W)'
+
 <div id="contentBody">
   $:render_template("home/categories", test=test)
 
   $:render_template("books/custom_carousel", books=readonline_carousel(), title=_('Classic Books'), url="/read", key="public_domain", test=test)
 
-  $:render_template("home/custom_ia_carousel", title=_('Books We Love'), key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date desc"], limit=18, test=test)
+  $if today().month == 2 and not test:
+    $:macros.QueryCarousel(query=FEB_READS, title=_('Books For February'), key="monthly_reads", url="/collections/february", sort='editions')
+    
+  $:render_template("home/custom_ia_carousel", title=_('Books We Love'), key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["lending___last_browse desc"], limit=18, test=test)
 
-  $:render_template("home/custom_ia_carousel", title=_('Recently Returned'), key="recently_returned", sorts=["loans__status__last_loan_date desc"], limit=18, test=test)
+  $:render_template("home/custom_ia_carousel", title=_('Recently Returned'), key="recently_returned", sorts=["lending___last_browse desc"], limit=18, test=test)
 
-  $:render_template("home/custom_ia_carousel", title=_('Romance'), key="romance", query="subject:(romance)", sorts=["loans__status__last_loan_date desc"], limit=18, test=test)
+  $:render_template("home/custom_ia_carousel", title=_('Romance'), key="romance", query="subject:(romance)", sorts=["lending___last_browse desc"], limit=18, test=test)
 
-  $:render_template("home/custom_ia_carousel", title=_('Kids'), key="children", query="subject:(Juvenile Fiction)", sorts=["loans__status__last_loan_date desc"], limit=18, test=test)
+  $:render_template("home/custom_ia_carousel", title=_('Kids'), key="children", query="subject:(Juvenile Fiction)", sorts=["lending___last_browse desc"], limit=18, test=test)
 
   $:render_template("home/custom_ia_carousel", title=_('Thrillers'), key="thrillers", query="preset:thrillers", sorts=["downloads desc"], limit=18, test=test)
 
-  $:render_template("home/custom_ia_carousel", title=_('Textbooks'), key="textbooks", subject="textbooks", sorts=["loans__status__last_loan_date desc"], limit=18, test=test)
+  $:render_template("home/custom_ia_carousel", title=_('Textbooks'), key="textbooks", subject="textbooks", sorts=["lending___last_browse desc"], limit=18, test=test)
 
   $:render_template("home/custom_ia_carousel", title="Authors Alliance & MIT Press", key="authorsalliance_mit_press", query="preset:authorsalliance_mitpress", limit=18, test=test)
 

@@ -80,6 +80,8 @@ ALL_FIELDS = [
     # Classifications
     "lcc",
     "ddc",
+    "lcc_sort",
+    "ddc_sort",
 ]
 FACET_FIELDS = [
     "has_fulltext",
@@ -98,6 +100,31 @@ FIELD_NAME_MAP = {
     'authors': 'author_name',
     'by': 'author_name',
     'publishers': 'publisher',
+    # "Private" fields
+    # This is private because we'll change it to a multi-valued field instead of a
+    # plain string at the next opportunity, which will make it much more usable.
+    '_ia_collection': 'ia_collection_s'
+}
+SORTS = {
+    'editions': 'edition_count desc',
+
+    'old': 'first_publish_year asc',
+    'new': 'first_publish_year desc',
+
+    'scans': 'ia_count desc',
+
+    # Classifications
+    'lcc_sort': 'lcc_sort asc',
+    'lcc_sort asc': 'lcc_sort asc',
+    'lcc_sort desc': 'lcc_sort desc',
+    'ddc_sort': 'ddc_sort asc',
+    'ddc_sort asc': 'ddc_sort asc',
+    'ddc_sort desc': 'ddc_sort desc',
+
+    # Random
+    'random': 'random_1 asc',
+    'random asc': 'random_1 asc',
+    'random desc': 'random_1 desc',
 }
 OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
@@ -113,6 +140,32 @@ re_subject_types = re.compile('^(places|times|people)/(.*)')
 re_olid = re.compile(r'^OL\d+([AMW])$')
 
 plurals = dict((f + 's', f) for f in ('publisher', 'author'))
+
+
+def process_sort(raw_sort):
+    """
+    :param str raw_sort:
+    :rtype: str
+
+    >>> process_sort('editions')
+    'edition_count desc'
+    >>> process_sort('editions, new')
+    'edition_count desc,first_publish_year desc'
+    >>> process_sort('random')
+    'random_1 asc'
+    >>> process_sort('random_custom_seed')
+    'random_custom_seed asc'
+    >>> process_sort('random_custom_seed desc')
+    'random_custom_seed desc'
+    >>> process_sort('random_custom_seed asc')
+    'random_custom_seed asc'
+    """
+    def process_individual_sort(sort):
+        if sort.startswith('random_'):
+            return sort if ' ' in sort else sort + ' asc'
+        else:
+            return SORTS[sort]
+    return ','.join(process_individual_sort(s.strip()) for s in raw_sort.split(','))
 
 
 def read_author_facet(af):
@@ -212,6 +265,20 @@ def ddc_transform(raw):
     # if none of the transforms took
     return raw
 
+
+def ia_collection_s_transform(raw):
+    """
+    Because this field is not a multi-valued field in solr, but a simple ;-separate
+    string, we have to do searches like this for now.
+    """
+    result = raw
+    if not result.startswith('*'):
+        result = '*' + result
+    if not result.endswith('*'):
+        result += '*'
+    return result
+
+
 def parse_query_fields(q):
     found = [(m.start(), m.end()) for m in re_fields.finditer(q)]
     first = q[:found[0][0]].strip() if found else q.strip()
@@ -235,10 +302,12 @@ def parse_query_fields(q):
             isbn = normalize_isbn(v)
             if isbn:
                 v = isbn
-        if field_name == 'lcc':
+        if field_name in ('lcc', 'lcc_sort'):
             v = lcc_transform(v)
-        if field_name == 'ddc':
+        if field_name == ('ddc', 'ddc_sort'):
             v = ddc_transform(v)
+        if field_name == 'ia_collection_s':
+            v = ia_collection_s_transform(v)
 
         yield {'field': field_name, 'value': v.replace(':', r'\:')}
         if op_found:
@@ -400,6 +469,8 @@ def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=Non
     return (reply, url, q_list)
 
 def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
+    if sort:
+        sort = process_sort(sort)
     (reply, solr_select, q_list) = run_solr_query(
         param, rows, page, sort, spellcheck_count)
     is_bad = False
@@ -928,19 +999,14 @@ def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet
     query: dict
     sort: str editions|old|new|scans
     """
-    sorts = {
-        'editions': 'edition_count desc',
-        'old': 'first_publish_year asc',
-        'new': 'first_publish_year desc',
-        'scans': 'ia_count desc'
-    }
     query['wt'] = 'json'
-
+    if sort:
+        sort = process_sort(sort)
     try:
         (reply, solr_select, q_list) = run_solr_query(query,
                                                       rows=limit,
                                                       page=page,
-                                                      sort=sorts.get(sort),
+                                                      sort=sort,
                                                       offset=offset,
                                                       fields=fields,
                                                       facet=facet,

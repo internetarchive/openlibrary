@@ -54,15 +54,15 @@ $if not keys:
 
 $if formdata:
     $if not formdata.master:
-        <div class="note">$_("Please select a master author record.")</div>
+        <div class="note">$_("Please select a primary author record.")</div>
     $if len(formdata.selected) == 0:
         <div class="note">$_("Please select some authors to merge.")</div>
 
 <ol class="sansserif">
-    <li>$_('Select a "master" record that best represents the author -')
+    <li>$_('Select a "primary" record that best represents the author -')
         <input type="radio" name="radio" id="radio" checked="checked"/>
     </li>
-    <li>$_('Select author records which should be merged with the master')
+    <li>$_('Select author records which should be merged with the primary')
         -
         <input type="checkbox" name="checkbox" id="checkbox" checked="checked" />
     </li>
@@ -70,7 +70,7 @@ $if formdata:
     </li>
 </ol>
 
-<div id="noMaster" title="$_('No Master record')" style="text-align:left;">
+<div id="noMaster" title="$_('No primary record')" style="text-align:left;">
     <p>$_('You must select a master record to point the duplicates toward.')</p>
 </div>
 

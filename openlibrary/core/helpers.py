@@ -101,7 +101,7 @@ def sanitize(html, encoding='utf8'):
 def json_encode(d, **kw):
     """Same as json.dumps.
     """
-    return json.dumps(d or {}, **kw)
+    return json.dumps(d, **kw)
 
 
 def safesort(iterable, key=None, reverse=False):

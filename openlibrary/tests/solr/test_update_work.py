@@ -7,7 +7,7 @@ except ImportError:
 
 from openlibrary.solr import update_work
 from openlibrary.solr.data_provider import DataProvider
-from openlibrary.solr.update_work import build_data
+from openlibrary.solr.update_work import build_data, pick_cover_edition
 
 author_counter = 0
 edition_counter = 0
@@ -528,3 +528,36 @@ class TestUpdateWork:
         assert len(requests) == 1
         assert isinstance(requests[0], update_work.DeleteRequest)
         assert requests[0].toxml() == '<delete><query>key:/works/OL23W</query></delete>'
+
+
+class Test_pick_cover_edition:
+    def test_no_editions(self):
+        assert pick_cover_edition([], 123) is None
+        assert pick_cover_edition([], None) is None
+
+    def test_no_work_cover(self):
+        ed_w_cover = {'covers': [123]}
+        ed_wo_cover = {}
+        ed_w_neg_cover = {'covers': [-1]}
+        ed_w_posneg_cover = {'covers': [-1, 123]}
+        assert pick_cover_edition([ed_w_cover], None) == ed_w_cover
+        assert pick_cover_edition([ed_wo_cover], None) is None
+        assert pick_cover_edition([ed_w_neg_cover], None) is None
+        assert pick_cover_edition([ed_w_posneg_cover], None) == ed_w_posneg_cover
+        assert pick_cover_edition([ed_wo_cover, ed_w_cover], None) == ed_w_cover
+        assert pick_cover_edition([ed_w_neg_cover, ed_w_cover], None) == ed_w_cover
+
+    def test_prefers_work_cover(self):
+        ed_w_cover = {'covers': [123]}
+        ed_w_work_cover = {'covers': [456]}
+        assert pick_cover_edition([ed_w_cover, ed_w_work_cover], 456) == ed_w_work_cover
+
+    def test_prefers_eng_covers(self):
+        ed_no_lang = {'covers': [123]}
+        ed_eng = {'covers': [456], 'languages': [{'key': '/languages/eng'}]}
+        ed_fra = {'covers': [789], 'languages': [{'key': '/languages/fra'}]}
+        assert pick_cover_edition([ed_no_lang, ed_fra, ed_eng], 456) == ed_eng
+
+    def test_prefers_anything(self):
+        ed = {'covers': [123]}
+        assert pick_cover_edition([ed], 456) == ed

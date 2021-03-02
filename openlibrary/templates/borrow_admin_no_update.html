@@ -2,7 +2,7 @@ $def with (page, edition_loans, user_loans, user_ip)
 
 $var title: $page.title
 
-$ _x = ctx.setdefault('bodyid', 'plain')
+$ _x = ctx.setdefault('cssfile', 'plain')
 
 $ available_loans = page.get_available_loans()
 

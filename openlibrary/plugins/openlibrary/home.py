@@ -41,7 +41,7 @@ def get_homepage():
         stats = None
     blog_posts = get_blog_feeds()
 
-    # render tempalte should be setting ctx.bodyid
+    # render tempalte should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
     # during subsequent called
     page = render_template(
@@ -53,8 +53,12 @@ def get_homepage():
 def get_cached_homepage():
     five_minutes = 5 * dateutil.MINUTE_SECS
     lang = web.ctx.get("lang", "en")
+    pd = web.cookies().get('pd', False)
+    key = "home.homepage." + lang
+    if pd:
+        key += '.pd'
     return cache.memcache_memoize(
-        get_homepage, "home.homepage." + lang, timeout=five_minutes)()
+        get_homepage, key, timeout=five_minutes)()
 
 class home(delegate.page):
     path = "/"
@@ -62,8 +66,8 @@ class home(delegate.page):
     def GET(self):
         cached_homepage = get_cached_homepage()
         # when homepage is cached, home/index.html template
-        # doesn't run ctx.setdefault to set the bodyid so we must do so here:
-        web.template.Template.globals['ctx']['bodyid'] = 'home'
+        # doesn't run ctx.setdefault to set the cssfile so we must do so here:
+        web.template.Template.globals['ctx']['cssfile'] = 'home'
         return web.template.TemplateResult(cached_homepage)
 
 class random_book(delegate.page):
