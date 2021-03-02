@@ -267,7 +267,7 @@ class ia_importapi(importapi):
                 _ids = [get_subfield(f, id_subfield) for f in rec.read_fields([id_field]) if f and get_subfield(f, id_subfield)]
                 edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in _ids]
 
-            # Dont't add the book if the MARC record is a non-monograph item,
+            # Don't add the book if the MARC record is a non-monograph item,
             # unless it is a serial (etc) for a scanning partner.
             try:
                 raise_non_book_marc(rec, **next_data)
