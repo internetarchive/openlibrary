@@ -266,10 +266,19 @@ class ListMixin:
                 d[kind].append(s)
         return d
 
-    def get_seeds(self, sort=False):
-        seeds = [Seed(self, s) for s in self.seeds]
+    def get_seeds(self, sort=False, resolve_redirects=False):
+        seeds = []
+        for s in self.seeds:
+            seed = Seed(self, s)
+            max_checks = 10
+            while resolve_redirects and seed.type == 'redirect' and max_checks:
+                seed = Seed(self, web.ctx.site.get(seed.document.location))
+                max_checks -= 1
+            seeds.append(seed)
+
         if sort:
             seeds = h.safesort(seeds, reverse=True, key=lambda seed: seed.last_update)
+
         return seeds
 
     def get_seed(self, seed):
@@ -339,12 +348,6 @@ class Seed:
     def _get_document_basekey(self):
         return self.document.key.split("/")[-1]
 
-
-    def resolve_redir(self):
-        if self.type == 'redirect':
-            return web.ctx.site.get(self.document.location)
-        return self
-
     def get_solr_query_term(self):
         if self.type == 'edition':
             return "edition_key:" + self._get_document_basekey()
@@ -372,6 +375,9 @@ class Seed:
                 'last_update': self.document.last_modified
             }
         elif self.type != 'redirect':
+            # This code is fetching every document in the list from
+            # solr (1 at a time) and appears to be the source of (some of) our
+            # List performance issues.
             q = self.get_solr_query_term()
             if q:
                 solr = get_solr()

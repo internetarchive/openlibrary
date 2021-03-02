@@ -178,14 +178,10 @@ window.q.push(function(){
 
         <ul id="listResults" class="list-books">
           $ component_times['get_seeds'] = time()
-          $ seeds = list.get_seeds(sort=True)[page*page_size:page*page_size+page_size]
+          $ seeds = list.get_seeds(sort=True, resolve_redirects=True)[page*page_size:page*page_size+page_size]
           $ component_times['get_seeds'] = time() - component_times['get_seeds']
 
           $for seed in seeds:
-            $ url = seed.url
-            $if seed.type == 'redirect':
-              $ seed = seed.resolve_redir()
-              $ url = seed.url()
             <li id="seed-$loop.index" class="searchResultItem">
                 $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
                 $ cover = seed.get_cover()
@@ -198,7 +194,7 @@ window.q.push(function(){
                 $if not meta_cover_url:
                     $ meta_cover_url = cover_url
                 <span class="bookcover">
-                    <a href="$url">
+                    <a href="$seed.url">
                       <img src="$cover_url" alt/>
                     </a>
                 </span>
@@ -208,7 +204,7 @@ window.q.push(function(){
                         $if seed.type in ['edition', 'work']:
                             $ doc = seed.document
                         <h3 class="booktitle">
-                            <a href="$url" class="results">$seed.title</a>
+                            <a href="$seed.url" class="results">$seed.title</a>
                         </h3>
                         $ work_editions_count = 0
                         $if seed.type in ['edition', 'work']:
