@@ -15,7 +15,7 @@ import autocompleteInit from './autocomplete';
 import addNewFieldInit from './add_new_field';
 import automaticInit from './automatic';
 import bookReaderInit from './bookreader_direct';
-import { ungettext, ugettext, sprintf } from './i18n';
+import { ungettext, ugettext,  sprintf } from './i18n';
 import addFadeInFunctionsTojQuery from './jquery.customFade';
 import jQueryRepeat from './jquery.repeat';
 import { enumerate, htmlquote, websafe, foreach, join, len, range } from './jsdef';
@@ -67,7 +67,7 @@ window.$ = jQuery;
 window.Promise = Promise;
 
 // Initialise some things
-jQuery(function() {
+jQuery(function () {
     const $markdownTextAreas = $('textarea.markdown');
     // Live NodeList is cast to static array to avoid infinite loops
     const $carouselElements = $('.carousel--progressively-enhanced');
@@ -81,7 +81,7 @@ jQuery(function() {
     automaticInit($);
     // wmd editor
     if ($markdownTextAreas.length) {
-        import (/* webpackChunkName: "markdown-editor" */ './markdown-editor')
+        import(/* webpackChunkName: "markdown-editor" */ './markdown-editor')
             .then((module) => module.initMarkdownEditor($markdownTextAreas));
     }
     bookReaderInit($);
@@ -91,80 +91,79 @@ jQuery(function() {
     init($);
     // conditionally load functionality based on what's in the page
     if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
-        import (/* webpackChunkName: "editions-table" */ './editions-table')
+        import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
     }
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
-        import ('./realtime_account_validation.js')
+        import('./realtime_account_validation.js')
             .then(module => module.initRealTimeValidation());
     }
     // conditionally load readmore button based on class in the page
     if (document.getElementsByClassName('read-more-button').length) {
-        import (/* webpackChunkName: "readmore" */ './readmore.js')
+        import(/* webpackChunkName: "readmore" */ './readmore.js')
             .then(module => module.initReadMoreButton());
     }
     // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
-        import ('./goodreads_import.js')
+        import('./goodreads_import.js')
             .then(module => module.initGoodreadsImport());
     }
     // conditionally loads Related Carousels based on class in the page
     if (document.getElementsByClassName('RelatedWorksCarousel').length) {
-        import ('./carousels_partials.js')
+        import('./carousels_partials.js')
             .then(module => module.initCarouselsPartials());
     }
     // Enable any carousels in the page
     if ($carouselElements.length) {
-        import (/* webpackChunkName: "carousel" */ './carousel')
-            .then((module) => {
-                module.init($carouselElements);
-                $('.slick-slide').each(function() {
+        import(/* webpackChunkName: "carousel" */ './carousel')
+            .then((module) => { module.init($carouselElements);
+                $('.slick-slide').each(function () {
                     if ($(this).attr('aria-describedby') != undefined) {
-                        $(this).attr('id', $(this).attr('aria-describedby'));
+                        $(this).attr('id',$(this).attr('aria-describedby'));
                     }
                 });
             })
     }
     if ($('script[type="text/json+graph"]').length > 0) {
-        import (/* webpackChunkName: "graphs" */ './graphs')
+        import(/* webpackChunkName: "graphs" */ './graphs')
             .then((module) => module.init());
     }
 
     if (window.READINGLOG_STATS_CONFIG) {
-        import (/* webpackChunkName: "readinglog_stats" */ './readinglog_stats')
+        import(/* webpackChunkName: "readinglog_stats" */ './readinglog_stats')
             .then(module => module.init(window.READINGLOG_STATS_CONFIG));
     }
 
     const pageEl = $('#page-barcodescanner');
     if (pageEl.length) {
-        import (/* webpackChunkName: "page-barcodescanner" */ './page-barcodescanner')
+        import(/* webpackChunkName: "page-barcodescanner" */ './page-barcodescanner')
             .then((module) => module.init());
     }
 
     if (document.getElementById('modal-link')) {
-        import (/* webpackChunkName: "patron_metadata" */ './patron-metadata')
+        import(/* webpackChunkName: "patron_metadata" */ './patron-metadata')
             .then((module) => module.initPatronMetadata());
     }
 
     if (document.getElementById('excerpts')) {
-        import ('./edit.js')
+        import (/* webpackChunkName: "books_edit" */ './edit.js')
             .then((module) => module.initEdit());
     }
 
     if ($('#cboxPrevious').length) {
-        $('#cboxPrevious').attr({ 'aria-label': 'Previous button', 'aria-hidden': 'true' });
+        $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});
     }
     if ($('#cboxNext').length) {
-        $('#cboxNext').attr({ 'aria-label': 'Next button', 'aria-hidden': 'true' });
+        $('#cboxNext').attr({'aria-label': 'Next button', 'aria-hidden': 'true'});
     }
     if ($('#cboxSlideshow').length) {
-        $('#cboxSlideshow').attr({ 'aria-label': 'Slideshow button', 'aria-hidden': 'true' });
+        $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
     }
 
-    $(document).on('click', '.slide-toggle', function() {
+    $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
 
-    $('#wikiselect').on('focus', function() { $(this).select(); })
+    $('#wikiselect').on('focus', function(){$(this).select();})
 });
