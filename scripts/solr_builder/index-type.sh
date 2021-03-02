@@ -34,7 +34,9 @@ while [ $done != "true" ]; do
     next_start=$(docker-compose run --rm ol python solr_builder/solr_builder.py fetch-end "${TYPE}s" --start-at "/$next_start" --limit $CHUNK_SIZE)
     if [ "$next_start" = "" ]; then done="true"; fi
 
-    if [ $done != "true" ]; then sleep 5; fi
+    # Stagger starting of the runners so they don't all request a lot of
+    # memory/resources at the same time
+    if [ $done != "true" ]; then sleep $((3 * 60)); fi
 
     runners=$(docker container ls -q -f "name=ol_run" | wc -l)
   done;
