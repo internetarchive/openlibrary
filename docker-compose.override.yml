@@ -8,9 +8,33 @@ services:
     ports:
       # Debugger
       - 3000:3000
+    volumes:
+      # Persistent volume mount for installed git submodules
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+  solr-updater:
+    volumes:
+      # Persistent volume mount for installed git submodules
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+  db:
+    volumes:
+      - .:/openlibrary
   covers:
     ports:
       - 7075:7075
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
   infobase:
     ports:
       - 7000:7000
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+  home:
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+volumes:
+  ol-vendor:

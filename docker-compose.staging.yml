@@ -18,3 +18,32 @@ services:
       - ../olsystem:/olsystem
       - ../booklending_utils:/booklending_utils
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
+      # Persistent volume mount for installed git submodules
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+  solr-updater:
+    volumes:
+      # Persistent volume mount for installed git submodules
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+  db:
+    volumes:
+      - .:/openlibrary
+  covers:
+    ports:
+      - 7075:7075
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+  infobase:
+    ports:
+      - 7000:7000
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+  home:
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+volumes:
+  ol-vendor:

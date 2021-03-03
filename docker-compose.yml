@@ -16,15 +16,12 @@ services:
       - db
       - infobase
     volumes:
-      # Persistent volume mount for installed git submodules
-      - ol-vendor:/openlibrary/vendor
       # Persistent volume mount for generated css and js
       - ol-build:/openlibrary/static/build
       # Persistent volume mount for node_modules
       - ol-nodemodules:/openlibrary/node_modules
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
-      - .:/openlibrary
     networks:
       - webnet
       - dbnet
@@ -63,11 +60,8 @@ services:
       - PYENV_VERSION=${PYENV_VERSION:-}
       - OL_URL=http://web:8080/
     volumes:
-      # Persistent volume mount for installed git submodules
-      - ol-vendor:/openlibrary/vendor
       # The above volume mounts is required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
-      - .:/openlibrary
       - solr-updater-data:/solr-updater-data
     networks:
       - webnet
@@ -82,7 +76,6 @@ services:
     networks:
       - dbnet
     volumes:
-      - .:/openlibrary
       # Any files inside /docker-entrypoint-initdb.d/ will get run by postgres
       # if the db is empty (which as of now is always, since we don't store the
       # postgres data anywhere).
@@ -99,9 +92,6 @@ services:
     command: docker/ol-covers-start.sh
     expose:
       - 7075
-    volumes:
-      - ol-vendor:/openlibrary/vendor
-      - .:/openlibrary
     networks:
       - webnet
       - dbnet
@@ -123,9 +113,6 @@ services:
       - 7000
     depends_on:
       - db
-    volumes:
-      - ol-vendor:/openlibrary/vendor
-      - .:/openlibrary
     networks:
       - webnet
       - dbnet
@@ -142,10 +129,8 @@ services:
       dockerfile: docker/Dockerfile.oldev
     command: docker/ol-home-start.sh
     volumes:
-      - ol-vendor:/openlibrary/vendor
       - ol-build:/openlibrary/static/build
       - ol-nodemodules:/openlibrary/node_modules
-      - .:/openlibrary
     networks:
       - webnet
       - dbnet
@@ -159,6 +144,5 @@ networks:
 volumes:
   solr-data:
   solr-updater-data:
-  ol-vendor:
   ol-build:
   ol-nodemodules:
