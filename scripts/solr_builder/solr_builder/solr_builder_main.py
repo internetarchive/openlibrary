@@ -496,13 +496,13 @@ async def main(cmd, job, postgres="postgres.ini", ol="http://ol/",
 
         plog.log(
             PLogEntry(0, count, '0.00%', 0, '?', '?', '?', '?', '?', start_at or '?'))
+        plog.update(q_1=0, q_auth=0, q_ia=0)
 
         start = time.time()
         seen = 0
         for batch in db.query_batched(q, size=1000, cache_json=True):
             keys = [x[0] for x in batch]
-            plog.update(next=keys[0], cached=len(db.cache), ia_cache=0, q_1='?',
-                        q_auth='?', q_ia='?')
+            plog.update(next=keys[0], cached=len(db.cache), ia_cache=0)
 
             with LocalPostgresDataProvider(postgres) as db2:
                 key_range = [keys[0], keys[-1]]
@@ -511,29 +511,31 @@ async def main(cmd, job, postgres="postgres.ini", ol="http://ol/",
                     # cache editions
                     editions_time, _ = simple_timeit(
                         lambda: db2.cache_work_editions(*key_range))
-                    plog.update(q_1=editions_time,
+                    plog.update(q_1=plog.last_entry.q_1 + editions_time,
                                 cached=len(db.cache) + len(db2.cache))
 
                     # cache editions' ocaid metadata
                     ocaids_time, _ = await simple_timeit_async(
                         db2.cache_cached_editions_ia_metadata())
-                    plog.update(q_ia=ocaids_time, ia_cache=len(db2.ia_cache))
+                    plog.update(q_ia=plog.last_entry.q_ia + ocaids_time,
+                                ia_cache=len(db2.ia_cache))
 
                     # cache authors
                     # authors_time, _ = simple_timeit(
                     #     lambda: db2.cache_work_authors(*key_range))
-                    # plog.update(q_auth=authors_time,
+                    # plog.update(q_auth=plog.last_entry.q_auth + authors_time,
                     #             cached=len(db.cache) + len(db2.cache))
                 elif job == "orphans":
                     # cache editions' ocaid metadata
                     ocaids_time, _ = await simple_timeit_async(
                         db2.cache_cached_editions_ia_metadata())
-                    plog.update(q_ia=ocaids_time, ia_cache=len(db2.ia_cache))
+                    plog.update(q_ia=plog.last_entry.q_ia + ocaids_time,
+                                ia_cache=len(db2.ia_cache))
 
                     # cache authors
                     # authors_time, _ = simple_timeit(
                     #     lambda: db2.cache_work_authors(*key_range))
-                    # plog.update(q_auth=authors_time,
+                    # plog.update(q_auth=plog.last_entry.q_auth + authors_time,
                     #             cached=len(db.cache) + len(db2.cache))
                 elif job == "authors":
                     # Nothing to cache; update_work.py queries solr directly for each
