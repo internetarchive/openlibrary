@@ -15,7 +15,5 @@ jobs:
       - run: npm install
       - run: npm run lint
       - run: make git
-      - run: make js
-      - run: make css
-      - run: make components
+      - run: 'parallel --verbose make {} ::: js css components'
       - run: npm run test
