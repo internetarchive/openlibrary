@@ -146,6 +146,10 @@ jQuery(function () {
             .then((module) => module.initPatronMetadata());
     }
 
+    if (document.getElementById('excerpts')) {
+        import (/* webpackChunkName: "books_edit" */ './edit.js')
+            .then((module) => module.initEdit());
+    }
     if (document.getElementsByClassName('imageIntro').length) {
         import(/* webpackChunkName: "book_cover_manage" */ './cover_add_manage')
             .then(module => module.initAddCoverImport());
