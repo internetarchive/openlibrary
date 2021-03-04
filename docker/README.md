@@ -146,7 +146,8 @@ docker-compose run --rm home make test
 
 # Run Open Library using a local copy of Infogami for development
 docker-compose down && \
-    docker-compose -f docker-compose.yml up -d && \
+    docker-compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.infogami-local.yml up -d
+ && \
     docker-compose logs -f --tail=10 web
 # In your browser, navigate to http://localhost:8080
 ```
