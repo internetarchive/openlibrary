@@ -171,14 +171,12 @@ jQuery(function () {
 
     $('#wikiselect').on('focus', function(){$(this).select();})
 
-    // Opening one of the menus should close any other open menus.
-    const HEADER_BUTTON_SELECTOR = '#header-bar input[type=checkbox]';
-    $(document).on('click', HEADER_BUTTON_SELECTOR, function () {
-        $(HEADER_BUTTON_SELECTOR).filter((i, node) => {
-            return node !== this;
-        }).removeAttr('checked');
-    }).on('focus', '#header-bar .search-bar-input input', function () {
-        // Focusing searches closes all dropdown menus
-        $(HEADER_BUTTON_SELECTOR).removeAttr('checked');
+    // Clicking outside of menus closes menus
+    $(document).on('click', function (event) {
+        const $openMenus = $('.checkbox-menu :checked').parents('.checkbox-menu');
+        $openMenus
+            .filter((_, menu) => !$(event.target).closest(menu).length)
+            .find('[type=checkbox]')
+            .removeAttr('checked');
     });
 });

@@ -1,7 +1,7 @@
 $def with (page)
 
 <header id="header-bar" class="header-bar">
-  <div class="hamburger-component">
+  <div class="hamburger-component checkbox-menu">
 
     <label for="toggle-hamburger" class="hamburger-button">
       <img src="/static/images/menu.png" alt="additional options menu"/>
@@ -64,7 +64,7 @@ $def with (page)
   </div>
 
   <ul class="navigation-component">
-    <li class="browse-menu">
+    <li class="browse-menu checkbox-menu">
       <label for="toggle-browse-menu" class="browse-menu-button">$_('Browse') 
         <img class="down-arrow" width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/>
       </label>
@@ -80,7 +80,7 @@ $def with (page)
         </ul>
       </div>
     </li>
-    <li class="more-menu">
+    <li class="more-menu checkbox-menu">
       <label for="toggle-more-menu" class="more-menu-button">$_('More') 
         <img class="down-arrow" width="7" height="4" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/>
       </label>
@@ -107,7 +107,7 @@ $def with (page)
     </ul>
 
   $if ctx.user:
-    <div class="account-component">
+    <div class="account-component checkbox-menu">
       <div class="dropdown-avatar">        
         <label for="toggle-account" id="userToggle" class="avatar account-button" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');">
         </label>
