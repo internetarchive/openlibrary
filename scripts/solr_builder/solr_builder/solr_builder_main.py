@@ -242,7 +242,7 @@ class LocalPostgresDataProvider(DataProvider):
             INNER JOIN test works
                 ON editions."JSON" -> 'works' -> 0 ->> 'key' = works."Key"
             WHERE editions."Type" = '/type/edition'
-                AND editions."Key" BETWEEN '%s' AND '%s'
+                AND '%s' <= editions."Key" AND editions."Key" < '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
@@ -251,7 +251,8 @@ class LocalPostgresDataProvider(DataProvider):
             SELECT "Key", "JSON"
             FROM "test"
             WHERE "Type" = '/type/edition'
-                AND "JSON" -> 'works' -> 0 ->> 'key' BETWEEN '%s' AND '%s'
+                AND '%s' <= "JSON" -> 'works' -> 0 ->> 'key'
+                AND "JSON" -> 'works' -> 0 ->> 'key' < '%s'
         """ % (lo_key, hi_key)
         for row in self.query_all(q, cache_json=True):
             self.cached_work_editions.add(row[1]['works'][0]['key'])
@@ -265,7 +266,7 @@ class LocalPostgresDataProvider(DataProvider):
             INNER JOIN test authors
                 ON works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key"
             WHERE editions."Type" = '/type/edition'
-                AND editions."Key" BETWEEN '%s' AND '%s'
+                AND '%s' <= editions."Key" AND editions."Key" < '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
@@ -275,7 +276,8 @@ class LocalPostgresDataProvider(DataProvider):
             FROM "test" works
             INNER JOIN "test" authors
                 ON works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key"
-            WHERE works."Type" = '/type/work' AND works."Key" BETWEEN '%s' AND '%s'
+            WHERE works."Type" = '/type/work'
+            AND '%s' <= works."Key" AND works."Key" < '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
