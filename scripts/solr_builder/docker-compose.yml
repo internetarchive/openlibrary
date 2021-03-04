@@ -29,6 +29,7 @@ services:
       # This is optimized for bulk loading, but should be shortened for production
       # and we should set autoSoftCommit to a value that makes sense for our query usage (5-15 sec?)
       - SOLR_OPTS=-Dsolr.autoCommit.maxTime=3600000
+      - SOLR_JAVA_MEM=-Xms3g -Xmx3g
     ports:
       - 8984:8983
     volumes:
