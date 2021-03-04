@@ -687,12 +687,15 @@ class Work(models.Work):
                 "bestRating": "5",
                 "ratingCount": str(rating_value.get('num_ratings',0))
             }
+
         if authors:
             json_ld['author'] = authors
+
         if edition:
             json_ld['workExample'] = [
                 edition.as_json_ld()
             ]
+            
         return json_ld
 
     @staticmethod
