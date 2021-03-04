@@ -87,6 +87,22 @@ def batch_until_len(items: Iterable, max_batch_len: int):
         yield batch
 
 
+def safeget(func):
+    """
+    >>> safeget(lambda: {}['foo'])
+    >>> safeget(lambda: {}['foo']['bar'][0])
+    >>> safeget(lambda: {'foo': []}['foo'][0])
+    >>> safeget(lambda: {'foo': {'bar': [42]}}['foo']['bar'][0])
+    42
+    """
+    try:
+        return func()
+    except KeyError:
+        return None
+    except IndexError:
+        return None
+
+
 class LocalPostgresDataProvider(DataProvider):
     """
     This class uses a local postgres dump of the database.
@@ -99,6 +115,7 @@ class LocalPostgresDataProvider(DataProvider):
         self._db_conf = config_section_to_dict(db_conf_file, "postgres")
         self._conn = None  # type: psycopg2._psycopg.connection
         self.cache = dict()
+        self.cached_work_editions = set()
         self.ia_cache = dict()
         self.ia = None
 
@@ -236,7 +253,8 @@ class LocalPostgresDataProvider(DataProvider):
             WHERE "Type" = '/type/edition'
                 AND "JSON" -> 'works' -> 0 ->> 'key' BETWEEN '%s' AND '%s'
         """ % (lo_key, hi_key)
-        self.query_all(q, cache_json=True)
+        for row in self.query_all(q, cache_json=True):
+            self.cached_work_editions.add(row[1]['works'][0]['key'])
 
     def cache_edition_authors(self, lo_key, hi_key):
         q = """
@@ -277,13 +295,23 @@ class LocalPostgresDataProvider(DataProvider):
         """ % key
         return [r[0] for r in self.query_iter(q)]
 
-    def get_editions_of_work(self, work):
-        logger.info("find_editions_of_work %s", work['key'])
+    def get_editions_of_work_direct(self, work):
         q = """
         SELECT "JSON" FROM test
         WHERE "Type" = '/type/edition' AND "JSON" -> 'works' -> 0 ->> 'key' = '%s'
         """ % work['key']
         return [r[0] for r in self.query_iter(q)]
+
+    def get_editions_of_work(self, work):
+        # They should all be cached...
+        if work['key'] in self.cached_work_editions:
+            return [
+                doc for doc in self.cache.values()
+                if (doc['type']['key'] == '/type/edition' and
+                    safeget(lambda: doc['works'][0]['key'] == work['key']))
+            ]
+        else:
+            return self.get_editions_of_work_direct(work)
 
     def get_metadata(self, identifier):
         if identifier in self.ia_cache:
@@ -309,6 +337,7 @@ class LocalPostgresDataProvider(DataProvider):
             return row[0]
 
     def clear_cache(self):
+        self.cached_work_editions.clear()
         self.cache.clear()
         self.ia_cache.clear()
         pass
@@ -545,6 +574,7 @@ async def main(cmd, job, postgres="postgres.ini", ol="http://ol/",
                 # Store in main cache
                 db.cache.update(db2.cache)
                 db.ia_cache.update(db2.ia_cache)
+                db.cached_work_editions.update(db2.cached_work_editions)
 
             update_keys(keys, commit=False, commit_way_later=True)
 
