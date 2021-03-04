@@ -2,6 +2,10 @@ $def with (list)
 
 $ title = list.name
 $ title_with_site = _("%(name)s | Lists | Open Library", name=title)
+
+$ component_times = {}
+$ component_times['TotalTime'] = time()
+
 $ page = safeint(query_param('page'), 1) - 1
 $ page_size = 50
 $ meta_cover_url = None # Add metatag for image at end of this template, if a cover image is present
@@ -43,7 +47,9 @@ $jsdef render_seed_count(seed_count):
     </div>
     <h1>$list.name</h1>
     <p class="collapse sansserif">
+        $ component_times['render_seed_count'] = time()
         <span class="darkgreen" id="list-items-count"><strong>$:render_seed_count(len(list.seeds))</strong></span>
+        $ component_times['render_seed_count'] = time() - component_times['render_seed_count']
     </p>
 </div>
 
@@ -171,7 +177,11 @@ window.q.push(function(){
             $:format(list.description)
 
         <ul id="listResults" class="list-books">
-          $for seed in list.get_seeds(sort=True)[page*page_size:page*page_size+page_size]:
+          $ component_times['get_seeds'] = time()
+          $ seeds = list.get_seeds(sort=True, resolve_redirects=True)[page*page_size:page*page_size+page_size]
+          $ component_times['get_seeds'] = time() - component_times['get_seeds']
+
+          $for seed in seeds:
             <li id="seed-$loop.index" class="searchResultItem">
                 $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
                 $ cover = seed.get_cover()
@@ -191,21 +201,16 @@ window.q.push(function(){
                 <span class="seed-key hidden">$seed.key</span>
                 <div class="details">
                     <div class="resultTitle">
-                        $ ebook = {}
                         $if seed.type in ['edition', 'work']:
-                            $ ebook = seed.document.get_ebook_info()
                             $ doc = seed.document
-                            <!-- $:json_encode(ebook) -->
                         <h3 class="booktitle">
                             <a href="$seed.url" class="results">$seed.title</a>
                         </h3>
-                        $ work_editions_count = 0
                         $if seed.type in ['edition', 'work']:
                             $if seed.type == "work":
                                 $ authors = seed.document.get_authors()
                             $else:
                                 $if seed.document.works:
-                                    $ work_editions_count = seed.document.works[0].edition_count
                                     $ authors = seed.document.works[0].get_authors()
                                 $else:
                                     $ authors = seed.document.get_authors()
@@ -213,16 +218,7 @@ window.q.push(function(){
                         <span class="meta">
                           <!-- FIXME: I18N using internal seed.type directly for display is not internationalizable -->
                           <span class="type small">$seed.type</span>
-                        $if seed.type == "edition" and seed.document.get('works'):
-                            $:ungettext('- <a href="%(url)s">1 edition</a> in catalog', '- <a href="%(url)s">%(count)s editions</a> in catalog', seed.work_count, count=commify(work_editions_count), url=seed.document.works[0].url())
-                        $elif seed.type == "work":
-                            $ungettext('- 1 edition', '- %(count)s editions', seed.edition_count, count=commify(seed.edition_count))
-                        $else:
-                            $ungettext('- 1 work', '- %(count)s works', seed.work_count, count=commify(seed.work_count))
                         </span>
-
-                        $if 'daisy_url' in ebook:
-                            <div class="type small"><a href="$ebook['daisy_url']" title="$_('Protected DAISY')">$_('Download DAISY eBook for print disabled')</a></div>
 
                         $if seed.last_update:
                             <span class="time">
@@ -235,13 +231,6 @@ window.q.push(function(){
                         <span class="listDelete sansserif smaller">
                           <a href="javascript:;"><span></span>$_('Remove this item?')</a>
                         </span>
-                    $if 'daisy_url' in ebook:
-                        <a class="cta-btn print-disabled-only hidden" href="//archive.org/download/$(doc.ia[0])/$(doc.ia[0])_daisy.zip" title="$_('Protected DAISY')">
-                          <span class="actions">
-                            <span class="image daisy"></span>
-                          </span>
-                          <span class="label">$_('Download DAISY')</span>
-                        </a>
                     <span class="searchResultItemCTA-lending">
                     </span>
                 </span>
@@ -278,7 +267,9 @@ window.q.push(function(){
     <div class="clearfix"></div>
 
     $:macros.Pager(page+1, len(list.seeds), page_size)
-
+    $ component_times['TotalTime'] = time() - component_times['TotalTime']
+    $if query_param('debug'):
+      $:macros.Profile(component_times)
 
     $:render_template("lib/history", list)
 </div>
