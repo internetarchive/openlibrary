@@ -17,7 +17,6 @@ $def with (list)
 
             <div class="editions smaller">
                 $ungettext("1 item", "%(count)d items", len(list.seeds), count=len(list.seeds))
-                $ungettext("1 edition", "%(count)s editions", list.edition_count, count=commify(list.edition_count))
 
                 <span class="lightgreen">
                   $_('Last modified %(date)s', date=datestr(list.last_modified))
