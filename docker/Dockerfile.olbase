@@ -13,7 +13,6 @@ RUN groupadd --system openlibrary \
 
 # Misc OL dependencies
 RUN apt-get -qq update && apt-get install -y \
-    nginx \
     postgresql \
     build-essential \
     git \
@@ -61,10 +60,6 @@ RUN python3.9 -m pip install --upgrade pip wheel
 USER root
 # Add pyenv to root's bashrc as well
 RUN echo '\nexport PATH="/home/openlibrary/.pyenv/bin:$PATH"\neval "$(pyenv init -)"\neval "$(pyenv virtualenv-init -)"' >> /root/.bashrc
-
-# Setup nginx
-RUN ln -s /openlibrary/conf/nginx/sites-available/openlibrary.conf /etc/nginx/sites-available/ \
-    && ln -s /etc/nginx/sites-available/openlibrary.conf /etc/nginx/sites-enabled/
 
 RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary \
     && chown openlibrary:openlibrary /var/log/openlibrary /var/lib/openlibrary
