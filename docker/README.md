@@ -144,7 +144,7 @@ https://github.com/internetarchive/openlibrary/wiki/Deployment-Guide#ol-web1
 # Launch a temporary container and run tests
 docker-compose run --rm home make test
 
-# Run Open Library in a local Docker a container and then open in a local webbrowser
+# Run Open Library using a local copy of Infogami for development
 docker-compose down && \
     docker-compose -f docker-compose.yml up -d && \
     docker-compose logs -f --tail=10 web
