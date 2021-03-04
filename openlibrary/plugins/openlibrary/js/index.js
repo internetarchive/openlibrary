@@ -171,4 +171,12 @@ jQuery(function () {
 
     $('#wikiselect').on('focus', function(){$(this).select();})
 
+    // Clicking outside of menus closes menus
+    $(document).on('click', function (event) {
+        const $openMenus = $('.checkbox-menu :checked').parents('.checkbox-menu');
+        $openMenus
+            .filter((_, menu) => !$(event.target).closest(menu).length)
+            .find('[type=checkbox]')
+            .removeAttr('checked');
+    });
 });
