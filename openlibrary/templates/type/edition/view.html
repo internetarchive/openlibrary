@@ -559,8 +559,8 @@ $def get_url(label):
 }
 </script>
 <script type="application/ld+json">
-$if page.key.startswith('/works'):
-    $:work.as_json_ld()
-$elif page.key.startswith('/books'):
-    $:edition.as_json_ld()
+$if work:
+    $:json_encode(work.as_json_ld(edition))
+$else:
+    $:json_encode(edition.as_json_ld())
 </script>

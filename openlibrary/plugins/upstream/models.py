@@ -500,8 +500,8 @@ class Edition(models.Edition):
             url = list(values[0].url for name, values in self.get_identifiers().multi_items() if values[0].label == label)
             url = url[0] if url else None
             return url
-    
-        return json.dumps({
+
+        json_ld = {
             "@context": "http://schema.org/",
             "@type": "Book",
             "@id": web.ctx.homedomain + self.key,
@@ -509,7 +509,7 @@ class Edition(models.Edition):
                 {
                     "@type": "Book",
                     "@id": web.ctx.homedomain + self.key,
-                    "isbn": self.get_isbn13(),
+                    "isbn": self.get_isbn13() or None,
                     "image": [
                          self.get_cover_url("L")
                     ],
@@ -520,17 +520,21 @@ class Edition(models.Edition):
                         get_url("OCLC/WorldCat"),
                         get_url("Library Thing"),
                         get_url("Goodreads")
-                    ],
-                    "identifier":[
+                    ]
+                }
+            ]
+            }
+
+        if get_identifier("OCLC/WorldCat"):
+            json_ld['workExample'][0]['identifier'] = [
                         {
                         "@type": "PropertyValue",
                         "propertyID": "OCLC_NUMBER",
                         "value": get_identifier("OCLC/WorldCat")
                         }
                     ]
-                }
-            ]
-            } or {})
+
+        return json_ld
 
 class Author(models.Author):
     def get_photos(self):
@@ -659,7 +663,7 @@ class Work(models.Work):
             subjects = [flip(s.name) for s in subjects]
         return subjects
 
-    def as_json_ld(self):
+    def as_json_ld(self, edition=None):
         authors = []
         for author in self and self.get_authors():
             authors.append({
@@ -667,22 +671,29 @@ class Work(models.Work):
                 "name": author.name,
                 "sameAs" : web.ctx.homedomain + str(author.url())
             })
-        rating_value = self and self.get_rating_stats() or {}
-
-        return json.dumps({
+        
+        json_ld = {
             "@context": "http://schema.org/",
             "@type": "Book",
             "@id": web.ctx.homedomain + self.key,
-            "url": web.ctx.homedomain + self.key + "/" + self.get('title', ''),
-            "name": self.get('title', ''),
-            "author": authors,
-            "aggregateRating": {
+            "@id": web.ctx.homedomain + self.key + "/" + self.get('title', ''),
+            "name": self.get('title', '')
+            }
+        rating_value = self and self.get_rating_stats() or {}
+        if rating_value.get('num_ratings',0)>0:
+            json_ld['aggregateRating'] = {
                 "@type": "AggregateRating",
                 "ratingValue": str(rating_value.get('avg_rating',0)), 
                 "bestRating": "5",
                 "ratingCount": str(rating_value.get('num_ratings',0))
             }
-            } or {})
+        if authors:
+            json_ld['author'] = authors
+        if edition:
+            json_ld['workExample'] = [
+                edition.as_json_ld()
+            ]
+        return json_ld
 
     @staticmethod
     def filter_problematic_subjects(subjects, filter_unicode=True):
