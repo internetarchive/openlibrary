@@ -9,6 +9,16 @@ CREATE TABLE ratings (
     primary key (username, work_id)
 );
 
+CREATE TABLE booknotes (
+    username text NOT NULL,
+    work_id integer NOT NULL,
+    edition_id integer default null,
+    notes text NOT NULL,
+    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    primary key (username, work_id)
+);
+
 CREATE TABLE bookshelves (
     id serial not null primary key,
     name text,

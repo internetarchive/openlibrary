@@ -42,12 +42,7 @@ $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
 $ book_description = (edition and edition.description) or (work and work.description)
 $ edition_count = work.edition_count if work and work.edition_count else 1
 $ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
-$ _x = ctx.setdefault('bodyid', 'book')
-$ base_url = "https://openlibrary.org"
-$ rating_stats = work and work.get_rating_stats() or {}
-$ lang = (', '.join(lang.name for lang in edition.languages))
-$ author = (', '.join('{ "%s": "%s%s" }' % ("url", truncate(base_url, 40), a.url() ) if a.name else None for a in cond(work, work and work.get_authors(), edition and edition.get_authors())))
-
+$ _x = ctx.setdefault('cssfile', 'book')
 
 $var title: $title
 
@@ -466,7 +461,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
   </div>
 
   $ component_times['RelatedWorksCarousel'] = time()
-  <div class="RelatedWorksCarousel" data-workId="$work.key.split('/')[-1]">
+  <div class="RelatedWorksCarousel" data-workid="$work.key.split('/')[-1]">
     <div class="hidden loadingIndicator">
         <figure>
         <img src="/images/ajax-loader-bar.gif">

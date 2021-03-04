@@ -147,7 +147,7 @@ div.Tools {
 
     &.on {
       background-color: @lightest-grey;
-      border: 1px solid @mid-grey;
+      box-shadow: 0 0 0 1px @mid-grey;
       border-radius: 4px;
       width: 100%;
     }
@@ -268,7 +268,7 @@ div#listsWork {
   button[type=submit] {
     background-color: inherit;
     border: none;
-    border-radius: 3px;
+    border-radius: 4px;
     border-bottom-right-radius: 0;
     border-top-right-radius: 0;
     cursor: pointer;
@@ -286,8 +286,8 @@ div#listsWork {
     }
     &.unactivated {
       color: @white;
-      background: @green-three;
-      border: 2px solid @green-four;
+      background: @green;
+      border: 2px solid @green;
       border-right: 1px solid @green-two;
     }
     span.activated-check {
@@ -300,6 +300,9 @@ div#listsWork {
 
 // The indicator that appears to the right of the dropper component
 .dropclick {
+  border-radius: 4px;
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
   .display-flex();
   h3 {
     flex: 1;
@@ -317,7 +320,7 @@ div#listsWork {
 }
 
 .dropclick-unactivated {
-  background-color: @green-five;
+  background-color: @green;
 }
 
 .user-book-options {

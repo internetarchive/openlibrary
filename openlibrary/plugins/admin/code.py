@@ -68,7 +68,7 @@ class admin(delegate.page):
 
     def handle(self, cls, args=(), librarians=False):
         # Use admin theme
-        context.bodyid = "admin"
+        context.cssfile = "admin"
 
         m = getattr(cls(), web.ctx.method, None)
         if not m:

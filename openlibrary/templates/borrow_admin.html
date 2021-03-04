@@ -2,7 +2,7 @@ $def with (page, edition_loans, edition_ebook, user_loans, user_ip)
 
 $var title: $page.title
 
-$ _x = ctx.setdefault('bodyid', 'plain')
+$ _x = ctx.setdefault('cssfile', 'plain')
 
 $ available_loans = page.get_available_loans()
 
@@ -89,7 +89,7 @@ $def format_users(users):
         $ borrow_status = get_borrow_status(page.ocaid)
         $if current_loans:
             $ loan = current_loans[0]
-            <div id="borrowTable" class="borrow collapse current-loan">
+            <div class="borrow borrow-table collapse current-loan">
             <table>
                 <thead>
                     <tr>
@@ -153,7 +153,7 @@ $def format_users(users):
     <div class="section">
         <h3>Waiting List</h3>
         $if waitinglist:
-            <div id="borrowTable" class="borrow collapse waitinglist">
+            <div class="borrow borrow-table collapse waitinglist">
             <table>
                 <thead>
                     <tr>
