@@ -59,7 +59,7 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
               <span class="preview-covers">
                 $for x, i in enumerate(doc.get('ia')[1:10]):
                   <a href="$(book_url)?edition=$(i)">
-                    <img width="30" height="45" loading="lazy" src="//archive.org/download/$(i)/page/cover_w60_h60.jpg" alt>
+                    <img width="30" height="45" loading="lazy" src="//archive.org/download/$(i)/page/cover_w60_h60.jpg" alt="preview-cover">
                   </a>
                 </span>
       </span>
