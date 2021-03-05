@@ -1,7 +1,7 @@
 try:  # Python 3
     from unittest.mock import Mock, patch
 except ImportError:  # Python 2
-    from mock import Mock, patch
+    from unittest.mock import Mock, patch
 
 import requests
 from infogami import config

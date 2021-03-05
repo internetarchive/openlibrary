@@ -1,4 +1,3 @@
-from __future__ import print_function
 import os
 import pytest
 from openlibrary.catalog import get_ia
@@ -16,11 +15,11 @@ class MockResponse:
 
 
 def return_test_marc_bin(url):
-    assert url, "return_test_marc_bin({})".format(url)
+    assert url, f"return_test_marc_bin({url})"
     return return_test_marc_data(url, "bin_input")
 
 def return_test_marc_xml(url):
-    assert url, "return_test_marc_xml({})".format(url)
+    assert url, f"return_test_marc_xml({url})"
     return return_test_marc_data(url, "xml_input")
 
 def return_test_marc_data(url, test_data_subdir="xml_input"):
@@ -86,7 +85,7 @@ class TestGetIA():
 
         result = get_ia.get_marc_record_from_ia(item)
         assert isinstance(result, MarcXml), \
-            "%s: expected instanceof MarcXml, got %s" % (item, type(result))
+            "{}: expected instanceof MarcXml, got {}".format(item, type(result))
 
     @pytest.mark.parametrize('item', bin_items)
     def test_no_marc_xml(self, item, monkeypatch):
@@ -96,10 +95,10 @@ class TestGetIA():
 
         result = get_ia.get_marc_record_from_ia(item)
         assert isinstance(result, MarcBinary), \
-            "%s: expected instanceof MarcBinary, got %s" % (item, type(result))
+            "{}: expected instanceof MarcBinary, got {}".format(item, type(result))
         field_245 = next(result.read_fields(['245']))
         title = next(field_245[1].get_all_subfields())[1].encode('utf8')
-        print("%s:\n\tUNICODE: [%s]\n\tTITLE: %s" % (item, result.leader()[9], title))
+        print("{}:\n\tUNICODE: [{}]\n\tTITLE: {}".format(item, result.leader()[9], title))
 
     @pytest.mark.parametrize('bad_marc', bad_marcs)
     def test_incorrect_length_marcs(self, bad_marc, monkeypatch):

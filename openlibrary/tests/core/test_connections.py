@@ -14,7 +14,7 @@ class MockConnection:
                 return json.dumps(self.docs[key])
         if path == "/get_many":
             keys = json.loads(data['keys'])
-            return json.dumps(dict((k, self.docs[k]) for k in keys))
+            return json.dumps({k: self.docs[k] for k in keys})
         else:
             return None
 
