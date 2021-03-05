@@ -10,4 +10,4 @@ fi
 scripts/openlibrary-server "$OL_CONFIG" \
   --gunicorn \
   $GUNICORN_OPTS \
-  --bind :80
+  --bind :8080

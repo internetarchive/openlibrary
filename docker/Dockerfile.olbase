@@ -88,4 +88,4 @@ RUN python3.9 -m pip list --outdated
 # Expose Open Library and Infobase
 EXPOSE 80 7000
 CMD scripts/openlibrary-server conf/openlibrary.yml \
-    --gunicorn --workers 4 --timeout 180 --bind :80
+    --gunicorn --workers 4 --timeout 180 --bind :8080

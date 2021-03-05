@@ -11,7 +11,7 @@ services:
       dockerfile: docker/Dockerfile.oldev
     command: docker/ol-web-start.sh
     ports:
-      - 8080:80
+      - 8080:8080
       - 3000:3000
     depends_on:
       - db
@@ -62,7 +62,7 @@ services:
     environment:
       - OL_CONFIG=conf/openlibrary.yml
       - PYENV_VERSION=${PYENV_VERSION:-}
-      - OL_URL=http://web/
+      - OL_URL=http://web:8080/
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
