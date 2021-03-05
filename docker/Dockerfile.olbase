@@ -29,6 +29,9 @@ RUN apt-get -qq update && apt-get install -y \
     parallel
 
 # Print gnu parallel citation
+USER openlibrary
+RUN echo 'will cite' | parallel --citation
+USER root
 RUN echo 'will cite' | parallel --citation
 
 # Install LTS version of node.js
