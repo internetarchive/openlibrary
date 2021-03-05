@@ -13,9 +13,7 @@ RUN groupadd --system openlibrary \
 
 # Misc OL dependencies
 RUN apt-get -qq update && apt-get install -y \
-    nginx \
-    authbind \
-    postgresql \
+    postgresql-client \
     build-essential \
     git \
     libpq-dev \
@@ -31,6 +29,9 @@ RUN apt-get -qq update && apt-get install -y \
     parallel
 
 # Print gnu parallel citation
+USER openlibrary
+RUN echo 'will cite' | parallel --citation
+USER root
 RUN echo 'will cite' | parallel --citation
 
 # Install LTS version of node.js
@@ -62,12 +63,6 @@ RUN python3.9 -m pip install --upgrade pip wheel
 USER root
 # Add pyenv to root's bashrc as well
 RUN echo '\nexport PATH="/home/openlibrary/.pyenv/bin:$PATH"\neval "$(pyenv init -)"\neval "$(pyenv virtualenv-init -)"' >> /root/.bashrc
-# enable users to bind to port 80
-RUN touch /etc/authbind/byport/80 && chmod 777 /etc/authbind/byport/80
-
-# Setup nginx
-RUN ln -s /openlibrary/conf/nginx/sites-available/openlibrary.conf /etc/nginx/sites-available/ \
-    && ln -s /etc/nginx/sites-available/openlibrary.conf /etc/nginx/sites-enabled/
 
 RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary \
     && chown openlibrary:openlibrary /var/log/openlibrary /var/lib/openlibrary
@@ -92,5 +87,5 @@ RUN python3.9 -m pip list --outdated
 
 # Expose Open Library and Infobase
 EXPOSE 80 7000
-CMD authbind --deep scripts/openlibrary-server conf/openlibrary.yml \
-    --gunicorn --workers 4 --timeout 180 --bind :80
+CMD scripts/openlibrary-server conf/openlibrary.yml \
+    --gunicorn --workers 4 --timeout 180 --bind :8080
