@@ -244,9 +244,6 @@ class ListMixin:
 
         return sorted(process_all(), reverse=True, key=lambda s: s["count"])
 
-    def get_top_subjects(self, limit=20):
-        return self._get_all_subjects()[:limit]
-
     def get_subjects(self, limit=20):
         def get_subject_type(s):
             if s.url.startswith("/subjects/place:"):
