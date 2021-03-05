@@ -98,7 +98,7 @@ class TestGetIA():
             f"{item}: expected instanceof MarcBinary, got {type(result)}"
         field_245 = next(result.read_fields(['245']))
         title = next(field_245[1].get_all_subfields())[1].encode('utf8')
-        print(f"{item}:\n\tUNICODE: [{result.leader()[9]}]\n\tTITLE: {title}"
+        print(f"{item}:\n\tUNICODE: [{result.leader()[9]}]\n\tTITLE: {title}")
 
     @pytest.mark.parametrize('bad_marc', bad_marcs)
     def test_incorrect_length_marcs(self, bad_marc, monkeypatch):
