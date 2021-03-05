@@ -1,4 +1,3 @@
-from __future__ import print_function
 import datetime
 import itertools
 import logging
@@ -46,7 +45,7 @@ solr_base_url = None
 
 def urlopen(url, params=None, data=None):
     version = "%s.%s.%s" % sys.version_info[:3]
-    user_agent = 'Mozilla/5.0 (openlibrary; %s) Python/%s' % (__file__, version)
+    user_agent = f'Mozilla/5.0 (openlibrary; {__file__}) Python/{version}'
     headers = {
         'User-Agent': user_agent
     }
@@ -109,7 +108,7 @@ class AuthorRedirect (Exception):
     pass
 
 def strip_bad_char(s):
-    if not isinstance(s, six.string_types):
+    if not isinstance(s, str):
         return s
     return re_bad_char.sub('', s)
 
@@ -128,7 +127,7 @@ def add_field(doc, name, value):
     """
     field = Element("field", name=name)
     try:
-        field.text = normalize('NFC', six.text_type(strip_bad_char(value)))
+        field.text = normalize('NFC', str(strip_bad_char(value)))
     except:
         logger.error('Error in normalizing %r', value)
         raise
@@ -243,7 +242,7 @@ def four_types(i):
     :rtype: dict[str, dict[str, int]]
     """
     want = {'subject', 'time', 'place', 'person'}
-    ret = dict((k, i[k]) for k in want if k in i)
+    ret = {k: i[k] for k in want if k in i}
     for j in (j for j in i if j not in want):
         for k, v in i[j].items():
             if 'subject' in ret:
@@ -302,7 +301,7 @@ class SolrProcessor:
                 ia = e['ocaid']
             elif 'ia_loaded_id' in e:
                 loaded = e['ia_loaded_id']
-                ia = loaded if isinstance(loaded, six.string_types) else loaded[0]
+                ia = loaded if isinstance(loaded, str) else loaded[0]
 
             # If the _ia_meta field is already set in the edition, use it instead of querying archive.org.
             # This is useful to when doing complete reindexing of solr.
@@ -315,7 +314,7 @@ class SolrProcessor:
 
             if ia_meta_fields:
                 collection = ia_meta_fields['collection']
-                if 'ia_box_id' in e and isinstance(e['ia_box_id'], six.string_types):
+                if 'ia_box_id' in e and isinstance(e['ia_box_id'], str):
                     e['ia_box_id'] = [e['ia_box_id']]
                 if ia_meta_fields.get('boxid'):
                     box_id = list(ia_meta_fields['boxid'])[0]
@@ -497,12 +496,12 @@ class SolrProcessor:
         add('edition_count', len(editions))
 
         add_list("edition_key", [re_edition_key.match(e['key']).group(1) for e in editions])
-        add_list("by_statement", set(e["by_statement"] for e in editions if "by_statement" in e))
+        add_list("by_statement", {e["by_statement"] for e in editions if "by_statement" in e})
 
         k = 'publish_date'
-        pub_dates = set(e[k] for e in editions if e.get(k))
+        pub_dates = {e[k] for e in editions if e.get(k)}
         add_list(k, pub_dates)
-        pub_years = set(m.group(1) for m in (re_year.search(date) for date in pub_dates) if m)
+        pub_years = {m.group(1) for m in (re_year.search(date) for date in pub_dates) if m}
         if pub_years:
             add_list('publish_year', pub_years)
             add('first_publish_year', min(int(y) for y in pub_years))
@@ -514,26 +513,26 @@ class SolrProcessor:
             ('contributions', 'contributor'),
         ]
         for db_key, solr_key in field_map:
-            values = set(v for e in editions
+            values = {v for e in editions
                            if db_key in e
-                           for v in e[db_key])
+                           for v in e[db_key]}
             add_list(solr_key, values)
 
-        raw_lccs = set(lcc
+        raw_lccs = {lcc
                        for ed in editions
-                       for lcc in ed.get('lc_classifications', []))
-        lccs = set(lcc for lcc in map(short_lcc_to_sortable_lcc, raw_lccs) if lcc)
+                       for lcc in ed.get('lc_classifications', [])}
+        lccs = {lcc for lcc in map(short_lcc_to_sortable_lcc, raw_lccs) if lcc}
         if lccs:
             add_list("lcc", lccs)
             # Choose the... idk, longest for sorting?
             add("lcc_sort", sorted(lccs, key=len, reverse=True)[0])
 
-        raw_ddcs = set(ddc
+        raw_ddcs = {ddc
                        for ed in editions
-                       for ddc in ed.get('dewey_decimal_class', []))
-        ddcs = set(ddc
+                       for ddc in ed.get('dewey_decimal_class', [])}
+        ddcs = {ddc
                    for raw_ddc in raw_ddcs
-                   for ddc in normalize_ddc(raw_ddc))
+                   for ddc in normalize_ddc(raw_ddc)}
         if ddcs:
             add_list("ddc", ddcs)
             # Choose longest, since has most precision?
@@ -581,7 +580,7 @@ class SolrProcessor:
         :rtype: set[str]
         """
         subtitle = w.get('subtitle')
-        return set(e['subtitle'] for e in editions if e.get('subtitle') and e['subtitle'] != subtitle)
+        return {e['subtitle'] for e in editions if e.get('subtitle') and e['subtitle'] != subtitle}
 
     def get_isbns(self, editions):
         """
@@ -649,7 +648,7 @@ class SolrProcessor:
             if 'printdisabled' in e.get('ia_collection', []):
                 printdisabled.add(re_edition_key.match(e['key']).group(1))
             all_collection.update(e.get('ia_collection', []))
-            assert isinstance(e['ocaid'], six.string_types)
+            assert isinstance(e['ocaid'], str)
             i = e['ocaid'].strip()
             if e.get('public_scan'):
                 public_scan = True
@@ -712,7 +711,7 @@ def build_data(w):
     authors = SolrProcessor().extract_authors(w)
 
     iaids = [e["ocaid"] for e in editions if "ocaid" in e]
-    ia = dict((iaid, get_ia_collection_and_box_id(iaid)) for iaid in iaids)
+    ia = {iaid: get_ia_collection_and_box_id(iaid) for iaid in iaids}
     duplicates = {}
     return build_data2(w, editions, authors, ia, duplicates)
 
@@ -770,7 +769,7 @@ def build_data2(w, editions, authors, ia, duplicates):
         add_field(doc, 'cover_i', main_cover_id)
 
     k = 'first_sentence'
-    fs = set( e[k]['value'] if isinstance(e[k], dict) else e[k] for e in editions if e.get(k, None))
+    fs = { e[k]['value'] if isinstance(e[k], dict) else e[k] for e in editions if e.get(k, None)}
     add_field_list(doc, k, fs)
 
     publishers = set()
@@ -788,21 +787,21 @@ def build_data2(w, editions, authors, ia, duplicates):
             m = re_lang_key.match(l['key'] if isinstance(l, dict) else l)
             lang.add(m.group(1))
         if e.get('ia_loaded_id'):
-            if isinstance(e['ia_loaded_id'], six.string_types):
+            if isinstance(e['ia_loaded_id'], str):
                 ia_loaded_id.add(e['ia_loaded_id'])
             else:
                 try:
-                    assert isinstance(e['ia_loaded_id'], list) and isinstance(e['ia_loaded_id'][0], six.string_types)
+                    assert isinstance(e['ia_loaded_id'], list) and isinstance(e['ia_loaded_id'][0], str)
                 except AssertionError:
                     logger.error("AssertionError: ia=%s, ia_loaded_id=%s", e.get("ia"), e['ia_loaded_id'])
                     raise
                 ia_loaded_id.update(e['ia_loaded_id'])
         if e.get('ia_box_id'):
-            if isinstance(e['ia_box_id'], six.string_types):
+            if isinstance(e['ia_box_id'], str):
                 ia_box_id.add(e['ia_box_id'])
             else:
                 try:
-                    assert isinstance(e['ia_box_id'], list) and isinstance(e['ia_box_id'][0], six.string_types)
+                    assert isinstance(e['ia_box_id'], list) and isinstance(e['ia_box_id'][0], str)
                 except AssertionError:
                     logger.error("AssertionError: %s", e['key'])
                     raise
@@ -867,7 +866,7 @@ def solr_update(requests, debug=False, commitWithin=60000):
 
     h1.connect()
     for r in requests:
-        if not isinstance(r, six.string_types):
+        if not isinstance(r, str):
             # Assuming it is either UpdateRequest or DeleteRequest
             r = r.toxml()
         if not r:
@@ -875,7 +874,7 @@ def solr_update(requests, debug=False, commitWithin=60000):
 
         if debug:
             logger.info('request: %r', r[:65] + '...' if len(r) > 65 else r)
-        assert isinstance(r, six.string_types)
+        assert isinstance(r, str)
         h1.request('POST', url, r.encode('utf8'), { 'Content-type': 'text/xml;charset=utf-8'})
         response = h1.getresponse()
         response_body = response.read()
@@ -913,8 +912,7 @@ class BaseDocBuilder:
 
         if work:
             yield work['key']
-            for s in self.get_subject_seeds(work):
-                yield s
+            yield from self.get_subject_seeds(work)
 
             if authors is None:
                 authors = [a['author'] for a in work.get("authors", [])
@@ -938,7 +936,7 @@ class BaseDocBuilder:
         return [self.get_subject_key(prefix, s) for s in subject_names]
 
     def get_subject_key(self, prefix, subject):
-        if isinstance(subject, six.string_types):
+        if isinstance(subject, str):
             key = prefix + self.re_subject.sub("_", subject.lower()).strip("_")
             return key
 
@@ -1110,12 +1108,12 @@ def get_subject(key):
 
     # Handle upper case or any special characters that may be present
     subject_key = str_to_key(subject_key)
-    key = "/subjects/%s:%s" % (subject_type, subject_key)
+    key = f"/subjects/{subject_type}:{subject_key}"
 
     params = {
         'wt': 'json',
         'json.nl': 'arrarr',
-        'q': '%s:%s' % (search_field, subject_key),
+        'q': f'{search_field}:{subject_key}',
         'rows': '0',
         'facet': 'true',
         'facet.field': facet_field,
@@ -1337,7 +1335,7 @@ def solr_select_work(edition_key):
 
     edition_key = solr_escape(edition_key)
 
-    url = '%s/select?wt=json&q=edition_key:%s&rows=1&fl=key' % (
+    url = '{}/select?wt=json&q=edition_key:{}&rows=1&fl=key'.format(
         get_solr_base_url(),
         url_quote(edition_key)
     )
@@ -1381,7 +1379,7 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
     deletes = []
 
     # Get works for all the editions
-    ekeys = set(k for k in keys if k.startswith("/books/"))
+    ekeys = {k for k in keys if k.startswith("/books/")}
 
     data_provider.preload_documents(ekeys)
     for k in ekeys:
@@ -1467,7 +1465,7 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
 
     # update authors
     requests = []
-    akeys = set(k for k in keys if k.startswith("/authors/"))
+    akeys = {k for k in keys if k.startswith("/authors/")}
 
     data_provider.preload_documents(akeys)
     for k in akeys:
@@ -1491,7 +1489,7 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
             _solr_update(requests, debug=True, commitWithin=1000)
 
     # update subjects
-    skeys = set(k for k in keys if k.startswith("/subjects/"))
+    skeys = {k for k in keys if k.startswith("/subjects/")}
     requests = []
     for k in skeys:
         logger.info("updating subject %s", k)

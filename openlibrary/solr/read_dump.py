@@ -1,13 +1,12 @@
-from __future__ import print_function
 import re
 import json
 import sys
 from time import time
 import web
 
-re_author_key = re.compile('^/a/OL(\d+)A$')
-re_work_key = re.compile('^/works/OL(\d+)W$')
-re_edition_key = re.compile('^/b/OL(\d+)M$')
+re_author_key = re.compile(r'^/a/OL(\d+)A$')
+re_work_key = re.compile(r'^/works/OL(\d+)W$')
+re_edition_key = re.compile(r'^/b/OL(\d+)M$')
 
 _escape_dict = {'\n': r'\n', '\r': r'\r', '\t': r'\t', '\\': r'\\'}
 def make_sub(d):
@@ -21,7 +20,7 @@ def make_sub(d):
     rx = re.compile("|".join(re.escape(key) for key in d))
     return lambda s: s and rx.sub(f, s)
 def invert_dict(d):
-    return dict((v, k) for (k, v) in d.items())
+    return {v: k for (k, v) in d.items()}
 unescape = make_sub(invert_dict(_escape_dict))
 
 def read_input():
@@ -55,7 +54,7 @@ for data in read_input():
     rec_no += 1
     if rec_no % 100000 == 0:
         t1 = time() - t0
-        print("%s %.2f minutes" % (web.commify(rec_no), (float(t1) / 60.0)))
+        print("{} {:.2f} minutes".format(web.commify(rec_no), (float(t1) / 60.0)))
     try:
         d = json.loads(data)
     except:

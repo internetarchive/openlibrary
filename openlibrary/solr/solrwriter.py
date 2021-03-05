@@ -11,7 +11,7 @@ import six
 
 logger = logging.getLogger("openlibrary.solrwriter")
 
-class SolrWriter(object):
+class SolrWriter:
     """Interface to update solr.
     """
     def __init__(self, host, core=None):
@@ -79,7 +79,7 @@ class SolrWriter(object):
 
 re_bad_char = re.compile('[\x01\x0b\x1a-\x1e]')
 def strip_bad_char(s):
-    if not isinstance(s, six.string_types):
+    if not isinstance(s, str):
         return s
     return re_bad_char.sub('', s)
 
@@ -90,7 +90,7 @@ def add_field(doc, name, value):
         return
     else:
         field = Element("field", name=name)
-        if not isinstance(value, six.string_types):
+        if not isinstance(value, str):
             value = str(value)
         try:
             value = strip_bad_char(value)

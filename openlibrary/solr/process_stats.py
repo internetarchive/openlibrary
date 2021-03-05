@@ -12,7 +12,6 @@ How to run:
     ./scripts/openlibrary-server openlibrary.yml runmain openlibrary.solr.process_stats --load
 
 """
-from __future__ import print_function
 import sys
 import web
 import json
@@ -175,7 +174,7 @@ def process(data):
         solrdoc['publish_year'] = year
 
     # Remove None values
-    solrdoc = dict((k, v) for k, v in solrdoc.items() if v is not None)
+    solrdoc = {k: v for k, v in solrdoc.items() if v is not None}
     return solrdoc
 
 def read_events():
@@ -246,7 +245,7 @@ def update_solr(docs):
     solr = SolrWriter(config.stats_solr or "localhost:8983")
     for doc in docs:
         # temp fix for handling already processed data
-        doc = dict((k, v) for k, v in doc.items() if v is not None)
+        doc = {k: v for k, v in doc.items() if v is not None}
         if isinstance(doc.get("ia_collections_id"), str):
             doc['ia_collections_id'] = doc['ia_collections_id'].split(";")
 

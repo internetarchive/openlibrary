@@ -193,7 +193,7 @@ class BetterDataProvider(LegacyDataProvider):
         #self.preload_ia_items(identifiers)
         re_key = web.re_compile(r"/(books|works|authors)/OL\d+[MWA]")
 
-        keys2 = set(k for k in keys if re_key.match(k))
+        keys2 = {k for k in keys if re_key.match(k)}
         #keys2.update(k for k in self.ia_redirect_cache.values() if k is not None)
         self.preload_documents0(keys2)
         self._preload_works()
@@ -303,7 +303,7 @@ class BetterDataProvider(LegacyDataProvider):
             " FROM thing as edition, thing as work, edition_ref" +
             " WHERE edition_ref.thing_id=edition.id" +
             "   AND edition_ref.value=work.id" +
-            "   AND edition_ref.key_id=({})".format(key_query) +
+            f"   AND edition_ref.key_id=({key_query})" +
             "   AND work.key in $keys")
         result = self.db.query(q, vars=dict(keys=work_keys))
         for row in result:

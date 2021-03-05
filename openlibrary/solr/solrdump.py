@@ -19,7 +19,6 @@ solr document:
         A dictionary with elements from Solr schema of Open Library. These
         documents can be imported to solr after converting to xml.
 """
-from __future__ import print_function
 import sys
 import json
 import gzip
