@@ -13,7 +13,7 @@ RUN groupadd --system openlibrary \
 
 # Misc OL dependencies
 RUN apt-get -qq update && apt-get install -y \
-    postgresql \
+    postgresql-client \
     build-essential \
     git \
     libpq-dev \
