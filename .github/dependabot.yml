@@ -1,5 +1,8 @@
 version: 2
 updates:
+- package_manager: "python"
+  directory: "/"
+  update_schedule: "monthly"
 - package-ecosystem: npm
   directory: "/"
   schedule:
