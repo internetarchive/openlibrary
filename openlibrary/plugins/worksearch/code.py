@@ -4,12 +4,7 @@ import random
 import re
 import string
 from unicodedata import normalize
-
-try:  # Python 3
-    from json import JSONDecodeError
-except ImportError:  # Python 2
-    JSONDecodeError = ValueError
-
+from json import JSONDecodeError
 import requests
 import web
 from lxml.etree import XML, XMLSyntaxError
