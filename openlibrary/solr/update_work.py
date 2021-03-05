@@ -731,8 +731,13 @@ def build_data2(w, editions, authors, ia, duplicates):
     resolve_redirects = False
 
     assert w['type']['key'] == '/type/work'
-    title = w.get('title', None)
-    if not title:
+    # Some works are missing a title, but have titles on their editions
+    w['title'] = next(itertools.chain(
+        (book['title'] for book in itertools.chain([w], editions) if book.get('title')),
+        [None]
+    ))
+    if not w['title']:
+        logger.error('Work missing title %s' % w['key'])
         return
 
     p = SolrProcessor(resolve_redirects)
@@ -1172,14 +1177,14 @@ def update_work(work):
 
     # Handle edition records as well
     # When an edition does not contain a works list, create a fake work and index it.
-    if work['type']['key'] == '/type/edition' and work.get('title'):
+    if work['type']['key'] == '/type/edition':
         fake_work = {
             # Solr uses type-prefixed keys. It's required to be unique across
             # all types of documents. The website takes care of redirecting
             # /works/OL1M to /books/OL1M.
             'key': wkey.replace("/books/", "/works/"),
             'type': {'key': '/type/work'},
-            'title': work['title'],
+            'title': work.get('title'),
             'editions': [work],
             'authors': [{'type': '/type/author_role', 'author': {'key': a['key']}} for a in work.get('authors', [])]
         }
@@ -1187,7 +1192,7 @@ def update_work(work):
         if work.get("subjects"):
             fake_work['subjects'] = work['subjects']
         return update_work(fake_work)
-    elif work['type']['key'] == '/type/work' and work.get('title'):
+    elif work['type']['key'] == '/type/work':
         try:
             solr_doc = build_data(work)
             dict2element(solr_doc)
@@ -1202,7 +1207,7 @@ def update_work(work):
     elif work['type']['key'] in ['/type/delete', '/type/redirect']:
         requests.append(DeleteRequest([wkey]))
     else:
-        logger.error("unrecognized type while updating work %s", wkey, exc_info=True)
+        logger.error("unrecognized type while updating work %s", wkey)
 
     return requests
 
