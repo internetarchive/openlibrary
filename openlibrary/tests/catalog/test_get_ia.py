@@ -24,7 +24,7 @@ def return_test_marc_xml(url):
 
 def return_test_marc_data(url, test_data_subdir="xml_input"):
     filename = url.split('/')[-1]
-    test_data_dir = "/../../catalog/marc/tests/test_data/%s/" % test_data_subdir
+    test_data_dir = f"/../../catalog/marc/tests/test_data/{test_data_subdir}/"
     path = os.path.dirname(__file__) + test_data_dir + filename
     return MockResponse(open(path, mode='rb').read())
 
@@ -85,7 +85,7 @@ class TestGetIA():
 
         result = get_ia.get_marc_record_from_ia(item)
         assert isinstance(result, MarcXml), \
-            "{}: expected instanceof MarcXml, got {}".format(item, type(result))
+            f"{item}: expected instanceof MarcXml, got {type(result)}"
 
     @pytest.mark.parametrize('item', bin_items)
     def test_no_marc_xml(self, item, monkeypatch):
@@ -95,10 +95,10 @@ class TestGetIA():
 
         result = get_ia.get_marc_record_from_ia(item)
         assert isinstance(result, MarcBinary), \
-            "{}: expected instanceof MarcBinary, got {}".format(item, type(result))
+            f"{item}: expected instanceof MarcBinary, got {type(result)}"
         field_245 = next(result.read_fields(['245']))
         title = next(field_245[1].get_all_subfields())[1].encode('utf8')
-        print("{}:\n\tUNICODE: [{}]\n\tTITLE: {}".format(item, result.leader()[9], title))
+        print(f"{item}:\n\tUNICODE: [{result.leader()[9]}]\n\tTITLE: {title}"
 
     @pytest.mark.parametrize('bad_marc', bad_marcs)
     def test_incorrect_length_marcs(self, bad_marc, monkeypatch):
