@@ -15,7 +15,7 @@ def test_seed_with_string():
     assert seed._solrdata is None
 
 
-class NotAString(object):
+class NotAString:
     def __init__(self):
         self.key = "not_a_string.key"
 
@@ -32,4 +32,3 @@ def test_seed_with_nonstring():
     seed.value = "New value"
     # assert seed.get_document() == "New value"
     assert isinstance(seed.document, NotAString)
- 

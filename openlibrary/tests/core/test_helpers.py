@@ -2,28 +2,28 @@ from openlibrary.core import helpers as h
 
 def test_sanitize():
     # plain html should pass through
-    assert h.sanitize(u"hello") == u"hello"
-    assert h.sanitize(u"<p>hello</p>") == u"<p>hello</p>"
+    assert h.sanitize("hello") == "hello"
+    assert h.sanitize("<p>hello</p>") == "<p>hello</p>"
 
     # broken html must be corrected
-    assert h.sanitize(u"<p>hello") == u"<p>hello</p>"
+    assert h.sanitize("<p>hello") == "<p>hello</p>"
 
     # css class is fine
-    assert h.sanitize(u'<p class="foo">hello</p>') == u'<p class="foo">hello</p>'
+    assert h.sanitize('<p class="foo">hello</p>') == '<p class="foo">hello</p>'
 
     # style attribute must be stripped
-    assert h.sanitize(u'<p style="color: red">hello</p>') == u'<p>hello</p>'
+    assert h.sanitize('<p style="color: red">hello</p>') == '<p>hello</p>'
 
     # style tags must be stripped
-    assert h.sanitize(u'<style type="text/css">p{color: red;}</style><p>hello</p>') == u'<p>hello</p>'
+    assert h.sanitize('<style type="text/css">p{color: red;}</style><p>hello</p>') == '<p>hello</p>'
 
     # script tags must be stripped
-    assert h.sanitize(u'<script>alert("dhoom")</script>hello') == u'hello'
+    assert h.sanitize('<script>alert("dhoom")</script>hello') == 'hello'
 
     # rel="nofollow" must be added absolute links
-    assert h.sanitize(u'<a href="https://example.com">hello</a>') == u'<a href="https://example.com" rel="nofollow">hello</a>'
+    assert h.sanitize('<a href="https://example.com">hello</a>') == '<a href="https://example.com" rel="nofollow">hello</a>'
     # relative links should pass through
-    assert h.sanitize(u'<a href="relpath">hello</a>') == u'<a href="relpath">hello</a>'
+    assert h.sanitize('<a href="relpath">hello</a>') == '<a href="relpath">hello</a>'
 
 def test_safesort():
     from datetime import datetime
@@ -42,19 +42,19 @@ def test_datestr():
     then = datetime(2010, 1, 1, 0, 0, 0)
 
     #assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 0, 10)) == u"just moments ago"
-    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 1)) == u"1 second ago"
-    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 9)) == u"9 seconds ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 1)) == "1 second ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 9)) == "9 seconds ago"
 
-    assert h.datestr(then, datetime(2010, 1, 1, 0, 1, 1)) == u"1 minute ago"
-    assert h.datestr(then, datetime(2010, 1, 1, 0, 9, 1)) == u"9 minutes ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 0, 1, 1)) == "1 minute ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 0, 9, 1)) == "9 minutes ago"
 
-    assert h.datestr(then, datetime(2010, 1, 1, 1, 0, 1)) == u"1 hour ago"
-    assert h.datestr(then, datetime(2010, 1, 1, 9, 0, 1)) == u"9 hours ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 1, 0, 1)) == "1 hour ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 9, 0, 1)) == "9 hours ago"
 
-    assert h.datestr(then, datetime(2010, 1, 2, 0, 0, 1)) == u"1 day ago"
+    assert h.datestr(then, datetime(2010, 1, 2, 0, 0, 1)) == "1 day ago"
 
-    assert h.datestr(then, datetime(2010, 1, 9, 0, 0, 1)) == u"January 1, 2010"
-    assert h.datestr(then, datetime(2010, 1, 9, 0, 0, 1), lang='fr') == u'1 janvier 2010'
+    assert h.datestr(then, datetime(2010, 1, 9, 0, 0, 1)) == "January 1, 2010"
+    assert h.datestr(then, datetime(2010, 1, 9, 0, 0, 1), lang='fr') == '1 janvier 2010'
 
 def test_sprintf():
     assert h.sprintf('hello %s', 'python') == 'hello python'
