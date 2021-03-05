@@ -18,7 +18,6 @@ from openlibrary.core import models, ia
 from openlibrary.core.models import Image
 from openlibrary.core import lending
 
-from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.upstream.utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
 from openlibrary.plugins.upstream import account
 from openlibrary.plugins.upstream import borrow
@@ -725,65 +724,7 @@ class Work(models.Work):
         return record
 
 class Subject(client.Thing):
-    def _get_solr_result(self):
-        if not self._solr_result:
-            name = self.name or ""
-            q = {'subjects': name, "facets": True}
-            self._solr_result = SearchProcessor().search(q)
-        return self._solr_result
-
-    def get_related_subjects(self):
-        # dummy subjects
-        return [web.storage(name='France', key='/subjects/places/France'), web.storage(name='Travel', key='/subjects/Travel')]
-
-    def get_covers(self, offset=0, limit=20):
-        editions = self.get_editions(offset, limit)
-        olids = [e['key'].split('/')[-1] for e in editions]
-
-        try:
-            url = '%s/b/query?cmd=ids&olid=%s' % (get_coverstore_url(), ",".join(olids))
-            cover_ids = requests.get(url).json()
-        except IOError as e:
-            print('ERROR in getting cover_ids', str(e), file=web.debug)
-            cover_ids = {}
-
-        def make_cover(edition):
-            edition = dict(edition)
-            edition.pop('type', None)
-            edition.pop('subjects', None)
-            edition.pop('languages', None)
-
-            olid = edition['key'].split('/')[-1]
-            if olid in cover_ids:
-                edition['cover_id'] = cover_ids[olid]
-
-            return edition
-
-        return [make_cover(e) for e in editions]
-
-    def get_edition_count(self):
-        d = self._get_solr_result()
-        return d['matches']
-
-    def get_editions(self, offset, limit=20):
-        if self._solr_result and offset+limit < len(self._solr_result):
-            result = self._solr_result[offset:offset+limit]
-        else:
-            name = self.name or ""
-            result = SearchProcessor().search({"subjects": name, 'offset': offset, 'limit': limit})
-        return result['docs']
-
-    def get_author_count(self):
-        d = self._get_solr_result()
-        return len(d['facets']['authors'])
-
-    def get_authors(self):
-        d = self._get_solr_result()
-        return [web.storage(name=a, key='/authors/OL1A', count=count) for a, count in d['facets']['authors']]
-
-    def get_publishers(self):
-        d = self._get_solr_result()
-        return [web.storage(name=p, count=count) for p, count in d['facets']['publishers']]
+    pass
 
 
 class SubjectPlace(Subject):
