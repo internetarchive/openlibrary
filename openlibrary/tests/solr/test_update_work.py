@@ -1,9 +1,6 @@
 import pytest
 import unittest
-try:
-    from unittest import mock
-except ImportError:
-    from unittest import mock
+from unittest import mock
 
 from openlibrary.solr import update_work
 from openlibrary.solr.data_provider import DataProvider
