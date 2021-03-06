@@ -124,7 +124,7 @@ export default function($) {
                             results,
                             (r) => highlight(options.formatItem(r), term),
                             ol_ac_opts.addnew === true ||
-                                (ol_ac_opts.addnew && ol_ac_opts.addnew(term)) ? term : null
+                                (ol_ac_opts.addnew && ol_ac_opts.addnew(term)) ? (ol_ac_opts.new_name || term) : null
                         )
                     );
                 });
