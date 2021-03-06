@@ -72,12 +72,10 @@ export default function($) {
             focus: function (_event, ui) {
                 const $list = $(_this).data('list');
                 if ($list) {
-                    $list.find('li').removeClass('ac_over').each((i, el) => {
-                        const $el = $(el);
-                        if ($el.data('value') === ui.item.value) {
-                            $el.addClass('ac_over');
-                        }
-                    });
+                    $list.find('li')
+                        .removeClass('ac_over')
+                        .filter((_, el) => $(el).data('ui-autocomplete-item').key === ui.item.key)
+                        .addClass('ac_over');
                 }
             },
             select: function (_event, ui) {
@@ -97,7 +95,6 @@ export default function($) {
                 $ul.addClass('ac_results').attr('id', this.ulRef);
                 items.forEach((item) => {
                     $('<li>')
-                        .attr('data-value', item.value)
                         .data('ui-autocomplete-item', item)
                         .attr('aria-label', item.value)
                         .html(item.label)
