@@ -33,8 +33,9 @@ js:
 components: $(COMPONENTS_DIR)/*.vue
 	mkdir --parents $(BUILD)
 	rm -rf $(BUILD)/components
-	parallel --verbose -q \
-		npx vue-cli-service build --no-clean --mode production --dest $(BUILD)/components/production --target wc --name "ol-{1/.}" "{1}" \
+	# Run these silly things one at a time, because they don't support parallelization :(
+	parallel --verbose -q --jobs 1 \
+		npx vue-cli-service build --no-clean --mode production --dest $(BUILD)/components/production --target wc --name "ol-{/.}" "{}" \
 	::: $^
 
 i18n:
