@@ -111,7 +111,8 @@ def load_locale(lang):
 class GetText:
     def __call__(self, string, *args, **kwargs):
         """Translate a given string to the language of the current locale."""
-        translations = load_translations(web.ctx.get('lang', 'en'))
+        # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
+        translations = load_translations(web.ctx.lang)
         value = (translations and translations.ugettext(string)) or string
 
         if args:
@@ -147,9 +148,11 @@ class LazyObject:
     def __radd__(self, other):
         return other + self._creator()
 
+
 def ungettext(s1, s2, _n, *a, **kw):
-    translations = load_translations(web.ctx.get('lang', 'en'))
-    value = (translations and translations.ungettext(s1, s2, _n))
+    # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
+    translations = load_translations(web.ctx.lang)
+    value = translations and translations.ungettext(s1, s2, _n)
     if not value:
         # fallback when translation is not provided
         if _n == 1:
@@ -165,9 +168,9 @@ def ungettext(s1, s2, _n, *a, **kw):
         return value
 
 def gettext_territory(code):
-    """Returns the territory name in the current locale.
-    """
-    locale = load_locale(web.ctx.get('lang', 'en'))
+    """Returns the territory name in the current locale."""
+    # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
+    locale = load_locale(web.ctx.lang)
     return locale.territories.get(code, code)
 
 gettext = GetText()

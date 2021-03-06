@@ -1,4 +1,23 @@
+import web
 from openlibrary.core import helpers as h
+from openlibrary.mocks.mock_infobase import MockSite
+
+
+def _load_fake_context():
+    app = web.application()
+    env = {
+        "PATH_INFO": "/", "HTTP_METHOD": "GET",
+    }
+    app.load(env)
+
+
+def _monkeypatch_web(monkeypatch):
+    monkeypatch.setattr(web, "ctx", web.storage(x=1))
+    monkeypatch.setattr(web.webapi, "ctx", web.ctx)
+
+    _load_fake_context()
+    web.ctx.lang = 'en'
+    web.ctx.site = MockSite()
 
 def test_sanitize():
     # plain html should pass through
@@ -37,13 +56,16 @@ def test_safesort():
 
     assert h.safesort([[y2005], [None]], key=lambda x: x[0]) == [[None], [y2005]]
 
-def test_datestr():
+
+def test_datestr(monkeypatch):
     from datetime import datetime
+
     then = datetime(2010, 1, 1, 0, 0, 0)
 
-    #assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 0, 10)) == u"just moments ago"
-    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 1)) == "1 second ago"
-    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 9)) == "9 seconds ago"
+    _monkeypatch_web(monkeypatch)
+    # assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 0, 10)) == u"just moments ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 1)) == u"1 second ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 9)) == u"9 seconds ago"
 
     assert h.datestr(then, datetime(2010, 1, 1, 0, 1, 1)) == "1 minute ago"
     assert h.datestr(then, datetime(2010, 1, 1, 0, 9, 1)) == "9 minutes ago"
