@@ -4,12 +4,11 @@ import 'jquery-validation';
 import 'jquery-ui/ui/widgets/dialog';
 import 'jquery-ui/ui/widgets/sortable';
 import 'jquery-ui/ui/widgets/tabs';
+import 'jquery-ui/ui/widgets/autocomplete';
 // For dialog boxes (e.g. add to list)
 import '../../../../vendor/js/colorbox/1.5.14.js';
 // jquery.form#2.36 not on npm, no longer getting worked on
 import '../../../../vendor/js/jquery-form/jquery.form.js';
-// jquery-autocomplete#1.1 with modified
-import '../../../../vendor/js/jquery-autocomplete/jquery.autocomplete-modified.js';
 import autocompleteInit from './autocomplete';
 // Used only by the openlibrary/templates/books/edit/addfield.html template
 import addNewFieldInit from './add_new_field';
