@@ -2,22 +2,12 @@ $def with (image, showinfo=True)
 
 $putctx("cssfile", "form")
 
-<script type="text/javascript">
-<!--
-window.q.push(function() {
-    \$("#topNotice").hide();
-    \$("#popClose").click(closePopup);
-    parent.update_image("$(image and image.id)");
-});
-//-->
-</script>
-
 <div class="imagePost">
     $if image:
         <img src="$image.url(size='M')" class="cover" alt="New book cover"/>
 </div>
 
-<div class="imageSaved">
+<div class="imageSaved", data-config="$(image and image.id)">
     <div class="saved">$_("Saved!")</div>
     <div class="meta">
         $if showinfo:
