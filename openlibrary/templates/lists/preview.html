@@ -27,14 +27,5 @@ $def with (list)
                 $if list.description:
                     $:format(list.description)
             </span>
-
-            <div class="subjects">
-                $ subjects = list.get_top_subjects(limit=5)
-                $if subjects:
-                    <!-- TODO: I18N Needs to be improved for LTR languages -->
-                    $_('Themes:')
-                    $for s in subjects[:5]:
-                        <a href="$s.url">$s.title</a>$cond(loop.last, "", ",")
-            </div>
         </span>
     </span>

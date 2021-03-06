@@ -34,8 +34,8 @@ components: $(COMPONENTS_DIR)/*.vue
 	mkdir --parents $(BUILD)
 	rm -rf $(BUILD)/components
 	parallel --verbose -q \
-		npx vue-cli-service build --no-clean --mode {2} --dest $(BUILD)/components/{2} --target wc --name "ol-{1/.}" "{1}" \
-	::: $^ ::: production development
+		npx vue-cli-service build --no-clean --mode production --dest $(BUILD)/components/production --target wc --name "ol-{1/.}" "{1}" \
+	::: $^
 
 i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
