@@ -146,8 +146,6 @@ def render_component(name, attrs=None, json_encode=True):
 
     if name not in included:
         url = static_url('build/components/production/ol-%s.min.js' % name)
-        if query_param('debug'):
-            url = static_url('build/components/development/ol-%s.js' % name)
         html += '<script src="%s"></script>' % url
         included.append(name)
 
