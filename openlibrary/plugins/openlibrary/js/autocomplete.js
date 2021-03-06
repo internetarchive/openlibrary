@@ -1,4 +1,45 @@
 // jquery plugins to provide author and language autocompletes.
+/**
+ * Port of code in vendor/js/jquery-autocomplete removed in e91119b
+ * @param {string} value
+ * @param {string} term to highlight in value, its assumed these are plain text or safe HTML.
+ * @return {string}
+ */
+export function highlight(value, term) {
+    return value.replace(
+        new RegExp(`(?![^&;]+;)(?!<[^<>]*)(${term.replace(/([\^$()[]\{\}\*\.\+\?\|\\])/gi, '$1')})(?![^<>]*>)(?![^&;]+;)`, 'gi'),
+        '<strong>$1</strong>'
+    );
+}
+
+/**
+ * Map an OpenLibrary API response to a jquery autocomplete data structure.
+ *
+ * @param {array} results
+ * @param {function} labelFormatter
+ * @param {string} [addNewFieldTerm] when passed a new item at the end of the list for
+ *  creating a new entry will be added
+ * @return {array} of modified results that are compatible with the jquery autocomplete search suggestions
+ */
+export const mapApiResultsToAutocompleteSuggestions = (results, labelFormatter, addNewFieldTerm) => {
+    const mapAPIResultToSuggestedItem = (r) => ({
+        key: r.key,
+        label: labelFormatter(r),
+        value: r.name
+    });
+
+    // When no results if callback is defined, append a create new entry
+    if (addNewFieldTerm) {
+        results.push(
+            {
+                name: addNewFieldTerm,
+                key: '__new__',
+                value: addNewFieldTerm
+            }
+        );
+    }
+    return results.map(mapAPIResultToSuggestedItem);
+};
 
 export default function($) {
     /**
@@ -21,9 +62,7 @@ export default function($) {
     function setup_autocomplete(_this, ol_ac_opts, ac_opts) {
         var default_ac_opts = {
             autoFill: true,
-            formatItem: function (item) {
-                return item.name;
-            },
+            formatItem: item => item.name,
             /**
              * Adds the ac_over class to the selected autocomplete item
              *
@@ -53,25 +92,11 @@ export default function($) {
             formatMatch: function(item) { return item.name; }
         };
 
-        /**
-         * Port of code in vendor/js/jquery-autocomplete removed in e91119b
-         * @param {string} value
-         * @param {string} term to highlight in value
-         * @return {string}
-         */
-        function highlight(value, term) {
-            return value.replace(
-                new RegExp(`(?![^&;]+;)(?!<[^<>]*)(${term.replace(/([\^$()[]\{\}\*\.\+\?\|\\])/gi, '$1')})(?![^<>]*>)(?![^&;]+;)`, 'gi'),
-                '<strong>$1</strong>'
-            );
-        }
-
         $.widget('custom.autocompleteHTML', $.ui.autocomplete, {
             _renderMenu($ul, items) {
                 $ul.addClass('ac_results').attr('id', this.ulRef);
-                items.forEach((item, i) => {
+                items.forEach((item) => {
                     $('<li>')
-                        .addClass(i % 2 ? 'ac-even' : 'ac-odd')
                         .attr('data-value', item.value)
                         .data('ui-autocomplete-item', item)
                         .attr('aria-label', item.value)
@@ -94,34 +119,14 @@ export default function($) {
                         timestamp: new Date()
                     }
                 }).then((results) => {
-                    const modifiedResults = results.map((r) => {
-                        return {
-                            key: r.key,
-                            label: highlight(options.formatItem(r), term),
-                            value: r.name
-                        };
-                    });
-
-                    // When no results if callback is defined, append a create new entry
-                    if (
-                        ol_ac_opts.addnew === true ||
-                        (ol_ac_opts.addnew && ol_ac_opts.addnew(term))
-                    ) {
-                        response(
-                            modifiedResults.concat([
-                                {
-                                    label: options.formatItem({
-                                        name: term,
-                                        key: '__new__',
-                                        result: term,
-                                        value: term
-                                    }),
-                                    value: term
-                                }
-                            ]));
-                    } else {
-                        response(modifiedResults);
-                    }
+                    response(
+                        mapApiResultsToAutocompleteSuggestions(
+                            results,
+                            (r) => highlight(options.formatItem(r), term),
+                            ol_ac_opts.addnew === true ||
+                                (ol_ac_opts.addnew && ol_ac_opts.addnew(term)) ? term : null
+                        )
+                    );
                 });
             }
         });
