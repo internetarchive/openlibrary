@@ -31,8 +31,6 @@ CAROUSELS_PRESETS = {
 
 
 def get_homepage():
-    if 'env' not in web.ctx:
-        delegate.fakeload()
     try:
         stats = admin.get_stats()
     except Exception:
@@ -43,10 +41,8 @@ def get_homepage():
     # render tempalte should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
     # during subsequent called
-    page = render_template(
-        "home/index", stats=stats,
-        blog_posts=blog_posts
-    )
+    page = render_template("home/index", stats=stats, blog_posts=blog_posts)
+    # Convert to a dict so it can be cached
     return dict(page)
 
 
@@ -57,8 +53,26 @@ def get_cached_homepage():
     key = "home.homepage." + lang
     if pd:
         key += '.pd'
+
+    # Because of caching, memcache will call `get_homepage` on another thread! So we
+    # need a way to carry some information to that computation on the other thread.
+    # We do that by using a python closure. The outer function is executed on the main
+    # thread, so all the web.* stuff is correct. The inner function is executed on the
+    # other thread, so all the web.* stuff will be dummy.
+    def prethread():
+        # web.ctx.lang is undefined on the new thread, so need to transfer it over
+        lang = web.ctx.lang
+
+        def main():
+            # Leaving this in since this is a bit strange, but you can see it clearly
+            # in action with this debug line:
+            # web.debug(f'XXXXXXXXXXX web.ctx.lang={web.ctx.get("lang")}; {lang=}')
+            delegate.fakeload()
+            web.ctx.lang = lang
+        return main
+
     return cache.memcache_memoize(
-        get_homepage, key, timeout=five_minutes)()
+        get_homepage, key, timeout=five_minutes, prethread=prethread())()
 
 class home(delegate.page):
     path = "/"
