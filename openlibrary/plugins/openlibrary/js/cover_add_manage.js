@@ -8,10 +8,6 @@ export function initAddCoverImport () {
         event.preventDefault();
     }
 
-    // page may not be loaded via iframe
-    if (parent && parent.closeThrobber) {
-        parent.closeThrobber();
-    }
     $('#form.addcover-form').on('submit', function(event) {
         var file = val('#coverFile');
         var url = val('#imageUrl');
