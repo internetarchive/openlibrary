@@ -154,12 +154,12 @@ jQuery(function () {
             .then(module => module.initAddCoverImport());
     }
 
-    if (document.getElementsByClassName('imageIntro').length) {
+    if (document.getElementsByClassName('manageCovers').length) {
         import(/* webpackChunkName: "image_change" */ './image_change')
-            .then(module => module.initAddCoverImport());
+            .then(module => module.initChangeImageImport());
     }
 
-    if (document.getElementsByClassName('imageIntro').length) {
+    if (document.getElementsByClassName('imageSaved').length) {
         import(/* webpackChunkName: "image_saved" */ './image_saved')
             .then(module => module.initImageSaved());
     }

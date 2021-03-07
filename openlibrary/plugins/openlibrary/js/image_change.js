@@ -30,10 +30,10 @@ export function initChangeImageImport() {
                add_iframe("#imagesManage", manage_url);
             }, 0);
        })
-        .bind("cbox_cleanup", function () {
-            $("#imagesAdd").html("");
-            $("#imagesManage").html("");
-        });
+       .bind("cbox_cleanup", function () {
+           $("#imagesAdd").html("");
+           $("#imagesManage").html("");
+       });
 
     // Add function to close throbber
     closeThrobber = function () { $(".throbber").customFadeOut(); };
