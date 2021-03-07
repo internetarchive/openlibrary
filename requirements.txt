@@ -13,7 +13,7 @@ ipython==5.8.0
 ipython-genutils==0.1.0
 jsonpatch==0.4
 kombu==4.6.5
-meld3==2.0.0
+meld3==2.0.1
 ndg-httpsclient==0.5.1
 pathlib2==2.3.5
 pexpect==4.7.0
