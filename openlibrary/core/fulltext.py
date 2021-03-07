@@ -1,3 +1,4 @@
+import json
 import logging
 
 import requests
@@ -6,12 +7,6 @@ from infogami import config
 from openlibrary.core.lending import get_availability_of_ocaids
 from openlibrary.plugins.openlibrary.home import format_book_data
 from six.moves.urllib.parse import urlencode
-
-# py3 uses json.decoder.JSONDecodeError
-try:
-    from json.decoder import JSONDecodeError
-except ImportError:
-    JSONDecodeError = ValueError
 
 logger = logging.getLogger("openlibrary.inside")
 
@@ -29,7 +24,7 @@ def fulltext_search_api(params):
         return response.json()
     except requests.HTTPError:
         return {'error': 'Unable to query search engine'}
-    except JSONDecodeError:
+    except json.decoder.JSONDecodeError:
         return {'error': 'Error converting search engine data to JSON'}
 
 
