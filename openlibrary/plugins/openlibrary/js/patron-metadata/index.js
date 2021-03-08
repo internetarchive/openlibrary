@@ -121,7 +121,10 @@ export function initPatronMetadata() {
  * @param {ToggleEvent} event
  */
 function toggleHandler(event) {
-    $('#cboxContent').height($('#metadata-form').height() + 22);
+    let formHeight = $('#metadata-form').height();
+
+    $('#cboxContent').height(formHeight + 22);
+    $('#cboxLoadedContent').height(formHeight);
 }
 
 /**
