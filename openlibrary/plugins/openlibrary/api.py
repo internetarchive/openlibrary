@@ -19,6 +19,8 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
+from openlibrary.core.models import Booknotes
+from openlibrary.core.observations import post_observation
 from openlibrary.core.sponsorships import qualifies_for_sponsorship
 from openlibrary.core.vendors import (
     get_amazon_metadata, create_edition_from_amazon_metadata,
@@ -78,7 +80,6 @@ class browse(delegate.page):
             json.dumps(result),
             content_type="application/json")
 
-
 class ratings(delegate.page):
     path = r"/works/OL(\d+)W/ratings"
     encoding = "json"
@@ -120,6 +121,54 @@ class ratings(delegate.page):
         if i.redir:
             raise web.seeother(key)
         return r
+
+
+class booknotes(delegate.page):
+    path = r"/works/OL(\d+)W/notes"
+    encoding = "json"
+
+    def POST(self, work_id):
+        """
+        Add a note to a work (or a work and an edition)
+        GET params:
+        - edition_id str (optional)
+        - redir bool: if patron not logged in, redirect back to page after login
+
+        :param str work_id: e.g. OL123W
+        :rtype: json
+        :return: the note
+        """
+        user = accounts.get_current_user()
+        i = web.input(notes=None, edition_id=None, redir=None)
+        edition_id = int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
+
+        if not user:
+            raise web.seeother('/account/login?redirect=/works/%s' % work_id)
+
+        username = user.key.split('/')[2]
+
+        def response(msg, status="success"):
+            return delegate.RawText(json.dumps({
+                status: msg
+            }), content_type="application/json")
+
+        if i.notes is None:
+            Booknotes.remove(username, work_id)
+            return response('removed note')
+
+        Booknotes.add(
+            username=username,
+            work_id=work_id,
+            notes=i.notes,
+            edition_id=edition_id
+        )
+
+        if i.redir:
+            raise web.seeother("/works/%s" % work_id)
+
+        return response('note added')
+
+
 
 # The GET of work_bookshelves, work_ratings, and work_likes should return some summary of likes,
 # not a value tied to this logged in user. This is being used as debugging.
@@ -373,3 +422,19 @@ class price_api(delegate.page):
                     metadata['ocaid'] = ed.ocaid
 
         return json.dumps(metadata)
+
+
+class observations(delegate.page):
+    path = "/observations"
+    encoding = "json"
+
+    def POST(self):
+        user = accounts.get_current_user()
+
+        if user:
+            account = OpenLibraryAccount.get_by_email(user.email)
+            s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
+
+            if s3_keys:
+                response = post_observation(web.data(), s3_keys)
+                return delegate.RawText(response)

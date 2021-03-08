@@ -8,7 +8,7 @@ import logging
 
 
 def get_solr():
-    base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
+    base_url = config.plugin_worksearch.get('solr_base_url')
     return Solr(base_url)
 
 def work_search(query, limit=20, offset=0, **kw):

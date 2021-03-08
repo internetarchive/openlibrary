@@ -32,13 +32,24 @@ class CORSProcessor:
     """Processor to handle OPTIONS method to support
     Cross Origin Resurce Sharing.
     """
+    def __init__(self, cors_prefixes = None):
+        self.cors_prefixes = cors_prefixes
+
     def __call__(self, handler):
-        if web.ctx.path.startswith("/api/") or web.ctx.path.endswith(".json"):
+        if self.is_cors_path():
             self.add_cors_headers()
         if web.ctx.method == "OPTIONS":
             raise web.ok("")
         else:
             return handler()
+
+    def is_cors_path(self):
+        if self.cors_prefixes is None or web.ctx.path.endswith(".json"):
+            return True
+        for path_segment in self.cors_prefixes:
+            if web.ctx.path.startswith(path_segment):
+                return True
+        return False
 
     def add_cors_headers(self):
         # Allow anyone to access GET and OPTIONS requests

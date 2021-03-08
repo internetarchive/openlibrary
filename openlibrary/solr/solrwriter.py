@@ -65,7 +65,7 @@ class SolrWriter(object):
                 root.append(node)
             logger.info("flushing %d documents", len(self.pending_updates))
             self.pending_updates = []
-            xml = tostring(root).encode('utf-8')
+            xml = tostring(root).decode('utf-8')
             self.request(xml)
 
     def commit(self):
@@ -94,7 +94,7 @@ def add_field(doc, name, value):
             value = str(value)
         try:
             value = strip_bad_char(value)
-            if isinstance(value, str):
+            if six.PY2 and isinstance(value, str):
                 value = value.decode('utf-8')
             field.text = normalize('NFC', value)
         except:

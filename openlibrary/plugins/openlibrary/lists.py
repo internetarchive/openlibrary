@@ -20,7 +20,7 @@ class lists_home(delegate.page):
     path = "/lists"
 
     def GET(self):
-        delegate.context.setdefault('bodyid', 'lists')
+        delegate.context.setdefault('cssfile', 'lists')
         return render_template("lists/home")
 
 class lists(delegate.page):

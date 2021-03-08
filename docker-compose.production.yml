@@ -55,6 +55,26 @@ services:
       # Needed by default-docker.conf
       - ssl_certificate
       - ssl_certificate_key
+  cron-jobs:
+    image: oldev:latest
+    hostname: "$HOSTNAME"
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    user: root
+    command: cron -f
+    restart: always
+    volumes:
+      - ../olsystem/etc/cron.d/openlibrary.ol_home0:/etc/cron.d/openlibrary.ol_home0:ro
+      - ../olsystem:/olsystem
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+      - /1/var/tmp:/1/var/tmp
+    networks:
+      - webnet
+      - dbnet
+    secrets:
+      - ia_db_pw_file
 
   infobase:
     restart: always
@@ -108,16 +128,41 @@ services:
     hostname: "$HOSTNAME"
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - OL_URL=https://openlibrary.org/
     volumes:
       - ../olsystem:/olsystem
     logging:
       options:
         max-size: "512m"
         max-file: "4"
+    secrets:
+      - ia_db_pw_file
+  importbot:
+    image: oldev:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    command: docker/ol-importbot-start.sh
+    restart: always
+    hostname: "$HOSTNAME"
+    environment:
+      - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - OPENLIBRARY_RCFILE=/olsystem/etc/olrc-importbot
+      - PYENV_VERSION=${PYENV_VERSION:-}
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+      - ../olsystem:/olsystem
+    networks:
+      - webnet
+      - dbnet
 
 secrets:
     petabox_seed:
       file: /opt/.petabox/seed
+
+    ia_db_pw_file:
+      file: /opt/.petabox/dbserver
 
     # SSL-related secrets
     ssl_certificate:

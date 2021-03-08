@@ -42,7 +42,7 @@ $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
 $ book_description = (edition and edition.description) or (work and work.description)
 $ edition_count = work.edition_count if work and work.edition_count else 1
 $ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
-$ _x = ctx.setdefault('bodyid', 'book')
+$ _x = ctx.setdefault('cssfile', 'book')
 
 $var title: $title
 
@@ -461,10 +461,10 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
   </div>
 
   $ component_times['RelatedWorksCarousel'] = time()
-  <div class="RelatedWorksCarousel" workId="$work.key.split('/')[-1]">
+  <div class="RelatedWorksCarousel" data-workid="$work.key.split('/')[-1]">
     <div class="hidden loadingIndicator">
         <figure>
-        <img src="/images/ajax-loader-bar.gif">
+        <img src="/images/ajax-loader-bar.gif" alt="Loading indicator">
         <figcaption style="
             justify-content: center;
             display: flex;
@@ -481,21 +481,6 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
   $ component_times['TotalTime'] = time() - component_times['TotalTime']
 
   $if query_param('debug'):
-    <table>
-      <thead>
-        <tr>
-          <th>Component</th>
-          <th>Time</th>
-          <th>%</th>
-        </tr>
-      </thead>
-      <tbody>
-        $for component in sorted(component_times.items(), key=lambda x: x[1]):
-          <tr>
-            <td>$component[0]</td>
-            <td>$("%.2f" % component[1])</td>
-            <td>$("%.2f" % (component[1] / component_times['TotalTime'] * 100.))</td>
-          </tr>
-      </tbody>
-    </table>
+    $:macros.Profile(component_times)
+
 </div>

@@ -70,7 +70,7 @@ window.q.push(function(){
     <div><em>$_("You've not checked out any books at this moment.")</em></div>
 $else:
   $# Have current loans
-  <div id="borrowTable" class="borrow collapse">
+  <div class="borrow borrow-table collapse">
     <table>
         <thead>
             <tr>
@@ -130,20 +130,6 @@ $else:
         </tbody>
     </table>
   </div>
-  <!--
-    $for loan in loans:
-        $:macros.BorrowTrouble(loan['expiry'])
-    <h3>$_("How To Return eBooks through Adobe Digital Editions")</h3>
-    <ol class="sansserif small">
-        <li>$_('Open Adobe Digital Editions')</li>
-        <li>$_('Click the Library icon at the upper left corner')</li>
-        <li>$_('Move your mouse over the cover of the eBook you wish to return')</li>
-        <li>$_('Find the arrow at the upper left of the cover and open the eBook menu')</li>
-        <li>$_('Click "Return Borrowed Item"')</li>
-        <li>$_('Click "Return" to confirm')</li>
-        <li>$_('Done!')</li>
-    </ol>
-    -->
 
 
 <h1>$_("Books You're Waiting For")</h1>
@@ -164,7 +150,7 @@ $else:
         });
     });
     </script>
-    <div id="borrowTable" class="borrow collapse waitinglist">
+    <div class="borrow borrow-table collapse waitinglist">
     <table>
         <thead>
             <tr>
@@ -234,6 +220,9 @@ $else:
     </table>
     </div>
 
+$if user:
+  <h1>$_("My Loan History")</h1>
+  <p>View <a href="https://archive.org/account/?tab=loans#loans-history">my loan history</a> on Archive.org</p>
 
 $# XXX borrow history not yet recorded so we show instructions if no current loans
 <!-- if no borrow history -->
@@ -275,7 +264,7 @@ $if len(loans) == 0 and len(waitinglist) == 0:
     <div class="contentSpacer"></div>
     <div class="contentQuarter">
         <h3>$_("Help/Downloads")</h3>
-        <img src="/images/logo_adobeACS.png" alt="logo: Adobe" width="43" height="72" class="left" style="margin-right:10px;"/>
+        <img src="/images/logo_adobeACS.png" alt="" width="43" height="72" class="left" style="margin-right:10px;"/>
         <p class="small sansserif collapse"><a href="http://www.adobe.com/products/digitaleditions/#fp">$_("Download Adobe Digital Editions")</a></p>
         <p class="small sansserif">$:_('<a href="http://www.adobe.com/products/digitaleditions/help/">Help</a> on adobe.com')</p>
     </div>

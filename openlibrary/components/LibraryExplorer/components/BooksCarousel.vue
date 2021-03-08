@@ -9,7 +9,7 @@
         <FlatBookCover :book="book"/>
       </slot>
 
-      <div class="cover-label" style="padding: 6px; text-align: center;">
+      <div class="cover-label">
         <slot name="cover-label" v-bind:book="book"/>
       </div>
     </a>
@@ -107,5 +107,11 @@ div.cover {
 
 .cover-label {
   flex-shrink: 0;
+  padding: 2px;
+  text-align: left;
+}
+
+.cover-label div {
+  padding: 2px 4px;
 }
 </style>

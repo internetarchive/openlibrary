@@ -11,11 +11,9 @@ from infogami import config
 
 from openlibrary.core import admin, cache, ia, lending, \
     helpers as h
-from openlibrary.core.sponsorships import get_sponsorable_editions
 from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
-
 
 import six
 
@@ -33,8 +31,6 @@ CAROUSELS_PRESETS = {
 
 
 def get_homepage():
-    if 'env' not in web.ctx:
-        delegate.fakeload()
     try:
         stats = admin.get_stats()
     except Exception:
@@ -42,20 +38,41 @@ def get_homepage():
         stats = None
     blog_posts = get_blog_feeds()
 
-    # render tempalte should be setting ctx.bodyid
+    # render tempalte should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
     # during subsequent called
-    page = render_template(
-        "home/index", stats=stats,
-        blog_posts=blog_posts
-    )
+    page = render_template("home/index", stats=stats, blog_posts=blog_posts)
+    # Convert to a dict so it can be cached
     return dict(page)
+
 
 def get_cached_homepage():
     five_minutes = 5 * dateutil.MINUTE_SECS
-    lang = web.ctx.get("lang", "en")
+    lang = web.ctx.lang
+    pd = web.cookies().get('pd', False)
+    key = "home.homepage." + lang
+    if pd:
+        key += '.pd'
+
+    # Because of caching, memcache will call `get_homepage` on another thread! So we
+    # need a way to carry some information to that computation on the other thread.
+    # We do that by using a python closure. The outer function is executed on the main
+    # thread, so all the web.* stuff is correct. The inner function is executed on the
+    # other thread, so all the web.* stuff will be dummy.
+    def prethread():
+        # web.ctx.lang is undefined on the new thread, so need to transfer it over
+        lang = web.ctx.lang
+
+        def main():
+            # Leaving this in since this is a bit strange, but you can see it clearly
+            # in action with this debug line:
+            # web.debug(f'XXXXXXXXXXX web.ctx.lang={web.ctx.get("lang")}; {lang=}')
+            delegate.fakeload()
+            web.ctx.lang = lang
+        return main
+
     return cache.memcache_memoize(
-        get_homepage, "home.homepage." + lang, timeout=five_minutes)()
+        get_homepage, key, timeout=five_minutes, prethread=prethread())()
 
 class home(delegate.page):
     path = "/"
@@ -63,8 +80,8 @@ class home(delegate.page):
     def GET(self):
         cached_homepage = get_cached_homepage()
         # when homepage is cached, home/index.html template
-        # doesn't run ctx.setdefault to set the bodyid so we must do so here:
-        web.template.Template.globals['ctx']['bodyid'] = 'home'
+        # doesn't run ctx.setdefault to set the cssfile so we must do so here:
+        web.template.Template.globals['ctx']['cssfile'] = 'home'
         return web.template.TemplateResult(cached_homepage)
 
 class random_book(delegate.page):
@@ -103,19 +120,6 @@ def get_featured_subjects():
     ]
     return dict([(subject_name, subjects.get_subject('/subjects/' + subject_name, sort='edition_count'))
                  for subject_name in FEATURED_SUBJECTS])
-
-
-def get_cachable_sponsorable_editions():
-    if 'env' not in web.ctx:
-        delegate.fakeload()
-
-    return [format_book_data(ed) for ed in get_sponsorable_editions()]
-
-@public
-def get_cached_sponsorable_editions():
-    return storify(cache.memcache_memoize(
-        get_cachable_sponsorable_editions, "books.sponsorable_editions",
-        timeout=dateutil.HOUR_SECS)())
 
 @public
 def get_cached_featured_subjects():

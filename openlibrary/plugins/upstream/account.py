@@ -325,7 +325,9 @@ class account_login(delegate.page):
         if error:
             return self.render_error(error, i)
 
-        expires = (i.remember and 3600 * 24 * 7) or ""
+        expires = 3600 * 24 * 7 if i.remember else ""
+        web.setcookie('pd', int(audit.get('special_access')) or '',
+                      expires=expires)
         web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(),
                       expires=expires)
         blacklist = ["/account/login", "/account/password", "/account/email",
@@ -411,7 +413,7 @@ class account_validation(delegate.page):
 
     @staticmethod
     def validate_email(email):
-        if not (email and re.match('.*@.*\..*', email)):
+        if not (email and re.match(r'.*@.*\..*', email)):
             return _('Must be a valid email address')
 
         ol_account = OpenLibraryAccount.get(email=email)

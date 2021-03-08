@@ -70,7 +70,7 @@ class LoanStats:
 
         q = urlencode(params, doseq=True)
         url = self.base_url + "/select?" + q
-        logger.info("urlopen %s", url)
+        logger.info("requests.get(%s).json()", url)
         return requests.get(url).json()
 
     def solrescape(self, text):
