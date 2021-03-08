@@ -1,8 +1,9 @@
 @import (less) "../less/breakpoints.less";
+@import (less) "../less/colors.less";
 
 .single-choice {
   display: flex;
-  margin-bottom: 1.5em;
+  margin-bottom: 0.5em;
 
   &-label {
     display: inline-block;
@@ -20,7 +21,7 @@
 .multi-choice {
   display: flex;
   flex-wrap: wrap;
-  margin-bottom: 1.5em;
+  margin-bottom: 0.5em;
 
   &-label {
     flex: 0 0 25%;
@@ -37,36 +38,28 @@
   margin-top: 1em;
 }
 
-.collapsible {
-  cursor: pointer;
-  padding: .5em;
-  margin: .5em 0;
-  text-transform: capitalize;
-
-  &:after {
-    content: "\02795";
-    float: right;
-    padding-right: 18px;
-  }
-
-  &:hover {
+.aspect-section {
+  &[open] summary {
     background-color: hsla(206, 51%, 26%, .25);
   }
 
-  &-content {
-    margin: 0;
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.2s ease-out;
+  summary {
+    cursor: pointer;
+    text-transform: capitalize;
+    font-size: 1em;
+    font-weight: 600;
+    color: @grey;
+    margin: 0.5em 0;
+    padding: 0.5em;
   }
-}
 
+  summary:hover {
+    background-color: hsla(206, 51%, 26%, .25);
+  }
 
-.active {
-  background-color: hsla(206, 51%, 26%, .25);
-
-  &:after {
-    content: "\2796";
+  div {
+    padding-left: 0.5em;
+    padding-bottom: 0.5em;
   }
 }
 

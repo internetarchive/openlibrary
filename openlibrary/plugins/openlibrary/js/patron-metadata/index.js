@@ -29,13 +29,14 @@ export function initPatronMetadata() {
             }
 
             $form.append(`
-              <h3 class="collapsible">${aspect.label}</h3>
-              <div class="collapsible-content formElement">
+              <details class="aspect-section">
+                <summary>${aspect.label}</summary>
                 <div id="${aspect.label}-question">
                     <h3>${aspect.description}</h3>
                     ${$choices.prop('outerHTML')}
                 </div>
-              </div>`);
+              </details>
+            `);
         }
 
         $form.append(`
@@ -46,7 +47,7 @@ export function initPatronMetadata() {
               </div>
             </div>`);
 
-        addCollapsibleListeners($('.collapsible', $form));
+        addToggleListeners($('.aspect-section', $form));
     }
 
     $('#modal-link').on('click', function() {
@@ -111,53 +112,25 @@ export function initPatronMetadata() {
         } else {
             // TODO: Handle case where no data was submitted
         }
-
     });
-
-    // Collapse all expanded elements on modal close
-    $(document).on('cbox_closed', function() {
-        let $collapsibles = $('.collapsible');
-        $collapsibles.each(function() {
-            $(this).removeClass('active');
-            $(this).next().css('max-height', '');
-        })
-    })
 }
 
 /**
- * Handles clicks on a collapsible element.
+ * Resizes modal when a details element is opened or closed.
  * 
- * Toggles the "active" class on the collapible that was clicked, highlighting
- * expanded section headings.  Resizes the maximum height of the collapsible 
- * content divs, and the parenet element if necessary.
- * 
- * @param {ClickEvent} event
+ * @param {ToggleEvent} event
  */
-function collapseHandler(event) {
-    this.classList.toggle('active');
-    let content = this.nextElementSibling;
-    let heightChange = content.scrollHeight;
-
-    if (content.style.maxHeight) {
-        content.style.maxHeight = null;
-        heightChange *= -1;
-    } else {
-        content.style.maxHeight = `${heightChange}px`;
-    }
-
-    $('#cboxContent').animate(
-        {
-            height: $('#cboxContent').height() + heightChange
-        }, 200, 'linear');
+function toggleHandler(event) {
+    $('#cboxContent').height($('#metadata-form').height() + 22);
 }
 
 /**
- * Adds a collapsible handler to all collapsible elements.
+ * Adds a toggle handler to all details elements.
  * 
- * @param {JQuery} $collapsibleElements`Elements that will receive collapse handlers.
+ * @param {JQuery} $toggleElements`Elements that will receive toggle handlers.
  */
-function addCollapsibleListeners($collapsibleElements) {
-    $collapsibleElements.each(function() {
-        $(this).on('click', collapseHandler);
+function addToggleListeners($toggleElements) {
+    $toggleElements.each(function() {
+        $(this).on('toggle', toggleHandler);
     })
 }
