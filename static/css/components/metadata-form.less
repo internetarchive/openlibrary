@@ -37,6 +37,39 @@
   margin-top: 1em;
 }
 
+.collapsible {
+  cursor: pointer;
+  padding: .5em;
+  margin: .5em 0;
+  text-transform: capitalize;
+
+  &:after {
+    content: "\02795";
+    float: right;
+    padding-right: 18px;
+  }
+
+  &:hover {
+    background-color: hsla(206, 51%, 26%, .25);
+  }
+
+  &-content {
+    margin: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+  }
+}
+
+
+.active {
+  background-color: hsla(206, 51%, 26%, .25);
+
+  &:after {
+    content: "\2796";
+  }
+}
+
 @media screen and (max-width: @width-breakpoint-tablet) {
   .single-choice {
     display: inline-block;

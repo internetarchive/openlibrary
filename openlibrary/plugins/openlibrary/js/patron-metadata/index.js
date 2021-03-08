@@ -29,9 +29,12 @@ export function initPatronMetadata() {
             }
 
             $form.append(`
-              <div class="formElement" id="${aspect.label}-question">
-                <h3>${aspect.description}</h3>
-                ${$choices.prop('outerHTML')}
+              <h3 class="collapsible">${aspect.label}</h3>
+              <div class="collapsible-content formElement">
+                <div id="${aspect.label}-question">
+                    <h3>${aspect.description}</h3>
+                    ${$choices.prop('outerHTML')}
+                </div>
               </div>`);
         }
 
@@ -42,6 +45,8 @@ export function initPatronMetadata() {
                 <a class="small dialog--close plain" href="javascript:;" id="cancel-submission">${i18nStrings.close_text}</a>
               </div>
             </div>`);
+
+        addCollapsibleListeners($('.collapsible', $form));
     }
 
     $('#modal-link').on('click', function() {
@@ -108,4 +113,51 @@ export function initPatronMetadata() {
         }
 
     });
+
+    // Collapse all expanded elements on modal close
+    $(document).on('cbox_closed', function() {
+        let $collapsibles = $('.collapsible');
+        $collapsibles.each(function() {
+            $(this).removeClass('active');
+            $(this).next().css('max-height', '');
+        })
+    })
+}
+
+/**
+ * Handles clicks on a collapsible element.
+ * 
+ * Toggles the "active" class on the collapible that was clicked, highlighting
+ * expanded section headings.  Resizes the maximum height of the collapsible 
+ * content divs, and the parenet element if necessary.
+ * 
+ * @param {ClickEvent} event
+ */
+function collapseHandler(event) {
+    this.classList.toggle('active');
+    let content = this.nextElementSibling;
+    let heightChange = content.scrollHeight;
+
+    if (content.style.maxHeight) {
+        content.style.maxHeight = null;
+        heightChange *= -1;
+    } else {
+        content.style.maxHeight = `${heightChange}px`;
+    }
+
+    $('#cboxContent').animate(
+        {
+            height: $('#cboxContent').height() + heightChange
+        }, 200, 'linear');
+}
+
+/**
+ * Adds a collapsible handler to all collapsible elements.
+ * 
+ * @param {JQuery} $collapsibleElements`Elements that will receive collapse handlers.
+ */
+function addCollapsibleListeners($collapsibleElements) {
+    $collapsibleElements.each(function() {
+        $(this).on('click', collapseHandler);
+    })
 }
