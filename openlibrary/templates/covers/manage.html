@@ -1,6 +1,6 @@
 $def with (key, images)
 
-$putctx("bodyid", "form")
+$putctx("cssfile", "form")
 $putctx('robots', 'noindex,nofollow')
 
 <div class="imageIntro">
@@ -15,7 +15,7 @@ $putctx('robots', 'noindex,nofollow')
                 <table>
                     <tr>
                         <td>
-                            <img src="$image.url("S")" height="60" class="cover" alt=""/>
+                            <img src="$image.url('S')" height="60" class="cover" alt=""/>
                         </td>
                     </tr>
                 </table>

@@ -912,7 +912,8 @@ class works_autocomplete(delegate.page):
         solr = get_solr()
 
         q = solr.escape(i.q).strip()
-        if is_work_olid(q.upper()):
+        query_is_key = is_work_olid(q.upper())
+        if query_is_key:
             # ensure uppercase; key is case sensitive in solr
             solr_q = 'key:"/works/%s"' % q.upper()
         else:
@@ -931,12 +932,20 @@ class works_autocomplete(delegate.page):
         # exclude fake works that actually have an edition key
         docs = [d for d in data['docs'] if d['key'][-1] == 'W']
 
+        if query_is_key and not docs:
+            # Grumble! Work not in solr yet. Create a dummy.
+            key = '/works/%s' % q.upper()
+            work = web.ctx.site.get(key)
+            if work:
+                docs = [work.as_fake_solr_record()]
+
         for d in docs:
             # Required by the frontend
             d['name'] = d['key'].split('/')[-1]
             d['full_title'] = d['title']
             if 'subtitle' in d:
                 d['full_title'] += ": " + d['subtitle']
+
         return to_json(docs)
 
 class authors_autocomplete(delegate.page):
@@ -949,8 +958,8 @@ class authors_autocomplete(delegate.page):
         solr = get_solr()
 
         q = solr.escape(i.q).strip()
-        solr_q = ''
-        if is_author_olid(q.upper()):
+        query_is_key = is_author_olid(q.upper())
+        if query_is_key:
             # ensure uppercase; key is case sensitive in solr
             solr_q = 'key:"/authors/%s"' % q.upper()
         else:
@@ -966,6 +975,13 @@ class authors_autocomplete(delegate.page):
 
         data = solr.select(solr_q, **params)
         docs = data['docs']
+
+        if query_is_key and not docs:
+            # Grumble! Must be a new author. Fetch from db, and build a "fake" solr resp
+            key = '/authors/%s' % q.upper()
+            author = web.ctx.site.get(key)
+            if author:
+                docs = [author.as_fake_solr_record()]
 
         for d in docs:
             if 'top_work' in d:

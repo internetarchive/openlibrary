@@ -65,7 +65,7 @@ def import_ocaids(*ocaids, **kwargs):
     archive.org items into Open Library by ocaid
 
     Usage:
-        $ sudo -u openlibrary /olsystem/bin/olenv \
+        $ sudo -u openlibrary \
             HOME=/home/openlibrary OPENLIBRARY_RCFILE=/olsystem/etc/olrc-importbot \
             python scripts/manage-imports.py \
                 --config /olsystem/etc/openlibrary.yml \

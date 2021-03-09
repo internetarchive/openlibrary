@@ -64,7 +64,9 @@
           :expandBookshelf="expandBookshelf"
           :features="features"
           :classification="classification"
+          :labels="appSettings.labels"
           :filter="filter"
+          :sort="sort"
         />
       </div>
       <!-- Gap --> <div style="width: 70px; height: 1px; flex-shrink: 0" />
@@ -89,6 +91,7 @@ export default {
         classification: Object,
         appSettings: Object,
 
+        sort: String,
         filter: {
             default: '',
             type: String
@@ -96,7 +99,8 @@ export default {
         features: {
             default: () => ({
                 book3d: true,
-                shelfLabel: 'slider'
+                cover: 'image',
+                shelfLabel: 'slider',
             })
         }
     },

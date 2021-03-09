@@ -13,7 +13,6 @@ RUN mkdir -p /solr-updater-data \
 
 USER openlibrary
 COPY requirements*.txt ./
-RUN python2 -m pip install --disable-pip-version-check -r requirements_test.txt
 RUN python3.8 -m pip install -r requirements_test.txt
 RUN python3.9 -m pip install -r requirements_test.txt
 
