@@ -645,14 +645,14 @@ class attach_debugger:
         return render_template("admin/attach_debugger", python_version)
 
     def POST(self):
-        import ptvsd
+        import debugpy
 
         i = web.input()
         # Allow other computers to attach to ptvsd at this IP address and port.
         logger.info("Enabling debugger attachment")
-        ptvsd.enable_attach(address=('0.0.0.0', 3000))
+        debugpy.listen(address=('0.0.0.0', 3000))
         logger.info("Waiting for debugger to attach...")
-        ptvsd.wait_for_attach()
+        debugpy.wait_for_client()
         logger.info("Debugger attached to port 3000")
         add_flash_message("info", "Debugger attached!")
 
