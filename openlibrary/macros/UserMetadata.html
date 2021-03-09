@@ -30,7 +30,7 @@ $if has_edition:
       <h2>$_("My Book Notes")</h2>
       <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
     </div>
-    <form id="book-notes-form" method="POST" action="$(work.key)/notes.json">
+    <form class="book-notes-form" method="POST" action="$(work.key)/notes.json">
       <p>My personal notes about this $book_descriptor:</p>
       <div>
         <textarea name="notes" rows="10">$(notes.notes if notes else "")</textarea>
@@ -40,7 +40,7 @@ $if has_edition:
     <div class="floaterHead">
       <h2>$_("Observations")</h2>
     </div>
-    <p id="observation-instructions">Additional observations about this $book_descriptor. Each section is optional, but highly recommended.  These anonymous observations will be used to populate the "Reader Observations" section of this page.</p>
+    <p class="observation-instructions">Additional observations about this $book_descriptor. Each section is optional, but highly recommended.  These anonymous observations will be used to populate the "Reader Observations" section of this page.</p>
     <form class="floatform" name="user-metadata" id="user-metadata"></form>
   </div>
 </div>

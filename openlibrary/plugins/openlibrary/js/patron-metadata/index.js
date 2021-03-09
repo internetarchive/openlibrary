@@ -43,7 +43,7 @@ export function initPatronMetadata() {
             <div class="formElement metadata-submit">
               <div class="form-buttons">
                 <a class="small dialog--close plain" href="javascript:;" id="cancel-submission">${i18nStrings.close_text}</a>
-                <button id="observation-submit-btn" class="cta-btn submit" type="submit">${i18nStrings.submit_text}</button>
+                <input class="cta-btn submit-btn" type="submit" value="${i18nStrings.submit_text}">
               </div>
             </div>`);
 
@@ -117,10 +117,8 @@ export function initPatronMetadata() {
 
 /**
  * Resizes modal when a details element is opened or closed.
- * 
- * @param {ToggleEvent} event
  */
-function toggleHandler(event) {
+function toggleHandler() {
     let formHeight = $('#metadata-form').height();
 
     $('#cboxContent').height(formHeight + 22);
@@ -129,7 +127,7 @@ function toggleHandler(event) {
 
 /**
  * Adds a toggle handler to all details elements.
- * 
+ *
  * @param {JQuery} $toggleElements`Elements that will receive toggle handlers.
  */
 function addToggleListeners($toggleElements) {
