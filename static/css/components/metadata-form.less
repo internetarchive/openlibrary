@@ -1,5 +1,6 @@
 @import (less) "../less/breakpoints.less";
-@import (less) "../less/colors.less";
+@import (reference) "../less/colors.less";
+@import (less) "./buttonBtn.less";
 
 .single-choice {
   display: flex;
@@ -35,7 +36,17 @@
 }
 
 .metadata-submit {
-  margin-top: 1em;
+  .form-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    #observation-submit-btn {
+      background-color: @green;
+      margin-left: 1.5em;
+      display: unset;
+    }
+  }
 }
 
 .aspect-section {
@@ -63,6 +74,26 @@
   }
 }
 
+#book-notes-form {
+  width: 75%;
+  margin: 1em auto;
+
+  div {
+    width: 100%;
+    margin-bottom: 1em;
+
+    textarea {
+      width: 100%;
+    }
+  }
+
+  button {
+    background-color: @green;
+    width: unset;
+    margin-left: auto;
+  }
+}
+
 @media screen and (max-width: @width-breakpoint-tablet) {
   .single-choice {
     display: inline-block;
@@ -81,5 +112,24 @@
 
   .multi-choice-label {
     flex: 0 0 50%;
+  }
+
+  #book-notes-form {
+    button {
+      width: 100%;
+    }
+  }
+
+  .metadata-submit {
+    .form-buttons {
+      flex-direction: column;
+
+      #observation-submit-btn {
+        order: -1;
+        width: 100% !important;
+        margin-left: unset;
+        margin-bottom: 1.5em;
+      }
+    }
   }
 }
