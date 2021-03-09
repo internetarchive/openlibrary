@@ -1,4 +1,7 @@
-export function initAddCoverImport () {
+/**
+ * Functionality for covers/add.html and covers/manage.html
+ */
+export function initCoversAddManage() {
 
     function val(selector) {
         return $.trim($(selector).val());
@@ -6,7 +9,7 @@ export function initAddCoverImport () {
     function error(message, event) {
         $('#errors').show().html(message);
         event.preventDefault();
-    }
+    }S
 
     $('#form.addcover-form').on('submit', function(event) {
         var file = val('#coverFile');

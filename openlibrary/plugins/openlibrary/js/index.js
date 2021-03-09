@@ -150,18 +150,13 @@ jQuery(function () {
             .then((module) => module.initEdit());
     }
     if (document.getElementsByClassName('imageIntro').length) {
-        import(/* webpackChunkName: "book_cover_manage" */ './cover_add_manage')
-            .then(module => module.initAddCoverImport());
+        import(/* webpackChunkName: "covers_add_manage" */ './covers_add_manage')
+            .then(module => module.initCoversAddManage());
     }
 
     if (document.getElementsByClassName('manageCovers').length) {
-        import(/* webpackChunkName: "image_change" */ './image_change')
-            .then(module => module.initChangeImageImport());
-    }
-
-    if (document.getElementsByClassName('imageSaved').length) {
-        import(/* webpackChunkName: "image_saved" */ './image_saved')
-            .then(module => module.initImageSaved());
+        import(/* webpackChunkName: "covers_change" */ './covers_change')
+            .then(module => module.initCoversChange());
     }
 
     if ($('#cboxPrevious').length) {

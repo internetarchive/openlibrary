@@ -29,8 +29,7 @@ $else:
 
 <div class="$size sansserif manageCoversContainer hidden--nojs">
   <a aria-controls="addImage" class="coverPop dialog--open">
-    <div class="manageCovers" data-config="$doc.type.key, $get_coverstore_url(),
-         $cover_selector, $add_url, $manage_url">$change</div>
+    <div class="manageCovers" data-config="$dumps({'key': doc.type.key, 'url': get_coverstore_url(), 'selector': cover_selector, 'add_url': add_url, 'manage_url': manage_url})">$change</div>
   </a>
 </div>
 
