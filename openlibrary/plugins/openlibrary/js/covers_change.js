@@ -9,6 +9,7 @@ export function initCoversChange() {
     const cover_selector = data_config_json['selector'];
     const add_url = data_config_json['add_url'];
     const manage_url = data_config_json['manage_url'];
+    var cover_url;
 
     // Add iframes lazily when the popup is loaded.
     // This avoids fetching the iframes along with main page.
@@ -39,16 +40,15 @@ export function initCoversChange() {
         $('#popClose').click(window.closePopup);
 
         // Update the image for the cover
-        var url;
         if (['/type/edition', '/type/work', '/edit'].includes(doc_type_key)) {
             if (image) {
-                url = `${coverstore_url}/b/id/${image}-M.jpg`;
+                cover_url = `${coverstore_url}/b/id/${image}-M.jpg`;
                 // XXX-Anand: Fix this hack
                 // set url and show SRPCover  and hide SRPCoverBlank
-                $(cover_selector).attr('src', url)
+                $(cover_selector).attr('src', cover_url)
                     .parents('div:first').show()
                     .next().hide();
-                $(cover_selector).attr('srcset', url)
+                $(cover_selector).attr('srcset', cover_url)
                     .parents('div:first').show()
                     .next().hide();
             }
@@ -61,12 +61,12 @@ export function initCoversChange() {
         }
         else {
             if (image) {
-                url = `${coverstore_url}/a/id/${image}-M.jpg`;
+                cover_url = `${coverstore_url}/a/id/${image}-M.jpg`;
             }
             else {
-                url = '/images/icons/avatar_author-lg.png';
+                cover_url = '/images/icons/avatar_author-lg.png';
             }
-            $(cover_selector).attr('src', url);
+            $(cover_selector).attr('src', cover_url);
         }
     }
 }

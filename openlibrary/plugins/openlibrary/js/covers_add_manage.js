@@ -9,7 +9,7 @@ export function initCoversAddManage() {
     function error(message, event) {
         $('#errors').show().html(message);
         event.preventDefault();
-    }S
+    }
 
     $('#form.addcover-form').on('submit', function(event) {
         var file = val('#coverFile');
