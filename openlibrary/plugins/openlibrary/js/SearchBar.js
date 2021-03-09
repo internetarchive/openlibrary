@@ -27,7 +27,7 @@ const RENDER_AUTOCOMPLETE_RESULT = {
         return `
             <li>
                 <a href="${work.key}">
-                    <img src="//covers.openlibrary.org/b/id/${work.cover_i}-S.jpg"/>
+                    <img src="//covers.openlibrary.org/b/id/${work.cover_i}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png" alt=""/>
                     <span class="book-desc">
                         <div class="book-title">${work.title}</div> by <span class="book-author">${author_name}</span>
                     </span>
@@ -35,11 +35,10 @@ const RENDER_AUTOCOMPLETE_RESULT = {
             </li>`;
     },
     ['/search/authors'](author) {
-        // Todo: default author img to: https://dev.openlibrary.org/images/icons/avatar_author-lg.png
         return `
             <li>
                 <a href="/authors/${author.key}">
-                    <img src="http://covers.openlibrary.org/a/olid/${author.key}-S.jpg"/>
+                    <img src="http://covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png" alt=""/>
                     <span class="author-desc"><div class="author-name">${author.name}</div></span>
                 </a>
             </li>`;

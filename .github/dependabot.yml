@@ -1,5 +1,10 @@
 version: 2
 updates:
+- package-ecosystem: "pip"
+  directory: "/"
+  schedule:
+    interval: monthly
+    time: "13:30"
 - package-ecosystem: npm
   directory: "/"
   schedule:

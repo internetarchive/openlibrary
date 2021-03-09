@@ -43,14 +43,55 @@ import CONFIGS from '../configs';
 
 // window.Vibrant = Vibrant;
 
+class CarouselCoordinator {
+    constructor() {
+        this.maxRenderedOffscreen = Math.ceil(navigator.deviceMemory) || 8;
+        this.currentlyRenderedOffscreen = [];
+    }
+
+    registerRenderedOffscreenCarousel(carousel) {
+        this.currentlyRenderedOffscreen.push(carousel);
+        // console.log('CarouselCoordinator', `Now ffscreen -- ${carousel.query}`);
+        if (this.currentlyRenderedOffscreen.length > this.maxRenderedOffscreen) {
+            const toRemove = this.currentlyRenderedOffscreen.shift();
+            // console.log('CarouselCoordinator', `Culling offscreen carousel -- ${carousel.query}`);
+            toRemove.unrender();
+        }
+    }
+
+    registerOnscreenCarousel(carousel) {
+        const index = this.currentlyRenderedOffscreen.indexOf(carousel);
+        if (index != -1) {
+            // console.log('CarouselCoordinator', `Carousel no longer offscreen -- ${carousel.query}`);
+            this.currentlyRenderedOffscreen.splice(index, 1);
+        }
+    }
+}
+
+const carouselCoordinator = new CarouselCoordinator();
+
+async function waitUntil(predicate, sleep = 100, maxSleep = 2000) {
+    for (let slept = 0; slept < maxSleep; slept += sleep) {
+        if (predicate()) return;
+        else {
+            await new Promise(res => setTimeout(res, sleep));
+        }
+    }
+    throw new Error('We waited, but nothing happened!');
+}
+
 export default {
     components: { BooksCarousel },
     props: {
         query: String,
         node: Object,
+        fetchCoordinator: Object,
+        sort: {
+            default: 'editions',
+        },
         limit: {
             type: Number,
-            default: 20
+            default: screen.width > 450 ? 20 : 8,
         }
     },
     data() {
@@ -63,8 +104,8 @@ export default {
 
             /** @type {IntersectionObserver} */
             intersectionObserver: null,
-
             isVisible: false,
+            intersectionRatio: 0,
 
             /** @type {AbortController} */
             lastFetchAbortController: null,
@@ -75,7 +116,8 @@ export default {
             return `${CONFIGS.OL_BASE_SEARCH}/search?${new URLSearchParams({
                 q: this.query,
                 offset: this.offset,
-                limit: this.limit
+                sort: this.sort,
+                limit: this.limit,
             })}`;
         },
 
@@ -91,15 +133,22 @@ export default {
     },
     watch: {
         query() {
-            this.status = 'Start';
-            this.results.splice(0, this.results.length);
-            this.numFound = null;
-            this.error = null;
+            this.unrender();
+            if (this.isVisible) this.debouncedReloadResults();
+        },
+
+        sort() {
+            this.unrender();
             if (this.isVisible) this.debouncedReloadResults();
         },
 
         isVisible(newVal) {
-            if (newVal) this.reloadResults();
+            if (newVal) {
+                carouselCoordinator.registerOnscreenCarousel(this);
+                this.reloadResults();
+            } else {
+                carouselCoordinator.registerRenderedOffscreenCarousel(this);
+            }
         }
     },
 
@@ -110,7 +159,10 @@ export default {
         }) : null;
     },
 
-    mounted() {
+    async mounted() {
+        // We should only start observing once we're connected to the document,
+        // otherwise Chrome seems to never fire isVisible sometimes.
+        await waitUntil(() => this.$el.isConnected);
         this.intersectionObserver.observe(this.$el);
     },
     beforeDestroy() {
@@ -126,7 +178,15 @@ export default {
             // lack of support for `isIntersecting`.
             // See: https://github.com/w3c/IntersectionObserver/issues/211
             const isIntersecting = entries[0].intersectionRatio > 0;
+            this.intersectionRatio = entries[0].intersectionRatio;
             this.isVisible = isIntersecting;
+        },
+
+        unrender() {
+            this.status = 'Start';
+            this.results.splice(0, this.results.length);
+            this.numFound = null;
+            this.error = null;
         },
 
         async reloadResults(cache='force-cache') {
@@ -144,12 +204,16 @@ export default {
                 q: this.query,
                 offset,
                 limit: this.limit,
-                fields: 'key,title,author_name,cover_i,ddc,lcc,lending_edition_s'
+                sort: this.sort,
+                fields: 'key,title,author_name,cover_i,ddc,lcc,lending_edition_s,first_publish_year,edition_count',
             });
 
             const url = `${CONFIGS.OL_BASE_SEARCH}/search.json?${params.toString()}`;
 
             this.status = 'Loading';
+            const fetch = this.fetchCoordinator ?
+                this.fetchCoordinator.fetch.bind(this.fetchCoordinator, { priority: () => 10 + this.intersectionRatio, name: this.query }) :
+                fetch;
             try {
                 const r = await fetch(url, {
                     cache,

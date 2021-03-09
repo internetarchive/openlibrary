@@ -17,6 +17,13 @@ function isScrolledIntoView(elem) {
     return false;
 }
 
+/*
+Sets the key in the website cookie to the specified value
+*/
+function setValueInCookie(key, value) {
+    document.cookie = `${key}=${value};path=/`;
+}
+
 export default function init() {
     const urlParams = Browser.getJsonFromUrl(location.search);
     if (urlParams.mode) {
@@ -42,6 +49,7 @@ export default function init() {
     initReadingListFeature();
     initBorrowAndReadLinks();
     initPreviewButton();
+    initWebsiteTranslationOptions();
 }
 
 export function initReadingListFeature() {
@@ -146,4 +154,14 @@ export function initPreviewButton() {
             },
         });
     });
+}
+
+export function initWebsiteTranslationOptions() {
+    $('#locale-options li a').on('click', function (event) {
+        event.preventDefault();
+        const locale = $(this).data('lang-id');
+        setValueInCookie('HTTP_LANG', locale);
+        location.reload();
+    });
+
 }

@@ -18,10 +18,7 @@ all: git css js components i18n
 
 css: static/css/page-*.less
 	mkdir --parents $(BUILD)
-	for asset in $^; do \
-		echo "Compressing $$asset"; \
-	    npx lessc $$asset $(BUILD)/$$(basename $$asset .less).css --clean-css="--s1 --advanced --compatibility=ie8"; \
-	done
+	parallel --verbose -q npx lessc {} $(BUILD)/{/.}.css --clean-css="--s1 --advanced --compatibility=ie8" ::: $^
 
 js:
 	mkdir --parents $(BUILD)
@@ -36,11 +33,10 @@ js:
 components: $(COMPONENTS_DIR)/*.vue
 	mkdir --parents $(BUILD)
 	rm -rf $(BUILD)/components
-	for component in $^; do \
-		echo $$component; \
-		npx vue-cli-service build --no-clean --mode development --dest $(BUILD)/components/development --target wc --name "ol-$$(basename $$component .vue)" "$$component"; \
-		npx vue-cli-service build --no-clean --mode production --dest $(BUILD)/components/production --target wc --name "ol-$$(basename $$component .vue)" "$$component"; \
-	done
+	# Run these silly things one at a time, because they don't support parallelization :(
+	parallel --verbose -q --jobs 1 \
+		npx vue-cli-service build --no-clean --mode production --dest $(BUILD)/components/production --target wc --name "ol-{/.}" "{}" \
+	::: $^
 
 i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
@@ -66,8 +62,8 @@ load_sample_data:
 	curl http://localhost:8080/_dev/process_ebooks # hack to show books in returncart
 
 reindex-solr:
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://web/ -c conf/openlibrary.yml --data-provider=legacy
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://web/ -c conf/openlibrary.yml --data-provider=legacy
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://web:8080/ -c conf/openlibrary.yml --data-provider=legacy
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://web:8080/ -c conf/openlibrary.yml --data-provider=legacy
 
 lint-diff:
 	git diff master -U0 | ./scripts/flake8-diff.sh
