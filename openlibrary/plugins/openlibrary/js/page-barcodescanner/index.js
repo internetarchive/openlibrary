@@ -48,11 +48,24 @@ export function init() {
     });
 
     let lastResult = null;
+    /* handles multiple redirect requests */
+    let redirect = false;
     Quagga.onDetected(result => {
         const code = result.codeResult.code;
+        const isEnabled = $('#multiple-scan').prop('checked');
+        const url = "isbn/" + code;
+        if (!isEnabled && !redirect && code == lastResult){ 
+            redirect=true;
+            fetch(url)
+            .then(res=>{
+                if (res.status == 200) {
+                    window.location.href= url;
+                }    
+            })
+        }
         if (!isBarcodeISBN(code) || code == lastResult) return;
+        redirect=false;
         lastResult = code;
-
         const isbn = code;
         const canvas = Quagga.canvas.dom.image;
         const card = LazyBookCard.fromISBN(isbn);

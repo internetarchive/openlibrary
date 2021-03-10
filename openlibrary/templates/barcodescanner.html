@@ -5,6 +5,10 @@ $var title: $_('Barcode Scanner (Beta)')
 $ ctx.setdefault('bodyid', 'barcodescanner')
 
 <div id="page-barcodescanner">
+    <div class="scan">
+        <input type="checkbox" name="multiple-scan" id="multiple-scan"/>
+        <label for="multiple-scan">Scan Many</label> 
+    </div>
     <div id="interactive" class="viewport"></div>
     <div id="result-strip">
         <div class="empty">$_('Point your camera at a barcode! 📷')</div>
