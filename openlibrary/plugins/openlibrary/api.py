@@ -19,8 +19,8 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
+from openlibrary.core.observations import post_observation, get_aspects
 from openlibrary.core.models import Booknotes
-from openlibrary.core.observations import post_observation
 from openlibrary.core.sponsorships import qualifies_for_sponsorship
 from openlibrary.core.vendors import (
     get_amazon_metadata, create_edition_from_amazon_metadata,
@@ -438,3 +438,11 @@ class observations(delegate.page):
             if s3_keys:
                 response = post_observation(web.data(), s3_keys)
                 return delegate.RawText(response)
+
+
+class aspects(delegate.page):
+    path = "/aspects"
+    encoding = "json"
+
+    def GET(self):
+        return delegate.RawText(get_aspects())

@@ -45,12 +45,10 @@ export function initPatronMetadata() {
     }
 
     $('#modal-link').on('click', function() {
-        let context = JSON.parse(document.querySelector('#modal-link').dataset.context);
-
         if ($('#user-metadata').children().length === 0) {
             $.ajax({
                 type: 'GET',
-                url: `${context.the_best_book_on_url}/api/aspects`,
+                url: '/aspects',
                 dataType: 'json'
             })
                 .done(function(data) {
