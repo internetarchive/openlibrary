@@ -6,6 +6,8 @@ import datetime
 import time
 import web
 
+from psycopg2.errors import UndefinedTable
+
 from . import db
 
 logger = logging.getLogger("openlibrary.imports")
@@ -88,20 +90,25 @@ class Stats:
     def get_imports_per_hour(self):
         """Returns the number imports happened in past one hour duration.
         """
-        result = db.query(
-            "SELECT count(*) as count FROM import_item" +
-            " WHERE import_time > CURRENT_TIMESTAMP - interval '1' hour")
+        try:
+            result = db.query(
+                "SELECT count(*) as count FROM import_item" +
+                " WHERE import_time > CURRENT_TIMESTAMP - interval '1' hour")
+        except UndefinedTable:
+            logger.exception("Database table import_item may not exist on localhost")
+            return 0
         return result[0].count
 
     def get_count(self, status=None):
-        if status:
-            where = "status=$status"
-        else:
-            where = "1=1"
-        rows = db.select("import_item",
-            what="count(*) as count",
-            where=where,
-            vars=locals())
+        where = "status=$status" if status else "1=1"
+        try:
+            rows = db.select("import_item",
+                what="count(*) as count",
+                where=where,
+                vars=locals())
+        except UndefinedTable:
+            logger.exception("Database table import_item may not exist on localhost")
+            return 0
         return rows[0].count
 
     def get_count_by_status(self, date=None):
@@ -109,25 +116,33 @@ class Stats:
         return dict([(row.status, row.count) for row in rows])
 
     def get_count_by_date_status(self, ndays=10):
-        result = db.query(
-            "SELECT added_time::date as date, status, count(*)" +
-            " FROM import_item " +
-            " WHERE added_time > current_date - interval '$ndays' day"
-            " GROUP BY 1, 2" +
-            " ORDER BY 1 desc",
-            vars=locals())
+        try: 
+            result = db.query(
+                "SELECT added_time::date as date, status, count(*)" +
+                " FROM import_item " +
+                " WHERE added_time > current_date - interval '$ndays' day"
+                " GROUP BY 1, 2" +
+                " ORDER BY 1 desc",
+                vars=locals())
+        except UndefinedTable:
+            logger.exception("Database table import_item may not exist on localhost")
+            return []
         d = defaultdict(dict)
         for row in result:
             d[row.date][row.status] = row.count
         return sorted(d.items(), reverse=True)
 
     def get_books_imported_per_day(self):
-        rows = db.query(
-            "SELECT import_time::date as date, count(*) as count"
-            " FROM import_item" +
-            " WHERE status='created'"
-            " GROUP BY 1" +
-            " ORDER BY 1")
+        try:
+            rows = db.query(
+                "SELECT import_time::date as date, count(*) as count"
+                " FROM import_item" +
+                " WHERE status='created'"
+                " GROUP BY 1" +
+                " ORDER BY 1")
+        except UndefinedTable:
+            logger.exception("Database table import_item may not exist on localhost")
+            return []
         return [[self.date2millis(row.date), row.count] for row in rows]
 
     def date2millis(self, date):
@@ -136,15 +151,16 @@ class Stats:
     def get_items(self, date=None, order=None, limit=None):
         """Returns all rows with given added date.
         """
-        if date:
-            where = "added_time::date = $date"
-        else:
-            where = "1 = 1"
-        return db.select("import_item",
-            where=where,
-            order=order,
-            limit=limit,
-            vars=locals())
+        where = "added_time::date = $date" if date else "1 = 1"
+        try:
+            return db.select("import_item",
+                where=where,
+                order=order,
+                limit=limit,
+                vars=locals())
+        except UndefinedTable:
+            logger.exception("Database table import_item may not exist on localhost")
+            return []
 
     def get_items_summary(self, date):
         """Returns all rows with given added date.

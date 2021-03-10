@@ -42,8 +42,9 @@ class memcache_memoize:
     :param key_prefix: key prefix used in memcache to store memoized results. A random value will be used if not specified.
     :param servers: list of  memcached servers, each specified as "ip:port"
     :param timeout: timeout in seconds after which the return value must be updated
+    :param prethread: Function to call on the new thread to set it up
     """
-    def __init__(self, f, key_prefix=None, timeout=MINUTE_SECS):
+    def __init__(self, f, key_prefix=None, timeout=MINUTE_SECS, prethread=None):
         """Creates a new memoized function for ``f``.
         """
         self.f = f
@@ -59,6 +60,7 @@ class memcache_memoize:
             async_updates=0
         )
         self.active_threads = {}
+        self.prethread = prethread
 
     def _get_memcache(self):
         if self._memcache is None:
@@ -133,6 +135,8 @@ class memcache_memoize:
             return
 
         try:
+            if self.prethread:
+                self.prethread()
             self.update(*args, **kw)
         finally:
             # Remove current thread from active threads

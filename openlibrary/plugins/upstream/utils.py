@@ -14,6 +14,7 @@ import six
 from six import PY3
 from six.moves import urllib
 from six.moves.collections_abc import MutableMapping
+from six.moves.urllib.parse import parse_qs, urlencode as parse_urlencode, urlparse, urlunparse
 
 from infogami import config
 from infogami.utils import view, delegate, stats
@@ -145,8 +146,6 @@ def render_component(name, attrs=None, json_encode=True):
 
     if name not in included:
         url = static_url('build/components/production/ol-%s.min.js' % name)
-        if query_param('debug'):
-            url = static_url('build/components/development/ol-%s.js' % name)
         html += '<script src="%s"></script>' % url
         included.append(name)
 
@@ -799,8 +798,22 @@ class Request:
         readable_path = web.ctx.get('readable_path', web.ctx.path) or ''
         query = web.ctx.query or ''
         host = web.ctx.host or ''
-        url = (host + readable_path + query)
-        return ("https://" + url) if url else ''
+        url = host + readable_path + query
+        if url:
+            url = "https://" + url
+            parsed_url = urlparse(url)
+
+            parsed_query = parse_qs(parsed_url.query)
+            queries_to_exclude = ['sort', 'mode', 'v', 'type', 'debug']
+
+            canonical_query = {q: v for q, v in parsed_query.items() if q not in queries_to_exclude}
+            query = parse_urlencode(canonical_query, doseq=True)
+            parsed_url = parsed_url._replace(query=query)
+
+            url = urlunparse(parsed_url)
+
+            return url
+        return ''
 
 
 @public

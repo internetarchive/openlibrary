@@ -1,8 +1,8 @@
 $def with (page)
 
-$ bodyid = ctx.get('bodyid', 'user')
+$ cssfile = ctx.get('cssfile', 'user')
 $ bodyclass = ctx.get('bodyclass', []) 
-$ show_banners = bodyid != 'form'
+$ show_banners = cssfile != 'form'
 $ bodyattrs = ctx.get('bodyattrs', [])
 
 <body class="$(' '.join(bodyclass))" $:(' '.join(bodyattrs))>
@@ -17,7 +17,7 @@ $ bodyattrs = ctx.get('bodyattrs', [])
     $:render_template("site/alert")
     $:render_template("lib/nav_head", None)
   $# don't render test-body-mobile for iframes
-  <div $:('id="test-body-mobile"' if bodyid != 'form' else '')>
+  <div $:('id="test-body-mobile"' if cssfile != 'form' else '')>
     $if show_banners:
       $#print errors (hidden by default as styles are loaded via JS)
       <div class="flash-messages" style="display: none;">

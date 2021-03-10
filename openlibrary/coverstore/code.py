@@ -5,7 +5,6 @@ import datetime
 import json
 import logging
 import os
-import time
 
 import memcache
 import requests
@@ -164,36 +163,10 @@ def trim_microsecond(date):
     return datetime.datetime(*date.timetuple()[:6])
 
 
-@web.memoize
-def get_memcache():
-    servers = config.get("memcache_servers")
-    return memcache.Client(servers)
-
-def _locate_item(item):
-    """Locates the archive.org item in the cluster and returns the server and directory.
-    """
-    print(time.asctime(), "_locate_item", item, file=web.debug)
-    d = requests.get("https://archive.org/metadata/" + item).json()
-    return d['server'], d['dir']
-
-def locate_item(item):
-    mc = get_memcache()
-    if not mc:
-        return _locate_item(item)
-    else:
-        x = mc.get(item)
-        if not x:
-            x = _locate_item(item)
-            print(time.asctime(), "mc.set", item, x, file=web.debug)
-            mc.set(item, x, time=600) # cache it for 10 minutes
-        return x
-
 def zipview_url(item, zipfile, filename):
-    server, dir = locate_item(item)
-
     # http or https
     protocol = web.ctx.protocol
-    return "%(protocol)s://%(server)s/zipview.php?zip=%(dir)s/%(zipfile)s&file=%(filename)s" % locals()
+    return "%(protocol)s://archive.org/download/%(item)s/%(zipfile)s/%(filename)s" % locals()
 
 # Number of images stored in one archive.org item
 IMAGES_PER_ITEM = 10000

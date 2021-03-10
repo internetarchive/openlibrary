@@ -47,8 +47,6 @@ docker-compose stop
 docker-compose rm -v
 ```
 
-Note: You must build `olbase` first before `oldev`. `olbase` is intended to be the core Open Library image, acting as a base for production and development. `oldev` adds a pre-populated development database and any other tools that are helpful for local development and can only be run once on any given `olbase` image. This development environment also has a small number of books in the database for testing purposes. Currently (Oct 2018) these docker images are only intended for development environments.
-
 This exposes the following ports:
 
 | Port | Service                |
@@ -56,6 +54,7 @@ This exposes the following ports:
 | 8080 | Open Library main site |
 | 7000 | Infobase               |
 | 8983 | Solr                   |
+| 7075 | Cover store            |
 
 For example, to access Solr admin, go to http://localhost:8983/solr/admin/
 
@@ -67,7 +66,7 @@ While running the `oldev` container, gunicorn is configured to auto-reload modif
 - **Editing frontend css or js?** Run `docker-compose run --rm home npm run-script build-assets`. This will re-generate the assets in the persistent `ol-build` volume mount (so the latest changes will be available between stopping / starting  `web` containers). Note, if you want to view the generated output you will need to attach to the container (`docker-compose exec web bash`) to examine the files in the volume, not in your local dir.
 - **Editing pip packages?** Rebuild the `home` service: `docker-compose build home`
 - **Editing npm packages?** Run `docker-compose run --rm home npm install` (see [#2032](https://github.com/internetarchive/openlibrary/issues/2032) for why)
-- **Editing core dependencies?** You will most likely need to do a full rebuild. This shouldn't happen too frequently. If you are making this sort of change, you will know exactly what you are doing ;)
+- **Editing core dependencies?** You will most likely need to do a full rebuild. This shouldn't happen too frequently. If you are making this sort of change, you will know exactly what you are doing ;) See [Developing the Dockerfile](#developing-the-dockerfile).
 
 ## Useful Runtime Commands
 
@@ -144,10 +143,10 @@ https://github.com/internetarchive/openlibrary/wiki/Deployment-Guide#ol-web1
 # Launch a temporary container and run tests
 docker-compose run --rm home make test
 
-# Launch a temporary container on Python 2 using the local Infogami and then open in local webbrowser
-# PYENV_VERSION can be set to: 2.7.6, 3.8.6, or 3.9.0 (default is 3.8.6)
+# Run Open Library using a local copy of Infogami for development
 docker-compose down && \
-    PYENV_VERSION=2.7.6 docker-compose -f docker-compose.yml -f docker-compose.infogami-local.yml up -d && \
+    docker-compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.infogami-local.yml up -d
+ && \
     docker-compose logs -f --tail=10 web
 # In your browser, navigate to http://localhost:8080
 ```

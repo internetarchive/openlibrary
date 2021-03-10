@@ -298,8 +298,7 @@ class merge_authors(delegate.page):
             return render_template("merge/authors", keys, top_books_from_author=top_books_from_author, formdata=formdata)
         else:
             # redirect to the master. The master will display a progressbar and call the merge_authors_json to trigger the merge.
-            master = web.ctx.site.get("/authors/" + i.master)
-            raise web.seeother(master.url() + "?merge=true&duplicates=" + ",".join(selected))
+            raise web.seeother("/authors/" + i.master + "/-/" + "?merge=true&duplicates=" + ",".join(selected))
 
 
 class merge_authors_json(delegate.page):

@@ -373,7 +373,7 @@
     "query": "lcc:E*",
     "children": [
       {
-        "name": "E does not have any subclasses.",
+        "name": "E does not have any subclasses",
         "short": "E",
         "query": "lcc:E--*",
         "count": 138490
@@ -387,10 +387,16 @@
     "query": "lcc:F*",
     "children": [
       {
-        "name": "F does not have any subclasses, however Canadian Universities and the Canadian National Library use FC for Canadian History, a subclass that the LC has not officially adopted, but which it has agreed not to use for anything else[7][8]",
+        "name": "F does not have any official subclasses",
         "short": "F",
         "query": "lcc:F--*",
         "count": 260680
+      },
+      {
+        "name": "Canadian History (Unofficial)",
+        "short": "FC",
+        "query": "lcc:FC*",
+        "count": 2980
       }
     ],
     "count": 264350
@@ -929,12 +935,7 @@
     "name": "Language and Literature",
     "short": "P",
     "query": "lcc:P*",
-    "count": 2180107
-  },
-  {
-    "name": "The PN-subclass shelf.",
-    "short": "PN-subclass",
-    "query": "lcc:[PN TO subclass]",
+    "count": 2180107,
     "children": [
       {
         "name": "Philology. Linguistics",
@@ -1050,8 +1051,7 @@
         "query": "lcc:PZ*",
         "count": 286328
       }
-    ],
-    "count": 3169021
+    ]
   },
   {
     "name": "Science",
