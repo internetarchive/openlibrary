@@ -408,45 +408,6 @@
   cursor: pointer;
 }
 
-.account-component__checkbox {
-  display: none;
-
-  & ~ .navigation-dropdown-component ul {
-    display: none;
-  }
-
-  // stylelint-disable-next-line selector-max-specificity
-  &:checked ~ .navigation-dropdown-component ul {
-    display: block;
-  }
-}
-
-.hamburger-component__checkbox {
-  opacity: 0;
-
-  & ~ .hamburger-dropdown-component ul {
-    display: none;
-  }
-
-  // stylelint-disable-next-line selector-max-specificity
-  &:checked ~ .hamburger-dropdown-component ul {
-    display: block;
-  }
-}
-
-.navigation-component__checkbox {
-  opacity: 0;
-
-  & ~ .navigation-dropdown-component ul {
-    display: none;
-  }
-
-  // stylelint-disable-next-line selector-max-specificity
-  &:checked ~ .navigation-dropdown-component ul {
-    display: block;
-  }
-}
-
 .account-component {
   -webkit-box-flex: 1;
   -ms-flex: 1;
