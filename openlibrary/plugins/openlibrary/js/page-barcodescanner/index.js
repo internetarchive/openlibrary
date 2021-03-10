@@ -53,15 +53,15 @@ export function init() {
     Quagga.onDetected(result => {
         const code = result.codeResult.code;
         const isEnabled = $('#multiple-scan').prop('checked');
-        const url = "isbn/" + code;
-        if (!isEnabled && !redirect && code == lastResult){ 
+        const url = `isbn/${code}`;
+        if (!isEnabled && !redirect && code == lastResult){
             redirect=true;
             fetch(url)
-            .then(res=>{
-                if (res.status == 200) {
-                    window.location.href= url;
-                }    
-            })
+                .then(res=>{
+                    if (res.status == 200) {
+                        window.location.href= url;
+                    }
+                })
         }
         if (!isBarcodeISBN(code) || code == lastResult) return;
         redirect=false;
