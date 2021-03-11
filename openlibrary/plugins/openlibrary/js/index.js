@@ -149,6 +149,13 @@ jQuery(function () {
         import (/* webpackChunkName: "books_edit" */ './edit.js')
             .then((module) => module.initEdit());
     }
+
+    //condtionally loads case based on class in the page
+    if (document.getElementsByClassName('changeHistory').length){
+      import(/* webpackChunkName: "case" */ './case')
+        .then(module => module.initCase());
+    }
+
     if (document.getElementsByClassName('imageIntro').length) {
         import(/* webpackChunkName: "book_cover_manage" */ './cover_add_manage')
             .then(module => module.initAddCoverImport());
