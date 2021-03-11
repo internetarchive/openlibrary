@@ -185,15 +185,4 @@ jQuery(function () {
             .find('[type=checkbox]')
             .removeAttr('checked');
     });
-<<<<<<< HEAD
-    $('.column').disableSelection();
-    $('.trash').disableSelection();
-    $('#topNotice').hide();
-
-    // Functionality for case.html
-    $("#checkbox3").change(function(){
-      $("#textarea").val($:json_encode(last_email));
-    });
-=======
->>>>>>> f28e625213107908e43e3052036129a5ad0db5cf
 });
