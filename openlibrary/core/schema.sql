@@ -60,12 +60,12 @@ CREATE TABLE observation_types (
     updated timestamp without time zone default (current_timestamp at time zone 'utc')
 );
 
--- New next_value must be set before a row is deleted
+-- New prev_value must be set before a row is deleted
 CREATE TABLE observation_values (
     id serial not null primary key,
     value text,
     type INTEGER references observation_types(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    next_value INTEGER references observation_values(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    prev_value INTEGER references observation_values(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
     updated timestamp without time zone default (current_timestamp at time zone 'utc')
 );
@@ -84,7 +84,7 @@ CREATE TABLE observations (
 INSERT INTO observation_types(type, description, allow_multiple_values)
 VALUES ('pace', 'What is the pace of this book?', false);
 
-INSERT INTO observation_values(value, type, next_value)
+INSERT INTO observation_values(value, type, prev_value)
 values
 	('slow', currval('observation_types_id_seq'), null),
 	('medium', currval('observation_types_id_seq'), lastval()),
@@ -94,7 +94,7 @@ values
 INSERT INTO observation_types(type, description, allow_multiple_values)
 VALUES ('enjoyability', 'How entertaining is this book?', false);
 
-INSERT INTO observation_values(value, type, next_value)
+INSERT INTO observation_values(value, type, prev_value)
 values
 	('not applicable', currval('observation_types_id_seq'), null),
 	('very boring', currval('observation_types_id_seq'), lastval()),
@@ -107,7 +107,7 @@ values
 INSERT INTO observation_types(type, description, allow_multiple_values)
 VALUES ('clarity', 'How clearly is this book written?', false);
 
-INSERT INTO observation_values(value, type, next_value)
+INSERT INTO observation_values(value, type, prev_value)
 values
 	('not applicable', currval('observation_types_id_seq'), null),
 	('very unclearly', currval('observation_types_id_seq'), lastval()),
@@ -119,7 +119,7 @@ values
 INSERT INTO observation_types(type, description, allow_multiple_values)
 VALUES ('jargon', 'How technical is the content?', false);
 
-INSERT INTO observation_values(value, type, next_value)
+INSERT INTO observation_values(value, type, prev_value)
 VALUES
 	('not applicable', currval('observation_types_id_seq'), null),
 	('not technical', currval('observation_types_id_seq'), lastval()),
@@ -131,7 +131,7 @@ VALUES
 INSERT INTO observation_types(type, description, allow_multiple_values)
 VALUES ('originality', 'How original is this book?', false);
 
-INSERT INTO observation_values(value, type, next_value)
+INSERT INTO observation_values(value, type, prev_value)
 VALUES
 	('not applicable', currval('observation_types_id_seq'), null),
 	('very unoriginal', currval('observation_types_id_seq'), lastval()),
@@ -143,7 +143,7 @@ VALUES
 INSERT INTO observation_types(type, description, allow_multiple_values)
 VALUES ('difficulty', 'How advanced is the subject matter of this book?', false);
 
-INSERT INTO observation_values(value, type, next_value)
+INSERT INTO observation_values(value, type, prev_value)
 VALUES
 	('not applicable', currval('observation_types_id_seq'), null),
 	('requires domain expertise', currval('observation_types_id_seq'), lastval()),
@@ -155,7 +155,7 @@ VALUES
 INSERT INTO observation_types(type, description, allow_multiple_values)
 VALUES ('usefulness', 'How useful is the content of this book?', false);
 
-INSERT INTO observation_values(value, type, next_value)
+INSERT INTO observation_values(value, type, prev_value)
 VALUES
 	('not applicable', currval('observation_types_id_seq'), null),
 	('not useful', currval('observation_types_id_seq'), lastval()),
@@ -167,7 +167,7 @@ VALUES
 INSERT INTO observation_types(type, description, allow_multiple_values)
 VALUES ('coverage', 'Does this book''s content cover more breadth or depth of the subject matter?', false);
 
-INSERT INTO observation_values(value, type, next_value)
+INSERT INTO observation_values(value, type, prev_value)
 VALUES
 	('not applicable', currval('observation_types_id_seq'), null),
 	('much more deep', currval('observation_types_id_seq'), lastval()),
@@ -180,7 +180,7 @@ VALUES
 INSERT INTO observation_types(type, description, allow_multiple_values)
 VALUES ('objectivity', 'Are there causes to question the accuracy of this book?', true);
 
-INSERT INTO observation_values(value, type, next_value)
+INSERT INTO observation_values(value, type, prev_value)
 VALUES
 	('not applicable', currval('observation_types_id_seq'), null),
 	('no, it seems accurate', currval('observation_types_id_seq'), lastval()),
@@ -195,7 +195,7 @@ VALUES
 INSERT INTO observation_types(type, description, allow_multiple_values)
 VALUES ('genres', 'What are the genres of this book?', true);
 
-INSERT INTO observation_values(value, type, next_value)
+INSERT INTO observation_values(value, type, prev_value)
 VALUES
 	('sci-fi', currval('observation_types_id_seq'), null),
 	('philosophy', currval('observation_types_id_seq'), lastval()),
@@ -226,7 +226,7 @@ VALUES
 INSERT INTO observation_types(type, description, allow_multiple_values)
 VALUES ('fictionality', 'Is this book a work of fact or fiction?', false);
 
-INSERT INTO observation_values(value, type, next_value)
+INSERT INTO observation_values(value, type, prev_value)
 VALUES
 	('nonfiction', currval('observation_types_id_seq'), null),
 	('fiction', currval('observation_types_id_seq'), lastval()),
@@ -236,7 +236,7 @@ VALUES
 INSERT INTO observation_types(type, description, allow_multiple_values)
 VALUES ('audience', 'What are the intended age groups for this book?', true);
 
-INSERT INTO observation_values(value, type, next_value)
+INSERT INTO observation_values(value, type, prev_value)
 VALUES
 	('experts', currval('observation_types_id_seq'), null),
 	('college', currval('observation_types_id_seq'), lastval()),
@@ -250,7 +250,7 @@ VALUES
 INSERT INTO observation_types(type, description, allow_multiple_values)
 VALUES ('mood', 'What are the moods of this book?', true);
 
-INSERT INTO observation_values(value, type, next_value)
+INSERT INTO observation_values(value, type, prev_value)
 VALUES
 	('scientific', currval('observation_types_id_seq'), null),
 	('dry', currval('observation_types_id_seq'), lastval()),
