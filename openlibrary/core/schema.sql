@@ -72,7 +72,7 @@ CREATE TABLE observation_values (
 
 CREATE TABLE observations (
     work_id INTEGER not null,
-    edition_id INTEGER default null,
+    edition_id INTEGER default -1,
     username text not null,
     observation_id INTEGER references observation_values(id) ON DELETE CASCADE ON UPDATE CASCADE,
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
