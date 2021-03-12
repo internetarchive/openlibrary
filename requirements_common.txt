@@ -16,7 +16,7 @@ Pygments==2.4.2
 pymarc==4.0.0
 python-memcached==1.59
 PyYAML==5.4.1
-sentry-sdk==0.20.3
+sentry-sdk==1.0.0
 simplejson==3.16.0
 six==1.15.0
 sixpack-client==1.2.0
