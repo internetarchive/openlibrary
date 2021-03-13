@@ -149,14 +149,21 @@ jQuery(function () {
         import (/* webpackChunkName: "books_edit" */ './edit.js')
             .then((module) => module.initEdit());
     }
-    if (document.getElementsByClassName('imageIntro').length) {
-        import(/* webpackChunkName: "covers_add_manage" */ './covers_add_manage')
-            .then(module => module.initCoversAddManage());
+    if (document.getElementsByClassName('manageCovers').length) {
+        import(/* webpackChunkName: "covers" */ './covers')
+            .then((module) => module.initCoversChange());
     }
 
-    if (document.getElementsByClassName('manageCovers').length) {
-        import(/* webpackChunkName: "covers_change" */ './covers_change')
-            .then(module => module.initCoversChange());
+    // Load from iframe
+    if (document.getElementsByClassName('imageIntro').length) {
+        import('./covers')
+            .then((module) => module.initCoversAddManage());
+    }
+
+    // Load from iframe
+    if (document.getElementsByClassName('imageSaved').length) {
+        import('./covers')
+            .then((module) => module.initCoversSaved());
     }
 
     if ($('#cboxPrevious').length) {
