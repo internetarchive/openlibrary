@@ -10,9 +10,8 @@ export function initPatronMetadata() {
         });
     }
 
-    function populateForm($form, observations) {
+    function populateForm($form, observations, selectedValues) {
         let i18nStrings = JSON.parse(document.querySelector('#modal-link').dataset.i18n);
-
         for (const observation of observations) {
             let className = observation.multi_choice ? 'multi-choice' : 'single-choice';
             let $choices = $(`<div class="${className}"></div>`);
@@ -20,10 +19,16 @@ export function initPatronMetadata() {
 
             for (const value of observation.values) {
                 let choiceId = `${observation.label}Choice${choiceIndex--}`;
+                let checked = '';
+
+                if (observation.label in selectedValues
+                    && selectedValues[observation.label].includes(value)) {
+                    checked = 'checked';
+                }
 
                 $choices.append(`
                 <label for="${choiceId}" class="${className}-label">
-                            <input type=${observation.multi_choice ? 'checkbox': 'radio'} name="${observation.label}" id="${choiceId}" value="${value}">
+                            <input type=${observation.multi_choice ? 'checkbox': 'radio'} name="${observation.label}" id="${choiceId}" value="${value}" ${checked}>
                             ${value}
                         </label>`);
             }
@@ -51,25 +56,37 @@ export function initPatronMetadata() {
     }
 
     $('#modal-link').on('click', function() {
-        if ($('#user-metadata').children().length === 0) {
-            $.ajax({
-                type: 'GET',
-                url: '/observations',
-                dataType: 'json'
-            })
-                .done(function(data) {
-                    populateForm($('#user-metadata'), data.observations);
-                    $('#cancel-submission').click(function() {
-                        $.colorbox.close();
+        let context = JSON.parse(document.querySelector('#modal-link').dataset.context);
+        let selectedValues = {};
+
+        $.ajax({
+            type: 'GET',
+            url: `/works/${context.work.split('/')[2]}/observations`,
+            dataType: 'json'
+        })
+            .done(function(data) {
+                selectedValues = data;
+
+                if ($('#user-metadata').children().length === 0) {
+                    $.ajax({
+                        type: 'GET',
+                        url: '/observations',
+                        dataType: 'json'
                     })
+                        .done(function(data) {
+                            populateForm($('#user-metadata'), data.observations, selectedValues);
+                            $('#cancel-submission').click(function() {
+                                $.colorbox.close();
+                            })
+                            displayModal();
+                        })
+                        .fail(function() {
+                            // TODO: Handle failed API calls gracefully.
+                        })
+                } else {
                     displayModal();
-                })
-                .fail(function() {
-                    // TODO: Handle failed API calls gracefully.
-                })
-        } else {
-            displayModal();
-        }
+                }
+            })
     });
 
     $('#user-metadata').on('submit', function(event) {

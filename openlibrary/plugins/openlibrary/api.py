@@ -435,7 +435,7 @@ class observations(delegate.page):
         user = accounts.get_current_user()
 
         if not user:
-            raise web.seeother('/account/login?redirect=%s' % key)
+            raise web.seeother('/account/login')
 
         data = json.loads(web.data())
         work_id = int(extract_numeric_id_from_olid(data['work_id']))
@@ -452,3 +452,27 @@ class observations(delegate.page):
             }), content_type="application/json")
 
         return response('Observations added')
+
+
+class patron_observations(delegate.page):
+    path = r"/works/OL(\d+)W/observations"
+    encoding = "json"
+
+    def GET(self, work_id):
+        user = accounts.get_current_user()
+
+        if not user:
+            raise web.seeother('/account/login')
+
+        username = user.key.split('/')[2]
+        existing_records = Observations.get_patron_observations(username, work_id)
+
+        patron_observations = {}
+
+        for r in existing_records:
+            if r['type'] not in patron_observations:
+                patron_observations[r['type']] = []
+            patron_observations[r['type']].append(r['value'])
+            
+        return delegate.RawText(json.dumps(patron_observations), content_type="application/json")
+        
