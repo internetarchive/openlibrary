@@ -185,5 +185,4 @@ sentry:
     environment: 'local'
 
 # The Best Book On integration
-tbbo_url: https://thebestbookon.com
-tbbo_aspect_cache_duration: 86400
+observation_cache_duration: 86400

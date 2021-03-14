@@ -9,24 +9,94 @@ from openlibrary import accounts
 from . import cache
 from . import db
 
-# URL for TheBestBookOn
-TBBO_URL = config.get('tbbo_url')
 
-def post_observation(data, s3_keys):
-    headers = {
-        'x-s3-access': s3_keys['access'],
-        'x-s3-secret': s3_keys['secret']
+@cache.memoize(engine="memcache", key="observations", expires=config.get('observation_cache_duration'))
+def get_observations():
+    """
+    Returns a dictionary of observations that are used to populate forms for patron feedback about a book.
+
+    Dictionary has the following structure:
+    {
+        'observations': [
+            {
+                'id': observation_types.id,
+                'label': observation_types.type,
+                'description': observation_types.description,
+                'multi_choice': observation_types.allow_multiple_values,
+                'values': [ observation_values.value list ]
+            }
+        ]
     }
 
-    response = requests.post(TBBO_URL + '/api/observations', data=data, headers=headers)
+    return: Dictionary of all possible observations that can be made about a book.
+    """
+    observations = Observations.get_observation_types_and_values()
 
-    return response.text
+    observation_dict = {}
 
-@cache.memoize(engine="memcache", key="tbbo_aspects", expires=config.get('tbbo_aspect_cache_duration'))
-def get_aspects():
-    response = requests.get(TBBO_URL + '/api/aspects')
+    for o in observations:
+        type = o['type']
 
-    return response.text
+        if type not in observation_dict:
+            observation_dict[type] = {
+                'id': o['type_id'],
+                'label': type,
+                'description': o['description'],
+                'multi_choice': o['multi_choice'],
+                'values': []
+            }
+
+        observation_dict[type]['values'].insert(0, (o['value_id'], o['value'], o['prev_value']))
+
+    observation_list = []
+
+    for v in observation_dict.values():
+        v['values'] = _sort_values(v['values'])
+        observation_list.append(v)
+
+    response = {
+        'observations': observation_list
+    }
+
+    return response
+
+def _sort_values(values_list):
+    """
+    Given a list of value tuples, returns a sorted list of observation values.
+    
+    Value tuples have the form (value ID, value, previous value ID).  Previous
+    value ID is the ID of the previous value in the list, or None if the value
+    is the first item in the list.
+
+    return: A sorted list of values.
+    """
+    # Add middle list item to sorted list
+    middle_item = values_list.pop(int(len(values_list) / 2))
+    sorted_list = [ middle_item[1] ]
+
+    # Previous id:
+    prev = middle_item[2]
+
+    # Next id:
+    next = middle_item[0]
+
+    map = {}
+    for i in values_list:
+        map[i[0]] = i
+
+    while len(map):
+        for k in list(map):
+            if map[k][0] == prev:
+                sorted_list.insert(0, map[k][1])
+                prev = map[k][2]
+                del map[k]
+            elif map[k][2] == next:
+                
+                sorted_list.append(map[k][1])
+                next = map[k][0]
+                del map[k]
+
+    return sorted_list
 
 class Observations(object):
 
@@ -48,10 +118,12 @@ class Observations(object):
                 observation_types.description as description,
                 observation_types.allow_multiple_values as multi_choice,
                 observation_values.id as value_id,
-                observation_values.value as value
+                observation_values.value as value,
+                observation_values.prev_value as prev_value
             FROM observation_types
             JOIN observation_values
-                ON observation_values.type = observation_types.id"""
+                ON observation_values.type = observation_types.id
+            ORDER BY observation_types.id"""
 
         return list(oldb.query(query))
 
@@ -65,7 +137,7 @@ class Observations(object):
         return: Dictionary of observation types, values, and IDs
         """
         results = {}
-        for observation in cls.get_observation_types_and_values:
+        for observation in cls.get_observation_types_and_values():
             results[observation['type'], observation['value']] = observation['value_id']
 
         return results
@@ -128,23 +200,20 @@ class Observations(object):
         records = cls.get_patron_observations(username, work_id)
 
         if len(records):
-            # Delete values that are in existing records but not in submitted observations
             for record in records:
+                # Delete values that are in existing records but not in submitted observations
                 if { record['type']: record['value'] } not in observations:
                     observation_id = record['id']
                     cls.remove_observations(username, work_id, edition_id=edition_id, observation_id=observation_id)
-                    records.remove(record)
-
-            # If same value exists in both existing records and observations, remove from observations
-            for record in record:
-                if { record['type']: record['value'] } in observations:
+                else:
+                    # If same value exists in both existing records and observations, remove from observations
                     observations.remove({ record['type']: record['value'] })
                     
         if len(observations):
             # Insert all remaining observations
             observation_ids = get_observation_ids(observations)
 
-            oldb.multiple_insert('observation', 
+            oldb.multiple_insert('observations', 
                 [dict(username=username, work_id=work_id, edition_id=edition_id, observation_id=id) for id in observation_ids]
             )
 

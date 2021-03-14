@@ -10,29 +10,29 @@ export function initPatronMetadata() {
         });
     }
 
-    function populateForm($form, aspects) {
+    function populateForm($form, observations) {
         let i18nStrings = JSON.parse(document.querySelector('#modal-link').dataset.i18n);
 
-        for (const aspect of aspects) {
-            let className = aspect.multi_choice ? 'multi-choice' : 'single-choice';
+        for (const observation of observations) {
+            let className = observation.multi_choice ? 'multi-choice' : 'single-choice';
             let $choices = $(`<div class="${className}"></div>`);
-            let choiceIndex = aspect.schema.values.length;
+            let choiceIndex = observation.values.length;
 
-            for (const value of aspect.schema.values) {
-                let choiceId = `${aspect.label}Choice${choiceIndex--}`;
+            for (const value of observation.values) {
+                let choiceId = `${observation.label}Choice${choiceIndex--}`;
 
-                $choices.prepend(`
+                $choices.append(`
                 <label for="${choiceId}" class="${className}-label">
-                            <input type=${aspect.multi_choice ? 'checkbox': 'radio'} name="${aspect.label}" id="${choiceId}" value="${value}">
+                            <input type=${observation.multi_choice ? 'checkbox': 'radio'} name="${observation.label}" id="${choiceId}" value="${value}">
                             ${value}
                         </label>`);
             }
 
             $form.append(`
               <details class="aspect-section">
-                <summary>${aspect.label}</summary>
-                <div id="${aspect.label}-question">
-                    <h3>${aspect.description}</h3>
+                <summary>${observation.label}</summary>
+                <div id="${observation.label}-question">
+                    <h3>${observation.description}</h3>
                     ${$choices.prop('outerHTML')}
                 </div>
               </details>
@@ -54,11 +54,11 @@ export function initPatronMetadata() {
         if ($('#user-metadata').children().length === 0) {
             $.ajax({
                 type: 'GET',
-                url: '/aspects',
+                url: '/observations',
                 dataType: 'json'
             })
                 .done(function(data) {
-                    populateForm($('#user-metadata'), data.aspects);
+                    populateForm($('#user-metadata'), data.observations);
                     $('#cancel-submission').click(function() {
                         $.colorbox.close();
                     })

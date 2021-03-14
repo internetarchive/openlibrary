@@ -19,7 +19,7 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
-from openlibrary.core.observations import post_observation, get_aspects
+from openlibrary.core.observations import get_observations, Observations
 from openlibrary.core.models import Booknotes
 from openlibrary.core.sponsorships import qualifies_for_sponsorship
 from openlibrary.core.vendors import (
@@ -428,21 +428,27 @@ class observations(delegate.page):
     path = "/observations"
     encoding = "json"
 
+    def GET(self):
+        return delegate.RawText(json.dumps(get_observations()), content_type="application/json")
+
     def POST(self):
         user = accounts.get_current_user()
 
-        if user:
-            account = OpenLibraryAccount.get_by_email(user.email)
-            s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
+        if not user:
+            raise web.seeother('/account/login?redirect=%s' % key)
 
-            if s3_keys:
-                response = post_observation(web.data(), s3_keys)
-                return delegate.RawText(response)
+        data = json.loads(web.data())
+        work_id = int(extract_numeric_id_from_olid(data['work_id']))
 
+        Observations.persist_observations(
+            data['username'],
+            work_id,
+            data['observations']
+        )
 
-class aspects(delegate.page):
-    path = "/aspects"
-    encoding = "json"
+        def response(msg, status="success"):
+            return delegate.RawText(json.dumps({
+                status: msg
+            }), content_type="application/json")
 
-    def GET(self):
-        return delegate.RawText(get_aspects())
+        return response('Observations added')
