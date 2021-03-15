@@ -84,8 +84,8 @@ def parse_data(data):
             format = 'marcxml'
         else:
             raise DataError('unrecognized-XML-format')
-    elif data.startswith('{') and data.endswith('}'):
-        obj = json.loads(data)
+    elif data.startswith(b'{') and data.endswith(b'}'):
+        obj = json.loads(data.decode())
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
         format = 'json'
     elif data[:MARC_LENGTH_POS].isdigit():
