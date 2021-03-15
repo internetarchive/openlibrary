@@ -1,4 +1,3 @@
-import json
 
 import web
 import logging
@@ -902,6 +901,21 @@ class account_loans(delegate.page):
         user.update_loan_status()
         loans = borrow.get_loans(user)
         return render['account/borrow'](user, loans)
+
+class account_loans_json(delegate.page):
+
+    encoding = "json"
+    path = "/account/loans"
+
+    @require_login
+    def GET(self):
+        user = accounts.get_current_user()
+        user.update_loan_status()
+        loans = borrow.get_loans(user)
+        return delegate.RawText(json.dumps({
+            "loans": loans
+        }))
+
 
 # Disabling be cause it prevents account_my_books_redirect from working
 # for some reason. The purpose of this class is to not show the "Create" link for
