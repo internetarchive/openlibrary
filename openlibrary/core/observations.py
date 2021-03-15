@@ -1,8 +1,5 @@
 """Module for handling patron observation functionality"""
 
-import json
-import requests
-
 from infogami import config
 from openlibrary import accounts
 
@@ -80,21 +77,18 @@ def _sort_values(values_list):
     # Next id:
     next = middle_item[0]
 
-    map = {}
-    for i in values_list:
-        map[i[0]] = i
+    values_dict = { i[0]: i for i in values_list }
 
-    while len(map):
-        for k in list(map):
-            if map[k][0] == prev:
-                sorted_list.insert(0, map[k][1])
-                prev = map[k][2]
-                del map[k]
-            elif map[k][2] == next:
-                
-                sorted_list.append(map[k][1])
-                next = map[k][0]
-                del map[k]
+    while len(values_dict):
+        for k in list(values_dict):
+            if values_dict[k][0] == prev:
+                sorted_list.insert(0, values_dict[k][1])
+                prev = values_dict[k][2]
+                del values_dict[k]
+            elif values_dict[k][2] == next:
+                sorted_list.append(values_dict[k][1])
+                next = values_dict[k][0]
+                del values_dict[k]
 
     return sorted_list
 
@@ -102,7 +96,6 @@ class Observations(object):
 
     NULL_EDITION_VALUE = -1
 
-    # TODO: Cache these results
     @classmethod
     def get_observation_types_and_values(cls):
         """
@@ -136,10 +129,8 @@ class Observations(object):
 
         return: Dictionary of observation types, values, and IDs
         """
-        results = {}
-        for observation in cls.get_observation_types_and_values():
-            results[observation['type'], observation['value']] = observation['value_id']
 
+        results = { (o['type'], o['value']): o['value_id'] for o in cls.get_observation_types_and_values() }
         return results
 
     @classmethod
@@ -199,22 +190,21 @@ class Observations(object):
         oldb = db.get_db()
         records = cls.get_patron_observations(username, work_id)
 
-        if len(records):
-            for record in records:
-                # Delete values that are in existing records but not in submitted observations
-                if { record['type']: record['value'] } not in observations:
-                    observation_id = record['id']
-                    cls.remove_observations(username, work_id, edition_id=edition_id, observation_id=observation_id)
-                else:
-                    # If same value exists in both existing records and observations, remove from observations
-                    observations.remove({ record['type']: record['value'] })
+        for record in records:
+            # Delete values that are in existing records but not in submitted observations
+            if { record['type']: record['value'] } not in observations:
+                observation_id = record['id']
+                cls.remove_observations(username, work_id, edition_id=edition_id, observation_id=observation_id)
+            else:
+                # If same value exists in both existing records and observations, remove from observations
+                observations.remove({ record['type']: record['value'] })
                     
         if len(observations):
             # Insert all remaining observations
             observation_ids = get_observation_ids(observations)
 
             oldb.multiple_insert('observations', 
-                [dict(username=username, work_id=work_id, edition_id=edition_id, observation_id=id) for id in observation_ids]
+                [{'username': username, 'work_id': work_id, 'edition_id': edition_id, 'observation_id': id} for id in observation_ids]
             )
 
     @classmethod

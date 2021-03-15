@@ -7,6 +7,7 @@ its experience. This does not include public facing APIs with LTS
 import web
 import re
 import json
+from collections import defaultdict
 
 from infogami import config
 from infogami.utils import delegate
@@ -467,11 +468,9 @@ class patron_observations(delegate.page):
         username = user.key.split('/')[2]
         existing_records = Observations.get_patron_observations(username, work_id)
 
-        patron_observations = {}
+        patron_observations = defaultdict(list)
 
         for r in existing_records:
-            if r['type'] not in patron_observations:
-                patron_observations[r['type']] = []
             patron_observations[r['type']].append(r['value'])
             
         return delegate.RawText(json.dumps(patron_observations), content_type="application/json")
