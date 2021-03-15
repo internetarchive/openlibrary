@@ -116,7 +116,7 @@ FIELD_NAME_MAP = {
 }
 SORTS = {
     'editions': 'edition_count desc',
-    'old': 'first_publish_year asc',
+    'old': 'def(first_publish_year, 9999) asc',
     'new': 'first_publish_year desc',
     'scans': 'ia_count desc',
     # Classifications
