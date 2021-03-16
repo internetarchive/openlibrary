@@ -5,7 +5,7 @@ DBUtils==1.3
 Deprecated==1.2.11
 eventer==0.1.1
 flup-py3==1.0.3
-Genshi==0.7.1
+Genshi==0.7.5
 gunicorn==20.0.4
 internetarchive==1.9.6
 isbnlib==3.9.3
