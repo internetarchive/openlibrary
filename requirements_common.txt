@@ -12,7 +12,7 @@ isbnlib==3.10.6
 lxml==4.6.2
 Pillow==8.1.2
 psycopg2==2.8.6
-Pygments==2.4.2
+Pygments==2.8.1
 pymarc==4.0.0
 python-memcached==1.59
 PyYAML==5.4.1
