@@ -53,8 +53,6 @@ services:
       - PYENV_VERSION=${PYENV_VERSION:-}
       - OL_URL=http://web:8080/
     volumes:
-      # The above volume mounts is required so that the local dev bind mount below
-      # does not clobber the data generated inside the image / container
       - solr-updater-data:/solr-updater-data
     networks:
       - webnet

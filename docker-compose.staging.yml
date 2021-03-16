@@ -55,3 +55,6 @@ services:
       - .:/openlibrary
 volumes:
   ol-vendor:
+  ol-build:
+  ol-nodemodules:
+
