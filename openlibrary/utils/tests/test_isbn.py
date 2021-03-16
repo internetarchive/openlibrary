@@ -31,7 +31,7 @@ isbn_cases = [
         ('978-1841151861', '9781841151861'),
         ('123-456-789-X ', '123456789X'),
         ('ISBN: 123-456-789-X ', '123456789X'),
-        ('56', '56'), # does NOT check length
+        ('56', None),
 ]
 
 @pytest.mark.parametrize('isbnlike,expected', isbn_cases)
