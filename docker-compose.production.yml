@@ -67,8 +67,6 @@ services:
     volumes:
       - ../olsystem/etc/cron.d/openlibrary.ol_home0:/etc/cron.d/openlibrary.ol_home0:ro
       - ../olsystem:/olsystem
-      - ol-vendor:/openlibrary/vendor
-      - .:/openlibrary
       - /1/var/tmp:/1/var/tmp
     networks:
       - webnet
@@ -150,8 +148,6 @@ services:
       - OPENLIBRARY_RCFILE=/olsystem/etc/olrc-importbot
       - PYENV_VERSION=${PYENV_VERSION:-}
     volumes:
-      - ol-vendor:/openlibrary/vendor
-      - .:/openlibrary
       - ../olsystem:/olsystem
     networks:
       - webnet
