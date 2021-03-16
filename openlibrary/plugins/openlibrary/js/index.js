@@ -154,6 +154,11 @@ jQuery(function () {
             .then(module => module.initAddCoverImport());
     }
 
+    if (document.getElementById('addbook').length) {
+        import(/* webpackChunkName: "add-book" */ './add-book')
+            .then(module => module.initAddBookImport());
+    }
+
     if ($('#cboxPrevious').length) {
         $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});
     }
@@ -178,7 +183,6 @@ jQuery(function () {
             .find('[type=checkbox]')
             .removeAttr('checked');
     });
-<<<<<<< HEAD
     $('.column').disableSelection();
     $('.trash').disableSelection();
     $('#topNotice').hide();
@@ -195,6 +199,4 @@ jQuery(function () {
         $('input#work').val('none-of-these');
         $('form#addbook').submit();
     });
-=======
->>>>>>> f28e625213107908e43e3052036129a5ad0db5cf
 });
