@@ -75,10 +75,7 @@ $else:
         <thead>
             <tr>
                 <th class="titles" colspan="2">
-                $if len(loans) == 1:
-                    $_("1 Current Loan")
-                $else:
-                    $_("%(count)d Current Loans", count=len(loans))
+                $ungettext("1 Current Loan", "%(count)d Current Loans", len(loans), count=len(loans))
                 </th>
                 <th class="expires">$_("Loan Expires")</th>
                 <th class="actions">$_("Loan actions")</th>
