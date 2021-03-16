@@ -23,11 +23,11 @@ $var title: $_(title)
             enctype="multipart/form-data" class="olform olform--decoration">
           <div>
             <input type="file" name="csv" />
-            <br>File size limit 10MB and .csv file type only
+            <br>$_("File size limit 10MB and .csv file type only")
           </div>
           <div>
             <input class="cta-btn cta-btn--available cta-btn--small"
-                type="submit" value="Load Books">
+                type="submit" value="$_('Load Books')">
           </div>
         </form>
       </div>  
@@ -36,7 +36,7 @@ $var title: $_(title)
         <form method="GET" action="/account/export"
             enctype="multipart/form-data" class="olform olform--decoration">
           <div>
-            <input type="submit" class="readingLog_download cta-btn cta-btn--available cta-btn--small" value="Download (.csv format)">
+            <input type="submit" class="readingLog_download cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')">
           </div>
         </form>
       </div>

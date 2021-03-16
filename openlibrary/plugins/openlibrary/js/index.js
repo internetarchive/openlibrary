@@ -149,9 +149,21 @@ jQuery(function () {
         import (/* webpackChunkName: "books_edit" */ './edit.js')
             .then((module) => module.initEdit());
     }
+    if (document.getElementsByClassName('manageCovers').length) {
+        import(/* webpackChunkName: "covers" */ './covers')
+            .then((module) => module.initCoversChange());
+    }
+
+    // Load from iframe
     if (document.getElementsByClassName('imageIntro').length) {
-        import(/* webpackChunkName: "book_cover_manage" */ './cover_add_manage')
-            .then(module => module.initAddCoverImport());
+        import('./covers')
+            .then((module) => module.initCoversAddManage());
+    }
+
+    // Load from iframe
+    if (document.getElementsByClassName('imageSaved').length) {
+        import('./covers')
+            .then((module) => module.initCoversSaved());
     }
 
     if (document.getElementById('addbook').length) {

@@ -84,7 +84,7 @@ def parse_data(data):
             format = 'marcxml'
         else:
             raise DataError('unrecognized-XML-format')
-    elif data.startswith('{') and data.endswith('}'):
+    elif data.startswith(b'{') and data.endswith(b'}'):
         obj = json.loads(data)
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
         format = 'json'

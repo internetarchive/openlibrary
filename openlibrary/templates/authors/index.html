@@ -1,22 +1,22 @@
 $def with ()
 
-$var title: Authors
+$var title: $_('Authors')
 
 <div id="contentHead">
-    <h1>Authors</h1>
+    <h1>$_('Authors')</h1>
 </div>
 
 
 <div id="contentBody">
 	<form action="/search/authors" class="olform">
-	    <h2 class="collapse"><label for="searchAuthor">Search for an Author</label></h2>
+	    <h2 class="collapse"><label for="searchAuthor">$_('Search for an Author')</label></h2>
 	    <p>
 	        <input type="text" name="q" id="searchAuthor" size="100" class="larger" value=""/>
-	        <input type="submit" value="Search" class="large"/>
+	        <input type="submit" value="$_('Search')" class="large"/>
 	    </p>
 	</form>
 
-	<h2>Tips for Reconciling Author Records</h2>
+	<h2>$_('Tips for Reconciling Author Records')</h2>
 	<h3>Merging Authors</h3>
 	<p>Open Library holds catalog records from many different libraries around the world, each of which has similar, yet different, cataloging practices. Some libraries will enter an author name like <em>Lastname, Firstname</em> whereas others will enter them <em>Firstname Lastname</em>. Formal titles (such as Sir, Queen etc.) can inhibit Open Library's ability to spot two variations of an author's name as the same author. When adding authors include as little information as possible that identify the author while keeping them distinguishable from other authors.
 	</p>
