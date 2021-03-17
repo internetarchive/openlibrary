@@ -38,7 +38,7 @@ $def render_carousel_cover(book, lazy):
           <img class="bookcover" loading="lazy"
             width="130" height="200"
             title="$('%s%s'%(title,byline))"
-            alt="Book Cover"
+            alt="$('%s%s'%(title,byline))"
           $if lazy:
             data-lazy="$(cover_url)"
             src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
