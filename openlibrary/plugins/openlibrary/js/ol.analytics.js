@@ -1,12 +1,12 @@
 /**
- * OpenLibrary-specific convenience functions for use with Archive.org analytics.js
- *
- * Depends on Archive.org analytics.js function archive_analytics.send_ping()
- *
- * Usage:
- *     $("select#role").add_new_field({href: "#role-popup"});
- *
- */
+* OpenLibrary-specific convenience functions for use with Archive.org analytics.js
+*
+* Depends on Archive.org analytics.js function archive_analytics.send_ping()
+*
+* Usage:
+*     $("select#role").add_new_field({href: "#role-popup"});
+*
+*/
 export default function initAnalytics() {
     var startTime = new Date();
     if (window.archive_analytics) {
@@ -24,4 +24,15 @@ export default function initAnalytics() {
             });
         }
     }
+
+    if(window.flights){
+        window.flights.init();
+    }
+    if ($(".more_search").size()>0) {
+        window.archive_analytics.send_scroll_fetch_base_event();
+    }
+    $(document).on('click', '[data-ol-link-track]', function(event) {
+        var category_action = $(this).attr('data-ol-link-track').split('|');
+        window.archive_analytics.ol_send_event_ping({'category': category_action[0], 'action': category_action[1]});
+    });
 }
