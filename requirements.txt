@@ -11,10 +11,8 @@ jsonpatch==0.4
 meld3==2.0.1
 ndg-httpsclient==0.5.1
 pathlib2==2.3.5
-pexpect==4.7.0
 pickleshare==0.7.5
 prompt-toolkit==1.0.9
-ptyprocess==0.5.1
 py==1.10.0
 pyOpenSSL==20.0.1
 pyasn1==0.4.8
