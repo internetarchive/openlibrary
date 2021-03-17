@@ -123,3 +123,45 @@ div#version-details {
   border-radius: 3px;
   padding: 8px 10px;
 }
+
+.dropbtn {
+  background-color:@grey;
+  color: @white;
+  padding: 6px 16px;
+  font-size: 16px;
+  border-radius: 4px;
+}
+
+#footer-locale-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: @modal-background-color;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: @black;
+  padding: 7px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content a:hover {
+  background-color: @modal-header-background-color;
+}
+
+#footer-locale-menu:hover .dropdown-content {
+  display: block;
+  margin: 0;
+}
+
+#footer-locale-menu:hover .dropbtn {
+  background-color: @dark-grey;
+}
