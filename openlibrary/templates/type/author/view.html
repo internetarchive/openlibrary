@@ -146,7 +146,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 </h2>
                 <p id="books">
                 $if books.num_found > 1:
-                    $:render_template("search/sort_options.html", exclude=('relevance'), default='editions')
+                    $:render_template("search/sort_options.html", exclude='relevance', default_sort='editions')
 
                 <p>
                   $if input(mode="everything").mode == "everything":
