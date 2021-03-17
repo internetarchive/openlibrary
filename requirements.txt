@@ -2,17 +2,12 @@
 
 Jinja2==2.10.3
 backports.shutil-get-terminal-size==1.0.0
-bottlenose==1.1.2
 clint==0.5.1
-decorator==4.0.10
+decorator==4.4.2
 docopt==0.6.2
-docutils==0.8.1
-ecdsa==0.13.3
-enum34==1.1.6
-ipython==5.8.0
-ipython-genutils==0.1.0
+docutils==0.16
+ecdsa==0.16.1
 jsonpatch==0.4
-kombu==4.6.5
 meld3==2.0.1
 ndg-httpsclient==0.5.1
 pathlib2==2.3.5
@@ -21,10 +16,8 @@ pickleshare==0.7.5
 prompt-toolkit==1.0.9
 ptyprocess==0.5.1
 py==1.10.0
-pyOpenSSL==19.0.0
-pyasn1==0.1.9
-python-dateutil==1.5
+pyOpenSSL==20.0.1
+pyasn1==0.4.8
+python-dateutil==2.8.1
 requests==2.22.0
 schema==0.7.4
-simplegeneric==0.8.1
-traitlets==4.3.1
