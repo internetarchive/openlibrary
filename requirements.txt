@@ -21,5 +21,3 @@ pyasn1==0.4.8
 python-dateutil==2.8.1
 requests==2.22.0
 schema==0.7.4
-simplegeneric==0.8.1
-wcwidth==0.1.7
