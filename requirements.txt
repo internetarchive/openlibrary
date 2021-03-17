@@ -12,7 +12,7 @@ meld3==2.0.1
 ndg-httpsclient==0.5.1
 pathlib2==2.3.5
 pickleshare==0.7.5
-prompt-toolkit==1.0.9
+prompt-toolkit==3.0.17
 py==1.10.0
 pyOpenSSL==20.0.1
 pyasn1==0.4.8
