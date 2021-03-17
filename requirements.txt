@@ -1,7 +1,6 @@
 -r requirements_common.txt
 
 Jinja2==2.11.3
-backports.shutil-get-terminal-size==1.0.0
 clint==0.5.1
 decorator==4.4.2
 ecdsa==0.16.1
