@@ -10,8 +10,6 @@ ecdsa==0.16.1
 jsonpatch==0.4
 meld3==2.0.1
 ndg-httpsclient==0.5.1
-pathlib2==2.3.5
-pickleshare==0.7.5
 pyOpenSSL==20.0.1
 pyasn1==0.4.8
 python-dateutil==2.8.1
