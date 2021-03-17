@@ -4,12 +4,9 @@ Jinja2==2.11.3
 backports.shutil-get-terminal-size==1.0.0
 clint==0.5.1
 decorator==4.4.2
-docopt==0.6.2
-docutils==0.16
 ecdsa==0.16.1
 jsonpatch==0.4
 meld3==2.0.1
-ndg-httpsclient==0.5.1
 pyOpenSSL==20.0.1
 pyasn1==0.4.8
 python-dateutil==2.8.1
