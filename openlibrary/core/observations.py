@@ -1,5 +1,7 @@
 """Module for handling patron observation functionality"""
 
+from collections import namedtuple
+
 from infogami import config
 from openlibrary import accounts
 
@@ -43,7 +45,8 @@ def get_observations():
                 'values': []
             }
 
-        observation_dict[type]['values'].insert(0, (o['value_id'], o['value'], o['prev_value']))
+        ObservationValue = namedtuple('ObservationValue', ['value_id', 'value', 'prev_value_id'])
+        observation_dict[type]['values'].insert(0, ObservationValue(o['value_id'], o['value'], o['prev_value']))
 
     observation_list = []
 
@@ -59,36 +62,44 @@ def get_observations():
 
 def _sort_values(values_list):
     """
-    Given a list of value tuples, returns a sorted list of observation values.
-    
-    Value tuples have the form (value ID, value, previous value ID).  Previous
-    value ID is the ID of the previous value in the list, or None if the value
-    is the first item in the list.
+    Given a list of ObservationValue tuples, returns a sorted list of observation values.
+
+    ObservationValues are namedtuples with fields ('value_id', 'value', 'prev_value_id').
+    Each field maps to a column in the observation_values table:
+
+    'value_id' -> observation_values.id
+    'value' -> observations_values.value
+    'prev_value_id' -> observation_values.prev_value
+
+    Before values are displayed to patrons in a form, they must first be ordered.  Order is
+    maintained by the observation_values.prev_value column.  Each row has a reference to the
+    ID of the preceding row, or None if the row is the first value in the list.
 
     return: A sorted list of values.
     """
     # Add middle list item to sorted list
     middle_item = values_list.pop(int(len(values_list) / 2))
-    sorted_list = [ middle_item[1] ]
+    sorted_list = [ middle_item.value ]
 
     # Previous id:
-    prev = middle_item[2]
+    prev = middle_item.prev_value_id
 
     # Next id:
-    next = middle_item[0]
+    next = middle_item.value_id
 
-    values_dict = { i[0]: i for i in values_list }
+    unsorted_values_dict = { i.value_id: i for i in values_list }
 
-    while len(values_dict):
-        for k in list(values_dict):
-            if values_dict[k][0] == prev:
-                sorted_list.insert(0, values_dict[k][1])
-                prev = values_dict[k][2]
-                del values_dict[k]
-            elif values_dict[k][2] == next:
-                sorted_list.append(values_dict[k][1])
-                next = values_dict[k][0]
-                del values_dict[k]
+    while len(unsorted_values_dict):
+        for key in list(unsorted_values_dict):   # unsorted_values_dict will change during iteration
+            value = unsorted_values_dict
+            if value[key].value_id == prev:
+                sorted_list.insert(0, value[key].value)
+                prev = value[key].prev_value_id
+                del unsorted_values_dict[key]
+            elif value[key].prev_value_id == next:
+                sorted_list.append(value[key].value)
+                next = value[key].value_id
+                del unsorted_values_dict[key]
 
     return sorted_list
 
@@ -130,8 +141,7 @@ class Observations(object):
         return: Dictionary of observation types, values, and IDs
         """
 
-        results = { (o['type'], o['value']): o['value_id'] for o in cls.get_observation_types_and_values() }
-        return results
+        return { (o['type'], o['value']): o['value_id'] for o in cls.get_observation_types_and_values() }
 
     @classmethod
     def get_patron_observations(cls, username, work_id=None):

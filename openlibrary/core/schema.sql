@@ -60,11 +60,28 @@ CREATE TABLE observation_types (
     updated timestamp without time zone default (current_timestamp at time zone 'utc')
 );
 
--- New prev_value must be set before a row is deleted
+/*
+  All values for each type in the observation_values table are ordered using the prev_value column.
+  If the value is the first in a list, it will have a prev_value of NULL.  Otherwise, prev_value will
+  reference the ID of the previous list item.
+
+  For example, the values of the following rows would be ordered "low", "medium", "high" after sorting.
+
+    -----------------------------------
+    | ID | TYPE | VALUE  | PREV_VALUE |
+    |=================================|
+    |  1 |    1 | medium |       2    |
+    |---------------------------------|
+    |  2 |    1 |    low |    NULL    |
+    |---------------------------------|
+    |  3 |    1 |   high |       1    |
+    ----------------------------------- 
+*/
 CREATE TABLE observation_values (
     id serial not null primary key,
     value text,
     type INTEGER references observation_types(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    -- New prev_value must be set before a row is deleted, otherwise deletes are restricted:
     prev_value INTEGER references observation_values(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
     updated timestamp without time zone default (current_timestamp at time zone 'utc')
@@ -76,7 +93,6 @@ CREATE TABLE observations (
     username text not null,
     observation_id INTEGER references observation_values(id) ON DELETE CASCADE ON UPDATE CASCADE,
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
-    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
     primary key (work_id, edition_id, username, observation_id)
 );
 

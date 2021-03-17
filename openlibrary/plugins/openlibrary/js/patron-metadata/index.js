@@ -56,18 +56,18 @@ export function initPatronMetadata() {
     }
 
     $('#modal-link').on('click', function() {
-        let context = JSON.parse(document.querySelector('#modal-link').dataset.context);
-        let selectedValues = {};
+        if ($('#user-metadata').children().length === 0) {
+            let context = JSON.parse(document.querySelector('#modal-link').dataset.context);
+            let selectedValues = {};
 
-        $.ajax({
-            type: 'GET',
-            url: `/works/${context.work.split('/')[2]}/observations`,
-            dataType: 'json'
-        })
-            .done(function(data) {
-                selectedValues = data;
+            $.ajax({
+                type: 'GET',
+                url: `/works/${context.work.split('/')[2]}/observations`,
+                dataType: 'json'
+            })
+                .done(function(data) {
+                    selectedValues = data;
 
-                if ($('#user-metadata').children().length === 0) {
                     $.ajax({
                         type: 'GET',
                         url: '/observations',
@@ -83,10 +83,10 @@ export function initPatronMetadata() {
                         .fail(function() {
                             // TODO: Handle failed API calls gracefully.
                         })
-                } else {
-                    displayModal();
-                }
-            })
+                })
+        } else {
+            displayModal();
+        }
     });
 
     $('#user-metadata').on('submit', function(event) {
@@ -96,7 +96,7 @@ export function initPatronMetadata() {
         let result = {};
 
         result['username'] = context.username;
-        result['work_id'] = context.work.split('/')[2];
+        let workId = context.work.split('/')[2];
 
         if (context.edition) {
             result['edition_id'] = context.edition.split('/')[2];
@@ -119,7 +119,7 @@ export function initPatronMetadata() {
         if (result['observations'].length > 0) {
             $.ajax({
                 type: 'POST',
-                url: '/observations',
+                url: `/works/${workId}/observations`,
                 contentType: 'application/json',
                 data: JSON.stringify(result)
             });

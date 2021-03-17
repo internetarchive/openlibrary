@@ -432,28 +432,6 @@ class observations(delegate.page):
     def GET(self):
         return delegate.RawText(json.dumps(get_observations()), content_type="application/json")
 
-    def POST(self):
-        user = accounts.get_current_user()
-
-        if not user:
-            raise web.seeother('/account/login')
-
-        data = json.loads(web.data())
-        work_id = int(extract_numeric_id_from_olid(data['work_id']))
-
-        Observations.persist_observations(
-            data['username'],
-            work_id,
-            data['observations']
-        )
-
-        def response(msg, status="success"):
-            return delegate.RawText(json.dumps({
-                status: msg
-            }), content_type="application/json")
-
-        return response('Observations added')
-
 
 class patron_observations(delegate.page):
     path = r"/works/OL(\d+)W/observations"
@@ -474,4 +452,24 @@ class patron_observations(delegate.page):
             patron_observations[r['type']].append(r['value'])
             
         return delegate.RawText(json.dumps(patron_observations), content_type="application/json")
-        
+
+    def POST(self, work_id):
+        user = accounts.get_current_user()
+
+        if not user:
+            raise web.seeother('/account/login')
+
+        data = json.loads(web.data())
+
+        Observations.persist_observations(
+            data['username'],
+            work_id,
+            data['observations']
+        )
+
+        def response(msg, status="success"):
+            return delegate.RawText(json.dumps({
+                status: msg
+            }), content_type="application/json")
+
+        return response('Observations added')
