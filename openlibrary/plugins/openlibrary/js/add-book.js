@@ -1,4 +1,5 @@
 export function initAddBookImport () {
+    window.q.push(function() {
         $('.list-books a').click(function() {
             var li = $(this).parents('li:first');
             $('input#work').val(`/works/${li.attr('id')}`);
@@ -8,4 +9,5 @@ export function initAddBookImport () {
             $('input#work').val('none-of-these');
             $('form#addbook').submit();
         });
+    });
 }
