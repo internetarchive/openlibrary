@@ -85,7 +85,7 @@ def _sort_values(values_list):
         return []
 
     # Add middle list item to sorted list
-    middle_item = values_list.pop(int(len(values_list) / 2))
+    middle_item = values_list.pop(len(values_list) // 2)
     sorted_list = [ middle_item.value ]
 
     # Previous id:
