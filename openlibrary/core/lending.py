@@ -230,6 +230,7 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
     including 1-hour borrows"""
     params = '?action=availability&identifier=' + ocaid
     url = S3_LOAN_URL % config_bookreader_host
+    # TODO: This does not handle unexpected responses from the availablity server.
     r = requests.post(url + params, data=s3_keys)
     data = r.json().get('lending_status')
     # For debugging
@@ -308,7 +309,7 @@ def get_availability(key, ids):
     :param list of str ids:
     :rtype: dict
     """
-
+    ids = [id_ for id_ in ids if id_]
     if not ids:
         return {}
 
