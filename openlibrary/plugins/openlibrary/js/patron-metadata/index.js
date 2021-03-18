@@ -15,17 +15,16 @@ const SubmissionState = {
 };
 
 export function initPatronMetadata() {
-    function displayModal() {
+    function displayModal(id) {
         $.colorbox({
             inline: true,
             opacity: '0.5',
-            href: '#metadata-form',
+            href: `#${id}-metadata-form`,
             width: '60%',
         });
     }
 
-    function populateForm($form, observations, selectedValues) {
-        let i18nStrings = JSON.parse(document.querySelector('#modal-link').dataset.i18n);
+    function populateForm($form, observations, selectedValues, id, i18nStrings) {
         for (const observation of observations) {
             let className = observation.multi_choice ? 'multi-choice' : 'single-choice';
             let $choices = $(`<div class="${className}"></div>`);
@@ -33,7 +32,7 @@ export function initPatronMetadata() {
             let type = observation.label;
 
             for (const value of observation.values) {
-                let choiceId = `${type}Choice${choiceIndex--}`;
+                let choiceId = `${id}-${observation.label}Choice${choiceIndex--}`;
                 let checked = '';
 
                 if (type in selectedValues
@@ -50,7 +49,7 @@ export function initPatronMetadata() {
 
             let $formSection = $(`<details class="aspect-section" open>
                                     <summary>${type}</summary>
-                                    <div id="${type}-question">
+                                    <div id="${id}-${type}-question">
                                         <h3>${observation.description}</h3>
                                         <span class="pending-indicator hidden"></span>
                                         <span class="success-indicator hidden">Selection saved!</span>
@@ -107,16 +106,18 @@ export function initPatronMetadata() {
         $form.append(`
             <div class="formElement metadata-submit">
               <div class="form-buttons">
-                <a class="small dialog--close plain" href="javascript:;" id="cancel-submission">${i18nStrings.close_text}</a>
+                <a class="small dialog--close plain" href="javascript:;" id="${id}-cancel-submission">${i18nStrings.close_text}</a>
               </div>
             </div>`);
 
         addToggleListeners($('.aspect-section', $form));
     }
 
-    $('#modal-link').on('click', function() {
-        if ($('#user-metadata').children().length === 0) {
-            let context = JSON.parse(document.querySelector('#modal-link').dataset.context);
+    $('.modal-link').on('click', function() {
+        let context = $(this).data('context');
+        let i18nStrings = $(this).data('i18n');
+
+        if ($(this).next().find(`#${context.id}-user-metadata`).children().length == 0) {
             let selectedValues = {};
 
             $.ajax({
@@ -133,12 +134,12 @@ export function initPatronMetadata() {
                         dataType: 'json'
                     })
                         .done(function(data) {
-                            populateForm($('#user-metadata'), data.observations, selectedValues);
+                            populateForm($(`#${context.id}-user-metadata`), data.observations, selectedValues, context.id, i18nStrings);
                             addChangeListeners(context);
-                            $('#cancel-submission').click(function() {
+                            $(`#${context.id}-cancel-submission`).click(function() {
                                 $.colorbox.close();
                             })
-                            displayModal();
+                            displayModal(context.id);
                         })
                         .fail(function() {
                             // TODO: Handle failed API calls gracefully.

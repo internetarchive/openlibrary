@@ -140,7 +140,7 @@ jQuery(function () {
             .then((module) => module.init());
     }
 
-    if (document.getElementById('modal-link')) {
+    if (document.getElementsByClassName('modal-link').length) {
         import(/* webpackChunkName: "patron_metadata" */ './patron-metadata')
             .then((module) => module.initPatronMetadata());
     }
