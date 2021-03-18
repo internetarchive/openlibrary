@@ -9,6 +9,8 @@ from . import cache
 from . import db
 
 
+ObservationValue = namedtuple('ObservationValue', ['value_id', 'value', 'prev_value_id'])
+
 @cache.memoize(engine="memcache", key="observations", expires=config.get('observation_cache_duration'))
 def get_observations():
     """
@@ -45,14 +47,15 @@ def get_observations():
                 'values': []
             }
 
-        ObservationValue = namedtuple('ObservationValue', ['value_id', 'value', 'prev_value_id'])
         observation_dict[type]['values'].insert(0, ObservationValue(o['value_id'], o['value'], o['prev_value']))
 
     observation_list = []
 
     for v in observation_dict.values():
         v['values'] = _sort_values(v['values'])
-        observation_list.append(v)
+        # Do not include observation type if it has no values:
+        if len(v['values']):
+            observation_list.append(v)
 
     response = {
         'observations': observation_list
@@ -62,7 +65,7 @@ def get_observations():
 
 def _sort_values(values_list):
     """
-    Given a list of ObservationValue tuples, returns a sorted list of observation values.
+    Given a list of one or more ObservationValue tuples, returns a sorted list of observation values.
 
     ObservationValues are namedtuples with fields ('value_id', 'value', 'prev_value_id').
     Each field maps to a column in the observation_values table:
@@ -77,6 +80,10 @@ def _sort_values(values_list):
 
     return: A sorted list of values.
     """
+
+    if not len(values_list):
+        return []
+
     # Add middle list item to sorted list
     middle_item = values_list.pop(int(len(values_list) / 2))
     sorted_list = [ middle_item.value ]
