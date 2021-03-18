@@ -3,7 +3,9 @@
 from collections import namedtuple
 
 from infogami import config
+from infogami.utils.view import public
 from openlibrary import accounts
+from openlibrary.utils import extract_numeric_id_from_olid
 
 from . import cache
 from . import db
@@ -297,9 +299,154 @@ def _sort_values(order_list, values_list):
     return ordered_values
 
 
+# TODO: Cache these values
+def _get_observations_dict():
+    """
+
+    """
+    results = {}
+    for o in get_observations()['observations']:
+        results[o['id']] = {
+            'label': o['label'],
+            'description': o['description'],
+            'multi_choice': o['multi_choice']
+        }
+    return results
+
+@public
+def get_observation_metrics(work_olid):
+    """
+    Returns a dictionary of observation statistics for the given work.  Statistics
+    will be used to populate a book's "Reader Observations" component.
+
+    Dictionary will have the following structure:
+    {
+        'work_id': work_id,
+        'total_respondents': total_unique_respondents(work_id),
+        'observations': [
+            {
+                'label': observation_types.type,
+                'description': observation_types.description,
+                'multi_choice': observation_types.allow_multiple_values,
+                'total_respondents': Total unique respondents for this type,
+                'values': [
+                    {
+                        'value': observation.values.value,
+                        'count': Amount of patrons who chose this value
+                    }
+                ]
+            }
+        ]
+    }
+
+    If no observations were made for a specific type, that type will be excluded from
+    the 'observations' list.  Items in the 'observations.values' list will be
+    ordered from greatest count to least.
+
+    return: A dictionary of observation statistics for a work.
+    """
+    work_id = extract_numeric_id_from_olid(work_olid)
+    total_respondents = Observations.total_unique_respondents(work_id)
+
+    metrics = {}
+    metrics['work_id'] = work_id
+    metrics['total_respondents'] = total_respondents
+    metrics['observations'] = []
+
+    if total_respondents > 0:
+        respondents_per_type_dict = Observations.count_unique_respondents_by_type(work_id)
+        observation_totals = Observations.count_observations(work_id)
+        observation_dict = _get_observations_dict()
+
+        current_type = observation_totals[0]['type']
+        current_observation = {
+            'label': observation_dict[current_type]['label'],
+            'description': observation_dict[current_type]['description'],
+            'multi_choice': observation_dict[current_type]['multi_choice'],
+            'total_respondents': respondents_per_type_dict[current_type],
+            'values': []
+        }
+
+        for i in observation_totals:
+            if i['type'] != current_type:
+                metrics['observations'].append(current_observation)
+                current_type = i['type']
+                current_observation = {
+                    'label': observation_dict[current_type]['label'],
+                    'description': observation_dict[current_type]['description'],
+                    'multi_choice': observation_dict[current_type]['multi_choice'],
+                    'total_respondents': respondents_per_type_dict[current_type],
+                    'values': []
+                }
+            current_observation['values'].append( { 'value': i['value'], 'count': i['total'] } )
+    
+        metrics['observations'].append(current_observation)
+    return metrics
+        
+
 class Observations(object):
 
     NULL_EDITION_VALUE = -1
+
+    @classmethod
+    def total_unique_respondents(cls, work_id=None):
+        """
+
+        """
+        oldb = db.get_db()
+        data = {
+            'work_id': work_id
+        }
+        query = "SELECT COUNT(DISTINCT(username)) FROM observations"
+
+        if work_id:
+            query += " WHERE work_id = $work_id"
+
+        return oldb.query(query, vars=data)[0]['count']
+
+    @classmethod
+    def count_unique_respondents_by_type(cls, work_id):
+        """
+
+        """
+        oldb = db.get_db()
+        data = {
+            'work_id': work_id
+        }
+        query = """
+            SELECT 
+              observation_values.type, 
+              count(distinct(observations.username)) AS total_respondents
+            FROM observations 
+            JOIN observation_values 
+              ON observations.observation_id = observation_values.id 
+            WHERE observations.work_id = $work_id
+            GROUP BY observation_values.type"""
+
+        return { i['type']: i['total_respondents'] for i in list(db.query(query, vars=data)) }
+
+    @classmethod
+    def count_observations(cls, work_id):
+        """
+
+        """
+        oldb = db.get_db()
+        data = {
+            'work_id': work_id
+        }
+        query = """
+            SELECT 
+              observation_values.type,
+              observation_values.value, 
+              COUNT(observations.observation_id) AS total
+            FROM observations
+            JOIN observation_values
+              ON observations.observation_id = observation_values.id
+            WHERE observations.work_id = $work_id
+            GROUP BY observation_values.type, observation_values.value
+            ORDER BY observation_values.type, total DESC"""
+
+        return list(oldb.query(query, vars=data))
 
     @classmethod
     def get_key_value_pair(cls, type_id, value_id):
