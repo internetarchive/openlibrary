@@ -149,22 +149,12 @@ jQuery(function () {
         import (/* webpackChunkName: "books_edit" */ './edit.js')
             .then((module) => module.initEdit());
     }
-<<<<<<< HEAD
     if (document.getElementsByClassName('manageCovers').length) {
         import(/* webpackChunkName: "covers" */ './covers')
             .then((module) => module.initCoversChange());
     }
 
     // Load from iframe
-=======
-
-    //condtionally loads case based on class in the page
-    if (document.getElementsByClassName('changeHistory').length){
-      import(/* webpackChunkName: "case" */ './case')
-        .then(module => module.initCase());
-    }
-
->>>>>>> 6553181be3eb797f008eea3e11953819daecc921
     if (document.getElementsByClassName('imageIntro').length) {
         import('./covers')
             .then((module) => module.initCoversAddManage());
