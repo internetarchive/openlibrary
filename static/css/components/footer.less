@@ -125,16 +125,11 @@ div#version-details {
 }
 
 .dropbtn {
-  background-color:@grey;
+  background-color: @grey;
   color: @white;
   padding: 6px 16px;
   font-size: 16px;
   border-radius: 4px;
-}
-
-#footer-locale-menu {
-  position: relative;
-  display: inline-block;
 }
 
 .dropdown-content {
@@ -142,8 +137,8 @@ div#version-details {
   position: absolute;
   background-color: @modal-background-color;
   min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: 1;
+  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+  z-index: @z-index-level-1;
 }
 
 .dropdown-content a {
@@ -155,6 +150,11 @@ div#version-details {
 
 .dropdown-content a:hover {
   background-color: @modal-header-background-color;
+}
+
+#footer-locale-menu {
+  position: relative;
+  display: inline-block;
 }
 
 #footer-locale-menu:hover .dropdown-content {
