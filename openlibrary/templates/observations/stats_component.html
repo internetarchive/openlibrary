@@ -11,7 +11,7 @@ $def with(work, edition, reader_observations, work_title, key)
     </h4>
     <hr>
     $for o in reader_observations['observations']:
-      $ total = o['total_respondents']
+      $ total = o['total_respondents_for_type']
       <div class="section">
         <h3 class="observation-header">$o['description']</h3>
         <div>

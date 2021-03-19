@@ -300,18 +300,15 @@ def _sort_values(order_list, values_list):
 
 
 # TODO: Cache these values
-def _get_observations_dict():
+def _get_observation_types_dict():
     """
+    Returns a dictionary of ObservationType tuples.  This dictionary is used to construct
+    the metrics dictionary used by get_observation_metrics.
 
+    return: A dictionary of data about an observation type.
     """
-    results = {}
-    for o in get_observations()['observations']:
-        results[o['id']] = {
-            'label': o['label'],
-            'description': o['description'],
-            'multi_choice': o['multi_choice']
-        }
-    return results
+    return { o['id']: ObservationType(o['label'], o['description'], o['multi_choice']) 
+                for o in get_observations()['observations'] }
 
 @public
 def get_observation_metrics(work_olid):
@@ -328,7 +325,7 @@ def get_observation_metrics(work_olid):
                 'label': observation_types.type,
                 'description': observation_types.description,
                 'multi_choice': observation_types.allow_multiple_values,
-                'total_respondents': Total unique respondents for this type,
+                'total_respondents_for_type': Total unique respondents for this type,
                 'values': [
                     {
                         'value': observation.values.value,
@@ -356,14 +353,14 @@ def get_observation_metrics(work_olid):
     if total_respondents > 0:
         respondents_per_type_dict = Observations.count_unique_respondents_by_type(work_id)
         observation_totals = Observations.count_observations(work_id)
-        observation_dict = _get_observations_dict()
+        observation_dict = _get_observation_types_dict()
 
         current_type = observation_totals[0]['type']
         current_observation = {
-            'label': observation_dict[current_type]['label'],
-            'description': observation_dict[current_type]['description'],
-            'multi_choice': observation_dict[current_type]['multi_choice'],
-            'total_respondents': respondents_per_type_dict[current_type],
+            'label': observation_dict[current_type].label,
+            'description': observation_dict[current_type].description,
+            'multi_choice': observation_dict[current_type].multi_choice,
+            'total_respondents_for_type': respondents_per_type_dict[current_type],
             'values': []
         }
 
@@ -372,10 +369,10 @@ def get_observation_metrics(work_olid):
                 metrics['observations'].append(current_observation)
                 current_type = i['type']
                 current_observation = {
-                    'label': observation_dict[current_type]['label'],
-                    'description': observation_dict[current_type]['description'],
-                    'multi_choice': observation_dict[current_type]['multi_choice'],
-                    'total_respondents': respondents_per_type_dict[current_type],
+                    'label': observation_dict[current_type].label,
+                    'description': observation_dict[current_type].description,
+                    'multi_choice': observation_dict[current_type].multi_choice,
+                    'total_respondents_for_type': respondents_per_type_dict[current_type],
                     'values': []
                 }
             current_observation['values'].append( { 'value': i['value'], 'count': i['total'] } )
@@ -391,7 +388,11 @@ class Observations(object):
     @classmethod
     def total_unique_respondents(cls, work_id=None):
         """
+        Returns total number of patrons who have submitted observations for the given work ID.
+        If no work ID is passed, returns total number of patrons who have submitted observations
+        for any work.
 
+        return: Total number of patrons who have made an observation.
         """
         oldb = db.get_db()
         data = {
@@ -407,7 +408,10 @@ class Observations(object):
     @classmethod
     def count_unique_respondents_by_type(cls, work_id):
         """
+        Returns the total number of respondents who have made an observation per each type of a work
+        ID.
 
+        return: Dictionary of total patron respondents per type id for the given work ID.
         """
         oldb = db.get_db()
         data = {
@@ -428,7 +432,10 @@ class Observations(object):
     @classmethod
     def count_observations(cls, work_id):
         """
+        For a given work, fetches the count of each observation made for the work.  Counts are returned in
+        a list, grouped by observation type and ordered from highest count to lowest.
 
+        return: A list of value counts for the given work.
         """
         oldb = db.get_db()
         data = {
