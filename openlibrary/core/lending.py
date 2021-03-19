@@ -230,9 +230,12 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
     including 1-hour borrows"""
     params = '?action=availability&identifier=' + ocaid
     url = S3_LOAN_URL % config_bookreader_host
-    # TODO: This does not handle unexpected responses from the availability server.
-    r = requests.post(url + params, data=s3_keys)
-    data = r.json().get('lending_status')
+   try:
+        response = requests.post(url + params, data=s3_keys)
+        response.raise_for_status()
+    except requests.HTTPError:
+        pass  # TODO: Handle unexpected responses from the availability server.
+    data = response.json().get('lending_status')
     # For debugging
     data['__src__'] = 'core.models.lending.get_groundtruth_availability'
     return data
