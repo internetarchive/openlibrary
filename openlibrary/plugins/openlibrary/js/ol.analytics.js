@@ -25,14 +25,14 @@ export default function initAnalytics() {
         }
     }
 
-    if(window.flights){
+    if (window.flights){
         window.flights.init();
     }
-    if ($(".more_search").size()>0) {
+    if ($('.more_search').size()>0) {
         window.archive_analytics.send_scroll_fetch_base_event();
     }
-    $(document).on('click', '[data-ol-link-track]', function(event) {
+    $(document).on('click', '[data-ol-link-track]', function() {
         var category_action = $(this).attr('data-ol-link-track').split('|');
-        window.archive_analytics.ol_send_event_ping({'category': category_action[0], 'action': category_action[1]});
+        window.archive_analytics.ol_send_event_ping({category: category_action[0], action: category_action[1]});
     });
 }
