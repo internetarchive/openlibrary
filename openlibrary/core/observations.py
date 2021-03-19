@@ -98,14 +98,14 @@ def _sort_values(values_list):
 
     while len(unsorted_values_dict):
         for key in list(unsorted_values_dict):   # unsorted_values_dict will change during iteration
-            value = unsorted_values_dict
-            if value[key].value_id == prev:
-                sorted_list.insert(0, value[key].value)
-                prev = value[key].prev_value_id
+            item = unsorted_values_dict
+            if item[key].value_id == prev:
+                sorted_list.insert(0, item[key].value)
+                prev = item[key].prev_value_id
                 del unsorted_values_dict[key]
-            elif value[key].prev_value_id == next:
-                sorted_list.append(value[key].value)
-                next = value[key].value_id
+            elif item[key].prev_value_id == next:
+                sorted_list.append(item[key].value)
+                next = item[key].value_id
                 del unsorted_values_dict[key]
 
     return sorted_list
