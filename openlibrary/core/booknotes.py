@@ -110,7 +110,8 @@ class Booknotes(object):
             'booknotes',
             where="work_id=$work_id AND username=$username",
             notes=notes,
-            edition_id=edition_id
+            edition_id=edition_id,
+            vars=data
         )
 
 
