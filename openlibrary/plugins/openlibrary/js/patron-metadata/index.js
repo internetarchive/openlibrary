@@ -29,19 +29,25 @@ export function initPatronMetadata() {
             }
 
             $form.append(`
-              <div class="formElement" id="${aspect.label}-question">
-                <h3>${aspect.description}</h3>
-                ${$choices.prop('outerHTML')}
-              </div>`);
+              <details class="aspect-section">
+                <summary>${aspect.label}</summary>
+                <div id="${aspect.label}-question">
+                    <h3>${aspect.description}</h3>
+                    ${$choices.prop('outerHTML')}
+                </div>
+              </details>
+            `);
         }
 
         $form.append(`
             <div class="formElement metadata-submit">
-              <div class="input">
-                <button type="submit">${i18nStrings.submit_text}</button>
+              <div class="form-buttons">
                 <a class="small dialog--close plain" href="javascript:;" id="cancel-submission">${i18nStrings.close_text}</a>
+                <input class="cta-btn submit-btn" type="submit" value="${i18nStrings.submit_text}">
               </div>
             </div>`);
+
+        addToggleListeners($('.aspect-section', $form));
     }
 
     $('#modal-link').on('click', function() {
@@ -104,6 +110,26 @@ export function initPatronMetadata() {
         } else {
             // TODO: Handle case where no data was submitted
         }
-
     });
+}
+
+/**
+ * Resizes modal when a details element is opened or closed.
+ */
+function toggleHandler() {
+    let formHeight = $('#metadata-form').height();
+
+    $('#cboxContent').height(formHeight + 22);
+    $('#cboxLoadedContent').height(formHeight);
+}
+
+/**
+ * Adds a toggle handler to all details elements.
+ *
+ * @param {JQuery} $toggleElements`Elements that will receive toggle handlers.
+ */
+function addToggleListeners($toggleElements) {
+    $toggleElements.each(function() {
+        $(this).on('toggle', toggleHandler);
+    })
 }
