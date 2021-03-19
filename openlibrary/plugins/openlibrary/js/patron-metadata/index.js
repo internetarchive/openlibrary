@@ -110,7 +110,7 @@ export function initPatronMetadata() {
               </div>
             </div>`);
 
-        addToggleListeners($('.aspect-section', $form));
+        addToggleListeners($('.aspect-section', $form), id);
     }
 
     $('.modal-link').on('click', function() {
@@ -155,12 +155,14 @@ export function initPatronMetadata() {
 
 /**
  * Resizes modal when a details element is opened or closed.
+ *
+ * @param {Event} event Toggle event that triggered this handler.
  */
-function toggleHandler() {
-    let formHeight = $('#metadata-form').height();
+function toggleHandler(event) {
+    let formHeight = $(`#${event.data.id}-metadata-form`).height();
 
-    $('#cboxContent').height(formHeight + 22);
-    $('#cboxLoadedContent').height(formHeight);
+    event.data.$element.closest('#cboxContent').height(formHeight + 22);
+    event.data.$element.closest('#cboxLoadedContent').height(formHeight);
 }
 
 /**
@@ -168,9 +170,12 @@ function toggleHandler() {
  *
  * @param {JQuery} $toggleElements`Elements that will receive toggle handlers.
  */
-function addToggleListeners($toggleElements) {
+function addToggleListeners($toggleElements, id) {
     $toggleElements.each(function() {
-        $(this).on('toggle', toggleHandler);
+        $(this).on('toggle', {
+            $element: $(this),
+            id: id
+        }, toggleHandler);
     })
 }
 
