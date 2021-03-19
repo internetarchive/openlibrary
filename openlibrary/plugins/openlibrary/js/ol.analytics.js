@@ -7,7 +7,9 @@
 *     $("select#role").add_new_field({href: "#role-popup"});
 *
 */
+
 export default function initAnalytics() {
+    var vs, i;
     var startTime = new Date();
     if (window.archive_analytics) {
         window.archive_analytics.ol_send_event_ping = function(values) {
@@ -23,16 +25,26 @@ export default function initAnalytics() {
                 cache_bust: Math.random()
             });
         }
-    }
 
-    if (window.flights){
-        window.flights.init();
+        vs = window.archive_analytics.get_data_packets();
+        // console.log(vs);
+        for (i in vs) {
+            vs[i]['cache_bust']=Math.random();
+            // console.log(vs[i]['cache_bust']);
+            vs[i]['server_ms']=$('.analytics-stats-time-calculator').data('time');
+            //console.log(vs[i]['server_ms']);
+            vs[i]['server_name']='ol-web.us.archive.org';
+            vs[i]['service']='ol';
+        }
+        if (window.flights){
+            window.flights.init();
+        }
+        if ($('.more_search').size()>0) {
+            window.archive_analytics.send_scroll_fetch_base_event();
+        }
+        $(document).on('click', '[data-ol-link-track]', function() {
+            var category_action = $(this).attr('data-ol-link-track').split('|');
+            window.archive_analytics.ol_send_event_ping({category: category_action[0], action: category_action[1]});
+        });
     }
-    if ($('.more_search').size()>0) {
-        window.archive_analytics.send_scroll_fetch_base_event();
-    }
-    $(document).on('click', '[data-ol-link-track]', function() {
-        var category_action = $(this).attr('data-ol-link-track').split('|');
-        window.archive_analytics.ol_send_event_ping({category: category_action[0], action: category_action[1]});
-    });
 }
