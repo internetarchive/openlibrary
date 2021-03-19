@@ -230,7 +230,7 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
     including 1-hour borrows"""
     params = '?action=availability&identifier=' + ocaid
     url = S3_LOAN_URL % config_bookreader_host
-   try:
+    try:
         response = requests.post(url + params, data=s3_keys)
         response.raise_for_status()
     except requests.HTTPError:
