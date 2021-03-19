@@ -438,9 +438,10 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
           </div>
       </div>
 
+      $# BookNotes feature:
       $if ctx.user and ctx.user.is_beta_tester():
         $ reader_observations = get_observation_metrics(work['key'])
-        $:render_template("observations/stats_component", work, edition, reader_observations, work_title)
+        $:render_template("observations/stats_component", work, edition, reader_observations, work_title, page.key)
     </div>
 
     <div class="workFooter">

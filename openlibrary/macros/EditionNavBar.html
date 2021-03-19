@@ -12,6 +12,7 @@ $def with (edition_count=1)
   <li>
     <a href="#edition-details">$_("This Edition")</a>
   </li>
+  $# BookNotes feature:
   $if ctx.user and ctx.user.is_beta_tester():
     <li>
       <a href="#reader-observations">$_("Reader Observations")</a>

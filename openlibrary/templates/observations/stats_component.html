@@ -1,33 +1,36 @@
-$def with(work, edition, reader_observations, work_title)
+$def with(work, edition, reader_observations, work_title, key)
+
 <a name="reader-observations" class="section-anchor"></a>      
 
-<div class="tab-section edition-info">
-  <h2 class="work-title">Reader Observations</h2>
+<div class="tab-section">
+  <h2 class="observation-title">Reader Observations</h2>
   <div class="work-line">$work_title</div>
   $if reader_observations['total_respondents']:
-    <h4 class="publisher">
+    <h4 class="observer-count">
       $ungettext('Based on observations from %(count)s patron', 'Based on observations from %(count)s patrons', reader_observations['total_respondents'], count=reader_observations['total_respondents'])<span class="adjust">.</span>
     </h4>
     <hr>
     $for o in reader_observations['observations']:
       $ total = o['total_respondents']
       <div class="section">
-        <h3 class="edition-header" style="margin-bottom: 1em;">$o['description']</h3>
-        <div class="edition-description">
+        <h3 class="observation-header">$o['description']</h3>
+        <div>
           <p>
           $for v in o['values']:
             $ percentage = (v['count'] / total) * 100
-            <span style="margin-right: .5em;"><span style="font-weight: bold;">$v['value'].capitalize():</span> $int(percentage)%</span>
+            <span class="observation-percentage"><span class="observation-value">$v['value'].capitalize():</span> $int(percentage)%</span>
           </p>
         </div>
       </div>
   $else:
     <hr>
-    <div style="margin: .5em auto .25em; display: block;width: max-content;">No observations submitted for this work.</div>
-  <!-- If logged in render UserMetadata.html, passing edition and new section attribute -->
+    <div class="no-stats-message">No observations submitted for this work.</div>
   <hr>
-  $if reader_observations['total_respondents']:
-    <a href="javascript:;" style="margin: .5em auto .25em; display: block;width: max-content;">Share your observations</a>
+  $if ctx.user:
+    $if reader_observations['total_respondents']:
+      $:macros.UserMetadata(work, edition, 'Share your observations', 'stats', 'stats-link')
+    $else:
+      $:macros.UserMetadata(work, edition, 'Be the first to share your observations', 'stats', 'stats-link')
   $else:
-    <a href="javascript:;" style="margin: .5em auto .25em; display: block;width: max-content;">Be the first to share your observations</a>
+    <a class="stats-link" href="/account/login?redirect=$key">Log in to share your observations</a>
 </div>

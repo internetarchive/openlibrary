@@ -1,4 +1,4 @@
-$def with (work, edition, id, classes='')
+$def with (work, edition, link_text, id, classes='')
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ has_edition = edition is not None
@@ -21,7 +21,7 @@ $if has_edition:
   $ book_descriptor = _("edition")
 
 <div class="$classes">
-  <a class="modal-link" href="javascript:;" data-context="$json_encode(context)" data-i18n="$json_encode(i18n_strings)">$_("My book notes")</a>
+  <a class="modal-link" href="javascript:;" data-context="$json_encode(context)" data-i18n="$json_encode(i18n_strings)">$link_text</a>
 
 <div class="hidden">
   <div id="$id-metadata-form" class="floaterAdd metadata-form">
