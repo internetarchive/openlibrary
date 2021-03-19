@@ -40,8 +40,10 @@ class get_many(delegate.page):
             (i.get('key').split('/')[-1], format_book_data(i)) for i in
             lending.add_availability(web.ctx.site.get_many(keys))
         )
-        return delegate.RawText(json.dumps(items),
-                                content_type="application/json")
+        return delegate.RawText(
+            json.dumps(items),
+            content_type="application/json"
+        )
 
 class book_availability(delegate.page):
     path = "/availability/v2"
