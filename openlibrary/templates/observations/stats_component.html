@@ -7,7 +7,7 @@ $def with(work, edition, reader_observations, work_title, key)
   <div class="work-line">$work_title</div>
   $if reader_observations['total_respondents']:
     <h4 class="observer-count">
-      $ungettext('Based on observations from %(count)s patron', 'Based on observations from %(count)s patrons', reader_observations['total_respondents'], count=reader_observations['total_respondents'])<span class="adjust">.</span>
+      $:ungettext('Based on observations from <strong>%(count)s</strong> patron', 'Based on observations from <strong>%(count)s</strong> patrons', reader_observations['total_respondents'], count=reader_observations['total_respondents'])<span class="adjust">.</span>
     </h4>
     <hr>
     $for o in reader_observations['observations']:
