@@ -27,12 +27,9 @@ export default function initAnalytics() {
         }
 
         vs = window.archive_analytics.get_data_packets();
-        // console.log(vs);
         for (i in vs) {
             vs[i]['cache_bust']=Math.random();
-            // console.log(vs[i]['cache_bust']);
             vs[i]['server_ms']=$('.analytics-stats-time-calculator').data('time');
-            //console.log(vs[i]['server_ms']);
             vs[i]['server_name']='ol-web.us.archive.org';
             vs[i]['service']='ol';
         }
@@ -44,7 +41,10 @@ export default function initAnalytics() {
         }
         $(document).on('click', '[data-ol-link-track]', function() {
             var category_action = $(this).attr('data-ol-link-track').split('|');
+            // for testing, 
+            // console.log(category_action[0], category_action[1]);
             window.archive_analytics.ol_send_event_ping({category: category_action[0], action: category_action[1]});
         });
     }
+    window.vs = vs;
 }
