@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import web
 
 from infogami.infobase import client, common
