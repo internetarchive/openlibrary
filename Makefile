@@ -17,11 +17,11 @@ PYTHON=$(if $(wildcard env),env/bin/python,python)
 all: git css js components i18n
 
 css: static/css/page-*.less
-	mkdir --parents $(BUILD)
+	mkdir -p $(BUILD)
 	parallel --verbose -q npx lessc {} $(BUILD)/{/.}.css --clean-css="--s1 --advanced --compatibility=ie8" ::: $^
 
 js:
-	mkdir --parents $(BUILD)
+	mkdir -p $(BUILD)
 	rm -f $(BUILD)/*.js $(BUILD)/*.js.map
 	npm run build-assets:webpack
 	# This adds FSF licensing for AGPLv3 to our js (for librejs)
@@ -31,7 +31,7 @@ js:
 	done
 
 components: $(COMPONENTS_DIR)/*.vue
-	mkdir --parents $(BUILD)
+	mkdir -p $(BUILD)
 	rm -rf $(BUILD)/components
 	# Run these silly things one at a time, because they don't support parallelization :(
 	parallel --verbose -q --jobs 1 \
@@ -41,7 +41,7 @@ components: $(COMPONENTS_DIR)/*.vue
 i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
-git:	
+git:
 #Do not run these on DockerHub since it recursively clones all the repos before build initiates
 ifneq ($(DOCKER_HUB),TRUE)
 	git submodule init
@@ -79,5 +79,5 @@ endif
 test-py:
 	pytest . --ignore=tests/integration --ignore=scripts/2011 --ignore=infogami --ignore=vendor --ignore=node_modules
 
-test: 
+test:
 	make test-py && npm run test
