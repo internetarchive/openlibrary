@@ -1,4 +1,3 @@
-# -*- coding: UTF-8 -*-
 import os
 import pytest
 
@@ -58,8 +57,8 @@ bookseller_titles = [
         'Trapped in a Video Game', None],
     ["An American Marriage (Oprah's Book Club): A Novel",
         'An American Marriage', 'A Novel'],
-    ['A Novel (German Edition)',
-        'A Novel', None],
+    ['A Növel (German Edition)',
+        'A Növel', None],
     [('Vietnam Travel Guide 2019: Ho Chi Minh City - First Journey : '
       '10 Tips For an Amazing Trip'),
         'Vietnam Travel Guide 2019 : Ho Chi Minh City - First Journey',
@@ -152,14 +151,14 @@ def test_load_with_new_author(mock_site, ia_writeback):
     rec = {
         'ocaid': 'test_item',
         'title': 'Test item',
-        'authors': [{'name': 'John Doe'}],
+        'authors': [{'name': 'John Döe'}],
         'source_records': 'ia:test_item',
     }
     reply = load(rec)
     assert reply['success'] is True
     w = mock_site.get(reply['work']['key'])
     assert reply['authors'][0]['status'] == 'created'
-    assert reply['authors'][0]['name'] == 'John Doe'
+    assert reply['authors'][0]['name'] == 'John Döe'
     akey1 = reply['authors'][0]['key']
     assert akey1 == '/authors/OL1A'
     a = mock_site.get(akey1)
@@ -171,7 +170,7 @@ def test_load_with_new_author(mock_site, ia_writeback):
     rec = {
         'ocaid': 'test_item1b',
         'title': 'Test item1b',
-        'authors': [{'name': 'Doe, John', 'entity_type': 'person'}],
+        'authors': [{'name': 'Döe, John', 'entity_type': 'person'}],
         'source_records': 'ia:test_item1b',
     }
     reply = load(rec)
