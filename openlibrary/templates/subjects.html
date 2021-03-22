@@ -68,13 +68,13 @@ window.q.push( function () {
         $if len(subjects) > 0:
             <span class="subject">
             $for s in subjects:
-                <a href="$s.key">$s.name</a>$cond(loop.last, '', ',')
+                <a href="$s.key">$s.name</a>
             </span>
         $else:
             <span class="title"><em>$_("None found.")</em></span>
 
     $for category, label, limit in subject_list:
-        <div class="contentQuarter link-box">
+        <div class="link-box">
           <h6 class="black collapse uppercase">$label</h6>
           <div class="subjects" id="subjects-$category">
             $:renderSubjects(page[category][:limit])

@@ -238,7 +238,7 @@ window.q.push(function(){
         </ul>
     </div>
 
-    <div class="contentOnethird" style="margin-bottom:0;">
+    <div style="margin-bottom:0;">
 
         $:render_template("type/list/exports", list)
 
@@ -250,9 +250,9 @@ window.q.push(function(){
             $if subjects:
                 <div class="section">
                     <h6 class="collapse black uppercase">$label</h6>
-                    <div class="sansserif">
+                    <div class="subject">
                     $for subject in subjects:
-                        <a href="$subject.url">$subject.title</a>$cond(not loop.last, ",", "")
+                        <a href="$subject.url">$subject.title</a>
                     </div>
                 </div>
 
