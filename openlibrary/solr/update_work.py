@@ -734,11 +734,10 @@ def build_data2(w, editions, authors, ia, duplicates):
     # Some works are missing a title, but have titles on their editions
     w['title'] = next(itertools.chain(
         (book['title'] for book in itertools.chain([w], editions) if book.get('title')),
-        [None]
+        ['__None__']
     ))
-    if not w['title']:
-        logger.error('Work missing title %s' % w['key'])
-        return
+    if w['title'] == '__None__':
+        logger.warning('Work missing title %s' % w['key'])
 
     p = SolrProcessor(resolve_redirects)
 

@@ -528,9 +528,11 @@ class TestUpdateWork:
 
     def test_no_title(self):
         requests = update_work.update_work({'key': '/books/OL1M', 'type': {'key': '/type/edition'}})
-        assert len(requests) == 0
+        assert len(requests) == 1
+        assert '<field name="title">__None__</field>' in requests[0].toxml()
         requests = update_work.update_work({'key': '/works/OL23W', 'type': {'key': '/type/work'}})
-        assert len(requests) == 0
+        assert len(requests) == 1
+        assert '<field name="title">__None__</field>' in requests[0].toxml()
 
     def test_work_no_title(self):
         work = {'key': '/works/OL23W', 'type': {'key': '/type/work'}}
