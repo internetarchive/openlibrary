@@ -255,12 +255,7 @@ pipeline {
                     archiveArtifacts artifacts: "logs/orphans-indexing.log.gz"
                     sh '''for name in $(ls logs/authors); do docker logs ${name/.txt/} 2>&1; done | gzip > logs/authors-indexing.log.gz'''
                     archiveArtifacts artifacts: "logs/authors-indexing.log.gz"
-                  }
-                }
-                unsuccessful {
-                  dir(env.HOST_SOLR_BUILDER_DIR) {
-                    // sh(label: 'Remove solr service',
-                    //   script:'docker-compose stop solr; docker-compose rm -f solr; docker volume rm solr_builder_solr-data')
+
                     sh(label: 'Stop/rm running indexers',
                       script: '''
                       docker stop $(docker container ls -f "name=ol_run" -q) || true
@@ -268,6 +263,12 @@ pipeline {
                       ''')
                   }
                 }
+//                 unsuccessful {
+//                   dir(env.HOST_SOLR_BUILDER_DIR) {
+//                     sh(label: 'Remove solr service',
+//                       script:'docker-compose stop solr; docker-compose rm -f solr; docker volume rm solr_builder_solr-data')
+//                   }
+//                 }
               }
             }
             stage('Insert subjects from solr backup') {
