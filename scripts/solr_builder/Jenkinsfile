@@ -222,7 +222,7 @@ pipeline {
                   when { expression { return params.INDEX_ORPHANS } }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "./index-type.sh orphan ${params.MAX_CORES} orphans"
+                      sh "CHUNK_ETA=35 ./index-type.sh orphan ${params.MAX_CORES} orphans"
                       solr_commit('solr')
                     }
                   }

@@ -11,7 +11,8 @@ set -o xtrace
 TYPE="$1"
 INSTANCES="$2"
 LOG_DIR="$3"
-CHUNK_SIZE=10000
+CHUNK_SIZE=${CHUNK_SIZE:-10000}
+CHUNK_ETA=${CHUNK_ETA:-90}
 
 done="false"
 next_start="//"
@@ -37,9 +38,9 @@ while [ $done != "true" ]; do
     # Stagger starting of the runners so they don't all request a lot of
     # memory/resources at the same time
     # In order to still have INSTANCES running at the same time, we want
-    # ~the time a chunk takes (~1100s, at time of writing) divided by the
+    # ~the time a chunk takes (this long at time of writing) divided by the
     # number of desired instances. Otherwise we'll have fewer running.
-    if [ $done != "true" ]; then sleep $((90 / INSTANCES)); fi
+    if [ $done != "true" ]; then sleep $((CHUNK_ETA / INSTANCES)); fi
 
     runners=$(docker container ls -q -f "name=ol_run" | wc -l)
   done;
