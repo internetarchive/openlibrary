@@ -564,10 +564,11 @@ async def main(cmd, job, postgres="postgres.ini", ol="http://ol/",
                                 ia_cache=len(db2.ia_cache))
 
                     # cache authors
-                    authors_time, _ = simple_timeit(
-                        lambda: db2.cache_work_authors(*key_range))
-                    plog.update(q_auth=plog.last_entry.q_auth + authors_time,
-                                cached=len(db.cache) + len(db2.cache))
+                    # TODO: Make cache_work_authors work for orphans
+                    # authors_time, _ = simple_timeit(
+                    #     lambda: db2.cache_work_authors(*key_range))
+                    # plog.update(q_auth=plog.last_entry.q_auth + authors_time,
+                    #             cached=len(db.cache) + len(db2.cache))
                 elif job == "authors":
                     # Nothing to cache; update_work.py queries solr directly for each
                     # other, and provides no way to cache.
