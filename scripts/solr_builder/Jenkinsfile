@@ -327,5 +327,5 @@ String solr_query_count(String solr_name, String type_to_count) {
 
 void solr_commit(String solr_name) {
   sh(label: 'Solr commit the changes',
-    script: "docker-compose exec -T ${solr_name} curl http://localhost:8983/solr/update?commit=true")
+    script: "docker-compose exec -T ${solr_name} curl http://localhost:8983/solr/openlibrary/update?commit=true")
 }
