@@ -16,7 +16,8 @@ pipeline {
     booleanParam(name: 'REUSE_POSTGRES', defaultValue: false, description: 'If true, assumes a functioning postgres is running/correct')
     booleanParam(name: 'REUSE_SOLRBACKUP', defaultValue: false, description: 'If true, assumes a functioning solr-backup is running/correct')
     booleanParam(name: 'INTO_SOLR_FROM_DUMP', defaultValue: true, description: 'If true, reindexes dump into solr')
-    booleanParam(name: 'INDEX_WORKS_ORPHANS', defaultValue: true, description: 'If true, reindexes works/orphans into solr')
+    booleanParam(name: 'INDEX_WORKS', defaultValue: true, description: 'If true, reindexes works into solr')
+    booleanParam(name: 'INDEX_ORPHANS', defaultValue: true, description: 'If true, reindexes orphans into solr')
     booleanParam(name: 'INDEX_AUTHORS', defaultValue: true, description: 'If true, reindexes authors into solr')
     booleanParam(name: 'INTO_SOLR_COPY_SUBJECTS', defaultValue: true, description: 'If true, copies subjects into solr')
     string(name: 'MAX_CORES', defaultValue: '4', description: 'Max number of simultaneous cores')
@@ -208,12 +209,20 @@ pipeline {
             stage('Reindex from ol dump') {
               when { expression { return params.INTO_SOLR_FROM_DUMP } }
               stages {
-                stage('Insert works & orphaned editions') {
-                  when { expression { return params.INDEX_WORKS_ORPHANS } }
+                stage('Insert works') {
+                  when { expression { return params.INDEX_WORKS } }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
                       sh "./index-type.sh work ${params.MAX_CORES} works"
-                      // TODO sh "./index-orphans.sh orphan ${params.MAX_CORES} works"
+                      solr_commit('solr')
+                    }
+                  }
+                }
+                stage('Insert orphans') {
+                  when { expression { return params.INDEX_ORPHANS } }
+                  steps {
+                    dir(env.HOST_SOLR_BUILDER_DIR) {
+                      sh "./index-type.sh orphan ${params.MAX_CORES} orphans"
                       solr_commit('solr')
                     }
                   }
@@ -234,12 +243,16 @@ pipeline {
                     // Save Progress Files
                     sh '''tail --quiet -n1 $(ls -tr progress/works/*) | gzip > progress/works-progress.txt.gz'''
                     archiveArtifacts artifacts: "progress/works-progress.txt.gz"
+                    sh '''tail --quiet -n1 $(ls -tr progress/orphans/*) | gzip > progress/orphans-progress.txt.gz'''
+                    archiveArtifacts artifacts: "progress/orphans-progress.txt.gz"
                     sh '''tail --quiet -n1 $(ls -tr progress/authors/*) | gzip > progress/authors-progress.txt.gz'''
                     archiveArtifacts artifacts: "progress/authors-progress.txt.gz"
 
                     // Save Logs files
                     sh '''for name in $(ls logs/works); do docker logs ${name/.txt/} 2>&1; done | gzip > logs/works-indexing.log.gz'''
                     archiveArtifacts artifacts: "logs/works-indexing.log.gz"
+                    sh '''for name in $(ls logs/orphans); do docker logs ${name/.txt/} 2>&1; done | gzip > logs/orphans-indexing.log.gz'''
+                    archiveArtifacts artifacts: "logs/orphans-indexing.log.gz"
                     sh '''for name in $(ls logs/authors); do docker logs ${name/.txt/} 2>&1; done | gzip > logs/authors-indexing.log.gz'''
                     archiveArtifacts artifacts: "logs/authors-indexing.log.gz"
                   }
