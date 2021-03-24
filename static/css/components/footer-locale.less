@@ -1,16 +1,15 @@
-
 .language-component__checkbox {
-    opacity: 0;
-    display: contents;
+  opacity: 0;
+  display: contents;
   
-    & ~ .navigation-dropdown-component ul {
-      display: none;
-    }
-  
-    // stylelint-disable-next-line selector-max-specificity
-    &:checked ~ .navigation-dropdown-component ul {
-      display: block;
-    }
+  & ~ .navigation-dropdown-component ul {
+    display: none;
+  }
+
+  // stylelint-disable-next-line selector-max-specificity
+  &:checked ~ .navigation-dropdown-component ul {
+    display: block;
+  }
 }
 .language-dropdown-component {
   margin: 0 !important;
