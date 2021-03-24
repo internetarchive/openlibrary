@@ -7,7 +7,7 @@ eventer==0.1.1
 flup-py3==1.0.3
 Genshi==0.7.5
 gunicorn==20.0.4
-internetarchive==1.9.6
+internetarchive==1.9.9
 isbnlib==3.10.6
 lxml==4.6.3
 Pillow==8.1.2
