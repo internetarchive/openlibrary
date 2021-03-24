@@ -31,10 +31,10 @@ export function initPatronMetadata() {
             $form.append(`
               <details class="aspect-section">
                 <summary>${aspect.label}</summary>
-                <div id="${aspect.label}-question">
-                    <h3>${aspect.description}</h3>
+                <fieldset id="${aspect.label}-question">
+                    <legend><h3>${aspect.description}</h3></legend>
                     ${$choices.prop('outerHTML')}
-                </div>
+                </fieldset>
               </details>
             `);
         }
