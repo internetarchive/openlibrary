@@ -266,6 +266,7 @@ class LocalPostgresDataProvider(DataProvider):
             INNER JOIN test authors
                 ON works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key"
             WHERE editions."Type" = '/type/edition'
+                AND editions."JSON" -> 'works' -> 0 ->> 'key' IS NULL
                 AND '%s' <= editions."Key" AND editions."Key" < '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
@@ -564,11 +565,10 @@ async def main(cmd, job, postgres="postgres.ini", ol="http://ol/",
                                 ia_cache=len(db2.ia_cache))
 
                     # cache authors
-                    # TODO: Make cache_work_authors work for orphans
-                    # authors_time, _ = simple_timeit(
-                    #     lambda: db2.cache_work_authors(*key_range))
-                    # plog.update(q_auth=plog.last_entry.q_auth + authors_time,
-                    #             cached=len(db.cache) + len(db2.cache))
+                    authors_time, _ = simple_timeit(
+                        lambda: db2.cache_edition_authors(*key_range))
+                    plog.update(q_auth=plog.last_entry.q_auth + authors_time,
+                                cached=len(db.cache) + len(db2.cache))
                 elif job == "authors":
                     # Nothing to cache; update_work.py queries solr directly for each
                     # other, and provides no way to cache.
