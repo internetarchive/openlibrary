@@ -1,14 +1,14 @@
 import 'jquery';
 import 'jquery-migrate';
 import 'jquery-validation';
-import 'jquery-ui/ui/widgets/dialog'
+import 'jquery-ui/ui/widgets/dialog';
+import 'jquery-ui/ui/widgets/sortable';
 import 'jquery-ui/ui/widgets/tabs';
+import 'jquery-ui/ui/widgets/autocomplete';
 // For dialog boxes (e.g. add to list)
 import '../../../../vendor/js/colorbox/1.5.14.js';
 // jquery.form#2.36 not on npm, no longer getting worked on
 import '../../../../vendor/js/jquery-form/jquery.form.js';
-// jquery-autocomplete#1.1 with modified
-import '../../../../vendor/js/jquery-autocomplete/jquery.autocomplete-modified.js';
 import autocompleteInit from './autocomplete';
 // Used only by the openlibrary/templates/books/edit/addfield.html template
 import addNewFieldInit from './add_new_field';
@@ -145,6 +145,27 @@ jQuery(function () {
             .then((module) => module.initPatronMetadata());
     }
 
+    if (document.getElementById('excerpts')) {
+        import (/* webpackChunkName: "books_edit" */ './edit.js')
+            .then((module) => module.initEdit());
+    }
+    if (document.getElementsByClassName('manageCovers').length) {
+        import(/* webpackChunkName: "covers" */ './covers')
+            .then((module) => module.initCoversChange());
+    }
+
+    // Load from iframe
+    if (document.getElementsByClassName('imageIntro').length) {
+        import('./covers')
+            .then((module) => module.initCoversAddManage());
+    }
+
+    // Load from iframe
+    if (document.getElementsByClassName('imageSaved').length) {
+        import('./covers')
+            .then((module) => module.initCoversSaved());
+    }
+
     if ($('#cboxPrevious').length) {
         $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});
     }
@@ -157,5 +178,16 @@ jQuery(function () {
 
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
+    });
+
+    $('#wikiselect').on('focus', function(){$(this).select();})
+
+    // Clicking outside of menus closes menus
+    $(document).on('click', function (event) {
+        const $openMenus = $('.checkbox-menu :checked').parents('.checkbox-menu');
+        $openMenus
+            .filter((_, menu) => !$(event.target).closest(menu).length)
+            .find('[type=checkbox]')
+            .removeAttr('checked');
     });
 });

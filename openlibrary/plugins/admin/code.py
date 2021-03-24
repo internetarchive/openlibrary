@@ -8,7 +8,7 @@ import subprocess
 import datetime
 import traceback
 import logging
-import simplejson
+import json
 import yaml
 
 from infogami import config
@@ -68,7 +68,7 @@ class admin(delegate.page):
 
     def handle(self, cls, args=(), librarians=False):
         # Use admin theme
-        context.bodyid = "admin"
+        context.cssfile = "admin"
 
         m = getattr(cls(), web.ctx.method, None)
         if not m:
@@ -170,7 +170,7 @@ class add_work_to_staff_picks:
                 results[work_id][ocaid] = create_ol_subjects_for_ocaid(
                     ocaid, subjects=subjects)
 
-        return delegate.RawText(simplejson.dumps(results), content_type="application/json")
+        return delegate.RawText(json.dumps(results), content_type="application/json")
 
 
 class sync_ol_ia:
@@ -181,7 +181,7 @@ class sync_ol_ia:
         """
         i = web.input(edition_id='')
         data = update_ia_metadata_for_ol_edition(i.edition_id)
-        return delegate.RawText(simplejson.dumps(data),
+        return delegate.RawText(json.dumps(data),
                                 content_type="application/json")
 
 class people_view:
@@ -645,14 +645,14 @@ class attach_debugger:
         return render_template("admin/attach_debugger", python_version)
 
     def POST(self):
-        import ptvsd
+        import debugpy
 
         i = web.input()
         # Allow other computers to attach to ptvsd at this IP address and port.
         logger.info("Enabling debugger attachment")
-        ptvsd.enable_attach(address=('0.0.0.0', 3000))
+        debugpy.listen(address=('0.0.0.0', 3000))
         logger.info("Waiting for debugger to attach...")
-        ptvsd.wait_for_attach()
+        debugpy.wait_for_client()
         logger.info("Debugger attached to port 3000")
         add_flash_message("info", "Debugger attached!")
 

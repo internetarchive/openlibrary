@@ -1,10 +1,11 @@
 """Language pages
 """
 
+from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate, stats
 from infogami.utils.view import render_template, safeint
 import web
-import simplejson
+import json
 import logging
 
 from . import subjects
@@ -41,18 +42,37 @@ class languages_json(subjects.subjects_json):
         return key.replace("_", " ")
 
 
+def get_top_languages(limit):
+    from . import search
+    result = search.get_solr().select('*:*', rows=0, facets=['language'], facet_limit=limit)
+    return [
+        web.storage(
+            name=get_language_name(row.value),
+            key='/languages/' + row.value,
+            count=row.count
+        )
+        for row in result['facets']['language']
+    ]
+
+
 class index(delegate.page):
     path = "/languages"
 
     def GET(self):
-        from . import search
-        result = search.get_solr().select('*:*', rows=0, facets=['language'], facet_limit=500)
-        languages = [web.storage(name=get_language_name(row.value), key='/languages/' + row.value, count=row.count)
-                    for row in result['facets']['language']]
-        return render_template("languages/index", languages)
+        return render_template("languages/index", get_top_languages(500))
 
     def is_enabled(self):
         return True
+
+
+class index_json(delegate.page):
+    path = "/languages"
+    encoding = "json"
+
+    @jsonapi
+    def GET(self):
+        return json.dumps(get_top_languages(15))
+
 
 class language_search(delegate.page):
     path = '/search/languages'

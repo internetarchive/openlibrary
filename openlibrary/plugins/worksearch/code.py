@@ -1,16 +1,23 @@
-import web
+from datetime import datetime
+import json
+import logging
 import random
 import re
 import string
+from unicodedata import normalize
+from json import JSONDecodeError
+import requests
+import web
 from lxml.etree import XML, XMLSyntaxError
-from infogami.utils import delegate, stats
+from six.moves import urllib
+
 from infogami import config
-from infogami.utils.view import render, render_template, safeint, public
-import simplejson as json
+from infogami.utils import delegate, stats
+from infogami.utils.view import public, render, render_template, safeint
+from openlibrary.core.lending import add_availability, get_availability_of_ocaids
 from openlibrary.core.models import Edition  # noqa: E402
-from openlibrary.core.lending import get_availability_of_ocaids, add_availability
-from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.inside.code import fulltext_search
+from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import escape_bracket
 from openlibrary.utils.ddc import (
@@ -18,22 +25,17 @@ from openlibrary.utils.ddc import (
     normalize_ddc_prefix,
     normalize_ddc_range,
 )
-from openlibrary.utils.isbn import normalize_isbn, opposite_isbn
+from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lcc import (
     normalize_lcc_prefix,
     normalize_lcc_range,
     short_lcc_to_sortable_lcc,
 )
-from unicodedata import normalize
-import logging
-
-from six.moves import urllib
 
 logger = logging.getLogger("openlibrary.worksearch")
 
 if hasattr(config, 'plugin_worksearch'):
-    solr_host = config.plugin_worksearch.get('solr', 'localhost')
-    solr_select_url = "http://%s/solr/select" % solr_host
+    solr_select_url = config.plugin_worksearch.get('solr_base_url', 'localhost') + '/select'
 
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
@@ -81,6 +83,8 @@ ALL_FIELDS = [
     # Classifications
     "lcc",
     "ddc",
+    "lcc_sort",
+    "ddc_sort",
 ]
 FACET_FIELDS = [
     "has_fulltext",
@@ -99,6 +103,33 @@ FIELD_NAME_MAP = {
     'authors': 'author_name',
     'by': 'author_name',
     'publishers': 'publisher',
+    # "Private" fields
+    # This is private because we'll change it to a multi-valued field instead of a
+    # plain string at the next opportunity, which will make it much more usable.
+    '_ia_collection': 'ia_collection_s'
+}
+SORTS = {
+    'editions': 'edition_count desc',
+
+    'old': 'first_publish_year asc',
+    'new': 'first_publish_year desc',
+
+    'scans': 'ia_count desc',
+
+    # Classifications
+    'lcc_sort': 'lcc_sort asc',
+    'lcc_sort asc': 'lcc_sort asc',
+    'lcc_sort desc': 'lcc_sort desc',
+    'ddc_sort': 'ddc_sort asc',
+    'ddc_sort asc': 'ddc_sort asc',
+    'ddc_sort desc': 'ddc_sort desc',
+
+    # Random
+    'random': 'random_1 asc',
+    'random asc': 'random_1 asc',
+    'random desc': 'random_1 desc',
+    'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
+    'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
 }
 OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
@@ -114,6 +145,33 @@ re_subject_types = re.compile('^(places|times|people)/(.*)')
 re_olid = re.compile(r'^OL\d+([AMW])$')
 
 plurals = dict((f + 's', f) for f in ('publisher', 'author'))
+
+
+def process_sort(raw_sort):
+    """
+    :param str raw_sort:
+    :rtype: str
+
+    >>> process_sort('editions')
+    'edition_count desc'
+    >>> process_sort('editions, new')
+    'edition_count desc,first_publish_year desc'
+    >>> process_sort('random')
+    'random_1 asc'
+    >>> process_sort('random_custom_seed')
+    'random_custom_seed asc'
+    >>> process_sort('random_custom_seed desc')
+    'random_custom_seed desc'
+    >>> process_sort('random_custom_seed asc')
+    'random_custom_seed asc'
+    """
+    def process_individual_sort(sort):
+        if sort.startswith('random_'):
+            return sort if ' ' in sort else sort + ' asc'
+        else:
+            solr_sort = SORTS[sort]
+            return solr_sort() if callable(solr_sort) else solr_sort
+    return ','.join(process_individual_sort(s.strip()) for s in raw_sort.split(','))
 
 
 def read_author_facet(af):
@@ -213,6 +271,20 @@ def ddc_transform(raw):
     # if none of the transforms took
     return raw
 
+
+def ia_collection_s_transform(raw):
+    """
+    Because this field is not a multi-valued field in solr, but a simple ;-separate
+    string, we have to do searches like this for now.
+    """
+    result = raw
+    if not result.startswith('*'):
+        result = '*' + result
+    if not result.endswith('*'):
+        result += '*'
+    return result
+
+
 def parse_query_fields(q):
     found = [(m.start(), m.end()) for m in re_fields.finditer(q)]
     first = q[:found[0][0]].strip() if found else q.strip()
@@ -236,14 +308,16 @@ def parse_query_fields(q):
             isbn = normalize_isbn(v)
             if isbn:
                 v = isbn
-        if field_name == 'lcc':
+        if field_name in ('lcc', 'lcc_sort'):
             v = lcc_transform(v)
-        if field_name == 'ddc':
+        if field_name == ('ddc', 'ddc_sort'):
             v = ddc_transform(v)
+        if field_name == 'ia_collection_s':
+            v = ia_collection_s_transform(v)
 
         yield {'field': field_name, 'value': v.replace(':', r'\:')}
         if op_found:
-            yield {'op': op_found }
+            yield {'op': op_found}
 
 def build_q_list(param):
     q_list = []
@@ -255,7 +329,7 @@ def build_q_list(param):
     if q_param:
         if q_param == '*:*':
             q_list.append(q_param)
-        elif 'NOT ' in q_param: # this is a hack
+        elif 'NOT ' in q_param:  # this is a hack
             q_list.append(q_param.strip())
         elif re_fields.search(q_param):
             q_list.extend(i['op'] if 'op' in i else '%s:(%s)' % (i['field'], i['value']) for i in parse_query_fields(q_param))
@@ -288,32 +362,34 @@ def build_q_list(param):
             q_list.append('isbn:(%s)' % (normalize_isbn(param['isbn']) or param['isbn']))
     return (q_list, use_dismax)
 
-def parse_json_from_solr_query(url):
-    solr_result = execute_solr_query(url)
-    return parse_json(solr_result)
-
 def execute_solr_query(url):
+    """
+    Returns a requests.Response or None
+    """
     stats.begin("solr", url=url)
     try:
-        solr_result = urllib.request.urlopen(url, timeout=10)
-    except Exception as e:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+    except requests.HTTPError:
         logger.exception("Failed solr query")
         return None
     finally:
         stats.end()
-    return solr_result
+    return response
 
-def parse_json(raw_file):
-    if raw_file is None:
+def parse_json_from_solr_query(url):
+    """
+    Returns a json.loaded Python object or None
+    """
+    response = execute_solr_query(url)
+    if not response:
         logger.error("Error parsing empty search engine response")
         return None
     try:
-        json_result = json.load(raw_file)
-    except json.JSONDecodeError as e:
+        return response.json()
+    except JSONDecodeError:
         logger.exception("Error parsing search engine response")
         return None
-    return json_result
-
 
 def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=None,
                    offset=None, fields=None, facet=True):
@@ -390,36 +466,37 @@ def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=Non
     if sort:
         params.append(('sort', sort))
 
-    params.append(('wt', param.get('wt', 'standard')))
+    if 'wt' in param:
+        params.append(('wt', param.get('wt')))
     url = solr_select_url + '?' + urlencode(params)
 
-    solr_result = execute_solr_query(url)
-    if solr_result is None:
-        return (None, url, q_list)
-    reply = solr_result.read()
-    return (reply, url, q_list)
+    response = execute_solr_query(url)
+    solr_result = response.content if response else None  # bytes or None
+    return (solr_result, url, q_list)
 
 def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
-    (reply, solr_select, q_list) = run_solr_query(
+    if sort:
+        sort = process_sort(sort)
+    (solr_result, solr_select, q_list) = run_solr_query(
         param, rows, page, sort, spellcheck_count)
     is_bad = False
-    if not reply or reply.startswith(b'<html'):
+    if not solr_result or solr_result.startswith(b'<html'):
         is_bad = True
     if not is_bad:
         try:
-            root = XML(reply)
+            root = XML(solr_result)
         except XMLSyntaxError:
             is_bad = True
     if is_bad:
-        m = re_pre.search(reply)
+        m = re_pre.search(solr_result)
         return web.storage(
-            facet_counts = None,
-            docs = [],
-            is_advanced = bool(param.get('q')),
-            num_found = None,
-            solr_select = solr_select,
-            q_list = q_list,
-            error = (web.htmlunquote(m.group(1)) if m else reply),
+            facet_counts=None,
+            docs=[],
+            is_advanced=bool(param.get('q')),
+            num_found=None,
+            solr_select=solr_select,
+            q_list=q_list,
+            error=(web.htmlunquote(m.group(1)) if m else solr_result),
         )
 
     spellcheck = root.find("lst[@name='spellcheck']")
@@ -434,17 +511,17 @@ def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
 
     docs = root.find('result')
     return web.storage(
-        facet_counts = read_facets(root),
-        docs = docs,
-        is_advanced = bool(param.get('q')),
-        num_found = (int(docs.attrib['numFound']) if docs is not None else None),
-        solr_select = solr_select,
-        q_list = q_list,
-        error = None,
-        spellcheck = spell_map,
+        facet_counts= read_facets(root),
+        docs=docs,
+        is_advanced=bool(param.get('q')),
+        num_found=(int(docs.attrib['numFound']) if docs is not None else None),
+        solr_select=solr_select,
+        q_list=q_list,
+        error=None,
+        spellcheck=spell_map,
     )
 
-def get_doc(doc): # called from work_search template
+def get_doc(doc):  # called from work_search template
     e_ia = doc.find("arr[@name='ia']")
     first_pub = None
     e_first_pub = doc.find("int[@name='first_publish_year']")
@@ -748,8 +825,8 @@ def escape_colon(q, vf):
     return result
 
 def run_solr_search(solr_select):
-    solr_result = execute_solr_query(solr_select)
-    json_data = solr_result.read() if solr_result is not None else None
+    response = execute_solr_query(solr_select)
+    json_data = response.content if response else None  # bytes or None
     return parse_search_response(json_data)
 
 def parse_search_response(json_data):
@@ -928,19 +1005,14 @@ def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet
     query: dict
     sort: str editions|old|new|scans
     """
-    sorts = {
-        'editions': 'edition_count desc',
-        'old': 'first_publish_year asc',
-        'new': 'first_publish_year desc',
-        'scans': 'ia_count desc'
-    }
     query['wt'] = 'json'
-
+    if sort:
+        sort = process_sort(sort)
     try:
         (reply, solr_select, q_list) = run_solr_query(query,
                                                       rows=limit,
                                                       page=page,
-                                                      sort=sorts.get(sort),
+                                                      sort=sort,
                                                       offset=offset,
                                                       fields=fields,
                                                       facet=facet,

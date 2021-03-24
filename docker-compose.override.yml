@@ -4,9 +4,47 @@
 
 version: "3.1"
 services:
+  web:
+    ports:
+      # Debugger
+      - 3000:3000
+    volumes:
+      # Persistent volume mount for installed git submodules
+      - ol-vendor:/openlibrary/vendor
+      # Persistent volume mount for generated css and js
+      - ol-build:/openlibrary/static/build
+      # Persistent volume mount for node_modules
+      - ol-nodemodules:/openlibrary/node_modules
+      # The above volume mounts are required so that the local dev bind mount below
+      # does not clobber the data generated inside the image / container
+      - .:/openlibrary
+  solr-updater:
+    volumes:
+      # Persistent volume mount for installed git submodules
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+  db:
+    volumes:
+      - .:/openlibrary
   covers:
     ports:
       - 7075:7075
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
   infobase:
     ports:
       - 7000:7000
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - .:/openlibrary
+  home:
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - ol-build:/openlibrary/static/build
+      - ol-nodemodules:/openlibrary/node_modules
+      - .:/openlibrary
+volumes:
+  ol-vendor:
+  ol-build:
+  ol-nodemodules:

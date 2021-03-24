@@ -13,7 +13,7 @@ def admin_processor(handler):
     features.loadhook()
 
     # required to give a special look and feel in site template
-    delegate.context.setdefault('bodyid', 'admin')
+    delegate.context.setdefault('cssfile', 'admin')
     delegate.context.setdefault('usergroup', 'admin')
 
     page = handler()

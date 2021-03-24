@@ -19,11 +19,9 @@ from infogami.utils.view import public, render_template
 from infogami.infobase.utils import parse_datetime
 
 from openlibrary.core import stats
-from openlibrary.core import msgbroker
 from openlibrary.core import lending
 from openlibrary.core import vendors
 from openlibrary.core import waitinglist
-from openlibrary.core import ab
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary import accounts
 from openlibrary.utils import dateutil
@@ -131,7 +129,8 @@ class borrow(delegate.page):
         if availability and availability['status'] == 'open':
             raise web.seeother(archive_url)
 
-        error_redirect = (archive_url)
+        error_redirect = archive_url
+        edition_redirect = urllib.parse.quote(edition.url())
         user = accounts.get_current_user()
 
         if user:
@@ -141,23 +140,23 @@ class borrow(delegate.page):
         if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)
             redirect_url = "/account/login?redirect=%s/borrow?action=%s" % (
-                edition.url(), action)
+                edition_redirect, action)
             if i._autoReadAloud is not None:
                 redirect_url += '&_autoReadAloud=' + i._autoReadAloud
             raise web.seeother(redirect_url)
 
         if action == 'return':
-            loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='return_loan')
+            lending.s3_loan_api(edition.ocaid, s3_keys, action='return_loan')
             stats.increment('ol.loans.return')
-            raise web.seeother(edition.url())
+            raise web.seeother(edition_redirect)
         elif action == 'join-waitinglist':
-            loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='join_waitlist')
+            lending.s3_loan_api(edition.ocaid, s3_keys, action='join_waitlist')
             stats.increment('ol.loans.joinWaitlist')
-            raise web.redirect(edition.url())
+            raise web.redirect(edition_redirect)
         elif action == 'leave-waitinglist':
-            loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='leave_waitlist')
+            lending.s3_loan_api(edition.ocaid, s3_keys, action='leave_waitlist')
             stats.increment('ol.loans.leaveWaitlist')
-            raise web.redirect(edition.url())
+            raise web.redirect(edition_redirect)
 
         # Intercept a 'borrow' action if the user has already
         # borrowed the book and convert to a 'read' action.
@@ -173,7 +172,7 @@ class borrow(delegate.page):
             if not (s3_keys or borrow_access):
                 raise web.seeother(error_redirect)
 
-            loan_resp = lending.s3_loan_api(edition.ocaid, s3_keys, action='%s_book' % borrow_access)
+            lending.s3_loan_api(edition.ocaid, s3_keys, action='%s_book' % borrow_access)
             stats.increment('ol.loans.bookreader')
             stats.increment('ol.loans.%s' % borrow_access)
             action = 'read'
@@ -282,8 +281,6 @@ class borrow_admin(delegate.page):
             loan = lending.get_loan(edition.ocaid)
             if loan and loan['_key'] == i.loan_key:
                 loan.delete()
-        elif i.action == 'update_loan_info':
-            waitinglist.update_waitinglist(edition.ocaid)
         raise web.seeother(web.ctx.path + '/borrow_admin')
 
 class borrow_admin_no_update(delegate.page):
@@ -381,7 +378,6 @@ class ia_auth(delegate.page):
     def GET(self, item_id):
         i = web.input(_method='GET', callback=None, loan=None, token=None)
 
-        resource_id = 'bookreader:%s' % item_id
         content_type = "application/json"
 
         # check that identifier is valid
@@ -411,7 +407,7 @@ class borrow_receive_notification(delegate.page):
     def POST(self):
         data = web.data()
         try:
-            notify_xml = etree.fromstring(data)
+            etree.fromstring(data)
             output = json.dumps({'success': True})
         except Exception as e:
             output = json.dumps({'success': False, 'error': str(e)})
@@ -650,7 +646,6 @@ def _update_loan_status(loan_key, loan, bss_status = None):
         if loan['expiry'] and loan['expiry'] < datetime.datetime.utcnow().isoformat():
             logger.info("%s: loan expired. deleting...", loan_key)
             web.ctx.site.store.delete(loan_key)
-            on_loan_delete(loan)
         return
 
     # Load status from book status server
@@ -679,7 +674,6 @@ def update_loan_from_bss_status(loan_key, loan, status):
         # Was returned, expired, or timed out
         web.ctx.site.store.delete(loan_key)
         logger.info("%s: loan returned or expired or timedout, deleting...", loan_key)
-        on_loan_delete(loan)
         return
 
     # Book has non-returned status
@@ -688,7 +682,6 @@ def update_loan_from_bss_status(loan_key, loan, status):
         loan['expiry'] = status['until']
         web.ctx.site.store[loan_key] = loan
         logger.info("%s: updated expiry to %s", loan_key, loan['expiry'])
-        on_loan_update(loan)
 
 def update_all_loan_status():
     """Update the status of all loans known to Open Library by cross-checking with the book status server.
@@ -720,6 +713,7 @@ def resource_uses_bss(resource_id):
                 return True
     return False
 
+
 def user_can_borrow_edition(user, edition):
     """Returns the type of borrow for which patron is eligible, favoring
     "browse" over "borrow" where available, otherwise return False if
@@ -736,7 +730,7 @@ def user_can_borrow_edition(user, edition):
         if lending_st.get('available_to_browse'):
             return 'browse'
         if lending_st.get('available_to_borrow') or (
-            book_is_waitlistable and is_users_turn_to_borrow(user, edition)):
+                book_is_waitlistable and is_users_turn_to_borrow(user, edition)):
             return 'borrow'
     return False
 
@@ -923,15 +917,5 @@ def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host, ia_userid=N
     }
     return auth_link + urllib.parse.urlencode(params)
 
-def on_loan_update(loan):
-    # update the waiting list and ebook document.
-    waitinglist.update_waitinglist(loan['ocaid'])
-
-def on_loan_delete(loan):
-    # update the waiting list and ebook document.
-    waitinglist.update_waitinglist(loan['ocaid'])
-
-msgbroker.subscribe("loan-created", on_loan_update)
-msgbroker.subscribe("loan-completed", on_loan_delete)
 lending.setup(config)
 vendors.setup(config)

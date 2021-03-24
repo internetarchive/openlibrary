@@ -1,11 +1,11 @@
 """Open Library Books API
 """
 
+import json
 import re
 from six.moves import urllib
 import web
 
-from infogami.infobase import _json as simplejson
 from infogami.utils import delegate
 from infogami.plugins.api.code import jsonapi
 
@@ -37,7 +37,7 @@ class read_singleget(delegate.page):
             result = result[req]
         else:
             result = []
-        return simplejson.dumps(result)
+        return json.dumps(result)
 
 class read_multiget(delegate.page):
     """Handle the multi-lookup form of the Hathi-style API
@@ -60,9 +60,9 @@ class read_multiget(delegate.page):
 
             m = self.path_re.match(decoded_path)
             if not len(m.groups()) == 2:
-                return simplejson.dumps({})
+                return json.dumps({})
             (brief_or_full, req) = m.groups()
 
         web.ctx.headers = []
         result = readlinks.readlinks(req, i)
-        return simplejson.dumps(result)
+        return json.dumps(result)

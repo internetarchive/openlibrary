@@ -15,9 +15,10 @@ from __future__ import absolute_import, print_function
 
 from collections import namedtuple
 
-import sys
+import json
 import os
-import simplejson
+import sys
+
 import web
 
 from optparse import OptionParser
@@ -262,7 +263,7 @@ def copy_list(src, dest, list_key, comment):
     def jsonget(url):
         url = url.encode("utf-8")
         text = src._request(url).read()
-        return simplejson.loads(text)
+        return json.loads(text)
 
     def get(key):
         print("get", key)

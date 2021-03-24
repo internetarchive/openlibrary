@@ -1,5 +1,6 @@
 @import (less) "base/dl.less";
 
+/* stylelint-disable no-descending-specificity */
 .workDetails {
   padding: 20px 0;
   .book-description {
@@ -12,8 +13,8 @@
   min-height: 10px;
   padding-right: 1.5em;
   .cover-animation {
-    transform: perspective(0px) rotateX(0deg);
-    transition: transform 0.8s, opacity .8s;
+    transform: perspective(0) rotateX(0deg);
+    transition: transform .8s, opacity .8s;
   }
   .cover-animation:hover {
     transform: perspective(465px) rotateX(0deg) rotateY(-10deg);
@@ -46,7 +47,7 @@ div.editionAbout {
 }
 
 .work-subtitle{
-  margin-top:0px;
+  margin-top: 0;
 }
 
 .workFooter {
@@ -68,18 +69,18 @@ div.editionAbout {
 }
 
 .checkboxes label {
-display: inline-block;
-padding-right: 10px;
-white-space: nowrap;
+  display: inline-block;
+  padding-right: 10px;
+  white-space: nowrap;
 }
 
 .checkboxes input {
-vertical-align: middle;
+  vertical-align: middle;
 }
 
 .restricted-view{
   display: block;
-  z-index: 1;
+  z-index: @z-index-level-1;
 }
 
 .restricted-height{
@@ -93,7 +94,7 @@ vertical-align: middle;
 
 h3.edition-header {
   font-size: 14px;
-  margin: 0 0 0em;
+  margin: 0;
 }
 
 h2.edition-byline {
@@ -108,7 +109,7 @@ h2.edition-byline {
 .edition-overview {
   background: @light-grey;
   padding: 10px;
-  margin: 10px 0px;
+  margin: 10px 0;
 }
 
 .edition-overview .edition-title {
@@ -131,17 +132,17 @@ h2.edition-byline {
 
   &.sticky {
     position: sticky;
-    top: 0px;
+    top: 0;
     display: block;
     background: @white;
-    z-index: 999;
+    z-index: @z-index-level-3;
     padding-top: 10px;
   }
 }
 
 .work-menu li {
   display: inline;
-  padding: 0px 15px;
+  padding: 0 15px;
   padding-bottom: 5px;
   font-size: 13px;
 }
@@ -179,17 +180,8 @@ a.section-anchor {
   font-size: 12px;
 }
 
-.work-title{
-  margin-top: 5px;
-  margin-bottom: 0;
-}
-
-.work-subtitle{
-  margin-top:0px;
-}
-
 .book-subtitle{
-  margin-bottom:0px;
+  margin-bottom: 0;
 }
 
 @import (less) "components/readerStats.less";
@@ -218,7 +210,7 @@ div.editionTools {
       margin-bottom: 0;
     }
     &About {
-     float: left;
+      float: left;
       width: 70%;
     }
   }
@@ -244,9 +236,8 @@ div.editionTools {
 
 .print-disabled-download, .patron-metadata {
   text-align: center;
-  padding: 7px 0 0 0;
+  padding: 7px 0 0;
 }
-
 
 .edition-omniline {
   display: flex;
@@ -277,9 +268,9 @@ div.editionTools {
 
 .work-line {
   font-style: oblique;
-  color: @light-mid-grey;
+  color: @grey;
   a {
-    color: @light-mid-grey;
+    color: @grey;
   }
 }
 

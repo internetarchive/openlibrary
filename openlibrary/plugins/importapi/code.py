@@ -84,7 +84,7 @@ def parse_data(data):
             format = 'marcxml'
         else:
             raise DataError('unrecognized-XML-format')
-    elif data.startswith('{') and data.endswith('}'):
+    elif data.startswith(b'{') and data.endswith(b'}'):
         obj = json.loads(data)
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
         format = 'json'
@@ -142,7 +142,7 @@ class importapi:
 
 def raise_non_book_marc(marc_record, **kwargs):
     details = 'Item rejected'
-    # Is the item a serial instead of a book?
+    # Is the item a serial instead of a monograph?
     marc_leaders = marc_record.leader()
     if marc_leaders[7] == 's':
         raise BookImportError('item-is-serial', details, **kwargs)
@@ -267,11 +267,13 @@ class ia_importapi(importapi):
                 _ids = [get_subfield(f, id_subfield) for f in rec.read_fields([id_field]) if f and get_subfield(f, id_subfield)]
                 edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in _ids]
 
-            # Don't add the book if the MARC record is a non-book item
+            # Don't add the book if the MARC record is a non-monograph item,
+            # unless it is a serial (etc) for a scanning partner.
             try:
                 raise_non_book_marc(rec, **next_data)
             except BookImportError as e:
-                return self.error(e.error_code, e.error, **e.kwargs)
+                if not (local_id and e.error_code == 'item-is-serial'):
+                    return self.error(e.error_code, e.error, **e.kwargs)
             result = add_book.load(edition)
 
             # Add next_data to the response as location of next record:

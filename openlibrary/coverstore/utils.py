@@ -11,7 +11,6 @@ import requests
 import web
 from six.moves.urllib.parse import splitquery, unquote, unquote_plus
 from six.moves.urllib.parse import urlencode as real_urlencode
-from six.moves.urllib.request import Request, urlopen
 
 from openlibrary.coverstore import config, oldb
 

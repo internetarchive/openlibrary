@@ -33,7 +33,7 @@ infobase_server: infobase:7000
 infobase_config_file: infobase.yml
 coverstore_config_file: coverstore.yml
 
-loanstatus_url: http://localhost/
+loanstatus_url: http://web:8080/
 ia_access_secret: foobar
 
 memcache_servers:
@@ -45,7 +45,7 @@ plugin_modules:
     - infogami.plugins.api
 
 plugin_worksearch:
-    solr: solr:8983
+    solr_base_url: http://solr:8983/solr
     spellcheck_count: 3
     ebook_count_db_parameters:
         db: openlibrary_ebook_count
@@ -165,15 +165,15 @@ ia_ol_xauth_s3:
     s3_key: XXX
     s3_secret: XXX
 
-ia_loan_api_url: http://localhost/internal/fake/loans
-ia_xauth_api_url: http://localhost/internal/fake/xauth
+ia_loan_api_url: http://web:8080/internal/fake/loans
+ia_xauth_api_url: http://web:8080/internal/fake/xauth
 
 internal_tests_api_key: 8oPd1tx747YH374ohs48ZO5s2Nt1r9yD
 ia_availability_api_v2_url: https://archive.org/services/availability/
 ia_base_url: https://archive.org
 
 ia_civicrm_api:
-    url: http://localhost/internal/fake/civicrm
+    url: http://web:8080/internal/fake/civicrm
     api_key: XXX
     site_key: XXX
     auth: XXX
@@ -186,3 +186,4 @@ sentry:
 
 # The Best Book On integration
 tbbo_url: https://thebestbookon.com
+tbbo_aspect_cache_duration: 86400

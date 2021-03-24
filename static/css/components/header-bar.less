@@ -22,6 +22,8 @@
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
+  z-index: @z-index-level-2;
+  position: relative;
 
   .account-component {
     -webkit-box-flex: 0;
@@ -46,9 +48,7 @@
 
     .account-dropdown {
       position: absolute;
-      z-index: @z-index-level-5;
       text-align: right;
-      width: 125px;
       // Note, it must be padding so that the gap between the icon and
       // the dropdown menu is included in the hover-trigger area (#1575)
       padding-top: 5px;
@@ -115,6 +115,7 @@
       a {
         text-decoration: none;
         color: @dark-grey;
+        white-space: nowrap;
         font-size: .9em;
         padding: 10px;
         display: block;
@@ -125,7 +126,6 @@
 
   .hamburger-dropdown-component {
     position: absolute;
-    z-index: @z-index-level-5;
   }
 
   .hamburger-component {
@@ -134,10 +134,9 @@
     order: 0;
     margin-right: 5px;
 
-    button {
+    label {
       background: transparent;
       border: none;
-      cursor: pointer;
     }
 
     img {
@@ -154,6 +153,7 @@
     -webkit-box-ordinal-group: 2;
     -ms-flex-order: 1;
     order: 1;
+    z-index: @z-index-level-negative;
 
     .logo-icon {
       position: relative;
@@ -174,11 +174,9 @@
     -webkit-box-ordinal-group: 6;
     -ms-flex-order: 5;
     order: 5;
-    z-index: @z-index-level-2;
-
-    .more-menu {
-      display: none;
-    }
+    // Despite occuring later in the DOM, this header should be overlayed underneath the items above
+    // e.g. search and account dropdowns.
+    z-index: @z-index-level-negative;
 
     li {
       -ms-flex-preferred-size: 100%;
@@ -201,7 +199,6 @@
 
       .dropdown-menu {
         position: absolute;
-        z-index: @z-index-level-5;
         text-align: left;
         width: 100%;
         top: 4px;
@@ -229,7 +226,6 @@
     -webkit-box-flex: 1;
     -ms-flex: 1;
     flex: 1;
-    z-index: @z-index-level-1;
 
     // stylelint-disable selector-max-specificity
     // stylelint-disable max-nesting-depth
@@ -290,7 +286,6 @@
       border: 1px solid @dark-beige;
       border-radius: .3em;
       background-color: @grey-fafafa;
-      z-index: @z-index-level-17;
       position: relative;
     }
 
@@ -307,7 +302,6 @@
 
     .search-dropdown {
       position: relative;
-      z-index: @z-index-level-5;
 
       /* stylelint-disable selector-max-specificity */
       .search-results {
@@ -358,7 +352,6 @@
 
     .search-facet-selector {
       display: none;
-      z-index: @z-index-level-2;
       margin-top: 3px;
       padding: 13px 10px 0;
       font-size: 14px;
@@ -380,7 +373,6 @@
         font-family: inherit;
         font-weight: inherit;
         color: inherit;
-        z-index: @z-index-level-1;
         background: none;
         border: none;
         cursor: pointer;
@@ -401,7 +393,7 @@
         position: absolute;
         top: 50%;
         right: 4px;
-        content: '';
+        content: "";
         width: 0;
         height: 0;
         border-left: 4px solid transparent;
@@ -409,6 +401,49 @@
         border-top: 4px solid currentColor;
       }
     }
+  }
+}
+
+.checkbox-menu, .checkbox-menu label {
+  cursor: pointer;
+}
+
+.account-component__checkbox {
+  display: none;
+
+  & ~ .navigation-dropdown-component ul {
+    display: none;
+  }
+
+  // stylelint-disable-next-line selector-max-specificity
+  &:checked ~ .navigation-dropdown-component ul {
+    display: block;
+  }
+}
+
+.hamburger-component__checkbox {
+  opacity: 0;
+
+  & ~ .hamburger-dropdown-component ul {
+    display: none;
+  }
+
+  // stylelint-disable-next-line selector-max-specificity
+  &:checked ~ .hamburger-dropdown-component ul {
+    display: block;
+  }
+}
+
+.navigation-component__checkbox {
+  opacity: 0;
+
+  & ~ .navigation-dropdown-component ul {
+    display: none;
+  }
+
+  // stylelint-disable-next-line selector-max-specificity
+  &:checked ~ .navigation-dropdown-component ul {
+    display: block;
   }
 }
 
@@ -444,25 +479,9 @@
   }
 }
 
-.hamburger-component,
-.navigation-component li,
-.account-component {
-  /* stylelint-disable selector-max-specificity */
-  .navigation-dropdown-component {
-    display: none;
-  }
-  &:hover .navigation-dropdown-component {
-    display: block;
-  }
-  /* stylelint-enable selector-max-specificity */
-}
-
 .logo-component {
   margin: 0 0 5px;
-  img,
-  a {
-    display: block;
-  }
+
   a {
     color: @black;
     text-decoration: none !important;
@@ -538,7 +557,8 @@
 @media only screen and (min-width: 25em) {
   .header-bar {
     .logo-component {
-      // The width and height attributes of logo-icon should be equal to dimensions of /static/images/openlibrary-logo-tighter.svg
+      // The width and height attributes of logo-icon should be equal to
+      // dimensions of /static/images/openlibrary-logo-tighter.svg
       .logo-icon {
         height: 47px;
         width: 189px;

@@ -4,7 +4,7 @@
 import web
 import re
 import requests
-import simplejson as json
+import json
 import logging
 from collections import defaultdict
 import datetime
@@ -60,7 +60,7 @@ class subjects(delegate.page):
             'lending_edition_s': '*'
         })
 
-        delegate.context.setdefault('bodyid', 'subject')
+        delegate.context.setdefault('cssfile', 'subject')
         if not subj or subj.work_count == 0:
             web.ctx.status = "404 Not Found"
             page = render_template('subjects/notfound.tmpl', key)

@@ -14,15 +14,15 @@
     },
     {
       "path": "static/build/carousel.*.js",
-      "maxSize": "12.2KB"
+      "maxSize": "1KB"
     },
     {
       "path": "static/build/readmore.*.js",
-      "maxSize": "2KB"
+      "maxSize": "1KB"
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "155KB"
+      "maxSize": "119KB"
     },
     {
       "path": "static/build/page-admin.css",
@@ -30,7 +30,7 @@
     },
     {
       "path": "static/build/page-book.css",
-      "maxSize": "9KB"
+      "maxSize": "9.4KB"
     },
     {
       "path": "static/build/page-edit.css",

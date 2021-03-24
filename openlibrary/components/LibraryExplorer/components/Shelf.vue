@@ -2,6 +2,7 @@
   <div class="shelf" :data-short="node.short">
     <OLCarousel
       class="shelf-carousel"
+      ref="olCarousel"
       :data-short="
         node.children && node.position != 'root'
           ? node.children[node.position].short
@@ -17,6 +18,8 @@
           ? node.children[node.position]
           : node
       "
+      :sort="sort"
+      :fetchCoordinator="fetchCoordinator"
     >
       <template #book-end-start>
         <div class="book-end-start">
@@ -30,22 +33,30 @@
         </div>
       </template>
 
-      <template v-slot:cover="{ book }" v-if="features.book3d">
-        <BookCover3D :width="150" :height="200" :thickness="50" :book="book" />
+      <template v-slot:cover="{ book }">
+        <BookCover3D
+            v-if="features.book3d"
+            :width="150" :height="200" :thickness="50" :book="book"
+            :fetchCoordinator="fetchCoordinator"
+            :containerIntersectionRatio="$refs.olCarousel.intersectionRatio"
+            :cover="features.cover"
+        />
+        <FlatBookCover v-else :book="book" :cover="features.cover" />
       </template>
 
       <template v-slot:cover-label="{ book }">
-        <span
-          v-if="book[classification.field]"
+        <div
+          v-if="book[classification.field] && labels.includes('classification')"
           :title="
             book[classification.field]
               .map(classification.fieldTransform)
               .join('\n')
           "
           >{{
-            classification.fieldTransform(book[classification.field][0])
-          }}</span
-        >
+            classification.fieldTransform(classification.chooseBest(book[classification.field]))
+          }}</div>
+        <div v-if="labels.includes('first_publish_year')">{{book.first_publish_year}}</div>
+        <div v-if="labels.includes('edition_count')">{{book.edition_count}} editions</div>
       </template>
     </OLCarousel>
 
@@ -83,15 +94,82 @@ import OLCarousel from './OLCarousel';
 import ClassSlider from './ClassSlider';
 import ShelfLabel from './ShelfLabel';
 import BookCover3D from './BookCover3D';
+import FlatBookCover from './FlatBookCover';
 import ShelfIndex from './ShelfIndex';
 import ExpandIcon from './icons/ExpandIcon.vue';
 import IndexIcon from './icons/IndexIcon.vue';
+import maxBy from 'lodash/maxBy';
+
+class FetchCoordinator {
+    constructor() {
+        this.requestedFetches = [];
+        /** @type { 'idle' | 'active' } */
+        this.state = 'idle';
+
+        this.runningRequests = 0;
+
+        this.timeout = null;
+        this.maxConcurrent = 6;
+        this.groupingTime = 250;
+    }
+
+    async fetch({ priority, name }, ...args) {
+        return new Promise((resolve, reject) => {
+            this.enqueue({
+                priority,
+                name,
+                args,
+                resolve,
+                reject,
+            });
+        });
+    }
+
+    enqueue(fetchRequest) {
+        // console.log(`Enqueing request #${this.requestedFetches.length + 1}: ${fetchRequest.name}`);
+        this.requestedFetches.push(fetchRequest);
+        this.activate();
+    }
+
+    activate() {
+        if (this.requestedFetches.length && !this.timeout) {
+            this.state = 'active'
+            this.timeout = setTimeout(() => this.consume(), this.groupingTime);
+        } else {
+            this.state = 'idle';
+        }
+    }
+
+    consume() {
+        this.timeout = null;
+        while ((this.maxConcurrent - this.runningRequests > 0) && this.requestedFetches.length) {
+            const topRequest = maxBy(this.requestedFetches, f => f.priority());
+            // console.log(`Completing request w p=${topRequest.priority()}: ${topRequest.name}`)
+            this.runningRequests++;
+            fetch(...topRequest.args)
+                .then(r => {
+                    this.runningRequests--;
+                    topRequest.resolve(r);
+                })
+                .catch(e => {
+                    this.runningRequests--;
+                    topRequest.reject(e);
+                });
+            const indexToRemove = this.requestedFetches.indexOf(topRequest);
+            this.requestedFetches.splice(indexToRemove, 1);
+        }
+        this.activate();
+    }
+}
+
+const fetchCoordinator = new FetchCoordinator();
 
 export default {
     components: {
         OLCarousel,
         ClassSlider,
         BookCover3D,
+        FlatBookCover,
         ShelfIndex,
         ShelfLabel,
         ExpandIcon,
@@ -101,15 +179,18 @@ export default {
         node: Object,
         parent: Object,
 
+        labels: Array,
         classification: Object,
         expandBookshelf: Function,
         features: Object,
         filter: String,
+        sort: String,
     },
 
     data() {
         return {
             showShelfIndex: false,
+            fetchCoordinator: fetchCoordinator,
         };
     }
 };

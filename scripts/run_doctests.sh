@@ -23,11 +23,6 @@ pytest --doctest-modules \
         --ignore=openlibrary/catalog/amazon/list_done.py \
         --ignore=openlibrary/catalog/amazon/load_merge.py \
         --ignore=openlibrary/catalog/amazon/read_serp.py \
-        --ignore=openlibrary/catalog/edition_merge/find_dups.py \
-        --ignore=openlibrary/catalog/edition_merge/find_easy.py \
-        --ignore=openlibrary/catalog/edition_merge/merge.py \
-        --ignore=openlibrary/catalog/edition_merge/merge_works.py \
-        --ignore=openlibrary/catalog/edition_merge/run_merge.py \
         --ignore=openlibrary/catalog/marc/lang.py \
         --ignore=openlibrary/catalog/marc/read_toc.py \
         --ignore=openlibrary/catalog/marc/show_records.py \
@@ -54,7 +49,6 @@ pytest --doctest-modules \
         --ignore=openlibrary/solr/update_work.py \
         --ignore=openlibrary/tests/catalog/test_get_ia.py \
         --ignore=openlibrary/utils/form.py \
-        --ignore=openlibrary/utils/httpserver.py \
         --ignore=openlibrary/utils/schema.py \
         --ignore=openlibrary/utils/solr.py \
         --ignore=scripts \

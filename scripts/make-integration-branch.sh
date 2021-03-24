@@ -26,9 +26,13 @@ while read line; do
     elif [[ $branch == "https://"* ]] ; then
         echo -e "---\n$branch"
         git pull $branch
+        # If the merge didn't succeed automatically, abort it
+        [[ $(git ls-files -u) ]] && git merge --abort
     else
         echo -e "---\n$branch"
         git merge $branch
+        # If the merge didn't succeed automatically, abort it
+        [[ $(git ls-files -u) ]] && git merge --abort
     fi
 done <"$BRANCHES_FILE"
 

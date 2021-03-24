@@ -103,7 +103,7 @@ $if og_title:
       </div>
       <div class="mybooks-list">
         $:macros.Pager(current_page, total_items, results_per_page=25)
-        <ul class="list-books" id="siteSearch">
+        <ul class="list-books">
           $if items:
             $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
             $for item in items:
