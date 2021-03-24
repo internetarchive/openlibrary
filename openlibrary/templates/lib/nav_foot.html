@@ -47,17 +47,25 @@ $def with (page)
           <a class="footer-icons__github" href="https://github.com/internetarchive/openlibrary">github</a>
         </aside>
       </div>
-      <div id="footer-locale-menu">
-        <button class="dropbtn">$_('Language')</button>
-        <div class="dropdown-content" id="locale-options">
-            <a href="#" data-lang-id="cs" title="$_('Czech')">Čeština (cs)</a>
-            <a href="#" data-lang-id="de" title="$_('German')">Deutsch (de)</a>
-            <a href="#" data-lang-id="en" title="$_('English')">English (en)</a>
-            <a href="#" data-lang-id="es" title="$_('Spanish')">Español (es)</a>
-            <a href="#" data-lang-id="fr" title="$_('French')">Français (fr)</a>
-            <a href="#" data-lang-id="hr" title="$_('Croatian')">Hrvatski (hr)</a>
-            <a href="#" data-lang-id="te" title="$_('Telugu')">తెలుగు (te)</a>
-        </div>
+      <div class="language-component" id="footer-locale-menu">
+        <li class="language-menu checkbox-menu">
+            <label for="toggle-language-menu" class="language-menu-button">
+              <h2>$:_('Language')
+                <img class="translate-icon" src="/static/images/language-icon.svg" title="Change Website Language" alt="Change Website Language"/>
+              </h2>
+            </label>
+          <input role="button" type="checkbox" class="language-component__checkbox" id="toggle-language-menu">
+          <div class="navigation-dropdown-component language-dropdown-component"> 
+            <ul class="dropdown-menu" id="locale-options">
+              <li><a href="#" data-lang-id="cs" title="$_('Czech')">Čeština (cs)</a> </li>
+              <li><a href="#" data-lang-id="de" title="$_('German')">Deutsch (de)</a> </li>
+              <li><a href="#" data-lang-id="en" title="$_('English')">English (en)</a></li>
+              <li><a href="#" data-lang-id="es" title="$_('Spanish')">Español (es)</a></li>
+              <li><a href="#" data-lang-id="fr" title="$_('French')">Français (fr)</a></li>
+              <li><a href="#" data-lang-id="hr" title="$_('Croatian')">Hrvatski (hr)</a></li>
+              <li><a href="#" data-lang-id="te" title="$_('Telugu')">తెలుగు (te)</a></li>
+            </ul>
+          </li>  
       </div>
     </div>
     <hr>

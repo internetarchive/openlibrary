@@ -1,0 +1,58 @@
+
+.language-component__checkbox {
+    opacity: 0;
+    display: contents;
+  
+    & ~ .navigation-dropdown-component ul {
+      display: none;
+    }
+  
+    // stylelint-disable-next-line selector-max-specificity
+    &:checked ~ .navigation-dropdown-component ul {
+      display: block;
+    }
+}
+.language-dropdown-component {
+  margin: 0 !important;
+  li {
+    padding: 3px 0;
+    margin: 0;
+  }
+}
+.language-component {
+  .translate-icon {
+    vertical-align: middle;
+    width: 1.5em;
+  }
+}
+.dropdown-menu {
+  width: 130px;
+  background-color: @light-beige;
+  border: 1px solid @dark-beige;
+  border-radius: 3px;
+  cursor: pointer;
+
+  li {
+    border-bottom: 1px solid @beige-two;
+
+    // stylelint-disable max-nesting-depth, selector-max-specificity
+    &:last-child {
+      border: none;
+    }
+
+    &:hover {
+      background-color: @white;
+    }
+
+    a {
+      text-decoration: none;
+      color: @dark-grey;
+      white-space: nowrap;
+      font-size: .9em;
+      padding: 0 10px;
+      display: block;
+    }
+    // stylelint-enable max-nesting-depth, selector-max-specificity
+  }
+}
+  
