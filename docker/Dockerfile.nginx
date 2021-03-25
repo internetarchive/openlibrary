@@ -13,3 +13,5 @@ RUN apt-get update && apt-get -y install --no-install-recommends openresty
 RUN rm /usr/sbin/nginx
 RUN curl -L https://archive.org/download/nginx/nginx -o /usr/sbin/nginx
 RUN chmod +x /usr/sbin/nginx
+RUN useradd -r nginx
+CMD ["nginx", "-g", "daemon off;"]
