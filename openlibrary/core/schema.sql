@@ -92,8 +92,9 @@ CREATE TABLE observations (
     edition_id INTEGER default -1,
     username text not null,
     observation_id INTEGER references observation_values(id) ON DELETE CASCADE ON UPDATE CASCADE,
+		observation_type INTEGER references observation_types(id) ON DELETE CASCADE ON UPDATE CASCADE,
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
-    primary key (work_id, edition_id, username, observation_id)
+    primary key (work_id, edition_id, username, observation_id, observation_type)
 );
 
 

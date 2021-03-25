@@ -10,6 +10,7 @@ from . import db
 
 
 ObservationValue = namedtuple('ObservationValue', ['value_id', 'value', 'prev_value_id'])
+ObservationIds = namedtuple('ObservationIds', ['type_id', 'value_id'])
 
 @cache.memoize(engine="memcache", key="observations", expires=config.get('observation_cache_duration'))
 def get_observations():
@@ -142,13 +143,13 @@ class Observations(object):
     @classmethod
     def get_observation_dictionary(cls):
         """
-        Returns a dictionary of observation types, values, and IDs.  An observation
-        type/value tuple is the key, and the ID is the value.
+        Returns a dictionary of observation types, values, and  their IDs.  An observation
+        type/value tuple is the key, and an ObservationIds tuple is the value.
 
-        return: Dictionary of observation types, values, and IDs
+        return: Dictionary of observation types, values, and their IDs
         """
 
-        return { (o['type'], o['value']): o['value_id'] for o in cls.get_observation_types_and_values() }
+        return { (o['type'], o['value']): ObservationIds(o['type_id'], o['value_id']) for o in cls.get_observation_types_and_values() }
 
     @classmethod
     def get_patron_observations(cls, username, work_id=None):
@@ -221,7 +222,7 @@ class Observations(object):
             observation_ids = get_observation_ids(observations)
 
             oldb.multiple_insert('observations', 
-                [{'username': username, 'work_id': work_id, 'edition_id': edition_id, 'observation_id': id} for id in observation_ids]
+                [{'username': username, 'work_id': work_id, 'edition_id': edition_id, 'observation_id': id.value_id, 'observation_type': id.type_id} for id in observation_ids]
             )
 
     @classmethod
