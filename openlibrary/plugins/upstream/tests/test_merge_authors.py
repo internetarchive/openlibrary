@@ -85,17 +85,17 @@ TEST_AUTHORS = web.storage({
     "OL100A": {
         "key": "/authors/OL100A",
         "type": {"key": "/type/author"},
-        "name": "Üñîçø∂é OL100A'"
+        "name": "Üñîçø∂é OL100A"
     },
     "OL200A": {
         "key": "/authors/OL200A",
         "type": {"key": "/type/author"},
-        "name": "Üñîçø∂é OL200A'"
+        "name": "Üñîçø∂é OL200A"
     },
     "OL300A": {
-        "key": "/authors/OL300A'",
+        "key": "/authors/OL300A",
         "type": {"key": "/type/author"},
-        "name": "Üñîçø∂é OL300A'"
+        "name": "Üñîçø∂é OL300A"
     }
 })
 
