@@ -25,14 +25,14 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
 
   <div class="details">
       <div class="resultTitle">
-         <h3 class="booktitle">
-           <a itemprop="name" href="$(book_url)?edition=$(ocaid)"
+         <h3 itemprop="name" class="booktitle">
+           <a itemprop="url" href="$(book_url)?edition=$(ocaid)"
               class="results">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a>
            $if doc.get('publish_date'):
              ($(doc['publish_date']))
          </h3>
         </div>
-      <span class="bookauthor">$_('by')
+      <span itemprop="author" itemscope itemtype="https://schema.org/Organization" class="bookauthor">$_('by')
         $if not doc.authors:
           <em>$_('Unknown author')</em>
         $else:
@@ -40,7 +40,7 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
             $if not (hasattr(a, 'name') and a.name) and not (hasattr(a, 'author') and hasattr(a.author, 'name') and a.author.name):
               <em>$_('Unknown author')</em>$(',' if not loop.last else '')
               $continue
-            <a itemprop="author" href="$(a.get('url') or a.get('key') or a.author.get('url') or a.author.key)" class="results">$(a.name or a.author.name)</a>$(',' if not loop.last else '')
+            <a itemprop="url" href="$(a.get('url') or a.get('key') or a.author.get('url') or a.author.key)" class="results">$(a.name or a.author.name)</a>$(',' if not loop.last else '')
       </span>
       <span class="resultPublisher">
         $if doc.get('first_publish_year'):
