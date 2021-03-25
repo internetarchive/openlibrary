@@ -125,9 +125,10 @@ services:
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../olsystem/etc/nginx/sites-available/default-docker.conf:/etc/nginx/sites-enabled/default:ro
-      - ../olsystem/etc/nginx/sites-available/openlibrary.conf:/etc/nginx/sites-enabled/openlibrary.conf:ro
+      - ./docker/web_nginx.conf:/etc/nginx/sites-enabled/openlibrary.conf:ro
       - ../olsystem:/olsystem
       - .:/opt/openlibrary/openlibrary
+      - /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
     ports:
       - 80:80
       - 443:443
