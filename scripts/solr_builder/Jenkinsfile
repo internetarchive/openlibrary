@@ -18,6 +18,7 @@ pipeline {
     booleanParam(name: 'INTO_SOLR_FROM_DUMP', defaultValue: true, description: 'If true, reindexes dump into solr')
     booleanParam(name: 'INDEX_WORKS', defaultValue: true, description: 'If true, reindexes works into solr')
     booleanParam(name: 'INDEX_ORPHANS', defaultValue: true, description: 'If true, reindexes orphans into solr')
+    booleanParam(name: 'INDEX_SUBJECTS', defaultValue: true, description: 'If true, reindexes subjects into solr')
     booleanParam(name: 'INDEX_AUTHORS', defaultValue: true, description: 'If true, reindexes authors into solr')
     booleanParam(name: 'INTO_SOLR_COPY_SUBJECTS', defaultValue: true, description: 'If true, copies subjects into solr')
     string(name: 'MAX_CORES', defaultValue: '12', description: 'Max number of simultaneous cores')
@@ -220,6 +221,25 @@ pipeline {
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
                       sh "CHUNK_ETA=35 ./index-type.sh orphan ${params.MAX_CORES} orphans"
+                      solr_commit('solr')
+                    }
+                  }
+                }
+                stage('Insert subjects') {
+                  when { expression { return params.INDEX_SUBJECTS } }
+                  steps {
+                    dir(env.HOST_SOLR_BUILDER_DIR) {
+                      sh """
+                      for subject_type in subject person place time; do
+                        docker-compose run --name ol_run_subjects_\$subject_type -T ol \
+                          python ./solr_builder/index_subjects.py \
+                            \$subject_type \
+                            --chunk-size 10000 \
+                            --instances ${params.MAX_CORES} \
+                            --solr-base-url 'http://solr:8983/solr/openlibrary' \
+                            --skip-id-check
+                      done
+                      """
                       solr_commit('solr')
                     }
                   }
