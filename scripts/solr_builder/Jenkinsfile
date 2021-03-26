@@ -198,9 +198,6 @@ pipeline {
               
               sh(label: 'Build the cython files',
                 script: 'docker-compose run --rm ol ./build-cython.sh')
-              
-              sh(label: 'Load a helper function into postgres',
-                script: 'source ./aliases.sh; psql -f sql/get-partition-markers.sql')
             }
           }
         }
