@@ -160,7 +160,9 @@ services:
 
   infobase_nginx:
     profiles: ["ol-home0"]
-    image: nginx:1.19.4
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.nginx
     restart: unless-stopped
     depends_on:
       - infobase
