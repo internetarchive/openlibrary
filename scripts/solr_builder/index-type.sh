@@ -30,7 +30,7 @@ while [ $done != "true" ]; do
     DOCKER_IMAGE_NAME=$RUN_SIG docker_solr_builder index "${TYPE}s" \
       --start-at "/$next_start" \
       --limit $CHUNK_SIZE \
-      -p "progress/$LOG_DIR/$RUN_SIG.txt"
+      --progress "progress/$LOG_DIR/$RUN_SIG.txt"
 
     next_start=$(docker-compose run --rm ol python solr_builder/solr_builder.py fetch-end "${TYPE}s" --start-at "/$next_start" --limit $CHUNK_SIZE)
     if [ "$next_start" = "" ]; then done="true"; fi
