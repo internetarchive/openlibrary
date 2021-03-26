@@ -36,7 +36,7 @@ RUN echo 'will cite' | parallel --citation
 
 # Install LTS version of node.js
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
-    && apt-get install --no-install-recommends -y nodejs
+    && apt-get install -y nodejs
 
 # Install pyenv
 # Python build deps: https://github.com/pyenv/pyenv/wiki/Common-build-problems#prerequisites
