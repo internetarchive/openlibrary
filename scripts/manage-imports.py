@@ -33,16 +33,19 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
         try:
             ol = get_ol(servername=servername)
             return ol.import_ocaid(item.ia_id, require_marc=require_marc)
-        except (IOError, OLError) as e:
+        except IOError as e:
+            logger.warning("Failed to contact OL server. error=%s", e)
+        except OLError as e:
+            if e.code < 500:
+                return e.text
             logger.warning("Failed to contact OL server. error=%s", e)
 
 
 def do_import(item, servername=None, require_marc=True):
     response = ol_import_request(item, servername=servername, require_marc=require_marc)
-    print("Response:", response, file=sys.stderr)
-    if response and response.startswith("{"):
+    if response and response.startswith('{'):
         d = json.loads(response)
-        if d.get("success") and 'edition' in d:
+        if d.get('success') and 'edition' in d:
             edition = d['edition']
             logger.info("success: %s %s", edition['status'], edition['key'])
             item.set_status(edition['status'], ol_key=edition['key'])
@@ -58,7 +61,6 @@ def do_import(item, servername=None, require_marc=True):
 def add_items(args):
     batch_name = args[0]
     filename = args[1]
-
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.load_items(filename)
 
