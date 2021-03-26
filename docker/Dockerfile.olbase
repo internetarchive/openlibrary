@@ -12,7 +12,7 @@ RUN groupadd --system openlibrary \
   && useradd --no-log-init --system --gid openlibrary --create-home openlibrary
 
 # Misc OL dependencies
-RUN apt-get -qq update && apt-get install -y \
+RUN apt-get -qq update && apt-get install --no-install-recommends -y \
     postgresql-client \
     build-essential \
     git \
@@ -36,13 +36,13 @@ RUN echo 'will cite' | parallel --citation
 
 # Install LTS version of node.js
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
-    && apt-get install -y nodejs
+    && apt-get install --no-install-recommends -y nodejs
 
 # Install pyenv
 # Python build deps: https://github.com/pyenv/pyenv/wiki/Common-build-problems#prerequisites
-RUN apt-get -qq update && apt-get install -y build-essential libssl-dev zlib1g-dev libbz2-dev \
-    libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
-    xz-utils tk-dev libffi-dev liblzma-dev python-openssl git
+RUN apt-get -qq update && apt-get install --no-install-recommends -y build-essential \
+    libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm \
+    libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl git
 
 # Install latest pyenv (https://github.com/pyenv/pyenv-installer)
 USER openlibrary
