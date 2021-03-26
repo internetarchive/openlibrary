@@ -10,6 +10,8 @@ import xml.etree.ElementTree as etree
 import datetime
 import logging
 
+import requests
+
 import six
 from six import PY3
 from six.moves import urllib
@@ -728,7 +730,7 @@ def _get_blog_feeds():
     url = "http://blog.openlibrary.org/feed/"
     try:
         stats.begin("get_blog_feeds", url=url)
-        tree = etree.parse(urllib.request.urlopen(url))
+        tree = etree.fromstring(requests.get(url).text)
     except Exception:
         # Handle error gracefully.
         logging.getLogger("openlibrary").error("Failed to fetch blog feeds", exc_info=True)
