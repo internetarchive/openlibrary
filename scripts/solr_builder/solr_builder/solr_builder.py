@@ -4,6 +4,8 @@ import asyncio
 import itertools
 from typing import Awaitable, List, Iterable, Literal
 
+import httpx
+from httpx import RequestError, HTTPStatusError
 from six.moves.configparser import ConfigParser
 import logging
 import time
@@ -11,8 +13,6 @@ import uuid
 from collections import namedtuple
 
 import psycopg2
-import requests
-from requests import RequestException
 
 from openlibrary.core import ia
 from openlibrary.solr.data_provider import DataProvider
@@ -204,19 +204,20 @@ class LocalPostgresDataProvider(DataProvider):
             })
             return []
 
-        r = requests.get("https://archive.org/advancedsearch.php", params={
-            'q': "identifier:(%s)" % ' OR '.join(ocaids),
-            'rows': len(ocaids),
-            'fl': 'identifier,boxid,collection',
-            'page': 1,
-            'output': 'json',
-            'save': 'yes',
-        })
+        async with httpx.AsyncClient() as client:
+            r = await client.get("https://archive.org/advancedsearch.php", params={
+                'q': "identifier:(%s)" % ' OR '.join(ocaids),
+                'rows': len(ocaids),
+                'fl': 'identifier,boxid,collection',
+                'page': 1,
+                'output': 'json',
+                'save': 'yes',
+            })
 
         try:
             r.raise_for_status()
             return r.json()['response']['docs']
-        except (RequestException, ValueError, KeyError):
+        except (RequestError, HTTPStatusError, ValueError, KeyError):
             logger.error(f"Error while fetching IA data: {r.status_code}: {r.json()['error']}",
                          extra={'_recur_depth': _recur_depth})
             # there's probably a bad apple; try splitting the batch
