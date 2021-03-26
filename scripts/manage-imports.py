@@ -1,6 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-from __future__ import print_function
 import sys
 import web
 import json
@@ -15,11 +14,13 @@ from openlibrary.core.imports import Batch, ImportItem
 
 logger = logging.getLogger("openlibrary.importer")
 
+
 @web.memoize
 def get_ol(servername=None):
     ol = OpenLibrary(base_url=servername)
     ol.autologin()
     return ol
+
 
 def ol_import_request(item, retries=5, servername=None, require_marc=True):
     """Requests OL to import an item and retries on server errors.
@@ -33,7 +34,7 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
             ol = get_ol(servername=servername)
             return ol.import_ocaid(item.ia_id, require_marc=require_marc)
         except (IOError, OLError) as e:
-            logger.warn("Failed to contact OL server. error=%s", e)
+            logger.warning("Failed to contact OL server. error=%s", e)
 
 
 def do_import(item, servername=None, require_marc=True):
@@ -53,12 +54,14 @@ def do_import(item, servername=None, require_marc=True):
         logger.error("failed with internal error")
         item.set_status("failed", error='internal-error')
 
+
 def add_items(args):
     batch_name = args[0]
     filename = args[1]
 
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.load_items(filename)
+
 
 def import_ocaids(*ocaids, **kwargs):
     """This method is mostly for testing. It allows you to import one more
@@ -111,6 +114,7 @@ def add_new_scans(args):
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.add_items(items)
 
+
 def import_batch(args, **kwargs):
     servername = kwargs.get('servername', None)
     require_marc = not kwargs.get('no_marc', False)
@@ -123,6 +127,7 @@ def import_batch(args, **kwargs):
     for item in batch.get_items():
         do_import(item, servername=servername, require_marc=require_marc)
 
+
 def import_item(args, **kwargs):
     servername = kwargs.get('servername', None)
     require_marc = not kwargs.get('no_marc', False)
@@ -132,6 +137,7 @@ def import_item(args, **kwargs):
         do_import(item, servername=servername, require_marc=require_marc)
     else:
         logger.error("%s is not found in the import queue", ia_id)
+
 
 def import_all(args, **kwargs):
     servername = kwargs.get('servername', None)
@@ -144,6 +150,7 @@ def import_all(args, **kwargs):
 
         for item in items:
             do_import(item, servername=servername, require_marc=require_marc)
+
 
 def retroactive_import(start=None, stop=None, servername=None):
     """Retroactively searches and imports all previously missed books
@@ -160,6 +167,7 @@ def retroactive_import(start=None, stop=None, servername=None):
     batch.add_items(items)
     for item in batch.get_items():
         do_import(item, servername=servername)
+
 
 def main():
     if "--config" in sys.argv:
@@ -202,6 +210,7 @@ def main():
         return import_item(args, **flags)
     else:
         logger.error("Unknown command: %s", cmd)
+
 
 if __name__ == "__main__":
     main()
