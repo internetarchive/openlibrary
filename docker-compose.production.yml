@@ -57,7 +57,9 @@ services:
 
   covers_nginx:
     profiles: ["ol-covers0"]
-    image: nginx:1.19.4
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.nginx
     restart: unless-stopped
     depends_on:
       - covers
@@ -143,7 +145,7 @@ services:
       - ../olsystem:/olsystem
       - /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
     ports:
-      - 80:80
+      - 8080:80 # XXX change to 80!!!
       - 443:443
     networks:
       - webnet
