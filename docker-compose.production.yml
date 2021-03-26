@@ -116,6 +116,20 @@ services:
       - ../olsystem:/olsystem
       - infobase-writelog:/1/var/lib/openlibrary/infobase/log
       - infobase-errorlog:/1/var/log/openlibrary/infobase-errors
+  web_haproxy:
+    image: haproxy:2.3.5
+    restart: always
+    hostname: "$HOSTNAME"
+    networks:
+      - webnet
+    volumes:
+      - ../olsystem/etc/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - 7072:7072
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
   web_nginx:
     restart: always
     hostname: "$HOSTNAME"
@@ -127,7 +141,6 @@ services:
       - ../olsystem/etc/nginx/sites-available/default-docker.conf:/etc/nginx/sites-enabled/default:ro
       - ./docker/web_nginx.conf:/etc/nginx/sites-enabled/openlibrary.conf:ro
       - ../olsystem:/olsystem
-      - .:/opt/openlibrary/openlibrary
       - /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
     ports:
       - 80:80
