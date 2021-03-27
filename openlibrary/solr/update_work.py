@@ -4,12 +4,14 @@ import itertools
 import logging
 import os
 import re
-from typing import Literal, List
+from typing import Literal, List, Union
 
 import httpx
 import requests
 import sys
 import time
+
+from httpx import RequestError, HTTPStatusError
 from six.moves.urllib.parse import urlparse
 from collections import defaultdict
 from unicodedata import normalize
@@ -1139,6 +1141,41 @@ class DeleteRequest:
         if self.keys:
             return make_delete_query(self.keys)
 
+
+def solr8_update(
+        reqs: List[Union[str, UpdateRequest, DeleteRequest]],
+        commit_within=60_000,
+        skip_id_check=False,
+        solr_base_url: str = None,
+) -> None:
+    """This will replace solr_update once we're fully on Solr 8.7+"""
+    req_strs = (r if type(r) == str else r.toxml() for r in reqs if r)  # type: ignore
+    # .toxml() can return None :/
+    content = f"<update>{''.join(s for s in req_strs if s)}</update>"  # type: ignore
+
+    solr_base_url = solr_base_url or get_solr_base_url()
+    params = {}
+    if commit_within is not None:
+        params['commitWithin'] = commit_within
+    if skip_id_check:
+        params['overwrite'] = 'false'
+    logger.info(f"POSTing update to {solr_base_url}/update {params}")
+    try:
+        resp = httpx.post(
+            f'{solr_base_url}/update',
+            timeout=30,  # The default timeout is silly short
+            params=params,
+            headers={'Content-Type': 'application/xml'},
+            content=content)
+        resp.raise_for_status()
+    except (RequestError, HTTPStatusError):
+        logger.error('Error with solr8 POST update', extra={
+            'content': content,
+            'resp': resp.content,
+            'status_code': resp.status_code
+        })
+
+
 def process_edition_data(edition_data):
     """Returns a solr document corresponding to an edition using given edition data.
     """
@@ -1465,7 +1502,12 @@ def solr_select_work(edition_key):
         return docs[0]['key'] # /works/ prefix is in solr
 
 
-def update_keys(keys, commit=True, output_file=None, commit_way_later=False,
+def update_keys(keys,
+                commit=True,
+                output_file=None,
+                commit_way_later=False,
+                solr8=False,
+                skip_id_check=False,
                 update: Literal['update', 'print'] = 'update'):
     """
     Insert/update the documents with the provided keys in Solr.
@@ -1483,8 +1525,10 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False,
 
     def _solr_update(requests, debug=False, commitWithin=60000):
         if update == 'update':
-            if commit_way_later:
-                return solr_update(requests, debug, commit_way_later_dur)
+            commitWithin = commit_way_later_dur if commit_way_later else commitWithin
+
+            if solr8:
+                return solr8_update(requests, commitWithin, skip_id_check)
             else:
                 return solr_update(requests, debug, commitWithin)
         elif update == 'print':
