@@ -12,13 +12,13 @@ export function initAdmin() {
         action = $(this).hasClass('active') ? 'add_tag': 'remove_tag';
         tag = $(this).text();
         $.post(window.location.href, {
-            'action': action,
-            'tag': tag
+            action: action,
+            tag: tag
         });
     });
 
     // admin/people/edits
-	$('#checkall').on('click', function () {
-		$('form.olform').find(':checkbox').attr('checked', this.checked);
-	});
+    $('#checkall').on('click', function () {
+	    $('form.olform').find(':checkbox').attr('checked', this.checked);
+    });
 }
