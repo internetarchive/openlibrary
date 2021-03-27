@@ -9,7 +9,7 @@
     "build-assets": "make js && make css && make components",
     "build-assets:css": "make css",
     "build-assets:js": "make js",
-    "svg-min": "svgo --config .svgo.yml static/images/**/*.svg static/images/*.svg",
+    "svg-min": "svgo --config config/svgo.config.js static/images/**/*.svg static/images/*.svg",
     "lint": "npm run lint:js && npm run lint:css",
     "lint:js": "eslint --ext js,vue .",
     "lint:css": "stylelint ./**/*.less",
@@ -22,7 +22,7 @@
   "devDependencies": {
     "@babel/core": "7.13.10",
     "@babel/plugin-syntax-dynamic-import": "7.8.3",
-    "@babel/preset-env": "7.12.11",
+    "@babel/preset-env": "7.13.10",
     "@babel/register": "7.13.8",
     "@vue/cli": "4.5.12",
     "@vue/cli-plugin-babel": "4.5.12",
@@ -72,7 +72,7 @@
     "coverageThreshold": {
       "global": {
         "branches": 19,
-        "functions": 19,
+        "functions": 18,
         "lines": 19,
         "statements": 19
       }
