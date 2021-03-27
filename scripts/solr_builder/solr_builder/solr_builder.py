@@ -5,7 +5,7 @@ import itertools
 from typing import Awaitable, List, Iterable, Literal
 
 import httpx
-from httpx import RequestError, HTTPStatusError
+from httpx import RequestError, HTTPStatusError, ReadTimeout, ConnectTimeout
 from six.moves.configparser import ConfigParser
 import logging
 import time
@@ -196,7 +196,7 @@ class LocalPostgresDataProvider(DataProvider):
         3 times) recursively split up the pool of ocaids to do as many
         successful sub-bulk fetches as we can and then when limit is
         reached, downstream code will fetch remaining ocaids individually
-        (and skip bad ocaids) 
+        (and skip bad ocaids)
         """
         if not ocaids or _recur_depth > _max_recur_depth:
             logger.warning('Max recursion exceeded trying fetch IA data', extra={
@@ -205,19 +205,24 @@ class LocalPostgresDataProvider(DataProvider):
             return []
 
         async with httpx.AsyncClient() as client:
-            r = await client.get("https://archive.org/advancedsearch.php", params={
-                'q': "identifier:(%s)" % ' OR '.join(ocaids),
-                'rows': len(ocaids),
-                'fl': 'identifier,boxid,collection',
-                'page': 1,
-                'output': 'json',
-                'save': 'yes',
-            })
+            r = await client.get(
+                "https://archive.org/advancedsearch.php",
+                timeout=30,  # The default is silly short
+                params={
+                    'q': f"identifier:({' OR '.join(ocaids)})",
+                    'rows': len(ocaids),
+                    'fl': 'identifier,boxid,collection',
+                    'page': 1,
+                    'output': 'json',
+                    'save': 'yes',
+                }
+            )
 
         try:
             r.raise_for_status()
             return r.json()['response']['docs']
-        except (RequestError, HTTPStatusError, ValueError, KeyError):
+        except (RequestError, HTTPStatusError, ReadTimeout, ConnectTimeout, ValueError,
+                KeyError):
             logger.error(f"Error while fetching IA data: {r.status_code}: {r.json()['error']}",
                          extra={'_recur_depth': _recur_depth})
             # there's probably a bad apple; try splitting the batch
