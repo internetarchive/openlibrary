@@ -229,7 +229,7 @@ class LocalPostgresDataProvider(DataProvider):
             parts = await asyncio.gather(*(
                 LocalPostgresDataProvider._get_lite_metadata(
                     part, _recur_depth=_recur_depth + 1)
-                for part in partition(ocaids, 3)
+                for part in partition(ocaids, 6)
             ))
             return list(itertools.chain(*parts))
 
