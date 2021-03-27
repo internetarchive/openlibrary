@@ -11,7 +11,7 @@ import requests
 import sys
 import time
 
-from httpx import RequestError, HTTPStatusError
+from httpx import RequestError, HTTPStatusError, ReadTimeout
 from six.moves.urllib.parse import urlparse
 from collections import defaultdict
 from unicodedata import normalize
@@ -1174,6 +1174,8 @@ def solr8_update(
             'resp': resp.content,
             'status_code': resp.status_code
         })
+    except ReadTimeout:
+        logger.warning('ReadTimeout during solr8 POST update')
 
 
 def process_edition_data(edition_data):
