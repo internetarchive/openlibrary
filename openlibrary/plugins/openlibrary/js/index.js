@@ -166,6 +166,11 @@ jQuery(function () {
             .then((module) => module.initCoversSaved());
     }
 
+    if ($('a:contains(People)').length) {
+        import(/* webpackChunkName: "admin" */ './admin')
+            .then((module) => module.initAdmin());
+    }
+
     if ($('#cboxPrevious').length) {
         $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});
     }
