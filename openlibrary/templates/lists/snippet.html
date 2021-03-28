@@ -5,8 +5,8 @@ $def with (list)
     $ title = _("Cover of: %(listname)s", listname=list)
     <a href="$list.key"><img src="$cover_url" height="58" alt="$title" title="$title"/></a>
 </span>
-<span class="details">
-    <span class="resultTitle">
+<div class="details">
+    <div class="resultTitle">
         <h3>
             <a href="$list.key" class="results"><b>$list.name</b></a>
         </h3>
@@ -21,5 +21,5 @@ $def with (list)
             $else:
                 <p>$_('No description.')</p>
         </div>
-    </span>
-</span>
+    </div>
+</div>
