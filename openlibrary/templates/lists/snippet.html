@@ -15,11 +15,11 @@ $def with (list)
             $if list.last_update:
                 | $_('Last modified %(date)s', date=datestr(list.last_modified))
         </span>
-        <span class="detail">
+        <div class="detail">
             $if list.description:
                 $:sanitize(format(list.description))
             $else:
                 <p>$_('No description.')</p>
-        </span>
+        </div>
     </span>
 </span>
