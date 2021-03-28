@@ -47,3 +47,10 @@ while [ $done != "true" ]; do
 
   if [ $done != "true" ]; then sleep 30; fi
 done
+
+# Now that we're done, wait for any trailing runners to finish up.
+runners=$(docker container ls -q -f "name=ol_run" | wc -l)
+while [ $((runners > 0)) = "1" ]; do
+  sleep 30
+  runners=$(docker container ls -q -f "name=ol_run" | wc -l)
+done
