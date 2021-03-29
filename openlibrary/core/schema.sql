@@ -56,7 +56,7 @@ CREATE TABLE observations (
     edition_id INTEGER default -1,
     username text not null,
     observation_value INTEGER not null,
-		observation_type INTEGER not null,
+    observation_type INTEGER not null,
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
     primary key (work_id, edition_id, username, observation_value, observation_type)
 );
