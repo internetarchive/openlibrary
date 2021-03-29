@@ -912,6 +912,7 @@ class account_loans_json(delegate.page):
         user = accounts.get_current_user()
         user.update_loan_status()
         loans = borrow.get_loans(user)
+        web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps({
             "loans": loans
         }))
