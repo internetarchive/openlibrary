@@ -1,16 +1,10 @@
 """Generic helper functions to use in the templates and the webapp.
 """
 import web
-from datetime import datetime
+import json
 import re
-
-import six
-from six.moves.urllib.parse import urlsplit
-
-if six.PY2:  # See #4525 json.dump(indent) MUST be an int on PY2
-    import simplejson as json
-else:
-    import json
+from datetime import datetime
+from urllib.parse import urlsplit
 
 import babel
 import babel.core
@@ -29,7 +23,7 @@ except ImportError:
     BeautifulSoup = None
 
 from infogami import config
-
+from infogami.infobase.client import Nothing
 # handy utility to parse ISO date strings
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
@@ -101,7 +95,7 @@ def sanitize(html, encoding='utf8'):
 def json_encode(d, **kw):
     """Same as json.dumps.
     """
-    return json.dumps(d, **kw)
+    return json.dumps([] if isinstance(d, Nothing) else d, **kw)
 
 
 def safesort(iterable, key=None, reverse=False):
@@ -184,7 +178,7 @@ def commify(number, lang=None):
         lang = lang or web.ctx.get("lang") or "en"
         return babel.numbers.format_number(int(number), lang)
     except:
-        return six.text_type(number)
+        return str(number)
 
 
 def truncate(text, limit):
@@ -303,5 +297,5 @@ def _get_helpers():
     return web.storage((k, _globals[k]) for k in __all__)
 
 
-## This must be at the end of this module
+# This must be at the end of this module
 helpers = _get_helpers()
