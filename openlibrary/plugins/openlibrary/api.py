@@ -449,7 +449,8 @@ class patron_observations(delegate.page):
         patron_observations = defaultdict(list)
 
         for r in existing_records:
-            patron_observations[r['type']].append(r['value'])
+            kv_pair = Observations.get_key_value_pair(r['type'], r['value'])
+            patron_observations[kv_pair.key].append(kv_pair.value)
             
         return delegate.RawText(json.dumps(patron_observations), content_type="application/json")
 
