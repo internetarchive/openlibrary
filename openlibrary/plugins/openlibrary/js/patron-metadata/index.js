@@ -10,29 +10,34 @@ export function initPatronMetadata() {
         });
     }
 
-    function populateForm($form, aspects) {
+    function populateForm($form, observations, selectedValues) {
         let i18nStrings = JSON.parse(document.querySelector('#modal-link').dataset.i18n);
-
-        for (const aspect of aspects) {
-            let className = aspect.multi_choice ? 'multi-choice' : 'single-choice';
+        for (const observation of observations) {
+            let className = observation.multi_choice ? 'multi-choice' : 'single-choice';
             let $choices = $(`<div class="${className}"></div>`);
-            let choiceIndex = aspect.schema.values.length;
+            let choiceIndex = observation.values.length;
 
-            for (const value of aspect.schema.values) {
-                let choiceId = `${aspect.label}Choice${choiceIndex--}`;
+            for (const value of observation.values) {
+                let choiceId = `${observation.label}Choice${choiceIndex--}`;
+                let checked = '';
 
-                $choices.prepend(`
+                if (observation.label in selectedValues
+                    && selectedValues[observation.label].includes(value)) {
+                    checked = 'checked';
+                }
+
+                $choices.append(`
                 <label for="${choiceId}" class="${className}-label">
-                            <input type=${aspect.multi_choice ? 'checkbox': 'radio'} name="${aspect.label}" id="${choiceId}" value="${value}">
+                            <input type=${observation.multi_choice ? 'checkbox': 'radio'} name="${observation.label}" id="${choiceId}" value="${value}" ${checked}>
                             ${value}
                         </label>`);
             }
 
             $form.append(`
               <details class="aspect-section">
-                <summary>${aspect.label}</summary>
-                <div id="${aspect.label}-question">
-                    <h3>${aspect.description}</h3>
+                <summary>${observation.label}</summary>
+                <div id="${observation.label}-question">
+                    <h3>${observation.description}</h3>
                     ${$choices.prop('outerHTML')}
                 </div>
               </details>
@@ -52,20 +57,32 @@ export function initPatronMetadata() {
 
     $('#modal-link').on('click', function() {
         if ($('#user-metadata').children().length === 0) {
+            let context = JSON.parse(document.querySelector('#modal-link').dataset.context);
+            let selectedValues = {};
+
             $.ajax({
                 type: 'GET',
-                url: '/aspects',
+                url: `/works/${context.work.split('/')[2]}/observations`,
                 dataType: 'json'
             })
                 .done(function(data) {
-                    populateForm($('#user-metadata'), data.aspects);
-                    $('#cancel-submission').click(function() {
-                        $.colorbox.close();
+                    selectedValues = data;
+
+                    $.ajax({
+                        type: 'GET',
+                        url: '/observations',
+                        dataType: 'json'
                     })
-                    displayModal();
-                })
-                .fail(function() {
-                    // TODO: Handle failed API calls gracefully.
+                        .done(function(data) {
+                            populateForm($('#user-metadata'), data.observations, selectedValues);
+                            $('#cancel-submission').click(function() {
+                                $.colorbox.close();
+                            })
+                            displayModal();
+                        })
+                        .fail(function() {
+                            // TODO: Handle failed API calls gracefully.
+                        })
                 })
         } else {
             displayModal();
@@ -79,7 +96,7 @@ export function initPatronMetadata() {
         let result = {};
 
         result['username'] = context.username;
-        result['work_id'] = context.work.split('/')[2];
+        let workId = context.work.split('/')[2];
 
         if (context.edition) {
             result['edition_id'] = context.edition.split('/')[2];
@@ -102,7 +119,7 @@ export function initPatronMetadata() {
         if (result['observations'].length > 0) {
             $.ajax({
                 type: 'POST',
-                url: '/observations',
+                url: `/works/${workId}/observations`,
                 contentType: 'application/json',
                 data: JSON.stringify(result)
             });

@@ -49,3 +49,14 @@ CREATE TABLE bookshelves_votes (
 INSERT INTO bookshelves (name, description) VALUES ('Want to Read', 'A list of books I want to read');
 INSERT INTO bookshelves (name, description) VALUES ('Currently Reading', 'A list of books I am currently reading');
 INSERT INTO bookshelves (name, description) VALUES ('Already Read', 'A list of books I have finished reading');
+
+
+CREATE TABLE observations (
+    work_id INTEGER not null,
+    edition_id INTEGER default -1,
+    username text not null,
+    observation_type INTEGER not null,
+    observation_value INTEGER not null,
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    primary key (work_id, edition_id, username, observation_value, observation_type)
+);
