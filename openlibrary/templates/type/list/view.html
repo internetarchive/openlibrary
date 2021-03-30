@@ -206,6 +206,8 @@ window.q.push(function(){
                         <h3 class="booktitle">
                             <a href="$seed.url" class="results">$seed.title</a>
                         </h3>
+                        $if seed.type in ['edition', 'work'] and doc.subtitle:
+                            <h4 class="work-subtitle">$doc.subtitle</h4>
                         $if seed.type in ['edition', 'work']:
                             $if seed.type == "work":
                                 $ authors = seed.document.get_authors()
