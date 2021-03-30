@@ -340,60 +340,72 @@ class Observations(object):
 
         return list(oldb.query(query, vars=data))
 
+    def get_multi_choice(type):
+        for o in get_observations()['observations']:
+            if o['label'] == type:
+                return o['multi_choice']
+
     @classmethod
-    def persist_observations(cls, username, work_id, observations, edition_id=NULL_EDITION_VALUE):
+    def persist_observation(cls, username, work_id, observation, action, edition_id=NULL_EDITION_VALUE):
         """
+        TODO: update: 
         Insert or update a collection of observations.  If no records exist
         for the given work_id, new observations are inserted.
 
         """
 
-        def get_observation_ids(observations):
+        def get_observation_ids(observation):
             """
-            Given a list of observation key-value pairs, returns a list of observation IDs.
+            Given an observation key-value pair, returns an ObservationIds tuple.
 
-            return: List of observation IDs
+            return: An ObservationsIds tuple
             """
-            observation_ids = []
+            key = list(observation)[0]
+            item = next((o for o in OBSERVATIONS['observations'] if o['label'] == key))
 
-            for o in observations:
-                key = list(o)[0]
-                observation = next((o for o in OBSERVATIONS['observations'] if o['label'] == key))
-                
-                observation_ids.append(
-                    ObservationIds(
-                        observation['id'],
-                        next((v['id'] for v in observation['values'] if v['name'] == o[key]))
-                    )
-                )
-
-            return observation_ids
+            return ObservationIds(
+                item['id'],
+                next((v['id'] for v in item['values'] if v['name'] == observation[key]))
+            )
 
         oldb = db.get_db()
-        records = cls.get_patron_observations(username, work_id)
+        data = {
+            'username': username,
+            'work_id': work_id,
+            'edition_id': edition_id,
+            'observation_type': observation_ids.type_id,
+            'observation_value': observation_ids.value_id
+        }
 
-        observation_ids = get_observation_ids(observations)
+        where_clause = 'username=$username AND work_id=$work_id AND observation_type=$observation_type '
 
-        for r in records:
-            record_ids = ObservationIds(r['type'], r['value'])
-            # Delete values that are in existing records but not in submitted observations
-            if record_ids not in observation_ids:
-                cls.remove_observations(
-                    username,
-                    work_id,
-                    edition_id=edition_id,
-                    observation_type=r['type'],
-                    observation_value=r['value']
-                )
-            else:
-                # If same value exists in both existing records and observations, remove from observations
-                observation_ids.remove(record_ids)
-                    
-        if len(observation_ids):
-            # Insert all remaining observations
-            oldb.multiple_insert('observations', 
-                [{'username': username, 'work_id': work_id, 'edition_id': edition_id, 'observation_value': id.value_id, 'observation_type': id.type_id} for id in observation_ids]
+        
+        if action == 'delete':
+            # Delete observation and return:
+            where_clause += 'AND observation_value=$observation_value'
+
+            return oldb.delete(
+                'observations',
+                vars=data,
+                where=where_clause
             )
+        elif not cls.get_multi_choice(list(observation)[0]):
+            # A radio button value has changed.  Delete old value, if one exists:
+            oldb.delete(
+                'observations',
+                vars=data,
+                where=where_clause
+            )
+
+        # Insert new value and return:
+        return oldb.insert(
+            'observations',
+            username=username,
+            work_id=work_id,
+            edition_id=edition_id,
+            observation_type=observation_ids.type_id,
+            observation_value=observation_ids.value_id
+        )
 
     @classmethod
     def remove_observations(cls, username, work_id, edition_id=NULL_EDITION_VALUE, observation_type=None, observation_value=None):

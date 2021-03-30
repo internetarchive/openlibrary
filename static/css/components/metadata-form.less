@@ -2,6 +2,40 @@
 @import (reference) "../less/colors.less";
 @import (reference) "./buttonBtn.less";
 
+.failure-indicator {
+  color: red;
+}
+
+.success-indicator {
+  color: green;
+}
+
+.pending-indicator{
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+}
+
+.pending-indicator:after {
+  content: " ";
+  display: block;
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  border: 1px solid black;
+  border-color: black transparent black transparent;
+  animation: pending-indicator 1.2s linear infinite;
+}
+
+@keyframes pending-indicator {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .single-choice {
   display: flex;
   margin-bottom: .5em;
@@ -73,6 +107,11 @@
     padding-left: .5em;
     padding-bottom: .5em;
   }
+
+  h3 {
+    display: inline-block;
+    margin-right: .5em;
+  }
 }
 
 .book-notes-form {
@@ -136,5 +175,19 @@
       margin-bottom: 1.5em;
       margin-top: .5em;
     }
+  }
+
+  .aspect-section {
+    h3 {
+      margin-right: unset;
+      display: block;
+    }
+  }
+  
+  .pending-indicator,
+  .success-indicator,
+  .failure-indicator {
+    display: block;
+    height: 1em;
   }
 }
