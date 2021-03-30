@@ -56,7 +56,7 @@ services:
       - db
 
   home:
-    image: oldev:latest
+    image: "oldev:${OLDEV_TAG:-latest}"
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
     build:
