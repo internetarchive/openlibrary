@@ -1,4 +1,4 @@
-FROM openlibrary/olbase:latest
+FROM openlibrary/olbase:docker-test-janDeploy
 
 WORKDIR /openlibrary
 
