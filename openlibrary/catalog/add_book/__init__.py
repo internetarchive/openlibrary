@@ -642,7 +642,7 @@ def load_data(rec, account_key=None):
     return reply
 
 
-def load(rec, account_key: str = None):
+def load(rec, account_key=None):
     """Given a record, tries to add/match that edition in the system.
 
     Record is a dictionary containing all the metadata of the edition.
