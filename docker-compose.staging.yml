@@ -27,12 +27,7 @@ services:
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
       - .:/openlibrary
-  home:
-    volumes:
-      - ol-vendor:/openlibrary/vendor
-      - ol-build:/openlibrary/static/build
-      - ol-nodemodules:/openlibrary/node_modules
-      - .:/openlibrary
+
 volumes:
   ol-vendor:
   ol-build:
