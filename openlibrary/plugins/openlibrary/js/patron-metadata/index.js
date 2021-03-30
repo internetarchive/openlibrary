@@ -1,13 +1,17 @@
 import '../../../../../static/css/components/metadata-form.less';
 
+// Event name for submission status updates:
 const OBSERVATION_SUBMISSION = 'observationSubmission';
-const ANY = 'allSections';
 
+// Used to denote a submission state change for all sections:
+const ANY_SECTION_TYPE = 'allSections';
+
+// Denotes all possible states of an observation submission:
 const SubmissionState = {
-    INITIAL: 1,
-    PENDING: 2,
-    SUCCESS: 3,
-    FAILURE: 4
+    INITIAL: 1, // Initial state --- nothing has been submitted yet.
+    PENDING: 2, // A submission has been made, but the server has not yet responded.
+    SUCCESS: 3, // The observation was successfully processed by the server.
+    FAILURE: 4  // Something went wrong while the observation was being processed by the server.
 };
 
 export function initPatronMetadata() {
@@ -55,12 +59,21 @@ export function initPatronMetadata() {
                                     </div>
                                 </details>`);
 
+            /*
+            Adds an observation submission state change event handler to this section of the form.
+
+            The handler displays the appropriate submission state indicator depending on the given submission
+            state.
+
+            The handler takes a section type, which identifies which section's submission state should
+            change, and the new submission state.
+            */
             $formSection.on(OBSERVATION_SUBMISSION, function(event, sectionType, submissionState) {
                 let pendingSpan = $(this).find('.pending-indicator')[0];
                 let successSpan = $(this).find('.success-indicator')[0];
                 let failureSpan = $(this).find('.failure-indicator')[0];
 
-                if (sectionType === type || sectionType === ANY) {
+                if (sectionType === type || sectionType === ANY_SECTION_TYPE) {
                     switch (submissionState) {
                     case SubmissionState.INITIAL:
                         pendingSpan.classList.add('hidden');
@@ -132,7 +145,8 @@ export function initPatronMetadata() {
                         })
                 })
         } else {
-            $('.aspect-section').trigger(OBSERVATION_SUBMISSION, [ANY, SubmissionState.INITIAL]);
+            // Hide all submission state indicators when the modal is reopened:
+            $('.aspect-section').trigger(OBSERVATION_SUBMISSION, [ANY_SECTION_TYPE, SubmissionState.INITIAL]);
             displayModal();
         }
     });
@@ -161,7 +175,14 @@ function addToggleListeners($toggleElements) {
 
 
 /**
- * TODO: documentation
+ * Adds change listeners to each input in the observations section of the modal.
+ *
+ * For each checkbox and radio button in the observations form, a change listener
+ * that triggers observation submissions is added.  On change, a payload containing
+ * the username, action type ('add' when an input is checked, 'delete' when unchecked),
+ * and observation type and value are sent to the back-end server.
+ *
+ * @param {Object}  context  An object containing the patron's username and the work's OLID.
  */
 function addChangeListeners(context) {
     let $questionSections = $('.aspect-section');
@@ -191,7 +212,12 @@ function addChangeListeners(context) {
 }
 
 /**
- * TODO: documentation
+ * Submits an observation to the server and triggers submission status change events.
+ *
+ * @param {JQuery}  $input      The checkbox or radio button that is firing the change event.
+ * @param {String}  workOlid    The OLID for the work being observed.
+ * @param {Object}  data        Payload that will be sent to the back-end server.
+ * @param {String}  sectionType Name of the input's section.
  */
 function submitObservation($input, workOlid, data, sectionType) {
     // Show spinner:

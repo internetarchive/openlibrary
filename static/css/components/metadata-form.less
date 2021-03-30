@@ -3,11 +3,11 @@
 @import (reference) "./buttonBtn.less";
 
 .failure-indicator {
-  color: red;
+  color: @red;
 }
 
 .success-indicator {
-  color: green;
+  color: @green;
 }
 
 .pending-indicator{
@@ -22,8 +22,8 @@
   width: 1em;
   height: 1em;
   border-radius: 50%;
-  border: 1px solid black;
-  border-color: black transparent black transparent;
+  border: 1px solid @black;
+  border-color: @black transparent;
   animation: pending-indicator 1.2s linear infinite;
 }
 
@@ -183,7 +183,7 @@
       display: block;
     }
   }
-  
+
   .pending-indicator,
   .success-indicator,
   .failure-indicator {

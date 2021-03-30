@@ -341,17 +341,27 @@ class Observations(object):
         return list(oldb.query(query, vars=data))
 
     def get_multi_choice(type):
-        for o in get_observations()['observations']:
+        """
+        Searches for the given type in the observations object, and returns the type's 'multi_choice' value.
+
+        return: The multi_choice value for the given type
+        """
+        for o in OBSERVATIONS['observations']:
             if o['label'] == type:
                 return o['multi_choice']
 
     @classmethod
     def persist_observation(cls, username, work_id, observation, action, edition_id=NULL_EDITION_VALUE):
         """
-        TODO: update: 
-        Insert or update a collection of observations.  If no records exist
-        for the given work_id, new observations are inserted.
+        Inserts or deletes a single observation, depending on the given action.
 
+        If the action is 'delete', the observation will be deleted from the observations table.
+
+        If the action is 'add', and the observation type only allows a single value (multi_choice == True), 
+        an attempt is made to delete previous observations of the same type before the new observation is 
+        persisted.
+
+        Otherwise, the new observation is stored in the DB.
         """
 
         def get_observation_ids(observation):
@@ -369,6 +379,8 @@ class Observations(object):
             )
 
         oldb = db.get_db()
+        observation_ids = get_observation_ids(observation)
+
         data = {
             'username': username,
             'work_id': work_id,
