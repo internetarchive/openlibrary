@@ -234,7 +234,7 @@ def new_work(edition, rec, cover_id=None):
     return w
 
 
-def add_cover(cover_url, ekey, account=None):
+def add_cover(cover_url, ekey, account_key=None):
     """
     Adds a cover to coverstore and returns the cover id.
 
@@ -248,11 +248,13 @@ def add_cover(cover_url, ekey, account=None):
     upload_url = coverstore_url + '/b/upload2'
     if upload_url.startswith('//'):
         upload_url = '{}:{}'.format(web.ctx.get('protocol', 'http'), upload_url)
-    user = account or accounts.get_current_user()
-    if not user:
-        raise RuntimeError("accounts.get_current_user() failed")
+    if not account_key:
+        user = accounts.get_current_user()
+        if not user:
+            raise RuntimeError("accounts.get_current_user() failed")
+        account_key = user.get('key') or user.get('_key')
     params = {
-        'author': user.get('key') or user.get('_key'),
+        'author': account_key,
         'data': None,
         'source_url': cover_url,
         'olid': olid,
@@ -539,7 +541,7 @@ def add_db_name(rec):
         a['db_name'] = ' '.join([a['name'], date]) if date else a['name']
 
 
-def load_data(rec, account=None):
+def load_data(rec, account_key=None):
     """
     Adds a new Edition to Open Library. Checks for existing Works.
     Creates a new Work, and Author, if required,
@@ -577,7 +579,7 @@ def load_data(rec, account=None):
     ekey = web.ctx.site.new_key('/type/edition')
     cover_id = None
     if cover_url:
-        cover_id = add_cover(cover_url, ekey, account=account)
+        cover_id = add_cover(cover_url, ekey, account_key=account_key)
     if cover_id:
         edition['covers'] = [cover_id]
 
@@ -640,7 +642,7 @@ def load_data(rec, account=None):
     return reply
 
 
-def load(rec, account=None):
+def load(rec, account_key=None):
     """Given a record, tries to add/match that edition in the system.
 
     Record is a dictionary containing all the metadata of the edition.
@@ -672,7 +674,7 @@ def load(rec, account=None):
     edition_pool = build_pool(rec)
     if not edition_pool:
         # No match candidates found, add edition
-        return load_data(rec, account=account)
+        return load_data(rec, account_key=account_key)
 
     match = early_exit(rec)
     if not match:
@@ -688,7 +690,7 @@ def load(rec, account=None):
 
     if not match:
         # No match found, add edition
-        return load_data(rec, account=account)
+        return load_data(rec, account_key=account_key)
 
     # We have an edition match at this point
     need_work_save = need_edition_save = False
@@ -725,7 +727,7 @@ def load(rec, account=None):
     # Add cover to edition
     if 'cover' in rec and not e.get_covers():
         cover_url = rec['cover']
-        cover_id = add_cover(cover_url, e.key, account=account)
+        cover_id = add_cover(cover_url, e.key, account_key=account_key)
         if cover_id:
             e['covers'] = [cover_id]
             need_edition_save = True
