@@ -12,9 +12,6 @@ services:
     command: docker/ol-web-start.sh
     ports:
       - ${WEB_PORT:-8080}:8080
-    depends_on:
-      - db
-      - infobase
     networks:
       - webnet
       - dbnet
@@ -22,6 +19,7 @@ services:
       options:
         max-size: "512m"
         max-file: "4"
+
   solr:
     image: olsolr:latest
     build:
@@ -40,6 +38,7 @@ services:
       options:
         max-size: "512m"
         max-file: "4"
+
   solr-updater:
     image: oldev:latest
     build:
@@ -62,15 +61,7 @@ services:
     image: memcached
     networks:
       - webnet
-  db:
-    image: postgres:9.3
-    networks:
-      - dbnet
-    volumes:
-      # Any files inside /docker-entrypoint-initdb.d/ will get run by postgres
-      # if the db is empty (which as of now is always, since we don't store the
-      # postgres data anywhere).
-      - ./docker/ol-db-init.sh:/docker-entrypoint-initdb.d/ol-db-init.sh
+
   covers:
     image: oldev:latest
     environment:
@@ -90,6 +81,7 @@ services:
       options:
         max-size: "512m"
         max-file: "4"
+
   infobase:
     image: oldev:latest
     environment:
@@ -102,8 +94,6 @@ services:
     command: docker/ol-infobase-start.sh
     expose:
       - 7000
-    depends_on:
-      - db
     networks:
       - webnet
       - dbnet
@@ -111,21 +101,7 @@ services:
       options:
         max-size: "512m"
         max-file: "4"
-  home:
-    image: oldev:latest
-    environment:
-      - PYENV_VERSION=${PYENV_VERSION:-}
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.oldev
-    command: docker/ol-home-start.sh
-    networks:
-      - webnet
-      - dbnet
-    logging:
-      options:
-        max-size: "512m"
-        max-file: "4"
+
 networks:
   webnet:
   dbnet:
