@@ -298,18 +298,6 @@ def _sort_values(order_list, values_list):
     
     return ordered_values
 
-
-# TODO: Cache these values
-def _get_observation_types_dict():
-    """
-    Returns a dictionary of ObservationType tuples.  This dictionary is used to construct
-    the metrics dictionary used by get_observation_metrics.
-
-    return: A dictionary of data about an observation type.
-    """
-    return { o['id']: ObservationType(o['label'], o['description'], o['multi_choice']) 
-                for o in get_observations()['observations'] }
-
 @public
 def get_observation_metrics(work_olid):
     """
@@ -318,21 +306,26 @@ def get_observation_metrics(work_olid):
 
     Dictionary will have the following structure:
     {
-        'work_id': work_id,
-        'total_respondents': total_unique_respondents(work_id),
+        'work_id': 12345,
+        'total_respondents': 100,
         'observations': [
             {
-                'label': observation_types.type,
-                'description': observation_types.description,
-                'multi_choice': observation_types.allow_multiple_values,
-                'total_respondents_for_type': Total unique respondents for this type,
+                'label': 'pace',
+                'description': 'What is the pace of this book?',
+                'multi_choice': False,
+                'total_respondents_for_type': 10,
                 'values': [
                     {
-                        'value': observation.values.value,
-                        'count': Amount of patrons who chose this value
+                        'value': 'fast',
+                        'count': 6
+                    },
+                    {
+                        'value': 'medium',
+                        'count': 4
                     }
                 ]
             }
+            ... Other observations omitted for brevity ... 
         ]
     }
 
@@ -353,29 +346,36 @@ def get_observation_metrics(work_olid):
     if total_respondents > 0:
         respondents_per_type_dict = Observations.count_unique_respondents_by_type(work_id)
         observation_totals = Observations.count_observations(work_id)
-        observation_dict = _get_observation_types_dict()
 
-        current_type = observation_totals[0]['type']
+        current_type_id = observation_totals[0]['type_id']
+        observation_item = next((o for o in OBSERVATIONS['observations'] if current_type_id == o['id']))
+
         current_observation = {
-            'label': observation_dict[current_type].label,
-            'description': observation_dict[current_type].description,
-            'multi_choice': observation_dict[current_type].multi_choice,
-            'total_respondents_for_type': respondents_per_type_dict[current_type],
+            'label': observation_item['label'],
+            'description': observation_item['description'],
+            'multi_choice': observation_item['multi_choice'],
+            'total_respondents_for_type': respondents_per_type_dict[current_type_id],
             'values': []
         }
 
         for i in observation_totals:
-            if i['type'] != current_type:
+            if i['type_id'] != current_type_id:
                 metrics['observations'].append(current_observation)
-                current_type = i['type']
+                current_type_id = i['type_id']
+                observation_item = next((o for o in OBSERVATIONS['observations'] if current_type_id == o['id']))
                 current_observation = {
-                    'label': observation_dict[current_type].label,
-                    'description': observation_dict[current_type].description,
-                    'multi_choice': observation_dict[current_type].multi_choice,
-                    'total_respondents_for_type': respondents_per_type_dict[current_type],
+                    'label': observation_item['label'],
+                    'description': observation_item['description'],
+                    'multi_choice': observation_item['multi_choice'],
+                    'total_respondents_for_type': respondents_per_type_dict[current_type_id],
                     'values': []
                 }
-            current_observation['values'].append( { 'value': i['value'], 'count': i['total'] } )
+            current_observation['values'].append(
+                    { 
+                        'value': next((v['name'] for v in observation_item['values'] if v['id'] == i['value_id'])), 
+                        'count': i['total'] 
+                    } 
+                )
     
         metrics['observations'].append(current_observation)
     return metrics
@@ -419,13 +419,11 @@ class Observations(object):
         }
         query = """
             SELECT 
-              observation_values.type, 
-              count(distinct(observations.username)) AS total_respondents
+              observation_type AS type, 
+              count(distinct(username)) AS total_respondents
             FROM observations 
-            JOIN observation_values 
-              ON observations.observation_id = observation_values.id 
-            WHERE observations.work_id = $work_id
-            GROUP BY observation_values.type"""
+            WHERE work_id = $work_id
+            GROUP BY type"""
 
         return { i['type']: i['total_respondents'] for i in list(db.query(query, vars=data)) }
 
@@ -443,15 +441,13 @@ class Observations(object):
         }
         query = """
             SELECT 
-              observation_values.type,
-              observation_values.value, 
-              COUNT(observations.observation_id) AS total
+              observation_type as type_id,
+              observation_value as value_id, 
+              COUNT(observation_value) AS total
             FROM observations
-            JOIN observation_values
-              ON observations.observation_id = observation_values.id
             WHERE observations.work_id = $work_id
-            GROUP BY observation_values.type, observation_values.value
-            ORDER BY observation_values.type, total DESC"""
+            GROUP BY type_id, value_id
+            ORDER BY type_id, total DESC"""
 
         return list(oldb.query(query, vars=data))
 
