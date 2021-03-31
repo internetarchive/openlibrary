@@ -55,7 +55,7 @@ def print_dump(json_records, filter=None):
 
 def read_data_file(filename):
     for line in xopen(filename):
-        if six.PY3 and not isinstance(line, str):
+        if not isinstance(line, str):
             line = line.decode("utf-8")
         thing_id, revision, json_data = line.strip().split("\t")
         yield pgdecode(json_data)
@@ -76,7 +76,7 @@ def read_tsv(file, strip=True):
         file = xopen(file)
 
     for i, line in enumerate(file):
-        if six.PY3 and not isinstance(line, str):
+        if not isinstance(line, str):
             line = line.decode("utf-8")
         if i % 1000000 == 0:
             log(i)
@@ -114,7 +114,7 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
     # split the file into 256 chunks using hash of key
     log("splitting", dump_file)
     for i, line in enumerate(stdin):
-        if six.PY3 and not isinstance(line, bytes):
+        if not isinstance(line, bytes):
             line = line.encode("utf-8")
         if i % 1000000 == 0:
             log(i)
@@ -173,7 +173,7 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
 
     stdin = xopen(dump_file) if dump_file else sys.stdin
     for i, line in enumerate(stdin):
-        if six.PY3 and not isinstance(line, bytes):
+        if not isinstance(line, bytes):
             line = line.encode("utf-8")
         if i % 1000000 == 0:
             log(i)

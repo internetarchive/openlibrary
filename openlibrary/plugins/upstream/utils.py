@@ -13,7 +13,6 @@ import logging
 import requests
 
 import six
-from six import PY3
 from six.moves import urllib
 from six.moves.collections_abc import MutableMapping
 from six.moves.urllib.parse import parse_qs, urlencode as parse_urlencode, urlparse, urlunparse
@@ -438,7 +437,7 @@ class Metatag:
 
     def __str__(self):
         attrs = ' '.join(
-            '%s="%s"' % (k, websafe(v) if PY3 else websafe(v).encode('utf8'))
+            '%s="%s"' % (k, websafe(v))
             for k, v in self.attrs.items())
         return '<%s %s />' % (self.tag, attrs)
 

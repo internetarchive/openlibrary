@@ -1,13 +1,8 @@
+from json.decoder import JSONDecodeError
 from unittest.mock import Mock, patch
 import requests
 from infogami import config
 from openlibrary.core import fulltext
-
-# py3 uses json.decoder.JSONDecodeError
-try:
-    from json.decoder import JSONDecodeError
-except ImportError:
-    JSONDecodeError = ValueError
 
 
 class Test_fulltext_search_api:
