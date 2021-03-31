@@ -1,6 +1,6 @@
 """Module for handling patron observation functionality"""
 
-from collections import namedtuple
+from collections import defaultdict, namedtuple
 
 from infogami import config
 from infogami.utils.view import public
@@ -243,7 +243,7 @@ OBSERVATIONS = {
     ]
 }
 
-@cache.memoize(engine="memcache", key="observations", expires=config.get('observation_cache_duration'))
+#@cache.memoize(engine="memcache", key="observations", expires=config.get('observation_cache_duration'))
 def get_observations():
     """
     Returns a dictionary of observations that are used to populate forms for patron feedback about a book.
@@ -265,20 +265,23 @@ def get_observations():
         ]
     }
 
+    If an observation is marked as deleted, it will not be included in the dictionary.
+
     return: Dictionary of all possible observations that can be made about a book.
     """
     observations_list = []
 
     for o in OBSERVATIONS['observations']:
-        list_item = {
-            'id': o['id'],
-            'label': o['label'],
-            'description': o['description'],
-            'multi_choice': o['multi_choice'],
-            'values': _sort_values(o['order'], o['values'])
-        }
+        if 'deleted' not in o:
+            list_item = {
+                'id': o['id'],
+                'label': o['label'],
+                'description': o['description'],
+                'multi_choice': o['multi_choice'],
+                'values': _sort_values(o['order'], o['values'])
+            }
 
-        observations_list.append(list_item)
+            observations_list.append(list_item)
 
     return {'observations': observations_list}
 
@@ -297,6 +300,27 @@ def _sort_values(order_list, values_list):
             ordered_values.append(value)
     
     return ordered_values
+
+def _get_deleted_types_and_values():
+    """
+    Returns a dictionary containing all deleted observation types and values.
+    
+    return: Deleted types and values dictionary.
+    """
+    results = {
+        'types': [],
+        'values': defaultdict(list)
+    }
+
+    for o in OBSERVATIONS['observations']:
+        if 'deleted' in o and o['deleted']:
+            results['types'].append(o['id'])
+        else:
+            for v in o['values']:
+                if 'deleted' in v and v['deleted']:
+                    results['values'][o['id']].append(v['id'])
+
+    return results
 
 @public
 def get_observation_metrics(work_olid):
@@ -422,8 +446,20 @@ class Observations(object):
               observation_type AS type, 
               count(distinct(username)) AS total_respondents
             FROM observations 
-            WHERE work_id = $work_id
-            GROUP BY type"""
+            WHERE work_id = $work_id """
+
+        deleted_observations = _get_deleted_types_and_values()
+
+        if len(deleted_observations['types']):
+            deleted_type_ids = ', '.join(str(i) for i in deleted_observations['types'])
+            query += f'AND observation_type not in ({deleted_type_ids}) '
+
+        if len(deleted_observations['values']):
+            for key in deleted_observations['values']:
+                deleted_value_ids = ', '.join(str(i) for i in deleted_observations['values'][key])
+                query += f'AND NOT (observation_type = {str(key)} AND observation_value IN ({deleted_value_ids})) '
+
+        query += 'GROUP BY type'
 
         return { i['type']: i['total_respondents'] for i in list(db.query(query, vars=data)) }
 
@@ -445,7 +481,20 @@ class Observations(object):
               observation_value as value_id, 
               COUNT(observation_value) AS total
             FROM observations
-            WHERE observations.work_id = $work_id
+            WHERE observations.work_id = $work_id """
+
+        deleted_observations = _get_deleted_types_and_values()
+
+        if len(deleted_observations['types']):
+            deleted_type_ids = ', '.join(str(i) for i in deleted_observations['types'])
+            query += f'AND observation_type not in ({deleted_type_ids}) '
+
+        if len(deleted_observations['values']):
+            for key in deleted_observations['values']:
+                deleted_value_ids = ', '.join(str(i) for i in deleted_observations['values'][key])
+                query += f'AND NOT (observation_type = {str(key)} AND observation_value IN ({deleted_value_ids})) '
+
+        query += """
             GROUP BY type_id, value_id
             ORDER BY type_id, total DESC"""
 
