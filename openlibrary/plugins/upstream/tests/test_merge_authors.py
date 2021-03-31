@@ -71,21 +71,21 @@ def test_MockSite():
     assert list(site.docs) == []
 
     site.add([{
-            "key": "å",
+            "key": "a",
             "type": {"key": "/type/object"}
         }, {
             "key": "ß",
             "type": {"key": "/type/object"}
         }
     ])
-    assert list(site.docs) == ["å", "ß"]
+    assert list(site.docs) == ["a", "ß"]
 
 
 TEST_AUTHORS = web.storage({
     "OL100A": {
         "key": "/authors/OL100A",
         "type": {"key": "/type/author"},
-        "name": "Üñîçø∂é OL100A"
+        "name": "Alexander Hamilton"
     },
     "OL200A": {
         "key": "/authors/OL200A",
