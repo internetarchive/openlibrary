@@ -495,13 +495,14 @@ class Work(Thing):
 
     def get_num_users_by_bookshelf(self):
         if not self.key:  # a dummy work
-            return {'want-to-read': 0, 'currently-reading': 0, 'already-read': 0}
+            return {'want-to-read': 0, 'currently-reading': 0, 'already-read': 0, 'stopped-reading': 0}
         work_id = extract_numeric_id_from_olid(self.key)
         num_users_by_bookshelf = Bookshelves.get_num_users_by_bookshelf_by_work_id(work_id)
         return {
             'want-to-read': num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0),
             'currently-reading': num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES['Currently Reading'], 0),
-            'already-read': num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0)
+            'already-read': num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0),
+            'stopped-reading': num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES['Stopped Reading'], 0)
         }
 
     def get_rating_stats(self):

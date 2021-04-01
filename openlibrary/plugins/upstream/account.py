@@ -662,7 +662,8 @@ class ReadingLog(object):
             'loans': self.get_loans,
             'want-to-read': self.get_want_to_read,
             'currently-reading': self.get_currently_reading,
-            'already-read': self.get_already_read
+            'already-read': self.get_already_read,
+            'stopped-reading': self.get_stopped_reading
         }
 
     @property
@@ -676,7 +677,8 @@ class ReadingLog(object):
         return {
             'want-to-read': counts.get(Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0),
             'currently-reading': counts.get(Bookshelves.PRESET_BOOKSHELVES['Currently Reading'], 0),
-            'already-read': counts.get(Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0)
+            'already-read': counts.get(Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0),
+            'stopped-reading': counts.get(Bookshelves.PRESET_BOOKSHELVES['Stopped Reading'], 0)
         }
 
     def get_loans(self):
@@ -725,6 +727,11 @@ class ReadingLog(object):
     def get_already_read(self, page=1, limit=RESULTS_PER_PAGE):
         return self.process_logged_books(Bookshelves.get_users_logged_books(
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Already Read'],
+            page=page, limit=limit))
+    
+    def get_stopped_reading(self, page=1, limit=RESULTS_PER_PAGE):
+        return self.process_logged_books(Bookshelves.get_users_logged_books(
+            self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Stopped Reading'],
             page=page, limit=limit))
 
     def get_works(self, key, page=1, limit=RESULTS_PER_PAGE):
@@ -946,7 +953,7 @@ class export_books(delegate.page):
         books = Bookshelves.get_users_logged_books(username, limit=10000)
         csv = []
         csv.append('Work Id,Edition Id,Bookshelf\n')
-        mapping = {1:'Want to Read', 2:'Currently Reading', 3:'Already Read'}
+        mapping = {1:'Want to Read', 2:'Currently Reading', 3:'Already Read', 4:'Stopped Reading'}
         for book in books:
             row = [
                 'OL{}W'.format(book['work_id']),

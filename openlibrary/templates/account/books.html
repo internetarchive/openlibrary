@@ -1,9 +1,9 @@
 $def with (items, key, sponsorship_count=None, reading_log_counts=None, lists=None, user=None, logged_in_user=None, public=False)
 $# Displays a user's reading log
 $# :param list items:
-$# :param Literal['currently-reading', 'want-to-read', 'already-read', 'sponsorships', 'loans', 'waitlist'] key:
+$# :param Literal['currently-reading', 'want-to-read', 'already-read', 'stopped-reading', 'sponsorships', 'loans', 'waitlist'] key:
 $# :param int? sponsorship_count: number of books the user is sponsoring
-$# :param Dict[Literal['currently-reading', 'want-to-read', 'already-read'], int] reading_log_counts:
+$# :param Dict[Literal['currently-reading', 'want-to-read', 'already-read', 'stopped-reading'], int] reading_log_counts:
 $# :param list? lists:
 $# :param user:
 $# :param bool public:
@@ -29,6 +29,9 @@ $elif key == 'want-to-read':
 $elif key == 'already-read':
   $ og_title = _("Books %(username)s has read", username=userDisplayName)
   $ og_description = _("%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about.", username=userDisplayName, total=total_items)
+$elif key == 'stopped-reading':
+  $ og_title = _("Books %(username)s had stopped reading", username=userDisplayName)
+  $ og_description = _("%(username)s had stopped reading %(total)d books.", username=userDisplayName, total=total_items)
 $elif key == 'sponsorships':
   $ header_title = _("Sponsorships")
   $ og_title = _("Books %(userdisplayname)s is sponsoring", userdisplayname=userDisplayName)
@@ -85,6 +88,7 @@ $if og_title:
           <li><a href="$urlbase/currently-reading" $('class=selected' if key == 'currently-reading' else '')>$_('Currently Reading (%(count)d)', count=reading_log_counts['currently-reading'])</a></li>
           <li><a href="$urlbase/want-to-read" $('class=selected' if key == 'want-to-read' else '')>$_('Want to Read (%(count)d)', count=reading_log_counts['want-to-read'])</a></li>
           <li><a href="$urlbase/already-read" $('class=selected' if key == 'already-read' else '')>$_('Already Read (%(count)d)', count=reading_log_counts['already-read'])</a></li>
+          <li><a href="$urlbase/stopped-reading" $('class=selected' if key == 'stopped-reading' else '')>$_('Stopped Reading (%(count)d)', count=reading_log_counts['stopped-reading'])</a></li>
         </ul>
         $if owners_page and ctx.user and ctx.user.in_sponsorship_beta():
           <!-- only show to owners -->
@@ -105,7 +109,7 @@ $if og_title:
         $:macros.Pager(current_page, total_items, results_per_page=25)
         <ul class="list-books">
           $if items:
-            $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
+            $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3, 'stopped-reading': 4}.get(key, None)
             $for item in items:
               $if key == 'loans':
                 $ edition = get_document(item['book'])

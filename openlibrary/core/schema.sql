@@ -49,6 +49,7 @@ CREATE TABLE bookshelves_votes (
 INSERT INTO bookshelves (name, description) VALUES ('Want to Read', 'A list of books I want to read');
 INSERT INTO bookshelves (name, description) VALUES ('Currently Reading', 'A list of books I am currently reading');
 INSERT INTO bookshelves (name, description) VALUES ('Already Read', 'A list of books I have finished reading');
+INSERT INTO bookshelves (name, description) VALUES ('Stopped Reading', 'A list of books I have stopped reading');
 
 
 CREATE TABLE observations (

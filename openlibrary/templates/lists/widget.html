@@ -118,7 +118,9 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
           $if work_key:
             <div class="log-work">
               <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
-                $if users_work_read_status == 3:
+                $if users_work_read_status == 4:
+                    $ message = _("Stopped Reading")
+                $elif users_work_read_status == 3:
                     $ message = _("Already Read")
                 $elif users_work_read_status == 2:
                     $ message = _("Currently Reading")
@@ -156,7 +158,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
             </div>
             <div class="dropdown">
               <div class="read-statuses">
-                $if users_work_read_status == 2 or users_work_read_status == 3:
+                $if users_work_read_status == 2 or users_work_read_status == 3 or users_work_read_status == 4:
                   <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
                     <input type="hidden" name="action" value="add"/>
                     <input type="hidden" name="redir" value="true"/>
@@ -184,6 +186,16 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                     $if edition_key:
                       <input type="hidden" name="edition_id" value="$(edition_key)"/>
                     <button class="nostyle-btn" type="submit">$_('Already Read')</button>
+                  </form>
+                
+                $if users_work_read_status != 4:
+                  <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                    <input type="hidden" name="action" value="add"/>
+                    <input type="hidden" name="redir" value="true"/>
+                    <input type="hidden" name="bookshelf_id" value="4"/>
+                    $if edition_key:
+                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                    <button class="nostyle-btn" type="submit">$_('Stopped Reading')</button>
                   </form>
               </div>
 
