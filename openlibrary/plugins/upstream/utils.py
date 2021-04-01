@@ -744,7 +744,7 @@ def _get_blog_feeds():
             link=item.find("link").text,
             pubdate=pubdate
         )
-    return [parse_item(item) for item in tree.findall("//item")]
+    return [parse_item(item) for item in tree.findall(".//item")]
 
 _get_blog_feeds = cache.memcache_memoize(_get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=5*60)
 
