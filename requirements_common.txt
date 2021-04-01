@@ -6,7 +6,7 @@ Deprecated==1.2.12
 eventer==0.1.1
 flup-py3==1.0.3
 Genshi==0.7.5
-gunicorn==20.0.4
+gunicorn==20.1.0
 internetarchive==1.9.9
 isbnlib==3.10.6
 lxml==4.6.3
