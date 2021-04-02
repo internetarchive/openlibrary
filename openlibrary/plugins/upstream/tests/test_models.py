@@ -62,7 +62,9 @@ class TestModels:
 
         assert hasattr(work, 'any_attribute')  # hasattr() is True for all keys!
         assert isinstance(work.any_attribute, client.Nothing)
-        assert repr(work.any_attribute) == str(work.any_attribute) == ''
+        assert repr(work.any_attribute) == str(work.any_attribute)
+        # TODO (cclauss): Remove '' when internetarchive/infogami#151 lands
+        assert repr(work.any_attribute) in ('', '<Nothing>')
 
         work.new_attribute = 'new_attribute'
         assert isinstance(work.data, client.Nothing)  # Still Nothing
