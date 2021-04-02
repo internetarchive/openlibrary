@@ -94,7 +94,7 @@ function fetchRecord(olid) {
     }[olid[olid.length - 1]];
     const endpoint = `/${type}/${olid}.json`;
     // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
-    const url = location.host == 'dev.openlibrary.org' ? `https://openlibrary.org${endpoint}` : endpoint;
+    const url = location.host.endsWith('.openlibrary.org') ? `https://openlibrary.org${endpoint}` : endpoint;
     return fetch(url).then(r => r.json());
 }
 
