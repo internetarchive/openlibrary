@@ -72,7 +72,7 @@ class TestModels:
 
         assert not work.hasattr('new_attribute')
         assert work._data == {'new_attribute': 'new_attribute'}
-        assert repr(work.data) == str(work.data) == ''
+        assert repr(work.data) == str(work.data) == '<Nothing>'
 
         assert callable(work.get_sorted_editions)  # Issue #3633
         assert work.get_sorted_editions() == []
