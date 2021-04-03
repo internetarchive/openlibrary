@@ -93,6 +93,14 @@ def normalize_ddc(ddc):
             decimal = '.' + number_parts[1] if len(number_parts) > 1 else ''
 
             number = '%03d%s' % (int(integer), decimal)
+
+            # Discard catalog edition number
+            # At least one classification number available
+            if len(results) > 1:
+                # Check if number like '0*' without decimal component
+                if re.search(r'(^0\d*$)', parts['number']):
+                    continue
+
         # Handle [Fic] or [E]
         elif parts['fic']:
             number = '[%s]' % parts['fic'].title()
