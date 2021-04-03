@@ -63,7 +63,7 @@ export function loadEditionsGraph() {
             color: '#615132',
             'font-size': '11px',
             opacity: 0.90,
-            'z-index': 100 
+            'z-index': 100
         }).appendTo('body').customFadeIn(200);
     }
     previousPoint = null;
