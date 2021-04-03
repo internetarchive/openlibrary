@@ -28,6 +28,35 @@ $def with (page)
     </a>
   </div>
 
+  <ul class="navigation-component">
+    <li class="browse-menu checkbox-menu">
+      <a href="javascript:;">$_('Browse') <img class="down-arrow" width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/></a>
+
+      <div class="navigation-dropdown-component">
+        <ul class="dropdown-menu browse-menu-options">
+          <li><a href="/subjects">$_("Subjects")</a></li>
+          <li><a href="/lists">$_("Lists")</a></li>
+          <li><a href="/k-12">$_("K-12 Student Library")</a></li>
+          <li><a href="/random">$_("Random Book")</a></li>
+          <li><a href="/advancedsearch">$_("Advanced Search")</a></li>
+        </ul>
+      </div>
+    </li>
+    <li class="more-menu checkbox-menu">
+      <a href="javascript:;">$_('More') <img class="down-arrow"
+        width="7" height="4" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
+      <div class="navigation-dropdown-component">
+        <ul class="dropdown-menu more-menu-options">
+          <li><a href="/books/add">$_("Add a Book")</a></li>
+          <li><a href="/sponsorship">$_("Sponsor a Book")</a></li>
+          <li><a href="/recentchanges">$_("Recent Community Edits")</a></li>
+          <li><a href="/developers">$_("Developer Center")</a></li>
+          <li><a href="/help">$_("Help & Support")</a></li>
+        </ul>
+      </div>
+    </li>
+  </ul>
+
   <div class="search-component">
     <div class="search-bar-component">
       <div class="search-bar">
@@ -58,34 +87,6 @@ $def with (page)
     </div>
   </div>
 
-  <ul class="navigation-component">
-    <li class="browse-menu checkbox-menu">
-      <a href="javascript:;">$_('Browse') <img class="down-arrow" width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/></a>
-
-      <div class="navigation-dropdown-component">
-        <ul class="dropdown-menu browse-menu-options">
-          <li><a href="/subjects">$_("Subjects")</a></li>
-          <li><a href="/lists">$_("Lists")</a></li>
-          <li><a href="/k-12">$_("K-12 Student Library")</a></li>
-          <li><a href="/random">$_("Random Book")</a></li>
-          <li><a href="/advancedsearch">$_("Advanced Search")</a></li>
-        </ul>
-      </div>
-    </li>
-    <li class="more-menu checkbox-menu">
-      <a href="javascript:;">$_('More') <img class="down-arrow"
-        width="7" height="4" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
-      <div class="navigation-dropdown-component">
-        <ul class="dropdown-menu more-menu-options">
-          <li><a href="/books/add">$_("Add a Book")</a></li>
-          <li><a href="/sponsorship">$_("Sponsor a Book")</a></li>
-          <li><a href="/recentchanges">$_("Recent Community Edits")</a></li>
-          <li><a href="/developers">$_("Developer Center")</a></li>
-          <li><a href="/help">$_("Help & Support")</a></li>
-        </ul>
-      </div>
-    </li>
-  </ul>
   $if not ctx.user:
     <ul class="auth-component">
       <li class="hide-me">
