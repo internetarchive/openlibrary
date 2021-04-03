@@ -92,6 +92,7 @@
   }
 
   .dropdown-menu {
+    display: none;
     text-align: left;
     background-color: @light-beige;
     border: 1px solid @dark-beige;
@@ -134,7 +135,7 @@
     order: 0;
     margin-right: 5px;
 
-    label {
+    button {
       background: transparent;
       border: none;
     }
@@ -481,7 +482,10 @@
 
 .logo-component {
   margin: 0 0 5px;
-
+  img,
+  a {
+    display: block;
+  }
   a {
     color: @black;
     text-decoration: none !important;

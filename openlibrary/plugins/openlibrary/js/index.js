@@ -187,6 +187,10 @@ jQuery(function () {
 
     $('#wikiselect').on('focus', function(){$(this).select();})
 
+    $('.checkbox-menu').on('click',function(){
+        $(this).find('.dropdown-menu').toggle();
+    });
+
     // Clicking outside of menus closes menus
     $(document).on('click', function (event) {
         const $openMenus = $('.checkbox-menu :checked').parents('.checkbox-menu');
