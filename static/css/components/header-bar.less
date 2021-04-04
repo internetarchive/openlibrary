@@ -455,18 +455,6 @@
   /* stylelint-enable selector-max-specificity */
 }
 
-.client-js {
-  .hamburger-component,
-  .navigation-component li,
-  .account-component {
-  /* stylelint-disable selector-max-specificity */
-    &:hover .dropdown-menu {
-      display: none;
-    }
-  /* stylelint-enable selector-max-specificity */
-  }
-}
-
 .logo-component {
   margin: 0 0 5px;
   img,
@@ -613,6 +601,15 @@
       opacity: 0;
       position: absolute;
     }
+  }
+  .hamburger-component,
+  .navigation-component li,
+  .account-component {
+    /* stylelint-disable selector-max-specificity */
+    &:hover .dropdown-menu {
+      display: none;
+    }
+    /* stylelint-enable selector-max-specificity */
   }
 }
 
