@@ -2,7 +2,7 @@
 
 Jinja2==2.11.3
 clint==0.5.1
-decorator==4.4.2
+decorator==5.0.4
 ecdsa==0.16.1
 meld3==2.0.1
 pyOpenSSL==20.0.1
