@@ -95,21 +95,6 @@ a.tag.active {
 }
 </style>
 
-<script type="text/javascript">
-window.q.push(function() {
-    \$("a.tag").click(function(){
-        \$(this).toggleClass("active");
-
-        var action = \$(this).hasClass("active") ? "add_tag": "remove_tag";
-        var tag = \$(this).text();
-        \$.post(window.location.href, {
-            "action": action,
-            "tag": tag
-        });
-    });
-});
-</script>
-
 <div id="contentHead">
     $:render_template("admin/menu")
     <h1><a class="plain" href="/admin/people">People</a> / $person.username</h1>

@@ -8,7 +8,7 @@ $def link(url, title):
     $else:
         <a href="$url">$title</a>
 
-<div class="superNav">
+<div class="superNav" id="adminLinks">
     $:link("/admin", _("Admin Center"))
     | $:link("/admin/people", _("People"))
     | $:link("/admin/sponsorship", _("Sponsorship"))
