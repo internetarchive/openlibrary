@@ -150,7 +150,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       </div>
 
       <div class="work-line">
-        $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title</a>
+        $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title$cond(work.subtitle, ': %s' % work.subtitle)</a>
         $if work.first_publish_year:
           ($work.first_publish_year)
       </div>

@@ -8,7 +8,6 @@ import hmac
 import re
 import requests
 import json
-import six
 import logging
 
 import web
@@ -841,19 +840,12 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
 
 def ia_hash(token_data):
     access_key = make_access_key()
-    if six.PY3:
-        return hmac.new(
-            access_key,
-            token_data.encode('utf-8'),
-            hashlib.md5
-        ).hexdigest()
-    return hmac.new(access_key, token_data).hexdigest()
+    return hmac.new(access_key, token_data.encode('utf-8'), hashlib.md5).hexdigest()
 
 
 def make_access_key():
     try:
-        access_key = config.ia_access_secret
-        return access_key if six.PY2 else access_key.encode('utf-8')
+        return config.ia_access_secret.encode('utf-8')
     except AttributeError:
         raise RuntimeError(
             "config value config.ia_access_secret is not present -- check your config"

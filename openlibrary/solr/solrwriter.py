@@ -94,11 +94,9 @@ def add_field(doc, name, value):
             value = str(value)
         try:
             value = strip_bad_char(value)
-            if six.PY2 and isinstance(value, str):
-                value = value.decode('utf-8')
             field.text = normalize('NFC', value)
         except:
-            logger.error('Error in normalizing %r', value)
+            logger.exception('Error in normalizing %r', value)
             raise
         doc.append(field)
 

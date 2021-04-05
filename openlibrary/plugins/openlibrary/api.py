@@ -7,6 +7,7 @@ its experience. This does not include public facing APIs with LTS
 import web
 import re
 import json
+from collections import defaultdict
 
 from infogami import config
 from infogami.utils import delegate
@@ -19,7 +20,7 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
-from openlibrary.core.observations import post_observation, get_aspects
+from openlibrary.core.observations import get_observations, Observations
 from openlibrary.core.models import Booknotes
 from openlibrary.core.sponsorships import qualifies_for_sponsorship
 from openlibrary.core.vendors import (
@@ -428,21 +429,48 @@ class observations(delegate.page):
     path = "/observations"
     encoding = "json"
 
-    def POST(self):
-        user = accounts.get_current_user()
-
-        if user:
-            account = OpenLibraryAccount.get_by_email(user.email)
-            s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
-
-            if s3_keys:
-                response = post_observation(web.data(), s3_keys)
-                return delegate.RawText(response)
+    def GET(self):
+        return delegate.RawText(json.dumps(get_observations()), content_type="application/json")
 
 
-class aspects(delegate.page):
-    path = "/aspects"
+class patron_observations(delegate.page):
+    path = r"/works/OL(\d+)W/observations"
     encoding = "json"
 
-    def GET(self):
-        return delegate.RawText(get_aspects())
+    def GET(self, work_id):
+        user = accounts.get_current_user()
+
+        if not user:
+            raise web.seeother('/account/login')
+
+        username = user.key.split('/')[2]
+        existing_records = Observations.get_patron_observations(username, work_id)
+
+        patron_observations = defaultdict(list)
+
+        for r in existing_records:
+            kv_pair = Observations.get_key_value_pair(r['type'], r['value'])
+            patron_observations[kv_pair.key].append(kv_pair.value)
+            
+        return delegate.RawText(json.dumps(patron_observations), content_type="application/json")
+
+    def POST(self, work_id):
+        user = accounts.get_current_user()
+
+        if not user:
+            raise web.seeother('/account/login')
+
+        data = json.loads(web.data())
+
+        Observations.persist_observations(
+            data['username'],
+            work_id,
+            data['observations']
+        )
+
+        def response(msg, status="success"):
+            return delegate.RawText(json.dumps({
+                status: msg
+            }), content_type="application/json")
+
+        return response('Observations added')

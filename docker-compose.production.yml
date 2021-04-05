@@ -8,6 +8,7 @@
 version: "3.1"
 services:
   web:
+    profiles: ["ol-web1", "ol-web2"]
     restart: always
     hostname: "$HOSTNAME"
     environment:
@@ -19,7 +20,12 @@ services:
       - ../olsystem:/olsystem
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
 
+  solr:
+    # TODO: Currently solr is deployed in a "special" way
+    profiles: []
+
   covers:
+    profiles: ["ol-covers0"]
     restart: always
     hostname: "$HOSTNAME"
     environment:
@@ -28,7 +34,9 @@ services:
     volumes:
       - ../olsystem:/olsystem
       - /1:/1
+
   covers_nginx:
+    profiles: ["ol-covers0"]
     image: nginx:1.19.4
     restart: always
     depends_on:
@@ -55,8 +63,13 @@ services:
       # Needed by default-docker.conf
       - ssl_certificate
       - ssl_certificate_key
+
+  memcached:
+    profiles: ["ol-covers0"]
+
   cron-jobs:
-    image: oldev:latest
+    profiles: ["ol-home0"]
+    image: "oldev:${OLDEV_TAG:-latest}"
     hostname: "$HOSTNAME"
     build:
       context: .
@@ -75,6 +88,7 @@ services:
       - ia_db_pw_file
 
   infobase:
+    profiles: ["ol-home0"]
     restart: always
     hostname: "$HOSTNAME"
     environment:
@@ -84,7 +98,9 @@ services:
       - ../olsystem:/olsystem
       - infobase-writelog:/1/var/lib/openlibrary/infobase/log
       - infobase-errorlog:/1/var/log/openlibrary/infobase-errors
+
   infobase_nginx:
+    profiles: ["ol-home0"]
     image: nginx:1.19.4
     restart: always
     depends_on:
@@ -102,11 +118,12 @@ services:
       - petabox_seed
 
   affiliate-server:
+    profiles: ["ol-home0"]
     restart: always
     hostname: "$HOSTNAME"
     environment:
       - AFFILIATE_CONFIG=/openlibrary.yml
-    image: oldev:latest
+    image: "oldev:${OLDEV_TAG:-latest}"
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
@@ -121,7 +138,9 @@ services:
       options:
         max-size: "512m"
         max-file: "4"
+
   solr-updater:
+    profiles: ["ol-home0"]
     restart: always
     hostname: "$HOSTNAME"
     environment:
@@ -135,8 +154,10 @@ services:
         max-file: "4"
     secrets:
       - ia_db_pw_file
+
   importbot:
-    image: oldev:latest
+    profiles: ["ol-home0"]
+    image: "oldev:${OLDEV_TAG:-latest}"
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev

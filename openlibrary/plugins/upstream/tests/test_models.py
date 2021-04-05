@@ -62,7 +62,7 @@ class TestModels:
 
         assert hasattr(work, 'any_attribute')  # hasattr() is True for all keys!
         assert isinstance(work.any_attribute, client.Nothing)
-        assert repr(work.any_attribute) == str(work.any_attribute) == ''
+        assert repr(work.any_attribute) == str(work.any_attribute) == '<Nothing>'
 
         work.new_attribute = 'new_attribute'
         assert isinstance(work.data, client.Nothing)  # Still Nothing
@@ -72,7 +72,7 @@ class TestModels:
 
         assert not work.hasattr('new_attribute')
         assert work._data == {'new_attribute': 'new_attribute'}
-        assert repr(work.data) == str(work.data) == ''
+        assert repr(work.data) == str(work.data) == '<Nothing>'
 
         assert callable(work.get_sorted_editions)  # Issue #3633
         assert work.get_sorted_editions() == []

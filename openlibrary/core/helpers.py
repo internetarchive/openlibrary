@@ -1,10 +1,11 @@
 """Generic helper functions to use in the templates and the webapp.
 """
-import web
 import json
 import re
 from datetime import datetime
 from urllib.parse import urlsplit
+
+import web
 
 import babel
 import babel.core
@@ -49,7 +50,7 @@ __docformat__ = "restructuredtext en"
 def sanitize(html, encoding='utf8'):
     """Removes unsafe tags and attributes from html and adds
     ``rel="nofollow"`` attribute to all external links.
-    Using encoding=None if passing unicode strings e.g. for Python 3.
+    Using encoding=None if passing Unicode strings.
     encoding="utf8" matches default format for earlier versions of Genshi
     https://genshi.readthedocs.io/en/latest/upgrade/#upgrading-from-genshi-0-6-x-to-the-development-version
     """
