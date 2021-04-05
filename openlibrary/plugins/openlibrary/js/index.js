@@ -166,7 +166,7 @@ jQuery(function () {
             .then((module) => module.initCoversSaved());
     }
 
-    if ($('a:contains(People)').length) {
+    if (document.getElementById('adminLinks')) {
         import(/* webpackChunkName: "admin" */ './admin')
             .then((module) => module.initAdmin());
     }
