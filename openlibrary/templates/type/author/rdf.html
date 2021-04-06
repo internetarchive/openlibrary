@@ -8,8 +8,8 @@ $def with (author)
   xmlns:dcterms='http://purl.org/dc/terms/'
   xmlns:foaf='http://xmlns.com/foaf/0.1/'
   xmlns:ov='http://open.vocab.org/terms/'
+  xmlns:owl='http://www.w3.org/2002/07/owl#'
 >
-
     $if author.enumeration:
         $ name = author.name + ", " + author.enumeration
     $else:
@@ -17,14 +17,12 @@ $def with (author)
 
     $ auri = "http://openlibrary.org" + author.key
 
-
     $def display(tag, value):
         $if isinstance(value, list):
             $for x in value:
                 <$tag>$x</$tag>
         $elif value:
             <$tag>$value</$tag>
-
 
     <foaf:Person rdf:about="$auri">
         $:display("foaf:name", name)
@@ -45,7 +43,12 @@ $def with (author)
                 <dcterms:date>$author.death_date</dcterms:date>
             </bio:Death>
         </bio:event>
-
+      $if 'isni' in author.remote_ids:
+        <owl:sameAs rdf:resource="http://isni.org/isni/$author.remote_ids['isni']"/>
+      $if 'wikidata' in author.remote_ids:
+        <owl:sameAs rdf:resource="http://www.wikidata.org/entity/$author.remote_ids['wikidata']"/>
+      $if 'viaf' in author.remote_ids:
+        <owl:sameAs rdf:resource="http://viaf.org/viaf/$author.remote_ids['viaf']"/>
       $if author.wikipedia:
         <foaf:isPrimaryTopicOf>
             <foaf:Document rdf:about="$author.wikipedia">
@@ -65,7 +68,6 @@ $def with (author)
         <foaf:depiction>
             <foaf:Image rdf:about="$auphoto" />
         </foaf:depiction>
-
     </foaf:Person>
 
     <!-- administrative -->
