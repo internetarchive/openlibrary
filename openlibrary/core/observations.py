@@ -243,7 +243,7 @@ OBSERVATIONS = {
     ]
 }
 
-#@cache.memoize(engine="memcache", key="observations", expires=config.get('observation_cache_duration'))
+@cache.memoize(engine="memcache", key="observations", expires=config.get('observation_cache_duration'))
 def get_observations():
     """
     Returns a dictionary of observations that are used to populate forms for patron feedback about a book.
