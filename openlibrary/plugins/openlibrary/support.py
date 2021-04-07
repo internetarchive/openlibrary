@@ -29,6 +29,7 @@ class contact(delegate.page):
 
     def POST(self):
         form = web.input()
+        patron_name = form.get("name", "")
         email = form.get("email", "")
         topic = form.get("topic", "")
         description = form.get("question", "")
@@ -95,6 +96,7 @@ Topic: %(topic)s
 URL: %(url)s
 User-Agent: %(useragent)s
 OL-username: %(username)s
+Patron-name: %(patron_name)s
 """
 
 def setup():
