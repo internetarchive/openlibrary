@@ -3,6 +3,8 @@ from . import db
 
 class Booknotes(object):
 
+    NULL_EDITION_VALUE = -1
+
     @classmethod
     def total_booknotes(cls):
         oldb = db.get_db()
@@ -54,14 +56,14 @@ class Booknotes(object):
 
 
     @classmethod
-    def get_patron_booknote(cls, username, work_id):
-        note = cls.get_patron_booknotes(username, work_id=work_id)
+    def get_patron_booknote(cls, username, work_id, edition_id=NULL_EDITION_VALUE):
+        note = cls.get_patron_booknotes(username, work_id=work_id, edition_id=edition_id)
         return note and note[0]
 
     @classmethod
-    def get_patron_booknotes(cls, username, work_id=None, search=None, limit=100, page=1):
+    def get_patron_booknotes(cls, username, work_id=None, edition_id=NULL_EDITION_VALUE, search=None, limit=100, page=1):
         """
-        By default, get all a patron's booknotes. if work_id, get only that booknote
+        By default, get all a patron's booknotes. if work_id, get book note for that work_id and edition_id.
 
         return:
         """
@@ -70,13 +72,14 @@ class Booknotes(object):
         data = {
             'username': username,
             'work_id': work_id,
+            'edition_id': edition_id,
             'limit': limit,
             'offset': limit * (page - 1),
             'search': search
         }
         query = "SELECT * from booknotes WHERE username=$username "
         if work_id:
-            query += "AND work_id=$work_id "
+            query += "AND work_id=$work_id AND edition_id=$edition_id "
         if search:
             query += "AND notes LIKE '%$search%' "
         query += "LIMIT $limit OFFSET $offset"
@@ -84,7 +87,7 @@ class Booknotes(object):
 
 
     @classmethod
-    def add(cls, username, work_id, notes, edition_id=None):
+    def add(cls, username, work_id, notes, edition_id=NULL_EDITION_VALUE):
         """Insert or update booknote. Create a new booknote if one doesn't
         exist, or gracefully update the record otherwise.
 
@@ -97,7 +100,7 @@ class Booknotes(object):
             "notes": notes,
             "edition_id": edition_id
         }
-        records = cls.get_patron_booknotes(username, work_id=work_id)
+        records = cls.get_patron_booknotes(username, work_id=work_id, edition_id=edition_id)
         if not records:
             return oldb.insert(
                 'booknotes',
@@ -108,7 +111,7 @@ class Booknotes(object):
             )
         return oldb.update(
             'booknotes',
-            where="work_id=$work_id AND username=$username",
+            where="work_id=$work_id AND username=$username AND edition_id=$edition_id",
             notes=notes,
             edition_id=edition_id,
             vars=data
@@ -116,7 +119,7 @@ class Booknotes(object):
 
 
     @classmethod
-    def remove(cls, username, work_id):
+    def remove(cls, username, work_id, edition_id=NULL_EDITION_VALUE):
         """Remove a patron's specific booknote by work_id.
 
         Technical note: work_id is not an optional argument and
@@ -132,12 +135,13 @@ class Booknotes(object):
         oldb = db.get_db()
         where = {
             'username': username,
-            'work_id': int(work_id)
+            'work_id': int(work_id),
+            'edition_id': edition_id
         }
         try:
             return oldb.delete(
                 'booknotes',
-                where=('work_id=$work_id AND username=$username'),
+                where=('work_id=$work_id AND username=$username AND edition_id=$edition_id'),
                 vars=where
             )
         except:  # we want to catch no entry exists

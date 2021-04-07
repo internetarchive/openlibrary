@@ -486,11 +486,12 @@ class Work(Thing):
         status_id = Bookshelves.get_users_read_status_of_work(username, work_id)
         return status_id
 
-    def get_users_notes(self, username):
+    def get_users_notes(self, username, edition_olid=None):
         if not username:
             return None
         work_id = extract_numeric_id_from_olid(self.key)
-        return Booknotes.get_patron_booknote(username, work_id)
+        edition_id = extract_numeric_id_from_olid(edition_olid) if edition_olid else -1
+        return Booknotes.get_patron_booknote(username, work_id, edition_id=edition_id)
 
     def get_num_users_by_bookshelf(self):
         if not self.key:  # a dummy work
