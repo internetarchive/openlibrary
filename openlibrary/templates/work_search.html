@@ -89,7 +89,7 @@ $if param and not error and num_found:
         <span class="darkgreen"><strong>$ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))</strong></span>
 &nbsp;
       $if num_found > 1:
-        $:render_template("search/sort_options.html")
+        $:render_template("search/sort_options.html", sort)
         <span class="advanced-search"><a href="/advancedsearch">$_('Advanced Search')</a></span>
     </div>
 
