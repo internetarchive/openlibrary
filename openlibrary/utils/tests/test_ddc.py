@@ -43,6 +43,13 @@ TESTS = [
     ('1', ['001'], 'whole number padding'),
     ('hello world!', [], 'junk'),
     ('978123412341', [], 'junk'),
+    ('338.9/009171/7 019', ['338.9/009171/7'], 
+     'Dewey number with segmentation and edition number'),
+    ('332.6 021', ['332.6'], 'Dewey number and edition number'),
+    ('[E] 021', ['[E]'], 'Juvenile work and edition number'),
+    ('015', ['015'], 'Single Dewey number with edition number pattern'),
+    ('(015.73) 015.791 021', ['015.73 s', '015.791'], 
+     'Two Dewey numbers and one edition number'),
 ]
 
 
