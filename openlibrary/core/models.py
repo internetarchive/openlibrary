@@ -291,13 +291,13 @@ class Edition(Thing):
         """Returns list of records for all users currently waiting for this book."""
         return waitinglist.get_waitinglist_for_book(self.key)
 
-    @property
+    @property  # type: ignore
     @cache.method_memoize
     def ia_metadata(self):
         ocaid = self.get('ocaid')
         return get_metadata_direct(ocaid, cache=False) if ocaid else {}
 
-    @property
+    @property  # type: ignore
     @cache.method_memoize
     def sponsorship_data(self):
         was_sponsored = 'openlibraryscanningteam' in self.ia_metadata.get('collection', [])
@@ -453,7 +453,7 @@ class Work(Thing):
         return "<Work: %s>" % repr(self.key)
     __str__ = __repr__
 
-    @property
+    @property  # type: ignore
     @cache.method_memoize
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "e"))
     def edition_count(self):

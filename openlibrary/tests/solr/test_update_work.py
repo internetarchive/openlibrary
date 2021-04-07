@@ -69,8 +69,8 @@ def make_work(**kw):
 
 class FakeDataProvider(DataProvider):
     """Stub data_provider and methods which are used by build_data."""
-    docs = []
-    docs_by_key = {}
+    docs = []  # type: ignore
+    docs_by_key = {}  # type: ignore
 
     def __init__(self, docs=None):
         docs = docs or []
