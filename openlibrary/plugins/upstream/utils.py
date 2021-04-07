@@ -762,7 +762,10 @@ def get_donation_include(include):
 
     html = """
     <div id="donato"></div>
-    <script src="%s" data-platform="ol"></script>
+    <script src="%s" data-platform="ol">
+        const iframe = document.querySelector("iframe");
+        iframe.title = "Internet Archive Donation"
+    </script>
     """ % script_src
     return html
 
