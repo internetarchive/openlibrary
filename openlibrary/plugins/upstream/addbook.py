@@ -36,11 +36,14 @@ def get_recaptcha():
     def recaptcha_exempt():
         """Check to see if account is an admin, or more than two years old."""
         user = web.ctx.site.get_user()
-        if user and (user.is_admin() or user.is_librarian()):
-            return True
         account = user and user.get_account()
-        if not account:
+
+        if not (user and account):
             return False
+
+        if account.has_tag("trusted-user") or user.is_admin() or user.is_librarian():
+            return True
+
         create_dt = account.creation_time()
         now_dt = datetime.datetime.utcnow()
         delta = now_dt - create_dt
