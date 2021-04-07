@@ -462,10 +462,11 @@ class patron_observations(delegate.page):
 
         data = json.loads(web.data())
 
-        Observations.persist_observations(
+        Observations.persist_observation(
             data['username'],
             work_id,
-            data['observations']
+            data['observation'],
+            data['action']
         )
 
         def response(msg, status="success"):
