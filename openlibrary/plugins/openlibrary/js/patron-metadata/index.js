@@ -148,7 +148,7 @@ export function initPatronMetadata() {
         } else {
             // Hide all submission state indicators when the modal is reopened:
             $('.aspect-section').trigger(OBSERVATION_SUBMISSION, [ANY_SECTION_TYPE, SubmissionState.INITIAL]);
-            displayModal();
+            displayModal(context.id);
         }
     });
 }

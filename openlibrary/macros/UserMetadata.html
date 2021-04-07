@@ -2,7 +2,7 @@ $def with (work, edition, link_text, id, classes='')
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ has_edition = edition is not None
-$ notes = work.get_users_notes(username) if has_edition else work.get_users_notes(username, edition.key.split('/')[-1])
+$ notes = work.get_users_notes(username) if not has_edition else work.get_users_notes(username, edition.key.split('/')[-1])
 $ book_descriptor = _("work")
 
 $ i18n_strings = {
@@ -36,7 +36,7 @@ $if has_edition:
         </div>
         $if has_edition:
           <input type="hidden" name="edition_id" value="$edition.key.split('/')[-1]" />
-        <button class="cta-btn"type="submit" form="book-notes-form">Save Note</button>
+        <button class="cta-btn"type="submit">Save Note</button>
       </form>
       <div class="floaterHead">
         <h2>$_("Observations")</h2>
