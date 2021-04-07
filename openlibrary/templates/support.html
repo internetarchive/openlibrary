@@ -15,6 +15,11 @@ $var title: $_('How can we help?')
 <p>$:_('Please check our <a href="/help/">Help Pages</a> and <a href="/help/faq">Frequently Asked Questions</a> (FAQ) to see if your question is answered there. Thank you.')</p>
 
  <div class="formElement">
+ <div class="label"><label for="name">$_("Your Name [Optional]")</label></div>
+ <div class="input"><input type="text" class="input" name="name" id="name" value="$name"/></div>
+ </div>
+ 
+ <div class="formElement">
  <div class="label"><label for="email">$_("Your Email Address")</label></div>
  <div class="input"><input type="text" class = "email" name="email" id="email" value="$email"/> ($_('We\'ll need this if you want a reply'))</div>
  </div>
@@ -22,7 +27,7 @@ $var title: $_('How can we help?')
  <div class="formElement">
    <div class="label"><label for="topic">$_("Topic")</label></div>
    <div class="input">
-     <select class = "required" name="topic" id="topic">
+     <select class="required" name="topic" id="topic">
        <option value="">$_('Select...')</option>
        <option value="Borrowing Books">$_('Borrowing Help')</option>
        <option value="Developer/Code">$_('Developer/Code Question')</option>
@@ -36,14 +41,13 @@ $var title: $_('How can we help?')
  </div>
 
  <div class="formElement">
-   <div class="label"><label for="question">$_("Your question")</label></div>
+   <div class="label"><label for="question">$_("Your Question")</label></div>
    <p><strong>$_('Note: our staff will likely only be able respond in English.')</strong></p>
    <div class="input">
-     <textarea id="question" name="question" class = "required" cols="40" rows="5"></textarea>
+     <textarea id="question" name="question" class="required" cols="40" rows="5"></textarea>
    </div>
    <p>$_('If you encounter an error message, please include it. For questions about our books, please provide the title/author or Open Library ID.')</p>
  </div>
-
 
  <!-- <div class="formElement"> -->
  <!-- <div class="label"><label for="url">$_("Which page were you looking at?")</label></div> -->
