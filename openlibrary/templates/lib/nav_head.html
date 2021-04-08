@@ -1,10 +1,10 @@
 $def with (page)
 
 <header id="header-bar" class="header-bar">
-  <div class="hamburger-component checkbox-menu">
-    <button type="button" class="hamburger-button"><img src="/static/images/menu.png" alt="additional options menu"/></button>
+  <div class="hamburger-component dropdown-toggle">
+    <button type="button" class="dropdown-button" id="mobile-hamburger-menu" aria-expanded="false"><img src="/static/images/menu.png" alt="additional options menu"/></button>
     <div class="hamburger-dropdown-component navigation-dropdown-component">
-      <ul class="dropdown-menu hamburger-dropdown-menu">
+      <ul class="dropdown-menu hamburger-dropdown-menu" aria-labelledby="mobile-hamburger-menu">
         $if not ctx.user:
           <li><a href="/account/login">$_("Log in")</a></li>
           <li><a href="/account/create">$_("Sign up")</a></li>
@@ -29,11 +29,11 @@ $def with (page)
   </div>
 
   <ul class="navigation-component">
-    <li class="browse-menu checkbox-menu">
-      <a href="javascript:;">$_('Browse') <img class="down-arrow" width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/></a>
+    <li class="browse-menu dropdown-toggle">
+      <a href="javascript:;" role="button" class="dropdown-button" id="browse-dropdown-menu" aria-expanded="false">$_('Browse') <img class="down-arrow" width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/></a>
 
       <div class="navigation-dropdown-component">
-        <ul class="dropdown-menu browse-menu-options">
+        <ul class="dropdown-menu browse-menu-options" aria-labelledby="browse-dropdown-menu">
           <li><a href="/subjects">$_("Subjects")</a></li>
           <li><a href="/lists">$_("Lists")</a></li>
           <li><a href="/k-12">$_("K-12 Student Library")</a></li>
@@ -42,11 +42,11 @@ $def with (page)
         </ul>
       </div>
     </li>
-    <li class="more-menu checkbox-menu">
-      <a href="javascript:;">$_('More') <img class="down-arrow"
+    <li class="more-menu dropdown-toggle">
+      <a href="javascript:;" role="button" class="dropdown-button" id="more-dropdown-menu" aria-expanded="false">$_('More') <img class="down-arrow"
         width="7" height="4" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
       <div class="navigation-dropdown-component">
-        <ul class="dropdown-menu more-menu-options">
+        <ul class="dropdown-menu more-menu-options" aria-labelledby="more-dropdown-menu">
           <li><a href="/books/add">$_("Add a Book")</a></li>
           <li><a href="/sponsorship">$_("Sponsor a Book")</a></li>
           <li><a href="/recentchanges">$_("Recent Community Edits")</a></li>
@@ -96,9 +96,9 @@ $def with (page)
     </ul>
 
   $if ctx.user:
-    <div class="account-component checkbox-menu">
+    <div class="account-component dropdown-toggle">
       <div class="dropdown-avatar">
-        <button class="avatar" id="userToggle" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');"></button>
+        <button class="avatar dropdown-button" id="userToggle" aria-expanded="false" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');"></button>
         <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" role="presentation" alt=""/>
       </div>
       <div class="account-dropdown navigation-dropdown-component" id="main-account-dropdown">

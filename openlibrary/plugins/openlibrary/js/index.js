@@ -187,16 +187,19 @@ jQuery(function () {
 
     $('#wikiselect').on('focus', function(){$(this).select();})
 
-    $('.checkbox-menu').on('click',function(){
+    $('.dropdown-toggle').on('click',function(){
         $(this).find('.dropdown-menu').toggle();
+        $(this).find(".dropdown-button").attr("aria-expanded", function (i, attr) {
+            return attr == "true" ? "false" : "true";
+        });
     });
 
     // Clicking outside of menus closes menus
-    $(document).on('click', function (event) {
-        const $openMenus = $('.checkbox-menu :checked').parents('.checkbox-menu');
+    $('.dropdown-toggle').on('click', function (event) {
+        const $openMenus = $('.dropdown-menu :visible').parents('.dropdown-toggle');
         $openMenus
             .filter((_, menu) => !$(event.target).closest(menu).length)
-            .find('[type=checkbox]')
-            .removeAttr('checked');
+            .find('.dropdown-menu')
+            .toggle();
     });
 });
