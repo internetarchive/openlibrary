@@ -2,12 +2,12 @@ $def with (page)
 
 <header id="header-bar" class="header-bar">
   <div class="hamburger-component checkbox-menu">
+    <input role="button" type="checkbox" class="dropdown-checkbox hamburger-component__checkbox" id="toggle-hamburger">
 
     <label for="toggle-hamburger" class="hamburger-button">
       <img src="/static/images/menu.png" alt="additional options menu"/>
     </label>
 
-    <input role="button" type="checkbox" class="hamburger-component__checkbox" id="toggle-hamburger">
     <div class="hamburger-dropdown-component navigation-dropdown-component">
       <ul class="dropdown-menu hamburger-dropdown-menu">
         $if not ctx.user:
@@ -32,6 +32,43 @@ $def with (page)
       </div>
     </a>
   </div>
+
+  <ul class="navigation-component">
+    <li class="browse-menu checkbox-menu">
+      <input role="button" type="checkbox" class="dropdown-checkbox navigation-component__checkbox" id="toggle-browse-menu">
+
+      <label for="toggle-browse-menu" class="browse-menu-button">$_('Browse') 
+        <img class="down-arrow" width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/>
+      </label>
+
+      <div class="navigation-dropdown-component">
+        <ul class="dropdown-menu browse-menu-options">
+          <li><a href="/subjects">$_("Subjects")</a></li>
+          <li><a href="/lists">$_("Lists")</a></li>
+          <li><a href="/k-12">$_("K-12 Student Library")</a></li>
+          <li><a href="/random">$_("Random Book")</a></li>
+          <li><a href="/advancedsearch">$_("Advanced Search")</a></li>
+        </ul>
+      </div>
+    </li>
+    <li class="more-menu checkbox-menu">
+      <input role="button" type="checkbox" class="dropdown-checkbox navigation-component__checkbox" id="toggle-more-menu">
+
+      <label for="toggle-more-menu" class="more-menu-button">$_('More') 
+        <img class="down-arrow" width="7" height="4" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/>
+      </label>
+
+      <div class="navigation-dropdown-component">
+        <ul class="dropdown-menu more-menu-options">
+          <li><a href="/books/add">$_("Add a Book")</a></li>
+          <li><a href="/sponsorship">$_("Sponsor a Book")</a></li>
+          <li><a href="/recentchanges">$_("Recent Community Edits")</a></li>
+          <li><a href="/developers">$_("Developer Center")</a></li>
+          <li><a href="/help">$_("Help & Support")</a></li>
+        </ul>
+      </div>
+    </li>
+  </ul>
 
   <div class="search-component">
     <div class="search-bar-component">
@@ -63,41 +100,6 @@ $def with (page)
     </div>
   </div>
 
-  <ul class="navigation-component">
-    <li class="browse-menu checkbox-menu">
-      <label for="toggle-browse-menu" class="browse-menu-button">$_('Browse') 
-        <img class="down-arrow" width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/>
-      </label>
-
-      <input role="button" type="checkbox" class="navigation-component__checkbox" id="toggle-browse-menu">
-      <div class="navigation-dropdown-component">
-        <ul class="dropdown-menu browse-menu-options">
-          <li><a href="/subjects">$_("Subjects")</a></li>
-          <li><a href="/lists">$_("Lists")</a></li>
-          <li><a href="/k-12">$_("K-12 Student Library")</a></li>
-          <li><a href="/random">$_("Random Book")</a></li>
-          <li><a href="/advancedsearch">$_("Advanced Search")</a></li>
-        </ul>
-      </div>
-    </li>
-    <li class="more-menu checkbox-menu">
-      <label for="toggle-more-menu" class="more-menu-button">$_('More') 
-        <img class="down-arrow" width="7" height="4" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/>
-      </label>
-
-      <input role="button" type="checkbox" class="navigation-component__checkbox" id="toggle-more-menu">
-      <div class="navigation-dropdown-component">
-        <ul class="dropdown-menu more-menu-options">
-          <li><a href="/books/add">$_("Add a Book")</a></li>
-          <li><a href="/sponsorship">$_("Sponsor a Book")</a></li>
-          <li><a href="/recentchanges">$_("Recent Community Edits")</a></li>
-          <li><a href="/developers">$_("Developer Center")</a></li>
-          <li><a href="/help">$_("Help & Support")</a></li>
-        </ul>
-      </div>
-    </li>
-  </ul>
-
   $if not ctx.user:
     <ul class="auth-component">
       <li class="hide-me">
@@ -108,7 +110,9 @@ $def with (page)
 
   $if ctx.user:
     <div class="account-component checkbox-menu">
-      <div class="dropdown-avatar">        
+      <input role="button" type="checkbox" class="dropdown-checkbox account-component__checkbox" id="toggle-account"> 
+      
+      <div class="dropdown-avatar">
         <label for="toggle-account" id="userToggle" class="avatar account-button" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');">
         </label>
 
@@ -116,8 +120,6 @@ $def with (page)
           <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" role="presentation" alt=""/>
         </label>
       </div>
-
-      <input role="button" type="checkbox" class="account-component__checkbox" id="toggle-account">
       <div class="account-dropdown navigation-dropdown-component" id="main-account-dropdown">
         <ul class="dropdown-menu">
           <li><a href="$ctx.user.key">$_("My Profile")</a></li>

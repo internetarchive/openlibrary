@@ -408,8 +408,24 @@
   cursor: pointer;
 }
 
+.checkbox-menu {
+  input[type="checkbox"]:focus + label {
+    outline: 2px solid;
+  }
+}
+.checkbox-menu {
+  input[type="checkbox"]:focus + .dropdown-avatar {
+    outline: 2px solid;
+  }
+}
+
+div.search-facet:focus-within {
+  outline: 2px solid;
+}
+
 .account-component__checkbox {
-  display: none;
+  opacity: 0;
+  position: absolute;
 
   & ~ .navigation-dropdown-component ul {
     display: none;
@@ -423,6 +439,7 @@
 
 .hamburger-component__checkbox {
   opacity: 0;
+  position: absolute;
 
   & ~ .hamburger-dropdown-component ul {
     display: none;
