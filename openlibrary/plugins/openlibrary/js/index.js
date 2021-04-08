@@ -189,8 +189,8 @@ jQuery(function () {
 
     $('.dropdown-toggle').on('click',function(){
         $(this).find('.dropdown-menu').toggle();
-        $(this).find(".dropdown-button").attr("aria-expanded", function (i, attr) {
-            return attr == "true" ? "false" : "true";
+        $(this).find('.dropdown-button').attr('aria-expanded', function (i, attr) {
+            return attr == 'true' ? 'false' : 'true';
         });
     });
 
