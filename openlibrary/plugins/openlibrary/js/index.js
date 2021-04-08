@@ -188,9 +188,9 @@ jQuery(function () {
     $('#wikiselect').on('focus', function(){$(this).select();})
 
     $(document).ready(function(){
-        $('.dropdown-checkbox').keydown(function(event){
-          if(event.key == 'Enter') $(event.target).click(); 
-        })
+        $('.dropdown-checkbox').keydown(function(event) {
+            if (event.key == 'Enter') $(event.target).click();
+        });
     });
 
     // Clicking outside of menus closes menus
