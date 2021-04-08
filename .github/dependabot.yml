@@ -4,7 +4,7 @@ updates:
   directory: "/"
   open-pull-requests-limit: 10
   reviewers:
-      - cclauss
+      - dhruvmanila
       - cdrini
   schedule:
     interval: weekly
