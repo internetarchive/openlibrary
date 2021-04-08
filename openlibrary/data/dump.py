@@ -169,7 +169,7 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
     files = {}
     for t in types:
         tname = t.split("/")[-1] + "s"
-        files[t] = xopen(format % tname, "wb")
+        files[t] = xopen(format % tname, "wt")
 
     stdin = xopen(dump_file) if dump_file else sys.stdin
     for i, line in enumerate(stdin):
