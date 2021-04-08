@@ -173,11 +173,9 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
 
     stdin = xopen(dump_file) if dump_file else sys.stdin
     for i, line in enumerate(stdin):
-        if not isinstance(line, bytes):
-            line = line.encode("utf-8")
         if i % 1000000 == 0:
             log(i)
-        type, rest = line.split(b"\t", 1)
+        type, rest = line.split("\t", 1)
         if type in files:
             files[type].write(line)
 
