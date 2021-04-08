@@ -244,14 +244,14 @@ window.q.push(function(){
 
         $:render_template("type/list/exports", list)
 
-        <h3 class="collapse">$_('List Metadata')</h3>
+        <h2 class="collapse">$_('List Metadata')</h2>
         <div class="smaller lightgreen sansserif">$_('Derived from seed metadata')</div>
         <br/>
 
         $def render_subjects(label, subjects):
             $if subjects:
                 <div class="section">
-                    <h6 class="collapse black uppercase">$label</h6>
+                    <h3 class="collapse black uppercase">$label</h3>
                     <div class="sansserif">
                     $for subject in subjects:
                         <a href="$subject.url">$subject.title</a>$cond(not loop.last, ",", "")
