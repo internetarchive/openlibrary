@@ -42,8 +42,6 @@ sudo git push origin deploy-$d
 export COMPOSE_FILE="docker-compose.yml:docker-compose.production.yml"
 # ~4 min
 time docker-compose build --pull web
-# ~1 min
-time docker-compose run -uroot --rm home make i18n
 
 # Add a git SHA tag to the Docker image to facilitate rapid rollback
 echo "FROM oldev:latest" | docker build -t "oldev:$(git rev-parse HEAD)" -
