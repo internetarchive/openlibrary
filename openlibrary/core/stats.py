@@ -12,10 +12,7 @@ Based on the code in http://www.monkinetic.com/2011/02/statsd.html (pystatsd cli
 
 import logging
 
-try:
-    from pystatsd import Client as StatsClient
-except ImportError:
-    from statsd import StatsClient
+from statsd import StatsClient
 
 from infogami import config
 

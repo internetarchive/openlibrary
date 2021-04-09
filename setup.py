@@ -27,7 +27,7 @@ pyyaml
 simplejson
 supervisor
 web.py==0.33
-pystatsd
+statsd
 eventer
 Pygments
 OL-GeoIP
