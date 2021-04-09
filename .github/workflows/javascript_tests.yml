@@ -16,6 +16,7 @@ jobs:
         with:
           path: '~/.npm'
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      - run: npm install
       - run: npm run lint
       - run: make git
       - run: make js
