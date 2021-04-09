@@ -12,7 +12,10 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '14' # # Should match what's in our Dockerfile
-      - run: npm install
+      - uses: actions/cache@v2
+        with:
+          path: '~/.npm'
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
       - run: npm run lint
       - run: make git
       - run: make js
