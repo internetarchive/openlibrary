@@ -1,8 +1,8 @@
 # requirements for running tests
 # Expects some apt packages are already installed.
-# see .travis.yml for more details.
+# see .github/workflows/python_tests.yml for more details.
 
--r requirements_common.txt
+-r requirements.txt
 debugpy>=1.2.0
 flake8==3.9.0
 mypy==0.812
