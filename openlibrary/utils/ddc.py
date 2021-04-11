@@ -96,7 +96,7 @@ def normalize_ddc(ddc):
 
             # Discard catalog edition number
             # At least one classification number available
-            if len(results) > 1:
+            if len(results) > 0:
                 # Check if number like '0*' without decimal component
                 if re.search(r'(^0\d*$)', parts['number']):
                     continue
