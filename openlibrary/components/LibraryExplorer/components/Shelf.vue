@@ -1,5 +1,30 @@
 <template>
   <div class="shelf" :data-short="node.short">
+    <component
+      class="shelf-label"
+      :node="node"
+      :key="node.short"
+      :is="features.shelfLabel == 'slider' ? 'ClassSlider' : 'ShelfLabel'"
+    >
+      <template #extra-actions>
+        <button
+          :title="`See a list of the subsections of ${node.short}: ${node.name}`"
+          v-if="features.shelfLabel == 'slider' && node.children"
+          :class="{selected: showShelfIndex}"
+          @click="showShelfIndex = !showShelfIndex"
+        >
+          <IndexIcon />
+        </button>
+        <button
+          :title="`See more books in ${node.short}: ${node.name}`"
+          @click="expandBookshelf(parent, node)"
+          v-if="node.children && node.children.length"
+        >
+          <ExpandIcon />
+        </button>
+      </template>
+    </component>
+
     <OLCarousel
       class="shelf-carousel"
       ref="olCarousel"
@@ -59,31 +84,6 @@
         <div v-if="labels.includes('edition_count')">{{book.edition_count}} editions</div>
       </template>
     </OLCarousel>
-
-    <component
-      class="shelf-label"
-      :node="node"
-      :key="node.short"
-      :is="features.shelfLabel == 'slider' ? 'ClassSlider' : 'ShelfLabel'"
-    >
-      <template #extra-actions>
-        <button
-          :title="`See a list of the subsections of ${node.short}: ${node.name}`"
-          v-if="features.shelfLabel == 'slider' && node.children"
-          :class="{selected: showShelfIndex}"
-          @click="showShelfIndex = !showShelfIndex"
-        >
-          <IndexIcon />
-        </button>
-        <button
-          :title="`See more books in ${node.short}: ${node.name}`"
-          @click="expandBookshelf(parent, node)"
-          v-if="node.children && node.children.length"
-        >
-          <ExpandIcon />
-        </button>
-      </template>
-    </component>
 
     <ShelfIndex class="shelf-index" :node="node" v-if="showShelfIndex" />
   </div>
