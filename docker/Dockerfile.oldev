@@ -22,4 +22,4 @@ RUN npm install
 # Expose Open Library, Infobase, Coverstore, and debugger
 EXPOSE 80 7000 7075 3000
 
-ENTRYPOINT ["./docker/docker-entrypoint.sh"] 
+ENTRYPOINT ["/openlibrary/docker/docker-entrypoint.sh"] 
