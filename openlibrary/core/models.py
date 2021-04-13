@@ -596,7 +596,10 @@ class Author(Thing):
 
 
     def foaf_agent(self):
-        """ FOAF Agent type. http://xmlns.com/foaf/spec/#term_Agent """
+        """
+        Friend of a friend ontology Agent type. http://xmlns.com/foaf/spec/#term_Agent
+        https://en.wikipedia.org/wiki/FOAF_(ontology)
+        """
         if self.get('entity_type') == 'org':
             return 'Organization'
         elif self.get('birth_date') or self.get('death_date'):
