@@ -50,6 +50,10 @@ export function init() {
     let lastResult = null;
     Quagga.onDetected(result => {
         const code = result.codeResult.code;
+        const url = `/isbn/${code}`;
+        if (document.getElementById("multiple-scan").checked == false){
+            window.location.href= url;
+        }
         if (!isBarcodeISBN(code) || code == lastResult) return;
         lastResult = code;
 
