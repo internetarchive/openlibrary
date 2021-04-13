@@ -580,6 +580,7 @@ class Work(Thing):
             d['ia'] = solrdata.get('ia')
         return d
 
+
 class Author(Thing):
     """Class to represent /type/author objects in OL.
     """
@@ -593,6 +594,15 @@ class Author(Thing):
         return "<Author: %s>" % repr(self.key)
     __str__ = __repr__
 
+
+    def foaf_agent(self):
+        """ FOAF Agent type. http://xmlns.com/foaf/spec/#term_Agent """
+        if self.get('entity_type') == 'org':
+            return 'Organization'
+        elif self.get('birth_date') or self.get('death_date'):
+            return 'Person'
+        return 'Agent'
+
     def get_edition_count(self):
         return self._site._request(
                 '/count_editions_by_author',
@@ -601,6 +611,7 @@ class Author(Thing):
 
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
+
 
 class User(Thing):
 

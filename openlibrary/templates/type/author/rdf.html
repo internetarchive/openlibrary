@@ -16,6 +16,7 @@ $def with (author)
         $ name = author.name
 
     $ auri = "http://openlibrary.org" + author.key
+    $ agent_type = author.foaf_agent()
 
     $def display(tag, value):
         $if isinstance(value, list):
@@ -24,7 +25,7 @@ $def with (author)
         $elif value:
             <$tag>$value</$tag>
 
-    <foaf:Person rdf:about="$auri">
+    <foaf:$agent_type rdf:about="$auri">
         $:display("foaf:name", name)
         $:display("rdg2:variantNameForThePerson", author.alternate_names)
         $:display("rdg2:biographicalInformation", author.bio)
@@ -63,12 +64,13 @@ $def with (author)
             </foaf:Document>
         </foaf:page>
 
-      $for photo in author.photos:
+      $ photos = [p for p in author.photos if p > 0]
+      $for photo in photos:
         $ auphoto = "https://covers.openlibrary.org/b/id/" + str(photo) + "-M.jpg"
         <foaf:depiction>
             <foaf:Image rdf:about="$auphoto" />
         </foaf:depiction>
-    </foaf:Person>
+    </foaf:$agent_type>
 
     <!-- administrative -->
     <rdf:Description rdf:about="">
