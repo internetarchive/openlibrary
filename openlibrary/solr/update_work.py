@@ -1214,7 +1214,7 @@ def make_delete_query(keys):
     Example:
 
     >>> make_delete_query(["/books/OL1M"])
-    '<delete><query>key:/books/OL1M</query></delete>'
+    '<delete><id>/books/OL1M</id></delete>'
 
     :param list[str] keys: Keys to create delete tags for. (ex: ["/books/OL1M"])
     :return: <delete> XML element as a string
@@ -1224,8 +1224,8 @@ def make_delete_query(keys):
     keys = [solr_escape(key) for key in keys]
     delete_query = Element('delete')
     for key in keys:
-        query = SubElement(delete_query,'query')
-        query.text = 'key:%s' % key
+        query = SubElement(delete_query, 'id')
+        query.text = key
     return tostring(delete_query, encoding="unicode")
 
 def update_author(akey, a=None, handle_redirects=True):
