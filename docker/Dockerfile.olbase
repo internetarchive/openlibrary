@@ -71,8 +71,8 @@ WORKDIR /openlibrary
 
 USER openlibrary
 COPY requirements*.txt ./
-RUN python3.8 -m pip install --default-timeout=100 -r requirements_common.txt \
- && python3.9 -m pip install --default-timeout=100 -r requirements_common.txt
+RUN python3.8 -m pip install --default-timeout=100 -r requirements.txt \
+ && python3.9 -m pip install --default-timeout=100 -r requirements.txt
 
 COPY package*.json ./
 RUN npm ci
