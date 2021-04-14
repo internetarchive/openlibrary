@@ -526,6 +526,22 @@ class TestUpdateWork:
         assert isinstance(requests[0], update_work.DeleteRequest)
         assert requests[0].toxml() == '<delete><id>/works/OL23W</id></delete>'
 
+    def test_no_title(self):
+        requests = update_work.update_work({'key': '/books/OL1M', 'type': {'key': '/type/edition'}})
+        assert len(requests) == 1
+        assert '<field name="title">__None__</field>' in requests[0].toxml()
+        requests = update_work.update_work({'key': '/works/OL23W', 'type': {'key': '/type/work'}})
+        assert len(requests) == 1
+        assert '<field name="title">__None__</field>' in requests[0].toxml()
+
+    def test_work_no_title(self):
+        work = {'key': '/works/OL23W', 'type': {'key': '/type/work'}}
+        ed = make_edition(work)
+        ed['title'] = 'Some Title!'
+        update_work.data_provider = FakeDataProvider([work, ed])
+        requests = update_work.update_work(work)
+        assert len(requests) == 1
+        assert '<field name="title">Some Title!</field>' in requests[0].toxml()
 
 class Test_pick_cover_edition:
     def test_no_editions(self):
