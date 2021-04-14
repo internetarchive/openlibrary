@@ -18,15 +18,29 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      # https://lxml.de/installation.html#requirements
-      - run: sudo apt-get install libxml2-dev libxslt-dev
-      - run: pip install --upgrade pip setuptools wheel
-      - run: pip install -r requirements_test.txt
-      - run: pip list --outdated
-      - run: make lint-diff
+      - uses: actions/cache@v2
+        with:
+          path: ~/openlibrary_python_venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('requirements*.txt') }}
+      - run: python3 -m venv ~/openlibrary_python_venv
+      - name: Install dependencies
+        run: |
+          source ~/openlibrary_python_venv/bin/activate
+          # https://lxml.de/installation.html#requirements
+          sudo apt-get install libxml2-dev libxslt-dev
+          pip install --upgrade pip setuptools wheel
+          pip install -r requirements_test.txt
+          pip list --outdated
       - run: make git
-      - run: make i18n
-      - run: make lint
-      - run: make test-py
-      - run: source scripts/run_doctests.sh
-      - run: mypy .
+      - name: Run make i18n
+        run: |
+          source ~/openlibrary_python_venv/bin/activate
+          make i18n
+      - name: Run tests
+        run: |
+          source ~/openlibrary_python_venv/bin/activate
+          make lint-diff
+          make lint
+          make test-py
+          source scripts/run_doctests.sh
+          mypy .
