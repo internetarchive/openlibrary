@@ -1,8 +1,9 @@
-# requirements for running tests
+# Requirements for running tests and non-production Docker build.
 # Expects some apt packages are already installed.
 # see .github/workflows/python_tests.yml for more details.
 
 -r requirements.txt
+debugpy>=1.2.0
 flake8==3.9.0
 mypy==0.812
 pymemcache==3.4.1
