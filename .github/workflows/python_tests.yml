@@ -32,7 +32,10 @@ jobs:
           pip install -r requirements_test.txt
           pip list --outdated
       - run: make git
-      - run: make i18n
+      - name: Run make i18n
+        run: |
+          source ~/openlibrary_python_venv/bin/activate
+          make i18n
       - name: Run tests
         run: |
           source ~/openlibrary_python_venv/bin/activate
