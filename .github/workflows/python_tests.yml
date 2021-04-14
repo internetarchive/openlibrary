@@ -31,12 +31,12 @@ jobs:
           pip install --upgrade pip setuptools wheel
           pip install -r requirements_test.txt
           pip list --outdated
+      - run: make git
+      - run: make i18n
       - name: Run tests
         run: |
           source ~/openlibrary_python_venv/bin/activate
           make lint-diff
-          make git
-          make i18n
           make lint
           make test-py
           source scripts/run_doctests.sh
