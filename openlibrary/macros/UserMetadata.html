@@ -1,8 +1,8 @@
-$def with (work, edition)
+$def with (work, edition, link_text, id, classes='')
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ has_edition = edition is not None
-$ notes = work.get_users_notes(username) if has_edition else work.get_users_notes(username, edition.key.split('/')[-1])
+$ notes = work.get_users_notes(username) if not has_edition else work.get_users_notes(username, edition.key.split('/')[-1])
 $ book_descriptor = _("work")
 
 $ i18n_strings = {
@@ -12,36 +12,37 @@ $ i18n_strings = {
 
 $ context = {
   $ "username": username,
-  $ "work": work.key
+  $ "work": work.key,
+  $ "id": id
   $ }
 
 $if has_edition:
   $ context["edition"] = edition.key
   $ book_descriptor = _("edition")
 
-<div class="cta-section patron-metadata">
-  <a id="modal-link" href="javascript:;" data-context="$json_encode(context)" data-i18n="$json_encode(i18n_strings)">$_("My book notes")</a>
-</div>
+<div class="$classes">
+  <a class="modal-link" href="javascript:;" data-context="$json_encode(context)" data-i18n="$json_encode(i18n_strings)">$link_text</a>
 
-<div class="hidden">
-  <div id="metadata-form" class="floaterAdd">
-    <div class="floaterHead">
-      <h2>$_("My Book Notes")</h2>
-      <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
-    </div>
-    <form class="book-notes-form" method="POST" action="$(work.key)/notes.json">
-      <p>My personal notes about this $book_descriptor:</p>
-      <div>
-        <textarea name="notes" rows="10">$(notes.notes if notes else "")</textarea>
+  <div class="hidden">
+    <div id="$id-metadata-form" class="floaterAdd metadata-form">
+      <div class="floaterHead">
+        <h2>$_("My Book Notes")</h2>
+        <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
       </div>
-      $if has_edition:
-        <input type="hidden" name="edition_id" value="$edition.key.split('/')[-1]" />
-      <button class="cta-btn"type="submit">Save Note</button>
-    </form>
-    <div class="floaterHead">
-      <h2>$_("Observations")</h2>
+      <form class="book-notes-form" method="POST" action="$(work.key)/notes.json">
+        <p>My personal notes about this $book_descriptor:</p>
+        <div>
+          <textarea name="notes" rows="10">$(notes.notes if notes else "")</textarea>
+        </div>
+        $if has_edition:
+          <input type="hidden" name="edition_id" value="$edition.key.split('/')[-1]" />
+        <button class="cta-btn"type="submit">Save Note</button>
+      </form>
+      <div class="floaterHead">
+        <h2>$_("Observations")</h2>
+      </div>
+      <p class="observation-instructions">Additional observations about this $book_descriptor. Each section is optional, but highly recommended.  These anonymous observations will be used to populate the "Reader Observations" section of this page.</p>
+      <form class="floatform" name="$id-user-metadata" id="$id-user-metadata"></form>
     </div>
-    <p class="observation-instructions">Additional observations about this $book_descriptor. Each section is optional, but highly recommended.  These anonymous observations will be used to populate the "Reader Observations" section of this page.</p>
-    <form class="floatform" name="user-metadata" id="user-metadata"></form>
   </div>
 </div>

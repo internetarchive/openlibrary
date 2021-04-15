@@ -1,9 +1,11 @@
 """Module for handling patron observation functionality"""
 
-from collections import namedtuple
+from collections import defaultdict, namedtuple
 
 from infogami import config
+from infogami.utils.view import public
 from openlibrary import accounts
+from openlibrary.utils import extract_numeric_id_from_olid
 
 from . import cache
 from . import db
@@ -263,20 +265,23 @@ def get_observations():
         ]
     }
 
+    If an observation is marked as deleted, it will not be included in the dictionary.
+
     return: Dictionary of all possible observations that can be made about a book.
     """
     observations_list = []
 
     for o in OBSERVATIONS['observations']:
-        list_item = {
-            'id': o['id'],
-            'label': o['label'],
-            'description': o['description'],
-            'multi_choice': o['multi_choice'],
-            'values': _sort_values(o['order'], o['values'])
-        }
+        if 'deleted' not in o:
+            list_item = {
+                'id': o['id'],
+                'label': o['label'],
+                'description': o['description'],
+                'multi_choice': o['multi_choice'],
+                'values': _sort_values(o['order'], o['values'])
+            }
 
-        observations_list.append(list_item)
+            observations_list.append(list_item)
 
     return {'observations': observations_list}
 
@@ -296,10 +301,204 @@ def _sort_values(order_list, values_list):
     
     return ordered_values
 
+def _get_deleted_types_and_values():
+    """
+    Returns a dictionary containing all deleted observation types and values.
+    
+    return: Deleted types and values dictionary.
+    """
+    results = {
+        'types': [],
+        'values': defaultdict(list)
+    }
+
+    for o in OBSERVATIONS['observations']:
+        if 'deleted' in o and o['deleted']:
+            results['types'].append(o['id'])
+        else:
+            for v in o['values']:
+                if 'deleted' in v and v['deleted']:
+                    results['values'][o['id']].append(v['id'])
+
+    return results
+
+@public
+def get_observation_metrics(work_olid):
+    """
+    Returns a dictionary of observation statistics for the given work.  Statistics
+    will be used to populate a book's "Reader Observations" component.
+
+    Dictionary will have the following structure:
+    {
+        'work_id': 12345,
+        'total_respondents': 100,
+        'observations': [
+            {
+                'label': 'pace',
+                'description': 'What is the pace of this book?',
+                'multi_choice': False,
+                'total_respondents_for_type': 10,
+                'values': [
+                    {
+                        'value': 'fast',
+                        'count': 6
+                    },
+                    {
+                        'value': 'medium',
+                        'count': 4
+                    }
+                ]
+            }
+            ... Other observations omitted for brevity ... 
+        ]
+    }
+
+    If no observations were made for a specific type, that type will be excluded from
+    the 'observations' list.  Items in the 'observations.values' list will be
+    ordered from greatest count to least.
+
+    return: A dictionary of observation statistics for a work.
+    """
+    work_id = extract_numeric_id_from_olid(work_olid)
+    total_respondents = Observations.total_unique_respondents(work_id)
+
+    metrics = {}
+    metrics['work_id'] = work_id
+    metrics['total_respondents'] = total_respondents
+    metrics['observations'] = []
+
+    if total_respondents > 0:
+        respondents_per_type_dict = Observations.count_unique_respondents_by_type(work_id)
+        observation_totals = Observations.count_observations(work_id)
+
+        current_type_id = observation_totals[0]['type_id']
+        observation_item = next((o for o in OBSERVATIONS['observations'] if current_type_id == o['id']))
+
+        current_observation = {
+            'label': observation_item['label'],
+            'description': observation_item['description'],
+            'multi_choice': observation_item['multi_choice'],
+            'total_respondents_for_type': respondents_per_type_dict[current_type_id],
+            'values': []
+        }
+
+        for i in observation_totals:
+            if i['type_id'] != current_type_id:
+                metrics['observations'].append(current_observation)
+                current_type_id = i['type_id']
+                observation_item = next((o for o in OBSERVATIONS['observations'] if current_type_id == o['id']))
+                current_observation = {
+                    'label': observation_item['label'],
+                    'description': observation_item['description'],
+                    'multi_choice': observation_item['multi_choice'],
+                    'total_respondents_for_type': respondents_per_type_dict[current_type_id],
+                    'values': []
+                }
+            current_observation['values'].append(
+                    { 
+                        'value': next((v['name'] for v in observation_item['values'] if v['id'] == i['value_id'])), 
+                        'count': i['total'] 
+                    } 
+                )
+    
+        metrics['observations'].append(current_observation)
+    return metrics
+        
 
 class Observations(object):
 
     NULL_EDITION_VALUE = -1
+
+    @classmethod
+    def total_unique_respondents(cls, work_id=None):
+        """
+        Returns total number of patrons who have submitted observations for the given work ID.
+        If no work ID is passed, returns total number of patrons who have submitted observations
+        for any work.
+
+        return: Total number of patrons who have made an observation.
+        """
+        oldb = db.get_db()
+        data = {
+            'work_id': work_id
+        }
+        query = "SELECT COUNT(DISTINCT(username)) FROM observations"
+
+        if work_id:
+            query += " WHERE work_id = $work_id"
+
+        return oldb.query(query, vars=data)[0]['count']
+
+    @classmethod
+    def count_unique_respondents_by_type(cls, work_id):
+        """
+        Returns the total number of respondents who have made an observation per each type of a work
+        ID.
+
+        return: Dictionary of total patron respondents per type id for the given work ID.
+        """
+        oldb = db.get_db()
+        data = {
+            'work_id': work_id
+        }
+        query = """
+            SELECT 
+              observation_type AS type, 
+              count(distinct(username)) AS total_respondents
+            FROM observations 
+            WHERE work_id = $work_id """
+
+        deleted_observations = _get_deleted_types_and_values()
+
+        if len(deleted_observations['types']):
+            deleted_type_ids = ', '.join(str(i) for i in deleted_observations['types'])
+            query += f'AND observation_type not in ({deleted_type_ids}) '
+
+        if len(deleted_observations['values']):
+            for key in deleted_observations['values']:
+                deleted_value_ids = ', '.join(str(i) for i in deleted_observations['values'][key])
+                query += f'AND NOT (observation_type = {str(key)} AND observation_value IN ({deleted_value_ids})) '
+
+        query += 'GROUP BY type'
+
+        return { i['type']: i['total_respondents'] for i in list(db.query(query, vars=data)) }
+
+    @classmethod
+    def count_observations(cls, work_id):
+        """
+        For a given work, fetches the count of each observation made for the work.  Counts are returned in
+        a list, grouped by observation type and ordered from highest count to lowest.
+
+        return: A list of value counts for the given work.
+        """
+        oldb = db.get_db()
+        data = {
+            'work_id': work_id
+        }
+        query = """
+            SELECT 
+              observation_type as type_id,
+              observation_value as value_id, 
+              COUNT(observation_value) AS total
+            FROM observations
+            WHERE observations.work_id = $work_id """
+
+        deleted_observations = _get_deleted_types_and_values()
+
+        if len(deleted_observations['types']):
+            deleted_type_ids = ', '.join(str(i) for i in deleted_observations['types'])
+            query += f'AND observation_type not in ({deleted_type_ids}) '
+
+        if len(deleted_observations['values']):
+            for key in deleted_observations['values']:
+                deleted_value_ids = ', '.join(str(i) for i in deleted_observations['values'][key])
+                query += f'AND NOT (observation_type = {str(key)} AND observation_value IN ({deleted_value_ids})) '
+
+        query += """
+            GROUP BY type_id, value_id
+            ORDER BY type_id, total DESC"""
+
+        return list(oldb.query(query, vars=data))
 
     @classmethod
     def get_key_value_pair(cls, type_id, value_id):
