@@ -19,7 +19,7 @@ $ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), 
 
     <form action="/search" class="olform pagesearchbox">
       <input type="hidden" name="${page.subject_type}_facet" value="$page.name" />
-      <input type="text" name="q" id="searchSubjects" size="100" class="larger" value="" />
+      <input type="text" name="q" aria-label="Search" id="searchSubjects" size="100" class="larger" value="" />
       <button type="submit" class="larger">$_('Search')</button>
     </form>
 </div>
