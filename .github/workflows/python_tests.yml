@@ -22,7 +22,7 @@ jobs:
         with:
           path: ~/openlibrary_python_venv
           key: ${{ runner.os }}-venv-${{ hashFiles('requirements*.txt') }}
-      - run: python3 -m venv ~/openlibrary_python_venv
+      - run: python -m venv ~/openlibrary_python_venv
       - name: Install dependencies
         run: |
           source ~/openlibrary_python_venv/bin/activate
