@@ -39,7 +39,8 @@ jobs:
       - name: Run tests
         run: |
           source ~/openlibrary_python_venv/bin/activate
-          make lint-diff
+          git fetch --no-tags --prune --depth=1 origin master
+          BASE_BRANCH="origin/master" make lint-diff
           make lint
           make test-py
           source scripts/run_doctests.sh

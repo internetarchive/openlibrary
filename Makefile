@@ -66,12 +66,12 @@ reindex-solr:
 	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://web:8080/ -c conf/openlibrary.yml --data-provider=legacy
 
 lint-diff:
-	git diff master -U0 | ./scripts/flake8-diff.sh
+	git diff "$${BASE_BRANCH:-master}" -U0 | ./scripts/flake8-diff.sh
 
 lint:
 	# stop the build if there are Python syntax errors or undefined names
 	$(PYTHON) -m flake8 . --count --exclude=$(FLAKE_EXCLUDE) --select=E9,F63,F7,F82 --show-source --statistics
-ifndef CONTINUOUS_INTEGRATION
+ifndef CI
 	# exit-zero treats all errors as warnings, only run this in local dev while fixing issue, not CI as it will never fail.
 	$(PYTHON) -m flake8 . --count --exclude=$(FLAKE_EXCLUDE) --exit-zero --max-complexity=10 --max-line-length=$(GITHUB_EDITOR_WIDTH) --statistics
 endif
