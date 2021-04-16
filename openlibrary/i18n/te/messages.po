@@ -312,7 +312,7 @@ msgstr[1] "%d రోజుల కోసం ఎదురు చూస్తున
 msgid "There is one person ahead of you in the waiting list."
 msgid_plural "There are %(count)s people ahead of you in the waiting list."
 msgstr[0] "ఒక్క మనిషి  మాత్రమే మీ కన్నా ముందు వేచిచూసి జాబితాలో ఉన్నాడు"
-msgstr[1] "%s  మనిషులు మీ కన్నా ముందు వేచిచూసి జాబితాలో ఉన్నాడు "
+msgstr[1] "%(count)s  మనిషులు మీ కన్నా ముందు వేచిచూసి జాబితాలో ఉన్నాడు "
 
 #: borrow.html:260
 msgid "There are 2 different sources for borrowing books through Open Library:"
@@ -1467,9 +1467,8 @@ msgid "Created %s"
 msgstr ""
 
 #: history.html:25
-#, fuzzy
 msgid "revision"
-msgstr "రివిజన్ %d"
+msgstr "రివిజన్"
 
 #: history.html:51 openlibrary/templates/history.html:36
 #, python-format
