@@ -2278,8 +2278,8 @@ msgid "Choose a JPG, GIF or PNG on your computer,"
 msgstr "Odaberi JPG, GIF ili PNG s tvog računala,"
 
 #: add.html:126
-msgid "<u>Or</u></span>, paste in the image URL if it's on the web."
-msgstr "<u>Ili</u></span> upiši URL adresu, ako postoji na internetu."
+msgid "<span class=\"highlight\"><u>Or</u></span>, paste in the image URL if it's on the web."
+msgstr "<span class=\"highlight\"><u>Ili</u></span> upiši URL adresu, ako postoji na internetu."
 
 #: add.html:134
 msgid "Submit"
@@ -2978,8 +2978,8 @@ msgstr "Popisi aktivnih"
 
 #: home.html:45
 #, python-format
-msgid "%(listname)s </a> from <a href=\"%(key)s\">%(owner)s</a>"
-msgstr "%(listname)s </a> od <a href=\"%(key)s\">%(owner)s</a>"
+msgid "from <a href=\"%(key)s\">%(owner)s</a>"
+msgstr "od <a href=\"%(key)s\">%(owner)s</a>"
 
 #: home.html:50 preview.html:27 snippet.html:20
 #, python-format

@@ -898,8 +898,8 @@ msgid "Either choose a JPG, GIF or PNG on your computer,"
 msgstr "Wählen Sie ein JPG, GIF oder PNG von Ihrem Computer aus,"
 
 #: edit/addcover.html:22
-msgid "<u>Or</u></span>, paste in a URL to an image if it's on the web."
-msgstr "<u>Oder</u></span> fügen Sie den Link zum Bild ein, wenn es im Internet verfügbar ist."
+msgid "<span class=\"highlight\"><u>Or</u></span>, paste in a URL to an image if it's on the web."
+msgstr "<span class=\"highlight\"><u>Oder</u></span> fügen Sie den Link zum Bild ein, wenn es im Internet verfügbar ist."
 
 #: edit/addcover.html:31
 msgid "Upload"
@@ -1321,8 +1321,8 @@ msgid "Choose a JPG, GIF or PNG on your computer,"
 msgstr "Wählen Sie ein JPG, GIF oder PNG von Ihrem Computer,"
 
 #: add.html:111
-msgid "<u>Or</u></span>, paste in the image URL if it's on the web."
-msgstr "<u>Oder</u></span> fügen Sie den Link zum Bild ein, wenn es im Internet verfügbar ist."
+msgid "<span class=\"highlight\"><u>Or</u></span>, paste in the image URL if it's on the web."
+msgstr "<span class=\"highlight\"><u>Oder</u></span> fügen Sie den Link zum Bild ein, wenn es im Internet verfügbar ist."
 
 #: add.html:119
 msgid "Submit"
