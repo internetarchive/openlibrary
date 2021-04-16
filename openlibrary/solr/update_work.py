@@ -4,6 +4,9 @@ import itertools
 import logging
 import os
 import re
+from typing import Literal, List
+
+import httpx
 import requests
 import sys
 import time
@@ -852,15 +855,46 @@ def build_data2(w, editions, authors, ia, duplicates):
 
     return doc
 
-def solr_update(requests, debug=False, commitWithin=60000):
+
+async def solr_insert_documents(
+        documents: List[dict],
+        commit_within=60_000,
+        solr_base_url: str = None,
+        skip_id_check=False,
+):
+    """
+    Note: This has only been tested with Solr 8, but might work with Solr 3 as well.
+    """
+    solr_base_url = solr_base_url or get_solr_base_url()
+    params = {}
+    if commit_within is not None:
+        params['commitWithin'] = commit_within
+    if skip_id_check:
+        params['overwrite'] = 'false'
+    logger.info(f"POSTing update to {solr_base_url}/update {params}")
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            f'{solr_base_url}/update',
+            timeout=30,  # The default timeout is silly short
+            params=params,
+            headers={'Content-Type': 'application/json'},
+            data=json.dumps(documents)  # type: ignore
+        )
+    resp.raise_for_status()
+
+
+def solr_update(requests, debug=False, commitWithin=60000, solr_base_url: str = None):
     """POSTs a collection of update requests to Solr.
     TODO: Deprecate and remove string requests. Is anything else still generating them?
     :param list[string or UpdateRequest or DeleteRequest] requests: Requests to send to Solr
     :param bool debug:
     :param int commitWithin: Solr commitWithin, in ms
     """
-    url = get_solr_base_url() + '/update'
+    solr_base_url = solr_base_url or get_solr_base_url()
+    url = f'{solr_base_url}/update'
     parsed_url = urlparse(url)
+    assert parsed_url.hostname
+
     if parsed_url.port:
         h1 = HTTPConnection(parsed_url.hostname, parsed_url.port)
     else:
@@ -1155,6 +1189,32 @@ def update_subject(key):
     if subject['work_count'] > 0:
         request_set.add(subject)
     return request_set.get_requests()
+
+
+def subject_name_to_key(
+        subject_type: Literal['subject', 'person', 'place', 'time'],
+        subject_name: str
+) -> str:
+    escaped_subject_name = str_to_key(subject_name)
+    if subject_type == 'subject':
+        return f"/subjects/{escaped_subject_name}"
+    else:
+        return f"/subjects/{subject_type}:{escaped_subject_name}"
+
+
+def build_subject_doc(
+        subject_type: Literal['subject', 'person', 'place', 'time'],
+        subject_name: str,
+        work_count: int,
+):
+    """Build the `type:subject` solr doc for this subject."""
+    return {
+        'key': subject_name_to_key(subject_type, subject_name),
+        'name': subject_name,
+        'type': 'subject',
+        'subject_type': subject_type,
+        'work_count': work_count,
+    }
 
 
 def update_work(work):

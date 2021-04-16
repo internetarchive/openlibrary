@@ -11,15 +11,13 @@ pipeline {
     }
   }
   parameters {
-    string(name: 'SOLR_BACKUP_GZIP', defaultValue: 'backup-2019-07-30.tar.gz', description: 'Location of the dump gzip in /storage/openlibrary/solr')
     string(name: 'PARTIAL_IMPORT_SIZE', defaultValue: '', description: 'If set to a number, will only import that many records from the dump (useful for testing!)')
     booleanParam(name: 'REUSE_POSTGRES', defaultValue: false, description: 'If true, assumes a functioning postgres is running/correct')
-    booleanParam(name: 'REUSE_SOLRBACKUP', defaultValue: false, description: 'If true, assumes a functioning solr-backup is running/correct')
     booleanParam(name: 'INTO_SOLR_FROM_DUMP', defaultValue: true, description: 'If true, reindexes dump into solr')
     booleanParam(name: 'INDEX_WORKS', defaultValue: true, description: 'If true, reindexes works into solr')
     booleanParam(name: 'INDEX_ORPHANS', defaultValue: true, description: 'If true, reindexes orphans into solr')
+    booleanParam(name: 'INDEX_SUBJECTS', defaultValue: true, description: 'If true, reindexes subjects into solr')
     booleanParam(name: 'INDEX_AUTHORS', defaultValue: true, description: 'If true, reindexes authors into solr')
-    booleanParam(name: 'INTO_SOLR_COPY_SUBJECTS', defaultValue: true, description: 'If true, copies subjects into solr')
     string(name: 'MAX_CORES', defaultValue: '12', description: 'Max number of simultaneous cores')
   }
   environment {
@@ -162,14 +160,6 @@ pipeline {
       }
     }
     stage('2: Populate solr') {
-      environment {
-        // Where the solr dumps are saved
-        SOLR_DUMP_DIR = "${env.DUMP_DIR}/solr"
-        // The name of expanded solr dump
-        CUR_SOLR_BACKUP = '_solr-backup-cur'
-        // The full path of the solr backup
-        SOLR_BACKUP_PATH = "${env.SOLR_DUMP_DIR}/${env.CUR_SOLR_BACKUP}"
-      }
       stages {
         stage('Restart Postgres') {
           // Have to restart to because the previous workspace was destroyed on cleanup
@@ -224,6 +214,25 @@ pipeline {
                     }
                   }
                 }
+                stage('Insert subjects') {
+                  when { expression { return params.INDEX_SUBJECTS } }
+                  steps {
+                    dir(env.HOST_SOLR_BUILDER_DIR) {
+                      sh """
+                      for subject_type in subject person place time; do
+                        docker-compose run --name ol_run_subjects_\$subject_type -T ol \
+                          python ./solr_builder/index_subjects.py \
+                            \$subject_type \
+                            --chunk-size 10000 \
+                            --instances ${params.MAX_CORES} \
+                            --solr-base-url 'http://solr:8983/solr/openlibrary' \
+                            --skip-id-check
+                      done
+                      """
+                      solr_commit('solr')
+                    }
+                  }
+                }
                 stage('Insert authors') {
                   when { expression { return params.INDEX_AUTHORS } }
                   steps {
@@ -266,71 +275,6 @@ pipeline {
 //                       script:'docker-compose stop solr; docker-compose rm -f solr; docker volume rm solr_builder_solr-data')
 //                   }
 //                 }
-              }
-            }
-            stage('Insert subjects from solr backup') {
-              when { expression { return params.INTO_SOLR_COPY_SUBJECTS } }
-              stages {
-                stage('Setup solr-backup') {
-                  when { expression { return !params.REUSE_SOLRBACKUP } }
-                  stages {
-                    stage('Decompress the dump') {
-                      steps {
-                        dir(env.SOLR_DUMP_DIR) {
-                          sh "rm -rf ${env.CUR_SOLR_BACKUP}"
-                          sh "mkdir ${env.CUR_SOLR_BACKUP}; tar xzf ${params.SOLR_BACKUP_GZIP} -C ${env.CUR_SOLR_BACKUP}"
-                        }
-                      }
-                    }
-                    stage('Launch solr-backup service') {
-                      steps {
-                        dir(env.HOST_SOLR_BUILDER_DIR) {
-                          sh "docker-compose up -d --no-deps solr-backup"
-                          sleep 60
-                          echo "Assert backup has all subjects in it"
-                          script { assert solr_query_count('solr-backup', 'subject') != '0' }
-                        }
-                      }
-                    }
-                  }
-                  post {
-                    unsuccessful {
-                      dir(env.HOST_SOLR_BUILDER_DIR) {
-                        sh(label: 'Remove solr-backup service', 
-                          script: 'docker-compose stop solr-backup; docker-compose rm -f solr-backup')
-                      }
-                      dir(env.SOLR_DUMP_DIR) {
-                        sh(label: 'Remove solr backup directory',
-                          script: "rm -rf ${env.CUR_SOLR_BACKUP}")
-                      }
-                    }
-                  }
-                }
-                stage('Copy subjects into main solr') {
-                  steps {
-                    dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "docker-compose exec -T solr curl -s http://localhost:8983/solr/dataimport?command=full-import"
-
-                      waitUntil {
-                        script {
-                          def log_file = 'logs/subjects-import.xml'
-                          sh "docker-compose exec -T solr curl -s http://localhost:8983/solr/dataimport > ${log_file}"
-                          archiveArtifacts artifacts: log_file
-                          def status = sh(script: """cat ${log_file} | xmlstarlet sel -t -v "//str[@name='status']" """, returnStdout: true).trim()
-                          echo status
-                          sleep 30*60 // By default this checks every 15s; that's unnecessary for a ~6 hour process
-                          return status != 'busy'
-                        }
-                      }
-
-                      script {
-                        def backup_subjects_count = solr_query_count('solr-backup', 'subject')
-                        def new_subjects_count = solr_query_count('solr', 'subject')
-                        assert backup_subjects_count == new_subjects_count
-                      }
-                    }
-                  }
-                }
               }
             }
           }
