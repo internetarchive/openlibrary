@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.8, 3.9]
+        python-version: [3.8.8, 3.9.4]
     runs-on: ubuntu-16.04  # Should match Dockerfile.olbase
     steps:
       - uses: actions/checkout@v2
@@ -20,10 +20,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - uses: actions/cache@v2
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-venv-${{ hashFiles('requirements*.txt') }}
+          path: ~/openlibrary_python_venv
+          key: ${{ runner.os }}-venv-${{ matrix.python-version }}-${{ hashFiles('requirements*.txt') }}
       - name: Install dependencies
         run: |
+          source ~/openlibrary_python_venv/bin/python
           # https://lxml.de/installation.html#requirements
           sudo apt-get install libxml2-dev libxslt-dev
           pip install --upgrade pip setuptools wheel
@@ -32,9 +33,11 @@ jobs:
       - run: make git
       - name: Run make i18n
         run: |
+          source ~/openlibrary_python_venv/bin/python
           make i18n
       - name: Run tests
         run: |
+          source ~/openlibrary_python_venv/bin/python
           git fetch --no-tags --prune --depth=1 origin master
           BASE_BRANCH="origin/master" make lint-diff
           make lint
