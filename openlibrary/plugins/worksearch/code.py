@@ -1041,7 +1041,8 @@ class search_json(delegate.page):
                       time_facet=[],
                       first_publish_year=[],
                       publisher_facet=[],
-                      language=[])
+                      language=[],
+                      public_scan_b=[])
         if 'query' in i:
             query = json.loads(i.query)
         else:
