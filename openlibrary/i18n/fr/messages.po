@@ -1133,7 +1133,7 @@ msgstr "Actions d'emprunt"
 msgid "There is one person waiting for this book."
 msgid_plural "There are %(n)d people waiting for this book."
 msgstr[0] "Une personne attend ce livre."
-msgstr[1] "%(n)s personnes attendent ce livre."
+msgstr[1] "%(n)d personnes attendent ce livre."
 
 #: borrow.html:121
 msgid "Not yet downloaded."
@@ -1234,7 +1234,7 @@ msgstr "Vous êtes la prochaine personne à recevoir ce livre."
 msgid "There is one person ahead of you in the waiting list."
 msgid_plural "There are %(count)d people ahead of you in the waiting list."
 msgstr[0] "Il y a 1 personne devant vous sur la liste d'attente."
-msgstr[1] "Il y a %(count)s personnes devant vous sur la liste d'attente."
+msgstr[1] "Il y a %(count)d personnes devant vous sur la liste d'attente."
 
 #: borrow.html:219
 msgid "You have less than an hour to borrow it."
