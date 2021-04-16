@@ -222,6 +222,7 @@ def main(
         state_file='solr-update.state',
         exclude_edits_containing: str = None,
         ol_url='http://openlibrary.org/',
+        solr_url: str = None,
         socket_timeout=10,
         load_ia_scans=False,
         commit=False,
@@ -229,6 +230,7 @@ def main(
     """
     :param debugger: Wait for a debugger to attach before beginning
     :param exclude_edits_containing: Don't index matching edits
+    :param solr_url: If wanting to override what's in the config file
     """
     global args
     FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
@@ -252,6 +254,9 @@ def main(
     if ol_url:
         host = web.lstrips(ol_url, "http://").strip("/")
         update_work.set_query_host(host)
+
+    if solr_url:
+        update_work.set_solr_base_url(solr_url)
 
     logger.info(str(args))
     logger.info("loading config from %s", ol_config)

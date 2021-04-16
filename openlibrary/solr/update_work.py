@@ -72,6 +72,11 @@ def get_solr_base_url():
     return solr_base_url
 
 
+def set_solr_base_url(solr_url: str):
+    global solr_base_url
+    solr_base_url = solr_url
+
+
 def get_ia_collection_and_box_id(ia):
     """
     Get the collections and boxids of the provided IA id
