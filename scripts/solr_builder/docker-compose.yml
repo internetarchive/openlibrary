@@ -23,7 +23,7 @@ services:
       - db-access
 
   solr:
-    image: solr:8
+    image: solr:8.8.2
     restart: on-failure
     environment:
       # This is optimized for bulk loading, but should be shortened for production
@@ -31,9 +31,9 @@ services:
       - SOLR_OPTS=-Dsolr.autoCommit.maxTime=3600000
       - SOLR_JAVA_MEM=-Xms3g -Xmx3g
     ports:
-      - 8984:8983
+      - 8983:8983
     volumes:
-      - solr8-data:/var/lib/solr/data/openlibrary
+      - solr-data:/var/solr/data
       - ../../conf/solr8-ol:/opt/solr/server/solr/configsets/olconfig:ro
     networks:
       - solr-access
@@ -58,7 +58,6 @@ services:
 volumes:
   postgres-data:
   solr-data:
-  solr8-data:
   ol-vendor:
 
 networks:

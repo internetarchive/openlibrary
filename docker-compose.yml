@@ -36,12 +36,12 @@ services:
   #       max-size: "512m"
   #       max-file: "4"
 
-  solr8:
-    image: solr:8.7.0
+  solr:
+    image: solr:8.8.2
     ports:
       - 8983:8983
     volumes:
-      - solr8-data:/var/solr
+      - solr-data:/var/solr/data
       - ./conf/solr8-ol:/opt/solr/server/solr/configsets/olconfig:ro
     networks:
       - webnet
@@ -50,10 +50,7 @@ services:
         max-size: "512m"
         max-file: "4"
     # Create (or use if already existing) a core called "openlibrary" with our config & schema
-    command:
-      - solr-precreate
-      - openlibrary
-      - /opt/solr/server/solr/configsets/olconfig
+    command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig
 
   solr-updater:
     image: "${OLIMAGE:-oldev:latest}"
@@ -116,4 +113,3 @@ networks:
 volumes:
   solr-data:
   solr-updater-data:
-  solr8-data:
