@@ -9,10 +9,8 @@ Changes:
 import _init_path
 
 from six.moves import urllib
-import yaml
 import logging
 import json
-import argparse
 import datetime
 import time
 import web
@@ -26,22 +24,6 @@ from infogami import config
 
 logger = logging.getLogger("openlibrary.solr-updater")
 
-LOAD_IA_SCANS = False
-COMMIT = True
-args = {}
-
-
-def parse_arguments():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config')
-    parser.add_argument('--debugger', action="store_true", help="Wait for a debugger to attach before beginning.")
-    parser.add_argument('--state-file', default="solr-update.state")
-    parser.add_argument('--exclude-edits-containing', help="Don't index matching edits")
-    parser.add_argument('--ol-url', default="http://openlibrary.org/")
-    parser.add_argument('--socket-timeout', type=int, default=10)
-    parser.add_argument('--load-ia-scans', dest="load_ia_scans", action="store_true", default=False)
-    parser.add_argument('--no-commit', dest="commit", action="store_false", default=True)
-    return parser.parse_args()
 
 def read_state_file(path):
     try:
@@ -115,7 +97,8 @@ class InfobaseLog:
 
             self.offset = d['offset']
 
-def parse_log(records):
+
+def parse_log(records, load_ia_scans: bool):
     for rec in records:
         action = rec.get('action')
         if action == 'save':
@@ -144,7 +127,8 @@ def parse_log(records):
                 edition_key = data.get('book_key')
                 if edition_key:
                     yield edition_key
-            elif LOAD_IA_SCANS and data.get("type") == "ia-scan" and key.startswith("ia-scan/"):
+            elif (load_ia_scans and data.get("type") == "ia-scan" and
+                  key.startswith("ia-scan/")):
                 identifier = data.get('identifier')
                 if identifier and is_allowed_itemid(identifier):
                     yield "/books/ia:" + identifier
@@ -232,8 +216,26 @@ class Solr:
         logger.info("END commit")
 
 
-def process_args(args):
-    if args.debugger:
+def main(
+        ol_config: str,
+        debugger=False,
+        state_file='solr-update.state',
+        exclude_edits_containing: str = None,
+        ol_url='http://openlibrary.org/',
+        socket_timeout=10,
+        load_ia_scans=False,
+        commit=False,
+):
+    """
+    :param debugger: Wait for a debugger to attach before beginning
+    :param exclude_edits_containing: Don't index matching edits
+    """
+    global args
+    FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
+    logging.basicConfig(level=logging.INFO, format=FORMAT)
+    logger.info("BEGIN new-solr-updater")
+
+    if debugger:
         import debugpy
 
         logger.info("Enabling debugger attachment (attach if it hangs here)")
@@ -244,44 +246,28 @@ def process_args(args):
 
     # Sometimes archive.org requests blocks forever.
     # Setting a timeout will make the request fail instead of waiting forever.
-    socket.setdefaulttimeout(args.socket_timeout)
-
-    global LOAD_IA_SCANS, COMMIT
-    LOAD_IA_SCANS = args.load_ia_scans
-    COMMIT = args.commit
-
-
-def main():
-    global args
-    FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
-    logging.basicConfig(level=logging.INFO, format=FORMAT)
-
-    logger.info("BEGIN new-solr-updater")
-
-    args = parse_arguments()
-    process_args(args)
+    socket.setdefaulttimeout(socket_timeout)
 
     # set OL URL when running on a dev-instance
-    if args.ol_url:
-        host = web.lstrips(args.ol_url, "http://").strip("/")
+    if ol_url:
+        host = web.lstrips(ol_url, "http://").strip("/")
         update_work.set_query_host(host)
 
     logger.info(str(args))
-    logger.info("loading config from %s", args.config)
-    load_config(args.config)
+    logger.info("loading config from %s", ol_config)
+    load_config(ol_config)
 
-    state_file = args.state_file
     offset = read_state_file(state_file)
 
     logfile = InfobaseLog(config.get('infobase_server'),
-                          exclude=args.exclude_edits_containing)
+                          exclude=exclude_edits_containing)
     logfile.seek(offset)
 
     solr = Solr()
 
     while True:
         records = logfile.read_records()
-        keys = parse_log(records)
+        keys = parse_log(records, load_ia_scans)
         count = update_keys(keys)
 
         if logfile.tell() != offset:
@@ -290,7 +276,7 @@ def main():
             with open(state_file, "w") as f:
                 f.write(offset)
 
-        if COMMIT:
+        if commit:
             solr.commit(ndocs=count)
         else:
             logger.info("not doing solr commit as commit is off")
@@ -303,4 +289,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
+    FnToCLI(main).run()
