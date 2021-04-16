@@ -223,7 +223,7 @@ class LocalPostgresDataProvider(DataProvider):
             return r.json()['response']['docs']
         except (RequestError, HTTPStatusError, ReadTimeout, ConnectTimeout, ValueError,
                 KeyError):
-            logger.error(f"Error while fetching IA data: {r.status_code}: {r.json()['error']}",
+            logger.error(f"Fetching IA data: {r.status_code}: {r.json()['error']}",
                          extra={'_recur_depth': _recur_depth})
             # there's probably a bad apple; try splitting the batch
             parts = await asyncio.gather(*(
