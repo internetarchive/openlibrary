@@ -25,7 +25,7 @@ jobs:
       - run: python -m venv ~/openlibrary_python_venv
       - name: Install dependencies
         run: |
-          source ~/openlibrary_python_venv/bin/python
+          source ~/openlibrary_python_venv/bin/activate
           # https://lxml.de/installation.html#requirements
           sudo apt-get install libxml2-dev libxslt-dev
           pip install --upgrade pip setuptools wheel
@@ -34,11 +34,11 @@ jobs:
       - run: make git
       - name: Run make i18n
         run: |
-          source ~/openlibrary_python_venv/bin/python
+          source ~/openlibrary_python_venv/bin/activate
           make i18n
       - name: Run tests
         run: |
-          source ~/openlibrary_python_venv/bin/python
+          source ~/openlibrary_python_venv/bin/activate
           git fetch --no-tags --prune --depth=1 origin master
           BASE_BRANCH="origin/master" make lint-diff
           make lint
