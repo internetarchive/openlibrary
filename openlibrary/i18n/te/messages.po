@@ -331,7 +331,7 @@ msgid ""
 "The <a href=\"//archive.org/\">Internet Archive</a> and several partner "
 "libraries are offering thousands of eBooks for loan to anyone with an "
 "Open Library account, anywhere in the world."
-msgstr "<a href=\"//archive.org/\">అంతర్జాలపు ఆర్కైవ్ మరియు ఎన్నో భాగస్వాములతో కలిసి, గ్రంథాలయాలు కొన్నివేల ఈ-పుస్తకాలను,అందరికి అందుబాటులో ఉండే  గ్రంథాలయం ఖాతా ఉన్నవారికి ప్రపంచంలో ఎక్కడ ఉన్న రుణాలుగా ఇస్తోంది. "
+msgstr "<a href=\"//archive.org/\">అంతర్జాలపు ఆర్కైవ్</a> మరియు ఎన్నో భాగస్వాములతో కలిసి, గ్రంథాలయాలు కొన్నివేల ఈ-పుస్తకాలను,అందరికి అందుబాటులో ఉండే  గ్రంథాలయం ఖాతా ఉన్నవారికి ప్రపంచంలో ఎక్కడ ఉన్న రుణాలుగా ఇస్తోంది. "
 
 #: borrow.html:274
 msgid "physical books from your local library"
