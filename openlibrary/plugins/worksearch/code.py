@@ -353,7 +353,10 @@ def build_q_list(param):
                 if v:
                     q_list.append("(author_name:(%(name)s) OR author_alternative_name:(%(name)s))" % {'name': v})
 
-        check_params = ['title', 'publisher', 'oclc', 'lccn', 'contributor', 'subject', 'place', 'person', 'time']
+        check_params = [
+            'title', 'publisher', 'oclc', 'lccn', 'contributor', 'subject', 'place',
+            'person', 'time'
+        ]
         q_list += [
             '%s:(%s)' % (k, re_to_esc.sub(r'\\\g<0>', param[k]))
             for k in check_params if k in param
