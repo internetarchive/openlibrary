@@ -43,3 +43,29 @@ export function initSearchFacets() {
         less($(this).data('header'), start_facet_count, facet_inc);
     });
 }
+
+let readapi_starttime = 0;
+
+function readapi_callback(data, textStatus, jqXHR) {
+    const endtime = Date.now();
+    //document.write(data.stats.summary.toSource());
+    const duration = (endtime - readapi_starttime) / 1000;
+    const disp = document.getElementById("adminTiming");
+    if (disp) {
+        disp.innerHTML += '<br/><br/><span class="adminOnly">Read API call took ' + duration + ' seconds</span>';
+    }
+}
+
+export function initAdminTiming() {
+    const readapi_percent = 100;
+    if (Math.random() * 100 < readapi_percent) {
+        readapi_starttime = Date.now();
+        const ol = 'openlibrary.org';
+        const wks = $('#adminTiming').data('wks');
+        $.ajax({
+            url: 'https://' + ol + '/api/volumes/brief/json/' + wks + '?listofworks=True&no_details=True&stats=True',
+            dataType: 'jsonp',
+            success: readapi_callback
+        });
+    }
+}
