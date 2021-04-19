@@ -2153,7 +2153,7 @@ msgid "Choose a JPG, GIF or PNG on your computer,"
 msgstr ""
 
 #: add.html:126
-msgid "<u>Or</u></span>, paste in the image URL if it's on the web."
+msgid "<span class=\"highlight\"><u>Or</u></span>, paste in the image URL if it's on the web."
 msgstr ""
 
 #: add.html:134
@@ -2818,7 +2818,7 @@ msgstr ""
 
 #: home.html:45
 #, python-format
-msgid "%(listname)s </a> from <a href=\"%(key)s\">%(owner)s</a>"
+msgid "from <a href=\"%(key)s\">%(owner)s</a>"
 msgstr ""
 
 #: home.html:50 preview.html:27 snippet.html:20

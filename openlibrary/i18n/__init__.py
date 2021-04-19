@@ -28,8 +28,14 @@ def _compile_translation(po, mo):
         print('failed to compile', po, file=web.debug)
         raise e
 
+
 def get_locales():
-    return [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
+    return [
+        d
+        for d in os.listdir(root)
+        if (os.path.isdir(os.path.join(root, d)) and
+            os.path.exists(os.path.join(root, d, 'messages.po')))
+    ]
 
 def extract_templetor(fileobj, keywords, comment_tags, options):
     """Extract i18n messages from web.py templates."""

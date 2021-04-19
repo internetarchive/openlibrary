@@ -39,7 +39,9 @@ $var title: $_('Lists')
                             $ cover_url = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
                             <img src="$cover_url" alt=""/>
                         </div>
-                        $:_('%(listname)s </a> from <a href="%(key)s">%(owner)s</a>', key=owner.key, listname=list.name, owner=owner.displayname)
+                        %(listname)s
+                    </a>
+                    $:_('from <a href="%(key)s">%(owner)s</a>', key=owner.key, owner=owner.displayname)
                 </div>
                 <div class="meta">
                     $ msg = ungettext("1 item", "%(count)d items", len(list.seeds))
