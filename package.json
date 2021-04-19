@@ -52,7 +52,7 @@
     "promise-polyfill": "8.2.0",
     "quagga": "0.12.1",
     "regenerator-runtime": "0.13.7",
-    "sinon": "10.0.0",
+    "sinon": "10.0.1",
     "slick-carousel": "1.6.0",
     "style-loader": "2.0.0",
     "stylelint": "13.12.0",
