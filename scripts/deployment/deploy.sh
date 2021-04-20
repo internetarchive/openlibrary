@@ -64,7 +64,7 @@ for SERVER in $SERVERS; do
     fi
     for REPO_DIR in $REPO_DIRS; do
         echo "Starting rsync of $REPO_DIR to $SERVER..."
-        time rsync -a -r --no-owner --group --verbose $REPO_DIR "$SERVER:$REPO_DIR"
+        time rsync -a -r --no-owner --group --verbose "$REPO_DIR/" "$SERVER:$REPO_DIR"
     done
     echo -e "Finished rsync to $SERVER...\n"
 done
