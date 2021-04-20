@@ -12,7 +12,7 @@ $ bodyattrs = ctx.get('bodyattrs', [])
   </script>
 
   <div id="staging-disclaimer" style="display:none"><center>Beep boop! staging.openlibrary.org is getting renamed to <a href="http://testing.openlibrary.org">testing.openlibrary.org</a>. See <a href="https://github.com/internetarchive/openlibrary/issues/5076">#5076</a> for details.</center></div>
-  <script>if (location.toString().indexOf('staging.') > 0) document.getElementById('staging-disclaimer').style.display = 'initial'</script>
+  <script>if (location.toString().indexOf('staging.') >= 0) document.getElementById('staging-disclaimer').style.display = 'initial'</script>
 
   <span id="top"></span>
   $# on form pages e.g. manage-covers, add-cover we do not display the header
