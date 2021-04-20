@@ -39,7 +39,7 @@ $var title: $_('Lists')
                             $ cover_url = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
                             <img src="$cover_url" alt=""/>
                         </div>
-                        %(listname)s
+                        $list.name
                     </a>
                     $:_('from <a href="%(key)s">%(owner)s</a>', key=owner.key, owner=owner.displayname)
                 </div>
