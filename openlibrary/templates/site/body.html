@@ -10,6 +10,10 @@ $ bodyattrs = ctx.get('bodyattrs', [])
       // Provide a signal that JS will load
       document.body.className += ' client-js';
   </script>
+
+  <div id="staging-disclaimer" style="display:none"><center>Beep boop! staging.openlibrary.org is getting renamed to <a href="http://testing.openlibrary.org">testing.openlibrary.org</a>. See <a href="https://github.com/internetarchive/openlibrary/issues/5076">#5076</a> for details.</center></div>
+  <script>if (window.location.toString().indexOf('staging.')) document.getElementById('staging-disclaimer').style.display = 'initial'</script>
+
   <span id="top"></span>
   $# on form pages e.g. manage-covers, add-cover we do not display the header
   $# this is consistent with version 1.
