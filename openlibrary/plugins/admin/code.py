@@ -18,8 +18,10 @@ from infogami.utils.context import context
 from infogami.utils.view import add_flash_message
 from infogami.plugins.api.code import jsonapi
 
-from openlibrary.catalog.add_book import update_ia_metadata_for_ol_edition, \
-    create_ol_subjects_for_ocaid
+from openlibrary.catalog.add_book import (
+    update_ia_metadata_for_ol_edition,
+    create_ol_subjects_for_ocaid,
+)
 
 import openlibrary
 
@@ -27,8 +29,7 @@ from openlibrary import accounts
 
 from openlibrary.core import lending, admin as admin_stats, helpers as h, imports, cache
 from openlibrary.core.waitinglist import Stats as WLStats
-from openlibrary.core.sponsorships import (
-    summary, sync_completed_sponsored_books)
+from openlibrary.core.sponsorships import summary, sync_completed_sponsored_books
 
 from openlibrary.plugins.upstream import forms, spamcheck
 from openlibrary.plugins.upstream.account import send_forgot_password_email
@@ -43,13 +44,15 @@ def render_template(name, *a, **kw):
         name = name.rsplit(".", 1)[0]
     return render[name](*a, **kw)
 
+
 admin_tasks = []
 
 
 def register_admin_page(path, cls, label=None, visible=True, librarians=False):
     label = label or cls.__name__
-    t = web.storage(path=path, cls=cls, label=label,
-                    visible=visible, librarians=librarians)
+    t = web.storage(
+        path=path, cls=cls, label=label, visible=visible, librarians=librarians
+    )
     admin_tasks.append(t)
 
 
@@ -74,8 +77,9 @@ class admin(delegate.page):
         if not m:
             raise web.nomethod(cls=cls)
         else:
-            if (self.is_admin() or (librarians and context.user and
-                                    context.user.is_librarian())):
+            if self.is_admin() or (
+                librarians and context.user and context.user.is_librarian()
+            ):
                 return m(*args)
             else:
                 return render.permission_denied(web.ctx.path, "Permission denied.")
@@ -84,21 +88,31 @@ class admin(delegate.page):
 
     def is_admin(self):
         """Returns True if the current user is in admin usergroup."""
-        return context.user and context.user.key in [m.key for m in web.ctx.site.get('/usergroup/admin').members]
+        return context.user and context.user.key in [
+            m.key for m in web.ctx.site.get('/usergroup/admin').members
+        ]
+
 
 class admin_index:
     def GET(self):
         return web.seeother('/stats')
+
 
 class gitpull:
     def GET(self):
         root = os.path.join(os.path.dirname(openlibrary.__file__), os.path.pardir)
         root = os.path.normpath(root)
 
-        p = subprocess.Popen('cd %s && git pull' % root, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(
+            'cd %s && git pull' % root,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
         out = p.stdout.read()
         p.wait()
         return '<pre>' + web.websafe(out) + '</pre>'
+
 
 class reload:
     def GET(self):
@@ -120,27 +134,39 @@ class reload:
             except:
                 yield "<p><pre>%s</pre></p>" % traceback.format_exc()
 
+
 @web.memoize
 def local_ip():
     import socket
+
     return socket.gethostbyname(socket.gethostname())
+
 
 class _reload(delegate.page):
     def GET(self):
         # make sure the request is coming from the LAN.
-        if web.ctx.ip not in ['127.0.0.1', '0.0.0.0'] and web.ctx.ip.rsplit(".", 1)[0] != local_ip().rsplit(".", 1)[0]:
-            return render.permission_denied(web.ctx.fullpath, "Permission denied to reload templates/macros.")
+        if (
+            web.ctx.ip not in ['127.0.0.1', '0.0.0.0']
+            and web.ctx.ip.rsplit(".", 1)[0] != local_ip().rsplit(".", 1)[0]
+        ):
+            return render.permission_denied(
+                web.ctx.fullpath, "Permission denied to reload templates/macros."
+            )
 
         from infogami.plugins.wikitemplates import code as wikitemplates
+
         wikitemplates.load_all()
 
         from openlibrary.plugins.upstream import code as upstream
+
         upstream.reload()
         return delegate.RawText("done")
+
 
 class any:
     def GET(self):
         path = web.ctx.path
+
 
 class people:
     def GET(self):
@@ -151,6 +177,7 @@ class people:
             if account:
                 raise web.seeother("/admin/people/" + account.username)
         return render_template("admin/people/index", email=i.email)
+
 
 class add_work_to_staff_picks:
     def GET(self):
@@ -168,7 +195,8 @@ class add_work_to_staff_picks:
             results[work_id] = {}
             for ocaid in ocaids:
                 results[work_id][ocaid] = create_ol_subjects_for_ocaid(
-                    ocaid, subjects=subjects)
+                    ocaid, subjects=subjects
+                )
 
         return delegate.RawText(json.dumps(results), content_type="application/json")
 
@@ -181,12 +209,12 @@ class sync_ol_ia:
         """
         i = web.input(edition_id='')
         data = update_ia_metadata_for_ol_edition(i.edition_id)
-        return delegate.RawText(json.dumps(data),
-                                content_type="application/json")
+        return delegate.RawText(json.dumps(data), content_type="application/json")
+
 
 class people_view:
     def GET(self, key):
-        account = accounts.find(username = key) or accounts.find(email = key)
+        account = accounts.find(username=key) or accounts.find(email=key)
         if account:
             if "@" in key:
                 raise web.seeother("/admin/people/" + account.username)
@@ -196,7 +224,7 @@ class people_view:
             raise web.notfound()
 
     def POST(self, key):
-        user = accounts.find(username = key)
+        user = accounts.find(username=key)
         if not user:
             raise web.notfound()
 
@@ -253,7 +281,7 @@ class people_view:
         raise web.seeother(web.ctx.path)
 
     def POST_resend_link(self, user):
-        key = "account/%s/verify"%user.username
+        key = "account/%s/verify" % user.username
         activation_link = web.ctx.site.store.get(key)
         del activation_link
         user.send_verification_email()
@@ -263,10 +291,17 @@ class people_view:
     def POST_update_email(self, account, i):
         user = account.get_user()
         if not forms.vemail.valid(i.email):
-            return render_template("admin/people/view", user, i, {"email": forms.vemail.msg})
+            return render_template(
+                "admin/people/view", user, i, {"email": forms.vemail.msg}
+            )
 
         if not forms.email_not_already_used.valid(i.email):
-            return render_template("admin/people/view", user, i, {"email": forms.email_not_already_used.msg})
+            return render_template(
+                "admin/people/view",
+                user,
+                i,
+                {"email": forms.email_not_already_used.msg},
+            )
 
         account.update_email(i.email)
 
@@ -276,7 +311,9 @@ class people_view:
     def POST_update_password(self, account, i):
         user = account.get_user()
         if not forms.vpass.valid(i.password):
-            return render_template("admin/people/view", user, i, {"password": forms.vpass.msg})
+            return render_template(
+                "admin/people/view", user, i, {"password": forms.vpass.msg}
+            )
 
         account.update_password(i.password)
 
@@ -302,6 +339,7 @@ class people_view:
         web.setcookie(config.login_cookie_name, code, expires="")
         return web.seeother("/")
 
+
 class people_edits:
     def GET(self, username):
         account = accounts.find(username=username)
@@ -316,9 +354,11 @@ class people_edits:
             ipaddress_view().revert(i.changesets, i.comment)
         raise web.redirect(web.ctx.path)
 
+
 class ipaddress:
     def GET(self):
         return render_template('admin/ip/index')
+
 
 class ipaddress_view:
     def GET(self, ip):
@@ -340,30 +380,29 @@ class ipaddress_view:
 
     def get_doc(self, key, revision):
         if revision == 0:
-            return {
-                "key": key,
-                "type": {"key": "/type/delete"}
-            }
+            return {"key": key, "type": {"key": "/type/delete"}}
         else:
             return web.ctx.site.get(key, revision).dict()
 
     def revert(self, changeset_ids, comment):
         logger.debug("Reverting changesets %s", changeset_ids)
         site = web.ctx.site
-        docs = [self.get_doc(c['key'], c['revision']-1)
-                for cid in changeset_ids
-                for c in site.get_change(cid).changes]
+        docs = [
+            self.get_doc(c['key'], c['revision'] - 1)
+            for cid in changeset_ids
+            for c in site.get_change(cid).changes
+        ]
 
         logger.debug("Reverting %d docs", len(docs))
-        data = {
-            "reverted_changesets": [str(cid) for cid in changeset_ids]
-        }
+        data = {"reverted_changesets": [str(cid) for cid in changeset_ids]}
         return web.ctx.site.save_many(docs, action="revert", data=data, comment=comment)
 
 
 class stats:
     def GET(self, today):
-        json = web.ctx.site._conn.request(web.ctx.site.name, '/get', 'GET', {'key': '/admin/stats/' + today})
+        json = web.ctx.site._conn.request(
+            web.ctx.site.name, '/get', 'GET', {'key': '/admin/stats/' + today}
+        )
         return delegate.RawText(json)
 
     def POST(self, today):
@@ -376,27 +415,30 @@ class stats:
         stats = web.ctx.site._request("/stats/" + today)
 
         key = '/admin/stats/' + today
-        doc = web.ctx.site.new(key, {
-            'key': key,
-            'type': {'key': '/type/object'}
-        })
+        doc = web.ctx.site.new(key, {'key': key, 'type': {'key': '/type/object'}})
         doc.edits = {
             'human': stats.edits - stats.edits_by_bots,
             'bot': stats.edits_by_bots,
-            'total': stats.edits
+            'total': stats.edits,
         }
         doc.members = stats.new_accounts
         return doc
 
+
 class ipstats:
     def GET(self):
         web.header('Content-Type', 'application/json')
-        text = requests.get("http://www.archive.org/download/stats/numUniqueIPsOL.json").text
+        text = requests.get(
+            "http://www.archive.org/download/stats/numUniqueIPsOL.json"
+        ).text
         return delegate.RawText(text)
+
 
 class block:
     def GET(self):
-        page = web.ctx.site.get("/admin/block") or web.storage(ips=[web.storage(ip="127.0.0.1", duration="1 week", since="1 day")])
+        page = web.ctx.site.get("/admin/block") or web.storage(
+            ips=[web.storage(ip="127.0.0.1", duration="1 week", since="1 day")]
+        )
         return render_template("admin/block", page)
 
     def POST(self):
@@ -407,9 +449,12 @@ class block:
         raise web.seeother("/admin/block")
 
     def block_ips(self, ips):
-        page = web.ctx.get("/admin/block") or web.ctx.site.new("/admin/block", {"key": "/admin/block", "type": "/type/object"})
+        page = web.ctx.get("/admin/block") or web.ctx.site.new(
+            "/admin/block", {"key": "/admin/block", "type": "/type/object"}
+        )
         page.ips = [{'ip': ip} for ip in ips]
         page._save("updated blocked IPs")
+
 
 def get_blocked_ips():
     doc = web.ctx.site.get("/admin/block")
@@ -418,17 +463,24 @@ def get_blocked_ips():
     else:
         return []
 
-def block_ip_processor(handler):
-    if not web.ctx.path.startswith("/admin") \
-        and (web.ctx.method == "POST" or web.ctx.path.endswith("/edit")) \
-        and web.ctx.ip in get_blocked_ips():
 
-        return render_template("permission_denied", web.ctx.path, "Your IP address is blocked.")
+def block_ip_processor(handler):
+    if (
+        not web.ctx.path.startswith("/admin")
+        and (web.ctx.method == "POST" or web.ctx.path.endswith("/edit"))
+        and web.ctx.ip in get_blocked_ips()
+    ):
+
+        return render_template(
+            "permission_denied", web.ctx.path, "Your IP address is blocked."
+        )
     else:
         return handler()
 
+
 def daterange(date, *slice):
     return [date + datetime.timedelta(i) for i in range(*slice)]
+
 
 def storify(d):
     if isinstance(d, dict):
@@ -438,11 +490,13 @@ def storify(d):
     else:
         return d
 
+
 def get_counts():
     """Generate counts for various operations which will be given to the
     index page"""
     retval = admin_stats.get_stats(100)
     return storify(retval)
+
 
 def get_admin_stats():
     def f(dates):
@@ -460,14 +514,15 @@ def get_admin_stats():
                 'bot': sum(doc['edits']['bot'] for doc in docs),
                 'total': sum(doc['edits']['total'] for doc in docs),
             },
-            'members': sum(doc['members'] for doc in docs)
+            'members': sum(doc['members'] for doc in docs),
         }
+
     date = datetime.datetime.utcnow().date()
 
     if has_doc(date):
         today = f([date])
     else:
-        today =  g([stats().get_stats(date.isoformat())])
+        today = g([stats().get_stats(date.isoformat())])
     yesterday = f(daterange(date, -1, 0, 1))
     thisweek = f(daterange(date, 0, -7, -1))
     thismonth = f(daterange(date, 0, -30, -1))
@@ -477,51 +532,68 @@ def get_admin_stats():
             'today': today['edits'],
             'yesterday': yesterday['edits'],
             'thisweek': thisweek['edits'],
-            'thismonth': thismonth['edits']
+            'thismonth': thismonth['edits'],
         },
         'members': {
             'today': today['members'],
             'yesterday': yesterday['members'],
             'thisweek': thisweek['members'],
-            'thismonth': thismonth['members']
-        }
+            'thismonth': thismonth['members'],
+        },
     }
     return storify(xstats)
+
 
 from openlibrary.plugins.upstream import borrow
 
 
 class loans_admin:
-
     def GET(self):
         i = web.input(page=1, pagesize=200)
 
         total_loans = len(web.ctx.site.store.keys(type="/type/loan", limit=100000))
-        pdf_loans = len(web.ctx.site.store.keys(type="/type/loan", name="resource_type", value="pdf", limit=100000))
-        epub_loans = len(web.ctx.site.store.keys(type="/type/loan", name="resource_type", value="epub", limit=100000))
+        pdf_loans = len(
+            web.ctx.site.store.keys(
+                type="/type/loan", name="resource_type", value="pdf", limit=100000
+            )
+        )
+        epub_loans = len(
+            web.ctx.site.store.keys(
+                type="/type/loan", name="resource_type", value="epub", limit=100000
+            )
+        )
 
         pagesize = h.safeint(i.pagesize, 200)
-        pagecount = 1 + (total_loans-1) // pagesize
+        pagecount = 1 + (total_loans - 1) // pagesize
         pageindex = max(h.safeint(i.page, 1), 1)
 
-        begin = (pageindex-1) * pagesize  # pagecount starts from 1
+        begin = (pageindex - 1) * pagesize  # pagecount starts from 1
         end = min(begin + pagesize, total_loans)
 
-        loans = web.ctx.site.store.values(type="/type/loan", offset=begin, limit=pagesize)
+        loans = web.ctx.site.store.values(
+            type="/type/loan", offset=begin, limit=pagesize
+        )
 
         stats = {
             "total_loans": total_loans,
             "pdf_loans": pdf_loans,
             "epub_loans": epub_loans,
             "bookreader_loans": total_loans - pdf_loans - epub_loans,
-            "begin": begin+1, # We count from 1, not 0.
-            "end": end
+            "begin": begin + 1,  # We count from 1, not 0.
+            "end": end,
         }
 
         # Preload books
         web.ctx.site.get_many([loan['book'] for loan in loans])
 
-        return render_template("admin/loans", loans, None, pagecount=pagecount, pageindex=pageindex, stats=stats)
+        return render_template(
+            "admin/loans",
+            loans,
+            None,
+            pagecount=pagecount,
+            pageindex=pageindex,
+            stats=stats,
+        )
 
     def POST(self):
         i = web.input(action=None)
@@ -534,12 +606,14 @@ class loans_admin:
 
         if action == 'updateall':
             borrow.update_all_loan_status()
-        raise web.seeother(web.ctx.path) # Redirect to avoid form re-post on re-load
+        raise web.seeother(web.ctx.path)  # Redirect to avoid form re-post on re-load
+
 
 class waitinglists_admin:
     def GET(self):
         stats = WLStats()
         return render_template("admin/waitinglists", stats)
+
 
 class inspect:
     def GET(self, section):
@@ -560,7 +634,12 @@ class inspect:
             else:
                 docs = []
         else:
-            docs = web.ctx.site.store.values(type=i.type or None, name=i.name or None, value=i.value or None, limit=100)
+            docs = web.ctx.site.store.values(
+                type=i.type or None,
+                name=i.name or None,
+                value=i.value or None,
+                limit=100,
+            )
 
         return render_template("admin/inspect/store", docs, input=i)
 
@@ -578,6 +657,7 @@ class inspect:
         else:
             mapping = keys and mc.get_multi(keys)
             return render_template("admin/inspect/memcache", keys, mapping)
+
 
 class spamwords:
     def GET(self):
@@ -600,6 +680,7 @@ class _graphs:
     def GET(self):
         return render_template("admin/graphs")
 
+
 class permissions:
     def GET(self):
         perm_pages = self.get_permission("/")
@@ -617,7 +698,7 @@ class permissions:
         The caller must save the doc.
         """
         doc = web.ctx.site.get(key)
-        doc = doc and doc.dict() or { "key": key, "type": {"key": "/type/page"}}
+        doc = doc and doc.dict() or {"key": key, "type": {"key": "/type/page"}}
 
         # so that only admins can modify the permission
         doc["permission"] = {"key": "/permission/restricted"}
@@ -628,16 +709,20 @@ class permissions:
     def POST(self):
         i = web.input(
             perm_pages="/permission/loggedinusers",
-            perm_records="/permission/loggedinusers")
+            perm_records="/permission/loggedinusers",
+        )
 
         root = self.set_permission("/", i.perm_pages)
         works = self.set_permission("/works", i.perm_records)
         books = self.set_permission("/books", i.perm_records)
         authors = self.set_permission("/authors", i.perm_records)
-        web.ctx.site.save_many([root, works, books, authors], comment="Updated edit policy.")
+        web.ctx.site.save_many(
+            [root, works, books, authors], comment="Updated edit policy."
+        )
 
         add_flash_message("info", "Edit policy has been updated!")
         return self.GET()
+
 
 class attach_debugger:
     def GET(self):
@@ -658,6 +743,7 @@ class attach_debugger:
 
         return self.GET()
 
+
 class solr:
     def GET(self):
         return render_template("admin/solr")
@@ -665,13 +751,17 @@ class solr:
     def POST(self):
         i = web.input(keys="")
         keys = i['keys'].strip().split()
-        web.ctx.site.store['solr-force-update'] = dict(type="solr-force-update", keys=keys, _rev=None)
+        web.ctx.site.store['solr-force-update'] = dict(
+            type="solr-force-update", keys=keys, _rev=None
+        )
         add_flash_message("info", "Added the specified keys to solr update queue.!")
         return self.GET()
+
 
 class imports_home:
     def GET(self):
         return render_template("admin/imports", imports.Stats())
+
 
 class imports_add:
     def GET(self):
@@ -679,25 +769,30 @@ class imports_add:
 
     def POST(self):
         i = web.input("identifiers")
-        identifiers = [line.strip() for line in i.identifiers.splitlines() if line.strip()]
+        identifiers = [
+            line.strip() for line in i.identifiers.splitlines() if line.strip()
+        ]
         batch_name = "admin"
         batch = imports.Batch.find(batch_name, create=True)
         batch.add_items(identifiers)
         add_flash_message("info", "Added the specified identifiers to import queue.")
         raise web.seeother("/admin/imports")
 
+
 class imports_by_date:
     def GET(self, date):
         return render_template("admin/imports_by_date", imports.Stats(), date)
+
 
 class show_log:
     def GET(self):
         i = web.input(name='')
         logname = i.name
-        filepath = config.get('errorlog', 'errors') + '/'+ logname + '.html'
+        filepath = config.get('errorlog', 'errors') + '/' + logname + '.html'
         if os.path.exists(filepath):
             with open(filepath) as f:
                 return f.read()
+
 
 class sponsorship_stats:
     def GET(self):
@@ -723,7 +818,9 @@ def setup():
     register_admin_page('/admin/stats/(\d\d\d\d-\d\d-\d\d)', stats, label='Stats JSON')
     register_admin_page('/admin/ipstats', ipstats, label='IP Stats JSON')
     register_admin_page('/admin/block', block, label='')
-    register_admin_page('/admin/attach_debugger', attach_debugger, label='Attach Debugger')
+    register_admin_page(
+        '/admin/attach_debugger', attach_debugger, label='Attach Debugger'
+    )
     register_admin_page('/admin/loans', loans_admin, label='')
     register_admin_page('/admin/waitinglists', waitinglists_admin, label='')
     register_admin_page('/admin/inspect(?:(/.+))?', inspect, label="")
@@ -732,14 +829,20 @@ def setup():
     register_admin_page('/admin/permissions', permissions, label="")
     register_admin_page('/admin/solr', solr, label="", librarians=True)
     register_admin_page('/admin/sync', sync_ol_ia, label="", librarians=True)
-    register_admin_page('/admin/staffpicks', add_work_to_staff_picks, label="", librarians=True)
+    register_admin_page(
+        '/admin/staffpicks', add_work_to_staff_picks, label="", librarians=True
+    )
 
     register_admin_page('/admin/imports', imports_home, label="")
     register_admin_page('/admin/imports/add', imports_add, label="")
-    register_admin_page('/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label="")
+    register_admin_page(
+        '/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label=""
+    )
     register_admin_page('/admin/spamwords', spamwords, label="")
     register_admin_page('/admin/sponsorship', sponsorship_stats, label="Sponsorship")
-    register_admin_page('/admin/sponsorship/sync', sync_sponsored_books, label="Sponsor Sync")
+    register_admin_page(
+        '/admin/sponsorship/sync', sync_sponsored_books, label="Sponsor Sync"
+    )
 
     from openlibrary.plugins.admin import mem
 
@@ -751,6 +854,8 @@ def setup():
     delegate.app.add_processor(block_ip_processor)
 
     from openlibrary.plugins.admin import graphs
+
     graphs.setup()
+
 
 setup()

@@ -26,8 +26,7 @@ from openlibrary.plugins.openlibrary.processors import urlsafe
 
 
 def print_dump(json_records, filter=None):
-    """Print the given json_records in the dump format.
-    """
+    """Print the given json_records in the dump format."""
     for i, json_data in enumerate(json_records):
         if i % 1000000 == 0:
             log(i)
@@ -53,6 +52,7 @@ def print_dump(json_records, filter=None):
 
         print("\t".join([type, key, str(d['revision']), timestamp, json_data]))
 
+
 def read_data_file(filename):
     for line in xopen(filename):
         if not isinstance(line, str):
@@ -60,14 +60,17 @@ def read_data_file(filename):
         thing_id, revision, json_data = line.strip().split("\t")
         yield pgdecode(json_data)
 
+
 def log(*args):
     print(time.asctime(), " ".join(str(a) for a in args), file=sys.stderr)
+
 
 def xopen(path, mode='r'):
     if path.endswith(".gz"):
         return gzip.open(path, mode)
     else:
         return open(path, mode)
+
 
 def read_tsv(file, strip=True):
     """Read a tab separated file and return an iterator over rows."""
@@ -84,6 +87,7 @@ def read_tsv(file, strip=True):
             line = line.strip()
         yield line.split("\t")
 
+
 def generate_cdump(data_file, date=None):
     """Generates cdump from a copy of data table.
     If date is specified, only revisions created on or before that date will be considered.
@@ -99,13 +103,14 @@ def generate_cdump(data_file, date=None):
 
     print_dump(read_data_file(data_file), filter=filter)
 
+
 def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
     """Sort the given dump based on key."""
     tmpdir = os.path.join(tmpdir, "oldumpsort")
     if not os.path.exists(tmpdir):
         os.makedirs(tmpdir)
 
-    M = 1024*1024
+    M = 1024 * 1024
 
     filenames = [os.path.join(tmpdir, "%02x.txt.gz" % i) for i in range(256)]
     files = [gzip.open(f, 'wb') for f in filenames]
@@ -130,15 +135,19 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
 
     for fname in filenames:
         log("sorting", fname)
-        status = os.system("gzip -cd %(fname)s | sort -S%(buffer_size)s -k2,3" % locals())
+        status = os.system(
+            "gzip -cd %(fname)s | sort -S%(buffer_size)s -k2,3" % locals()
+        )
         if status != 0:
             raise Exception("sort failed with status %d" % status)
+
 
 def generate_dump(cdump_file=None):
     """Generate dump from cdump.
 
     The given cdump must be sorted by key.
     """
+
     def process(data):
         revision = lambda cols: int(cols[2])
         for key, rows in itertools.groupby(data, key=lambda cols: cols[1]):
@@ -150,18 +159,22 @@ def generate_dump(cdump_file=None):
     # group by key and find the max by revision
     sys.stdout.writelines(tjoin(row) for row in process(data))
 
+
 def generate_idump(day, **db_parameters):
-    """Generate incremental dump for the given day.
-    """
+    """Generate incremental dump for the given day."""
     db.setup_database(**db_parameters)
-    rows = db.longquery("SELECT data.* FROM data, version, transaction "
+    rows = db.longquery(
+        "SELECT data.* FROM data, version, transaction "
         + " WHERE data.thing_id=version.thing_id"
         + "     AND data.revision=version.revision"
         + "     AND version.transaction_id=transaction.id"
         + "     AND transaction.created >= $day AND transaction.created < date $day + interval '1 day'"
         + " ORDER BY transaction.created",
-        vars=locals(), chunk_size=10000)
+        vars=locals(),
+        chunk_size=10000,
+    )
     print_dump(row.data for chunk in rows for row in chunk)
+
 
 def split_dump(dump_file=None, format="oldump_%s.txt"):
     """Split dump into authors, editions and works."""
@@ -181,6 +194,7 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
 
     for f in files.values():
         f.close()
+
 
 def make_index(dump_file):
     """Make index with "path", "title", "created" and "last_modified" columns."""
@@ -205,14 +219,23 @@ def make_index(dump_file):
             created = "-"
         print("\t".join([web.safestr(path), web.safestr(title), created, timestamp]))
 
+
 def make_bsddb(dbfile, dump_file):
     import bsddb
-    db = bsddb.btopen(dbfile, 'w', cachesize=1024*1024*1024)
 
-    indexable_keys = set([
-        "authors.key",  "works.key", # edition
-        "authors.author.key", "subjects", "subject_places", "subject_people", "subject_times" # work
-    ])
+    db = bsddb.btopen(dbfile, 'w', cachesize=1024 * 1024 * 1024)
+
+    indexable_keys = set(
+        [
+            "authors.key",
+            "works.key",  # edition
+            "authors.author.key",
+            "subjects",
+            "subject_places",
+            "subject_people",
+            "subject_times",  # work
+        ]
+    )
     for type, key, revision, timestamp, json_data in read_tsv(dump_file):
         db[key] = json_data
         d = json.loads(json_data)
@@ -222,7 +245,7 @@ def make_bsddb(dbfile, dump_file):
             if k.startswith("subject"):
                 v = '/' + v.lower().replace(" ", "_")
 
-            dbkey  = web.safestr('by_%s%s' % (k, v))
+            dbkey = web.safestr('by_%s%s' % (k, v))
             if dbkey in db:
                 db[dbkey] = db[dbkey] + " " + key
             else:
@@ -230,21 +253,26 @@ def make_bsddb(dbfile, dump_file):
     db.close()
     log("done")
 
+
 def _process_key(key):
     mapping = (
-        "/l/", "/languages/",
-        "/a/", "/authors/",
-        "/b/", "/books/",
-        "/user/", "/people/"
+        "/l/",
+        "/languages/",
+        "/a/",
+        "/authors/",
+        "/b/",
+        "/books/",
+        "/user/",
+        "/people/",
     )
     for old, new in web.group(mapping, 2):
         if key.startswith(old):
-            return new + key[len(old):]
+            return new + key[len(old) :]
     return key
 
+
 def _process_data(data):
-    """Convert keys from /a/, /b/, /l/ and /user/ to /authors/, /books/, /languages/ and /people/ respectively.
-    """
+    """Convert keys from /a/, /b/, /l/ and /user/ to /authors/, /books/, /languages/ and /people/ respectively."""
     if isinstance(data, list):
         return [_process_data(d) for d in data]
     elif isinstance(data, dict):
@@ -259,40 +287,47 @@ def _process_data(data):
     else:
         return data
 
+
 def _make_sub(d):
     """Make substituter.
 
-        >>> f = _make_sub(dict(a='aa', bb='b'))
-        >>> f('aabbb')
-        'aaaabb'
+    >>> f = _make_sub(dict(a='aa', bb='b'))
+    >>> f('aabbb')
+    'aaaabb'
     """
+
     def f(a):
         return d[a.group(0)]
+
     rx = re.compile("|".join(re.escape(key) for key in d))
     return lambda s: s and rx.sub(f, s)
 
+
 def _invert_dict(d):
     return dict((v, k) for (k, v) in d.items())
+
 
 _pgencode_dict = {'\n': r'\n', '\r': r'\r', '\t': r'\t', '\\': r'\\'}
 _pgencode = _make_sub(_pgencode_dict)
 _pgdecode = _make_sub(_invert_dict(_pgencode_dict))
 
+
 def pgencode(text):
     """Reverse of pgdecode."""
     return _pgdecode(text)
 
+
 def pgdecode(text):
     r"""Decode postgres encoded text.
 
-        >>> pgdecode('\\n')
-        '\n'
+    >>> pgdecode('\\n')
+    '\n'
     """
     return _pgdecode(text)
 
+
 def main(cmd, args):
-    """Command Line interface for generating dumps.
-    """
+    """Command Line interface for generating dumps."""
     iargs = iter(args)
 
     args = []
@@ -322,6 +357,7 @@ def main(cmd, args):
         make_bsddb(*args, **kwargs)
     elif cmd == "solrdump":
         from openlibrary.data import solr  # noqa: E402 avoid circular import
+
         solr.generate_dump(*args, **kwargs)
     elif cmd == 'sitemaps':
         generate_sitemaps(*args, **kwargs)
@@ -329,6 +365,7 @@ def main(cmd, args):
         generate_html_index(*args, **kwargs)
     else:
         print("Unknown command:", cmd, file=sys.stderr)
+
 
 if __name__ == "__main__":
     main(sys.argv[1], sys.argv[2:])

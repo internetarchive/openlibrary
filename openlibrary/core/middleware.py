@@ -4,8 +4,10 @@ import web
 from six import BytesIO
 import gzip
 
+
 class GZipMiddleware:
     """WSGI middleware to gzip the response."""
+
     def __init__(self, app):
         self.app = app
 
@@ -33,7 +35,9 @@ class GZipMiddleware:
             response.status = status
             response.headers = headers
 
-            if status.startswith("200") and get_response_header("Content-Type", "").startswith("text/"):
+            if status.startswith("200") and get_response_header(
+                "Content-Type", ""
+            ).startswith("text/"):
                 headers.append(("Content-Encoding", "gzip"))
                 headers.append(("Vary", "Accept-Encoding"))
                 response.compress = True

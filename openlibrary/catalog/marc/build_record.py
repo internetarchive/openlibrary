@@ -15,8 +15,8 @@ re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
 re_letters = re.compile('[A-Za-z]')
 re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
-re_oclc = re.compile ('^\(OCoLC\).*?0*(\d+)')
-re_int = re.compile ('\d{2,}')
+re_oclc = re.compile('^\(OCoLC\).*?0*(\d+)')
+re_int = re.compile('\d{2,}')
 re_number_dot = re.compile('\d{3,}\.$')
 
 re_translation1 = re.compile(r'^(.{,6})\btranslation of\b', re.I)
@@ -25,31 +25,49 @@ re_translation2 = re.compile(r'^([\'"]?).*?\btranslation of\b[ :,;]*(.*)\1', re.
 # no monograph should be longer than 50,000 pages
 max_number_of_pages = 50000
 
-want = [
-    '001',
-    '008', # publish date, country and language
-    '010', # lccn
-    '020', # isbn
-    '035', # oclc
-    '050', # lc classification
-    '082', # dewey
-    '100', '110', '111', # authors
-    '130', '240', # work title
-    '245', # title
-    '250', # edition
-    '260', # publisher
-    '300', # pagination
-    '440', '490', '830' # series
-    ] + [str(i) for i in range(500,590)] + [ # notes + toc + description
-    '600', '610', '630', '650', '651', # subjects + genre
-    '700', '710', '711', # contributions
-    '246', '730', '740', # other titles
-    '852', # location
-    '856' # URL
-]
+want = (
+    [
+        '001',
+        '008',  # publish date, country and language
+        '010',  # lccn
+        '020',  # isbn
+        '035',  # oclc
+        '050',  # lc classification
+        '082',  # dewey
+        '100',
+        '110',
+        '111',  # authors
+        '130',
+        '240',  # work title
+        '245',  # title
+        '250',  # edition
+        '260',  # publisher
+        '300',  # pagination
+        '440',
+        '490',
+        '830',  # series
+    ]
+    + [str(i) for i in range(500, 590)]
+    + [  # notes + toc + description
+        '600',
+        '610',
+        '630',
+        '650',
+        '651',  # subjects + genre
+        '700',
+        '710',
+        '711',  # contributions
+        '246',
+        '730',
+        '740',  # other titles
+        '852',  # location
+        '856',  # URL
+    ]
+)
 
 re_series = re.compile('^(.*) series$', re.I)
 REASON = 'Use corresponding function in openlibrary.catalog.marc.parse instead.'
+
 
 @deprecated(REASON)
 def read_lccn(fields):
@@ -69,6 +87,7 @@ def read_lccn(fields):
                 found.append(lccn)
 
     return {'lccn': found}
+
 
 @deprecated(REASON)
 def read_isbn(fields):
@@ -95,6 +114,7 @@ def read_isbn(fields):
             ret.setdefault('isbn_10', []).append(i)
     return ret
 
+
 @deprecated(REASON)
 def read_oclc(fields):
     if '035' not in fields:
@@ -109,14 +129,15 @@ def read_oclc(fields):
             oclc = m.group(1)
             if oclc not in found:
                 found.append(oclc)
-    return {'oclc_number': found } if found else {}
+    return {'oclc_number': found} if found else {}
+
 
 @deprecated(REASON)
 def read_author_person(line):
     author = {}
     contents = get_contents(line, ['a', 'b', 'c', 'd'])
     if 'a' not in contents and 'c' not in contents:
-        return None # should at least be a name or title
+        return None  # should at least be a name or title
     name = [v.strip(' /,;:') for v in get_subfield_values(line, ['a', 'b', 'c'])]
     if 'd' in contents:
         author = pick_first_date(contents['d'])
@@ -127,17 +148,16 @@ def read_author_person(line):
 
     author['name'] = ' '.join(name)
     author['entity_type'] = 'person'
-    subfields = [
-        ('a', 'personal_name'),
-        ('b', 'numeration'),
-        ('c', 'title')
-    ]
+    subfields = [('a', 'personal_name'), ('b', 'numeration'), ('c', 'title')]
     for subfield, field_name in subfields:
         if subfield in contents:
-            author[field_name] = ' '.join([x.strip(' /,;:') for x in contents[subfield]])
+            author[field_name] = ' '.join(
+                [x.strip(' /,;:') for x in contents[subfield]]
+            )
     if 'q' in contents:
         author['fuller_name'] = ' '.join(contents['q'])
     return author
+
 
 @deprecated(REASON)
 def read_authors(fields):
@@ -152,32 +172,35 @@ def read_authors(fields):
     if '110' in fields:
         line = fields['110'][0]
         name = [v.strip(' /,;:') for v in get_subfield_values(line, ['a', 'b'])]
-        author = { 'entity_type': 'org', 'name': ' '.join(name) }
+        author = {'entity_type': 'org', 'name': ' '.join(name)}
     if '111' in fields:
         line = fields['111'][0]
-        name = [v.strip(' /,;:') for v in get_subfield_values(line, ['a', 'c', 'd', 'n'])]
-        author = { 'entity_type': 'event', 'name': ' '.join(name) }
+        name = [
+            v.strip(' /,;:') for v in get_subfield_values(line, ['a', 'c', 'd', 'n'])
+        ]
+        author = {'entity_type': 'event', 'name': ' '.join(name)}
 
     return {'authors': [author]} if author else {}
+
 
 @deprecated(REASON)
 def read_title(fields):
     if '245' not in fields:
         return {}
 
-#   example MARC record with multiple titles:
-#   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:299505697:862
-#   assert len(fields['245']) == 1
+    #   example MARC record with multiple titles:
+    #   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:299505697:862
+    #   assert len(fields['245']) == 1
     line = fields['245'][0]
     contents = get_contents(line, ['a', 'b', 'c', 'h'])
 
     edition = {}
     title = None
-#   MARC record with 245a missing:
-#   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:516779055:1304
+    #   MARC record with 245a missing:
+    #   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:516779055:1304
     if 'a' in contents:
         title = ' '.join(x.strip(' /,;:') for x in contents['a'])
-    elif 'b' in contents: # handle broken records
+    elif 'b' in contents:  # handle broken records
         title = contents['b'][0].strip(' /,;:')
         del contents['b'][0]
     edition['title'] = title
@@ -188,6 +211,7 @@ def read_title(fields):
     if 'h' in contents:
         edition["physical_format"] = ' '.join(contents['h'])
     return edition
+
 
 @deprecated(REASON)
 def read_lc_classification(fields):
@@ -211,6 +235,7 @@ def read_lc_classification(fields):
     else:
         return {}
 
+
 @deprecated(REASON)
 def read_dewey(fields):
     if '082' not in fields:
@@ -218,11 +243,13 @@ def read_dewey(fields):
     found = []
     for line in fields['082']:
         found += get_subfield_values(line, ['a'])
-    return {'dewey_decimal_class': found }
+    return {'dewey_decimal_class': found}
+
 
 @deprecated(REASON)
 def join_subfield_values(line, subfields):
     return ' '.join(get_subfield_values(line, subfields))
+
 
 @deprecated(REASON)
 def read_work_titles(fields):
@@ -239,7 +266,8 @@ def read_work_titles(fields):
             if title not in found:
                 found.append(title)
 
-    return { 'work_titles': found } if found else {}
+    return {'work_titles': found} if found else {}
+
 
 @deprecated(REASON)
 def read_edition_name(fields):
@@ -249,6 +277,7 @@ def read_edition_name(fields):
     for line in fields['250']:
         found += [v for k, v in get_all_subfields(line)]
     return {'edition_name': ' '.join(found)}
+
 
 @deprecated(REASON)
 def read_publisher(fields):
@@ -269,6 +298,7 @@ def read_publisher(fields):
         edition["publish_places"] = publish_place
     return edition
 
+
 @deprecated(REASON)
 def read_pagination(fields):
     if '300' not in fields:
@@ -280,14 +310,17 @@ def read_pagination(fields):
         pagination += get_subfield_values(line, ['a'])
     if pagination:
         edition["pagination"] = ' '.join(pagination)
-        num = [] # http://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:2617696:825
+        num = (
+            []
+        )  # http://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:2617696:825
         for x in pagination:
-            num += [ int(i) for i in re_int.findall(x.replace(',',''))]
-            num += [ int(i) for i in re_int.findall(x) ]
+            num += [int(i) for i in re_int.findall(x.replace(',', ''))]
+            num += [int(i) for i in re_int.findall(x)]
         valid = [i for i in num if i < max_number_of_pages]
         if valid:
             edition["number_of_pages"] = max(valid)
     return edition
+
 
 @deprecated(REASON)
 def read_series(fields):
@@ -313,6 +346,7 @@ def read_series(fields):
                     found.append(s)
     return {'series': found} if found else {}
 
+
 @deprecated(REASON)
 def read_contributions(fields):
     want = [
@@ -327,7 +361,8 @@ def read_contributions(fields):
             continue
         for line in fields[tag]:
             found.append(join_subfield_values(line, subfields))
-    return { 'contributions': found } if found else {}
+    return {'contributions': found} if found else {}
+
 
 @deprecated(REASON)
 def remove_duplicates(seq):
@@ -336,6 +371,7 @@ def remove_duplicates(seq):
         if x not in u:
             u.append(x)
     return u
+
 
 @deprecated(REASON)
 def read_subjects(fields):
@@ -360,6 +396,7 @@ def read_subjects(fields):
 
     return {'subjects': found} if found else {}
 
+
 @deprecated(REASON)
 def read_genres(fields):
     found = []
@@ -368,7 +405,8 @@ def read_genres(fields):
             continue
         for line in fields[tag]:
             found += get_subfield_values(line, ['v'])
-    return { 'genres': remove_duplicates(found) } if found else {}
+    return {'genres': remove_duplicates(found)} if found else {}
+
 
 @deprecated(REASON)
 def read_translation(fields):
@@ -381,15 +419,16 @@ def read_translation(fields):
             if not re_translation1.match(value):
                 continue
             if value.startswith("Translation of the author's thesis"):
-                continue # not interested
+                continue  # not interested
             m = re_translation2.match(value)
-            return { 'translation_of': m.group(2) }
+            return {'translation_of': m.group(2)}
     return {}
+
 
 @deprecated(REASON)
 def read_notes(fields):
     found = []
-    for tag in range(500,590):
+    for tag in range(500, 590):
         if tag in (505, 520) or str(tag) not in fields:
             continue
         tag = str(tag)
@@ -398,6 +437,7 @@ def read_notes(fields):
             if x:
                 found.append(' '.join(x))
     return {'notes': '\n\n'.join(found)} if found else {}
+
 
 @deprecated(REASON)
 def read_toc(fields):
@@ -424,7 +464,7 @@ def read_toc(fields):
             if k == 't':
                 if toc_line:
                     toc.append(' -- '.join(toc_line))
-                if (len(v) > 2048):
+                if len(v) > 2048:
                     toc_line = [i.strip() for i in v.strip('/').split('--')]
                 continue
             toc_line.append(v.strip(' -'))
@@ -439,7 +479,8 @@ def read_toc(fields):
             found.extend(i)
         else:
             found.append(i)
-    return { 'table_of_contents': found }
+    return {'table_of_contents': found}
+
 
 @deprecated(REASON)
 def read_description(fields):
@@ -455,7 +496,8 @@ def read_description(fields):
             wrap = True
         else:
             wrap = False
-    return {'description': "\n\n".join(found) } if found else {}
+    return {'description': "\n\n".join(found)} if found else {}
+
 
 @deprecated(REASON)
 def read_other_titles(fields):
@@ -481,6 +523,7 @@ def read_other_titles(fields):
 
     return {"other_titles": found} if found else {}
 
+
 @deprecated(REASON)
 def read_location(fields):
     if '852' not in fields:
@@ -488,7 +531,8 @@ def read_location(fields):
     found = []
     for line in fields['852']:
         found += [v for v in get_subfield_values(line, ['a']) if v]
-    return { 'location': found } if found else {}
+    return {'location': found} if found else {}
+
 
 @deprecated(REASON)
 def read_url(fields):
@@ -497,7 +541,8 @@ def read_url(fields):
     found = []
     for line in fields['856']:
         found += get_subfield_values(line, ['u'])
-    return { 'uri': found } if found else {}
+    return {'uri': found} if found else {}
+
 
 @deprecated(REASON)
 def build_record(data):
@@ -518,7 +563,7 @@ def build_record(data):
         edition["publish_country"] = publish_country
     lang = str(f)[35:38]
     if lang not in ('   ', '|||'):
-        edition["languages"] = [{ 'key': '/l/' + lang }]
+        edition["languages"] = [{'key': '/l/' + lang}]
     edition.update(read_lccn(fields))
     edition.update(read_isbn(fields))
     edition.update(read_oclc(fields))
@@ -543,18 +588,19 @@ def build_record(data):
     edition.update(read_description(fields))
     return edition
 
+
 def test_candide_by_voltaire():
     bpl = open('test_data/bpl_0486266893').read()
     lc = open('test_data/lc_1416500308').read()
 
     fields = {}
-    want = [ '41', '490', '830' ]
+    want = ['41', '490', '830']
     for tag, line in handle_wrapped_lines(get_tag_lines(lc, want)):
         fields.setdefault(tag, []).append(line)
     assert read_series(fields) == {'series': [u'Enriched classics']}
 
     fields = {}
-    want = [ '41', '490', '830' ]
+    want = ['41', '490', '830']
     for tag, line in handle_wrapped_lines(get_tag_lines(bpl, want)):
         fields.setdefault(tag, []).append(line)
     assert read_series(fields) == {'series': [u'Dover thrift editions']}

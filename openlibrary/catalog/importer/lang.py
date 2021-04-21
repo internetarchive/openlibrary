@@ -1,5 +1,6 @@
 from openlibrary.catalog.importer.db_read import get_things
 
+
 def get_langs():
     lang = []
     offset = 0
@@ -11,7 +12,9 @@ def get_langs():
         offset += 100
     return set(lang)
 
+
 languages = get_langs()
+
 
 def add_lang(edition):
     if 'languages' not in edition:

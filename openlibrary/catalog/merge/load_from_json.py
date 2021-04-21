@@ -1,4 +1,5 @@
 from __future__ import print_function
+
 # build a merge database from JSON dump
 
 import json
@@ -8,11 +9,22 @@ from time import time
 from openlibrary.catalog.merge.normalize import normalize
 
 re_escape = re.compile(r'[\n\r\t\0\\]')
-trans = { '\n': '\\n', '\r': '\\r', '\t': '\\t', '\\': '\\\\', '\0': '', }
+trans = {
+    '\n': '\\n',
+    '\r': '\\r',
+    '\t': '\\t',
+    '\\': '\\\\',
+    '\0': '',
+}
+
 
 def esc_group(m):
     return trans[m.group(0)]
-def esc(str): return re_escape.sub(esc_group, str)
+
+
+def esc(str):
+    return re_escape.sub(esc_group, str)
+
 
 def add_to_index(fh, value, key):
     if not value:
@@ -23,17 +35,22 @@ def add_to_index(fh, value, key):
         return
     print("\t".join([key, esc(value)]), file=fh)
 
+
 def short_title(s):
     return normalize(s)[:25]
+
 
 re_letters = re.compile('[A-Za-z]')
 re_dash_or_space = re.compile('[- ]')
 
+
 def clean_lccn(lccn):
     return re_letters.sub('', lccn).strip()
 
+
 def clean_isbn(isbn):
     return re_dash_or_space.sub('', isbn)
+
 
 def load_record(record, f):
     if 'title' not in record or record['title'] is None:
@@ -58,13 +75,14 @@ def load_record(record, f):
         if a not in record:
             continue
         for v in record[a]:
-            if not v or b=='isbn' and len(v) < 10:
+            if not v or b == 'isbn' and len(v) < 10:
                 continue
             if clean:
                 v = clean(v)
             add_to_index(f[b], v, key)
 
-total = 29107946 # FIXME
+
+total = 29107946  # FIXME
 
 path = '/1/edward/index/'
 index_fields = ('lccn', 'oclc', 'isbn', 'title')
@@ -87,8 +105,10 @@ for line in open(filename):
         rec_per_sec_total = rec_no / t1
         remaining = total - rec_no
         sec = remaining / rec_per_sec_total
-        print("%d current: %.3f overall: %.3f" % \
-            (rec_no, rec_per_sec, rec_per_sec_total), end=' ')
+        print(
+            "%d current: %.3f overall: %.3f" % (rec_no, rec_per_sec, rec_per_sec_total),
+            end=' ',
+        )
         mins = sec / 60
         print("%.3f minutes left" % mins)
 

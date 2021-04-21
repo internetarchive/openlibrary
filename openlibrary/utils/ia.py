@@ -3,8 +3,10 @@ import re
 
 re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d+/items/(.*))$')
 
+
 class FindItemError(Exception):
     pass
+
 
 def find_item(ia):
     s = socket(AF_INET, SOCK_DGRAM, SOL_UDP)

@@ -10,19 +10,28 @@ re_work_key = re.compile('^/works/OL(\d+)W$')
 re_edition_key = re.compile('^/b/OL(\d+)M$')
 
 _escape_dict = {'\n': r'\n', '\r': r'\r', '\t': r'\t', '\\': r'\\'}
+
+
 def make_sub(d):
     """
-        >>> f = make_sub(dict(a='aa', bb='b'))
-        >>> f('aabbb')
-        'aaaabb'
+    >>> f = make_sub(dict(a='aa', bb='b'))
+    >>> f('aabbb')
+    'aaaabb'
     """
+
     def f(a):
         return d[a.group(0)]
+
     rx = re.compile("|".join(re.escape(key) for key in d))
     return lambda s: s and rx.sub(f, s)
+
+
 def invert_dict(d):
     return dict((v, k) for (k, v) in d.items())
+
+
 unescape = make_sub(invert_dict(_escape_dict))
+
 
 def read_input():
     max_v = 0
@@ -42,13 +51,23 @@ def read_input():
         xthing_id = thing_id
     yield unescape(xdata)
 
+
 out_edition = open('edition_file', 'w')
 out_author = open('author_file', 'w')
 out_edition_work = open('edition_work_file', 'w')
 out_work = open('work_file', 'w')
 works = []
 authors = {}
-misc_fields = ['created', 'modified', 'last_modified', 'latest_revision', 'personal_name', 'id', 'revision', 'type']
+misc_fields = [
+    'created',
+    'modified',
+    'last_modified',
+    'latest_revision',
+    'personal_name',
+    'id',
+    'revision',
+    'type',
+]
 rec_no = 0
 t0 = time()
 for data in read_input():
@@ -87,16 +106,22 @@ for data in read_input():
         w = {
             'key': d['key'],
             'title': d['title'],
-            'authors': [a['author']['key'] for a in d.get('authors', [])]
+            'authors': [a['author']['key'] for a in d.get('authors', [])],
         }
-        for f in 'subtitle', 'subjects', 'subject_places', 'subject_times', 'subject_people':
+        for f in (
+            'subtitle',
+            'subjects',
+            'subject_places',
+            'subject_times',
+            'subject_people',
+        ):
             if f not in d:
                 continue
             w[f] = d[f]
         f = 'cover_edition'
         if f in d:
             w[f] = d[f]['key']
-#        works.append(w)
+        #        works.append(w)
         print(w, file=out_work)
         continue
     if t == '/type/author':
@@ -109,7 +134,7 @@ for data in read_input():
             if f in d:
                 del d[f]
         print(json.dumps(d), file=out_author)
-        #authors[k] = d
+        # authors[k] = d
         continue
 out_edition.close()
 out_edition_work.close()
@@ -127,4 +152,3 @@ for w in works:
     w['authors'] = [authors[akey] for akey in w['authors'] if (akey in authors)]
     print(wkey_num, w, file=out_work)
 out_work.close()
-

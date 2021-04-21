@@ -25,6 +25,7 @@ except ImportError:
 
 from infogami import config
 from infogami.infobase.client import Nothing
+
 # handy utility to parse ISO date strings
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
@@ -36,16 +37,27 @@ __all__ = [
     "sanitize",
     "json_encode",
     "safesort",
-    "days_since", "datestr", "format_date",
-    "sprintf", "cond", "commify", "truncate", "datetimestr_utc",
-    "urlsafe", "texsafe",
-    "percentage", "affiliate_id", "bookreader_host",
-    "private_collections", "private_collection_in",
-
+    "days_since",
+    "datestr",
+    "format_date",
+    "sprintf",
+    "cond",
+    "commify",
+    "truncate",
+    "datetimestr_utc",
+    "urlsafe",
+    "texsafe",
+    "percentage",
+    "affiliate_id",
+    "bookreader_host",
+    "private_collections",
+    "private_collection_in",
     # functions imported from elsewhere
-    "parse_datetime", "safeint"
+    "parse_datetime",
+    "safeint",
 ]
 __docformat__ = "restructuredtext en"
+
 
 def sanitize(html, encoding='utf8'):
     """Removes unsafe tags and attributes from html and adds
@@ -87,15 +99,16 @@ def sanitize(html, encoding='utf8'):
         else:
             raise
 
-    stream = html \
-        | genshi.filters.HTMLSanitizer() \
+    stream = (
+        html
+        | genshi.filters.HTMLSanitizer()
         | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
+    )
     return stream.render()
 
 
 def json_encode(d, **kw):
-    """Same as json.dumps.
-    """
+    """Same as json.dumps."""
     return json.dumps([] if isinstance(d, Nothing) else d, **kw)
 
 
@@ -107,9 +120,11 @@ def safesort(iterable, key=None, reverse=False):
     care to make that work.
     """
     key = key or (lambda x: x)
+
     def safekey(x):
         k = key(x)
         return (k.__class__.__name__, k)
+
     return sorted(iterable, key=safekey, reverse=reverse)
 
 
@@ -135,10 +150,12 @@ def datestr(then, now=None, lang=None, relative=True):
 def datetimestr_utc(then):
     return then.strftime("%Y-%m-%dT%H:%M:%SZ")
 
+
 def format_date(date, lang=None):
     lang = lang or web.ctx.lang
     locale = _get_babel_locale(lang)
     return babel.dates.format_date(date, format="long", locale=locale)
+
 
 def _get_babel_locale(lang):
     try:
@@ -150,10 +167,10 @@ def _get_babel_locale(lang):
 def sprintf(s, *a, **kw):
     """Handy utility for string replacements.
 
-        >>> sprintf('hello %s', 'python')
-        'hello python'
-        >>> sprintf('hello %(name)s', name='python')
-        'hello python'
+    >>> sprintf('hello %s', 'python')
+    'hello python'
+    >>> sprintf('hello %(name)s', name='python')
+    'hello python'
     """
     args = kw or a
     if args:
@@ -192,9 +209,9 @@ def truncate(text, limit):
 
 
 def urlsafe(path):
-    """Replaces the unsafe chars from path with underscores.
-    """
+    """Replaces the unsafe chars from path with underscores."""
     return _get_safepath_re().sub('_', path).strip('_')[:100]
+
 
 @web.memoize
 def _get_safepath_re():
@@ -234,6 +251,7 @@ _texsafe_map = {
 
 _texsafe_re = None
 
+
 def texsafe(text):
     """Escapes the special characters in the given text for using it in tex type setting.
 
@@ -253,15 +271,17 @@ def texsafe(text):
 
     return _texsafe_re.sub(lambda m: _texsafe_map[m.group(0)], text)
 
+
 def percentage(value, total):
     """Computes percentage.
 
-        >>> percentage(1, 10)
-        10.0
-        >>> percentage(0, 0)
-        0.0
+    >>> percentage(1, 10)
+    10.0
+    >>> percentage(0, 0)
+    0.0
     """
     return (value * 100.0) / total if total else 0.0
+
 
 def uniq(values, key=None):
     """Returns the unique entries from the given values in the original order.
@@ -279,19 +299,24 @@ def uniq(values, key=None):
             result.append(v)
     return result
 
+
 def affiliate_id(affiliate):
     return config.get('affiliate_ids', {}).get(affiliate, '')
 
+
 def bookreader_host():
     return config.get('bookreader_host', '')
+
 
 def private_collections():
     """Collections which are lendable but should not be linked from OL
     TODO: Remove when we can handle institutional books"""
     return ['georgetown-university-law-library-rr']
 
+
 def private_collection_in(collections):
     return any(x in private_collections() for x in collections)
+
 
 def _get_helpers():
     _globals = globals()

@@ -42,13 +42,17 @@ class show_ia(app.view):
                 return "ERROR:" + str(e)
             raise web.seeother('https://archive.org/details/' + ia)
 
-        books = web.ctx.site.things({
-            'type': '/type/edition',
-            'source_records': 'ia:' + ia,
-        }) or web.ctx.site.things({
-            'type': '/type/edition',
-            'ocaid': ia,
-        })
+        books = web.ctx.site.things(
+            {
+                'type': '/type/edition',
+                'source_records': 'ia:' + ia,
+            }
+        ) or web.ctx.site.things(
+            {
+                'type': '/type/edition',
+                'ocaid': ia,
+            }
+        )
 
         from openlibrary.catalog.marc import html
 
@@ -96,24 +100,33 @@ class show_marc(app.view):
             raise web.seeother('/show-records/ia:' + m.group(1))
         m = re_lc_sanfranpl.match(filename)
         if m:  # archive.org is case-sensative
-            mixed_case = 'SanFranPL%s/SanFranPL%s.out:%s:%s' % (m.group(1), m.group(2), offset, length)
+            mixed_case = 'SanFranPL%s/SanFranPL%s.out:%s:%s' % (
+                m.group(1),
+                m.group(2),
+                offset,
+                length,
+            )
             raise web.seeother('/show-records/' + mixed_case)
         if filename == 'collingswoodlibrarymarcdump10-27-2008/collingswood.out':
-            loc = 'CollingswoodLibraryMarcDump10-27-2008/Collingswood.out:%s:%s' % (offset, length)
+            loc = 'CollingswoodLibraryMarcDump10-27-2008/Collingswood.out:%s:%s' % (
+                offset,
+                length,
+            )
             raise web.seeother('/show-records/' + loc)
 
         loc = ':'.join(['marc', filename, offset, length])
 
-        books = web.ctx.site.things({
-            'type': '/type/edition',
-            'source_records': loc,
-        })
+        books = web.ctx.site.things(
+            {
+                'type': '/type/edition',
+                'source_records': loc,
+            }
+        )
 
         offset = int(offset)
         length = int(length)
 
-
-        r0, r1 = offset, offset+100000
+        r0, r1 = offset, offset + 100000
         url = 'https://archive.org/download/%s' % filename
         headers = {'Range': 'bytes=%d-%d' % (r0, r1)}
 
@@ -126,7 +139,9 @@ class show_marc(app.view):
 
         len_in_rec = int(result[:5])
         if len_in_rec != length:
-            raise web.seeother('/show-records/%s:%d:%d' % (filename, offset, len_in_rec))
+            raise web.seeother(
+                '/show-records/%s:%d:%d' % (filename, offset, len_in_rec)
+            )
 
         from openlibrary.catalog.marc import html
 

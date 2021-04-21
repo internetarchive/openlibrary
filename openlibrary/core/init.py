@@ -16,9 +16,10 @@ import time
 
 from openlibrary.core import formats
 
+
 class Init:
-    """Init process for starting and managing OL services.
-    """
+    """Init process for starting and managing OL services."""
+
     def __init__(self, config):
         self.services = {}
         for name, value in config.items():
@@ -51,6 +52,7 @@ class Init:
         for s in services:
             s.stop()
 
+
 class Service:
     def __init__(self, init, name, config):
         self.init = init
@@ -59,8 +61,7 @@ class Service:
         self.process = None
 
     def start(self):
-        """Starts the service.
-        """
+        """Starts the service."""
         config = self.config
 
         print("start:", config['command'])
@@ -84,8 +85,7 @@ class Service:
             return open(filename, mode)
 
     def stop(self, timeout=3):
-        """Stops the service.
-        """
+        """Stops the service."""
         print("stopping", self.name)
         if self.process and self.is_alive():
             self._terminate()
@@ -93,7 +93,7 @@ class Service:
 
             if exit_status is None:
                 self._kill()
-                time.sleep(0.1) # wait for process to get killed
+                time.sleep(0.1)  # wait for process to get killed
 
             return self.poll()
 
@@ -108,8 +108,7 @@ class Service:
             self.process.kill()
 
     def wait(self, timeout=None):
-        """Wait for the service to complete and returns the exit status.
-        """
+        """Wait for the service to complete and returns the exit status."""
         if self.process:
             if timeout:
                 limit = time.time() + timeout
@@ -123,8 +122,7 @@ class Service:
                 return self.process.wait()
 
     def poll(self):
-        """Returns the exit status if the service is terminated.
-        """
+        """Returns the exit status if the service is terminated."""
         return self.process and self.process.poll()
 
     def is_alive(self):

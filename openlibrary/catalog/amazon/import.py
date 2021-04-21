@@ -26,10 +26,12 @@ re_meta_marc = re.compile('([^/]+)_(meta|marc)\.(mrc|xml)')
 
 threshold = 875
 
+
 def normalize_str(s):
     s = re_normalize.sub('', s.strip())
     s = re_whitespace.sub(' ', s)
     return str(s.lower())
+
 
 # isbn, short title
 def build_index_fields(asin, edition):
@@ -51,6 +53,7 @@ def build_index_fields(asin, edition):
             isbn.add(edition[field].replace('-', ''))
     return {'title': list(titles), 'isbn': list(isbn)}
 
+
 def read_amazon_file(f):
     while True:
         buf = f.read(1024)
@@ -68,6 +71,7 @@ def read_amazon_file(f):
             continue
         yield asin, edition
 
+
 def follow_redirects(key):
     keys = []
     thing = None
@@ -79,6 +83,7 @@ def follow_redirects(key):
             print('following redirect %s => %s' % (key, thing['location']))
             key = thing['location']
     return (keys, thing)
+
 
 def ia_match(a, ia):
     try:
@@ -94,12 +99,14 @@ def ia_match(a, ia):
         raise
     return amazon_merge.attempt_merge(a, e1, threshold, debug=False)
 
+
 def marc_match(a, loc):
     assert loc
     rec = fast_parse.read_edition(get_from_local(loc))
     e1 = build_marc(rec)
-    #print 'amazon:', a
+    # print 'amazon:', a
     return amazon_merge.attempt_merge(a, e1, threshold, debug=False)
+
 
 def source_records_match(a, thing):
     marc = 'marc:'
@@ -112,13 +119,13 @@ def source_records_match(a, thing):
             if m:
                 src = 'ia:' + m.group(1)
         if src.startswith(marc):
-            if marc_match(a, src[len(marc):]):
+            if marc_match(a, src[len(marc) :]):
                 match = True
                 break
         elif src.startswith(ia):
             if src == 'ia:ic':
                 print(thing['source_records'])
-            if ia_match(a, src[len(ia):]):
+            if ia_match(a, src[len(ia) :]):
                 match = True
                 break
         else:
@@ -139,15 +146,15 @@ def try_merge(edition, ekey, thing):
     a = amazon_merge.build_amazon(edition, authors)
     assert isinstance(asin, six.string_types)
     assert thing_type == '/type/edition'
-    #print edition['asin'], ekey
+    # print edition['asin'], ekey
     if 'source_records' in thing:
         if 'amazon:' + asin in thing['source_records']:
             return True
         return source_records_match(a, thing)
 
-    #print 'no source records'
+    # print 'no source records'
     mc = get_mc(ekey)
-    #print 'mc:', mc
+    # print 'mc:', mc
     if mc == 'amazon:' + asin:
         return True
     if not mc:
@@ -155,6 +162,7 @@ def try_merge(edition, ekey, thing):
     data = get_from_local(mc)
     e1 = build_marc(fast_parse.read_edition(data))
     return amazon_merge.attempt_merge(a, e1, threshold, debug=False)
+
 
 def import_file(filename):
     for asin, edition in read_amazon_file(open(filename)):
@@ -168,15 +176,15 @@ def import_file(filename):
             print()
 
         if not found['title'] and not found['isbn']:
-            #print 'no pool load book:', asin
+            # print 'no pool load book:', asin
             # TODO load book
             continue
-        #print asin, found
-        #print(repr(edition['title'], edition.get('subtitle', None), edition.get('flags', None), edition.get('binding', None)))
+        # print asin, found
+        # print(repr(edition['title'], edition.get('subtitle', None), edition.get('flags', None), edition.get('binding', None)))
         if 'sims' in edition:
             del edition['sims']
-        #print edition
-        #print
+        # print edition
+        # print
 
         seen = set()
         for k, v in found.items():
@@ -194,6 +202,7 @@ def import_file(filename):
                     print(ekey)
                     print(found)
                     raise
+
 
 # import_file(sys.argv[1])
 

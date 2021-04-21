@@ -15,7 +15,7 @@ from six.moves.urllib.parse import urlencode as real_urlencode
 from openlibrary.coverstore import config, oldb
 
 try:
-    file           # Python 2
+    file  # Python 2
 except NameError:  # Python 3
     from io import IOBase as file
 
@@ -24,11 +24,11 @@ socket.setdefaulttimeout(10.0)
 
 def safeint(value, default=None):
     """
-        >>> safeint('1')
-        1
-        >>> safeint('x')
-        >>> safeint('x', 0)
-        0
+    >>> safeint('1')
+    1
+    >>> safeint('x')
+    >>> safeint('x', 0)
+    0
     """
     try:
         return int(value)
@@ -48,7 +48,7 @@ def ol_things(key, value):
             'type': '/type/edition',
             key: value,
             'sort': 'last_modified',
-            'limit': 10
+            'limit': 10,
         }
         try:
             d = dict(query=json.dumps(query))
@@ -57,6 +57,7 @@ def ol_things(key, value):
             return result['result']
         except IOError:
             import traceback
+
             traceback.print_exc()
             return []
 
@@ -71,7 +72,9 @@ def ol_get(olkey):
             return None
 
 
-USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
+USER_AGENT = (
+    "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
+)
 
 
 def download(url):
@@ -80,10 +83,10 @@ def download(url):
 
 def urldecode(url):
     """
-        >>> urldecode('http://google.com/search?q=bar&x=y')
-        ('http://google.com/search', {'q': 'bar', 'x': 'y'})
-        >>> urldecode('http://google.com/')
-        ('http://google.com/', {})
+    >>> urldecode('http://google.com/search?q=bar&x=y')
+    ('http://google.com/search', {'q': 'bar', 'x': 'y'})
+    >>> urldecode('http://google.com/')
+    ('http://google.com/', {})
     """
     base, query = splitquery(url)
     query = query or ""
@@ -94,19 +97,19 @@ def urldecode(url):
 
 def changequery(url, **kw):
     """
-        >>> changequery('http://google.com/search?q=foo', q='bar', x='y')
-        'http://google.com/search?q=bar&x=y'
+    >>> changequery('http://google.com/search?q=foo', q='bar', x='y')
+    'http://google.com/search?q=bar&x=y'
     """
     base, params = urldecode(url)
     params.update(kw)
     return base + '?' + real_urlencode(params)
 
 
-def read_file(path, offset, size, chunk=50*1024):
+def read_file(path, offset, size, chunk=50 * 1024):
     """Returns an iterator over file data at specified offset and size.
 
-        >>> len(b"".join(read_file('/dev/urandom', 100, 10000)))
-        10000
+    >>> len(b"".join(read_file('/dev/urandom', 100, 10000)))
+    10000
     """
     with open(path, "rb") as f:
         f.seek(offset)
@@ -155,7 +158,10 @@ def urlencode(data):
         def encode(key, value, out):
             if isinstance(value, file):
                 out.append('--' + BOUNDARY)
-                out.append('Content-Disposition: form-data; name="%s"; filename="%s"' % (key, value.name))
+                out.append(
+                    'Content-Disposition: form-data; name="%s"; filename="%s"'
+                    % (key, value.name)
+                )
                 out.append('Content-Type: %s' % get_content_type(value.name))
                 out.append('')
                 out.append(value.read())
@@ -180,4 +186,5 @@ def urlencode(data):
 
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

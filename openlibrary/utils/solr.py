@@ -11,6 +11,7 @@ from six.moves import urllib
 
 logger = logging.getLogger("openlibrary.logger")
 
+
 def urlencode(d, doseq=False):
     """There is a bug in urllib when used with unicode data.
 
@@ -22,6 +23,7 @@ def urlencode(d, doseq=False):
 
     This function encodes all the unicode strings in utf-8 before passing them to urllib.
     """
+
     def utf8(d):
         if isinstance(d, dict):
             return dict((utf8(k), utf8(v)) for k, v in d.items())
@@ -32,6 +34,7 @@ def urlencode(d, doseq=False):
 
     return urllib.parse.urlencode(utf8(d), doseq=doseq)
 
+
 class Solr:
     def __init__(self, base_url):
         self.base_url = base_url
@@ -40,18 +43,25 @@ class Solr:
     def escape(self, query):
         r"""Escape special characters in the query string
 
-            >>> solr = Solr("")
-            >>> solr.escape("a[b]c")
-            'a\\[b\\]c'
+        >>> solr = Solr("")
+        >>> solr.escape("a[b]c")
+        'a\\[b\\]c'
         """
         chars = r'+-!(){}[]^"~*?:\\'
         pattern = "([%s])" % re.escape(chars)
         return web.re_compile(pattern).sub(r'\\\1', query)
 
-    def select(self, query, fields=None, facets=None,
-               rows=None, start=None,
-               doc_wrapper=None, facet_wrapper=None,
-               **kw):
+    def select(
+        self,
+        query,
+        fields=None,
+        facets=None,
+        rows=None,
+        start=None,
+        doc_wrapper=None,
+        facet_wrapper=None,
+        **kw
+    ):
         """Execute a solr query.
 
         query can be a string or a dicitonary. If query is a dictionary, query
@@ -104,15 +114,16 @@ class Solr:
                 url, data=payload, headers=headers, timeout=10
             ).json()
         return self._parse_solr_result(
-            json_data,
-            doc_wrapper=doc_wrapper,
-            facet_wrapper=facet_wrapper)
+            json_data, doc_wrapper=doc_wrapper, facet_wrapper=facet_wrapper
+        )
 
     def _parse_solr_result(self, result, doc_wrapper, facet_wrapper):
         response = result['response']
 
         doc_wrapper = doc_wrapper or web.storage
-        facet_wrapper = facet_wrapper or (lambda name, value, count: web.storage(locals()))
+        facet_wrapper = facet_wrapper or (
+            lambda name, value, count: web.storage(locals())
+        )
 
         d = web.storage()
         d.num_found = response['numFound']
@@ -121,7 +132,9 @@ class Solr:
         if 'facet_counts' in result:
             d.facets = {}
             for k, v in result['facet_counts']['facet_fields'].items():
-                d.facets[k] = [facet_wrapper(k, value, count) for value, count in web.group(v, 2)]
+                d.facets[k] = [
+                    facet_wrapper(k, value, count) for value, count in web.group(v, 2)
+                ]
 
         if 'highlighting' in result:
             d.highlighting = result['highlighting']
@@ -137,9 +150,9 @@ class Solr:
             return v.replace('"', r'\"').replace("(", "\\(").replace(")", "\\)")
 
         def escape_value(v):
-            if isinstance(v, tuple): # hack for supporting range
+            if isinstance(v, tuple):  # hack for supporting range
                 return "[%s TO %s]" % (escape(v[0]), escape(v[1]))
-            elif isinstance(v, list): # one of
+            elif isinstance(v, list):  # one of
                 return "(%s)" % " OR ".join(escape_value(x) for x in v)
             else:
                 return '"%s"' % escape(v)
@@ -155,6 +168,8 @@ class Solr:
             q = query
         return q
 
+
 if __name__ == '__main__':
     import doctest
+
     doctest.testmod()

@@ -52,11 +52,13 @@ def get_current_user():
 
 
 def find(username=None, lusername=None, email=None):
-    """Finds an account by username, email or lowercase username.
-    """
+    """Finds an account by username, email or lowercase username."""
+
     def query(name, value):
         try:
-            return web.ctx.site.store.values(type="account", name=name, value=value, limit=1)[0]
+            return web.ctx.site.store.values(
+                type="account", name=name, value=value, limit=1
+            )[0]
         except IndexError:
             return None
 
@@ -72,22 +74,25 @@ def find(username=None, lusername=None, email=None):
         #
         # There are accounts with case-variation of emails. To handle those,
         # searching with the original case and using lower case if that fails.
-        email_doc = web.ctx.site.store.get("account-email/" + email) or web.ctx.site.store.get("account-email/" + email.lower())
+        email_doc = web.ctx.site.store.get(
+            "account-email/" + email
+        ) or web.ctx.site.store.get("account-email/" + email.lower())
         doc = email_doc and web.ctx.site.store.get("account/" + email_doc['username'])
     else:
         doc = None
 
     return doc and Account(doc)
 
+
 def register(username, email, password, displayname):
-    web.ctx.site.register(username = username,
-                          email = email,
-                          password = password,
-                          displayname = displayname)
+    web.ctx.site.register(
+        username=username, email=email, password=password, displayname=displayname
+    )
 
 
 def login(username, password):
     web.ctx.site.login(username, password)
+
 
 def update_account(username, **kargs):
     web.ctx.site.update_account(username, **kargs)

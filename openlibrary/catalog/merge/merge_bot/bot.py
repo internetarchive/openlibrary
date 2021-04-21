@@ -15,22 +15,24 @@ from openlibrary.catalog.utils.query import get_mc, query_iter  # set_staging, w
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 # set_staging(True)
 
-urls = (
-    '/', 'index'
-)
+urls = ('/', 'index')
 app = web.application(urls, globals())
 
 threshold = 875
 
-#def text_box(k, input): return k
+# def text_box(k, input): return k
+
 
 def list_to_html(l):
     def blue(s):
         return ' <span style="color:blue; font-weight:bold">%s</span> ' % s
+
     return blue('[') + blue('|').join(l) + blue(']')
+
 
 def as_html(x):
     return list_to_html(x) if isinstance(x, list) else x
+
 
 class index:
     def head(self, title):
@@ -39,8 +41,14 @@ body { font-family: Arial,Helvectica,Sans-serif }
 th { text-align: left; }
 td { background: #eee; }
 '''
-        return '<html>\n<head>\n<title>' + title + '</title>\n' + \
-            '<style>' + style + '</style>\n</head>\n<body>'
+        return (
+            '<html>\n<head>\n<title>'
+            + title
+            + '</title>\n'
+            + '<style>'
+            + style
+            + '</style>\n</head>\n<body>'
+        )
 
     def tail(self):
         return '</body>\n</html>\n'
@@ -53,11 +61,15 @@ td { background: #eee; }
             return '<input type="text" name="%s">' % k
 
     def form(self):
-        return '<form>' \
-            + 'ISBN: ' + self.text_box('isbn') \
-            + ' or OCLC: ' + self.text_box('oclc') \
-            + ' <input type="submit" value="search">' \
+        return (
+            '<form>'
+            + 'ISBN: '
+            + self.text_box('isbn')
+            + ' or OCLC: '
+            + self.text_box('oclc')
+            + ' <input type="submit" value="search">'
             + '</form>'
+        )
 
     def field_table(self, input, rec_amazon, rec_marc):
         yield '<table>'
@@ -75,11 +87,13 @@ td { background: #eee; }
             yield '<td>%s</td>' % web.htmlquote(match)
             yield '<td>%s</td>' % score
             yield '<td>%s</td>' % as_html(rec_amazon.get(field, None))
-#            if field == 'number_of_pages':
-#                yield '<td>%s</td>' % (web.htmlquote(rec_marc['pagination']) if 'pagination' in rec_marc else '<i>pagination missing</i>')
+            #            if field == 'number_of_pages':
+            #                yield '<td>%s</td>' % (web.htmlquote(rec_marc['pagination']) if 'pagination' in rec_marc else '<i>pagination missing</i>')
             if field == 'authors':
                 authors = rec_marc.get(field, [])
-                yield '<td>%s</td>' % list_to_html(web.htmlquote(a['name']) for a in authors)
+                yield '<td>%s</td>' % list_to_html(
+                    web.htmlquote(a['name']) for a in authors
+                )
             else:
                 yield '<td>%s</td>' % as_html(rec_marc.get(field, None))
             yield '</tr>'
@@ -132,7 +146,16 @@ td { background: #eee; }
             url = 'http://openlibrary.org' + e['key']
             title = web.htmlquote(e['title']) if e['title'] else 'no title'
             yield '<tr><td><a href="%s">%s</a></td>' % (url, e['key'])
-            yield '<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (e['oclc_numbers'], e['isbn_10'], title, (web.htmlquote(e['subtitle']) if e.get('subtitle', None) else '<i>no subtitle</i>'))
+            yield '<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (
+                e['oclc_numbers'],
+                e['isbn_10'],
+                title,
+                (
+                    web.htmlquote(e['subtitle'])
+                    if e.get('subtitle', None)
+                    else '<i>no subtitle</i>'
+                ),
+            )
         yield '</table><p>'
 
         if len(editions) == 2:
@@ -151,7 +174,13 @@ td { background: #eee; }
             yield i
 
     def oclc_search(self, v):
-        q = {'type': '/type/edition', 'oclc_numbers': v, 'title': None, 'subtitle': None, 'isbn_10': None}
+        q = {
+            'type': '/type/edition',
+            'oclc_numbers': v,
+            'title': None,
+            'subtitle': None,
+            'isbn_10': None,
+        }
         editions = []
         print(q)
         for e in query_iter(q):
@@ -186,12 +215,13 @@ td { background: #eee; }
             oclc = self.input.oclc
             for i in self.oclc_search(oclc):
                 ret += i
-#        elif self.input.title:
-#            title = self.input.title
-#            for i in self.title_search(title):
-#                ret += i
+        #        elif self.input.title:
+        #            title = self.input.title
+        #            for i in self.title_search(title):
+        #                ret += i
         ret += '</body>\n</html>\n'
         return ret
+
 
 if __name__ == "__main__":
     app.run()

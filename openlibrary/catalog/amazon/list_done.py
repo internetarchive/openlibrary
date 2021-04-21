@@ -18,7 +18,7 @@ out = open('/2/edward/amazon/crawled2', 'w')
 
 for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
     print(filename, total, srtitle, producttitle)
-    for url, wire in read_arc(arc_dir +'/' + filename):
+    for url, wire in read_arc(arc_dir + '/' + filename):
         if url.startswith('file'):
             continue
         if not url.startswith('http://www.amazon.com/s?'):
@@ -28,7 +28,7 @@ for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
         found = []
         try:
             doc.get_element_by_id('noResultsTitle')
-#            print 'no results:', url
+            #            print 'no results:', url
             continue
         except KeyError:
             pass
@@ -36,10 +36,10 @@ for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
         if rc:
             m = re_result_count.match(rc[0].text)
             if m:
-                (a, b, c) = map(lambda i: int(i.replace(',','')), m.groups())
+                (a, b, c) = map(lambda i: int(i.replace(',', '')), m.groups())
                 if a == c + 1 and b == c:
-#                    print 'result count:', rc[0].text
-#                    print 'empty page'
+                    #                    print 'result count:', rc[0].text
+                    #                    print 'empty page'
                     continue
         for e in doc.find_class('fastTrackList'):
             if e.text == 'This item is currently not available.':

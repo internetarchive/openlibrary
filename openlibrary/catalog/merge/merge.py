@@ -17,7 +17,7 @@ def set_isbn_match(score):
 
 def build_titles(title):
     normalized_title = normalize(title).lower()
-    titles = [ title, normalized_title ];
+    titles = [title, normalized_title]
     if title.find(' & ') != -1:
         t = title.replace(" & ", " and ")
         titles.append(t)
@@ -40,14 +40,16 @@ def build_titles(title):
         titles += t2
 
     return {
-        'full_title':       title,
+        'full_title': title,
         'normalized_title': normalized_title,
-        'titles':           titles,
-        'short_title':      normalized_title[:25],
+        'titles': titles,
+        'short_title': normalized_title[:25],
     }
 
+
 def within(a, b, distance):
-    return abs(a-b) <= distance
+    return abs(a - b) <= distance
+
 
 def compare_date(e1, e2):
     if 'publish_date' not in e1 or 'publish_date' not in e2:
@@ -121,11 +123,14 @@ def compare_authors(amazon, marc):
     else:
         return ('main', 'mismatch', -200)
 
+
 def title_replace_amp(amazon):
     return normalize(amazon['full-title'].replace(" & ", " and ")).lower()
 
+
 def substr_match(a, b):
     return a.find(b) != -1 or b.find(a) != -1
+
 
 def keyword_match(in1, in2):
     s1, s2 = [i.split() for i in (in1, in2)]
@@ -137,10 +142,12 @@ def keyword_match(in1, in2):
     ordered = [x for x in s1 if x in match] == [x for x in s2 if x in match]
     return float(len(match)) / max(len(s1), len(s2)), ordered
 
+
 def strip_and_compare(t1, t2):
     t1 = re_and_of_space.sub('', t1).lower()
     t2 = re_and_of_space.sub('', t2).lower()
     return t1 == t2
+
 
 def compare_title(amazon, marc):
     amazon_title = amazon['normalized_title'].lower()
@@ -177,6 +184,7 @@ def compare_title(amazon, marc):
         return ('full-title', 'shorter than 9 characters', 0)
     else:
         return ('full-title', 'mismatch', -600)
+
 
 def compare_number_of_pages(amazon, marc):
     if 'number_of_pages' not in amazon or 'number_of_pages' not in marc:
@@ -243,6 +251,7 @@ def level2_merge(amazon, marc):
     score.append(compare_publisher(amazon, marc))
     score.append(compare_authors(amazon, marc))
     return score
+
 
 def full_title(edition):
     title = edition['title']

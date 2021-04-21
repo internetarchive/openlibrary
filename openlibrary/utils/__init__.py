@@ -5,6 +5,7 @@ from subprocess import PIPE, Popen, STDOUT
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
 
+
 def str_to_key(s):
     return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
 
@@ -12,20 +13,24 @@ def str_to_key(s):
 def finddict(dicts, **filters):
     """Find a dictionary that matches given filter conditions.
 
-        >>> dicts = [{"x": 1, "y": 2}, {"x": 3, "y": 4}]
-        >>> sorted(finddict(dicts, x=1).items())
-        [('x', 1), ('y', 2)]
+    >>> dicts = [{"x": 1, "y": 2}, {"x": 3, "y": 4}]
+    >>> sorted(finddict(dicts, x=1).items())
+    [('x', 1), ('y', 2)]
     """
     for d in dicts:
-        if (all(d.get(k) == v for k, v in filters.items())):
+        if all(d.get(k) == v for k, v in filters.items()):
             return d
+
 
 re_solr_range = re.compile(r'\[.+\bTO\b.+\]', re.I)
 re_bracket = re.compile(r'[\[\]]')
+
+
 def escape_bracket(q):
     if re_solr_range.search(q):
         return q
-    return re_bracket.sub(lambda m:'\\'+m.group(), q)
+    return re_bracket.sub(lambda m: '\\' + m.group(), q)
+
 
 def uniq(values, key=None):
     """Returns the unique entries from the given values in the original order.
@@ -44,6 +49,7 @@ def uniq(values, key=None):
             result.append(v)
     return result
 
+
 def dicthash(d):
     """Dictionaries are not hashable. This function converts dictionary into nested
     tuples, so that it can hashed.
@@ -55,15 +61,22 @@ def dicthash(d):
     else:
         return d
 
+
 author_olid_re = re.compile(r'^OL\d+A$')
+
+
 def is_author_olid(s):
     """Case sensitive check for strings like 'OL123A'."""
     return bool(author_olid_re.match(s))
 
+
 work_olid_re = re.compile(r'^OL\d+W$')
+
+
 def is_work_olid(s):
     """Case sensitive check for strings like 'OL123W'."""
     return bool(work_olid_re.match(s))
+
 
 def extract_numeric_id_from_olid(olid):
     """
@@ -79,6 +92,7 @@ def extract_numeric_id_from_olid(olid):
     if not is_number(olid[-1].lower()):
         olid = olid[:-1]
     return olid
+
 
 def is_number(s):
     try:

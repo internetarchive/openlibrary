@@ -19,7 +19,9 @@ re_solrescape = re.compile(r'([&|+\-!(){}\[\]^"~*?:])')
 
 
 class LoanStats:
-    def __init__(self, region=None, library=None, country=None, collection=None, subject=None):
+    def __init__(
+        self, region=None, library=None, country=None, collection=None, subject=None
+    ):
         self.base_url = "http://%s/solr" % config.get("stats_solr")
         self.region = region
         self.library = library
@@ -61,7 +63,10 @@ class LoanStats:
 
             def solrtime(t):
                 return t.isoformat() + "Z"
-            params['fq'].append("start_time_dt:[%s TO %s]" % (solrtime(start), solrtime(end)))
+
+            params['fq'].append(
+                "start_time_dt:[%s TO %s]" % (solrtime(start), solrtime(end))
+            )
 
         if self.resource_type:
             params['fq'].append("resource_type_s:%s" % self.resource_type)
@@ -98,21 +103,34 @@ class LoanStats:
             "rows": 0,
             "facet": "on",
             "facet.mincount": 1,
-            "facet.field": facet_fields
+            "facet.field": facet_fields,
         }
         if facet_limit:
             params["facet.limit"] = facet_limit
 
         response = self.solr_select(params)
-        return dict((name, list(web.group(counts, 2))) for name, counts in response['facet_counts']['facet_fields'].items())
+        return dict(
+            (name, list(web.group(counts, 2)))
+            for name, counts in response['facet_counts']['facet_fields'].items()
+        )
 
     def _get_all_facet_counts(self):
         if not self._facet_counts:
             facets = [
-                "library_s", "region_s", "country_s",
-                "ia_collections_id", "sponsor_s", "contributor_s",
-                "book_key_s", "author_keys_id", "resource_type_s",
-                "subject_facet", "place_facet", "person_facet", "time_facet"]
+                "library_s",
+                "region_s",
+                "country_s",
+                "ia_collections_id",
+                "sponsor_s",
+                "contributor_s",
+                "book_key_s",
+                "author_keys_id",
+                "resource_type_s",
+                "subject_facet",
+                "place_facet",
+                "person_facet",
+                "time_facet",
+            ]
 
             params = {
                 "wt": "json",
@@ -122,20 +140,18 @@ class LoanStats:
                 "facet": "on",
                 "facet.mincount": 1,
                 "facet.field": facets,
-                "facet.limit": 20
+                "facet.limit": 20,
             }
             response = self.solr_select(params)
             self._total_loans = response['response']['numFound']
-            self._facet_counts = dict((name, web.group(counts, 2)) for name, counts in response['facet_counts']['facet_fields'].items())
+            self._facet_counts = dict(
+                (name, web.group(counts, 2))
+                for name, counts in response['facet_counts']['facet_fields'].items()
+            )
         return self._facet_counts
 
     def get_last_updated(self):
-        params = {
-            "wt": "json",
-            "q": "*:*",
-            "rows": 1,
-            "sort": "last_updated_dt desc"
-        }
+        params = {"wt": "json", "q": "*:*", "rows": 1, "sort": "last_updated_dt desc"}
         response = self.solr_select(params)
         try:
             return response['response']['docs'][0]['last_updated_dt']
@@ -153,7 +169,7 @@ class LoanStats:
             "facet": "on",
             "facet.mincount": 1,
             "facet.limit": 100000,  # don't limit
-            "facet.field": ['start_day_s']
+            "facet.field": ['start_day_s'],
         }
         if resource_type != 'total':
             params['fq'].append("resource_type_s:" + resource_type)
@@ -172,7 +188,7 @@ class LoanStats:
             "facet": "on",
             "facet.mincount": 1,
             "facet.limit": 100000,  # don't limit
-            "facet.field": ['start_day_s']
+            "facet.field": ['start_day_s'],
         }
         if resource_type != 'total':
             params['fq'].append("resource_type_s:" + resource_type)
@@ -203,21 +219,27 @@ class LoanStats:
             "q": "*:*",
             "rows": 0,
             "facet": "on",
-            "facet.field": ['duration_hours_i']
+            "facet.field": ['duration_hours_i'],
         }
         response = self.solr_select(params)
-        counts = [[int(hr), count] for hr, count in web.group(response['facet_counts']['facet_fields']['duration_hours_i'], 2)]
+        counts = [
+            [int(hr), count]
+            for hr, count in web.group(
+                response['facet_counts']['facet_fields']['duration_hours_i'], 2
+            )
+        ]
         one_hour = sum(count for hr, count in counts if hr == 0)
         one_day = sum(count for hr, count in counts if 1 <= hr < 24)
-        one_week = sum(count for hr, count in counts if 24 <= hr < 24*7)
-        two_week = sum(count for hr, count in counts if 24*7 <= hr < 24*14)
-        expired = sum(count for hr, count in counts if 24*14 <= hr)
+        one_week = sum(count for hr, count in counts if 24 <= hr < 24 * 7)
+        two_week = sum(count for hr, count in counts if 24 * 7 <= hr < 24 * 14)
+        expired = sum(count for hr, count in counts if 24 * 14 <= hr)
         return [
             {"label": "Less than one hour", "data": one_hour},
             {"label": "Less than one day", "data": one_day},
             {"label": "Less than one week", "data": one_week},
             {"label": "More than a week", "data": two_week},
-            {"label": "Loan expired", "data": expired}]
+            {"label": "Loan expired", "data": expired},
+        ]
 
     def make_facet(self, name, key, count):
         type = None

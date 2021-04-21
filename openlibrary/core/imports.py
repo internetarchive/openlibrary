@@ -12,6 +12,7 @@ from . import db
 
 logger = logging.getLogger("openlibrary.imports")
 
+
 class Batch(web.storage):
     @staticmethod
     def find(name, create=False):
@@ -27,8 +28,7 @@ class Batch(web.storage):
         return Batch.find(name=name)
 
     def load_items(self, filename):
-        """Adds all the items specified in the filename to this batch.
-        """
+        """Adds all the items specified in the filename to this batch."""
         items = [line.strip() for line in open(filename) if line.strip()]
         self.add_items(items)
 
@@ -36,11 +36,20 @@ class Batch(web.storage):
         if not items:
             return
         logger.info("batch %s: adding %d items", self.name, len(items))
-        already_present = [row.ia_id for row in db.query("SELECT ia_id FROM import_item WHERE ia_id IN $items", vars=locals())]
+        already_present = [
+            row.ia_id
+            for row in db.query(
+                "SELECT ia_id FROM import_item WHERE ia_id IN $items", vars=locals()
+            )
+        ]
         # ignore already present
         items = list(set(items) - set(already_present))
 
-        logger.info("batch %s: %d items are already present, ignoring...", self.name, len(already_present))
+        logger.info(
+            "batch %s: %d items are already present, ignoring...",
+            self.name,
+            len(already_present),
+        )
         if items:
             values = [dict(batch_id=self.id, ia_id=item) for item in items]
             db.get_db().multiple_insert("import_item", values)
@@ -49,6 +58,7 @@ class Batch(web.storage):
     def get_items(self, status="pending"):
         result = db.where("import_item", batch_id=self.id, status=status)
         return [ImportItem(row) for row in result]
+
 
 class ImportItem(web.storage):
     @staticmethod
@@ -68,7 +78,8 @@ class ImportItem(web.storage):
             status=status,
             error=error,
             ol_key=ol_key,
-            import_time=datetime.datetime.utcnow())
+            import_time=datetime.datetime.utcnow(),
+        )
         db.update("import_item", where="id=$id", vars=self, **d)
         self.update(d)
 
@@ -87,13 +98,14 @@ class ImportItem(web.storage):
 
 class Stats:
     """Import Stats."""
+
     def get_imports_per_hour(self):
-        """Returns the number imports happened in past one hour duration.
-        """
+        """Returns the number imports happened in past one hour duration."""
         try:
             result = db.query(
-                "SELECT count(*) as count FROM import_item" +
-                " WHERE import_time > CURRENT_TIMESTAMP - interval '1' hour")
+                "SELECT count(*) as count FROM import_item"
+                + " WHERE import_time > CURRENT_TIMESTAMP - interval '1' hour"
+            )
         except UndefinedTable:
             logger.exception("Database table import_item may not exist on localhost")
             return 0
@@ -102,10 +114,9 @@ class Stats:
     def get_count(self, status=None):
         where = "status=$status" if status else "1=1"
         try:
-            rows = db.select("import_item",
-                what="count(*) as count",
-                where=where,
-                vars=locals())
+            rows = db.select(
+                "import_item", what="count(*) as count", where=where, vars=locals()
+            )
         except UndefinedTable:
             logger.exception("Database table import_item may not exist on localhost")
             return 0
@@ -116,14 +127,14 @@ class Stats:
         return dict([(row.status, row.count) for row in rows])
 
     def get_count_by_date_status(self, ndays=10):
-        try: 
+        try:
             result = db.query(
-                "SELECT added_time::date as date, status, count(*)" +
-                " FROM import_item " +
-                " WHERE added_time > current_date - interval '$ndays' day"
-                " GROUP BY 1, 2" +
-                " ORDER BY 1 desc",
-                vars=locals())
+                "SELECT added_time::date as date, status, count(*)"
+                + " FROM import_item "
+                + " WHERE added_time > current_date - interval '$ndays' day"
+                " GROUP BY 1, 2" + " ORDER BY 1 desc",
+                vars=locals(),
+            )
         except UndefinedTable:
             logger.exception("Database table import_item may not exist on localhost")
             return []
@@ -136,10 +147,9 @@ class Stats:
         try:
             rows = db.query(
                 "SELECT import_time::date as date, count(*) as count"
-                " FROM import_item" +
-                " WHERE status='created'"
-                " GROUP BY 1" +
-                " ORDER BY 1")
+                " FROM import_item" + " WHERE status='created'"
+                " GROUP BY 1" + " ORDER BY 1"
+            )
         except UndefinedTable:
             logger.exception("Database table import_item may not exist on localhost")
             return []
@@ -149,28 +159,23 @@ class Stats:
         return time.mktime(date.timetuple()) * 1000
 
     def get_items(self, date=None, order=None, limit=None):
-        """Returns all rows with given added date.
-        """
+        """Returns all rows with given added date."""
         where = "added_time::date = $date" if date else "1 = 1"
         try:
-            return db.select("import_item",
-                where=where,
-                order=order,
-                limit=limit,
-                vars=locals())
+            return db.select(
+                "import_item", where=where, order=order, limit=limit, vars=locals()
+            )
         except UndefinedTable:
             logger.exception("Database table import_item may not exist on localhost")
             return []
 
     def get_items_summary(self, date):
-        """Returns all rows with given added date.
-        """
+        """Returns all rows with given added date."""
         rows = db.query(
-                "SELECT status, count(*) as count" +
-                " FROM import_item" +
-                " WHERE added_time::date = $date"
-                " GROUP BY status",
-                vars=locals())
-        return {
-            "counts": dict([(row.status, row.count) for row in rows])
-        }
+            "SELECT status, count(*) as count"
+            + " FROM import_item"
+            + " WHERE added_time::date = $date"
+            " GROUP BY status",
+            vars=locals(),
+        )
+        return {"counts": dict([(row.status, row.count) for row in rows])}

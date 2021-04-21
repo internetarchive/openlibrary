@@ -9,7 +9,6 @@ from os.path import exists
 from datetime import date, timedelta, datetime
 
 
-
 # scrap Amazon for book and author data
 
 re_expect_end = re.compile('</div>\n</body>\n</html>[ \n]*$')
@@ -17,11 +16,14 @@ re_expect_end = re.compile('</div>\n</body>\n</html>[ \n]*$')
 # publisher = Big Idea Books & Just Me Music
 re_personalized = re.compile('Personalized for (.*) \((Boy|Girl)\)', re.I)
 
+
 def percent(a, b):
     return float(a * 100.0) / b
 
+
 class PersonalizedBooks(Exception):
     pass
+
 
 page_size = 12
 max_pages = 100
@@ -30,7 +32,7 @@ max_results = page_size * max_pages
 # http://www.amazon.com/s/qid=1265761735/ref=sr_nr_n_0/177-5112913-4864616?ie=UTF8&rs=1000&bbn=1000&rnid=1000&rh=i%3Astripbooks%2Cp_n%5Ffeature%5Fbrowse-bin%3A618083011%2Cp%5Fn%5Fdate%3A20090101%2Cn%3A%211000%2Cn%3A1
 re_product_title = re.compile('/dp/([^/]*)')
 re_result_count = re.compile('Showing (?:[\d,]+ - [\d,]+ of )?([\d,]+) Result')
-#re_rh_n = re.compile('rh=n%3A(\d+)%2C')
+# re_rh_n = re.compile('rh=n%3A(\d+)%2C')
 re_rh_n = re.compile('%2Cn%3A(\d+)')
 re_facet_count = re.compile(u'^\xa0\(([\d,]+)\)$')
 u'\xa0(8)'
@@ -44,14 +46,19 @@ arc_dir = '/0/amazon/arc'
 # 4 = Children's Books, 28 = Teens
 re_child_book_param = re.compile(',n:(4|28)(?:&page=\d+)?$')
 
+
 def now():
     return datetime.utcnow().replace(microsecond=0)
 
-max_size = 1024 * 1024 * 1024 * 10 # 10 GB
+
+max_size = 1024 * 1024 * 1024 * 10  # 10 GB
 ip = '207.241.229.141'
 content_type_hdr = 'Content-Type: '
 re_charset_header = re.compile('; charset=(.+)\r\n')
-version_block = '1 0 Open Library\nURL IP-address Archive-date Content-type Archive-length\n'
+version_block = (
+    '1 0 Open Library\nURL IP-address Archive-date Content-type Archive-length\n'
+)
+
 
 class Scraper:
     def __init__(self, recording=True):
@@ -66,7 +73,18 @@ class Scraper:
             self.cur_arc = now().strftime('%Y%m%d%H%M%S') + '.arc'
             assert not exists(arc_dir + self.cur_arc)
             out = open(arc_dir + self.cur_arc, 'w')
-            out.write(' '.join(['filespec://' + self.cur_arc, ip, d, 'text/plain', str(len(version_block))]) + '\n')
+            out.write(
+                ' '.join(
+                    [
+                        'filespec://' + self.cur_arc,
+                        ip,
+                        d,
+                        'text/plain',
+                        str(len(version_block)),
+                    ]
+                )
+                + '\n'
+            )
             out.write(version_block)
         else:
             out = open(arc_dir + self.cur_arc, 'a')
@@ -76,7 +94,10 @@ class Scraper:
 
     def get(self, url):
         start = now()
-        send = 'GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: Mozilla/5.0\r\nAccept-Encoding: identity\r\n\r\n' % (url, self.host)
+        send = (
+            'GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: Mozilla/5.0\r\nAccept-Encoding: identity\r\n\r\n'
+            % (url, self.host)
+        )
         self.sock.sendall(send)
 
         fp = self.sock.makefile('rb', 0)
@@ -90,7 +111,7 @@ class Scraper:
         body = ''
         content_type = None
         charset = None
-        for line in fp: # read headers
+        for line in fp:  # read headers
             recv_buf += line
             if line.lower().startswith('transfer-encoding'):
                 assert line == 'Transfer-Encoding: chunked\r\n'
@@ -99,7 +120,9 @@ class Scraper:
             if line.lower().startswith('content-type'):
                 assert line.startswith(content_type_hdr)
                 assert line[-2:] == '\r\n'
-                content_type = line[len(content_type_hdr):line.find(';') if ';' in line else -2]
+                content_type = line[
+                    len(content_type_hdr) : line.find(';') if ';' in line else -2
+                ]
                 if 'charset' in line.lower():
                     m = re_charset_header.search(line)
                     charset = m.group(1)
@@ -122,12 +145,15 @@ class Scraper:
             self.add_to_arc(url, start, content_type, recv_buf)
         return body.decode(charset) if charset else body
 
+
 scraper = Scraper(recording=True)
+
 
 def get_url(params):
     url = base_url + params
     page = scraper.get(url)
     return fromstring(page)
+
 
 def get_total(root):
     if root.find(".//h1[@id='noResultsTitle']") is not None:
@@ -135,6 +161,7 @@ def get_total(root):
     result_count = root.find(".//td[@class='resultCount']").text
     m = re_result_count.match(result_count)
     return int(m.group(1).replace(',', ''))
+
 
 def read_books(params, root):
     # sometimes there is no link, bug at Amazaon
@@ -146,9 +173,16 @@ def read_books(params, root):
         sleep(2)
         print('retry:', params)
         root = get_url(params)
-    if re_child_book_param.search(params) and all(re_personalized.search(span.text) for span in root.find_class('srTitle')):
+    if re_child_book_param.search(params) and all(
+        re_personalized.search(span.text) for span in root.find_class('srTitle')
+    ):
         raise PersonalizedBooks
-    return [re_product_title.search(a.attrib['href']).group(1) for a in book_links if a is not None and a.text]
+    return [
+        re_product_title.search(a.attrib['href']).group(1)
+        for a in book_links
+        if a is not None and a.text
+    ]
+
 
 def get_cats(root):
     cats = []
@@ -156,7 +190,9 @@ def get_cats(root):
         if div.text != 'Department':
             continue
         container = div.getparent()
-        assert container.tag == 'td' and container.attrib['class'] == 'refinementContainer'
+        assert (
+            container.tag == 'td' and container.attrib['class'] == 'refinementContainer'
+        )
         break
 
     table = container.find('table')
@@ -173,17 +209,18 @@ def get_cats(root):
             print('no match:')
             print(repr(href))
         m2 = re_facet_count.search(span2.text)
-        cats.append((int(m1.group(1)), span1.text, int(m2.group(1).replace(',',''))))
+        cats.append((int(m1.group(1)), span1.text, int(m2.group(1).replace(',', ''))))
 
     return cats
 
     for e in container.find('table').find_class('refinementLink'):
         a = e.getparent()
         assert a.tag == 'a'
-        cat = { 'url': a.attrib['href'], 'title': e.text }
+        cat = {'url': a.attrib['href'], 'title': e.text}
         href = a.attrib['href']
         m = re_rh_n.search(href)
         cats.append((int(m.group(1)), e.text))
+
 
 def read_page(params):
     # read search results page
@@ -200,12 +237,12 @@ def read_page(params):
     print('cats 1')
     for a, b, c in cats:
         print("%8d %-30s %8d" % (a, b, c))
-    #return grand_total, [], cats
+    # return grand_total, [], cats
 
     books = set()
 
     books.update(read_books(params, root))
-    for page in range(2, min((pages, 100))+1):
+    for page in range(2, min((pages, 100)) + 1):
         params_with_page = params + "&page=%d" % page
         books.update(read_books(params_with_page, get_url(params_with_page)))
         print(page, len(books))
@@ -227,7 +264,7 @@ def read_page(params):
             print('cat_total:', total, 'pages:', total / page_size)
             if cat_total > max_results:
                 print('cat_total (%d) > max results (%d)' % (total, max_results))
-    #        assert cat_total <= max_results
+            #        assert cat_total <= max_results
             try:
                 books.update(read_books(params_with_cat, root))
             except PersonalizedBooks:
@@ -236,23 +273,35 @@ def read_page(params):
             for page in range(2, min((pages, 100)) + 1):
                 params_with_page = params_with_cat + "&page=%d" % page
                 try:
-                    books.update(read_books(params_with_page, get_url(params_with_page)))
+                    books.update(
+                        read_books(params_with_page, get_url(params_with_page))
+                    )
                 except PersonalizedBooks:
                     print('WARNING: Personalized Books')
                     break
-                print(repr(n, title, page, cat_total / page_size, len(books), "%.1f%%" % percent(len(books), grand_total)))
+                print(
+                    repr(
+                        n,
+                        title,
+                        page,
+                        cat_total / page_size,
+                        len(books),
+                        "%.1f%%" % percent(len(books), grand_total),
+                    )
+                )
 
     return total, books, cats
+
 
 def write_books(books):
     i = 0
     error_count = 0
 
     for asin in books:
-        i+= 1
+        i += 1
         for attempt in range(5):
             try:
-                #page = urlopen('http://amazon.com/dp/' + asin).read()
+                # page = urlopen('http://amazon.com/dp/' + asin).read()
                 page = scraper.get('http://www.amazon.com/dp/' + asin)
                 if re_expect_end.search(page):
                     break
@@ -268,12 +317,13 @@ def write_books(books):
             print('retry')
             sleep(5)
 
+
 if __name__ == '__main__':
 
     one_day = timedelta(days=1)
-    cur = date(2009, 1, 1) # start date
-    cur = date(2009, 11, 11) # start date
-    #cur = date(2009, 12, 25)
+    cur = date(2009, 1, 1)  # start date
+    cur = date(2009, 11, 11)  # start date
+    # cur = date(2009, 12, 25)
     while True:
         print(cur)
         total, books, cats = read_page(rh + cur.strftime("%Y%m%d"))

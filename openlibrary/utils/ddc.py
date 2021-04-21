@@ -9,7 +9,8 @@ https://www.oclc.org/bibformats/en/0xx/082.html
 import re
 
 MULTIPLE_SPACES_RE = re.compile(r'\s+')
-DDC_RE = re.compile(r'''
+DDC_RE = re.compile(
+    r'''
     (
         # Prefix
         (?P<prestar>\*)?  # Should be suffix
@@ -28,7 +29,9 @@ DDC_RE = re.compile(r'''
     )
     |
     (\[?(?P<fic>Fic|E)\.?\]?)
-''', re.IGNORECASE | re.X)
+''',
+    re.IGNORECASE | re.X,
+)
 
 
 def collapse_multiple_space(s):

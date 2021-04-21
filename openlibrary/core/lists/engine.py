@@ -8,8 +8,7 @@ import six
 
 
 def reduce_seeds(values):
-    """Function to reduce the seed values got from works db.
-    """
+    """Function to reduce the seed values got from works db."""
     d = {
         "works": 0,
         "editions": 0,
@@ -28,10 +27,13 @@ def reduce_seeds(values):
     d['subjects'] = subject_processor.top_subjects()
     return d
 
+
 RE_SUBJECT = re.compile("[, _]+")
+
 
 def get_seeds(work):
     """Returns all seeds of given work."""
+
     def get_authors(work):
         return [a['author'] for a in work.get('authors', []) if 'author' in a]
 
@@ -45,7 +47,9 @@ def get_seeds(work):
         places = [_get_subject(s, "place:") for s in work.get("subject_places", [])]
         people = [_get_subject(s, "person:") for s in work.get("subject_people", [])]
         times = [_get_subject(s, "time:") for s in work.get("subject_times", [])]
-        d = dict((s['key'], s) for s in subjects + places + people + times if s is not None)
+        d = dict(
+            (s['key'], s) for s in subjects + places + people + times if s is not None
+        )
         return d.values()
 
     def get(work):
@@ -61,9 +65,10 @@ def get_seeds(work):
 
     return list(get(work))
 
+
 class SubjectProcessor:
-    """Processor to take a dict of subjects, places, people and times and build a list of ranked subjects.
-    """
+    """Processor to take a dict of subjects, places, people and times and build a list of ranked subjects."""
+
     def __init__(self):
         self.subjects = collections.defaultdict(list)
 
@@ -98,6 +103,9 @@ class SubjectProcessor:
         return sorted(d, key=lambda k: d[k], reverse=True)[0]
 
     def top_subjects(self, limit=100):
-        subjects = [{"key": key, "name": self._most_used(names), "count": len(names)} for key, names in self.subjects.items()]
+        subjects = [
+            {"key": key, "name": self._most_used(names), "count": len(names)}
+            for key, names in self.subjects.items()
+        ]
         subjects.sort(key=lambda s: s['count'], reverse=True)
         return subjects[:limit]

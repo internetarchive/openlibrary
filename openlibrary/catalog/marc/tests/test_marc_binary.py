@@ -35,12 +35,19 @@ def test_wrapped_lines():
 class Test_BinaryDataField:
     def test_translate(self):
         bdf = BinaryDataField(MockMARC('marc8'), b'')
-        assert bdf.translate(b'Vieira, Claudio Bara\xe2una,') == u'Vieira, Claudio Baraúna,'
+        assert (
+            bdf.translate(b'Vieira, Claudio Bara\xe2una,')
+            == u'Vieira, Claudio Baraúna,'
+        )
 
     def test_bad_marc_line(self):
-        line = b'0 \x1f\xe2aEtude objective des ph\xe2enom\xe1enes neuro-psychiques;\x1e'
+        line = (
+            b'0 \x1f\xe2aEtude objective des ph\xe2enom\xe1enes neuro-psychiques;\x1e'
+        )
         bdf = BinaryDataField(MockMARC('marc8'), line)
-        assert list(bdf.get_all_subfields()) == [(u'á', u'Etude objective des phénomènes neuro-psychiques;')]
+        assert list(bdf.get_all_subfields()) == [
+            (u'á', u'Etude objective des phénomènes neuro-psychiques;')
+        ]
 
 
 class Test_MarcBinary:
@@ -51,7 +58,7 @@ class Test_MarcBinary:
             fields = list(rec.all_fields())
             assert len(fields) == 13
             assert fields[0][0] == '001'
-            for f,v in fields:
+            for f, v in fields:
                 if f == '001':
                     f001 = v
                 elif f == '008':

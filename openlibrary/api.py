@@ -52,8 +52,9 @@ class OpenLibrary:
             headers['Cookie'] = self.cookie
 
         try:
-            response = requests.request(method, url, data=data, headers=headers,
-                                        params=params)
+            response = requests.request(
+                method, url, data=data, headers=headers, params=params
+            )
             response.raise_for_status()
             return response
         except requests.HTTPError as e:
@@ -94,26 +95,26 @@ class OpenLibrary:
         return self.login(username, password)
 
     def login(self, username, password):
-        """Login to Open Library with given credentials.
-        """
+        """Login to Open Library with given credentials."""
         headers = {'Content-Type': 'application/json'}
         try:
             data = json.dumps(dict(username=username, password=password))
-            response = self._request('/account/login', method='POST', data=data, headers=headers)
+            response = self._request(
+                '/account/login', method='POST', data=data, headers=headers
+            )
         except OLError as e:
             response = e
 
         if 'Set-Cookie' in response.headers:
             cookies = response.headers['Set-Cookie'].split(',')
-            self.cookie =  ';'.join([c.split(';')[0] for c in cookies])
+            self.cookie = ';'.join([c.split(';')[0] for c in cookies])
 
     def get(self, key, v=None):
         response = self._request(key + '.json', params={'v': v} if v else {})
         return unmarshal(response.json())
 
     def get_many(self, keys):
-        """Get multiple documents in a single request as a dictionary.
-        """
+        """Get multiple documents in a single request as a dictionary."""
         if len(keys) > 500:
             # get in chunks of 500 to avoid crossing the URL length limit.
             d = {}
@@ -148,7 +149,9 @@ class OpenLibrary:
         if action:
             headers['42-action'] = action
 
-        response = self._request('/api/' + name, method="POST", data=json.dumps(query), headers=headers)
+        response = self._request(
+            '/api/' + name, method="POST", data=json.dumps(query), headers=headers
+        )
         return response.json()
 
     def save_many(self, query, comment=None, action=None):
@@ -179,6 +182,7 @@ class OpenLibrary:
         q = dict(q or {})
         q.update(kw)
         q = marshal(q)
+
         def unlimited_query(q):
             q['limit'] = 1000
             q.setdefault('offset', 0)
@@ -199,15 +203,18 @@ class OpenLibrary:
             return unmarshal(response.json())
 
     def import_ocaid(self, ocaid, require_marc=True):
-        data = {'identifier': ocaid, 'require_marc': 'true' if require_marc else 'false'}
+        data = {
+            'identifier': ocaid,
+            'require_marc': 'true' if require_marc else 'false',
+        }
         return self._request('/api/import/ia', method='POST', data=data).text
 
 
 def marshal(data):
     """Serializes the specified data in the format required by OL.::
 
-        >>> marshal(datetime.datetime(2009, 1, 2, 3, 4, 5, 6789))
-        {'type': '/type/datetime', 'value': '2009-01-02T03:04:05.006789'}
+    >>> marshal(datetime.datetime(2009, 1, 2, 3, 4, 5, 6789))
+    {'type': '/type/datetime', 'value': '2009-01-02T03:04:05.006789'}
     """
     if isinstance(data, list):
         return [marshal(d) for d in data]
@@ -226,11 +233,11 @@ def marshal(data):
 def unmarshal(d):
     u"""Converts OL serialized objects to python.::
 
-        >>> unmarshal({"type": "/type/text",
-        ...            "value": "hello, world"})  # doctest: +ALLOW_UNICODE
-        <text: u'hello, world'>
-        >>> unmarshal({"type": "/type/datetime", "value": "2009-01-02T03:04:05.006789"})
-        datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)
+    >>> unmarshal({"type": "/type/text",
+    ...            "value": "hello, world"})  # doctest: +ALLOW_UNICODE
+    <text: u'hello, world'>
+    >>> unmarshal({"type": "/type/datetime", "value": "2009-01-02T03:04:05.006789"})
+    datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)
     """
     if isinstance(d, list):
         return [unmarshal(v) for v in d]
@@ -253,8 +260,8 @@ def unmarshal(d):
 def parse_datetime(value):
     """Parses ISO datetime formatted string.::
 
-        >>> parse_datetime("2009-01-02T03:04:05.006789")
-        datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)
+    >>> parse_datetime("2009-01-02T03:04:05.006789")
+    datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)
     """
     if isinstance(value, datetime.datetime):
         return value

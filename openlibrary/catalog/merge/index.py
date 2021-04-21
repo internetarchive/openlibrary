@@ -1,6 +1,7 @@
 from openlibrary.catalog.merge.normalize import normalize
 import re
 
+
 def add_to_index(dbm, key, edition_key):
     if not key:
         return
@@ -13,25 +14,33 @@ def add_to_index(dbm, key, edition_key):
     else:
         dbm[key] = edition_key
 
+
 def short_title(s):
     return normalize(s)[:25]
 
+
 re_letters = re.compile('[A-Za-z]')
+
 
 def clean_lccn(lccn):
     return re_letters.sub('', lccn).strip()
 
+
 re_isbn = re.compile('([-0-9X]{10,})')
+
 
 def clean_isbn(isbn):
     m = re_isbn.search(isbn)
     if m:
         return m.group(1).replace('-', '')
 
+
 def record_to_dbm(record, dbm):
     def callback(field, value, key):
         add_to_index(dbm[field], value, key)
+
     read_record(record, callback)
+
 
 def read_record(record, callback):
     if 'title' not in record or record['title'] is None:
@@ -64,6 +73,7 @@ def read_record(record, callback):
                     continue
             callback(b, v, key)
 
+
 def test_read_record():
     def empty_dbm():
         return dict((i, {}) for i in ('lccn', 'oclc', 'isbn', 'title'))
@@ -74,9 +84,37 @@ def test_read_record():
     line = line.replace('null', 'None')
     record = eval(line)
     read_record(record, dbm)
-    assert dbm == { 'lccn': {}, 'isbn': {}, 'oclc': {}, 'title': {'metamagical themas': '9888119'} }
+    assert dbm == {
+        'lccn': {},
+        'isbn': {},
+        'oclc': {},
+        'title': {'metamagical themas': '9888119'},
+    }
 
-    record = {"pagination": "8, 304 p.", "description": "Test", "title": "Kabita\u0304.", "lccn": ["sa 64009056"], "notes": "Bibliographical footnotes.\r\nIn Oriya.", "number_of_pages": 304, "languages": [{"key": "/l/ori"}], "authors": [{"key": "/a/OL1A"}], "lc_classifications": ["PK2579.R255 K3"], "publish_date": "1962", "publish_country": "ii ", "key": "/b/OL1M", "language_code": "304", "coverimage": "/static/images/book.trans.gif", "oclc_numbers": ["31249133"], "type": "/type/edition", "id": 96}
+    record = {
+        "pagination": "8, 304 p.",
+        "description": "Test",
+        "title": "Kabita\u0304.",
+        "lccn": ["sa 64009056"],
+        "notes": "Bibliographical footnotes.\r\nIn Oriya.",
+        "number_of_pages": 304,
+        "languages": [{"key": "/l/ori"}],
+        "authors": [{"key": "/a/OL1A"}],
+        "lc_classifications": ["PK2579.R255 K3"],
+        "publish_date": "1962",
+        "publish_country": "ii ",
+        "key": "/b/OL1M",
+        "language_code": "304",
+        "coverimage": "/static/images/book.trans.gif",
+        "oclc_numbers": ["31249133"],
+        "type": "/type/edition",
+        "id": 96,
+    }
     dbm = empty_dbm()
     read_record(record, dbm)
-    assert dbm == {'lccn': {'64009056': '96'}, 'isbn': {}, 'oclc': {'31249133': '96'}, 'title': {'kabitau0304': '96'}}
+    assert dbm == {
+        'lccn': {'64009056': '96'},
+        'isbn': {},
+        'oclc': {'31249133': '96'},
+        'title': {'kabitau0304': '96'},
+    }

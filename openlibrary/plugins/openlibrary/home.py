@@ -9,8 +9,7 @@ from infogami.utils.view import render_template, public
 from infogami.infobase.client import storify
 from infogami import config
 
-from openlibrary.core import admin, cache, ia, lending, \
-    helpers as h
+from openlibrary.core import admin, cache, ia, lending, helpers as h
 from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
@@ -26,7 +25,7 @@ CAROUSELS_PRESETS = {
     'preset:authorsalliance_mitpress': (
         '(openlibrary_subject:(authorsalliance) OR collection:(mitpress) OR '
         'publisher:(MIT Press) OR openlibrary_subject:(mitpress))'
-    )
+    ),
 }
 
 
@@ -69,10 +68,13 @@ def get_cached_homepage():
             # web.debug(f'XXXXXXXXXXX web.ctx.lang={web.ctx.get("lang")}; {lang=}')
             delegate.fakeload()
             web.ctx.lang = lang
+
         return main
 
     return cache.memcache_memoize(
-        get_homepage, key, timeout=five_minutes, prethread=prethread())()
+        get_homepage, key, timeout=five_minutes, prethread=prethread()
+    )()
+
 
 class home(delegate.page):
     path = "/"
@@ -84,6 +86,7 @@ class home(delegate.page):
         web.template.Template.globals['ctx']['cssfile'] = 'home'
         return web.template.TemplateResult(cached_homepage)
 
+
 class random_book(delegate.page):
     path = "/random"
 
@@ -94,8 +97,9 @@ class random_book(delegate.page):
         raise web.seeother("/")
 
 
-def get_ia_carousel_books(query=None, subject=None, work_id=None, sorts=None,
-                          _type=None, limit=None):
+def get_ia_carousel_books(
+    query=None, subject=None, work_id=None, sorts=None, _type=None, limit=None
+):
     if 'env' not in web.ctx:
         delegate.fakeload()
 
@@ -103,10 +107,17 @@ def get_ia_carousel_books(query=None, subject=None, work_id=None, sorts=None,
         query = CAROUSELS_PRESETS[query]
 
     limit = limit or lending.DEFAULT_IA_RESULTS
-    books = lending.get_available(limit=limit, subject=subject, work_id=work_id,
-                                  _type=_type, sorts=sorts, query=query)
+    books = lending.get_available(
+        limit=limit,
+        subject=subject,
+        work_id=work_id,
+        _type=_type,
+        sorts=sorts,
+        query=query,
+    )
     formatted_books = [format_book_data(book) for book in books if book != 'error']
     return formatted_books
+
 
 def get_featured_subjects():
     # web.ctx must be initialized as it won't be available to the background thread.
@@ -114,37 +125,80 @@ def get_featured_subjects():
         delegate.fakeload()
 
     FEATURED_SUBJECTS = [
-        'art', 'science_fiction', 'fantasy', 'biographies', 'recipes',
-        'romance', 'textbooks', 'children', 'history', 'medicine', 'religion',
-        'mystery_and_detective_stories', 'plays', 'music', 'science'
+        'art',
+        'science_fiction',
+        'fantasy',
+        'biographies',
+        'recipes',
+        'romance',
+        'textbooks',
+        'children',
+        'history',
+        'medicine',
+        'religion',
+        'mystery_and_detective_stories',
+        'plays',
+        'music',
+        'science',
     ]
-    return dict([(subject_name, subjects.get_subject('/subjects/' + subject_name, sort='edition_count'))
-                 for subject_name in FEATURED_SUBJECTS])
+    return dict(
+        [
+            (
+                subject_name,
+                subjects.get_subject('/subjects/' + subject_name, sort='edition_count'),
+            )
+            for subject_name in FEATURED_SUBJECTS
+        ]
+    )
+
 
 @public
 def get_cached_featured_subjects():
     return cache.memcache_memoize(
-        get_featured_subjects, "home.featured_subjects", timeout=dateutil.HOUR_SECS)()
+        get_featured_subjects, "home.featured_subjects", timeout=dateutil.HOUR_SECS
+    )()
+
 
 @public
-def generic_carousel(query=None, subject=None, work_id=None, _type=None,
-                     sorts=None, limit=None, timeout=None):
+def generic_carousel(
+    query=None,
+    subject=None,
+    work_id=None,
+    _type=None,
+    sorts=None,
+    limit=None,
+    timeout=None,
+):
     memcache_key = 'home.ia_carousel_books'
     cached_ia_carousel_books = cache.memcache_memoize(
-        get_ia_carousel_books, memcache_key, timeout=timeout or cache.DEFAULT_CACHE_LIFETIME)
+        get_ia_carousel_books,
+        memcache_key,
+        timeout=timeout or cache.DEFAULT_CACHE_LIFETIME,
+    )
     books = cached_ia_carousel_books(
-        query=query, subject=subject, work_id=work_id, _type=_type,
-        sorts=sorts, limit=limit)
+        query=query,
+        subject=subject,
+        work_id=work_id,
+        _type=_type,
+        sorts=sorts,
+        limit=limit,
+    )
     if not books:
         books = cached_ia_carousel_books.update(
-            query=query, subject=subject, work_id=work_id, _type=_type,
-            sorts=sorts, limit=limit)[0]
+            query=query,
+            subject=subject,
+            work_id=work_id,
+            _type=_type,
+            sorts=sorts,
+            limit=limit,
+        )[0]
     return storify(books) if books else books
+
 
 @public
 def readonline_carousel():
     """Return template code for books pulled from search engine.
-       TODO: If problems, use stock list.
+    TODO: If problems, use stock list.
     """
     try:
         data = random_ebooks()
@@ -156,6 +210,7 @@ def readonline_carousel():
     except Exception:
         logger.error("Failed to compute data for readonline_carousel", exc_info=True)
         return None
+
 
 def random_ebooks(limit=2000):
     solr = search.get_solr()
@@ -170,17 +225,22 @@ def random_ebooks(limit=2000):
             'ia',
             "title",
             "cover_edition_key",
-            "author_key", "author_name",
-        ])
+            "author_key",
+            "author_name",
+        ],
+    )
 
     return [format_work_data(doc) for doc in result.get('docs', []) if doc.get('ia')]
 
+
 # cache the results of random_ebooks in memcache for 15 minutes
-random_ebooks = cache.memcache_memoize(random_ebooks, "home.random_ebooks", timeout=15*60)
+random_ebooks = cache.memcache_memoize(
+    random_ebooks, "home.random_ebooks", timeout=15 * 60
+)
+
 
 def format_list_editions(key):
-    """Formats the editions of a list suitable for display in carousel.
-    """
+    """Formats the editions of a list suitable for display in carousel."""
     if 'env' not in web.ctx:
         delegate.fakeload()
 
@@ -201,11 +261,16 @@ def format_list_editions(key):
                 editions[e.key] = e
     return [format_book_data(e) for e in editions.values()]
 
+
 # cache the results of format_list_editions in memcache for 5 minutes
-format_list_editions = cache.memcache_memoize(format_list_editions, "home.format_list_editions", timeout=5*60)
+format_list_editions = cache.memcache_memoize(
+    format_list_editions, "home.format_list_editions", timeout=5 * 60
+)
+
 
 def pick_best_edition(work):
     return next((e for e in work.editions if e.ocaid))
+
 
 def format_work_data(work):
     d = dict(work)
@@ -219,14 +284,19 @@ def format_work_data(work):
     d['title'] = work.get('title', '')
 
     if 'author_key' in work and 'author_name' in work:
-        d['authors'] = [{"key": key, "name": name} for key, name in
-                        zip(work['author_key'], work['author_name'])]
+        d['authors'] = [
+            {"key": key, "name": name}
+            for key, name in zip(work['author_key'], work['author_name'])
+        ]
 
     if 'cover_edition_key' in work:
-        d['cover_url'] = h.get_coverstore_url() + "/b/olid/%s-M.jpg" % work['cover_edition_key']
+        d['cover_url'] = (
+            h.get_coverstore_url() + "/b/olid/%s-M.jpg" % work['cover_edition_key']
+        )
 
     d['read_url'] = "//archive.org/stream/" + work['ia'][0]
     return d
+
 
 def format_book_data(book):
     d = web.storage()
@@ -258,6 +328,7 @@ def format_book_data(book):
         else:
             d.read_url = book.url("/borrow")
     return d
+
 
 def setup():
     pass

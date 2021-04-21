@@ -12,6 +12,7 @@ root = getattr(config, 'booklogroot', 'booklog')
 
 _logger = Logger(root)
 
+
 def hook(object):
     """
     Add this hook to infobase.hooks to log all book modifications.
@@ -24,5 +25,4 @@ def hook(object):
         d['type'] = {'key': '/type/edition'}
         _logger.write('book', site.name, timestamp, d)
 
-    #TODO: take care of author modifications
-
+    # TODO: take care of author modifications

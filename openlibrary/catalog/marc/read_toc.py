@@ -13,7 +13,7 @@ re_at = re.compile('^at+$')
 re_end_num = re.compile('\d[]. ]*$')
 for line in open('test_data/marc_toc'):
     (loc, line) = eval(line)
-    #print loc
+    # print loc
     subfields = list(get_all_subfields(line))
     if subfields[0][0] == '6':
         subfields.pop(0)
@@ -31,7 +31,7 @@ for line in open('test_data/marc_toc'):
     continue
     if re_gtr.match(subtags):
         continue
-        for i in range(len(subfields)/3):
+        for i in range(len(subfields) / 3):
             g = subfields[i * 3][1]
             t = subfields[i * 3 + 1][1].strip('- /')
             r = subfields[i * 3 + 2][1].strip('- ')
@@ -39,7 +39,7 @@ for line in open('test_data/marc_toc'):
         continue
     if re_gt.match(subtags):
         continue
-        for i in range(len(subfields)/2):
+        for i in range(len(subfields) / 2):
             g = subfields[i * 2][1]
             t = subfields[i * 2 + 1][1].strip('- /')
             print(repr(g, t))

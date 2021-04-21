@@ -18,11 +18,8 @@ from openlibrary.coverstore.utils import random_string, rm_f
 
 logger = getLogger("openlibrary.coverstore.coverlib")
 
-__all__ = [
-    "save_image",
-    "read_image",
-    "read_file"
-]
+__all__ = ["save_image", "read_image", "read_file"]
+
 
 def save_image(data, category, olid, author=None, ip=None, source_url=None):
     """Save the provided image data, creates thumbnails and adds an entry in the database.
@@ -35,12 +32,14 @@ def save_image(data, category, olid, author=None, ip=None, source_url=None):
     if img is None:
         raise ValueError("Bad Image")
 
-    d = web.storage({
-        'category': category,
-        'olid': olid,
-        'author': author,
-        'source_url': source_url,
-    })
+    d = web.storage(
+        {
+            'category': category,
+            'olid': olid,
+            'author': author,
+            'source_url': source_url,
+        }
+    )
     d['width'], d['height'] = img.size
 
     filename = prefix + '.jpg'
@@ -52,11 +51,18 @@ def save_image(data, category, olid, author=None, ip=None, source_url=None):
     d.id = db.new(**d)
     return d
 
+
 def make_path_prefix(olid, date=None):
-    """Makes a file prefix for storing an image.
-    """
+    """Makes a file prefix for storing an image."""
     date = date or datetime.date.today()
-    return "%04d/%02d/%02d/%s-%s" % (date.year, date.month, date.day, olid, random_string(5))
+    return "%04d/%02d/%02d/%s-%s" % (
+        date.year,
+        date.month,
+        date.day,
+        olid,
+        random_string(5),
+    )
+
 
 def write_image(data, prefix):
     # type: (bytes, str) -> Image
@@ -88,6 +94,7 @@ def write_image(data, prefix):
 
         return None
 
+
 def resize_image(image, size):
     """Resizes image to specified size while making sure that aspect ratio is maintained."""
     # from PIL
@@ -102,11 +109,15 @@ def resize_image(image, size):
 
     return image.resize(size, Image.ANTIALIAS)
 
+
 def find_image_path(filename):
     if ':' in filename:
-        return os.path.join(config.data_root,'items', filename.rsplit('_', 1)[0], filename)
+        return os.path.join(
+            config.data_root, 'items', filename.rsplit('_', 1)[0], filename
+        )
     else:
         return os.path.join(config.data_root, 'localdisk', filename)
+
 
 def read_file(path):
     if ':' in path:
@@ -120,7 +131,9 @@ def read_file(path):
 
 def read_image(d, size):
     if size:
-        filename = d['filename_' + size.lower()] or d.filename + "-%s.jpg" % size.upper()
+        filename = (
+            d['filename_' + size.lower()] or d.filename + "-%s.jpg" % size.upper()
+        )
     else:
         filename = d.filename
     path = find_image_path(filename)

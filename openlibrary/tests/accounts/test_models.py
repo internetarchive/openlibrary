@@ -15,8 +15,10 @@ class TestInternetArchiveAccount:
         resp.status_code = 500
         resp._content = b'Internal Server Error'
         monkeypatch.setattr(model.requests, 'post', lambda url, **kwargs: resp)
-        assert xauth('create', s3_key='_', s3_secret='_') == {'code': 500, 'error':
-                                                              'Internal Server Error'}
+        assert xauth('create', s3_key='_', s3_secret='_') == {
+            'code': 500,
+            'error': 'Internal Server Error',
+        }
 
     def test_xauth_http_error_with_json(self, monkeypatch):
         xauth = InternetArchiveAccount.xauth
@@ -24,5 +26,6 @@ class TestInternetArchiveAccount:
         resp.status_code = 400
         resp._content = b'{"error": "Unknown Parameter Blah"}'
         monkeypatch.setattr(model.requests, 'post', lambda url, **kwargs: resp)
-        assert xauth('create', s3_key='_', s3_secret='_') == {"error":
-                                                              "Unknown Parameter Blah"}
+        assert xauth('create', s3_key='_', s3_secret='_') == {
+            "error": "Unknown Parameter Blah"
+        }

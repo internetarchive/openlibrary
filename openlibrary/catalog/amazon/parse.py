@@ -14,25 +14,34 @@ from six.moves import html_entities
 class BrokenTitle(Exception):
     pass
 
+
 class IncompletePage(Exception):
     pass
 
+
 class MissingAuthor(Exception):
     pass
+
 
 role_re = re.compile(r"^ \(([^)]+)\)")
 
 #: sample: ' [Paperback, Large Print]'
 
-re_title = re.compile(r"""
+re_title = re.compile(
+    r"""
     (?:\ \[([A-Za-z, ]+)\])? # flags
     (?:\(\ ([^()]+|[^()]*\(.*\)[^()]*)\))?
-    """, re.MULTILINE | re.X)
+    """,
+    re.MULTILINE | re.X,
+)
 
-re_split_title = re.compile(r'''^
+re_split_title = re.compile(
+    r'''^
     (.+?(?:\ \(.+\))?)
     (?::\ (\ *[^:]+))?$
-''', re.X)
+''',
+    re.X,
+)
 
 re_missing_author = re.compile(r'\n\n(~  )?\(([A-Za-z, ]+)\), ')
 
@@ -44,6 +53,7 @@ re_you_save = re.compile(r'^\$([\d,]+)\.(\d\d)\s*\((\d+)%\)\s*$')
 re_pages = re.compile(r'^\s*(\d+)(?:\.0)? pages\s*$')
 re_sales_rank = re.compile('^ #([0-9,]+) in Books')
 re_html_in_title = re.compile('</?(i|em|br)>', re.I)
+
 
 def unescape(text):
     def fixup(m):
@@ -60,14 +70,17 @@ def unescape(text):
         else:
             # named entity
             try:
-                text =  six.unichr(html_entities.name2codepoint[text[1:-1]])
+                text = six.unichr(html_entities.name2codepoint[text[1:-1]])
             except KeyError:
                 pass
-        return text # leave as is
+        return text  # leave as is
+
     return re.sub(r"&#?\w+;", fixup, text)
+
 
 def to_dict(k, v):
     return {k: v} if v else None
+
 
 def read_authors(by_span):
     authors = []
@@ -90,17 +103,20 @@ def read_authors(by_span):
             assert e.tail.endswith(', ')
         m = role_re.match(e.tail)
         if m:
-            authors.append({ 'name': e.text, 'role': m.group(1), 'href': e.attrib['href'] })
+            authors.append(
+                {'name': e.text, 'role': m.group(1), 'href': e.attrib['href']}
+            )
         else:
-            authors.append({ 'name': e.text, 'href': e.attrib['href'] })
+            authors.append({'name': e.text, 'href': e.attrib['href']})
     return authors
+
 
 def get_title_and_authors(doc, title_from_html):
     try:
         prodImage = doc.get_element_by_id('prodImage')
     except KeyError:
         raise IncompletePage
-    full_title = unescape(prodImage.attrib['alt']) # double quoted
+    full_title = unescape(prodImage.attrib['alt'])  # double quoted
     full_title = re_html_in_title.sub('', full_title).replace('&apos;', "'")
 
     m = re_split_title.match(full_title)
@@ -119,12 +135,12 @@ def get_title_and_authors(doc, title_from_html):
     book = {
         'full_title': full_title,
         'title': title,
-        'has_cover_img': "no-image-avail" not in prodImage.attrib['src']
+        'has_cover_img': "no-image-avail" not in prodImage.attrib['src'],
     }
 
     authors = []
     if len(by_span) and by_span[0].tag == 'a':
-        #print len(by_span), [e.tag for e in by_span]
+        # print len(by_span), [e.tag for e in by_span]
         book['authors'] = read_authors(by_span)
     title_text = title_id.text_content()
     if not title_text.startswith(full_title):
@@ -138,7 +154,7 @@ def get_title_and_authors(doc, title_from_html):
         print(('title mistmach:', repr(full_title), '!=', repr(title_text)))
         raise BrokenTitle
     if full_title != title_text:
-        btAsinTitle = title_text[len(full_title):]
+        btAsinTitle = title_text[len(full_title) :]
         m = re_title.match(btAsinTitle)
         if not m:
             print(('title:', repr(btAsinTitle)))
@@ -152,10 +168,12 @@ def get_title_and_authors(doc, title_from_html):
 
     return book
 
+
 def dollars_and_cents(dollars, cents):
     # input: dollars and cents as strings
     # output: value in cents as an int
     return int(dollars.replace(',', '')) * 100 + int(cents)
+
 
 def read_price_block(doc):
     price_block = doc.get_element_by_id('priceBlock', None)
@@ -182,20 +200,21 @@ def read_price_block(doc):
             amazon_price = dollars_and_cents(m.group(1), m.group(2))
             book["amazon_price"] = amazon_price
         elif heading == 'You Save:':
-            continue # don't need to check
+            continue  # don't need to check
             # fails for 057124954X: '$0.04\n      \n    '
             m = re_you_save.match(value)
             you_save = dollars_and_cents(m.group(1), m.group(2))
             assert list_price - amazon_price == you_save
             assert floor(float(you_save * 100) / list_price + 0.5) == int(m.group(3))
         elif heading == 'Value Priced at:':
-            continue # skip
+            continue  # skip
             m = re_amazon_price.match(value)
             book["value_priced_at"] = dollars_and_cents(m.group(1), m.group(2))
         elif heading == 'Import List Price:':
             pass
 
     return book
+
 
 def find_avail_span(doc):
     for div in doc.find_class('buying'):
@@ -210,6 +229,7 @@ def find_avail_span(doc):
         if span.attrib['class'].startswith('avail'):
             return span
 
+
 def read_avail(doc):
     traffic_signals = set(['Red', 'Orange', 'Green'])
     span = find_avail_span(doc)
@@ -219,9 +239,10 @@ def read_avail(doc):
     book = {
         'avail_color': color,
         'amazon_availability': span.text,
-        'gift_wrap': bool(gift_wrap) and 'Gift-wrap available' in gift_wrap
+        'gift_wrap': bool(gift_wrap) and 'Gift-wrap available' in gift_wrap,
     }
     return book
+
 
 def read_other_editions(doc):
     oe = doc.get_element_by_id('oeTable', None)
@@ -245,7 +266,8 @@ def read_other_editions(doc):
         assert a.tag == 'a'
         row = [a.attrib['href'][-10:], a.text, a.tail.strip()]
         other_editions.append(row)
-    return {'other_editions': other_editions }
+    return {'other_editions': other_editions}
+
 
 def read_sims(doc):
     sims = doc.find_class('sims-faceouts')
@@ -266,6 +288,7 @@ def read_sims(doc):
         assert a.tag == 'a'
         found.append({'asin': a.attrib['href'][-10:], 'title': a.text})
     return to_dict('sims', found)
+
 
 def find_product_details_ul(doc):
     a = doc.get_element_by_id('productDetails', None)
@@ -292,13 +315,18 @@ def find_product_details_ul(doc):
     assert ul[-1].tag == 'div' and ul[-2].tag == 'p'
     return ul
 
+
 def read_li(li):
     assert li.tag == 'li'
     b = li[0]
     assert b.tag == 'b'
     return b
 
-re_series = re.compile(r'^<li>(?:This is item <b>(\d+)</b> in|This item is part of) <a href="?/gp/series/(\d+).*?><b>The <i>(.+?)</i> Series</b></a>\.</li>')
+
+re_series = re.compile(
+    r'^<li>(?:This is item <b>(\d+)</b> in|This item is part of) <a href="?/gp/series/(\d+).*?><b>The <i>(.+?)</i> Series</b></a>\.</li>'
+)
+
 
 def read_series(doc):
     ul = doc.find_class('linkBullets')
@@ -317,6 +345,7 @@ def read_series(doc):
     found["series"] = series
     found["series_id"] = series_id
     return found
+
 
 def read_product_details(doc):
     ul = find_product_details_ul(doc)
@@ -355,9 +384,9 @@ def read_product_details(doc):
             warn("can't parse number_of_pages: " + pages)
 
     seen_average_customer_review = False
-    for li in ul[ul_start + 1:-2 if ul[-3].tag != 'br' else -3]:
-#        if li.tag == 'p' and len(li) == 0:
-#            continue
+    for li in ul[ul_start + 1 : -2 if ul[-3].tag != 'br' else -3]:
+        #        if li.tag == 'p' and len(li) == 0:
+        #            continue
         b = read_li(li)
         h = b.text.strip(': \n')
         if h in ('Also Available in', 'In-Print Editions'):
@@ -380,8 +409,10 @@ def read_product_details(doc):
         found[heading] = b.tail.strip()
     return found
 
+
 re_pub_date = re.compile(r"^(.*) \((.*\d{4})\)$")
 re_pub_edition = re.compile("^(.*); (.*)$")
+
 
 def parse_publisher(edition):
     if 'publisher' in edition:
@@ -394,8 +425,10 @@ def parse_publisher(edition):
             edition["publisher"] = m.group(1)
             edition["edition"] = m.group(2)
 
+
 re_latest_blog_posts = re.compile(r'\s*(.*?) latest blog posts')
 re_plog_link = re.compile('^/gp/blog/([A-Z0-9]+)$')
+
 
 def read_plog(doc):
     div = doc.get_element_by_id('plog', None)
@@ -427,10 +460,12 @@ def read_plog(doc):
 
     return found
 
+
 re_cite = {
     'citing': re.compile(r'\nThis book cites (\d+) \nbook(?:s)?:'),
-    'cited': re.compile(r'\n(\d+) \nbook(?:s)? \ncites? this book:')
+    'cited': re.compile(r'\n(\d+) \nbook(?:s)? \ncites? this book:'),
 }
+
 
 def read_citing(doc):
     div = doc.get_element_by_id('bookCitations', None)
@@ -459,6 +494,7 @@ def read_citing(doc):
         found[k] = int(m.group(1))
     return found
 
+
 def find_inside_this_book(doc):
     for b in doc.find_class('h1'):
         if b.text == 'Inside This Book':
@@ -466,11 +502,15 @@ def find_inside_this_book(doc):
             return b.getparent()
     return None
 
+
 def read_first_sentence(inside):
     if len(inside) == 4:
         assert inside[2].tag == 'span'
         assert inside[2].attrib['class'] == 'tiny'
-        assert inside[2][0].tail.strip() == 'Browse and search another edition of this book.'
+        assert (
+            inside[2][0].tail.strip()
+            == 'Browse and search another edition of this book.'
+        )
         div = inside[3]
     else:
         assert len(inside) == 3
@@ -484,6 +524,7 @@ def read_first_sentence(inside):
     assert div[1].tag == 'br'
     return div[1].tail.strip(u"\n \xa0")
 
+
 def find_bucket(doc, text):
     for div in doc.find_class('bucket'):
         h2 = div[0]
@@ -491,7 +532,9 @@ def find_bucket(doc, text):
             return div
     return None
 
+
 # New & Used Textbooks
+
 
 def read_subject(doc):
     div = find_bucket(doc, 'Look for Similar Items by Subject')
@@ -501,9 +544,12 @@ def read_subject(doc):
     form = div[1][0]
     assert form.tag == 'form'
     input = form[0]
-    assert input.tag == 'input' and input.attrib['type'] == 'hidden' \
-        and input.attrib['name'] == 'index' \
+    assert (
+        input.tag == 'input'
+        and input.attrib['type'] == 'hidden'
+        and input.attrib['name'] == 'index'
         and input.attrib['value'] == 'books'
+    )
     found = []
     for input in form[3:-4:3]:
         a = input.getnext()
@@ -512,6 +558,7 @@ def read_subject(doc):
         assert found_text is not None
         found.append(found_text)
     return to_dict('subjects', found)
+
 
 def read_category(doc):
     div = find_bucket(doc, 'Look for Similar Items by Category')
@@ -527,11 +574,12 @@ def read_category(doc):
         if cat[-1] == 'All Titles':
             cat.pop()
         found.append(tuple(cat))
-#        if 'Series' in cat:
-#            edition["series2"] = cat
+    #        if 'Series' in cat:
+    #            edition["series2"] = cat
     # maybe strip 'Books' from start of category
     found = [i[1:] if i[0] == 'Books' else i for i in found]
     return to_dict('category', found)
+
 
 def read_tags(doc):
     table = doc.find_class('tag-cols')
@@ -541,6 +589,7 @@ def read_tags(doc):
     table = table[0]
     assert len(table) == 1
     tr = table[0]
+
 
 def read_edition(doc, title_from_html=None):
     edition = {}
@@ -556,13 +605,13 @@ def read_edition(doc, title_from_html=None):
         if sentence:
             edition['first_sentence'] = sentence
     func = [
-        #read_citing,
+        # read_citing,
         read_plog,
         read_series,
-        #read_avail,
+        # read_avail,
         read_product_details,
         read_other_editions,
-        #read_sims, # not needed now
+        # read_sims, # not needed now
         read_subject,
         read_category,
     ]
@@ -575,6 +624,7 @@ def read_edition(doc, title_from_html=None):
         return None
     return edition
 
+
 # ['subtitle', 'binding', 'shipping_weight', 'category', 'first_sentence',  'title', 'full_title', 'authors', 'dimensions', 'publisher', 'language', 'number_of_pages', 'isbn_13', 'isbn_10', 'publish_date']
 def edition_to_ol(edition):
     ol = {}
@@ -585,7 +635,7 @@ def edition_to_ol(edition):
     if 'isbn_10' in edition:
         ol['isbn_10'] = [edition['isbn_10']]
     if 'isbn_13' in edition:
-        ol['isbn_13'] = [edition['isbn_13'].replace('-','')]
+        ol['isbn_13'] = [edition['isbn_13'].replace('-', '')]
     if 'category' in edition:
         ol['subjects'] = edition['category']
     if 'binding' in edition:
@@ -609,11 +659,12 @@ def edition_to_ol(edition):
 
     return ol
 
+
 if __name__ == '__main__':
-    #for dir in ('/2008/sample/', 'pages/'):
+    # for dir in ('/2008/sample/', 'pages/'):
     page_dir = sys.argv[1]
     for filename in os.listdir(page_dir):
-        #if '1435438671' not in filename:
+        # if '1435438671' not in filename:
         #    continue
         if filename.endswith('.swp'):
             continue
@@ -622,4 +673,4 @@ if __name__ == '__main__':
         assert doc is not None
         edition = read_edition(doc)
         ol = edition_to_ol(edition)
-        pprint (ol)
+        pprint(ol)

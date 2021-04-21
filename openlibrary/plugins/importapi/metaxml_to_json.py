@@ -12,14 +12,16 @@ from __future__ import print_function
 
 from openlibrary.plugins.importapi.import_edition_builder import import_edition_builder
 
+
 def parse_collection(collection):
     collection_dict = {
-        'printdisabled'  : ['Protected DAISY', 'Accessible book'],
-        'lendinglibrary' : ['Lending library', 'Protected DAISY', 'Accessible book'],
-        'inlibrary'      : ['In library'],
+        'printdisabled': ['Protected DAISY', 'Accessible book'],
+        'lendinglibrary': ['Lending library', 'Protected DAISY', 'Accessible book'],
+        'inlibrary': ['In library'],
     }
 
     return collection_dict.get(collection, [])
+
 
 def parse_isbn(isbn):
     if 13 == len(isbn):
@@ -29,19 +31,20 @@ def parse_isbn(isbn):
     else:
         return ('isbn', [])
 
+
 def metaxml_to_edition_dict(root):
 
     ia_to_ol_map = {
-        'identifier' : 'ocaid',
-        'creator'    : 'author',
-        'date'       : 'publish_date',
-        'boxid'      : 'ia_box_id',
+        'identifier': 'ocaid',
+        'creator': 'author',
+        'date': 'publish_date',
+        'boxid': 'ia_box_id',
     }
 
     edition_builder = import_edition_builder()
 
     for element in root.iter():
-        #print("got %s -> %s" % (element.tag, element.text))
+        # print("got %s -> %s" % (element.tag, element.text))
 
         if 'collection' == element.tag:
             key = 'subject'
@@ -63,9 +66,11 @@ def metaxml_to_edition_dict(root):
 
     return edition_builder.get_dict()
 
+
 if __name__ == '__main__':
     from lxml import etree
     import sys
+
     assert 2 == len(sys.argv)
 
     tree = etree.parse(sys.argv[1])
@@ -74,6 +79,6 @@ if __name__ == '__main__':
     edition_dict = metaxml_to_edition_dict(root)
 
     import json
+
     json_str = json.dumps(edition_dict)
     print(json_str)
-

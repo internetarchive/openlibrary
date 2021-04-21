@@ -11,9 +11,10 @@ import six
 
 logger = logging.getLogger("openlibrary.solrwriter")
 
+
 class SolrWriter(object):
-    """Interface to update solr.
-    """
+    """Interface to update solr."""
+
     def __init__(self, host, core=None):
         self.host = host
         if core:
@@ -31,12 +32,13 @@ class SolrWriter(object):
         return self.conn
 
     def request(self, xml):
-        """Sends an update request to solr with given XML.
-        """
+        """Sends an update request to solr with given XML."""
         conn = self.get_conn()
 
         logger.info('request: %r', xml[:65] + '...' if len(xml) > 65 else xml)
-        conn.request('POST', self.update_url, xml, { 'Content-type': 'text/xml;charset=utf-8'})
+        conn.request(
+            'POST', self.update_url, xml, {'Content-type': 'text/xml;charset=utf-8'}
+        )
         response = conn.getresponse()
         response_body = response.read()
 
@@ -77,11 +79,15 @@ class SolrWriter(object):
         logger.info("<optimize/>")
         self.request("<optimize/>")
 
+
 re_bad_char = re.compile('[\x01\x0b\x1a-\x1e]')
+
+
 def strip_bad_char(s):
     if not isinstance(s, six.string_types):
         return s
     return re_bad_char.sub('', s)
+
 
 def add_field(doc, name, value):
     if isinstance(value, (list, set)):
@@ -99,6 +105,7 @@ def add_field(doc, name, value):
             logger.exception('Error in normalizing %r', value)
             raise
         doc.append(field)
+
 
 def dict2element(d):
     doc = Element("doc")

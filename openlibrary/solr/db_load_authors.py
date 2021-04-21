@@ -20,13 +20,13 @@ for line in open('author_file'):
     src_a = json.loads(line[:-1])
     m = re_author_key.match(src_a['key'])
     akey_num = int(m.group(1))
-    db_a = { 'akey': akey_num }
+    db_a = {'akey': akey_num}
 
     for f in 'name', 'birth_date', 'death_date', 'date':
         if not src_a.get(f, None):
             continue
         db_a[f] = src_a[f]
-        if len(db_a[f]) > sizes[f]-1:
+        if len(db_a[f]) > sizes[f] - 1:
             print(f, len(db_a[f]), db_a[f])
 
     if 'alternate_names' in src_a:

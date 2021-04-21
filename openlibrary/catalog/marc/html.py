@@ -1,7 +1,7 @@
 from openlibrary.catalog.marc.fast_parse import get_all_tag_lines, translate, split_line
 import re
 
-trans = {'&':'&amp;','<':'&lt;','>':'&gt;','\n':'<br>', '\x1b': '<b>[esc]</b>'}
+trans = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '\n': '<br>', '\x1b': '<b>[esc]</b>'}
 re_html_replace = re.compile('([&<>\n\x1b])')
 
 
@@ -13,7 +13,7 @@ def esc_sp(s):
     return esc(s).replace(' ', '&nbsp;')
 
 
-class html_record():
+class html_record:
     def __init__(self, data):
         assert len(data) == int(data[:5])
         self.data = data
@@ -21,7 +21,9 @@ class html_record():
         self.is_marc8 = self.leader[9] != u'a'
 
     def html(self):
-        return '<br>\n'.join(self.html_line(t, l) for t, l in get_all_tag_lines(self.data))
+        return '<br>\n'.join(
+            self.html_line(t, l) for t, l in get_all_tag_lines(self.data)
+        )
 
     def html_subfields(self, line):
         assert line[-1] == b'\x1e'[0]
@@ -36,5 +38,9 @@ class html_record():
         if tag.startswith('00'):
             s = esc_sp(line[:-1].decode('utf-8', errors='replace'))
         else:
-            s = esc_sp(line[0:2].decode('utf-8', errors='replace')) + ' ' + self.html_subfields(line)
+            s = (
+                esc_sp(line[0:2].decode('utf-8', errors='replace'))
+                + ' '
+                + self.html_subfields(line)
+            )
         return u'<large>' + tag + u'</large> <code>' + s + u'</code>'

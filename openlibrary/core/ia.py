@@ -59,7 +59,10 @@ def get_metadata_direct(itemid, only_metadata=True, cache=True):
     full_json = get_api_response(url, params)
     return extract_item_metadata(full_json) if only_metadata else full_json
 
-get_metadata = cache.memcache_memoize(get_metadata_direct, key_prefix='ia.get_metadata', timeout=5 * cache.MINUTE_SECS)
+
+get_metadata = cache.memcache_memoize(
+    get_metadata_direct, key_prefix='ia.get_metadata', timeout=5 * cache.MINUTE_SECS
+)
 
 
 def extract_item_metadata(item_json):
@@ -84,19 +87,22 @@ def process_metadata_dict(metadata):
     non-list cases. This function makes sure the known multi-valued fields are
     always lists.
     """
-    multivalued = set(['collection', 'external-identifier', 'isbn', 'subject', 'oclc-id'])
+    multivalued = set(
+        ['collection', 'external-identifier', 'isbn', 'subject', 'oclc-id']
+    )
+
     def process_item(k, v):
         if k in multivalued and not isinstance(v, list):
             v = [v]
         elif k not in multivalued and isinstance(v, list):
             v = v[0]
         return (k, v)
+
     return dict(process_item(k, v) for k, v in metadata.items() if v)
 
 
 def locate_item(itemid):
-    """Returns (hostname, path) for the item.
-    """
+    """Returns (hostname, path) for the item."""
     d = get_metadata_direct(itemid, only_metadata=False)
     return d.get('server'), d.get('dir')
 
@@ -115,8 +121,7 @@ def edition_from_item_metadata(itemid, metadata):
 
 
 def get_cover_url(item_id):
-    """Gets the URL of the archive.org item's title (or cover) page.
-    """
+    """Gets the URL of the archive.org item's title (or cover) page."""
     base_url = '{0}/download/{1}/page/'.format(IA_BASE_URL, item_id)
     title_response = requests.head(base_url + 'title.jpg', allow_redirects=True)
     if title_response.status_code == 404:
@@ -133,28 +138,31 @@ def get_item_manifest(item_id, item_server, item_path):
 def get_item_status(itemid, metadata, **server):
     item_server = server.pop('item_server', None)
     item_path = server.pop('item_path', None)
-    return ItemEdition.get_item_status(itemid, metadata, item_server=item_server,
-                                       item_path=item_path)
+    return ItemEdition.get_item_status(
+        itemid, metadata, item_server=item_server, item_path=item_path
+    )
 
 
 class ItemEdition(dict):
-    """Class to convert item metadata into edition dict.
-    """
+    """Class to convert item metadata into edition dict."""
+
     def __init__(self, itemid):
         dict.__init__(self)
         self.itemid = itemid
 
         timestamp = {"type": "/type/datetime", "value": "2010-01-01T00:00:00"}
 
-        self.update({
-            "key": "/books/ia:" + itemid,
-            "type": {"key": "/type/edition"},
-            "title": itemid,
-            "ocaid": itemid,
-            "revision": 1,
-            "created": timestamp,
-            "last_modified": timestamp
-        })
+        self.update(
+            {
+                "key": "/books/ia:" + itemid,
+                "type": {"key": "/type/edition"},
+                "title": itemid,
+                "ocaid": itemid,
+                "revision": 1,
+                "created": timestamp,
+                "last_modified": timestamp,
+            }
+        )
 
     @classmethod
     def get_item_status(cls, itemid, metadata, item_server=None, item_path=None):
@@ -199,10 +207,12 @@ class ItemEdition(dict):
         collections = metadata.get("collection", [])
         if not isinstance(collections, list):
             collections = [collections]
-        if metadata.get("noindex") == "true" \
-            and "printdisabled" not in collections \
-            and "inlibrary" not in collections \
-            and "lendinglibrary" not in collections:
+        if (
+            metadata.get("noindex") == "true"
+            and "printdisabled" not in collections
+            and "inlibrary" not in collections
+            and "lendinglibrary" not in collections
+        ):
             return "noindex-true"
         # Gio - April 2016
         # items with metadata no_ol_import=true will be not imported
@@ -276,6 +286,8 @@ class ItemEdition(dict):
 
 
 _ia_db = None
+
+
 def get_ia_db(configfile=None):
     """Metadata API is slow.
 
@@ -284,6 +296,7 @@ def get_ia_db(configfile=None):
     """
     if configfile:
         from openlibrary.config import load_config
+
         load_config(configfile)
 
     if not config.get("ia_db"):
@@ -299,10 +312,17 @@ def get_ia_db(configfile=None):
     return _ia_db
 
 
-def get_candidate_ocaids(since_days=None, since_date=None,
-                         scanned_within_days=60, repub_states=None,
-                         marcs=True, custom=None, lazy=False,
-                         count=False, db=None):
+def get_candidate_ocaids(
+    since_days=None,
+    since_date=None,
+    scanned_within_days=60,
+    repub_states=None,
+    marcs=True,
+    custom=None,
+    lazy=False,
+    count=False,
+    db=None,
+):
     """Returns a list of identifiers which match the specified criteria
     and are candidates for ImportBot.
 
@@ -340,22 +360,25 @@ def get_candidate_ocaids(since_days=None, since_date=None,
     qvars = {
         'c1': '%opensource%',
         'c2': '%additional_collections%',
-        'c3': '%booksgrouptest%'
+        'c3': '%booksgrouptest%',
     }
 
     _valid_repub_states_sql = "(%s)" % (', '.join(str(i) for i in repub_states))
     q = (
-        "SELECT " + ("count(identifier)" if count else "identifier") + " FROM metadata" +
-        " WHERE repub_state IN " + _valid_repub_states_sql +
-        "   AND mediatype='texts'" +
-        "   AND (noindex IS NULL OR collection LIKE $c3)" +
-        "   AND scancenter IS NOT NULL" +
-        "   AND scanner IS NOT NULL" +
-        "   AND collection NOT LIKE $c1" +
-        "   AND collection NOT LIKE $c2" +
-        "   AND (curatestate IS NULL OR curatestate NOT IN ('freeze', 'dark'))" +
-        "   AND scandate is NOT NULL" +
-        "   AND lower(format) LIKE '%%pdf%%'"
+        "SELECT "
+        + ("count(identifier)" if count else "identifier")
+        + " FROM metadata"
+        + " WHERE repub_state IN "
+        + _valid_repub_states_sql
+        + "   AND mediatype='texts'"
+        + "   AND (noindex IS NULL OR collection LIKE $c3)"
+        + "   AND scancenter IS NOT NULL"
+        + "   AND scanner IS NOT NULL"
+        + "   AND collection NOT LIKE $c1"
+        + "   AND collection NOT LIKE $c2"
+        + "   AND (curatestate IS NULL OR curatestate NOT IN ('freeze', 'dark'))"
+        + "   AND scandate is NOT NULL"
+        + "   AND lower(format) LIKE '%%pdf%%'"
     )
 
     if custom:

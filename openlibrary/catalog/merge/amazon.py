@@ -40,10 +40,13 @@ def build_amazon(edition, authors):
 
 
 def build_titles(title):
-    warnings.warn('Deprecated, use openlibrary.catalog.merge.merge_marc.build_titles() instead.', DeprecationWarning)
+    warnings.warn(
+        'Deprecated, use openlibrary.catalog.merge.merge_marc.build_titles() instead.',
+        DeprecationWarning,
+    )
 
     normalized_title = normalize(title).lower()
-    titles = [ title, normalized_title ];
+    titles = [title, normalized_title]
     if title.find(' & ') != -1:
         t = title.replace(" & ", " and ")
         titles.append(t)
@@ -66,14 +69,16 @@ def build_titles(title):
         titles += t2
 
     return {
-        'full_title':       title,
+        'full_title': title,
         'normalized_title': normalized_title,
-        'titles':           titles,
-        'short_title':      normalized_title[:25],
+        'titles': titles,
+        'short_title': normalized_title[:25],
     }
 
+
 def within(a, b, distance):
-    return abs(a-b) <= distance
+    return abs(a - b) <= distance
+
 
 def compare_date(e1, e2):
     if 'publish_date' not in e1 or 'publish_date' not in e2:
@@ -92,8 +97,12 @@ def compare_date(e1, e2):
     except ValueError as TypeError:
         return ('publish_date', 'mismatch', -250)
 
+
 def compare_isbn10(e1, e2):
-    warnings.warn('Deprecated, use openlibrary.catalog.merge.merge_marc.compare_isbn10() instead.', DeprecationWarning)
+    warnings.warn(
+        'Deprecated, use openlibrary.catalog.merge.merge_marc.compare_isbn10() instead.',
+        DeprecationWarning,
+    )
 
     if len(e1['isbn']) == 0 or len(e2['isbn']) == 0:
         return ('isbn', 'missing', 0)
@@ -103,8 +112,12 @@ def compare_isbn10(e1, e2):
                 return ('isbn', 'match', isbn_match)
     return ('ISBN', 'mismatch', -225)
 
+
 def level1_merge(e1, e2):
-    warnings.warn('Deprecated, use openlibrary.catalog.merge.merge_marc.level1_merge() instead.', DeprecationWarning)
+    warnings.warn(
+        'Deprecated, use openlibrary.catalog.merge.merge_marc.level1_merge() instead.',
+        DeprecationWarning,
+    )
 
     score = []
     if e1['short_title'] == e2['short_title']:
@@ -116,8 +129,12 @@ def level1_merge(e1, e2):
     score.append(compare_isbn10(e1, e2))
     return score
 
+
 def compare_authors(amazon, marc):
-    warnings.warn('Deprecated, use openlibrary.catalog.merge.merge_marc.compare_authors() instead.', DeprecationWarning)
+    warnings.warn(
+        'Deprecated, use openlibrary.catalog.merge.merge_marc.compare_authors() instead.',
+        DeprecationWarning,
+    )
 
     if len(amazon['authors']) == 0 and 'authors' not in marc:
         return ('authors', 'no authors', 75)
@@ -146,11 +163,14 @@ def compare_authors(amazon, marc):
     else:
         return ('authors', 'mismatch', -200)
 
+
 def title_replace_amp(amazon):
     return normalize(amazon['full-title'].replace(" & ", " and ")).lower()
 
+
 def substr_match(a, b):
     return a.find(b) != -1 or b.find(a) != -1
+
 
 def keyword_match(in1, in2):
     s1, s2 = [i.split() for i in (in1, in2)]
@@ -162,10 +182,12 @@ def keyword_match(in1, in2):
     ordered = [x for x in s1 if x in match] == [x for x in s2 if x in match]
     return float(len(match)) / max(len(s1), len(s2)), ordered
 
+
 def strip_and_compare(t1, t2):
     t1 = re_and_of_space.sub('', t1).lower()
     t2 = re_and_of_space.sub('', t2).lower()
     return t1 == t2
+
 
 def compare_title(amazon, marc):
     amazon_title = amazon['normalized_title'].lower()
@@ -203,6 +225,7 @@ def compare_title(amazon, marc):
     else:
         return ('full_title', 'mismatch', -600)
 
+
 def compare_number_of_pages(amazon, marc):
     if 'number_of_pages' not in amazon or 'number_of_pages' not in marc:
         return
@@ -221,6 +244,7 @@ def compare_number_of_pages(amazon, marc):
     else:
         return ('number_of_pages', 'non-match (by more than 10)', -225)
 
+
 def short_part_publisher_match(p1, p2):
     pub1 = p1.split()
     pub2 = p2.split()
@@ -231,7 +255,9 @@ def short_part_publisher_match(p1, p2):
             return False
     return True
 
+
 re_press = re.compile(' press$')
+
 
 def compare_publisher(amazon, marc):
     if 'publishers' not in amazon or 'publishers' not in marc:
@@ -244,8 +270,8 @@ def compare_publisher(amazon, marc):
             norm_marc = normalize(marc_pub)
             if norm_amazon == norm_marc:
                 return ('publishers', 'match', 100)
-#            if re_press.sub('', norm_amazon) == re_press.sub('', norm_marc):
-#                return ('publishers', 'match', 100)
+            #            if re_press.sub('', norm_amazon) == re_press.sub('', norm_marc):
+            #                return ('publishers', 'match', 100)
             if substr_match(norm_amazon, norm_marc):
                 return ('publishers', 'occur within the other', 100)
             if substr_match(norm_amazon.replace(' ', ''), norm_marc.replace(' ', '')):
@@ -254,8 +280,12 @@ def compare_publisher(amazon, marc):
                 return ('publishers', 'match', 100)
     return ('publishers', 'mismatch', -25)
 
+
 def level2_merge(amazon, marc):
-    warnings.warn('Deprecated, use openlibrary.catalog.merge.merge_marc.level2_merge() instead.', DeprecationWarning)
+    warnings.warn(
+        'Deprecated, use openlibrary.catalog.merge.merge_marc.level2_merge() instead.',
+        DeprecationWarning,
+    )
     score = []
     score.append(compare_date(amazon, marc))
     score.append(compare_isbn10(amazon, marc))
@@ -269,6 +299,7 @@ def level2_merge(amazon, marc):
 
     return score
 
+
 def full_title(edition):
     title = edition['title']
     if 'subtitle' in edition:
@@ -276,8 +307,11 @@ def full_title(edition):
     return title
 
 
-def attempt_merge(amazon, marc, threshold, debug = False):
-    warnings.warn('Deprecated, use openlibrary.catalog.merge.merge_marc.attempt_merge() instead.', DeprecationWarning)
+def attempt_merge(amazon, marc, threshold, debug=False):
+    warnings.warn(
+        'Deprecated, use openlibrary.catalog.merge.merge_marc.attempt_merge() instead.',
+        DeprecationWarning,
+    )
     l1 = level1_merge(amazon, marc)
     total = sum(i[2] for i in l1)
     if debug:

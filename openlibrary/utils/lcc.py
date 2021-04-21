@@ -88,7 +88,8 @@ import re
 
 from openlibrary.utils.ddc import collapse_multiple_space
 
-LCC_PARTS_RE = re.compile(r'''
+LCC_PARTS_RE = re.compile(
+    r'''
     ^
     # trailing dash only valid in "sortable" LCCs
     # Include W, even though technically part of NLM system
@@ -98,7 +99,9 @@ LCC_PARTS_RE = re.compile(r'''
     (?P<cutter1>[\s.][^\d\s\[]{1,3}\d*\S*)?
     (?P<rest>\s.*)?
     $
-''', re.IGNORECASE | re.X)
+''',
+    re.IGNORECASE | re.X,
+)
 
 
 def short_lcc_to_sortable_lcc(lcc):
@@ -143,8 +146,9 @@ def clean_raw_lcc(raw_lcc):
     :rtype: basestring
     """
     lcc = collapse_multiple_space(raw_lcc.replace('\\', ' ').strip(' '))
-    if ((lcc.startswith('[') and lcc.endswith(']')) or
-            (lcc.startswith('(') and lcc.endswith(')'))):
+    if (lcc.startswith('[') and lcc.endswith(']')) or (
+        lcc.startswith('(') and lcc.endswith(')')
+    ):
         lcc = lcc[1:-1]
     return lcc
 
@@ -180,6 +184,5 @@ def normalize_lcc_range(start, end):
     :rtype: [str, str]
     """
     return [
-        lcc if lcc == '*' else short_lcc_to_sortable_lcc(lcc)
-        for lcc in (start, end)
+        lcc if lcc == '*' else short_lcc_to_sortable_lcc(lcc) for lcc in (start, end)
     ]

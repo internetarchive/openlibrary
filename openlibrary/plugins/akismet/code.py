@@ -8,6 +8,7 @@ import socket
 timeout = socket.getdefaulttimeout()
 
 from openlibrary.plugins.akismet import Akismet
+
 socket.setdefaulttimeout(timeout)
 import web
 
@@ -28,6 +29,7 @@ if baseurl:
     Akismet.antispam_baseurl = baseurl
 
 api = Akismet(key=api_key, blog_url=blog_url, agent='OpenLibrary')
+
 
 class hooks(client.hook):
     def before_register(self, d):

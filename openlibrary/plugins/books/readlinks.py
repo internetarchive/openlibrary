@@ -30,6 +30,7 @@ def ol_query(name, value):
     if keys:
         return keys[0]
 
+
 def get_solr_select_url():
     c = config.get("plugin_worksearch")
     base_url = c and c.get('solr_base_url')
@@ -37,12 +38,16 @@ def get_solr_select_url():
 
 
 def get_work_iaids(wkey):
-    #wid = wkey.split('/')[2]
+    # wid = wkey.split('/')[2]
     solr_select_url = get_solr_select_url()
     filter = 'ia'
     q = 'key:' + wkey
     stats.begin('solr', url=wkey)
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json&fq=type:work" % (q, filter)
+    solr_select = (
+        solr_select_url
+        + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json&fq=type:work"
+        % (q, filter)
+    )
     reply = requests.get(solr_select).json()
     stats.end()
     print(reply)
@@ -56,7 +61,11 @@ def get_works_iaids(wkeys):
     solr_select_url = get_solr_select_url()
     filter = 'ia'
     q = '+OR+'.join(['key:' + wkey for wkey in wkeys])
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json&fq=type:work" % (q, filter)
+    solr_select = (
+        solr_select_url
+        + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json&fq=type:work"
+        % (q, filter)
+    )
     reply = requests.get(solr_select).json()
     if reply['response']['numFound'] == 0:
         return []
@@ -64,12 +73,16 @@ def get_works_iaids(wkeys):
 
 
 def get_eids_for_wids(wids):
-    """ To support testing by passing in a list of work-ids - map each to
-    it's first edition ID """
+    """To support testing by passing in a list of work-ids - map each to
+    it's first edition ID"""
     solr_select_url = get_solr_select_url()
     filter = 'edition_key'
     q = '+OR+'.join(wids)
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json&fq=type:work" % (q, filter)
+    solr_select = (
+        solr_select_url
+        + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json&fq=type:work"
+        % (q, filter)
+    )
     reply = requests.get(solr_select).json()
     if reply['response']['numFound'] == 0:
         return []
@@ -77,12 +90,17 @@ def get_eids_for_wids(wids):
     result = dict((r['key'], r[filter][0]) for r in rows if len(r.get(filter, [])))
     return result
 
+
 # Not yet used.  Solr editions aren't up-to-date (6/2011)
 def get_solr_edition_records(iaids):
     solr_select_url = get_solr_select_url()
     filter = 'title'
     q = '+OR+'.join('ia:' + id for id in iaids)
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json" % (q, filter)
+    solr_select = (
+        solr_select_url
+        + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json"
+        % (q, filter)
+    )
     reply = requests.get(solr_select).json()
     if reply['response']['numFound'] == 0:
         return []
@@ -105,7 +123,7 @@ class ReadProcessor:
         elif 'inlibrary' in collections:
             if 'In library' not in subjects:
                 status = 'restricted'
-            elif True: # not self.get_inlibrary(): - Deprecated
+            elif True:  # not self.get_inlibrary(): - Deprecated
                 status = 'restricted'
                 if self.options.get('debug_items'):
                     status = 'restricted - not inlib'
@@ -119,7 +137,7 @@ class ReadProcessor:
             status = 'full access'
 
         if status == 'lendable':
-            loanstatus =  web.ctx.site.store.get('ebooks/' + iaid, {'borrowed': 'false'})
+            loanstatus = web.ctx.site.store.get('ebooks/' + iaid, {'borrowed': 'false'})
             if loanstatus['borrowed'] == 'true':
                 status = 'checked out'
 
@@ -135,7 +153,9 @@ class ReadProcessor:
         if status == 'missing':
             return None
 
-        if (status.startswith('restricted') or status == 'checked out') and not self.options.get('show_all_items'):
+        if (
+            status.startswith('restricted') or status == 'checked out'
+        ) and not self.options.get('show_all_items'):
             return None
 
         edition = self.iaid_to_ed.get(iaid)
@@ -145,9 +165,10 @@ class ReadProcessor:
             itemURL = 'http://www.archive.org/stream/%s' % (iaid)
         else:
             # this could be rewrit in terms of iaid...
-            itemURL = u'http://openlibrary.org%s/%s/borrow' % (ekey,
-                                                               helpers.urlsafe(edition.get('title',
-                                                                                           'untitled')))
+            itemURL = u'http://openlibrary.org%s/%s/borrow' % (
+                ekey,
+                helpers.urlsafe(edition.get('title', 'untitled')),
+            )
         result = {
             # XXX add lastUpdate
             'enumcron': False,
@@ -159,7 +180,7 @@ class ReadProcessor:
             'publishDate': publish_date,
             'contributor': '',
             'itemURL': itemURL,
-            }
+        }
 
         if edition.get('covers'):
             cover_id = edition['covers'][0]
@@ -169,7 +190,7 @@ class ReadProcessor:
                 "small": "https://covers.openlibrary.org/b/id/%s-S.jpg" % cover_id,
                 "medium": "https://covers.openlibrary.org/b/id/%s-M.jpg" % cover_id,
                 "large": "https://covers.openlibrary.org/b/id/%s-L.jpg" % cover_id,
-                }
+            }
 
         return result
 
@@ -208,7 +229,7 @@ class ReadProcessor:
                 iaids.insert(0, orig_iaid)
         elif orig_iaid:
             # attempt to handle work-less editions
-            iaids = [ orig_iaid ]
+            iaids = [orig_iaid]
         else:
             iaids = []
         orig_ekey = data['key']
@@ -238,8 +259,9 @@ class ReadProcessor:
                     return m.group(1)
             return ''
 
-        iaids_tosort = [(iaid, getstatus(self, iaid), getdate(self, iaid))
-                        for iaid in iaids]
+        iaids_tosort = [
+            (iaid, getstatus(self, iaid), getdate(self, iaid)) for iaid in iaids
+        ]
 
         def sortfn(sortitem):
             iaid, status, date = sortitem
@@ -254,18 +276,22 @@ class ReadProcessor:
             # reverse-sort modern works by date
             if status == 'lendable' or status == 'checked out':
                 date = 10000 - date
-            statusvals = { 'full access': 1,
-                           'lendable': 2,
-                           'checked out': 3,
-                           'restricted': 4,
-                           'restricted - not inlib': 4,
-                           'missing': 5 }
+            statusvals = {
+                'full access': 1,
+                'lendable': 2,
+                'checked out': 3,
+                'restricted': 4,
+                'restricted - not inlib': 4,
+                'missing': 5,
+            }
             return (isexact, statusvals[status], date)
 
         iaids_tosort.sort(key=sortfn)
 
-        items = [self.get_readitem(iaid, orig_iaid, orig_ekey, wkey, status, date)
-                 for iaid, status, date in iaids_tosort] # if status != 'missing'
+        items = [
+            self.get_readitem(iaid, orig_iaid, orig_ekey, wkey, status, date)
+            for iaid, status, date in iaids_tosort
+        ]  # if status != 'missing'
         items = [item for item in items if item]
 
         ids = data.get('identifiers', {})
@@ -273,24 +299,26 @@ class ReadProcessor:
             returned_data = None
         else:
             returned_data = data
-        result = {'records':
-            { data['key']:
-                  { 'isbns': sum((ids.get('isbn_10', []), ids.get('isbn_13', [])), []),
+        result = {
+            'records': {
+                data['key']: {
+                    'isbns': sum((ids.get('isbn_10', []), ids.get('isbn_13', [])), []),
                     'issns': [],
                     'lccns': ids.get('lccn', []),
                     'oclcs': ids.get('oclc', []),
-                    'olids': [ key_to_olid(data['key']) ],
-                    'publishDates': [ data.get('publish_date', '') ],
+                    'olids': [key_to_olid(data['key'])],
+                    'publishDates': [data.get('publish_date', '')],
                     'recordURL': data['url'],
                     'data': returned_data,
                     'details': details,
-                    } },
-            'items': items }
+                }
+            },
+            'items': items,
+        }
 
         if self.options.get('debug_items'):
             result['tosort'] = iaids_tosort
         return result
-
 
     def process(self, req):
         requests = req.split('|')
@@ -312,8 +340,9 @@ class ReadProcessor:
         # in no 'exact' item match, even if one exists
         # Note that it's available thru above works/docs
         iaid_limit = 500
-        self.wkey_to_iaids = dict((wkey, get_work_iaids(wkey)[:iaid_limit])
-                                  for wkey in self.works)
+        self.wkey_to_iaids = dict(
+            (wkey, get_work_iaids(wkey)[:iaid_limit]) for wkey in self.works
+        )
         iaids = sum(self.wkey_to_iaids.values(), [])
         self.iaid_to_meta = dict((iaid, ia.get_metadata(iaid)) for iaid in iaids)
 
@@ -378,9 +407,9 @@ def readlinks(req, options):
                 'show_exception': True,
                 'no_data': True,
                 'no_details': True,
-                'show_all_items': True
+                'show_all_items': True,
             }
-            req = req[len(dbstr):]
+            req = req[len(dbstr) :]
         rp = ReadProcessor(options)
 
         if options.get('listofworks'):

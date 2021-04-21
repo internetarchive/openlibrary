@@ -30,7 +30,9 @@ class borrow(delegate.page):
 
     @jsonapi
     def GET(self):
-        i = web.input(offset=0, limit=12, rand=-1, details="false", has_fulltext="false")
+        i = web.input(
+            offset=0, limit=12, rand=-1, details="false", has_fulltext="false"
+        )
 
         filters = {}
         if i.get("has_fulltext") == "true":
@@ -40,7 +42,10 @@ class borrow(delegate.page):
             if "-" in i.published_in:
                 begin, end = i.published_in.split("-", 1)
 
-                if h.safeint(begin, None) is not None and h.safeint(end, None) is not None:
+                if (
+                    h.safeint(begin, None) is not None
+                    and h.safeint(end, None) is not None
+                ):
                     filters["publish_year"] = [begin, end]
             else:
                 y = h.safeint(i.published_in, None)
@@ -56,13 +61,16 @@ class borrow(delegate.page):
             sort = 'random_%d desc' % i.rand
             filters['sort'] = sort
 
-        subject = get_lending_library(web.ctx.site,
-                                      offset=i.offset,
-                                      limit=i.limit,
-                                      details=i.details.lower() == "true",
-                                      inlibrary=False,
-                                      **filters)
+        subject = get_lending_library(
+            web.ctx.site,
+            offset=i.offset,
+            limit=i.limit,
+            details=i.details.lower() == "true",
+            inlibrary=False,
+            **filters
+        )
         return json.dumps(subject)
+
 
 class read(delegate.page):
     path = "/read"
@@ -70,13 +78,16 @@ class read(delegate.page):
     def GET(self):
         web.seeother('/subjects/accessible_book#ebooks=true')
 
+
 class read(delegate.page):
     path = "/read"
     encoding = "json"
 
     @jsonapi
     def GET(self):
-        i = web.input(offset=0, limit=12, rand=-1, details="false", has_fulltext="false")
+        i = web.input(
+            offset=0, limit=12, rand=-1, details="false", has_fulltext="false"
+        )
 
         filters = {}
         if i.get("has_fulltext") == "true":
@@ -86,7 +97,10 @@ class read(delegate.page):
             if "-" in i.published_in:
                 begin, end = i.published_in.split("-", 1)
 
-                if h.safeint(begin, None) is not None and h.safeint(end, None) is not None:
+                if (
+                    h.safeint(begin, None) is not None
+                    and h.safeint(end, None) is not None
+                ):
                     filters["publish_year"] = [begin, end]
             else:
                 y = h.safeint(i.published_in, None)
@@ -102,12 +116,15 @@ class read(delegate.page):
             sort = 'random_%d desc' % i.rand
             filters['sort'] = sort
 
-        subject = get_readable_books(web.ctx.site,
+        subject = get_readable_books(
+            web.ctx.site,
             offset=i.offset,
             limit=i.limit,
             details=i.details.lower() == "true",
-            **filters)
+            **filters
+        )
         return json.dumps(subject)
+
 
 class borrow_about(delegate.page):
     path = "/borrow/about"
@@ -115,10 +132,12 @@ class borrow_about(delegate.page):
     def GET(self):
         raise web.notfound()
 
+
 def convert_works_to_editions(site, works):
-    """Takes work docs got from solr and converts them into appropriate editions required for lending library.
-    """
-    ekeys = ['/books/' + w['lending_edition'] for w in works if w.get('lending_edition')]
+    """Takes work docs got from solr and converts them into appropriate editions required for lending library."""
+    ekeys = [
+        '/books/' + w['lending_edition'] for w in works if w.get('lending_edition')
+    ]
     editions = {}
     for e in site.get_many(ekeys):
         editions[e['key']] = e.dict()
@@ -134,23 +153,30 @@ def convert_works_to_editions(site, works):
                 w['ia'] = e['ocaid']
                 w['title'] = e.get('title') or w['title']
 
+
 def get_lending_library(site, inlibrary=False, **kw):
     kw.setdefault("sort", "first_publish_year desc")
 
     if inlibrary:
-        subject = CustomSubjectEngine().get_subject("/subjects/lending_library", in_library=True, **kw)
+        subject = CustomSubjectEngine().get_subject(
+            "/subjects/lending_library", in_library=True, **kw
+        )
     else:
-        subject = CustomSubjectEngine().get_subject("/subjects/lending_library", in_library=False, **kw)
+        subject = CustomSubjectEngine().get_subject(
+            "/subjects/lending_library", in_library=False, **kw
+        )
 
     subject['key'] = '/borrow'
     convert_works_to_editions(site, subject['works'])
     return subject
+
 
 def get_readable_books(site, **kw):
     kw.setdefault("sort", "first_publish_year desc")
     subject = ReadableBooksEngine().get_subject("/subjects/dummy", **kw)
     subject['key'] = '/read'
     return subject
+
 
 class ReadableBooksEngine(SubjectEngine):
     """SubjectEngine for readable books.
@@ -164,9 +190,7 @@ class ReadableBooksEngine(SubjectEngine):
     """
 
     def make_query(self, key, filters):
-        return {
-            "public_scan_b": "true"
-        }
+        return {"public_scan_b": "true"}
 
     def get_ebook_count(self, name, value, publish_year):
         # we are not displaying ebook count.
@@ -176,6 +200,7 @@ class ReadableBooksEngine(SubjectEngine):
 
 class CustomSubjectEngine(SubjectEngine):
     """SubjectEngine for inlibrary and lending_library combined."""
+
     def make_query(self, key, filters):
         meta = self.get_meta(key)
 
@@ -183,9 +208,8 @@ class CustomSubjectEngine(SubjectEngine):
             meta.facet_key: ["lending_library"],
             'public_scan_b': "false",
             'NOT borrowed_b': "true",
-
             # show only books in last 20 or so years
-            'publish_year': (str(1990), str(datetime.date.today().year)) # range
+            'publish_year': (str(1990), str(datetime.date.today().year)),  # range
         }
 
         if filters:
@@ -205,8 +229,7 @@ class CustomSubjectEngine(SubjectEngine):
 
 
 def on_loan_created_statsdb(loan):
-    """Adds the loan info to the stats database.
-    """
+    """Adds the loan info to the stats database."""
     key = _get_loan_key(loan)
     t_start = datetime.datetime.utcfromtimestamp(loan['loaned_at'])
     d = {
@@ -214,7 +237,7 @@ def on_loan_created_statsdb(loan):
         "identifier": loan['ocaid'],
         "resource_type": loan['resource_type'],
         "t_start": t_start.isoformat(),
-        "status": "active"
+        "status": "active",
     }
     d['library'] = "/libraries/internet_archive"
     d['geoip_country'] = None  # we removed geoip
@@ -222,8 +245,7 @@ def on_loan_created_statsdb(loan):
 
 
 def on_loan_completed_statsdb(loan):
-    """Marks the loan as completed in the stats database.
-    """
+    """Marks the loan as completed in the stats database."""
     key = _get_loan_key(loan)
     t_start = datetime.datetime.utcfromtimestamp(loan['loaned_at'])
     t_end = datetime.datetime.utcfromtimestamp(loan['returned_at'])
@@ -252,5 +274,6 @@ def _get_loan_key(loan):
 
 def setup():
     from openlibrary.core import msgbroker
+
     msgbroker.subscribe("loan-created", on_loan_created_statsdb)
     msgbroker.subscribe("loan-completed", on_loan_completed_statsdb)

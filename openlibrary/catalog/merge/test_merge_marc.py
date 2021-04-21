@@ -1,62 +1,80 @@
 import pytest
 from openlibrary.catalog.merge.merge_marc import (
-    build_marc, build_titles,
-    compare_authors, compare_publisher,
-    editions_match)
+    build_marc,
+    build_titles,
+    compare_authors,
+    compare_publisher,
+    editions_match,
+)
 
 
 class TestAuthors:
-    @pytest.mark.xfail(reason=(
-        'This expected result taken from the amazon and '
-        'merge versions of compare_author, '
-        'Current merge_marc.compare_authors() '
-        'does NOT take by_statement into account.'))
+    @pytest.mark.xfail(
+        reason=(
+            'This expected result taken from the amazon and '
+            'merge versions of compare_author, '
+            'Current merge_marc.compare_authors() '
+            'does NOT take by_statement into account.'
+        )
+    )
     def test_compare_authors_by_statement(self):
         # requires db_name to be present on both records.
         rec1 = {
             'full_title': 'Full Title, required',
-            'authors': [{
-                'name': 'Alistair Smith',
-                'db_name': 'Alistair Smith'}]}
+            'authors': [{'name': 'Alistair Smith', 'db_name': 'Alistair Smith'}],
+        }
         rec2 = {
             'full_title': 'A different Full Title, only matching authors here.',
-            'authors': [{
-                'db_name': 'National Gallery (Great Britain)',
-                'name': 'National Gallery (Great Britain)',
-                'entity_type': 'org'}],
-            'by_statement': 'Alistair Smith.'}
+            'authors': [
+                {
+                    'db_name': 'National Gallery (Great Britain)',
+                    'name': 'National Gallery (Great Britain)',
+                    'entity_type': 'org',
+                }
+            ],
+            'by_statement': 'Alistair Smith.',
+        }
 
         result = compare_authors(build_marc(rec1), build_marc(rec2))
         assert result == ('main', 'exact match', 125)
 
     def test_author_contrib(self):
         rec1 = {
-            'authors': [
-                {'db_name': 'Bruner, Jerome S.',
-                 'name': 'Bruner, Jerome S.'}],
-            'full_title': ('Contemporary approaches to cognition '
-                           'a symposium held at the University of Colorado.'),
+            'authors': [{'db_name': 'Bruner, Jerome S.', 'name': 'Bruner, Jerome S.'}],
+            'full_title': (
+                'Contemporary approaches to cognition '
+                'a symposium held at the University of Colorado.'
+            ),
             'number_of_pages': 210,
             'publish_country': 'xxu',
             'publish_date': '1957',
-            'publishers': ['Harvard U.P']}
+            'publishers': ['Harvard U.P'],
+        }
 
         rec2 = {
             'authors': [
-                {'db_name': ('University of Colorado (Boulder campus). '
-                             'Dept. of Psychology.'),
-                 'name': ('University of Colorado (Boulder campus). '
-                          'Dept. of Psychology.')}],
-            'contribs': [
-                {'db_name': 'Bruner, Jerome S.',
-                 'name': 'Bruner, Jerome S.'}],
-            'full_title': ('Contemporary approaches to cognition '
-                           'a symposium held at the University of Colorado'),
+                {
+                    'db_name': (
+                        'University of Colorado (Boulder campus). '
+                        'Dept. of Psychology.'
+                    ),
+                    'name': (
+                        'University of Colorado (Boulder campus). '
+                        'Dept. of Psychology.'
+                    ),
+                }
+            ],
+            'contribs': [{'db_name': 'Bruner, Jerome S.', 'name': 'Bruner, Jerome S.'}],
+            'full_title': (
+                'Contemporary approaches to cognition '
+                'a symposium held at the University of Colorado'
+            ),
             'lccn': ['57012963'],
             'number_of_pages': 210,
             'publish_country': 'mau',
             'publish_date': '1957',
-            'publishers': ['Harvard University Press']}
+            'publishers': ['Harvard University Press'],
+        }
 
         e1 = build_marc(rec1)
         e2 = build_marc(rec2)
@@ -114,10 +132,10 @@ def test_build_marc():
     # used in openlibrary.catalog.add_book.load()
     # when trying to find an existing edition match
     edition = {
-            'title': 'A test title (parens)',
-            'full_title': 'A test full title : subtitle (parens).',  # required, and set by add_book.load()
-            'source_records': ['ia:test-source']
-            }
+        'title': 'A test title (parens)',
+        'full_title': 'A test full title : subtitle (parens).',  # required, and set by add_book.load()
+        'source_records': ['ia:test-source'],
+    }
     result = build_marc(edition)
     assert isinstance(result['titles'], list)
     assert result['isbn'] == []
@@ -145,11 +163,14 @@ class TestRecordMatching:
         # one with ISBN, one without
         bpl = {
             'authors': [
-                {'birth_date': '1897',
-                 'db_name': 'Green, Constance McLaughlin 1897-',
-                 'entity_type': 'person',
-                 'name': 'Green, Constance McLaughlin',
-                 'personal_name': 'Green, Constance McLaughlin'}],
+                {
+                    'birth_date': '1897',
+                    'db_name': 'Green, Constance McLaughlin 1897-',
+                    'entity_type': 'person',
+                    'name': 'Green, Constance McLaughlin',
+                    'personal_name': 'Green, Constance McLaughlin',
+                }
+            ],
             'full_title': 'Eli Whitney and the birth of American technology',
             'isbn': ['188674632X'],
             'normalized_title': 'eli whitney and the birth of american technology',
@@ -160,14 +181,19 @@ class TestRecordMatching:
             'source_record_loc': 'bpl101.mrc:0:1226',
             'titles': [
                 'Eli Whitney and the birth of American technology',
-                'eli whitney and the birth of american technology']}
+                'eli whitney and the birth of american technology',
+            ],
+        }
         lc = {
             'authors': [
-                {'birth_date': '1897',
-                 'db_name': 'Green, Constance McLaughlin 1897-',
-                 'entity_type': 'person',
-                 'name': 'Green, Constance McLaughlin',
-                 'personal_name': 'Green, Constance McLaughlin'}],
+                {
+                    'birth_date': '1897',
+                    'db_name': 'Green, Constance McLaughlin 1897-',
+                    'entity_type': 'person',
+                    'name': 'Green, Constance McLaughlin',
+                    'personal_name': 'Green, Constance McLaughlin',
+                }
+            ],
             'full_title': 'Eli Whitney and the birth of American technology.',
             'isbn': [],
             'normalized_title': 'eli whitney and the birth of american technology',
@@ -178,7 +204,9 @@ class TestRecordMatching:
             'source_record_loc': 'marc_records_scriblio_net/part04.dat:119539872:591',
             'titles': [
                 'Eli Whitney and the birth of American technology.',
-                'eli whitney and the birth of american technology']}
+                'eli whitney and the birth of american technology',
+            ],
+        }
 
         assert compare_authors(bpl, lc) == ('authors', 'exact match', 125)
         threshold = 875
@@ -187,37 +215,43 @@ class TestRecordMatching:
     def test_match_low_threshold(self):
         # year is off by < 2 years, counts a little
         # build_marc() will place all isbn_ types in the 'isbn' field.
-        e1 = build_marc({
-            'publishers': ['Collins'],
-            'isbn_10': ['0002167530'],
-            'number_of_pages': 287,
-            'short_title': 'sea birds britain ireland',
-            'normalized_title': u'sea birds britain ireland',
-            'full_title': 'Sea Birds Britain Ireland',
-            'titles': [
-                'Sea Birds Britain Ireland',
-                'sea birds britain ireland'],
-            'publish_date': '1975',
-            'authors': [
-                {'name': 'Stanley Cramp',
-                 'db_name': 'Cramp, Stanley'}]})
+        e1 = build_marc(
+            {
+                'publishers': ['Collins'],
+                'isbn_10': ['0002167530'],
+                'number_of_pages': 287,
+                'short_title': 'sea birds britain ireland',
+                'normalized_title': u'sea birds britain ireland',
+                'full_title': 'Sea Birds Britain Ireland',
+                'titles': ['Sea Birds Britain Ireland', 'sea birds britain ireland'],
+                'publish_date': '1975',
+                'authors': [{'name': 'Stanley Cramp', 'db_name': 'Cramp, Stanley'}],
+            }
+        )
 
-        e2 = build_marc({
-            'publishers': ['Collins'],
-            'isbn_10': ['0002167530'],
-            'short_title': 'seabirds of britain and i',
-            'normalized_title': 'seabirds of britain and ireland',
-            'full_title': 'seabirds of Britain and Ireland',
-            'titles': [
-                'seabirds of Britain and Ireland',
-                'seabirds of britain and ireland'],
-            'publish_date': '1974',
-            'authors': [
-                {'db_name': 'Cramp, Stanley.',
-                 'entity_type': 'person',
-                 'name': u'Cramp, Stanley.',
-                 'personal_name': u'Cramp, Stanley.'}],
-            'source_record_loc': 'marc_records_scriblio_net/part08.dat:61449973:855'})
+        e2 = build_marc(
+            {
+                'publishers': ['Collins'],
+                'isbn_10': ['0002167530'],
+                'short_title': 'seabirds of britain and i',
+                'normalized_title': 'seabirds of britain and ireland',
+                'full_title': 'seabirds of Britain and Ireland',
+                'titles': [
+                    'seabirds of Britain and Ireland',
+                    'seabirds of britain and ireland',
+                ],
+                'publish_date': '1974',
+                'authors': [
+                    {
+                        'db_name': 'Cramp, Stanley.',
+                        'entity_type': 'person',
+                        'name': u'Cramp, Stanley.',
+                        'personal_name': u'Cramp, Stanley.',
+                    }
+                ],
+                'source_record_loc': 'marc_records_scriblio_net/part08.dat:61449973:855',
+            }
+        )
         threshold = 515
         assert editions_match(e1, e2, threshold, debug=True)
         assert editions_match(e1, e2, threshold + 1) is False

@@ -58,7 +58,7 @@ __all__ = (
     'Akismet',
     'AkismetError',
     'APIKeyError',
-    )
+)
 
 __author__ = 'Michael Foord <fuzzyman AT voidspace DOT org DOT uk>'
 
@@ -67,11 +67,14 @@ __docformat__ = "restructuredtext en"
 user_agent = "%s | akismet.py/%s"
 DEFAULTAGENT = 'Python Interface by Fuzzyman/%s'
 
+
 class AkismetError(Exception):
     """Base class for all akismet exceptions."""
 
+
 class APIKeyError(AkismetError):
     """Invalid API key."""
+
 
 class Akismet(object):
     """A class for working with the akismet API"""
@@ -85,7 +88,6 @@ class Akismet(object):
         self.user_agent = user_agent % (agent, __version__)
         self.setAPIKey(key, blog_url)
 
-
     def _getURL(self):
         """
         Fetch the url to make requests to.
@@ -93,7 +95,6 @@ class Akismet(object):
         This comprises of api key plus the baseurl.
         """
         return 'http://%s.%s' % (self.key, self.baseurl)
-
 
     def _safeRequest(self, url, data, headers):
         print("_safeRequest", url)
@@ -104,7 +105,6 @@ class Akismet(object):
         except (urllib.error.HTTPError, urllib.error.URLError, IOError) as e:
             raise AkismetError(str(e))
         return resp
-
 
     def setAPIKey(self, key=None, blog_url=None):
         """
@@ -118,8 +118,11 @@ class Akismet(object):
         ``Akismet`` instance.
         """
         if key is None and isfile('apikey.txt'):
-            the_file = [l.strip() for l in open('apikey.txt').readlines()
-                if l.strip() and not l.strip().startswith('#')]
+            the_file = [
+                l.strip()
+                for l in open('apikey.txt').readlines()
+                if l.strip() and not l.strip().startswith('#')
+            ]
             try:
                 self.key = the_file[0]
                 self.blog_url = the_file[1]
@@ -128,7 +131,6 @@ class Akismet(object):
         else:
             self.key = key
             self.blog_url = blog_url
-
 
     def verify_key(self):
         """
@@ -147,12 +149,12 @@ class Akismet(object):
         """
         if self.key is None:
             raise APIKeyError("Your have not set an API key.")
-        data = { 'key': self.key, 'blog': self.blog_url }
+        data = {'key': self.key, 'blog': self.blog_url}
         # this function *doesn't* use the key as part of the URL
         url = 'http://%sverify-key' % self.baseurl
         # we *don't* trap the error here
         # so if akismet is down it will raise an HTTPError or URLError
-        headers = {'User-Agent' : self.user_agent}
+        headers = {'User-Agent': self.user_agent}
         resp = self._safeRequest(url, urlencode(data), headers)
         if resp.lower() == 'valid':
             return True
@@ -194,13 +196,10 @@ class Akismet(object):
         data.setdefault('SERVER_ADMIN', os.environ.get('SERVER_ADMIN', ''))
         data.setdefault('SERVER_NAME', os.environ.get('SERVER_NAME', ''))
         data.setdefault('SERVER_PORT', os.environ.get('SERVER_PORT', ''))
-        data.setdefault('SERVER_SIGNATURE', os.environ.get('SERVER_SIGNATURE',
-            ''))
-        data.setdefault('SERVER_SOFTWARE', os.environ.get('SERVER_SOFTWARE',
-            ''))
+        data.setdefault('SERVER_SIGNATURE', os.environ.get('SERVER_SIGNATURE', ''))
+        data.setdefault('SERVER_SOFTWARE', os.environ.get('SERVER_SOFTWARE', ''))
         data.setdefault('HTTP_ACCEPT', os.environ.get('HTTP_ACCEPT', ''))
         data.setdefault('blog', self.blog_url)
-
 
     def comment_check(self, comment, data=None, build_data=True, DEBUG=False):
         """
@@ -282,7 +281,7 @@ class Akismet(object):
         url = '%scomment-check' % self._getURL()
         # we *don't* trap the error here
         # so if akismet is down it will raise an HTTPError or URLError
-        headers = {'User-Agent' : self.user_agent}
+        headers = {'User-Agent': self.user_agent}
         resp = self._safeRequest(url, urlencode(data), headers)
         if DEBUG:
             return resp
@@ -294,7 +293,6 @@ class Akismet(object):
         else:
             # NOTE: Happens when you get a 'howdy wilbur' response !
             raise AkismetError('missing required argument.')
-
 
     def submit_spam(self, comment, data=None, build_data=True):
         """
@@ -313,9 +311,8 @@ class Akismet(object):
         url = '%ssubmit-spam' % self._getURL()
         # we *don't* trap the error here
         # so if akismet is down it will raise an HTTPError or URLError
-        headers = {'User-Agent' : self.user_agent}
+        headers = {'User-Agent': self.user_agent}
         self._safeRequest(url, urlencode(data), headers)
-
 
     def submit_ham(self, comment, data=None, build_data=True):
         """
@@ -334,8 +331,9 @@ class Akismet(object):
         url = '%ssubmit-ham' % self._getURL()
         # we *don't* trap the error here
         # so if akismet is down it will raise an HTTPError or URLError
-        headers = {'User-Agent' : self.user_agent}
+        headers = {'User-Agent': self.user_agent}
         self._safeRequest(url, urlencode(data), headers)
+
 
 """
 

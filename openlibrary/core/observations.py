@@ -24,8 +24,8 @@ OBSERVATIONS = {
             'values': [
                 {'id': 1, 'name': 'slow'},
                 {'id': 2, 'name': 'medium'},
-                {'id': 3, 'name': 'fast'}
-            ]
+                {'id': 3, 'name': 'fast'},
+            ],
         },
         {
             'id': 2,
@@ -39,8 +39,8 @@ OBSERVATIONS = {
                 {'id': 3, 'name': 'boring'},
                 {'id': 4, 'name': 'neither entertaining nor boring'},
                 {'id': 5, 'name': 'entertaining'},
-                {'id': 6, 'name': 'very entertaining'}
-            ]
+                {'id': 6, 'name': 'very entertaining'},
+            ],
         },
         {
             'id': 3,
@@ -53,8 +53,8 @@ OBSERVATIONS = {
                 {'id': 2, 'name': 'very unclearly'},
                 {'id': 3, 'name': 'unclearly'},
                 {'id': 4, 'name': 'clearly'},
-                {'id': 5, 'name': 'very clearly'}
-            ]
+                {'id': 5, 'name': 'very clearly'},
+            ],
         },
         {
             'id': 4,
@@ -67,8 +67,8 @@ OBSERVATIONS = {
                 {'id': 2, 'name': 'not technical'},
                 {'id': 3, 'name': 'somewhat technical'},
                 {'id': 4, 'name': 'technical'},
-                {'id': 5, 'name': 'very technical'}
-            ]
+                {'id': 5, 'name': 'very technical'},
+            ],
         },
         {
             'id': 5,
@@ -81,8 +81,8 @@ OBSERVATIONS = {
                 {'id': 2, 'name': 'very unoriginal'},
                 {'id': 3, 'name': 'somewhat unoriginal'},
                 {'id': 4, 'name': 'somewhat original'},
-                {'id': 5, 'name': 'very original'}
-            ]
+                {'id': 5, 'name': 'very original'},
+            ],
         },
         {
             'id': 6,
@@ -95,8 +95,8 @@ OBSERVATIONS = {
                 {'id': 2, 'name': 'requires domain expertise'},
                 {'id': 3, 'name': 'a lot of prior knowledge needed'},
                 {'id': 4, 'name': 'some prior knowledge needed'},
-                {'id': 5, 'name': 'no prior knowledge needed'}
-            ]
+                {'id': 5, 'name': 'no prior knowledge needed'},
+            ],
         },
         {
             'id': 7,
@@ -109,8 +109,8 @@ OBSERVATIONS = {
                 {'id': 2, 'name': 'not useful'},
                 {'id': 3, 'name': 'somewhat useful'},
                 {'id': 4, 'name': 'useful'},
-                {'id': 5, 'name': 'very useful'}
-            ]
+                {'id': 5, 'name': 'very useful'},
+            ],
         },
         {
             'id': 8,
@@ -124,8 +124,8 @@ OBSERVATIONS = {
                 {'id': 3, 'name': 'somewhat more deep'},
                 {'id': 4, 'name': 'equally broad and deep'},
                 {'id': 5, 'name': 'somewhat more broad'},
-                {'id': 6, 'name': 'much more broad'}
-            ]
+                {'id': 6, 'name': 'much more broad'},
+            ],
         },
         {
             'id': 9,
@@ -141,15 +141,40 @@ OBSERVATIONS = {
                 {'id': 5, 'name': 'yes, it has typos'},
                 {'id': 6, 'name': 'yes, it is inaccurate'},
                 {'id': 7, 'name': 'yes, it is misleading'},
-                {'id': 8, 'name': 'yes, it is biased'}
-            ]
+                {'id': 8, 'name': 'yes, it is biased'},
+            ],
         },
         {
             'id': 10,
             'label': 'genres',
             'description': 'What are the genres of this book?',
             'multi_choice': True,
-            'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
+            'order': [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+            ],
             'values': [
                 {'id': 1, 'name': 'sci-fi'},
                 {'id': 2, 'name': 'philosophy'},
@@ -175,7 +200,7 @@ OBSERVATIONS = {
                 {'id': 22, 'name': 'reference'},
                 {'id': 23, 'name': 'textbook'},
                 {'id': 24, 'name': 'biographical'},
-            ]
+            ],
         },
         {
             'id': 11,
@@ -186,8 +211,8 @@ OBSERVATIONS = {
             'values': [
                 {'id': 1, 'name': 'nonfiction'},
                 {'id': 2, 'name': 'fiction'},
-                {'id': 3, 'name': 'biography'}
-            ]
+                {'id': 3, 'name': 'biography'},
+            ],
         },
         {
             'id': 12,
@@ -202,15 +227,42 @@ OBSERVATIONS = {
                 {'id': 4, 'name': 'elementary'},
                 {'id': 5, 'name': 'kindergarten'},
                 {'id': 6, 'name': 'baby'},
-                {'id': 7, 'name': 'general audiences'}
-            ]
+                {'id': 7, 'name': 'general audiences'},
+            ],
         },
         {
             'id': 13,
             'label': 'mood',
             'description': 'What are the moods of this book?',
             'multi_choice': True,
-            'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26],
+            'order': [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+            ],
             'values': [
                 {'id': 1, 'name': 'scientific'},
                 {'id': 2, 'name': 'dry'},
@@ -238,8 +290,8 @@ OBSERVATIONS = {
                 {'id': 24, 'name': 'reflective'},
                 {'id': 25, 'name': 'inspiring'},
                 {'id': 26, 'name': 'cheerful'},
-            ]
-        }
+            ],
+        },
     ]
 }
 
@@ -257,9 +309,9 @@ def get_observations():
             {
                 'id': 1,
                 'label': 'pace',
-                'description': 'What is the pace of this book?' 
+                'description': 'What is the pace of this book?'
                 'multi_choice': False,
-                'values': [ 
+                'values': [
                     'slow',
                     'medium',
                     'fast'
@@ -281,12 +333,13 @@ def get_observations():
                 'label': o['label'],
                 'description': o['description'],
                 'multi_choice': o['multi_choice'],
-                'values': _sort_values(o['order'], o['values'])
+                'values': _sort_values(o['order'], o['values']),
             }
 
             observations_list.append(list_item)
 
     return {'observations': observations_list}
+
 
 def _sort_values(order_list, values_list):
     """
@@ -301,19 +354,17 @@ def _sort_values(order_list, values_list):
         value = next((v['name'] for v in values_list if v['id'] == id), None)
         if value:
             ordered_values.append(value)
-    
+
     return ordered_values
+
 
 def _get_deleted_types_and_values():
     """
     Returns a dictionary containing all deleted observation types and values.
-    
+
     return: Deleted types and values dictionary.
     """
-    results = {
-        'types': [],
-        'values': defaultdict(list)
-    }
+    results = {'types': [], 'values': defaultdict(list)}
 
     for o in OBSERVATIONS['observations']:
         if 'deleted' in o and o['deleted']:
@@ -324,6 +375,7 @@ def _get_deleted_types_and_values():
                     results['values'][o['id']].append(v['id'])
 
     return results
+
 
 @public
 def get_observation_metrics(work_olid):
@@ -352,7 +404,7 @@ def get_observation_metrics(work_olid):
                     }
                 ]
             }
-            ... Other observations omitted for brevity ... 
+            ... Other observations omitted for brevity ...
         ]
     }
 
@@ -371,42 +423,60 @@ def get_observation_metrics(work_olid):
     metrics['observations'] = []
 
     if total_respondents > 0:
-        respondents_per_type_dict = Observations.count_unique_respondents_by_type(work_id)
+        respondents_per_type_dict = Observations.count_unique_respondents_by_type(
+            work_id
+        )
         observation_totals = Observations.count_observations(work_id)
 
         current_type_id = observation_totals[0]['type_id']
-        observation_item = next((o for o in OBSERVATIONS['observations'] if current_type_id == o['id']))
+        observation_item = next(
+            (o for o in OBSERVATIONS['observations'] if current_type_id == o['id'])
+        )
 
         current_observation = {
             'label': observation_item['label'],
             'description': observation_item['description'],
             'multi_choice': observation_item['multi_choice'],
             'total_respondents_for_type': respondents_per_type_dict[current_type_id],
-            'values': []
+            'values': [],
         }
 
         for i in observation_totals:
             if i['type_id'] != current_type_id:
                 metrics['observations'].append(current_observation)
                 current_type_id = i['type_id']
-                observation_item = next((o for o in OBSERVATIONS['observations'] if current_type_id == o['id']))
+                observation_item = next(
+                    (
+                        o
+                        for o in OBSERVATIONS['observations']
+                        if current_type_id == o['id']
+                    )
+                )
                 current_observation = {
                     'label': observation_item['label'],
                     'description': observation_item['description'],
                     'multi_choice': observation_item['multi_choice'],
-                    'total_respondents_for_type': respondents_per_type_dict[current_type_id],
-                    'values': []
+                    'total_respondents_for_type': respondents_per_type_dict[
+                        current_type_id
+                    ],
+                    'values': [],
                 }
             current_observation['values'].append(
-                    { 
-                        'value': next((v['name'] for v in observation_item['values'] if v['id'] == i['value_id'])), 
-                        'count': i['total'] 
-                    } 
-                )
-    
+                {
+                    'value': next(
+                        (
+                            v['name']
+                            for v in observation_item['values']
+                            if v['id'] == i['value_id']
+                        )
+                    ),
+                    'count': i['total'],
+                }
+            )
+
         metrics['observations'].append(current_observation)
     return metrics
-        
+
 
 class Observations(object):
 
@@ -422,9 +492,7 @@ class Observations(object):
         return: Total number of patrons who have made an observation.
         """
         oldb = db.get_db()
-        data = {
-            'work_id': work_id
-        }
+        data = {'work_id': work_id}
         query = "SELECT COUNT(DISTINCT(username)) FROM observations"
 
         if work_id:
@@ -441,9 +509,7 @@ class Observations(object):
         return: Dictionary of total patron respondents per type id for the given work ID.
         """
         oldb = db.get_db()
-        data = {
-            'work_id': work_id
-        }
+        data = {'work_id': work_id}
         query = """
             SELECT 
               observation_type AS type, 
@@ -459,12 +525,16 @@ class Observations(object):
 
         if len(deleted_observations['values']):
             for key in deleted_observations['values']:
-                deleted_value_ids = ', '.join(str(i) for i in deleted_observations['values'][key])
+                deleted_value_ids = ', '.join(
+                    str(i) for i in deleted_observations['values'][key]
+                )
                 query += f'AND NOT (observation_type = {str(key)} AND observation_value IN ({deleted_value_ids})) '
 
         query += 'GROUP BY type'
 
-        return { i['type']: i['total_respondents'] for i in list(db.query(query, vars=data)) }
+        return {
+            i['type']: i['total_respondents'] for i in list(db.query(query, vars=data))
+        }
 
     @classmethod
     def count_observations(cls, work_id):
@@ -475,9 +545,7 @@ class Observations(object):
         return: A list of value counts for the given work.
         """
         oldb = db.get_db()
-        data = {
-            'work_id': work_id
-        }
+        data = {'work_id': work_id}
         query = """
             SELECT 
               observation_type as type_id,
@@ -494,7 +562,9 @@ class Observations(object):
 
         if len(deleted_observations['values']):
             for key in deleted_observations['values']:
-                deleted_value_ids = ', '.join(str(i) for i in deleted_observations['values'][key])
+                deleted_value_ids = ', '.join(
+                    str(i) for i in deleted_observations['values'][key]
+                )
                 query += f'AND NOT (observation_type = {str(key)} AND observation_value IN ({deleted_value_ids})) '
 
         query += """
@@ -510,7 +580,9 @@ class Observations(object):
 
         return: Type and value key-value pair
         """
-        observation = next((o for o in OBSERVATIONS['observations'] if o['id'] == type_id))
+        observation = next(
+            (o for o in OBSERVATIONS['observations'] if o['id'] == type_id)
+        )
         key = observation['label']
         value = next((v['name'] for v in observation['values'] if v['id'] == value_id))
 
@@ -520,17 +592,14 @@ class Observations(object):
     def get_patron_observations(cls, username, work_id=None):
         """
         Returns a list of observation records containing only type and value IDs.
- 
+
         Gets all of a patron's observation records by default.  Returns only the observations for
         the given work if work_id is passed.
 
         return: A list of a patron's observations
         """
         oldb = db.get_db()
-        data = {
-            'username': username,
-            'work_id': work_id
-        }
+        data = {'username': username, 'work_id': work_id}
         query = """
             SELECT
                 observations.observation_type AS type,
@@ -553,14 +622,16 @@ class Observations(object):
                 return o['multi_choice']
 
     @classmethod
-    def persist_observation(cls, username, work_id, observation, action, edition_id=NULL_EDITION_VALUE):
+    def persist_observation(
+        cls, username, work_id, observation, action, edition_id=NULL_EDITION_VALUE
+    ):
         """
         Inserts or deletes a single observation, depending on the given action.
 
         If the action is 'delete', the observation will be deleted from the observations table.
 
-        If the action is 'add', and the observation type only allows a single value (multi_choice == True), 
-        an attempt is made to delete previous observations of the same type before the new observation is 
+        If the action is 'add', and the observation type only allows a single value (multi_choice == True),
+        an attempt is made to delete previous observations of the same type before the new observation is
         persisted.
 
         Otherwise, the new observation is stored in the DB.
@@ -577,7 +648,9 @@ class Observations(object):
 
             return ObservationIds(
                 item['id'],
-                next((v['id'] for v in item['values'] if v['name'] == observation[key]))
+                next(
+                    (v['id'] for v in item['values'] if v['name'] == observation[key])
+                ),
             )
 
         oldb = db.get_db()
@@ -588,28 +661,19 @@ class Observations(object):
             'work_id': work_id,
             'edition_id': edition_id,
             'observation_type': observation_ids.type_id,
-            'observation_value': observation_ids.value_id
+            'observation_value': observation_ids.value_id,
         }
 
         where_clause = 'username=$username AND work_id=$work_id AND observation_type=$observation_type '
 
-        
         if action == 'delete':
             # Delete observation and return:
             where_clause += 'AND observation_value=$observation_value'
 
-            return oldb.delete(
-                'observations',
-                vars=data,
-                where=where_clause
-            )
+            return oldb.delete('observations', vars=data, where=where_clause)
         elif not cls.get_multi_choice(list(observation)[0]):
             # A radio button value has changed.  Delete old value, if one exists:
-            oldb.delete(
-                'observations',
-                vars=data,
-                where=where_clause
-            )
+            oldb.delete('observations', vars=data, where=where_clause)
 
         # Insert new value and return:
         return oldb.insert(
@@ -618,11 +682,18 @@ class Observations(object):
             work_id=work_id,
             edition_id=edition_id,
             observation_type=observation_ids.type_id,
-            observation_value=observation_ids.value_id
+            observation_value=observation_ids.value_id,
         )
 
     @classmethod
-    def remove_observations(cls, username, work_id, edition_id=NULL_EDITION_VALUE, observation_type=None, observation_value=None):
+    def remove_observations(
+        cls,
+        username,
+        work_id,
+        edition_id=NULL_EDITION_VALUE,
+        observation_type=None,
+        observation_value=None,
+    ):
         """
         Deletes observations from the observations table.  If both observation_type and observation_value are
         passed, only one row will be deleted from the table.  Otherwise, all of a patron's observations for an edition
@@ -636,15 +707,13 @@ class Observations(object):
             'work_id': work_id,
             'edition_id': edition_id,
             'observation_type': observation_type,
-            'observation_value': observation_value
+            'observation_value': observation_value,
         }
 
-        where_clause = 'username=$username AND work_id=$work_id AND edition_id=$edition_id'
+        where_clause = (
+            'username=$username AND work_id=$work_id AND edition_id=$edition_id'
+        )
         if observation_type and observation_value:
             where_clause += ' AND observation_type=$observation_type AND observation_value=$observation_value'
 
-        return oldb.delete(
-            'observations',
-            where=(where_clause),
-            vars=data
-        )
+        return oldb.delete('observations', where=(where_clause), vars=data)

@@ -13,17 +13,22 @@ subfield_tag = slim + 'subfield'
 collection_tag = slim + 'collection'
 record_tag = slim + 'record'
 
+
 def norm(s):
     return normalize('NFC', six.text_type(s))
+
 
 class BadSubtag:
     pass
 
+
 class MultipleTitles:
     pass
 
+
 class MultipleWorkTitles:
     pass
+
 
 class datafield:
     def __init__(self, element):
@@ -39,6 +44,7 @@ class datafield:
                 raise BadSubtag
             self.contents.setdefault(i.attrib['code'], []).append(text)
             self.subfield_sequence.append((i.attrib['code'], text))
+
 
 class xml_rec:
     def __init__(self, f):
@@ -87,6 +93,7 @@ class xml_rec:
         if self.dataFields[tag][0].tag == data_tag:
             return [datafield(i) for i in self.dataFields[tag]]
         return []
+
 
 def parse(f):
     rec = xml_rec(f)

@@ -30,17 +30,21 @@ re_oclc = re.compile(r'^\(OCoLC\).*?0*(\d+)', re.IGNORECASE)
 re_normalize = re.compile(r'[^\w ]')
 re_whitespace = re.compile(r'\s+')
 
+
 def normalize(s):
     s = re_normalize.sub('', s.strip())
     s = re_whitespace.sub(' ', s)
     return s.lower()
 
+
 def add_to_map(d, k, loc):
     d[k].append(loc)
+
 
 def add_title_to_map(title, loc):
     title = str(normalize(title)[:25])
     add_to_map(title_map, title, loc)
+
 
 def add_title(prefix_len, subtags):
     title_and_subtitle = []
@@ -64,7 +68,9 @@ def add_title(prefix_len, subtags):
             pass
     return titles
 
+
 loc_num = 0
+
 
 def write_map(archive_id, name, d):
     f = open('d/' + archive_id + '_' + name, 'w')
@@ -72,10 +78,11 @@ def write_map(archive_id, name, d):
         f.write(k + '\t' + ' '.join([str(i) for i in v]) + '\n')
     f.close()
 
+
 def add_record(edition):
     global loc_num
     loc_str, tags = edition
-    loc_num+=1
+    loc_num += 1
     f_loc.write(str(loc_num) + ' ' + loc_str + '\n')
     loc = loc_num
     for tag, ind, subtags in tags:
@@ -105,6 +112,7 @@ def add_record(edition):
                 add_title_to_map(t, loc)
             continue
 
+
 overall = 0
 t0_overall = time()
 f_loc = open('d/loc_map', 'w')
@@ -120,15 +128,30 @@ for archive_id, name, total in sorted(archive, key=lambda x: x[2]):
     for line in open(archive_id):
         rec = eval(line)
         add_record(rec)
-        i+=1
-        overall+=1
+        i += 1
+        overall += 1
         if i % 10000 == 0:
             t1 = time() - t0
             t1_overall = time() - t0_overall
             remaining = total - i
             remaining2 = grand_total - overall
-            print("%8d %6.2f%% %5.3f rec/sec %.3f minutes left" % (i, (float(i) * 100) / total, i/t1, float((t1/i) * remaining) / 60), end=' ')
-            print("overall: %6.2f%% %.3f minutes left" % ((float(overall) * 100) / grand_total, float((t1_overall/overall) * remaining2) / 60))
+            print(
+                "%8d %6.2f%% %5.3f rec/sec %.3f minutes left"
+                % (
+                    i,
+                    (float(i) * 100) / total,
+                    i / t1,
+                    float((t1 / i) * remaining) / 60,
+                ),
+                end=' ',
+            )
+            print(
+                "overall: %6.2f%% %.3f minutes left"
+                % (
+                    (float(overall) * 100) / grand_total,
+                    float((t1_overall / overall) * remaining2) / 60,
+                )
+            )
 
     print(archive_id)
     write_map(archive_id, 'isbn', isbn_map)

@@ -46,10 +46,7 @@ def parse_cfmt(string: str):
         %%                               # literal "%%"
     '''
 
-    return [
-        m.group(0)
-        for m in re.finditer(cfmt_re, string, flags=re.VERBOSE)
-    ]
+    return [m.group(0) for m in re.finditer(cfmt_re, string, flags=re.VERBOSE)]
 
 
 def cfmt_fingerprint(string: str):
@@ -63,10 +60,7 @@ def cfmt_fingerprint(string: str):
     {'%(title)s': 1, '%(first)s': 1, '%(last)s': 1}
     """
     pieces = parse_cfmt(string)
-    return {
-        key: len(list(grp))
-        for key, grp in groupby(pieces)
-    }
+    return {key: len(list(grp)) for key, grp in groupby(pieces)}
 
 
 def trees_equal(el1: etree.Element, el2: etree.Element, error=True):
@@ -133,8 +127,9 @@ def gen_python_format_entries():
             continue
 
         if locale in ALLOW_FAILURES:
-            yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}',
-                               marks=pytest.mark.xfail)
+            yield pytest.param(
+                locale, msgid, msgstr, id=f'{locale}-{msgid}', marks=pytest.mark.xfail
+            )
         else:
             yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}')
 
@@ -145,8 +140,9 @@ def gen_html_entries():
             continue
 
         if locale in ALLOW_FAILURES:
-            yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}',
-                               marks=pytest.mark.xfail)
+            yield pytest.param(
+                locale, msgid, msgstr, id=f'{locale}-{msgid}', marks=pytest.mark.xfail
+            )
         else:
             yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}')
 

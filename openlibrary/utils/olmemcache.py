@@ -4,10 +4,12 @@ import memcache
 from openlibrary.utils.olcompress import OLCompressor
 import web
 
+
 class Client:
     """Wrapper to memcache Client to enable OL specific compression and unicode keys.
     Compatible with memcache Client API.
     """
+
     def __init__(self, servers):
         self._client = memcache.Client(servers)
         compressor = OLCompressor()

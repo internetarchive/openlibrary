@@ -12,22 +12,28 @@ leader_tag = '{http://www.loc.gov/MARC21/slim}leader'
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
 collection_tag = '{http://www.loc.gov/MARC21/slim}collection'
 
+
 class BlankTag(MarcException):
     pass
 
+
 class BadSubtag(MarcException):
     pass
+
 
 def read_marc_file(f):
     for event, elem in etree.iterparse(f, tag=record_tag):
         yield MarcXml(elem)
         elem.clear()
 
+
 def norm(s):
     return normalize('NFC', six.text_type(s.replace(u'\xa0', ' ')))
 
+
 def get_text(e):
     return norm(e.text) if e.text else u''
+
 
 class DataField:
     def __init__(self, element):
@@ -43,6 +49,7 @@ class DataField:
 
     def ind1(self):
         return self.element.attrib['ind1']
+
     def ind2(self):
         return self.element.attrib['ind2']
 
@@ -79,6 +86,7 @@ class DataField:
             if v:
                 contents.setdefault(k, []).append(v)
         return contents
+
 
 class MarcXml(MarcBase):
     def __init__(self, record):

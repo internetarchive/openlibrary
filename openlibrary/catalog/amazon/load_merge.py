@@ -7,6 +7,7 @@ from six.moves import urllib
 
 entity_fields = ('name', 'birth_date', 'death_date', 'date')
 
+
 def find_entity(site, entity):
     entity = dict((k, entity[k]) for k in entity_fields if k in entity)
     print(entity)
@@ -24,20 +25,26 @@ def find_entity(site, entity):
             else:
                 assert field not in db_entity
 
-def get_from_archive(locator):
-    (file, offset, length) = locator.split (":")
-    offset = int (offset)
-    length = int (length)
 
-    r0, r1 = offset, offset+length-1
-    url = 'http://www.archive.org/download/%s'% file
+def get_from_archive(locator):
+    (file, offset, length) = locator.split(":")
+    offset = int(offset)
+    length = int(length)
+
+    r0, r1 = offset, offset + length - 1
+    url = 'http://www.archive.org/download/%s' % file
 
     assert 0 < length < 100000
 
-    ureq = urllib.request.Request(url, None, {'Range':'bytes=%d-%d'% (r0, r1)},)
+    ureq = urllib.request.Request(
+        url,
+        None,
+        {'Range': 'bytes=%d-%d' % (r0, r1)},
+    )
     result = urllib.request.urlopen(ureq).read(100000)
     rec = MARC21Record(result)
     return rec
+
 
 def contrib(r):
     contribs = []
@@ -45,8 +52,10 @@ def contrib(r):
         print(f.subfield_sequence)
         contrib = {}
         if 'a' not in f.contents and 'c' not in f.contents:
-            continue # should at least be a name or title
-        name = " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abc'])
+            continue  # should at least be a name or title
+        name = " ".join(
+            [j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abc']
+        )
         if 'd' in f.contents:
             contrib = pick_first_date(f.contents['d'])
             contrib['db_name'] = ' '.join([name] + f.contents['d'])
@@ -54,14 +63,12 @@ def contrib(r):
             contrib['db_name'] = name
         contrib['name'] = name
         contrib['entity_type'] = 'person'
-        subfields = [
-            ('a', 'personal_name'),
-            ('b', 'numeration'),
-            ('c', 'title')
-        ]
+        subfields = [('a', 'personal_name'), ('b', 'numeration'), ('c', 'title')]
         for subfield, field_name in subfields:
             if subfield in f.contents:
-                contrib[field_name] = ' '.join([x.strip(' /,;:') for x in f.contents[subfield]])
+                contrib[field_name] = ' '.join(
+                    [x.strip(' /,;:') for x in f.contents[subfield]]
+                )
         if 'q' in f.contents:
             contrib['fuller_name'] = ' '.join(f.contents['q'])
         contribs.append(contrib)
@@ -70,7 +77,9 @@ def contrib(r):
         print(f.subfield_sequence)
         contrib = {
             'entity_type': 'org',
-            'name': " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'ab'])
+            'name': " ".join(
+                [j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'ab']
+            ),
         }
         contrib['db_name'] = contrib['name']
         contribs.append(contrib)
@@ -79,11 +88,14 @@ def contrib(r):
         print(f.subfield_sequence)
         contrib = {
             'entity_type': 'event',
-            'name': " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'acdn'])
+            'name': " ".join(
+                [j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'acdn']
+            ),
         }
         contrib['db_name'] = contrib['name']
         contribs.append(contrib)
     return contribs
+
 
 def load(site, filename):
     for line in open(filename):
@@ -98,7 +110,7 @@ def load(site, filename):
         for name, role in amazon['authors']:
             if role != 'Author':
                 continue
-            author_count+=1
+            author_count += 1
             if author_count > 1:
                 break
         if author_count < 2:
@@ -106,7 +118,6 @@ def load(site, filename):
 
         print(lc_src)
         print('amazon:', amazon['authors'])
-
 
         try:
             print('LC authors:', [x.name for x in thing.authors])
@@ -130,5 +141,3 @@ def load(site, filename):
     #    for x in web.query("select thing_id from version where machine_comment=" + web.sqlquote(lc)):
     #        t = site.withID(x.thing_id)
     #        print t.title
-
-

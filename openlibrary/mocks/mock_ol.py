@@ -3,6 +3,7 @@ import re
 import web
 from infogami import config
 from infogami.utils import delegate
+
 try:  # newer versions of web.py
     from web.browser import AppBrowser
 except ImportError:  # older versions of web.py
@@ -24,6 +25,7 @@ def ol(request):
     """
     return OL(request)
 
+
 @web.memoize
 def load_plugins():
     config.plugin_path = ["openlibrary.plugins", ""]
@@ -31,10 +33,12 @@ def load_plugins():
 
     delegate._load()
 
+
 class EMail(web.storage):
     def extract_links(self):
         """Extracts link from the email message."""
         return re.findall(r"http://[^\s]*", self.message)
+
 
 class OLBrowser(AppBrowser):
     def get_text(self, e=None, name=None, **kw):
@@ -42,9 +46,10 @@ class OLBrowser(AppBrowser):
             e = self.get_soup().find(name=name, **kw)
         return AppBrowser.get_text(self, e)
 
+
 class OL:
-    """Mock OL object for all tests.
-    """
+    """Mock OL object for all tests."""
+
     @pytest.fixture
     def __init__(self, request, monkeypatch):
         self.request = request
@@ -83,11 +88,13 @@ class OL:
 
         def sendmail(from_address, to_address, subject, message, headers=None, **kw):
             headers = headers or {}
-            self.sentmail = EMail(kw,
+            self.sentmail = EMail(
+                kw,
                 from_address=from_address,
                 to_address=to_address,
                 subject=subject,
                 message=message,
-                headers=headers)
+                headers=headers,
+            )
 
         self.monkeypatch.setattr(web, "sendmail", sendmail)

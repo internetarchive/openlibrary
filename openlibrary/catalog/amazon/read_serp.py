@@ -13,6 +13,7 @@ crawled = set(i[:-1] for i in open('/2/edward/amazon/crawled'))
 
 # /2/edward/amazon/arc/20100311*.arc
 
+
 def find_pt(doc):
     found = []
     for pt in doc.find_class('productTitle'):
@@ -23,6 +24,7 @@ def find_pt(doc):
         print(m.group(1))
         found.append(m.group(1))
     return found
+
 
 def find_srtitle(doc):
     found = []
@@ -35,14 +37,15 @@ def find_srtitle(doc):
         found.append(m.group(1))
     return found
 
+
 found_books = set()
 
 prev = ''
 for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
     if not filename.startswith('20100412'):
         continue
-    for url, wire in read_arc(arc_dir +'/' + filename):
-        #print filename, url
+    for url, wire in read_arc(arc_dir + '/' + filename):
+        # print filename, url
         if url.startswith('file'):
             continue
         if not url.startswith('http://www.amazon.com/s?'):
@@ -63,7 +66,7 @@ for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
         if rc:
             m = re_result_count.match(rc[0].text)
             if m:
-                (a, b, c) = map(lambda i: int(i.replace(',','')), m.groups())
+                (a, b, c) = map(lambda i: int(i.replace(',', '')), m.groups())
                 if a == c + 1 and b == c:
                     continue
         for e in doc.find_class('fastTrackList'):

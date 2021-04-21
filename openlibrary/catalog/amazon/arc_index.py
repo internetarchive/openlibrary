@@ -3,6 +3,7 @@ import os
 
 arc_dir = '/2/edward/amazon/arc'
 
+
 def read_arc(filename):
     f = open(arc_dir + '/' + filename)
     idx = open(arc_dir + '/' + filename + '.idx', 'w')
@@ -17,6 +18,7 @@ def read_arc(filename):
         line = f.readline()
     f.close()
     idx.close()
+
 
 for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
     print(filename)
