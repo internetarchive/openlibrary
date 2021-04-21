@@ -27,7 +27,7 @@ $def with(work, edition, reader_observations, work_title, key)
     <div class="no-stats-message">$_('At least two people must submit observations before this information can be displayed.')</div>
   <hr>
   $if ctx.user:
-    $:macros.UserMetadata(work, edition, _('Add your observations'), 'stats', 'stats-link')
+    $:macros.UserMetadata(_('Add your observations'), 'stats', 'stats-link', work=work, edition=edition)
   $else:
     <a class="stats-link" href="/account/login?redirect=$key">$_('Log in to add your observations')</a>
 </div>

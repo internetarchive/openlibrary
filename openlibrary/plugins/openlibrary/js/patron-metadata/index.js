@@ -153,6 +153,64 @@ export function initPatronMetadata() {
     });
 }
 
+export function initBookNotesButtons() {
+    $('.update-note-button').on('click', function(){
+        // Get form data
+        let formData = new FormData($(this).prop('form'));
+
+        // Post data
+        let workOlid = formData.get('work_id');
+        formData.delete('work_id');
+
+        $.ajax({
+            url: `/works/${workOlid}/notes.json`,
+            data: formData,
+            type: 'POST',
+            contentType: false,
+            processData: false,
+            success: function() {
+                // Display success message
+            }
+        });
+    });
+
+    $('.delete-note-button').on('click', function() {
+        // Get form data
+        let formData = new FormData($(this).prop('form'));
+
+        // Post data
+        let workOlid = formData.get('work_id');
+        formData.delete('work_id');
+        formData.delete('notes');
+
+        $.ajax({
+            url: `/works/${workOlid}/notes.json`,
+            data: formData,
+            type: 'POST',
+            contentType: false,
+            processData: false,
+            success: function() {
+                // Remove note view
+            }
+        });
+    });
+}
+
+export function initObservationsButtons() {
+    $('.delete-observations-button').on('click', function() {
+        let workOlid = `OL${$(this).prop('id').split('-')[0]}W`;
+
+        $.ajax({
+            url: `/works/${workOlid}/observations`,
+            type: 'DELETE',
+            contentType: 'application/json',
+            success: function() {
+                // Remove observations in view
+            }
+        });
+    });
+}
+
 /**
  * Resizes modal when a details element is opened or closed.
  *

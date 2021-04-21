@@ -1,0 +1,136 @@
+$def with (user, notes_and_observations)
+
+$ username = user.key.split('/')[-1]
+$ user_key = user.key
+
+<div id="contentHead">
+  <div id="my-notes">
+    <div class="small sansserif grey account-settings-menu">
+      <a href="$user.key">$username</a> &raquo; $_("Book Notes")
+    </div>
+    <div>
+      <h1 style="display:inline">Book Notes</h1>
+    </div>
+    <div style="margin-top: 1em;">
+      $if notes_and_observations:
+        <ul>
+            $for i in notes_and_observations:
+              $ work_id = i.work_id
+              $ work_cover_url = i.work['cover_url']
+              
+              <li style="border-bottom: 1px solid #f2f0e7; margin-bottom: 1em; background-color: #f9f9f9;">
+                <div style="display:flex; padding: 1em;">
+                  <span class="imageLg" style="padding-right: 1em;">
+                    <a href="$i.work_key"><img src="$work_cover_url" ></a>
+                  </span>
+                  <span>
+                    <h3 itemprop="name" class="booktitle">
+                      <a itemprop="url" href="$i.work_key" class="results">$i.work['title']</a>
+                    </h3>
+                    $if i.work['authors']:
+                      By: $','.join(i.work['authors'])
+                    $else:
+                      $_('Unknown author')
+                  </span>
+                </div>
+                <div class="tabs">
+                  <ul>
+                    <li><a href="#${work_id}-notes">Notes</a></li>
+                    <li><a href="#${work_id}-observations">Observations</a></li>
+                  </ul>
+                  <div id="${work_id}-notes">
+                    $ has_notes = False
+                    $if i['notes']:
+                      $ has_notes = True
+                      <ul>
+                        $for k in sorted(i['notes']):
+                          <li>
+                            $if k == -1:
+                              <div>
+                                $_('My notes for the work'):
+                              </div>
+                            $else:
+                              $ edition = i['editions'][k]
+                              <div>
+                                <div class="title">
+                                  $_('My notes for an edition of ')
+                                  $if edition.title:
+                                      <a href="$edition.url()">$edition.title</a><br/>
+                                  $else:
+                                      <a href="$edition.url()"><em>$_('Title missing')</em></a><br/>
+                                  <div class="published">
+                                  $if edition.publishers and edition.publish_date:
+                                      $edition.publish_date, $(', '.join(edition.publishers))
+                                  $elif edition.publish_date:
+                                      $edition.publish_date
+                                  $elif edition.publishers:
+                                      <em>$_('Publish date unknown')</em>, $(', '.join(edition.publishers))
+                                  $else:
+                                      <em>$_('Publisher unknown')</em>
+                                  </div>
+                                  <div class="format">
+                                      $edition.physical_format.replace('[', '').replace(']','')
+                                      $if edition.languages:
+                                          $_('in %(language)s', language=', '.join(l.name for l in edition.languages))
+                                  $if edition.edition_name:
+                                      -
+                                      $edition.edition_name
+                                  </div>
+                                </div>
+                              </div>
+                            <form class="book-notes-form" method="POST">
+                              $ work_olid = 'OL%dW' % i['work_id']
+                              $ edition_id = 'OL%dM' % k
+                              <textarea name="notes" rows="10">$i['notes'][k]</textarea>
+                              <input type="hidden" name="work_id" value="$work_olid" />
+                              $if k != -1:
+                                <input type="hidden" name="edition_id" value="$edition_id" />
+                              <button class="delete-note-button cta-btn" type="button">Delete</button>
+                              <button class="update-note-button cta-btn" type="button">Update</button>
+                            </form>
+                          </li>
+                      </ul>
+                    $else:
+                      $_('No notes for this book.')
+                  </div>
+                  <div id="${work_id}-observations">
+                    $ notes = None if not has_notes else i['notes'].get(-1, None)
+                    $ work_key = i['work_key']
+                    $ modal_id = str(work_id) + "-observations-modal"
+
+                    $if i['observations']:
+                      <ul>
+                        $for k in sorted(i['observations']):
+                          $ category = k.capitalize()
+                          $ observations = ', '.join(i['observations'][k]).capitalize()
+                          <li>
+                            $category: $observations
+                          </li>
+                      </ul>
+                      <div>
+                        <button class="delete-observations-button cta-btn" id="${work_id}-observation-delete">Delete</button>
+                        $:macros.UserMetadata(_("Update observations"), modal_id, work_key=work_key, notes=notes)
+                      </div>
+                    $else:
+                      $_('No observations for this work.')<br>
+                      $:macros.UserMetadata(_("Make observations"), modal_id, work_key=work_key, notes=notes)
+                  </div>
+                </div>
+              </li>
+        </ul>
+      $else:
+        $_('No notes or observations.')<br>
+    </div>
+    $if notes_and_observations:
+      <ul>
+        $for i in notes_and_observations:
+          <li>
+            <div>$i['work_id']</div>
+          </li>
+          $ entries = i.get('dict', None)
+          $if entries:
+            $for k, v in i['dict'].items():
+              $v<br>
+      </ul>
+  </div>
+</div>

@@ -146,3 +146,46 @@ class Booknotes(object):
             )
         except:  # we want to catch no entry exists
             return None
+
+    @classmethod
+    def get_patron_booknotes_and_observations(cls, username):
+        # TODO: Add pagination
+        """
+        TODO: Document
+        """
+        oldb = db.get_db()
+        data = {
+            'username': username
+        }
+
+        query = """
+        SELECT
+            COALESCE(obs.work_id, bn.work_id) as work_id,
+            obs.observations,
+            bn.notes
+        FROM (
+            SELECT
+                work_id,
+                json_agg(row_to_json(  (SELECT r FROM (SELECT observation_type, observation_values) r))) as observations
+            FROM (
+                SELECT
+                work_id,
+                observation_type,
+                json_agg(observation_value) as observation_values
+                FROM observations
+                WHERE username = $username
+                GROUP BY work_id, observation_type
+            ) s
+            GROUP BY work_id) obs
+        FULL OUTER JOIN (
+            SELECT
+                work_id,
+                json_agg(row_to_json( (SELECT r FROM (SELECT edition_id, notes)r))) as notes
+            FROM booknotes
+            WHERE username = $username
+            GROUP BY work_id
+        ) bn
+        ON obs.work_id = bn.work_id
+        """
+
+        return list(oldb.query(query, vars=data))

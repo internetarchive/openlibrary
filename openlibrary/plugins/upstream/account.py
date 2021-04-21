@@ -18,7 +18,9 @@ import infogami.core.code as core
 from openlibrary import accounts
 from openlibrary.i18n import gettext as _
 from openlibrary.core import helpers as h, lending
+from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.observations import convert_observation_ids, NULL_EDITION_VALUE
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
@@ -737,6 +739,59 @@ class ReadingLog(object):
         else: # must be a list or invalid page!
             #works = web.ctx.site.get_many([ ... ])
             raise
+
+
+class PatronBookNotes(object):
+    """ Manages the patron's book notes and observations """
+
+    def __init__(self, user=None):
+        self.user = user or accounts.get_current_user()
+        username = user.key.split('/')[-1]
+        self.notes_and_observations = self.get_notes_and_observations(username)
+        #self.works_and_editions = self.get_works_and_editions(self.notes_and_observations)
+
+    def get_notes_and_observations(self, username):
+        notes_and_observations = Booknotes.get_patron_booknotes_and_observations(username)
+
+        # Transform and enrich notes and observations data:
+        for entry in notes_and_observations:
+            entry['work_key'] = f"/works/OL{entry['work_id']}W"
+            entry['work'] = self.get_work(entry['work_key'])
+
+            # Convert observation type and value IDs to strings:
+            if entry['observations'] is not None:
+                ids = {}
+                for item in entry['observations']:
+                    ids[item['observation_type']] = item['observation_values']
+                entry['observations'] = convert_observation_ids(ids)
+            
+            if entry['notes'] is not None:
+                entry['notes'] = {i['edition_id'] : i['notes'] for i in entry['notes']}
+                entry['editions'] = {k : web.ctx.site.get(f'/books/OL{k}M') for k in entry['notes'] if k != NULL_EDITION_VALUE}
+            
+        return notes_and_observations
+
+    def get_work(self, work_key):
+        work = web.ctx.site.get(work_key)
+        author_keys = [a.author.key for a in work.get('authors', [])]
+
+        return {
+            'cover_url': work.get_cover_url('S') or 'https://openlibrary.org/images/icons/avatar_book-sm.png',
+            'title': work.get('title'),
+            'authors': [a.name for a in web.ctx.site.get_many(author_keys)],
+            'first_publish_year': work.first_publish_year or None
+        }
+
+
+class account_my_book_notes(delegate.page):
+    path = "/account/books/notes"
+
+    @require_login
+    def GET(self):
+        user = accounts.get_current_user()
+        booknotes = PatronBookNotes(user=user)
+        # TODO: Wrap with feature flag:
+        return render['account/notes'](user, booknotes.notes_and_observations)
 
 
 class public_my_books(delegate.page):

@@ -210,6 +210,16 @@ jQuery(function () {
             .then((module) => module.initPatronMetadata());
     }
 
+    if (document.getElementsByClassName('update-note-button').length) {
+        import('./patron-metadata')
+            .then((module) => module.initBookNotesButtons());
+    }
+
+    if (document.getElementsByClassName('delete-observations-button').length) {
+        import('./patron-metadata')
+            .then((module) => module.initObservationsButtons());
+    }
+
     if (document.getElementsByClassName('manageCovers').length) {
         import(/* webpackChunkName: "covers" */ './covers')
             .then((module) => module.initCoversChange());

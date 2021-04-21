@@ -1,8 +1,14 @@
-$def with (work, edition, link_text, id, classes='')
+$def with (link_text, id, classes='', work=None, edition=None, notes=None, work_key=None)
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ has_edition = edition is not None
-$ notes = work.get_users_notes(username) if not has_edition else work.get_users_notes(username, edition.key.split('/')[-1])
+$ edition_notes = None
+$if work:
+  $ edition_notes = work.get_users_notes(username) if not has_edition else work.get_users_notes(username, edition.key.split('/')[-1])
+
+$if edition_notes is not None:
+  $ notes = edition_notes.notes
+
 $ book_descriptor = _("work")
 
 $ i18n_strings = {
@@ -10,9 +16,12 @@ $ i18n_strings = {
   $ "submit_text": _("Submit")
   $ }
 
+$if not work_key:
+  $ work_key = work.key
+
 $ context = {
   $ "username": username,
-  $ "work": work.key,
+  $ "work": work_key,
   $ "id": id
   $ }
 
@@ -29,14 +38,14 @@ $if has_edition:
         <h2>$_("My Book Notes")</h2>
         <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
       </div>
-      <form class="book-notes-form" method="POST" action="$(work.key)/notes.json">
+      <form class="book-notes-form" method="POST" action="$(work_key)/notes.json">
         <p>My personal notes about this $book_descriptor:</p>
         <div>
-          <textarea name="notes" rows="10">$(notes.notes if notes else "")</textarea>
+          <textarea name="notes" rows="10">$(notes if notes else "")</textarea>
         </div>
         $if has_edition:
           <input type="hidden" name="edition_id" value="$edition.key.split('/')[-1]" />
-        <button class="cta-btn"type="submit">Save Note</button>
+        <button class="update-note cta-btn" type="submit">Save Note</button>
       </form>
       <div class="floaterHead">
         <h2>$_("Observations")</h2>

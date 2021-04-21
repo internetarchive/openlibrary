@@ -13,6 +13,8 @@ from . import db
 ObservationIds = namedtuple('ObservationIds', ['type_id', 'value_id'])
 ObservationKeyValue = namedtuple('ObservationKeyValue', ['key', 'value'])
 
+NULL_EDITION_VALUE = -1
+
 OBSERVATIONS = {
     'observations': [
         {
@@ -286,7 +288,9 @@ def get_observations():
 
             observations_list.append(list_item)
 
+    _get_all_types_and_values()
     return {'observations': observations_list}
+
 
 def _sort_values(order_list, values_list):
     """
@@ -324,6 +328,38 @@ def _get_deleted_types_and_values():
                     results['values'][o['id']].append(v['id'])
 
     return results
+
+
+def convert_observation_ids(id_dict):
+    """
+    TODO: document
+    """
+    types_and_values = _get_all_types_and_values()
+    conversion_results = {}
+
+    for k in id_dict:
+        conversion_results[types_and_values[str(k)]['type']] = [
+            types_and_values[str(k)]['values'][str(i)] for i in id_dict[k]
+        ]
+
+    return conversion_results
+
+
+@cache.memoize(engine="memcache", key="all_observation_types_and_values", expires=cache_duration)
+def _get_all_types_and_values():
+    """
+    TODO: document
+    """
+    types_and_values = {}
+
+    for o in OBSERVATIONS['observations']:
+        types_and_values[str(o['id'])] = {
+            'type': o['label'],
+            'values': {str(v['id']) : v['name'] for v in o['values']}
+        }
+    
+    return types_and_values
+
 
 @public
 def get_observation_metrics(work_olid):
@@ -409,8 +445,6 @@ def get_observation_metrics(work_olid):
         
 
 class Observations(object):
-
-    NULL_EDITION_VALUE = -1
 
     @classmethod
     def total_unique_respondents(cls, work_id=None):
