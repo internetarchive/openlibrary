@@ -292,7 +292,7 @@ $if include_widget:
 
     $# BookNotes feature:
     $if ctx.user and ctx.user.is_beta_tester():
-      $:macros.UserMetadata(_("My book notes"), 'cta', 'cta-section patron-metadata', work=work, edition=edition)
+      $:macros.UserMetadata(_("My book notes"), 'cta', classes='cta-section patron-metadata', work=work, edition=edition)
 
 
 $if include_showcase:
