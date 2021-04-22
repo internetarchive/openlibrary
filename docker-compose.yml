@@ -1,7 +1,7 @@
 version: "3.1"
 services:
   web:
-    image: "oldev:${OLDEV_TAG:-latest}"
+    image: "${OLIMAGE:-oldev:latest}"
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
       - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
@@ -40,7 +40,7 @@ services:
         max-file: "4"
 
   solr-updater:
-    image: "oldev:${OLDEV_TAG:-latest}"
+    image: "${OLIMAGE:-oldev:latest}"
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
@@ -63,7 +63,7 @@ services:
       - webnet
 
   covers:
-    image: "oldev:${OLDEV_TAG:-latest}"
+    image: "${OLIMAGE:-oldev:latest}"
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
       - COVERSTORE_CONFIG=${COVERSTORE_CONFIG:-/openlibrary/conf/coverstore.yml}
@@ -83,7 +83,7 @@ services:
         max-file: "4"
 
   infobase:
-    image: "oldev:${OLDEV_TAG:-latest}"
+    image: "${OLIMAGE:-oldev:latest}"
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
       - INFOBASE_CONFIG=${INFOBASE_CONFIG:-/openlibrary/conf/infobase.yml}
