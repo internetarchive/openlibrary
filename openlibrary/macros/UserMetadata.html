@@ -1,4 +1,4 @@
-$def with (link_text, id, classes='', work=None, edition=None, notes=None, work_key=None)
+$def with (link_text, id, classes='', work=None, edition=None, notes=None, work_key=None, reload_id=None)
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ has_edition = edition is not None
@@ -29,6 +29,9 @@ $if has_edition:
   $ context["edition"] = edition.key
   $ book_descriptor = _("edition")
 
+$if reload_id is not None:
+  $ context["reloadId"] = reload_id
+
 <div class="$classes">
   <a class="modal-link" href="javascript:;" data-context="$json_encode(context)" data-i18n="$json_encode(i18n_strings)">$link_text</a>
 
@@ -38,16 +41,17 @@ $if has_edition:
         <h2>$_("My Book Notes")</h2>
         <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
       </div>
-      <form class="book-notes-form" method="POST">
-        <p>My personal notes about this $book_descriptor:</p>
-        <div>
-          <textarea name="notes" rows="10">$(notes if notes else "")</textarea>
-        </div>
-        <input type="hidden" name="work_id" value="$work_key.split('/')[-1]" />
-        $if has_edition:
-          <input type="hidden" name="edition_id" value="$edition.key.split('/')[-1]" />
-        <button class="update-note-button cta-btn" type="button">Save Note</button>
-      </form>
+      $if reload_id is None:
+        <form class="book-notes-form" method="POST">
+          <p>My personal notes about this $book_descriptor:</p>
+          <div>
+            <textarea name="notes" rows="10">$(notes if notes else "")</textarea>
+          </div>
+          <input type="hidden" name="work_id" value="$work_key.split('/')[-1]" />
+          $if has_edition:
+            <input type="hidden" name="edition_id" value="$edition.key.split('/')[-1]" />
+          <button class="update-note-button cta-btn" type="button">Save Note</button>
+        </form>
       <div class="floaterHead">
         <h2>$_("Observations")</h2>
       </div>

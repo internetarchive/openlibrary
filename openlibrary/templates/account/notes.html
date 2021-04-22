@@ -99,13 +99,14 @@ $ user_key = user.key
                         $_('No notes for this book.')
                       </div>
                   </div>
-                  <div class="booknotes-tab-view" id="${work_id}-observations">
+                  <div class="booknotes-tab-view observation-view" id="${work_id}-observations">
                     $ notes = None if not has_notes else i['notes'].get(-1, None)
                     $ work_key = i['work_key']
                     $ modal_id = str(work_id) + "-observations-modal"
+                    $ list_id = str(work_id) + "-observations-list"
 
                     $if i['observations']:
-                      <ul class="observations-list">
+                      <ul class="observations-list" id="$list_id">
                         $for k in sorted(i['observations']):
                           $ category = k.capitalize()
                           $ observations = ', '.join(i['observations'][k]).capitalize()
@@ -115,12 +116,17 @@ $ user_key = user.key
                       </ul>
                       <div class="observation-buttons">
                         <button class="delete-observations-button cta-btn" id="${work_id}-observation-delete">Delete</button>
-                        $:macros.UserMetadata(_("Update observations"), modal_id, classes="observations-modal-link", work_key=work_key, notes=notes)
+                        $:macros.UserMetadata(_("Update observations"), modal_id, classes="observations-modal-link", work_key=work_key, notes=notes, reload_id=list_id)
                       </div>
                     $else:
+                      <ul class="observations-list no-content" id="$list_id">
+                        <li>
+                          $_('No observations for this work.')
+                        </li>
+                      </ul>
                       <div class="no-content">
-                        $_('No observations for this work.') <br>
-                        $:macros.UserMetadata(_("Make observations"), modal_id, classes="observations-modal-link", work_key=work_key, notes=notes)
+                        <button class="delete-observations-button cta-btn hidden" id="${work_id}-observation-delete">Delete</button>
+                        $:macros.UserMetadata(_("Make observations"), modal_id, classes="observations-modal-link", work_key=work_key, notes=notes, reload_id=list_id)
                       </div>
                   </div>
                 </div>

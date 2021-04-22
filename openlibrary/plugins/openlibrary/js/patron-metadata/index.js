@@ -15,12 +15,15 @@ const SubmissionState = {
 };
 
 export function initPatronMetadata() {
-    function displayModal(id) {
+    function displayModal(id, reloadId) {
         $.colorbox({
             inline: true,
             opacity: '0.5',
             href: `#${id}-metadata-form`,
             width: '60%',
+            onClosed: function() {
+                $(`#${reloadId}`).trigger('observationReload');
+            }
         });
     }
 
@@ -118,39 +121,46 @@ export function initPatronMetadata() {
         let i18nStrings = $(this).data('i18n');
 
         if ($(this).next().find(`#${context.id}-user-metadata`).children().length == 0) {
-            let selectedValues = {};
-
-            $.ajax({
-                type: 'GET',
-                url: `/works/${context.work.split('/')[2]}/observations`,
-                dataType: 'json'
-            })
-                .done(function(data) {
-                    selectedValues = data;
-
-                    $.ajax({
-                        type: 'GET',
-                        url: '/observations',
-                        dataType: 'json'
-                    })
-                        .done(function(data) {
-                            populateForm($(`#${context.id}-user-metadata`), data.observations, selectedValues, context.id, i18nStrings);
-                            addChangeListeners(context);
-                            $(`#${context.id}-cancel-submission`).on('click', function() {
-                                $.colorbox.close();
-                            })
-                            displayModal(context.id);
-                        })
-                        .fail(function() {
-                            // TODO: Handle failed API calls gracefully.
-                        })
-                })
+            createForm(context, i18nStrings);
+        } else if (context.reloadId) {
+            $(this).next().find(`#${context.id}-user-metadata`).empty();
+            createForm(context, i18nStrings);
         } else {
             // Hide all submission state indicators when the modal is reopened:
             $('.aspect-section').trigger(OBSERVATION_SUBMISSION, [ANY_SECTION_TYPE, SubmissionState.INITIAL]);
-            displayModal(context.id);
+            displayModal(context.id, context.reloadId);
         }
     });
+
+    function createForm(context, i18nStrings) {
+        let selectedValues = {};
+
+        $.ajax({
+            type: 'GET',
+            url: `/works/${context.work.split('/')[2]}/observations`,
+            dataType: 'json'
+        })
+            .done(function(data) {
+                selectedValues = data;
+
+                $.ajax({
+                    type: 'GET',
+                    url: '/observations',
+                    dataType: 'json'
+                })
+                    .done(function(data) {
+                        populateForm($(`#${context.id}-user-metadata`), data.observations, selectedValues, context.id, i18nStrings);
+                        addChangeListeners(context);
+                        $(`#${context.id}-cancel-submission`).click(function() {
+                            $.colorbox.close();
+                        })
+                        displayModal(context.id, context.reloadId);
+                    })
+                    .fail(function() {
+                        // TODO: Handle failed API calls gracefully.
+                    })
+            })
+    }
 }
 
 export function initBookNotesButtons() {
@@ -170,13 +180,17 @@ export function initBookNotesButtons() {
             processData: false,
             success: function() {
                 // Display success message
+                console.log('success');
             }
         });
     });
 
     $('.delete-note-button').on('click', function() {
+        let $button = $(this);
+        $button.attr('disabled', true);
+
         // Get form data
-        let formData = new FormData($(this).prop('form'));
+        let formData = new FormData($button.prop('form'));
 
         // Post data
         let workOlid = formData.get('work_id');
@@ -191,6 +205,20 @@ export function initBookNotesButtons() {
             processData: false,
             success: function() {
                 // Remove note view
+                let $listItem = $button.closest('li');
+                let $list = $listItem.parent();
+
+                $listItem.remove();
+
+                if (!$list.children().length) {
+                    let $listParent = $list.parent();
+                    $list.remove();
+                    $listParent.append(`
+                        <div class="no-content">
+                            No notes for this book.
+                        </div>
+                    `);
+                }
             }
         });
     });
@@ -198,7 +226,8 @@ export function initBookNotesButtons() {
 
 export function initObservationsButtons() {
     $('.delete-observations-button').on('click', function() {
-        let workOlid = `OL${$(this).prop('id').split('-')[0]}W`;
+        let $button = $(this);
+        let workOlid = `OL${$button.prop('id').split('-')[0]}W`;
 
         $.ajax({
             url: `/works/${workOlid}/observations`,
@@ -206,9 +235,77 @@ export function initObservationsButtons() {
             contentType: 'application/json',
             success: function() {
                 // Remove observations in view
+                let $observationsView = $button.closest('.booknotes-tab-view');
+                let $list = $observationsView.find('ul');
+
+                $list.empty();
+                $list.append(`
+                    <li>
+                        No observations for this work.
+                    </li>
+                `)
+                $list.addClass('no-content');
+
+                $button.parent().removeClass('observation-buttons');
+                $button.parent().addClass('no-content');
+                $button.addClass('hidden');
             }
         });
     });
+
+    $('.observations-list').on('observationReload', function(){
+        let $list = $(this);
+        let $buttonsDiv = $list.siblings('div').first();
+        let id = $list.attr('id');
+        let workOlid = `OL${id.split('-')[0]}W`;
+
+        $list.empty();
+        $list.append(`
+            <li class="throbber-li">
+                <div class="throbber"><h3>Updating observations</h3></div>
+            </li>
+        `)
+
+        $.ajax({
+            type: 'GET',
+            url: `/works/${workOlid}/observations`,
+            dataType: 'json'
+        })
+            .done(function(data) {
+                let listItems = '';
+                for (const [category, values] of Object.entries(data)) {
+                    let observations = values.join(', ');
+                    observations = observations.charAt(0).toUpperCase() + observations.slice(1);
+
+                    listItems += `
+                        <li>
+                            <span class="observation-category">${category.charAt(0).toUpperCase() + category.slice(1)}:</span> ${observations}
+                        </li>
+                    `;
+                }
+
+                $list.empty();
+
+                if (listItems.length === 0) {
+                    listItems = `
+                        <li>
+                            No observations for this work.
+                        </li>
+                    `;
+                    $list.addClass('no-content');
+                    $buttonsDiv.removeClass('observation-buttons');
+                    $buttonsDiv.addClass('no-content');
+                    $buttonsDiv.children().first().addClass('hidden');
+                } else {
+                    $list.removeClass('no-content');
+                    $buttonsDiv.removeClass('no-content');
+                    $buttonsDiv.addClass('observation-buttons');
+                    $buttonsDiv.children().first().removeClass('hidden');
+                }
+
+                $list.append(listItems);
+            });
+    })
 }
 
 /**

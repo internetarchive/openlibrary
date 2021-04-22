@@ -60,6 +60,10 @@
   padding: 1em 1em 0;
 }
 
+.observations-list.no-content {
+  margin-bottom: -1em;
+}
+
 .observations-modal-link {
   margin-top: 1em;
   font-size: 1.2em;
@@ -78,6 +82,21 @@
     background-color: @red;
     width: unset;
     font-size: 1.2em;
+  }
+}
+
+.throbber-li {
+  .throbber {
+    position: relative;
+    top: unset;
+    left: unset;
+    height: unset;
+    margin: 1em auto;
+
+    h3 {
+      padding-top: 1.5em;
+      margin-top: unset;
+    }
   }
 }
 
