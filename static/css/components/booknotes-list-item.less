@@ -1,0 +1,103 @@
+@import (reference) "../less/colors.less";
+
+/* Common elements */
+.booknotes-tab-view {
+  padding: 0 1em;
+}
+
+.no-content {
+  padding: 1em;
+  text-align: center;
+}
+
+/* Notes tab view */
+.notes-list-item {
+  border-bottom: 2px solid @lightest-grey;
+}
+
+.notes-list {
+  .notes-list-item:last-child {
+    border-bottom: none;
+  }
+}
+
+.note-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0;
+
+  .delete-note-button,
+  .update-note-button {
+    margin: 1em 0;
+  }
+
+  .delete-note-button {
+    background-color: @red;
+  }
+}
+
+.notes-section {
+  form {
+    width: 100%;
+    margin-bottom: 0;
+
+    textarea {
+      width: 100%;
+    }
+
+    div {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.book-info {
+  margin-top: 1em;
+}
+
+/* Observations tab view */
+.observations-list {
+  padding: 1em 1em 0;
+}
+
+.observations-modal-link {
+  margin-top: 1em;
+  font-size: 1.2em;
+}
+
+.observation-category {
+  font-weight: bold;
+}
+
+.observation-buttons {
+  display: flex;
+  justify-content: space-between;
+  padding: 1em;
+
+  .delete-observations-button {
+    background-color: @red;
+    width: unset;
+    font-size: 1.2em;
+  }
+}
+
+@media screen and (max-width: @width-breakpoint-tablet) {
+  .note-buttons,
+  .observation-buttons {
+    flex-direction: column-reverse;
+  }
+
+  .note-buttons {
+    .update-note-button {
+      margin-bottom: 0;
+    }
+  }
+
+  .observation-buttons {
+    text-align: center;
+
+    .delete-observations-button {
+      margin-top: 1em;
+    }
+  }
+}

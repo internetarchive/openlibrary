@@ -106,7 +106,7 @@ export function initPatronMetadata() {
         $form.append(`
             <div class="formElement metadata-submit">
               <div class="form-buttons">
-                <a class="small dialog--close plain" href="javascript:;" id="${id}-cancel-submission">${i18nStrings.close_text}</a>
+                <a class="dialog--close plain" href="javascript:;" id="${id}-cancel-submission">${i18nStrings.close_text}</a>
               </div>
             </div>`);
 

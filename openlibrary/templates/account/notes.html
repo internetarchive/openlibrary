@@ -38,20 +38,20 @@ $ user_key = user.key
                     <li><a href="#${work_id}-notes">Notes</a></li>
                     <li><a href="#${work_id}-observations">Observations</a></li>
                   </ul>
-                  <div id="${work_id}-notes">
+                  <div class="booknotes-tab-view" id="${work_id}-notes">
                     $ has_notes = False
                     $if i['notes']:
                       $ has_notes = True
-                      <ul>
+                      <ul class="notes-list">
                         $for k in sorted(i['notes']):
-                          <li>
+                          <li class="notes-list-item">
                             $if k == -1:
-                              <div>
+                              <div class="book-info">
                                 $_('My notes for the work'):
                               </div>
                             $else:
                               $ edition = i['editions'][k]
-                              <div>
+                              <div class="book-info">
                                 <div class="title">
                                   $_('My notes for an edition of ')
                                   $if edition.title:
@@ -68,7 +68,7 @@ $ user_key = user.key
                                   $else:
                                       <em>$_('Publisher unknown')</em>
                                   </div>
-                                  <div class="format">
+                                  <div>
                                       $edition.physical_format.replace('[', '').replace(']','')
                                       $if edition.languages:
                                           $_('in %(language)s', language=', '.join(l.name for l in edition.languages))
@@ -78,42 +78,50 @@ $ user_key = user.key
                                   </div>
                                 </div>
                               </div>
-                            <form class="book-notes-form" method="POST">
-                              $ work_olid = 'OL%dW' % i['work_id']
-                              $ edition_id = 'OL%dM' % k
-                              <textarea name="notes" rows="10">$i['notes'][k]</textarea>
-                              <input type="hidden" name="work_id" value="$work_olid" />
-                              $if k != -1:
-                                <input type="hidden" name="edition_id" value="$edition_id" />
-                              <button class="delete-note-button cta-btn" type="button">Delete</button>
-                              <button class="update-note-button cta-btn" type="button">Update</button>
-                            </form>
+                            <div class="notes-section">
+                              <form class="book-notes-form" method="POST">
+                                $ work_olid = 'OL%dW' % i['work_id']
+                                $ edition_id = 'OL%dM' % k
+                                <textarea name="notes" rows="10">$i['notes'][k]</textarea>
+                                <input type="hidden" name="work_id" value="$work_olid" />
+                                $if k != -1:
+                                  <input type="hidden" name="edition_id" value="$edition_id" />
+                                <div class="note-buttons">
+                                  <button class="delete-note-button cta-btn" type="button">Delete</button>
+                                  <button class="update-note-button cta-btn" type="button">Update</button>
+                                </div>
+                              </form>
+                            </div>
                           </li>
                       </ul>
                     $else:
-                      $_('No notes for this book.')
+                      <div class="no-content">
+                        $_('No notes for this book.')
+                      </div>
                   </div>
-                  <div id="${work_id}-observations">
+                  <div class="booknotes-tab-view" id="${work_id}-observations">
                     $ notes = None if not has_notes else i['notes'].get(-1, None)
                     $ work_key = i['work_key']
                     $ modal_id = str(work_id) + "-observations-modal"
 
                     $if i['observations']:
-                      <ul>
+                      <ul class="observations-list">
                         $for k in sorted(i['observations']):
                           $ category = k.capitalize()
                           $ observations = ', '.join(i['observations'][k]).capitalize()
                           <li>
-                            $category: $observations
+                            <span class="observation-category">$category:</span> $observations
                           </li>
                       </ul>
-                      <div>
+                      <div class="observation-buttons">
                         <button class="delete-observations-button cta-btn" id="${work_id}-observation-delete">Delete</button>
-                        $:macros.UserMetadata(_("Update observations"), modal_id, work_key=work_key, notes=notes)
+                        $:macros.UserMetadata(_("Update observations"), modal_id, classes="observations-modal-link", work_key=work_key, notes=notes)
                       </div>
                     $else:
-                      $_('No observations for this work.')<br>
-                      $:macros.UserMetadata(_("Make observations"), modal_id, work_key=work_key, notes=notes)
+                      <div class="no-content">
+                        $_('No observations for this work.') <br>
+                        $:macros.UserMetadata(_("Make observations"), modal_id, classes="observations-modal-link", work_key=work_key, notes=notes)
+                      </div>
                   </div>
                 </div>
               </li>
@@ -121,16 +129,5 @@ $ user_key = user.key
       $else:
         $_('No notes or observations.')<br>
     </div>
-    $if notes_and_observations:
-      <ul>
-        $for i in notes_and_observations:
-          <li>
-            <div>$i['work_id']</div>
-          </li>
-          $ entries = i.get('dict', None)
-          $if entries:
-            $for k, v in i['dict'].items():
-              $v<br>
-      </ul>
   </div>
 </div>
