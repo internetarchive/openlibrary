@@ -148,14 +148,16 @@ class Booknotes(object):
             return None
 
     @classmethod
-    def get_patron_booknotes_and_observations(cls, username):
+    def get_patron_booknotes_and_observations(cls, username, limit=25, page=1):
         # TODO: Add pagination
         """
         TODO: Document
         """
         oldb = db.get_db()
         data = {
-            'username': username
+            'username': username,
+            'limit': limit,
+            'offset': limit * (page - 1),
         }
 
         query = """
@@ -186,6 +188,27 @@ class Booknotes(object):
             GROUP BY work_id
         ) bn
         ON obs.work_id = bn.work_id
+        LIMIT $limit OFFSET $offset
         """
 
         return list(oldb.query(query, vars=data))
+
+    
+    @classmethod
+    def count_patron_booknotes_and_observations(cls, username):
+        """
+        TODO: document
+        """
+        oldb = db.get_db()
+        data = {
+            'username': username
+        }
+        query = """
+            SELECT COUNT(DISTINCT(t.work_id)) FROM (
+                SELECT work_id FROM booknotes WHERE username=$username
+                UNION
+                SELECT work_id FROM observations WHERE username=$username
+            ) AS t
+        """
+        
+        return oldb.query(query, vars=data)[0]['count']

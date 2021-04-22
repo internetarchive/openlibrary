@@ -744,14 +744,14 @@ class ReadingLog(object):
 class PatronBookNotes(object):
     """ Manages the patron's book notes and observations """
 
-    def __init__(self, user=None):
+    def __init__(self, user=None, limit=RESULTS_PER_PAGE, page=1):
         self.user = user or accounts.get_current_user()
         username = user.key.split('/')[-1]
-        self.notes_and_observations = self.get_notes_and_observations(username)
-        #self.works_and_editions = self.get_works_and_editions(self.notes_and_observations)
+        self.notes_and_observations = self.get_notes_and_observations(username, limit=limit, page=page)
+        self.notes_and_observations_count = self.get_count(username)
 
-    def get_notes_and_observations(self, username):
-        notes_and_observations = Booknotes.get_patron_booknotes_and_observations(username)
+    def get_notes_and_observations(self, username, limit=RESULTS_PER_PAGE, page=1):
+        notes_and_observations = Booknotes.get_patron_booknotes_and_observations(username, limit=limit, page=page)
 
         # Transform and enrich notes and observations data:
         for entry in notes_and_observations:
@@ -782,6 +782,8 @@ class PatronBookNotes(object):
             'first_publish_year': work.first_publish_year or None
         }
 
+    def get_count(self, username):
+        return Booknotes.count_patron_booknotes_and_observations(username)
 
 class account_my_book_notes(delegate.page):
     path = "/account/books/notes"
@@ -789,9 +791,19 @@ class account_my_book_notes(delegate.page):
     @require_login
     def GET(self):
         user = accounts.get_current_user()
-        booknotes = PatronBookNotes(user=user)
+
+        i = web.input(limit=RESULTS_PER_PAGE, page=1)
+        limit = h.safeint(i.limit) or RESULTS_PER_PAGE
+        page = h.safeint(i.page) or 1
+
+        booknotes = PatronBookNotes(user=user, limit=limit, page=page)
         # TODO: Wrap with feature flag:
-        return render['account/notes'](user, booknotes.notes_and_observations)
+        return render['account/notes'](
+            user, 
+            booknotes.notes_and_observations, 
+            booknotes.notes_and_observations_count,
+            page=page,
+            results_per_page=limit)
 
 
 class public_my_books(delegate.page):

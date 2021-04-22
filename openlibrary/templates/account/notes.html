@@ -1,4 +1,4 @@
-$def with (user, notes_and_observations)
+$def with (user, notes_and_observations, num_found, page=1, results_per_page=25)
 
 $ username = user.key.split('/')[-1]
 $ user_key = user.key
@@ -134,6 +134,9 @@ $ user_key = user.key
         </ul>
       $else:
         $_('No notes or observations.')<br>
+    </div>
+    <div class="pager">
+      $:macros.Pager(page, num_found, results_per_page)
     </div>
   </div>
 </div>
