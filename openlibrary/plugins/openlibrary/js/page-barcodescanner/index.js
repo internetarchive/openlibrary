@@ -14,7 +14,7 @@ export function init() {
         },
         decoder: {
             readers: ['ean_reader'],
-            multiple:false
+            multiple: false
         },
     }, function(err) {
         if (err) throw err;
@@ -49,7 +49,7 @@ export function init() {
     });
 
     let lastResult = null;
-    let lastScan = null;
+    let confirmation_list = [];
     Quagga.onDetected(result => {
         const code = result.codeResult.code;
         const url = `/isbn/${code}`;
@@ -58,11 +58,7 @@ export function init() {
         lastResult = code;
 
         if (isBarcodeISBN(code) && document.getElementById('multiple-scan').checked == false){
-            if (lastScan == null) {
-                var confirmation_list = [];
-                lastScan = code;
-            }
-            if (CheckISBN(code, confirmation_list) == true) 
+            if (CheckISBN(code, confirmation_list) == true)
                 window.location.href= url;
         }
         const isbn = code;
@@ -90,6 +86,6 @@ function CheckISBN(code, confirmation_list) {
         confirmation_list.splice(0, confirmation_list.length);
         return true;
     }
-    else 
+    else
         return false;
 }
