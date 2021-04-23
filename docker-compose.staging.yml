@@ -8,6 +8,9 @@
 version: "3.1"
 services:
   web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
     restart: always
     hostname: "$HOSTNAME"
     environment:

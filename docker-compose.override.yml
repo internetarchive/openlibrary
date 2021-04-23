@@ -5,6 +5,9 @@
 version: "3.1"
 services:
   web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
     ports:
       # Debugger
       - 3000:3000
@@ -23,6 +26,9 @@ services:
       - infobase
 
   solr-updater:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
@@ -40,6 +46,9 @@ services:
       - ./docker/ol-db-init.sh:/docker-entrypoint-initdb.d/ol-db-init.sh
 
   covers:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
     ports:
       - 7075:7075
     volumes:
@@ -47,6 +56,9 @@ services:
       - .:/openlibrary
 
   infobase:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
     ports:
       - 7000:7000
     volumes:
