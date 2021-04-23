@@ -13,7 +13,8 @@ export function init() {
             target: $('#interactive')[0],
         },
         decoder: {
-            readers: ['ean_reader']
+            readers: ['ean_reader'],
+            multiple:false
         },
     }, function(err) {
         if (err) throw err;
@@ -48,15 +49,22 @@ export function init() {
     });
 
     let lastResult = null;
+    let lastScan = null;
     Quagga.onDetected(result => {
         const code = result.codeResult.code;
         const url = `/isbn/${code}`;
-        if (document.getElementById('multiple-scan').checked == false){
-            window.location.href= url;
-        }
+
         if (!isBarcodeISBN(code) || code == lastResult) return;
         lastResult = code;
 
+        if (isBarcodeISBN(code) && document.getElementById('multiple-scan').checked == false){
+            if (lastScan == null) {
+                var confirmation_list = [];
+                lastScan = code;
+            }
+            if (CheckISBN(code, confirmation_list) == true) 
+                window.location.href= url;
+        }
         const isbn = code;
         const canvas = Quagga.canvas.dom.image;
         const card = LazyBookCard.fromISBN(isbn);
@@ -72,4 +80,16 @@ export function init() {
  */
 function isBarcodeISBN(code) {
     return code.startsWith('97');
+}
+
+function CheckISBN(code, confirmation_list) {
+    if (confirmation_list.length == 0) {
+        confirmation_list.push(code);
+    }
+    if (confirmation_list.includes(code)) {
+        confirmation_list.splice(0, confirmation_list.length);
+        return true;
+    }
+    else 
+        return false;
 }
