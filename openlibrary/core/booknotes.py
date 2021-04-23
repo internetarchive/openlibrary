@@ -149,9 +149,33 @@ class Booknotes(object):
 
     @classmethod
     def get_patron_booknotes_and_observations(cls, username, limit=25, page=1):
-        # TODO: Add pagination
         """
-        TODO: Document
+        Returns a list of the given patron's aggregate booknotes and observations.  The query results contain three
+        columns:
+          work_id:       The book's work ID
+
+          observations:  A list of dictionaries containing observation types and values. Types can be accessed by using
+                         the key "observation_type"; values by "observation_values".  The type is an integer that 
+                         corresponds with the an observation's id, and the values are a list of integers that 
+                         correspond with the observation's value ids (see observations.py for more information).
+
+          notes:         A list of dictionaries containing notes for each edition.  Edition IDs can be accessed by
+                         Using the key "edition_id"; and notes by the key "notes".  Edition IDs are integers.  An
+                         edition ID of -1 denotes a work-level note.
+
+        Note: Once Postgres is upgraded, we can simplify the query by using json_object_agg in place of json_agg:
+              SELECT
+                work_id,
+                json_object_agg(observation_type_id, observation_values) as observations
+              ...
+              SELECT
+		        work_id,
+		        json_object_agg(edition_id, notes) as notes
+
+              This will also simplify the observations and notes dictionaries, reducing the number of key-value pairs
+              to one for each dictionary.
+
+        return: A list of a patron's booknotes and observations.      
         """
         oldb = db.get_db()
         data = {
@@ -197,7 +221,10 @@ class Booknotes(object):
     @classmethod
     def count_patron_booknotes_and_observations(cls, username):
         """
-        TODO: document
+        Returns a count of distinct work IDs from both the booknotes and observations tables 
+        for the given username.  If a work ID is present in both tables, it is only counted once.
+
+        return: A count of distinct work IDs for the given username
         """
         oldb = db.get_db()
         data = {
