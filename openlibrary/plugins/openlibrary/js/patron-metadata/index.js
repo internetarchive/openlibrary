@@ -1,4 +1,6 @@
+import { Toast } from '../Toast';
 import '../../../../../static/css/components/metadata-form.less';
+import '../../../../../static/css/components/toast.less';
 
 // Event name for submission status updates:
 const OBSERVATION_SUBMISSION = 'observationSubmission';
@@ -164,6 +166,8 @@ export function initPatronMetadata() {
 }
 
 export function initBookNotesButtons() {
+    let toast;
+
     $('.update-note-button').on('click', function(){
         // Get form data
         let formData = new FormData($(this).prop('form'));
@@ -180,7 +184,11 @@ export function initBookNotesButtons() {
             processData: false,
             success: function() {
                 // Display success message
-                console.log('success');
+                if (toast) {
+                    toast.close();
+                }
+                toast = new Toast('Update successful!');
+                toast.show();
             }
         });
     });
