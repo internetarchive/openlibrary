@@ -332,7 +332,8 @@ def _get_deleted_types_and_values():
 
 def convert_observation_ids(id_dict):
     """
-    Given a dictionary of type and value IDs, returns a dictionary of equivalent type and value strings.
+    Given a dictionary of type and value IDs, returns a dictionary of equivalent
+    type and value strings.
 
     return: Dictionary of type and value strings
     """
@@ -347,11 +348,14 @@ def convert_observation_ids(id_dict):
     return conversion_results
 
 
-@cache.memoize(engine="memcache", key="all_observation_types_and_values", expires=cache_duration)
+@cache.memoize(
+    engine="memcache",
+    key="all_observation_types_and_values",
+    expires=cache_duration)
 def _get_all_types_and_values():
     """
-    Returns a dictionary of observation types and values mappings.  The keys for the dictionary are
-    the id numbers.
+    Returns a dictionary of observation types and values mappings.  The keys for the
+    dictionary are the id numbers.
 
     return: A dictionary of observation id to string value mappings.
     """
@@ -360,9 +364,9 @@ def _get_all_types_and_values():
     for o in OBSERVATIONS['observations']:
         types_and_values[str(o['id'])] = {
             'type': o['label'],
-            'values': {str(v['id']) : v['name'] for v in o['values']}
+            'values': {str(v['id']): v['name'] for v in o['values']}
         }
-    
+
     return types_and_values
 
 
