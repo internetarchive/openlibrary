@@ -44,5 +44,16 @@ DEPLOY_TAG="deploy-$(date +%Y-%m-%d)"
 sudo git tag $DEPLOY_TAG
 sudo git push origin $DEPLOY_TAG
 
+# Deploy the static files to ol-www1 ; this will not be needed once it's using docker
+STATIC_DIR=/tmp/ol-static-$CUR_SHA
+docker cp $(docker create --rm openlibrary/olbase:latest):/openlibrary/static $STATIC_DIR
+rsync -rvz $STATIC_DIR/ ol-www1:$STATIC_DIR
+ssh -A ol-www1 "
+  sudo rm -r /opt/openlibrary/openlibrary/static-backup || true;
+  sudo chown -R openlibrary:openlibrary $STATIC_DIR;
+  sudo mv /opt/openlibrary/openlibrary/{static,static-backup};
+  sudo mv $STATIC_DIR /opt/openlibrary/openlibrary/static;
+"
+
 echo "Finished production deployment at $(date)"
 echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
