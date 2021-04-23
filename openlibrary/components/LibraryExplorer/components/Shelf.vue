@@ -25,6 +25,8 @@
       </template>
     </component>
 
+    <ShelfIndex class="shelf-index" :node="node" v-if="showShelfIndex" />
+
     <OLCarousel
       class="shelf-carousel"
       ref="olCarousel"
@@ -85,7 +87,6 @@
       </template>
     </OLCarousel>
 
-    <ShelfIndex class="shelf-index" :node="node" v-if="showShelfIndex" />
   </div>
 </template>
 
