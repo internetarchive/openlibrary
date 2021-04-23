@@ -773,7 +773,8 @@ class PatronBookNotes(object):
 
             if entry['notes'] is not None:
                 entry['notes'] = {i['edition_id']: i['notes'] for i in entry['notes']}
-                entry['editions'] = {k: web.ctx.site.get(f'/books/OL{k}M') 
+                entry['editions'] = {
+                    k: web.ctx.site.get(f'/books/OL{k}M')
                     for k in entry['notes'] if k != NULL_EDITION_VALUE}
 
         return notes_and_observations
@@ -783,8 +784,9 @@ class PatronBookNotes(object):
         author_keys = [a.author.key for a in work.get('authors', [])]
 
         return {
-            'cover_url': (work.get_cover_url('S')
-                or 'https://openlibrary.org/images/icons/avatar_book-sm.png'),
+            'cover_url': (
+                work.get_cover_url('S') or
+                'https://openlibrary.org/images/icons/avatar_book-sm.png'),
             'title': work.get('title'),
             'authors': [a.name for a in web.ctx.site.get_many(author_keys)],
             'first_publish_year': work.first_publish_year or None
