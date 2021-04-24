@@ -87,14 +87,12 @@ function readapi_callback() {
  * Assumes presence of element with '#adminTiming' id and 'data-wks' attribute.
  */
 export function initAdminTiming() {
-    const readapi_percent = 100;
-    if (Math.random() * 100 < readapi_percent) {
-        readapi_starttime = Date.now();
-        const wks = $('#adminTiming').data('wks');
-        $.ajax({
-            url: `https://openlibrary.org/api/volumes/brief/json/${wks}?listofworks=True&no_details=True&stats=True`,
-            dataType: 'jsonp',
-            success: readapi_callback
-        });
-    }
+    // ALL admin views are sampled.
+    readapi_starttime = Date.now();
+    const wks = $('#adminTiming').data('wks');
+    $.ajax({
+        url: `https://openlibrary.org/api/volumes/brief/json/${wks}?listofworks=True&no_details=True&stats=True`,
+        dataType: 'jsonp',
+        success: readapi_callback
+    });
 }
