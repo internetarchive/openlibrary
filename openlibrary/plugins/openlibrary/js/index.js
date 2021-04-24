@@ -173,12 +173,12 @@ jQuery(function () {
 
     if (document.getElementById('searchFacets')) {
         import(/* webpackChunkName: "search" */ './search')
-            .then((module) => module.initSearchFacets());
-    }
-
-    if (document.getElementById('adminTiming')) {
-        import(/* webpackChunkName: "search" */ './search')
-            .then((module) => module.initAdminTiming());
+            .then((module) => {
+                module.initSearchFacets();
+                if (document.getElementById('adminTiming')) {
+                    module.initAdminTiming();
+                }
+            });
     }
 
     if ($('#cboxPrevious').length) {
