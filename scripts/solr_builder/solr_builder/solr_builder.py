@@ -2,7 +2,7 @@ from __future__ import division
 
 import asyncio
 import itertools
-from typing import Awaitable, List, Iterable, Literal
+from typing import Awaitable, List, Iterable, Literal, Sized
 
 import httpx
 from httpx import RequestError, HTTPStatusError, ReadTimeout, ConnectTimeout
@@ -72,9 +72,9 @@ def partition(lst: List, parts: int):
         yield lst[start:end]
 
 
-def batch_until_len(items: Iterable, max_batch_len: int):
+def batch_until_len(items: Iterable[Sized], max_batch_len: int):
     batch_len = 0
-    batch = []
+    batch = []  # type: List[Sized]
     for item in items:
         if batch_len + len(item) > max_batch_len and batch:
             yield batch
@@ -523,17 +523,20 @@ async def main(
         load_configs(ol, ol_config, db)
         q = build_job_query(job, start_at, offset, last_modified, limit)
 
-        count = None
         if progress:
             # Clear the file
             with open(progress, 'w') as f:
                 f.write('')
             with open(progress, 'a') as f:
                 f.write('Calculating total... ')
-                q_count = """SELECT COUNT(*) FROM(%s) AS foo""" % q
-                start = time.time()
-                count = db.query_all(q_count)[0][0]
-                end = time.time()
+
+        start = time.time()
+        q_count = """SELECT COUNT(*) FROM(%s) AS foo""" % q
+        count = db.query_all(q_count)[0][0]
+        end = time.time()
+
+        if progress:
+            with open(progress, 'a') as f:
                 f.write('%d (%.2fs)\n' % (count, end - start))
                 f.write('\t'.join(PLogEntry._fields) + '\n')
 
