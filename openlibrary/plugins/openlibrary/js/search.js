@@ -1,3 +1,14 @@
+/**
+ * Functionalities for templates/work_search.
+ */
+
+/**
+ * Displays more facets by removing the ui-helper-hidden class.
+ *
+ * @param {String} header class name
+ * @param {Number} start_facet_count initial number of displayed facets
+ * @param {Number} facet_inc number of hidden facets to be displayed
+ */
 function more(header, start_facet_count, facet_inc) {
     const facetEntry = `div.${header} div.facetEntry`
     const shown = $(`${facetEntry}:not(:hidden)`).length
@@ -13,6 +24,13 @@ function more(header, start_facet_count, facet_inc) {
     $(`${facetEntry}:hidden`).slice(0, facet_inc).removeClass('ui-helper-hidden');
 }
 
+/**
+ * Hides facets by adding the ui-helper-hidden class.
+ *
+ * @param {String} header class name
+ * @param {Number} start_facet_count initial number of displayed facets
+ * @param {Number} facet_inc number of displayed facets to be hidden
+ */
 function less(header, start_facet_count, facet_inc) {
     const facetEntry = `div.${header} div.facetEntry`
     const shown = $(`${facetEntry}:not(:hidden)`).length
@@ -28,6 +46,12 @@ function less(header, start_facet_count, facet_inc) {
     $(`${facetEntry}:not(:hidden)`).slice(shown - facet_inc, shown).addClass('ui-helper-hidden');
 }
 
+/**
+ * Initializes searchFacets element.
+ *
+ * Hides '.header_bull' element and adds onclick events to '.header_(more|less)' elements.
+ * Assumes presence of element with '#searchFacets' id and 'data-config' attribute.
+ */
 export function initSearchFacets() {
     const data_config_json = $('#searchFacets').data('config');
     const start_facet_count = data_config_json['start_facet_count'];
@@ -44,6 +68,9 @@ export function initSearchFacets() {
 
 let readapi_starttime = 0;
 
+/**
+ * Displays difference between readapi_starttime and now in '#adminTiming' element.
+ */
 function readapi_callback() {
     const endtime = Date.now();
     const duration = (endtime - readapi_starttime) / 1000;
@@ -53,14 +80,19 @@ function readapi_callback() {
     }
 }
 
+/**
+ * Initializes adminTiming element.
+ *
+ * Calls read_multiget API for a list of works.
+ * Assumes presence of element with '#adminTiming' id and 'data-wks' attribute.
+ */
 export function initAdminTiming() {
     const readapi_percent = 100;
     if (Math.random() * 100 < readapi_percent) {
         readapi_starttime = Date.now();
-        const ol = 'openlibrary.org';
         const wks = $('#adminTiming').data('wks');
         $.ajax({
-            url: `https://${ol}/api/volumes/brief/json/${wks}?listofworks=True&no_details=True&stats=True`,
+            url: `https://openlibrary.org/api/volumes/brief/json/${wks}?listofworks=True&no_details=True&stats=True`,
             dataType: 'jsonp',
             success: readapi_callback
         });
