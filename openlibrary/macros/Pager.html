@@ -1,6 +1,6 @@
 $def with (page, num_found, results_per_page=20)
 
-$ pages = (num_found // results_per_page) + 1
+$ pages = ceil(num_found / results_per_page)
 $if pages != 1:
     $ pages_in_set = 10
     $ half = pages_in_set // 2
