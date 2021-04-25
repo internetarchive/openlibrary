@@ -12,7 +12,7 @@ First, update `openlibrary/components/dev.js` to use the component you're develo
 Then, outside the docker environment, run: 
 
 ```shell script
-npx vue-cli-service serve openlibrary/components/dev.js
+npx @vue/cli-service serve openlibrary/components/dev.js
 ```
 
 ## Caveats

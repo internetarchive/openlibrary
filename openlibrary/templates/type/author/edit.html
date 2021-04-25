@@ -106,6 +106,14 @@ $putctx("robots", "noindex,nofollow")
                                 <textarea name="author--alternate_names" id="alternate_names" rows="6">$"; ".join(page.alternate_names)</textarea>
                             </div>
                         </div>
+                        <!-- TODO: Currently remote_ids is a dict instead of a list (as it is for editions)
+                        once it is changed to a list we can get rid of this -->
+                        $ remote_ids = {}
+                        $ if page.remote_ids["wikidata"]: remote_ids["wikidata"] = page.remote_ids["wikidata"]
+                        $ if page.remote_ids["viaf"]: remote_ids["viaf"] = page.remote_ids["viaf"]
+                        $ if page.remote_ids["isni"]: remote_ids["isni"] = page.remote_ids["isni"]
+                        $:render_component('AuthorIdentifiers', attrs=dict(remote_ids_string=remote_ids))
+                        <div id="hiddenIdentifierInputs"></div>
 
                         $if page.website:
                             $if ctx.user and ctx.user.is_admin():
@@ -139,6 +147,8 @@ $putctx("robots", "noindex,nofollow")
             <div class="formElement bottom">
                 $:macros.EditButtons(comment=page.comment_)
             </div>
-
     </form>
 </div>
+$ author_config = get_author_config()
+
+<!-- <h1>$author_config</h1> -->

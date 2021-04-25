@@ -558,6 +558,26 @@ def get_languages():
     return _languages
 
 @public
+def get_author_config():
+    return _get_author_config()
+
+@web.memoize
+def _get_author_config():
+    """Returns the author config.
+
+    The results are cached on the first invocation. Any changes to /config/author page require restarting the app.
+
+    This is is cached because fetching and creating the Thing object was taking about 20ms of time for each book request.
+    """
+    # TODO: figure out why this doesn't work
+    thing = web.ctx.site.get('/config/author')
+    if hasattr(thing, "identifiers"):
+        identifiers = [web.storage(t.dict()) for t in thing.identifiers if 'name' in t]
+    else:
+        identifiers = {}
+    return web.storage(identifiers=identifiers)
+
+@public
 def get_edition_config():
     return _get_edition_config()
 
