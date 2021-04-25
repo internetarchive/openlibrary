@@ -12,7 +12,7 @@
                     </span>
                     <span class="box">
                         <input type="text" name="value" id="id-value" v-model="inputValue" aria-invalid="false">
-                        <button type="button" name="add" class="repeat-add larger" :disabled="this.selected == ''" @click=clickSet>Set</button>
+                        <button type="button" name="add" :disabled="this.selected == ''" @click=clickSet>Set</button>
                     </span>
                     <template v-for="(item) in identifiersWithValues">
                         <div class="box" :key="item.name">{{ item.label }}</div>
@@ -39,16 +39,16 @@ export default {
             type: Array,
             default: () => [
                 {
-                    name: "wikidata",
-                    label: "Wikidata"
+                    name: 'wikidata',
+                    label: 'Wikidata'
                 },
                 {
-                    name: "viaf",
-                    label: "VIAF"
+                    name: 'viaf',
+                    label: 'VIAF'
                 },
                 {
-                    name: "isni",
-                    label: "ISNI"
+                    name: 'isni',
+                    label: 'ISNI'
                 }
             ],
         },
@@ -58,9 +58,9 @@ export default {
     // a fresh object every time this is initialized.
     data: () => {
         return {
-            selected: "", // Which identifier is selected in dropdown
-            inputValue: "", // What user put into input
-            remote_ids_parsed: {}, // The 
+            selected: '', // Which identifier is selected in dropdown
+            inputValue: '', // What user put into input
+            remote_ids_parsed: {},
             all_ids_by_key: {}
         }
     },
@@ -69,7 +69,7 @@ export default {
         // Merges the key/value with the config data about identifiers
         identifiersWithValues: function(){
             return Object.entries(this.remote_ids_parsed)
-            .map(([key, value]) => Object.assign(this.all_ids_by_key[key], {value: value}));
+                .map(([key, value]) => Object.assign(this.all_ids_by_key[key], {value: value}));
         }
     },
 
@@ -78,21 +78,21 @@ export default {
             // We use $set otherwise we wouldn't get the reactivity desired
             // See https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
             this.$set(this.remote_ids_parsed, this.selected, this.inputValue)
-            this.inputValue = "";
+            this.inputValue = '';
 
             // TODO: I'm not sure how to get around this
             // Right now, we have a vue component embeded as a small part of a larger form
             // As far as I can tell, there is no way for that parent form to automatically detect the inputs in a component without JS
             // This is because the vue component is in a shadow dom
             // So for now this just drops the hidden inputs into the the parent form anytime there is a change
-            const html = this.identifiersWithValues.map(item=>`<input type="hidden" name="author--remote_ids--${item.name}" value="${item.value}"/>`).join("")
-            document.querySelector("#hiddenIdentifierInputs").innerHTML = html;
+            const html = this.identifiersWithValues.map(item=>`<input type="hidden" name="author--remote_ids--${item.name}" value="${item.value}"/>`).join('');
+            document.querySelector('#hiddenIdentifierInputs').innerHTML = html;
         },
     },
     mounted: function(){
         // TODO: figue out how to pass valid JSON so we don't need this hack
-        this.remote_ids_parsed = JSON.parse(this.remote_ids_string.replace(/\'/g, '"'))
-        this.allIdentifiers.forEach(element=>this.all_ids_by_key[element.name] = element)
+        this.remote_ids_parsed = JSON.parse(this.remote_ids_string.replace(/'/g, '"'));
+        this.allIdentifiers.forEach(element=>this.all_ids_by_key[element.name] = element);
     }
 }
 </script>
