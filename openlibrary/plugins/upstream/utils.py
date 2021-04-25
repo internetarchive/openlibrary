@@ -557,17 +557,19 @@ def get_languages():
         _languages = sorted([web.storage(name=d.name, code=d.code, key=d.key) for d in web.ctx.site.get_many(keys)], key=lambda d: d.name.lower())
     return _languages
 
+
 @public
 def get_author_config():
     return _get_author_config()
+
 
 @web.memoize
 def _get_author_config():
     """Returns the author config.
 
-    The results are cached on the first invocation. Any changes to /config/author page require restarting the app.
+    The results are cached on the first invocation.
+    Any changes to /config/author page require restarting the app.
 
-    This is is cached because fetching and creating the Thing object was taking about 20ms of time for each book request.
     """
     # TODO: figure out why this doesn't work
     thing = web.ctx.site.get('/config/author')
