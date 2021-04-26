@@ -25,12 +25,12 @@ from infogami import config
 logger = logging.getLogger("openlibrary.solr-updater")
 
 
-def read_state_file(path):
+def read_state_file(path, initial_state: str = None):
     try:
         return open(path).read()
     except IOError:
         logger.error("State file %s is not found. Reading log from the beginning of today", path)
-        return datetime.date.today().isoformat() + ":0"
+        return initial_state or f"{datetime.date.today().isoformat()}:0"
 
 def get_default_offset():
     return datetime.date.today().isoformat() + ":0"
@@ -226,11 +226,13 @@ def main(
         socket_timeout=10,
         load_ia_scans=False,
         commit=False,
+        initial_state: str = None,
 ):
     """
     :param debugger: Wait for a debugger to attach before beginning
     :param exclude_edits_containing: Don't index matching edits
     :param solr_url: If wanting to override what's in the config file
+    :param initial_state: State to use if state file doesn't exist. Defaults to today.
     """
     global args
     FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
@@ -262,7 +264,7 @@ def main(
     logger.info("loading config from %s", ol_config)
     load_config(ol_config)
 
-    offset = read_state_file(state_file)
+    offset = read_state_file(state_file, initial_state)
 
     logfile = InfobaseLog(config.get('infobase_server'),
                           exclude=exclude_edits_containing)
