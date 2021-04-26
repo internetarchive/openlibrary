@@ -67,18 +67,21 @@ class FnToCLI:
         self.args = self.parser.parse_args()
         return self.args
 
-    def run(self):
+    def args_dict(self):
         if not self.args:
             self.parse_args()
 
-        args = {
+        return {
             k.replace('-', '_'): v
             for k, v in self.args.__dict__.items()
         }
+
+    def run(self):
+        args_dicts = self.args_dict()
         if asyncio.iscoroutinefunction(self.fn):
-            asyncio.run(self.fn(**args))
+            asyncio.run(self.fn(**args_dicts))
         else:
-            self.fn(**args)
+            self.fn(**args_dicts)
 
     @staticmethod
     def parse_docs(docs):

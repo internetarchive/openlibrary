@@ -23,6 +23,8 @@ from openlibrary.config import load_config
 from infogami import config
 
 logger = logging.getLogger("openlibrary.solr-updater")
+# FIXME: Some kind of hack introduced to work around DB connectivity issue
+args = {}
 
 
 def read_state_file(path, initial_state: str = None):
@@ -169,7 +171,7 @@ def update_keys(keys):
     # FIXME: Some kind of hack introduced to work around DB connectivity issue
     global args
     logger.debug("Args: %s" % str(args))
-    update_work.load_configs(args.ol_url, args.config, 'default')
+    update_work.load_configs(args['ol_url'], args['ol_config'], 'default')
 
     keys = [k for k in keys if k.count("/") == 2 and k.split("/")[1] in ("books", "authors", "works")]
 
@@ -234,7 +236,6 @@ def main(
     :param solr_url: If wanting to override what's in the config file
     :param initial_state: State to use if state file doesn't exist. Defaults to today.
     """
-    global args
     FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
     logging.basicConfig(level=logging.INFO, format=FORMAT)
     logger.info("BEGIN new-solr-updater")
@@ -260,7 +261,6 @@ def main(
     if solr_url:
         update_work.set_solr_base_url(solr_url)
 
-    logger.info(str(args))
     logger.info("loading config from %s", ol_config)
     load_config(ol_config)
 
@@ -297,4 +297,6 @@ def main(
 
 if __name__ == "__main__":
     from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
-    FnToCLI(main).run()
+    cli = FnToCLI(main)
+    args = cli.args_dict()
+    cli.run()
