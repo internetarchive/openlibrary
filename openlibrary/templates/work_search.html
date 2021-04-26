@@ -40,47 +40,6 @@ $else:
 
 $ start_facet_count = 5
 $ facet_inc = 10
-<script type="text/javascript">
-<!--
-start_facet_count = $start_facet_count
-facet_inc = $facet_inc
-
-function more(header) {
-    div_header = "div." + header
-    facetEntry = div_header + " div.facetEntry"
-    shown = \$(facetEntry + ":not(:hidden)").length
-    total = \$(facetEntry).length
-    if (shown == start_facet_count) {
-        \$("#" + header + "_less").show();
-        \$("#" + header + "_bull").show();
-    }
-    if (shown + facet_inc >= total) {
-        \$("#" + header + "_more").hide();
-        \$("#" + header + "_bull").hide();
-    }
-    \$(facetEntry +":hidden").slice(0,facet_inc).removeClass('ui-helper-hidden');
-}
-
-function less(header) {
-    div_header = "div." + header
-    facetEntry = div_header + " div.facetEntry"
-    shown = \$(facetEntry + ":not(:hidden)").length
-    total = \$(facetEntry).length
-    if (shown - facet_inc == start_facet_count) {
-        \$("#" + header + "_less").hide();
-        \$("#" + header + "_bull").hide();
-    }
-    if (shown == total) {
-        \$("#" + header + "_more").show();
-        \$("#" + header + "_bull").show();
-    }
-    \$(facetEntry + ":not(:hidden)").slice(shown-facet_inc,shown).addClass('ui-helper-hidden');
-}
-window.q.push(function(){
-    \$(".header_bull").hide();
-});
-//-->
-</script>
 
 <div>
 $if param and not error and num_found:
@@ -245,7 +204,7 @@ $if error:
     <h3>BARF! Search engine ERROR!</h3>
     <pre>$error.decode('utf-8', 'ignore')</pre>
 $elif param and len(docs):
-    <div id="searchFacets">
+    <div id="searchFacets" data-config="$dumps({'start_facet_count': start_facet_count, 'facet_inc': facet_inc})">
         <h3 class="collapse">$_("Zoom In")</h3>
         <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">$_("Focus your results using these") <a href="/search/howto">$_("filters")</a></div>
         $for header, label in facet_map:
@@ -279,41 +238,25 @@ $elif param and len(docs):
                     <span class="small"><a href="$:add_facet_url(header, k)" title="$_('Filter results for %(facet)s', facet=display)">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
                 </div>
             $if len(counts) > start_facet_count:
-                <div class="facetMoreLess"><span class="small" onclick="more('$header');false"><a href="javascript:;" id="${header}_more" class="red">$_("more")</a></span> <span id="${header}_bull" class="header_bull small gray">&bull;</span> <span class="small" onclick="less('$header');false"><a href="javascript:;" id="${header}_less" class="red ui-helper-hidden">$_("less")</a></span></div>
+                <div class="facetMoreLess">
+                    <span class="header_more small" data-header="$header">
+                        <a href="javascript:;" id="${header}_more" class="red">$_("more")</a>
+                    </span>
+                    <span id="${header}_bull" class="header_bull small gray">&bull;</span>
+                    <span class="header_less small" data-header="$header">
+                        <a href="javascript:;" id="${header}_less" class="red ui-helper-hidden">$_("less")</a>
+                    </span>
+                </div>
             </div>
         </div>
 <!-- /facets -->
     </div>
 
     $if param and not error and len(docs):
-        $ readapi_percent = 100
-        $if ctx.user and ctx.user.is_admin():
-            <div id="adminTiming" class="small sansserif clearfix"><br/><span class="adminOnly">Searching solr took $("%.2f" % search_secs) seconds</span></div>
-            $ readapi_percent = 100
         $ wks = '|'.join([w.key for w in works])
-        $ ol = 'openlibrary.org'
-        <script type="text/javascript">
-        <!--
-        window.q.push( function () {
-            function readapi_callback(data, textStatus, jqXHR) {
-                endtime = Date.now();
-                //document.write(data.stats.summary.toSource());
-                duration = (endtime - starttime) / 1000;
-                disp = document.getElementById("adminTiming");
-                if (disp) {
-                    disp.innerHTML += '<br/><br/><span class="adminOnly">Read API call took ' + duration + ' seconds</span>';
-                }
-            }
-            if (Math.random() * 100 < $readapi_percent) {
-                starttime = Date.now();
-                \$.ajax({
-                    url: 'https://$ol/api/volumes/brief/json/$wks?listofworks=True&no_details=True&stats=True',
-                    dataType: 'jsonp',
-                    success: readapi_callback
-                });
-            }
-        });
-        //-->
-        </script>
+        $if ctx.user and ctx.user.is_admin():
+            <div id="adminTiming" class="small sansserif clearfix" data-wks="$wks">
+                <br/><span class="adminOnly">Searching solr took $("%.2f" % search_secs) seconds</span>
+            </div>
   </div>
 </div>

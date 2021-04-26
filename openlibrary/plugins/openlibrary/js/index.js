@@ -171,6 +171,16 @@ jQuery(function () {
             .then((module) => module.initAdmin());
     }
 
+    if (document.getElementById('searchFacets')) {
+        import(/* webpackChunkName: "search" */ './search')
+            .then((module) => {
+                module.initSearchFacets();
+                if (document.getElementById('adminTiming')) {
+                    module.initAdminTiming();
+                }
+            });
+    }
+
     if ($('#cboxPrevious').length) {
         $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});
     }
