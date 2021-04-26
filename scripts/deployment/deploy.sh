@@ -14,17 +14,15 @@ if [[ $HOSTNAME != ol-home0.* ]]; then
 fi
 
 # `sudo git pull origin master` the core Open Library repos:
-# 1. https://github.com/internetarchive/olsystem
-# 2. https://git.archive.org/jake/booklending_utils
-# 3. https://github.com/internetarchive/openlibrary
-# 4. https://github.com/internetarchive/infogami
-
 ### Needed to log into BOOKLENDING_UTILS
-
-REPO_DIRS="/opt/olsystem /opt/openlibrary /opt/openlibrary/vendor/infogami /opt/booklending_utils"
-for REPO_DIR in $REPO_DIRS; do
-    cd $REPO_DIR
-    sudo git pull origin master
+REPO_DIRS="/opt/olsystem /opt/openlibrary"
+for SERVER in ol-home0 ol-covers0 ol-web1 ol-web2; do
+    if [[ $SERVER == ol-web* || $SERVER == ol-home* ]]; then
+        REPO_DIRS="$REPO_DIRS /opt/booklending_utils"
+    fi
+    for REPO_DIR in $REPO_DIRS; do
+        ssh $SERVER "cd $REPO_DIR && git pull origin master"
+    done
 done
 
 # These commands were run once and probably do not need to be repeated
@@ -53,23 +51,10 @@ cd /opt/olimages
 time docker save oldev:latest | gzip > oldev_latest.tar.gz
 
 # Transfer the .tar.gz image and four repo dirs to other hosts
-SERVERS="ol-covers0 ol-web1 ol-web2"
-for SERVER in $SERVERS; do
-    echo "Starting rsync of oldev_latest.tar.gz to $SERVER..."
+for SERVER in ol-covers0 ol-web1 ol-web2; do
     # ~4 min
     time rsync -a --no-owner --group --verbose oldev_latest.tar.gz "$SERVER:/opt/olimages/"
-    REPO_DIRS="/opt/olsystem /opt/openlibrary /opt/openlibrary/vendor/infogami"
-    if [[ $SERVER == ol-web* ]]; then
-        REPO_DIRS="$REPO_DIRS /opt/booklending_utils"
-    fi
-    for REPO_DIR in $REPO_DIRS; do
-        echo "Starting rsync of $REPO_DIR to $SERVER..."
-        time rsync -a -r --no-owner --group --verbose "$REPO_DIR/" "$SERVER:$REPO_DIR"
-    done
-    echo -e "Finished rsync to $SERVER...\n"
-done
 
-for SERVER in $SERVERS; do
     # ~2 - 4 min
     time ssh $SERVER docker image prune -f
     # Decompress the .tar.gz image that was transfered from ol-home0
