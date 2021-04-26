@@ -20,8 +20,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - uses: actions/cache@v2
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-venv-${{ hashFiles('requirements*.txt') }}
+          path: ${{ env.pythonLocation }}
+          key: ${{ runner.os }}-venv-${{ env.pythonLocation }}-${{ hashFiles('requirements*.txt') }}
       - name: Install dependencies
         run: |
           # https://lxml.de/installation.html#requirements
@@ -31,8 +31,7 @@ jobs:
           pip list --outdated
       - run: make git
       - name: Run make i18n
-        run: |
-          make i18n
+        run: make i18n
       - name: Run tests
         run: |
           git fetch --no-tags --prune --depth=1 origin master
