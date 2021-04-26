@@ -227,7 +227,7 @@ def main(
         solr_url: str = None,
         socket_timeout=10,
         load_ia_scans=False,
-        commit=False,
+        commit=True,
         initial_state: str = None,
 ):
     """
