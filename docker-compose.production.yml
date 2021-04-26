@@ -153,6 +153,28 @@ services:
     secrets:
       - ia_db_pw_file
 
+  # This will replace solr-updater once we fully migrate to solr8
+  solr8-updater:
+    profiles: ["ol-home0"]
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    restart: always
+    hostname: "$HOSTNAME"
+    environment:
+      - PYENV_VERSION=${PYENV_VERSION:-}
+      - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - OL_URL=https://openlibrary.org/
+      - STATE_FILE=solr8-update.offset
+      - EXTRA_OPTS=--solr-url http://ol-solr1:8984/solr/openlibrary --initial-state '2021-04-12:0'
+    volumes:
+      - solr-updater-data:/solr-updater-data
+      - ../olsystem:/olsystem
+    secrets:
+      - ia_db_pw_file
+    command: docker/ol-solr-updater-start.sh
+    networks:
+      - webnet
+      - dbnet
+
   importbot:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"

@@ -45,6 +45,7 @@ services:
       - OL_CONFIG=conf/openlibrary.yml
       - PYENV_VERSION=${PYENV_VERSION:-}
       - OL_URL=http://web:8080/
+      - STATE_FILE=solr-update.offset
     volumes:
       - solr-updater-data:/solr-updater-data
     networks:
