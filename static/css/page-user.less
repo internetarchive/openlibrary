@@ -152,19 +152,14 @@ th.toggle-all {
     }
   }
 }
-/* stylelint-disable no-descending-specificity */
 .import-export {
   display: flex;
   flex-wrap: wrap;
-  .import-export-readinglog {
+  &__readinglog {
     flex: 1;
     padding: 0 10px;
   }
-  .olform--decoration {
-    width: auto;
-  }
 }
-/* stylelint-enable selector-max-specificity */
 
 #myProgress {
   margin-top: 5px;
@@ -205,7 +200,6 @@ tr.table-row.selected{
 }
 
 .olform--decoration {
-  width: 350px;
   margin: 20px 0;
   border: 2px solid @lightest-grey;
   padding: 20px;
