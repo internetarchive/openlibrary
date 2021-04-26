@@ -43,7 +43,7 @@ services:
     hostname: "$HOSTNAME"
     environment:
       - OL_CONFIG=conf/openlibrary.yml
-      - PYENV_VERSION=${PYENV_VERSION:-}
+      - PYENV_VERSION=${PYENV_VERSION:-3.9.4}
       - OL_URL=http://web:8080/
       - STATE_FILE=solr-update.offset
     volumes:
