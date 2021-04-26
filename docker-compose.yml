@@ -1,14 +1,11 @@
 version: "3.1"
 services:
   web:
-    image: "oldev:${OLDEV_TAG:-latest}"
+    image: "${OLIMAGE:-oldev:latest}"
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
       - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
       - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 4 --timeout 180}
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.oldev
     command: docker/ol-web-start.sh
     ports:
       - ${WEB_PORT:-8080}:8080
@@ -40,10 +37,7 @@ services:
         max-file: "4"
 
   solr-updater:
-    image: "oldev:${OLDEV_TAG:-latest}"
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.oldev
+    image: "${OLIMAGE:-oldev:latest}"
     command: docker/ol-solr-updater-start.sh
     restart: always
     hostname: "$HOSTNAME"
@@ -63,14 +57,11 @@ services:
       - webnet
 
   covers:
-    image: "oldev:${OLDEV_TAG:-latest}"
+    image: "${OLIMAGE:-oldev:latest}"
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
       - COVERSTORE_CONFIG=${COVERSTORE_CONFIG:-/openlibrary/conf/coverstore.yml}
       - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --max-requests 250}
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.oldev
     command: docker/ol-covers-start.sh
     expose:
       - 7075
@@ -83,14 +74,11 @@ services:
         max-file: "4"
 
   infobase:
-    image: "oldev:${OLDEV_TAG:-latest}"
+    image: "${OLIMAGE:-oldev:latest}"
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
       - INFOBASE_CONFIG=${INFOBASE_CONFIG:-/openlibrary/conf/infobase.yml}
       - INFOBASE_OPTS=${INFOBASE_OPTS:-}
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.oldev
     command: docker/ol-infobase-start.sh
     expose:
       - 7000

@@ -63,10 +63,12 @@ USER root
 # Add pyenv to root's bashrc as well
 RUN echo '\nexport PATH="/home/openlibrary/.pyenv/bin:$PATH"\neval "$(pyenv init -)"\neval "$(pyenv virtualenv-init -)"' >> /root/.bashrc
 
-RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary \
- && chown openlibrary:openlibrary /var/log/openlibrary /var/lib/openlibrary \
- && mkdir /openlibrary \
- && chown openlibrary:openlibrary /openlibrary
+RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary && chown openlibrary:openlibrary /var/log/openlibrary /var/lib/openlibrary \
+ && mkdir /openlibrary && chown openlibrary:openlibrary /openlibrary \
+ && mkdir -p /var/lib/coverstore && chown openlibrary:openlibrary /var/lib/coverstore \
+ # In order to write to solr-updater's named volume, this needs to be
+ # pre-created with the right permissions
+ && mkdir -p /solr-updater-data && chown openlibrary:openlibrary /solr-updater-data
 WORKDIR /openlibrary
 
 USER openlibrary
@@ -84,7 +86,4 @@ RUN ln -s vendor/infogami/infogami infogami \
  && make \
  && python3.9 -m pip list --outdated
 
-# Expose Open Library and Infobase
-EXPOSE 80 7000
-CMD scripts/openlibrary-server conf/openlibrary.yml \
-    --gunicorn --workers 4 --timeout 180 --bind :8080
+ENTRYPOINT ["/openlibrary/docker/docker-entrypoint.sh"]
