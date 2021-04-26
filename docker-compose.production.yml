@@ -160,7 +160,7 @@ services:
     restart: always
     hostname: "$HOSTNAME"
     environment:
-      - PYENV_VERSION=${PYENV_VERSION:-}
+      - PYENV_VERSION=${PYENV_VERSION:-3.9.4}
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
       - STATE_FILE=solr8-update.offset
