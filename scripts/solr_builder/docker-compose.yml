@@ -39,9 +39,8 @@ services:
   ol:
     image: olpython:latest
     build:
-      context: .
-      dockerfile: Dockerfile.olpython
-    working_dir: "/openlibrary/scripts/solr_builder"
+      context: ../..
+      dockerfile: scripts/solr_builder/Dockerfile.olpython
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor

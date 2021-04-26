@@ -4,8 +4,10 @@ ENV PYTHONPATH=/openlibrary:/openlibrary/vendor/infogami
 ENV PYENV_VERSION=3.9.4
 
 USER root
-WORKDIR /openlibrary
+COPY requirements*.txt ./
 RUN pip install -r requirements_test.txt
+
+WORKDIR /openlibrary/scripts/solr_builder
 
 RUN pip install \
     # For real-time profiling
@@ -14,6 +16,6 @@ RUN pip install \
     Cython
 
 # Build cython files
-RUN ./scripts/solr_builder/build-cython.sh
+RUN ./build-cython.sh
 
 EXPOSE 4000

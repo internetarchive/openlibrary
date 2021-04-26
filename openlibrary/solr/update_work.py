@@ -276,6 +276,23 @@ def datetimestr_to_int(datestr):
 
     return int(time.mktime(t.timetuple()))
 
+
+def safeget(func):
+    """
+    TODO: DRY with solrbuilder copy
+    >>> safeget(lambda: {}['foo'])
+    >>> safeget(lambda: {}['foo']['bar'][0])
+    >>> safeget(lambda: {'foo': []}['foo'][0])
+    >>> safeget(lambda: {'foo': {'bar': [42]}}['foo']['bar'][0])
+    42
+    >>> safeget(lambda: {'foo': 'blah'}['foo']['bar'])
+    """
+    try:
+        return func()
+    except (KeyError, IndexError, TypeError):
+        return None
+
+
 class SolrProcessor:
     """Processes data to into a form suitable for adding to works solr.
     """
@@ -342,6 +359,37 @@ class SolrProcessor:
                             identifiers[k].append(v)
         return sorted(editions, key=lambda e: int(e.get('pub_year') or -sys.maxsize))
 
+    @staticmethod
+    def normalize_authors(authors) -> List[dict]:
+        """
+        Need to normalize to a predictable format because of inconsitencies in data
+
+        >>> SolrProcessor.normalize_authors([
+        ...     {'type': {'key': '/type/author_role'}, 'author': '/authors/OL1A'}
+        ... ])
+        [{'type': {'key': '/type/author_role'}, 'author': {'key': '/authors/OL1A'}}]
+        >>> SolrProcessor.normalize_authors([{
+        ...     "type": {"key": "/type/author_role"},
+        ...     "author": {"key": "/authors/OL1A"}
+        ... }])
+        [{'type': {'key': '/type/author_role'}, 'author': {'key': '/authors/OL1A'}}]
+        """
+        return [
+            {
+                'type': {
+                    'key': safeget(lambda: a['type']['key']) or '/type/author_role'
+                },
+                'author': (
+                    a['author'] if isinstance(a['author'], dict)
+                    else {'key': a['author']}
+                )
+            }
+            for a in authors
+            # TODO: Remove after
+            #  https://github.com/internetarchive/openlibrary-client/issues/126
+            if 'author' in a
+        ]
+
     def get_author(self, a):
         """
         Get author dict from author entry in the work.
@@ -352,16 +400,10 @@ class SolrProcessor:
         :return: Full author document
         :rtype: dict or None
         """
-        # TODO is this still an active problem?
-        if 'author' not in a: # OL Web UI bug
-            return # http://openlibrary.org/works/OL15365167W.yml?m=edit&v=1
-
-        author = a['author']
-
-        if 'type' in author:
+        if 'type' in a['author']:
             # means it is already the whole object.
             # It'll be like this when doing re-indexing of solr.
-            return author
+            return a['author']
 
         key = a['author']['key']
         m = re_author_key.match(key)
@@ -379,8 +421,7 @@ class SolrProcessor:
         """
         authors = [
             self.get_author(a)
-            for a in w.get("authors", [])
-            if 'author' in a  # TODO: Remove after https://github.com/internetarchive/openlibrary-client/issues/126
+            for a in SolrProcessor.normalize_authors(w.get("authors", []))
         ]
 
         if any(a['type']['key'] == '/type/redirect' for a in authors):
@@ -1335,7 +1376,7 @@ def update_author(akey, a=None, handle_redirects=True):
     work_count = reply['response']['numFound']
     docs = reply['response'].get('docs', [])
     top_work = None
-    if docs:
+    if docs and docs[0].get('title', None):
         top_work = docs[0]['title']
         if docs[0].get('subtitle', None):
             top_work += ': ' + docs[0]['subtitle']

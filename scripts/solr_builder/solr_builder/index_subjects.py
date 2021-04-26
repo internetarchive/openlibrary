@@ -7,7 +7,7 @@ import httpx
 
 from openlibrary.solr.update_work import build_subject_doc, solr_insert_documents
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
-from scripts.solr_builder.solr_builder.solr_builder_main import safeget
+from scripts.solr_builder.solr_builder.solr_builder import safeget
 
 
 async def index_subjects(
