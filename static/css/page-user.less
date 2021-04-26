@@ -152,11 +152,12 @@ th.toggle-all {
     }
   }
 }
-
 .import-export {
   display: flex;
-  .import {
+  flex-wrap: wrap;
+  &__readinglog {
     flex: 1;
+    padding: 0 10px;
   }
 }
 
@@ -199,7 +200,6 @@ tr.table-row.selected{
 }
 
 .olform--decoration {
-  width: 350px;
   margin: 20px 0;
   border: 2px solid @lightest-grey;
   padding: 20px;
