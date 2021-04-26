@@ -93,6 +93,11 @@ jQuery(function () {
         import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
     }
+    // conditionally load for user edit page
+    if (document.getElementById('add_row_button')) {
+        import(/* webpackChunkName: "user-website" */ './edit')
+            .then(module => module.initEditRow());
+    }
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
         import('./realtime_account_validation.js')

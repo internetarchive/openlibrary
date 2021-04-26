@@ -15,6 +15,18 @@ function update_len() {
     $('#excerpts-excerpt-len').html(2000 - len).css('color', color);
 }
 
+export function initEditRow(){
+    document.querySelector('#add_row_button').addEventListener('click', ()=>add_row('website'));
+}
+
+function add_row(name) {
+    const inputs = document.querySelector(`#clone_${name} #inputs`);
+    const cloned = inputs.children[0].cloneNode(true);
+    cloned.name = `${name}#${inputs.children.length}`;
+    cloned.value = '';
+    inputs.appendChild(cloned);
+}
+
 function show_hide_title() {
     if ($('#excerpts-display .repeat-item').length > 1) {
         $('#excerpts-so-far').show();
