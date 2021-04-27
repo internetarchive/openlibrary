@@ -8,15 +8,15 @@ $def with (author)
   xmlns:dcterms='http://purl.org/dc/terms/'
   xmlns:foaf='http://xmlns.com/foaf/0.1/'
   xmlns:ov='http://open.vocab.org/terms/'
+  xmlns:owl='http://www.w3.org/2002/07/owl#'
 >
-
     $if author.enumeration:
         $ name = author.name + ", " + author.enumeration
     $else:
         $ name = author.name
 
-    $ auri = "https://openlibrary.org" + author.key
-
+    $ auri = "http://openlibrary.org" + author.key
+    $ agent_type = author.foaf_agent()
 
     $def display(tag, value):
         $if isinstance(value, list):
@@ -25,8 +25,7 @@ $def with (author)
         $elif value:
             <$tag>$value</$tag>
 
-
-    <foaf:Person rdf:about="$auri">
+    <foaf:$agent_type rdf:about="$auri">
         $:display("foaf:name", name)
         $:display("rdg2:variantNameForThePerson", author.alternate_names)
         $:display("rdg2:biographicalInformation", author.bio)
@@ -45,7 +44,12 @@ $def with (author)
                 <dcterms:date>$author.death_date</dcterms:date>
             </bio:Death>
         </bio:event>
-
+      $if 'isni' in author.remote_ids:
+        <owl:sameAs rdf:resource="http://isni.org/isni/$author.remote_ids['isni']"/>
+      $if 'wikidata' in author.remote_ids:
+        <owl:sameAs rdf:resource="http://www.wikidata.org/entity/$author.remote_ids['wikidata']"/>
+      $if 'viaf' in author.remote_ids:
+        <owl:sameAs rdf:resource="http://viaf.org/viaf/$author.remote_ids['viaf']"/>
       $if author.wikipedia:
         <foaf:isPrimaryTopicOf>
             <foaf:Document rdf:about="$author.wikipedia">
@@ -60,13 +64,13 @@ $def with (author)
             </foaf:Document>
         </foaf:page>
 
-      $for photo in author.photos:
+      $ photos = [p for p in author.photos if p > 0]
+      $for photo in photos:
         $ auphoto = "https://covers.openlibrary.org/b/id/" + str(photo) + "-M.jpg"
         <foaf:depiction>
             <foaf:Image rdf:about="$auphoto" />
         </foaf:depiction>
-
-    </foaf:Person>
+    </foaf:$agent_type>
 
     <!-- administrative -->
     <rdf:Description rdf:about="">
