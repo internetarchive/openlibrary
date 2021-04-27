@@ -103,8 +103,12 @@ $jsdef render_my_lists(lists, property='active'):
             <p class="list">
                 <a href="$list.key" class="add-to-list" data-list-key="$list.key">$list.name</a>
             </p>
+           
+$jsdef render_already_lists(lists, user_key):
+    $for list in lists:
+        $:show_list(list, user_key)
 
-$jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl, readinglogonly, use_work):
+$jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl, readinglogonly, use_work, user_key):
     <div class="dropit">
           $if edition_key and not work_key:
             <div class="dropper on edition-page-lists-dropdown">
@@ -226,6 +230,9 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                 </a>
       </div>
     </div>
+    <ul id="already-lists" class="listLists">
+      $:render_already_lists(lists, user_key)
+    </ul>
 
 $jsdef render_widget_display(lists, limit, user_key):
     $for i, list in enumerate(lists):
@@ -258,7 +265,7 @@ $if include_header:
 $if include_widget:
   $if ctx.user or not work_key:
     <div class="widget-add $:(not work_key and 'old-style-lists')">
-      $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url(), readinglog_only, False)
+      $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url(), readinglog_only, False,user_key)
     </div>
   $else:
     <div class="dropit">
@@ -288,7 +295,7 @@ $if include_widget:
 
 
 $if include_showcase:
-  <ul class="listLists">
+  <ul id="list-lists" class="listLists">
     $:render_widget_display(page_lists, 3, user_key)
   </ul>
 
@@ -545,13 +552,14 @@ window.q.push(function() {
             }
         }
         \$container.find(".my-lists").html(render_my_lists(listsThatDontContainIt, 'key'));
+        \$container.find("#already-lists").html(render_already_lists(listsThatContainIt, user_key));
         var filteredShowcaseLists = seed_info.lists;
         if (Lists.user_lists.length) {
             filteredShowcaseLists = filteredShowcaseLists.filter(function(list) {
                 return list.owner.key != Lists.user_lists[0].owner.key;
             });
         }
-        \$container.find(".listLists").html(render_widget_display(listsThatContainIt.concat(filteredShowcaseLists), 3, user_key));
+        \$container.find("#list-lists").html(render_widget_display(listsThatContainIt.concat(filteredShowcaseLists), 3, user_key));
         setup_widget_display_events();
     }
 
