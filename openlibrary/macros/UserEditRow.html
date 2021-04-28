@@ -9,17 +9,13 @@ $ value = page[name]
     </div>
 $if unique:
     <div class="input">
-        <span id="inputs">
-            <input type="text" id="$name" name="$name" value="$value"/>
-        </span>
+        <input type="text" id="$name" name="$name" value="$value"/>
     </div>
 $else:
     $ value = value or [""]
     $for i, v in enumerate(value):
         <div class="input">
-            <span id="inputs">
-                <input type="text" name="$name#$i" value="$v"/>
-            </span>
+            <input type="text" name="$name#$i" value="$v"/>
             <span>
                 $if i == len(value) - 1:
                     <button id="add_row_button" type="button">$_('Add another')</button>

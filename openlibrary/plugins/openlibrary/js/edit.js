@@ -19,12 +19,16 @@ export function initEditRow(){
     document.querySelector('#add_row_button').addEventListener('click', ()=>add_row('website'));
 }
 
+/**
+ * Adds another input box below the last when adding multiple websites to user profile.
+ * @param string name - when prefixed with clone_ should match an element identifier in the page. e.g. if name would refer to clone_website
+**/
 function add_row(name) {
-    const inputs = document.querySelector(`#clone_${name} #inputs`);
-    const cloned = inputs.children[0].cloneNode(true);
-    cloned.name = `${name}#${inputs.children.length}`;
-    cloned.value = '';
-    inputs.appendChild(cloned);
+    const inputBoxes = document.querySelectorAll(`#clone_${name} input`);
+    const inputBox = document.createElement('input');
+    inputBox.name = `${name}#${inputBoxes.length}`;
+    inputBox.type = 'text';
+    inputBoxes[inputBoxes.length-1].after(inputBox);
 }
 
 function show_hide_title() {
