@@ -3,12 +3,11 @@
 @import (reference) "../less/breakpoints.less";
 
 .toast {
-  position: sticky;
+  position: fixed;
   top: 20px;
+  left: 0;
+  right: 0;
   z-index: @z-index-level-17;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 
   min-width: 10%;
   max-width: 50%;
@@ -20,6 +19,8 @@
   border: 1px solid @mid-grey;
   box-shadow: 0 .5rem 1rem @boxshadow-black;
 
+  visibility: hidden;
+
   .toast--close {
     padding-left: .75em;
   }
@@ -28,6 +29,10 @@
     cursor: pointer;
     text-decoration: none;
   }
+}
+
+.show {
+  visibility: visible;
 }
 
 @media screen and (max-width: @width-breakpoint-tablet) {

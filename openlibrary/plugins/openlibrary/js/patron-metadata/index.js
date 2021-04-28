@@ -169,6 +169,9 @@ export function initBookNotesButtons() {
     let toast;
 
     $('.update-note-button').on('click', function(){
+        // If button is inside of metadata form, set toast's parent element to the form:
+        let $parent = $(this).hasClass('notes-page-btn') ? $('body') : $(this).closest('.metadata-form');
+
         // Get form data
         let formData = new FormData($(this).prop('form'));
 
@@ -187,7 +190,7 @@ export function initBookNotesButtons() {
                 if (toast) {
                     toast.close();
                 }
-                toast = new Toast('Update successful!');
+                toast = new Toast($parent, 'Update successful!');
                 toast.show();
             }
         });
