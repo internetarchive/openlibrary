@@ -351,6 +351,18 @@ class robotstxt(delegate.page):
             raise web.notfound()
 
 
+class opensearchxml(delegate.page):
+    path = '/opensearch.xml'
+
+    def GET(self):
+        web.header('Content-Type', 'text/plain')
+        try:
+            data = open('static/opensearch.xml').read()
+            raise web.HTTPError('200 OK', {}, data)
+        except IOError:
+            raise web.notfound()
+
+
 class health(delegate.page):
     path = '/health'
     def GET(self):
