@@ -9,18 +9,18 @@ $ user_key = user.key
       <a href="$user.key">$username</a> &raquo; $_("Book Notes")
     </div>
     <div>
-      <h1 style="display:inline">Book Notes</h1>
+      <h1>Book Notes</h1>
     </div>
-    <div style="margin-top: 1em;">
+    <div class="list-container">
       $if notes_and_observations:
         <ul>
             $for i in notes_and_observations:
               $ work_id = i.work_id
               $ work_cover_url = i.work['cover_url']
               
-              <li style="border-bottom: 1px solid #f2f0e7; margin-bottom: 1em; background-color: #f9f9f9;">
-                <div style="display:flex; padding: 1em;">
-                  <span class="imageLg" style="padding-right: 1em;">
+              <li class="main-list-item">
+                <div class="work-section">
+                  <span class="imageLg">
                     <a href="$i.work_key"><img src="$work_cover_url" ></a>
                   </span>
                   <span>
