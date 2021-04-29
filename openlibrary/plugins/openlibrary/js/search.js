@@ -35,7 +35,9 @@ function less(header, start_facet_count, facet_inc) {
     const facetEntry = `div.${header} div.facetEntry`
     const shown = $(`${facetEntry}:not(:hidden)`).length
     const total = $(facetEntry).length
-    if (shown - facet_inc == start_facet_count) {
+    const increment_extra = (shown - start_facet_count) % facet_inc;
+    const next_shown = shown - ((increment_extra == 0) ? facet_inc:increment_extra);
+    if (next_shown == start_facet_count) {
         $(`#${header}_less`).hide();
         $(`#${header}_bull`).hide();
     }
@@ -43,7 +45,7 @@ function less(header, start_facet_count, facet_inc) {
         $(`#${header}_more`).show();
         $(`#${header}_bull`).show();
     }
-    $(`${facetEntry}:not(:hidden)`).slice(shown - facet_inc, shown).addClass('ui-helper-hidden');
+    $(`${facetEntry}:not(:hidden)`).slice(next_shown, shown).addClass('ui-helper-hidden');
 }
 
 /**
