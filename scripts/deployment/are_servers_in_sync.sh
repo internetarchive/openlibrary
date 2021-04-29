@@ -13,5 +13,5 @@ for REPO_DIR in $REPO_DIRS; do
 done
 
 for SERVER in $SERVERS; do
-    ssh $SERVER "hostname | docker image ls | grep olbase"
+    ssh $SERVER "hostname | docker image ls | grep olbase | grep latest"
 done
