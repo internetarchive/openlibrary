@@ -215,7 +215,4 @@ jQuery(function () {
             .find('[type=checkbox]')
             .removeAttr('checked');
     });
-    $('.column').disableSelection();
-    $('.trash').disableSelection();
-    $('#topNotice').hide();
 });
