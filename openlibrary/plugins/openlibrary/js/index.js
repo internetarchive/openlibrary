@@ -171,6 +171,11 @@ jQuery(function () {
             .then((module) => module.initCoversSaved());
     }
 
+    if (document.getElementById('addbook').length) {
+        import(/* webpackChunkName: "add-book" */ './add-book')
+            .then(module => module.initAddBookImport());
+    }
+
     if (document.getElementById('adminLinks')) {
         import(/* webpackChunkName: "admin" */ './admin')
             .then((module) => module.initAdmin());

@@ -51,20 +51,3 @@ $var title: $_("Add a book")
         <input type="hidden" name="id_value" value="$d.id_value"/>
     </form>
 </div>
-
-<script type="text/javascript">
-<!--
-window.q.push(function() {
-    \$(".list-books a").click(function() {
-        var li = \$(this).parents('li:first');
-        \$("input#work").val("/works/" + li.attr("id"));
-        \$("form#addbook").submit();
-    });
-
-    \$("#bookAddCont").click(function() {
-        \$("input#work").val("none-of-these");
-        \$("form#addbook").submit();
-    });
-});
-//-->
-</script>
