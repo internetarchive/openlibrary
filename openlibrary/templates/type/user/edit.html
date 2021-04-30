@@ -4,21 +4,6 @@ $ _x = ctx.setdefault('cssfile', 'edit')
 
 $var title: Editing $page.displayname
 
-<script type="text/javascript">
-function add_row(name) {
-    var clonediv = \$("#clone_" + name);
-    var n = clonediv.children().length;
-    var row = \$("div:last", clonediv);
-    var newrow = row.clone();
-
-    clonediv.append(newrow);
-
-    \$("span:last", row).html("");
-    \$("input", newrow).attr("name", name + "#" + n);
-    \$("input", newrow).attr("value", "");
-}
-</script>
-
 <div id="contentHead">
     <h1>
         <span class="tools">$_("Currently Editing:")</span>

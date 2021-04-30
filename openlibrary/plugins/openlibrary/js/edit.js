@@ -15,6 +15,22 @@ function update_len() {
     $('#excerpts-excerpt-len').html(2000 - len).css('color', color);
 }
 
+export function initEditRow(){
+    document.querySelector('#add_row_button').addEventListener('click', ()=>add_row('website'));
+}
+
+/**
+ * Adds another input box below the last when adding multiple websites to user profile.
+ * @param string name - when prefixed with clone_ should match an element identifier in the page. e.g. if name would refer to clone_website
+**/
+function add_row(name) {
+    const inputBoxes = document.querySelectorAll(`#clone_${name} input`);
+    const inputBox = document.createElement('input');
+    inputBox.name = `${name}#${inputBoxes.length}`;
+    inputBox.type = 'text';
+    inputBoxes[inputBoxes.length-1].after(inputBox);
+}
+
 function show_hide_title() {
     if ($('#excerpts-display .repeat-item').length > 1) {
         $('#excerpts-so-far').show();
