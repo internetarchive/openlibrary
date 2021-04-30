@@ -4,7 +4,7 @@
     class="cover"
     loading="lazy"
     @load="$emit('load', $event)"
-    :title="book.title"
+    :alt="book.title"
     :src="coverMultiresUrl.medium"
     :srcset="`${coverMultiresUrl.large} 2x`"
   >

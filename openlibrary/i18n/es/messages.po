@@ -2024,8 +2024,8 @@ msgid "Choose a JPG, GIF or PNG on your computer,"
 msgstr "Elige un JPG, GIF o PNG en tu ordenador,"
 
 #: add.html:126
-msgid "<u>Or</u></span>, paste in the image URL if it's on the web."
-msgstr "<u>O</u></span> pega la URL de la imagen si está en la web."
+msgid "<span class=\"highlight\"><u>Or</u></span>, paste in the image URL if it's on the web."
+msgstr "<span class=\"highlight\"><u>O</u></span> pega la URL de la imagen si está en la web."
 
 #: add.html:134
 msgid "Submit"
@@ -2656,8 +2656,8 @@ msgstr "Listas activas"
 
 #: home.html:45
 #, python-format
-msgid "%(listname)s </a> from <a href=\"%(key)s\">%(owner)s</a>"
-msgstr "%(listname)s </a> de <a href=\"%(key)s\">%(owner)s</a>"
+msgid "from <a href=\"%(key)s\">%(owner)s</a>"
+msgstr "de <a href=\"%(key)s\">%(owner)s</a>"
 
 #: home.html:50 preview.html:27 snippet.html:20
 #, python-format

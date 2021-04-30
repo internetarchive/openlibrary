@@ -184,6 +184,5 @@ sentry:
     dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
     environment: 'local'
 
-# The Best Book On integration
-tbbo_url: https://thebestbookon.com
-tbbo_aspect_cache_duration: 86400
+# Observations cache settings:
+observation_cache_duration: 86400

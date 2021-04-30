@@ -6,8 +6,6 @@ import io
 import os.path
 import random
 
-from six import PY3
-
 import web
 
 from infogami import config

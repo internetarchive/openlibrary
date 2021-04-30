@@ -11,7 +11,16 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '12' # # Should match what's in our Dockerfile
+          node-version: '14' # # Should match what's in our Dockerfile
+      - uses: actions/cache@v2
+        with:
+          # Caching node_modules isn't recommended because it can break across
+          # Node versions and won't work with npm ci (See https://github.com/actions/cache/blob/main/examples.md#node---npm )
+          # But we pin the node version, and we don't update it that often anyways. And 
+          # we don't use `npm ci` specifically to try to get faster CI flows. So caching
+          # `node_modules` directly.
+          path: 'node_modules'
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
       - run: npm install
       - run: npm run lint
       - run: make git

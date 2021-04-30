@@ -1,15 +1,21 @@
 FROM openlibrary/olbase:latest
 
 ENV PYTHONPATH=/openlibrary:/openlibrary/vendor/infogami
+ENV PYENV_VERSION=3.9.4
 
 USER root
-WORKDIR /openlibrary
+COPY requirements*.txt ./
 RUN pip install -r requirements_test.txt
 
-# For real-time profiling; faster python
-RUN pip install cprofilev Cython
+WORKDIR /openlibrary/scripts/solr_builder
+
+RUN pip install \
+    # For real-time profiling
+    cprofilev \
+    # Faster python
+    Cython
 
 # Build cython files
-RUN ./scripts/solr_builder/build-cython.sh
+RUN ./build-cython.sh
 
 EXPOSE 4000

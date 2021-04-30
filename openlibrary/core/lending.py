@@ -230,8 +230,12 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
     including 1-hour borrows"""
     params = '?action=availability&identifier=' + ocaid
     url = S3_LOAN_URL % config_bookreader_host
-    r = requests.post(url + params, data=s3_keys)
-    data = r.json().get('lending_status')
+    try:
+        response = requests.post(url + params, data=s3_keys)
+        response.raise_for_status()
+    except requests.HTTPError:
+        pass  # TODO: Handle unexpected responses from the availability server.
+    data = response.json().get('lending_status')
     # For debugging
     data['__src__'] = 'core.models.lending.get_groundtruth_availability'
     return data
@@ -308,7 +312,7 @@ def get_availability(key, ids):
     :param list of str ids:
     :rtype: dict
     """
-
+    ids = [id_ for id_ in ids if id_]  # remove infogami.infobase.client.Nothing
     if not ids:
         return {}
 

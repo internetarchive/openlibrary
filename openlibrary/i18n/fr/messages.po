@@ -1133,7 +1133,7 @@ msgstr "Actions d'emprunt"
 msgid "There is one person waiting for this book."
 msgid_plural "There are %(n)d people waiting for this book."
 msgstr[0] "Une personne attend ce livre."
-msgstr[1] "%(n)s personnes attendent ce livre."
+msgstr[1] "%(n)d personnes attendent ce livre."
 
 #: borrow.html:121
 msgid "Not yet downloaded."
@@ -1234,7 +1234,7 @@ msgstr "Vous êtes la prochaine personne à recevoir ce livre."
 msgid "There is one person ahead of you in the waiting list."
 msgid_plural "There are %(count)d people ahead of you in the waiting list."
 msgstr[0] "Il y a 1 personne devant vous sur la liste d'attente."
-msgstr[1] "Il y a %(count)s personnes devant vous sur la liste d'attente."
+msgstr[1] "Il y a %(count)d personnes devant vous sur la liste d'attente."
 
 #: borrow.html:219
 msgid "You have less than an hour to borrow it."
@@ -1792,7 +1792,7 @@ msgid ""
 msgstr ""
 "Vous pouvez effectuer une recherche par nom d'auteur (comme <em>j k "
 "rowling</em>) ou par identifiant de Open Library (comme <a href=\" "
-"/authors/OL23919A\"target = \"_ blank\"> <em>OL23919A</em> </a>)."
+"/authors/OL23919A\" target=\"_blank\"> <em>OL23919A</em> </a>)."
 
 #: edit.html:108
 msgid "What's It About?"
@@ -2300,8 +2300,8 @@ msgid "Choose a JPG, GIF or PNG on your computer,"
 msgstr "Choisissez un fichier JPG, GIF ou PNG sur votre ordinateur,"
 
 #: add.html:126
-msgid "<u>Or</u></span>, paste in the image URL if it's on the web."
-msgstr "<u>Ou</u></span>, collez l'URL de l'image si elle est sur le web."
+msgid "<span class=\"highlight\"><u>Or</u></span>, paste in the image URL if it's on the web."
+msgstr "<span class=\"highlight\"><u>Ou</u></span>, collez l'URL de l'image si elle est sur le web."
 
 #: add.html:134
 msgid "Submit"
@@ -2386,7 +2386,7 @@ msgid ""
 msgstr ""
 "Tout comme Wikipédia, vous pouvez apporter de nouvelles informations ou "
 "corrections au catalogue. Vous pouvez parcourir les <a "
-"href=\"/subjects\">sujets</a>, les <a \"href=\"/authors\">auteurs</a> ou "
+"href=\"/subjects\">sujets</a>, les <a href=\"/authors\">auteurs</a> ou "
 "les <a href=\"/lists\">listes</a> que les membres ont créées. Si vous "
 "aimez les livres, pourquoi ne pas aider à créer une bibliothèque ?"
 
@@ -2452,7 +2452,7 @@ msgid ""
 "href=\"/recentchanges\">recent changes</a>"
 msgstr ""
 "Voici ce qui s'est passé au cours des 28 derniers jours. Plus de <a "
-"\"href=\"/recentchanges\">modifications récentes</a>"
+"href=\"/recentchanges\">modifications récentes</a>"
 
 #: stats.html:15 stats.html:17
 msgid "See all visitors to OpenLibrary.org"
@@ -3003,8 +3003,8 @@ msgstr "Listes actives"
 
 #: home.html:45
 #, python-format
-msgid "%(listname)s </a> from <a href=\"%(key)s\">%(owner)s</a>"
-msgstr "%(listname)s </a> de <a href=\"%(key)s\">%(owner)s</a>"
+msgid "from <a href=\"%(key)s\">%(owner)s</a>"
+msgstr "de <a href=\"%(key)s\">%(owner)s</a>"
 
 #: home.html:50 preview.html:27 snippet.html:20
 #, python-format

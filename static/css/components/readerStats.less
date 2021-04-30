@@ -8,14 +8,21 @@
   font-size: .9em;
   li {
     list-style-type: none;
-    display: inline;
+    display: inline-block;
     &:not(:last-child):after {
       content: "·";
       margin: 0 4px;
     }
   }
   &__star {
-    color: @orange;
-    font-size: 1.3em;
+    color: @gold;
+    font-size: 1.5em;
+  }
+  &__star--half{
+    margin: 0 0 0 -5px;
+    font-size: 1.5em;
+    background: linear-gradient(90deg, @gold 50%, @light-grey 50%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 }

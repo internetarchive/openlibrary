@@ -17,7 +17,7 @@ $var title: $_(title)
   
   $if not books:
     <div class="import-export">
-      <div class="import">
+      <div class="import-export__readinglog">
         <h3>$_("Import from Goodreads")</h3>
         <form method="POST" action="/account/import/goodreads"
             enctype="multipart/form-data" class="olform olform--decoration">
@@ -31,7 +31,7 @@ $var title: $_(title)
           </div>
         </form>
       </div>  
-      <div>
+      <div class="import-export__readinglog">
         <h3>$_("Export your Reading Log")</h3>
         <form method="GET" action="/account/export"
             enctype="multipart/form-data" class="olform olform--decoration">

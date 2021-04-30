@@ -42,7 +42,7 @@ module.exports = {
         })
     ],
     module: {
-        rules: [ {
+        rules: [{
             test: /\.js$/,
             use: {
                 loader: 'babel-loader',
@@ -54,12 +54,22 @@ module.exports = {
             }
         }, {
             test: /\.less$/,
-            loader: [
-                'style-loader',
-                'css-loader',
-                'less-loader' // compiles Less to CSS
+            use: [
+                {
+                    loader: 'style-loader'
+                },
+                {
+                    loader: 'css-loader',
+                    options: {
+                        url: false
+                    }
+                },
+                {
+                    // compiles Less to CSS
+                    loader: 'less-loader'
+                }
             ]
-        } ]
+        }]
     },
     optimization: {
         splitChunks: {
@@ -91,7 +101,7 @@ module.exports = {
 
         // Expose the module.exports of each module entry chunk through the global
         // ol (open library)
-        library: [ 'ol' ],
+        library: ['ol'],
         libraryTarget: 'this'
     },
 

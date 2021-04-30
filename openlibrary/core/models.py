@@ -291,13 +291,13 @@ class Edition(Thing):
         """Returns list of records for all users currently waiting for this book."""
         return waitinglist.get_waitinglist_for_book(self.key)
 
-    @property
+    @property  # type: ignore
     @cache.method_memoize
     def ia_metadata(self):
         ocaid = self.get('ocaid')
         return get_metadata_direct(ocaid, cache=False) if ocaid else {}
 
-    @property
+    @property  # type: ignore
     @cache.method_memoize
     def sponsorship_data(self):
         was_sponsored = 'openlibraryscanningteam' in self.ia_metadata.get('collection', [])
@@ -453,7 +453,7 @@ class Work(Thing):
         return "<Work: %s>" % repr(self.key)
     __str__ = __repr__
 
-    @property
+    @property  # type: ignore
     @cache.method_memoize
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "e"))
     def edition_count(self):
@@ -486,11 +486,12 @@ class Work(Thing):
         status_id = Bookshelves.get_users_read_status_of_work(username, work_id)
         return status_id
 
-    def get_users_notes(self, username):
+    def get_users_notes(self, username, edition_olid=None):
         if not username:
             return None
         work_id = extract_numeric_id_from_olid(self.key)
-        return Booknotes.get_patron_booknote(username, work_id)
+        edition_id = extract_numeric_id_from_olid(edition_olid) if edition_olid else -1
+        return Booknotes.get_patron_booknote(username, work_id, edition_id=edition_id)
 
     def get_num_users_by_bookshelf(self):
         if not self.key:  # a dummy work
@@ -580,6 +581,7 @@ class Work(Thing):
             d['ia'] = solrdata.get('ia')
         return d
 
+
 class Author(Thing):
     """Class to represent /type/author objects in OL.
     """
@@ -593,6 +595,18 @@ class Author(Thing):
         return "<Author: %s>" % repr(self.key)
     __str__ = __repr__
 
+
+    def foaf_agent(self):
+        """
+        Friend of a friend ontology Agent type. http://xmlns.com/foaf/spec/#term_Agent
+        https://en.wikipedia.org/wiki/FOAF_(ontology)
+        """
+        if self.get('entity_type') == 'org':
+            return 'Organization'
+        elif self.get('birth_date') or self.get('death_date'):
+            return 'Person'
+        return 'Agent'
+
     def get_edition_count(self):
         return self._site._request(
                 '/count_editions_by_author',
@@ -601,6 +615,7 @@ class Author(Thing):
 
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
+
 
 class User(Thing):
 

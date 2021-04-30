@@ -17,11 +17,11 @@ PYTHON=$(if $(wildcard env),env/bin/python,python)
 all: git css js components i18n
 
 css: static/css/page-*.less
-	mkdir --parents $(BUILD)
+	mkdir -p $(BUILD)
 	parallel --verbose -q npx lessc {} $(BUILD)/{/.}.css --clean-css="--s1 --advanced --compatibility=ie8" ::: $^
 
 js:
-	mkdir --parents $(BUILD)
+	mkdir -p $(BUILD)
 	rm -f $(BUILD)/*.js $(BUILD)/*.js.map
 	npm run build-assets:webpack
 	# This adds FSF licensing for AGPLv3 to our js (for librejs)
@@ -31,7 +31,7 @@ js:
 	done
 
 components: $(COMPONENTS_DIR)/*.vue
-	mkdir --parents $(BUILD)
+	mkdir -p $(BUILD)
 	rm -rf $(BUILD)/components
 	# Run these silly things one at a time, because they don't support parallelization :(
 	parallel --verbose -q --jobs 1 \
@@ -41,7 +41,7 @@ components: $(COMPONENTS_DIR)/*.vue
 i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
-git:	
+git:
 #Do not run these on DockerHub since it recursively clones all the repos before build initiates
 ifneq ($(DOCKER_HUB),TRUE)
 	git submodule init
@@ -66,12 +66,12 @@ reindex-solr:
 	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://web:8080/ -c conf/openlibrary.yml --data-provider=legacy
 
 lint-diff:
-	git diff master -U0 | ./scripts/flake8-diff.sh
+	git diff "$${BASE_BRANCH:-master}" -U0 | ./scripts/flake8-diff.sh
 
 lint:
 	# stop the build if there are Python syntax errors or undefined names
 	$(PYTHON) -m flake8 . --count --exclude=$(FLAKE_EXCLUDE) --select=E9,F63,F7,F82 --show-source --statistics
-ifndef CONTINUOUS_INTEGRATION
+ifndef CI
 	# exit-zero treats all errors as warnings, only run this in local dev while fixing issue, not CI as it will never fail.
 	$(PYTHON) -m flake8 . --count --exclude=$(FLAKE_EXCLUDE) --exit-zero --max-complexity=10 --max-line-length=$(GITHUB_EDITOR_WIDTH) --statistics
 endif
@@ -79,5 +79,5 @@ endif
 test-py:
 	pytest . --ignore=tests/integration --ignore=scripts/2011 --ignore=infogami --ignore=vendor --ignore=node_modules
 
-test: 
+test:
 	make test-py && npm run test

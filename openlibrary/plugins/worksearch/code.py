@@ -353,7 +353,10 @@ def build_q_list(param):
                 if v:
                     q_list.append("(author_name:(%(name)s) OR author_alternative_name:(%(name)s))" % {'name': v})
 
-        check_params = ['title', 'publisher', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
+        check_params = [
+            'title', 'publisher', 'oclc', 'lccn', 'contributor', 'subject', 'place',
+            'person', 'time'
+        ]
         q_list += [
             '%s:(%s)' % (k, re_to_esc.sub(r'\\\g<0>', param[k]))
             for k in check_params if k in param
@@ -1034,7 +1037,15 @@ class search_json(delegate.page):
     encoding = "json"
 
     def GET(self):
-        i = web.input()
+        i = web.input(author_key=[],
+                      subject_facet=[],
+                      person_facet=[],
+                      place_facet=[],
+                      time_facet=[],
+                      first_publish_year=[],
+                      publisher_facet=[],
+                      language=[],
+                      public_scan_b=[])
         if 'query' in i:
             query = json.loads(i.query)
         else:

@@ -93,6 +93,11 @@ jQuery(function () {
         import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
     }
+    // conditionally load for user edit page
+    if (document.getElementById('add_row_button')) {
+        import(/* webpackChunkName: "user-website" */ './edit')
+            .then(module => module.initEditRow());
+    }
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
         import('./realtime_account_validation.js')
@@ -140,7 +145,7 @@ jQuery(function () {
             .then((module) => module.init());
     }
 
-    if (document.getElementById('modal-link')) {
+    if (document.getElementsByClassName('modal-link').length) {
         import(/* webpackChunkName: "patron_metadata" */ './patron-metadata')
             .then((module) => module.initPatronMetadata());
     }
@@ -169,6 +174,21 @@ jQuery(function () {
     if (document.getElementById('addbook').length) {
         import(/* webpackChunkName: "add-book" */ './add-book')
             .then(module => module.initAddBookImport());
+    }
+
+    if (document.getElementById('adminLinks')) {
+        import(/* webpackChunkName: "admin" */ './admin')
+            .then((module) => module.initAdmin());
+    }
+
+    if (document.getElementById('searchFacets')) {
+        import(/* webpackChunkName: "search" */ './search')
+            .then((module) => {
+                module.initSearchFacets();
+                if (document.getElementById('adminTiming')) {
+                    module.initAdminTiming();
+                }
+            });
     }
 
     if ($('#cboxPrevious').length) {

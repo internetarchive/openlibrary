@@ -120,7 +120,4 @@ docker volume rm solr_builder_solr-data
 # DB containers/volumes
 docker rm -f -v solr_builder_db_1 solr_builder_adminer_1
 docker volume rm solr_builder_postgres-data
-
-# Solr backup container
-docker rm -v solr_builder_solr-backup_1
 ```

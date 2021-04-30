@@ -8,7 +8,6 @@ import hmac
 import re
 import requests
 import json
-import six
 import logging
 
 import web
@@ -129,7 +128,8 @@ class borrow(delegate.page):
         if availability and availability['status'] == 'open':
             raise web.seeother(archive_url)
 
-        error_redirect = (archive_url)
+        error_redirect = archive_url
+        edition_redirect = urllib.parse.quote(edition.url())
         user = accounts.get_current_user()
 
         if user:
@@ -139,7 +139,7 @@ class borrow(delegate.page):
         if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)
             redirect_url = "/account/login?redirect=%s/borrow?action=%s" % (
-                edition.url(), action)
+                edition_redirect, action)
             if i._autoReadAloud is not None:
                 redirect_url += '&_autoReadAloud=' + i._autoReadAloud
             raise web.seeother(redirect_url)
@@ -147,15 +147,15 @@ class borrow(delegate.page):
         if action == 'return':
             lending.s3_loan_api(edition.ocaid, s3_keys, action='return_loan')
             stats.increment('ol.loans.return')
-            raise web.seeother(edition.url())
+            raise web.seeother(edition_redirect)
         elif action == 'join-waitinglist':
             lending.s3_loan_api(edition.ocaid, s3_keys, action='join_waitlist')
             stats.increment('ol.loans.joinWaitlist')
-            raise web.redirect(edition.url())
+            raise web.redirect(edition_redirect)
         elif action == 'leave-waitinglist':
             lending.s3_loan_api(edition.ocaid, s3_keys, action='leave_waitlist')
             stats.increment('ol.loans.leaveWaitlist')
-            raise web.redirect(edition.url())
+            raise web.redirect(edition_redirect)
 
         # Intercept a 'borrow' action if the user has already
         # borrowed the book and convert to a 'read' action.
@@ -840,19 +840,12 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
 
 def ia_hash(token_data):
     access_key = make_access_key()
-    if six.PY3:
-        return hmac.new(
-            access_key,
-            token_data.encode('utf-8'),
-            hashlib.md5
-        ).hexdigest()
-    return hmac.new(access_key, token_data).hexdigest()
+    return hmac.new(access_key, token_data.encode('utf-8'), hashlib.md5).hexdigest()
 
 
 def make_access_key():
     try:
-        access_key = config.ia_access_secret
-        return access_key if six.PY2 else access_key.encode('utf-8')
+        return config.ia_access_secret.encode('utf-8')
     except AttributeError:
         raise RuntimeError(
             "config value config.ia_access_secret is not present -- check your config"

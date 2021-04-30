@@ -1,4 +1,8 @@
 from __future__ import print_function
+
+import sys
+from typing import List
+
 import web
 import os
 
@@ -24,8 +28,14 @@ def _compile_translation(po, mo):
         print('failed to compile', po, file=web.debug)
         raise e
 
+
 def get_locales():
-    return [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
+    return [
+        d
+        for d in os.listdir(root)
+        if (os.path.isdir(os.path.join(root, d)) and
+            os.path.exists(os.path.join(root, d, 'messages.po')))
+    ]
 
 def extract_templetor(fileobj, keywords, comment_tags, options):
     """Extract i18n messages from web.py templates."""
@@ -40,7 +50,8 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
         return []
     return extract_python(f, keywords, comment_tags, options)
 
-def extract_messages(dirs):
+
+def extract_messages(dirs: List[str]):
     catalog = Catalog(
         project='Open Library',
         copyright_holder='Internet Archive'
@@ -52,12 +63,17 @@ def extract_messages(dirs):
     COMMENT_TAGS = ["NOTE:"]
 
     for d in dirs:
-        if '.html' in d:
-            extracted = [(d,) + extract for extract in extract_from_file("openlibrary.i18n:extract_templetor", d)]
-        else:
-            extracted = extract_from_dir(d, METHODS, comment_tags=COMMENT_TAGS, strip_comment_tags=True)
+        extracted = extract_from_dir(d, METHODS, comment_tags=COMMENT_TAGS,
+                                     strip_comment_tags=True)
+
+        counts = {}
         for filename, lineno, message, comments, context in extracted:
+            counts[filename] = counts.get(filename, 0) + 1
             catalog.add(message, None, [(filename, lineno)], auto_comments=comments)
+
+        for filename, count in counts.items():
+            path = filename if d == filename else os.path.join(d, filename)
+            print(f"{count}\t{path}", file=sys.stderr)
 
     path = os.path.join(root, 'messages.pot')
     f = open(path, 'wb')

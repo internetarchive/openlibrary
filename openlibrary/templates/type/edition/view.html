@@ -150,7 +150,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       </div>
 
       <div class="work-line">
-        $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title</a>
+        $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title$cond(work.subtitle, ': %s' % work.subtitle)</a>
         $if work.first_publish_year:
           ($work.first_publish_year)
       </div>
@@ -437,6 +437,11 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
             </dl>
           </div>
       </div>
+
+      $# BookNotes feature:
+      $if ctx.user and ctx.user.is_beta_tester():
+        $ reader_observations = get_observation_metrics(work['key'])
+        $:render_template("observations/stats_component", work, edition, reader_observations, work_title, page.key)
     </div>
 
     <div class="workFooter">

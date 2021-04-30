@@ -187,7 +187,7 @@ class Bookshelves(object):
         else:
             where = "work_id=$work_id AND username=$username"
             return oldb.update('bookshelves_books', where=where,
-                               bookshelf_id=bookshelf_id, vars=data)
+                               bookshelf_id=bookshelf_id, edition_id=edition_id, vars=data)
 
     @classmethod
     def remove(cls, username, work_id, bookshelf_id=None):

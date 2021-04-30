@@ -884,6 +884,7 @@ def setup_template_globals():
         'isbn_10_to_isbn_13': isbn_10_to_isbn_13,
         'NEWLINE': '\n',
         'random': random.Random(),
+        'get_lang': lambda: web.ctx.lang,
 
         # bad use of globals
         'is_bot': is_bot,

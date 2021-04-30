@@ -8,6 +8,8 @@
 version: "3.1"
 services:
   web:
+    profiles: ["ol-web1", "ol-web2"]
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: always
     hostname: "$HOSTNAME"
     environment:
@@ -19,7 +21,13 @@ services:
       - ../olsystem:/olsystem
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
 
+  solr:
+    # TODO: Currently solr is deployed in a "special" way
+    profiles: []
+
   covers:
+    profiles: ["ol-covers0"]
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: always
     hostname: "$HOSTNAME"
     environment:
@@ -28,7 +36,9 @@ services:
     volumes:
       - ../olsystem:/olsystem
       - /1:/1
+
   covers_nginx:
+    profiles: ["ol-covers0"]
     image: nginx:1.19.4
     restart: always
     depends_on:
@@ -55,20 +65,20 @@ services:
       # Needed by default-docker.conf
       - ssl_certificate
       - ssl_certificate_key
+
+  memcached:
+    profiles: ["ol-covers0"]
+
   cron-jobs:
-    image: oldev:latest
+    profiles: ["ol-home0"]
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
     hostname: "$HOSTNAME"
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.oldev
     user: root
     command: cron -f
     restart: always
     volumes:
       - ../olsystem/etc/cron.d/openlibrary.ol_home0:/etc/cron.d/openlibrary.ol_home0:ro
       - ../olsystem:/olsystem
-      - ol-vendor:/openlibrary/vendor
-      - .:/openlibrary
       - /1/var/tmp:/1/var/tmp
     networks:
       - webnet
@@ -77,6 +87,8 @@ services:
       - ia_db_pw_file
 
   infobase:
+    profiles: ["ol-home0"]
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: always
     hostname: "$HOSTNAME"
     environment:
@@ -86,7 +98,9 @@ services:
       - ../olsystem:/olsystem
       - infobase-writelog:/1/var/lib/openlibrary/infobase/log
       - infobase-errorlog:/1/var/log/openlibrary/infobase-errors
+
   infobase_nginx:
+    profiles: ["ol-home0"]
     image: nginx:1.19.4
     restart: always
     depends_on:
@@ -104,14 +118,12 @@ services:
       - petabox_seed
 
   affiliate-server:
+    profiles: ["ol-home0"]
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: always
     hostname: "$HOSTNAME"
     environment:
       - AFFILIATE_CONFIG=/openlibrary.yml
-    image: oldev:latest
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.oldev
     command: docker/ol-affiliate-server-start.sh
     ports:
       - 31337:31337
@@ -123,7 +135,10 @@ services:
       options:
         max-size: "512m"
         max-file: "4"
+
   solr-updater:
+    profiles: ["ol-home0"]
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: always
     hostname: "$HOSTNAME"
     environment:
@@ -137,11 +152,32 @@ services:
         max-file: "4"
     secrets:
       - ia_db_pw_file
+
+  # This will replace solr-updater once we fully migrate to solr8
+  solr8-updater:
+    profiles: ["ol-home0"]
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    restart: always
+    hostname: "$HOSTNAME"
+    environment:
+      - PYENV_VERSION=${PYENV_VERSION:-3.9.4}
+      - OL_CONFIG=/olsystem/etc/openlibrary.yml
+      - OL_URL=https://openlibrary.org/
+      - STATE_FILE=solr8-update.offset
+      - EXTRA_OPTS=--solr-url http://ol-solr1:8984/solr/openlibrary --initial-state '2021-04-12:0'
+    volumes:
+      - solr-updater-data:/solr-updater-data
+      - ../olsystem:/olsystem
+    secrets:
+      - ia_db_pw_file
+    command: docker/ol-solr-updater-start.sh
+    networks:
+      - webnet
+      - dbnet
+
   importbot:
-    image: oldev:latest
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.oldev
+    profiles: ["ol-home0"]
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
     command: docker/ol-importbot-start.sh
     restart: always
     hostname: "$HOSTNAME"
@@ -150,8 +186,6 @@ services:
       - OPENLIBRARY_RCFILE=/olsystem/etc/olrc-importbot
       - PYENV_VERSION=${PYENV_VERSION:-}
     volumes:
-      - ol-vendor:/openlibrary/vendor
-      - .:/openlibrary
       - ../olsystem:/olsystem
     networks:
       - webnet

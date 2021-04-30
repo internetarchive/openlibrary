@@ -26,15 +26,6 @@ $def call_template(name, change):
     $ t = get_template("recentchanges/" + change.kind + "/" + name) or get_template("recentchanges/default/" + name)
     $:t(change)
 
-
-<script type="text/javascript">
-window.q.push(function () {
-	\$('#checkall').click(function () {
-		\$("form.olform").find(':checkbox').attr('checked', this.checked);
-	});
-});
-</script>
-
 <form method="POST" name="revert" class="olform">
 <table class="changeHistory">
     <thead>
