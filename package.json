@@ -20,7 +20,7 @@
     "test:js": "jest --testRegex tests/unit/**/test.*.js"
   },
   "devDependencies": {
-    "@babel/core": "7.13.10",
+    "@babel/core": "7.14.0",
     "@babel/plugin-syntax-dynamic-import": "7.8.3",
     "@babel/preset-env": "7.13.10",
     "@babel/register": "7.13.8",
