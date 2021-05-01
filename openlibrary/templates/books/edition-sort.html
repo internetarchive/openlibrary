@@ -30,7 +30,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
     <td class="book">
       <span class="hidden sort-key">$edition_sort_key</span>
       <div class="cover">
-          <a href="$book.url()"><img src="$url" alt="Cover of: $book.title" title="Cover of: $book.title"/></a>
+          <a href="$book.url()"><img src="$url" alt="$_('Cover of: %(title)s', title=book.title)" title="$_('Cover of: %(title)s', title=book.title)"/></a>
       </div>
 
       <div class="title">

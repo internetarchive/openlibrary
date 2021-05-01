@@ -82,7 +82,7 @@ $jsdef show_list(list, user_key):
     $ remove = (list.owner.key == user_key)
     <li>
         <span class="image">
-          <a href="$list.key"><img src="$list.cover_url" alt="Cover of: $list.name" title="Cover of: $list.name"/></a>
+          <a href="$list.key"><img src="$list.cover_url" alt="$_('Cover of: %(title)s', title=list.name)" title="$_('Cover of: %(title)s', title=list.name)"/></a>
         </span>
         <span class="data">
             <span class="label">
