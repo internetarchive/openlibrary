@@ -71,3 +71,81 @@ export function initEdit() {
     update_len();
     show_hide_title();
 }
+
+/**
+ * Initializes select-role-popup element on edit page.
+ *
+ * Assumes presence of elements with id:
+ *    - '#select-role'
+ *    - '#select-role-popup'
+ *    - '#select-role-popup-errors'
+ *    - '#select-role-popup-value'
+ */
+export function initEditRoleSelectPopup() {
+    $('#select-role').add_new_field({
+        href: '#select-role-popup',
+        validate: function(data) {
+            if (data.value === '') {
+                return error('#select-role-popup-errors', '#select-role-popup-value', 'Please enter a new role.');
+            }
+            $('#select-role-popup-errors').hide();
+            return true;
+        },
+        onshow: function() {
+            $('#select-role-popup-errors').hide();
+            $('#select-role-popup input[type=text]').val('');
+        }
+    });
+}
+
+/**
+ * Initializes select-id-popup element on edit page.
+ *
+ * Assumes presence of elements with id:
+ *    - '#select-id'
+ *    - '#select-id-popup'
+ *    - '#select-id-popup-errors'
+ *    - '#select-id-popup-label'
+ */
+export function initEditIdSelectPopup() {
+    $('#select-id').add_new_field({
+        href: '#select-id-popup',
+        validate: function(data) {
+            if (data.label === '') {
+                return error('#select-id-popup-errors', '#select-id-popup-label', 'Please enter name of the new identifier type.');
+            }
+            data.value = data.label.toLowerCase().replace(/ /g, '_');
+            return true;
+        },
+        onshow: function() {
+            $('#select-id-popup-errors').hide();
+            $('#select-id-popup input[type=text]').val('');
+        }
+    });
+}
+
+/**
+ * Initializes select-classification-popup element on edit page.
+ *
+ * Assumes presence of elements with id:
+ *    - '#select-classification'
+ *    - '#select-classification-popup'
+ *    - '#select-classification-popup-errors'
+ *    - '#select-classification-popup-label'
+ */
+export function initEditClassificationSelectPopup() {
+    $('#select-classification').add_new_field({
+        href: '#select-classification-popup',
+        validate: function(data) {
+            if (data.label === '') {
+                return error('#select-classification-popup-errors', '#select-classification-popup-label', 'Please enter name of the new classification type.');
+            }
+            data.value = data.label.toLowerCase().replace(/ /g, '_');
+            return true;
+        },
+        onshow: function() {
+            $('#select-classification-popup-errors').hide();
+            $('#select-classification-popup input[type=text]').val('');
+        }
+    });
+}

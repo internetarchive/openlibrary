@@ -150,6 +150,19 @@ jQuery(function () {
             .then((module) => module.initPatronMetadata());
     }
 
+    if (document.getElementById('select-role')) {
+        import (/* webpackChunkName: "books_edit" */ './edit.js')
+            .then((module) => {
+                module.initEditRoleSelectPopup();
+                if (document.getElementById('select-id')) {
+                    module.initEditIdSelectPopup();
+                }
+                if (document.getElementById('select-classification')) {
+                    module.initEditClassificationSelectPopup();
+                }
+            });
+    }
+
     if (document.getElementById('excerpts')) {
         import (/* webpackChunkName: "books_edit" */ './edit.js')
             .then((module) => module.initEdit());
