@@ -155,7 +155,7 @@ jQuery(function () {
             .then((module) => module.initEdit());
     }
 
-	if (document.getElementById('links')) {
+    if (document.getElementById('links')) {
         import (/* webpackChunkName: "books_edit" */ './edit.js')
             .then((module) => module.initEditLinks());
     }

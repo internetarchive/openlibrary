@@ -82,25 +82,25 @@ export function initEdit() {
  *    - '#link-errors'
  */
 export function initEditLinks() {
-	$('#links').repeat({
-		vars: {
-			prefix: '$prefix'
-		},
-		validate: function(data) {
-			if ($.trim(data.url) == '' || $.trim(data.url) == 'http://') {
-				$('#link-errors').html('Please provide a URL.');
-				$('#link-errors').removeClass('hidden');
-				$('#link-url').focus();
-				return false;
-			}
-			if ($.trim(data.title) == '') {
-				$('#link-errors').html('Please provide a label.');
-				$('#link-errors').removeClass('hidden');
-				$('#link-label').focus();
-				return false;
-			}
-			$('#link-errors').addClass('hidden');
-			return true;
-		}
-	});
+    $('#links').repeat({
+        vars: {
+            prefix: '$prefix'
+        },
+        validate: function(data) {
+            if ($.trim(data.url) == '' || $.trim(data.url) == 'http://') {
+                $('#link-errors').html('Please provide a URL.');
+                $('#link-errors').removeClass('hidden');
+                $('#link-url').focus();
+                return false;
+            }
+            if ($.trim(data.title) == '') {
+                $('#link-errors').html('Please provide a label.');
+                $('#link-errors').removeClass('hidden');
+                $('#link-label').focus();
+                return false;
+            }
+            $('#link-errors').addClass('hidden');
+            return true;
+        }
+    });
 }
