@@ -22,7 +22,14 @@ $ bodyattrs = ctx.get('bodyattrs', [])
       $#print errors (hidden by default as styles are loaded via JS)
       <div class="flash-messages" style="display: none;">
       $for flash in get_flash_messages():
-        <div class="$flash.type"><span>$flash.message</span></div>
+        <div class="$flash.type">
+          <span
+          $if flash.message == get_message("flash_book_updated"):
+            class="updated-message"
+          >
+          $flash.message
+        </span>
+        </div>
       </div>
       $# Paste next line into announcement variable to show the blue banner
       $# <strong>Title:</strong> Description &nbsp; <a href="#" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>
