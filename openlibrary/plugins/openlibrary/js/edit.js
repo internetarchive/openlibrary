@@ -71,3 +71,30 @@ export function initEdit() {
     update_len();
     show_hide_title();
 }
+
+/**
+ * Initializes links element on edit page.
+ *
+ * TODO
+ */
+export function initEditLinks() {
+	$('#links').repeat({
+		vars: {
+			prefix: '$prefix'
+		},
+		validate: function(data) {
+			if ($.trim(data.url) == '' || $.trim(data.url) == 'http://') {
+				$('#link-errors').show().html('Please provide a URL.');
+				$('#link-url').focus();
+				return false;
+			}
+			if ($.trim(data.title) == '') {
+				$('#link-errors').show().html('Please provide a label.');
+				$('#link-label').focus();
+				return false;
+			}
+			$('#link-errors').hide();
+			return true;
+		}
+	});
+}

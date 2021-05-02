@@ -57,30 +57,6 @@ $def with (work, prefix="")
 
 </fieldset>
 
-<script type="text/javascript">
-    window.q.push(function() {
-        \$("#links").repeat({
-            vars: {
-                prefix: "$prefix"
-            },
-            validate: function(data) {
-                if (\$.trim(data.url) == "" || \$.trim(data.url) == "http://") {
-                    \$("#link-errors").show().html("$_('Please provide a URL.')");
-                    \$("#link-url").focus();
-                    return false;
-                }
-                if (\$.trim(data.title) == "") {
-                    \$("#link-errors").show().html("$_('Please provide a label.')");
-                    \$("#link-label").focus();
-                    return false;
-                }
-                \$("#link-errors").hide();
-                return true;
-            }
-        });
-    });
-</script>
-
 <div class="formElement">
     <div class="tip footnote"><span class="orange">*</span> $_('"Good" means no spammy links, please. Keep them relevant to the book. Irrelevant sites may be removed. Blatant spam will be deleted without remorse.')</div>
 </div>

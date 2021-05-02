@@ -154,6 +154,10 @@ jQuery(function () {
         import (/* webpackChunkName: "books_edit" */ './edit.js')
             .then((module) => module.initEdit());
     }
+	if (document.getElementById('links')) {
+        import (/* webpackChunkName: "books_edit" */ './edit.js')
+            .then((module) => module.initEditLinks());
+    }
     if (document.getElementsByClassName('manageCovers').length) {
         import(/* webpackChunkName: "covers" */ './covers')
             .then((module) => module.initCoversChange());
