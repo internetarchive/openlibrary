@@ -76,7 +76,7 @@ export function initEdit() {
  * Initializes links element on edit page.
  *
  * Assumes presence of elements with id:
- *    - '#links'
+ *    - '#links' and 'data-prefix' attribute
  *    - '#link-label'
  *    - '#link-url'
  *    - '#link-errors'
@@ -84,16 +84,16 @@ export function initEdit() {
 export function initEditLinks() {
     $('#links').repeat({
         vars: {
-            prefix: '$prefix'
+            prefix: $('#links').data('prefix')
         },
         validate: function(data) {
-            if ($.trim(data.url) == '' || $.trim(data.url) == 'http://') {
+            if ($.trim(data.url) === '' || $.trim(data.url) === 'https://') {
                 $('#link-errors').html('Please provide a URL.');
                 $('#link-errors').removeClass('hidden');
                 $('#link-url').focus();
                 return false;
             }
-            if ($.trim(data.title) == '') {
+            if ($.trim(data.title) === '') {
                 $('#link-errors').html('Please provide a label.');
                 $('#link-errors').removeClass('hidden');
                 $('#link-label').focus();
