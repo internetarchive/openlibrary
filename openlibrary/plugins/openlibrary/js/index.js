@@ -171,7 +171,7 @@ jQuery(function () {
             .then((module) => module.initCoversSaved());
     }
 
-    if (document.getElementById('addbook').length) {
+    if (document.getElementById('addbook')) {
         import(/* webpackChunkName: "add-book" */ './add-book')
             .then(module => module.initAddBookImport());
     }
