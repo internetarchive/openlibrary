@@ -75,7 +75,11 @@ export function initEdit() {
 /**
  * Initializes links element on edit page.
  *
- * TODO
+ * Assumes presence of elements with id:
+ *    - '#links'
+ *    - '#link-label'
+ *    - '#link-url'
+ *    - '#link-errors'
  */
 export function initEditLinks() {
 	$('#links').repeat({
@@ -84,16 +88,18 @@ export function initEditLinks() {
 		},
 		validate: function(data) {
 			if ($.trim(data.url) == '' || $.trim(data.url) == 'http://') {
-				$('#link-errors').show().html('Please provide a URL.');
+				$('#link-errors').html('Please provide a URL.');
+				$('#link-errors').removeClass('hidden');
 				$('#link-url').focus();
 				return false;
 			}
 			if ($.trim(data.title) == '') {
-				$('#link-errors').show().html('Please provide a label.');
+				$('#link-errors').html('Please provide a label.');
+				$('#link-errors').removeClass('hidden');
 				$('#link-label').focus();
 				return false;
 			}
-			$('#link-errors').hide();
+			$('#link-errors').addClass('hidden');
 			return true;
 		}
 	});
