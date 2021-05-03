@@ -47,15 +47,6 @@ _ia_db = None
 solr_base_url = None
 
 
-def urlopen(url, params=None, data=None):
-    version = "%s.%s.%s" % sys.version_info[:3]
-    user_agent = 'Mozilla/5.0 (openlibrary; %s) Python/%s' % (__file__, version)
-    headers = {
-        'User-Agent': user_agent
-    }
-    response = requests.post(url, params=params, data=data, headers=headers)
-    return response
-
 def get_solr_base_url():
     """
     Get Solr host
@@ -1196,18 +1187,18 @@ def get_subject(key):
     subject_key = str_to_key(subject_key)
     key = "/subjects/%s:%s" % (subject_type, subject_key)
 
-    params = {
-        'wt': 'json',
-        'json.nl': 'arrarr',
-        'q': '%s:%s' % (search_field, subject_key),
-        'rows': '0',
-        'facet': 'true',
-        'facet.field': facet_field,
-        'facet.mincount': 1,
-        'facet.limit': 100
-    }
-    base_url = get_solr_base_url() + '/select'
-    result = urlopen(base_url, params).json()
+    result = requests.get(
+        f'{get_solr_base_url()}/select',
+        params={
+            'wt': 'json',
+            'json.nl': 'arrarr',
+            'q': f'{search_field}:{subject_key}',
+            'rows': 0,
+            'facet': 'true',
+            'facet.field': facet_field,
+            'facet.mincount': 1,
+            'facet.limit': 100,
+        }).json()
 
     work_count = result['response']['numFound']
     facets = result['facet_counts']['facet_fields'].get(facet_field, [])
@@ -1446,12 +1437,14 @@ def solr_select_work(edition_key):
         return None
 
     edition_key = solr_escape(edition_key)
-
-    url = '%s/select?wt=json&q=edition_key:%s&rows=1&fl=key' % (
-        get_solr_base_url(),
-        url_quote(edition_key)
-    )
-    reply = urlopen(url).json()
+    reply = requests.get(
+        f'{get_solr_base_url()}/select',
+        params={
+            'wt': 'json',
+            'q': f'edition_key:{edition_key}',
+            'rows': 1,
+            'fl': 'key',
+        }).json()
     docs = reply['response'].get('docs', [])
     if docs:
         return docs[0]['key'] # /works/ prefix is in solr
