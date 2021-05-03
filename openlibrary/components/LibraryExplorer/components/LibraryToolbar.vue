@@ -499,7 +499,7 @@ export default {
 
       background: linear-gradient(to bottom, #fff, #ebdfc5 150%);
     }
-    .tab-bar > button {
+    .tab-bar--tab {
       box-sizing: content-box;
       border: none;
       font-size: 100%;
@@ -526,7 +526,7 @@ export default {
     }
 
     &.open {
-      .tab-bar > button {
+      .tab-bar--tab {
         &:first-child {
           border-left: 1px solid rgba(0, 0, 0, .2);
         }
