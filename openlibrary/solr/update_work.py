@@ -1446,12 +1446,14 @@ def solr_select_work(edition_key):
         return None
 
     edition_key = solr_escape(edition_key)
-
-    url = '%s/select?wt=json&q=edition_key:%s&rows=1&fl=key' % (
-        get_solr_base_url(),
-        url_quote(edition_key)
-    )
-    reply = urlopen(url).json()
+    reply = requests.get(
+        f'{get_solr_base_url()}/select',
+        params={
+            'wt': 'json',
+            'q': f'edition_key:{edition_key}',
+            'rows': 1,
+            'fl': 'key',
+        }).json()
     docs = reply['response'].get('docs', [])
     if docs:
         return docs[0]['key'] # /works/ prefix is in solr
