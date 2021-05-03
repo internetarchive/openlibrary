@@ -13,6 +13,7 @@ import random
 import datetime
 import logging
 from time import time
+import math
 
 import infogami
 
@@ -885,6 +886,7 @@ def setup_template_globals():
         'NEWLINE': '\n',
         'random': random.Random(),
         'get_lang': lambda: web.ctx.lang,
+        'ceil': math.ceil,
 
         # bad use of globals
         'is_bot': is_bot,
