@@ -3236,8 +3236,8 @@ msgstr "Listas activas"
 
 #: lists/home.html:46
 #, python-format
-msgid "%(listname)s </a> from <a href=\"%(key)s\">%(owner)s</a>"
-msgstr "%(listname)s </a> de <a href=\"%(key)s\">%(owner)s</a>"
+msgid "from <a href=\"%(key)s\">%(owner)s</a>"
+msgstr "de <a href=\"%(key)s\">%(owner)s</a>"
 
 #: lists/home.html:49 lists/preview.html:23 lists/snippet.html:18
 #: type/list/embed.html:17 type/list/view.html:40
