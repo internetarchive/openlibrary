@@ -2,15 +2,15 @@
     <div class="floating-controls-wrapper">
       <div class="floating-controls" :class="{open: openTabs.length > 0}">
         <div class="tab-bar">
-          <div class="chunky-icon" v-if="openTabs.length" @click="openTabs.splice(0, openTabs.length)">
+          <button class="chunky-icon tab-bar--tab" v-if="openTabs.length" @click="openTabs.splice(0, openTabs.length)">
             <div class="chunky-icon--icon" style="font-size: 32px; font-weight: 100; line-height: 28px;">
               &times;
             </div>
             <div class="chunky-icon--label">
               Close
             </div>
-          </div>
-          <div class="chunky-icon" :class="{active: openTabs.includes('filter')}" @click="toggleTab('filter')">
+          </button>
+          <button class="chunky-icon tab-bar--tab" :class="{active: openTabs.includes('filter')}" @click="toggleTab('filter')">
             <div class="chunky-icon--icon">
               <FilterIcon/>
             </div>
@@ -18,25 +18,25 @@
               Filter
               <span style="opacity: .55" v-if="activeFiltersCount">({{activeFiltersCount}})</span>
             </div>
-          </div>
-          <div class="chunky-icon" :class="{active: openTabs.includes('sort')}" @click="toggleTab('sort')">
+          </button>
+          <button class="chunky-icon tab-bar--tab" :class="{active: openTabs.includes('sort')}" @click="toggleTab('sort')">
             <div class="chunky-icon--icon">
               <SortIcon/>
             </div>
             <div class="chunky-icon--label">Sort</div>
-          </div>
-          <div class="chunky-icon" :class="{active: openTabs.includes('settings')}" @click="toggleTab('settings')">
+          </button>
+          <button class="chunky-icon tab-bar--tab" :class="{active: openTabs.includes('settings')}" @click="toggleTab('settings')">
             <div class="chunky-icon--icon">
               <SettingsIcon/>
             </div>
             <div class="chunky-icon--label">Settings</div>
-          </div>
-          <div class="chunky-icon" :class="{active: openTabs.includes('feedback')}" @click="toggleTab('feedback')">
+          </button>
+          <button class="chunky-icon tab-bar--tab" :class="{active: openTabs.includes('feedback')}" @click="toggleTab('feedback')">
             <div class="chunky-icon--icon">
               <FeedbackIcon/>
             </div>
             <div class="chunky-icon--label">Feedback</div>
-          </div>
+          </button>
         </div>
         <div class="tabs-contents">
           <main v-if="openTabs.includes('filter')">
@@ -499,7 +499,12 @@ export default {
 
       background: linear-gradient(to bottom, #fff, #ebdfc5 150%);
     }
-    .tab-bar > div {
+    .tab-bar--tab {
+      box-sizing: content-box;
+      border: none;
+      font-size: 100%;
+      color: inherit;
+      background-color: inherit;
       border-right: 1px solid rgba(0, 0, 0, .2);
       margin: 0;
       padding: 8px;
@@ -521,7 +526,7 @@ export default {
     }
 
     &.open {
-      .tab-bar > div {
+      .tab-bar--tab {
         &:first-child {
           border-left: 1px solid rgba(0, 0, 0, .2);
         }
