@@ -21,6 +21,9 @@ $var title: Search results for Lists
       </ul>
     </div>
   $elif q:
-    <div>$:_('No results, <a href="/search/inside?q=$q">try a full-text search?</a>')</div>
+    <div>
+      <span class="red">$_("No results found.")</span>
+      <a href="/search/inside?$urlencode(dict(q=q))">$_('Search for books containing the phrase "%s"?', q)</a>
+    </div>
 
 </div>
