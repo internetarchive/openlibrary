@@ -399,9 +399,10 @@ class SolrProcessor:
                     'key': safeget(lambda: a['type']['key']) or '/type/author_role'
                 },
                 'author': (
-                    a['author'] if isinstance(a['author'], dict)
+                    a['author']
+                    if isinstance(a['author'], dict)
                     else {'key': a['author']}
-                )
+                ),
             }
             for a in authors
             # TODO: Remove after
@@ -1317,7 +1318,8 @@ def get_subject(key):
             'facet.field': facet_field,
             'facet.mincount': 1,
             'facet.limit': 100,
-        }).json()
+        },
+    ).json()
 
     work_count = result['response']['numFound']
     facets = result['facet_counts']['facet_fields'].get(facet_field, [])
@@ -1571,7 +1573,8 @@ def solr_select_work(edition_key):
             'q': f'edition_key:{edition_key}',
             'rows': 1,
             'fl': 'key',
-        }).json()
+        },
+    ).json()
     docs = reply['response'].get('docs', [])
     if docs:
         return docs[0]['key']  # /works/ prefix is in solr

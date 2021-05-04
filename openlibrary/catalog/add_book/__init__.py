@@ -506,7 +506,7 @@ def find_exact_match(rec, edition_pool):
                     continue
                 if k == 'languages':
                     existing_value = [
-                        str(re_lang.match(l.key).group(1)) for l in existing_value
+                        str(re_lang.match(v.key).group(1)) for v in existing_value
                     ]
                 if k == 'authors':
                     existing_value = [dict(a) for a in existing_value]

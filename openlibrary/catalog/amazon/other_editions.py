@@ -70,9 +70,8 @@ def find_others(isbn, dir):
     html = read_bucket_table(open(dir + "/" + isbn))
     if not html:
         return []
-    l = [
+    return [
         i
         for i in parse_html(html)
         if not i[0].startswith('B') and i[1] not in desc_skip
     ]
-    return l

@@ -202,7 +202,7 @@ class Bookshelves(object):
                 where=where,
                 bookshelf_id=bookshelf_id,
                 edition_id=edition_id,
-                vars=data
+                vars=data,
             )
 
     @classmethod

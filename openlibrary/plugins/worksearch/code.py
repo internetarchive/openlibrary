@@ -1189,15 +1189,17 @@ class search_json(delegate.page):
     encoding = "json"
 
     def GET(self):
-        i = web.input(author_key=[],
-                      subject_facet=[],
-                      person_facet=[],
-                      place_facet=[],
-                      time_facet=[],
-                      first_publish_year=[],
-                      publisher_facet=[],
-                      language=[],
-                      public_scan_b=[])
+        i = web.input(
+            author_key=[],
+            subject_facet=[],
+            person_facet=[],
+            place_facet=[],
+            time_facet=[],
+            first_publish_year=[],
+            publisher_facet=[],
+            language=[],
+            public_scan_b=[],
+        )
         if 'query' in i:
             query = json.loads(i.query)
         else:

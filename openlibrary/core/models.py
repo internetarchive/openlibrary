@@ -629,7 +629,6 @@ class Author(Thing):
 
     __str__ = __repr__
 
-
     def foaf_agent(self):
         """
         Friend of a friend ontology Agent type. http://xmlns.com/foaf/spec/#term_Agent

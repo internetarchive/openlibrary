@@ -699,8 +699,6 @@ class Loan(dict):
                 'ocaid': identifier,
                 'expiry': expiry,
                 'uuid': _uuid,
-                'resource_type': 'bookreader',
-                'resource_id': 'bookreader:%s' % identifier,
                 'loaned_at': loaned_at,
                 'resource_type': resource_type,
                 'resource_id': resource_id,
