@@ -33,13 +33,49 @@ function render_language_field(i, language, title, isPriviligedUser){
     </div>`
 }
 
+function render_work_field(i, work, removeWorkText){
+    return `<div class="input">
+        <input name="works--${i}" class="work work-autocomplete" type="text" id="work-${i}"
+               value="${work.key.split('/')[-1]}"/>
+        <input name="edition--works--${i}--key" type="hidden" id="work-${i}-key" value="${work.key}"/>
+        <a href="javascript:;" class="remove red plain hidden" title="${removeWorkText}">[x]</a>
+    </div>`
+}
+
+function render_work_autocomplete_item(item, newWorkText){
+    if (item.key === '__new__') {
+        return `<div class="ac_work ac_addnew">
+            <span class="action">${newWorkText}</span>
+        </div>`
+    }
+
+    const coverImg = `<img src="https://covers.openlibrary.org/b/id/${item.cover_i}-M.jpg" alt="Cover of ${item.title}">`
+    const firstYearSpan = `<span class="first_publish_year">(${item.first_publish_year})</span>`
+    const byLine = `<span class="byline">by <span class="authors">${item.author_name.join(', ')}</span></span>`
+    return `
+        <div class="ac_work" title="Select this work">
+            <div class="cover">
+                ${item.cover_i ? coverImg : ''}
+            </div>
+            <span class="olid">${item.key.split('/').pop()}</span>
+            <span class="name">
+                <span class="title">${item.full_title}</span>
+                ${item.first_publish_year ? firstYearSpan : ''}
+            </span>
+            ${item.author_name ? byLine : ''}
+            &bull;
+            <span class="edition_count">${item.edition_count} edition${item.edition_count === 1 ? '' : 's'}</span>
+        </div>
+        `
+}
+
+
 
 export function initEditionEditPage(){
-    console.log('initEditionEditPage');
     const editionPageData = document.querySelector('[value="edition-edit-page"]');
-    console.log(editionPageData.dataset);
     const isPrivilegedUser = editionPageData.dataset.isprivilegeduser === 'true';
-    const worksNewName = editionPageData.dataset.worksnewname;
+    const newWorkText = editionPageData.dataset.newwork;
+    const removeWorkText = editionPageData.dataset.removework;
     const selectLanguage = editionPageData.dataset.selectlanguage;
     const removeLanguage = editionPageData.dataset.removelanguage;
     $(function() {
@@ -54,30 +90,21 @@ export function initEditionEditPage(){
                 });
         })
 
-
-        // $('#translated_from_languages').setup_multi_input_autocomplete(
-        //     'input.language-autocomplete',
-        //     render_translated_from_language_field,
-        //     { endpoint: '/languages/_autocomplete' },
-        //     {
-        //         max: 6,
-        //         formatItem: render_language_autocomplete_item
-        //     });
-        // $('#works').setup_multi_input_autocomplete(
-        //     'input.work-autocomplete',
-        //     render_work_field,
-        //     {
-        //         endpoint: '/works/_autocomplete',
-        //         addnew: isPrivilegedUser,
-        //         new_name: worksNewName,
-        //     },
-        //     {
-        //         minChars: 2,
-        //         max: 11,
-        //         matchSubset: false,
-        //         autoFill: false,
-        //         formatItem: render_work_autocomplete_item
-        //     });
+        $('#works').setup_multi_input_autocomplete(
+            'input.work-autocomplete',
+            (i, work) => render_work_field(i, work, removeWorkText),
+            {
+                endpoint: '/works/_autocomplete',
+                addnew: isPrivilegedUser,
+                new_name: newWorkText,
+            },
+            {
+                minChars: 2,
+                max: 11,
+                matchSubset: false,
+                autoFill: false,
+                formatItem: item => render_work_autocomplete_item(item, newWorkText)
+            });
     });
 }
 
