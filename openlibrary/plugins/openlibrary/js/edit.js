@@ -15,6 +15,72 @@ function update_len() {
     $('#excerpts-excerpt-len').html(2000 - len).css('color', color);
 }
 
+function render_language_autocomplete_item(item, title){
+    return `<div class="ac_language" title="${title}">
+        <span class="name">${item.name}</span>
+    </div>`
+}
+
+
+function render_language_field(i, language, title, isPriviligedUser){
+    const removeButton = isPriviligedUser ? `<a href="javascript:;" class="remove red plain" title="${title}">[x]</a>` : '';
+    return `<div class="input">
+        <input name="languages--${i}" class="language language-autocomplete" type="text" id="language-${i}"
+               value="${language.name}"/>
+        <input name="edition--languages--${i}--key" type="hidden" id="language-${i}-key" value="${language.key}"/>
+        ${removeButton}
+        <br/><a href="javascript:;" class="add small">Add another language?</a>
+    </div>`
+}
+
+
+export function initEditionEditPage(){
+    console.log('initEditionEditPage');
+    const editionPageData = document.querySelector('[value="edition-edit-page"]');
+    console.log(editionPageData.dataset);
+    const isPrivilegedUser = editionPageData.dataset.isprivilegeduser === 'true';
+    const worksNewName = editionPageData.dataset.worksnewname;
+    const selectLanguage = editionPageData.dataset.selectlanguage;
+    const removeLanguage = editionPageData.dataset.removelanguage;
+    $(function() {
+        ['#languages','#translated_from_languages'].forEach((selector)=>{
+            $(selector).setup_multi_input_autocomplete(
+                'input.language-autocomplete',
+                (i, language) => render_language_field(i, language, removeLanguage, isPrivilegedUser),
+                { endpoint: '/languages/_autocomplete' },
+                {
+                    max: 6,
+                    formatItem: item => render_language_autocomplete_item(item, selectLanguage)
+                });
+        })
+
+
+        // $('#translated_from_languages').setup_multi_input_autocomplete(
+        //     'input.language-autocomplete',
+        //     render_translated_from_language_field,
+        //     { endpoint: '/languages/_autocomplete' },
+        //     {
+        //         max: 6,
+        //         formatItem: render_language_autocomplete_item
+        //     });
+        // $('#works').setup_multi_input_autocomplete(
+        //     'input.work-autocomplete',
+        //     render_work_field,
+        //     {
+        //         endpoint: '/works/_autocomplete',
+        //         addnew: isPrivilegedUser,
+        //         new_name: worksNewName,
+        //     },
+        //     {
+        //         minChars: 2,
+        //         max: 11,
+        //         matchSubset: false,
+        //         autoFill: false,
+        //         formatItem: render_work_autocomplete_item
+        //     });
+    });
+}
+
 export function initEditRow(){
     document.querySelector('#add_row_button').addEventListener('click', ()=>add_row('website'));
 }

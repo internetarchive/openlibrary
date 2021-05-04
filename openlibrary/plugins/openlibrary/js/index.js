@@ -32,6 +32,7 @@ import '../../../../static/css/js-all.less';
 import Promise from 'promise-polyfill';
 import { confirmDialog, initDialogs } from './dialog';
 import initTabs from './tabs.js';
+import {initEditionEditPage} from './edit';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -97,6 +98,11 @@ jQuery(function () {
     if (document.getElementById('add_row_button')) {
         import(/* webpackChunkName: "user-website" */ './edit')
             .then(module => module.initEditRow());
+    }
+    // conditionally load for edition edit page
+    if (document.querySelector('[value="edition-edit-page"]')) {
+        import(/* webpackChunkName: "user-website" */ './edit')
+            .then(module => module.initEditionEditPage());
     }
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {

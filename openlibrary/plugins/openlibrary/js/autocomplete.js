@@ -142,6 +142,10 @@ export default function($) {
      * @param {Object} ac_opts - options given to override defaults of $.autocomplete; see that.
      */
     $.fn.setup_multi_input_autocomplete = function(autocomplete_selector, input_renderer, ol_ac_opts, ac_opts) {
+        console.log("multip input inputs", autocomplete_selector)
+        console.log("input_renderer",input_renderer, ol_ac_opts, ac_opts)
+        console.log("ol_ac_opts", ol_ac_opts)
+        console.log("ac_opts", ac_opts)
         var container = $(this);
 
         // first let's init any pre-existing inputs
