@@ -213,14 +213,6 @@ def get_cats(root):
 
     return cats
 
-    for e in container.find('table').find_class('refinementLink'):
-        a = e.getparent()
-        assert a.tag == 'a'
-        cat = {'url': a.attrib['href'], 'title': e.text}
-        href = a.attrib['href']
-        m = re_rh_n.search(href)
-        cats.append((int(m.group(1)), e.text))
-
 
 def read_page(params):
     # read search results page

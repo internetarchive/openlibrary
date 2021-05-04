@@ -43,9 +43,6 @@ http://github.com/anandology/notebook/tree/master/2010/03/jsdef/
 
 """
 
-__author__ = "Anand Chitipothu <anandology@gmail.com>"
-__version__ = "0.3"
-
 """change notes:
 
 0.1: first release
@@ -65,6 +62,9 @@ from web.template import (
     PythonTokenizer,
     INDENT,
 )
+
+__author__ = "Anand Chitipothu <anandology@gmail.com>"
+__version__ = "0.3"
 
 
 def extension(parser):
