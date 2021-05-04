@@ -93,7 +93,7 @@ window.q.push( function(){
                     $if edition.publishers:
                         $ edition_name = "; ".join(edition.publishers) + ' edition'
                     $else:
-                        $ edition_name = "Unknown publisher" + ' edition'
+                        $ edition_name = _('Unknown publisher edition')
 
                     $if edition.publish_date:
                         $ edition_name = truncate(edition_name, 20) + ", " + edition.publish_date

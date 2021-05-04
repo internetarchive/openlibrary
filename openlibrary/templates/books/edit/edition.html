@@ -22,7 +22,7 @@ $jsdef render_language_field(i, language):
       <input name="languages--$i" class="language language-autocomplete" type="text" id="language-$i" value="$language.name"/>
       <input name="edition--languages--$i--key" type="hidden" id="language-$i-key" value="$language.key" />
       <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this language')">[x]</a>
-      <br/><a href="javascript:;" class="add small">Add another language?</a>
+      <br/><a href="javascript:;" class="add small">$_('Add another language?')</a>
     </div>
 
 $# Render the ith translated_from language input field
@@ -55,7 +55,7 @@ $jsdef render_work_autocomplete_item(item):
         <div class="ac_work" title="Select this work">
             <div class="cover">
                 $if item.cover_i:
-                    <img src="https://covers.openlibrary.org/b/id/$(item.cover_i)-M.jpg" alt="Cover of $item.title">
+                    <img src="https://covers.openlibrary.org/b/id/$(item.cover_i)-M.jpg" alt="$_('Cover of: %(title)s', title=item.title)">
             </div>
             <span class="olid">$item.key.split('/')[2]</span>
             <span class="name">
@@ -65,7 +65,7 @@ $jsdef render_work_autocomplete_item(item):
             </span>
             <span class="byline">
                 $if item.author_name:
-                    by <span class="authors">${', '.join(item.author_name)}</span>
+                    $_('by') <span class="authors">${', '.join(item.author_name)}</span>
             </span>
             &bull;
             $if item.edition_count == 1:
@@ -122,7 +122,7 @@ window.q.push(function() {
     <div class="formBackLeft">
         <div class="formElement">
             <div class="label">
-                <label for="edition-title">Title</label>
+                <label for="edition-title">$_('Title')</label>
                 <span class="tip">$_("Enter the title of this specific edition.")</span>
             </div>
             <div class="input">
@@ -271,7 +271,7 @@ window.q.push(function() {
                             $ work = book.works[0]
                             $for i, a in enumerate(work.get_authors()):
                                 <tr class="repeat-item">
-                                    <td align="right"><strong>Author</strong></td>
+                                    <td align="right"><strong>$_('Author')</strong></td>
                                     <td>$a.name</td>
                                     <td></td>
                                 </tr>
@@ -302,7 +302,7 @@ window.q.push(function() {
 
         <fieldset class="minor formBackRight">
 
-            <legend>Languages</legend>
+            <legend>$_('Languages')</legend>
 
             <div class="formElement" id="languages">
                 <div class="label">
@@ -378,7 +378,7 @@ window.q.push(function() {
 
         <div class="formElement">
             <div class="label">
-                <label for="edition-toc">Table of Contents</label>
+                <label for="edition-toc">$_('Table of Contents')</label>
                 <span class="tip">$:_('Use a "*" for an indent, a "|" to add a column, and line breaks for new lines. Like this:')</span><br/><br/>
         <pre class="smaller gray"> * Part 1 | THIS WORLD | 1
         ** Chapter 1 | Of the Nature of Flatland | 3
@@ -461,7 +461,7 @@ window.q.push(function() {
 							$ set1 = [id_dict[name] for name in popular if name in id_dict]
                             $ set2 = sorted([id for id in edition_config.identifiers if id.name not in popular], key=lambda id:id.label)
 
-                                <option value="">Select one of many...</option>
+                                <option value="">$_('Select one of many...')</option>
                                 $for id in set1:
                                     <option value="$id.name">$id.label</option>
                                 <optgroup label="----------"></optgroup>
@@ -665,7 +665,7 @@ $if ctx.user and ctx.user.is_admin():
         <div class="formElement">
             <div class="label">
                 <label for="edition-first_sentence">$_("Additional Metadata")</label>
-                <span class="tip">This field can accept arbitrary key:value pairs</span>
+                <span class="tip">$_('This field can accept arbitrary key:value pairs')</span>
             </div>
             <div class="input">
                 <textarea name="additional_metadata" id="additional_metadata" rows="15" cols="50">foo:bar</textarea>

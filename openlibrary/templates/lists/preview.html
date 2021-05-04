@@ -2,7 +2,7 @@ $def with (list)
     <span class="imageLg">
         $ cover = list.get_cover() or list.get_default_cover()
         $ cover_url = cover and cover.url("M") or "/images/icons/avatar_book-sm.png"
-        <a href="$list.key"><img src="$cover_url" alt="Cover of: $list.name" title="Cover of: $list"/></a>
+        <a href="$list.key"><img src="$cover_url" alt="$_('Cover of: %(title)s', title=list.name)" title="$_('Cover of: %(title)s', title=list.name)"/></a>
     </span>
     <span class="details">
         $ owner = list.get_owner()
@@ -10,10 +10,10 @@ $def with (list)
         <span class="resultTitle $cond(is_owner, 'my-list')">
             $if is_owner:
                 <h3><a href="$list.key">$list.name</a></h3>
-                <span class="list-owner small grey"> by <a href="$owner.key">$_('You')</a></span>
+                <span class="list-owner small grey"> $:_('by <a href="$owner.key">You</a>')</span>
             $else:
-                <h3><a href="$list.key">$list.name</a> </h3>
-                <span class="list-owner small grey"> by  <a href="$owner.key">$owner.displayname</a></span>
+                <h3><a href="$list.key">$list.name</a></h3>
+                <span class="list-owner small grey"> $_('by') <a href="$owner.key">$owner.displayname</a></span>
 
             <div class="editions smaller">
                 $ungettext("1 item", "%(count)d items", len(list.seeds), count=len(list.seeds))
