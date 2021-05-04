@@ -17,5 +17,5 @@ flake8 \
   --diff \
   --filename=*.py \
   --ignore=E203,E226,F401,F405,F841,W504,W503,W605 \
-  --max-line-length=500 \
+  --max-line-length=1200 \
   --statistics
