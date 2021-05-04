@@ -38,12 +38,9 @@ Sample Template::
     </script>
 
 For more details, see:
-
 http://github.com/anandology/notebook/tree/master/2010/03/jsdef/
 
-"""
-
-"""change notes:
+Change notes:
 
 0.1: first release
 0.2: python to javascript conversion for "and", "or" and "not" keywords
