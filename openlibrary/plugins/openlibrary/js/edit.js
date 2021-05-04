@@ -22,13 +22,12 @@ function render_language_autocomplete_item(item, title){
 }
 
 
-function render_language_field(i, language, title, isPriviligedUser){
-    const removeButton = isPriviligedUser ? `<a href="javascript:;" class="remove red plain" title="${title}">[x]</a>` : '';
+function render_language_field(i, language, title){
     return `<div class="input">
         <input name="languages--${i}" class="language language-autocomplete" type="text" id="language-${i}"
                value="${language.name}"/>
         <input name="edition--languages--${i}--key" type="hidden" id="language-${i}-key" value="${language.key}"/>
-        ${removeButton}
+        <a href="javascript:;" class="remove red plain hidden" title="${title}">[x]</a>
         <br/><a href="javascript:;" class="add small">Add another language?</a>
     </div>`
 }
