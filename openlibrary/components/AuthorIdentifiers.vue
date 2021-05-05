@@ -29,28 +29,16 @@ export default {
     // Props are for external options; if a subelement of this is modified,
     // the view automatically re-renders
     props: {
-        // these are the remote ids with associated values, a subset of all identifieirs
-        remote_ids_string: {
+        // this is the list of remote ids currently associated with the book in the database
+        // It is passed as a string and then converted to json
+        remoteIdsString: {
             type: String,
-            //default: () =>  '{"wikidata": "Q10000"}'
+            //default: () =>  "{'wikidata': 'Q10000'}"
         },
         // these are eventually going to be passed in from the config, a list of all possible ids
         allIdentifiers: {
             type: Array,
-            default: () => [
-                {
-                    name: 'wikidata',
-                    label: 'Wikidata'
-                },
-                {
-                    name: 'viaf',
-                    label: 'VIAF'
-                },
-                {
-                    name: 'isni',
-                    label: 'ISNI'
-                }
-            ],
+            default: () => []
         },
     },
 
@@ -60,16 +48,21 @@ export default {
         return {
             selected: '', // Which identifier is selected in dropdown
             inputValue: '', // What user put into input
-            remote_ids_parsed: {},
-            all_ids_by_key: {}
+            remoteIdsParsed: {}, // IDs assigned to object in client
         }
     },
 
     computed: {
         // Merges the key/value with the config data about identifiers
         identifiersWithValues: function(){
-            return Object.entries(this.remote_ids_parsed)
-                .map(([key, value]) => Object.assign(this.all_ids_by_key[key], {value: value}));
+            return Object.entries(this.remoteIdsParsed)
+                .map(([key, value]) => Object.assign(this.allIdentifiersByKey[key] || {}, {value: value}));
+        },
+        // allows for lookup of identifier in O(1) time
+        allIdentifiersByKey: function(){
+            const out = {}
+            this.allIdentifiers.forEach(element=>out[element.name] = element);
+            return out;
         }
     },
 
@@ -77,22 +70,25 @@ export default {
         clickSet: function(){
             // We use $set otherwise we wouldn't get the reactivity desired
             // See https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
-            this.$set(this.remote_ids_parsed, this.selected, this.inputValue)
+            this.$set(this.remoteIdsParsed, this.selected, this.inputValue)
             this.inputValue = '';
 
-            // TODO: I'm not sure how to get around this
-            // Right now, we have a vue component embeded as a small part of a larger form
+            // Right now, we have a vue component embedded as a small part of a larger form
             // As far as I can tell, there is no way for that parent form to automatically detect the inputs in a component without JS
             // This is because the vue component is in a shadow dom
             // So for now this just drops the hidden inputs into the the parent form anytime there is a change
             const html = this.identifiersWithValues.map(item=>`<input type="hidden" name="author--remote_ids--${item.name}" value="${item.value}"/>`).join('');
             document.querySelector('#hiddenIdentifierInputs').innerHTML = html;
         },
+        fetchAllIdentifiers: async function(){
+            const responseJson = await fetch('/config/author.json')
+                .then(response => response.json());
+            this.allIdentifiers = responseJson.identifiers
+        }
     },
     mounted: function(){
-        // TODO: figue out how to pass valid JSON so we don't need this hack
-        this.remote_ids_parsed = JSON.parse(this.remote_ids_string.replace(/'/g, '"'));
-        this.allIdentifiers.forEach(element=>this.all_ids_by_key[element.name] = element);
+        this.remoteIdsParsed = JSON.parse(this.remoteIdsString);
+        this.fetchAllIdentifiers();
     }
 }
 </script>

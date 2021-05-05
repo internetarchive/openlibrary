@@ -54,7 +54,7 @@ $putctx("robots", "noindex,nofollow")
                                     class="markdown olform__input--large" id="wmd-input" rows="6">$page.bio</textarea>
                             </div>
                         </div>
-                        
+
 
                         <div class="formElement contentQuarter" id="birthDate">
                             <div class="label birthLabelAcc">
@@ -82,7 +82,7 @@ $putctx("robots", "noindex,nofollow")
 
                         <div class="clearfix"></div>
 
-                        $if page.date:                                            
+                        $if page.date:
                             <div class="formElement contentQuarter" id="date">
                                     <div class="label dateLabelAcc">
                                         <label for="date">$_("Date")</label>
@@ -106,13 +106,7 @@ $putctx("robots", "noindex,nofollow")
                                 <textarea name="author--alternate_names" id="alternate_names" rows="6">$"; ".join(page.alternate_names)</textarea>
                             </div>
                         </div>
-                        <!-- TODO: Currently remote_ids is a dict instead of a list (as it is for editions)
-                        once it is changed to a list we can get rid of this -->
-                        $ remote_ids = {}
-                        $ if page.remote_ids["wikidata"]: remote_ids["wikidata"] = page.remote_ids["wikidata"]
-                        $ if page.remote_ids["viaf"]: remote_ids["viaf"] = page.remote_ids["viaf"]
-                        $ if page.remote_ids["isni"]: remote_ids["isni"] = page.remote_ids["isni"]
-                        $:render_component('AuthorIdentifiers', attrs=dict(remote_ids_string=remote_ids))
+                        $:render_component('AuthorIdentifiers', attrs=dict(remote_ids_string=dict(page.remote_ids)))
                         <div id="hiddenIdentifierInputs"></div>
 
                         $if page.website:
