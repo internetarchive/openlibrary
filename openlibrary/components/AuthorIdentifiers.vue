@@ -118,23 +118,28 @@ export default {
   grid-row-gap: 1px;
   background-color: #ddd;
 }
+
 .box {
   padding: .5rem;
   background-color: #f6f5ee;
 }
+
 label {
-    font-size: 1em;
-    font-family: "Lucida Grande","Trebuchet MS",Geneva,Helvetica,Arial,sans-serif;
-    font-weight: 700;
+  font-size: 1em;
+  font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+  font-weight: 700;
 }
+
 .allButHeader {
-    background-color: #f6f5ee;
+  background-color: #f6f5ee;
 }
+
 button {
-    margin-left: 1rem;
+  margin-left: 1rem;
 }
+
 input, select, button {
-    padding: 3px;
-    font-size: 1.125rem;
+  padding: 3px;
+  font-size: 1.125rem;
 }
 </style>
