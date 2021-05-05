@@ -9,6 +9,8 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_libraria
       data-removework="$_('Remove this work')"
       data-selectlanguage="$_('Select this language')"
       data-removelanguage="$_('Remove this language')"
+      data-anotherlangage="$_('Add another language?')"
+      data-by="$_('by')"
 ></data>
 
 $def radiobuttons(name, options, value):
@@ -26,7 +28,7 @@ $jsdef render_language_field(i, language):
       <input name="languages--$i" class="language language-autocomplete" type="text" id="language-$i" value="$language.name"/>
       <input name="edition--languages--$i--key" type="hidden" id="language-$i-key" value="$language.key" />
       <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this language')">[x]</a>
-      <br/><a href="javascript:;" class="add small">Add another language?</a>
+      <br/><a href="javascript:;" class="add small">$_('Add another language?')</a>
     </div>
 
 $# Render the ith translated_from language input field
@@ -61,7 +63,7 @@ $jsdef render_work_field(i, work):
     <div class="formBackLeft">
         <div class="formElement">
             <div class="label">
-                <label for="edition-title">Title</label>
+                <label for="edition-title">$_('Title')</label>
                 <span class="tip">$_("Enter the title of this specific edition.")</span>
             </div>
             <div class="input">
@@ -210,7 +212,7 @@ $jsdef render_work_field(i, work):
                             $ work = book.works[0]
                             $for i, a in enumerate(work.get_authors()):
                                 <tr class="repeat-item">
-                                    <td align="right"><strong>Author</strong></td>
+                                    <td align="right"><strong>$_('Author')</strong></td>
                                     <td>$a.name</td>
                                     <td></td>
                                 </tr>
@@ -241,7 +243,7 @@ $jsdef render_work_field(i, work):
 
         <fieldset class="minor formBackRight">
 
-            <legend>Languages</legend>
+            <legend>$_('Languages')</legend>
 
             <div class="formElement" id="languages">
                 <div class="label">
@@ -317,7 +319,7 @@ $jsdef render_work_field(i, work):
 
         <div class="formElement">
             <div class="label">
-                <label for="edition-toc">Table of Contents</label>
+                <label for="edition-toc">$_('Table of Contents')</label>
                 <span class="tip">$:_('Use a "*" for an indent, a "|" to add a column, and line breaks for new lines. Like this:')</span><br/><br/>
         <pre class="smaller gray"> * Part 1 | THIS WORLD | 1
         ** Chapter 1 | Of the Nature of Flatland | 3
@@ -400,7 +402,7 @@ $jsdef render_work_field(i, work):
 							$ set1 = [id_dict[name] for name in popular if name in id_dict]
                             $ set2 = sorted([id for id in edition_config.identifiers if id.name not in popular], key=lambda id:id.label)
 
-                                <option value="">Select one of many...</option>
+                                <option value="">$_('Select one of many...')</option>
                                 $for id in set1:
                                     <option value="$id.name">$id.label</option>
                                 <optgroup label="----------"></optgroup>
@@ -604,7 +606,7 @@ $if ctx.user and ctx.user.is_admin():
         <div class="formElement">
             <div class="label">
                 <label for="edition-first_sentence">$_("Additional Metadata")</label>
-                <span class="tip">This field can accept arbitrary key:value pairs</span>
+                <span class="tip">$_('This field can accept arbitrary key:value pairs')</span>
             </div>
             <div class="input">
                 <textarea name="additional_metadata" id="additional_metadata" rows="15" cols="50">foo:bar</textarea>

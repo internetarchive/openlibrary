@@ -915,7 +915,7 @@ async def solr_insert_documents(
             timeout=30,  # The default timeout is silly short
             params=params,
             headers={'Content-Type': 'application/json'},
-            data=json.dumps(documents)  # type: ignore
+            content=json.dumps(documents)
         )
     resp.raise_for_status()
 

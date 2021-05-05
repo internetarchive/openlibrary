@@ -1,6 +1,6 @@
 $def with (q, lists)
 
-$var title: Search results for Lists
+$var title: $_('Search results for Lists')
 
 <div id="contentHead">
   <h1>$_("Lists")</h1>
@@ -21,6 +21,9 @@ $var title: Search results for Lists
       </ul>
     </div>
   $elif q:
-    <div>No results, <a href="/search/inside?q=$q">try a full-text search?</a></div>
+    <div>
+      <span class="red">$_("No results found.")</span>
+      <a href="/search/inside?$urlencode(dict(q=q))">$_('Search for books containing the phrase "%s"?', q)</a>
+    </div>
 
 </div>

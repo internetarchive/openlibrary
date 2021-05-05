@@ -22,13 +22,13 @@ function render_language_autocomplete_item(item, title){
 }
 
 
-function render_language_field(i, language, title){
+function render_language_field(i, language, title, addAnotherLanguage){
     return `<div class="input">
         <input name="languages--${i}" class="language language-autocomplete" type="text" id="language-${i}"
                value="${language.name}"/>
         <input name="edition--languages--${i}--key" type="hidden" id="language-${i}-key" value="${language.key}"/>
         <a href="javascript:;" class="remove red plain hidden" title="${title}">[x]</a>
-        <br/><a href="javascript:;" class="add small">Add another language?</a>
+        <br/><a href="javascript:;" class="add small">${addAnotherLanguage}</a>
     </div>`
 }
 
@@ -41,7 +41,7 @@ function render_work_field(i, work, removeWorkText){
     </div>`
 }
 
-function render_work_autocomplete_item(item, newWorkText){
+function render_work_autocomplete_item(item, newWorkText, by){
     if (item.key === '__new__') {
         return `<div class="ac_work ac_addnew">
             <span class="action">${newWorkText}</span>
@@ -50,7 +50,7 @@ function render_work_autocomplete_item(item, newWorkText){
 
     const coverImg = `<img src="https://covers.openlibrary.org/b/id/${item.cover_i}-M.jpg" alt="Cover of ${item.title}">`
     const firstYearSpan = `<span class="first_publish_year">(${item.first_publish_year})</span>`
-    const byLine = `<span class="byline">by <span class="authors">${item.author_name.join(', ')}</span></span>`
+    const byLine = `<span class="byline">${by} <span class="authors">${item.author_name.join(', ')}</span></span>`
     return `
         <div class="ac_work" title="Select this work">
             <div class="cover">
@@ -77,11 +77,13 @@ export function initEditionEditPage(){
     const removeWorkText = editionPageData.dataset.removework;
     const selectLanguage = editionPageData.dataset.selectlanguage;
     const removeLanguage = editionPageData.dataset.removelanguage;
+    const anotherlangage = editionPageData.dataset.removelanguage;
+    const by = editionPageData.dataset.by;
     $(function() {
         ['#languages','#translated_from_languages'].forEach((selector)=>{
             $(selector).setup_multi_input_autocomplete(
                 'input.language-autocomplete',
-                (i, language) => render_language_field(i, language, removeLanguage, isPrivilegedUser),
+                (i, language) => render_language_field(i, language, removeLanguage, anotherlangage),
                 { endpoint: '/languages/_autocomplete' },
                 {
                     max: 6,
@@ -102,7 +104,7 @@ export function initEditionEditPage(){
                 max: 11,
                 matchSubset: false,
                 autoFill: false,
-                formatItem: item => render_work_autocomplete_item(item, newWorkText)
+                formatItem: item => render_work_autocomplete_item(item, newWorkText, by)
             });
     });
 }
