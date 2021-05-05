@@ -1,22 +1,27 @@
 <template>
     <div>
-        <div class="label"><label for="name">Identifiers</label></div>
+        <div class="label"><label for="identifiers-display">Identifiers</label></div>
         <div class="allButHeader">
             <div id="identifiers-display">
                 <div class="wrapper">
                     <span class="box">
-                        <select v-model="selected" name="name" id="select-id" aria-invalid="false">
-                            <option disabled value="">Select one of many...</option>
+                        <select v-model="selected" name="name" aria-invalid="false">
+                            <option disabled value="">Select one</option>
                             <option v-for="item in allIdentifiers" :key="item.name" :value="item.name">{{item.label}}</option>
                         </select>
                     </span>
                     <span class="box">
-                        <input type="text" name="value" id="id-value" v-model="inputValue" aria-invalid="false">
-                        <button type="button" name="add" :disabled="this.selected == ''" @click=clickSet>Set</button>
+                        <input type="text" name="value" id="id-value" v-model="inputValue" aria-invalid="false" @keyup.enter=setIdentifier>
+                    </span>
+                    <span class="box">
+                        <button type="button" name="set" :disabled="!setButtonEnabled" @click=setIdentifier>Set</button>
                     </span>
                     <template v-for="(item) in identifiersWithValues">
                         <div class="box" :key="item.name">{{ item.label }}</div>
                         <div class="box" :key="item.name">{{ item.value }}</div>
+                        <div class="box" :key="item.name">
+                          <button type="button" @click="removeIdentifier(item.name)">Remove</button>
+                        </div>
                     </template>
                 </div>
             </div>
@@ -31,7 +36,7 @@ export default {
     props: {
         // this is the list of remote ids currently associated with the book in the database
         // It is passed as a string and then converted to json
-        remoteIdsString: {
+        remote_ids_string: {
             type: String,
             //default: () =>  "{'wikidata': 'Q10000'}"
         },
@@ -63,31 +68,44 @@ export default {
             const out = {}
             this.allIdentifiers.forEach(element=>out[element.name] = element);
             return out;
+        },
+        setButtonEnabled: function(){
+            return this.selected !== '' && this.inputValue !== '';
         }
     },
 
     methods: {
-        clickSet: function(){
+        setIdentifier: function(){
+            // if no identifier selected don't execute
+            if (!this.setButtonEnabled) return
+
             // We use $set otherwise we wouldn't get the reactivity desired
             // See https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
             this.$set(this.remoteIdsParsed, this.selected, this.inputValue)
             this.inputValue = '';
-
+            this.createHiddenInputs()
+        },
+        // Removes an identifier with value from memory and it will be deleted from database on save
+        removeIdentifier: function(identifierName){
+            this.$set(this.remoteIdsParsed, identifierName, '')
+            this.createHiddenInputs()
+        },
+        fetchAllIdentifiers: async function(){
+            const responseJson = await fetch('/config/author.json')
+                .then(response => response.json());
+            this.allIdentifiers = responseJson.identifiers
+        },
+        createHiddenInputs: function(){
             // Right now, we have a vue component embedded as a small part of a larger form
             // As far as I can tell, there is no way for that parent form to automatically detect the inputs in a component without JS
             // This is because the vue component is in a shadow dom
             // So for now this just drops the hidden inputs into the the parent form anytime there is a change
             const html = this.identifiersWithValues.map(item=>`<input type="hidden" name="author--remote_ids--${item.name}" value="${item.value}"/>`).join('');
             document.querySelector('#hiddenIdentifierInputs').innerHTML = html;
-        },
-        fetchAllIdentifiers: async function(){
-            const responseJson = await fetch('/config/author.json')
-                .then(response => response.json());
-            this.allIdentifiers = responseJson.identifiers
         }
     },
     mounted: function(){
-        this.remoteIdsParsed = JSON.parse(this.remoteIdsString);
+        this.remoteIdsParsed = JSON.parse(this.remote_ids_string);
         this.fetchAllIdentifiers();
     }
 }
@@ -96,7 +114,7 @@ export default {
 <style lang="less">
 .wrapper {
   display: grid;
-  grid-template-columns: 20% auto;
+  grid-template-columns: min-content min-content auto;
   grid-row-gap: 1px;
   background-color: #ddd;
 }
@@ -111,9 +129,6 @@ label {
 }
 .allButHeader {
     background-color: #f6f5ee;
-}
-#select-id {
-    width: 100%;
 }
 button {
     margin-left: 1rem;
