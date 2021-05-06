@@ -58,7 +58,7 @@ $def render_carousel_cover(book, lazy):
   </div>
 
 $if test or (books and len(books) >= min_books):
-      <div class="carousel-section">
+      <div class="carousel-section" role="region" aria-label="$title">
       $if title and url:
         <div class="carousel-section-header">
           <h2 class="home-h2"><a href="$url">$title</a></h2>
