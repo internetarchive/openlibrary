@@ -246,7 +246,7 @@ class account_create(delegate.page):
                 Currently, per the fundraising/development team, the
                 "announcements checkbox" should map to BOTH `ml_best_of` and
                 `ml_updates`
-                """"  # nopep8
+                """ # nopep8
                 notifications = ['ml_best_of', 'ml_updates'] if f.ia_newsletter.checked else []
                 InternetArchiveAccount.create(
                     screenname=f.username.value, email=f.email.value, password=f.password.value,
