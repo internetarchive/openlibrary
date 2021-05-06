@@ -102,7 +102,7 @@ const Carousel = {
             }
 
             return `${'<div class="book carousel__item slick-slide slick-active" ' +
-                '"aria-hidden="false" role="option">' +
+                '"aria-hidden="false">' +
                 '<div class="book-cover">' +
                   '<a href="'}${work.key}" ${isClickable}>` +
                     `<img class="bookcover" width="130" height="200" title="${
