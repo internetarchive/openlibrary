@@ -3,7 +3,7 @@
 
 # Learn more about this config here: https://pre-commit.com/
 default_language_version:
-  python: python3.8
+  python: python3.9
 default_stages: [push]
 repos:
   - repo: local

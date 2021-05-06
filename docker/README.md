@@ -152,7 +152,7 @@ docker-compose down && \
 # In your browser, navigate to http://localhost:8080
 
 # Test Open Library on another version of Python that is in `.python-version` and ol-dev
-# PYENV_VERSION can currently be set to: 3.8.6 (default), or 3.9.4
+# PYENV_VERSION can currently be set to: 3.9.4
 docker-compose down && \
     PYENV_VERSION=3.9.4 docker-compose up -d && \
     docker-compose logs -f --tail=10 web

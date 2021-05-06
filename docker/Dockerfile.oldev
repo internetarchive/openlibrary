@@ -2,7 +2,6 @@ FROM openlibrary/olbase:latest
 WORKDIR /openlibrary
 
 COPY requirements*.txt ./
-RUN python3.8 -m pip install -r requirements_test.txt
 RUN python3.9 -m pip install -r requirements_test.txt
 
 COPY package*.json ./
