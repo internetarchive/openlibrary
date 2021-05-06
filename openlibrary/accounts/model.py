@@ -519,8 +519,13 @@ class InternetArchiveAccount(web.storage):
             The slug / itemname is generated automatically from this value.
         :param unicode email:
         :param unicode password:
-        :param List[Union[Literal['announce-general'], Literal['announce-sf']]] notifications:
-            newsletters to subscribe user to
+        :param List[Union[
+                Literal['ml_best_of'], Literal['ml_donors'],
+                Literal['ml_events'], Literal['ml_updates']
+            ]] notifications:
+            newsletters to subscribe user to (NOTE: these must be kept in sync
+            with the values in the `MAILING_LIST_KEYS` array in
+            https://git.archive.org/ia/petabox/blob/master/www/common/MailSync/Settings.inc)
         :param int retries: If the username is unavailable, how many
             subsequent attempts should be made to find an available
             username.
