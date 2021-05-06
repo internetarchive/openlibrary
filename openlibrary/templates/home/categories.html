@@ -2,7 +2,7 @@ $def with (test=False)
 
 $ subjects = get_cached_featured_subjects() if not test else []
 $if subjects:
-  <div class="carousel-section">
+  <div class="carousel-section" role="region" aria-label="$_('Browse by Subject')">
     <div class="carousel-section-header">
       <h2 class="home-h2"><a href="/subjects">$_('Browse by Subject')</a></h2>
     </div>
