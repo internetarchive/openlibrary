@@ -66,12 +66,14 @@ const Carousel = {
         }
 
         $(selector).slick({
+            accessibility: false,
             infinite: false,
             speed: 300,
             slidesToShow: a,
             slidesToScroll: a,
             responsive: responsive_settings
         });
+        accessibilitySetup();
 
         availabilityStatuses = {
             open: {cls: 'cta-btn--available', cta: 'Read'},
@@ -178,6 +180,31 @@ const Carousel = {
                 }
             });
         }
+
+        function accessibilitySetup() {
+
+            function setA11yAttributes() {
+                //Ensuring offscreen elements do not receive focus
+                $(`${selector} [aria-hidden="true"] a[href]`).attr('tabindex', -1);
+                $(`${selector} [aria-hidden="false"] a[href]`).removeAttr('tabindex');
+
+                //Ensuring any disabled button elements do not receive focus
+                $(`${selector} button[aria-disabled="true"]`).attr('tabindex', -1);
+                $(`${selector} button[aria-disabled="false"]`).removeAttr('tabindex');
+            }
+
+            $(`${selector} [aria-live]`).removeAttr('aria-live');
+            setA11yAttributes();
+
+            $(`${selector} button.slick-prev`).on('click', function () {
+                $(`${selector} button.slick-next`).focus();
+            });
+            $(`${selector} button.slick-next`).on('click', function () {
+                $(`${selector} button.slick-prev`).focus();
+            });
+            $(selector).on('afterChange', setA11yAttributes);
+        }
+
     }
 };
 
