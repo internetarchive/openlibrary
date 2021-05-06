@@ -239,7 +239,14 @@ class account_create(delegate.page):
                 # Create ia_account: require they activate via IA email
                 # and then login to OL. Logging in after activation with
                 # IA credentials will auto create and link OL account.
-                notifications = ['announce-general'] if f.ia_newsletter.checked else []
+
+                # NOTE: the values for the notifications must be kept in sync
+                # with the values in the `MAILING_LIST_KEYS` array in
+                # https://git.archive.org/ia/petabox/blob/master/www/common/MailSync/Settings.inc
+                # Currently, per the fundraising/development team, the
+                # "announcements checkbox" should map to BOTH `ml_best_of` and
+                # `ml_updates`
+                notifications = ['ml_best_of', 'ml_updates'] if f.ia_newsletter.checked else []
                 InternetArchiveAccount.create(
                     screenname=f.username.value, email=f.email.value, password=f.password.value,
                     notifications=notifications, verified=False, retries=USERNAME_RETRIES)
