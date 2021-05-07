@@ -13,7 +13,7 @@ $if subjects:
         $for subject_name in subjects:
           $ subject = subjects[subject_name]
           $ presentable_subject_name = subject_name.replace('_', ' ').title()
-          <div class="category-item carousel__item">
+          <div class="category-item carousel__item" role="listitem">
             <a class="category-nostyle" data-ol-link-track="CarouselCategories"
                href="/subjects/$(subject_name)#sort=date_published&ebooks=true">
               <div class="category-icon">
