@@ -13,7 +13,7 @@ const Carousel = {
      * @param {Number} loadMore.limit of new items to receive
      * @param {String} loadMore.pageMode of page e.g. `offset`
      */
-    add: function(selector, a, b, c, d, e, f, loadMore) {
+    add: function(selector, a, b, c, d, e, f, loadMore, title) {
         var responsive_settings, availabilityStatuses, addWork, url, default_limit;
 
         a = a || 6;
@@ -102,7 +102,7 @@ const Carousel = {
             }
 
             return `${'<div class="book carousel__item slick-slide slick-active" ' +
-                '"aria-hidden="false">' +
+                '"aria-hidden="false" role="listitem">' +
                 '<div class="book-cover">' +
                   '<a href="'}${work.key}" ${isClickable}>` +
                     `<img class="bookcover" width="130" height="200" title="${
@@ -194,6 +194,7 @@ const Carousel = {
             }
 
             $(`${selector} [aria-live]`).removeAttr('aria-live');
+            $(`${selector} .slick-track`).attr('role','list').attr('aria-label',title);
             setA11yAttributes();
 
             $(`${selector} button.slick-prev`).on('click', function () {
