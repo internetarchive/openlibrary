@@ -140,7 +140,7 @@ class memcache_memoize:
             self.update(*args, **kw)
         finally:
             # Remove current thread from active threads
-            self.active_threads.pop(threading.currentThread().getName(), None)
+            self.active_threads.pop(threading.current_thread().name, None)
 
             # remove the flag
             self.memcache.delete(key)
