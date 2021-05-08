@@ -74,7 +74,7 @@ services:
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     hostname: "$HOSTNAME"
     user: root
-    command: cron -f
+    command: docker/ol-cron-start.sh
     restart: always
     volumes:
       - ../olsystem/etc/cron.d/openlibrary.ol_home0:/etc/cron.d/openlibrary.ol_home0:ro
