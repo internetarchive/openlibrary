@@ -15,60 +15,85 @@ function update_len() {
     $('#excerpts-excerpt-len').html(2000 - len).css('color', color);
 }
 
+/**
+ * Returns the HTML string for one item of the language input field dropdown.
+ * @param object item - has one property "name" which is shown to the user
+ * @param string title - the text to show when hovering over a dropdown item
+ * title is a parameter for i18n purposes
+**/
 function render_language_autocomplete_item(item, title){
     return `<div class="ac_language" title="${title}">
         <span class="name">${item.name}</span>
     </div>`
 }
 
-
-function render_language_field(i, language, title, addAnotherLanguage){
+/**
+ * Returns the HTML string for one language input field. Editions can have multiple languages and as such multiple of these fields.
+ * @param integer i - 0 is the first language, 1 is the second language, etc
+ * @param object language - has two properties, "name" which is shown to user and "key" which is sent to server
+ * @param string removeWorkTitle - the text to show when hovering over the remove button
+ * @param string addAnotherLanguageText - the text to show for adding another language
+ * removeButtonTitle and addAnotherLanguageText are parameters for i18n purposes
+**/
+function render_language_field(i, language, removeWorkTitle, addAnotherLanguageText){
     return `<div class="input">
         <input name="languages--${i}" class="language language-autocomplete" type="text" id="language-${i}"
                value="${language.name}"/>
         <input name="edition--languages--${i}--key" type="hidden" id="language-${i}-key" value="${language.key}"/>
-        <a href="javascript:;" class="remove red plain hidden" title="${title}">[x]</a>
-        <br/><a href="javascript:;" class="add small">${addAnotherLanguage}</a>
+        <a href="javascript:;" class="remove red plain hidden" title="${removeWorkTitle}">[x]</a>
+        <br/><a href="javascript:;" class="add small">${addAnotherLanguageText}</a>
     </div>`
 }
 
-function render_work_field(i, work, removeWorkText){
+/**
+ * Returns the HTML string for one work input field.
+ * @param integer i - 0 is the first work, 1 is the second work, etc
+ * @param object work - has one property, "key" which is sent to server and not shown to user
+ * @param string removeWorkTitle - the text to show when hovering over the remove button
+ * removeWorkText is a parameter for i18n purposes
+**/
+function render_work_field(i, work, removeWorkTitle){
     return `<div class="input">
         <input name="works--${i}" class="work work-autocomplete" type="text" id="work-${i}"
                value="${work.key.split('/')[-1]}"/>
         <input name="edition--works--${i}--key" type="hidden" id="work-${i}-key" value="${work.key}"/>
-        <a href="javascript:;" class="remove red plain hidden" title="${removeWorkText}">[x]</a>
+        <a href="javascript:;" class="remove red plain hidden" title="${removeWorkTitle}">[x]</a>
     </div>`
 }
 
-function render_work_autocomplete_item(item, newWorkText, by){
-    if (item.key === '__new__') {
+/**
+ * Returns the HTML string for one item of the work input field dropdown.
+ * @param object work - has many properties used to show the user key details of the work
+ * @param string newWorkText - the text to show when hovering over a dropdown item
+ * @param string by - the text to show when hovering over a dropdown item
+ * newWorkText and by are parameterized for i18n purposes
+**/
+function render_work_autocomplete_item(work, newWorkText, by){
+    if (work.key === '__new__') {
         return `<div class="ac_work ac_addnew">
             <span class="action">${newWorkText}</span>
         </div>`
     }
 
-    const coverImg = `<img src="https://covers.openlibrary.org/b/id/${item.cover_i}-M.jpg" alt="Cover of ${item.title}">`
-    const firstYearSpan = `<span class="first_publish_year">(${item.first_publish_year})</span>`
-    const byLine = `<span class="byline">${by} <span class="authors">${item.author_name.join(', ')}</span></span>`
+    const coverImg = `<img src="https://covers.openlibrary.org/b/id/${work.cover_i}-M.jpg" alt="Cover of ${work.title}">`
+    const firstYearSpan = `<span class="first_publish_year">(${work.first_publish_year})</span>`
+    const byLine = `<span class="byline">${by} <span class="authors">${work.author_name.join(', ')}</span></span>`
     return `
         <div class="ac_work" title="Select this work">
             <div class="cover">
-                ${item.cover_i ? coverImg : ''}
+                ${work.cover_i ? coverImg : ''}
             </div>
-            <span class="olid">${item.key.split('/').pop()}</span>
+            <span class="olid">${work.key.split('/').pop()}</span>
             <span class="name">
-                <span class="title">${item.full_title}</span>
-                ${item.first_publish_year ? firstYearSpan : ''}
+                <span class="title">${work.full_title}</span>
+                ${work.first_publish_year ? firstYearSpan : ''}
             </span>
-            ${item.author_name ? byLine : ''}
+            ${work.author_name ? byLine : ''}
             &bull;
-            <span class="edition_count">${item.edition_count} edition${item.edition_count === 1 ? '' : 's'}</span>
+            <span class="edition_count">${work.edition_count} edition${work.edition_count === 1 ? '' : 's'}</span>
         </div>
         `
 }
-
-
 
 export function initEditionEditPage(){
     const editionPageData = document.querySelector('[value="edition-edit-page"]');
@@ -77,13 +102,13 @@ export function initEditionEditPage(){
     const removeWorkText = editionPageData.dataset.removework;
     const selectLanguage = editionPageData.dataset.selectlanguage;
     const removeLanguage = editionPageData.dataset.removelanguage;
-    const anotherlangage = editionPageData.dataset.removelanguage;
+    const anotherLanguage = editionPageData.dataset.removelanguage;
     const by = editionPageData.dataset.by;
     $(function() {
         ['#languages','#translated_from_languages'].forEach((selector)=>{
             $(selector).setup_multi_input_autocomplete(
                 'input.language-autocomplete',
-                (i, language) => render_language_field(i, language, removeLanguage, anotherlangage),
+                (i, language) => render_language_field(i, language, removeLanguage, anotherLanguage),
                 { endpoint: '/languages/_autocomplete' },
                 {
                     max: 6,
