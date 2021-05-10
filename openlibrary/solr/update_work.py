@@ -581,7 +581,7 @@ class SolrProcessor:
                 #   https://openlibrary.org/books/OL2401343M.json
                 ddcs = [
                     ddcs[0],
-                    *[ddc for ddc in ddcs if ddc not in ('92', '920')]
+                    *[ddc for ddc in ddcs[1:] if ddc not in ('92', '920')]
                 ]
             return ddcs
 
