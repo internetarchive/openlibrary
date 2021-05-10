@@ -30,6 +30,7 @@ export function initPatronMetadata() {
             let $choices = $(`<div class="${className}"></div>`);
             let choiceIndex = observation.values.length;
             let type = observation.label;
+            let showClearButton = false;
 
             for (const value of observation.values) {
                 let choiceId = `${id}-${observation.label}Choice${choiceIndex--}`;
@@ -38,6 +39,7 @@ export function initPatronMetadata() {
                 if (type in selectedValues
                     && selectedValues[type].includes(value)) {
                     checked = 'checked';
+                    showClearButton = true;
                 }
 
                 $choices.append(`
@@ -47,7 +49,7 @@ export function initPatronMetadata() {
                 </label>`);
             }
 
-            let $clearButton = $('<a href="#">Clear Selection</a>');
+            let $clearButton = $('<a class="clear-observations-btn" href="#">Clear Selection</a>');
 
             let $formSection = $(`<details class="aspect-section" open>
                                     <summary>${type}</summary>
@@ -61,6 +63,10 @@ export function initPatronMetadata() {
 
             $formSection.children('div').append($choices);
             $formSection.children('div').append($clearButton);
+
+            if (!showClearButton) {
+                $clearButton.hide();
+            }
 
             $clearButton.on('click', function() {
                 let $inputs = $choices.find('input');
@@ -230,9 +236,37 @@ function addChangeListeners(context) {
                 }
 
                 submitObservation($(this), workOlid, data, type);
+                updateClearButtonVisibility($(this).closest('details'));
             });
         })
     });
+}
+
+/**
+ * Updates visibility of a form details section's clear button.
+ *
+ * A clear button in each details section of the observations form should only be visible
+ * if at least one of the section's inputs is checked.  Given a reference to the details
+ * element, this function iterates over all of the section's inputs.  If an input is checked,
+ * the clear button is displayed in the UI.  Otherwise, it is hidden.
+ *
+ * @param {JQuery} $detailsSection Details section that contains button that will be updated
+ */
+function updateClearButtonVisibility($detailsSection) {
+    let $button = $detailsSection.find('.clear-observations-btn');
+    let showButton = false;
+
+    $detailsSection.find('input').each(function() {
+        if ($(this).prop('checked')) {
+            showButton = true;
+        }
+    });
+
+    if (showButton) {
+        $button.show();
+    } else {
+        $button.hide();
+    }
 }
 
 /**
