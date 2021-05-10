@@ -47,6 +47,8 @@ export function initPatronMetadata() {
                 </label>`);
             }
 
+            let $clearButton = $('<a href="#">Clear Selection</a>');
+
             let $formSection = $(`<details class="aspect-section" open>
                                     <summary>${type}</summary>
                                     <div id="${id}-${type}-question">
@@ -54,9 +56,25 @@ export function initPatronMetadata() {
                                         <span class="pending-indicator hidden"></span>
                                         <span class="success-indicator hidden">Selection saved!</span>
                                         <span class="failure-indicator hidden">Submission failed</span>
-                                        ${$choices.prop('outerHTML')}
                                     </div>
                                 </details>`);
+
+            $formSection.children('div').append($choices);
+            $formSection.children('div').append($clearButton);
+
+            $clearButton.on('click', function() {
+                let $inputs = $choices.find('input');
+
+                $inputs.each(function() {
+                    if ($(this).prop('checked')) {
+                        $(this).prop('checked', false);
+                        $(this).trigger('change');
+                    }
+                });
+
+                // Prevent redirect
+                return false;
+            });
 
             /*
             Adds an observation submission state change event handler to this section of the form.
