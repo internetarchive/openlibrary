@@ -49,7 +49,7 @@ export function initPatronMetadata() {
                 </label>`);
             }
 
-            let $clearButton = $('<a class="clear-observations-btn" href="#">Clear Selection</a>');
+            let $clearButton = $('<a class="clear-observations-btn cta-btn" href="#">Clear Selection</a>');
 
             let $formSection = $(`<details class="aspect-section" open>
                                     <summary>${type}</summary>
@@ -65,7 +65,7 @@ export function initPatronMetadata() {
             $formSection.children('div').append($clearButton);
 
             if (!showClearButton) {
-                $clearButton.hide();
+                $clearButton.css('visibility', 'hidden');
             }
 
             $clearButton.on('click', function() {
@@ -263,9 +263,9 @@ function updateClearButtonVisibility($detailsSection) {
     });
 
     if (showButton) {
-        $button.show();
+        $button.css('visibility', 'visible');
     } else {
-        $button.hide();
+        $button.css('visibility', 'hidden');
     }
 }
 
