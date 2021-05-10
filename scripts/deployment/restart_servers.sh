@@ -13,6 +13,7 @@ set -o xtrace
 PRODUCTION="docker-compose.yml:docker-compose.production.yml"
 # zsh uses HOST (although we're in a bash context, so maybe not needed?)
 HOSTNAME="${HOSTNAME:-$HOST}"
+OLIMAGE="${OLIMAGE:-}"
 
 # If no args provided then restart the services on localhost
 if [[ $@ == "" ]]; then
@@ -28,5 +29,5 @@ for SERVER in $SERVERS; do
         EXTRA_OPTS="--scale covers=2"
     fi
 
-    ssh $SERVER "cd /opt/openlibrary; COMPOSE_FILE=$PRODUCTION HOSTNAME=$HOSTNAME docker-compose --profile $(echo $SERVER | cut -f1 -d '.') up --no-deps -d $EXTRA_OPTS"
+    ssh $SERVER "cd /opt/openlibrary; COMPOSE_FILE=$PRODUCTION HOSTNAME=$HOSTNAME OLIMAGE=$OLIMAGE docker-compose --profile $(echo $SERVER | cut -f1 -d '.') up --no-deps -d $EXTRA_OPTS"
 done
