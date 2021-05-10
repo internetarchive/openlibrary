@@ -409,6 +409,11 @@ class Test_build_data:
         'Ignores ISBNs/LCCs': (
             ['9781234123411', 'ML410', '132.3'],
             ['132.3'], 0),
+        'Ignores superfluous 920s': (['123.5', '920'], ['123.5'], 0),
+        'Ignores superfluous 92s': (['123.5', '92'], ['123.5'], 0),
+        'Ignores superfluous 92s (2)': (['123.5', 'B', '92'], ['123.5'], 0),
+        'Does not skip 920s': (['920', '123.5'], ['123.5', '920'], 0),
+        'Does not skip 92s': (['92', '123.5'], ['092', '123.5'], 1),
     }
 
     @pytest.mark.parametrize("doc_ddcs,solr_ddcs,sort_ddc_index",

@@ -568,9 +568,26 @@ class SolrProcessor:
             # Choose the... idk, longest for sorting?
             add("lcc_sort", sorted(lccs, key=len, reverse=True)[0])
 
+        def get_edition_ddcs(ed: dict):
+            ddcs = ed.get('dewey_decimal_class', [])  # type: List[str]
+            if len(ddcs) > 1:
+                # In DDC, `92` or `920` is sometimes appended to a DDC to denote
+                # "Biography". We have a clause to handle this if it's part of the same
+                # DDC (See utils/ddc.py), but some books have it as an entirely separate
+                # DDC; e.g.:
+                # * [ "979.4/830046872073", "92" ]
+                #   https://openlibrary.org/books/OL3029363M.json
+                # * [ "813/.54", "B", "92" ]
+                #   https://openlibrary.org/books/OL2401343M.json
+                ddcs = [
+                    ddcs[0],
+                    *[ddc for ddc in ddcs[1:] if ddc not in ('92', '920')]
+                ]
+            return ddcs
+
         raw_ddcs = set(ddc
                        for ed in editions
-                       for ddc in ed.get('dewey_decimal_class', []))
+                       for ddc in get_edition_ddcs(ed))
         ddcs = set(ddc
                    for raw_ddc in raw_ddcs
                    for ddc in normalize_ddc(raw_ddc))
