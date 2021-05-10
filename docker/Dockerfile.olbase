@@ -52,11 +52,9 @@ ENV PYENV_ROOT /home/openlibrary/.pyenv
 ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
 
 # Install wheel before other requirements to reduce Docker build time.
-RUN pyenv update && pyenv install 3.8.6 \
- && pyenv update && pyenv install 3.9.4 \
- && pyenv global 3.8.6 3.9.4 \
+RUN pyenv update && pyenv install 3.9.4 \
+ && pyenv global 3.9.4 \
  && pyenv rehash \
- && python3.8 -m pip install --upgrade pip wheel \
  && python3.9 -m pip install --upgrade pip wheel
 
 USER root
@@ -73,8 +71,7 @@ WORKDIR /openlibrary
 
 USER openlibrary
 COPY requirements*.txt ./
-RUN python3.8 -m pip install --default-timeout=100 -r requirements.txt \
- && python3.9 -m pip install --default-timeout=100 -r requirements.txt
+RUN python3.9 -m pip install --default-timeout=100 -r requirements.txt
 
 COPY package*.json ./
 RUN npm ci
