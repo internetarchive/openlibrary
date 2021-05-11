@@ -615,18 +615,11 @@ class SolrProcessor:
                 #   https://openlibrary.org/books/OL3029363M.json
                 # * [ "813/.54", "B", "92" ]
                 #   https://openlibrary.org/books/OL2401343M.json
-                ddcs = [
-                    ddcs[0],
-                    *[ddc for ddc in ddcs[1:] if ddc not in ('92', '920')]
-                ]
+                ddcs = [ddcs[0], *[ddc for ddc in ddcs[1:] if ddc not in ('92', '920')]]
             return ddcs
 
-        raw_ddcs = set(ddc
-                       for ed in editions
-                       for ddc in get_edition_ddcs(ed))
-        ddcs = set(ddc
-                   for raw_ddc in raw_ddcs
-                   for ddc in normalize_ddc(raw_ddc))
+        raw_ddcs = set(ddc for ed in editions for ddc in get_edition_ddcs(ed))
+        ddcs = set(ddc for raw_ddc in raw_ddcs for ddc in normalize_ddc(raw_ddc))
         if ddcs:
             add_list("ddc", ddcs)
             # Choose longest, since has most precision?
@@ -1012,7 +1005,7 @@ async def solr_insert_documents(
             timeout=30,  # The default timeout is silly short
             params=params,
             headers={'Content-Type': 'application/json'},
-            content=json.dumps(documents)
+            content=json.dumps(documents),
         )
     resp.raise_for_status()
 
