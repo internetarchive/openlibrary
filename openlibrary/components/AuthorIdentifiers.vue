@@ -1,7 +1,7 @@
 <template>
     <div class="wrapper">
         <span class="box">
-            <select v-model="selected" name="name">
+            <select v-model="selectedIdentifier" name="name">
                 <option disabled value="">Select one</option>
                 <option v-for="identifier in allIdentifiers" :key="identifier.name" :value="identifier.name">
                   {{identifier.label}}
@@ -59,7 +59,7 @@ export default {
     computed: {
         // Merges the key/value with the config data about identifiers
         identifiersWithValues: function(){
-            return Object.entries(this.remoteIdsParsed)
+            return Object.entries(this.remoteIds)
                 .map(([key, value]) => Object.assign(this.allIdentifiersByKey[key] || {}, {value: value}));
         },
         // allows for lookup of identifier in O(1) time
@@ -69,7 +69,7 @@ export default {
             return out;
         },
         setButtonEnabled: function(){
-            return this.selected !== '' && this.inputValue !== '';
+            return this.selectedIdentifier !== '' && this.inputValue !== '';
         }
     },
 
@@ -80,13 +80,13 @@ export default {
 
             // We use $set otherwise we wouldn't get the reactivity desired
             // See https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
-            this.$set(this.remoteIdsParsed, this.selected, this.inputValue)
+            this.$set(this.remoteIds, this.selectedIdentifier, this.inputValue)
             this.inputValue = '';
             this.createHiddenInputs()
         },
         // Removes an identifier with value from memory and it will be deleted from database on save
         removeIdentifier: function(identifierName){
-            this.$set(this.remoteIdsParsed, identifierName, '')
+            this.$set(this.remoteIds, identifierName, '')
             this.createHiddenInputs()
         },
         fetchAllIdentifiers: async function(){
@@ -104,7 +104,7 @@ export default {
         }
     },
     mounted: function(){
-        this.remoteIdsParsed = JSON.parse(this.remote_ids_string);
+        this.remoteIds = JSON.parse(this.remote_ids_string);
         this.fetchAllIdentifiers();
     }
 }
