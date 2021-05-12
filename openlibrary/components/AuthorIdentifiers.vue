@@ -40,6 +40,10 @@ export default {
             type: Array,
             default: () => []
         },
+        // see createHiddenInputs function for usage
+        output_selector: {
+            type: String,
+        }
     },
 
     // Data is for internal stuff. This needs to be a function so that we get
@@ -96,7 +100,7 @@ export default {
             // This is because the vue component is in a shadow dom
             // So for now this just drops the hidden inputs into the the parent form anytime there is a change
             const html = this.identifiersWithValues.map(identifier=>`<input type="hidden" name="author--remote_ids--${identifier.name}" value="${identifier.value}"/>`).join('');
-            document.querySelector('#hiddenIdentifierInputs').innerHTML = html;
+            document.querySelector(this.output_selector).innerHTML = html;
         }
     },
     mounted: function(){
