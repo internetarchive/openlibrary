@@ -3,7 +3,7 @@
         <span class="box">
             <select v-model="selectedIdentifier" name="name">
                 <option disabled value="">Select one</option>
-                <option v-for="identifier in allIdentifiers" :key="identifier.name" :value="identifier.name">
+                <option v-for="identifier in allPossibleIdentifiers" :key="identifier.name" :value="identifier.name">
                   {{identifier.label}}
                 </option>
             </select>
@@ -35,14 +35,13 @@ export default {
             type: String,
             //default: () =>  "{'wikidata': 'Q10000'}"
         },
-        // these are eventually going to be passed in from the config, a list of all possible ids
-        allIdentifiers: {
-            type: Array,
-            default: () => []
+        // everything from https://openlibrary.org/config/author
+        author_config: {
+            type: Object
         },
         // see createHiddenInputs function for usage
         output_selector: {
-            type: String,
+            type: String
         }
     },
 
@@ -53,6 +52,7 @@ export default {
             selectedIdentifier: '', // Which identifier is selected in dropdown
             inputValue: '', // What user put into input
             remoteIds: {}, // IDs assigned to object in client
+            allPossibleIdentifiers: [], // A list of every identifier that can be set
         }
     },
 
@@ -65,7 +65,7 @@ export default {
         // allows for lookup of identifier in O(1) time
         allIdentifiersByKey: function(){
             const out = {}
-            this.allIdentifiers.forEach(element=>out[element.name] = element);
+            this.allPossibleIdentifiers.forEach(element=>out[element.name] = element);
             return out;
         },
         setButtonEnabled: function(){
@@ -89,11 +89,6 @@ export default {
             this.$set(this.remoteIds, identifierName, '')
             this.createHiddenInputs()
         },
-        fetchAllIdentifiers: async function(){
-            const responseJson = await fetch('/config/author.json')
-                .then(response => response.json());
-            this.allIdentifiers = responseJson.identifiers
-        },
         createHiddenInputs: function(){
             // Right now, we have a vue component embedded as a small part of a larger form
             // As far as I can tell, there is no way for that parent form to automatically detect the inputs in a component without JS
@@ -105,7 +100,7 @@ export default {
     },
     mounted: function(){
         this.remoteIds = JSON.parse(decodeURIComponent(this.remote_ids_string));
-        this.fetchAllIdentifiers();
+        this.allPossibleIdentifiers = JSON.parse(decodeURIComponent(this.author_config))['identifiers'];
     }
 }
 </script>
