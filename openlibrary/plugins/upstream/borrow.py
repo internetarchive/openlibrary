@@ -119,7 +119,7 @@ class borrow(delegate.page):
 
         if i.q:
             _q = urllib.parse.quote(i.q, safe='')
-            archive_url += "#page/-/mode/2up/search/%s" % _q
+            raise web.seeother(archive_url + "#page/-/mode/2up/search/%s" % _q)
 
         # Make a call to availability v2 update the subjects according
         # to result if `open`, redirect to bookreader
