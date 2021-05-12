@@ -106,7 +106,10 @@ $putctx("robots", "noindex,nofollow")
                                 <textarea name="author--alternate_names" id="alternate_names" rows="6">$"; ".join(page.alternate_names)</textarea>
                             </div>
                         </div>
-                        $:render_component('AuthorIdentifiers', attrs=dict(remote_ids_string=dict(page.remote_ids)))
+                        <div class="label"><label for="identifiers-display">Identifiers</label></div>
+                        <div class="identifiers-display">
+                            $:render_component('AuthorIdentifiers', attrs=dict(remote_ids_string=dict(page.remote_ids)))
+                        </div>
                         <div id="hiddenIdentifierInputs"></div>
 
                         $if page.website:

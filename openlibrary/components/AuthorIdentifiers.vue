@@ -1,31 +1,24 @@
 <template>
-    <div>
-        <div class="label"><label for="identifiers-display">Identifiers</label></div>
-        <div class="allButHeader">
-            <div id="identifiers-display">
-                <div class="wrapper">
-                    <span class="box">
-                        <select v-model="selected" name="name" aria-invalid="false">
-                            <option disabled value="">Select one</option>
-                            <option v-for="item in allIdentifiers" :key="item.name" :value="item.name">{{item.label}}</option>
-                        </select>
-                    </span>
-                    <span class="box">
-                        <input type="text" name="value" id="id-value" v-model="inputValue" aria-invalid="false" @keyup.enter=setIdentifier>
-                    </span>
-                    <span class="box">
-                        <button type="button" name="set" :disabled="!setButtonEnabled" @click=setIdentifier>Set</button>
-                    </span>
-                    <template v-for="(item) in identifiersWithValues">
-                        <div class="box" :key="item.name">{{ item.label }}</div>
-                        <div class="box" :key="item.name">{{ item.value }}</div>
-                        <div class="box" :key="item.name">
-                          <button type="button" @click="removeIdentifier(item.name)">Remove</button>
-                        </div>
-                    </template>
-                </div>
+    <div class="wrapper">
+        <span class="box">
+            <select v-model="selected" name="name">
+                <option disabled value="">Select one</option>
+                <option v-for="item in allIdentifiers" :key="item.name" :value="item.name">{{item.label}}</option>
+            </select>
+        </span>
+        <span class="box">
+            <input type="text" name="value" id="id-value" v-model="inputValue" @keyup.enter=setIdentifier>
+        </span>
+        <span class="box">
+            <button type="button" name="set" :disabled="!setButtonEnabled" @click=setIdentifier>Set</button>
+        </span>
+        <template v-for="(item) in identifiersWithValues">
+            <div class="box" :key="item.name">{{ item.label }}</div>
+            <div class="box" :key="item.name">{{ item.value }}</div>
+            <div class="box" :key="item.name">
+                <button type="button" @click="removeIdentifier(item.name)">Remove</button>
             </div>
-        </div>
+        </template>
     </div>
 </template>
 
@@ -121,16 +114,6 @@ export default {
 
 .box {
   padding: .5rem;
-  background-color: #f6f5ee;
-}
-
-label {
-  font-size: 1em;
-  font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
-  font-weight: 700;
-}
-
-.allButHeader {
   background-color: #f6f5ee;
 }
 
