@@ -60,13 +60,11 @@ export default {
         // Merges the key/value with the config data about identifiers
         identifiersWithValues: function(){
             return Object.entries(this.remoteIds)
-                .map(([key, value]) => Object.assign(this.allIdentifiersByKey[key] || {}, {value: value}));
+                .map(([key, value]) => Object.assign({value: value}, this.allIdentifiersByKey[key] || {}));
         },
         // allows for lookup of identifier in O(1) time
         allIdentifiersByKey: function(){
-            const out = {}
-            this.allPossibleIdentifiers.forEach(element=>out[element.name] = element);
-            return out;
+            return Object.fromEntries(this.allPossibleIdentifiers.map(e => [e.name, e]));
         },
         setButtonEnabled: function(){
             return this.selectedIdentifier !== '' && this.inputValue !== '';

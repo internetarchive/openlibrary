@@ -563,6 +563,7 @@ def get_languages():
 def get_author_config():
     return _get_author_config()
 
+
 @web.memoize
 def _get_author_config():
     """Returns the author config.
