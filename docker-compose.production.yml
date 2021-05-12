@@ -57,9 +57,8 @@ services:
 
   covers_nginx:
     profiles: ["ol-covers0"]
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.nginx
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    command: nginx -g daemon off
     restart: unless-stopped
     depends_on:
       - covers
@@ -135,9 +134,8 @@ services:
   web_nginx:
     restart: always
     hostname: "$HOSTNAME"
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.nginx
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    command: nginx -g daemon off
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../olsystem/etc/nginx/sites-available/default-docker.conf:/etc/nginx/sites-enabled/default:ro
@@ -160,9 +158,8 @@ services:
 
   infobase_nginx:
     profiles: ["ol-home0"]
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.nginx
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    command: nginx -g daemon off
     restart: unless-stopped
     depends_on:
       - infobase
