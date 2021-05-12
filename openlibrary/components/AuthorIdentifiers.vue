@@ -78,7 +78,6 @@ export default {
             // See https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
             this.$set(this.assignedIdentifiers, this.selectedIdentifier, this.inputValue)
             this.inputValue = '';
-            this.createHiddenInputs()
         },
         /** Removes an identifier with value from memory and it will be deleted from database on save */
         removeIdentifier: function(identifierName){
@@ -97,6 +96,11 @@ export default {
     },
     mounted: function(){
         this.assignedIdentifiers = JSON.parse(decodeURIComponent(this.assigned_ids_string));
+    },
+    watch: {
+        assignedIdentifiers: function(){
+            this.createHiddenInputs();
+        }
     }
 }
 </script>
