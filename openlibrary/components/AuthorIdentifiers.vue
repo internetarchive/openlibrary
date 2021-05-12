@@ -3,7 +3,9 @@
         <span class="box">
             <select v-model="selected" name="name">
                 <option disabled value="">Select one</option>
-                <option v-for="item in allIdentifiers" :key="item.name" :value="item.name">{{item.label}}</option>
+                <option v-for="identifier in allIdentifiers" :key="identifier.name" :value="identifier.name">
+                  {{identifier.label}}
+                </option>
             </select>
         </span>
         <span class="box">
@@ -12,11 +14,11 @@
         <span class="box">
             <button type="button" name="set" :disabled="!setButtonEnabled" @click=setIdentifier>Set</button>
         </span>
-        <template v-for="(item) in identifiersWithValues">
-            <div class="box" :key="item.name">{{ item.label }}</div>
-            <div class="box" :key="item.name">{{ item.value }}</div>
-            <div class="box" :key="item.name">
-                <button type="button" @click="removeIdentifier(item.name)">Remove</button>
+        <template v-for="identifier in identifiersWithValues">
+            <div class="box" :key="identifier.name">{{ identifier.label }}</div>
+            <div class="box" :key="identifier.name">{{ identifier.value }}</div>
+            <div class="box" :key="identifier.name">
+                <button type="button" @click="removeIdentifier(identifier.name)">Remove</button>
             </div>
         </template>
     </div>
@@ -93,7 +95,7 @@ export default {
             // As far as I can tell, there is no way for that parent form to automatically detect the inputs in a component without JS
             // This is because the vue component is in a shadow dom
             // So for now this just drops the hidden inputs into the the parent form anytime there is a change
-            const html = this.identifiersWithValues.map(item=>`<input type="hidden" name="author--remote_ids--${item.name}" value="${item.value}"/>`).join('');
+            const html = this.identifiersWithValues.map(identifier=>`<input type="hidden" name="author--remote_ids--${identifier.name}" value="${identifier.value}"/>`).join('');
             document.querySelector('#hiddenIdentifierInputs').innerHTML = html;
         }
     },
