@@ -104,7 +104,7 @@ export default {
         }
     },
     mounted: function(){
-        this.remoteIds = JSON.parse(this.remote_ids_string);
+        this.remoteIds = JSON.parse(decodeURIComponent(this.remote_ids_string));
         this.fetchAllIdentifiers();
     }
 }

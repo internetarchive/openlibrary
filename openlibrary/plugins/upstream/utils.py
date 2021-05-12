@@ -136,7 +136,9 @@ def render_component(name, attrs=None, json_encode=True):
     for (key, val) in attrs.items():
         if json_encode and isinstance(val, dict) or isinstance(val, list):
             val = json.dumps(val)
-        attrs_str += f' {key}=\'{val}\''
+            # On the Vue side use decodeURIComponent to decode
+            val = urllib.parse.quote(val)
+        attrs_str += f' {key}="{val}"'
     html = ''
     included = web.ctx.setdefault("included-components", [])
 
