@@ -572,7 +572,6 @@ def _get_author_config():
     Any changes to /config/author page require restarting the app.
 
     """
-    # TODO: figure out why this doesn't work
     thing = web.ctx.site.get('/config/author')
     if hasattr(thing, "identifiers"):
         identifiers = [web.storage(t.dict()) for t in thing.identifiers if 'name' in t]
