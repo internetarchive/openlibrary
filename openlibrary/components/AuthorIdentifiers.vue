@@ -52,7 +52,7 @@ export default {
         return {
             selectedIdentifier: '', // Which identifier is selected in dropdown
             inputValue: '', // What user put into input
-            remoteIdsParsed: {}, // IDs assigned to object in client
+            remoteIds: {}, // IDs assigned to object in client
         }
     },
 
