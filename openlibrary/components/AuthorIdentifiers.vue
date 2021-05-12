@@ -50,7 +50,7 @@ export default {
     // a fresh object every time this is initialized.
     data: () => {
         return {
-            selected: '', // Which identifier is selected in dropdown
+            selectedIdentifier: '', // Which identifier is selected in dropdown
             inputValue: '', // What user put into input
             remoteIdsParsed: {}, // IDs assigned to object in client
         }
