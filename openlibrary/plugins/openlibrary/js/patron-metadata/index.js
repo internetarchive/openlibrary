@@ -49,20 +49,22 @@ export function initPatronMetadata() {
                 </label>`);
             }
 
-            let $clearButton = $('<a class="clear-observations-btn cta-btn" href="#">Clear Selection</a>');
+            let $clearButton = $('<a class="clear-observations-btn" href="#">Clear &times</a>');
 
             let $formSection = $(`<details class="aspect-section" open>
                                     <summary>${type}</summary>
                                     <div id="${id}-${type}-question">
-                                        <h3>${observation.description}</h3>
-                                        <span class="pending-indicator hidden"></span>
-                                        <span class="success-indicator hidden">Selection saved!</span>
-                                        <span class="failure-indicator hidden">Submission failed</span>
+                                        <div class="form-question">
+                                            <h3>${observation.description}</h3>
+                                            <span class="pending-indicator hidden"></span>
+                                            <span class="success-indicator hidden">Selection saved!</span>
+                                            <span class="failure-indicator hidden">Submission failed</span>
+                                        </div>
                                     </div>
                                 </details>`);
 
             $formSection.children('div').append($choices);
-            $formSection.children('div').append($clearButton);
+            $formSection.find('.form-question').append($clearButton);
 
             if (!showClearButton) {
                 $clearButton.css('visibility', 'hidden');

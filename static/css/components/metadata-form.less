@@ -113,10 +113,17 @@
     margin-right: .5em;
   }
 
+  .form-question {
+    display: flex;
+    align-items: center;
+  }
+
   .clear-observations-btn {
-    background-color: @red;
+    color: @red;
+    font-weight: bold;
     width: max-content;
-    margin: 0 auto;
+    margin: 0 0 0 auto;
+    text-decoration: none;
   }
 }
 
@@ -188,12 +195,14 @@
       margin-right: unset;
       display: block;
     }
-  }
 
-  .pending-indicator,
-  .success-indicator,
-  .failure-indicator {
-    display: block;
-    height: 1em;
+    .form-question {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .clear-observations-btn {
+      margin: .5em 0;
+    }
   }
 }
