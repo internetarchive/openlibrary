@@ -1,27 +1,29 @@
 <template>
-    <div class="wrapper">
-        <span class="box">
-            <select v-model="selectedIdentifier" name="name">
-                <option disabled value="">Select one</option>
-                <option v-for="idConfig in identifierConfigsByKey" :key="idConfig.name" :value="idConfig.name">
-                  {{idConfig.label}}
-                </option>
-            </select>
-        </span>
-        <span class="box">
-            <input type="text" name="value" id="id-value" v-model="inputValue" @keyup.enter=setIdentifier>
-        </span>
-        <span class="box">
-            <button type="button" name="set" :disabled="!setButtonEnabled" @click=setIdentifier>Set</button>
-        </span>
-        <template v-for="identifier in assignedIdentifiersWithConfigs">
-            <div class="box" :key="identifier.name">{{ identifier.label }}</div>
-            <div class="box" :key="identifier.name">{{ identifier.value }}</div>
-            <div class="box" :key="identifier.name">
-                <button type="button" @click="removeIdentifier(identifier.name)">Remove</button>
-            </div>
-        </template>
-    </div>
+  <table>
+    <tr>
+      <th>
+        <select class="form-control" v-model="selectedIdentifier" name="name">
+          <option disabled value="">Select one</option>
+          <option v-for="idConfig in identifierConfigsByKey" :key="idConfig.name" :value="idConfig.name">
+            {{idConfig.label}}
+          </option>
+        </select>
+      </th>
+      <th>
+        <input class="form-control" type="text" name="value" id="id-value" v-model="inputValue" @keyup.enter=setIdentifier>
+      </th>
+      <th>
+        <button class="form-control" type="button" name="set" :disabled="!setButtonEnabled" @click=setIdentifier>Set</button>
+      </th>
+    </tr>
+    <tr :key="identifier.name" v-for="identifier in assignedIdentifiersWithConfigs">
+      <td>{{ identifier.label }}</td>
+      <td>{{ identifier.value }}</td>
+      <td>
+        <button class="form-control" type="button" @click="removeIdentifier(identifier.name)">Remove</button>
+      </td>
+    </tr>
+  </table>
 </template>
 
 <script>
@@ -106,24 +108,26 @@ export default {
 </script>
 
 <style lang="less">
-.wrapper {
-  display: grid;
-  grid-template-columns: min-content min-content auto;
-  grid-row-gap: 1px;
-  background-color: #ddd;
+select.form-control {
+  height: calc(2.25rem + 2px);
 }
-
-.box {
-  padding: .5rem;
+.form-control {
+  padding: .375rem .75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border: 1px solid #ced4da;
+}
+table {
   background-color: #f6f5ee;
+  border-collapse: collapse;
 }
-
-button {
-  margin-left: 1rem;
+th {
+  text-align: left;
 }
-
-input, select, button {
-  padding: 3px;
-  font-size: 1.125rem;
+td {
+  border-top: 1px solid #ddd;
+}
+th, td {
+  padding: .25rem;
 }
 </style>
