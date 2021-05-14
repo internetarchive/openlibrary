@@ -5,37 +5,37 @@ export function initGoodreadsImport() {
     var l, elem, count, prevPromise;
 
     $(document).on('click', 'th.toggle-all input', function () {
-        var checked = $(this).attr('checked');
+        var checked = $(this).prop('checked');
         if (!checked) {
-            $(this).removeAttr('checked');
+            $(this).prop('checked', false);
             $('input.add-book').each(function () {
-                $(this).removeAttr('checked');
+                $(this).prop('checked', false);
             });
         }
         else {
-            $(this).attr('checked', 'checked')
+            $(this).prop('checked', true)
             $('input.add-book').each(function () {
-                $(this).attr('checked', 'checked');
+                $(this).prop('checked', true);
             });
         }
-        l = $('.add-book[checked*="checked"]').size();
+        l = $('.add-book[checked*="checked"]').length;
         $('.import-submit').attr('value', `Import ${l} Books`);
     });
 
     $(document).on('click', 'input.add-book', function () {
-        var checked = $(this).attr('checked');
+        var checked = $(this).prop('checked');
         if (!checked) {
-            $(this).removeAttr('checked');
+            $(this).prop('checked', false);
         }
         else {
-            $(this).attr('checked', 'checked');
+            $(this).prop('checked', true);
         }
-        l = $('.add-book[checked*="checked"]').size();
+        l = $('.add-book[checked*="checked"]').length;
         $('.import-submit').attr('value', `Import ${l} Books`);
     });
 
     function func1(value) {
-        l = $('.add-book[checked*="checked"]').size();
+        l = $('.add-book[checked*="checked"]').length;
         elem = document.getElementById('myBar');
         elem.style.width = `${value * (100 / l)}%`;
         elem.innerHTML = `${value} Books`;
@@ -56,7 +56,7 @@ export function initGoodreadsImport() {
         prevPromise = Promise.resolve();
         $('input.add-book').each(function () {
             var input = $(this),
-                checked = input.attr('checked');
+                checked = input.prop('checked');
             var value = JSON.parse(input.val().replace(/'/g, '"'));
             var shelf = value['Exclusive Shelf'];
             const shelves = {read: 3, 'currently-reading': 2,  'to-read': 1};
