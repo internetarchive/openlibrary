@@ -11,9 +11,16 @@
     }
   }
   .book-cover {
+    height: 200px;
+    display: flex;
+    align-items: center;
+
     img,
     a {
       display: block;
+    }
+    a {
+      margin: auto;
     }
   }
 
@@ -21,5 +28,7 @@
     margin: 0 auto;
     box-shadow: 1px 2px 5px 0 @book-cover-shadow-color;
     border-radius: 3px;
+    max-width: 100%;
+    max-height: 200px;
   }
 }
