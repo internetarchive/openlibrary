@@ -12,7 +12,7 @@ $def with (selected_sort, exclude=None, default_sort='relevance')
     $for sort_option in sort_options:
       $if exclude and sort_option['sort'] in exclude:
         $continue
-      $ is_selected = sort_option.get('selected') or sort_option['sort'] == selected_sort
+      $ is_selected = sort_option.get('selected') or sort_option['sort'] == selected_sort or (selected_sort is None and sort_option['sort'] == default_sort)
       $if is_selected:
           <strong class="lightgreen">$sort_option['name']</strong>
       $else:
