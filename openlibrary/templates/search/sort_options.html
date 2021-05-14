@@ -1,0 +1,28 @@
+$def with (selected_sort, exclude=None, default_sort='relevance')
+
+<span class="tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" style="margin-right:10px;"/>
+    $code:
+      sort_options = [
+        { 'sort': 'relevance', 'name': _("Relevance"), 'ga_key': 'Relevance' },
+        { 'sort': 'editions', 'name': _("Most Editions"), 'ga_key': 'Editions' },
+        { 'sort': 'old', 'name': _("First Published"), 'ga_key': 'Old' },
+        { 'sort': 'new', 'name': _("Most Recent"), 'ga_key': 'New' },
+        { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': selected_sort and selected_sort.startswith('random') },
+      ]
+    $for sort_option in sort_options:
+      $if exclude and sort_option['sort'] in exclude:
+        $continue
+      $ is_selected = sort_option.get('selected') or sort_option['sort'] == selected_sort or (selected_sort is None and sort_option['sort'] == default_sort)
+      $if is_selected:
+          <strong class="lightgreen">$sort_option['name']</strong>
+      $else:
+          <a href="$changequery(sort=cond(sort_option['sort'] == default_sort, None, sort_option['sort']))"
+             data-ol-link-track="SearchSort|$sort_option['ga_key']"
+          >$sort_option['name']</a>
+      $if not loop.last:
+          |
+    $if selected_sort and selected_sort.startswith('random'):
+      (<a href="$changequery(sort='random_%s' % today().timestamp())"
+         data-ol-link-track="SearchSort|RandomShuffle"
+      >$_('Shuffle')</a>)
+</span>
