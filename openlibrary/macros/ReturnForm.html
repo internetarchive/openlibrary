@@ -1,9 +1,6 @@
-$def with (loan)
+$def with (ocaid)
 
-$# "do_return" is a fake "title" for the book that can be used for stats
-$ return_url = loan['book'] + '/do_return/borrow'
-
-<form action="$return_url" method="post">
-<input type="submit" value="Return book" />
-<input type="hidden" name="action" value="return" />
+<form action="/borrow/ia/$ocaid" method="post">
+  <input class="cta-btn cta-btn--vanilla" type="submit" value="$_('Return book')" />
+  <input type="hidden" name="action" value="return" />
 </form>

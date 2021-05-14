@@ -1,10 +1,11 @@
 """Generic helper functions to use in the templates and the webapp.
 """
-import web
-import simplejson
-import urlparse
-import string
+import json
 import re
+from datetime import datetime
+from urllib.parse import urlsplit
+
+import web
 
 import babel
 import babel.core
@@ -22,22 +23,20 @@ try:
 except ImportError:
     BeautifulSoup = None
 
-import six
-
 from infogami import config
-
+from infogami.infobase.client import Nothing
 # handy utility to parse ISO date strings
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
 
 # TODO: i18n should be moved to core or infogami
-from openlibrary.i18n import gettext as _
+from openlibrary.i18n import gettext as _  # noqa: F401
 
 __all__ = [
     "sanitize",
     "json_encode",
     "safesort",
-    "datestr", "format_date",
+    "days_since", "datestr", "format_date",
     "sprintf", "cond", "commify", "truncate", "datetimestr_utc",
     "urlsafe", "texsafe",
     "percentage", "affiliate_id", "bookreader_host",
@@ -51,7 +50,7 @@ __docformat__ = "restructuredtext en"
 def sanitize(html, encoding='utf8'):
     """Removes unsafe tags and attributes from html and adds
     ``rel="nofollow"`` attribute to all external links.
-    Using encoding=None if passing unicode strings e.g. for Python 3.
+    Using encoding=None if passing Unicode strings.
     encoding="utf8" matches default format for earlier versions of Genshi
     https://genshi.readthedocs.io/en/latest/upgrade/#upgrading-from-genshi-0-6-x-to-the-development-version
     """
@@ -66,7 +65,7 @@ def sanitize(html, encoding='utf8'):
 
         if href:
             # add rel=nofollow to all absolute links
-            _, host, _, _, _ = urlparse.urlsplit(href)
+            _, host, _, _, _ = urlsplit(href)
             if host:
                 return 'nofollow'
 
@@ -95,9 +94,9 @@ def sanitize(html, encoding='utf8'):
 
 
 def json_encode(d, **kw):
-    """Same as simplejson.dumps.
+    """Same as json.dumps.
     """
-    return simplejson.dumps(d, **kw)
+    return json.dumps([] if isinstance(d, Nothing) else d, **kw)
 
 
 def safesort(iterable, key=None, reverse=False):
@@ -113,25 +112,31 @@ def safesort(iterable, key=None, reverse=False):
         return (k.__class__.__name__, k)
     return sorted(iterable, key=safekey, reverse=reverse)
 
+
+def days_since(then, now=None):
+    delta = then - (now or datetime.now())
+    return abs(delta.days)
+
+
 def datestr(then, now=None, lang=None, relative=True):
     """Internationalized version of web.datestr."""
-    if not relative:
-        result = then.strftime("%b %d %Y")
-    else:
-        result = web.datestr(then, now)
-    if not result:
-        return result
-    elif result[0] in string.digits: # eg: 2 milliseconds ago
-        t, message = result.split(' ', 1)
-        return _("%d " + message) % int(t)
-    else:
-        return format_date(then, lang=lang)
+    lang = lang or web.ctx.lang
+    if relative:
+        if now is None:
+            now = datetime.now()
+        delta = then - now
+        if abs(delta.days) < 4:  # Threshold from web.py
+            return babel.dates.format_timedelta(
+                delta, add_direction=True, locale=_get_babel_locale(lang)
+            )
+    return format_date(then, lang=lang)
+
 
 def datetimestr_utc(then):
     return then.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 def format_date(date, lang=None):
-    lang = lang or web.ctx.get('lang') or "en"
+    lang = lang or web.ctx.lang
     locale = _get_babel_locale(lang)
     return babel.dates.format_date(date, format="long", locale=locale)
 
@@ -174,7 +179,7 @@ def commify(number, lang=None):
         lang = lang or web.ctx.get("lang") or "en"
         return babel.numbers.format_number(int(number), lang)
     except:
-        return six.text_type(number)
+        return str(number)
 
 
 def truncate(text, limit):
@@ -243,7 +248,7 @@ def texsafe(text):
     """
     global _texsafe_re
     if _texsafe_re is None:
-        pattern = "[%s]" % re.escape("".join(_texsafe_map.keys()))
+        pattern = "[%s]" % re.escape("".join(list(_texsafe_map)))
         _texsafe_re = re.compile(pattern)
 
     return _texsafe_re.sub(lambda m: _texsafe_map[m.group(0)], text)
@@ -256,10 +261,7 @@ def percentage(value, total):
         >>> percentage(0, 0)
         0.0
     """
-    if total == 0:
-        return 0
-    else:
-        return (value * 100.0)/total
+    return (value * 100.0) / total if total else 0.0
 
 def uniq(values, key=None):
     """Returns the unique entries from the given values in the original order.
@@ -296,5 +298,5 @@ def _get_helpers():
     return web.storage((k, _globals[k]) for k in __all__)
 
 
-## This must be at the end of this module
+# This must be at the end of this module
 helpers = _get_helpers()

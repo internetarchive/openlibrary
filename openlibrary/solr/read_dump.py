@@ -1,6 +1,6 @@
 from __future__ import print_function
 import re
-import simplejson as json
+import json
 import sys
 from time import time
 import web
@@ -18,7 +18,7 @@ def make_sub(d):
     """
     def f(a):
         return d[a.group(0)]
-    rx = re.compile("|".join(map(re.escape, d.keys())))
+    rx = re.compile("|".join(re.escape(key) for key in d))
     return lambda s: s and rx.sub(f, s)
 def invert_dict(d):
     return dict((v, k) for (k, v) in d.items())

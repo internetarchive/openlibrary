@@ -3,10 +3,10 @@
 
 import web
 import re
-import simplejson as json
+import requests
+import json
 import logging
 from collections import defaultdict
-import urllib
 import datetime
 
 from infogami import config
@@ -16,7 +16,9 @@ from infogami.utils.view import render, render_template, safeint
 
 from openlibrary.core.models import Subject
 from openlibrary.core.lending import add_availability
+from openlibrary.plugins.worksearch.search import work_search
 from openlibrary.utils import str_to_key, finddict
+
 
 __all__ = [
     "SubjectEngine", "get_subject"
@@ -40,14 +42,8 @@ SUBJECTS = [
     web.storage(name="subject", key="subjects", prefix="/subjects/", facet="subject_facet", facet_key="subject_key"),
 ]
 
-class subjects_index(delegate.page):
-    path = "/subjects"
-
-    def GET(self):
-        delegate.context.setdefault('bodyid', 'subject')
-        page = render_template("subjects/index.html")
-        page.v2 = True
-        return page
+DEFAULT_RESULTS = 12
+MAX_RESULTS = 1000
 
 class subjects(delegate.page):
     path = '(/subjects/[^/]+)'
@@ -64,15 +60,13 @@ class subjects(delegate.page):
             'lending_edition_s': '*'
         })
 
-        subj.v2 = True
-        delegate.context.setdefault('bodyid', 'subject')
+        delegate.context.setdefault('cssfile', 'subject')
         if not subj or subj.work_count == 0:
             web.ctx.status = "404 Not Found"
             page = render_template('subjects/notfound.tmpl', key)
         else:
             page = render_template("subjects", page=subj)
 
-        page.v2 = True
         return page
 
     def normalize_key(self, key):
@@ -88,10 +82,11 @@ class subjects(delegate.page):
 
 class subjects_json(delegate.page):
     path = '(/subjects/[^/]+)'
-    encoding = "json"
+    encoding = 'json'
 
     @jsonapi
     def GET(self, key):
+        web.header('Content-Type', 'application/json')
         # If the key is not in the normalized form, redirect to the normalized form.
         nkey = self.normalize_key(key)
         if nkey != key:
@@ -100,9 +95,13 @@ class subjects_json(delegate.page):
         # Does the key requires any processing before passing using it to query solr?
         key = self.process_key(key)
 
-        i = web.input(offset=0, limit=12, details='false', has_fulltext='true',
+        i = web.input(offset=0, limit=DEFAULT_RESULTS, details='false', has_fulltext='false',
                       sort='editions', available='false')
-
+        i.limit = safeint(i.limit, DEFAULT_RESULTS)
+        i.offset = safeint(i.offset, 0)
+        if i.limit > MAX_RESULTS:
+            msg = json.dumps({'error': 'Specified limit exceeds maximum of %s.' % MAX_RESULTS})
+            raise web.HTTPError('400 Bad Request', data=msg)
 
         filters = {}
         if i.get('has_fulltext') == 'true':
@@ -119,9 +118,6 @@ class subjects_json(delegate.page):
                 if y is not None:
                     filters['publish_year'] = i.published_in
 
-        i.limit = safeint(i.limit, 12)
-        i.offset = safeint(i.offset, 0)
-
         subject_results = get_subject(key, offset=i.offset, limit=i.limit, sort=i.sort,
                                       details=i.details.lower() == 'true', **filters)
         if i.has_fulltext:
@@ -135,58 +131,7 @@ class subjects_json(delegate.page):
         return key
 
 
-class subject_works_json(delegate.page):
-    path = '(/subjects/[^/]+)/works'
-    encoding = "json"
-
-    @jsonapi
-    def GET(self, key):
-        # If the key is not in the normalized form, redirect to the normalized form.
-        nkey = self.normalize_key(key)
-        if nkey != key:
-            raise web.redirect(nkey)
-
-        # Does the key requires any processing before passing using it to query solr?
-        key = self.process_key(key)
-
-        i = web.input(offset=0, limit=12, has_fulltext="false")
-
-        filters = {}
-        if i.get("has_fulltext") == "true":
-            filters["has_fulltext"] = "true"
-
-        if i.get("published_in"):
-            if "-" in i.published_in:
-                begin, end = i.published_in.split("-", 1)
-
-                if safeint(begin, None) is not None and safeint(end, None) is not None:
-                    filters["publish_year"] = (begin, end)
-            else:
-                y = safeint(i.published_in, None)
-                if y is not None:
-                    filters["publish_year"] = i.published_in
-
-        i.limit = safeint(i.limit, 12)
-        i.offset = safeint(i.offset, 0)
-
-        results = get_subject(key, offset=i.offset, limit=i.limit, details=False, **filters)
-        return json.dumps(results)
-
-    def normalize_key(self, key):
-        return key.lower()
-
-    def process_key(self, key):
-        return key
-
-def inject_availability(subject_results):
-    works = add_availability(subject_results.works)
-    for work in works:
-        ocaid = work.ia if work.ia else None
-        availability = work.get('availability', {}).get('status')
-    subject_results.works = works
-    return subject_results
-
-def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filters):
+def get_subject(key, details=False, offset=0, sort='editions', limit=DEFAULT_RESULTS, **filters):
     """Returns data related to a subject.
 
     By default, it returns a storage object with key, name, work_count and works.
@@ -259,10 +204,10 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
     subject_results = engine.get_subject(
         key, details=details, offset=offset, sort=sort_order,
         limit=limit, **filters)
-    return inject_availability(subject_results)
+    return subject_results
 
 class SubjectEngine:
-    def get_subject(self, key, details=False, offset=0, limit=12, sort='first_publish_year desc', **filters):
+    def get_subject(self, key, details=False, offset=0, limit=DEFAULT_RESULTS, sort='first_publish_year desc', **filters):
         meta = self.get_meta(key)
 
         q = self.make_query(key, filters)
@@ -274,7 +219,6 @@ class SubjectEngine:
         else:
             kw = {}
 
-        from search import work_search
         result = work_search(
             q, offset=offset, limit=limit, sort=sort, **kw)
         if not result:
@@ -298,7 +242,7 @@ class SubjectEngine:
             name=name,
             subject_type=subject_type,
             work_count = result['num_found'],
-            works=result['docs']
+            works=add_availability(result['docs'])
         )
 
         if details:
@@ -421,7 +365,7 @@ def get_ebook_count(field, key, publish_year=None):
     years = find_ebook_count(field, key)
     if not years:
         return 0
-    for year, count in sorted(years.iteritems()):
+    for year, count in sorted(years.items()):
         ebook_count_db.query('insert into subjects (field, key, publish_year, ebook_count) values ($field, $key, $year, $count)', vars=locals())
 
     return db_lookup(field, key, publish_year)
@@ -454,7 +398,7 @@ def execute_ebook_count_query(q):
     solr_url = root_url % (rows, start, q)
 
     stats.begin("solr", url=solr_url)
-    response = json.load(urllib.urlopen(solr_url))['response']
+    response = requests.get(solr_url).json()['response']
     stats.end()
 
     num_found = response['numFound']
@@ -463,7 +407,7 @@ def execute_ebook_count_query(q):
         if start:
             solr_url = root_url % (rows, start, q)
             stats.begin("solr", url=solr_url)
-            response = json.load(urllib.urlopen(solr_url))['response']
+            response = requests.get(solr_url).json()['response']
             stats.end()
         for doc in response['docs']:
             for k in doc['edition_key']:

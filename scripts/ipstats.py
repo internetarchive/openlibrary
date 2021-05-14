@@ -1,5 +1,9 @@
-#!/olsystem/bin/olenv python
+#!/usr/bin/env python3
 """
+CAUTION: This file should continue to support both Python 2 and Python 3 until
+    issues internetarchive/openlibrary#4060 and internetarchive/openlibrary#4252
+    are resolved.
+
 Store count of unique IPs per day to infobase by parsing the nginx log files directly.
 
 This file is currently (17 July 2018) run on production using cron.
@@ -9,8 +13,8 @@ from datetime import datetime, timedelta
 import os
 import subprocess
 import web
-import infogami
 import _init_path
+import infogami  # must be after _init_path
 from openlibrary.config import load_config
 
 def run_piped(cmds, stdin=None):

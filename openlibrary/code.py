@@ -11,7 +11,7 @@ import logging.config
 from infogami.utils import template, macro, i18n, delegate
 import infogami
 
-old_plugins = ["openlibrary", "search", "worksearch", "inside", "books", "admin", "upstream", "importapi", "recaptcha"]
+old_plugins = ["openlibrary", "worksearch", "inside", "books", "admin", "upstream", "importapi", "recaptcha"]
 
 def setup():
     setup_logging()
@@ -34,7 +34,7 @@ def setup():
 
     # load actions
     from . import actions
-
+    
     logger.info("loading complete.")
 
 def setup_logging():

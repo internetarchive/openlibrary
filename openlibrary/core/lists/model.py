@@ -1,13 +1,8 @@
 """Helper functions used by the List model.
 """
-from collections import defaultdict
 import datetime
-import re
 import time
-import urllib
-import urllib2
 
-import simplejson
 import web
 import logging
 
@@ -21,6 +16,7 @@ from openlibrary.core import cache
 from openlibrary.plugins.worksearch.search import get_solr
 
 import six
+from six.moves import urllib
 
 
 logger = logging.getLogger("openlibrary.lists.model")
@@ -123,7 +119,7 @@ class ListMixin:
     def get_all_editions(self):
         """Returns all the editions of this list in arbitrary order.
 
-        The return value is an iterator over all the edtions. Each entry is a dictionary.
+        The return value is an iterator over all the editions. Each entry is a dictionary.
         (Compare the difference with get_editions.)
 
         This works even for lists with too many seeds as it doesn't try to
@@ -248,9 +244,6 @@ class ListMixin:
 
         return sorted(process_all(), reverse=True, key=lambda s: s["count"])
 
-    def get_top_subjects(self, limit=20):
-        return self._get_all_subjects()[:limit]
-
     def get_subjects(self, limit=20):
         def get_subject_type(s):
             if s.url.startswith("/subjects/place:"):
@@ -270,10 +263,19 @@ class ListMixin:
                 d[kind].append(s)
         return d
 
-    def get_seeds(self, sort=False):
-        seeds = [Seed(self, s) for s in self.seeds]
+    def get_seeds(self, sort=False, resolve_redirects=False):
+        seeds = []
+        for s in self.seeds:
+            seed = Seed(self, s)
+            max_checks = 10
+            while resolve_redirects and seed.type == 'redirect' and max_checks:
+                seed = Seed(self, web.ctx.site.get(seed.document.location))
+                max_checks -= 1
+            seeds.append(seed)
+
         if sort:
             seeds = h.safesort(seeds, reverse=True, key=lambda seed: seed.last_update)
+
         return seeds
 
     def get_seed(self, seed):
@@ -320,6 +322,7 @@ class Seed:
     """
     def __init__(self, list, value):
         self._list = list
+        self._type = None
 
         self.value = value
         if isinstance(value, six.string_types):
@@ -335,12 +338,9 @@ class Seed:
             doc = get_subject(self.get_subject_url(self.value))
         else:
             doc = self.value
-
-        # overwrite the property with the actual value so that subsequent accesses don't have to compute the value.
-        self.document = doc
         return doc
 
-    document = property(get_document)
+    document = cached_property("document", get_document)
 
     def _get_document_basekey(self):
         return self.document.key.split("/")[-1]
@@ -364,40 +364,16 @@ class Seed:
         return self._solrdata
 
     def _load_solrdata(self):
-        if self.type == "edition":
-            return {
-                'ebook_count': int(bool(self.document.ocaid)),
-                'edition_count': 1,
-                'work_count': 1,
-                'last_update': self.document.last_modified
-            }
-        else:
-            q = self.get_solr_query_term()
-            if q:
-                solr = get_solr()
-                result = solr.select(q, fields=["edition_count", "ebook_count_i"])
-                last_update_i = [doc['last_update_i'] for doc in result.docs if 'last_update_i' in doc]
-                if last_update_i:
-                    last_update = self._inttime_to_datetime(last_update_i)
-                else:
-                    # if last_update is not present in solr, consider last_modfied of
-                    # that document as last_update
-                    if self.type in ['work', 'author']:
-                        last_update = self.document.last_modified
-                    else:
-                        last_update = None
-                return {
-                    'ebook_count': sum(doc.get('ebook_count_i', 0) for doc in result.docs),
-                    'edition_count': sum(doc.get('edition_count', 0) for doc in result.docs),
-                    'work_count': result.num_found,
-                    'last_update': last_update
-                }
-        return {}
+        return {
+            'last_update': self.document.get('last_modified')
+        }
 
     def _inttime_to_datetime(self, t):
         return datetime.datetime(*time.gmtime(t)[:6])
 
     def get_type(self):
+        if self._type:
+            return self._type
         type = self.document.type.key
 
         if type == "/type/edition":
@@ -406,10 +382,16 @@ class Seed:
             return "work"
         elif type == "/type/author":
             return "author"
+        elif type == "/type/redirect":
+            return "redirect"
         else:
             return "unknown"
 
     type = property(get_type)
+
+    @type.setter
+    def type(self, value):
+        self._type = value
 
     def get_title(self):
         if self.type == "work" or self.type == "edition":

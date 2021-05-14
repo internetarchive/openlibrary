@@ -1,0 +1,20 @@
+$def with (edition_count=1)
+
+<ul class="work-menu sticky">
+  <li class="selected">
+    <a href="#editions-list">
+      $ungettext('View %(count)s Edition', 'View %(count)s Editions', edition_count, count=edition_count)
+    </a>
+  </li>
+  <li>
+    <a href="#work-details">$_("Overview")</a>
+  </li>
+  <li>
+    <a href="#edition-details">$_("This Edition")</a>
+  </li>
+  $# BookNotes feature:
+  $if ctx.user and ctx.user.is_beta_tester():
+    <li>
+      <a href="#reader-observations">$_("Reader Observations")</a>
+    </li>
+</ul>

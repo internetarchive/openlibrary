@@ -2,17 +2,17 @@ from __future__ import print_function
 import sys
 import re
 import os
-from parse import read_edition
+from openlibrary.catalog.parse import read_edition
 from lxml.html import fromstring
-import catalog.importer.pool as pool
-from catalog.importer.db_read import get_mc, withKey
-import catalog.merge.amazon as amazon_merge
-from catalog.get_ia import get_from_local, get_ia
-from catalog.merge.merge_marc import build_marc
-import catalog.marc.fast_parse as fast_parse
-import urllib2
+import openlibrary.catalog.importer.pool as pool
+from openlibrary.catalog.importer.db_read import get_mc, withKey
+import openlibrary.catalog.merge.amazon as amazon_merge
+from openlibrary.catalog.get_ia import get_from_local, get_ia
+from openlibrary.catalog.merge.merge_marc import build_marc
+import openlibrary.catalog.marc.fast_parse as fast_parse
 
 import six
+from six.moves import urllib
 
 
 re_amazon = re.compile('^([A-Z0-9]{10}),(\d+):(.*)$', re.S)
@@ -83,7 +83,7 @@ def follow_redirects(key):
 def ia_match(a, ia):
     try:
         loc, rec = get_ia(ia)
-    except urllib2.HTTPError:
+    except urllib.error.HTTPError:
         return False
     if rec is None or 'full_title' not in rec:
         return False
@@ -179,7 +179,7 @@ def import_file(filename):
         #print
 
         seen = set()
-        for k, v in found.iteritems():
+        for k, v in found.items():
             for ekey in v:
                 if ekey in seen:
                     continue

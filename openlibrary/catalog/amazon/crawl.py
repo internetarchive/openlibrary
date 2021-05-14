@@ -1,15 +1,14 @@
 from __future__ import print_function
-from lxml.html import parse, tostring, fromstring
+from lxml.html import fromstring
 import re
 import sys
 import os
 import socket
-from urllib import unquote
-from urllib2 import urlopen
 from time import sleep
 from os.path import exists
 from datetime import date, timedelta, datetime
-import codecs
+
+
 
 # scrap Amazon for book and author data
 

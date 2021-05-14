@@ -1,73 +1,86 @@
-$def with (doc, decorations=None, cta=True, availability=None, user=None, extra=None)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None)
 
+$ availability = availability or doc.get('availability') or {}
+$ ocaid = availability.get('identifier')
 $ is_work = doc.get('type', {}).get('key') == '/type/work'
 $ book_url = doc.url() if is_work else doc.key
 $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book">
   <span class="bookcover">
-    $if doc.get('cover_i') or cover_ids:
-        $ cover =  get_coverstore_url() + "/b/id/%s-M.jpg" % (doc.cover_i or cover_ids[0])
+    $if availability:
+      $if availability.get('openlibrary_edition'):
+        $ cover = get_coverstore_url() + "/b/olid/%s-M.jpg" % availability.get('openlibrary_edition')
+      $elif ocaid:
+        $ cover = "//archive.org/download/%s/page/cover_w60_h60.jpg" % ocaid
+    $elif doc.get('cover_i') or cover_ids:
+      $ cover = get_coverstore_url() + "/b/id/%s-M.jpg" % (doc.cover_i or cover_ids[0])
     $elif doc.get('cover_edition_key'):
-        $ cover = get_coverstore_url() + "/b/olid/%s-M.jpg" % doc.cover_edition_key
+      $ cover = get_coverstore_url() + "/b/olid/%s-M.jpg" % doc.cover_edition_key
     $elif doc.get('ocaid'):
-        $ cover = "//archive.org/download/%s/page/cover_w60_h60.jpg" % doc.get('ocaid')
+      $ cover = "//archive.org/download/%s/page/cover_w60_h60.jpg" % doc.get('ocaid')
     $else:
-        $ cover = "/images/icons/avatar_book-sm.png"
-    <a href="$book_url"><img itemprop="image" src="$cover" alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
+      $ cover = "/images/icons/avatar_book-sm.png"
+    <a href="$(book_url)?edition=$(ocaid)"><img itemprop="image" src="$cover" alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
   </span>
 
-
-  <span class="details">
-      <span class="resultTitle">
-         <h3 class="booktitle">
-           <a itemprop="name" href="$(book_url)"
+  <div class="details">
+      <div class="resultTitle">
+         <h3 itemprop="name" class="booktitle">
+           <a itemprop="url" href="$(book_url)?edition=$(ocaid)"
               class="results">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a>
            $if doc.get('publish_date'):
              ($(doc['publish_date']))
          </h3>
-      </span>
-      <span class="bookauthor">by
+        </div>
+      <span itemprop="author" itemscope itemtype="https://schema.org/Organization" class="bookauthor">$_('by')
         $if not doc.authors:
-          <em>Unknown author</em>
+          <em>$_('Unknown author')</em>
         $else:
           $for a in doc.authors:
-            <a itemprop="author" href="$(a.get('url') or a.get('key') or a.author.get('url') or a.author.key)" class="results">$(a.name or a.author.name)</a>$(',' if not loop.last else '')
+            $if not (hasattr(a, 'name') and a.name) and not (hasattr(a, 'author') and hasattr(a.author, 'name') and a.author.name):
+              <em>$_('Unknown author')</em>$(',' if not loop.last else '')
+              $continue
+            <a itemprop="url" href="$(a.get('url') or a.get('key') or a.author.get('url') or a.author.key)" class="results">$(a.name or a.author.name)</a>$(',' if not loop.last else '')
       </span>
       <span class="resultPublisher">
-        $if doc.edition_count:
-          $commify(doc.edition_count) edition$("s" if doc.edition_count != 1 else "")
-          $if doc.first_publish_year:
-              - first published in
-              $if doc.get('first_edition'):
-                  <a href="/books/$doc.first_edition">$doc.first_publish_year</a>
-              $else:
-                  $doc.first_publish_year
+        $if doc.get('first_publish_year'):
+          <span class="publishedYear">
+            $_('First published in %(year)s', year=doc.first_publish_year)
+          </span>
+        $if doc.get('edition_count'):
+          <a href="$(book_url)?edition=$(ocaid)#editions-list">$ungettext('1 edition', '%(count)d editions', doc.edition_count, count=doc.edition_count)</a>
+          $if doc.get('languages'):
+            <span class="languages">
+              $_('in') <a class="hoverlink" title="$(', '.join(doc.languages))">$(len(doc.languages)) $_('languages')</a>
+            </span>
+          $if doc.get('ia'):
+            &mdash; $_('%s previewable', len(doc.get('ia')))
+            $if len(doc.get('ia')) > 1:
+              <span class="preview-covers">
+                $for x, i in enumerate(doc.get('ia')[1:10]):
+                  <a href="$(book_url)?edition=$(i)">
+                    <img width="30" height="45" loading="lazy" src="//archive.org/download/$(i)/page/cover_w60_h60.jpg" alt="Cover of edition $i">
+                  </a>
+                </span>
       </span>
-
       $if extra:
         <div class="serp-extras">
           $:extra
         </div>
 
-  </span>
+      </div>
 
   <div class="searchResultItemCTA">
-      $if not doc.public_scan and 'printdisabled' in doc.collections:
-          <a class="cta-btn print-disabled-only hidden" href="//archive.org/download/$(doc.ia[0])/$(doc.ia[0])_daisy.zip" title="Protected DAISY">
-            <span class="actions">
-              <span class="image daisy"></span>
-            </span>
-            <span class="label">Download DAISY</span>
-          </a>
       $if decorations:
         $# should show reading log status widget if there is one in decorations, or read, or return, or leave waitlist
         <div class="decorations">
           $:decorations
         </div>
-      $if cta:
-        <div class="searchResultItemCTA-lending">
-          $if availability or doc.get('availability'):
-            $:macros.AvailabilityButton(doc, doc.get('availability') or availability, user)
-        </div>
+
+      <div class="searchResultItemCTA-lending">
+        $if cta:
+          $ doc['availability'] = doc.get('availability', {})
+          $:macros.LoanStatus(doc, work_key=doc.key)
+      </div>
   </div>
 </li>

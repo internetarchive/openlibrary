@@ -1,5 +1,7 @@
 FROM ubuntu:xenial
 
+ARG DOCKER_HUB=FALSE
+
 ENV LANG en_US.UTF-8
 
 # required for postgres
@@ -7,59 +9,78 @@ ENV LC_ALL POSIX
 
 # add openlibrary users
 RUN groupadd --system openlibrary \
-  && useradd --no-log-init --system --gid openlibrary openlibrary \
-  && useradd --no-log-init --system --gid openlibrary solrupdater
+  && useradd --no-log-init --system --gid openlibrary --create-home openlibrary
 
+# Misc OL dependencies
 RUN apt-get -qq update && apt-get install -y \
-    nginx \
-    authbind \
-    postgresql \
+    postgresql-client \
     build-essential \
-    git-core \
+    git \
     libpq-dev \
     libxml2-dev \
     libxslt-dev \
     libffi-dev \
     curl \
     screen \
-    python-dev \
-    python-pip \
-    libgeoip-dev \
-    python-lxml \
-    python-psycopg2 \
-    python-yaml
+# Editors (for our convenience)
+    vim \
+    emacs \
+# util for running things in parallel
+    parallel
+
+# Print gnu parallel citation
+USER openlibrary
+RUN echo 'will cite' | parallel --citation
+USER root
+RUN echo 'will cite' | parallel --citation
 
 # Install LTS version of node.js
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - \
     && apt-get install -y nodejs
 
-# enable users to bind to port 80
-RUN touch /etc/authbind/byport/80 && chmod 777 /etc/authbind/byport/80
+# Install pyenv
+# Python build deps: https://github.com/pyenv/pyenv/wiki/Common-build-problems#prerequisites
+RUN apt-get -qq update && apt-get install -y build-essential libssl-dev zlib1g-dev libbz2-dev \
+    libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
+    xz-utils tk-dev libffi-dev liblzma-dev python-openssl git
 
-# Setup nginx
-RUN ln -s /openlibrary/conf/nginx/sites-available/openlibrary.conf /etc/nginx/sites-available/ \
-    && ln -s /etc/nginx/sites-available/openlibrary.conf /etc/nginx/sites-enabled/
+# Install latest pyenv (https://github.com/pyenv/pyenv-installer)
+USER openlibrary
+RUN curl https://pyenv.run | bash && \
+    echo '\nexport PATH="/home/openlibrary/.pyenv/bin:$PATH"\neval "$(pyenv init -)"\neval "$(pyenv virtualenv-init -)"' >> /home/openlibrary/.bashrc
+ENV PYENV_ROOT /home/openlibrary/.pyenv
+ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
 
-RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary \
-    && chown openlibrary:openlibrary /var/log/openlibrary /var/lib/openlibrary
+# Install wheel before other requirements to reduce Docker build time.
+RUN pyenv update && pyenv install 3.9.4 \
+ && pyenv global 3.9.4 \
+ && pyenv rehash \
+ && python3.9 -m pip install --upgrade pip wheel
 
-RUN mkdir /openlibrary && chown openlibrary:openlibrary /openlibrary
+USER root
+# Add pyenv to root's bashrc as well
+RUN echo '\nexport PATH="/home/openlibrary/.pyenv/bin:$PATH"\neval "$(pyenv init -)"\neval "$(pyenv virtualenv-init -)"' >> /root/.bashrc
+
+RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary && chown openlibrary:openlibrary /var/log/openlibrary /var/lib/openlibrary \
+ && mkdir /openlibrary && chown openlibrary:openlibrary /openlibrary \
+ && mkdir -p /var/lib/coverstore && chown openlibrary:openlibrary /var/lib/coverstore \
+ # In order to write to solr-updater's named volume, this needs to be
+ # pre-created with the right permissions
+ && mkdir -p /solr-updater-data && chown openlibrary:openlibrary /solr-updater-data
 WORKDIR /openlibrary
 
+USER openlibrary
 COPY requirements*.txt ./
-RUN pip install --disable-pip-version-check --default-timeout=100 -r requirements_common.txt
+RUN python3.9 -m pip install --default-timeout=100 -r requirements.txt
 
 COPY package*.json ./
-RUN npm install && npm install -g less
+RUN npm ci
 
 COPY --chown=openlibrary:openlibrary . /openlibrary
 
-USER openlibrary
-RUN ln -s vendor/infogami/infogami infogami
 # run make to initialize git submodules, build css and js files
-RUN make
+RUN ln -s vendor/infogami/infogami infogami \
+ && make \
+ && python3.9 -m pip list --outdated
 
-# Expose Open Library and Infobase
-EXPOSE 80 7000
-CMD authbind --deep scripts/openlibrary-server conf/openlibrary.yml \
-    --gunicorn --workers 4 --timeout 180 --bind :80
+ENTRYPOINT ["/openlibrary/docker/docker-entrypoint.sh"]

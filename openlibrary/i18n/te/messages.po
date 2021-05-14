@@ -11,11 +11,12 @@ msgstr ""
 "POT-Creation-Date: 2018-03-15 22:37+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language-Team: Telugu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.5.3\n"
+"Language: te\n"
 
 #: account.py:347 account.py:382 account.py:422 password/reset_success.html:6
 #: verify.html:5 verify/activated.html:6 verify/success.html:6
@@ -311,7 +312,7 @@ msgstr[1] "%d రోజుల కోసం ఎదురు చూస్తున
 msgid "There is one person ahead of you in the waiting list."
 msgid_plural "There are %(count)s people ahead of you in the waiting list."
 msgstr[0] "ఒక్క మనిషి  మాత్రమే మీ కన్నా ముందు వేచిచూసి జాబితాలో ఉన్నాడు"
-msgstr[1] "%s  మనిషులు మీ కన్నా ముందు వేచిచూసి జాబితాలో ఉన్నాడు "
+msgstr[1] "%(count)s  మనిషులు మీ కన్నా ముందు వేచిచూసి జాబితాలో ఉన్నాడు "
 
 #: borrow.html:260
 msgid "There are 2 different sources for borrowing books through Open Library:"
@@ -330,7 +331,7 @@ msgid ""
 "The <a href=\"//archive.org/\">Internet Archive</a> and several partner "
 "libraries are offering thousands of eBooks for loan to anyone with an "
 "Open Library account, anywhere in the world."
-msgstr "<a href=\"//archive.org/\">అంతర్జాలపు ఆర్కైవ్ మరియు ఎన్నో భాగస్వాములతో కలిసి, గ్రంథాలయాలు కొన్నివేల ఈ-పుస్తకాలను,అందరికి అందుబాటులో ఉండే  గ్రంథాలయం ఖాతా ఉన్నవారికి ప్రపంచంలో ఎక్కడ ఉన్న రుణాలుగా ఇస్తోంది. "
+msgstr "<a href=\"//archive.org/\">అంతర్జాలపు ఆర్కైవ్</a> మరియు ఎన్నో భాగస్వాములతో కలిసి, గ్రంథాలయాలు కొన్నివేల ఈ-పుస్తకాలను,అందరికి అందుబాటులో ఉండే  గ్రంథాలయం ఖాతా ఉన్నవారికి ప్రపంచంలో ఎక్కడ ఉన్న రుణాలుగా ఇస్తోంది. "
 
 #: borrow.html:274
 msgid "physical books from your local library"
@@ -950,7 +951,7 @@ msgid "Either choose a JPG, GIF or PNG on your computer,"
 msgstr ""
 
 #: edit/addcover.html:22
-msgid "<u>Or</u></span>, paste in a URL to an image if it's on the web."
+msgid "<span class=\"highlight\"><u>Or</u></span>, paste in a URL to an image if it's on the web."
 msgstr ""
 
 #: edit/addcover.html:31
@@ -1381,7 +1382,7 @@ msgid "Choose a JPG, GIF or PNG on your computer,"
 msgstr ""
 
 #: add.html:111
-msgid "<u>Or</u></span>, paste in the image URL if it's on the web."
+msgid "<span class=\"highlight\"><u>Or</u></span>, paste in the image URL if it's on the web."
 msgstr ""
 
 #: add.html:119
@@ -1466,9 +1467,8 @@ msgid "Created %s"
 msgstr ""
 
 #: history.html:25
-#, fuzzy
 msgid "revision"
-msgstr "రివిజన్ %d"
+msgstr "రివిజన్"
 
 #: history.html:51 openlibrary/templates/history.html:36
 #, python-format
@@ -2373,9 +2373,6 @@ msgstr ""
 #~ msgid "Edit History"
 #~ msgstr "మార్పుల చరిత్ర"
 
-#~ msgid "Name"
-#~ msgstr "పేరు"
-
 #~ msgid "Email Address:"
 #~ msgstr "ఈమెయిలు చిరునామా:"
 
@@ -2396,12 +2393,6 @@ msgstr ""
 
 #~ msgid "View all recent changes"
 #~ msgstr "ఇటీవలి మార్పులన్నీ చూడండి"
-
-#~ msgid "Website"
-#~ msgstr "వెబ్సైటు"
-
-#~ msgid "Location"
-#~ msgstr "ప్రదేశం"
 
 #~ msgid "Alternate names"
 #~ msgstr "ఇతర పేర్లు"

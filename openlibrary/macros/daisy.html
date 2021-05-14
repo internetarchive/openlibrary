@@ -1,23 +1,12 @@
-$def with(page, url='', msg='', protected=False, block_name=None)
-$# Takes following parameters:
-$# * page
-$# * url (in case page doesn't have one)
-$# * msg (in case default doesn't match context)
+$def with(url, protected=False)
+$# * url (daisy link)
 $# * protected (is daisy encrypted or not)
-$# * block_name is a BEM block name
-
-$ msg = msg or _("Download for print-disabled")
-
-$if block_name:
-  $ prefix = block_name + '__'
-$else:
-  $ prefix = ''
 
 <div class="cta-section print-disabled-download">
-  $if protected:
-    <img src="/images/icons/icon-encrypto-sm.png" class="daisy-lock" width="8" height="12" alt="Encrypted daisy lock"/>&nbsp;
-  <a href="$(url or page.url('/daisy'))" title="Encrypted daisy download for authorized print-disabled patrons">
+  <a href="$(url or page.url('/daisy'))" title="$_('Encrypted daisy download for authorized print-disabled patrons')">
+    $if protected:
+      <img src="/static/images/icons/icon-encrypto-sm.png" class="daisy-lock" width="8" height="12" alt="$_('Encrypted daisy lock')"/>
     <meta itemprop="bookFormat" content="EBook/DAISY3"/>
-    $msg
+    $_("Download for print-disabled")
   </a>
 </div>

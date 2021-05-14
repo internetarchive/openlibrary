@@ -1,5 +1,5 @@
 /**
- * Stylesheet entry point for pages with body#admin
+ * Stylesheet entry point for pages with body-admin
  * See
  * - openlibrary/templates/admin/people/view.html
  * - openlibrary/templates/admin/ip/index.html
@@ -13,6 +13,26 @@
 @import (less) "less/font-families.less";
 
 @import (less) "components/admin-table.less";
+
+.status {
+  &--0 { color: @red; }
+  &--1 { color: @orange; }
+  &--2 { color: @blue; }
+  &--3 { color: @green; }
+}
+.earnings {
+  &--profit { color: @green; }
+  &--loss { color: @red; }
+}
+
+.sponsor th {
+  background-color: @grey-fafafa;
+  padding: 5px;
+  border-bottom: 1px solid @light-mid-grey;
+  text-transform: uppercase;
+  font-size: .65em;
+  font-weight: bold;
+}
 
 // graphite graphs may be bigger than viewport...
 img {
@@ -64,8 +84,8 @@ table.services {
 
 // openlibrary/templates/admin/index.html
 .stats-spacer {
-  width:250px;
-  height:35px;
+  width: 250px;
+  height: 35px;
   margin-left: 50px;
 }
 
@@ -103,39 +123,39 @@ div.measurements {
   }
 }
 
-body#admin {
+body {
   background-color: desaturate(@admin-table-border, 100);
-  /* stylelint-disable selector-max-specificity */
-  div#background {
-    width: 100%;
-    background-color: desaturate(@beige, 100);
-    padding-bottom: 15px;
-  }
-  /* stylelint-enable selector-max-specificity */
-  /* stylelint-disable selector-max-specificity */
-  div#content {
-    font-family: @lucida_sans_serif-1;
-  }
-  /* stylelint-enable selector-max-specificity */
-  /* stylelint-disable selector-max-specificity */
-  div#bottom {
-    background-color: transparent;
-  }
-  /* stylelint-enable selector-max-specificity */
-  div.siteSearch.darker {
-    background-color: @mid-grey;
-  }
-  /* stylelint-disable selector-max-specificity */
-  div#headerNav ul.links li {
-    border-top: 1px solid @mid-grey;
-  }
-  /* stylelint-enable selector-max-specificity */
-  /* stylelint-disable selector-max-specificity */
-  div#contentHead {
-    padding-bottom: 30px;
-  }
-  /* stylelint-enable selector-max-specificity */
 }
+/* stylelint-disable selector-max-specificity */
+div#background {
+  width: 100%;
+  background-color: desaturate(@beige, 100);
+  padding-bottom: 15px;
+}
+/* stylelint-enable selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+div#content {
+  font-family: @lucida_sans_serif-1;
+}
+/* stylelint-enable selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+div#bottom {
+  background-color: transparent;
+}
+/* stylelint-enable selector-max-specificity */
+div.siteSearch.darker {
+  background-color: @mid-grey;
+}
+/* stylelint-disable selector-max-specificity */
+div#headerNav ul.links li {
+  border-top: 1px solid @mid-grey;
+}
+/* stylelint-enable selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+div#contentHead {
+  padding-bottom: 30px;
+}
+/* stylelint-enable selector-max-specificity */
 
 // openlibrary/templates/admin/index.html
 .canvas-graph {

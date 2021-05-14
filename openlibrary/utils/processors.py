@@ -14,7 +14,7 @@ class RateLimitProcessor:
         """Creates a rate-limit processor to limit the number of
         requests/ip in the time frame.
 
-        :param limit: the maxinum number of requests allowed in the given time window.
+        :param limit: the maximum number of requests allowed in the given time window.
         :param window_size: the time frame in seconds during which the requests are measured.
         :param path_regex: regular expression to specify which urls are rate-limited.
         """
@@ -23,9 +23,9 @@ class RateLimitProcessor:
         self.window_size = window_size
         self.reset(None)
 
-    def reset(self, timestmap):
+    def reset(self, timestamp):
         self.window = {}
-        self.window_timestamp = timestmap
+        self.window_timestamp = timestamp
 
     def get_window(self):
         t = int(time.time() / self.window_size)

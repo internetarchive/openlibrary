@@ -65,7 +65,7 @@ export const editionIdentifiersSample = `<fieldset id="identifiers">
 </table>
 </div>`;
 
-/** Part/Simplification of the #widget-add element */
+/** Part/Simplification of the .widget-add element */
 export const bookDropdownSample = `
     <a href="javascript:;" class="dropclick dropclick-unactivated">
         <div class="arrow arrow-unactivated"></div>

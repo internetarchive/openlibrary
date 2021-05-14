@@ -1,30 +1,26 @@
 """Utilities for coverstore"""
 
-import urllib
-import urllib2
-import socket
-import os
+import json
 import mimetypes
-import simplejson
-import web
-
+import os
 import random
+import socket
 import string
 
-import config
-import oldb
+import requests
+import web
+from six.moves.urllib.parse import splitquery, unquote, unquote_plus
+from six.moves.urllib.parse import urlencode as real_urlencode
+
+from openlibrary.coverstore import config, oldb
 
 try:
     file           # Python 2
 except NameError:  # Python 3
     from io import IOBase as file
 
-
-class AppURLopener(urllib.FancyURLopener):
-    version = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
-
 socket.setdefaulttimeout(10.0)
-urllib._urlopener = AppURLopener()
+
 
 def safeint(value, default=None):
     """
@@ -36,11 +32,13 @@ def safeint(value, default=None):
     """
     try:
         return int(value)
-    except:
+    except (TypeError, ValueError):
         return default
+
 
 def get_ol_url():
     return web.rstrips(config.ol_url, "/")
+
 
 def ol_things(key, value):
     if oldb.is_supported():
@@ -53,30 +51,32 @@ def ol_things(key, value):
             'limit': 10
         }
         try:
-            d = dict(query=simplejson.dumps(query))
-            result = download(get_ol_url() + '/api/things?' + urllib.urlencode(d))
-            result = simplejson.loads(result)
+            d = dict(query=json.dumps(query))
+            result = download(get_ol_url() + '/api/things?' + real_urlencode(d))
+            result = json.loads(result)
             return result['result']
         except IOError:
             import traceback
             traceback.print_exc()
             return []
 
+
 def ol_get(olkey):
     if oldb.is_supported():
         return oldb.get(olkey)
     else:
         try:
-            result = download(get_ol_url() + olkey + ".json")
-            return simplejson.loads(result)
+            return json.loads(download(get_ol_url() + olkey + ".json"))
         except IOError:
             return None
 
+
 USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
+
+
 def download(url):
-    req = urllib2.Request(url, headers={'User-Agent': USER_AGENT})
-    r = urllib2.urlopen(req)
-    return r.read()
+    return requests.get(url, headers={'User-Agent': USER_AGENT}).content
+
 
 def urldecode(url):
     """
@@ -85,11 +85,12 @@ def urldecode(url):
         >>> urldecode('http://google.com/')
         ('http://google.com/', {})
     """
-    base, query = urllib.splitquery(url)
+    base, query = splitquery(url)
     query = query or ""
     items = [item.split('=', 1) for item in query.split('&') if '=' in item]
-    d = dict((urllib.unquote(k), urllib.unquote_plus(v)) for (k, v) in items)
+    d = dict((unquote(k), unquote_plus(v)) for (k, v) in items)
     return base, d
+
 
 def changequery(url, **kw):
     """
@@ -98,25 +99,25 @@ def changequery(url, **kw):
     """
     base, params = urldecode(url)
     params.update(kw)
-    return base + '?' + urllib.urlencode(params)
+    return base + '?' + real_urlencode(params)
+
 
 def read_file(path, offset, size, chunk=50*1024):
     """Returns an iterator over file data at specified offset and size.
 
-        >>> len("".join(read_file('/dev/urandom', 100, 10000)))
+        >>> len(b"".join(read_file('/dev/urandom', 100, 10000)))
         10000
     """
-    f = open(path)
-    f.seek(offset)
-    while size:
-        data = f.read(min(chunk, size))
-        size -= len(data)
-        if data:
-            yield data
-        else:
-            f.close()
-            raise IOError("file truncated")
-    f.close()
+    with open(path, "rb") as f:
+        f.seek(offset)
+        while size:
+            data = f.read(min(chunk, size))
+            size -= len(data)
+            if data:
+                yield data
+            else:
+                raise IOError("file truncated")
+
 
 def rm_f(filename):
     try:
@@ -124,9 +125,13 @@ def rm_f(filename):
     except OSError:
         pass
 
-chars = string.letters + string.digits
+
+chars = string.ascii_letters + string.digits
+
+
 def random_string(n):
     return "".join([random.choice(chars) for i in range(n)])
+
 
 def urlencode(data):
     """
@@ -141,7 +146,7 @@ def urlencode(data):
             break
 
     if not multipart:
-        return 'application/x-www-form-urlencoded', urllib.urlencode(data)
+        return 'application/x-www-form-urlencoded', real_urlencode(data)
     else:
         # adopted from http://code.activestate.com/recipes/146306/
         def get_content_type(filename):
@@ -171,6 +176,7 @@ def urlencode(data):
         body = CRLF.join(out)
         content_type = 'multipart/form-data; boundary=%s' % BOUNDARY
         return content_type, body
+
 
 if __name__ == "__main__":
     import doctest

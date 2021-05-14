@@ -1,23 +1,22 @@
 """Plugin to provide admin interface.
 """
 import os
+import requests
 import sys
 import web
 import subprocess
 import datetime
-import urllib
-import urllib2
 import traceback
 import logging
-import simplejson
+import json
 import yaml
-from copy import copy
 
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render, public
 from infogami.utils.context import context
 from infogami.utils.view import add_flash_message
+from infogami.plugins.api.code import jsonapi
 
 from openlibrary.catalog.add_book import update_ia_metadata_for_ol_edition, \
     create_ol_subjects_for_ocaid
@@ -28,6 +27,9 @@ from openlibrary import accounts
 
 from openlibrary.core import lending, admin as admin_stats, helpers as h, imports, cache
 from openlibrary.core.waitinglist import Stats as WLStats
+from openlibrary.core.sponsorships import (
+    summary, sync_completed_sponsored_books)
+
 from openlibrary.plugins.upstream import forms, spamcheck
 from openlibrary.plugins.upstream.account import send_forgot_password_email
 from openlibrary.plugins.admin import services
@@ -43,10 +45,13 @@ def render_template(name, *a, **kw):
 
 admin_tasks = []
 
-def register_admin_page(path, cls, label=None, visible=True):
+
+def register_admin_page(path, cls, label=None, visible=True, librarians=False):
     label = label or cls.__name__
-    t = web.storage(path=path, cls=cls, label=label, visible=visible)
+    t = web.storage(path=path, cls=cls, label=label,
+                    visible=visible, librarians=librarians)
     admin_tasks.append(t)
+
 
 class admin(delegate.page):
     path = "/admin(?:/.*)?"
@@ -58,18 +63,19 @@ class admin(delegate.page):
         for t in admin_tasks:
             m = web.re_compile('^' + t.path + '$').match(web.ctx.path)
             if m:
-                return self.handle(t.cls, m.groups())
+                return self.handle(t.cls, m.groups(), librarians=t.librarians)
         raise web.notfound()
 
-    def handle(self, cls, args=()):
+    def handle(self, cls, args=(), librarians=False):
         # Use admin theme
-        context.bodyid = "admin"
+        context.cssfile = "admin"
 
         m = getattr(cls(), web.ctx.method, None)
         if not m:
             raise web.nomethod(cls=cls)
         else:
-            if self.is_admin():
+            if (self.is_admin() or (librarians and context.user and
+                                    context.user.is_librarian())):
                 return m(*args)
             else:
                 return render.permission_denied(web.ctx.path, "Permission denied.")
@@ -109,7 +115,7 @@ class reload:
             s = web.rstrips(s, "/") + "/_reload"
             yield "<h3>" + s + "</h3>"
             try:
-                response = urllib.urlopen(s).read()
+                response = requests.get(s).text
                 yield "<p><pre>" + response[:100] + "</pre></p>"
             except:
                 yield "<p><pre>%s</pre></p>" % traceback.format_exc()
@@ -163,9 +169,9 @@ class add_work_to_staff_picks:
             for ocaid in ocaids:
                 results[work_id][ocaid] = create_ol_subjects_for_ocaid(
                     ocaid, subjects=subjects)
-        
-        return delegate.RawText(simplejson.dumps(results), content_type="application/json")
-                                
+
+        return delegate.RawText(json.dumps(results), content_type="application/json")
+
 
 class sync_ol_ia:
     def GET(self):
@@ -175,7 +181,7 @@ class sync_ol_ia:
         """
         i = web.input(edition_id='')
         data = update_ia_metadata_for_ol_edition(i.edition_id)
-        return delegate.RawText(simplejson.dumps(data),
+        return delegate.RawText(json.dumps(data),
                                 content_type="application/json")
 
 class people_view:
@@ -385,8 +391,8 @@ class stats:
 class ipstats:
     def GET(self):
         web.header('Content-Type', 'application/json')
-        json = urllib.urlopen("http://www.archive.org/download/stats/numUniqueIPsOL.json").read()
-        return delegate.RawText(json)
+        text = requests.get("http://www.archive.org/download/stats/numUniqueIPsOL.json").text
+        return delegate.RawText(text)
 
 class block:
     def GET(self):
@@ -483,6 +489,8 @@ def get_admin_stats():
     return storify(xstats)
 
 from openlibrary.plugins.upstream import borrow
+
+
 class loans_admin:
 
     def GET(self):
@@ -493,10 +501,10 @@ class loans_admin:
         epub_loans = len(web.ctx.site.store.keys(type="/type/loan", name="resource_type", value="epub", limit=100000))
 
         pagesize = h.safeint(i.pagesize, 200)
-        pagecount = 1 + (total_loans-1) / pagesize
+        pagecount = 1 + (total_loans-1) // pagesize
         pageindex = max(h.safeint(i.page, 1), 1)
 
-        begin = (pageindex-1) * pagesize # pagecount starts from 1
+        begin = (pageindex-1) * pagesize  # pagecount starts from 1
         end = min(begin + pagesize, total_loans)
 
         loans = web.ctx.site.store.values(type="/type/loan", offset=begin, limit=pagesize)
@@ -633,17 +641,18 @@ class permissions:
 
 class attach_debugger:
     def GET(self):
-        return render_template("admin/attach_debugger")
+        python_version = "{}.{}.{}".format(*sys.version_info)
+        return render_template("admin/attach_debugger", python_version)
 
     def POST(self):
-        import ptvsd
+        import debugpy
 
         i = web.input()
         # Allow other computers to attach to ptvsd at this IP address and port.
         logger.info("Enabling debugger attachment")
-        ptvsd.enable_attach(address=('0.0.0.0', 3000))
+        debugpy.listen(address=('0.0.0.0', 3000))
         logger.info("Waiting for debugger to attach...")
-        ptvsd.wait_for_attach()
+        debugpy.wait_for_client()
         logger.info("Debugger attached to port 3000")
         add_flash_message("info", "Debugger attached!")
 
@@ -690,6 +699,19 @@ class show_log:
             with open(filepath) as f:
                 return f.read()
 
+class sponsorship_stats:
+    def GET(self):
+        return render_template("admin/sponsorship", summary())
+
+
+class sync_sponsored_books(delegate.page):
+    @jsonapi
+    def GET(self):
+        i = web.input(dryrun=None)
+        dryrun = i.dryrun == "true"
+        return sync_completed_sponsored_books(dryrun=dryrun)
+
+
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -708,16 +730,18 @@ def setup():
     register_admin_page('/admin/graphs', _graphs, label="")
     register_admin_page('/admin/logs', show_log, label="")
     register_admin_page('/admin/permissions', permissions, label="")
-    register_admin_page('/admin/solr', solr, label="")
-    register_admin_page('/admin/sync', sync_ol_ia, label="")
-    register_admin_page('/admin/staffpicks', add_work_to_staff_picks, label="")
+    register_admin_page('/admin/solr', solr, label="", librarians=True)
+    register_admin_page('/admin/sync', sync_ol_ia, label="", librarians=True)
+    register_admin_page('/admin/staffpicks', add_work_to_staff_picks, label="", librarians=True)
 
     register_admin_page('/admin/imports', imports_home, label="")
     register_admin_page('/admin/imports/add', imports_add, label="")
     register_admin_page('/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label="")
     register_admin_page('/admin/spamwords', spamwords, label="")
+    register_admin_page('/admin/sponsorship', sponsorship_stats, label="Sponsorship")
+    register_admin_page('/admin/sponsorship/sync', sync_sponsored_books, label="Sponsor Sync")
 
-    import mem
+    from openlibrary.plugins.admin import mem
 
     for p in [mem._memory, mem._memory_type, mem._memory_id]:
         register_admin_page('/admin' + p.path, p)
@@ -726,7 +750,7 @@ def setup():
     public(get_blocked_ips)
     delegate.app.add_processor(block_ip_processor)
 
-    import graphs
+    from openlibrary.plugins.admin import graphs
     graphs.setup()
 
 setup()

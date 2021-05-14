@@ -5,8 +5,8 @@ import warnings
 from openlibrary.catalog.merge.names import match_name
 from openlibrary.catalog.merge.normalize import normalize
 
-re_year = re.compile('(\d{4})$')
-re_amazon_title_paren = re.compile('^(.*) \([^)]+?\)$')
+re_year = re.compile(r'(\d{4})$')
+re_amazon_title_paren = re.compile(r'^(.*) \([^)]+?\)$')
 re_and_of_space = re.compile(' and | of | ')
 
 isbn_match = 85

@@ -1,11 +1,12 @@
 from __future__ import print_function
 from py.test import config
 import web
-import simplejson
+import json
 
-import urllib
-import urllib2
 import cookielib
+
+from six.moves import urllib
+
 
 def pytest_funcarg__config(request):
     return request.config
@@ -18,11 +19,12 @@ class ListAPI:
 
         self.cookiejar = cookielib.CookieJar()
 
-        self.opener = urllib2.build_opener()
+        self.opener = urllib.request.build_opener()
         self.opener.add_handler(
-            urllib2.HTTPCookieProcessor(self.cookiejar))
+            urllib.request.HTTPCookieProcessor(self.cookiejar))
 
-    def urlopen(self, path, data=None, method=None, headers={}):
+    def urlopen(self, path, data=None, method=None, headers=None):
+        headers = headers or {}
         """url open with cookie support."""
         if not method:
             if data:
@@ -30,46 +32,46 @@ class ListAPI:
             else:
                 method = "GET"
 
-        req = urllib2.Request(self.server + path, data=data, headers=headers)
+        req = urllib.request.Request(self.server + path, data=data, headers=headers)
         req.get_method = lambda: method
         return self.opener.open(req)
 
     def login(self):
         data = dict(username=self.username, password=self.password)
-        self.urlopen("/account/login", data=urllib.urlencode(data), method="POST")
+        self.urlopen("/account/login", data=urllib.parse.urlencode(data), method="POST")
         print(self.cookiejar)
 
     def create_list(self, data):
-        json = simplejson.dumps(data)
+        json_data = json.dumps(data)
         headers = {
             "content-type": "application/json"
         }
         response = self.urlopen(
             "/people/" + self.username + "/lists",
-            data=json,
+            data=json_data,
             headers=headers)
-        return simplejson.loads(response.read())
+        return json.loads(response.read())
 
     def get_lists(self):
         data = self.urlopen("/people/" + self.username + "/lists.json").read()
-        return simplejson.loads(data)
+        return json.loads(data)
 
     def get_list(self, key):
         data = self.urlopen(key + ".json").read()
-        return simplejson.loads(data)
+        return json.loads(data)
 
     def get_seeds(self, key):
         data = self.urlopen(key + "/seeds.json").read()
-        return simplejson.loads(data)
+        return json.loads(data)
 
     def update_seeds(self, key, additions, removals):
         data = {
             "add": additions,
             "remove": removals,
         }
-        json = simplejson.dumps(data)
-        response = self.urlopen(key + "/seeds.json", json)
-        return simplejson.loads(response.read())
+        json_data = json.dumps(data)
+        response = self.urlopen(key + "/seeds.json", json_data)
+        return json.loads(response.read())
 
 def test_create(config):
     api = ListAPI(config)

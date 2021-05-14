@@ -110,7 +110,7 @@
   .tip {
     font-size: 11px;
     color: @grey;
-    font-family: @lucida_sans_serif-1!important;
+    font-family: @lucida_sans_serif-1 !important;
   }
 }
 
@@ -132,7 +132,7 @@
     }
     .formBack:after {
       display: block;
-      content: '';
+      content: "";
       clear: both;
     }
   }
@@ -149,18 +149,16 @@
     }
 
     .input {
-      width: 90%;
+      width: 100%;
+      select {
+        width: 130px;
+      }
     }
 
     .label {
       width: 90%;
     }
 
-    .input {
-      select {
-        width: 130px;
-      }
-    }
     table {
       input {
         width: 300px;

@@ -9,7 +9,7 @@ data9: This contans OL9A, OL9M and OL9W with interconnections and almost all fie
 
 import pytest
 import re
-import simplejson
+import json
 import web
 
 from openlibrary.core import ia
@@ -236,7 +236,7 @@ def monkeypatch_ol(monkeypatch):
     mock.default = []
     monkeypatch.setattr(dynlinks, "ol_get_many", mock)
 
-    monkeypatch.setattr(ia, "get_meta_xml", lambda itemid: web.storage())
+    monkeypatch.setattr(ia, "get_metadata", lambda itemid: web.storage())
 
 def test_query_keys(monkeypatch):
     monkeypatch_ol(monkeypatch)
@@ -338,15 +338,15 @@ def test_dynlinks(monkeypatch):
     js = dynlinks.dynlinks(["isbn:1234567890"], {})
     match = re.match('^var _OLBookInfo = ({.*});$', js)
     assert match is not None
-    assert simplejson.loads(match.group(1)) == expected_result
+    assert json.loads(match.group(1)) == expected_result
 
     js = dynlinks.dynlinks(["isbn:1234567890"], {"callback": "func"})
     match = re.match('^({.*})$', js)
     assert match is not None
-    assert simplejson.loads(match.group(1)) == expected_result
+    assert json.loads(match.group(1)) == expected_result
 
     js = dynlinks.dynlinks(["isbn:1234567890"], {"format": "json"})
-    assert simplejson.loads(js) == expected_result
+    assert json.loads(js) == expected_result
 
 def test_isbnx(monkeypatch):
     site = mock_infobase.MockSite()
@@ -357,9 +357,9 @@ def test_isbnx(monkeypatch):
     })
 
     monkeypatch.setattr(web.ctx, "site", site, raising=False)
-    json = dynlinks.dynlinks(["isbn:123456789X"], {"format": "json"})
-    d = simplejson.loads(json)
-    assert d.keys() == ["isbn:123456789X"]
+    json_data = dynlinks.dynlinks(["isbn:123456789X"], {"format": "json"})
+    d = json.loads(json_data)
+    assert list(d) == ["isbn:123456789X"]
 
 def test_dynlinks_ia(monkeypatch):
     monkeypatch_ol(monkeypatch)
@@ -372,8 +372,8 @@ def test_dynlinks_ia(monkeypatch):
             "preview_url": "https://archive.org/details/ia-bar"
         }
     }
-    json = dynlinks.dynlinks(["OL2M"], {"format": "json"})
-    assert simplejson.loads(json) == expected_result
+    json_data = dynlinks.dynlinks(["OL2M"], {"format": "json"})
+    assert json.loads(json_data) == expected_result
 
 def test_dynlinks_details(monkeypatch):
     monkeypatch_ol(monkeypatch)
@@ -391,8 +391,8 @@ def test_dynlinks_details(monkeypatch):
             }
         },
     }
-    json = dynlinks.dynlinks(["OL2M"], {"format": "json", "details": "true"})
-    assert simplejson.loads(json) == expected_result
+    json_data = dynlinks.dynlinks(["OL2M"], {"format": "json", "details": "true"})
+    assert json.loads(json_data) == expected_result
 
 class TestDataProcessor:
     def test_get_authors0(self, data0):

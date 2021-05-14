@@ -1,8 +1,7 @@
 from __future__ import print_function
-import simplejson
+import json
 import web
 import sys
-import traceback
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.core import helpers as h
@@ -51,7 +50,7 @@ def split_key(bib_key):
         value = bib_key
 
     # treat OLxxxM as OLID
-    re_olid = web.re_compile('OL\d+M(@\d+)?')
+    re_olid = web.re_compile(r'OL\d+M(@\d+)?')
     if key is None and re_olid.match(bib_key.upper()):
         key = 'olid'
         value = bib_key.upper()
@@ -332,7 +331,7 @@ def trim(d):
         >>> trim({"a": "x", "b": "", "c": [], "d": {}})
         {'a': 'x'}
     """
-    return dict((k, v) for k, v in d.iteritems() if v)
+    return dict((k, v) for k, v in d.items() if v)
 
 def get_authors(docs):
     """Returns a dict of author_key to {"key", "...", "name": "..."} for all authors in docs.
@@ -364,7 +363,7 @@ def process_result_for_viewapi(result):
 
 
 def get_ia_availability(itemid):
-    collections = ia.get_meta_xml(itemid).get("collection", [])
+    collections = ia.get_metadata(itemid).get('collection', [])
 
     if 'lendinglibrary' in collections or 'inlibrary' in collections:
         return 'borrow'
@@ -407,15 +406,15 @@ def format_result(result, options):
     """
     format = options.get('format', '').lower()
     if format == 'json':
-        return simplejson.dumps(result)
+        return json.dumps(result)
     else: # js
-        json = simplejson.dumps(result)
+        json_data = json.dumps(result)
         callback = options.get("callback")
         if callback:
             # the API handles returning the data as a callback
-            return "%s" % json
+            return "%s" % json_data
         else:
-            return "var _OLBookInfo = %s;" % json
+            return "var _OLBookInfo = %s;" % json_data
 
 def dynlinks(bib_keys, options):
     # for backward-compatibility

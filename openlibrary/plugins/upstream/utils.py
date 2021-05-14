@@ -1,26 +1,25 @@
 import web
-import simplejson
+import json
 import babel
 import babel.core
 import babel.dates
-from UserDict import DictMixin
 from collections import defaultdict
 import re
 import random
-import urllib
-import urllib2
 import xml.etree.ElementTree as etree
 import datetime
-import gzip
-import StringIO
 import logging
-from HTMLParser import HTMLParser
+
+import requests
 
 import six
+from six.moves import urllib
+from six.moves.collections_abc import MutableMapping
+from six.moves.urllib.parse import parse_qs, urlencode as parse_urlencode, urlparse, urlunparse
 
 from infogami import config
 from infogami.utils import view, delegate, stats
-from infogami.utils.view import render, get_template, public
+from infogami.utils.view import render, get_template, public, query_param
 from infogami.utils.macro import macro
 from infogami.utils.context import context
 from infogami.infobase.client import Thing, Changeset, storify
@@ -29,7 +28,7 @@ from openlibrary.core.helpers import commify, parse_datetime
 from openlibrary.core.middleware import GZipMiddleware
 from openlibrary.core import cache, ab
 
-class MultiDict(DictMixin):
+class MultiDict(MutableMapping):
     """Ordered Dictionary that can store multiple values.
 
         >>> d = MultiDict()
@@ -44,11 +43,11 @@ class MultiDict(DictMixin):
         Traceback (most recent call last):
             ...
         KeyError: 'z'
-        >>> d.keys()
+        >>> list(d)
         ['x', 'x', 'y']
-        >>> d.items()
+        >>> list(d.items())
         [('x', 1), ('x', 2), ('y', 3)]
-        >>> d.multi_items()
+        >>> list(d.multi_items())
         [('x', [1, 2]), ('y', [3])]
     """
     def __init__(self, items=(), **kw):
@@ -70,6 +69,13 @@ class MultiDict(DictMixin):
 
     def __delitem__(self, key):
         self._items = [(k, v) for k, v in self._items if k != key]
+
+    def __iter__(self):
+        for key in self.keys():
+            yield key
+
+    def __len__(self):
+        return len(list(self.keys()))
 
     def getall(self, key):
         return [v for k, v in self._items if k == key]
@@ -101,6 +107,55 @@ def render_template(name, *a, **kw):
     if "." in name:
         name = name.rsplit(".", 1)[0]
     return render[name](*a, **kw)
+
+
+def kebab_case(upper_camel_case):
+    """
+    :param str upper_camel_case: Text in upper camel case (e.g. "HelloWorld")
+    :return: text in kebab case (e.g. 'hello-world')
+
+    >>> kebab_case('HelloWorld')
+    'hello-world'
+    >>> kebab_case("MergeUI")
+    'merge-u-i'
+    """
+    parts = re.findall(r'[A-Z][^A-Z]*', upper_camel_case)
+    return '-'.join(parts).lower()
+
+
+@public
+def render_component(name, attrs=None, json_encode=True):
+    """
+    :param str name: Name of the component (excluding extension)
+    :param dict attrs: attributes to add to the component element
+    """
+    from openlibrary.plugins.upstream.code import static_url
+
+    attrs = attrs or {}
+    attrs_str = ''
+    for (key, val) in attrs.items():
+        if json_encode and isinstance(val, dict) or isinstance(val, list):
+            val = json.dumps(val)
+        attrs_str += ' %s="%s"' % (key, val.replace('"', "'"))
+
+    html = ''
+    included = web.ctx.setdefault("included-components", [])
+
+    if len(included) == 0:
+        # Need to include Vue
+        html += '<script src="%s"></script>' % static_url('build/vue.js')
+
+    if name not in included:
+        url = static_url('build/components/production/ol-%s.min.js' % name)
+        html += '<script src="%s"></script>' % url
+        included.append(name)
+
+    html += '<ol-%(name)s %(attrs)s></ol-%(name)s>' % {
+        'name': kebab_case(name),
+        'attrs': attrs_str,
+    }
+    return html
+
 
 @public
 def get_error(name, *args):
@@ -141,7 +196,7 @@ def list_recent_pages(path, limit=100, offset=0):
 
 @public
 def json_encode(d):
-    return simplejson.dumps(d)
+    return json.dumps(d)
 
 def unflatten(d, seperator="--"):
     """Convert flattened data into nested form.
@@ -169,8 +224,8 @@ def unflatten(d, seperator="--"):
     def makelist(d):
         """Convert d into a list if all the keys of d are integers."""
         if isinstance(d, dict):
-            if all(isint(k) for k in d.keys()):
-                return [makelist(d[k]) for k in sorted(d.keys(), key=int)]
+            if all(isint(k) for k in d):
+                return [makelist(d[k]) for k in sorted(d, key=int)]
             else:
                 return web.storage((k, makelist(v)) for k, v in d.items())
         else:
@@ -181,7 +236,9 @@ def unflatten(d, seperator="--"):
         setvalue(d2, k, v)
     return makelist(d2)
 
-def fuzzy_find(value, options, stopwords=[]):
+
+def fuzzy_find(value, options, stopwords=None):
+    stopwords = stopwords or []
     """Try find the option nearest to the value.
 
         >>> fuzzy_find("O'Reilly", ["O'Reilly Inc", "Addison-Wesley"])
@@ -190,7 +247,7 @@ def fuzzy_find(value, options, stopwords=[]):
     if not options:
         return value
 
-    rx = web.re_compile("[-_\.&, ]+")
+    rx = web.re_compile(r"[-_\.&, ]+")
 
     # build word frequency
     d = defaultdict(list)
@@ -229,6 +286,7 @@ def radio_list(name, args, value):
 @public
 def get_coverstore_url():
     return config.get('coverstore_url', 'https://covers.openlibrary.org').rstrip('/')
+
 
 def _get_changes_v1_raw(query, revision=None):
     """Returns the raw versions response.
@@ -280,7 +338,7 @@ def get_changes_v2(query, revision=None):
 
     def first(seq, default=None):
         try:
-            return seq.next()
+            return next(seq)
         except StopIteration:
             return default
 
@@ -306,10 +364,7 @@ def get_changes_v2(query, revision=None):
     return [process_change(c) for c in changes]
 
 def get_changes(query, revision=None):
-    if 'history_v2' in web.ctx.features:
-        return get_changes_v2(query, revision=revision)
-    else:
-        return get_changes_v1(query, revision=revision)
+    return get_changes_v2(query, revision=revision)
 
 @public
 def get_history(page):
@@ -381,7 +436,9 @@ class Metatag:
         self.attrs = attrs
 
     def __str__(self):
-        attrs = ' '.join('%s="%s"' % (k, websafe(v).encode('utf8')) for k, v in self.attrs.items())
+        attrs = ' '.join(
+            '%s="%s"' % (k, websafe(v))
+            for k, v in self.attrs.items())
         return '<%s %s />' % (self.tag, attrs)
 
     def __repr__(self):
@@ -396,11 +453,34 @@ def add_metatag(tag="meta", **attrs):
 def url_quote(text):
     if isinstance(text, six.text_type):
         text = text.encode('utf8')
-    return urllib.quote_plus(text)
+    return urllib.parse.quote_plus(text)
+
+
+@public
+def urlencode(dict_or_list_of_tuples):
+    """
+    You probably want to use this, if you're looking to urlencode parameters. This will
+    encode things to utf8 that would otherwise cause urlencode to error.
+    :param dict or list dict_or_list_of_tuples:
+    :rtype: basestring
+    """
+    from six.moves.urllib.parse import urlencode as og_urlencode
+    tuples = dict_or_list_of_tuples
+    if isinstance(dict_or_list_of_tuples, dict):
+        tuples = dict_or_list_of_tuples.items()
+    params = [
+        (k, v.encode('utf-8') if isinstance(v, six.text_type) else v)
+        for (k, v) in tuples
+    ]
+    return og_urlencode(params)
+
 
 @public
 def entity_decode(text):
-    return HTMLParser().unescape(text)
+    try:
+        return six.moves.html_parser.unescape(text)
+    except AttributeError:
+        return six.moves.html_parser.HTMLParser().unescape(text)
 
 @public
 def set_share_links(url='#', title='', view_context=None):
@@ -449,7 +529,7 @@ def parse_toc_row(line):
         >>> f("1.1 | Apple")
         (0, '1.1', 'Apple', '')
     """
-    RE_LEVEL = web.re_compile("(\**)(.*)")
+    RE_LEVEL = web.re_compile(r"(\**)(.*)")
     level, text = RE_LEVEL.match(line.strip()).groups()
 
     if "|" in text:
@@ -520,9 +600,9 @@ def websafe(text):
         return _websafe(text)
 
 
+from openlibrary.plugins.upstream import adapter
 from openlibrary.utils.olcompress import OLCompressor
 from openlibrary.utils import olmemcache
-import adapter
 import memcache
 
 class UpstreamMemcacheClient:
@@ -534,8 +614,8 @@ class UpstreamMemcacheClient:
         compressor = OLCompressor()
         self.compress = compressor.compress
         def decompress(*args, **kw):
-            d = simplejson.loads(compressor.decompress(*args, **kw))
-            return simplejson.dumps(adapter.unconvert_dict(d))
+            d = json.loads(compressor.decompress(*args, **kw))
+            return json.dumps(adapter.unconvert_dict(d))
         self.decompress = decompress
 
     def get(self, key):
@@ -577,7 +657,7 @@ def _get_recent_changes():
             return False
 
     # ignore reverts
-    re_revert = web.re_compile("reverted to revision \d+")
+    re_revert = web.re_compile(r"reverted to revision \d+")
     def is_revert(r):
         return re_revert.match(r.comment or "")
 
@@ -649,7 +729,7 @@ def _get_blog_feeds():
     url = "http://blog.openlibrary.org/feed/"
     try:
         stats.begin("get_blog_feeds", url=url)
-        tree = etree.parse(urllib.urlopen(url))
+        tree = etree.fromstring(requests.get(url).text)
     except Exception:
         # Handle error gracefully.
         logging.getLogger("openlibrary").error("Failed to fetch blog feeds", exc_info=True)
@@ -664,7 +744,7 @@ def _get_blog_feeds():
             link=item.find("link").text,
             pubdate=pubdate
         )
-    return [parse_item(item) for item in tree.findall("//item")]
+    return [parse_item(item) for item in tree.findall(".//item")]
 
 _get_blog_feeds = cache.memcache_memoize(_get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=5*60)
 
@@ -676,25 +756,14 @@ def get_donation_include(include):
     dev_host = web_input.pop("dev_host", "")  # e.g. `www-user`
     if dev_host and re.match('^[a-zA-Z0-9-.]+$', dev_host):
         dev_host += "."   # e.g. `www-user.`
-    url_banner_source = "https://%sarchive.org/includes/donate.php" % dev_host
-    param = '?platform=ol'
+    script_src = "https://%sarchive.org/includes/donate.js" % dev_host
     if 'ymd' in web_input:
-        param += '&ymd=' + web_input.ymd
+        script_src += '?ymd=' + web_input.ymd
 
-    # Look for presence of cookie indicating banner has been closed
-    opener = urllib2.build_opener()
-    donation_param = web.cookies().get('donation')
-    if donation_param:
-        # Append a tuple with the cookie pair (*not* extraneous parentheses!)
-        opener.addheaders.append(('Cookie', urllib.urlencode({'donation': donation_param})))
-
-    html = ''
-    if include == 'true':
-        try:
-            html = opener.open(url_banner_source + param, timeout=3).read()
-        except urllib2.URLError:
-            logging.getLogger("openlibrary").error('Could not load donation banner')
-            return ''
+    html = """
+    <div id="donato"></div>
+    <script src="%s" data-platform="ol"></script>
+    """ % script_src
     return html
 
 #get_donation_include = cache.memcache_memoize(get_donation_include, key_prefix="upstream.get_donation_include", timeout=60)
@@ -703,6 +772,8 @@ def get_donation_include(include):
 def item_image(image_path, default=None):
     if image_path is None:
         return default
+    if image_path.startswith('https:'):
+        return image_path
     return "https:" + image_path
 
 @public
@@ -728,8 +799,37 @@ class Request:
         readable_path = web.ctx.get('readable_path', web.ctx.path) or ''
         query = web.ctx.query or ''
         host = web.ctx.host or ''
-        url = (host + readable_path + query)
-        return ("https://" + url) if url else ''
+        url = host + readable_path + query
+        if url:
+            url = "https://" + url
+            parsed_url = urlparse(url)
+
+            parsed_query = parse_qs(parsed_url.query)
+            queries_to_exclude = ['sort', 'mode', 'v', 'type', 'debug']
+
+            canonical_query = {q: v for q, v in parsed_query.items() if q not in queries_to_exclude}
+            query = parse_urlencode(canonical_query, doseq=True)
+            parsed_url = parsed_url._replace(query=query)
+
+            url = urlunparse(parsed_url)
+
+            return url
+        return ''
+
+
+@public
+def render_once(key):
+    rendered = web.ctx.setdefault('render_once', {})
+    if key in rendered:
+        return False
+    else:
+        rendered[key] = True
+        return True
+
+
+@public
+def today():
+    return datetime.datetime.today()
 
 
 def setup():
@@ -749,7 +849,8 @@ def setup():
         'request': Request(),
         'logger': logging.getLogger("openlibrary.template"),
         'sum': sum,
-        'get_donation_include': get_donation_include
+        'get_donation_include': get_donation_include,
+        'websafe': web.websafe,
     })
 
     from openlibrary.core import helpers as h

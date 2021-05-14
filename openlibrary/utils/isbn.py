@@ -47,6 +47,15 @@ def isbn_10_to_isbn_13(isbn_10):
     isbn_13 = '978' + isbn_10[:-1]
     return isbn_13 + check_digit_13(isbn_13)
 
+def to_isbn_13(isbn):
+    """
+    Tries to make an isbn into an isbn13; regardless of input isbn type
+    :param str isbn:
+    :rtype: str|None
+    """
+    isbn = normalize_isbn(isbn)
+    return isbn and (isbn if len(isbn) == 13 else isbn_10_to_isbn_13(isbn))
+
 def opposite_isbn(isbn): # ISBN10 -> ISBN13 and ISBN13 -> ISBN10
     for f in isbn_13_to_isbn_10, isbn_10_to_isbn_13:
         alt = f(canonical(isbn))
@@ -54,10 +63,12 @@ def opposite_isbn(isbn): # ISBN10 -> ISBN13 and ISBN13 -> ISBN10
             return alt
 
 def normalize_isbn(isbn):
-    """Removes spaces and dashes from isbn and ensures length.
+    """
+    Keep only numbers and X/x to return an ISBN-like string.
+    Does NOT validate length or checkdigits.
 
-    :param: str isbn: An isbn to normalize
+    :param: str isbn: An isbnlike string to normalize
     :rtype: str|None
-    :return: A valid isbn, or None
+    :return: isbnlike string containing only valid ISBN characters, or None
     """
     return isbn and canonical(isbn) or None

@@ -9,12 +9,6 @@
             "label": "Library of Congress"
         },
         {
-            "website": "Library of Congress Online Catalog",
-            "notes": "",
-            "name": "lccn_permalink",
-            "label": "LCCN Permalink"
-        },
-        {
             "website": "http://www.collectionscanada.gc.ca/cip/index-e.html",
             "notes": "",
             "name": "library_and_archives_canada_cataloguing_in_publication",
@@ -536,6 +530,12 @@
             "label": "LC Control Number"
         },
         {
+            "url": "https://learnawesome.org/items/@@@",
+            "website": "https://learnawesome.org",
+            "name": "learnawesome",
+            "label": "LearnAwesome.org"
+        },
+        {
             "url": "https://www.librarything.com/work/@@@",
             "name": "librarything",
             "label": "Library Thing"
@@ -656,7 +656,7 @@
             "url": "https://www.abebooks.de/servlet/BookDetailsPL?bi=@@@",
             "website": "https://www.abebooks.de",
             "notes": "",
-            "name": "abebooks,de",
+            "name": "abebooks.de",
             "label": "Abebooks.de"
         },
         {
@@ -693,7 +693,7 @@
             "label": "Biblioth\u00e8que nationale de France (BnF)"
         },
         {
-            "url": "https://tools.wmflabs.org/reasonator/?q=@@@",
+            "url": "https://www.wikidata.org/wiki/@@@",
             "website": "https://wikidata.org",
             "notes": "",
             "name": "wikidata",

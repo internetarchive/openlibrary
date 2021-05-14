@@ -8,8 +8,10 @@ USAGE:
     python dump-ia-items.py --host dbserver --user archive --password secret --database archive
 """
 
-import web
 import optparse
+
+import web
+
 
 def make_parser():
     p = optparse.OptionParser()
@@ -19,19 +21,23 @@ def make_parser():
     p.add_option("-d", "--database", default="", help="database name (mandatory)")
     return p
 
+
 def tabjoin(*args):
     return "\t".join((a or "").encode("utf-8") for a in args)
+
 
 def dump_metadata(db):
     limit = 100000
     offset = 0
 
     while True:
-        rows = db.select("metadata",
-                what="identifier, boxid, collection, curatestate",
-                where="mediatype='texts'",
-                limit=limit,
-                offset=offset)
+        rows = db.select(
+            "metadata",
+            what="identifier, boxid, collection, curatestate",
+            where="mediatype='texts'",
+            limit=limit,
+            offset=offset,
+        )
         if not rows:
             break
         offset += len(rows)
@@ -39,7 +45,8 @@ def dump_metadata(db):
             # exclude dark items
             if row.curatestate == "dark":
                 continue
-            print tabjoin(row.identifier, row.boxid, row.collection)
+            print(tabjoin(row.identifier, row.boxid, row.collection))
+
 
 def main():
     p = make_parser()
@@ -53,11 +60,12 @@ def main():
         "host": options.host,
         "db": options.database,
         "user": options.user,
-        "pw": options.password
+        "pw": options.password,
     }
 
     db = web.database(**kw)
     dump_metadata(db)
+
 
 if __name__ == "__main__":
     main()

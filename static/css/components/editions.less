@@ -4,11 +4,27 @@
  */
 @import (less) "less/font-families.less";
 
-/* stylelint-disable selector-max-specificity */
+/* stylelint-disable selector-max-specificity, no-descending-specificity */
 table#editions,
 .editions-table {
+  width: 100%;
+  margin-top: 15px;
+  border-collapse: collapse;
   clear: both;
   font-family: @lucida_sans_serif-1;
+
+  .cta-button-group {
+    width: 185px;
+    margin: 0 auto;
+  }
+
+  thead {
+    border: 1px solid @light-grey;
+
+    tr {
+      background: linear-gradient(0deg, @lightest-grey, transparent);
+    }
+  }
 
   th {
     font-family: @news_gothic_sans_serif-2;
@@ -16,18 +32,15 @@ table#editions,
     font-weight: 600;
     text-transform: uppercase;
     line-height: normal;
-    text-align: center;
-    background-color: @lightest-grey;
-    border-bottom: 1px solid @mid-grey;
-    border-left: 5px solid @white;
-    border-right: 5px solid @white;
-    padding: 6px 0;
+    text-align: left;
+    padding: 10px;
     outline: none;
     cursor: pointer;
   }
 
   td.book {
     vertical-align: top;
+    display: inline-flex;
   }
 
   div.cover {
@@ -68,24 +81,28 @@ table#editions,
   td.icon {
     text-align: left;
     vertical-align: top;
-    padding: 10px 0 10px 10px;
-    width: 143px;
+    padding: 15px;
 
     ul {
       margin-bottom: 0;
     }
+  }
+
+  .highlight {
+    box-shadow: inset 0 0 0 2px @beige;
+    background: mix(@beige, @white, 75%);
   }
 }
 
 .lists {
   table#editions {
     h3 {
-      font-family: @lucida_sans_serif-1!important;
+      font-family: @lucida_sans_serif-1 !important;
       font-size: .75em;
       display: inline;
     }
     th {
-      font-family: @lucida_sans_serif-1!important;
+      font-family: @lucida_sans_serif-1 !important;
       background-color: transparent;
       text-align: left;
       font-weight: normal;
@@ -122,10 +139,11 @@ table#editions,
     }
   }
 }
+
 @media all and ( min-width: @width-breakpoint-desktop ) {
   table#editions {
     float: left;
-    width: 918px;
+    width: 100%;
 
     div.title {
       float: left;
@@ -135,11 +153,13 @@ table#editions,
     div.cover {
       float: left;
     }
+
   }
 }
 
 @media only screen and (max-width: @width-breakpoint-tablet) {
   table#editions {
+    width: 100%;
     thead {
       display: none;
     }
@@ -168,21 +188,24 @@ table#editions,
     .links a {
       font-size: 120%;
     }
+    .editions-table__links {
+      display: none;
+    }
 
     td.icon {
       width: 100%;
-      padding: 0px;
+      padding: 0;
     }
 
     td.icon.read {
       order: 3;
-        .read {
-          display: flex;
-          flex-direction: column;
-          ul {
-            order: -1;
-            padding: 10px 0px;
-          }
+      .read {
+        display: flex;
+        flex-direction: column;
+        ul {
+          order: -1;
+          padding: 10px 0;
+        }
       }
     }
 
@@ -190,8 +213,26 @@ table#editions,
       .links {
         display: flex;
       }
-      padding: 0px 10px;
+      padding: 0 10px;
     }
 
+    .cta-button-group {
+      width: unset;
+    }
   }
+}
+
+tbody {
+  font-size: .9em;
+  tr {
+    background: mix(@beige, @white, 30%);
+  }
+}
+
+.edition-adder {
+  text-align: right;
+}
+
+.editions-table__links {
+  text-align: center;
 }

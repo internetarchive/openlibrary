@@ -1,18 +1,14 @@
 $def with(query, results, page=1)
 
 $if results and results.get('hits'):
-  $ loans = ctx.user.get_loans() if ctx.user else []
-  $ waiting_loans = ctx.user.get_waitinglist() if ctx.user else []
-  $ user = {'loans': loans, 'waitlists': waiting_loans}
-
   $ hits = results['hits'].get('hits', [])
   $ num_found = results['hits'].get('total', 0)
   <div id="searchResults">
-    <ul id="siteSearch" class="list-books">
+    <ul class="list-books">
       $for doc in hits:                
         $if doc.get('edition'):
           $ snippet = macros.FulltextSnippet(query, doc=doc)
-          $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], user=user, extra=snippet)
+          $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], extra=snippet)
     </ul>
     $:macros.Pager(page, num_found)
   </div>          

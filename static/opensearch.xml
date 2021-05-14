@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:moz="http://www.mozilla.org/2006/browser/search/">
+    <ShortName>Open Library</ShortName>
+    <Description>An open, editable library catalog, building towards a web page for every book ever published.</Description>
+    <Image height="16" width="16" type="image/x-icon">https://openlibrary.org/favicon.ico</Image>
+    <Image height="64" width="64" type="image/png">https://openlibrary.org/static/images/openlibrary-128x128.png</Image>
+    <Url type="text/html" template="https://openlibrary.org/search?q={searchTerms}&amp;mode=everything"/>
+	<Url type="application/x-suggestions+json" method="get" template="https://openlibrary.org/search.json?q={searchTerms}&amp;_facet=false&amp;_spellcheck_count=0&amp;limit=10&amp;fields=title&amp;mode=everything" />
+    <Url type="application/opensearchdescription+xml" rel="self" template="https://openlibrary.org/opensearch.xml" />
+    <Query role="example" searchTerms="Cory Doctorow"/>
+    <InputEncoding>UTF-8</InputEncoding>
+    <moz:SearchForm>https://openlibrary.org/search</moz:SearchForm>
+</OpenSearchDescription>

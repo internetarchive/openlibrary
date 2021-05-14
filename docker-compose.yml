@@ -1,47 +1,99 @@
-version: "3"
+version: "3.1"
 services:
   web:
-    image: oldev:latest
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.oldev
+    image: "${OLIMAGE:-oldev:latest}"
+    environment:
+      - PYENV_VERSION=${PYENV_VERSION:-}
+      - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
+      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 4 --timeout 180}
+    command: docker/ol-web-start.sh
     ports:
-      - 8080:80
-      - 7000:7000
-      - 8081:8081
-      - 3000:3000
-    volumes:
-      # Persistent volume mount for installed git submodules
-      - ol-vendor:/openlibrary/vendor
-      # Persistent volume mount for generated css and js
-      - ol-build:/openlibrary/static/build
-      # Persistent volume mount for node_modules
-      - ol-nodemodules:/openlibrary/node_modules
-      # The above volume mounts are required so that the local dev bind mount below
-      # does not clobber the data generated inside the image / container
-      - .:/openlibrary
+      - ${WEB_PORT:-8080}:8080
     networks:
       - webnet
+      - dbnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
   solr:
     image: olsolr:latest
     build:
       context: .
       dockerfile: docker/Dockerfile.olsolr
+    restart: always
+    environment:
+      - ENV=${ENV:-dev}
     ports:
-      - 8983:8080
+      - 8983:8983
     volumes:
       - solr-data:/var/lib/solr/data
     networks:
       - webnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
+  solr-updater:
+    image: "${OLIMAGE:-oldev:latest}"
+    command: docker/ol-solr-updater-start.sh
+    restart: always
+    hostname: "$HOSTNAME"
+    environment:
+      - OL_CONFIG=conf/openlibrary.yml
+      - PYENV_VERSION=${PYENV_VERSION:-}
+      - OL_URL=http://web:8080/
+      - STATE_FILE=solr-update.offset
+    volumes:
+      - solr-updater-data:/solr-updater-data
+    networks:
+      - webnet
+      - dbnet
+
   memcached:
     image: memcached
     networks:
       - webnet
-  #covers:
+
+  covers:
+    image: "${OLIMAGE:-oldev:latest}"
+    environment:
+      - PYENV_VERSION=${PYENV_VERSION:-}
+      - COVERSTORE_CONFIG=${COVERSTORE_CONFIG:-/openlibrary/conf/coverstore.yml}
+      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --max-requests 250}
+    command: docker/ol-covers-start.sh
+    expose:
+      - 7075
+    networks:
+      - webnet
+      - dbnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
+  infobase:
+    image: "${OLIMAGE:-oldev:latest}"
+    environment:
+      - PYENV_VERSION=${PYENV_VERSION:-}
+      - INFOBASE_CONFIG=${INFOBASE_CONFIG:-/openlibrary/conf/infobase.yml}
+      - INFOBASE_OPTS=${INFOBASE_OPTS:-}
+    command: docker/ol-infobase-start.sh
+    expose:
+      - 7000
+    networks:
+      - webnet
+      - dbnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
 networks:
   webnet:
+  dbnet:
 volumes:
   solr-data:
-  ol-vendor:
-  ol-build:
-  ol-nodemodules:
+  solr-updater-data:

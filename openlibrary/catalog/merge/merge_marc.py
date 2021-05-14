@@ -2,13 +2,12 @@ from __future__ import print_function
 
 import re
 
-from openlibrary.catalog.merge.names import match_name
 from openlibrary.catalog.merge.normalize import normalize
 
 # fields needed for merge process:
 # title_prefix, title, subtitle, isbn, publish_country, lccn, publishers, publish_date, number_of_pages, authors
 
-re_amazon_title_paren = re.compile('^(.*) \([^)]+?\)$')
+re_amazon_title_paren = re.compile(r'^(.*) \([^)]+?\)$')
 
 isbn_match = 85
 
@@ -318,6 +317,11 @@ def build_marc(edition):
 
 
 def attempt_merge(e1, e2, threshold, debug=False):
+    """Renaming for clarity, use editions_match() instead."""
+    return editions_match(e1, e2, threshold, debug=False)
+
+
+def editions_match(e1, e2, threshold, debug=False):
     """
     Determines (according to a threshold) whether two edition representations are
     sufficiently the same. Used when importing new books.
@@ -332,11 +336,11 @@ def attempt_merge(e1, e2, threshold, debug=False):
     total = sum(i[2] for i in level1)
     if debug:
         print("E1: %s\nE2: %s" % (e1, e2))
-        print("TOTAL 1: %s - %s" % (total, level1))
+        print("TOTAL 1 = %s : %s" % (total, level1))
     if total >= threshold:
         return True
     level2 = level2_merge(e1, e2)
     total = sum(i[2] for i in level2)
     if debug:
-        print("TOTAL 2: %s - %s" % (total, level2))
+        print("TOTAL 2 = %s : %s" % (total, level2))
     return total >= threshold

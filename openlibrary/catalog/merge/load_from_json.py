@@ -1,10 +1,11 @@
 from __future__ import print_function
 # build a merge database from JSON dump
 
-import simplejson
+import json
 import re
-from normalize import normalize
 from time import time
+
+from openlibrary.catalog.merge.normalize import normalize
 
 re_escape = re.compile(r'[\n\r\t\0\\]')
 trans = { '\n': '\\n', '\r': '\\r', '\t': '\\t', '\\': '\\\\', '\0': '', }
@@ -96,7 +97,7 @@ for line in open(filename):
     if type != '/type/edition':
         continue
     try:
-        rec = simplejson.loads(json_data)
+        rec = json.loads(json_data)
         load_record(rec, files)
     except:
         print('record number:', rec_no)

@@ -38,7 +38,7 @@ To generate bookdump:
 """
 from __future__ import print_function
 import sys
-import simplejson
+import json
 import re
 import time
 import os
@@ -92,10 +92,10 @@ def split_types(rawdump):
     if not os.path.exists('type'):
         os.mkdir('type')
 
-    for key, type, json in read_rawdump(rawdump):
+    for key, type, json_data in read_rawdump(rawdump):
         if type not in files:
             files[type] = open(type[1:] + '.txt', 'w')
-        files[type].write("\t".join([key, type, json]))
+        files[type].write("\t".join([key, type, json_data]))
 
     for t in files:
         files[t].close()
@@ -106,14 +106,14 @@ def bookdump(editions_file, authors_file, languages_file):
     """
     def process():
         log("BEGIN read_authors")
-        authors = make_dict((key, strip_json(json)) for key, type, json in read_rawdump(authors_file))
-        languages = make_dict((key, strip_json(json)) for key, type, json in read_rawdump(languages_file))
+        authors = make_dict((key, strip_json(json_data)) for key, type, json_data in read_rawdump(authors_file))
+        languages = make_dict((key, strip_json(json_data)) for key, type, json_data in read_rawdump(languages_file))
         log("END read_authors")
-        for key, type, json in read_rawdump(editions_file):
-            d = simplejson.loads(strip_json(json))
-            d['authors'] = [simplejson.loads(authors.get(a['key']) or '{"key": "%s"}' % a['key']) for a in d.get('authors', []) if isinstance(a, dict)]
-            d['languages'] = [simplejson.loads(languages.get(a['key']) or '{"key": "%s"}' % a['key']) for a in d.get('languages', []) if isinstance(a, dict)]
-            yield key, type, simplejson.dumps(d) + "\n"
+        for key, type, json_data in read_rawdump(editions_file):
+            d = json.loads(strip_json(json_data))
+            d['authors'] = [json.loads(authors.get(a['key']) or '{"key": "%s"}' % a['key']) for a in d.get('authors', []) if isinstance(a, dict)]
+            d['languages'] = [json.loads(languages.get(a['key']) or '{"key": "%s"}' % a['key']) for a in d.get('languages', []) if isinstance(a, dict)]
+            yield key, type, json.dumps(d) + "\n"
 
     write_rawdump(sys.stdout, process())
 
@@ -139,7 +139,7 @@ def help(cmd=None):
         print("List of commands:")
         print()
 
-        for k in sorted(commands.keys()):
+        for k in sorted(commands):
             doc = commands[k].__doc__ or " "
             print("  %-10s\t%s" % (k, doc.splitlines()[0]))
 
@@ -169,7 +169,7 @@ def make_sub(d):
     """
     def f(a):
         return d[a.group(0)]
-    rx = re.compile("|".join(map(re.escape, d.keys())))
+    rx = re.compile("|".join(re.escape(key) for key in d))
     return lambda s: s and rx.sub(f, s)
 
 def invert_dict(d):
@@ -202,23 +202,23 @@ def read_data_table(path):
     xjson = ""
 
     for line in xopen(path):
-        thing_id, rev, json = line.split("\t")
+        thing_id, rev, json_data = line.split("\t")
         thing_id = int(thing_id)
         rev = int(rev)
         if not xthing_id:
             xthing_id = thing_id
             xrev = rev
-            xjson = json
+            xjson = json_data
         if xthing_id == thing_id:
-            # take the json with higher rev.
+            # take the json_data with higher rev.
             if rev > xrev:
                 xrev = rev
-                xjson = json
+                xjson = json_data
         else:
             yield unescape(xjson)
             xthing_id = thing_id
             xrev = rev
-            xjson = json
+            xjson = json_data
 
     yield unescape(xjson)
 
@@ -238,12 +238,12 @@ def read_json(file):
         >>> list(read_json(['{"key": "/foo", "type": {"key": "/type/page"}, "title": "foo"}\n']))
         [('/foo', '/type/page', '{"key": "/foo", "type": {"key": "/type/page"}, "title": "foo"}\n')]
     """
-    for json in xopen(file):
-        d = simplejson.loads(json)
-        ret = (d['key'], d['type']['key'], json)
+    for json_data in xopen(file):
+        d = json.loads(json_data)
+        ret = (d['key'], d['type']['key'], json_data)
         if not all(isinstance(i, six.string_types) for i in ret):
             print('not all strings:')
-            print(json)
+            print(json_data)
         yield ret
 
 def xopen(file):
@@ -262,17 +262,17 @@ def make_dict(items):
     return dict(items)
 
 re_json_strip = re.compile(r', "(latest_revision|revision|id)": \d+|, "(last_modified|type|created)": {[^{}]*}')
-def strip_json(json):
-    """remove created, last_modified, type, etc from json."""
-    return re_json_strip.sub("", json)
+def strip_json(json_data):
+    """remove created, last_modified, type, etc from json_data."""
+    return re_json_strip.sub("", json_data)
 
 def log(*a):
     print(time.asctime(), " ".join(map(str, a)), file=sys.stderr)
 
 def capture_stdout(f):
-    import StringIO
+    from six import StringIO
     def g(*a):
-        stdout, sys.stdout = sys.stdout, StringIO.StringIO()
+        stdout, sys.stdout = sys.stdout, StringIO()
         f(*a)
         out, sys.stdout = sys.stdout.getvalue(), stdout
         return out

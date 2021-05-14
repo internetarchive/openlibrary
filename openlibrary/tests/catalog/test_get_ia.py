@@ -1,4 +1,3 @@
-from __future__ import print_function
 import os
 import pytest
 from openlibrary.catalog import get_ia
@@ -6,29 +5,33 @@ from openlibrary.core import ia
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
 
+
+class MockResponse:
+    """MockResponse is used to pass the contents of the read file back as an object that acts like a requests.Response
+    object instead of a file object.  This is because the urlopen_keep_trying function was moved from urllib to requests."""
+    def __init__(self, data):
+        self.content = data
+        self.text = data.decode("utf-8")
+
+
 def return_test_marc_bin(url):
+    assert url, f"return_test_marc_bin({url})"
     return return_test_marc_data(url, "bin_input")
 
 def return_test_marc_xml(url):
+    assert url, f"return_test_marc_xml({url})"
     return return_test_marc_data(url, "xml_input")
 
 def return_test_marc_data(url, test_data_subdir="xml_input"):
-    filename = url.split("/")[-1]
-    test_data_dir = "/../../catalog/marc/tests/test_data/%s/" % test_data_subdir
+    filename = url.split('/')[-1]
+    test_data_dir = f"/../../catalog/marc/tests/test_data/{test_data_subdir}/"
     path = os.path.dirname(__file__) + test_data_dir + filename
-    return open(path)
+    return MockResponse(open(path, mode='rb').read())
 
 class TestGetIA():
-    bad_marcs = ['1733mmoiresdel00vill', # Binary MARC reports len=734, but actually=742. Has badly converted unicode
-                                         # original unicode converted as if it were MARC8
-                 'dasrmischepriv00rein', # same as zweibchersatir01horauoft, binary representation of unicode interpreted as unicode codepoints
-                 'histoirereligieu05cr', # C3A2 in this file should be single byte MARC8 combining acute 0xE2
-                                         # Original MARC8 0xE2 interpreted as u00E2 => \xC3\xA2, leader still MARC8
-                 'lesabndioeinas00sche', # Original MARC8 0xE2 interpreted as u00E2 => \xC3\xA2, leader still MARC8
-                 'poganucpeoplethe00stowuoft', # junk / unexpected character at end of publishers in field 260
-                 'scrapbooksofmoun03tupp', # possible extra chars at end of field 505?
-                 'zweibchersatir01horauoft', # leader is unicode, chars '\xc3\x83\xc2\xbc' in mrc should be '\xc3\xbc'
-                                             # original '\xc3\xb3' was converted to '\u00c3\u00b3'
+    bad_marcs = ['dasrmischepriv00rein',  # binary representation of unicode interpreted as unicode codepoints
+                 'lesabndioeinas00sche',  # Original MARC8 0xE2 interpreted as u00E2 => \xC3\xA2, leader still MARC8
+                 'poganucpeoplethe00stowuoft',  # junk / unexpected character at end of publishers in field 260
                 ]
 
     bin_items = ['0descriptionofta1682unit',
@@ -51,7 +54,6 @@ class TestGetIA():
     xml_items = ['1733mmoiresdel00vill',     # no <?xml
                  '0descriptionofta1682unit', # has <?xml
                  'cu31924091184469',         # is <collection>
-                 #'1893manualofharm00jadauoft', # 0 byte xml file
                  '00schlgoog',
                  '13dipolarcycload00burk',
                  '39002054008678.yale.edu',
@@ -83,7 +85,7 @@ class TestGetIA():
 
         result = get_ia.get_marc_record_from_ia(item)
         assert isinstance(result, MarcXml), \
-            "%s: expected instanceof MarcXml, got %s" % (item, type(result))
+            f"{item}: expected instanceof MarcXml, got {type(result)}"
 
     @pytest.mark.parametrize('item', bin_items)
     def test_no_marc_xml(self, item, monkeypatch):
@@ -93,10 +95,10 @@ class TestGetIA():
 
         result = get_ia.get_marc_record_from_ia(item)
         assert isinstance(result, MarcBinary), \
-            "%s: expected instanceof MarcBinary, got %s" % (item, type(result))
-        print("%s:\n\tUNICODE: [%s]\n\tTITLE: %s" % (item,
-                                                     result.leader()[9],
-                                                     result.read_fields(['245']).next()[1].get_all_subfields().next()[1].encode('utf8')))
+            f"{item}: expected instanceof MarcBinary, got {type(result)}"
+        field_245 = next(result.read_fields(['245']))
+        title = next(field_245[1].get_all_subfields())[1].encode('utf8')
+        print(f"{item}:\n\tUNICODE: [{result.leader()[9]}]\n\tTITLE: {title}")
 
     @pytest.mark.parametrize('bad_marc', bad_marcs)
     def test_incorrect_length_marcs(self, bad_marc, monkeypatch):

@@ -149,7 +149,7 @@ Subject.prototype = {
                 has_fulltext: this.has_fulltext,
                 sort: this.sort
             }
-            if(this.published_in) {
+            if (this.published_in) {
                 params.published_in = this.published_in;
             }
             $.extend(params, this.filter);

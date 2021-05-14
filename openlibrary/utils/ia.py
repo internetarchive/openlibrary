@@ -1,4 +1,4 @@
-from socket import socket, AF_INET, SOCK_DGRAM, SOL_UDP, SO_BROADCAST, timeout
+from socket import socket, AF_INET, SOCK_DGRAM, SOL_UDP, SO_BROADCAST
 import re
 
 re_loc = re.compile('^(ia\d+\.us\.archive\.org):(/\d+/items/(.*))$')

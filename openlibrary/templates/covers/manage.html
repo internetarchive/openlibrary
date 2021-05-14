@@ -1,21 +1,7 @@
 $def with (key, images)
 
-$putctx("bodyid", "form")
+$putctx("cssfile", "form")
 $putctx('robots', 'noindex,nofollow')
-
-<script type="text/javascript">
-window.q.push(function () {
-    \$(".column").sortable({
-        connectWith: '.trash'
-    });
-    \$(".trash").sortable({
-        connectWith: '.column'
-    });
-    \$(".column").disableSelection();
-    \$(".trash").disableSelection();
-    \$("#topNotice").hide();
-});
-</script>
 
 <div class="imageIntro">
     $_("You can drag and drop thumbnails to reorder, or into the trash to delete them.")
@@ -29,7 +15,7 @@ window.q.push(function () {
                 <table>
                     <tr>
                         <td>
-                            <img src="$image.url("S")" height="60" class="cover" alt=""/>
+                            <img src="$image.url('S')" height="60" class="cover" alt=""/>
                         </td>
                     </tr>
                 </table>
@@ -58,7 +44,7 @@ window.q.push(function () {
 
     <div class="formElement" style="margin:40px 0 0 30px;">
         <button type="submit" value="Save" class="largest">$_("Save")</button>
-        <a class="floaterClose floaterShut--parent close-popup">$_("Cancel")</a>
+        <a class="dialog--close-parent red">$_("Cancel")</a>
     </div>
 
 </form>

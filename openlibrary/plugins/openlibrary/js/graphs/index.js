@@ -14,11 +14,11 @@ export function plotAdminGraphs() {
 }
 
 export function initHomepageGraphs() {
-    loadGraphIfExists('visitors', {}, 'unique visitors on', '#e44028');
-    loadGraphIfExists('members', {}, 'new members on', '#748d36');
-    loadGraphIfExists('edits', {}, 'catalog edits on', '#00636a');
-    loadGraphIfExists('lists', {}, 'lists created on', '#ffa337');
-    loadGraphIfExists('ebooks', {}, 'ebooks borrowed on', '#35672e');
+    loadGraphIfExists('visitors-graph', {}, 'unique visitors on', '#e44028');
+    loadGraphIfExists('members-graph', {}, 'new members on', '#748d36');
+    loadGraphIfExists('edits-graph', {}, 'catalog edits on', '#00636a');
+    loadGraphIfExists('lists-graph', {}, 'lists created on', '#ffa337');
+    loadGraphIfExists('ebooks-graph', {}, 'ebooks borrowed on', '#35672e');
 }
 
 export function initPublishersGraph() {

@@ -18,7 +18,7 @@ class MockField:
         return contents
 
     def get_all_subfields(self):
-        return self.get_subfields(self.contents.keys())
+        return self.get_subfields(self.contents)
 
     def get_subfields(self, want):
         for w in want:
@@ -47,6 +47,7 @@ class MockRecord(MarcBase):
         if tag == self.tag:
             return [self.field]
 
+# TODO: refactor to not use unittest
 class TestMarcParse(unittest.TestCase):
     def test_read_isbn(self):
         data = [
@@ -118,9 +119,11 @@ class TestMarcParse(unittest.TestCase):
                 {'subject_places': ['Great Britain'], 'subjects': ['British West Indies', 'Relations']})
                 #'West Indies, British -- Relations -- Great Britain.')
         ]
-        for (value, expect) in data:
+        for value, expect in data:
             output = subjects_for_work(MockRecord('650', value))
-            self.assertEqual(expect, output)
+            assert sorted(expect) == sorted(output)
+            for key in ('subjects', 'subject_places', 'subject_times'):
+                assert sorted(expect.get(key, [])) == sorted(output.get(key, []))
 
     def test_read_title(self):
         data = [

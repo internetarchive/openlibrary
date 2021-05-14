@@ -1,0 +1,103 @@
+$def with (books=None, books_wo_isbns=None)
+
+$ title = "Import and Export Options"
+$var title: $_(title)
+
+<div id="contentHead">
+    <div class="small sansserif grey account-settings-menu">
+      <a href="$ctx.user.key">$ctx.user.displayname</a>
+      &raquo;
+      <a href="$homepath()/account">$_("Settings")</a>
+      &raquo; $title
+    </div>
+    <h1>$title</h1>
+</div>
+
+<div id="contentBody">
+  
+  $if not books:
+    <div class="import-export">
+      <div class="import-export__readinglog">
+        <h3>$_("Import from Goodreads")</h3>
+        <form method="POST" action="/account/import/goodreads"
+            enctype="multipart/form-data" class="olform olform--decoration">
+          <div>
+            <input type="file" name="csv" />
+            <br>$_("File size limit 10MB and .csv file type only")
+          </div>
+          <div>
+            <input class="cta-btn cta-btn--available cta-btn--small"
+                type="submit" value="$_('Load Books')">
+          </div>
+        </form>
+      </div>  
+      <div class="import-export__readinglog">
+        <h3>$_("Export your Reading Log")</h3>
+        <form method="GET" action="/account/export"
+            enctype="multipart/form-data" class="olform olform--decoration">
+          <div>
+            <input type="submit" class="readingLog_download cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')">
+          </div>
+        </form>
+      </div>
+    </div>
+
+  $else:  
+    <div class="import-buttons">
+      <div id="myProgress" class="hidden">
+        <div id="myBar">Importing...</div>
+      </div>
+      <div>
+        <button class="hidden cta-btn cta-btn--available cta-btn--small cancel-button"
+          onclick="window.location.reload();" >Cancel</button>
+      </div>
+    </div>
+
+    <input type="submit" class="import-submit cta-btn cta-btn--unavailable" value="Import $len(books) Books">
+    $ keys = ['ISBN', 'Title', 'My Rating', 'Exclusive Shelf']
+    <div class="div-class">
+      <table class="import-table">
+        <thead>
+          <tr>
+            <th scope="col" class="toggle-all">
+              <input type="checkbox" checked="checked">
+            </th>
+            $for key in keys:
+              <th scope="col">$key</th>
+            <th scope="col" class="import-status hidden">
+              Status
+            </th>
+            <th scope="col" class="status-reason hidden">
+              Reason
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          $for isbn in books:
+            <tr class="table-row" isbn="$isbn">
+              <td>
+              $ dict = {'ISBN':'', 'Title':'', 'My Rating':'', 'Exclusive Shelf':''}
+              $ k = ['ISBN', 'My Rating', 'Exclusive Shelf']
+              $for key in k:
+                  $ dict[key] = books[isbn].get(key)
+              <input class="add-book" value="$(dict)" type="checkbox" checked="checked">
+              </td>
+              $for key in keys:
+                <td>$books[isbn].get(key)</td>
+            </tr>
+          $for id in books_wo_isbns:
+            <tr>
+              <td>
+              </td>
+              $for key in keys:
+                <td>
+                  $if books_wo_isbns[id].get(key) != '=""':
+                    $books_wo_isbns[id].get(key)
+                </td>
+              <td class="books-wo-isbn hidden error-imported">Error</td>
+              <td class="books-wo-isbn hidden error-imported">No ISBN</td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+</div>

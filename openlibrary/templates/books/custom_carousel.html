@@ -1,55 +1,60 @@
 $def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False)
 
+$ ctx.setdefault("links", [])
+$# Apparently fonts always need crossorigin for some reason
+$ slick_font = '<link rel="preload" href="/static/css/fonts/slick.woff" as="font" type="font/woff" crossorigin>'
+$if slick_font not in ctx.links:
+  $ ctx.links.append(slick_font)
+
 $def render_carousel_cover(book, lazy):
+  $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
+  $ cover_host = '//covers.openlibrary.org'
   $ url = book.get('key') or book.url
   $ title = book.title
+
   $if book.get('cover_url'):
     $ cover_url = book.get('cover_url')
-  $elif book.get('cover_id'):
-    $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, book.get('cover_id'))
+  $elif book.get('cover_id') or book.get('cover_i'):
+    $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, book.get('cover_id') or book.get('cover_i'))
   $elif book.get('ia'):
     $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia')[0], fallback_cover)
+  $elif book.get('cover_edition_key'):
+    $ cover_url = '%s/b/olid/%s-M.jpg'%(cover_host, book.get('cover_edition_key'))
   $else:
-     $ cover_url = fallback_cover
+     $ cover_url = False
   $if book.get('authors'):
     $ author_names = [author.name for author in book.authors]
-    $ byline = ' by ' + ', '.join(author_names)
+    $ byline = _(' by %(name)s', name=', '.join(author_names))
   $else:
     $ byline = ''
+    $ author_names = ''
   $ modifier = ''
-  $ cta = None
-  $if book.get('ocaid'):
-    $ modifier = 'borrow-link'
-    $ cta_url = '/borrow/ia/%s' % book.ocaid
-    $ cta = 'Borrow'
-  $elif book.get('ia') and book.get('public_scan'):
-    $ cta_url = "//archive.org/stream/%s?ref=ol"%book.get('ia')
-    $ cta = 'Read'
-  $elif book.get('lending_edition'):
-    $ cta_url = "/books/%s/x/borrow"%book.get('lending_edition')
-    $ cta = 'Borrow'
-  $else:
-    $ cta = 'Read'
-    $ url += '/x/resolve'
-    $ cta_url = url
-
-  $if lazy:
-    $ img_attr = 'data-lazy'
-  $else:
-    $ img_attr = 'src'
+  $ work_key = book.key if book.key.startswith('/work') else book.get('work_key')
 
   <div class="book carousel__item">
     <div class="book-cover">
       <a href="$(url)">
-        <img class="bookcover"
-          width="130" height="200"
-          title="$('%s%s'%(title,byline))"
-          $img_attr="$(cover_url)"/>
+        $if cover_url:
+          <img class="bookcover" loading="lazy"
+            width="130" height="200"
+            title="$('%s%s'%(title,byline))"
+            alt="$('%s%s'%(title,byline))"
+          $if lazy:
+            data-lazy="$(cover_url)"
+            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
+          $else:
+            src="$(cover_url)"/>
+        $else:
+          <div class="carousel__item__blankcover">
+            <div class="carousel__item__blankcover--title">$:macros.TruncateString(title, 70)</div>
+            $if author_names:
+              <div class="carousel__item__blankcover--authors">$:macros.TruncateString(', '.join(author_names), 30)</div>
+          </div>
       </a>
     </div>
-    $if cta:
-      <div class="book-cta"><a class="cta-btn cta-btn--available $modifier" href="$cta_url" data-ol-link-track="$key" title="$cta $book.title"
-        data-key="$(key)" data-ocaid="$(book.get('ia'))">$cta</a></div>
+    <div class="book-cta">
+      $:macros.LoanStatus(book, work_key=work_key, listen=False, daisy=False)
+    </div>
   </div>
 
 $if test or (books and len(books) >= min_books):
@@ -71,9 +76,6 @@ $if test or (books and len(books) >= min_books):
         $ config = ['.carousel-' + key, 6, 5, 4, 3, 2, 1, load_more_config ]
         <div class="carousel carousel-$key carousel--progressively-enhanced"
           data-config="$json_encode(config)">
-          $ cover_host = '//covers.openlibrary.org'
-          $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
-
           $for index, book in enumerate(books or []):
               $:render_carousel_cover(book, index > 5)
         </div>

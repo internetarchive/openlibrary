@@ -1,12 +1,17 @@
 FROM ubuntu:xenial
 
 RUN apt-get -qq update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y solr-tomcat && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y solr-tomcat haproxy cron && \
     ln -s /var/log/tomcat7/ /usr/share/tomcat7/logs && \
     ln -s /etc/tomcat7/ /usr/share/tomcat7/conf
 
-COPY conf/solr/conf/schema.xml /etc/solr/conf/
+COPY conf/solr/conf/* /etc/solr/conf/
+COPY conf/solr/haproxy.cfg /etc/haproxy/
+COPY conf/solr/start.sh /start.sh
 
-EXPOSE 8080
+# Log management:
+COPY conf/solr/rmlog.sh /etc/cron.daily/rmlog
+RUN crontab /etc/crontab
 
-CMD ["/usr/share/tomcat7/bin/catalina.sh", "run"]
+EXPOSE 8983
+CMD /start.sh

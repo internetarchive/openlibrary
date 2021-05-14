@@ -62,7 +62,6 @@ class MemcacheInvalidater:
             self.find_data,
             self.find_lists,
             self.find_edition_counts,
-            self.find_libraries
         ]
 
         keys = set()
@@ -78,13 +77,13 @@ class MemcacheInvalidater:
         return ["d" + c['key'] for c in changeset['changes']]
 
     def find_lists(self, changeset):
-        """Returns the list entires effected by this change.
+        """Returns the list entries effected by this change.
 
         When a list is modified, the data of the user and the data of each
         seed are invalidated.
         """
         docs = changeset['docs'] + changeset['old_docs']
-        rx = web.re_compile("(/people/[^/]*)/lists/OL\d+L")
+        rx = web.re_compile(r"(/people/[^/]*)/lists/OL\d+L")
         for doc in docs:
             match = doc and rx.match(doc['key'])
             if match:
@@ -106,23 +105,16 @@ class MemcacheInvalidater:
         else:
             return []
 
-    def find_libraries(self, changeset):
-        """When any of the library page is changed, invalidate all library entries.
-        """
-        if any(c['key'].startswith("/libraries/") for c in changeset['changes']):
-            return ['inlibrary.libraries-hash', 'inlibrary.libraries']
-        else:
-            return []
-
     def seed_to_key(self, seed):
         """Converts seed to key.
 
-            >>> seed_to_key({"key": "/books/OL1M"})
-            "/books/OL1M"
-            >>> seed_to_key("subject:love")
-            "/subjects/love"
-            >>> seed_to_key("place:san_francisco")
-            "/subjects/place:san_francisco"
+            >>> invalidater = MemcacheInvalidater()
+            >>> invalidater.seed_to_key({"key": "/books/OL1M"})
+            '/books/OL1M'
+            >>> invalidater.seed_to_key("subject:love")
+            '/subjects/love'
+            >>> invalidater.seed_to_key("place:san_francisco")
+            '/subjects/place:san_francisco'
         """
         if isinstance(seed, dict):
             return seed['key']

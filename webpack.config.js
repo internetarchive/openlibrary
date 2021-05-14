@@ -28,7 +28,8 @@ module.exports = {
 
     // A map of ResourceLoader module / entry chunk names to JavaScript files to pack.
     entry: {
-        all: './openlibrary/plugins/openlibrary/js/index.js'
+        all: './openlibrary/plugins/openlibrary/js/index.js',
+        vue: './openlibrary/plugins/openlibrary/js/vue.js',
     },
 
     resolve: {
@@ -41,7 +42,7 @@ module.exports = {
         })
     ],
     module: {
-        rules: [ {
+        rules: [{
             test: /\.js$/,
             use: {
                 loader: 'babel-loader',
@@ -53,12 +54,22 @@ module.exports = {
             }
         }, {
             test: /\.less$/,
-            loader: [
-                'style-loader',
-                'css-loader',
-                'less-loader' // compiles Less to CSS
+            use: [
+                {
+                    loader: 'style-loader'
+                },
+                {
+                    loader: 'css-loader',
+                    options: {
+                        url: false
+                    }
+                },
+                {
+                    // compiles Less to CSS
+                    loader: 'less-loader'
+                }
             ]
-        } ]
+        }]
     },
     optimization: {
         splitChunks: {
@@ -85,9 +96,12 @@ module.exports = {
         // itself, append .js to each ResourceLoader module entry name.
         filename: '[name].js',
 
+        // This option determines the name of **non-entry** chunk files.
+        chunkFilename: '[name].[contenthash].js',
+
         // Expose the module.exports of each module entry chunk through the global
         // ol (open library)
-        library: [ 'ol' ],
+        library: ['ol'],
         libraryTarget: 'this'
     },
 

@@ -1,0 +1,42 @@
+name: python_tests
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+jobs:
+  python_tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.9]
+    runs-on: ubuntu-16.04  # Should match Dockerfile.olbase
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ runner.os }}-venv-${{ env.pythonLocation }}-${{ hashFiles('requirements*.txt') }}
+      - name: Install dependencies
+        run: |
+          # https://lxml.de/installation.html#requirements
+          sudo apt-get install libxml2-dev libxslt-dev
+          pip install --upgrade pip setuptools wheel
+          pip install -r requirements_test.txt
+          pip list --outdated
+      - run: make git
+      - name: Run make i18n
+        run: make i18n
+      - name: Run tests
+        run: |
+          git fetch --no-tags --prune --depth=1 origin master
+          BASE_BRANCH="origin/master" make lint-diff
+          make lint
+          make test-py
+          source scripts/run_doctests.sh
+          mypy .

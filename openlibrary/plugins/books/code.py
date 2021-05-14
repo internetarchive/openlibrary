@@ -1,17 +1,15 @@
 """Open Library Books API
 """
 
-import dynlinks
-import readlinks
-
-import urlparse
+import json
 import re
-import urllib2
+from six.moves import urllib
 import web
 
-from infogami.infobase import _json as simplejson
 from infogami.utils import delegate
 from infogami.plugins.api.code import jsonapi
+
+from openlibrary.plugins.books import dynlinks, readlinks
 
 class books_json(delegate.page):
     path = "/api/books"
@@ -39,8 +37,7 @@ class read_singleget(delegate.page):
             result = result[req]
         else:
             result = []
-        return simplejson.dumps(result)
-
+        return json.dumps(result)
 
 class read_multiget(delegate.page):
     """Handle the multi-lookup form of the Hathi-style API
@@ -56,16 +53,16 @@ class read_multiget(delegate.page):
         # see https://github.com/benoitc/gunicorn/issues/215
         raw_uri = web.ctx.env.get("RAW_URI")
         if raw_uri:
-            raw_path = urlparse.urlsplit(raw_uri).path
+            raw_path = urllib.parse.urlsplit(raw_uri).path
 
             # handle e.g. '%7C' for '|'
-            decoded_path = urllib2.unquote(raw_path)
+            decoded_path = urllib.parse.unquote(raw_path)
 
             m = self.path_re.match(decoded_path)
             if not len(m.groups()) == 2:
-                return simplejson.dumps({})
+                return json.dumps({})
             (brief_or_full, req) = m.groups()
 
         web.ctx.headers = []
         result = readlinks.readlinks(req, i)
-        return simplejson.dumps(result)
+        return json.dumps(result)

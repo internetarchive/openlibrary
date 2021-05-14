@@ -1,14 +1,16 @@
-import os
 import pytest
 import re
 import web
 from infogami import config
-from infogami.infobase import client
 from infogami.utils import delegate
+try:  # newer versions of web.py
+    from web.browser import AppBrowser
+except ImportError:  # older versions of web.py
+    from web import AppBrowser
 
+from openlibrary.mocks.mock_infobase import mock_site, MockConnection
 from openlibrary.plugins import ol_infobase
 
-from mock_infobase import mock_site, MockConnection
 
 @pytest.fixture
 def ol(request):
@@ -34,11 +36,11 @@ class EMail(web.storage):
         """Extracts link from the email message."""
         return re.findall(r"http://[^\s]*", self.message)
 
-class OLBrowser(web.AppBrowser):
+class OLBrowser(AppBrowser):
     def get_text(self, e=None, name=None, **kw):
         if name or kw:
             e = self.get_soup().find(name=name, **kw)
-        return web.AppBrowser.get_text(self, e)
+        return AppBrowser.get_text(self, e)
 
 class OL:
     """Mock OL object for all tests.
@@ -79,7 +81,8 @@ class OL:
     def _mock_sendmail(self, request):
         self.sentmail = None
 
-        def sendmail(from_address, to_address, subject, message, headers={}, **kw):
+        def sendmail(from_address, to_address, subject, message, headers=None, **kw):
+            headers = headers or {}
             self.sentmail = EMail(kw,
                 from_address=from_address,
                 to_address=to_address,

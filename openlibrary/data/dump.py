@@ -8,52 +8,57 @@ Glossary:
 """
 from __future__ import print_function
 
-import sys
-import os
-import web
-import re
-import time
-import simplejson
-import itertools
 import gzip
-
-import db
+import itertools
+import json
+import os
+import re
+import sys
+import time
 
 import six
+import web
+
+from infogami.infobase.utils import flatten_dict
+from openlibrary.data import db
+from openlibrary.data.sitemap import generate_html_index, generate_sitemaps
+from openlibrary.plugins.openlibrary.processors import urlsafe
 
 
 def print_dump(json_records, filter=None):
     """Print the given json_records in the dump format.
     """
-    for i, json in enumerate(json_records):
+    for i, json_data in enumerate(json_records):
         if i % 1000000 == 0:
             log(i)
-        d = simplejson.loads(json)
+        d = json.loads(json_data)
         d.pop('id', None)
         d = _process_data(d)
 
         key = web.safestr(d['key'])
         type = d['type']['key']
         timestamp = d['last_modified']['value']
-        json = simplejson.dumps(d)
+        json_data = json.dumps(d)
 
         # skip user and admin pages
-        if key.startswith("/people/") or key.startswith("/admin/"):
+        if key.startswith(("/people/", "/admin/")):
             continue
 
         # skip obsolete pages. Obsolete pages include volumes, scan_records and users marked as spam.
-        if key.startswith("/b/") or key.startswith("/scan") or key.startswith("/old/") or not key.startswith("/"):
+        if key.startswith(("/b/", "/scan", "/old/")) or not key.startswith("/"):
             continue
 
         if filter and filter(d) is False:
             continue
 
-        print("\t".join([type, key, str(d['revision']), timestamp, json]))
+        print("\t".join([type, key, str(d['revision']), timestamp, json_data]))
 
 def read_data_file(filename):
     for line in xopen(filename):
-        thing_id, revision, json = line.strip().split("\t")
-        yield pgdecode(json)
+        if not isinstance(line, str):
+            line = line.decode("utf-8")
+        thing_id, revision, json_data = line.strip().split("\t")
+        yield pgdecode(json_data)
 
 def log(*args):
     print(time.asctime(), " ".join(str(a) for a in args), file=sys.stderr)
@@ -65,12 +70,14 @@ def xopen(path, mode='r'):
         return open(path, mode)
 
 def read_tsv(file, strip=True):
-    """Read a tab seperated file and return an iterator over rows."""
+    """Read a tab separated file and return an iterator over rows."""
     log("reading", file)
     if isinstance(file, six.string_types):
         file = xopen(file)
 
     for i, line in enumerate(file):
+        if not isinstance(line, str):
+            line = line.decode("utf-8")
         if i % 1000000 == 0:
             log(i)
         if strip:
@@ -101,20 +108,18 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
     M = 1024*1024
 
     filenames = [os.path.join(tmpdir, "%02x.txt.gz" % i) for i in range(256)]
-    files = [gzip.open(f, 'w') for f in filenames]
-
-    if dump_file is None:
-        stdin = sys.stdin
-    else:
-        stdin = xopen(dump_file)
+    files = [gzip.open(f, 'wb') for f in filenames]
+    stdin = xopen(dump_file) if dump_file else sys.stdin
 
     # split the file into 256 chunks using hash of key
     log("splitting", dump_file)
     for i, line in enumerate(stdin):
+        if not isinstance(line, bytes):
+            line = line.encode("utf-8")
         if i % 1000000 == 0:
             log(i)
 
-        type, key, revision, timestamp, json = line.strip().split("\t")
+        type, key, revision, timestamp, json_data = line.strip().split(b"\t")
         findex = hash(key) % 256
         files[findex].write(line)
 
@@ -128,18 +133,6 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
         status = os.system("gzip -cd %(fname)s | sort -S%(buffer_size)s -k2,3" % locals())
         if status != 0:
             raise Exception("sort failed with status %d" % status)
-
-def pmap(f, tasks):
-    """Run tasks parallelly."""
-    try:
-        from subprocess import Pool
-
-        from multiprocessing import Pool
-        r = pool.map_async(f, tasks, callback=results.append)
-        r.wait() # Wait on the results
-
-    except ImportError:
-        Pool = None
 
 def generate_dump(cdump_file=None):
     """Generate dump from cdump.
@@ -172,17 +165,13 @@ def generate_idump(day, **db_parameters):
 
 def split_dump(dump_file=None, format="oldump_%s.txt"):
     """Split dump into authors, editions and works."""
-    types = ["/type/edition", "/type/author", "/type/work", "/type/redirect"]
+    types = ("/type/edition", "/type/author", "/type/work", "/type/redirect")
     files = {}
     for t in types:
         tname = t.split("/")[-1] + "s"
-        files[t] = xopen(format % tname, "w")
+        files[t] = xopen(format % tname, "wt")
 
-    if dump_file is None:
-        stdin = sys.stdin
-    else:
-        stdin = xopen(dump_file)
-
+    stdin = xopen(dump_file) if dump_file else sys.stdin
     for i, line in enumerate(stdin):
         if i % 1000000 == 0:
             log(i)
@@ -196,11 +185,9 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
 def make_index(dump_file):
     """Make index with "path", "title", "created" and "last_modified" columns."""
 
-    from openlibrary.plugins.openlibrary.processors import urlsafe
-
-    for type, key, revision, timestamp, json in read_tsv(dump_file):
-        data = simplejson.loads(json)
-        if type == '/type/edition' or type == '/type/work':
+    for type, key, revision, timestamp, json_data in read_tsv(dump_file):
+        data = json.loads(json_data)
+        if type in ('/type/edition', '/type/work'):
             title = data.get('title', 'untitled')
             path = key + '/' + urlsafe(title)
         elif type == '/type/author':
@@ -222,15 +209,13 @@ def make_bsddb(dbfile, dump_file):
     import bsddb
     db = bsddb.btopen(dbfile, 'w', cachesize=1024*1024*1024)
 
-    from infogami.infobase.utils import flatten_dict
-
     indexable_keys = set([
         "authors.key",  "works.key", # edition
         "authors.author.key", "subjects", "subject_places", "subject_people", "subject_times" # work
     ])
-    for type, key, revision, timestamp, json in read_tsv(dump_file):
-        db[key] = json
-        d = simplejson.loads(json)
+    for type, key, revision, timestamp, json_data in read_tsv(dump_file):
+        db[key] = json_data
+        d = json.loads(json_data)
         index = [(k, v) for k, v in flatten_dict(d) if k in indexable_keys]
         for k, v in index:
             k = web.rstrips(k, ".key")
@@ -267,10 +252,10 @@ def _process_data(data):
             data['key'] = _process_key(data['key'])
 
         # convert date to ISO format
-        if 'type' in data and data['type'] == '/type/datetime':
+        if data.get('type') == '/type/datetime':
             data['value'] = data['value'].replace(' ', 'T')
 
-        return dict((k, _process_data(v)) for k, v in data.iteritems())
+        return dict((k, _process_data(v)) for k, v in data.items())
     else:
         return data
 
@@ -283,7 +268,7 @@ def _make_sub(d):
     """
     def f(a):
         return d[a.group(0)]
-    rx = re.compile("|".join(map(re.escape, d.keys())))
+    rx = re.compile("|".join(re.escape(key) for key in d))
     return lambda s: s and rx.sub(f, s)
 
 def _invert_dict(d):
@@ -316,7 +301,7 @@ def main(cmd, args):
     for a in iargs:
         if a.startswith('--'):
             name = a[2:].replace("-", "_")
-            value = iargs.next()
+            value = next(iargs)
             kwargs[name] = value
         else:
             args.append(a)
@@ -336,13 +321,11 @@ def main(cmd, args):
     elif cmd == 'bsddb':
         make_bsddb(*args, **kwargs)
     elif cmd == "solrdump":
-        import solr
+        from openlibrary.data import solr  # noqa: E402 avoid circular import
         solr.generate_dump(*args, **kwargs)
     elif cmd == 'sitemaps':
-        from sitemap import generate_sitemaps
         generate_sitemaps(*args, **kwargs)
     elif cmd == 'htmlindex':
-        from sitemap import generate_html_index
         generate_html_index(*args, **kwargs)
     else:
         print("Unknown command:", cmd, file=sys.stderr)

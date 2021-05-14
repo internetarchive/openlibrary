@@ -1,16 +1,10 @@
-<span class="small brown">Need <a href="javascript:;" id="markdownPop">help with formatting</a>?</span>
-<script type="text/javascript">
-window.q.push(function(){
-    \$("#markdownPop").colorbox({
-        inline:true, opacity:"0.5", href:"#markdown"
-    });
-});
-</script>
+<span class="small brown">Need <a href="javascript:;"
+    aria-controls="markdown" class="dialog--open" id="markdownPop">help with formatting</a>?</span>
 <div class="hidden">
     <div class="floater" id="markdown">
         <div class="floaterHead">
             <h2>Formatting Help</h2>
-            <a class="floaterShut">&times;<span class="shift">$_("Close")</span></a>
+            <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
         </div>
         <div class="floaterBody">
 
@@ -44,7 +38,7 @@ window.q.push(function(){
                 <tr>
                     <td><blockquote>Blockquote</blockquote></td>
                     <td><span class="teal">&lt;blockquote&gt; &lt;/blockquote&gt;</span></td>
-                    <td>Preceed copy with <span class="blue">&gt;</span> </td>
+                    <td>Precede copy with <span class="blue">&gt;</span> </td>
                 </tr>
                 <tr>
                     <td><h3 class="collapse">Headers</h3></td>
@@ -63,7 +57,7 @@ window.q.push(function(){
                 </tr>
                 <tr>
                     <td><a href="javascript:;">Links</a></td>
-                    <td>This is <span class="teal">&lt;a href="http://example.com/" title="Title"&gt;</span>an example<span class="teal">&lt;/a&gt;</span> inline link.</u></td>
+                    <td>This is <span class="teal">&lt;a href="http://example.com/" title="Title"&gt;</span>an example<span class="teal">&lt;/a&gt;</span> inline link.</td>
                     <td>This is <span class="blue">[an example](http://example.com/ "Title")</span> inline link.</td>
                 </tr>
                 <tr>
@@ -75,7 +69,7 @@ window.q.push(function(){
         </table>
 
         <p>$_('To "escape" any Markdown tags (i.e. use an asterisk as an asterisk rather than emphasizing text) place a backslash \ prior to the character.')</p>
-        <div class="small"><a class="red floaterShut">Close</a></div>
+        <div class="small"><a class="red dialog--close">Close</a></div>
 
         </div>
     </div>

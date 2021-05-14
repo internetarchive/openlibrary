@@ -4,6 +4,8 @@
 
 [Open Library](https://openlibrary.org) is an open, editable library catalog, building towards a web page for every book ever published.
 
+Are you looking to get started? [This is the guide](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) you are looking for. You may wish to learn more about [Google Summer of Code (GSoC)?](https://github.com/internetarchive/openlibrary/wiki/Google-Summer-of-Code) or [Hacktoberfest](https://github.com/internetarchive/openlibrary/wiki/Hacktoberfest).
+
 ## Table of Contents
    - [Overview](#overview)
    - [Installation](#installation)
@@ -17,11 +19,14 @@
    - [Contributing](CONTRIBUTING.md)
    - [Public APIs](https://openlibrary.org/developers/api)
    - [FAQs](https://openlibrary.org/help/faq)
-   - [License](LICENSE)
 
 ## Overview
 
 Open Library is an effort started in 2006 to create "one web page for every book ever published". It provides access to many public domain and out-of-print books, which can be read online.
+
+Here's a quick public tour of Open Library to get your familiar with the service and its offerings (10min)
+
+[![archive org_embed_openlibrary-tour-2020 (1)](https://user-images.githubusercontent.com/978325/91348906-55940d00-e799-11ea-83b9-17cd4d99642b.png)](https://archive.org/embed/openlibrary-tour-2020/openlibrary.ogv)
 
 - [Learn more about the Open Library project](https://openlibrary.org/about)
 - [The Vision (Dream) of OpenLibrary](https://openlibrary.org/about/vision)
@@ -29,16 +34,11 @@ Open Library is an effort started in 2006 to create "one web page for every book
 
 ## Installation
 
-### Docker
-**We're supporting Docker, moving forward**. If you are a new contributor, especially on linux, please consider setting up using the [Docker Instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md).
-
-[![Open Library Docker Tutorial](https://user-images.githubusercontent.com/978325/47388313-ada5e800-d6c6-11e8-9501-fc04e3152f20.png)](https://archive.org/embed/openlibrary-developer-docs/zoom_0.mp4?autoplay=1&start=2)
-
-Our `Docker` environment is in active development. Want to contribute? Here's our top-level [`Docker` todo-list](https://github.com/internetarchive/openlibrary/issues/1067) and a [list of open `Docker` issues](https://github.com/internetarchive/openlibrary/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Adocker).
+The development environment can be set up using the [Docker Instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md). You can also watch the [video tutorial](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4) for a more detailed explanation.
 
 ### Developer's Guide
 
-For instructions on administrating your Open Library instance and build instructions for developers, refer the Developer's [Quickstart](https://github.com/internetarchive/openlibrary/wiki/Getting-Started) Guide.
+For instructions on administrating your Open Library instance, refer to the Developer's [Quickstart](https://github.com/internetarchive/openlibrary/wiki/Getting-Started) Guide. 
 
 You can also find more information regarding Developer Documentation for Open Library in the Open Library [Wiki](https://github.com/internetarchive/openlibrary/wiki/)
 
@@ -62,6 +62,8 @@ Once you've read the overview of OpenLibrary Backend technologies, it's highly e
 
 - [Infogami Developer Tutorial](https://openlibrary.org/dev/docs/infogami)
 
+If you want to dive into the source code for Infogami, see the [Infogami repo](https://github.com/internetarchive/infogami).
+
 ## Running tests
 
 Open Library tests can be run using pytest. Kindly look up on our [Testing Document](https://github.com/internetarchive/openlibrary/wiki/Testing) for more details
@@ -76,3 +78,7 @@ docker-compose exec web make test
 ### Integration Tests
 
 Integration tests use the Splinter webdriver with Google Chrome. For instructions on installation requirements and running integration tests, [see Integration Tests README](tests/integration/README.md)
+
+## License
+
+All source code published here is available under the terms of the [GNU Affero General Public License, version 3](https://www.gnu.org/licenses/agpl-3.0.html).

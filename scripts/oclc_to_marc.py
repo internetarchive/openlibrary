@@ -3,13 +3,15 @@
 Usage: python oclc_to_marc.py oclc_1 oclc_2
 """
 from __future__ import print_function
-import urllib
-import simplejson
+import requests
 
-root = "http://openlibrary.org"
+from six.moves import urllib
+
+
+root = "https://openlibrary.org"
 
 def wget(path):
-    return simplejson.loads(urllib.urlopen(root + path).read())
+    return requests.get(root + path).json()
 
 def find_marc_url(d):
     if d.get('source_records'):
@@ -24,7 +26,7 @@ def find_marc_url(d):
         return ""
 
 def main(oclc):
-    query = urllib.urlencode({'type': '/type/edition', 'oclc_numbers': oclc, '*': ''})
+    query = urllib.parse.urlencode({'type': '/type/edition', 'oclc_numbers': oclc, '*': ''})
     result = wget('/query.json?' + query)
 
     for d in result:

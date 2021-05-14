@@ -19,15 +19,37 @@
 var getAvailabilityV2, updateBookAvailability, updateWorkAvailability;
 /* eslint-enable no-unused-vars */
 
+/**
+ * @param {jQuery.Object} $elements
+ * @return {Object} worksAndEditions
+ */
+function getWorksAndEditionsFromElements($elements) {
+    const editions = [],
+        works = [];
+
+    $.each($elements, function(index, e) {
+        const href = $(e).attr('href'),
+            _type_key_slug = href && href.split('/'),
+            _type = _type_key_slug[1],
+            key = _type_key_slug[2].split('?')[0];
+
+        if (_type === 'works') {
+            works.push(key);
+        } else if (_type === 'books') {
+            editions.push(key);
+        }
+    });
+    return {
+        works, editions
+    };
+}
+
 function initAvailability() {
     var btnClassName = 'cta-btn';
     // pages still relying on legacy client-side availability checking
     var whitelist = {
         '^/account/books/[^/]+': { // readinglog
             filter: false
-        },
-        '^/authors/[^/]+': { // authors
-            filter: true
         },
         '^/people/[^/]+': { // lists
             filter: false,
@@ -82,12 +104,12 @@ function initAvailability() {
         $(selector).each(function(index, elem) {
             var data_ocaid = $(elem).attr('data-ocaid');
             var book_ocaids, book_key;
-            if(data_ocaid) {
+            if (data_ocaid) {
                 book_ocaids = data_ocaid.split(',')
                     .filter(function(book) { return book !== '' });
                 book_key = $(elem).attr('data-key');
 
-                if(book_ocaids.length) {
+                if (book_ocaids.length) {
                     books[book_key] = book_ocaids;
                     Array.prototype.push.apply(ocaids, book_ocaids);
                 }
@@ -112,6 +134,7 @@ function initAvailability() {
                                 .attr('href', `/borrow/ia/${book_ocaid}`);
                             $(`${selector}[data-key=${book_key}]`)
                                 .addClass('cta-btn--available').addClass(btnClassName)
+                            // FIXME: This is not translatable!
                             $(`${selector}[data-key=${book_key}]`)
                                 .text('Borrow');
                             // since we've found an available edition to
@@ -129,6 +152,7 @@ function initAvailability() {
                                 .attr('title', 'Join waitlist');
                             $(`${selector}[data-key=${book_key}]`)
                                 .addClass('cta-btn--unavailable').addClass(btnClassName);
+                            // FIXME: Hardcoded English text!
                             $(`${selector}[data-key=${book_key}]`)
                                 .text('Join Waitlist');
                             delete books[book_key];
@@ -146,6 +170,7 @@ function initAvailability() {
                                 .removeClass('borrow-link');
                             $(`${selector}[data-key=${book_key}]`)
                                 .addClass('check-book-availability').addClass(btnClassName);
+                            // FIXME: This is not translatable!
                             $(`${selector}[data-key=${book_key}]`)
                                 .text('Check Availability');
                             delete books[book_key];
@@ -161,14 +186,14 @@ function initAvailability() {
         // Determine whether availability check necessary for page
         var checkAvailability = false;
         var filter = false;
-        var page, daisies, editions, works, results;
+        var page, daisies, worksAndEditions, editions, works, results;
         for (page in whitelist) {
             if (window.location.pathname.match(page)) {
                 checkAvailability = true;
                 filter = whitelist[page].filter;
             }
         }
-        if(!checkAvailability) {
+        if (!checkAvailability) {
             return;
         }
 
@@ -180,20 +205,10 @@ function initAvailability() {
             return;
         }
 
-        editions = [];
-        works = [];
         results = $('a.results');
-        $.each(results, function(index, e) {
-            var href = $(e).attr('href');
-            var _type_key_slug = href.split('/')
-            var _type = _type_key_slug[1];
-            var key = _type_key_slug[2];
-            if (_type === 'works') {
-                works.push(key);
-            } else if (_type === 'books') {
-                editions.push(key);
-            }
-        });
+        worksAndEditions = getWorksAndEditionsFromElements($('a.results'));
+        editions = worksAndEditions.editions;
+        works = worksAndEditions.works;
 
         getAvailabilityV2('openlibrary_edition', editions, function(editions_response) {
             getAvailabilityV2('openlibrary_work', works, function(works_response) {
@@ -219,15 +234,15 @@ function initAvailability() {
                                 if (work.status === 'open' || work.status === 'borrow_available') {
                                     $(cta).append(`<a href="/books/${work.openlibrary_edition}/x/borrow" ` +
                                                   'class="cta-btn cta-btn--available" ' +
-                                                  `data-ol-link-track="${work.status}">${
-                                                      work.status === 'open' ? 'Read' : ' Borrow'
+                                                  `data-ol-link-track="CTAClick|${work.status === 'open' ? 'Read' : 'Borrow'}">${
+                                                      work.status === 'open' ? 'Read' : 'Borrow'
                                                   }</a>`);
                                 } else if (work.status === 'borrow_unavailable') {
                                     $(cta).append(`${'<form method="POST" ' +
                                                   'action="/books/'}${work.openlibrary_edition}/x/borrow?action=join-waitinglist" ` +
                                                   'class="join-waitlist waitinglist-form">' +
                                                   '<input type="hidden" name="action" value="join-waitinglist">' +
-                                                  `<button type="submit" class="cta-btn cta-btn--unavailable" data-ol-link-track="${work.status}">` +
+                                                  '<button type="submit" class="cta-btn cta-btn--unavailable" data-ol-link-track="CTAClick|JoinWaitlist">' +
                                                   `Join Waitlist${
                                                       work.num_waitlist !== '0' ? ` <span class="cta-btn__badge">${work.num_waitlist}</span>` : ''
                                                   }</button></form>${
@@ -246,5 +261,6 @@ function initAvailability() {
 initAvailability();
 
 export {
+    getWorksAndEditionsFromElements,
     updateWorkAvailability
 };

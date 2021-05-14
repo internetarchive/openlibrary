@@ -1,0 +1,12 @@
+$def with ()
+
+$var title: $_('Barcode Scanner (Beta)')
+
+$ ctx.setdefault('cssfile', 'barcodescanner')
+
+<div id="page-barcodescanner">
+    <div id="interactive" class="viewport"></div>
+    <div id="result-strip">
+        <div class="empty">$_('Point your camera at a barcode! 📷')</div>
+    </div>
+</div>

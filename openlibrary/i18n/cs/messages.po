@@ -17,6 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.5.3\n"
+"Language: cs\n"
 
 #: account.py:347 account.py:382 account.py:422 password/reset_success.html:6
 #: verify.html:5 verify/activated.html:6 verify/success.html:6
@@ -949,12 +950,12 @@ msgid "Either choose a JPG, GIF or PNG on your computer,"
 msgstr ""
 
 #: edit/addcover.html:22
-msgid "<u>Or</u></span>, paste in a URL to an image if it's on the web."
+msgid "<span class=\"highlight\"><u>Or</u></span>, paste in a URL to an image if it's on the web."
 msgstr ""
 
 #: edit/addcover.html:31
 msgid "Upload"
-msgstr "Nahrát
+msgstr "Nahrát"
 
 #: edit/addfield.html:66
 msgid "Add a New Contributor Role"
@@ -1381,7 +1382,7 @@ msgid "Choose a JPG, GIF or PNG on your computer,"
 msgstr ""
 
 #: add.html:111
-msgid "<u>Or</u></span>, paste in the image URL if it's on the web."
+msgid "<span class=\"highlight\"><u>Or</u></span>, paste in the image URL if it's on the web."
 msgstr ""
 
 #: add.html:119

@@ -1,12 +1,12 @@
 import datetime
 import pytest
-import sys
 import web
 
 from infogami.utils.view import render_template
 from infogami.utils import template, context
 from openlibrary.i18n import gettext
 from openlibrary.core.admin import Stats
+from openlibrary.mocks.mock_infobase import MockSite
 from bs4 import BeautifulSoup
 
 import six
@@ -26,7 +26,24 @@ class MockDoc(dict):
 
 
 class TestHomeTemplates:
-    def test_about_template(self, render_template):
+    def setup_monkeypatch(self, monkeypatch):
+        ctx = web.storage()
+        monkeypatch.setattr(web, "ctx", ctx)
+        monkeypatch.setattr(web.webapi, "ctx", web.ctx)
+
+        self._load_fake_context()
+        web.ctx.lang = 'en'
+        web.ctx.site = MockSite()
+
+    def _load_fake_context(self):
+        self.app = web.application()
+        self.env = {
+            "PATH_INFO": "/", "HTTP_METHOD": "GET",
+        }
+        self.app.load(self.env)
+
+    def test_about_template(self, monkeypatch, render_template):
+        self.setup_monkeypatch(monkeypatch)
         html = six.text_type(render_template("home/about"))
         assert "About the Project" in html
 
@@ -58,11 +75,12 @@ class TestHomeTemplates:
         # Empty list should be returned when there is error.
         monkeypatch.setattr(home, 'random_ebooks', lambda: None)
         books = home.readonline_carousel()
-        html = six.text_type(render_template("books/custom_carousel", books=books, title="Classic Books", url="/read",
-                                       key="public_domain"))
+        html = six.text_type(render_template("books/custom_carousel", books=books, title="Classic Books",
+                                             url="/read", key="public_domain"))
         assert html.strip() == ""
 
-    def test_home_template(self, render_template, mock_site):
+    def test_home_template(self, render_template, mock_site, monkeypatch):
+        self.setup_monkeypatch(monkeypatch)
         docs = [MockDoc(_id=datetime.datetime.now().strftime("counts-%Y-%m-%d"),
                         human_edits=1, bot_edits=1, lists=1,
                         visitors=1, loans=1, members=1,
@@ -95,6 +113,7 @@ class TestHomeTemplates:
                 "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
                 "cover_url": ""
             }]
+
         html = six.text_type(render_template("home/index", stats=stats, test=True))
         headers = ["Books We Love", "Recently Returned", "Kids",
                    "Thrillers", "Romance", "Classic Books", "Textbooks"]

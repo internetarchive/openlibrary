@@ -6,7 +6,7 @@ from infogami.utils.macro import macro
 
 class view(_app.page):
     """A view is a class that defines how a page or a set of pages
-    identified by a regualar expression are rendered.
+    identified by a regular expression are rendered.
 
     Here is a sample view::
 
@@ -38,7 +38,7 @@ class subview(_app.view):
     For example, the in the subview with URL "/works/OL123W/foo/identifiers",
     "identifiers" is the action and "/works/OL123W" is the key of the document.
     The middle part "foo" is added by a middleware to make the URLs readable
-    and not that is transparant to this.
+    and not that is transparent to this.
 
     Here is a sample subview:
 

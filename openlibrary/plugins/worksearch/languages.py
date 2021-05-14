@@ -1,15 +1,18 @@
 """Language pages
 """
-from __future__ import print_function
+
+from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate, stats
 from infogami.utils.view import render_template, safeint
 import web
-import simplejson
+import json
 import logging
-import urllib
 
 from . import subjects
 from . import search
+
+from six.moves import urllib
+
 
 logger = logging.getLogger("openlibrary.worksearch")
 
@@ -38,34 +41,38 @@ class languages_json(subjects.subjects_json):
     def process_key(self, key):
         return key.replace("_", " ")
 
-class language_works_json(subjects.subject_works_json):
-    path = '(/languages/[^/]+)/works'
-    encoding = "json"
 
-    def is_enabled(self):
-        return "languages" in web.ctx.features
+def get_top_languages(limit):
+    from . import search
+    result = search.get_solr().select('*:*', rows=0, facets=['language'], facet_limit=limit)
+    return [
+        web.storage(
+            name=get_language_name(row.value),
+            key='/languages/' + row.value,
+            count=row.count
+        )
+        for row in result['facets']['language']
+    ]
 
-    def normalize_key(self, key):
-        return key
-
-    def process_key(self, key):
-        return key.replace("_", " ")
 
 class index(delegate.page):
     path = "/languages"
 
     def GET(self):
-        from . import search
-        result = search.get_solr().select('*:*', rows=0, facets=['language'], facet_limit=500)
-        languages = [web.storage(name=get_language_name(row.value), key='/languages/' + row.value, count=row.count)
-                    for row in result['facets']['language']]
-        print(languages[:10], file=web.debug)
-        page = render_template("languages/index", languages)
-        page.v2 = True
-        return page
+        return render_template("languages/index", get_top_languages(500))
 
     def is_enabled(self):
         return True
+
+
+class index_json(delegate.page):
+    path = "/languages"
+    encoding = "json"
+
+    @jsonapi
+    def GET(self):
+        return json.dumps(get_top_languages(15))
+
 
 class language_search(delegate.page):
     path = '/search/languages'

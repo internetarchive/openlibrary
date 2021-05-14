@@ -1,11 +1,12 @@
+import json
+from os import system
+from os.path import abspath, dirname, join, pardir
+
 import pytest
 import web
-import simplejson
-import urllib
+from six.moves import urllib
 
-from os import system
-from os.path import abspath, join, dirname, pardir
-from openlibrary.coverstore import config, schema, code, coverlib, utils, archive
+from openlibrary.coverstore import archive, code, config, coverlib, schema, utils
 
 static_dir = abspath(join(dirname(__file__), pardir, pardir, pardir, 'static'))
 
@@ -50,7 +51,7 @@ class WebTestCase:
 
     def jsonget(self, path):
         self.browser.open(path)
-        return simplejson.loads(self.browser.data)
+        return json.loads(self.browser.data)
 
     def upload(self, olid, path):
         """Uploads an image in static dir"""
@@ -59,7 +60,7 @@ class WebTestCase:
         path = join(static_dir, path)
         content_type, data = utils.urlencode({'olid': olid, 'data': open(path).read()})
         b.open('/b/upload2', data, {'Content-Type': content_type})
-        return simplejson.loads(b.data)['id']
+        return json.loads(b.data)['id']
 
     def delete(self, id, redirect_url=None):
         b = self.browser
@@ -67,7 +68,7 @@ class WebTestCase:
         params = {'id': id}
         if redirect_url:
             params['redirect_url'] = redirect_url
-        b.open('/b/delete', urllib.urlencode(params))
+        b.open('/b/delete', urllib.parse.urlencode(params))
         return b.data
 
     def static_path(self, path):
@@ -104,7 +105,7 @@ class TestWebappWithDB(WebTestCase):
         assert id1 < id2
         assert b.open('/b/olid/OL1M.jpg').read() == open(static_dir + '/logos/logo-it.png').read()
 
-        b.open('/b/touch', urllib.urlencode({'id': id1}))
+        b.open('/b/touch', urllib.parse.urlencode({'id': id1}))
         assert b.open('/b/olid/OL1M.jpg').read() == open(static_dir + '/logos/logo-en.png').read()
 
     def test_delete(self, setup_db):
@@ -123,7 +124,7 @@ class TestWebappWithDB(WebTestCase):
         content_type, data = utils.urlencode({'olid': 'OL1234M', 'data': filedata})
         b.open('/b/upload2', data, {'Content-Type': content_type})
         assert b.status == 200
-        id = simplejson.loads(b.data)['id']
+        id = json.loads(b.data)['id']
 
         self.verify_upload(id, filedata, {'olid': 'OL1234M'})
 
@@ -139,14 +140,15 @@ class TestWebappWithDB(WebTestCase):
         content_type, data = utils.urlencode({'olid': 'OL1234M', 'source_url': source_url})
         b.open('/b/upload2', data, {'Content-Type': content_type})
         assert b.status == 200
-        id = simplejson.loads(b.data)['id']
+        id = json.loads(b.data)['id']
 
         self.verify_upload(id, filedata, {'source_url': source_url, 'olid': 'OL1234M'})
 
-    def verify_upload(self, id, data, expected_info={}):
+    def verify_upload(self, id, data, expected_info=None):
+        expected_info = expected_info or {}
         b = self.browser
         b.open('/b/id/%d.json' % id)
-        info = simplejson.loads(b.data)
+        info = json.loads(b.data)
         for k, v in expected_info.items():
             assert info[k] == v
 

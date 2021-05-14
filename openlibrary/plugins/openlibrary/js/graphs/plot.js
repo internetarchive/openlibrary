@@ -3,12 +3,11 @@
  * need to be refactored once unit tests have been added to the repo. They
  * duplicate a lot of functionality
  */
-// jquery-flot 0.7.0
-import '../../../../../vendor/js/flot/jquery.flot.js';
-import '../../../../../vendor/js/flot/jquery.flot.selection.js';
-import '../../../../../vendor/js/flot/jquery.flot.crosshair.js';
-import '../../../../../vendor/js/flot/jquery.flot.stack.js';
-import '../../../../../vendor/js/flot/jquery.flot.pie.js';
+import 'flot/jquery.flot.js';
+import 'flot/jquery.flot.selection.js';
+import 'flot/jquery.flot.crosshair.js';
+import 'flot/jquery.flot.stack.js';
+import 'flot/jquery.flot.pie.js';
 
 /**
  * A special graph loaded on the following URLs:
@@ -63,7 +62,8 @@ export function loadEditionsGraph() {
             'background-color': '#fffdcd',
             color: '#615132',
             'font-size': '11px',
-            opacity: 0.90
+            opacity: 0.90,
+            'z-index': 100
         }).appendTo('body').customFadeIn(200);
     }
     previousPoint = null;
@@ -79,10 +79,10 @@ export function loadEditionsGraph() {
                 y = item.datapoint[1].toFixed(0);
                 if (y == 1) {
                     showTooltip(item.pageX, item.pageY,
-                        `${y} $_('edition in') ${x}`);
+                        `${y} edition in ${x}`);
                 } else {
                     showTooltip(item.pageX, item.pageY,
-                        `${y} $_('editions in') ${x}`);
+                        `${y} editions in ${x}`);
                 }
             }
         }
@@ -102,9 +102,9 @@ export function loadEditionsGraph() {
     }
 
     if (dateFrom == (dateTo - 1)) {
-        $('.clickdata').text(`$_('published in') ${dateFrom}`);
+        $('.clickdata').text(`Published in ${dateFrom}`);
     } else {
-        $('.clickdata').text(`$_('published between') ${dateFrom} & ${dateTo-1}.`);
+        $('.clickdata').text(`Published between ${dateFrom} & ${dateTo-1}.`);
     }
 }
 
@@ -217,7 +217,7 @@ export function loadGraph(id, options = {}, tooltip_message = '', color = null) 
             `No graph associated with ${id} on the page.`
         );
     }
-    if(!dataSource) {
+    if (!dataSource) {
         throw new Error(
             `No data associated with ${id} - make sure a script tag with type text/json and id "${graphSelector}" is present on the page.`
         );

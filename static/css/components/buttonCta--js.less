@@ -3,22 +3,22 @@
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#ctabtn
  * This stylesheet will only apply if JS is present on the page.
  */
- .cta-btn,
- // override default anchor styles
- a.cta-btn {
-   &--available {
-     &--load {
-       background-color: @primary-blue !important;
-       background: url(/static/images/indicator.gif) center center no-repeat;
-       opacity: 0.6;
-     }
-   }
-   &--unavailable {
-     &--load {
-       background-color: @orange !important;
-       background: url(/static/images/indicator.gif) center center no-repeat;
-       opacity: 0.6;
-     }
-   }
- }
- 
+
+// `a` specificity is needed to override default anchor styles
+.cta-btn,
+a.cta-btn {
+  &--available {
+    &--load {
+      background: url(/static/images/indicator.gif) center center no-repeat;
+      background-color: @primary-blue !important;
+      opacity: .6;
+    }
+  }
+  &--unavailable {
+    &--load {
+      background: url(/static/images/indicator.gif) center center no-repeat;
+      background-color: @burnt-sienna !important;
+      opacity: .6;
+    }
+  }
+}

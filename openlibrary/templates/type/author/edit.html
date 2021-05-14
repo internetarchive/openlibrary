@@ -4,18 +4,6 @@ $var title: $page.name
 
 $putctx("robots", "noindex,nofollow")
 
-<script type="text/javascript">
-// enable tabs for author page
-window.q.push(function(){
-    if(jQuery.support.opacity){
-        \$("#tabsAddauthor").tabs({fx:{opacity:'toggle'}});
-    } else {
-        \$("#tabsAddauthor").tabs();
-    };
-    \$("#coverPop").colorbox({inline:true, opacity:"0.5", href:"#addCover"});
-});
-</script>
-
 <div id="contentHead">
     $:macros.databarEdit(page)
     <h1>$_("Edit Author")</h1>
@@ -66,6 +54,7 @@ window.q.push(function(){
                                     class="markdown olform__input--large" id="wmd-input" rows="6">$page.bio</textarea>
                             </div>
                         </div>
+                        
 
                         <div class="formElement contentQuarter" id="birthDate">
                             <div class="label birthLabelAcc">
@@ -90,6 +79,21 @@ window.q.push(function(){
                                 <span class="tip">$_('We\'re not storing structured dates (yet) so a date like "21 May 2000" is recommended.')</span>
                             </div>
                         </div>
+
+                        <div class="clearfix"></div>
+
+                        $if page.date:                                            
+                            <div class="formElement contentQuarter" id="date">
+                                    <div class="label dateLabelAcc">
+                                        <label for="date">$_("Date")</label>
+                                    </div>
+                                    <div class="input deathInputAcc">
+                                        <input type="text" name="author--date" id="date" value="$page.date"/>
+                                    </div>
+                            </div>
+                            <div class="formElement contentQuarter">
+                                <span class="tip">$_('This is a deprecated field. You can help improve this record by removing this date and populating the "Date of birth" and "Date of death" fields. Thanks!')</span>
+                            </div>
 
                         <div class="clearfix"></div>
 
@@ -135,10 +139,6 @@ window.q.push(function(){
             <div class="formElement bottom">
                 $:macros.EditButtons(comment=page.comment_)
             </div>
-
-        $if ctx.user and ctx.user.is_admin():
-            <div class="adminOnly"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="deleteTop">$_("Delete Record")</button></div>
-
 
     </form>
 </div>

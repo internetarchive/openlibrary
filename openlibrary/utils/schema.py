@@ -203,7 +203,7 @@ class Schema:
 class Table:
     """Database table.
         >>> t = Table('user', Column('name', 'string'))
-        >>> print t.sql('postgres')
+        >>> print(t.sql('postgres'))
         create table user (
             name character varying(255)
         );
@@ -316,7 +316,7 @@ def _test():
 
     Validate postgres schema.
 
-        >>> print s.sql('postgres')
+        >>> print(s.sql('postgres'))
         create table posts (
             id serial primary key,
             slug character varying(255) unique not null,
@@ -333,7 +333,7 @@ def _test():
 
     Validate MySQL schema.
 
-        >>> print s.sql('mysql')
+        >>> print(s.sql('mysql'))
         create table posts (
             id int auto_increment not null primary key,
             slug varchar(255) unique not null,

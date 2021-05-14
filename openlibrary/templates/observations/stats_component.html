@@ -1,0 +1,33 @@
+$def with(work, edition, reader_observations, work_title, key)
+
+<a name="reader-observations" class="section-anchor"></a>      
+
+<div class="tab-section">
+  <h2 class="observation-title">$_('Reader Observations')</h2>
+  <div class="work-line">$work_title</div>
+  $if reader_observations['total_respondents'] > 1:
+    <h4 class="observer-count">
+      $:ungettext('Based on observations from <strong>%(count)s</strong> patron', 'Based on observations from <strong>%(count)s</strong> patrons', reader_observations['total_respondents'], count=reader_observations['total_respondents'])<span class="adjust">.</span>
+    </h4>
+    <hr>
+    $for o in reader_observations['observations']:
+      $ total = o['total_respondents_for_type']
+      <div class="section">
+        <h3 class="observation-header">$o['description']</h3>
+        <div>
+          <p>
+          $for v in o['values']:
+            $ percentage = (v['count'] / total) * 100
+            <span class="observation-percentage"><span class="observation-value">$v['value'].capitalize():</span> $int(percentage)%</span>
+          </p>
+        </div>
+      </div>
+  $else:
+    <hr>
+    <div class="no-stats-message">$_('At least two people must submit observations before this information can be displayed.')</div>
+  <hr>
+  $if ctx.user:
+    $:macros.UserMetadata(work, edition, _('Add your observations'), 'stats', 'stats-link')
+  $else:
+    <a class="stats-link" href="/account/login?redirect=$key">$_('Log in to add your observations')</a>
+</div>

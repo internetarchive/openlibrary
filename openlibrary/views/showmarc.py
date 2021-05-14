@@ -1,13 +1,13 @@
 """
-Hook to show mark details in Open Library.
+Hook to show MARC or other source record details in Open Library.
 """
 from .. import app
 
 import web
-import urllib2
-import os.path
-import sys
 import re
+
+import requests
+
 
 class old_show_marc(app.view):
     path = "/show-marc/(.*)"
@@ -15,27 +15,32 @@ class old_show_marc(app.view):
     def GET(self, param):
         raise web.seeother('/show-records/' + param)
 
+
 class show_ia(app.view):
     path = "/show-records/ia:(.*)"
 
     def GET(self, ia):
         error_404 = False
-        url = 'http://www.archive.org/download/%s/%s_meta.mrc' % (ia, ia)
+        url = 'https://archive.org/download/%s/%s_meta.mrc' % (ia, ia)
         try:
-            data = urllib2.urlopen(url).read()
-        except urllib2.HTTPError as e:
-            if e.code == 404:
+            response = requests.get(url)
+            response.raise_for_status()
+            data = response.content
+        except requests.HTTPError as e:
+            if e.response.status_code == 404:
                 error_404 = True
             else:
                 return "ERROR:" + str(e)
 
-        if error_404: # no MARC record
-            url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
+        if error_404:  # no MARC record
+            url = 'https://archive.org/download/%s/%s_meta.xml' % (ia, ia)
             try:
-                data = urllib2.urlopen(url).read()
-            except urllib2.HTTPError as e:
+                response = requests.get(url)
+                response.raise_for_status()
+                data = response.content
+            except requests.HTTPError as e:
                 return "ERROR:" + str(e)
-            raise web.seeother('http://www.archive.org/details/' + ia)
+            raise web.seeother('https://archive.org/details/' + ia)
 
         books = web.ctx.site.things({
             'type': '/type/edition',
@@ -61,30 +66,36 @@ class show_ia(app.view):
         except ValueError:
             record = None
 
-        template = app.render_template("showia", ia, record, books)
-        template.v2 = True
-        return template
+        return app.render_template("showia", ia, record, books)
+
 
 class show_amazon(app.view):
     path = "/show-records/amazon:(.*)"
 
     def GET(self, asin):
-        template = app.render_template("showamazon", asin)
-        template.v2 = True
-        return template
+        return app.render_template("showamazon", asin)
 
-re_bad_meta_mrc = re.compile('^([^/]+)_meta\.mrc$')
-re_lc_sanfranpl = re.compile('^sanfranpl(\d+)/sanfranpl(\d+)\.out')
+
+class show_bwb(app.view):
+    path = "/show-records/bwb:(.*)"
+
+    def GET(self, isbn):
+        return app.render_template("showbwb", isbn)
+
+
+re_bad_meta_mrc = re.compile(r'^([^/]+)_meta\.mrc$')
+re_lc_sanfranpl = re.compile(r'^sanfranpl(\d+)/sanfranpl(\d+)\.out')
+
 
 class show_marc(app.view):
-    path = "/show-records/(.*):(\d+):(\d+)"
+    path = r"/show-records/(.*):(\d+):(\d+)"
 
     def GET(self, filename, offset, length):
         m = re_bad_meta_mrc.match(filename)
         if m:
             raise web.seeother('/show-records/ia:' + m.group(1))
         m = re_lc_sanfranpl.match(filename)
-        if m: # archive.org is case-sensative
+        if m:  # archive.org is case-sensative
             mixed_case = 'SanFranPL%s/SanFranPL%s.out:%s:%s' % (m.group(1), m.group(2), offset, length)
             raise web.seeother('/show-records/' + mixed_case)
         if filename == 'collingswoodlibrarymarcdump10-27-2008/collingswood.out':
@@ -101,19 +112,16 @@ class show_marc(app.view):
         offset = int(offset)
         length = int(length)
 
-        #print "record_locator: <code>%s</code><p/><hr>" % locator
 
         r0, r1 = offset, offset+100000
-        url = 'http://www.archive.org/download/%s'% filename
-
-        ureq = urllib2.Request(url,
-                               None,
-                               {'Range':'bytes=%d-%d'% (r0, r1)},
-                               )
+        url = 'https://archive.org/download/%s' % filename
+        headers = {'Range': 'bytes=%d-%d' % (r0, r1)}
 
         try:
-            result = urllib2.urlopen(ureq).read(100000)
-        except urllib2.HTTPError as e:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            result = response.content[:100000]
+        except requests.HTTPError as e:
             return "ERROR:" + str(e)
 
         len_in_rec = int(result[:5])
@@ -127,6 +135,4 @@ class show_marc(app.view):
         except ValueError:
             record = None
 
-        template = app.render_template("showmarc", record, filename, offset, length, books)
-        template.v2 = True
-        return template
+        return app.render_template("showmarc", record, filename, offset, length, books)

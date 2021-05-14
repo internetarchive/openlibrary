@@ -53,7 +53,7 @@ __version__ = "0.3"
 0.3: Added support for elif.
 """
 
-import simplejson
+import json
 
 import web
 from web.template import Template, Parser, LineNode, SuiteNode, DefNode, PythonTokenizer, INDENT
@@ -120,7 +120,7 @@ class JSNode:
         return indent + " ".join(text) + "\n"
 
     def jsemit_TextNode(self, node, indent):
-        return simplejson.dumps(node.value)
+        return json.dumps(node.value)
 
     def jsemit_ExpressionNode(self, node, indent):
         if node.escape:
@@ -199,7 +199,7 @@ def tokenize(code):
     tok = PythonTokenizer(code)
     try:
         while True:
-            x = tok.next()
+            x = next(tok)
             begin = x.begin[1]
             if begin > end:
                 yield ' ' * (begin - end)

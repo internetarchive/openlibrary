@@ -1,8 +1,10 @@
 """Utilities for rendering Graphite graphs.
 """
-import urllib
 import web
 from infogami import config
+
+from six.moves import urllib
+
 
 def get_graphite_base_url():
     return config.get("graphite_base_url", "")
@@ -43,7 +45,7 @@ class GraphiteGraph:
 
             $:g.render(yLimit=100, width=300, height=400)
         """
-        return '<img src="%s/render/?%s"/>' % (get_graphite_base_url(), urllib.urlencode(self.get_queryparams(**options), doseq=True))
+        return '<img src="%s/render/?%s"/>' % (get_graphite_base_url(), urllib.parse.urlencode(self.get_queryparams(**options), doseq=True))
 
 class Series:
     """One series in the GraphiteGraph.

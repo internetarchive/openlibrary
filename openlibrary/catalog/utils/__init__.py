@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import re
 import web
 from unicodedata import normalize
@@ -14,22 +13,22 @@ except NameError:
 
 
 re_date = map (re.compile, [
-    '(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
-    '(?P<birth_date>\d+\??)-',
-    'b\.? (?P<birth_date>(?:ca\. )?\d+\??)',
-    'd\.? (?P<death_date>(?:ca\. )?\d+\??)',
-    '(?P<birth_date>.*\d+.*)-(?P<death_date>.*\d+.*)',
-    '^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$'])
+    r'(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
+    r'(?P<birth_date>\d+\??)-',
+    r'b\.? (?P<birth_date>(?:ca\. )?\d+\??)',
+    r'd\.? (?P<death_date>(?:ca\. )?\d+\??)',
+    r'(?P<birth_date>.*\d+.*)-(?P<death_date>.*\d+.*)',
+    r'^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$'])
 
 re_ad_bc = re.compile(r'\b(B\.C\.?|A\.D\.?)')
 re_date_fl = re.compile('^fl[., ]')
-re_number_dot = re.compile('\d{2,}[- ]*(\.+)$')
-re_l_in_date = re.compile('(l\d|\dl)')
-re_end_dot = re.compile('[^ .][^ .]\.$', re.UNICODE)
+re_number_dot = re.compile(r'\d{2,}[- ]*(\.+)$')
+re_l_in_date = re.compile(r'(l\d|\dl)')
+re_end_dot = re.compile(r'[^ .][^ .]\.$', re.UNICODE)
 re_marc_name = re.compile('^(.*?),+ (.*)$')
 re_year = re.compile(r'\b(\d{4})\b')
 
-re_brackets = re.compile('^(.+)\[.*?\]$')
+re_brackets = re.compile(r'^(.+)\[.*?\]$')
 
 
 def key_int(rec):
@@ -103,7 +102,9 @@ def fix_l_in_date(date):
         return date
     return re_l_in_date.sub(lambda m:m.group(1).replace('l', '1'), date)
 
-re_ca = re.compile('ca\.([^ ])')
+
+re_ca = re.compile(r'ca\.([^ ])')
+
 
 def parse_date(date):
     if re_date_fl.match(date):
@@ -131,7 +132,9 @@ def parse_date(date):
         i['birth_date'] = fix_l_in_date(i['birth_date'])
     return i
 
-re_cent = re.compile('^[\dl][^-]+ cent\.$')
+
+re_cent = re.compile(r'^[\dl][^-]+ cent\.$')
+
 
 def pick_first_date(dates):
     # this is to handle this case:
@@ -150,9 +153,6 @@ def pick_first_date(dates):
 
     return { 'date': fix_l_in_date(' '.join([remove_trailing_number_dot(d) for d in dates])) }
 
-def strip_accents(s):
-    return normalize('NFKD', six.text_type(s)).encode('ASCII', 'ignore')
-
 re_drop = re.compile('[?,]')
 
 def match_with_bad_chars(a, b):
@@ -167,7 +167,7 @@ def match_with_bad_chars(a, b):
     if a == b:
         return True
     def drop(s):
-        return re_drop.sub('', s)
+        return re_drop.sub('', six.ensure_text(s))
     return drop(a) == drop(b)
 
 def accent_count(s):
@@ -221,13 +221,13 @@ def strip_count(counts):
     for i, j in counts:
         foo.setdefault(i.rstrip('.').lower() if isinstance(i, six.string_types) else i, []).append((i, j))
     ret = {}
-    for k, v in foo.iteritems():
+    for k, v in foo.items():
         m = max(v, key=lambda x: len(x[1]))[0]
         bar = []
         for i, j in v:
             bar.extend(j)
         ret[m] = bar
-    return sorted(ret.iteritems(), cmp=lambda x,y: cmp(len(y[1]), len(x[1]) ))
+    return sorted(ret.items(), key=lambda x: len(x[1]), reverse=True)
 
 def fmt_author(a):
     if 'birth_date' in a or 'death_date' in a:

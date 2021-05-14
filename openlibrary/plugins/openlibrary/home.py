@@ -2,7 +2,6 @@
 """
 import random
 import web
-import simplejson
 import logging
 
 from infogami.utils import delegate
@@ -10,15 +9,11 @@ from infogami.utils.view import render_template, public
 from infogami.infobase.client import storify
 from infogami import config
 
-from openlibrary import accounts
-from openlibrary.core import admin, cache, ia, inlibrary, lending, \
+from openlibrary.core import admin, cache, ia, lending, \
     helpers as h
 from openlibrary.utils import dateutil
-from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
-from openlibrary.plugins.openlibrary import lists
-
 
 import six
 
@@ -27,15 +22,15 @@ logger = logging.getLogger("openlibrary.home")
 
 CAROUSELS_PRESETS = {
     'preset:thrillers': '(creator:"Clancy, Tom" OR creator:"King, Stephen" OR creator:"Clive Cussler" OR creator:("Cussler, Clive") OR creator:("Dean Koontz") OR creator:("Koontz, Dean") OR creator:("Higgins, Jack")) AND !publisher:"Pleasantville, N.Y. : Reader\'s Digest Association" AND languageSorter:"English"',
-    'preset:children': '(creator:("parish, Peggy") OR creator:("avi") OR title:("goosebumps") OR creator:("Dahl, Roald") OR creator:("ahlberg, allan") OR creator:("Seuss, Dr") OR creator:("Carle, Eric") OR creator:("Pilkey, Dav"))',
     'preset:comics': '(subject:"comics" OR creator:("Gary Larson") OR creator:("Larson, Gary") OR creator:("Charles M Schulz") OR creator:("Schulz, Charles M") OR creator:("Jim Davis") OR creator:("Davis, Jim") OR creator:("Bill Watterson") OR creator:("Watterson, Bill") OR creator:("Lee, Stan"))',
-    'preset:authorsalliance_mitpress': '(openlibrary_subject:(authorsalliance) OR collection:(mitpress) OR publisher:(MIT Press) OR openlibrary_subject:(mitpress)) AND (!loans__status__status:UNAVAILABLE)'
+    'preset:authorsalliance_mitpress': (
+        '(openlibrary_subject:(authorsalliance) OR collection:(mitpress) OR '
+        'publisher:(MIT Press) OR openlibrary_subject:(mitpress))'
+    )
 }
 
 
 def get_homepage():
-    if 'env' not in web.ctx:
-        delegate.fakeload()
     try:
         stats = admin.get_stats()
     except Exception:
@@ -43,32 +38,50 @@ def get_homepage():
         stats = None
     blog_posts = get_blog_feeds()
 
-    # render tempalte should be setting ctx.bodyid
+    # render tempalte should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
     # during subsequent called
-    page = render_template(
-        "home/index", stats=stats,
-        blog_posts=blog_posts
-    )
-    page.v2 = True    
+    page = render_template("home/index", stats=stats, blog_posts=blog_posts)
+    # Convert to a dict so it can be cached
     return dict(page)
+
 
 def get_cached_homepage():
     five_minutes = 5 * dateutil.MINUTE_SECS
+    lang = web.ctx.lang
+    pd = web.cookies().get('pd', False)
+    key = "home.homepage." + lang
+    if pd:
+        key += '.pd'
+
+    # Because of caching, memcache will call `get_homepage` on another thread! So we
+    # need a way to carry some information to that computation on the other thread.
+    # We do that by using a python closure. The outer function is executed on the main
+    # thread, so all the web.* stuff is correct. The inner function is executed on the
+    # other thread, so all the web.* stuff will be dummy.
+    def prethread():
+        # web.ctx.lang is undefined on the new thread, so need to transfer it over
+        lang = web.ctx.lang
+
+        def main():
+            # Leaving this in since this is a bit strange, but you can see it clearly
+            # in action with this debug line:
+            # web.debug(f'XXXXXXXXXXX web.ctx.lang={web.ctx.get("lang")}; {lang=}')
+            delegate.fakeload()
+            web.ctx.lang = lang
+        return main
+
     return cache.memcache_memoize(
-        get_homepage, "home.homepage", timeout=five_minutes)()
+        get_homepage, key, timeout=five_minutes, prethread=prethread())()
 
 class home(delegate.page):
     path = "/"
 
-    def is_enabled(self):
-        return "lending_v2" in web.ctx.features
-
     def GET(self):
         cached_homepage = get_cached_homepage()
         # when homepage is cached, home/index.html template
-        # doesn't run ctx.setdefault to set the bodyid so we must do so here:
-        web.template.Template.globals['ctx']['bodyid'] = 'home'
+        # doesn't run ctx.setdefault to set the cssfile so we must do so here:
+        web.template.Template.globals['ctx']['cssfile'] = 'home'
         return web.template.TemplateResult(cached_homepage)
 
 class random_book(delegate.page):
@@ -135,8 +148,9 @@ def readonline_carousel():
     """
     try:
         data = random_ebooks()
-        if len(data) > 60:
-            data = random.sample(data, 60)
+        if len(data) > 30:
+            data = lending.add_availability(random.sample(data, 30))
+            data = [d for d in data if d['availability']['is_readable']]
         return storify(data)
 
     except Exception:
@@ -191,7 +205,7 @@ def format_list_editions(key):
 format_list_editions = cache.memcache_memoize(format_list_editions, "home.format_list_editions", timeout=5*60)
 
 def pick_best_edition(work):
-    return (e for e in work.editions if e.ocaid).next()
+    return next((e for e in work.editions if e.ocaid))
 
 def format_work_data(work):
     d = dict(work)
@@ -220,12 +234,15 @@ def format_book_data(book):
     d.url = book.url()
     d.title = book.title or None
     d.ocaid = book.get("ocaid")
+    d.eligibility = book.get("eligibility", {})
+    d.availability = book.get('availability', {})
 
     def get_authors(doc):
         return [web.storage(key=a.key, name=a.name or None) for a in doc.get_authors()]
 
     work = book.works and book.works[0]
     d.authors = get_authors(work if work else book)
+    d.work_key = work.key if work else book.key
     cover = work.get_cover() if work and work.get_cover() else book.get_cover()
 
     if cover:
@@ -234,7 +251,7 @@ def format_book_data(book):
         d.cover_url = 'https://archive.org/services/img/%s' % d.ocaid
 
     if d.ocaid:
-        collections = ia.get_meta_xml(d.ocaid).get("collection", [])
+        collections = ia.get_metadata(d.ocaid).get('collection', [])
 
         if 'lendinglibrary' in collections or 'inlibrary' in collections:
             d.borrow_url = book.url("/borrow")

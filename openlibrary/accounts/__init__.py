@@ -1,14 +1,16 @@
-from .model import * #XXX: Fix this. Import only specific names
-
 import web
-from infogami.infobase.client import ClientException
+
+# FIXME: several modules import things from accounts.model
+# directly through openlibrary.accounts
+from .model import *
+
 
 ## Unconfirmed functions (I'm not sure that these should be here)
 def get_group(name):
     """
     Returns the group named 'name'.
     """
-    return web.ctx.site.get("/usergroup/%s"%name)
+    return web.ctx.site.get("/usergroup/%s" % name)
 
 
 class RunAs(object):
@@ -34,6 +36,7 @@ class RunAs(object):
 
         # Temporarily become user
         web.ctx.conn.set_auth_token(self.tmp_account.generate_login_code())
+        return self.tmp_account
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Return auth token to original user or no-user
@@ -46,13 +49,6 @@ def get_current_user():
     Returns the currently logged in user. None if not logged in.
     """
     return web.ctx.site.get_user()
-
-
-def username_available(cls, username):
-    """Returns True if an OL username is available, or False otherwise"""
-    return bool(
-        accounts.find(username=username) or
-        accounts.find(lusername=username))
 
 
 def find(username=None, lusername=None, email=None):

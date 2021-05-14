@@ -5,17 +5,18 @@ Unlike other parts of openlibrary, this modules talks to the database directly.
 import re
 import time
 import datetime
-import urllib
 import logging
-import simplejson
+import requests
+from urllib.parse import urlencode
 import web
 from infogami import config
-from . import inlibrary
 from .. import i18n
+
 
 logger = logging.getLogger(__name__)
 
 re_solrescape = re.compile(r'([&|+\-!(){}\[\]^"~*?:])')
+
 
 class LoanStats:
     def __init__(self, region=None, library=None, country=None, collection=None, subject=None):
@@ -57,6 +58,7 @@ class LoanStats:
 
         if self.time_period:
             start, end = self.time_period
+
             def solrtime(t):
                 return t.isoformat() + "Z"
             params['fq'].append("start_time_dt:[%s TO %s]" % (solrtime(start), solrtime(end)))
@@ -66,11 +68,10 @@ class LoanStats:
 
         logger.info("SOLR query %s", params)
 
-        q = urllib.urlencode(params, doseq=True)
+        q = urlencode(params, doseq=True)
         url = self.base_url + "/select?" + q
-        logger.info("urlopen %s", url)
-        response = urllib.urlopen(url).read()
-        return simplejson.loads(response)
+        logger.info("requests.get(%s).json()", url)
+        return requests.get(url).json()
 
     def solrescape(self, text):
         return re_solrescape.sub(r'\\\1', text)
@@ -108,7 +109,7 @@ class LoanStats:
     def _get_all_facet_counts(self):
         if not self._facet_counts:
             facets = [
-                "library_s","region_s", "country_s",
+                "library_s", "region_s", "country_s",
                 "ia_collections_id", "sponsor_s", "contributor_s",
                 "book_key_s", "author_keys_id", "resource_type_s",
                 "subject_facet", "place_facet", "person_facet", "time_facet"]
@@ -151,7 +152,7 @@ class LoanStats:
             "rows": 0,
             "facet": "on",
             "facet.mincount": 1,
-            "facet.limit": 100000, # don't limit
+            "facet.limit": 100000,  # don't limit
             "facet.field": ['start_day_s']
         }
         if resource_type != 'total':
@@ -170,7 +171,7 @@ class LoanStats:
             "rows": 0,
             "facet": "on",
             "facet.mincount": 1,
-            "facet.limit": 100000, # don't limit
+            "facet.limit": 100000,  # don't limit
             "facet.field": ['start_day_s']
         }
         if resource_type != 'total':
@@ -221,7 +222,8 @@ class LoanStats:
     def make_facet(self, name, key, count):
         type = None
         if name == "library_s":
-            title = self._get_library_title(key)
+            # Deprecated, but retained for historical stats
+            title = key
             slug = key
         elif name == "region_s":
             title = key.upper()
@@ -248,12 +250,6 @@ class LoanStats:
             title = key
             slug = key.lower().replace(" ", "_")
         return web.storage(title=title, count=count, slug=slug, type=type)
-
-    def _get_library_title(self, key):
-        if self._library_titles is None:
-            libraries = inlibrary.get_libraries()
-            self._library_titles = dict((lib.key.split("/")[-1], lib.title) for lib in libraries)
-        return self._library_titles.get(key, key)
 
     def date2millis(self, date):
         return time.mktime(date.timetuple()) * 1000

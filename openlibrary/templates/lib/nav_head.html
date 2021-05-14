@@ -1,8 +1,13 @@
 $def with (page)
 
 <header id="header-bar" class="header-bar">
-  <div class="hamburger-component">
-    <button type="button" class="hamburger-button"><img src="/static/images/menu.png" alt="additional options menu"/></button>
+  <div class="hamburger-component checkbox-menu">
+
+    <label for="toggle-hamburger" class="hamburger-button">
+      <img src="/static/images/menu.png" alt="additional options menu"/>
+    </label>
+
+    <input role="button" type="checkbox" class="hamburger-component__checkbox" id="toggle-hamburger">
     <div class="hamburger-dropdown-component navigation-dropdown-component">
       <ul class="dropdown-menu hamburger-dropdown-menu">
         $if not ctx.user:
@@ -10,9 +15,8 @@ $def with (page)
           <li><a href="/account/create">$_("Sign up")</a></li>
 
         <li><a href="/books/add">$_("Add a Book")</a></li>
-        <li><a href="/random">$_("Random Book")</a></li>
+        <li><a href="/sponsorship">$_("Sponsor a Book")</a></li>
         <li><a href="/recentchanges">$_("Recent Community Edits")</a></li>
-        <li><a href="/advancedsearch">$_("Advanced Search")</a></li>
         <li><a href="/developers">$_("Developer Center")</a></li>
         <li><a href="/help">$_("Help & Support")</a></li>
       </ul>
@@ -20,11 +24,11 @@ $def with (page)
   </div>
 
   <div class="logo-component">
-    <a href="/" title="The Internet Archive's Open Library: One page for every book">
+    <a href="/" title="$_('The Internet Archive\'s Open Library: One page for every book')">
       <div class="logo-txt">
         <img class="logo-icon" src="/static/images/openlibrary-logo-tighter.svg"
-          width="194" height="47"
-          alt="Open Library logo"/>
+          width="189" height="47"
+          alt="$_('Open Library logo')"/>
       </div>
     </a>
   </div>
@@ -47,8 +51,8 @@ $def with (page)
           </label>
         </div>
         <form class="search-bar-input" action="/search" method="get">
-          <input type="text" name="q" placeholder="$_('Search')" autocomplete="off">
-          <input name="mode" type="checkbox" aria-hidden="true" checked="checked" value="" id="ftokenstop" class="hidden instantsearch-mode">
+          <input type="text" name="q" placeholder="$_('Search')" aria-label="Search" autocomplete="off">
+          <input name="mode" type="checkbox" aria-hidden="true" aria-label="Search checkbox" checked="checked" value="" id="ftokenstop" class="hidden instantsearch-mode">
           <input type="submit" value="" class="search-bar-submit" aria-label="Search submit">
         </form>
       </div>
@@ -60,43 +64,34 @@ $def with (page)
   </div>
 
   <ul class="navigation-component">
-    <li class="browse-menu">
-      <a>$_('Browse') <img class="down-arrow"
-        width="7" height="4" aria-hidden="true" alt="$_('Browse')" role="presentation" src="/static/images/down-arrow.png"/></a>
+    <li class="browse-menu checkbox-menu">
+      <label for="toggle-browse-menu" class="browse-menu-button">$_('Browse') 
+        <img class="down-arrow" width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/>
+      </label>
+
+      <input role="button" type="checkbox" class="navigation-component__checkbox" id="toggle-browse-menu">
       <div class="navigation-dropdown-component">
         <ul class="dropdown-menu browse-menu-options">
-          <li><a href="/subjects/science">$_("Science")</a></li>
-          <li><a href="/subjects/biographies">$_("Biographies")</a></li>
-          <li><a href="/subjects/textbooks">$_("Textbooks")</a></li>
-          <li><a href="/subjects/science_fiction">$_("Sci-Fi")</a></li>
-          <li><a href="/subjects/romance">$_("Romance")</a></li>
-          <li><a href="/subjects/fantasy">$_("Fantasy")</a></li>
-          <li><a href="/subjects">$_("More Subjects")</a></li>
-          <li><a href="/lists">$_("Reading Lists")</a></li>
+          <li><a href="/subjects">$_("Subjects")</a></li>
+          <li><a href="/lists">$_("Lists")</a></li>
+          <li><a href="/k-12">$_("K-12 Student Library")</a></li>
+          <li><a href="/random">$_("Random Book")</a></li>
+          <li><a href="/advancedsearch">$_("Advanced Search")</a></li>
         </ul>
       </div>
     </li>
-    <li class="my-books-menu">
-      <a>$_('My Books') <img class="down-arrow"
-        width="7" height="4" aria-hidden="true" alt="$_('My Books')" role="presentation" src="/static/images/down-arrow.png"/></a>
-      <div class="navigation-dropdown-component">
-        <ul class="dropdown-menu my-books-menu-options">
-          <li><a href="/account/loans">$_("My Loans")</a></li>
-          <li><a href="/account/books/want-to-read">$_("My Reading Log")</a></li>
-          <li><a href="/account/lists">$_("My Lists")</a></li>
-        </ul>
-      </div>
-    </li>
-    <li class="more-menu">
-      <a>$_('More') <img class="down-arrow"
-        width="7" height="4" aria-hidden="true" alt="$_('More')" role="presentation" src="/static/images/down-arrow.png"/></a>
+    <li class="more-menu checkbox-menu">
+      <label for="toggle-more-menu" class="more-menu-button">$_('More') 
+        <img class="down-arrow" width="7" height="4" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/>
+      </label>
+
+      <input role="button" type="checkbox" class="navigation-component__checkbox" id="toggle-more-menu">
       <div class="navigation-dropdown-component">
         <ul class="dropdown-menu more-menu-options">
           <li><a href="/books/add">$_("Add a Book")</a></li>
-          <li><a href="/random">$_("Random Book")</a></li>
-          <li><a href="/advancedsearch">$_("Advanced Search")</a></li>
+          <li><a href="/sponsorship">$_("Sponsor a Book")</a></li>
           <li><a href="/recentchanges">$_("Recent Community Edits")</a></li>
-        <li><a href="/developers">$_("Developer Center")</a></li>
+          <li><a href="/developers">$_("Developer Center")</a></li>
           <li><a href="/help">$_("Help & Support")</a></li>
         </ul>
       </div>
@@ -112,16 +107,24 @@ $def with (page)
     </ul>
 
   $if ctx.user:
-    <div class="account-component">
-      <div class="dropdown-avatar">
-        <button class="avatar" id="userToggle" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');"></button>
-        <img class="down-arrow" aria-hidden="true" alt="$_('My Account')" role="presentation" src="/static/images/down-arrow.png"/>
+    <div class="account-component checkbox-menu">
+      <div class="dropdown-avatar">        
+        <label for="toggle-account" id="userToggle" class="avatar account-button" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');">
+        </label>
+
+        <label for="toggle-account" class="account-button">
+          <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" role="presentation" alt=""/>
+        </label>
       </div>
+
+      <input role="button" type="checkbox" class="account-component__checkbox" id="toggle-account">
       <div class="account-dropdown navigation-dropdown-component" id="main-account-dropdown">
         <ul class="dropdown-menu">
+          <li><a href="$ctx.user.key">$_("My Profile")</a></li>
           <li><a href="$homepath()/account/loans">$_("My Loans")</a></li>
           <li><a href="$ctx.user.key/lists">$_("My Lists")</a></li>
-          <li><a href="$ctx.user.key">$_("My Profile")</a></li>
+          <li><a href="/account/books">$_("My Reading Log")</a></li>
+          <li><a href="/account/books/already-read/stats">$_("My Reading Stats")</a></li>
           <li><a href="$homepath()/account">$_("Settings")</a></li>
           <li>
             <form name="logout" action="/account/logout" method="post">

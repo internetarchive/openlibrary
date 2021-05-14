@@ -1,6 +1,5 @@
 """Interface to update solr.
 """
-import httplib
 import logging
 import re
 
@@ -28,7 +27,7 @@ class SolrWriter(object):
 
     def get_conn(self):
         if self.conn is None:
-            self.conn = httplib.HTTPConnection(self.host)
+            self.conn = six.moves.http_client.HTTPConnection(self.host)
         return self.conn
 
     def request(self, xml):
@@ -66,7 +65,7 @@ class SolrWriter(object):
                 root.append(node)
             logger.info("flushing %d documents", len(self.pending_updates))
             self.pending_updates = []
-            xml = tostring(root).encode('utf-8')
+            xml = tostring(root).decode('utf-8')
             self.request(xml)
 
     def commit(self):
@@ -95,11 +94,9 @@ def add_field(doc, name, value):
             value = str(value)
         try:
             value = strip_bad_char(value)
-            if isinstance(value, str):
-                value = value.decode('utf-8')
             field.text = normalize('NFC', value)
         except:
-            logger.error('Error in normalizing %r', value)
+            logger.exception('Error in normalizing %r', value)
             raise
         doc.append(field)
 

@@ -3,7 +3,7 @@ from infogami.infobase.client import ClientException
 from infogami.core import forms
 
 from openlibrary.i18n import lgettext as _
-from openlibrary.utils.form import Form, Textbox, Password, Hidden, Validator, RegexpValidator
+from openlibrary.utils.form import Form, Textbox, Password, Checkbox, Hidden, Validator, RegexpValidator
 from openlibrary import accounts
 from openlibrary.accounts import InternetArchiveAccount
 from . import spamcheck
@@ -46,17 +46,20 @@ class RegisterForm(Form):
     INPUTS = [
         Textbox('email', description=_('Your email address'),
             klass='required',
+            id='emailAddr',
             validators=[vemail, email_not_already_used, email_not_disposable, email_domain_not_blocked]),
         Textbox('username', description=_('Choose a screen name'),
             klass='required',
-            help=_("Only letters and numbers, please, and at least 3 characters."),
+            help=_("Letters and numbers only please, and at least 3 characters."),
+            autocapitalize="off",
             validators=[vlogin, username_validator]),
         Password('password', description=_('Choose a password'),
             klass='required',
             validators=[vpass]),
-        Textbox('password2', description=_('Confirm password'),
+        Password('password2', description=_('Confirm password'),
             klass='required',
             validators=[vpass, EqualToValidator('password', _("Passwords didn't match."))]),
+        Checkbox('ia_newsletter', description=_("""I want to receive news, announcements, and resources from the <a href="https://archive.org/">Internet Archive</a>, the non-profit that runs Open Library.""")),
     ]
     def __init__(self):
         Form.__init__(self, *self.INPUTS)
@@ -86,15 +89,6 @@ def verify_password(password):
     return True
 
 validate_password = Validator(_("Invalid password"), verify_password)
-
-ChangePassword = Form(
-    Password('password', description=_("Current password"), klass='pwmask required', validators=[validate_password]),
-    Password('new_password', description=_("Choose a new password"), klass='pwmask required')
-)
-
-ChangeEmail = Form(
-    Textbox('email', description=_("Your new email address"), validators=[vemail, email_not_already_used])
-)
 
 ForgotPassword = Form(
     Textbox('email', description=_("Your email address"), validators=[vemail, email_already_used])

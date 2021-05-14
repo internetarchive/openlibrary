@@ -59,7 +59,7 @@ def match_identifiers(params):
             matches = web.ctx.site.things(query)
             for i in matches:
                 counts[i] += 1
-    for k,v in identifiers.iteritems(): # Rest of the identifiers
+    for k, v in identifiers.items():  # Rest of the identifiers
         print("Trying ", k , v)
         query = {'type':'/type/edition',
                  'identifiers' : {k : v}}

@@ -13,24 +13,7 @@
 .dropit {
   position: relative;
   min-height: 50px;
-  z-index: 10;
-
-  // heart icon
-  .icon {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 32px;
-    height: 32px;
-    background-image: url(/images/icons/icons_sprite.png);
-    background-repeat: no-repeat;
-    &.list {
-      background-position: 0 0;
-    }
-    &.listed {
-      background-position: -32px 0;
-    }
-  }
+  z-index: @z-index-level-4;
 }
 
 .dropper {
@@ -74,7 +57,7 @@
     .my-lists {
       background: @white;
       max-height: 250px;
-      overflow-y: scroll;
+      overflow-y: auto;
       padding: 10px 15px;
 
       // stylelint-disable-next-line max-nesting-depth
@@ -140,7 +123,7 @@ div#subjectLists {
   }
 }
 
-#widget-add {
+.widget-add {
   div.dropper {
     div.dropdown p.create {
       border-top: 1px solid @lightest-grey;
@@ -161,12 +144,12 @@ div#subjectLists {
 div.Tools {
   div.dropper {
     z-index: @z-index-level-14;
-    position: absolute;
 
     &.on {
       background-color: @lightest-grey;
-      border: 1px solid @mid-grey;
+      box-shadow: 0 0 0 1px @mid-grey;
       border-radius: 4px;
+      width: 100%;
     }
 
     h3 {
@@ -210,7 +193,7 @@ div.Tools {
   // Where is widget-add.old-style-lists used?
   // It's used on authors pages!
   // And Orphaned Editions (no work)
-  #widget-add.old-style-lists {
+  .widget-add.old-style-lists {
     .dropclick {
       padding: 10px;
       text-decoration: none;
@@ -219,7 +202,7 @@ div.Tools {
       h3 {
         font-size: .75em;
         text-align: left;
-        padding: 0px 10px;
+        padding: 0 10px;
         min-width: 150px;
       }
     }
@@ -285,11 +268,11 @@ div#listsWork {
   button[type=submit] {
     background-color: inherit;
     border: none;
-    border-radius: 3px;
+    border-radius: 4px;
     border-bottom-right-radius: 0;
     border-top-right-radius: 0;
     cursor: pointer;
-    font-size: .75em;
+    font-size: 1em;
     width: 100%;
     padding: 7px 0;
     margin: 0;
@@ -303,8 +286,8 @@ div#listsWork {
     }
     &.unactivated {
       color: @white;
-      background: @green-three;
-      border: 2px solid @green-four;
+      background: @green;
+      border: 2px solid @green;
       border-right: 1px solid @green-two;
     }
     span.activated-check {
@@ -317,6 +300,9 @@ div#listsWork {
 
 // The indicator that appears to the right of the dropper component
 .dropclick {
+  border-radius: 4px;
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
   .display-flex();
   h3 {
     flex: 1;
@@ -334,7 +320,7 @@ div#listsWork {
 }
 
 .dropclick-unactivated {
-  background-color: @green-five;
+  background-color: @green;
 }
 
 .user-book-options {
@@ -352,7 +338,6 @@ div#listsWork {
 div.tools-override {
   div.dropper {
     z-index: @z-index-level-14;
-    width: 180px;
     top: unset;
     left: -1px;
     margin: auto;
@@ -360,8 +345,22 @@ div.tools-override {
 }
 
 a:hover > h3 {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 a.dropclick.plain {
   text-decoration: none;
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  div.Tools {
+    div.dropper {
+      position: absolute;
+    }
+  }
+
+  div.tools-override {
+    div.dropper {
+      width: 180px;
+    }
+  }
 }

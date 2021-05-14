@@ -1,5 +1,4 @@
-from normalize import normalize
-from time import time
+from openlibrary.catalog.merge.normalize import normalize
 import re
 
 def add_to_index(dbm, key, edition_key):

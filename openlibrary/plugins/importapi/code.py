@@ -1,17 +1,16 @@
 """Open Library Import API
 """
-from __future__ import print_function
 
 from infogami.plugins.api.code import add_hook
-from infogami import config
+from infogami.infobase.client import ClientException
+
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.catalog.marc.marc_binary import MarcBinary, MarcException
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog import add_book
 from openlibrary.catalog.get_ia import get_marc_record_from_ia, get_from_archive_bulk
-from openlibrary import accounts
-from openlibrary import records
+from openlibrary import accounts, records
 from openlibrary.core import ia
 
 import web
@@ -19,44 +18,56 @@ import web
 import base64
 import json
 import re
-import urllib
 
-import import_opds
-import import_rdf
-import import_edition_builder
+from openlibrary.plugins.importapi import (import_edition_builder, import_opds,
+                                           import_rdf)
 from lxml import etree
 import logging
 
-IA_BASE_URL = config.get('ia_base_url')
+from six.moves import urllib
+
 MARC_LENGTH_POS = 5
-logger = logging.getLogger("openlibrary.importapi")
+logger = logging.getLogger('openlibrary.importapi')
+
 
 class DataError(ValueError):
     pass
+
+
+class BookImportError(Exception):
+    def __init__(self, error_code, error='Invalid item', **kwargs):
+        self.error_code = error_code
+        self.error = error
+        self.kwargs = kwargs
+
 
 def parse_meta_headers(edition_builder):
     # parse S3-style http headers
     # we don't yet support augmenting complex fields like author or language
     # string_keys = ['title', 'title_prefix', 'description']
 
-    re_meta = re.compile('HTTP_X_ARCHIVE_META(?:\d{2})?_(.*)')
+    re_meta = re.compile(r'HTTP_X_ARCHIVE_META(?:\d{2})?_(.*)')
     for k, v in web.ctx.env.items():
         m = re_meta.match(k)
         if m:
             meta_key = m.group(1).lower()
             edition_builder.add(meta_key, v, restrict_keys=False)
 
+
 def parse_data(data):
     """
     Takes POSTed data and determines the format, and returns an Edition record
     suitable for adding to OL.
 
-    :param str data: Raw data
+    :param bytes data: Raw data
     :rtype: (dict|None, str|None)
     :return: (Edition record, format (rdf|opds|marcxml|json|marc)) or (None, None)
+
+    from typing import Dict, Optional, Tuple
+    def parse_data(data: bytes) -> Tuple[Optional[Dict], Optional[str]]:
     """
     data = data.strip()
-    if -1 != data[:10].find('<?xml'):
+    if b'<?xml' in data[:10]:
         root = etree.fromstring(data)
         if '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF' == root.tag:
             edition_builder = import_rdf.parse(root)
@@ -72,21 +83,21 @@ def parse_data(data):
             edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
             format = 'marcxml'
         else:
-            print('unrecognized XML format')
-            return None, None
-    elif data.startswith('{') and data.endswith('}'):
+            raise DataError('unrecognized-XML-format')
+    elif data.startswith(b'{') and data.endswith(b'}'):
         obj = json.loads(data)
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
         format = 'json'
-    else:
+    elif data[:MARC_LENGTH_POS].isdigit():
         #Marc Binary
         if len(data) < MARC_LENGTH_POS or len(data) != int(data[:MARC_LENGTH_POS]):
             raise DataError('no-marc-record')
         rec = MarcBinary(data)
-
         edition = read_edition(rec)
         edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
         format = 'marc'
+    else:
+        raise DataError('unrecognised-import-format')
 
     parse_meta_headers(edition_builder)
     return edition_builder.get_dict(), format
@@ -103,7 +114,7 @@ class importapi:
             'error': error
         }
         content.update(kwargs)
-        raise web.HTTPError('400 Bad Request', {}, json.dumps(content))
+        raise web.HTTPError('400 Bad Request', data=json.dumps(content))
 
     def POST(self):
         web.header('Content-Type', 'application/json')
@@ -118,25 +129,28 @@ class importapi:
             return self.error(str(e), 'Failed to parse import data')
 
         if not edition:
-            return self.error('unknown_error', 'Failed to parse import data')
+            return self.error('unknown-error', 'Failed to parse import data')
 
         try:
             reply = add_book.load(edition)
+            # TODO: If any records have been created, return a 201, otherwise 200
+            return json.dumps(reply)
         except add_book.RequiredField as e:
             return self.error('missing-required-field', str(e))
-        return json.dumps(reply)
+        except ClientException as e:
+            return self.error('bad-request', **json.loads(e.json))
 
-    def reject_non_book_marc(self, marc_record, **kwargs):
-        details = "Item rejected"
-        # Is the item a serial instead of a book?
-        marc_leaders = marc_record.leader()
-        if marc_leaders[7] == 's':
-            return self.error('item-is-serial', details, **kwargs)
+def raise_non_book_marc(marc_record, **kwargs):
+    details = 'Item rejected'
+    # Is the item a serial instead of a monograph?
+    marc_leaders = marc_record.leader()
+    if marc_leaders[7] == 's':
+        raise BookImportError('item-is-serial', details, **kwargs)
 
-        # insider note: follows Archive.org's approach of
-        # Item::isMARCXMLforMonograph() which excludes non-books
-        if not (marc_leaders[7] == 'm' and marc_leaders[6] == 'a'):
-            return self.error('item-not-book', details, **kwargs)
+    # insider note: follows Archive.org's approach of
+    # Item::isMARCXMLforMonograph() which excludes non-books
+    if not (marc_leaders[7] == 'm' and marc_leaders[6] == 'a'):
+        raise BookImportError('item-not-book', details, **kwargs)
 
 
 class ia_importapi(importapi):
@@ -144,7 +158,7 @@ class ia_importapi(importapi):
     Request Format:
 
         POST /api/import/ia
-        Content-type: application/json
+        Content-Type: application/json
         Authorization: Basic base64-of-username:password
 
         {
@@ -152,7 +166,61 @@ class ia_importapi(importapi):
             "require_marc": "true",
             "bulk_marc": "false"
         }
-    """
+    """    
+
+    @classmethod
+    def ia_import(cls, identifier, require_marc=True):
+        """
+        Performs logic to fetch archive.org item + metadata,
+        produces a data dict, then loads into Open Library
+
+        :param str identifier: archive.org ocaid
+        :param bool require_marc: require archive.org item have MARC record?
+        :rtype: dict
+        :returns: the data of the imported book or raises  BookImportError
+        """
+        # Case 1 - Is this a valid Archive.org item?
+        metadata = ia.get_metadata(identifier)
+        if not metadata:
+            raise BookImportError('invalid-ia-identifier', '%s not found' % identifier)
+
+        # Case 2 - Does the item have an openlibrary field specified?
+        # The scan operators search OL before loading the book and add the
+        # OL key if a match is found. We can trust them and attach the item
+        # to that edition.
+        if metadata.get('mediatype') == 'texts' and metadata.get('openlibrary'):
+            edition_data = cls.get_ia_record(metadata)
+            edition_data['openlibrary'] = metadata['openlibrary']
+            edition_data = cls.populate_edition_data(edition_data, identifier)
+            return cls.load_book(edition_data)
+
+        # Case 3 - Can the item be loaded into Open Library?
+        status = ia.get_item_status(identifier, metadata)
+        if status != 'ok':
+            raise BookImportError(status, 'Prohibited Item %s' % identifier)
+
+        # Case 4 - Does this item have a marc record?
+        marc_record = get_marc_record_from_ia(identifier)
+        if require_marc and not marc_record:
+            raise BookImportError('no-marc-record')
+        if marc_record:
+            raise_non_book_marc(marc_record)
+            try:
+                edition_data = read_edition(marc_record)
+            except MarcException as e:
+                logger.error('failed to read from MARC record %s: %s', identifier, str(e))
+                raise BookImportError('invalid-marc-record')
+        else:
+            try:
+                edition_data = cls.get_ia_record(metadata)
+            except KeyError:
+                raise BookImportError('invalid-ia-metadata')
+
+        # Add IA specific fields: ocaid, source_records, and cover
+        edition_data = cls.populate_edition_data(edition_data, identifier)
+        return cls.load_book(edition_data)
+
+
     def POST(self):
         web.header('Content-Type', 'application/json')
 
@@ -171,7 +239,7 @@ class ia_importapi(importapi):
         # First check whether this is a non-book, bulk-marc item
         if bulk_marc:
             # Get binary MARC by identifier = ocaid/filename:offset:length
-            re_bulk_identifier = re.compile("([^/]*)/([^:]*):(\d*):(\d*)")
+            re_bulk_identifier = re.compile(r"([^/]*)/([^:]*):(\d*):(\d*)")
             try:
                 ocaid, filename, offset, length = re_bulk_identifier.match(identifier).groups()
                 data, next_offset, next_length = get_from_archive_bulk(identifier)
@@ -199,66 +267,27 @@ class ia_importapi(importapi):
                 _ids = [get_subfield(f, id_subfield) for f in rec.read_fields([id_field]) if f and get_subfield(f, id_subfield)]
                 edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in _ids]
 
-            # Don't add the book if the MARC record is a non-book item
-            self.reject_non_book_marc(rec, **next_data)
+            # Don't add the book if the MARC record is a non-monograph item,
+            # unless it is a serial (etc) for a scanning partner.
+            try:
+                raise_non_book_marc(rec, **next_data)
+            except BookImportError as e:
+                if not (local_id and e.error_code == 'item-is-serial'):
+                    return self.error(e.error_code, e.error, **e.kwargs)
             result = add_book.load(edition)
 
             # Add next_data to the response as location of next record:
             result.update(next_data)
             return json.dumps(result)
 
-        # Case 1 - Is this a valid Archive.org item?
         try:
-            item_json = ia.get_item_json(identifier)
-            item_server = item_json['server']
-            item_path = item_json['dir']
-        except KeyError:
-            return self.error("invalid-ia-identifier", "%s not found" % identifier)
-        metadata = ia.extract_item_metadata(item_json)
-        if not metadata:
-            return self.error("invalid-ia-identifier")
+            return self.ia_import(identifier, require_marc=require_marc)
+        except BookImportError as e:
+            return self.error(e.error_code, e.error, **e.kwargs)
 
-        # Case 2 - Does the item have an openlibrary field specified?
-        # The scan operators search OL before loading the book and add the
-        # OL key if a match is found. We can trust them and attach the item
-        # to that edition.
-        if metadata.get("mediatype") == "texts" and metadata.get("openlibrary"):
-            edition_data = self.get_ia_record(metadata)
-            edition_data["openlibrary"] = metadata["openlibrary"]
-            edition_data = self.populate_edition_data(edition_data, identifier)
-            return self.load_book(edition_data)
 
-        # Case 3 - Can the item be loaded into Open Library?
-        status = ia.get_item_status(identifier, metadata,
-                                    item_server=item_server, item_path=item_path)
-        if status != 'ok':
-            return self.error(status, "Prohibited Item")
-
-        # Case 4 - Does this item have a marc record?
-        marc_record = self.get_marc_record(identifier)
-        if marc_record:
-            self.reject_non_book_marc(marc_record)
-            try:
-                edition_data = read_edition(marc_record)
-            except MarcException as e:
-                logger.error("failed to read from MARC record %s: %s", identifier, str(e))
-                return self.error("invalid-marc-record")
-
-        elif require_marc:
-            return self.error("no-marc-record")
-
-        else:
-            try:
-                edition_data = self.get_ia_record(metadata)
-            except KeyError:
-                return self.error("invalid-ia-metadata")
-
-        # Add IA specific fields: ocaid, source_records, and cover
-        edition_data = self.populate_edition_data(edition_data, identifier)
-
-        return self.load_book(edition_data)
-
-    def get_ia_record(self, metadata):
+    @staticmethod
+    def get_ia_record(metadata):
         """
         Generate Edition record from Archive.org metadata, in lieu of a MARC record
 
@@ -293,7 +322,8 @@ class ia_importapi(importapi):
             d['oclc'] = oclc
         return d
 
-    def load_book(self, edition_data):
+    @staticmethod
+    def load_book(edition_data):
         """
         Takes a well constructed full Edition record and sends it to add_book
         to check whether it is already in the system, and to add it, and a Work
@@ -305,7 +335,8 @@ class ia_importapi(importapi):
         result = add_book.load(edition_data)
         return json.dumps(result)
 
-    def populate_edition_data(self, edition, identifier):
+    @staticmethod
+    def populate_edition_data(edition, identifier):
         """
         Adds archive.org specific fields to a generic Edition record, based on identifier.
 
@@ -315,17 +346,12 @@ class ia_importapi(importapi):
         :return: Edition record
         """
         edition['ocaid'] = identifier
-        edition['source_records'] = "ia:" + identifier
-        edition['cover'] = "{0}/download/{1}/{1}/page/title.jpg".format(IA_BASE_URL, identifier)
+        edition['source_records'] = 'ia:' + identifier
+        edition['cover'] = ia.get_cover_url(identifier)
         return edition
 
-    def get_marc_record(self, identifier):
-        try:
-            return get_marc_record_from_ia(identifier)
-        except IOError:
-            return None
-
-    def find_edition(self, identifier):
+    @staticmethod
+    def find_edition(identifier):
         """
         Checks if the given identifier has already been imported into OL.
 
@@ -346,7 +372,8 @@ class ia_importapi(importapi):
         if keys:
             return keys[0]
 
-    def status_matched(self, key):
+    @staticmethod
+    def status_matched(key):
         reply = {
             'success': True,
             'edition': {'key': key, 'status': 'matched'}
@@ -365,7 +392,7 @@ class ils_search:
     Request Format:
 
         POST /api/ils_search
-        Content-type: application/json
+        Content-Type: application/json
         Authorization: Basic base64-of-username:password
 
         {
@@ -422,20 +449,26 @@ class ils_search:
         d = self.format_result(matches, auth_header, keys)
         return json.dumps(d)
 
+
     def error(self, reason):
         d = json.dumps({ "status" : "error", "reason" : reason})
-        return web.HTTPError("400 Bad Request", {"Content-type": "application/json"}, d)
+        return web.HTTPError("400 Bad Request", {"Content-Type": "application/json"}, d)
 
 
     def auth_failed(self, reason):
         d = json.dumps({ "status" : "error", "reason" : reason})
-        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-type": "application/json"}, d)
+        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-Type": "application/json"}, d)
 
-    def login(self, authstring):
-        if not authstring:
+    def login(self, auth_str):
+        if not auth_str:
             return
-        authstring = authstring.replace("Basic ","")
-        username, password = base64.decodestring(authstring).split(':')
+        auth_str = auth_str.replace("Basic ", "")
+        try:
+            auth_str = base64.decodebytes(bytes(auth_str, 'utf-8'))
+            auth_str = auth_str.decode('utf-8')
+        except AttributeError:
+            auth_str = base64.decodestring(auth_str)
+        username, password = auth_str.split(':')
         accounts.login(username, password)
 
     def prepare_input_data(self, rawdata):
@@ -554,7 +587,7 @@ class ils_cover_upload:
             return web.seeother(url)
         else:
             d = json.dumps({ "status" : "error", "reason" : reason})
-            return web.HTTPError("400 Bad Request", {"Content-type": "application/json"}, d)
+            return web.HTTPError("400 Bad Request", {"Content-Type": "application/json"}, d)
 
 
     def success(self, i):
@@ -567,19 +600,24 @@ class ils_cover_upload:
 
     def auth_failed(self, reason):
         d = json.dumps({ "status" : "error", "reason" : reason})
-        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-type": "application/json"}, d)
+        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-Type": "application/json"}, d)
 
     def build_url(self, url, **params):
         if '?' in url:
-            return url + "&" + urllib.urlencode(params)
+            return url + "&" + urllib.parse.urlencode(params)
         else:
-            return url + "?" + urllib.urlencode(params)
+            return url + "?" + urllib.parse.urlencode(params)
 
-    def login(self, authstring):
-        if not authstring:
+    def login(self, auth_str):
+        if not auth_str:
             raise self.auth_failed("No credentials provided")
-        authstring = authstring.replace("Basic ","")
-        username, password = base64.decodestring(authstring).split(':')
+        auth_str = auth_str.replace("Basic ", "")
+        try:
+            auth_str = base64.decodebytes(bytes(auth_str, 'utf-8'))
+            auth_str = auth_str.decode('utf-8')
+        except AttributeError:
+            auth_str = base64.decodestring(auth_str)
+        username, password = auth_str.split(':')
         accounts.login(username, password)
 
     def POST(self):

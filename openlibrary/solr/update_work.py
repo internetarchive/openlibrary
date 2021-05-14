@@ -1,28 +1,35 @@
 from __future__ import print_function
 import datetime
-import httplib
+import itertools
 import logging
 import os
 import re
+from typing import Literal, List
+
+import httpx
+import requests
 import sys
 import time
-import urllib
-import urllib2
+from six.moves.urllib.parse import urlparse
 from collections import defaultdict
 from unicodedata import normalize
 
-import simplejson as json
+import json
 import six
+from six.moves.http_client import HTTPConnection
 import web
 from lxml.etree import tostring, Element, SubElement
 
-from data_provider import get_data_provider
 from infogami.infobase.client import ClientException
 from openlibrary import config
 from openlibrary.catalog.utils.query import set_query_host, base_url as get_ol_base_url
 from openlibrary.core import helpers as h
 from openlibrary.core import ia
+from openlibrary.plugins.upstream.utils import url_quote
+from openlibrary.solr.data_provider import get_data_provider, DataProvider
+from openlibrary.utils.ddc import normalize_ddc
 from openlibrary.utils.isbn import opposite_isbn
+from openlibrary.utils.lcc import short_lcc_to_sortable_lcc
 
 logger = logging.getLogger("openlibrary.solr")
 
@@ -31,37 +38,35 @@ re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
 re_bad_char = re.compile('[\x01\x0b\x1a-\x1e]')
 re_edition_key = re.compile(r"/books/([^/]+)")
 re_iso_date = re.compile(r'^(\d{4})-\d\d-\d\d$')
-re_solr_field = re.compile('^[-\w]+$', re.U)
+re_solr_field = re.compile(r'^[-\w]+$', re.U)
 re_year = re.compile(r'(\d{4})$')
 
 data_provider = None
 _ia_db = None
 
-solr_host = None
+solr_base_url = None
 
-def urlopen(url, data=None):
-    version = "%s.%s.%s" % sys.version_info[:3]
-    user_agent = 'Mozilla/5.0 (openlibrary; %s) Python/%s' % (__file__, version)
-    headers = {
-        'User-Agent': user_agent
-    }
-    req = urllib2.Request(url, data, headers)
-    return urllib2.urlopen(req)
 
-def get_solr():
+def get_solr_base_url():
     """
     Get Solr host
 
     :rtype: str
     """
-    global solr_host
+    global solr_base_url
 
     load_config()
 
-    if not solr_host:
-        solr_host = config.runtime_config['plugin_worksearch']['solr']
+    if not solr_base_url:
+        solr_base_url = config.runtime_config['plugin_worksearch']['solr_base_url']
 
-    return solr_host
+    return solr_base_url
+
+
+def set_solr_base_url(solr_url: str):
+    global solr_base_url
+    solr_base_url = solr_url
+
 
 def get_ia_collection_and_box_id(ia):
     """
@@ -164,28 +169,31 @@ def is_sine_nomine(pub):
     """
     return re_not_az.sub('', pub).lower() == 'sn'
 
-def pick_cover(w, editions):
+
+def pick_cover_edition(editions, work_cover_id):
     """
     Get edition that's used as the cover of the work. Otherwise get the first English edition, or otherwise any edition.
 
-    :param dict w:
     :param list[dict] editions:
-    :return: Edition key (ex: "/books/OL1M")
-    :rtype: str or None
+    :param int or None work_cover_id:
+    :rtype: dict or None
     """
-    w_cover = w['covers'][0] if w.get('covers', []) else None
-    first_with_cover = None
-    for e in editions:
-        if 'covers' not in e:
-            continue
-        if w_cover and e['covers'][0] == w_cover:
-            return e['key']
-        if not first_with_cover:
-            first_with_cover = e['key']
-        for l in e.get('languages', []):
-            if 'eng' in l:
-                return e['key']
-    return first_with_cover
+    editions_w_covers = [
+        ed
+        for ed in editions
+        if any(cover_id for cover_id in ed.get('covers', []) if cover_id != -1)
+    ]
+    return next(itertools.chain(
+        # Prefer edition with the same cover as the work first
+        (ed for ed in editions_w_covers if work_cover_id in ed.get('covers', [])),
+        # Then prefer English covers
+        (ed for ed in editions_w_covers if 'eng' in str(ed.get('languages', []))),
+        # Then prefer anything with a cover
+        editions_w_covers,
+        # The default: None
+        [None],
+    ))
+
 
 def get_work_subjects(w):
     """
@@ -206,7 +214,7 @@ def get_work_subjects(w):
         'subject_people': 'person',
     }
 
-    for db_field, solr_field in field_map.iteritems():
+    for db_field, solr_field in field_map.items():
         if not w.get(db_field, None):
             continue
         cur = subjects.setdefault(solr_field, {})
@@ -235,7 +243,7 @@ def four_types(i):
     """
     want = {'subject', 'time', 'place', 'person'}
     ret = dict((k, i[k]) for k in want if k in i)
-    for j in (j for j in i.keys() if j not in want):
+    for j in (j for j in i if j not in want):
         for k, v in i[j].items():
             if 'subject' in ret:
                 ret['subject'][k] = ret['subject'].get(k, 0) + v
@@ -263,6 +271,23 @@ def datetimestr_to_int(datestr):
         t = datetime.datetime.utcnow()
 
     return int(time.mktime(t.timetuple()))
+
+
+def safeget(func):
+    """
+    TODO: DRY with solrbuilder copy
+    >>> safeget(lambda: {}['foo'])
+    >>> safeget(lambda: {}['foo']['bar'][0])
+    >>> safeget(lambda: {'foo': []}['foo'][0])
+    >>> safeget(lambda: {'foo': {'bar': [42]}}['foo']['bar'][0])
+    42
+    >>> safeget(lambda: {'foo': 'blah'}['foo']['bar'])
+    """
+    try:
+        return func()
+    except (KeyError, IndexError, TypeError):
+        return None
+
 
 class SolrProcessor:
     """Processes data to into a form suitable for adding to works solr.
@@ -317,7 +342,7 @@ class SolrProcessor:
                 e['public_scan'] = ('lendinglibrary' not in collection) and ('printdisabled' not in collection)
 
             if 'identifiers' in e:
-                for k, id_list in e['identifiers'].iteritems():
+                for k, id_list in e['identifiers'].items():
                     k_orig = k
                     k = k.replace('.', '_').replace(',', '_').replace('(', '').replace(')', '').replace(':', '_').replace('/', '').replace('#', '').lower()
                     m = re_solr_field.match(k)
@@ -328,7 +353,38 @@ class SolrProcessor:
                         v = v.strip()
                         if v not in identifiers[k]:
                             identifiers[k].append(v)
-        return sorted(editions, key=lambda e: e.get('pub_year', None))
+        return sorted(editions, key=lambda e: int(e.get('pub_year') or -sys.maxsize))
+
+    @staticmethod
+    def normalize_authors(authors) -> List[dict]:
+        """
+        Need to normalize to a predictable format because of inconsitencies in data
+
+        >>> SolrProcessor.normalize_authors([
+        ...     {'type': {'key': '/type/author_role'}, 'author': '/authors/OL1A'}
+        ... ])
+        [{'type': {'key': '/type/author_role'}, 'author': {'key': '/authors/OL1A'}}]
+        >>> SolrProcessor.normalize_authors([{
+        ...     "type": {"key": "/type/author_role"},
+        ...     "author": {"key": "/authors/OL1A"}
+        ... }])
+        [{'type': {'key': '/type/author_role'}, 'author': {'key': '/authors/OL1A'}}]
+        """
+        return [
+            {
+                'type': {
+                    'key': safeget(lambda: a['type']['key']) or '/type/author_role'
+                },
+                'author': (
+                    a['author'] if isinstance(a['author'], dict)
+                    else {'key': a['author']}
+                )
+            }
+            for a in authors
+            # TODO: Remove after
+            #  https://github.com/internetarchive/openlibrary-client/issues/126
+            if 'author' in a
+        ]
 
     def get_author(self, a):
         """
@@ -340,16 +396,10 @@ class SolrProcessor:
         :return: Full author document
         :rtype: dict or None
         """
-        # TODO is this still an active problem?
-        if 'author' not in a: # OL Web UI bug
-            return # http://openlibrary.org/works/OL15365167W.yml?m=edit&v=1
-
-        author = a['author']
-
-        if 'type' in author:
+        if 'type' in a['author']:
             # means it is already the whole object.
             # It'll be like this when doing re-indexing of solr.
-            return author
+            return a['author']
 
         key = a['author']['key']
         m = re_author_key.match(key)
@@ -367,8 +417,7 @@ class SolrProcessor:
         """
         authors = [
             self.get_author(a)
-            for a in w.get("authors", [])
-            if 'author' in a  # TODO: Remove after https://github.com/internetarchive/openlibrary-client/issues/126
+            for a in SolrProcessor.normalize_authors(w.get("authors", []))
         ]
 
         if any(a['type']['key'] == '/type/redirect' for a in authors):
@@ -432,7 +481,7 @@ class SolrProcessor:
             'subject_people': 'person',
         }
 
-        for db_field, solr_field in field_map.iteritems():
+        for db_field, solr_field in field_map.items():
             if not w.get(db_field, None):
                 continue
             cur = subjects.setdefault(solr_field, {})
@@ -509,6 +558,43 @@ class SolrProcessor:
                            if db_key in e
                            for v in e[db_key])
             add_list(solr_key, values)
+
+        raw_lccs = set(lcc
+                       for ed in editions
+                       for lcc in ed.get('lc_classifications', []))
+        lccs = set(lcc for lcc in map(short_lcc_to_sortable_lcc, raw_lccs) if lcc)
+        if lccs:
+            add_list("lcc", lccs)
+            # Choose the... idk, longest for sorting?
+            add("lcc_sort", sorted(lccs, key=len, reverse=True)[0])
+
+        def get_edition_ddcs(ed: dict):
+            ddcs = ed.get('dewey_decimal_class', [])  # type: List[str]
+            if len(ddcs) > 1:
+                # In DDC, `92` or `920` is sometimes appended to a DDC to denote
+                # "Biography". We have a clause to handle this if it's part of the same
+                # DDC (See utils/ddc.py), but some books have it as an entirely separate
+                # DDC; e.g.:
+                # * [ "979.4/830046872073", "92" ]
+                #   https://openlibrary.org/books/OL3029363M.json
+                # * [ "813/.54", "B", "92" ]
+                #   https://openlibrary.org/books/OL2401343M.json
+                ddcs = [
+                    ddcs[0],
+                    *[ddc for ddc in ddcs[1:] if ddc not in ('92', '920')]
+                ]
+            return ddcs
+
+        raw_ddcs = set(ddc
+                       for ed in editions
+                       for ddc in get_edition_ddcs(ed))
+        ddcs = set(ddc
+                   for raw_ddc in raw_ddcs
+                   for ddc in normalize_ddc(raw_ddc))
+        if ddcs:
+            add_list("ddc", ddcs)
+            # Choose longest, since has most precision?
+            add("ddc_sort", sorted(ddcs, key=len, reverse=True)[0])
 
         add_list("isbn", self.get_isbns(editions))
         add("last_modified_i", self.get_last_modified(w, editions))
@@ -702,9 +788,13 @@ def build_data2(w, editions, authors, ia, duplicates):
     resolve_redirects = False
 
     assert w['type']['key'] == '/type/work'
-    title = w.get('title', None)
-    if not title:
-        return
+    # Some works are missing a title, but have titles on their editions
+    w['title'] = next(itertools.chain(
+        (book['title'] for book in itertools.chain([w], editions) if book.get('title')),
+        ['__None__']
+    ))
+    if w['title'] == '__None__':
+        logger.warning('Work missing title %s' % w['key'])
 
     p = SolrProcessor(resolve_redirects)
 
@@ -723,13 +813,22 @@ def build_data2(w, editions, authors, ia, duplicates):
 
     doc = p.build_data(w, editions, subjects, has_fulltext)
 
-    cover_edition = pick_cover(w, editions)
+    work_cover_id = next(itertools.chain(
+        (cover_id for cover_id in w.get('covers', []) if cover_id != -1),
+        [None]
+    ))
+
+    cover_edition = pick_cover_edition(editions, work_cover_id)
     if cover_edition:
-        add_field(doc, 'cover_edition_key', re_edition_key.match(cover_edition).group(1))
-    if w.get('covers'):
-        cover = w['covers'][0]
-        assert isinstance(cover, int)
-        add_field(doc, 'cover_i', cover)
+        cover_edition_key = re_edition_key.match(cover_edition['key']).group(1)
+        add_field(doc, 'cover_edition_key', cover_edition_key)
+
+    main_cover_id = work_cover_id or (
+        next(cover_id for cover_id in cover_edition['covers'] if cover_id != -1)
+        if cover_edition else None)
+    if main_cover_id:
+        assert isinstance(main_cover_id, int)
+        add_field(doc, 'cover_i', main_cover_id)
 
     k = 'first_sentence'
     fs = set( e[k]['value'] if isinstance(e[k], dict) else e[k] for e in editions if e.get(k, None))
@@ -793,12 +892,13 @@ def build_data2(w, editions, authors, ia, duplicates):
     for k in 'person', 'place', 'subject', 'time':
         if k not in subjects:
             continue
-        add_field_list(doc, k, subjects[k].keys())
-        add_field_list(doc, k + '_facet', subjects[k].keys())
-        subject_keys = [str_to_key(s) for s in subjects[k].keys()]
+        subjects_k_keys = list(subjects[k])
+        add_field_list(doc, k, subjects_k_keys)
+        add_field_list(doc, k + '_facet', subjects_k_keys)
+        subject_keys = [str_to_key(s) for s in subjects_k_keys]
         add_field_list(doc, k + '_key', subject_keys)
 
-    for k in sorted(identifiers.keys()):
+    for k in sorted(identifiers):
         add_field_list(doc, 'id_' + k, identifiers[k])
 
     if ia_loaded_id:
@@ -809,17 +909,52 @@ def build_data2(w, editions, authors, ia, duplicates):
 
     return doc
 
-def solr_update(requests, debug=False, commitWithin=60000):
+
+async def solr_insert_documents(
+        documents: List[dict],
+        commit_within=60_000,
+        solr_base_url: str = None,
+        skip_id_check=False,
+):
+    """
+    Note: This has only been tested with Solr 8, but might work with Solr 3 as well.
+    """
+    solr_base_url = solr_base_url or get_solr_base_url()
+    params = {}
+    if commit_within is not None:
+        params['commitWithin'] = commit_within
+    if skip_id_check:
+        params['overwrite'] = 'false'
+    logger.info(f"POSTing update to {solr_base_url}/update {params}")
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            f'{solr_base_url}/update',
+            timeout=30,  # The default timeout is silly short
+            params=params,
+            headers={'Content-Type': 'application/json'},
+            content=json.dumps(documents)
+        )
+    resp.raise_for_status()
+
+
+def solr_update(requests, debug=False, commitWithin=60000, solr_base_url: str = None):
     """POSTs a collection of update requests to Solr.
     TODO: Deprecate and remove string requests. Is anything else still generating them?
     :param list[string or UpdateRequest or DeleteRequest] requests: Requests to send to Solr
     :param bool debug:
     :param int commitWithin: Solr commitWithin, in ms
     """
-    h1 = httplib.HTTPConnection(get_solr())
-    url = 'http://%s/solr/update' % get_solr()
+    solr_base_url = solr_base_url or get_solr_base_url()
+    url = f'{solr_base_url}/update'
+    parsed_url = urlparse(url)
+    assert parsed_url.hostname
 
+    if parsed_url.port:
+        h1 = HTTPConnection(parsed_url.hostname, parsed_url.port)
+    else:
+        h1 = HTTPConnection(parsed_url.hostname)
     logger.info("POSTing update to %s", url)
+    # FIXME; commit strategy / timing should be managed in config, not code
     url = url + "?commitWithin=%d" % commitWithin
 
     h1.connect()
@@ -978,7 +1113,7 @@ class UpdateRequest:
         node = dict2element(self.doc)
         root = Element("add")
         root.append(node)
-        return tostring(root).encode('utf-8')
+        return tostring(root, encoding="unicode")
 
     def tojson(self):
         """
@@ -1069,19 +1204,18 @@ def get_subject(key):
     subject_key = str_to_key(subject_key)
     key = "/subjects/%s:%s" % (subject_type, subject_key)
 
-    params = {
-        'wt': 'json',
-        'json.nl': 'arrarr',
-        'q': '%s:%s' % (search_field, subject_key),
-        'rows': '0',
-        'facet': 'true',
-        'facet.field': facet_field,
-        'facet.mincount': 1,
-        'facet.limit': 100
-    }
-    base_url = 'http://' + get_solr() + '/solr/select'
-    url = base_url + '?' + urllib.urlencode(params)
-    result = json.load(urlopen(url))
+    result = requests.get(
+        f'{get_solr_base_url()}/select',
+        params={
+            'wt': 'json',
+            'json.nl': 'arrarr',
+            'q': f'{search_field}:{subject_key}',
+            'rows': 0,
+            'facet': 'true',
+            'facet.field': facet_field,
+            'facet.mincount': 1,
+            'facet.limit': 100,
+        }).json()
 
     work_count = result['response']['numFound']
     facets = result['facet_counts']['facet_fields'].get(facet_field, [])
@@ -1111,6 +1245,32 @@ def update_subject(key):
     return request_set.get_requests()
 
 
+def subject_name_to_key(
+        subject_type: Literal['subject', 'person', 'place', 'time'],
+        subject_name: str
+) -> str:
+    escaped_subject_name = str_to_key(subject_name)
+    if subject_type == 'subject':
+        return f"/subjects/{escaped_subject_name}"
+    else:
+        return f"/subjects/{subject_type}:{escaped_subject_name}"
+
+
+def build_subject_doc(
+        subject_type: Literal['subject', 'person', 'place', 'time'],
+        subject_name: str,
+        work_count: int,
+):
+    """Build the `type:subject` solr doc for this subject."""
+    return {
+        'key': subject_name_to_key(subject_type, subject_name),
+        'name': subject_name,
+        'type': 'subject',
+        'subject_type': subject_type,
+        'work_count': work_count,
+    }
+
+
 def update_work(work):
     """
     Get the Solr requests necessary to insert/update this work into Solr.
@@ -1130,14 +1290,14 @@ def update_work(work):
 
     # Handle edition records as well
     # When an edition does not contain a works list, create a fake work and index it.
-    if work['type']['key'] == '/type/edition' and work.get('title'):
+    if work['type']['key'] == '/type/edition':
         fake_work = {
             # Solr uses type-prefixed keys. It's required to be unique across
             # all types of documents. The website takes care of redirecting
             # /works/OL1M to /books/OL1M.
             'key': wkey.replace("/books/", "/works/"),
             'type': {'key': '/type/work'},
-            'title': work['title'],
+            'title': work.get('title'),
             'editions': [work],
             'authors': [{'type': '/type/author_role', 'author': {'key': a['key']}} for a in work.get('authors', [])]
         }
@@ -1145,7 +1305,7 @@ def update_work(work):
         if work.get("subjects"):
             fake_work['subjects'] = work['subjects']
         return update_work(fake_work)
-    elif work['type']['key'] == '/type/work' and work.get('title'):
+    elif work['type']['key'] == '/type/work':
         try:
             solr_doc = build_data(work)
             dict2element(solr_doc)
@@ -1160,7 +1320,7 @@ def update_work(work):
     elif work['type']['key'] in ['/type/delete', '/type/redirect']:
         requests.append(DeleteRequest([wkey]))
     else:
-        logger.error("unrecognized type while updating work %s", wkey, exc_info=True)
+        logger.error("unrecognized type while updating work %s", wkey)
 
     return requests
 
@@ -1172,7 +1332,7 @@ def make_delete_query(keys):
     Example:
 
     >>> make_delete_query(["/books/OL1M"])
-    "<delete><query>key:/books/OL1M</query></delete>"
+    '<delete><id>/books/OL1M</id></delete>'
 
     :param list[str] keys: Keys to create delete tags for. (ex: ["/books/OL1M"])
     :return: <delete> XML element as a string
@@ -1182,9 +1342,9 @@ def make_delete_query(keys):
     keys = [solr_escape(key) for key in keys]
     delete_query = Element('delete')
     for key in keys:
-        query = SubElement(delete_query,'query')
-        query.text = 'key:%s' % key
-    return tostring(delete_query)
+        query = SubElement(delete_query, 'id')
+        query.text = key
+    return tostring(delete_query, encoding="unicode")
 
 def update_author(akey, a=None, handle_redirects=True):
     """
@@ -1212,18 +1372,24 @@ def update_author(akey, a=None, handle_redirects=True):
         raise
 
     facet_fields = ['subject', 'time', 'person', 'place']
-    base_url = 'http://' + get_solr() + '/solr/select'
+    base_url = get_solr_base_url() + '/select'
 
-    url = base_url + '?wt=json&json.nl=arrarr&q=author_key:%s&sort=edition_count+desc&rows=1&fl=title,subtitle&facet=true&facet.mincount=1' % author_id
-    url += ''.join('&facet.field=%s_facet' % f for f in facet_fields)
-
-    logger.info("urlopen %s", url)
-
-    reply = json.load(urlopen(url))
+    reply = requests.get(base_url, params=[
+        ('wt', 'json'),
+        ('json.nl', 'arrarr'),
+        ('q', 'author_key:%s' % author_id),
+        ('sort', 'edition_count desc'),
+        ('row', 1),
+        ('fl', 'title,subtitle'),
+        ('facet', 'true'),
+        ('facet.mincount', 1),
+    ] + [
+        ('facet.field', '%s_facet' % field) for field in facet_fields
+    ]).json()
     work_count = reply['response']['numFound']
     docs = reply['response'].get('docs', [])
     top_work = None
-    if docs:
+    if docs and docs[0].get('title', None):
         top_work = docs[0]['title']
         if docs[0].get('subtitle', None):
             top_work += ': ' + docs[0]['subtitle']
@@ -1253,7 +1419,7 @@ def update_author(akey, a=None, handle_redirects=True):
     d['work_count'] = work_count
     d['top_subjects'] = top_subjects
 
-    requests = []
+    solr_requests = []
     if handle_redirects:
         redirect_keys = data_provider.find_redirects(akey)
         #redirects = ''.join('<id>{}</id>'.format(k) for k in redirect_keys)
@@ -1264,11 +1430,11 @@ def update_author(akey, a=None, handle_redirects=True):
         #     logger.error('AssertionError: redirects: %r', [r['key'] for r in query_iter(q)])
         #     raise
         #if redirects:
-        #    requests.append('<delete>' + redirects + '</delete>')
+        #    solr_requests.append('<delete>' + redirects + '</delete>')
         if redirect_keys:
-            requests.append(DeleteRequest(redirect_keys))
-    requests.append(UpdateRequest(d))
-    return requests
+            solr_requests.append(DeleteRequest(redirect_keys))
+    solr_requests.append(UpdateRequest(d))
+    return solr_requests
 
 
 re_edition_key_basename = re.compile("^[a-zA-Z0-9:.-]+$")
@@ -1288,14 +1454,20 @@ def solr_select_work(edition_key):
         return None
 
     edition_key = solr_escape(edition_key)
-
-    url = 'http://' + get_solr() + '/solr/select?wt=json&q=edition_key:%s&rows=1&fl=key' % edition_key
-    reply = json.load(urlopen(url))
+    reply = requests.get(
+        f'{get_solr_base_url()}/select',
+        params={
+            'wt': 'json',
+            'q': f'edition_key:{edition_key}',
+            'rows': 1,
+            'fl': 'key',
+        }).json()
     docs = reply['response'].get('docs', [])
     if docs:
         return docs[0]['key'] # /works/ prefix is in solr
 
-def update_keys(keys, commit=True, output_file=None):
+
+def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
     """
     Insert/update the documents with the provided keys in Solr.
 
@@ -1304,8 +1476,17 @@ def update_keys(keys, commit=True, output_file=None):
     :param str output_file: If specified, will save all update actions to output_file **instead** of sending to Solr.
         Each line will be JSON object.
         FIXME Updates to editions/subjects ignore output_file and will be sent (only) to Solr regardless.
+    :param bool commit_way_later: set to true if you want to add things quickly and add
+        them much later
     """
     logger.info("BEGIN update_keys")
+    commit_way_later_dur = 1000 * 60 * 60 * 24 * 5  # 5 days?
+
+    def _solr_update(requests, debug=False, commitWithin=60000):
+        if commit_way_later:
+            return solr_update(requests, debug, commit_way_later_dur)
+        else:
+            return solr_update(requests, debug, commitWithin)
 
     global data_provider
     global _ia_db
@@ -1389,7 +1570,7 @@ def update_keys(keys, commit=True, output_file=None):
                         f.write(r.tojson())
                         f.write("\n")
         else:
-            solr_update(requests, debug=True)
+            _solr_update(requests, debug=True)
 
     # update editions
     requests = []
@@ -1402,7 +1583,7 @@ def update_keys(keys, commit=True, output_file=None):
     if requests:
         if commit:
             requests += ['<commit/>']
-        solr_update(requests, debug=True)
+        _solr_update(requests, debug=True)
 
     # update authors
     requests = []
@@ -1427,7 +1608,7 @@ def update_keys(keys, commit=True, output_file=None):
             #solr_update(requests, debug=True)
             if commit:
                 requests += ['<commit />']
-            solr_update(requests, debug=True, commitWithin=1000)
+            _solr_update(requests, debug=True, commitWithin=1000)
 
     # update subjects
     skeys = set(k for k in keys if k.startswith("/subjects/"))
@@ -1441,7 +1622,7 @@ def update_keys(keys, commit=True, output_file=None):
     if requests:
         if commit:
             requests += ['<commit />']
-        solr_update(requests, debug=True)
+        _solr_update(requests, debug=True)
 
     logger.info("END update_keys")
 
@@ -1453,7 +1634,7 @@ def solr_escape(query):
     :param str query:
     :rtype: str
     """
-    return re.sub('([\s\-+!()|&{}\[\]^\"~*?:\\\\])', r'\\\1', query)
+    return re.sub(r'([\s\-+!()|&{}\[\]^"~*?:\\])', r'\\\1', query)
 
 def do_updates(keys):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -1471,12 +1652,15 @@ def load_configs(c_host, c_config, c_data_provider='default'):
     load_config(c_config)
 
     global _ia_db
-    if 'ia_db' in config.runtime_config.keys():
+    if 'ia_db' in config.runtime_config:
         _ia_db = get_ia_db(config.runtime_config['ia_db'])
 
     global data_provider
     if data_provider is None:
-        data_provider = get_data_provider(c_data_provider, _ia_db)
+        if isinstance(c_data_provider, DataProvider):
+            data_provider = c_data_provider
+        else:
+            data_provider = get_data_provider(c_data_provider, _ia_db)
     return data_provider
 
 def get_ia_db(settings):
@@ -1498,7 +1682,9 @@ def parse_args():
     parser.add_argument("-o", "--output-file", help="Open Library config file")
     parser.add_argument("--nocommit", action="store_true", help="Don't commit to solr")
     parser.add_argument("--profile", action="store_true", help="Profile this code to identify the bottlenecks")
-    parser.add_argument("--data-provider", default='default', help="Name of the data provider to use")
+    parser.add_argument("--data-provider", default='default',
+                        choices=['default', 'legacy'],
+                        help="Name of the data provider to use")
 
     return parser.parse_args()
 

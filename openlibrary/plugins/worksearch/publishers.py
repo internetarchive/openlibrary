@@ -3,12 +3,13 @@
 from infogami.utils import delegate, stats
 from infogami.utils.view import render_template, safeint
 import web
-import simplejson
 import logging
-import urllib
 
 from . import subjects
 from . import search
+
+from six.moves import urllib
+
 
 logger = logging.getLogger("openlibrary.worksearch")
 
@@ -19,7 +20,7 @@ class publishers(subjects.subjects):
         key = key.replace("_", " ")
         page = subjects.get_subject(key, details=True)
 
-        if page.work_count == 0:
+        if not page or page.work_count == 0:
             web.ctx.status = "404 Not Found"
             return render_template('publishers/notfound.tmpl', key)
 
@@ -30,19 +31,6 @@ class publishers(subjects.subjects):
 
 class publishers_json(subjects.subjects_json):
     path = '(/publishers/[^/]+)'
-    encoding = "json"
-
-    def is_enabled(self):
-        return "publishers" in web.ctx.features
-
-    def normalize_key(self, key):
-        return key
-
-    def process_key(self, key):
-        return key.replace("_", " ")
-
-class publisher_works_json(subjects.subject_works_json):
-    path = '(/publishers/[^/]+)/works'
     encoding = "json"
 
     def is_enabled(self):

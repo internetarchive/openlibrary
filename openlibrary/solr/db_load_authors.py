@@ -1,5 +1,5 @@
 from __future__ import print_function
-import simplejson as json
+import json
 import web
 import re
 

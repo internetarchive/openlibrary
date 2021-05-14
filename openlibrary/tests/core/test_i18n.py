@@ -1,4 +1,5 @@
 import web
+from openlibrary.mocks.mock_infobase import MockSite
 
 # The i18n module should be moved to core.
 from openlibrary import i18n
@@ -27,6 +28,18 @@ class Test_ungettext:
 
         monkeypatch.setattr(i18n, "load_translations", self.d)
         monkeypatch.setattr(web, "ctx", ctx)
+        monkeypatch.setattr(web.webapi, "ctx", web.ctx)
+
+        self._load_fake_context()
+        web.ctx.lang = 'en'
+        web.ctx.site = MockSite()
+
+    def _load_fake_context(self):
+        self.app = web.application()
+        self.env = {
+            "PATH_INFO": "/", "HTTP_METHOD": "GET",
+        }
+        self.app.load(self.env)
 
     def test_ungettext(self, monkeypatch):
         self.setup_monkeypatch(monkeypatch)

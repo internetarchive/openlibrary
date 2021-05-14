@@ -16,13 +16,13 @@ class InvalidationProcessor:
     way to make sure those documents are kept up-to-date with the db within
     some allowed constraints.
 
-    This implements a kind of lazy consistancy, which guaranties the following:
+    This implements a kind of lazy consistency, which guaranties the following:
 
     * If a client makes an update, he will continue to see that update on
       subsequent requests.
     * If a client sees an update made by somebody else, he will continue to
       see that update on subsequent requests.
-    * A client sees older version of a doucment no longer than the specified
+    * A client sees older version of a document no longer than the specified
       timeout (in seconds) after the document is updated.
 
     It means that the following conditions will never happen:

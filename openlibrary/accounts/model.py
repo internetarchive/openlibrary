@@ -4,16 +4,15 @@
 from __future__ import print_function
 import time
 import datetime
+import hashlib
 import hmac
 import random
 import string
-import simplejson
 import uuid
-import urllib
-import urllib2
 import logging
+import requests
 
-import lepl.apps.rfc3696
+from validate_email import validate_email
 import web
 
 from infogami import config
@@ -22,13 +21,21 @@ from infogami.infobase.client import ClientException
 
 from openlibrary.core import stats, helpers
 
+try:
+    try:
+        from simplejson.errors import JSONDecodeError
+    except ImportError:
+        from json.decoder import JSONDecodeError
+except ImportError:  # legacy Python
+    JSONDecodeError = ValueError
+
 logger = logging.getLogger("openlibrary.account.model")
 
 def append_random_suffix(text, limit=9999):
     return '%s%s' % (text, random.randint(0, limit))
 
 def valid_email(email):
-    return lepl.apps.rfc3696.Email()(email)
+    return validate_email(email)
 
 def sendmail(to, msg, cc=None):
     cc = cc or []
@@ -52,8 +59,12 @@ def verify_hash(secret_key, text, hash):
     return generate_hash(secret_key, text, salt) == hash
 
 def generate_hash(secret_key, text, salt=None):
-    salt = salt or hmac.HMAC(secret_key, str(random.random())).hexdigest()[:5]
-    hash = hmac.HMAC(secret_key, salt + web.utf8(text)).hexdigest()
+    if not isinstance(secret_key, bytes):
+        secret_key = secret_key.encode('utf-8')
+    salt = salt or hmac.HMAC(secret_key, str(random.random()).encode('utf-8'),
+                             hashlib.md5).hexdigest()[:5]
+    hash = hmac.HMAC(secret_key, (salt + web.safestr(text)).encode('utf-8'),
+                     hashlib.md5).hexdigest()
     return '%s$%s' % (salt, hash)
 
 def get_secret_key():
@@ -133,8 +144,7 @@ class Account(web.storage):
 
     @property
     def displayname(self):
-        key = "/people/" + self.username
-        doc = web.ctx.site.get(key)
+        doc = self.get_user()
         if doc:
             return doc.displayname or self.username
         elif "data" in self:
@@ -231,9 +241,15 @@ class Account(web.storage):
         return t and helpers.parse_datetime(t)
 
     def get_user(self):
+        """A user is where preferences are attached to an account. An
+        "Account" is outside of infogami in a separate table and is
+        used to store private user information.
+
+        :rtype: User
+        :returns: Not an Account obj, but a /people/xxx User
+        """
         key = "/people/" + self.username
-        doc = web.ctx.site.get(key)
-        return doc
+        return web.ctx.site.get(key)
 
     def get_creation_info(self):
         key = "/people/" + self.username
@@ -303,6 +319,9 @@ class Account(web.storage):
             if 'values' in act and 'email' in act['values']:
                 return InternetArchiveAccount.get(email=act['values']['email'])
 
+    def render_link(self):
+        return '<a href="/people/%s">%s</a>' % (self.username, web.net.htmlquote(self.displayname))
+
 class OpenLibraryAccount(Account):
 
     @classmethod
@@ -314,7 +333,7 @@ class OpenLibraryAccount(Account):
                                  Usernames must be unique
             email (unicode) - the login and email of the account
             password (unicode)
-            displayname (unicode) - human readable, changable screenname
+            displayname (unicode) - human readable, changeable screenname
             retries (int) - If the username is unavailable, how many
                             subsequent attempts should be made to find
                             an available username.
@@ -362,6 +381,12 @@ class OpenLibraryAccount(Account):
             web.ctx.site.activate_account(username=username)
 
         ol_account = cls.get(email=email)
+
+        # Update user preferences; reading log public by default
+        from openlibrary.accounts import RunAs
+        with RunAs(username):
+            ol_account.get_user().save_preferences({'public_readlog':'yes'})
+
         return ol_account
 
     @classmethod
@@ -403,6 +428,9 @@ class OpenLibraryAccount(Account):
 
     @classmethod
     def get_by_link(cls, link, test=False):
+        """
+        :rtype: OpenLibraryAccount or None
+        """
         ol_accounts = web.ctx.site.store.values(
             type="account", name="internetarchive_itemname", value=link)
         return cls(ol_accounts[0]) if ol_accounts else None
@@ -456,6 +484,12 @@ class OpenLibraryAccount(Account):
         self.internetarchive_itemname = itemname
         stats.increment('ol.account.xauth.linked')
 
+    def save_s3_keys(self, s3_keys):
+        _ol_account = web.ctx.site.store.get(self._key)
+        _ol_account['s3_keys'] = s3_keys
+        web.ctx.site.store[self._key] = _ol_account
+        self.s3_keys = s3_keys
+
     @classmethod
     def authenticate(cls, email, password, test=False):
         ol_account = cls.get(email=email, test=test)
@@ -478,21 +512,27 @@ class InternetArchiveAccount(web.storage):
             setattr(self, k, kwargs[k])
 
     @classmethod
-    def create(cls, screenname, email, password, retries=0,
-               verified=False, test=None):
+    def create(cls, screenname, email, password, notifications=None,
+               retries=0, verified=False, test=None):
         """
-        Args:
-            screenname (unicode) - changable human readable archive.org username.
-                                   The slug / itemname is generated automatically
-                                   from this value.
-            email (unicode)
-            password (unicode)
-            retries (int) - If the username is unavailable, how many
-                            subsequent attempts should be made to find
-                            an available username.
+        :param unicode screenname: changable human readable archive.org username.
+            The slug / itemname is generated automatically from this value.
+        :param unicode email:
+        :param unicode password:
+        :param List[Union[
+                Literal['ml_best_of'], Literal['ml_donors'],
+                Literal['ml_events'], Literal['ml_updates']
+            ]] notifications:
+            newsletters to subscribe user to (NOTE: these must be kept in sync
+            with the values in the `MAILING_LIST_KEYS` array in
+            https://git.archive.org/ia/petabox/blob/master/www/common/MailSync/Settings.inc)
+        :param int retries: If the username is unavailable, how many
+            subsequent attempts should be made to find an available
+            username.
         """
         email = email.strip().lower()
         screenname = screenname[1:] if screenname[0] == '@' else screenname
+        notifications = notifications or []
 
         if cls.get(email=email):
             raise ValueError('email_registered')
@@ -504,9 +544,9 @@ class InternetArchiveAccount(web.storage):
         attempt = 0
         while True:
             response = cls.xauth(
-                'create', test=test, email=email,
-                password=password, screenname=_screenname,
-                verified=verified, service='openlibrary', notifications=[])
+                'create',
+                email=email, password=password, screenname=_screenname, notifications=notifications,
+                test=test, verified=verified, service='openlibrary')
 
             if response.get('success'):
                 ia_account = cls.get(email=email)
@@ -529,8 +569,12 @@ class InternetArchiveAccount(web.storage):
     @classmethod
     def xauth(cls, op, test=None, s3_key=None, s3_secret=None,
               xauth_url=None, **data):
+        """
+        See https://git.archive.org/ia/petabox/tree/master/www/sf/services/xauthn
+        """
         from openlibrary.core import lending
-        url = "%s?op=%s" % (xauth_url or lending.config_ia_xauth_api_url, op)
+        url = xauth_url or lending.config_ia_xauth_api_url
+        params = {'op': op}
         data.update({
             'access': s3_key or lending.config_ia_ol_xauth_s3.get('s3_key'),
             'secret': s3_secret or lending.config_ia_ol_xauth_s3.get('s3_secret')
@@ -546,21 +590,16 @@ class InternetArchiveAccount(web.storage):
         if op == 'create' and 'service' in data:
             data['activation-type'] = data.pop('service')
 
-        payload = simplejson.dumps(data)
         if test:
-            url += "&developer=%s" % test
+            params['developer'] = test
+
+        response = requests.post(url, params=params, json=data)
         try:
-            req = urllib2.Request(url, payload, {
-                'Content-Type': 'application/json'})
-            f = urllib2.urlopen(req)
-            response = f.read()
-            f.close()
-        except urllib2.HTTPError as e:
-            try:
-                response = e.read()
-            except simplejson.decoder.JSONDecodeError:
-                return {'error': e.read(), 'code': e.code}
-        return simplejson.loads(response)
+            # This API should always return json, even on error (Unless
+            # the server is down or something :P)
+            return response.json()
+        except ValueError:
+            return {'error': response.text, 'code': response.status_code}
 
     @classmethod
     def s3auth(cls, access_key, secret_key):
@@ -568,19 +607,16 @@ class InternetArchiveAccount(web.storage):
         from openlibrary.core import lending
         url = lending.config_ia_s3_auth_url
         try:
-            req = urllib2.Request(url, headers={
+            response = requests.get(url, headers={
                 'Content-Type': 'application/json',
                 'authorization': 'LOW %s:%s' % (access_key, secret_key)
             })
-            f = urllib2.urlopen(req)
-            response = f.read()
-            f.close()
-        except urllib2.HTTPError as e:
-            try:
-                response = e.read()
-            except simplejson.decoder.JSONDecodeError:
-                return {'error': e.read(), 'code': e.code}
-        return simplejson.loads(response)
+            response.raise_for_status()
+            return response.json()
+        except requests.HTTPError as e:
+            return {'error': e.response.text, 'code': e.response.status_code}
+        except JSONDecodeError as e:
+            return {'error': e.message, 'code': response.status_code}
 
     @classmethod
     def get(cls, email, test=False, _json=False, s3_key=None, s3_secret=None, xauth_url=None):
@@ -599,11 +635,11 @@ class InternetArchiveAccount(web.storage):
             "password": password
         })
         if not response.get('success'):
-            reason = response.get('values', {}).get('reason')
-            if reason == 'account_not_verified':
-                reason = 'ia_account_not_verified'
-            return reason
-        return "ok"
+            reason = response['values'].get('reason')
+            if reason and reason == 'account_not_verified':
+                response['values']['reason'] = 'ia_account_not_verified'
+        return response
+
 
 def audit_accounts(email, password, require_link=False,
                    s3_access_key=None, s3_secret_key=None, test=False):
@@ -624,27 +660,26 @@ def audit_accounts(email, password, require_link=False,
         test (bool) - not currently used; is there to allow testing in
                       the absence of archive.org dependency
     """
-    from openlibrary.core import lending
 
     if s3_access_key and s3_secret_key:
         r = InternetArchiveAccount.s3auth(s3_access_key, s3_secret_key)
         if not r.get('authorized', False):
             return {'error': 'invalid_s3keys'}
-        ia_login = "ok"
+        ia_login = {'success': True}
         email = r['username']
     else:
         if not valid_email(email):
             return {'error': 'invalid_email'}
         ia_login = InternetArchiveAccount.authenticate(email, password)
 
-    if any(ia_login == err for err
+    if 'values' in ia_login and any(ia_login['values'].get('reason') == err for err
             in ['account_blocked', 'account_locked']):
         return {'error': 'account_locked'}
 
-    if ia_login != "ok":
+    if not ia_login.get('success'):
         # Prioritize returning other errors over `account_not_found`
-        if ia_login != "account_not_found":
-            return {'error': ia_login}
+        if ia_login['values'].get('reason') != "account_not_found":
+            return {'error': ia_login['values'].get('reason')}
         return {'error': 'account_not_found'}
 
     else:
@@ -716,6 +751,13 @@ def audit_accounts(email, password, require_link=False,
         if ol_account and not ol_account.itemname:
             return {'error': 'accounts_not_connected'}
 
+    if 'values' in ia_login:
+        s3_keys = {
+            'access': ia_login['values'].pop('access'),
+            'secret': ia_login['values'].pop('secret'),
+        }
+        ol_account.save_s3_keys(s3_keys)
+
     # When a user logs in with OL credentials, the
     # web.ctx.site.login() is called with their OL user
     # credentials, which internally sets an auth_token
@@ -731,6 +773,7 @@ def audit_accounts(email, password, require_link=False,
     web.ctx.conn.set_auth_token(ol_account.generate_login_code())
     return {
         'authenticated': True,
+        'special_access': getattr(ia_account, 'has_disability_access', False),
         'ia_email': ia_account.email,
         'ol_email': ol_account.email,
         'ia_username': ia_account.screenname,

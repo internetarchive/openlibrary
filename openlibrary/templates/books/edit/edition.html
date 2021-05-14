@@ -1,6 +1,7 @@
 $def with (work, book)
 
 $ edition_config = get_edition_config()
+$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
 
 $def radiobuttons(name, options, value):
     $for v in options:
@@ -21,7 +22,7 @@ $jsdef render_language_field(i, language):
       <input name="languages--$i" class="language language-autocomplete" type="text" id="language-$i" value="$language.name"/>
       <input name="edition--languages--$i--key" type="hidden" id="language-$i-key" value="$language.key" />
       <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this language')">[x]</a>
-      <br/><a href="javascript:;" class="add small">Add another language?</a>
+      <br/><a href="javascript:;" class="add small">$_('Add another language?')</a>
     </div>
 
 $# Render the ith translated_from language input field
@@ -46,27 +47,32 @@ $jsdef render_work_field(i, work):
     </div>
 
 $jsdef render_work_autocomplete_item(item):
-    <div class="ac_work" title="Select this work">
-        <div class="cover">
-            $if item.cover_i:
-                <img src="https://covers.openlibrary.org/b/id/$(item.cover_i)-M.jpg" alt="Cover of $item.title">
+    $if item.key == "__new__":
+        <div class="ac_work ac_addnew">
+            <span class="action">$_('-- Move to a new work')</span>
         </div>
-        <span class="olid">$item.key.split('/')[2]</span>
-        <span class="name">
-            <span class="title">$item.full_title</span>
-            $if item.first_publish_year:
-            <span class="first_publish_year">($item.first_publish_year)</span>
-        </span>
-        <span class="byline">
-            $if item.author_name:
-                by <span class="authors">${', '.join(item.author_name)}</span>
-        </span>
-        &bull;
-        $if item.edition_count == 1:
-            <span class="edition_count">$item.edition_count edition</span>
-        $else:
-            <span class="edition_count">$item.edition_count editions</span>
-    </div>
+    $else:
+        <div class="ac_work" title="Select this work">
+            <div class="cover">
+                $if item.cover_i:
+                    <img src="https://covers.openlibrary.org/b/id/$(item.cover_i)-M.jpg" alt="$_('Cover of: %(title)s', title=item.title)">
+            </div>
+            <span class="olid">$item.key.split('/')[2]</span>
+            <span class="name">
+                <span class="title">$item.full_title</span>
+                $if item.first_publish_year:
+                <span class="first_publish_year">($item.first_publish_year)</span>
+            </span>
+            <span class="byline">
+                $if item.author_name:
+                    $_('by') <span class="authors">${', '.join(item.author_name)}</span>
+            </span>
+            &bull;
+            $if item.edition_count == 1:
+                <span class="edition_count">$item.edition_count edition</span>
+            $else:
+                <span class="edition_count">$item.edition_count editions</span>
+        </div>
 
 <script type="text/javascript">
 window.q.push(function() {
@@ -91,7 +97,11 @@ window.q.push(function() {
     \$("#works").setup_multi_input_autocomplete(
         "input.work-autocomplete",
         render_work_field,
-        { endpoint: "/works/_autocomplete" },
+        {
+            endpoint: "/works/_autocomplete",
+            addnew: $cond(is_privileged_user, 'true', 'false'),
+            new_name: '$_('-- Move to a new work')',
+        },
         {
             minChars: 2,
             max: 11,
@@ -102,96 +112,18 @@ window.q.push(function() {
 });
 </script>
 
-
-<fieldset class="major">
-    <legend>$_("Publishing Info")</legend>
-
-    <div class="formBack">
-
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-publishers">$_("Who is the publisher?")</label>
-                <span class="tip">$_("For example"): <em>Oxford University Press; Penguin; W.W. Norton</em></span>
-            </div>
-            <div class="input">
-                <input type="text" name="edition--publishers" id="edition-publishers" value="$'; '.join(book.publishers)"/>
-            </div>
-        </div>
-
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-publish_date">$_("When was it published?")</label>
-                <span class="tip">$_("You should be able to find this in the first few pages of the book.")</span>
-            </div>
-            <div class="input">
-                <input type="text" name="edition--publish_date" id="edition-publish_date" value="$book.publish_date"/>
-            </div>
-        </div>
-
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-publish_places">$_("Where was the book published?")</label>
-                <span class="tip">$_("City, Country please.") $_("For example:") <i>New York, USA; Sydney, Australia</i></span>
-            </div>
-            <div class="input">
-                <input type="text" name="edition--publish_places" id="edition-publish_places" value="$'; '.join(book.publish_places)"/>
-            </div>
-        </div>
-
-
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-copyright_date">$_("Is there a copyright date?")</label>
-                <span class="tip">$_("The year following the copyright statement.")</span>
-            </div>
-            <div class="input">
-                <input type="text" name="edition--copyright_date" id="edition-copyright_date" value="$book.copyright_date"/>
-            </div>
-        </div>
-
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-series">$_("Is the book part of a series?")</label>
-                <span class="tip">$_("The name of the publisher's series.") $_("For example:") <i>The Story of Civilization, Part III</i></span>
-            </div>
-            <div class="input">
-                <input type="text" name="edition--series--0" id="edition-series" value="$(book.series and book.series[0] or "")"/>
-            </div>
-        </div>
-    </div>
-</fieldset>
-
 <fieldset class="major">
     <legend>$_("This Edition")</legend>
 
     <div class="formBack">
 
-        <div class="formElement formBackLeft">
-            <div class="label">
-                <label for="edition--works--$0">$_("What work is this an edition of?")</label>
-                <span class="tip">
-                    $_("Sometimes editions can be associated with the wrong work. You can correct that here.")
-                    $_("You can search by title or by Open Library ID")
-                    ($("like")
-                    <a href="/works/OL262757W" target="_blank"><em>OL262757W</em></a>).
-                    <br/>
-                    $:_("WARNING: Any edits made to the work from this page will be ignored.")
-                </span>
-            </div>
-            <div id="works">
-                $if book.works:
-                    $for i, work in enumerate(book.works):
-                        $:render_work_field(i, work)
-                $else:
-                    $:render_work_field(0, storage(title="", key=""))
-            </div>
-        </div>
+       
 
     <div class="formBackLeft">
         <div class="formElement">
             <div class="label">
-                <label for="edition-title">Title</label>
-                <span class="tip">$_("There are occasionally title variants amongst editions.")</span>
+                <label for="edition-title">$_('Title')</label>
+                <span class="tip">$_("Enter the title of this specific edition.")</span>
             </div>
             <div class="input">
                 <input type="text" name="edition--title" id="edition-title" value="$book.title"/>
@@ -207,51 +139,80 @@ window.q.push(function() {
                 <input type="text" name="edition--subtitle" id="edition-subtitle" value="$book.subtitle"/>
             </div>
         </div>
+        <fieldset class="major">
+            <legend>$_("Publishing Info")</legend>
+        
+        
+                <div class="formElement">
+                    <div class="label">
+                        <label for="edition-publishers">$_("Who is the publisher?")</label>
+                        <span class="tip">$_("For example"): <em>Oxford University Press; Penguin; W.W. Norton</em></span>
+                    </div>
+                    <div class="input">
+                        <input type="text" name="edition--publishers" id="edition-publishers" value="$'; '.join(book.publishers)"/>
+                    </div>
+                </div>
 
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-toc">Table of Contents</label>
-                <span class="tip">$:_('Use a "*" for an indent, a "|" to add a column, and line breaks for new lines. Like this:')</span><br/><br/>
-<pre class="smaller gray"> * Part 1 | THIS WORLD | 1
- ** Chapter 1 | Of the Nature of Flatland | 3
- ** Chapter 2 | Of the Climate and Houses in Flatland | 5
- * Part 2 | OTHER WORLDS | 42</pre>
-<br/>
-            </div>
-            <div class="input">
-                <textarea name="edition--table_of_contents" id="edition-toc" rows="5" cols="50">$book.get_toc_text()</textarea>
-            </div>
-        </div>
+                <div class="formElement">
+                    <div class="label">
+                        <label for="edition-publish_places">$_("Where was the book published?")</label>
+                        <span class="tip">$_("City, Country please.") $_("For example:") <i>New York, USA; Sydney, Australia</i></span>
+                    </div>
+                    <div class="input">
+                        <input type="text" name="edition--publish_places" id="edition-publish_places" value="$'; '.join(book.publish_places)"/>
+                    </div>
+                </div>
+        
+                <div class="formElement">
+                    <div class="label">
+                        <label for="edition-publish_date">$_("When was it published?")</label>
+                        <span class="tip">$_("You should be able to find this in the first few pages of the book.")</span>
+                    </div>
+                    <div class="input">
+                        <input type="text" name="edition--publish_date" id="edition-publish_date" value="$book.publish_date"/>
+                    </div>
+                </div>
+        
+               
+        
+        
+                <div class="formElement">
+                    <div class="label">
+                        <label for="edition-copyright_date">$_("What is the copyright date?")</label>
+                        <span class="tip">$_("The year following the copyright statement.")</span>
+                    </div>
+                    <div class="input">
+                        <input type="text" name="edition--copyright_date" id="edition-copyright_date" value="$book.copyright_date"/>
+                    </div>
+                </div>
 
+                <div class="formElement">
+                    <div class="label">
+                        <label for="edition-edition_name">$_("Edition Name (if applicable):")</label>
+                        <span class="tip">$_("For example:") <i>Centennial edition</i>; <i>First edition</i></span>
+                    </div>
+                    <div class="input">
+                        <input type="text" name="edition--edition_name" id="edition-edition_name" value="$book.edition_name"/>
+                    </div>
+                </div>
+        
+                <div class="formElement">
+                    <div class="label">
+                        <label for="edition-series">$_("Series Name (if applicable)")</label>
+                        <span class="tip">$_("The name of the publisher's series.") $_("For example:") <i>The Story of Civilization, Part III</i></span>
+                    </div>
+                    <div class="input">
+                        <input type="text" name="edition--series--0" id="edition-series" value="$(book.series and book.series[0] or '')"/>
+                    </div>
+                </div>
+        </fieldset>
 
+        
 
-
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-title_other">$_("Is it known by any other titles?")</label>
-                <span class="tip">$_("Perhaps in another language?")</span>
-            </div>
-            <div class="input">
-                <input type="text" name="edition--other_titles--0" id="edition-title_other" value="$(book.other_titles and book.other_titles[0])"/>
-                <div class="tip">$_("For example:") <i>Der Zauberberg</i> $_("is an alternate title for") <i>The Magic Mountain</i>.</div>
-            </div>
-            $if book.other_titles and len(book.other_titles) > 1:
-                $for i, t in enumerate(book.other_titles):
-                    $if i > 0:
-                        <input type="hidden" name="edition--other_titles--$i" value="$book.other_titles[i]"/>
-        </div>
-
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-edition_name">$_("Does this edition have a specific name?")</label>
-                <span class="tip">$_("For example:") <i>Centennial edition</i>; <i>First edition</i></span>
-            </div>
-            <div class="input">
-                <input type="text" name="edition--edition_name" id="edition-edition_name" value="$book.edition_name"/>
-            </div>
-        </div>
+        
 
     </div>
+
     <div class="formBackRight">
         <div class="illustration">
             $:render_template("covers/book_cover", book)
@@ -261,15 +222,7 @@ window.q.push(function() {
 
     <div class="clearfix"></div>
 
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-notes">$_("Any notes about this specific edition?")</label>
-            <span class="tip">$_("Anything about the book that may be of interest.") $_("For example:") <i>A Plume Book</i>.</span>
-            </div>
-            <div class="input">
-                <textarea name="edition--notes" class="markdown" id="edition-notes" rows="3" cols="50">$book.notes</textarea>
-            </div>
-        </div>
+       
 
         <div class="clearfix"></div>
 
@@ -315,7 +268,7 @@ window.q.push(function() {
                             $ work = book.works[0]
                             $for i, a in enumerate(work.get_authors()):
                                 <tr class="repeat-item">
-                                    <td align="right"><strong>Author</strong></td>
+                                    <td align="right"><strong>$_('Author')</strong></td>
                                     <td>$a.name</td>
                                     <td></td>
                                 </tr>
@@ -335,19 +288,18 @@ window.q.push(function() {
 
             <div class="formElement">
                 <div class="label">
-                    <label for="edition-by_statement">$_("Is there a By Statement?")</label>
+                    <label for="edition-by_statement">$_("By Statement:")</label>
                     <span class="tip">$_("For example:") <em>edited by David Anderson</em></span>
                 </div>
                 <div class="input">
                     <input name="edition--by_statement" type="text" id="edition-by_statement" value="$book.by_statement" />
                 </div>
             </div>
-
         </fieldset>
 
         <fieldset class="minor formBackRight">
 
-            <legend>Languages</legend>
+            <legend>$_('Languages')</legend>
 
             <div class="formElement" id="languages">
                 <div class="label">
@@ -421,6 +373,66 @@ window.q.push(function() {
             </div>
         </div>
 
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-toc">$_('Table of Contents')</label>
+                <span class="tip">$:_('Use a "*" for an indent, a "|" to add a column, and line breaks for new lines. Like this:')</span><br/><br/>
+        <pre class="smaller gray"> * Part 1 | THIS WORLD | 1
+        ** Chapter 1 | Of the Nature of Flatland | 3
+        ** Chapter 2 | Of the Climate and Houses in Flatland | 5
+        * Part 2 | OTHER WORLDS | 42</pre>
+        <br/>
+            </div>
+            <div class="input">
+                <textarea name="edition--table_of_contents" id="edition-toc" rows="5" cols="50">$book.get_toc_text()</textarea>
+            </div>
+        </div>
+
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-notes">$_("Any notes about this specific edition?")</label>
+            <span class="tip">$_("Anything about the book that may be of interest.") $_("For example:") <i>A Plume Book</i>.</span>
+            </div>
+            <div class="input">
+                <textarea name="edition--notes" class="markdown" id="edition-notes" rows="3" cols="50">$book.notes</textarea>
+            </div>
+        </div>
+
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-title_other">$_("Is it known by any other titles?")</label>
+                <span class="tip">$_("Use this field if the title is different on the cover or spine. If the edition is a collection or anthology, you may also add the individual titles of each work here.")</span>
+            </div>
+            <div class="input">
+                <input type="text" name="edition--other_titles--0" id="edition-title_other" value="$(book.other_titles and book.other_titles[0])"/>
+                <div class="tip">$_("For example:") <i>Eaters of the Dead</i> $_("is an alternate title for") <i><a href="/books/OL24923038M">The 13th Warrior</a></i>.</div>
+            </div>
+            $if book.other_titles and len(book.other_titles) > 1:
+                $for i, t in enumerate(book.other_titles):
+                    $if i > 0:
+                        <input type="hidden" name="edition--other_titles--$i" value="$book.other_titles[i]"/>
+        </div>
+
+        <div class="formElement formBackLeft">
+            <div class="label">
+                <label for="edition--works--$0">$_("What work is this an edition of?")</label>
+                <span class="tip">
+                    $_("Sometimes editions can be associated with the wrong work. You can correct that here.")
+                    $_("You can search by title or by Open Library ID (like")
+                    <a href="/works/OL262757W" target="_blank"><em>OL262757W</em></a>).
+                    <br/>
+                    $_("WARNING: Any edits made to the work from this page will be ignored.")
+                </span>
+            </div>
+            <div id="works">
+                $if book.works:
+                    $for i, work in enumerate(book.works):
+                        $:render_work_field(i, work)
+                $else:
+                    $:render_work_field(0, storage(title="", key=""))
+            </div>
+        </div>
+
     </div>
 
 </fieldset>
@@ -446,7 +458,7 @@ window.q.push(function() {
 							$ set1 = [id_dict[name] for name in popular if name in id_dict]
                             $ set2 = sorted([id for id in edition_config.identifiers if id.name not in popular], key=lambda id:id.label)
 
-                                <option value="">Select one of many...</option>
+                                <option value="">$_('Select one of many...')</option>
                                 $for id in set1:
                                     <option value="$id.name">$id.label</option>
                                 <optgroup label="----------"></optgroup>
@@ -483,7 +495,7 @@ window.q.push(function() {
                                 <input type="hidden" name="edition--identifiers--${i}--value" value="$id.value"/>
                             </td>
                             $# Disable removing ocaid for regular users.
-                            $ admin_user = ctx.user and ctx.user.is_admin()
+                            $ admin_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
                             $if id.name == "ocaid" and not admin_user:
                                 <td></td>
                             $else:
@@ -550,6 +562,7 @@ window.q.push(function() {
 </fieldset>
 
 
+
 <fieldset class="major" style="padding:0;">
     <legend>$_("The Physical Object")</legend>
     <div class="formBack">
@@ -577,7 +590,7 @@ window.q.push(function() {
             <div class="formElement">
                 <div class="label">
                     <label for="edition--pagination">$_("Pagination?")</label>
-                    <span class="tip">$_("Note the highest number in each pagination pattern.")</span>
+                    <span class="tip">$_("Note the highest number in each pagination pattern.") <a href="/help/faq/editing#physical-object" target="_blank">$_("Help")</a></span>
                 </div>
                 <div class="input">
                     <input name="edition--pagination" type="text" id="edition--pagination" value="$book.pagination"/>
@@ -643,7 +656,7 @@ $if ctx.user and ctx.user.is_admin():
         <div class="formElement">
             <div class="label">
                 <label for="edition-first_sentence">$_("Additional Metadata")</label>
-                <span class="tip">This field can accept arbitrary key:value pairs</span>
+                <span class="tip">$_('This field can accept arbitrary key:value pairs')</span>
             </div>
             <div class="input">
                 <textarea name="additional_metadata" id="additional_metadata" rows="15" cols="50">foo:bar</textarea>
@@ -651,9 +664,8 @@ $if ctx.user and ctx.user.is_admin():
         </div>
     </fieldset>
 
-$if ctx.user and ctx.user.is_admin():
-    <fieldset class="major adminOnly">
-        <legend>$_("Admin Only")</legend>
+$if ctx.user:
+    <fieldset class="major">
         <div class="formElement">
             <div class="label">
                 <label for="edition-first_sentence">$_("First sentence")</label>
@@ -711,8 +723,8 @@ $if ctx.user and ctx.user.is_admin():
                 if (data.name == "isbn_10" && data.value.length != 10) {
                     return error("#id-errors", "id-value", "$_('ID must be exactly 10 characters [0-9] or X.')".replace(/ID/, label));
                 }
-                if (data.name == "isbn_13" && data.value.length != 13) {
-                    return error("#id-errors", "id-value", "$_('ID must be exactly 13 digits [0-9].')".replace(/ID/, label));
+                if (data.name == "isbn_13" && data.value.replace(/-/g,'').length != 13) {
+                    return error("#id-errors", "id-value", "$_('ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4')".replace(/ID/, label));
                 }
                 \$("id-errors").hide();
                 return true;
