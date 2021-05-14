@@ -218,6 +218,6 @@ jQuery(function () {
         $openMenus
             .filter((_, menu) => !$(event.target).closest(menu).length)
             .find('[type=checkbox]')
-            .removeAttr('checked');
+            .prop('checked', false);
     });
 });
