@@ -27,7 +27,7 @@ function getJqueryElements(selector){
 
 export function initLanguageMultiInputAutocomplete() {
     $(function() {
-        getJqueryElements('.language_multi_input_autocomplete').forEach(jqueryElement=>{
+        getJqueryElements('.language_multi_input_autocomplete').forEach(jqueryElement => {
             jqueryElement.setup_multi_input_autocomplete(
                 'input.language-autocomplete',
                 // defined by jsdef
@@ -47,8 +47,7 @@ export function initLanguageMultiInputAutocomplete() {
 
 export function initWorksMultiInputAutocomplete() {
     $(function() {
-
-        getJqueryElements('.works_multi_input_autocomplete').forEach(jqueryElement=>{
+        getJqueryElements('.works_multi_input_autocomplete').forEach(jqueryElement => {
             const dataset = jqueryElement[0].dataset;
             jqueryElement.setup_multi_input_autocomplete(
                 'input.work-autocomplete',
@@ -70,12 +69,6 @@ export function initWorksMultiInputAutocomplete() {
                     formatItem: render_work_autocomplete_item
                 });
         });
-    });
-}
-
-export function initEditionEditPage(){
-    $(function() {
-
     });
 }
 
