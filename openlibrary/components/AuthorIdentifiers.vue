@@ -109,6 +109,7 @@ export default {
 </script>
 
 <style lang="less">
+// This and .form-control ensure that select, input, and buttons are the same height
 select.form-control {
   height: calc(2.25rem + 2px);
 }
