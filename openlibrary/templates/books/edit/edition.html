@@ -3,15 +3,7 @@ $def with (work, book)
 $ edition_config = get_edition_config()
 $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
 
-<spam value="edition-edit-page"
-      data-isPrivilegedUser="$cond(is_privileged_user, 'true', 'false')"
-      data-newwork="$_('-- Move to a new work')"
-      data-removework="$_('Remove this work')"
-      data-selectlanguage="$_('Select this language')"
-      data-removelanguage="$_('Remove this language')"
-      data-anotherlangage="$_('Add another language?')"
-      data-by="$_('by')"
-></spam>
+<span value="edition-edit-page"></span>
 
 $def radiobuttons(name, options, value):
     $for v in options:
@@ -21,6 +13,10 @@ $def radiobuttons(name, options, value):
         <label for="$id">$v</label>
         &nbsp;&nbsp;
 
+$jsdef render_language_autocomplete_item(item):
+    <div class="ac_language" title="$_('Select this language')">
+        <span class="name">$item.name</span>
+    </div>
 
 $# Render the ith language input field
 $jsdef render_language_field(i, language):
@@ -51,6 +47,34 @@ $jsdef render_work_field(i, work):
         $# Limit to only 1
         $# <a href="javascript:;" class="add hidden">Add another work?</a>
     </div>
+
+$jsdef render_work_autocomplete_item(item):
+    $if item.key == "__new__":
+        <div class="ac_work ac_addnew">
+            <span class="action">$_('-- Move to a new work')</span>
+        </div>
+    $else:
+        <div class="ac_work" title="Select this work">
+            <div class="cover">
+                $if item.cover_i:
+                    <img src="https://covers.openlibrary.org/b/id/$(item.cover_i)-M.jpg" alt="$_('Cover of: %(title)s', title=item.title)">
+            </div>
+            <span class="olid">$item.key.split('/')[2]</span>
+            <span class="name">
+                <span class="title">$item.full_title</span>
+                $if item.first_publish_year:
+                <span class="first_publish_year">($item.first_publish_year)</span>
+            </span>
+            <span class="byline">
+                $if item.author_name:
+                    $_('by') <span class="authors">${', '.join(item.author_name)}</span>
+            </span>
+            &bull;
+            $if item.edition_count == 1:
+                <span class="edition_count">$item.edition_count edition</span>
+            $else:
+                <span class="edition_count">$item.edition_count editions</span>
+        </div>
 
 
 <fieldset class="major">
@@ -368,7 +392,10 @@ $jsdef render_work_field(i, work):
                     $_("WARNING: Any edits made to the work from this page will be ignored.")
                 </span>
             </div>
-            <div id="works">
+            <div id="works"
+                 data-isPrivilegedUser="$cond(is_privileged_user, 'true', 'false')"
+                 data-newWorkText="$_('-- Move to a new work')"
+            >
                 $if book.works:
                     $for i, work in enumerate(book.works):
                         $:render_work_field(i, work)
