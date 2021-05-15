@@ -3,8 +3,6 @@ $def with (work, book)
 $ edition_config = get_edition_config()
 $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
 
-<span value="edition-edit-page"></span>
-
 $def radiobuttons(name, options, value):
     $for v in options:
         $ id = name + '--' + v.replace(' ', '-')
