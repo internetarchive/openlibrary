@@ -3,7 +3,7 @@ $def with (work, book)
 $ edition_config = get_edition_config()
 $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
 
-<data value="edition-edit-page"
+<spam value="edition-edit-page"
       data-isPrivilegedUser="$cond(is_privileged_user, 'true', 'false')"
       data-newwork="$_('-- Move to a new work')"
       data-removework="$_('Remove this work')"
@@ -11,7 +11,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_libraria
       data-removelanguage="$_('Remove this language')"
       data-anotherlangage="$_('Add another language?')"
       data-by="$_('by')"
-></data>
+></spam>
 
 $def radiobuttons(name, options, value):
     $for v in options:
