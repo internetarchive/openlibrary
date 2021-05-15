@@ -17,8 +17,8 @@ function update_len() {
 
 /**
  * This is needed because jQuery has no forEach equivalent that works with jQuery elements instead of DOM elements
- * @param selector css selector to be used by jQuery
- * @returns {*[]} array of jQuery elements
+ * @param selector - css selector used by jQuery
+ * @returns {*[]} - array of jQuery elements
  */
 function getJqueryElements(selector){
     const queryResult = $(selector);
