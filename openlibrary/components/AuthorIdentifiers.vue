@@ -95,7 +95,7 @@ export default {
             document.querySelector(this.output_selector).innerHTML = html;
         }
     },
-    mounted: function(){
+    created: function(){
         this.assignedIdentifiers = JSON.parse(decodeURIComponent(this.assigned_ids_string));
     },
     watch: {
