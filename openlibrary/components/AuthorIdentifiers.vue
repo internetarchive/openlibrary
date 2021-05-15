@@ -20,7 +20,7 @@
       <td>{{ identifier.label }}</td>
       <td>{{ identifier.value }}</td>
       <td>
-        <button class="form-control" type="button" @click="removeIdentifier(identifier.name)">Remove</button>
+        <button class="form-control" @click="removeIdentifier(identifier.name)">Remove</button>
       </td>
     </tr>
   </table>
