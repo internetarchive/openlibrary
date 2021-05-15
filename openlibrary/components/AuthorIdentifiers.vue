@@ -16,9 +16,9 @@
         <button class="form-control" name="set" :disabled="!setButtonEnabled" @click=setIdentifier>Set</button>
       </th>
     </tr>
-    <tr :key="identifier.name" v-for="identifier in assignedIdentifiersWithConfigs">
-      <td>{{ identifier.label }}</td>
-      <td>{{ identifier.value }}</td>
+    <tr v-for="(value, name) in assignedIdentifiers" :key="name">
+      <td>{{ identifierConfigsByKey[name].label }}</td>
+      <td>{{ value }}</td>
       <td>
         <button class="form-control" @click="removeIdentifier(identifier.name)">Remove</button>
       </td>
@@ -36,7 +36,10 @@ export default {
             type: String,
             //default: () =>  "{'wikidata': 'Q10000'}"
         },
-        /** everything from https://openlibrary.org/config/author */
+        /** everything from https://openlibrary.org/config/author
+         * Most importantly:
+         * {"identifiers": [{"label": "ISNI", "name": "isni", "notes": "", "url": "http://www.isni.org/@@@", "website": "http://www.isni.org/"}, ... ]}
+         */
         author_config_string: {
             type: String
         },
@@ -52,16 +55,11 @@ export default {
         return {
             selectedIdentifier: '', // Which identifier is selected in dropdown
             inputValue: '', // What user put into input
-            assignedIdentifiers: {}, // IDs assigned to the entity
+            assignedIdentifiers: {}, // IDs assigned to the entity Ex: {'viaf': '12632978'}
         }
     },
 
     computed: {
-        /** A list of assigned identifiers, merged with their respective configs */
-        assignedIdentifiersWithConfigs: function(){
-            return Object.entries(this.assignedIdentifiers)
-                .map(([key, value]) => Object.assign({value: value}, this.identifierConfigsByKey[key] || {}));
-        },
         identifierConfigsByKey: function(){
             const parsedConfigs = JSON.parse(decodeURIComponent(this.author_config_string))['identifiers'];
             return Object.fromEntries(parsedConfigs.map(e => [e.name, e]));
@@ -91,7 +89,9 @@ export default {
               * This is because the vue component is in a shadow dom
               * So for now this just drops the hidden inputs into the the parent form anytime there is a change
               */
-            const html = this.assignedIdentifiersWithConfigs.map(identifier=>`<input type="hidden" name="author--remote_ids--${identifier.name}" value="${identifier.value}"/>`).join('');
+            const html = Object.entries(this.assignedIdentifiers)
+                .map(([name, value]) => `<input type="hidden" name="author--remote_ids--${name}" value="${value}"/>`)
+                .join('');
             document.querySelector(this.output_selector).innerHTML = html;
         }
     },
