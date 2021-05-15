@@ -109,7 +109,7 @@ $putctx("robots", "noindex,nofollow")
                         <div class="label">Identifiers</div>
                         <div id="hiddenIdentifierInputs"></div>
                         <div id="identifiers-display">
-                            $:render_component('AuthorIdentifiers', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenIdentifierInputs',author_config=dict(get_author_config())))
+                            $:render_component('AuthorIdentifiers', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenIdentifierInputs',author_config_string=dict(get_author_config())))
                         </div>
 
                         $if page.website:
