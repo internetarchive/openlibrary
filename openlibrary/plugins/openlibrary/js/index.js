@@ -264,7 +264,7 @@ jQuery(function () {
     $('#wikiselect').on('focus', function(){$(this).trigger('select');})
 
     // Open one dropdown at a time.
-    $(".header-dropdown details").on("click", function () {
-        $("details[open]").not(this).removeAttr("open");
+    $('.header-dropdown details').on('click', function () {
+        $('details[open]').not(this).removeAttr('open');
     });
 });
