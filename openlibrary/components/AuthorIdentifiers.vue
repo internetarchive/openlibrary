@@ -78,13 +78,12 @@ export default {
 
             // We use $set otherwise we wouldn't get the reactivity desired
             // See https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
-            this.$set(this.assignedIdentifiers, this.selectedIdentifier, this.inputValue)
+            this.$set(this.assignedIdentifiers, this.selectedIdentifier, this.inputValue);
             this.inputValue = '';
         },
         /** Removes an identifier with value from memory and it will be deleted from database on save */
         removeIdentifier: function(identifierName){
-            this.$set(this.assignedIdentifiers, identifierName, '')
-            this.createHiddenInputs()
+            this.$set(this.assignedIdentifiers, identifierName, '');
         },
         createHiddenInputs: function(){
             /** Right now, we have a vue component embedded as a small part of a larger form
@@ -100,9 +99,11 @@ export default {
         this.assignedIdentifiers = JSON.parse(decodeURIComponent(this.assigned_ids_string));
     },
     watch: {
-        assignedIdentifiers: function(){
-            this.createHiddenInputs();
-        }
+        assignedIdentifiers:
+            {
+                handler: function(){this.createHiddenInputs()},
+                deep: true
+            }
     }
 }
 </script>
