@@ -15,35 +15,67 @@ function update_len() {
     $('#excerpts-excerpt-len').html(2000 - len).css('color', color);
 }
 
-export function initEditionEditPage(){
+/**
+ * This is needed because jQuery has no forEach equivalent that works with jQuery elements instead of DOM elements
+ * @param selector css selector to be used by jQuery
+ * @returns {*[]} array of jQuery elements
+ */
+function getJqueryElements(selector){
+    const queryResult = $(selector);
+    return Array.from(queryResult).map((ele,index) => queryResult.eq(index));
+}
+
+export function initLanguageMultiInputAutocomplete() {
     $(function() {
-        ['#languages','#translated_from_languages'].forEach((selector)=>{
-            $(selector).setup_multi_input_autocomplete(
+        getJqueryElements('.language_multi_input_autocomplete').forEach(jqueryElement=>{
+            jqueryElement.setup_multi_input_autocomplete(
                 'input.language-autocomplete',
+                // defined by jsdef
+                // eslint-disable-next-line no-undef
                 render_language_field,
-                { endpoint: '/languages/_autocomplete' },
+                {endpoint: '/languages/_autocomplete'},
                 {
                     max: 6,
+                    // defined by jsdef
+                    // eslint-disable-next-line no-undef
                     formatItem: render_language_autocomplete_item
-                });
+                }
+            );
         })
+    });
+}
 
-        const worksDataset = document.querySelector('#works').dataset;
-        $('#works').setup_multi_input_autocomplete(
-            'input.work-autocomplete',
-            render_work_field,
-            {
-                endpoint: '/works/_autocomplete',
-                addnew: worksDataset.isprivilegeduser === 'true',
-                new_name: worksDataset.newWorkText,
-            },
-            {
-                minChars: 2,
-                max: 11,
-                matchSubset: false,
-                autoFill: false,
-                formatItem: render_work_autocomplete_item
-            });
+export function initWorksMultiInputAutocomplete() {
+    $(function() {
+
+        getJqueryElements('.works_multi_input_autocomplete').forEach(jqueryElement=>{
+            const dataset = jqueryElement[0].dataset;
+            jqueryElement.setup_multi_input_autocomplete(
+                'input.work-autocomplete',
+                // defined by jsdef
+                // eslint-disable-next-line no-undef
+                render_work_field,
+                {
+                    endpoint: '/works/_autocomplete',
+                    addnew: dataset.isprivilegeduser === 'true',
+                    new_name: dataset.newWorkText,
+                },
+                {
+                    minChars: 2,
+                    max: 11,
+                    matchSubset: false,
+                    autoFill: false,
+                    // defined by jsdef
+                    // eslint-disable-next-line no-undef
+                    formatItem: render_work_autocomplete_item
+                });
+        });
+    });
+}
+
+export function initEditionEditPage(){
+    $(function() {
+
     });
 }
 

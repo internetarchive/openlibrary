@@ -32,6 +32,7 @@ import '../../../../static/css/js-all.less';
 import Promise from 'promise-polyfill';
 import { confirmDialog, initDialogs } from './dialog';
 import initTabs from './tabs.js';
+import {initLanguageMultiInputAutocomplete, initWorksMultiInputAutocomplete} from './edit';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -102,6 +103,16 @@ jQuery(function () {
     if (document.querySelector('[value="edition-edit-page"]')) {
         import(/* webpackChunkName: "user-website" */ './edit')
             .then(module => module.initEditionEditPage());
+    }
+    // conditionally load for language autocomplete
+    if (document.querySelector('.language_multi_input_autocomplete')) {
+        import(/* webpackChunkName: "user-website" */ './edit')
+            .then(module => module.initLanguageMultiInputAutocomplete());
+    }
+    // conditionally load for works autocomplete
+    if (document.querySelector('.works_multi_input_autocomplete')) {
+        import(/* webpackChunkName: "user-website" */ './edit')
+            .then(module => module.initWorksMultiInputAutocomplete());
     }
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
