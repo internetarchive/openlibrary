@@ -13,7 +13,7 @@
         <input class="form-control" type="text" name="value" id="id-value" v-model="inputValue" @keyup.enter=setIdentifier>
       </th>
       <th>
-        <button class="form-control" type="button" name="set" :disabled="!setButtonEnabled" @click=setIdentifier>Set</button>
+        <button class="form-control" name="set" :disabled="!setButtonEnabled" @click=setIdentifier>Set</button>
       </th>
     </tr>
     <tr :key="identifier.name" v-for="identifier in assignedIdentifiersWithConfigs">
