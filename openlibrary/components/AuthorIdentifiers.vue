@@ -37,8 +37,8 @@ export default {
             //default: () =>  "{'wikidata': 'Q10000'}"
         },
         /** everything from https://openlibrary.org/config/author */
-        author_config: {
-            type: Object
+        author_config_string: {
+            type: String
         },
         /** see createHiddenInputs function for usage */
         output_selector: {
@@ -63,7 +63,7 @@ export default {
                 .map(([key, value]) => Object.assign({value: value}, this.identifierConfigsByKey[key] || {}));
         },
         identifierConfigsByKey: function(){
-            const parsedConfigs = JSON.parse(decodeURIComponent(this.author_config))['identifiers'];
+            const parsedConfigs = JSON.parse(decodeURIComponent(this.author_config_string))['identifiers'];
             return Object.fromEntries(parsedConfigs.map(e => [e.name, e]));
         },
         setButtonEnabled: function(){
