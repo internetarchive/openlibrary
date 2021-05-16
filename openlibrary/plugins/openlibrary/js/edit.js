@@ -25,7 +25,11 @@ function update_len() {
  */
 function getJqueryElements(selector){
     const queryResult = $(selector);
-    return Array.from(queryResult).map((ele,index) => queryResult.eq(index));
+    const jQueryElementArray = [];
+    for (let i = 0; i < queryResult.length; i++){
+        jQueryElementArray.push(queryResult.eq(i))
+    }
+    return jQueryElementArray;
 }
 
 export function initLanguageMultiInputAutocomplete() {
