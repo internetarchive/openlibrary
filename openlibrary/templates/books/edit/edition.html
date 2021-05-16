@@ -390,10 +390,8 @@ $jsdef render_work_autocomplete_item(item):
                     $_("WARNING: Any edits made to the work from this page will be ignored.")
                 </span>
             </div>
-            <div class="works_multi_input_autocomplete"
-                 data-isPrivilegedUser="$cond(is_privileged_user, 'true', 'false')"
-                 data-newWorkText="$_('-- Move to a new work')"
-            >
+            $ config = {'isPrivilegedUser': cond(is_privileged_user, 'true', 'false'), '-- Move to a new work': _('-- Move to a new work')}
+            <div class="works_multi_input_autocomplete" data-config="$dumps(config)">
                 $if book.works:
                     $for i, work in enumerate(book.works):
                         $:render_work_field(i, work)

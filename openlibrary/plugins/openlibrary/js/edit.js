@@ -47,14 +47,15 @@ export function initLanguageMultiInputAutocomplete() {
 export function initWorksMultiInputAutocomplete() {
     $(function() {
         getJqueryElements('.works_multi_input_autocomplete').forEach(jqueryElement => {
-            const dataset = jqueryElement[0].dataset;
+            /* Values in the html passed from Python code */
+            const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
             jqueryElement.setup_multi_input_autocomplete(
                 'input.work-autocomplete',
                 render_work_field,
                 {
                     endpoint: '/works/_autocomplete',
-                    addnew: dataset.isprivilegeduser === 'true',
-                    new_name: dataset.newWorkText,
+                    addnew: dataConfig['isPrivilegedUser'] === 'true',
+                    new_name: dataConfig['-- Move to a new work'],
                 },
                 {
                     minChars: 2,
