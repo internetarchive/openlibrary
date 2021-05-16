@@ -1,3 +1,6 @@
+/* global render_language_field, render_work_autocomplete_item, render_language_autocomplete_item, render_work_field */
+/* Globals are provided by the edit edition template */
+
 function error(errordiv, input, message) {
     $(errordiv).show().html(message);
     $(input).focus();
@@ -30,14 +33,10 @@ export function initLanguageMultiInputAutocomplete() {
         getJqueryElements('.language_multi_input_autocomplete').forEach(jqueryElement => {
             jqueryElement.setup_multi_input_autocomplete(
                 'input.language-autocomplete',
-                // defined by jsdef
-                // eslint-disable-next-line no-undef
                 render_language_field,
                 {endpoint: '/languages/_autocomplete'},
                 {
                     max: 6,
-                    // defined by jsdef
-                    // eslint-disable-next-line no-undef
                     formatItem: render_language_autocomplete_item
                 }
             );
@@ -51,8 +50,6 @@ export function initWorksMultiInputAutocomplete() {
             const dataset = jqueryElement[0].dataset;
             jqueryElement.setup_multi_input_autocomplete(
                 'input.work-autocomplete',
-                // defined by jsdef
-                // eslint-disable-next-line no-undef
                 render_work_field,
                 {
                     endpoint: '/works/_autocomplete',
@@ -64,8 +61,6 @@ export function initWorksMultiInputAutocomplete() {
                     max: 11,
                     matchSubset: false,
                     autoFill: false,
-                    // defined by jsdef
-                    // eslint-disable-next-line no-undef
                     formatItem: render_work_autocomplete_item
                 });
         });
