@@ -99,12 +99,12 @@ jQuery(function () {
             .then(module => module.initEditRow());
     }
     // conditionally load for language autocomplete
-    if (document.querySelector('.language_multi_input_autocomplete')) {
+    if (document.querySelector('.multi-input-autocomplete--language')) {
         import(/* webpackChunkName: "user-website" */ './edit')
             .then(module => module.initLanguageMultiInputAutocomplete());
     }
     // conditionally load for works autocomplete
-    if (document.querySelector('.works_multi_input_autocomplete')) {
+    if (document.querySelector('.multi-input-autocomplete--works')) {
         import(/* webpackChunkName: "user-website" */ './edit')
             .then(module => module.initWorksMultiInputAutocomplete());
     }

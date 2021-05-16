@@ -34,7 +34,7 @@ function getJqueryElements(selector){
 
 export function initLanguageMultiInputAutocomplete() {
     $(function() {
-        getJqueryElements('.language_multi_input_autocomplete').forEach(jqueryElement => {
+        getJqueryElements('.multi-input-autocomplete--language').forEach(jqueryElement => {
             jqueryElement.setup_multi_input_autocomplete(
                 'input.language-autocomplete',
                 render_language_field,
@@ -50,7 +50,7 @@ export function initLanguageMultiInputAutocomplete() {
 
 export function initWorksMultiInputAutocomplete() {
     $(function() {
-        getJqueryElements('.works_multi_input_autocomplete').forEach(jqueryElement => {
+        getJqueryElements('.multi-input-autocomplete--works').forEach(jqueryElement => {
             /* Values in the html passed from Python code */
             const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
             jqueryElement.setup_multi_input_autocomplete(
