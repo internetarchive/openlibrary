@@ -1,3 +1,6 @@
+/* global render_language_field, render_work_autocomplete_item, render_language_autocomplete_item, render_work_field */
+/* Globals are provided by the edit edition template */
+
 function error(errordiv, input, message) {
     $(errordiv).show().html(message);
     $(input).focus();
@@ -13,6 +16,60 @@ function update_len() {
         color = 'gray';
     }
     $('#excerpts-excerpt-len').html(2000 - len).css('color', color);
+}
+
+/**
+ * This is needed because jQuery has no forEach equivalent that works with jQuery elements instead of DOM elements
+ * @param selector - css selector used by jQuery
+ * @returns {*[]} - array of jQuery elements
+ */
+function getJqueryElements(selector){
+    const queryResult = $(selector);
+    const jQueryElementArray = [];
+    for (let i = 0; i < queryResult.length; i++){
+        jQueryElementArray.push(queryResult.eq(i))
+    }
+    return jQueryElementArray;
+}
+
+export function initLanguageMultiInputAutocomplete() {
+    $(function() {
+        getJqueryElements('.multi-input-autocomplete--language').forEach(jqueryElement => {
+            jqueryElement.setup_multi_input_autocomplete(
+                'input.language-autocomplete',
+                render_language_field,
+                {endpoint: '/languages/_autocomplete'},
+                {
+                    max: 6,
+                    formatItem: render_language_autocomplete_item
+                }
+            );
+        })
+    });
+}
+
+export function initWorksMultiInputAutocomplete() {
+    $(function() {
+        getJqueryElements('.multi-input-autocomplete--works').forEach(jqueryElement => {
+            /* Values in the html passed from Python code */
+            const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
+            jqueryElement.setup_multi_input_autocomplete(
+                'input.work-autocomplete',
+                render_work_field,
+                {
+                    endpoint: '/works/_autocomplete',
+                    addnew: dataConfig['isPrivilegedUser'] === 'true',
+                    new_name: dataConfig['-- Move to a new work'],
+                },
+                {
+                    minChars: 2,
+                    max: 11,
+                    matchSubset: false,
+                    autoFill: false,
+                    formatItem: render_work_autocomplete_item
+                });
+        });
+    });
 }
 
 export function initEditRow(){

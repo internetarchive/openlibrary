@@ -74,43 +74,6 @@ $jsdef render_work_autocomplete_item(item):
                 <span class="edition_count">$item.edition_count editions</span>
         </div>
 
-<script type="text/javascript">
-window.q.push(function() {
-    \$("#languages").setup_multi_input_autocomplete(
-        "input.language-autocomplete",
-        render_language_field,
-        { endpoint: "/languages/_autocomplete" },
-        {
-            max: 6,
-            formatItem: render_language_autocomplete_item
-        });
-
-    \$("#translated_from_languages").setup_multi_input_autocomplete(
-        "input.language-autocomplete",
-        render_translated_from_language_field,
-        { endpoint: "/languages/_autocomplete" },
-        {
-            max: 6,
-            formatItem: render_language_autocomplete_item
-        });
-
-    \$("#works").setup_multi_input_autocomplete(
-        "input.work-autocomplete",
-        render_work_field,
-        {
-            endpoint: "/works/_autocomplete",
-            addnew: $cond(is_privileged_user, 'true', 'false'),
-            new_name: '$_('-- Move to a new work')',
-        },
-        {
-            minChars: 2,
-            max: 11,
-            matchSubset: false,
-            autoFill: false,
-            formatItem: render_work_autocomplete_item
-        });
-});
-</script>
 
 <fieldset class="major">
     <legend>$_("This Edition")</legend>
@@ -304,7 +267,7 @@ window.q.push(function() {
 
             <legend>$_('Languages')</legend>
 
-            <div class="formElement" id="languages">
+            <div class="formElement multi-input-autocomplete--language">
                 <div class="label">
                     <label for="edition-language">$_("What language is this edition written in?")</label>
                     <span class="tip"></span>
@@ -348,7 +311,7 @@ window.q.push(function() {
                     </div>
                 </div>
 
-                <div class="transYes" id="translated_from_languages" style="$style_hidden">
+                <div class="transYes multi-input-autocomplete--language" style="$style_hidden">
                     <div class="label">
                         <label for="edition-translated_from"><span class="tip">$_("What language was the original written in?")</span></label>
                     </div>
@@ -427,7 +390,8 @@ window.q.push(function() {
                     $_("WARNING: Any edits made to the work from this page will be ignored.")
                 </span>
             </div>
-            <div id="works">
+            $ config = {'isPrivilegedUser': cond(is_privileged_user, 'true', 'false'), '-- Move to a new work': _('-- Move to a new work')}
+            <div class="multi-input-autocomplete--works" data-config="$dumps(config)">
                 $if book.works:
                     $for i, work in enumerate(book.works):
                         $:render_work_field(i, work)

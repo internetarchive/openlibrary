@@ -97,6 +97,16 @@ jQuery(function () {
         import(/* webpackChunkName: "user-website" */ './edit')
             .then(module => module.initEditRow());
     }
+    // conditionally load for language autocomplete
+    if (document.querySelector('.multi-input-autocomplete--language')) {
+        import(/* webpackChunkName: "user-website" */ './edit')
+            .then(module => module.initLanguageMultiInputAutocomplete());
+    }
+    // conditionally load for works autocomplete
+    if (document.querySelector('.multi-input-autocomplete--works')) {
+        import(/* webpackChunkName: "user-website" */ './edit')
+            .then(module => module.initWorksMultiInputAutocomplete());
+    }
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
         import('./realtime_account_validation.js')
