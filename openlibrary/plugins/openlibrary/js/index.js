@@ -107,6 +107,11 @@ jQuery(function () {
         import(/* webpackChunkName: "user-website" */ './edit')
             .then(module => module.initWorksMultiInputAutocomplete());
     }
+    // conditionally load for author merge page
+    if (document.querySelector('#author-merge-page')) {
+        import(/* webpackChunkName: "user-website" */ './merge')
+            .then(module => module.initAuthorMergePage());
+    }
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
         import('./realtime_account_validation.js')
