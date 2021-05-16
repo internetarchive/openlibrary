@@ -73,7 +73,9 @@ $jsdef render_work_autocomplete_item(item):
             $else:
                 <span class="edition_count">$item.edition_count editions</span>
         </div>
-
+$ translatable_strings = ['Please select a role.', 'You need to give this ROLE a name.', 'Please select an identifier.', 'You need to give a value to ID.', 'ID ids cannot contain whitespace.', 'ID must be exactly 10 characters [0-9] or X.', 'ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4', 'Please select a classification.', 'You need to give a value to CLASS.']
+$ config = {translatable: _(translatable) for translatable in translatable_strings}
+<span id="edition-edit-page" data-config="$dumps(config)"></span>
 
 <fieldset class="major">
     <legend>$_("This Edition")</legend>
@@ -198,7 +200,7 @@ $jsdef render_work_autocomplete_item(item):
                     <span class="tip"></span>
                 </div>
                 <div class="input">
-                    <div id="role-errors" class="note hidden"></div>
+                    <div id="role-errors" class="note" style="display: none"></div>
                     <table class="identifiers">
                     <tbody>
                         <tr id="roles-form">
@@ -482,7 +484,7 @@ $jsdef render_work_autocomplete_item(item):
     <legend>$_("Classifications")</legend>
     <div class="formBack">
 
-        <div id="classification-errors" class="note hidden"></div>
+        <div id="classification-errors" class="note" style="display: none"></div>
         <div class="formElement">
             <div class="label">
                 <label for="select-classification">$_("Do you know any classifications of this edition?")</label>
@@ -649,78 +651,3 @@ $if ctx.user:
             </div>
         </div>
     </fieldset>
-
-<script type="text/javascript">
-<!--
-    window.q.push(function() {
-        // FIXME: Error code duplicated in various templates.
-        // Should be pushed into a macro.
-        function error(errordiv, input, message) {
-            \$(errordiv).show().html(message);
-            \$(input).focus();
-            return false;
-        }
-
-        \$("#roles").repeat({
-            vars: {
-                "prefix": "edition--"
-            },
-            validate: function(data) {
-                if (data.role == "" || data.role == "---") {
-                    return error("#role-errors", "#select-role", "$_('Please select a role.')");
-                }
-
-                if (data.name == "") {
-                    return error("#role-errors", "#role-name", "$_('You need to give this ROLE a name.')".replace(/ROLE/, data.role));
-                }
-
-                \$("#role-errors").hide();
-                return true;
-            }
-        });
-        \$("#identifiers").repeat({
-            vars: {
-                "prefix": "edition--"
-            },
-            validate: function(data) {
-                if (data.name == "" || data.name == "---") {
-                    return error("#id-errors", "select-id", "$_('Please select an identifier.')")
-                }
-                var label = \$("#select-id").find("option[value=" + data.name + "]").html();
-                if (data.value == "") {
-                    return error("#id-errors", "id-value", "$_('You need to give a value to ID.')".replace(/ID/, label));
-                }
-                if (['ocaid'].includes(data.name) && /\s/g.test(data.value)) {
-                    return error("#id-errors", "id-value", "$_('ID ids cannot contain whitespace.')".replace(/ID/, label));
-                }
-                if (data.name == "isbn_10" && data.value.length != 10) {
-                    return error("#id-errors", "id-value", "$_('ID must be exactly 10 characters [0-9] or X.')".replace(/ID/, label));
-                }
-                if (data.name == "isbn_13" && data.value.replace(/-/g,'').length != 13) {
-                    return error("#id-errors", "id-value", "$_('ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4')".replace(/ID/, label));
-                }
-                \$("id-errors").hide();
-                return true;
-            }
-        });
-        \$("#classifications").repeat({
-            vars: {
-                "prefix": "edition--"
-            },
-            validate: function(data) {
-                if (data.name == "" || data.name == "---") {
-                    return error("#classification-errors", "#select-classification", "$_('Please select a classification.')");
-                }
-
-                if (data.value == "") {
-                    var label = \$("#select-classification").find("option[value=" + data.name + "]").html();
-                    return error("#classification-errors", "#classification-value", "$_('You need to give a value to CLASS.')".replace(/CLASS/, label));
-                }
-
-                \$("#classification-errors").hide();
-                return true;
-            }
-        });
-    });
-//-->
-</script>

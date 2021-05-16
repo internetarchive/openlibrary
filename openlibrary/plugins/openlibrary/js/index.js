@@ -97,6 +97,11 @@ jQuery(function () {
         import(/* webpackChunkName: "user-website" */ './edit')
             .then(module => module.initEditRow());
     }
+    // conditionally load for edition edit page
+    if (document.querySelector('#edition-edit-page')) {
+        import(/* webpackChunkName: "user-website" */ './edit')
+            .then(module => module.initEditionEditPage());
+    }
     // conditionally load for language autocomplete
     if (document.querySelector('.multi-input-autocomplete--language')) {
         import(/* webpackChunkName: "user-website" */ './edit')
