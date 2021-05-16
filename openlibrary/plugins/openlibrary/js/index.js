@@ -109,7 +109,7 @@ jQuery(function () {
     }
     // conditionally load for author merge page
     if (document.querySelector('#author-merge-page')) {
-        import(/* webpackChunkName: "user-website" */ './merge')
+        import('./merge')
             .then(module => module.initAuthorMergePage());
     }
     // conditionally load real time signup functionality based on class in the page
