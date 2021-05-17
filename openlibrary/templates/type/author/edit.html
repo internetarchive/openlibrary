@@ -54,7 +54,7 @@ $putctx("robots", "noindex,nofollow")
                                     class="markdown olform__input--large" id="wmd-input" rows="6">$page.bio</textarea>
                             </div>
                         </div>
-                        
+
 
                         <div class="formElement contentQuarter" id="birthDate">
                             <div class="label birthLabelAcc">
@@ -82,7 +82,7 @@ $putctx("robots", "noindex,nofollow")
 
                         <div class="clearfix"></div>
 
-                        $if page.date:                                            
+                        $if page.date:
                             <div class="formElement contentQuarter" id="date">
                                     <div class="label dateLabelAcc">
                                         <label for="date">$_("Date")</label>
@@ -105,6 +105,11 @@ $putctx("robots", "noindex,nofollow")
                             <div class="input">
                                 <textarea name="author--alternate_names" id="alternate_names" rows="6">$"; ".join(page.alternate_names)</textarea>
                             </div>
+                        </div>
+                        <div class="label">Identifiers</div>
+                        <div id="hiddenIdentifierInputs"></div>
+                        <div id="identifiers-display">
+                            $:render_component('AuthorIdentifiers', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenIdentifierInputs',author_config_string=dict(get_author_config())))
                         </div>
 
                         $if page.website:
@@ -139,6 +144,5 @@ $putctx("robots", "noindex,nofollow")
             <div class="formElement bottom">
                 $:macros.EditButtons(comment=page.comment_)
             </div>
-
     </form>
 </div>
