@@ -16,13 +16,15 @@
         <button class="form-control" name="set" :disabled="!setButtonEnabled" @click=setIdentifier>Set</button>
       </th>
     </tr>
-    <tr v-for="(value, name) in assignedIdentifiers" :key="name">
-      <td>{{ identifierConfigsByKey[name].label }}</td>
-      <td>{{ value }}</td>
-      <td>
-        <button class="form-control" @click="removeIdentifier(identifier.name)">Remove</button>
-      </td>
-    </tr>
+    <template v-for="(value, name) in assignedIdentifiers">
+      <tr :key="name" v-if="value">
+        <td>{{ identifierConfigsByKey[name].label }}</td>
+        <td>{{ value }}</td>
+        <td>
+          <button class="form-control" @click="removeIdentifier(name)">Remove</button>
+        </td>
+      </tr>
+    </template>
   </table>
 </template>
 
