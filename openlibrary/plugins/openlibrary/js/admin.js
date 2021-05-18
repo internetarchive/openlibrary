@@ -19,6 +19,6 @@ export function initAdmin() {
 
     // admin/people/edits
     $('#checkall').on('click', function () {
-        $('form.olform').find(':checkbox').attr('checked', this.checked);
+        $('form.olform').find(':checkbox').prop('checked', this.checked);
     });
 }

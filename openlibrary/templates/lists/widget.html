@@ -97,7 +97,7 @@ $jsdef show_list(list, user_key):
         </span>
     </li>
 
-$jsdef render_my_lists(lists, property='active'):
+$jsdef render_my_lists(lists, property):
     $for list in lists:
         $if list[property]:
             <p class="list">
@@ -190,7 +190,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                 <div class="reading-lists">
                   <p class="reading-list-title">$_('My Reading Lists:')</p>
                   <div class="my-lists">
-                    $:render_my_lists(lists)
+                    $:render_my_lists(lists, 'active')
                   </div>
                   $if edition_key:
                       <p class="create checkboxes">

@@ -12,7 +12,7 @@ First, update `openlibrary/components/dev.js` to use the component you're develo
 Then, outside the docker environment, run: 
 
 ```shell script
-npx vue-cli-service serve openlibrary/components/dev.js
+npx @vue/cli-service serve openlibrary/components/dev.js
 ```
 
 ## Caveats
@@ -20,3 +20,9 @@ npx vue-cli-service serve openlibrary/components/dev.js
 - Currently does not support IE11 because it's using web components (See https://caniuse.com/custom-elementsv1 )
 - Vue is currently included with each component, so rendering multiple components per page results in very large load sizes
 - JSON attributes currently don't work
+- If Vue is embedded within a `<form>` input elments created by vue won't be picked up on form submission.
+This seems to be related to Vue's use of shadow dom. For a workaround, see the code in [#5093](https://github.com/internetarchive/openlibrary/pull/5093).
+
+## Examples
+
+For an example of using Vue on existing pages see `openlibrary/components/AuthorIdentifiers.vue`

@@ -103,7 +103,7 @@ const Carousel = {
                 '"aria-hidden="false" role="option">' +
                 '<div class="book-cover">' +
                   '<a href="'}${work.key}" ${isClickable}>` +
-                    `<img class="bookcover" width="130" height="200" title="${
+                    `<img class="bookcover" title="${
                         work.title}" ` +
                       `src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg">` +
                   '</a>' +

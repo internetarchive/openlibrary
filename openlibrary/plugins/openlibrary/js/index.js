@@ -1,12 +1,11 @@
 import 'jquery';
-import 'jquery-migrate';
 import 'jquery-validation';
 import 'jquery-ui/ui/widgets/dialog';
 import 'jquery-ui/ui/widgets/sortable';
 import 'jquery-ui/ui/widgets/tabs';
 import 'jquery-ui/ui/widgets/autocomplete';
 // For dialog boxes (e.g. add to list)
-import '../../../../vendor/js/colorbox/1.5.14.js';
+import 'jquery-colorbox';
 // jquery.form#2.36 not on npm, no longer getting worked on
 import '../../../../vendor/js/jquery-form/jquery.form.js';
 import autocompleteInit from './autocomplete';
@@ -97,6 +96,16 @@ jQuery(function () {
     if (document.getElementById('add_row_button')) {
         import(/* webpackChunkName: "user-website" */ './edit')
             .then(module => module.initEditRow());
+    }
+    // conditionally load for language autocomplete
+    if (document.querySelector('.multi-input-autocomplete--language')) {
+        import(/* webpackChunkName: "user-website" */ './edit')
+            .then(module => module.initLanguageMultiInputAutocomplete());
+    }
+    // conditionally load for works autocomplete
+    if (document.querySelector('.multi-input-autocomplete--works')) {
+        import(/* webpackChunkName: "user-website" */ './edit')
+            .then(module => module.initWorksMultiInputAutocomplete());
     }
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
@@ -219,6 +228,6 @@ jQuery(function () {
         $openMenus
             .filter((_, menu) => !$(event.target).closest(menu).length)
             .find('[type=checkbox]')
-            .removeAttr('checked');
+            .prop('checked', false);
     });
 });
