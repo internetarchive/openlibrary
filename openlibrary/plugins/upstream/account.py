@@ -707,9 +707,9 @@ class ReadingLog(object):
         for i in range(len(works)):
             # insert the logged edition (if present) and logged date
             works[i].logged_date = logged_books[i]['created']
-            works[i].logged_edition = [
+            works[i].logged_edition = (
                 '/books/OL%sM' % logged_books[i]['edition_id']
-                if logged_books[i]['edition_id'] else '']
+                if logged_books[i]['edition_id'] else '')
         return works
 
     def get_want_to_read(self, page=1, limit=RESULTS_PER_PAGE):
@@ -807,8 +807,8 @@ class public_my_books_json(delegate.page):
                         'first_publish_year': w.first_publish_year or None,
                     },
                     'logged_edition': w.get('logged_edition') or None,
-                    'logged_date': [w.get('logged_date').strftime("%Y/%m/%d, %H:%M:%S")
-                                    if w.get('logged_date') else None],
+                    'logged_date': (w.get('logged_date').strftime("%Y/%m/%d, %H:%M:%S")
+                                    if w.get('logged_date') else None),
                 } for w in books
             ]
             return delegate.RawText(json.dumps({
