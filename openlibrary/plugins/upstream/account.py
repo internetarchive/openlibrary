@@ -12,6 +12,7 @@ from infogami.utils.view import (
 
 from infogami.infobase.client import ClientException
 from infogami.utils.context import context
+from infogami.utils.view import safeint
 import infogami.core.code as core
 
 from openlibrary import accounts
@@ -704,23 +705,29 @@ class ReadingLog(object):
             editions[i].waitlist_record = keyed_waitlists[editions[i].ocaid]
         return editions
 
+    def process_logged_books(self, logged_books):
+        work_ids = ['/works/OL%sW' % i['work_id'] for i in logged_books]
+        works = web.ctx.site.get_many(work_ids)
+        for i in range(len(works)):
+            # insert the logged edition (if present) and logged date
+            works[i].logged_date = logged_books[i]['created']
+            works[i].logged_edition = '/books/OL%sM' % logged_books[i]['edition_id'] if logged_books[i]['edition_id'] else ''
+        return works
+
     def get_want_to_read(self, page=1, limit=RESULTS_PER_PAGE):
-        work_ids = ['/works/OL%sW' % i['work_id'] for i in Bookshelves.get_users_logged_books(
+        return self.process_logged_books(Bookshelves.get_users_logged_books(
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Want to Read'],
-            page=page, limit=limit)]
-        return web.ctx.site.get_many(work_ids)
+            page=page, limit=limit))
 
     def get_currently_reading(self, page=1, limit=RESULTS_PER_PAGE):
-        work_ids = ['/works/OL%sW' % i['work_id'] for i in Bookshelves.get_users_logged_books(
+        return self.process_logged_books(Bookshelves.get_users_logged_books(
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Currently Reading'],
-            page=page, limit=limit)]
-        return web.ctx.site.get_many(work_ids)
+            page=page, limit=limit))
 
     def get_already_read(self, page=1, limit=RESULTS_PER_PAGE):
-        work_ids = ['/works/OL%sW' % i['work_id'] for i in Bookshelves.get_users_logged_books(
+        return self.process_logged_books(Bookshelves.get_users_logged_books(
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Already Read'],
-            page=page, limit=limit)]
-        return web.ctx.site.get_many(work_ids)
+            page=page, limit=limit))
 
     def get_works(self, key, page=1, limit=RESULTS_PER_PAGE):
         """
@@ -767,6 +774,46 @@ class public_my_books(delegate.page):
                 user=user, logged_in_user=logged_in_user, public=is_public
             )
         raise web.seeother(user.key)
+
+
+class public_my_books_json(delegate.page):
+
+    encoding = "json"
+    path = "/people/([^/]+)/books/([a-zA-Z_-]+)"
+
+    def GET(self, username, key='want-to-read'):
+            i = web.input(page=1, limit=5000)
+            page = safeint(i.page, 1)
+            limit = safeint(i.limit, 5000)
+            """check if user's reading log is public"""
+            user = web.ctx.site.get('/people/%s' % username)
+            if not user:
+                return delegate.RawText(json.dumps({'error': 'User %s not found' % username,}), content_type="application/json")
+            is_public = user.preferences().get('public_readlog', 'no') == 'yes'
+            logged_in_user = accounts.get_current_user()
+            if is_public or logged_in_user and logged_in_user.key.split('/')[-1] == username:
+                readlog = ReadingLog(user=user)
+                books = readlog.get_works(key, page, limit)
+                records_json = [
+                    {
+                        'work' :
+                        {
+                            'title': w.get('title'),
+                            'key': w.key,
+                            'author_keys': [a.author.key for a in w.get('authors', [])],
+                            'author_names': [a.author.name for a in w.get('authors', [])],
+                            'first_publish_year': w.first_publish_year or None,
+                        },
+                        'logged_edition': w.get('logged_edition') or None,
+                        'logged_date': w.get('logged_date').strftime("%Y/%m/%d, %H:%M:%S") if w.get('logged_date') else None,
+                    } for w in books
+                ]
+                return delegate.RawText(json.dumps({
+                    'page': page,
+                    'reading_log_entries': records_json
+                }), content_type="application/json")
+            else:
+                return delegate.RawText(json.dumps({'error': 'Shelf %s not found or not accessible' % key,}), content_type="application/json")
 
 
 class readinglog_stats(delegate.page):
