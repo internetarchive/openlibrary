@@ -707,7 +707,9 @@ class ReadingLog(object):
         for i in range(len(works)):
             # insert the logged edition (if present) and logged date
             works[i].logged_date = logged_books[i]['created']
-            works[i].logged_edition = ['/books/OL%sM' % logged_books[i]['edition_id'] if logged_books[i]['edition_id'] else '']
+            works[i].logged_edition = [
+                '/books/OL%sM' % logged_books[i]['edition_id']
+                if logged_books[i]['edition_id'] else '']
         return works
 
     def get_want_to_read(self, page=1, limit=RESULTS_PER_PAGE):
@@ -790,7 +792,8 @@ class public_my_books_json(delegate.page):
                 content_type="application/json")
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         logged_in_user = accounts.get_current_user()
-        if is_public or logged_in_user and logged_in_user.key.split('/')[-1] == username:
+        if (is_public or
+                logged_in_user and logged_in_user.key.split('/')[-1]) == username:
             readlog = ReadingLog(user=user)
             books = readlog.get_works(key, page, limit)
             records_json = [
