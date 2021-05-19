@@ -141,7 +141,7 @@
     <field name="redirects" type="string" multiValued="true"/>
     <field name="has_fulltext" type="boolean"/>
     <field name="title" type="text_en_splitting"/>
-    <field name="title_suggest" type="text_general"/>
+    <field name="title_suggest" type="text_general" multiValued="false"/>
     <field name="subtitle" type="text_en_splitting"/>
     <field name="alternative_title" type="text_en_splitting" stored="false" multiValued="true"/>
     <field name="alternative_subtitle" type="text_en_splitting" stored="false" multiValued="true"/>
@@ -197,7 +197,7 @@
 
 
    <!-- fields used by documents of type author -->
-   <field name="name" type="text_general" indexed="true" stored="true"/>
+   <field name="name" type="text_general" indexed="true" stored="true" multiValued="false"/>
    <field name="name_str" type="string" indexed="true" stored="false"/>
    <field name="alternate_names" type="text_general" indexed="true" stored="true" multiValued="true"/>
    <field name="birth_date" type="string" indexed="true" stored="true"/>
