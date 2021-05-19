@@ -133,7 +133,7 @@ SORTS = {
 }
 OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
-re_to_esc = re.compile(r'[\[\]:]')
+re_to_esc = re.compile(r'[\[\]:/]')
 re_isbn_field = re.compile(r'^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
 re_author_key = re.compile(r'(OL\d+A)')
 re_fields = re.compile(r'(-?%s):' % '|'.join(ALL_FIELDS + list(FIELD_NAME_MAP)), re.I)
@@ -322,7 +322,10 @@ def parse_query_fields(q):
 def build_q_list(param):
     q_list = []
     if 'q' in param:
-        q_param = param['q'].strip()
+        # Solr 4+ has support for regexes (eg `key:/foo.*/`)! But for now, let's not
+        # expose that and escape all '/'. Otherwise `key:/works/OL1W` is interpreted as
+        # a regex.
+        q_param = param['q'].strip().replace('/', '\\/')
     else:
         q_param = None
     use_dismax = False
