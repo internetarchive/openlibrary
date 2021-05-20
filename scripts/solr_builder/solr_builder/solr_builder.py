@@ -134,7 +134,7 @@ class LocalPostgresDataProvider(DataProvider):
         self._db_conf = config_section_to_dict(db_conf_file, "postgres")
         self._conn = None  # type: psycopg2._psycopg.connection
         self.cache = dict()
-        self.cached_work_editions = set()
+        self.cached_work_editions_ranges = []
         self.ia_cache = dict()
         self.ia = None
 
@@ -318,8 +318,8 @@ class LocalPostgresDataProvider(DataProvider):
                 AND '%s' <= "JSON" -> 'works' -> 0 ->> 'key'
                 AND "JSON" -> 'works' -> 0 ->> 'key' <= '%s'
         """ % (lo_key, hi_key)
-        for row in self.query_all(q, cache_json=True):
-            self.cached_work_editions.add(row[1]['works'][0]['key'])
+        self.query_all(q, cache_json=True)
+        self.cached_work_editions_ranges.append((lo_key, hi_key))
 
     def cache_edition_authors(self, lo_key, hi_key):
         q = """
@@ -377,7 +377,10 @@ class LocalPostgresDataProvider(DataProvider):
 
     def get_editions_of_work(self, work):
         # They should all be cached...
-        if work['key'] in self.cached_work_editions:
+        cache_hit = any(
+            lo <= work['key'] <= hi
+            for (lo, hi) in self.cached_work_editions_ranges)
+        if cache_hit:
             return [
                 doc for doc in self.cache.values()
                 if (doc['type']['key'] == '/type/edition' and
@@ -410,7 +413,7 @@ class LocalPostgresDataProvider(DataProvider):
             return row[0]
 
     def clear_cache(self):
-        self.cached_work_editions.clear()
+        self.cached_work_editions_ranges.clear()
         self.cache.clear()
         self.ia_cache.clear()
         pass
@@ -655,7 +658,7 @@ async def main(
                 # Store in main cache
                 db.cache.update(db2.cache)
                 db.ia_cache.update(db2.ia_cache)
-                db.cached_work_editions.update(db2.cached_work_editions)
+                db.cached_work_editions_ranges += db2.cached_work_editions_ranges
 
             update_keys(keys, commit=False, commit_way_later=True)
 
