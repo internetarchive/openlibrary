@@ -73,9 +73,7 @@ $jsdef render_work_autocomplete_item(item):
             $else:
                 <span class="edition_count">$item.edition_count editions</span>
         </div>
-$ translatable_strings = ['Please select a role.', 'You need to give this ROLE a name.', 'Please select an identifier.', 'You need to give a value to ID.', 'ID ids cannot contain whitespace.', 'ID must be exactly 10 characters [0-9] or X.', 'ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4', 'Please select a classification.', 'You need to give a value to CLASS.']
-$ config = {translatable: _(translatable) for translatable in translatable_strings}
-<span id="edition-edit-page" data-config="$dumps(config)"></span>
+
 
 <fieldset class="major">
     <legend>$_("This Edition")</legend>
@@ -194,7 +192,7 @@ $ config = {translatable: _(translatable) for translatable in translatable_strin
         <fieldset class="minor formBackLeft">
             <legend>$_("Contributors")</legend>
 
-            <div class="formElement" id="roles">
+            <div class="formElement" id="roles" data-config="$dumps({'Please select a role.': _('Please select a role.'), 'You need to give this ROLE a name.': _('You need to give this ROLE a name.')})">
                 <div class="label">
                     <label for="select-role">$_("List the people involved")</label>
                     <span class="tip"></span>
@@ -405,8 +403,8 @@ $ config = {translatable: _(translatable) for translatable in translatable_strin
     </div>
 
 </fieldset>
-
-<fieldset class="major" id="identifiers">
+$ config = ({'Please select an identifier.': _('Please select an identifier.'), 'You need to give a value to ID.': _('You need to give a value to ID.'), 'ID ids cannot contain whitespace.': _('ID ids cannot contain whitespace.'), 'ID must be exactly 10 characters [0-9] or X.': _('ID must be exactly 10 characters [0-9] or X.'), 'ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4': _('ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4')})
+<fieldset class="major" id="identifiers" data-config="$dumps(config)">
     <legend>$_("ID Numbers")</legend>
     <div class="formBack">
 
@@ -480,7 +478,7 @@ $ config = {translatable: _(translatable) for translatable in translatable_strin
     </div>
 </fieldset>
 
-<fieldset class="major" id="classifications">
+<fieldset class="major" id="classifications" data-config="$dumps({'Please select a classification.': _('Please select a classification.'), 'You need to give a value to CLASS.': _('You need to give a value to CLASS.')})">
     <legend>$_("Classifications")</legend>
     <div class="formBack">
 

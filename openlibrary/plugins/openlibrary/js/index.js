@@ -97,10 +97,20 @@ jQuery(function () {
         import(/* webpackChunkName: "user-website" */ './edit')
             .then(module => module.initEditRow());
     }
-    // conditionally load for edition edit page
-    if (document.querySelector('#edition-edit-page')) {
-        import(/* webpackChunkName: "user-website" */ './edit')
-            .then(module => module.initEditionEditPage());
+    // conditionally load for role validation
+    if (document.querySelector('#roles')) {
+        import('./edit')
+            .then(module => module.initRoleValidation());
+    }
+    // conditionally load for identifier validation
+    if (document.querySelector('#identifiers')) {
+        import('./edit')
+            .then(module => module.initIdentifierValidation());
+    }
+    // conditionally load for classification validation
+    if (document.querySelector('#classifications')) {
+        import('./edit')
+            .then(module => module.initClassificationValidation());
     }
     // conditionally load for language autocomplete
     if (document.querySelector('.multi-input-autocomplete--language')) {
