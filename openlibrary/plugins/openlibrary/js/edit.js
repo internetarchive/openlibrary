@@ -76,27 +76,25 @@ export function initWorksMultiInputAutocomplete() {
 }
 
 export function initAuthorMultiInputAutocomplete() {
-    $(function() {
-        $('.author-autocomplete').prop('disabled', false);
-        getJqueryElements('.multi-input-autocomplete--author').forEach(jqueryElement => {
-            /* Values in the html passed from Python code */
-            const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
-            jqueryElement.setup_multi_input_autocomplete(
-                'input.author-autocomplete',
-                render_author.bind(null, dataConfig.name_path, dataConfig.dict_path, false),
-                {
-                    endpoint: '/authors/_autocomplete',
-                    // Don't render "Create new author" if searching by key
-                    addnew: function(query) { return !/^OL\d+A/i.test(query); },
-                },
-                {
-                    minChars: 2,
-                    max: 11,
-                    matchSubset: false,
-                    autoFill: false,
-                    formatItem: render_author_autocomplete_item
-                });
-        });
+    $('.author-autocomplete').prop('disabled', false);
+    getJqueryElements('.multi-input-autocomplete--author').forEach(jqueryElement => {
+        /* Values in the html passed from Python code */
+        const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
+        jqueryElement.setup_multi_input_autocomplete(
+            'input.author-autocomplete',
+            render_author.bind(null, dataConfig.name_path, dataConfig.dict_path, false),
+            {
+                endpoint: '/authors/_autocomplete',
+                // Don't render "Create new author" if searching by key
+                addnew: function(query) { return !/^OL\d+A/i.test(query); },
+            },
+            {
+                minChars: 2,
+                max: 11,
+                matchSubset: false,
+                autoFill: false,
+                formatItem: render_author_autocomplete_item
+            });
     });
 }
 
