@@ -306,7 +306,7 @@ class LocalPostgresDataProvider(DataProvider):
             INNER JOIN test works
                 ON editions."JSON" -> 'works' -> 0 ->> 'key' = works."Key"
             WHERE editions."Type" = '/type/edition'
-                AND '%s' <= editions."Key" AND editions."Key" < '%s'
+                AND '%s' <= editions."Key" AND editions."Key" <= '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
@@ -316,7 +316,7 @@ class LocalPostgresDataProvider(DataProvider):
             FROM "test"
             WHERE "Type" = '/type/edition'
                 AND '%s' <= "JSON" -> 'works' -> 0 ->> 'key'
-                AND "JSON" -> 'works' -> 0 ->> 'key' < '%s'
+                AND "JSON" -> 'works' -> 0 ->> 'key' <= '%s'
         """ % (lo_key, hi_key)
         for row in self.query_all(q, cache_json=True):
             self.cached_work_editions.add(row[1]['works'][0]['key'])
@@ -331,18 +331,24 @@ class LocalPostgresDataProvider(DataProvider):
                 ON works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key"
             WHERE editions."Type" = '/type/edition'
                 AND editions."JSON" -> 'works' -> 0 ->> 'key' IS NULL
-                AND '%s' <= editions."Key" AND editions."Key" < '%s'
+                AND '%s' <= editions."Key" AND editions."Key" <= '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
     def cache_work_authors(self, lo_key, hi_key):
+        # Cache upto first five authors
         q = """
             SELECT authors."Key", authors."JSON"
             FROM "test" works
-            INNER JOIN "test" authors
-                ON works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key"
+            INNER JOIN "test" authors ON (
+                works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key" OR
+                works."JSON" -> 'authors' -> 1 -> 'author' ->> 'key' = authors."Key" OR
+                works."JSON" -> 'authors' -> 2 -> 'author' ->> 'key' = authors."Key" OR
+                works."JSON" -> 'authors' -> 3 -> 'author' ->> 'key' = authors."Key" OR
+                works."JSON" -> 'authors' -> 4 -> 'author' ->> 'key' = authors."Key"
+            )
             WHERE works."Type" = '/type/work'
-            AND '%s' <= works."Key" AND works."Key" < '%s'
+            AND '%s' <= works."Key" AND works."Key" <= '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
