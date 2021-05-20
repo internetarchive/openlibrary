@@ -19,7 +19,7 @@ from openlibrary.solr.data_provider import DataProvider
 from openlibrary.solr.update_work import load_configs, update_keys
 
 logger = logging.getLogger("openlibrary.solr-builder")
-
+LITE_METADATA_FIELDS = ('identifier', 'boxid', 'collection')
 
 def config_section_to_dict(config_file, section):
     """
@@ -85,6 +85,25 @@ def batch_until_len(items: Iterable[Sized], max_batch_len: int):
             batch_len += len(item)
     if batch:
         yield batch
+
+
+def batch(items: List, max_batch_len: int):
+    """
+    >>> list(batch([1,2,3,4,5], 2))
+    [[1, 2], [3, 4], [5]]
+    >>> list(batch([], 2))
+    []
+    >>> list(batch([1,2,3,4,5], 3))
+    [[1, 2, 3], [4, 5]]
+    >>> list(batch([1,2,3,4,5], 5))
+    [[1, 2, 3, 4, 5]]
+    >>> list(batch([1,2,3,4,5], 6))
+    [[1, 2, 3, 4, 5]]
+    """
+    start = 0
+    while start < len(items):
+        yield items[start:start + max_batch_len]
+        start += max_batch_len
 
 
 def safeget(func):
@@ -212,7 +231,7 @@ class LocalPostgresDataProvider(DataProvider):
                     params={
                         'q': f"identifier:({' OR '.join(ocaids)})",
                         'rows': len(ocaids),
-                        'fl': 'identifier,boxid,collection',
+                        'fl': ','.join(LITE_METADATA_FIELDS),
                         'page': 1,
                         'output': 'json',
                         'save': 'yes',
@@ -235,6 +254,31 @@ class LocalPostgresDataProvider(DataProvider):
         ))
         return list(itertools.chain(*parts))
 
+    @staticmethod
+    async def _get_lite_metadata_direct(ocaid: str):
+        try:
+            async with httpx.AsyncClient() as client:
+                r = await client.get(
+                    f"https://archive.org/metadata/{ocaid}/metadata",
+                    timeout=30,  # The default is silly short
+                )
+            r.raise_for_status()
+            response = r.json()
+            if 'error' not in response:
+                lite_metadata = {
+                    key: response['result'][key]
+                    for key in LITE_METADATA_FIELDS if key in response['result']
+                }
+                return lite_metadata
+            else:
+                return {
+                    'error': response['error'],
+                    'identifier': ocaid,
+                }
+        except HTTPError:
+            logger.warning(f'Error fetching metadata for {ocaid}')
+            return None
+
     async def cache_ia_metadata(self, ocaids: List[str]):
         batches = list(batch_until_len(ocaids, 3000))
         # Start them all async
@@ -242,6 +286,18 @@ class LocalPostgresDataProvider(DataProvider):
         for task in tasks:
             for doc in await task:
                 self.ia_cache[doc['identifier']] = doc
+
+        missing_ocaids = [ocaid for ocaid in ocaids if ocaid not in self.ia_cache]
+        missing_ocaid_batches = list(batch(missing_ocaids, 6))
+        for ocaids in missing_ocaid_batches:
+            # Start them all async
+            tasks = [
+                asyncio.create_task(self._get_lite_metadata_direct(ocaid))
+                for ocaid in ocaids]
+            for task in tasks:
+                lite_metadata = await task
+                if lite_metadata:
+                    self.ia_cache[lite_metadata['identifier']] = lite_metadata
 
     def cache_edition_works(self, lo_key, hi_key):
         q = """
