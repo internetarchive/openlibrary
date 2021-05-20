@@ -15,6 +15,7 @@ from collections import namedtuple
 import psycopg2
 
 from openlibrary.core import ia
+from openlibrary.solr import update_work
 from openlibrary.solr.data_provider import DataProvider
 from openlibrary.solr.update_work import load_configs, update_keys
 
@@ -353,10 +354,9 @@ class LocalPostgresDataProvider(DataProvider):
         self.query_all(q, cache_json=True)
 
     async def cache_cached_editions_ia_metadata(self):
-        ocaids = [
+        ocaids = list(set(
             doc['ocaid'] for doc in self.cache.values()
-            if 'ocaid' in doc]
-        ocaids = list(set(ocaids))
+            if 'ocaid' in doc))
         await self.cache_ia_metadata(ocaids)
 
     def find_redirects(self, key):
@@ -416,7 +416,6 @@ class LocalPostgresDataProvider(DataProvider):
         self.cached_work_editions_ranges.clear()
         self.cache.clear()
         self.ia_cache.clear()
-        pass
 
 
 def simple_timeit(fn):
@@ -433,17 +432,19 @@ async def simple_timeit_async(awaitable: Awaitable):
     return end - start, result
 
 
-def build_job_query(job, start_at, offset, last_modified, limit):
+def build_job_query(
+        job: Literal['works', 'orphans', 'authors'],
+        start_at: str = None,
+        offset: int = 0,
+        last_modified: str = None,
+        limit: int = None
+) -> str:
     """
-
-    :param str job: job to complete. One of 'works', 'orphans', 'authors'
-    :param str or None start_at: key (type-prefixed) to start from as opposed to
-    offset; WAY more efficient since offset
-     has to walk through all `offset` rows.
-    :param int offset: Use `start_at` if possible.
-    :param str or None last_modified: Only import docs modified after this date.
-    :param int or None limit:
-    :rtype: str
+    :param job: job to complete
+    :param start_at: key (type-prefixed) to start from as opposed to offset; WAY more
+    efficient since offset has to walk through all `offset` rows.
+    :param offset: Use `start_at` if possible.
+    :param last_modified: Only import docs modified after this date.
     """
     type = {
         "works": "work",
@@ -483,6 +484,7 @@ async def main(
         postgres="postgres.ini",
         ol="http://ol/",
         ol_config="../../conf/openlibrary.yml",
+        solr: str = None,
         start_at: str = None,
         offset=0,
         limit=1,
@@ -497,6 +499,7 @@ async def main(
     :param postgres: Path to postgres config file
     :param ol: Open Library endpoint
     :param ol_config: Path to Open Library config file
+    :param solr: Overwrite solr base url from ol_config
     :param start_at: key (type-prefixed) to start from as opposed to offset; WAY more
     efficient since offset has to walk through all `offset` rows.
     :param offset: Use `start_at` if possible.
@@ -510,6 +513,9 @@ async def main(
         level=log_level,
         format="%(asctime)s [%(levelname)s] %(message)s"
     )
+
+    if solr:
+        update_work.set_solr_base_url(solr)
 
     PLogEntry = namedtuple('PLogEntry', [
         'seen', 'total', 'percent', 'elapsed', 'q_1', 'q_auth', 'q_ia', 'cached',
