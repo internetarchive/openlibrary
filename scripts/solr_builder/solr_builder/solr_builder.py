@@ -5,7 +5,7 @@ import itertools
 from typing import Awaitable, List, Iterable, Literal, Sized
 
 import httpx
-from httpx import RequestError, HTTPStatusError, ReadTimeout, ConnectTimeout
+from httpx import HTTPError
 from configparser import ConfigParser
 import logging
 import time
@@ -204,34 +204,36 @@ class LocalPostgresDataProvider(DataProvider):
             })
             return []
 
-        async with httpx.AsyncClient() as client:
-            r = await client.get(
-                "https://archive.org/advancedsearch.php",
-                timeout=30,  # The default is silly short
-                params={
-                    'q': f"identifier:({' OR '.join(ocaids)})",
-                    'rows': len(ocaids),
-                    'fl': 'identifier,boxid,collection',
-                    'page': 1,
-                    'output': 'json',
-                    'save': 'yes',
-                }
-            )
-
         try:
+            async with httpx.AsyncClient() as client:
+                r = await client.get(
+                    "https://archive.org/advancedsearch.php",
+                    timeout=30,  # The default is silly short
+                    params={
+                        'q': f"identifier:({' OR '.join(ocaids)})",
+                        'rows': len(ocaids),
+                        'fl': 'identifier,boxid,collection',
+                        'page': 1,
+                        'output': 'json',
+                        'save': 'yes',
+                    }
+                )
             r.raise_for_status()
             return r.json()['response']['docs']
-        except (RequestError, HTTPStatusError, ReadTimeout, ConnectTimeout, ValueError,
-                KeyError):
-            logger.error(f"Fetching IA data: {r.status_code}: {r.json()['error']}",
+        except HTTPError:
+            logger.error(f"Error fetching IA data {r.status_code}",
                          extra={'_recur_depth': _recur_depth})
-            # there's probably a bad apple; try splitting the batch
-            parts = await asyncio.gather(*(
-                LocalPostgresDataProvider._get_lite_metadata(
-                    part, _recur_depth=_recur_depth + 1)
-                for part in partition(ocaids, 6)
-            ))
-            return list(itertools.chain(*parts))
+        except (ValueError, KeyError):
+            logger.error(f"Error fetching IA data {r.status_code}: {r.json()['error']}")
+
+        # Only here if an exception occurred
+        # there's probably a bad apple; try splitting the batch
+        parts = await asyncio.gather(*(
+            LocalPostgresDataProvider._get_lite_metadata(
+                part, _recur_depth=_recur_depth + 1)
+            for part in partition(ocaids, 6)
+        ))
+        return list(itertools.chain(*parts))
 
     async def cache_ia_metadata(self, ocaids: List[str]):
         batches = list(batch_until_len(ocaids, 3000))
