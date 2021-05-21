@@ -2,6 +2,7 @@ from __future__ import division
 
 import asyncio
 import itertools
+import re
 from typing import Awaitable, List, Iterable, Literal, Sized
 
 import httpx
@@ -21,6 +22,12 @@ from openlibrary.solr.update_work import load_configs, update_keys
 
 logger = logging.getLogger("openlibrary.solr-builder")
 LITE_METADATA_FIELDS = ('identifier', 'boxid', 'collection')
+OCAID_PATTERN = re.compile(r'^[^\s&#?/]+$')
+
+
+def is_valid_ocaid(ocaid: str):
+    return bool(OCAID_PATTERN.match(ocaid))
+
 
 def config_section_to_dict(config_file, section):
     """
@@ -241,10 +248,9 @@ class LocalPostgresDataProvider(DataProvider):
             r.raise_for_status()
             return r.json()['response']['docs']
         except HTTPError:
-            logger.error(f"Error fetching IA data {r.status_code}",
-                         extra={'_recur_depth': _recur_depth})
+            logger.warning("IA bulk query failed")
         except (ValueError, KeyError):
-            logger.error(f"Error fetching IA data {r.status_code}: {r.json()['error']}")
+            logger.warning(f"IA bulk query failed {r.status_code}: {r.json()['error']}")
 
         # Only here if an exception occurred
         # there's probably a bad apple; try splitting the batch
@@ -281,14 +287,18 @@ class LocalPostgresDataProvider(DataProvider):
             return None
 
     async def cache_ia_metadata(self, ocaids: List[str]):
-        batches = list(batch_until_len(ocaids, 3000))
+        invalid_ocaids = set(ocaid for ocaid in ocaids if not is_valid_ocaid(ocaid))
+        if invalid_ocaids:
+            logger.warning(f"Trying to cache invalid OCAIDs: {invalid_ocaids}")
+        valid_ocaids = list(set(ocaids) - invalid_ocaids)
+        batches = list(batch_until_len(valid_ocaids, 3000))
         # Start them all async
         tasks = [asyncio.create_task(self._get_lite_metadata(b)) for b in batches]
         for task in tasks:
             for doc in await task:
                 self.ia_cache[doc['identifier']] = doc
 
-        missing_ocaids = [ocaid for ocaid in ocaids if ocaid not in self.ia_cache]
+        missing_ocaids = [ocaid for ocaid in valid_ocaids if ocaid not in self.ia_cache]
         missing_ocaid_batches = list(batch(missing_ocaids, 6))
         for ocaids in missing_ocaid_batches:
             # Start them all async
@@ -393,6 +403,8 @@ class LocalPostgresDataProvider(DataProvider):
         if identifier in self.ia_cache:
             logger.info("IA metadata cache hit")
             return self.ia_cache[identifier]
+        elif not is_valid_ocaid(identifier):
+            return None
         else:
             logger.info("IA metadata cache miss")
             return ia.get_metadata_direct(identifier)
@@ -485,6 +497,7 @@ async def main(
         ol="http://ol/",
         ol_config="../../conf/openlibrary.yml",
         solr: str = None,
+        skip_solr_id_check=True,
         start_at: str = None,
         offset=0,
         limit=1,
@@ -667,7 +680,7 @@ async def main(
                 db.cached_work_editions_ranges += db2.cached_work_editions_ranges
 
             update_keys(keys, commit=False, commit_way_later=True, solr8=True,
-                        skip_id_check=True)
+                        skip_id_check=skip_solr_id_check)
 
             seen += len(keys)
             plog.update(
