@@ -119,8 +119,8 @@ beforeAll(() => {
     // Replace getClientRects to enable jQuery ':hidden' selector used by 'more' and 'less' functions
     window.Element.prototype.getClientRects = function() {
         let node = this;
-        while(node) {
-            if(node === document) {
+        while (node) {
+            if (node === document) {
                 break;
             }
             if (!node.style || node.style.display === 'none' || node.style.visibility === 'hidden' || node.classList.contains('ui-helper-hidden')) {
