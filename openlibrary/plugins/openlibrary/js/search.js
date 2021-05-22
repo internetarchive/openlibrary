@@ -36,7 +36,8 @@ function less(header, start_facet_count, facet_inc) {
     const shown = $(`${facetEntry}:not(:hidden)`).length
     const total = $(facetEntry).length
     const increment_extra = (shown - start_facet_count) % facet_inc;
-    const next_shown = shown - ((increment_extra == 0) ? facet_inc:increment_extra);
+    const facet_dec = (increment_extra == 0) ? facet_inc:increment_extra;
+    const next_shown = Math.max(start_facet_count, shown - facet_dec);
     if (shown == total) {
         $(`#${header}_more`).show();
         $(`#${header}_bull`).show();
