@@ -138,6 +138,12 @@ jQuery(function () {
             });
     }
 
+    // conditionally load for author merge page
+    if (document.querySelector('#author-merge-page')) {
+        import('./merge')
+            .then(module => module.initAuthorMergePage());
+    }
+
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
         import('./realtime_account_validation.js')
