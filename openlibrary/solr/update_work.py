@@ -1671,37 +1671,39 @@ def get_ia_db(settings):
     ia_db = web.database(dbn="postgres", host=host, db=db, user=user, pw=pw)
     return ia_db
 
-def parse_args():
-    import argparse
-    parser = argparse.ArgumentParser(
-        description="Insert the documents with the given keys into Solr",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("keys", nargs="+", help="The keys of the items to update (ex: /books/OL1M")
-    parser.add_argument("-s", "--server", default="http://openlibrary.org/", help="URL of the openlibrary website")
-    parser.add_argument("-c", "--config", default="openlibrary.yml", help="Open Library config file")
-    parser.add_argument("-o", "--output-file", help="Open Library config file")
-    parser.add_argument("--nocommit", action="store_true", help="Don't commit to solr")
-    parser.add_argument("--profile", action="store_true", help="Profile this code to identify the bottlenecks")
-    parser.add_argument("--data-provider", default='default',
-                        choices=['default', 'legacy'],
-                        help="Name of the data provider to use")
 
-    return parser.parse_args()
+def main(
+        keys: List[str],
+        ol_url="http://openlibrary.org",
+        ol_config="openlibrary.yml",
+        output_file: str = None,
+        commit=True,
+        profile=False,
+        data_provider: Literal['default', 'legacy'] = "default"
+):
+    """
+    Insert the documents with the given keys into Solr.
 
-def main():
-    args = parse_args()
-    keys = args.keys
-
-    load_configs(args.server, args.config, args.data_provider)
+    :param keys: The keys of the items to update (ex: /books/OL1M)
+    :param ol_url: URL of the openlibrary website
+    :param ol_config: Open Library config file
+    :param output_file: Where to save output
+    :param commit: Whether to also trigger a Solr commit
+    :param profile: Profile this code to identify the bottlenecks
+    :param data_provider: Name of the data provider to use
+    """
+    load_configs(ol_url, ol_config, data_provider)
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
-    if args.profile:
+    if profile:
         f = web.profile(update_keys)
-        _, info = f(keys, not args.nocommit)
+        _, info = f(keys, commit)
         print(info)
     else:
-        update_keys(keys, commit=not args.nocommit, output_file=args.output_file)
+        update_keys(keys, commit=commit, output_file=output_file)
+
 
 if __name__ == '__main__':
-    main()
+    from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
+    FnToCLI(main).run()
