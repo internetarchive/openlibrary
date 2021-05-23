@@ -113,6 +113,7 @@ jQuery(function () {
                 }
                 if (excerpts) {
                     module.initEdit();
+                    module.initEdit2();
                 }
                 if (links) {
                     module.initEditLinks();
