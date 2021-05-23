@@ -1,3 +1,14 @@
+export function initAddBookImport () {
+    $('.list-books a').click(function() {
+        var li = $(this).parents('li:first');
+        $('input#work').val(`/works/${li.attr('id')}`);
+        $('form#addbook').submit();
+    });
+    $('#bookAddCont').click(function() {
+        $('input#work').val('none-of-these');
+        $('form#addbook').submit();
+    });
+}
 import 'jquery';
 import 'jquery-validation';
 import 'jquery-ui/ui/widgets/dialog';
@@ -93,25 +104,40 @@ jQuery(function () {
             .then(module => module.initEditionsTable());
     }
     // conditionally load for user edit page
-    if (document.getElementById('add_row_button')) {
+    const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
+    const addRowButton = document.getElementById('add_row_button');
+    const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
+    const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
+    const excerpts = document.getElementById('excerpts');
+    const links = document.getElementById('links');
+
+    if (
+        addRowButton ||
+        autocompleteLanguage || autocompleteWorks || excerpts || links
+    ) {
         import(/* webpackChunkName: "user-website" */ './edit')
-            .then(module => module.initEditRow());
+            .then(module => {
+                if (addRowButton) {
+                    module.initEditRow();
+                }
+                if (excerpts) {
+                    module.initEdit();
+                }
+                if (links) {
+                    module.initEditLinks();
+                }
+                if (autocompleteAuthor) {
+                    module.initAuthorMultiInputAutocomplete();
+                }
+                if (autocompleteLanguage) {
+                    module.initLanguageMultiInputAutocomplete();
+                }
+                if (autocompleteWorks) {
+                    module.initWorksMultiInputAutocomplete();
+                }
+            });
     }
-    // conditionally load for author autocomplete
-    if (document.querySelector('.multi-input-autocomplete--author')) {
-        import('./edit')
-            .then(module => module.initAuthorMultiInputAutocomplete());
-    }
-    // conditionally load for language autocomplete
-    if (document.querySelector('.multi-input-autocomplete--language')) {
-        import(/* webpackChunkName: "user-website" */ './edit')
-            .then(module => module.initLanguageMultiInputAutocomplete());
-    }
-    // conditionally load for works autocomplete
-    if (document.querySelector('.multi-input-autocomplete--works')) {
-        import(/* webpackChunkName: "user-website" */ './edit')
-            .then(module => module.initWorksMultiInputAutocomplete());
-    }
+
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
         import('./realtime_account_validation.js')
@@ -162,16 +188,6 @@ jQuery(function () {
     if (document.getElementsByClassName('modal-link').length) {
         import(/* webpackChunkName: "patron_metadata" */ './patron-metadata')
             .then((module) => module.initPatronMetadata());
-    }
-
-    if (document.getElementById('excerpts')) {
-        import (/* webpackChunkName: "books_edit" */ './edit.js')
-            .then((module) => module.initEdit());
-    }
-
-    if (document.getElementById('links')) {
-        import (/* webpackChunkName: "books_edit" */ './edit.js')
-            .then((module) => module.initEditLinks());
     }
 
     if (document.getElementsByClassName('manageCovers').length) {
