@@ -57,7 +57,7 @@ export function initIdentifierValidation() {
             if (data.name == '' || data.name == '---') {
                 return error('#id-errors', 'select-id', dataConfig['Please select an identifier.'])
             }
-            const label = $('#select-id').find(`option[value=${data.name}]`).html();
+            const label = $('#select-id').find(`option[value='${data.name}']`).html();
             if (data.value == '') {
                 return error('#id-errors', 'id-value', dataConfig['You need to give a value to ID.'].replace(/ID/, label));
             }
@@ -85,7 +85,7 @@ export function initClassificationValidation() {
                 return error('#classification-errors', '#select-classification', dataConfig['Please select a classification.']);
             }
             if (data.value == '') {
-                const label = $('#select-classification').find(`option[value=${data.name}]`).html();
+                const label = $('#select-classification').find(`option[value='${data.name}']`).html();
                 return error('#classification-errors', '#classification-value', dataConfig['You need to give a value to CLASS.'].replace(/CLASS/, label));
             }
             $('#classification-errors').hide();
