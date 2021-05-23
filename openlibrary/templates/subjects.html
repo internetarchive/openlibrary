@@ -24,13 +24,6 @@ $ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), 
     </form>
 </div>
 
-<script type="text/javascript">
-<!--
-window.q.push( function () {
-    window.page = new Subject($:json_encode(page));
-} );
-//-->
-</script>
 <div class="contentBody">
 
   $:render_template("books/custom_carousel", books=page.works, key="subjects", load_more={"url": page.key + ".json", "limit": len(page.works)})
@@ -103,16 +96,6 @@ $jsdef renderAuthors(authors):
 
 $ publishers_feature_enabled = "publishers" in ctx.features
 
-<script type="text/javascript">
-<!--
-window.q.push( function () {
-    var page = window.page;
-    $ page_key = page.key[page.key.rindex('/')+1:]
-    var page_key = "$page_key";
-    var publishers_feature_enabled = $:json_encode(publishers_feature_enabled);
-} );
-//-->
-</script>
 $jsdef renderPublishers(publishers):
     $for p in publishers:
         <span class="tag">
