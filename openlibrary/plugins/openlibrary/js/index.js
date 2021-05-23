@@ -92,35 +92,48 @@ jQuery(function () {
         import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
     }
+
+    const addRowButton = document.getElementById('add_row_button');
+    const roles = document.querySelector('#roles');
+    const identifiers = document.querySelector('#identifiers');
+    const classifications = document.querySelector('#classifications');
+    const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
+    const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
+    const excerpts = document.getElementById('excerpts');
+    const links = document.getElementById('links');
+
     // conditionally load for user edit page
-    if (document.getElementById('add_row_button')) {
+    if (
+        addRowButton || roles || identifiers || classifications ||
+        autocompleteLanguage || autocompleteWorks || excerpts || links
+    ) {
         import(/* webpackChunkName: "user-website" */ './edit')
-            .then(module => module.initEditRow());
-    }
-    // conditionally load for role validation
-    if (document.querySelector('#roles')) {
-        import('./edit')
-            .then(module => module.initRoleValidation());
-    }
-    // conditionally load for identifier validation
-    if (document.querySelector('#identifiers')) {
-        import('./edit')
-            .then(module => module.initIdentifierValidation());
-    }
-    // conditionally load for classification validation
-    if (document.querySelector('#classifications')) {
-        import('./edit')
-            .then(module => module.initClassificationValidation());
-    }
-    // conditionally load for language autocomplete
-    if (document.querySelector('.multi-input-autocomplete--language')) {
-        import(/* webpackChunkName: "user-website" */ './edit')
-            .then(module => module.initLanguageMultiInputAutocomplete());
-    }
-    // conditionally load for works autocomplete
-    if (document.querySelector('.multi-input-autocomplete--works')) {
-        import(/* webpackChunkName: "user-website" */ './edit')
-            .then(module => module.initWorksMultiInputAutocomplete());
+            .then(module => {
+                if (addRowButton) {
+                    module.initEditRow();
+                }
+                if (excerpts) {
+                    module.initEdit();
+                }
+                if (links) {
+                    module.initEditLinks();
+                }
+                if (roles) {
+                    module.initRoleValidation();
+                }
+                if (identifiers) {
+                    module.initIdentifierValidation();
+                }
+                if (classifications) {
+                    module.initClassificationValidation();
+                }
+                if (autocompleteLanguage) {
+                    module.initLanguageMultiInputAutocomplete();
+                }
+                if (autocompleteWorks) {
+                    module.initWorksMultiInputAutocomplete();
+                }
+            });
     }
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
@@ -172,16 +185,6 @@ jQuery(function () {
     if (document.getElementsByClassName('modal-link').length) {
         import(/* webpackChunkName: "patron_metadata" */ './patron-metadata')
             .then((module) => module.initPatronMetadata());
-    }
-
-    if (document.getElementById('excerpts')) {
-        import (/* webpackChunkName: "books_edit" */ './edit.js')
-            .then((module) => module.initEdit());
-    }
-
-    if (document.getElementById('links')) {
-        import (/* webpackChunkName: "books_edit" */ './edit.js')
-            .then((module) => module.initEditLinks());
     }
 
     if (document.getElementsByClassName('manageCovers').length) {
