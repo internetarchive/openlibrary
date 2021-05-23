@@ -4,8 +4,6 @@ export default function addFadeInFunctionsTojQuery($) {
     // books/edit/edition.html, publishers/view.html and subjects.html
     $.fn.customFadeIn = function(speed, callback) {
         $(this).fadeIn(speed, function() {
-            if (jQuery.browser.msie)
-                $(this).get(0).style.removeAttribute('filter');
             if (callback != undefined)
                 callback();
         });
@@ -14,8 +12,6 @@ export default function addFadeInFunctionsTojQuery($) {
     // covers/change.html
     $.fn.customFadeOut = function(speed, callback) {
         $(this).fadeOut(speed, function() {
-            if (jQuery.browser.msie)
-                $(this).get(0).style.removeAttribute('filter');
             if (callback != undefined)
                 callback();
         });
