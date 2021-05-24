@@ -2,6 +2,7 @@ from __future__ import division
 
 import asyncio
 import itertools
+import json
 import re
 from typing import Awaitable, List, Iterable, Literal, Sized
 
@@ -371,7 +372,7 @@ class LocalPostgresDataProvider(DataProvider):
 
     def find_redirects(self, key):
         """Returns keys of all things which redirect to this one."""
-        logger.info("find_redirects %s", key)
+        logger.debug("find_redirects %s", key)
         q = """
         SELECT "Key" FROM test
         WHERE "Type" = '/type/redirect' AND "JSON" ->> 'location' = '%s'
@@ -401,20 +402,20 @@ class LocalPostgresDataProvider(DataProvider):
 
     def get_metadata(self, identifier):
         if identifier in self.ia_cache:
-            logger.info("IA metadata cache hit")
+            logger.debug("IA metadata cache hit")
             return self.ia_cache[identifier]
         elif not is_valid_ocaid(identifier):
             return None
         else:
-            logger.info("IA metadata cache miss")
+            logger.debug("IA metadata cache miss")
             return ia.get_metadata_direct(identifier)
 
     def get_document(self, key):
         if key in self.cache:
-            logger.info("get_document cache hit %s", key)
+            logger.debug("get_document cache hit %s", key)
             return self.cache[key]
 
-        logger.info("get_document cache miss %s", key)
+        logger.debug("get_document cache miss %s", key)
 
         q = """
         SELECT "JSON" FROM test
@@ -504,7 +505,8 @@ async def main(
         last_modified: str = None,
         progress: str = None,
         log_file: str = None,
-        log_level=logging.WARN,
+        log_level=logging.INFO,
+        dry_run=False,
 ) -> None:
     """
     :param cmd: Whether to do the index or just fetch end of the chunk
@@ -606,6 +608,11 @@ async def main(
                 print(next_start_results[0][0])
             return
 
+        logger.info(json.dumps({
+            'scope': 'solr_builder::main',
+            'event': 'Indexing started',
+            'start_at': start_at,
+        }))
         load_configs(ol, ol_config, db)
         q = build_job_query(job, start_at, offset, last_modified, limit)
 
@@ -680,7 +687,8 @@ async def main(
                 db.cached_work_editions_ranges += db2.cached_work_editions_ranges
 
             update_keys(keys, commit=False, commit_way_later=True, solr8=True,
-                        skip_id_check=skip_solr_id_check)
+                        skip_id_check=skip_solr_id_check,
+                        update='quiet' if dry_run else 'update')
 
             seen += len(keys)
             plog.update(

@@ -925,7 +925,7 @@ async def solr_insert_documents(
         params['commitWithin'] = commit_within
     if skip_id_check:
         params['overwrite'] = 'false'
-    logger.info(f"POSTing update to {solr_base_url}/update {params}")
+    logger.debug(f"POSTing update to {solr_base_url}/update {params}")
     async with httpx.AsyncClient() as client:
         resp = await client.post(
             f'{solr_base_url}/update',
@@ -953,7 +953,7 @@ def solr_update(requests, debug=False, commitWithin=60000, solr_base_url: str = 
         h1 = HTTPConnection(parsed_url.hostname, parsed_url.port)
     else:
         h1 = HTTPConnection(parsed_url.hostname)
-    logger.info("POSTing update to %s", url)
+    logger.debug("POSTing update to %s", url)
     # FIXME; commit strategy / timing should be managed in config, not code
     url = url + "?commitWithin=%d" % commitWithin
 
@@ -1159,7 +1159,7 @@ def solr8_update(
         params['commitWithin'] = commit_within
     if skip_id_check:
         params['overwrite'] = 'false'
-    logger.info(f"POSTing update to {solr_base_url}/update {params}")
+    logger.debug(f"POSTing update to {solr_base_url}/update {params}")
     try:
         resp = httpx.post(
             f'{solr_base_url}/update',
@@ -1200,7 +1200,7 @@ def update_edition(e):
     return []
 
     ekey = e['key']
-    logger.info("updating edition %s", ekey)
+    logger.debug("updating edition %s", ekey)
 
     wkey = e.get('works') and e['works'][0]['key']
     w = wkey and data_provider.get_document(wkey)
@@ -1504,7 +1504,7 @@ def update_keys(keys,
                 commit_way_later=False,
                 solr8=False,
                 skip_id_check=False,
-                update: Literal['update', 'print'] = 'update'):
+                update: Literal['update', 'print', 'pprint', 'quiet'] = 'update'):
     """
     Insert/update the documents with the provided keys in Solr.
 
@@ -1516,7 +1516,7 @@ def update_keys(keys,
     :param bool commit_way_later: set to true if you want to add things quickly and add
         them much later
     """
-    logger.info("BEGIN update_keys")
+    logger.debug("BEGIN update_keys")
     commit_way_later_dur = 1000 * 60 * 60 * 24 * 5  # 5 days?
 
     def _solr_update(requests, debug=False, commitWithin=60000):
@@ -1527,19 +1527,19 @@ def update_keys(keys,
                 return solr8_update(requests, commitWithin, skip_id_check)
             else:
                 return solr_update(requests, debug, commitWithin)
-        elif update == 'print':
+        elif update in ('print', 'pprint'):
             for req in requests:
                 import xml.etree.ElementTree as ET
                 xml_str = (
                     req.toxml()
                     if isinstance(req, UpdateRequest) or isinstance(req, DeleteRequest)
                     else req)
-                if xml_str:
+                if xml_str and update == 'pprint':
                     root = ET.XML(xml_str)
                     ET.indent(root)
                     print(ET.tostring(root, encoding='unicode'))
                 else:
-                    print(xml_str)
+                    print(str(xml_str)[:100])
 
     global data_provider
     global _ia_db
@@ -1558,7 +1558,7 @@ def update_keys(keys,
 
     data_provider.preload_documents(ekeys)
     for k in ekeys:
-        logger.info("processing edition %s", k)
+        logger.debug("processing edition %s", k)
         edition = data_provider.get_document(k)
 
         if edition and edition['type']['key'] == '/type/redirect':
@@ -1605,7 +1605,7 @@ def update_keys(keys,
     requests = []
     requests += [DeleteRequest(deletes)]
     for k in wkeys:
-        logger.info("updating work %s", k)
+        logger.debug("updating work %s", k)
         try:
             w = data_provider.get_document(k)
             requests += update_work(w)
@@ -1644,7 +1644,7 @@ def update_keys(keys,
 
     data_provider.preload_documents(akeys)
     for k in akeys:
-        logger.info("updating author %s", k)
+        logger.debug("updating author %s", k)
         try:
             requests += update_author(k)
         except:
@@ -1667,7 +1667,7 @@ def update_keys(keys,
     skeys = set(k for k in keys if k.startswith("/subjects/"))
     requests = []
     for k in skeys:
-        logger.info("updating subject %s", k)
+        logger.debug("updating subject %s", k)
         try:
             requests += update_subject(k)
         except:
@@ -1679,7 +1679,7 @@ def update_keys(keys,
 
     # Caches should not persist between different calls to update_keys!
     data_provider.clear_cache()
-    logger.info("END update_keys")
+    logger.debug("END update_keys")
 
 
 def solr_escape(query):
