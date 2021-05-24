@@ -1465,7 +1465,8 @@ def solr_select_work(edition_key):
         return docs[0]['key'] # /works/ prefix is in solr
 
 
-def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
+def update_keys(keys, commit=True, output_file=None, commit_way_later=False,
+                update: Literal['update', 'print'] = 'update'):
     """
     Insert/update the documents with the provided keys in Solr.
 
@@ -1481,10 +1482,24 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
     commit_way_later_dur = 1000 * 60 * 60 * 24 * 5  # 5 days?
 
     def _solr_update(requests, debug=False, commitWithin=60000):
-        if commit_way_later:
-            return solr_update(requests, debug, commit_way_later_dur)
-        else:
-            return solr_update(requests, debug, commitWithin)
+        if update == 'update':
+            if commit_way_later:
+                return solr_update(requests, debug, commit_way_later_dur)
+            else:
+                return solr_update(requests, debug, commitWithin)
+        elif update == 'print':
+            for req in requests:
+                import xml.etree.ElementTree as ET
+                xml_str = (
+                    req.toxml()
+                    if isinstance(req, UpdateRequest) or isinstance(req, DeleteRequest)
+                    else req)
+                if xml_str:
+                    root = ET.XML(xml_str)
+                    ET.indent(root)
+                    print(ET.tostring(root, encoding='unicode'))
+                else:
+                    print(xml_str)
 
     global data_provider
     global _ia_db
@@ -1679,7 +1694,9 @@ def main(
         output_file: str = None,
         commit=True,
         profile=False,
-        data_provider: Literal['default', 'legacy'] = "default"
+        data_provider: Literal['default', 'legacy'] = "default",
+        solr_base: str = None,
+        update: Literal['update', 'print'] = 'update'
 ):
     """
     Insert the documents with the given keys into Solr.
@@ -1691,17 +1708,22 @@ def main(
     :param commit: Whether to also trigger a Solr commit
     :param profile: Profile this code to identify the bottlenecks
     :param data_provider: Name of the data provider to use
+    :param solr_base: If wanting to override openlibrary.yml
+    :param update: Whether/how to do the actual solr update call
     """
     load_configs(ol_url, ol_config, data_provider)
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+
+    if solr_base:
+        set_solr_base_url(solr_base)
 
     if profile:
         f = web.profile(update_keys)
         _, info = f(keys, commit)
         print(info)
     else:
-        update_keys(keys, commit=commit, output_file=output_file)
+        update_keys(keys, commit=commit, output_file=output_file, update=update)
 
 
 if __name__ == '__main__':
