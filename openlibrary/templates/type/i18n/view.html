@@ -6,7 +6,7 @@ $ namespace = find_i18n_namespace(page.key)
 <script type="text/javascript">
 function change_ns(ns) {
     document.forms['i18n']['ns'].value = ns;
-    document.forms['i18n'].submit();
+    document.forms['i18n'].trigger('submit');
 }
 
 function changelang() {

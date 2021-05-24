@@ -25,7 +25,7 @@ window.q.push( function(){
     var link = "#" + "link_" + tab.substr(1);
     var fieldname = ":input" + hash.replace('/', '-');
 
-    \$(link).click();
+    \$(link).trigger('click');
 
     // input field is enabled only after the tab is selected and that takes some time after clicking the link.
     // wait for 1 sec after clicking the link and focus the input field

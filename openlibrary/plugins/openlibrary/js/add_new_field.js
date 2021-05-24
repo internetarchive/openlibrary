@@ -54,7 +54,7 @@ export default function($){
             });
 
             // handle submit
-            $('form:first', $(options.href)).submit(function(event) {
+            $('form:first', $(options.href)).on('submit', function(event) {
                 var array, d, i, data;
                 event.preventDefault();
 

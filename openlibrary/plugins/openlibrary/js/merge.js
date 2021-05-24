@@ -1,5 +1,5 @@
 export function initAuthorMergePage() {
-    $('#save').click(function () {
+    $('#save').on('click', function () {
         const n = $('#mergeForm input[type=radio]:checked').length;
         if (n === 0) {
             $('#noMaster').dialog('open');
@@ -11,13 +11,13 @@ export function initAuthorMergePage() {
     $('div.radio:first input[type=radio]').prop('checked', true);
     $('div.checkbox:first input[type=checkbox]').prop('checked', true);
     $('div.author:first').addClass('master');
-    $('#include input[type=radio]').mouseover(function () {
+    $('#include input[type=radio]').on('mouseover', function () {
         $(this).parent().parent().addClass('mouseoverHighlight', 300);
     });
-    $('#include input[type=radio]').mouseout(function () {
+    $('#include input[type=radio]').on('mouseout', function () {
         $(this).parent().parent().removeClass('mouseoverHighlight', 100);
     });
-    $('#include input[type=radio]').click(function () {
+    $('#include input[type=radio]').on('click', function () {
         const previousMaster = $('.merge').find('div.master');
         previousMaster.removeClass('master mergeSelection');
         previousMaster.find('input[type=checkbox]').prop('checked', false);

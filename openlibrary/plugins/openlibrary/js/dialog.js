@@ -38,7 +38,7 @@ function initConfirmationDialogs() {
         $.extend({}, CONFIRMATION_PROMPT_DEFAULTS, {
             buttons: {
                 'Yes, Merge': function() {
-                    $('#mergeForm').submit();
+                    $('#mergeForm').trigger('submit');
                     $(this).parents().find('button').attr('disabled','disabled');
                 },
                 'No, Cancel': function() {
@@ -54,7 +54,7 @@ function initConfirmationDialogs() {
             buttons: {
                 'Yes, I\'m sure': function() {
                     $(this).dialog('close');
-                    $(this).data('origin').closest('td').find('form').submit();
+                    $(this).data('origin').closest('td').find('form').trigger('submit');
                 },
                 'No, cancel': function() {
                     $(this).dialog('close');

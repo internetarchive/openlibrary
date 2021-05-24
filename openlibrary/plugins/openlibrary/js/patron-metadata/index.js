@@ -136,7 +136,7 @@ export function initPatronMetadata() {
                         .done(function(data) {
                             populateForm($(`#${context.id}-user-metadata`), data.observations, selectedValues, context.id, i18nStrings);
                             addChangeListeners(context);
-                            $(`#${context.id}-cancel-submission`).click(function() {
+                            $(`#${context.id}-cancel-submission`).on('click', function() {
                                 $.colorbox.close();
                             })
                             displayModal(context.id);

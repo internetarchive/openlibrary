@@ -500,7 +500,7 @@ window.q.push(function() {
         setup_events();
 
         // We've added new .dropclick element. Need to setup listeners again.
-        \$container.find('.dropclick').click(function(){
+        \$container.find('.dropclick').on('click', function(){
             \$(this).closest('.dropdown').slideToggle();
             \$(this).closest('.arrow').toggleClass("up");
         });
@@ -564,7 +564,7 @@ window.q.push(function() {
     }
 
     function setup_widget_display_events() {
-        \$container.find("a.add-to-list").click(function(event) {
+        \$container.find("a.add-to-list").on('click', function(event) {
             event.preventDefault();
             close_popup();
 
@@ -581,7 +581,7 @@ window.q.push(function() {
             return false;
         });
 
-        \$container.find("a.remove-from-list").click(function(event) {
+        \$container.find("a.remove-from-list").on('click', function(event) {
             event.preventDefault();
             setup_dialog();
 
@@ -594,8 +594,8 @@ window.q.push(function() {
     }
 
     function setup_events() {
-        \$container.find(".work-checkbox").click(update_my_lists);
-        \$container.find(".create-new-list").click(function() {
+        \$container.find(".work-checkbox").on('click', update_my_lists);
+        \$container.find(".create-new-list").on('click', function() {
            window.activeListWidgetIndex = listWidgetIndex;
            close_popup();
            \$.colorbox({

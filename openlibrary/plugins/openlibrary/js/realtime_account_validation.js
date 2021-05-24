@@ -94,6 +94,6 @@ export function initRealTimeValidation() {
         validateEmail();
         validateUsername();
         validatePasswords();
-        $(this).closest('form').submit();
+        $(this).closest('form').trigger('submit');
     });
 }

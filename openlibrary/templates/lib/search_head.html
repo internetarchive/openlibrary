@@ -65,7 +65,7 @@ $ )
                     <a href="$homepath()/account/loans">$_("Loans")</a>
                     <a href="$ctx.user.key/lists">$_("Lists")</a>
                     <a href="$homepath()/account">$_("Settings")</a>
-                    <a href="#" onclick="document.forms['logout'].submit()">Log out</a>
+                    <a href="#" onclick="document.forms['logout'].trigger('submit')">Log out</a>
                 </div>
             </div>
         $else:
