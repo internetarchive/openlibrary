@@ -200,7 +200,7 @@ pipeline {
                   when { expression { return params.INDEX_WORKS } }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "./index-type.sh work ${params.MAX_CORES} works"
+                      sh "CHUNK_ETA=70 ./index-type.sh work ${params.MAX_CORES} works"
                       solr_commit('solr')
                     }
                   }
