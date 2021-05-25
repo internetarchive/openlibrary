@@ -1602,7 +1602,7 @@ def update_keys(keys,
     data_provider.preload_editions_of_works(wkeys)
 
     # update works
-    requests = []
+    requests = []  # type: list[Union[UpdateRequest, DeleteRequest, str]]
     requests += [DeleteRequest(deletes)]
     for k in wkeys:
         logger.debug("updating work %s", k)
