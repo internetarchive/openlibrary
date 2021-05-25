@@ -38,28 +38,8 @@ $jsdef render_author(name_path, dict_path, disabled, i, author):
         <a href="javascript:;" class="remove red plain" title="$_('Remove this author')">[&times;]</a>&nbsp;
         <a href="javascript:;" class="add">$_("Add another author?")</a>
     </div>
-
-<div id="authors">
+$ config = {'name_path': name_path, 'dict_path': dict_path}
+<div class="multi-input-autocomplete--author" data-config="$dumps(config)">
     $for author in (authors or [storage(name="", key="")]):
         $:render_author(name_path, dict_path, True, loop.index0, author)
 </div>
-<script type="text/javascript">
-window.q.push( function () {
-    \$('.author-autocomplete').prop('disabled', false );
-    \$("#authors").setup_multi_input_autocomplete(
-        "input.author-autocomplete",
-        render_author.bind(null, "$name_path", "$dict_path", false),
-        {
-            endpoint: "/authors/_autocomplete",
-            // Don't render "Create new author" if searching by key
-            addnew: function(query) { return !/^OL\d+A/i.test(query); },
-        },
-        {
-            minChars: 2,
-            max: 11,
-            matchSubset: false,
-            autoFill: false,
-            formatItem: render_author_autocomplete_item
-        });
-} );
-</script>

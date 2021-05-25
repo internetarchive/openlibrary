@@ -93,6 +93,7 @@ jQuery(function () {
             .then(module => module.initEditionsTable());
     }
 
+    const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
     const addRowButton = document.getElementById('add_row_button');
     const roles = document.querySelector('#roles');
     const identifiers = document.querySelector('#identifiers');
@@ -104,7 +105,7 @@ jQuery(function () {
 
     // conditionally load for user edit page
     if (
-        addRowButton || roles || identifiers || classifications ||
+        autocompleteAuthor || addRowButton || roles || identifiers || classifications ||
         autocompleteLanguage || autocompleteWorks || excerpts || links
     ) {
         import(/* webpackChunkName: "user-website" */ './edit')
@@ -117,6 +118,9 @@ jQuery(function () {
                 }
                 if (links) {
                     module.initEditLinks();
+                }
+                if (autocompleteAuthor) {
+                    module.initAuthorMultiInputAutocomplete();
                 }
                 if (roles) {
                     module.initRoleValidation();
@@ -135,6 +139,7 @@ jQuery(function () {
                 }
             });
     }
+
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
         import('./realtime_account_validation.js')

@@ -136,8 +136,9 @@ def render_component(name, attrs=None, json_encode=True):
     for (key, val) in attrs.items():
         if json_encode and isinstance(val, dict) or isinstance(val, list):
             val = json.dumps(val)
-        attrs_str += ' %s="%s"' % (key, val.replace('"', "'"))
-
+            # On the Vue side use decodeURIComponent to decode
+            val = urllib.parse.quote(val)
+        attrs_str += f' {key}="{val}"'
     html = ''
     included = web.ctx.setdefault("included-components", [])
 
@@ -556,6 +557,27 @@ def get_languages():
         keys = web.ctx.site.things({"type": "/type/language", "key~": "/languages/*", "limit": 1000})
         _languages = sorted([web.storage(name=d.name, code=d.code, key=d.key) for d in web.ctx.site.get_many(keys)], key=lambda d: d.name.lower())
     return _languages
+
+
+@public
+def get_author_config():
+    return _get_author_config()
+
+
+@web.memoize
+def _get_author_config():
+    """Returns the author config.
+
+    The results are cached on the first invocation.
+    Any changes to /config/author page require restarting the app.
+
+    """
+    thing = web.ctx.site.get('/config/author')
+    if hasattr(thing, "identifiers"):
+        identifiers = [web.storage(t.dict()) for t in thing.identifiers if 'name' in t]
+    else:
+        identifiers = {}
+    return web.storage(identifiers=identifiers)
 
 @public
 def get_edition_config():
