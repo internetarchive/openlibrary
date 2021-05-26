@@ -1,19 +1,24 @@
 import jquery from 'jquery';
 import { more, less } from '../../../openlibrary/plugins/openlibrary/js/search.js';
 
-/** Creates a dummy HTML document with a list of 'facetEntry' element and a
+/** Creates a dummy search facets section with a list of 'facetEntry' element and a
  * 'facetMoreLess' section.
+ *
+ * @param {Number} totalFacet      total number of facet
+ * @param {Number} visibleFacet    number of visible facet
+ * @param {Number} minVisibleFacet minimum number of visible facet
+ * @return {String} HTML search facets section
  */
-function setDocument(totalFacet = 2, visibleFacet = 2, minVisibleFacet = 2) {
-    document.body.innerHTML = `
-        <div id="searchFacets" data-config="">
-            <div class="facet test">
-                <h4 class="facetHead">Facet Label</h4>
-            </div>
+function createSearchFacets(totalFacet = 2, visibleFacet = 2, minVisibleFacet = 2) {
+    const divSearchFacets = document.createElement('DIV');
+    divSearchFacets.setAttribute('id', 'searchFacets');
+    divSearchFacets.innerHTML = `
+        <div class="facet test">
+            <h4 class="facetHead">Facet Label</h4>
         </div>
     `
 
-    const divTestFacet = document.querySelector('div.test');
+    const divTestFacet = divSearchFacets.querySelector('div.test');
     for (let i = 0; i < totalFacet; i++) {
         let facetNb = i + 1;
         divTestFacet.innerHTML += `
@@ -39,13 +44,15 @@ function setDocument(totalFacet = 2, visibleFacet = 2, minVisibleFacet = 2) {
     `;
 
     if (visibleFacet == minVisibleFacet) {
-        document.getElementById('test_bull').style.display = 'none';
-        document.getElementById('test_less').style.display = 'none';
+        divTestFacet.querySelector('#test_bull').style.display = 'none';
+        divTestFacet.querySelector('#test_less').style.display = 'none';
     }
     if (visibleFacet == totalFacet) {
-        document.getElementById('test_more').style.display = 'none';
-        document.getElementById('test_bull').style.display = 'none';
+        divTestFacet.querySelector('#test_more').style.display = 'none';
+        divTestFacet.querySelector('#test_bull').style.display = 'none';
     }
+
+    return divSearchFacets.outerHTML;
 }
 
 /** Runs visibility tests for all 'facetEntry' elements in document.
@@ -140,7 +147,7 @@ describe.each`
     ${7}       | ${2}            | ${3}     | ${7}         | ${7}
 `('more', ({totalFacet, minVisibleFacet, facetInc, visibleFacet, expectedVisibleFacet}) => {
     beforeAll(() => {
-        setDocument(totalFacet, visibleFacet, minVisibleFacet);
+        document.body.innerHTML = createSearchFacets(totalFacet, visibleFacet, minVisibleFacet);
         more('test', minVisibleFacet, facetInc);
     });
 
@@ -156,7 +163,7 @@ describe.each`
     ${7}       | ${2}            | ${3}     | ${7}         | ${5}
 `('less', ({totalFacet, minVisibleFacet, facetInc, visibleFacet, expectedVisibleFacet}) => {
     beforeAll(() => {
-        setDocument(totalFacet, visibleFacet, minVisibleFacet);
+        document.body.innerHTML = createSearchFacets(totalFacet, visibleFacet, minVisibleFacet);
         less('test', minVisibleFacet, facetInc);
     });
 
