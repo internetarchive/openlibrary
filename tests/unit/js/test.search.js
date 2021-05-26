@@ -139,34 +139,44 @@ beforeAll(() => {
     };
 });
 
-describe.each`
-    totalFacet | minVisibleFacet | facetInc | visibleFacet | expectedVisibleFacet
-    ${7}       | ${2}            | ${3}     | ${2}         | ${5}
-    ${9}       | ${2}            | ${3}     | ${5}         | ${8}
-    ${7}       | ${2}            | ${3}     | ${5}         | ${7}
-    ${7}       | ${2}            | ${3}     | ${7}         | ${7}
-`('more', ({totalFacet, minVisibleFacet, facetInc, visibleFacet, expectedVisibleFacet}) => {
-    beforeAll(() => {
-        document.body.innerHTML = createSearchFacets(totalFacet, visibleFacet, minVisibleFacet);
-        more('test', minVisibleFacet, facetInc);
-    });
+describe('more', () => {
+    [
+        /*[ totalFacet, minVisibleFacet, facetInc, visibleFacet, expectedVisibleFacet ]*/
+        [ 7, 2, 3, 2, 5 ],
+        [ 9, 2, 3, 5, 8 ],
+        [ 7, 2, 3, 5, 7 ],
+        [ 7, 2, 3, 7, 7 ]
+    ].forEach((test) => {
+        const label = `Facet setup [total: ${test[0]}, visible: ${test[3]}, min: ${test[1]}]`;
+        describe(label, () => {
+            beforeAll(() => {
+                document.body.innerHTML = createSearchFacets(test[0], test[3], test[1]);
+                more('test', test[1], test[2]);
+            });
 
-    checkFacetVisibility(totalFacet, expectedVisibleFacet);
-    checkFacetMoreLessVisibility(totalFacet, minVisibleFacet, expectedVisibleFacet);
+            checkFacetVisibility(test[0], test[4]);
+            checkFacetMoreLessVisibility(test[0], test[1], test[4]);
+        });
+    });
 });
 
-describe.each`
-    totalFacet | minVisibleFacet | facetInc | visibleFacet | expectedVisibleFacet
-    ${5}       | ${2}            | ${3}     | ${2}         | ${2}
-    ${7}       | ${2}            | ${3}     | ${5}         | ${2}
-    ${9}       | ${2}            | ${3}     | ${8}         | ${5}
-    ${7}       | ${2}            | ${3}     | ${7}         | ${5}
-`('less', ({totalFacet, minVisibleFacet, facetInc, visibleFacet, expectedVisibleFacet}) => {
-    beforeAll(() => {
-        document.body.innerHTML = createSearchFacets(totalFacet, visibleFacet, minVisibleFacet);
-        less('test', minVisibleFacet, facetInc);
-    });
+describe('less', () => {
+    [
+        /*[ totalFacet, minVisibleFacet, facetInc, visibleFacet, expectedVisibleFacet ]*/
+        [ 5, 2, 3, 2, 2 ],
+        [ 7, 2, 3, 5, 2 ],
+        [ 9, 2, 3, 8, 5 ],
+        [ 7, 2, 3, 7, 5 ]
+    ].forEach((test) => {
+        const label = `Facet setup [total: ${test[0]}, visible: ${test[3]}, min: ${test[1]}]`;
+        describe(label, () => {
+            beforeAll(() => {
+                document.body.innerHTML = createSearchFacets(test[0], test[3], test[1]);
+                less('test', test[1], test[2]);
+            });
 
-    checkFacetVisibility(totalFacet, expectedVisibleFacet);
-    checkFacetMoreLessVisibility(totalFacet, minVisibleFacet, expectedVisibleFacet);
+            checkFacetVisibility(test[0], test[4]);
+            checkFacetMoreLessVisibility(test[0], test[1], test[4]);
+        });
+    });
 });
