@@ -91,6 +91,7 @@ jQuery(function () {
             .then(module => module.initEditionsTable());
     }
 
+    const edition = document.getElementById('tabsAddbook');
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
     const addRowButton = document.getElementById('add_row_button');
     const roles = document.querySelector('#roles');
@@ -103,17 +104,20 @@ jQuery(function () {
 
     // conditionally load for user edit page
     if (
+        edition ||
         autocompleteAuthor || addRowButton || roles || identifiers || classifications ||
         autocompleteLanguage || autocompleteWorks || excerpts || links
     ) {
         import(/* webpackChunkName: "user-website" */ './edit')
             .then(module => {
+                if (edition) {
+                    module.initEdit();
+                }
                 if (addRowButton) {
                     module.initEditRow();
                 }
                 if (excerpts) {
-                    module.initEdit();
-                    module.initEdit2();
+                    module.initEditExcerpts();
                 }
                 if (links) {
                     module.initEditLinks();

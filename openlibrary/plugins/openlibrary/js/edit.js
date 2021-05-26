@@ -185,8 +185,7 @@ function show_hide_title() {
 }
 
 
-export function initEdit() {
-
+export function initEditExcerpts() {
     $('#excerpts').repeat({
         vars: {
             prefix: 'work--excerpts',
@@ -251,13 +250,18 @@ export function initEditLinks() {
 }
 
 /**
- * TODO
+ * Initializes edit page.
+ *
+ * Assumes presence of elements with id:
+ *    - '#link_edition'
+ *    - '#tabsAddbook'
+ *    - '#contentHead'
  */
-export function initEdit2() {
+export function initEdit() {
     var hash = document.location.hash || '#edition';
     var tab = hash.split('/')[0];
-    var link = '#link_' + tab.substr(1);
-    var fieldname = ':input' + hash.replace('/', '-');
+    var link = `#link_${tab.substr(1)}`;
+    var fieldname = `:input${hash.replace('/', '-')}`;
 
     $(link).click();
 
