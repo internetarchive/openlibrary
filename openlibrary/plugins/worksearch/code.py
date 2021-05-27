@@ -434,8 +434,12 @@ def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=Non
         if use_dismax:
             params.append(('q', ' '.join(q_list)))
             params.append(('defType', 'dismax'))
-            params.append(('qf', 'text title^5 author_name^5'))
-            params.append(('bf', 'sqrt(edition_count)^10'))
+            if config.plugin_worksearch.get('solr8'):
+                params.append(('qf', 'text title^20 author_name^20'))
+                params.append(('bf', 'min(100,edition_count)'))
+            else:
+                params.append(('qf', 'text title^5 author_name^5'))
+                params.append(('bf', 'sqrt(edition_count)^10'))
         else:
             params.append(('q', ' '.join(q_list + ['_val_:"sqrt(edition_count)"^10'])))
 
