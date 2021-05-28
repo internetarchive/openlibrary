@@ -95,11 +95,7 @@ export function loadEditionsGraph() {
     dateFrom = plot.getAxes().xaxis.min.toFixed(0);
     dateTo = plot.getAxes().xaxis.max.toFixed(0);
 
-    if (jQuery.support.opacity) {
-        $('.chartYaxis').css({top: '60px', left: '-60px'})
-    } else {
-        $('.chartYaxis').css({top: '0', left: '0'})
-    }
+    $('.chartYaxis').css({top: '60px', left: '-60px'});
 
     if (dateFrom == (dateTo - 1)) {
         $('.clickdata').text(`Published in ${dateFrom}`);

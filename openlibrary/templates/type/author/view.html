@@ -4,7 +4,8 @@ $if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and qu
     // <!--
     window.q.push(function() {
         if ("$query_param('merge', 'false')" == "true") {
-            \$("#preMerge").parent().andSelf().show();
+            \$("#preMerge").show();
+            \$("#preMerge").parent().show();
 
             $ duplicates = ["/authors/" + k for k in query_param("duplicates", "").split(",")]
             var data = {
