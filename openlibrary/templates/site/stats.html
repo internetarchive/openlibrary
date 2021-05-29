@@ -15,15 +15,4 @@ $for s in ctx.get("stats", []):
     $s.name $s.time
         $s.data
 </pre>
-<script type="text/javascript">
-    window.q.push(function() {
-        \$(document).keypress(function(e) {
-            // Toggle debug stats on Ctrl+Alt+.
-            if (e.altKey && e.ctrlKey && e.which == 46) {
-                \$("#debug-stats").toggle();
-                document.getElementById("debug-stats").scrollIntoView();
-            };
-        });
-    });
-</script>
 </div>
