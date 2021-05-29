@@ -51,7 +51,6 @@ div.editionAbout {
 }
 
 .workFooter {
-  clear: both;
   border-top: 1px solid @lighter-grey;
   ul.listLists {
     display: flex;
@@ -202,16 +201,17 @@ div.editionTools {
 }
 
 @media only screen and (min-width: @width-breakpoint-desktop) {
+  .workDetails {
+    display: flex;
+  }  
   div.edition {
     &Cover {
-      float: left;
       width: 225px;
       margin-right: 1.5em;
       margin-bottom: 0;
     }
     &About {
-      float: left;
-      width: 75%;
+      flex: 1;
     }
   }
 }
