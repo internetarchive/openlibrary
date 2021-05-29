@@ -56,7 +56,7 @@
     "slick-carousel": "1.6.0",
     "style-loader": "2.0.0",
     "stylelint": "13.13.1",
-    "stylelint-declaration-use-variable": "1.7.2",
+    "stylelint-declaration-use-variable": "1.7.3",
     "svgo": "2.3.0",
     "vue": "2.6.12",
     "vue-async-computed": "3.9.0",
