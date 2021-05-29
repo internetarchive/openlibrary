@@ -1,6 +1,4 @@
 import pytest
-import unittest
-from unittest import mock
 
 from openlibrary.solr import update_work
 from openlibrary.solr.data_provider import DataProvider
