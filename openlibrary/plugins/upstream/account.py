@@ -792,8 +792,8 @@ class public_my_books_json(delegate.page):
                 content_type="application/json")
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         logged_in_user = accounts.get_current_user()
-        if (is_public
-            or logged_in_user and logged_in_user.key.split('/')[-1] == username):
+        if (is_public or
+                logged_in_user and logged_in_user.key.split('/')[-1] == username):
             readlog = ReadingLog(user=user)
             books = readlog.get_works(key, page, limit)
             records_json = [
