@@ -46,6 +46,7 @@ plugin_modules:
 
 plugin_worksearch:
     solr_base_url: http://solr:8983/solr
+    solr8: false
     spellcheck_count: 3
     ebook_count_db_parameters:
         db: openlibrary_ebook_count
