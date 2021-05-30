@@ -78,7 +78,7 @@ export class SearchBar {
         // Bind to changes in the search state
         SearchUtils.mode.sync(this.handleSearchModeChange.bind(this));
         this.facet.sync(this.handleFacetValueChange.bind(this));
-        this.$facetSelect.change(this.handleFacetSelectChange.bind(this));
+        this.$facetSelect.on('change', this.handleFacetSelectChange.bind(this));
         this.$form.on('submit', this.submitForm.bind(this));
 
         this.initAutocompletionLogic();
@@ -122,14 +122,14 @@ export class SearchBar {
     /** Initialize event handlers that allow the form to collapse for small screens */
     initCollapsibleMode() {
         this.toggleCollapsibleModeForSmallScreens($(window).width());
-        $(window).resize(debounce(() => {
+        $(window).on('resize', debounce(() => {
             this.toggleCollapsibleModeForSmallScreens($(window).width());
         }, 50));
         $(document).on('submit','.in-collapsible-mode', event => {
             if (this.collapsed) {
                 event.preventDefault();
                 this.toggleCollapse();
-                this.$input.focus();
+                this.$input.trigger('focus');
             }
         });
     }

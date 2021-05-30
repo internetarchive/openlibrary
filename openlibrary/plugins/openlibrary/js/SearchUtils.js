@@ -143,6 +143,6 @@ export class SearchModeSelector {
      * @param {Function} handler
      */
     change(handler) {
-        this.$radioButtons.change(event => handler($(event.target).val()));
+        this.$radioButtons.on('change', event => handler($(event.target).val()));
     }
 }
