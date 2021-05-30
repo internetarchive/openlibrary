@@ -14,7 +14,6 @@ import addNewFieldInit from './add_new_field';
 import automaticInit from './automatic';
 import bookReaderInit from './bookreader_direct';
 import { ungettext, ugettext,  sprintf } from './i18n';
-import addFadeInFunctionsTojQuery from './jquery.customFade';
 import jQueryRepeat from './jquery.repeat';
 import { enumerate, htmlquote, websafe, foreach, join, len, range } from './jsdef';
 import initAnalytics from './ol.analytics';
@@ -83,7 +82,6 @@ jQuery(function () {
             .then((module) => module.initMarkdownEditor($markdownTextAreas));
     }
     bookReaderInit($);
-    addFadeInFunctionsTojQuery($);
     jQueryRepeat($);
     initAnalytics($);
     init($);

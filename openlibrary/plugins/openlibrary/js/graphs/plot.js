@@ -64,7 +64,7 @@ export function loadEditionsGraph() {
             'font-size': '11px',
             opacity: 0.90,
             'z-index': 100
-        }).appendTo('body').customFadeIn(200);
+        }).appendTo('body').fadeIn(200);
     }
     previousPoint = null;
     placeholder.bind('plothover', function (event, pos, item) {
