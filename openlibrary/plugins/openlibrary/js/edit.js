@@ -250,6 +250,22 @@ export function initEditLinks() {
 }
 
 /**
+ * TODO
+ */
+function limitChars(textid, limit, infodiv) {
+    var text = $(`#${textid}`).val();
+    var textlength = text.length;
+    if (textlength > limit) {
+        $(`#${infodiv}`).html('Maximum length is ' + limit + ' characters');
+        $(`#${textid}`).val(text.substr(0, limit));
+        return false;
+    } else {
+        $(`#${infodiv}`).html('You have ' + (limit - textlength) + ' characters left');
+        return true;
+    }
+}
+
+/**
  * Initializes edit page.
  *
  * Assumes presence of elements with id:
@@ -258,6 +274,7 @@ export function initEditLinks() {
  *    - '#contentHead'
  */
 export function initEdit() {
+    $('#excerpt').keyup(function(){limitChars('excerpt', 2000, 'charLimit');});
     var hash = document.location.hash || '#edition';
     var tab = hash.split('/')[0];
     var link = `#link_${tab.substr(1)}`;
