@@ -48,14 +48,14 @@ export function initPatronMetadata() {
             }
 
             let $formSection = $(`<details class="aspect-section" open>
-                                    <summary>${type}</summary>
-                                    <div id="${id}-${type}-question">
-                                        <h3>${observation.description}</h3>
+                                    <summary><h3>${type}</h3></summary>
+                                    <fieldset id="${id}-${type}-question">
+                                        <legend>${observation.description}</legend>
                                         <span class="pending-indicator hidden"></span>
                                         <span class="success-indicator hidden">Selection saved!</span>
                                         <span class="failure-indicator hidden">Submission failed</span>
                                         ${$choices.prop('outerHTML')}
-                                    </div>
+                                    </fieldset>
                                 </details>`);
 
             /*
