@@ -120,23 +120,25 @@ function checkFacetMoreLessVisibility(totalFacet, minVisibleFacet, expectedVisib
     }
 }
 
+let _originalGetClientRects = window.Element.prototype.getClientRects;
+
+// Stubbed getClientRects to enable jQuery ':hidden' selector used by 'more' and 'less' functions
+let _stubbedGetClientRects = function() {
+    let node = this;
+    while (node) {
+        if (node === document) {
+            break;
+        }
+        if (!node.style || node.style.display === 'none' || node.style.visibility === 'hidden' || node.classList.contains('ui-helper-hidden')) {
+            return [];
+        }
+        node = node.parentNode;
+    }
+    return [{width: 1, height: 1}];
+};
+
 beforeAll(() => {
     global.$ = jquery;
-
-    // Replace getClientRects to enable jQuery ':hidden' selector used by 'more' and 'less' functions
-    window.Element.prototype.getClientRects = function() {
-        let node = this;
-        while (node) {
-            if (node === document) {
-                break;
-            }
-            if (!node.style || node.style.display === 'none' || node.style.visibility === 'hidden' || node.classList.contains('ui-helper-hidden')) {
-                return [];
-            }
-            node = node.parentNode;
-        }
-        return [{width: 1, height: 1}];
-    };
 });
 
 describe('more', () => {
@@ -151,7 +153,12 @@ describe('more', () => {
         describe(label, () => {
             beforeAll(() => {
                 document.body.innerHTML = createSearchFacets(test[0], test[3], test[1]);
+                window.Element.prototype.getClientRects = _stubbedGetClientRects;
                 more('test', test[1], test[2]);
+            });
+
+            afterAll(() => {
+                window.Element.prototype.getClientRects = _originalGetClientRects;
             });
 
             checkFacetVisibility(test[0], test[4]);
@@ -172,7 +179,12 @@ describe('less', () => {
         describe(label, () => {
             beforeAll(() => {
                 document.body.innerHTML = createSearchFacets(test[0], test[3], test[1]);
+                window.Element.prototype.getClientRects = _stubbedGetClientRects;
                 less('test', test[1], test[2]);
+            });
+
+            afterAll(() => {
+                window.Element.prototype.getClientRects = _originalGetClientRects;
             });
 
             checkFacetVisibility(test[0], test[4]);
