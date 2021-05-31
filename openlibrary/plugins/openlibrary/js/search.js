@@ -9,7 +9,7 @@
  * @param {Number} start_facet_count initial number of displayed facets
  * @param {Number} facet_inc number of hidden facets to be displayed
  */
-function more(header, start_facet_count, facet_inc) {
+export function more(header, start_facet_count, facet_inc) {
     const facetEntry = `div.${header} div.facetEntry`
     const shown = $(`${facetEntry}:not(:hidden)`).length
     const total = $(facetEntry).length
@@ -31,7 +31,7 @@ function more(header, start_facet_count, facet_inc) {
  * @param {Number} start_facet_count initial number of displayed facets
  * @param {Number} facet_inc number of displayed facets to be hidden
  */
-function less(header, start_facet_count, facet_inc) {
+export function less(header, start_facet_count, facet_inc) {
     const facetEntry = `div.${header} div.facetEntry`
     const shown = $(`${facetEntry}:not(:hidden)`).length
     const total = $(facetEntry).length
