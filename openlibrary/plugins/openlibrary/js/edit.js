@@ -6,7 +6,7 @@
 
 function error(errordiv, input, message) {
     $(errordiv).show().html(message);
-    $(input).focus();
+    $(input).trigger('focus');
     return false;
 }
 
@@ -142,7 +142,7 @@ export function initEdit() {
     });
 
     // update length on every keystroke
-    $('#excerpts-excerpt').keyup(update_len);
+    $('#excerpts-excerpt').on('keyup', update_len);
 
     // update length on add.
     $('#excerpts')
@@ -173,13 +173,13 @@ export function initEditLinks() {
             if ($.trim(data.url) === '' || $.trim(data.url) === 'https://') {
                 $('#link-errors').html('Please provide a URL.');
                 $('#link-errors').removeClass('hidden');
-                $('#link-url').focus();
+                $('#link-url').trigger('focus');
                 return false;
             }
             if ($.trim(data.title) === '') {
                 $('#link-errors').html('Please provide a label.');
                 $('#link-errors').removeClass('hidden');
-                $('#link-label').focus();
+                $('#link-label').trigger('focus');
                 return false;
             }
             $('#link-errors').addClass('hidden');

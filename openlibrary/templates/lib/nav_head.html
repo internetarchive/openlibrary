@@ -129,7 +129,7 @@ $def with (page)
           <li><a href="$homepath()/account">$_("Settings")</a></li>
           <li>
             <form name="logout" action="/account/logout" method="post">
-              <a href="#" onclick="document.forms['logout'].submit()">$_("Log out")</a>
+              <a href="#" onclick="document.forms['logout'].trigger('submit')">$_("Log out")</a>
             </form>
           </li>
         </ul>

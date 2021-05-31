@@ -26,7 +26,7 @@ export default function($){
                 .val('[]')
                 .insertBefore($this);
 
-            $this.change(function(){
+            $this.on('change', function(){
                 var value = $this.val();
                 if (value == '__add__') {
                     if (options.onshow) {
@@ -46,7 +46,7 @@ export default function($){
 
                 if ($this.val() == '__add__') {
                     $this.val('');
-                    $this.focus();
+                    $this.trigger('focus');
                 }
                 if (options.cancel) {
                     options.cancel();
@@ -54,7 +54,7 @@ export default function($){
             });
 
             // handle submit
-            $('form:first', $(options.href)).submit(function(event) {
+            $('form:first', $(options.href)).on('submit', function(event) {
                 var array, d, i, data;
                 event.preventDefault();
 

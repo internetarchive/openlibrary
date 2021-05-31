@@ -12,8 +12,8 @@ export class SearchPage {
     constructor(form, searchModeSelector) {
         this.$form = $(form);
         searchMode.sync(this.updateModeInputs.bind(this));
-        this.$form.submit(this.updateModeInputs.bind(this));
-        searchModeSelector.change(() => this.$form.submit());
+        this.$form.on('submit', this.updateModeInputs.bind(this));
+        searchModeSelector.change(() => this.$form.trigger('submit'));
     }
 
     /** Convenience wrapper of {@link addModeInputsToForm} */

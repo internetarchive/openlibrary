@@ -234,7 +234,7 @@ jQuery(function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
 
-    $('#wikiselect').on('focus', function(){$(this).select();})
+    $('#wikiselect').on('focus', function(){$(this).trigger('select');})
 
     // Clicking outside of menus closes menus
     $(document).on('click', function (event) {

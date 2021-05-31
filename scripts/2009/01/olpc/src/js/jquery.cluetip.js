@@ -267,7 +267,7 @@
       if (opts.sticky) {
         var $closeLink = $('<div id="cluetip-close"><a href="#">' + opts.closeText + '</a></div>');
         (opts.closePosition == 'bottom') ? $closeLink.appendTo($cluetipInner) : (opts.closePosition == 'title') ? $closeLink.prependTo($cluetipTitle) : $closeLink.prependTo($cluetipInner);
-        $closeLink.click(function() {
+        $closeLink.on('click', function() {
           cluetipClose();
           return false;
         });
@@ -365,7 +365,7 @@ clearTimeout(closeOnDelay);
 -------------------------------------- */
   // activate by click
       if ( (/click|toggle/).test(opts.activation) ) {
-        $this.click(function(event) {
+        $this.on('click', function(event) {
           if ($cluetip.is(':hidden') || !$this.is('.cluetip-clicked')) {
             activate(event);
             $('.cluetip-clicked').removeClass('cluetip-clicked');
@@ -389,7 +389,7 @@ clearTimeout(closeOnDelay);
   // activate by hover
     // clicking is returned false if cluetip url is same as href url
       } else {
-        $this.click(function() {
+        $this.on('click', function() {
           if ($this.attr('href') && $this.attr('href') == tipAttribute && !opts.clickThrough) {
             return false;
           }
@@ -405,7 +405,7 @@ clearTimeout(closeOnDelay);
           }
         };
         if ($.fn.hoverIntent && opts.hoverIntent) {
-          $this.mouseover(function() {$this.attr('title',''); })
+          $this.on('mouseover', function() {$this.attr('title',''); })
           .hoverIntent({
             sensitivity: opts.hoverIntent.sensitivity,
             interval: opts.hoverIntent.interval,  
