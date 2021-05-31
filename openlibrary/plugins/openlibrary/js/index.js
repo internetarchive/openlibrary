@@ -90,16 +90,20 @@ jQuery(function () {
         import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
     }
-    // conditionally load for user edit page
+
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
     const addRowButton = document.getElementById('add_row_button');
+    const roles = document.querySelector('#roles');
+    const identifiers = document.querySelector('#identifiers');
+    const classifications = document.querySelector('#classifications');
     const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
     const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
     const excerpts = document.getElementById('excerpts');
     const links = document.getElementById('links');
 
+    // conditionally load for user edit page
     if (
-        addRowButton ||
+        autocompleteAuthor || addRowButton || roles || identifiers || classifications ||
         autocompleteLanguage || autocompleteWorks || excerpts || links
     ) {
         import(/* webpackChunkName: "user-website" */ './edit')
@@ -116,6 +120,15 @@ jQuery(function () {
                 if (autocompleteAuthor) {
                     module.initAuthorMultiInputAutocomplete();
                 }
+                if (roles) {
+                    module.initRoleValidation();
+                }
+                if (identifiers) {
+                    module.initIdentifierValidation();
+                }
+                if (classifications) {
+                    module.initClassificationValidation();
+                }
                 if (autocompleteLanguage) {
                     module.initLanguageMultiInputAutocomplete();
                 }
@@ -130,7 +143,6 @@ jQuery(function () {
         import('./merge')
             .then(module => module.initAuthorMergePage());
     }
-
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
         import('./realtime_account_validation.js')
