@@ -13,7 +13,7 @@ export function initCoversChange() {
     // Add iframes lazily when the popup is loaded.
     // This avoids fetching the iframes along with main page.
     $('.coverPop')
-        .bind('click', function () {
+        .on('click', function () {
             // clear the content of #imagesAdd and #imagesManage before adding new
             $('#imagesAdd').html('');
             $('#imagesManage').html('');
@@ -27,14 +27,14 @@ export function initCoversChange() {
                 add_iframe('#imagesManage', manage_url);
             }, 0);
         })
-        .bind('cbox_cleanup', function () {
+        .on('cbox_cleanup', function () {
             $('#imagesAdd').html('');
             $('#imagesManage').html('');
         });
 }
 
 function val(selector) {
-    return $.trim($(selector).val());
+    return ($(selector).trim().val());
 }
 
 function error(message, event) {

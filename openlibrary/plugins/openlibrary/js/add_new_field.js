@@ -42,7 +42,7 @@ export default function($){
             });
 
             // handle cancel
-            $(options.href).bind('cbox_closed', function() {
+            $(options.href).on('cbox_closed', function() {
 
                 if ($this.val() == '__add__') {
                     $this.val('');
@@ -54,7 +54,7 @@ export default function($){
             });
 
             // handle submit
-            $('form:first', $(options.href)).on('submit', function(event) {
+            $('form').first().add($(options.href)).on('submit', function(event) {
                 var array, d, i, data;
                 event.preventDefault();
 
@@ -63,7 +63,7 @@ export default function($){
                 d = {};
 
                 for (i in array) {
-                    d[array[i].name] = $.trim(array[i].value);
+                    d[array[i].name] = (array[i].value).trim();
                 }
 
                 // validate
@@ -78,7 +78,7 @@ export default function($){
                 $('<option/>')
                     .html(d.label || d.value)
                     .attr('value', d.value)
-                    .insertBefore($this.find('option:last').prev()) // insert before ---
+                    .insertBefore($this.find('option').last().prev()) // insert before ---
                     .parent().val(d.value);
 
                 // add JSON to hidden field

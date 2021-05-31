@@ -8,9 +8,9 @@ export function initAuthorMergePage() {
         }
         return false;
     });
-    $('div.radio:first input[type=radio]').prop('checked', true);
-    $('div.checkbox:first input[type=checkbox]').prop('checked', true);
-    $('div.author:first').addClass('master');
+    $('div.radio').first().find('input[type=radio]').prop('checked', true);
+    $('div.checkbox').first().find('input[type=checkbox]').prop('checked', true);
+    $('div.author').first().addClass('master');
     $('#include input[type=radio]').on('mouseover', function () {
         $(this).parent().parent().addClass('mouseoverHighlight', 300);
     });

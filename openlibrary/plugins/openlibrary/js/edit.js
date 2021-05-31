@@ -146,9 +146,9 @@ export function initEdit() {
 
     // update length on add.
     $('#excerpts')
-        .bind('repeat-add', update_len)
-        .bind('repeat-add', show_hide_title)
-        .bind('repeat-remove', show_hide_title);
+        .on('repeat-add', update_len)
+        .on('repeat-add', show_hide_title)
+        .on('repeat-remove', show_hide_title);
 
     // update length on load
     update_len();
@@ -170,13 +170,13 @@ export function initEditLinks() {
             prefix: $('#links').data('prefix')
         },
         validate: function(data) {
-            if ($.trim(data.url) === '' || $.trim(data.url) === 'https://') {
+            if ((data.url).trim() === '' || (data.url).trim() === 'https://') {
                 $('#link-errors').html('Please provide a URL.');
                 $('#link-errors').removeClass('hidden');
                 $('#link-url').trigger('focus');
                 return false;
             }
-            if ($.trim(data.title) === '') {
+            if ((data.title).trim() === '') {
                 $('#link-errors').html('Please provide a label.');
                 $('#link-errors').removeClass('hidden');
                 $('#link-label').trigger('focus');

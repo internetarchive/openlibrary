@@ -1,6 +1,6 @@
 export function initAddBookImport () {
     $('.list-books a').on('click', function() {
-        var li = $(this).parents('li:first');
+        var li = $(this).parents('li').first();
         $('input#work').val(`/works/${li.attr('id')}`);
         $('form#addbook').trigger('submit');
     });
