@@ -34,11 +34,11 @@ function limitChars(textid, limit, infodiv) {
     var text = $(`#${textid}`).val();
     var textlength = text.length;
     if (textlength > limit) {
-        $(`#${infodiv}`).html('Maximum length is ' + limit + ' characters');
+        $(`#${infodiv}`).html(`Maximum length is ${limit} characters`);
         $(`#${textid}`).val(text.substr(0, limit));
         return false;
     } else {
-        $(`#${infodiv}`).html('You have ' + (limit - textlength) + ' characters left');
+        $(`#${infodiv}`).html(`You have ${limit - textlength} characters left`);
         return true;
     }
 }
@@ -287,17 +287,17 @@ export function initEdit() {
     var link = `#link_${tab.substr(1)}`;
     var fieldname = `:input${hash.replace('/', '-')}`;
 
-    $(link).click();
+    $(link).trigger('click');
 
     // input field is enabled only after the tab is selected and that takes some time after clicking the link.
     // wait for 1 sec after clicking the link and focus the input field
     setTimeout(function() {
         // scroll such that top of the content is visible
-        if ($(fieldname).length != 0) {
-            $(fieldname).focus();
+        if ($(fieldname).length !== 0) {
+            $(fieldname).trigger('focus');
         }
         else {
-            $('#tabsAddbook > div:visible :input:first').focus();
+            $('#tabsAddbook > div:visible :input:first').trigger('focus');
         }
         $(window).scrollTop($('#contentHead').offset().top);
     }, 1000);
