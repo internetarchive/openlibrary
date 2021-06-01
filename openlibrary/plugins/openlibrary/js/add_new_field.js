@@ -41,8 +41,9 @@ export default function($){
                 }
             });
 
+            const $href=$(options.href);
             // handle cancel
-            $(options.href).on('cbox_closed', function() {
+            $href.on('cbox_closed', function() {
 
                 if ($this.val() == '__add__') {
                     $this.val('');
@@ -54,7 +55,7 @@ export default function($){
             });
 
             // handle submit
-            $('form').first().add($(options.href)).on('submit', function(event) {
+            $('form').first().add($href).on('submit', function(event) {
                 var array, d, i, data;
                 event.preventDefault();
 
