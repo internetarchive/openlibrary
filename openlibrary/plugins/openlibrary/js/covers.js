@@ -34,7 +34,7 @@ export function initCoversChange() {
 }
 
 function val(selector) {
-    return ($(selector).trim().val());
+    return ($(selector).val()).trim;
 }
 
 function error(message, event) {

@@ -176,7 +176,7 @@ export function initEditLinks() {
                 $('#link-url').trigger('focus');
                 return false;
             }
-            if ((data.title).trim() === '') {
+            if ((data.title).trim === '') {
                 $('#link-errors').html('Please provide a label.');
                 $('#link-errors').removeClass('hidden');
                 $('#link-label').trigger('focus');
