@@ -41,7 +41,7 @@ export default function($){
                 }
             });
 
-            const $href=$(options.href);
+            const $href = $(options.href);
             // handle cancel
             $href.on('cbox_closed', function() {
 
