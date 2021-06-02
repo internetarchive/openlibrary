@@ -148,6 +148,13 @@ jQuery(function () {
         import('./merge')
             .then(module => module.initAuthorMergePage());
     }
+
+    // conditionally load for author view page
+    if (document.getElementById('preMerge')) {
+        import(/* webpackChunkName: "merge" */ './merge')
+            .then((module) => module.initAuthorView());
+    }
+
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
         import('./realtime_account_validation.js')
