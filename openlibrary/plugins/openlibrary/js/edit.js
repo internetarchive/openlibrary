@@ -22,6 +22,24 @@ function update_len() {
 }
 
 /**
+ * Gets length of 'textid' section and limit textid value length to input 'limit'
+ *
+ * @param {String} textid  text section id name
+ * @param {Number} limit   character number limit
+ * @return {boolean} is character number below or equal to limit
+ */
+function limitChars(textid, limit) {
+    var text = $(`#${textid}`).val();
+    var textlength = text.length;
+    if (textlength > limit) {
+        $(`#${textid}`).val(text.substr(0, limit));
+        return false;
+    } else {
+        return true;
+    }
+}
+
+/**
  * This is needed because jQuery has no forEach equivalent that works with jQuery elements instead of DOM elements
  * @param selector - css selector used by jQuery
  * @returns {*[]} - array of jQuery elements
@@ -184,9 +202,7 @@ function show_hide_title() {
     }
 }
 
-
-export function initEdit() {
-
+export function initEditExcerpts() {
     $('#excerpts').repeat({
         vars: {
             prefix: 'work--excerpts',
@@ -204,7 +220,10 @@ export function initEdit() {
     });
 
     // update length on every keystroke
-    $('#excerpts-excerpt').on('keyup', update_len);
+    $('#excerpts-excerpt').on('keyup', function() {
+        limitChars('excerpts-excerpt', 2000);
+        update_len();
+    });
 
     // update length on add.
     $('#excerpts')
@@ -248,4 +267,34 @@ export function initEditLinks() {
             return true;
         }
     });
+}
+
+/**
+ * Initializes edit page.
+ *
+ * Assumes presence of elements with id:
+ *    - '#link_edition'
+ *    - '#tabsAddbook'
+ *    - '#contentHead'
+ */
+export function initEdit() {
+    var hash = document.location.hash || '#edition';
+    var tab = hash.split('/')[0];
+    var link = `#link_${tab.substr(1)}`;
+    var fieldname = `:input${hash.replace('/', '-')}`;
+
+    $(link).trigger('click');
+
+    // input field is enabled only after the tab is selected and that takes some time after clicking the link.
+    // wait for 1 sec after clicking the link and focus the input field
+    setTimeout(function() {
+        // scroll such that top of the content is visible
+        if ($(fieldname).length !== 0) {
+            $(fieldname).trigger('focus');
+        }
+        else {
+            $('#tabsAddbook > div:visible :input:first').trigger('focus');
+        }
+        $(window).scrollTop($('#contentHead').offset().top);
+    }, 1000);
 }
