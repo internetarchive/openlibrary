@@ -43,19 +43,13 @@ export function initAuthorMergePage() {
  */
 export function initAuthorView() {
     const dataKeysJSON = $('#preMerge').data('keys');
-    const masterKey = dataKeysJSON['master'];
-    const duplicateKeys = dataKeysJSON['duplicates'];
 
     $('#preMerge').show();
     $('#preMerge').parent().show();
 
-    let duplicates = [];
-    for (let key of duplicateKeys.split(',')) {
-        duplicates.push(`/authors/${key}`);
-    }
     let data = {
-        master: masterKey,
-        duplicates: duplicates
+        master: dataKeysJSON['master'],
+        duplicates: dataKeysJSON['duplicates']
     };
 
     $.ajax({
