@@ -15,9 +15,9 @@ class TestDockerCompose:
         match with any profile, meaning the service would get deployed everywhere!
         """
         with open(p('..', 'docker-compose.yml')) as f:
-            root_dc = yaml.load(f)  # type: dict
+            root_dc = yaml.safe_load(f)  # type: dict
         with open(p('..', 'docker-compose.production.yml')) as f:
-            prod_dc = yaml.load(f)  # type: dict
+            prod_dc = yaml.safe_load(f)  # type: dict
         root_services = set(root_dc['services'].keys())
         prod_services = set(prod_dc['services'].keys())
         missing = root_services - prod_services
@@ -30,6 +30,6 @@ class TestDockerCompose:
         this service to make things explicit.
         """
         with open(p('..', 'docker-compose.production.yml')) as f:
-            prod_dc = yaml.load(f)  # type: dict
+            prod_dc = yaml.safe_load(f)  # type: dict
         for serv, opts in prod_dc['services'].items():
             assert 'profiles' in opts, f"{serv} is missing 'profiles' field"
