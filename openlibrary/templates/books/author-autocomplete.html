@@ -1,4 +1,4 @@
-$def with (authors, name_path, dict_path)
+$def with (authors, name_path, dict_path, readonly=False)
 $# :param list[dict] authors: e.g. {name: str, key: str}
 $# :param str name_path: form path for the user-visible author name
 $# :param str dict_path: form path for the author dict
@@ -41,5 +41,5 @@ $jsdef render_author(name_path, dict_path, readonly, i, author):
 $ config = {'name_path': name_path, 'dict_path': dict_path}
 <div class="multi-input-autocomplete--author" data-config="$dumps(config)">
     $for author in (authors or [storage(name="", key="")]):
-        $:render_author(name_path, dict_path, True, loop.index0, author)
+        $:render_author(name_path, dict_path, readonly, loop.index0, author)
 </div>
