@@ -64,7 +64,7 @@ export default function($){
                 d = {};
 
                 for (i in array) {
-                    d[array[i].name] = (array[i].value).trim();
+                    d[array[i].name] = array[i].value.trim();
                 }
 
                 // validate

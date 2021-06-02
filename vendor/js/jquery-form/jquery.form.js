@@ -53,7 +53,7 @@ $.fn.ajaxSubmit = function(options) {
 	if (typeof options == 'function')
 		options = { success: options };
 
-	var url = $.trim(this.attr('action'));
+	var url = this.attr('action').trim();
 	if (url) {
 		// clean url (don't include hash vaue)
 		url = (url.match(/^([^#]+)/)||[])[1];
