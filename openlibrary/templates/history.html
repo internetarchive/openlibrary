@@ -51,7 +51,7 @@ $ rev = page.latest_revision or page.revision
                     <td class="comment">$:render_template("history/comment", v)</td>
                     <td class="compare" style="text-align:center;">
                         <input type="radio" id="a$v.revision" name="a" title="Compare this version..." value="$v.revision"
-                        $if v.revision == rev-1:
+                        $if v.revision == rev - 1:
                             checked
                         $elif v.revision == rev:
                             checked
