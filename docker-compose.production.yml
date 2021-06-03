@@ -58,7 +58,8 @@ services:
   covers_nginx:
     profiles: ["ol-covers0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
-    command: nginx -g daemon off
+    user: root
+    command: nginx -g "daemon off;"
     restart: unless-stopped
     depends_on:
       - covers
@@ -118,6 +119,7 @@ services:
       - infobase-writelog:/1/var/lib/openlibrary/infobase/log
       - infobase-errorlog:/1/var/log/openlibrary/infobase-errors
   web_haproxy:
+    profiles: ["ol-www0"]
     image: haproxy:2.3.5
     restart: always
     hostname: "$HOSTNAME"
@@ -132,10 +134,12 @@ services:
         max-size: "512m"
         max-file: "4"
   web_nginx:
+    profiles: ["ol-www0"]
     restart: always
     hostname: "$HOSTNAME"
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
-    command: nginx -g daemon off
+    user: root
+    command: nginx -g "daemon off;"
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../olsystem/etc/nginx/sites-available/default-docker.conf:/etc/nginx/sites-enabled/default:ro
@@ -159,7 +163,8 @@ services:
   infobase_nginx:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
-    command: nginx -g daemon off
+    user: root
+    command: nginx -g "daemon off;"
     restart: unless-stopped
     depends_on:
       - infobase
