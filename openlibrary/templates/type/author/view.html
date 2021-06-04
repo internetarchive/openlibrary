@@ -84,6 +84,11 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
     <div class="contentTwothird" style="margin-bottom:0;">
 
+        <div class="illustration author-image">
+            $:render_template("covers/author_photo", page)
+            $:render_template("covers/change", page, ".bookCover img")
+        </div>
+
         <div itemprop="description">
             $:format(page.get('bio', ''))
         </div>
@@ -136,7 +141,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         </div>
     </div>
     <div class="contentOnethird">
-        <div class="illustration">
+        <div class="illustration author-image-desktop">
             $:render_template("covers/author_photo", page)
             $:render_template("covers/change", page, ".bookCover img")
         </div>
