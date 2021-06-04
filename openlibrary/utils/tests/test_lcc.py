@@ -123,6 +123,7 @@ def test_normalize_lcc_range(raw, normed, name):
 
 SORTING_TESTS = [
     (['A--0001.00000000', 'B--0001.13000000.C89'], 1, 'Chooses longest'),
+    (['A--0001.00000000', 'A--0001.13000000'], 1, 'Chooses most precise'),
 ]
 
 

@@ -193,8 +193,9 @@ def normalize_lcc_range(start, end):
     ]
 
 
-def choose_sorting_lcc(normalized_lccs: Iterable[str]) -> str:
-    # Avoid "CPB Box no ..." style lccs
-    preferred = [lcc for lcc in normalized_lccs if not lcc.lower().startswith('cpb')]
+def choose_sorting_lcc(sortable_lccs: Iterable[str]) -> str:
     # Choose longest; theoretically most precise?
-    return sorted(preferred or normalized_lccs, key=len, reverse=True)[0]
+    # Note we go to short-form first, so eg 'A123' beats 'A'
+    def short_len(lcc: str) -> int:
+        return len(sortable_lcc_to_short_lcc(lcc))
+    return sorted(sortable_lccs, key=short_len, reverse=True)[0]
