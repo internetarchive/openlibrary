@@ -62,6 +62,9 @@ TESTS = [
     ('868 G216m', ['868'], 'Cutter number (real world)'),
     ('863.,64', ['863.64'], 'Random comma (real world)'),
     ('616..8/3', ['616.83'], 'Double dot (real world)'),
+    ('813.54 P38 1995', ['813.54'], 'Cutter/year (real world)'),
+    ('21ddc', [], 'DDCs must end at word boundaries'),
+    ('123; 216;', ['123', '216'], 'DDCs ending at word boundaries are ok'),
 ]
 
 

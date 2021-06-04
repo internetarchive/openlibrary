@@ -62,7 +62,7 @@ def normalize_ddc(ddc):
             continue
         # And end at them
         end = match.end()
-        if end < (len(ddc) - 1) and re.search(r'\b', ddc[end]):
+        if end < len(ddc) and re.search(r'\b', ddc[end]):
             continue
 
         # Some old standard which isn't used anymore; might need to filter these
