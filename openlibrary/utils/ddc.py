@@ -8,7 +8,7 @@ https://www.oclc.org/bibformats/en/0xx/082.html
 """
 import re
 from string import printable
-from typing import Iterable
+from typing import Iterable, List
 
 MULTIPLE_SPACES_RE = re.compile(r'\s+')
 DDC_RE = re.compile(r'''
@@ -33,24 +33,20 @@ DDC_RE = re.compile(r'''
 ''', re.IGNORECASE | re.X)
 
 
-def collapse_multiple_space(s):
+def collapse_multiple_space(s: str) -> str:
     return MULTIPLE_SPACES_RE.sub(' ', s)
 
 
 VALID_CHARS = set(printable) - set("/'′’,")
 
 
-def normalize_ddc(ddc):
-    """
-    :param str ddc:
-    :rtype: list of str
-    """
+def normalize_ddc(ddc: str) -> List[str]:
     ddc = ''.join(
         char
         for char in collapse_multiple_space(ddc.strip())
         if char in VALID_CHARS)
 
-    results = []
+    results: List[str] = []
     for match in DDC_RE.finditer(ddc):
         parts = match.groupdict()
         prefix = ''
@@ -115,11 +111,11 @@ def normalize_ddc(ddc):
         else:
             continue
 
+        results.append(prefix + number + suffix)
+
         # Include the non-j-prefixed form as well for correct sorting
         if prefix == 'j':
             results.append(number + suffix)
-
-        results.append(prefix + number + suffix)
 
     return results
 
@@ -148,11 +144,9 @@ def normalize_ddc_range(start, end):
     return ddc_range_norm
 
 
-def normalize_ddc_prefix(prefix):
+def normalize_ddc_prefix(prefix: str) -> str:
     """
     Normalizes a DDC prefix to be used in searching. Integer prefixes are not modified
-    :param str prefix:
-    :rtype: str
 
     >>> normalize_ddc_prefix('1')
     '1'
@@ -163,8 +157,7 @@ def normalize_ddc_prefix(prefix):
     # 23.45* should become 023.45*
     if '.' in prefix:
         normed = normalize_ddc(prefix)
-        if normed:
-            return normed[0]
+        return normed[0] if normed else prefix
     # 0* should stay as is
     # 23* should stay as is
     # j* should stay as is

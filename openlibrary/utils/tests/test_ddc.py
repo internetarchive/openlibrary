@@ -11,7 +11,7 @@ from openlibrary.utils.ddc import (
 TESTS_FROM_OCLC = [
     ("370.19'342", ['370.19342'], "Segmentation (prime) marks"),
     ("370.19/342", ['370.19342'], "Segmentation (prime) marks"),
-    ("j574", ['574', 'j574'], "Juvenile works."),
+    ("j574", ['j574', '574'], "Juvenile works."),
     ("[E]", ['[E]'], "Juvenile works with [E]"),
     ("[Fic]", ['[Fic]'], "Juvenile works with [Fic]."),
     ("658.404 92", ['658.404 92'], "Dewey numbers followed by 92 or 920."),
@@ -65,6 +65,9 @@ TESTS = [
     ('813.54 P38 1995', ['813.54'], 'Cutter/year (real world)'),
     ('21ddc', [], 'DDCs must end at word boundaries'),
     ('123; 216;', ['123', '216'], 'DDCs ending at word boundaries are ok'),
+    ('[Fic] 2 21', ['[Fic]'], 'Ignores single digits after Fic'),
+    ('[Fic] 813', ['[Fic]', '813'], 'Does not ignore tridigits after Fic'),
+    ('813/.52/.52', ['813.52'], 'Too much decimal'),
 ]
 
 
@@ -86,7 +89,8 @@ PREFIX_TESTS = [
     ('12.3', '012.3', 'Decimal'),
     ('12.300', '012.300', 'Trailing decimal zeros'),
     ('100', '100', 'Trailing zeros'),
-    ('noise', 'noise', 'Noise')
+    ('noise', 'noise', 'Noise'),
+    ('j100', 'j100', 'Limited juvenile'),
 ]
 
 
