@@ -304,7 +304,7 @@ pipeline {
           // really be needed after that.
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
-              sh "docker-compose exec -T solr curl -s http://localhost:8983/solr/update?optimize=true"
+              sh "docker-compose exec -T solr curl -s http://localhost:8983/solr/openlibrary/update?optimize=true&maxSegments=1"
             }
           }
         }
