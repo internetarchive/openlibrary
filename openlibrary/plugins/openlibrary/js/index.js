@@ -150,10 +150,10 @@ jQuery(function () {
         import(/* webpackChunkName: "merge" */ './merge')
             .then(module => {
                 if (mergePageElement) {
-                    module.initAuthorMergePage()
+                    module.initAuthorMergePage();
                 }
                 if (preMergePageElement) {
-                    module.initAuthorView())
+                    module.initAuthorView();
                 }
             });
     }
