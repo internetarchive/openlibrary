@@ -12,6 +12,8 @@ $else:
 
 $var title: $name
 
+$ rev = page.latest_revision or page.revision
+
 <div id="contentHead">
     $:macros.databarHistory(page)
     <span class="lightgreen smallest sansserif">$_("History of edits to")</span>
@@ -48,9 +50,17 @@ $var title: $name
                         <td class="history" style="vertical-align: top;">$v.ip</td>
                     <td class="comment">$:render_template("history/comment", v)</td>
                     <td class="compare" style="text-align:center;">
-                        <input type="radio" id="a$v.revision" name="a" title="Compare this version..." value="$v.revision"/>
+                        <input type="radio" id="a$v.revision" name="a" title="Compare this version..." value="$v.revision"
+                        $if v.revision == rev - 1:
+                            checked
+                        $elif v.revision == rev:
+                            checked
+                        />
                         &nbsp;&nbsp;&nbsp;
-                        <input type="radio" id="b$v.revision" name="b" title="...to this version" value="$v.revision"/>
+                        <input type="radio" id="b$v.revision" name="b" title="...to this version" value="$v.revision"
+                        $if v.revision == rev:
+                            checked
+                        />
                     </td>
                 </tr>
             <tr>
@@ -64,19 +74,6 @@ $var title: $name
         <input type="hidden" name="m" value="diff"/>
 
         </form>
-
-        <script type="text/javascript">
-            $ rev = page.latest_revision or page.revision
-            var a = document.getElementById("a${rev - 1}");
-            var a2 = document.getElementById("a$rev");
-            var b = document.getElementById("b$rev");
-
-            if (a)
-                a.checked = true;
-            else
-                a2.checked = true;
-            b.checked = true;
-        </script>
 
         <div class="sansserif">
         $ page = safeint(query_param("page", "0"))
