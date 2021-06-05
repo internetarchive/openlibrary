@@ -1,0 +1,15 @@
+$def with(gutenberg_id)
+
+$ base_url = 'https://www.gutenberg.org/'
+
+<hr>
+<div class="cta-section">
+<p class="cta-section-title">$_('Download Options')</p>
+<ul class="ebook-download-options">
+  <li><a href="$base_url/files/$(gutenberg_id)/$(gutenberg_id)-h/$(gutenberg_id)-h.htm" title="$_('Download an HTML from Project Gutenberg')">$_('HTML')</a></li>
+  <li><a href="$base_url/ebooks/$(gutenberg_id).txt.utf-8" title="$_('Download a text version from Project Gutenberg')">$_('Plain text')</a></li>
+  <li><a href="$base_url/ebooks/$(gutenberg_id).epub.images" title="$_('Download an ePub from Project Gutenberg')">$_('ePub')</a></li>
+  <li><a href="$base_url/ebooks/$(gutenberg_id).kindle.images" title="$_('Download a Kindle file from Project Gutenberg')">$_('Kindle')</a></li>
+  <li><a href="$base_url/ebooks/$(gutenberg_id)">$_('More at Project Gutenberg')</a></li>
+</ul>
+</div>

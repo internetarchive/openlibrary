@@ -16,6 +16,11 @@ $ ocaid = doc.get('ocaid') or availability.get('identifier')
 $ work_key = work_key or (doc.get('works') and doc.works[0].key)
 $ no_index = hasattr(doc, 'get_ia_meta_fields') and doc.get_ia_meta_fields().get('noindex', False)
 
+$# Check for Project Gutenberg ID
+$ gutenberg_ids = doc.get('identifiers', {}).get('project_gutenberg') or doc.get('id_project_gutenberg')
+$ gutenberg_id = gutenberg_ids and gutenberg_ids[0]
+$ use_gutenberg = gutenberg_id and (not ocaid or ocaid.endswith('gut'))
+
 $ waiting_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_waiting_loan_for(ocaid)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
 
@@ -44,6 +49,9 @@ $if user_loan:
         });
       });
     </script>
+
+$elif use_gutenberg:
+  $:macros.GutenbergReadButton(gutenberg_id)
 
 $elif availability.get('is_readable'):
   $:macros.ReadButton(ocaid, listen=listen)
@@ -112,13 +120,13 @@ $else:
        data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
   </div>
 
-$if ocaid and secondary_action and availability.get('is_printdisabled'):
+$if ocaid and secondary_action and availability.get('is_printdisabled') and not use_gutenberg:
   $:macros.BookPreview(ocaid, linkback=not no_index)
   $:macros.BookSearchInside(ocaid)
 
 $:post
 
-$if ocaid and daisy:
+$if ocaid and daisy and not use_gutenberg:
   $:macros.daisy('%s/daisy' % doc.url, protected=availability.get('is_printdisabled'))
 
 $if query_param('debug'):

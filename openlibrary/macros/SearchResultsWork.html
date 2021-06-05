@@ -7,16 +7,15 @@ $ book_url = doc.url() if is_work else doc.key
 $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book">
   <span class="bookcover">
-    $if availability and availability.get('identifier'):
-      $if availability.get('openlibrary_edition'):
-        $ cover = get_coverstore_public_url() + "/b/olid/%s-M.jpg" % availability.get('openlibrary_edition')
-      $elif ocaid:
-        $ cover = "//archive.org/download/%s/page/cover_w60_h60.jpg" % ocaid
+    $if availability and availability.get('openlibrary_edition'):
+      $ cover = get_coverstore_public_url() + "/b/olid/%s-M.jpg" % availability.get('openlibrary_edition')
+    $elif availability and ocaid and not ocaid.endswith('gut'):
+      $ cover = "//archive.org/download/%s/page/cover_w60_h60.jpg" % ocaid
     $elif doc.get('cover_i') or cover_ids:
       $ cover = get_coverstore_public_url() + "/b/id/%s-M.jpg" % (doc.cover_i or cover_ids[0])
     $elif doc.get('cover_edition_key'):
       $ cover = get_coverstore_public_url() + "/b/olid/%s-M.jpg" % doc.cover_edition_key
-    $elif doc.get('ocaid'):
+    $elif doc.get('ocaid') and not doc.get('ocaid').endswith('gut'):
       $ cover = "//archive.org/download/%s/page/cover_w60_h60.jpg" % doc.get('ocaid')
     $else:
       $ cover = "/images/icons/avatar_book-sm.png"
