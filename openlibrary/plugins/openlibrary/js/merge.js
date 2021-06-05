@@ -34,3 +34,35 @@ export function initAuthorMergePage() {
         }
     });
 }
+
+/**
+ * Initializes preMerge element on author page.
+ *
+ * Show 'preMerge' element and launch author merge of duplicate keys into master key.
+ * Assumes presence of element with '#preMerge' id and 'data-keys' attribute.
+ */
+export function initAuthorView() {
+    const dataKeysJSON = $('#preMerge').data('keys');
+
+    $('#preMerge').show();
+    $('#preMerge').parent().show();
+
+    let data = {
+        master: dataKeysJSON['master'],
+        duplicates: dataKeysJSON['duplicates']
+    };
+
+    $.ajax({
+        url: '/authors/merge.json',
+        type: 'POST',
+        data: JSON.stringify(data),
+        success: function() {
+            $('#preMerge').fadeOut();
+            $('#postMerge').fadeIn();
+        },
+        error: function() {
+            $('#preMerge').fadeOut();
+            $('#errorMerge').fadeIn();
+        }
+    });
+}

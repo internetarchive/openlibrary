@@ -144,10 +144,20 @@ jQuery(function () {
     }
 
     // conditionally load for author merge page
-    if (document.querySelector('#author-merge-page')) {
-        import('./merge')
-            .then(module => module.initAuthorMergePage());
+    const mergePageElement = document.querySelector('#author-merge-page');
+    const preMergePageElement = document.getElementById('preMerge');
+    if (mergePageElement || preMergePageElement) {
+        import(/* webpackChunkName: "merge" */ './merge')
+            .then(module => {
+                if (mergePageElement) {
+                    module.initAuthorMergePage();
+                }
+                if (preMergePageElement) {
+                    module.initAuthorView();
+                }
+            });
     }
+
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
         import('./realtime_account_validation.js')
