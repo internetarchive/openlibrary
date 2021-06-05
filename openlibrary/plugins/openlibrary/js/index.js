@@ -144,15 +144,18 @@ jQuery(function () {
     }
 
     // conditionally load for author merge page
-    if (document.querySelector('#author-merge-page')) {
-        import('./merge')
-            .then(module => module.initAuthorMergePage());
-    }
-
-    // conditionally load for author view page
-    if (document.getElementById('preMerge')) {
+    const mergePageElement = document.querySelector('#author-merge-page');
+    const preMergePageElement = document.getElementById('preMerge');
+    if (mergePageElement || preMergePageElement) {
         import(/* webpackChunkName: "merge" */ './merge')
-            .then((module) => module.initAuthorView());
+            .then(module => {
+                if (mergePageElement) {
+                    module.initAuthorMergePage()
+                }
+                if (preMergePageElement) {
+                    module.initAuthorView())
+                }
+            });
     }
 
     // conditionally load real time signup functionality based on class in the page
