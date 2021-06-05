@@ -205,15 +205,16 @@ tr.table-row.selected{
   padding: 20px;
   border-radius: 5px;
 }
-.author-image {
-  display: none;
-}
 @media only screen and (max-width: @width-breakpoint-desktop) {
-  .author-image {
-    display: block;
+  .authorContent {
+    display: flex;
+    flex-direction: column;
   }
-  .author-image-desktop {
-    display: none;
+  .author-description {
+    order: -2;
+  }
+  .author-image {
+    order: -1;
   }
 }
 
