@@ -1,5 +1,6 @@
 """Lists implementaion.
 """
+import json
 import random
 import web
 
@@ -473,7 +474,7 @@ class export(delegate.page):
         elif format == "json":
             data = {"editions": self.get_editions(lst, raw=True)}
             web.header("Content-Type", "application/json")
-            return delegate.RawText(formats.dump_json(data))
+            return delegate.RawText(json.dumps(data))
         elif format == "yaml":
             data = {"editions": self.get_editions(lst, raw=True)}
             web.header("Content-Type", "application/yaml")

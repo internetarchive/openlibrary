@@ -1,12 +1,11 @@
 import 'jquery';
-import 'jquery-migrate';
 import 'jquery-validation';
 import 'jquery-ui/ui/widgets/dialog';
 import 'jquery-ui/ui/widgets/sortable';
 import 'jquery-ui/ui/widgets/tabs';
 import 'jquery-ui/ui/widgets/autocomplete';
 // For dialog boxes (e.g. add to list)
-import '../../../../vendor/js/colorbox/1.5.14.js';
+import 'jquery-colorbox';
 // jquery.form#2.36 not on npm, no longer getting worked on
 import '../../../../vendor/js/jquery-form/jquery.form.js';
 import autocompleteInit from './autocomplete';
@@ -15,7 +14,6 @@ import addNewFieldInit from './add_new_field';
 import automaticInit from './automatic';
 import bookReaderInit from './bookreader_direct';
 import { ungettext, ugettext,  sprintf } from './i18n';
-import addFadeInFunctionsTojQuery from './jquery.customFade';
 import jQueryRepeat from './jquery.repeat';
 import { enumerate, htmlquote, websafe, foreach, join, len, range } from './jsdef';
 import initAnalytics from './ol.analytics';
@@ -84,7 +82,6 @@ jQuery(function () {
             .then((module) => module.initMarkdownEditor($markdownTextAreas));
     }
     bookReaderInit($);
-    addFadeInFunctionsTojQuery($);
     jQueryRepeat($);
     initAnalytics($);
     init($);
@@ -93,11 +90,74 @@ jQuery(function () {
         import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
     }
+
+    const edition = document.getElementById('tabsAddbook');
+    const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
+    const addRowButton = document.getElementById('add_row_button');
+    const roles = document.querySelector('#roles');
+    const identifiers = document.querySelector('#identifiers');
+    const classifications = document.querySelector('#classifications');
+    const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
+    const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
+    const excerpts = document.getElementById('excerpts');
+    const links = document.getElementById('links');
+
     // conditionally load for user edit page
-    if (document.getElementById('add_row_button')) {
+    if (
+        edition ||
+        autocompleteAuthor || addRowButton || roles || identifiers || classifications ||
+        autocompleteLanguage || autocompleteWorks || excerpts || links
+    ) {
         import(/* webpackChunkName: "user-website" */ './edit')
-            .then(module => module.initEditRow());
+            .then(module => {
+                if (edition) {
+                    module.initEdit();
+                }
+                if (addRowButton) {
+                    module.initEditRow();
+                }
+                if (excerpts) {
+                    module.initEditExcerpts();
+                }
+                if (links) {
+                    module.initEditLinks();
+                }
+                if (autocompleteAuthor) {
+                    module.initAuthorMultiInputAutocomplete();
+                }
+                if (roles) {
+                    module.initRoleValidation();
+                }
+                if (identifiers) {
+                    module.initIdentifierValidation();
+                }
+                if (classifications) {
+                    module.initClassificationValidation();
+                }
+                if (autocompleteLanguage) {
+                    module.initLanguageMultiInputAutocomplete();
+                }
+                if (autocompleteWorks) {
+                    module.initWorksMultiInputAutocomplete();
+                }
+            });
     }
+
+    // conditionally load for author merge page
+    const mergePageElement = document.querySelector('#author-merge-page');
+    const preMergePageElement = document.getElementById('preMerge');
+    if (mergePageElement || preMergePageElement) {
+        import(/* webpackChunkName: "merge" */ './merge')
+            .then(module => {
+                if (mergePageElement) {
+                    module.initAuthorMergePage();
+                }
+                if (preMergePageElement) {
+                    module.initAuthorView();
+                }
+            });
+    }
+
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
         import('./realtime_account_validation.js')
@@ -148,16 +208,6 @@ jQuery(function () {
     if (document.getElementsByClassName('modal-link').length) {
         import(/* webpackChunkName: "patron_metadata" */ './patron-metadata')
             .then((module) => module.initPatronMetadata());
-    }
-
-    if (document.getElementById('excerpts')) {
-        import (/* webpackChunkName: "books_edit" */ './edit.js')
-            .then((module) => module.initEdit());
-    }
-
-    if (document.getElementById('links')) {
-        import (/* webpackChunkName: "books_edit" */ './edit.js')
-            .then((module) => module.initEditLinks());
     }
 
     if (document.getElementsByClassName('manageCovers').length) {
@@ -211,7 +261,7 @@ jQuery(function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
 
-    $('#wikiselect').on('focus', function(){$(this).select();})
+    $('#wikiselect').on('focus', function(){$(this).trigger('select');})
 
     // Clicking outside of menus closes menus
     $(document).on('click', function (event) {
@@ -219,6 +269,6 @@ jQuery(function () {
         $openMenus
             .filter((_, menu) => !$(event.target).closest(menu).length)
             .find('[type=checkbox]')
-            .removeAttr('checked');
+            .prop('checked', false);
     });
 });

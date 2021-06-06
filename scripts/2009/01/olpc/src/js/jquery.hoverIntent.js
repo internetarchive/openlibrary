@@ -107,6 +107,6 @@
 		};
 
 		// bind the function to the two event listeners
-		return this.mouseover(handleHover).mouseout(handleHover);
+		return this.on('mouseover', handleHover).on('mouseout', handleHover);
 	};
 })(jQuery);

@@ -94,7 +94,7 @@ export default function($){
         }
         function onRemove(event) {
             event.preventDefault();
-            $(this).parents('.repeat-item:eq(0)').remove();
+            $(this).parents('.repeat-item').eq(0).remove();
             elems._this.trigger('repeat-remove');
         }
         addSelector = `${id} .repeat-add`;

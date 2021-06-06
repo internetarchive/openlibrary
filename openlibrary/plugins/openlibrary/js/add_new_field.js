@@ -25,7 +25,7 @@ export default function($){
                 .insertBefore($this);
 
             // handle submit
-            $('form:first', $(options.href)).submit(function(event) {
+            $('form').first().add($href).on('submit', function(event) {
                 var array, d, i, data;
                 event.preventDefault();
 
@@ -34,7 +34,7 @@ export default function($){
                 d = {};
 
                 for (i in array) {
-                    d[array[i].name] = $.trim(array[i].value);
+                    d[array[i].name] = array[i].value.trim();
                 }
 
                 // validate
@@ -46,7 +46,7 @@ export default function($){
                 $('<option/>')
                     .html(d.label || d.value)
                     .attr('value', d.value)
-                    .insertBefore($this.find('option:last').prev()) // insert before ---
+                    .insertBefore($this.find('option').last().prev()) // insert before ---
                     .parent().val(d.value);
 
                 // add JSON to hidden field

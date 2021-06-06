@@ -15,10 +15,4 @@ updates:
     interval: monthly
     time: "13:00"
   open-pull-requests-limit: 10
-  ignore:
-  - dependency-name: jquery
-    versions:
-    - "> 1.11.0"
-  - dependency-name: jquery-migrate
-    versions:
-    - "> 1.2.1"
+ 

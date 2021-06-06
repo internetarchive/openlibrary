@@ -1,47 +1,8 @@
 $def with (keys, top_books_from_author, formdata=None)
 
-<script type="text/javascript">
-window.q.push(function(){
-    \$('#save').click(function(){
-        var n = \$("#mergeForm input[type=radio]:checked").length;
-        if (n == 0) {
-            \$('#noMaster').dialog('open');
-            return false;
-        } else {
-            \$('#confirmMerge').dialog('open');
-            return false;
-        };
-    });
-    \$("div.radio:first input[type=radio]").attr("checked","checked");
-    \$("div.checkbox:first input[type=checkbox]").attr("checked","checked");
-    \$("div.author:first").addClass("master");
-    \$("#include input[type=radio]").mouseover(function(){
-        \$(this).parent().parent().addClass("mouseoverHighlight",300);
-    });
-    \$("#include input[type=radio]").mouseout(function(){
-        \$(this).parent().parent().removeClass("mouseoverHighlight",100);
-    });
-    \$("#include input[type=radio]").click(function(){
-        var previousMaster = \$(".merge").find("div.master");
-        previousMaster.removeClass("master mergeSelection");
-        previousMaster.find("input[type=checkbox]").attr('checked', false);
-        \$(this).parent().parent().addClass("master");
-        \$(this).parent().parent().find("input[type=checkbox]").attr('checked', true);
-    });
-    \$("#include input[type=checkbox]").on("change", function() {
-        if (!\$(this).parent().parent().hasClass("master")) {
-            if (\$(this).is(":checked")) {
-                \$(this).parent().parent().addClass("mergeSelection");
-            } else {
-                \$(this).parent().parent().removeClass("mergeSelection");
-            }
-        }
-    });
-});
-</script>
-
 $var title: $_("Merge Authors")
 
+<span id="author-merge-page"><!--This span is used to determine that the page-specific javascript should be loaded--></span>
 <div id="contentHead">
     <h1>$_("Merge Authors")</h1>
 </div>

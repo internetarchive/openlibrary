@@ -15,7 +15,7 @@ export default function($) {
     $('.no-img img').hide();
 
     // disable save button after click
-    $('button[name=\'_save\']').submit(function() {
+    $('button[name=\'_save\']').on('submit', function() {
         $(this).attr('disabled', true);
     });
 }

@@ -86,7 +86,7 @@ function get_seed_count() {
 }
 
 window.q.push(function(){
-    \$(".listDelete a").click(function() {
+    \$(".listDelete a").on('click', function() {
         var seed_id = \$(this).closest("li").attr("id");
 
         if (get_seed_count() > 1) {
