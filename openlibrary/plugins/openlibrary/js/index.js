@@ -63,6 +63,9 @@ window.$ = jQuery;
 
 window.Promise = Promise;
 
+// This needs to be done before jQuery init to prevent race conditions
+initAnalytics($);
+
 // Initialise some things
 jQuery(function () {
     const $markdownTextAreas = $('textarea.markdown');
@@ -83,7 +86,6 @@ jQuery(function () {
     }
     bookReaderInit($);
     jQueryRepeat($);
-    initAnalytics($);
     init($);
     // conditionally load functionality based on what's in the page
     if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
