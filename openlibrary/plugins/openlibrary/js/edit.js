@@ -156,7 +156,6 @@ export function initWorksMultiInputAutocomplete() {
 }
 
 export function initAuthorMultiInputAutocomplete() {
-    $('.author-autocomplete').prop('disabled', false);
     getJqueryElements('.multi-input-autocomplete--author').forEach(jqueryElement => {
         /* Values in the html passed from Python code */
         const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
