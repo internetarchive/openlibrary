@@ -1,27 +1,28 @@
 $def with (page)
 
 <header id="header-bar" class="header-bar">
-  <div class="hamburger-component header-dropdown">
-
-    <details>
-      <summary>
-        <img src="/static/images/menu.png" alt="additional options menu"/>
-      </summary>
-      <div class="hamburger-dropdown-component navigation-dropdown-component">
-        <ul class="dropdown-menu hamburger-dropdown-menu">
-          $if not ctx.user:
-            <li><a href="/account/login">$_("Log in")</a></li>
-            <li><a href="/account/create">$_("Sign up")</a></li>
-
-          <li><a href="/books/add">$_("Add a Book")</a></li>
-          <li><a href="/sponsorship">$_("Sponsor a Book")</a></li>
-          <li><a href="/recentchanges">$_("Recent Community Edits")</a></li>
-          <li><a href="/developers">$_("Developer Center")</a></li>
-          <li><a href="/help">$_("Help & Support")</a></li>
-        </ul>
-      </div>
-    </details>
-  </div>
+  $if not ctx.user:
+    $ loginLinks = []
+  $else:
+    $ loginLinks = [
+    $     { "href": "/account/login", "text": _("Log in") },
+    $     { "href": "/account/create", "text": _("Sign up") }
+    $ ]
+  $ moreLinks = [
+  $     { "href": "/books/add", "text": _("Add a Book") },
+  $     { "href": "/sponsorship", "text": _("Sponsor a Book") },
+  $     { "href": "/collections", "text": _("Collections") },
+  $     { "href": "/recentchanges", "text": _("Recent Community Edits") },
+  $     { "href": "/developers", "text": _("Developer Center") },
+  $     { "href": "/help", "text": _("Help & Support") }
+  $ ]
+  $ hamburgerProps = {
+  $  'name': 'hamburger',
+  $   'links': loginLinks + moreLinks, # todo add links
+  $  'image': '/static/images/menu.png',
+  $  'label': 'additional options menu'
+  $ }
+  $:render_template("lib/header_dropdown", hamburgerProps )
 
   <div class="logo-component">
     <a href="/" title="$_('The Internet Archive\'s Open Library: One page for every book')">
@@ -33,44 +34,27 @@ $def with (page)
     </a>
   </div>
 
+  $ browseProps = {
+  $   'name': 'browse',
+  $   'label': _('Browse'),
+  $   'links': [
+  $     { "href": "/subjects", "text": _("Subjects") },
+  $     { "href": "/lists", "text": _("Lists") },
+  $     { "href": "/collections", "text": _("Collections") },
+  $     { "href": "/k-12", "text": _("K-12 Student Library") },
+  $     { "href": "/random", "text": _("Random Book") },
+  $     { "href": "/advancedsearch", "text": _("Advanced Search") }
+  $   ]
+  $ }
+
+  $ moreProps = {
+  $   'name': 'more',
+  $   'label': _('More'),
+  $   'links': moreLinks
+  $ }
   <ul class="navigation-component">
-    <li class="browse-menu header-dropdown">
-      <details>
-        <summary>
-          $_('Browse') 
-          <span class="shift">$_('Menu')</span>
-          <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation" width="7" height="4">
-        </summary>
-        <div class="navigation-dropdown-component">
-          <ul class="dropdown-menu browse-menu-options">
-            <li><a href="/subjects">$_("Subjects")</a></li>
-            <li><a href="/lists">$_("Lists")</a></li>
-            <li><a href="/collections">$_("Collections")</a></li>
-            <li><a href="/k-12">$_("K-12 Student Library")</a></li>
-            <li><a href="/random">$_("Random Book")</a></li>
-            <li><a href="/advancedsearch">$_("Advanced Search")</a></li>
-          </ul>
-        </div>
-      </details>
-    </li>
-    <li class="more-menu header-dropdown">
-      <details>
-        <summary>
-          $_('More') 
-          <span class="shift">$_('Menu')</span>
-          <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation" width="7" height="4">
-        </summary>
-        <div class="navigation-dropdown-component">
-          <ul class="dropdown-menu more-menu-options">
-            <li><a href="/books/add">$_("Add a Book")</a></li>
-            <li><a href="/sponsorship">$_("Sponsor a Book")</a></li>
-            <li><a href="/recentchanges">$_("Recent Community Edits")</a></li>
-            <li><a href="/developers">$_("Developer Center")</a></li>
-            <li><a href="/help">$_("Help & Support")</a></li>
-          </ul>
-        </div>
-      </details>
-    </li>
+    <li>$:render_template("lib/header_dropdown", browseProps )</li>
+    <li>$:render_template("lib/header_dropdown", moreProps )</li>
   </ul>
 
   <div class="search-component">
@@ -112,29 +96,19 @@ $def with (page)
     </ul>
 
   $if ctx.user:
-    <div class="account-component header-dropdown">
-      <details>
-        <summary>
-          <div class="dropdown-avatar">        
-            <div class="avatar dropdown-button" id="userToggle" aria-expanded="false" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');"></div>
-            <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" role="presentation" alt=""/>
-          </div>
-        </summary>
-        <div class="account-dropdown navigation-dropdown-component" id="main-account-dropdown">
-          <ul class="dropdown-menu">
-            <li><a href="$ctx.user.key">$_("My Profile")</a></li>
-            <li><a href="$homepath()/account/loans">$_("My Loans")</a></li>
-            <li><a href="$ctx.user.key/lists">$_("My Lists")</a></li>
-            <li><a href="/account/books">$_("My Reading Log")</a></li>
-            <li><a href="/account/books/already-read/stats">$_("My Reading Stats")</a></li>
-            <li><a href="$homepath()/account">$_("Settings")</a></li>
-            <li>
-              <form name="logout" action="/account/logout" method="post">
-                <a href="#" onclick="document.forms['logout'].submit()">$_("Log out")</a>
-              </form>
-            </li>
-          </ul>
-        </div>
-      </details>
-    </div>
+    $ accountProps = {
+    $   'name': 'account',
+    $   'label': 'My account',
+    $   'image': 'https://archive.org/services/img/' + get_internet_archive_id(ctx.user.key),
+    $   'links': [
+    $     { "href": ctx.user.key, "text": _("My Profile") },
+    $     { "href": homepath() + "/account/loans", "text": _("My Loans") },
+    $     { "href": ctx.user.key + "/lists", "text": _("My Lists") },
+    $     { "href": "/account/books", "text": _("My Reading Log") },
+    $     { "href": "/account/books/already-read/stats", "text": _("My Reading Stats") },
+    $     { "href": homepath() + "/account", "text": _("Settings") },
+    $     { "post": "/account/logout", "text": _("Log out") }
+    $   ]
+    $ }
+    $:render_template("lib/header_dropdown", accountProps )</li>
 </header>

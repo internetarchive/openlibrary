@@ -36,17 +36,11 @@
     -ms-flex-order: 3;
     order: 3;
 
-    a {
-      color: @white;
-      text-decoration: none;
-      display: block;
-    }
-
     .down-arrow {
       margin-top: 1px;
     }
 
-    .account-dropdown {
+    .account-dropdown-component {
       position: absolute;
       text-align: right;
       // Note, it must be padding so that the gap between the icon and
@@ -81,6 +75,7 @@
       // stylelint-enable declaration-block-no-duplicate-properties
 
       // stylelint-disable-next-line max-nesting-depth
+      button,
       a {
         color: @dark-grey;
       }
@@ -112,6 +107,7 @@
         background-color: @white;
       }
 
+      button,
       a {
         text-decoration: none;
         color: @dark-grey;
@@ -142,11 +138,22 @@
       background: transparent;
       border: none;
     }
+  }
 
-    img {
-      width: 44px;
-      height: 44px;
+  .header-dropdown {
+    .header-dropdown__icon {
+      width: 45px;
+      height: 45px;
       padding: 0 3px;
+    }
+
+    button,
+    a {
+      color: @white;
+      text-decoration: none;
+      display: block;
+      border: 0;
+      background: none;
     }
   }
 
@@ -190,6 +197,7 @@
       font-size: 1em;
 
       // stylelint-disable max-nesting-depth, selector-max-specificity
+      button,
       a {
         color: @dark-grey;
         text-decoration: none;
@@ -422,21 +430,20 @@ div.search-facet:focus-within {
   summary::marker {
     content: "";
   }
+}
 
-  .dropdown-avatar {
+.hamburger-component,
+.account-component {
+  summary {
     .display-flex();
     -webkit-box-align: center;
     -ms-flex-align: center;
     align-items: center;
-    .avatar {
+    .header-dropdown__icon {
       border: none;
       margin-right: 5px;
-      background-size: cover;
-      background-position: center;
-      width: 45px;
-      height: 45px;
-      background-color: @mid-grey;
       border-radius: 3px;
+      box-sizing: content-box;
     }
   }
 }
