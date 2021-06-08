@@ -815,7 +815,8 @@ class public_my_books(delegate.page):
             return render.notfound("User %s"  % username, create=False)
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         logged_in_user = accounts.get_current_user()
-        is_logged_in_user = logged_in_user and logged_in_user.key.split('/')[-1] == username
+        is_logged_in_user = (logged_in_user 
+            and logged_in_user.key.split('/')[-1] == username)
         if is_public or is_logged_in_user:
             readlog = ReadingLog(user=user)
             sponsorships = get_sponsored_editions(user)
@@ -826,20 +827,24 @@ class public_my_books(delegate.page):
                         'isbn_%s' % len(s['isbn']): s['isbn']
                     })[0]) for s in sponsorships)
             elif key == 'book-notes' and is_logged_in_user and user.is_beta_tester():
-                books = PatronBookNotes(user=user, page=int(i.page)).notes_and_observations
+                books = PatronBookNotes(
+                    user=user,
+                    page=int(i.page)).notes_and_observations
             else:
                 books = readlog.get_works(key, page=i.page)
 
             if not user.is_beta_tester():
                 booknotes_count = 0
-            else:  
-                booknotes_count = 0 if not is_logged_in_user else PatronBookNotes.get_count(username)
+            else:
+                booknotes_count = (
+                    0 if not is_logged_in_user
+                    else PatronBookNotes.get_count(username))
 
             return render['account/books'](
                 books, key, sponsorship_count=len(sponsorships),
                 reading_log_counts=readlog.reading_log_counts, lists=readlog.lists,
-                user=user, logged_in_user=logged_in_user, public=is_public, 
-                booknotes_count = booknotes_count
+                user=user, logged_in_user=logged_in_user, public=is_public,
+                booknotes_count=booknotes_count
             )
         raise web.seeother(user.key)
 
