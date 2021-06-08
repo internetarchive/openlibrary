@@ -815,8 +815,9 @@ class public_my_books(delegate.page):
             return render.notfound("User %s"  % username, create=False)
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         logged_in_user = accounts.get_current_user()
-        is_logged_in_user = (logged_in_user 
-            and logged_in_user.key.split('/')[-1] == username)
+        is_logged_in_user = (
+            logged_in_user and 
+            logged_in_user.key.split('/')[-1] == username)
         if is_public or is_logged_in_user:
             readlog = ReadingLog(user=user)
             sponsorships = get_sponsored_editions(user)
