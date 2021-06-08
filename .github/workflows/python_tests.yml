@@ -24,6 +24,7 @@ jobs:
           key: ${{ runner.os }}-venv-${{ env.pythonLocation }}-${{ hashFiles('requirements*.txt') }}
       - name: Install dependencies
         run: |
+          sudo apt-get update
           # https://lxml.de/installation.html#requirements
           sudo apt-get install libxml2-dev libxslt-dev
           pip install --upgrade pip setuptools wheel

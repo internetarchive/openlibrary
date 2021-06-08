@@ -86,7 +86,7 @@ Subject.prototype = {
     },
 
     bind: function(name, callback) {
-        $(this).bind(name, callback);
+        $(this).on(name, callback);
     },
 
     getPageCount: function() {

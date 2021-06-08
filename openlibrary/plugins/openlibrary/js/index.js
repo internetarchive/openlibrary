@@ -90,31 +90,49 @@ jQuery(function () {
         import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
     }
-    // conditionally load for user edit page
+
+    const edition = document.getElementById('tabsAddbook');
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
     const addRowButton = document.getElementById('add_row_button');
+    const roles = document.querySelector('#roles');
+    const identifiers = document.querySelector('#identifiers');
+    const classifications = document.querySelector('#classifications');
     const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
     const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
     const excerpts = document.getElementById('excerpts');
     const links = document.getElementById('links');
 
+    // conditionally load for user edit page
     if (
-        addRowButton ||
+        edition ||
+        autocompleteAuthor || addRowButton || roles || identifiers || classifications ||
         autocompleteLanguage || autocompleteWorks || excerpts || links
     ) {
         import(/* webpackChunkName: "user-website" */ './edit')
             .then(module => {
+                if (edition) {
+                    module.initEdit();
+                }
                 if (addRowButton) {
                     module.initEditRow();
                 }
                 if (excerpts) {
-                    module.initEdit();
+                    module.initEditExcerpts();
                 }
                 if (links) {
                     module.initEditLinks();
                 }
                 if (autocompleteAuthor) {
                     module.initAuthorMultiInputAutocomplete();
+                }
+                if (roles) {
+                    module.initRoleValidation();
+                }
+                if (identifiers) {
+                    module.initIdentifierValidation();
+                }
+                if (classifications) {
+                    module.initClassificationValidation();
                 }
                 if (autocompleteLanguage) {
                     module.initLanguageMultiInputAutocomplete();
@@ -126,9 +144,18 @@ jQuery(function () {
     }
 
     // conditionally load for author merge page
-    if (document.querySelector('#author-merge-page')) {
-        import('./merge')
-            .then(module => module.initAuthorMergePage());
+    const mergePageElement = document.querySelector('#author-merge-page');
+    const preMergePageElement = document.getElementById('preMerge');
+    if (mergePageElement || preMergePageElement) {
+        import(/* webpackChunkName: "merge" */ './merge')
+            .then(module => {
+                if (mergePageElement) {
+                    module.initAuthorMergePage();
+                }
+                if (preMergePageElement) {
+                    module.initAuthorView();
+                }
+            });
     }
 
     // conditionally load real time signup functionality based on class in the page
@@ -234,7 +261,7 @@ jQuery(function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
 
-    $('#wikiselect').on('focus', function(){$(this).select();})
+    $('#wikiselect').on('focus', function(){$(this).trigger('select');})
 
     // Clicking outside of menus closes menus
     $(document).on('click', function (event) {

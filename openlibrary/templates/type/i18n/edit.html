@@ -11,7 +11,7 @@ $var title: $_("Edit %(title)s", title=page.key)
 <script type="text/javascript">
 function change_ns(ns) {
 	document.forms['i18n']['ns'].value = ns;
-	document.forms['i18n'].submit();
+	document.forms['i18n'].trigger('submit');
 }
 
 function changelang() {
@@ -41,7 +41,7 @@ function add_key() {
 window.q.push(function() {
     \$("#newkey").bind("keypress", function(e) {
         if (e.keyCode == 13) {
-            \$("#button_addkey").click();
+            \$("#button_addkey").trigger('click');
             return false;
         }
     });

@@ -28,7 +28,7 @@ $var title: $_("Add a book")
         </div>
         <div class="formElement">
             <div class="label"><label for="author">$_("Author")</label> <span class="smaller lighter">$_('Like, "Agatha Christie" or "Jean-Paul Sartre." We\'ll also do a live check to see if we already know the author.')</span></div>
-            $:render_template("books/author-autocomplete", cond(author, [author], []), "author_names", "authors")
+            $:render_template("books/author-autocomplete", cond(author, [author], []), "author_names", "authors", readonly=work is not None)
         </div>
 
         <div class="formElement">

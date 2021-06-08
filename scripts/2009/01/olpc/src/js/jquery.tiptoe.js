@@ -65,11 +65,11 @@ $(document).ready(function() {
 //unrelated to clueTip -- just for the demo page...
 
 $(document).ready(function() {
-  $('div.html, div.jquery').next().css('display', 'none').end().click(function() {
+  $('div.html, div.jquery').next().css('display', 'none').end().on('click', function() {
     $(this).next().toggle('fast');
   });
   
-  $('a.false').click(function() {
+  $('a.false').on('click', function() {
     return false;
   });
 });
