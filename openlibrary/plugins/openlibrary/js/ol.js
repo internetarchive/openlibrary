@@ -36,7 +36,7 @@ export default function init() {
         new SearchPage($('.siteSearch.olform'), new SearchModeSelector($('.search-mode')));
     }
 
-    $(window).scroll(function(){
+    $(window).on('scroll', function(){
         var scroller = $('#formScroll');
         if (isScrolledIntoView(scroller)) {
             $('#scrollBtm').show();
@@ -117,12 +117,12 @@ export function initBorrowAndReadLinks() {
     // LOADING ONCLICK FUNCTIONS FOR BORROW AND READ LINKS
     /* eslint-disable no-unused-vars */
     // used in openlibrary/macros/AvailabilityButton.html and openlibrary/macros/LoanStatus.html
-    $(document).ready(function(){
+    $(function(){
         $('.cta-btn--borrow,.cta-btn--read').on('click', function(){
             $(this).removeClass('cta-btn cta-btn--available').addClass('cta-btn cta-btn--available--load');
         });
     });
-    $(document).ready(function(){
+    $(function(){
         $('#waitlist_ebook').on('click', function(){
             $(this).removeClass('cta-btn cta-btn--unavailable').addClass('cta-btn cta-btn--unavailable--load');
         });

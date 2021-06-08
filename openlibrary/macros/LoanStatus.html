@@ -35,7 +35,7 @@ $if user_loan:
   $if render_once('LoanStatus:return-book-js'):
     <script type="text/javascript">
       window.q.push(function() {
-        \$('.return-book').submit(function(event) {
+        \$('.return-book').on('submit', function(event) {
           if (!confirm("$_('Really return this book?')")) {
             event.preventDefault();
           }

@@ -1,5 +1,12 @@
 {
   "root": true,
+  "plugins": [
+    "eslint-plugin-no-jquery"
+  ],
+  "extends": [
+    "plugin:vue/essential",
+    "plugin:no-jquery/deprecated"
+  ],
   "env": {
     "browser": true,
     "jquery": true
@@ -9,7 +16,6 @@
     "sourceType": "module",
     "ecmaVersion": 6
   },
-  "extends": [ "plugin:vue/essential" ],
   "globals": {},
   "rules": {
     "prefer-template": "error",
