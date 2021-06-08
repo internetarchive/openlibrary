@@ -792,6 +792,7 @@ class PatronBookNotes(object):
             'first_publish_year': work.first_publish_year or None
         }
 
+    @classmethod
     def get_count(self, username):
         return Booknotes.count_patron_booknotes_and_observations(username)
 
@@ -846,10 +847,14 @@ class public_my_books(delegate.page):
                     })[0]) for s in sponsorships)
             else:
                 books = readlog.get_works(key, page=i.page)
+
+            if logged_in_user and logged_in_user.key.split('/')[-1] == username:
+                has_booknotes = PatronBookNotes.get_count(username) > 0
             return render['account/books'](
                 books, key, sponsorship_count=len(sponsorships),
                 reading_log_counts=readlog.reading_log_counts, lists=readlog.lists,
-                user=user, logged_in_user=logged_in_user, public=is_public
+                user=user, logged_in_user=logged_in_user, public=is_public, 
+                has_booknotes = has_booknotes
             )
         raise web.seeother(user.key)
 

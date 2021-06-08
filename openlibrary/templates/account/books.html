@@ -1,4 +1,4 @@
-$def with (items, key, sponsorship_count=None, reading_log_counts=None, lists=None, user=None, logged_in_user=None, public=False)
+$def with (items, key, sponsorship_count=None, reading_log_counts=None, lists=None, user=None, logged_in_user=None, public=False, has_booknotes=False)
 $# Displays a user's reading log
 $# :param list items:
 $# :param Literal['currently-reading', 'want-to-read', 'already-read', 'sponsorships', 'loans', 'waitlist'] key:
@@ -99,6 +99,11 @@ $if og_title:
               $for lst in lists:
                 <li><a class="list-link" href="$(lst.key)">$lst['name'] ($(len(lst.seeds)))</a></li>
             </div>
+          </ul>
+        $if has_booknotes:
+          <ul>
+            <li class="subsection">$_('Book Notes')</li>
+            <li><a href="/account/books/notes">$_('My book notes')</a></li>
           </ul>
       </div>
       <div class="mybooks-list">
