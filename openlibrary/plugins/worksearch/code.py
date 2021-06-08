@@ -420,7 +420,8 @@ def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=Non
             'key', 'author_name', 'author_key', 'title', 'subtitle', 'edition_count',
             'ia', 'has_fulltext', 'first_publish_year', 'cover_i', 'cover_edition_key',
             'public_scan_b', 'lending_edition_s', 'lending_identifier_s', 'language',
-            'ia_collection_s', 'id_project_gutenberg', 'id_librivox'])),
+            'ia_collection_s', 'id_project_gutenberg', 'id_librivox',
+            'id_standard_ebooks'])),
         ('fq', 'type:work'),
         ('q.op', 'AND'),
         ('start', offset),
@@ -540,6 +541,8 @@ def get_doc(doc):  # called from work_search template
     e_ia = doc.find("arr[@name='ia']")
     e_id_project_gutenberg = doc.find("arr[@name='id_project_gutenberg']") or []
     e_id_librivox = doc.find("arr[@name='id_librivox']") or []
+    e_id_standard_ebooks = doc.find("arr[@name='id_standard_ebooks']") or []
+
     first_pub = None
     e_first_pub = doc.find("int[@name='first_publish_year']")
     if e_first_pub is not None:
@@ -590,6 +593,7 @@ def get_doc(doc):  # called from work_search template
         languages=languages and [lang.text for lang in languages],
         id_project_gutenberg=[e.text for e in e_id_project_gutenberg],
         id_librivox=[e.text for e in e_id_librivox],
+        id_standard_ebooks=[e.text for e in e_id_standard_ebooks],
     )
 
     doc.url = doc.key + '/' + urlsafe(doc.title)
@@ -613,6 +617,7 @@ def work_object(w): # called by works_by_author
         cover_i=w.get('cover_i'),
         id_project_gutenberg=w.get('id_project_gutenberg'),
         id_librivox=w.get('id_librivox'),
+        id_standard_ebooks=w.get('id_standard_ebooks'),
     )
 
     for f in 'has_fulltext', 'subtitle':
@@ -730,7 +735,8 @@ def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False,
             'key', 'author_name', 'author_key', 'title', 'subtitle', 'edition_count',
             'ia', 'cover_edition_key', 'has_fulltext', 'language', 'first_publish_year',
             'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
-            'ia_collection_s', 'id_project_gutenberg', 'id_librivox', 'cover_i'])),
+            'ia_collection_s', 'id_project_gutenberg', 'id_librivox',
+            'id_standard_ebooks', 'cover_i'])),
         ('wt', 'json'),
         ('q.op', 'AND'),
         ('facet', 'true'),

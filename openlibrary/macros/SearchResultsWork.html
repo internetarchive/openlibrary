@@ -8,7 +8,7 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
 
 $code:
   def is_non_book_ocaid(ocaid):
-    return doc.get('id_librivox') or doc.get('id_project_gutenberg') or ocaid.endswith('gut') or 'librivox' in ocaid
+    return doc.get('id_librivox') or doc.get('id_project_gutenberg') or doc.get('id_standard_ebooks') or ocaid.endswith('gut') or 'librivox' in ocaid
 
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book">
   <span class="bookcover">

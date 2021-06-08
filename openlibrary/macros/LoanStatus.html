@@ -30,6 +30,12 @@ $ librivox_id = librivox_ids and librivox_ids[0]
 $if librivox_id:
   $ book_provider = 'librivox'
 
+$# Check for Standard Ebooks
+$ standard_ebooks_ids = doc.get('identifiers', {}).get('standard_ebooks') or doc.get('id_standard_ebooks')
+$ standard_ebooks_id = standard_ebooks_ids and standard_ebooks_ids[0]
+$if standard_ebooks_id:
+  $ book_provider = 'standard_ebooks'
+
 $ waiting_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_waiting_loan_for(ocaid)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
 
@@ -64,6 +70,9 @@ $elif book_provider == 'gutenberg':
 
 $elif book_provider == 'librivox':
   $:macros.LibrivoxListenButton(librivox_id)
+
+$elif book_provider == 'standard_ebooks':
+  $:macros.StandardEbooksReadButton(standard_ebooks_id)
 
 $elif availability.get('is_readable'):
   $:macros.ReadButton(ocaid, listen=listen)

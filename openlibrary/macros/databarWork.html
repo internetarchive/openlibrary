@@ -59,6 +59,8 @@ $if isbn_10 and not asin:
             $:macros.LibrivoxDownloadOptions(page.identifiers.librivox[0], page.get('ocaid'))
           $elif page.get('identifiers', {}).get('project_gutenberg'):
             $:macros.GutenbergDownloadOptions(page.identifiers.project_gutenberg[0])
+          $elif page.get('identifiers', {}).get('standard_ebooks'):
+            $:macros.StandardEbooksDownloadOptions(page.identifiers.standard_ebooks[0])
           $elif page.get('ocaid') and not page.is_access_restricted() and page.ia_metadata:
             $:macros.DownloadOptions(page)
       </div>
