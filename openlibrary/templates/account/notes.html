@@ -3,140 +3,132 @@ $def with (user, notes_and_observations, num_found, page=1, results_per_page=25)
 $ username = user.key.split('/')[-1]
 $ user_key = user.key
 
-<div id="contentHead">
-  <div id="my-notes">
-    <div class="small sansserif grey account-settings-menu">
-      <a href="$user.key">$username</a> &raquo; $_("Book Notes")
-    </div>
-    <div>
-      <h1>Book Notes</h1>
-    </div>
-    <div class="list-container">
-      $if notes_and_observations:
-        <ul>
-            $for i in notes_and_observations:
-              $ work_id = i.work_id
-              $ work_cover_url = i.work['cover_url']
-              
-              <li class="main-list-item">
-                <div class="work-section">
-                  <span class="imageLg">
-                    <a href="$i.work_key"><img src="$work_cover_url" ></a>
-                  </span>
-                  <span>
-                    <h3 itemprop="name" class="booktitle">
-                      <a itemprop="url" href="$i.work_key" class="results">$i.work['title']</a>
-                    </h3>
-                    $if i.work['authors']:
-                      By: $','.join(i.work['authors'])
-                    $else:
-                      $_('Unknown author')
-                  </span>
-                </div>
-                <div class="tabs">
-                  <ul>
-                    <li><a href="#${work_id}-notes">Notes</a></li>
-                    <li><a href="#${work_id}-observations">Observations</a></li>
-                  </ul>
-                  <div class="booknotes-tab-view" id="${work_id}-notes">
-                    $ has_notes = False
-                    $if i['notes']:
-                      $ has_notes = True
-                      <ul class="notes-list">
-                        $for k in sorted(i['notes']):
-                          <li class="notes-list-item">
-                            $if k == -1:
-                              <div class="book-info">
-                                $_('My notes for the work'):
-                              </div>
-                            $else:
-                              $ edition = i['editions'][k]
-                              <div class="book-info">
-                                <div class="title">
-                                  $_('My notes for an edition of ')
-                                  $if edition.title:
-                                      <a href="$edition.url()">$edition.title</a><br/>
-                                  $else:
-                                      <a href="$edition.url()"><em>$_('Title missing')</em></a><br/>
-                                  <div class="published">
-                                  $if edition.publishers and edition.publish_date:
-                                      $edition.publish_date, $(', '.join(edition.publishers))
-                                  $elif edition.publish_date:
-                                      $edition.publish_date
-                                  $elif edition.publishers:
-                                      <em>$_('Publish date unknown')</em>, $(', '.join(edition.publishers))
-                                  $else:
-                                      <em>$_('Publisher unknown')</em>
-                                  </div>
-                                  <div>
-                                      $edition.physical_format.replace('[', '').replace(']','')
-                                      $if edition.languages:
-                                          $_('in %(language)s', language=', '.join(l.name for l in edition.languages))
-                                  $if edition.edition_name:
-                                      -
-                                      $edition.edition_name
-                                  </div>
-                                </div>
-                              </div>
-                            <div class="notes-section">
-                              <form class="book-notes-form" method="POST">
-                                $ work_olid = 'OL%dW' % i['work_id']
-                                $ edition_id = 'OL%dM' % k
-                                <textarea name="notes" rows="10">$i['notes'][k]</textarea>
-                                <input type="hidden" name="work_id" value="$work_olid" />
-                                $if k != -1:
-                                  <input type="hidden" name="edition_id" value="$edition_id" />
-                                <div class="note-buttons">
-                                  <button class="delete-note-button cta-btn" type="button">Delete</button>
-                                  <button class="update-note-button cta-btn notes-page-btn" type="button">Update</button>
-                                </div>
-                              </form>
+<div class="my-notes">
+  <div class="list-container">
+    $if notes_and_observations:
+      <ul>
+          $for i in notes_and_observations:
+            $ work_id = i.work_id
+            $ work_cover_url = i.work['cover_url']
+            
+            <li class="main-list-item">
+              <div class="work-section">
+                <span class="imageLg">
+                  <a href="$i.work_key"><img src="$work_cover_url" ></a>
+                </span>
+                <span>
+                  <h3 itemprop="name" class="booktitle">
+                    <a itemprop="url" href="$i.work_key" class="results">$i.work['title']</a>
+                  </h3>
+                  $if i.work['authors']:
+                    By: $','.join(i.work['authors'])
+                  $else:
+                    $_('Unknown author')
+                </span>
+              </div>
+              <div class="tabs">
+                <ul>
+                  <li><a href="#${work_id}-notes">Notes</a></li>
+                  <li><a href="#${work_id}-observations">Observations</a></li>
+                </ul>
+                <div class="booknotes-tab-view" id="${work_id}-notes">
+                  $ has_notes = False
+                  $if i['notes']:
+                    $ has_notes = True
+                    <ul class="notes-list">
+                      $for k in sorted(i['notes']):
+                        <li class="notes-list-item">
+                          $if k == -1:
+                            <div class="book-info">
+                              $_('My notes for the work'):
                             </div>
-                          </li>
-                      </ul>
-                    $else:
-                      <div class="no-content">
-                        $_('No notes for this book.')
-                      </div>
-                  </div>
-                  <div class="booknotes-tab-view observation-view" id="${work_id}-observations">
-                    $ notes = None if not has_notes else i['notes'].get(-1, None)
-                    $ work_key = i['work_key']
-                    $ modal_id = str(work_id) + "-observations-modal"
-                    $ list_id = str(work_id) + "-observations-list"
-
-                    $if i['observations']:
-                      <ul class="observations-list" id="$list_id">
-                        $for k in sorted(i['observations']):
-                          $ category = k.capitalize()
-                          $ observations = ', '.join(i['observations'][k]).capitalize()
-                          <li>
-                            <span class="observation-category">$category:</span> $observations
-                          </li>
-                      </ul>
-                      <div class="observation-buttons">
-                        <button class="delete-observations-button cta-btn" id="${work_id}-observation-delete">Delete</button>
-                        $:macros.UserMetadata(_("Update observations"), modal_id, classes="observations-modal-link", work_key=work_key, notes=notes, reload_id=list_id)
-                      </div>
-                    $else:
-                      <ul class="observations-list no-content" id="$list_id">
-                        <li>
-                          $_('No observations for this work.')
+                          $else:
+                            $ edition = i['editions'][k]
+                            <div class="book-info">
+                              <div class="title">
+                                $_('My notes for an edition of ')
+                                $if edition.title:
+                                    <a href="$edition.url()">$edition.title</a><br/>
+                                $else:
+                                    <a href="$edition.url()"><em>$_('Title missing')</em></a><br/>
+                                <div class="published">
+                                $if edition.publishers and edition.publish_date:
+                                    $edition.publish_date, $(', '.join(edition.publishers))
+                                $elif edition.publish_date:
+                                    $edition.publish_date
+                                $elif edition.publishers:
+                                    <em>$_('Publish date unknown')</em>, $(', '.join(edition.publishers))
+                                $else:
+                                    <em>$_('Publisher unknown')</em>
+                                </div>
+                                <div>
+                                    $edition.physical_format.replace('[', '').replace(']','')
+                                    $if edition.languages:
+                                        $_('in %(language)s', language=', '.join(l.name for l in edition.languages))
+                                $if edition.edition_name:
+                                    -
+                                    $edition.edition_name
+                                </div>
+                              </div>
+                            </div>
+                          <div class="notes-section">
+                            <form class="book-notes-form" method="POST">
+                              $ work_olid = 'OL%dW' % i['work_id']
+                              $ edition_id = 'OL%dM' % k
+                              <textarea name="notes" rows="10">$i['notes'][k]</textarea>
+                              <input type="hidden" name="work_id" value="$work_olid" />
+                              $if k != -1:
+                                <input type="hidden" name="edition_id" value="$edition_id" />
+                              <div class="note-buttons">
+                                <button class="delete-note-button cta-btn" type="button">Delete</button>
+                                <button class="update-note-button cta-btn notes-page-btn" type="button">Update</button>
+                              </div>
+                            </form>
+                          </div>
                         </li>
-                      </ul>
-                      <div class="no-content">
-                        <button class="delete-observations-button cta-btn hidden" id="${work_id}-observation-delete">Delete</button>
-                        $:macros.UserMetadata(_("Make observations"), modal_id, classes="observations-modal-link", work_key=work_key, notes=notes, reload_id=list_id)
-                      </div>
-                  </div>
+                    </ul>
+                  $else:
+                    <div class="no-content">
+                      $_('No notes for this book.')
+                    </div>
                 </div>
-              </li>
-        </ul>
-      $else:
-        $_('No notes or observations.')<br>
-    </div>
-    <div class="pager">
-      $:macros.Pager(page, num_found, results_per_page)
-    </div>
+                <div class="booknotes-tab-view observation-view" id="${work_id}-observations">
+                  $ notes = None if not has_notes else i['notes'].get(-1, None)
+                  $ work_key = i['work_key']
+                  $ modal_id = str(work_id) + "-observations-modal"
+                  $ list_id = str(work_id) + "-observations-list"
+
+                  $if i['observations']:
+                    <ul class="observations-list" id="$list_id">
+                      $for k in sorted(i['observations']):
+                        $ category = k.capitalize()
+                        $ observations = ', '.join(i['observations'][k]).capitalize()
+                        <li>
+                          <span class="observation-category">$category:</span> $observations
+                        </li>
+                    </ul>
+                    <div class="observation-buttons">
+                      <button class="delete-observations-button cta-btn" id="${work_id}-observation-delete">Delete</button>
+                      $:macros.UserMetadata(_("Update observations"), modal_id, classes="observations-modal-link", work_key=work_key, notes=notes, reload_id=list_id)
+                    </div>
+                  $else:
+                    <ul class="observations-list no-content" id="$list_id">
+                      <li>
+                        $_('No observations for this work.')
+                      </li>
+                    </ul>
+                    <div class="no-content">
+                      <button class="delete-observations-button cta-btn hidden" id="${work_id}-observation-delete">Delete</button>
+                      $:macros.UserMetadata(_("Make observations"), modal_id, classes="observations-modal-link", work_key=work_key, notes=notes, reload_id=list_id)
+                    </div>
+                </div>
+              </div>
+            </li>
+      </ul>
+    $else:
+      $_('No notes or observations.')<br>
+  </div>
+  <div class="pager">
+    $:macros.Pager(page, num_found, results_per_page)
   </div>
 </div>

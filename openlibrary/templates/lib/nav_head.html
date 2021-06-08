@@ -127,7 +127,7 @@ $def with (page)
           <li><a href="/account/books">$_("My Reading Log")</a></li>
           <li><a href="/account/books/already-read/stats">$_("My Reading Stats")</a></li>
           $if ctx.user.is_beta_tester():
-            <li><a href="/account/books/notes">$_("My Book Notes")</a></li>
+            <li><a href="/account/books/book-notes">$_("My Book Notes")</a></li>
           <li><a href="$homepath()/account">$_("Settings")</a></li>
           <li>
             <form name="logout" action="/account/logout" method="post">

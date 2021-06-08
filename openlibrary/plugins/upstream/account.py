@@ -797,27 +797,6 @@ class PatronBookNotes(object):
         return Booknotes.count_patron_booknotes_and_observations(username)
 
 
-class account_my_book_notes(delegate.page):
-    path = "/account/books/notes"
-
-    @require_login
-    def GET(self):
-        user = accounts.get_current_user()
-
-        i = web.input(limit=RESULTS_PER_PAGE, page=1)
-        limit = h.safeint(i.limit) or RESULTS_PER_PAGE
-        page = h.safeint(i.page) or 1
-
-        booknotes = PatronBookNotes(user=user, limit=limit, page=page)
-        # TODO: Wrap with feature flag:
-        return render['account/notes'](
-            user,
-            booknotes.notes_and_observations,
-            booknotes.notes_and_observations_count,
-            page=page,
-            results_per_page=limit)
-
-
 class public_my_books(delegate.page):
     path = "/people/([^/]+)/books"
 
@@ -836,7 +815,8 @@ class public_my_books(delegate.page):
             return render.notfound("User %s"  % username, create=False)
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         logged_in_user = accounts.get_current_user()
-        if is_public or logged_in_user and logged_in_user.key.split('/')[-1] == username:
+        is_logged_in_user = logged_in_user and logged_in_user.key.split('/')[-1] == username
+        if is_public or is_logged_in_user:
             readlog = ReadingLog(user=user)
             sponsorships = get_sponsored_editions(user)
             if key == 'sponsorships':
@@ -845,16 +825,21 @@ class public_my_books(delegate.page):
                         'type': '/type/edition',
                         'isbn_%s' % len(s['isbn']): s['isbn']
                     })[0]) for s in sponsorships)
+            elif key == 'book-notes' and is_logged_in_user and user.is_beta_tester():
+                books = PatronBookNotes(user=user, page=int(i.page)).notes_and_observations
             else:
                 books = readlog.get_works(key, page=i.page)
 
-            if logged_in_user and logged_in_user.key.split('/')[-1] == username:
-                has_booknotes = PatronBookNotes.get_count(username) > 0
+            if not user.is_beta_tester():
+                booknotes_count = 0
+            else:  
+                booknotes_count = 0 if not is_logged_in_user else PatronBookNotes.get_count(username)
+
             return render['account/books'](
                 books, key, sponsorship_count=len(sponsorships),
                 reading_log_counts=readlog.reading_log_counts, lists=readlog.lists,
                 user=user, logged_in_user=logged_in_user, public=is_public, 
-                has_booknotes = has_booknotes
+                booknotes_count = booknotes_count
             )
         raise web.seeother(user.key)
 
@@ -995,7 +980,9 @@ class fake_civi(delegate.page):
                 "receive_date": "2019-07-31 08:57:00",
                 "custom_52": "9780062457714",
                 "total_amount": "50.00",
-                "custom_53": "ol"
+                "custom_53": "ol",
+                "contact_id": "270430",
+                "contribution_status": "ok"
             }]
         }
         entity = contributions if i.entity == 'Contribution' else contact

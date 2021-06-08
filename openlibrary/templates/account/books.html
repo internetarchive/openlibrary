@@ -1,4 +1,4 @@
-$def with (items, key, sponsorship_count=None, reading_log_counts=None, lists=None, user=None, logged_in_user=None, public=False, has_booknotes=False)
+$def with (items, key, sponsorship_count=None, reading_log_counts=None, lists=None, user=None, logged_in_user=None, public=False, has_booknotes=False, booknotes=None, booknotes_count=0)
 $# Displays a user's reading log
 $# :param list items:
 $# :param Literal['currently-reading', 'want-to-read', 'already-read', 'sponsorships', 'loans', 'waitlist'] key:
@@ -7,6 +7,7 @@ $# :param Dict[Literal['currently-reading', 'want-to-read', 'already-read'], int
 $# :param list? lists:
 $# :param user:
 $# :param bool public:
+$# :param TODO
 
 $ title = _('My Books')
 $ urlbase = ctx.path.rsplit('/', 1)[0]
@@ -15,9 +16,16 @@ $ owners_page = logged_in_user and urlbase.startswith('/people/'+logged_in_user.
 $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 
 $ current_page = int(input(page=1).page)
-$ total_items = sponsorship_count if key == 'sponsorships' else int(reading_log_counts[key])
+$if key == 'sponserships':
+  $ total_items = sponsorship_count
+$elif key == 'book-notes':
+  $ total_items = booknotes_count
+$else:
+  $ total_items = int(reading_log_counts[key])
 $ userDisplayName = user.displayname or ctx.user.displayname
 $ userKey = user.key or ctx.user.key
+
+$ has_booknotes = booknotes_count > 0
 
 $ header_title = unicode(render_template('account/readinglog_shelf_name', key)).strip()
 $if key == 'currently-reading':
@@ -33,6 +41,11 @@ $elif key == 'sponsorships':
   $ header_title = _("Sponsorships")
   $ og_title = _("Books %(userdisplayname)s is sponsoring", userdisplayname=userDisplayName)
   $ og_description = "{username} is sponsoring {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=userDisplayName, total=total_items)
+$elif key == 'book-notes':
+  $ header_title = _("Book Notes")
+  $ og_title = None
+  $# og_title = _("Notable books for %(username)s", username=userDisplayName)
+  $# og_description = _("%(username)s has created notes for %(total)d books. Join $(username)s on OpenLibrary.org and tell the world about the books that you care about.", username=userDisplayName, total=total_items)
 
 $if owners_page:
   $var title: $header_title
@@ -101,35 +114,38 @@ $if og_title:
             </div>
           </ul>
         $if has_booknotes:
-          <ul>
+          <ul class="booknotes-list">
             <li class="subsection">$_('Book Notes')</li>
-            <li><a href="/account/books/notes">$_('My book notes')</a></li>
+            <li><a $('class=selected' if key=='book-notes' else '') href="$urlbase/book-notes">$_('My book notes (%(count)d)', count=booknotes_count)</a></li>
           </ul>
       </div>
-      <div class="mybooks-list">
-        $:macros.Pager(current_page, total_items, results_per_page=25)
-        <ul class="list-books">
-          $if items:
-            $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
-            $for item in items:
-              $if key == 'loans':
-                $ edition = get_document(item['book'])
-                $ work = get_document(edition.works[0]) if (edition.get('type', {}).get('key') == '/type/work' and edition.works and edition.works[0]) else None
-                $ decorations = owners_page and macros.ManageLoansButtons(item, edition) or ''
-                $:macros.SearchResultsWork(work or edition, decorations=decorations, cta=False)
-              $elif key == 'waitlists':
-                $ edition = item
-                $ decorations = owners_page and macros.ManageWaitlistButton(edition) or ''
-                $:macros.SearchResultsWork(edition, decorations=decorations, cta=False)
-              $else:
-                $ work = item
-                $ decorations = (bookshelf_id and owners_page) and macros.ReadingLogButton(work, read_status=bookshelf_id)
-                $:macros.SearchResultsWork(work, decorations=decorations, cta=False)
-          $else:
-            <li>$_('No books are on this shelf')</li>
-        </ul>
-        $:macros.Pager(current_page, total_items, results_per_page=25)
-      </div>
+      $if key == 'book-notes':
+        $:render_template('account/notes', user, items, booknotes_count, page=current_page)
+      $else:
+        <div class="mybooks-list">
+          $:macros.Pager(current_page, total_items, results_per_page=25)
+          <ul class="list-books">
+            $if items:
+              $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
+              $for item in items:
+                $if key == 'loans':
+                  $ edition = get_document(item['book'])
+                  $ work = get_document(edition.works[0]) if (edition.get('type', {}).get('key') == '/type/work' and edition.works and edition.works[0]) else None
+                  $ decorations = owners_page and macros.ManageLoansButtons(item, edition) or ''
+                  $:macros.SearchResultsWork(work or edition, decorations=decorations, cta=False)
+                $elif key == 'waitlists':
+                  $ edition = item
+                  $ decorations = owners_page and macros.ManageWaitlistButton(edition) or ''
+                  $:macros.SearchResultsWork(edition, decorations=decorations, cta=False)
+                $else:
+                  $ work = item
+                  $ decorations = (bookshelf_id and owners_page) and macros.ReadingLogButton(work, read_status=bookshelf_id)
+                  $:macros.SearchResultsWork(work, decorations=decorations, cta=False)
+            $else:
+              <li>$_('No books are on this shelf')</li>
+          </ul>
+          $:macros.Pager(current_page, total_items, results_per_page=25)
+        </div>
     </div>
   </div>
 </div>
