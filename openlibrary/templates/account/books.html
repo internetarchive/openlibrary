@@ -1,4 +1,4 @@
-$def with (items, key, sponsorship_count=None, reading_log_counts=None, lists=None, user=None, logged_in_user=None, public=False, has_booknotes=False, booknotes=None, booknotes_count=0)
+$def with (items, key, sponsorship_count=None, reading_log_counts=None, lists=None, user=None, logged_in_user=None, public=False, booknotes_count=0)
 $# Displays a user's reading log
 $# :param list items:
 $# :param Literal['currently-reading', 'want-to-read', 'already-read', 'sponsorships', 'loans', 'waitlist'] key:
@@ -7,7 +7,7 @@ $# :param Dict[Literal['currently-reading', 'want-to-read', 'already-read'], int
 $# :param list? lists:
 $# :param user:
 $# :param bool public:
-$# :param TODO
+$# :param int booknotes_count: number of book notes submitted by the patron
 
 $ title = _('My Books')
 $ urlbase = ctx.path.rsplit('/', 1)[0]
@@ -24,8 +24,6 @@ $else:
   $ total_items = int(reading_log_counts[key])
 $ userDisplayName = user.displayname or ctx.user.displayname
 $ userKey = user.key or ctx.user.key
-
-$ has_booknotes = booknotes_count > 0
 
 $ header_title = unicode(render_template('account/readinglog_shelf_name', key)).strip()
 $if key == 'currently-reading':
@@ -113,7 +111,7 @@ $if og_title:
                 <li><a class="list-link" href="$(lst.key)">$lst['name'] ($(len(lst.seeds)))</a></li>
             </div>
           </ul>
-        $if has_booknotes:
+        $if user.is_beta_tester():
           <ul class="booknotes-list">
             <li class="subsection">$_('Book Notes')</li>
             <li><a $('class=selected' if key=='book-notes' else '') href="$urlbase/book-notes">$_('My book notes (%(count)d)', count=booknotes_count)</a></li>
