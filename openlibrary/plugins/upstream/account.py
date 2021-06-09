@@ -808,7 +808,9 @@ class public_my_books_json(delegate.page):
                         'lending_edition_s': (w._solr_data.get('lending_edition_s') or
                                               None),
                         'edition_key': w._solr_data.get('edition_key') or None,
-                        'covers': w.get_covers(),
+                        'cover_id': w._solr_data.get('cover_id') or None,
+                        'cover_edition_key': (w._solr_data.get('cover_edition_key') or
+                                              None),
                     },
                     'logged_edition': w.get('logged_edition') or None,
                     'logged_date': (w.get('logged_date').strftime("%Y/%m/%d, %H:%M:%S")
