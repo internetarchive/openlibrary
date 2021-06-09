@@ -1,6 +1,7 @@
 import pytest
 
 from openlibrary.utils.lcc import (
+    choose_sorting_lcc,
     normalize_lcc_prefix,
     normalize_lcc_range,
     short_lcc_to_sortable_lcc,
@@ -45,6 +46,7 @@ INVALID_TESTS = [
     ('Microfiche 92/80965 (G)', 'real ol data'),
     ('MLCSN+', 'real ol data'),
     ('UNCLASSIFIED 809 (S)', 'real ol data'),
+    ('CPB Box no. 1516 vol. 17', 'CPB box number'),
 ]
 
 
@@ -117,3 +119,15 @@ RANGE_TESTS = [
                          ids=[t[-1] for t in RANGE_TESTS])
 def test_normalize_lcc_range(raw, normed, name):
     assert normalize_lcc_range(*raw) == normed
+
+
+SORTING_TESTS = [
+    (['A--0001.00000000', 'B--0001.13000000.C89'], 1, 'Chooses longest'),
+    (['A--0001.00000000', 'A--0001.13000000'], 1, 'Chooses most precise'),
+]
+
+
+@pytest.mark.parametrize("lccs,result,name", SORTING_TESTS,
+                         ids=[t[-1] for t in SORTING_TESTS])
+def test_choose_sorting_lcc(lccs, result, name):
+    assert choose_sorting_lcc(lccs) == lccs[result]
