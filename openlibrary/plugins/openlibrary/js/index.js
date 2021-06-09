@@ -264,7 +264,11 @@ jQuery(function () {
     $('#wikiselect').on('focus', function(){$(this).trigger('select');})
 
     // Open one dropdown at a time.
-    $('.header-dropdown details').on('click', function () {
-        $('details[open]').not(this).removeAttr('open');
+    $(document).on('click', function (event) {
+        const $openMenus = $('.header-dropdown details[open]').parents('.header-dropdown');
+        $openMenus
+            .filter((_, menu) => !$(event.target).closest(menu).length)
+            .find('details')
+            .removeAttr('open');
     });
 });
