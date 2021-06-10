@@ -728,10 +728,11 @@ class ReadingLog(object):
         return self.process_logged_books(Bookshelves.get_users_logged_books(
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Already Read'],
             page=page, limit=limit))
-    
+
     def get_stopped_reading(self, page=1, limit=RESULTS_PER_PAGE):
         return self.process_logged_books(Bookshelves.get_users_logged_books(
-            self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Stopped Reading'],
+            self.user.get_username(),
+            bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Stopped Reading'],
             page=page, limit=limit))
 
     def get_works(self, key, page=1, limit=RESULTS_PER_PAGE):
@@ -953,7 +954,12 @@ class export_books(delegate.page):
         books = Bookshelves.get_users_logged_books(username, limit=10000)
         csv = []
         csv.append('Work Id,Edition Id,Bookshelf\n')
-        mapping = {1:'Want to Read', 2:'Currently Reading', 3:'Already Read', 4:'Stopped Reading'}
+        mapping = {
+            1: 'Want to Read',
+            2: 'Currently Reading',
+            3: 'Already Read',
+            4: 'Stopped Reading'
+        }
         for book in books:
             row = [
                 'OL{}W'.format(book['work_id']),

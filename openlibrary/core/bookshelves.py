@@ -236,7 +236,8 @@ class Bookshelves(object):
         """
         Which super patrons have the most books logged?
 
-        SELECT username, count(*) AS counted from bookshelves_books WHERE bookshelf_id=ANY('{1,3,2,4}'::int[]) GROUP BY username ORDER BY counted DESC, username LIMIT 10
+        SELECT username, count(*) AS counted from bookshelves_books WHERE 
+        bookshelf_id=ANY('{1,3,2,4}'::int[]) GROUP BY username ORDER BY counted DESC, username LIMIT 10
         """
         oldb = db.get_db()
         _bookshelf_ids = ','.join([str(x) for x in cls.PRESET_BOOKSHELVES.values()])
