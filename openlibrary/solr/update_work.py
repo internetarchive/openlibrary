@@ -27,9 +27,9 @@ from openlibrary.core import helpers as h
 from openlibrary.core import ia
 from openlibrary.plugins.upstream.utils import url_quote
 from openlibrary.solr.data_provider import get_data_provider, DataProvider
-from openlibrary.utils.ddc import normalize_ddc
+from openlibrary.utils.ddc import normalize_ddc, choose_sorting_ddc
 from openlibrary.utils.isbn import opposite_isbn
-from openlibrary.utils.lcc import short_lcc_to_sortable_lcc
+from openlibrary.utils.lcc import short_lcc_to_sortable_lcc, choose_sorting_lcc
 
 logger = logging.getLogger("openlibrary.solr")
 
@@ -566,7 +566,7 @@ class SolrProcessor:
         if lccs:
             add_list("lcc", lccs)
             # Choose the... idk, longest for sorting?
-            add("lcc_sort", sorted(lccs, key=len, reverse=True)[0])
+            add("lcc_sort", choose_sorting_lcc(lccs))
 
         def get_edition_ddcs(ed: dict):
             ddcs = ed.get('dewey_decimal_class', [])  # type: List[str]
@@ -579,10 +579,9 @@ class SolrProcessor:
                 #   https://openlibrary.org/books/OL3029363M.json
                 # * [ "813/.54", "B", "92" ]
                 #   https://openlibrary.org/books/OL2401343M.json
-                ddcs = [
-                    ddcs[0],
-                    *[ddc for ddc in ddcs[1:] if ddc not in ('92', '920')]
-                ]
+                # * [ "092", "823.914" ]
+                # https://openlibrary.org/books/OL24767417M
+                ddcs = [ddc for ddc in ddcs if ddc not in ('92', '920', '092')]
             return ddcs
 
         raw_ddcs = set(ddc
@@ -593,8 +592,7 @@ class SolrProcessor:
                    for ddc in normalize_ddc(raw_ddc))
         if ddcs:
             add_list("ddc", ddcs)
-            # Choose longest, since has most precision?
-            add("ddc_sort", sorted(ddcs, key=len, reverse=True)[0])
+            add("ddc_sort", choose_sorting_ddc(ddcs))
 
         add_list("isbn", self.get_isbns(editions))
         add("last_modified_i", self.get_last_modified(w, editions))
