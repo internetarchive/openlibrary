@@ -1,4 +1,5 @@
 from datetime import datetime
+import copy
 import json
 import logging
 import random
@@ -17,6 +18,7 @@ from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core.lending import add_availability, get_availability_of_ocaids
 from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.plugins.inside.code import fulltext_search
+from openlibrary.plugins.openlibrary.lists import get_list_editions
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import escape_bracket
@@ -1006,6 +1008,27 @@ def random_author_search(limit=10):
 
     return json.dumps(search_results['response'])
 
+def rewrite_list_editions_query(q, page, offset, limit):
+    """Takes a solr query. If it doesn't contain a /lists/ key, then
+    return the query, unchanged, exactly as it entered the
+    function. If it does contain a lists key, then use the pagination
+    information to fetch the right block of keys from the
+    lists_editions API and then feed these editions resulting work
+    keys into solr with the form key:(OL123W, OL234W). This way, we
+    can use the solr API to fetch list works and render them in
+    carousels in the right format.
+    """
+    if '/lists/' in q:
+        editions = get_list_editions(q, offset=offset, limit=limit)
+        work_ids = [ed.get('works')[0]['key'] for ed in editions]
+        q = 'key:(' + ' OR '.join(work_ids) + ')'
+        # We've applied the offset to fetching get_list_editions to
+        # produce the right set of discrete work IDs. We don't want
+        # it applied to paginate our resulting solr query.
+        offset = 0
+        page = 1
+    return q, page, offset, limit
+
 
 @public
 def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet=True,
@@ -1015,18 +1038,25 @@ def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet
     query: dict
     sort: str editions|old|new|scans
     """
+    # Ensure we don't mutate the `query` passed in by reference
+    query = copy.deepcopy(query)
     query['wt'] = 'json'
     if sort:
         sort = process_sort(sort)
+
+    # deal with special /lists/ key queries
+    query['q'], page, offset, limit = rewrite_list_editions_query(query['q'], page, offset, limit)
     try:
-        (reply, solr_select, q_list) = run_solr_query(query,
-                                                      rows=limit,
-                                                      page=page,
-                                                      sort=sort,
-                                                      offset=offset,
-                                                      fields=fields,
-                                                      facet=facet,
-                                                      spellcheck_count=spellcheck_count)
+        (reply, solr_select, q_list) = run_solr_query(
+            query,
+            rows=limit,
+            page=page,
+            sort=sort,
+            offset=offset,
+            fields=fields,
+            facet=facet,
+            spellcheck_count=spellcheck_count
+        )
         response = json.loads(reply)['response'] or ''
     except (ValueError, IOError) as e:
         logger.error("Error in processing search API.")
@@ -1074,10 +1104,16 @@ class search_json(delegate.page):
             query.pop("_spellcheck_count", default_spellcheck_count),
             default=default_spellcheck_count)
 
+        # If the query is a /list/ key, create custom list_editions_query
+        q = query['q']
+        query['q'], page, offset, limit = rewrite_list_editions_query(q, page, offset, limit)
+
         response = work_search(query, sort=sort, page=page, offset=offset, limit=limit,
                                fields=fields, facet=facet,
                                spellcheck_count=spellcheck_count)
-
+        response['q'] = q
+        response['offset'] = offset
+        response['docs'] = add_availability(response['docs'])
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=4))
 
