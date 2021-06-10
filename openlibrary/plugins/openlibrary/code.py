@@ -351,8 +351,10 @@ class robotstxt(delegate.page):
         except IOError:
             raise web.notfound()
 
+
 class serviceworker(delegate.page):
     path = '/sw.js'
+
     def GET(self):
         web.header('Content-Type', 'text/javascript')
         try:
