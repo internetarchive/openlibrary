@@ -266,12 +266,12 @@ jQuery(function () {
 
     $('#wikiselect').on('focus', function(){$(this).trigger('select');})
 
-    // Clicking outside of menus closes menus
+    // Open one dropdown at a time.
     $(document).on('click', function (event) {
-        const $openMenus = $('.checkbox-menu :checked').parents('.checkbox-menu');
+        const $openMenus = $('.header-dropdown details[open]').parents('.header-dropdown');
         $openMenus
             .filter((_, menu) => !$(event.target).closest(menu).length)
-            .find('[type=checkbox]')
-            .prop('checked', false);
+            .find('details')
+            .removeAttr('open');
     });
 });
