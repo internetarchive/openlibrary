@@ -292,7 +292,7 @@ export function initEdit() {
             $(fieldname).trigger('focus');
         }
         else {
-            $('#tabsAddbook > div:visible :input:first').trigger('focus');
+            $('#tabsAddbook > div:visible :input').first().trigger('focus');
         }
         $(window).scrollTop($('#contentHead').offset().top);
     }, 1000);

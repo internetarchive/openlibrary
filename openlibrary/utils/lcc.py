@@ -85,6 +85,7 @@ But it works for subject-related range queries, so we consider it sufficient.
 [2]: https://ejournals.bc.edu/index.php/ital/article/download/11585/9839/
 """
 import re
+from typing import Iterable
 
 from openlibrary.utils.ddc import collapse_multiple_space
 
@@ -116,6 +117,13 @@ def short_lcc_to_sortable_lcc(lcc):
     parts['number'] = float(parts['number'] or 0)
     parts['cutter1'] = '.' + parts['cutter1'].lstrip(' .') if parts['cutter1'] else ''
     parts['rest'] = ' ' + parts['rest'].strip() if parts['rest'] else ''
+
+    # There will often be a CPB Box No (whatever that is) in the LCC field;
+    # E.g. "CPB Box no. 1516 vol. 17"
+    # Although this might be useful to search by, it's not really an LCC,
+    # so considering it invalid here.
+    if parts['letters'] == 'CPB':
+        return None
 
     return '%(letters)s%(number)013.8f%(cutter1)s%(rest)s' % parts
 
@@ -183,3 +191,11 @@ def normalize_lcc_range(start, end):
         lcc if lcc == '*' else short_lcc_to_sortable_lcc(lcc)
         for lcc in (start, end)
     ]
+
+
+def choose_sorting_lcc(sortable_lccs: Iterable[str]) -> str:
+    # Choose longest; theoretically most precise?
+    # Note we go to short-form first, so eg 'A123' beats 'A'
+    def short_len(lcc: str) -> int:
+        return len(sortable_lcc_to_short_lcc(lcc))
+    return sorted(sortable_lccs, key=short_len, reverse=True)[0]

@@ -102,7 +102,7 @@ export function initCoversSaved() {
     const doc_type_key = data_config_json['key'];
     const coverstore_url = data_config_json['url'];
     const cover_selector = data_config_json['selector'];
-    const image = parent.$('.imageSaved').data('image-id');
+    const image = $('.imageSaved').data('imageId');
     var cover_url;
 
     $('.formButtons button').on('click', parent.closePopup);

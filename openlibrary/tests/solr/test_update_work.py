@@ -398,7 +398,7 @@ class Test_build_data:
         'Handles none': ([], None, None),
         'Handles empty string': ([''], None, None),
         'Stores multiple': (['05', '123.5'], ['005', '123.5'], 1),
-        'Handles full DDC': (['j132.452939 [B]'], ['j132.452939 B'], 0),
+        'Handles full DDC': (['j132.452939 [B]'], ['132.452939 B', 'j132.452939 B'], 0),
         'Handles alternate DDCs': (
             ['132.52 153.6'], ['132.52', '153.6'], 0),
         'Stores longest for sorting': (
@@ -410,8 +410,9 @@ class Test_build_data:
         'Ignores superfluous 920s': (['123.5', '920'], ['123.5'], 0),
         'Ignores superfluous 92s': (['123.5', '92'], ['123.5'], 0),
         'Ignores superfluous 92s (2)': (['123.5', 'B', '92'], ['123.5'], 0),
-        'Does not skip 920s': (['920', '123.5'], ['123.5', '920'], 0),
-        'Does not skip 92s': (['92', '123.5'], ['092', '123.5'], 1),
+        'Skips 920s': (['920', '123.5'], ['123.5'], 0),
+        'Skips 92s': (['92', '123.5'], ['123.5'], 0),
+        'Skips 092s': (['092', '123.5'], ['123.5'], 0),
     }
 
     @pytest.mark.parametrize("doc_ddcs,solr_ddcs,sort_ddc_index",

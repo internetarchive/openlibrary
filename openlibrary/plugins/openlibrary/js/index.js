@@ -63,6 +63,10 @@ window.$ = jQuery;
 
 window.Promise = Promise;
 
+// This to the best of our knowledge needs to be run synchronously,
+// because it sends the initial pageview to analytics.
+initAnalytics();
+
 // Initialise some things
 jQuery(function () {
     const $markdownTextAreas = $('textarea.markdown');
@@ -83,7 +87,6 @@ jQuery(function () {
     }
     bookReaderInit($);
     jQueryRepeat($);
-    initAnalytics($);
     init($);
     // conditionally load functionality based on what's in the page
     if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
@@ -263,12 +266,12 @@ jQuery(function () {
 
     $('#wikiselect').on('focus', function(){$(this).trigger('select');})
 
-    // Clicking outside of menus closes menus
+    // Open one dropdown at a time.
     $(document).on('click', function (event) {
-        const $openMenus = $('.checkbox-menu :checked').parents('.checkbox-menu');
+        const $openMenus = $('.header-dropdown details[open]').parents('.header-dropdown');
         $openMenus
             .filter((_, menu) => !$(event.target).closest(menu).length)
-            .find('[type=checkbox]')
-            .prop('checked', false);
+            .find('details')
+            .removeAttr('open');
     });
 });
