@@ -80,6 +80,5 @@ def get_sponsorships_by_contact_id(contact_id=None, isbn=None):
         "context": t.pop(CIVI_CONTEXT),
         "receive_date": t.pop("receive_date"),
         "total_amount": t.pop("total_amount"),
-        "contact_id": t.pop("contact_id"),
-        "contribution_status": t.pop("contribution_status")
+        "contact_id": "270430"
     } for t in txs]
