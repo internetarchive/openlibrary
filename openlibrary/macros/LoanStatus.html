@@ -49,12 +49,11 @@ $elif availability.get('is_readable'):
     $:macros.BookSearchInside(ocaid)
 
 $elif ocaid and ctx.user and ctx.user.is_printdisabled():
-  $:macros.ReadButton(ocaid, listen=listen, printdisabled=True)
+  $ std_borrow = availability and availability.get('is_lendable')
+  $:macros.ReadButton(ocaid, borrow=std_borrow, printdisabled=not std_borrow, listen=listen)
 
 $elif availability.get('is_lendable'):
-  $if availability.get('available_to_borrow'):
-    $:macros.ReadButton(ocaid, borrow=True, listen=listen)
-  $elif availability.get('available_to_browse'):
+  $if availability.get("available_to_borrow") or availability.get("available_to_browse"):
     $:macros.ReadButton(ocaid, borrow=True, listen=listen)
   $elif availability.get('available_to_waitlist'):
     $ wlsize = availability.get('users_on_waitlist') or availability.get('num_waitlist')
