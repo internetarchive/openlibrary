@@ -805,11 +805,18 @@ class public_my_books_json(delegate.page):
                         'author_keys': [a.author.key for a in w.get('authors', [])],
                         'author_names': [a.author.name for a in w.get('authors', [])],
                         'first_publish_year': w.first_publish_year or None,
-                        'lending_edition_s': (w._solr_data.get('lending_edition_s') or
+                        'lending_edition_s': (w._solr_data.get('lending_edition_s') if
+                                              w._solr_data and
+                                              w._solr_data.get('lending_edition_s') else
                                               None),
-                        'edition_key': w._solr_data.get('edition_key') or None,
-                        'cover_id': w._solr_data.get('cover_id') or None,
-                        'cover_edition_key': (w._solr_data.get('cover_edition_key') or
+                        'edition_key': (w._solr_data.get('edition_key') if
+                                        w._solr_data and
+                                        w._solr_data.get('edition_key') else None),
+                        'cover_id': (w._solr_data.get('cover_id') if w._solr_data and
+                                     w._solr_data.get('cover_id') else None),
+                        'cover_edition_key': (w._solr_data.get('cover_edition_key') if
+                                              w._solr_data and
+                                              w._solr_data.get('cover_edition_key') else
                                               None),
                     },
                     'logged_edition': w.get('logged_edition') or None,
