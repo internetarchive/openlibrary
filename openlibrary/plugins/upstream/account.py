@@ -802,8 +802,9 @@ class public_my_books_json(delegate.page):
                     {
                         'title': w.get('title'),
                         'key': w.key,
-                        'author_keys': [a.key for a in w.get_authors()],
-                        'author_names': w.get_author_names() or None,
+                        'author_keys': [a.author.key for a in w.get('authors', [])],
+                        'author_names': [str(a.author.name) for a
+                                         in w.get('authors', [])],
                         'first_publish_year': w.first_publish_year or None,
                         'lending_edition_s': (w._solr_data and
                                               w._solr_data.get('lending_edition_s') or
