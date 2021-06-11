@@ -507,10 +507,12 @@ class Work(Thing):
             'want-to-read': num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0),
             'currently-reading': num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES['Currently Reading'], 0),
             'already-read': (
-                num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0)
+                num_users_by_bookshelf
+                .get(Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0)
             ),
             'stopped-reading': (
-                num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES['Stopped Reading'], 0)
+                num_users_by_bookshelf
+                .get(Bookshelves.PRESET_BOOKSHELVES['Stopped Reading'], 0)
             )
         }
 
