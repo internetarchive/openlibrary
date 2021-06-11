@@ -175,7 +175,7 @@ const Carousel = {
                         url: url,
                         type: 'GET',
                         success: function(results) {
-                            var works = results.works || results.docs;
+                            const works = results.works || results.docs;
                             $.each(works, function(work_idx) {
                                 var work = works[work_idx];
                                 var lastSlidePos = $(`${selector}.slick-slider`)
