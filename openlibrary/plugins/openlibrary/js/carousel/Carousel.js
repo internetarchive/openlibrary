@@ -77,22 +77,36 @@ const Carousel = {
             open: {cls: 'cta-btn--available', cta: 'Read'},
             borrow_available: {cls: 'cta-btn--available', cta: 'Borrow'},
             borrow_unavailable: {cls: 'cta-btn--unavailable', cta: 'Join Waitlist'},
-            error: {cls: 'cta-btn--missing', cta: 'Not In Library'}
+            error: {cls: 'cta-btn--missing', cta: 'Not In Library'},
+            private: {cls: 'cta-btn--available', cta: 'Preview'}
         };
 
         addWork = function(work) {
-            var availability = work.availability.status;
-            var ocaid = work.availability.identifier;
-            var cover = {
+            let availability = work.availability || {};
+            let ocaid = availability.identifier ||
+                work.lending_identifier_s ||
+                work.ia ? work.ia[0] : undefined;
+            let openlibrary_edition = availability.openlibrary_edition ||
+                work.lending_edition_s || undefined;
+            // Use solr data to augment availability API
+            if (!availability.status || availability.status === 'error') {
+                if (work.lending_identifier_s) {
+                    availability.status = 'borrow_available';
+                } else if (ocaid) {
+                    availability.status = 'private';
+                }
+            }
+            let cover = {
                 type: 'id',
                 id: work.covers ? work.covers[0] : work.cover_id || work.cover_i
             };
-            var cls = availabilityStatuses[availability].cls;
-            var url = (cls == 'cta-btn--available') ?
+            let availabilityStatus = availabilityStatuses[availability.status];
+            let cls = availabilityStatus.cls;
+            let cta = availabilityStatus.cta;
+            let url = (cls == 'cta-btn--available') ?
                 (`/borrow/ia/${ocaid}`) : (cls == 'cta-btn--unavailable') ?
-                    (`/books/${work.availability.openlibrary_edition}`) : work.key;
-            var cta = availabilityStatuses[availability].cta;
-            var isClickable = availability == 'error' ? 'disabled' : '';
+                    (`/books/${openlibrary_edition}`) : work.key;
+            let isClickable = availability.status == 'error' ? 'disabled' : '';
 
             if (!cover.id && ocaid) {
                 cover.type = 'ia';
@@ -160,11 +174,8 @@ const Carousel = {
                     $.ajax({
                         url: url,
                         type: 'GET',
-                        success: function(subject_results) {
-                            var works = subject_results.works;
-                            if (!works) {
-                                works = subject_results.docs;
-                            }
+                        success: function(results) {
+                            const works = results.works || results.docs;
                             $.each(works, function(work_idx) {
                                 var work = works[work_idx];
                                 var lastSlidePos = $(`${selector}.slick-slider`)
