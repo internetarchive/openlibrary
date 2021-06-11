@@ -6,7 +6,6 @@ $if subjects:
     <div class="carousel-section-header">
       <h2 class="home-h2"><a href="/subjects">$_('Browse by Subject')</a></h2>
     </div>
-    <hr>
     <div class="carousel-container">
       <div class="carousel carousel--progressively-enhanced" id="categories_carousel"
         data-config="$json_encode(['#categories_carousel', 6, 5, 4, 3, 2])">
@@ -15,16 +14,19 @@ $if subjects:
           $ presentable_subject_name = subject_name.replace('_', ' ').title()
           <div class="category-item carousel__item">
             <a class="category-nostyle" data-ol-link-track="CarouselCategories"
-               href="/subjects/$(subject_name)#sort=date_published&ebooks=true">
+               href="/subjects/$(subject_name)#sort=date_published&ebooks=true"
+	       style="display: flex; border: 1px solid #ccc; border-radius: 5px; padding: 10px;">
               <div class="category-icon">
                 <img class="category-img" src="/static/images/categories/$(subject_name).svg"
                     width="30" height="30"
                     alt="$_('browse %(subject)s books', subject=presentable_subject_name)"/>
               </div>
-              <p class="category-title">$presentable_subject_name</p>
-              $if subject:
-                $ count = commify(subject.get('work_count', ''))
+	      <div style="flex: 1">
+		<p class="category-title">$presentable_subject_name</p>
+                $if subject:
+                  $ count = commify(subject.get('work_count', ''))
                 <p class="category-count">$ungettext('1 Book', '%(count)s Books', subject.get('work_count'), count=count)</p>
+	      </div>
             </a>
           </div>
       </div>

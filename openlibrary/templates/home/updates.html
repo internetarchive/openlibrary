@@ -1,0 +1,23 @@
+$def with (blog_posts=None
+
+$ blog_posts = blog_posts or [])
+
+<style type="text/css">
+  h1.welcome {
+    font-size: .8em;
+  }
+</style>       
+
+<div class="carousel-section">
+  <h1 class="updates">Updates</h1>
+  <div class="carousel carousel-welcome carousel--progressively-enhanced">
+    
+  </div>
+
+  $for b in blog_posts:
+    if b.pubdate.year:
+      <div class="">
+       $b.title
+      </div>
+
+</div>
