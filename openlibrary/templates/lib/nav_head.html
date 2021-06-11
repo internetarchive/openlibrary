@@ -95,25 +95,6 @@ $def with (page)
     </ul>
 
   $if ctx.user:
-    $code:
-      accountProps = {
-        'name': 'account',
-        'label': 'My account',
-        # It seems like in the local dev environment (and presumably _only_ in the local
-        # dev environment), this get_internet_archive_id returns None. Setting it to an
-        # empty string returns a valid image ¯\_(ツ)_/¯
-        'image': 'https://archive.org/services/img/' + (get_internet_archive_id(ctx.user.key) or ''),
-        'links': [
-          { "href": ctx.user.key, "text": _("My Profile") },
-          { "href": homepath() + "/account/loans", "text": _("My Loans") },
-          { "href": ctx.user.key + "/lists", "text": _("My Lists") },
-          { "href": "/account/books", "text": _("My Reading Log") },
-          { "href": "/account/books/already-read/stats", "text": _("My Reading Stats") },
-          { "href": homepath() + "/account", "text": _("Settings") },
-          { "post": "/account/logout", "text": _("Log out") }
-        ]
-      }
-    $:render_template("lib/header_dropdown", accountProps )
     <div class="account-component header-dropdown">
       <details>
         <summary>
@@ -138,6 +119,9 @@ $def with (page)
           </ul>
         </div>
       </details>
+<<<<<<< HEAD
 >>>>>>> 935aa3172... Add 'Import & Export Options' to Reading Log
+=======
+>>>>>>> 5192e3515... minor-fix
     </div>
 </header>
