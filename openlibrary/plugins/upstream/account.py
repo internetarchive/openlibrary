@@ -677,10 +677,12 @@ class ReadingLog(object):
         return {
             'want-to-read': counts.get(Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0),
             'currently-reading': counts.get(Bookshelves.PRESET_BOOKSHELVES['Currently Reading'], 0),
-            'already-read': (counts
-                .get(Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0)),
-            'stopped-reading': (counts
-                .get(Bookshelves.PRESET_BOOKSHELVES['Stopped Reading'], 0))
+            'already-read': (
+                counts.get(Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0)
+            ),
+            'stopped-reading': (
+                counts.get(Bookshelves.PRESET_BOOKSHELVES['Stopped Reading'], 0)
+            )
         }
 
     def get_loans(self):
