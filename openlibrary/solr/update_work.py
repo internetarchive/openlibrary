@@ -527,7 +527,7 @@ class SolrProcessor:
         add('key', w['key'])
         add('type', 'work')
         add('seed', BaseDocBuilder().compute_seeds(w, editions))
-        add('title', w.get('title'))
+        add('title', w.get('title').strip())
         add('subtitle', w.get('subtitle'))
         add('has_fulltext', has_fulltext)
 
