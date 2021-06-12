@@ -33,7 +33,7 @@
     "bundlesize": "0.18.1",
     "chart.js": "2.9.4",
     "chartjs-plugin-datalabels": "0.7.0",
-    "core-js": "3.11.1",
+    "core-js": "3.14.0",
     "css-loader": "5.2.6",
     "datatables.net-dt": "1.10.24",
     "eslint": "6.8.0",
