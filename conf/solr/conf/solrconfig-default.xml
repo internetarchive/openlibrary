@@ -653,7 +653,7 @@
          The options below instruct Solr not to output any HTTP Caching
          related headers
       -->
-    <httpCaching never304="true" />
+    <httpCaching never304="false" />
     <!-- If you include a <cacheControl> directive, it will be used to
          generate a Cache-Control header (as well as an Expires header
          if the value contains "max-age=")
