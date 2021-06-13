@@ -2376,7 +2376,7 @@ msgid "Choose a JPG, GIF or PNG on your computer,"
 msgstr ""
 
 #: covers/add.html:69
-msgid "<span class=\"highlight\"><u>Or</u></span>, paste in the image URL if it's on the web."
+msgid "Or, paste in the image URL if it's on the web."
 msgstr ""
 
 #: BookPreview.html:19 DonateModal.html:15 UserMetadata.html:13
