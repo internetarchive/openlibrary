@@ -35,7 +35,7 @@ services:
       - .:/openlibrary
 
   db:
-    image: postgres:9.3
+    image: postgres:9.6
     networks:
       - dbnet
     volumes:
