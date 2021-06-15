@@ -1677,8 +1677,6 @@ def update_keys(keys,
             requests += ['<commit />']
         _solr_update(requests, debug=True)
 
-    # Caches should not persist between different calls to update_keys!
-    data_provider.clear_cache()
     logger.debug("END update_keys")
 
 
