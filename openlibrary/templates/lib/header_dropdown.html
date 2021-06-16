@@ -3,11 +3,11 @@
 # @property {string|null} href of link for HTTP get request
 # @property {string|null} post when set will be used instead of href and should use HTTP POST request.
 #
-# @param Object props template properties
-# @param string props.name unique identifying name for dropdown and distinguishing it from other dropdowns
-# @param string props.label for menu, also used as alt text for dropdown icon when props.image is set
-# @param string|null props.image URL for image (optional)
-# @param DropdownLink[] props.links
+# @param {Object} props template properties
+# @param {string} props.name unique identifying name for dropdown and distinguishing it from other dropdowns
+# @param {string} props.label for menu, also used as alt text for dropdown icon when props.image is set
+# @param {string|null} props.image URL for image (optional)
+# @param {DropdownLink[]} props.links
 $def with (props)
 <div class="$(props['name'])-component header-dropdown">
     <details>
