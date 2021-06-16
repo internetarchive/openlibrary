@@ -1,4 +1,4 @@
-FROM ubuntu:xenial
+FROM ubuntu:focal
 
 RUN apt-get -qq update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y solr-tomcat haproxy cron && \
