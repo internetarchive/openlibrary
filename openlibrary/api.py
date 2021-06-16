@@ -24,7 +24,7 @@ import web
 import logging
 import requests
 import six
-import ConfigParser
+import configparser
 
 logger = logging.getLogger("openlibrary.api")
 
@@ -77,7 +77,7 @@ class OpenLibrary:
 
         If environment variable OPENLIBRARY_RCFILE is specified, it'll read that file instead of ~/.olrc.
         """
-        config = ConfigParser()
+        config = configparser.ConfigParser()
 
         configfile = os.getenv('OPENLIBRARY_RCFILE', os.path.expanduser('~/.olrc'))
         logger.info("reading %s", configfile)
