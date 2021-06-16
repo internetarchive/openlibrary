@@ -1,7 +1,7 @@
 $def with (page)
 
 <header id="header-bar" class="header-bar">
-  $if not ctx.user:
+  $if ctx.user:
     $ loginLinks = []
   $else:
     $ loginLinks = [
@@ -18,7 +18,7 @@ $def with (page)
   $ ]
   $ hamburgerProps = {
   $  'name': 'hamburger',
-  $   'links': loginLinks + moreLinks, # todo add links
+  $  'links': loginLinks + moreLinks,
   $  'image': '/static/images/menu.png',
   $  'label': 'additional options menu'
   $ }
