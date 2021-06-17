@@ -986,9 +986,7 @@ class fake_civi(delegate.page):
                 "receive_date": "2019-07-31 08:57:00",
                 "custom_52": "9780062457714",
                 "total_amount": "50.00",
-                "custom_53": "ol",
-                "contact_id": "270430",
-                "contribution_status": "ok"
+                "custom_53": "ol"
             }]
         }
         entity = contributions if i.entity == 'Contribution' else contact
