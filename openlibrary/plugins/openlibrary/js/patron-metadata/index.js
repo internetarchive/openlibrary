@@ -116,6 +116,11 @@ export function initPatronMetadata() {
     $('.notes-modal-link').on('click', function() {
         const context = $(this).data('context');
         displayModal(context.id);
+    });
+
+    $('.observations-modal-link').on('click', function() {
+        const context = $(this).data('context');
+        displayModal(context.id);
     })
 
     $('.modal-link').on('click', function() {

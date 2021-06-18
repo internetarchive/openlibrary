@@ -218,8 +218,9 @@ jQuery(function () {
             .then((module) => module.init());
     }
 
-    if (document.getElementsByClassName('modal-link').length) {
-        import(/* webpackChunkName: "patron-metadata" */ './patron-metadata')
+    if (document.getElementsByClassName('observations-modal-link').length ||
+        document.getElementsByClassName('notes-modal-link').length) {
+        import(/* webpackChunkName: "patron_metadata" */ './patron-metadata')
             .then((module) => module.initPatronMetadata());
     }
 
