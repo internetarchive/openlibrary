@@ -426,14 +426,6 @@ class price_api(delegate.page):
         return json.dumps(metadata)
 
 
-class observations(delegate.page):
-    path = "/observations"
-    encoding = "json"
-
-    def GET(self):
-        return delegate.RawText(json.dumps(get_observations()), content_type="application/json")
-
-
 class patron_observations(delegate.page):
     path = r"/works/OL(\d+)W/observations"
     encoding = "json"

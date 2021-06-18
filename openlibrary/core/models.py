@@ -494,6 +494,19 @@ class Work(Thing):
         work_id = extract_numeric_id_from_olid(self.key)
         edition_id = extract_numeric_id_from_olid(edition_olid) if edition_olid else -1
         return Booknotes.get_patron_booknote(username, work_id, edition_id=edition_id)
+    
+    def get_users_observations(self, username):
+        if not username:
+            return None
+        work_id = extract_numeric_id_from_olid(self.key)
+        raw_observations = Observations.get_patron_observations(username, work_id)
+        formatted_observations = defaultdict(list)
+
+        for r in raw_observations:
+            kv_pair = Observations.get_key_value_pair(r['type'], r['value'])
+            formatted_observations[kv_pair.key].append(kv_pair.value)
+
+        return formatted_observations
 
     def get_users_observations(self, username):
         if not username:
