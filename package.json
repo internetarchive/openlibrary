@@ -40,7 +40,7 @@
     "eslint-plugin-no-jquery": "2.6.0",
     "eslint-plugin-vue": "7.10.0",
     "flot": "0.8.3",
-    "jest": "26.6.3",
+    "jest": "27.0.4",
     "jquery": "3.6.0",
     "jquery-colorbox": "1.6.4",
     "jquery-ui": "1.12.1",
