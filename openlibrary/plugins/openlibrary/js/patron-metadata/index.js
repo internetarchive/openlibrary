@@ -113,6 +113,11 @@ export function initPatronMetadata() {
         addToggleListeners($('.aspect-section', $form), id);
     }
 
+    $('.notes-modal-link').on('click', function() {
+        const context = $(this).data('context');
+        displayModal(context.id);
+    })
+
     $('.modal-link').on('click', function() {
         let context = $(this).data('context');
         let i18nStrings = $(this).data('i18n');

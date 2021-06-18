@@ -1,0 +1,29 @@
+$def with (work, edition, link_text, id, class_list='')
+
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+$ notes = work.get_users_notes(username, edition.key.split('/')[-1])
+
+$ context = {
+  $ "id": id
+  $ }
+
+<div class="$class_list">
+  <a class="notes-modal-link" href="javascript:;" data-context="$json_encode(context)">$link_text</a>
+
+  <div class="hidden">
+    <div id="$id-metadata-form" class="floaterAdd metadata-form">
+      <div class="floaterHead">
+        <h2>$_("My Book Notes")</h2>
+        <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+      </div>
+      <form class="book-notes-form" method="POST" action="$(work.key)/notes.json">
+        <p>$_("My personal notes about this edition:")</p>
+        <div>
+          <textarea name="notes" rows="10">$(notes.notes if notes else "")</textarea>
+        </div>
+        <input type="hidden" name="edition_id" value="$edition.key.split('/')[-1]" />
+        <button class="cta-btn"type="submit">$_("Save Note")</button>
+      </form>
+    </div>
+  </div>
+</div>
