@@ -100,7 +100,10 @@ $def with (page)
       accountProps = {
         'name': 'account',
         'label': 'My account',
-        'image': 'https://archive.org/services/img/' + get_internet_archive_id(ctx.user.key),
+        # It seems like in the local dev environment (and presumably _only_ in the local
+        # dev environment), this get_internet_archive_id returns None. Setting it to an
+        # empty string returns a valid image ¯\_(ツ)_/¯
+        'image': 'https://archive.org/services/img/' + (get_internet_archive_id(ctx.user.key) or ''),
         'links': [
           { "href": ctx.user.key, "text": _("My Profile") },
           { "href": homepath() + "/account/loans", "text": _("My Loans") },
