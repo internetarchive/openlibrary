@@ -218,10 +218,18 @@ jQuery(function () {
             .then((module) => module.init());
     }
 
-    if (document.getElementsByClassName('observations-modal-link').length ||
-        document.getElementsByClassName('notes-modal-link').length) {
-        import(/* webpackChunkName: "patron_metadata" */ './patron-metadata')
-            .then((module) => module.initPatronMetadata());
+    const $observationModalLinks = $('.observations-modal-link');
+    const $notesModalLinks = $('.notes-modal-link');
+    if ($observationModalLinks.length || $notesModalLinks.length) {
+        import(/* webpackChunkName: "modal-links" */ './modals')
+            .then(module => {
+                if ($observationModalLinks.length) {
+                    module.initObservationsModal($observationModalLinks);
+                }
+                if ($notesModalLinks.length) {
+                    module.initNotesModal($notesModalLinks);
+                }
+            });
     }
 
     if (document.getElementsByClassName('manageCovers').length) {

@@ -68,95 +68,95 @@ export function initObservationsModal($modalLinks) {
 
 /**
  * Add on click listeners to a collection of modal links.
- *
+ * 
  * When any of the links are clicked, it's corresponding modal
  * will be displayed.
- *
+ * 
  * @param {JQuery} $modalLinks  A collection of modal links.
  */
 function addClickListeners($modalLinks) {
-    $modalLinks.each(function(_i, modalLinkElement) {
-        $(modalLinkElement).on('click', function() {
-            const context = $(this).data('context');
-            displayModal(context.id);
-        })
+  $modalLinks.each(function(_i, modalLinkElement) {
+    $(modalLinkElement).on('click', function() {
+      const context = $(this).data('context');
+      displayModal(context.id);
     })
+  })
 }
 
 /**
  * Displays a model identified by the given identifier.
- *
+ * 
  * @param {String} modalId  A string that uniquely identifies a modal.
  */
 function displayModal(modalId) {
-    $.colorbox({
-        inline: true,
-        opacity: '0.5',
-        href: `#${modalId}-metadata-form`,
-        width: '60%',
-    });
-}
+  $.colorbox({
+    inline: true,
+    opacity: '0.5',
+    href: `#${modalId}-metadata-form`,
+    width: '60%',
+  });
+};
 
 /**
-* Adds change listeners to each input in the observations section of the modal.
-*
-* For each checkbox and radio button in the observations form, a change listener
-* that triggers observation submissions is added.  On change, a payload containing
-* the username, action type ('add' when an input is checked, 'delete' when unchecked),
-* and observation type and value are sent to the back-end server.
-*
-* @param {JQuery}  $parent  Object that contains the observations form.
-* @param {Object}  context  An object containing the patron's username and the work's OLID.
-*/
-function addObservationChangeListeners($parent, context) {
-    const $questionSections = $parent.find('.aspect-section');
-    const username = context.username;
-    const workOlid = context.work.split('/')[2];
+ * Adds change listeners to each input in the observations section of the modal.
+ *
+ * For each checkbox and radio button in the observations form, a change listener
+ * that triggers observation submissions is added.  On change, a payload containing
+ * the username, action type ('add' when an input is checked, 'delete' when unchecked),
+ * and observation type and value are sent to the back-end server.
+ *
+ * @param {JQuery}  $parent  Object that contains the observations form.
+ * @param {Object}  context  An object containing the patron's username and the work's OLID.
+ */
+ function addObservationChangeListeners($parent, context) {
+  const $questionSections = $parent.find('.aspect-section');
+  const username = context.username;
+  const workOlid = context.work.split('/')[2];
 
-    $questionSections.each(function() {
-        const $inputs = $(this).find('input')
+  $questionSections.each(function() {
+      const $inputs = $(this).find('input')
 
-        $inputs.each(function() {
-            $(this).on('change', function() {
-                const type = $(this).attr('name');
-                const upperCaseType = type[0].toUpperCase() + type.slice(1);
-                const value = $(this).attr('value');
-                const observation = {};
-                observation[type] = value;
+      $inputs.each(function() {
+          $(this).on('change', function() {
+              const type = $(this).attr('name');
+              const value = $(this).attr('value');
+              const observation = {};
+              observation[type] = value;
 
-                const data = {
-                    username: username,
-                    action: `${$(this).prop('checked') ? 'add': 'delete'}`,
-                    observation: observation
-                }
+              const data = {
+                  username: username,
+                  action: `${$(this).prop('checked') ? 'add': 'delete'}`,
+                  observation: observation
+              }
 
-                submitObservation($(this), workOlid, data, upperCaseType);
-            });
-        })
-    });
+              submitObservation($(this), workOlid, data, type);
+          });
+      })
+  });
 }
 
 /**
  * Submits an observation to the server.
  *
- * @param {JQuery}  $input      The checkbox or radio button that is firing the change event.
  * @param {String}  workOlid    The OLID for the work being observed.
  * @param {Object}  data        Payload that will be sent to the back-end server.
  * @param {String}  sectionType Name of the input's section.
  */
-function submitObservation($input, workOlid, data, sectionType) {
-    const $parent = $input.closest('.metadata-form');
-    // Make AJAX call
-    $.ajax({
-        type: 'POST',
-        url: `/works/${workOlid}/observations`,
-        contentType: 'application/json',
-        data: JSON.stringify(data)
-    })
-        .done(function() {
-            new Toast($parent, `${sectionType} saved!`).show();
-        })
-        .fail(function() {
-            new Toast($parent, `${sectionType} save failed...`).show();
-        });
+ function submitObservation(workOlid, data, sectionType) {
+   console.log("in submitObservations");
+   console.log(sectionType);
+
+  // Make AJAX call
+  $.ajax({
+      type: 'POST',
+      url: `/works/${workOlid}/observations`,
+      contentType: 'application/json',
+      data: JSON.stringify(data)
+  })
+      .done(function() {
+          // Show success message:
+      })
+      .fail(function() {
+          // Show failure message:
+      });
 }
