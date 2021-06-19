@@ -598,7 +598,7 @@ class SaveBookHelper:
                         "notes": d.get("notes") or ''}
                     for d in new_classifications]
 
-            as_admin(edition_config._save)("add new fields")
+            edition_config._save("add new fields")
 
     def process_input(self, i):
         if 'edition' in i:
