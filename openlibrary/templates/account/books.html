@@ -100,6 +100,12 @@ $if og_title:
                 <li><a class="list-link" href="$(lst.key)">$lst['name'] ($(len(lst.seeds)))</a></li>
             </div>
           </ul>
+        $if key == 'want-to-read':
+          <ul class="preset-lists">
+            <li class="subsection">$_('Sort Filters')</li>
+            <li><a href="$ctx.path/descending" $('class=selected' if key == 'descending' else '')>$_('Newest to Oldest')</a></li>
+            <li><a href="$ctx.path/ascending" $('class=selected' if key == 'ascending' else '')>$_('Oldest to Newest')</a></li>
+          </ul>
       </div>
       <div class="mybooks-list">
         $:macros.Pager(current_page, total_items, results_per_page=25)
