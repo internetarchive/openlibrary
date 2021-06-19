@@ -116,7 +116,7 @@ class Bookshelves(object):
         return dict([(i['bookshelf_id'], i['count']) for i in result]) if result else {}
 
     @classmethod
-    def get_users_logged_books(cls, username, bookshelf_id=None, limit=100, page=1):
+    def get_users_logged_books(cls, username, bookshelf_id=None, limit=100, page=1, date_added=None):
         """Returns a list of Reading Log database records for books which
         the user has logged. Records are described in core/schema.py
         and include:
@@ -129,24 +129,65 @@ class Bookshelves(object):
         created (datetime) - date the book was logged
 
         """
-        oldb = db.get_db()
-        page = int(page) if page else 1
-        data = {
-            'username': username,
-            'limit': limit,
-            'offset': limit * (page - 1),
-            'bookshelf_id': bookshelf_id
-        }
-        query = ("SELECT * from bookshelves_books WHERE "
-                 "bookshelf_id=$bookshelf_id AND username=$username "
-                 "LIMIT $limit OFFSET $offset")
-        if bookshelf_id is None:
+        if date_added is None:
+            oldb = db.get_db()
+            page = int(page) if page else 1
+            data = {
+                'username': username,
+                'limit': limit,
+                'offset': limit * (page - 1),
+                'bookshelf_id': bookshelf_id
+            }
             query = ("SELECT * from bookshelves_books WHERE "
-                 "username=$username")
-            # XXX Removing limit, offset, etc from data looks like a bug
-            # unrelated / not fixing in this PR.
-            data = { 'username': username }
-        return list(oldb.query(query, vars=data))
+                    "bookshelf_id=$bookshelf_id AND username=$username "
+                    "LIMIT $limit OFFSET $offset")
+            if bookshelf_id is None:
+                query = ("SELECT * from bookshelves_books WHERE "
+                    "username=$username")
+                # XXX Removing limit, offset, etc from data looks like a bug
+                # unrelated / not fixing in this PR.
+                data = { 'username': username }
+            return list(oldb.query(query, vars=data))
+        elif date_added=="descending":
+            oldb = db.get_db()
+            page = int(page) if page else 1
+            data = {
+                'username': username,
+                'limit': limit,
+                'offset': limit * (page - 1),
+                'bookshelf_id': bookshelf_id
+            }
+            query = ("SELECT * from bookshelves_books WHERE "
+                    "bookshelf_id=$bookshelf_id AND username=$username "
+                    "ORDER BY created DESC "
+                    "LIMIT $limit OFFSET $offset")
+            if bookshelf_id is None:
+                query = ("SELECT * from bookshelves_books WHERE "
+                    "username=$username")
+                # XXX Removing limit, offset, etc from data looks like a bug
+                # unrelated / not fixing in this PR.
+                data = { 'username': username }
+            return list(oldb.query(query, vars=data))
+        else :
+            oldb = db.get_db()
+            page = int(page) if page else 1
+            data = {
+                'username': username,
+                'limit': limit,
+                'offset': limit * (page - 1),
+                'bookshelf_id': bookshelf_id
+            }
+            query = ("SELECT * from bookshelves_books WHERE "
+                    "bookshelf_id=$bookshelf_id AND username=$username "
+                    "ORDER BY created ASC "
+                    "LIMIT $limit OFFSET $offset")
+            if bookshelf_id is None:
+                query = ("SELECT * from bookshelves_books WHERE "
+                    "username=$username")
+                # XXX Removing limit, offset, etc from data looks like a bug
+                # unrelated / not fixing in this PR.
+                data = { 'username': username }
+            return list(oldb.query(query, vars=data))
 
     @classmethod
     def get_users_read_status_of_work(cls, username, work_id):
