@@ -105,9 +105,6 @@ function displayModal(modalId) {
  * @param {String}  sectionType Name of the input's section.
  */
  function submitObservation(workOlid, data, sectionType) {
-   console.log("in submitObservations");
-   console.log(sectionType);
-
   // Make AJAX call
   $.ajax({
       type: 'POST',
