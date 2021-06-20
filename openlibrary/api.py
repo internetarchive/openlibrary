@@ -77,7 +77,7 @@ class OpenLibrary:
 
         If environment variable OPENLIBRARY_RCFILE is specified, it'll read that file instead of ~/.olrc.
         """
-        config = configparser.ConfigParser()
+        config = ConfigParser()
 
         configfile = os.getenv('OPENLIBRARY_RCFILE', os.path.expanduser('~/.olrc'))
         logger.info("reading %s", configfile)
