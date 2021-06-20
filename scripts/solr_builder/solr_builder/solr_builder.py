@@ -6,7 +6,7 @@ from typing import Awaitable, List, Iterable, Literal, Sized
 
 import httpx
 from httpx import RequestError, HTTPStatusError, ReadTimeout, ConnectTimeout
-from six.moves.configparser import ConfigParser
+from configparser import ConfigParser
 import logging
 import time
 import uuid
