@@ -16,14 +16,23 @@ $else:
 $ edition = storage({})
 
 $ component_times['get_sorted_editions'] = time()
+$# Fetch a work's editions
+$# Used for loading the editions table
+$# Book availability of editions injected by bulk get_availability API
 $ editions = work.get_sorted_editions()
 $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
 
+$# This collects which books are previewable in any manner
 $ previews = [e for e in editions if e.get('ocaid')]
 
+$# Choose an edition to render
 $if page.key.startswith('/books'):
+  $# We are on an editions page: an edition has been explicitly selected
+  $# NOTE: Editions use the ground_truth_availability API
   $ edition = page
 $elif editions:
+  $# We're presumably on a work url
+  $# Set a dummy default editions
   $ edition = editions[0]
   $# edition selection strategy (e.g. language, by id, first w/ ocaid)
   $ selected_ocaid = query_param('edition')
