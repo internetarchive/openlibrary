@@ -20,7 +20,7 @@ $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and
 
 $# Replace existing, possibly inaccurate, availability with results ground truth availability API call: 
 $if allow_expensive_availability_check and ocaid:
-  $ availability = get_cached_groundtruth_availability(ocaid)
+  $ availability.update(get_cached_groundtruth_availability(ocaid))
 
 $ borrow_link = '/borrow/ia/%s' % ocaid
 
