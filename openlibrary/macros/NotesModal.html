@@ -2,6 +2,7 @@ $def with (work, edition, link_text, id, class_list='')
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ notes = work.get_users_notes(username, edition.key.split('/')[-1])
+$ work_key = work.key
 
 $ context = {
   $ "id": id
@@ -21,8 +22,9 @@ $ context = {
         <div>
           <textarea name="notes" rows="10">$(notes.notes if notes else "")</textarea>
         </div>
+        <input type="hidden" name="work_id" value="$work_key.split('/')[-1]" />
         <input type="hidden" name="edition_id" value="$edition.key.split('/')[-1]" />
-        <button class="cta-btn"type="submit">$_("Save Note")</button>
+        <button class="update-note-button cta-btn"type="button">$_("Save Note")</button>
       </form>
     </div>
   </div>

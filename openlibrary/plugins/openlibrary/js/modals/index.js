@@ -1,4 +1,6 @@
+import { Toast } from '../Toast.js';
 import '../../../../../static/css/components/metadata-form.less';
+import '../../../../../static/css/components/toast.less';
 
 /**
  * Initializes a collection of notes modals.
@@ -7,7 +9,43 @@ import '../../../../../static/css/components/metadata-form.less';
  */
 export function initNotesModal($modalLinks) {
   addClickListeners($modalLinks);
+  addNotesButtonListeners();
 };
+
+/**
+ * Adds click listeners to buttons in all notes forms on a page.
+ */
+function addNotesButtonListeners() {
+  let toast;
+
+  $('.update-note-button').on('click', function(){
+    // If button is inside of metadata form, set toast's parent element to the form:
+    let $parent = $(this).closest('.metadata-form');
+
+    // Get form data
+    let formData = new FormData($(this).prop('form'));
+
+    // Post data
+    let workOlid = formData.get('work_id');
+    formData.delete('work_id');
+
+    $.ajax({
+      url: `/works/${workOlid}/notes.json`,
+      data: formData,
+      type: 'POST',
+      contentType: false,
+      processData: false,
+      success: function() {
+          // Display success message
+          if (toast) {
+              toast.close();
+          }
+          toast = new Toast($parent, 'Update successful!');
+          toast.show();
+      }
+    });
+  });
+}
 
 /**
  * Initializes a collection of observations modals.

@@ -1,0 +1,42 @@
+@import (reference) "../less/z-index.less";
+@import (reference) "../less/colors.less";
+@import (reference) "../less/breakpoints.less";
+
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 0;
+  right: 0;
+  z-index: @z-index-level-17;
+
+  min-width: 10%;
+  max-width: 50%;
+  width: max-content;
+  margin: 0 auto;
+  padding: 1em;
+
+  background-color: @light-beige;
+  border: 1px solid @mid-grey;
+  box-shadow: 0 .5rem 1rem @boxshadow-black;
+
+  visibility: hidden;
+
+  .toast--close {
+    padding-left: .75em;
+  }
+
+  .toast--close:hover {
+    cursor: pointer;
+    text-decoration: none;
+  }
+}
+
+.show {
+  visibility: visible;
+}
+
+@media screen and (max-width: @width-breakpoint-tablet) {
+  .toast {
+    max-width: 80%;
+  }
+}
