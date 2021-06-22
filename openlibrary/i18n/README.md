@@ -1,5 +1,8 @@
+# i18n Contributor's Guide
+
 Want to get started contributing a language towards Open Library internationalization (i18n)?
 
+[![archive org_details_openlibrary-tour-2020_openlibrary-i18n mp4](https://user-images.githubusercontent.com/978325/122978288-33343700-d34b-11eb-858c-774151af4e87.png)](https://archive.org/embed/openlibrary-tour-2020/openlibrary-i18n.mp4?start=8)
 
 Open Library i18n is handled via the [python Babel library](http://babel.pocoo.org/en/latest/), GNU `gettext`, and the message lists located https://github.com/internetarchive/openlibrary/tree/master/openlibrary/i18n
 
