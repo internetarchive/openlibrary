@@ -2,17 +2,19 @@
 @import (reference) "../less/colors.less";
 @import (reference) "../less/breakpoints.less";
 
-.toast {
+.toast-container {
   position: fixed;
   top: 20px;
   left: 0;
   right: 0;
   z-index: @z-index-level-17;
+}
 
+.toast {
   min-width: 10%;
   max-width: 50%;
   width: max-content;
-  margin: 0 auto;
+  margin: 0 auto 20px;
   padding: 1em;
 
   background-color: @light-beige;

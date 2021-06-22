@@ -20,13 +20,13 @@ function addNotesButtonListeners() {
 
   $('.update-note-button').on('click', function(){
     // If button is inside of metadata form, set toast's parent element to the form:
-    let $parent = $(this).closest('.metadata-form');
+    const $parent = $(this).closest('.metadata-form');
 
     // Get form data
-    let formData = new FormData($(this).prop('form'));
+    const formData = new FormData($(this).prop('form'));
 
     // Post data
-    let workOlid = formData.get('work_id');
+    const workOlid = formData.get('work_id');
     formData.delete('work_id');
 
     $.ajax({
@@ -98,51 +98,54 @@ function displayModal(modalId) {
 };
 
 /**
- * Adds change listeners to each input in the observations section of the modal.
- *
- * For each checkbox and radio button in the observations form, a change listener
- * that triggers observation submissions is added.  On change, a payload containing
- * the username, action type ('add' when an input is checked, 'delete' when unchecked),
- * and observation type and value are sent to the back-end server.
- *
- * @param {JQuery}  $parent  Object that contains the observations form.
- * @param {Object}  context  An object containing the patron's username and the work's OLID.
- */
- function addObservationChangeListeners($parent, context) {
+* Adds change listeners to each input in the observations section of the modal.
+*
+* For each checkbox and radio button in the observations form, a change listener
+* that triggers observation submissions is added.  On change, a payload containing
+* the username, action type ('add' when an input is checked, 'delete' when unchecked),
+* and observation type and value are sent to the back-end server.
+*
+* @param {JQuery}  $parent  Object that contains the observations form.
+* @param {Object}  context  An object containing the patron's username and the work's OLID.
+*/
+function addObservationChangeListeners($parent, context) {
   const $questionSections = $parent.find('.aspect-section');
   const username = context.username;
   const workOlid = context.work.split('/')[2];
 
   $questionSections.each(function() {
-      const $inputs = $(this).find('input')
+    const $inputs = $(this).find('input')
 
-      $inputs.each(function() {
-          $(this).on('change', function() {
-              const type = $(this).attr('name');
-              const value = $(this).attr('value');
-              const observation = {};
-              observation[type] = value;
+    $inputs.each(function() {
+      $(this).on('change', function() {
+        const type = $(this).attr('name');
+        const upperCaseType = type[0].toUpperCase() + type.slice(1);
+        const value = $(this).attr('value');
+        const observation = {};
+        observation[type] = value;
 
-              const data = {
-                  username: username,
-                  action: `${$(this).prop('checked') ? 'add': 'delete'}`,
-                  observation: observation
-              }
+        const data = {
+            username: username,
+            action: `${$(this).prop('checked') ? 'add': 'delete'}`,
+            observation: observation
+        }
 
-              submitObservation($(this), workOlid, data, type);
-          });
-      })
+        submitObservation($(this), workOlid, data, upperCaseType);
+      });
+    })
   });
 }
 
 /**
  * Submits an observation to the server.
  *
+ * @param {JQuery}  $input      The checkbox or radio button that is firing the change event.
  * @param {String}  workOlid    The OLID for the work being observed.
  * @param {Object}  data        Payload that will be sent to the back-end server.
  * @param {String}  sectionType Name of the input's section.
  */
- function submitObservation(workOlid, data, sectionType) {
+ function submitObservation($input, workOlid, data, sectionType) {
+  const $parent = $input.closest('.metadata-form');
   // Make AJAX call
   $.ajax({
       type: 'POST',
@@ -151,9 +154,9 @@ function displayModal(modalId) {
       data: JSON.stringify(data)
   })
       .done(function() {
-          // Show success message:
+        new Toast($parent, `${sectionType} saved!`).show();
       })
       .fail(function() {
-          // Show failure message:
+        new Toast($parent, `${sectionType} save failed...`).show();
       });
 }
