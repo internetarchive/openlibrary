@@ -105,7 +105,7 @@ $elif ('eligibility' in doc) or (check_sponsorship and not ocaid and not availab
   $else:
     <a href="$work_key" class="cta-btn cta-btn--missing" data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
 
-$elif ocaid:
+$elif ocaid and not (secondary_action and availability.get('is_printdisabled')):
   $:macros.BookPreview(ocaid)
 
 $else:
