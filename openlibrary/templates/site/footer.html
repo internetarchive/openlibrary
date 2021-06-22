@@ -20,12 +20,14 @@ $if cssfile == 'user' or 'admin':
     <!--Will be moved inside index.js-->
     <script type="text/javascript">
       if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("/sw.js").then(registration => {
-          console.log('ServiceWorker registration successful with scope: ', registration.scope);
-          console.log(registration);
-        }).catch(error => {
-          console.log("ServiceWorker registration failed");
-          console.log(error);
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register("/sw.js").then(registration => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            console.log(registration);
+          }).catch(error => {
+            console.log("ServiceWorker registration failed");
+            console.log(error);
+          });
         });
       }
     </script>

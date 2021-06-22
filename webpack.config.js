@@ -3,6 +3,7 @@
 const
     webpack = require('webpack5'),
     path = require('path'),
+    {InjectManifest} = require('workbox-webpack-plugin'),
     prod = process.env.NODE_ENV === 'production',
     // The output directory for all build artifacts. Only absolute paths are accepted by
     // output.path.
@@ -40,6 +41,15 @@ module.exports = {
         new webpack.ProvidePlugin({
             $: 'jquery',
             jQuery: 'jquery'
+        }),
+        // Only used by the service worker
+        new InjectManifest({
+            swSrc: './openlibrary/plugins/openlibrary/js/service-worker.js',
+            swDest: 'sw.js',
+            exclude: [/.*/],
+            additionalManifestEntries: [
+                {url: '/static/images/logo_OL-err.png', revision: null}
+            ],
         })
     ],
     module: {

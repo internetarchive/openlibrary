@@ -358,7 +358,7 @@ class serviceworker(delegate.page):
     def GET(self):
         web.header('Content-Type', 'text/javascript')
         try:
-            data = open('static/sw.js').read()
+            data = open('static/build/sw.js').read()
             raise web.HTTPError('200 OK', {}, data)
         except IOError:
             raise web.notfound()
