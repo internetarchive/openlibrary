@@ -27,6 +27,7 @@ from openlibrary.plugins.recaptcha import recaptcha
 
 import six
 from six.moves import urllib
+from web.webapi import SeeOther
 
 
 logger = logging.getLogger("openlibrary.book")
@@ -149,7 +150,7 @@ def encode_url_path(url: str) -> str:
     return result.geturl()
 
 
-def safe_seeother(url: str):
+def safe_seeother(url: str) -> SeeOther:
     """Safe version of `web.seeother` which encodes the url path appropriately using
      `encode_url_path`."""
     return web.seeother(encode_url_path(url))
