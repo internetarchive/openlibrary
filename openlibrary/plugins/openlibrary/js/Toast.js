@@ -20,42 +20,42 @@ export class Toast {
    * @param {number} timeout Amount of time, in milliseconds, that the component will be visible
    */
   constructor($parent, message, timeout=DEFAULT_TIMEOUT) {
-    if (!Toast.$toastContainer) {
-      Toast.$toastContainer = $('<div class="toast-container"></div>');
-    }
-    if ($parent.has(Toast.$toastContainer).length === 0) {
-      $parent.prepend(Toast.$toastContainer);
-    }
+      if (!Toast.$toastContainer) {
+          Toast.$toastContainer = $('<div class="toast-container"></div>');
+      }
+      if ($parent.has(Toast.$toastContainer).length === 0) {
+          $parent.prepend(Toast.$toastContainer);
+      }
 
-    this.timeout = timeout;
-    this.$toast = $(`<div class="toast">
+      this.timeout = timeout;
+      this.$toast = $(`<div class="toast">
         <span class="toast-message">${message}</span>
         <a class="toast--close">&times;<span class="shift">$_("Close")</span></a>
       </div>
     `);
 
-    this.$toast.find('.toast--close').on('click', () => {
-      this.close();
-    });
+      this.$toast.find('.toast--close').on('click', () => {
+          this.close();
+      });
 
-    Toast.$toastContainer.append(this.$toast);
+      Toast.$toastContainer.append(this.$toast);
   }
 
   /**
    * Displays the toast component on the page.
    */
   show() {
-    this.$toast.addClass('show');
+      this.$toast.addClass('show');
 
-    setTimeout(() => {
-      this.close();
-    }, this.timeout);
+      setTimeout(() => {
+          this.close();
+      }, this.timeout);
   }
 
   /**
    * Hides the toast component and removes it from the DOM.
    */
   close() {
-    this.$toast.fadeOut("slow", function() { $(this).remove() });
+      this.$toast.fadeOut('slow', function() { $(this).remove() });
   }
 }
