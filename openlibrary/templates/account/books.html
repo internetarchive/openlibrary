@@ -100,7 +100,9 @@ $if og_title:
                 <li><a class="list-link" href="$(lst.key)">$lst['name'] ($(len(lst.seeds)))</a></li>
             </div>
           </ul>
-        <p class="sansserif large"><a href="/account/import">$_("Import & Export Options")</a></p>
+        <ul class="import-export-lists">
+          <li class="subsection"><a href="/account/import">$_("Import / Export")</a></li>
+        </ul>
       </div>
       <div class="mybooks-list">
         $:macros.Pager(current_page, total_items, results_per_page=25)
