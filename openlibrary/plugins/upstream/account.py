@@ -18,7 +18,9 @@ import infogami.core.code as core
 from openlibrary import accounts
 from openlibrary.i18n import gettext as _
 from openlibrary.core import helpers as h, lending
+from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.observations import Observations
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
@@ -744,6 +746,17 @@ class ReadingLog(object):
             raise
 
 
+class PatronBooknotes(object):
+    """ Manages the patron's book notes and observations """
+
+    @classmethod
+    def get_counts(cls, username):
+        return {
+            'notes': Booknotes.count_works_with_notes_by_user(username),
+            'observations': Observations.count_distinct_observations(username)
+        }
+
+
 class public_my_books(delegate.page):
     path = "/people/([^/]+)/books"
 
@@ -762,7 +775,10 @@ class public_my_books(delegate.page):
             return render.notfound("User %s"  % username, create=False)
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         logged_in_user = accounts.get_current_user()
-        if is_public or logged_in_user and logged_in_user.key.split('/')[-1] == username:
+        is_logged_in_user = (
+            logged_in_user and
+            logged_in_user.key.split('/')[-1] == username)
+        if is_public or is_logged_in_user:
             readlog = ReadingLog(user=user)
             sponsorships = get_sponsored_editions(user)
             if key == 'sponsorships':
@@ -771,14 +787,23 @@ class public_my_books(delegate.page):
                         'type': '/type/edition',
                         'isbn_%s' % len(s['isbn']): s['isbn']
                     })[0]) for s in sponsorships)
+            elif key == 'notes' and is_logged_in_user and user.is_beta_tester():
+                # TODO: Set books equal to the patron's notes
+                books = {}
+            elif key == 'observations' and is_logged_in_user and user.is_beta_tester():
+                # TODO: Set books equal to the patron's observations
+                books = {}
             else:
                 books = readlog.get_works(key, page=i.page,
                                           sort='created', sort_order=i.sort)
+
+            booknotes_counts = PatronBooknotes.get_counts(username)
+            
             return render['account/books'](
                 books, key, sponsorship_count=len(sponsorships),
                 reading_log_counts=readlog.reading_log_counts, lists=readlog.lists,
                 user=user, logged_in_user=logged_in_user, public=is_public,
-                sort_order=str(i.sort)
+                sort_order=str(i.sort), booknotes_counts=booknotes_counts
             )
         raise web.seeother(user.key)
 
@@ -924,7 +949,9 @@ class fake_civi(delegate.page):
                 "receive_date": "2019-07-31 08:57:00",
                 "custom_52": "9780062457714",
                 "total_amount": "50.00",
-                "custom_53": "ol"
+                "custom_53": "ol",
+                "contact_id": "270430",
+                "contribution_status": ""
             }]
         }
         entity = contributions if i.entity == 'Contribution' else contact

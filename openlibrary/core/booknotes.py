@@ -52,8 +52,22 @@ class Booknotes(object):
         oldb = db.get_db()
         data = {'username': username}
         query = "SELECT count(*) from booknotes WHERE username=$username"
-        return oldb.query(query, vars=data)['count']
+        return oldb.query(query, vars=data)[0]['count']
 
+    @classmethod
+    def count_works_with_notes_by_user(cls, username):
+        """
+        Counts the total number of works logged by this 'username'
+        """
+        oldb = db.get_db()
+        data = {'username': username}
+        query = """
+            SELECT 
+                COUNT(DISTINCT(work_id))
+            FROM booknotes
+            WHERE username=$username
+        """
+        return oldb.query(query, vars=data)[0]['count']
 
     @classmethod
     def get_patron_booknote(cls, username, work_id, edition_id=NULL_EDITION_VALUE):

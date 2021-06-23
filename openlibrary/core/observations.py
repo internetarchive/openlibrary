@@ -465,7 +465,7 @@ class Observations(object):
 
         query += 'GROUP BY type'
 
-        return { i['type']: i['total_respondents'] for i in list(db.query(query, vars=data)) }
+        return { i['type']: i['total_respondents'] for i in list(oldb.query(query, vars=data)) }
 
     @classmethod
     def count_observations(cls, work_id):
@@ -503,6 +503,26 @@ class Observations(object):
             ORDER BY type_id, total DESC"""
 
         return list(oldb.query(query, vars=data))
+
+    @classmethod
+    def count_distinct_observations(cls, username):
+        """
+        Fetches the number of works in which the given user has made at least one observation.
+
+        return: The number of works for which the given user has made at least one observation
+        """
+        oldb = db.get_db()
+        data = {
+            'username': username
+        }
+        query = """
+            SELECT 
+              COUNT(DISTINCT(work_id)) 
+            FROM observations
+            WHERE observations.username = $username
+        """
+
+        return oldb.query(query, vars=data)[0]['count']
 
     @classmethod
     def get_key_value_pair(cls, type_id, value_id):
