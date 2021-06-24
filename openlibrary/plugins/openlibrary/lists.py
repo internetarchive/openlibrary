@@ -274,7 +274,7 @@ class list_seeds(delegate.page):
             "entries": seeds
         }
 
-        text = formats.dump(data, self.encoding)
+        text = h.json_encode(data)
         return delegate.RawText(text)
 
     def POST(self, key):
