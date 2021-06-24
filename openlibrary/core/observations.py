@@ -326,6 +326,45 @@ def _get_deleted_types_and_values():
 
     return results
 
+
+def convert_observation_ids(id_dict):
+    """
+    Given a dictionary of type and value IDs, returns a dictionary of equivalent
+    type and value strings.
+    return: Dictionary of type and value strings
+    """
+    types_and_values = _get_all_types_and_values()
+    conversion_results = {}
+
+    for k in id_dict:
+        conversion_results[types_and_values[str(k)]['type']] = [
+            types_and_values[str(k)]['values'][str(i)] for i in id_dict[k]
+        ]
+
+    return conversion_results
+
+
+@cache.memoize(
+    engine="memcache",
+    key="all_observation_types_and_values",
+    expires=cache_duration)
+def _get_all_types_and_values():
+    """
+    Returns a dictionary of observation types and values mappings.  The keys for the
+    dictionary are the id numbers.
+    return: A dictionary of observation id to string value mappings.
+    """
+    types_and_values = {}
+
+    for o in OBSERVATIONS['observations']:
+        types_and_values[str(o['id'])] = {
+            'type': o['label'],
+            'values': {str(v['id']): v['name'] for v in o['values']}
+        }
+
+    return types_and_values
+
+
 @public
 def get_observation_metrics(work_olid):
     """
@@ -560,6 +599,40 @@ class Observations(object):
             WHERE observations.username=$username"""
         if work_id:
             query += " AND work_id=$work_id"
+
+        return list(oldb.query(query, vars=data))
+
+    @classmethod
+    def get_observations_grouped_by_work(cls, username, limit=25, page=1):
+        """
+        Returns a list of records which contain a work id and a JSON string
+        containing all of the observations for that work_id.
+        """
+        oldb = db.get_db()
+        data = {
+            'username': username,
+            'limit': limit,
+            'offset': limit * (page - 1)
+        }
+        query = """
+            SELECT 
+                work_id, 
+                JSON_AGG(ROW_TO_JSON(
+	                (SELECT r FROM
+		                (SELECT observation_type, observation_values) r)
+	                )
+                ) AS observations
+            FROM (
+                SELECT
+                    work_id,
+                    observation_type,
+                    JSON_AGG(observation_value) AS observation_values
+                FROM observations
+                WHERE username=$username
+                GROUP BY work_id, observation_type) s
+            GROUP BY work_id
+            LIMIT $limit OFFSET $offset
+        """
 
         return list(oldb.query(query, vars=data))
 

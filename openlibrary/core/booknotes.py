@@ -99,6 +99,35 @@ class Booknotes(object):
         query += "LIMIT $limit OFFSET $offset"
         return list(oldb.query(query, vars=data))
 
+    @classmethod
+    def get_notes_grouped_by_work(cls, username, limit=25, page=1):
+        """
+        Returns a list of book notes records, which are grouped by work_id.
+        The 'notes' field contains a JSON string consisting of 'edition_id'/
+        book note key-value pairs.
+
+        return: List of records grouped by works.
+        """
+        oldb = db.get_db()
+        data = {
+            'username': username,
+            'limit': limit,
+            'offset': limit * (page - 1)
+        }
+        query = """
+            SELECT
+                work_id,
+                json_agg(row_to_json(
+                    (SELECT r FROM (SELECT edition_id, notes) r)
+                    )
+                ) AS notes
+            FROM booknotes
+            WHERE username=$username
+            GROUP BY work_id
+            LIMIT $limit OFFSET $offset
+        """
+
+        return list(oldb.query(query, vars=data))
 
     @classmethod
     def add(cls, username, work_id, notes, edition_id=NULL_EDITION_VALUE):

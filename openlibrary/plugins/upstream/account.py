@@ -20,7 +20,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.core import helpers as h, lending
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.observations import Observations
+from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
@@ -749,6 +749,57 @@ class ReadingLog(object):
 class PatronBooknotes(object):
     """ Manages the patron's book notes and observations """
 
+    def __init__(self, user):
+        user = user or account.get_current_user()
+        self.username = user.key.split('/')[-1]
+
+    def get_notes(self, limit=RESULTS_PER_PAGE, page=1):
+        notes = Booknotes.get_notes_grouped_by_work(
+            self.username,
+            limit=limit,
+            page=page)
+
+        for entry in notes:
+            entry['work_key'] = f"/works/OL{entry['work_id']}W"
+            entry['work'] = self._get_work(entry['work_key'])
+            entry['work_details'] = self._get_work_details(entry['work'])
+            entry['notes'] = {i['edition_id']: i['notes'] for i in entry['notes']}
+            entry['editions'] = {
+                k: web.ctx.site.get(f'/books/OL{k}M')
+                for k in entry['notes'] if k != Booknotes.NULL_EDITION_VALUE}
+        return notes
+
+    def get_observations(self, limit=RESULTS_PER_PAGE, page=1):
+        observations = Observations.get_observations_grouped_by_work(
+            self.username,
+            limit=limit,
+            page=page)
+
+        for entry in observations:
+            entry['work_key'] = f"/works/OL{entry['work_id']}W"
+            entry['work'] = self._get_work(entry['work_key'])
+            entry['work_details'] = self._get_work_details(entry['work'])
+            ids = {}
+            for item in entry['observations']:
+                ids[item['observation_type']] = item['observation_values']
+            entry['observations'] = convert_observation_ids(ids)
+        return observations
+
+    def _get_work(self, work_key):
+        return web.ctx.site.get(work_key)
+
+    def _get_work_details(self, work):
+        author_keys = [a.author.key for a in work.get('authors', [])]
+
+        return {
+            'cover_url': (
+                work.get_cover_url('S') or
+                'https://openlibrary.org/images/icons/avatar_book-sm.png'),
+            'title': work.get('title'),
+            'authors': [a.name for a in web.ctx.site.get_many(author_keys)],
+            'first_publish_year': work.first_publish_year or None
+        }
+
     @classmethod
     def get_counts(cls, username):
         return {
@@ -788,11 +839,9 @@ class public_my_books(delegate.page):
                         'isbn_%s' % len(s['isbn']): s['isbn']
                     })[0]) for s in sponsorships)
             elif key == 'notes' and is_logged_in_user and user.is_beta_tester():
-                # TODO: Set books equal to the patron's notes
-                books = {}
+                books = PatronBooknotes(user).get_notes(page=int(i.page))
             elif key == 'observations' and is_logged_in_user and user.is_beta_tester():
-                # TODO: Set books equal to the patron's observations
-                books = {}
+                books = PatronBooknotes(user).get_observations(page=int(i.page))
             else:
                 books = readlog.get_works(key, page=i.page,
                                           sort='created', sort_order=i.sort)
