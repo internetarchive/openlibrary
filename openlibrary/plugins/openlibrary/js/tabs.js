@@ -1,4 +1,5 @@
 const TABS_OPTIONS = { fx: { opacity: 'toggle' } };
+import 'jquery-ui/ui/widgets/tabs';
 
 export default function initTabs($node) {
     $node.tabs(TABS_OPTIONS);
