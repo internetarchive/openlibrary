@@ -58,14 +58,14 @@ export default class LazyBookCard {
             }
 
             const textFields = ['title', 'byline', 'identifier'];
-            for (let field of textFields) {
+            for (const field of textFields) {
                 if (oldState[field] != newState[field]) {
                     this.ui.find(`.${field}`).text(newState[field]);
                 }
             }
 
             const classFields = ['loading', 'errored'];
-            for (let field of classFields) {
+            for (const field of classFields) {
                 if (oldState[field] != newState[field]) {
                     this.ui.toggleClass(field, newState[field]);
                 }
