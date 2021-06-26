@@ -27,6 +27,7 @@ from openlibrary.plugins.recaptcha import recaptcha
 
 import six
 from six.moves import urllib
+from web.webapi import SeeOther
 
 
 logger = logging.getLogger("openlibrary.book")
@@ -130,6 +131,31 @@ class DocSaveHelper:
         return created
 
 
+def encode_url_path(url: str) -> str:
+    """Encodes the path part of the url to avoid issues with non-latin characters as
+    non-latin characters was breaking `web.seeother`.
+
+    >>> encode_url_path('/books/OL10M/Вас_ил/edit?mode=add-work')
+    '/books/OL10M/%D0%92%D0%B0%D1%81_%D0%B8%D0%BB/edit?mode=add-work'
+    >>> encode_url_path('')
+    ''
+    >>> encode_url_path('/')
+    '/'
+    >>> encode_url_path('/books/OL11M/进入该海域?mode=add-work')
+    '/books/OL11M/%E8%BF%9B%E5%85%A5%E8%AF%A5%E6%B5%B7%E5%9F%9F?mode=add-work'
+    """
+    result = urllib.parse.urlparse(url)
+    correct_path = "/".join(urllib.parse.quote(part) for part in result.path.split("/"))
+    result = result._replace(path=correct_path)
+    return result.geturl()
+
+
+def safe_seeother(url: str) -> SeeOther:
+    """Safe version of `web.seeother` which encodes the url path appropriately using
+     `encode_url_path`."""
+    return web.seeother(encode_url_path(url))
+
+
 class addbook(delegate.page):
     path = "/books/add"
 
@@ -137,7 +163,7 @@ class addbook(delegate.page):
         """Main user interface for adding a book to Open Library."""
 
         if not self.has_permission():
-            return web.seeother("/account/login?redirect={}".format(self.path))
+            return safe_seeother("/account/login?redirect={}".format(self.path))
 
         i = web.input(work=None, author=None)
         work = i.work and web.ctx.site.get(i.work)
@@ -347,7 +373,7 @@ class addbook(delegate.page):
         comment = utils.get_message("comment_add_book")
         saveutil.commit(comment=comment, action="add-book")
 
-        raise web.seeother(edition.url("/edit?mode=add-book"))
+        raise safe_seeother(edition.url("/edit?mode=add-book"))
 
     def work_edition_match(self, edition):
         """
@@ -355,7 +381,7 @@ class addbook(delegate.page):
         Redirect user to the found item's edit page to add any missing details.
         :param Edition edition:
         """
-        raise web.seeother(edition.url("/edit?mode=found"))
+        raise safe_seeother(edition.url("/edit?mode=found"))
 
     def no_match(self, saveutil, i):
         """
@@ -383,7 +409,7 @@ class addbook(delegate.page):
         comment = utils.get_message("comment_add_book")
         saveutil.commit(action="add-book", comment=comment)
 
-        raise web.seeother(edition.url("/edit?mode=add-work"))
+        raise safe_seeother(edition.url("/edit?mode=add-work"))
 
     def _make_edition(self, work, i):
         """
@@ -772,7 +798,7 @@ class book_edit(delegate.page):
             else:
                 add_flash_message("info", utils.get_message("flash_book_updated"))
 
-            raise web.seeother(urllib.parse.quote(edition.url()))
+            raise safe_seeother(edition.url())
         except ClientException as e:
             add_flash_message('error', e.args[-1] or e.json)
             return self.GET(key)
@@ -822,7 +848,7 @@ class work_edit(delegate.page):
             helper = SaveBookHelper(work, None)
             helper.save(web.input())
             add_flash_message("info", utils.get_message("flash_work_updated"))
-            raise web.seeother(work.url())
+            raise safe_seeother(work.url())
         except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
             return self.GET(key)
@@ -853,11 +879,11 @@ class author_edit(delegate.page):
             elif "_save" in i:
                 author.update(formdata)
                 author._save(comment=i._comment)
-                raise web.seeother(key)
+                raise safe_seeother(key)
             elif "_delete" in i:
                 author = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
                 author._save(comment=i._comment)
-                raise web.seeother(key)
+                raise safe_seeother(key)
         except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
             author.update(formdata)
