@@ -62,7 +62,7 @@ class Booknotes(object):
         oldb = db.get_db()
         data = {'username': username}
         query = """
-            SELECT 
+            SELECT
                 COUNT(DISTINCT(work_id))
             FROM booknotes
             WHERE username=$username
