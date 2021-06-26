@@ -929,7 +929,7 @@ async def solr_insert_documents(
     async with httpx.AsyncClient() as client:
         resp = await client.post(
             f'{solr_base_url}/update',
-            timeout=30,  # The default timeout is silly short
+            timeout=30,  # seconds; the default timeout is silly short
             params=params,
             headers={'Content-Type': 'application/json'},
             content=json.dumps(documents)
@@ -1148,7 +1148,11 @@ def solr8_update(
         skip_id_check=False,
         solr_base_url: str = None,
 ) -> None:
-    """This will replace solr_update once we're fully on Solr 8.7+"""
+    """
+    This will replace solr_update once we're fully on Solr 8.7+
+
+    :param commit_within: milliseconds
+    """
     req_strs = (r if type(r) == str else r.toxml() for r in reqs if r)  # type: ignore
     # .toxml() can return None :/
     content = f"<update>{''.join(s for s in req_strs if s)}</update>"  # type: ignore
@@ -1540,6 +1544,8 @@ def update_keys(keys,
                     print(ET.tostring(root, encoding='unicode'))
                 else:
                     print(str(xml_str)[:100])
+        elif update == 'quiet':
+            pass
 
     global data_provider
     global _ia_db
