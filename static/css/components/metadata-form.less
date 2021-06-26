@@ -105,14 +105,30 @@
     }
   }
 
-  button {
-    font-size: 1.2em;
-    background-color: @green;
-    width: unset;
-    margin-left: auto;
+  .note-form-buttons {
+    display: flex;
+    justify-content: space-between;
 
-    &:hover { 
-      background-color: darken(@green, 10%); 
+    button {
+      font-size: 1.2em;
+      width: unset;
+    }
+
+    .delete-note-button {
+      background-color: @red;
+  
+      &:hover { 
+        background-color: darken(@red, 10%); 
+      }
+    }
+
+    .update-note-button {
+      background-color: @green;
+      margin-left: auto;
+      
+      &:hover { 
+        background-color: darken(@green, 10%); 
+      }
     }
   }
 }

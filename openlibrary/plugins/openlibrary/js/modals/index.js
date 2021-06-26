@@ -10,6 +10,7 @@ import '../../../../../static/css/components/toast.less';
 export function initNotesModal($modalLinks) {
     addClickListeners($modalLinks);
     addNotesButtonListeners();
+    addNotesReloadListeners($('.notes-textarea'));
 }
 
 /**
@@ -19,10 +20,39 @@ function addNotesButtonListeners() {
     $('.update-note-button').on('click', function(){
         // Get form data
         const formData = new FormData($(this).prop('form'));
+        
+        if (formData.get('notes')) {
+            const $deleteButton = $($(this).siblings()[0]);
+
+            // Post data
+            const workOlid = formData.get('work_id');
+            formData.delete('work_id');
+    
+            $.ajax({
+                url: `/works/${workOlid}/notes.json`,
+                data: formData,
+                type: 'POST',
+                contentType: false,
+                processData: false,
+                success: function() {
+                    showToast($('body'), 'Update successful!')
+                    $.colorbox.close();
+                    $deleteButton.removeClass('hidden');
+                }
+            });
+        }
+    });
+
+    $('.delete-note-button').on('click', function() {
+        const $button = $(this);
+
+        // Get form data
+        const formData = new FormData($button.prop('form'));
 
         // Post data
         const workOlid = formData.get('work_id');
         formData.delete('work_id');
+        formData.delete('notes');
 
         $.ajax({
             url: `/works/${workOlid}/notes.json`,
@@ -31,9 +61,30 @@ function addNotesButtonListeners() {
             contentType: false,
             processData: false,
             success: function() {
-                showToast($('body'), 'Update successful!')
+                showToast($('body'), 'Note deleted.');
                 $.colorbox.close();
+                $button.toggleClass('hidden');
+                $button.closest('form').find('textarea').val('');
             }
+        });
+    });
+}
+
+/**
+ * Adds listeners for content reload events on a page's notes textareas
+ * 
+ * When a registered textarea receives a content reload event, it's text
+ * is updated with the most recently submitted note.
+ * 
+ * @param {JQuery} $notesTextareas  All notes text areas on a page. 
+ */
+function addNotesReloadListeners($notesTextareas) {
+    $notesTextareas.each(function(_i, textarea) {
+        const $textarea = $(textarea);
+        
+        $textarea.on('contentReload', function() {
+            const newValue = $textarea.parent().find('.notes-modal-textarea')[0].value;
+            $textarea.val(newValue);
         });
     });
 }
@@ -58,7 +109,7 @@ function showToast($parent, message) {
  */
 export function initObservationsModal($modalLinks) {
     addClickListeners($modalLinks);
-    addReloadListeners($('.observations-list'))
+    addObservationReloadListeners($('.observations-list'))
     addDeleteObservationsListeners($('.delete-observations-button'));
 
     $modalLinks.each(function(_i, modalLinkElement) {
@@ -86,7 +137,6 @@ function addClickListeners($modalLinks) {
     })
 }
 
-// TODO: document this function
 /**
  * Adds listeners to all observation lists on a page.
  * 
@@ -97,9 +147,9 @@ function addClickListeners($modalLinks) {
  * 
  * @param {JQuery} $observationLists All of the observations lists on a page
  */
-function addReloadListeners($observationLists) {
+function addObservationReloadListeners($observationLists) {
     $observationLists.each(function(_i, list) {
-        $(list).on('observationReload', function() {
+        $(list).on('contentReload', function() {
             const $list = $(this);
             const $buttonsDiv = $list.siblings('div').first();
             const id = $list.attr('id');
@@ -231,7 +281,7 @@ function displayModal(modalId, reloadId) {
         width: '60%',
         onClosed: function() {
             if (reloadId) {
-                $(`#${reloadId}`).trigger('observationReload');
+                $(`#${reloadId}`).trigger('contentReload');
             }
         }
     });
