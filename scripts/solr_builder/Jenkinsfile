@@ -200,7 +200,7 @@ pipeline {
                   when { expression { return params.INDEX_WORKS } }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "./index-type.sh work ${params.MAX_CORES} works"
+                      sh "CHUNK_ETA=70 docker-compose run --name ol_run_works --rm -T ol ./index-type.sh work ${params.MAX_CORES} works"
                       solr_commit('solr')
                     }
                   }
@@ -211,7 +211,7 @@ pipeline {
                         sh '''tail --quiet -n1 $(ls -tr progress/works/*) | gzip > progress/works-progress.txt.gz'''
                         archiveArtifacts artifacts: "progress/works-progress.txt.gz"
                         // Save Log Files
-                        sh '''for name in $(ls logs/works); do docker logs ${name/.txt/} 2>&1; done | gzip > logs/works-indexing.log.gz'''
+                        sh '''cat $(ls -tr logs/works/*) | gzip > logs/works-indexing.log.gz'''
                         archiveArtifacts artifacts: "logs/works-indexing.log.gz"
                       }
                     }
@@ -221,7 +221,7 @@ pipeline {
                   when { expression { return params.INDEX_ORPHANS } }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "CHUNK_ETA=35 ./index-type.sh orphan ${params.MAX_CORES} orphans"
+                      sh "CHUNK_ETA=35 docker-compose run --name ol_run_orphans --rm -T ol ./index-type.sh orphan ${params.MAX_CORES} orphans"
                       solr_commit('solr')
                     }
                   }
@@ -232,7 +232,7 @@ pipeline {
                         sh '''tail --quiet -n1 $(ls -tr progress/orphans/*) | gzip > progress/orphans-progress.txt.gz'''
                         archiveArtifacts artifacts: "progress/orphans-progress.txt.gz"
                         // Save Log Files
-                        sh '''for name in $(ls logs/orphans); do docker logs ${name/.txt/} 2>&1; done | gzip > logs/orphans-indexing.log.gz'''
+                        sh '''cat $(ls -tr logs/orphans/*) | gzip > logs/orphans-indexing.log.gz'''
                         archiveArtifacts artifacts: "logs/orphans-indexing.log.gz"
                       }
                     }
@@ -244,7 +244,7 @@ pipeline {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
                       sh """
                       for subject_type in subject person place time; do
-                        docker-compose run --name ol_run_subjects_\$subject_type -T ol \
+                        docker-compose run --name ol_run_subjects_\$subject_type --rm -T ol \
                           python ./solr_builder/index_subjects.py \
                             \$subject_type \
                             --chunk-size 10000 \
@@ -261,7 +261,7 @@ pipeline {
                   when { expression { return params.INDEX_AUTHORS } }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "./index-type.sh author ${params.MAX_CORES} authors"
+                      sh "docker-compose run --name ol_run_authors --rm -T ol ./index-type.sh author ${params.MAX_CORES} authors"
                       solr_commit('solr')
                     }
                   }
@@ -271,8 +271,8 @@ pipeline {
                         // Save Progress Files
                         sh '''tail --quiet -n1 $(ls -tr progress/authors/*) | gzip > progress/authors-progress.txt.gz'''
                         archiveArtifacts artifacts: "progress/authors-progress.txt.gz"
-                        // Save Logs Files
-                        sh '''for name in $(ls logs/authors); do docker logs ${name/.txt/} 2>&1; done | gzip > logs/authors-indexing.log.gz'''
+                        // Save Log Files
+                        sh '''cat $(ls -tr logs/authors/*) | gzip > logs/authors-indexing.log.gz'''
                         archiveArtifacts artifacts: "logs/authors-indexing.log.gz"
                       }
                     }

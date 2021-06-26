@@ -181,6 +181,9 @@ def update_keys(keys):
         count += len(chunk)
         update_work.do_updates(chunk)
 
+        # Caches should not persist between different calls to update_keys!
+        update_work.data_provider.clear_cache()
+
     if count:
         logger.info("updated %d documents", count)
 

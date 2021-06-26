@@ -4,12 +4,14 @@ import itertools
 import logging
 import os
 import re
-from typing import Literal, List
+from typing import Literal, List, Union
 
 import httpx
 import requests
 import sys
 import time
+
+from httpx import HTTPError
 from six.moves.urllib.parse import urlparse
 from collections import defaultdict
 from unicodedata import normalize
@@ -923,11 +925,11 @@ async def solr_insert_documents(
         params['commitWithin'] = commit_within
     if skip_id_check:
         params['overwrite'] = 'false'
-    logger.info(f"POSTing update to {solr_base_url}/update {params}")
+    logger.debug(f"POSTing update to {solr_base_url}/update {params}")
     async with httpx.AsyncClient() as client:
         resp = await client.post(
             f'{solr_base_url}/update',
-            timeout=30,  # The default timeout is silly short
+            timeout=30,  # seconds; the default timeout is silly short
             params=params,
             headers={'Content-Type': 'application/json'},
             content=json.dumps(documents)
@@ -951,7 +953,7 @@ def solr_update(requests, debug=False, commitWithin=60000, solr_base_url: str = 
         h1 = HTTPConnection(parsed_url.hostname, parsed_url.port)
     else:
         h1 = HTTPConnection(parsed_url.hostname)
-    logger.info("POSTing update to %s", url)
+    logger.debug("POSTing update to %s", url)
     # FIXME; commit strategy / timing should be managed in config, not code
     url = url + "?commitWithin=%d" % commitWithin
 
@@ -1139,6 +1141,41 @@ class DeleteRequest:
         if self.keys:
             return make_delete_query(self.keys)
 
+
+def solr8_update(
+        reqs: List[Union[str, UpdateRequest, DeleteRequest]],
+        commit_within=60_000,
+        skip_id_check=False,
+        solr_base_url: str = None,
+) -> None:
+    """
+    This will replace solr_update once we're fully on Solr 8.7+
+
+    :param commit_within: milliseconds
+    """
+    req_strs = (r if type(r) == str else r.toxml() for r in reqs if r)  # type: ignore
+    # .toxml() can return None :/
+    content = f"<update>{''.join(s for s in req_strs if s)}</update>"  # type: ignore
+
+    solr_base_url = solr_base_url or get_solr_base_url()
+    params = {}
+    if commit_within is not None:
+        params['commitWithin'] = commit_within
+    if skip_id_check:
+        params['overwrite'] = 'false'
+    logger.debug(f"POSTing update to {solr_base_url}/update {params}")
+    try:
+        resp = httpx.post(
+            f'{solr_base_url}/update',
+            timeout=30,  # The default timeout is silly short
+            params=params,
+            headers={'Content-Type': 'application/xml'},
+            content=content)
+        resp.raise_for_status()
+    except HTTPError:
+        logger.error('Error with solr8 POST update')
+
+
 def process_edition_data(edition_data):
     """Returns a solr document corresponding to an edition using given edition data.
     """
@@ -1167,7 +1204,7 @@ def update_edition(e):
     return []
 
     ekey = e['key']
-    logger.info("updating edition %s", ekey)
+    logger.debug("updating edition %s", ekey)
 
     wkey = e.get('works') and e['works'][0]['key']
     w = wkey and data_provider.get_document(wkey)
@@ -1465,7 +1502,13 @@ def solr_select_work(edition_key):
         return docs[0]['key'] # /works/ prefix is in solr
 
 
-def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
+def update_keys(keys,
+                commit=True,
+                output_file=None,
+                commit_way_later=False,
+                solr8=False,
+                skip_id_check=False,
+                update: Literal['update', 'print', 'pprint', 'quiet'] = 'update'):
     """
     Insert/update the documents with the provided keys in Solr.
 
@@ -1477,14 +1520,32 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
     :param bool commit_way_later: set to true if you want to add things quickly and add
         them much later
     """
-    logger.info("BEGIN update_keys")
+    logger.debug("BEGIN update_keys")
     commit_way_later_dur = 1000 * 60 * 60 * 24 * 5  # 5 days?
 
     def _solr_update(requests, debug=False, commitWithin=60000):
-        if commit_way_later:
-            return solr_update(requests, debug, commit_way_later_dur)
-        else:
-            return solr_update(requests, debug, commitWithin)
+        if update == 'update':
+            commitWithin = commit_way_later_dur if commit_way_later else commitWithin
+
+            if solr8:
+                return solr8_update(requests, commitWithin, skip_id_check)
+            else:
+                return solr_update(requests, debug, commitWithin)
+        elif update in ('print', 'pprint'):
+            for req in requests:
+                import xml.etree.ElementTree as ET
+                xml_str = (
+                    req.toxml()
+                    if isinstance(req, UpdateRequest) or isinstance(req, DeleteRequest)
+                    else req)
+                if xml_str and update == 'pprint':
+                    root = ET.XML(xml_str)
+                    ET.indent(root)
+                    print(ET.tostring(root, encoding='unicode'))
+                else:
+                    print(str(xml_str)[:100])
+        elif update == 'quiet':
+            pass
 
     global data_provider
     global _ia_db
@@ -1503,7 +1564,7 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
 
     data_provider.preload_documents(ekeys)
     for k in ekeys:
-        logger.info("processing edition %s", k)
+        logger.debug("processing edition %s", k)
         edition = data_provider.get_document(k)
 
         if edition and edition['type']['key'] == '/type/redirect':
@@ -1547,10 +1608,10 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
     data_provider.preload_editions_of_works(wkeys)
 
     # update works
-    requests = []
+    requests = []  # type: list[Union[UpdateRequest, DeleteRequest, str]]
     requests += [DeleteRequest(deletes)]
     for k in wkeys:
-        logger.info("updating work %s", k)
+        logger.debug("updating work %s", k)
         try:
             w = data_provider.get_document(k)
             requests += update_work(w)
@@ -1589,7 +1650,7 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
 
     data_provider.preload_documents(akeys)
     for k in akeys:
-        logger.info("updating author %s", k)
+        logger.debug("updating author %s", k)
         try:
             requests += update_author(k)
         except:
@@ -1612,7 +1673,7 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
     skeys = set(k for k in keys if k.startswith("/subjects/"))
     requests = []
     for k in skeys:
-        logger.info("updating subject %s", k)
+        logger.debug("updating subject %s", k)
         try:
             requests += update_subject(k)
         except:
@@ -1622,9 +1683,7 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
             requests += ['<commit />']
         _solr_update(requests, debug=True)
 
-    # Caches should not persist between different calls to update_keys!
-    data_provider.clear_cache()
-    logger.info("END update_keys")
+    logger.debug("END update_keys")
 
 
 def solr_escape(query):
@@ -1671,37 +1730,46 @@ def get_ia_db(settings):
     ia_db = web.database(dbn="postgres", host=host, db=db, user=user, pw=pw)
     return ia_db
 
-def parse_args():
-    import argparse
-    parser = argparse.ArgumentParser(
-        description="Insert the documents with the given keys into Solr",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("keys", nargs="+", help="The keys of the items to update (ex: /books/OL1M")
-    parser.add_argument("-s", "--server", default="http://openlibrary.org/", help="URL of the openlibrary website")
-    parser.add_argument("-c", "--config", default="openlibrary.yml", help="Open Library config file")
-    parser.add_argument("-o", "--output-file", help="Open Library config file")
-    parser.add_argument("--nocommit", action="store_true", help="Don't commit to solr")
-    parser.add_argument("--profile", action="store_true", help="Profile this code to identify the bottlenecks")
-    parser.add_argument("--data-provider", default='default',
-                        choices=['default', 'legacy'],
-                        help="Name of the data provider to use")
 
-    return parser.parse_args()
+def main(
+        keys: List[str],
+        ol_url="http://openlibrary.org",
+        ol_config="openlibrary.yml",
+        output_file: str = None,
+        commit=True,
+        profile=False,
+        data_provider: Literal['default', 'legacy'] = "default",
+        solr_base: str = None,
+        update: Literal['update', 'print'] = 'update'
+):
+    """
+    Insert the documents with the given keys into Solr.
 
-def main():
-    args = parse_args()
-    keys = args.keys
-
-    load_configs(args.server, args.config, args.data_provider)
+    :param keys: The keys of the items to update (ex: /books/OL1M)
+    :param ol_url: URL of the openlibrary website
+    :param ol_config: Open Library config file
+    :param output_file: Where to save output
+    :param commit: Whether to also trigger a Solr commit
+    :param profile: Profile this code to identify the bottlenecks
+    :param data_provider: Name of the data provider to use
+    :param solr_base: If wanting to override openlibrary.yml
+    :param update: Whether/how to do the actual solr update call
+    """
+    load_configs(ol_url, ol_config, data_provider)
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
-    if args.profile:
+    if solr_base:
+        set_solr_base_url(solr_base)
+
+    if profile:
         f = web.profile(update_keys)
-        _, info = f(keys, not args.nocommit)
+        _, info = f(keys, commit)
         print(info)
     else:
-        update_keys(keys, commit=not args.nocommit, output_file=args.output_file)
+        update_keys(keys, commit=commit, output_file=output_file, update=update)
+
 
 if __name__ == '__main__':
-    main()
+    from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
+    FnToCLI(main).run()
