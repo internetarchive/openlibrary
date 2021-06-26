@@ -54,7 +54,7 @@
   textarea {
     width: 100%;
     resize: none;
-    padding: 0.25em;
+    padding: .25em;
   }
 
   .notes-view-modal-link {
@@ -62,7 +62,6 @@
     text-align: center;
   }
 }
-
 
 /* Observations view */
 .observations-header {
@@ -72,7 +71,7 @@
 }
 
 .observations-list {
-  padding: 0 1em 0;
+  padding: 0 1em;
 }
 
 .observations-modal-link {
@@ -94,8 +93,8 @@
     width: unset;
     font-size: 1.2em;
 
-    &:hover { 
-      background-color: darken(@red, 20%); 
+    &:hover {
+      background-color: darken(@red, 20%);
     }
   }
 }
@@ -118,9 +117,6 @@
 @media screen and (max-width: @width-breakpoint-tablet) {
   .observation-buttons {
     flex-direction: column-reverse;
-  }
-
-  .observation-buttons {
     text-align: center;
 
     .delete-observations-button {

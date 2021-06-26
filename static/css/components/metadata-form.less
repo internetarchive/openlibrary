@@ -104,31 +104,31 @@
       padding: .25em;
     }
   }
+}
 
-  .note-form-buttons {
-    display: flex;
-    justify-content: space-between;
+.note-form-buttons {
+  display: flex;
+  justify-content: space-between;
 
-    button {
-      font-size: 1.2em;
-      width: unset;
+  button {
+    font-size: 1.2em;
+    width: unset;
+  }
+
+  .delete-note-button {
+    background-color: @red;
+
+    &:hover {
+      background-color: darken(@red, 10%);
     }
+  }
 
-    .delete-note-button {
-      background-color: @red;
-  
-      &:hover { 
-        background-color: darken(@red, 10%); 
-      }
-    }
+  .update-note-button {
+    background-color: @green;
+    margin-left: auto;
 
-    .update-note-button {
-      background-color: @green;
-      margin-left: auto;
-      
-      &:hover { 
-        background-color: darken(@green, 10%); 
-      }
+    &:hover {
+      background-color: darken(@green, 10%);
     }
   }
 }
