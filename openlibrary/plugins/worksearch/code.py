@@ -1018,15 +1018,20 @@ def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet
     query['wt'] = 'json'
     if sort:
         sort = process_sort(sort)
+
+    if 'availability' in fields and 'ia' not in fields:
+        fields.append('ia')
     try:
-        (reply, solr_select, q_list) = run_solr_query(query,
-                                                      rows=limit,
-                                                      page=page,
-                                                      sort=sort,
-                                                      offset=offset,
-                                                      fields=fields,
-                                                      facet=facet,
-                                                      spellcheck_count=spellcheck_count)
+        (reply, solr_select, q_list) = run_solr_query(
+            query,
+            rows=limit,
+            page=page,
+            sort=sort,
+            offset=offset,
+            fields=fields,
+            facet=facet,
+            spellcheck_count=spellcheck_count
+        )
         response = json.loads(reply)['response'] or ''
     except (ValueError, IOError) as e:
         logger.error("Error in processing search API.")
@@ -1034,7 +1039,7 @@ def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet
 
     # backward compatibility
     response['num_found'] = response['numFound']
-    if fields == '*' or 'availability' in fields:
+    if '*' in fields or 'availability' in fields:
         response['docs'] = add_availability(response['docs'])
     return response
 
