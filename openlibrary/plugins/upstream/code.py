@@ -57,7 +57,7 @@ class edit(core.edit):
 # handlers for change photo and change cover
 
 class change_cover(delegate.mode):
-    path = "(/books/OL\d+M)/cover"
+    path = r"(/books/OL\d+M)/cover"
 
     def GET(self, key):
         page = web.ctx.site.get(key)
@@ -66,7 +66,7 @@ class change_cover(delegate.mode):
         return render.change_cover(page)
 
 class change_photo(change_cover):
-    path = "(/authors/OL\d+A)/photo"
+    path = r"(/authors/OL\d+A)/photo"
 
 del delegate.modes['change_cover']     # delete change_cover mode added by openlibrary plugin
 
@@ -86,7 +86,7 @@ class library_explorer(delegate.page):
 
 
 class merge_work(delegate.page):
-    path = "(/works/OL\d+W)/merge"
+    path = r"(/works/OL\d+W)/merge"
     def GET(self, key):
         return "This looks like a good place for a merge UI!"
 
@@ -98,7 +98,7 @@ class merge_work(delegate.page):
 def vendor_js():
     pardir = os.path.pardir
     path = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, 'static', 'upstream', 'js', 'vendor.js'))
-    with io.open(path, 'rb') as in_file:
+    with open(path, 'rb') as in_file:
         digest = hashlib.md5(in_file.read()).hexdigest()
     return '/static/upstream/js/vendor.js?v=' + digest
 
@@ -109,9 +109,9 @@ def static_url(path):
     """
     pardir = os.path.pardir
     fullpath = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, "static", path))
-    with io.open(fullpath, 'rb') as in_file:
+    with open(fullpath, 'rb') as in_file:
         digest = hashlib.md5(in_file.read()).hexdigest()
-    return "/static/%s?v=%s" % (path, digest)
+    return f"/static/{path}?v={digest}"
 
 class DynamicDocument:
     """Dynamic document is created by concatinating various rawtext documents in the DB.

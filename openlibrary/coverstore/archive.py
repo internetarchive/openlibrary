@@ -1,6 +1,5 @@
 """Utility to move files from local disk to tar files and update the paths in the db.
 """
-from __future__ import print_function
 import tarfile
 import web
 import os
@@ -30,7 +29,7 @@ class TarManager:
 
     def get_tarfile(self, name):
         id = web.numify(name)
-        tarname = "covers_%s_%s.tar" % (id[:4], id[4:6])
+        tarname = f"covers_{id[:4]}_{id[4:6]}.tar"
 
         # for id-S.jpg, id-M.jpg, id-L.jpg
         if '-' in name:
@@ -73,8 +72,8 @@ class TarManager:
 
         tar.addfile(tarinfo, fileobj=fileobj)
 
-        index.write('%s\t%s\t%s\n' % (name, offset, tarinfo.size))
-        return "%s:%s:%s" % (os.path.basename(tar.name), offset, tarinfo.size)
+        index.write(f'{name}\t{offset}\t{tarinfo.size}\n')
+        return f"{os.path.basename(tar.name)}:{offset}:{tarinfo.size}"
 
     def close(self):
         for name, _tarfile, _indexfile in self.tarfiles.values():
@@ -109,7 +108,7 @@ def archive():
                 print("Missing image file for %010d" % cover.id, file=web.debug)
                 continue
 
-            if isinstance(cover.created, six.string_types):
+            if isinstance(cover.created, str):
                 from infogami.infobase import utils
                 cover.created = utils.parse_datetime(cover.created)
 

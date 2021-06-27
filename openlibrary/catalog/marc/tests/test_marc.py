@@ -141,10 +141,10 @@ class TestMarcParse(unittest.TestCase):
 
     def test_by_statement(self):
         data = [
-            ([  ('a', u'Trois contes de No\u0308el'),
-                ('c', u'[par] Madame Georges Renard,'),
-                ('c', u'edited by F. Th. Meylan ...')],
-                {'title': u'Trois contes de No\u0308el', 'by_statement': '[par] Madame Georges Renard, edited by F. Th. Meylan ...'})
+            ([  ('a', 'Trois contes de No\u0308el'),
+                ('c', '[par] Madame Georges Renard,'),
+                ('c', 'edited by F. Th. Meylan ...')],
+                {'title': 'Trois contes de No\u0308el', 'by_statement': '[par] Madame Georges Renard, edited by F. Th. Meylan ...'})
         ]
         for (value, expect) in data:
             output = read_title(MockRecord('245', value))

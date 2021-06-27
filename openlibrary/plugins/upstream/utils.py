@@ -71,8 +71,7 @@ class MultiDict(MutableMapping):
         self._items = [(k, v) for k, v in self._items if k != key]
 
     def __iter__(self):
-        for key in self.keys():
-            yield key
+        yield from self.keys()
 
     def __len__(self):
         return len(list(self.keys()))
@@ -151,10 +150,10 @@ def render_component(name, attrs=None, json_encode=True):
         html += '<script src="%s"></script>' % url
         included.append(name)
 
-    html += '<ol-%(name)s %(attrs)s></ol-%(name)s>' % {
-        'name': kebab_case(name),
-        'attrs': attrs_str,
-    }
+    html += '<ol-{name} {attrs}></ol-{name}>'.format(
+        name=kebab_case(name),
+        attrs=attrs_str,
+    )
     return html
 
 
@@ -272,7 +271,7 @@ def radio_input(checked=False, **params):
     params['type'] = 'radio'
     if checked:
         params['checked'] = "checked"
-    return "<input %s />" % " ".join(['%s="%s"' % (k, web.websafe(v)) for k, v in params.items()])
+    return "<input %s />" % " ".join([f'{k}="{web.websafe(v)}"' for k, v in params.items()])
 
 @public
 def radio_list(name, args, value):
@@ -438,9 +437,9 @@ class Metatag:
 
     def __str__(self):
         attrs = ' '.join(
-            '%s="%s"' % (k, websafe(v))
+            f'{k}="{websafe(v)}"'
             for k, v in self.attrs.items())
-        return '<%s %s />' % (self.tag, attrs)
+        return f'<{self.tag} {attrs} />'
 
     def __repr__(self):
         return 'Metatag(%s)' % str(self)
@@ -452,7 +451,7 @@ def add_metatag(tag="meta", **attrs):
 
 @public
 def url_quote(text):
-    if isinstance(text, six.text_type):
+    if isinstance(text, str):
         text = text.encode('utf8')
     return urllib.parse.quote_plus(text)
 
@@ -470,7 +469,7 @@ def urlencode(dict_or_list_of_tuples):
     if isinstance(dict_or_list_of_tuples, dict):
         tuples = dict_or_list_of_tuples.items()
     params = [
-        (k, v.encode('utf-8') if isinstance(v, six.text_type) else v)
+        (k, v.encode('utf-8') if isinstance(v, str) else v)
         for (k, v) in tuples
     ]
     return og_urlencode(params)
@@ -497,8 +496,8 @@ def set_share_links(url='#', title='', view_context=None):
     text = url_quote("Check this out: " + entity_decode(title))
     links = [
         {'text': 'Facebook', 'url': 'https://www.facebook.com/sharer/sharer.php?u=' + encoded_url},
-        {'text': 'Twitter', 'url': 'https://twitter.com/intent/tweet?url=%s&via=openlibrary&text=%s' % (encoded_url, text)},
-        {'text': 'Pinterest', 'url': 'https://pinterest.com/pin/create/link/?url=%s&description=%s' % (encoded_url, text)}
+        {'text': 'Twitter', 'url': f'https://twitter.com/intent/tweet?url={encoded_url}&via=openlibrary&text={text}'},
+        {'text': 'Pinterest', 'url': f'https://pinterest.com/pin/create/link/?url={encoded_url}&description={text}'}
     ]
     view_context.share_links = links
 
@@ -555,7 +554,7 @@ def get_languages():
     global _languages
     if _languages is None:
         keys = web.ctx.site.things({"type": "/type/language", "key~": "/languages/*", "limit": 1000})
-        _languages = sorted([web.storage(name=d.name, code=d.code, key=d.key) for d in web.ctx.site.get_many(keys)], key=lambda d: d.name.lower())
+        _languages = sorted((web.storage(name=d.name, code=d.code, key=d.key) for d in web.ctx.site.get_many(keys)), key=lambda d: d.name.lower())
     return _languages
 
 
@@ -605,12 +604,12 @@ def get_markdown(text, safe_mode=False):
     return md
 
 
-class HTML(six.text_type):
+class HTML(str):
     def __init__(self, html):
-        six.text_type.__init__(self, web.safeunicode(html))
+        str.__init__(self, web.safeunicode(html))
 
     def __repr__(self):
-        return "<html: %s>" % six.text_type.__repr__(self)
+        return "<html: %s>" % str.__repr__(self)
 
 _websafe = web.websafe
 def websafe(text):
@@ -657,7 +656,7 @@ class UpstreamMemcacheClient:
         keys = [web.safestr(k) for k in keys]
 
         d = self._client.get_multi(keys)
-        return dict((web.safeunicode(adapter.unconvert_key(k)), self.decompress(v)) for k, v in d.items())
+        return {web.safeunicode(adapter.unconvert_key(k)): self.decompress(v) for k, v in d.items()}
 
 if config.get('upstream_memcache_servers'):
     olmemcache.Client = UpstreamMemcacheClient

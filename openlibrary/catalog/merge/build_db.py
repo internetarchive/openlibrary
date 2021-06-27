@@ -1,7 +1,6 @@
 #!/usr/bin/python2.5
 # converts from text files containing MARC tags to text versions of merge pools
 
-from __future__ import print_function
 import re
 from time import time
 from collections import defaultdict
@@ -128,7 +127,7 @@ for archive_id, name, total in sorted(archive, key=lambda x: x[2]):
             remaining = total - i
             remaining2 = grand_total - overall
             print("%8d %6.2f%% %5.3f rec/sec %.3f minutes left" % (i, (float(i) * 100) / total, i/t1, float((t1/i) * remaining) / 60), end=' ')
-            print("overall: %6.2f%% %.3f minutes left" % ((float(overall) * 100) / grand_total, float((t1_overall/overall) * remaining2) / 60))
+            print(f"overall: {(float(overall) * 100) / grand_total:6.2f}% {float((t1_overall/overall) * remaining2) / 60:.3f} minutes left")
 
     print(archive_id)
     write_map(archive_id, 'isbn', isbn_map)

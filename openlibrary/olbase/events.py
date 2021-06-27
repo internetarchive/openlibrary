@@ -94,8 +94,8 @@ class MemcacheInvalidater:
     def find_edition_counts(self, changeset):
         """Returns the edition_count entries effected by this change."""
         docs = changeset['docs'] + changeset['old_docs']
-        return set(k for doc in docs
-                     for k in self.find_edition_counts_for_doc(doc))
+        return {k for doc in docs
+                     for k in self.find_edition_counts_for_doc(doc)}
 
     def find_edition_counts_for_doc(self, doc):
         """Returns the memcache keys to be invalided for edition_counts effected by editing this doc.

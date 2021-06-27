@@ -1,11 +1,10 @@
-from __future__ import print_function
 import socket
 
 #url = "http://www.amazon.com/dp/1847195881"
 #asin = "1847195881"
 
 def get(sock, host, url):
-    send = 'GET %s HTTP/1.1\r\nHost: %s\r\nAccept-Encoding: identity\r\n\r\n' % (url, host)
+    send = f'GET {url} HTTP/1.1\r\nHost: {host}\r\nAccept-Encoding: identity\r\n\r\n'
     sock.sendall(send)
 
     fp = sock.makefile('rb', 0)

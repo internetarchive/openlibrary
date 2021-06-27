@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import logging
 import re
 import requests
@@ -30,7 +28,7 @@ import six
 
 
 def follow_redirect(doc):
-    if isinstance(doc, six.string_types) and doc.startswith("/a/"):
+    if isinstance(doc, str) and doc.startswith("/a/"):
         #Some edition records have authors as ["/a/OL1A""] insead of [{"key": "/a/OL1A"}].
         # Hack to fix it temporarily.
         doc = web.ctx.site.get(doc.replace("/a/", "/authors/"))
@@ -116,7 +114,7 @@ class Edition(models.Edition):
     def get_ia_cover(self, itemid, size):
         image_sizes = dict(S=(116, 58), M=(180, 360), L=(500, 500))
         w, h = image_sizes[size.upper()]
-        return "https://archive.org/download/%s/page/cover_w%s_h%s.jpg" % (itemid, w, h)
+        return f"https://archive.org/download/{itemid}/page/cover_w{w}_h{h}.jpg"
 
     def get_isbn10(self):
         """Fetches either isbn_10 or isbn_13 from record and returns canonical
@@ -407,7 +405,7 @@ class Edition(models.Edition):
 
     def get_table_of_contents(self):
         def row(r):
-            if isinstance(r, six.string_types):
+            if isinstance(r, str):
                 level = 0
                 label = ""
                 title = r
@@ -604,7 +602,7 @@ class Work(models.Work):
     def get_author_names(self, blacklist=None):
         author_names = []
         for author in self.get_authors():
-            author_name = (author if isinstance(author, six.string_types)
+            author_name = (author if isinstance(author, str)
                            else author.name)
             if not blacklist or author_name.lower() not in blacklist:
                 author_names.append(author_name)
@@ -626,7 +624,7 @@ class Work(models.Work):
                 return b.strip() + " " + a.strip()
             return name
 
-        if subjects and not isinstance(subjects[0], six.string_types):
+        if subjects and not isinstance(subjects[0], str):
             subjects = [flip(s.name) for s in subjects]
         return subjects
 
@@ -710,7 +708,7 @@ class Work(models.Work):
 
     def get_edition_covers(self):
         editions = web.ctx.site.get_many(web.ctx.site.things({"type": "/type/edition", "works": self.key, "limit": 1000}))
-        exisiting = set(int(c.id) for c in self.get_covers())
+        exisiting = {int(c.id) for c in self.get_covers()}
         covers = [e.get_cover() for e in editions]
         return [c for c in covers if c and int(c.id) not in exisiting]
 
@@ -866,7 +864,7 @@ class MergeAuthors(Changeset):
 
     def get_duplicates(self):
         duplicates = self.data.get("duplicates")
-        changes = dict((c['key'], c['revision']) for c in self.changes)
+        changes = {c['key']: c['revision'] for c in self.changes}
 
         return duplicates and [web.ctx.site.get(key, revision=changes[key]-1, lazy=True) for key in duplicates if key in changes]
 

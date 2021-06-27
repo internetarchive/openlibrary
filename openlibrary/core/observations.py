@@ -375,7 +375,7 @@ def get_observation_metrics(work_olid):
         observation_totals = Observations.count_observations(work_id)
 
         current_type_id = observation_totals[0]['type_id']
-        observation_item = next((o for o in OBSERVATIONS['observations'] if current_type_id == o['id']))
+        observation_item = next(o for o in OBSERVATIONS['observations'] if current_type_id == o['id'])
 
         current_observation = {
             'label': observation_item['label'],
@@ -389,7 +389,7 @@ def get_observation_metrics(work_olid):
             if i['type_id'] != current_type_id:
                 metrics['observations'].append(current_observation)
                 current_type_id = i['type_id']
-                observation_item = next((o for o in OBSERVATIONS['observations'] if current_type_id == o['id']))
+                observation_item = next(o for o in OBSERVATIONS['observations'] if current_type_id == o['id'])
                 current_observation = {
                     'label': observation_item['label'],
                     'description': observation_item['description'],
@@ -399,7 +399,7 @@ def get_observation_metrics(work_olid):
                 }
             current_observation['values'].append(
                     { 
-                        'value': next((v['name'] for v in observation_item['values'] if v['id'] == i['value_id'])), 
+                        'value': next(v['name'] for v in observation_item['values'] if v['id'] == i['value_id']), 
                         'count': i['total'] 
                     } 
                 )
@@ -408,7 +408,7 @@ def get_observation_metrics(work_olid):
     return metrics
         
 
-class Observations(object):
+class Observations:
 
     NULL_EDITION_VALUE = -1
 
@@ -510,9 +510,9 @@ class Observations(object):
 
         return: Type and value key-value pair
         """
-        observation = next((o for o in OBSERVATIONS['observations'] if o['id'] == type_id))
+        observation = next(o for o in OBSERVATIONS['observations'] if o['id'] == type_id)
         key = observation['label']
-        value = next((v['name'] for v in observation['values'] if v['id'] == value_id))
+        value = next(v['name'] for v in observation['values'] if v['id'] == value_id)
 
         return ObservationKeyValue(key, value)
 
@@ -573,11 +573,11 @@ class Observations(object):
             return: An ObservationsIds tuple
             """
             key = list(observation)[0]
-            item = next((o for o in OBSERVATIONS['observations'] if o['label'] == key))
+            item = next(o for o in OBSERVATIONS['observations'] if o['label'] == key)
 
             return ObservationIds(
                 item['id'],
-                next((v['id'] for v in item['values'] if v['name'] == observation[key]))
+                next(v['id'] for v in item['values'] if v['name'] == observation[key])
             )
 
         oldb = db.get_db()

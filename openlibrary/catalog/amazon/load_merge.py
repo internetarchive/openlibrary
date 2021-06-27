@@ -1,4 +1,3 @@
-from __future__ import print_function
 from catalog.marc.MARC21 import MARC21Record
 from catalog.marc.parse import pick_first_date
 
@@ -8,7 +7,7 @@ from six.moves import urllib
 entity_fields = ('name', 'birth_date', 'death_date', 'date')
 
 def find_entity(site, entity):
-    entity = dict((k, entity[k]) for k in entity_fields if k in entity)
+    entity = {k: entity[k] for k in entity_fields if k in entity}
     print(entity)
     things = site.things(entity)
     if not things:

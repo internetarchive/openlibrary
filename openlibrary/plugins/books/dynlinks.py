@@ -1,4 +1,3 @@
-from __future__ import print_function
 import json
 import web
 import sys
@@ -83,7 +82,7 @@ def ol_get_many_as_dict(keys):
     keys_with_revisions = [k for k in keys if '@' in k]
     keys2 = [k for k in keys if '@' not in k]
 
-    result = dict((doc['key'], doc) for doc in ol_get_many(keys2))
+    result = {doc['key']: doc for doc in ol_get_many(keys2)}
 
     for k in keys_with_revisions:
         key, revision = k.split('@', 1)
@@ -111,15 +110,15 @@ def query_keys(bib_keys):
         else:
             return ol_query(name, value)
 
-    d = dict((bib_key, query(bib_key)) for bib_key in bib_keys)
-    return dict((k, v) for k, v in d.items() if v is not None)
+    d = {bib_key: query(bib_key) for bib_key in bib_keys}
+    return {k: v for k, v in d.items() if v is not None}
 
 def query_docs(bib_keys):
     """Given a list of bib_keys, returns a mapping from bibkey to OL doc.
     """
     mapping = query_keys(bib_keys)
     thingdict = ol_get_many_as_dict(uniq(mapping.values()))
-    return dict((bib_key, thingdict[key]) for bib_key, key in mapping.items() if key in thingdict)
+    return {bib_key: thingdict[key] for bib_key, key in mapping.items() if key in thingdict}
 
 def uniq(values):
     return list(set(values))
@@ -135,7 +134,7 @@ def process_result(result, jscmd):
     return f(result)
 
 def get_many_as_dict(keys):
-    return dict((doc['key'], doc) for doc in ol_get_many(keys))
+    return {doc['key']: doc for doc in ol_get_many(keys)}
 
 def get_url(doc):
     base = web.ctx.get("home", "https://openlibrary.org")
@@ -158,7 +157,7 @@ class DataProcessor:
         author_keys = [a['author']['key'] for w in self.works.values() for a in w.get('authors', [])]
         self.authors = get_many_as_dict(author_keys)
 
-        return dict((k, self.process_doc(doc)) for k, doc in result.items())
+        return {k: self.process_doc(doc) for k, doc in result.items()}
 
     def get_authors(self, work):
         author_keys = [a['author']['key'] for a in work.get('authors', [])]
@@ -189,7 +188,7 @@ class DataProcessor:
 
             return {
                 "name": name,
-                "url": "https://openlibrary.org/subjects/%s%s" % (prefix, name.lower().replace(" ", "_"))
+                "url": "https://openlibrary.org/subjects/{}{}".format(prefix, name.lower().replace(" ", "_"))
             }
 
         def get_subjects(name, prefix):
@@ -210,7 +209,7 @@ class DataProcessor:
         def format_table_of_contents(toc):
             # after openlibrary.plugins.upstream.models.get_table_of_contents
             def row(r):
-                if isinstance(r, six.string_types):
+                if isinstance(r, str):
                     level = 0
                     label = ""
                     title = r
@@ -289,7 +288,7 @@ class DataProcessor:
                 "formats": {}
             }
 
-            prefix = "https://archive.org/download/%s/%s" % (itemid, itemid)
+            prefix = f"https://archive.org/download/{itemid}/{itemid}"
             if availability == 'full':
                 d["read_url"] = "https://archive.org/stream/%s" % (itemid)
                 d['formats'] = {
@@ -304,7 +303,7 @@ class DataProcessor:
                     }
                 }
             elif availability == "borrow":
-                d['borrow_url'] = u"https://openlibrary.org%s/%s/borrow" % (doc['key'], h.urlsafe(doc.get("title", "untitled")))
+                d['borrow_url'] = "https://openlibrary.org{}/{}/borrow".format(doc['key'], h.urlsafe(doc.get("title", "untitled")))
                 loanstatus =  web.ctx.site.store.get('ebooks/' + doc['ocaid'], {'borrowed': 'false'})
                 d['checkedout'] = (loanstatus['borrowed'] == 'true')
 
@@ -331,7 +330,7 @@ def trim(d):
         >>> trim({"a": "x", "b": "", "c": [], "d": {}})
         {'a': 'x'}
     """
-    return dict((k, v) for k, v in d.items() if v)
+    return {k: v for k, v in d.items() if v}
 
 def get_authors(docs):
     """Returns a dict of author_key to {"key", "...", "name": "..."} for all authors in docs.
@@ -356,10 +355,10 @@ def process_result_for_details(result):
         return d
 
     author_dict = get_authors(result.values())
-    return dict((k, f(k, doc)) for k, doc in result.items())
+    return {k: f(k, doc) for k, doc in result.items()}
 
 def process_result_for_viewapi(result):
-    return dict((k, process_doc_for_viewapi(k, doc)) for k, doc in result.items())
+    return {k: process_doc_for_viewapi(k, doc) for k, doc in result.items()}
 
 
 def get_ia_availability(itemid):

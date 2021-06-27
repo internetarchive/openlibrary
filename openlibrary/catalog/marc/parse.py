@@ -6,7 +6,7 @@ from openlibrary.catalog.utils import (
     pick_first_date, remove_trailing_dot, remove_trailing_number_dot, tidy_isbn
 )
 
-re_bad_char = re.compile(u'\ufffd')
+re_bad_char = re.compile('\ufffd')
 re_question = re.compile(r'^\?+$')
 re_lccn = re.compile(r'([ \dA-Za-z\-]{3}[\d/-]+).*')
 re_oclc = re.compile(r'^\(OCoLC\).*?0*(\d+)')

@@ -18,7 +18,6 @@ then adding the function to this list.
 
 
 """
-from __future__ import print_function
 
 import copy
 from collections import defaultdict

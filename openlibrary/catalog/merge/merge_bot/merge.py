@@ -1,6 +1,5 @@
 #!/usr/bin/python2.5
 
-from __future__ import print_function
 import openlibrary.catalog.merge.merge_marc as marc
 import openlibrary.catalog.merge.amazon as amazon
 from openlibrary.catalog.utils.query import get_mc, withKey
@@ -50,7 +49,7 @@ def attempt_merge(a, m, threshold, debug = False):
     return total >= threshold
 
 sample_amazon = {'publishers': ['New Riders Press'], 'isbn': ['0321525655'], 'number_of_pages': 240, 'short_title': 'presentation zen simple i', 'normalized_title': 'presentation zen simple ideas on presentation design and delivery voices that matter', 'full_title': 'Presentation Zen Simple Ideas on Presentation Design and Delivery (Voices That Matter)', 'titles': ['Presentation Zen Simple Ideas on Presentation Design and Delivery (Voices That Matter)', 'presentation zen simple ideas on presentation design and delivery voices that matter', 'Presentation Zen Simple Ideas on Presentation Design and Delivery', 'presentation zen simple ideas on presentation design and delivery'], 'publish_date': '2007', 'authors': ['Garr Reynolds']}
-sample_marc = {'publishers': [u'New Riders'], 'isbn': ['9780321525659', '0321525655'], 'lccn': ['2008297172'], 'number_of_pages': 229, 'short_title': u'presentation zen simple i', 'normalized_title': u'presentation zen simple ideas on presentation design and delivery', 'full_title': u'Presentation zen simple ideas on presentation design and delivery', 'titles': [u'Presentation zen simple ideas on presentation design and delivery', u'presentation zen simple ideas on presentation design and delivery'], 'publish_date': '2008', 'publish_country': 'cau', 'authors': [{'db_name': u'Reynolds, Garr.', 'name': u'Reynolds, Garr.'}]}
+sample_marc = {'publishers': ['New Riders'], 'isbn': ['9780321525659', '0321525655'], 'lccn': ['2008297172'], 'number_of_pages': 229, 'short_title': 'presentation zen simple i', 'normalized_title': 'presentation zen simple ideas on presentation design and delivery', 'full_title': 'Presentation zen simple ideas on presentation design and delivery', 'titles': ['Presentation zen simple ideas on presentation design and delivery', 'presentation zen simple ideas on presentation design and delivery'], 'publish_date': '2008', 'publish_country': 'cau', 'authors': [{'db_name': 'Reynolds, Garr.', 'name': 'Reynolds, Garr.'}]}
 
 def amazon_and_marc(key1, key2):
     if all(k in ('/b/OL9621221M', '/b/OL20749803M') for k in (key1, key2)):

@@ -37,7 +37,7 @@ def get_api_response(url, params=None):
         if r.status_code == requests.codes.ok:
             api_response = r.json()
         else:
-            logger.info('%s response received from %s' % (r.status_code, url))
+            logger.info(f'{r.status_code} response received from {url}')
     except Exception as e:
         logger.exception('Exception occurred accessing %s.' % url)
     stats.end()
@@ -52,7 +52,7 @@ def get_metadata_direct(itemid, only_metadata=True, cache=True):
     :param bool only_metadata: whether to get the metadata without any processing
     :rtype: dict
     """
-    url = '%s/metadata/%s' % (IA_BASE_URL, web.safestr(itemid.strip()))
+    url = f'{IA_BASE_URL}/metadata/{web.safestr(itemid.strip())}'
     params = {}
     if cache:
         params['dontcache'] = 1
@@ -84,7 +84,7 @@ def process_metadata_dict(metadata):
     non-list cases. This function makes sure the known multi-valued fields are
     always lists.
     """
-    multivalued = set(['collection', 'external-identifier', 'isbn', 'subject', 'oclc-id'])
+    multivalued = {'collection', 'external-identifier', 'isbn', 'subject', 'oclc-id'}
     def process_item(k, v):
         if k in multivalued and not isinstance(v, list):
             v = [v]
@@ -117,7 +117,7 @@ def edition_from_item_metadata(itemid, metadata):
 def get_cover_url(item_id):
     """Gets the URL of the archive.org item's title (or cover) page.
     """
-    base_url = '{0}/download/{1}/page/'.format(IA_BASE_URL, item_id)
+    base_url = f'{IA_BASE_URL}/download/{item_id}/page/'
     title_response = requests.head(base_url + 'title.jpg', allow_redirects=True)
     if title_response.status_code == 404:
         return base_url + 'cover.jpg'
@@ -126,7 +126,7 @@ def get_cover_url(item_id):
 
 def get_item_manifest(item_id, item_server, item_path):
     url = 'https://%s/BookReader/BookReaderJSON.php' % item_server
-    url += '?itemPath=%s&itemId=%s&server=%s' % (item_path, item_id, item_server)
+    url += f'?itemPath={item_path}&itemId={item_id}&server={item_server}'
     return get_api_response(url)
 
 
@@ -238,7 +238,7 @@ class ItemEdition(dict):
             if isinstance(value, list):
                 value = [v for v in value if v != {}]
                 if value:
-                    if isinstance(value[0], six.string_types):
+                    if isinstance(value[0], str):
                         value = "\n\n".join(value)
                     else:
                         value = value[0]

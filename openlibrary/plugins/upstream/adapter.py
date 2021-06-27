@@ -46,7 +46,7 @@ convertions = {
 }
 
 # inverse of convertions
-iconversions = dict((v, k) for k, v in convertions.items())
+iconversions = {v: k for k, v in convertions.items()}
 
 class proxy:
     def delegate(self, *args):
@@ -59,7 +59,7 @@ class proxy:
         else:
             self.data = None
 
-        headers = dict((k[len('HTTP_'):].replace('-', '_').lower(), v) for k, v in web.ctx.environ.items())
+        headers = {k[len('HTTP_'):].replace('-', '_').lower(): v for k, v in web.ctx.environ.items()}
 
         self.before_request()
         try:
@@ -82,7 +82,7 @@ class proxy:
         else:
             self.process_error()
 
-        web.ctx.status = "%s %s" % (self.status_code, self.status_msg)
+        web.ctx.status = f"{self.status_code} {self.status_msg}"
         web.ctx.headers = self.headers.items()
         return self.output
 
@@ -165,7 +165,7 @@ class get_many(proxy):
 
     def after_request(self):
         d = json.loads(self.output)
-        d = dict((unconvert_key(k), unconvert_dict(v)) for k, v in d.items())
+        d = {unconvert_key(k): unconvert_dict(v) for k, v in d.items()}
         self.output = json.dumps(d)
 
 class things(proxy):
@@ -176,10 +176,10 @@ class things(proxy):
 
             def convert_keys(q):
                 if isinstance(q, dict):
-                    return dict((k, convert_keys(v)) for k, v in q.items())
+                    return {k: convert_keys(v) for k, v in q.items()}
                 elif isinstance(q, list):
                     return [convert_keys(x) for x in q]
-                elif isinstance(q, six.string_types):
+                elif isinstance(q, str):
                     return convert_key(q)
                 else:
                     return q
@@ -224,7 +224,7 @@ class new_key(proxy):
 
 class save(proxy):
     def before_request(self):
-        self.path = '/%s/save%s' % (self.args[0], convert_key(self.args[1]))
+        self.path = f'/{self.args[0]}/save{convert_key(self.args[1])}'
         d = json.loads(self.data)
         d = convert_dict(d)
         self.data = json.dumps(d)

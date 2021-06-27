@@ -1,4 +1,3 @@
-from __future__ import print_function
 from marc_xml import MarcXml
 from lxml import etree
 import re
@@ -13,14 +12,14 @@ def esc_sp(s):
     return esc(s).replace(' ', '&nbsp;')
 
 def html_subfields(line):
-    return ''.join("<b>$%s</b>%s" % (k, esc(v)) for k, v in line.get_all_subfields())
+    return ''.join(f"<b>${k}</b>{esc(v)}" for k, v in line.get_all_subfields())
 
 def html_line(tag, field):
     if tag.startswith('00'):
         s = esc_sp(field)
     else:
         s = esc_sp(field.ind1() + field.ind2()) + ' ' + html_subfields(field)
-    return u'<large>' + tag + u'</large> <code>' + s + u'</code>'
+    return '<large>' + tag + '</large> <code>' + s + '</code>'
 
 class html_record():
     def __init__(self, data):

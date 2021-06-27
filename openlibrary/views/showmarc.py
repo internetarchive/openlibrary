@@ -21,7 +21,7 @@ class show_ia(app.view):
 
     def GET(self, ia):
         error_404 = False
-        url = 'https://archive.org/download/%s/%s_meta.mrc' % (ia, ia)
+        url = f'https://archive.org/download/{ia}/{ia}_meta.mrc'
         try:
             response = requests.get(url)
             response.raise_for_status()
@@ -33,7 +33,7 @@ class show_ia(app.view):
                 return "ERROR:" + str(e)
 
         if error_404:  # no MARC record
-            url = 'https://archive.org/download/%s/%s_meta.xml' % (ia, ia)
+            url = f'https://archive.org/download/{ia}/{ia}_meta.xml'
             try:
                 response = requests.get(url)
                 response.raise_for_status()
@@ -96,10 +96,10 @@ class show_marc(app.view):
             raise web.seeother('/show-records/ia:' + m.group(1))
         m = re_lc_sanfranpl.match(filename)
         if m:  # archive.org is case-sensative
-            mixed_case = 'SanFranPL%s/SanFranPL%s.out:%s:%s' % (m.group(1), m.group(2), offset, length)
+            mixed_case = f'SanFranPL{m.group(1)}/SanFranPL{m.group(2)}.out:{offset}:{length}'
             raise web.seeother('/show-records/' + mixed_case)
         if filename == 'collingswoodlibrarymarcdump10-27-2008/collingswood.out':
-            loc = 'CollingswoodLibraryMarcDump10-27-2008/Collingswood.out:%s:%s' % (offset, length)
+            loc = f'CollingswoodLibraryMarcDump10-27-2008/Collingswood.out:{offset}:{length}'
             raise web.seeother('/show-records/' + loc)
 
         loc = ':'.join(['marc', filename, offset, length])

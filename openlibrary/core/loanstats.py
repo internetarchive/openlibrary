@@ -61,7 +61,7 @@ class LoanStats:
 
             def solrtime(t):
                 return t.isoformat() + "Z"
-            params['fq'].append("start_time_dt:[%s TO %s]" % (solrtime(start), solrtime(end)))
+            params['fq'].append(f"start_time_dt:[{solrtime(start)} TO {solrtime(end)}]")
 
         if self.resource_type:
             params['fq'].append("resource_type_s:%s" % self.resource_type)
@@ -84,7 +84,7 @@ class LoanStats:
             type, subject = subject.split(":", 1)
         else:
             type = "subject"
-        return "subject_key:%s\\:%s" % (type, self.solrescape(subject))
+        return f"subject_key:{type}\\:{self.solrescape(subject)}"
 
     def solr_select_facet(self, facet_field):
         facet_counts = self._get_all_facet_counts()
@@ -104,7 +104,7 @@ class LoanStats:
             params["facet.limit"] = facet_limit
 
         response = self.solr_select(params)
-        return dict((name, list(web.group(counts, 2))) for name, counts in response['facet_counts']['facet_fields'].items())
+        return {name: list(web.group(counts, 2)) for name, counts in response['facet_counts']['facet_fields'].items()}
 
     def _get_all_facet_counts(self):
         if not self._facet_counts:
@@ -126,7 +126,7 @@ class LoanStats:
             }
             response = self.solr_select(params)
             self._total_loans = response['response']['numFound']
-            self._facet_counts = dict((name, web.group(counts, 2)) for name, counts in response['facet_counts']['facet_fields'].items())
+            self._facet_counts = {name: web.group(counts, 2) for name, counts in response['facet_counts']['facet_fields'].items()}
         return self._facet_counts
 
     def get_last_updated(self):
@@ -161,7 +161,7 @@ class LoanStats:
         response = self.solr_select(params)
         counts0 = response['facet_counts']['facet_fields']['start_day_s']
         day_facet = web.group(counts0, 2)
-        return sorted([[self.datestr2millis(day), count] for day, count in day_facet])
+        return sorted([self.datestr2millis(day), count] for day, count in day_facet)
 
     def get_raw_loans_per_day(self, resource_type="total"):
         params = {

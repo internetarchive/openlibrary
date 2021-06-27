@@ -40,9 +40,9 @@ def test_isbns_from_record():
 
 def test_strip_accents():
     assert strip_accents('Plain ASCII text') == 'Plain ASCII text'
-    assert strip_accents(u'Des idées napoléoniennes') == 'Des idees napoleoniennes'
+    assert strip_accents('Des idées napoléoniennes') == 'Des idees napoleoniennes'
     # It only modifies Unicode Nonspacing Mark characters:
-    assert strip_accents(u'Bokmål : Standard Østnorsk') == u'Bokmal : Standard Østnorsk'
+    assert strip_accents('Bokmål : Standard Østnorsk') == 'Bokmal : Standard Østnorsk'
 
 
 bookseller_titles = [
@@ -382,14 +382,14 @@ class Test_From_MARC:
         assert edition['pagination'] == 'viii, 264 p.'
         # 8 subjects, 650
         assert len(edition['subjects']) == 8
-        assert sorted(edition['subjects']) == [u'Action and adventure films',
-                                               u'Cinematography',
-                                               u'Miscellanea',
-                                               u'Physics',
-                                               u'Physics in motion pictures',
-                                               u'Popular works',
-                                               u'Science fiction films',
-                                               u'Special effects']
+        assert sorted(edition['subjects']) == ['Action and adventure films',
+                                               'Cinematography',
+                                               'Miscellanea',
+                                               'Physics',
+                                               'Physics in motion pictures',
+                                               'Popular works',
+                                               'Science fiction films',
+                                               'Special effects']
         # Edition description from 520
         desc = ('Explains the basic laws of physics, covering such topics '
                 'as mechanics, forces, and energy, while deconstructing '

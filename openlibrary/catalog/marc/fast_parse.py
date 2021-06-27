@@ -109,7 +109,7 @@ def read_author_person(line, is_marc8=False):
     if not name:
         return []
 
-    return [{ 'db_name': u' '.join(name_and_date), 'name': u' '.join(name), }]
+    return [{ 'db_name': ' '.join(name_and_date), 'name': ' '.join(name), }]
 
 # exceptions:
 class SoundRecording(Exception):
@@ -123,7 +123,7 @@ class BadDictionary(Exception):
 
 @deprecated
 def read_title_and_subtitle(data, is_marc8=False):
-    line = get_first_tag(data, set(['245']))
+    line = get_first_tag(data, {'245'})
     contents = get_contents(line, ['a', 'b', 'c', 'h'], is_marc8)
 
     title = None

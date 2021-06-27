@@ -55,7 +55,7 @@ def ol_things(key, value):
             result = download(get_ol_url() + '/api/things?' + real_urlencode(d))
             result = json.loads(result)
             return result['result']
-        except IOError:
+        except OSError:
             import traceback
             traceback.print_exc()
             return []
@@ -67,7 +67,7 @@ def ol_get(olkey):
     else:
         try:
             return json.loads(download(get_ol_url() + olkey + ".json"))
-        except IOError:
+        except OSError:
             return None
 
 
@@ -88,7 +88,7 @@ def urldecode(url):
     base, query = splitquery(url)
     query = query or ""
     items = [item.split('=', 1) for item in query.split('&') if '=' in item]
-    d = dict((unquote(k), unquote_plus(v)) for (k, v) in items)
+    d = {unquote(k): unquote_plus(v) for (k, v) in items}
     return base, d
 
 
@@ -116,7 +116,7 @@ def read_file(path, offset, size, chunk=50*1024):
             if data:
                 yield data
             else:
-                raise IOError("file truncated")
+                raise OSError("file truncated")
 
 
 def rm_f(filename):
@@ -155,7 +155,7 @@ def urlencode(data):
         def encode(key, value, out):
             if isinstance(value, file):
                 out.append('--' + BOUNDARY)
-                out.append('Content-Disposition: form-data; name="%s"; filename="%s"' % (key, value.name))
+                out.append(f'Content-Disposition: form-data; name="{key}"; filename="{value.name}"')
                 out.append('Content-Type: %s' % get_content_type(value.name))
                 out.append('')
                 out.append(value.read())

@@ -113,7 +113,7 @@ class JSNode:
             return ""
 
     def jsemit_SuiteNode(self, node, indent):
-        return u"".join(self.jsemit(s, indent) for s in node.sections)
+        return "".join(self.jsemit(s, indent) for s in node.sections)
 
     def jsemit_LineNode(self, node, indent):
         text = ["self.push(%s);" % self.jsemit(n, "") for n in node.nodes]
@@ -152,7 +152,7 @@ class JSNode:
         expr = expr and "(" + expr + ")"
 
         jsname = jsnames.get(name, name)
-        text += indent + "%s %s {\n" % (jsname, py2js(expr))
+        text += indent + f"{jsname} {py2js(expr)} {{\n"
         text += self.jsemit(node.suite, indent + INDENT)
         text += indent + "}\n"
         return text
@@ -168,10 +168,10 @@ class JSNode:
         a = a[len("for"):-len("in")].strip() # strip `for` and `in`
 
         b = node.stmt[tok.index:-1].strip() # rest of for stmt excluding :
-        b = web.re_compile("loop.setup\((.*)\)").match(b).group(1)
+        b = web.re_compile(r"loop.setup\((.*)\)").match(b).group(1)
 
         text = ""
-        text += indent + "foreach(%s, loop, function(loop, %s) {\n" % (py2js(b), a)
+        text += indent + f"foreach({py2js(b)}, loop, function(loop, {a}) {{\n"
         text += self.jsemit(node.suite, indent + INDENT)
         text += indent + "});\n"
         return text

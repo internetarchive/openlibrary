@@ -43,7 +43,7 @@ class Image:
         self.id = id
 
     def info(self):
-        url = '%s/%s/id/%s.json' % (h.get_coverstore_url(), self.category, self.id)
+        url = f'{h.get_coverstore_url()}/{self.category}/id/{self.id}.json'
         if url.startswith("//"):
             url = "http:" + url
         try:
@@ -54,12 +54,12 @@ class Image:
             d['author'] = d['author'] and self._site.get(d['author'])
 
             return web.storage(d)
-        except IOError:
+        except OSError:
             # coverstore is down
             return None
 
     def url(self, size="M"):
-        return "%s/%s/id/%s-%s.jpg" % (h.get_coverstore_url(), self.category, self.id, size.upper())
+        return f"{h.get_coverstore_url()}/{self.category}/id/{self.id}-{size.upper()}.jpg"
 
     def __repr__(self):
         return "<image: %s/%d>" % (self.category, self.id)
@@ -127,7 +127,7 @@ class Thing(client.Thing):
     def prefetch(self):
         """Prefetch all the anticipated data."""
         preview = self.get_history_preview()
-        authors = set(v.author.key for v in preview.initial + preview.recent if v.author)
+        authors = {v.author.key for v in preview.initial + preview.recent if v.author}
         # preload them
         self._site.get_many(list(authors))
 
@@ -379,7 +379,7 @@ class Edition(Thing):
                 filename = self.ocaid + suffix
 
             if filename:
-                return "https://archive.org/download/%s/%s" % (self.ocaid, filename)
+                return f"https://archive.org/download/{self.ocaid}/{filename}"
 
     @classmethod
     def from_isbn(cls, isbn):
@@ -527,7 +527,7 @@ class Work(Thing):
 
     def _make_subject_link(self, title, prefix=""):
         slug = web.safestr(title.lower().replace(' ', '_').replace(',',''))
-        key = "/subjects/%s%s" % (prefix, slug)
+        key = f"/subjects/{prefix}{slug}"
         return web.storage(key=key, title=title, slug=slug)
 
     def get_subject_links(self, type="subject"):
@@ -571,10 +571,10 @@ class Work(Thing):
         solrdata = web.storage(self._solr_data or {})
         d = {}
         if solrdata.get('has_fulltext') and solrdata.get('public_scan_b'):
-            d['read_url'] = "https://archive.org/stream/{0}".format(solrdata.ia[0])
+            d['read_url'] = f"https://archive.org/stream/{solrdata.ia[0]}"
             d['has_ebook'] = True
         elif solrdata.get('lending_edition_s'):
-            d['borrow_url'] = "/books/{0}/x/borrow".format(solrdata.lending_edition_s)
+            d['borrow_url'] = f"/books/{solrdata.lending_edition_s}/x/borrow"
             #d['borrowed'] = solrdata.checked_out
             d['has_ebook'] = True
         if solrdata.get('ia'):
@@ -744,7 +744,7 @@ class User(Thing):
 
         # since the owner is part of the URL, it might be difficult to handle
         # change of ownerships. Need to think of a way to handle redirects.
-        key = "%s/lists/OL%sL" % (self.key, id)
+        key = f"{self.key}/lists/OL{id}L"
         doc = {
             "key": key,
             "type": {
@@ -804,7 +804,7 @@ class User(Thing):
         if cls:
             extra_attrs += 'class="%s" ' % cls
         # Why nofollow?
-        return '<a rel="nofollow" href="%s" %s>%s</a>' % (self.key, extra_attrs, web.net.htmlquote(self.displayname))
+        return f'<a rel="nofollow" href="{self.key}" {extra_attrs}>{web.net.htmlquote(self.displayname)}</a>'
 
 class List(Thing, ListMixin):
     """Class to represent /type/list objects in OL.
@@ -839,7 +839,7 @@ class List(Thing, ListMixin):
 
         Each tag object will contain name and url fields.
         """
-        return [web.storage(name=t, url=self.key + u"/tags/" + t) for t in self.tags]
+        return [web.storage(name=t, url=self.key + "/tags/" + t) for t in self.tags]
 
     def _get_subjects(self):
         """Returns list of subjects inferred from the seeds.
@@ -892,7 +892,7 @@ class List(Thing, ListMixin):
         return -1
 
     def __repr__(self):
-        return "<List: %s (%r)>" % (self.key, self.name)
+        return f"<List: {self.key} ({self.name!r})>"
 
 class UserGroup(Thing):
 
@@ -920,7 +920,7 @@ class UserGroup(Thing):
         if not any(userkey == member['key'] for member in members):
             members.append({'key': userkey})
             self.members = members
-            web.ctx.site.save(self.dict(), "Adding %s to %s" % (userkey, self.key))
+            web.ctx.site.save(self.dict(), f"Adding {userkey} to {self.key}")
 
 
 class Subject(web.storage):

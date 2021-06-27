@@ -6,9 +6,9 @@ from bs4 import BeautifulSoup
 
 # http://amazon.com/other-editions/dp/0312153325 has:
 # http://www.amazon.com/gp/product/0312247869
-re_link = re.compile('^http://www\.amazon\.com/(?:(.*)/dp|gp/product)/(\d{9}[\dX]|B[A-Z0-9]+)$')
+re_link = re.compile(r'^http://www\.amazon\.com/(?:(.*)/dp|gp/product)/(\d{9}[\dX]|B[A-Z0-9]+)$')
 
-desc_skip = set(['(Bargain Price)', '(Kindle Book)'])
+desc_skip = {'(Bargain Price)', '(Kindle Book)'}
 
 def read_bucket_table(f):
     html = ''

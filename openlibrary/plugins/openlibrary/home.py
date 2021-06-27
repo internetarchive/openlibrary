@@ -344,8 +344,8 @@ def get_featured_subjects():
         'romance', 'textbooks', 'children', 'history', 'medicine', 'religion',
         'mystery_and_detective_stories', 'plays', 'music', 'science'
     ]
-    return dict([(subject_name, subjects.get_subject('/subjects/' + subject_name, sort='edition_count'))
-                 for subject_name in FEATURED_SUBJECTS])
+    return {subject_name: subjects.get_subject('/subjects/' + subject_name, sort='edition_count')
+                 for subject_name in FEATURED_SUBJECTS}
 
 @public
 def get_cached_featured_subjects():
@@ -416,7 +416,7 @@ def format_list_editions(key):
 
     editions = {}
     for seed in seed_list.seeds:
-        if not isinstance(seed, six.string_types):
+        if not isinstance(seed, str):
             if seed.type.key == "/type/edition":
                 editions[seed.key] = seed
             else:
@@ -431,7 +431,7 @@ def format_list_editions(key):
 format_list_editions = cache.memcache_memoize(format_list_editions, "home.format_list_editions", timeout=5*60)
 
 def pick_best_edition(work):
-    return next((e for e in work.editions if e.ocaid))
+    return next(e for e in work.editions if e.ocaid)
 
 def format_work_data(work):
     d = dict(work)

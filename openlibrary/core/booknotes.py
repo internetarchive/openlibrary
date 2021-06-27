@@ -1,7 +1,7 @@
 from . import db
 
 
-class Booknotes(object):
+class Booknotes:
 
     NULL_EDITION_VALUE = -1
 

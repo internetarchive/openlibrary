@@ -89,7 +89,7 @@ class WaitingLoan(dict):
             if isinstance(v, datetime.datetime):
                 v = v.isoformat()
             return v
-        return dict((k, process_value(v)) for k, v in self.items())
+        return {k: process_value(v) for k, v in self.items()}
 
     @classmethod
     def query(cls, **kw):
@@ -158,7 +158,7 @@ class Stats:
             " order by 2 desc" +
             " limit $limit", vars=locals()).list()
         docs = web.ctx.site.get_many([row.book_key for row in rows])
-        docs_dict = dict((doc.key, doc) for doc in docs)
+        docs_dict = {doc.key: doc for doc in docs}
         for row in rows:
             row.book = docs_dict.get(row.book_key)
         return rows
@@ -292,7 +292,7 @@ def prune_expired_waitingloans():
 
 def update_all_waitinglists():
     rows = WaitingLoan.query(limit=10000)
-    identifiers = set(row['identifier'] for row in rows)
+    identifiers = {row['identifier'] for row in rows}
     for identifier in identifiers:
         try:
             _wl_api.request("loan.sync", identifier=identifier)
@@ -302,7 +302,7 @@ def update_all_waitinglists():
 
 def update_all_ebooks():
     rows = WaitingLoan.query(limit=10000)
-    identifiers = set(row['identifier'] for row in rows)
+    identifiers = {row['identifier'] for row in rows}
 
     loan_keys = web.ctx.site.store.keys(type='/type/loan', limit=-1)
 

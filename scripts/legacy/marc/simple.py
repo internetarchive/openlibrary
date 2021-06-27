@@ -1,5 +1,4 @@
 #!/usr/bin/python
-from __future__ import print_function
 from fast_parse import *
 from marc_binary import MarcBinary
 from pprint import pprint
@@ -62,7 +61,7 @@ for data, length in read_file(f):
     next += length
     total += 1
     if show_field:
-        get_first_tag(data, set([show_field]))
+        get_first_tag(data, {show_field})
     if show_leader:
         print(data[:24])
     if show_pos:

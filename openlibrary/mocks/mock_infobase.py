@@ -137,7 +137,7 @@ class MockSite:
                 d[k] = self._process(v)
             return client.create_thing(self, d.get('key'), d)
         elif isinstance(value, common.Reference):
-            return client.create_thing(self, six.text_type(value), None)
+            return client.create_thing(self, str(value), None)
         else:
             return value
 
@@ -164,14 +164,14 @@ class MockSite:
                 flat = common.flatten_dict(v)[0]
                 k += '.' + web.rstrips(flat[0], '.key')
                 v = flat[1]
-            keys = set(k for k in self.filter_index(self.index, k, v) if k in keys)
+            keys = {k for k in self.filter_index(self.index, k, v) if k in keys}
 
         keys = sorted(keys)
         return keys[offset:offset+limit]
 
     def filter_index(self, index, name, value):
         operations = {
-            "~": lambda i, value: isinstance(i.value, six.string_types) and i.value.startswith(web.rstrips(value, "*")),
+            "~": lambda i, value: isinstance(i.value, str) and i.value.startswith(web.rstrips(value, "*")),
             "<": lambda i, value: i.value < value,
             ">": lambda i, value: i.value > value,
             "!": lambda i, value: i.value != value,
@@ -216,7 +216,7 @@ class MockSite:
 
             if k.endswith(".key"):
                 yield web.storage(key=key, datatype="ref", name=web.rstrips(k, ".key"), value=v)
-            elif isinstance(v, six.string_types):
+            elif isinstance(v, str):
                 yield web.storage(key=key, datatype="str", name=k, value=v)
             elif isinstance(v, int):
                 yield web.storage(key=key, datatype="int", name=k, value=v)
@@ -350,8 +350,7 @@ def mock_site(request):
             text = open(path).read()
             doc = eval(text, dict(true=True, false=False))
             if isinstance(doc, list):
-                for d in doc:
-                    yield d
+                yield from doc
             else:
                 yield doc
 

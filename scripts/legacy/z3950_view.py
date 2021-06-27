@@ -20,7 +20,7 @@ for t in root:
         cur[element.tag] = element.text
     targets[cur['title']] = cur
 
-re_identifier = re.compile('^([^:/]+)(?::(\d+))?(?:/(.+))?$')
+re_identifier = re.compile(r'^([^:/]+)(?::(\d+))?(?:/(.+))?$')
 
 def get_marc(target_name, cclquery, result_offset):
     target = targets[target_name]
@@ -85,16 +85,16 @@ class z3950_lookup:
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Marc lookup: %s</title>
+<title>Marc lookup: {}</title>
 </head>
 <body>
-<form action="/z39.50">Internet archive identifier: <input name="ia" value="%s"><input value="go" type="submit"></form>
-<h1>%s</h1>
+<form action="/z39.50">Internet archive identifier: <input name="ia" value="{}"><input value="go" type="submit"></form>
+<h1>{}</h1>
 <ul>
-<li><a href="http://www.archive.org/details/%s">Internet archive detail page</a>
-<li><a href="http://openlibrary.org/show-records/ia:%s">View current IA MARC record</a>
+<li><a href="http://www.archive.org/details/{}">Internet archive detail page</a>
+<li><a href="http://openlibrary.org/show-records/ia:{}">View current IA MARC record</a>
 </ul>
-''' % (ia, ia, ia, ia, ia)
+'''.format(ia, ia, ia, ia, ia)
         marc_source = 'http://www.archive.org/download/' + ia + '/' + ia + '_metasource.xml'
         marc_xml = 'http://www.archive.org/download/' + ia + '/' + ia + '_marc.xml'
         marc_bin = 'http://www.archive.org/download/' + ia + '/' + ia + '_meta.mrc'

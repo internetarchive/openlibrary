@@ -9,7 +9,7 @@ import web
 
 from openlibrary.coverstore import config
 
-class ratelimit(object):
+class ratelimit:
     "Instances of this class can be used as decorators"
 
     # This class is designed to be sub-classed
@@ -69,7 +69,7 @@ class ratelimit(object):
     def keys_to_check(self):
         now = datetime.datetime.now()
         return [
-            '%s%s-%s' % (
+            '{}{}-{}'.format(
                 self.prefix,
                 web.ctx.ip,
                 (now - datetime.timedelta(minutes = minute)).strftime('%Y%m%d%H%M')
@@ -77,7 +77,7 @@ class ratelimit(object):
         ]
 
     def current_key(self):
-        return '%s%s-%s' % (
+        return '{}{}-{}'.format(
             self.prefix,
             web.ctx.ip,
             datetime.datetime.now().strftime('%Y%m%d%H%M')

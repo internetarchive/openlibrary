@@ -5,7 +5,7 @@ from openlibrary import accounts
 from openlibrary.mocks.mock_infobase import MockSite
 
 def strip_nones(d):
-    return dict((k, v) for k, v in d.items() if v is not None)
+    return {k: v for k, v in d.items() if v is not None}
 
 
 def mock_user():

@@ -5,8 +5,8 @@ from six import StringIO
 arc_dir = '/2/edward/amazon/arc'
 urls = (
     '/', 'index',
-    '/(\d+\.arc)', 'arc_view',
-    '/(\d+\.arc)/(\d+)', 'page_view',
+    r'/(\d+\.arc)', 'arc_view',
+    r'/(\d+\.arc)/(\d+)', 'page_view',
 )
 app = web.application(urls, globals(), autoreload=True)
 
@@ -57,7 +57,7 @@ class index:
             f = open(arc_dir + '/' + filename)
             line = f.readline()
             f.close()
-            ret += '<li><a href="/%s">%s</a> - %s' % (filename, filename, line)
+            ret += f'<li><a href="/{filename}">{filename}</a> - {line}'
         ret += '</body></html>'
         return ret
 

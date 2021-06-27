@@ -31,7 +31,7 @@ class read_singleget(delegate.page):
         i = web.input()
 
         web.ctx.headers = []
-        req = '%s:%s' % (idtype, idval)
+        req = f'{idtype}:{idval}'
         result = readlinks.readlinks(req, i)
         if req in result:
             result = result[req]

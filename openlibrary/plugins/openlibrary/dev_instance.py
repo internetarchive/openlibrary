@@ -90,7 +90,7 @@ class process_ebooks(delegate.page):
             }
 
         docs = [make_doc(d) for d in result['docs']]
-        docdict = dict((d['_key'], d) for d in docs)
+        docdict = {d['_key']: d for d in docs}
         web.ctx.site.store.update(docdict)
         return delegate.RawText("ok\n")
 

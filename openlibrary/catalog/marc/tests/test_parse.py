@@ -44,7 +44,7 @@ test_data = "%s/test_data" % os.path.dirname(__file__)
 class TestParseMARCXML:
     @pytest.mark.parametrize('i', xml_samples)
     def test_xml(self, i):
-        expect_filename = "%s/xml_expect/%s_marc.xml" % (test_data, i)
+        expect_filename = f"{test_data}/xml_expect/{i}_marc.xml"
         path            = "%s/xml_input/%s_marc.xml"  % (test_data, i)
         element = etree.parse(open(path)).getroot()
         # Handle MARC XML collection elements in our test_data expectations:
@@ -74,15 +74,15 @@ class TestParseMARCXML:
 class TestParseMARCBinary:
     @pytest.mark.parametrize('i', bin_samples)
     def test_binary(self, i):
-        expect_filename = '%s/bin_expect/%s' % (test_data, i)
-        with open('%s/bin_input/%s' % (test_data, i), 'rb') as f:
+        expect_filename = f'{test_data}/bin_expect/{i}'
+        with open(f'{test_data}/bin_input/{i}', 'rb') as f:
             rec = MarcBinary(f.read())
         edition_marc_bin = read_edition(rec)
         assert edition_marc_bin
         if not os.path.exists(expect_filename):
             # Missing test expectations file. Create a template from the input, but fail the current test.
             json.dump(edition_marc_bin, open(expect_filename, 'w'), indent=2)
-            assert False, 'Expectations file %s not found: template generated in %s. Please review and commit this file.' % (expect_filename, '/bin_expect')
+            assert False, 'Expectations file {} not found: template generated in {}. Please review and commit this file.'.format(expect_filename, '/bin_expect')
         j = json.load(open(expect_filename))
         assert j, 'Unable to open test data: %s' % expect_filename
         assert sorted(edition_marc_bin) == sorted(j), (

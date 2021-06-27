@@ -720,7 +720,7 @@ def setup():
     register_admin_page('/admin/people/([^/]*)/edits', people_edits, label='Edits')
     register_admin_page('/admin/ip', ipaddress, label='IP')
     register_admin_page('/admin/ip/(.*)', ipaddress_view, label='View IP')
-    register_admin_page('/admin/stats/(\d\d\d\d-\d\d-\d\d)', stats, label='Stats JSON')
+    register_admin_page(r'/admin/stats/(\d\d\d\d-\d\d-\d\d)', stats, label='Stats JSON')
     register_admin_page('/admin/ipstats', ipstats, label='IP Stats JSON')
     register_admin_page('/admin/block', block, label='')
     register_admin_page('/admin/attach_debugger', attach_debugger, label='Attach Debugger')
@@ -736,7 +736,7 @@ def setup():
 
     register_admin_page('/admin/imports', imports_home, label="")
     register_admin_page('/admin/imports/add', imports_add, label="")
-    register_admin_page('/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label="")
+    register_admin_page(r'/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label="")
     register_admin_page('/admin/spamwords', spamwords, label="")
     register_admin_page('/admin/sponsorship', sponsorship_stats, label="Sponsorship")
     register_admin_page('/admin/sponsorship/sync', sync_sponsored_books, label="Sponsor Sync")

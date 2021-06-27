@@ -36,7 +36,6 @@ Whatever you pass in, will replace the *Python Interface by Fuzzyman* part.
 **0.1.2** will change with the version of this interface.
 
 """
-from __future__ import print_function
 import os
 
 from six.moves.urllib.parse import urlencode
@@ -73,7 +72,7 @@ class AkismetError(Exception):
 class APIKeyError(AkismetError):
     """Invalid API key."""
 
-class Akismet(object):
+class Akismet:
     """A class for working with the akismet API"""
 
     baseurl = 'rest.akismet.com/1.1/'
@@ -92,7 +91,7 @@ class Akismet(object):
 
         This comprises of api key plus the baseurl.
         """
-        return 'http://%s.%s' % (self.key, self.baseurl)
+        return f'http://{self.key}.{self.baseurl}'
 
 
     def _safeRequest(self, url, data, headers):
@@ -101,7 +100,7 @@ class Akismet(object):
             req = urllib.request.Request(url, data, headers)
             h = urllib.request.urlopen(req)
             resp = h.read()
-        except (urllib.error.HTTPError, urllib.error.URLError, IOError) as e:
+        except (urllib.error.HTTPError, urllib.error.URLError, OSError) as e:
             raise AkismetError(str(e))
         return resp
 

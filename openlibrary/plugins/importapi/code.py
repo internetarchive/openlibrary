@@ -247,7 +247,7 @@ class ia_importapi(importapi):
                 rec = MarcBinary(data)
                 edition = read_edition(rec)
             except MarcException as e:
-                details = "%s: %s" % (identifier, str(e))
+                details = f"{identifier}: {str(e)}"
                 logger.error("failed to read from bulk MARC record %s", details)
                 return self.error('invalid-marc-record', details, **next_data)
 
@@ -265,7 +265,7 @@ class ia_importapi(importapi):
                     subfields = field[1].get_subfield_values(id_subfield)
                     return subfields[0] if subfields else None
                 _ids = [get_subfield(f, id_subfield) for f in rec.read_fields([id_field]) if f and get_subfield(f, id_subfield)]
-                edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in _ids]
+                edition['local_id'] = [f'urn:{prefix}:{_id}' for _id in _ids]
 
             # Don't add the book if the MARC record is a non-monograph item,
             # unless it is a serial (etc) for a scanning partner.

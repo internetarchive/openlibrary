@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
 import argparse
 import datetime
 import itertools
@@ -54,7 +53,7 @@ def poll_for_changes(start_time_file, max_chunk_size, delay):
         with open(start_time_file) as f:
             date = datetime.datetime.strptime(f.read(), "%Y/%m/%d")
             logging.debug("Obtained last end time from file '%s'"%start_time_file)
-    except IOError:
+    except OSError:
         date = datetime.datetime.now()
         logging.info("No state file. Starting from now.")
     current_day = date.day

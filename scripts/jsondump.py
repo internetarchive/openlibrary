@@ -36,7 +36,6 @@ To generate bookdump:
 
         $ ./scripts/jsondump.py bookdump type/edition.txt type/author.txt type/language.txt > bookdump.txt
 """
-from __future__ import print_function
 import sys
 import json
 import re
@@ -124,7 +123,7 @@ def modified(db, date):
         $ python jsondump.py modified dbname YYYY-MM-DD
     """
     import os
-    os.system("""psql %s -t -c "select key from thing where last_modified >= '%s' and last_modified < (date '%s' + interval '1 day')" """ % (db, date, date))
+    os.system(f"""psql {db} -t -c "select key from thing where last_modified >= '{date}' and last_modified < (date '{date}' + interval '1 day')" """)
 
 @command
 def help(cmd=None):
@@ -141,7 +140,7 @@ def help(cmd=None):
 
         for k in sorted(commands):
             doc = commands[k].__doc__ or " "
-            print("  %-10s\t%s" % (k, doc.splitlines()[0]))
+            print(f"  {k:<10}\t{doc.splitlines()[0]}")
 
 def get_action(cmd):
     if cmd in commands:
@@ -173,7 +172,7 @@ def make_sub(d):
     return lambda s: s and rx.sub(f, s)
 
 def invert_dict(d):
-    return dict((v, k) for (k, v) in d.items())
+    return {v: k for (k, v) in d.items()}
 
 _escape_dict = {'\n': r'\n', '\r': r'\r', '\t': r'\t', '\\': r'\\'}
 
@@ -241,7 +240,7 @@ def read_json(file):
     for json_data in xopen(file):
         d = json.loads(json_data)
         ret = (d['key'], d['type']['key'], json_data)
-        if not all(isinstance(i, six.string_types) for i in ret):
+        if not all(isinstance(i, str) for i in ret):
             print('not all strings:')
             print(json_data)
         yield ret

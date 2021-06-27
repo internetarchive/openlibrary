@@ -1,7 +1,6 @@
 """Utility to bulk import documents into Open Library database without
 going through infobase API.
 """
-from __future__ import print_function
 
 import json
 import os
@@ -38,7 +37,7 @@ class DocumentLoader:
     def get_thing_ids(self, keys):
         keys = list(set(keys))
         rows = self.db.query("SELECT id, key FROM thing WHERE key in $keys", vars=locals())
-        return dict((r.key, r.id) for r in rows)
+        return {r.key: r.id for r in rows}
 
     def get_thing_id(self, key):
         return self.get_thing_ids([key]).get(key)
@@ -182,7 +181,7 @@ class DocumentLoader:
                              " WHERE data.thing_id=thing.id AND data.revision=thing.latest_revision-1 and thing.key in $keys",
                              vars=locals())
 
-        rows = dict((r.key, r) for r in rows)
+        rows = {r.key: r for r in rows}
         last_modified = {'type': '/type/datetime', 'value': timestamp.isoformat()}
         def prepare(doc):
             """Takes the existing document from db, update it with doc
@@ -220,10 +219,10 @@ class Reindexer:
 
         import openlibrary.plugins.openlibrary.schema
         self.schema = openlibrary.plugins.openlibrary.schema.get_schema()
-        self.noindex = set(["id", "key", "type", "type_id",
+        self.noindex = {"id", "key", "type", "type_id",
                        "revision", "latest_revision",
                        "created", "last_modified",
-                       "permission", "child_permission"])
+                       "permission", "child_permission"}
         self._property_cache = {}
 
     def reindex(self, keys, tables=None):
@@ -259,8 +258,8 @@ class Reindexer:
 
     def delete_earlier_index(self, documents, tables=None):
         """Remove all previous entries corresponding to the given documents"""
-        all_tables = tables or set(r.relname for r in self.db.query(
-                "SELECT relname FROM pg_class WHERE relkind='r'"))
+        all_tables = tables or {r.relname for r in self.db.query(
+                "SELECT relname FROM pg_class WHERE relkind='r'")}
 
         data = defaultdict(list)
         for doc in documents:
@@ -344,9 +343,9 @@ class Reindexer:
         if not keys:
             return
 
-        thing_ids = dict((r.key, r.id) for r in self.db.query(
+        thing_ids = {r.key: r.id for r in self.db.query(
                 "SELECT id, key FROM thing WHERE key in $keys",
-                vars=locals()))
+                vars=locals())}
 
         for table, rows in data.items():
             if table.endswith('_ref'):
@@ -371,7 +370,7 @@ class Reindexer:
         """
         if isinstance(value, int):
             return 'int'
-        elif isinstance(value, six.string_types):
+        elif isinstance(value, str):
             return 'str'
         elif isinstance(value, dict):
             if 'key' in value:

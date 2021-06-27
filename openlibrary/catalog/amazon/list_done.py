@@ -1,4 +1,3 @@
-from __future__ import print_function
 from lxml.html import fromstring
 from openlibrary.catalog.utils.arc import read_arc, read_body
 import re

@@ -44,7 +44,7 @@ class BasicRedirectEngine:
         raise NotImplementedError()
 
     def find_all_references(self, keys):
-        refs = set(ref for key in keys for ref in self.find_references(key))
+        refs = {ref for key in keys for ref in self.find_references(key)}
         return list(refs)
 
     def update_references(self, doc, master, duplicates):
@@ -60,9 +60,9 @@ class BasicRedirectEngine:
             if list(doc) == ['key']:
                 return {"key": master} if doc['key'] in duplicates else doc
             else:
-                return dict(
-                    (k, self.update_references(v, master, duplicates))
-                    for k, v in doc.items())
+                return {
+                    k: self.update_references(v, master, duplicates)
+                    for k, v in doc.items()}
         elif isinstance(doc, list):
             values = [self.update_references(v, master, duplicates) for v in doc]
             return uniq(values, key=dicthash)
@@ -116,7 +116,7 @@ class BasicMergeEngine:
         """Merge duplicate doc into master doc.
         """
         keys = set(list(master) + list(dup))
-        return dict((k, self.merge_property(master.get(k), dup.get(k))) for k in keys)
+        return {k: self.merge_property(master.get(k), dup.get(k)) for k in keys}
 
     def merge_property(self, a, b):
         if isinstance(a, list) and isinstance(b, list):
@@ -166,9 +166,9 @@ class AuthorMergeEngine(BasicMergeEngine):
         mc = self._get_memcache()
         debug_doc = {
             'type': 'merge-authors-debug',
-            'memcache': mc and dict(
-                (k, json.loads(v))
-                for k, v in mc.get_multi([doc['key'] for doc in docs]).items()),
+            'memcache': mc and {
+                k: json.loads(v)
+                for k, v in mc.get_multi([doc['key'] for doc in docs]).items()},
             'docs': docs,
         }
 
@@ -178,8 +178,8 @@ class AuthorMergeEngine(BasicMergeEngine):
                 "master": master,
                 "duplicates": list(duplicates)
             })
-        before_revs = dict((doc['key'], doc.get('revision')) for doc in docs)
-        after_revs = dict((row['key'], row['revision']) for row in result)
+        before_revs = {doc['key']: doc.get('revision') for doc in docs}
+        after_revs = {row['key']: row['revision'] for row in result}
 
         # Bad merges are happening when we are getting non-recent docs. That can be
         # identified by checking difference in the revision numbers before/after save
@@ -216,7 +216,7 @@ def fix_table_of_contents(table_of_contents):
     :param typing.List[typing.Union[str, dict]] table_of_contents:
     """
     def row(r):
-        if isinstance(r, six.string_types):
+        if isinstance(r, str):
             level = 0
             label = ""
             title = web.safeunicode(r)
@@ -269,7 +269,7 @@ class merge_authors(delegate.page):
 
     def filter_authors(self, keys):
         docs = web.ctx.site.get_many(["/authors/" + k for k in keys])
-        d = dict((doc.key, doc.type.key) for doc in docs)
+        d = {doc.key: doc.type.key for doc in docs}
         return [k for k in keys if d.get("/authors/" + k) == '/type/author']
 
     def GET(self):

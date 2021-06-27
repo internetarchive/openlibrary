@@ -16,7 +16,7 @@ class BadLength(MarcException):
 
 
 def norm(s):
-    return normalize('NFC', six.text_type(s))
+    return normalize('NFC', str(s))
 
 
 def handle_wrapped_lines(_iter):
@@ -124,7 +124,7 @@ class MarcBinary(MarcBase):
         except Exception:
             raise BadMARC("No MARC data found")
         if len(data) != length:
-            raise BadLength("Record length %s does not match reported length %s." % (len(data), length))
+            raise BadLength(f"Record length {len(data)} does not match reported length {length}.")
         self.data = data
         self.directory_end = data.find(b'\x1e')
         if self.directory_end == -1:
@@ -218,7 +218,7 @@ class MarcBinary(MarcBase):
         if not line[0:2] == '00':
             # marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:636441290:1277
             if tag_line[1:8] == b'{llig}\x1f':
-                tag_line = tag_line[0] + u'\uFE20' + tag_line[7:]
+                tag_line = tag_line[0] + '\uFE20' + tag_line[7:]
         return tag_line
 
     def decode_field(self, field):

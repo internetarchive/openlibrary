@@ -1,4 +1,3 @@
-from __future__ import print_function
 collect_ignore = ['test_listapi.py', 'test_ratingsapi.py']
 
 def pytest_addoption(parser):

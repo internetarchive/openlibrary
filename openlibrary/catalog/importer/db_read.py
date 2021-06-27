@@ -1,4 +1,3 @@
-from __future__ import print_function
 import web
 import json
 from time import sleep

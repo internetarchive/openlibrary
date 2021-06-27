@@ -3,7 +3,7 @@ from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 from . import db
 
 
-class Ratings(object):
+class Ratings:
 
     VALID_STAR_RATINGS = range(6)  # inclusive: [0 - 5] (0-5 star)
 

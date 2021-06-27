@@ -233,7 +233,7 @@ class list_view_json(delegate.page):
                 "editions": lst.key + "/editions",
             },
             "name": lst.name or None,
-            "description": lst.description and six.text_type(lst.description) or None,
+            "description": lst.description and str(lst.description) or None,
             "seed_count": len(lst.seeds),
             "edition_count": lst.edition_count,
 

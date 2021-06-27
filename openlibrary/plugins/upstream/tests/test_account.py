@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from .. import account
 import web
 import os

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
 from openlibrary.catalog.importer.scribe import BadImport
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary import config
@@ -66,7 +65,7 @@ for attempt in range(attempts):
         print('error on attempt %d, retrying in %s seconds' % (attempt, wait))
         sleep(wait)
 
-existing = set(f.attrib['name'] for f in root)
+existing = {f.attrib['name'] for f in root}
 #existing.remove("v40.i32.records.utf8") # for testing
 #existing.remove("v40.i32.report") # for testing
 

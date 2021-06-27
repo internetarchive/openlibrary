@@ -113,7 +113,7 @@ class Stats:
 
     def get_count_by_status(self, date=None):
         rows = db.query("SELECT status, count(*) FROM import_item GROUP BY status")
-        return dict([(row.status, row.count) for row in rows])
+        return {row.status: row.count for row in rows}
 
     def get_count_by_date_status(self, ndays=10):
         try: 
@@ -172,5 +172,5 @@ class Stats:
                 " GROUP BY status",
                 vars=locals())
         return {
-            "counts": dict([(row.status, row.count) for row in rows])
+            "counts": {row.status: row.count for row in rows}
         }

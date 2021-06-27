@@ -1,5 +1,4 @@
 #!/usr/bin/python2.5
-from __future__ import print_function
 from catalog.marc.fast_parse import *
 from html import as_html
 from build_record import build_record
@@ -43,7 +42,7 @@ fields = [
     ('table_of_contents', 'Table of contents'),
 ]
 
-re_end_dot = re.compile('[^ ][^ ]\.$', re.UNICODE)
+re_end_dot = re.compile(r'[^ ][^ ]\.$', re.UNICODE)
 re_marc_name = re.compile('^(.*), (.*)$')
 re_year = re.compile(r'\b(\d{4})\b')
 
@@ -87,8 +86,8 @@ def output_record_as_html(rec):
         elif rec[k] is None:
             v = '<em>empty</em>'
         else:
-            v = esc(six.text_type(rec[k]))
-        rows.append('<tr><th>%s</th><td>%s</td></tr>\n' % (label, v))
+            v = esc(str(rec[k]))
+        rows.append(f'<tr><th>{label}</th><td>{v}</td></tr>\n')
 
     return '<table>' + ''.join(rows) + '</table>'
 

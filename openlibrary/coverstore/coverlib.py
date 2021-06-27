@@ -1,5 +1,4 @@
 """Cover management."""
-from __future__ import print_function
 
 import datetime
 from logging import getLogger
@@ -74,10 +73,10 @@ def write_image(data, prefix):
             img = img.convert('RGB')
 
         for name, size in config.image_sizes.items():
-            path = "%s-%s.jpg" % (path_prefix, name)
+            path = f"{path_prefix}-{name}.jpg"
             resize_image(img, size).save(path, quality=90)
         return img
-    except IOError:
+    except OSError:
         logger.exception("write_image() failed")
 
         # cleanup

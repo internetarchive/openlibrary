@@ -1,4 +1,3 @@
-from __future__ import print_function
 import requests
 
 base = 'http://ia331526.us.archive.org:7001/openlibrary.org/log/'

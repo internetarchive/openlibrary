@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import array
 import datetime
 import json
@@ -197,7 +195,7 @@ class cover:
 
         def redirect(id):
             size_part = size and ("-" + size) or ""
-            url = "/%s/id/%s%s.jpg" % (category, id, size_part)
+            url = f"/{category}/id/{id}{size_part}.jpg"
 
             query = web.ctx.env.get('QUERY_STRING')
             if query:
@@ -240,7 +238,7 @@ class cover:
 
         # set cache-for-ever headers only when requested with ID
         if key == 'id':
-            etag = "%s-%s" % (d.id, size.lower())
+            etag = f"{d.id}-{size.lower()}"
             if not web.modified(trim_microsecond(d.created), etag=etag):
                 raise web.notmodified()
 
@@ -253,14 +251,14 @@ class cover:
         web.header('Content-Type', 'image/jpeg')
         try:
             return read_image(d, size)
-        except IOError:
+        except OSError:
             raise web.notfound()
 
     def get_ia_cover_url(self, identifier, size="M"):
         url = "https://archive.org/metadata/%s/metadata" % identifier
         try:
             d = requests.get(url).json().get("result", {})
-        except (IOError, ValueError):
+        except (OSError, ValueError):
             return
 
         # Not a text item or no images or scan is not complete yet
@@ -315,7 +313,7 @@ class cover:
 
         if imgsize:
             name = "%010d" % coverid
-            return "%s_%s_%s.tar:%s:%s" % (prefix, name[:4], name[4:6], offset, imgsize)
+            return f"{prefix}_{name[:4]}_{name[4:6]}.tar:{offset}:{imgsize}"
 
     def query(self, category, key, value):
         return _query(category, key, value)
@@ -337,8 +335,8 @@ def get_tarindex_path(index, size):
     else:
         prefix = "covers"
 
-    itemname = "%s_%s" % (prefix, name[:4])
-    filename = "%s_%s_%s.index" % (prefix, name[:4], name[4:6])
+    itemname = f"{prefix}_{name[:4]}"
+    filename = f"{prefix}_{name[:4]}_{name[4:6]}.index"
     return os.path.join('items', itemname, filename)
 
 def parse_tarindex(file):
@@ -376,7 +374,7 @@ class cover_details:
             if value is None:
                 return web.notfound("")
             else:
-                return web.found("/%s/id/%s.json" % (category, value))
+                return web.found(f"/{category}/id/{value}.json")
 
 class query:
     def GET(self, category):
@@ -393,7 +391,7 @@ class query:
         result = db.query(category, i.olid, offset=offset, limit=limit)
 
         if i.cmd == "ids":
-            result = dict((r.olid, r.id) for r in result)
+            result = {r.olid: r.id for r in result}
         elif not details:
             result = [r.id for r in result]
         else:
@@ -412,7 +410,7 @@ class query:
         json_data = json.dumps(result)
         web.header('Content-Type', 'text/javascript')
         if i.callback:
-            return "%s(%s);" % (i.callback, json_data)
+            return f"{i.callback}({json_data});"
         else:
             return json_data
 

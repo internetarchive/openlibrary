@@ -1,4 +1,3 @@
-from __future__ import print_function
 from py.test import config
 import web
 import json

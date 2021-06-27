@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-from __future__ import print_function
 
 import codecs
 import sys
@@ -48,7 +47,7 @@ td { background: #eee; }
     def text_box(self, k):
         if self.input[k]:
             v = web.htmlquote(self.input[k])
-            return '<input type="text" name="%s" value="%s">' % (k, v)
+            return f'<input type="text" name="{k}" value="{v}">'
         else:
             return '<input type="text" name="%s">' % k
 
@@ -98,13 +97,11 @@ td { background: #eee; }
 
         yield '<h2>Level 1</h2>'
         l1 = merge_marc.level1_merge(rec1, rec2)
-        for i in self.field_table(l1, rec1, rec2):
-            yield i
+        yield from self.field_table(l1, rec1, rec2)
 
         yield '<h2>Level 2</h2>'
         l2 = merge_marc.level2_merge(rec1, rec2)
-        for i in self.field_table(l2, rec1, rec2):
-            yield i
+        yield from self.field_table(l2, rec1, rec2)
 
     def amazon_compare(self, editions):
         key1 = editions[0]['key']
@@ -116,13 +113,11 @@ td { background: #eee; }
             return
         yield '<h2>Level 1</h2>'
         l1 = merge_amazon.level1_merge(rec_amazon, rec_marc)
-        for i in self.field_table(l1, rec_amazon, rec_marc):
-            yield i
+        yield from self.field_table(l1, rec_amazon, rec_marc)
 
         yield '<h2>Level 2</h2>'
         l2 = merge_amazon.level2_merge(rec_amazon, rec_marc)
-        for i in self.field_table(l2, rec_amazon, rec_marc):
-            yield i
+        yield from self.field_table(l2, rec_amazon, rec_marc)
 
     def search(self, editions):
         yield str(len(editions)) + ' editions found<p>'
@@ -131,14 +126,13 @@ td { background: #eee; }
         for e in editions:
             url = 'http://openlibrary.org' + e['key']
             title = web.htmlquote(e['title']) if e['title'] else 'no title'
-            yield '<tr><td><a href="%s">%s</a></td>' % (url, e['key'])
-            yield '<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (e['oclc_numbers'], e['isbn_10'], title, (web.htmlquote(e['subtitle']) if e.get('subtitle', None) else '<i>no subtitle</i>'))
+            yield '<tr><td><a href="{}">{}</a></td>'.format(url, e['key'])
+            yield '<td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>'.format(e['oclc_numbers'], e['isbn_10'], title, (web.htmlquote(e['subtitle']) if e.get('subtitle', None) else '<i>no subtitle</i>'))
         yield '</table><p>'
 
         if len(editions) == 2:
             yield '2 editions found, lets compare them<br>'
-            for i in self.marc_compare(editions):
-                yield i
+            yield from self.marc_compare(editions)
 
     def isbn_search(self, v):
         q = {'type': '/type/edition', 'isbn_10': v, 'title': None, 'subtitle': None}
@@ -147,8 +141,7 @@ td { background: #eee; }
             e['isbn_10'] = v
             editions.append(e)
         yield 'searching for ISBN ' + web.htmlquote(v) + ': '
-        for i in self.search(editions):
-            yield i
+        yield from self.search(editions)
 
     def oclc_search(self, v):
         q = {'type': '/type/edition', 'oclc_numbers': v, 'title': None, 'subtitle': None, 'isbn_10': None}
@@ -158,8 +151,7 @@ td { background: #eee; }
             e['oclc_numbers'] = v
             editions.append(e)
         yield 'searching for OCLC ' + web.htmlquote(v) + ': '
-        for i in self.search(editions):
-            yield i
+        yield from self.search(editions)
 
     def title_search(self, v):
         q = {'type': '/type/edition', 'isbn_10': None, 'title': v}
@@ -168,8 +160,7 @@ td { background: #eee; }
             e['title'] = v
             editions.append(e)
         yield 'searcing for title "' + web.htmlquote(v) + '": '
-        for i in self.search(editions):
-            yield i
+        yield from self.search(editions)
 
     def GET(self):
         # self.input = web.input(ol=None, isbn=None, title=None)

@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import re
 
 from openlibrary.catalog.merge.normalize import normalize
@@ -199,7 +197,7 @@ def substr_match(a, b):
     return a.find(b) != -1 or b.find(a) != -1
 
 def keyword_match(in1, in2):
-    s1, s2 = [i.split() for i in (in1, in2)]
+    s1, s2 = (i.split() for i in (in1, in2))
     s1_set = set(s1)
     s2_set = set(s2)
     match = s1_set & s2_set
@@ -335,12 +333,12 @@ def editions_match(e1, e2, threshold, debug=False):
     level1 = level1_merge(e1, e2)
     total = sum(i[2] for i in level1)
     if debug:
-        print("E1: %s\nE2: %s" % (e1, e2))
-        print("TOTAL 1 = %s : %s" % (total, level1))
+        print(f"E1: {e1}\nE2: {e2}")
+        print(f"TOTAL 1 = {total} : {level1}")
     if total >= threshold:
         return True
     level2 = level2_merge(e1, e2)
     total = sum(i[2] for i in level2)
     if debug:
-        print("TOTAL 2 = %s : %s" % (total, level2))
+        print(f"TOTAL 2 = {total} : {level2}")
     return total >= threshold

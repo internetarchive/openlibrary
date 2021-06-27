@@ -174,7 +174,7 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                     'advanced': advanced,
                 })
                 return ''  # TODO: Should we just raise an exception instead?
-            q += ' AND (%s) AND !openlibrary_work:(%s)' % (_q, work_id.split('/')[-1])
+            q += ' AND ({}) AND !openlibrary_work:({})'.format(_q, work_id.split('/')[-1])
 
     if not advanced:
         _sort = sorts[0] if sorts else ''
@@ -249,7 +249,7 @@ def s3_loan_api(ocaid, s3_keys, action='browse'):
     :param str action: 'browse_book' or 'borrow_book' or 'return_loan'
 
     """
-    params = '?action=%s&identifier=%s' % (action, ocaid)
+    params = f'?action={action}&identifier={ocaid}'
     url = S3_LOAN_URL % config_bookreader_host
     return requests.post(url + params, data=s3_keys)
 
@@ -331,7 +331,7 @@ def get_availability(key, ids):
         v1_resp['__src__'] = 'core.models.lending.get_availability'
         return v1_resp
 
-    url = '%s?%s=%s' % (config_ia_availability_api_v2_url, key, ','.join(ids))
+    url = '{}?{}={}'.format(config_ia_availability_api_v2_url, key, ','.join(ids))
     try:
         response = requests.get(url, timeout=config_http_request_timeout)
         items = response.json().get('responses', {})
@@ -600,7 +600,7 @@ class EBookRecord(dict):
         logger.info("updating %s %s", self['_key'], kwargs)
         # Nothing to update if what we have is same as what is being asked to
         # update.
-        d = dict((k, self.get(k)) for k in kwargs)
+        d = {k: self.get(k) for k in kwargs}
         if d == kwargs:
             return
 
@@ -630,7 +630,7 @@ class Loan(dict):
             raise Exception('No longer supporting ACS borrows directly from Open Library. Please go to Archive.org')
 
         if not resource_id:
-            raise Exception('Could not find resource_id for %s - %s' % (identifier, resource_type))
+            raise Exception(f'Could not find resource_id for {identifier} - {resource_type}')
 
         key = "loan-" + identifier
         return Loan({
@@ -674,7 +674,7 @@ class Loan(dict):
         expiry = data.get('until')
 
         d = {
-            '_key': "loan-{0}".format(data['identifier']),
+            '_key': "loan-{}".format(data['identifier']),
             '_rev': 1,
             'type': '/type/loan',
             'userid': data['userid'],
@@ -683,7 +683,7 @@ class Loan(dict):
             'ocaid': data['identifier'],
             'expiry': expiry,
             'fulfilled': data['fulfilled'],
-            'uuid': 'loan-{0}'.format(data['id']),
+            'uuid': 'loan-{}'.format(data['id']),
             'loaned_at': time.mktime(created.timetuple()),
             'resource_type': data['format'],
             'resource_id': data['resource_id'],
@@ -804,7 +804,7 @@ def update_loan_status(identifier):
             loan.save()
             logger.info("%s: updated expiry to %s", identifier, loan['expiry'])
 
-class ACS4Item(object):
+class ACS4Item:
     """Represents an item on ACS4 server.
 
     An item can have multiple resources (epub/pdf) and any of them could be loanded out.
@@ -815,10 +815,10 @@ class ACS4Item(object):
         self.identifier = identifier
 
     def get_data(self):
-        url = '%s/item/%s' % (config_loanstatus_url, self.identifier)
+        url = f'{config_loanstatus_url}/item/{self.identifier}'
         try:
             return requests.get(url).json()
-        except IOError:
+        except OSError:
             logger.exception("unable to conact BSS server")
 
     def has_loan(self):

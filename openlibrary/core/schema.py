@@ -1,6 +1,5 @@
 """Infobase schema for Open Library
 """
-from __future__ import print_function
 from infogami.infobase import dbstore
 import web
 

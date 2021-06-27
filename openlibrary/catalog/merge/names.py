@@ -1,4 +1,3 @@
-from __future__ import print_function
 import re
 from openlibrary.catalog.merge.normalize import normalize
 
@@ -8,7 +7,7 @@ re_amazon_space_name = re.compile('^(.+?[^ ]) +([A-Z][a-z]?)$')
 
 verbose = False
 
-titles = frozenset([normalize(x) for x in ('Mrs', 'Sir', 'pseud', 'Lady', 'Baron', 'lawyer', 'Lord', 'actress', 'Dame', 'Mr', 'Viscount', 'professeur', 'Graf', 'Dr', 'Countess', 'Ministerialrat', 'Oberamtsrat', 'Rechtsanwalt')])
+titles = frozenset(normalize(x) for x in ('Mrs', 'Sir', 'pseud', 'Lady', 'Baron', 'lawyer', 'Lord', 'actress', 'Dame', 'Mr', 'Viscount', 'professeur', 'Graf', 'Dr', 'Countess', 'Ministerialrat', 'Oberamtsrat', 'Rechtsanwalt'))
 
 
 def flip_name(name):
@@ -115,8 +114,8 @@ def flip_marc_name(marc):
         # example: Eccles, David Eccles Viscount
         return remove_trailing_dot(m.group(2)) + ' ' + m.group(1)
     if len(first_parts) > 2 and normalize(first_parts[-2]) == normalize(m.group(1)):
-        return u' '.join(first_parts[0:-1])
-    return u' '.join(first_parts[:-1] + [m.group(1)])
+        return ' '.join(first_parts[0:-1])
+    return ' '.join(first_parts[:-1] + [m.group(1)])
 
 def match_marc_name(marc1, marc2, last_name_only_ok):
     m1_normalized = normalize(marc1)

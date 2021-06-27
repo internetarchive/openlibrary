@@ -63,5 +63,5 @@ def render_template(request):
     def render(name, *a, **kw):
         as_string = kw.pop("as_string", True)
         d = infobase_render_template(name, *a, **kw)
-        return six.text_type(d) if as_string else d
+        return str(d) if as_string else d
     return render

@@ -30,7 +30,7 @@ args = {}
 def read_state_file(path, initial_state: str = None):
     try:
         return open(path).read()
-    except IOError:
+    except OSError:
         logger.error("State file %s is not found. Reading log from the beginning of today", path)
         return initial_state or f"{datetime.date.today().isoformat()}:0"
 
@@ -58,7 +58,7 @@ class InfobaseLog:
         """Reads all the available log records from the server.
         """
         for i in range(max_fetches):
-            url = "%s/%s?limit=100" % (self.base_url, self.offset)
+            url = f"{self.base_url}/{self.offset}?limit=100"
             logger.debug("Reading log from %s", url)
             try:
                 jsontext = urllib.request.urlopen(url).read()
@@ -141,8 +141,7 @@ def parse_log(records, load_ia_scans: bool):
             # are picked by this script
             elif key == 'solr-force-update':
                 keys = data.get('keys')
-                for k in keys:
-                    yield k
+                yield from keys
 
         elif action == 'store.delete':
             key = rec.get("data", {}).get("key")

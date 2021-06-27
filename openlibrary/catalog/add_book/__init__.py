@@ -73,10 +73,10 @@ class RequiredField(Exception):
 
 
 # don't use any of these as work titles
-bad_titles = set(('Publications', 'Works. English', 'Missal', 'Works', 'Report', \
+bad_titles = {'Publications', 'Works. English', 'Missal', 'Works', 'Report', \
     'Letters', 'Calendar', 'Bulletin', 'Plays', 'Sermons', 'Correspondence', \
     'Bill', 'Bills', 'Selections', 'Selected works', 'Selected works. English', \
-    'The Novels', 'Laws, etc'))
+    'The Novels', 'Laws, etc'}
 
 subject_fields = ['subjects', 'subject_places', 'subject_times', 'subject_people' ]
 
@@ -88,7 +88,7 @@ def strip_accents(s):
         s.encode('ascii')
         return s
     except UnicodeEncodeError:
-        return ''.join((c for c in ucd.normalize('NFD', s) if ucd.category(c) != 'Mn'))
+        return ''.join(c for c in ucd.normalize('NFD', s) if ucd.category(c) != 'Mn')
 
 
 def normalize(s):
@@ -308,7 +308,7 @@ def create_ol_subjects_for_ocaid(ocaid, subjects):
 
     r = modify_ia_item(item, {'openlibrary_subject': openlibrary_subjects})
     if r.status_code != 200:
-        return ('%s failed: %s' % (item.identifier, r.content))
+        return (f'{item.identifier} failed: {r.content}')
     else:
         return ("success for %s" % item.identifier)
 
@@ -336,7 +336,7 @@ def update_ia_metadata_for_ol_edition(edition_id):
                     'openlibrary_edition': edition_id
                 })
                 if r.status_code != 200:
-                    data = {'error': '%s failed: %s' % (item.identifier, r.content)}
+                    data = {'error': f'{item.identifier} failed: {r.content}'}
                 else:
                     data = item.metadata
     return data
@@ -390,7 +390,7 @@ def build_pool(rec):
     if isbns:
         pool['isbn'] = set(editions_matched(rec, 'isbn_', isbns))
 
-    return dict((k, list(v)) for k, v in pool.items() if v)
+    return {k: list(v) for k, v in pool.items() if v}
 
 
 def early_exit(rec):

@@ -1,4 +1,3 @@
-from __future__ import print_function
 import requests
 import web
 import json
@@ -11,7 +10,7 @@ query_host = 'openlibrary.org'
 
 def urlopen(url, data=None):
     version = "%s.%s.%s" % sys.version_info[:3]
-    user_agent = 'Mozilla/5.0 (openlibrary; %s) Python/%s' % (__name__, version)
+    user_agent = f'Mozilla/5.0 (openlibrary; {__name__}) Python/{version}'
     headers = {
         'User-Agent': user_agent
     }
@@ -58,8 +57,7 @@ def get_all_ia():
     while True:
         url = base_url() + "/api/things?query=" + web.urlquote(json.dumps(q))
         ret = jsonload(url)['result']
-        for i in ret:
-            yield i
+        yield from ret
         if not ret:
             return
         q['offset'] += limit
@@ -74,7 +72,7 @@ def query(q):
                 ret = urlread(url)
             if not ret:
                 print('ret == None')
-        except IOError:
+        except OSError:
             pass
         if ret:
             try:
@@ -97,8 +95,7 @@ def query_iter(q, limit=500, offset=0):
         ret = query(q)
         if not ret:
             return
-        for i in ret:
-            yield i
+        yield from ret
         # We haven't got as many we have requested. No point making one more request
         if len(ret) < limit:
             break
@@ -123,8 +120,7 @@ def version_iter(q, limit=500, offset=0):
         v = jsonload(url)
         if not v:
             return
-        for i in query(q):
-            yield i
+        yield from query(q)
         q['offset'] += limit
 
 def withKey(key):

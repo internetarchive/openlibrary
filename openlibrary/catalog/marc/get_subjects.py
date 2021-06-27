@@ -45,8 +45,8 @@ def tidy_subject(s):
     return s
 
 def four_types(i):
-    want = set(['subject', 'time', 'place', 'person'])
-    ret = dict((k, i[k]) for k in want if k in i)
+    want = {'subject', 'time', 'place', 'person'}
+    ret = {k: i[k] for k in want if k in i}
     for j in (j for j in i if j not in want):
         for k, v in i[j].items():
             if 'subject' in ret:
@@ -69,7 +69,7 @@ def find_aspects(f):
         a = 'the Human body'
     return x + ' of ' + flip_subject(a)
 
-subject_fields = set(['600', '610', '611', '630', '648', '650', '651', '662'])
+subject_fields = {'600', '610', '611', '630', '648', '650', '651', '662'}
 
 def read_subjects(rec):
     subjects = defaultdict(lambda: defaultdict(int))
@@ -160,7 +160,7 @@ def read_subjects(rec):
             if v:
                 subjects['subject'][v] += 1
 
-    return dict((k, dict(v)) for k, v in subjects.items())
+    return {k: dict(v) for k, v in subjects.items()}
 
 def subjects_for_work(rec):
     field_map = {
@@ -172,6 +172,6 @@ def subjects_for_work(rec):
 
     subjects = four_types(read_subjects(rec))
 
-    return dict((field_map[k], list(v)) for k, v in subjects.items())
+    return {field_map[k]: list(v) for k, v in subjects.items()}
 
 

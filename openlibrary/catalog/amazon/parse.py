@@ -1,4 +1,3 @@
-from __future__ import print_function
 from lxml.html import parse, tostring
 import re
 import os
@@ -52,15 +51,15 @@ def unescape(text):
             # character reference
             try:
                 if text[:3] == "&#x":
-                    return six.unichr(int(text[3:-1], 16))
+                    return chr(int(text[3:-1], 16))
                 else:
-                    return six.unichr(int(text[2:-1]))
+                    return chr(int(text[2:-1]))
             except ValueError:
                 pass
         else:
             # named entity
             try:
-                text =  six.unichr(html_entities.name2codepoint[text[1:-1]])
+                text =  chr(html_entities.name2codepoint[text[1:-1]])
             except KeyError:
                 pass
         return text # leave as is
@@ -211,7 +210,7 @@ def find_avail_span(doc):
             return span
 
 def read_avail(doc):
-    traffic_signals = set(['Red', 'Orange', 'Green'])
+    traffic_signals = {'Red', 'Orange', 'Green'}
     span = find_avail_span(doc)
     color = span.attrib['class'][5:]
     assert color in traffic_signals
@@ -482,7 +481,7 @@ def read_first_sentence(inside):
     assert div[0].tag == 'strong'
     assert div[0].text == 'First Sentence:'
     assert div[1].tag == 'br'
-    return div[1].tail.strip(u"\n \xa0")
+    return div[1].tail.strip("\n \xa0")
 
 def find_bucket(doc, text):
     for div in doc.find_class('bucket'):
@@ -602,7 +601,7 @@ def edition_to_ol(edition):
         print('publisher missing')
 
     for k, v in ol.items():
-        if isinstance(v, six.string_types) and v[-1] == '(':
+        if isinstance(v, str) and v[-1] == '(':
             pprint(edition)
             print(('ends with "(":', repr(k, v)))
             sys.exit(0)

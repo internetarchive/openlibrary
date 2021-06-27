@@ -65,9 +65,9 @@ class OPDS():
         attrs = attrs or {}
         if isinstance(values, list) or isinstance(values, tuple):
             for v in values:
-                self.add(name, prefix+six.text_type(v), attrs)
+                self.add(name, prefix+str(v), attrs)
         elif values:
-            self.add(name, prefix+six.text_type(values), attrs)
+            self.add(name, prefix+str(values), attrs)
 
     # add_author()
     #___________________________________________________________________________
@@ -257,4 +257,4 @@ def xmlsafe(s):
     if isinstance(s, bytes):
         s = s.decode('utf-8')
     # ignore the first 32 bytes of ASCII, which are not allowed in XML
-    return u"".join(c for c in s if ord(c) >= 0x20)
+    return "".join(c for c in s if ord(c) >= 0x20)

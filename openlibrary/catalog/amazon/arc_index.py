@@ -1,4 +1,3 @@
-from __future__ import print_function
 import os
 
 arc_dir = '/2/edward/amazon/arc'

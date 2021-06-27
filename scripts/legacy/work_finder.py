@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-from __future__ import print_function
 from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
 import sys
 from pprint import pprint

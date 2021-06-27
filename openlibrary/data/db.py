@@ -19,7 +19,6 @@ How to use:
 
 Each doc is a storage object with "id", "key", "revision" and "data".
 """
-from __future__ import print_function
 
 from openlibrary.utils import olmemcache
 import json
@@ -69,8 +68,7 @@ def iterdocs(type=None):
     for chunk in longquery(q, locals()):
         docs = chunk
         _fill_data(docs)
-        for doc in docs:
-            yield doc
+        yield from docs
 
 def longquery(query, vars, chunk_size=10000):
     """Execute an expensive query using db cursors.
@@ -114,7 +112,7 @@ def _fill_data(docs):
     keys = [doc.key for doc in docs]
 
     d = mc and mc.get_multi(keys) or {}
-    debug("%s/%s found in memcache" % (len(d), len(keys)))
+    debug(f"{len(d)}/{len(keys)} found in memcache")
 
     keys = [doc.key for doc in docs if doc.key not in d]
     for row in get(keys):
@@ -148,7 +146,7 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
     author_id = get_thing_id(author)
     t = db.transaction()
     try:
-        docdict = dict((doc.id, doc) for doc in docs)
+        docdict = {doc.id: doc for doc in docs}
         thing_ids = list(docdict)
 
         # lock the rows in the table
@@ -180,7 +178,7 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
         t.commit()
         debug("COMMIT")
 
-        mapping = dict((doc.key, d.data) for doc, d in zip(docs, data))
+        mapping = {doc.key: d.data for doc, d in zip(docs, data)}
         mc and mc.set_multi(mapping)
         debug("MC SET")
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Open Library plugin for infobase.
 """
-from __future__ import print_function
 
 import datetime
 import json
@@ -429,7 +428,7 @@ def _process_data(data):
     elif isinstance(data, dict):
         if 'key' in data:
             data['key'] = _process_key(data['key'])
-        return dict((k, _process_data(v)) for k, v in data.items())
+        return {k: _process_data(v) for k, v in data.items()}
     else:
         return data
 
@@ -446,7 +445,7 @@ def fix_table_of_contents(table_of_contents):
     """Some books have bad table_of_contents. This function converts them in to correct format.
     """
     def row(r):
-        if isinstance(r, six.string_types):
+        if isinstance(r, str):
             level = 0
             label = ''
             title = web.safeunicode(r)
@@ -525,12 +524,12 @@ class OLIndexer(_Indexer):
         if isinstance(title, bytes):
             title = title.decode('utf-8', 'ignore')
 
-        if not isinstance(title, six.text_type):
+        if not isinstance(title, str):
             return ""
 
         # http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string
         def strip_accents(s):
-            return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
+            return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
 
         norm = strip_accents(title).lower()
         norm = norm.replace(' and ', ' ')

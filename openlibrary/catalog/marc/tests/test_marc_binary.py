@@ -1,4 +1,3 @@
-# -*- coding: UTF-8 -*-
 import os
 from six import string_types
 
@@ -35,12 +34,12 @@ def test_wrapped_lines():
 class Test_BinaryDataField:
     def test_translate(self):
         bdf = BinaryDataField(MockMARC('marc8'), b'')
-        assert bdf.translate(b'Vieira, Claudio Bara\xe2una,') == u'Vieira, Claudio Baraúna,'
+        assert bdf.translate(b'Vieira, Claudio Bara\xe2una,') == 'Vieira, Claudio Baraúna,'
 
     def test_bad_marc_line(self):
         line = b'0 \x1f\xe2aEtude objective des ph\xe2enom\xe1enes neuro-psychiques;\x1e'
         bdf = BinaryDataField(MockMARC('marc8'), line)
-        assert list(bdf.get_all_subfields()) == [(u'á', u'Etude objective des phénomènes neuro-psychiques;')]
+        assert list(bdf.get_all_subfields()) == [('á', 'Etude objective des phénomènes neuro-psychiques;')]
 
 
 class Test_MarcBinary:
@@ -58,8 +57,8 @@ class Test_MarcBinary:
                     f008 = v
                 elif f == '100':
                     f100 = v
-            assert isinstance(f001, string_types)
-            assert isinstance(f008, string_types)
+            assert isinstance(f001, str)
+            assert isinstance(f008, str)
             assert isinstance(f100, BinaryDataField)
 
     def test_get_fields(self):

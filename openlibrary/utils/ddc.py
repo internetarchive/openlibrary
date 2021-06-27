@@ -40,13 +40,13 @@ def collapse_multiple_space(s: str) -> str:
 VALID_CHARS = set(printable) - set("/'′’,")
 
 
-def normalize_ddc(ddc: str) -> List[str]:
+def normalize_ddc(ddc: str) -> list[str]:
     ddc = ''.join(
         char
         for char in collapse_multiple_space(ddc.strip())
         if char in VALID_CHARS)
 
-    results: List[str] = []
+    results: list[str] = []
     for match in DDC_RE.finditer(ddc):
         parts = match.groupdict()
         prefix = ''

@@ -15,9 +15,9 @@ def normalize(s):
     :rtype: str
     """
 
-    if isinstance(s, six.text_type):
+    if isinstance(s, str):
         # LATIN SMALL LETTER L WITH STROKE' (U+0142) -> 'l'
-        s = unicodedata.normalize('NFC', s.replace(u'\u0142', u'l'))
+        s = unicodedata.normalize('NFC', s.replace('\u0142', 'l'))
     s = s.replace(' & ', ' and ')
     # remove {mlrhring} and friends
     # see http://www.loc.gov/marc/mnemonics.html

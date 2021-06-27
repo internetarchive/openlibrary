@@ -1,4 +1,3 @@
-from __future__ import print_function
 # build a merge database from JSON dump
 
 import json
@@ -68,7 +67,7 @@ total = 29107946 # FIXME
 
 path = '/1/edward/index/'
 index_fields = ('lccn', 'oclc', 'isbn', 'title')
-files = dict((i, open(path + i, 'w')) for i in index_fields)
+files = {i: open(path + i, 'w') for i in index_fields}
 
 rec_no = 0
 chunk = 10000

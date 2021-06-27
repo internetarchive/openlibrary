@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import sys
 from typing import List
 
@@ -42,7 +40,7 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
     try:
         instring = fileobj.read().decode('utf-8')
         # Replace/remove inline js '\$' which interferes with the Babel python parser:
-        cleaned_string = instring.replace('\$', '')
+        cleaned_string = instring.replace(r'\$', '')
         code = web.template.Template.generate_code(cleaned_string, fileobj.name)
         f = BytesIO(code.encode('utf-8')) # Babel wants bytes, not strings
     except Exception as e:
@@ -51,7 +49,7 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
     return extract_python(f, keywords, comment_tags, options)
 
 
-def extract_messages(dirs: List[str]):
+def extract_messages(dirs: list[str]):
     catalog = Catalog(
         project='Open Library',
         copyright_holder='Internet Archive'

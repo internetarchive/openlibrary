@@ -1,4 +1,3 @@
-# coding=utf-8
 from openlibrary.utils import (
     escape_bracket,
     extract_numeric_id_from_olid,

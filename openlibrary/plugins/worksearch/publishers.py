@@ -92,7 +92,7 @@ class PublisherEngine(subjects.SubjectEngine):
             q['publish_year'] = publish_year
 
         result = solr.select(q, facets=["has_fulltext"], rows=0)
-        counts = dict((v.value, v.count) for v in result["facets"]["has_fulltext"])
+        counts = {v.value: v.count for v in result["facets"]["has_fulltext"]}
         return counts.get('true')
 
 def setup():

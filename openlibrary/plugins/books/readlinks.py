@@ -2,7 +2,6 @@
 Bibliographic API, but also includes information about loans and other
 editions of the same work that might be available.
 """
-from __future__ import print_function
 import sys
 import re
 import requests
@@ -42,7 +41,7 @@ def get_work_iaids(wkey):
     filter = 'ia'
     q = 'key:' + wkey
     stats.begin('solr', url=wkey)
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json&fq=type:work" % (q, filter)
+    solr_select = solr_select_url + f"?version=2.2&q.op=AND&q={q}&rows=10&fl={filter}&qt=standard&wt=json&fq=type:work"
     reply = requests.get(solr_select).json()
     stats.end()
     print(reply)
@@ -56,7 +55,7 @@ def get_works_iaids(wkeys):
     solr_select_url = get_solr_select_url()
     filter = 'ia'
     q = '+OR+'.join(['key:' + wkey for wkey in wkeys])
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json&fq=type:work" % (q, filter)
+    solr_select = solr_select_url + f"?version=2.2&q.op=AND&q={q}&rows=10&fl={filter}&qt=standard&wt=json&fq=type:work"
     reply = requests.get(solr_select).json()
     if reply['response']['numFound'] == 0:
         return []
@@ -69,12 +68,12 @@ def get_eids_for_wids(wids):
     solr_select_url = get_solr_select_url()
     filter = 'edition_key'
     q = '+OR+'.join(wids)
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json&fq=type:work" % (q, filter)
+    solr_select = solr_select_url + f"?version=2.2&q.op=AND&q={q}&rows=10&fl=key,{filter}&qt=standard&wt=json&fq=type:work"
     reply = requests.get(solr_select).json()
     if reply['response']['numFound'] == 0:
         return []
     rows = reply['response']['docs']
-    result = dict((r['key'], r[filter][0]) for r in rows if len(r.get(filter, [])))
+    result = {r['key']: r[filter][0] for r in rows if len(r.get(filter, []))}
     return result
 
 # Not yet used.  Solr editions aren't up-to-date (6/2011)
@@ -82,13 +81,13 @@ def get_solr_edition_records(iaids):
     solr_select_url = get_solr_select_url()
     filter = 'title'
     q = '+OR+'.join('ia:' + id for id in iaids)
-    solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json" % (q, filter)
+    solr_select = solr_select_url + f"?version=2.2&q.op=AND&q={q}&rows=10&fl=key,{filter}&qt=standard&wt=json"
     reply = requests.get(solr_select).json()
     if reply['response']['numFound'] == 0:
         return []
     rows = reply['response']['docs']
     return rows
-    result = dict((r['key'], r[filter][0]) for r in rows if len(r.get(filter, [])))
+    result = {r['key']: r[filter][0] for r in rows if len(r.get(filter, []))}
     return result
 
 
@@ -145,7 +144,7 @@ class ReadProcessor:
             itemURL = 'http://www.archive.org/stream/%s' % (iaid)
         else:
             # this could be rewrit in terms of iaid...
-            itemURL = u'http://openlibrary.org%s/%s/borrow' % (ekey,
+            itemURL = 'http://openlibrary.org{}/{}/borrow'.format(ekey,
                                                                helpers.urlsafe(edition.get('title',
                                                                                            'untitled')))
         result = {
@@ -294,7 +293,7 @@ class ReadProcessor:
 
     def process(self, req):
         requests = req.split('|')
-        bib_keys = sum([r.split(';') for r in requests], [])
+        bib_keys = sum((r.split(';') for r in requests), [])
 
         # filter out 'id:foo' before passing to dynlinks
         bib_keys = [k for k in bib_keys if k[:3].lower() != 'id:']
@@ -312,10 +311,10 @@ class ReadProcessor:
         # in no 'exact' item match, even if one exists
         # Note that it's available thru above works/docs
         iaid_limit = 500
-        self.wkey_to_iaids = dict((wkey, get_work_iaids(wkey)[:iaid_limit])
-                                  for wkey in self.works)
+        self.wkey_to_iaids = {wkey: get_work_iaids(wkey)[:iaid_limit]
+                                  for wkey in self.works}
         iaids = sum(self.wkey_to_iaids.values(), [])
-        self.iaid_to_meta = dict((iaid, ia.get_metadata(iaid)) for iaid in iaids)
+        self.iaid_to_meta = {iaid: ia.get_metadata(iaid) for iaid in iaids}
 
         def lookup_iaids(iaids):
             step = 10
@@ -336,7 +335,7 @@ class ReadProcessor:
 
         # If returned order were reliable, I could skip the below.
         eds = dynlinks.ol_get_many_as_dict(ekeys)
-        self.iaid_to_ed = dict((ed['ocaid'], ed) for ed in eds.values())
+        self.iaid_to_ed = {ed['ocaid']: ed for ed in eds.values()}
         # self.iaid_to_ekey = dict((iaid, ed['key'])
         #                            for iaid, ed in self.iaid_to_ed.items())
 

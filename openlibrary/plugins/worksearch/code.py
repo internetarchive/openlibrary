@@ -144,7 +144,7 @@ re_pre = re.compile(r'<pre>(.*)</pre>', re.S)
 re_subject_types = re.compile('^(places|times|people)/(.*)')
 re_olid = re.compile(r'^OL\d+([AMW])$')
 
-plurals = dict((f + 's', f) for f in ('publisher', 'author'))
+plurals = {f + 's': f for f in ('publisher', 'author')}
 
 
 def process_sort(raw_sort):
@@ -229,7 +229,7 @@ def lcc_transform(raw):
     if m:
         lcc_range = [m.group('start').strip(), m.group('end').strip()]
         normed = normalize_lcc_range(*lcc_range)
-        return '[%s TO %s]' % (
+        return '[{} TO {}]'.format(
             normed[0] or lcc_range[0],
             normed[1] or lcc_range[1])
     elif '*' in raw and not raw.startswith('*'):
@@ -258,7 +258,7 @@ def ddc_transform(raw):
     if m:
         raw = [m.group('start').strip(), m.group('end').strip()]
         normed = normalize_ddc_range(*raw)
-        return '[%s TO %s]' % (
+        return '[{} TO {}]'.format(
             normed[0] or raw[0],
             normed[1] or raw[1])
     elif raw.endswith('*'):
@@ -335,7 +335,7 @@ def build_q_list(param):
         elif 'NOT ' in q_param:  # this is a hack
             q_list.append(q_param.strip())
         elif re_fields.search(q_param):
-            q_list.extend(i['op'] if 'op' in i else '%s:(%s)' % (i['field'], i['value']) for i in parse_query_fields(q_param))
+            q_list.extend(i['op'] if 'op' in i else '{}:({})'.format(i['field'], i['value']) for i in parse_query_fields(q_param))
         else:
             isbn = normalize_isbn(q_param)
             if isbn and len(isbn) in (10, 13):
@@ -354,14 +354,14 @@ def build_q_list(param):
                 # Somehow v can be empty at this point,
                 #   passing the following with empty strings causes a severe error in SOLR
                 if v:
-                    q_list.append("(author_name:(%(name)s) OR author_alternative_name:(%(name)s))" % {'name': v})
+                    q_list.append("(author_name:({name}) OR author_alternative_name:({name}))".format(name=v))
 
         check_params = [
             'title', 'publisher', 'oclc', 'lccn', 'contributor', 'subject', 'place',
             'person', 'time'
         ]
         q_list += [
-            '%s:(%s)' % (k, re_to_esc.sub(r'\\\g<0>', param[k]))
+            '{}:({})'.format(k, re_to_esc.sub(r'\\\g<0>', param[k]))
             for k in check_params if k in param
         ]
         if param.get('isbn'):
@@ -471,7 +471,7 @@ def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=Non
         if field not in param:
             continue
         values = param[field]
-        params += [('fq', '%s:"%s"' % (field, val)) for val in values if val]
+        params += [('fq', f'{field}:"{val}"') for val in values if val]
 
     if sort:
         params.append(('sort', sort))
@@ -553,7 +553,7 @@ def get_doc(doc):  # called from work_search template
     else:
         ak = [e.text for e in doc.find("arr[@name='author_key']")]
         an = [e.text for e in doc.find("arr[@name='author_name']")]
-        authors = [web.storage(key=key, name=name, url="/authors/%s/%s" % (key, (urlsafe(name) if name is not None else 'noname'))) for key, name in zip(ak, an)]
+        authors = [web.storage(key=key, name=name, url="/authors/{}/{}".format(key, (urlsafe(name) if name is not None else 'noname'))) for key, name in zip(ak, an)]
     cover = doc.find("str[@name='cover_edition_key']")
     languages = doc.find("arr[@name='language']")
     e_public_scan = doc.find("bool[@name='public_scan_b']")
@@ -650,7 +650,7 @@ class search(delegate.page):
                 clean = [normalize('NFC', b.strip()) for b in v]
                 if clean != v:
                     need_redirect = True
-                if len(clean) == 1 and clean[0] == u'':
+                if len(clean) == 1 and clean[0] == '':
                     clean = None
             else:
                 clean = normalize('NFC', v.strip())
@@ -702,7 +702,7 @@ class search(delegate.page):
         if q:
             m = re_olid.match(q)
             if m:
-                raise web.seeother('/%s/%s' % (OLID_URLS[m.group(1)], q))
+                raise web.seeother(f'/{OLID_URLS[m.group(1)]}/{q}')
             m = re_isbn_field.match(q)
             if m:
                 self.isbn_redirect(m.group(1))
@@ -994,9 +994,9 @@ def random_author_search(limit=10):
 
     docs = search_results.get('response', {}).get('docs', [])
 
-    assert docs, "random_author_search({}) returned no docs".format(limit)
+    assert docs, f"random_author_search({limit}) returned no docs"
     assert len(docs) == limit, (
-        "random_author_search({}) returned {} docs".format(limit, len(docs))
+        f"random_author_search({limit}) returned {len(docs)} docs"
     )
 
     for doc in docs:
@@ -1028,7 +1028,7 @@ def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet
                                                       facet=facet,
                                                       spellcheck_count=spellcheck_count)
         response = json.loads(reply)['response'] or ''
-    except (ValueError, IOError) as e:
+    except (ValueError, OSError) as e:
         logger.error("Error in processing search API.")
         response = dict(start=0, numFound=0, docs=[], error=str(e))
 

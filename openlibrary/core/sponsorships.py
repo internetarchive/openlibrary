@@ -110,7 +110,7 @@ def qualifies_for_sponsorship(edition, scan_only=False, donate_only=False, patro
         'https://covers.openlibrary.org/b/id/%s-L.jpg' % edition.covers[0])
     amz_metadata = edition.isbn and get_amazon_metadata(edition.isbn) or {}
     req_fields = ['isbn', 'publishers', 'title', 'publish_date', 'cover', 'number_of_pages']
-    edition_data = dict((field, (amz_metadata.get(field) or edition.get(field))) for field in req_fields)
+    edition_data = {field: (amz_metadata.get(field) or edition.get(field)) for field in req_fields}
     work = edition.works and edition.works[0]
 
     if not (work and all(edition_data.values())):
@@ -182,10 +182,10 @@ def sync_completed_sponsored_books(dryrun=False):
         if i.get('openlibrary_edition')
     ])
     unsynced = [book for book in books if not book.ocaid]
-    ocaid_lookup = dict(
-        ('/books/%s' % i.get('openlibrary_edition'),  i.get('identifier'))
+    ocaid_lookup = {
+        '/books/%s' % i.get('openlibrary_edition'):  i.get('identifier')
         for i in items
-    )
+    }
     fixed = []
     for book in unsynced:
         book.ocaid = ocaid_lookup[book.key]
@@ -212,7 +212,7 @@ def email_sponsor(recipient, book, bcc="mek@archive.org"):
         "Internet Archive: Your Open Library Book Sponsorship is Ready",
         (
             '<p>' +
-            '<a href="%s">%s</a> ' % (url, book.title) +
+            f'<a href="{url}">{book.title}</a> ' +
             'is now available to read on Open Library!' +
             '</p>' +
             '<p>Thank you,</p>' +
@@ -288,7 +288,7 @@ def summary():
 
     return {
         'books': items,
-        'status_ids': dict((name, i) for i, name in enumerate(STATUSES)),
+        'status_ids': {name: i for i, name in enumerate(STATUSES)},
         'status_counts': status_counts,
         'total_pages_scanned': total_pages_scanned,
         'total_unscanned_books': total_unscanned_books,

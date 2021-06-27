@@ -38,7 +38,7 @@ def put(key, value, rate=1.0):
     "Records this ``value`` with the given ``key``. It is stored as a millisecond count"
     global client
     if client:
-        l.debug("Putting %s as %s" % (value, key))
+        l.debug(f"Putting {value} as {key}")
         client.timing(key, value, rate)
 
 

@@ -1,4 +1,3 @@
-from __future__ import print_function
 from infogami import config
 from infogami.utils.view import render_template
 import web

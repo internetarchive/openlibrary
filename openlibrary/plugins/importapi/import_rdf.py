@@ -70,7 +70,7 @@ def parse(root):
     edition_builder = import_edition_builder.import_edition_builder()
 
     for e in root.iter():
-        if isinstance(e.tag, six.string_types):
+        if isinstance(e.tag, str):
             #print e.tag
             if e.tag in parser_map:
                 key = parser_map[e.tag][0]

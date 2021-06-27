@@ -36,7 +36,7 @@ def get_seeds(work):
         return [a['author'] for a in work.get('authors', []) if 'author' in a]
 
     def _get_subject(subject, prefix):
-        if isinstance(subject, six.string_types):
+        if isinstance(subject, str):
             key = prefix + RE_SUBJECT.sub("_", subject.lower()).strip("_")
             return {"key": key, "name": subject}
 
@@ -45,7 +45,7 @@ def get_seeds(work):
         places = [_get_subject(s, "place:") for s in work.get("subject_places", [])]
         people = [_get_subject(s, "person:") for s in work.get("subject_people", [])]
         times = [_get_subject(s, "time:") for s in work.get("subject_times", [])]
-        d = dict((s['key'], s) for s in subjects + places + people + times if s is not None)
+        d = {s['key']: s for s in subjects + places + people + times if s is not None}
         return d.values()
 
     def get(work):
@@ -86,7 +86,7 @@ class SubjectProcessor:
             self.subjects[s['key']].append(s['name'])
 
     def _get_subject(self, prefix, subject_name):
-        if isinstance(subject_name, six.string_types):
+        if isinstance(subject_name, str):
             key = prefix + RE_SUBJECT.sub("_", subject_name.lower()).strip("_")
             return {"key": key, "name": subject_name}
 

@@ -45,7 +45,7 @@ class GraphiteGraph:
 
             $:g.render(yLimit=100, width=300, height=400)
         """
-        return '<img src="%s/render/?%s"/>' % (get_graphite_base_url(), urllib.parse.urlencode(self.get_queryparams(**options), doseq=True))
+        return f'<img src="{get_graphite_base_url()}/render/?{urllib.parse.urlencode(self.get_queryparams(**options), doseq=True)}"/>'
 
 class Series:
     """One series in the GraphiteGraph.
@@ -58,7 +58,7 @@ class Series:
 
         :return: Returns self
         """
-        self.name = "%s(%s, %s)" % (funcname, self.name, ", ".join(repr(a) for a in args))
+        self.name = "{}({}, {})".format(funcname, self.name, ", ".join(repr(a) for a in args))
         return self
 
     def alias(self, name):

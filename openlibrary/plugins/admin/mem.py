@@ -47,7 +47,7 @@ class Object:
             elif isinstance(o, dict): # other dict types
                 name = web.dictfind(o, self.obj)
 
-            if not isinstance(name, six.string_types):
+            if not isinstance(name, str):
                 name = None
 
             d.append(Object(o, name))

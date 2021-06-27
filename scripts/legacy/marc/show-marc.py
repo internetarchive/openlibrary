@@ -1,6 +1,5 @@
 #!/usr/bin/python2.5
 
-from __future__ import print_function
 import web
 from time import time
 
@@ -57,6 +56,6 @@ class show_marc:
 
 if __name__ == "__main__":
     urls = (
-        "/show-marc/(.*):(\d+):(\d+)", "show_marc"
+        r"/show-marc/(.*):(\d+):(\d+)", "show_marc"
     )
     web.run(urls, globals())

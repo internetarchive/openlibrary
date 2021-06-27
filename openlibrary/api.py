@@ -34,7 +34,7 @@ class OLError(Exception):
         self.code = e.response.status_code
         self.headers = e.response.headers
         self.text = e.response.text
-        Exception.__init__(self, "{}. Response: {}".format(e, self.text))
+        Exception.__init__(self, f"{e}. Response: {self.text}")
 
 
 class OpenLibrary:
@@ -185,8 +185,7 @@ class OpenLibrary:
 
             while True:
                 result = self.query(q)
-                for r in result:
-                    yield r
+                yield from result
                 if len(result) < 1000:
                     break
                 q['offset'] += len(result)
@@ -211,19 +210,19 @@ def marshal(data):
     if isinstance(data, list):
         return [marshal(d) for d in data]
     elif isinstance(data, dict):
-        return dict((k, marshal(v)) for k, v in data.items())
+        return {k: marshal(v) for k, v in data.items()}
     elif isinstance(data, datetime.datetime):
         return {"type": "/type/datetime", "value": data.isoformat()}
     elif isinstance(data, Text):
-        return {"type": "/type/text", "value": six.text_type(data)}
+        return {"type": "/type/text", "value": str(data)}
     elif isinstance(data, Reference):
-        return {"key": six.text_type(data)}
+        return {"key": str(data)}
     else:
         return data
 
 
 def unmarshal(d):
-    u"""Converts OL serialized objects to python.::
+    """Converts OL serialized objects to python.::
 
         >>> unmarshal({"type": "/type/text",
         ...            "value": "hello, world"})  # doctest: +ALLOW_UNICODE
@@ -244,7 +243,7 @@ def unmarshal(d):
             else:
                 return d['value']
         else:
-            return dict([(k, unmarshal(v)) for k, v in d.items()])
+            return {k: unmarshal(v) for k, v in d.items()}
     else:
         return d
 
@@ -262,11 +261,11 @@ def parse_datetime(value):
         return datetime.datetime(*map(int, tokens))
 
 
-class Text(six.text_type):
+class Text(str):
     def __repr__(self):
-        return u"<text: %s>" % six.text_type.__repr__(self)
+        return "<text: %s>" % str.__repr__(self)
 
 
-class Reference(six.text_type):
+class Reference(str):
     def __repr__(self):
-        return u"<ref: %s>" % six.text_type.__repr__(self)
+        return "<ref: %s>" % str.__repr__(self)

@@ -11,10 +11,10 @@ class MockDoc(dict):
     def __init__(self, _id, *largs, **kargs):
         self.id = _id
         kargs['_key'] = _id
-        super(MockDoc, self).__init__(*largs, **kargs)
+        super().__init__(*largs, **kargs)
 
     def __repr__(self):
-        o = super(MockDoc, self).__repr__()
+        o = super().__repr__()
         return "<%s - %s>"%(self.id, o)
 
 def test_format_stats_entry():

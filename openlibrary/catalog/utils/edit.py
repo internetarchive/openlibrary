@@ -1,4 +1,3 @@
-from __future__ import print_function
 import re
 import requests
 import web
@@ -45,7 +44,7 @@ def fix_toc(e):
         if len(toc) == 1 and 'title' not in toc[0]:
             del e['table_of_contents'] # remove empty toc
         return
-    new_toc = [{'title': six.text_type(i), 'type': '/type/toc_item'} for i in toc if i]
+    new_toc = [{'title': str(i), 'type': '/type/toc_item'} for i in toc if i]
     e['table_of_contents'] = new_toc
 
 def fix_subject(e):

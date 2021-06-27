@@ -1,4 +1,3 @@
-from __future__ import print_function
 from openlibrary.catalog.amazon.crawl import read_page, get_url, get_cats
 
 def get_serp():

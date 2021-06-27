@@ -100,7 +100,7 @@ class MySQLAdapter(AbstractAdapter):
         'CURRENT_UTC_TIME': 'UTC_TIME',
     }
     def references_to_sql(self, column_name, value):
-        return {'constraint': 'foreign key (%s) references %s' % (column_name, value)}
+        return {'constraint': f'foreign key ({column_name}) references {value}'}
 
 class PostgresAdapter(AbstractAdapter):
     native_types = {
@@ -218,7 +218,7 @@ class Table:
         for c in self.columns:
             for constraint in c.constraints:
                 columns.append(constraint)
-        return "create table %s (\n    %s\n);" % (self.name, ",\n    ".join(columns))
+        return "create table {} (\n    {}\n);".format(self.name, ",\n    ".join(columns))
 
 class Column:
     """Column in a database table.
@@ -292,7 +292,7 @@ class Index:
             s = 'create index '
 
         s += adapter.index_name(self.table, self.columns)
-        s += ' on %s(%s);' % (self.table, ", ".join(self.columns))
+        s += ' on {}({});'.format(self.table, ", ".join(self.columns))
         return s
 
 def _test():

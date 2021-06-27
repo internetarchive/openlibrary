@@ -1,4 +1,3 @@
-#-*- coding: utf-8 -*-
 import pytest
 from openlibrary.catalog.merge import names
 

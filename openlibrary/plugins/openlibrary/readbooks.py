@@ -3,7 +3,6 @@
 WARNING: This gets only the new books with revision=1.
 
 """
-from __future__ import print_function
 import web
 import time
 
@@ -15,8 +14,7 @@ def select(query, chunk_size=50000):
         result = web.query('FETCH FORWARD $chunk_size FROM select_cursor', vars=locals())
         if not result:
             break
-        for r in result:
-            yield r
+        yield from result
     web.rollback()
 
 def parse_datum(rows):

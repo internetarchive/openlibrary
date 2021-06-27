@@ -24,7 +24,7 @@ def urlencode(d, doseq=False):
     """
     def utf8(d):
         if isinstance(d, dict):
-            return dict((utf8(k), utf8(v)) for k, v in d.items())
+            return {utf8(k): utf8(v) for k, v in d.items()}
         elif isinstance(d, list):
             return [utf8(v) for v in d]
         else:
@@ -80,7 +80,7 @@ class Solr:
                 if isinstance(f, dict):
                     name = f.pop("name")
                     for k, v in f.items():
-                        params["f.%s.facet.%s" % (name, k)] = v
+                        params[f"f.{name}.facet.{k}"] = v
                 else:
                     name = f
                 params['facet.field'].append(name)
@@ -138,7 +138,7 @@ class Solr:
 
         def escape_value(v):
             if isinstance(v, tuple): # hack for supporting range
-                return "[%s TO %s]" % (escape(v[0]), escape(v[1]))
+                return f"[{escape(v[0])} TO {escape(v[1])}]"
             elif isinstance(v, list): # one of
                 return "(%s)" % " OR ".join(escape_value(x) for x in v)
             else:
@@ -150,7 +150,7 @@ class Solr:
                 op = "AND"
             op = " " + op + " "
 
-            q = op.join('%s:%s' % (k, escape_value(v)) for k, v in query.items())
+            q = op.join(f'{k}:{escape_value(v)}' for k, v in query.items())
         else:
             q = query
         return q

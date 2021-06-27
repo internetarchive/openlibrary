@@ -115,7 +115,7 @@ def parse_date(date):
         for r in re_date:
             m = r.search(date)
             if m:
-                return dict((k, fix_l_in_date(v)) for k, v in m.groupdict().items())
+                return {k: fix_l_in_date(v) for k, v in m.groupdict().items()}
         return {}
 
     parts = date.split('-')
@@ -156,10 +156,10 @@ def pick_first_date(dates):
 re_drop = re.compile('[?,]')
 
 def match_with_bad_chars(a, b):
-    if six.text_type(a) == six.text_type(b):
+    if str(a) == str(b):
         return True
-    a = normalize('NFKD', six.text_type(a)).lower()
-    b = normalize('NFKD', six.text_type(b)).lower()
+    a = normalize('NFKD', str(a)).lower()
+    b = normalize('NFKD', str(b)).lower()
     if a == b:
         return True
     a = a.encode('ASCII', 'ignore')
@@ -174,7 +174,7 @@ def accent_count(s):
     return len([c for c in norm(s) if ord(c) > 127])
 
 def norm(s):
-    return normalize('NFC', s) if isinstance(s, six.text_type) else s
+    return normalize('NFC', s) if isinstance(s, str) else s
 
 def pick_best_name(names):
     names = [norm(n) for n in names]
@@ -219,7 +219,7 @@ def tidy_isbn(input):
 def strip_count(counts):
     foo = {}
     for i, j in counts:
-        foo.setdefault(i.rstrip('.').lower() if isinstance(i, six.string_types) else i, []).append((i, j))
+        foo.setdefault(i.rstrip('.').lower() if isinstance(i, str) else i, []).append((i, j))
     ret = {}
     for k, v in foo.items():
         m = max(v, key=lambda x: len(x[1]))[0]
@@ -231,7 +231,7 @@ def strip_count(counts):
 
 def fmt_author(a):
     if 'birth_date' in a or 'death_date' in a:
-        return "%s (%s-%s)" % ( a['name'], a.get('birth_date', ''), a.get('death_date', '') )
+        return "{} ({}-{})".format( a['name'], a.get('birth_date', ''), a.get('death_date', '') )
     return a['name']
 
 def get_title(e):
@@ -269,7 +269,7 @@ def mk_norm(s):
 
 def error_mail(msg_from, msg_to, subject, body):
     assert isinstance(msg_to, list)
-    msg = 'From: %s\nTo: %s\nSubject: %s\n\n%s' % (msg_from, ', '.join(msg_to), subject, body)
+    msg = 'From: {}\nTo: {}\nSubject: {}\n\n{}'.format(msg_from, ', '.join(msg_to), subject, body)
 
     import smtplib
     server = smtplib.SMTP('mail.archive.org')

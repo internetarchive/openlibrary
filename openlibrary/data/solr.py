@@ -1,6 +1,5 @@
 """Library to process edition, work and author records and emit (key, property, value) triples that can be combined later for solr indexing.
 """
-from __future__ import print_function
 import os
 import sys
 import re
@@ -233,7 +232,7 @@ def phase2_process_files():
     f = open("solrdump/solrdump_works.txt", "w", 5*1024*1024)
 
     for path in glob.glob("solrdump/works_*"):
-        f.writelines("%s\t%s\n" % (key, json.dumps(process_solr_work_record(key, d)))
+        f.writelines(f"{key}\t{json.dumps(process_solr_work_record(key, d))}\n"
             for key, d in process_triples(path))
 
 def process_work_triples(path):

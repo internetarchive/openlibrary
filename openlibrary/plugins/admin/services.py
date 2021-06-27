@@ -2,7 +2,6 @@
 Contains stuff needed to list services and modules run by OpenLibrary
 for the admin panel
 """
-from __future__ import print_function
 
 import re
 import requests
@@ -12,7 +11,7 @@ from bs4 import BeautifulSoup
 
 
 
-class Nagios(object):
+class Nagios:
     def __init__(self, url):
         try:
             self.data = BeautifulSoup(requests.get(url).content, "lxml")
@@ -36,7 +35,7 @@ class Nagios(object):
         else:
             return "error-nosuchservice"
 
-class Service(object):
+class Service:
     """
     An OpenLibrary service with all the stuff that we need to
     manipulate it.

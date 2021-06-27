@@ -66,7 +66,7 @@ def read_record(record, callback):
 
 def test_read_record():
     def empty_dbm():
-        return dict((i, {}) for i in ('lccn', 'oclc', 'isbn', 'title'))
+        return {i: {} for i in ('lccn', 'oclc', 'isbn', 'title')}
 
     dbm = empty_dbm()
 

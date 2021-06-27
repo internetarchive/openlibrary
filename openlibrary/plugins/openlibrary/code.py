@@ -1,8 +1,6 @@
 """
 Open Library Plugin.
 """
-from __future__ import absolute_import
-from __future__ import print_function
 
 import requests
 import web
@@ -184,7 +182,7 @@ class routes(delegate.page):
             def default(self, obj):
                 if isinstance(obj, metapage):
                     return obj.__module__ + '.' + obj.__name__
-                return super(ModulesToStr, self).default(obj)
+                return super().default(obj)
 
         from openlibrary import code
         return '<pre>%s</pre>' % json.dumps(
@@ -219,7 +217,7 @@ class widget(delegate.page):
     def GET(self, _type, olid=None):
         if olid:
             getter = get_work_availability if _type == 'works' else get_edition_availability
-            item = web.ctx.site.get('/%s/%s' % (_type, olid)) or {}
+            item = web.ctx.site.get(f'/{_type}/{olid}') or {}
             item['olid'] = olid
             item['availability'] = getter(olid).get(item['olid'])
             item['authors'] = [web.storage(key=a.key, name=a.name or None) for a in item.get_authors()]
@@ -272,7 +270,7 @@ class search(delegate.page):
         d = dict(status='200 OK', query=dict(i, escape='html'), code='/api/status/ok', result=result)
 
         if callback:
-            data = '%s(%s)' % (callback, json.dumps(d))
+            data = f'{callback}({json.dumps(d)})'
         else:
             data = json.dumps(d)
         raise web.HTTPError('200 OK', {}, data)
@@ -286,7 +284,7 @@ class blurb(delegate.page):
         author = web.ctx.site.get('/' +path)
         body = ''
         if author.birth_date or author.death_date:
-            body = '%s - %s' % (author.birth_date, author.death_date)
+            body = f'{author.birth_date} - {author.death_date}'
         else:
             body = '%s' % author.date
 
@@ -297,7 +295,7 @@ class blurb(delegate.page):
         result = dict(body=body, media_type='text/html', text_encoding='utf-8')
         d = dict(status='200 OK', code='/api/status/ok', result=result)
         if callback:
-            data = '%s(%s)' % (callback, json.dumps(d))
+            data = f'{callback}({json.dumps(d)})'
         else:
             data = json.dumps(d)
 
@@ -348,7 +346,7 @@ class robotstxt(delegate.page):
             robots_file = 'norobots.txt' if 'dev' in infogami.config.features else 'robots.txt'
             data = open('static/' + robots_file).read()
             raise web.HTTPError('200 OK', {}, data)
-        except IOError:
+        except OSError:
             raise web.notfound()
 
 
@@ -360,7 +358,7 @@ class opensearchxml(delegate.page):
         try:
             data = open('static/opensearch.xml').read()
             raise web.HTTPError('200 OK', {}, data)
-        except IOError:
+        except OSError:
             raise web.notfound()
 
 
@@ -714,10 +712,10 @@ def changequery(query=None, **kw):
         else:
             query[k] = v
 
-    query = dict(
-        (k, (list(map(web.safestr, v)) if isinstance(v, list) else web.safestr(v)))
+    query = {
+        k: (list(map(web.safestr, v)) if isinstance(v, list) else web.safestr(v))
         for k, v in query.items()
-    )
+    }
     out = web.ctx.get('readable_path', web.ctx.path)
     if query:
         out += '?' + urllib.parse.urlencode(query, doseq=True)
@@ -757,7 +755,7 @@ def get_cover_id(key):
     try:
         _, cat, oln = key.split('/')
         return requests.get(
-            "https://covers.openlibrary.org/%s/query?olid=%s&limit=1" % (cat, oln)
+            f"https://covers.openlibrary.org/{cat}/query?olid={oln}&limit=1"
         ).json()[0]
     except (IndexError, json.decoder.JSONDecodeError, TypeError, ValueError):
         return None

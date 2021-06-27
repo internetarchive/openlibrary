@@ -320,13 +320,13 @@ class MemcacheMiddleware(ConnectionMiddleware):
 
             # Memcache expects dict with (key, json) mapping and we have (key, doc) mapping.
             # Converting the docs to json before passing to memcache.
-            self.mc_set_multi(dict((key, json.dumps(doc)) for key, doc in result2.items()))
+            self.mc_set_multi({key: json.dumps(doc) for key, doc in result2.items()})
 
             result.update(result2)
 
         #@@ too many JSON conversions
         for k in result:
-            if isinstance(result[k], six.string_types):
+            if isinstance(result[k], str):
                 result[k] = json.loads(result[k])
 
         return json.dumps(result)
@@ -458,7 +458,7 @@ class MigrationMiddleware(ConnectionMiddleware):
         elif isinstance(data, dict):
             if 'key' in data:
                 data['key'] = self._process_key(data['key'])
-            return dict((k, self._process(v)) for k, v in data.items())
+            return {k: self._process(v) for k, v in data.items()}
         else:
             return data
 
@@ -509,7 +509,7 @@ class MigrationMiddleware(ConnectionMiddleware):
         if response:
             data = json.loads(response)
             data = self._process(data)
-            data = dict((key, self.fix_doc(doc)) for key, doc in data.items())
+            data = {key: self.fix_doc(doc) for key, doc in data.items()}
             response = json.dumps(data)
         return response
 

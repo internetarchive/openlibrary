@@ -1,4 +1,3 @@
-from __future__ import print_function
 from lxml.html import fromstring
 import re
 import sys
@@ -15,7 +14,7 @@ from datetime import date, timedelta, datetime
 re_expect_end = re.compile('</div>\n</body>\n</html>[ \n]*$')
 
 # publisher = Big Idea Books & Just Me Music
-re_personalized = re.compile('Personalized for (.*) \((Boy|Girl)\)', re.I)
+re_personalized = re.compile(r'Personalized for (.*) \((Boy|Girl)\)', re.I)
 
 def percent(a, b):
     return float(a * 100.0) / b
@@ -29,11 +28,11 @@ max_results = page_size * max_pages
 
 # http://www.amazon.com/s/qid=1265761735/ref=sr_nr_n_0/177-5112913-4864616?ie=UTF8&rs=1000&bbn=1000&rnid=1000&rh=i%3Astripbooks%2Cp_n%5Ffeature%5Fbrowse-bin%3A618083011%2Cp%5Fn%5Fdate%3A20090101%2Cn%3A%211000%2Cn%3A1
 re_product_title = re.compile('/dp/([^/]*)')
-re_result_count = re.compile('Showing (?:[\d,]+ - [\d,]+ of )?([\d,]+) Result')
+re_result_count = re.compile(r'Showing (?:[\d,]+ - [\d,]+ of )?([\d,]+) Result')
 #re_rh_n = re.compile('rh=n%3A(\d+)%2C')
-re_rh_n = re.compile('%2Cn%3A(\d+)')
-re_facet_count = re.compile(u'^\xa0\(([\d,]+)\)$')
-u'\xa0(8)'
+re_rh_n = re.compile(r'%2Cn%3A(\d+)')
+re_facet_count = re.compile('^\xa0\\(([\\d,]+)\\)$')
+'\xa0(8)'
 
 base_url = "http://www.amazon.com/s?ie=UTF8&rh="
 rh = 'i:stripbooks,p_n_feature_browse-bin:618083011,p_n_date:'
@@ -42,7 +41,7 @@ out_dir = '/0/amazon'
 arc_dir = '/0/amazon/arc'
 
 # 4 = Children's Books, 28 = Teens
-re_child_book_param = re.compile(',n:(4|28)(?:&page=\d+)?$')
+re_child_book_param = re.compile(r',n:(4|28)(?:&page=\d+)?$')
 
 def now():
     return datetime.utcnow().replace(microsecond=0)
@@ -76,7 +75,7 @@ class Scraper:
 
     def get(self, url):
         start = now()
-        send = 'GET %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: Mozilla/5.0\r\nAccept-Encoding: identity\r\n\r\n' % (url, self.host)
+        send = f'GET {url} HTTP/1.1\r\nHost: {self.host}\r\nUser-Agent: Mozilla/5.0\r\nAccept-Encoding: identity\r\n\r\n'
         self.sock.sendall(send)
 
         fp = self.sock.makefile('rb', 0)

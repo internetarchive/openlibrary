@@ -1,7 +1,6 @@
 """
 
 """
-from __future__ import print_function
 import time
 import datetime
 import hashlib
@@ -32,7 +31,7 @@ except ImportError:  # legacy Python
 logger = logging.getLogger("openlibrary.account.model")
 
 def append_random_suffix(text, limit=9999):
-    return '%s%s' % (text, random.randint(0, limit))
+    return f'{text}{random.randint(0, limit)}'
 
 def valid_email(email):
     return validate_email(email)
@@ -65,7 +64,7 @@ def generate_hash(secret_key, text, salt=None):
                              hashlib.md5).hexdigest()[:5]
     hash = hmac.HMAC(secret_key, (salt + web.safestr(text)).encode('utf-8'),
                      hashlib.md5).hexdigest()
-    return '%s$%s' % (salt, hash)
+    return f'{salt}${hash}'
 
 def get_secret_key():
     return config.infobase['secret_key']
@@ -222,7 +221,7 @@ class Account(web.storage):
         """
         user_key = "/people/" + self.username
         t = datetime.datetime(*time.gmtime()[:6]).isoformat()
-        text = "%s,%s" % (user_key, t)
+        text = f"{user_key},{t}"
         return text + "," + generate_hash(get_secret_key(), text)
 
     def _save(self):
@@ -320,7 +319,7 @@ class Account(web.storage):
                 return InternetArchiveAccount.get(email=act['values']['email'])
 
     def render_link(self):
-        return '<a href="/people/%s">%s</a>' % (self.username, web.net.htmlquote(self.displayname))
+        return f'<a href="/people/{self.username}">{web.net.htmlquote(self.displayname)}</a>'
 
 class OpenLibraryAccount(Account):
 
@@ -609,7 +608,7 @@ class InternetArchiveAccount(web.storage):
         try:
             response = requests.get(url, headers={
                 'Content-Type': 'application/json',
-                'authorization': 'LOW %s:%s' % (access_key, secret_key)
+                'authorization': f'LOW {access_key}:{secret_key}'
             })
             response.raise_for_status()
             return response.json()

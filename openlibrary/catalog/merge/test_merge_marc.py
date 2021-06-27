@@ -192,7 +192,7 @@ class TestRecordMatching:
             'isbn_10': ['0002167530'],
             'number_of_pages': 287,
             'short_title': 'sea birds britain ireland',
-            'normalized_title': u'sea birds britain ireland',
+            'normalized_title': 'sea birds britain ireland',
             'full_title': 'Sea Birds Britain Ireland',
             'titles': [
                 'Sea Birds Britain Ireland',
@@ -215,8 +215,8 @@ class TestRecordMatching:
             'authors': [
                 {'db_name': 'Cramp, Stanley.',
                  'entity_type': 'person',
-                 'name': u'Cramp, Stanley.',
-                 'personal_name': u'Cramp, Stanley.'}],
+                 'name': 'Cramp, Stanley.',
+                 'personal_name': 'Cramp, Stanley.'}],
             'source_record_loc': 'marc_records_scriblio_net/part08.dat:61449973:855'})
         threshold = 515
         assert editions_match(e1, e2, threshold, debug=True)

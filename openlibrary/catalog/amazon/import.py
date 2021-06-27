@@ -1,4 +1,3 @@
-from __future__ import print_function
 import sys
 import re
 import os
@@ -15,13 +14,13 @@ import six
 from six.moves import urllib
 
 
-re_amazon = re.compile('^([A-Z0-9]{10}),(\d+):(.*)$', re.S)
+re_amazon = re.compile(r'^([A-Z0-9]{10}),(\d+):(.*)$', re.S)
 
-re_normalize = re.compile('[^\w ]')
-re_whitespace = re.compile('\s+')
-re_title_parens = re.compile('^(.+) \([^)]+?\)$')
+re_normalize = re.compile(r'[^\w ]')
+re_whitespace = re.compile(r'\s+')
+re_title_parens = re.compile(r'^(.+) \([^)]+?\)$')
 
-re_meta_marc = re.compile('([^/]+)_(meta|marc)\.(mrc|xml)')
+re_meta_marc = re.compile(r'([^/]+)_(meta|marc)\.(mrc|xml)')
 # marc:marc_ithaca_college/ic_marc.mrc:224977427:1064
 
 threshold = 875
@@ -40,12 +39,12 @@ def build_index_fields(asin, edition):
     def norm(s):
         return normalize_str(s)[:25].rstrip()
 
-    titles = set([norm(title)])
+    titles = {norm(title)}
     m = re_title_parens.match(title)
     if m:
         titles.add(norm(m.group(1)))
 
-    isbn = set([asin])
+    isbn = {asin}
     for field in 'asin', 'isbn_10', 'isbn_13':
         if field in edition:
             isbn.add(edition[field].replace('-', ''))
@@ -76,7 +75,7 @@ def follow_redirects(key):
         thing = withKey(key)
         assert thing
         if thing['type']['key'] == '/type/redirect':
-            print('following redirect %s => %s' % (key, thing['location']))
+            print('following redirect {} => {}'.format(key, thing['location']))
             key = thing['location']
     return (keys, thing)
 
@@ -137,7 +136,7 @@ def try_merge(edition, ekey, thing):
     else:
         authors = []
     a = amazon_merge.build_amazon(edition, authors)
-    assert isinstance(asin, six.string_types)
+    assert isinstance(asin, str)
     assert thing_type == '/type/edition'
     #print edition['asin'], ekey
     if 'source_records' in thing:

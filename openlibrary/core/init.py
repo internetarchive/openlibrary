@@ -7,7 +7,6 @@ process manager like unix init, for starting and managing OL services.
 This is used only for running the dev instance. In production, these services
 are typically run on multiple nodes and monitored using upstart.
 """
-from __future__ import print_function
 import os
 import shlex
 import subprocess

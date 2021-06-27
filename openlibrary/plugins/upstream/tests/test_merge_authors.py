@@ -23,7 +23,7 @@ def setup_module(mod):
 
 class MockSite(client.Site):
 
-    class Seq(object):
+    class Seq:
         def next_value(self, name):
             return 1
 

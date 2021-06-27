@@ -18,7 +18,7 @@ class html_record():
         assert len(data) == int(data[:5])
         self.data = data
         self.leader = data[:24].decode('utf-8', errors='replace')
-        self.is_marc8 = self.leader[9] != u'a'
+        self.is_marc8 = self.leader[9] != 'a'
 
     def html(self):
         return '<br>\n'.join(self.html_line(t, l) for t, l in get_all_tag_lines(self.data))
@@ -37,4 +37,4 @@ class html_record():
             s = esc_sp(line[:-1].decode('utf-8', errors='replace'))
         else:
             s = esc_sp(line[0:2].decode('utf-8', errors='replace')) + ' ' + self.html_subfields(line)
-        return u'<large>' + tag + u'</large> <code>' + s + u'</code>'
+        return '<large>' + tag + '</large> <code>' + s + '</code>'

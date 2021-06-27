@@ -6,7 +6,7 @@ import subprocess
 
 class BadCronLine(ValueError): pass
 
-class Minicron(object):
+class Minicron:
     def __init__(self, cronfile, inittime=None, tickfreq=60):
         """Creates a cron runner that runs starting at
         `inittime` (default is the current time).

@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 """Script to pull templates and macros from an openlibrary instance to repository.
 """
-from __future__ import print_function
 import _init_path
 
 import os
@@ -54,7 +53,7 @@ def make_path(doc):
         key = web.lstrips(key, options.template_root)
 
         plugin = doc.get("plugin", options.default_plugin)
-        return "openlibrary/plugins/%s%s.html" % (plugin, key)
+        return f"openlibrary/plugins/{plugin}{key}.html"
 
 def get_value(doc, property):
     value = doc.get(property, "")

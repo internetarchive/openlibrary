@@ -1,4 +1,3 @@
-from __future__ import print_function
 import web
 import dbhash
 
@@ -33,7 +32,7 @@ class index:
                 loc = dbm[input.oclc]
                 print('<ul>')
                 for l in loc.split(' '):
-                    print('<li><a href="http://openlibrary.org/show-marc/%s">%s</a>' % (l, l))
+                    print(f'<li><a href="http://openlibrary.org/show-marc/{l}">{l}</a>')
                 print('</ul>')
             else:
                 print(html_oclc, 'not found')

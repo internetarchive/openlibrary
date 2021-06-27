@@ -6,7 +6,6 @@ Glossary:
 * cdump - Complete dump. Dump of all revisions of all documents.
 * idump - Incremental dump. Dump of all revisions created in the given day.
 """
-from __future__ import print_function
 
 import gzip
 import itertools
@@ -72,7 +71,7 @@ def xopen(path, mode='r'):
 def read_tsv(file, strip=True):
     """Read a tab separated file and return an iterator over rows."""
     log("reading", file)
-    if isinstance(file, six.string_types):
+    if isinstance(file, str):
         file = xopen(file)
 
     for i, line in enumerate(file):
@@ -209,10 +208,10 @@ def make_bsddb(dbfile, dump_file):
     import bsddb
     db = bsddb.btopen(dbfile, 'w', cachesize=1024*1024*1024)
 
-    indexable_keys = set([
+    indexable_keys = {
         "authors.key",  "works.key", # edition
         "authors.author.key", "subjects", "subject_places", "subject_people", "subject_times" # work
-    ])
+    }
     for type, key, revision, timestamp, json_data in read_tsv(dump_file):
         db[key] = json_data
         d = json.loads(json_data)
@@ -222,7 +221,7 @@ def make_bsddb(dbfile, dump_file):
             if k.startswith("subject"):
                 v = '/' + v.lower().replace(" ", "_")
 
-            dbkey  = web.safestr('by_%s%s' % (k, v))
+            dbkey  = web.safestr(f'by_{k}{v}')
             if dbkey in db:
                 db[dbkey] = db[dbkey] + " " + key
             else:
@@ -255,7 +254,7 @@ def _process_data(data):
         if data.get('type') == '/type/datetime':
             data['value'] = data['value'].replace(' ', 'T')
 
-        return dict((k, _process_data(v)) for k, v in data.items())
+        return {k: _process_data(v) for k, v in data.items()}
     else:
         return data
 
@@ -272,7 +271,7 @@ def _make_sub(d):
     return lambda s: s and rx.sub(f, s)
 
 def _invert_dict(d):
-    return dict((v, k) for (k, v) in d.items())
+    return {v: k for (k, v) in d.items()}
 
 _pgencode_dict = {'\n': r'\n', '\r': r'\r', '\t': r'\t', '\\': r'\\'}
 _pgencode = _make_sub(_pgencode_dict)

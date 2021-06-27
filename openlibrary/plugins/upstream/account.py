@@ -1,4 +1,3 @@
-
 import web
 import logging
 import json
@@ -26,7 +25,6 @@ from openlibrary.accounts import (
 from openlibrary.core.sponsorships import get_sponsored_editions
 from openlibrary.plugins.upstream import borrow, forms, utils
 
-from six.moves import range
 from six.moves import urllib
 
 
@@ -650,7 +648,7 @@ class account_lists(delegate.page):
         raise web.seeother(user.key + '/lists')
 
 
-class ReadingLog(object):
+class ReadingLog:
 
     """Manages the user's account page books (reading log, waitlists, loans)"""
 
@@ -692,7 +690,7 @@ class ReadingLog(object):
         corresponding edition
         """
         waitlists = self.user.get_waitinglist()
-        keyed_waitlists = dict([(w['identifier'], w) for w in waitlists])
+        keyed_waitlists = {w['identifier']: w for w in waitlists}
         ocaids = [i['identifier'] for i in waitlists]
         edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": ocaids})
         editions = web.ctx.site.get_many(edition_keys)
@@ -858,11 +856,11 @@ class readinglog_stats(delegate.page):
                 'subject_times': w.get('subject_times'),
             } for w in works
         ]
-        author_keys = set(
+        author_keys = {
             a
             for work in works_json
             for a in work['author_keys']
-        )
+        }
         authors_json = [
             {
                 'key': a.key,
@@ -890,7 +888,7 @@ class account_my_books_redirect(delegate.page):
     def GET(self, rest='loans'):
         user = accounts.get_current_user()
         username = user.key.split('/')[-1]
-        raise web.seeother('/people/%s/books/%s' % (username, rest))
+        raise web.seeother(f'/people/{username}/books/{rest}')
 
 class account_my_books(delegate.page):
     path = "/account/books"

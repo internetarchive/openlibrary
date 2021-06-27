@@ -25,7 +25,7 @@ get_ol_dumps = web.memoize(get_ol_dumps, 30*60, background=True)
 
 
 def download_url(item, filename):
-    return "%s/download/%s/%s" % (IA_BASE_URL, item, filename)
+    return f"{IA_BASE_URL}/download/{item}/{filename}"
 
 
 class ol_dump_latest(delegate.page):
@@ -54,7 +54,7 @@ class ol_cdump_latest(delegate.page):
 
 
 class ol_dumps(delegate.page):
-    path = "/data/ol_dump(|_authors|_editions|_works)_(\d\d\d\d-\d\d-\d\d).txt.gz"
+    path = r"/data/ol_dump(|_authors|_editions|_works)_(\d\d\d\d-\d\d-\d\d).txt.gz"
 
     def GET(self, prefix, date):
         item = "ol_dump_" + date
@@ -66,7 +66,7 @@ class ol_dumps(delegate.page):
 
 
 class ol_cdumps(delegate.page):
-    path = "/data/ol_cdump_(\d\d\d\d-\d\d-\d\d).txt.gz"
+    path = r"/data/ol_cdump_(\d\d\d\d-\d\d-\d\d).txt.gz"
 
     def GET(self, date):
         item = "ol_cdump_" + date

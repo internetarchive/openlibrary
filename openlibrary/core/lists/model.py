@@ -51,7 +51,7 @@ def cached_property(name, getter):
 class ListMixin:
     def _get_rawseeds(self):
         def process(seed):
-            if isinstance(seed, six.string_types):
+            if isinstance(seed, str):
                 return seed
             else:
                 return seed.key
@@ -99,9 +99,9 @@ class ListMixin:
 
         When _raw=True, the edtion dicts are returned instead of edtion objects.
         """
-        edition_keys = set([
+        edition_keys = {
                 seed.key for seed in self.seeds
-                if seed and seed.type.key == '/type/edition'])
+                if seed and seed.type.key == '/type/edition'}
         
         editions = web.ctx.site.get_many(list(edition_keys))
         
@@ -125,9 +125,9 @@ class ListMixin:
         This works even for lists with too many seeds as it doesn't try to
         return editions in the order of last-modified.
         """
-        edition_keys = set([
+        edition_keys = {
                 seed.key for seed in self.seeds
-                if seed and seed.type.key == '/type/edition'])
+                if seed and seed.type.key == '/type/edition'}
 
         def get_query_term(seed):
             if seed.type.key == "/type/work":
@@ -213,7 +213,7 @@ class ListMixin:
                 facets=facet_names,
                 facet_limit=20,
                 facet_mincount=1)
-        except IOError:
+        except OSError:
             logger.error("Error in finding subjects of list %s", self.key, exc_info=True)
             return []
 
@@ -325,7 +325,7 @@ class Seed:
         self._type = None
 
         self.value = value
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             self.key = value
             self.type = "subject"
         else:
@@ -334,7 +334,7 @@ class Seed:
         self._solrdata = None
 
     def get_document(self):
-        if isinstance(self.value, six.string_types):
+        if isinstance(self.value, str):
             doc = get_subject(self.get_subject_url(self.value))
         else:
             doc = self.value
@@ -356,7 +356,7 @@ class Seed:
             type, value = self.key.split(":", 1)
             # escaping value as it can have special chars like : etc.
             value = get_solr().escape(value)
-            return "%s_key:%s" % (type, value)
+            return f"{type}_key:{value}"
 
     def get_solrdata(self):
         if self._solrdata is None:
@@ -479,7 +479,7 @@ class Seed:
         return d
 
     def __repr__(self):
-        return "<seed: %s %s>" % (self.type, self.key)
+        return f"<seed: {self.type} {self.key}>"
     __str__ = __repr__
 
 def crossproduct(A, B):

@@ -1,9 +1,8 @@
-from __future__ import print_function
 import json
 import web
 import re
 
-re_author_key = re.compile('^/a/OL(\d+)A$')
+re_author_key = re.compile(r'^/a/OL(\d+)A$')
 
 db = web.database(dbn='mysql', db='openlibrary')
 db.printing = False

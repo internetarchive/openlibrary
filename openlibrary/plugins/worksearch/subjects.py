@@ -386,7 +386,7 @@ def get_ebook_count_db():
         return None
 
 def find_ebook_count(field, key):
-    q = '%s_key:%s+AND+ia:*' % (field, re_chars.sub(r'\\\1', key).encode('utf-8'))
+    q = '{}_key:{}+AND+ia:*'.format(field, re_chars.sub(r'\\\1', key).encode('utf-8'))
     return execute_ebook_count_query(q)
 
 def execute_ebook_count_query(q):
@@ -412,7 +412,7 @@ def execute_ebook_count_query(q):
         for doc in response['docs']:
             for k in doc['edition_key']:
                 e = web.ctx.site.get('/books/' + k)
-                ia = set(i[3:] for i in e.get('source_records', []) if i.startswith('ia:'))
+                ia = {i[3:] for i in e.get('source_records', []) if i.startswith('ia:')}
                 if e.get('ocaid'):
                     ia.add(e['ocaid'])
                 pub_date = e.get('publish_date')

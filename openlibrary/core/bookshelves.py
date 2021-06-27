@@ -3,7 +3,7 @@ from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 from . import db
 
 
-class Bookshelves(object):
+class Bookshelves:
 
     PRESET_BOOKSHELVES = {
         'Want to Read': 1,
@@ -113,7 +113,7 @@ class Bookshelves(object):
                  "bookshelf_id=ANY('{" + _bookshelf_ids + "}'::int[]) "
                  "AND username=$username GROUP BY bookshelf_id")
         result = oldb.query(query, vars=data)
-        return dict([(i['bookshelf_id'], i['count']) for i in result]) if result else {}
+        return {i['bookshelf_id']: i['count'] for i in result} if result else {}
 
     @classmethod
     def get_users_logged_books(cls, username, bookshelf_id=None, limit=100, page=1):
@@ -227,7 +227,7 @@ class Bookshelves(object):
                  " work_id=$work_id"
                  " GROUP BY bookshelf_id")
         result = oldb.query(query, vars={'work_id': int(work_id)})
-        return dict([(i['bookshelf_id'], i['user_count']) for i in result]) if result else {}
+        return {i['bookshelf_id']: i['user_count'] for i in result} if result else {}
 
     @classmethod
     def user_with_most_books(cls):

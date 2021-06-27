@@ -241,7 +241,7 @@ def cached_property(getter):
     return property(g)
 
 
-class Cache(object):
+class Cache:
     """Cache interface."""
     def get(self, key):
         """Returns the value for given key. Returns None if that key is not present in the cache.
@@ -446,7 +446,7 @@ class memoize:
         self.expires = expires
 
     def _make_key_func(self, key):
-        if isinstance(key, six.string_types):
+        if isinstance(key, str):
             return PrefixKeyFunc(key)
         else:
             return key

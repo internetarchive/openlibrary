@@ -34,9 +34,9 @@ logger = logging.getLogger("openlibrary.borrow")
 
 ########## Constants
 
-lending_library_subject = u'Lending library'
-in_library_subject = u'In library'
-lending_subjects = set([lending_library_subject, in_library_subject])
+lending_library_subject = 'Lending library'
+in_library_subject = 'In library'
+lending_subjects = {lending_library_subject, in_library_subject}
 loanstatus_url = config.get('loanstatus_url')
 
 # ACS4 resource ids start with 'urn:uuid:'.  The meta.xml on archive.org
@@ -138,7 +138,7 @@ class borrow(delegate.page):
             s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
         if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)
-            redirect_url = "/account/login?redirect=%s/borrow?action=%s" % (
+            redirect_url = "/account/login?redirect={}/borrow?action={}".format(
                 edition_redirect, action)
             if i._autoReadAloud is not None:
                 redirect_url += '&_autoReadAloud=' + i._autoReadAloud
@@ -212,7 +212,7 @@ class borrow_status(delegate.page):
         edition.update_loan_status()
         available_formats = [loan['resource_type'] for loan in edition.get_available_loans()]
         loan_available = len(available_formats) > 0
-        subjects = set([])
+        subjects = set()
 
         for work in edition.get('works', []):
             for subject in work.get_subjects():
@@ -231,7 +231,7 @@ class borrow_status(delegate.page):
         content_type = "application/json"
         if i.callback:
             content_type = "text/javascript"
-            output_text = '%s ( %s );' % (i.callback, output_text)
+            output_text = f'{i.callback} ( {output_text} );'
 
         return delegate.RawText(output_text, content_type=content_type)
 
@@ -389,7 +389,7 @@ class ia_auth(delegate.page):
 
         if i.callback:
             content_type = "text/javascript"
-            output = '%s ( %s );' % (i.callback, output)
+            output = f'{i.callback} ( {output} );'
 
         return delegate.RawText(output, content_type=content_type)
 
@@ -562,7 +562,7 @@ def get_loan_status(resource_id):
     if not loanstatus_url:
         raise Exception('No loanstatus_url -- cannot check loan status')
 
-    url = '%s/is_loaned_out/%s' % (loanstatus_url, resource_id)
+    url = f'{loanstatus_url}/is_loaned_out/{resource_id}'
     try:
         response = requests.get(url).json()
         if len(response) == 0:
@@ -572,7 +572,7 @@ def get_loan_status(resource_id):
         else:
             return response[0]
 
-    except IOError:
+    except OSError:
         # status server is down
         # $$$ be more graceful
         #raise Exception('Loan status server not available - tried at %s', url)
@@ -592,7 +592,7 @@ def get_all_loaned_out():
     url = '%s/is_loaned_out/' % loanstatus_url
     try:
         return requests.get(url).json()
-    except IOError:
+    except OSError:
         raise Exception('Loan status server not available')
 
 def is_loaned_out(resource_id):
@@ -883,7 +883,7 @@ def ia_token_is_current(item_id, access_token):
     except:
         return False
 
-    expected_data = '%s-%s' % (item_id, token_timestamp)
+    expected_data = f'{item_id}-{token_timestamp}'
     expected_hmac = ia_hash(expected_data)
 
     if token_hmac == expected_hmac:
@@ -903,7 +903,7 @@ def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host, ia_userid=N
         'id': item_id,
         'bookPath': book_path,
         'olHost': ol_host,
-        'olAuthUrl': "https://{0}/ia_auth/XXX".format(ol_host),
+        'olAuthUrl': f"https://{ol_host}/ia_auth/XXX",
         'iaUserId': ia_userid,
         'iaAuthToken': make_ia_token(ia_userid, READER_AUTH_SECONDS)
     }

@@ -24,10 +24,10 @@ def read_marc_file(f):
         elem.clear()
 
 def norm(s):
-    return normalize('NFC', six.text_type(s.replace(u'\xa0', ' ')))
+    return normalize('NFC', str(s.replace('\xa0', ' ')))
 
 def get_text(e):
-    return norm(e.text) if e.text else u''
+    return norm(e.text) if e.text else ''
 
 class DataField:
     def __init__(self, element):

@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # downloader so Karen doesn't need to download entire MARC files
-from __future__ import print_function
 import web
 import web.form as form
 
@@ -9,7 +8,7 @@ from six.moves import urllib
 
 urls = (
     '/', 'index',
-    '/(bpl\d+\.mrc):(\d+):(\d+)', 'get',
+    r'/(bpl\d+\.mrc):(\d+):(\d+)', 'get',
 )
 
 files = (
@@ -66,11 +65,11 @@ myform = form.Form(
     form.Dropdown('file', [(i, "%s - %d records" % (i, j)) for i, j in files]),
     form.Textbox("start",
         form.notnull,
-        form.regexp('\d+', 'Must be a digit'),
+        form.regexp(r'\d+', 'Must be a digit'),
         form.Validator('Must be less than 50000', lambda x:int(x)>50000)),
     form.Textbox("count",
         form.notnull,
-        form.regexp('\d+', 'Must be a digit'),
+        form.regexp(r'\d+', 'Must be a digit'),
         form.Validator('Must be less than 50000', lambda x:int(x)>50000)))
 
 def start_and_len(file, start, count):

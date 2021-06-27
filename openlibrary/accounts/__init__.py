@@ -13,7 +13,7 @@ def get_group(name):
     return web.ctx.site.get("/usergroup/%s" % name)
 
 
-class RunAs(object):
+class RunAs:
     """
     Escalates privileges to become username, performs action as user,
     and then de-escalates to original user.

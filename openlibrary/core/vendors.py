@@ -193,11 +193,11 @@ class AmazonAPI:
                 edition_info.publication_date.display_value
             ).strftime('%b %d, %Y')
         except Exception:
-            logger.exception("serialize({})".format(product))
+            logger.exception(f"serialize({product})")
             publish_date = None
 
         book = {
-            'url': "https://www.amazon.com/dp/%s/?tag=%s" % (
+            'url': "https://www.amazon.com/dp/{}/?tag={}".format(
                 product.asin, h.affiliate_id('amazon')),
             'source_records': ['amazon:%s' % product.asin],
             'isbn_10': [product.asin],
@@ -210,7 +210,7 @@ class AmazonAPI:
                       images.primary.large.url),
             'authors': attribution and [{'name': contrib.name}
                         for contrib in attribution.contributors],
-            'publishers': list(set(p for p in (brand, manufacturer) if p)),
+            'publishers': list({p for p in (brand, manufacturer) if p}),
             'number_of_pages': (edition_info and edition_info.pages_count and
                                 edition_info.pages_count.display_value),
             'edition_num': (edition_info and edition_info.edition and
@@ -271,13 +271,13 @@ def _get_amazon_metadata(id_, id_type='isbn', resources=None):
             id_ = isbn_13_to_isbn_10(id_)
 
     try:
-        r = requests.get('http://%s/isbn/%s' % (affiliate_server_url, id_))
+        r = requests.get(f'http://{affiliate_server_url}/isbn/{id_}')
         r.raise_for_status()
         return r.json().get('hit') or None
     except requests.exceptions.ConnectionError:
         logger.exception("Affiliate Server unreachable")
     except requests.exceptions.HTTPError:
-        logger.exception("Affiliate Server: id {} not found".format(id_))
+        logger.exception(f"Affiliate Server: id {id_} not found")
     return None
 
 
@@ -393,7 +393,7 @@ def get_betterworldbooks_metadata(isbn):
     try:
         return _get_betterworldbooks_metadata(isbn)
     except Exception:
-        logger.exception("_get_betterworldbooks_metadata({})".format(isbn))
+        logger.exception(f"_get_betterworldbooks_metadata({isbn})")
         return betterworldbooks_fmt(isbn)
 
 
@@ -441,7 +441,7 @@ def betterworldbooks_fmt(isbn, qlt=None, price=None, market_price=None):
     :param str price: Price of the book as a decimal str, e.g. "4.28"
     :rtype: dict
     """
-    price_fmt = "$%s (%s)" % (price, qlt) if price and qlt else None
+    price_fmt = f"${price} ({qlt})" if price and qlt else None
     return {
         'url': BWB_AFFILIATE_LINK % isbn,
         'isbn': isbn,

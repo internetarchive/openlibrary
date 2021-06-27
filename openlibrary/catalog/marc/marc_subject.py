@@ -19,7 +19,7 @@ from openlibrary.catalog.marc.marc_xml import read_marc_file, MarcXml, BlankTag,
 from openlibrary.catalog.utils import remove_trailing_dot, remove_trailing_number_dot, flip_name
 
 
-subject_fields = set(['600', '610', '611', '630', '648', '650', '651', '662'])
+subject_fields = {'600', '610', '611', '630', '648', '650', '651', '662'}
 
 re_flip_name = re.compile('^(.+), ([A-Z].+)$')
 
@@ -84,7 +84,7 @@ def subjects_for_work(rec):
 
     subjects = four_types(read_subjects(rec))
 
-    return dict((field_map[k], list(v)) for k, v in subjects.items())
+    return {field_map[k]: list(v) for k, v in subjects.items()}
 
 re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
 
@@ -176,4 +176,4 @@ def combine_subjects(subjects):
         for b, c in a.items():
             for d, e in c.items():
                 all_subjects[b][d] += e
-    return dict((k, dict(v)) for k, v in all_subjects.items())
+    return {k: dict(v) for k, v in all_subjects.items()}

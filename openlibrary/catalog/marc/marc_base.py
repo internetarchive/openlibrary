@@ -14,7 +14,7 @@ class BadMARC(MarcException):
 class NoTitle(MarcException):
     pass
 
-class MarcBase(object):
+class MarcBase:
     def read_isbn(self, f):
         found = []
         for k, v in f.get_subfields(['a', 'z']):

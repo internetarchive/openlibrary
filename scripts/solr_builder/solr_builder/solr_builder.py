@@ -1,5 +1,3 @@
-from __future__ import division
-
 import asyncio
 import itertools
 import json
@@ -45,7 +43,7 @@ def config_section_to_dict(config_file, section):
     return result
 
 
-def partition(lst: List, parts: int):
+def partition(lst: list, parts: int):
     """
     >>> list(partition([1,2,3,4,5,6], 1))
     [[1, 2, 3, 4, 5, 6]]
@@ -96,7 +94,7 @@ def batch_until_len(items: Iterable[Sized], max_batch_len: int):
         yield batch
 
 
-def batch(items: List, max_batch_len: int):
+def batch(items: list, max_batch_len: int):
     """
     >>> list(batch([1,2,3,4,5], 2))
     [[1, 2], [3, 4], [5]]
@@ -185,8 +183,7 @@ class LocalPostgresDataProvider(DataProvider):
             rows = cur.fetchmany(size)
             if not rows:
                 break
-            for row in rows:
-                yield row
+            yield from rows
 
         cur.close()
 
@@ -287,8 +284,8 @@ class LocalPostgresDataProvider(DataProvider):
             logger.warning(f'Error fetching metadata for {ocaid}')
             return None
 
-    async def cache_ia_metadata(self, ocaids: List[str]):
-        invalid_ocaids = set(ocaid for ocaid in ocaids if not is_valid_ocaid(ocaid))
+    async def cache_ia_metadata(self, ocaids: list[str]):
+        invalid_ocaids = {ocaid for ocaid in ocaids if not is_valid_ocaid(ocaid)}
         if invalid_ocaids:
             logger.warning(f"Trying to cache invalid OCAIDs: {invalid_ocaids}")
         valid_ocaids = list(set(ocaids) - invalid_ocaids)
@@ -318,8 +315,8 @@ class LocalPostgresDataProvider(DataProvider):
             INNER JOIN test works
                 ON editions."JSON" -> 'works' -> 0 ->> 'key' = works."Key"
             WHERE editions."Type" = '/type/edition'
-                AND '%s' <= editions."Key" AND editions."Key" <= '%s'
-        """ % (lo_key, hi_key)
+                AND '{}' <= editions."Key" AND editions."Key" <= '{}'
+        """.format(lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
     def cache_work_editions(self, lo_key, hi_key):
@@ -327,9 +324,9 @@ class LocalPostgresDataProvider(DataProvider):
             SELECT "Key", "JSON"
             FROM "test"
             WHERE "Type" = '/type/edition'
-                AND '%s' <= "JSON" -> 'works' -> 0 ->> 'key'
-                AND "JSON" -> 'works' -> 0 ->> 'key' <= '%s'
-        """ % (lo_key, hi_key)
+                AND '{}' <= "JSON" -> 'works' -> 0 ->> 'key'
+                AND "JSON" -> 'works' -> 0 ->> 'key' <= '{}'
+        """.format(lo_key, hi_key)
         self.query_all(q, cache_json=True)
         self.cached_work_editions_ranges.append((lo_key, hi_key))
 
@@ -343,8 +340,8 @@ class LocalPostgresDataProvider(DataProvider):
                 ON works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key"
             WHERE editions."Type" = '/type/edition'
                 AND editions."JSON" -> 'works' -> 0 ->> 'key' IS NULL
-                AND '%s' <= editions."Key" AND editions."Key" <= '%s'
-        """ % (lo_key, hi_key)
+                AND '{}' <= editions."Key" AND editions."Key" <= '{}'
+        """.format(lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
     def cache_work_authors(self, lo_key, hi_key):
@@ -360,14 +357,14 @@ class LocalPostgresDataProvider(DataProvider):
                 works."JSON" -> 'authors' -> 4 -> 'author' ->> 'key' = authors."Key"
             )
             WHERE works."Type" = '/type/work'
-            AND '%s' <= works."Key" AND works."Key" <= '%s'
-        """ % (lo_key, hi_key)
+            AND '{}' <= works."Key" AND works."Key" <= '{}'
+        """.format(lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
     async def cache_cached_editions_ia_metadata(self):
-        ocaids = list(set(
+        ocaids = list({
             doc['ocaid'] for doc in self.cache.values()
-            if 'ocaid' in doc))
+            if 'ocaid' in doc})
         await self.cache_ia_metadata(ocaids)
 
     def find_redirects(self, key):

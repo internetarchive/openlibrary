@@ -1,6 +1,5 @@
 """Custom OL Actions.
 """
-from __future__ import print_function
 import infogami
 import sys
 

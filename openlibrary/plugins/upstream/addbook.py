@@ -163,7 +163,7 @@ class addbook(delegate.page):
         """Main user interface for adding a book to Open Library."""
 
         if not self.has_permission():
-            return safe_seeother("/account/login?redirect={}".format(self.path))
+            return safe_seeother(f"/account/login?redirect={self.path}")
 
         i = web.input(work=None, author=None)
         work = i.work and web.ctx.site.get(i.work)
@@ -201,7 +201,7 @@ class addbook(delegate.page):
 
         if i._test == 'true' and not isinstance(match, list):
             if match:
-                return 'Matched <a href="%s">%s</a>' % (match.key, match.key)
+                return f'Matched <a href="{match.key}">{match.key}</a>'
             else:
                 return 'No match found'
 
@@ -460,7 +460,7 @@ def trim_value(value):
         >>> trim_value({'x': [""]})
         None
     """
-    if isinstance(value, six.string_types):
+    if isinstance(value, str):
         value = value.strip()
         return value or None
     elif isinstance(value, list):
@@ -469,9 +469,9 @@ def trim_value(value):
                     if v2 is not None]
         return value or None
     elif isinstance(value, dict):
-        value = dict((k, v2) for k, v in value.items()
+        value = {k: v2 for k, v in value.items()
                              for v2 in [trim_value(v)]
-                             if v2 is not None)
+                             if v2 is not None}
         return value or None
     else:
         return value
@@ -942,7 +942,7 @@ class works_autocomplete(delegate.page):
             # ensure uppercase; key is case sensitive in solr
             solr_q = 'key:"/works/%s"' % q.upper()
         else:
-            solr_q = 'title:"%s"^2 OR title:(%s*)' % (q, q)
+            solr_q = f'title:"{q}"^2 OR title:({q}*)'
 
         params = {
             'q_op': 'AND',
@@ -989,7 +989,7 @@ class authors_autocomplete(delegate.page):
             solr_q = 'key:"/authors/%s"' % q.upper()
         else:
             prefix_q = q + "*"
-            solr_q = 'name:(%s) OR alternate_names:(%s)' % (prefix_q, prefix_q)
+            solr_q = f'name:({prefix_q}) OR alternate_names:({prefix_q})'
 
         params = {
             'q_op': 'AND',
@@ -1029,10 +1029,10 @@ class work_identifiers(delegate.view):
         # Need to do some simple validation here. Perhaps just check if it's a number?
         if len(isbn) == 10:
             typ = "ISBN 10"
-            data = [{'name': u'isbn_10', 'value': isbn}]
+            data = [{'name': 'isbn_10', 'value': isbn}]
         elif len(isbn) == 13:
             typ = "ISBN 13"
-            data = [{'name': u'isbn_13', 'value': isbn}]
+            data = [{'name': 'isbn_13', 'value': isbn}]
         else:
             add_flash_message("error", "The ISBN number you entered was not valid")
             raise web.redirect(web.ctx.path)

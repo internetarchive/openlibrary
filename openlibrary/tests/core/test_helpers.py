@@ -64,8 +64,8 @@ def test_datestr(monkeypatch):
 
     _monkeypatch_web(monkeypatch)
     # assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 0, 10)) == u"just moments ago"
-    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 1)) == u"1 second ago"
-    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 9)) == u"9 seconds ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 1)) == "1 second ago"
+    assert h.datestr(then, datetime(2010, 1, 1, 0, 0, 9)) == "9 seconds ago"
 
     assert h.datestr(then, datetime(2010, 1, 1, 0, 1, 1)) == "1 minute ago"
     assert h.datestr(then, datetime(2010, 1, 1, 0, 9, 1)) == "9 minutes ago"

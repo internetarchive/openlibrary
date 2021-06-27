@@ -1,4 +1,3 @@
-from __future__ import print_function
 import web
 from infogami.infobase import client
 import json

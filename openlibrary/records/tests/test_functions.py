@@ -114,7 +114,7 @@ def test_doc_to_thing_updation_of_work(mock_site):
     authors = thing[0].pop('authors')
     expected = {'type': '/type/work', 'key': '/works/OL1W', 'title': 'test1'}
     assert same_dict(thing[0], expected)
-    assert set(i['author'] for i in authors) == set(['/authors/OL3A', '/authors/OL4A'])
+    assert {i['author'] for i in authors} == {'/authors/OL3A', '/authors/OL4A'}
 
 def test_doc_to_thing_unpack_work_and_authors_from_edition(mock_site):
     "Tests if the 'work' and 'author' fields in a an edition doc are unpacked and converted."
@@ -202,8 +202,8 @@ def test_thing_to_doc_edition(mock_site):
                                 'oclc_numbers': ['4560']},
                 'key': '/books/OL1M',
                 'title': 'test1',
-                'type': u'/type/edition',
-                'work': {'key': u'/works/OL1W'}}
+                'type': '/type/edition',
+                'work': {'key': '/works/OL1W'}}
     assert same_dict(doc, expected)
 
 def test_thing_to_doc_edition_key_limiting(mock_site):
@@ -214,8 +214,8 @@ def test_thing_to_doc_edition_key_limiting(mock_site):
     expected = {'authors': [{'key': '/authors/OL1A'}, {'key': '/authors/OL2A'}],
                 'key': '/books/OL1M',
                 'title': 'test1',
-                'type': u'/type/edition',
-                'work': {'key': u'/works/OL1W'}}
+                'type': '/type/edition',
+                'work': {'key': '/works/OL1W'}}
     assert doc == expected
 
 
@@ -227,7 +227,7 @@ def test_thing_to_doc_work(mock_site):
     expected = {'authors': [{'key': '/authors/OL1A'}, {'key': '/authors/OL2A'}],
                 'key': '/works/OL1W',
                 'title': 'test1',
-                'type': u'/type/work'}
+                'type': '/type/work'}
     assert same_dict(doc, expected)
 
 def test_things_to_matches(mock_site):
@@ -235,7 +235,7 @@ def test_things_to_matches(mock_site):
     'matches' as returned by the search API"""
     populate_infobase(mock_site)
     matches = things_to_matches(['/books/OL1M', '/works/OL2W'])
-    expected = [{'edition': '/books/OL1M', 'work': u'/works/OL1W'},
+    expected = [{'edition': '/books/OL1M', 'work': '/works/OL1W'},
                 {'edition': None, 'work': '/works/OL2W'}]
     assert matches == expected
 
@@ -322,10 +322,10 @@ def test_search_by_title(mock_site):
     expected = {'doc': {'authors': [{'key': '/authors/OL1A'}, {'key': '/authors/OL2A'}],
                         'key': '/books/OL1M',
                         'title': 'test1',
-                        'type': u'/type/edition',
-                        'work': {'key': u'/works/OL1W'}},
-                'matches': [{'edition': '/books/OL1M', 'work': u'/works/OL1W'},
-                            {'edition': '/books/OL2M', 'work': u'/works/OL1W'}]}
+                        'type': '/type/edition',
+                        'work': {'key': '/works/OL1W'}},
+                'matches': [{'edition': '/books/OL1M', 'work': '/works/OL1W'},
+                            {'edition': '/books/OL2M', 'work': '/works/OL1W'}]}
     assert matches == expected
 
 
@@ -342,9 +342,9 @@ def test_search_by_isbn(mock_site):
                                                'oclc_numbers': ['4560']},
                                'key': '/books/OL1M',
                                'title': 'test1',
-                               'type': u'/type/edition',
-                               'work': {'key': u'/works/OL1W'}},
-                       'matches': [{'edition': '/books/OL1M', 'work': u'/works/OL1W'}]}
+                               'type': '/type/edition',
+                               'work': {'key': '/works/OL1W'}},
+                       'matches': [{'edition': '/books/OL1M', 'work': '/works/OL1W'}]}
 
 
 def test_massage_search_results_edition(mock_site):
@@ -356,10 +356,10 @@ def test_massage_search_results_edition(mock_site):
     expected = {'doc': {'authors': [{'key': '/authors/OL1A'}, {'key': '/authors/OL2A'}],
                         'key': '/books/OL1M',
                         'title': 'test1',
-                        'type': u'/type/edition',
-                        'work': {'key': u'/works/OL1W'}},
-                'matches': [{'edition': '/books/OL1M', 'work': u'/works/OL1W'},
-                            {'edition': '/books/OL2M', 'work': u'/works/OL1W'}]}
+                        'type': '/type/edition',
+                        'work': {'key': '/works/OL1W'}},
+                'matches': [{'edition': '/books/OL1M', 'work': '/works/OL1W'},
+                            {'edition': '/books/OL2M', 'work': '/works/OL1W'}]}
     assert massaged == expected
 
     # Without limiting
@@ -372,10 +372,10 @@ def test_massage_search_results_edition(mock_site):
                                         'oclc_numbers': ['4560']},
                         'key': '/books/OL1M',
                         'title': 'test1',
-                        'type': u'/type/edition',
-                        'work': {'key': u'/works/OL1W'}},
-                'matches': [{'edition': '/books/OL1M', 'work': u'/works/OL1W'},
-                            {'edition': '/books/OL2M', 'work': u'/works/OL1W'}]}
+                        'type': '/type/edition',
+                        'work': {'key': '/works/OL1W'}},
+                'matches': [{'edition': '/books/OL1M', 'work': '/works/OL1W'},
+                            {'edition': '/books/OL2M', 'work': '/works/OL1W'}]}
     assert massaged == expected
 
 # TODO : Test when no matches at all are found

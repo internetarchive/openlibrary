@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import traceback
 import xml.parsers.expat
 
@@ -50,7 +48,7 @@ def get_marc_record_from_ia(identifier):
     marc_xml_filename = identifier + '_marc.xml'
     marc_bin_filename = identifier + '_meta.mrc'
 
-    item_base = '{}{}/'.format(IA_DOWNLOAD_URL, identifier)
+    item_base = f'{IA_DOWNLOAD_URL}{identifier}/'
 
     # Try marc.xml first
     if marc_xml_filename in filenames:
@@ -178,7 +176,7 @@ def read_marc_file(part, f, pos=0):
 
 def item_file_url(identifier, ending, host=None, path=None):
     if host and path:
-        url = 'http://{}{}/{}_{}'.format(host, path, identifier, ending)
+        url = f'http://{host}{path}/{identifier}_{ending}'
     else:
         url = '{0}{1}/{1}_{2}'.format(IA_DOWNLOAD_URL, identifier, ending)
     return url
