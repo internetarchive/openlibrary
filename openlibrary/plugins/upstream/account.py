@@ -727,13 +727,13 @@ class ReadingLog(object):
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Already Read'],
             page=page, limit=limit, date_added=None))
 
-    def get_works(self, key, page=1, limit=RESULTS_PER_PAGE, date_added=None):
+    def get_works(self, key, page=1, limit=RESULTS_PER_PAGE, sort='created', sort_order='desc'):
         """
         :rtype: list of openlibrary.plugins.upstream.models.Work
         """
         key = key.lower()
         if key in self.KEYS:
-            return self.KEYS[key](page=page, limit=limit, date_added=date_added)
+            return self.KEYS[key](page=page, limit=limit, sort=sort, sort_order=sort_order)
         else: # must be a list or invalid page!
             #works = web.ctx.site.get_many([ ... ])
             raise
@@ -751,8 +751,7 @@ class public_my_books(delegate.page):
 
     def GET(self, username, key='loans'):
         """check if user's reading log is public"""
-        i = web.input(page=1, sort=None)
-        date_added=i.sort
+        i = web.input(page=1, sort='desc')
         user = web.ctx.site.get('/people/%s' % username)
         if not user:
             return render.notfound("User %s"  % username, create=False)
@@ -768,11 +767,11 @@ class public_my_books(delegate.page):
                         'isbn_%s' % len(s['isbn']): s['isbn']
                     })[0]) for s in sponsorships)
             else:
-                books = readlog.get_works(key, page=i.page, date_added=i.sort)
+                books = readlog.get_works(key, page=i.page, sort='created', sort_order=i.sort)
             return render['account/books'](
                 books, key, sponsorship_count=len(sponsorships),
                 reading_log_counts=readlog.reading_log_counts, lists=readlog.lists,
-                user=user, logged_in_user=logged_in_user, public=is_public, date_added=str(date_added)
+                user=user, logged_in_user=logged_in_user, public=is_public, sort_order=str(i.sort)
             )
         raise web.seeother(user.key)
 
