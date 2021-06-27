@@ -1,3 +1,4 @@
+from typing import Literal
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
@@ -116,7 +117,7 @@ class Bookshelves(object):
         return dict([(i['bookshelf_id'], i['count']) for i in result]) if result else {}
 
     @classmethod
-    def get_users_logged_books(cls, username, bookshelf_id=None, limit=100, page=1, date_added=None):
+    def get_users_logged_books(cls, username, bookshelf_id=None, limit=100, page=1, sort: Literal['created asc', 'created desc'] = 'created desc'):
         """Returns a list of Reading Log database records for books which
         the user has logged. Records are described in core/schema.py
         and include:
@@ -137,16 +138,12 @@ class Bookshelves(object):
             'offset': limit * (page - 1),
             'bookshelf_id': bookshelf_id
         }
-        if date_added is None:
-            query = ("SELECT * from bookshelves_books WHERE "
-                    "bookshelf_id=$bookshelf_id AND username=$username "
-                    "LIMIT $limit OFFSET $offset")
-        elif date_added=="descending":
+        if sort=='created desc':
             query = ("SELECT * from bookshelves_books WHERE "
                     "bookshelf_id=$bookshelf_id AND username=$username "
                     "ORDER BY created DESC "
                     "LIMIT $limit OFFSET $offset")
-        else :
+        else:
             query = ("SELECT * from bookshelves_books WHERE "
                     "bookshelf_id=$bookshelf_id AND username=$username "
                     "ORDER BY created ASC "
