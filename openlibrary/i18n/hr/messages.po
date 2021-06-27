@@ -4921,7 +4921,7 @@ msgstr "Tvoja e-adresa"
 
 #: forms.py:51
 msgid "Choose a screen name"
-msgstr "Odaberi ime ekrana"
+msgstr "Odaberi ime"
 
 #: forms.py:53
 msgid "Letters and numbers only please, and at least 3 characters."
