@@ -26,7 +26,7 @@ $add_metatag(name="twitter:card", content="homepage_summary")
 
   $if monthly_reads and not test:
     $:macros.QueryCarousel(query=monthly_reads['query'], title=monthly_reads['title'], key="monthly_reads", url=monthly_reads['url'], sort='random.hourly')
-    
+
   $:render_template("home/custom_ia_carousel", title=_('Books We Love'), key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["lending___last_browse desc"], limit=18, test=test)
 
   $:render_template("home/custom_ia_carousel", title=_('Recently Returned'), key="recently_returned", sorts=["lending___last_browse desc"], limit=18, test=test)
