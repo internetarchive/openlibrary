@@ -179,6 +179,10 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                         <li>VIAF: <a itemprop="sameAs" href="https://viaf.org/viaf/$viaf">$viaf</a></li>
                     $if page.remote_ids.wikidata:
                         <li>Wikidata: <a itemprop="sameAs" href="https://tools.wmflabs.org/reasonator/?q=$page.remote_ids.wikidata">$page.remote_ids.wikidata</a></li>
+                    $if page.remote_ids.project_gutenberg:
+                        <li><a href="https://www.gutenberg.org/ebooks/author/$page.remote_ids.project_gutenberg">Project Gutenberg</a></li>
+                    $if page.remote_ids.librivox:
+                        <li><a href="https://librivox.org/author/$page.remote_ids.librivox">LibriVox</a></li>
                 $if page.wikipedia and page.wikipedia.startswith("http"):
                     <li><a itemprop="sameAs" href="$page.wikipedia">Wikipedia</a></li>
                 $for link in page.links:
