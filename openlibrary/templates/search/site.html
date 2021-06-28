@@ -1,0 +1,28 @@
+$def with (q, pages=[])
+
+$var title: $_('Site search results')
+
+<div id="contentHead">
+  <h1>$_("Site Search")</h1>
+</div>
+
+<div id="contentBody">
+
+  <form class="siteSearch searchInsideForm" action="/search/site">
+    <input type="text" class="larger" name="q" value="$q"/>
+    <input type="submit" class="generic-button" value="$_('Search')">
+  </form>
+
+  $if pages:
+    <div class="mybooks-list">
+      <ul id="listResults" class="list-books">
+      $for page in pages:
+        <li class="searchResultItem" id="list-$loop.index">$page</li>
+      </ul>
+    </div>
+  $elif q:
+    <div>
+      <span class="red">$_("No site results found.")</span>
+    </div>
+
+</div>
