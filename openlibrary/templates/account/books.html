@@ -67,17 +67,6 @@ $if og_title:
 
       $if owners_page:
         <a href="$ctx.path/stats" title="$('View stats about this shelf')">$_('Stats')</a>
-      
-      <span class="mytools-tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" style="margin-right:10px;" width="9" height="11">
-        $if sort_order == 'desc':
-          <strong class="lightgreen">$_("Date Added (newest)")</strong>
-          |
-          <a href="$ctx.path?sort=asc">$_("Date Added (oldest)")</a>
-        $else:
-          <a href="$ctx.path?sort=desc">$_("Date Added (newest)")</a>
-          |
-          <strong class="lightgreen">$_("Date Added (oldest)")</strong>
-      </span>
     </div>
 
     $if owners_page:
@@ -115,6 +104,18 @@ $if og_title:
           </ul>
       </div>
       <div class="mybooks-list">
+
+        <span class="mybooks-tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" style="margin-right:10px;" width="9" height="11">
+          $if sort_order == 'desc':
+            <strong class="lightgreen">$_("Date Added (newest)")</strong>
+            |
+            <a href="$ctx.path?sort=asc">$_("Date Added (oldest)")</a>
+          $else:
+            <a href="$ctx.path?sort=desc">$_("Date Added (newest)")</a>
+            |
+            <strong class="lightgreen">$_("Date Added (oldest)")</strong>
+        </span>
+
         $:macros.Pager(current_page, total_items, results_per_page=25)
         <ul class="list-books">
           $if items:
