@@ -712,17 +712,20 @@ class ReadingLog(object):
                 if logged_books[i]['edition_id'] else '')
         return works
 
-    def get_want_to_read(self, page=1, limit=RESULTS_PER_PAGE, sort='created', sort_order='desc'):
+    def get_want_to_read(self, page=1, limit=RESULTS_PER_PAGE, 
+                         sort='created', sort_order='desc'):
         return self.process_logged_books(Bookshelves.get_users_logged_books(
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Want to Read'],
             page=page, limit=limit, sort=sort + ' ' + sort_order))
 
-    def get_currently_reading(self, page=1, limit=RESULTS_PER_PAGE, sort='created', sort_order='desc'):
+    def get_currently_reading(self, page=1, limit=RESULTS_PER_PAGE, 
+                              sort='created', sort_order='desc'):
         return self.process_logged_books(Bookshelves.get_users_logged_books(
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Currently Reading'],
             page=page, limit=limit, sort=sort + ' ' + sort_order))
 
-    def get_already_read(self, page=1, limit=RESULTS_PER_PAGE, sort='created', sort_order='desc'):
+    def get_already_read(self, page=1, limit=RESULTS_PER_PAGE, 
+                         sort='created', sort_order='desc'):
         return self.process_logged_books(Bookshelves.get_users_logged_books(
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Already Read'],
             page=page, limit=limit, sort=sort + ' ' + sort_order))
