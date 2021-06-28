@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2021-04-07 15:01+0000\n"
-"PO-Revision-Date: 2021-06-11 18:23+0200\n"
+"PO-Revision-Date: 2021-06-28 15:42+0200\n"
 "Last-Translator: Milo Ivir <mail@milotype.de>\n"
 "Language-Team: \n"
 "Language: hr\n"
@@ -941,17 +941,17 @@ msgstr "Upravljaj postavkama privatnosti"
 #: account/books.html:89
 #, python-format
 msgid "Currently Reading (%(count)d)"
-msgstr "Trenutačno čitaju (%(count)d)"
+msgstr "Trenutačno čitam (%(count)d)"
 
 #: account/books.html:90
 #, python-format
 msgid "Want to Read (%(count)d)"
-msgstr "Žele čitati (%(count)d)"
+msgstr "Želim čitati (%(count)d)"
 
 #: account/books.html:91
 #, python-format
 msgid "Already Read (%(count)d)"
-msgstr "Već su čitali (%(count)d)"
+msgstr "Pročitano (%(count)d)"
 
 #: account/books.html:101 lib/nav_head.html:52 lib/nav_head.html:80
 #: lib/search_head.html:70 lists/home.html:7 lists/home.html:10
@@ -1286,11 +1286,11 @@ msgstr "Želiš li primati povremene e-poruke od Open Library?"
 
 #: account/notifications.html:42
 msgid "No, thank you"
-msgstr "Ne, hvala"
+msgstr "Ne"
 
 #: account/notifications.html:49
 msgid "Yes! Please!"
-msgstr "Da, molim!"
+msgstr "Da"
 
 #: EditButtons.html:21 EditButtonsMacros.html:24 account/notifications.html:57
 #: account/privacy.html:54 covers/manage.html:50
@@ -1316,7 +1316,7 @@ msgstr "Ne"
 #: ReadingLogButton.html:9 account/readinglog_shelf_name.html:8
 #: lists/widget.html:124
 msgid "Currently Reading"
-msgstr "Trenutačno čitaju"
+msgstr "Trenutačno čitam"
 
 #: account/readinglog_shelf_name.html:10
 msgid "Want To Read"
@@ -1325,7 +1325,7 @@ msgstr "Želim čitati"
 #: ReadingLogButton.html:9 account/readinglog_shelf_name.html:12
 #: lists/widget.html:122 lists/widget.html:186
 msgid "Already Read"
-msgstr "Već su čitali"
+msgstr "Pročitano"
 
 #: account/readinglog_stats.html:8 account/readinglog_stats.html:99
 #, python-format
@@ -4608,15 +4608,16 @@ msgid ""
 "Special ebook access from the Internet Archive for patrons with qualifying "
 "print disabilities"
 msgstr ""
-"Poseban pristup e-knjigama sa stranica Internet Archive za slijepe/slabovidne"
+"Poseban pristup e-knjigama s Internet Archive stranica za slijepe/slabovidne "
+"pokrovitelje"
 
 #: ReadButton.html:16
 msgid "Borrow ebook from Internet Archive"
-msgstr "Posudi e-knjigu od Internet Archive"
+msgstr "Posudi e-knjigu s Internet Archive stranice"
 
 #: ReadButton.html:20
 msgid "Read ebook from Internet Archive"
-msgstr "Čitaj e-knjigu od Internet Archive"
+msgstr "Čitaj e-knjigu s Internet Archive stranice"
 
 #: ReadButton.html:39
 msgid "Listen"
@@ -4702,7 +4703,7 @@ msgstr "Trenutačno čitam"
 
 #: StarRatingsStats.html:20
 msgid "Have read"
-msgstr "Pročitao/la sam"
+msgstr "Pročitano"
 
 #: TableOfContents.html:10
 msgid "Table of Contents"
