@@ -1,5 +1,52 @@
 $def with (page)
 
+$code:
+  openlibraryProps = {
+    'label': _('Open Library'),
+    'links': [
+      { "href": "/about/vision", "text": _("Vision"), "title": _("") },
+      { "href": "/volunteer", "text": _("Volunteer"), "title": _("") },
+      { "href": "/partner-with-us", "text": _("Partner With Us"), "title": _("") },
+      { "href": "https://archive.org/about/jobs.php", "text": _("Careers"), "title": _("") },
+      { "href": "https://blog.openlibrary.org/", "text": _("Blog"), "title": _("") },
+      { "href": "https://archive.org/about/terms.php", "text": _("Terms of Service"), "title": _("") },
+      { "href": "https://archive.org/donate/?platform=ol", "text": _("Donate"), "title": _("") }
+    ]
+  }
+
+  discoverProps = {
+    'label': _('Discover'),
+    'links': [
+      { "href": "/", "text": _("Home"), "title": _("'Go home'") },
+      { "href": "/search", "text": _("Books"), "title": _("Explore Books") },
+      { "href": "/search/authors", "text": _("Authors"), "title": _("Explore authors") },
+      { "href": "/subjects", "text": _("Subjects"), "title": _("Explore subjects") },
+      { "href": "/collections", "text": _("Collections"), "title": _("Explore collections") },
+      { "href": "/advancedsearch", "text": _("Advanced Search"), "title": _("Advanced Search") },
+      { "href": "#top", "text": _("Return to Top"), "title": _("Navigate to top of this page") }
+    ]
+  }
+
+  developProps = {
+    'label': _('Develop'),
+    'links': [
+      { "href": "/developers", "text": _("Development Center"), "title": _("Explore Open Library Development Center") },
+      { "href": "/developers/api", "text": _("API Documentation"), "title": _("Explore Open Library APIs") },
+      { "href": "/developers/dumps", "text": _("Bulk Data Dumps"), "title": _("Bulk Open Library data") },
+      { "href": "https://github.com/internetarchive/openlibrary/wiki/Writing-Bots", "text": _("Writing Bots"), "title": _("Write a Bot") },
+      { "href": "/books/add", "text": _("Add a Book"), "title": _("Add a new book to Open Library") }
+    ]
+  }
+
+  helpProps = {
+    'label': _('Help'),
+    'links': [
+      { "href": "/help", "text": _("Help Center"), "title": _("Help Center") },
+      { "href": "/contact?path=$request.path", "text": _("Report A Problem"), "title": _("Problems") },
+      { "href": "/help/faq/editing", "text": _("Suggesting Edits"), "title": _("Suggest Edits") }
+    ]
+  }
+
 <footer>
   <div id="footer-content" >
     <div id="footer-links">
@@ -51,6 +98,24 @@ $def with (page)
       </div>
       <div id="footer-locale-menu">
         <h2>$_('Change Website Language')</h2> 
+        <ul id="locale-options">
+          <li><a href="#" lang="cs" data-lang-id="cs" title="$_('Czech')">Čeština (cs)</a> </li>
+          <li><a href="#" lang="de" data-lang-id="de" title="$_('German')">Deutsch (de)</a> </li>
+          <li><a href="#" lang="en" data-lang-id="en" title="$_('English')">English (en)</a></li>
+          <li><a href="#" lang="es" data-lang-id="es" title="$_('Spanish')">Español (es)</a></li>
+          <li><a href="#" lang="fr" data-lang-id="fr" title="$_('French')">Français (fr)</a></li>
+          <li><a href="#" lang="hr" data-lang-id="hr" title="$_('Croatian')">Hrvatski (hr)</a></li>
+          <li><a href="#" lang="te" data-lang-id="te" title="$_('Telugu')">తెలుగు (te)</a></li>
+        </ul>
+      </div>
+    </div>
+    <div id="footer-links-mobile">
+      $:render_template("lib/links", openlibraryProps )
+      $:render_template("lib/links", discoverProps )
+      $:render_template("lib/links", developProps )
+      $:render_template("lib/links", helpProps )
+      <div id="footer-locale-menu">
+        <h2>$_('Change Website Language')</h2>
         <ul id="locale-options">
           <li><a href="#" lang="cs" data-lang-id="cs" title="$_('Czech')">Čeština (cs)</a> </li>
           <li><a href="#" lang="de" data-lang-id="de" title="$_('German')">Deutsch (de)</a> </li>

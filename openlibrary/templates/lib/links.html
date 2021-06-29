@@ -1,0 +1,18 @@
+$def with (props)
+<details>
+    <summary>
+    $if 'label' in props:
+        $(props['label'])
+    </summary>
+    <ul>
+        $for link in props['links']:
+        <li>
+            <a href="$(link['href'])" title="$(link['title'])">$(link['text'])</a>
+        </li>
+    </ul>
+    $if props['label'] == 'Help' :
+            <aside id="footer-icons">
+                <a class="footer-icons__twitter" href="https://twitter.com/OpenLibrary">twitter</a>
+                <a class="footer-icons__github" href="https://github.com/internetarchive/openlibrary">github</a>
+            </aside>
+</details>

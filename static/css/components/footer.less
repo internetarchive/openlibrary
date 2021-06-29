@@ -7,6 +7,36 @@ div#footer-content {
   padding: 20px;
 }
 
+#footer-links-mobile {
+  display: none;
+}
+
+@media only screen and (max-width: 650px) {
+  #footer-links {
+    display: none !important;
+  }
+  #footer-links-mobile {
+    display: block;
+    summary {
+      font-weight: 700;
+    }
+    summary::marker {
+      content: "";
+    }
+    summary::after {
+      content: "\002B";
+      font-size: 1.1em;
+      float: right;
+    }
+    details[open] summary:after {
+      content: "\002D";
+    }
+    details {
+      margin: 20px 0;
+    }
+  }
+}
+
 div#footer-links {
   .display-flex();
   margin-left: 10px;
@@ -85,9 +115,11 @@ footer {
   }
 }
 
-#footer-links {
+#footer-links,
+#footer-links-mobile {
   ul li a {
-    color: @dark-blue;
+    text-decoration: none;
+    color: @dark-grey;
   }
   div {
     margin: 20px 0;
