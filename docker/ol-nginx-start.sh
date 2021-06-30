@@ -1,7 +1,9 @@
 #!/bin/bash
 
-crontab /etc/cron.d/archive-webserver-logs
-service cron start
+if [ -n "$CRONTAB_FILES" ] ; then
+  crontab $CRONTAB_FILES
+  service cron start
+fi
 
 # logrotate comes from olsystem which is volume mounted
 # logrotate requires files to be 644

@@ -59,7 +59,9 @@ services:
     profiles: ["ol-covers0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     user: root
-    command: nginx -g "daemon off;"
+    command: docker/ol-nginx-start.sh
+    environment:
+      - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs
     restart: unless-stopped
     depends_on:
       - covers
@@ -71,6 +73,10 @@ services:
       # Needs access to openlibrary for static files
       - ../olsystem:/olsystem
       - /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
+      # web log rotation
+      - ../olsystem/etc/cron.d/archive-webserver-logs:/etc/cron.d/archive-webserver-logs
+      - ../olsystem/etc/logrotate.d/nginx:/etc/logrotate.d/nginx
+      - /1/var/log/nginx:/var/log/nginx
     ports:
       - 80:80
       - 443:443
@@ -139,6 +145,8 @@ services:
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     user: root
     command: docker/ol-nginx-start.sh
+    environment:
+      - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs
     volumes:
       # nginx configurations
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -169,7 +177,7 @@ services:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     user: root
-    command: nginx -g "daemon off;"
+    command: docker/ol-nginx-start.sh
     restart: unless-stopped
     depends_on:
       - infobase
@@ -178,6 +186,8 @@ services:
       - ./docker/infobase_nginx.conf:/etc/nginx/sites-enabled/infobase_nginx.conf:ro
       # Needs olsystem for black-listed IPs
       - ../olsystem:/olsystem
+      # Log rotation
+      - ../olsystem/etc/logrotate.d/nginx:/etc/logrotate.d/nginx
     ports:
       - 7000:7000
     networks:
