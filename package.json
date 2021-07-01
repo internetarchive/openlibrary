@@ -63,7 +63,7 @@
     "vue-async-computed": "3.9.0",
     "vue-multiselect": "2.1.6",
     "vue-template-compiler": "2.6.12",
-    "webpack": "4.46.0",
+    "webpack": "5.41.1",
     "webpack-cli": "4.7.0"
   },
   "jest": {
