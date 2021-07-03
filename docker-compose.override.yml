@@ -44,6 +44,8 @@ services:
       # if the db is empty (which as of now is always, since we don't store the
       # postgres data anywhere).
       - ./docker/ol-db-init.sh:/docker-entrypoint-initdb.d/ol-db-init.sh
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust 
 
   covers:
     build:
