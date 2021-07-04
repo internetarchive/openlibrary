@@ -11,7 +11,7 @@ httpx==0.18.2
 internetarchive==2.0.2
 isbnlib==3.10.6
 lxml==4.6.3
-Pillow==8.2.0
+Pillow==8.3.0
 psycopg2==2.8.6
 Pygments==2.8.1
 pymarc==4.1.0
