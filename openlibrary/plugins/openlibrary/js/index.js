@@ -167,7 +167,7 @@ jQuery(function () {
 
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
-        import(/* webpackChunkName: "rt-validation" */'./realtime_account_validation.js')
+        import(/* webpackChunkName: "realtime-account-validation" */'./realtime_account_validation.js')
             .then(module => module.initRealTimeValidation());
     }
     // conditionally load readmore button based on class in the page
@@ -177,12 +177,12 @@ jQuery(function () {
     }
     // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
-        import(/* webpackChunkName: "goodreads" */'./goodreads_import.js')
+        import(/* webpackChunkName: "goodreads-import" */'./goodreads_import.js')
             .then(module => module.initGoodreadsImport());
     }
     // conditionally loads Related Carousels based on class in the page
     if (document.getElementsByClassName('RelatedWorksCarousel').length) {
-        import(/* webpackChunkName: "carousel-partials" */'./carousels_partials.js')
+        import(/* webpackChunkName: "carousels-partials" */'./carousels_partials.js')
             .then(module => module.initCarouselsPartials());
     }
     // Enable any carousels in the page

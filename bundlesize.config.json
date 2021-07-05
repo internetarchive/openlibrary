@@ -17,7 +17,7 @@
       "maxSize": "1KB"
     },
     {
-      "path": "static/build/carousel-partials.*.js",
+      "path": "static/build/carousels-partials.*.js",
       "maxSize": "1KB"
     },
     {
@@ -45,7 +45,7 @@
       "maxSize": "30KB"
     },
     {
-      "path": "static/build/rt-validation.*.js",
+      "path": "static/build/realtime-account-validation.*.js",
       "maxSize": "1KB"
     },
     {
@@ -53,7 +53,7 @@
       "maxSize": "137KB"
     },
     {
-      "path": "static/build/goodreads.*.js",
+      "path": "static/build/goodreads-import.*.js",
       "maxSize": "2KB"
     },
     {
