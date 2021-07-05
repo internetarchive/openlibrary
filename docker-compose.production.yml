@@ -24,6 +24,22 @@ services:
   solr:
     # TODO: Currently solr is deployed in a "special" way
     profiles: []
+    restart: always
+
+  solr_haproxy:
+    profiles: ["ol-solr1"]
+    image: haproxy:2.3.5
+    restart: always
+    networks:
+      - webnet
+    volumes:
+      - ./conf/solr/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - 8984:8984
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
 
   covers:
     profiles: ["ol-covers0"]
