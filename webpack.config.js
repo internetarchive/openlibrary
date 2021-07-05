@@ -109,7 +109,7 @@ module.exports = {
     // The source map is intentionally exposed
     // to users via sourceMapFilename for prod debugging.
     devtool: 'source-map',
-    mode: prod,
+    mode: prod ? 'production' : 'development',
 
     performance: {
         maxAssetSize: 703 * 1024,
