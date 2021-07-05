@@ -40,7 +40,7 @@
     "eslint-plugin-no-jquery": "2.6.0",
     "eslint-plugin-vue": "7.12.1",
     "flot": "0.8.3",
-    "jest": "27.0.4",
+    "jest": "27.0.6",
     "jquery": "3.6.0",
     "jquery-colorbox": "1.6.4",
     "jquery-ui": "1.12.1",
@@ -63,7 +63,7 @@
     "vue-async-computed": "3.9.0",
     "vue-multiselect": "2.1.6",
     "vue-template-compiler": "2.6.12",
-    "webpack": "4.46.0",
+    "webpack": "5.42.1",
     "webpack-cli": "4.7.0"
   },
   "jest": {
