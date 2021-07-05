@@ -177,9 +177,6 @@ pipeline {
         stage('Setup') {
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
-              sh(label: 'Build the solr image',
-                script: 'docker build -t olsolr:latest -f ../../docker/Dockerfile.olsolr ../../')
-              
               sh(label: 'Launch solr',
                 script: 'docker-compose up --no-deps -d solr')
 
@@ -285,7 +282,7 @@ pipeline {
                     sh(label: 'Stop/rm running indexers',
                       script: '''
                       docker stop $(docker container ls -f "name=ol_run" -q) || true
-                      docker rm $(docker container ls -f "name=ol_run" -aq)
+                      docker rm $(docker container ls -f "name=ol_run" -aq) || true
                       ''')
                   }
                 }

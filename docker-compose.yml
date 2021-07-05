@@ -17,29 +17,10 @@ services:
         max-size: "512m"
         max-file: "4"
 
-  # solr:
-  #   image: olsolr:latest
-  #   build:
-  #     context: .
-  #     dockerfile: docker/Dockerfile.olsolr
-  #   restart: always
-  #   environment:
-  #     - ENV=${ENV:-dev}
-  #   ports:
-  #     - 8983:8983
-  #   volumes:
-  #     - solr-data:/var/lib/solr/data
-  #   networks:
-  #     - webnet
-  #   logging:
-  #     options:
-  #       max-size: "512m"
-  #       max-file: "4"
-
   solr:
     image: solr:8.8.2
-    ports:
-      - 8983:8983
+    expose:
+      - 8983
     volumes:
       - solr-data:/var/solr/data
       - ./conf/solr8-ol:/opt/solr/server/solr/configsets/olconfig:ro
