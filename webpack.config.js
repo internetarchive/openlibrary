@@ -82,7 +82,7 @@ module.exports = {
             }
         },
         // Don't produce production output when a build error occurs.
-        emitOnErrors: prod
+        emitOnErrors: !prod
     },
 
     output: {

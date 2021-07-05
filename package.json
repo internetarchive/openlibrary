@@ -5,7 +5,7 @@
   "license": "AGPL-3.0",
   "scripts": {
     "watch": "env WEBPACK_PACKAGE=webpack5 npx webpack --watch --mode=development --progress",
-    "build-assets:webpack": "NODE_ENV=production env WEBPACK_PACKAGE=webpack5 npx webpack --mode=production",
+    "build-assets:webpack": "env NODE_ENV=production WEBPACK_PACKAGE=webpack5 npx webpack --mode=production",
     "build-assets": "make js && make css && make components",
     "build-assets:css": "make css",
     "build-assets:js": "make js",
