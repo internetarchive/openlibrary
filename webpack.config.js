@@ -79,7 +79,8 @@ module.exports = {
                 // https://webpack.js.org/plugins/split-chunks-plugin/#optimization-splitchunks
                 vendors: false,
 
-            }
+            },
+            chunks:'all'
         },
         // Don't produce production output when a build error occurs.
         emitOnErrors: !prod
