@@ -1,3 +1,4 @@
+import uniqBy from 'lodash/uniqBy';
 
 /** @typedef {String} OLID @example OL123W */
 /** @typedef {OLID} WorkOLID */
@@ -31,9 +32,14 @@ export async function move_to_author(work_ids, old_author, new_author) {
     for (let olid of work_ids) {
         const url = `/works/${olid}.json`;
         const record = await fetch(url).then(r => r.json());
-        const author = record.authors.find(a => a.author.key.includes(old_author));
-        if (author) {
-            author.author.key = `/authors/${new_author}`;
+        if (record.authors.find(a => a.author.key.includes(old_author))) {
+            record.authors = uniqBy(record.authors.map(a => {
+                if (!a.author.key.includes(old_author)) return a;
+
+                const copy = JSON.parse(JSON.stringify(a));
+                copy.author.key = `/authors/${new_author}`;
+                return copy;
+            }), a => a.author.key);
             record._comment = 'move to correct author';
             const r = await fetch(url, { method: 'PUT', body: JSON.stringify(record) });
             // eslint-disable-next-line no-console
