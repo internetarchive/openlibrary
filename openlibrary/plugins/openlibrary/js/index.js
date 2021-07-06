@@ -66,6 +66,12 @@ initAnalytics();
 
 // Initialise some things
 jQuery(function () {
+    // conditionally load polyfill for <details> tags (IE11)
+    // See http://diveintohtml5.info/everything.html#details
+    if (!('open' in document.createElement('details'))) {
+        import(/* webpackChunkName: "details-polyfill" */ 'details-polyfill');
+    }
+
     const $markdownTextAreas = $('textarea.markdown');
     // Live NodeList is cast to static array to avoid infinite loops
     const $carouselElements = $('.carousel--progressively-enhanced');

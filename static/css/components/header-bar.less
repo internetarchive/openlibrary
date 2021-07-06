@@ -155,6 +155,11 @@
   }
 
   .header-dropdown {
+    // For the <details> polyfill used for IE11
+    summary::before {
+      content: "" !important;
+    }
+
     .header-dropdown__icon {
       width: 45px;
       height: 45px;
