@@ -345,7 +345,9 @@ class robotstxt(delegate.page):
     def GET(self):
         web.header('Content-Type', 'text/plain')
         try:
-            robots_file = 'norobots.txt' if 'dev' in infogami.config.features else 'robots.txt'
+            is_dev = ('dev' in infogami.config.features or
+                      web.ctx.host != 'openlibrary.org')
+            robots_file = 'norobots.txt' if is_dev else 'robots.txt'
             data = open('static/' + robots_file).read()
             raise web.HTTPError('200 OK', {}, data)
         except IOError:
