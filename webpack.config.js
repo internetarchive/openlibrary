@@ -80,7 +80,7 @@ module.exports = {
                 vendors: false,
 
             },
-            chunks:'all'
+            chunks: 'all'
         },
         // Don't produce production output when a build error occurs.
         emitOnErrors: !prod
