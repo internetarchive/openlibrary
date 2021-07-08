@@ -11,6 +11,7 @@ import random
 import xml.etree.ElementTree as etree
 import datetime
 import logging
+from html.parser import HTMLParser
 
 import requests
 
@@ -26,7 +27,7 @@ from infogami.utils.macro import macro
 from infogami.utils.context import context
 from infogami.infobase.client import Thing, Changeset, storify
 
-from openlibrary.core.helpers import commify, parse_datetime
+from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
 from openlibrary.core import cache, ab
 
@@ -860,6 +861,56 @@ def render_once(key):
 @public
 def today():
     return datetime.datetime.today()
+
+
+class HTMLTagRemover(HTMLParser):
+
+    def __init__(self):
+        super().__init__()
+        self.data = []
+
+    def handle_data(self, data):
+        self.data.append(data)
+
+
+@public
+def reformat_html(html_str, max_length=None, root_element=None):
+    """
+    Reformats an HTML string, removing all opening and closing tags.
+    Adds a line break element between each set of text content.
+    Optionally nests the formatted HTML inside of the given root element.
+    Optionally truncates contents that exceeds the given max length.
+
+    returns: A reformatted HTML string
+    """
+    parser = HTMLTagRemover()
+    parser.feed(html_str)
+
+    content = [s.strip() for s in parser.data if len(s.strip())]
+
+    if max_length:
+        str_lengths = [len(s) for s in content]
+        end_index = 0
+        for i in str_lengths:
+            end_index += 1
+            if max_length - i == 0:
+                break
+            elif max_length - i < 0:
+                content[end_index - 1] = truncate(
+                    content[end_index - 1],
+                    max_length
+                )
+                break
+            max_length -= i
+    else:
+        end_index = len(content) + 1
+
+    results = '<br>'.join(content[:end_index])
+
+    if root_element:
+        results = f'<{root_element}>{results}</{root_element}>'
+
+    return results
 
 
 def setup():
