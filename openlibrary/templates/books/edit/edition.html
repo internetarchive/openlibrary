@@ -403,6 +403,7 @@ $jsdef render_work_autocomplete_item(item):
     </div>
 
 </fieldset>
+$ admin_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
 $ config = ({'Please select an identifier.': _('Please select an identifier.'), 'You need to give a value to ID.': _('You need to give a value to ID.'), 'ID ids cannot contain whitespace.': _('ID ids cannot contain whitespace.'), 'ID must be exactly 10 characters [0-9] or X.': _('ID must be exactly 10 characters [0-9] or X.'), 'ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4': _('ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4')})
 <fieldset class="major" id="identifiers" data-config="$dumps(config)">
     <legend>$_("ID Numbers")</legend>
@@ -421,16 +422,21 @@ $ config = ({'Please select an identifier.': _('Please select an identifier.'), 
                             <select name="name" id="select-id">
                             $ id_labels = dict((d.name, d.label) for d in edition_config.identifiers)
                             $ id_dict = dict((id.name, id) for id in edition_config.identifiers)
- 							$ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "oclc_numbers", "goodreads", "librarything"]
-							$ set1 = [id_dict[name] for name in popular if name in id_dict]
-                            $ set2 = sorted([id for id in edition_config.identifiers if id.name not in popular], key=lambda id:id.label)
+                            $ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "oclc_numbers", "goodreads", "librarything"]
+                            $if admin_user:
+                                $ exclude = []
+                            $else:
+                                $ exclude = ["ocaid"]
 
-                                <option value="">$_('Select one of many...')</option>
-                                $for id in set1:
-                                    <option value="$id.name">$id.label</option>
-                                <optgroup label="----------"></optgroup>
-                                $for id in set2:
-                                    <option value="$id.name">$id.label</option>
+                            $ set1 = [id_dict[name] for name in popular if name in id_dict and name not in exclude]
+                            $ set2 = sorted([id for id in edition_config.identifiers if id.name not in popular and id.name not in exclude], key=lambda id:id.label)
+
+                            <option value="">$_('Select one of many...')</option>
+                            $for id in set1:
+                                <option value="$id.name">$id.label</option>
+                            <optgroup label="----------"></optgroup>
+                            $for id in set2:
+                                <option value="$id.name">$id.label</option>
 
                                 <!-- <option>---</option> -->
                                 <!-- <option value="__add__">Add a new ID type</option> -->
@@ -465,7 +471,6 @@ $ config = ({'Please select an identifier.': _('Please select an identifier.'), 
                                 <input type="hidden" name="edition--identifiers--${i}--value" value="$id.value"/>
                             </td>
                             $# Disable removing ocaid for regular users.
-                            $ admin_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
                             $if id.name == "ocaid" and not admin_user:
                                 <td></td>
                             $else:
