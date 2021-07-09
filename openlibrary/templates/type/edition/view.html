@@ -6,7 +6,7 @@ $ component_times['TotalTime'] = time()
 $ tab = input(tab=None).tab
 $ editions = []
 $ page_type = page.key.split('/')[1]
-$ show_stats_component = True
+$ show_observations = True
 
 $if page.key.startswith('/works'):
   $ work = page
@@ -14,7 +14,7 @@ $elif page.works:
   $ work = list(page.works)[0]
 $else:
   $ work = page.make_work_from_orphaned_edition()
-  $ show_stats_component = False
+  $ show_observations = False
 $ edition = storage({})
 
 $ component_times['get_sorted_editions'] = time()
@@ -217,7 +217,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         </div>
         $:macros.ReadMore("subjects")
     </div>
-      $:macros.EditionNavBar(work.edition_count, show_stats_component)
+      $:macros.EditionNavBar(work.edition_count, show_observations)
 
       <p class="preview-languages">
         $ seen = set()
@@ -450,7 +450,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
       $# BookNotes feature:
       $if ctx.user and ctx.user.is_beta_tester():
-        $if show_stats_component:
+        $if show_observations:
           $ reader_observations = get_observation_metrics(work['key'])
           $:render_template("observations/stats_component", work, edition, reader_observations, work_title, page.key)
     </div>
