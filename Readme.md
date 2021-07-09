@@ -30,7 +30,7 @@ Here's a quick public tour of Open Library to get your familiar with the service
 
 - [Learn more about the Open Library project](https://openlibrary.org/about)
 - [The Vision (Dream) of OpenLibrary](https://openlibrary.org/about/vision)
-- [Visit the Blog](http://blog.openlibrary.org)
+- [Visit the Blog](https://blog.openlibrary.org)
 
 ## Installation
 
