@@ -1,32 +1,28 @@
 $def with (page)
 
-$ dev_nav1 = [
-$     ("/developers", "Developers"),
-$     ("/developers/api", "API"),
-$     ("/data", "Data"),
-$     ("/developers/licensing", "Licensing"),
-$ ]
-
-$ dev_nav2 = [
-$   ("http://github.com/internetarchive/openlibrary/issues", "Bugs"),
-$   ("http://github.com/internetarchive/openlibrary", "Source Code"),
-$   ("http://code.openlibrary.org/", "OL Development"),
+$ dev_pages = ["/developers", "/data", "/developers/api", "/developers/licensing"]
+$ dev_nav = [
+$     ("/developers", _("Developer Center (Home)")),
+$     ("/developers/api", _("Web API")),
+$     ("https://github.com/internetarchive/openlibrary-client", _("Client Library")),
+$     ("/data", _("Data Dumps")),
+$     ("https://github.com/internetarchive/openlibrary", _("Source Code")),
+$     ("https://github.com/internetarchive/openlibrary/issues", _("Report an Issue")),
+$     ("/developers/licensing", _("Licensing")),
 $ ]
 
 $ tour_nav = [
-$     ("/tour", "Welcome"),
-$     ("/search/howto", "Searching Open Library"),
-$     ("/tour/reading", "Reading Books"),
-$     ("/tour/books", "Adding & Editing Books"),
-$     ("/tour/subjects", "Using Subjects"),
-$     ("/help/faq", "Open Library F.A.Q."),
+$     ("/tour", _("Welcome")),
+$     ("/search/howto", _("Searching Open Library")),
+$     ("/tour/reading", _("Reading Books")),
+$     ("/tour/books", _("Adding & Editing Books")),
+$     ("/tour/subjects", _("Using Subjects")),
+$     ("/help/faq", _("Open Library F.A.Q.")),
 $ ]
 
-$if page.key in ["/developers","/data","/developers/api","/developers/licensing","/developers/ol","/developers/docs"]:
+$if page.key in dev_pages:
     <div class="subNav sansserif">
-        $:render_template("lib/subnavigation", dev_nav1)
-        <span style="float: left; padding: 0px 10px">&bull;</span>
-        $:render_template("lib/subnavigation", dev_nav2)
+        $:render_template("lib/subnavigation", dev_nav)
     </div>
     <br style="clear: both;"/>
 
