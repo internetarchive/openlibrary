@@ -874,11 +874,10 @@ class HTMLTagRemover(HTMLParser):
 
 
 @public
-def reformat_html(html_str, max_length=None, root_element=None):
+def reformat_html(html_str, max_length=None):
     """
     Reformats an HTML string, removing all opening and closing tags.
     Adds a line break element between each set of text content.
-    Optionally nests the formatted HTML inside of the given root element.
     Optionally truncates contents that exceeds the given max length.
 
     returns: A reformatted HTML string
@@ -905,12 +904,7 @@ def reformat_html(html_str, max_length=None, root_element=None):
     else:
         end_index = len(content) + 1
 
-    results = '<br>'.join(content[:end_index])
-
-    if root_element:
-        results = f'<{root_element}>{results}</{root_element}>'
-
-    return results
+    return '<br>'.join(content[:end_index])
 
 
 def setup():
