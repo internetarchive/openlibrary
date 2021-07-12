@@ -4,8 +4,8 @@
   "repository": "github:internetarchive:openlibrary",
   "license": "AGPL-3.0",
   "scripts": {
-    "watch": "webpack --watch --mode=development --progress",
-    "build-assets:webpack": "NODE_ENV=production webpack --mode=production",
+    "watch": "env WEBPACK_PACKAGE=webpack5 npx webpack --watch --mode=development --progress",
+    "build-assets:webpack": "env NODE_ENV=production WEBPACK_PACKAGE=webpack5 npx webpack --mode=production",
     "build-assets": "make js && make css && make components",
     "build-assets:css": "make css",
     "build-assets:js": "make js",
@@ -36,11 +36,12 @@
     "core-js": "3.11.1",
     "css-loader": "5.2.6",
     "datatables.net-dt": "1.10.24",
+    "details-polyfill": "1.2.0",
     "eslint": "6.8.0",
     "eslint-plugin-no-jquery": "2.6.0",
-    "eslint-plugin-vue": "7.10.0",
+    "eslint-plugin-vue": "7.12.1",
     "flot": "0.8.3",
-    "jest": "27.0.4",
+    "jest": "27.0.6",
     "jquery": "3.6.0",
     "jquery-colorbox": "1.6.4",
     "jquery-ui": "1.12.1",
@@ -64,6 +65,7 @@
     "vue-multiselect": "2.1.6",
     "vue-template-compiler": "2.6.12",
     "webpack": "4.46.0",
+    "webpack5": "npm:webpack@5.42.1",
     "webpack-cli": "4.7.0"
   },
   "jest": {

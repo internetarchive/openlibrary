@@ -1,6 +1,7 @@
 /**
  * Functionality for templates/covers
  */
+import 'jquery-ui/ui/widgets/sortable';
 
 //cover/change.html
 export function initCoversChange() {

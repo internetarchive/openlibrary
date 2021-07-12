@@ -1,7 +1,7 @@
 /* eslint-env node, es6 */
 // https://webpack.js.org/configuration
 const
-    webpack = require('webpack'),
+    webpack = require('webpack5'),
     path = require('path'),
     prod = process.env.NODE_ENV === 'production',
     // The output directory for all build artifacts. Only absolute paths are accepted by
@@ -82,7 +82,7 @@ module.exports = {
             }
         },
         // Don't produce production output when a build error occurs.
-        noEmitOnErrors: prod
+        emitOnErrors: !prod
     },
 
     output: {
@@ -109,7 +109,7 @@ module.exports = {
     // The source map is intentionally exposed
     // to users via sourceMapFilename for prod debugging.
     devtool: 'source-map',
-    mode: prod,
+    mode: prod ? 'production' : 'development',
 
     performance: {
         maxAssetSize: 703 * 1024,

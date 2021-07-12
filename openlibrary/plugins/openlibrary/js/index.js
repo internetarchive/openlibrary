@@ -1,8 +1,6 @@
 import 'jquery';
 import 'jquery-validation';
 import 'jquery-ui/ui/widgets/dialog';
-import 'jquery-ui/ui/widgets/sortable';
-import 'jquery-ui/ui/widgets/tabs';
 import 'jquery-ui/ui/widgets/autocomplete';
 // For dialog boxes (e.g. add to list)
 import 'jquery-colorbox';
@@ -29,7 +27,6 @@ import '../../../../static/css/js-all.less';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
 import { confirmDialog, initDialogs } from './dialog';
-import initTabs from './tabs.js';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -69,13 +66,26 @@ initAnalytics();
 
 // Initialise some things
 jQuery(function () {
+    // conditionally load polyfill for <details> tags (IE11)
+    // See http://diveintohtml5.info/everything.html#details
+    if (!('open' in document.createElement('details'))) {
+        import(/* webpackChunkName: "details-polyfill" */ 'details-polyfill');
+    }
+
     const $markdownTextAreas = $('textarea.markdown');
     // Live NodeList is cast to static array to avoid infinite loops
     const $carouselElements = $('.carousel--progressively-enhanced');
+    const $tabs = $('#tabsAddbook,#tabsAddauthor,.tabs:not(.ui-tabs)');
+
     initDialogs();
     // expose ol_confirm_dialog method
     $.fn.ol_confirm_dialog = confirmDialog;
-    initTabs($('#tabsAddbook,#tabsAddauthor,.tabs:not(.ui-tabs)'));
+
+    if ($tabs.length) {
+        import(/* webpackChunkName: "tabs" */ './tabs')
+            .then((module) => module.initTabs($tabs));
+    }
+
     initValidate($);
     autocompleteInit($);
     addNewFieldInit($);
@@ -163,7 +173,7 @@ jQuery(function () {
 
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
-        import('./realtime_account_validation.js')
+        import(/* webpackChunkName: "realtime-account-validation" */'./realtime_account_validation.js')
             .then(module => module.initRealTimeValidation());
     }
     // conditionally load readmore button based on class in the page
@@ -173,12 +183,12 @@ jQuery(function () {
     }
     // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
-        import('./goodreads_import.js')
+        import(/* webpackChunkName: "goodreads-import" */'./goodreads_import.js')
             .then(module => module.initGoodreadsImport());
     }
     // conditionally loads Related Carousels based on class in the page
     if (document.getElementsByClassName('RelatedWorksCarousel').length) {
-        import('./carousels_partials.js')
+        import(/* webpackChunkName: "carousels-partials" */'./carousels_partials.js')
             .then(module => module.initCarouselsPartials());
     }
     // Enable any carousels in the page
@@ -198,7 +208,7 @@ jQuery(function () {
     }
 
     if (window.READINGLOG_STATS_CONFIG) {
-        import(/* webpackChunkName: "readinglog_stats" */ './readinglog_stats')
+        import(/* webpackChunkName: "readinglog-stats" */ './readinglog_stats')
             .then(module => module.init(window.READINGLOG_STATS_CONFIG));
     }
 
@@ -209,25 +219,27 @@ jQuery(function () {
     }
 
     if (document.getElementsByClassName('modal-link').length) {
-        import(/* webpackChunkName: "patron_metadata" */ './patron-metadata')
+        import(/* webpackChunkName: "patron-metadata" */ './patron-metadata')
             .then((module) => module.initPatronMetadata());
     }
 
-    if (document.getElementsByClassName('manageCovers').length) {
+    const manageCoversElement = document.getElementsByClassName('manageCovers').length;
+    const addCoversElement = document.getElementsByClassName('imageIntro').length;
+    const saveCoversElement = document.getElementsByClassName('imageSaved').length;
+
+    if (addCoversElement || manageCoversElement || saveCoversElement) {
         import(/* webpackChunkName: "covers" */ './covers')
-            .then((module) => module.initCoversChange());
-    }
-
-    // Load from iframe
-    if (document.getElementsByClassName('imageIntro').length) {
-        import('./covers')
-            .then((module) => module.initCoversAddManage());
-    }
-
-    // Load from iframe
-    if (document.getElementsByClassName('imageSaved').length) {
-        import('./covers')
-            .then((module) => module.initCoversSaved());
+            .then((module) => {
+                if (manageCoversElement) {
+                    module.initCoversChange();
+                }
+                if (addCoversElement) {
+                    module.initCoversAddManage();
+                }
+                if (saveCoversElement) {
+                    module.initCoversSaved();
+                }
+            });
     }
 
     if (document.getElementById('addbook')) {
