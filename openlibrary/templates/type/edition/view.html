@@ -283,7 +283,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                               $_("Page %(page)s", page=excerpt.pages),
                           $if excerpt.author:
                               $def excerpt_author_link(): <a href="$excerpt.author.key">$excerpt.author.displayname</a>
-                              $:_("added by %(authorlink)s.", authorlink=str(excerpt_author_link()).strip()))
+                              $:_("added by %(authorlink)s.", authorlink=str(excerpt_author_link()).strip())
                           $else:
                               $_("added anonymously.")
                           $if excerpt.comment:
