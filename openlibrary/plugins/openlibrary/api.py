@@ -481,12 +481,13 @@ class patron_observations(delegate.page):
 
         return response('Observations added')
 
+
 class merge_works(delegate.page):
     path = "/merge_works"
     encoding = "json"
 
     @staticmethod
-    def concat_and_uniq_arr_field_values_from_dicts(
+    def uniq_arr_field_values_from_dicts(
             field_name: str,
             dict_one: dict,
             dict_two: dict
@@ -500,10 +501,10 @@ class merge_works(delegate.page):
     @staticmethod
     def merge_work_dupe_into_original(original: dict, dupe: dict) -> dict:
         for field_name in [
-            'authors', 'excerpts', 'links', 'covers', 'subjects', 'subject_people',
-            'subject_places', 'subject_times'
+            'authors', 'excerpts', 'links', 'covers',
+            'subjects', 'subject_people', 'subject_places', 'subject_times'
         ]:
-            original[field_name] = merge_works.concat_and_uniq_arr_field_values_from_dicts(
+            original[field_name] = merge_works.uniq_arr_field_values_from_dicts(
                 field_name=field_name,
                 dict_one=original,
                 dict_two=dupe
@@ -515,7 +516,9 @@ class merge_works(delegate.page):
         work_dicts_to_merge_with: list[dict] = [el.dict() for el in dupes]
 
         merged_work: dict = reduce(
-            lambda final_work, dupe: self.merge_work_dupe_into_original(final_work, dupe),
+            lambda final_work, dupe: self.merge_work_dupe_into_original(
+                final_work, dupe
+            ),
             [main_work_dict, *work_dicts_to_merge_with]
         )
 
@@ -527,7 +530,9 @@ class merge_works(delegate.page):
     def parse_and_validate_params(self, params: Storage):
         if not params.main or not params.works_to_merge:
             return delegate.RawText(
-                text=json.dumps({'error': 'need both main work id and work ids to merge with !'}),
+                text=json.dumps({
+                    'error': 'need both main work id and work ids to merge with !'
+                }),
                 content_type="application/json"
             )
         # TODO: add validations here
@@ -536,7 +541,12 @@ class merge_works(delegate.page):
         work_ids_to_merge: list[str] = work_ids_to_merge_str.split(',')
         return main_work_id, work_ids_to_merge
 
-    def update_work_id_for_edition(self, edition_dict, from_work_key: str, to_work_key: str) -> dict:
+    def update_work_id_for_edition(
+            self,
+            edition_dict: dict,
+            from_work_key: str,
+            to_work_key: str
+    ) -> dict:
         edition_dict['works'] = [
             dict(key=to_work_key) if el.get('key') == from_work_key else el
             for el in edition_dict.get('works', [])
@@ -592,7 +602,10 @@ class merge_works(delegate.page):
             self.update_work_id_for_edition(edition, work.key, main_work.key)
             for edition in self.get_editions_of_work(work)
         ] for work in dupes))
-        dupes_redirects:list[dict] = [self.make_redirect(main_work_key, work.key) for work in dupes]
+        dupes_redirects: list[dict] = [
+            self.make_redirect(main_work_key, work.key)
+            for work in dupes
+        ]
         merged_work: dict = self.merge_work_with_dupes(main_work, dupes)
 
         web.ctx.site.save_many([

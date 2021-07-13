@@ -259,6 +259,10 @@ class Bookshelves(object):
     @classmethod
     def migrate_bookshelves(cls, from_work_id: int, to_work_id: int):
         oldb = db.get_db()
-        query = "update bookshelves_books set work_id = $to_work_id where work_id = $from_work_id RETURNING *;"
-        result = oldb.query(query, {'from_work_id': from_work_id, 'to_work_id': to_work_id})
+        query = "update bookshelves_books set work_id = $to_work_id " \
+                "where work_id = $from_work_id RETURNING *;"
+        result = oldb.query(query, {
+            'from_work_id': from_work_id,
+            'to_work_id': to_work_id
+        })
         return list(result)
