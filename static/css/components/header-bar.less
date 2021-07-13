@@ -211,7 +211,6 @@
     li {
       -ms-flex-preferred-size: 100%;
       flex-basis: 100%;
-      cursor: pointer;
       padding: 5px 0;
       font-size: 1em;
 
@@ -444,7 +443,6 @@ div.search-facet:focus-within {
   -ms-flex: 1;
   flex: 1;
   position: relative;
-  cursor: pointer;
 
   summary::marker {
     content: "";
@@ -458,6 +456,7 @@ div.search-facet:focus-within {
     -webkit-box-align: center;
     -ms-flex-align: center;
     align-items: center;
+    cursor: pointer;
     .header-dropdown__icon {
       border: none;
       margin-right: 5px;
@@ -473,6 +472,10 @@ div.search-facet:focus-within {
 
   summary::marker {
     content: "";
+  }
+
+  summary {
+    cursor: pointer;
   }
 
   .down-arrow {
