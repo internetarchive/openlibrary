@@ -116,3 +116,10 @@ class Ratings(object):
             where = "work_id=$work_id AND username=$username"
             return oldb.update('ratings', where=where,
                                rating=rating,  vars=data)
+
+    @classmethod
+    def migrate_ratings(cls, from_work_id: int, to_work_id: int):
+        oldb = db.get_db()
+        query = "update ratings set work_id = $to_work_id where work_id = $from_work_id RETURNING *;"
+        result = oldb.query(query, {'from_work_id': from_work_id, 'to_work_id': to_work_id})
+        return list(result)

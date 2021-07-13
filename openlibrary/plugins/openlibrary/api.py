@@ -3,6 +3,7 @@ This file should be for internal APIs which Open Library requires for
 its experience. This does not include public facing APIs with LTS
 (long term support)
 """
+import itertools
 from functools import reduce
 
 import web
@@ -16,6 +17,8 @@ from infogami.utils.view import render_template  # noqa: F401 used for its side 
 from infogami.plugins.api.code import jsonapi
 from infogami.utils.view import add_flash_message
 from openlibrary import accounts
+from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.admin.memory import Storage
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.utils import extract_numeric_id_from_olid
@@ -533,21 +536,38 @@ class merge_works(delegate.page):
         work_ids_to_merge: list[str] = work_ids_to_merge_str.split(',')
         return main_work_id, work_ids_to_merge
 
+    def update_work_id_for_edition(self, edition_dict, from_work_key: str, to_work_key: str) -> dict:
+        edition_dict['works'] = [
+            dict(key=to_work_key) if el.get('key') == from_work_key else el
+            for el in edition_dict.get('works', [])
+        ]
+        return edition_dict
+
+    def get_editions_of_work(self, work: Work) -> list[dict]:
+        keys: list = web.ctx.site.things({"type": "/type/edition", "works": work.key})
+        return web.ctx.site.get_many(keys, raw=True)
+
+    @staticmethod
+    def _get_id_from_work_key(work_key: str) -> int:
+        return int(work_key.replace('/works/OL', '').replace('W', ''))
+
+    def make_redirect(self, main_work_key, dupe_work_key) -> dict:
+        return {
+            'location': main_work_key,
+            'key': dupe_work_key,
+            'type': {'key': '/type/redirect'}
+        }
+
     def GET(self) -> delegate.RawText:
         params = web.input(main='', works_to_merge='')
         main_work_id, work_ids_to_merge = self.parse_and_validate_params(params)
 
         main_work: Work = web.ctx.site.get(f'/works/{main_work_id}')
-        works_to_merge_with: list[Work] = [
+        dupes: list[Work] = [
             web.ctx.site.get(f'/works/{el}')
             for el in work_ids_to_merge
         ]
-        merged_work = self.merge_work_with_dupes(main_work, works_to_merge_with)
-
-        # TODO: setup redirects to main work for all the dupes
-        # TODO: setup all the editions of the dupes to point to the original work
-        # TODO: update reading logs of all the dupes to point to the main work
-
+        merged_work = self.merge_work_with_dupes(main_work, dupes)
         return delegate.RawText(
             text=json.dumps({
                 'main_work_id': main_work_id,
@@ -560,12 +580,39 @@ class merge_works(delegate.page):
     def POST(self) -> delegate.RawText:
         params = web.input(main='', works_to_merge='')
         main_work_id, work_ids_to_merge = self.parse_and_validate_params(params)
-        main_work: Work = web.ctx.site.get(f'/works/{main_work_id}')
-        works_to_merge_with: list[Work] = [
-            web.ctx.site.get(f'/works/{el}')
-            for el in work_ids_to_merge
-        ]
-        merged_work = self.merge_work_with_dupes(main_work, works_to_merge_with)
+        main_work_key: str = f'/works/{main_work_id}'
+        main_work: Work = web.ctx.site.get(main_work_key)
+        dupes: list[Work] = list(filter(
+            None,
+            [web.ctx.site.get(f'/works/{el}') for el in work_ids_to_merge]
+        ))
+
+        # move all editions from dupes to the main work
+        all_editions_to_update: list[dict] = list(itertools.chain.from_iterable([
+            self.update_work_id_for_edition(edition, work.key, main_work.key)
+            for edition in self.get_editions_of_work(work)
+        ] for work in dupes))
+        dupes_redirects:list[dict] = [self.make_redirect(main_work_key, work.key) for work in dupes]
+        merged_work: dict = self.merge_work_with_dupes(main_work, dupes)
+
+        web.ctx.site.save_many([
+            merged_work,
+            *dupes_redirects,
+            *all_editions_to_update
+        ], 'merging')
+
+        # move bookshelves and ratings from the dupes to main work
+        for work in dupes:
+            # TODO: Optimize query here, from should be an array
+            Bookshelves.migrate_bookshelves(
+                from_work_id=self._get_id_from_work_key(work.key),
+                to_work_id=self._get_id_from_work_key(main_work_key)
+            )
+            Ratings.migrate_ratings(
+                from_work_id=self._get_id_from_work_key(work.key),
+                to_work_id=self._get_id_from_work_key(main_work_key)
+            )
+
         return delegate.RawText(
             text=json.dumps({
                 'main_work_id': main_work_id,
