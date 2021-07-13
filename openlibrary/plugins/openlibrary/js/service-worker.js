@@ -4,7 +4,11 @@ import { offlineFallback } from 'workbox-recipes';
 import { setDefaultHandler, registerRoute } from 'workbox-routing';
 import { CacheFirst, NetworkFirst, NetworkOnly } from 'workbox-strategies';
 import {CacheableResponsePlugin} from 'workbox-cacheable-response';
+import { clientsClaim } from 'workbox-core';
 // import { warmStrategyCache } from 'workbox-recipes';
+
+self.skipWaiting()
+clientsClaim();
 
 //precache
 precacheAndRoute(self.__WB_MANIFEST);
@@ -45,14 +49,6 @@ registerRoute(
         ],
     })
 );
-
-//Warm Runtime Cache (not working properly) (Can't use Regex)
-// const strategy = new CacheFirst();
-// const urls = [
-//   '/account/login',
-// ];
-
-// warmStrategyCache({urls, strategy});
 
 // covers png cache
 registerRoute(
