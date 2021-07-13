@@ -3,6 +3,7 @@ This file should be for internal APIs which Open Library requires for
 its experience. This does not include public facing APIs with LTS
 (long term support)
 """
+from functools import reduce
 
 import web
 import re
@@ -15,13 +16,14 @@ from infogami.utils.view import render_template  # noqa: F401 used for its side 
 from infogami.plugins.api.code import jsonapi
 from infogami.utils.view import add_flash_message
 from openlibrary import accounts
+from openlibrary.plugins.admin.memory import Storage
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
 from openlibrary.core.observations import get_observations, Observations
-from openlibrary.core.models import Booknotes
+from openlibrary.core.models import Booknotes, Work
 from openlibrary.core.sponsorships import qualifies_for_sponsorship
 from openlibrary.core.vendors import (
     get_amazon_metadata, create_edition_from_amazon_metadata,
@@ -475,3 +477,100 @@ class patron_observations(delegate.page):
             }), content_type="application/json")
 
         return response('Observations added')
+
+class merge_works(delegate.page):
+    path = "/merge_works"
+    encoding = "json"
+
+    @staticmethod
+    def concat_and_uniq_arr_field_values_from_dicts(
+            field_name: str,
+            dict_one: dict,
+            dict_two: dict
+    ) -> list[dict]:
+        arr_one = dict_one.get(field_name, [])
+        arr_two = dict_two.get(field_name, [])
+        arr_one_jsons = [json.dumps(el, sort_keys=True) for el in arr_one]
+        arr_two_jsons = [json.dumps(el, sort_keys=True) for el in arr_two]
+        return [json.loads(el) for el in list({*arr_one_jsons, *arr_two_jsons})]
+
+    @staticmethod
+    def merge_work_dupe_into_original(original: dict, dupe: dict) -> dict:
+        for field_name in [
+            'authors', 'excerpts', 'links', 'covers', 'subjects', 'subject_people',
+            'subject_places', 'subject_times'
+        ]:
+            original[field_name] = merge_works.concat_and_uniq_arr_field_values_from_dicts(
+                field_name=field_name,
+                dict_one=original,
+                dict_two=dupe
+            )
+        return original
+
+    def merge_work_with_dupes(self, main_work: Work, dupes: list[Work]) -> dict:
+        main_work_dict: dict = main_work.dict()
+        work_dicts_to_merge_with: list[dict] = [el.dict() for el in dupes]
+
+        merged_work: dict = reduce(
+            lambda final_work, dupe: self.merge_work_dupe_into_original(final_work, dupe),
+            [main_work_dict, *work_dicts_to_merge_with]
+        )
+
+        merged_work['latest_revision'] = merged_work['latest_revision'] + 1
+        merged_work['revision'] = merged_work['revision'] + 1
+        # TODO: update last modified at
+        return merged_work
+
+    def parse_and_validate_params(self, params: Storage):
+        if not params.main or not params.works_to_merge:
+            return delegate.RawText(
+                text=json.dumps({'error': 'need both main work id and work ids to merge with !'}),
+                content_type="application/json"
+            )
+        # TODO: add validations here
+        main_work_id: str = params.main
+        work_ids_to_merge_str: str = params.works_to_merge
+        work_ids_to_merge: list[str] = work_ids_to_merge_str.split(',')
+        return main_work_id, work_ids_to_merge
+
+    def GET(self) -> delegate.RawText:
+        params = web.input(main='', works_to_merge='')
+        main_work_id, work_ids_to_merge = self.parse_and_validate_params(params)
+
+        main_work: Work = web.ctx.site.get(f'/works/{main_work_id}')
+        works_to_merge_with: list[Work] = [
+            web.ctx.site.get(f'/works/{el}')
+            for el in work_ids_to_merge
+        ]
+        merged_work = self.merge_work_with_dupes(main_work, works_to_merge_with)
+
+        # TODO: setup redirects to main work for all the dupes
+        # TODO: setup all the editions of the dupes to point to the original work
+        # TODO: update reading logs of all the dupes to point to the main work
+
+        return delegate.RawText(
+            text=json.dumps({
+                'main_work_id': main_work_id,
+                'work_ids_to_merge': work_ids_to_merge,
+                'merged_work': merged_work
+            }),
+            content_type="application/json"
+        )
+
+    def POST(self) -> delegate.RawText:
+        params = web.input(main='', works_to_merge='')
+        main_work_id, work_ids_to_merge = self.parse_and_validate_params(params)
+        main_work: Work = web.ctx.site.get(f'/works/{main_work_id}')
+        works_to_merge_with: list[Work] = [
+            web.ctx.site.get(f'/works/{el}')
+            for el in work_ids_to_merge
+        ]
+        merged_work = self.merge_work_with_dupes(main_work, works_to_merge_with)
+        return delegate.RawText(
+            text=json.dumps({
+                'main_work_id': main_work_id,
+                'work_ids_to_merge': work_ids_to_merge,
+                'merged_work': merged_work
+            }),
+            content_type="application/json"
+        )
