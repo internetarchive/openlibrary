@@ -32,7 +32,7 @@ def main(cmd, args):
     elif cmd == 'compile':
         i18n.compile_translations()
     elif cmd == 'update':
-        i18n.update_translations()
+        i18n.update_translations(args)
     elif cmd == 'add':
         i18n.generate_po(args)
     elif cmd == 'help':
