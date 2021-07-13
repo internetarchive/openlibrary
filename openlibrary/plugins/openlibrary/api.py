@@ -568,7 +568,7 @@ class merge_works(delegate.page):
             'type': {'key': '/type/redirect'}
         }
 
-    def GET(self) -> delegate.RawText:
+    def GET(self):
         params = web.input(main='', works_to_merge='')
         main_work_id, work_ids_to_merge = self.parse_and_validate_params(params)
 
