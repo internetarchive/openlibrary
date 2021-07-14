@@ -21,13 +21,35 @@ def _compile_translation(po, mo):
     try:
         catalog = read_po(open(po, 'rb'))
 
-        f = open(mo, 'wb')
-        write_mo(f, catalog)
-        f.close()
-        print('compiled', po, file=web.debug)
+        if _validate_catalog(catalog):
+            f = open(mo, 'wb')
+            write_mo(f, catalog)
+            f.close()
+            print('compiled', po, file=web.debug)
+        else:
+            print("Failed to compile", po)
+            print()
     except Exception as e:
         print('failed to compile', po, file=web.debug)
         raise e
+
+
+def _validate_catalog(catalog):
+    validation_errors = []
+    for message in catalog:
+        if message.fuzzy:
+            if message.lineno:
+                validation_errors.append(f'  Line {message.lineno}: "{message.string}" is fuzzy.')
+            else:
+                validation_errors.append('  File is fuzzy.  Remove line containing "#, fuzzy" found near the beginning of the file.')
+
+    if validation_errors:
+        print("Validation failed...")
+        print("Please correct the following errors before proceeding:")
+        for e in validation_errors:
+            print(e)
+
+    return len(validation_errors) == 0
 
 
 def get_locales():
