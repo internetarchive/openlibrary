@@ -33,7 +33,7 @@
       "maxSize": "1KB"
     },
     {
-      "path": "static/build/patron-metadata.*.js",
+      "path": "static/build/modal-links.*.js",
       "maxSize": "5KB"
     },
     {
