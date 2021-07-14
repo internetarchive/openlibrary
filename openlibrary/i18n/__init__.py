@@ -39,12 +39,14 @@ def _validate_catalog(catalog):
     for message in catalog:
         if message.fuzzy:
             if message.lineno:
-                validation_errors.append(f'  Line {message.lineno}: "{message.string}" is fuzzy.')
+                validation_errors.append(
+                    f'  Line {message.lineno}: "{message.string}" is fuzzy.'
+                )
             else:
                 validation_errors.append(
-                    '  File is fuzzy.  Remove line containing "#, fuzzy" found near the '
-                    'beginning of the file.'
-                    )
+                    '  File is fuzzy.  Remove line containing "#, fuzzy" found near '
+                    'the beginning of the file.'
+                )
 
     if validation_errors:
         print("Validation failed...")
