@@ -11,13 +11,14 @@ from openlibrary import i18n
 def help():
     print("utility to manage i18n messages")
     print() 
-    print("USAGE: %s [extract|compile|update]" % sys.argv[0])
+    print("USAGE: %s [extract|compile|update|validate]" % sys.argv[0])
     print() 
     print("Available Commands:")
-    print("  compile - compile the message files (.po) to .mo")
-    print("  extract - extract i18n messages from templates and macros")
-    print("  update  - update the existing translations by adding newly added string to it.")
-    print("  help    - display this help message")
+    print("  compile  - compile the message files (.po) to .mo")
+    print("  extract  - extract i18n messages from templates and macros")
+    print("  update   - update the existing translations by adding newly added string to it.")
+    print("  validate - check message file for errors")
+    print("  help     - display this help message")
     
 def main(cmd, args):
     if cmd == 'extract':
@@ -35,6 +36,8 @@ def main(cmd, args):
         i18n.update_translations()
     elif cmd == 'add':
         i18n.generate_po(args)
+    elif cmd == 'validate':
+        i18n.validate_translations(args)
     elif cmd == 'help':
         help()
     else:

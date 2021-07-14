@@ -21,14 +21,10 @@ def _compile_translation(po, mo):
     try:
         catalog = read_po(open(po, 'rb'))
 
-        if _validate_catalog(catalog):
-            f = open(mo, 'wb')
-            write_mo(f, catalog)
-            f.close()
-            print('compiled', po, file=web.debug)
-        else:
-            print("Failed to compile", po)
-            print()
+        f = open(mo, 'wb')
+        write_mo(f, catalog)
+        f.close()
+        print('compiled', po, file=web.debug)
     except Exception as e:
         print('failed to compile', po, file=web.debug)
         raise e
@@ -55,6 +51,26 @@ def _validate_catalog(catalog):
             print(e)
 
     return len(validation_errors) == 0
+
+
+def validate_translations(args):
+    if args:
+        locale = args[0]
+        po_path = os.path.join(root, locale, 'messages.po')
+
+        if os.path.exists(po_path):
+            catalog = read_po(open(po_path, 'rb'))
+            is_valid = _validate_catalog(catalog)
+
+            if is_valid:
+                print(f'Translations for locale "{locale}" are valid!')
+            return is_valid
+        else:
+            print(f'Portable object file for locale "{locale}" does not exist.')
+            return False
+    else:
+        print('Must include locale code when executing validate.')
+        return False
 
 
 def get_locales():
