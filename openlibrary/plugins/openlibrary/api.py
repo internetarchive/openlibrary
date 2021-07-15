@@ -21,7 +21,7 @@ from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
 from openlibrary.core.observations import get_observations, Observations
-from openlibrary.core.models import Booknotes
+from openlibrary.core.models import Booknotes, Work
 from openlibrary.core.sponsorships import qualifies_for_sponsorship
 from openlibrary.core.vendors import (
     get_amazon_metadata, create_edition_from_amazon_metadata,
@@ -80,6 +80,7 @@ class browse(delegate.page):
         return delegate.RawText(
             json.dumps(result),
             content_type="application/json")
+
 
 class ratings(delegate.page):
     path = r"/works/OL(\d+)W/ratings"
@@ -273,10 +274,10 @@ class work_editions(delegate.page):
         }
 
         if offset > 0:
-            links['prev'] = web.changequery(offset=min(0, offset-limit))
+            links['prev'] = web.changequery(offset=min(0, offset - limit))
 
         if offset + len(editions) < size:
-            links['next'] = web.changequery(offset=offset+limit)
+            links['next'] = web.changequery(offset=offset + limit)
 
         return {
             "links": links,
@@ -396,7 +397,7 @@ class price_api(delegate.page):
 
         # if bwb fails and isbn10, try again with isbn13
         if id_type == 'isbn_10' and \
-           metadata['betterworldbooks'].get('price') is None:
+                metadata['betterworldbooks'].get('price') is None:
             isbn_13 = isbn_10_to_isbn_13(id_)
             metadata['betterworldbooks'] = isbn_13 and get_betterworldbooks_metadata(
                 isbn_13) or {}
@@ -475,3 +476,39 @@ class patron_observations(delegate.page):
             }), content_type="application/json")
 
         return response('Observations added')
+
+
+class works(delegate.page):
+    path = r"/works/OL(\d+)W"
+    encoding = "json"
+
+    def get_editions_of_work(self, work: Work) -> list[dict]:
+        keys: list = web.ctx.site.things({"type": "/type/edition", "works": work.key})
+        return web.ctx.site.get_many(keys, raw=True)
+
+    def DELETE(self, work_id: str):
+        user = accounts.get_current_user()
+        if not (user and (user.is_admin() or user.is_librarian())):
+            return web.HTTPError('403 Forbidden')
+
+        work_id = f"OL{work_id}W"
+        input = web.input(comment=None)
+
+        # TODO: should this be in the JSON body? currently its a query param
+        comment = input.get('comment')
+
+        work: Work = web.ctx.site.get(f'/works/{work_id}')
+        editions: list[dict] = self.get_editions_of_work(work)
+        keys_to_delete = [el.get('key') for el in [*editions, work]]
+        delete_payload = [
+            dict(key=key, type=dict(key='/type/delete'))
+            for key in keys_to_delete
+        ]
+
+        # TODO: If work gets deleted and editions delete exceptions out, there
+        #  might be hanging editions. Should we first delete editions and then
+        #  check and delete work?
+        web.ctx.site.save_many(delete_payload, comment)
+        return delegate.RawText(json.dumps({
+            'status': 'ok',
+        }), content_type="application/json")
