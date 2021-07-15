@@ -287,6 +287,10 @@ jQuery(function () {
 
     $('#wikiselect').on('focus', function(){$(this).trigger('select');})
 
+    $('.hamburger-component .mask-menu').on('click', function () {
+        $('details[open]').not(this).removeAttr('open');
+    });
+
     // Open one dropdown at a time.
     $(document).on('click', function (event) {
         const $openMenus = $('.header-dropdown details[open]').parents('.header-dropdown');

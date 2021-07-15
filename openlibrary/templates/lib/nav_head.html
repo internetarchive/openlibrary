@@ -21,7 +21,6 @@ $def with (page)
   $  'image': '/static/images/menu.png',
   $  'label': 'additional options menu'
   $ }
-  $:render_template("lib/header_dropdown", hamburgerProps )
 
   <div class="logo-component">
     <a href="/" title="$_('The Internet Archive\'s Open Library: One page for every book')">
@@ -117,4 +116,59 @@ $def with (page)
     $if ctx.user.is_beta_tester():
       $accountProps['links'].insert(5, { "href": "/account/books/notes", "text": _("My Book Notes") })
     $:render_template("lib/header_dropdown", accountProps )
+
+    <div class="header-dropdown account_icon">
+      <img class="header-dropdown__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="My account">
+    </div>
+
+  <div class="hamburger-component header-dropdown">
+
+    <details>
+      <summary>
+        <img src="/static/images/menu.png" alt="additional options menu"/>
+      </summary>
+      <div class="mask-menu"></div>
+      <div class="hamburger-dropdown-component navigation-dropdown-component">
+        <ul class="dropdown-menu hamburger-dropdown-menu">
+          <li class="subsection">My Open Library</li>
+          $if not ctx.user:
+            <li class="login-links"><a class="login" href="/account/login">$_("Log in")</a></li>
+            <li class="login-links"><a href="/account/create">$_("Sign up")</a></li>
+          $if ctx.user:
+            <li><a href="$ctx.user.key">$_("My Profile")</a></li>
+            <li><a href="$homepath()/account/loans">$_("My Loans")</a></li>
+            <li><a href="$ctx.user.key/lists">$_("My Lists")</a></li>
+            <li><a href="/account/books">$_("My Reading Log")</a></li>
+            <li><a href="/account/books/already-read/stats">$_("My Reading Stats")</a></li>
+            <li><a href="$homepath()/account">$_("Settings")</a></li>
+            <li>
+              <form name="logout" action="/account/logout" method="post">
+                <a href="#" onclick="document.forms['logout'].submit()">$_("Log out")</a>
+              </form>
+            </li>
+
+          <li class="subsection">Browse</li>
+          <li><a href="/subjects">$_("Subjects")</a></li>
+          <li><a href="/explore">$_("Library Explorer")</a></li>
+          <li><a href="/lists">$_("Lists")</a></li>
+          <li><a href="/collections">$_("Collections")</a></li>
+          <li><a href="/k-12">$_("K-12 Student Library")</a></li>
+          <li><a href="/random">$_("Random Book")</a></li>
+          <li><a href="/advancedsearch">$_("Advanced Search")</a></li>
+          <li class="subsection">Others</li>
+          <li><a href="/books/add">$_("Add a Book")</a></li>
+          <li><a href="/sponsorship">$_("Sponsor a Book")</a></li>
+          <li><a href="/recentchanges">$_("Recent Community Edits")</a></li>
+          <li><a href="/developers">$_("Developer Center")</a></li>
+          <li><a href="/help">$_("Help & Support")</a></li>
+        </ul>
+      </div>
+    </details>
+  </div>
 </header>
+<div class="header-bar mobile">
+  <ul class="navigation-component mobile">
+    <li>$:render_template("lib/header_dropdown", browseProps )</li>
+    <li>$:render_template("lib/header_dropdown", moreProps )</li>
+  </ul>
+</div>

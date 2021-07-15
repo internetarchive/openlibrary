@@ -5,12 +5,25 @@
     }
   }
 
+  .account-component {
+    display: block;
+  }
+
+  .account_icon {
+    display: none;
+  }
+
   .navigation-component {
+    .display-flex();
     .dropdown-menu {
       border-top: none;
       border-top-right-radius: 0;
       border-top-left-radius: 0;
     }
+  }
+
+  .hamburger-component {
+    display: none;
   }
 
   .search-component {
@@ -28,5 +41,9 @@
       width: auto;
       max-width: 310px;
     }
+  }
+
+  &.mobile {
+    display: none;
   }
 }
