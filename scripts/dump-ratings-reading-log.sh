@@ -1,6 +1,6 @@
 psql -U openlibrary -d openlibrary -c "copy (
   select
-  concat('OL', bookshelves_books.work_id, 'W') as work_id,
+  concat('/works/OL', bookshelves_books.work_id, 'W') as work_id,
   case
     when (bookshelves_books.edition_id is NULL)
     then NULL
