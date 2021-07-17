@@ -8,7 +8,7 @@ psql -U openlibrary -d openlibrary -c "COPY (
       ELSE concat('/books/OL', bookshelves_books.edition_id, 'M')
     END AS edition_id,
     bookshelves.name AS name,
-    bookshelves_books.created AS created
+    DATE_TRUNC('day', bookshelves_books.created) AS created
   FROM bookshelves_books
   JOIN bookshelves
     ON bookshelves_books.bookshelf_id = bookshelves.id
@@ -21,7 +21,7 @@ psql -U openlibrary -d openlibrary -c "COPY (
     WHEN (ratings.edition_id IS NULL) THEN NULL
     ELSE concat('OL', ratings.edition_id, 'M')
   END AS edition_id,
-  ratings.created AS created,
+  DATE_TRUNC('day', ratings.created) AS created,
   ratings.rating AS rating
   FROM ratings
   WHERE ratings.created <= '$till_date'
