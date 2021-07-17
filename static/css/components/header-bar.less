@@ -99,7 +99,6 @@
     border-radius: 3px;
 
     li {
-      padding: 0 20px 0 10px;
       border-bottom: 1px solid @beige-two;
 
       // stylelint-disable max-nesting-depth, selector-max-specificity
@@ -138,6 +137,10 @@
       font-weight: bold;
       border-bottom: 3px solid @beige-two;
       padding: 10px;
+    }
+
+    li a {
+      padding: 10px 30px 10px 20px;
     }
 
     // stylelint-disable-next-line selector-max-specificity
@@ -180,17 +183,12 @@
       z-index: @z-index-level-5;
     }
 
-    .new {
-      display: flex;
-      justify-content: space-between;
-    }
-
     .badge {
       color: @white;
       background-color: @primary-blue;
       padding: 1px 3px;
       border-radius: 4px;
-      margin: 8px 0;
+      float: right;
     }
 
     // stylelint-disable max-nesting-depth, selector-max-specificity
