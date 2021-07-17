@@ -1,3 +1,5 @@
+# usage: till_date="2021-01-01" sh ./scripts/dump-ratings-reading-log.sh
+
 psql -U openlibrary -d openlibrary -c "COPY (
   SELECT
     concat('/works/OL', bookshelves_books.work_id, 'W') AS work_id,
@@ -10,6 +12,7 @@ psql -U openlibrary -d openlibrary -c "COPY (
   FROM bookshelves_books
   JOIN bookshelves
     ON bookshelves_books.bookshelf_id = bookshelves.id
+  WHERE bookshelves_books.created <= '$till_date'
 ) TO stdout WITH (format csv, header, delimiter E'\t')" | gzip -c > reading-log.txt.gz
 psql -U openlibrary -d openlibrary -c "COPY (
   SELECT
@@ -21,4 +24,5 @@ psql -U openlibrary -d openlibrary -c "COPY (
   ratings.created AS created,
   ratings.rating AS rating
   FROM ratings
+  WHERE ratings.created <= '$till_date'
 ) TO stdout WITH (format csv, header, delimiter E'\t')" | gzip -c > ratings.txt.gz
