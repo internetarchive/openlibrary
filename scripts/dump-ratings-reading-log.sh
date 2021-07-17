@@ -4,7 +4,7 @@ psql -U openlibrary -d openlibrary -c "copy (
   case
     when (bookshelves_books.edition_id is NULL)
     then NULL
-    else concat('OL', bookshelves_books.edition_id, 'M')
+    else concat('/books/OL', bookshelves_books.edition_id, 'M')
   end as edition_id,
   bookshelves.name as name,
   bookshelves_books.created as created
