@@ -13,7 +13,7 @@ psql -U openlibrary -d openlibrary -c "copy (
 ) to stdout with (format csv, header, delimiter E'\t')" | gzip -c > reading-log.txt.gz
 psql -U openlibrary -d openlibrary -c "copy (
   select
-  concat('OL', ratings.work_id, 'W') as work_id,
+  concat('OL', work_id, 'W') as work_id,
   case
     when (ratings.edition_id is NULL)
     then NULL
