@@ -1,25 +1,24 @@
-psql -U openlibrary -d openlibrary -c "copy (
-  select
-  concat('/works/OL', bookshelves_books.work_id, 'W') as work_id,
-  case
-    when (bookshelves_books.edition_id is NULL)
-    then NULL
-    else concat('/books/OL', bookshelves_books.edition_id, 'M')
-  end as edition_id,
-  bookshelves.name as name,
-  bookshelves_books.created as created
-  from bookshelves_books
-  join bookshelves on bookshelves_books.bookshelf_id = bookshelves.id
-) to stdout with (format csv, header, delimiter E'\t')" | gzip -c > reading-log.txt.gz
-psql -U openlibrary -d openlibrary -c "copy (
-  select
-  concat('OL', work_id, 'W') as work_id,
-  case
-    when (ratings.edition_id is NULL)
-    then NULL
-    else concat('OL', ratings.edition_id, 'M')
-  end as edition_id,
-  ratings.created as created,
-  ratings.rating as rating
-  from ratings
-) to stdout with (format csv, header, delimiter E'\t')" | gzip -c > ratings.txt.gz
+psql -U openlibrary -d openlibrary -c "COPY (
+  SELECT
+    concat('/works/OL', bookshelves_books.work_id, 'W') AS work_id,
+    CASE
+      WHEN (bookshelves_books.edition_id IS NULL) THEN NULL
+      ELSE concat('/books/OL', bookshelves_books.edition_id, 'M')
+    END AS edition_id,
+    bookshelves.name AS name,
+    bookshelves_books.created AS created
+  FROM bookshelves_books
+  JOIN bookshelves
+    ON bookshelves_books.bookshelf_id = bookshelves.id
+) TO stdout WITH (format csv, header, delimiter E'\t')" | gzip -c > reading-log.txt.gz
+psql -U openlibrary -d openlibrary -c "COPY (
+  SELECT
+  concat('OL', work_id, 'W') AS work_id,
+  CASE
+    WHEN (ratings.edition_id IS NULL) THEN NULL
+    ELSE concat('OL', ratings.edition_id, 'M')
+  END AS edition_id,
+  ratings.created AS created,
+  ratings.rating AS rating
+  FROM ratings
+) TO stdout WITH (format csv, header, delimiter E'\t')" | gzip -c > ratings.txt.gz
