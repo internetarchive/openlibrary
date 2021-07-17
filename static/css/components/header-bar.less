@@ -131,12 +131,13 @@
     height: 100vh;
     z-index: @z-index-level-2;
     overflow-y: auto;
+    overscroll-behavior: contain;
     background-color: @light-beige;
     box-shadow: 0 1px 20px rgba(0,0,0,.25);
     .subsection {
       font-weight: bold;
       border-bottom: 3px solid @beige-two;
-      padding: 7px;
+      padding: 10px;
     }
 
     // stylelint-disable-next-line selector-max-specificity
@@ -147,7 +148,8 @@
     .login-links {
       width: 50%;
       float: left;
-      padding: 5px 10px;
+      padding: 10px;
+      border-bottom: none;
     }
 
     // stylelint-disable-next-line selector-max-specificity
@@ -195,8 +197,8 @@
     details[open] {
       .mask-menu{
         visibility: visible;
-        opacity: .5;
-        animation: none !important;
+        opacity: 1;
+        animation: fadeIn .2s ease-in-out;
       }
       summary ~ * {
         animation: sweep .2s ease-in-out;
@@ -206,6 +208,11 @@
     @keyframes sweep {
       0%    {opacity: 0; transform: translateX(50px)}
       100%  {opacity: 1; transform: translateX(0)}
+    }
+
+    @keyframes fadeIn {
+      0% {opacity: 0;}
+      100% {opacity: 1;}
     }
     // stylelint-enable max-nesting-depth, selector-max-specificity
 
@@ -240,7 +247,7 @@
     right: 0;
     opacity: 0;
     bottom: 0;
-    background: rgba(0,0,0,.8);
+    background: rgba(0,0,0,.5);
     z-index: @z-index-level-1;
     visibility: hidden;
   }
