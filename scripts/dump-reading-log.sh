@@ -8,5 +8,5 @@ psql -U openlibrary -d openlibrary -c "COPY (
   DATE_TRUNC('day', ratings.created) AS created,
   ratings.rating AS rating
   FROM ratings
-  WHERE ratings.created <= '$till_date'
+  WHERE ratings.created <= '$date'
 ) TO stdout WITH (format csv, header, delimiter E'\t')"

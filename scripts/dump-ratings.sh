@@ -10,5 +10,5 @@ psql -U openlibrary -d openlibrary -c "COPY (
   FROM bookshelves_books
   JOIN bookshelves
     ON bookshelves_books.bookshelf_id = bookshelves.id
-  WHERE bookshelves_books.created <= '$till_date'
+  WHERE bookshelves_books.created <= '$date'
 ) TO stdout WITH (format csv, header, delimiter E'\t')"
