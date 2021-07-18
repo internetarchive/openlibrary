@@ -36,17 +36,11 @@
     -ms-flex-order: 3;
     order: 3;
 
-    a {
-      color: @white;
-      text-decoration: none;
-      display: block;
-    }
-
     .down-arrow {
       margin-top: 1px;
     }
 
-    .account-dropdown {
+    .account-dropdown-component {
       position: absolute;
       text-align: right;
       // Note, it must be padding so that the gap between the icon and
@@ -81,6 +75,7 @@
       // stylelint-enable declaration-block-no-duplicate-properties
 
       // stylelint-disable-next-line max-nesting-depth
+      button,
       a {
         color: @dark-grey;
       }
@@ -112,6 +107,7 @@
         background-color: @white;
       }
 
+      button,
       a {
         text-decoration: none;
         color: @dark-grey;
@@ -134,15 +130,49 @@
     order: 0;
     margin-right: 5px;
 
+    summary::marker {
+      content: "";
+    }
+
     label {
       background: transparent;
       border: none;
     }
 
-    img {
-      width: 44px;
-      height: 44px;
+    /*  Technical/design debt: For unknown historic reasons the hamburger button does not have an
+    arrow to the right of the icon, but the profile icon does. This is likely an accessibility
+    or UX problem.
+
+    There's an argument to be made that this should be visible for consistency with other dropdown
+    menus and to better meet user expectations which might expect the hamburger to load a menu
+    overlaying the screen as is consistent with other designs.
+
+    When OpenLibrary has a design lead, this should be understood and either reviewed or better
+    documented. */
+    .down-arrow {
+      display: none;
+    }
+  }
+
+  .header-dropdown {
+    // For the <details> polyfill used for IE11
+    summary::before {
+      content: "" !important;
+    }
+
+    .header-dropdown__icon {
+      width: 45px;
+      height: 45px;
       padding: 0 3px;
+    }
+
+    button,
+    a {
+      color: @white;
+      text-decoration: none;
+      display: block;
+      border: 0;
+      background: none;
     }
   }
 
@@ -186,6 +216,7 @@
       font-size: 1em;
 
       // stylelint-disable max-nesting-depth, selector-max-specificity
+      button,
       a {
         color: @dark-grey;
         text-decoration: none;
@@ -404,47 +435,8 @@
   }
 }
 
-.checkbox-menu, .checkbox-menu label {
-  cursor: pointer;
-}
-
-.account-component__checkbox {
-  display: none;
-
-  & ~ .navigation-dropdown-component ul {
-    display: none;
-  }
-
-  // stylelint-disable-next-line selector-max-specificity
-  &:checked ~ .navigation-dropdown-component ul {
-    display: block;
-  }
-}
-
-.hamburger-component__checkbox {
-  opacity: 0;
-
-  & ~ .hamburger-dropdown-component ul {
-    display: none;
-  }
-
-  // stylelint-disable-next-line selector-max-specificity
-  &:checked ~ .hamburger-dropdown-component ul {
-    display: block;
-  }
-}
-
-.navigation-component__checkbox {
-  opacity: 0;
-
-  & ~ .navigation-dropdown-component ul {
-    display: none;
-  }
-
-  // stylelint-disable-next-line selector-max-specificity
-  &:checked ~ .navigation-dropdown-component ul {
-    display: block;
-  }
+div.search-facet:focus-within {
+  outline: 2px solid;
 }
 
 .account-component {
@@ -452,20 +444,25 @@
   -ms-flex: 1;
   flex: 1;
   position: relative;
-  .dropdown-avatar {
+  cursor: pointer;
+
+  summary::marker {
+    content: "";
+  }
+}
+
+.hamburger-component,
+.account-component {
+  summary {
     .display-flex();
     -webkit-box-align: center;
     -ms-flex-align: center;
     align-items: center;
-    .avatar {
+    .header-dropdown__icon {
       border: none;
       margin-right: 5px;
-      background-size: cover;
-      background-position: center;
-      width: 45px;
-      height: 45px;
-      background-color: @mid-grey;
       border-radius: 3px;
+      box-sizing: content-box;
     }
   }
 }
@@ -473,6 +470,11 @@
 .navigation-component {
   text-align: center;
   position: relative;
+
+  summary::marker {
+    content: "";
+  }
+
   .down-arrow {
     position: relative;
     top: -2px;

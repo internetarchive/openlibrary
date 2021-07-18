@@ -6,6 +6,7 @@ $ component_times['TotalTime'] = time()
 $ tab = input(tab=None).tab
 $ editions = []
 $ page_type = page.key.split('/')[1]
+$ show_observations = True
 
 $if page.key.startswith('/works'):
   $ work = page
@@ -13,17 +14,27 @@ $elif page.works:
   $ work = list(page.works)[0]
 $else:
   $ work = page.make_work_from_orphaned_edition()
+  $ show_observations = False
 $ edition = storage({})
 
 $ component_times['get_sorted_editions'] = time()
+$# Fetch a work's editions
+$# Used for loading the editions table
+$# Book availability of editions injected by bulk get_availability API
 $ editions = work.get_sorted_editions()
 $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
 
+$# This collects which books are previewable in any manner
 $ previews = [e for e in editions if e.get('ocaid')]
 
+$# Choose an edition to render
 $if page.key.startswith('/books'):
+  $# We are on an editions page: an edition has been explicitly selected
+  $# NOTE: Editions use the ground_truth_availability API
   $ edition = page
 $elif editions:
+  $# We're presumably on a work url
+  $# Set a dummy default editions
   $ edition = editions[0]
   $# edition selection strategy (e.g. language, by id, first w/ ocaid)
   $ selected_ocaid = query_param('edition')
@@ -206,8 +217,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         </div>
         $:macros.ReadMore("subjects")
     </div>
-
-      $:macros.EditionNavBar(work.edition_count)
+      $:macros.EditionNavBar(work.edition_count, show_observations)
 
       <p class="preview-languages">
         $ seen = set()
@@ -273,7 +283,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                               $_("Page %(page)s", page=excerpt.pages),
                           $if excerpt.author:
                               $def excerpt_author_link(): <a href="$excerpt.author.key">$excerpt.author.displayname</a>
-                              $:_("added by %(authorlink)s.", authorlink=str(excerpt_author_link()).strip()))
+                              $:_("added by %(authorlink)s.", authorlink=str(excerpt_author_link()).strip())
                           $else:
                               $_("added anonymously.")
                           $if excerpt.comment:
@@ -440,29 +450,30 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
       $# BookNotes feature:
       $if ctx.user and ctx.user.is_beta_tester():
-        $ reader_observations = get_observation_metrics(work['key'])
-        $:render_template("observations/stats_component", work, edition, reader_observations, work_title, page.key)
+        $if show_observations:
+          $ reader_observations = get_observation_metrics(work['key'])
+          $:render_template("observations/stats_component", work, edition, reader_observations, work_title, page.key)
     </div>
+  </div>
 
-    <div class="workFooter">
-      $# pages like /books/ia:foo00bar are fake records created from metadata API.
-      $# Adding them to lists doesn't work. Disabling it to avoid any issues.
-      $if "lists" in ctx.features and not page.is_fake_record():
-        <h2 class="home-h2"><a href="$page.url()/lists">$_('Lists containing this Book')</a></h2>
-        <div class="user-book-options">
-          <div class="Tools tools-override">
-            $if work:
-              $ component_times['WorkListTime'] = time()
-              $:render_template("lists/widget", work, include_header=False, include_widget=False)
-              $ component_times['WorkListTime'] = time() - component_times['WorkListTime']
+  <div class="workFooter">
+    $# pages like /books/ia:foo00bar are fake records created from metadata API.
+    $# Adding them to lists doesn't work. Disabling it to avoid any issues.
+    $if "lists" in ctx.features and not page.is_fake_record():
+      <h2 class="home-h2"><a href="$page.url()/lists">$_('Lists containing this Book')</a></h2>
+      <div class="user-book-options">
+        <div class="Tools tools-override">
+          $if work:
+            $ component_times['WorkListTime'] = time()
+            $:render_template("lists/widget", work, include_header=False, include_widget=False)
+            $ component_times['WorkListTime'] = time() - component_times['WorkListTime']
 
-            $if edition:
-              $ component_times['EditionListTime'] = time()
-              $:render_template("lists/widget", edition, include_header=False, include_widget=False)
-              $ component_times['EditionListTime'] = time() - component_times['EditionListTime']
-          </div>
+          $if edition:
+            $ component_times['EditionListTime'] = time()
+            $:render_template("lists/widget", edition, include_header=False, include_widget=False)
+            $ component_times['EditionListTime'] = time() - component_times['EditionListTime']
         </div>
-    </div>
+      </div>
   </div>
 
   $ component_times['RelatedWorksCarousel'] = time()

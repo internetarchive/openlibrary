@@ -1,4 +1,4 @@
-$def with (items, key, sponsorship_count=None, reading_log_counts=None, lists=None, user=None, logged_in_user=None, public=False)
+$def with (items, key, sponsorship_count=None, reading_log_counts=None, lists=None, user=None, logged_in_user=None, public=False, sort_order='desc')
 $# Displays a user's reading log
 $# :param list items:
 $# :param Literal['currently-reading', 'want-to-read', 'already-read', 'sponsorships', 'loans', 'waitlist'] key:
@@ -13,6 +13,8 @@ $ urlbase = ctx.path.rsplit('/', 1)[0]
 $ username = user.key.split('/')[-1]
 $ owners_page = logged_in_user and urlbase.startswith('/people/'+logged_in_user.key.split('/')[-1])
 $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
+
+$ sort_order = sort_order
 
 $ current_page = int(input(page=1).page)
 $ total_items = sponsorship_count if key == 'sponsorships' else int(reading_log_counts[key])
@@ -100,8 +102,24 @@ $if og_title:
                 <li><a class="list-link" href="$(lst.key)">$lst['name'] ($(len(lst.seeds)))</a></li>
             </div>
           </ul>
+        <ul class="import-export-lists">
+          <li class="subsection">$_("Import / Export")</li>
+          <li><a href="/account/import">$_("Import & Export Options")</a></li>
+        </ul>
       </div>
       <div class="mybooks-list">
+
+        <span class="mybooks-tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" style="margin-right:10px;" width="9" height="11">
+          $if sort_order == 'desc':
+            <strong class="lightgreen">$_("Date Added (newest)")</strong>
+            |
+            <a href="$ctx.path?sort=asc">$_("Date Added (oldest)")</a>
+          $else:
+            <a href="$ctx.path?sort=desc">$_("Date Added (newest)")</a>
+            |
+            <strong class="lightgreen">$_("Date Added (oldest)")</strong>
+        </span>
+
         $:macros.Pager(current_page, total_items, results_per_page=25)
         <ul class="list-books">
           $if items:

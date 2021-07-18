@@ -26,7 +26,11 @@ RUN apt-get -qq update && apt-get install -y \
     vim \
     emacs \
 # util for running things in parallel
-    parallel
+    parallel \
+# automatic import pipeline dependencies
+    zip \
+    unzip \
+    lftp
 
 # Print gnu parallel citation
 USER openlibrary

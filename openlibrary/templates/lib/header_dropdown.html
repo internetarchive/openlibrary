@@ -1,0 +1,37 @@
+$def with (props)
+$# @typedef {Object} DropdownLink
+$# @property {string} text of link
+$# @property {string|null} href of link for HTTP get request
+$# @property {string|null} post when set will be used instead of href and should use HTTP POST request.
+$#
+$# @param {Object} props template properties
+$# @param {string} props.name unique identifying name for dropdown and distinguishing it from other dropdowns
+$# @param {string} props.label for menu, also used as alt text for dropdown icon when props.image is set
+$# @param {string|null} props.image URL for image (optional)
+$# @param {DropdownLink[]} props.links
+<div class="$(props['name'])-component header-dropdown">
+    <details>
+      <summary>
+        $if 'image' in props:
+            <img class="header-dropdown__icon" src="$(props['image'])" alt="$(props['label'])"/>
+        $elif 'label' in props:
+            $(props['label'])
+            <span class="shift">$_('Menu')</span>
+
+        <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation" width="7" height="4">
+      </summary>
+      <div class="$(props['name'])-dropdown-component navigation-dropdown-component">
+        <ul class="dropdown-menu $(props['name'])-dropdown-menu">
+          $for link in props['links']:
+            <li>
+            $if 'post' in link:
+              <form action="$(link['post'])" method="post">
+                <button>$(link["text"])</button>
+              </form>
+            $else:
+              <a href="$(link['href'])">$(link['text'])</a>
+            </li>
+        </ul>
+      </div>
+    </details>
+</div>

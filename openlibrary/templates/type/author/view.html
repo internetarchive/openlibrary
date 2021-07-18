@@ -168,14 +168,11 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             $if page.links or page.remote_ids or (page.wikipedia and page.wikipedia.startswith("http")):
                 <ul class="booklinks sansserif">
                 $if page.remote_ids:
-                    $if page.remote_ids.isni:
-                       $ isni = page.remote_ids.isni
-                       <li>ISNI: <a itemprop="sameAs" href="http://www.isni.org/$isni">$' '.join([isni[i:i+4] for i in range(0, 16, 4)])</a></li>
-                    $if page.remote_ids.viaf:
-                        $ viaf = page.remote_ids.viaf
-                        <li>VIAF: <a itemprop="sameAs" href="https://viaf.org/viaf/$viaf">$viaf</a></li>
-                    $if page.remote_ids.wikidata:
-                        <li>Wikidata: <a itemprop="sameAs" href="https://tools.wmflabs.org/reasonator/?q=$page.remote_ids.wikidata">$page.remote_ids.wikidata</a></li>
+                    $ configured_ids = get_author_config()['identifiers']
+                    $for id in configured_ids:
+                        $if id.name in page.remote_ids:
+                            $ href = id.url.replace('@@@', page.remote_ids[id.name])
+                            <li>$id.label: <a itemprop="sameAs" href="$href">$page.remote_ids[id.name]</a></li>
                 $if page.wikipedia and page.wikipedia.startswith("http"):
                     <li><a itemprop="sameAs" href="$page.wikipedia">Wikipedia</a></li>
                 $for link in page.links:

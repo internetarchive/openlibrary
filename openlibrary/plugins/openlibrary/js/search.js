@@ -68,34 +68,3 @@ export function initSearchFacets() {
         less($(this).data('header'), start_facet_count, facet_inc);
     });
 }
-
-let readapi_starttime = 0;
-
-/**
- * Displays difference between readapi_starttime and now in '#adminTiming' element.
- */
-function readapi_callback() {
-    const endtime = Date.now();
-    const duration = (endtime - readapi_starttime) / 1000;
-    const disp = document.getElementById('adminTiming');
-    if (disp) {
-        disp.innerHTML += `<br/><br/><span class="adminOnly">Read API call took ${duration} seconds</span>`;
-    }
-}
-
-/**
- * Initializes adminTiming element.
- *
- * Calls read_multiget API for a list of works.
- * Assumes presence of element with '#adminTiming' id and 'data-wks' attribute.
- */
-export function initAdminTiming() {
-    // ALL admin views are sampled.
-    readapi_starttime = Date.now();
-    const wks = $('#adminTiming').data('wks');
-    $.ajax({
-        url: `https://openlibrary.org/api/volumes/brief/json/${wks}?listofworks=True&no_details=True&stats=True`,
-        dataType: 'jsonp',
-        success: readapi_callback
-    });
-}

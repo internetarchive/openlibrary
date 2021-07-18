@@ -17,18 +17,10 @@ $if cssfile == 'user' or 'admin':
         $:render_template("site/stats")
     $:render_template("lib/nav_foot", page)
 
-    <script src="$static_url('build/all.js')" type="text/javascript"></script>
-    <!-- Must be loaded after jquery -->
     <script src="//archive.org/includes/analytics.js?v=0c15bbe" type="text/javascript"></script>
+    <script src="$static_url('build/all.js')" type="text/javascript"></script>
     <!-- Passes total_time for analytics to ol.analytics.js -->
     <div class="analytics-stats-time-calculator" data-time="$total_time"></div>
-
-    <script>
-    //anonymized analytics
-    window.addEventListener('DOMContentLoaded', function send_analytics_pageview() {
-        archive_analytics.send_pageview({});
-    });
-    </script>
 
     $if any([path in request.canonical_url for path in ['/account/create', '/books/add', '/edit', '/books', '/contact']]):
         <!-- Must be loaded in Sign Up and Add new Books page -->
