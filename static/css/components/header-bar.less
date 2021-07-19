@@ -124,23 +124,32 @@
   }
 
   .hamburger-dropdown-component {
+    @topHeight: 58px;
     position: fixed;
     right: 0;
-    top: 0;
-    height: 100vh;
+    top: @topHeight;
+    height: calc(100% - @topHeight);
     z-index: @z-index-level-2;
     overflow-y: auto;
     overscroll-behavior: contain;
     background-color: @light-beige;
-    box-shadow: 0 1px 20px rgba(0,0,0,.25);
+    box-shadow: -10px 0 10px -6px rgb(0 0 0 / 25%);
     .subsection {
       font-weight: bold;
-      border-bottom: 3px solid @beige-two;
+      border-bottom: 3px solid @dark-beige;
       padding: 10px;
     }
 
-    li a {
+    li a, li button {
       padding: 10px 30px 10px 20px;
+    }
+
+    // stylelint-disable-next-line selector-max-specificity
+    li .header-dropdown__icon {
+      float: right;
+      position: relative;
+      bottom: 15px;
+      border-radius: 3px;
     }
 
     // stylelint-disable-next-line selector-max-specificity
@@ -166,7 +175,7 @@
     }
 
     // stylelint-disable-next-line selector-max-specificity
-    .login-links .login {
+    .login-links:nth-of-type(2) a {
       background: @light-beige;
       color: @primary-blue;
     }
@@ -177,11 +186,6 @@
     -ms-flex-order: 4;
     order: 4;
     margin-right: 5px;
-
-    summary {
-      position: relative;
-      z-index: @z-index-level-5;
-    }
 
     .badge {
       color: @white;
@@ -240,7 +244,7 @@
 
   .mask-menu {
     position: fixed;
-    top: 0;
+    top: 58px;
     left: 0;
     right: 0;
     opacity: 0;
@@ -256,21 +260,17 @@
       content: "" !important;
     }
 
-    // stylelint-disable max-nesting-depth, selector-max-specificity
-    &.account_icon {
-      order: 3;
-      margin-left: 10px;
-
-      img {
-        border: 1px solid @dark-beige;
-        border-radius: .3em;
-      }
-    }
-    // stylelint-enable max-nesting-depth, selector-max-specificity
-
     .header-dropdown__icon {
-      width: 45px;
-      height: 45px;
+      width: 40px;
+      height: 40px;
+    }
+
+    .account__icon {
+      border-radius: 4px;
+      width: 30px;
+      height: 30px;
+      position: absolute;
+      right: 24px;
     }
 
     button,
@@ -295,7 +295,7 @@
     .logo-icon {
       position: relative;
       top: -1px;
-      height: 30px;
+      height: 40px;
       width: auto;
       margin-right: 5px;
       padding-right: 5px;
@@ -374,13 +374,15 @@
       -webkit-box-flex: 1;
       -ms-flex: 1;
       flex: 1;
-      margin-top: 8px;
+      margin-right: 15px;
       -ms-flex-item-align: center;
       align-self: center;
-      height: 54px;
+      // height: 54px;
 
       .search-bar-component {
         width: 95%;
+        background-color: @grey-fafafa;
+        border: 1px solid @dark-beige;
       }
 
       .search-bar {
@@ -424,9 +426,7 @@
 
     .search-bar-component {
       display: inline-block;
-      border: 1px solid @dark-beige;
       border-radius: .3em;
-      background-color: @grey-fafafa;
       position: relative;
     }
 
@@ -628,7 +628,6 @@ div.search-facet:focus-within {
     -webkit-transition: all .2s;
     -o-transition: all .2s;
     transition: all .2s;
-    background: @grey-fafafa;
     border-radius: .3em;
     -webkit-box-flex: 1;
     -ms-flex: 1 0 0%;
@@ -672,14 +671,6 @@ div.search-facet:focus-within {
 // We should review this media query to determine if it is in fact needed.
 @media only screen and (min-width: 25em) {
   .header-bar {
-    .logo-component {
-      // The width and height attributes of logo-icon should be equal to
-      // dimensions of /static/images/openlibrary-logo-tighter.svg
-      .logo-icon {
-        height: 47px;
-        width: 189px;
-      }
-    }
 
     .navigation-component {
       .dropdown-menu {
@@ -724,6 +715,10 @@ div.search-facet:focus-within {
 
     .search-component {
       margin-right: 0;
+    }
+
+    .hamburger-component summary {
+      margin-left: 15px;
     }
   }
 }
@@ -786,6 +781,8 @@ div.search-facet:focus-within {
         display: block;
       }
       .search-bar-component {
+        background-color: @grey-fafafa;
+        border: 1px solid @dark-beige;
         width: 207px;
       }
       .search-bar-input {

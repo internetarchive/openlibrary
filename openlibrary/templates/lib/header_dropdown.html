@@ -12,7 +12,10 @@ $# @param {DropdownLink[]} props.links
 <div class="$(props['name'])-component header-dropdown">
     <details>
       <summary>
-        $if 'image' in props:
+        $if 'mask' in props and ctx.user:
+            <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="My account">
+            <img class="header-dropdown__icon" src="$(props['image'])" alt="$(props['label'])"/>
+        $elif 'image' in props:
             <img class="header-dropdown__icon" src="$(props['image'])" alt="$(props['label'])"/>
         $elif 'label' in props:
             $(props['label'])
@@ -20,17 +23,34 @@ $# @param {DropdownLink[]} props.links
 
         <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation" width="7" height="4">
       </summary>
+      $if 'mask' in props:
+        <div class="mask-menu"></div>
       <div class="$(props['name'])-dropdown-component navigation-dropdown-component">
         <ul class="dropdown-menu $(props['name'])-dropdown-menu">
           $for link in props['links']:
-            <li>
-            $if 'post' in link:
-              <form action="$(link['post'])" method="post">
-                <button>$(link["text"])</button>
-              </form>
+            $if 'subsection' in link:
+              <li class="subsection">
+                $(link['subsection'])
+                $if link['subsection'] == 'My Open Library' and ctx.user:
+                  <img class="header-dropdown__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="My account">
+              </li>
             $else:
-              <a href="$(link['href'])">$(link['text'])</a>
-            </li>
+              <li
+              $if 'loginClass' in link:
+                class="$(link['loginClass'])"
+              >
+              $if 'post' in link:
+                <form action="$(link['post'])" method="post">
+                  <button>$(link["text"])</button>
+                </form>
+              $else:
+                <a href="$(link['href'])">
+                  $if 'new' in link and props['name'] == 'hamburger':
+                    <span>$(link['text'])</span><span class="badge">NEW!</span>
+                  $else:
+                    $(link['text'])
+                </a>
+              </li>
         </ul>
       </div>
     </details>
