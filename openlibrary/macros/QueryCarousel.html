@@ -28,4 +28,7 @@ $code:
   books = [storage(b) for b in (results.get('docs', []))]
   load_more = {"url": "/search.json?" + urlencode(params), "limit": limit }
 
+  if key is '':
+    key = str(abs(hash(query)))
+
 $:render_template("books/custom_carousel", books=books, title=title, url=url, key=key, load_more=load_more)

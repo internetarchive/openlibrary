@@ -873,6 +873,7 @@ def setup():
         'sum': sum,
         'get_donation_include': get_donation_include,
         'websafe': web.websafe,
+        'hash': hash
     })
 
     from openlibrary.core import helpers as h
