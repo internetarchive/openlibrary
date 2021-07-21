@@ -1,13 +1,22 @@
 $def with (props)
-<details>
+<details
+$if 'detailsID' in props:
+    id="$(props['detailsID'])"
+>
     <summary>
     $if 'label' in props:
         $(props['label'])
     </summary>
-    <ul>
+    <ul
+    $if 'localID' in props:
+        id="$(props['localID'])"
+    >
         $for link in props['links']:
         <li>
-            <a href="$(link['href'])" title="$(link['title'])">$(link['text'])</a>
+            $if 'lang' in link:
+                <a href="$(link['href'])" lang="$(link['lang'])" data-lang-id="$(link['data-lang-id'])" title="$(link['title'])">$(link['text'])</a>
+            $else:
+                <a href="$(link['href'])" title="$(link['title'])">$(link['text'])</a>
         </li>
     </ul>
     $if props['label'] == 'Help' :

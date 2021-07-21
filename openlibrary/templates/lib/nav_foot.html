@@ -47,6 +47,21 @@ $code:
     ]
   }
 
+  languageProps = {
+    'label': _('Language'),
+    'detailsID': 'footer-locale-menu',
+    'localID': 'locale-options',
+    'links': [
+      { "href": "#", "text": "Čeština (cs)", "title": "_('Czech')", "lang": "cs", "data-lang-id": "cs" },
+      { "href": "#", "text": "Deutsch (de)", "title": "_('German')", "lang": "de", "data-lang-id": "de" },
+      { "href": "#", "text": "English (en)", "title": "_('English')", "lang": "en", "data-lang-id": "en" },
+      { "href": "#", "text": "Español (es)", "title": "_('Spanish')", "lang": "es", "data-lang-id": "es" },
+      { "href": "#", "text": "Français (fr)", "title": "_('French')", "lang": "fr", "data-lang-id": "fr" },
+      { "href": "#", "text": "Hrvatski (hr)", "title": "_('Croatian')", "lang": "hr", "data-lang-id": "hr" },
+      { "href": "#", "text": "తెలుగు (te)", "title": "_('Telugu')", "lang": "te", "data-lang-id": "te" }
+    ]
+  }
+
 <footer>
   <div id="footer-content" >
     <div id="footer-links">
@@ -114,18 +129,7 @@ $code:
       $:render_template("lib/links", discoverProps )
       $:render_template("lib/links", developProps )
       $:render_template("lib/links", helpProps )
-      <div id="footer-locale-menu">
-        <h2>$_('Change Website Language')</h2>
-        <ul id="locale-options">
-          <li><a href="#" lang="cs" data-lang-id="cs" title="$_('Czech')">Čeština (cs)</a> </li>
-          <li><a href="#" lang="de" data-lang-id="de" title="$_('German')">Deutsch (de)</a> </li>
-          <li><a href="#" lang="en" data-lang-id="en" title="$_('English')">English (en)</a></li>
-          <li><a href="#" lang="es" data-lang-id="es" title="$_('Spanish')">Español (es)</a></li>
-          <li><a href="#" lang="fr" data-lang-id="fr" title="$_('French')">Français (fr)</a></li>
-          <li><a href="#" lang="hr" data-lang-id="hr" title="$_('Croatian')">Hrvatski (hr)</a></li>
-          <li><a href="#" lang="te" data-lang-id="te" title="$_('Telugu')">తెలుగు (te)</a></li>
-        </ul>
-      </div>
+      $:render_template("lib/links", languageProps )
     </div>
     <hr>
     <div id="footer-details">

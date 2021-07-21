@@ -11,7 +11,7 @@ div#footer-content {
   display: none;
 }
 
-@media only screen and (max-width: 650px) {
+@media only screen and (max-width: @width-breakpoint-tablet) {
   #footer-links {
     display: none !important;
   }
@@ -19,20 +19,31 @@ div#footer-content {
     display: block;
     summary {
       font-weight: 700;
+      cursor: pointer;
+      padding: 5px 0;
     }
     summary::marker {
       content: "";
     }
     summary::after {
-      content: "\002B";
-      font-size: 1.1em;
+      content: "\003E";
       float: right;
+      transform: rotate(90deg);
     }
-    details[open] summary:after {
-      content: "\002D";
+    details[open] {
+      summary:after {
+        content: "\003C";
+      }
+      summary ~ * {
+        animation: sweepDown .5s ease-in-out;
+      }
     }
     details {
       margin: 20px 0;
+    }
+    @keyframes sweepDown {
+      0%    {opacity: 0; max-height: 0px; }
+      100%  {opacity: 1; max-height: 500px; }
     }
   }
 }
