@@ -335,15 +335,17 @@ def get_availability(key, ids):
     try:
         response = requests.get(url, timeout=config_http_request_timeout)
         items = response.json().get('responses', {})
-        for ocaid in items:
-            items[ocaid] = update_availability_schema_to_v2(items[ocaid], ocaid)
-        return items
+        for pkey in items:
+            ocaid = items[pkey].get('identifier', key == 'identifier' and pkey)                             
+            items[pkey] = update_availability_schema_to_v2(items[pkey], ocaid)
     except Exception as e:  # TODO: Narrow exception scope
         logger.exception("get_availability(%s)" % url)
         items = { 'error': 'request_timeout', 'details': str(e) }
 
-        for ocaid in ids:
-            items[ocaid] = update_availability_schema_to_v2(
+        for pkey in ids:
+            # key could be isbn, ocaid, or openlibrary_[work|edition]                                          
+            ocaid = pkey if key == 'identifier' else None
+            items[pkey] = update_availability_schema_to_v2(
                 {'status': 'error'}, ocaid)
         return items
 
