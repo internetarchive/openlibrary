@@ -280,25 +280,27 @@ def get_cached_homepage():
     if pd:
         key += '.pd'
 
-    # Because of caching, memcache will call `get_homepage` on another thread! So we
-    # need a way to carry some information to that computation on the other thread.
-    # We do that by using a python closure. The outer function is executed on the main
-    # thread, so all the web.* stuff is correct. The inner function is executed on the
-    # other thread, so all the web.* stuff will be dummy.
-    def prethread():
-        # web.ctx.lang is undefined on the new thread, so need to transfer it over
-        lang = web.ctx.lang
-
-        def main():
-            # Leaving this in since this is a bit strange, but you can see it clearly
-            # in action with this debug line:
-            # web.debug(f'XXXXXXXXXXX web.ctx.lang={web.ctx.get("lang")}; {lang=}')
-            delegate.fakeload()
-            web.ctx.lang = lang
-        return main
-
     return cache.memcache_memoize(
-        get_homepage, key, timeout=five_minutes, prethread=prethread())()
+        get_homepage, key, timeout=five_minutes, prethread=caching_prethread())()
+
+
+# Because of caching, memcache will call `get_homepage` on another thread! So we
+# need a way to carry some information to that computation on the other thread.
+# We do that by using a python closure. The outer function is executed on the main
+# thread, so all the web.* stuff is correct. The inner function is executed on the
+# other thread, so all the web.* stuff will be dummy.
+def caching_prethread():
+    # web.ctx.lang is undefined on the new thread, so need to transfer it over
+    lang = web.ctx.lang
+
+    def main():
+        # Leaving this in since this is a bit strange, but you can see it clearly
+        # in action with this debug line:
+        # web.debug(f'XXXXXXXXXXX web.ctx.lang={web.ctx.get("lang")}; {lang=}')
+        delegate.fakeload()
+        web.ctx.lang = lang
+    return main
+
 
 class home(delegate.page):
     path = "/"
@@ -340,18 +342,35 @@ def get_featured_subjects():
         delegate.fakeload()
 
     FEATURED_SUBJECTS = [
-        'art', 'science_fiction', 'fantasy', 'biographies', 'recipes',
-        'romance', 'textbooks', 'children', 'history', 'medicine', 'religion',
-        'mystery_and_detective_stories', 'plays', 'music', 'science'
+        {'key': '/subjects/art', 'presentable_name': _('Art')},
+        {'key': '/subjects/science_fiction', 'presentable_name': _('Science Fiction')},
+        {'key': '/subjects/fantasy', 'presentable_name': _('Fantasy')},
+        {'key': '/subjects/biographies', 'presentable_name': _('Biographies')},
+        {'key': '/subjects/recipes', 'presentable_name': _('Recipes')},
+        {'key': '/subjects/romance', 'presentable_name': _('Romance')},
+        {'key': '/subjects/textbooks', 'presentable_name': _('Textbooks')},
+        {'key': '/subjects/children', 'presentable_name': _('Children')},
+        {'key': '/subjects/history', 'presentable_name': _('History')},
+        {'key': '/subjects/medicine', 'presentable_name': _('Medicine')},
+        {'key': '/subjects/religion', 'presentable_name': _('Religion')},
+        {'key': '/subjects/mystery_and_detective_stories',
+         'presentable_name': _('Mystery and Detective Stories')},
+        {'key': '/subjects/plays', 'presentable_name': _('Plays')},
+        {'key': '/subjects/music', 'presentable_name': _('Music')},
+        {'key': '/subjects/science', 'presentable_name': _('Science')},
     ]
-    return dict([(subject_name, subjects.get_subject('/subjects/' + subject_name, 
-                                                     sort='edition_count'))
-                 for subject_name in FEATURED_SUBJECTS])
+    return [
+        {**subject, **(subjects.get_subject(subject['key'], limit=0) or {})}
+        for subject in FEATURED_SUBJECTS
+    ]
 
 @public
 def get_cached_featured_subjects():
     return cache.memcache_memoize(
-        get_featured_subjects, "home.featured_subjects", timeout=dateutil.HOUR_SECS)()
+        get_featured_subjects,
+        f"home.featured_subjects.{web.ctx.lang}",
+        timeout=dateutil.HOUR_SECS,
+        prethread=caching_prethread())()
 
 @public
 def generic_carousel(query=None, subject=None, work_id=None, _type=None,

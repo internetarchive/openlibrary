@@ -10,21 +10,21 @@ $if subjects:
     <div class="carousel-container">
       <div class="carousel carousel--progressively-enhanced" id="categories_carousel"
         data-config="$json_encode(['#categories_carousel', 6, 5, 4, 3, 2])">
-        $for subject_name in subjects:
-          $ subject = subjects[subject_name]
-          $ presentable_subject_name = subject_name.replace('_', ' ').title()
+        $for subject in subjects:
+          $ presentable_subject_name = subject['presentable_name']
+          $ icon = subject['key'].split('/')[-1]
           <div class="category-item carousel__item">
             <a class="category-nostyle" data-ol-link-track="CarouselCategories"
-               href="/subjects/$(subject_name)#sort=date_published&ebooks=true">
+               href="$subject['key']#sort=date_published&ebooks=true">
               <div class="category-icon">
-                <img class="category-img" src="/static/images/categories/$(subject_name).svg"
+                <img class="category-img" src="/static/images/categories/$(icon).svg"
                     width="30" height="30"
                     alt="$_('browse %(subject)s books', subject=presentable_subject_name)"/>
               </div>
               <p class="category-title">$presentable_subject_name</p>
-              $if subject:
-                $ count = commify(subject.get('work_count', ''))
-                <p class="category-count">$ungettext('1 Book', '%(count)s Books', subject.get('work_count'), count=count)</p>
+              $if 'work_count' in subject:
+                $ count = commify(subject['work_count'])
+                <p class="category-count">$ungettext('1 Book', '%(count)s Books', subject['work_count'], count=count)</p>
             </a>
           </div>
       </div>

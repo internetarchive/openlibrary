@@ -748,7 +748,7 @@ def get_random_recent_changes(n):
     return _changes
 
 def _get_blog_feeds():
-    url = "http://blog.openlibrary.org/feed/"
+    url = "https://blog.openlibrary.org/feed/"
     try:
         stats.begin("get_blog_feeds", url=url)
         tree = etree.fromstring(requests.get(url).text)
