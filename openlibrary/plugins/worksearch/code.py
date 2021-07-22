@@ -1008,6 +1008,7 @@ def random_author_search(limit=10):
 
     return json.dumps(search_results['response'])
 
+
 def rewrite_list_editions_query(q, page, offset, limit):
     """Takes a solr query. If it doesn't contain a /lists/ key, then
     return the query, unchanged, exactly as it entered the
@@ -1045,7 +1046,12 @@ def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet
         sort = process_sort(sort)
 
     # deal with special /lists/ key queries
-    query['q'], page, offset, limit = rewrite_list_editions_query(query['q'], page, offset, limit)
+    query['q'], page, offset, limit = rewrite_list_editions_query(
+        query['q'],
+        page,
+        offset,
+        limit
+    )
     try:
         (reply, solr_select, q_list) = run_solr_query(
             query,
@@ -1106,14 +1112,25 @@ class search_json(delegate.page):
 
         # If the query is a /list/ key, create custom list_editions_query
         q = query['q']
-        query['q'], page, offset, limit = rewrite_list_editions_query(q, page, offset, limit)
-
-        response = work_search(query, sort=sort, page=page, offset=offset, limit=limit,
-                               fields=fields, facet=facet,
-                               spellcheck_count=spellcheck_count)
+        query['q'], page, offset, limit = rewrite_list_editions_query(
+            q,
+            page,
+            offset,
+            limit
+        )
+        response = work_search(
+            query,
+            sort=sort,
+            page=page,
+            offset=offset,
+            limit=limit,
+            fields=fields,
+            facet=facet,
+            spellcheck_count=spellcheck_count
+        )
         response['q'] = q
         response['offset'] = offset
-        response['docs'] = add_availability(response['docs'])
+        response['docs'] = response['docs']
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=4))
 

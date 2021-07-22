@@ -203,9 +203,11 @@ class lists_json(delegate.page):
     def loads(self, text):
         return formats.load(text, self.encoding)
 
+
 class lists_yaml(lists_json):
     encoding = "yml"
     content_type = "text/yaml"
+
 
 def get_list(key, raw=False):
     lst = web.ctx.site.get(key)
@@ -221,8 +223,7 @@ def get_list(key, raw=False):
             },
             "name": lst.name or None,
             "description": (
-                lst.description and six.text_type(lst.description)
-                or None
+                lst.description and six.text_type(lst.description) or None
             ),
             "seed_count": len(lst.seeds),
             "edition_count": lst.edition_count,
@@ -233,6 +234,7 @@ def get_list(key, raw=False):
                 "last_modified": lst.last_modified.isoformat(),
             }
         }
+
 
 class list_view_json(delegate.page):
     path = r"(/people/[^/]+/lists/OL\d+L)"
@@ -248,9 +250,11 @@ class list_view_json(delegate.page):
         web.header("Content-Type", self.content_type)
         return delegate.RawText(formats.dump(lst, self.encoding))
 
+
 class list_view_yaml(list_view_json):
     encoding = "yml"
     content_type = "text/yaml"
+
 
 @public
 def get_list_seeds(key):
@@ -265,6 +269,7 @@ def get_list_seeds(key):
             "size": len(seeds),
             "entries": seeds
         }
+
 
 class list_seeds(delegate.page):
     path = r"(/people/\w+/lists/OL\d+L)/seeds"
@@ -320,9 +325,11 @@ class list_seeds(delegate.page):
         web.header("Content-Type", self.content_type)
         return delegate.RawText(formats.dump(d, self.encoding))
 
+
 class list_seed_yaml(list_seeds):
     encoding = "yml"
     content_type = 'text/yaml; charset="utf-8"'
+
 
 @public
 def get_list_editions(key, offset=0, limit=50, api=False):
@@ -342,6 +349,7 @@ def get_list_editions(key, offset=0, limit=50, api=False):
             )
         return editions
 
+
 class list_editions_json(delegate.page):
     path = r"(/people/\w+/lists/OL\d+L)/editions"
     encoding = "json"
@@ -360,9 +368,11 @@ class list_editions_json(delegate.page):
             content_type=self.content_type
         )
 
+
 class list_editions_yaml(list_editions_json):
     encoding = "yml"
     content_type = 'text/yaml; charset="utf-8"'
+
 
 def make_collection(size, entries, limit, offset, key=None):
     d = {
@@ -385,6 +395,7 @@ def make_collection(size, entries, limit, offset, key=None):
         d['links']['list'] = key
 
     return d
+
 
 class list_subjects_json(delegate.page):
     path = r"(/people/\w+/lists/OL\d+L)/subjects"
@@ -426,9 +437,11 @@ class list_subjects_json(delegate.page):
             "url": key
         }
 
+
 class list_editions_yaml(list_subjects_json):
     encoding = "yml"
     content_type = 'text/yaml; charset="utf-8"'
+
 
 class lists_embed(delegate.page):
     path = r"(/people/\w+/lists/OL\d+L)/embed"
@@ -438,6 +451,7 @@ class lists_embed(delegate.page):
         if doc is None or doc.type.key != '/type/list':
             raise web.notfound()
         return render_template("type/list/embed", doc)
+
 
 class export(delegate.page):
     path = r"(/people/\w+/lists/OL\d+L)/export"

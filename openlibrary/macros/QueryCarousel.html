@@ -19,7 +19,7 @@ $if search:
   </form>
 
 $code:
-  params = { 'q': query }
+  params = { 'q': query, 'fields': '*,availability' }
   url = url or "/search?" + urlencode(params)
   if has_fulltext_only:
     params['has_fulltext'] = 'true'
