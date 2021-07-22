@@ -344,7 +344,8 @@ def get_featured_subjects():
         'romance', 'textbooks', 'children', 'history', 'medicine', 'religion',
         'mystery_and_detective_stories', 'plays', 'music', 'science'
     ]
-    return dict([(subject_name, subjects.get_subject('/subjects/' + subject_name, sort='edition_count'))
+    return dict([(subject_name, subjects.get_subject('/subjects/' + subject_name, 
+                                                     sort='edition_count'))
                  for subject_name in FEATURED_SUBJECTS])
 
 @public
