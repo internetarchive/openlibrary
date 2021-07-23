@@ -336,7 +336,7 @@ def get_availability(key, ids):
         response = requests.get(url, timeout=config_http_request_timeout)
         items = response.json().get('responses', {})
         for pkey in items:
-            ocaid = items[pkey].get('identifier', key == 'identifier' and pkey)
+            ocaid = pkey if key == 'identifier' else items[pkey].get('identifier')
             items[pkey] = update_availability_schema_to_v2(items[pkey], ocaid)
         return items
     except Exception as e:  # TODO: Narrow exception scope
