@@ -344,7 +344,7 @@ def get_availability(key, ids):
         items = { 'error': 'request_timeout', 'details': str(e) }
 
         for pkey in ids:
-            # key could be isbn, ocaid, or openlibrary_[work|edition]                                          
+            # key could be isbn, ocaid, or openlibrary_[work|edition]
             ocaid = pkey if key == 'identifier' else None
             items[pkey] = update_availability_schema_to_v2(
                 {'status': 'error'}, ocaid)
