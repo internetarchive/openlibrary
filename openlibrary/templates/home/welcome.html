@@ -6,33 +6,45 @@ $def with (test=False)
   </div>
 
   <div class="carousel-container">
-    <div class="carousel carousel--progressively-enhanced" id="welcome_carousel"
-         data-config="$json_encode(['#welcome_carousel', 3, 3, 3, 3, 2])">
+    <div
+      class="carousel carousel--progressively-enhanced"
+      id="welcome_carousel"
+      data-config="$json_encode(['#welcome_carousel', 3, 3, 3, 3, 2])"
+    >
       <div class="carousel__item tutorial__item">
-        <img src="https://static-assets.coinbase.com/earn/campaigns/ampleforth-governance-token/lesson2.png">
-        <hr>
-        <p>$_("Read Free Library eBooks")</p>
-        <small>$_("Millions of books at your fingertips")</small>
+        <a href="https://openlibrary.org/help/faq/borrow" tabindex="0">
+          <img src="/static/images/onboarding/read.png" />
+          <hr />
+          <p>$_("Read Free Library Books Online")</p>
+          <p class="small">$_("Millions of books at your fingertips")</p>
+        </a>
       </div>
 
       <div class="carousel__item tutorial__item">
-        <img src="https://static-assets.coinbase.com/earn/campaigns/the-graph/lesson3.png">
-        <hr>
-        <p>$_("Keep Track of your Favorite Books")</p>
-        <small>$_("Manage your own book shelves")</small>
-      </div>
-      <div class="carousel__item tutorial__item">
-        <img src="https://static-assets.coinbase.com/coinbase/loyalty/earn/tasks/stellar/lesson3.png">
-        <hr>
-        <p>$_("Browse the virtual Library Explorer")</p>
-        <small>$_("Wander hundreds of bookcases")</small>
+        <a href="https://openlibrary.org/help/faq/reading-log" tabindex="0">
+          <img src="/static/images/onboarding/track.png" />
+          <hr />
+          <p>$_("Keep Track of your Favorite Books")</p>
+          <p class="small">$_("Manage your own book shelves")</p>
+        </a>
       </div>
 
       <div class="carousel__item tutorial__item">
-        <img src="https://static-assets.coinbase.com/coinbase/loyalty/earn/tasks/stellar/lesson4.png">
-        <hr>
-        <p>$_("Be an Open Librarian")</p>
-        <small>$_("Anyone can help add missing books")</small>
+        <a href="https://openlibrary.org/explore" tabindex="0">
+          <img src="/static/images/onboarding/library_explorer.png" />
+          <hr />
+          <p>$_("Browse the virtual Library Explorer")</p>
+          <p class="small">$_("Wander hundreds of bookcases")</p>
+        </a>
+      </div>
+
+      <div class="carousel__item tutorial__item">
+        <a href="https://openlibrary.org/librarians" tabindex="0">
+          <img src="/static/images/onboarding/librarian.png" />
+          <hr />
+          <p>$_("Be an Open Librarian")</p>
+          <p class="small">$_("Anyone can help add missing books")</p>
+        </a>
       </div>
     </div>
   </div>
