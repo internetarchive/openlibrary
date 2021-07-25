@@ -12,7 +12,11 @@ $def with (test=False)
       data-config="$json_encode(['#welcome_carousel', 3, 3, 3, 3, 2])"
     >
       <div class="carousel__item tutorial__item">
-        <a href="https://openlibrary.org/help/faq/borrow" tabindex="0">
+        <a
+          href="https://openlibrary.org/help/faq/borrow"
+          tabindex="0"
+          data-ol-link-track="OnboardingCarouselClick|Read"
+        >
           <img src="/static/images/onboarding/read.png" />
           <hr />
           <p>$_("Read Free Library Books Online")</p>
@@ -21,7 +25,11 @@ $def with (test=False)
       </div>
 
       <div class="carousel__item tutorial__item">
-        <a href="https://openlibrary.org/help/faq/reading-log" tabindex="0">
+        <a
+          href="https://openlibrary.org/help/faq/reading-log"
+          tabindex="0"
+          data-ol-link-track="OnboardingCarouselClick|Organize"
+        >
           <img src="/static/images/onboarding/track.png" />
           <hr />
           <p>$_("Keep Track of your Favorite Books")</p>
@@ -30,7 +38,11 @@ $def with (test=False)
       </div>
 
       <div class="carousel__item tutorial__item">
-        <a href="https://openlibrary.org/explore" tabindex="0">
+        <a
+          href="https://openlibrary.org/explore"
+          tabindex="0"
+          data-ol-link-track="OnboardingCarouselClick|Explore"
+        >
           <img src="/static/images/onboarding/library_explorer.png" />
           <hr />
           <p>$_("Browse the virtual Library Explorer")</p>
@@ -39,7 +51,11 @@ $def with (test=False)
       </div>
 
       <div class="carousel__item tutorial__item">
-        <a href="https://openlibrary.org/librarians" tabindex="0">
+        <a
+          href="https://openlibrary.org/librarians"
+          tabindex="0"
+          data-ol-link-track="OnboardingCarouselClick|Librarians"
+        >
           <img src="/static/images/onboarding/librarian.png" />
           <hr />
           <p>$_("Be an Open Librarian")</p>
