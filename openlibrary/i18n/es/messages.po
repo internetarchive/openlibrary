@@ -4015,7 +4015,7 @@ msgstr "Disponibilidad"
 
 #: type/work/editions_datatable.html:37
 msgid "Add another edition"
-msgstr "Añadir otra edición"
+msgstr "¿Añadir otra edición?"
 
 #: AffiliateLinks.html:15
 msgid "Better World Books"

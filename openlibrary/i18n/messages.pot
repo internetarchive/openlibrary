@@ -4210,7 +4210,7 @@ msgid "Availability"
 msgstr ""
 
 #: type/work/editions_datatable.html:37
-msgid "Add another edition"
+msgid "Add another edition?"
 msgstr ""
 
 #: AffiliateLinks.html:15
