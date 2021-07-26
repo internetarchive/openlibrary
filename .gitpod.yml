@@ -1,0 +1,20 @@
+ports:
+- port: 8080
+# ignore these ports by default to avoid extra notifications
+- port: 8983
+  onOpen: ignore
+- port: 7075
+  onOpen: ignore
+- port: 7000
+  onOpen: ignore
+- port: 3000
+  onOpen: ignore
+tasks:
+- name: Start App
+  # run chown because https://github.com/gitpod-io/gitpod/issues/4851
+  before: sudo chown -R gitpod:999 /workspace/openlibrary/
+  # init runs once for each commit to the default branch
+  init: docker-compose up --no-start
+  # command runs each time a user starts their workspace
+  command: docker-compose up
+  
