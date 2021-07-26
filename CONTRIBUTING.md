@@ -25,7 +25,7 @@ A deep dive into the technical details, architecture, and code structure behind 
 ### Code of Conduct
 
 Before continuing, please familiarize yourself with our [code of conduct](https://github.com/internetarchive/openlibrary/blob/master/CODE_OF_CONDUCT.md). 
-We are a non-profit, open-source, inclusive project, and we believe everyone deserves a safe place to make the world a little better. We're committed to creating this safe place:
+We are a non-profit, open-source, inclusive project, and we believe everyone deserves a safe place to make the world a little better. We're committed to creating this safe place.
 
 ### Join our Community
 
