@@ -22,6 +22,13 @@ echo "Starting production deployment at $(date)"
 # `sudo git pull origin master` the core Open Library repos:
 parallel --quote ssh {1} "echo -e '\n\n{}'; cd {2} && sudo git pull origin master" ::: $SERVERS ::: /opt/olsystem /opt/openlibrary
 
+# Rebuild & upload docker image for olbase
+cd /opt/openlibrary
+make git
+docker build -t openlibrary/olbase:latest -f docker/Dockerfile.olbase .
+docker login
+docker push openlibrary/olbase:latest
+
 # booklending utils requires login
 for SERVER in $SERVERS; do
   echo -e '\n\n'$SERVER

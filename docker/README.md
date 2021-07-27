@@ -120,7 +120,7 @@ If you need to make changes to the dependencies in Dockerfile.olbase, rebuild it
 docker build -t openlibrary/olbase:latest -f docker/Dockerfile.olbase . # 30+ min (Win10Home/Dec 2018)
 ```
 
-This image is automatically rebuilt when master is pushed to at https://hub.docker.com/r/openlibrary/olbase .
+This image is automatically rebuilt on deploy by ol-home0 and is pushed to at https://hub.docker.com/r/openlibrary/olbase.
 
 If you're making changes you think might affect Docker Hub, you can create a branch starting with `docker-test`, e.g. `docker-test-py2py3` (no weird chars), to trigger a build in docker hub at e.g. `openlibrary/olbase:docker-test-py2py3`.
 
