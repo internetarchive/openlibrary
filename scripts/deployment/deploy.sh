@@ -29,11 +29,8 @@ docker build -t openlibrary/olbase:latest -f docker/Dockerfile.olbase .
 docker login
 docker push openlibrary/olbase:latest
 
-# booklending utils requires login
-for SERVER in $SERVERS; do
-  echo -e '\n\n'$SERVER
-  ssh -t $SERVER 'if [ -d /opt/booklending_utils ]; then cd /opt/booklending_utils && sudo git pull origin master; fi'
-done
+# Clone booklending utils
+parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
 
 # Prune old images now ; this should remove any unused images
 parallel --quote ssh {} "echo -e '\n\n{}'; docker image prune -f" ::: $SERVERS
@@ -49,7 +46,7 @@ parallel --quote ssh {} "echo -e '\n\n{}'; echo 'FROM openlibrary/olbase:latest'
 # And tag the deploy!
 DEPLOY_TAG="deploy-$(date +%Y-%m-%d)"
 sudo git tag $DEPLOY_TAG
-sudo git push origin $DEPLOY_TAG
+sudo git push git@github.com:internetarchive/openlibrary.git $DEPLOY_TAG
 
 echo "Finished production deployment at $(date)"
 echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
