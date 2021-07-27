@@ -34,7 +34,10 @@ Here's a quick public tour of Open Library to get your familiar with the service
 
 ## Installation
 
-The development environment can be set up using the [Docker Instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md). You can also watch the [video tutorial](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4) for a more detailed explanation.
+Run `docker-compose up` and visit http://localhost:8080
+
+Need more details? Checkout the [Docker instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md) 
+or [video tutorial](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4).
 
 ### Developer's Guide
 
