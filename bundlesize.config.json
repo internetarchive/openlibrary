@@ -34,7 +34,7 @@
     },
     {
       "path": "static/build/modal-links.*.js",
-      "maxSize": "5KB"
+      "maxSize": "5.3KB"
     },
     {
       "path": "static/build/user-website.*.js",
