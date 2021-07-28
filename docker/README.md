@@ -17,6 +17,15 @@ git config core.symlinks true
 git reset --hard HEAD
 ```
 
+### For Users of Macs Containing an M1 Chip
+
+You will likely need to install Rosetta 2 in order to run Docker on your machine.  This can be manually installed by running the following in your command line:
+
+```
+softwareupdate --install-rosetta
+```
+More detailed information about this can be found in the [Docker Desktop for Apple silicon documention](https://docs.docker.com/docker-for-mac/apple-silicon/).
+
 ### Prerequisites & Troubleshooting
 
 Before attempting to build openlibrary using the docker instructions below, please follow this checklist. If you encounter an error, this section may serve as a troubleshooting guide:
