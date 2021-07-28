@@ -446,9 +446,9 @@ class patron_observations(delegate.page):
             patron_observations[kv_pair.key].append(kv_pair.value)
 
         return delegate.RawText(
-                json.dumps(patron_observations), 
-                content_type="application/json"
-            )
+            json.dumps(patron_observations),
+            content_type="application/json"
+        )
 
     def POST(self, work_id):
         user = accounts.get_current_user()
