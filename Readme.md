@@ -44,7 +44,6 @@ This lets you work on Open Library entirely in your browser without having to in
 Warning: This integration is still experimental.
 [![Open In Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
 
-
 ### Developer's Guide
 
 For instructions on administrating your Open Library instance, refer to the Developer's [Quickstart](https://github.com/internetarchive/openlibrary/wiki/Getting-Started) Guide. 
