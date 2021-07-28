@@ -5,6 +5,7 @@ from typing import List
 
 import web
 import os
+import shutil
 
 import babel
 from babel._compat import BytesIO
@@ -108,6 +109,30 @@ def update_translations():
             print('updated', po_path)
 
     compile_translations()
+
+
+def generate_po(args):
+    if args:
+        po_dir = os.path.join(root, args[0])
+        pot_src = os.path.join(root, 'messages.pot')
+        po_dest = os.path.join(po_dir, 'messages.po')
+
+        if os.path.exists(po_dir):
+            if os.path.exists(po_dest):
+                print(f"Portable object file already exists at {po_dest}")
+            else:
+                shutil.copy(pot_src, po_dest)
+                os.chmod(po_dest, 0o666)
+                print(f"File created at {po_dest}")
+        else:
+            os.mkdir(po_dir)
+            os.chmod(po_dir, 0o777)
+            shutil.copy(pot_src, po_dest)
+            os.chmod(po_dest, 0o666)
+            print(f"File created at {po_dest}")
+    else:
+        print("Add failed. Missing required locale code.")
+
 
 @web.memoize
 def load_translations(lang):
