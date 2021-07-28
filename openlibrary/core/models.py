@@ -2,6 +2,7 @@
 """
 import web
 import requests
+from collections import defaultdict
 
 from infogami.infobase import client
 
@@ -13,6 +14,7 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.booknotes import Booknotes
+from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
@@ -492,6 +494,19 @@ class Work(Thing):
         work_id = extract_numeric_id_from_olid(self.key)
         edition_id = extract_numeric_id_from_olid(edition_olid) if edition_olid else -1
         return Booknotes.get_patron_booknote(username, work_id, edition_id=edition_id)
+
+    def get_users_observations(self, username):
+        if not username:
+            return None
+        work_id = extract_numeric_id_from_olid(self.key)
+        raw_observations = Observations.get_patron_observations(username, work_id)
+        formatted_observations = defaultdict(list)
+
+        for r in raw_observations:
+            kv_pair = Observations.get_key_value_pair(r['type'], r['value'])
+            formatted_observations[kv_pair.key].append(kv_pair.value)
+
+        return formatted_observations
 
     def get_num_users_by_bookshelf(self):
         if not self.key:  # a dummy work

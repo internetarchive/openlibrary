@@ -246,6 +246,7 @@ OBSERVATIONS = {
 cache_duration = config.get('observation_cache_duration') or 86400
 
 
+@public
 @cache.memoize(engine="memcache", key="observations", expires=cache_duration)
 def get_observations():
     """

@@ -218,9 +218,18 @@ jQuery(function () {
             .then((module) => module.init());
     }
 
-    if (document.getElementsByClassName('modal-link').length) {
-        import(/* webpackChunkName: "patron-metadata" */ './patron-metadata')
-            .then((module) => module.initPatronMetadata());
+    const $observationModalLinks = $('.observations-modal-link');
+    const $notesModalLinks = $('.notes-modal-link');
+    if ($observationModalLinks.length || $notesModalLinks.length) {
+        import(/* webpackChunkName: "modal-links" */ './modals')
+            .then(module => {
+                if ($observationModalLinks.length) {
+                    module.initObservationsModal($observationModalLinks);
+                }
+                if ($notesModalLinks.length) {
+                    module.initNotesModal($notesModalLinks);
+                }
+            });
     }
 
     const manageCoversElement = document.getElementsByClassName('manageCovers').length;
