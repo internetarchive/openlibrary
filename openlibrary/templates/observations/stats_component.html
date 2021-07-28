@@ -9,16 +9,17 @@ $def with(work, edition, reader_observations, work_title, key)
     <h4 class="observer-count">
       $:ungettext('Based on observations from <strong>%(count)s</strong> patron', 'Based on observations from <strong>%(count)s</strong> patrons', reader_observations['total_respondents'], count=reader_observations['total_respondents'])<span class="adjust">.</span>
     </h4>
-    <hr>
     $for o in reader_observations['observations']:
       $ total = o['total_respondents_for_type']
+      <hr>
       <div class="section">
         <h3 class="observation-header">$o['description']</h3>
+        <p>$:ungettext('One person responded:', '%(count)d people responded:', total, count=total)</p>
         <div>
           <p>
           $for v in o['values']:
             $ percentage = (v['count'] / total) * 100
-            <span class="observation-percentage"><span class="observation-value">$v['value'].capitalize():</span> $int(percentage)%</span>
+            <span class="observation-percentage"><span class="observation-value">$v['value'].capitalize():</span> $v['count'] ($int(percentage)%)</span>
           </p>
         </div>
       </div>
