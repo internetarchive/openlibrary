@@ -508,19 +508,6 @@ class Work(Thing):
 
         return formatted_observations
 
-    def get_users_observations(self, username):
-        if not username:
-            return None
-        work_id = extract_numeric_id_from_olid(self.key)
-        raw_observations = Observations.get_patron_observations(username, work_id)
-        formatted_observations = defaultdict(list)
-
-        for r in raw_observations:
-            kv_pair = Observations.get_key_value_pair(r['type'], r['value'])
-            formatted_observations[kv_pair.key].append(kv_pair.value)
-
-        return formatted_observations
-
     def get_num_users_by_bookshelf(self):
         if not self.key:  # a dummy work
             return {'want-to-read': 0, 'currently-reading': 0, 'already-read': 0}
