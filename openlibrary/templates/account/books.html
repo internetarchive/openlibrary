@@ -88,10 +88,9 @@ $if og_title:
     $if owners_page:
       <h3>
         $if key == 'notes':
-          $_('Your private book notes cannot be viewed by other patrons')
+          $_('Your book notes are private and cannot be views by other patrons.')
         $elif key == 'observations':
-          $# TODO: Fix this awful copy:
-          $_('Your observations will be anonymously shared with other patrons')
+          $_('Your book observations will be shared anonymously with other patrons.')
         $else:
           $if public:
             $_('Your reading log is currently set to public')
