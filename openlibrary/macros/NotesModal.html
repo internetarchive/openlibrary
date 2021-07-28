@@ -26,7 +26,7 @@ $if reload_id:
         <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
       </div>
       <form class="book-notes-form" method="POST" action="$(work.key)/notes.json">
-        <p>$_("My personal notes about this edition:")</p>
+        <p>$_("My private notes about this edition:")</p>
         <div>
           <textarea class="notes-modal-textarea" name="notes" rows="10">$(notes.notes if notes else "")</textarea>
         </div>

@@ -23,7 +23,7 @@ $if reload_id:
         <h2>$_("Observations")</h2>
         <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
       </div>
-      <p class="observation-instructions">$_('Additional observations about this work. Each section is optional, but highly recommended.  These anonymous observations will be used to populate the "Reader Observations" section of this page.')</p>
+      <p class="observation-instructions">$_('Additional public observations about this work. Each section is optional, but highly recommended.  These anonymous observations will be used to populate the "Reader Observations" section of this page.')</p>
       <form class="floatform" name="$id-user-metadata" id="$id-user-metadata">
         $for o in observations['observations']:
           $ class_name = 'multi-choice' if o['multi_choice'] else 'single-choice'
