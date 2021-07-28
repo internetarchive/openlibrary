@@ -10,24 +10,49 @@ import '../../../../../static/css/components/toast.less';
 export function initNotesModal($modalLinks) {
     addClickListeners($modalLinks);
     addNotesButtonListeners();
+    addNotesReloadListeners($('.notes-textarea'));
 }
 
 /**
  * Adds click listeners to buttons in all notes forms on a page.
  */
 function addNotesButtonListeners() {
-    let toast;
-
     $('.update-note-button').on('click', function(){
-    // If button is inside of metadata form, set toast's parent element to the form:
-        const $parent = $(this).closest('.metadata-form');
-
         // Get form data
         const formData = new FormData($(this).prop('form'));
+
+        if (formData.get('notes')) {
+            const $deleteButton = $($(this).siblings()[0]);
+
+            // Post data
+            const workOlid = formData.get('work_id');
+            formData.delete('work_id');
+
+            $.ajax({
+                url: `/works/${workOlid}/notes.json`,
+                data: formData,
+                type: 'POST',
+                contentType: false,
+                processData: false,
+                success: function() {
+                    showToast($('body'), 'Update successful!')
+                    $.colorbox.close();
+                    $deleteButton.removeClass('hidden');
+                }
+            });
+        }
+    });
+
+    $('.delete-note-button').on('click', function() {
+        const $button = $(this);
+
+        // Get form data
+        const formData = new FormData($button.prop('form'));
 
         // Post data
         const workOlid = formData.get('work_id');
         formData.delete('work_id');
+        formData.delete('notes');
 
         $.ajax({
             url: `/works/${workOlid}/notes.json`,
@@ -36,15 +61,42 @@ function addNotesButtonListeners() {
             contentType: false,
             processData: false,
             success: function() {
-                // Display success message
-                if (toast) {
-                    toast.close();
-                }
-                toast = new Toast($parent, 'Update successful!');
-                toast.show();
+                showToast($('body'), 'Note deleted.');
+                $.colorbox.close();
+                $button.toggleClass('hidden');
+                $button.closest('form').find('textarea').val('');
             }
         });
     });
+}
+
+/**
+ * Adds listeners for content reload events on a page's notes textareas
+ *
+ * When a registered textarea receives a content reload event, it's text
+ * is updated with the most recently submitted note.
+ *
+ * @param {JQuery} $notesTextareas  All notes text areas on a page.
+ */
+function addNotesReloadListeners($notesTextareas) {
+    $notesTextareas.each(function(_i, textarea) {
+        const $textarea = $(textarea);
+
+        $textarea.on('contentReload', function() {
+            const newValue = $textarea.parent().find('.notes-modal-textarea')[0].value;
+            $textarea.val(newValue);
+        });
+    });
+}
+
+/**
+ * Creates and displays a toast component.
+ *
+ * @param {JQuery} $parent Mount point for toast component
+ * @param {String} message Message displayed in toast component
+ */
+function showToast($parent, message) {
+    new Toast($parent, message).show();
 }
 
 /**
@@ -57,6 +109,8 @@ function addNotesButtonListeners() {
  */
 export function initObservationsModal($modalLinks) {
     addClickListeners($modalLinks);
+    addObservationReloadListeners($('.observations-list'))
+    addDeleteObservationsListeners($('.delete-observations-button'));
 
     $modalLinks.each(function(_i, modalLinkElement) {
         const $element = $(modalLinkElement);
@@ -78,36 +132,171 @@ function addClickListeners($modalLinks) {
     $modalLinks.each(function(_i, modalLinkElement) {
         $(modalLinkElement).on('click', function() {
             const context = $(this).data('context');
-            displayModal(context.id);
+            displayModal(context.id, context.reloadId);
         })
     })
 }
 
 /**
+ * Adds listeners to all observation lists on a page.
+ *
+ * Observation lists are found in the aggregate observations
+ * view, and display all observations that were submitted for
+ * a work. If new observations are submitted, an 'observationReload'
+ * event is fired, triggering an update of the observations list.
+ *
+ * @param {JQuery} $observationLists All of the observations lists on a page
+ */
+function addObservationReloadListeners($observationLists) {
+    $observationLists.each(function(_i, list) {
+        $(list).on('contentReload', function() {
+            const $list = $(this);
+            const $buttonsDiv = $list.siblings('div').first();
+            const id = $list.attr('id');
+            const workOlid = `OL${id.split('-')[0]}W`;
+
+            $list.empty();
+            $list.append(`
+                <li class="throbber-li">
+                    <div class="throbber"><h3>Updating observations</h3></div>
+                </li>
+            `)
+
+            $.ajax({
+                type: 'GET',
+                url: `/works/${workOlid}/observations`,
+                dataType: 'json'
+            })
+                .done(function(data) {
+                    let listItems = '';
+                    for (const [category, values] of Object.entries(data)) {
+                        let observations = values.join(', ');
+                        observations = observations.charAt(0).toUpperCase() + observations.slice(1);
+
+                        listItems += `
+                    <li>
+                        <span class="observation-category">${category.charAt(0).toUpperCase() + category.slice(1)}:</span> ${observations}
+                    </li>
+                `;
+                    }
+
+                    $list.empty();
+
+                    if (listItems.length === 0) {
+                        listItems = `
+                    <li>
+                        No observations for this work.
+                    </li>
+                `;
+                        $list.addClass('no-content');
+                        $buttonsDiv.removeClass('observation-buttons');
+                        $buttonsDiv.addClass('no-content');
+                        $buttonsDiv.children().first().addClass('hidden');
+                    } else {
+                        $list.removeClass('no-content');
+                        $buttonsDiv.removeClass('no-content');
+                        $buttonsDiv.addClass('observation-buttons');
+                        $buttonsDiv.children().first().removeClass('hidden');
+                    }
+
+                    $list.append(listItems);
+                })
+        })
+    })
+}
+
+/**
+ * Deletes all of a work's observations and refreshes observations view.
+ *
+ * Delete observation buttons are only available on the aggregate
+ * observations view, beneath a list of previously submitted observations.
+ * Clicking the delete button will delete all of the observations for a
+ * work and update the view.
+ *
+ * @param {JQuery} $deleteButtons All observation delete buttons found on a page.
+ */
+function addDeleteObservationsListeners($deleteButtons) {
+    $deleteButtons.each(function(_i, deleteButton) {
+        const $button = $(deleteButton);
+
+        $button.on('click', function() {
+            const workOlid = `OL${$button.prop('id').split('-')[0]}W`;
+
+            $.ajax({
+                url: `/works/${workOlid}/observations`,
+                type: 'DELETE',
+                contentType: 'application/json',
+                success: function() {
+                    // Remove observations in view
+                    const $observationsView = $button.closest('.observation-view');
+                    const $list = $observationsView.find('ul');
+
+                    $list.empty();
+                    $list.append(`
+                        <li>
+                            No observations for this work.
+                        </li>
+                    `)
+                    $list.addClass('no-content');
+
+                    $button.parent().removeClass('observation-buttons');
+                    $button.parent().addClass('no-content');
+                    $button.addClass('hidden');
+
+                    // find and clear modal selections
+                    clearForm($button.siblings().find('form'));
+                }
+            });
+        })
+    });
+}
+
+/**
+ * Unchecks all inputs in an observations modal form.
+ *
+ * @param {JQuery} $form An observations modal form
+ */
+function clearForm($form) {
+    $form.find('input').each(function(_i, input) {
+        if (input.checked) {
+            input.checked = false;
+        }
+    });
+}
+
+/**
  * Displays a model identified by the given identifier.
  *
+ * Optionally fires a reload event to a list with the given ID.
+ *
  * @param {String} modalId  A string that uniquely identifies a modal.
+ * @param {String} [reloadId]   ID of list receiving a reload event
  */
-function displayModal(modalId) {
+function displayModal(modalId, reloadId) {
     $.colorbox({
         inline: true,
         opacity: '0.5',
         href: `#${modalId}-metadata-form`,
         width: '60%',
+        onClosed: function() {
+            if (reloadId) {
+                $(`#${reloadId}`).trigger('contentReload');
+            }
+        }
     });
 }
 
 /**
-* Adds change listeners to each input in the observations section of the modal.
-*
-* For each checkbox and radio button in the observations form, a change listener
-* that triggers observation submissions is added.  On change, a payload containing
-* the username, action type ('add' when an input is checked, 'delete' when unchecked),
-* and observation type and value are sent to the back-end server.
-*
-* @param {JQuery}  $parent  Object that contains the observations form.
-* @param {Object}  context  An object containing the patron's username and the work's OLID.
-*/
+ * Adds change listeners to each input in the observations section of the modal.
+ *
+ * For each checkbox and radio button in the observations form, a change listener
+ * that triggers observation submissions is added.  On change, a payload containing
+ * the username, action type ('add' when an input is checked, 'delete' when unchecked),
+ * and observation type and value are sent to the back-end server.
+ *
+ * @param {JQuery}  $parent  Object that contains the observations form.
+ * @param {Object}  context  An object containing the patron's username and the work's OLID.
+ */
 function addObservationChangeListeners($parent, context) {
     const $questionSections = $parent.find('.aspect-section');
     const username = context.username;
@@ -119,7 +308,6 @@ function addObservationChangeListeners($parent, context) {
         $inputs.each(function() {
             $(this).on('change', function() {
                 const type = $(this).attr('name');
-                const upperCaseType = type[0].toUpperCase() + type.slice(1);
                 const value = $(this).attr('value');
                 const observation = {};
                 observation[type] = value;
@@ -130,7 +318,7 @@ function addObservationChangeListeners($parent, context) {
                     observation: observation
                 }
 
-                submitObservation($(this), workOlid, data, upperCaseType);
+                submitObservation($(this), workOlid, data, type);
             });
         })
     });
@@ -139,13 +327,12 @@ function addObservationChangeListeners($parent, context) {
 /**
  * Submits an observation to the server.
  *
- * @param {JQuery}  $input      The checkbox or radio button that is firing the change event.
  * @param {String}  workOlid    The OLID for the work being observed.
  * @param {Object}  data        Payload that will be sent to the back-end server.
  * @param {String}  sectionType Name of the input's section.
  */
 function submitObservation($input, workOlid, data, sectionType) {
-    const $parent = $input.closest('.metadata-form');
+    let toastMessage;
     // Make AJAX call
     $.ajax({
         type: 'POST',
@@ -154,9 +341,12 @@ function submitObservation($input, workOlid, data, sectionType) {
         data: JSON.stringify(data)
     })
         .done(function() {
-            new Toast($parent, `${sectionType} saved!`).show();
+            toastMessage = `${sectionType} saved!`;
         })
         .fail(function() {
-            new Toast($parent, `${sectionType} save failed...`).show();
+            toastMessage = `${sectionType} save failed...`;
+        })
+        .always(function() {
+            showToast($input.closest('.metadata-form'), toastMessage);
         });
 }

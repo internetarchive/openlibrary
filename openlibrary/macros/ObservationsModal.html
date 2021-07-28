@@ -1,4 +1,4 @@
-$def with (work, link_text, id, classes='')
+$def with (work, link_text, id, classes='', reload_id=None)
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 
@@ -10,6 +10,9 @@ $ context = {
   $ "work": work.key,
   $ "id": id
   $ }
+
+$if reload_id:
+  $ context['reloadId'] = reload_id
 
 <div class="$classes">
   <a class="observations-modal-link" href="javascript:;" data-context="$json_encode(context)">$link_text</a>

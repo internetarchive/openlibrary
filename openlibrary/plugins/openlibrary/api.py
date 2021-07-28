@@ -426,17 +426,29 @@ class price_api(delegate.page):
         return json.dumps(metadata)
 
 
-class observations(delegate.page):
-    path = "/observations"
-    encoding = "json"
-
-    def GET(self):
-        return delegate.RawText(json.dumps(get_observations()), content_type="application/json")
-
-
 class patron_observations(delegate.page):
     path = r"/works/OL(\d+)W/observations"
     encoding = "json"
+
+    def GET(self, work_id):
+        user = accounts.get_current_user()
+
+        if not user:
+            raise web.seeother('/account/login')
+
+        username = user.key.split('/')[2]
+        existing_records = Observations.get_patron_observations(username, work_id)
+
+        patron_observations = defaultdict(list)
+
+        for r in existing_records:
+            kv_pair = Observations.get_key_value_pair(r['type'], r['value'])
+            patron_observations[kv_pair.key].append(kv_pair.value)
+
+        return delegate.RawText(
+            json.dumps(patron_observations),
+            content_type="application/json"
+        )
 
     def POST(self, work_id):
         user = accounts.get_current_user()
@@ -459,3 +471,19 @@ class patron_observations(delegate.page):
             }), content_type="application/json")
 
         return response('Observations added')
+
+    def DELETE(self, work_id):
+        user = accounts.get_current_user()
+        username = user.key.split('/')[2]
+
+        if not user:
+            raise web.seeother('/account/login')
+
+        Observations.remove_observations(username, work_id)
+
+        def response(msg, status="success"):
+            return delegate.RawText(json.dumps({
+                status: msg
+            }), content_type="application/json")
+
+        return response('Observations removed')

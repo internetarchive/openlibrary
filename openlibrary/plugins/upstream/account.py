@@ -18,7 +18,9 @@ import infogami.core.code as core
 from openlibrary import accounts
 from openlibrary.i18n import gettext as _
 from openlibrary.core import helpers as h, lending
+from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
@@ -744,6 +746,68 @@ class ReadingLog(object):
             raise
 
 
+class PatronBooknotes(object):
+    """ Manages the patron's book notes and observations """
+
+    def __init__(self, user):
+        user = user or account.get_current_user()
+        self.username = user.key.split('/')[-1]
+
+    def get_notes(self, limit=RESULTS_PER_PAGE, page=1):
+        notes = Booknotes.get_notes_grouped_by_work(
+            self.username,
+            limit=limit,
+            page=page)
+
+        for entry in notes:
+            entry['work_key'] = f"/works/OL{entry['work_id']}W"
+            entry['work'] = self._get_work(entry['work_key'])
+            entry['work_details'] = self._get_work_details(entry['work'])
+            entry['notes'] = {i['edition_id']: i['notes'] for i in entry['notes']}
+            entry['editions'] = {
+                k: web.ctx.site.get(f'/books/OL{k}M')
+                for k in entry['notes'] if k != Booknotes.NULL_EDITION_VALUE}
+        return notes
+
+    def get_observations(self, limit=RESULTS_PER_PAGE, page=1):
+        observations = Observations.get_observations_grouped_by_work(
+            self.username,
+            limit=limit,
+            page=page)
+
+        for entry in observations:
+            entry['work_key'] = f"/works/OL{entry['work_id']}W"
+            entry['work'] = self._get_work(entry['work_key'])
+            entry['work_details'] = self._get_work_details(entry['work'])
+            ids = {}
+            for item in entry['observations']:
+                ids[item['observation_type']] = item['observation_values']
+            entry['observations'] = convert_observation_ids(ids)
+        return observations
+
+    def _get_work(self, work_key):
+        return web.ctx.site.get(work_key)
+
+    def _get_work_details(self, work):
+        author_keys = [a.author.key for a in work.get('authors', [])]
+
+        return {
+            'cover_url': (
+                work.get_cover_url('S') or
+                'https://openlibrary.org/images/icons/avatar_book-sm.png'),
+            'title': work.get('title'),
+            'authors': [a.name for a in web.ctx.site.get_many(author_keys)],
+            'first_publish_year': work.first_publish_year or None
+        }
+
+    @classmethod
+    def get_counts(cls, username):
+        return {
+            'notes': Booknotes.count_works_with_notes_by_user(username),
+            'observations': Observations.count_distinct_observations(username)
+        }
+
+
 class public_my_books(delegate.page):
     path = "/people/([^/]+)/books"
 
@@ -762,7 +826,10 @@ class public_my_books(delegate.page):
             return render.notfound("User %s"  % username, create=False)
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         logged_in_user = accounts.get_current_user()
-        if is_public or logged_in_user and logged_in_user.key.split('/')[-1] == username:
+        is_logged_in_user = (
+            logged_in_user and
+            logged_in_user.key.split('/')[-1] == username)
+        if is_public or is_logged_in_user:
             readlog = ReadingLog(user=user)
             sponsorships = get_sponsored_editions(user)
             if key == 'sponsorships':
@@ -771,14 +838,21 @@ class public_my_books(delegate.page):
                         'type': '/type/edition',
                         'isbn_%s' % len(s['isbn']): s['isbn']
                     })[0]) for s in sponsorships)
+            elif key == 'notes' and is_logged_in_user and user.is_beta_tester():
+                books = PatronBooknotes(user).get_notes(page=int(i.page))
+            elif key == 'observations' and is_logged_in_user and user.is_beta_tester():
+                books = PatronBooknotes(user).get_observations(page=int(i.page))
             else:
                 books = readlog.get_works(key, page=i.page,
                                           sort='created', sort_order=i.sort)
+
+            booknotes_counts = PatronBooknotes.get_counts(username)
+
             return render['account/books'](
                 books, key, sponsorship_count=len(sponsorships),
                 reading_log_counts=readlog.reading_log_counts, lists=readlog.lists,
                 user=user, logged_in_user=logged_in_user, public=is_public,
-                sort_order=str(i.sort)
+                sort_order=str(i.sort), booknotes_counts=booknotes_counts
             )
         raise web.seeother(user.key)
 
@@ -924,7 +998,9 @@ class fake_civi(delegate.page):
                 "receive_date": "2019-07-31 08:57:00",
                 "custom_52": "9780062457714",
                 "total_amount": "50.00",
-                "custom_53": "ol"
+                "custom_53": "ol",
+                "contact_id": "270430",
+                "contribution_status": ""
             }]
         }
         entity = contributions if i.entity == 'Contribution' else contact
