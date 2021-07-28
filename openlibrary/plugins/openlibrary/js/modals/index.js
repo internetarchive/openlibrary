@@ -122,10 +122,10 @@ export function initObservationsModal($modalLinks) {
 
 /**
  * Add on click listeners to a collection of modal links.
- * 
+ *
  * When any of the links are clicked, it's corresponding modal
  * will be displayed.
- * 
+ *
  * @param {JQuery} $modalLinks  A collection of modal links.
  */
 function addClickListeners($modalLinks) {
@@ -174,20 +174,20 @@ function addObservationReloadListeners($observationLists) {
                         observations = observations.charAt(0).toUpperCase() + observations.slice(1);
 
                         listItems += `
-                        <li>
-                            <span class="observation-category">${category.charAt(0).toUpperCase() + category.slice(1)}:</span> ${observations}
-                        </li>
-                    `;
+                    <li>
+                        <span class="observation-category">${category.charAt(0).toUpperCase() + category.slice(1)}:</span> ${observations}
+                    </li>
+                `;
                     }
 
                     $list.empty();
 
                     if (listItems.length === 0) {
                         listItems = `
-                        <li>
-                            No observations for this work.
-                        </li>
-                    `;
+                    <li>
+                        No observations for this work.
+                    </li>
+                `;
                         $list.addClass('no-content');
                         $buttonsDiv.removeClass('observation-buttons');
                         $buttonsDiv.addClass('no-content');
@@ -203,7 +203,6 @@ function addObservationReloadListeners($observationLists) {
                 })
         })
     })
-  })
 }
 
 /**
@@ -298,31 +297,31 @@ function displayModal(modalId, reloadId) {
  * @param {JQuery}  $parent  Object that contains the observations form.
  * @param {Object}  context  An object containing the patron's username and the work's OLID.
  */
- function addObservationChangeListeners($parent, context) {
-  const $questionSections = $parent.find('.aspect-section');
-  const username = context.username;
-  const workOlid = context.work.split('/')[2];
+function addObservationChangeListeners($parent, context) {
+    const $questionSections = $parent.find('.aspect-section');
+    const username = context.username;
+    const workOlid = context.work.split('/')[2];
 
-  $questionSections.each(function() {
-      const $inputs = $(this).find('input')
+    $questionSections.each(function() {
+        const $inputs = $(this).find('input')
 
-      $inputs.each(function() {
-          $(this).on('change', function() {
-              const type = $(this).attr('name');
-              const value = $(this).attr('value');
-              const observation = {};
-              observation[type] = value;
+        $inputs.each(function() {
+            $(this).on('change', function() {
+                const type = $(this).attr('name');
+                const value = $(this).attr('value');
+                const observation = {};
+                observation[type] = value;
 
-              const data = {
-                  username: username,
-                  action: `${$(this).prop('checked') ? 'add': 'delete'}`,
-                  observation: observation
-              }
+                const data = {
+                    username: username,
+                    action: `${$(this).prop('checked') ? 'add': 'delete'}`,
+                    observation: observation
+                }
 
-              submitObservation($(this), workOlid, data, type);
-          });
-      })
-  });
+                submitObservation($(this), workOlid, data, type);
+            });
+        })
+    });
 }
 
 /**
