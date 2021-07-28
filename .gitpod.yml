@@ -17,4 +17,3 @@ tasks:
   init: docker-compose up --no-start
   # command runs each time a user starts their workspace
   command: docker-compose up
-  
