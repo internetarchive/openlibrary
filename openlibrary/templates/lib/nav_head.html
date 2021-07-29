@@ -113,5 +113,8 @@ $def with (page)
           { "post": "/account/logout", "text": _("Log out") }
         ]
       }
+    $# Add book notes link between 'My Reading Stats' and 'Settings' for beta testers:
+    $if ctx.user.is_beta_tester():
+      $accountProps['links'].insert(5, { "href": "/account/books/notes", "text": _("My Book Notes") })
     $:render_template("lib/header_dropdown", accountProps )
 </header>
