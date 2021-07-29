@@ -333,6 +333,8 @@ function addObservationChangeListeners($parent, context) {
  */
 function submitObservation($input, workOlid, data, sectionType) {
     let toastMessage;
+    const capitalizedType = sectionType[0].toUpperCase() + sectionType.substring(1);
+
     // Make AJAX call
     $.ajax({
         type: 'POST',
@@ -341,10 +343,10 @@ function submitObservation($input, workOlid, data, sectionType) {
         data: JSON.stringify(data)
     })
         .done(function() {
-            toastMessage = `${sectionType} saved!`;
+            toastMessage = `${capitalizedType} saved!`;
         })
         .fail(function() {
-            toastMessage = `${sectionType} save failed...`;
+            toastMessage = `${capitalizedType} save failed...`;
         })
         .always(function() {
             showToast($input.closest('.metadata-form'), toastMessage);
