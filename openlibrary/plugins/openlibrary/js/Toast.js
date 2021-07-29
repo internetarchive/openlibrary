@@ -9,7 +9,6 @@ const DEFAULT_TIMEOUT = 2500;
  * @class Toast creates a small pop-up message that closes after some amount of time.
  */
 export class Toast {
-  static $toastContainer;
 
   /**
    * Creates a new toast component, adds a close listener to the component, and adds the component
@@ -20,12 +19,10 @@ export class Toast {
    * @param {number} timeout Amount of time, in milliseconds, that the component will be visible
    */
   constructor($parent, message, timeout=DEFAULT_TIMEOUT) {
-      if (!Toast.$toastContainer) {
-          Toast.$toastContainer = $('<div class="toast-container"></div>');
+      if (!$parent.has('.toast-container').length) {
+          $parent.prepend('<div class="toast-container"></div>')
       }
-      if ($parent.has(Toast.$toastContainer).length === 0) {
-          $parent.prepend(Toast.$toastContainer);
-      }
+      const $toastContainer = $parent.children('.toast-container').first();
 
       this.timeout = timeout;
       this.$toast = $(`<div class="toast">
@@ -38,7 +35,7 @@ export class Toast {
           this.close();
       });
 
-      Toast.$toastContainer.append(this.$toast);
+      $toastContainer.append(this.$toast);
   }
 
   /**
