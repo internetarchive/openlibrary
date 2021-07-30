@@ -30,6 +30,7 @@ module.exports = {
     entry: {
         all: './openlibrary/plugins/openlibrary/js/index.js',
         vue: './openlibrary/plugins/openlibrary/js/vue.js',
+        patnerLib: './openlibrary/plugins/openlibrary/js/patner_ol_lib.js'
     },
 
     resolve: {
