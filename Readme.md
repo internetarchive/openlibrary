@@ -91,25 +91,23 @@ Inside your Windows/Mac terminal, run the following command under the openlibrar
 ```
 docker-compose up
 ```
-It may take around 10-15 minutes to install all the required openlibrary docker images in your machine.
-After succesful installation DONOT close the terminal.
+It may take around 10-15 minutes to install all the required openlibrary docker images and dependencies on your machine.
+After successful installation, DONOT close the terminal.
 
 ### Step-5
-After sucessful installation you would see a message similar to this()
-Now open a new terminal tab/window (without closing previous terminal) and be sure to be in the openlibrary project directory, if not then, change the current directory to your openlibrary project directory.
+Now open a new terminal tab/window (without closing previous terminal) and be sure to be in the openlibrary project directory, if not, then change the directory to your openlibrary project directory.
 
 To see whether you have successfully setup the environment-
-Open up your browser and type
+Open up your browser and enter-
 ```
 https://localhost:8080
 ```
-You successfully setup the environment for OpenLibrary!! Now you can go ahead and start contributing.
-We reccomend you to start by cintributing to some good-first-issues.
+You will be directed to openlibrary home page. You have successfully setup the environment for OpenLibrary!!
+Now you can start contributing. We recommend you to start by first contributing to some good-first-issues.
 Here are some good-first-issues we picked up for you [click here](https://github.com/internetarchive/openlibrary/contribute)
 
-### Step-6
-To close the running terminal, press `Ctrl C`.
-
+***Note***
+If you want to close the running terminal, press `Ctrl C`.
 
 ## Developer's Guide
 
@@ -165,3 +163,4 @@ Integration tests use the Splinter webdriver with Google Chrome. For instruction
 ## License
 
 All source code published here is available under the terms of the [GNU Affero General Public License, version 3](https://www.gnu.org/licenses/agpl-3.0.html).
+
