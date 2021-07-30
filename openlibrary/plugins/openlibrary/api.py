@@ -142,7 +142,8 @@ class booknotes(delegate.page):
         """
         user = accounts.get_current_user()
         i = web.input(notes=None, edition_id=None, redir=None)
-        edition_id = int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
+        edition_id = int(
+            extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else -1
 
         if not user:
             raise web.seeother('/account/login?redirect=/works/%s' % work_id)
@@ -155,7 +156,7 @@ class booknotes(delegate.page):
             }), content_type="application/json")
 
         if i.notes is None:
-            Booknotes.remove(username, work_id)
+            Booknotes.remove(username, work_id, edition_id=edition_id)
             return response('removed note')
 
         Booknotes.add(
@@ -426,14 +427,6 @@ class price_api(delegate.page):
         return json.dumps(metadata)
 
 
-class observations(delegate.page):
-    path = "/observations"
-    encoding = "json"
-
-    def GET(self):
-        return delegate.RawText(json.dumps(get_observations()), content_type="application/json")
-
-
 class patron_observations(delegate.page):
     path = r"/works/OL(\d+)W/observations"
     encoding = "json"
@@ -452,8 +445,11 @@ class patron_observations(delegate.page):
         for r in existing_records:
             kv_pair = Observations.get_key_value_pair(r['type'], r['value'])
             patron_observations[kv_pair.key].append(kv_pair.value)
-            
-        return delegate.RawText(json.dumps(patron_observations), content_type="application/json")
+
+        return delegate.RawText(
+            json.dumps(patron_observations),
+            content_type="application/json"
+        )
 
     def POST(self, work_id):
         user = accounts.get_current_user()
@@ -476,6 +472,22 @@ class patron_observations(delegate.page):
             }), content_type="application/json")
 
         return response('Observations added')
+
+    def DELETE(self, work_id):
+        user = accounts.get_current_user()
+        username = user.key.split('/')[2]
+
+        if not user:
+            raise web.seeother('/account/login')
+
+        Observations.remove_observations(username, work_id)
+
+        def response(msg, status="success"):
+            return delegate.RawText(json.dumps({
+                status: msg
+            }), content_type="application/json")
+
+        return response('Observations removed')
 
 
 class works(delegate.page):

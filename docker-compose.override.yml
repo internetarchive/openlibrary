@@ -25,6 +25,10 @@ services:
       - db
       - infobase
 
+  solr:
+    ports:
+      - 8983:8983
+
   solr-updater:
     build:
       context: .

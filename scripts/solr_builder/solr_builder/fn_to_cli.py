@@ -100,7 +100,7 @@ class FnToCLI:
             return {'type': typ, 'action': BooleanOptionalAction}
         if typ in (int, str, float):
             return {'type': typ}
-        if typ == list[str]:
+        if typ == typing.List[str]:
             return {'nargs': '*'}
         if not hasattr(typ, '__origin__'):
             raise ValueError(f'Cannot determine type of {typ}')
