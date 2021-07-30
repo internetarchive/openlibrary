@@ -222,6 +222,7 @@ def get_list(key, raw=False):
                 "editions": lst.key + "/editions",
             },
             "name": lst.name or None,
+            "type": { "key": lst.key },
             "description": (
                 lst.description and six.text_type(lst.description) or None
             ),
