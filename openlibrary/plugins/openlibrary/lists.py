@@ -245,7 +245,7 @@ class list_view_json(delegate.page):
         i = web.input()
         raw = i.get("_raw") == "true"
         lst = get_list(key, raw=raw)
-        if not lst or lst.type.key == '/type/delete':
+        if not lst or lst['type']['key'] == '/type/delete':
             raise web.notfound()
         web.header("Content-Type", self.content_type)
         return delegate.RawText(formats.dump(lst, self.encoding))
