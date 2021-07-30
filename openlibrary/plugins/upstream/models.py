@@ -657,7 +657,7 @@ class Work(models.Work):
                     is_ascii(subject))) and
                 all([char not in subject for char in blacklist_chars])):
                 ok_subjects.append(subject)
-        return ok_subjects        
+        return ok_subjects
 
     def get_related_books_subjects(self, filter_unicode=True):
         return self.filter_problematic_subjects(self.get_subjects(), filter_unicode)
