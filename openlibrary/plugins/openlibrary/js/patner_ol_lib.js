@@ -21,7 +21,7 @@ export const getAvailabilityDataFromArchiveOrg = async isbnList => {
 };
 
 export const addOpenLibraryButtons = async options => {
-    const {bookContainer, selectorToPlaceBtnIn} = options
+    const {bookContainer, selectorToPlaceBtnIn, textOnBtn} = options
     if (bookContainer === undefined || selectorToPlaceBtnIn === undefined) {
         throw Error(
             'book container and button parent must be specified in options for open library buttons to populate!'
@@ -38,7 +38,7 @@ export const addOpenLibraryButtons = async options => {
                 <a 
                     class="openlibrary-btn" 
                     href="https://openlibrary.org/borrow/ia/${availability.identifier}?ref=">
-                    Open Library
+                    ${textOnBtn || 'Open Library'}
                 </a>
             </div>`
             buttons.innerHTML = `${buttons.innerHTML}${openLibraryBtnDiv}`;
