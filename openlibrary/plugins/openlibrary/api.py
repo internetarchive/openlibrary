@@ -494,7 +494,6 @@ class works(delegate.page):
         work_id = f"OL{work_id}W"
         input = web.input(comment=None)
 
-        # TODO: should this be in the JSON body? currently its a query param
         comment = input.get('comment')
 
         work: Work = web.ctx.site.get(f'/works/{work_id}')
@@ -505,9 +504,6 @@ class works(delegate.page):
             for key in keys_to_delete
         ]
 
-        # TODO: If work gets deleted and editions delete exceptions out, there
-        #  might be hanging editions. Should we first delete editions and then
-        #  check and delete work?
         web.ctx.site.save_many(delete_payload, comment)
         return delegate.RawText(json.dumps({
             'status': 'ok',
