@@ -1,17 +1,12 @@
 import { ExpirationPlugin } from 'workbox-expiration';
-import { precacheAndRoute } from 'workbox-precaching';
 import { offlineFallback } from 'workbox-recipes';
 import { setDefaultHandler, registerRoute } from 'workbox-routing';
 import { CacheFirst, NetworkFirst, NetworkOnly } from 'workbox-strategies';
 import {CacheableResponsePlugin} from 'workbox-cacheable-response';
 import { clientsClaim } from 'workbox-core';
-// import { warmStrategyCache } from 'workbox-recipes';
 
-self.skipWaiting()
+self.skipWaiting();
 clientsClaim();
-
-//precache
-precacheAndRoute(self.__WB_MANIFEST);
 
 // Offline Page
 setDefaultHandler(
