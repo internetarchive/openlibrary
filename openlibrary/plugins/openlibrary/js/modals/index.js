@@ -9,14 +9,14 @@ import '../../../../../static/css/components/toast.less';
  */
 export function initNotesModal($modalLinks) {
     addClickListeners($modalLinks);
-    addNotesButtonListeners();
+    addNotesModalButtonListeners();
     addNotesReloadListeners($('.notes-textarea'));
 }
 
 /**
- * Adds click listeners to buttons in all notes forms on a page.
+ * Adds click listeners to buttons in all notes modals on a page.
  */
-function addNotesButtonListeners() {
+function addNotesModalButtonListeners() {
     $('.update-note-button').on('click', function(){
         // Get form data
         const formData = new FormData($(this).prop('form'));
@@ -65,6 +65,71 @@ function addNotesButtonListeners() {
                 $.colorbox.close();
                 $button.toggleClass('hidden');
                 $button.closest('form').find('textarea').val('');
+            }
+        });
+    });
+}
+
+/**
+* Add listeners to update and delete buttons on the notes page.
+*
+* On successful delete, list elements related to the note are removedd
+* from the view.
+*/
+export function addNotesPageButtonListeners() {
+    $('.update-note-button').on('click', function() {
+        const workId = $(this).parent().siblings('input')[0].value;
+        const editionId = $(this).parent().attr('id').split('-')[0];
+        const note = $(this).parent().siblings('textarea')[0].value;
+
+        const formData = new FormData();
+        formData.append('notes', note);
+        formData.append('edition_id', `OL${editionId}M`);
+
+        $.ajax({
+            url: `/works/OL${workId}W/notes.json`,
+            data: formData,
+            type: 'POST',
+            contentType: false,
+            processData: false,
+            success: function() {
+                showToast($('body'), 'Update successful!')
+            }
+        });
+    });
+
+    $('.delete-note-button').on('click', function() {
+        const $parent = $(this).parent();
+
+        const workId = $(this).parent().siblings('input')[0].value;
+        const editionId = $(this).parent().attr('id').split('-')[0];
+
+        const formData = new FormData();
+        formData.append('edition_id', `OL${editionId}M`);
+
+        $.ajax({
+            url: `/works/OL${workId}W/notes.json`,
+            data: formData,
+            type: 'POST',
+            contentType: false,
+            processData: false,
+            success: function() {
+                showToast($('body'), 'Note deleted.');
+
+                // Remove list element from UI:
+                if ($parent.closest('.notes-list').children().length === 1) {
+                    // This is the last edition for a set of notes on a work.
+                    // Remove the work element:
+                    $parent.closest('.main-list-item').remove();
+
+                    if (!$('.main-list-item').length) {
+                        $('.list-container')[0].innerText = 'No notes found.';
+                    }
+                } else {
+                    // Notes for other editions of the work exist
+                    // Remove the edition's notes list item:
+                    $parent.closest('.notes-list-item').remove();
+                }
             }
         });
     });
