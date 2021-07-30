@@ -21,8 +21,8 @@ export const getAvailabilityDataFromArchiveOrg = async isbnList => {
 };
 
 export const addOpenLibraryButtons = async options => {
-    const {bookContainer, btnParent} = options
-    if (bookContainer === undefined || btnParent === undefined) {
+    const {bookContainer, selectorToPlaceBtnIn} = options
+    if (bookContainer === undefined || selectorToPlaceBtnIn === undefined) {
         throw Error(
             'book container and button parent must be specified in options for open library buttons to populate!'
         )
@@ -32,9 +32,16 @@ export const addOpenLibraryButtons = async options => {
     Object.keys(foundIsbnElementsMap).map((isbn) => {
         const availability = results[isbn];
         if (availability && availability.status !== 'error') {
-            let e = foundIsbnElementsMap[isbn];
-            let buttons = e.getElementsByClassName(btnParent)[0];
-            buttons.innerHTML = `${buttons.innerHTML}<div><a class="openlibrary-btn" href="https://openlibrary.org/borrow/ia/${availability.identifier}?ref=">Open Library</a></div>`;
+            const e = foundIsbnElementsMap[isbn];
+            const buttons = e.getElementsByClassName(selectorToPlaceBtnIn)[0];
+            const openLibraryBtnDiv = `<div>
+                <a 
+                    class="openlibrary-btn" 
+                    href="https://openlibrary.org/borrow/ia/${availability.identifier}?ref=">
+                    Open Library
+                </a>
+            </div>`
+            buttons.innerHTML = `${buttons.innerHTML}${openLibraryBtnDiv}`;
         }
     })
 };
