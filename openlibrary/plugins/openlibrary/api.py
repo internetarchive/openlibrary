@@ -503,7 +503,6 @@ class works(delegate.page):
         if not (user and (user.is_admin() or user.is_librarian())):
             return web.HTTPError('403 Forbidden')
 
-        work_id = f"OL{work_id}W"
         input = web.input(comment=None)
 
         comment = input.get('comment')
