@@ -491,7 +491,7 @@ class patron_observations(delegate.page):
 
 
 class works(delegate.page):
-    path = r"/works/OL(\d+)W"
+    path = r"/works/(OL\d+W)"
     encoding = "json"
 
     def get_editions_of_work(self, work: Work) -> list[dict]:
