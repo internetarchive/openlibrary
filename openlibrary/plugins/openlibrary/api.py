@@ -511,7 +511,7 @@ class works(delegate.page):
         editions: list[dict] = self.get_editions_of_work(work)
         keys_to_delete = [el.get('key') for el in [*editions, work.dict()]]
         delete_payload = [
-            dict(key=key, type=dict(key='/type/delete'))
+            {'key': key, 'type': {'key': '/type/delete'}}
             for key in keys_to_delete
         ]
 
