@@ -503,14 +503,14 @@ class works(delegate.page):
         if not (user and (user.is_admin() or user.is_librarian())):
             return web.HTTPError('403 Forbidden')
 
-        input = web.input(comment=None)
+        web_input = web.input(comment=None)
 
-        comment = input.get('comment')
+        comment = web_input.get('comment')
 
         work: Work = web.ctx.site.get(f'/works/{work_id}')
         editions: list[dict] = self.get_editions_of_work(work)
-        keys_to_delete = [el.get('key') for el in [*editions, work.dict()]]
-        delete_payload = [
+        keys_to_delete: list = [el.get('key') for el in [*editions, work.dict()]]
+        delete_payload: list[dict] = [
             {'key': key, 'type': {'key': '/type/delete'}}
             for key in keys_to_delete
         ]
