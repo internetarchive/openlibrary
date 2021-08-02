@@ -2,7 +2,11 @@ import pytest
 
 from openlibrary.solr import update_work
 from openlibrary.solr.data_provider import DataProvider
-from openlibrary.solr.update_work import build_data, pick_cover_edition
+from openlibrary.solr.update_work import (
+    build_data,
+    pick_cover_edition,
+    pick_number_of_pages_median,
+)
 
 author_counter = 0
 edition_counter = 0
@@ -578,3 +582,20 @@ class Test_pick_cover_edition:
     def test_prefers_anything(self):
         ed = {'covers': [123]}
         assert pick_cover_edition([ed], 456) == ed
+
+
+class Test_pick_number_of_pages_median:
+    def test_no_editions(self):
+        assert pick_number_of_pages_median([]) is None
+
+    def test_invalid_type(self):
+        ed = {'number_of_pages': 'spam'}
+        assert pick_number_of_pages_median([ed]) is None
+        eds = [{'number_of_pages': n} for n in [123, 122, 'spam']]
+        assert pick_number_of_pages_median(eds) == 123
+
+    def test_normal_case(self):
+        eds = [{'number_of_pages': n} for n in [123, 122, 1]]
+        assert pick_number_of_pages_median(eds) == 122
+        eds = [{}, {}] + [{'number_of_pages': n} for n in [123, 122, 1]]
+        assert pick_number_of_pages_median(eds) == 122

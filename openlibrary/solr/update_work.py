@@ -4,7 +4,9 @@ import itertools
 import logging
 import os
 import re
-from typing import Literal, List, Union
+from math import ceil
+from statistics import median
+from typing import Literal, List, Union, Optional, cast
 
 import httpx
 import requests
@@ -195,6 +197,19 @@ def pick_cover_edition(editions, work_cover_id):
         # The default: None
         [None],
     ))
+
+
+def pick_number_of_pages_median(editions: List[dict]) -> Optional[int]:
+    number_of_pages = [
+        cast(int, e.get('number_of_pages'))
+        for e in editions
+        if e.get('number_of_pages') and type(e.get('number_of_pages')) == int
+    ]
+
+    if number_of_pages:
+        return ceil(median(number_of_pages))
+    else:
+        return None
 
 
 def get_work_subjects(w):
@@ -548,6 +563,10 @@ class SolrProcessor:
         if pub_years:
             add_list('publish_year', pub_years)
             add('first_publish_year', min(int(y) for y in pub_years))
+
+        number_of_pages_median = pick_number_of_pages_median(editions)
+        if number_of_pages_median:
+            add('number_of_pages_median', number_of_pages_median)
 
         field_map = [
             ('lccn', 'lccn'),
