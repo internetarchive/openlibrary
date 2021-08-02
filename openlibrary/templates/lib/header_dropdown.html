@@ -25,7 +25,12 @@ $# @param {DropdownLink[]} props.links
       </summary>
       $if 'mask' in props:
         <div class="mask-menu"></div>
-      <div class="$(props['name'])-dropdown-component navigation-dropdown-component">
+      <div 
+      $if 'mask' in props:
+        class="app-drawer"
+      $else:
+        class="$(props['name'])-dropdown-component navigation-dropdown-component"
+      >
         <ul class="dropdown-menu $(props['name'])-dropdown-menu">
           $for link in props['links']:
             $if 'subsection' in link:
@@ -34,11 +39,13 @@ $# @param {DropdownLink[]} props.links
                 $if link['subsection'] == 'My Open Library' and ctx.user:
                   <img class="header-dropdown__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="My account">
               </li>
+            $elif 'loginClass' in link:
+              <li class="$(link['loginClass'])">
+                <a href="/account/login">$_('Log in')</a>
+                <a href="/account/create">$_('Sign up')</a>
+              </li>
             $else:
-              <li
-              $if 'loginClass' in link:
-                class="$(link['loginClass'])"
-              >
+              <li>
               $if 'post' in link:
                 <form action="$(link['post'])" method="post">
                   <button>$(link["text"])</button>
