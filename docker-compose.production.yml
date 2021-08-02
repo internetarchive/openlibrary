@@ -35,7 +35,7 @@ services:
     networks:
       - webnet
     volumes:
-      - ./conf/solr/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./conf/solr8-ol/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     ports:
       - 8984:8984
     logging:
