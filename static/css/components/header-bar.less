@@ -134,7 +134,7 @@
     z-index: @z-index-level-2;
     overflow-y: auto;
     overscroll-behavior: contain;
-    font-family: Bahnschrift;
+    font-family: @bahnschrift;
     background-color: @light-beige;
     box-shadow: -10px 0 10px -6px rgb(0 0 0 / 25%);
 
@@ -142,10 +142,11 @@
       border: none;
     }
 
+    // stylelint-disable max-nesting-depth, selector-max-specificity
     .subsection {
       font-weight: bold;
       border-bottom: 2px solid @dark-beige;
-      padding: 16px 10px 1px 10px;
+      padding: 16px 10px 1px;
       &:hover {
         background-color: transparent;
       }
@@ -159,7 +160,6 @@
       padding: 10px 10px 10px 20px;
     }
 
-    // stylelint-disable-next-line selector-max-specificity
     li .header-dropdown__icon {
       position: absolute;
       top: 10px;
@@ -168,7 +168,6 @@
       border-radius: 3px;
     }
 
-    // stylelint-disable-next-line selector-max-specificity
     .subsection:first-child {
       border-top: 1px solid @dark-beige;
       position: relative;
@@ -185,7 +184,6 @@
       }
     }
 
-    // stylelint-disable-next-line selector-max-specificity
     .login-links a {
       flex: 1;
       background: @primary-blue;
@@ -194,13 +192,12 @@
       border-radius: 6px;
       padding: 6px;
       border: 1px solid @primary-blue;
-      transition: 0.3s;
+      transition: .3s;
       &:hover {
         background-color: @link-blue;
       }
     }
 
-    // stylelint-disable-next-line selector-max-specificity
     .login-links a:nth-of-type(2) {
       background: @light-beige;
       color: @primary-blue;
@@ -208,6 +205,7 @@
         background-color: @white;
       }
     }
+    // stylelint-enable max-nesting-depth, selector-max-specificity
   }
 
   .hamburger-component {
@@ -228,7 +226,7 @@
     details[open] {
       .mask-menu{
         visibility: visible;
-        opacity: 0.6;
+        opacity: .6;
         animation: fadeIn .2s ease-in-out;
       }
       summary ~ * {
@@ -243,7 +241,7 @@
 
     @keyframes fadeIn {
       0% {opacity: 0;}
-      100% {opacity: 0.6;}
+      100% {opacity: .6;}
     }
     // stylelint-enable max-nesting-depth, selector-max-specificity
 
@@ -321,10 +319,6 @@
     -ms-flex-order: 1;
     order: 1;
     z-index: @z-index-level-negative;
-
-    .logo-txt:after {
-      content: "";
-    }
 
     .logo-icon {
       position: relative;
