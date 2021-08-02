@@ -47,7 +47,7 @@ export function initAuthorView() {
     $('#preMerge').show();
     $('#preMerge').parent().show();
 
-    let data = {
+    const data = {
         master: dataKeysJSON['master'],
         duplicates: dataKeysJSON['duplicates']
     };

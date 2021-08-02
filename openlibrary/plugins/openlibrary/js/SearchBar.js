@@ -258,7 +258,7 @@ export class SearchBar {
             const renderer = RENDER_AUTOCOMPLETE_RESULT[this.facetEndpoint];
             this.$results.css('opacity', 1);
             this.clearAutocompletionResults();
-            for (let d in data.docs) {
+            for (const d in data.docs) {
                 this.$results.append(renderer(data.docs[d]));
             }
         });
