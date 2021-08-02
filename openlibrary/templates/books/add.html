@@ -45,13 +45,15 @@ $var title: $_("Add a book")
             </div>
         </div>
 
+        $ admin_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
         <div class="formElement">
             <div class="label"><label for="id_value">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
                 <label for="id_name" class="hidden">$_("ID Type")</label>
             <div class="input">
                 <select name="id_name" id="id_name">
                 <option value="">$_("Select")</option>
-                <option value="ocaid">Internet Archive</option>
+                $if admin_user:
+                    <option value="ocaid">Internet Archive</option>
                 <option value="isbn_10">ISBN 10</option>
                 <option value="isbn_13">ISBN 13</option>
                 <option value="lccn">LCCN</option>

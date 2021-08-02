@@ -1,7 +1,5 @@
 FROM ubuntu:xenial
 
-ARG DOCKER_HUB=FALSE
-
 ENV LANG en_US.UTF-8
 
 # required for postgres

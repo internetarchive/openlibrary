@@ -18,23 +18,20 @@ services:
         max-file: "4"
 
   solr:
-    image: olsolr:latest
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.olsolr
-    restart: always
-    environment:
-      - ENV=${ENV:-dev}
-    ports:
-      - 8983:8983
+    image: solr:8.8.2
+    expose:
+      - 8983
     volumes:
-      - solr-data:/var/lib/solr/data
+      - solr-data:/var/solr/data
+      - ./conf/solr8-ol:/opt/solr/server/solr/configsets/olconfig:ro
     networks:
       - webnet
     logging:
       options:
         max-size: "512m"
         max-file: "4"
+    # Create (or use if already existing) a core called "openlibrary" with our config & schema
+    command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig
 
   solr-updater:
     image: "${OLIMAGE:-oldev:latest}"

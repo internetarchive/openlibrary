@@ -17,6 +17,15 @@ git config core.symlinks true
 git reset --hard HEAD
 ```
 
+### For Users of Macs Containing an M1 Chip
+
+You will likely need to install Rosetta 2 in order to run Docker on your machine.  This can be manually installed by running the following in your command line:
+
+```
+softwareupdate --install-rosetta
+```
+More detailed information about this can be found in the [Docker Desktop for Apple silicon documention](https://docs.docker.com/docker-for-mac/apple-silicon/).
+
 ### Prerequisites & Troubleshooting
 
 Before attempting to build openlibrary using the docker instructions below, please follow this checklist. If you encounter an error, this section may serve as a troubleshooting guide:
@@ -120,7 +129,7 @@ If you need to make changes to the dependencies in Dockerfile.olbase, rebuild it
 docker build -t openlibrary/olbase:latest -f docker/Dockerfile.olbase . # 30+ min (Win10Home/Dec 2018)
 ```
 
-This image is automatically rebuilt when master is pushed to at https://hub.docker.com/r/openlibrary/olbase .
+This image is automatically rebuilt on deploy by ol-home0 and is pushed to at https://hub.docker.com/r/openlibrary/olbase.
 
 If you're making changes you think might affect Docker Hub, you can create a branch starting with `docker-test`, e.g. `docker-test-py2py3` (no weird chars), to trigger a build in docker hub at e.g. `openlibrary/olbase:docker-test-py2py3`.
 
