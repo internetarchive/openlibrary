@@ -112,7 +112,7 @@ module.exports = {
     devtool: 'source-map',
     mode: prod ? 'production' : 'development',
     experiments: {
-    lazyCompilation: true,
+        lazyCompilation: true,
     },
     performance: {
         maxAssetSize: 703 * 1024,
