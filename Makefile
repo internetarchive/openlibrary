@@ -18,7 +18,7 @@ all: git css js components i18n
 
 css: static/css/page-*.less
 	mkdir -p $(BUILD)
-	parallel --verbose -q npx lessc {} $(BUILD)/{/.}.css --clean-css="--s1 --advanced --compatibility=ie8" ::: $^
+	parallel --verbose -q npx lessc {} $(BUILD)/{/.}.css --clean-css="--s1 --advanced" ::: $^
 
 js:
 	mkdir -p $(BUILD)
