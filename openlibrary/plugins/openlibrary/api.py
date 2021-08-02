@@ -498,6 +498,15 @@ class works(delegate.page):
         keys: list = web.ctx.site.things({"type": "/type/edition", "works": work.key})
         return web.ctx.site.get_many(keys, raw=True)
 
+    def GET(self, work_id: str):
+        work: Work = web.ctx.site.get(f'/works/{work_id}')
+        if work is None:
+            return web.HTTPError(status='404 Not Found')
+        return delegate.RawText(
+            json.dumps(work.dict()),
+            content_type='application/json'
+        )
+
     def DELETE(self, work_id: str):
         user = accounts.get_current_user()
         if not (user and (user.is_admin() or user.is_librarian())):
@@ -508,6 +517,9 @@ class works(delegate.page):
         comment = web_input.get('comment')
 
         work: Work = web.ctx.site.get(f'/works/{work_id}')
+        if work is None:
+            return web.HTTPError(status='404 Not Found')
+
         editions: list[dict] = self.get_editions_of_work(work)
         keys_to_delete: list = [el.get('key') for el in [*editions, work.dict()]]
         delete_payload: list[dict] = [
