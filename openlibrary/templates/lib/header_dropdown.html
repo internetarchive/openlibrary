@@ -14,7 +14,7 @@ $# @param {DropdownLink[]} props.links
       <summary>
         $if 'mask' in props and ctx.user:
             <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="My account">
-            <img class="header-dropdown__icon" src="$(props['image'])" alt="$(props['label'])"/>
+            <img class="header-dropdown__icon logged" src="$(props['image'])" alt="$(props['label'])"/>
         $elif 'image' in props:
             <img class="header-dropdown__icon" src="$(props['image'])" alt="$(props['label'])"/>
         $elif 'label' in props:
@@ -37,12 +37,12 @@ $# @param {DropdownLink[]} props.links
               <li class="subsection">
                 $(link['subsection'])
                 $if link['subsection'] == 'My Open Library' and ctx.user:
-                  <img class="header-dropdown__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="My account">
+                  <img class="app-drawer__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="My account">
               </li>
             $elif 'loginClass' in link:
               <li class="$(link['loginClass'])">
-                <a href="/account/login">$_('Log in')</a>
-                <a href="/account/create">$_('Sign up')</a>
+                <a href="/account/login">$_('Log In')</a>
+                <a href="/account/create">$_('Sign Up')</a>
               </li>
             $else:
               <li>

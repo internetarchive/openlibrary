@@ -145,26 +145,40 @@
     // stylelint-disable max-nesting-depth, selector-max-specificity
     .subsection {
       font-weight: bold;
-      border-bottom: 2px solid @dark-beige;
-      padding: 16px 10px 1px;
+      border-bottom: 2px solid hsl(32.7,14.7%,70.6%);
+      padding: 16px 16px 3px;
       &:hover {
         background-color: transparent;
       }
+    }
+
+    li {
+      border-bottom: 1px solid hsla(33.6, 10%, 49.2%, .25);
     }
 
     li:not(.subsection) {
       margin: 0 8px;
     }
 
-    li a, li button {
-      padding: 10px 10px 10px 20px;
+    li a {
+      padding: 10px 8px;
     }
 
-    li .header-dropdown__icon {
+    li button {
+      padding: 10px 8px;
+      width: 100%;
+      font-family: @bahnschrift;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    li .app-drawer__icon {
       position: absolute;
       top: 10px;
       right: 18px;
-      border: 1px solid @border-color;
+      width: 48px;
+      height: 48px;
+      border: 2px solid @border-color;
       border-radius: 3px;
     }
 
@@ -175,7 +189,7 @@
 
     .login-links {
       display: flex;
-      padding: 10px;
+      padding: 10px 8px;
       border-bottom: none;
       justify-content: space-evenly;
       column-gap: 16px;
@@ -186,23 +200,25 @@
 
     .login-links a {
       flex: 1;
-      background: @primary-blue;
-      text-align: center;
-      color: @white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: @primary-blue;
       border-radius: 6px;
       padding: 6px;
-      border: 1px solid @primary-blue;
+      border: 2px solid @primary-blue;
       transition: .3s;
       &:hover {
-        background-color: @link-blue;
+        background-color: @white;
       }
     }
 
     .login-links a:nth-of-type(2) {
-      background: @light-beige;
-      color: @primary-blue;
+      background: @primary-blue;
+      color: @white;
+      border: none;
       &:hover {
-        background-color: @white;
+        background-color: @link-blue;
       }
     }
     // stylelint-enable max-nesting-depth, selector-max-specificity
@@ -217,7 +233,8 @@
     .badge {
       color: @white;
       background-color: @primary-blue;
-      padding: 1px 3px;
+      font-size: .9em;
+      padding: 2px 6px 1px;
       border-radius: 4px;
       float: right;
     }
@@ -232,6 +249,13 @@
       summary ~ * {
         animation: sweep .2s ease-in-out;
       }
+      .header-dropdown__icon {
+        background-color: @account-icon-background;
+      }
+    }
+
+    .header-dropdown__icon.logged {
+      padding-left: 8px;
     }
 
     @keyframes sweep {
@@ -293,7 +317,7 @@
     }
 
     .account__icon {
-      border: 1px solid @border-color;
+      border: 2px solid @border-color;
       border-radius: 4px;
       width: 30px;
       height: 30px;
@@ -745,7 +769,7 @@ div.search-facet:focus-within {
     }
 
     .hamburger-component summary {
-      margin-left: 15px;
+      margin-left: 10px;
     }
   }
 }
