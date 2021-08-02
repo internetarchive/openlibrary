@@ -15,13 +15,18 @@ def test_concat_and_uniq_arr_field_values_from_dicts():
             {
                 "author": {"key": "/authors/OL2699987A"},
                 "type": {"key": "/type/author_role"}
+            },
+            {
+                "author": {"key": "/authors/OL0123A"},
+                "type": {"key": "/type/author_role"}
             }
         ]
     }
     arr = merge_works.uniq_arr_field_values_from_dicts('authors', dict_one, dict_two)
-    assert len(arr) == 1
+    assert len(arr) == 2
     assert arr[0]['type']['key'] == "/type/author_role"
     assert arr[0]['author']['key'] == "/authors/OL2699987A"
+    assert arr[1]['author']['key'] == "/authors/OL0123A"
 
     arr = merge_works.uniq_arr_field_values_from_dicts('subjects', {
         'subjects': ['subject_one', 'subject_two']

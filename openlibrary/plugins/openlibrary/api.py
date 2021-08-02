@@ -18,6 +18,7 @@ from infogami.plugins.api.code import jsonapi
 from infogami.utils.view import add_flash_message
 from openlibrary import accounts
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.helpers import uniq
 from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.admin.memory import Storage
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
@@ -492,11 +493,18 @@ class merge_works(delegate.page):
             dict_one: dict,
             dict_two: dict
     ) -> list[dict]:
+        """
+        Concatenates the given field from all dicts, and removes duplicates while maintaining original order.
+        Expects the field to be an array type in both dicts.
+        """
         arr_one = dict_one.get(field_name, [])
         arr_two = dict_two.get(field_name, [])
         arr_one_jsons = [json.dumps(el, sort_keys=True) for el in arr_one]
         arr_two_jsons = [json.dumps(el, sort_keys=True) for el in arr_two]
-        return [json.loads(el) for el in list({*arr_one_jsons, *arr_two_jsons})]
+        return [
+            json.loads(el)
+            for el in uniq(arr_one_jsons + arr_two_jsons)
+        ]
 
     @staticmethod
     def merge_work_dupe_into_original(original: dict, dupe: dict) -> dict:
