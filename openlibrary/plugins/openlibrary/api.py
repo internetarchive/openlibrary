@@ -506,7 +506,8 @@ class merge_works(delegate.page):
             dict_two: dict
     ) -> list[dict]:
         """
-        Concatenates the given field from all dicts, and removes duplicates while maintaining original order.
+        Concatenates the given field from all dicts, and removes
+        duplicates while maintaining original order.
         Expects the field to be an array type in both dicts.
         """
         arr_one = dict_one.get(field_name, [])
