@@ -10,6 +10,8 @@
       :multi-select="multiSelect"
       :type="title"
       :all-selected-values="allSelectedValues"
+      :work="work"
+      :username="username"
       />
   </div>
 </template>
@@ -52,6 +54,14 @@ export default {
         },
         allSelectedValues: {
             type: Object,
+            required: true
+        },
+        work: {
+            type: String,
+            required: true
+        },
+        username: {
+            type: String,
             required: true
         }
     },

@@ -18,6 +18,8 @@ import Vue from 'vue'
 
 import Chip from './Chip'
 
+import { deleteObservation, addObservation } from '../ObservationService'
+
 export default {
     name: 'CardBody',
     components: {
@@ -40,6 +42,14 @@ export default {
         allSelectedValues: {
             type: Object,
             required: true
+        },
+        work: {
+            type: String,
+            required: true
+        },
+        username: {
+            type: String,
+            required: true
         }
     },
     methods: {
@@ -50,6 +60,7 @@ export default {
                 for (let i = 0; i < this.values.length; ++i) {
                     if (this.values[i] === text) {
                         updatedValues.push(text);
+                        addObservation(this.type, text, this.work, this.username)
                     } else if (!this.multiSelect) {
                         const ref = `chip-${this.values[i]}`;
                         if (this.$refs[ref][0].isSelected) {
@@ -57,6 +68,7 @@ export default {
 
                             updatedValues.splice(index, 1);
                             this.$refs[ref][0].toggleSelected()
+                            deleteObservation(this.type, this.values[i], this.work, this.username)
                         }
                     }
                 }
@@ -64,6 +76,7 @@ export default {
                 const index = updatedValues.indexOf(text);
 
                 updatedValues.splice(index, 1);
+                deleteObservation(this.type, text, this.work, this.username);
             }
 
             Vue.set(this.allSelectedValues, this.type, updatedValues);

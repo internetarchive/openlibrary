@@ -21,6 +21,8 @@
       :multi-select="selectedObservation.multi_choice"
       :values="selectedObservation.values"
       :all-selected-values="allSelectedValues"
+      :work="work"
+      :username="username"
       />
   </div>
 </template>
@@ -30,6 +32,7 @@ import Categories from './ObservationForm/components/Categories'
 import Selections from './ObservationForm/components/Selections'
 import ValueCard from './ObservationForm/components/ValueCard'
 
+import { deleteObservation } from './ObservationForm/ObservationService'
 import { decodeAndParseJSON, capitalizeTypesAndValues, capitalizePatronObservations } from './ObservationForm/Utils'
 
 export default {
@@ -69,7 +72,7 @@ export default {
             this.selectedObservation = observation
         },
         removeValue: function(type, value) {
-            // TODO: AJAX call to remove observation
+            deleteObservation(type, value, this.work, this.username);
             if (this.selectedObservation && this.selectedObservation.label === type) {
                 this.$refs['value-card'].$refs['card-body'].toggleChip(value)
             }
