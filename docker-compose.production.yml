@@ -22,12 +22,14 @@ services:
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
 
   solr:
-    # TODO: Currently solr is deployed in a "special" way
-    profiles: []
+    profiles: ["ol-solr0"]
+    environment:
+      # More memory for production
+      - SOLR_JAVA_MEM=-Xms10g -Xmx10g
     restart: always
 
   solr_haproxy:
-    profiles: ["ol-solr1"]
+    profiles: ["ol-solr0"]
     image: haproxy:2.3.5
     restart: always
     networks:
