@@ -3,7 +3,7 @@
  */
 function getIsbnToElementMap(container) {
     const reISBN = /((978)?[0-9][0-9]{10}[0-9xX])|((978)?[0-9]{9}[0-9Xx])/;
-    const elements = Array.from(document.getElementsByClassName(container));
+    const elements = Array.from(document.querySelectorAll(container));
     const isbnElementMap = {};
     elements.forEach((e) => {
         const isbnMatches = e.innerHTML.match(reISBN);
@@ -12,7 +12,7 @@ function getIsbnToElementMap(container) {
         }
     })
     return isbnElementMap;
-};
+}
 
 /**
  * @param {string[]} isbnList
@@ -24,7 +24,7 @@ async function getAvailabilityDataFromArchiveOrg(isbnList) {
     const response = await fetch(apiUrl);
     const jsonResponse = await response.json();
     return jsonResponse.responses;
-};
+}
 
 /**
  * @param {object} options
@@ -34,8 +34,8 @@ async function getAvailabilityDataFromArchiveOrg(isbnList) {
  *
  * @example
  * addOpenLibraryButtons({
- *    bookContainer: "book-container",
- *    selectorToPlaceBtnIn: "btn-container",
+ *    bookContainer: ".book-container",
+ *    selectorToPlaceBtnIn: ".btn-container",
  *    textOnBtn: "Open Library!"
  * });
  */
@@ -52,7 +52,7 @@ async function addOpenLibraryButtons(options) {
         const availability = availabilityResults[isbn];
         if (availability && availability.status !== 'error') {
             const e = foundIsbnElementsMap[isbn];
-            const buttons = e.getElementsByClassName(selectorToPlaceBtnIn)[0];
+            const buttons = e.querySelectorAll(selectorToPlaceBtnIn)[0];
             const openLibraryBtnDiv = `<div>
                 <a 
                     class="openlibrary-btn" 
@@ -63,7 +63,7 @@ async function addOpenLibraryButtons(options) {
             buttons.innerHTML = `${buttons.innerHTML}${openLibraryBtnDiv}`;
         }
     })
-};
+}
 
 // Expose globally so clients can use this method
 window.addOpenLibraryButtons = addOpenLibraryButtons;
