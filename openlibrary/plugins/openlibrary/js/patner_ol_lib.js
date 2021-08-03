@@ -14,7 +14,11 @@ function getIsbnToElementMap(container) {
     return isbnElementMap;
 };
 
-export const getAvailabilityDataFromArchiveOrg = async isbnList => {
+/**
+ * @param {string[]} isbnList
+ * @returns {Promise<Array>}
+ */
+async function getAvailabilityDataFromArchiveOrg(isbnList) {
     const apiBaseUrl = 'https://archive.org/services/availability'
     const apiUrl = `${apiBaseUrl}?isbn=${isbnList.join(',')}`;
     const response = await fetch(apiUrl);
