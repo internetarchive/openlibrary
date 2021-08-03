@@ -111,9 +111,6 @@ module.exports = {
     // to users via sourceMapFilename for prod debugging.
     devtool: 'source-map',
     mode: prod ? 'production' : 'development',
-    experiments: {
-        lazyCompilation: true,
-    },
     performance: {
         maxAssetSize: 703 * 1024,
         maxEntrypointSize: 703 * 1024,
