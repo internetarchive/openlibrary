@@ -64,3 +64,6 @@ async function addOpenLibraryButtons(options) {
         }
     })
 };
+
+// Expose globally so clients can use this method
+window.addOpenLibraryButtons = addOpenLibraryButtons;
