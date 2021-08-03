@@ -49,18 +49,17 @@ async function addOpenLibraryButtons(options) {
     const foundIsbnElementsMap = getIsbnToElementMap(bookContainer);
     const availabilityResults = await getAvailabilityDataFromArchiveOrg(Object.keys(foundIsbnElementsMap))
     Object.keys(foundIsbnElementsMap).map((isbn) => {
-        const availability = availabilityResults[isbn];
+        const availability = availabilityResults[isbn]
         if (availability && availability.status !== 'error') {
-            const e = foundIsbnElementsMap[isbn];
-            const buttons = e.querySelectorAll(selectorToPlaceBtnIn)[0];
-            const openLibraryBtnDiv = `<div>
-                <a 
-                    class="openlibrary-btn" 
-                    href="https://openlibrary.org/borrow/ia/${availability.identifier}?ref=">
-                    ${textOnBtn || 'Open Library'}
-                </a>
-            </div>`
-            buttons.innerHTML = `${buttons.innerHTML}${openLibraryBtnDiv}`;
+            const e = foundIsbnElementsMap[isbn]
+            const buttons = e.querySelectorAll(selectorToPlaceBtnIn)[0]
+            const openLibraryBtnLink = document.createElement('a')
+            openLibraryBtnLink.href = `https://openlibrary.org/borrow/ia/${availability.identifier}?ref=`
+            openLibraryBtnLink.text = textOnBtn || 'Open Library'
+            const openLibraryBtnDiv = document.createElement('div')
+            openLibraryBtnLink.classList.add('openlibrary-btn')
+            openLibraryBtnDiv.append(openLibraryBtnLink)
+            buttons.append(openLibraryBtnDiv);
         }
     })
 }
