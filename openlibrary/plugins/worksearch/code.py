@@ -1009,7 +1009,6 @@ def random_author_search(limit=10):
 
     return json.dumps(search_results['response'])
 
-# This needs to be cached
 def rewrite_list_editions_query(q, page, offset, limit):
     """Takes a solr query. If it doesn't contain a /lists/ key, then
     return the query, unchanged, exactly as it entered the
