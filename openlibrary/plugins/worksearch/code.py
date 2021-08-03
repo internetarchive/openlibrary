@@ -15,6 +15,7 @@ from six.moves import urllib
 from infogami import config
 from infogami.utils import delegate, stats
 from infogami.utils.view import public, render, render_template, safeint
+from openlibrary.core import cache
 from openlibrary.core.lending import add_availability, get_availability_of_ocaids
 from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.plugins.inside.code import fulltext_search
@@ -1008,7 +1009,7 @@ def random_author_search(limit=10):
 
     return json.dumps(search_results['response'])
 
-
+# This needs to be cached
 def rewrite_list_editions_query(q, page, offset, limit):
     """Takes a solr query. If it doesn't contain a /lists/ key, then
     return the query, unchanged, exactly as it entered the
@@ -1046,7 +1047,8 @@ def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet
         sort = process_sort(sort)
 
     # deal with special /lists/ key queries
-    query['q'], page, offset, limit = rewrite_list_editions_query(
+    query['q'], page, offset, limit = cache.memcache_memoize(
+        "rewrite_list_editions_query", "search.list_query", timeout=5*60)(
         query['q'],
         page,
         offset,
@@ -1111,7 +1113,7 @@ class search_json(delegate.page):
             default=default_spellcheck_count)
 
         # If the query is a /list/ key, create custom list_editions_query
-        q = query.get('q')
+        q = query.get('q', '')
         query['q'], page, offset, limit = rewrite_list_editions_query(
             q,
             page,
