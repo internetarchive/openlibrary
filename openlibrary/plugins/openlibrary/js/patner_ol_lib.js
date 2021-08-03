@@ -26,7 +26,20 @@ async function getAvailabilityDataFromArchiveOrg(isbnList) {
     return jsonResponse.responses;
 };
 
-export const addOpenLibraryButtons = async options => {
+/**
+ * @param {object} options
+ * @param {string} options.bookContainer class name of the HTML element associated with a book. We will try to find a book identifier (eg ISBN) in each of these.
+ * @param {string} options.selectorToPlaceBtnIn The class name of the HTML element that we will add the Open Library button to. Each `bookContainer` should have one of these.
+ * @param {string} [options.textOnBtn] The text on the button
+ *
+ * @example
+ * addOpenLibraryButtons({
+ *    bookContainer: "book-container",
+ *    selectorToPlaceBtnIn: "btn-container",
+ *    textOnBtn: "Open Library!"
+ * });
+ */
+async function addOpenLibraryButtons(options) {
     const {bookContainer, selectorToPlaceBtnIn, textOnBtn} = options
     if (bookContainer === undefined || selectorToPlaceBtnIn === undefined) {
         throw Error(
