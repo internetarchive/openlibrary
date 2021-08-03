@@ -1111,7 +1111,7 @@ class search_json(delegate.page):
             default=default_spellcheck_count)
 
         # If the query is a /list/ key, create custom list_editions_query
-        q = query['q']
+        q = query.get('q')
         query['q'], page, offset, limit = rewrite_list_editions_query(
             q,
             page,
