@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import { presentableObservations } from '../temp/ObservationService';
+import { presentableObservations } from '../ObservationService';
 import Chip from './Chip.vue'
 
 export default {
@@ -36,7 +36,9 @@ export default {
                 for (let i = 0; i < this.observationsArray.length; ++i) {
                     if (this.observationsArray[i].label === text) {
                         this.selected = i;
+                        // TODO: event
                         this.$emit('update-selected', this.observationsArray[i])
+                        // TODO: refs:
                     } else if (this.$refs[`chip${this.observationsArray[i].id}`][0].isSelected){
                         this.$refs[`chip${this.observationsArray[i].id}`][0].toggleSelected();
                     }
@@ -51,9 +53,12 @@ export default {
                             break;
                         }
                     }
+                    // TODO: refs
                     this.$refs[`chip${id}`][0].toggleSelected()
                 }
                 this.selected = null;
+
+                // Set ObservationForm's selected observation to null
                 this.$emit('update-selected', null)
             }
         }

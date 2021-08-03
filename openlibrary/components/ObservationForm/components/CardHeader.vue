@@ -2,9 +2,9 @@
   <div class="card-header">
     <div class="title-line">
       <!-- <h3>{{title}}</h3> -->
+
     </div>
     <div class="description">{{description}}
-      <!-- <span class="close-icon" @click="closeCard">&times;</span> -->
     </div>
   </div>
 </template>
@@ -22,11 +22,6 @@ export default {
             required: true
         }
     },
-    methods: {
-        closeCard: function() {
-            this.$emit('close-card');
-        }
-    }
 }
 </script>
 

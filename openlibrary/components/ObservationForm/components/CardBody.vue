@@ -14,8 +14,9 @@
 </template>
 
 <script>
+import Vue from 'vue'
+
 import Chip from './Chip'
-// import {mapMutations, mapState, mapGetters } from 'vuex';
 
 export default {
     name: 'CardBody',
@@ -35,48 +36,47 @@ export default {
         type: {
             type: String,
             required: true
-        }
-    },
-    computed: {
-        // ...mapState(['selected']),
-        // ...mapGetters(['indexOfValue']),
-        selectedValues() {
-            return this.selected[this.type] ? this.selected[this.type] : []
+        },
+        allSelectedValues: {
+            type: Object,
+            required: true
         }
     },
     methods: {
-        // ...mapMutations(['UPDATE_SELECTED']),
         updateSelected: function(isSelected, text) {
+            const updatedValues = this.allSelectedValues[this.type] ? this.allSelectedValues[this.type] : []
+
             if (isSelected) {
                 for (let i = 0; i < this.values.length; ++i) {
                     if (this.values[i] === text) {
-                        this.selectedValues.push(text);
+                        updatedValues.push(text);
                     } else if (!this.multiSelect) {
                         const ref = `chip-${this.values[i]}`;
                         if (this.$refs[ref][0].isSelected) {
-                            const index = this.selectedValues.indexOf(this.values[i]);
+                            const index = updatedValues.indexOf(this.values[i]);
 
-                            this.selectedValues.splice(index, 1);
+                            updatedValues.splice(index, 1);
                             this.$refs[ref][0].toggleSelected()
                         }
                     }
                 }
             } else {
-                const index = this.selectedValues.indexOf(text);
+                const index = updatedValues.indexOf(text);
 
-                this.selectedValues.splice(index, 1);
+                updatedValues.splice(index, 1);
             }
-            this.UPDATE_SELECTED({
-                type: this.type,
-                selected: this.selectedValues
-            })
+
+            Vue.set(this.allSelectedValues, this.type, updatedValues);
         },
         toggleChip: function(text) {
             const ref = `chip-${text}`
             this.$refs[ref][0].toggleSelected()
         },
         isSelected: function(value) {
-            return this.indexOfValue(this.type, value) !== -1;
+            if (!this.allSelectedValues[this.type]) {
+                return false;
+            }
+            return this.allSelectedValues[this.type].indexOf(value) !== -1;
         }
     }
 }

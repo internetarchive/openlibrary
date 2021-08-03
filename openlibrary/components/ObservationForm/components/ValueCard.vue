@@ -3,13 +3,13 @@
     <CardHeader
       :title="title"
       :description="description"
-      @close-card="closeCard"
       />
     <CardBody
       ref="card-body"
       :values="values"
       :multi-select="multiSelect"
       :type="title"
+      :all-selected-values="allSelectedValues"
       />
   </div>
 </template>
@@ -49,13 +49,12 @@ export default {
                 }
                 return true;
             }
+        },
+        allSelectedValues: {
+            type: Object,
+            required: true
         }
     },
-    methods: {
-        closeCard: function() {
-            this.$emit('close-card')
-        }
-    }
 }
 </script>
 

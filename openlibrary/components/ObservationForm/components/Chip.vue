@@ -1,7 +1,7 @@
 <template>
   <span
     class="chip"
-    v-bind:class="{ 'chip--selectable': selectable, 'chip--selected': isSelected }"
+    v-bind:class="[{ 'chip--selectable': selectable, 'chip--selected': isSelected }, classList]"
     @[canSelect]="onClick"
     >
     {{text}}
@@ -26,6 +26,11 @@ export default {
             type: Boolean,
             required: false,
             default: false
+        },
+        classList: {
+            type: String,
+            required: false,
+            default: ''
         }
     },
     data: function() {
