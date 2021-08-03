@@ -16,7 +16,6 @@
 </template>
 
 <script>
-import { presentableObservations } from '../ObservationService';
 import Chip from './Chip.vue'
 
 export default {
@@ -24,10 +23,15 @@ export default {
     components: {
         Chip
     },
+    props: {
+        observationsArray: {
+            type: Array,
+            required: true
+        }
+    },
     data: function() {
         return {
             selected: null,
-            observationsArray: null
         }
     },
     methods: {
@@ -62,9 +66,6 @@ export default {
                 this.$emit('update-selected', null)
             }
         }
-    },
-    beforeMount: function() {
-        this.observationsArray = presentableObservations;
     }
 }
 </script>
