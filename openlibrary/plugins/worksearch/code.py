@@ -1019,6 +1019,9 @@ def rewrite_list_editions_query(q, page, offset, limit):
     can use the solr API to fetch list works and render them in
     carousels in the right format.
     """
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+
     if '/lists/' in q:
         editions = get_list_editions(q, offset=offset, limit=limit)
         work_ids = [ed.get('works')[0]['key'] for ed in editions]
