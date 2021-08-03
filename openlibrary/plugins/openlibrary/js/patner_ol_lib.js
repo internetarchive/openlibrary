@@ -3,7 +3,7 @@
  */
 function getIsbnToElementMap(container) {
     const reISBN = /((978)?[0-9][0-9]{10}[0-9xX])|((978)?[0-9]{9}[0-9Xx])/;
-    const elements = document.getElementsByClassName(container);
+    const elements = Array.from(document.getElementsByClassName(container));
     const isbnElementMap = {};
     elements.forEach((e) => {
         const isbnMatches = e.innerHTML.match(reISBN);
