@@ -490,7 +490,7 @@ class patron_observations(delegate.page):
         return response('Observations removed')
 
 
-class works(delegate.page):
+class work_delete(delegate.page):
     path = r"/works/(OL\d+W)/delete"
 
     def get_editions_of_work(self, work: Work) -> list[dict]:
