@@ -33,7 +33,7 @@ docker push openlibrary/olbase:latest
 parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
 
 # Prune old images now ; this should remove any unused images
-parallel --quote ssh {} "echo -e '\n\n{}'; docker image prune -f" ::: $SERVERS
+parallel --quote ssh {} "echo -e '\n\n{}'; docker image prune --all --force" ::: $SERVERS
 
 # Pull the latest docker images
 parallel --quote ssh {} "echo -e '\n\n{}'; cd /opt/openlibrary && COMPOSE_FILE=\"$COMPOSE_FILE\" docker-compose --profile {} pull --quiet" ::: $SERVERS
