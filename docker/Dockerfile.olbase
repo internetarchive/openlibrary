@@ -1,4 +1,4 @@
-FROM ubuntu:xenial
+FROM python:3.9.4
 
 ENV LANG en_US.UTF-8
 
@@ -30,21 +30,9 @@ RUN apt-get -qq update && apt-get install -y \
     unzip \
     lftp
 
-# Print gnu parallel citation
-USER openlibrary
-RUN echo 'will cite' | parallel --citation
-USER root
-RUN echo 'will cite' | parallel --citation
-
 # Install LTS version of node.js
 RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - \
     && apt-get install -y nodejs
-
-# Install pyenv
-# Python build deps: https://github.com/pyenv/pyenv/wiki/Common-build-problems#prerequisites
-RUN apt-get -qq update && apt-get install -y build-essential libssl-dev zlib1g-dev libbz2-dev \
-    libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
-    xz-utils tk-dev libffi-dev liblzma-dev python-openssl git
 
 # Install Archive.org nginx w/ IP anonymization
 USER root
@@ -63,23 +51,6 @@ RUN chmod +x /usr/sbin/nginx
 # Remove the stock nginx config file
 RUN rm /etc/nginx/sites-enabled/default
 
-# Install latest pyenv (https://github.com/pyenv/pyenv-installer)
-USER openlibrary
-RUN curl https://pyenv.run | bash && \
-    echo '\nexport PATH="/home/openlibrary/.pyenv/bin:$PATH"\neval "$(pyenv init -)"\neval "$(pyenv virtualenv-init -)"' >> /home/openlibrary/.bashrc
-ENV PYENV_ROOT /home/openlibrary/.pyenv
-ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
-
-# Install wheel before other requirements to reduce Docker build time.
-RUN pyenv update && pyenv install 3.9.4 \
- && pyenv global 3.9.4 \
- && pyenv rehash \
- && python3.9 -m pip install --upgrade pip wheel
-
-USER root
-# Add pyenv to root's bashrc as well
-RUN echo '\nexport PATH="/home/openlibrary/.pyenv/bin:$PATH"\neval "$(pyenv init -)"\neval "$(pyenv virtualenv-init -)"' >> /root/.bashrc
-
 RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary && chown openlibrary:openlibrary /var/log/openlibrary /var/lib/openlibrary \
  && mkdir /openlibrary && chown openlibrary:openlibrary /openlibrary \
  && mkdir -p /var/lib/coverstore && chown openlibrary:openlibrary /var/lib/coverstore \
@@ -90,7 +61,8 @@ WORKDIR /openlibrary
 
 USER openlibrary
 COPY --chown=openlibrary:openlibrary requirements*.txt ./
-RUN python3.9 -m pip install --default-timeout=100 -r requirements.txt
+RUN python -m pip install --upgrade pip wheel \
+ && python -m pip install --default-timeout=100 -r requirements.txt
 
 COPY --chown=openlibrary:openlibrary package*.json ./
 RUN npm ci
@@ -100,6 +72,6 @@ COPY --chown=openlibrary:openlibrary . /openlibrary
 # run make to initialize git submodules, build css and js files
 RUN ln -s vendor/infogami/infogami infogami \
  && make \
- && python3.9 -m pip list --outdated
+ && python -m pip list --outdated
 
 ENTRYPOINT ["/openlibrary/docker/docker-entrypoint.sh"]
