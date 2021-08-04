@@ -892,6 +892,7 @@ def setup_template_globals():
         'sorted': sorted,
         'zip': zip,
         'tuple': tuple,
+        'hash': hash,
         'urlquote': web.urlquote,
         'isbn_13_to_isbn_10': isbn_13_to_isbn_10,
         'isbn_10_to_isbn_13': isbn_10_to_isbn_13,

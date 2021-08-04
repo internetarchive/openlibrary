@@ -1,0 +1,58 @@
+$def with (work, link_text, id, classes='', reload_id=None)
+
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+
+$ observations = get_observations()
+$ patron_observations = work.get_users_observations(username)
+
+$ context = {
+  $ "username": username,
+  $ "work": work.key,
+  $ "id": id
+  $ }
+
+$if reload_id:
+  $ context['reloadId'] = reload_id
+
+<div class="$classes">
+  <a class="observations-modal-link" href="javascript:;" data-context="$json_encode(context)">$link_text</a>
+
+  <div class="hidden">
+    <div id="$id-metadata-form" class="floaterAdd metadata-form">
+      <div class="floaterHead">
+        <h2>$_("Observations")</h2>
+        <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+      </div>
+      <p class="observation-instructions">$_('Additional public observations about this work. Each section is optional, but highly recommended.  These anonymous observations will be used to populate the "Reader Observations" section of this page.')</p>
+      <form class="floatform" name="$id-user-metadata" id="$id-user-metadata">
+        $for o in observations['observations']:
+          $ class_name = 'multi-choice' if o['multi_choice'] else 'single-choice'
+          $ type = o['label']
+          <details class="aspect-section" open>
+            <summary><h3>$type</h3></summary>
+            <fieldset id="$id-$type-question">
+              <legend>$o['description']</legend>
+              $ input_type = 'checkbox' if o['multi_choice'] else 'radio'
+              $ value_count = 0
+              $ selected_values = [] or patron_observations[type]
+              <div class="$class_name">
+              $for v in o['values']:
+                $ value_count = value_count + 1
+                $ input_id = '%s-%s-choice-%d' % (id, type, value_count)
+                $ checked = 'checked' if v in selected_values else ''
+                <label for="$input_id" class="$class_name-label">
+                  <input type="$input_type" name="$type" id="$input_id" value="$v" $checked>
+                  $v
+                </label>
+              </div>
+            </fieldset>
+          </details>
+        <div class="formElement metadata-submit">
+          <div class="form-buttons">
+            <a class="small dialog--close plain" href="javascript:;" id="$id-cancel-submission">$_("Close")</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

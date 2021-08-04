@@ -18,7 +18,7 @@ all: git css js components i18n
 
 css: static/css/page-*.less
 	mkdir -p $(BUILD)
-	parallel --verbose -q npx lessc {} $(BUILD)/{/.}.css --clean-css="--s1 --advanced --compatibility=ie8" ::: $^
+	parallel --verbose -q npx lessc {} $(BUILD)/{/.}.css --clean-css="--s1 --advanced" ::: $^
 
 js:
 	mkdir -p $(BUILD)
@@ -42,12 +42,9 @@ i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
 git:
-#Do not run these on DockerHub since it recursively clones all the repos before build initiates
-ifneq ($(DOCKER_HUB),TRUE)
 	git submodule init
 	git submodule sync
 	git submodule update
-endif
 
 clean:
 	rm -rf $(BUILD)
