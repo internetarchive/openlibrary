@@ -21,7 +21,7 @@ from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
 from openlibrary.core.observations import get_observations, Observations
-from openlibrary.core.models import Booknotes
+from openlibrary.core.models import Booknotes, Work
 from openlibrary.core.sponsorships import qualifies_for_sponsorship
 from openlibrary.core.vendors import (
     get_amazon_metadata, create_edition_from_amazon_metadata,
@@ -487,3 +487,36 @@ class patron_observations(delegate.page):
             }), content_type="application/json")
 
         return response('Observations removed')
+
+
+class work_delete(delegate.page):
+    path = r"/works/(OL\d+W)/[^/]+/delete"
+
+    def get_editions_of_work(self, work: Work) -> list[dict]:
+        keys: list = web.ctx.site.things({"type": "/type/edition", "works": work.key})
+        return web.ctx.site.get_many(keys, raw=True)
+
+    def POST(self, work_id: str):
+        user = accounts.get_current_user()
+        if not (user and (user.is_admin() or user.is_librarian())):
+            return web.HTTPError('403 Forbidden')
+
+        web_input = web.input(comment=None)
+
+        comment = web_input.get('comment')
+
+        work: Work = web.ctx.site.get(f'/works/{work_id}')
+        if work is None:
+            return web.HTTPError(status='404 Not Found')
+
+        editions: list[dict] = self.get_editions_of_work(work)
+        keys_to_delete: list = [el.get('key') for el in [*editions, work.dict()]]
+        delete_payload: list[dict] = [
+            {'key': key, 'type': {'key': '/type/delete'}}
+            for key in keys_to_delete
+        ]
+
+        web.ctx.site.save_many(delete_payload, comment)
+        return delegate.RawText(json.dumps({
+            'status': 'ok',
+        }), content_type="application/json")
