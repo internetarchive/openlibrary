@@ -437,10 +437,12 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
             <h3 class="list-header collapse">$_("ID Numbers")</h3>
             <dl class="meta">
                 $:display_identifiers("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
+                $ no_index = edition.get_ia_meta_fields().get('noindex', False)
                 $for name, values in edition.get_identifiers().multi_items():
                     $ identifier_label = values[0].label
                     $if not (edition.is_in_private_collection() and identifier_label == 'Internet Archive'):
-                        $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
+                        $if not (no_index and identifier_label == 'Internet Archive'):
+                            $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
             $:display_goodreads("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
             $for name, values in edition.get_identifiers().multi_items():
                 $:display_goodreads(values[0].label, values)
