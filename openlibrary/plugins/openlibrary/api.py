@@ -81,7 +81,6 @@ class browse(delegate.page):
             json.dumps(result),
             content_type="application/json")
 
-
 class ratings(delegate.page):
     path = r"/works/OL(\d+)W/ratings"
     encoding = "json"
@@ -275,10 +274,10 @@ class work_editions(delegate.page):
         }
 
         if offset > 0:
-            links['prev'] = web.changequery(offset=min(0, offset - limit))
+            links['prev'] = web.changequery(offset=min(0, offset-limit))
 
         if offset + len(editions) < size:
-            links['next'] = web.changequery(offset=offset + limit)
+            links['next'] = web.changequery(offset=offset+limit)
 
         return {
             "links": links,
@@ -398,7 +397,7 @@ class price_api(delegate.page):
 
         # if bwb fails and isbn10, try again with isbn13
         if id_type == 'isbn_10' and \
-                metadata['betterworldbooks'].get('price') is None:
+           metadata['betterworldbooks'].get('price') is None:
             isbn_13 = isbn_10_to_isbn_13(id_)
             metadata['betterworldbooks'] = isbn_13 and get_betterworldbooks_metadata(
                 isbn_13) or {}
@@ -491,7 +490,7 @@ class patron_observations(delegate.page):
 
 
 class work_delete(delegate.page):
-    path = r"/works/(OL\d+W)/delete"
+    path = r"/works/(OL\d+W)/[^/]+/delete"
 
     def get_editions_of_work(self, work: Work) -> list[dict]:
         keys: list = web.ctx.site.things({"type": "/type/edition", "works": work.key})
