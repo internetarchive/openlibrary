@@ -5,7 +5,10 @@
   "license": "AGPL-3.0",
   "watch": {
     "build-assets:css": {
-      "patterns": ["static", "css"],
+      "patterns": [
+        "static",
+        "css"
+      ],
       "extensions": "less",
       "quiet": false
     }
