@@ -232,11 +232,6 @@ jQuery(function () {
             });
     }
 
-    if (document.getElementsByClassName('manageCovers').length) {
-        import(/* webpackChunkName: "covers" */ './covers')
-            .then((module) => module.initCoversChange());
-    }
-
     const manageCoversElement = document.getElementsByClassName('manageCovers').length;
     const addCoversElement = document.getElementsByClassName('imageIntro').length;
     const saveCoversElement = document.getElementsByClassName('imageSaved').length;
