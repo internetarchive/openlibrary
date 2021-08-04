@@ -83,8 +83,11 @@ def extract_messages(dirs: List[str]):
 
     print('wrote template to', path)
 
-def compile_translations():
-    for locale in get_locales():
+
+def compile_translations(locales: List[str]):
+    locales_to_update = locales or get_locales()
+
+    for locale in locales_to_update:
         po_path = os.path.join(root, locale, 'messages.po')
         mo_path = os.path.join(root, locale, 'messages.mo')
 
@@ -92,7 +95,7 @@ def compile_translations():
             _compile_translation(po_path, mo_path)
 
 
-def update_translations(locales):
+def update_translations(locales: List[str]):
     locales_to_update = locales or get_locales()
     print(f"Updating {locales_to_update}")
 
@@ -114,7 +117,7 @@ def update_translations(locales):
         else:
             print(f"ERROR: {po_path} does not exist...")
 
-    compile_translations()
+    compile_translations(locales_to_update)
 
 
 def generate_po(args):
