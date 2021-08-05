@@ -109,7 +109,7 @@ export default {
             filterState: new FilterState(),
 
             sortState: {
-                order: jumpTo ? `${selectedClassification.field}_sort asc` : 'editions',
+                order: jumpTo ? `${selectedClassification.field}_sort asc` : `random_${new Date().toISOString().split(':')[0]}`,
             },
 
             jumpTo,

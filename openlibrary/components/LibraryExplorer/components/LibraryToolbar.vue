@@ -233,9 +233,9 @@ export default {
             quickLanguageSelect: '',
             fullLanguageSelect: [],
             langLoading: false,
-            // By default we just send sort=random to the OL API, but when shuffle
-            // is clicked, we add a seed to the end (e.g. random_1235)
-            randomWithSeed: 'random',
+            // By default, random is set to the "hourly" random, so that the books stick
+            // around for a while
+            randomWithSeed: `random_${new Date().toISOString().split(':')[0]}`,
 
             openTabs: [],
             maxTabs: screen.width > 600 ? 5 : 1,
