@@ -17,9 +17,9 @@ $add_metatag(name="twitter:card", content="homepage_summary")
 
 <div id="contentBody">
 
-  $:render_template("books/custom_carousel", books=readonline_carousel(), title=_('Classic Books'), url="/read", key="public_domain", test=test)
-
   $:render_template("home/welcome", test=test)
+  
+  $:render_template("books/custom_carousel", books=readonline_carousel(), title=_('Classic Books'), url="/read", key="public_domain", test=test)
 
   $if monthly_reads and not test:
     $:macros.QueryCarousel(query=monthly_reads['query'], title=monthly_reads['title'], key="monthly_reads", url=monthly_reads['url'], sort='random.hourly')
