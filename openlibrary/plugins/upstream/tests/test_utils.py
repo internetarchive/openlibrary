@@ -110,9 +110,9 @@ def test_get_coverstore_url(monkeypatch):
     monkeypatch.delattr(config, "coverstore_url", raising=False)
     assert utils.get_coverstore_url() == "https://covers.openlibrary.org"
 
-    monkeypatch.setattr(config, "coverstore_url", "https://0.0.0.0:8090", raising=False)
-    assert utils.get_coverstore_url() == "https://0.0.0.0:8090"
+    monkeypatch.setattr(config, "coverstore_url", "https://0.0.0.0:80", raising=False)
+    assert utils.get_coverstore_url() == "https://0.0.0.0:80"
 
     # make sure trailing / is always stripped
-    monkeypatch.setattr(config, "coverstore_url", "https://0.0.0.0:8090/", raising=False)
-    assert utils.get_coverstore_url() == "https://0.0.0.0:8090"
+    monkeypatch.setattr(config, "coverstore_url", "https://0.0.0.0:80/", raising=False)
+    assert utils.get_coverstore_url() == "https://0.0.0.0:80"
