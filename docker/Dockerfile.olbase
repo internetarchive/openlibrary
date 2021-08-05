@@ -73,5 +73,3 @@ COPY --chown=openlibrary:openlibrary . /openlibrary
 RUN ln -s vendor/infogami/infogami infogami \
  && make \
  && python -m pip list --outdated
-
-ENTRYPOINT ["/openlibrary/docker/docker-entrypoint.sh"]
