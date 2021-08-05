@@ -435,9 +435,15 @@ def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=Non
     if q_list:
         if use_dismax:
             params.append(('q', ' '.join(q_list)))
-            params.append(('defType', 'dismax'))
-            params.append(('qf', 'text title^20 author_name^20'))
-            params.append(('bf', 'min(100,edition_count)'))
+            dismax_fields = (
+            'defType', 'q.alt', 'qf', 'mm', 'pf', 'ps', 'qs', 'tie', 'bq', 'bf')
+            i = web.input(**{f'__{field}': '' for field in dismax_fields})
+            params.append(('defType', i.get('__defType') or 'dismax'))
+            params.append(('qf', i.get('__qf') or 'text title^20 author_name^20'))
+            params.append(('bf', i.get('__bf') or 'min(100,edition_count)'))
+            for field in set(dismax_fields) - {'defType', 'qf', 'bf'}:
+                if i.get(f'__{field}'):
+                    params.append((field, i.get(f'__{field}')))
         else:
             params.append(('q', ' '.join(q_list + ['_val_:"sqrt(edition_count)"^10'])))
 
