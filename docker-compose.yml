@@ -3,7 +3,6 @@ services:
   web:
     image: "${OLIMAGE:-oldev:latest}"
     environment:
-      - PYENV_VERSION=${PYENV_VERSION:-}
       - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
       - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 4 --timeout 180}
     command: docker/ol-web-start.sh
@@ -40,7 +39,6 @@ services:
     hostname: "$HOSTNAME"
     environment:
       - OL_CONFIG=conf/openlibrary.yml
-      - PYENV_VERSION=${PYENV_VERSION:-}
       - OL_URL=http://web:8080/
       - STATE_FILE=solr-update.offset
     volumes:
@@ -57,7 +55,6 @@ services:
   covers:
     image: "${OLIMAGE:-oldev:latest}"
     environment:
-      - PYENV_VERSION=${PYENV_VERSION:-}
       - COVERSTORE_CONFIG=${COVERSTORE_CONFIG:-/openlibrary/conf/coverstore.yml}
       - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --max-requests 250}
     command: docker/ol-covers-start.sh
@@ -74,7 +71,6 @@ services:
   infobase:
     image: "${OLIMAGE:-oldev:latest}"
     environment:
-      - PYENV_VERSION=${PYENV_VERSION:-}
       - INFOBASE_CONFIG=${INFOBASE_CONFIG:-/openlibrary/conf/infobase.yml}
       - INFOBASE_OPTS=${INFOBASE_OPTS:-}
     command: docker/ol-infobase-start.sh

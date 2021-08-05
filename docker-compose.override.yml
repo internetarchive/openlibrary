@@ -73,8 +73,6 @@ services:
 
   home:
     image: "oldev:${OLDEV_TAG:-latest}"
-    environment:
-      - PYENV_VERSION=${PYENV_VERSION:-}
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
