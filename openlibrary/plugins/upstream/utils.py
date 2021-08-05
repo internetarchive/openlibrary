@@ -284,8 +284,9 @@ def radio_list(name, args, value):
             label = arg
         html.append(radio_input())
 
+
 @public
-def get_coverstore_url():
+def get_coverstore_url() -> str:
     return config.get('coverstore_url', 'https://covers.openlibrary.org').rstrip('/')
 
 

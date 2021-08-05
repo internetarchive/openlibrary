@@ -102,3 +102,17 @@ def test_canonical_url():
     web.ctx.query = '?sort=new&mode=2'
     url = 'https://www.openlibrary.org/authors/Ayn_Rand'
     assert request.canonical_url == url
+
+
+def test_get_coverstore_url(monkeypatch):
+    from infogami import config
+
+    monkeypatch.delattr(config, "coverstore_url", raising=False)
+    assert utils.get_coverstore_url() == "https://covers.openlibrary.org"
+
+    monkeypatch.setattr(config, "coverstore_url", "https://0.0.0.0:8090", raising=False)
+    assert utils.get_coverstore_url() == "https://0.0.0.0:8090"
+
+    # make sure trailing / is always stripped
+    monkeypatch.setattr(config, "coverstore_url", "https://0.0.0.0:8090/", raising=False)
+    assert utils.get_coverstore_url() == "https://0.0.0.0:8090"
