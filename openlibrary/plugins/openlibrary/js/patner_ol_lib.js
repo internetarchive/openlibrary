@@ -52,14 +52,12 @@ async function addOpenLibraryButtons(options) {
         const availability = availabilityResults[isbn]
         if (availability && availability.status !== 'error') {
             const e = foundIsbnElementsMap[isbn]
-            const buttons = e.querySelectorAll(selectorToPlaceBtnIn)[0]
+            const buttons = e.querySelector(selectorToPlaceBtnIn)
             const openLibraryBtnLink = document.createElement('a')
-            openLibraryBtnLink.href = `https://openlibrary.org/borrow/ia/${availability.identifier}?ref=`
+            openLibraryBtnLink.href = `https://openlibrary.org/borrow/ia/${availability.identifier}`
             openLibraryBtnLink.text = textOnBtn || 'Open Library'
-            const openLibraryBtnDiv = document.createElement('div')
             openLibraryBtnLink.classList.add('openlibrary-btn')
-            openLibraryBtnDiv.append(openLibraryBtnLink)
-            buttons.append(openLibraryBtnDiv);
+            buttons.append(openLibraryBtnLink);
         }
     })
 }
