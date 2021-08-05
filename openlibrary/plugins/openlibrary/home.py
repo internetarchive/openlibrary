@@ -13,7 +13,7 @@ from infogami import config
 from openlibrary.core import admin, cache, ia, lending
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
-from openlibrary.plugins.upstream.utils import get_blog_feeds, get_coverstore_url
+from openlibrary.plugins.upstream.utils import get_blog_feeds, get_coverstore_public_url
 from openlibrary.plugins.worksearch import search, subjects
 
 import six
@@ -468,7 +468,7 @@ def format_work_data(work):
                         zip(work['author_key'], work['author_name'])]
 
     if 'cover_edition_key' in work:
-        coverstore_url = get_coverstore_url()
+        coverstore_url = get_coverstore_public_url()
         d['cover_url'] = f"{coverstore_url}/b/olid/{work['cover_edition_key']}-M.jpg"
 
     d['read_url'] = "//archive.org/stream/" + work['ia'][0]
