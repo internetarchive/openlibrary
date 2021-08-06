@@ -11,7 +11,7 @@ $# @param {string|null} props.image URL for image (optional)
 $# @param {DropdownLink[]} props.links
 <div class="$(props['name'])-component header-dropdown">
     <details>
-      <summary>
+      <summary $:cond(props['name'] == 'hamburger', 'data-ol-link-track="HeaderBar|Hamburger"')>
         $if props['name'] == 'hamburger' and ctx.user:
             <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="$('My account')">
             <img class="$(props['image-class']) logged" src="$(props['image'])" alt="$(props['label'])"/>
