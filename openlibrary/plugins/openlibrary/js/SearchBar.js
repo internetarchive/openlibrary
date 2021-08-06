@@ -132,6 +132,14 @@ export class SearchBar {
                 this.$input.trigger('focus');
             }
         });
+        // Collapse search bar when clicking outside of search bar
+        $(document).on('click', event => {
+            if ($(event.target).closest('.search-component').length === 0) {
+                if (!this.collapsed) {
+                    this.toggleCollapse();
+                }
+            }
+        });
     }
 
     /**

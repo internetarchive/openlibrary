@@ -74,11 +74,11 @@
     },
     {
       "path": "static/build/page-admin.css",
-      "maxSize": "21KB"
+      "maxSize": "22KB"
     },
     {
       "path": "static/build/page-book.css",
-      "maxSize": "10KB"
+      "maxSize": "11KB"
     },
     {
       "path": "static/build/page-edit.css",
@@ -90,7 +90,7 @@
     },
     {
       "path": "static/build/page-home.css",
-      "maxSize": "6KB"
+      "maxSize": "7KB"
     },
     {
       "path": "static/build/page-plain.css",
@@ -98,11 +98,11 @@
     },
     {
       "path": "static/build/page-subject.css",
-      "maxSize": "8KB"
+      "maxSize": "9KB"
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "21KB"
+      "maxSize": "22KB"
     }
   ]
 }
