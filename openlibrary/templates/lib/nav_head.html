@@ -35,9 +35,10 @@ $def with (page)
   $  'name': 'hamburger',
   $  'links': [ { "subsection": _("My Open Library") } ] + loginLinks +
   $     [ { "subsection": _("Browse") } ] + browseLinks + [ { "subsection": _("More") } ] + moreLinks,
-  $  'image': '/static/images/menu.png',
+  $  'image': '/static/images/hamburger-icon.svg',
+  $  'image-class': 'hamburger__icon',
   $  'label': 'additional options menu',
-  $  'mask' : ''
+  $  'show_mask': True
   $ }
 
   <div class="logo-component">
@@ -113,6 +114,7 @@ $def with (page)
         # dev environment), this get_internet_archive_id returns None. Setting it to an
         # empty string returns a valid image ¯\_(ツ)_/¯
         'image': 'https://archive.org/services/img/' + (get_internet_archive_id(ctx.user.key) or ''),
+        'image-class': 'header-dropdown__icon',
         'links': loginLinks
       }
     $# Add book notes link between 'My Reading Stats' and 'Settings' for beta testers:

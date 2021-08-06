@@ -142,6 +142,16 @@
       border: none;
     }
 
+    .app-drawer__badge {
+      color: @white;
+      background-color: @primary-blue;
+      font-size: .9em;
+      padding: 2px 6px 1px;
+      border-radius: 4px;
+      float: right;
+      text-transform: uppercase;
+    }
+
     // stylelint-disable max-nesting-depth, selector-max-specificity
     .subsection {
       font-weight: bold;
@@ -160,36 +170,23 @@
       margin: 0 8px;
     }
 
-    li a {
+    li a, li button, .login-links {
       padding: 10px 8px;
     }
 
     li button {
-      padding: 10px 8px;
       width: 100%;
       font-family: @bahnschrift;
       text-align: left;
       cursor: pointer;
     }
 
-    li .app-drawer__icon {
-      position: absolute;
-      top: 10px;
-      right: 18px;
-      width: 48px;
-      height: 48px;
-      border: 2px solid @border-color;
-      border-radius: 3px;
-    }
-
     .subsection:first-child {
       border-top: 1px solid @dark-beige;
-      position: relative;
     }
 
     .login-links {
       display: flex;
-      padding: 10px 8px;
       border-bottom: none;
       justify-content: space-evenly;
       column-gap: 16px;
@@ -203,22 +200,24 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      color: @primary-blue;
       border-radius: 6px;
       padding: 6px;
-      border: 2px solid @primary-blue;
       transition: .3s;
+    }
+
+    .login-links .login-links__primary {
+      background: @primary-blue;
+      color: @white;
       &:hover {
-        background-color: @white;
+        background-color: @link-blue;
       }
     }
 
-    .login-links a:nth-of-type(2) {
-      background: @primary-blue;
-      color: @white;
-      border: none;
+    .login-links .login-links__secondary {
+      color: @primary-blue;
+      border: 2px solid @primary-blue;
       &:hover {
-        background-color: @link-blue;
+        background-color: @white;
       }
     }
     // stylelint-enable max-nesting-depth, selector-max-specificity
@@ -230,15 +229,6 @@
     order: 4;
     margin-right: 5px;
 
-    .badge {
-      color: @white;
-      background-color: @primary-blue;
-      font-size: .9em;
-      padding: 2px 6px 1px;
-      border-radius: 4px;
-      float: right;
-    }
-
     // stylelint-disable max-nesting-depth, selector-max-specificity
     details[open] {
       .mask-menu{
@@ -249,13 +239,20 @@
       summary ~ * {
         animation: sweep .2s ease-in-out;
       }
-      .header-dropdown__icon {
+      .hamburger__icon {
         background-color: @account-icon-background;
       }
     }
 
-    .header-dropdown__icon.logged {
-      padding-left: 8px;
+    .hamburger__icon {
+      width: 24px;
+      padding: 6px;
+      border-radius: 3px;
+      box-sizing: content-box;
+    }
+
+    .hamburger__icon.logged {
+      padding-left: 20px;
     }
 
     @keyframes sweep {
@@ -317,12 +314,12 @@
     }
 
     .account__icon {
-      border: 2px solid @border-color;
+      border: 2px solid @account-icon-border;
       border-radius: 4px;
       width: 30px;
       height: 30px;
       position: absolute;
-      right: 24px;
+      right: 20px;
     }
 
     button,
@@ -467,7 +464,7 @@
     }
 
     .search-bar-submit {
-      background: url(/static/images/search-lens.png) center no-repeat;
+      background: url(/static/images/search-icon.svg) center no-repeat;
       width: 45px;
       height: 45px;
       border-top-left-radius: .3em;
@@ -863,7 +860,7 @@ div.search-facet:focus-within {
   #header-bar {
     position: sticky;
     top: 0;
-    background: linear-gradient(to bottom, @header-1 50px, @header-2 218px) !important;
+    background: linear-gradient(to bottom, @gradient-start 50px, @gradient-end 218px) !important;
     padding: 3px 0;
     box-shadow: 0 1px 2px rgb(0 0 0 / 15%);
     z-index: @z-index-level-3;
@@ -882,6 +879,9 @@ div.search-facet:focus-within {
       .search-facet-selector {
         margin-top: 1px;
       }
+    }
+    &.mobile {
+      padding: 10px 0;
     }
   }
 }

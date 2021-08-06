@@ -12,21 +12,21 @@ $# @param {DropdownLink[]} props.links
 <div class="$(props['name'])-component header-dropdown">
     <details>
       <summary>
-        $if 'mask' in props and ctx.user:
-            <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="My account">
-            <img class="header-dropdown__icon logged" src="$(props['image'])" alt="$(props['label'])"/>
+        $if props['name'] == 'hamburger' and ctx.user:
+            <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="$('My account')">
+            <img class="$(props['image-class']) logged" src="$(props['image'])" alt="$(props['label'])"/>
         $elif 'image' in props:
-            <img class="header-dropdown__icon" src="$(props['image'])" alt="$(props['label'])"/>
+            <img class="$(props['image-class'])" src="$(props['image'])" alt="$(props['label'])"/>
         $elif 'label' in props:
             $(props['label'])
             <span class="shift">$_('Menu')</span>
 
         <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation" width="7" height="4">
       </summary>
-      $if 'mask' in props:
+      $if 'show_mask' in props:
         <div class="mask-menu"></div>
       <div 
-      $if 'mask' in props:
+      $if props['name'] == 'hamburger':
         class="app-drawer"
       $else:
         class="$(props['name'])-dropdown-component navigation-dropdown-component"
@@ -36,13 +36,11 @@ $# @param {DropdownLink[]} props.links
             $if 'subsection' in link:
               <li class="subsection">
                 $(link['subsection'])
-                $if link['subsection'] == 'My Open Library' and ctx.user:
-                  <img class="app-drawer__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="My account">
               </li>
             $elif 'loginClass' in link:
               <li class="$(link['loginClass'])">
-                <a href="/account/login">$_('Log In')</a>
-                <a href="/account/create">$_('Sign Up')</a>
+                <a class="login-links__secondary" href="/account/login">$_('Log In')</a>
+                <a class="login-links__primary" href="/account/create">$_('Sign Up')</a>
               </li>
             $else:
               <li>
@@ -53,7 +51,7 @@ $# @param {DropdownLink[]} props.links
               $else:
                 <a href="$(link['href'])">
                   $if 'new' in link and props['name'] == 'hamburger':
-                    <span>$(link['text'])</span><span class="badge">NEW!</span>
+                    <span>$(link['text'])</span><span class="app-drawer__badge">$_('New!')</span>
                   $else:
                     $(link['text'])
                 </a>
