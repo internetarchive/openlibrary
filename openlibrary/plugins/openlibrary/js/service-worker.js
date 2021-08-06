@@ -47,7 +47,7 @@ registerRoute(
 
 // covers png cache
 registerRoute(
-    new RegExp('http://covers.openlibrary.org/b/.+'),
+    new RegExp('https://covers.openlibrary.org/b/.+'),
     new NetworkFirst({
         cacheName: 'covers-cache',
         plugins: [
