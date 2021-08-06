@@ -140,14 +140,6 @@ ALTER TABLE public.bookshelves_books OWNER TO postgres;
 -- Name: bookshelves_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE SEQUENCE public.bookshelves_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
 ALTER TABLE public.bookshelves_id_seq OWNER TO postgres;
 
 --
@@ -167,15 +159,8 @@ ALTER TABLE public.bookshelves_votes OWNER TO postgres;
 -- Name: bookshelves_votes_bookshelf_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE SEQUENCE public.bookshelves_votes_bookshelf_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
 ALTER TABLE public.bookshelves_votes_bookshelf_id_seq OWNER TO postgres;
+
 
 --
 -- Name: bookshelves_votes_bookshelf_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
