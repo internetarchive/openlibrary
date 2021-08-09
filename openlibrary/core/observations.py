@@ -18,43 +18,58 @@ OBSERVATIONS = {
         {
             'id': 1,
             'label': 'pace',
-            'description': 'What is the pace of this book?',
-            'multi_choice': False,
-            'order': [1, 2, 3, 4],
+            'description': 'How would you rate the pacing of this book?',
+            'multi_choice': True,
+            'order': [4, 5, 6, 7],
             'values': [
-                {'id': 1, 'name': 'slow'},
-                {'id': 2, 'name': 'medium'},
-                {'id': 3, 'name': 'fast'}
+                {'id': 1, 'name': 'slow', 'deleted': True},
+                {'id': 2, 'name': 'medium', 'deleted': True},
+                {'id': 3, 'name': 'fast', 'deleted': True},
+                {'id': 4, 'name': 'too slow'},
+                {'id': 5, 'name': 'well paced'},
+                {'id': 6, 'name': 'too fast'},
+                {'id': 7, 'name': 'meandering'},
             ]
         },
         {
             'id': 2,
             'label': 'enjoyability',
-            'description': 'How entertaining is this book?',
-            'multi_choice': False,
-            'order': [1, 2, 3, 4, 5, 6],
+            'description': 'How much did you enjoy reading this book?',
+            'multi_choice': True,
+            'order': [3, 7, 8, 9],
             'values': [
-                {'id': 1, 'name': 'not applicable'},
-                {'id': 2, 'name': 'very boring'},
+                {'id': 1, 'name': 'not applicable', 'deleted': True},
+                {'id': 2, 'name': 'very boring', 'deleted': True},
+                {'id': 4, 'name': 'neither entertaining nor boring', 'deleted': True},
+                {'id': 5, 'name': 'entertaining', 'deleted': True},
+                {'id': 6, 'name': 'very entertaining', 'deleted': True},
                 {'id': 3, 'name': 'boring'},
-                {'id': 4, 'name': 'neither entertaining nor boring'},
-                {'id': 5, 'name': 'entertaining'},
-                {'id': 6, 'name': 'very entertaining'}
-            ]
+                {'id': 7, 'name': 'engaging'},
+                {'id': 8, 'name': 'exciting'},
+                {'id': 9, 'name': 'neutral'},
+            ],
         },
         {
             'id': 3,
             'label': 'clarity',
-            'description': 'How clearly is this book written?',
-            'multi_choice': False,
-            'order': [1, 2, 3, 4, 5],
+            'description': 'How clearly was this book written and presented?',
+            'multi_choice': True,
+            'order': [6, 7, 8, 9, 10, 11, 12, 13],
             'values': [
-                {'id': 1, 'name': 'not applicable'},
-                {'id': 2, 'name': 'very unclearly'},
-                {'id': 3, 'name': 'unclearly'},
-                {'id': 4, 'name': 'clearly'},
-                {'id': 5, 'name': 'very clearly'}
-            ]
+                {'id': 1, 'name': 'not applicable', 'deleted': True},
+                {'id': 2, 'name': 'very unclearly', 'deleted': True},
+                {'id': 3, 'name': 'unclearly', 'deleted': True},
+                {'id': 4, 'name': 'clearly', 'deleted': True},
+                {'id': 5, 'name': 'very clearly', 'deleted': True},
+                {'id': 6, 'name': 'succinct'},
+                {'id': 7, 'name': 'dense'},
+                {'id': 8, 'name': 'incomprehensible'},
+                {'id': 9, 'name': 'confusing'},
+                {'id': 10, 'name': 'clearly written'},
+                {'id': 11, 'name': 'effective explanations'},
+                {'id': 12, 'name': 'well organized'},
+                {'id': 13, 'name': 'disorganized'},
+            ],
         },
         {
             'id': 4,
@@ -68,7 +83,8 @@ OBSERVATIONS = {
                 {'id': 3, 'name': 'somewhat technical'},
                 {'id': 4, 'name': 'technical'},
                 {'id': 5, 'name': 'very technical'}
-            ]
+            ],
+            'deleted': True
         },
         {
             'id': 5,
@@ -82,21 +98,29 @@ OBSERVATIONS = {
                 {'id': 3, 'name': 'somewhat unoriginal'},
                 {'id': 4, 'name': 'somewhat original'},
                 {'id': 5, 'name': 'very original'}
-            ]
+            ],
+            'deleted': True
         },
         {
             'id': 6,
             'label': 'difficulty',
-            'description': 'How advanced is the subject matter of this book?',
-            'multi_choice': False,
-            'order': [1, 2, 3, 4, 5],
+            'description': 'How would you rate the difficulty of this book for a general audience?',
+            'multi_choice': True,
+            'order': [6, 7, 8, 9, 10, 11, 12],
             'values': [
-                {'id': 1, 'name': 'not applicable'},
-                {'id': 2, 'name': 'requires domain expertise'},
-                {'id': 3, 'name': 'a lot of prior knowledge needed'},
-                {'id': 4, 'name': 'some prior knowledge needed'},
-                {'id': 5, 'name': 'no prior knowledge needed'}
-            ]
+                {'id': 1, 'name': 'not applicable', 'deleted': True},
+                {'id': 2, 'name': 'requires domain expertise', 'deleted': True},
+                {'id': 3, 'name': 'a lot of prior knowledge needed', 'deleted': True},
+                {'id': 4, 'name': 'some prior knowledge needed', 'deleted': True},
+                {'id': 5, 'name': 'no prior knowledge needed', 'deleted': True},
+                {'id': 6, 'name': 'beginner'},
+                {'id': 7, 'name': 'intermediate'},
+                {'id': 8, 'name': 'advanced'},
+                {'id': 9, 'name': 'expert'},
+                {'id': 10, 'name': 'university'},
+                {'id': 11, 'name': 'layman'},
+                {'id': 12, 'name': 'juvenile'},
+            ],
         },
         {
             'id': 7,
@@ -110,22 +134,30 @@ OBSERVATIONS = {
                 {'id': 3, 'name': 'somewhat useful'},
                 {'id': 4, 'name': 'useful'},
                 {'id': 5, 'name': 'very useful'}
-            ]
+            ],
+            'deleted': True
         },
         {
             'id': 8,
             'label': 'coverage',
-            'description': "Does this book's content cover more breadth or depth of the subject matter?",
-            'multi_choice': False,
-            'order': [1, 2, 3, 4, 5, 6],
+            'description': "How would you describe the breadth and depth of this book?",
+            'multi_choice': True,
+            'order': [7, 8, 9, 10, 11, 12, 13],
             'values': [
-                {'id': 1, 'name': 'not applicable'},
-                {'id': 2, 'name': 'much more deep'},
-                {'id': 3, 'name': 'somewhat more deep'},
-                {'id': 4, 'name': 'equally broad and deep'},
-                {'id': 5, 'name': 'somewhat more broad'},
-                {'id': 6, 'name': 'much more broad'}
-            ]
+                {'id': 1, 'name': 'not applicable', 'deleted': True},
+                {'id': 2, 'name': 'much more deep', 'deleted': True},
+                {'id': 3, 'name': 'somewhat more deep', 'deleted': True},
+                {'id': 4, 'name': 'equally broad and deep', 'deleted': True},
+                {'id': 5, 'name': 'somewhat more broad', 'deleted': True},
+                {'id': 6, 'name': 'much more broad', 'deleted': True},
+                {'id': 7, 'name': 'comprehensive'},
+                {'id': 8, 'name': 'not comprehensive'},
+                {'id': 9, 'name': 'focused'},
+                {'id': 10, 'name': 'interdisciplinary'},
+                {'id': 11, 'name': 'extraneous'},
+                {'id': 12, 'name': 'shallow'},
+                {'id': 13, 'name': 'introductory'},
+            ],
         },
         {
             'id': 9,
@@ -142,7 +174,8 @@ OBSERVATIONS = {
                 {'id': 6, 'name': 'yes, it is inaccurate'},
                 {'id': 7, 'name': 'yes, it is misleading'},
                 {'id': 8, 'name': 'yes, it is biased'}
-            ]
+            ],
+            'deleted': True
         },
         {
             'id': 10,
@@ -152,7 +185,7 @@ OBSERVATIONS = {
             'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
             'values': [
                 {'id': 1, 'name': 'sci-fi'},
-                {'id': 2, 'name': 'philosophy'},
+                {'id': 2, 'name': 'philosophy', 'deleted': True},
                 {'id': 3, 'name': 'satire'},
                 {'id': 4, 'name': 'poetry'},
                 {'id': 5, 'name': 'memoir'},
@@ -187,7 +220,8 @@ OBSERVATIONS = {
                 {'id': 1, 'name': 'nonfiction'},
                 {'id': 2, 'name': 'fiction'},
                 {'id': 3, 'name': 'biography'}
-            ]
+            ],
+            'deleted': True
         },
         {
             'id': 12,
@@ -203,7 +237,8 @@ OBSERVATIONS = {
                 {'id': 5, 'name': 'kindergarten'},
                 {'id': 6, 'name': 'baby'},
                 {'id': 7, 'name': 'general audiences'}
-            ]
+            ],
+            'deleted': True
         },
         {
             'id': 13,
@@ -239,7 +274,151 @@ OBSERVATIONS = {
                 {'id': 25, 'name': 'inspiring'},
                 {'id': 26, 'name': 'cheerful'},
             ]
-        }
+        },
+        { 
+            'id': 14,
+            'label': 'endorsements',
+            'description': 'How did you feel about this book and do you recommend it?',
+            'multi_choice': True,
+            'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+            'values': [
+                {'id': 1, 'name': 'recommend'},
+                {'id': 2, 'name': 'highly recommend'},
+                {'id': 3, 'name': "don't recommend"},
+                {'id': 4, 'name': 'field defining'},
+                {'id': 5, 'name': 'actionable'},
+                {'id': 6, 'name': 'forgettable'},
+                {'id': 7, 'name': 'quotable'},
+                {'id': 8, 'name': 'citable'},
+                {'id': 9, 'name': 'original'},
+                {'id': 10, 'name': 'unremarkable'},
+                {'id': 11, 'name': 'life changing'},
+                {'id': 12, 'name': 'best in class'},
+                {'id': 13, 'name': 'overhyped'},
+                {'id': 14, 'name': 'underrated'},
+            ]
+        },
+        {
+            'id': 15,
+            'label': 'type',
+            'description': 'How would you classify this work?',
+            'multi_choice': True,
+            'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+            'values': [
+                {'id': 1, 'name': 'fiction'},
+                {'id': 2, 'name': 'nonfiction'},
+                {'id': 3, 'name': 'biography'},
+                {'id': 4, 'name': 'based on a true story'},
+                {'id': 5, 'name': 'textbook'},
+                {'id': 6, 'name': 'reference'},
+                {'id': 7, 'name': 'exploratory'},
+                {'id': 8, 'name': 'research'},
+                {'id': 9, 'name': 'philosophical'},
+                {'id': 10, 'name': 'biography'},
+                {'id': 11, 'name': 'essay'},
+                {'id': 12, 'name': 'review'},
+                {'id': 13, 'name': 'classic'},
+            ]
+        },
+        {
+            'id': 16,
+            'label': 'length',
+            'description': 'How would you rate or describe the length of this book?',
+            'multi_choice': True,
+            'order': [1, 2, 3],
+            'values': [
+                {'id': 1, 'name': 'too short'},
+                {'id': 2, 'name': 'ideal length'},
+                {'id': 3, 'name': 'too long'},
+            ]
+        },
+        {
+            'id': 17,
+            'label': 'credibility',
+            'description': 'How factually accurate and reliable is the content of this book?',
+            'multi_choice': True,
+            'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+            'values': [
+                {'id': 1, 'name': 'accurate'},
+                {'id': 2, 'name': 'inaccurate'},
+                {'id': 3, 'name': 'outdated'},
+                {'id': 4, 'name': 'evergreen'},
+                {'id': 5, 'name': 'biased'},
+                {'id': 6, 'name': 'objective'},
+                {'id': 7, 'name': 'subjective'},
+                {'id': 8, 'name': 'rigorous'},
+                {'id': 9, 'name': 'misleading'},
+                {'id': 10, 'name': 'controversial'},
+                {'id': 11, 'name': 'trendy'},
+            ]
+        },
+        {
+            'id': 18,
+            'label': 'formatting',
+            'description': 'What types of formatting or structure does this book make use of?',
+            'multi_choice': True,
+            'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+            'values': [
+                {'id': 1, 'name': 'tables, diagrams, and figures'},
+                {'id': 2, 'name': 'problem sets'},
+                {'id': 3, 'name': 'proofs'},
+                {'id': 4, 'name': 'interviews'},
+                {'id': 5, 'name': 'table of contents'},
+                {'id': 6, 'name': 'illustrations'},
+                {'id': 7, 'name': 'index'},
+                {'id': 8, 'name': 'glossary'},
+                {'id': 9, 'name': 'chapters'},
+                {'id': 10, 'name': 'appendix'},
+                {'id': 11, 'name': 'bibliography'},
+            ]
+        },
+        {
+            'id': 19,
+            'label': 'content advisories',
+            'description': 'Does this book contain objectionable content?',
+            'multi_choice': True,
+            'order': [1, 2, 3, 4, 5, 6],
+            'values': [
+                {'id': 1, 'name': 'adult themes'},
+                {'id': 2, 'name': 'trigger warnings'},
+                {'id': 3, 'name': 'offensive language'},
+                {'id': 4, 'name': 'graphic imagery'},
+                {'id': 5, 'name': 'insensitive'},
+                {'id': 6, 'name': 'racism'},
+            ]
+        },
+        {
+            'id': 20,
+            'label': 'language',
+            'description': 'What type of verbiage, nomenclature, or symbols are employed in this book?',
+            'multi_choice': True,
+            'order': [1, 2, 3, 4, 5],
+            'values': [
+                {'id': 1, 'name': 'technical'},
+                {'id': 2, 'name': 'jargony'},
+                {'id': 3, 'name': 'neologisms'},
+                {'id': 4, 'name': 'slang'},
+                {'id': 5, 'name': 'olde'},
+            ]
+        },
+        {
+            'id': 21,
+            'label': 'purpose',
+            'description': 'Why should someone read this book?',
+            'multi_choice': True,
+            'order': [1, 2, 3, 4, 5, 6, 7, 8, 9],
+            'values': [
+                {'id': 1, 'name': 'entertainment'},
+                {'id': 2, 'name': 'broaden perspective'},
+                {'id': 3, 'name': 'how-to'},
+                {'id': 4, 'name': 'learn about'},
+                {'id': 5, 'name': 'self-help'},
+                {'id': 6, 'name': 'hope'},
+                {'id': 7, 'name': 'inspiration'},
+                {'id': 8, 'name': 'fact checking'},
+                {'id': 9, 'name': 'problem solving'},
+            ]
+        },
     ]
 }
 
@@ -247,7 +426,7 @@ cache_duration = config.get('observation_cache_duration') or 86400
 
 
 @public
-@cache.memoize(engine="memcache", key="observations", expires=cache_duration)
+# @cache.memoize(engine="memcache", key="observations", expires=cache_duration)
 def get_observations():
     """
     Returns a dictionary of observations that are used to populate forms for patron feedback about a book.
@@ -299,7 +478,7 @@ def _sort_values(order_list, values_list):
     ordered_values = []
 
     for id in order_list:
-        value = next((v['name'] for v in values_list if v['id'] == id), None)
+        value = next((v['name'] for v in values_list if v['id'] == id and not v.get('deleted', False)), None)
         if value:
             ordered_values.append(value)
     
@@ -337,17 +516,21 @@ def convert_observation_ids(id_dict):
     conversion_results = {}
 
     for k in id_dict:
-        conversion_results[types_and_values[str(k)]['type']] = [
-            types_and_values[str(k)]['values'][str(i)] for i in id_dict[k]
-        ]
+        if not types_and_values[str(k)].get('deleted', False):
+            conversion_results[types_and_values[str(k)]['type']] = [
+                types_and_values[str(k)]['values'][str(i)]['name'] for i in id_dict[k]
+                if not types_and_values[str(k)]['values'][str(i)].get('deleted', False)
+            ]
 
-    return conversion_results
+    # Remove types with no values (all values of type were marked 'deleted'):
+    return {k : v for (k, v) in conversion_results.items() if len(v)}
 
-
+'''
 @cache.memoize(
     engine="memcache",
     key="all_observation_types_and_values",
     expires=cache_duration)
+'''
 def _get_all_types_and_values():
     """
     Returns a dictionary of observation types and values mappings.  The keys for the
@@ -359,7 +542,8 @@ def _get_all_types_and_values():
     for o in OBSERVATIONS['observations']:
         types_and_values[str(o['id'])] = {
             'type': o['label'],
-            'values': {str(v['id']): v['name'] for v in o['values']}
+            'deleted': o.get('deleted', False),
+            'values': {str(v['id']): {'name': v['name'], 'deleted': v.get('deleted', False)} for v in o['values']}
         }
 
     return types_and_values
@@ -638,6 +822,10 @@ class Observations(object):
             GROUP BY work_id
             LIMIT $limit OFFSET $offset
         """
+
+        # TODO: Remove deleted types and values
+        # Remove type if it has no values
+        # Remove work if it has no type
 
         return list(oldb.query(query, vars=data))
 
