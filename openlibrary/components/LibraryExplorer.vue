@@ -20,6 +20,7 @@ import LibraryToolbar from './LibraryExplorer/components/LibraryToolbar';
 import DDC from './LibraryExplorer/ddc.json';
 import LCC from './LibraryExplorer/lcc.json';
 import { recurForEach } from './LibraryExplorer/utils.js';
+import { sortable_lcc_to_short_lcc, short_lcc_to_sortable_lcc } from './LibraryExplorer/utils/lcc.js';
 import maxBy from 'lodash/maxBy';
 
 class FilterState {
@@ -70,6 +71,7 @@ export default {
                 longName: 'Dewey Decimal Classification',
                 field: 'ddc',
                 fieldTransform: ddc => ddc,
+                toQueryFormat: ddc => ddc,
                 chooseBest: ddcs => maxBy(ddcs, ddc => ddc.replace(/[\d.]/g, '') ? ddc.length : 100 + ddc.length),
                 root: recurForEach({ children: DDC, query: '*' }, n => {
                     n.position = 'root';
@@ -81,13 +83,11 @@ export default {
                 name: 'LCC',
                 longName: 'Library of Congress Classification',
                 field: 'lcc',
-                fieldTransform: lcc =>
-                    lcc
-                        .replace(/-+0+/, '')
-                        .replace(/\.0+\./, '.')
-                        .replace(/\.0+$/, ' ')
-                        .replace(/-+/, '')
-                        .replace(/0+(\.\D)/, ($0, $1) => $1),
+                fieldTransform: sortable_lcc_to_short_lcc,
+                toQueryFormat: lcc => {
+                    const normalized = short_lcc_to_sortable_lcc(lcc);
+                    return normalized ? normalized.split(' ')[0] : lcc;
+                },
                 chooseBest: lccs => maxBy(lccs, lcc => lcc.length),
                 root: recurForEach({ children: LCC, query: '*' }, n => {
                     n.position = 'root';
@@ -103,7 +103,7 @@ export default {
         if (urlParams.has('jumpTo')) {
             const [classificationName, classificationString] = urlParams.get('jumpTo').split(':');
             selectedClassification = classifications.find(c => c.field == classificationName);
-            jumpTo = classificationString;
+            jumpTo = selectedClassification.toQueryFormat(classificationString);
         }
         return {
             filterState: new FilterState(),

@@ -89,6 +89,10 @@ from typing import Iterable
 
 from openlibrary.utils.ddc import collapse_multiple_space
 
+# WARNING: Parts of this code have been translated into JS in
+# LibraryExplorer/utils/lcc.js :(
+# KEEP IN SYNC!
+
 LCC_PARTS_RE = re.compile(r'''
     ^
     # trailing dash only valid in "sortable" LCCs
