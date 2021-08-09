@@ -85,6 +85,8 @@ import CONFIGS from '../configs';
 /** @typedef {import('../utils.js').ClassificationNode} ClassificationNode */
 
 /**
+ * Given a starting classification node, find the data needed to render the node containing
+ * the provided classification string.
  * @param {ClassificationNode} classificationNode
  * @param {string} classification (e.g. 658.91500202854)
  */
@@ -95,7 +97,7 @@ function findClassification(classificationNode, classification) {
         node => testLuceneSyntax(node.query, classification));
     if (!path.length) return;
 
-    // pad until length is at least 3
+    // pad until length is at least 3, so that we can destructure into [shelf, bookcase, room]
     while (path.length < 3) path.push(null);
 
     // Jump as deep into it as we can. I.e. the last node is the shelf, the second last the bookcase, and the 3rd last is the room.
