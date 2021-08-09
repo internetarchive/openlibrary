@@ -103,8 +103,9 @@ OBSERVATIONS = {
         },
         {
             'id': 6,
-            'label': 'difficulty',
-            'description': 'How would you rate the difficulty of this book for a general audience?',
+            'label': 'difficulty','
+            'description': 'How would you rate the difficulty of ' \
+                'this book for a general audience?',
             'multi_choice': True,
             'order': [6, 7, 8, 9, 10, 11, 12],
             'values': [
@@ -275,7 +276,7 @@ OBSERVATIONS = {
                 {'id': 26, 'name': 'cheerful'},
             ]
         },
-        { 
+        {
             'id': 14,
             'label': 'endorsements',
             'description': 'How did you feel about this book and do you recommend it?',
@@ -335,7 +336,8 @@ OBSERVATIONS = {
         {
             'id': 17,
             'label': 'credibility',
-            'description': 'How factually accurate and reliable is the content of this book?',
+            'description': 'How factually accurate and reliable ' \
+                'is the content of this book?',
             'multi_choice': True,
             'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
             'values': [
@@ -355,7 +357,8 @@ OBSERVATIONS = {
         {
             'id': 18,
             'label': 'formatting',
-            'description': 'What types of formatting or structure does this book make use of?',
+            'description': 'What types of formatting or structure ' \
+                'does this book make use of?',
             'multi_choice': True,
             'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
             'values': [
@@ -390,7 +393,8 @@ OBSERVATIONS = {
         {
             'id': 20,
             'label': 'language',
-            'description': 'What type of verbiage, nomenclature, or symbols are employed in this book?',
+            'description': 'What type of verbiage, nomenclature, ' \
+                'or symbols are employed in this book?',
             'multi_choice': True,
             'order': [1, 2, 3, 4, 5],
             'values': [
@@ -426,7 +430,7 @@ cache_duration = config.get('observation_cache_duration') or 86400
 
 
 @public
-# @cache.memoize(engine="memcache", key="observations", expires=cache_duration)
+@cache.memoize(engine="memcache", key="observations", expires=cache_duration)
 def get_observations():
     """
     Returns a dictionary of observations that are used to populate forms for patron feedback about a book.
@@ -478,7 +482,12 @@ def _sort_values(order_list, values_list):
     ordered_values = []
 
     for id in order_list:
-        value = next((v['name'] for v in values_list if v['id'] == id and not v.get('deleted', False)), None)
+        value = next(
+                (v['name'] for v in values_list
+                    if v['id'] == id and not v.get('deleted', False)
+                ),
+                None
+            )
         if value:
             ordered_values.append(value)
     
@@ -523,14 +532,13 @@ def convert_observation_ids(id_dict):
             ]
 
     # Remove types with no values (all values of type were marked 'deleted'):
-    return {k : v for (k, v) in conversion_results.items() if len(v)}
+    return {k:v for (k, v) in conversion_results.items() if len(v)}
 
-'''
+
 @cache.memoize(
     engine="memcache",
     key="all_observation_types_and_values",
     expires=cache_duration)
-'''
 def _get_all_types_and_values():
     """
     Returns a dictionary of observation types and values mappings.  The keys for the
@@ -543,7 +551,10 @@ def _get_all_types_and_values():
         types_and_values[str(o['id'])] = {
             'type': o['label'],
             'deleted': o.get('deleted', False),
-            'values': {str(v['id']): {'name': v['name'], 'deleted': v.get('deleted', False)} for v in o['values']}
+            'values': {
+                str(v['id']): {'name': v['name'], 'deleted': v.get('deleted', False)}
+                for v in o['values']
+            }
         }
 
     return types_and_values
@@ -822,10 +833,6 @@ class Observations(object):
             GROUP BY work_id
             LIMIT $limit OFFSET $offset
         """
-
-        # TODO: Remove deleted types and values
-        # Remove type if it has no values
-        # Remove work if it has no type
 
         return list(oldb.query(query, vars=data))
 
