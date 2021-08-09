@@ -83,6 +83,8 @@ export default {
 <style scoped>
 .css-box {
   position: relative;
+  /* Performance optimization, since the size of the css-box is independent of any of its children */
+  contain: layout size;
 }
 .css-box > * {
   position: absolute;
