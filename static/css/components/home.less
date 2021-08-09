@@ -6,7 +6,11 @@ div.tutorial__item {
   border: 1px solid hsl(0, 0%, 87%);
   border-radius: 5px;
   padding: 10px;
-  min-width: 310px;
+  min-width: 220px;
+
+  @media only screen and (min-width: @width-breakpoint-desktop) {
+    min-width: 310px;
+  }
   &:focus {
     border: 1px solid hsl(202, 97%, 28%);
   }
