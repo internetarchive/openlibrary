@@ -103,9 +103,9 @@ OBSERVATIONS = {
         },
         {
             'id': 6,
-            'label': 'difficulty','
-            'description': 'How would you rate the difficulty of ' \
-                'this book for a general audience?',
+            'label': 'difficulty',
+            'description': 'How would you rate the difficulty of '
+                           'this book for a general audience?',
             'multi_choice': True,
             'order': [6, 7, 8, 9, 10, 11, 12],
             'values': [
@@ -336,8 +336,8 @@ OBSERVATIONS = {
         {
             'id': 17,
             'label': 'credibility',
-            'description': 'How factually accurate and reliable ' \
-                'is the content of this book?',
+            'description': 'How factually accurate and reliable '
+                           'is the content of this book?',
             'multi_choice': True,
             'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
             'values': [
@@ -357,8 +357,8 @@ OBSERVATIONS = {
         {
             'id': 18,
             'label': 'formatting',
-            'description': 'What types of formatting or structure ' \
-                'does this book make use of?',
+            'description': 'What types of formatting or structure '
+                           'does this book make use of?',
             'multi_choice': True,
             'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
             'values': [
@@ -393,8 +393,8 @@ OBSERVATIONS = {
         {
             'id': 20,
             'label': 'language',
-            'description': 'What type of verbiage, nomenclature, ' \
-                'or symbols are employed in this book?',
+            'description': 'What type of verbiage, nomenclature, '
+                           'or symbols are employed in this book?',
             'multi_choice': True,
             'order': [1, 2, 3, 4, 5],
             'values': [
@@ -482,11 +482,8 @@ def _sort_values(order_list, values_list):
     ordered_values = []
 
     for id in order_list:
-        value = next(
-                (v['name'] for v in values_list
-                    if v['id'] == id and not v.get('deleted', False)
-                ),
-                None
+        value = next((v['name'] for v in values_list 
+                if v['id'] == id and not v.get('deleted', False)), None
             )
         if value:
             ordered_values.append(value)
@@ -532,7 +529,7 @@ def convert_observation_ids(id_dict):
             ]
 
     # Remove types with no values (all values of type were marked 'deleted'):
-    return {k:v for (k, v) in conversion_results.items() if len(v)}
+    return {k: v for (k, v) in conversion_results.items() if len(v)}
 
 
 @cache.memoize(
