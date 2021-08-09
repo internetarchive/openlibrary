@@ -86,7 +86,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style scoped lang="less">
 .arrow-icon {
   margin-bottom: -2px;
 }
@@ -98,13 +98,17 @@ export default {
   display: flex;
   min-height: 3em;
   box-sizing: border-box;
+  align-items: center;;
 }
 
 .class-slider main {
-  position: relative;
+  @media (min-width: 450px) {
+    position: relative;
+  }
   overflow: hidden;
   overflow: clip;
   flex: 1;
+  align-self: stretch;
   display: flex;
   justify-content: center;
 }
@@ -135,9 +139,9 @@ button:last-child {
 
 .sections {
   position: absolute;
-  width: 100%;
-  height: 100%;
   display: flex;
+  left: 0;
+  right: 0;
 }
 
 .lr-buttons {
