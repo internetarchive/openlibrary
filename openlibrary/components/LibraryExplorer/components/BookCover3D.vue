@@ -189,6 +189,7 @@ export default {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  overflow: clip;
   width: 150px;
   transform-origin: 0 0;
 }

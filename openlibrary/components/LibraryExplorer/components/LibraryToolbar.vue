@@ -130,8 +130,8 @@
                   <label>
                     <input type="radio" v-model="sortState.order" value="old">Oldest
                   </label>
-                  <label>
-                    <input type="radio" v-model="sortState.order" :value="`${settingsState.selectedClassification.field}_sort asc`">Shelf Order
+                  <label title="I.e. Classification order. Note some books maybe missing when sorting by shelf order–we're working on it.">
+                    <input type="radio" v-model="sortState.order" :value="`${settingsState.selectedClassification.field}_sort asc`" >Shelf Order
                   </label>
                   <label>
                     <input type="radio" v-model="sortState.order" :value="randomWithSeed">Random
@@ -233,9 +233,9 @@ export default {
             quickLanguageSelect: '',
             fullLanguageSelect: [],
             langLoading: false,
-            // By default we just send sort=random to the OL API, but when shuffle
-            // is clicked, we add a seed to the end (e.g. random_1235)
-            randomWithSeed: 'random',
+            // By default, random is set to the "hourly" random, so that the books stick
+            // around for a while
+            randomWithSeed: `random_${new Date().toISOString().split(':')[0]}`,
 
             openTabs: [],
             maxTabs: screen.width > 600 ? 5 : 1,
@@ -485,6 +485,7 @@ export default {
     flex-direction: column-reverse;
     border-radius: 4px 4px 0 0;
     overflow: hidden;
+    overflow: clip;
     box-shadow: 0 0 5px rgba(0, 0, 0, .2);
     background: linear-gradient(to bottom, #fff, #ebdfc5 150%);
     max-width: 100%;
