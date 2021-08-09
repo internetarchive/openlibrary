@@ -8,7 +8,7 @@
           :title="prevSection.short"
         />
       </button>
-      <div class="classification-short">{{ activeSection.short }}</div>
+      <div class="classification-short" :class="this.direction">{{ activeSection.short }}</div>
       <button
         @click="index += 1"
         v-if="nextSection"
@@ -19,21 +19,10 @@
     </div>
     <main>
       <ShelfProgressBar :sections="progressBarSections" :index="progressBarIndex" />
-      <div class="labels" :style="{transform: `translateX(-${100 * index}%)`}">
-        <div v-for="section in sections" :key="section.short">
-          {{section.name}}
-          <br>
-          <small>{{section.count}} books</small>
-        </div>
-      </div>
+      <div class="label" :class="this.direction">{{activeSection.name}}</div>
     </main>
     <div>
-      <slot name="extra-actions"/>
-      <!-- <select class="sort-selector">
-        <option>Popular</option>
-        <option>Newest</option>
-        <option>Shelf Order</option>
-      </select>-->
+      <slot name="extra-actions" />
     </div>
   </div>
 </template>
@@ -47,7 +36,18 @@ export default {
         node: Object
     },
     data() {
-        return {};
+        return {
+            direction: null,
+        };
+    },
+
+    watch: {
+        async index(newVal, oldVal) {
+            if (typeof oldVal != 'number') return;
+            this.direction = newVal > oldVal ? 'slide-right' : 'slide-left';
+            await new Promise(res => setTimeout(res, 200));
+            this.direction = null;
+        }
     },
 
     computed: {
@@ -106,22 +106,7 @@ export default {
   overflow: clip;
   flex: 1;
   display: flex;
-}
-
-.class-slider main .labels {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  transition: transform .2s;
-}
-
-.labels div {
-  flex-shrink: 0;
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  padding-top: 6px;
+  justify-content: center;
 }
 
 button {
@@ -133,10 +118,19 @@ button {
 }
 
 button:first-child {
-  border-right: 2px solid #000;
+  border-right: 2px solid rgb(161, 157, 157);
 }
 button:last-child {
   border-left: 2px solid #000;
+}
+
+.label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  line-height: 1em;
+  padding-bottom: 6px;
 }
 
 .sections {
@@ -162,7 +156,18 @@ button:last-child {
   padding-right: 15px;
 }
 
-small {
-  opacity: .8;
+@keyframes slide-right {
+  from { transform: translateX(20px) }
+}
+
+@keyframes slide-left {
+  from { transform: translateX(-20px) }
+}
+
+.slide-right {
+  animation: slide-right 0.2s ease;
+}
+.slide-left {
+  animation: slide-left 0.2s ease;
 }
 </style>

@@ -447,10 +447,6 @@ hr {
     background: none;
   }
 
-  .class-slider.shelf-label small {
-    display: none;
-  }
-
   .shelf-label button {
     border: 0;
     border-radius: 4px;
