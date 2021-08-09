@@ -103,6 +103,7 @@ export default {
 .class-slider main {
   position: relative;
   overflow: hidden;
+  overflow: clip;
   flex: 1;
   display: flex;
 }

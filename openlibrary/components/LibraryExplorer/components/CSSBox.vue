@@ -91,6 +91,7 @@ export default {
   transform-origin: 0 0 0;
   box-sizing: border-box;
   overflow: hidden;
+  overflow: clip;
 
   /* background: rgba(255, 0, 0, 0.5); */
 }

@@ -293,6 +293,7 @@ button {
     box-sizing: border-box;
     border-radius: 4px;
     overflow: hidden;
+    overflow: clip;
 
     .sign-classification {
       opacity: .5;
@@ -336,6 +337,7 @@ button {
     .sign-label {
       text-overflow: ellipsis;
       overflow: hidden;
+      overflow: clip;
       white-space: nowrap;
     }
 

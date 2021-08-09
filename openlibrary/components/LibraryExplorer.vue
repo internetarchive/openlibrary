@@ -254,8 +254,8 @@ hr {
     width: 40px;
     margin: 0;
     overflow: hidden;
+    overflow: clip;
     flex-shrink: 0;
-    overflow: hidden;
     margin-left: 1px;
   }
 

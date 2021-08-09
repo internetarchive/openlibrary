@@ -316,6 +316,7 @@ export default {
   min-height: 100px;
   text-align: center;
   overflow: hidden;
+  overflow: clip;
   position: relative;
 }
 </style>

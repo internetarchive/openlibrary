@@ -206,6 +206,7 @@ export default {
   border-radius: 4px;
   height: 285px;
   background: #EEE;
+  contain: strict;
 }
 
 .shelf >>> .book {
