@@ -637,18 +637,19 @@ def url_quote(text: str | bytes) -> str:
 
 
 @public
-def urlencode(dict_or_list_of_tuples: dict | list[tuple[str, Any]]) -> str:
+def urlencode(dict_or_list_of_tuples: dict | list[tuple[str, Any]], plus=True) -> str:
     """
     You probably want to use this, if you're looking to urlencode parameters. This will
     encode things to utf8 that would otherwise cause urlencode to error.
     """
+    from urllib.parse import quote, quote_plus
     from urllib.parse import urlencode as og_urlencode
 
     tuples = dict_or_list_of_tuples
     if isinstance(dict_or_list_of_tuples, dict):
         tuples = list(dict_or_list_of_tuples.items())
     params = [(k, v.encode('utf-8') if isinstance(v, str) else v) for (k, v) in tuples]
-    return og_urlencode(params)
+    return og_urlencode(params, quote_via=quote_plus if plus else quote)
 
 
 @public
