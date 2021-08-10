@@ -20,7 +20,7 @@ $ bodyattrs = ctx.get('bodyattrs', [])
   <div $:('id="test-body-mobile"' if cssfile != 'form' else '')>
     $if show_banners:
       $#print errors (hidden by default as styles are loaded via JS)
-      <div class="flash-messages" style="display: none;">
+      <div class="flash-messages">
       $for flash in get_flash_messages():
         <div class="$flash.type"><span>$flash.message</span></div>
       </div>
