@@ -99,39 +99,41 @@ export function addNotesPageButtonListeners() {
     });
 
     $('.delete-note-button').on('click', function() {
-        const $parent = $(this).parent();
+        if (confirm('Really delete this book note?')) {
+            const $parent = $(this).parent();
 
-        const workId = $(this).parent().siblings('input')[0].value;
-        const editionId = $(this).parent().attr('id').split('-')[0];
+            const workId = $(this).parent().siblings('input')[0].value;
+            const editionId = $(this).parent().attr('id').split('-')[0];
 
-        const formData = new FormData();
-        formData.append('edition_id', `OL${editionId}M`);
+            const formData = new FormData();
+            formData.append('edition_id', `OL${editionId}M`);
 
-        $.ajax({
-            url: `/works/OL${workId}W/notes.json`,
-            data: formData,
-            type: 'POST',
-            contentType: false,
-            processData: false,
-            success: function() {
-                showToast($('body'), 'Note deleted.');
+            $.ajax({
+                url: `/works/OL${workId}W/notes.json`,
+                data: formData,
+                type: 'POST',
+                contentType: false,
+                processData: false,
+                success: function() {
+                    showToast($('body'), 'Note deleted.');
 
-                // Remove list element from UI:
-                if ($parent.closest('.notes-list').children().length === 1) {
-                    // This is the last edition for a set of notes on a work.
-                    // Remove the work element:
-                    $parent.closest('.main-list-item').remove();
+                    // Remove list element from UI:
+                    if ($parent.closest('.notes-list').children().length === 1) {
+                        // This is the last edition for a set of notes on a work.
+                        // Remove the work element:
+                        $parent.closest('.main-list-item').remove();
 
-                    if (!$('.main-list-item').length) {
-                        $('.list-container')[0].innerText = 'No notes found.';
+                        if (!$('.main-list-item').length) {
+                            $('.list-container')[0].innerText = 'No notes found.';
+                        }
+                    } else {
+                        // Notes for other editions of the work exist
+                        // Remove the edition's notes list item:
+                        $parent.closest('.notes-list-item').remove();
                     }
-                } else {
-                    // Notes for other editions of the work exist
-                    // Remove the edition's notes list item:
-                    $parent.closest('.notes-list-item').remove();
                 }
-            }
-        });
+            });
+        }
     });
 }
 
