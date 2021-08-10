@@ -6,7 +6,7 @@ function getIsbnToElementMap(container) {
     const elements = Array.from(document.querySelectorAll(container));
     const isbnElementMap = {};
     elements.forEach((e) => {
-        const isbnMatches = e.innerHTML.match(reISBN);
+        const isbnMatches = e.outerHTML.match(reISBN);
         if (isbnMatches) {
             isbnElementMap[isbnMatches[0]] = e;
         }
@@ -29,7 +29,7 @@ async function getAvailabilityDataFromArchiveOrg(isbnList) {
 /**
  * @param {object} options
  * @param {string} options.bookContainer class name of the HTML element associated with a book. We will try to find a book identifier (eg ISBN) in each of these.
- * @param {string} options.selectorToPlaceBtnIn The class name of the HTML element that we will add the Open Library button to. Each `bookContainer` should have one of these.
+ * @param {string} [options.selectorToPlaceBtnIn] The class name of the HTML element that we will add the Open Library button to. Each `bookContainer` should have one of these. If not specified, will just append to `bookContainer`.
  * @param {string} [options.textOnBtn] The text on the button
  *
  * @example
@@ -41,9 +41,9 @@ async function getAvailabilityDataFromArchiveOrg(isbnList) {
  */
 async function addOpenLibraryButtons(options) {
     const {bookContainer, selectorToPlaceBtnIn, textOnBtn} = options
-    if (bookContainer === undefined || selectorToPlaceBtnIn === undefined) {
+    if (bookContainer === undefined) {
         throw Error(
-            'book container and button parent must be specified in options for open library buttons to populate!'
+            'book container must be specified in options for open library buttons to populate!'
         )
     }
     const foundIsbnElementsMap = getIsbnToElementMap(bookContainer);
@@ -52,7 +52,7 @@ async function addOpenLibraryButtons(options) {
         const availability = availabilityResults[isbn]
         if (availability && availability.status !== 'error') {
             const e = foundIsbnElementsMap[isbn]
-            const buttons = e.querySelector(selectorToPlaceBtnIn)
+            const buttons = selectorToPlaceBtnIn ? e.querySelector(selectorToPlaceBtnIn) : e;
             const openLibraryBtnLink = document.createElement('a')
             openLibraryBtnLink.href = `https://openlibrary.org/borrow/ia/${availability.identifier}`
             openLibraryBtnLink.text = textOnBtn || 'Open Library'
