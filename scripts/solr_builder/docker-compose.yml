@@ -3,7 +3,7 @@ version: '3.1'
 services:
   db:
     image: postgres
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: example
     working_dir: "/solr_builder"
@@ -16,7 +16,7 @@ services:
 
   adminer:
     image: adminer
-    restart: always
+    restart: unless-stopped
     ports:
       - 8087:8080
     networks:
