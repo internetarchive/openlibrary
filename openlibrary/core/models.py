@@ -495,6 +495,15 @@ class Work(Thing):
         edition_id = extract_numeric_id_from_olid(edition_olid) if edition_olid else -1
         return Booknotes.get_patron_booknote(username, work_id, edition_id=edition_id)
 
+    
+    def has_book_note(self, username, edition_olid):
+        if not username:
+            return False
+        work_id = extract_numeric_id_from_olid(self.key)
+        edition_id = extract_numeric_id_from_olid(edition_olid)
+        return len(Booknotes.get_patron_booknote(username, work_id, edition_id=edition_id)) > 0
+
+
     def get_users_observations(self, username):
         if not username:
             return None
