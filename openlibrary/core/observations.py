@@ -484,12 +484,12 @@ def _sort_values(order_list, values_list):
     for id in order_list:
         value = next(
             (v['name'] for v in values_list
-            if v['id'] == id and not v.get('deleted', False)),
+                if v['id'] == id and not v.get('deleted', False)),
             None
         )
         if value:
             ordered_values.append(value)
-    
+
     return ordered_values
 
 def _get_deleted_types_and_values():
