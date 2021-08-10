@@ -2,7 +2,7 @@
  * @param {string} container
  */
 function getIsbnToElementMap(container) {
-    const reISBN = /((978)?[0-9][0-9]{10}[0-9xX])|((978)?[0-9]{9}[0-9Xx])/;
+    const reISBN = /(978)?[0-9]{9}[0-9X]/i;
     const elements = Array.from(document.querySelectorAll(container));
     const isbnElementMap = {};
     elements.forEach((e) => {
