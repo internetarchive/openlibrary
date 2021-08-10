@@ -1,5 +1,5 @@
 <template>
-  <div class="observation-form">
+  <div class="observation-form" ref="form">
     <h3>Review this book</h3>
     <Selections
       :all-selected-values="allSelectedValues"
@@ -33,7 +33,7 @@ import Selections from './ObservationForm/components/Selections'
 import ValueCard from './ObservationForm/components/ValueCard'
 
 import { deleteObservation } from './ObservationForm/ObservationService'
-import { decodeAndParseJSON, capitalizeTypesAndValues, capitalizePatronObservations } from './ObservationForm/Utils'
+import { decodeAndParseJSON, capitalizeTypesAndValues, capitalizePatronObservations, resizeColorbox } from './ObservationForm/Utils'
 
 export default {
     name: 'ObservationForm',
@@ -81,6 +81,18 @@ export default {
     created: function() {
         this.capitalizedSchema = capitalizeTypesAndValues(decodeAndParseJSON(this.schema)['observations']);
         this.allSelectedValues = capitalizePatronObservations(decodeAndParseJSON(this.observations));
+    },
+    mounted: function() {
+        this.observer = new ResizeObserver(() => {
+            resizeColorbox();
+        });
+
+        this.observer.observe(this.$refs.form)
+    },
+    beforeDestroy: function() {
+        if (this.observer) {
+            this.observer.disconnect()
+        }
     }
 }
 </script>
