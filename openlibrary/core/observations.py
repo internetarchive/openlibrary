@@ -482,9 +482,11 @@ def _sort_values(order_list, values_list):
     ordered_values = []
 
     for id in order_list:
-        value = next((v['name'] for v in values_list 
-                if v['id'] == id and not v.get('deleted', False)), None
-            )
+        value = next(
+            (v['name'] for v in values_list
+            if v['id'] == id and not v.get('deleted', False)),
+            None
+        )
         if value:
             ordered_values.append(value)
     
