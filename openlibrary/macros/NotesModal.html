@@ -33,8 +33,8 @@ $if reload_id:
         <input type="hidden" name="work_id" value="$work_key.split('/')[-1]" />
         <input type="hidden" name="edition_id" value="$edition.key.split('/')[-1]" />
         <div class="note-form-buttons">
-          <button class="delete-note-button cta-btn $('' if display_delete_button else 'hidden')" type="button">$_("Delete Note")</button>
-          <button class="update-note-button cta-btn"type="button">$_("Save Note")</button>
+          <button class="delete-note-button cta-btn cta-btn--shell $('' if display_delete_button else 'hidden')" type="button">$_("Delete Note")</button>
+          <a class="update-note-button linkButton" href="javascript;">$_("Save Note")</a>
         </div>
       </form>
     </div>

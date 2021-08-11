@@ -17,10 +17,10 @@ export function initNotesModal($modalLinks) {
  * Adds click listeners to buttons in all notes modals on a page.
  */
 function addNotesModalButtonListeners() {
-    $('.update-note-button').on('click', function(){
+    $('.update-note-button').on('click', function(event){
+        event.preventDefault();
         // Get form data
-        const formData = new FormData($(this).prop('form'));
-
+        const formData = new FormData($(this).closest('form')[0]);
         if (formData.get('notes')) {
             const $deleteButton = $($(this).siblings()[0]);
 
@@ -77,7 +77,8 @@ function addNotesModalButtonListeners() {
 * from the view.
 */
 export function addNotesPageButtonListeners() {
-    $('.update-note-button').on('click', function() {
+    $('.update-note-link-button').on('click', function(event) {
+        event.preventDefault();
         const workId = $(this).parent().siblings('input')[0].value;
         const editionId = $(this).parent().attr('id').split('-')[0];
         const note = $(this).parent().siblings('textarea')[0].value;
