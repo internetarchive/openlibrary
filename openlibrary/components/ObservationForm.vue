@@ -1,16 +1,15 @@
 <template>
   <div class="observation-form" ref="form">
-    <h3>Review this book</h3>
     <Selections
       :all-selected-values="allSelectedValues"
       @remove-value="removeValue"
       />
-    <hr>
 
     <!-- Place the following in a box:  -->
     <Categories
       ref="categories"
       :observations-array="capitalizedSchema"
+      :all-selected-values="allSelectedValues"
       @update-selected="updateSelected"
       />
     <ValueCard

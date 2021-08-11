@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- <h3>Review this book:</h3> -->
+    <h3>Add your reviews:</h3>
     <div class="chip-group">
       <Chip
         v-for="o in observationsArray"
@@ -10,7 +10,11 @@
         selectable
         class="category-chip"
         @update-selected="updateSelected"
-        />
+        >
+        <template v-slot:before>
+          <span class="symbol" v-html="displaySymbol(o.label)"></span>
+        </template>
+      </Chip>
     </div>
   </div>
 </template>
@@ -26,6 +30,10 @@ export default {
     props: {
         observationsArray: {
             type: Array,
+            required: true
+        },
+        allSelectedValues: {
+            type: Object,
             required: true
         }
     },
@@ -65,6 +73,14 @@ export default {
                 // Set ObservationForm's selected observation to null
                 this.$emit('update-selected', null)
             }
+        },
+        displaySymbol: function(type) {
+            // &#10133; - Heavy plus
+            // &#10004; - Heavy checkmark
+            if (this.allSelectedValues[type] && this.allSelectedValues[type].length) {
+                return '&#10004;';
+            }
+            return '&#10133;';
         }
     }
 }
@@ -77,6 +93,7 @@ export default {
 }
 .category-chip {
   margin-right: 1em;
-  margin-bottom: 1em;
+  margin-bottom: .5em;
 }
+
 </style>

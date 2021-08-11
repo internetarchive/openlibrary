@@ -1,11 +1,6 @@
 <template>
   <div class="card-header">
-    <div class="title-line">
-      <!-- <h3>{{title}}</h3> -->
-
-    </div>
-    <div class="description">{{description}}
-    </div>
+    <div class="description">{{description}}</div>
   </div>
 </template>
 
@@ -28,23 +23,7 @@ export default {
 <style scoped>
 .card-header {
   border-bottom: 1px solid #999999;
-  padding: .5em 1em;
-}
-
-.title-line {
-  display:flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-h3, .description {
-  margin-left: .25em;
-  margin-bottom: 1em;
-}
-
-.close-icon {
-  font-size: 1.5em;
-  margin-right: .25em;
-  cursor: pointer;
+  margin: 1em;
+  padding-bottom: 1em;
 }
 </style>

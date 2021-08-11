@@ -4,8 +4,9 @@
     v-bind:class="[{ 'chip--selectable': selectable, 'chip--selected': isSelected }, classList]"
     @[canSelect]="onClick"
     >
+    <slot name="before"></slot>
     {{text}}
-    <slot></slot>
+    <slot name="after"></slot>
   </span>
 </template>
 

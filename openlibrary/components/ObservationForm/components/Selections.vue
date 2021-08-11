@@ -1,6 +1,5 @@
 <template>
   <div class="selections" v-show="selectedValues.length">
-    <!-- <h3>Selections:</h3> -->
     <div
       v-if="!selectedValues.length"
       class="no-selections-message"
@@ -19,15 +18,17 @@
           :class-list="getClassList(value)"
           class="selection-chip"
           >
-          <span
-            class="close-icon"
-            title="Remove value"
-            @mouseover="addHoverClass(value)"
-            @mouseout="removeHoverClass(value)"
-            @click="removeItem(value)"
-            >
-              &times;
-          </span>
+          <template v-slot:after>
+            <span
+              class="close-icon"
+              title="Remove value"
+              @mouseover="addHoverClass(value)"
+              @mouseout="removeHoverClass(value)"
+              @click="removeItem(value)"
+              >
+                &times;
+            </span>
+          </template>
         </Chip>
       </div>
   </div>
@@ -107,8 +108,7 @@ export default {
 
 .selection-chip {
   margin-right: 1em;
-  margin-top: 1em;  /* TODO: fix padding */
-  margin-bottom: 1em;
+  margin-bottom: .5em;
 }
 
 .close-icon {

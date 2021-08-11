@@ -97,14 +97,13 @@ export default {
 
 <style scoped>
 .card-body {
-  margin: 1em .25em 0;
   display: flex;
   flex-wrap: wrap;
-  padding: .5em 1em;
+  padding: 1em;
 }
 
 .value-chip {
   margin-right: 1em;
-  margin-bottom: 1em;
+  margin-bottom: .5em;
 }
 </style>
