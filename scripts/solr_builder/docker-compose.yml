@@ -34,7 +34,7 @@ services:
       - 8983:8983
     volumes:
       - solr-data:/var/solr/data
-      - ../../conf/solr8-ol:/opt/solr/server/solr/configsets/olconfig:ro
+      - ../../conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
     networks:
       - solr-access
     command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig
