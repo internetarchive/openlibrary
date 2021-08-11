@@ -220,7 +220,8 @@ jQuery(function () {
 
     const $observationModalLinks = $('.observations-modal-link');
     const $notesModalLinks = $('.notes-modal-link');
-    if ($observationModalLinks.length || $notesModalLinks.length) {
+    const $notesPageButtons = $('.note-page-buttons')
+    if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length) {
         import(/* webpackChunkName: "modal-links" */ './modals')
             .then(module => {
                 if ($observationModalLinks.length) {
@@ -228,6 +229,9 @@ jQuery(function () {
                 }
                 if ($notesModalLinks.length) {
                     module.initNotesModal($notesModalLinks);
+                }
+                if ($notesPageButtons.length) {
+                    module.addNotesPageButtonListeners();
                 }
             });
     }
