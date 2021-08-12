@@ -271,11 +271,12 @@ class ia_importapi(importapi):
                 edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in _ids]
 
             # Don't add the book if the MARC record is a non-monograph item,
-            # unless it is a serial (etc) for a scanning partner.
-            try:
-                raise_non_book_marc(rec, **next_data)
-            except BookImportError as e:
-                if not (local_id and e.error_code == 'item-is-serial'):
+            # unless it is a scanning partner record, or force_import is set.
+            force_import |= local_id is not None
+            if not force_import:
+                try:
+                    raise_non_book_marc(rec, **next_data)
+                except BookImportError as e:
                     return self.error(e.error_code, e.error, **e.kwargs)
             result = add_book.load(edition)
 
