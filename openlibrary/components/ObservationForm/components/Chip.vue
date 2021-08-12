@@ -52,6 +52,11 @@ export default {
         toggleSelected: function() {
             this.isSelected = !this.isSelected;
         }
+    },
+    watch: {
+        selected (newValue) {
+            this.isSelected = newValue
+        }
     }
 }
 </script>

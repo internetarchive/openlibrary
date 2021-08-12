@@ -6,7 +6,7 @@
       :text="item"
       :ref="'chip-' + item"
       selectable
-      :selected="isSelected(item)"
+      :selected="selectedValues.includes(item)"
       class="value-chip"
       @update-selected="updateSelected"
       />
@@ -54,42 +54,30 @@ export default {
     },
     methods: {
         updateSelected: function(isSelected, text) {
-            const updatedValues = this.allSelectedValues[this.type] ? this.allSelectedValues[this.type] : []
+            let updatedValues = this.allSelectedValues[this.type] ? this.allSelectedValues[this.type] : []
 
             if (isSelected) {
-                for (let i = 0; i < this.values.length; ++i) {
-                    if (this.values[i] === text) {
-                        updatedValues.push(text);
-                        addObservation(this.type, text, this.work, this.username)
-                    } else if (!this.multiSelect) {
-                        const ref = `chip-${this.values[i]}`;
-                        if (this.$refs[ref][0].isSelected) {
-                            const index = updatedValues.indexOf(this.values[i]);
-
-                            updatedValues.splice(index, 1);
-                            this.$refs[ref][0].toggleSelected()
-                            deleteObservation(this.type, this.values[i], this.work, this.username)
-                        }
+                if (this.multiSelect) {
+                    updatedValues.push(text)
+                } else {
+                    if (updatedValues.length) {
+                        deleteObservation(this.type, updatedValues[0], this.work, this.username)
                     }
+                    updatedValues = [text]
                 }
+
+                addObservation(this.type, text, this.work, this.username);
+                Vue.set(this.allSelectedValues, this.type, updatedValues);
             } else {
                 const index = updatedValues.indexOf(text);
-
                 updatedValues.splice(index, 1);
-                deleteObservation(this.type, text, this.work, this.username);
+                deleteObservation(this.type, text, this.work, this.username)
             }
-
-            Vue.set(this.allSelectedValues, this.type, updatedValues);
-        },
-        toggleChip: function(text) {
-            const ref = `chip-${text}`
-            this.$refs[ref][0].toggleSelected()
-        },
-        isSelected: function(value) {
-            if (!this.allSelectedValues[this.type]) {
-                return false;
-            }
-            return this.allSelectedValues[this.type].indexOf(value) !== -1;
+        }
+    },
+    computed: {
+        selectedValues: function() {
+            return this.allSelectedValues[this.type]?.length ? this.allSelectedValues[this.type] : []
         }
     }
 }

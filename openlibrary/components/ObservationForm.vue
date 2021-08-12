@@ -2,7 +2,8 @@
   <div class="observation-form" ref="form">
     <Selections
       :all-selected-values="allSelectedValues"
-      @remove-value="removeValue"
+      :work="work"
+      :username="username"
       />
 
     <!-- Place the following in a box:  -->

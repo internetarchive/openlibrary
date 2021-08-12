@@ -39,6 +39,9 @@ import Vue from 'vue'
 
 import Chip from './Chip'
 
+import { deleteObservation } from '../ObservationService'
+
+
 export default {
     name: 'Selections',
     components: {
@@ -48,6 +51,14 @@ export default {
         allSelectedValues: {
             type: Object,
             required: true
+        },
+        work: {
+            type: String,
+            required: true
+        },
+        username: {
+            type: String,
+            required: true
         }
     },
     data: function() {
@@ -56,19 +67,22 @@ export default {
         }
     },
     methods: {
-        removeItem: function(value) {
-            const splitText = value.split(': ')
+        removeItem: function(chipText) {
+            const [type, value] = chipText.split(': ')
 
-            const valueIndex = this.allSelectedValues[splitText[0]].indexOf(splitText[1]);
-            const valueArr = this.allSelectedValues[splitText[0]];
+            const valueIndex = this.allSelectedValues[type].indexOf(value);
+            const valueArr = this.allSelectedValues[type];
             valueArr.splice(valueIndex, 1);
-            Vue.set(this.allSelectedValues, splitText[0], valueArr);
+
+            if (valueArr.length === 0) {
+                delete this.allSelectedValues[type]
+                Vue.delete(this.allSelectedValues, type)
+            }
+
+            deleteObservation(type, value, this.work, this.username)
 
             // Remove hover class:
             Vue.set(this.classLists, value, '');
-
-            // TODO: event
-            this.$emit('remove-value', splitText[0], splitText[1])
         },
         addHoverClass: function(value) {
             Vue.set(this.classLists, value, 'hover')

@@ -8,6 +8,7 @@
         :ref="'chip' + o.id"
         :text="o.label"
         selectable
+        :selected="isSelected(o.id)"
         class="category-chip"
         @update-selected="updateSelected"
         >
@@ -39,40 +40,28 @@ export default {
     },
     data: function() {
         return {
-            selected: null,
+            selectedId: null,
         }
     },
     methods: {
-        updateSelected: function(isSelected, text, toggleSelected) {
+        updateSelected: function(isSelected, text) {
             if (isSelected) {
+                // TODO: This for loop shouldn't be necessary
                 for (let i = 0; i < this.observationsArray.length; ++i) {
                     if (this.observationsArray[i].label === text) {
-                        this.selected = i;
-                        // TODO: event
+                        this.selectedId = this.observationsArray[i].id;
                         this.$emit('update-selected', this.observationsArray[i])
-                        // TODO: refs:
-                    } else if (this.$refs[`chip${this.observationsArray[i].id}`][0].isSelected){
-                        this.$refs[`chip${this.observationsArray[i].id}`][0].toggleSelected();
                     }
                 }
             } else {
-                if (toggleSelected) {
-                    let id;
-
-                    for (let i = 0; i < this.observationsArray.length; ++i) {
-                        if (this.observationsArray[i].label === text) {
-                            id = this.observationsArray[i].id
-                            break;
-                        }
-                    }
-                    // TODO: refs
-                    this.$refs[`chip${id}`][0].toggleSelected()
-                }
                 this.selected = null;
 
                 // Set ObservationForm's selected observation to null
                 this.$emit('update-selected', null)
             }
+        },
+        isSelected: function(id) {
+            return this.selectedId === id
         },
         displaySymbol: function(type) {
             // &#10133; - Heavy plus
