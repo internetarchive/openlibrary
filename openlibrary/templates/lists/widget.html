@@ -292,7 +292,11 @@ $if include_widget:
 
     $# BookNotes feature:
     $if ctx.user and ctx.user.is_beta_tester():
-      $:macros.NotesModal(work, edition, _("My book notes"), 'cta', 'cta-section patron-metadata')
+      $if work.has_book_note(username, edition.key.split('/')[-1]):
+        $ link_text = _("Update my book note")
+      $else:
+        $ link_text = _("Add a book note")
+      $:macros.NotesModal(work, edition, link_text, 'cta', 'cta-section patron-metadata')
 
 
 $if include_showcase:
