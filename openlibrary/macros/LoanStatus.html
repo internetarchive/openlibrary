@@ -14,7 +14,6 @@ $ loanstatus_start_time = time()
 $ availability = (doc.availability or {}) if hasattr(doc, 'availability') else {}
 $ ocaid = doc.get('ocaid') or availability.get('identifier')
 $ work_key = work_key or (doc.get('works') and doc.works[0].key)
-$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
 $ no_index = hasattr(doc, 'get_ia_meta_fields') and doc.get_ia_meta_fields().get('noindex', False)
 
 $ waiting_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_waiting_loan_for(ocaid)
@@ -114,7 +113,7 @@ $else:
   </div>
 
 $if ocaid and secondary_action and availability.get('is_printdisabled'):
-  $:macros.BookPreview(ocaid, linkback=not no_index and not is_privileged_user)
+  $:macros.BookPreview(ocaid, linkback=not no_index)
   $:macros.BookSearchInside(ocaid)
 
 $:post
