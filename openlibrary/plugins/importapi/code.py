@@ -176,7 +176,7 @@ class ia_importapi(importapi):
 
         :param str identifier: archive.org ocaid
         :param bool require_marc: require archive.org item have MARC record?
-        :param bool force_import: force the import of this record if it otherwise would be rejected
+        :param bool force_import: force import of this record
         :rtype: dict
         :returns: the data of the imported book or raises  BookImportError
         """
@@ -285,7 +285,9 @@ class ia_importapi(importapi):
             return json.dumps(result)
 
         try:
-            return self.ia_import(identifier, require_marc=require_marc, force_import=force_import)
+            return self.ia_import(identifier,
+                                  require_marc=require_marc,
+                                  force_import=force_import)
         except BookImportError as e:
             return self.error(e.error_code, e.error, **e.kwargs)
 
