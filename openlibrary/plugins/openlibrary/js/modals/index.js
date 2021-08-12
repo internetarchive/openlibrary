@@ -345,7 +345,8 @@ function displayModal(modalId, reloadId) {
         inline: true,
         opacity: '0.5',
         href: `#${modalId}-metadata-form`,
-        width: '60%',
+        width: '100%',
+        maxWidth: '640px',
         onClosed: function() {
             if (reloadId) {
                 $(`#${reloadId}`).trigger('contentReload');
