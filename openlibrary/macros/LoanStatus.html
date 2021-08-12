@@ -119,7 +119,7 @@ $if ocaid and secondary_action and availability.get('is_printdisabled'):
 $:post
 
 $if ocaid and daisy:
-  $:macros.daisy('%s/daisy' % doc.url(), protected=availability.get('is_printdisabled'))
+  $:macros.daisy('%s/daisy' % doc.url, protected=availability.get('is_printdisabled'))
 
 $if query_param('debug'):
   $ loanstatus_end_time = time() - loanstatus_start_time
