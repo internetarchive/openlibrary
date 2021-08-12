@@ -59,8 +59,8 @@ $def with (notes, user, num_found, page=1, results_per_page=25)
                     <textarea class="notes-textarea" id="$textarea_id" rows="10">$i['notes'][k]</textarea>
                     <input type="hidden" name="workId" value="$work_id" />
                     <div class="note-page-buttons" id="$button_div_id">
-                      <button class="delete-note-button cta-btn" type="button">$_("Delete Note")</button>
-                      <button class="update-note-button cta-btn" type="button">$_("Save Note")</button>
+                      <button class="delete-note-button cta-btn cta-btn--shell" type="button">$_("Delete Note")</button>
+                      <a href="javascript;" class="update-note-link-button linkButton">$_("Save Note")</a>
                     </div>
                   </div>
                 </li>

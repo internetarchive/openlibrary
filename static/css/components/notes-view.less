@@ -55,6 +55,7 @@
     width: 100%;
     resize: none;
     padding: .25em;
+    font-size: 16px;
   }
 
   .notes-view-modal-link {
@@ -73,20 +74,15 @@
   }
 
   .delete-note-button {
-    background-color: @red;
-
-    &:hover {
-      background-color: darken(@red, 10%);
-    }
+    border-color: @red;
+    color: @red;
   }
 
-  .update-note-button {
-    background-color: @green;
+  .update-note-link-button {
     margin-left: auto;
-
-    &:hover {
-      background-color: darken(@green, 10%);
-    }
+    margin-top: 5px;
+    border-width: 2px;
+    font-size: 1.2em;
   }
 }
 
