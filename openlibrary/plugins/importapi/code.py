@@ -169,13 +169,14 @@ class ia_importapi(importapi):
     """    
 
     @classmethod
-    def ia_import(cls, identifier, require_marc=True):
+    def ia_import(cls, identifier, require_marc=True, force_import=False):
         """
         Performs logic to fetch archive.org item + metadata,
         produces a data dict, then loads into Open Library
 
         :param str identifier: archive.org ocaid
         :param bool require_marc: require archive.org item have MARC record?
+        :param bool force_import: force the import of this record if it otherwise would be rejected
         :rtype: dict
         :returns: the data of the imported book or raises  BookImportError
         """
@@ -196,7 +197,7 @@ class ia_importapi(importapi):
 
         # Case 3 - Can the item be loaded into Open Library?
         status = ia.get_item_status(identifier, metadata)
-        if status != 'ok':
+        if status != 'ok' and not force_import:
             raise BookImportError(status, 'Prohibited Item %s' % identifier)
 
         # Case 4 - Does this item have a marc record?
@@ -204,7 +205,8 @@ class ia_importapi(importapi):
         if require_marc and not marc_record:
             raise BookImportError('no-marc-record')
         if marc_record:
-            raise_non_book_marc(marc_record)
+            if not force_import:
+                raise_non_book_marc(marc_record)
             try:
                 edition_data = read_edition(marc_record)
             except MarcException as e:
@@ -230,6 +232,7 @@ class ia_importapi(importapi):
         i = web.input()
 
         require_marc = not (i.get('require_marc') == 'false')
+        force_import = i.get('force_import') == 'true'
         bulk_marc = i.get('bulk_marc') == 'true'
 
         if 'identifier' not in i:
@@ -281,7 +284,7 @@ class ia_importapi(importapi):
             return json.dumps(result)
 
         try:
-            return self.ia_import(identifier, require_marc=require_marc)
+            return self.ia_import(identifier, require_marc=require_marc, force_import=force_import)
         except BookImportError as e:
             return self.error(e.error_code, e.error, **e.kwargs)
 
