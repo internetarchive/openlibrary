@@ -36,7 +36,7 @@ Notes:
 
 ## Final Sync
 
-TODO. Something along the lines of: Add a solrupdater to docker-compose.production.yml that points to the new server, and set its offset to be the correct date. See https://github.com/internetarchive/openlibrary/issues/5493 for hints.
+TODO. Something along the lines of: Add a solrupdater to docker-compose.production.yml that points to the new server, and set its offset to be the correct date. See [5493 Move production solr from solr1 to solr0](https://github.com/internetarchive/openlibrary/issues/5493) for hints.
 
 ## Deploy
 
