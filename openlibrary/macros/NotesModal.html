@@ -34,7 +34,7 @@ $if reload_id:
         <input type="hidden" name="edition_id" value="$edition.key.split('/')[-1]" />
         <div class="note-form-buttons">
           <button class="delete-note-button cta-btn cta-btn--shell $('' if display_delete_button else 'hidden')" type="button">$_("Delete Note")</button>
-          <a class="update-note-button linkButton" href="javascript;">$_("Save Note")</a>
+          <button class="update-note-button">$_("Save Note")</button>
         </div>
       </form>
     </div>

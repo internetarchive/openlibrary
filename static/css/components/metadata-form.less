@@ -3,8 +3,8 @@
 @import (reference) "./buttonBtn.less";
 
 .book-notes-form {
-  width: 75%;
   margin: 1em auto;
+  padding: 0 20px;
 
   p {
     font-size: 16px;
@@ -39,8 +39,8 @@
   .update-note-button {
     margin-left: auto;
     margin-top: 5px;
-    border-width: 2px;
     font-size: 1.2em;
+    padding: 7px;
   }
 }
 
@@ -49,9 +49,17 @@
 }
 
 @media screen and (max-width: @width-breakpoint-tablet) {
+  .note-form-buttons {
+    flex-direction: column-reverse;
+
+    .update-note-button {
+      margin-bottom: 1em;
+    }
+  }
   .book-notes-form {
     button {
       width: 100%;
+      line-height: 1.5em;
     }
   }
 }
