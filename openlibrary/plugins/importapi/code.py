@@ -261,6 +261,7 @@ class ia_importapi(importapi):
             if local_id:
                 local_id_type = web.ctx.site.get('/local_ids/' + local_id)
                 prefix = local_id_type.urn_prefix
+                force_import = True
                 id_field, id_subfield = local_id_type.id_location.split('$')
                 def get_subfield(field, id_subfield):
                     if isinstance(field, str):
@@ -271,8 +272,7 @@ class ia_importapi(importapi):
                 edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in _ids]
 
             # Don't add the book if the MARC record is a non-monograph item,
-            # unless it is a scanning partner record, or force_import is set.
-            force_import |= local_id is not None
+            # unless it is a scanning partner record and/or force_import is set.
             if not force_import:
                 try:
                     raise_non_book_marc(rec, **next_data)
