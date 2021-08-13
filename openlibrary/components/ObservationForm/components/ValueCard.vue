@@ -74,4 +74,11 @@ export default {
   border-radius: 4px;
   margin: 1em 3em;
 }
+
+@media (max-width: 768px) {
+    .value-card {
+        margin: unset;
+    }
+}
+
 </style>

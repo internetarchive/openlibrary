@@ -8,7 +8,7 @@ import '../../../../../static/css/components/toast.less';
  * @param {JQuery} $modalLinks  A collection of notes modal links.
  */
 export function initNotesModal($modalLinks) {
-    addClickListeners($modalLinks);
+    addClickListeners($modalLinks, '640px');
     addNotesModalButtonListeners();
     addNotesReloadListeners($('.notes-textarea'));
 }
@@ -176,7 +176,7 @@ function showToast($parent, message) {
  * @param {JQuery} $modalLinks  A collection of observations modal links.
  */
 export function initObservationsModal($modalLinks) {
-    addClickListeners($modalLinks);
+    addClickListeners($modalLinks, '800px');
     addObservationReloadListeners($('.observations-list'))
     addDeleteObservationsListeners($('.delete-observations-button'));
 
@@ -196,11 +196,11 @@ export function initObservationsModal($modalLinks) {
  *
  * @param {JQuery} $modalLinks  A collection of modal links.
  */
-function addClickListeners($modalLinks) {
+function addClickListeners($modalLinks, maxWidth) {
     $modalLinks.each(function(_i, modalLinkElement) {
         $(modalLinkElement).on('click', function() {
             const context = $(this).data('context');
-            displayModal(context.id, context.reloadId);
+            displayModal(context.id, context.reloadId, maxWidth);
         })
     })
 }
@@ -340,13 +340,13 @@ function clearForm($form) {
  * @param {String} modalId  A string that uniquely identifies a modal.
  * @param {String} [reloadId]   ID of list receiving a reload event
  */
-function displayModal(modalId, reloadId) {
+function displayModal(modalId, reloadId, maxWidth) {
     $.colorbox({
         inline: true,
         opacity: '0.5',
         href: `#${modalId}-metadata-form`,
         width: '100%',
-        maxWidth: '640px',
+        maxWidth: maxWidth,
         onClosed: function() {
             if (reloadId) {
                 $(`#${reloadId}`).trigger('contentReload');
