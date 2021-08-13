@@ -16,7 +16,7 @@
     <ValueCard
       v-if="selectedObservation"
       ref="value-card"
-      :title="selectedObservation.label"
+      :type="selectedObservation.label"
       :description="selectedObservation.description"
       :multi-select="selectedObservation.multi_choice"
       :values="selectedObservation.values"
@@ -32,7 +32,6 @@ import Categories from './ObservationForm/components/Categories'
 import Selections from './ObservationForm/components/Selections'
 import ValueCard from './ObservationForm/components/ValueCard'
 
-import { deleteObservation } from './ObservationForm/ObservationService'
 import { decodeAndParseJSON, capitalizeTypesAndValues, capitalizePatronObservations, resizeColorbox } from './ObservationForm/Utils'
 
 export default {
@@ -43,18 +42,41 @@ export default {
         ValueCard
     },
     props: {
+        /**
+         * URI encoded JSON string representation of the book tags schema.
+         *
+         * @see /openlibrary/core/observations.py
+         */
         schema: {
             type: String,
             required: true
         },
+        /**
+         * URI encoded JSON string representation of all of a patron's selected book tags.
+         *
+         * @example
+         * {
+         *   "mood": ["joyful"],
+         *   "genres": ["sci-fi", "anthology"]
+         * }
+         */
         observations: {
             type: String,
             required: true
         },
+        /**
+         * The work key.
+         *
+         * @example
+         * /works/OL123W
+         */
         work: {
             type: String,
             required: true
         },
+        /**
+         * The patron's username.
+         */
         username: {
             type: String,
             required: true
@@ -62,20 +84,43 @@ export default {
     },
     data: function() {
         return {
+            /**
+             * An object respresenting the currently selected tag type.
+             *
+             * @example
+             * {
+             *   'id': 20,
+             *   'label': 'language',
+             *   'description': 'What type of verbiage, nomenclature, or symbols are employed in this book?',
+             *   'multi_choice': True,
+             *   'values': ['technical', 'jargony', 'neologisms', 'slang', 'olde']
+             * }
+             */
             selectedObservation: null,
+            /**
+             * An object containing all of the patron's currently selected book tags.
+             *
+             * @example
+             * {
+             *   "mood": ["joyful"],
+             *   "genres": ["sci-fi", "anthology"]
+             * }
+             */
             allSelectedValues: {},
+            /**
+             * A version of the schema containing capitalized book tag types and values.
+             */
             capitalizedSchema: null,
         }
     },
     methods: {
+        /**
+         * Sets the currently selected book tag type to a new value.
+         *
+         * @param {Object | null} observation The new selected observation, or `null` if no type is selected.
+         */
         updateSelected: function(observation) {
             this.selectedObservation = observation
-        },
-        removeValue: function(type, value) {
-            deleteObservation(type, value, this.work, this.username);
-            if (this.selectedObservation && this.selectedObservation.label === type) {
-                this.$refs['value-card'].$refs['card-body'].toggleChip(value)
-            }
         }
     },
     created: function() {

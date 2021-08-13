@@ -1,14 +1,13 @@
 <template>
   <div class="value-card">
     <CardHeader
-      :title="title"
       :description="description"
       />
     <CardBody
       ref="card-body"
       :values="values"
       :multi-select="multiSelect"
-      :type="title"
+      :type="type"
       :all-selected-values="allSelectedValues"
       :work="work"
       :username="username"
@@ -27,19 +26,31 @@ export default {
         CardBody
     },
     props: {
-        title: {
-            type: String,
-            required: true
-        },
+        /**
+         * A question clarifying the currently selected book tag type.
+         */
         description: {
             type: String,
             required: true
         },
+        /**
+         * The currently selected book tag type.
+         */
+        type: {
+            type: String,
+            required: true
+        },
+        /**
+         * Whether or not multiple values can be selected for the current book tag type.
+         */
         multiSelect: {
             type: Boolean,
             required: false,
             default: false
         },
+        /**
+         * All possible values for the current book tag type.
+         */
         values: {
             type: Array,
             required: true,
@@ -52,14 +63,32 @@ export default {
                 return true;
             }
         },
+        /**
+         * An object containing all of the patron's currently selected book tags.
+         *
+         * @example
+         * {
+         *   "mood": ["joyful"],
+         *   "genres": ["sci-fi", "anthology"]
+         * }
+         */
         allSelectedValues: {
             type: Object,
             required: true
         },
+        /**
+         * The work key.
+         *
+         * @example
+         * /works/OL123W
+         */
         work: {
             type: String,
             required: true
         },
+        /**
+         * The patron's username.
+         */
         username: {
             type: String,
             required: true

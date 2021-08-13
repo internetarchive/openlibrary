@@ -8,10 +8,9 @@
 export default {
     name: 'CardHeader',
     props: {
-        title: {
-            type: String,
-            required: true
-        },
+        /**
+         * A question clarifying the currently selected book tag type.
+         */
         description: {
             type: String,
             required: true

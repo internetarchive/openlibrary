@@ -29,10 +29,32 @@ export default {
         Chip
     },
     props: {
+        /**
+         * An array containing all of the observations.
+         *
+         * Observations have the following form:
+         * @example
+         * {
+         *   'id': 20,
+         *   'label': 'language',
+         *   'description': 'What type of verbiage, nomenclature, or symbols are employed in this book?',
+         *   'multi_choice': True,
+         *   'values': ['technical', 'jargony', 'neologisms', 'slang', 'olde']
+         * }
+         */
         observationsArray: {
             type: Array,
             required: true
         },
+        /**
+         * An object containing all of the patron's currently selected book tags.
+         *
+         * @example
+         * {
+         *   "mood": ["joyful"],
+         *   "genres": ["sci-fi", "anthology"]
+         * }
+         */
         allSelectedValues: {
             type: Object,
             required: true
@@ -40,10 +62,21 @@ export default {
     },
     data: function() {
         return {
+            /**
+             * The ID of the selected book tag type.
+             *
+             * @type {number | null}
+             */
             selectedId: null,
         }
     },
     methods: {
+        /**
+         * Updates the currently selected book tag type.
+         *
+         * @param {boolean} isSelected Whether or not a chip is currently selected.
+         * @param {String} text The text displayed by a chip.
+         */
         updateSelected: function(isSelected, text) {
             if (isSelected) {
                 // TODO: This for loop shouldn't be necessary
@@ -60,9 +93,22 @@ export default {
                 this.$emit('update-selected', null)
             }
         },
+        /**
+         * Returns `true` if the given ID matches that of the currently selected chip.
+         *
+         * @param {number} id A chip's id.
+         */
         isSelected: function(id) {
             return this.selectedId === id
         },
+        /**
+         * Returns an HTML code denoting what symbol to display in a book tag type chip.
+         *
+         * Will return a heavy plus symbol if no book tags of a chip's type have been selected,
+         * and a heavy checkmark otherwise.
+         *
+         * @returns {String} An HTML code representing selections of a type.
+         */
         displaySymbol: function(type) {
             // &#10133; - Heavy plus
             // &#10004; - Heavy checkmark
