@@ -82,7 +82,7 @@ export default {
             deleteObservation(type, value, this.work, this.username)
 
             // Remove hover class:
-            Vue.set(this.classLists, value, '');
+            this.removeHoverClass(chipText);
         },
         addHoverClass: function(value) {
             Vue.set(this.classLists, value, 'hover')
