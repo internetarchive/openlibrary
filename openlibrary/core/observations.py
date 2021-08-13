@@ -304,7 +304,7 @@ OBSERVATIONS = {
             'label': 'type',
             'description': 'How would you classify this work?',
             'multi_choice': True,
-            'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+            'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
             'values': [
                 {'id': 1, 'name': 'fiction'},
                 {'id': 2, 'name': 'nonfiction'},
@@ -315,10 +315,9 @@ OBSERVATIONS = {
                 {'id': 7, 'name': 'exploratory'},
                 {'id': 8, 'name': 'research'},
                 {'id': 9, 'name': 'philosophical'},
-                {'id': 10, 'name': 'biography'},
-                {'id': 11, 'name': 'essay'},
-                {'id': 12, 'name': 'review'},
-                {'id': 13, 'name': 'classic'},
+                {'id': 10, 'name': 'essay'},
+                {'id': 11, 'name': 'review'},
+                {'id': 12, 'name': 'classic'},
             ]
         },
         {
