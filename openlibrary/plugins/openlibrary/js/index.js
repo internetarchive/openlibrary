@@ -275,6 +275,10 @@ jQuery(function () {
             .then((module) => module.initSearchFacets());
     }
 
+    if (document.getElementsByClassName('card').length) {
+        import('./onboardingCard').then((module) => module.initOnboardingCard());
+    }
+
     if ($('#cboxPrevious').length) {
         $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});
     }
