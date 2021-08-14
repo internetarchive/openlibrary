@@ -132,3 +132,124 @@ div.chartHome a:hover,
     margin: 0;
   }
 }
+
+.slide {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 1s;
+}
+.dots {
+  position: absolute;
+  bottom: 5%;
+  left: 14%;
+  transform: translateX(-50%);
+  display: flex;
+}
+.dots__dot {
+  background-color: @light-mid-grey;
+  opacity: .7;
+  height: .5rem;
+  width: .5rem;
+  border-radius: 50%;
+  margin-right: .5rem;
+  cursor: pointer;
+  transition: all .5s;
+}
+.dots__dot:last-child {
+  margin: 0;
+}
+.dots__dot--active {
+  background-color: @grey;
+  opacity: 1;
+}
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: @blur-black;
+  backdrop-filter: blur(4px);
+  z-index: @z-index-level-1;
+  transition: all .5s;
+}
+.hidden {
+  visibility: hidden;
+  opacity: 0;
+}
+.card {
+  max-width: 23rem;
+  height: 33rem;
+  background-color: @modal-background-color;
+  opacity: 1;
+  border-radius: 10px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, .25);
+  overflow: hidden;
+  z-index: @z-index-level-3;
+  transition: all .5s;
+  transform: translate(-0%, -30%);
+  margin: 0 auto;
+  position: relative;
+}
+.gif_background {
+  width: 368px;
+  height: 338px;
+  background: rgba(243, 243, 243, 1);
+  opacity: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, .25);
+  overflow: hidden;
+  z-index: @z-index-level-2;
+}
+.slide_gif {
+  width: 368px;
+  height: 335px;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  opacity: 80%;
+  position: absolute;
+  top: 1%;
+  left: 0;
+  overflow: hidden;
+  z-index: @z-index-level-4;
+}
+.slide_text {
+  width: 100%;
+  color: @grey;
+  position: absolute;
+  margin-top: 95%;
+  font-weight: 400;
+  font-size: 1.2rem;
+  opacity: 1;
+  text-align: center;
+  margin-left: 10%;
+  margin-right: 10%;
+}
+.slide_title {
+  color: @grey-464646;
+  position: absolute;
+  top: 67%;
+  font-weight: 500;
+  font-size: 1.5rem;
+  opacity: 1;
+}
+.card-next {
+  position: absolute;
+  left: 82%;
+  top: 93%;
+  cursor: pointer;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 16px;
+  text-align: center;
+  color: @primary-blue;
+}
