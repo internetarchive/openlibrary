@@ -15,7 +15,7 @@
  * Displays text within a pill-shaped outline.
  */
 export default {
-    name: 'Chip',
+    name: 'OLChip',
     props: {
         /**
          * Text that will be displayed by the chip.

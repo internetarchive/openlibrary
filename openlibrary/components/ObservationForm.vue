@@ -1,13 +1,13 @@
 <template>
   <div class="observation-form" ref="form">
-    <Selections
+    <SavedTags
       :all-selected-values="allSelectedValues"
       :work="work"
       :username="username"
       />
 
     <!-- Place the following in a box:  -->
-    <Categories
+    <CategorySelector
       ref="categories"
       :observations-array="capitalizedSchema"
       :all-selected-values="allSelectedValues"
@@ -28,8 +28,8 @@
 </template>
 
 <script>
-import Categories from './ObservationForm/components/Categories'
-import Selections from './ObservationForm/components/Selections'
+import CategorySelector from './ObservationForm/components/CategorySelector'
+import SavedTags from './ObservationForm/components/SavedTags'
 import ValueCard from './ObservationForm/components/ValueCard'
 
 import { decodeAndParseJSON, capitalizeTypesAndValues, capitalizePatronObservations, resizeColorbox } from './ObservationForm/Utils'
@@ -37,8 +37,8 @@ import { decodeAndParseJSON, capitalizeTypesAndValues, capitalizePatronObservati
 export default {
     name: 'ObservationForm',
     components: {
-        Categories,
-        Selections,
+        CategorySelector,
+        SavedTags,
         ValueCard
     },
     props: {

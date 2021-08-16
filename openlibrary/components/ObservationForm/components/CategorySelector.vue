@@ -2,7 +2,7 @@
   <div>
     <h3>Add your reviews:</h3>
     <div class="chip-group">
-      <Chip
+      <OLChip
         v-for="o in observationsArray"
         :key="o.id"
         :ref="'chip' + o.id"
@@ -15,18 +15,18 @@
         <template v-slot:before>
           <span class="symbol" v-html="displaySymbol(o.label)"></span>
         </template>
-      </Chip>
+      </OLChip>
     </div>
   </div>
 </template>
 
 <script>
-import Chip from './Chip.vue'
+import OLChip from './OLChip.vue'
 
 export default {
-    name: 'Categories',
+    name: 'CategorySelector',
     components: {
-        Chip
+        OLChip
     },
     props: {
         /**

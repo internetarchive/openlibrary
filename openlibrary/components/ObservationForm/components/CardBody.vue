@@ -1,6 +1,6 @@
 <template>
   <div class="card-body">
-    <Chip
+    <OLChip
       v-for="item in values"
       :key="item + type"
       :text="item"
@@ -16,43 +16,78 @@
 <script>
 import Vue from 'vue'
 
-import Chip from './Chip'
+import OLChip from './OLChip'
 
 import { deleteObservation, addObservation } from '../ObservationService'
 
 export default {
     name: 'CardBody',
     components: {
-        Chip
+        OLChip
     },
     props: {
+        /**
+         * All possible values for the current book tag type.
+         */
         values: {
             type: Array,
             required: true
         },
+        /**
+         * Whether or not multiple values can be selected for the current book tag type.
+         */
         multiSelect: {
             type: Boolean,
             required: false,
             default: false,
         },
+        /**
+         * The currently selected book tag type.
+         */
         type: {
             type: String,
             required: true
         },
+        /**
+         * An object containing all of the patron's currently selected book tags.
+         *
+         * @example
+         * {
+         *   "mood": ["joyful"],
+         *   "genres": ["sci-fi", "anthology"]
+         * }
+         */
         allSelectedValues: {
             type: Object,
             required: true
         },
+        /**
+         * The work key.
+         *
+         * @example
+         * /works/OL123W
+         */
         work: {
             type: String,
             required: true
         },
+        /**
+         * The patron's username.
+         */
         username: {
             type: String,
             required: true
         }
     },
     methods: {
+        /**
+         * Updates the currently selected book tags when a value chip is clicked.
+         *
+         * POSTs message to the server, adding or deleting a book tag.
+         *
+         * @param {boolean} isSelected `true` if a chip is selected, `false` otherwise.
+         * @param {String} text The text that the updated chip is displaying.
+         */
         updateSelected: function(isSelected, text) {
             let updatedValues = this.allSelectedValues[this.type] ? this.allSelectedValues[this.type] : []
 
@@ -76,6 +111,9 @@ export default {
         }
     },
     computed: {
+        /**
+         * Returns an array of all of this book tag type's currently selected values.
+         */
         selectedValues: function() {
             return this.allSelectedValues[this.type]?.length ? this.allSelectedValues[this.type] : []
         }

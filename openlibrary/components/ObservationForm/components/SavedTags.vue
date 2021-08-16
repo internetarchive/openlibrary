@@ -10,7 +10,7 @@
       v-else
       class="selection-panel"
       >
-        <Chip
+        <OLChip
           v-for="value in selectedValues"
           :key="value"
           :text="value"
@@ -29,7 +29,7 @@
                 &times;
             </span>
           </template>
-        </Chip>
+        </OLChip>
       </div>
   </div>
 </template>
@@ -37,15 +37,15 @@
 <script>
 import Vue from 'vue'
 
-import Chip from './Chip'
+import OLChip from './OLChip'
 
 import { deleteObservation } from '../ObservationService'
 
 
 export default {
-    name: 'Selections',
+    name: 'SavedTags',
     components: {
-        Chip
+        OLChip
     },
     props: {
         /**
