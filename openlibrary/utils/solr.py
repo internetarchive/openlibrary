@@ -2,6 +2,7 @@
 
 import logging
 import re
+from typing import List, Optional
 
 import requests
 import web
@@ -47,6 +48,16 @@ class Solr:
         chars = r'+-!(){}[]^"~*?:\\'
         pattern = "([%s])" % re.escape(chars)
         return web.re_compile(pattern).sub(r'\\\1', query)
+
+    def get(self, key: str, fields: List[str] = None) -> Optional[dict]:
+        """Get a specific item from solr"""
+        logger.info(f"solr /get: {key}, {fields}")
+        resp = requests.get(f"{self.base_url}/get", params={
+            'id': key,
+            **({'fl': ','.join(fields)} if fields else {})
+        }).json()
+        # Solr returns {doc: null} if the record isn't there
+        return resp['doc']
 
     def select(self, query, fields=None, facets=None,
                rows=None, start=None,

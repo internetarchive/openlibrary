@@ -573,23 +573,16 @@ class Work(models.Work):
             "has_fulltext", "lending_edition_s", "checked_out", "public_scan_b", "ia"]
 
         solr = get_solr()
-        stats.begin("solr", query={"key": self.key}, fields=fields)
+        stats.begin("solr", get=self.key, fields=fields)
         try:
-            d = solr.select({"key": self.key}, fields=fields)
+            # Replace _solr_data property with the attribute
+            self.__dict__['_solr_data'] = solr.get(self.key, fields=fields)
+            return self.__dict__['_solr_data']
         except Exception as e:
             logging.getLogger("openlibrary").exception("Failed to get solr data")
             return None
         finally:
             stats.end()
-
-        if d.num_found > 0:
-            w = d.docs[0]
-        else:
-            w = None
-
-        # Replace _solr_data property with the attribute
-        self.__dict__['_solr_data'] = w
-        return w
 
     _solr_data = property(_get_solr_data)
 
