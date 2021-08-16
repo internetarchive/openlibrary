@@ -456,7 +456,7 @@ $if is_privileged_user:
       $if ctx.user and ctx.user.is_beta_tester():
         $if show_observations:
           $ reader_observations = get_observation_metrics(work['key'])
-          $:render_template("observations/stats_component", work, edition, reader_observations, work_title, page.key)
+          $:render_template("observations/stats_component", work, reader_observations, page.key)
     </div>
   </div>
 
