@@ -165,7 +165,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         <div class="section">
             <h3>$:_('ID Numbers')</h3>
             <ul class="booklinks sansserif">
-                <li>$olid</li>
+                <li>$_('OLID'): $olid</li>
                 $if page.remote_ids:
                     $ configured_ids = get_author_config()['identifiers']
                     $for id in configured_ids:
