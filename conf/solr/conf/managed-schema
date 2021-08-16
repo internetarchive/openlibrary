@@ -156,7 +156,7 @@
     <field name="first_edition" type="string" indexed="false"/>
     <field name="first_publisher" type="string" indexed="false"/>
     <field name="language" type="string" multiValued="true"/>
-    <field name="number_of_pages" type="pint" multiValued="true"/>
+    <field name="number_of_pages_median" type="pint" />
     <field name="lccn" type="text_general" multiValued="true"/>
     <field name="ia" type="string" multiValued="true"/>
     <field name="ia_count" type="pint"/>
@@ -191,7 +191,7 @@
     <field name="time_facet" type="string" stored="false" multiValued="true"/>
     <field name="time_key" type="string" stored="false" multiValued="true"/>
 
-    <field name="text" type="text_en_splitting" multiValued="true"/>
+    <field name="text" type="text_en_splitting" stored="false" multiValued="true"/>
 
     <field name="seed" type="string" multiValued="true"/>
 
