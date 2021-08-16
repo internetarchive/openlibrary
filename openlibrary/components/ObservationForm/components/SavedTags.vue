@@ -67,7 +67,7 @@ export default {
          * @example
          * /works/OL123W
          */
-        work: {
+        workKey: {
             type: String,
             required: true
         },
@@ -113,7 +113,7 @@ export default {
                 Vue.delete(this.allSelectedValues, type)
             }
 
-            deleteObservation(type, value, this.work, this.username)
+            deleteObservation(type, value, this.workKey, this.username)
 
             // Remove hover class:
             this.removeHoverClass(chipText);

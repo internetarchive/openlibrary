@@ -2,7 +2,7 @@
   <div class="observation-form" ref="form">
     <SavedTags
       :all-selected-values="allSelectedValues"
-      :work="work"
+      :work-key="work_key"
       :username="username"
       />
 
@@ -21,7 +21,7 @@
       :multi-select="selectedObservation.multi_choice"
       :values="selectedObservation.values"
       :all-selected-values="allSelectedValues"
-      :work="work"
+      :work-key="work_key"
       :username="username"
       />
   </div>
@@ -70,7 +70,7 @@ export default {
          * @example
          * /works/OL123W
          */
-        work: {
+        work_key: {
             type: String,
             required: true
         },

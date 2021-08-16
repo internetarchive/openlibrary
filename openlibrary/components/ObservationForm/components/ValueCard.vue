@@ -9,7 +9,7 @@
       :multi-select="multiSelect"
       :type="type"
       :all-selected-values="allSelectedValues"
-      :work="work"
+      :work-key="workKey"
       :username="username"
       />
   </div>
@@ -82,7 +82,7 @@ export default {
          * @example
          * /works/OL123W
          */
-        work: {
+        workKey: {
             type: String,
             required: true
         },

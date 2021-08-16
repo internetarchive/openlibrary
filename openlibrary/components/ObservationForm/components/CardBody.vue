@@ -67,7 +67,7 @@ export default {
          * @example
          * /works/OL123W
          */
-        work: {
+        workKey: {
             type: String,
             required: true
         },
@@ -96,17 +96,17 @@ export default {
                     updatedValues.push(text)
                 } else {
                     if (updatedValues.length) {
-                        deleteObservation(this.type, updatedValues[0], this.work, this.username)
+                        deleteObservation(this.type, updatedValues[0], this.workKey, this.username)
                     }
                     updatedValues = [text]
                 }
 
-                addObservation(this.type, text, this.work, this.username);
+                addObservation(this.type, text, this.workKey, this.username);
                 Vue.set(this.allSelectedValues, this.type, updatedValues);
             } else {
                 const index = updatedValues.indexOf(text);
                 updatedValues.splice(index, 1);
-                deleteObservation(this.type, text, this.work, this.username)
+                deleteObservation(this.type, text, this.workKey, this.username)
             }
         }
     },
