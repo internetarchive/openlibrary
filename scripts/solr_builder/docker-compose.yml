@@ -23,7 +23,7 @@ services:
       - db-access
 
   solr:
-    image: solr:8.8.2
+    image: solr:8.10.0
     restart: on-failure
     environment:
       # This is optimized for bulk loading, but should be shortened for production
