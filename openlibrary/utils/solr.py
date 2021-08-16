@@ -2,7 +2,7 @@
 
 import logging
 import re
-from typing import List, Optional
+from typing import List, Optional, Callable, TypeVar
 
 import requests
 import web
@@ -33,6 +33,10 @@ def urlencode(d, doseq=False):
 
     return urllib.parse.urlencode(utf8(d), doseq=doseq)
 
+
+T = TypeVar('T')
+
+
 class Solr:
     def __init__(self, base_url):
         self.base_url = base_url
@@ -49,15 +53,20 @@ class Solr:
         pattern = "([%s])" % re.escape(chars)
         return web.re_compile(pattern).sub(r'\\\1', query)
 
-    def get(self, key: str, fields: List[str] = None) -> Optional[dict]:
+    def get(self,
+            key: str,
+            fields: List[str] = None,
+            doc_wrapper: Callable[[dict], T] = web.storage,
+            ) -> Optional[T]:
         """Get a specific item from solr"""
         logger.info(f"solr /get: {key}, {fields}")
         resp = requests.get(f"{self.base_url}/get", params={
             'id': key,
             **({'fl': ','.join(fields)} if fields else {})
         }).json()
+
         # Solr returns {doc: null} if the record isn't there
-        return resp['doc']
+        return doc_wrapper(resp['doc']) if resp['doc'] else None
 
     def select(self, query, fields=None, facets=None,
                rows=None, start=None,
