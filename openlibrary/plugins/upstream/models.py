@@ -2,6 +2,8 @@ from __future__ import print_function
 
 import logging
 import re
+from functools import cached_property
+
 import requests
 import sys
 import web
@@ -567,31 +569,21 @@ class Work(models.Work):
                     return [cover]
         return []
 
-    def _get_solr_data(self):
+    @cached_property
+    def _solr_data(self):
         fields = [
             "cover_edition_key", "cover_id", "edition_key", "first_publish_year",
-            "has_fulltext", "lending_edition_s", "checked_out", "public_scan_b", "ia"]
+            "has_fulltext", "lending_edition_s", "public_scan_b", "ia"]
 
         solr = get_solr()
-        stats.begin("solr", query={"key": self.key}, fields=fields)
+        stats.begin("solr", get=self.key, fields=fields)
         try:
-            d = solr.select({"key": self.key}, fields=fields)
+            return solr.get(self.key, fields=fields)
         except Exception as e:
             logging.getLogger("openlibrary").exception("Failed to get solr data")
             return None
         finally:
             stats.end()
-
-        if d.num_found > 0:
-            w = d.docs[0]
-        else:
-            w = None
-
-        # Replace _solr_data property with the attribute
-        self.__dict__['_solr_data'] = w
-        return w
-
-    _solr_data = property(_get_solr_data)
 
     def get_cover(self, use_solr=True):
         covers = self.get_covers(use_solr=use_solr)

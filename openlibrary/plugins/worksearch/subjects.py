@@ -226,10 +226,6 @@ class SubjectEngine:
 
         for w in result.docs:
             w.ia = w.ia and w.ia[0] or None
-            w['checked_out'] = False
-            if not w.get('public_scan') and w.ia and w.get('lending_identifier'):
-                doc = web.ctx.site.store.get("ebooks/" + w['lending_identifier']) or {}
-                w['checked_out'] = doc.get("borrowed") == "true"
 
             # XXX-Anand: Oct 2013
             # Somewhere something is broken, work keys are coming as OL1234W/works/
