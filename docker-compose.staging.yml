@@ -11,7 +11,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
-    restart: always
+    restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - GUNICORN_OPTS= --workers 4 --timeout 180
