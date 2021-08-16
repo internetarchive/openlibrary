@@ -600,7 +600,6 @@ class Work(Thing):
             d['has_ebook'] = True
         elif solrdata.get('lending_edition_s'):
             d['borrow_url'] = "/books/{0}/x/borrow".format(solrdata.lending_edition_s)
-            #d['borrowed'] = solrdata.checked_out
             d['has_ebook'] = True
         if solrdata.get('ia'):
             d['ia'] = solrdata.get('ia')

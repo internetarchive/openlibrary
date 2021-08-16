@@ -582,15 +582,6 @@ def get_doc(doc):  # called from work_search template
     )
 
     doc.url = doc.key + '/' + urlsafe(doc.title)
-
-    if not doc.public_scan and doc.lending_identifier:
-        store_doc = web.ctx.site.store.get("ebooks/" + doc.lending_identifier) or {}
-        doc.checked_out = store_doc.get("borrowed") == "true"
-    elif not doc.public_scan and doc.lending_edition:
-        store_doc = web.ctx.site.store.get("ebooks/books/" + doc.lending_edition) or {}
-        doc.checked_out = store_doc.get("borrowed") == "true"
-    else:
-        doc.checked_out = "false"
     return doc
 
 def work_object(w): # called by works_by_author
@@ -610,12 +601,6 @@ def work_object(w): # called by works_by_author
         ia = w.get('ia', []),
         cover_i = w.get('cover_i')
     )
-
-    if obj['lending_identifier']:
-        doc = web.ctx.site.store.get("ebooks/" + obj['lending_identifier']) or {}
-        obj['checked_out'] = doc.get("borrowed") == "true"
-    else:
-        obj['checked_out'] = False
 
     for f in 'has_fulltext', 'subtitle':
         if w.get(f):
