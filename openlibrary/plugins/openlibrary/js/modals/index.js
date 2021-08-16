@@ -44,29 +44,31 @@ function addNotesModalButtonListeners() {
     });
 
     $('.delete-note-button').on('click', function() {
-        const $button = $(this);
+        if (confirm('Really delete this book note?')) {
+            const $button = $(this);
 
-        // Get form data
-        const formData = new FormData($button.prop('form'));
+            // Get form data
+            const formData = new FormData($button.prop('form'));
 
-        // Post data
-        const workOlid = formData.get('work_id');
-        formData.delete('work_id');
-        formData.delete('notes');
+            // Post data
+            const workOlid = formData.get('work_id');
+            formData.delete('work_id');
+            formData.delete('notes');
 
-        $.ajax({
-            url: `/works/${workOlid}/notes.json`,
-            data: formData,
-            type: 'POST',
-            contentType: false,
-            processData: false,
-            success: function() {
-                showToast($('body'), 'Note deleted.');
-                $.colorbox.close();
-                $button.toggleClass('hidden');
-                $button.closest('form').find('textarea').val('');
-            }
-        });
+            $.ajax({
+                url: `/works/${workOlid}/notes.json`,
+                data: formData,
+                type: 'POST',
+                contentType: false,
+                processData: false,
+                success: function() {
+                    showToast($('body'), 'Note deleted.');
+                    $.colorbox.close();
+                    $button.toggleClass('hidden');
+                    $button.closest('form').find('textarea').val('');
+                }
+            });
+        }
     });
 }
 
