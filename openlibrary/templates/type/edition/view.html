@@ -1,5 +1,7 @@
 $def with (page, edition=None)
 
+$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
+
 $ component_times = {}
 $ component_times['TotalTime'] = time()
 
@@ -139,7 +141,7 @@ $ authors_byline = get_authors_byline(page, include_schema=True)
 $:macros.Metatags(title=title_with_site, image=meta_cover_url, description=description)
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
-$if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
+$if is_privileged_user:
   $:render_template("type/edition/admin_bar", work, edition, ocaid)
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
@@ -441,7 +443,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                 $for name, values in edition.get_identifiers().multi_items():
                     $ identifier_label = values[0].label
                     $if not (edition.is_in_private_collection() and identifier_label == 'Internet Archive'):
-                        $if not (no_index and identifier_label == 'Internet Archive'):
+                        $if is_privileged_user or not (no_index and identifier_label == 'Internet Archive'):
                             $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
             $:display_goodreads("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
             $for name, values in edition.get_identifiers().multi_items():
