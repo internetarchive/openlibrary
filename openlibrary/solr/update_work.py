@@ -49,6 +49,7 @@ data_provider = None
 _ia_db = None
 
 solr_base_url = None
+solr_next: Optional[bool] = None
 
 
 def get_solr_base_url():
@@ -70,6 +71,24 @@ def get_solr_base_url():
 def set_solr_base_url(solr_url: str):
     global solr_base_url
     solr_base_url = solr_url
+
+
+def get_solr_next() -> bool:
+    """
+    Get whether this is the next version of solr; ie new schema configs/fields, etc.
+    """
+    global solr_next
+
+    if solr_next is None:
+        load_config()
+        solr_next = config.runtime_config['plugin_worksearch'].get('solr_next', False)
+
+    return solr_next
+
+
+def set_solr_next(val: bool):
+    global solr_next
+    solr_next = val
 
 
 def get_ia_collection_and_box_id(ia):
@@ -564,9 +583,10 @@ class SolrProcessor:
             add_list('publish_year', pub_years)
             add('first_publish_year', min(int(y) for y in pub_years))
 
-        number_of_pages_median = pick_number_of_pages_median(editions)
-        if number_of_pages_median:
-            add('number_of_pages_median', number_of_pages_median)
+        if get_solr_next():
+            number_of_pages_median = pick_number_of_pages_median(editions)
+            if number_of_pages_median:
+                add('number_of_pages_median', number_of_pages_median)
 
         field_map = [
             ('lccn', 'lccn'),
@@ -1759,6 +1779,7 @@ def main(
         profile=False,
         data_provider: Literal['default', 'legacy'] = "default",
         solr_base: str = None,
+        solr_next=False,
         update: Literal['update', 'print'] = 'update'
 ):
     """
@@ -1772,6 +1793,7 @@ def main(
     :param profile: Profile this code to identify the bottlenecks
     :param data_provider: Name of the data provider to use
     :param solr_base: If wanting to override openlibrary.yml
+    :param solr_next: Whether to assume schema of next solr version is active
     :param update: Whether/how to do the actual solr update call
     """
     load_configs(ol_url, ol_config, data_provider)
@@ -1780,6 +1802,8 @@ def main(
 
     if solr_base:
         set_solr_base_url(solr_base)
+
+    set_solr_next(solr_next)
 
     if profile:
         f = web.profile(update_keys)
