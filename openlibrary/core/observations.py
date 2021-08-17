@@ -140,7 +140,7 @@ OBSERVATIONS = {
         },
         {
             'id': 8,
-            'label': 'coverage',
+            'label': 'breadth',
             'description': "How would you describe the breadth and depth of this book?",
             'multi_choice': True,
             'order': [7, 8, 9, 10, 11, 12, 13],
@@ -183,7 +183,7 @@ OBSERVATIONS = {
             'label': 'genres',
             'description': 'What are the genres of this book?',
             'multi_choice': True,
-            'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
+            'order': [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33],
             'values': [
                 {'id': 1, 'name': 'sci-fi'},
                 {'id': 2, 'name': 'philosophy', 'deleted': True},
@@ -209,6 +209,15 @@ OBSERVATIONS = {
                 {'id': 22, 'name': 'reference'},
                 {'id': 23, 'name': 'textbook'},
                 {'id': 24, 'name': 'biographical'},
+                {'id': 25, 'name': 'fiction'},
+                {'id': 26, 'name': 'nonfiction'},
+                {'id': 27, 'name': 'biography'},
+                {'id': 28, 'name': 'based on a true story'},
+                {'id': 29, 'name': 'exploratory'},
+                {'id': 30, 'name': 'research'},
+                {'id': 31, 'name': 'philosophical'},
+                {'id': 32, 'name': 'essay'},
+                {'id': 33, 'name': 'review'},
             ]
         },
         {
@@ -278,7 +287,7 @@ OBSERVATIONS = {
         },
         {
             'id': 14,
-            'label': 'endorsements',
+            'label': 'impression',
             'description': 'How did you feel about this book and do you recommend it?',
             'multi_choice': True,
             'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
@@ -318,7 +327,8 @@ OBSERVATIONS = {
                 {'id': 10, 'name': 'essay'},
                 {'id': 11, 'name': 'review'},
                 {'id': 12, 'name': 'classic'},
-            ]
+            ],
+            'deleted': True
         },
         {
             'id': 16,
@@ -355,7 +365,7 @@ OBSERVATIONS = {
         },
         {
             'id': 18,
-            'label': 'formatting',
+            'label': 'features',
             'description': 'What types of formatting or structure '
                            'does this book make use of?',
             'multi_choice': True,
@@ -376,7 +386,7 @@ OBSERVATIONS = {
         },
         {
             'id': 19,
-            'label': 'content advisories',
+            'label': 'content warnings',
             'description': 'Does this book contain objectionable content?',
             'multi_choice': True,
             'order': [1, 2, 3, 4, 5, 6],
@@ -391,7 +401,7 @@ OBSERVATIONS = {
         },
         {
             'id': 20,
-            'label': 'language',
+            'label': 'terminology',
             'description': 'What type of verbiage, nomenclature, '
                            'or symbols are employed in this book?',
             'multi_choice': True,
