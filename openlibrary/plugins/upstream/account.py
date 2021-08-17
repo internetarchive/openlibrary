@@ -838,9 +838,9 @@ class public_my_books(delegate.page):
                         'type': '/type/edition',
                         'isbn_%s' % len(s['isbn']): s['isbn']
                     })[0]) for s in sponsorships)
-            elif key == 'notes' and is_logged_in_user and user.is_beta_tester():
+            elif key == 'notes' and is_logged_in_user:
                 books = PatronBooknotes(user).get_notes(page=int(i.page))
-            elif key == 'observations' and is_logged_in_user and user.is_beta_tester():
+            elif key == 'observations' and is_logged_in_user:
                 books = PatronBooknotes(user).get_observations(page=int(i.page))
             else:
                 books = readlog.get_works(key, page=i.page,
