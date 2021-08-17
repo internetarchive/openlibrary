@@ -1,5 +1,3 @@
-import { ajax } from 'jquery';
-
 /**
  * Sends a POST request to delete a patron's observation.
  *
@@ -10,11 +8,13 @@ import { ajax } from 'jquery';
  */
 export function deleteObservation(type, value, workKey, username) {
     const data = constructDataObject(type, value, username, 'delete');
-    ajax({
-        type: 'POST',
-        url: `${workKey}/observations`,
-        contentType: 'application/json',
-        data: JSON.stringify(data)
+
+    fetch(`${workKey}/observations`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
     })
 }
 
@@ -28,11 +28,12 @@ export function deleteObservation(type, value, workKey, username) {
  */
 export function addObservation(type, value, workKey, username) {
     const data = constructDataObject(type, value, username, 'add');
-    ajax({
-        type: 'POST',
-        url: `${workKey}/observations`,
-        contentType: 'application/json',
-        data: JSON.stringify(data)
+    fetch(`${workKey}/observations`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
     })
 }
 
