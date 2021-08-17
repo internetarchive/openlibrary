@@ -19,6 +19,7 @@
     "build-assets:webpack": "env NODE_ENV=production WEBPACK_PACKAGE=webpack5 npx webpack --mode=production",
     "build-assets": "make js && make css && make components",
     "build-assets:css": "make css",
+    "build-assets:components": "make components",
     "build-assets:js": "make js",
     "svg-min": "svgo --config config/svgo.config.js static/images/**/*.svg static/images/*.svg",
     "lint": "npm run lint:js && npm run lint:css",
