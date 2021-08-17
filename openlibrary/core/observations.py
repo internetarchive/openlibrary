@@ -368,7 +368,7 @@ OBSERVATIONS = {
         {
             'id': 18,
             'label': 'Features',
-            'description': 'What types of formatting or structure '
+            'description': 'What text features does this book utilize?'
                            'does this book make use of?',
             'multi_choice': True,
             'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
