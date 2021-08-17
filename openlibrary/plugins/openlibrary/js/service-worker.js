@@ -61,14 +61,6 @@ registerRoute(
     })
 );
 
-// works page covers, images from archive.org cache
-registerRoute(
-    new RegExp('https://archive.org/.+'),
-    new NetworkFirst({
-        cacheName: 'archive-cache'
-    })
-);
-
 // assets cache
 registerRoute(
     /\.(?:js|css|woff)/,
