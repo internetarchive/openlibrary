@@ -13,23 +13,40 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  margin-bottom: .5em;
-  margin-left: .5em;
+  margin-bottom: 10px;
+  margin-left: 10px;
+}
+
+.review__category {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
 
   span {
-    margin-bottom: .75em
+    margin: 5px;
   }
 }
 
-.label {
+.reviews__label {
   font-weight: bold;
-  margin-right: .5em;
+  margin-right: 5px;
   color: @grey;
+
+  .reviews__count {
+    font-weight: 500;
+    
+    &::before {
+      content: '(';
+    }
+    &::after {
+      content: ')';
+    }
+  }
 }
 
-.pill {
-  margin-right: .5em;
-
+.reviews__pill {
+  font-size: 14px;
+  margin-right: 5px;
   padding: 4px 12px;
   border: 1px solid @mid-grey;
   border-radius: 16px;
@@ -38,28 +55,21 @@
 
   .percentage {
     border-left: 1px solid @mid-grey;
-    padding-left: .5em;
+    padding-left: 5px;
   }
 }
 
-.margin {
-  width: .5em;
-}
-
 .login-link {
-  margin: .5em auto .25em;
-  display: block;
-  width: 80%;
-  text-align: center;
+  margin: 10px;
 }
 
 .no-stats-message {
-  margin-left: .5em;
-  margin-bottom: .5em;
+  margin-left: 10px;
+  margin-bottom: 10px;
 }
 
 .stats-link {
-  margin-left: .5em;
+  margin-left: 10px;
 
   a {
     text-decoration: none;
