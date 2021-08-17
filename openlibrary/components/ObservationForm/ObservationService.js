@@ -62,7 +62,7 @@ function constructDataObject(type, value, username, action) {
         observation: {}
     }
 
-    data.observation[type.toLowerCase()] = value.toLowerCase();
+    data.observation[type] = value;
 
     return data;
 }
