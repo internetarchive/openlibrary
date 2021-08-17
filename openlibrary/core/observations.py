@@ -289,7 +289,7 @@ OBSERVATIONS = {
         },
         {
             'id': 14,
-            'label': 'Impression',
+            'label': 'Impressions',
             'description': 'How did you feel about this book and do you recommend it?',
             'multi_choice': True,
             'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
