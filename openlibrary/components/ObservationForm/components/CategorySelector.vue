@@ -58,6 +58,14 @@ export default {
         allSelectedValues: {
             type: Object,
             required: true
+        },
+        /**
+         * The ID of the initially selected observation.
+         */
+        initialSelectedId: {
+            type: Number,
+            required: false,
+            default: 0
         }
     },
     data: function() {
@@ -67,7 +75,7 @@ export default {
              *
              * @type {number | null}
              */
-            selectedId: null,
+            selectedId: this.initialSelectedId,
         }
     },
     methods: {
@@ -87,7 +95,7 @@ export default {
                     }
                 }
             } else {
-                this.selected = null;
+                this.selectedId = null;
 
                 // Set ObservationForm's selected observation to null
                 this.$emit('update-selected', null)

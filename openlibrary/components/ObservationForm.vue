@@ -10,6 +10,7 @@
       ref="categories"
       :observations-array="observationsArray"
       :all-selected-values="allSelectedValues"
+      :initial-selected-id="getSelectedId"
       @update-selected="updateSelected"
       />
     <ValueCard
@@ -120,11 +121,32 @@ export default {
          */
         updateSelected: function(observation) {
             this.selectedObservation = observation
+        },
+        /**
+         * Randomly sets a selected observation.
+         */
+        selectRandomObservation: function() {
+            const randomNumber = Math.floor(Math.random() * 100000);
+            this.selectedObservation = this.observationsArray[randomNumber % this.observationsArray.length];
+        }
+    },
+    computed: {
+        /**
+         * Return the selected observation's ID, or null if no observation is selected.
+         *
+         * @returns {Number|null} The ID of the selected observation, if one exists.
+         */
+        getSelectedId: function() {
+            if (this.selectedObservation) {
+                return this.selectedObservation.id;
+            }
+            return null
         }
     },
     created: function() {
         this.observationsArray = decodeAndParseJSON(this.schema)['observations'];
         this.allSelectedValues = decodeAndParseJSON(this.observations);
+        this.selectRandomObservation();
     },
     mounted: function() {
         this.observer = new ResizeObserver(() => {
