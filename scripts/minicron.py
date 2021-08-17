@@ -4,7 +4,6 @@ import sys
 import datetime
 import logging
 import optparse
-import _init_path
 from openlibrary.core import minicron
 
 

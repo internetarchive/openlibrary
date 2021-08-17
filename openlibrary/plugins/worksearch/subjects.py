@@ -12,7 +12,7 @@ import datetime
 from infogami import config
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate, stats
-from infogami.utils.view import render, render_template, safeint
+from infogami.utils.view import render_template, safeint
 
 from openlibrary.core.models import Subject
 from openlibrary.core.lending import add_availability
@@ -429,4 +429,3 @@ def setup():
 
     This function is called from code.py.
     """
-    pass

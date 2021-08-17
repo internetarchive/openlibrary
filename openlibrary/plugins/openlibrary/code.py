@@ -29,7 +29,6 @@ from infogami.infobase import client
 from infogami.core.db import ValidationException
 
 from openlibrary.core import cache
-from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.core.lending import get_work_availability, get_edition_availability
@@ -244,7 +243,6 @@ class addauthor(delegate.page):
 
 class clonebook(delegate.page):
     def GET(self):
-        from infogami.core.code import edit
         i = web.input('key')
         page = web.ctx.site.get(i.key)
         if page is None:
@@ -941,7 +939,6 @@ def setup():
     status.setup()
     authors.setup()
 
-    from openlibrary.plugins.openlibrary import api
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))
 
     if infogami.config.get('dev_instance') is True:

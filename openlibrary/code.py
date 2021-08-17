@@ -33,7 +33,6 @@ def setup():
     load_views()
 
     # load actions
-    from . import actions
     
     logger.info("loading complete.")
 
@@ -51,7 +50,5 @@ def setup_logging():
 def load_views():
     """Registers all views by loading all view modules.
     """
-    from .views import showmarc
-    from .views import loanstats
 
 setup()

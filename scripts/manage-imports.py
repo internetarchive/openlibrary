@@ -6,7 +6,6 @@ import json
 import logging
 import datetime
 import time
-import _init_path
 from openlibrary.config import load_config
 from openlibrary.api import OpenLibrary, OLError
 from openlibrary.core.ia import get_candidate_ocaids

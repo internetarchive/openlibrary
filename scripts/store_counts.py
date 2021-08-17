@@ -3,7 +3,6 @@
 from __future__ import print_function
 import sys
 
-import _init_path
 
 from openlibrary.admin import stats
 

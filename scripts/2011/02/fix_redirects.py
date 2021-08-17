@@ -14,7 +14,6 @@ import simplejson
 import yaml
 import memcache
 
-import _init_path
 from infogami.infobase.server import parse_db_parameters
 from openlibrary.data import db
 

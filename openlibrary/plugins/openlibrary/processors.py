@@ -2,7 +2,6 @@
 """
 import web
 
-from openlibrary.core.processors import ReadableUrlProcessor
 import six
 
 from openlibrary.core import helpers as h

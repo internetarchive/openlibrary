@@ -64,14 +64,12 @@ class DataProvider:
         :param list of str keys: type-prefixed keys to load (ex: /books/OL1M)
         :return: None
         """
-        pass
 
     def preload_metadata(self, identifiers):
         """
         :param list of str identifiers: list of Internet Archive ids (aka ocaids)
         :return:
         """
-        pass
 
     def preload_editions_of_works(self, work_keys):
         """
@@ -81,7 +79,6 @@ class DataProvider:
         :param list of str work_keys: type-prefixed keys to work keys (ex: /works/OL1W)
         :return: None
         """
-        pass
 
     def find_redirects(self, key):
         """

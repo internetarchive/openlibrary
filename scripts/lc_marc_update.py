@@ -2,7 +2,6 @@
 
 from __future__ import print_function
 from openlibrary.catalog.importer.scribe import BadImport
-from openlibrary.catalog.read_rc import read_rc
 from openlibrary import config
 from ftplib import FTP
 from time import sleep

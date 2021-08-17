@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-import _init_path
 from openlibrary.data import dump
 
 if __name__ == "__main__":

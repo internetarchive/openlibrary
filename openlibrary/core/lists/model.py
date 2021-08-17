@@ -6,9 +6,6 @@ import time
 import web
 import logging
 
-from infogami import config
-from infogami.infobase import client, common
-from infogami.utils import stats
 
 from openlibrary.core import helpers as h
 from openlibrary.core import cache
@@ -16,7 +13,6 @@ from openlibrary.core import cache
 from openlibrary.plugins.worksearch.search import get_solr
 
 import six
-from six.moves import urllib
 
 
 logger = logging.getLogger("openlibrary.lists.model")

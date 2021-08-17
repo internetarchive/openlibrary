@@ -1,4 +1,3 @@
-import _init_path
 from openlibrary.utils import olmemcache
 import web
 import time

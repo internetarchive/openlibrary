@@ -1,7 +1,6 @@
 from __future__ import print_function
 import web
 import re
-import json
 
 db = web.database(dbn='mysql', user='root', passwd='', db='openlibrary')
 db.printing = False

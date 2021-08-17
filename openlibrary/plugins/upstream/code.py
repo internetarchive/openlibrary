@@ -11,12 +11,10 @@ import web
 from infogami import config
 from infogami.core import code as core
 from infogami.infobase import client
-from infogami.utils import delegate, app, types
+from infogami.utils import delegate
 from infogami.utils.view import public, safeint, render
 from infogami.utils.view import render_template  # noqa: F401 used for its side effects
-from infogami.utils.context import context
 
-from openlibrary import accounts
 
 from openlibrary.plugins.upstream import addbook, covers, merge_authors, models, utils
 from openlibrary.plugins.upstream import spamcheck

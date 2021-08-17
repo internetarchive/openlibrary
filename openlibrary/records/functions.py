@@ -8,16 +8,13 @@ import copy
 
 import web
 
-from openlibrary.catalog.add_book import normalize
 from openlibrary.core.models import Thing
-import openlibrary.core.helpers as h
 
 class NoQueryParam(KeyError):
     """
     Exception that is used internally when a find_by_X function is
     called but no X parameters were provided.
     """
-    pass
 
 
 def search(params):

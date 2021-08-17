@@ -54,7 +54,6 @@ def json2rawdump(jsonfile):
 def bookdump(rawdump):
     """Generates bookdump from rawdump.
     """
-    pass
 
 @command
 def modified(db, date):

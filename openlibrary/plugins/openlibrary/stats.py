@@ -14,7 +14,6 @@ from openlibrary.core import stats as graphite_stats
 import web
 from infogami import config
 from infogami.utils import (
-    delegate,
     stats,
 )
 

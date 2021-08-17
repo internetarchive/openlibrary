@@ -6,16 +6,13 @@ import csv
 import datetime
 
 from infogami import config
-from infogami.core import code as core
 from infogami.core.db import ValidationException
 from infogami.utils import delegate
 from infogami.utils.view import safeint, add_flash_message
 from infogami.infobase.client import ClientException
 
-from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils import is_author_olid, is_work_olid
-from openlibrary.i18n import gettext as _
 from openlibrary import accounts
 import logging
 
@@ -1049,4 +1046,3 @@ class work_identifiers(delegate.view):
 
 def setup():
     """Do required setup."""
-    pass

@@ -7,7 +7,6 @@ import os
 import time
 
 from openlibrary.coverstore import config, db
-from openlibrary.coverstore.coverlib import find_image_path
 
 import six
 

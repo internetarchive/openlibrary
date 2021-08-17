@@ -56,7 +56,7 @@ __version__ = "0.3"
 import json
 
 import web
-from web.template import Template, Parser, LineNode, SuiteNode, DefNode, PythonTokenizer, INDENT
+from web.template import DefNode, INDENT, PythonTokenizer
 
 def extension(parser):
     r"""jsdef extension. Adds support for `jsdef` block to template parser.::

@@ -21,7 +21,6 @@ class view(_app.page):
     # In infogami, the class with this functionality is called page.
     # We are redefining with a slightly different terminology to make
     # things more readable.
-    pass
 
 # view is just a base class.
 # Defining a class extending from _app.page auto-registers it inside infogami.

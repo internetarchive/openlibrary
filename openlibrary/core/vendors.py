@@ -249,7 +249,6 @@ def search_amazon(title='', author=''):
     :return: dict of "results", a list of one or more found books, with metadata.
     :rtype: dict
     """
-    pass
 
 
 def _get_amazon_metadata(id_, id_type='isbn', resources=None):

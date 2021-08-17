@@ -1,5 +1,5 @@
-from openlibrary.catalog.utils.query import query, withKey
-from openlibrary.api import OpenLibrary, unmarshal
+from openlibrary.catalog.utils.query import query
+from openlibrary.api import OpenLibrary
 from openlibrary.catalog.read_rc import read_rc
 
 rc = read_rc()

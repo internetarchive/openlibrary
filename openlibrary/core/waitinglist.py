@@ -142,7 +142,6 @@ class WaitingLoan(dict):
         """
         #db.delete("waitingloan", where="id=$id", vars=self)
         _wl_api.leave_waitinglist(self['identifier'], self['userid'])
-        pass
 
     def update(self, **kw):
         #db.update("waitingloan", where="id=$id", vars=self, **kw)

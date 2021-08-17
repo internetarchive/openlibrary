@@ -20,7 +20,7 @@ from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 
 # Seed might look unused, but removing it causes an error :/
-from openlibrary.core.lists.model import ListMixin, Seed
+from openlibrary.core.lists.model import ListMixin
 from . import cache, waitinglist
 
 from six.moves import urllib

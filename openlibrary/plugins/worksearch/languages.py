@@ -2,8 +2,8 @@
 """
 
 from infogami.plugins.api.code import jsonapi
-from infogami.utils import delegate, stats
-from infogami.utils.view import render_template, safeint
+from infogami.utils import delegate
+from infogami.utils.view import render_template
 import web
 import json
 import logging
@@ -11,7 +11,6 @@ import logging
 from . import subjects
 from . import search
 
-from six.moves import urllib
 
 
 logger = logging.getLogger("openlibrary.worksearch")

@@ -22,7 +22,6 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
-import json
 import re
 
 import unicodedata as ucd

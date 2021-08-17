@@ -15,8 +15,7 @@ from openlibrary.catalog.importer.db_read import get_mc
 from openlibrary.catalog.get_ia import get_from_archive, marc_formats, urlopen_keep_trying
 from openlibrary.catalog.marc import get_subjects
 from openlibrary.catalog.marc.marc_binary import MarcBinary
-from openlibrary.catalog.marc.marc_xml import read_marc_file, MarcXml, BlankTag, BadSubtag
-from openlibrary.catalog.utils import remove_trailing_dot, remove_trailing_number_dot, flip_name
+from openlibrary.catalog.marc.marc_xml import MarcXml
 
 
 subject_fields = set(['600', '610', '611', '630', '648', '650', '651', '662'])

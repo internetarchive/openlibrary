@@ -3,7 +3,6 @@
 from logging import getLogger
 
 import requests
-import six
 import web
 from six import BytesIO
 

@@ -4,14 +4,12 @@ import logging
 import re
 from functools import cached_property
 
-import requests
 import sys
 import web
 
 from collections import defaultdict
 from isbnlib import canonical
 
-from infogami import config
 from infogami.infobase import client
 from infogami.utils.view import safeint
 from infogami.utils import stats
@@ -20,8 +18,7 @@ from openlibrary.core import models, ia
 from openlibrary.core.models import Image
 from openlibrary.core import lending
 
-from openlibrary.plugins.upstream.utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
-from openlibrary.plugins.upstream import account
+from openlibrary.plugins.upstream.utils import MultiDict, get_edition_config, parse_toc
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
 from openlibrary.plugins.worksearch.search import get_solr
