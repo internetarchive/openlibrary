@@ -104,18 +104,17 @@ export default {
         /**
          * Returns an HTML code denoting what symbol to display in a book tag type chip.
          *
-         * Will return a heavy plus symbol if no book tags of a chip's type have been selected,
+         * Will return a bullet symbol if no book tags of a chip's type have been selected,
          * and a heavy checkmark otherwise.
          *
          * @returns {String} An HTML code representing selections of a type.
          */
         displaySymbol: function(type) {
-            // &#10133; - Heavy plus
-            // &#10004; - Heavy checkmark
             if (this.allSelectedValues[type] && this.allSelectedValues[type].length) {
+                // &#10004; - Heavy checkmark
                 return '&#10004;';
             }
-            return '&#10133;';
+            return '&bull;';
         }
     }
 }
