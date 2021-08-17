@@ -1,3 +1,5 @@
+@import (reference) "../less/colors.less";
+
 .review-component {
   padding-bottom: 1em
 }
@@ -22,20 +24,20 @@
 .label {
   font-weight: bold;
   margin-right: .5em;
-  color: #666666;
+  color: @grey;
 }
 
 .pill {
   margin-right: .5em;
 
   padding: 4px 12px;
-  border: 1px solid #999999;
+  border: 1px solid @mid-grey;
   border-radius: 16px;
 
   white-space: nowrap;
 
   .percentage {
-    border-left: 1px solid #999999;
+    border-left: 1px solid @mid-grey;
     padding-left: .5em;
   }
 }
@@ -61,5 +63,5 @@
 
   a {
     text-decoration: none;
-  } 
+  }
 }
