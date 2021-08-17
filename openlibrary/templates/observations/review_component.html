@@ -7,33 +7,30 @@ $else:
 
 <a name="reader-observations" class="section-anchor"></a>      
 
-<div class="tab-section">
+<div class="tab-section review-component">
   <h2 class="observation-title">$_('Community Reviews') ($total_reviews)</h2>
   $if total_reviews > 0:
+    <div class="reviews">
     $for o in reader_observations['observations']:
       $ total = o['total_respondents_for_type']
-      <div class="category">
-        <div class="label">$o['label'] ($total)</div>
-        <div class="breakdown">
-          $for v in o['values']:
-            $ percentage = (v['count'] / total) * 100
-            <div class="pill">
-              <div class="value">
-                $v['value'].capitalize()
-              </div>
-              <div class="percentage">
-                $percentage%
-              </div>
-            </div>
-        </div>
-      </div>
+        <span class="label" title="$o['description']">$o['label'] ($total)</span>
+        $for v in o['values']:
+          $ percentage = (v['count'] / total) * 100
+          <span class="pill">
+            <span class="value">
+              $v['value']
+            </span>
+            <span class="percentage">
+              $int(percentage)%
+            </span>
+          </span>
+        <span class="margin"></span>
+    </div>
   $else:
-    <hr>
     <div class="no-stats-message">$_('No community reviews have been submitted for this work.')</div>
-    <div class="no-stats-message">$_('Click the link below to share your thoughts.')</div>
-  <hr>
   $if ctx.user:
     $:macros.ObservationsModal(work, _('+ Add your community review'), 'stats', 'stats-link')
   $else:
-    <a class="stats-link" href="/account/login?redirect=$key">$_('Log in to add your observations')</a>
+    <hr>
+    <a class="login-link" href="/account/login?redirect=$key">$_('Log in to add your review')</a>
 </div>

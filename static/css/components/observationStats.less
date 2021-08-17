@@ -1,25 +1,65 @@
+.review-component {
+  padding-bottom: 1em
+}
+
 .observation-title {
   margin-top: 5px;
-  margin-bottom: 0;
+  margin-bottom: 1em;
 }
 
-.observation-header {
-  font-size: 14px;
-  margin: 0 0 1em;
+.reviews {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: .5em;
+  margin-left: .5em;
+
+  span {
+    margin-bottom: .75em
+  }
 }
 
-.observation-percentage {
-  margin-right: .5em;
-}
-
-.observation-value {
+.label {
   font-weight: bold;
+  margin-right: .5em;
+  color: #666666;
 }
 
-.no-stats-message,
-.stats-link {
+.pill {
+  margin-right: .5em;
+
+  padding: 4px 12px;
+  border: 1px solid #999999;
+  border-radius: 16px;
+
+  white-space: nowrap;
+
+  .percentage {
+    border-left: 1px solid #999999;
+    padding-left: .5em;
+  }
+}
+
+.margin {
+  width: .5em;
+}
+
+.login-link {
   margin: .5em auto .25em;
   display: block;
   width: 80%;
   text-align: center;
+}
+
+.no-stats-message {
+  margin-left: .5em;
+  margin-bottom: .5em;
+}
+
+.stats-link {
+  margin-left: .5em;
+
+  a {
+    text-decoration: none;
+  } 
 }
