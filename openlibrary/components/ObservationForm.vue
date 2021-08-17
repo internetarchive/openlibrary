@@ -8,7 +8,7 @@
 
     <CategorySelector
       ref="categories"
-      :observations-array="capitalizedSchema"
+      :observations-array="observationsArray"
       :all-selected-values="allSelectedValues"
       @update-selected="updateSelected"
       />
@@ -31,7 +31,7 @@ import CategorySelector from './ObservationForm/components/CategorySelector'
 import SavedTags from './ObservationForm/components/SavedTags'
 import ValueCard from './ObservationForm/components/ValueCard'
 
-import { decodeAndParseJSON, capitalizeTypesAndValues, capitalizePatronObservations, resizeColorbox } from './ObservationForm/Utils'
+import { decodeAndParseJSON, resizeColorbox } from './ObservationForm/Utils'
 
 export default {
     name: 'ObservationForm',
@@ -107,9 +107,9 @@ export default {
              */
             allSelectedValues: {},
             /**
-             * A version of the schema containing capitalized book tag types and values.
+             * An array containing all book tag types and values.
              */
-            capitalizedSchema: null,
+            observationsArray: null,
         }
     },
     methods: {
@@ -123,8 +123,8 @@ export default {
         }
     },
     created: function() {
-        this.capitalizedSchema = capitalizeTypesAndValues(decodeAndParseJSON(this.schema)['observations']);
-        this.allSelectedValues = capitalizePatronObservations(decodeAndParseJSON(this.observations));
+        this.observationsArray = decodeAndParseJSON(this.schema)['observations'];
+        this.allSelectedValues = decodeAndParseJSON(this.observations);
     },
     mounted: function() {
         this.observer = new ResizeObserver(() => {
