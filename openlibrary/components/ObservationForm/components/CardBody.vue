@@ -27,7 +27,7 @@ export default {
     },
     props: {
         /**
-         * All possible values for the current book tag type.
+         * @type {string[]} All possible values for the current book tag type.
          */
         values: {
             type: Array,

@@ -6,7 +6,6 @@
       :username="username"
       />
 
-    <!-- Place the following in a box:  -->
     <CategorySelector
       ref="categories"
       :observations-array="capitalizedSchema"
@@ -92,7 +91,7 @@ export default {
              *   'id': 20,
              *   'label': 'language',
              *   'description': 'What type of verbiage, nomenclature, or symbols are employed in this book?',
-             *   'multi_choice': True,
+             *   'multi_choice': true,
              *   'values': ['technical', 'jargony', 'neologisms', 'slang', 'olde']
              * }
              */

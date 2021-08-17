@@ -52,7 +52,7 @@ export function addObservation(type, value, workKey, username) {
  * @param {String} type The observation type
  * @param {String} value The observation value
  * @param {String} username Username of patron making the update
- * @param {String} action 'add' for creating a new observation, or 'delete' for removing an existing one
+ * @param {'add' | 'delete'} action 'add' for creating a new observation, or 'delete' for removing an existing one
  * @returns An object that represents the observation update that will be made.
  */
 function constructDataObject(type, value, username, action) {
