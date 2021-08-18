@@ -987,7 +987,7 @@ def random_author_search(limit=10):
         # The template still expects the key to be in the old format
         doc['key'] = doc['key'].split("/")[-1]
 
-    return json.dumps(search_results['response'])
+    return search_results['response']
 
 
 def rewrite_list_editions_query(q, page, offset, limit):
