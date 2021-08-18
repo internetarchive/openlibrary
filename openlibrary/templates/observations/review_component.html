@@ -13,10 +13,11 @@ $else:
     <div class="reviews">
     $for o in reader_observations['observations']:
       <span class="review__category">
-      $ total = o['total_respondents_for_type']
-        <span class="reviews__label" title="$o['description']">$o['label'] <span class="reviews__count">$total</span></span>
+      $ total_respondents = o['total_respondents_for_type']
+        <span class="reviews__label" title="$o['description']">$o['label'] <span class="reviews__count">$total_respondents</span></span>
+        $ total_responses = o['total_responses']
         $for v in o['values']:
-          $ percentage = (v['count'] / total) * 100
+          $ percentage = (v['count'] / total_responses) * 100
           <span class="reviews__pill">
             <span class="reviews__value">
               $v['value']

@@ -586,6 +586,7 @@ def get_observation_metrics(work_olid):
                 'description': 'What is the pace of this book?',
                 'multi_choice': False,
                 'total_respondents_for_type': 10,
+                'total_responses': 10,
                 'values': [
                     {
                         'value': 'fast',
@@ -630,8 +631,12 @@ def get_observation_metrics(work_olid):
             'values': []
         }
 
+        total_responses = 0
+
         for i in observation_totals:
             if i['type_id'] != current_type_id:
+                current_observation['total_responses'] = total_responses
+                total_responses = 0
                 metrics['observations'].append(current_observation)
                 current_type_id = i['type_id']
                 observation_item = next((o for o in OBSERVATIONS['observations'] if current_type_id == o['id']))
@@ -648,7 +653,9 @@ def get_observation_metrics(work_olid):
                         'count': i['total'] 
                     } 
                 )
+            total_responses += i['total']
     
+        current_observation['total_responses'] = total_responses
         metrics['observations'].append(current_observation)
     return metrics
         
