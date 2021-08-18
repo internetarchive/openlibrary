@@ -875,7 +875,7 @@ class HTMLTagRemover(HTMLParser):
 
 
 @public
-def reformat_html(html_str: str, max_length: Optional[int]=None) -> str:
+def reformat_html(html_str: str, max_length: Optional[int] = None) -> str:
     """
     Reformats an HTML string, removing all opening and closing tags.
     Adds a line break element between each set of text content.
