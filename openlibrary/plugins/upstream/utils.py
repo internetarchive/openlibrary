@@ -888,7 +888,10 @@ def reformat_html(html_str: str, max_length: Optional[int]=None) -> str:
 
     content = [s.strip() for s in parser.data if len(s.strip())]
 
-    return truncate('\n'.join(content), max_length).replace('\n', '<br>')
+    if max_length:
+        return truncate('\n'.join(content), max_length).replace('\n', '<br>')
+    else:
+        return '\n'.join(content).replace('\n', '<br>')
 
 
 def setup():
