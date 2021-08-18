@@ -6,56 +6,62 @@
 
 .observation-title {
   margin-top: 5px;
-  margin-bottom: 1em;
+  margin-bottom: 14px;
 }
 
 .reviews {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  margin-bottom: 10px;
-  margin-left: 10px;
+  padding: 0 2px;
 }
 
 .review__category {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-
-  span {
-    margin: 5px;
+  display: block;
+  margin-right: 8px;
+  margin-top: 4px;
+  @media (min-width: @width-breakpoint-mobile) {
+    text-indent: -50px;
+    padding-left: 50px;
   }
 }
 
 .reviews__label {
   font-weight: bold;
-  margin-right: 5px;
+  margin-top: 4px;
   color: @grey;
+
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  font-size: .7em;
+
+  @media (max-width: @width-breakpoint-mobile) {
+    display: block;
+    margin-top: 14px;
+  }
 
   .reviews__count {
     font-weight: 500;
-
-    &::before {
-      content: "(";
-    }
-    &::after {
-      content: ")";
-    }
+    margin-right: 5px;
+    font-size: .9em;
+    color: @accessible-grey;
   }
 }
 
 .reviews__pill {
-  font-size: 14px;
-  margin-right: 5px;
-  padding: 4px 12px;
-  border: 1px solid @mid-grey;
+  display: inline-block;
+
+  margin-top: 3px;
+  margin-right: 3px;
+  padding: 4px 8px;
+
+  border: 1px solid @light-grey;
   border-radius: 16px;
 
+  font-size: 14px;
+  text-indent: 0;
   white-space: nowrap;
 
   .percentage {
-    border-left: 1px solid @mid-grey;
-    padding-left: 5px;
+    font-size: .8em;
+    color: @accessible-grey;
   }
 }
 
@@ -68,9 +74,14 @@
 
 .login-link, .stats-link {
   margin: 0 10px;
+
   a {
     text-decoration: none;
   }
+}
+
+.stats-link {
+  margin-top: 14px;
 }
 
 .no-stats-message {
