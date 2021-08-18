@@ -12,6 +12,7 @@ import xml.etree.ElementTree as etree
 import datetime
 import logging
 from html.parser import HTMLParser
+from typing import Optional
 
 import requests
 
@@ -874,7 +875,7 @@ class HTMLTagRemover(HTMLParser):
 
 
 @public
-def reformat_html(html_str, max_length=None):
+def reformat_html(html_str: str, max_length: Optional[int]=None) -> str:
     """
     Reformats an HTML string, removing all opening and closing tags.
     Adds a line break element between each set of text content.
@@ -887,24 +888,7 @@ def reformat_html(html_str, max_length=None):
 
     content = [s.strip() for s in parser.data if len(s.strip())]
 
-    if max_length:
-        str_lengths = [len(s) for s in content]
-        end_index = 0
-        for i in str_lengths:
-            end_index += 1
-            if max_length - i == 0:
-                break
-            elif max_length - i < 0:
-                content[end_index - 1] = truncate(
-                    content[end_index - 1],
-                    max_length
-                )
-                break
-            max_length -= i
-    else:
-        end_index = len(content) + 1
-
-    return '<br>'.join(content[:end_index])
+    return truncate('\n'.join(content), max_length).replace('\n', '<br>')
 
 
 def setup():
