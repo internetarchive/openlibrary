@@ -1,7 +1,7 @@
 @import (reference) "../less/colors.less";
 
 .review-component {
-  padding-bottom: 1em
+  padding-bottom: 1em;
 }
 
 .observation-title {
@@ -59,19 +59,20 @@
   }
 }
 
-.login-link {
-  margin: 10px;
+.reviews-header {
+  display: flex;
+  h2 {
+    flex: 1;
+  }
 }
 
-.no-stats-message {
-  margin-left: 10px;
-  margin-bottom: 10px;
-}
-
-.stats-link {
-  margin-left: 10px;
-
+.login-link, .stats-link {
+  margin: 0 10px;
   a {
     text-decoration: none;
   }
+}
+
+.no-stats-message {
+  margin-bottom: 15px;
 }
