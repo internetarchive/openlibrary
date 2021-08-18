@@ -116,3 +116,15 @@ def test_get_coverstore_url(monkeypatch):
     # make sure trailing / is always stripped
     monkeypatch.setattr(config, "coverstore_url", "https://0.0.0.0:80/", raising=False)
     assert utils.get_coverstore_url() == "https://0.0.0.0:80"
+
+
+def test_reformat_html():
+    input_string = '<p>This sentence has 32 characters.</p>'
+    assert utils.reformat_html(input_string, 10) == 'This sente...'
+    assert utils.reformat_html(input_string) == 'This sentence has 32 characters.'
+    assert utils.reformat_html(input_string, 5000) == 'This sentence has 32 characters.'
+
+    multi_line_input_string = """<p>This sentence has 32 characters.</p>
+                                 <p>This new sentence has 36 characters.</p>"""
+    assert utils.reformat_html(multi_line_input_string) == 'This sentence has 32 characters.<br>This new sentence has 36 characters.'
+    assert utils.reformat_html(multi_line_input_string, 34) == 'This sentence has 32 characters.<br>T...'
