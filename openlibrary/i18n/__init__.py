@@ -30,6 +30,50 @@ def _compile_translation(po, mo):
         raise e
 
 
+def _validate_catalog(catalog, locale):
+    validation_errors = []
+    for message in catalog:
+        if message.fuzzy:
+            if message.lineno:
+                validation_errors.append(
+                    f'openlibrary/i18n/{locale}/messages.po:{message.lineno}:'
+                    f' "{message.string}" is fuzzy.'
+                )
+            else:
+                validation_errors.append(
+                    '  File is fuzzy.  Remove line containing "#, fuzzy" found near '
+                    'the beginning of the file.'
+                )
+
+    if validation_errors:
+        print("Validation failed...")
+        print("Please correct the following errors before proceeding:")
+        for e in validation_errors:
+            print(e)
+
+    return len(validation_errors) == 0
+
+
+def validate_translations(args):
+    if args:
+        locale = args[0]
+        po_path = os.path.join(root, locale, 'messages.po')
+
+        if os.path.exists(po_path):
+            catalog = read_po(open(po_path, 'rb'))
+            is_valid = _validate_catalog(catalog, locale)
+
+            if is_valid:
+                print(f'Translations for locale "{locale}" are valid!')
+            return is_valid
+        else:
+            print(f'Portable object file for locale "{locale}" does not exist.')
+            return False
+    else:
+        print('Must include locale code when executing validate.')
+        return False
+
+
 def get_locales():
     return [
         d
