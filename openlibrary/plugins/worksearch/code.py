@@ -964,7 +964,7 @@ class author_search_json(author_search):
 @public
 def random_author_search(limit=10):
     """
-    Returns a JSON string that contains a random list of authors.  Amount of authors
+    Returns a dict that contains a random list of authors.  Amount of authors
     returned is set be the given limit.
     """
     letters_and_digits = string.ascii_letters + string.digits
