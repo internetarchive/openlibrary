@@ -6,7 +6,7 @@ import os
 import re
 from math import ceil
 from statistics import median
-from typing import Literal, List, Union, Optional, cast
+from typing import Literal, List, Optional, cast, TypedDict, Set
 
 import httpx
 import requests
@@ -31,6 +31,7 @@ from openlibrary.core import helpers as h
 from openlibrary.core import ia
 from openlibrary.plugins.upstream.utils import url_quote
 from openlibrary.solr.data_provider import get_data_provider, DataProvider
+from openlibrary.solr.types import SolrDocument
 from openlibrary.utils.ddc import normalize_ddc, choose_sorting_ddc
 from openlibrary.utils.isbn import opposite_isbn
 from openlibrary.utils.lcc import short_lcc_to_sortable_lcc, choose_sorting_lcc
@@ -91,7 +92,12 @@ def set_solr_next(val: bool):
     solr_next = val
 
 
-def get_ia_collection_and_box_id(ia):
+class IALiteMetadata(TypedDict):
+    boxid: Set[str]
+    collection: Set[str]
+
+
+def get_ia_collection_and_box_id(ia: str) -> Optional[IALiteMetadata]:
     """
     Get the collections and boxids of the provided IA id
 
@@ -792,12 +798,12 @@ def dict2element(d):
             add_field(doc, k, v)
     return doc
 
-def build_data(w):
+
+def build_data(w: dict) -> SolrDocument:
     """
     Construct the Solr document to insert into Solr for the given work
 
-    :param dict w: Work to insert/update
-    :rtype: dict
+    :param w: Work to insert/update
     """
     # Anand - Oct 2013
     # For /works/ia:xxx, editions are already supplied. Querying will empty response.
@@ -812,14 +818,20 @@ def build_data(w):
     duplicates = {}
     return build_data2(w, editions, authors, ia, duplicates)
 
-def build_data2(w, editions, authors, ia, duplicates):
+
+def build_data2(
+        w: dict,
+        editions: List[dict],
+        authors, ia:
+        dict[str, IALiteMetadata],
+        duplicates) -> SolrDocument:
     """
     Construct the Solr document to insert into Solr for the given work
 
-    :param dict w: Work to get data for
-    :param list[dict] editions: Editions of work
-    :param list[dict] authors: Authors of work
-    :param dict[str, dict[str, set[str]]] ia: boxid/collection of each associated IA id
+    :param w: Work to get data for
+    :param editions: Editions of work
+    :param authors: Authors of work
+    :param ia: boxid/collection of each associated IA id
         (ex: `{foobar: {boxid: {"foo"}, collection: {"lendinglibrary"}}}`)
     :param duplicates: FIXME unused
     :rtype: dict
@@ -1107,6 +1119,7 @@ class SolrUpdateRequest:
 
 class AddRequest(SolrUpdateRequest):
     type = 'add'
+    doc: SolrDocument
 
     def __init__(self, doc):
         """
