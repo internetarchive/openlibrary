@@ -686,7 +686,7 @@ async def main(
                 db.ia_cache.update(db2.ia_cache)
                 db.cached_work_editions_ranges += db2.cached_work_editions_ranges
 
-            update_keys(keys, commit=False, commit_way_later=True, solr8=True,
+            update_keys(keys, commit=False, commit_way_later=True,
                         skip_id_check=skip_solr_id_check,
                         update='quiet' if dry_run else 'update')
 

@@ -1185,58 +1185,12 @@ class CommitRequest(SolrUpdateRequest):
 
 
 def solr_update(
-        requests: List[SolrUpdateRequest],
-        debug=False,
-        commitWithin=60000,
-        solr_base_url: str = None):
-    """POSTs a collection of update requests to Solr.
-    TODO: Deprecate and remove string requests. Is anything else still generating them?
-    :param requests: Requests to send to Solr
-    :param bool debug:
-    :param int commitWithin: Solr commitWithin, in ms
-    """
-    solr_base_url = solr_base_url or get_solr_base_url()
-    url = f'{solr_base_url}/update'
-    parsed_url = urlparse(url)
-    assert parsed_url.hostname
-
-    if parsed_url.port:
-        h1 = HTTPConnection(parsed_url.hostname, parsed_url.port)
-    else:
-        h1 = HTTPConnection(parsed_url.hostname)
-    logger.debug("POSTing update to %s", url)
-    # FIXME; commit strategy / timing should be managed in config, not code
-    url = url + "?commitWithin=%d" % commitWithin
-
-    h1.connect()
-    for r in requests:
-        r = r.toxml()
-        if not r:
-            continue
-
-        if debug:
-            logger.info('request: %r', r[:65] + '...' if len(r) > 65 else r)
-        assert isinstance(r, six.string_types)
-        h1.request('POST', url, r.encode('utf8'), { 'Content-type': 'text/xml;charset=utf-8'})
-        response = h1.getresponse()
-        response_body = response.read()
-        if response.reason != 'OK':
-            logger.error(response.reason)
-            logger.error(response_body)
-        if debug:
-            logger.info(response.reason)
-    h1.close()
-
-
-def solr8_update(
         reqs: List[SolrUpdateRequest],
         commit_within=60_000,
         skip_id_check=False,
         solr_base_url: str = None,
 ) -> None:
     """
-    This will replace solr_update once we're fully on Solr 8.7+
-
     :param commit_within: milliseconds
     """
     req_strs = (r if type(r) == str else r.toxml() for r in reqs if r)
@@ -1259,7 +1213,7 @@ def solr8_update(
             content=content)
         resp.raise_for_status()
     except HTTPError:
-        logger.error('Error with solr8 POST update')
+        logger.error('Error with solr POST update')
 
 
 def update_edition(e):
@@ -1573,7 +1527,6 @@ def update_keys(keys,
                 commit=True,
                 output_file=None,
                 commit_way_later=False,
-                solr8=False,
                 skip_id_check=False,
                 update: Literal['update', 'print', 'pprint', 'quiet'] = 'update'):
     """
@@ -1594,10 +1547,7 @@ def update_keys(keys,
         if update == 'update':
             commitWithin = commit_way_later_dur if commit_way_later else commitWithin
 
-            if solr8:
-                return solr8_update(requests, commitWithin, skip_id_check)
-            else:
-                return solr_update(requests, debug, commitWithin)
+            return solr_update(requests, commitWithin, skip_id_check)
         elif update in ('print', 'pprint'):
             for req in requests:
                 import xml.etree.ElementTree as ET
