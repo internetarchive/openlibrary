@@ -30,13 +30,13 @@ def _compile_translation(po, mo):
         raise e
 
 
-def _validate_catalog(catalog):
+def _validate_catalog(catalog, locale):
     validation_errors = []
     for message in catalog:
         if message.fuzzy:
             if message.lineno:
                 validation_errors.append(
-                    f'openlibrary/i18n/te/messages.po:{message.lineno}: "{message.string}" is fuzzy.'
+                    f'openlibrary/i18n/{locale}/messages.po:{message.lineno}: "{message.string}" is fuzzy.'
                 )
             else:
                 validation_errors.append(
@@ -60,7 +60,7 @@ def validate_translations(args):
 
         if os.path.exists(po_path):
             catalog = read_po(open(po_path, 'rb'))
-            is_valid = _validate_catalog(catalog)
+            is_valid = _validate_catalog(catalog, locale)
 
             if is_valid:
                 print(f'Translations for locale "{locale}" are valid!')
