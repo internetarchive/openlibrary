@@ -1234,15 +1234,6 @@ def get_subject(key):
         "work_count": work_count,
     }
 
-def update_subject(key):
-    subject = get_subject(key)
-    request_set = SolrRequestSet()
-    request_set.delete(subject['key'])
-
-    if subject['work_count'] > 0:
-        request_set.add(subject)
-    return request_set.get_requests()
-
 
 def subject_name_to_key(
         subject_type: Literal['subject', 'person', 'place', 'time'],
@@ -1605,20 +1596,6 @@ def update_keys(keys,
             if commit:
                 requests += [CommitRequest()]
             _solr_update(requests, debug=True, commitWithin=1000)
-
-    # update subjects
-    skeys = set(k for k in keys if k.startswith("/subjects/"))
-    requests = []
-    for k in skeys:
-        logger.debug("updating subject %s", k)
-        try:
-            requests += update_subject(k)
-        except:
-            logger.error("Failed to update subject %s", k, exc_info=True)
-    if requests:
-        if commit:
-            requests += [CommitRequest()]
-        _solr_update(requests, debug=True)
 
     logger.debug("END update_keys")
 
