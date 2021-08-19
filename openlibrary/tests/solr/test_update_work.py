@@ -455,18 +455,14 @@ class Test_update_items:
             make_author(key='/authors/OL23A', type={'key': '/type/delete'})
         ])
         requests = update_work.update_author('/authors/OL23A')
-        assert isinstance(requests, list)
-        assert isinstance(requests[0], update_work.DeleteRequest)
-        assert requests[0].toxml() == '<delete><id>/authors/OL23A</id></delete>'
+        assert requests[0].to_json_command() == '"delete": ["/authors/OL23A"]'
 
     def test_redirect_author(self):
         update_work.data_provider = FakeDataProvider([
             make_author(key='/authors/OL24A', type={'key': '/type/redirect'})
         ])
         requests = update_work.update_author('/authors/OL24A')
-        assert isinstance(requests, list)
-        assert isinstance(requests[0], update_work.DeleteRequest)
-        assert requests[0].toxml() == '<delete><id>/authors/OL24A</id></delete>'
+        assert requests[0].to_json_command() == '"delete": ["/authors/OL24A"]'
 
 
     def test_update_author(self, monkeypatch):
@@ -489,10 +485,8 @@ class Test_update_items:
                             lambda url, **kwargs: empty_solr_resp)
         requests = update_work.update_author('/authors/OL25A')
         assert len(requests) == 1
-        assert isinstance(requests, list)
         assert isinstance(requests[0], update_work.AddRequest)
-        assert requests[0].toxml().startswith('<add>')
-        assert '<field name="key">/authors/OL25A</field>' in requests[0].toxml()
+        assert requests[0].doc['key'] == "/authors/OL25A"
 
     def test_delete_edition(self):
         editions = update_work.update_edition({'key': '/books/OL23M', 'type': {'key': '/type/delete'}})
@@ -504,11 +498,8 @@ class Test_update_items:
 
     def test_delete_requests(self):
         olids = ['/works/OL1W', '/works/OL2W', '/works/OL3W']
-        del_req = update_work.DeleteRequest(olids)
-        assert isinstance(del_req, update_work.DeleteRequest)
-        assert del_req.toxml().startswith("<delete>")
-        for olid in olids:
-            assert "<id>%s</id>" % olid in del_req.toxml()
+        json_command = update_work.DeleteRequest(olids).to_json_command()
+        assert '"delete": ["/works/OL1W", "/works/OL2W", "/works/OL3W"]' == json_command
 
 
 class TestUpdateWork:
@@ -519,28 +510,25 @@ class TestUpdateWork:
     def test_delete_work(self):
         requests = update_work.update_work({'key': '/works/OL23W', 'type': {'key': '/type/delete'}})
         assert len(requests) == 1
-        assert isinstance(requests[0], update_work.DeleteRequest)
-        assert requests[0].toxml() == '<delete><id>/works/OL23W</id></delete>'
+        assert requests[0].to_json_command() == '"delete": ["/works/OL23W"]'
 
     def test_delete_editions(self):
         requests = update_work.update_work({'key': '/works/OL23M', 'type': {'key': '/type/delete'}})
         assert len(requests) == 1
-        assert isinstance(requests[0], update_work.DeleteRequest)
-        assert requests[0].toxml() == '<delete><id>/works/OL23M</id></delete>'
+        assert requests[0].to_json_command() == '"delete": ["/works/OL23M"]'
 
     def test_redirects(self):
         requests = update_work.update_work({'key': '/works/OL23W', 'type': {'key': '/type/redirect'}})
         assert len(requests) == 1
-        assert isinstance(requests[0], update_work.DeleteRequest)
-        assert requests[0].toxml() == '<delete><id>/works/OL23W</id></delete>'
+        assert requests[0].to_json_command() == '"delete": ["/works/OL23W"]'
 
     def test_no_title(self):
         requests = update_work.update_work({'key': '/books/OL1M', 'type': {'key': '/type/edition'}})
         assert len(requests) == 1
-        assert '<field name="title">__None__</field>' in requests[0].toxml()
+        assert requests[0].doc['title'] == "__None__"
         requests = update_work.update_work({'key': '/works/OL23W', 'type': {'key': '/type/work'}})
         assert len(requests) == 1
-        assert '<field name="title">__None__</field>' in requests[0].toxml()
+        assert requests[0].doc['title'] == "__None__"
 
     def test_work_no_title(self):
         work = {'key': '/works/OL23W', 'type': {'key': '/type/work'}}
@@ -549,7 +537,7 @@ class TestUpdateWork:
         update_work.data_provider = FakeDataProvider([work, ed])
         requests = update_work.update_work(work)
         assert len(requests) == 1
-        assert '<field name="title">Some Title!</field>' in requests[0].toxml()
+        assert requests[0].doc['title'] == "Some Title!"
 
 class Test_pick_cover_edition:
     def test_no_editions(self):

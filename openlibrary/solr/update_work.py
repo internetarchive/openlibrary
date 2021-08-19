@@ -1123,9 +1123,6 @@ class SolrUpdateRequest:
     def to_json_command(self):
         return f'"{self.type}": {json.dumps(self.doc)}'
 
-    def toxml(self) -> str:
-        raise NotImplemented()
-
 
 class AddRequest(SolrUpdateRequest):
     type = 'add'
@@ -1136,17 +1133,6 @@ class AddRequest(SolrUpdateRequest):
         :param doc: Document to be inserted into Solr.
         """
         self.doc = doc
-
-    def toxml(self):
-        """
-        Create the XML <add> element of this request to send to Solr.
-
-        :rtype: str
-        """
-        node = dict2element(self.doc)
-        root = Element("add")
-        root.append(node)
-        return tostring(root, encoding="unicode")
 
     def tojson(self) -> str:
         return json.dumps(self.doc)
@@ -1164,24 +1150,12 @@ class DeleteRequest(SolrUpdateRequest):
         self.doc = keys
         self.keys = keys
 
-    def toxml(self):
-        """
-        Create the XML <delete> element of this request to send to Solr.
-
-        :rtype: str or None
-        """
-        if self.keys:
-            return make_delete_query(self.keys)
-
 
 class CommitRequest(SolrUpdateRequest):
     type = 'commit'
 
     def __init__(self):
         self.doc = {}
-
-    def toxml(self):
-        return '<commit />'
 
 
 def solr_update(
@@ -1193,9 +1167,7 @@ def solr_update(
     """
     :param commit_within: milliseconds
     """
-    req_strs = (r if type(r) == str else r.toxml() for r in reqs if r)
-    # .toxml() can return None :/
-    content = f"<update>{''.join(s for s in req_strs if s)}</update>"
+    content = '{' + ','.join(r.to_json_command() for r in reqs) + '}'
 
     solr_base_url = solr_base_url or get_solr_base_url()
     params = {}
@@ -1209,7 +1181,7 @@ def solr_update(
             f'{solr_base_url}/update',
             timeout=30,  # The default timeout is silly short
             params=params,
-            headers={'Content-Type': 'application/xml'},
+            headers={'Content-Type': 'application/json'},
             content=content)
         resp.raise_for_status()
     except HTTPError:
@@ -1548,16 +1520,12 @@ def update_keys(keys,
             commitWithin = commit_way_later_dur if commit_way_later else commitWithin
 
             return solr_update(requests, commitWithin, skip_id_check)
-        elif update in ('print', 'pprint'):
+        elif update == 'pprint':
             for req in requests:
-                import xml.etree.ElementTree as ET
-                xml_str = req.toxml()
-                if xml_str and update == 'pprint':
-                    root = ET.XML(xml_str)
-                    ET.indent(root)
-                    print(ET.tostring(root, encoding='unicode'))
-                else:
-                    print(str(xml_str)[:100])
+                print(f'"{req.type}": {json.dumps(req.doc, indent=4)}')
+        elif update == 'print':
+            for req in requests:
+                print(str(req.to_json_command())[:100])
         elif update == 'quiet':
             pass
 
