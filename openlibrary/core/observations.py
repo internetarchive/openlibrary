@@ -453,7 +453,7 @@ def get_observations():
             {
                 'id': 1,
                 'label': 'pace',
-                'description': 'What is the pace of this book?'
+                'description': 'What is the pace of this book?',
                 'multi_choice': False,
                 'values': [
                     'slow',
