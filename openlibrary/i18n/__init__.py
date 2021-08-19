@@ -36,7 +36,7 @@ def _validate_catalog(catalog):
         if message.fuzzy:
             if message.lineno:
                 validation_errors.append(
-                    f'  Line {message.lineno}: "{message.string}" is fuzzy.'
+                    f'openlibrary/i18n/te/messages.po:{message.lineno}: "{message.string}" is fuzzy.'
                 )
             else:
                 validation_errors.append(
