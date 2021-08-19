@@ -32,6 +32,7 @@ from openlibrary.core import ia
 from openlibrary.plugins.upstream.utils import url_quote
 from openlibrary.solr.data_provider import get_data_provider, DataProvider
 from openlibrary.solr.types import SolrDocument
+from openlibrary.utils import uniq
 from openlibrary.utils.ddc import normalize_ddc, choose_sorting_ddc
 from openlibrary.utils.isbn import opposite_isbn
 from openlibrary.utils.lcc import short_lcc_to_sortable_lcc, choose_sorting_lcc
@@ -235,6 +236,17 @@ def pick_number_of_pages_median(editions: List[dict]) -> Optional[int]:
         return ceil(median(number_of_pages))
     else:
         return None
+
+
+def get_edition_languages(edition: dict) -> List[str]:
+    """
+    :returns: eg ['eng', 'ger']
+    """
+    result: List[str] = []
+    for lang in edition.get('languages', []):
+        m = re_lang_key.match(lang['key'] if isinstance(lang, dict) else lang)
+        result.append(m.group(1))
+    return result
 
 
 def get_work_subjects(w):
@@ -891,14 +903,12 @@ def build_data2(
     add_field_list(doc, 'publisher', publishers)
 #    add_field_list(doc, 'publisher_facet', publishers)
 
-    lang = set()
+    languages: List[str] = []
     ia_loaded_id = set()
     ia_box_id = set()
 
     for e in editions:
-        for l in e.get('languages', []):
-            m = re_lang_key.match(l['key'] if isinstance(l, dict) else l)
-            lang.add(m.group(1))
+        languages += get_edition_languages(e)
         if e.get('ia_loaded_id'):
             if isinstance(e['ia_loaded_id'], six.string_types):
                 ia_loaded_id.add(e['ia_loaded_id'])
@@ -919,8 +929,8 @@ def build_data2(
                     logger.error("AssertionError: %s", e['key'])
                     raise
                 ia_box_id.update(e['ia_box_id'])
-    if lang:
-        add_field_list(doc, 'language', lang)
+    if languages:
+        add_field_list(doc, 'language', uniq(languages))
 
     #if lending_edition or in_library_edition:
     #    add_field(doc, "borrowed_b", is_borrowed(lending_edition or in_library_edition))

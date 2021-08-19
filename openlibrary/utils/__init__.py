@@ -2,6 +2,7 @@
 
 import re
 from subprocess import PIPE, Popen, STDOUT
+from typing import TypeVar, Iterable, List
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
 
@@ -27,7 +28,11 @@ def escape_bracket(q):
         return q
     return re_bracket.sub(lambda m:'\\'+m.group(), q)
 
-def uniq(values, key=None):
+
+T = TypeVar('T')
+
+
+def uniq(values: Iterable[T], key=None) -> List[T]:
     """Returns the unique entries from the given values in the original order.
 
     The value of the optional `key` parameter should be a function that takes
