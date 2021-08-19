@@ -488,14 +488,6 @@ class Test_update_items:
         assert isinstance(requests[0], update_work.AddRequest)
         assert requests[0].doc['key'] == "/authors/OL25A"
 
-    def test_delete_edition(self):
-        editions = update_work.update_edition({'key': '/books/OL23M', 'type': {'key': '/type/delete'}})
-        assert editions == [], "Editions are not indexed by Solr, expecting empty set regardless of input. Got: %s" % editions
-
-    def test_update_edition(self):
-        editions = update_work.update_edition({'key': '/books/OL23M', 'type': {'key': '/type/edition'}})
-        assert editions == [], "Editions are not indexed by Solr, expecting empty set regardless of input. Got: %s" % editions
-
     def test_delete_requests(self):
         olids = ['/works/OL1W', '/works/OL2W', '/works/OL3W']
         json_command = update_work.DeleteRequest(olids).to_json_command()

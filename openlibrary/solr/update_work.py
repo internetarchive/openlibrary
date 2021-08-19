@@ -1188,38 +1188,6 @@ def solr_update(
         logger.error('Error with solr POST update')
 
 
-def update_edition(e):
-    """
-    Get the Solr requests necessary to insert/update this edition into Solr.
-    Currently editions are not indexed by Solr
-    (unless they are orphaned editions passed into update_work() as fake works.
-    This always returns an empty list.
-    :param dict e: Edition to update
-    :rtype: list
-    """
-    return []
-
-    ekey = e['key']
-    logger.debug("updating edition %s", ekey)
-
-    wkey = e.get('works') and e['works'][0]['key']
-    w = wkey and data_provider.get_document(wkey)
-    authors = []
-
-    if w:
-        authors = [data_provider.get_document(a['author']['key']) for a in w.get("authors", []) if 'author' in a]
-
-    request_set = SolrRequestSet()
-    request_set.delete(ekey)
-
-    redirect_keys = data_provider.find_redirects(ekey)
-    for k in redirect_keys:
-        request_set.delete(k)
-
-    doc = EditionBuilder(e, w, authors).build()
-    request_set.add(doc)
-    return request_set.get_requests()
-
 def get_subject(key):
     subject_key = key.split("/")[-1]
 
@@ -1612,19 +1580,6 @@ def update_keys(keys,
                         f.write("\n")
         else:
             _solr_update(requests, debug=True)
-
-    # update editions
-    requests = []
-    for k in ekeys:
-        try:
-            e = data_provider.get_document(k)
-            requests += update_edition(e)
-        except:
-            logger.error("Failed to update edition %s", k, exc_info=True)
-    if requests:
-        if commit:
-            requests += [CommitRequest()]
-        _solr_update(requests, debug=True)
 
     # update authors
     requests = []
