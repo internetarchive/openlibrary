@@ -22,7 +22,6 @@ import json
 import six
 from six.moves.http_client import HTTPConnection
 import web
-from lxml.etree import tostring, Element, SubElement
 
 from infogami.infobase.client import ClientException
 from openlibrary import config
@@ -142,42 +141,6 @@ def strip_bad_char(s):
         return s
     return re_bad_char.sub('', s)
 
-def add_field(doc, name, value):
-    """
-    Add an XML element to the provided doc of the form `<field name="$name">$value</field>`.
-
-    Example:
-
-    >>> tostring(add_field(Element("doc"), "foo", "bar"))
-    "<doc><field name="foo">bar</field></doc>"
-
-    :param lxml.etree.ElementBase doc: Parent document to append to.
-    :param str name:
-    :param value:
-    """
-    field = Element("field", name=name)
-    try:
-        field.text = normalize('NFC', six.text_type(strip_bad_char(value)))
-    except:
-        logger.error('Error in normalizing %r', value)
-        raise
-    doc.append(field)
-
-def add_field_list(doc, name, field_list):
-    """
-    Add multiple XML elements to the provided element of the form `<field name="$name">$value[i]</field>`.
-
-    Example:
-
-    >>> tostring(add_field_list(Element("doc"), "foo", [1,2]))
-    "<doc><field name="foo">1</field><field name="foo">2</field></doc>"
-
-    :param lxml.etree.ElementBase doc: Parent document to append to.
-    :param str name:
-    :param list field_list:
-    """
-    for value in field_list:
-        add_field(doc, name, value)
 
 def str_to_key(s):
     """
@@ -795,21 +758,6 @@ class SolrProcessor:
         if printdisabled:
             add('printdisabled_s', ';'.join(list(printdisabled)))
 
-def dict2element(d):
-    """
-    Convert the dict to insert into Solr into Solr XML <doc>.
-
-    :param dict d:
-    :rtype: lxml.etree.ElementBase
-    """
-    doc = Element("doc")
-    for k, v in d.items():
-        if isinstance(v, (list, set)):
-            add_field_list(doc, k, v)
-        else:
-            add_field(doc, k, v)
-    return doc
-
 
 def build_data(w: dict) -> SolrDocument:
     """
@@ -1272,7 +1220,6 @@ def update_work(work: dict) -> List[SolrUpdateRequest]:
     elif work['type']['key'] == '/type/work':
         try:
             solr_doc = build_data(work)
-            dict2element(solr_doc)
         except:
             logger.error("failed to update work %s", work['key'], exc_info=True)
         else:
