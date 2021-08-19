@@ -1090,31 +1090,6 @@ class EditionBuilder(BaseDocBuilder):
         last_modified = datetimestr_to_int(self.edition.get('last_modified'))
         yield 'last_modified_i', last_modified
 
-class SolrRequestSet:
-    def __init__(self):
-        self.deletes = []
-        self.docs = []
-
-    def delete(self, key):
-        self.deletes.append(key)
-
-    def add(self, doc):
-        self.docs.append(doc)
-
-    def get_requests(self):
-        return list(self._get_requests())
-
-    def _get_requests(self):
-        requests = []
-        requests += [make_delete_query(self.deletes)]
-        requests += [self._add_request(doc) for doc in self.docs]
-        return requests
-
-    def _add_request(self, doc):
-        """Constructs add request using doc dict.
-        """
-        pass
-
 
 class SolrUpdateRequest:
     type: Literal['add', 'delete', 'commit']
@@ -1313,26 +1288,6 @@ def update_work(work: dict) -> List[SolrUpdateRequest]:
 
     return requests
 
-
-def make_delete_query(keys: List[str]) -> str:
-    """
-    Create a solr <delete> tag with subelements for each key.
-
-    Example:
-
-    >>> make_delete_query(["/books/OL1M"])
-    '<delete><id>/books/OL1M</id></delete>'
-
-    :param keys: Keys to create delete tags for. (ex: ["/books/OL1M"])
-    :return: <delete> XML element as a string
-    """
-    # Escape ":" in keys like "ia:foo00bar"
-    keys = [solr_escape(key) for key in keys]
-    delete_query = Element('delete')
-    for key in keys:
-        query = SubElement(delete_query, 'id')
-        query.text = key
-    return tostring(delete_query, encoding="unicode")
 
 def update_author(akey, a=None, handle_redirects=True) -> Optional[List[SolrUpdateRequest]]:
     """
