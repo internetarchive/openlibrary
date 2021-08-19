@@ -6,6 +6,7 @@ from infogami import config
 from infogami.utils.view import public
 from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import cache
 from . import db
@@ -452,9 +453,9 @@ def get_observations():
             {
                 'id': 1,
                 'label': 'pace',
-                'description': 'What is the pace of this book?' 
+                'description': 'What is the pace of this book?',
                 'multi_choice': False,
-                'values': [ 
+                'values': [
                     'slow',
                     'medium',
                     'fast'
@@ -506,7 +507,7 @@ def _sort_values(order_list, values_list):
 def _get_deleted_types_and_values():
     """
     Returns a dictionary containing all deleted observation types and values.
-    
+
     return: Deleted types and values dictionary.
     """
     results = {
@@ -598,7 +599,7 @@ def get_observation_metrics(work_olid):
                     }
                 ]
             }
-            ... Other observations omitted for brevity ... 
+            ... Other observations omitted for brevity ...
         ]
     }
 
@@ -647,25 +648,74 @@ def get_observation_metrics(work_olid):
                     'total_respondents_for_type': respondents_per_type_dict[current_type_id],
                     'values': []
                 }
-            current_observation['values'].append(
-                    { 
-                        'value': next((v['name'] for v in observation_item['values'] if v['id'] == i['value_id'])), 
-                        'count': i['total'] 
-                    } 
-                )
+            current_observation['values'].append({
+                'value': next((
+                    v['name'] for v in observation_item['values']
+                    if v['id'] == i['value_id']
+                )),
+                'count': i['total']
+            })
             total_responses += i['total']
-    
+
         current_observation['total_responses'] = total_responses
         metrics['observations'].append(current_observation)
     return metrics
-        
+
 
 class Observations(object):
 
     NULL_EDITION_VALUE = -1
 
     @classmethod
-    def total_unique_respondents(cls, work_id=None):
+    def summary(cls):
+        return {
+            'total_reviews': {
+                'total': Observations.total_reviews(),
+                'month': Observations.total_reviews(
+                    since=DATE_ONE_MONTH_AGO
+                ),
+                'week': Observations.total_reviews(
+                    since=DATE_ONE_WEEK_AGO
+                ),
+            },
+            'total_books_reviewed': {
+                'total': Observations.total_books_reviewed(),
+                'month': Observations.total_books_reviewed(
+                    since=DATE_ONE_MONTH_AGO
+                ),
+                'week': Observations.total_books_reviewed(
+                    since=DATE_ONE_WEEK_AGO
+                ),
+            },
+            'total_reviewers': {
+                'total': Observations.total_unique_respondents(),
+                'month': Observations.total_unique_respondents(
+                    since=DATE_ONE_MONTH_AGO
+                ),
+                'week': Observations.total_unique_respondents(
+                    since=DATE_ONE_WEEK_AGO
+                ),
+            }
+        }
+
+    @classmethod
+    def total_reviews(cls, since=None):
+        oldb = db.get_db()
+        query = "SELECT COUNT(*) from observations"
+        if since:
+            query += " WHERE created >= $since"
+        return oldb.query(query, vars={'since': since})[0]['count']
+
+    @classmethod
+    def total_books_reviewed(cls, since=None):
+        oldb = db.get_db()
+        query = "SELECT COUNT(DISTINCT(work_id)) from observations"
+        if since:
+            query += " WHERE created >= $since"
+        return oldb.query(query, vars={'since': since})[0]['count']
+
+    @classmethod
+    def total_unique_respondents(cls, work_id=None, since=None):
         """
         Returns total number of patrons who have submitted observations for the given work ID.
         If no work ID is passed, returns total number of patrons who have submitted observations
@@ -675,13 +725,17 @@ class Observations(object):
         """
         oldb = db.get_db()
         data = {
-            'work_id': work_id
+            'work_id': work_id,
+            'since': since,
         }
         query = "SELECT COUNT(DISTINCT(username)) FROM observations"
 
         if work_id:
             query += " WHERE work_id = $work_id"
-
+            if since:
+                query += " AND created >= $since"
+        elif since:
+            query += " WHERE created >= $since"
         return oldb.query(query, vars=data)[0]['count']
 
     @classmethod
@@ -694,15 +748,14 @@ class Observations(object):
         """
         oldb = db.get_db()
         data = {
-            'work_id': work_id
+            'work_id': work_id,
         }
         query = """
-            SELECT 
-              observation_type AS type, 
+            SELECT
+              observation_type AS type,
               count(distinct(username)) AS total_respondents
-            FROM observations 
+            FROM observations
             WHERE work_id = $work_id """
-
         deleted_observations = _get_deleted_types_and_values()
 
         if len(deleted_observations['types']):
@@ -734,9 +787,9 @@ class Observations(object):
             'work_id': work_id
         }
         query = """
-            SELECT 
+            SELECT
               observation_type as type_id,
-              observation_value as value_id, 
+              observation_value as value_id,
               COUNT(observation_value) AS total
             FROM observations
             WHERE observations.work_id = $work_id """
@@ -797,7 +850,7 @@ class Observations(object):
     def get_patron_observations(cls, username, work_id=None):
         """
         Returns a list of observation records containing only type and value IDs.
- 
+
         Gets all of a patron's observation records by default.  Returns only the observations for
         the given work if work_id is passed.
 
@@ -854,27 +907,32 @@ class Observations(object):
         return list(oldb.query(query, vars=data))
 
     def get_multi_choice(type):
-        """
-        Searches for the given type in the observations object, and returns the type's 'multi_choice' value.
+        """Searches for the given type in the observations object, and
+        returns the type's 'multi_choice' value.
 
         return: The multi_choice value for the given type
+
         """
         for o in OBSERVATIONS['observations']:
             if o['label'] == type:
                 return o['multi_choice']
 
     @classmethod
-    def persist_observation(cls, username, work_id, observation, action, edition_id=NULL_EDITION_VALUE):
-        """
-        Inserts or deletes a single observation, depending on the given action.
+    def persist_observation(
+            cls, username, work_id, observation, action,
+            edition_id=NULL_EDITION_VALUE):
+        """Inserts or deletes a single observation, depending on the given action.
 
-        If the action is 'delete', the observation will be deleted from the observations table.
+        If the action is 'delete', the observation will be deleted
+        from the observations table.
 
-        If the action is 'add', and the observation type only allows a single value (multi_choice == True), 
-        an attempt is made to delete previous observations of the same type before the new observation is 
-        persisted.
+        If the action is 'add', and the observation type only allows a
+        single value (multi_choice == True), an attempt is made to
+        delete previous observations of the same type before the new
+        observation is persisted.
 
         Otherwise, the new observation is stored in the DB.
+
         """
 
         def get_observation_ids(observation):
@@ -904,7 +962,7 @@ class Observations(object):
 
         where_clause = 'username=$username AND work_id=$work_id AND observation_type=$observation_type '
 
-        
+
         if action == 'delete':
             # Delete observation and return:
             where_clause += 'AND observation_value=$observation_value'
@@ -933,13 +991,16 @@ class Observations(object):
         )
 
     @classmethod
-    def remove_observations(cls, username, work_id, edition_id=NULL_EDITION_VALUE, observation_type=None, observation_value=None):
-        """
-        Deletes observations from the observations table.  If both observation_type and observation_value are
-        passed, only one row will be deleted from the table.  Otherwise, all of a patron's observations for an edition
-        are deleted.
+    def remove_observations(
+            cls, username, work_id, edition_id=NULL_EDITION_VALUE,
+            observation_type=None, observation_value=None):
+        """Deletes observations from the observations table.  If both
+        observation_type and observation_value are passed, only one
+        row will be deleted from the table.  Otherwise, all of a
+        patron's observations for an edition are deleted.
 
         return: A list of deleted rows.
+
         """
         oldb = db.get_db()
         data = {
