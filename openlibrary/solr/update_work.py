@@ -1061,6 +1061,9 @@ class AddRequest(SolrUpdateRequest):
         """
         self.doc = doc
 
+    def to_json_command(self):
+        return f'"{self.type}": {json.dumps(dict(doc=self.doc))}'
+
     def tojson(self) -> str:
         return json.dumps(self.doc)
 
@@ -1111,8 +1114,10 @@ def solr_update(
             headers={'Content-Type': 'application/json'},
             content=content)
         resp.raise_for_status()
+        if resp.is_error:
+            logger.error('Error with solr POST update: ' + resp.text)
     except HTTPError:
-        logger.error('Error with solr POST update')
+        logger.error('Error with solr POST update: ' + content)
 
 
 def get_subject(key):
