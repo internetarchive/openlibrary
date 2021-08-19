@@ -27,7 +27,7 @@ $var title: $_('Authors')
             $elif 'date' in doc:
                 $ date = doc['date']
             <li class="sansserif">
-            <a href="/authors/$doc['key']" class="larger">$n</a>&nbsp;<span class="brown small">$date</span><br />
+            <a href="/authors/$doc['key']" class="larger">$name</a>&nbsp;<span class="brown small">$date</span><br />
             <span class="small grey"><b>$wc</b>
             $if 'top_subjects' in doc:
                 $_('about %(subjects)s', subjects=', '.join(doc['top_subjects'])),
