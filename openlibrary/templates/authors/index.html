@@ -29,9 +29,11 @@ $var title: $_('Authors')
             <li class="sansserif">
             <a href="/authors/$doc['key']" class="larger">$name</a>&nbsp;<span class="brown small">$date</span><br />
             <span class="small grey"><b>$work_count_str</b>
-            $if 'top_subjects' in doc:
-                $_('about %(subjects)s', subjects=', '.join(doc['top_subjects'])),
-            $:_('including <i>%(topwork)s</i>', topwork=doc.get('top_work', ''))</span>
+            $if work_count:
+                $if 'top_subjects' in doc:
+                    $_('about %(subjects)s', subjects=', '.join(doc['top_subjects'])),
+                $:_('including <i>%(topwork)s</i>', topwork=doc.get('top_work', ''))
+            </span>
             </li>
         </ul>
 </div>
