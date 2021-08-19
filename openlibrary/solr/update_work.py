@@ -1215,22 +1215,6 @@ def solr8_update(
         logger.error('Error with solr8 POST update')
 
 
-def process_edition_data(edition_data):
-    """Returns a solr document corresponding to an edition using given edition data.
-    """
-    builder = EditionBuilder(edition_data['edition'], edition_data['work'], edition_data['authors'])
-    return builder.build()
-
-def process_work_data(work_data):
-    """Returns a solr document corresponding to a work using the given work_data.
-    """
-    return build_data2(
-        work_data['work'],
-        work_data['editions'],
-        work_data['authors'],
-        work_data['ia'],
-        work_data['duplicates'])
-
 def update_edition(e):
     """
     Get the Solr requests necessary to insert/update this edition into Solr.
