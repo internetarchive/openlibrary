@@ -118,12 +118,9 @@
 
     <!-- If you don't use child/nested documents, then you should remove the next two fields:  -->
     <!-- for nested documents (minimal; points to root document) -->
-    <!--
     <field name="_root_" type="string" indexed="true" stored="false" docValues="false" />
-    -->
-    <!-- for nested documents (relationship tracking) -->
-    <!--
-    <field name="_nest_path_" type="_nest_path_" /><fieldType name="_nest_path_" class="solr.NestPathField" />
+    <fieldType name="_nest_path_" class="solr.NestPathField" />
+    <field name="_nest_path_" type="_nest_path_" />
 
     <field name="_text_" type="text_general" indexed="true" stored="false" multiValued="true"/>
     -->

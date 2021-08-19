@@ -528,6 +528,28 @@ class SolrProcessor:
 
         return subjects
 
+    def build_edition_data(self, edition: dict) -> SolrDocument:
+        """
+        Build the solr document for the given edition to store as a nested
+        document
+        """
+        d: SolrDocument = cast(
+            SolrDocument,
+            {
+                'key': edition['key'],
+                'type': 'edition',
+            },
+        )
+        if 'title' in edition:
+            d['title'] = edition['title']
+        if 'subtitle' in edition:
+            d['subtitle'] = edition['subtitle']
+
+        languages = get_edition_languages(edition)
+        if languages:
+            d['language'] = uniq(languages)
+        return d
+
     def build_data(
         self,
         w: dict,
@@ -561,8 +583,10 @@ class SolrProcessor:
         add('edition_count', len(editions))
 
         add_list("edition_key", [extract_edition_olid(e['key']) for e in editions])
+        add_list("editions", [self.build_edition_data(ed) for ed in editions])
         add_list(
-            "by_statement", {e["by_statement"] for e in editions if "by_statement" in e}
+            "by_statement",
+            {e["by_statement"] for e in editions if "by_statement" in e},
         )
 
         k = 'publish_date'
