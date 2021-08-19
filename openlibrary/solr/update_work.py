@@ -6,7 +6,7 @@ import os
 import re
 from math import ceil
 from statistics import median
-from typing import Literal, List, Optional, cast, TypedDict, Set
+from typing import Literal, List, Optional, cast, TypedDict, Set, Dict, Any
 
 import httpx
 import requests
@@ -27,7 +27,6 @@ from infogami.infobase.client import ClientException
 from openlibrary import config
 from openlibrary.catalog.utils.query import set_query_host, base_url as get_ol_base_url
 from openlibrary.core import helpers as h
-from openlibrary.core import ia
 from openlibrary.plugins.upstream.utils import url_quote
 from openlibrary.solr.data_provider import get_data_provider, DataProvider
 from openlibrary.solr.types import SolrDocument
@@ -46,7 +45,8 @@ re_iso_date = re.compile(r'^(\d{4})-\d\d-\d\d$')
 re_solr_field = re.compile(r'^[-\w]+$', re.U)
 re_year = re.compile(r'(\d{4})$')
 
-data_provider = None
+# This will be set to a data provider; have faith, mypy!
+data_provider = cast(DataProvider, None)
 _ia_db = None
 
 solr_base_url = None
@@ -107,7 +107,7 @@ def get_ia_collection_and_box_id(ia: str) -> Optional[IALiteMetadata]:
     :rtype: dict[str, set]
     """
     if len(ia) == 1:
-        return
+        return None
 
     def get_list(d, key):
         """
@@ -208,7 +208,8 @@ def get_edition_languages(edition: dict) -> List[str]:
     result: List[str] = []
     for lang in edition.get('languages', []):
         m = re_lang_key.match(lang['key'] if isinstance(lang, dict) else lang)
-        result.append(m.group(1))
+        if m:
+            result.append(m.group(1))
     return result
 
 
@@ -775,16 +776,14 @@ def build_data(w: dict) -> SolrDocument:
 
     iaids = [e["ocaid"] for e in editions if "ocaid" in e]
     ia = dict((iaid, get_ia_collection_and_box_id(iaid)) for iaid in iaids)
-    duplicates = {}
-    return build_data2(w, editions, authors, ia, duplicates)
+    return build_data2(w, editions, authors, ia)
 
 
 def build_data2(
         w: dict,
         editions: List[dict],
-        authors, ia:
-        dict[str, IALiteMetadata],
-        duplicates) -> SolrDocument:
+        authors,
+        ia: dict[str, Optional[IALiteMetadata]]) -> SolrDocument:
     """
     Construct the Solr document to insert into Solr for the given work
 
@@ -793,7 +792,6 @@ def build_data2(
     :param authors: Authors of work
     :param ia: boxid/collection of each associated IA id
         (ex: `{foobar: {boxid: {"foo"}, collection: {"lendinglibrary"}}}`)
-    :param duplicates: FIXME unused
     :rtype: dict
     """
     resolve_redirects = False
@@ -809,7 +807,7 @@ def build_data2(
 
     p = SolrProcessor(resolve_redirects)
 
-    identifiers = defaultdict(list)
+    identifiers: Dict[str, list] = defaultdict(list)
     editions = p.process_editions(w, editions, ia, identifiers)
 
     has_fulltext = any(e.get('ocaid', None) for e in editions)
@@ -831,8 +829,10 @@ def build_data2(
 
     cover_edition = pick_cover_edition(editions, work_cover_id)
     if cover_edition:
-        cover_edition_key = re_edition_key.match(cover_edition['key']).group(1)
-        add_field(doc, 'cover_edition_key', cover_edition_key)
+        m = re_edition_key.match(cover_edition['key'])
+        if m:
+            cover_edition_key = m.group(1)
+            add_field(doc, 'cover_edition_key', cover_edition_key)
 
     main_cover_id = work_cover_id or (
         next(cover_id for cover_id in cover_edition['covers'] if cover_id != -1)
@@ -845,7 +845,7 @@ def build_data2(
     fs = set( e[k]['value'] if isinstance(e[k], dict) else e[k] for e in editions if e.get(k, None))
     add_field_list(doc, k, fs)
 
-    publishers = set()
+    publishers: Set[str] = set()
     for e in editions:
         publishers.update('Sine nomine' if is_sine_nomine(i) else i for i in e.get('publishers', []))
     add_field_list(doc, 'publisher', publishers)
@@ -883,7 +883,11 @@ def build_data2(
     #if lending_edition or in_library_edition:
     #    add_field(doc, "borrowed_b", is_borrowed(lending_edition or in_library_edition))
 
-    author_keys = [re_author_key.match(a['key']).group(1) for a in authors]
+    author_keys = [
+        m.group(1)
+        for m in (re_author_key.match(a['key']) for a in authors)
+        if m
+    ]
     author_names = [a.get('name', '') for a in authors]
     add_field_list(doc, 'author_key', author_keys)
     add_field_list(doc, 'author_name', author_names)
@@ -1041,14 +1045,14 @@ class EditionBuilder(BaseDocBuilder):
 
 class SolrUpdateRequest:
     type: Literal['add', 'delete', 'commit']
-    doc: dict
+    doc: Any
 
     def to_json_command(self):
         return f'"{self.type}": {json.dumps(self.doc)}'
 
 
 class AddRequest(SolrUpdateRequest):
-    type = 'add'
+    type: Literal['add'] = 'add'
     doc: SolrDocument
 
     def __init__(self, doc):
@@ -1063,7 +1067,7 @@ class AddRequest(SolrUpdateRequest):
 
 class DeleteRequest(SolrUpdateRequest):
     """A Solr <delete> request."""
-    type = 'delete'
+    type: Literal['delete'] = 'delete'
     doc: List[str]
 
     def __init__(self, keys: List[str]):
@@ -1075,7 +1079,7 @@ class DeleteRequest(SolrUpdateRequest):
 
 
 class CommitRequest(SolrUpdateRequest):
-    type = 'commit'
+    type: Literal['commit'] = 'commit'
 
     def __init__(self):
         self.doc = {}
@@ -1224,9 +1228,11 @@ def update_work(work: dict) -> List[SolrUpdateRequest]:
             logger.error("failed to update work %s", work['key'], exc_info=True)
         else:
             if solr_doc is not None:
+                iaids = solr_doc.get('ia') or []
                 # Delete all ia:foobar keys
-                if solr_doc.get('ia'):
-                    requests.append(DeleteRequest(["/works/ia:" + iaid for iaid in solr_doc['ia']]))
+                if iaids:
+                    requests.append(
+                        DeleteRequest([f"/works/ia:{iaid}" for iaid in iaids]))
                 requests.append(AddRequest(solr_doc))
     elif work['type']['key'] in ['/type/delete', '/type/redirect']:
         requests.append(DeleteRequest([wkey]))
@@ -1236,15 +1242,19 @@ def update_work(work: dict) -> List[SolrUpdateRequest]:
     return requests
 
 
-def update_author(akey, a=None, handle_redirects=True) -> Optional[List[SolrUpdateRequest]]:
+def update_author(
+        akey,
+        a=None,
+        handle_redirects=True
+) -> Optional[List[SolrUpdateRequest]]:
     """
     Get the Solr requests necessary to insert/update/delete an Author in Solr.
-    :param string akey: The author key, e.g. /authors/OL23A
+    :param akey: The author key, e.g. /authors/OL23A
     :param dict a: Optional Author
     :param bool handle_redirects: If true, remove from Solr all authors that redirect to this one
     """
     if akey == '/authors/':
-        return
+        return None
     m = re_author_key.match(akey)
     if not m:
         logger.error('bad key: %s', akey)
@@ -1274,7 +1284,7 @@ def update_author(akey, a=None, handle_redirects=True) -> Optional[List[SolrUpda
         ('facet.mincount', 1),
     ] + [
         ('facet.field', '%s_facet' % field) for field in facet_fields
-    ]).json()
+    ]).json()  # type: ignore
     work_count = reply['response']['numFound']
     docs = reply['response'].get('docs', [])
     top_work = None
@@ -1288,10 +1298,10 @@ def update_author(akey, a=None, handle_redirects=True) -> Optional[List[SolrUpda
             all_subjects.append((num, s))
     all_subjects.sort(reverse=True)
     top_subjects = [s for num, s in all_subjects[:10]]
-    d = dict(
-        key="/authors/" + author_id,
-        type='author'
-    )
+    d = cast(SolrDocument, {
+        'key': f'/authors/{author_id}',
+        'type': 'author',
+    })
 
     if a.get('name', None):
         d['name'] = a['name']
@@ -1300,9 +1310,13 @@ def update_author(akey, a=None, handle_redirects=True) -> Optional[List[SolrUpda
     if alternate_names:
         d['alternate_names'] = alternate_names
 
-    for f in 'birth_date', 'death_date', 'date':
-        if a.get(f, None):
-            d[f] = a[f]
+    if a.get('birth_date', None):
+        d['birth_date'] = a['birth_date']
+    if a.get('death_date', None):
+        d['death_date'] = a['death_date']
+    if a.get('date', None):
+        d['date'] = a['date']
+
     if top_work:
         d['top_work'] = top_work
     d['work_count'] = work_count
@@ -1482,7 +1496,7 @@ def update_keys(keys,
     for k in akeys:
         logger.debug("updating author %s", k)
         try:
-            requests += update_author(k)
+            requests += update_author(k) or []
         except:
             logger.error("Failed to update author %s", k, exc_info=True)
 
