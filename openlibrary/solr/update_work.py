@@ -1390,7 +1390,7 @@ def update_keys(keys,
     logger.debug("BEGIN update_keys")
     commit_way_later_dur = 1000 * 60 * 60 * 24 * 5  # 5 days?
 
-    def _solr_update(requests: List[SolrUpdateRequest], debug=False, commitWithin=60000):
+    def _solr_update(requests: List[SolrUpdateRequest], commitWithin=60000):
         if update == 'update':
             commitWithin = commit_way_later_dur if commit_way_later else commitWithin
 
@@ -1486,7 +1486,7 @@ def update_keys(keys,
                         f.write(r.tojson())
                         f.write("\n")
         else:
-            _solr_update(requests, debug=True)
+            _solr_update(requests)
 
     # update authors
     requests = []
@@ -1508,10 +1508,9 @@ def update_keys(keys,
                         f.write(r.tojson())
                         f.write("\n")
         else:
-            #solr_update(requests, debug=True)
             if commit:
                 requests += [CommitRequest()]
-            _solr_update(requests, debug=True, commitWithin=1000)
+            _solr_update(requests, commitWithin=1000)
 
     logger.debug("END update_keys")
 
