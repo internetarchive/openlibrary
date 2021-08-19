@@ -556,7 +556,14 @@ class SolrProcessor:
             add('number_of_pages_median', number_of_pages_median)
 
         if get_solr_next():
-            add_list("editions", [build_edition_data(ed) for ed in editions])
+            add_list("editions", [
+                build_edition_data(ed, {
+                    **(
+                        {'collection': list(ed['ia_collection'])}
+                        if 'ia_collection' in ed else {}),
+                })
+                for ed in editions
+            ])
 
         field_map = [
             ('lccn', 'lccn'),
@@ -717,6 +724,8 @@ class SolrProcessor:
                 )
             )
             if all_collection:
+                ebook_info['ia_collection'] = all_collection
+                # This field is to be deprecated:
                 ebook_info['ia_collection_s'] = ';'.join(all_collection)
 
             # --- These should be deprecated and removed ---

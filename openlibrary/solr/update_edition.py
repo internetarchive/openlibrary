@@ -146,12 +146,12 @@ class EditionSolrBuilder:
         return identifiers
 
 
-def build_edition_data(edition: dict) -> SolrDocument:
+def build_edition_data(edition: dict, ia_metadata: dict) -> SolrDocument:
     """
     Build the solr document for the given edition to store as a nested
     document
     """
-    ed = EditionSolrBuilder(edition)
+    ed = EditionSolrBuilder(edition, ia_metadata)
     solr_doc: SolrDocument = cast(SolrDocument, {
         'key': ed.key,
         'type': 'edition',
