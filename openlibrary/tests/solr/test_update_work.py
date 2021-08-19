@@ -490,7 +490,7 @@ class Test_update_items:
         requests = update_work.update_author('/authors/OL25A')
         assert len(requests) == 1
         assert isinstance(requests, list)
-        assert isinstance(requests[0], update_work.UpdateRequest)
+        assert isinstance(requests[0], update_work.AddRequest)
         assert requests[0].toxml().startswith('<add>')
         assert '<field name="key">/authors/OL25A</field>' in requests[0].toxml()
 

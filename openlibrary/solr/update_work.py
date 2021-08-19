@@ -976,47 +976,6 @@ async def solr_insert_documents(
     resp.raise_for_status()
 
 
-def solr_update(requests, debug=False, commitWithin=60000, solr_base_url: str = None):
-    """POSTs a collection of update requests to Solr.
-    TODO: Deprecate and remove string requests. Is anything else still generating them?
-    :param list[string or UpdateRequest or DeleteRequest] requests: Requests to send to Solr
-    :param bool debug:
-    :param int commitWithin: Solr commitWithin, in ms
-    """
-    solr_base_url = solr_base_url or get_solr_base_url()
-    url = f'{solr_base_url}/update'
-    parsed_url = urlparse(url)
-    assert parsed_url.hostname
-
-    if parsed_url.port:
-        h1 = HTTPConnection(parsed_url.hostname, parsed_url.port)
-    else:
-        h1 = HTTPConnection(parsed_url.hostname)
-    logger.debug("POSTing update to %s", url)
-    # FIXME; commit strategy / timing should be managed in config, not code
-    url = url + "?commitWithin=%d" % commitWithin
-
-    h1.connect()
-    for r in requests:
-        if not isinstance(r, six.string_types):
-            # Assuming it is either UpdateRequest or DeleteRequest
-            r = r.toxml()
-        if not r:
-            continue
-
-        if debug:
-            logger.info('request: %r', r[:65] + '...' if len(r) > 65 else r)
-        assert isinstance(r, six.string_types)
-        h1.request('POST', url, r.encode('utf8'), { 'Content-type': 'text/xml;charset=utf-8'})
-        response = h1.getresponse()
-        response_body = response.read()
-        if response.reason != 'OK':
-            logger.error(response.reason)
-            logger.error(response_body)
-        if debug:
-            logger.info(response.reason)
-    h1.close()
-
 def listify(f):
     """Decorator to transform a generator function into a function
     returning list of values.
@@ -1134,12 +1093,24 @@ class SolrRequestSet:
         """
         pass
 
-class UpdateRequest:
-    """A Solr <add> request."""
+
+class SolrUpdateRequest:
+    type: Literal['add', 'delete', 'commit']
+    doc: dict
+
+    def to_json_command(self):
+        return f'"{self.type}": {json.dumps(self.doc)}'
+
+    def toxml(self) -> str:
+        raise NotImplemented()
+
+
+class AddRequest(SolrUpdateRequest):
+    type = 'add'
 
     def __init__(self, doc):
         """
-        :param dict doc: Document to be inserted into Solr.
+        :param doc: Document to be inserted into Solr.
         """
         self.doc = doc
 
@@ -1154,21 +1125,20 @@ class UpdateRequest:
         root.append(node)
         return tostring(root, encoding="unicode")
 
-    def tojson(self):
-        """
-        Get a JSON string for the document to insert into Solr.
-
-        :rtype: str
-        """
+    def tojson(self) -> str:
         return json.dumps(self.doc)
 
-class DeleteRequest:
-    """A Solr <delete> request."""
 
-    def __init__(self, keys):
+class DeleteRequest(SolrUpdateRequest):
+    """A Solr <delete> request."""
+    type = 'delete'
+    doc: List[str]
+
+    def __init__(self, keys: List[str]):
         """
-        :param list[str] keys: Keys to mark for deletion (ex: ["/books/OL1M"]).
+        :param keys: Keys to mark for deletion (ex: ["/books/OL1M"]).
         """
+        self.doc = keys
         self.keys = keys
 
     def toxml(self):
@@ -1181,8 +1151,62 @@ class DeleteRequest:
             return make_delete_query(self.keys)
 
 
+class CommitRequest(SolrUpdateRequest):
+    type = 'commit'
+
+    def __init__(self):
+        self.doc = {}
+
+    def toxml(self):
+        return '<commit />'
+
+
+def solr_update(
+        requests: List[SolrUpdateRequest],
+        debug=False,
+        commitWithin=60000,
+        solr_base_url: str = None):
+    """POSTs a collection of update requests to Solr.
+    TODO: Deprecate and remove string requests. Is anything else still generating them?
+    :param requests: Requests to send to Solr
+    :param bool debug:
+    :param int commitWithin: Solr commitWithin, in ms
+    """
+    solr_base_url = solr_base_url or get_solr_base_url()
+    url = f'{solr_base_url}/update'
+    parsed_url = urlparse(url)
+    assert parsed_url.hostname
+
+    if parsed_url.port:
+        h1 = HTTPConnection(parsed_url.hostname, parsed_url.port)
+    else:
+        h1 = HTTPConnection(parsed_url.hostname)
+    logger.debug("POSTing update to %s", url)
+    # FIXME; commit strategy / timing should be managed in config, not code
+    url = url + "?commitWithin=%d" % commitWithin
+
+    h1.connect()
+    for r in requests:
+        r = r.toxml()
+        if not r:
+            continue
+
+        if debug:
+            logger.info('request: %r', r[:65] + '...' if len(r) > 65 else r)
+        assert isinstance(r, six.string_types)
+        h1.request('POST', url, r.encode('utf8'), { 'Content-type': 'text/xml;charset=utf-8'})
+        response = h1.getresponse()
+        response_body = response.read()
+        if response.reason != 'OK':
+            logger.error(response.reason)
+            logger.error(response_body)
+        if debug:
+            logger.info(response.reason)
+    h1.close()
+
+
 def solr8_update(
-        reqs: List[Union[str, UpdateRequest, DeleteRequest]],
+        reqs: List[SolrUpdateRequest],
         commit_within=60_000,
         skip_id_check=False,
         solr_base_url: str = None,
@@ -1192,9 +1216,9 @@ def solr8_update(
 
     :param commit_within: milliseconds
     """
-    req_strs = (r if type(r) == str else r.toxml() for r in reqs if r)  # type: ignore
+    req_strs = (r if type(r) == str else r.toxml() for r in reqs if r)
     # .toxml() can return None :/
-    content = f"<update>{''.join(s for s in req_strs if s)}</update>"  # type: ignore
+    content = f"<update>{''.join(s for s in req_strs if s)}</update>"
 
     solr_base_url = solr_base_url or get_solr_base_url()
     params = {}
@@ -1329,15 +1353,14 @@ def build_subject_doc(
     }
 
 
-def update_work(work):
+def update_work(work: dict) -> List[SolrUpdateRequest]:
     """
     Get the Solr requests necessary to insert/update this work into Solr.
 
     :param dict work: Work to insert/update
-    :rtype: list[UpdateRequest or DeleteRequest]
     """
     wkey = work['key']
-    requests = []
+    requests: List[SolrUpdateRequest] = []
 
     # q = {'type': '/type/redirect', 'location': wkey}
     # redirect_keys = [r['key'][7:] for r in query_iter(q)]
@@ -1374,7 +1397,7 @@ def update_work(work):
                 # Delete all ia:foobar keys
                 if solr_doc.get('ia'):
                     requests.append(DeleteRequest(["/works/ia:" + iaid for iaid in solr_doc['ia']]))
-                requests.append(UpdateRequest(solr_doc))
+                requests.append(AddRequest(solr_doc))
     elif work['type']['key'] in ['/type/delete', '/type/redirect']:
         requests.append(DeleteRequest([wkey]))
     else:
@@ -1383,7 +1406,7 @@ def update_work(work):
     return requests
 
 
-def make_delete_query(keys):
+def make_delete_query(keys: List[str]) -> str:
     """
     Create a solr <delete> tag with subelements for each key.
 
@@ -1392,9 +1415,8 @@ def make_delete_query(keys):
     >>> make_delete_query(["/books/OL1M"])
     '<delete><id>/books/OL1M</id></delete>'
 
-    :param list[str] keys: Keys to create delete tags for. (ex: ["/books/OL1M"])
+    :param keys: Keys to create delete tags for. (ex: ["/books/OL1M"])
     :return: <delete> XML element as a string
-    :rtype: str
     """
     # Escape ":" in keys like "ia:foo00bar"
     keys = [solr_escape(key) for key in keys]
@@ -1404,13 +1426,12 @@ def make_delete_query(keys):
         query.text = key
     return tostring(delete_query, encoding="unicode")
 
-def update_author(akey, a=None, handle_redirects=True):
+def update_author(akey, a=None, handle_redirects=True) -> Optional[List[SolrUpdateRequest]]:
     """
     Get the Solr requests necessary to insert/update/delete an Author in Solr.
     :param string akey: The author key, e.g. /authors/OL23A
     :param dict a: Optional Author
     :param bool handle_redirects: If true, remove from Solr all authors that redirect to this one
-    :rtype: list[UpdateRequest or DeleteRequest]
     """
     if akey == '/authors/':
         return
@@ -1477,7 +1498,7 @@ def update_author(akey, a=None, handle_redirects=True):
     d['work_count'] = work_count
     d['top_subjects'] = top_subjects
 
-    solr_requests = []
+    solr_requests: List[SolrUpdateRequest] = []
     if handle_redirects:
         redirect_keys = data_provider.find_redirects(akey)
         #redirects = ''.join('<id>{}</id>'.format(k) for k in redirect_keys)
@@ -1491,7 +1512,7 @@ def update_author(akey, a=None, handle_redirects=True):
         #    solr_requests.append('<delete>' + redirects + '</delete>')
         if redirect_keys:
             solr_requests.append(DeleteRequest(redirect_keys))
-    solr_requests.append(UpdateRequest(d))
+    solr_requests.append(AddRequest(d))
     return solr_requests
 
 
@@ -1546,7 +1567,7 @@ def update_keys(keys,
     logger.debug("BEGIN update_keys")
     commit_way_later_dur = 1000 * 60 * 60 * 24 * 5  # 5 days?
 
-    def _solr_update(requests, debug=False, commitWithin=60000):
+    def _solr_update(requests: List[SolrUpdateRequest], debug=False, commitWithin=60000):
         if update == 'update':
             commitWithin = commit_way_later_dur if commit_way_later else commitWithin
 
@@ -1557,10 +1578,7 @@ def update_keys(keys,
         elif update in ('print', 'pprint'):
             for req in requests:
                 import xml.etree.ElementTree as ET
-                xml_str = (
-                    req.toxml()
-                    if isinstance(req, UpdateRequest) or isinstance(req, DeleteRequest)
-                    else req)
+                xml_str = req.toxml()
                 if xml_str and update == 'pprint':
                     root = ET.XML(xml_str)
                     ET.indent(root)
@@ -1631,7 +1649,7 @@ def update_keys(keys,
     data_provider.preload_editions_of_works(wkeys)
 
     # update works
-    requests = []  # type: list[Union[UpdateRequest, DeleteRequest, str]]
+    requests: List[SolrUpdateRequest] = []
     requests += [DeleteRequest(deletes)]
     for k in wkeys:
         logger.debug("updating work %s", k)
@@ -1643,12 +1661,12 @@ def update_keys(keys,
 
     if requests:
         if commit:
-            requests += ['<commit />']
+            requests += [CommitRequest()]
 
         if output_file:
             with open(output_file, "w") as f:
                 for r in requests:
-                    if isinstance(r, UpdateRequest):
+                    if isinstance(r, AddRequest):
                         f.write(r.tojson())
                         f.write("\n")
         else:
@@ -1664,7 +1682,7 @@ def update_keys(keys,
             logger.error("Failed to update edition %s", k, exc_info=True)
     if requests:
         if commit:
-            requests += ['<commit/>']
+            requests += [CommitRequest()]
         _solr_update(requests, debug=True)
 
     # update authors
@@ -1683,13 +1701,13 @@ def update_keys(keys,
         if output_file:
             with open(output_file, "w") as f:
                 for r in requests:
-                    if isinstance(r, UpdateRequest):
+                    if isinstance(r, AddRequest):
                         f.write(r.tojson())
                         f.write("\n")
         else:
             #solr_update(requests, debug=True)
             if commit:
-                requests += ['<commit />']
+                requests += [CommitRequest()]
             _solr_update(requests, debug=True, commitWithin=1000)
 
     # update subjects
@@ -1703,7 +1721,7 @@ def update_keys(keys,
             logger.error("Failed to update subject %s", k, exc_info=True)
     if requests:
         if commit:
-            requests += ['<commit />']
+            requests += [CommitRequest()]
         _solr_update(requests, debug=True)
 
     logger.debug("END update_keys")
