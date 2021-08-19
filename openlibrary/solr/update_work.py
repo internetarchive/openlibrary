@@ -34,15 +34,14 @@ from openlibrary.solr.data_provider import (
     ExternalDataProvider,
 )
 from openlibrary.solr.solr_types import SolrDocument
+from openlibrary.solr.update_edition import EditionSolrBuilder, build_edition_data
 from openlibrary.utils import uniq
 from openlibrary.utils.ddc import normalize_ddc, choose_sorting_ddc
-from openlibrary.utils.isbn import opposite_isbn
 from openlibrary.utils.lcc import short_lcc_to_sortable_lcc, choose_sorting_lcc
 from openlibrary.utils.retry import MaxRetriesExceeded, RetryStrategy
 
 logger = logging.getLogger("openlibrary.solr")
 
-re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
 re_bad_char = re.compile('[\x01\x0b\x1a-\x1e]')
 re_edition_key = re.compile(r"/books/([^/]+)")
@@ -161,19 +160,6 @@ def str_to_key(s):
     return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
 
 
-re_not_az = re.compile('[^a-zA-Z]')
-
-
-def is_sine_nomine(pub):
-    """
-    Check if the publisher is 'sn' (excluding non-letter characters).
-
-    :param str pub:
-    :rtype: bool
-    """
-    return re_not_az.sub('', pub).lower() == 'sn'
-
-
 def pick_cover_edition(editions, work_cover_id):
     """
     Get edition that's used as the cover of the work. Otherwise get the first English edition, or otherwise any edition.
@@ -212,18 +198,6 @@ def pick_number_of_pages_median(editions: list[dict]) -> Optional[int]:
         return ceil(median(number_of_pages))
     else:
         return None
-
-
-def get_edition_languages(edition: dict) -> list[str]:
-    """
-    :returns: eg ['eng', 'ger']
-    """
-    result: list[str] = []
-    for lang in edition.get('languages', []):
-        m = re_lang_key.match(lang['key'] if isinstance(lang, dict) else lang)
-        if m:
-            result.append(m.group(1))
-    return result
 
 
 def get_work_subjects(w):
@@ -528,28 +502,6 @@ class SolrProcessor:
 
         return subjects
 
-    def build_edition_data(self, edition: dict) -> SolrDocument:
-        """
-        Build the solr document for the given edition to store as a nested
-        document
-        """
-        d: SolrDocument = cast(
-            SolrDocument,
-            {
-                'key': edition['key'],
-                'type': 'edition',
-            },
-        )
-        if 'title' in edition:
-            d['title'] = edition['title']
-        if 'subtitle' in edition:
-            d['subtitle'] = edition['subtitle']
-
-        languages = get_edition_languages(edition)
-        if languages:
-            d['language'] = uniq(languages)
-        return d
-
     def build_data(
         self,
         w: dict,
@@ -583,7 +535,6 @@ class SolrProcessor:
         add('edition_count', len(editions))
 
         add_list("edition_key", [extract_edition_olid(e['key']) for e in editions])
-        add_list("editions", [self.build_edition_data(ed) for ed in editions])
         add_list(
             "by_statement",
             {e["by_statement"] for e in editions if "by_statement" in e},
@@ -603,6 +554,9 @@ class SolrProcessor:
         number_of_pages_median = pick_number_of_pages_median(editions)
         if number_of_pages_median:
             add('number_of_pages_median', number_of_pages_median)
+
+        if get_solr_next():
+            add_list("editions", [build_edition_data(ed) for ed in editions])
 
         field_map = [
             ('lccn', 'lccn'),
@@ -680,20 +634,7 @@ class SolrProcessor:
         :param list[dict] editions: editions
         :rtype: set[str]
         """
-        isbns = set()
-
-        isbns.update(
-            v.replace("_", "").strip() for e in editions for v in e.get("isbn_10", [])
-        )
-        isbns.update(
-            v.replace("_", "").strip() for e in editions for v in e.get("isbn_13", [])
-        )
-
-        # Get the isbn13 when isbn10 is present and vice-versa.
-        alt_isbns = [opposite_isbn(v) for v in isbns]
-        isbns.update(v for v in alt_isbns if v is not None)
-
-        return isbns
+        return {isbn for ed in editions for isbn in EditionSolrBuilder(ed).isbn}
 
     def get_last_modified(self, work, editions):
         """
@@ -896,20 +837,22 @@ def build_data2(
     }
     add_field_list(doc, k, fs)
 
-    publishers: set[str] = set()
-    for e in editions:
-        publishers.update(
-            'Sine nomine' if is_sine_nomine(i) else i for i in e.get('publishers', [])
-        )
-    add_field_list(doc, 'publisher', publishers)
-    #    add_field_list(doc, 'publisher_facet', publishers)
+    add_field_list(
+        doc,
+        'publisher',
+        {
+            publisher
+            for ed in editions
+            for publisher in EditionSolrBuilder(ed).publisher
+        },
+    )
 
     languages: list[str] = []
     ia_loaded_id = set()
     ia_box_id = set()
 
     for e in editions:
-        languages += get_edition_languages(e)
+        languages += EditionSolrBuilder(e).languages
         if e.get('ia_loaded_id'):
             if isinstance(e['ia_loaded_id'], str):
                 ia_loaded_id.add(e['ia_loaded_id'])
@@ -1074,43 +1017,6 @@ class BaseDocBuilder:
         if isinstance(subject, str):
             key = prefix + self.re_subject.sub("_", subject.lower()).strip("_")
             return key
-
-
-class EditionBuilder(BaseDocBuilder):
-    """Helper to edition solr data."""
-
-    def __init__(self, edition, work, authors):
-        self.edition = edition
-        self.work = work
-        self.authors = authors
-
-    def build(self):
-        return dict(self._build())
-
-    def _build(self):
-        yield 'key', self.edition['key']
-        yield 'type', 'edition'
-        yield 'title', self.edition.get('title') or ''
-        yield 'seed', self.compute_seeds(self.work, [self.edition])
-
-        isbns = self.edition.get("isbn_10", []) + self.edition.get("isbn_13", [])
-        isbn_set = set()
-        for isbn in isbns:
-            isbn_set.add(isbn)
-            isbn_set.add(isbn.strip().replace("-", ""))
-        yield "isbn", list(isbn_set)
-
-        has_fulltext = bool(self.edition.get("ocaid"))
-        yield 'has_fulltext', has_fulltext
-
-        if self.authors:
-            author_names = [a.get('name', '') for a in self.authors]
-            author_keys = [a['key'].split("/")[-1] for a in self.authors]
-            yield 'author_name', author_names
-            yield 'author_key', author_keys
-
-        last_modified = datetimestr_to_int(self.edition.get('last_modified'))
-        yield 'last_modified_i', last_modified
 
 
 class SolrUpdateRequest:
