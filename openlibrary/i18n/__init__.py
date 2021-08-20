@@ -36,13 +36,13 @@ def _compile_translation(po, mo):
 def _validate_catalog(catalog, locale):
     validation_errors = []
     for message in catalog:
-        errors = FuzzyValidator(message, catalog).validate()
-        errors.extend(FormatValidator(message, catalog).validate())
+        message_errors = FuzzyValidator(message, catalog).validate()
+        message_errors.extend(FormatValidator(message, catalog).validate())
 
-        if errors:
+        if message_errors:
             if message.lineno:
                 validation_errors.append(f'openlibrary/i18n/{locale}/messages.po:{message.lineno}: {message.string}')
-            for e in errors:
+            for e in message_errors:
                 validation_errors.append(e)
 
     if validation_errors:
@@ -51,10 +51,18 @@ def _validate_catalog(catalog, locale):
         for e in validation_errors:
             print(e)
 
-    return len(validation_errors) == 0
+    return len(validation_errors)
 
 
 def validate_translations(args):
+    """Validates the catalog for the given locale code.
+    
+    Returns:
+      0 if the catalog is valid
+      -1 if an unknown locale is passed as an argument
+      -2 if no locale was passed as an argument
+      A positive number if there were validation errors   
+    """
     if args:
         locale = args[0]
         po_path = os.path.join(root, locale, 'messages.po')
@@ -68,10 +76,10 @@ def validate_translations(args):
             return is_valid
         else:
             print(f'Portable object file for locale "{locale}" does not exist.')
-            return False
+            return -1
     else:
         print('Must include locale code when executing validate.')
-        return False
+        return -2
 
 
 def get_locales():
