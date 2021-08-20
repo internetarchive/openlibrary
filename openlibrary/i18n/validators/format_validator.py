@@ -1,24 +1,24 @@
 from babel.messages.catalog import TranslationError
 from babel.messages.checkers import python_format
 
-from ..validation_decorator import ValidationDecorator
+from openlibrary.i18n.validator import Validator
 
-class FormatValidator(ValidationDecorator):
+class FormatValidator(Validator):
 
-  def __init__(self, validator, catalog):
-    super().__init__(validator, catalog)
+  def __init__(self, message, catalog):
+    super().__init__(message, catalog)
 
   def validate(self):
-    errors = self.validator.validate()
+    errors = []
 
-    if self.validator.message.python_format:
+    if self.message.python_format:
       try:
-        python_format(self.catalog, self.validator.message)
+        python_format(self.catalog, self.message)
       except TranslationError as e:
         if errors:
           errors.append(f'    {e}')
         else:
           errors = [f'    {e}']
 
-    return errors if errors else []
+    return errors
 

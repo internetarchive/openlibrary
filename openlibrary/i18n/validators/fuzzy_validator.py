@@ -1,18 +1,16 @@
-from ..validation_decorator import ValidationDecorator
+from openlibrary.i18n.validator import Validator
 
-class FuzzyValidator(ValidationDecorator):
+class FuzzyValidator(Validator):
 
-  def __init__(self, validator, catalog):
-    super().__init__(validator, catalog)
+  def __init__(self, message, catalog):
+    super().__init__(message, catalog)
 
   def validate(self):
-    errors = self.validator.validate()
-    if self.validator.message.fuzzy:
-      errors = self.validator.validate()
-
-      if self.validator.message.lineno:
+    errors = []
+    if self.message.fuzzy:
+      if self.message.lineno:
         errors.append('    Is fuzzy')
       else:
         errors.append('File is fuzzy.  Remove line containing "#, fuzzy" found near the beginning of the file.')
 
-    return errors if errors else []
+    return errors
