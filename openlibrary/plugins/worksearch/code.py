@@ -964,7 +964,7 @@ class author_search_json(author_search):
 @public
 def random_author_search(limit=10):
     """
-    Returns a JSON string that contains a random list of authors.  Amount of authors
+    Returns a dict that contains a random list of authors.  Amount of authors
     returned is set be the given limit.
     """
     letters_and_digits = string.ascii_letters + string.digits
@@ -987,7 +987,7 @@ def random_author_search(limit=10):
         # The template still expects the key to be in the old format
         doc['key'] = doc['key'].split("/")[-1]
 
-    return json.dumps(search_results['response'])
+    return search_results['response']
 
 
 def rewrite_list_editions_query(q, page, offset, limit):
