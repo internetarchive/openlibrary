@@ -15,6 +15,10 @@ from babel.messages.pofile import read_po, write_po
 from babel.messages.mofile import write_mo
 from babel.messages.extract import extract_from_file, extract_from_dir, extract_python
 
+from .po_validator import POValidator
+from .validators.fuzzy_validator import FuzzyValidator
+from .validators.format_validator import FormatValidator
+
 root = os.path.dirname(__file__)
 
 def _compile_translation(po, mo):
@@ -33,17 +37,17 @@ def _compile_translation(po, mo):
 def _validate_catalog(catalog, locale):
     validation_errors = []
     for message in catalog:
-        if message.fuzzy:
+        po_validator = POValidator(message)
+        fuzzy_validator = FuzzyValidator(po_validator, catalog)
+        format_validator = FormatValidator(fuzzy_validator, catalog)
+
+        errors = format_validator.validate()
+
+        if errors:
             if message.lineno:
-                validation_errors.append(
-                    f'openlibrary/i18n/{locale}/messages.po:{message.lineno}:'
-                    f' "{message.string}" is fuzzy.'
-                )
-            else:
-                validation_errors.append(
-                    '  File is fuzzy.  Remove line containing "#, fuzzy" found near '
-                    'the beginning of the file.'
-                )
+                validation_errors.append(f'openlibrary/i18n/{locale}/messages.po:{message.lineno}: {message.string}')
+            for e in errors:
+                validation_errors.append(e)
 
     if validation_errors:
         print("Validation failed...")
