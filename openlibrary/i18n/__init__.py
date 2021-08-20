@@ -72,11 +72,11 @@ def validate_translations(args):
 
         if os.path.exists(po_path):
             catalog = read_po(open(po_path, 'rb'))
-            is_valid = _validate_catalog(catalog, locale)
+            num_errors = _validate_catalog(catalog, locale)
 
-            if is_valid:
+            if num_errors == 0:
                 print(f'Translations for locale "{locale}" are valid!')
-            return is_valid
+            return num_errors
         else:
             print(f'Portable object file for locale "{locale}" does not exist.')
             return -1
