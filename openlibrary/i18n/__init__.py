@@ -41,7 +41,10 @@ def _validate_catalog(catalog, locale):
 
         if message_errors:
             if message.lineno:
-                validation_errors.append(f'openlibrary/i18n/{locale}/messages.po:{message.lineno}: {message.string}')
+                validation_errors.append(
+                    f'openlibrary/i18n/{locale}/messages.po:'
+                    f'{message.lineno}: {message.string}'
+                )
             for e in message_errors:
                 validation_errors.append(e)
 
@@ -56,12 +59,12 @@ def _validate_catalog(catalog, locale):
 
 def validate_translations(args):
     """Validates the catalog for the given locale code.
-    
+
     Returns:
       0 if the catalog is valid
       -1 if an unknown locale is passed as an argument
       -2 if no locale was passed as an argument
-      A positive number if there were validation errors   
+      A positive number if there were validation errors
     """
     if args:
         locale = args[0]
