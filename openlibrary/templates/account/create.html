@@ -13,6 +13,8 @@ $var title: $_("Sign Up to Open Library")
 
 <div id="contentBody">
 
+  $:macros.MaintenanceMsg()
+
 $def field(input, suffix=''):
     $# :param openlibrary.utils.form.Input input:
     $# :param str suffix: HTML to put at bottom of input
@@ -65,6 +67,8 @@ $else:
 
         <small>$:_("By signing up, you agree to the Internet Archive's <a href='//archive.org/about/terms.php' target='_blank'>Terms of Service</a>.")</small>
 
+	$:macros.MaintenanceMsg()
+	
         <div class="formElement bottom">
             <br/>
             <button type="submit" name="signup" id="signup" class="larger">$_("Sign Up")</button>
