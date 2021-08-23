@@ -15,8 +15,7 @@ from babel.messages.pofile import read_po, write_po
 from babel.messages.mofile import write_mo
 from babel.messages.extract import extract_from_file, extract_from_dir, extract_python
 
-from .validators.fuzzy_validator import FuzzyValidator
-from .validators.format_validator import FormatValidator
+from .validators import validate
 
 root = os.path.dirname(__file__)
 
@@ -36,8 +35,7 @@ def _compile_translation(po, mo):
 def _validate_catalog(catalog, locale):
     validation_errors = []
     for message in catalog:
-        message_errors = FuzzyValidator(message, catalog).validate()
-        message_errors.extend(FormatValidator(message, catalog).validate())
+        message_errors = validate(message, catalog)
 
         if message_errors:
             if message.lineno:
