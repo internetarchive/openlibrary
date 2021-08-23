@@ -1,4 +1,4 @@
-$def with (work, link_text, id, classes='', reload_id=None)
+$def with (work, link_text, id, classes='', reload_id=None, image_source=None, img_classes='')
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 
@@ -12,8 +12,10 @@ $if reload_id:
   $ context['reloadId'] = reload_id
 
 <div class="$classes">
-  <a class="observations-modal-link" href="javascript:;" data-context="$json_encode(context)">$link_text</a>
-
+  <a class="observations-modal-link" href="javascript:;" data-context="$json_encode(context)">$link_text
+  $if image_source:
+    <img src="$image_source" class="$img_classes">
+  </a>
   <div class="hidden">
     <div id="$id-metadata-form" class="floaterAdd metadata-form">
       <div class="floaterHead">
