@@ -17,6 +17,7 @@ def help():
     print("  compile  - compile the message files (.po) to .mo")
     print("  extract  - extract i18n messages from templates and macros")
     print("  update   - update the existing translations by adding newly added string to it.")
+    print("  add      - create new .po file for the given locale.")
     print("  validate - check message file for errors")
     print("  help     - display this help message")
     
