@@ -4,7 +4,6 @@
 # project.
 # Clonewayx <EMAIL@ADDRESS>, 2017.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
