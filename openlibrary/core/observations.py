@@ -622,8 +622,12 @@ def get_observation_metrics(work_olid):
         observation_totals = Observations.count_observations(work_id)
 
         if not observation_totals:
+            # It is possible to have a non-zero number of respondents and no
+            # observation totals if deleted book tags are present in the 
+            # observations table.
+
             return metrics
-            
+
         current_type_id = observation_totals[0]['type_id']
         observation_item = next(
             (o for o in OBSERVATIONS['observations']
