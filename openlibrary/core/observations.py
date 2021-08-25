@@ -623,7 +623,7 @@ def get_observation_metrics(work_olid):
 
         if not observation_totals:
             # It is possible to have a non-zero number of respondents and no
-            # observation totals if deleted book tags are present in the 
+            # observation totals if deleted book tags are present in the
             # observations table.
 
             return metrics
