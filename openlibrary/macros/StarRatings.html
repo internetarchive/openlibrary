@@ -34,7 +34,11 @@ $ edition_key = edition.key if edition else ""
       <span></span>
     </div>
     <div class="stats-link">
-      <a class="observations-modal-link" href="javascript:;" data-context="{&quot;username&quot;: &quot;mekBot&quot;, &quot;work&quot;: &quot;/works/OL516825W&quot;, &quot;id&quot;: &quot;stats&quot;}">
+      <a class="observations-modal-link"
+        $if username:
+          href="javascript:;" data-context='{"username": "$(username)", "work": "$(work.key)", "id": "stats"}'>
+        $else:
+	  href="/account/login?redirect=$(work.key)"
         <img src="/static/images/icons/review.png" class="review-btn">
       </a>
     </div>
