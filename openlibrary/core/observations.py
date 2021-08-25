@@ -621,53 +621,55 @@ def get_observation_metrics(work_olid):
         respondents_per_type_dict = Observations.count_unique_respondents_by_type(work_id)
         observation_totals = Observations.count_observations(work_id)
 
-        if observation_totals:
-            current_type_id = observation_totals[0]['type_id']
-            observation_item = next(
-                (o for o in OBSERVATIONS['observations']
-                    if current_type_id == o['id'])
-            )
+        if not observation_totals:
+            return metrics
+            
+        current_type_id = observation_totals[0]['type_id']
+        observation_item = next(
+            (o for o in OBSERVATIONS['observations']
+                if current_type_id == o['id'])
+        )
 
-            current_observation = {
-                'label': observation_item['label'],
-                'description': observation_item['description'],
-                'multi_choice': observation_item['multi_choice'],
-                'total_respondents_for_type':
-                    respondents_per_type_dict[current_type_id],
-                'values': []
-            }
+        current_observation = {
+            'label': observation_item['label'],
+            'description': observation_item['description'],
+            'multi_choice': observation_item['multi_choice'],
+            'total_respondents_for_type':
+                respondents_per_type_dict[current_type_id],
+            'values': []
+        }
 
-            total_responses = 0
+        total_responses = 0
 
-            for i in observation_totals:
-                if i['type_id'] != current_type_id:
-                    current_observation['total_responses'] = total_responses
-                    total_responses = 0
-                    metrics['observations'].append(current_observation)
-                    current_type_id = i['type_id']
-                    observation_item = next(
-                        (o for o in OBSERVATIONS['observations']
-                            if current_type_id == o['id'])
-                    )
-                    current_observation = {
-                        'label': observation_item['label'],
-                        'description': observation_item['description'],
-                        'multi_choice': observation_item['multi_choice'],
-                        'total_respondents_for_type':
-                            respondents_per_type_dict[current_type_id],
-                        'values': []
-                    }
-                current_observation['values'].append({
-                    'value': next((
-                        v['name'] for v in observation_item['values']
-                        if v['id'] == i['value_id']
-                    )),
-                    'count': i['total']
-                })
-                total_responses += i['total']
+        for i in observation_totals:
+            if i['type_id'] != current_type_id:
+                current_observation['total_responses'] = total_responses
+                total_responses = 0
+                metrics['observations'].append(current_observation)
+                current_type_id = i['type_id']
+                observation_item = next(
+                    (o for o in OBSERVATIONS['observations']
+                        if current_type_id == o['id'])
+                )
+                current_observation = {
+                    'label': observation_item['label'],
+                    'description': observation_item['description'],
+                    'multi_choice': observation_item['multi_choice'],
+                    'total_respondents_for_type':
+                        respondents_per_type_dict[current_type_id],
+                    'values': []
+                }
+            current_observation['values'].append({
+                'value': next((
+                    v['name'] for v in observation_item['values']
+                    if v['id'] == i['value_id']
+                )),
+                'count': i['total']
+            })
+            total_responses += i['total']
 
-            current_observation['total_responses'] = total_responses
-            metrics['observations'].append(current_observation)
+        current_observation['total_responses'] = total_responses
+        metrics['observations'].append(current_observation)
     return metrics
 
 
