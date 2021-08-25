@@ -37,6 +37,6 @@ $else:
     $if ctx.user:
       $:macros.ObservationsModal(work, _('+ Add your community review'), 'stats', 'stats-link')
     $else:
-    <a class="login-link" href="/account/login?redirect=$(key)#reader-observations">$_('+ Log in to add your community review')</a>
+      <a class="login-link" href="/account/login?redirect=$(key)#reader-observations">$_('+ Log in to add your community review')</a>
   </div>
 </div>
