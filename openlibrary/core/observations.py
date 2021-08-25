@@ -666,8 +666,8 @@ def get_observation_metrics(work_olid):
                 })
                 total_responses += i['total']
 
-        current_observation['total_responses'] = total_responses
-        metrics['observations'].append(current_observation)
+            current_observation['total_responses'] = total_responses
+            metrics['observations'].append(current_observation)
     return metrics
 
 
