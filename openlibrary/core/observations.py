@@ -621,14 +621,25 @@ def get_observation_metrics(work_olid):
         respondents_per_type_dict = Observations.count_unique_respondents_by_type(work_id)
         observation_totals = Observations.count_observations(work_id)
 
+        if not observation_totals:
+            # It is possible to have a non-zero number of respondents and no
+            # observation totals if deleted book tags are present in the
+            # observations table.
+
+            return metrics
+
         current_type_id = observation_totals[0]['type_id']
-        observation_item = next((o for o in OBSERVATIONS['observations'] if current_type_id == o['id']))
+        observation_item = next(
+            (o for o in OBSERVATIONS['observations']
+                if current_type_id == o['id'])
+        )
 
         current_observation = {
             'label': observation_item['label'],
             'description': observation_item['description'],
             'multi_choice': observation_item['multi_choice'],
-            'total_respondents_for_type': respondents_per_type_dict[current_type_id],
+            'total_respondents_for_type':
+                respondents_per_type_dict[current_type_id],
             'values': []
         }
 
@@ -640,12 +651,16 @@ def get_observation_metrics(work_olid):
                 total_responses = 0
                 metrics['observations'].append(current_observation)
                 current_type_id = i['type_id']
-                observation_item = next((o for o in OBSERVATIONS['observations'] if current_type_id == o['id']))
+                observation_item = next(
+                    (o for o in OBSERVATIONS['observations']
+                        if current_type_id == o['id'])
+                )
                 current_observation = {
                     'label': observation_item['label'],
                     'description': observation_item['description'],
                     'multi_choice': observation_item['multi_choice'],
-                    'total_respondents_for_type': respondents_per_type_dict[current_type_id],
+                    'total_respondents_for_type':
+                        respondents_per_type_dict[current_type_id],
                     'values': []
                 }
             current_observation['values'].append({
