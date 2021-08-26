@@ -398,13 +398,15 @@ OBSERVATIONS = {
                 {'id': 2, 'name': 'Trigger warnings'},
                 {'id': 3, 'name': 'Offensive language'},
                 {'id': 4, 'name': 'Graphic imagery'},
-                {'id': 5, 'name': 'Insensitive'},
+                {'id': 5, 'name': 'Insensitivity'},
                 {'id': 6, 'name': 'Racism'},
+                {'id': 7, 'name': 'Sexual themes'},
+                {'id': 8, 'name': 'Drugs'},
             ]
         },
         {
             'id': 20,
-            'label': 'Terminology',
+            'label': 'Style',
             'description': 'What type of verbiage, nomenclature, '
                            'or symbols are employed in this book?',
             'multi_choice': True,
