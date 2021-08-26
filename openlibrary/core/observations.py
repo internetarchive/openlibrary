@@ -26,9 +26,9 @@ OBSERVATIONS = {
                 {'id': 1, 'name': 'Slow', 'deleted': True},
                 {'id': 2, 'name': 'Medium', 'deleted': True},
                 {'id': 3, 'name': 'Fast', 'deleted': True},
-                {'id': 4, 'name': 'Too slow'},
-                {'id': 5, 'name': 'Well paced'},
-                {'id': 6, 'name': 'Too fast'},
+                {'id': 4, 'name': 'Slow paced'},
+                {'id': 5, 'name': 'Medium paced'},
+                {'id': 6, 'name': 'Fast paced'},
                 {'id': 7, 'name': 'Meandering'},
             ]
         },
@@ -340,9 +340,9 @@ OBSERVATIONS = {
             'multi_choice': True,
             'order': [1, 2, 3],
             'values': [
-                {'id': 1, 'name': 'Too short'},
-                {'id': 2, 'name': 'Ideal length'},
-                {'id': 3, 'name': 'Too long'},
+                {'id': 1, 'name': 'Short'},
+                {'id': 2, 'name': 'Medium'},
+                {'id': 3, 'name': 'Long'},
             ]
         },
         {
@@ -398,13 +398,15 @@ OBSERVATIONS = {
                 {'id': 2, 'name': 'Trigger warnings'},
                 {'id': 3, 'name': 'Offensive language'},
                 {'id': 4, 'name': 'Graphic imagery'},
-                {'id': 5, 'name': 'Insensitive'},
+                {'id': 5, 'name': 'Insensitivity'},
                 {'id': 6, 'name': 'Racism'},
+                {'id': 7, 'name': 'Sexual themes'},
+                {'id': 8, 'name': 'Drugs'},
             ]
         },
         {
             'id': 20,
-            'label': 'Terminology',
+            'label': 'Style',
             'description': 'What type of verbiage, nomenclature, '
                            'or symbols are employed in this book?',
             'multi_choice': True,
