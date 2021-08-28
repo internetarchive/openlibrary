@@ -10,7 +10,8 @@ export function initOnboardingCard() {
         $('.overlay').addClass('hidden');
     };
 
-    $('.show-modal').on('click', openModal);
+    $('.show-card').on('click', openModal);
+    $('.btn-close-card').on('click', closeModal);
     $('.overlay').on('click', closeModal);
 
     document.addEventListener('keydown', function (e) {
@@ -21,8 +22,9 @@ export function initOnboardingCard() {
 
     const slider = function () {
         const slides = document.querySelectorAll('.slide');
-        const btnRight = document.querySelectorAll('.card-next');
+        const btnNext = document.querySelectorAll('.card-next');
         const dotContainer = document.querySelector('.dots');
+        const showCard = document.querySelector('.show-card');
 
         let curSlide = 0;
         const maxSlide = slides.length;
@@ -71,20 +73,17 @@ export function initOnboardingCard() {
             goToSlide(curSlide);
             activateDot(curSlide);
         };
-
-        const init = function () {
-            goToSlide(0);
-            createDots();
-
-            activateDot(0);
-        };
-        init();
+        createDots();
 
         // Event handlers
-        btnRight.forEach((btn) => btn.addEventListener('click', nextSlide));
+        showCard.addEventListener('click', function () {
+            goToSlide(0);
+            activateDot(0);
+        })
+        btnNext.forEach((btn) => btn.addEventListener('click', nextSlide));
         document.addEventListener('keydown', function (e) {
             if (e.key === 'ArrowLeft') prevSlide();
-            e.key === 'ArrowRight' && nextSlide();
+            if (e.key ==='ArrowRight') nextSlide();
         });
 
         dotContainer.addEventListener('click', function (e) {
