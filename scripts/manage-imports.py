@@ -105,16 +105,25 @@ def import_ocaids(*ocaids, **kwargs):
         else:
             logger.error("%s is not found in the import queue", ocaid)
 
-def add_data(items, source):
+def add_data(args, source="bwb"):
+    # [-] Testing manual adding small batch
+    items = [
+        {"title": "Aulus Gellii Noctes Atticae Vol. II, Bks. 11-20 : Recognovit Brevique Adnotatione Critica Instruxit Tomus", "isbn_13": ["9780198146520"], "publish_date": "1990", "publishers": ["Oxford University Press"], "authors": [{"name": "Gellius, Aulus"}, {"name": "Marshall, P. K."}], "lc_classifications": [""], "number_of_pages": "336", "languages": ["eng"], "subjects": ["Latin literature, medieval and modern"], "source_records": ["bwb:9780198146520"]},
+        {"title": "A. Gellii Noctes Atticae : Recognovit Brevique Adnotatione Critica Instruxit Tomus I - Libri I-X", "isbn_13": ["9780198146513"], "publish_date": "1968", "publishers": ["Oxford University Press"], "authors": [{"name": "Gellius, Aulus"}, {"name": "Marshall, P. K."}], "lc_classifications": [""], "number_of_pages": "376", "languages": ["eng"], "subjects": ["Latin literature, medieval and modern"], "source_records": ["bwb:9780198146513"]},
+        {"title": "A. M. MacKay : Pioneer Missionary of the Church Missionary Society to Uganda", "isbn_13": ["9780714618746"], "publish_date": "1970", "publishers": ["Taylor & Francis Group"], "authors": [{"name": "Mackay, A. M."}], "lc_classifications": ["BV3625.U4M4"], "number_of_pages": "485", "languages": ["eng"], "subjects": ["Missionaries, british", "Missionaries, biography"], "source_records": ["bwb:9780714618746"]}
+    ]
     date = datetime.date.today()
     batch_name = "%s-%04d%02d" % (source, date.year, date.month)
     batch = Batch.find(batch_name) or Batch.new(batch_name)
-    batch.add_items(items)
+    batch.add_items(items, ia_items=False)
 
 def import_data(args):
+    # [x] Testing imports work to new ol.import_data json data api
     data = args[0]
     ol = get_ol()
-    return ol.import_data(data)
+    r = ol.import_data(data)
+    print(r)
+    return r
 
 
 def add_new_scans(args):
@@ -220,6 +229,8 @@ def main():
         return add_items(args)
     elif cmd == "add-new-scans":
         return add_new_scans(args)
+    elif cmd == "add-data":
+        return add_data(args)
     elif cmd == "import-data":
         return import_data(args)
     elif cmd == "import-batch":

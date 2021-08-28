@@ -5,6 +5,7 @@ import logging
 import datetime
 import time
 import web
+import json
 
 from psycopg2.errors import UndefinedTable
 
@@ -60,9 +61,12 @@ class Batch(web.storage):
             # Either create a reference to an IA id which will be loaded
             # from Archive.org metadata, or provide json data book record
             # which will be loaded directly into the OL catalog
-            record = {'ia_id': item} if ia_item else {'data': item}
-            values = [dict(batch_id=self.id, **record) for item in items]
+            record = lambda item: {'ia_id': item} if ia_items else {'data': json.dumps(item)}
+            values = [dict(batch_id=self.id, **record(item)) for item in items]
+
+            # XXX TODO: this needs an INSERT OR IGNORE, otherwise it will fail on UNIQUE `data`
             db.get_db().multiple_insert("import_item", values)
+
             logger.info("batch %s: added %d items", self.name, len(items))
 
     def get_items(self, status="pending"):
