@@ -1,6 +1,15 @@
 /* Homepage about section */
 @import (less) "less/font-families.less";
 
+.slide {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transition: transform 1s;
+  img {
+    border-radius: 10px;
+  }
+}
 div.tutorial__item {
   background-color: @book-cover-carousel-cards;
   border: 1px solid hsl(0, 0%, 87%);
@@ -133,25 +142,27 @@ div.chartHome a:hover,
   }
 }
 
-.slide {
+.card {
+  width: 383px;
+  height: 600px;
+  border-radius: 10px;
+  box-shadow: 4px 4px 15px rgba(0, 0, 0,.54);  overflow: hidden;
+  z-index: @z-index-level-3;
+  transition: all .5s;
   position: absolute;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 1s;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -40%);
 }
 .dots {
   position: absolute;
-  bottom: 5%;
-  left: 14%;
+  left: 50%;
   transform: translateX(-50%);
   display: flex;
+  top: 561px;
 }
 .dots__dot {
-  background-color: @light-mid-grey;
+  background-color: @modal-background-color;
   opacity: .7;
   height: .5rem;
   width: .5rem;
@@ -164,7 +175,7 @@ div.chartHome a:hover,
   margin: 0;
 }
 .dots__dot--active {
-  background-color: @grey;
+  background-color: @blue-3979ba;
   opacity: 1;
 }
 .overlay {
@@ -182,64 +193,43 @@ div.chartHome a:hover,
   visibility: hidden;
   opacity: 0;
 }
-.card {
-  max-width: 23rem;
-  height: 33rem;
-  background-color: @modal-background-color;
-  opacity: 1;
-  border-radius: 10px;
-  box-shadow: 0 4px 4px rgba(0, 0, 0, .25);
-  overflow: hidden;
-  z-index: @z-index-level-3;
-  transition: all .5s;
-  transform: translate(-0%, -30%);
-  margin: 0 auto;
-  position: relative;
-}
-.gif_background {
-  width: 368px;
-  height: 338px;
-  background: rgba(243, 243, 243, 1);
-  opacity: 1;
-  position: absolute;
-  top: 0;
-  left: 0;
-  box-shadow: 0 4px 4px rgba(0, 0, 0, .25);
-  overflow: hidden;
-  z-index: @z-index-level-2;
-}
 .slide_gif {
-  width: 368px;
-  height: 335px;
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
-  opacity: 80%;
   position: absolute;
-  top: 1%;
-  left: 0;
   overflow: hidden;
   z-index: @z-index-level-4;
+  margin: 8px;
+  filter: drop-shadow(0 4px 4px rgba(0, 0, 0,.25));
 }
 .slide_text {
-  width: 100%;
-  color: @grey;
+  width: 370px;
+  color: @modal-background-color;
   position: absolute;
-  margin-top: 95%;
+  top: 412px;
   font-weight: 400;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   opacity: 1;
   text-align: center;
-  margin-left: 10%;
-  margin-right: 10%;
+  padding: 2rem;
+  line-height: 1.3;
+  left: 50%;
+  transform: translateX(-50%);
 }
 .slide_title {
-  color: @grey-464646;
+  width: 290px;
+  color: @modal-background-color;
   position: absolute;
-  top: 67%;
+  top: 330px;
   font-weight: 500;
   font-size: 1.5rem;
   opacity: 1;
+  line-height: 1.2;
+  padding: 1.5rem;
+  text-align: center;
+  left: 50%;
+  transform: translateX(-50%);
 }
 .card-next {
   position: absolute;
@@ -250,6 +240,15 @@ div.chartHome a:hover,
   font-weight: normal;
   font-size: 14px;
   line-height: 16px;
-  text-align: center;
-  color: @primary-blue;
+  color: @modal-background-color;
+}
+.btn-close-card {
+  font-family: inherit;
+  color: @modal-background-color;
+  // background-color: #549ec7;
+  position: absolute;
+  left: 8%;
+  font-size: 14px;
+  cursor: pointer;
+  top: 93%;
 }
