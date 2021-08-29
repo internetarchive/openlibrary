@@ -68,6 +68,8 @@ $var title: $_("Add a book")
                 <div class="label">$_("Since you are not logged in, please satisfy the reCAPTCHA below.")</div>
                 <div class="g-recaptcha" data-sitekey="$:recaptcha.public_key"></div>
             </div>
+        
+        $:macros.EditButtons(comment=work.comment_)
 
         <div class="formElement bottom">
             <div class="input">
