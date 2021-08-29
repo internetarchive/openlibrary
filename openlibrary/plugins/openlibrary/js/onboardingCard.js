@@ -22,7 +22,7 @@ export function initOnboardingCard() {
 
     const slider = function () {
         const slides = document.querySelectorAll('.slide');
-        const btnNext = document.querySelectorAll('.card-next');
+        const btnNext = document.querySelector('.btn-next-card');
         const dotContainer = document.querySelector('.dots');
         const showCard = document.querySelector('.show-card');
 
@@ -47,6 +47,12 @@ export function initOnboardingCard() {
         };
 
         const goToSlide = function (slide) {
+            if (slide === maxSlide-1) {
+                btnNext.textContent = '';
+            }
+            else {
+                btnNext.textContent = 'Next';
+            }
             slides.forEach(
                 (s, i) => (s.style.transform = `translateX(${100 * (i - slide)}%)`)
             );
@@ -80,7 +86,9 @@ export function initOnboardingCard() {
             goToSlide(0);
             activateDot(0);
         })
-        btnNext.forEach((btn) => btn.addEventListener('click', nextSlide));
+
+        btnNext.addEventListener('click', nextSlide);
+
         document.addEventListener('keydown', function (e) {
             if (e.key === 'ArrowLeft') prevSlide();
             if (e.key ==='ArrowRight') nextSlide();
