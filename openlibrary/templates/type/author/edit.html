@@ -4,6 +4,8 @@ $var title: $page.name
 
 $putctx("robots", "noindex,nofollow")
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
 <div id="contentHead">
     $:macros.databarEdit(page)
     <h1>$_("Edit Author")</h1>
@@ -109,7 +111,7 @@ $putctx("robots", "noindex,nofollow")
                         <div class="label">Identifiers</div>
                         <div id="hiddenIdentifierInputs"></div>
                         <div id="identifiers-display">
-                            $:render_component('AuthorIdentifiers', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenIdentifierInputs',author_config_string=dict(get_author_config())))
+                            $:render_component('AuthorIdentifiers', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenIdentifierInputs',author_config_string=dict(get_author_config())))<a href="https://openlibrary.org/help/faq/editing.en#author-identifiers-purpose"><i class="fa fa-question-circle" style="font-size:24px"></i></a>
                         </div>
 
                         $if page.website:
