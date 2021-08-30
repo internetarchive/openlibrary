@@ -4,12 +4,12 @@
       class="shelf-label"
       :node="node"
       :key="node.short"
-      :is="features.shelfLabel == 'slider' ? 'ClassSlider' : 'ShelfLabel'"
+      :is="features.shelfLabel === 'slider' ? 'ClassSlider' : 'ShelfLabel'"
     >
       <template #extra-actions>
         <button
           :title="`See a list of the subsections of ${node.short}: ${node.name}`"
-          v-if="features.shelfLabel == 'slider' && node.children"
+          v-if="features.shelfLabel === 'slider' && node.children"
           :class="{selected: showShelfIndex}"
           @click="showShelfIndex = !showShelfIndex"
         >

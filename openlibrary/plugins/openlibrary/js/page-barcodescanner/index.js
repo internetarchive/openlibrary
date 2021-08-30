@@ -32,7 +32,7 @@ export function init() {
             drawingCtx.clearRect(0, 0, canvasWidth, canvasHeight);
 
             result.boxes.forEach(box => {
-                if (box != result.box) {
+                if (box !== result.box) {
                     Quagga.ImageDebug.drawPath(box, {x: 0, y: 1}, drawingCtx, BOX_STYLE);
                 }
             });
@@ -50,7 +50,7 @@ export function init() {
     let lastResult = null;
     Quagga.onDetected(result => {
         const code = result.codeResult.code;
-        if (!isBarcodeISBN(code) || code == lastResult) return;
+        if (!isBarcodeISBN(code) || code === lastResult) return;
         lastResult = code;
 
         const isbn = code;

@@ -77,9 +77,9 @@
 		// A private function for handling mouse 'hovering'
 		var handleHover = function(e) {
 			// next three lines copied from jQuery.hover, ignore children onMouseOver/onMouseOut
-			var p = (e.type == "mouseover" ? e.fromElement : e.toElement) || e.relatedTarget;
-			while ( p && p != this ) { try { p = p.parentNode; } catch(e) { p = this; } }
-			if ( p == this ) { return false; }
+			var p = (e.type === "mouseover" ? e.fromElement : e.toElement) || e.relatedTarget;
+			while ( p && p !== this ) { try { p = p.parentNode; } catch(e) { p = this; } }
+			if ( p === this ) { return false; }
 
 			// copy objects to be passed into t (required for event object to be passed in IE)
 			var ev = jQuery.extend({},e);
@@ -88,21 +88,21 @@
 			// cancel hoverIntent timer if it exists
 			if (ob.hoverIntent_t) { ob.hoverIntent_t = clearTimeout(ob.hoverIntent_t); }
 
-			// else e.type == "onmouseover"
-			if (e.type == "mouseover") {
+			// else e.type === "onmouseover"
+			if (e.type === "mouseover") {
 				// set "previous" X and Y position based on initial entry point
 				pX = ev.pageX; pY = ev.pageY;
 				// update "current" X and Y position based on mousemove
 				$(ob).bind("mousemove",track);
 				// start polling interval (self-calling timeout) to compare mouse coordinates over time
-				if (ob.hoverIntent_s != 1) { ob.hoverIntent_t = setTimeout( function(){compare(ev,ob);} , cfg.interval );}
+				if (ob.hoverIntent_s !== 1) { ob.hoverIntent_t = setTimeout( function(){compare(ev,ob);} , cfg.interval );}
 
-			// else e.type == "onmouseout"
+			// else e.type === "onmouseout"
 			} else {
 				// unbind expensive mousemove event
 				$(ob).unbind("mousemove",track);
 				// if hoverIntent state is true, then call the mouseOut function after the specified delay
-				if (ob.hoverIntent_s == 1) { ob.hoverIntent_t = setTimeout( function(){delay(ev,ob);} , cfg.timeout );}
+				if (ob.hoverIntent_s === 1) { ob.hoverIntent_t = setTimeout( function(){delay(ev,ob);} , cfg.timeout );}
 			}
 		};
 

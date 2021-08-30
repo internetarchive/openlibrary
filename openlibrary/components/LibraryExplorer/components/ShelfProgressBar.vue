@@ -5,10 +5,10 @@
       :key="section.short"
       :title="section.name"
       :style="{ flex: section.count }"
-      :class="{ active: index == i }"
+      :class="{ active: index === i }"
     >
       <div
-        v-if="index == i"
+        v-if="index === i"
         class="marker"
         :style="{ left: `${(100 * section.offset) / section.count}%` }"
       ></div>

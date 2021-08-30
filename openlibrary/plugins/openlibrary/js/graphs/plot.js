@@ -72,12 +72,12 @@ export function loadEditionsGraph() {
         $('#x').text(pos.x.toFixed(0));
         $('#y').text(pos.y.toFixed(0));
         if (item) {
-            if (previousPoint != item.datapoint) {
+            if (previousPoint !== item.datapoint) {
                 previousPoint = item.datapoint;
                 $('#chartLabel').remove();
                 x = item.datapoint[0].toFixed(0);
                 y = item.datapoint[1].toFixed(0);
-                if (y == 1) {
+                if (y === 1) {
                     showTooltip(item.pageX, item.pageY,
                         `${y} edition in ${x}`);
                 } else {
@@ -97,7 +97,7 @@ export function loadEditionsGraph() {
 
     $('.chartYaxis').css({top: '60px', left: '-60px'});
 
-    if (dateFrom == (dateTo - 1)) {
+    if (dateFrom === (dateTo - 1)) {
         $('.clickdata').text(`Published in ${dateFrom}`);
     } else {
         $('.clickdata').text(`Published between ${dateFrom} & ${dateTo-1}.`);

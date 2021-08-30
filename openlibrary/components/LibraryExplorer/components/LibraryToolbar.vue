@@ -249,8 +249,8 @@ export default {
 
     watch: {
         quickLanguageSelect(newVal) {
-            if (newVal == '') this.filterState.languages = [];
-            else if (newVal == 'custom') this.filterState.languages = this.fullLanguageSelect;
+            if (newVal === '') this.filterState.languages = [];
+            else if (newVal === 'custom') this.filterState.languages = this.fullLanguageSelect;
             else this.filterState.languages = [newVal];
         },
 
@@ -282,7 +282,7 @@ export default {
 
         computedFilters() {
             const parts = this.filterState.solrQueryParts();
-            const computedParts = parts[0] == this.filterState.filter ? parts.slice(1) : parts;
+            const computedParts = parts[0] === this.filterState.filter ? parts.slice(1) : parts;
             return computedParts.length ? ` AND ${computedParts.join(' AND ')}` : '';
         },
 
@@ -295,7 +295,7 @@ export default {
         },
 
         inDebugMode() {
-            return new URLSearchParams(location.search).get('debug') == 'true';
+            return new URLSearchParams(location.search).get('debug') === 'true';
         },
 
         styles() {
@@ -323,7 +323,7 @@ export default {
 
         toggleTab(tabName) {
             const index = this.openTabs.indexOf(tabName);
-            if (index == -1) {
+            if (index === -1) {
                 this.openTabs.push(tabName);
                 if (this.openTabs.length > this.maxTabs) {
                     this.openTabs.shift();
