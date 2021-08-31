@@ -90,7 +90,7 @@ def validate_vetted_translations():
 
     Returns a dictionary of locale-exit code key-value pairs.  Non-
     zero exit codes indicate that a locale has failed validation.
-    If any locales have a non-zero value, the validation can be 
+    If any locales have a non-zero value, the validation can be
     considered a failure.
     """
     results = {}
