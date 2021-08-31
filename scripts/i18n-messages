@@ -41,19 +41,21 @@ def main(cmd, args):
     elif cmd == 'validate_production':
         results = i18n.validate_vetted_translations()
 
-        exit_code = 0
+        num_errors = 0
         for k, v in results.items():
             if v < 0: # Locale file did not exist
                 print(f'Unknown locale file: {k}')
-                sys.exit(-1)
+                sys.exit(1)
             else:
-                exit_code = exit_code + v
+                num_errors = num_errors + v
 
-        if exit_code == 0:
+        if num_errors == 0:
             print("Validation passed!")
         else:
-            print("Validation failed...")
-        sys.exit(exit_code)
+            print(f'Validation failed.\n{num_errors} errors found...')
+            sys.exit(2)
+
+        sys.exit(0)
     elif cmd == 'help':
         help()
     else:

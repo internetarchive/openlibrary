@@ -80,4 +80,4 @@ test-i18n:
 	$(PYTHON) ./scripts/i18n-messages validate_production
 
 test:
-	make test-py && npm run test
+	make test-py && npm run test && make test-i18n
