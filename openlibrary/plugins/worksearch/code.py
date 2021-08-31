@@ -953,6 +953,7 @@ class author_search(delegate.page):
     def get_results(self, q, offset=0, limit=100):
         valid_fields = ['key', 'name', 'alternate_names', 'birth_date', 'death_date', 'date', 'work_count']
         q = escape_colon(escape_bracket(q), valid_fields)
+        q_has_fields = ':' in q.replace(r'\:', '')
 
         d = run_solr_search(solr_select_url, {
             'fq': 'type:author',
@@ -964,6 +965,10 @@ class author_search(delegate.page):
             'qt': 'standard',
             'sort': 'work_count desc',
             'wt': 'json',
+            **({} if q_has_fields else {
+                'defType': 'dismax',
+                'qf': 'name alternate_names'
+            })
         })
 
         docs = d.get('response', {}).get('docs', [])
