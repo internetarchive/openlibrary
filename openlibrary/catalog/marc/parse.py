@@ -33,6 +33,7 @@ want = [
     '003',  # for OCLC
     '008',  # publish date, country and language
     '010',  # lccn
+    '016',  # National Bibliographic Agency Control Number (for DNB)
     '020',  # isbn
     '035',  # oclc
     '050',  # lc classification
@@ -50,6 +51,12 @@ want = [
     '246', '730', '740',  # other titles
     '852',  # location
     '856']  # URL
+
+
+def read_dnb(rec):
+    field = rec.get_fields('016')
+    if not field:
+        return
 
 
 def read_lccn(rec):
@@ -237,7 +244,7 @@ lang_map = {
     'gwr': 'ger',
     'sze': 'slo',
     'fr ': 'fre',
-    'fle': 'dut',  # flemish -> dutch
+    'fle': 'dut',  # Flemish -> Dutch
     'it ': 'ita',
 }
 
@@ -368,7 +375,7 @@ def read_pagination(rec):
         edition['pagination'] = ' '.join(pagination)
         # strip trailing characters from pagination
         edition['pagination'] = edition['pagination'].strip(' ,:;')
-        num = []  # https://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:2617696:825
+        num = []
         for x in pagination:
             num += [int(i) for i in re_int.findall(x.replace(',',''))]
             num += [int(i) for i in re_int.findall(x)]
