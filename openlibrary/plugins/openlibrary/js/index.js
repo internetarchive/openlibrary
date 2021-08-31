@@ -265,6 +265,11 @@ jQuery(function () {
             .then((module) => module.initAdmin());
     }
 
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        import(/* webpackChunkName: "offline-banner" */ './offline-banner')
+            .then((module) => module.initOfflineBanner());
+    }
+
     if (document.getElementById('searchFacets')) {
         import(/* webpackChunkName: "search" */ './search')
             .then((module) => module.initSearchFacets());

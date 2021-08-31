@@ -82,11 +82,11 @@
     },
     {
       "path": "static/build/page-edit.css",
-      "maxSize": "21KB"
+      "maxSize": "25KB"
     },
     {
       "path": "static/build/page-form.css",
-      "maxSize": "21KB"
+      "maxSize": "25KB"
     },
     {
       "path": "static/build/page-home.css",

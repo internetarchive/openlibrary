@@ -352,6 +352,31 @@ class robotstxt(delegate.page):
             raise web.notfound()
 
 
+class serviceworker(delegate.page):
+    path = '/sw.js'
+
+    def GET(self):
+        web.header('Content-Type', 'text/javascript')
+        try:
+            data = open('static/build/sw.js').read()
+            raise web.HTTPError('200 OK', {}, data)
+        except IOError:
+            raise web.notfound()
+
+
+class assetlinks(delegate.page):
+    """To verify the TWA, currently serves dummy data"""
+    path = '/.well-known/assetlinks'
+
+    def GET(self):
+        web.header('Content-Type', 'application/json')
+        try:
+            data = open('static/.well-known/assetlinks.json').read()
+            raise web.HTTPError('200 OK', {}, data)
+        except IOError:
+            raise web.notfound()
+
+
 class opensearchxml(delegate.page):
     path = '/opensearch.xml'
 
