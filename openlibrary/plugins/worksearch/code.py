@@ -5,11 +5,13 @@ import logging
 import random
 import re
 import string
+from typing import List, Tuple, Any, Union, Optional
 from unicodedata import normalize
 from json import JSONDecodeError
 import requests
 import web
 from lxml.etree import XML, XMLSyntaxError
+from requests import Response
 from six.moves import urllib
 
 from infogami import config
@@ -370,13 +372,14 @@ def build_q_list(param):
             q_list.append('isbn:(%s)' % (normalize_isbn(param['isbn']) or param['isbn']))
     return (q_list, use_dismax)
 
-def execute_solr_query(url):
-    """
-    Returns a requests.Response or None
-    """
-    stats.begin("solr", url=url)
+
+def execute_solr_query(
+        solr_path: str,
+        params: Union[dict, List[Tuple[str, Any]]]
+) -> Optional[Response]:
+    stats.begin("solr", url=f'{solr_path}?{urlencode(params)}')
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(solr_path, params=params, timeout=10)
         response.raise_for_status()
     except requests.HTTPError:
         logger.exception("Failed solr query")
@@ -385,11 +388,15 @@ def execute_solr_query(url):
         stats.end()
     return response
 
-def parse_json_from_solr_query(url):
+
+def parse_json_from_solr_query(
+        solr_path: str,
+        params: Union[dict, List[Tuple[str, Any]]]
+) -> Optional[dict]:
     """
     Returns a json.loaded Python object or None
     """
-    response = execute_solr_query(url)
+    response = execute_solr_query(solr_path, params)
     if not response:
         logger.error("Error parsing empty search engine response")
         return None
@@ -476,9 +483,9 @@ def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=Non
 
     if 'wt' in param:
         params.append(('wt', param.get('wt')))
-    url = solr_select_url + '?' + urlencode(params)
+    url = f'{solr_select_url}?{urlencode(params)}'
 
-    response = execute_solr_query(url)
+    response = execute_solr_query(solr_select_url, params)
     solr_result = response.content if response else None  # bytes or None
     return (solr_result, url, q_list)
 
@@ -746,8 +753,7 @@ def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False,
     for f in facet_fields:
         params.append(("facet.field", f))
 
-    solr_select = solr_select_url + "?" + urllib.parse.urlencode(params)
-    reply = parse_json_from_solr_query(solr_select)
+    reply = parse_json_from_solr_query(solr_select_url, params)
     if reply is None:
         return web.storage(
             num_found = 0,
@@ -777,8 +783,14 @@ def sorted_work_editions(wkey, json_data=None):
     if json_data:
         reply = json.loads(json_data)
     else:
-        solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=edition_key&qt=standard&wt=json" % q
-        reply = parse_json_from_solr_query(solr_select)
+        reply = parse_json_from_solr_query(solr_select_url, {
+            'q.op': 'AND',
+            'q': q,
+            'rows': 10,
+            'fl': 'edition_key',
+            'qt': 'standard',
+            'wt': 'json',
+        })
     if reply is None or reply.get('response', {}).get('numFound', 0) == 0:
         return []
     # TODO: Deep JSON structure defense - for now, let it blow up so easier to detect
@@ -787,8 +799,14 @@ def sorted_work_editions(wkey, json_data=None):
 
 def top_books_from_author(akey, rows=5, offset=0):
     q = 'author_key:(' + akey + ')'
-    solr_select = solr_select_url + "?q=%s&start=%d&rows=%d&fl=key,title,edition_count,first_publish_year&wt=json&sort=edition_count+desc" % (q, offset, rows)
-    json_result = parse_json_from_solr_query(solr_select)
+    json_result = parse_json_from_solr_query(solr_select_url, {
+        'q': q,
+        'start': offset,
+        'rows': rows,
+        'fl': 'key,title,edition_count,first_publish_year',
+        'sort': 'edition_count desc',
+        'wt': 'json',
+    })
     if json_result is None:
         return {'books': [], 'total': 0}
     # TODO: Deep JSON structure defense - for now, let it blow up so easier to detect
@@ -817,8 +835,9 @@ def escape_colon(q, vf):
         result += ':' + parts.pop(0)
     return result
 
-def run_solr_search(solr_select):
-    response = execute_solr_query(solr_select)
+
+def run_solr_search(solr_select: str, params: dict):
+    response = execute_solr_query(solr_select, params)
     json_data = response.content if response else None  # bytes or None
     return parse_search_response(json_data)
 
@@ -935,9 +954,17 @@ class author_search(delegate.page):
         valid_fields = ['key', 'name', 'alternate_names', 'birth_date', 'death_date', 'date', 'work_count']
         q = escape_colon(escape_bracket(q), valid_fields)
 
-        solr_select = solr_select_url + "?fq=type:author&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
-        solr_select += '&sort=work_count+desc'
-        d = run_solr_search(solr_select)
+        d = run_solr_search(solr_select_url, {
+            'fq': 'type:author',
+            'q.op': 'AND',
+            'q': q,
+            'start': offset,
+            'rows': limit,
+            'fl': '*',
+            'qt': 'standard',
+            'sort': 'work_count desc',
+            'wt': 'json',
+        })
 
         docs = d.get('response', {}).get('docs', [])
         for doc in docs:
