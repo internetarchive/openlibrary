@@ -83,6 +83,31 @@ def validate_translations(args):
         return -2
 
 
+def validate_vetted_translations():
+    """Validates all locales found in `/openlibrary/i18n/valid.txt`.
+
+    `valid.txt` should contain all valid locale codes, one per line.
+
+    Returns a dictionary of locale-exit code key-value pairs.  Non-
+    zero exit codes indicate that a locale has failed validation.
+    If any locales have a non-zero value, the validation can be 
+    considered a failure.
+    """
+    results = {}
+
+    try:
+        with open(os.path.join(root, 'valid.txt')) as f:
+            for line in f:
+                locale = line.rstrip()
+                exit_code = validate_translations([locale])
+                results[locale] = exit_code
+    except FileNotFoundError:
+        print('Valid locales file not found...')
+        return results
+
+    return results
+
+
 def get_locales():
     return [
         d

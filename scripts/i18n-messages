@@ -38,6 +38,22 @@ def main(cmd, args):
         i18n.generate_po(args)
     elif cmd == 'validate':
         i18n.validate_translations(args)
+    elif cmd == 'validate_production':
+        results = i18n.validate_vetted_translations()
+
+        exit_code = 0
+        for k, v in results.items():
+            if v < 0: # Locale file did not exist
+                print(f'Unknown locale file: {k}')
+                sys.exit(-1)
+            else:
+                exit_code = exit_code + v
+
+        if exit_code == 0:
+            print("Validation passed!")
+        else:
+            print("Validation failed...")
+        sys.exit(exit_code)
     elif cmd == 'help':
         help()
     else:

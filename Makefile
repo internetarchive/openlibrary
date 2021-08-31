@@ -76,5 +76,8 @@ endif
 test-py:
 	pytest . --ignore=tests/integration --ignore=scripts/2011 --ignore=infogami --ignore=vendor --ignore=node_modules
 
+test-i18n:
+	$(PYTHON) ./scripts/i18n-messages validate_production
+
 test:
 	make test-py && npm run test
