@@ -6,7 +6,7 @@ from openlibrary.catalog.utils import (
     pick_first_date, remove_trailing_dot, remove_trailing_number_dot, tidy_isbn
 )
 
-
+DNB_AGENCY_CODE = 'DE-101'
 max_number_of_pages = 50000  # no monograph should be longer than 50,000 pages
 re_bad_char = re.compile(u'\ufffd')
 re_question = re.compile(r'^\?+$')
@@ -54,9 +54,12 @@ want = [
 
 
 def read_dnb(rec):
-    field = rec.get_fields('016')
-    if not field:
-        return
+    fields = rec.get_fields('016')
+    for f in fields:
+        source, = f.get_subfield_values('2') or [None]
+        control_number, = f.get_subfield_values('a') or [None]
+        if source == DNB_AGENCY_CODE and control_number:
+            return {'dnb': [control_number]}
 
 
 def read_lccn(rec):
@@ -610,6 +613,7 @@ def read_edition(rec):
         update_edition(rec, edition, read_pub_date, 'publish_date')
 
     update_edition(rec, edition, read_lccn, 'lccn')
+    update_edition(rec, edition, read_dnb, 'identifiers')
     update_edition(rec, edition, read_authors, 'authors')
     update_edition(rec, edition, read_oclc, 'oclc_numbers')
     update_edition(rec, edition, read_lc_classification, 'lc_classifications')
