@@ -55,34 +55,30 @@ def _validate_catalog(catalog, locale):
     return len(validation_errors)
 
 
-def validate_translations(args):
+def validate_translations(args: List[str]):
     """Validates all locales passed in as arguments.
-    
-    Returns a dictionary of locale-exit code key-value pairs.  Non-
-    zero exit codes indicate that a locale has failed validation.
-    If any locales have a non-zero value, the validation can be
-    considered a failure.
+
+    If no arguments are passed, all locales will be validated.
+
+    Returns a dictionary of locale-validation error count
+    key-value pairs.
     """
+    locales = args or get_locales()
     results = {}
 
-    if args:
-        for arg in args:
-            locale = arg
-            po_path = os.path.join(root, locale, 'messages.po')
+    for locale in locales:
+        po_path = os.path.join(root, locale, 'messages.po')
 
-            if os.path.exists(po_path):
-                catalog = read_po(open(po_path, 'rb'))
-                num_errors = _validate_catalog(catalog, locale)
+        if os.path.exists(po_path):
+            catalog = read_po(open(po_path, 'rb'))
+            num_errors = _validate_catalog(catalog, locale)
 
-                if num_errors == 0:
-                    print(f'Translations for locale "{locale}" are valid!')
-                results[arg] = num_errors
-            else:
-                results[arg] = -1
-                print(f'Portable object file for locale "{locale}" does not exist.')
-    else:
-        print('Must include locale code when executing validate.')
-    
+            if num_errors == 0:
+                print(f'Translations for locale "{locale}" are valid!')
+            results[locale] = num_errors
+        else:
+            print(f'Portable object file for locale "{locale}" does not exist.')
+
     return results
 
 

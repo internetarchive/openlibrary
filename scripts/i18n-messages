@@ -40,18 +40,14 @@ def main(cmd, args):
         results = i18n.validate_translations(args)
 
         num_errors = 0
-        for k, v in results.items():
-            if v < 0: # Locale files did not exist
-                print(f'Unknown locale: {k}')
-                sys.exit(1)
-            else:
-                num_errors = num_errors + v
+        for error_count in results.values():
+            num_errors = num_errors + error_count
 
         if num_errors == 0:
             print("Validation passed!")
         else:
             print(f'Validation failed.\n{num_errors} errors found...')
-            sys.exit(2)
+            sys.exit(1)
 
         sys.exit(0)
     elif cmd == 'help':
