@@ -86,6 +86,9 @@ class BinaryDataField():
             self.line = b''.join([line[0:4], line[5:-2], last_byte])
 
     def get_subfields(self, want):
+        """
+        :rtype: collections.Iterable[tuple]
+        """
         want = set(want)
         for i in self.line[3:-1].split(b'\x1f'):
             code = i and (chr(i[0]) if isinstance(i[0], int) else i[0])
@@ -100,6 +103,9 @@ class BinaryDataField():
         return contents
 
     def get_subfield_values(self, want):
+        """
+        :rtype: list[str]
+        """
         return [v for k, v in self.get_subfields(want)]
 
     def get_all_subfields(self):
