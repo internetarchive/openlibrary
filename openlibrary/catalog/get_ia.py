@@ -1,8 +1,3 @@
-from __future__ import print_function
-
-import traceback
-import xml.parsers.expat
-
 from deprecated import deprecated
 from infogami import config
 from lxml import etree
@@ -60,47 +55,11 @@ def get_marc_record_from_ia(identifier):
             return MarcXml(root)
         except Exception as e:
             print("Unable to read MarcXML: %s" % e)
-            traceback.print_exc()
 
     # If that fails, try marc.bin
     if marc_bin_filename in filenames:
         data = urlopen_keep_trying(item_base + marc_bin_filename).content
         return MarcBinary(data)
-
-
-@deprecated('Use get_marc_record_from_ia() above + parse.read_edition()')
-def get_ia(identifier):
-    """
-    :param str identifier: ocaid
-    :rtype: dict
-    """
-    marc = get_marc_record_from_ia(identifier)
-    return read_edition(marc)
-
-
-def files(identifier):
-    url = item_file_url(identifier, 'files.xml')
-    for i in range(5):
-        try:
-            tree = etree.parse(urlopen_keep_trying(url).content)
-            break
-        except xml.parsers.expat.ExpatError:
-            sleep(2)
-    try:
-        tree = etree.parse(urlopen_keep_trying(url).content)
-    except:
-        print("error reading", url)
-        raise
-    assert tree
-    for i in tree.getroot():
-        assert i.tag == 'file'
-        name = i.attrib['name']
-        if name == 'wfm_bk_marc' or name.endswith('.mrc') or name.endswith('.marc') or name.endswith('.out') or name.endswith('.dat') or name.endswith('.records.utf8'):
-            size = i.find('size')
-            if size is not None:
-                yield name, int(size.text)
-            else:
-                yield name, None
 
 
 def get_from_archive(locator):
@@ -133,7 +92,7 @@ def get_from_archive_bulk(locator):
     offset = int(offset)
     length = int(length)
 
-    r0, r1 = offset, offset+length-1
+    r0, r1 = offset, offset + length - 1
     # get the next record's length in this request
     r1 += 5
     url = IA_DOWNLOAD_URL + filename
@@ -160,6 +119,7 @@ def get_from_archive_bulk(locator):
     return data, next_offset, next_length
 
 
+@deprecated
 def read_marc_file(part, f, pos=0):
     """
     Generator to step through bulk MARC data f.
