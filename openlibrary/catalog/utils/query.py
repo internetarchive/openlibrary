@@ -1,4 +1,4 @@
-from __future__ import print_function
+from deprecated import deprecated
 import requests
 import web
 import json
@@ -9,6 +9,8 @@ import sys
 
 query_host = 'openlibrary.org'
 
+
+@deprecated
 def urlopen(url, data=None):
     version = "%s.%s.%s" % sys.version_info[:3]
     user_agent = 'Mozilla/5.0 (openlibrary; %s) Python/%s' % (__name__, version)
@@ -18,20 +20,30 @@ def urlopen(url, data=None):
     
     return requests.get(url, data=data, headers=headers)
 
+
+@deprecated
 def jsonload(url):
     return urlopen(url).json()
 
+
+@deprecated
 def urlread(url):
     return urlopen(url).content
 
+
+@deprecated
 def set_query_host(host):
     global query_host
     query_host = host
 
+
+@deprecated
 def has_cover(key):
     url = 'https://covers.openlibrary.org/' + key[1] + '/query?olid=' + key[3:]
     return urlread(url).strip() != '[]'
 
+
+@deprecated
 def has_cover_retry(key):
     for attempt in range(5):
         try:
@@ -42,12 +54,18 @@ def has_cover_retry(key):
             pass
         sleep(2)
 
+
+@deprecated
 def base_url():
     return "http://" + query_host
 
+
+@deprecated
 def query_url():
     return base_url() + "/query.json?query="
 
+
+@deprecated
 def get_all_ia():
     print('c')
     q = {'source_records~': 'ia:*', 'type': '/type/edition'}
@@ -64,6 +82,8 @@ def get_all_ia():
             return
         q['offset'] += limit
 
+
+@deprecated
 def query(q):
     url = query_url() + urllib.parse.quote(json.dumps(q))
     ret = None
@@ -90,6 +110,8 @@ def query(q):
                 print(url)
         sleep(20)
 
+
+@deprecated
 def query_iter(q, limit=500, offset=0):
     q['limit'] = limit
     q['offset'] = offset
@@ -104,6 +126,8 @@ def query_iter(q, limit=500, offset=0):
             break
         q['offset'] += limit
 
+
+@deprecated
 def get_editions_with_covers_by_author(author, count):
     q = {'type': '/type/edition', 'title_prefix': None, 'subtitle': None, 'title': None, 'authors': author}
     with_covers = []
@@ -115,6 +139,8 @@ def get_editions_with_covers_by_author(author, count):
             return with_covers
     return with_covers
 
+
+@deprecated
 def version_iter(q, limit=500, offset=0):
     q['limit'] = limit
     q['offset'] = offset
@@ -127,6 +153,8 @@ def version_iter(q, limit=500, offset=0):
             yield i
         q['offset'] += limit
 
+
+@deprecated
 def withKey(key):
     url = base_url() + key + '.json'
     for i in range(20):
@@ -137,6 +165,8 @@ def withKey(key):
         print('retry:', i)
         print(url)
 
+
+@deprecated
 def get_marc_src(e):
     mc = get_mc(e['key'])
     if mc:
@@ -147,7 +177,9 @@ def get_marc_src(e):
         if src.startswith('marc:') and src != 'marc:' + mc:
             yield src[5:]
 
-def get_mc(key): # get machine comment
+
+@deprecated
+def get_mc(key):  # get machine comment
     v = jsonload(base_url() + key + '.json?m=history')
 
     comments = [i['machine_comment'] for i in v if i.get('machine_comment', None) and ':' in i['machine_comment']]
