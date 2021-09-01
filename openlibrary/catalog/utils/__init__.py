@@ -12,7 +12,7 @@ except NameError:
         return (x > y) - (x < y)
 
 
-re_date = map (re.compile, [
+re_date = map(re.compile, [
     r'(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
     r'(?P<birth_date>\d+\??)-',
     r'b\.? (?P<birth_date>(?:ca\. )?\d+\??)',
