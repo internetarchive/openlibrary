@@ -5,18 +5,11 @@ from openlibrary.catalog.marc import mnemonics
 from openlibrary.catalog.marc.marc_base import MarcBase, MarcException, BadMARC
 
 
-import six
-
-
 marc8 = MARC8ToUnicode(quiet=True)
 
 
 class BadLength(MarcException):
     pass
-
-
-def norm(s):
-    return normalize('NFC', six.text_type(s))
 
 
 def handle_wrapped_lines(_iter):
