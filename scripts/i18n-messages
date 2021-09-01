@@ -37,14 +37,12 @@ def main(cmd, args):
     elif cmd == 'add':
         i18n.generate_po(args)
     elif cmd == 'validate':
-        i18n.validate_translations(args)
-    elif cmd == 'validate_production':
-        results = i18n.validate_vetted_translations()
+        results = i18n.validate_translations(args)
 
         num_errors = 0
         for k, v in results.items():
-            if v < 0: # Locale file did not exist
-                print(f'Unknown locale file: {k}')
+            if v < 0: # Locale files did not exist
+                print(f'Unknown locale: {k}')
                 sys.exit(1)
             else:
                 num_errors = num_errors + v

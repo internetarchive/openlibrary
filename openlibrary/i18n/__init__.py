@@ -56,38 +56,8 @@ def _validate_catalog(catalog, locale):
 
 
 def validate_translations(args):
-    """Validates the catalog for the given locale code.
-
-    Returns:
-      0 if the catalog is valid
-      -1 if an unknown locale is passed as an argument
-      -2 if no locale was passed as an argument
-      A positive number if there were validation errors
-    """
-    if args:
-        locale = args[0]
-        po_path = os.path.join(root, locale, 'messages.po')
-
-        if os.path.exists(po_path):
-            catalog = read_po(open(po_path, 'rb'))
-            num_errors = _validate_catalog(catalog, locale)
-
-            if num_errors == 0:
-                print(f'Translations for locale "{locale}" are valid!')
-            return num_errors
-        else:
-            print(f'Portable object file for locale "{locale}" does not exist.')
-            return -1
-    else:
-        print('Must include locale code when executing validate.')
-        return -2
-
-
-def validate_vetted_translations():
-    """Validates all locales found in `/openlibrary/i18n/valid.txt`.
-
-    `valid.txt` should contain all valid locale codes, one per line.
-
+    """Validates all locales passed in as arguments.
+    
     Returns a dictionary of locale-exit code key-value pairs.  Non-
     zero exit codes indicate that a locale has failed validation.
     If any locales have a non-zero value, the validation can be
@@ -95,16 +65,24 @@ def validate_vetted_translations():
     """
     results = {}
 
-    try:
-        with open(os.path.join(root, 'valid.txt')) as f:
-            for line in f:
-                locale = line.rstrip()
-                exit_code = validate_translations([locale])
-                results[locale] = exit_code
-    except FileNotFoundError:
-        print('Valid locales file not found...')
-        return results
+    if args:
+        for arg in args:
+            locale = arg
+            po_path = os.path.join(root, locale, 'messages.po')
 
+            if os.path.exists(po_path):
+                catalog = read_po(open(po_path, 'rb'))
+                num_errors = _validate_catalog(catalog, locale)
+
+                if num_errors == 0:
+                    print(f'Translations for locale "{locale}" are valid!')
+                results[arg] = num_errors
+            else:
+                results[arg] = -1
+                print(f'Portable object file for locale "{locale}" does not exist.')
+    else:
+        print('Must include locale code when executing validate.')
+    
     return results
 
 
