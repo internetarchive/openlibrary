@@ -1,9 +1,7 @@
-from __future__ import print_function
 from lxml import etree
 from openlibrary.catalog.marc.parse import read_edition
 from unicodedata import normalize
 
-import six
 
 slim = '{http://www.loc.gov/MARC21/slim}'
 leader_tag = slim + 'leader'
@@ -13,17 +11,22 @@ subfield_tag = slim + 'subfield'
 collection_tag = slim + 'collection'
 record_tag = slim + 'record'
 
+
 def norm(s):
-    return normalize('NFC', six.text_type(s))
+    return normalize('NFC', str)
+
 
 class BadSubtag:
     pass
 
+
 class MultipleTitles:
     pass
 
+
 class MultipleWorkTitles:
     pass
+
 
 class datafield:
     def __init__(self, element):
@@ -39,6 +42,7 @@ class datafield:
                 raise BadSubtag
             self.contents.setdefault(i.attrib['code'], []).append(text)
             self.subfield_sequence.append((i.attrib['code'], text))
+
 
 class xml_rec:
     def __init__(self, f):
@@ -88,11 +92,10 @@ class xml_rec:
             return [datafield(i) for i in self.dataFields[tag]]
         return []
 
+
 def parse(f):
     rec = xml_rec(f)
     edition = {}
-    if rec.has_blank_tag:
-        print('has blank tag')
     if rec.has_blank_tag or not read_edition(rec, edition):
         return {}
     return edition
