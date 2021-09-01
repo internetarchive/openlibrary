@@ -63,10 +63,18 @@ class Batch(web.storage):
             # which will be loaded directly into the OL catalog
             record = lambda item: {'ia_id': item} if ia_items else {'data': json.dumps(item)}
             values = [dict(batch_id=self.id, **record(item)) for item in items]
-
-            # XXX TODO: this needs an INSERT OR IGNORE, otherwise it will fail on UNIQUE `data`
-            db.get_db().multiple_insert("import_item", values)
-
+            try:
+                # Upgrads psql and use `INSERT OR IGNORE`
+                # otherwise it will fail on UNIQUE `data`
+                # https://stackoverflow.com/questions/1009584
+                db.get_db().multiple_insert("import_item", values)
+            except:
+                for value in values:
+                    try:
+                        db.get_db().insert("import_item", value)
+                        print("success")
+                    except:
+                        print("fail")
             logger.info("batch %s: added %d items", self.name, len(items))
 
     def get_items(self, status="pending"):
@@ -87,7 +95,7 @@ class ImportItem(web.storage):
 
     def set_status(self, status, error=None, ol_key=None):
         _id = self.ia_id or "%s:%s" % (self.batch_id, self.id)
-        logger.info("set-status %s - %s %s %s", self.ia_id, status, error, ol_key)
+        logger.info("set-status %s - %s %s %s", _id, status, error, ol_key)
         d = dict(
             status=status,
             error=error,

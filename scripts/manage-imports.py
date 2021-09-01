@@ -37,7 +37,6 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
             if item.ia_id:
                 return ol.import_ocaid(item.ia_id, require_marc=require_marc)
             else:
-                # XXX What about noting the provider name/src? (e.g. BWB)
                 return ol.import_data(item.data)
         except IOError as e:
             logger.warning("Failed to contact OL server. error=%s", e)
