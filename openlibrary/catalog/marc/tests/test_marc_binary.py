@@ -73,4 +73,3 @@ class Test_MarcBinary:
             values = author_field[0].get_subfield_values('a')
             name, = values  # 100$a is non-repeatable, there will be only one
             assert name == 'Bridgham, Gladys Ruth. [from old catalog]'
-
