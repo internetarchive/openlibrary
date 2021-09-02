@@ -163,7 +163,7 @@ $if og_title:
                 $else:
                   $ work = item
                   $ decorations = (bookshelf_id and owners_page) and macros.ReadingLogButton(work, read_status=bookshelf_id)
-                  $:macros.SearchResultsWork(work, decorations=decorations, cta=False)
+                  $:macros.SearchResultsWork(work, decorations=decorations)
             $else:
               <li>$_('No books are on this shelf')</li>
           </ul>

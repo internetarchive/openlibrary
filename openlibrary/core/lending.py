@@ -361,7 +361,7 @@ def get_availability_of_editions(ol_edition_ids):
     return get_availability('openlibrary_edition', ol_edition_ids)
 
 @public
-def add_availability(items):
+def add_availability(items, mode="identifier"):
     """
     Adds API v2 'availability' key to dicts
     :param list of dict items: items with fields containing ocaids
@@ -394,12 +394,20 @@ def add_availability(items):
             if item.get(field):
                 return item[field][0] if isinstance(item[field], list) else item[field]
 
-    ocaids = [ocaid for ocaid in map(get_ocaid, items) if ocaid]
-    availabilities = get_availability_of_ocaids(ocaids)
-    for item in items:
-        ocaid = get_ocaid(item)
-        if ocaid:
-            item['availability'] = availabilities.get(ocaid)
+    if mode == "identifier":
+        ocaids = [ocaid for ocaid in map(get_ocaid, items) if ocaid]
+        availabilities = get_availability_of_ocaids(ocaids)
+        for item in items:
+            ocaid = get_ocaid(item)
+            if ocaid:
+                item['availability'] = availabilities.get(ocaid)
+    elif mode == "openlibrary_work":
+        _ids = [item['key'].split('/')[-1] for item in items]
+        availabilities = get_availability_of_works(_ids)
+        for item in items:
+            olid = item['key'].split('/')[-1]
+            if olid:
+                item['availability'] = availabilities.get(olid)
     return items
 
 @public
