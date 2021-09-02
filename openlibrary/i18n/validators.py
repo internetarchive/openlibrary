@@ -62,11 +62,11 @@ def _validate_cfmt(msgid: str, msgstr: str) -> List[str]:
 def _cfmt_fingerprint(string: str):
     """
     Get a fingerprint dict of the cstyle format in this string
-    >>> cfmt_fingerprint('hello %s')
+    >>> _cfmt_fingerprint('hello %s')
     {'%s': 1}
-    >>> cfmt_fingerprint('hello %s and %s')
+    >>> _cfmt_fingerprint('hello %s and %s')
     {'%s': 2}
-    >>> cfmt_fingerprint('hello %(title)s. %(first)s %(last)s')
+    >>> _cfmt_fingerprint('hello %(title)s. %(first)s %(last)s')
     {'%(title)s': 1, '%(first)s': 1, '%(last)s': 1}
     """
     pieces = _parse_cfmt(string)
@@ -79,19 +79,19 @@ def _cfmt_fingerprint(string: str):
 def _parse_cfmt(string: str):
     """
     Extract e.g. '%s' from cstyle python format strings
-    >>> parse_cfmt('hello %s')
+    >>> _parse_cfmt('hello %s')
     ['%s']
-    >>> parse_cfmt(' by %(name)s')
+    >>> _parse_cfmt(' by %(name)s')
     ['%(name)s']
-    >>> parse_cfmt('%(count)d Lists')
+    >>> _parse_cfmt('%(count)d Lists')
     ['%(count)d']
-    >>> parse_cfmt('100%% Complete!')
+    >>> _parse_cfmt('100%% Complete!')
     ['%%']
-    >>> parse_cfmt('%(name)s avez %(count)s listes.')
+    >>> _parse_cfmt('%(name)s avez %(count)s listes.')
     ['%(name)s', '%(count)s']
-    >>> parse_cfmt('')
+    >>> _parse_cfmt('')
     []
-    >>> parse_cfmt('Hello World')
+    >>> _parse_cfmt('Hello World')
     []
     """
     cfmt_re = r'''
