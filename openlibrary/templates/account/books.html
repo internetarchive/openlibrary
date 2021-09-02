@@ -128,6 +128,10 @@ $if og_title:
           <li><a $('class=selected' if key=='notes' else '') href="$urlbase/notes">$_('My notes (%(count)d)', count=booknotes_counts['notes'])</a></li>
           <li><a $('class=selected' if key=='observations' else '') href="$urlbase/observations">$_('My observations (%(count)d)', count=booknotes_counts['observations'])</a></li>
         </ul>
+        <ul class="import-export-lists">
+          <li class="subsection">$_("Import / Export")</li>
+          <li><a href="/account/import">$_("Import & Export Options")</a></li>
+        </ul>
       </div>
       $if key == 'notes':
         $:render_template('account/notes', items, user, booknotes_counts['notes'], page=current_page)
