@@ -55,7 +55,7 @@ def _validate_cfmt(msgid: str, msgstr: str) -> List[str]:
     if len(msgstr) and isinstance(msgstr, str):
         if _cfmt_fingerprint(msgid) != _cfmt_fingerprint(msgstr):
             errors.append('    Failed custom string format validation')
-    
+
     return errors
 
 
