@@ -72,9 +72,7 @@ class Batch(web.storage):
                 for value in values:
                     try:
                         db.get_db().insert("import_item", value)
-                        print("success")
                     except:
-                        print("fail")
             logger.info("batch %s: added %d items", self.name, len(items))
 
     def get_items(self, status="pending"):
