@@ -73,8 +73,8 @@ class Batch(web.storage):
                 for value in values:
                     try:
                         db.get_db().insert("import_item", **value)
-                    except Exception:
-                        logger.info("Record %s:%s failed to insert", self.id, value.id)
+                    except UniqueViolation:
+                        pass
             logger.info("batch %s: added %d items", self.name, len(items))
 
     def get_items(self, status="pending"):
