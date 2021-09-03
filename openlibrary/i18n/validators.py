@@ -8,24 +8,25 @@ from babel.messages.checkers import python_format
 
 def validate(message: Message, catalog: Catalog) -> List[str]:
     errors = _validate_fuzzy(message)
-    errors.extend(_validate_format(message, catalog))
-    errors.extend(_validate_cfmt(message.id, message.string))
+    if message.python_format:
+        errors.extend(_validate_format_babel(message, catalog))
+        if not message.pluralizable and message.string:
+            errors.extend(_validate_cfmt(message.id, message.string))
 
     return errors
 
 
-def _validate_format(message: Message, catalog: Catalog) -> List[str]:
+def _validate_format_babel(message: Message, catalog: Catalog) -> List[str]:
     """Returns an error list if the format strings are mismatched.
 
     Relies on Babel's built-in python format checker.
     """
     errors = []
 
-    if message.python_format:
-        try:
-            python_format(catalog, message)
-        except TranslationError as e:
-            errors.append(f'    {e}')
+    try:
+        python_format(catalog, message)
+    except TranslationError as e:
+        errors.append(f'    {e}')
 
     return errors
 
@@ -52,9 +53,8 @@ def _validate_fuzzy(message: Message) -> List[str]:
 def _validate_cfmt(msgid: str, msgstr: str) -> List[str]:
     errors = []
 
-    if len(msgstr) and isinstance(msgstr, str):
-        if _cfmt_fingerprint(msgid) != _cfmt_fingerprint(msgstr):
-            errors.append('    Failed custom string format validation')
+    if _cfmt_fingerprint(msgid) != _cfmt_fingerprint(msgstr):
+        errors.append('    Failed custom string format validation')
 
     return errors
 
