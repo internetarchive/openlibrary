@@ -4,6 +4,7 @@ import itertools
 import logging
 import os
 import re
+from json import JSONDecodeError
 from math import ceil
 from statistics import median
 from typing import Literal, List, Optional, cast, TypedDict, Set, Dict, Any
@@ -1100,7 +1101,10 @@ def solr_update(
     content = '{' + ','.join(r.to_json_command() for r in reqs) + '}'
 
     solr_base_url = solr_base_url or get_solr_base_url()
-    params = {}
+    params = {
+        # Don't fail the whole batch if one bad apple
+        'update.chain': 'tolerant-chain'
+    }
     if commit_within is not None:
         params['commitWithin'] = commit_within
     if skip_id_check:
@@ -1113,9 +1117,14 @@ def solr_update(
             params=params,
             headers={'Content-Type': 'application/json'},
             content=content)
-        resp.raise_for_status()
-        if resp.is_error:
+        try:
+            resp_json = resp.json()
+            if errors := resp_json['responseHeader'].get('errors', []):
+                for e in errors:
+                    logger.error(f'Error with solr POST update: {e}')
+        except JSONDecodeError:
             logger.error('Error with solr POST update: ' + resp.text)
+        resp.raise_for_status()
     except HTTPError:
         logger.error('Error with solr POST update: ' + content)
 
