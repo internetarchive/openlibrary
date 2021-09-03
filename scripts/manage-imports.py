@@ -208,10 +208,6 @@ def main():
         return add_items(args)
     elif cmd == "add-new-scans":
         return add_new_scans(args)
-    elif cmd == "add-data":
-        return add_data(args)
-    elif cmd == "import-data":
-        return import_data(args)
     elif cmd == "import-batch":
         return import_batch(args, **flags)
     elif cmd == "import-all":
