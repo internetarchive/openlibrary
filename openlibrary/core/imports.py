@@ -61,18 +61,19 @@ class Batch(web.storage):
             # Either create a reference to an IA id which will be loaded
             # from Archive.org metadata, or provide json data book record
             # which will be loaded directly into the OL catalog
-            record = lambda item: {'ia_id': item} if ia_items else {'data': json.dumps(item)}
+            def record(item):
+                return {'ia_id': item} if ia_items else {'data': json.dumps(item)}
             values = [dict(batch_id=self.id, **record(item)) for item in items]
             try:
                 # Upgrads psql and use `INSERT OR IGNORE`
                 # otherwise it will fail on UNIQUE `data`
                 # https://stackoverflow.com/questions/1009584
                 db.get_db().multiple_insert("import_item", values)
-            except:
+            except Exception:
                 for value in values:
                     try:
                         db.get_db().insert("import_item", value)
-                    except:
+                    except Exception:
             logger.info("batch %s: added %d items", self.name, len(items))
 
     def get_items(self, status="pending"):
