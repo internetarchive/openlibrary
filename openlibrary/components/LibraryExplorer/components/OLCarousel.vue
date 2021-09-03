@@ -1,6 +1,6 @@
 <template>
   <div class="ol-carousel">
-    <BooksCarousel v-if="status == 'Loaded' || results.length" :books="results">
+    <BooksCarousel v-if="status === 'Loaded' || results.length" :books="results">
       <template v-slot:cover-label="{book}">
         <slot name="cover-label" v-bind:book="book"/>
       </template>
@@ -13,23 +13,23 @@
         <slot name="book-end-start"/>
         <div class="book-end" v-if="offset > 0">
           <small>{{offset}}-{{offset + results.length}} of {{numFound}}</small>
-          <button class="load-more" @click="loadPrevPage" :disabled="offset == 0">Load previous</button>
+          <button class="load-more" @click="loadPrevPage" :disabled="offset === 0">Load previous</button>
           <a class="view-all" :href="olUrl" target="_blank">View all</a>
         </div>
       </template>
       <template #book-end>
         <div class="book-end">
           <small>{{offset}}-{{offset + results.length}} of {{numFound}}</small>
-          <button class="load-more" @click="loadNextPage" :disabled="offset + results.length == numFound">Load next</button>
+          <button class="load-more" @click="loadNextPage" :disabled="offset + results.length === numFound">Load next</button>
           <a class="view-all" :href="olUrl" target="_blank">View all</a>
         </div>
       </template>
     </BooksCarousel>
     <transition>
-      <div class="status-text" v-if="status == 'Errored'">Something went wrong... <button @click="reloadResults('reload')">Retry</button></div>
+      <div class="status-text" v-if="status === 'Errored'">Something went wrong... <button @click="reloadResults('reload')">Retry</button></div>
     </transition>
     <transition>
-      <div class="status-text" v-if="status == 'Loading'">Loading...</div>
+      <div class="status-text" v-if="status === 'Loading'">Loading...</div>
     </transition>
   </div>
 </template>
@@ -61,7 +61,7 @@ class CarouselCoordinator {
 
     registerOnscreenCarousel(carousel) {
         const index = this.currentlyRenderedOffscreen.indexOf(carousel);
-        if (index != -1) {
+        if (index !== -1) {
             // console.log('CarouselCoordinator', `Carousel no longer offscreen -- ${carousel.query}`);
             this.currentlyRenderedOffscreen.splice(index, 1);
         }
@@ -195,7 +195,7 @@ export default {
 
         async loadResults(offset, cache='force-cache') {
             // Don't re-fetch if already there
-            if (offset == this.offset && this.results.length) return;
+            if (offset === this.offset && this.results.length) return;
 
             this.lastFetchAbortController?.abort();
             if ('AbortController' in window) this.lastFetchAbortController = new AbortController();
@@ -230,7 +230,7 @@ export default {
 
         async _loadOffset(newOffset) {
             await this.loadResults(newOffset);
-            if (this.status == 'Loaded') this.offset = newOffset;
+            if (this.status === 'Loaded') this.offset = newOffset;
         },
 
         async loadPageContainingOffset(offset) {

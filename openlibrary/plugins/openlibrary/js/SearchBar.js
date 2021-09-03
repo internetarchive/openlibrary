@@ -100,7 +100,7 @@ export class SearchBar {
 
         if (urlParams.q) {
             let q = urlParams.q.replace(/\+/g, ' ');
-            if (this.facet.read() === 'title' && q.indexOf('title:') != -1) {
+            if (this.facet.read() === 'title' && q.indexOf('title:') !== -1) {
                 const parts = q.split('"');
                 if (parts.length === 3) {
                     q = parts[1];
@@ -220,7 +220,7 @@ export class SearchBar {
      * @return {String}
      */
     static marshalBookSearchQuery(q) {
-        if (q && q.indexOf(':') == -1 && q.indexOf('"') == -1) {
+        if (q && q.indexOf(':') === -1 && q.indexOf('"') === -1) {
             q = `title: "${q}"`;
         }
         return q;
@@ -299,7 +299,7 @@ export class SearchBar {
     handleFacetSelectChange(event) {
         const newFacet = event.target.value;
         // We don't want to persist advanced becaues it behaves like a button
-        if (newFacet == 'advanced') {
+        if (newFacet === 'advanced') {
             event.preventDefault();
             this.navigateTo('/advancedsearch');
         } else {

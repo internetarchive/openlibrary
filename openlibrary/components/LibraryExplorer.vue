@@ -102,7 +102,7 @@ export default {
         let jumpTo = null;
         if (urlParams.has('jumpTo')) {
             const [classificationName, classificationString] = urlParams.get('jumpTo').split(':');
-            selectedClassification = classifications.find(c => c.field == classificationName);
+            selectedClassification = classifications.find(c => c.field === classificationName);
             jumpTo = selectedClassification.toQueryFormat(classificationString);
         }
         return {

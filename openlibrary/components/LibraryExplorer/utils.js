@@ -73,10 +73,10 @@ export function decrementStringSolr(string, caseSensitive=true, numeric=false) {
     // Also append Z; this is the equivalent of going back one, and then expanding (e.g. 0.123 decremented is not 0.122, it's 0.12999999)
     const maxTail = (numeric ? '9' : 'z').repeat(5);
     const newLastChar = (
-        lastChar == '.' ? '' :
-            lastChar == '0' ? `.${maxTail}` :
-                lastChar == 'A' ? `9${maxTail}` :
-                    lastChar == 'a' ? `Z${maxTail}` :
+        lastChar === '.' ? '' :
+            lastChar === '0' ? `.${maxTail}` :
+                lastChar === 'A' ? `9${maxTail}` :
+                    lastChar === 'a' ? `Z${maxTail}` :
                         `${String.fromCharCode(lastChar.charCodeAt(0) - 1)}${maxTail}`);
 
     return string.slice(0, -1) + newLastChar;

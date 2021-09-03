@@ -2,7 +2,7 @@
   <div class="book-room" :class="{'expanding-animation': expandingAnimation}">
     <!-- <div class="room-breadcrumbs">
       <span v-for="(node, i) of breadcrumbs" :key="i">
-        <button @click="goUpTo(i)">{{i == 0 ? 'Home' : node.name}}</button>
+        <button @click="goUpTo(i)">{{i === 0 ? 'Home' : node.name}}</button>
         &gt;
       </span>
       <span v-if="breadcrumbs.length">{{activeRoom.name}}</span>
@@ -177,7 +177,7 @@ export default {
             });
 
             // Find the offset of the predecessor of the requested item in its shelf
-            const predecessor = decrementStringSolr(this.jumpToData.classification, false, this.classification.field == 'ddc');
+            const predecessor = decrementStringSolr(this.jumpToData.classification, false, this.classification.field === 'ddc');
             const shelf_query = `${this.classification.field}_sort:${this.jumpToData.shelf.query} ${this.filter}`;
             /** @type {number} */
             const offset = await fetch(`${CONFIGS.OL_BASE_SEARCH}/search.json?${new URLSearchParams({
@@ -219,7 +219,7 @@ export default {
             this.expandingAnimation = false;
             this.breadcrumbs.push(this.activeRoom);
             this.activeRoom = bookshelf;
-            const nodeToScrollTo = shelf?.position == 'root' ? shelf :
+            const nodeToScrollTo = shelf?.position === 'root' ? shelf :
                 shelf?.children && shelf?.position ? shelf.children[shelf.position]
                     : (shelf || bookshelf);
             await Vue.nextTick();
@@ -240,7 +240,7 @@ export default {
             this.roomWidth = max(1, this.$el.querySelector('.book-room-shelves').scrollWidth);
             this.viewportWidth = max(1, this.$el.getBoundingClientRect().width);
 
-            if (this.roomWidth == 1 || this.viewportWidth == 1) {
+            if (this.roomWidth === 1 || this.viewportWidth === 1) {
                 setTimeout(this.updateWidths, 100);
             }
         },

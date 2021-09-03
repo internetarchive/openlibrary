@@ -27,7 +27,7 @@ export function short_lcc_to_sortable_lcc(lcc) {
     // E.g. "CPB Box no. 1516 vol. 17"
     // Although this might be useful to search by, it's not really an LCC,
     // so considering it invalid here.
-    if (letters == 'CPB') return null;
+    if (letters === 'CPB') return null;
 
     return `${letters}${number.toFixed(8).padStart(13, '0')}${cutter1}${rest}`;
 }

@@ -19,6 +19,7 @@
   "globals": {},
   "rules": {
     "prefer-template": "error",
+    "eqeqeq": ["error", "always"],
     "quotes": ["error", "single"],
     "eol-last": ["error", "always"],
     "indent": 2,

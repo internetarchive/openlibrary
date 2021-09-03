@@ -43,7 +43,7 @@ export default {
 
     watch: {
         async index(newVal, oldVal) {
-            if (typeof oldVal != 'number') return;
+            if (typeof oldVal !== 'number') return;
             this.direction = newVal > oldVal ? 'slide-right' : 'slide-left';
             await new Promise(res => setTimeout(res, 200));
             this.direction = null;
@@ -53,10 +53,10 @@ export default {
     computed: {
         index: {
             get() {
-                return this.node.position == 'root' ? 0 : this.node.position + 1;
+                return this.node.position === 'root' ? 0 : this.node.position + 1;
             },
             set(newVal) {
-                this.node.position = newVal == 0 ? 'root' : newVal - 1;
+                this.node.position = newVal === 0 ? 'root' : newVal - 1;
             }
         },
         sections() {
