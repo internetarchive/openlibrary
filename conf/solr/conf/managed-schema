@@ -193,6 +193,16 @@
     <field name="time_facet" type="string" stored="false" multiValued="true"/>
     <field name="time_key" type="string" stored="false" multiValued="true"/>
 
+    <!-- Ratings -->
+    <field name="ratings_average" type="pfloat"/>
+    <field name="ratings_median" type="pfloat"/>
+    <field name="ratings_count" type="pint"/>
+    <field name="ratings_count_1" type="pint"/>
+    <field name="ratings_count_2" type="pint"/>
+    <field name="ratings_count_3" type="pint"/>
+    <field name="ratings_count_4" type="pint"/>
+    <field name="ratings_count_5" type="pint"/>
+
     <field name="text" type="text_en_splitting" stored="false" multiValued="true"/>
 
     <field name="seed" type="string" multiValued="true"/>
