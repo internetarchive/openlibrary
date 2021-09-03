@@ -49,6 +49,10 @@ class Batch(web.storage):
         return list(set(items) - set(already_present))
 
     def add_items(self, items, ia_items=True):
+        """
+        :param ia_items: Whether items is a list of IA identifiers. If False, expects a list of
+        book data dicts.
+        """
         if not items:
             return
 
