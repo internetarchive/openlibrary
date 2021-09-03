@@ -77,7 +77,7 @@ class Batch(web.storage):
                 # otherwise it will fail on UNIQUE `data`
                 # https://stackoverflow.com/questions/1009584
                 db.get_db().multiple_insert("import_item", values)
-            except Exception:
+            except UniqueViolation:
                 for value in values:
                     try:
                         db.get_db().insert("import_item", **value)
