@@ -37,7 +37,19 @@ def main(cmd, args):
     elif cmd == 'add':
         i18n.generate_po(args)
     elif cmd == 'validate':
-        i18n.validate_translations(args)
+        results = i18n.validate_translations(args)
+
+        num_errors = 0
+        for error_count in results.values():
+            num_errors = num_errors + error_count
+
+        if num_errors == 0:
+            print("Validation passed!")
+        else:
+            print(f'Validation failed.\n{num_errors} errors found...')
+            sys.exit(1)
+
+        sys.exit(0)
     elif cmd == 'help':
         help()
     else:

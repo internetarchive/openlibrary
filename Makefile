@@ -76,5 +76,9 @@ endif
 test-py:
 	pytest . --ignore=tests/integration --ignore=scripts/2011 --ignore=infogami --ignore=vendor --ignore=node_modules
 
+test-i18n:
+  # Valid locale codes should be added as arguments to validate
+	$(PYTHON) ./scripts/i18n-messages validate de es fr ja
+
 test:
-	make test-py && npm run test
+	make test-py && npm run test && make test-i18n
