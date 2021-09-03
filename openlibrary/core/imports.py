@@ -73,7 +73,7 @@ class Batch(web.storage):
                 for item in items
             ]
             try:
-                # Upgrads psql and use `INSERT OR IGNORE`
+                # TODO: Upgrade psql and use `INSERT OR IGNORE`
                 # otherwise it will fail on UNIQUE `data`
                 # https://stackoverflow.com/questions/1009584
                 db.get_db().multiple_insert("import_item", values)
