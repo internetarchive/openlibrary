@@ -68,19 +68,6 @@ def gen_po_msg_pairs():
             yield locale, msgid, msgstr
 
 
-def gen_python_format_entries():
-    """Generate a tuple for every msgid/msgstr in our po files"""
-    for locale, msgid, msgstr in gen_po_msg_pairs():
-        if not ('%' in msgid or '%' in msgstr):
-            continue
-
-        if locale in ALLOW_FAILURES:
-            yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}',
-                               marks=pytest.mark.xfail)
-        else:
-            yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}')
-
-
 def gen_html_entries():
     for locale, msgid, msgstr in gen_po_msg_pairs():
         if '</' not in msgid:
