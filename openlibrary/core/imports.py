@@ -7,7 +7,7 @@ import time
 import web
 import json
 
-from psycopg2.errors import UndefinedTable
+from psycopg2.errors import UndefinedTable, UniqueViolation
 
 from . import db
 
