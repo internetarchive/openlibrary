@@ -32,7 +32,7 @@ jobs:
           pip list --outdated
       - run: make git
       - name: Run make i18n
-        run: /
+        run: |
           make i18n
           make test-i18n
       - name: Run tests
