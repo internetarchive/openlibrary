@@ -102,8 +102,8 @@ class ImportItem(web.storage):
             return ImportItem(result[0])
 
     def set_status(self, status, error=None, ol_key=None):
-        _id = self.ia_id or "%s:%s" % (self.batch_id, self.id)
-        logger.info("set-status %s - %s %s %s", _id, status, error, ol_key)
+        id_ = self.ia_id or "%s:%s" % (self.batch_id, self.id)
+        logger.info("set-status %s - %s %s %s", id_, status, error, ol_key)
         d = dict(
             status=status,
             error=error,
