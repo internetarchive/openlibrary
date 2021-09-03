@@ -41,11 +41,6 @@ def _validate_fuzzy(message: Message) -> List[str]:
     if message.fuzzy:
         if message.lineno:
             errors.append('    Is fuzzy')
-        else:
-            errors.append(
-                'File is fuzzy.  Remove line containing "#, fuzzy"'
-                ' found near the beginning of the file.'
-            )
 
     return errors
 
