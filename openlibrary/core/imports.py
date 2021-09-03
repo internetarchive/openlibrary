@@ -50,7 +50,7 @@ class Batch(web.storage):
 
     def add_items(self, items, ia_items=True):
         """
-        :param ia_items: Whether items is a list of IA identifiers. If False, expects a list of
+        :param ia_items: True if `items` is a list of IA identifiers, False if
         book data dicts.
         """
         if not items:
