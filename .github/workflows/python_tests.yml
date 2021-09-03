@@ -32,7 +32,9 @@ jobs:
           pip list --outdated
       - run: make git
       - name: Run make i18n
-        run: make i18n
+        run: /
+          make i18n
+          make test-i18n
       - name: Run tests
         run: |
           git fetch --no-tags --prune --depth=1 origin master
