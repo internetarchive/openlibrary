@@ -25,14 +25,19 @@ def get_ol(servername=None):
 def ol_import_request(item, retries=5, servername=None, require_marc=True):
     """Requests OL to import an item and retries on server errors.
     """
-    logger.info("importing %s", item.ia_id)
+    # logger uses batch_id:id for item.data identifier if no item.ia_id
+    _id = item.ia_id or "%s:%s" % (item.batch_id, item.id)
+    logger.info("importing %s", _id)
     for i in range(retries):
         if i != 0:
             logger.info("sleeping for 5 seconds before next attempt.")
             time.sleep(5)
         try:
             ol = get_ol(servername=servername)
-            return ol.import_ocaid(item.ia_id, require_marc=require_marc)
+            if item.ia_id:
+                return ol.import_ocaid(item.ia_id, require_marc=require_marc)
+            else:
+                return ol.import_data(item.data)
         except IOError as e:
             logger.warning("Failed to contact OL server. error=%s", e)
         except OLError as e:
@@ -54,7 +59,7 @@ def do_import(item, servername=None, require_marc=True):
             logger.error("failed with error code: %s", error_code)
             item.set_status("failed", error=error_code)
     else:
-        logger.error("failed with internal error")
+        logger.error("failed with internal error: %s", response)
         item.set_status("failed", error='internal-error')
 
 
@@ -152,7 +157,6 @@ def import_all(args, **kwargs):
 
         for item in items:
             do_import(item, servername=servername, require_marc=require_marc)
-
 
 def retroactive_import(start=None, stop=None, servername=None):
     """Retroactively searches and imports all previously missed books
