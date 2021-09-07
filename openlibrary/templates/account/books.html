@@ -1,14 +1,12 @@
-$def with (items, key, sponsorship_count=None, reading_log_counts=None, lists=None, user=None, logged_in_user=None, public=False, sort_order='desc', booknotes_counts=None)
+$def with (items, key, counts, lists=None, user=None, logged_in_user=None, public=False, sort_order='desc')
 
 $# Displays a user's reading log
 $# :param list items:
-$# :param Literal['currently-reading', 'want-to-read', 'already-read', 'sponsorships', 'loans', 'waitlist'] key:
-$# :param int? sponsorship_count: number of books the user is sponsoring
-$# :param Dict[Literal['currently-reading', 'want-to-read', 'already-read'], int] reading_log_counts:
+$# :param Literal['currently-reading', 'want-to-read', 'already-read', 'sponsorships', 'loans', 'waitlist', 'notes', 'observations'] key:
+$# :param Dict[str: int] counts:
 $# :param list? lists:
 $# :param user:
 $# :param bool public:
-$# :param Dict[Literal['notes', 'observations'], int] booknotes_counts: Number of notes and observations left by patron
 
 $ title = _('My Books')
 $ urlbase = ctx.path.rsplit('/', 1)[0]
@@ -17,12 +15,7 @@ $ owners_page = logged_in_user and urlbase.startswith('/people/'+logged_in_user.
 $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 
 $ current_page = int(input(page=1).page)
-$if key == 'sponsorships':
-  $ total_items = sponsorship_count
-$elif key == 'notes' or key == 'observations':
-  $ total_items = int(booknotes_counts[key])
-$else:
-  $ total_items = int(reading_log_counts[key])
+$ total_items = counts[key]
 
 $ userDisplayName = user.displayname or ctx.user.displayname
 $ userKey = user.key or ctx.user.key
@@ -105,15 +98,15 @@ $if og_title:
       <div class="mybooks-menu">
         <ul class="preset-lists">
           <li class="subsection">$_('Reading Log')</li>
-          <li><a href="$urlbase/currently-reading" $('class=selected' if key == 'currently-reading' else '')>$_('Currently Reading (%(count)d)', count=reading_log_counts['currently-reading'])</a></li>
-          <li><a href="$urlbase/want-to-read" $('class=selected' if key == 'want-to-read' else '')>$_('Want to Read (%(count)d)', count=reading_log_counts['want-to-read'])</a></li>
-          <li><a href="$urlbase/already-read" $('class=selected' if key == 'already-read' else '')>$_('Already Read (%(count)d)', count=reading_log_counts['already-read'])</a></li>
+          <li><a href="$urlbase/currently-reading" $('class=selected' if key == 'currently-reading' else '')>$_('Currently Reading (%(count)d)', count=counts['currently-reading'])</a></li>
+          <li><a href="$urlbase/want-to-read" $('class=selected' if key == 'want-to-read' else '')>$_('Want to Read (%(count)d)', count=counts['want-to-read'])</a></li>
+          <li><a href="$urlbase/already-read" $('class=selected' if key == 'already-read' else '')>$_('Already Read (%(count)d)', count=counts['already-read'])</a></li>
         </ul>
         $if owners_page and ctx.user and ctx.user.in_sponsorship_beta():
           <!-- only show to owners -->
           <ul class="preset-lists">
             <li class="subsection">$_('Sponsorships')</li>
-            <li><a href="$urlbase/sponsorships" $('class=selected' if key == 'sponsorships' else '')>Sponsoring ($sponsorship_count)</a></li>
+            <li><a href="$urlbase/sponsorships" $('class=selected' if key == 'sponsorships' else '')>Sponsoring ($counts['sponsorships'])</a></li>
           </ul>
         $if lists:
           <ul class="user-lists">
@@ -135,9 +128,9 @@ $if og_title:
           </ul>
       </div>
       $if key == 'notes':
-        $:render_template('account/notes', items, user, booknotes_counts['notes'], page=current_page)
+        $:render_template('account/notes', items, user, counts['notes'], page=current_page)
       $elif key == 'observations':
-        $:render_template('account/observations', items, user, booknotes_counts['observations'], page=current_page)
+        $:render_template('account/observations', items, user, counts['observations'], page=current_page)
       $else:
         <div class="mybooks-list">
           <span class="mybooks-tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" style="margin-right:10px;" width="9" height="11">

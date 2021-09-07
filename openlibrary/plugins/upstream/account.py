@@ -865,9 +865,7 @@ class public_my_books(delegate.page):
         return render['account/books'](
             books, 'sponsorships', user=user,
             logged_in_user=logged_in_user,
-            reading_log_counts=counts,
-            booknotes_counts={k:v for k, v in counts.items() if k in ('observations', 'notes')},
-            sponsorship_count=counts['sponsorships']
+            counts=counts
         )
 
     def _loans_view(self):
@@ -877,26 +875,20 @@ class public_my_books(delegate.page):
         user = web.ctx.site.get('/people/%s' % username)
         books = PatronBooknotes(user).get_notes(page=page)
 
-        booknotes_counts = PatronBooknotes.get_counts(username)
-
         return render['account/books'](
                 books, 'notes',
                 user=user, logged_in_user=logged_in_user,
-                booknotes_counts=booknotes_counts,
-                reading_log_counts=counts
+                counts=counts
             )
 
     def _observations_view(self, username, logged_in_user, counts, page=1):
         user = web.ctx.site.get('/people/%s' % username)
         books = PatronBooknotes(user).get_observations(page=page)
 
-        booknotes_counts = PatronBooknotes.get_counts(username)
-
         return render['account/books'](
             books, 'observations',
             user=user, logged_in_user=logged_in_user,
-            booknotes_counts=booknotes_counts,
-            reading_log_counts=counts
+            counts=counts
         )
 
     def _reading_log_view(self, key, books, username, logged_in_user, counts):
@@ -905,8 +897,7 @@ class public_my_books(delegate.page):
         return render['account/books'](
             books, key, user=user,
             logged_in_user=logged_in_user,
-            reading_log_counts=counts,
-            booknotes_counts={k:v for k, v in counts.items() if k in ('observations', 'notes')}
+            counts=counts
         )
 
 
