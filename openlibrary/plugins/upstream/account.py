@@ -832,32 +832,82 @@ class public_my_books(delegate.page):
             logged_in_user.key.split('/')[-1] == username)
         if is_public or is_logged_in_user:
             readlog = ReadingLog(user=user)
-            sponsorships = get_sponsored_editions(user)
+            counts = readlog.reading_log_counts
+            counts.update(PatronBooknotes.get_counts(username))
+            
             if key == 'sponsorships':
+                sponsorships = get_sponsored_editions(user)
+                counts['sponsorships'] = len(sponsorships)
                 books = (web.ctx.site.get(
                     web.ctx.site.things({
                         'type': '/type/edition',
                         'isbn_%s' % len(s['isbn']): s['isbn']
                     })[0]) for s in sponsorships)
+                return self._sponsorships_view(books, username, logged_in_user, counts)
+            elif key == 'loans':
+                self._loans_view()
             elif key == 'notes' and is_logged_in_user:
-                books = PatronBooknotes(user).get_notes(page=int(i.page))
+                return self._notes_view(username, logged_in_user, counts, page=i.page)
             elif key == 'observations' and is_logged_in_user:
-                books = PatronBooknotes(user).get_observations(page=int(i.page))
-            else:
+                return self._observations_view(username, logged_in_user, counts, page=i.page)
+            elif key in ('already-read', 'want-to-read', 'currently-reading'):
                 books = add_availability(
-                    readlog.get_works(key, page=i.page,
-                                      sort='created', sort_order=i.sort),
-                    mode="openlibrary_work"
+                    self.readlog.get_works(key, page=i.page,
+                                      sort='created', sort_order=i.sort)
                 )
-            booknotes_counts = PatronBooknotes.get_counts(username)
+                return self._reading_log_view(key, books, username, logged_in_user, counts)
 
-            return render['account/books'](
-                books, key, sponsorship_count=len(sponsorships),
-                reading_log_counts=readlog.reading_log_counts, lists=readlog.lists,
-                user=user, logged_in_user=logged_in_user, public=is_public,
-                sort_order=str(i.sort), booknotes_counts=booknotes_counts
-            )
         raise web.seeother(user.key)
+
+    def _sponsorships_view(self, books, username, logged_in_user, counts):
+        user = web.ctx.site.get('/people/%s' % username)
+
+        return render['account/books'](
+            books, 'sponsorships', user=user,
+            logged_in_user=logged_in_user,
+            reading_log_counts=counts,
+            booknotes_counts={k:v for k, v in counts.items() if k in ('observations', 'notes')},
+            sponsorship_count=counts['sponsorships']
+        )
+
+    def _loans_view(self):
+        pass
+
+    def _notes_view(self, username, logged_in_user, counts, page=1):
+        user = web.ctx.site.get('/people/%s' % username)
+        books = PatronBooknotes(user).get_notes(page=page)
+
+        booknotes_counts = PatronBooknotes.get_counts(username)
+
+        return render['account/books'](
+                books, 'notes',
+                user=user, logged_in_user=logged_in_user,
+                booknotes_counts=booknotes_counts,
+                reading_log_counts=counts
+            )
+
+    def _observations_view(self, username, logged_in_user, counts, page=1):
+        user = web.ctx.site.get('/people/%s' % username)
+        books = PatronBooknotes(user).get_observations(page=page)
+
+        booknotes_counts = PatronBooknotes.get_counts(username)
+
+        return render['account/books'](
+            books, 'observations',
+            user=user, logged_in_user=logged_in_user,
+            booknotes_counts=booknotes_counts,
+            reading_log_counts=counts
+        )
+
+    def _reading_log_view(self, key, books, username, logged_in_user, counts):
+        user = web.ctx.site.get('/people/%s' % username)
+
+        return render['account/books'](
+            books, key, user=user,
+            logged_in_user=logged_in_user,
+            reading_log_counts=counts,
+            booknotes_counts={k:v for k, v in counts.items() if k in ('observations', 'notes')}
+        )
 
 
 class public_my_books_json(delegate.page):
