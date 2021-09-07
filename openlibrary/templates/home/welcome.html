@@ -25,11 +25,12 @@ $def with (test=False)
         </a>
       </div>
 
-      <div class="carousel__item tutorial__item show-card">
+      <div class="carousel__item tutorial__item">
         <a
-          href=""
+          href="#displayCard"
           tabindex="0"
           data-ol-link-track="OnboardingCarouselClick|Organize"
+          class="show-card"
         >
           <img src="/static/images/onboarding/track.png" />
           <div class="card__text">
@@ -84,7 +85,9 @@ $def with (test=False)
   </div>
 </div>
 
-<div class="card hidden">
+<div style='display:none'>
+  <div id='displayCard'>
+<div class="card">
     <div class="slide">
       <div class="slide_gif">
         <img src="../../../static/images/onboarding/gif/addreadinglog.gif">
@@ -116,4 +119,5 @@ $def with (test=False)
   <span type="button" class="card-next btn-next-card">Next</span>
   <div class="dots"></div>
 </div>
-<div class="overlay hidden"></div>
+</div>
+</div>

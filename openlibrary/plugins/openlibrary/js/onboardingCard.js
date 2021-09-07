@@ -1,24 +1,16 @@
 export function initOnboardingCard() {
-    const openModal = function (e) {
-        e.preventDefault();
-        $('.card').removeClass('hidden');
-        $('.overlay').removeClass('hidden');
-    };
+    $('.show-card').colorbox({
+        inline: true,
+        opacity: '0.5',
+        width: 383,
+        height: 600
+    });
 
     const closeModal = function () {
-        $('.card').addClass('hidden');
-        $('.overlay').addClass('hidden');
+        $('.btn-close-card').attr('href', 'javascript:;').on('click', () => $.fn.colorbox.close());
     };
 
-    $('.show-card').on('click', openModal);
     $('.btn-close-card').on('click', closeModal);
-    $('.overlay').on('click', closeModal);
-
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && !$('.modal').toggleClass('hidden')) {
-            closeModal();
-        }
-    });
 
     const slider = function () {
         const slides = document.querySelectorAll('.slide');
