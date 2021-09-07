@@ -1,0 +1,27 @@
+$def with (items, key, total_items, owners_page, current_page, sort_order='desc')
+
+<div class="mybooks-list">
+  <span class="mybooks-tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" style="margin-right:10px;" width="9" height="11">
+    $if sort_order == 'desc':
+      <strong class="lightgreen">$_("Date Added (newest)")</strong>
+      |
+      <a href="$ctx.path?sort=asc">$_("Date Added (oldest)")</a>
+    $else:
+      <a href="$ctx.path?sort=desc">$_("Date Added (newest)")</a>
+      |
+      <strong class="lightgreen">$_("Date Added (oldest)")</strong>
+  </span>
+
+  $:macros.Pager(current_page, total_items, results_per_page=25)
+  <ul class="list-books">
+    $if items:
+      $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
+      $for item in items:
+        $ work = item
+        $ decorations = (bookshelf_id and owners_page) and macros.ReadingLogButton(work, read_status=bookshelf_id)
+        $:macros.SearchResultsWork(work, decorations=decorations, cta=False)
+    $else:
+      <li>$_('No books are on this shelf')</li>
+  </ul>
+  $:macros.Pager(current_page, total_items, results_per_page=25)
+</div>
