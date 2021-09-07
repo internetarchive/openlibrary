@@ -843,61 +843,65 @@ class public_my_books(delegate.page):
                         'type': '/type/edition',
                         'isbn_%s' % len(s['isbn']): s['isbn']
                     })[0]) for s in sponsorships)
-                return self._sponsorships_view(books, username, logged_in_user, counts)
+                return self._sponsorships_view(books, username, logged_in_user, counts, readlog.lists)
             elif key == 'loans':
                 self._loans_view()
             elif key == 'notes' and is_logged_in_user:
-                return self._notes_view(username, logged_in_user, counts, page=i.page)
+                return self._notes_view(username, logged_in_user, counts, readlog.lists, page=i.page)
             elif key == 'observations' and is_logged_in_user:
-                return self._observations_view(username, logged_in_user, counts, page=i.page)
+                return self._observations_view(username, logged_in_user, counts, readlog.lists, page=i.page)
             elif key in ('already-read', 'want-to-read', 'currently-reading'):
                 books = add_availability(
-                    self.readlog.get_works(key, page=i.page,
-                                      sort='created', sort_order=i.sort)
+                    readlog.get_works(key, page=i.page,
+                                        sort='created', sort_order=i.sort)
                 )
-                return self._reading_log_view(key, books, username, logged_in_user, counts)
+                return self._reading_log_view(key, books, username, logged_in_user, counts, readlog.lists)
 
         raise web.seeother(user.key)
 
-    def _sponsorships_view(self, books, username, logged_in_user, counts):
+    def _sponsorships_view(self, books, username, logged_in_user, counts, lists):
         user = web.ctx.site.get('/people/%s' % username)
 
         return render['account/books'](
             books, 'sponsorships', user=user,
             logged_in_user=logged_in_user,
-            counts=counts
+            counts=counts,
+            lists=lists
         )
 
     def _loans_view(self):
         pass
 
-    def _notes_view(self, username, logged_in_user, counts, page=1):
+    def _notes_view(self, username, logged_in_user, counts, lists, page=1):
         user = web.ctx.site.get('/people/%s' % username)
         books = PatronBooknotes(user).get_notes(page=page)
 
         return render['account/books'](
                 books, 'notes',
                 user=user, logged_in_user=logged_in_user,
-                counts=counts
+                counts=counts,
+                lists=lists
             )
 
-    def _observations_view(self, username, logged_in_user, counts, page=1):
+    def _observations_view(self, username, logged_in_user, counts, lists, page=1):
         user = web.ctx.site.get('/people/%s' % username)
         books = PatronBooknotes(user).get_observations(page=page)
 
         return render['account/books'](
             books, 'observations',
             user=user, logged_in_user=logged_in_user,
-            counts=counts
+            counts=counts,
+            lists=lists
         )
 
-    def _reading_log_view(self, key, books, username, logged_in_user, counts):
+    def _reading_log_view(self, key, books, username, logged_in_user, counts, lists):
         user = web.ctx.site.get('/people/%s' % username)
 
         return render['account/books'](
             books, key, user=user,
             logged_in_user=logged_in_user,
-            counts=counts
+            counts=counts,
+            lists=lists
         )
 
 
