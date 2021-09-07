@@ -68,7 +68,9 @@ class Batch(web.storage):
             values = [
                 {
                     'batch_id': self.id,
-                    **({'ia_id': item} if ia_items else {'data': json.dumps(item)})
+                    **({'ia_id': item} if ia_items else {
+                        'data': json.dumps(item, sort_keys=True)
+                    })
                 }
                 for item in items
             ]
