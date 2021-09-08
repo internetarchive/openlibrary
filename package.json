@@ -69,7 +69,7 @@
     "less-plugin-clean-css": "1.5.1",
     "lodash": "4.17.21",
     "lucene-query-parser": "^1.2.0",
-    "npm-watch": "^0.10.0",
+    "npm-watch": "^0.11.0",
     "promise-polyfill": "8.2.0",
     "quagga": "0.12.1",
     "regenerator-runtime": "0.13.7",
