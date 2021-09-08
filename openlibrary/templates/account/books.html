@@ -100,6 +100,18 @@ $if og_title:
 
     <div class="mybooks">
       <div class="mybooks-menu">
+        $if owners_page:
+          <ul class="preset-lists">
+            <li class="subsection">$_('My Loans')</li>
+            <li>
+              <a href="$urlbase/loans" $('class=selected' if key == 'loans' else '')>
+                $ loan_count = counts.get('loans', None)
+                $_('Checked out')
+                $if loan_count is not None:
+                  ($loan_count)
+              </a>
+            </li>
+          </ul>
         <ul class="preset-lists">
           <li class="subsection">$_('Reading Log')</li>
           <li><a href="$urlbase/currently-reading" $('class=selected' if key == 'currently-reading' else '')>$_('Currently Reading (%(count)d)', count=counts['currently-reading'])</a></li>
