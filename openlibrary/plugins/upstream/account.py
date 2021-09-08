@@ -845,7 +845,7 @@ class public_my_books(delegate.page):
                     })[0]) for s in sponsorships)
                 return self._sponsorships_view(books, username, logged_in_user, counts, readlog.lists)
             elif key == 'loans':
-                self._loans_view()
+                return self._loans_view(username, logged_in_user, counts, readlog.lists)
             elif key == 'notes' and is_logged_in_user:
                 return self._notes_view(username, logged_in_user, counts, readlog.lists, page=i.page)
             elif key == 'observations' and is_logged_in_user:
@@ -869,8 +869,18 @@ class public_my_books(delegate.page):
             lists=lists
         )
 
-    def _loans_view(self):
-        pass
+    def _loans_view(self, username, logged_in_user, counts, lists):
+        user = web.ctx.site.get('/people/%s' % username)
+
+        logged_in_user.update_loan_status()
+        loans = borrow.get_loans(logged_in_user)
+        counts['loans'] = len(loans)
+        return render['account/books'](
+            loans, 'loans',
+            user=user, logged_in_user=logged_in_user,
+            counts=counts,
+            lists=lists
+        )
 
     def _notes_view(self, username, logged_in_user, counts, lists, page=1):
         user = web.ctx.site.get('/people/%s' % username)

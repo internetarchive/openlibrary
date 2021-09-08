@@ -44,6 +44,10 @@ $elif key == 'observations':
   $ header_title = _("Observations")
   $ breadcrumb = header_title
   $ og_title = None
+$elif key == 'loans':
+  $ header_title = _("Loans")
+  $ breadcrumb = header_title
+  $ og_title = None
 
 $if owners_page:
   $var title: $header_title
@@ -127,7 +131,9 @@ $if og_title:
             <li><a href="/account/import">$_("Import & Export Options")</a></li>
           </ul>
       </div>
-      $if key == 'notes':
+      $if key == 'loans':
+        $:render_template('account/borrow', logged_in_user, items)
+      $elif key == 'notes':
         $:render_template('account/notes', items, user, counts['notes'], page=current_page)
       $elif key == 'observations':
         $:render_template('account/observations', items, user, counts['observations'], page=current_page)
