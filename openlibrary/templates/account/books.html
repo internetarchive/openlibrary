@@ -9,19 +9,21 @@ $# :param user:
 $# :param bool public:
 
 $ title = _('My Books')
-$ urlbase = ctx.path.rsplit('/', 1)[0]
+$ slash_count = len(ctx.path.split('/')) - 1
+$ urlbase = ctx.path.rsplit('/', slash_count - 3)[0]
 $ username = user.key.split('/')[-1]
 $ owners_page = logged_in_user and urlbase.startswith('/people/'+logged_in_user.key.split('/')[-1])
 $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 
 $ current_page = int(input(page=1).page)
-$ total_items = counts[key]
+$ total_items = counts.get(key, None)
 
 $ userDisplayName = user.displayname or ctx.user.displayname
 $ userKey = user.key or ctx.user.key
 
 $ header_title = unicode(render_template('account/readinglog_shelf_name', key)).strip()
 $ breadcrumb = _("Reading Log")
+$ og_title = None
 $if key == 'currently-reading':
   $ og_title = _("Books %(username)s is reading", username=userDisplayName)
   $ og_description = _("%(username)s is reading %(total)d books. Join %(username)s on OpenLibrary.org and tell the world what you're reading.", username=userDisplayName, total=total_items)
@@ -39,15 +41,21 @@ $elif key == 'sponsorships':
 $elif key == 'notes':
   $ header_title = _("Book Notes")
   $ breadcrumb = header_title
-  $ og_title = None
 $elif key == 'observations':
   $ header_title = _("Observations")
   $ breadcrumb = header_title
-  $ og_title = None
 $elif key == 'loans':
   $ header_title = _("Loans")
   $ breadcrumb = header_title
-  $ og_title = None
+$elif key == 'waitlist':
+  $ header_title = _("Waiting List")
+  $ breadcrumb = header_title
+$elif key == 'imports':
+  $ header_title = _("Imports and Exports")
+  $ breadcrumb = header_title
+$else:
+  $ header_title = key
+  $ breadcrumb = header_title
 
 $if owners_page:
   $var title: $header_title
@@ -68,7 +76,6 @@ $if og_title:
       <a href="$userKey">$userDisplayName</a> &raquo; $breadcrumb
     </div>
     <div>
-
     </div>
     <div>
       <h1 style="display:inline">
@@ -78,7 +85,7 @@ $if og_title:
           $header_title
       </h1>
 
-      $if owners_page and key not in ['notes', 'observations']:
+      $if owners_page and key in ['currently-reading', 'already-read', 'want-to-read']:
         <a href="$ctx.path/stats" title="$('View stats about this shelf')">$_('Stats')</a>
     </div>
 
@@ -88,7 +95,7 @@ $if og_title:
           $_('Your book notes are private and cannot be viewed by other patrons.')
         $elif key == 'observations':
           $_('Your book observations will be shared anonymously with other patrons.')
-        $else:
+        $elif key in ['currently-reading', 'already-read', 'want-to-read']:
           $if public:
             $_('Your reading log is currently set to public')
             <button onclick="prompt('Copy share link to clipboard:', window.location.protocol + '//' + window.location.hostname + '/people/$(username)/books/$(key)');">Share</button> or
@@ -111,6 +118,14 @@ $if og_title:
                   ($loan_count)
               </a>
             </li>
+            <li>
+              <a href="$urlbase/waitlist" $('class=selected' if key == 'waitlist' else '')>
+                $ waiting_count = counts.get('waitlist', None)
+                $_('Waitlist')
+                $if waiting_count is not None:
+                  ($waiting_count)
+              </a>
+            </li>
           </ul>
         <ul class="preset-lists">
           <li class="subsection">$_('Reading Log')</li>
@@ -128,8 +143,13 @@ $if og_title:
           <ul class="user-lists">
             <li class="subsection">$_('Lists')</li>
             <div class="list-overflow">
+              $ class_list = 'list-link'
+              $if key == 'lists':
+                $ class_list = class_list + ' selected'
+              <li><a href="$urlbase/lists" class="$class_list">$_('My Lists') ($(len(lists)))</a></li>
               $for lst in lists:
-                <li><a class="list-link" href="$(lst.key)">$lst['name'] ($(len(lst.seeds)))</a></li>
+                $ list_id = lst.key.split('/')[-1]
+                <li><a class="list-link" href="$urlbase/list/$list_id">$lst['name'] ($(len(lst.seeds)))</a></li>
             </div>
           </ul>
         $if owners_page:
@@ -140,17 +160,23 @@ $if og_title:
           </ul>
           <ul class="import-export-lists">
             <li class="subsection">$_("Import / Export")</li>
-            <li><a href="/account/import">$_("Import & Export Options")</a></li>
+            <li><a href="$urlbase/imports">$_("Import & Export Options")</a></li>
           </ul>
       </div>
-      $if key == 'loans':
+      $if key == 'loans' or key == 'waitlist':
         $:render_template('account/borrow', logged_in_user, items)
       $elif key == 'notes':
         $:render_template('account/notes', items, user, counts['notes'], page=current_page)
       $elif key == 'observations':
         $:render_template('account/observations', items, user, counts['observations'], page=current_page)
-      $else:
+      $elif key == 'imports':
+        $:render_template('account/import')
+      $elif key == 'lists':
+        $:render_template('lists/lists', items, lists)
+      $elif key in {'currently-reading', 'want-to-read', 'already-read'}:
         $:render_template('account/reading_log', items, key, counts[key], owners_page, current_page, sort_order=sort_order)
+      $else:
+        $:render_template('type/list/view', items)
     </div>
   </div>
 </div>

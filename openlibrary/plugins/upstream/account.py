@@ -823,6 +823,27 @@ class public_my_books_list(delegate.page):
         user = web.ctx.site.get('/people/%s' % username)
         if not user:
             return render.notfound("User %s"  % username, create=False)
+        logged_in_user = accounts.get_current_user()
+        is_logged_in_user = (
+            logged_in_user and
+            logged_in_user.key.split('/')[-1] == username)
+
+        readlog = ReadingLog(user=user)
+        lists = readlog.lists
+        counts = readlog.reading_log_counts
+
+        if is_logged_in_user:
+            counts.update(PatronBooknotes.get_counts(username))
+
+        for list in lists:
+            olid = list.key.split('/')[-1]
+            if olid == f'OL{list_id}L':
+                return render['account/books'](
+                    list, list.name, counts,
+                    logged_in_user=logged_in_user,
+                    user=user,
+                    lists=lists
+                )
 
         return web.seeother(user.key)
 
@@ -850,7 +871,7 @@ class public_my_books(delegate.page):
         "sponsorships",
         "notes",
         "observations",
-        #"imports"
+        "imports"
     }
 
     def GET(self, username, key='loans'):
@@ -886,6 +907,9 @@ class public_my_books(delegate.page):
                 data = self._prepare_data(key, logged_in_user)
                 if key == 'loans':
                     counts['loans'] = len(data)
+                elif key == 'waitlist':
+                    # TODO: Use the correct counts
+                    counts['waitlist'] = len(data)
         elif key in self.PUBLIC_KEYS:
             is_public = user.preferences().get('public_readlog', 'no') == 'yes'
 
@@ -920,10 +944,11 @@ class public_my_books(delegate.page):
             return borrow.get_loans(logged_in_user)
         elif key == 'waitlist':
             # TODO: return the correct data
-            return None
+            logged_in_user.update_loan_status()
+            return borrow.get_loans(logged_in_user)
         elif key == 'lists':
-            # TODO: return the correct data
-            return None
+            user = web.ctx.site.get('/people/%s' % logged_in_user.key.split('/')[-1])
+            return user
         elif key == 'notes':
             user = web.ctx.site.get('/people/%s' % logged_in_user.key.split('/')[-1])
             return PatronBooknotes(user).get_notes(page=page)
@@ -931,8 +956,7 @@ class public_my_books(delegate.page):
             user = web.ctx.site.get('/people/%s' % logged_in_user.key.split('/')[-1])
             return PatronBooknotes(user).get_observations(page=page)
         elif key == 'imports':
-            # TODO: return the correct data (probably an empty dict in this case)
-            return None
+            return {}
 
         return None
 
