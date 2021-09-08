@@ -33,7 +33,7 @@ class Batch(web.storage):
         items = [line.strip() for line in open(filename) if line.strip()]
         self.add_items(items)
 
-    def dedupe_ia_ids(self, items):
+    def dedupe_ia_items(self, items):
         already_present = [
             row.ia_id for row in db.query(
                 "SELECT ia_id FROM import_item WHERE ia_id IN $items",
