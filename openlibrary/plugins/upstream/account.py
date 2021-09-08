@@ -884,6 +884,7 @@ class public_my_books(delegate.page):
         is_logged_in_user = (
             logged_in_user and
             logged_in_user.key.split('/')[-1] == username)
+        is_public = user.preferences().get('public_readlog', 'no') == 'yes'
 
         readlog = ReadingLog(user=user)
         lists = readlog.lists
@@ -911,10 +912,9 @@ class public_my_books(delegate.page):
                     # TODO: Use the correct counts
                     counts['waitlist'] = len(data)
         elif key in self.PUBLIC_KEYS:
-            is_public = user.preferences().get('public_readlog', 'no') == 'yes'
 
             if key == 'lists':
-                data = self._prepare_data(key, logged_in_user)
+                data = self._prepare_data(key, logged_in_user, username=username)
             elif is_public: # 
                 data = add_availability(
                     readlog.get_works(key, page=i.page,
@@ -926,12 +926,13 @@ class public_my_books(delegate.page):
                 data, key, counts,
                 logged_in_user=logged_in_user,
                 user=user,
-                lists=lists
+                lists=lists,
+                public=is_public
             )
 
         raise web.seeother(user.key)
 
-    def _prepare_data(self, key, logged_in_user, sponsorships=None, page=1):
+    def _prepare_data(self, key, logged_in_user, sponsorships=None, page=1, username=None):
         if sponsorships:
             return (web.ctx.site.get(
                     web.ctx.site.things({
@@ -947,6 +948,8 @@ class public_my_books(delegate.page):
             logged_in_user.update_loan_status()
             return borrow.get_loans(logged_in_user)
         elif key == 'lists':
+            if username:
+                return web.ctx.site.get('/people/%s' % username)
             user = web.ctx.site.get('/people/%s' % logged_in_user.key.split('/')[-1])
             return user
         elif key == 'notes':
