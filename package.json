@@ -72,7 +72,7 @@
     "npm-watch": "^0.10.0",
     "promise-polyfill": "8.2.0",
     "quagga": "0.12.1",
-    "regenerator-runtime": "0.13.7",
+    "regenerator-runtime": "0.13.9",
     "sinon": "11.1.2",
     "slick-carousel": "1.6.0",
     "style-loader": "2.0.0",
