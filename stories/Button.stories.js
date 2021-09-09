@@ -5,20 +5,21 @@ export default {
     title: 'Legacy/Button'
 };
 
-export const CtaBtn = () => '<div class="cta-btn">Leave waitlist</div>';
+const ButtonTemplate = (classes,innerHtml) => `<div class="${classes}">${innerHtml}</div>`;
 
-export const CtaBtnUnavailable = () => '<div class="cta-btn cta-btn--unavailable">Join waitlist</div>';
+export const CtaBtn = () => ButtonTemplate('cta-btn','Leave waitlist');
 
-export const CtaBtnAvailable = () => '<div class="cta-btn cta-btn--available">Borrow</div>';
+export const CtaBtnUnavailable = () => ButtonTemplate('cta-btn cta-btn--unavailable','Join waitlist');
 
-export const CtaBtnPreview = () => '<div class="cta-btn cta-btn--preview">Preview</div>';
+export const CtaBtnAvailable = () => ButtonTemplate('cta-btn cta-btn--available','Borrow');
 
-export const CtaBtnWithBadge = () => `
-<div class="cta-btn cta-btn--unavailable">
-  Join waiting list
-  <span class="cta-btn__badge">4</span>
-</div>
-`;
+export const CtaBtnPreview = () => ButtonTemplate('cta-btn cta-btn--preview','Preview');
+
+export const CtaBtnWithBadge = () =>
+    ButtonTemplate('cta-btn cta-btn--unavailable',
+        `Join waiting list
+    <span class="cta-btn__badge">4</span>`)
+;
 
 export const CtaBtnGroup = () => `<div class="cta-button-group">
 <a href="/borrow/ia/sevenhabitsofhi00cove?ref=ol" title="Borrow ebook from Internet Archive" id="borrow_ebook" data-ol-link-track="CTAClick|Borrow" class="cta-btn cta-btn--available">Borrow</a>
