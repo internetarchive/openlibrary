@@ -177,11 +177,11 @@ $if og_title:
       $elif key == 'imports':
         $:render_template('account/import')
       $elif key == 'lists':
-        $:render_template('lists/lists', items, lists)
+        $:render_template('account/my_lists', items, lists)
       $elif key in {'currently-reading', 'want-to-read', 'already-read'}:
         $:render_template('account/reading_log', items, key, counts[key], owners_page, current_page, sort_order=sort_order)
       $else:
-        $:render_template('type/list/view', items)
+        $:render_template('account/list', items)
     </div>
   </div>
 </div>
