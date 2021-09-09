@@ -894,6 +894,7 @@ class public_my_books(delegate.page):
 
         if is_logged_in_user and key in self.ALL_KEYS:
             counts.update(PatronBooknotes.get_counts(username))
+            counts['waitlist'] = len(logged_in_user.get_waitinglist())
 
             if key == 'sponsorships':
                 sponsorships = get_sponsored_editions(user)

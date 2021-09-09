@@ -166,8 +166,10 @@ $if og_title:
             <li><a href="$urlbase/imports">$_("Import & Export Options")</a></li>
           </ul>
       </div>
-      $if key == 'loans' or key == 'waitlist':
-        $:render_template('account/borrow', logged_in_user, items)
+      $if key == 'loans':
+        $:render_template('account/loans', logged_in_user, items)
+      $elif key == 'waitlist':
+        $:render_template('account/waitlist', logged_in_user)
       $elif key == 'notes':
         $:render_template('account/notes', items, user, counts['notes'], page=current_page)
       $elif key == 'observations':
