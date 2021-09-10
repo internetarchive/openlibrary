@@ -13,12 +13,23 @@ In case you want to get started here are the following steps:
 If you're just getting started, be sure to **Fork and Clone the Repository from Github!** Install git and follow the instructions on our [Git Cheat Sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet) to get set up.
 
 ## Adding a new language
+A new directory containing a translation template file must be created for each new language.  These can be automatically generated if your Docker environment is set up (see our [Docker README](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)), or created manually.
 
-1. **Create a new folder for your language.** Find your language here: https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes , and copy the two-letter ISO 639-1 code. Create a new folder in `/openlibrary/i18n/` with the code name of the language that you wish to translate to.
+Before creating the new directory, you will need to know your language's two-letter ISO 639-1 code.  Make a note of the code once you have found it here: https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+
+### Adding a language in a Docker environment
+1. Run `docker-compose up -d`
+
+2. Run `docker-compose exec -uroot web ./scripts/i18n-messages add [CODE]`, replacing `[CODE]` with your two-letter ISO 639-1 code.
+
+### Adding a language manually
+
+1. **Create a new folder for your language.** Create a new folder in `/openlibrary/i18n/`, using your two-letter ISO 639-1 code as the folder's name.
 
 2. **Make a copy of the latest messages to translate.** The messages template file, `/openlibrary/i18n/messages.pot` should be copied as `messages.po` (note the difference in extension, the `t` for template is dropped for the copy) to your newly created folder.
 
-3. **Make the translations and send a PR.** You can edit the `message.po` file using your favourite editor, or a .po specific tool such as [poedit](https://poedit.net/), and send in a Pull Request. Pull Request Guidelines can be found on our [CONTRIBUTING](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) guide and our [Git Cheat Sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet).
+## Submitting translations
+You can edit the `message.po` file using your favourite editor, or a .po specific tool such as [poedit](https://poedit.net/), and send in a Pull Request. Pull Request Guidelines can be found on our [CONTRIBUTING](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) guide and our [Git Cheat Sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet).
 
 ## Viewing and testing your changes
 In order to open your language version of the website in the browser, you will need to setup your docker environment (see our [Docker README](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)). After having run `docker-compose up -d`, run `docker-compose run --rm -uroot home make i18n` to build the translation files; then e.g. http://localhost:8080/?lang=fr should work.
@@ -26,13 +37,21 @@ To view production Open Library in a preferred language, you will need to [adjus
 
 ## Updating an existing language
 
-If changes have been made to the `.pot` file, to reflect those changes to a given language you need to merge the two files. After setting up your docker environment (see our [Docker README](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md), run:
+If changes have been made to the `.pot` file, to reflect those changes to a given language you need to merge the two files. After setting up your docker environment (see our [Docker README](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md), run the following, replacing `[CODE]` with your two-letter language code:
 
 ```bash
-docker-compose run --rm -uroot home ./scripts/i18n-messages update
+docker-compose run --rm -uroot home ./scripts/i18n-messages update [CODE]
 ```
 
-See our [i18n guideline in the wiki](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide#internationalization-i18n---for-translators) for important and useful tips. This will update _all_ the languages; feel free to only `git add` on your language, and not commit the others.
+See our [i18n guideline in the wiki](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide#internationalization-i18n---for-translators) for important and useful tips.
+
+## Validating your translations
+
+Before submitting a PR with your translations, we recommend correcting any validation errors identified by the following script (replace `[CODE]` with your language code):
+
+```bash
+docker-compose exec -uroot web ./scripts/i18n-messages validate [CODE]
+```
 
 ## Extracting strings from HTML/python files (generating the `.pot` file)
 
@@ -65,11 +84,12 @@ The `.po` files are compiled to `.mo` files to be able to use them by gettext sy
 
 ## Deprecated messages that need updating to the new babel/gettext method:
 
-The codebase has now deprecated code and strings located here: https://github.com/internetarchive/openlibrary/tree/master/openlibrary/plugins/openlibrary/i18n
+The codebase has deprecated translations in the [/openlibrary/i18n](https://github.com/internetarchive/openlibrary/tree/master/openlibrary/i18n) directory. In directories of older translations, the `messages.po` file will be replaced with a `legacy-strings.{ISO 639-1 Code}.yml` file.
 
-There are a small number of messages in the following languages:
+Languages with deprecated translations:
 
 * hi Hindi
 * it Italian
 * kn Kannada
 * mr Marathi
+* nl Dutch
