@@ -186,7 +186,7 @@ $if og_title:
         $:render_template('account/import')
       $elif key == 'lists':
         $:render_template('account/my_lists', items, lists)
-      $elif key in {'currently-reading', 'want-to-read', 'already-read'}:
+      $elif key in {'currently-reading', 'want-to-read', 'already-read', 'sponsorships'}:
         $:render_template('account/reading_log', items, key, counts[key], owners_page, current_page, sort_order=sort_order)
       $else:
         $:render_template('account/list', items)
