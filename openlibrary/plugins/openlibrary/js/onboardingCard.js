@@ -39,7 +39,7 @@ export function initOnboardingCard() {
         };
 
         const goToSlide = function (slide) {
-            if (slide === maxSlide-1) {
+            if (parseInt(slide) === maxSlide-1) {
                 btnNext.textContent = '';
             }
             else {
