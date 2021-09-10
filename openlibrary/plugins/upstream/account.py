@@ -856,10 +856,10 @@ class MyBooksTemplate(object):
         if is_logged_in_user and self.key in self.ALL_KEYS:
             self.counts.update(PatronBooknotes.get_counts(self.username))
             self.counts['waitlist'] = len(logged_in_user.get_waitinglist())
+            sponsorships = get_sponsored_editions(self.user)
+            self.counts['sponsorships'] = len(sponsorships)
 
             if self.key == 'sponsorships':
-                sponsorships = get_sponsored_editions(self.user)
-                self.counts['sponsorships'] = len(sponsorships)
                 data = self._prepare_data(logged_in_user, sponsorships=sponsorships)
             elif self.key in self.READING_LOG_KEYS:
                 data = add_availability(
