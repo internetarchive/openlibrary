@@ -21,6 +21,7 @@ from openlibrary.core import helpers as h, lending
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.observations import Observations, convert_observation_ids
+from openlibrary.core.lending import add_availability
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
@@ -843,9 +844,11 @@ class public_my_books(delegate.page):
             elif key == 'observations' and is_logged_in_user:
                 books = PatronBooknotes(user).get_observations(page=int(i.page))
             else:
-                books = readlog.get_works(key, page=i.page,
-                                          sort='created', sort_order=i.sort)
-
+                books = add_availability(
+                    readlog.get_works(key, page=i.page,
+                                      sort='created', sort_order=i.sort),
+                    mode="openlibrary_work"
+                )
             booknotes_counts = PatronBooknotes.get_counts(username)
 
             return render['account/books'](

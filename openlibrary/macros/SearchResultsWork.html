@@ -7,7 +7,7 @@ $ book_url = doc.url() if is_work else doc.key
 $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book">
   <span class="bookcover">
-    $if availability:
+    $if availability and availability.get('identifier'):
       $if availability.get('openlibrary_edition'):
         $ cover = get_coverstore_url() + "/b/olid/%s-M.jpg" % availability.get('openlibrary_edition')
       $elif ocaid:
