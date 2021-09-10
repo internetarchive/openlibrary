@@ -809,48 +809,7 @@ class PatronBooknotes(object):
         }
 
 
-class public_my_books(delegate.page):
-    path = "/people/([^/]+)/books"
-
-    def GET(self, username):
-        raise web.seeother('/people/%s/books/want-to-read' % username)
-
-
-class public_my_books_list(delegate.page):
-    path = "/people/([^/]+)/books/list/OL(\d+)L"
-
-    def GET(self, username, list_id):
-        user = web.ctx.site.get('/people/%s' % username)
-        if not user:
-            return render.notfound("User %s"  % username, create=False)
-        logged_in_user = accounts.get_current_user()
-        is_logged_in_user = (
-            logged_in_user and
-            logged_in_user.key.split('/')[-1] == username)
-
-        readlog = ReadingLog(user=user)
-        lists = readlog.lists
-        counts = readlog.reading_log_counts
-
-        if is_logged_in_user:
-            counts.update(PatronBooknotes.get_counts(username))
-
-        for list in lists:
-            olid = list.key.split('/')[-1]
-            if olid == f'OL{list_id}L':
-                return render['account/books'](
-                    list, list.name, counts,
-                    logged_in_user=logged_in_user,
-                    user=user,
-                    lists=lists
-                )
-
-        return web.seeother(user.key)
-
-
-class public_my_books(delegate.page):
-    path = "/people/([^/]+)/books/([a-zA-Z_-]+)"
-
+class MyBooksTemplate(object):
     # Reading log shelves
     READING_LOG_KEYS = {
         "currently-reading",
@@ -860,7 +819,8 @@ class public_my_books(delegate.page):
 
     # Keys that can be accessed when not logged in
     PUBLIC_KEYS = READING_LOG_KEYS | {
-        "lists"
+        "lists",
+        "list"
     }
 
     # Keys that are only accessible when logged in
@@ -874,66 +834,72 @@ class public_my_books(delegate.page):
         "imports"
     }
 
-    def GET(self, username, key='loans'):
-        """check if user's reading log is public"""
-        i = web.input(page=1, sort='desc')
-        user = web.ctx.site.get('/people/%s' % username)
-        if not user:
-            return render.notfound("User %s"  % username, create=False)
+    def __init__(self, username, key):
+        self.username = username
+        self.user = web.ctx.site.get('/people/%s' % self.username)
+        self.key = key
+        self.readlog = ReadingLog(user=self.user)
+        self.lists = self.readlog.lists
+        self.counts = self.readlog.reading_log_counts
+
+    def render(self, page=1, sort='desc', list_id=None):
+        if not self.user:
+            return render.notfound("User %s"  % self.username, create=False)
         logged_in_user = accounts.get_current_user()
         is_logged_in_user = (
             logged_in_user and
-            logged_in_user.key.split('/')[-1] == username)
-        is_public = user.preferences().get('public_readlog', 'no') == 'yes'
-
-        readlog = ReadingLog(user=user)
-        lists = readlog.lists
-        counts = readlog.reading_log_counts
+            logged_in_user.key.split('/')[-1] == self.username)
+        is_public = self.user.preferences().get('public_readlog', 'no') == 'yes'
 
         data = None
 
-        if is_logged_in_user and key in self.ALL_KEYS:
-            counts.update(PatronBooknotes.get_counts(username))
-            counts['waitlist'] = len(logged_in_user.get_waitinglist())
+        if is_logged_in_user and self.key in self.ALL_KEYS:
+            self.counts.update(PatronBooknotes.get_counts(self.username))
+            self.counts['waitlist'] = len(logged_in_user.get_waitinglist())
 
-            if key == 'sponsorships':
-                sponsorships = get_sponsored_editions(user)
-                counts['sponsorships'] = len(sponsorships)
-                data = self._prepare_data(key, logged_in_user, sponsorships=sponsorships)
-            elif key in self.READING_LOG_KEYS:
+            if self.key == 'sponsorships':
+                sponsorships = get_sponsored_editions(self.user)
+                self.counts['sponsorships'] = len(sponsorships)
+                data = self._prepare_data(logged_in_user, sponsorships=sponsorships)
+            elif self.key in self.READING_LOG_KEYS:
                 data = add_availability(
-                    readlog.get_works(key, page=i.page,
-                                      sort='created', sort_order=i.sort)
+                    self.readlog.get_works(self.key, page=page,
+                                           sort='created', sort_order=sort)
                 )
-            else:
-                data = self._prepare_data(key, logged_in_user)
-                if key == 'loans':
-                    counts['loans'] = len(data)
-                elif key == 'waitlist':
-                    # TODO: Use the correct counts
-                    counts['waitlist'] = len(data)
-        elif key in self.PUBLIC_KEYS:
+            elif self.key == 'list':
+                data = self._prepare_data(logged_in_user, list_id=list_id)
 
-            if key == 'lists':
-                data = self._prepare_data(key, logged_in_user, username=username)
-            elif is_public: # 
+            else:
+                data = self._prepare_data(logged_in_user)
+                if self.key == 'loans':
+                    self.counts['loans'] = len(data)
+                elif self.key == 'waitlist':
+                    self.counts['waitlist'] = len(data)
+        elif self.key in self.PUBLIC_KEYS:
+
+            if self.key == 'lists':
+                data = self._prepare_data(logged_in_user, username=self.username)
+            elif self.key == 'list':
+                data = self._prepare_data(logged_in_user, list_id=list_id)
+            elif is_public:
                 data = add_availability(
-                    readlog.get_works(key, page=i.page,
-                                      sort='created', sort_order=i.sort)
+                    self.readlog.get_works(self.key, page=page,
+                                           sort='created', sort_order=sort)
                 )
 
         if data is not None:
             return render['account/books'](
-                data, key, counts,
+                data, self.key, self.counts,
                 logged_in_user=logged_in_user,
-                user=user,
-                lists=lists,
-                public=is_public
+                user=self.user,
+                lists=self.lists,
+                public=is_public,
+                owners_page=is_logged_in_user
             )
 
-        raise web.seeother(user.key)
+        raise web.seeother(self.user.key)
 
-    def _prepare_data(self, key, logged_in_user, sponsorships=None, page=1, username=None):
+    def _prepare_data(self, logged_in_user, sponsorships=None, page=1, username=None, list_id=None):
         if sponsorships:
             return (web.ctx.site.get(
                     web.ctx.site.things({
@@ -941,28 +907,52 @@ class public_my_books(delegate.page):
                         'isbn_%s' % len(s['isbn']): s['isbn']
                     })[0]) for s in sponsorships)
 
-        if key == 'loans':
+        if self.key == 'loans':
             logged_in_user.update_loan_status()
             return borrow.get_loans(logged_in_user)
-        elif key == 'waitlist':
-            # TODO: return the correct data
-            logged_in_user.update_loan_status()
-            return borrow.get_loans(logged_in_user)
-        elif key == 'lists':
+        elif self.key == 'waitlist':
+            return {}
+        elif self.key == 'lists':
             if username:
                 return web.ctx.site.get('/people/%s' % username)
-            user = web.ctx.site.get('/people/%s' % logged_in_user.key.split('/')[-1])
-            return user
-        elif key == 'notes':
-            user = web.ctx.site.get('/people/%s' % logged_in_user.key.split('/')[-1])
-            return PatronBooknotes(user).get_notes(page=page)
-        elif key == 'observations':
-            user = web.ctx.site.get('/people/%s' % logged_in_user.key.split('/')[-1])
-            return PatronBooknotes(user).get_observations(page=page)
-        elif key == 'imports':
+            return self.user
+        elif self.key == 'notes':
+            return PatronBooknotes(self.user).get_notes(page=page)
+        elif self.key == 'observations':
+            return PatronBooknotes(self.user).get_observations(page=page)
+        elif self.key == 'imports':
             return {}
+        elif self.key == 'list':
+            for list in self.lists:
+                olid = list.key.split('/')[-1]
+                if olid == f'OL{list_id}L':
+                    return list
 
         return None
+
+
+class public_my_books(delegate.page):
+    path = "/people/([^/]+)/books"
+
+    def GET(self, username):
+        raise web.seeother('/people/%s/books/want-to-read' % username)
+
+
+class public_my_books_list(delegate.page):
+    path = "/people/([^/]+)/books/lists/OL(\d+)L"
+
+    def GET(self, username, list_id):
+        i = web.input(page=1, sort='desc')
+        return MyBooksTemplate(username, 'list').render(page=i.page, sort=i.sort, list_id=list_id)
+
+
+class public_my_books(delegate.page):
+    path = "/people/([^/]+)/books/([a-zA-Z_-]+)"
+
+    def GET(self, username, key='loans'):
+        """check if user's reading log is public"""
+        i = web.input(page=1, sort='desc')
+        return MyBooksTemplate(username, key).render(page=i.page, sort=i.sort)
 
 
 class public_my_books_json(delegate.page):
@@ -1119,7 +1109,10 @@ class import_books(delegate.page):
 
     @require_login
     def GET(self):
-        return render['account/import']()
+        user = accounts.get_current_user()
+        username = user['key'].split('/')[-1]
+
+        return MyBooksTemplate(username, 'imports').render()
 
 class fetch_goodreads(delegate.page):
     path = "/account/import/goodreads"
@@ -1162,8 +1155,10 @@ class account_loans(delegate.page):
     def GET(self):
         user = accounts.get_current_user()
         user.update_loan_status()
-        loans = borrow.get_loans(user)
-        return render['account/borrow'](user, loans)
+        username = user['key'].split('/')[-1]
+
+        return MyBooksTemplate(username, 'loans').render()
+
 
 class account_loans_json(delegate.page):
 
@@ -1179,6 +1174,17 @@ class account_loans_json(delegate.page):
         return delegate.RawText(json.dumps({
             "loans": loans
         }))
+
+
+class account_waitlist(delegate.page):
+    path = "/account/waitlist"
+
+    @require_login
+    def GET(self):
+        user = accounts.get_current_user()
+        username = user['key'].split('/')[-1]
+
+        return MyBooksTemplate(username, 'waitlist').render()
 
 
 # Disabling be cause it prevents account_my_books_redirect from working
