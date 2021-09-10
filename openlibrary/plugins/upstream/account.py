@@ -844,7 +844,7 @@ class MyBooksTemplate(object):
 
     def render(self, page=1, sort='desc', list_id=None):
         if not self.user:
-            return render.notfound("User %s"  % self.username, create=False)
+            return render.notfound("User %s" % self.username, create=False)
         logged_in_user = accounts.get_current_user()
         is_logged_in_user = (
             logged_in_user and
@@ -863,8 +863,9 @@ class MyBooksTemplate(object):
                 data = self._prepare_data(logged_in_user, sponsorships=sponsorships)
             elif self.key in self.READING_LOG_KEYS:
                 data = add_availability(
-                    self.readlog.get_works(self.key, page=page,
-                                           sort='created', sort_order=sort)
+                    self.readlog.get_works(
+                        self.key, page=page,
+                        sort='created', sort_order=sort)
                 )
             elif self.key == 'list':
                 data = self._prepare_data(logged_in_user, list_id=list_id)
@@ -883,8 +884,9 @@ class MyBooksTemplate(object):
                 data = self._prepare_data(logged_in_user, list_id=list_id)
             elif is_public:
                 data = add_availability(
-                    self.readlog.get_works(self.key, page=page,
-                                           sort='created', sort_order=sort)
+                    self.readlog.get_works(
+                        self.key, page=page,
+                        sort='created', sort_order=sort)
                 )
 
         if data is not None:
@@ -899,7 +901,14 @@ class MyBooksTemplate(object):
 
         raise web.seeother(self.user.key)
 
-    def _prepare_data(self, logged_in_user, sponsorships=None, page=1, username=None, list_id=None):
+    def _prepare_data(
+        self,
+        logged_in_user,
+        sponsorships=None,
+        page=1,
+        username=None,
+        list_id=None
+    ):
         if sponsorships:
             return (web.ctx.site.get(
                     web.ctx.site.things({
@@ -943,7 +952,8 @@ class public_my_books_list(delegate.page):
 
     def GET(self, username, list_id):
         i = web.input(page=1, sort='desc')
-        return MyBooksTemplate(username, 'list').render(page=i.page, sort=i.sort, list_id=list_id)
+        return MyBooksTemplate(username, 'list').render(
+            page=i.page, sort=i.sort, list_id=list_id)
 
 
 class public_my_books(delegate.page):
