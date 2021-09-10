@@ -145,7 +145,7 @@ $if og_title:
             <li class="subsection">$_('Sponsorships')</li>
             $ sponsorship_count = ''
             $if counts.get('sponsorships', None):
-              $ sponsorship_count = '(' + counts['sponsorships'] + ')'
+              $ sponsorship_count = "(%d)" % counts['sponsorships']
             <li><a href="/people/$username/books/sponsorships" $('class=selected' if key == 'sponsorships' else '')>$_('Sponsoring') $sponsorship_count</a></li>
           </ul>
         <ul class="user-lists">
