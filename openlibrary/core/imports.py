@@ -111,6 +111,8 @@ class ImportItem(web.storage):
             error=error,
             ol_key=ol_key,
             import_time=datetime.datetime.utcnow())
+        if status != 'failed':
+            d = dict(**d, data=None)
         db.update("import_item", where="id=$id", vars=self, **d)
         self.update(d)
 
