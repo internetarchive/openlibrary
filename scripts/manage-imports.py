@@ -26,7 +26,8 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
     """Requests OL to import an item and retries on server errors.
     """
     # logger uses batch_id:id for item.data identifier if no item.ia_id
-    logger.info("importing %s", item.ia_id)
+    _id = item.ia_id or "%s:%s" % (item.batch_id, item.id)
+    logger.info("importing %s", _id)
     for i in range(retries):
         if i != 0:
             logger.info("sleeping for 5 seconds before next attempt.")
