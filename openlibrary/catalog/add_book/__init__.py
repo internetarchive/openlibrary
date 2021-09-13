@@ -674,7 +674,7 @@ def load(rec, account_key=None):
 
     edition_pool = build_pool(rec)
     # deduplicate authors
-    rec['authors'] = uniq(rec.get('authors',[]), dicthash)
+    rec['authors'] = uniq(rec.get('authors', []), dicthash)
     if not edition_pool:
         # No match candidates found, add edition
         return load_data(rec, account_key=account_key)

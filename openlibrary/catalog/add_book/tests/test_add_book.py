@@ -142,7 +142,7 @@ def test_load_deduplicates_authors(mock_site, add_languages, ia_writeback):
     rec = {
         'ocaid': 'test_item',
         'source_records': ['ia:test_item'],
-        'authors': [{'name': 'John Brown'}, {'name': 'John Brown'}, {'name': 'John Brown'}, {'name': 'John Brown'}],
+        'authors': [{'name': 'John Brown'}, {'name': 'John Brown'}],
         'title': 'Test item',
         'languages': ['eng'],
     }
