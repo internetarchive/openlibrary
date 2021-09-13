@@ -872,10 +872,6 @@ class MyBooksTemplate(object):
 
             else:
                 data = self._prepare_data(logged_in_user)
-                if self.key == 'loans':
-                    self.counts['loans'] = len(data)
-                elif self.key == 'waitlist':
-                    self.counts['waitlist'] = len(data)
         elif self.key in self.PUBLIC_KEYS:
 
             if self.key == 'lists':
