@@ -865,7 +865,8 @@ class MyBooksTemplate(object):
                 data = add_availability(
                     self.readlog.get_works(
                         self.key, page=page,
-                        sort='created', sort_order=sort)
+                        sort='created', sort_order=sort),
+                    mode="openlibrary_work"
                 )
             elif self.key == 'list':
                 data = self._prepare_data(logged_in_user, list_id=list_id)
@@ -882,7 +883,8 @@ class MyBooksTemplate(object):
                 data = add_availability(
                     self.readlog.get_works(
                         self.key, page=page,
-                        sort='created', sort_order=sort)
+                        sort='created', sort_order=sort),
+                    mode="openlibrary_work"
                 )
 
         if data is not None:
