@@ -699,8 +699,21 @@ class SaveBookHelper:
 
         # ignore empty authors
         work.authors = [a for a in work.get('authors', []) if a.get('author', {}).get('key', '').strip()]
+        work.authors = self.deduplicate_authors(work.get('authors', []))
 
         return trim_doc(work)
+
+    @staticmethod
+    def deduplicate_authors(authors):
+        # make sure that no authors are listed twice
+        seen_authors = set()
+        deduplicated_authors = []
+        for a in authors:
+            author_key = a.get('author', {}).get('key', '')
+            if author_key not in seen_authors:
+                deduplicated_authors.append(a)
+                seen_authors.add(author_key)
+        return deduplicated_authors
 
     def _prevent_ocaid_deletion(self, edition):
         # Allow admins to modify ocaid
