@@ -40,6 +40,7 @@ from openlibrary import accounts
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.utils import mk_norm
 from openlibrary.core import lending
+from openlibrary.utils import uniq, dicthash
 from openlibrary.utils.isbn import normalize_isbn
 
 from openlibrary.catalog.add_book.load_book import build_query, east_in_by_statement, import_author, InvalidLanguage
@@ -672,6 +673,8 @@ def load(rec, account_key=None):
     rec = normalize_record_isbns(rec)
 
     edition_pool = build_pool(rec)
+    # deduplicate authors
+    rec['authors'] = uniq(rec.get('authors',[]), dicthash)
     if not edition_pool:
         # No match candidates found, add edition
         return load_data(rec, account_key=account_key)
