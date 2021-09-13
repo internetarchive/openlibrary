@@ -839,28 +839,38 @@ def parse_search_response(json_data):
             error = error[len(solr_error):]
         return {'error': error}
 
+class page_search(delegate.page):
+    path = '/search/site'
+
+    def GET(self):
+        i = web.input(q='', offset='0', limit='10')
+        pages = search_type(
+            type_name="page", search_field="body",
+            query={"type": "/type/text", "value~": i.q},
+            offset=i.offset, limit=i.limit
+        )
+        return render_template('search/site.tmpl', q=i.q, pages=pages)
+
 class list_search(delegate.page):
     path = '/search/lists'
 
     def GET(self):
         i = web.input(q='', offset='0', limit='10')
-
-        lists = self.get_results(i.q, i.offset, i.limit)
-
+        lists = search_type(type_name="list", search_field="name~", query=i.q, offset=i.offset, limit=i.limit)
         return render_template('search/lists.tmpl', q=i.q, lists=lists)
 
-    def get_results(self, q, offset=0, limit=100):
-        if 'env' not in web.ctx:
-            delegate.fakeload()
+def search_type(type_name, search_field, query, offset=0, limit=10):
+    if 'env' not in web.ctx:
+        delegate.fakeload()
 
-        keys = web.ctx.site.things({
-            "type": "/type/list",
-            "name~": q,
-            "limit": int(limit),
-            "offset": int(offset)
-        })
+    keys = web.ctx.site.things({
+        "type": "/type/%s" % type_name,
+        search_field: query,
+        "limit": min(int(limit), 100),
+        "offset": int(offset)
+    })
+    return web.ctx.site.get_many(keys)
 
-        return web.ctx.site.get_many(keys)
 
 class list_search_json(list_search):
     path = '/search/lists'
