@@ -26,6 +26,8 @@ softwareupdate --install-rosetta
 ```
 More detailed information about this can be found in the [Docker Desktop for Apple silicon documention](https://docs.docker.com/docker-for-mac/apple-silicon/).
 
+If you are experiencing issues building JS, you may need to increase the RAM available to Docker. The defaults of 2GB ram and 1GB Swap are not enough. We recommend requirements of 4GB ram and 2GB swap. This resolved the error message of `Killed` when running `build-assets`.
+
 ### Prerequisites & Troubleshooting
 
 Before attempting to build openlibrary using the docker instructions below, please follow this checklist. If you encounter an error, this section may serve as a troubleshooting guide:
@@ -33,7 +35,6 @@ Before attempting to build openlibrary using the docker instructions below, plea
 - Install `docker-ce`: https://docs.docker.com/get-docker/ (tested with version 19.*)
 - Install `docker-compose`: https://docs.docker.com/compose/install/
 - Make sure you `git clone` openlibrary using `ssh` instead of `https` as git submodules (e.g. `infogami` and `acs`) may not fetch correctly otherwise. You can modify an existing openlibrary repository using `git remote rm origin` and then `git remote add origin git@github.com:internetarchive/openlibrary.git`
-- If you are experiencing issues building JS, you may need to increase the RAM available to Docker. The defaults of 2GB ram and 1GB Swap are not enough. We recommend requirements of 4GB ram and 2GB swap. This resolved the error message of `Killed` when running `build-assets`.
 
 ### For All Users
 All commands are from the project root directory:
