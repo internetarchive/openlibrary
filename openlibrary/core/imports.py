@@ -33,56 +33,59 @@ class Batch(web.storage):
         items = [line.strip() for line in open(filename) if line.strip()]
         self.add_items(items)
 
-    def dedupe_ia_items(self, items):
-        already_present = [
+    def dedupe_items(self, items):
+        ia_ids = [item.get('ia_id') for item in items if item.get('ia_id')]
+        already_present = set([
             row.ia_id for row in db.query(
-                "SELECT ia_id FROM import_item WHERE ia_id IN $items",
-                vars=locals()
+                "SELECT ia_id FROM import_item WHERE ia_id IN $ia_ids",
+                vars={"ia_ids": ia_ids}
             )
-        ]
+        ])
         # ignore already present
         logger.info(
             "batch %s: %d items are already present, ignoring...",
             self.name,
             len(already_present)
         )
-        return list(set(items) - set(already_present))
+        # Those unique items whose ia_id's aren't already present
+        return [
+            item for item in items
+            if item.get('ia_id') not in already_present
+        ]
 
-    def add_items(self, items, ia_items=True):
+    def normalize_items(self, items):
+        return [{
+            'batch_id': self.id,
+            'ia_id': item.get('ia_id') or item,
+            'data': json.dumps(
+                item.get('data'),
+                sort_keys=True
+            ) if item.get('data') else None
+        } for item in items]
+
+    def add_items(self, items):
         """
-        :param ia_items: True if `items` is a list of IA identifiers, False if
-        book data dicts.
+        :param items: either a list of `ia_id`  (legacy) or a list of dicts
+            containing keys `ia_id` and book `data`. In the case of
+            the latter, `ia_id` will be of form e.g. "isbn:1234567890";
+            i.e. of a format id_type:value which cannot be a valid IA id.
         """
         if not items:
             return
 
         logger.info("batch %s: adding %d items", self.name, len(items))
 
-        if ia_items:
-            items = self.dedupe_ia_items(items)
-
+        items = self.dedupe_items(self.normalize_items(items))
         if items:
-            # Either create a reference to an IA id which will be loaded
-            # from Archive.org metadata, or provide json data book record
-            # which will be loaded directly into the OL catalog
-            values = [
-                {
-                    'batch_id': self.id,
-                    **({'ia_id': item} if ia_items else {
-                        'data': json.dumps(item, sort_keys=True)
-                    })
-                }
-                for item in items
-            ]
             try:
                 # TODO: Upgrade psql and use `INSERT OR IGNORE`
                 # otherwise it will fail on UNIQUE `data`
                 # https://stackoverflow.com/questions/1009584
-                db.get_db().multiple_insert("import_item", values)
+                db.get_db().multiple_insert("import_item", items)
             except UniqueViolation:
-                for value in values:
+                for item in items:
                     try:
-                        db.get_db().insert("import_item", **value)
+                        db.get_db().insert("import_item", **item)
                     except UniqueViolation:
                         pass
             logger.info("batch %s: added %d items", self.name, len(items))
