@@ -38,7 +38,7 @@ class Batch(web.storage):
         already_present = set([
             row.ia_id for row in db.query(
                 "SELECT ia_id FROM import_item WHERE ia_id IN $ia_ids",
-                vars=locals()
+                vars={"ia_ids": ia_ids}
             )
         ])
         # ignore already present
