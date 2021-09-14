@@ -5,20 +5,27 @@ export default {
     title: 'Legacy/Button'
 };
 
-export const CtaBtn = () => '<div class="cta-btn">Leave waitlist</div>';
+const ButtonTemplate = (buttonType, text, badgeCount=null) => `<div class="cta-btn ${ButtonTypes[buttonType]}">${text} ${badgeCount ? BadgeTemplate(badgeCount) : ''}</div>`;
 
-export const CtaBtnUnavailable = () => '<div class="cta-btn cta-btn--unavailable">Join waitlist</div>';
+const BadgeTemplate = (badgeCount) => `<span class="cta-btn__badge">${badgeCount}</span>`
 
-export const CtaBtnAvailable = () => '<div class="cta-btn cta-btn--available">Borrow</div>';
+const ButtonTypes = {
+    default: '',
+    unavailable: ' cta-btn--unavailable',
+    available: ' cta-btn--available',
+    preview: ' cta-btn--shell cta-btn--preview'
+}
 
-export const CtaBtnPreview = () => '<div class="cta-btn cta-btn--preview">Preview</div>';
+export const CtaBtn = () => ButtonTemplate('default','Leave waitlist');
 
-export const CtaBtnWithBadge = () => `
-<div class="cta-btn cta-btn--unavailable">
-  Join waiting list
-  <span class="cta-btn__badge">4</span>
-</div>
-`;
+export const CtaBtnUnavailable = () => ButtonTemplate('unavailable','Join waitlist');
+
+export const CtaBtnAvailable = () => ButtonTemplate('available','Borrow');
+
+export const CtaBtnPreview = () => ButtonTemplate('preview','Preview');
+
+export const CtaBtnWithBadge = () =>
+    ButtonTemplate('unavailable','Join waiting list',4);
 
 export const CtaBtnGroup = () => `<div class="cta-button-group">
 <a href="/borrow/ia/sevenhabitsofhi00cove?ref=ol" title="Borrow ebook from Internet Archive" id="borrow_ebook" data-ol-link-track="CTAClick|Borrow" class="cta-btn cta-btn--available">Borrow</a>
