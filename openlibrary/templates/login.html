@@ -16,6 +16,16 @@ $var title: $("Log In")
 
   $else:
       <form id="register" class="login olform" name="register" method="post">
+          <div class="flash-messages" id="autofill-dev-credentials">
+              <div class="info">
+                  <span>
+                      This is a development instance, the default credentials are automatically filled.
+                      <br>
+                      email: openlibrary@example.com password: admin123
+                      $page
+                  </span>
+              </div>
+          </div>
 
         $if form.note:
             <div class="note">$form.note</div>
