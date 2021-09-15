@@ -787,6 +787,9 @@ def build_data2(
 
     doc = p.build_data(w, editions, ia)
 
+    # Add ratings info
+    doc.update(data_provider.get_work_ratings(w['key']) or {})
+
     work_cover_id = next(
         itertools.chain(
             (cover_id for cover_id in w.get('covers', []) if cover_id != -1), [None]
