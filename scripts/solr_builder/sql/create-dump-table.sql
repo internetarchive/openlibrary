@@ -5,3 +5,10 @@ CREATE TABLE test (
     "LastModified" timestamp without time zone NOT NULL,
     "JSON" jsonb NOT NULL
 );
+
+CREATE TABLE ratings (
+    "WorkKey" character varying(255) NOT NULL,
+    "EditionKey" character varying(255),
+    "Rating" numeric(2, 1),
+    "Date" date NOT NULL
+)
