@@ -1118,7 +1118,8 @@ def solr_update(
             content=content)
         try:
             resp_json = resp.json()
-            if errors := resp_json['responseHeader'].get('errors', []):
+            errors = resp_json['responseHeader'].get('errors', [])
+            if errors:
                 for e in errors:
                     logger.error(f'Error with solr POST update: {e}')
         except JSONDecodeError:
