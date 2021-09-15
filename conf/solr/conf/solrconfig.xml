@@ -1193,6 +1193,14 @@
     <processor class="solr.RunUpdateProcessorFactory"/>
   </updateRequestProcessorChain>
 
+  <!-- This makes a bulk update requests not fail if only one of the records has an issue -->
+  <updateRequestProcessorChain name="tolerant-chain">
+    <processor class="solr.TolerantUpdateProcessorFactory">
+      <int name="maxErrors">-1</int>
+    </processor>
+    <processor class="solr.RunUpdateProcessorFactory" />
+  </updateRequestProcessorChain>
+
   <!-- Deduplication
 
        An example dedup update processor that creates the "id" field
