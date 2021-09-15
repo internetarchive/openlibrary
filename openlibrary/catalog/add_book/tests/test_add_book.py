@@ -133,6 +133,25 @@ def test_load_test_item(mock_site, add_languages, ia_writeback):
     assert w.type.key == '/type/work'
 
 
+def test_load_deduplicates_authors(mock_site, add_languages, ia_writeback):
+    """
+    Testings that authors are deduplicated before being added
+    This will only work if all the author dicts are identical
+    Not sure if that is the case when we get the data for import
+    """
+    rec = {
+        'ocaid': 'test_item',
+        'source_records': ['ia:test_item'],
+        'authors': [{'name': 'John Brown'}, {'name': 'John Brown'}],
+        'title': 'Test item',
+        'languages': ['eng'],
+    }
+
+    reply = load(rec)
+    assert reply['success'] is True
+    assert len(reply['authors']) == 1
+
+
 def test_load_with_subjects(mock_site, ia_writeback):
     rec = {
         'ocaid': 'test_item',
