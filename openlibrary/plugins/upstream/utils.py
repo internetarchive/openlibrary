@@ -1,3 +1,5 @@
+from typing import List, Union, Tuple, Any
+
 import web
 import json
 import babel
@@ -458,12 +460,10 @@ def url_quote(text):
 
 
 @public
-def urlencode(dict_or_list_of_tuples):
+def urlencode(dict_or_list_of_tuples: Union[dict, List[Tuple[str, Any]]]) -> str:
     """
     You probably want to use this, if you're looking to urlencode parameters. This will
     encode things to utf8 that would otherwise cause urlencode to error.
-    :param dict or list dict_or_list_of_tuples:
-    :rtype: basestring
     """
     from six.moves.urllib.parse import urlencode as og_urlencode
     tuples = dict_or_list_of_tuples
