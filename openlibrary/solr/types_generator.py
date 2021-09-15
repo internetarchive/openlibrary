@@ -28,6 +28,7 @@ def generate():
             'string': 'str',
             'text_en_splitting': 'str',
             'text_general': 'str',
+            'text_international': 'str',
             'boolean': 'bool',
         }
 
