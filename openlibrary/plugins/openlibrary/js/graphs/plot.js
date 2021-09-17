@@ -227,7 +227,7 @@ export function loadGraph(id, options = {}, tooltip_message = '', color = null) 
         if (tooltip_message) {
             return plot_tooltip_graph($(node), data, tooltip_message, color);
         } else {
-            return $.plot($(node), data, options);
+            return $.plot($(node), [{data: data}], options);
         }
     }
 }
