@@ -8,6 +8,7 @@ import 'flot/jquery.flot.selection.js';
 import 'flot/jquery.flot.crosshair.js';
 import 'flot/jquery.flot.stack.js';
 import 'flot/jquery.flot.pie.js';
+import 'flot/jquery.flot.time.js';
 
 /**
  * A special graph loaded on the following URLs:
