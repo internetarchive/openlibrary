@@ -261,9 +261,9 @@ jQuery(function () {
     }
 
     if (document.getElementById('autofill-dev-credentials')) {
-        document.getElementById("username").value = "openlibrary@example.com"
-        document.getElementById("password").value = "admin123"
-        document.getElementById("remember").checked = true
+        document.getElementById('username').value = 'openlibrary@example.com'
+        document.getElementById('password').value = 'admin123'
+        document.getElementById('remember').checked = true
     }
     if (document.getElementById('adminLinks')) {
         import(/* webpackChunkName: "admin" */ './admin')
