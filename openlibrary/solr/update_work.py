@@ -1495,7 +1495,9 @@ def update_keys(keys,
 
     print("Things before parallel in update keys", timer() - start)
     start = timer()
-    Parallel(n_jobs=16, prefer="threads")(delayed(handle_wkey)(k, requests) for k in wkeys)
+    Parallel(n_jobs=16, prefer="threads")(
+        delayed(handle_wkey)(k, requests) for k in wkeys
+    )
     print("Parallel thing finished in", timer() - start)
     start = timer()
 
