@@ -18,6 +18,7 @@ from httpx import HTTPError
 from six.moves.urllib.parse import urlparse
 from collections import defaultdict
 from unicodedata import normalize
+from joblib import Parallel, delayed
 
 import json
 import six
@@ -1401,6 +1402,8 @@ def update_keys(keys,
     :param bool commit_way_later: set to true if you want to add things quickly and add
         them much later
     """
+    from timeit import default_timer as timer
+    start = timer()
     logger.debug("BEGIN update_keys")
     commit_way_later_dur = 1000 * 60 * 60 * 24 * 5  # 5 days?
 
@@ -1481,13 +1484,21 @@ def update_keys(keys,
     # update works
     requests: List[SolrUpdateRequest] = []
     requests += [DeleteRequest(deletes)]
-    for k in wkeys:
-        logger.debug("updating work %s", k)
+
+    def handle_wkey(wkey, requests):
+        logger.debug("updating work %s", wkey)
         try:
-            w = data_provider.get_document(k)
+            w = data_provider.get_document(wkey)
             requests += update_work(w)
         except:
-            logger.error("Failed to update work %s", k, exc_info=True)
+            logger.error("Failed to update work %s", wkey, exc_info=True)
+
+    print("Things before parallel in update keys", timer() - start)
+    start = timer()
+    Parallel(n_jobs=16, prefer="threads")(delayed(handle_wkey)(k, requests) for k in wkeys)
+    print("Parallel thing finished in", timer() - start)
+    start = timer()
+
 
     if requests:
         if commit:
@@ -1527,6 +1538,7 @@ def update_keys(keys,
             _solr_update(requests, commitWithin=1000)
 
     logger.debug("END update_keys")
+    print("everything after parallel", timer() - start)
 
 
 def solr_escape(query):
@@ -1619,4 +1631,7 @@ def main(
 
 if __name__ == '__main__':
     from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
+    from timeit import default_timer as timer
+    start = timer()
     FnToCLI(main).run()
+    print("whole main for update_work", timer() - start)

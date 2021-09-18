@@ -25,3 +25,4 @@ sixpack-client==1.2.0
 statsd==3.3.0
 validate_email==1.3
 web.py==0.62
+joblib==1.0.1
