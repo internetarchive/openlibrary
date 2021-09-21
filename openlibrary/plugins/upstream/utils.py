@@ -778,6 +778,8 @@ def get_donation_include(include):
     dev_host = web_input.pop("dev_host", "")  # e.g. `www-user`
     if dev_host and re.match('^[a-zA-Z0-9-.]+$', dev_host):
         dev_host += "."   # e.g. `www-user.`
+    else:
+        dev_host = ''
     script_src = "https://%sarchive.org/includes/donate.js" % dev_host
     if 'ymd' in web_input:
         script_src += '?ymd=' + web_input.ymd
