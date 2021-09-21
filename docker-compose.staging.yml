@@ -31,6 +31,9 @@ services:
       # does not clobber the data generated inside the image / container
       - .:/openlibrary
 
+  memcached:
+    restart: unless-stopped
+
 volumes:
   ol-vendor:
   ol-build:
