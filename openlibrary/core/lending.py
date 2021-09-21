@@ -147,33 +147,26 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
         q += " AND openlibrary_subject:" + subject
 
     if work_id:
-        if _type.lower() in ["authors", "subjects"]:
+        _type = _type.lower()
+        if _type in ("authors", "subjects"):
             _q = None
             works_authors_and_subjects = cached_work_authors_and_subjects(work_id)
-            if works_authors_and_subjects:
-                if _type == "authors":
-                    authors = []
-                    for author_name in works_authors_and_subjects.get('authors', []):
-                        authors.append(author_name)
-                        authors.append(','.join(author_name.split(' ', 1)[::-1]))
-                    if authors:
-                        _q = ' OR '.join('creator:"%s"' % author for author in authors)
-                elif _type == "subjects":
-                    subjects = works_authors_and_subjects.get('subjects', [])
-                    if subjects:
-                        _q = ' OR '.join('subject:"%s"' % subject for subject in subjects)
-            if not _q:
-                logger.error('compose_ia_url failed!', extra={
-                    'limit': limit,
-                    'page': page,
-                    'subject': subject,
-                    'query': query,
-                    'work_id': work_id,
-                    '_type': _type,
-                    'sorts': sorts,
-                    'advanced': advanced,
-                })
-                return ''  # TODO: Should we just raise an exception instead?
+            if _type == "authors":
+                authors = works_authors_and_subjects.get('authors', [])
+                if not authors:
+                    return ''
+                name_variations = [
+                    variation
+                    for name in authors
+                    for variation in (name, ','.join(name.split(' ', 1)[::-1]))
+                ]
+
+                _q = ' OR '.join(f'creator:"{name}"' for name in name_variations)
+            elif _type == "subjects":
+                subjects = works_authors_and_subjects.get('subjects', [])
+                if not subjects:
+                    return ''
+                _q = ' OR '.join(f'subject:"{subject}"' for subject in subjects)
             q += ' AND (%s) AND !openlibrary_work:(%s)' % (_q, work_id.split('/')[-1])
 
     if not advanced:
