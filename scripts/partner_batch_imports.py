@@ -80,7 +80,7 @@ class Biblio():
 
     @staticmethod
     def contributors(data):
-        def make_author(contributor):
+        def make_author(name, _, typ):
             author = {'name': contributor[0]}
             if contributor[2] == 'X':
                 # set corporate contributor
@@ -95,7 +95,7 @@ class Biblio():
         )
 
         # form list of author dicts
-        authors = [make_author(c) for c in contributors if c[0]]
+        authors = [make_author(*c) for c in contributors if c[0]]
         return authors
 
     def json(self):
