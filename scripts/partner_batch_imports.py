@@ -99,11 +99,11 @@ class Biblio():
         return authors
 
     def json(self):
-        return dict(
-            (field, getattr(self, field))
+        return {
+            field: getattr(self, field)
             for field in self.ACTIVE_FIELDS
             if getattr(self, field)
-        )
+        }
 
 
 def load_state(path, logfile):
