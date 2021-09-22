@@ -887,16 +887,6 @@ class Partials(delegate.page):
         )
 
 
-@public
-def is_openlibrary_host():
-    """
-    To see if we are running in a "local" instance or not
-    In this case local is defined as NOT openlibrary.org hosted
-    such as: openlibrary.org, testing.library.org, or staging.openlibrary.org
-    Why not look for localhost? Gitpod and GitHub codespaces have different hosts
-    """
-    return "openlibrary.org" in os.environ.get("HTTP_HOST", "")
-
 def is_bot():
     r"""Generated on ol-www1 within /var/log/nginx with:
 
