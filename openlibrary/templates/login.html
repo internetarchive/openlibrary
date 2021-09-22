@@ -16,7 +16,7 @@ $var title: $("Log In")
 
   $else:
       <form id="register" class="login olform" name="register" method="post">
-          $if not is_openlibrary_host():
+          $if "dev" in ctx.features:
               <div class="flash-messages" id="autofill-dev-credentials">
                   <div class="info">
                       <span>
