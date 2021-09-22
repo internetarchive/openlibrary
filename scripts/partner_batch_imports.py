@@ -71,9 +71,7 @@ class Biblio():
         self.dewey = data[49]
         # physical_dimensions
         # e.g. "5.4 x 4.7 x 0.2 inches"
-        self.length, self.width, self.height = (
-            data[40], data[41], data[42]
-        )
+        self.length, self.width, self.height = data[40:43]
 
         # Assert importable
         assert self.isbn_13
