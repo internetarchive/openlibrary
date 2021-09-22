@@ -6,6 +6,6 @@
 debugpy>=1.2.0
 flake8==3.9.2
 mypy==0.910
-pymemcache==3.4.2
+pymemcache==3.5.0
 pytest==6.2.4
 safety==1.10.3
