@@ -17,7 +17,7 @@ setup(
     name='openlibrary',
     version='2.0',
     description='Open Library',
-    scripts=filter(executable, glob.glob('scripts/*')),
+    scripts=list(filter(executable, glob.glob('scripts/*'))),
     # Used to make solrbuilder faster
     ext_modules=cythonize(
         "openlibrary/solr/update_work.py",
