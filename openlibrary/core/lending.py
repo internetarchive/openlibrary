@@ -1,5 +1,6 @@
 """Module for providing core functionality of lending on Open Library.
 """
+from typing import Literal, Optional
 
 import web
 import datetime
@@ -110,13 +111,23 @@ def cached_work_authors_and_subjects(work_id):
         return {'authors': [], 'subject': []}
 
 @public
-def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
-                   _type=None, sorts=None, advanced=True):
+def compose_ia_url(
+        limit: int = None,
+        page: int = 1,
+        subject=None,
+        query=None,
+        work_id=None,
+        _type: Literal['authors', 'subjects'] = None,
+        sorts=None,
+        advanced=True
+) -> Optional[str]:
     """This needs to be exposed by a generalized API endpoint within
     plugins/api/browse which lets lazy-load more items for
     the homepage carousel and support the upcoming /browse view
     (backed by archive.org search, so we don't have to send users to
     archive.org to see more books)
+
+    Returns None if we get an empty query
     """
     from openlibrary.plugins.openlibrary.home import CAROUSELS_PRESETS
     query = CAROUSELS_PRESETS.get(query, query)
@@ -146,35 +157,26 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
     if subject:
         q += " AND openlibrary_subject:" + subject
 
-    if work_id:
-        if _type.lower() in ["authors", "subjects"]:
-            _q = None
-            works_authors_and_subjects = cached_work_authors_and_subjects(work_id)
-            if works_authors_and_subjects:
-                if _type == "authors":
-                    authors = []
-                    for author_name in works_authors_and_subjects.get('authors', []):
-                        authors.append(author_name)
-                        authors.append(','.join(author_name.split(' ', 1)[::-1]))
-                    if authors:
-                        _q = ' OR '.join('creator:"%s"' % author for author in authors)
-                elif _type == "subjects":
-                    subjects = works_authors_and_subjects.get('subjects', [])
-                    if subjects:
-                        _q = ' OR '.join('subject:"%s"' % subject for subject in subjects)
-            if not _q:
-                logger.error('compose_ia_url failed!', extra={
-                    'limit': limit,
-                    'page': page,
-                    'subject': subject,
-                    'query': query,
-                    'work_id': work_id,
-                    '_type': _type,
-                    'sorts': sorts,
-                    'advanced': advanced,
-                })
-                return ''  # TODO: Should we just raise an exception instead?
-            q += ' AND (%s) AND !openlibrary_work:(%s)' % (_q, work_id.split('/')[-1])
+    if work_id and _type in ("authors", "subjects"):
+        _q = None
+        works_authors_and_subjects = cached_work_authors_and_subjects(work_id)
+        if _type == "authors":
+            authors = works_authors_and_subjects.get('authors', [])
+            if not authors:
+                return None
+            name_variations = [
+                variation
+                for name in authors
+                for variation in (name, ','.join(name.split(' ', 1)[::-1]))
+            ]
+
+            _q = ' OR '.join(f'creator:"{name}"' for name in name_variations)
+        elif _type == "subjects":
+            subjects = works_authors_and_subjects.get('subjects', [])
+            if not subjects:
+                return None
+            _q = ' OR '.join(f'subject:"{subject}"' for subject in subjects)
+        q += ' AND (%s) AND !openlibrary_work:(%s)' % (_q, work_id.split('/')[-1])
 
     if not advanced:
         _sort = sorts[0] if sorts else ''
@@ -182,10 +184,10 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
             _sort = '-' + _sort.split(' desc')[0]
         elif ' asc' in _sort:
             _sort = _sort.split(' asc')[0]
-        params = {'query': q}
+        simple_params = {'query': q}
         if _sort:
-            params['sort'] = _sort
-        return 'https://archive.org/search.php?' + urlencode(params)
+            simple_params['sort'] = _sort
+        return 'https://archive.org/search.php?' + urlencode(simple_params)
 
     rows = limit or DEFAULT_IA_RESULTS
     params = [
