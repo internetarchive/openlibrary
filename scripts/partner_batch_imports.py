@@ -81,8 +81,8 @@ class Biblio():
     @staticmethod
     def contributors(data):
         def make_author(name, _, typ):
-            author = {'name': contributor[0]}
-            if contributor[2] == 'X':
+            author = {'name': name}
+            if typ == 'X':
                 # set corporate contributor
                 author['entity_type'] = 'org'
             # TODO: sort out contributor types
