@@ -19,9 +19,6 @@ import requests
 from openlibrary.core.imports import Batch
 from infogami import config
 from openlibrary.config import load_config
-load_config(
-    os.path.abspath(os.path.join(
-        os.sep, 'olsystem', 'etc', 'openlibrary.yml')))
 
 logger = logging.getLogger("openlibrary.importer.bwb")
 
@@ -187,9 +184,16 @@ def batch_import(path, batch, batch_size=5000):
             update_state(logfile, fname, line_num)
 
 
-if __name__ == '__main__':
+def main():
+    load_config(
+        os.path.abspath(os.path.join(
+            os.sep, 'olsystem', 'etc', 'openlibrary.yml')))
     # Partner data is offset ~15 days from start of month
     date = datetime.date.today() - timedelta(days=15)
     batch_name = "%s-%04d%02d" % ('bwb', date.year, date.month)
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch_import(sys.argv[1], batch)
+
+
+if __name__ == '__main__':
+    main()
