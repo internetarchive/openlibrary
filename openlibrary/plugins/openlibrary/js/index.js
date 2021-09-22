@@ -260,6 +260,11 @@ jQuery(function () {
             .then(module => module.initAddBookImport());
     }
 
+    if (document.getElementById('autofill-dev-credentials')) {
+        document.getElementById('username').value = 'openlibrary@example.com'
+        document.getElementById('password').value = 'admin123'
+        document.getElementById('remember').checked = true
+    }
     if (document.getElementById('adminLinks')) {
         import(/* webpackChunkName: "admin" */ './admin')
             .then((module) => module.initAdmin());
