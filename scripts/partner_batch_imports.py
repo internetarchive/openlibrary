@@ -17,13 +17,12 @@ import logging
 import requests
 
 # Add openlibrary into our path so we can process config + batch functions
-sys.path.insert(0, os.path.abspath(os.path.join(os.sep, 'openlibrary')))
+from openlibrary.core.imports import Batch
+from infogami import config
 from openlibrary.config import load_config
 load_config(
     os.path.abspath(os.path.join(
         os.sep, 'olsystem', 'etc', 'openlibrary.yml')))
-from openlibrary.core.imports import Batch
-from infogami import config
 
 logger = logging.getLogger("openlibrary.importer.bwb")
 
@@ -84,7 +83,6 @@ class Biblio():
         assert self.isbn_13
         for field in self.REQUIRED_FIELDS:
             assert getattr(self, field)
-
 
     @staticmethod
     def contributors(data):
