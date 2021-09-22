@@ -119,14 +119,19 @@ def test_get_coverstore_url(monkeypatch):
 
 
 def test_reformat_html():
+    f = utils.reformat_html
+
     input_string = '<p>This sentence has 32 characters.</p>'
-    assert utils.reformat_html(input_string, 10) == 'This sente...'
-    assert utils.reformat_html(input_string) == 'This sentence has 32 characters.'
-    assert utils.reformat_html(input_string, 5000) == 'This sentence has 32 characters.'
+    assert f(input_string, 10) == 'This sente...'
+    assert f(input_string) == 'This sentence has 32 characters.'
+    assert f(input_string, 5000) == 'This sentence has 32 characters.'
 
     multi_line_string = """<p>This sentence has 32 characters.</p>
                            <p>This new sentence has 36 characters.</p>"""
-    assert utils.reformat_html(multi_line_string) == 'This sentence has 32 ' \
+    assert f(multi_line_string) == 'This sentence has 32 ' \
         'characters.<br>This new sentence has 36 characters.'
-    assert utils.reformat_html(multi_line_string, 34) == 'This sentence has 32 ' \
+    assert f(multi_line_string, 34) == 'This sentence has 32 ' \
         'characters.<br>T...'
+
+    assert f("<script>alert('hello')</script>", 34) == "alert('hello')"
+    assert f("&lt;script&gt;") == "&lt;script&gt;"
