@@ -103,7 +103,6 @@ class Biblio():
         authors = [make_author(c) for c in contributors if c[0]]
         return authors
 
-
     def json(self):
         return dict(
             (field, getattr(self, field))
