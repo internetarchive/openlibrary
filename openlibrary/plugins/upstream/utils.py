@@ -777,10 +777,10 @@ def get_donation_include(include):
     # needing to reload openlibrary services:
     dev_host = web_input.pop("dev_host", "")  # e.g. `www-user`
     if dev_host and re.match('^[a-zA-Z0-9-.]+$', dev_host):
-        dev_host += "."   # e.g. `www-user.`
+        script_src = "https://%s.archive.org/includes/donate.js" % dev_host
     else:
-        dev_host = ''
-    script_src = "https://%sarchive.org/includes/donate.js" % dev_host
+        script_src = "/cdn/archive.org/donate.js"
+
     if 'ymd' in web_input:
         script_src += '?ymd=' + web_input.ymd
 

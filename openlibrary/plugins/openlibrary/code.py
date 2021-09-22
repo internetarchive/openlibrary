@@ -354,6 +354,19 @@ class robotstxt(delegate.page):
             raise web.notfound()
 
 
+@web.memoize
+def fetch_ia_js(filename: str) -> str:
+    return requests.get(f'https://archive.org/includes/{filename}').text
+
+
+class ia_js_cdn(delegate.page):
+    path = r'/cdn/archive.org/(donate\.js|analytics\.js)'
+
+    def GET(self, filename):
+        web.header('Content-Type', 'text/javascript')
+        raise web.HTTPError('200 OK', {}, fetch_ia_js(filename))
+
+
 class serviceworker(delegate.page):
     path = '/sw.js'
 
