@@ -195,7 +195,6 @@
 
     <!-- Ratings -->
     <field name="ratings_average" type="pfloat"/>
-    <field name="ratings_median" type="pfloat"/>
     <field name="ratings_count" type="pint"/>
     <field name="ratings_count_1" type="pint"/>
     <field name="ratings_count_2" type="pint"/>

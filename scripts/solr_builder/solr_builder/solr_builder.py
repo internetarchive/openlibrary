@@ -206,7 +206,6 @@ class LocalPostgresDataProvider(DataProvider):
         q = f"""
             SELECT "WorkKey", json_build_object(
                 'ratings_average', avg("Rating"),
-                'ratings_median', percentile_cont(0.5) WITHIN GROUP (ORDER BY "Rating"),
                 'ratings_count', count(*),
                 'ratings_count_1', count(*) filter (where "Rating" = 1),
                 'ratings_count_2', count(*) filter (where "Rating" = 2),
