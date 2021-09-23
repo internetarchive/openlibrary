@@ -151,7 +151,7 @@ def batch_import(path, batch, batch_size=5000):
 
     for fname in filenames:
         book_items = []
-        with open(fname, 'r', encoding="ISO-8859-1") as f:
+        with open(fname, 'r') as f:
             logger.info("Processing: %s from line %s" % (fname, offset))
             for line_num, line in enumerate(f):
 
