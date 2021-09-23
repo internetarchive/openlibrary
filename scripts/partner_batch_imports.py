@@ -41,6 +41,7 @@ class Biblio():
 
     def __init__(self, data):
         self.isbn = data[124]
+        self.source_id = 'bwb:%s' % self.isbn
         self.isbn_13 = [self.isbn]
         self.title = data[10]
         self.publish_date = data[20][:4]  # YYYY, YYYYMMDD
@@ -50,7 +51,7 @@ class Biblio():
         self.lc_classifications = data[147]
         self.pagination = data[36]
         self.languages = [data[37].lower()]
-        self.source_records = ['bwb:%s' % self.isbn]
+        self.source_records = [self.source_id]
         self.subjects = [
             s.capitalize().replace('_', ', ')
             for s in data[91:100]
@@ -140,7 +141,7 @@ def csv_to_ol_json_item(line):
     """converts a line to a book item"""
     b = Biblio(line.strip().split('|'))
     return {
-        'ia_id': 'isbn:%s' % b.isbn,
+        'ia_id': b.source_id,
         'data': b.json()
     }
 
