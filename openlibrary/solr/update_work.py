@@ -1393,7 +1393,8 @@ def update_keys(keys,
                 commit_way_later=False,
                 skip_id_check=False,
                 update: Literal['update', 'print', 'pprint', 'quiet'] = 'update',
-                # 16 threads was picked based on tests in local development. May not be optimal for all envs
+                # 16 threads was picked based on tests in local development.
+                # May not be optimal for all envs
                 number_threads=16):
     """
     Insert/update the documents with the provided keys in Solr.
@@ -1409,7 +1410,8 @@ def update_keys(keys,
     start = timer()
     logger.debug("BEGIN update_keys")
     commit_way_later_dur = 1000 * 60 * 60 * 24 * 5  # 5 days?
-    timer_results = f"RESULTS OF TIMER FOR KEYS LIKE {keys[0]} with {number_threads} threads \n"
+    timer_results = f"RESULTS OF TIMER FOR KEYS LIKE {keys[0]}" \
+                    f" with {number_threads} threads \n"
 
     def _solr_update(requests: List[SolrUpdateRequest], commitWithin=60000):
         if update == 'update':
@@ -1440,8 +1442,8 @@ def update_keys(keys,
     # Get works for all the editions
     ekeys = set(k for k in keys if k.startswith("/books/"))
 
-    # I wonder if sorting the ekeys could help since it would lead to requests all being near each other in DB
-    # such as 1,2,3,4 etc instead of random
+    # I wonder if sorting the ekeys could help since it would lead to
+    # requests all being near each other in DB such as 1,2,3,4 etc instead of random
     # ekeys = list(ekeys)
     # ekeys.sort()
 
@@ -1495,7 +1497,9 @@ def update_keys(keys,
                 output_dict['wkeys'].add(k)
         return output_dict
 
-    ekey_responses = Parallel(n_jobs=number_threads, prefer="threads")(delayed(handle_ekey)(k) for k in ekeys)
+    ekey_responses = Parallel(n_jobs=number_threads, prefer="threads")(
+        delayed(handle_ekey)(k) for k in ekeys
+    )
     for response in ekey_responses:
         deletes += response['deletes']
         wkeys.update(response['wkeys'])
@@ -1523,7 +1527,9 @@ def update_keys(keys,
 
     timer_results += f"before update wkeys {timer() - start}\n"
     start = timer()
-    wkey_responses = Parallel(n_jobs=number_threads, prefer="threads")(delayed(handle_wkey)(k) for k in wkeys)
+    wkey_responses = Parallel(n_jobs=number_threads, prefer="threads")(
+        delayed(handle_wkey)(k) for k in wkeys
+    )
     for arr in wkey_responses:
         requests += arr
     timer_results += f"update wkeys {timer() - start}\n"
@@ -1666,10 +1672,11 @@ if __name__ == '__main__':
     cursor.execute("select key from thing")
     db_responses = cursor.fetchall()
 
-    # We have to run main on books before authors.
-    # The books need to be indexed first, because the author indexing queries solr to get aggregate book data.
+    # We must to run main on books before authors. Books need to be indexed
+    # first because the author indexing queries solr to get aggregate book data.
     for prefix in ["/books/", "/authors/"]:
         keys = [r[0] for r in db_responses if r[0].startswith(prefix)]
         start = timer()
-        main(keys, ol_url="http://web:8080/", ol_config="conf/openlibrary.yml", data_provider="legacy")
+        main(keys, ol_url="http://web:8080/", ol_config="conf/openlibrary.yml",
+             data_provider="legacy")
         print(f"main for {prefix} took", timer() - start)
