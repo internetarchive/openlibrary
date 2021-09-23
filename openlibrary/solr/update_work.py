@@ -20,6 +20,7 @@ from six.moves.urllib.parse import urlparse
 from collections import defaultdict
 from unicodedata import normalize
 from joblib import Parallel, delayed
+import psycopg2
 
 import json
 import six
@@ -1660,23 +1661,15 @@ def main(
 
 
 if __name__ == '__main__':
-    import psycopg2
     connection = psycopg2.connect(host="db", database="openlibrary")
     cursor = connection.cursor()
     cursor.execute("select key from thing")
     db_responses = cursor.fetchall()
 
-    books_keys = [r[0] for r in db_responses if r[0].startswith('/books/')]
-    authors_keys = [r[0] for r in db_responses if r[0].startswith('/authors/')]
-
-    from update_work import main
-
     # We have to run main on books before authors.
     # The books need to be indexed first, because the author indexing queries solr to get aggregate book data.
-    start = timer()
-    main(books_keys, ol_url="http://web:8080/", ol_config="conf/openlibrary.yml", data_provider="legacy")
-    print("main for book_keys took", timer() - start)
-
-    start = timer()
-    main(authors_keys, ol_url="http://web:8080/", ol_config="conf/openlibrary.yml", data_provider="legacy")
-    print("main for author_keys took", timer() - start)
+    for prefix in ["/books/", "/authors/"]:
+        keys = [r[0] for r in db_responses if r[0].startswith(prefix)]
+        start = timer()
+        main(keys, ol_url="http://web:8080/", ol_config="conf/openlibrary.yml", data_provider="legacy")
+        print(f"main for {prefix} took", timer() - start)
