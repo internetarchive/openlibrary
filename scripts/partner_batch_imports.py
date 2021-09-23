@@ -30,7 +30,7 @@ class Biblio():
 
     ACTIVE_FIELDS = [
         'title', 'isbn_13', 'publish_date', 'publishers',
-        'weight', 'authors', 'lc_classifications', 'number_of_pages',
+        'weight', 'authors', 'lc_classifications', 'pagination',
         'languages', 'subjects', 'source_records'
     ]
     INACTIVE_FIELDS = [
@@ -48,11 +48,7 @@ class Biblio():
         self.weight = data[39]
         self.authors = self.contributors(data)
         self.lc_classifications = data[147]
-        self.number_of_pages = next(
-            # Regex find the first number in data[36] or default None
-            iter(re.findall('[0-9]+', data[36])),
-            None
-        )
+        self.pagination = data[36]
         self.languages = [data[37].lower()]
         self.source_records = ['bwb:%s' % self.isbn]
         self.subjects = [
