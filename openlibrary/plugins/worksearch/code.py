@@ -1001,11 +1001,13 @@ def random_author_search(limit=10):
     """
     letters_and_digits = string.ascii_letters + string.digits
     seed = ''.join(random.choice(letters_and_digits) for _ in range(10))
-    rows = '&rows=%d' % (limit)
-    sort = '&sort=random_%s+desc' % (seed)
-    solr_select = solr_select_url + "?fq=type:author&q.op=AND&q=*&wt=json" + rows + sort
 
-    search_results = run_solr_search(solr_select)
+    search_results = run_solr_search(solr_select_url, {
+        'q': 'type:author',
+        'rows': limit,
+        'sort': f'random_{seed} desc',
+        'wt': 'json',
+    })
 
     docs = search_results.get('response', {}).get('docs', [])
 
