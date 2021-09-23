@@ -909,7 +909,8 @@ class subject_search(delegate.page):
     def get_results(self, q, offset=0, limit=100):
         valid_fields = ['key', 'name', 'subject_type', 'work_count']
         q = escape_colon(escape_bracket(q), valid_fields)
-        params = {
+
+        results = run_solr_search(solr_select_url, {
             "fq": "type:subject",
             "q.op": "AND",
             "q": q,
@@ -919,10 +920,7 @@ class subject_search(delegate.page):
             "qt": "standard",
             "wt": "json",
             "sort": "work_count desc"
-        }
-
-        solr_select = solr_select_url + "?" + urllib.parse.urlencode(params, 'utf-8')
-        results = run_solr_search(solr_select)
+        })
         response = results['response']
 
         for doc in response['docs']:
