@@ -13,7 +13,7 @@ class TestBiblio:
             'publishers': ['BDK America'],
             'weight': '0.545',
             'authors': [{'name': 'Heng-ching, Shih'}],
-            'number_of_pages': '226',
+            'pagination': '226',
             'languages': ['eng'],
             'subjects': ['Sutras', 'Buddhism, sacred books'],
             'source_records': ['bwb:9780962561856']
