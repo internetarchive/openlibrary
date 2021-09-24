@@ -946,7 +946,9 @@ class public_my_books(delegate.page):
 
 
 class public_my_books(delegate.page):
-    path = "/people/([^/]+)/books/([a-zA-Z_-]+)"
+    valid_paths = "currently-reading|want-to-read|already-read|" \
+                  "sponsorships|notes|observations"
+    path = f"/people/([^/]+)/books/(?:{valid_paths})"
 
     def GET(self, username, key='loans'):
         """check if user's reading log is public"""
