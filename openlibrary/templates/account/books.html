@@ -163,7 +163,7 @@ $if og_title:
               $ class_list = 'list-link'
               $if lst == items:
                 $ class_list = class_list + ' selected'
-              <li><a class="$class_list" href="/people/$username/books/lists/$list_id">$lst['name'] ($(len(lst.seeds)))</a></li>
+              <li><a class="$class_list" href="/people/$username/lists/$list_id">$lst['name'] ($(len(lst.seeds)))</a></li>
           </div>
         </ul>
         $if owners_page:
@@ -177,22 +177,24 @@ $if og_title:
             <li><a href="/account/import" $('class=selected' if key=='imports' else '')>$_("Import & Export Options")</a></li>
           </ul>
       </div>
-      $if key == 'loans':
-        $:render_template('account/loans', logged_in_user, items)
-      $elif key == 'waitlist':
-        $:render_template('account/waitlist', logged_in_user)
-      $elif key == 'notes':
-        $:render_template('account/notes', items, user, counts['notes'], page=current_page)
-      $elif key == 'observations':
-        $:render_template('account/observations', items, user, counts['observations'], page=current_page)
-      $elif key == 'imports':
-        $:render_template('account/import')
-      $elif key == 'lists':
-        $:render_template('account/my_lists', items, lists)
-      $elif key in {'currently-reading', 'want-to-read', 'already-read', 'sponsorships'}:
-        $:render_template('account/reading_log', items, key, counts[key], owners_page, current_page, sort_order=sort_order)
-      $else:
-        $:render_template('account/list', items)
+      <div class="mybooks-details">
+        $if key == 'loans':
+          $:render_template('account/loans', logged_in_user, items)
+        $elif key == 'waitlist':
+          $:render_template('account/waitlist', logged_in_user)
+        $elif key == 'notes':
+          $:render_template('account/notes', items, user, counts['notes'], page=current_page)
+        $elif key == 'observations':
+          $:render_template('account/observations', items, user, counts['observations'], page=current_page)
+        $elif key == 'imports':
+          $:render_template('account/import')
+        $elif key == 'lists':
+          $:render_template('lists/lists', items, lists, show_header=False)
+        $elif key in {'currently-reading', 'want-to-read', 'already-read', 'sponsorships'}:
+          $:render_template('account/reading_log', items, key, counts[key], owners_page, current_page, sort_order=sort_order)
+        $else:
+          $:render_template('type/list/view', items, show_header=False)
+      </div>
     </div>
   </div>
 </div>

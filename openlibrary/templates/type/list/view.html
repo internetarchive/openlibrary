@@ -1,4 +1,4 @@
-$def with (list)
+$def with (list, show_header=True)
 
 $ title = list.name
 $ title_with_site = _("%(name)s | Lists | Open Library", name=title)
@@ -39,18 +39,19 @@ $jsdef render_seed_count(seed_count):
 
     $:macros.databarView(list)
 
-    <div class="superNav">
-        $ owner = list.get_owner()
-        <a href="$owner.key">$owner.displayname</a>
-        /
-        <a href="$owner.key/lists">$_('Lists')</a>
-    </div>
-    <h1>$list.name</h1>
-    <p class="collapse sansserif">
-        $ component_times['render_seed_count'] = time()
-        <span class="darkgreen" id="list-items-count"><strong>$:render_seed_count(len(list.seeds))</strong></span>
-        $ component_times['render_seed_count'] = time() - component_times['render_seed_count']
-    </p>
+    $if show_header:
+        <div class="superNav">
+            $ owner = list.get_owner()
+            <a href="$owner.key">$owner.displayname</a>
+            /
+            <a href="$owner.key/lists">$_('Lists')</a>
+        </div>
+        <h1>$list.name</h1>
+        <p class="collapse sansserif">
+            $ component_times['render_seed_count'] = time()
+            <span class="darkgreen" id="list-items-count"><strong>$:render_seed_count(len(list.seeds))</strong></span>
+            $ component_times['render_seed_count'] = time() - component_times['render_seed_count']
+        </p>
 </div>
 
 <script type="text/javascript">

@@ -9,6 +9,7 @@ import random
 import web
 
 from infogami import config
+from infogami.core import db
 from infogami.core import code as core
 from infogami.infobase import client
 from infogami.utils import delegate, app, types
@@ -21,6 +22,7 @@ from openlibrary import accounts
 from openlibrary.plugins.upstream import addbook, covers, merge_authors, models, utils
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused imports?
+from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.upstream.utils import render_component
 
 if not config.get('coverstore_url'):
@@ -31,6 +33,23 @@ class static(delegate.page):
     def GET(self):
         host = 'https://%s' % web.ctx.host if 'openlibrary.org' in web.ctx.host else ''
         raise web.seeother(host + '/static' + web.ctx.path)
+
+
+class view(core.view):
+    def GET(self, path):
+        if web.re_compile('/people/[^/]+/lists/OL[\d+]L(/[^/]+){0,1}').match(path):
+            i = web.input(v=None)
+
+            if i.v is not None and safeint(i.v, None) is None:
+                raise web.seeother(web.changequery(v=None))
+            
+            p = db.get_version(path, i.v)
+
+            if p.type.key == '/type/list':
+                username = p.get_owner().get_username()
+                olid = path.split('/')[4]
+                return MyBooksTemplate(username, 'list').render(list_id=olid)
+        return core.view.GET(self, path)
 
 
 class edit(core.edit):

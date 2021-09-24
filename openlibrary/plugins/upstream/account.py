@@ -932,7 +932,7 @@ class MyBooksTemplate(object):
         elif self.key == 'list':
             for list in self.lists:
                 olid = list.key.split('/')[-1]
-                if olid == f'OL{list_id}L':
+                if olid == list_id:
                     return list
 
         return None
@@ -943,15 +943,6 @@ class public_my_books(delegate.page):
 
     def GET(self, username):
         raise web.seeother('/people/%s/books/want-to-read' % username)
-
-
-class public_my_books_list(delegate.page):
-    path = "/people/([^/]+)/books/lists/OL(\d+)L"
-
-    def GET(self, username, list_id):
-        i = web.input(page=1, sort='desc')
-        return MyBooksTemplate(username, 'list').render(
-            page=i.page, sort=i.sort, list_id=list_id)
 
 
 class public_my_books(delegate.page):
