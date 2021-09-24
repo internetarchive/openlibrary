@@ -15,6 +15,7 @@ from openlibrary.plugins.upstream import borrow
 
 RESULTS_PER_PAGE = 25
 
+
 class public_my_books(delegate.page):
     path = "/people/([^/]+)/books"
 
@@ -274,7 +275,6 @@ class ReadingLog(object):
 
     def __init__(self, user=None):
         self.user = user or accounts.get_current_user()
-        #self.user.update_loan_status()
         self.KEYS = {
             'waitlists': self.get_waitlisted_editions,
             'loans': self.get_loans,
@@ -292,9 +292,12 @@ class ReadingLog(object):
         counts = Bookshelves.count_total_books_logged_by_user_per_shelf(
             self.user.get_username())
         return {
-            'want-to-read': counts.get(Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0),
-            'currently-reading': counts.get(Bookshelves.PRESET_BOOKSHELVES['Currently Reading'], 0),
-            'already-read': counts.get(Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0)
+            'want-to-read': counts.get(
+                Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0),
+            'currently-reading': counts.get(
+                Bookshelves.PRESET_BOOKSHELVES['Currently Reading'], 0),
+            'already-read': counts.get(
+                Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0)
         }
 
     def get_loans(self):
@@ -333,19 +336,22 @@ class ReadingLog(object):
     def get_want_to_read(self, page=1, limit=RESULTS_PER_PAGE,
                          sort='created', sort_order='desc'):
         return self.process_logged_books(Bookshelves.get_users_logged_books(
-            self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Want to Read'],
+            self.user.get_username(),
+            bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Want to Read'],
             page=page, limit=limit, sort=sort + ' ' + sort_order))
 
     def get_currently_reading(self, page=1, limit=RESULTS_PER_PAGE,
                               sort='created', sort_order='desc'):
         return self.process_logged_books(Bookshelves.get_users_logged_books(
-            self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Currently Reading'],
+            self.user.get_username(),
+            bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Currently Reading'],
             page=page, limit=limit, sort=sort + ' ' + sort_order))
 
     def get_already_read(self, page=1, limit=RESULTS_PER_PAGE,
                          sort='created', sort_order='desc'):
         return self.process_logged_books(Bookshelves.get_users_logged_books(
-            self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Already Read'],
+            self.user.get_username(),
+            bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Already Read'],
             page=page, limit=limit, sort=sort + ' ' + sort_order))
 
     def get_works(self, key, page=1, limit=RESULTS_PER_PAGE,
@@ -357,8 +363,8 @@ class ReadingLog(object):
         if key in self.KEYS:
             return self.KEYS[key](page=page, limit=limit,
                                   sort=sort, sort_order=sort_order)
-        else: # must be a list or invalid page!
-            #works = web.ctx.site.get_many([ ... ])
+        else:  # must be a list or invalid page!
+            # works = web.ctx.site.get_many([ ... ])
             raise
 
 
