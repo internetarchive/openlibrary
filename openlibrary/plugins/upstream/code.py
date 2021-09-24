@@ -37,12 +37,12 @@ class static(delegate.page):
 
 class view(core.view):
     def GET(self, path):
-        if web.re_compile('/people/[^/]+/lists/OL[\d]+L(/[^/]+){0,1}').match(path):
+        if web.re_compile(r'/people/[^/]+/lists/OL[\d]+L(/[^/]+){0,1}').match(path):
             i = web.input(v=None)
 
             if i.v is not None and safeint(i.v, None) is None:
                 raise web.seeother(web.changequery(v=None))
-            
+
             p = db.get_version(path, i.v)
 
             if p.type.key == '/type/list':
