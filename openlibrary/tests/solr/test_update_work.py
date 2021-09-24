@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 from openlibrary.core.ratings import WorkRatingsSummary
 
 from openlibrary.solr import update_work
-from openlibrary.solr.data_provider import DataProvider
+from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
 from openlibrary.solr.update_work import (
     CommitRequest,
     SolrProcessor,
@@ -109,6 +109,9 @@ class FakeDataProvider(DataProvider):
         return {}
 
     def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
+        return None
+
+    def get_work_reading_log(self, work_key: str) -> WorkReadingLogSolrSummary | None:
         return None
 
 

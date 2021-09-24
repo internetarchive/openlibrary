@@ -11,4 +11,11 @@ CREATE TABLE ratings (
     "EditionKey" character varying(255),
     "Rating" numeric(2, 1),
     "Date" date NOT NULL
+);
+
+CREATE TABLE reading_log (
+    "WorkKey" character varying(255) NOT NULL,
+    "EditionKey" character varying(255),
+    "Shelf" character varying(255),
+    "Date" date NOT NULL
 )

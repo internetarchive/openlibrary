@@ -203,6 +203,12 @@
     <field name="ratings_count_4" type="pint"/>
     <field name="ratings_count_5" type="pint"/>
 
+    <!-- Reading Log -->
+    <field name="readinglog_count" type="pint"/>
+    <field name="want_to_read_count" type="pint"/>
+    <field name="currently_reading_count" type="pint"/>
+    <field name="already_read_count" type="pint"/>
+
     <field name="text" type="text_en_splitting" stored="false" multiValued="true"/>
 
     <field name="seed" type="string" multiValued="true"/>
