@@ -210,11 +210,6 @@ def _get_safepath_re():
     return re.compile(pattern)
 
 
-def get_coverstore_url():
-    """Returns the base url of coverstore by looking at the config."""
-    return config.get('coverstore_url', 'https://covers.openlibrary.org').rstrip('/')
-
-
 _texsafe_map = {
     '"': r'\textquotedbl{}',
     '#': r'\#',

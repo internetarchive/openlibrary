@@ -28,6 +28,7 @@ from six.moves import urllib
 from .ia import get_metadata_direct
 from .waitinglist import WaitingLoan
 from ..accounts import OpenLibraryAccount
+from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
 
 
 def _get_ol_base_url():
@@ -45,7 +46,7 @@ class Image:
         self.id = id
 
     def info(self):
-        url = '%s/%s/id/%s.json' % (h.get_coverstore_url(), self.category, self.id)
+        url = f'{get_coverstore_url()}/{self.category}/id/{self.id}.json'
         if url.startswith("//"):
             url = "http:" + url
         try:
@@ -61,7 +62,9 @@ class Image:
             return None
 
     def url(self, size="M"):
-        return "%s/%s/id/%s-%s.jpg" % (h.get_coverstore_url(), self.category, self.id, size.upper())
+        """Get the public URL of the image."""
+        coverstore_url = get_coverstore_public_url()
+        return f"{coverstore_url}/{self.category}/id/{self.id}-{size.upper()}.jpg"
 
     def __repr__(self):
         return "<image: %s/%d>" % (self.category, self.id)

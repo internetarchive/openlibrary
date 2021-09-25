@@ -10,11 +10,10 @@ from infogami.utils.view import render_template, public
 from infogami.infobase.client import storify
 from infogami import config
 
-from openlibrary.core import admin, cache, ia, lending, \
-    helpers as h
+from openlibrary.core import admin, cache, ia, lending
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
-from openlibrary.plugins.upstream.utils import get_blog_feeds
+from openlibrary.plugins.upstream.utils import get_blog_feeds, get_coverstore_public_url
 from openlibrary.plugins.worksearch import search, subjects
 
 import six
@@ -469,7 +468,8 @@ def format_work_data(work):
                         zip(work['author_key'], work['author_name'])]
 
     if 'cover_edition_key' in work:
-        d['cover_url'] = h.get_coverstore_url() + "/b/olid/%s-M.jpg" % work['cover_edition_key']
+        coverstore_url = get_coverstore_public_url()
+        d['cover_url'] = f"{coverstore_url}/b/olid/{work['cover_edition_key']}-M.jpg"
 
     d['read_url'] = "//archive.org/stream/" + work['ia'][0]
     return d
