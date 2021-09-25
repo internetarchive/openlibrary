@@ -8,11 +8,7 @@ $# :param list? lists:
 $# :param user:
 $# :param bool public:
 
-$ title = _('My Books')
-$ slash_count = len(ctx.path.split('/')) - 1
-$ urlbase = ctx.path.rsplit('/', slash_count - 3)[0]
 $ username = user.key.split('/')[-1]
-$ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 
 $ current_page = int(input(page=1).page)
 $ total_items = counts.get(key, None)
@@ -22,58 +18,27 @@ $ userKey = user.key or ctx.user.key
 
 $ header_title = unicode(render_template('account/readinglog_shelf_name', key)).strip()
 $ breadcrumb = _("Reading Log")
-$ og_title = None
-$if key == 'currently-reading':
-  $ og_title = _("Books %(username)s is reading", username=userDisplayName)
-  $ og_description = _("%(username)s is reading %(total)d books. Join %(username)s on OpenLibrary.org and tell the world what you're reading.", username=userDisplayName, total=total_items)
-$elif key == 'want-to-read':
-  $ og_title = _("Books %(username)s wants to read", username=userDisplayName)
-  $ og_description = _("%(username)s wants to read %(total)d books. Join %(username)s on OpenLibrary.org and share the books that you'll soon be reading!", username=userDisplayName, total=total_items)
-$elif key == 'already-read':
-  $ og_title = _("Books %(username)s has read", username=userDisplayName)
-  $ og_description = _("%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about.", username=userDisplayName, total=total_items)
-$elif key == 'sponsorships':
-  $ header_title = _("Sponsorships")
-  $ breadcrumb = header_title
-  $ og_title = _("Books %(userdisplayname)s is sponsoring", userdisplayname=userDisplayName)
-  $ og_description = "{username} is sponsoring {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=userDisplayName, total=total_items)
-$elif key == 'notes':
-  $ header_title = _("Book Notes")
-  $ breadcrumb = header_title
-$elif key == 'observations':
-  $ header_title = _("Observations")
-  $ breadcrumb = header_title
-$elif key == 'loans':
-  $ header_title = _("Loans")
-  $ breadcrumb = header_title
-$elif key == 'waitlist':
-  $ header_title = _("Waiting List")
-  $ breadcrumb = header_title
-$elif key == 'imports':
-  $ header_title = _("Imports and Exports")
-  $ breadcrumb = header_title
-$elif key == 'lists':
-  $ header_title = _('My Lists')
-  $ breadcrumb = header_title
-$elif key == 'list':
-  $ header_title = items.get('name', 'List')
-  $ breadcrumb = header_title
-$else:
-  $ header_title = key
-  $ breadcrumb = header_title
 
-$if owners_page:
-  $var title: $header_title
-$else:
-  $var title: $userDisplayName &raquo; $header_title
-
-$if og_title:
-  $putctx("description", og_description)
-  $add_metatag(property="og:title", content=og_title)
-  $add_metatag(property="og:url", content=request.canonical_url)
-  $add_metatag(property="og:site_name", content="Open Library")
-  $add_metatag(property="og:description", content=og_description)
-  $add_metatag(property="og:image", content=meta_photo_url)
+$if not header_title:
+  $if key == 'sponsorships':
+    $ header_title = _("Sponsorships")
+  $elif key == 'notes':
+    $ header_title = _("Book Notes")
+  $elif key == 'observations':
+    $ header_title = _("Observations")
+  $elif key == 'loans':
+    $ header_title = _("Loans")
+  $elif key == 'waitlist':
+    $ header_title = _("Waiting List")
+  $elif key == 'imports':
+    $ header_title = _("Imports and Exports")
+  $elif key == 'lists':
+    $ header_title = _('My Lists')
+  $elif key == 'list':
+    $ header_title = items.get('name', 'List')
+  $else:
+    $ header_title = key
+  $ breadcrumb = header_title
 
 <div id="contentHead">
   <div id="mybooks">
@@ -191,7 +156,7 @@ $if og_title:
         $elif key == 'lists':
           $:render_template('lists/lists', items, lists, show_header=False)
         $elif key in {'currently-reading', 'want-to-read', 'already-read', 'sponsorships'}:
-          $:render_template('account/reading_log', items, key, counts[key], owners_page, current_page, sort_order=sort_order)
+          $:render_template('account/reading_log', items, key, counts[key], owners_page, current_page, sort_order=sort_order, user=user)
         $else:
           $:render_template('type/list/view', items, show_header=False)
       </div>
