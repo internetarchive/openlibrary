@@ -18,7 +18,7 @@ import Vue from 'vue'
 
 import OLChip from './OLChip'
 
-import { deleteObservation, addObservation } from '../ObservationService'
+import { updateObservation } from '../ObservationService'
 
 export default {
     name: 'CardBody',
@@ -96,17 +96,17 @@ export default {
                     updatedValues.push(text)
                 } else {
                     if (updatedValues.length) {
-                        deleteObservation(this.type, updatedValues[0], this.workKey, this.username)
+                        updateObservation('delete', this.type, updatedValues[0], this.workKey, this.username)
                     }
                     updatedValues = [text]
                 }
 
-                addObservation(this.type, text, this.workKey, this.username);
+                updateObservation('add', this.type, text, this.workKey, this.username);
                 Vue.set(this.allSelectedValues, this.type, updatedValues);
             } else {
                 const index = updatedValues.indexOf(text);
                 updatedValues.splice(index, 1);
-                deleteObservation(this.type, text, this.workKey, this.username)
+                updateObservation('delete', this.type, text, this.workKey, this.username)
             }
         }
     },
