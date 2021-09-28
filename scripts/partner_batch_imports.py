@@ -48,7 +48,7 @@ class Biblio():
         self.publishers = [data[135]]
         self.weight = data[39]
         self.authors = self.contributors(data)
-        self.lc_classifications = [data[147]]
+        self.lc_classifications = [data[147]] if data[147] else [] 
         self.pagination = data[36]
         self.languages = [data[37].lower()]
         self.source_records = [self.source_id]
