@@ -62,9 +62,7 @@ def do_import(item, servername=None, require_marc=True):
         item.set_status("failed", error='internal-error')
 
 
-def add_items(args):
-    batch_name = args[0]
-    filename = args[1]
+def add_items(batch_name,filename):
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.load_items(filename)
 
@@ -204,7 +202,7 @@ def main():
     if cmd == "import-ocaids":
         return import_ocaids(*args, **flags)
     if cmd == "add-items":
-        return add_items(args)
+        return add_items(*args)
     elif cmd == "add-new-scans":
         return add_new_scans(args)
     elif cmd == "import-batch":
