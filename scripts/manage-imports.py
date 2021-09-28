@@ -62,7 +62,7 @@ def do_import(item, servername=None, require_marc=True):
         item.set_status("failed", error='internal-error')
 
 
-def add_items(batch_name,filename):
+def add_items(batch_name, filename):
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.load_items(filename)
 
