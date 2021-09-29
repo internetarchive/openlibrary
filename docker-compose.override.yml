@@ -39,7 +39,7 @@ services:
       - .:/openlibrary
 
   db:
-    image: postgres:13.4
+    image: postgres:${POSTGRES_VERSION:-9.3}
     networks:
       - dbnet
     environment:
