@@ -3593,7 +3593,7 @@ msgstr "Nema rezultata za: %(query)s"
 #, python-format
 msgid "About 1 result found in %(seconds)s"
 msgid_plural "About %(count)s results found in %(seconds)s"
-msgstr[0] "Pronađen je otprilike %(count)s rezultat u roku od %(seconds)s"
+msgstr[0] "Pronađen je otprilike 1 rezultat u roku od %(seconds)s"
 msgstr[1] "Pronađena su otprilike %(count)s rezultata u roku od %(seconds)s"
 msgstr[2] "Pronađeno je otprilike %(count)s rezultata u roku od %(seconds)s"
 
