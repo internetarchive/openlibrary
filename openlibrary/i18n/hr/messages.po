@@ -93,7 +93,7 @@ msgstr "Usmjeri kameru na barkod! 📷"
 #, python-format
 msgid "1 Current Loan"
 msgid_plural "%(count)d Current Loans"
-msgstr[0] "%(count)d trenutačna posudba"
+msgstr[0] "1 trenutačna posudba"
 msgstr[1] "%(count)d trenutačne posudbe"
 msgstr[2] "%(count)d trenutačnih posudbi"
 
