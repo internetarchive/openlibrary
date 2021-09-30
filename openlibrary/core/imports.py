@@ -58,6 +58,7 @@ class Batch(web.storage):
             'ia_id': item
         } if type(item) is str else {
             'batch_id': self.id,
+            # Partner bots set ia_id to eg "partner:978..."
             'ia_id': item.get('ia_id'),
             'data': json.dumps(
                 item.get('data'),
