@@ -3506,7 +3506,7 @@ msgstr "je otvorio/la novi Open Library račun!"
 #, python-format
 msgid "%(who)s merged one duplicate of %(master)s"
 msgid_plural "%(who)s merged %(count)d duplicates of %(master)s"
-msgstr[0] "%(who)s je sjedinio/la %(count)d duplikat od %(master)s"
+msgstr[0] "%(who)s je sjedinio/la jedan duplikat od %(master)s"
 msgstr[1] "%(who)s je sjedinio/la %(count)d duplikata od %(master)s"
 msgstr[2] "%(who)s je sjedinio/la %(count)d duplikata od %(master)s"
 
