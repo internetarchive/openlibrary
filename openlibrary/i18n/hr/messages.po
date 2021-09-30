@@ -1048,7 +1048,7 @@ msgstr "Ti si sljedeći/a na redu za dobivanje ove knjige."
 #, python-format
 msgid "There is one person ahead of you in the waiting list."
 msgid_plural "There are %(count)d people ahead of you in the waiting list."
-msgstr[0] "Na popisu čekanja nalazi se %(count)d osoba prije tebe."
+msgstr[0] "Na popisu čekanja nalazi se jedna osoba prije tebe."
 msgstr[1] "Na popisu čekanja nalaze se %(count)d osobe prije tebe."
 msgstr[2] "Na popisu čekanja nalazi se %(count)d osoba prije tebe."
 
