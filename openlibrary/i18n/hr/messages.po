@@ -3704,7 +3704,7 @@ msgstr "Najtraženije knjige (svo vrijeme)"
 #, python-format
 msgid "Added 1 time"
 msgid_plural "Added %(count)d times"
-msgstr[0] "Dodano %(count)d puta"
+msgstr[0] "Dodano 1 puta"
 msgstr[1] "Dodano %(count)d puta"
 msgstr[2] "Dodano %(count)d puta"
 
