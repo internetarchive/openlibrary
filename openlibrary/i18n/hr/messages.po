@@ -3514,7 +3514,7 @@ msgstr[2] "%(who)s je sjedinio/la %(count)d duplikata od %(master)s"
 #, python-format
 msgid "one duplicate of %(master)s was merged anonymously"
 msgid_plural "%(count)d duplicates of %(master)s were merged anonymously"
-msgstr[0] "%(count)d duplikat od %(master)s je sjedninjen anonimno"
+msgstr[0] "jedan duplikat od %(master)s je sjedninjen anonimno"
 msgstr[1] "%(count)d duplikata od %(master)s su sjedninjena anonimno"
 msgstr[2] "%(count)d duplikata od %(master)s je sjedninjeno anonimno"
 
