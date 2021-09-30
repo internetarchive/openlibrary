@@ -412,7 +412,7 @@ msgstr "Vremena"
 #, python-format
 msgid "1 work"
 msgid_plural "%(count)d works"
-msgstr[0] "%(count)d djelo"
+msgstr[0] "1 djelo"
 msgstr[1] "%(count)d djela"
 msgstr[2] "%(count)d djela"
 
