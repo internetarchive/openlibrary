@@ -2733,7 +2733,7 @@ msgstr "Stvoreno %(date)s"
 #, python-format
 msgid "1 revision"
 msgid_plural "%(count)d revisions"
-msgstr[0] "%(count)d revizija"
+msgstr[0] "1 revizija"
 msgstr[1] "%(count)d revizije"
 msgstr[2] "%(count)d revizija"
 
