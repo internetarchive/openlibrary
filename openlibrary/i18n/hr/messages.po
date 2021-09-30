@@ -1036,7 +1036,7 @@ msgstr "Radnje"
 #, python-format
 msgid "Waiting for 1 day"
 msgid_plural "Waiting for %(count)d days"
-msgstr[0] "Čeka %(count)d dan"
+msgstr[0] "Čeka 1 dan"
 msgstr[1] "Čeka %(count)d dana"
 msgstr[2] "Čeka %(count)d dana"
 
