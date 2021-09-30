@@ -506,7 +506,7 @@ msgstr "Saznaj više o ovom izdavaču"
 #, python-format
 msgid "1 edition"
 msgid_plural "%(count)s editions"
-msgstr[0] "%(count)s izdanje"
+msgstr[0] "1 izdanje"
 msgstr[1] "%(count)s izdanja"
 msgstr[2] "%(count)s izdanja"
 
