@@ -5,7 +5,7 @@
       :work-key="work_key"
       :username="username"
       />
-    <LoadingIndicator
+    <SubmissionIndicator
       :submission-status="submissionStatus"
       />
     <CategorySelector
@@ -31,7 +31,7 @@
 
 <script>
 import CategorySelector from './ObservationForm/components/CategorySelector'
-import LoadingIndicator from './ObservationForm/components/LoadingIndicator'
+import SubmissionIndicator from './ObservationForm/components/SubmissionIndicator'
 import SavedTags from './ObservationForm/components/SavedTags'
 import ValueCard from './ObservationForm/components/ValueCard'
 
@@ -42,7 +42,7 @@ export default {
     name: 'ObservationForm',
     components: {
         CategorySelector,
-        LoadingIndicator,
+        SubmissionIndicator,
         SavedTags,
         ValueCard
     },

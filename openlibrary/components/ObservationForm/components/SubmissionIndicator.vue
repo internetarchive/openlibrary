@@ -1,5 +1,5 @@
 <template>
-  <div class="loading-indicator">
+  <div>
     <span class="pending-indicator" v-show="'PENDING' === submissionStatus.status"></span>
     <span class="success-indicator" v-show="'SUCCESS' === submissionStatus.status">Review saved!</span>
     <span class="failure-indicator" v-show="'FAILURE' === submissionStatus.status">Submission failed</span>
@@ -8,8 +8,22 @@
 
 <script>
 export default {
-    name: 'LoadingIndicator',
+    name: 'SubmissionIndicator',
     props: {
+        /**
+         * Object representing the state of the most recent observation POST.
+         *
+         * There are four states:
+         *   'INACTIVE': The initial state. No POSTs have been made yet.
+         *   'PENDING': Awaiting POST response from server.
+         *   'SUCCESS': POST message was successfully processed.
+         *   'FAILURE': POSTed observation was not persisted.
+         *
+         * @example
+         * {
+         *   "status": "PENDING"
+         * }
+         */
         submissionStatus: {
             type: Object,
             required: true,
