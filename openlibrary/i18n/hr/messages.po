@@ -680,7 +680,7 @@ msgstr "o "
 #, python-format
 msgid "1 hit"
 msgid_plural "%(count)s hits"
-msgstr[0] "%(count)s rezultat"
+msgstr[0] "1 rezultat"
 msgstr[1] "%(count)s rezultata"
 msgstr[2] "%(count)s rezultata"
 
