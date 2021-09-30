@@ -2593,7 +2593,7 @@ msgstr "pregledaj knjige u području %(subject)s"
 #, python-format
 msgid "1 Book"
 msgid_plural "%(count)s Books"
-msgstr[0] "%(count)s knjiga"
+msgstr[0] "1 knjiga"
 msgstr[1] "%(count)s knjige"
 msgstr[2] "%(count)s knjiga"
 
