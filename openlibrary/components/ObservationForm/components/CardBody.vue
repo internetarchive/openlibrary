@@ -94,19 +94,40 @@ export default {
             if (isSelected) {
                 if (this.multiSelect) {
                     updatedValues.push(text)
+                    updateObservation('add', this.type, text, this.workKey, this.username)
+                        .catch(error => {
+                            updatedValues.pop();
+                        })
+                        .finally(() => {
+                            Vue.set(this.allSelectedValues, this.type, updatedValues);
+                        })
                 } else {
                     if (updatedValues.length) {
+                        let deleteSuccessful = false;
                         updateObservation('delete', this.type, updatedValues[0], this.workKey, this.username)
+                            .then(() => {
+                                deleteSuccessful = true;
+                            })
+                            .finally(() => {
+                                if (deleteSuccessful) {
+                                    updateObservation('add', this.type, text, this.workKey, this.username)
+                                        .then(() => {
+                                            updatedValues = [text]
+                                        })
+                                        .finally(() => {
+                                            Vue.set(this.allSelectedValues, this.type, updatedValues)
+                                        })
+                                }
+                            })
                     }
-                    updatedValues = [text]
                 }
-
-                updateObservation('add', this.type, text, this.workKey, this.username);
-                Vue.set(this.allSelectedValues, this.type, updatedValues);
             } else {
                 const index = updatedValues.indexOf(text);
                 updatedValues.splice(index, 1);
                 updateObservation('delete', this.type, text, this.workKey, this.username)
+                    .catch(error => {
+                        updatedValues.push(text);
+                    })
             }
         }
     },

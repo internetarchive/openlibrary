@@ -13,13 +13,15 @@ export const submissionStatus = { status: INACTIVE }
  * @param {String} value The observation's value
  * @param {String} workKey Location of work, in the form `/works/<work OLID>`
  * @param {String} username Username of patron that is updating an observation
+ *
+ * @returns A Promise representing the state of the POST request.
  */
 export function updateObservation(action, type, value, workKey, username) {
     const data = constructDataObject(type, value, username, action)
 
     // Show pending indicator
     submissionStatus.status = PENDING
-    fetch(`${workKey}/observations`, {
+    return fetch(`${workKey}/observations`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -36,6 +38,7 @@ export function updateObservation(action, type, value, workKey, username) {
         .catch(error => {
             // Show failure indicator
             submissionStatus.status = FAILURE
+            throw error
         })
 }
 
