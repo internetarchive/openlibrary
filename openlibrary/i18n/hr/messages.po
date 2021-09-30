@@ -3164,7 +3164,7 @@ msgstr[2] "Ovo se djelo nalazi na <strong>%(count)s popisa</strong>."
 #, python-format
 msgid "%(name)s has 1 list."
 msgid_plural "%(name)s has %(count)s lists."
-msgstr[0] "%(name)s ima %(count)s popis."
+msgstr[0] "%(name)s ima jedan popis."
 msgstr[1] "%(name)s ima %(count)s popisa."
 msgstr[2] "%(name)s ima %(count)s popisa."
 
