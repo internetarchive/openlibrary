@@ -3438,7 +3438,7 @@ msgstr "Želiš li pokušati nešto drugo?"
 #, python-format
 msgid "1 ebook"
 msgid_plural "%(count)s ebooks"
-msgstr[0] "%(count)s e-knjiga"
+msgstr[0] "1 e-knjiga"
 msgstr[1] "%(count)s e-knjige"
 msgstr[2] "%(count)s e-knjiga"
 
