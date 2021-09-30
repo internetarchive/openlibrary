@@ -55,8 +55,10 @@ class Batch(web.storage):
 
     def normalize_items(self, items):
         return [{
+            'ia_id': item
+        } if type(item) is str else {
             'batch_id': self.id,
-            'ia_id': item.get('ia_id') or item,
+            'ia_id': item.get('ia_id'),
             'data': json.dumps(
                 item.get('data'),
                 sort_keys=True
