@@ -3538,7 +3538,7 @@ msgstr "Duplikati"
 #, python-format
 msgid "1 record modified."
 msgid_plural "%(count)d records modified."
-msgstr[0] "%(count)d zapis promijenjen."
+msgstr[0] "1 zapis promijenjen."
 msgstr[1] "%(count)d zapisa promijenjena."
 msgstr[2] "%(count)d zapisa promijenjeno."
 
