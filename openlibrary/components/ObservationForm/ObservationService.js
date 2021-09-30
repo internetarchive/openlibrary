@@ -1,3 +1,10 @@
+const INACTIVE = 'INACTIVE'
+const PENDING = 'PENDING'
+const SUCCESS = 'SUCCESS'
+const FAILURE = 'FAILURE'
+
+export const submissionStatus = { status: INACTIVE }
+
 /**
  * Sends a POST request to add or delete a patron's observation.
  *
@@ -10,6 +17,8 @@
 export function updateObservation(action, type, value, workKey, username) {
     const data = constructDataObject(type, value, username, action)
 
+    // Show pending indicator
+    submissionStatus.status = PENDING
     fetch(`${workKey}/observations`, {
         method: 'POST',
         headers: {
@@ -17,6 +26,17 @@ export function updateObservation(action, type, value, workKey, username) {
         },
         body: JSON.stringify(data)
     })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Server response was not ok')
+            }
+            // Show success indicator
+            submissionStatus.status = SUCCESS
+        })
+        .catch(error => {
+            // Show failure indicator
+            submissionStatus.status = FAILURE
+        })
 }
 
 /**
