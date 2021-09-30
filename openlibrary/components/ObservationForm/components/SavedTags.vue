@@ -109,7 +109,7 @@ export default {
             valueArr.splice(valueIndex, 1);
 
             updateObservation('delete', type, value, this.workKey, this.username)
-                .catch(error => {
+                .catch(() => {
                     valueArr.push(value);
                 })
                 .finally(() => {

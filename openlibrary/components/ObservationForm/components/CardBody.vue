@@ -95,7 +95,7 @@ export default {
                 if (this.multiSelect) {
                     updatedValues.push(text)
                     updateObservation('add', this.type, text, this.workKey, this.username)
-                        .catch(error => {
+                        .catch(() => {
                             updatedValues.pop();
                         })
                         .finally(() => {
@@ -125,7 +125,7 @@ export default {
                 const index = updatedValues.indexOf(text);
                 updatedValues.splice(index, 1);
                 updateObservation('delete', this.type, text, this.workKey, this.username)
-                    .catch(error => {
+                    .catch(() => {
                         updatedValues.push(text);
                     })
             }
