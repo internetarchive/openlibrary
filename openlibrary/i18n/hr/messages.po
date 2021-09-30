@@ -1060,7 +1060,7 @@ msgstr "Za posuđivanje ti preostaje manje od sat vremena."
 #, python-format
 msgid "You have one more hour to borrow it."
 msgid_plural "You have %(hours)d more hours to borrow it."
-msgstr[0] "Za posuđivanje ti preostaje još %(hours)d sat."
+msgstr[0] "Za posuđivanje ti preostaje još sat vremena."
 msgstr[1] "Za posuđivanje ti preostaje još %(hours)d sata."
 msgstr[2] "Za posuđivanje ti preostaje još %(hours)d sati."
 
