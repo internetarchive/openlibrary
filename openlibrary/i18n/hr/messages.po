@@ -485,7 +485,7 @@ msgstr "Pogledaj još knjiga ovog autora i saznaj više o njemu"
 #, python-format
 msgid "1 book"
 msgid_plural "%(count)d books"
-msgstr[0] "%(count)d knjiga"
+msgstr[0] "1 knjiga"
 msgstr[1] "%(count)d knjige"
 msgstr[2] "%(count)d knjiga"
 
