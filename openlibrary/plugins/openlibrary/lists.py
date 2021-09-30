@@ -54,7 +54,7 @@ class lists(delegate.page):
         return render_template("lists/lists.html", doc, lists)
 
 class lists_delete(delegate.page):
-    path = r"(/people/\w+/lists/OL\d+L)/delete"
+    path = r"(/people/[^/]+/lists/OL\d+L)/delete"
     encoding = "json"
 
     def POST(self, key):
@@ -273,7 +273,7 @@ def get_list_seeds(key):
 
 
 class list_seeds(delegate.page):
-    path = r"(/people/\w+/lists/OL\d+L)/seeds"
+    path = r"(/people/[^/]+/lists/OL\d+L)/seeds"
     encoding = "json"
 
     content_type = "application/json"
@@ -352,7 +352,7 @@ def get_list_editions(key, offset=0, limit=50, api=False):
 
 
 class list_editions_json(delegate.page):
-    path = r"(/people/\w+/lists/OL\d+L)/editions"
+    path = r"(/people/[^/]+/lists/OL\d+L)/editions"
     encoding = "json"
 
     content_type = "application/json"
@@ -399,7 +399,7 @@ def make_collection(size, entries, limit, offset, key=None):
 
 
 class list_subjects_json(delegate.page):
-    path = r"(/people/\w+/lists/OL\d+L)/subjects"
+    path = r"(/people/[^/]+/lists/OL\d+L)/subjects"
     encoding = "json"
     content_type = "application/json"
 
@@ -445,7 +445,7 @@ class list_editions_yaml(list_subjects_json):
 
 
 class lists_embed(delegate.page):
-    path = r"(/people/\w+/lists/OL\d+L)/embed"
+    path = r"(/people/[^/]+/lists/OL\d+L)/embed"
 
     def GET(self, key):
         doc = web.ctx.site.get(key)
@@ -455,7 +455,7 @@ class lists_embed(delegate.page):
 
 
 class export(delegate.page):
-    path = r"(/people/\w+/lists/OL\d+L)/export"
+    path = r"(/people/[^/]+/lists/OL\d+L)/export"
 
     def GET(self, key):
         lst = web.ctx.site.get(key)
