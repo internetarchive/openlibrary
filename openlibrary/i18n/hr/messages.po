@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2021-04-07 15:01+0000\n"
-"PO-Revision-Date: 2021-06-28 15:42+0200\n"
+"PO-Revision-Date: 2021-07-02 11:54+0200\n"
 "Last-Translator: Milo Ivir <mail@milotype.de>\n"
 "Language-Team: \n"
 "Language: hr\n"
@@ -656,7 +656,7 @@ msgstr "Posudi"
 #: widget.html:44
 #, python-format
 msgid "Join waitlist for &quot;%(title)s&quot;"
-msgstr "Dodaj se u popis čekanja za &quot;%(title)s&quot;"
+msgstr "Dodaj se u popis čekanja za „%(title)s”;"
 
 #: LoanStatus.html:88 widget.html:44
 msgid "Join Waitlist"
@@ -665,7 +665,7 @@ msgstr "Dodaj se u popis čekanja"
 #: widget.html:48
 #, python-format
 msgid "Learn more about &quot;%(title)s&quot; at OpenLibrary"
-msgstr "Saznaj više o &quot;%(title)s&quot; na OpenLibrary"
+msgstr "Saznaj više o „%(title)s” na OpenLibrary"
 
 #: LoanStatus.html:107 widget.html:48
 msgid "Learn More"
@@ -1015,14 +1015,14 @@ msgstr "Trenutačno ne čekaš na nijednu knjigu."
 
 #: account/borrow.html:142
 msgid "Leave the Waiting List"
-msgstr "Ispiši se iz popisa čekanja"
+msgstr "Izbriši se iz popisa čekanja"
 
 #: account/borrow.html:142
 msgid ""
 "Are you sure you want to leave the waiting list of<br/><strong>TITLE</"
 "strong>?"
 msgstr ""
-"Stvarno se želiš ispisati iz popisa čekanja za<br/><strong>NASLOV</strong>?"
+"Stvarno se želiš izbrisati iz popisa čekanja za<br/><strong>NASLOV</strong>?"
 
 #: account/borrow.html:161 admin/loans_table.html:43 admin/menu.html:33
 msgid "Status"
@@ -1070,7 +1070,7 @@ msgstr "Posudi sada"
 
 #: account/borrow.html:216
 msgid "Leave the waiting list?"
-msgstr "Ispisati se iz popisa čekanja?"
+msgstr "Želiš se izbrisati iz popisa čekanja?"
 
 #: account/borrow.html:225
 msgid "My Loan History"
@@ -1330,7 +1330,7 @@ msgstr "Pročitano"
 #: account/readinglog_stats.html:8 account/readinglog_stats.html:99
 #, python-format
 msgid "\"%(shelf_name)s\" Stats"
-msgstr "„%(shelf_name)s” statistika"
+msgstr "„%(shelf_name)s” – statistika"
 
 #: account/readinglog_stats.html:101
 #, python-format
@@ -1338,8 +1338,8 @@ msgid ""
 "Displaying stats about <strong>%d</strong> books. Note all charts show only "
 "the top 20 bars. Note reading log stats are private."
 msgstr ""
-"Prikazuje statistiku o <strong>%d</strong> knjigama. Dijagrami prikazuju "
-"samo prvih 20 traka. Statistike čitanja bilješki su privatne."
+"Prikaz statistike o <strong>%d</strong> knjiga. Dijagrami prikazuju samo "
+"prvih 20 traka. Statistika o dnevniku čitanja je privatna."
 
 #: account/readinglog_stats.html:106
 msgid "Author Stats"
@@ -1355,7 +1355,7 @@ msgstr "Djela po spolu autora"
 
 #: account/readinglog_stats.html:113
 msgid "Works by Author Ethnicity"
-msgstr "Djela po narodnosnosti autora"
+msgstr "Djela po narodnosti autora"
 
 #: account/readinglog_stats.html:114
 msgid "Works by Author Country of Citizenship"
@@ -1372,11 +1372,11 @@ msgid ""
 "the query used."
 msgstr ""
 "Demografsku statistiku pruža <a href=\"https://www.wikidata.org/\">Wikidata</"
-"a>. Ovo <a id=\"wd-query-sample\" href=\"\">primjer</a> korištenog upita."
+"a>. Ovo je <a id=\"wd-query-sample\" href=\"\">primjer</a> korištenog upita."
 
 #: account/readinglog_stats.html:127
 msgid "Work Stats"
-msgstr "Statistika djela"
+msgstr "Statistika o djelima"
 
 #: account/readinglog_stats.html:133
 msgid "Works by Subject"
@@ -1582,7 +1582,7 @@ msgstr "ePub"
 #, python-format
 msgid "%d Current Loan"
 msgid_plural "%d Current Loans"
-msgstr[0] "1 trenutačna posudba"
+msgstr[0] "%d trenutačna posudba"
 msgstr[1] "%d trenutačne posudbe"
 msgstr[2] "%d trenutačnih posudbi"
 
@@ -1651,7 +1651,7 @@ msgstr "Upiši jedan unos po retku"
 
 #: admin/solr.html:41
 msgid "Update"
-msgstr "Aktualiziranje"
+msgstr "Aktualiziraj"
 
 #: admin/waitinglists.html:29
 msgid "Expires"
@@ -1889,7 +1889,7 @@ msgstr "Prvi put izdano %(year)d."
 #: books/custom_carousel.html:33
 #, python-format
 msgid " by %(name)s"
-msgstr " po %(name)s"
+msgstr " od %(name)s"
 
 #: books/edit.html:65 books/edit.html:68 books/edit.html:71
 msgid "Add a little more?"
@@ -1907,7 +1907,7 @@ msgid ""
 "We already know about <b>%(work_title)s</b>, but not the <b>%(year)s "
 "%(publisher)s edition</b>. Thanks! Do you know any more about this edition?"
 msgstr ""
-"<b>%(work_title)s</b> već poznamo, ali ne poznamo <b>izdanje %(year)s. "
+"Već poznamo <b>%(work_title)s</b>, ali ne poznamo <b>izdanje %(year)s. "
 "godine izdavača %(publisher)s</b>. Hvala! Imaš li još podataka o ovom "
 "izdanju?"
 
@@ -1917,8 +1917,8 @@ msgid ""
 "We already know about the <b>%(year)s %(publisher)s edition</b> of <b>"
 "%(work_title)s</b>, but please, tell us more!"
 msgstr ""
-"<b>Izdanje %(year)s. godine izdavača %(publisher)s</b> već poznamo, ali nam "
-"slobodno pošalji još podataka!"
+"Već poznamo <b>izdanje %(year)s. godine izdavača %(publisher)s</b> od <b>"
+"%(work_title)s</b>, ali nam slobodno pošalji još podataka!"
 
 #: books/edit.html:74
 msgid "Editing..."
@@ -1962,7 +1962,7 @@ msgstr "Za mijenjanje autora potreban je JavaScript"
 
 #: books/edit.html:141
 msgid "Add Excerpts"
-msgstr "Dodaj izvadak"
+msgstr "Dodaj izvatke"
 
 #: books/edit.html:147 type/about/edit.html:39 type/author/edit.html:44
 msgid "Links"
@@ -2369,14 +2369,13 @@ msgstr "ID-oznake ne smiju sadržati znakove razmaka."
 
 #: books/edit/edition.html:740
 msgid "ID must be exactly 10 characters [0-9] or X."
-msgstr "ID-oznaka mora sadržati točno 10 znakova [0 – 9] ili X."
+msgstr "ID-oznaka mora imati točno 10 znakova [0 – 9] ili X."
 
 #: books/edit/edition.html:743
 #| msgid "ID must be exactly 13 digits [0-9]."
 msgid "ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4"
 msgstr ""
-"ID-oznaka mora sadržati točno 13 znamenki [0-9]. Na primjer: "
-"978-1-56619-909-4"
+"ID-oznaka mora imati točno 13 znamenki [0-9]. Na primjer: 978-1-56619-909-4"
 
 #: books/edit/edition.html:755
 msgid "Please select a classification."
@@ -2705,7 +2704,7 @@ msgstr[2] "%s knjiga"
 #: languages/notfound.html:7
 #, python-format
 msgid "%s is not found"
-msgstr "%s nije pronađena"
+msgstr "%s nije pronađen"
 
 #: languages/notfound.html:14
 #, python-format
@@ -2957,13 +2956,12 @@ msgid ""
 "\">Wayback Machine</a>, <a href=\"//archive.org/\">archive.org</a> and <a "
 "href=\"//archive-it.org\">archive-it.org</a>"
 msgstr ""
-"Open Library (Otvorena knjižnica) je inicijativa organizacije <a href=\"//"
-"archive.org/\">Internet Archive</a> (Arhiv interneta), neprofitne "
-"organizacije 501(c)(3), za izgradnju digitalne knjižnice internetskih "
-"stranica i drugih kulturnih predmeta u digitalnom obliku. Ostali <a href=\"//"
-"archive.org/projects/\">projekti</a> uključuju <a href=\"//archive.org/web/"
-"\">Wayback Machine</a>, <a href=\"//archive.org/\">archive.org </a> i <a "
-"href=\"//archive-it.org\">archive-it.org</a>"
+"Open Library (otvorena knjižnica) je inicijativa neprofitne organizacije <a "
+"href=\"//archive.org/\">Internet Archive</a>, koja gradi digitalnu knjižnicu "
+"internetskih stranica i drugih kulturnih predmeta u digitalnom obliku. "
+"Ostali <a href=\"//archive.org/projects/\">projekti</a> uključuju <a href="
+"\"//archive.org/web/\">Wayback Machine</a>, <a href=\"//archive.org/"
+"\">archive.org </a> i <a href=\"//archive-it.org\">archive-it.org</a>"
 
 #: lib/nav_foot.html:76
 #, python-format
@@ -3029,7 +3027,7 @@ msgstr "Pregledaj"
 
 #: lib/nav_head.html:81
 msgid "K-12 Student Library"
-msgstr "Knjižnica za djecu do srednje škole"
+msgstr "Knjižnica za školarce i srednjoškolce"
 
 #: lib/nav_head.html:82
 msgid "Random Book"
@@ -4356,7 +4354,7 @@ msgstr ""
 "Javno dijeliš knjige koje <a href=\"%(username)s/books/currently-reading"
 "\">trenutačno čitaš</a>, koje si<a href=\"%(username)s/books/already-read"
 "\">već pročitao/la</a> i koje <a href=\"%(username)s/books/want-to-read"
-"\">želiš čitati</a>!"
+"\">želiš čitati</a>."
 
 #: type/user/view.html:55
 msgid "You have chosen to make your"
@@ -4513,7 +4511,7 @@ msgid ""
 "zero/1.0/\" target=\"_blank\" title=\"This link to Creative Commons will "
 "open in a new window\">CC0</a>. Yippee!"
 msgstr ""
-"Spremanjem promjene na ovoj wiki-stranici, prihvaćaš da je cijeli svijet "
+"Spremanjem promjena na ovoj wiki-stranici prihvaćaš da je cijeli svijet "
 "slobodno koristi pod <a href=\"https://creativecommons.org/publicdomain/"
 "zero/1.0/\" target=\"_blank\" title=\"Ova poveznica na Creative Commons "
 "otvara novi prozor\">CC0</a> licencom. Super!"
@@ -4524,7 +4522,7 @@ msgid ""
 "class=\"blue\">Let us know</a> if there's a problem."
 msgstr ""
 "<em>Napomena:</em> Brisati smiju samo administratori. <a href=\"/contact\" "
-"class=\"blue\">Javi nam</a>, akdo postoji problem."
+"class=\"blue\">Javi nam</a>, ako postoji problem."
 
 #: EditButtonsMacros.html:27
 msgid "Delete this record"
@@ -4562,7 +4560,7 @@ msgstr ""
 
 #: LoanStatus.html:76
 msgid "Leave waiting list"
-msgstr "Ispiši se iz popisa čekanja"
+msgstr "Izbriši se iz popisa čekanja"
 
 #: LoanStatus.html:82
 #, python-format
@@ -4832,15 +4830,15 @@ msgstr ""
 
 #: account.py:406
 msgid "Username must be between 3-20 characters"
-msgstr "Korisničko ime mora sadržati 3 do 20 znakova"
+msgstr "Korisničko ime mora imati između 3 i 20 znakova"
 
 #: account.py:408
 msgid "Username may only contain numbers and letters"
-msgstr "Korisničko ime smije sadržati samo znamenke i slova"
+msgstr "Korisničko ime smije imati samo znamenke i slova"
 
 #: account.py:411
 msgid "Username unavailable"
-msgstr "Korisničko ime nedostupno"
+msgstr "Korisničko ime je nedostupno"
 
 #: account.py:416 forms.py:33
 msgid "Must be a valid email address"
@@ -4910,11 +4908,11 @@ msgstr "Korisničko ime se već koristi"
 
 #: forms.py:31
 msgid "Must be between 3 and 20 letters and numbers"
-msgstr "Mora sadržavati 3 do 20 slova i brojki"
+msgstr "Mora biti između 3 i 20 slova i znamenki"
 
 #: forms.py:32
 msgid "Must be between 3 and 20 characters"
-msgstr "Mora sadržavati 3 do 20 znakova"
+msgstr "Mora biti između 3 i 20 znakova"
 
 #: forms.py:47 forms.py:94
 msgid "Your email address"
@@ -4922,11 +4920,11 @@ msgstr "Tvoja e-adresa"
 
 #: forms.py:51
 msgid "Choose a screen name"
-msgstr "Odaberi ime ekrana"
+msgstr "Odaberi ime za prikaz"
 
 #: forms.py:53
 msgid "Letters and numbers only please, and at least 3 characters."
-msgstr "Samo slova i brojke, barem tri znaka."
+msgstr "Samo slova i znamenke, barem tri znaka."
 
 #: forms.py:56 forms.py:98
 msgid "Choose a password"
