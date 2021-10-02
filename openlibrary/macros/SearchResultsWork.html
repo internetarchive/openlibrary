@@ -8,6 +8,7 @@ $if book_provider:
 $else:
   $ work_edition_url = book_url
 
+$ max_rendered_authors = 9
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book">
   <span class="bookcover">
     $ cover = get_cover_url(doc) or "/images/icons/avatar_book-sm.png"
@@ -31,11 +32,14 @@ $else:
         $if not doc.authors:
           <em>$_('Unknown author')</em>
         $else:
-          $for a in doc.authors:
+          $for a in doc.authors[:max_rendered_authors]:
             $if not (hasattr(a, 'name') and a.name) and not (hasattr(a, 'author') and hasattr(a.author, 'name') and a.author.name):
               <em>$_('Unknown author')</em>$(',' if not loop.last else '')
               $continue
             <a itemprop="url" href="$(a.get('url') or a.get('key') or a.author.get('url') or a.author.key)" class="results">$(a.name or a.author.name)</a>$(',' if not loop.last else '')
+          $if len(doc.authors) > max_rendered_authors:
+            <small><em><a itemprop="url" href="$(book_url)?edition=$(ocaid)"
+                                         class="results">$_('view all authors')</a></em></small>
       </span>
       <span class="resultPublisher">
         $if doc.get('first_publish_year'):
