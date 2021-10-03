@@ -43,7 +43,12 @@ $if "ip" in query and ctx.user and ctx.user.is_admin():
                 <td class="history"><a rel="nofollow" href="$ip_url" class="$klass" title="When you see numbers here, that's the IP address of the anonymous editor">$c.ip</a></td>
             $else:
                 <td class="history">$c.ip</td>
-            <td class="comment">$:call_template("comment", c)</td>
+            <td class="comment">
+                $if c.kind == 'add-cover':
+                    <img src='$:call_template("comment", c)'/>
+                $else:
+                    $:call_template("comment", c)
+            </td>
         </tr>
     </tbody>
 </table>
