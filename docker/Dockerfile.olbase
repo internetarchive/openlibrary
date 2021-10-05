@@ -54,10 +54,10 @@ ENV PYENV_ROOT /home/openlibrary/.pyenv
 ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
 
 # Install wheel before other requirements to reduce Docker build time.
-RUN pyenv update && pyenv install 3.9.4 \
- && pyenv global 3.9.4 \
+RUN pyenv update && pyenv install 3.10.0 \
+ && pyenv global 3.10.0 \
  && pyenv rehash \
- && python3.9 -m pip install --upgrade pip wheel
+ && python3.10 -m pip install --upgrade pip wheel
 
 USER root
 # Add pyenv to root's bashrc as well
@@ -73,7 +73,7 @@ WORKDIR /openlibrary
 
 USER openlibrary
 COPY requirements*.txt ./
-RUN python3.9 -m pip install --default-timeout=100 -r requirements.txt
+RUN python3.10 -m pip install --default-timeout=100 -r requirements.txt
 
 COPY package*.json ./
 RUN npm ci
@@ -83,6 +83,6 @@ COPY --chown=openlibrary:openlibrary . /openlibrary
 # run make to initialize git submodules, build css and js files
 RUN ln -s vendor/infogami/infogami infogami \
  && make \
- && python3.9 -m pip list --outdated
+ && python3.10 -m pip list --outdated
 
 ENTRYPOINT ["/openlibrary/docker/docker-entrypoint.sh"]
