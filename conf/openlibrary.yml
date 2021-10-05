@@ -77,9 +77,6 @@ features:
     support: admin
     undo: enabled
     upstream: enabled
-    user_metadata:
-        filter: usergroup
-        usergroup: /usergroup/beta-testers
 
 upstream_to_www_migration: true
 default_template_root: /upstream
