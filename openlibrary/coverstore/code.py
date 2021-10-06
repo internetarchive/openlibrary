@@ -5,6 +5,8 @@ import datetime
 import json
 import logging
 import os
+
+import memcache
 import requests
 import web
 
