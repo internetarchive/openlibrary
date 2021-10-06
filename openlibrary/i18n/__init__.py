@@ -5,6 +5,7 @@ from typing import List
 
 import web
 import os
+import shutil
 
 import babel
 from babel._compat import BytesIO
@@ -13,6 +14,8 @@ from babel.messages import Catalog
 from babel.messages.pofile import read_po, write_po
 from babel.messages.mofile import write_mo
 from babel.messages.extract import extract_from_file, extract_from_dir, extract_python
+
+from .validators import validate
 
 root = os.path.dirname(__file__)
 
@@ -27,6 +30,56 @@ def _compile_translation(po, mo):
     except Exception as e:
         print('failed to compile', po, file=web.debug)
         raise e
+
+
+def _validate_catalog(catalog, locale):
+    validation_errors = []
+    for message in catalog:
+        message_errors = validate(message, catalog)
+
+        if message_errors:
+            if message.lineno:
+                validation_errors.append(
+                    f'openlibrary/i18n/{locale}/messages.po:'
+                    f'{message.lineno}: {message.string}'
+                )
+            for e in message_errors:
+                validation_errors.append(e)
+
+    if validation_errors:
+        print("Validation failed...")
+        print("Please correct the following errors before proceeding:")
+        for e in validation_errors:
+            print(e)
+
+    return len(validation_errors)
+
+
+def validate_translations(args: List[str]):
+    """Validates all locales passed in as arguments.
+
+    If no arguments are passed, all locales will be validated.
+
+    Returns a dictionary of locale-validation error count
+    key-value pairs.
+    """
+    locales = args or get_locales()
+    results = {}
+
+    for locale in locales:
+        po_path = os.path.join(root, locale, 'messages.po')
+
+        if os.path.exists(po_path):
+            catalog = read_po(open(po_path, 'rb'))
+            num_errors = _validate_catalog(catalog, locale)
+
+            if num_errors == 0:
+                print(f'Translations for locale "{locale}" are valid!')
+            results[locale] = num_errors
+        else:
+            print(f'Portable object file for locale "{locale}" does not exist.')
+
+    return results
 
 
 def get_locales():
@@ -82,19 +135,26 @@ def extract_messages(dirs: List[str]):
 
     print('wrote template to', path)
 
-def compile_translations():
-    for locale in get_locales():
+
+def compile_translations(locales: List[str]):
+    locales_to_update = locales or get_locales()
+
+    for locale in locales_to_update:
         po_path = os.path.join(root, locale, 'messages.po')
         mo_path = os.path.join(root, locale, 'messages.mo')
 
         if os.path.exists(po_path):
             _compile_translation(po_path, mo_path)
 
-def update_translations():
+
+def update_translations(locales: List[str]):
+    locales_to_update = locales or get_locales()
+    print(f"Updating {locales_to_update}")
+
     pot_path = os.path.join(root, 'messages.pot')
     template = read_po(open(pot_path, 'rb'))
 
-    for locale in get_locales():
+    for locale in locales_to_update:
         po_path = os.path.join(root, locale, 'messages.po')
         mo_path = os.path.join(root, locale, 'messages.mo')
 
@@ -106,8 +166,34 @@ def update_translations():
             write_po(f, catalog)
             f.close()
             print('updated', po_path)
+        else:
+            print(f"ERROR: {po_path} does not exist...")
 
-    compile_translations()
+    compile_translations(locales_to_update)
+
+
+def generate_po(args):
+    if args:
+        po_dir = os.path.join(root, args[0])
+        pot_src = os.path.join(root, 'messages.pot')
+        po_dest = os.path.join(po_dir, 'messages.po')
+
+        if os.path.exists(po_dir):
+            if os.path.exists(po_dest):
+                print(f"Portable object file already exists at {po_dest}")
+            else:
+                shutil.copy(pot_src, po_dest)
+                os.chmod(po_dest, 0o666)
+                print(f"File created at {po_dest}")
+        else:
+            os.mkdir(po_dir)
+            os.chmod(po_dir, 0o777)
+            shutil.copy(pot_src, po_dest)
+            os.chmod(po_dest, 0o666)
+            print(f"File created at {po_dest}")
+    else:
+        print("Add failed. Missing required locale code.")
+
 
 @web.memoize
 def load_translations(lang):

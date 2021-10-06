@@ -34,7 +34,7 @@ $if status:
                         <div class="carousel-section">
                             <div id="covers" class="carousel-container carousel-container-decorated carousel--minimal">
                                 <div id="popcovers" class="carousel carousel--progressively-enhanced"
-                                    data-config="$json_encode(['#popcovers'])">
+                                    data-config="$json_encode(['#popcovers', 3, 3, 3, 3, 2, 1])">
                                 $for cover in doc.get_edition_covers():
                                     <div class="book carousel__item" data-id="$cover.id">
                                         <div class="book-cover">
@@ -59,10 +59,10 @@ $if status:
 
             <div class="formElement">
                 <div class="label">
-                    <label id="imageWeb" for="imageUrl">$:_("<span class=\"highlight\"><u>Or</u></span>, paste in the image URL if it's on the web.")</label>
+                    <label id="imageWeb" for="imageUrl">$_("Or, paste in the image URL if it's on the web.")</label>
                 </div>
                 <div class="input">
-                    <input type="text" name="url" id="imageUrl" value="$data.get('url', 'http://')" onClick="if(!this._haschanged && this.value == 'http://'){this.value=''};this._haschanged=true;"/>
+                    <input type="text" name="url" id="imageUrl" value="$data.get('url', 'https://')" onClick="if(!this._haschanged && this.value == 'https://'){this.value=''};this._haschanged=true;"/>
                 </div>
             </div>
 

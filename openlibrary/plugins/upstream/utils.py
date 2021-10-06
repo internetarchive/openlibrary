@@ -1,3 +1,5 @@
+from typing import List, Union, Tuple, Any
+
 import web
 import json
 import babel
@@ -284,9 +286,14 @@ def radio_list(name, args, value):
             label = arg
         html.append(radio_input())
 
-@public
-def get_coverstore_url():
+
+def get_coverstore_url() -> str:
     return config.get('coverstore_url', 'https://covers.openlibrary.org').rstrip('/')
+
+
+@public
+def get_coverstore_public_url() -> str:
+    return config.get('coverstore_public_url', get_coverstore_url()).rstrip('/')
 
 
 def _get_changes_v1_raw(query, revision=None):
@@ -458,12 +465,10 @@ def url_quote(text):
 
 
 @public
-def urlencode(dict_or_list_of_tuples):
+def urlencode(dict_or_list_of_tuples: Union[dict, List[Tuple[str, Any]]]) -> str:
     """
     You probably want to use this, if you're looking to urlencode parameters. This will
     encode things to utf8 that would otherwise cause urlencode to error.
-    :param dict or list dict_or_list_of_tuples:
-    :rtype: basestring
     """
     from six.moves.urllib.parse import urlencode as og_urlencode
     tuples = dict_or_list_of_tuples
@@ -748,7 +753,7 @@ def get_random_recent_changes(n):
     return _changes
 
 def _get_blog_feeds():
-    url = "http://blog.openlibrary.org/feed/"
+    url = "https://blog.openlibrary.org/feed/"
     try:
         stats.begin("get_blog_feeds", url=url)
         tree = etree.fromstring(requests.get(url).text)
@@ -777,8 +782,10 @@ def get_donation_include(include):
     # needing to reload openlibrary services:
     dev_host = web_input.pop("dev_host", "")  # e.g. `www-user`
     if dev_host and re.match('^[a-zA-Z0-9-.]+$', dev_host):
-        dev_host += "."   # e.g. `www-user.`
-    script_src = "https://%sarchive.org/includes/donate.js" % dev_host
+        script_src = "https://%s.archive.org/includes/donate.js" % dev_host
+    else:
+        script_src = "/cdn/archive.org/donate.js"
+
     if 'ymd' in web_input:
         script_src += '?ymd=' + web_input.ymd
 

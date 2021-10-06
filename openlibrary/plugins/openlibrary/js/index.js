@@ -1,8 +1,6 @@
 import 'jquery';
 import 'jquery-validation';
 import 'jquery-ui/ui/widgets/dialog';
-import 'jquery-ui/ui/widgets/sortable';
-import 'jquery-ui/ui/widgets/tabs';
 import 'jquery-ui/ui/widgets/autocomplete';
 // For dialog boxes (e.g. add to list)
 import 'jquery-colorbox';
@@ -29,7 +27,6 @@ import '../../../../static/css/js-all.less';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
 import { confirmDialog, initDialogs } from './dialog';
-import initTabs from './tabs.js';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -63,15 +60,32 @@ window.$ = jQuery;
 
 window.Promise = Promise;
 
+// This to the best of our knowledge needs to be run synchronously,
+// because it sends the initial pageview to analytics.
+initAnalytics();
+
 // Initialise some things
 jQuery(function () {
+    // conditionally load polyfill for <details> tags (IE11)
+    // See http://diveintohtml5.info/everything.html#details
+    if (!('open' in document.createElement('details'))) {
+        import(/* webpackChunkName: "details-polyfill" */ 'details-polyfill');
+    }
+
     const $markdownTextAreas = $('textarea.markdown');
     // Live NodeList is cast to static array to avoid infinite loops
     const $carouselElements = $('.carousel--progressively-enhanced');
+    const $tabs = $('#tabsAddbook,#tabsAddauthor,.tabs:not(.ui-tabs)');
+
     initDialogs();
     // expose ol_confirm_dialog method
     $.fn.ol_confirm_dialog = confirmDialog;
-    initTabs($('#tabsAddbook,#tabsAddauthor,.tabs:not(.ui-tabs)'));
+
+    if ($tabs.length) {
+        import(/* webpackChunkName: "tabs" */ './tabs')
+            .then((module) => module.initTabs($tabs));
+    }
+
     initValidate($);
     autocompleteInit($);
     addNewFieldInit($);
@@ -83,7 +97,6 @@ jQuery(function () {
     }
     bookReaderInit($);
     jQueryRepeat($);
-    initAnalytics($);
     init($);
     // conditionally load functionality based on what's in the page
     if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
@@ -160,7 +173,7 @@ jQuery(function () {
 
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
-        import('./realtime_account_validation.js')
+        import(/* webpackChunkName: "realtime-account-validation" */'./realtime_account_validation.js')
             .then(module => module.initRealTimeValidation());
     }
     // conditionally load readmore button based on class in the page
@@ -170,12 +183,12 @@ jQuery(function () {
     }
     // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
-        import('./goodreads_import.js')
+        import(/* webpackChunkName: "goodreads-import" */'./goodreads_import.js')
             .then(module => module.initGoodreadsImport());
     }
     // conditionally loads Related Carousels based on class in the page
     if (document.getElementsByClassName('RelatedWorksCarousel').length) {
-        import('./carousels_partials.js')
+        import(/* webpackChunkName: "carousels-partials" */'./carousels_partials.js')
             .then(module => module.initCarouselsPartials());
     }
     // Enable any carousels in the page
@@ -183,7 +196,7 @@ jQuery(function () {
         import(/* webpackChunkName: "carousel" */ './carousel')
             .then((module) => { module.init($carouselElements);
                 $('.slick-slide').each(function () {
-                    if ($(this).attr('aria-describedby') != undefined) {
+                    if ($(this).attr('aria-describedby') !== undefined) {
                         $(this).attr('id',$(this).attr('aria-describedby'));
                     }
                 });
@@ -195,7 +208,7 @@ jQuery(function () {
     }
 
     if (window.READINGLOG_STATS_CONFIG) {
-        import(/* webpackChunkName: "readinglog_stats" */ './readinglog_stats')
+        import(/* webpackChunkName: "readinglog-stats" */ './readinglog_stats')
             .then(module => module.init(window.READINGLOG_STATS_CONFIG));
     }
 
@@ -205,26 +218,41 @@ jQuery(function () {
             .then((module) => module.init());
     }
 
-    if (document.getElementsByClassName('modal-link').length) {
-        import(/* webpackChunkName: "patron_metadata" */ './patron-metadata')
-            .then((module) => module.initPatronMetadata());
+    const $observationModalLinks = $('.observations-modal-link');
+    const $notesModalLinks = $('.notes-modal-link');
+    const $notesPageButtons = $('.note-page-buttons')
+    if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length) {
+        import(/* webpackChunkName: "modal-links" */ './modals')
+            .then(module => {
+                if ($observationModalLinks.length) {
+                    module.initObservationsModal($observationModalLinks);
+                }
+                if ($notesModalLinks.length) {
+                    module.initNotesModal($notesModalLinks);
+                }
+                if ($notesPageButtons.length) {
+                    module.addNotesPageButtonListeners();
+                }
+            });
     }
 
-    if (document.getElementsByClassName('manageCovers').length) {
+    const manageCoversElement = document.getElementsByClassName('manageCovers').length;
+    const addCoversElement = document.getElementsByClassName('imageIntro').length;
+    const saveCoversElement = document.getElementsByClassName('imageSaved').length;
+
+    if (addCoversElement || manageCoversElement || saveCoversElement) {
         import(/* webpackChunkName: "covers" */ './covers')
-            .then((module) => module.initCoversChange());
-    }
-
-    // Load from iframe
-    if (document.getElementsByClassName('imageIntro').length) {
-        import('./covers')
-            .then((module) => module.initCoversAddManage());
-    }
-
-    // Load from iframe
-    if (document.getElementsByClassName('imageSaved').length) {
-        import('./covers')
-            .then((module) => module.initCoversSaved());
+            .then((module) => {
+                if (manageCoversElement) {
+                    module.initCoversChange();
+                }
+                if (addCoversElement) {
+                    module.initCoversAddManage();
+                }
+                if (saveCoversElement) {
+                    module.initCoversSaved();
+                }
+            });
     }
 
     if (document.getElementById('addbook')) {
@@ -232,19 +260,24 @@ jQuery(function () {
             .then(module => module.initAddBookImport());
     }
 
+    if (document.getElementById('autofill-dev-credentials')) {
+        document.getElementById('username').value = 'openlibrary@example.com'
+        document.getElementById('password').value = 'admin123'
+        document.getElementById('remember').checked = true
+    }
     if (document.getElementById('adminLinks')) {
         import(/* webpackChunkName: "admin" */ './admin')
             .then((module) => module.initAdmin());
     }
 
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        import(/* webpackChunkName: "offline-banner" */ './offline-banner')
+            .then((module) => module.initOfflineBanner());
+    }
+
     if (document.getElementById('searchFacets')) {
         import(/* webpackChunkName: "search" */ './search')
-            .then((module) => {
-                module.initSearchFacets();
-                if (document.getElementById('adminTiming')) {
-                    module.initAdminTiming();
-                }
-            });
+            .then((module) => module.initSearchFacets());
     }
 
     if ($('#cboxPrevious').length) {
@@ -263,12 +296,16 @@ jQuery(function () {
 
     $('#wikiselect').on('focus', function(){$(this).trigger('select');})
 
-    // Clicking outside of menus closes menus
+    $('.hamburger-component .mask-menu').on('click', function () {
+        $('details[open]').not(this).removeAttr('open');
+    });
+
+    // Open one dropdown at a time.
     $(document).on('click', function (event) {
-        const $openMenus = $('.checkbox-menu :checked').parents('.checkbox-menu');
+        const $openMenus = $('.header-dropdown details[open]').parents('.header-dropdown');
         $openMenus
             .filter((_, menu) => !$(event.target).closest(menu).length)
-            .find('[type=checkbox]')
-            .prop('checked', false);
+            .find('details')
+            .removeAttr('open');
     });
 });

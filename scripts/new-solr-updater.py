@@ -21,6 +21,7 @@ import socket
 from openlibrary.solr import update_work
 from openlibrary.config import load_config
 from infogami import config
+from openlibrary.solr.update_work import CommitRequest
 
 logger = logging.getLogger("openlibrary.solr-updater")
 # FIXME: Some kind of hack introduced to work around DB connectivity issue
@@ -181,6 +182,9 @@ def update_keys(keys):
         count += len(chunk)
         update_work.do_updates(chunk)
 
+        # Caches should not persist between different calls to update_keys!
+        update_work.data_provider.clear_cache()
+
     if count:
         logger.info("updated %d documents", count)
 
@@ -214,7 +218,7 @@ class Solr:
 
     def _solr_commit(self):
         logger.info("BEGIN commit")
-        update_work.solr_update(['<commit/>'])
+        update_work.solr_update([CommitRequest()])
         logger.info("END commit")
 
 
@@ -225,6 +229,7 @@ def main(
         exclude_edits_containing: str = None,
         ol_url='http://openlibrary.org/',
         solr_url: str = None,
+        solr_next=False,
         socket_timeout=10,
         load_ia_scans=False,
         commit=True,
@@ -234,6 +239,7 @@ def main(
     :param debugger: Wait for a debugger to attach before beginning
     :param exclude_edits_containing: Don't index matching edits
     :param solr_url: If wanting to override what's in the config file
+    :param solr_next: Whether to assume new schema/etc are used
     :param initial_state: State to use if state file doesn't exist. Defaults to today.
     """
     FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
@@ -260,6 +266,8 @@ def main(
 
     if solr_url:
         update_work.set_solr_base_url(solr_url)
+
+    update_work.set_solr_next(solr_next)
 
     logger.info("loading config from %s", ol_config)
     load_config(ol_config)

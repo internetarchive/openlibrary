@@ -45,13 +45,15 @@ $var title: $_("Add a book")
             </div>
         </div>
 
+        $ admin_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
         <div class="formElement">
             <div class="label"><label for="id_value">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
                 <label for="id_name" class="hidden">$_("ID Type")</label>
             <div class="input">
                 <select name="id_name" id="id_name">
                 <option value="">$_("Select")</option>
-                <option value="ocaid">Internet Archive</option>
+                $if admin_user:
+                    <option value="ocaid">Internet Archive</option>
                 <option value="isbn_10">ISBN 10</option>
                 <option value="isbn_13">ISBN 13</option>
                 <option value="lccn">LCCN</option>
@@ -66,10 +68,13 @@ $var title: $_("Add a book")
                 <div class="label">$_("Since you are not logged in, please satisfy the reCAPTCHA below.")</div>
                 <div class="g-recaptcha" data-sitekey="$:recaptcha.public_key"></div>
             </div>
-
+        
         <div class="formElement bottom">
+            <br/>
+            <div class="cclicense">
+                $:_('By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" title="This link to Creative Commons will open in a new window">CC0</a>. Yippee!')
+            </div>
             <div class="input">
-                <br/>
                 <button type="submit" name="_save" title="$_('Add this book now')" class="larger">$_('Add')</button>
                 &nbsp;
                 <a href="javascript:history.go(-1);" class="attn">$_('Cancel')</a>

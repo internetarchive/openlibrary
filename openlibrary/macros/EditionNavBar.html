@@ -1,4 +1,4 @@
-$def with (edition_count=1)
+$def with (edition_count=1, show_observations=False)
 
 <ul class="work-menu sticky">
   <li class="selected">
@@ -12,9 +12,7 @@ $def with (edition_count=1)
   <li>
     <a href="#edition-details">$_("This Edition")</a>
   </li>
-  $# BookNotes feature:
-  $if ctx.user and ctx.user.is_beta_tester():
-    <li>
-      <a href="#reader-observations">$_("Reader Observations")</a>
-    </li>
+  <li>
+    <a href="#reader-observations">$_("Reviews")</a>
+  </li>
 </ul>

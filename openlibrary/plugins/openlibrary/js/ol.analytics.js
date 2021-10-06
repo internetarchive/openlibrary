@@ -3,9 +3,6 @@
 *
 * Depends on Archive.org analytics.js function archive_analytics.send_ping()
 *
-* Usage:
-*     $("select#role").add_new_field({href: "#role-popup"});
-*
 */
 
 export default function initAnalytics() {
@@ -44,4 +41,9 @@ export default function initAnalytics() {
         });
     }
     window.vs = vs;
+
+    // NOTE: This might cause issues if this script is made async #4474
+    window.addEventListener('DOMContentLoaded', function send_analytics_pageview() {
+        window.archive_analytics.send_pageview({});
+    });
 }

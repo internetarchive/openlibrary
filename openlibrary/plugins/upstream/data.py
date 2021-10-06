@@ -28,8 +28,19 @@ def download_url(item, filename):
     return "%s/download/%s/%s" % (IA_BASE_URL, item, filename)
 
 
+DUMP_PREFIXES = (
+    '',
+    '_authors',
+    '_editions',
+    '_works',
+    '_deworks',
+    '_ratings',
+    '_reading-log',
+)
+
+
 class ol_dump_latest(delegate.page):
-    path = "/data/ol_dump(|_authors|_editions|_works|_deworks)_latest.txt.gz"
+    path = f"/data/ol_dump({'|'.join(DUMP_PREFIXES)})_latest.txt.gz"
 
     def GET(self, prefix):
         items = [item for item in get_ol_dumps() if item.startswith("ol_dump")]
@@ -54,7 +65,7 @@ class ol_cdump_latest(delegate.page):
 
 
 class ol_dumps(delegate.page):
-    path = "/data/ol_dump(|_authors|_editions|_works)_(\d\d\d\d-\d\d-\d\d).txt.gz"
+    path = rf"/data/ol_dump({'|'.join(DUMP_PREFIXES)})_(\d\d\d\d-\d\d-\d\d).txt.gz"
 
     def GET(self, prefix, date):
         item = "ol_dump_" + date

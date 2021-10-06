@@ -25,13 +25,17 @@ def get_ol(servername=None):
 def ol_import_request(item, retries=5, servername=None, require_marc=True):
     """Requests OL to import an item and retries on server errors.
     """
-    logger.info("importing %s", item.ia_id)
+    # logger uses batch_id:id for item.data identifier if no item.ia_id
+    _id = item.ia_id or "%s:%s" % (item.batch_id, item.id)
+    logger.info("importing %s", _id)
     for i in range(retries):
         if i != 0:
             logger.info("sleeping for 5 seconds before next attempt.")
             time.sleep(5)
         try:
             ol = get_ol(servername=servername)
+            if item.data:
+                return ol.import_data(item.data)
             return ol.import_ocaid(item.ia_id, require_marc=require_marc)
         except IOError as e:
             logger.warning("Failed to contact OL server. error=%s", e)
@@ -54,13 +58,11 @@ def do_import(item, servername=None, require_marc=True):
             logger.error("failed with error code: %s", error_code)
             item.set_status("failed", error=error_code)
     else:
-        logger.error("failed with internal error")
+        logger.error("failed with internal error: %s", response)
         item.set_status("failed", error='internal-error')
 
 
-def add_items(args):
-    batch_name = args[0]
-    filename = args[1]
+def add_items(batch_name, filename):
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.load_items(filename)
 
@@ -153,7 +155,6 @@ def import_all(args, **kwargs):
         for item in items:
             do_import(item, servername=servername, require_marc=require_marc)
 
-
 def retroactive_import(start=None, stop=None, servername=None):
     """Retroactively searches and imports all previously missed books
     (through all time) in the Archive.org database which were
@@ -201,7 +202,7 @@ def main():
     if cmd == "import-ocaids":
         return import_ocaids(*args, **flags)
     if cmd == "add-items":
-        return add_items(args)
+        return add_items(*args)
     elif cmd == "add-new-scans":
         return add_new_scans(args)
     elif cmd == "import-batch":

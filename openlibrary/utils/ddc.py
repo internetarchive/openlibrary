@@ -7,6 +7,8 @@ Known issues
 https://www.oclc.org/bibformats/en/0xx/082.html
 """
 import re
+from string import printable
+from typing import Iterable, List
 
 MULTIPLE_SPACES_RE = re.compile(r'\s+')
 DDC_RE = re.compile(r'''
@@ -18,31 +20,33 @@ DDC_RE = re.compile(r'''
         C?  # Canadian CIP
 
         # The number
-        (?P<number>\d{1,3}(\.\d+)?)
+        (?P<number>\d{1,3}(\.+\s?\d+)?)
 
         # Suffix
         (?P<poststar>\*?)
         (?P<s>\s?s)?  # Series suffix
         (?P<B>\s?\[?B\]?)?  # Biographical
-        (?P<ninetwo>\s920?)?  # No clue; shouldn't be its own DDC though
+        (?P<ninetwo>\s(092|920|92))?  # No clue; shouldn't be its own DDC though
     )
     |
     (\[?(?P<fic>Fic|E)\.?\]?)
 ''', re.IGNORECASE | re.X)
 
 
-def collapse_multiple_space(s):
+def collapse_multiple_space(s: str) -> str:
     return MULTIPLE_SPACES_RE.sub(' ', s)
 
 
-def normalize_ddc(ddc):
-    """
-    :param str ddc:
-    :rtype: list of str
-    """
-    ddc = collapse_multiple_space(ddc.strip()).replace('/', '').replace("'", '')
+VALID_CHARS = set(printable) - set("/'′’,")
 
-    results = []
+
+def normalize_ddc(ddc: str) -> List[str]:
+    ddc = ''.join(
+        char
+        for char in collapse_multiple_space(ddc.strip())
+        if char in VALID_CHARS)
+
+    results: List[str] = []
     for match in DDC_RE.finditer(ddc):
         parts = match.groupdict()
         prefix = ''
@@ -54,7 +58,7 @@ def normalize_ddc(ddc):
             continue
         # And end at them
         end = match.end()
-        if end < (len(ddc) - 1) and re.search(r'\b', ddc[end]):
+        if end < len(ddc) and re.search(r'\b', ddc[end]):
             continue
 
         # Some old standard which isn't used anymore; might need to filter these
@@ -90,15 +94,15 @@ def normalize_ddc(ddc):
             integer = number_parts[0]
 
             # Copy decimal without losing precision
-            decimal = '.' + number_parts[1] if len(number_parts) > 1 else ''
+            decimal = '.' + number_parts[-1].strip() if len(number_parts) > 1 else ''
 
             number = '%03d%s' % (int(integer), decimal)
 
             # Discard catalog edition number
             # At least one classification number available
             if len(results) > 0:
-                # Check if number like '0*' without decimal component
-                if re.search(r'(^0\d*$)', parts['number']):
+                # Check if number is without decimal component
+                if re.search(r'(^0?\d{1,2}$)', parts['number']):
                     continue
 
         # Handle [Fic] or [E]
@@ -108,6 +112,10 @@ def normalize_ddc(ddc):
             continue
 
         results.append(prefix + number + suffix)
+
+        # Include the non-j-prefixed form as well for correct sorting
+        if prefix == 'j':
+            results.append(number + suffix)
 
     return results
 
@@ -136,11 +144,9 @@ def normalize_ddc_range(start, end):
     return ddc_range_norm
 
 
-def normalize_ddc_prefix(prefix):
+def normalize_ddc_prefix(prefix: str) -> str:
     """
     Normalizes a DDC prefix to be used in searching. Integer prefixes are not modified
-    :param str prefix:
-    :rtype: str
 
     >>> normalize_ddc_prefix('1')
     '1'
@@ -151,10 +157,16 @@ def normalize_ddc_prefix(prefix):
     # 23.45* should become 023.45*
     if '.' in prefix:
         normed = normalize_ddc(prefix)
-        if normed:
-            return normed[0]
+        return normed[0] if normed else prefix
     # 0* should stay as is
     # 23* should stay as is
     # j* should stay as is
     else:
         return prefix
+
+
+def choose_sorting_ddc(normalized_ddcs: Iterable[str]) -> str:
+    # Prefer unprefixed DDCs (so they sort correctly)
+    preferred_ddcs = [ddc for ddc in normalized_ddcs if ddc[0] in '0123456789']
+    # Choose longest; theoretically most precise?
+    return sorted(preferred_ddcs or normalized_ddcs, key=len, reverse=True)[0]

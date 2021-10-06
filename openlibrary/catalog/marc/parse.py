@@ -6,6 +6,8 @@ from openlibrary.catalog.utils import (
     pick_first_date, remove_trailing_dot, remove_trailing_number_dot, tidy_isbn
 )
 
+DNB_AGENCY_CODE = 'DE-101'
+max_number_of_pages = 50000  # no monograph should be longer than 50,000 pages
 re_bad_char = re.compile(u'\ufffd')
 re_question = re.compile(r'^\?+$')
 re_lccn = re.compile(r'([ \dA-Za-z\-]{3}[\d/-]+).*')
@@ -15,19 +17,23 @@ re_ocn_or_ocm = re.compile(r'^oc[nm]0*(\d+) *$')
 re_int = re.compile(r'\d{2,}')
 re_number_dot = re.compile(r'\d{3,}\.$')
 re_bracket_field = re.compile(r'^\s*(\[.*\])\.?\s*$')
-foc = '[from old catalog]'
+
 
 def strip_foc(s):
+    foc = '[from old catalog]'
     return s[:-len(foc)].rstrip() if s.endswith(foc) else s
+
 
 class SeeAlsoAsTitle(MarcException):
     pass
+
 
 want = [
     '001',
     '003',  # for OCLC
     '008',  # publish date, country and language
     '010',  # lccn
+    '016',  # National Bibliographic Agency Control Number (for DNB)
     '020',  # isbn
     '035',  # oclc
     '050',  # lc classification
@@ -46,11 +52,20 @@ want = [
     '852',  # location
     '856']  # URL
 
+
+def read_dnb(rec):
+    fields = rec.get_fields('016')
+    for f in fields:
+        source, = f.get_subfield_values('2') or [None]
+        control_number, = f.get_subfield_values('a') or [None]
+        if source == DNB_AGENCY_CODE and control_number:
+            return {'dnb': [control_number]}
+
+
 def read_lccn(rec):
     fields = rec.get_fields('010')
     if not fields:
         return
-
     found = []
     for f in fields:
         for k, v in f.get_subfields(['a']):
@@ -67,12 +82,14 @@ def read_lccn(rec):
                 found.append(lccn)
     return found
 
+
 def remove_duplicates(seq):
     u = []
     for x in seq:
         if x not in u:
             u.append(x)
     return u
+
 
 def read_oclc(rec):
     found = []
@@ -99,11 +116,11 @@ def read_oclc(rec):
                     found.append(oclc)
     return remove_duplicates(found)
 
+
 def read_lc_classification(rec):
     fields = rec.get_fields('050')
     if not fields:
         return
-
     found = []
     for f in fields:
         contents = f.get_contents(['a', 'b'])
@@ -113,16 +130,16 @@ def read_lc_classification(rec):
                 found += [' '.join([a, b]) for a in contents['a']]
             else:
                 found += [b]
-        # http://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:671135731:596
+        # https://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:671135731:596
         elif 'a' in contents:
             found += contents['a']
     return found
+
 
 def read_isbn(rec):
     fields = rec.get_fields('020')
     if not fields:
         return
-
     found = []
     for f in fields:
         isbn = rec.read_isbn(f)
@@ -130,7 +147,6 @@ def read_isbn(rec):
             found += isbn
     ret = {}
     seen = set()
-
     for i in tidy_isbn(found):
         if i in seen: # avoid dups
             continue
@@ -141,6 +157,7 @@ def read_isbn(rec):
             ret.setdefault('isbn_10', []).append(i)
     return ret
 
+
 def read_dewey(rec):
     fields = rec.get_fields('082')
     if not fields:
@@ -150,6 +167,7 @@ def read_dewey(rec):
         found += f.get_subfield_values(['a'])
     return found
 
+
 def read_work_titles(rec):
     found = []
     tag_240 = rec.get_fields('240')
@@ -157,41 +175,35 @@ def read_work_titles(rec):
         for f in tag_240:
             title = f.get_subfield_values(['a', 'm', 'n', 'p', 'r'])
             found.append(remove_trailing_dot(' '.join(title).strip(',')))
-
     tag_130 = rec.get_fields('130')
     if tag_130:
         for f in tag_130:
             title = ' '.join(v for k, v in f.get_all_subfields() if k.islower() and k != 'n')
             found.append(remove_trailing_dot(title.strip(',')))
-
     return remove_duplicates(found)
+
 
 def read_title(rec):
     STRIP_CHARS = r' /,;:='
     fields = rec.get_fields('245') or rec.get_fields('740')
     if not fields:
         raise NoTitle('No Title found in either 245 or 740 fields.')
-
-#   example MARC record with multiple titles:
-#   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:299505697:862
+    # example MARC record with multiple titles:
+    # https://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:299505697:862
     contents = fields[0].get_contents(['a', 'b', 'c', 'h', 'p'])
-
     b_and_p = [i for i in fields[0].get_subfield_values(['b', 'p']) if i]
-
     ret = {}
     title = None
-
-#   MARC record with 245a missing:
-#   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:516779055:1304
+    # MARC record with 245a missing:
+    # https://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:516779055:1304
     if 'a' in contents:
         title = ' '.join(x.strip(STRIP_CHARS) for x in contents['a'])
     elif b_and_p:
         title = b_and_p.pop(0).strip(STRIP_CHARS)
-# talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:183427199:255
+    # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:183427199:255
     if title in ('See.', 'See also.'):
         raise SeeAlsoAsTitle('Title is: %s' % title)
-# talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:5654086:483
-# scrapbooksofmoun03tupp
+    # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:5654086:483
     if title is None:
         subfields = list(fields[0].get_all_subfields())
         title = ' '.join(v for k, v in subfields)
@@ -212,6 +224,7 @@ def read_title(rec):
         ret['physical_format'] = h
     return ret
 
+
 def read_edition_name(rec):
     fields = rec.get_fields('250')
     if not fields:
@@ -222,8 +235,9 @@ def read_edition_name(rec):
         found += [v for k, v in f.get_all_subfields()]
     return ' '.join(found)
 
+
 lang_map = {
-    'ser': 'srp', # http://www.archive.org/details/zadovoljstvauivo00lubb
+    'ser': 'srp',  # https://www.archive.org/details/zadovoljstvauivo00lubb
     'end': 'eng',
     'enk': 'eng',
     'ent': 'eng',
@@ -233,9 +247,10 @@ lang_map = {
     'gwr': 'ger',
     'sze': 'slo',
     'fr ': 'fre',
-    'fle': 'dut', # flemish -> dutch
+    'fle': 'dut',  # Flemish -> Dutch
     'it ': 'ita',
 }
+
 
 def read_languages(rec):
     fields = rec.get_fields('041')
@@ -246,6 +261,7 @@ def read_languages(rec):
         found += [i.lower() for i in f.get_subfield_values('a') if i and len(i) == 3]
     return [lang_map.get(i, i) for i in found if i != 'zxx']
 
+
 def read_pub_date(rec):
     fields = rec.get_fields('260')
     if not fields:
@@ -255,6 +271,7 @@ def read_pub_date(rec):
         f.remove_brackets()
         found += [i for i in f.get_subfield_values('c') if i]
     return remove_trailing_number_dot(found[0]) if found else None
+
 
 def read_publisher(rec):
     fields = rec.get_fields('260') or rec.get_fields('264')[:1]
@@ -276,6 +293,7 @@ def read_publisher(rec):
         edition["publish_places"] = publish_places
     return edition
 
+
 def read_author_person(f):
     f.remove_brackets()
     author = {}
@@ -289,7 +307,6 @@ def read_author_person(f):
             death_date = author['death_date']
             if re_number_dot.search(death_date):
                 author['death_date'] = death_date[:-1]
-
     author['name'] = ' '.join(name)
     author['entity_type'] = 'person'
     subfields = [
@@ -308,12 +325,13 @@ def read_author_person(f):
             author[f] = remove_trailing_dot(strip_foc(author[f]))
     return author
 
+
 # 1. if authors in 100, 110, 111 use them
 # 2. if first contrib is 700, 710, or 711 use it
-
 def person_last_name(f):
     v = list(f.get_subfield_values('a'))[0]
     return v[:v.find(', ')] if ', ' in v else v
+
 
 def last_name_in_245c(rec, person):
     fields = rec.get_fields('245')
@@ -321,6 +339,7 @@ def last_name_in_245c(rec, person):
         return
     last_name = person_last_name(person).lower()
     return any(any(last_name in v.lower() for v in f.get_subfield_values(['c'])) for f in fields)
+
 
 def read_authors(rec):
     count = 0
@@ -346,14 +365,11 @@ def read_authors(rec):
     if found:
         return found
 
-# no monograph should be longer than 50,000 pages
-max_number_of_pages = 50000
 
 def read_pagination(rec):
     fields = rec.get_fields('300')
     if not fields:
         return
-
     pagination = []
     edition = {}
     for f in fields:
@@ -362,7 +378,7 @@ def read_pagination(rec):
         edition['pagination'] = ' '.join(pagination)
         # strip trailing characters from pagination
         edition['pagination'] = edition['pagination'].strip(' ,:;')
-        num = [] # http://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:2617696:825
+        num = []
         for x in pagination:
             num += [int(i) for i in re_int.findall(x.replace(',',''))]
             num += [int(i) for i in re_int.findall(x)]
@@ -370,6 +386,7 @@ def read_pagination(rec):
         if valid:
             edition['number_of_pages'] = max(valid)
     return edition
+
 
 def read_series(rec):
     found = []
@@ -390,6 +407,7 @@ def read_series(rec):
                 found += [' -- '.join(this)]
     return found
 
+
 def read_notes(rec):
     found = []
     for tag in range(500,595):
@@ -405,6 +423,7 @@ def read_notes(rec):
     if found:
         return '\n\n'.join(found)
 
+
 def read_description(rec):
     fields = rec.get_fields('520')
     if not fields:
@@ -416,6 +435,7 @@ def read_description(rec):
     if found:
         return "\n\n".join(found).strip(' ')
 
+
 def read_url(rec):
     found = []
     for f in rec.get_fields('856'):
@@ -426,10 +446,12 @@ def read_url(rec):
         found += [{'url':  u.strip(), 'title': title} for u in contents['u']]
     return found
 
+
 def read_other_titles(rec):
     return [' '.join(f.get_subfield_values(['a'])) for f in rec.get_fields('246')] \
         + [' '.join(f.get_lower_subfields()) for f in rec.get_fields('730')] \
         + [' '.join(f.get_subfield_values(['a', 'p', 'n'])) for f in rec.get_fields('740')]
+
 
 def read_location(rec):
     fields = rec.get_fields('852')
@@ -440,8 +462,10 @@ def read_location(rec):
         found = found.union({v for v in f.get_subfield_values(['a']) if v})
     return list(found)
 
+
 def read_contributions(rec):
-    """ Reads contributors from a MARC record
+    """
+    Reads contributors from a MARC record
     and use values in 7xx fields to set 'authors'
     if the 1xx fields do not exist. Otherwise set
     additional 'contributions'
@@ -455,7 +479,6 @@ def read_contributions(rec):
         ('711', 'acdn'),
         ('720', 'a'),
     ))
-
     ret = {}
     skip_authors = set()
     for tag in ('100', '110', '111'):
@@ -491,12 +514,11 @@ def read_contributions(rec):
             continue
         name = remove_trailing_dot(' '.join(strip_foc(i[1]) for i in cur).strip(','))
         ret.setdefault('contributions', []).append(name) # need to add flip_name
-
     return ret
+
 
 def read_toc(rec):
     fields = rec.get_fields('505')
-
     toc = []
     for f in fields:
         toc_line = []
@@ -534,6 +556,7 @@ def read_toc(rec):
         else:
             found.append(i)
     return [{'title': i, 'type': '/type/toc_item'} for i in found]
+
 
 def update_edition(rec, edition, func, field):
     v = func(rec)
@@ -590,6 +613,7 @@ def read_edition(rec):
         update_edition(rec, edition, read_pub_date, 'publish_date')
 
     update_edition(rec, edition, read_lccn, 'lccn')
+    update_edition(rec, edition, read_dnb, 'identifiers')
     update_edition(rec, edition, read_authors, 'authors')
     update_edition(rec, edition, read_oclc, 'oclc_numbers')
     update_edition(rec, edition, read_lc_classification, 'lc_classifications')
@@ -621,5 +645,4 @@ def read_edition(rec):
         v = func(rec)
         if v:
             edition.update(v)
-
     return edition

@@ -10,7 +10,7 @@
         </select>
       </th>
       <th>
-        <input class="form-control" type="text" name="value" id="id-value" v-model="inputValue" @keyup.enter=setIdentifier>
+        <input class="form-control" type="text" name="value" id="id-value" v-model.trim="inputValue" @keyup.enter=setIdentifier>
       </th>
       <th>
         <button class="form-control" name="set" :disabled="!setButtonEnabled" @click=setIdentifier>Set</button>

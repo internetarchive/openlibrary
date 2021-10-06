@@ -5,18 +5,22 @@ $def with (page)
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="title" content="" />
-    <meta name = "keywords" content = "free books, books to read, free ebooks,audio books,read books for free, read books online, online library">
+    <meta name="keywords" content="free books, books to read, free ebooks, audio books, read books for free, read books online, online library">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="OpenLibrary.org" />
     <meta name="creator" content="OpenLibrary.org" />
     <meta name="copyright" content="Original content copyright; 2007-2015" />
     <meta name="distribution" content="Global" />
+    $if request.domain != 'openlibrary.org':
+        <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#e2dcc5">
+
 
     <link rel="canonical" href="$request.canonical_url" />
-
     <link rel="preconnect" href="https://analytics.archive.org">
 
     <link rel="search" type="application/opensearchdescription+xml" title="Open Library" href="/static/opensearch.xml">
+    <link rel="manifest" href="/static/manifest.json">
 
     <link href="/static/images/openlibrary-128x128.png" rel="apple-touch-icon" />
     <link href="/static/images/openlibrary-152x152.png" rel="apple-touch-icon" sizes="152x152" />

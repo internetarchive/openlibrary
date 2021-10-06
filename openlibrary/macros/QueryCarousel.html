@@ -8,6 +8,9 @@ $# * key (str) -- unique name of the carousel in analytics
 $# * limit (int) -- initial number of books to pull
 $# * search (bool) -- whether to include search within collection
 
+$# Set default for key
+$ key = key or str(abs(hash(query)))
+
 $# Enable search within this query
 $if search:
   <form action="/search" class="olform pagesearchbox">
@@ -19,7 +22,7 @@ $if search:
   </form>
 
 $code:
-  params = { 'q': query }
+  params = { 'q': query, 'fields': '*,availability' }
   url = url or "/search?" + urlencode(params)
   if has_fulltext_only:
     params['has_fulltext'] = 'true'

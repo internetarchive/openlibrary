@@ -130,8 +130,8 @@
                   <label>
                     <input type="radio" v-model="sortState.order" value="old">Oldest
                   </label>
-                  <label>
-                    <input type="radio" v-model="sortState.order" :value="`${settingsState.selectedClassification.field}_sort asc`">Shelf Order
+                  <label title="I.e. Classification order. Note some books maybe missing when sorting by shelf order–we're working on it.">
+                    <input type="radio" v-model="sortState.order" :value="`${settingsState.selectedClassification.field}_sort asc`" >Shelf Order
                   </label>
                   <label>
                     <input type="radio" v-model="sortState.order" :value="randomWithSeed">Random
@@ -233,9 +233,9 @@ export default {
             quickLanguageSelect: '',
             fullLanguageSelect: [],
             langLoading: false,
-            // By default we just send sort=random to the OL API, but when shuffle
-            // is clicked, we add a seed to the end (e.g. random_1235)
-            randomWithSeed: 'random',
+            // By default, random is set to the "hourly" random, so that the books stick
+            // around for a while
+            randomWithSeed: `random_${new Date().toISOString().split(':')[0]}`,
 
             openTabs: [],
             maxTabs: screen.width > 600 ? 5 : 1,
@@ -249,8 +249,8 @@ export default {
 
     watch: {
         quickLanguageSelect(newVal) {
-            if (newVal == '') this.filterState.languages = [];
-            else if (newVal == 'custom') this.filterState.languages = this.fullLanguageSelect;
+            if (newVal === '') this.filterState.languages = [];
+            else if (newVal === 'custom') this.filterState.languages = this.fullLanguageSelect;
             else this.filterState.languages = [newVal];
         },
 
@@ -282,7 +282,7 @@ export default {
 
         computedFilters() {
             const parts = this.filterState.solrQueryParts();
-            const computedParts = parts[0] == this.filterState.filter ? parts.slice(1) : parts;
+            const computedParts = parts[0] === this.filterState.filter ? parts.slice(1) : parts;
             return computedParts.length ? ` AND ${computedParts.join(' AND ')}` : '';
         },
 
@@ -295,7 +295,7 @@ export default {
         },
 
         inDebugMode() {
-            return new URLSearchParams(location.search).get('debug') == 'true';
+            return new URLSearchParams(location.search).get('debug') === 'true';
         },
 
         styles() {
@@ -323,7 +323,7 @@ export default {
 
         toggleTab(tabName) {
             const index = this.openTabs.indexOf(tabName);
-            if (index == -1) {
+            if (index === -1) {
                 this.openTabs.push(tabName);
                 if (this.openTabs.length > this.maxTabs) {
                     this.openTabs.shift();
@@ -485,6 +485,7 @@ export default {
     flex-direction: column-reverse;
     border-radius: 4px 4px 0 0;
     overflow: hidden;
+    overflow: clip;
     box-shadow: 0 0 5px rgba(0, 0, 0, .2);
     background: linear-gradient(to bottom, #fff, #ebdfc5 150%);
     max-width: 100%;

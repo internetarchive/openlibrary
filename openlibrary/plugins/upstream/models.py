@@ -2,6 +2,8 @@ from __future__ import print_function
 
 import logging
 import re
+from functools import cached_property
+
 import requests
 import sys
 import web
@@ -18,7 +20,7 @@ from openlibrary.core import models, ia
 from openlibrary.core.models import Image
 from openlibrary.core import lending
 
-from openlibrary.plugins.upstream.utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
+from openlibrary.plugins.upstream.utils import MultiDict, parse_toc, get_edition_config
 from openlibrary.plugins.upstream import account
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
@@ -567,31 +569,21 @@ class Work(models.Work):
                     return [cover]
         return []
 
-    def _get_solr_data(self):
+    @cached_property
+    def _solr_data(self):
         fields = [
             "cover_edition_key", "cover_id", "edition_key", "first_publish_year",
-            "has_fulltext", "lending_edition_s", "checked_out", "public_scan_b", "ia"]
+            "has_fulltext", "lending_edition_s", "public_scan_b", "ia"]
 
         solr = get_solr()
-        stats.begin("solr", query={"key": self.key}, fields=fields)
+        stats.begin("solr", get=self.key, fields=fields)
         try:
-            d = solr.select({"key": self.key}, fields=fields)
+            return solr.get(self.key, fields=fields)
         except Exception as e:
             logging.getLogger("openlibrary").exception("Failed to get solr data")
             return None
         finally:
             stats.end()
-
-        if d.num_found > 0:
-            w = d.docs[0]
-        else:
-            w = None
-
-        # Replace _solr_data property with the attribute
-        self.__dict__['_solr_data'] = w
-        return w
-
-    _solr_data = property(_get_solr_data)
 
     def get_cover(self, use_solr=True):
         covers = self.get_covers(use_solr=use_solr)
@@ -657,7 +649,7 @@ class Work(models.Work):
                     is_ascii(subject))) and
                 all([char not in subject for char in blacklist_chars])):
                 ok_subjects.append(subject)
-        return ok_subjects        
+        return ok_subjects
 
     def get_related_books_subjects(self, filter_unicode=True):
         return self.filter_problematic_subjects(self.get_subjects(), filter_unicode)

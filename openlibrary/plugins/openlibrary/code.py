@@ -345,8 +345,48 @@ class robotstxt(delegate.page):
     def GET(self):
         web.header('Content-Type', 'text/plain')
         try:
-            robots_file = 'norobots.txt' if 'dev' in infogami.config.features else 'robots.txt'
+            is_dev = ('dev' in infogami.config.features or
+                      web.ctx.host != 'openlibrary.org')
+            robots_file = 'norobots.txt' if is_dev else 'robots.txt'
             data = open('static/' + robots_file).read()
+            raise web.HTTPError('200 OK', {}, data)
+        except IOError:
+            raise web.notfound()
+
+
+@web.memoize
+def fetch_ia_js(filename: str) -> str:
+    return requests.get(f'https://archive.org/includes/{filename}').text
+
+
+class ia_js_cdn(delegate.page):
+    path = r'/cdn/archive.org/(donate\.js|analytics\.js)'
+
+    def GET(self, filename):
+        web.header('Content-Type', 'text/javascript')
+        raise web.HTTPError('200 OK', {}, fetch_ia_js(filename))
+
+
+class serviceworker(delegate.page):
+    path = '/sw.js'
+
+    def GET(self):
+        web.header('Content-Type', 'text/javascript')
+        try:
+            data = open('static/build/sw.js').read()
+            raise web.HTTPError('200 OK', {}, data)
+        except IOError:
+            raise web.notfound()
+
+
+class assetlinks(delegate.page):
+    """To verify the TWA, currently serves dummy data"""
+    path = '/.well-known/assetlinks'
+
+    def GET(self):
+        web.header('Content-Type', 'application/json')
+        try:
+            data = open('static/.well-known/assetlinks.json').read()
             raise web.HTTPError('200 OK', {}, data)
         except IOError:
             raise web.notfound()
@@ -892,6 +932,7 @@ def setup_template_globals():
         'sorted': sorted,
         'zip': zip,
         'tuple': tuple,
+        'hash': hash,
         'urlquote': web.urlquote,
         'isbn_13_to_isbn_10': isbn_13_to_isbn_10,
         'isbn_10_to_isbn_13': isbn_10_to_isbn_13,

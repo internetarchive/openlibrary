@@ -26,7 +26,7 @@
     "column_3": "### Open an Account ###\r\n\r\nYou can keep track of your edits if you <b><a href=\"/account/create\">open an account</a></b>. <br><br>It's a wiki too, which means anyone can edit or correct it anytime.", 
     "news": {
         "type": "/type/text", 
-        "value": "<b>Open Library Redesign!</b><br />\r\n\r\n<br />We're about to announce the upcoming redesign of Open Library. We've been working for the past few months on a ton of improvements that we can't wait to show you. Please, <a href=\"http://blog.openlibrary.org/\">keep an eye on the blog for our announcement</a>."
+        "value": "<b>Open Library Redesign!</b><br />\r\n\r\n<br />We're about to announce the upcoming redesign of Open Library. We've been working for the past few months on a ton of improvements that we can't wait to show you. Please, <a href=\"https://blog.openlibrary.org/\">keep an eye on the blog for our announcement</a>."
     }, 
     "type": {
         "key": "/type/home"

@@ -137,8 +137,8 @@ YAHOO.extension.Carousel.prototype = {
 				oThis.reload();
 			},
 			validator: function(orientation) {
-			    if(typeof orientation == "string") {
-			        return ("horizontal,vertical".indexOf(orientation.toLowerCase()) != -1);
+			    if(typeof orientation === "string") {
+			        return ("horizontal,vertical".indexOf(orientation.toLowerCase()) !== -1);
 			    } else {
 					return false;
 				}
@@ -322,7 +322,7 @@ YAHOO.extension.Carousel.prototype = {
 					YAHOO.util.Event.removeListener(oThis._carouselPrev, "click", oThis._scrollPrev);
 				} 
 				oThis._prevElementID = args[0];
-				if(oThis._prevElementID == null) {
+				if(oThis._prevElementID === null) {
 					oThis._carouselPrev = YAHOO.util.Dom.getElementsByClassName(carouselPrevClass, 
 														"div", oThis.carouselElem)[0];
 				} else {
@@ -349,7 +349,7 @@ YAHOO.extension.Carousel.prototype = {
 					YAHOO.util.Event.removeListener(oThis._carouselPrev, "click", oThis._scrollPrev);
 				} 
 				oThis._prevElementID = args[0];
-				if(oThis._prevElementID == null) {
+				if(oThis._prevElementID === null) {
 					oThis._carouselPrev = YAHOO.util.Dom.getElementsByClassName(carouselPrevClass, 
 														"div", oThis.carouselElem)[0];
 				} else {
@@ -367,7 +367,7 @@ YAHOO.extension.Carousel.prototype = {
 					YAHOO.util.Event.removeListener(oThis._carouselNext, "click", oThis._scrollNext);
 				} 
 				oThis._nextElementID = args[0];
-				if(oThis._nextElementID == null) {
+				if(oThis._nextElementID === null) {
 					oThis._carouselNext = YAHOO.util.Dom.getElementsByClassName(carouselNextClass, 
 														"div", oThis.carouselElem);
 				} else {
@@ -396,7 +396,7 @@ YAHOO.extension.Carousel.prototype = {
 					YAHOO.util.Event.removeListener(oThis._carouselNext, "click", oThis._scrollNext);
 				} 
 				oThis._nextElementID = args[0];
-				if(oThis._nextElementID == null) {
+				if(oThis._nextElementID === null) {
 					oThis._carouselNext = YAHOO.util.Dom.getElementsByClassName(carouselNextClass, 
 														"div", oThis.carouselElem);
 				} else {
@@ -589,14 +589,14 @@ YAHOO.extension.Carousel.prototype = {
  		this.carouselList = YAHOO.util.Dom.getElementsByClassName(carouselListClass, 
 												"ul", this.carouselElem)[0];
 							
-		if(this._nextElementID == null) {
+		if(this._nextElementID === null) {
 			this._carouselNext = YAHOO.util.Dom.getElementsByClassName(carouselNextClass, 
 												"div", this.carouselElem)[0];
 		} else {
 			this._carouselNext = YAHOO.util.Dom.get(this._nextElementID);
 		}
 
-		if(this._prevElementID == null) {
+		if(this._prevElementID === null) {
  			this._carouselPrev = YAHOO.util.Dom.getElementsByClassName(carouselPrevClass, 
 												"div", this.carouselElem)[0];
 		} else {
@@ -915,7 +915,7 @@ YAHOO.extension.Carousel.prototype = {
 	 * Returns whether the carousel's orientation is set to vertical.
 	 */
 	isVertical: function() {
-		return (this.cfg.getProperty("orientation") != "horizontal");
+		return (this.cfg.getProperty("orientation") !== "horizontal");
 	},
 	
 	
@@ -960,7 +960,7 @@ YAHOO.extension.Carousel.prototype = {
 		for(var i=0; i<ulKids.length; i++) {
 		
 			li = ulKids[i];
-			if(li.tagName == "LI" || li.tagName == "li") {
+			if(li.tagName === "LI" || li.tagName === "li") {
 				break;
 			}
 		}
@@ -1173,7 +1173,7 @@ YAHOO.extension.Carousel.prototype = {
 
 		var refItem = this.getItem(refIdx);
 		var size = this.cfg.getProperty("size");
-		if(size != this.UNBOUNDED_SIZE) {
+		if(size !== this.UNBOUNDED_SIZE) {
 			this.cfg.setProperty("size", size + 1, true);
 		}
 				
@@ -1288,7 +1288,7 @@ YAHOO.extension.Carousel.prototype = {
 
 		var scrollExtent = this._calculateAllowableScrollExtent();
 		
-		if(this.cfg.getProperty("wrap") && currEnd == scrollExtent.end) {
+		if(this.cfg.getProperty("wrap") && currEnd === scrollExtent.end) {
 			this.scrollTo(scrollExtent.start); // might need to check animation is on or not
 			return;
 		}
@@ -1585,10 +1585,10 @@ YAHOO.extension.Carousel.prototype = {
 		
 	_isValidObj: function(obj) {
 
-		if (null == obj) {
+		if (null === obj) {
 			return false;
 		}
-		if ("undefined" == typeof(obj) ) {
+		if ("undefined" === typeof(obj) ) {
 			return false;
 		}
 		return true;
@@ -1661,7 +1661,7 @@ var getRandom = function(max, last) {
 	var randomIndex;
 	do {
 		randomIndex = Math.floor(Math.random()*max);
-	} while(randomIndex == last);
+	} while(randomIndex === last);
 	
 	return randomIndex;
 };

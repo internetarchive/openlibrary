@@ -2,6 +2,7 @@
 """
 import web
 import requests
+from collections import defaultdict
 
 from infogami.infobase import client
 
@@ -13,6 +14,7 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.booknotes import Booknotes
+from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
@@ -26,6 +28,7 @@ from six.moves import urllib
 from .ia import get_metadata_direct
 from .waitinglist import WaitingLoan
 from ..accounts import OpenLibraryAccount
+from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
 
 
 def _get_ol_base_url():
@@ -43,7 +46,7 @@ class Image:
         self.id = id
 
     def info(self):
-        url = '%s/%s/id/%s.json' % (h.get_coverstore_url(), self.category, self.id)
+        url = f'{get_coverstore_url()}/{self.category}/id/{self.id}.json'
         if url.startswith("//"):
             url = "http:" + url
         try:
@@ -59,7 +62,9 @@ class Image:
             return None
 
     def url(self, size="M"):
-        return "%s/%s/id/%s-%s.jpg" % (h.get_coverstore_url(), self.category, self.id, size.upper())
+        """Get the public URL of the image."""
+        coverstore_url = get_coverstore_public_url()
+        return f"{coverstore_url}/{self.category}/id/{self.id}-{size.upper()}.jpg"
 
     def __repr__(self):
         return "<image: %s/%d>" % (self.category, self.id)
@@ -493,6 +498,29 @@ class Work(Thing):
         edition_id = extract_numeric_id_from_olid(edition_olid) if edition_olid else -1
         return Booknotes.get_patron_booknote(username, work_id, edition_id=edition_id)
 
+    def has_book_note(self, username, edition_olid):
+        if not username:
+            return False
+        work_id = extract_numeric_id_from_olid(self.key)
+        edition_id = extract_numeric_id_from_olid(edition_olid)
+        return len(Booknotes.get_patron_booknote(
+            username, work_id,
+            edition_id=edition_id)
+        ) > 0
+
+    def get_users_observations(self, username):
+        if not username:
+            return None
+        work_id = extract_numeric_id_from_olid(self.key)
+        raw_observations = Observations.get_patron_observations(username, work_id)
+        formatted_observations = defaultdict(list)
+
+        for r in raw_observations:
+            kv_pair = Observations.get_key_value_pair(r['type'], r['value'])
+            formatted_observations[kv_pair.key].append(kv_pair.value)
+
+        return formatted_observations
+
     def get_num_users_by_bookshelf(self):
         if not self.key:  # a dummy work
             return {'want-to-read': 0, 'currently-reading': 0, 'already-read': 0}
@@ -575,7 +603,6 @@ class Work(Thing):
             d['has_ebook'] = True
         elif solrdata.get('lending_edition_s'):
             d['borrow_url'] = "/books/{0}/x/borrow".format(solrdata.lending_edition_s)
-            #d['borrowed'] = solrdata.checked_out
             d['has_ebook'] = True
         if solrdata.get('ia'):
             d['ia'] = solrdata.get('ia')

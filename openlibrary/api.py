@@ -23,9 +23,8 @@ import json
 import web
 import logging
 import requests
-
 import six
-from six.moves.configparser import ConfigParser
+from configparser import ConfigParser
 
 logger = logging.getLogger("openlibrary.api")
 
@@ -201,6 +200,9 @@ class OpenLibrary:
     def import_ocaid(self, ocaid, require_marc=True):
         data = {'identifier': ocaid, 'require_marc': 'true' if require_marc else 'false'}
         return self._request('/api/import/ia', method='POST', data=data).text
+
+    def import_data(self, data):
+        return self._request('/api/import', method='POST', data=data).text
 
 
 def marshal(data):

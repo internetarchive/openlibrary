@@ -5,8 +5,9 @@ import logging
 import datetime
 import time
 import web
+import json
 
-from psycopg2.errors import UndefinedTable
+from psycopg2.errors import UndefinedTable, UniqueViolation
 
 from . import db
 
@@ -32,18 +33,64 @@ class Batch(web.storage):
         items = [line.strip() for line in open(filename) if line.strip()]
         self.add_items(items)
 
+    def dedupe_items(self, items):
+        ia_ids = [item.get('ia_id') for item in items if item.get('ia_id')]
+        already_present = set([
+            row.ia_id for row in db.query(
+                "SELECT ia_id FROM import_item WHERE ia_id IN $ia_ids",
+                vars={"ia_ids": ia_ids}
+            )
+        ])
+        # ignore already present
+        logger.info(
+            "batch %s: %d items are already present, ignoring...",
+            self.name,
+            len(already_present)
+        )
+        # Those unique items whose ia_id's aren't already present
+        return [
+            item for item in items
+            if item.get('ia_id') not in already_present
+        ]
+
+    def normalize_items(self, items):
+        return [{
+            'ia_id': item
+        } if type(item) is str else {
+            'batch_id': self.id,
+            # Partner bots set ia_id to eg "partner:978..."
+            'ia_id': item.get('ia_id'),
+            'data': json.dumps(
+                item.get('data'),
+                sort_keys=True
+            ) if item.get('data') else None
+        } for item in items]
+
     def add_items(self, items):
+        """
+        :param items: either a list of `ia_id`  (legacy) or a list of dicts
+            containing keys `ia_id` and book `data`. In the case of
+            the latter, `ia_id` will be of form e.g. "isbn:1234567890";
+            i.e. of a format id_type:value which cannot be a valid IA id.
+        """
         if not items:
             return
-        logger.info("batch %s: adding %d items", self.name, len(items))
-        already_present = [row.ia_id for row in db.query("SELECT ia_id FROM import_item WHERE ia_id IN $items", vars=locals())]
-        # ignore already present
-        items = list(set(items) - set(already_present))
 
-        logger.info("batch %s: %d items are already present, ignoring...", self.name, len(already_present))
+        logger.info("batch %s: adding %d items", self.name, len(items))
+
+        items = self.dedupe_items(self.normalize_items(items))
         if items:
-            values = [dict(batch_id=self.id, ia_id=item) for item in items]
-            db.get_db().multiple_insert("import_item", values)
+            try:
+                # TODO: Upgrade psql and use `INSERT OR IGNORE`
+                # otherwise it will fail on UNIQUE `data`
+                # https://stackoverflow.com/questions/1009584
+                db.get_db().multiple_insert("import_item", items)
+            except UniqueViolation:
+                for item in items:
+                    try:
+                        db.get_db().insert("import_item", **item)
+                    except UniqueViolation:
+                        pass
             logger.info("batch %s: added %d items", self.name, len(items))
 
     def get_items(self, status="pending"):
@@ -63,12 +110,15 @@ class ImportItem(web.storage):
             return ImportItem(result[0])
 
     def set_status(self, status, error=None, ol_key=None):
-        logger.info("set-status %s - %s %s %s", self.ia_id, status, error, ol_key)
+        id_ = self.ia_id or "%s:%s" % (self.batch_id, self.id)
+        logger.info("set-status %s - %s %s %s", id_, status, error, ol_key)
         d = dict(
             status=status,
             error=error,
             ol_key=ol_key,
             import_time=datetime.datetime.utcnow())
+        if status != 'failed':
+            d = dict(**d, data=None)
         db.update("import_item", where="id=$id", vars=self, **d)
         self.update(d)
 
@@ -116,7 +166,7 @@ class Stats:
         return dict([(row.status, row.count) for row in rows])
 
     def get_count_by_date_status(self, ndays=10):
-        try: 
+        try:
             result = db.query(
                 "SELECT added_time::date as date, status, count(*)" +
                 " FROM import_item " +

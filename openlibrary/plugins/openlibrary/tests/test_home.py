@@ -53,13 +53,13 @@ class TestHomeTemplates:
 
         posts = [web.storage({
             "title": "Blog-post-0",
-            "link": "http://blog.openlibrary.org/2011/01/01/blog-post-0",
+            "link": "https://blog.openlibrary.org/2011/01/01/blog-post-0",
             "pubdate": datetime.datetime(2011, 1, 1)
         })]
         html = six.text_type(render_template("home/about", blog_posts=posts))
         assert "About the Project" in html
         assert "Blog-post-0" in html
-        assert "http://blog.openlibrary.org/2011/01/01/blog-post-0" in html
+        assert "https://blog.openlibrary.org/2011/01/01/blog-post-0" in html
 
         blog = BeautifulSoup(html, "lxml").find("ul", {"id": "olBlog"})
         assert blog is not None

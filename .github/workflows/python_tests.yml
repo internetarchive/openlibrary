@@ -10,7 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [3.9]
-    runs-on: ubuntu-16.04  # Should match Dockerfile.olbase
+    runs-on: ubuntu-18.04  # Should match Dockerfile.olbase, but had to be bumped as older version no longer supported
     steps:
       - uses: actions/checkout@v2
         with:
@@ -24,6 +24,7 @@ jobs:
           key: ${{ runner.os }}-venv-${{ env.pythonLocation }}-${{ hashFiles('requirements*.txt') }}
       - name: Install dependencies
         run: |
+          sudo apt-get update
           # https://lxml.de/installation.html#requirements
           sudo apt-get install libxml2-dev libxslt-dev
           pip install --upgrade pip setuptools wheel
@@ -31,7 +32,9 @@ jobs:
           pip list --outdated
       - run: make git
       - name: Run make i18n
-        run: make i18n
+        run: |
+          make i18n
+          make test-i18n
       - name: Run tests
         run: |
           git fetch --no-tags --prune --depth=1 origin master
@@ -39,4 +42,4 @@ jobs:
           make lint
           make test-py
           source scripts/run_doctests.sh
-          mypy .
+          mypy --install-types --non-interactive .

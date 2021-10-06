@@ -1,6 +1,9 @@
 # Open Library
 
-[![Build Status](https://travis-ci.org/internetarchive/openlibrary.svg?branch=master)](https://travis-ci.org/internetarchive/openlibrary) [![Join the chat at https://gitter.im/theopenlibrary/Lobby](https://badges.gitter.im/theopenlibrary/Lobby.svg)](https://gitter.im/theopenlibrary/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+![Python Build](https://github.com/internetarchive/openlibrary/actions/workflows/javascript_tests.yml/badge.svg)
+![JS Build](https://github.com/internetarchive/openlibrary/actions/workflows/python_tests.yml/badge.svg)
+[![Join the chat at https://gitter.im/theopenlibrary/Lobby](https://badges.gitter.im/theopenlibrary/Lobby.svg)](https://gitter.im/theopenlibrary/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
 
 [Open Library](https://openlibrary.org) is an open, editable library catalog, building towards a web page for every book ever published.
 
@@ -30,11 +33,19 @@ Here's a quick public tour of Open Library to get your familiar with the service
 
 - [Learn more about the Open Library project](https://openlibrary.org/about)
 - [The Vision (Dream) of OpenLibrary](https://openlibrary.org/about/vision)
-- [Visit the Blog](http://blog.openlibrary.org)
+- [Visit the Blog](https://blog.openlibrary.org)
 
 ## Installation
 
-The development environment can be set up using the [Docker Instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md). You can also watch the [video tutorial](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4) for a more detailed explanation.
+Run `docker-compose up` and visit http://localhost:8080
+
+Need more details? Checkout the [Docker instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md) 
+or [video tutorial](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4).
+
+***Alternatively***, if you do not want to set up Open Library on your local computer, try Gitpod!
+This lets you work on Open Library entirely in your browser without having to install anything on your personal computer.
+Warning: This integration is still experimental.
+[![Open In Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
 
 ### Developer's Guide
 

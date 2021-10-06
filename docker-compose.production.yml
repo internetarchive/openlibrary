@@ -10,7 +10,7 @@ services:
   web:
     profiles: ["ol-web1", "ol-web2"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
-    restart: always
+    restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - GUNICORN_OPTS= --workers 50 --timeout 300 --max-requests 500
@@ -22,13 +22,31 @@ services:
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
 
   solr:
-    # TODO: Currently solr is deployed in a "special" way
-    profiles: []
+    profiles: ["ol-solr0"]
+    environment:
+      # More memory for production
+      - SOLR_JAVA_MEM=-Xms10g -Xmx10g
+    restart: unless-stopped
+
+  solr_haproxy:
+    profiles: ["ol-solr0"]
+    image: haproxy:2.3.5
+    restart: unless-stopped
+    networks:
+      - webnet
+    volumes:
+      - ./conf/solr/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - 8984:8984
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
 
   covers:
     profiles: ["ol-covers0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
-    restart: always
+    restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - GUNICORN_OPTS= --workers 30 --max-requests 500
@@ -40,7 +58,7 @@ services:
   covers_nginx:
     profiles: ["ol-covers0"]
     image: nginx:1.19.4
-    restart: always
+    restart: unless-stopped
     depends_on:
       - covers
     volumes:
@@ -75,7 +93,7 @@ services:
     hostname: "$HOSTNAME"
     user: root
     command: docker/ol-cron-start.sh
-    restart: always
+    restart: unless-stopped
     volumes:
       - ../olsystem/etc/cron.d/openlibrary.ol_home0:/etc/cron.d/openlibrary.ol_home0:ro
       - ../olsystem:/olsystem
@@ -89,7 +107,7 @@ services:
   infobase:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
-    restart: always
+    restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - INFOBASE_OPTS= fastcgi
@@ -102,7 +120,7 @@ services:
   infobase_nginx:
     profiles: ["ol-home0"]
     image: nginx:1.19.4
-    restart: always
+    restart: unless-stopped
     depends_on:
       - infobase
     volumes:
@@ -120,7 +138,7 @@ services:
   affiliate-server:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
-    restart: always
+    restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - AFFILIATE_CONFIG=/openlibrary.yml
@@ -139,7 +157,7 @@ services:
   solr-updater:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
-    restart: always
+    restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
@@ -157,7 +175,7 @@ services:
   solr8-updater:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
-    restart: always
+    restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
@@ -179,7 +197,7 @@ services:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     command: docker/ol-importbot-start.sh
-    restart: always
+    restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml

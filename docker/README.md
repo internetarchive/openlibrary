@@ -17,6 +17,17 @@ git config core.symlinks true
 git reset --hard HEAD
 ```
 
+### For Users of Macs Containing an M1 Chip
+
+You will likely need to install Rosetta 2 in order to run Docker on your machine.  This can be manually installed by running the following in your command line:
+
+```
+softwareupdate --install-rosetta
+```
+More detailed information about this can be found in the [Docker Desktop for Apple silicon documention](https://docs.docker.com/docker-for-mac/apple-silicon/).
+
+If you are experiencing issues building JS, you may need to increase the RAM available to Docker. The defaults of 2GB ram and 1GB Swap are not enough. We recommend requirements of 4GB ram and 2GB swap. This resolved the error message of `Killed` when running `build-assets`.
+
 ### Prerequisites & Troubleshooting
 
 Before attempting to build openlibrary using the docker instructions below, please follow this checklist. If you encounter an error, this section may serve as a troubleshooting guide:
@@ -64,6 +75,7 @@ While running the `oldev` container, gunicorn is configured to auto-reload modif
 
 - **Editing python files or web templates?** Simply save the file; gunicorn will auto-reload it.
 - **Editing frontend css or js?** Run `docker-compose run --rm home npm run-script build-assets`. This will re-generate the assets in the persistent `ol-build` volume mount (so the latest changes will be available between stopping / starting  `web` containers). Note, if you want to view the generated output you will need to attach to the container (`docker-compose exec web bash`) to examine the files in the volume, not in your local dir.
+- **Watching for file changes (frontend)** To watch for js file changes, run `docker-compose run --rm home npm run-script watch`. Similarly, for css (.less) files, run `docker-compose run --rm home npm run-script watch-css`.
 - **Editing pip packages?** Rebuild the `home` service: `docker-compose build home`
 - **Editing npm packages?** Run `docker-compose run --rm home npm install` (see [#2032](https://github.com/internetarchive/openlibrary/issues/2032) for why)
 - **Editing core dependencies?** You will most likely need to do a full rebuild. This shouldn't happen too frequently. If you are making this sort of change, you will know exactly what you are doing ;) See [Developing the Dockerfile](#developing-the-dockerfile).
@@ -120,7 +132,7 @@ If you need to make changes to the dependencies in Dockerfile.olbase, rebuild it
 docker build -t openlibrary/olbase:latest -f docker/Dockerfile.olbase . # 30+ min (Win10Home/Dec 2018)
 ```
 
-This image is automatically rebuilt when master is pushed to at https://hub.docker.com/r/openlibrary/olbase .
+This image is automatically rebuilt on deploy by ol-home0 and is pushed to at https://hub.docker.com/r/openlibrary/olbase.
 
 If you're making changes you think might affect Docker Hub, you can create a branch starting with `docker-test`, e.g. `docker-test-py2py3` (no weird chars), to trigger a build in docker hub at e.g. `openlibrary/olbase:docker-test-py2py3`.
 

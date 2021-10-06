@@ -85,7 +85,7 @@ class FnToCLI:
 
     @staticmethod
     def parse_docs(docs):
-        params = docs.strip().split(':param ')
+        params = docs.strip().split(':param ')[1:]
         params = [p.strip() for p in params]
         params = [p.split(':', 1) for p in params if p]
         return {
@@ -100,6 +100,8 @@ class FnToCLI:
             return {'type': typ, 'action': BooleanOptionalAction}
         if typ in (int, str, float):
             return {'type': typ}
+        if typ == typing.List[str]:
+            return {'nargs': '*'}
         if not hasattr(typ, '__origin__'):
             raise ValueError(f'Cannot determine type of {typ}')
         if typ.__origin__ == typing.Literal:

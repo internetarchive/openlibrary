@@ -19,6 +19,7 @@
   "globals": {},
   "rules": {
     "prefer-template": "error",
+    "eqeqeq": ["error", "always"],
     "quotes": ["error", "single"],
     "eol-last": ["error", "always"],
     "indent": 2,
@@ -32,6 +33,7 @@
     "no-useless-escape": "error",
     "space-in-parens": "error",
     "vars-on-top": "error",
+    "prefer-const": "error",
     "template-curly-spacing": "error",
     "quote-props": ["error", "as-needed"],
     "keyword-spacing": ["error", { "before": true, "after": true } ],

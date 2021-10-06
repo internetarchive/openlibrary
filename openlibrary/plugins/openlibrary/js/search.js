@@ -13,7 +13,7 @@ export function more(header, start_facet_count, facet_inc) {
     const facetEntry = `div.${header} div.facetEntry`
     const shown = $(`${facetEntry}:not(:hidden)`).length
     const total = $(facetEntry).length
-    if (shown == start_facet_count) {
+    if (shown === start_facet_count) {
         $(`#${header}_less`).show();
         $(`#${header}_bull`).show();
     }
@@ -36,13 +36,13 @@ export function less(header, start_facet_count, facet_inc) {
     const shown = $(`${facetEntry}:not(:hidden)`).length
     const total = $(facetEntry).length
     const increment_extra = (shown - start_facet_count) % facet_inc;
-    const facet_dec = (increment_extra == 0) ? facet_inc:increment_extra;
+    const facet_dec = (increment_extra === 0) ? facet_inc:increment_extra;
     const next_shown = Math.max(start_facet_count, shown - facet_dec);
-    if (shown == total) {
+    if (shown === total) {
         $(`#${header}_more`).show();
         $(`#${header}_bull`).show();
     }
-    if (next_shown == start_facet_count) {
+    if (next_shown === start_facet_count) {
         $(`#${header}_less`).hide();
         $(`#${header}_bull`).hide();
     }
@@ -66,36 +66,5 @@ export function initSearchFacets() {
     });
     $('.header_less').on('click', function(){
         less($(this).data('header'), start_facet_count, facet_inc);
-    });
-}
-
-let readapi_starttime = 0;
-
-/**
- * Displays difference between readapi_starttime and now in '#adminTiming' element.
- */
-function readapi_callback() {
-    const endtime = Date.now();
-    const duration = (endtime - readapi_starttime) / 1000;
-    const disp = document.getElementById('adminTiming');
-    if (disp) {
-        disp.innerHTML += `<br/><br/><span class="adminOnly">Read API call took ${duration} seconds</span>`;
-    }
-}
-
-/**
- * Initializes adminTiming element.
- *
- * Calls read_multiget API for a list of works.
- * Assumes presence of element with '#adminTiming' id and 'data-wks' attribute.
- */
-export function initAdminTiming() {
-    // ALL admin views are sampled.
-    readapi_starttime = Date.now();
-    const wks = $('#adminTiming').data('wks');
-    $.ajax({
-        url: `https://openlibrary.org/api/volumes/brief/json/${wks}?listofworks=True&no_details=True&stats=True`,
-        dataType: 'jsonp',
-        success: readapi_callback
     });
 }

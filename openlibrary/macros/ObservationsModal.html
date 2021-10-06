@@ -1,0 +1,26 @@
+$def with (work, link_text, id, classes='', reload_id=None)
+
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+
+$ context = {
+  $ "username": username,
+  $ "work": work.key,
+  $ "id": id
+  $ }
+
+$if reload_id:
+  $ context['reloadId'] = reload_id
+
+<div class="$classes">
+  <a class="observations-modal-link" href="javascript:;" data-context="$json_encode(context)">$link_text</a>
+
+  <div class="hidden">
+    <div id="$id-metadata-form" class="floaterAdd metadata-form">
+      <div class="floaterHead">
+        <h2>$_("My Book Review")</h2>
+        <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+      </div>
+      $:render_component('ObservationForm', attrs=dict(schema=dict(get_observations()), observations=dict(work.get_users_observations(username)), work_key=work.key, username=username))
+    </div>
+  </div>
+</div>

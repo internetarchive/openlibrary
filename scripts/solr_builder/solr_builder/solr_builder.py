@@ -2,11 +2,13 @@ from __future__ import division
 
 import asyncio
 import itertools
+import json
+import re
 from typing import Awaitable, List, Iterable, Literal, Sized
 
 import httpx
-from httpx import RequestError, HTTPStatusError, ReadTimeout, ConnectTimeout
-from six.moves.configparser import ConfigParser
+from httpx import HTTPError
+from configparser import ConfigParser
 import logging
 import time
 import uuid
@@ -15,10 +17,17 @@ from collections import namedtuple
 import psycopg2
 
 from openlibrary.core import ia
+from openlibrary.solr import update_work
 from openlibrary.solr.data_provider import DataProvider
 from openlibrary.solr.update_work import load_configs, update_keys
 
 logger = logging.getLogger("openlibrary.solr-builder")
+LITE_METADATA_FIELDS = ('identifier', 'boxid', 'collection')
+OCAID_PATTERN = re.compile(r'^[^\s&#?/]+$')
+
+
+def is_valid_ocaid(ocaid: str):
+    return bool(OCAID_PATTERN.match(ocaid))
 
 
 def config_section_to_dict(config_file, section):
@@ -87,6 +96,25 @@ def batch_until_len(items: Iterable[Sized], max_batch_len: int):
         yield batch
 
 
+def batch(items: List, max_batch_len: int):
+    """
+    >>> list(batch([1,2,3,4,5], 2))
+    [[1, 2], [3, 4], [5]]
+    >>> list(batch([], 2))
+    []
+    >>> list(batch([1,2,3,4,5], 3))
+    [[1, 2, 3], [4, 5]]
+    >>> list(batch([1,2,3,4,5], 5))
+    [[1, 2, 3, 4, 5]]
+    >>> list(batch([1,2,3,4,5], 6))
+    [[1, 2, 3, 4, 5]]
+    """
+    start = 0
+    while start < len(items):
+        yield items[start:start + max_batch_len]
+        start += max_batch_len
+
+
 def safeget(func):
     """
     >>> safeget(lambda: {}['foo'])
@@ -115,7 +143,7 @@ class LocalPostgresDataProvider(DataProvider):
         self._db_conf = config_section_to_dict(db_conf_file, "postgres")
         self._conn = None  # type: psycopg2._psycopg.connection
         self.cache = dict()
-        self.cached_work_editions = set()
+        self.cached_work_editions_ranges = []
         self.ia_cache = dict()
         self.ia = None
 
@@ -204,42 +232,84 @@ class LocalPostgresDataProvider(DataProvider):
             })
             return []
 
-        async with httpx.AsyncClient() as client:
-            r = await client.get(
-                "https://archive.org/advancedsearch.php",
-                timeout=30,  # The default is silly short
-                params={
-                    'q': f"identifier:({' OR '.join(ocaids)})",
-                    'rows': len(ocaids),
-                    'fl': 'identifier,boxid,collection',
-                    'page': 1,
-                    'output': 'json',
-                    'save': 'yes',
-                }
-            )
-
         try:
+            async with httpx.AsyncClient() as client:
+                r = await client.get(
+                    "https://archive.org/advancedsearch.php",
+                    timeout=30,  # The default is silly short
+                    params={
+                        'q': f"identifier:({' OR '.join(ocaids)})",
+                        'rows': len(ocaids),
+                        'fl': ','.join(LITE_METADATA_FIELDS),
+                        'page': 1,
+                        'output': 'json',
+                        'save': 'yes',
+                    }
+                )
             r.raise_for_status()
             return r.json()['response']['docs']
-        except (RequestError, HTTPStatusError, ReadTimeout, ConnectTimeout, ValueError,
-                KeyError):
-            logger.error(f"Fetching IA data: {r.status_code}: {r.json()['error']}",
-                         extra={'_recur_depth': _recur_depth})
-            # there's probably a bad apple; try splitting the batch
-            parts = await asyncio.gather(*(
-                LocalPostgresDataProvider._get_lite_metadata(
-                    part, _recur_depth=_recur_depth + 1)
-                for part in partition(ocaids, 6)
-            ))
-            return list(itertools.chain(*parts))
+        except HTTPError:
+            logger.warning("IA bulk query failed")
+        except (ValueError, KeyError):
+            logger.warning(f"IA bulk query failed {r.status_code}: {r.json()['error']}")
+
+        # Only here if an exception occurred
+        # there's probably a bad apple; try splitting the batch
+        parts = await asyncio.gather(*(
+            LocalPostgresDataProvider._get_lite_metadata(
+                part, _recur_depth=_recur_depth + 1)
+            for part in partition(ocaids, 6)
+        ))
+        return list(itertools.chain(*parts))
+
+    @staticmethod
+    async def _get_lite_metadata_direct(ocaid: str):
+        try:
+            async with httpx.AsyncClient() as client:
+                r = await client.get(
+                    f"https://archive.org/metadata/{ocaid}/metadata",
+                    timeout=30,  # The default is silly short
+                )
+            r.raise_for_status()
+            response = r.json()
+            if 'error' not in response:
+                lite_metadata = {
+                    key: response['result'][key]
+                    for key in LITE_METADATA_FIELDS if key in response['result']
+                }
+                return lite_metadata
+            else:
+                return {
+                    'error': response['error'],
+                    'identifier': ocaid,
+                }
+        except HTTPError:
+            logger.warning(f'Error fetching metadata for {ocaid}')
+            return None
 
     async def cache_ia_metadata(self, ocaids: List[str]):
-        batches = list(batch_until_len(ocaids, 3000))
+        invalid_ocaids = set(ocaid for ocaid in ocaids if not is_valid_ocaid(ocaid))
+        if invalid_ocaids:
+            logger.warning(f"Trying to cache invalid OCAIDs: {invalid_ocaids}")
+        valid_ocaids = list(set(ocaids) - invalid_ocaids)
+        batches = list(batch_until_len(valid_ocaids, 3000))
         # Start them all async
         tasks = [asyncio.create_task(self._get_lite_metadata(b)) for b in batches]
         for task in tasks:
             for doc in await task:
                 self.ia_cache[doc['identifier']] = doc
+
+        missing_ocaids = [ocaid for ocaid in valid_ocaids if ocaid not in self.ia_cache]
+        missing_ocaid_batches = list(batch(missing_ocaids, 6))
+        for ocaids in missing_ocaid_batches:
+            # Start them all async
+            tasks = [
+                asyncio.create_task(self._get_lite_metadata_direct(ocaid))
+                for ocaid in ocaids]
+            for task in tasks:
+                lite_metadata = await task
+                if lite_metadata:
+                    self.ia_cache[lite_metadata['identifier']] = lite_metadata
 
     def cache_edition_works(self, lo_key, hi_key):
         q = """
@@ -248,7 +318,7 @@ class LocalPostgresDataProvider(DataProvider):
             INNER JOIN test works
                 ON editions."JSON" -> 'works' -> 0 ->> 'key' = works."Key"
             WHERE editions."Type" = '/type/edition'
-                AND '%s' <= editions."Key" AND editions."Key" < '%s'
+                AND '%s' <= editions."Key" AND editions."Key" <= '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
@@ -258,10 +328,10 @@ class LocalPostgresDataProvider(DataProvider):
             FROM "test"
             WHERE "Type" = '/type/edition'
                 AND '%s' <= "JSON" -> 'works' -> 0 ->> 'key'
-                AND "JSON" -> 'works' -> 0 ->> 'key' < '%s'
+                AND "JSON" -> 'works' -> 0 ->> 'key' <= '%s'
         """ % (lo_key, hi_key)
-        for row in self.query_all(q, cache_json=True):
-            self.cached_work_editions.add(row[1]['works'][0]['key'])
+        self.query_all(q, cache_json=True)
+        self.cached_work_editions_ranges.append((lo_key, hi_key))
 
     def cache_edition_authors(self, lo_key, hi_key):
         q = """
@@ -273,31 +343,36 @@ class LocalPostgresDataProvider(DataProvider):
                 ON works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key"
             WHERE editions."Type" = '/type/edition'
                 AND editions."JSON" -> 'works' -> 0 ->> 'key' IS NULL
-                AND '%s' <= editions."Key" AND editions."Key" < '%s'
+                AND '%s' <= editions."Key" AND editions."Key" <= '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
     def cache_work_authors(self, lo_key, hi_key):
+        # Cache upto first five authors
         q = """
             SELECT authors."Key", authors."JSON"
             FROM "test" works
-            INNER JOIN "test" authors
-                ON works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key"
+            INNER JOIN "test" authors ON (
+                works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key" OR
+                works."JSON" -> 'authors' -> 1 -> 'author' ->> 'key' = authors."Key" OR
+                works."JSON" -> 'authors' -> 2 -> 'author' ->> 'key' = authors."Key" OR
+                works."JSON" -> 'authors' -> 3 -> 'author' ->> 'key' = authors."Key" OR
+                works."JSON" -> 'authors' -> 4 -> 'author' ->> 'key' = authors."Key"
+            )
             WHERE works."Type" = '/type/work'
-            AND '%s' <= works."Key" AND works."Key" < '%s'
+            AND '%s' <= works."Key" AND works."Key" <= '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
     async def cache_cached_editions_ia_metadata(self):
-        ocaids = [
+        ocaids = list(set(
             doc['ocaid'] for doc in self.cache.values()
-            if 'ocaid' in doc]
-        ocaids = list(set(ocaids))
+            if 'ocaid' in doc))
         await self.cache_ia_metadata(ocaids)
 
     def find_redirects(self, key):
         """Returns keys of all things which redirect to this one."""
-        logger.info("find_redirects %s", key)
+        logger.debug("find_redirects %s", key)
         q = """
         SELECT "Key" FROM test
         WHERE "Type" = '/type/redirect' AND "JSON" ->> 'location' = '%s'
@@ -313,7 +388,10 @@ class LocalPostgresDataProvider(DataProvider):
 
     def get_editions_of_work(self, work):
         # They should all be cached...
-        if work['key'] in self.cached_work_editions:
+        cache_hit = any(
+            lo <= work['key'] <= hi
+            for (lo, hi) in self.cached_work_editions_ranges)
+        if cache_hit:
             return [
                 doc for doc in self.cache.values()
                 if (doc['type']['key'] == '/type/edition' and
@@ -324,18 +402,20 @@ class LocalPostgresDataProvider(DataProvider):
 
     def get_metadata(self, identifier):
         if identifier in self.ia_cache:
-            logger.info("IA metadata cache hit")
+            logger.debug("IA metadata cache hit")
             return self.ia_cache[identifier]
+        elif not is_valid_ocaid(identifier):
+            return None
         else:
-            logger.info("IA metadata cache miss")
+            logger.debug("IA metadata cache miss")
             return ia.get_metadata_direct(identifier)
 
     def get_document(self, key):
         if key in self.cache:
-            logger.info("get_document cache hit %s", key)
+            logger.debug("get_document cache hit %s", key)
             return self.cache[key]
 
-        logger.info("get_document cache miss %s", key)
+        logger.debug("get_document cache miss %s", key)
 
         q = """
         SELECT "JSON" FROM test
@@ -346,10 +426,9 @@ class LocalPostgresDataProvider(DataProvider):
             return row[0]
 
     def clear_cache(self):
-        self.cached_work_editions.clear()
+        self.cached_work_editions_ranges.clear()
         self.cache.clear()
         self.ia_cache.clear()
-        pass
 
 
 def simple_timeit(fn):
@@ -366,17 +445,19 @@ async def simple_timeit_async(awaitable: Awaitable):
     return end - start, result
 
 
-def build_job_query(job, start_at, offset, last_modified, limit):
+def build_job_query(
+        job: Literal['works', 'orphans', 'authors'],
+        start_at: str = None,
+        offset: int = 0,
+        last_modified: str = None,
+        limit: int = None
+) -> str:
     """
-
-    :param str job: job to complete. One of 'works', 'orphans', 'authors'
-    :param str or None start_at: key (type-prefixed) to start from as opposed to
-    offset; WAY more efficient since offset
-     has to walk through all `offset` rows.
-    :param int offset: Use `start_at` if possible.
-    :param str or None last_modified: Only import docs modified after this date.
-    :param int or None limit:
-    :rtype: str
+    :param job: job to complete
+    :param start_at: key (type-prefixed) to start from as opposed to offset; WAY more
+    efficient since offset has to walk through all `offset` rows.
+    :param offset: Use `start_at` if possible.
+    :param last_modified: Only import docs modified after this date.
     """
     type = {
         "works": "work",
@@ -416,13 +497,16 @@ async def main(
         postgres="postgres.ini",
         ol="http://ol/",
         ol_config="../../conf/openlibrary.yml",
+        solr: str = None,
+        skip_solr_id_check=True,
         start_at: str = None,
         offset=0,
         limit=1,
         last_modified: str = None,
         progress: str = None,
         log_file: str = None,
-        log_level=logging.WARN,
+        log_level=logging.INFO,
+        dry_run=False,
 ) -> None:
     """
     :param cmd: Whether to do the index or just fetch end of the chunk
@@ -430,6 +514,7 @@ async def main(
     :param postgres: Path to postgres config file
     :param ol: Open Library endpoint
     :param ol_config: Path to Open Library config file
+    :param solr: Overwrite solr base url from ol_config
     :param start_at: key (type-prefixed) to start from as opposed to offset; WAY more
     efficient since offset has to walk through all `offset` rows.
     :param offset: Use `start_at` if possible.
@@ -443,6 +528,9 @@ async def main(
         level=log_level,
         format="%(asctime)s [%(levelname)s] %(message)s"
     )
+
+    if solr:
+        update_work.set_solr_base_url(solr)
 
     PLogEntry = namedtuple('PLogEntry', [
         'seen', 'total', 'percent', 'elapsed', 'q_1', 'q_auth', 'q_ia', 'cached',
@@ -520,6 +608,11 @@ async def main(
                 print(next_start_results[0][0])
             return
 
+        logger.info(json.dumps({
+            'scope': 'solr_builder::main',
+            'event': 'Indexing started',
+            'start_at': start_at,
+        }))
         load_configs(ol, ol_config, db)
         q = build_job_query(job, start_at, offset, last_modified, limit)
 
@@ -591,9 +684,11 @@ async def main(
                 # Store in main cache
                 db.cache.update(db2.cache)
                 db.ia_cache.update(db2.ia_cache)
-                db.cached_work_editions.update(db2.cached_work_editions)
+                db.cached_work_editions_ranges += db2.cached_work_editions_ranges
 
-            update_keys(keys, commit=False, commit_way_later=True)
+            update_keys(keys, commit=False, commit_way_later=True,
+                        skip_id_check=skip_solr_id_check,
+                        update='quiet' if dry_run else 'update')
 
             seen += len(keys)
             plog.update(

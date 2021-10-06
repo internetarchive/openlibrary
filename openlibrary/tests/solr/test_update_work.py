@@ -2,7 +2,11 @@ import pytest
 
 from openlibrary.solr import update_work
 from openlibrary.solr.data_provider import DataProvider
-from openlibrary.solr.update_work import build_data, pick_cover_edition
+from openlibrary.solr.update_work import (
+    build_data,
+    pick_cover_edition,
+    pick_number_of_pages_median,
+)
 
 author_counter = 0
 edition_counter = 0
@@ -398,7 +402,7 @@ class Test_build_data:
         'Handles none': ([], None, None),
         'Handles empty string': ([''], None, None),
         'Stores multiple': (['05', '123.5'], ['005', '123.5'], 1),
-        'Handles full DDC': (['j132.452939 [B]'], ['j132.452939 B'], 0),
+        'Handles full DDC': (['j132.452939 [B]'], ['132.452939 B', 'j132.452939 B'], 0),
         'Handles alternate DDCs': (
             ['132.52 153.6'], ['132.52', '153.6'], 0),
         'Stores longest for sorting': (
@@ -410,8 +414,9 @@ class Test_build_data:
         'Ignores superfluous 920s': (['123.5', '920'], ['123.5'], 0),
         'Ignores superfluous 92s': (['123.5', '92'], ['123.5'], 0),
         'Ignores superfluous 92s (2)': (['123.5', 'B', '92'], ['123.5'], 0),
-        'Does not skip 920s': (['920', '123.5'], ['123.5', '920'], 0),
-        'Does not skip 92s': (['92', '123.5'], ['092', '123.5'], 1),
+        'Skips 920s': (['920', '123.5'], ['123.5'], 0),
+        'Skips 92s': (['92', '123.5'], ['123.5'], 0),
+        'Skips 092s': (['092', '123.5'], ['123.5'], 0),
     }
 
     @pytest.mark.parametrize("doc_ddcs,solr_ddcs,sort_ddc_index",
@@ -450,18 +455,14 @@ class Test_update_items:
             make_author(key='/authors/OL23A', type={'key': '/type/delete'})
         ])
         requests = update_work.update_author('/authors/OL23A')
-        assert isinstance(requests, list)
-        assert isinstance(requests[0], update_work.DeleteRequest)
-        assert requests[0].toxml() == '<delete><id>/authors/OL23A</id></delete>'
+        assert requests[0].to_json_command() == '"delete": ["/authors/OL23A"]'
 
     def test_redirect_author(self):
         update_work.data_provider = FakeDataProvider([
             make_author(key='/authors/OL24A', type={'key': '/type/redirect'})
         ])
         requests = update_work.update_author('/authors/OL24A')
-        assert isinstance(requests, list)
-        assert isinstance(requests[0], update_work.DeleteRequest)
-        assert requests[0].toxml() == '<delete><id>/authors/OL24A</id></delete>'
+        assert requests[0].to_json_command() == '"delete": ["/authors/OL24A"]'
 
 
     def test_update_author(self, monkeypatch):
@@ -484,26 +485,13 @@ class Test_update_items:
                             lambda url, **kwargs: empty_solr_resp)
         requests = update_work.update_author('/authors/OL25A')
         assert len(requests) == 1
-        assert isinstance(requests, list)
-        assert isinstance(requests[0], update_work.UpdateRequest)
-        assert requests[0].toxml().startswith('<add>')
-        assert '<field name="key">/authors/OL25A</field>' in requests[0].toxml()
-
-    def test_delete_edition(self):
-        editions = update_work.update_edition({'key': '/books/OL23M', 'type': {'key': '/type/delete'}})
-        assert editions == [], "Editions are not indexed by Solr, expecting empty set regardless of input. Got: %s" % editions
-
-    def test_update_edition(self):
-        editions = update_work.update_edition({'key': '/books/OL23M', 'type': {'key': '/type/edition'}})
-        assert editions == [], "Editions are not indexed by Solr, expecting empty set regardless of input. Got: %s" % editions
+        assert isinstance(requests[0], update_work.AddRequest)
+        assert requests[0].doc['key'] == "/authors/OL25A"
 
     def test_delete_requests(self):
         olids = ['/works/OL1W', '/works/OL2W', '/works/OL3W']
-        del_req = update_work.DeleteRequest(olids)
-        assert isinstance(del_req, update_work.DeleteRequest)
-        assert del_req.toxml().startswith("<delete>")
-        for olid in olids:
-            assert "<id>%s</id>" % olid in del_req.toxml()
+        json_command = update_work.DeleteRequest(olids).to_json_command()
+        assert '"delete": ["/works/OL1W", "/works/OL2W", "/works/OL3W"]' == json_command
 
 
 class TestUpdateWork:
@@ -514,28 +502,25 @@ class TestUpdateWork:
     def test_delete_work(self):
         requests = update_work.update_work({'key': '/works/OL23W', 'type': {'key': '/type/delete'}})
         assert len(requests) == 1
-        assert isinstance(requests[0], update_work.DeleteRequest)
-        assert requests[0].toxml() == '<delete><id>/works/OL23W</id></delete>'
+        assert requests[0].to_json_command() == '"delete": ["/works/OL23W"]'
 
     def test_delete_editions(self):
         requests = update_work.update_work({'key': '/works/OL23M', 'type': {'key': '/type/delete'}})
         assert len(requests) == 1
-        assert isinstance(requests[0], update_work.DeleteRequest)
-        assert requests[0].toxml() == '<delete><id>/works/OL23M</id></delete>'
+        assert requests[0].to_json_command() == '"delete": ["/works/OL23M"]'
 
     def test_redirects(self):
         requests = update_work.update_work({'key': '/works/OL23W', 'type': {'key': '/type/redirect'}})
         assert len(requests) == 1
-        assert isinstance(requests[0], update_work.DeleteRequest)
-        assert requests[0].toxml() == '<delete><id>/works/OL23W</id></delete>'
+        assert requests[0].to_json_command() == '"delete": ["/works/OL23W"]'
 
     def test_no_title(self):
         requests = update_work.update_work({'key': '/books/OL1M', 'type': {'key': '/type/edition'}})
         assert len(requests) == 1
-        assert '<field name="title">__None__</field>' in requests[0].toxml()
+        assert requests[0].doc['title'] == "__None__"
         requests = update_work.update_work({'key': '/works/OL23W', 'type': {'key': '/type/work'}})
         assert len(requests) == 1
-        assert '<field name="title">__None__</field>' in requests[0].toxml()
+        assert requests[0].doc['title'] == "__None__"
 
     def test_work_no_title(self):
         work = {'key': '/works/OL23W', 'type': {'key': '/type/work'}}
@@ -544,7 +529,7 @@ class TestUpdateWork:
         update_work.data_provider = FakeDataProvider([work, ed])
         requests = update_work.update_work(work)
         assert len(requests) == 1
-        assert '<field name="title">Some Title!</field>' in requests[0].toxml()
+        assert requests[0].doc['title'] == "Some Title!"
 
 class Test_pick_cover_edition:
     def test_no_editions(self):
@@ -577,3 +562,20 @@ class Test_pick_cover_edition:
     def test_prefers_anything(self):
         ed = {'covers': [123]}
         assert pick_cover_edition([ed], 456) == ed
+
+
+class Test_pick_number_of_pages_median:
+    def test_no_editions(self):
+        assert pick_number_of_pages_median([]) is None
+
+    def test_invalid_type(self):
+        ed = {'number_of_pages': 'spam'}
+        assert pick_number_of_pages_median([ed]) is None
+        eds = [{'number_of_pages': n} for n in [123, 122, 'spam']]
+        assert pick_number_of_pages_median(eds) == 123
+
+    def test_normal_case(self):
+        eds = [{'number_of_pages': n} for n in [123, 122, 1]]
+        assert pick_number_of_pages_median(eds) == 122
+        eds = [{}, {}] + [{'number_of_pages': n} for n in [123, 122, 1]]
+        assert pick_number_of_pages_median(eds) == 122

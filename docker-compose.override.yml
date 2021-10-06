@@ -25,6 +25,10 @@ services:
       - db
       - infobase
 
+  solr:
+    ports:
+      - 8983:8983
+
   solr-updater:
     build:
       context: .
@@ -35,9 +39,13 @@ services:
       - .:/openlibrary
 
   db:
-    image: postgres:9.3
+    image: postgres:${POSTGRES_VERSION:-9.3}
     networks:
       - dbnet
+    environment:
+      # This is okay for dev, but may need to be explored for prod
+      # This allows postgres access for psql user w/o password required
+      - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - .:/openlibrary
       # Any files inside /docker-entrypoint-initdb.d/ will get run by postgres

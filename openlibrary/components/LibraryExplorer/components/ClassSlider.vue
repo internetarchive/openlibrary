@@ -8,7 +8,7 @@
           :title="prevSection.short"
         />
       </button>
-      <div class="classification-short">{{ activeSection.short }}</div>
+      <div class="classification-short" :class="this.direction">{{ activeSection.short }}</div>
       <button
         @click="index += 1"
         v-if="nextSection"
@@ -19,21 +19,10 @@
     </div>
     <main>
       <ShelfProgressBar :sections="progressBarSections" :index="progressBarIndex" />
-      <div class="labels" :style="{transform: `translateX(-${100 * index}%)`}">
-        <div v-for="section in sections" :key="section.short">
-          {{section.name}}
-          <br>
-          <small>{{section.count}} books</small>
-        </div>
-      </div>
+      <div class="label" :class="this.direction">{{activeSection.name}}</div>
     </main>
     <div>
-      <slot name="extra-actions"/>
-      <!-- <select class="sort-selector">
-        <option>Popular</option>
-        <option>Newest</option>
-        <option>Shelf Order</option>
-      </select>-->
+      <slot name="extra-actions" />
     </div>
   </div>
 </template>
@@ -47,16 +36,27 @@ export default {
         node: Object
     },
     data() {
-        return {};
+        return {
+            direction: null,
+        };
+    },
+
+    watch: {
+        async index(newVal, oldVal) {
+            if (typeof oldVal !== 'number') return;
+            this.direction = newVal > oldVal ? 'slide-right' : 'slide-left';
+            await new Promise(res => setTimeout(res, 200));
+            this.direction = null;
+        }
     },
 
     computed: {
         index: {
             get() {
-                return this.node.position == 'root' ? 0 : this.node.position + 1;
+                return this.node.position === 'root' ? 0 : this.node.position + 1;
             },
             set(newVal) {
-                this.node.position = newVal == 0 ? 'root' : newVal - 1;
+                this.node.position = newVal === 0 ? 'root' : newVal - 1;
             }
         },
         sections() {
@@ -86,7 +86,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style scoped lang="less">
 .arrow-icon {
   margin-bottom: -2px;
 }
@@ -98,29 +98,19 @@ export default {
   display: flex;
   min-height: 3em;
   box-sizing: border-box;
+  align-items: center;;
 }
 
 .class-slider main {
-  position: relative;
+  @media (min-width: 450px) {
+    position: relative;
+  }
   overflow: hidden;
+  overflow: clip;
   flex: 1;
+  align-self: stretch;
   display: flex;
-}
-
-.class-slider main .labels {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  transition: transform .2s;
-}
-
-.labels div {
-  flex-shrink: 0;
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  padding-top: 6px;
+  justify-content: center;
 }
 
 button {
@@ -132,17 +122,26 @@ button {
 }
 
 button:first-child {
-  border-right: 2px solid #000;
+  border-right: 2px solid rgb(161, 157, 157);
 }
 button:last-child {
   border-left: 2px solid #000;
 }
 
+.label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  line-height: 1em;
+  padding-bottom: 6px;
+}
+
 .sections {
   position: absolute;
-  width: 100%;
-  height: 100%;
   display: flex;
+  left: 0;
+  right: 0;
 }
 
 .lr-buttons {
@@ -161,7 +160,18 @@ button:last-child {
   padding-right: 15px;
 }
 
-small {
-  opacity: .8;
+@keyframes slide-right {
+  from { transform: translateX(20px) }
+}
+
+@keyframes slide-left {
+  from { transform: translateX(-20px) }
+}
+
+.slide-right {
+  animation: slide-right 0.2s ease;
+}
+.slide-left {
+  animation: slide-left 0.2s ease;
 }
 </style>

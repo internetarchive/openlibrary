@@ -25,7 +25,7 @@ export default function Template(tmpl_text) {
     for (i=1; i < tokens.length; i++) {
         t = tokens[i].split('%>');
 
-        if (t[0][0] == '=') {
+        if (t[0][0] === '=') {
             addExpr(t[0].substr(1));
         }
         else {

@@ -54,7 +54,7 @@ class add_cover(delegate.page):
         else:
             data = None
 
-        if i.url and i.url.strip() == "http://":
+        if i.url and i.url.strip() == "https://":
             i.url = ""
 
         user = accounts.get_current_user()

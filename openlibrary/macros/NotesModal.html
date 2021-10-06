@@ -1,0 +1,42 @@
+$def with (work, edition, link_text, id, class_list='', reload_id=None)
+
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+$ notes = work.get_users_notes(username, edition.key.split('/')[-1])
+$ work_key = work.key
+
+$if notes and len(notes.notes) > 0:
+  $ display_delete_button = True
+$else:
+  $ display_delete_button = False
+
+$ context = {
+  $ "id": id
+  $ }
+
+$if reload_id:
+  $ context['reloadId'] = reload_id
+
+<div class="$class_list">
+  <a class="notes-modal-link" href="javascript:;" data-context="$json_encode(context)">$link_text</a>
+
+  <div class="hidden">
+    <div id="$id-metadata-form" class="floaterAdd metadata-form">
+      <div class="floaterHead">
+        <h2>$_("My Book Notes")</h2>
+        <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+      </div>
+      <form class="book-notes-form" method="POST" action="$(work.key)/notes.json">
+        <p>$_("My private notes about this edition:")</p>
+        <div>
+          <textarea class="notes-modal-textarea" name="notes" rows="10">$(notes.notes if notes else "")</textarea>
+        </div>
+        <input type="hidden" name="work_id" value="$work_key.split('/')[-1]" />
+        <input type="hidden" name="edition_id" value="$edition.key.split('/')[-1]" />
+        <div class="note-form-buttons">
+          <button class="delete-note-button cta-btn cta-btn--shell $('' if display_delete_button else 'hidden')" type="button">$_("Delete Note")</button>
+          <button class="update-note-button">$_("Save Note")</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

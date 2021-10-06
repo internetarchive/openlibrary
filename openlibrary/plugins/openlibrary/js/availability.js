@@ -51,7 +51,7 @@ function initAvailability() {
         '^/account/books/[^/]+': { // readinglog
             filter: false
         },
-        '^/people/[^/]+': { // lists
+        '^/people/[^/]+/lists/[^/]+': { // lists
             filter: false,
         },
         '^/stats/[^/]+': {
@@ -243,9 +243,7 @@ function initAvailability() {
                                                   'class="join-waitlist waitinglist-form">' +
                                                   '<input type="hidden" name="action" value="join-waitinglist">' +
                                                   '<button type="submit" class="cta-btn cta-btn--unavailable" data-ol-link-track="CTAClick|JoinWaitlist">' +
-                                                  `Join Waitlist${
-                                                      work.num_waitlist !== '0' ? ` <span class="cta-btn__badge">${work.num_waitlist}</span>` : ''
-                                                  }</button></form>${
+                                                  `Join Waitlist</button></form>${
                                                       work.num_waitlist === '0' ? '<div class="waitlist-msg">You will be first in line!</div>' : ''}`);
                                 }
                             }

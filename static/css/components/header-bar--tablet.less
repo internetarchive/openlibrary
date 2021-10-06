@@ -1,16 +1,36 @@
 .header-bar {
+  padding-top: 5px;
+
+  .logo-component {
+    // The width and height attributes of logo-icon should be equal to
+    // dimensions of /static/images/openlibrary-logo-tighter.svg
+    .logo-icon {
+      height: 47px;
+      width: 189px;
+    }
+  }
+
   .auth-component {
     .hide-me {
       display: inline;
     }
   }
 
+  .account-component {
+    display: block;
+  }
+
   .navigation-component {
+    .display-flex();
     .dropdown-menu {
       border-top: none;
       border-top-right-radius: 0;
       border-top-left-radius: 0;
     }
+  }
+
+  .hamburger-component {
+    display: none;
   }
 
   .search-component {
@@ -28,5 +48,9 @@
       width: auto;
       max-width: 310px;
     }
+  }
+
+  &.mobile {
+    display: none;
   }
 }

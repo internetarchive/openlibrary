@@ -1,7 +1,5 @@
 FROM ubuntu:xenial
 
-ARG DOCKER_HUB=FALSE
-
 ENV LANG en_US.UTF-8
 
 # required for postgres
@@ -26,7 +24,11 @@ RUN apt-get -qq update && apt-get install -y \
     vim \
     emacs \
 # util for running things in parallel
-    parallel
+    parallel \
+# automatic import pipeline dependencies
+    zip \
+    unzip \
+    lftp
 
 # Print gnu parallel citation
 USER openlibrary

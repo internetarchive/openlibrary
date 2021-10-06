@@ -18,7 +18,7 @@ all: git css js components i18n
 
 css: static/css/page-*.less
 	mkdir -p $(BUILD)
-	parallel --verbose -q npx lessc {} $(BUILD)/{/.}.css --clean-css="--s1 --advanced --compatibility=ie8" ::: $^
+	parallel --verbose -q npx lessc {} $(BUILD)/{/.}.css --clean-css="--s1 --advanced" ::: $^
 
 js:
 	mkdir -p $(BUILD)
@@ -42,12 +42,9 @@ i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
 git:
-#Do not run these on DockerHub since it recursively clones all the repos before build initiates
-ifneq ($(DOCKER_HUB),TRUE)
 	git submodule init
 	git submodule sync
 	git submodule update
-endif
 
 clean:
 	rm -rf $(BUILD)
@@ -62,8 +59,8 @@ load_sample_data:
 	curl http://localhost:8080/_dev/process_ebooks # hack to show books in returncart
 
 reindex-solr:
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://web:8080/ -c conf/openlibrary.yml --data-provider=legacy
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://web:8080/ -c conf/openlibrary.yml --data-provider=legacy
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py --ol-url http://web:8080/ --ol-config conf/openlibrary.yml --data-provider=legacy
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py --ol-url http://web:8080/ --ol-config conf/openlibrary.yml --data-provider=legacy
 
 lint-diff:
 	git diff "$${BASE_BRANCH:-master}" -U0 | ./scripts/flake8-diff.sh
@@ -79,5 +76,9 @@ endif
 test-py:
 	pytest . --ignore=tests/integration --ignore=scripts/2011 --ignore=infogami --ignore=vendor --ignore=node_modules
 
+test-i18n:
+  # Valid locale codes should be added as arguments to validate
+	$(PYTHON) ./scripts/i18n-messages validate de es fr ja
+
 test:
-	make test-py && npm run test
+	make test-py && npm run test && make test-i18n

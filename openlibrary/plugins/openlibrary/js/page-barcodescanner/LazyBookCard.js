@@ -49,24 +49,24 @@ export default class LazyBookCard {
         newState = Object.assign({}, oldState, newState);
 
         if (this.ui) {
-            if (oldState.link != newState.link) {
+            if (oldState.link !== newState.link) {
                 this.ui.attr('href', newState.link);
             }
 
-            if (oldState.coverSrc != newState.coverSrc) {
+            if (oldState.coverSrc !== newState.coverSrc) {
                 this.ui.find('.cover img').attr('src', newState.coverSrc);
             }
 
             const textFields = ['title', 'byline', 'identifier'];
-            for (let field of textFields) {
-                if (oldState[field] != newState[field]) {
+            for (const field of textFields) {
+                if (oldState[field] !== newState[field]) {
                     this.ui.find(`.${field}`).text(newState[field]);
                 }
             }
 
             const classFields = ['loading', 'errored'];
-            for (let field of classFields) {
-                if (oldState[field] != newState[field]) {
+            for (const field of classFields) {
+                if (oldState[field] !== newState[field]) {
                     this.ui.toggleClass(field, newState[field]);
                 }
             }
@@ -95,7 +95,7 @@ export default class LazyBookCard {
                 });
 
                 if (editionRecord.covers) {
-                    const coverId = editionRecord.covers.find(x => x != -1);
+                    const coverId = editionRecord.covers.find(x => x !== -1);
                     if (coverId) {
                         cardEl.updateState({
                             coverSrc: `http://covers.openlibrary.org/b/id/${coverId}-M.jpg`,
