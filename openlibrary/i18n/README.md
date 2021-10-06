@@ -2,7 +2,7 @@
 
 Want to get started contributing a language towards Open Library internationalization (i18n)?
 
-**Step 1:** Please connect with us via https://openlibrary.org/volunteer
+**Step 1:** Please kindly reach out to us via the volunteer page [https://openlibrary.org/volunteer#translator](https://openlibrary.org/volunteer#translator)
 
 **Step 2:** Watch this overview
 
