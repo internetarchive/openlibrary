@@ -178,9 +178,10 @@ $jsdef render_work_autocomplete_item(item):
 
     <div class="formBackRight">
         <div class="illustration">
+            <h2>Edition Cover</h2>
             $:render_template("covers/book_cover", book)
-            $:render_template("covers/change", book)
         </div>
+        $:render_component('CoversNew', attrs=dict(identifier=book.key))
     </div>
 
     <div class="clearfix"></div>

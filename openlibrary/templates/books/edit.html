@@ -94,6 +94,13 @@ $putctx("robots", "noindex,nofollow")
                             </div>
                             $:render_template("books/edit/about", work)
                         </div>
+                        <div class="formBackRight">
+                            <div class="illustration">
+                                <h2>Work Cover</h2>
+                                $:render_template("covers/book_cover", work)
+                            </div>
+                            $:render_component('CoversNew', attrs=dict(identifier=work.key))
+                        </div>
                     </div>
                 </fieldset>
                 <fieldset class="major">

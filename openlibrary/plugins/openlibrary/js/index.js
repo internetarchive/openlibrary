@@ -250,6 +250,7 @@ jQuery(function () {
                     module.initCoversAddManage();
                 }
                 if (saveCoversElement) {
+                    module.initCoversSavedNew();
                     module.initCoversSaved();
                 }
             });
