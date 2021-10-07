@@ -2042,6 +2042,7 @@ COPY public.data (thing_id, revision, data) FROM stdin;
 664	1	{"publishers": ["ICON Reference"], "languages": [{"key": "/languages/eng"}], "weight": "13.8 ounces", "title": "Adventures of Tom Sawyer (Webster's Chinese-Simplified Thesaurus Edition)", "number_of_pages": 264, "isbn_13": ["9780497260576"], "created": {"type": "/type/datetime", "value": "2013-03-28T07:50:50.124308"}, "physical_format": "Paperback", "isbn_10": ["0497260573"], "publish_date": "May 5, 2006", "key": "/books/OL7652936M", "last_modified": {"type": "/type/datetime", "value": "2013-03-28T07:50:50.124308"}, "latest_revision": 1, "works": [{"key": "/works/OL8193488W"}], "type": {"key": "/type/edition"}, "subjects": ["Chinese", "Foreign Language Study / Chinese", "Foreign Language Study", "Foreign Language - Dictionaries / Phrase Books", "Language"], "physical_dimensions": "9 x 6 x 0.6 inches", "revision": 1}
 665	1	{"description": {"type": "/type/text", "value": "Group of librarians. \\r\\n\\r\\nLibrarians have permission to edit all pages on the website, including the developer documentation."}, "created": {"type": "/type/datetime", "value": "2017-12-24T02:53:58.459826"}, "last_modified": {"type": "/type/datetime", "value": "2017-12-24T02:53:58.459826"}, "latest_revision": 1, "key": "/usergroup/librarians", "type": {"key": "/type/usergroup"}, "revision": 1}
 666	1	{"description": {"type": "/type/text", "value": "User Group for beta-testers.\\r\\n\\r\\nPeople in the group will get to see the beta features of Open Library."}, "created": {"type": "/type/datetime", "value": "2020-11-19T03:45:35.476156"}, "m": "edit", "last_modified": {"type": "/type/datetime", "value": "2020-11-19T03:45:35.476156"}, "latest_revision": 1, "key": "/usergroup/beta-testers", "type": {"key": "/type/usergroup"}, "revision": 1}
+667	1	{"identifiers": [{"label": "ISNI", "name": "isni", "notes": "", "url": "http://www.isni.org/@@@", "website": "http://www.isni.org/"}, {"label": "LibriVox", "name": "librivox", "notes": "Should be a number", "url": "https://librivox.org/author/@@@", "website": "https://librivox.org"}, {"label": "Project Gutenberg", "name": "project_gutenberg", "notes": "Should be a number", "url": "https://www.gutenberg.org/ebooks/author/@@@", "website": "https://www.gutenberg.org"}, {"label": "VIAF", "name": "viaf", "notes": "", "url": "https://viaf.org/viaf/@@@", "website": "https://viaf.org"}, {"label": "Wikidata", "name": "wikidata", "notes": "", "url": "https://www.wikidata.org/wiki/@@@", "website": "https://wikidata.org"}], "key": "/config/author", "type": {"key": "/type/object"}, "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2021-10-07T20:31:34.001079"}, "last_modified": {"type": "/type/datetime", "value": "2021-10-07T20:31:34.001079"}}
 \.
 
 
@@ -3192,6 +3193,27 @@ COPY public.datum_str (thing_id, key_id, value, ordering) FROM stdin;
 423	22	Sinhalese	\N
 447	21	ssw	\N
 452	22	Swahili	\N
+667	31	librivox	\N
+667	31	wikidata	\N
+667	31	viaf	\N
+667	31	isni	\N
+667	31	project_gutenberg	\N
+667	33	ISNI	\N
+667	33	Wikidata	\N
+667	33	VIAF	\N
+667	33	Project Gutenberg	\N
+667	33	LibriVox	\N
+667	38	https://librivox.org	\N
+667	38	https://viaf.org	\N
+667	38	https://wikidata.org	\N
+667	38	https://www.gutenberg.org	\N
+667	38	http://www.isni.org/	\N
+667	30	https://librivox.org/author/@@@	\N
+667	30	https://viaf.org/viaf/@@@	\N
+667	30	https://www.wikidata.org/wiki/@@@	\N
+667	30	http://www.isni.org/@@@	\N
+667	30	https://www.gutenberg.org/ebooks/author/@@@	\N
+667	134	Should be a number	\N
 \.
 
 
@@ -4907,6 +4929,7 @@ COPY public.property (id, type, name) FROM stdin;
 131	31	other_titles
 132	31	identifiers.amazon
 133	12	m
+134	14	identifiers.notes
 \.
 
 
@@ -4914,7 +4937,7 @@ COPY public.property (id, type, name) FROM stdin;
 -- Name: property_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('public.property_id_seq', 133, true);
+SELECT pg_catalog.setval('public.property_id_seq', 134, true);
 
 
 --
@@ -5798,6 +5821,7 @@ COPY public.thing (id, key, type, latest_revision, created, last_modified) FROM 
 664	/books/OL7652936M	31	1	2013-03-28 07:50:50.124308	2013-03-28 07:50:50.124308
 665	/usergroup/librarians	12	1	2017-12-24 02:53:58.459826	2017-12-24 02:53:58.459826
 666	/usergroup/beta-testers	12	1	2020-11-19 03:45:35.476156	2020-11-19 03:45:35.476156
+667	/config/author	14	1	2021-10-07 20:31:34.001079	2021-10-07 20:31:34.001079
 \.
 
 
@@ -5805,7 +5829,7 @@ COPY public.thing (id, key, type, latest_revision, created, last_modified) FROM 
 -- Name: thing_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('public.thing_id_seq', 666, true);
+SELECT pg_catalog.setval('public.thing_id_seq', 667, true);
 
 
 --
@@ -5858,6 +5882,7 @@ COPY public.transaction (id, action, author_id, ip, comment, bot, created, chang
 43	bulk_update	24	127.0.0.1	\N	f	2013-03-28 07:50:50.124308	[{"key": "/books/OL24197450M", "revision": 1}, {"key": "/books/OL24197475M", "revision": 1}, {"key": "/books/OL8011987M", "revision": 1}, {"key": "/books/OL24972169M", "revision": 1}, {"key": "/books/OL23269118M", "revision": 1}, {"key": "/books/OL9737752M", "revision": 1}, {"key": "/books/OL5820529M", "revision": 1}, {"key": "/books/OL2058361M", "revision": 1}, {"key": "/books/OL13569660M", "revision": 1}, {"key": "/books/OL24262029M", "revision": 1}, {"key": "/books/OL24405389M", "revision": 1}, {"key": "/books/OL24605334M", "revision": 1}, {"key": "/books/OL24405749M", "revision": 1}, {"key": "/books/OL13517105M", "revision": 1}, {"key": "/books/OL7652984M", "revision": 1}, {"key": "/books/OL7653004M", "revision": 1}, {"key": "/books/OL7652892M", "revision": 1}, {"key": "/books/OL3421846M", "revision": 1}, {"key": "/books/OL24291128M", "revision": 1}, {"key": "/books/OL23273793M", "revision": 1}, {"key": "/books/OL23575606M", "revision": 1}, {"key": "/books/OL7652865M", "revision": 1}, {"key": "/books/OL24260825M", "revision": 1}, {"key": "/books/OL7037695M", "revision": 1}, {"key": "/books/OL8364871M", "revision": 1}, {"key": "/books/OL24645346M", "revision": 1}, {"key": "/books/OL7637879M", "revision": 1}, {"key": "/books/OL23703735M", "revision": 1}, {"key": "/books/OL25083437M", "revision": 1}, {"key": "/books/OL24630220M", "revision": 1}, {"key": "/books/OL1890025M", "revision": 1}, {"key": "/books/OL24173003M", "revision": 1}, {"key": "/books/OL23026316M", "revision": 1}, {"key": "/books/OL24152177M", "revision": 1}, {"key": "/books/OL17099411M", "revision": 1}, {"key": "/books/OL42679M", "revision": 1}, {"key": "/books/OL24620876M", "revision": 1}, {"key": "/books/OL24630277M", "revision": 1}, {"key": "/books/OL7652951M", "revision": 1}, {"key": "/books/OL24197430M", "revision": 1}, {"key": "/books/OL6107583M", "revision": 1}, {"key": "/books/OL24755423M", "revision": 1}, {"key": "/books/OL6514192M", "revision": 1}, {"key": "/books/OL24218235M", "revision": 1}, {"key": "/books/OL14065582M", "revision": 1}, {"key": "/books/OL24375501M", "revision": 1}, {"key": "/books/OL2407849M", "revision": 1}, {"key": "/books/OL7652777M", "revision": 1}, {"key": "/books/OL6179353M", "revision": 1}, {"key": "/books/OL24503867M", "revision": 1}, {"key": "/books/OL22842654M", "revision": 1}, {"key": "/books/OL20431791M", "revision": 1}, {"key": "/books/OL7361700M", "revision": 1}, {"key": "/books/OL24293426M", "revision": 1}, {"key": "/books/OL24579688M", "revision": 1}, {"key": "/books/OL22782947M", "revision": 1}, {"key": "/books/OL7652936M", "revision": 1}]	{}
 44	update	524	10.0.2.2		f	2017-12-24 02:53:58.459826	[{"key": "/usergroup/librarians", "revision": 1}]	{}
 45	update	524	172.21.0.1		f	2020-11-19 03:45:35.476156	[{"key": "/usergroup/beta-testers", "revision": 1}]	{}
+46	update	524	172.18.0.1		f	2021-10-07 20:31:34.001079	[{"key": "/config/author", "revision": 1}]	{}
 \.
 
 
@@ -5865,7 +5890,7 @@ COPY public.transaction (id, action, author_id, ip, comment, bot, created, chang
 -- Name: transaction_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('public.transaction_id_seq', 45, true);
+SELECT pg_catalog.setval('public.transaction_id_seq', 46, true);
 
 
 --
@@ -7083,6 +7108,7 @@ COPY public.version (id, thing_id, revision, transaction_id) FROM stdin;
 677	664	1	43
 678	665	1	44
 679	666	1	45
+680	667	1	46
 \.
 
 
@@ -7090,7 +7116,7 @@ COPY public.version (id, thing_id, revision, transaction_id) FROM stdin;
 -- Name: version_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('public.version_id_seq', 679, true);
+SELECT pg_catalog.setval('public.version_id_seq', 680, true);
 
 
 --
