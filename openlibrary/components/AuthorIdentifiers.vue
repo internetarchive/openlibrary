@@ -95,6 +95,16 @@ export default {
                 .map(([name, value]) => `<input type="hidden" name="author--remote_ids--${name}" value="${value}"/>`)
                 .join('');
             document.querySelector(this.output_selector).innerHTML = html;
+        },
+        selectIdentifierByInputValue: function() {
+            // Selects the dropdown identifier based on the input value
+            // Only supports wikidata and isni because the other identifiers are just numbers
+            const wikiDatas = this.inputValue.match(/Q\d+/i);
+            if (wikiDatas?.length > 0){
+                this.selectedIdentifier = 'wikidata';
+            } else if (this.inputValue.length === 16){
+                this.selectedIdentifier = 'isni';
+            }
         }
     },
     created: function(){
@@ -105,7 +115,11 @@ export default {
             {
                 handler: function(){this.createHiddenInputs()},
                 deep: true
-            }
+            },
+        inputValue:
+            {
+                handler: function(){this.selectIdentifierByInputValue()},
+            },
     }
 }
 </script>
