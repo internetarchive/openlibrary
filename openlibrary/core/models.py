@@ -712,6 +712,9 @@ class User(Thing):
     def is_beta_tester(self):
         return self.is_usergroup_member('/usergroup/beta-testers')
 
+    def has_librarian_tools(self):
+        return self.is_usergroup_member('/usergroup/librarian-tools')
+
     def get_lists(self, seed=None, limit=100, offset=0, sort=True):
         """Returns all the lists of this user.
 
