@@ -7,24 +7,9 @@ from babel.messages.checkers import python_format
 
 
 def validate(message: Message, catalog: Catalog) -> List[str]:
-    errors = _validate_fuzzy(message)
-    errors.extend([f'    {str(err)}' for err in message.check(catalog)])
+    errors = [f'    {str(err)}' for err in message.check(catalog)]
     if message.python_format and not message.pluralizable and message.string:
         errors.extend(_validate_cfmt(message.id, message.string))
-
-    return errors
-
-
-def _validate_fuzzy(message: Message) -> List[str]:
-    """Returns an error list if the message is fuzzy.
-
-    If a fuzzy flag is found above the header of a `.po`
-    file, the message will have `None` as its line number.
-    """
-    errors = []
-    if message.fuzzy:
-        if message.lineno:
-            errors.append('    Is fuzzy')
 
     return errors
 
