@@ -38,7 +38,7 @@ const RENDER_AUTOCOMPLETE_RESULT = {
         return `
             <li>
                 <a href="/authors/${author.key}">
-                    <img src="http://covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png" alt=""/>
+                    <img src="//covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png" alt=""/>
                     <span class="author-desc"><div class="author-name">${author.name}</div></span>
                 </a>
             </li>`;
