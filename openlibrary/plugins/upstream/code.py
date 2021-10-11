@@ -35,23 +35,6 @@ class static(delegate.page):
         raise web.seeother(host + '/static' + web.ctx.path)
 
 
-class view(core.view):
-    def GET(self, path):
-        if web.re_compile(r'/people/[^/]+/lists/OL[\d]+L(/[^/]+){0,1}').match(path):
-            i = web.input(v=None)
-
-            if i.v is not None and safeint(i.v, None) is None:
-                raise web.seeother(web.changequery(v=None))
-
-            p = db.get_version(path, i.v)
-
-            if p.type.key == '/type/list':
-                username = p.get_owner().get_username()
-                olid = path.split('/')[4]
-                return MyBooksTemplate(username, 'list').render(list_id=olid)
-        return core.view.GET(self, path)
-
-
 class edit(core.edit):
     """Overwrite ?m=edit behaviour for author, book, work, and people pages."""
     def GET(self, key):

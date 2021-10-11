@@ -2,7 +2,7 @@ import json
 import web
 
 from infogami.utils import delegate
-from infogami.utils.view import safeint, render
+from infogami.utils.view import public, safeint, render
 
 from openlibrary import accounts
 from openlibrary.core.booknotes import Booknotes
@@ -174,7 +174,7 @@ class MyBooksTemplate(object):
         self.lists = self.readlog.lists
         self.counts = self.readlog.reading_log_counts
 
-    def render(self, page=1, sort='desc', list_id=None):
+    def render(self, page=1, sort='desc', list=None):
         if not self.user:
             return render.notfound("User %s" % self.username, create=False)
         logged_in_user = accounts.get_current_user()
@@ -200,7 +200,7 @@ class MyBooksTemplate(object):
                     mode="openlibrary_work"
                 )
             elif self.key == 'list':
-                data = self._prepare_data(logged_in_user, list_id=list_id)
+                data = list
 
             else:
                 data = self._prepare_data(logged_in_user)
@@ -209,7 +209,7 @@ class MyBooksTemplate(object):
             if self.key == 'lists':
                 data = self._prepare_data(logged_in_user, username=self.username)
             elif self.key == 'list':
-                data = self._prepare_data(logged_in_user, list_id=list_id)
+                data = list
             elif is_public:
                 data = add_availability(
                     self.readlog.get_works(
@@ -236,7 +236,6 @@ class MyBooksTemplate(object):
         sponsorships=None,
         page=1,
         username=None,
-        list_id=None
     ):
         if sponsorships:
             return (web.ctx.site.get(
@@ -260,13 +259,13 @@ class MyBooksTemplate(object):
             return PatronBooknotes(self.user).get_observations(page=page)
         elif self.key == 'imports':
             return {}
-        elif self.key == 'list':
-            for list in self.lists:
-                olid = list.key.split('/')[-1]
-                if olid == list_id:
-                    return list
 
         return None
+
+
+@public
+def get_mybooks_template(username, key, list):
+    return MyBooksTemplate(username, key).render(list=list)
 
 
 class ReadingLog(object):
