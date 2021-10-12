@@ -16,20 +16,19 @@ from openlibrary.plugins.upstream import borrow
 RESULTS_PER_PAGE = 25
 
 
-class public_my_books(delegate.page):
+class my_books_redirect(delegate.page):
     path = "/people/([^/]+)/books"
 
     def GET(self, username):
         raise web.seeother('/people/%s/books/want-to-read' % username)
 
 
-class public_my_books_view(delegate.page):
+class my_books_view(delegate.page):
     valid_paths = "currently-reading|want-to-read|already-read|" \
                   "sponsorships|notes|observations"
     path = f"/people/([^/]+)/books/(?:({valid_paths}))"
 
     def GET(self, username, key):
-        """check if user's reading log is public"""
         i = web.input(page=1, sort='desc')
         return MyBooksTemplate(username, key).render(page=i.page, sort=i.sort)
 
