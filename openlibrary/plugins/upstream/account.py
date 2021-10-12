@@ -318,8 +318,8 @@ class account_login(delegate.page):
 
     def GET(self):
         referer = web.ctx.env.get('HTTP_REFERER', '/')
-        # Don't set referer on user activation
-        if 'archive.org' in referer:
+        # Don't set referer if request is from offsite
+        if not 'openlibrary.org' in referer:
             referer = None
         i = web.input(redirect=referer)
         f = forms.Login()
