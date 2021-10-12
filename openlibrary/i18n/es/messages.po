@@ -2880,7 +2880,7 @@ msgstr "Organiza tus libros usando listas y el registro de lectura"
 
 #: home/welcome.html:54
 msgid "Try the virtual Library Explorer"
-msgstr "Pruebe el Explorador de la Biblioteca virtual"
+msgstr "Prueba el Explorador de la Biblioteca virtual"
 
 #: home/welcome.html:55
 msgid "Digital shelves organized like a physical library"
@@ -4839,7 +4839,7 @@ msgstr ""
 
 #: LoanStatus.html:95
 msgid "Checked Out"
-msgstr "Comprobado"
+msgstr "Retirado"
 
 #: LoanStatus.html:104
 msgid "Donate Book"
