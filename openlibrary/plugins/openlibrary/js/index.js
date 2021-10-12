@@ -196,7 +196,7 @@ jQuery(function () {
         import(/* webpackChunkName: "carousel" */ './carousel')
             .then((module) => { module.init($carouselElements);
                 $('.slick-slide').each(function () {
-                    if ($(this).attr('aria-describedby') != undefined) {
+                    if ($(this).attr('aria-describedby') !== undefined) {
                         $(this).attr('id',$(this).attr('aria-describedby'));
                     }
                 });
@@ -220,7 +220,8 @@ jQuery(function () {
 
     const $observationModalLinks = $('.observations-modal-link');
     const $notesModalLinks = $('.notes-modal-link');
-    if ($observationModalLinks.length || $notesModalLinks.length) {
+    const $notesPageButtons = $('.note-page-buttons')
+    if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length) {
         import(/* webpackChunkName: "modal-links" */ './modals')
             .then(module => {
                 if ($observationModalLinks.length) {
@@ -229,12 +230,10 @@ jQuery(function () {
                 if ($notesModalLinks.length) {
                     module.initNotesModal($notesModalLinks);
                 }
+                if ($notesPageButtons.length) {
+                    module.addNotesPageButtonListeners();
+                }
             });
-    }
-
-    if (document.getElementsByClassName('manageCovers').length) {
-        import(/* webpackChunkName: "covers" */ './covers')
-            .then((module) => module.initCoversChange());
     }
 
     const manageCoversElement = document.getElementsByClassName('manageCovers').length;
@@ -266,6 +265,11 @@ jQuery(function () {
             .then((module) => module.initAdmin());
     }
 
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        import(/* webpackChunkName: "offline-banner" */ './offline-banner')
+            .then((module) => module.initOfflineBanner());
+    }
+
     if (document.getElementById('searchFacets')) {
         import(/* webpackChunkName: "search" */ './search')
             .then((module) => module.initSearchFacets());
@@ -286,6 +290,10 @@ jQuery(function () {
     });
 
     $('#wikiselect').on('focus', function(){$(this).trigger('select');})
+
+    $('.hamburger-component .mask-menu').on('click', function () {
+        $('details[open]').not(this).removeAttr('open');
+    });
 
     // Open one dropdown at a time.
     $(document).on('click', function (event) {

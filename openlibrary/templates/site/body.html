@@ -11,6 +11,7 @@ $ bodyattrs = ctx.get('bodyattrs', [])
       document.body.className += ' client-js';
   </script>
   <span id="top"></span>
+  <div id="offline-info">$_("It looks like you're offline.")</div>
   $# on form pages e.g. manage-covers, add-cover we do not display the header
   $# this is consistent with version 1.
   $if show_banners:
@@ -20,7 +21,7 @@ $ bodyattrs = ctx.get('bodyattrs', [])
   <div $:('id="test-body-mobile"' if cssfile != 'form' else '')>
     $if show_banners:
       $#print errors (hidden by default as styles are loaded via JS)
-      <div class="flash-messages" style="display: none;">
+      <div class="flash-messages">
       $for flash in get_flash_messages():
         <div class="$flash.type"><span>$flash.message</span></div>
       </div>

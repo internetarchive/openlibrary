@@ -4,7 +4,7 @@ import Carousel from './carousel/Carousel';
 
 export function initCarouselsPartials() {
 
-    let fetchRelatedWorks = function() {
+    const fetchRelatedWorks = function() {
         $.ajax({
             url: '/partials',
             type: 'GET',

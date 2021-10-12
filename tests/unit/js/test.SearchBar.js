@@ -149,7 +149,7 @@ describe('SearchBar', () => {
             expect(navigateToStub.args[0]).toEqual(['/advancedsearch']);
         });
 
-        for (let facet of ['title', 'author', 'all']) {
+        for (const facet of ['title', 'author', 'all']) {
             test(`Facet "${facet}" searches tigger autocomplete`, () => {
                 // Stub debounce to avoid have to manipulate time (!)
                 sandbox.stub(nonjquery_utils, 'debounce').callsFake(fn => fn);
@@ -182,7 +182,7 @@ describe('SearchBar', () => {
             expect(getJSONStub.callCount).toBe(0);
         });
 
-        for (let facet of ['lists', 'subject', 'text']) {
+        for (const facet of ['lists', 'subject', 'text']) {
             test(`Facet "${facet}" does not tigger autocomplete`, () => {
                 // Stub debounce to avoid have to manipulate time (!)
                 sandbox.stub(nonjquery_utils, 'debounce').callsFake(fn => fn);

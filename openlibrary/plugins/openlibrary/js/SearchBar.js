@@ -100,7 +100,7 @@ export class SearchBar {
 
         if (urlParams.q) {
             let q = urlParams.q.replace(/\+/g, ' ');
-            if (this.facet.read() === 'title' && q.indexOf('title:') != -1) {
+            if (this.facet.read() === 'title' && q.indexOf('title:') !== -1) {
                 const parts = q.split('"');
                 if (parts.length === 3) {
                     q = parts[1];
@@ -130,6 +130,14 @@ export class SearchBar {
                 event.preventDefault();
                 this.toggleCollapse();
                 this.$input.trigger('focus');
+            }
+        });
+        // Collapse search bar when clicking outside of search bar
+        $(document).on('click', event => {
+            if ($(event.target).closest('.search-component').length === 0) {
+                if (!this.collapsed) {
+                    this.toggleCollapse();
+                }
             }
         });
     }
@@ -212,7 +220,7 @@ export class SearchBar {
      * @return {String}
      */
     static marshalBookSearchQuery(q) {
-        if (q && q.indexOf(':') == -1 && q.indexOf('"') == -1) {
+        if (q && q.indexOf(':') === -1 && q.indexOf('"') === -1) {
             q = `title: "${q}"`;
         }
         return q;
@@ -258,7 +266,7 @@ export class SearchBar {
             const renderer = RENDER_AUTOCOMPLETE_RESULT[this.facetEndpoint];
             this.$results.css('opacity', 1);
             this.clearAutocompletionResults();
-            for (let d in data.docs) {
+            for (const d in data.docs) {
                 this.$results.append(renderer(data.docs[d]));
             }
         });
@@ -291,7 +299,7 @@ export class SearchBar {
     handleFacetSelectChange(event) {
         const newFacet = event.target.value;
         // We don't want to persist advanced becaues it behaves like a button
-        if (newFacet == 'advanced') {
+        if (newFacet === 'advanced') {
             event.preventDefault();
             this.navigateTo('/advancedsearch');
         } else {

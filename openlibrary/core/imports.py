@@ -5,8 +5,9 @@ import logging
 import datetime
 import time
 import web
+import json
 
-from psycopg2.errors import UndefinedTable
+from psycopg2.errors import UndefinedTable, UniqueViolation
 
 from . import db
 
@@ -32,18 +33,58 @@ class Batch(web.storage):
         items = [line.strip() for line in open(filename) if line.strip()]
         self.add_items(items)
 
-    def add_items(self, items):
+    def dedupe_ia_items(self, items):
+        already_present = [
+            row.ia_id for row in db.query(
+                "SELECT ia_id FROM import_item WHERE ia_id IN $items",
+                vars=locals()
+            )
+        ]
+        # ignore already present
+        logger.info(
+            "batch %s: %d items are already present, ignoring...",
+            self.name,
+            len(already_present)
+        )
+        return list(set(items) - set(already_present))
+
+    def add_items(self, items, ia_items=True):
+        """
+        :param ia_items: True if `items` is a list of IA identifiers, False if
+        book data dicts.
+        """
         if not items:
             return
-        logger.info("batch %s: adding %d items", self.name, len(items))
-        already_present = [row.ia_id for row in db.query("SELECT ia_id FROM import_item WHERE ia_id IN $items", vars=locals())]
-        # ignore already present
-        items = list(set(items) - set(already_present))
 
-        logger.info("batch %s: %d items are already present, ignoring...", self.name, len(already_present))
+        logger.info("batch %s: adding %d items", self.name, len(items))
+
+        if ia_items:
+            items = self.dedupe_ia_items(items)
+
         if items:
-            values = [dict(batch_id=self.id, ia_id=item) for item in items]
-            db.get_db().multiple_insert("import_item", values)
+            # Either create a reference to an IA id which will be loaded
+            # from Archive.org metadata, or provide json data book record
+            # which will be loaded directly into the OL catalog
+            values = [
+                {
+                    'batch_id': self.id,
+                    **({'ia_id': item} if ia_items else {
+                        'data': json.dumps(item, sort_keys=True)
+                    })
+                }
+                for item in items
+            ]
+            try:
+                # TODO: Upgrade psql and use `INSERT OR IGNORE`
+                # otherwise it will fail on UNIQUE `data`
+                # https://stackoverflow.com/questions/1009584
+                db.get_db().multiple_insert("import_item", values)
+            except UniqueViolation:
+                for value in values:
+                    try:
+                        db.get_db().insert("import_item", **value)
+                    except UniqueViolation:
+                        pass
             logger.info("batch %s: added %d items", self.name, len(items))
 
     def get_items(self, status="pending"):
@@ -63,7 +104,8 @@ class ImportItem(web.storage):
             return ImportItem(result[0])
 
     def set_status(self, status, error=None, ol_key=None):
-        logger.info("set-status %s - %s %s %s", self.ia_id, status, error, ol_key)
+        id_ = self.ia_id or "%s:%s" % (self.batch_id, self.id)
+        logger.info("set-status %s - %s %s %s", id_, status, error, ol_key)
         d = dict(
             status=status,
             error=error,
@@ -116,7 +158,7 @@ class Stats:
         return dict([(row.status, row.count) for row in rows])
 
     def get_count_by_date_status(self, ndays=10):
-        try: 
+        try:
             result = db.query(
                 "SELECT added_time::date as date, status, count(*)" +
                 " FROM import_item " +

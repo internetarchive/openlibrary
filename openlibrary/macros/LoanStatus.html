@@ -14,6 +14,7 @@ $ loanstatus_start_time = time()
 $ availability = (doc.availability or {}) if hasattr(doc, 'availability') else {}
 $ ocaid = doc.get('ocaid') or availability.get('identifier')
 $ work_key = work_key or (doc.get('works') and doc.works[0].key)
+$ no_index = hasattr(doc, 'get_ia_meta_fields') and doc.get_ia_meta_fields().get('noindex', False)
 
 $ waiting_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_waiting_loan_for(ocaid)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
@@ -112,13 +113,13 @@ $else:
   </div>
 
 $if ocaid and secondary_action and availability.get('is_printdisabled'):
-  $:macros.BookPreview(ocaid)
+  $:macros.BookPreview(ocaid, linkback=not no_index)
   $:macros.BookSearchInside(ocaid)
 
 $:post
 
 $if ocaid and daisy:
-  $:macros.daisy('/ia/%s/daisy' % ocaid, protected=availability.get('is_printdisabled'))
+  $:macros.daisy('%s/daisy' % doc.url, protected=availability.get('is_printdisabled'))
 
 $if query_param('debug'):
   $ loanstatus_end_time = time() - loanstatus_start_time

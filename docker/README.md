@@ -73,6 +73,7 @@ While running the `oldev` container, gunicorn is configured to auto-reload modif
 
 - **Editing python files or web templates?** Simply save the file; gunicorn will auto-reload it.
 - **Editing frontend css or js?** Run `docker-compose run --rm home npm run-script build-assets`. This will re-generate the assets in the persistent `ol-build` volume mount (so the latest changes will be available between stopping / starting  `web` containers). Note, if you want to view the generated output you will need to attach to the container (`docker-compose exec web bash`) to examine the files in the volume, not in your local dir.
+- **Watching for file changes (frontend)** To watch for js file changes, run `docker-compose run --rm home npm run-script watch`. Similarly, for css (.less) files, run `docker-compose run --rm home npm run-script watch-css`.
 - **Editing pip packages?** Rebuild the `home` service: `docker-compose build home`
 - **Editing npm packages?** Run `docker-compose run --rm home npm install` (see [#2032](https://github.com/internetarchive/openlibrary/issues/2032) for why)
 - **Editing core dependencies?** You will most likely need to do a full rebuild. This shouldn't happen too frequently. If you are making this sort of change, you will know exactly what you are doing ;) See [Developing the Dockerfile](#developing-the-dockerfile).

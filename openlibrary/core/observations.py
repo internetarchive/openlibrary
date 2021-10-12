@@ -6,6 +6,7 @@ from infogami import config
 from infogami.utils.view import public
 from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import cache
 from . import db
@@ -17,229 +18,425 @@ OBSERVATIONS = {
     'observations': [
         {
             'id': 1,
-            'label': 'pace',
-            'description': 'What is the pace of this book?',
-            'multi_choice': False,
-            'order': [1, 2, 3, 4],
+            'label': 'Pace',
+            'description': 'How would you rate the pacing of this book?',
+            'multi_choice': True,
+            'order': [4, 5, 6, 7],
             'values': [
-                {'id': 1, 'name': 'slow'},
-                {'id': 2, 'name': 'medium'},
-                {'id': 3, 'name': 'fast'}
+                {'id': 1, 'name': 'Slow', 'deleted': True},
+                {'id': 2, 'name': 'Medium', 'deleted': True},
+                {'id': 3, 'name': 'Fast', 'deleted': True},
+                {'id': 4, 'name': 'Slow paced'},
+                {'id': 5, 'name': 'Medium paced'},
+                {'id': 6, 'name': 'Fast paced'},
+                {'id': 7, 'name': 'Meandering'},
             ]
         },
         {
             'id': 2,
-            'label': 'enjoyability',
-            'description': 'How entertaining is this book?',
-            'multi_choice': False,
-            'order': [1, 2, 3, 4, 5, 6],
+            'label': 'Enjoyability',
+            'description': 'How much did you enjoy reading this book?',
+            'multi_choice': True,
+            'order': [3, 7, 8, 9],
             'values': [
-                {'id': 1, 'name': 'not applicable'},
-                {'id': 2, 'name': 'very boring'},
-                {'id': 3, 'name': 'boring'},
-                {'id': 4, 'name': 'neither entertaining nor boring'},
-                {'id': 5, 'name': 'entertaining'},
-                {'id': 6, 'name': 'very entertaining'}
-            ]
+                {'id': 1, 'name': 'Not applicable', 'deleted': True},
+                {'id': 2, 'name': 'Very boring', 'deleted': True},
+                {'id': 4, 'name': 'Neither entertaining nor boring', 'deleted': True},
+                {'id': 5, 'name': 'Entertaining', 'deleted': True},
+                {'id': 6, 'name': 'Very entertaining', 'deleted': True},
+                {'id': 3, 'name': 'Boring'},
+                {'id': 7, 'name': 'Engaging'},
+                {'id': 8, 'name': 'Exciting'},
+                {'id': 9, 'name': 'Neutral'},
+            ],
         },
         {
             'id': 3,
-            'label': 'clarity',
-            'description': 'How clearly is this book written?',
-            'multi_choice': False,
-            'order': [1, 2, 3, 4, 5],
+            'label': 'Clarity',
+            'description': 'How clearly was this book written and presented?',
+            'multi_choice': True,
+            'order': [6, 7, 8, 9, 10, 11, 12, 13],
             'values': [
-                {'id': 1, 'name': 'not applicable'},
-                {'id': 2, 'name': 'very unclearly'},
-                {'id': 3, 'name': 'unclearly'},
-                {'id': 4, 'name': 'clearly'},
-                {'id': 5, 'name': 'very clearly'}
-            ]
+                {'id': 1, 'name': 'Not applicable', 'deleted': True},
+                {'id': 2, 'name': 'Very unclearly', 'deleted': True},
+                {'id': 3, 'name': 'Unclearly', 'deleted': True},
+                {'id': 4, 'name': 'Clearly', 'deleted': True},
+                {'id': 5, 'name': 'Very clearly', 'deleted': True},
+                {'id': 6, 'name': 'Succinct'},
+                {'id': 7, 'name': 'Dense'},
+                {'id': 8, 'name': 'Incomprehensible'},
+                {'id': 9, 'name': 'Confusing'},
+                {'id': 10, 'name': 'Clearly written'},
+                {'id': 11, 'name': 'Effective explanations'},
+                {'id': 12, 'name': 'Well organized'},
+                {'id': 13, 'name': 'Disorganized'},
+            ],
         },
         {
             'id': 4,
-            'label': 'jargon',
+            'label': 'Jargon',
             'description': 'How technical is the content?',
             'multi_choice': False,
             'order': [1, 2, 3, 4, 5],
             'values': [
-                {'id': 1, 'name': 'not applicable'},
-                {'id': 2, 'name': 'not technical'},
-                {'id': 3, 'name': 'somewhat technical'},
-                {'id': 4, 'name': 'technical'},
-                {'id': 5, 'name': 'very technical'}
-            ]
+                {'id': 1, 'name': 'Not applicable'},
+                {'id': 2, 'name': 'Not technical'},
+                {'id': 3, 'name': 'Somewhat technical'},
+                {'id': 4, 'name': 'Technical'},
+                {'id': 5, 'name': 'Very technical'}
+            ],
+            'deleted': True
         },
         {
             'id': 5,
-            'label': 'originality',
+            'label': 'Originality',
             'description': 'How original is this book?',
             'multi_choice': False,
             'order': [1, 2, 3, 4, 5],
             'values': [
-                {'id': 1, 'name': 'not applicable'},
-                {'id': 2, 'name': 'very unoriginal'},
-                {'id': 3, 'name': 'somewhat unoriginal'},
-                {'id': 4, 'name': 'somewhat original'},
-                {'id': 5, 'name': 'very original'}
-            ]
+                {'id': 1, 'name': 'Not applicable'},
+                {'id': 2, 'name': 'Very unoriginal'},
+                {'id': 3, 'name': 'Somewhat unoriginal'},
+                {'id': 4, 'name': 'Somewhat original'},
+                {'id': 5, 'name': 'Very original'}
+            ],
+            'deleted': True
         },
         {
             'id': 6,
-            'label': 'difficulty',
-            'description': 'How advanced is the subject matter of this book?',
-            'multi_choice': False,
-            'order': [1, 2, 3, 4, 5],
+            'label': 'Difficulty',
+            'description': 'How would you rate the difficulty of '
+                           'this book for a general audience?',
+            'multi_choice': True,
+            'order': [6, 7, 8, 9, 10, 11, 12],
             'values': [
-                {'id': 1, 'name': 'not applicable'},
-                {'id': 2, 'name': 'requires domain expertise'},
-                {'id': 3, 'name': 'a lot of prior knowledge needed'},
-                {'id': 4, 'name': 'some prior knowledge needed'},
-                {'id': 5, 'name': 'no prior knowledge needed'}
-            ]
+                {'id': 1, 'name': 'Not applicable', 'deleted': True},
+                {'id': 2, 'name': 'Requires domain expertise', 'deleted': True},
+                {'id': 3, 'name': 'A lot of prior knowledge needed', 'deleted': True},
+                {'id': 4, 'name': 'Some prior knowledge needed', 'deleted': True},
+                {'id': 5, 'name': 'No prior knowledge needed', 'deleted': True},
+                {'id': 6, 'name': 'Beginner'},
+                {'id': 7, 'name': 'Intermediate'},
+                {'id': 8, 'name': 'Advanced'},
+                {'id': 9, 'name': 'Expert'},
+                {'id': 10, 'name': 'University'},
+                {'id': 11, 'name': 'Layman'},
+                {'id': 12, 'name': 'Juvenile'},
+            ],
         },
         {
             'id': 7,
-            'label': 'usefulness',
+            'label': 'Usefulness',
             'description': 'How useful is the content of this book?',
             'multi_choice': False,
             'order': [1, 2, 3, 4, 5],
             'values': [
-                {'id': 1, 'name': 'not applicable'},
-                {'id': 2, 'name': 'not useful'},
-                {'id': 3, 'name': 'somewhat useful'},
-                {'id': 4, 'name': 'useful'},
-                {'id': 5, 'name': 'very useful'}
-            ]
+                {'id': 1, 'name': 'Not applicable'},
+                {'id': 2, 'name': 'Not useful'},
+                {'id': 3, 'name': 'Somewhat useful'},
+                {'id': 4, 'name': 'Useful'},
+                {'id': 5, 'name': 'Very useful'}
+            ],
+            'deleted': True
         },
         {
             'id': 8,
-            'label': 'coverage',
-            'description': "Does this book's content cover more breadth or depth of the subject matter?",
-            'multi_choice': False,
-            'order': [1, 2, 3, 4, 5, 6],
+            'label': 'Breadth',
+            'description': "How would you describe the breadth and depth of this book?",
+            'multi_choice': True,
+            'order': [7, 8, 9, 10, 11, 12, 13],
             'values': [
-                {'id': 1, 'name': 'not applicable'},
-                {'id': 2, 'name': 'much more deep'},
-                {'id': 3, 'name': 'somewhat more deep'},
-                {'id': 4, 'name': 'equally broad and deep'},
-                {'id': 5, 'name': 'somewhat more broad'},
-                {'id': 6, 'name': 'much more broad'}
-            ]
+                {'id': 1, 'name': 'Not applicable', 'deleted': True},
+                {'id': 2, 'name': 'Much more deep', 'deleted': True},
+                {'id': 3, 'name': 'Somewhat more deep', 'deleted': True},
+                {'id': 4, 'name': 'Equally broad and deep', 'deleted': True},
+                {'id': 5, 'name': 'Somewhat more broad', 'deleted': True},
+                {'id': 6, 'name': 'Much more broad', 'deleted': True},
+                {'id': 7, 'name': 'Comprehensive'},
+                {'id': 8, 'name': 'Not comprehensive'},
+                {'id': 9, 'name': 'Focused'},
+                {'id': 10, 'name': 'Interdisciplinary'},
+                {'id': 11, 'name': 'Extraneous'},
+                {'id': 12, 'name': 'Shallow'},
+                {'id': 13, 'name': 'Introductory'},
+            ],
         },
         {
             'id': 9,
-            'label': 'objectivity',
+            'label': 'Objectivity',
             'description': 'Are there causes to question the accuracy of this book?',
             'multi_choice': True,
             'order': [1, 2, 3, 4, 5, 6, 7, 8],
             'values': [
-                {'id': 1, 'name': 'not applicable'},
-                {'id': 2, 'name': 'no, it seems accurate'},
-                {'id': 3, 'name': 'yes, it needs citations'},
-                {'id': 4, 'name': 'yes, it is inflammatory'},
-                {'id': 5, 'name': 'yes, it has typos'},
-                {'id': 6, 'name': 'yes, it is inaccurate'},
-                {'id': 7, 'name': 'yes, it is misleading'},
-                {'id': 8, 'name': 'yes, it is biased'}
-            ]
+                {'id': 1, 'name': 'Not applicable'},
+                {'id': 2, 'name': 'No, it seems accurate'},
+                {'id': 3, 'name': 'Yes, it needs citations'},
+                {'id': 4, 'name': 'Yes, it is inflammatory'},
+                {'id': 5, 'name': 'Yes, it has typos'},
+                {'id': 6, 'name': 'Yes, it is inaccurate'},
+                {'id': 7, 'name': 'Yes, it is misleading'},
+                {'id': 8, 'name': 'Yes, it is biased'}
+            ],
+            'deleted': True
         },
         {
             'id': 10,
-            'label': 'genres',
+            'label': 'Genres',
             'description': 'What are the genres of this book?',
             'multi_choice': True,
-            'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
+            'order': [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+                      18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+                      32, 33],
             'values': [
-                {'id': 1, 'name': 'sci-fi'},
-                {'id': 2, 'name': 'philosophy'},
-                {'id': 3, 'name': 'satire'},
-                {'id': 4, 'name': 'poetry'},
-                {'id': 5, 'name': 'memoir'},
-                {'id': 6, 'name': 'paranormal'},
-                {'id': 7, 'name': 'mystery'},
-                {'id': 8, 'name': 'humor'},
-                {'id': 9, 'name': 'horror'},
-                {'id': 10, 'name': 'fantasy'},
-                {'id': 11, 'name': 'drama'},
-                {'id': 12, 'name': 'crime'},
-                {'id': 13, 'name': 'graphical'},
-                {'id': 14, 'name': 'classic'},
-                {'id': 15, 'name': 'anthology'},
-                {'id': 16, 'name': 'action'},
-                {'id': 17, 'name': 'romance'},
-                {'id': 18, 'name': 'how-to'},
-                {'id': 19, 'name': 'encyclopedia'},
-                {'id': 20, 'name': 'dictionary'},
-                {'id': 21, 'name': 'technical'},
-                {'id': 22, 'name': 'reference'},
-                {'id': 23, 'name': 'textbook'},
-                {'id': 24, 'name': 'biographical'},
+                {'id': 1, 'name': 'Sci-fi'},
+                {'id': 2, 'name': 'Philosophy', 'deleted': True},
+                {'id': 3, 'name': 'Satire'},
+                {'id': 4, 'name': 'Poetry'},
+                {'id': 5, 'name': 'Memoir'},
+                {'id': 6, 'name': 'Paranormal'},
+                {'id': 7, 'name': 'Mystery'},
+                {'id': 8, 'name': 'Humor'},
+                {'id': 9, 'name': 'Horror'},
+                {'id': 10, 'name': 'Fantasy'},
+                {'id': 11, 'name': 'Drama'},
+                {'id': 12, 'name': 'Crime'},
+                {'id': 13, 'name': 'Graphical'},
+                {'id': 14, 'name': 'Classic'},
+                {'id': 15, 'name': 'Anthology'},
+                {'id': 16, 'name': 'Action'},
+                {'id': 17, 'name': 'Romance'},
+                {'id': 18, 'name': 'How-to'},
+                {'id': 19, 'name': 'Encyclopedia'},
+                {'id': 20, 'name': 'Dictionary'},
+                {'id': 21, 'name': 'Technical'},
+                {'id': 22, 'name': 'Reference'},
+                {'id': 23, 'name': 'Textbook'},
+                {'id': 24, 'name': 'Biographical'},
+                {'id': 25, 'name': 'Fiction'},
+                {'id': 26, 'name': 'Nonfiction'},
+                {'id': 27, 'name': 'Biography'},
+                {'id': 28, 'name': 'Based on a true story'},
+                {'id': 29, 'name': 'Exploratory'},
+                {'id': 30, 'name': 'Research'},
+                {'id': 31, 'name': 'Philosophical'},
+                {'id': 32, 'name': 'Essay'},
+                {'id': 33, 'name': 'Review'},
             ]
         },
         {
             'id': 11,
-            'label': 'fictionality',
+            'label': 'Fictionality',
             'description': "Is this book a work of fact or fiction?",
             'multi_choice': False,
             'order': [1, 2, 3],
             'values': [
-                {'id': 1, 'name': 'nonfiction'},
-                {'id': 2, 'name': 'fiction'},
-                {'id': 3, 'name': 'biography'}
-            ]
+                {'id': 1, 'name': 'Nonfiction'},
+                {'id': 2, 'name': 'Fiction'},
+                {'id': 3, 'name': 'Biography'}
+            ],
+            'deleted': True
         },
         {
             'id': 12,
-            'label': 'audience',
+            'label': 'Audience',
             'description': "What are the intended age groups for this book?",
             'multi_choice': True,
             'order': [1, 2, 3, 4, 5, 6, 7],
             'values': [
-                {'id': 1, 'name': 'experts'},
-                {'id': 2, 'name': 'college'},
-                {'id': 3, 'name': 'high school'},
-                {'id': 4, 'name': 'elementary'},
-                {'id': 5, 'name': 'kindergarten'},
-                {'id': 6, 'name': 'baby'},
-                {'id': 7, 'name': 'general audiences'}
-            ]
+                {'id': 1, 'name': 'Experts'},
+                {'id': 2, 'name': 'College'},
+                {'id': 3, 'name': 'High school'},
+                {'id': 4, 'name': 'Elementary'},
+                {'id': 5, 'name': 'Kindergarten'},
+                {'id': 6, 'name': 'Baby'},
+                {'id': 7, 'name': 'General audiences'}
+            ],
+            'deleted': True
         },
         {
             'id': 13,
-            'label': 'mood',
+            'label': 'Mood',
             'description': 'What are the moods of this book?',
             'multi_choice': True,
             'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26],
             'values': [
-                {'id': 1, 'name': 'scientific'},
-                {'id': 2, 'name': 'dry'},
-                {'id': 3, 'name': 'emotional'},
-                {'id': 4, 'name': 'strange'},
-                {'id': 5, 'name': 'suspenseful'},
-                {'id': 6, 'name': 'sad'},
-                {'id': 7, 'name': 'dark'},
-                {'id': 8, 'name': 'lonely'},
-                {'id': 9, 'name': 'tense'},
-                {'id': 10, 'name': 'fearful'},
-                {'id': 11, 'name': 'angry'},
-                {'id': 12, 'name': 'hopeful'},
-                {'id': 13, 'name': 'lighthearted'},
-                {'id': 14, 'name': 'calm'},
-                {'id': 15, 'name': 'informative'},
-                {'id': 16, 'name': 'ominous'},
-                {'id': 17, 'name': 'mysterious'},
-                {'id': 18, 'name': 'romantic'},
-                {'id': 19, 'name': 'whimsical'},
-                {'id': 20, 'name': 'idyllic'},
-                {'id': 21, 'name': 'melancholy'},
-                {'id': 22, 'name': 'humorous'},
-                {'id': 23, 'name': 'gloomy'},
-                {'id': 24, 'name': 'reflective'},
-                {'id': 25, 'name': 'inspiring'},
-                {'id': 26, 'name': 'cheerful'},
+                {'id': 1, 'name': 'Scientific'},
+                {'id': 2, 'name': 'Dry'},
+                {'id': 3, 'name': 'Emotional'},
+                {'id': 4, 'name': 'Strange'},
+                {'id': 5, 'name': 'Suspenseful'},
+                {'id': 6, 'name': 'Sad'},
+                {'id': 7, 'name': 'Dark'},
+                {'id': 8, 'name': 'Lonely'},
+                {'id': 9, 'name': 'Tense'},
+                {'id': 10, 'name': 'Fearful'},
+                {'id': 11, 'name': 'Angry'},
+                {'id': 12, 'name': 'Hopeful'},
+                {'id': 13, 'name': 'Lighthearted'},
+                {'id': 14, 'name': 'Calm'},
+                {'id': 15, 'name': 'Informative'},
+                {'id': 16, 'name': 'Ominous'},
+                {'id': 17, 'name': 'Mysterious'},
+                {'id': 18, 'name': 'Romantic'},
+                {'id': 19, 'name': 'Whimsical'},
+                {'id': 20, 'name': 'Idyllic'},
+                {'id': 21, 'name': 'Melancholy'},
+                {'id': 22, 'name': 'Humorous'},
+                {'id': 23, 'name': 'Gloomy'},
+                {'id': 24, 'name': 'Reflective'},
+                {'id': 25, 'name': 'Inspiring'},
+                {'id': 26, 'name': 'Cheerful'},
             ]
-        }
+        },
+        {
+            'id': 14,
+            'label': 'Impressions',
+            'description': 'How did you feel about this book and do you recommend it?',
+            'multi_choice': True,
+            'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+            'values': [
+                {'id': 1, 'name': 'Recommend'},
+                {'id': 2, 'name': 'Highly recommend'},
+                {'id': 3, 'name': "Don't recommend"},
+                {'id': 4, 'name': 'Field defining'},
+                {'id': 5, 'name': 'Actionable'},
+                {'id': 6, 'name': 'Forgettable'},
+                {'id': 7, 'name': 'Quotable'},
+                {'id': 8, 'name': 'Citable'},
+                {'id': 9, 'name': 'Original'},
+                {'id': 10, 'name': 'Unremarkable'},
+                {'id': 11, 'name': 'Life changing'},
+                {'id': 12, 'name': 'Best in class'},
+                {'id': 13, 'name': 'Overhyped'},
+                {'id': 14, 'name': 'Underrated'},
+            ]
+        },
+        {
+            'id': 15,
+            'label': 'Type',
+            'description': 'How would you classify this work?',
+            'multi_choice': True,
+            'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+            'values': [
+                {'id': 1, 'name': 'Fiction'},
+                {'id': 2, 'name': 'Nonfiction'},
+                {'id': 3, 'name': 'Biography'},
+                {'id': 4, 'name': 'Based on a true story'},
+                {'id': 5, 'name': 'Textbook'},
+                {'id': 6, 'name': 'Reference'},
+                {'id': 7, 'name': 'Exploratory'},
+                {'id': 8, 'name': 'Research'},
+                {'id': 9, 'name': 'Philosophical'},
+                {'id': 10, 'name': 'Essay'},
+                {'id': 11, 'name': 'Review'},
+                {'id': 12, 'name': 'Classic'},
+            ],
+            'deleted': True
+        },
+        {
+            'id': 16,
+            'label': 'Length',
+            'description': 'How would you rate or describe the length of this book?',
+            'multi_choice': True,
+            'order': [1, 2, 3],
+            'values': [
+                {'id': 1, 'name': 'Short'},
+                {'id': 2, 'name': 'Medium'},
+                {'id': 3, 'name': 'Long'},
+            ]
+        },
+        {
+            'id': 17,
+            'label': 'Credibility',
+            'description': 'How factually accurate and reliable '
+                           'is the content of this book?',
+            'multi_choice': True,
+            'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+            'values': [
+                {'id': 1, 'name': 'Accurate'},
+                {'id': 2, 'name': 'Inaccurate'},
+                {'id': 3, 'name': 'Outdated'},
+                {'id': 4, 'name': 'Evergreen'},
+                {'id': 5, 'name': 'Biased'},
+                {'id': 6, 'name': 'Objective'},
+                {'id': 7, 'name': 'Subjective'},
+                {'id': 8, 'name': 'Rigorous'},
+                {'id': 9, 'name': 'Misleading'},
+                {'id': 10, 'name': 'Controversial'},
+                {'id': 11, 'name': 'Trendy'},
+            ]
+        },
+        {
+            'id': 18,
+            'label': 'Features',
+            'description': 'What text features does this book utilize?'
+                           'does this book make use of?',
+            'multi_choice': True,
+            'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+            'values': [
+                {'id': 1, 'name': 'Tables, diagrams, and figures'},
+                {'id': 2, 'name': 'Problem sets'},
+                {'id': 3, 'name': 'Proofs'},
+                {'id': 4, 'name': 'Interviews'},
+                {'id': 5, 'name': 'Table of contents'},
+                {'id': 6, 'name': 'Illustrations'},
+                {'id': 7, 'name': 'Index'},
+                {'id': 8, 'name': 'Glossary'},
+                {'id': 9, 'name': 'Chapters'},
+                {'id': 10, 'name': 'Appendix'},
+                {'id': 11, 'name': 'Bibliography'},
+            ]
+        },
+        {
+            'id': 19,
+            'label': 'Content Warnings',
+            'description': 'Does this book contain objectionable content?',
+            'multi_choice': True,
+            'order': [1, 2, 3, 4, 5, 6],
+            'values': [
+                {'id': 1, 'name': 'Adult themes'},
+                {'id': 2, 'name': 'Trigger warnings'},
+                {'id': 3, 'name': 'Offensive language'},
+                {'id': 4, 'name': 'Graphic imagery'},
+                {'id': 5, 'name': 'Insensitivity'},
+                {'id': 6, 'name': 'Racism'},
+                {'id': 7, 'name': 'Sexual themes'},
+                {'id': 8, 'name': 'Drugs'},
+            ]
+        },
+        {
+            'id': 20,
+            'label': 'Style',
+            'description': 'What type of verbiage, nomenclature, '
+                           'or symbols are employed in this book?',
+            'multi_choice': True,
+            'order': [1, 2, 3, 4, 5],
+            'values': [
+                {'id': 1, 'name': 'Technical'},
+                {'id': 2, 'name': 'Jargony'},
+                {'id': 3, 'name': 'Neologisms'},
+                {'id': 4, 'name': 'Slang'},
+                {'id': 5, 'name': 'Olde'},
+            ]
+        },
+        {
+            'id': 21,
+            'label': 'Purpose',
+            'description': 'Why should someone read this book?',
+            'multi_choice': True,
+            'order': [1, 2, 3, 4, 5, 6, 7, 8, 9],
+            'values': [
+                {'id': 1, 'name': 'Entertainment'},
+                {'id': 2, 'name': 'Broaden perspective'},
+                {'id': 3, 'name': 'How-to'},
+                {'id': 4, 'name': 'Learn about'},
+                {'id': 5, 'name': 'Self-help'},
+                {'id': 6, 'name': 'Hope'},
+                {'id': 7, 'name': 'Inspiration'},
+                {'id': 8, 'name': 'Fact checking'},
+                {'id': 9, 'name': 'Problem solving'},
+            ]
+        },
     ]
 }
 
@@ -258,9 +455,9 @@ def get_observations():
             {
                 'id': 1,
                 'label': 'pace',
-                'description': 'What is the pace of this book?' 
+                'description': 'What is the pace of this book?',
                 'multi_choice': False,
-                'values': [ 
+                'values': [
                     'slow',
                     'medium',
                     'fast'
@@ -299,16 +496,20 @@ def _sort_values(order_list, values_list):
     ordered_values = []
 
     for id in order_list:
-        value = next((v['name'] for v in values_list if v['id'] == id), None)
+        value = next(
+            (v['name'] for v in values_list
+                if v['id'] == id and not v.get('deleted', False)),
+            None
+        )
         if value:
             ordered_values.append(value)
-    
+
     return ordered_values
 
 def _get_deleted_types_and_values():
     """
     Returns a dictionary containing all deleted observation types and values.
-    
+
     return: Deleted types and values dictionary.
     """
     results = {
@@ -337,11 +538,14 @@ def convert_observation_ids(id_dict):
     conversion_results = {}
 
     for k in id_dict:
-        conversion_results[types_and_values[str(k)]['type']] = [
-            types_and_values[str(k)]['values'][str(i)] for i in id_dict[k]
-        ]
+        if not types_and_values[str(k)].get('deleted', False):
+            conversion_results[types_and_values[str(k)]['type']] = [
+                types_and_values[str(k)]['values'][str(i)]['name'] for i in id_dict[k]
+                if not types_and_values[str(k)]['values'][str(i)].get('deleted', False)
+            ]
 
-    return conversion_results
+    # Remove types with no values (all values of type were marked 'deleted'):
+    return {k: v for (k, v) in conversion_results.items() if len(v)}
 
 
 @cache.memoize(
@@ -359,7 +563,11 @@ def _get_all_types_and_values():
     for o in OBSERVATIONS['observations']:
         types_and_values[str(o['id'])] = {
             'type': o['label'],
-            'values': {str(v['id']): v['name'] for v in o['values']}
+            'deleted': o.get('deleted', False),
+            'values': {
+                str(v['id']): {'name': v['name'], 'deleted': v.get('deleted', False)}
+                for v in o['values']
+            }
         }
 
     return types_and_values
@@ -381,6 +589,7 @@ def get_observation_metrics(work_olid):
                 'description': 'What is the pace of this book?',
                 'multi_choice': False,
                 'total_respondents_for_type': 10,
+                'total_responses': 10,
                 'values': [
                     {
                         'value': 'fast',
@@ -392,7 +601,7 @@ def get_observation_metrics(work_olid):
                     }
                 ]
             }
-            ... Other observations omitted for brevity ... 
+            ... Other observations omitted for brevity ...
         ]
     }
 
@@ -414,46 +623,116 @@ def get_observation_metrics(work_olid):
         respondents_per_type_dict = Observations.count_unique_respondents_by_type(work_id)
         observation_totals = Observations.count_observations(work_id)
 
+        if not observation_totals:
+            # It is possible to have a non-zero number of respondents and no
+            # observation totals if deleted book tags are present in the
+            # observations table.
+
+            return metrics
+
         current_type_id = observation_totals[0]['type_id']
-        observation_item = next((o for o in OBSERVATIONS['observations'] if current_type_id == o['id']))
+        observation_item = next(
+            (o for o in OBSERVATIONS['observations']
+                if current_type_id == o['id'])
+        )
 
         current_observation = {
             'label': observation_item['label'],
             'description': observation_item['description'],
             'multi_choice': observation_item['multi_choice'],
-            'total_respondents_for_type': respondents_per_type_dict[current_type_id],
+            'total_respondents_for_type':
+                respondents_per_type_dict[current_type_id],
             'values': []
         }
 
+        total_responses = 0
+
         for i in observation_totals:
             if i['type_id'] != current_type_id:
+                current_observation['total_responses'] = total_responses
+                total_responses = 0
                 metrics['observations'].append(current_observation)
                 current_type_id = i['type_id']
-                observation_item = next((o for o in OBSERVATIONS['observations'] if current_type_id == o['id']))
+                observation_item = next(
+                    (o for o in OBSERVATIONS['observations']
+                        if current_type_id == o['id'])
+                )
                 current_observation = {
                     'label': observation_item['label'],
                     'description': observation_item['description'],
                     'multi_choice': observation_item['multi_choice'],
-                    'total_respondents_for_type': respondents_per_type_dict[current_type_id],
+                    'total_respondents_for_type':
+                        respondents_per_type_dict[current_type_id],
                     'values': []
                 }
-            current_observation['values'].append(
-                    { 
-                        'value': next((v['name'] for v in observation_item['values'] if v['id'] == i['value_id'])), 
-                        'count': i['total'] 
-                    } 
-                )
-    
+            current_observation['values'].append({
+                'value': next((
+                    v['name'] for v in observation_item['values']
+                    if v['id'] == i['value_id']
+                )),
+                'count': i['total']
+            })
+            total_responses += i['total']
+
+        current_observation['total_responses'] = total_responses
         metrics['observations'].append(current_observation)
     return metrics
-        
+
 
 class Observations(object):
 
     NULL_EDITION_VALUE = -1
 
     @classmethod
-    def total_unique_respondents(cls, work_id=None):
+    def summary(cls):
+        return {
+            'total_reviews': {
+                'total': Observations.total_reviews(),
+                'month': Observations.total_reviews(
+                    since=DATE_ONE_MONTH_AGO
+                ),
+                'week': Observations.total_reviews(
+                    since=DATE_ONE_WEEK_AGO
+                ),
+            },
+            'total_books_reviewed': {
+                'total': Observations.total_books_reviewed(),
+                'month': Observations.total_books_reviewed(
+                    since=DATE_ONE_MONTH_AGO
+                ),
+                'week': Observations.total_books_reviewed(
+                    since=DATE_ONE_WEEK_AGO
+                ),
+            },
+            'total_reviewers': {
+                'total': Observations.total_unique_respondents(),
+                'month': Observations.total_unique_respondents(
+                    since=DATE_ONE_MONTH_AGO
+                ),
+                'week': Observations.total_unique_respondents(
+                    since=DATE_ONE_WEEK_AGO
+                ),
+            }
+        }
+
+    @classmethod
+    def total_reviews(cls, since=None):
+        oldb = db.get_db()
+        query = "SELECT COUNT(*) from observations"
+        if since:
+            query += " WHERE created >= $since"
+        return oldb.query(query, vars={'since': since})[0]['count']
+
+    @classmethod
+    def total_books_reviewed(cls, since=None):
+        oldb = db.get_db()
+        query = "SELECT COUNT(DISTINCT(work_id)) from observations"
+        if since:
+            query += " WHERE created >= $since"
+        return oldb.query(query, vars={'since': since})[0]['count']
+
+    @classmethod
+    def total_unique_respondents(cls, work_id=None, since=None):
         """
         Returns total number of patrons who have submitted observations for the given work ID.
         If no work ID is passed, returns total number of patrons who have submitted observations
@@ -463,13 +742,17 @@ class Observations(object):
         """
         oldb = db.get_db()
         data = {
-            'work_id': work_id
+            'work_id': work_id,
+            'since': since,
         }
         query = "SELECT COUNT(DISTINCT(username)) FROM observations"
 
         if work_id:
             query += " WHERE work_id = $work_id"
-
+            if since:
+                query += " AND created >= $since"
+        elif since:
+            query += " WHERE created >= $since"
         return oldb.query(query, vars=data)[0]['count']
 
     @classmethod
@@ -482,15 +765,14 @@ class Observations(object):
         """
         oldb = db.get_db()
         data = {
-            'work_id': work_id
+            'work_id': work_id,
         }
         query = """
-            SELECT 
-              observation_type AS type, 
+            SELECT
+              observation_type AS type,
               count(distinct(username)) AS total_respondents
-            FROM observations 
+            FROM observations
             WHERE work_id = $work_id """
-
         deleted_observations = _get_deleted_types_and_values()
 
         if len(deleted_observations['types']):
@@ -522,9 +804,9 @@ class Observations(object):
             'work_id': work_id
         }
         query = """
-            SELECT 
+            SELECT
               observation_type as type_id,
-              observation_value as value_id, 
+              observation_value as value_id,
               COUNT(observation_value) AS total
             FROM observations
             WHERE observations.work_id = $work_id """
@@ -585,7 +867,7 @@ class Observations(object):
     def get_patron_observations(cls, username, work_id=None):
         """
         Returns a list of observation records containing only type and value IDs.
- 
+
         Gets all of a patron's observation records by default.  Returns only the observations for
         the given work if work_id is passed.
 
@@ -642,27 +924,32 @@ class Observations(object):
         return list(oldb.query(query, vars=data))
 
     def get_multi_choice(type):
-        """
-        Searches for the given type in the observations object, and returns the type's 'multi_choice' value.
+        """Searches for the given type in the observations object, and
+        returns the type's 'multi_choice' value.
 
         return: The multi_choice value for the given type
+
         """
         for o in OBSERVATIONS['observations']:
             if o['label'] == type:
                 return o['multi_choice']
 
     @classmethod
-    def persist_observation(cls, username, work_id, observation, action, edition_id=NULL_EDITION_VALUE):
-        """
-        Inserts or deletes a single observation, depending on the given action.
+    def persist_observation(
+            cls, username, work_id, observation, action,
+            edition_id=NULL_EDITION_VALUE):
+        """Inserts or deletes a single observation, depending on the given action.
 
-        If the action is 'delete', the observation will be deleted from the observations table.
+        If the action is 'delete', the observation will be deleted
+        from the observations table.
 
-        If the action is 'add', and the observation type only allows a single value (multi_choice == True), 
-        an attempt is made to delete previous observations of the same type before the new observation is 
-        persisted.
+        If the action is 'add', and the observation type only allows a
+        single value (multi_choice == True), an attempt is made to
+        delete previous observations of the same type before the new
+        observation is persisted.
 
         Otherwise, the new observation is stored in the DB.
+
         """
 
         def get_observation_ids(observation):
@@ -692,7 +979,7 @@ class Observations(object):
 
         where_clause = 'username=$username AND work_id=$work_id AND observation_type=$observation_type '
 
-        
+
         if action == 'delete':
             # Delete observation and return:
             where_clause += 'AND observation_value=$observation_value'
@@ -721,13 +1008,16 @@ class Observations(object):
         )
 
     @classmethod
-    def remove_observations(cls, username, work_id, edition_id=NULL_EDITION_VALUE, observation_type=None, observation_value=None):
-        """
-        Deletes observations from the observations table.  If both observation_type and observation_value are
-        passed, only one row will be deleted from the table.  Otherwise, all of a patron's observations for an edition
-        are deleted.
+    def remove_observations(
+            cls, username, work_id, edition_id=NULL_EDITION_VALUE,
+            observation_type=None, observation_value=None):
+        """Deletes observations from the observations table.  If both
+        observation_type and observation_value are passed, only one
+        row will be deleted from the table.  Otherwise, all of a
+        patron's observations for an edition are deleted.
 
         return: A list of deleted rows.
+
         """
         oldb = db.get_db()
         data = {

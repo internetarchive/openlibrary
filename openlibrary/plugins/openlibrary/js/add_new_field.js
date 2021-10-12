@@ -28,7 +28,7 @@ export default function($){
 
             $this.on('change', function(){
                 var value = $this.val();
-                if (value == '__add__') {
+                if (value === '__add__') {
                     if (options.onshow) {
                         options.onshow.apply($this, []);
                     }
@@ -45,7 +45,7 @@ export default function($){
             // handle cancel
             $href.on('cbox_closed', function() {
 
-                if ($this.val() == '__add__') {
+                if ($this.val() === '__add__') {
                     $this.val('');
                     $this.trigger('focus');
                 }
@@ -68,7 +68,7 @@ export default function($){
                 }
 
                 // validate
-                if (options.validate && options.validate.apply($this, [d]) == false) {
+                if (options.validate && options.validate.apply($this, [d]) === false) {
                     return;
                 }
 

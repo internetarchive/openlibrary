@@ -201,6 +201,9 @@ class OpenLibrary:
         data = {'identifier': ocaid, 'require_marc': 'true' if require_marc else 'false'}
         return self._request('/api/import/ia', method='POST', data=data).text
 
+    def import_data(self, data):
+        return self._request('/api/import', method='POST', data=data).text
+
 
 def marshal(data):
     """Serializes the specified data in the format required by OL.::

@@ -20,7 +20,7 @@ function createSearchFacets(totalFacet = 2, visibleFacet = 2, minVisibleFacet = 
 
     const divTestFacet = divSearchFacets.querySelector('div.test');
     for (let i = 0; i < totalFacet; i++) {
-        let facetNb = i + 1;
+        const facetNb = i + 1;
         divTestFacet.innerHTML += `
             <div class="facetEntry">
                 <span><a>facet_${facetNb}</a></span>
@@ -43,11 +43,11 @@ function createSearchFacets(totalFacet = 2, visibleFacet = 2, minVisibleFacet = 
         </div>
     `;
 
-    if (visibleFacet == minVisibleFacet) {
+    if (visibleFacet === minVisibleFacet) {
         divTestFacet.querySelector('#test_bull').style.display = 'none';
         divTestFacet.querySelector('#test_less').style.display = 'none';
     }
-    if (visibleFacet == totalFacet) {
+    if (visibleFacet === totalFacet) {
         divTestFacet.querySelector('#test_more').style.display = 'none';
         divTestFacet.querySelector('#test_bull').style.display = 'none';
     }
@@ -120,10 +120,10 @@ function checkFacetMoreLessVisibility(totalFacet, minVisibleFacet, expectedVisib
     }
 }
 
-let _originalGetClientRects = window.Element.prototype.getClientRects;
+const _originalGetClientRects = window.Element.prototype.getClientRects;
 
 // Stubbed getClientRects to enable jQuery ':hidden' selector used by 'more' and 'less' functions
-let _stubbedGetClientRects = function() {
+const _stubbedGetClientRects = function() {
     let node = this;
     while (node) {
         if (node === document) {

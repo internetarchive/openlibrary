@@ -23,7 +23,7 @@ services:
       - 8983
     volumes:
       - solr-data:/var/solr/data
-      - ./conf/solr8-ol:/opt/solr/server/solr/configsets/olconfig:ro
+      - ./conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
     networks:
       - webnet
     logging:
@@ -36,7 +36,6 @@ services:
   solr-updater:
     image: "${OLIMAGE:-oldev:latest}"
     command: docker/ol-solr-updater-start.sh
-    restart: always
     hostname: "$HOSTNAME"
     environment:
       - OL_CONFIG=conf/openlibrary.yml

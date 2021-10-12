@@ -1,4 +1,5 @@
 from datetime import datetime
+import copy
 import json
 import logging
 import random
@@ -17,6 +18,7 @@ from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core.lending import add_availability, get_availability_of_ocaids
 from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.plugins.inside.code import fulltext_search
+from openlibrary.plugins.openlibrary.lists import get_list_editions
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import escape_bracket
@@ -434,12 +436,8 @@ def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=Non
         if use_dismax:
             params.append(('q', ' '.join(q_list)))
             params.append(('defType', 'dismax'))
-            if config.plugin_worksearch.get('solr8'):
-                params.append(('qf', 'text title^20 author_name^20'))
-                params.append(('bf', 'min(100,edition_count)'))
-            else:
-                params.append(('qf', 'text title^5 author_name^5'))
-                params.append(('bf', 'sqrt(edition_count)^10'))
+            params.append(('qf', 'text title^20 author_name^20'))
+            params.append(('bf', 'min(100,edition_count)'))
         else:
             params.append(('q', ' '.join(q_list + ['_val_:"sqrt(edition_count)"^10'])))
 
@@ -584,15 +582,6 @@ def get_doc(doc):  # called from work_search template
     )
 
     doc.url = doc.key + '/' + urlsafe(doc.title)
-
-    if not doc.public_scan and doc.lending_identifier:
-        store_doc = web.ctx.site.store.get("ebooks/" + doc.lending_identifier) or {}
-        doc.checked_out = store_doc.get("borrowed") == "true"
-    elif not doc.public_scan and doc.lending_edition:
-        store_doc = web.ctx.site.store.get("ebooks/books/" + doc.lending_edition) or {}
-        doc.checked_out = store_doc.get("borrowed") == "true"
-    else:
-        doc.checked_out = "false"
     return doc
 
 def work_object(w): # called by works_by_author
@@ -612,12 +601,6 @@ def work_object(w): # called by works_by_author
         ia = w.get('ia', []),
         cover_i = w.get('cover_i')
     )
-
-    if obj['lending_identifier']:
-        doc = web.ctx.site.store.get("ebooks/" + obj['lending_identifier']) or {}
-        obj['checked_out'] = doc.get("borrowed") == "true"
-    else:
-        obj['checked_out'] = False
 
     for f in 'has_fulltext', 'subtitle':
         if w.get(f):
@@ -981,7 +964,7 @@ class author_search_json(author_search):
 @public
 def random_author_search(limit=10):
     """
-    Returns a JSON string that contains a random list of authors.  Amount of authors
+    Returns a dict that contains a random list of authors.  Amount of authors
     returned is set be the given limit.
     """
     letters_and_digits = string.ascii_letters + string.digits
@@ -1004,7 +987,29 @@ def random_author_search(limit=10):
         # The template still expects the key to be in the old format
         doc['key'] = doc['key'].split("/")[-1]
 
-    return json.dumps(search_results['response'])
+    return search_results['response']
+
+
+def rewrite_list_editions_query(q, page, offset, limit):
+    """Takes a solr query. If it doesn't contain a /lists/ key, then
+    return the query, unchanged, exactly as it entered the
+    function. If it does contain a lists key, then use the pagination
+    information to fetch the right block of keys from the
+    lists_editions API and then feed these editions resulting work
+    keys into solr with the form key:(OL123W, OL234W). This way, we
+    can use the solr API to fetch list works and render them in
+    carousels in the right format.
+    """
+    if '/lists/' in q:
+        editions = get_list_editions(q, offset=offset, limit=limit)
+        work_ids = [ed.get('works')[0]['key'] for ed in editions]
+        q = 'key:(' + ' OR '.join(work_ids) + ')'
+        # We've applied the offset to fetching get_list_editions to
+        # produce the right set of discrete work IDs. We don't want
+        # it applied to paginate our resulting solr query.
+        offset = 0
+        page = 1
+    return q, page, offset, limit
 
 
 @public
@@ -1015,18 +1020,30 @@ def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet
     query: dict
     sort: str editions|old|new|scans
     """
+    # Ensure we don't mutate the `query` passed in by reference
+    query = copy.deepcopy(query)
     query['wt'] = 'json'
     if sort:
         sort = process_sort(sort)
+
+    # deal with special /lists/ key queries
+    query['q'], page, offset, limit = rewrite_list_editions_query(
+        query['q'],
+        page,
+        offset,
+        limit
+    )
     try:
-        (reply, solr_select, q_list) = run_solr_query(query,
-                                                      rows=limit,
-                                                      page=page,
-                                                      sort=sort,
-                                                      offset=offset,
-                                                      fields=fields,
-                                                      facet=facet,
-                                                      spellcheck_count=spellcheck_count)
+        (reply, solr_select, q_list) = run_solr_query(
+            query,
+            rows=limit,
+            page=page,
+            sort=sort,
+            offset=offset,
+            fields=fields,
+            facet=facet,
+            spellcheck_count=spellcheck_count
+        )
         response = json.loads(reply)['response'] or ''
     except (ValueError, IOError) as e:
         logger.error("Error in processing search API.")
@@ -1074,10 +1091,27 @@ class search_json(delegate.page):
             query.pop("_spellcheck_count", default_spellcheck_count),
             default=default_spellcheck_count)
 
-        response = work_search(query, sort=sort, page=page, offset=offset, limit=limit,
-                               fields=fields, facet=facet,
-                               spellcheck_count=spellcheck_count)
-
+        # If the query is a /list/ key, create custom list_editions_query
+        q = query.get('q', '')
+        query['q'], page, offset, limit = rewrite_list_editions_query(
+            q,
+            page,
+            offset,
+            limit
+        )
+        response = work_search(
+            query,
+            sort=sort,
+            page=page,
+            offset=offset,
+            limit=limit,
+            fields=fields,
+            facet=facet,
+            spellcheck_count=spellcheck_count
+        )
+        response['q'] = q
+        response['offset'] = offset
+        response['docs'] = response['docs']
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=4))
 

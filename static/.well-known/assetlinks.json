@@ -1,0 +1,14 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "org.openlibrary.twa",
+            "sha256_cert_fingerprints": [
+                "52:1E:4B:B9:94:C7:23:95:39:9A:32:68:0E:A5:2E:77:D5:63:13:0F:3B:84:E9:62:D8:0D:F0:7B:91:6E:E5:FD"
+            ]
+        }
+    }
+]

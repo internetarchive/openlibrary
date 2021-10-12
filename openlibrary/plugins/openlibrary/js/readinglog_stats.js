@@ -124,7 +124,7 @@ export function init(config) {
         return `
             SELECT DISTINCT ?x ?xLabel ?olid
                 ${
-    SPARQL_FIELDS.map(f => `?${f.name} ${f.type == 'uri' ? `?${f.name}Label ` : ''}`).join('')
+    SPARQL_FIELDS.map(f => `?${f.name} ${f.type === 'uri' ? `?${f.name}Label ` : ''}`).join('')
 }
             WHERE {
               VALUES ?olids { ${authors.map(a => `"${a.key.split('/')[2]}"`).join(' ')} }
@@ -155,7 +155,7 @@ export function init(config) {
                 const record = { qid, olids: uniq(bindings.map(x => x.olid.value)) };
                 // { qid: Q123, olids: [ { value: }, {value: }], blah: [ {value:}, {value:} ], blahLabel: [{value:}, {value:},
                 for (const {name, type} of SPARQL_FIELDS) {
-                    if (type == 'uri') {
+                    if (type === 'uri') {
                     // need to dedupe whilst keeping labels in mind
                         const deduped = uniqBy(
                             bindings
@@ -190,9 +190,9 @@ export function init(config) {
         const canvas = document.createElement('canvas');
         container.append(canvas);
 
-        if (chartConfig.type == 'work-chart') {
+        if (chartConfig.type === 'work-chart') {
             createWorkChart(config, chartConfig, container, canvas);
-        } else if (chartConfig.type == 'wd-chart') {
+        } else if (chartConfig.type === 'wd-chart') {
             wdPromise.then(() => createWorkChart(config, chartConfig, container, canvas));
         }
     }
@@ -210,7 +210,7 @@ function getPath(obj, key) {
      * @return {any}
      */
     function main(obj, [head, ...rest]) {
-        if (typeof(obj) == 'undefined') return undefined;
+        if (typeof(obj) === 'undefined') return undefined;
         if (!head) return obj;
         if (head.endsWith('[]')) return obj[head.slice(0, -2)].flatMap(x => main(x, rest));
         else return main(obj[head], rest);

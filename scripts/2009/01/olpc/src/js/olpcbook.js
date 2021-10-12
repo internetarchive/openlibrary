@@ -18,7 +18,7 @@ gb.getPageURI = function(index) {
 }
 
 gb.getPageSide = function(index) {
-    if (0 == (index & 0x1)) {
+    if (0 === (index & 0x1)) {
         return 'R';
     } else {
         return 'L';

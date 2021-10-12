@@ -4,7 +4,9 @@ import itertools
 import logging
 import os
 import re
-from typing import Literal, List, Union
+from math import ceil
+from statistics import median
+from typing import Literal, List, Union, Optional, cast
 
 import httpx
 import requests
@@ -47,6 +49,7 @@ data_provider = None
 _ia_db = None
 
 solr_base_url = None
+solr_next: Optional[bool] = None
 
 
 def get_solr_base_url():
@@ -68,6 +71,24 @@ def get_solr_base_url():
 def set_solr_base_url(solr_url: str):
     global solr_base_url
     solr_base_url = solr_url
+
+
+def get_solr_next() -> bool:
+    """
+    Get whether this is the next version of solr; ie new schema configs/fields, etc.
+    """
+    global solr_next
+
+    if solr_next is None:
+        load_config()
+        solr_next = config.runtime_config['plugin_worksearch'].get('solr_next', False)
+
+    return solr_next
+
+
+def set_solr_next(val: bool):
+    global solr_next
+    solr_next = val
 
 
 def get_ia_collection_and_box_id(ia):
@@ -195,6 +216,19 @@ def pick_cover_edition(editions, work_cover_id):
         # The default: None
         [None],
     ))
+
+
+def pick_number_of_pages_median(editions: List[dict]) -> Optional[int]:
+    number_of_pages = [
+        cast(int, e.get('number_of_pages'))
+        for e in editions
+        if e.get('number_of_pages') and type(e.get('number_of_pages')) == int
+    ]
+
+    if number_of_pages:
+        return ceil(median(number_of_pages))
+    else:
+        return None
 
 
 def get_work_subjects(w):
@@ -548,6 +582,11 @@ class SolrProcessor:
         if pub_years:
             add_list('publish_year', pub_years)
             add('first_publish_year', min(int(y) for y in pub_years))
+
+        if get_solr_next():
+            number_of_pages_median = pick_number_of_pages_median(editions)
+            if number_of_pages_median:
+                add('number_of_pages_median', number_of_pages_median)
 
         field_map = [
             ('lccn', 'lccn'),
@@ -1740,6 +1779,7 @@ def main(
         profile=False,
         data_provider: Literal['default', 'legacy'] = "default",
         solr_base: str = None,
+        solr_next=False,
         update: Literal['update', 'print'] = 'update'
 ):
     """
@@ -1753,6 +1793,7 @@ def main(
     :param profile: Profile this code to identify the bottlenecks
     :param data_provider: Name of the data provider to use
     :param solr_base: If wanting to override openlibrary.yml
+    :param solr_next: Whether to assume schema of next solr version is active
     :param update: Whether/how to do the actual solr update call
     """
     load_configs(ol_url, ol_config, data_provider)
@@ -1761,6 +1802,8 @@ def main(
 
     if solr_base:
         set_solr_base_url(solr_base)
+
+    set_solr_next(solr_next)
 
     if profile:
         f = web.profile(update_keys)
