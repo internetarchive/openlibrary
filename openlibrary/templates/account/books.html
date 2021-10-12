@@ -117,6 +117,15 @@ $if not header_title:
             <li><a href="/people/$username/books/sponsorships" $('class=selected' if key == 'sponsorships' else '')>$_('Sponsoring') $sponsorship_count</a></li>
           </ul>
         $if owners_page:
+          <ul class="booknotes-list">
+            <li class="subsection">$_('Notes & Observations')</li>
+            <li><a $('class=selected' if key=='notes' else '') href="/people/$username/books/notes">$_('My notes (%(count)d)', count=counts['notes'])</a></li>
+            <li><a $('class=selected' if key=='observations' else '') href="/people/$username/books/observations">$_('My observations (%(count)d)', count=counts['observations'])</a></li>
+          </ul>
+          <ul class="import-export-lists">
+            <li class="subsection">$_("Import / Export")</li>
+            <li><a href="/account/import" $('class=selected' if key=='imports' else '')>$_("Import & Export Options")</a></li>
+          </ul>
           <ul class="user-lists">
             <li class="subsection">$_('Lists')</li>
             <div class="list-overflow">
@@ -131,15 +140,6 @@ $if not header_title:
                   $ class_list = class_list + ' selected'
                 <li><a class="$class_list" href="/people/$username/lists/$list_id">$lst['name'] ($(len(lst.seeds)))</a></li>
             </div>
-          </ul>
-          <ul class="booknotes-list">
-            <li class="subsection">$_('Notes & Observations')</li>
-            <li><a $('class=selected' if key=='notes' else '') href="/people/$username/books/notes">$_('My notes (%(count)d)', count=counts['notes'])</a></li>
-            <li><a $('class=selected' if key=='observations' else '') href="/people/$username/books/observations">$_('My observations (%(count)d)', count=counts['observations'])</a></li>
-          </ul>
-          <ul class="import-export-lists">
-            <li class="subsection">$_("Import / Export")</li>
-            <li><a href="/account/import" $('class=selected' if key=='imports' else '')>$_("Import & Export Options")</a></li>
           </ul>
       </div>
       <div class="mybooks-details">
