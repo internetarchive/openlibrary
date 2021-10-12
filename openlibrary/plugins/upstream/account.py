@@ -319,7 +319,7 @@ class account_login(delegate.page):
     def GET(self):
         referer = web.ctx.env.get('HTTP_REFERER', '/')
         # Don't set referer if request is from offsite
-        if not 'openlibrary.org' in referer:
+        if 'openlibrary.org' not in referer:
             referer = None
         i = web.input(redirect=referer)
         f = forms.Login()
