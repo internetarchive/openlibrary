@@ -19,7 +19,7 @@ function getIsbnToElementMap(container) {
  * @returns {Promise<Array>}
  */
 async function getAvailabilityDataFromOpenLibrary(isbnList) {
-    const apiBaseUrl = "https://openlibrary.org/search.json";
+    const apiBaseUrl = 'https://openlibrary.org/search.json';
     const apiUrl = `${apiBaseUrl}?fields=*,availability&q=isbn:${isbnList.join("+OR+")}`;
     const response = await fetch(apiUrl);
     const jsonResponse = await response.json();
