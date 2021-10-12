@@ -201,6 +201,7 @@ def list_recent_pages(path, limit=100, offset=0):
 def json_encode(d):
     return json.dumps(d)
 
+
 def unflatten(d, separator="--"):
     """Convert flattened data into nested form.
 
