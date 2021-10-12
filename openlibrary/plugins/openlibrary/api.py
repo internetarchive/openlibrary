@@ -521,10 +521,10 @@ class merge_works(delegate.page):
 
     @staticmethod
     def merge_work_dupe_into_original(original: dict, dupe: dict) -> dict:
-        for field_name in [
+        for field_name in (
             'authors', 'excerpts', 'links', 'covers',
             'subjects', 'subject_people', 'subject_places', 'subject_times'
-        ]:
+        ):
             original[field_name] = merge_works.uniq_arr_field_values_from_dicts(
                 field_name=field_name,
                 dict_one=original,
