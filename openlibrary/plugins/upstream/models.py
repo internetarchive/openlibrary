@@ -702,9 +702,9 @@ class Work(models.Work):
 
     def get_edition_covers(self):
         editions = web.ctx.site.get_many(web.ctx.site.things({"type": "/type/edition", "works": self.key, "limit": 1000}))
-        exisiting = set(int(c.id) for c in self.get_covers())
+        existing = set(int(c.id) for c in self.get_covers())
         covers = [e.get_cover() for e in editions]
-        return [c for c in covers if c and int(c.id) not in exisiting]
+        return [c for c in covers if c and int(c.id) not in existing]
 
     def as_fake_solr_record(self):
         record = {
@@ -765,7 +765,7 @@ class User(models.User):
             lending.sync_loan(loan['ocaid'])
 
 class UnitParser:
-    """Parsers values like dimentions and weight.
+    """Parsers values like dimensions and weight.
 
         >>> p = UnitParser(["height", "width", "depth"])
         >>> parsed = p.parse("9 x 3 x 2 inches")

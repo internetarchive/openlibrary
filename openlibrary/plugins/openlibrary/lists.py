@@ -1,4 +1,4 @@
-"""Lists implementaion.
+"""Lists implementation.
 """
 import json
 import random
@@ -517,7 +517,7 @@ def _get_recently_modified_lists(limit, offset=0):
     This function is memoized for better performance.
     """
     # this function is memozied with background=True option.
-    # web.ctx must be initialized as it won't be avaiable to the background thread.
+    # web.ctx must be initialized as it won't be available to the background thread.
     if 'env' not in web.ctx:
         delegate.fakeload()
 

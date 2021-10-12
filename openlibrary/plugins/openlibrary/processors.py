@@ -30,7 +30,7 @@ class ProfileProcessor:
 
 class CORSProcessor:
     """Processor to handle OPTIONS method to support
-    Cross Origin Resurce Sharing.
+    Cross Origin Resource Sharing.
     """
     def __init__(self, cors_prefixes = None):
         self.cors_prefixes = cors_prefixes

@@ -42,7 +42,7 @@ def query_single_thing(db, typ, start, end):
     try:
         kid = result[0].id
     except IndexError:
-        raise InvalidType("No id for type '/type/%s in the datbase"%typ)
+        raise InvalidType("No id for type '/type/%s in the database"%typ)
     q2 = "select count(*) as count from thing where type=%d and created >= '%s' and created < '%s'"% (kid, start, end)
     result = db.query(q2)
     count = result[0].count

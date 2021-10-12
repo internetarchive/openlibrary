@@ -153,7 +153,7 @@ class DocumentLoader:
             {'key': '/b/OL1M', 'title': 'New title'}],
             comment="unicode normalize titles")
 
-        When append new value to an existing property, entire list must be provied.
+        When append new value to an existing property, entire list must be provided.
 
         db.bulk_update([{
                 'key': '/a/OL1A',

@@ -57,7 +57,7 @@ def setup_solr_updater():
     from openlibrary import config as olconfig
     olconfig.runtime_config = config.__dict__
 
-    # The solr-updater makes a http call to the website insted of using the
+    # The solr-updater makes a http call to the website instead of using the
     # infobase API. It requires setting the host before start using it.
     from openlibrary.catalog.utils.query import set_query_host
 
@@ -83,7 +83,7 @@ class process_ebooks(delegate.page):
             # Makes a store doc from solr doc
             return {
                 "_key": "ebooks/books/" + d['lending_edition_s'],
-                "_rev": None, # Don't worry about consistancy
+                "_rev": None,  # Don't worry about consistency
                 "type": "ebook",
                 "book_key": "/books/" + d['lending_edition_s'],
                 "borrowed": "false"

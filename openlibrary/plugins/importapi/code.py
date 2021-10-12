@@ -431,7 +431,7 @@ class ils_search:
         try:
             rawdata = json.loads(web.data())
         except ValueError as e:
-            raise self.error("Unparseable JSON input \n %s" % web.data())
+            raise self.error("Unparsable JSON input \n %s" % web.data())
 
         # step 1: prepare the data
         data = self.prepare_input_data(rawdata)

@@ -52,7 +52,7 @@ def start(config_file, *args):
     sys.argv = [sys.argv[0]] + list(args)
 
     # The web.py runfcgi is using multiplexed=True option for fastcgi server
-    # and that seem to cause some memory leaks. Using a varient of runfcgi
+    # and that seem to cause some memory leaks. Using a variant of runfcgi
     # that sets multiplexed=False.
     if 'fastcgi' in sys.argv:
         sys.argv.remove('fastcgi')

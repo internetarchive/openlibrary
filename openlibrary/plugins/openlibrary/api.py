@@ -329,12 +329,12 @@ class author_works(delegate.page):
 
 class amazon_search_api(delegate.page):
     """Librarian + admin only endpoint to check for books
-    avaialable on Amazon via the Product Advertising API
+    available on Amazon via the Product Advertising API
     ItemSearch operation.
 
     https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemSearch.html
 
-    Currently experimental to explore what data is avaialable to affiliates.
+    Currently experimental to explore what data is available to affiliates.
 
     :return: JSON {"results": []} containing Amazon product metadata
              for items matching the title and author search parameters.
@@ -403,7 +403,7 @@ class price_api(delegate.page):
                 isbn_13) or {}
 
         # fetch book by isbn if it exists
-        # TODO: perform exisiting OL lookup by ASIN if supplied, if possible
+        # TODO: perform existing OL lookup by ASIN if supplied, if possible
         matches = web.ctx.site.things({
             'type': '/type/edition',
             id_type: id_,

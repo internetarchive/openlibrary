@@ -216,7 +216,7 @@ def get_edition_languages(edition: dict) -> List[str]:
 
 def get_work_subjects(w):
     """
-    Get's the subjects of the work grouped by type and then by count.
+    Gets the subjects of the work grouped by type and then by count.
 
     :param dict w: Work
     :rtype: dict[str, dict[str, int]]

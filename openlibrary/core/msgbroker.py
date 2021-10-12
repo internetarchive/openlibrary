@@ -1,6 +1,6 @@
 """Broker for dispaching messages in Open Library.
 
-Message Broker or the pub/sub messaging patten allows publishers and
+Message Broker or the pub/sub messaging pattern allows publishers and
 subscribers of messages to communite without the knowledge of each other. This
 usually leads to a loosely-coupled design.
 

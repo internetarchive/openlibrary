@@ -461,7 +461,7 @@
     </fieldType>
 
     
-    <!-- SortableTextField generaly functions exactly like TextField,
+    <!-- SortableTextField generally functions exactly like TextField,
          except that it supports, and by default uses, docValues for sorting (or faceting)
          on the first 1024 characters of the original field values (which is configurable).
          

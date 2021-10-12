@@ -349,7 +349,7 @@ def _test():
         );
         create index posts_slug_idx on posts(slug);
 
-    Thats all.
+    That's all.
     """
 
 if __name__ == "__main__":

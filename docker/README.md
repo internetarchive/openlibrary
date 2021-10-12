@@ -24,7 +24,7 @@ You will likely need to install Rosetta 2 in order to run Docker on your machine
 ```
 softwareupdate --install-rosetta
 ```
-More detailed information about this can be found in the [Docker Desktop for Apple silicon documention](https://docs.docker.com/docker-for-mac/apple-silicon/).
+More detailed information about this can be found in the [Docker Desktop for Apple silicon documentation](https://docs.docker.com/docker-for-mac/apple-silicon/).
 
 If you are experiencing issues building JS, you may need to increase the RAM available to Docker. The defaults of 2GB ram and 1GB Swap are not enough. We recommend requirements of 4GB ram and 2GB swap. This resolved the error message of `Killed` when running `build-assets`.
 

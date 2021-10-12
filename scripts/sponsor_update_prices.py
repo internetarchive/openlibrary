@@ -1,4 +1,4 @@
-"""This script programatically iterates over each
+"""This script programmatically iterates over each
 item in the bwb purchase receipt and update the archive.org item with the
 correct `book_price`.
 
