@@ -116,22 +116,22 @@ $if not header_title:
               $ sponsorship_count = "(%d)" % counts['sponsorships']
             <li><a href="/people/$username/books/sponsorships" $('class=selected' if key == 'sponsorships' else '')>$_('Sponsoring') $sponsorship_count</a></li>
           </ul>
-        <ul class="user-lists">
-          <li class="subsection">$_('Lists')</li>
-          <div class="list-overflow">
-            $ class_list = 'list-link'
-            $if key == 'lists':
-              $ class_list = class_list + ' selected'
-            <li><a href="/people/$username/lists" class="$class_list">$_('My Lists') ($(len(lists)))</a></li>
-            $for lst in lists:
-              $ list_id = lst.key.split('/')[-1]
-              $ class_list = 'list-link'
-              $if lst == items:
-                $ class_list = class_list + ' selected'
-              <li><a class="$class_list" href="/people/$username/lists/$list_id">$lst['name'] ($(len(lst.seeds)))</a></li>
-          </div>
-        </ul>
         $if owners_page:
+          <ul class="user-lists">
+            <li class="subsection">$_('Lists')</li>
+            <div class="list-overflow">
+              $ class_list = 'list-link'
+              $if key == 'lists':
+                $ class_list = class_list + ' selected'
+              <li><a href="/people/$username/lists" class="$class_list">$_('My Lists') ($(len(lists)))</a></li>
+              $for lst in lists:
+                $ list_id = lst.key.split('/')[-1]
+                $ class_list = 'list-link'
+                $if lst == items:
+                  $ class_list = class_list + ' selected'
+                <li><a class="$class_list" href="/people/$username/lists/$list_id">$lst['name'] ($(len(lst.seeds)))</a></li>
+            </div>
+          </ul>
           <ul class="booknotes-list">
             <li class="subsection">$_('Notes & Observations')</li>
             <li><a $('class=selected' if key=='notes' else '') href="/people/$username/books/notes">$_('My notes (%(count)d)', count=counts['notes'])</a></li>

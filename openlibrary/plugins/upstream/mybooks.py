@@ -204,19 +204,13 @@ class MyBooksTemplate(object):
 
             else:
                 data = self._prepare_data(logged_in_user)
-        elif self.key in self.PUBLIC_KEYS:
-
-            if self.key == 'lists':
-                data = self._prepare_data(logged_in_user, username=self.username)
-            elif self.key == 'list':
-                data = list
-            elif is_public:
-                data = add_availability(
-                    self.readlog.get_works(
-                        self.key, page=page,
-                        sort='created', sort_order=sort),
-                    mode="openlibrary_work"
-                )
+        elif self.key in self.READING_LOG_KEYS and is_public:
+            data = add_availability(
+                self.readlog.get_works(
+                    self.key, page=page,
+                    sort='created', sort_order=sort),
+                mode="openlibrary_work"
+            )
 
         if data is not None:
             return render['account/books'](

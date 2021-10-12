@@ -10,6 +10,7 @@ from infogami.infobase import client, common
 
 import six
 
+from openlibrary.accounts import get_current_user
 from openlibrary.core import formats, cache
 import openlibrary.core.helpers as h
 from openlibrary.utils import dateutil
@@ -35,9 +36,13 @@ class lists(delegate.page):
         return "lists" in web.ctx.features
 
     def GET(self, path):
+        # If logged in patron is viewing their lists page, use MyBooksTemplate
         if path.startswith("/people/"):
+            user = get_current_user()
             username = path.split('/')[-1]
-            return MyBooksTemplate(username, 'lists').render()
+
+            if user and user.key.split('/')[-1] == username:
+                return MyBooksTemplate(username, 'lists').render()
         doc = self.get_doc(path)
         if not doc:
             raise web.notfound()
