@@ -1,4 +1,4 @@
-import {emitCloseCoverModalMessage} from './covers';
+
 
 /**
  * a confirm dialog for confirming actions
@@ -85,5 +85,6 @@ export function initDialogs() {
     $('.dialog--close').attr('href', 'javascript:;').on('click', () => $.fn.colorbox.close());
     // This will close the colorbox from the parent.
     $('.dialog--close-parent').on('click', () => parent.$.fn.colorbox.close());
-    document.querySelector('.dialog--close-parent')?.addEventListener('click', emitCloseCoverModalMessage)
+    document.querySelector('.dialog--close-parent')?.addEventListener('click',
+        ()=>window.parent.postMessage({message: 'closeCoverModal'}, '*'));
 }
