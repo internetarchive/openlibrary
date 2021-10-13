@@ -96,10 +96,14 @@ export function initCoversAddManage() {
 
 // covers/saved.html
 // This is the init save function that is used by the new version of covers using Vue
-export function initCoversSavedNew(){
-    const finishButton = document.querySelector('.formButtons button');
-    finishButton.addEventListener('click', ()=>window.parent.postMessage({message: 'closeCoverModal'}, '*'))
+export function initCoversSavedNew() {
+    document.querySelector('.formButtons button')?.addEventListener('click', emitCloseCoverModalMessage);
 }
+
+export function emitCloseCoverModalMessage() {
+    window.parent.postMessage({message: 'closeCoverModal'}, '*');
+}
+
 // Uses parent.$ in place of $ where elements lie outside of the "saved" window
 export function initCoversSaved() {
     // Save the new image

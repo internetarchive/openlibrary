@@ -4,7 +4,7 @@
         <div class="modal" :class="{hidden: !showModal}" :key="showModal">
             <div class="modal-content">
                 <span class="close" @click="showModal = !showModal">&times;</span>
-                <h1>Covers</h1>
+                <h1 class="center">Covers</h1>
                 <a @click="showAdd = true" :class="{bold: showAdd}" href="javascript:;">Add</a> |
                 <a @click="showAdd = false" :class="{bold: !showAdd}" href="javascript:;">Manage</a>
                 <hr>
@@ -86,7 +86,7 @@ iframe {
     margin: 5% auto; /* 15% from the top and centered */
     padding: 20px;
     border: 1px solid #888;
-    width: 60%; /* Could be more or less, depending on screen size */
+    width: 640px; /* set to this number to match the old covers modal */
 }
 
 /* The Close Button */
@@ -106,5 +106,9 @@ iframe {
 
 .bold {
     font-weight: bold;
+}
+
+.center {
+    text-align: center;
 }
 </style>
