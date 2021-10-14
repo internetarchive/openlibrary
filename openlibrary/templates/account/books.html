@@ -138,10 +138,10 @@ $if not header_title:
               <a href="/account/privacy">$_('Manage your privacy settings')</a>
           </p>
       </div>
-      <div>
-        $if key == 'list':
+      $if key == 'list':
+        <div>
           $:macros.databarView(items)
-      </div>
+        </div>
     </header>
     <div class="details-content">
     $if key == 'loans':
