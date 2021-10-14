@@ -25,7 +25,7 @@ $if not header_title:
   $elif key == 'notes':
     $ header_title = _("Book Notes")
   $elif key == 'observations':
-    $ header_title = _("Observations")
+    $ header_title = _("Reviews")
   $elif key == 'loans':
     $ header_title = _("Loans")
   $elif key == 'waitlist':
@@ -45,7 +45,7 @@ $if not header_title:
   <div class="mybooks-menu">
     $if owners_page:
       <ul class="sidebar-section">
-        <li class="section-header">$_('My Loans')</li>
+        <li class="section-header">$_('Loans')</li>
         <li>
           <a href="/account/loans" $('class=selected' if key == 'loans' else '')>
             $ loan_count = counts.get('loans', None)
@@ -73,9 +73,8 @@ $if not header_title:
         <li><a href="/people/$username/books/want-to-read" $('class=selected' if key == 'want-to-read' else '')><span class="li-count">$counts['want-to-read']</span>$_('Want to Read')</a></li>
         <li><a href="/people/$username/books/already-read" $('class=selected' if key == 'already-read' else '')><span class="li-count">$counts['already-read']</span>$_('Already Read')</a></li>
       $if owners_page:
-        <hr>
-        <li><a $('class=selected' if key=='notes' else '') href="/people/$username/books/notes"><span class="li-count">$counts['notes']</span>$_('My notes')</a></li>
-        <li><a $('class=selected' if key=='observations' else '') href="/people/$username/books/observations"><span class="li-count">$counts['observations']</span>$_('My observations')</a></li>
+        <li><a $('class=selected' if key=='notes' else '') href="/people/$username/books/notes"><span class="li-count">$counts['notes']</span>$_('My Notes')</a></li>
+        <li><a $('class=selected' if key=='observations' else '') href="/people/$username/books/observations"><span class="li-count">$counts['observations']</span>$_('My Reviews')</a></li>
         <hr>
         <li><a href="/account/import" $('class=selected' if key=='imports' else '')>$_("Import & Export Options")</a></li>
       </ul>
@@ -127,7 +126,7 @@ $if not header_title:
             $if key == 'notes':
               $_('Your book notes are private and cannot be viewed by other patrons.')
             $elif key == 'observations':
-              $_('Your book observations will be shared anonymously with other patrons.')
+              $_('Your book reviews will be shared anonymously with other patrons.')
             $elif key in ['currently-reading', 'already-read', 'want-to-read']:
               $if public:
                 $_('Your reading log is currently set to public')
