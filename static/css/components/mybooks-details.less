@@ -17,11 +17,12 @@
 
   .details-content {
     padding: 8px;
-
+    /* stylelint-disable selector-max-specificity */
     > div#contentBody {
       padding: 0 !important;
       margin-left: 8px;
     }
+    /* stylelint-enable selector-max-specificity */
   }
 
   h1 {
@@ -32,9 +33,9 @@
     display: inline;
   }
 
+  /* stylelint-disable selector-max-specificity */
   > div:not([class]):not([id]) {
     margin-left: 8px;
   }
-
-  
+  /* stylelint-enable selector-max-specificity */
 }
