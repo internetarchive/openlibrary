@@ -44,10 +44,9 @@ $else:
     $jsdef render_seed_count(seed_count):
         $ungettext("1 item", "%(count)d items", seed_count, count=seed_count)
 
-    <div id="contentHead" style="margin-bottom:0;">
-
-        $:macros.databarView(list)
-        $if not is_owner:
+    $if not is_owner:
+        <div id="contentHead" style="margin-bottom:0;">
+            $:macros.databarView(list)
             <div class="superNav">
                 $ owner = list.get_owner()
                 <a href="$owner.key">$owner.displayname</a>
@@ -60,7 +59,7 @@ $else:
                 <span class="darkgreen" id="list-items-count"><strong>$:render_seed_count(len(list.seeds))</strong></span>
                 $ component_times['render_seed_count'] = time() - component_times['render_seed_count']
             </p>
-    </div>
+        </div>
 
     <script type="text/javascript">
     <!--

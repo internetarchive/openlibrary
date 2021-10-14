@@ -40,89 +40,88 @@ $if not header_title:
     $ header_title = key
   $ breadcrumb = header_title
 
-<div id="contentHead">
-  <div id="mybooks" class="mybooks">
-    <div class="mybooks-menu">
+
+<div class="mybooks">
+  <div class="mybooks-menu">
+    $if owners_page:
+      <ul class="sidebar-section">
+        <li class="section-header">$_('My Loans')</li>
+        <li>
+          <a href="/account/loans" $('class=selected' if key == 'loans' else '')>
+            $ loan_count = counts.get('loans', None)
+            $_('Checked out')
+            $if loan_count is not None:
+              ($loan_count)
+          </a>
+        </li>
+        <li>
+          <a href="/account/waitlist" $('class=selected' if key == 'waitlist' else '')>
+            $ waiting_count = counts.get('waitlist', None)
+            $_('Waitlist')
+            $if waiting_count is not None:
+              ($waiting_count)
+          </a>
+        </li>
+        <li>
+          <a class="external-link" href="https://archive.org/account/?tab=loans#loans-history">Loan History</a>
+        </li>
+      </ul>
+    $if public or owners_page:
+      <ul class="sidebar-section">
+        <li class="section-header">$_('Reading Log')</li>
+        <li><a href="/people/$username/books/currently-reading" $('class=selected' if key == 'currently-reading' else '')><span class="li-count">$counts['currently-reading']</span>$_('Currently Reading')</a></li>
+        <li><a href="/people/$username/books/want-to-read" $('class=selected' if key == 'want-to-read' else '')><span class="li-count">$counts['want-to-read']</span>$_('Want to Read')</a></li>
+        <li><a href="/people/$username/books/already-read" $('class=selected' if key == 'already-read' else '')><span class="li-count">$counts['already-read']</span>$_('Already Read')</a></li>
       $if owners_page:
-        <ul class="preset-lists">
-          <li class="subsection">$_('My Loans')</li>
-          <li>
-            <a href="/account/loans" $('class=selected' if key == 'loans' else '')>
-              $ loan_count = counts.get('loans', None)
-              $_('Checked out')
-              $if loan_count is not None:
-                ($loan_count)
-            </a>
-          </li>
-          <li>
-            <a href="/account/waitlist" $('class=selected' if key == 'waitlist' else '')>
-              $ waiting_count = counts.get('waitlist', None)
-              $_('Waitlist')
-              $if waiting_count is not None:
-                ($waiting_count)
-            </a>
-          </li>
-          <li>
-            <a class="external-link" href="https://archive.org/account/?tab=loans#loans-history">Loan History</a>
-          </li>
-        </ul>
-      $if public or owners_page:
-        <ul class="preset-lists">
-          <li class="subsection">$_('Reading Log')</li>
-          <li><a href="/people/$username/books/currently-reading" $('class=selected' if key == 'currently-reading' else '')>$_('Currently Reading (%(count)d)', count=counts['currently-reading'])</a></li>
-          <li><a href="/people/$username/books/want-to-read" $('class=selected' if key == 'want-to-read' else '')>$_('Want to Read (%(count)d)', count=counts['want-to-read'])</a></li>
-          <li><a href="/people/$username/books/already-read" $('class=selected' if key == 'already-read' else '')>$_('Already Read (%(count)d)', count=counts['already-read'])</a></li>
-        $if owners_page:
-          <hr>
-          <li><a $('class=selected' if key=='notes' else '') href="/people/$username/books/notes">$_('My notes (%(count)d)', count=counts['notes'])</a></li>
-          <li><a $('class=selected' if key=='observations' else '') href="/people/$username/books/observations">$_('My observations (%(count)d)', count=counts['observations'])</a></li>
-          <hr>
-          <li><a href="/account/import" $('class=selected' if key=='imports' else '')>$_("Import & Export Options")</a></li>
-        </ul>
-      $if owners_page and ctx.user and ctx.user.in_sponsorship_beta():
-        <ul class="preset-lists">
-          <li class="subsection">$_('Sponsorships')</li>
-          $ sponsorship_count = ''
-          $if counts.get('sponsorships', None):
-            $ sponsorship_count = "(%d)" % counts['sponsorships']
-          <li><a href="/people/$username/books/sponsorships" $('class=selected' if key == 'sponsorships' else '')>$_('Sponsoring') $sponsorship_count</a></li>
-        </ul>
-      $if owners_page:
-        <ul class="user-lists">
-          <li class="subsection">$_('Lists')</li>
-          <div class="list-overflow">
+        <hr>
+        <li><a $('class=selected' if key=='notes' else '') href="/people/$username/books/notes"><span class="li-count">$counts['notes']</span>$_('My notes')</a></li>
+        <li><a $('class=selected' if key=='observations' else '') href="/people/$username/books/observations"><span class="li-count">$counts['observations']</span>$_('My observations')</a></li>
+        <hr>
+        <li><a href="/account/import" $('class=selected' if key=='imports' else '')>$_("Import & Export Options")</a></li>
+      </ul>
+    $if owners_page and ctx.user and ctx.user.in_sponsorship_beta():
+      <ul class="sidebar-section">
+        <li class="section-header">$_('Sponsorships')</li>
+        $ sponsorship_count = ''
+        $if counts.get('sponsorships', None):
+          $ sponsorship_count = "%d" % counts['sponsorships']
+        <li><a href="/people/$username/books/sponsorships" $('class=selected' if key == 'sponsorships' else '')><span class="li-count">$sponsorship_count</span>$_('Sponsoring')</a></li>
+      </ul>
+    $if owners_page:
+      <ul class="sidebar-section">
+        <li class="section-header">$_('Lists')</li>
+        <div class="list-overflow">
+          $ class_list = 'list-link'
+          $if key == 'lists':
+            $ class_list = class_list + ' selected'
+          <li><a href="/people/$username/lists" class="$class_list"><span class="li-count">$(len(lists))</span>$_('My Lists')</a></li>
+          $for lst in lists:
+            $ list_id = lst.key.split('/')[-1]
             $ class_list = 'list-link'
-            $if key == 'lists':
+            $if lst == items:
               $ class_list = class_list + ' selected'
-            <li><a href="/people/$username/lists" class="$class_list">$_('My Lists') ($(len(lists)))</a></li>
-            $for lst in lists:
-              $ list_id = lst.key.split('/')[-1]
-              $ class_list = 'list-link'
-              $if lst == items:
-                $ class_list = class_list + ' selected'
-              <li><a class="$class_list" href="/people/$username/lists/$list_id">$lst['name'] ($(len(lst.seeds)))</a></li>
-          </div>
-        </ul>
-    </div>
-    <div class="mybooks-details">
-      <header>
+            <li><a class="$class_list" href="/people/$username/lists/$list_id"><span class="li-count">$(len(lst.seeds))</span>$lst['name']</a></li>
+        </div>
+      </ul>
+  </div>
+  <div class="mybooks-details">
+    <header>
+      <div>
         <div class="small sansserif grey account-settings-menu">
           <a href="$userKey">$userDisplayName</a> &raquo; $breadcrumb
         </div>
         <div>
-        </div>
-        <div>
-          <h1 style="display:inline">
+          <h1 class="details-title">
             $if not owners_page:
               $userDisplayName &raquo; $header_title
             $else:
               $header_title
           </h1>
-    
+
           $if owners_page and key in ['currently-reading', 'already-read', 'want-to-read']:
             <a href="$ctx.path/stats" title="$('View stats about this shelf')">$_('Stats')</a>
         </div>
-    
+
         $if owners_page:
           <p>
             $if key == 'notes':
@@ -138,23 +137,29 @@ $if not header_title:
               &mdash;
               <a href="/account/privacy">$_('Manage your privacy settings')</a>
           </p>
-      </header>
-      $if key == 'loans':
-        $:render_template('account/loans', logged_in_user, items)
-      $elif key == 'waitlist':
-        $:render_template('account/waitlist', logged_in_user)
-      $elif key == 'notes':
-        $:render_template('account/notes', items, user, counts['notes'], page=current_page)
-      $elif key == 'observations':
-        $:render_template('account/observations', items, user, counts['observations'], page=current_page)
-      $elif key == 'imports':
-        $:render_template('account/import')
-      $elif key == 'lists':
-        $:render_template('lists/lists', items, lists, show_header=False)
-      $elif key in {'currently-reading', 'want-to-read', 'already-read', 'sponsorships'}:
-        $:render_template('account/reading_log', items, key, counts[key], owners_page, current_page, sort_order=sort_order, user=user)
-      $else:
-        $:render_template('type/list/view', items, check_owner=False, owns_page=True)
+      </div>
+      <div>
+        $if key == 'list':
+          $:macros.databarView(items)
+      </div>
+    </header>
+    <div class="details-content">
+    $if key == 'loans':
+      $:render_template('account/loans', logged_in_user, items)
+    $elif key == 'waitlist':
+      $:render_template('account/waitlist', logged_in_user)
+    $elif key == 'notes':
+      $:render_template('account/notes', items, user, counts['notes'], page=current_page)
+    $elif key == 'observations':
+      $:render_template('account/observations', items, user, counts['observations'], page=current_page)
+    $elif key == 'imports':
+      $:render_template('account/import')
+    $elif key == 'lists':
+      $:render_template('lists/lists', items, lists, show_header=False)
+    $elif key in {'currently-reading', 'want-to-read', 'already-read', 'sponsorships'}:
+      $:render_template('account/reading_log', items, key, counts[key], owners_page, current_page, sort_order=sort_order, user=user)
+    $else:
+      $:render_template('type/list/view', items, check_owner=False, owns_page=True)
     </div>
   </div>
 </div>
