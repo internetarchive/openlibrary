@@ -2,18 +2,20 @@
     <div class="coversNew">
         <button type="button" @click="showModal = !showModal">Manage Covers</button>
         <div class="modal" :class="{hidden: !showModal}" :key="showModal">
-            <div class="modal-content">
-                <span class="close" @click="showModal = !showModal">&times;</span>
-                <h1 class="center">Covers</h1>
-                <a @click="showAdd = true" :class="{bold: showAdd}" href="javascript:;">Add</a> |
-                <a @click="showAdd = false" :class="{bold: !showAdd}" href="javascript:;">Manage</a>
-                <hr>
+            <div class="modal-content-wrapper">
+                <div class="modal-content">
+                    <span class="close" @click="showModal = !showModal">&times;</span>
+                    <h1 class="center">Covers</h1>
+                    <a @click="showAdd = true" :class="{bold: showAdd}" href="javascript:;">Add</a> |
+                    <a @click="showAdd = false" :class="{bold: !showAdd}" href="javascript:;">Manage</a>
+                    <hr>
 
-                <div :class="{hidden: !showAdd}">
-                    <iframe :src="identifier + '/a/add-cover'"></iframe>
-                </div>
-                <div :class="{hidden: showAdd}">
-                    <iframe :src="identifier + '/a/manage-covers'"></iframe>
+                    <div class="resp-container" :class="{hidden: !showAdd}">
+                        <iframe class="resp-iframe" :src="identifier + '/a/add-cover'"></iframe>
+                    </div>
+                    <div class="resp-container" :class="{hidden: showAdd}">
+                        <iframe class="resp-iframe" :src="identifier + '/a/manage-covers'"></iframe>
+                    </div>
                 </div>
             </div>
         </div>
@@ -22,8 +24,6 @@
 
 <script>
 export default {
-    // Props are for external options; if a subelement of this is modified,
-    // the view automatically re-renders
     props: {
         identifier: {
             type: String,
@@ -46,16 +46,22 @@ export default {
     },
 }
 </script>
-<!--
-The css of the modal itself is from https://www.w3schools.com/howto/howto_css_modals.asp
-We should decide which to keep and which to use from existing modal
--->
 <style>
-iframe {
-    border: none;
-    width: 580px;
-    overflow-x: scroll !important;
-    height: 450px;
+
+.resp-container {
+    position: relative;
+    overflow: hidden;
+    padding-top: 56.25%;
+    height: 100%;
+}
+
+.resp-iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
 }
 
 .coversNew {
@@ -75,18 +81,30 @@ iframe {
     top: 0;
     width: 100%; /* Full width */
     height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
+    /*overflow-y: hidden; !* Enable scroll if needed *!*/
     background-color: rgb(0, 0, 0); /* Fallback color */
     background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
 }
 
-/* Modal Content/Box */
+@media screen and (max-width: 768px) {
+  .modal-content-wrapper {
+    margin-top: 75px;
+  }
+}
+
+.modal-content-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
 .modal-content {
     background-color: #fefefe;
-    margin: 5% auto; /* 15% from the top and centered */
     padding: 20px;
     border: 1px solid #888;
     width: 640px; /* set to this number to match the old covers modal */
+    height: 100%;
 }
 
 /* The Close Button */
