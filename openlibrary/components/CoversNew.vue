@@ -1,9 +1,9 @@
 <template>
     <div class="coversNew">
         <button type="button" @click="showModal = !showModal">Manage Covers</button>
-        <div class="modal" :class="{hidden: !showModal}" :key="showModal">
+        <div @click="showModal = false" class="modal" :class="{hidden: !showModal}" :key="showModal">
             <div class="modal-content-wrapper">
-                <div class="modal-content">
+                <div @click.stop="" class="modal-content">
                     <span class="close" @click="showModal = !showModal">&times;</span>
                     <h1 class="center">Covers</h1>
                     <a @click="showAdd = true" :class="{bold: showAdd}" href="javascript:;">Add</a> |
@@ -76,7 +76,7 @@ export default {
 .modal {
     display: block; /* Hidden by default */
     position: fixed; /* Stay in place */
-    z-index: 999999; /* Sit on top */
+    z-index: 2; /* Sit on top */
     left: 0;
     top: 0;
     width: 100%; /* Full width */
