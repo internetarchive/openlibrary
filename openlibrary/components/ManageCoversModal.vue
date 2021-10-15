@@ -11,10 +11,10 @@
                     <hr>
 
                     <div class="resp-container" :class="{hidden: !showAdd}">
-                        <iframe class="resp-iframe" :src="identifier + '/a/add-cover'"></iframe>
+                        <iframe class="resp-iframe" :src="addCoversUrl"></iframe>
                     </div>
                     <div class="resp-container" :class="{hidden: showAdd}">
-                        <iframe class="resp-iframe" :src="identifier + '/a/manage-covers'"></iframe>
+                        <iframe class="resp-iframe" :src="manageCoversUrl"></iframe>
                     </div>
                 </div>
             </div>
@@ -35,6 +35,14 @@ export default {
             showModal: false,
             showAdd: true,
         }
+    },
+    computed: {
+        addCoversUrl: function () {
+            return location.origin + this.identifier + '/a/add-cover'
+        },
+        manageCoversUrl: function () {
+            return location.origin + this.identifier + '/a/manage-covers'
+        },
     },
     mounted() {
         window.addEventListener('message', this.receiveMessage)
@@ -87,9 +95,9 @@ export default {
 }
 
 @media screen and (max-width: 768px) {
-  .modal-content-wrapper {
-    margin-top: 75px;
-  }
+    .modal-content-wrapper {
+        margin-top: 75px;
+    }
 }
 
 .modal-content-wrapper {
