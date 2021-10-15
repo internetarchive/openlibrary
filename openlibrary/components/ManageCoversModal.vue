@@ -38,10 +38,10 @@ export default {
     },
     computed: {
         addCoversUrl: function () {
-            return location.origin + this.identifier + '/a/add-cover'
+            return `${location.origin}${this.identifier}/a/add-cover`
         },
         manageCoversUrl: function () {
-            return location.origin + this.identifier + '/a/manage-covers'
+            return `${location.origin}${this.identifier}/a/manage-covers`
         },
     },
     mounted() {
