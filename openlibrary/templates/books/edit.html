@@ -99,7 +99,7 @@ $putctx("robots", "noindex,nofollow")
                                 <h2>Work Cover</h2>
                                 $:render_template("covers/book_cover", work)
                             </div>
-                            $:render_component('CoversNew', attrs=dict(identifier=work.key))
+                            $:render_component('ManageCoversModal', attrs=dict(identifier=work.key))
                         </div>
                     </div>
                 </fieldset>
