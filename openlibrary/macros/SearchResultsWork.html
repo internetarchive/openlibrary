@@ -32,14 +32,14 @@ $ max_rendered_authors = 9
         $if not doc.authors:
           <em>$_('Unknown author')</em>
         $else:
+          $ remaining_authors = len(doc.authors) - max_rendered_authors
           $for a in doc.authors[:max_rendered_authors]:
             $if not (hasattr(a, 'name') and a.name) and not (hasattr(a, 'author') and hasattr(a.author, 'name') and a.author.name):
-              <em>$_('Unknown author')</em>$(',' if not loop.last else '')
+              <em>$_('Unknown author')</em>$(',' if not loop.last or remaining_authors else '')
               $continue
-            <a itemprop="url" href="$(a.get('url') or a.get('key') or a.author.get('url') or a.author.key)" class="results">$(a.name or a.author.name)</a>$(',' if not loop.last else '')
-          $ remaining_authors = len(doc.authors) - max_rendered_authors
+            <a itemprop="url" href="$(a.get('url') or a.get('key') or a.author.get('url') or a.author.key)" class="results">$(a.name or a.author.name)</a>$(',' if not loop.last or remaining_authors else '')
           $if remaining_authors > 0:
-            , <small><em><a itemprop="url" href="$(book_url)?edition=$(ocaid)"
+            <small><em><a itemprop="url" href="$work_edition_url"
                                          class="results">$ungettext('and 1 other', 'and %(n)s others', remaining_authors, n=remaining_authors)</a></em></small>
       </span>
       <span class="resultPublisher">
