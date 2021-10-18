@@ -89,10 +89,7 @@ $if not header_title:
       </ul>
     $if owners_page:
       <ul class="sidebar-section">
-        $ class_list = 'list-link'
-        $if key == 'lists':
-            $ class_list = class_list + ' selected'
-        <li class="section-header section-header-split"><span>$_('Lists')</span> <a href="/people/$username/lists" class="$class_list li-count ">See All   $(len(lists))</a></li>
+        <li class="section-header section-header-split"><span>$_('Lists')</span> <a href="/people/$username/lists" class="list-link li-count">See All $(len(lists))</a></li>
         <div class="list-overflow">
           $for lst in lists:
             $ list_id = lst.key.split('/')[-1]
