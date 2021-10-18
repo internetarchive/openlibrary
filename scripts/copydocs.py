@@ -246,7 +246,7 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
 
     if recursive:
         refs = get_references(docs)
-        refs = [r for r in list(set(refs)) if not r.startswith(("/type/", "/languages/"))]
+        refs = [r for r in set(refs) if not r.startswith(("/type/", "/languages/"))]
         if refs:
             print("found references", refs)
             copy(src, dest, refs, comment, recursive=True, saved=saved, cache=cache)
