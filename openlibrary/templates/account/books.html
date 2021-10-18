@@ -73,6 +73,7 @@ $if not header_title:
         <li><a href="/people/$username/books/want-to-read" $('class=selected' if key == 'want-to-read' else '')><span class="li-count">$counts['want-to-read']</span>$_('Want to Read')</a></li>
         <li><a href="/people/$username/books/already-read" $('class=selected' if key == 'already-read' else '')><span class="li-count">$counts['already-read']</span>$_('Already Read')</a></li>
       $if owners_page:
+        <hr>
         <li><a $('class=selected' if key=='notes' else '') href="/people/$username/books/notes"><span class="li-count">$counts['notes']</span>$_('My Notes')</a></li>
         <li><a $('class=selected' if key=='observations' else '') href="/people/$username/books/observations"><span class="li-count">$counts['observations']</span>$_('My Reviews')</a></li>
         <hr>
@@ -88,12 +89,11 @@ $if not header_title:
       </ul>
     $if owners_page:
       <ul class="sidebar-section">
-        <li class="section-header">$_('Lists')</li>
-        <div class="list-overflow">
-          $ class_list = 'list-link'
-          $if key == 'lists':
+        $ class_list = 'list-link'
+        $if key == 'lists':
             $ class_list = class_list + ' selected'
-          <li><a href="/people/$username/lists" class="$class_list"><span class="li-count">$(len(lists))</span>$_('My Lists')</a></li>
+        <li class="section-header section-header-split"><span>$_('Lists')</span> <a href="/people/$username/lists" class="$class_list li-count ">See All   $(len(lists))</a></li>
+        <div class="list-overflow">
           $for lst in lists:
             $ list_id = lst.key.split('/')[-1]
             $ class_list = 'list-link'
