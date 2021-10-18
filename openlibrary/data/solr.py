@@ -148,7 +148,7 @@ def process_redirect_dump(writer, redirects_dump):
 
     for type, key, revision, timestamp, json_data in read_tsv(redirects_dump):
         d = json.loads(json_data)
-        if not key.startswith("/authors/") and not key.startswith("/works/"):
+        if not key.startswith(("/authors/", "/works/")):
             continue
 
         location = d.get('location')

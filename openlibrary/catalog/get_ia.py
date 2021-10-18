@@ -95,7 +95,9 @@ def files(identifier):
     for i in tree.getroot():
         assert i.tag == 'file'
         name = i.attrib['name']
-        if name == 'wfm_bk_marc' or name.endswith('.mrc') or name.endswith('.marc') or name.endswith('.out') or name.endswith('.dat') or name.endswith('.records.utf8'):
+        if name == 'wfm_bk_marc' or name.endswith((
+            '.dat', '.marc', '.mrc', '.out', '.records.utf8'
+        )):
             size = i.find('size')
             if size is not None:
                 yield name, int(size.text)

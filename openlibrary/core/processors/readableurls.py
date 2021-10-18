@@ -147,8 +147,7 @@ def get_readable_path(site, path, patterns, encoding=None):
         path = web.safeunicode(path)
         return (path, path)
 
-    if encoding is not None \
-       or path.endswith(".json") or path.endswith(".yml") or path.endswith(".rdf"):
+    if encoding is not None or path.endswith((".json", ".rdf", ".yml")):
         key, ext = os.path.splitext(path)
 
         thing = _get_object(site, key)

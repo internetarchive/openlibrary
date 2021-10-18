@@ -113,7 +113,7 @@ def get_work_subjects(w, do_get_mc=True):
             for i in sr:
                 if i.endswith('initial import'):
                     continue
-                if i.startswith('ia:') or i.startswith('marc:'):
+                if i.startswith(('ia:', 'marc:')):
                     found.add(i)
                     continue
         else:
