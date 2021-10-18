@@ -138,8 +138,8 @@ def match_marc_name(marc1, marc2, last_name_only_ok):
     if (m1_normalized == normalize(m2.group(2) + ' ' + m2.group(1)) or
             m2_normalized == normalize(m1.group(2) + ' ' + m1.group(1))):
         return True
-    if not (m1.group(1).endswith(' ' + m2.group(1)) or m1.endswith('.' + m2.group(1)) or
-            m2.group(1).endswith(' ' + m1.group(1)) or m2.endswith('.' + m1.group(1))):
+    if not (m1.group(1).endswith((' ' + m2.group(1), '.' + m2.group(1))) or
+            m2.group(1).endswith((' ' + m1.group(1), '.' + m1.group(1)))):
         return False # Last name mismatch
     marc1_first_parts = split_parts(m1.group(2))
     marc2_first_parts = split_parts(m2.group(2))
@@ -182,10 +182,10 @@ def match_name2(name1, name2):
     return False
 
 def match_surname(surname, name):
-    if name.endswith(' ' + surname) or name.endswith('.' + surname):
+    if name.endswith((' ' + surname, '.' + surname)):
         return True
     surname = surname.replace(' ', '')
-    if name.endswith(' ' + surname) or name.endswith('.' + surname):
+    if name.endswith((' ' + surname, '.' + surname)):
         return True
     return False
 

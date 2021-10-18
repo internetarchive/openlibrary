@@ -185,7 +185,7 @@ class cover:
         key = key.lower()
 
         def is_valid_url(url):
-            return url.startswith("http://") or url.startswith("https://")
+            return url.startswith(("http://", "https://"))
 
         def notfound():
             if config.default_image and i.default.lower() != "false" and not is_valid_url(i.default):

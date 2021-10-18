@@ -141,7 +141,7 @@ def get_url(doc):
     base = web.ctx.get("home", "https://openlibrary.org")
     if base == 'http://[unknown]':
         base = "https://openlibrary.org"
-    if doc['key'].startswith("/books/") or doc['key'].startswith("/works/"):
+    if doc['key'].startswith(("/books/", "/works/")):
         return base + doc['key'] + "/" + urlsafe(doc.get("title", "untitled"))
     elif doc['key'].startswith("/authors/"):
         return base + doc['key'] + "/" + urlsafe(doc.get("name", "unnamed"))

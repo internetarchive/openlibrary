@@ -226,7 +226,7 @@ class BetterDataProvider(LegacyDataProvider):
         self._preload_metadata_of_editions()
 
         # for all works and authors, find redirects as they'll requested later
-        keys3 = [k for k in self.cache if k.startswith("/works/") or k.startswith("/authors/")]
+        keys3 = [k for k in self.cache if k.startswith(("/works/", "/authors/"))]
         self.preload_redirects(keys3)
 
     def preload_documents0(self, keys):
