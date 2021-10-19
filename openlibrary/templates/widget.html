@@ -25,12 +25,12 @@ $ book_title = item.get('title', '')
           by <a target="_blank" href="$(canonical_url(primary_author['key']))">$primary_author['name']</a>
         </h2>
       $if book_status == "open" :
-      $ public_url = canonical_url("/books/" + item["availability"]["openlibrary_edition"] + "/x/borrow")
+        $ public_url = canonical_url("/books/" + item["availability"]["openlibrary_edition"] + "/x/borrow")
         <div class="cta open" type="submit">
           <a data-ol-link-track="Embed|Read"  target="_blank" href="$public_url" title="$_('Read \"%(title)s\"', title=book_title)">$_('Read')</a>
 	</div>
       $elif book_status == "borrow_available" :
-      $ borrow_url = canonical_url("/borrow/ia/" + item["availability"]["identifier"])
+        $ borrow_url = canonical_url("/borrow/ia/" + item["availability"]["identifier"])
         <div class="cta available" type="submit">
           <a data-ol-link-track="Embed|Borrow" target="_blank" href="$borrow_url" title="$_('Borrow \"%(title)s\"', title=book_title)">$_('Borrow')</a>
 	</div>
