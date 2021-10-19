@@ -566,6 +566,9 @@ class SaveBookHelper:
                 edition_data.translation_of = None
                 edition_data.translated_from = None
 
+            if 'contributors' not in edition_data:
+                self.edition.contributors = []
+
             self.edition.update(edition_data)
             saveutil.save(self.edition)
 
