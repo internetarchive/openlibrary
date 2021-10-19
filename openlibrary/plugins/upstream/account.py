@@ -832,7 +832,8 @@ class public_my_books(delegate.page):
             logged_in_user.key.split('/')[-1] == username)
         if is_public or is_logged_in_user:
             readlog = ReadingLog(user=user)
-            sponsorships = get_sponsored_editions(user)
+            # XXX Hotfix, civicrm issue causing hang + 504
+            sponsorships = [] #get_sponsored_editions(user)
             if key == 'sponsorships':
                 books = (web.ctx.site.get(
                     web.ctx.site.things({
