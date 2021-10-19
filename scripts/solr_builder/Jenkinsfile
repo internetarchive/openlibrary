@@ -36,7 +36,7 @@ pipeline {
         OL_DUMP_LINK = 'https://openlibrary.org/data/ol_dump_latest.txt.gz'
         // Get the date-suffixed name of the latest dump
         FULL_OL_DUMP_FILE = sh(script: "curl '${env.OL_DUMP_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
-        // Nmae of partial dump file
+        // Name of partial dump file
         PARTIAL_OL_DUMP_FILE = "partial_${env.FULL_OL_DUMP_FILE}"
         // Use partial dump file, if specified so in the parameters
         OL_DUMP_FILE = "${params.PARTIAL_IMPORT_SIZE ? env.PARTIAL_OL_DUMP_FILE : env.FULL_OL_DUMP_FILE}"

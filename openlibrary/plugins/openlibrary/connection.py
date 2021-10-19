@@ -146,7 +146,7 @@ class IAMiddleware(ConnectionMiddleware):
                 storedoc = self._ensure_store_entry(sitename, itemid)
 
                 # Hack to add additional subjects /books/ia: pages
-                # Adding subjects to store docs, will add thise subjects to the books.
+                # Adding subjects to store docs, will add these subjects to the books.
                 # These subjects are used when indexing the books in solr.
                 if storedoc.get("subjects"):
                     doc.setdefault("subjects", []).extend(storedoc['subjects'])
@@ -545,7 +545,7 @@ class HybridConnection(client.Connection):
 def _update_infobase_config():
     """Updates infobase config when this function is called for the first time.
 
-    From next time onwards, it doens't do anything becase this function is memoized.
+    From next time onwards, it doesn't do anything because this function is memoized.
     """
     # update infobase configuration
     from infogami.infobase import server

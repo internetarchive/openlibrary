@@ -214,7 +214,7 @@ class Akismet(object):
         It raises ``APIKeyError`` if you have not yet set an API key.
 
         If the connection to Akismet fails then the ``HTTPError`` or
-        ``URLError`` will be propogated.
+        ``URLError`` will be propagated.
 
         As a minimum it requires the body of the comment. This is the
         ``comment`` argument.
@@ -230,7 +230,7 @@ class Akismet(object):
         attempt to fill in as much information as possible, using default
         values where necessary. This is particularly useful for programs
         running in a {acro;CGI} environment. A lot of useful information
-        can be supplied from evironment variables (``os.environ``). See below.
+        can be supplied from environment variables (``os.environ``). See below.
 
         You *only* need supply values for which you don't want defaults filled
         in for. All values must be strings.

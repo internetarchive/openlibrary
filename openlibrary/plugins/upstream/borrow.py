@@ -325,7 +325,7 @@ class ia_loan_status(delegate.page):
 def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=None):
     """Returns borrow status for each of the sources and formats.
 
-    If the optinal argument editions is provided, it uses that edition instead
+    If the optional argument editions is provided, it uses that edition instead
     of finding edition from itemid. This is added for performance reasons.
     """
     loan = lending.get_loan(itemid)

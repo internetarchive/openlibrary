@@ -103,7 +103,7 @@ class AmazonAPI:
                      resources=None, **kwargs):
         """
         :param asins (string): One or more ItemIds like ASIN that
-        uniquely identify an item or product URL. (Max 10) Seperated
+        uniquely identify an item or product URL. (Max 10) Separated
         by comma or as a list.
         """
         # Wait before doing the request

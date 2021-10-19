@@ -13,7 +13,7 @@ javascript function.
 USAGE::
 
     import jsdef
-    render = web.tempalte.render("templates/", extensions=[jsdef.extension])
+    render = web.template.render("templates/", extensions=[jsdef.extension])
 
 Sample Template::
 

@@ -201,7 +201,8 @@ def list_recent_pages(path, limit=100, offset=0):
 def json_encode(d):
     return json.dumps(d)
 
-def unflatten(d, seperator="--"):
+
+def unflatten(d, separator="--"):
     """Convert flattened data into nested form.
 
         >>> unflatten({"a": 1, "b--x": 2, "b--y": 3, "c--0": 4, "c--1": 5})
@@ -219,7 +220,7 @@ def unflatten(d, seperator="--"):
 
     def setvalue(data, k, v):
         if '--' in k:
-            k, k2 = k.split(seperator, 1)
+            k, k2 = k.split(separator, 1)
             setvalue(data.setdefault(k, {}), k2, v)
         else:
             data[k] = v

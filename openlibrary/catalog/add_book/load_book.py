@@ -152,7 +152,7 @@ def import_author(author, eastern=False):
     :param dict author: Author import record {"name": "Some One"}
     :param bool eastern: Eastern name order
     :rtype: dict
-    :return: Open Library style Author representation, either exisiting with "key",
+    :return: Open Library style Author representation, either existing with "key",
              or new candidate without "key".
     """
     existing = find_entity(author)

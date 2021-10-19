@@ -258,7 +258,7 @@ def get_homepage():
     monthly_reads = get_monthly_reads(datetime.datetime.now().month)
     blog_posts = get_blog_feeds()
 
-    # render tempalte should be setting ctx.cssfile
+    # render template should be setting ctx.cssfile
     # but because get_homepage is cached, this doesn't happen
     # during subsequent called
     page = render_template(

@@ -30,7 +30,7 @@ urls = (
 )
 app = web.application(urls, globals())
 
-convertions = {
+conversions = {
 #    '/people/': '/user/',
 #    '/books/': '/b/',
 #    '/authors/': '/a/',
@@ -45,8 +45,8 @@ convertions = {
     '/old/css/': '/css/',
 }
 
-# inverse of convertions
-iconversions = dict((v, k) for k, v in convertions.items())
+# inverse of conversions
+iconversions = dict((v, k) for k, v in conversions.items())
 
 class proxy:
     def delegate(self, *args):
@@ -111,7 +111,7 @@ def convert_key(key, mapping=None):
         >>> convert_key("/authors/OL1A", {'/authors/': '/a/'})
         '/a/OL1A'
     """
-    mapping = mapping or convertions
+    mapping = mapping or conversions
     if key is None:
         return None
     elif key == '/':
@@ -129,7 +129,7 @@ def convert_dict(d, mapping=None):
         >>> convert_dict({'author': {'key': '/authors/OL1A'}}, {'/authors/': '/a/'})
         {'author': {'key': '/a/OL1A'}}
     """
-    mapping = mapping or convertions
+    mapping = mapping or conversions
     if isinstance(d, dict):
         if 'key' in d:
             d['key'] = convert_key(d['key'], mapping)

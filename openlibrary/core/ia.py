@@ -46,7 +46,7 @@ def get_api_response(url, params=None):
 
 def get_metadata_direct(itemid, only_metadata=True, cache=True):
     """
-    Fetches metadata by querying the archive.org metadata API, without local cacheing.
+    Fetches metadata by querying the archive.org metadata API, without local caching.
     :param str itemid:
     :param bool cache: if false, requests uncached metadata from archive.org
     :param bool only_metadata: whether to get the metadata without any processing
@@ -212,7 +212,7 @@ class ItemEdition(dict):
 
     @classmethod
     def is_valid_item(cls, itemid, metadata):
-        """Returns True if the item with metadata can be useable as edition
+        """Returns True if the item with metadata can be usable as edition
         in Open Library.
 
         Items that are not book scans, darked or with noindex=true etc. are

@@ -183,7 +183,7 @@ def build_author_reply(authors_in, edits, source):
     adding them to 'edits' to be saved later.
 
     :param list authors_in: import author dicts [{"name:" "Bob"}, ...], maybe dates
-    :param list edits: list of Things to be saved later. Is modfied by this method.
+    :param list edits: list of Things to be saved later. Is modified by this method.
     :param str source: Source record e.g. marc:marc_ex/part01.dat:26456929:680
     :rtype: tuple
     :return: (list, list) authors [{"key": "/author/OL..A"}, ...], author_reply

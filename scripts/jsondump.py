@@ -4,7 +4,7 @@
 The script deals with 3 data formats.
 
 1. dump of data table in OL postgres database.
-2. rawdump: tab seperated file with key, type and json of page in each row
+2. rawdump: tab separated file with key, type and json of page in each row
 3. bookdump: dump containing only books with each property expanded. (used for solr import)
 
 To create jsondump:

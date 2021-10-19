@@ -99,7 +99,7 @@ def run_filter(matched_keys, params):
                     if compare(i, j):
                         matched = True
                         break
-                if not matched: # A match couldn't be found for atleast one element
+                if not matched:  # A match couldn't be found for at least one element
                     logger.debug("Couldn't match %s in %s", i, i1)
                     return False
             return True

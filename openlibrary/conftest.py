@@ -1,4 +1,4 @@
-"""pytest configutation for openlibrary
+"""pytest configuration for openlibrary
 """
 import pytest
 import web

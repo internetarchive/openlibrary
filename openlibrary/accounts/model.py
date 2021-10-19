@@ -515,7 +515,7 @@ class InternetArchiveAccount(web.storage):
     def create(cls, screenname, email, password, notifications=None,
                retries=0, verified=False, test=None):
         """
-        :param unicode screenname: changable human readable archive.org username.
+        :param unicode screenname: changeable human readable archive.org username.
             The slug / itemname is generated automatically from this value.
         :param unicode email:
         :param unicode password:

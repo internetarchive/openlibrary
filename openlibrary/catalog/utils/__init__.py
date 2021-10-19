@@ -252,7 +252,7 @@ def mk_norm(s):
 
     :param str s: A book title to normalize and strip.
     :rtype: str
-    :return: a lowercase string with no spaces, containg the main words of the title.
+    :return: a lowercase string with no spaces, containing the main words of the title.
     """
 
     m = re_brackets.match(s)

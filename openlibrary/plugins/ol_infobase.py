@@ -435,7 +435,7 @@ def _process_data(data):
 
 
 def safeint(value, default=0):
-    """Convers the value to integer. Returns 0, if the conversion fails."""
+    """Convert the value to integer. Returns default, if the conversion fails."""
     try:
         return int(value)
     except Exception:
