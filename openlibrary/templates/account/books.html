@@ -57,7 +57,7 @@ $var title: $header_title
           </a>
         </li>
         <li>
-          <a class="external-link" href="https://archive.org/account/?tab=loans#loans-history">Loan History</a>
+          <a class="external-link" href="https://archive.org/account/?tab=loans#loans-history">$_('Loan History')</a>
         </li>
       </ul>
     $if public or owners_page:
@@ -71,6 +71,7 @@ $var title: $header_title
         <li><a $('class=selected' if key=='notes' else '') href="/people/$username/books/notes"><span class="li-count">$counts['notes']</span>$_('My Notes')</a></li>
         <li><a $('class=selected' if key=='observations' else '') href="/people/$username/books/observations"><span class="li-count">$counts['observations']</span>$_('My Reviews')</a></li>
         <hr>
+        <li><a href="/account/books/already-read/stats">$_('Reading Stats')</a></li>
         <li><a href="/account/import" $('class=selected' if key=='imports' else '')>$_("Import & Export Options")</a></li>
       </ul>
     $if owners_page and ctx.user and ctx.user.in_sponsorship_beta():
@@ -109,7 +110,7 @@ $var title: $header_title
           </h1>
 
           $if owners_page and key in ['currently-reading', 'already-read', 'want-to-read']:
-            <a href="$ctx.path/stats" title="$('View stats about this shelf')">$_('Stats')</a>
+            <a href="$ctx.path/stats" title="$_('View stats about this shelf')">$_('Stats')</a>
         </div>
 
         $if owners_page:
