@@ -18,6 +18,8 @@ import math
 import infogami
 
 # make sure infogami.config.features is set
+from openlibrary.book_providers import get_book_provider
+
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []
 
@@ -940,6 +942,7 @@ def setup_template_globals():
         'random': random.Random(),
         'get_lang': lambda: web.ctx.lang,
         'ceil': math.ceil,
+        'get_book_provider': get_book_provider,
 
         # bad use of globals
         'is_bot': is_bot,
