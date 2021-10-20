@@ -54,7 +54,7 @@ $ book_provider = get_book_provider(doc)
               <span class="preview-covers">
                 $for x, i in enumerate(doc.get('ia')[1:10]):
                   <a href="$(book_url)?edition=$(i)">
-                    <img width="30" height="45" loading="lazy" src="//archive.org/download/$(i)/page/cover_w60_h60.jpg" alt="Cover of edition $i">
+                    <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="Cover of edition $i">
                   </a>
                 </span>
       </span>
