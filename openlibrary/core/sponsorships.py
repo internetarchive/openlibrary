@@ -42,6 +42,7 @@ def get_sponsored_editions(user):
     :return: list of editions sponsored by user
     """
     archive_id = get_internet_archive_id(user.key if 'key' in user else user._key)
+    # MyBooks page breaking on local environments without archive_id check
     contact_id = get_contact_id_by_username(archive_id) if archive_id else None
     return get_sponsorships_by_contact_id(contact_id) if contact_id else []
 

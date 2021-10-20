@@ -27,9 +27,9 @@ $if not header_title:
   $elif key == 'observations':
     $ header_title = _("Reviews")
   $elif key == 'loans':
-    $ header_title = _("Loans")
+    $ header_title = _("Books You've Checked Out")
   $elif key == 'waitlist':
-    $ header_title = _("Waiting List")
+    $ header_title = _("Books You're Waiting For")
   $elif key == 'imports':
     $ header_title = _("Imports and Exports")
   $elif key == 'lists':
@@ -39,7 +39,7 @@ $if not header_title:
   $else:
     $ header_title = key
   $ breadcrumb = header_title
-
+$var title: $header_title
 
 <div class="mybooks">
   <div class="mybooks-menu">
@@ -48,18 +48,12 @@ $if not header_title:
         <li class="section-header">$_('Loans')</li>
         <li>
           <a href="/account/loans" $('class=selected' if key == 'loans' else '')>
-            $ loan_count = counts.get('loans', None)
             $_('Checked out')
-            $if loan_count is not None:
-              ($loan_count)
           </a>
         </li>
         <li>
           <a href="/account/waitlist" $('class=selected' if key == 'waitlist' else '')>
-            $ waiting_count = counts.get('waitlist', None)
             $_('Waitlist')
-            $if waiting_count is not None:
-              ($waiting_count)
           </a>
         </li>
         <li>
@@ -89,13 +83,13 @@ $if not header_title:
       </ul>
     $if owners_page:
       <ul class="sidebar-section">
-        <li class="section-header section-header-split"><span>$_('Lists')</span> <a href="/people/$username/lists" class="list-link li-count">See All $(len(lists))</a></li>
+        <li class="section-header section-header-split"><span>$_('Lists')</span> <a href="/people/$username/lists" class="li-count">$_('See All') ($len(lists))</a></li>
         <div class="list-overflow">
           $for lst in lists:
             $ list_id = lst.key.split('/')[-1]
-            $ class_list = 'list-link'
+            $ class_list = ''
             $if lst == items:
-              $ class_list = class_list + ' selected'
+              $ class_list = class_list + 'selected'
             <li><a class="$class_list" href="/people/$username/lists/$list_id"><span class="li-count">$(len(lst.seeds))</span>$lst['name']</a></li>
         </div>
       </ul>

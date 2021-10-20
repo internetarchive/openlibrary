@@ -1,7 +1,5 @@
 $def with (user)
 
-$var title: $_("Books You've Checked Out")
-
 <style type="text/css">
 .date, .waitrank {
     margin: 5px 0px;
@@ -41,7 +39,6 @@ th.status {
 
 <div>
 
-<h1>$_("Books You're Waiting For")</h1>
 $ waitinglist = user.get_waitinglist()
 $if len(waitinglist) == 0:
     <div><em>$_('You are not waiting for any books at this moment.')</em></div>

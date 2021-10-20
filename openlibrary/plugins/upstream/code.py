@@ -9,7 +9,6 @@ import random
 import web
 
 from infogami import config
-from infogami.core import db
 from infogami.core import code as core
 from infogami.infobase import client
 from infogami.utils import delegate, app, types
@@ -22,7 +21,6 @@ from openlibrary import accounts
 from openlibrary.plugins.upstream import addbook, covers, merge_authors, models, utils
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused imports?
-from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.upstream.utils import render_component
 
 if not config.get('coverstore_url'):

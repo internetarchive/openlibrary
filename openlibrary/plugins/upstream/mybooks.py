@@ -41,7 +41,7 @@ class public_my_books_json(delegate.page):
         i = web.input(page=1, limit=5000)
         page = safeint(i.page, 1)
         limit = safeint(i.limit, 5000)
-        """check if user's reading log is public"""
+        # check if user's reading log is public
         user = web.ctx.site.get('/people/%s' % username)
         if not user:
             return delegate.RawText(

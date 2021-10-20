@@ -1,7 +1,5 @@
 $def with (user, loans)
 
-$var title: $_("Books You've Checked Out")
-
 <style type="text/css">
 .date, .waitrank {
     margin: 5px 0px;
@@ -42,17 +40,6 @@ th.status {
 }
 </style>
 
-$if len(loans) >= 5:
-    <script type="text/javascript">
-    <!--
-    window.q.push(function(){
-        \$("#contentMsg").show();
-        \$(".alert span").css({'font-size':'.6875em','color':'#333'})
-        \$(".alert span").text("$_("You have 5 ebooks out at the moment. That's the limit! You can free up slots by returning books early.")");
-    });
-    //-->
-    </script>
-
 <script type="text/javascript">
 <!--
 window.q.push(function(){
@@ -66,7 +53,6 @@ window.q.push(function(){
 </script>
 
 <div>
-  <h1>$_("Books You've Checked Out")</h1>
   $if len(loans) == 0:
     <div><em>$_("You've not checked out any books at this moment.")</em></div>
 $else:
