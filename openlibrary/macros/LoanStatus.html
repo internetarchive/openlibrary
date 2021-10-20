@@ -51,7 +51,7 @@ $if user_loan:
       });
     </script>
 
-$elif book_provider.short_name != 'ia':
+$elif book_provider and book_provider.short_name != 'ia':
   $:book_provider.render_read_button(doc)
 
 $elif availability.get('is_readable'):
