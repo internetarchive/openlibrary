@@ -1,10 +1,11 @@
-$def with (doc, lists)
+$def with (doc, lists, show_header=True)
 
-<div id="contentHead">
-    $ header = render_template("lists/header", doc, lists)
-    $var title: $_('%(owner)s / Lists', owner=header.title)
-    $:header
-</div>
+$if show_header:
+    <div id="contentHead">
+        $ header = render_template("lists/header", doc, lists)
+        $var title: $_('%(owner)s / Lists', owner=header.title)
+        $:header
+    </div>
 
 $if doc.key.startswith("/subjects/"):
     $ seed = doc.get_seed()

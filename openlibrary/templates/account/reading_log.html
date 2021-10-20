@@ -1,0 +1,51 @@
+$def with (items, key, total_items, owners_page, current_page, sort_order='desc', user=None)
+
+$ username = user.key.split('/')[-1]
+$ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
+$ userDisplayName = user.displayname or ctx.user.displayname
+
+$if key == 'currently-reading':
+  $ og_title = _("Books %(username)s is reading", username=userDisplayName)
+  $ og_description = _("%(username)s is reading %(total)d books. Join %(username)s on OpenLibrary.org and tell the world what you're reading.", username=userDisplayName, total=total_items)
+$elif key == 'want-to-read':
+  $ og_title = _("Books %(username)s wants to read", username=userDisplayName)
+  $ og_description = _("%(username)s wants to read %(total)d books. Join %(username)s on OpenLibrary.org and share the books that you'll soon be reading!", username=userDisplayName, total=total_items)
+$elif key == 'already-read':
+  $ og_title = _("Books %(username)s has read", username=userDisplayName)
+  $ og_description = _("%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about.", username=userDisplayName, total=total_items)
+$elif key == 'sponsorships':
+  $ og_title = _("Books %(userdisplayname)s is sponsoring", userdisplayname=userDisplayName)
+  $ og_description = "{username} is sponsoring {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=userDisplayName, total=total_items)
+
+$putctx("description", og_description)
+$add_metatag(property="og:title", content=og_title)
+$add_metatag(property="og:url", content=request.canonical_url)
+$add_metatag(property="og:site_name", content="Open Library")
+$add_metatag(property="og:description", content=og_description)
+$add_metatag(property="og:image", content=meta_photo_url)
+
+<div class="mybooks-list">
+  <span class="mybooks-tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" style="margin-right:10px;" width="9" height="11">
+    $if sort_order == 'desc':
+      <strong class="lightgreen">$_("Date Added (newest)")</strong>
+      |
+      <a href="$ctx.path?sort=asc">$_("Date Added (oldest)")</a>
+    $else:
+      <a href="$ctx.path?sort=desc">$_("Date Added (newest)")</a>
+      |
+      <strong class="lightgreen">$_("Date Added (oldest)")</strong>
+  </span>
+
+  $:macros.Pager(current_page, total_items, results_per_page=25)
+  <ul class="list-books">
+    $if items:
+      $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
+      $for item in items:
+        $ work = item
+        $ decorations = (bookshelf_id and owners_page) and macros.ReadingLogButton(work, read_status=bookshelf_id)
+        $:macros.SearchResultsWork(work, decorations=decorations)
+    $else:
+      <li>$_('No books are on this shelf')</li>
+  </ul>
+  $:macros.Pager(current_page, total_items, results_per_page=25)
+</div>

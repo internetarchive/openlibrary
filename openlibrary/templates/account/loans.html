@@ -1,0 +1,117 @@
+$def with (user, loans)
+
+<style type="text/css">
+.date, .waitrank {
+    margin: 5px 0px;
+}
+.dialog .title {
+    font-weight: bold;
+}
+
+tr.expired {
+    background: #ffcdcd;
+}
+
+td.status, th.status {
+    padding: 15px;
+    text-align: center;
+}
+
+tr.row-available .status-value {
+    color: darkgreen;
+}
+
+tr.row-available {
+    background: #fffdcd;
+}
+
+td.actions form + form {
+    margin-top: 5px;
+}
+
+th.action {
+    width: 150px;
+}
+th.status {
+    width: 150px;
+}
+.loan-history {
+  margin-top: 1em;
+}
+</style>
+
+<script type="text/javascript">
+<!--
+window.q.push(function(){
+    \$(".local-date-time").each(function() {
+        var expiry_utc = \$(this).attr("data-expiry-utc");
+        var options = {hour: '2-digit', minute:'2-digit', month:'2-digit', day:'2-digit', year:'numeric'};
+        \$(this).html((new Date(expiry_utc)).toLocaleString([], options));
+    });
+});
+//-->
+</script>
+
+<div>
+  $if len(loans) == 0:
+    <div><em>$_("You've not checked out any books at this moment.")</em></div>
+$else:
+  $# Have current loans
+  <div class="borrow borrow-table collapse">
+    <table>
+        <thead>
+            <tr>
+                <th class="titles" colspan="2">
+                $ungettext("1 Current Loan", "%(count)d Current Loans", len(loans), count=len(loans))
+                </th>
+                <th class="expires">$_("Loan Expires")</th>
+                <th class="actions">$_("Loan actions")</th>
+            </tr>
+        </thead>
+        <tbody>
+        <!-- for each borrow -->
+        $for loan in loans:
+          $ book = get_document(loan['book'])
+          $if book:
+              <tr data-userid="$(loan['userid'])">
+                <td class="cover">
+                $:render_template('covers/book_cover_small', book)
+                </td>
+                <td class="titles">
+                    <span class="book">
+                    <a href="$book.key" class="borrowResults">
+                    <strong>$book.title</strong>
+                    </a>
+                    </span>
+                    <span class="author">
+                    $:macros.AuthorList(book.get_authors())
+                    </span>
+                    <div class="date">
+                    Borrowed $datestr(datetime_from_utc_timestamp(loan['loaned_at']))
+                    </div>
+                    $ wlsize = book.get_waitinglist_size()
+                    $if wlsize:
+                        <div class="smallest lightgreen sansserif waitrank">
+                            $ungettext("There is one person waiting for this book.", "There are %(n)d people waiting for this book.", wlsize, n=wlsize)
+                        </div>
+                </td>
+                <td class="expires">
+                    $if loan['expiry'] is None:
+                        $# Not yet fulfilled
+                        <span class="red">$_("Not yet downloaded.") </span><br/>
+                        <a href="$loan['loan_link']">$_("Download Now")</a>
+                    $else:
+                        $:macros.FormatExpiry(loan['expiry'])
+                </td>
+                <td class="actions">
+                    $if loan['resource_type'] == 'bookreader':
+                        $:macros.LoanReadForm(loan['ocaid'])
+                        $:macros.ReturnForm(loan['ocaid'])
+                    $else:
+                        <span class="smaller grey sansserif">$:_("Return via<br/>Adobe Digital Editions")</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+  </div>
+</div>

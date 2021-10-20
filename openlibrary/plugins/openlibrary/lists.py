@@ -10,10 +10,12 @@ from infogami.infobase import client, common
 
 import six
 
+from openlibrary.accounts import get_current_user
 from openlibrary.core import formats, cache
 import openlibrary.core.helpers as h
 from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream import spamcheck
+from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.worksearch import subjects
 
 
@@ -24,6 +26,7 @@ class lists_home(delegate.page):
         delegate.context.setdefault('cssfile', 'lists')
         return render_template("lists/home")
 
+
 class lists(delegate.page):
     """Controller for displaying lists of a seed or lists of a person.
     """
@@ -33,6 +36,13 @@ class lists(delegate.page):
         return "lists" in web.ctx.features
 
     def GET(self, path):
+        # If logged in patron is viewing their lists page, use MyBooksTemplate
+        if path.startswith("/people/"):
+            user = get_current_user()
+            username = path.split('/')[-1]
+
+            if user and user.key.split('/')[-1] == username:
+                return MyBooksTemplate(username, 'lists').render()
         doc = self.get_doc(path)
         if not doc:
             raise web.notfound()
@@ -52,6 +62,7 @@ class lists(delegate.page):
 
     def render(self, doc, lists):
         return render_template("lists/lists.html", doc, lists)
+
 
 class lists_delete(delegate.page):
     path = r"(/people/[^/]+/lists/OL\d+L)/delete"

@@ -1,19 +1,6 @@
 $def with (books=None, books_wo_isbns=None)
 
-$ title = "Import and Export Options"
-$var title: $_(title)
-
-<div id="contentHead">
-    <div class="small sansserif grey account-settings-menu">
-      <a href="$ctx.user.key">$ctx.user.displayname</a>
-      &raquo;
-      <a href="$homepath()/account">$_("Settings")</a>
-      &raquo; $title
-    </div>
-    <h1>$title</h1>
-</div>
-
-<div id="contentBody">
+<div class="my-imports">
   
   $if not books:
     <div class="import-export">
