@@ -1,4 +1,4 @@
-from typing import Union, List, Optional
+from typing import List, Optional, Union
 
 from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
@@ -83,3 +83,62 @@ class AbstractBookProvider:
 
         # No luck
         return None
+
+
+class InternetArchiveProvider(AbstractBookProvider):
+    short_name = 'ia'
+    identifier_key = 'ocaid'
+
+    def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> Optional[List[str]]:
+        # Solr record augmented with availability
+        if ed_or_solr.get('availability', {}).get('identifier'):
+            return [ed_or_solr['availability']['identifier']]
+
+        # Edition
+        if ed_or_solr.get('ocaid'):
+            return [ed_or_solr['ocaid']]
+
+        # Regular solr record
+        return ed_or_solr.get('ia')
+
+
+class LibriVoxProvider(AbstractBookProvider):
+    short_name = 'librivox'
+    identifier_key = 'librivox'
+
+    def render_download_options(
+            self,
+            ed_or_solr: Union[Edition, dict],
+            extra_args: List = None
+    ):
+        return super().render_download_options(ed_or_solr, [ed_or_solr.get('ocaid')])
+
+
+class ProjectGutenbergProvider(AbstractBookProvider):
+    short_name = 'gutenberg'
+    identifier_key = 'project_gutenberg'
+
+
+class StandardEbooksProvider(AbstractBookProvider):
+    short_name = 'standard_ebooks'
+    identifier_key = 'standard_ebooks'
+
+
+PROVIDER_ORDER: List[AbstractBookProvider] = [
+    LibriVoxProvider(),
+    ProjectGutenbergProvider(),
+    StandardEbooksProvider(),
+    InternetArchiveProvider(),
+]
+
+
+def get_book_provider(
+        ed_or_solr: Union[Edition, dict]
+) -> Optional[AbstractBookProvider]:
+    for provider in PROVIDER_ORDER:
+        if provider.get_identifiers(ed_or_solr):
+            return provider
+    return None
+
+
+setattr(get_book_provider, 'ia', InternetArchiveProvider)
