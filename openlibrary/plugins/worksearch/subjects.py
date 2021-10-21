@@ -330,49 +330,6 @@ class SubjectEngine:
         return kw
 
 
-def find_ebook_count(field, key):
-    q = '%s_key:%s+AND+ia:*' % (field, re_chars.sub(r'\\\1', key).encode('utf-8'))
-    return execute_ebook_count_query(q)
-
-def execute_ebook_count_query(q):
-    root_url = solr_select_url + '?wt=json&indent=on&rows=%d&start=%d&q.op=AND&q=%s&fl=edition_key'
-    rows = 1000
-
-    ebook_count = 0
-    start = 0
-    solr_url = root_url % (rows, start, q)
-
-    stats.begin("solr", url=solr_url)
-    response = requests.get(solr_url).json()['response']
-    stats.end()
-
-    num_found = response['numFound']
-    years = defaultdict(int)
-    while start < num_found:
-        if start:
-            solr_url = root_url % (rows, start, q)
-            stats.begin("solr", url=solr_url)
-            response = requests.get(solr_url).json()['response']
-            stats.end()
-        for doc in response['docs']:
-            for k in doc['edition_key']:
-                e = web.ctx.site.get('/books/' + k)
-                ia = set(i[3:] for i in e.get('source_records', []) if i.startswith('ia:'))
-                if e.get('ocaid'):
-                    ia.add(e['ocaid'])
-                pub_date = e.get('publish_date')
-                pub_year = -1
-                if pub_date:
-                    m = re_year.search(pub_date)
-                    if m:
-                        pub_year = int(m.group(1))
-                ebook_count = len(ia)
-                if ebook_count:
-                    years[pub_year] += ebook_count
-        start += rows
-
-    return dict(years)
-
 def setup():
     """Placeholder for doing any setup required.
 
