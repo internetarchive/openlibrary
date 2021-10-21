@@ -175,7 +175,8 @@ def get_book_provider(
     # OCAIDs that look like they're from other providers.
     ia_ocaids = [
         ocaid
-        for ocaid in ed_or_solr.get('ia', [])
+        # For some reason ia was explicitly None sometimes
+        for ocaid in (ed_or_solr.get('ia', []) or [])
         if not is_non_ia_ocaid(ocaid)
     ]
 
