@@ -1590,7 +1590,7 @@ def main(
         profile=False,
         data_provider: Literal['default', 'legacy', 'external'] = "default",
         solr_base: str = None,
-        solr_next=False,
+        solr_next=True,
         update: Literal['update', 'print'] = 'update'
 ):
     """

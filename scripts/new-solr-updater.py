@@ -229,7 +229,7 @@ def main(
         exclude_edits_containing: str = None,
         ol_url='http://openlibrary.org/',
         solr_url: str = None,
-        solr_next=False,
+        solr_next=True,
         socket_timeout=10,
         load_ia_scans=False,
         commit=True,
