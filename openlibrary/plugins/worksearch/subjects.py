@@ -243,7 +243,6 @@ class SubjectEngine:
 
         if details:
             subject.ebook_count = dict(result.facets["has_fulltext"]).get("true", 0)
-            #subject.ebook_count = self.get_ebook_count(meta.name, q[meta.facet_key], q.get('publish_year'))
 
             subject.subjects = result.facets["subject_facet"]
             subject.places = result.facets["place_facet"]
@@ -298,9 +297,6 @@ class SubjectEngine:
 
     def normalize_key(self, key):
         return str_to_key(key).lower()
-
-    def get_ebook_count(self, name, value, publish_year):
-        return 0
 
     def facet_wrapper(self, facet, value, count):
         if facet == "publish_year":
