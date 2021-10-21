@@ -16,7 +16,7 @@ from infogami.utils import delegate
 from openlibrary.core import cache
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.plugins.upstream.utils import urlencode
-from openlibrary.utils import dateutil
+from openlibrary.utils import dateutil, uniq
 
 from . import ia
 from . import helpers as h
@@ -371,6 +371,9 @@ def add_availability(items, mode="identifier"):
     :rtype: list of dict
     """
     def get_ocaid(item):
+        # Circular import otherwise
+        from ..book_providers import is_non_ia_ocaid
+
         possible_fields = [
             'ocaid',  # In editions
             'identifier',  # In ?? not editions/works/solr
@@ -393,9 +396,17 @@ def add_availability(items, mode="identifier"):
             possible_fields.remove('ia')
             possible_fields.append('ia')
 
+        ocaids = []
         for field in possible_fields:
             if item.get(field):
-                return item[field][0] if isinstance(item[field], list) else item[field]
+                ocaids += (
+                    item[field] if isinstance(item[field], list) else [item[field]]
+                )
+        ocaids = uniq(ocaids)
+        return next(
+            (ocaid for ocaid in ocaids if not is_non_ia_ocaid(ocaid)),
+            None
+        )
 
     if mode == "identifier":
         ocaids = [ocaid for ocaid in map(get_ocaid, items) if ocaid]

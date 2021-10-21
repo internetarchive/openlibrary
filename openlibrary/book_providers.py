@@ -144,6 +144,19 @@ PROVIDER_ORDER: List[AbstractBookProvider] = [
 ]
 
 
+def is_non_ia_ocaid(ocaid: str) -> bool:
+    """
+    Check if the ocaid "looks like" it's from another provider
+    """
+    providers = (
+        provider
+        for provider in PROVIDER_ORDER
+        if provider.short_name != 'ia')
+    return any(
+        provider.is_own_ocaid(ocaid)
+        for provider in providers)
+
+
 def get_book_provider(
         ed_or_solr: Union[Edition, dict]
 ) -> Optional[AbstractBookProvider]:
@@ -163,7 +176,7 @@ def get_book_provider(
     ia_ocaids = [
         ocaid
         for ocaid in ed_or_solr.get('ia', [])
-        if not any(provider.is_own_ocaid(ocaid) for provider in PROVIDER_ORDER[:-1])
+        if not is_non_ia_ocaid(ocaid)
     ]
 
     if ia_ocaids:
