@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h3>Add your reviews:</h3>
+    <h3>$_('Add your reviews:')</h3>
     <div class="chip-group">
       <OLChip
         v-for="o in observationsArray"
