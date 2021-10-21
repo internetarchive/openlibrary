@@ -34,11 +34,8 @@ class AbstractBookProvider:
             self.choose_best_identifier(identifiers)
         )
 
-    def render_download_options(
-            self,
-            ed_or_solr: Union[Edition, dict],
-            extra_args: List = None):
-        identifiers = self.get_identifiers(ed_or_solr)
+    def render_download_options(self, edition: Edition, extra_args: List = None):
+        identifiers = self.get_identifiers(edition)
         assert identifiers
 
         return render_template(
@@ -77,12 +74,14 @@ class AbstractBookProvider:
             olid = ed_or_solr['cover_edition_key']
             return f"{get_coverstore_public_url()}/b/olid/{olid}-{size}.jpg"
         if ed_or_solr.get('ocaid'):
-            # TODO: Should I be using //archive.org/download/%s/page/cover_w60_h60.jpg
-            #  instead?
             return f"//archive.org/services/img/{ed_or_solr.get('ocaid')}"
 
         # No luck
         return None
+
+    def is_own_ocaid(self, ocaid: str) -> bool:
+        """Whether the ocaid is an archive of content from this provider"""
+        return False
 
 
 class InternetArchiveProvider(AbstractBookProvider):
@@ -90,7 +89,7 @@ class InternetArchiveProvider(AbstractBookProvider):
     identifier_key = 'ocaid'
 
     def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> Optional[List[str]]:
-        # Solr record augmented with availability
+        # Solr work record augmented with availability
         if ed_or_solr.get('availability', {}).get('identifier'):
             return [ed_or_solr['availability']['identifier']]
 
@@ -98,36 +97,49 @@ class InternetArchiveProvider(AbstractBookProvider):
         if ed_or_solr.get('ocaid'):
             return [ed_or_solr['ocaid']]
 
-        # Regular solr record
+        # Solr work record
         return ed_or_solr.get('ia')
+
+    def is_own_ocaid(self, ocaid: str) -> bool:
+        return True
 
 
 class LibriVoxProvider(AbstractBookProvider):
     short_name = 'librivox'
     identifier_key = 'librivox'
 
-    def render_download_options(
-            self,
-            ed_or_solr: Union[Edition, dict],
-            extra_args: List = None
-    ):
-        return super().render_download_options(ed_or_solr, [ed_or_solr.get('ocaid')])
+    def render_download_options(self, edition: Edition, extra_args: List = None):
+        # The template also needs the ocaid, since some of the files are hosted on IA
+        return super().render_download_options(edition, [edition.get('ocaid')])
+
+    def is_own_ocaid(self, ocaid: str) -> bool:
+        return 'librivox' in ocaid
 
 
 class ProjectGutenbergProvider(AbstractBookProvider):
     short_name = 'gutenberg'
     identifier_key = 'project_gutenberg'
 
+    def is_own_ocaid(self, ocaid: str) -> bool:
+        return ocaid.endswith('gut')
+
 
 class StandardEbooksProvider(AbstractBookProvider):
     short_name = 'standard_ebooks'
     identifier_key = 'standard_ebooks'
 
+    def is_own_ocaid(self, ocaid: str) -> bool:
+        # Standard ebooks isn't archived on IA
+        return False
+
 
 PROVIDER_ORDER: List[AbstractBookProvider] = [
+    # These providers act essentially as their own publishers, so link to the first when
+    # we're on an edition page
     LibriVoxProvider(),
     ProjectGutenbergProvider(),
     StandardEbooksProvider(),
+    # Then link to IA
     InternetArchiveProvider(),
 ]
 
@@ -135,10 +147,35 @@ PROVIDER_ORDER: List[AbstractBookProvider] = [
 def get_book_provider(
         ed_or_solr: Union[Edition, dict]
 ) -> Optional[AbstractBookProvider]:
-    for provider in PROVIDER_ORDER:
-        if provider.get_identifiers(ed_or_solr):
-            return provider
-    return None
+    # On edition pages, we prefer non-IA resources, because on those
+    # pages, IA is just archiving the original's content
+    if isinstance(ed_or_solr, Edition):
+        for provider in PROVIDER_ORDER:
+            if provider.get_identifiers(ed_or_solr):
+                return provider
+
+    # On search results, we want to display IA copies first.
+    # Issue is that an edition can be provided by multiple providers; we can easily
+    # choose the correct copy when on an edition, but on a solr record, with all copies
+    # of all editions aggregated, it's more difficult.
+    # So we do some ugly ocaid sniffing to try to guess :/ Idea being that we ignore
+    # OCAIDs that look like they're from other providers.
+    ia_ocaids = [
+        ocaid
+        for ocaid in ed_or_solr.get('ia', [])
+        if not any(provider.is_own_ocaid(ocaid) for provider in PROVIDER_ORDER[:-1])
+    ]
+
+    if ia_ocaids:
+        return PROVIDER_ORDER[-1]
+    else:
+        # No IA-only ocaids, so now we do the normal flow
+        for provider in PROVIDER_ORDER:
+            if provider.get_identifiers(ed_or_solr):
+                return provider
+
+        # No luck
+        return None
 
 
-setattr(get_book_provider, 'ia', InternetArchiveProvider)
+setattr(get_book_provider, 'ia', PROVIDER_ORDER[-1])
