@@ -368,18 +368,7 @@ def get_ebook_count(field, key, publish_year=None):
 
 @web.memoize
 def get_ebook_count_db():
-    """Returns the ebook_count database.
-
-    The database object is created on the first call to this function and
-    cached by memoize. Subsequent calls return the same object.
-    """
-    params = config.plugin_worksearch.get('ebook_count_db_parameters')
-    if params:
-        params.setdefault('dbn', 'postgres')
-        return web.database(**params)
-    else:
-        logger.warn("ebook_count_db_parameters is not specified in the config. ebook-count on subject pages will be displayed as 0.")
-        return None
+    pass
 
 def find_ebook_count(field, key):
     q = '%s_key:%s+AND+ia:*' % (field, re_chars.sub(r'\\\1', key).encode('utf-8'))
