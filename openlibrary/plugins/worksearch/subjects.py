@@ -335,40 +335,8 @@ class SubjectEngine:
 
 
 def get_ebook_count(field, key, publish_year=None):
-    ebook_count_db = get_ebook_count_db()
+    return 0
 
-    # Handle the case of ebook_count_db_parametres not specified in the config.
-    if ebook_count_db is None:
-        return 0
-
-    def db_lookup(field, key, publish_year=None):
-        sql = 'select sum(ebook_count) as num from subjects where field=$field and key=$key'
-        if publish_year:
-            if isinstance(publish_year, (tuple, list)):
-                sql += ' and publish_year between $y1 and $y2'
-                (y1, y2) = publish_year
-            else:
-                sql += ' and publish_year=$publish_year'
-        return list(ebook_count_db.query(sql, vars=locals()))[0].num
-
-    total = db_lookup(field, key, publish_year)
-    if total:
-        return total
-    elif publish_year:
-        sql = 'select ebook_count as num from subjects where field=$field and key=$key limit 1'
-        if len(list(ebook_count_db.query(sql, vars=locals()))) != 0:
-            return 0
-    years = find_ebook_count(field, key)
-    if not years:
-        return 0
-    for year, count in sorted(years.items()):
-        ebook_count_db.query('insert into subjects (field, key, publish_year, ebook_count) values ($field, $key, $year, $count)', vars=locals())
-
-    return db_lookup(field, key, publish_year)
-
-@web.memoize
-def get_ebook_count_db():
-    pass
 
 def find_ebook_count(field, key):
     q = '%s_key:%s+AND+ia:*' % (field, re_chars.sub(r'\\\1', key).encode('utf-8'))
