@@ -300,7 +300,7 @@ class SubjectEngine:
         return str_to_key(key).lower()
 
     def get_ebook_count(self, name, value, publish_year):
-        return get_ebook_count(name, value, publish_year)
+        return 0
 
     def facet_wrapper(self, facet, value, count):
         if facet == "publish_year":
@@ -332,10 +332,6 @@ class SubjectEngine:
         kw['facet.limit'] = 25
         kw['facet_wrapper'] = self.facet_wrapper
         return kw
-
-
-def get_ebook_count(field, key, publish_year=None):
-    return 0
 
 
 def find_ebook_count(field, key):
