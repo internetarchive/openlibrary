@@ -19,6 +19,8 @@ A sample dict looks like one of these:
 """
 from __future__ import print_function
 
+from openlibrary.plugins.importapi.import_validator import import_validator
+
 class import_edition_builder:
 
     def add_string(self, key, val):
@@ -46,6 +48,7 @@ class import_edition_builder:
     def __init__(self, init_dict=None):
         init_dict = init_dict or {}
         self.edition_dict = init_dict.copy()
+        self._validate()
 
         self.type_dict = {
             'title'              : ['title',          self.add_string],
@@ -68,6 +71,8 @@ class import_edition_builder:
             'lc_classification'  : ['lc_classifications',  self.add_list],
         }
 
+    def _validate(self):
+        import_validator().validate(self.edition_dict)
 
     def get_dict(self):
         return self.edition_dict

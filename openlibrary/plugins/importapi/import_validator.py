@@ -8,16 +8,34 @@ REQUIRED_KEYS = {
     'publish_date'
 }
 
-class import_validator:
+class RequiredFieldError(Exception):
+    def __init__(self, f):
+        self.f = ", ".join(f)
+    def __str__(self):
+        return f"Missing required fields: {self.f}"
+
+
+class InvalidValueError(Exception):
+    def __init__(self, f):
+        self.f = ", ".join(f)
+    def __str__(self):
+        return f"Invalid values for the following fields: {self.f}"
+
+
+class import_validator(object):
 
     def validate(self, data: Dict[str, Any]):
-        if not REQUIRED_KEYS.issubset(data.keys()):
-            return False
+        missing_keys = [key for key in REQUIRED_KEYS if key not in data]
+        if len(missing_keys):
+            raise RequiredFieldError(missing_keys)
 
+        invalid_values = []
         for key in REQUIRED_KEYS:
             func = getattr(self, f'_validate_{key}')
             if not func(data[key]):
-                return False
+                invalid_values.append(key)
+        if len(invalid_values):
+            raise InvalidValueError(invalid_values)
         return True
 
     def _validate_title(self, title: str) -> bool:

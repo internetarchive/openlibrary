@@ -21,6 +21,7 @@ import re
 
 from openlibrary.plugins.importapi import (import_edition_builder, import_opds,
                                            import_rdf)
+from openlibrary.plugins.importapi.import_validator import RequiredFieldError, InvalidValueError
 from lxml import etree
 import logging
 
@@ -127,6 +128,10 @@ class importapi:
             edition, format = parse_data(data)
         except DataError as e:
             return self.error(str(e), 'Failed to parse import data')
+        except RequiredFieldError as e:
+            return self.error('missing-required-field', str(e))
+        except InvalidValueError as e:
+            return self.error('invalid-value', str(e))
 
         if not edition:
             return self.error('unknown-error', 'Failed to parse import data')
