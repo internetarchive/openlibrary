@@ -21,7 +21,8 @@ import re
 
 from openlibrary.plugins.importapi import (import_edition_builder, import_opds,
                                            import_rdf)
-from openlibrary.plugins.importapi.import_validator import RequiredFieldError, InvalidValueError
+from openlibrary.plugins.importapi.import_validator import (RequiredFieldError,
+                                                            InvalidValueError)
 from lxml import etree
 import logging
 
