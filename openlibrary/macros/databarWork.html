@@ -56,9 +56,7 @@ $if isbn_10 and not asin:
 
         $if editions_page:
           $ book_provider = get_book_provider(page)
-          $if book_provider and book_provider.short_name == 'ia' and not page.is_access_restricted() and page.ia_metadata:
-            $:macros.DownloadOptions(page)
-          $elif book_provider:
+          $if book_provider:
             $:book_provider.render_download_options(page)
       </div>
     </div>

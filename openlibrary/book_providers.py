@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Literal
 
 from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
@@ -25,12 +25,15 @@ class AbstractBookProvider:
     def choose_best_identifier(self, identifiers: List[str]) -> str:
         return identifiers[0]
 
+    def get_template_path(self, typ: Literal['read_button', 'download_options']) -> str:
+        return f"book_providers/{self.short_name}_{typ}.html"
+
     def render_read_button(self, ed_or_solr: Union[Edition, dict]):
         identifiers = self.get_identifiers(ed_or_solr)
         assert identifiers
 
         return render_template(
-            f"book_providers/{self.short_name}_read_button.html",
+            self.get_template_path('read_button'),
             self.choose_best_identifier(identifiers)
         )
 
@@ -39,7 +42,7 @@ class AbstractBookProvider:
         assert identifiers
 
         return render_template(
-            f"book_providers/{self.short_name}_download_options.html",
+            self.get_template_path('download_options'),
             self.choose_best_identifier(identifiers),
             *(extra_args or [])
         )
@@ -102,6 +105,13 @@ class InternetArchiveProvider(AbstractBookProvider):
 
     def is_own_ocaid(self, ocaid: str) -> bool:
         return True
+
+    def render_download_options(self, edition: Edition, extra_args: List = None):
+        if not edition.is_access_restricted() and edition.ia_metadata:
+            # This needs access to the full edition
+            return render_template(self.get_template_path('download_options'), edition)
+        else:
+            return ''
 
 
 class LibriVoxProvider(AbstractBookProvider):
