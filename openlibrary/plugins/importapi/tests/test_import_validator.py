@@ -1,3 +1,5 @@
+import pytest
+
 from openlibrary.plugins.importapi.import_validator import import_validator
 
 valid_values = {
@@ -74,4 +76,5 @@ def test_validate():
     assert validator.validate(valid_values) is True
     invalid_values = valid_values.copy()
     del invalid_values['authors']
-    assert validator.validate(invalid_values) is False
+    with pytest.raises(Exception):
+        validator.validate(invalid_values)
