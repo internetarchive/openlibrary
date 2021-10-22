@@ -8,9 +8,11 @@ REQUIRED_KEYS = {
     'publish_date'
 }
 
+
 class RequiredFieldError(Exception):
     def __init__(self, f):
         self.f = ", ".join(f)
+
     def __str__(self):
         return f"Missing required fields: {self.f}"
 
@@ -18,6 +20,7 @@ class RequiredFieldError(Exception):
 class InvalidValueError(Exception):
     def __init__(self, f):
         self.f = ", ".join(f)
+
     def __str__(self):
         return f"Invalid values for the following fields: {self.f}"
 
@@ -42,10 +45,18 @@ class import_validator(object):
         return True if type(title) == str and len(title) else False
 
     def _validate_source_records(self, source_records: List[str]) -> bool:
-        return True if type(source_records) == list and len(source_records) else False
+        return True if (
+            type(source_records) == list and
+            len(source_records)
+        ) else False
 
     def _validate_author(self, author: Dict[str, Any]) -> bool:
-        return True if type(author) == dict and "name" in author and type(author['name']) == str and len(author['name']) else False
+        return True if (
+            type(author) == dict and
+            "name" in author and
+            type(author['name']) == str and
+            len(author['name'])
+        ) else False
 
     def _validate_authors(self, authors: List[Dict[str, Any]]) -> bool:
         if type(authors) is not list:
@@ -63,7 +74,7 @@ class import_validator(object):
             return False
         if not len(publishers):
             return False
-        
+
         for publisher in publishers:
             if not type(publisher) == str:
                 return False
