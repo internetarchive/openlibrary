@@ -62,7 +62,7 @@ async function addOpenLibraryButtons(options) {
             const e = foundIsbnElementsMap[isbn]
             const buttons = selectorToPlaceBtnIn ? e.querySelector(selectorToPlaceBtnIn) : e;
             const openLibraryBtnLink = document.createElement('a')
-            openLibraryBtnLink.href = `https://openlibrary.org/borrow/ia/${availability.identifier}`
+            openLibraryBtnLink.href = `https://openlibrary.org/works/${availability.openlibrary_work}`
             openLibraryBtnLink.text = textOnBtn || 'Open Library'
             openLibraryBtnLink.classList.add('openlibrary-btn')
             buttons.append(openLibraryBtnLink);
