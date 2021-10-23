@@ -20,7 +20,7 @@ function getIsbnToElementMap(container) {
  */
 async function getAvailabilityDataFromOpenLibrary(isbnList) {
     const apiBaseUrl = 'https://openlibrary.org/search.json';
-    const apiUrl = `${apiBaseUrl}?fields=*,availability&q=isbn:${isbnList.join("+OR+")}`;
+    const apiUrl = `${apiBaseUrl}?fields=*,availability&q=isbn:${isbnList.join('+OR+')}`;
     const response = await fetch(apiUrl);
     const jsonResponse = await response.json();
     const olDocs = jsonResponse.docs;
@@ -28,7 +28,7 @@ async function getAvailabilityDataFromOpenLibrary(isbnList) {
     olDocs.forEach((doc) => {
         const isbnList = doc.isbn;
         isbnList.forEach((isbn) => {
-          isbnToAvailabilityDataMap[isbn] = doc?.availability;
+            isbnToAvailabilityDataMap[isbn] = doc?.availability;
         });
     });
     return isbnToAvailabilityDataMap;
