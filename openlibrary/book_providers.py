@@ -17,36 +17,39 @@ class AbstractBookProvider:
     """
     identifier_key: str
 
-    def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> Optional[List[str]]:
+    def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> List[str]:
         return (
             # If it's an edition
-            ed_or_solr.get('identifiers', {}).get(self.identifier_key) or
+            ed_or_solr.get('identifiers', {}).get(self.identifier_key, []) or
             # if it's a solr work record
-            ed_or_solr.get(f'id_{self.identifier_key}')
+            ed_or_solr.get(f'id_{self.identifier_key}', [])
         )
 
     def choose_best_identifier(self, identifiers: List[str]) -> str:
         return identifiers[0]
 
+    def get_best_identifier(self, ed_or_solr: Union[Edition, dict]) -> str:
+        identifiers = self.get_identifiers(ed_or_solr)
+        assert identifiers
+        return self.choose_best_identifier(identifiers)
+
+    def get_best_identifier_slug(self, ed_or_solr: Union[Edition, dict]) -> str:
+        """Used in eg /work/OL1W?edition=ia:foobar URLs, for example"""
+        return f'{self.short_name}:{self.get_best_identifier(ed_or_solr)}'
+
     def get_template_path(self, typ: Literal['read_button', 'download_options']) -> str:
         return f"book_providers/{self.short_name}_{typ}.html"
 
     def render_read_button(self, ed_or_solr: Union[Edition, dict]):
-        identifiers = self.get_identifiers(ed_or_solr)
-        assert identifiers
-
         return render_template(
             self.get_template_path('read_button'),
-            self.choose_best_identifier(identifiers)
+            self.get_best_identifier(ed_or_solr)
         )
 
     def render_download_options(self, edition: Edition, extra_args: List = None):
-        identifiers = self.get_identifiers(edition)
-        assert identifiers
-
         return render_template(
             self.get_template_path('download_options'),
-            self.choose_best_identifier(identifiers),
+            self.get_best_identifier(edition),
             *(extra_args or [])
         )
 
@@ -94,7 +97,7 @@ class InternetArchiveProvider(AbstractBookProvider):
     short_name = 'ia'
     identifier_key = 'ocaid'
 
-    def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> Optional[List[str]]:
+    def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> List[str]:
         # Solr work record augmented with availability
         if ed_or_solr.get('availability', {}).get('identifier'):
             return [ed_or_solr['availability']['identifier']]
@@ -104,7 +107,7 @@ class InternetArchiveProvider(AbstractBookProvider):
             return [ed_or_solr['ocaid']]
 
         # Solr work record
-        return ed_or_solr.get('ia')
+        return ed_or_solr.get('ia', [])
 
     def is_own_ocaid(self, ocaid: str) -> bool:
         return True

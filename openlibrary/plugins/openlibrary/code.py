@@ -18,7 +18,7 @@ import math
 import infogami
 
 # make sure infogami.config.features is set
-from openlibrary.book_providers import get_book_provider
+from openlibrary.book_providers import get_book_provider, get_book_provider_by_name
 
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []
@@ -931,6 +931,7 @@ def is_bot():
 
 def setup_template_globals():
     web.template.Template.globals.update({
+        'next': next,
         'sorted': sorted,
         'zip': zip,
         'tuple': tuple,
@@ -943,6 +944,7 @@ def setup_template_globals():
         'get_lang': lambda: web.ctx.lang,
         'ceil': math.ceil,
         'get_book_provider': get_book_provider,
+        'get_book_provider_by_name': get_book_provider_by_name,
 
         # bad use of globals
         'is_bot': is_bot,

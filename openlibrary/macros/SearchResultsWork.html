@@ -1,17 +1,19 @@
 $def with (doc, decorations=None, cta=True, availability=None, extra=None)
 
-$ availability = availability or doc.get('availability') or {}
-$ ocaid = availability.get('identifier')
 $ is_work = doc.get('type', {}).get('key') == '/type/work'
 $ book_url = doc.url() if is_work else doc.key
 $ book_provider = get_book_provider(doc)
+$if book_provider:
+  $ work_edition_url = book_url + '?edition=' + urlquote(book_provider.get_best_identifier_slug(doc))
+$else:
+  $ work_edition_url = book_url
 
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book">
   <span class="bookcover">
     $ cover = "/images/icons/avatar_book-sm.png"
     $if book_provider:
       $ cover = book_provider.get_cover_url(doc) or cover
-    <a href="$(book_url)?edition=$(ocaid)"><img
+    <a href="$work_edition_url"><img
             itemprop="image"
             src="$cover"
             alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"
@@ -21,7 +23,7 @@ $ book_provider = get_book_provider(doc)
   <div class="details">
       <div class="resultTitle">
          <h3 itemprop="name" class="booktitle">
-           <a itemprop="url" href="$(book_url)?edition=$(ocaid)"
+           <a itemprop="url" href="$work_edition_url"
               class="results">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a>
            $if doc.get('publish_date'):
              ($(doc['publish_date']))
@@ -43,7 +45,7 @@ $ book_provider = get_book_provider(doc)
             $_('First published in %(year)s', year=doc.first_publish_year)
           </span>
         $if doc.get('edition_count'):
-          <a href="$(book_url)?edition=$(ocaid)#editions-list">$ungettext('1 edition', '%(count)d editions', doc.edition_count, count=doc.edition_count)</a>
+          <a href="$work_edition_url#editions-list">$ungettext('1 edition', '%(count)d editions', doc.edition_count, count=doc.edition_count)</a>
           $if doc.get('languages'):
             <span class="languages">
               $_('in') <a class="hoverlink" title="$(', '.join(doc.languages))">$(len(doc.languages)) $_('languages')</a>
@@ -53,7 +55,7 @@ $ book_provider = get_book_provider(doc)
             $if len(doc.get('ia')) > 1:
               <span class="preview-covers">
                 $for x, i in enumerate(doc.get('ia')[1:10]):
-                  <a href="$(book_url)?edition=$(i)">
+                  <a href="$(book_url)?edition=ia:$(urlquote(i))">
                     <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="Cover of edition $i">
                   </a>
                 </span>
