@@ -107,9 +107,21 @@ class InternetArchiveProvider(AbstractBookProvider):
         return True
 
     def render_download_options(self, edition: Edition, extra_args: List = None):
-        if not edition.is_access_restricted() and edition.ia_metadata:
-            # This needs access to the full edition
-            return render_template(self.get_template_path('download_options'), edition)
+        if edition.is_access_restricted() or not edition.ia_metadata:
+            return ''
+
+        formats = {
+            'pdf': edition.get_ia_download_link('.pdf'),
+            'epub': edition.get_ia_download_link('.epub'),
+            'mobi': edition.get_ia_download_link('.mobi'),
+            'txt': edition.get_ia_download_link('_djvu.txt'),
+        }
+
+        if any(formats.values()):
+            return render_template(
+                self.get_template_path('download_options'),
+                formats,
+                edition.url('/daisy'))
         else:
             return ''
 
