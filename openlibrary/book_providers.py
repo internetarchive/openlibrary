@@ -1,4 +1,7 @@
-from typing import List, Optional, Union, Literal
+from typing import List, Optional, Union, Literal, cast
+
+import web
+from web import uniq
 
 from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
@@ -179,15 +182,16 @@ def is_non_ia_ocaid(ocaid: str) -> bool:
         for provider in providers)
 
 
+def get_book_provider_by_name(short_name: str) -> Optional[AbstractBookProvider]:
+    return next(
+        (p for p in PROVIDER_ORDER if p.short_name == short_name),
+        None
+    )
+
+
 def get_book_provider(
         ed_or_solr: Union[Edition, dict]
 ) -> Optional[AbstractBookProvider]:
-    # On edition pages, we prefer non-IA resources, because on those
-    # pages, IA is just archiving the original's content
-    if isinstance(ed_or_solr, Edition):
-        for provider in PROVIDER_ORDER:
-            if provider.get_identifiers(ed_or_solr):
-                return provider
 
     # On search results, we want to display IA copies first.
     # Issue is that an edition can be provided by multiple providers; we can easily
@@ -195,23 +199,46 @@ def get_book_provider(
     # of all editions aggregated, it's more difficult.
     # So we do some ugly ocaid sniffing to try to guess :/ Idea being that we ignore
     # OCAIDs that look like they're from other providers.
-    ia_ocaids = [
-        ocaid
-        # For some reason ia was explicitly None sometimes
-        for ocaid in (ed_or_solr.get('ia', []) or [])
-        if not is_non_ia_ocaid(ocaid)
-    ]
+    prefer_ia = not isinstance(ed_or_solr, Edition)
+    if prefer_ia:
+        ia_provider = cast(InternetArchiveProvider, get_book_provider_by_name('ia'))
+        ia_ocaids = [
+            ocaid
+            # Subjects/publisher pages have ia set to a specific value :/
+            for ocaid in uniq(ia_provider.get_identifiers(ed_or_solr) or [])
+            if not is_non_ia_ocaid(ocaid)
+        ]
+        prefer_ia = bool(ia_ocaids)
 
-    if ia_ocaids:
-        return PROVIDER_ORDER[-1]
-    else:
-        # No IA-only ocaids, so now we do the normal flow
-        for provider in PROVIDER_ORDER:
-            if provider.get_identifiers(ed_or_solr):
-                return provider
+    default_order = PROVIDER_ORDER
+    if prefer_ia:
+        ia_provider = cast(InternetArchiveProvider, get_book_provider_by_name('ia'))
+        default_order = uniq([ia_provider, *PROVIDER_ORDER])
 
-        # No luck
-        return None
+    provider_order = default_order
+    provider_overrides = web.input(providerPref=None).providerPref
+
+    if provider_overrides:
+        new_order: List[AbstractBookProvider] = []
+        for name in provider_overrides.split(','):
+            if name == '*':
+                new_order += default_order
+            else:
+                provider = get_book_provider_by_name(name)
+                if not provider:
+                    # TODO: Show the user a warning somehow
+                    continue
+                new_order.append(provider)
+        new_order = uniq(new_order + default_order)
+        if new_order:
+            provider_order = new_order
+
+    for provider in provider_order:
+        if provider.get_identifiers(ed_or_solr):
+            return provider
+
+    # No luck
+    return None
 
 
-setattr(get_book_provider, 'ia', PROVIDER_ORDER[-1])
+setattr(get_book_provider, 'ia', get_book_provider_by_name('ia'))
