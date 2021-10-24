@@ -243,7 +243,6 @@ class SubjectEngine:
 
         if details:
             subject.ebook_count = dict(result.facets["has_fulltext"]).get("true", 0)
-            #subject.ebook_count = self.get_ebook_count(meta.name, q[meta.facet_key], q.get('publish_year'))
 
             subject.subjects = result.facets["subject_facet"]
             subject.places = result.facets["place_facet"]
@@ -299,9 +298,6 @@ class SubjectEngine:
     def normalize_key(self, key):
         return str_to_key(key).lower()
 
-    def get_ebook_count(self, name, value, publish_year):
-        return get_ebook_count(name, value, publish_year)
-
     def facet_wrapper(self, facet, value, count):
         if facet == "publish_year":
             return [int(value), count]
@@ -333,96 +329,6 @@ class SubjectEngine:
         kw['facet_wrapper'] = self.facet_wrapper
         return kw
 
-
-def get_ebook_count(field, key, publish_year=None):
-    ebook_count_db = get_ebook_count_db()
-
-    # Handle the case of ebook_count_db_parametres not specified in the config.
-    if ebook_count_db is None:
-        return 0
-
-    def db_lookup(field, key, publish_year=None):
-        sql = 'select sum(ebook_count) as num from subjects where field=$field and key=$key'
-        if publish_year:
-            if isinstance(publish_year, (tuple, list)):
-                sql += ' and publish_year between $y1 and $y2'
-                (y1, y2) = publish_year
-            else:
-                sql += ' and publish_year=$publish_year'
-        return list(ebook_count_db.query(sql, vars=locals()))[0].num
-
-    total = db_lookup(field, key, publish_year)
-    if total:
-        return total
-    elif publish_year:
-        sql = 'select ebook_count as num from subjects where field=$field and key=$key limit 1'
-        if len(list(ebook_count_db.query(sql, vars=locals()))) != 0:
-            return 0
-    years = find_ebook_count(field, key)
-    if not years:
-        return 0
-    for year, count in sorted(years.items()):
-        ebook_count_db.query('insert into subjects (field, key, publish_year, ebook_count) values ($field, $key, $year, $count)', vars=locals())
-
-    return db_lookup(field, key, publish_year)
-
-@web.memoize
-def get_ebook_count_db():
-    """Returns the ebook_count database.
-
-    The database object is created on the first call to this function and
-    cached by memoize. Subsequent calls return the same object.
-    """
-    params = config.plugin_worksearch.get('ebook_count_db_parameters')
-    if params:
-        params.setdefault('dbn', 'postgres')
-        return web.database(**params)
-    else:
-        logger.warn("ebook_count_db_parameters is not specified in the config. ebook-count on subject pages will be displayed as 0.")
-        return None
-
-def find_ebook_count(field, key):
-    q = '%s_key:%s+AND+ia:*' % (field, re_chars.sub(r'\\\1', key).encode('utf-8'))
-    return execute_ebook_count_query(q)
-
-def execute_ebook_count_query(q):
-    root_url = solr_select_url + '?wt=json&indent=on&rows=%d&start=%d&q.op=AND&q=%s&fl=edition_key'
-    rows = 1000
-
-    ebook_count = 0
-    start = 0
-    solr_url = root_url % (rows, start, q)
-
-    stats.begin("solr", url=solr_url)
-    response = requests.get(solr_url).json()['response']
-    stats.end()
-
-    num_found = response['numFound']
-    years = defaultdict(int)
-    while start < num_found:
-        if start:
-            solr_url = root_url % (rows, start, q)
-            stats.begin("solr", url=solr_url)
-            response = requests.get(solr_url).json()['response']
-            stats.end()
-        for doc in response['docs']:
-            for k in doc['edition_key']:
-                e = web.ctx.site.get('/books/' + k)
-                ia = set(i[3:] for i in e.get('source_records', []) if i.startswith('ia:'))
-                if e.get('ocaid'):
-                    ia.add(e['ocaid'])
-                pub_date = e.get('publish_date')
-                pub_year = -1
-                if pub_date:
-                    m = re_year.search(pub_date)
-                    if m:
-                        pub_year = int(m.group(1))
-                ebook_count = len(ia)
-                if ebook_count:
-                    years[pub_year] += ebook_count
-        start += rows
-
-    return dict(years)
 
 def setup():
     """Placeholder for doing any setup required.
