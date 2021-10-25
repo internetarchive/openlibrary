@@ -184,6 +184,6 @@ class import_validator(object):
             if entry['key'] not in target:
                 return False
             if 'type' in entry and not self._validate(
-                target[entry['key']], entry['type']):
+                    target[entry['key']], entry['type']):
                 return False
         return True
