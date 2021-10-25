@@ -1,58 +1,75 @@
+// @ts-check
 import $ from 'jquery';
+import '../../../../static/css/components/toast.less';
 
 /**
  * @constant {number} Default amount of time to display a toast component, in milliseconds.
  */
 const DEFAULT_TIMEOUT = 2500;
 
-/**
- * @class Toast creates a small pop-up message that closes after some amount of time.
- */
 export class Toast {
-
     /**
-   * Creates a new toast component, adds a close listener to the component, and adds the component
-   * as the first child of the given parent element.
-   *
-   * @param {JQuery} $parent Designates where the toast component will be attached
-   * @param {string} message Message that will be displayed in the toast component
-   * @param {number} timeout Amount of time, in milliseconds, that the component will be visible
-   */
-    constructor($parent, message, timeout=DEFAULT_TIMEOUT) {
+     * @param {JQuery} $toast The element containing the appropriate parts
+     * @param {JQuery|HTMLElement} containerParent where to add the toast bar
+     */
+    constructor($toast, containerParent=document.body) {
+        const $parent = $(containerParent);
         if (!$parent.has('.toast-container').length) {
             $parent.prepend('<div class="toast-container"></div>')
         }
-        const $toastContainer = $parent.children('.toast-container').first();
-
-        this.timeout = timeout;
-        this.$toast = $(`<div class="toast">
-        <span class="toast-message">${message}</span>
-        <a class="toast--close">&times;<span class="shift">$_("Close")</span></a>
-      </div>
-    `);
-
-        this.$toast.find('.toast--close').on('click', () => {
-            this.close();
-        });
-
-        $toastContainer.append(this.$toast);
+        if ($toast.data('toast-trigger')) {
+            $($toast.data('toast-trigger')).on('click', () => this.show());
+        }
+        /** The toast bar that the toast will be added to. */
+        this.$container = $parent.children('.toast-container').first();
+        this.$toast = $toast;
+        this.$toast.find('.toast__close')
+            .on('click', () => this.close());
     }
 
-    /**
-   * Displays the toast component on the page.
-   */
+    /** Displays the toast component on the page. */
     show() {
-        this.$toast.addClass('show');
+        this.$toast
+            .appendTo(this.$container)
+            .fadeIn();
+    }
+
+    /** Hides the toast component and removes it from the DOM. */
+    close() {
+        this.$toast.fadeOut('slow', () => this.$toast.remove());
+    }
+}
+
+/**
+ * Creates a small pop-up message that closes after some amount of time.
+ */
+export class FadingToast extends Toast {
+    /**
+     * Creates a new toast component, adds a close listener to the component, and adds the component
+     * as the first child of the given parent element.
+     *
+     * @param {string} message Message that will be displayed in the toast component
+     * @param {JQuery} [$parent] Designates where the toast component will be attached
+     * @param {number} [timeout] Amount of time, in milliseconds, that the component will be visible
+     */
+    constructor(message, $parent=null, timeout=DEFAULT_TIMEOUT) {
+        super(
+            // TODO(i18n-js)
+            $(`<div class="toast">
+                <span class="toast__body">${message}</span>
+                <a class="toast__close">&times;<span class="shift">Close</span></a>
+            </div>`),
+            $parent
+        );
+        this.timeout = timeout;
+    }
+
+    /** @override */
+    show() {
+        super.show();
 
         setTimeout(() => {
             this.close();
         }, this.timeout);
-    }
-
-    /**
-   * Hides the toast component and removes it from the DOM.
-   */
-    close() {
-        this.$toast.fadeOut('slow', function() { $(this).remove() });
     }
 }
