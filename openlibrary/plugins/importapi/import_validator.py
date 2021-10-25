@@ -163,7 +163,6 @@ class import_validator(object):
         Returns True if all list items are valid.
         """
 
-        validations = VALIDATIONS[type]
         for item in list:
             if not self._validate(item, type):
                 return False
@@ -184,6 +183,7 @@ class import_validator(object):
         for entry in keys:
             if entry['key'] not in target:
                 return False
-            if 'type' in entry and not self._validate(target[entry['key']], entry['type']):
+            if 'type' in entry and not self._validate(
+                target[entry['key']], entry['type']):
                 return False
         return True

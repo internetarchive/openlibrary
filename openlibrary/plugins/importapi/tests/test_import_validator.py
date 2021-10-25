@@ -1,6 +1,7 @@
 import pytest
 
-from openlibrary.plugins.importapi.import_validator import import_validator, RequiredFieldError
+from openlibrary.plugins.importapi.import_validator import (import_validator,
+                                                            RequiredFieldError)
 
 valid_values = {
     "title": "Beowulf",
@@ -31,32 +32,44 @@ def test_validate_length():
 
 
 def test_validate_type():
-    string = ""
-    assert validator._validate_type(string, str) is True
-    assert validator._validate_type(string, dict) is False
-    assert validator._validate_type(string, list) is False
+    test_string = ""
+    assert validator._validate_type(test_string, str) is True
+    assert validator._validate_type(test_string, dict) is False
+    assert validator._validate_type(test_string, list) is False
 
-    d = dict()
-    assert validator._validate_type(d, str) is False
-    assert validator._validate_type(d, dict) is True
-    assert validator._validate_type(d, list) is False
+    test_dict = dict()
+    assert validator._validate_type(test_dict, str) is False
+    assert validator._validate_type(test_dict, dict) is True
+    assert validator._validate_type(test_dict, list) is False
 
-    l = list()
-    assert validator._validate_type(l, str) is False
-    assert validator._validate_type(l, dict) is False
-    assert validator._validate_type(l, list) is True
+    test_list = list()
+    assert validator._validate_type(test_list, str) is False
+    assert validator._validate_type(test_list, dict) is False
+    assert validator._validate_type(test_list, list) is True
 
 
 def test_validate_required_keys():
-    d = {
+    test_dict = {
         'a': 10,
         'b': 20,
         'c': 30
     }
-    assert validator._validate_required_keys(d, [{'key':'a'}]) is True
-    assert validator._validate_required_keys(d, [{'key': 'b'}, {'key': 'c'}]) is True
-    assert validator._validate_required_keys(d, [{'key': 'a', 'type': 'author'}]) is False
-    assert validator._validate_required_keys(d, [{'key': 'missing_key'}]) is False
+    assert validator._validate_required_keys(
+        test_dict,
+        [{'key': 'a'}]
+    ) is True
+    assert validator._validate_required_keys(
+        test_dict,
+        [{'key': 'b'}, {'key': 'c'}]
+    ) is True
+    assert validator._validate_required_keys(
+        test_dict,
+        [{'key': 'a', 'type': 'author'}]
+    ) is False
+    assert validator._validate_required_keys(
+        test_dict,
+        [{'key': 'missing_key'}]
+    ) is False
 
 
 def test_validate():
