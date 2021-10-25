@@ -16,7 +16,7 @@ $else:
   $ title = _("Read ebook from Internet Archive")
 
 <div class="cta-button-group">
-  <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--available cta-btn--$(action)"
+  <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)"
      $if loan:
        data-userid="$(loan['userid'])"
      $elif printdisabled:
