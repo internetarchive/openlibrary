@@ -1,9 +1,12 @@
 """Controller for /borrow page.
 """
 
-import json
 import web
+
 import datetime
+import json
+
+import eventer
 
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
@@ -251,6 +254,5 @@ def _get_loan_key(loan):
 
 
 def setup():
-    from openlibrary.core import msgbroker
-    msgbroker.subscribe("loan-created", on_loan_created_statsdb)
-    msgbroker.subscribe("loan-completed", on_loan_completed_statsdb)
+    eventer.bind("loan-created", on_loan_created_statsdb)
+    eventer.bind("loan-completed", on_loan_completed_statsdb)
