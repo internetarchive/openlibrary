@@ -23,8 +23,6 @@ export class Toast {
         /** The toast bar that the toast will be added to. */
         this.$container = $parent.children('.toast-container').first();
         this.$toast = $toast;
-        this.$toast.find('.toast__close')
-            .on('click', () => this.close());
     }
 
     /** Displays the toast component on the page. */
@@ -32,6 +30,8 @@ export class Toast {
         this.$toast
             .appendTo(this.$container)
             .fadeIn();
+        this.$toast.find('.toast__close')
+            .one('click', () => this.close());
     }
 
     /** Hides the toast component and removes it from the DOM. */
