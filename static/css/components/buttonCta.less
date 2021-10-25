@@ -38,7 +38,7 @@ a.cta-btn {
     background-position: center;
   }
 
-  .btn-label { padding: 0 20px; }
+  .btn-label { padding: 0 10px; }
 
   &:link, &:visited {
     color: @white;
@@ -49,6 +49,13 @@ a.cta-btn {
     background-color: @primary-blue;
     color: @white;
     &:hover { background-color: darken(@primary-blue, 20%); }
+    background-image: url(/static/images/icons/octicon-link-external-24.svg);
+    background-repeat: no-repeat;
+    background-size: 20px;
+    background-position: center right 8px;
+
+    // IA books don't show external link
+    &[href*="borrow/ia"] { background-image: none; }
   }
 
   &--unavailable {
