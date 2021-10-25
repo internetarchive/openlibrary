@@ -1,6 +1,6 @@
 import pytest
 
-from openlibrary.plugins.importapi.import_validator import import_validator
+from openlibrary.plugins.importapi.import_validator import import_validator, RequiredFieldError
 
 valid_values = {
     "title": "Beowulf",
@@ -14,67 +14,54 @@ valid_values = {
 validator = import_validator()
 
 
-def test_validate_title():
-    # Title must be a string of length greater than 0
-    assert validator._validate_title(valid_values["title"]) is True
-    assert validator._validate_title("") is False
-    assert validator._validate_title(['a']) is False
+def test_validate_length():
+    # Target list must contain at least as many items as minimally allowed
+    test_list = []
+    assert validator._validate_length(test_list, 1) is False
+    test_list.append("item one")
+    assert validator._validate_length(test_list, 1) is True
+    assert validator._validate_length(test_list, 2) is False
+
+    # Target string must contain the minimum amount of letters
+    test_str = ''
+    assert validator._validate_length(test_str, 1) is False
+    assert validator._validate_length(test_str, 0) is True
+    test_str = 'new string'
+    assert validator._validate_length(test_str, 1) is True
 
 
-def test_validate_source_records():
-    # source_records must be a non-empty list of strings
-    assert validator._validate_source_records(
-        valid_values["source_records"]
-    ) is True
-    assert validator._validate_source_records([]) is False
-    assert validator._validate_source_records(17) is False
+def test_validate_type():
+    string = ""
+    assert validator._validate_type(string, str) is True
+    assert validator._validate_type(string, dict) is False
+    assert validator._validate_type(string, list) is False
+
+    d = dict()
+    assert validator._validate_type(d, str) is False
+    assert validator._validate_type(d, dict) is True
+    assert validator._validate_type(d, list) is False
+
+    l = list()
+    assert validator._validate_type(l, str) is False
+    assert validator._validate_type(l, dict) is False
+    assert validator._validate_type(l, list) is True
 
 
-def test_validate_author():
-    # Author is a dict with key-value pair ("name" : str)
-    assert validator._validate_author(valid_values["author"]) is True
-    assert validator._validate_author({"name": 17}) is False
-    assert validator._validate_author({"title": "Duke"}) is False
-    assert validator._validate_author({}) is False
-    assert validator._validate_author("Dean Koontz") is False
-
-
-def test_validate_author_list():
-    # The author list must be non-empty and contain only valid authors
-    assert validator._validate_authors(valid_values["authors"]) is True
-    assert validator._validate_authors(
-        [
-            {"name": "Tom Robbins"},
-            {"title": "Sir"}
-        ]
-    ) is False
-    assert validator._validate_authors([]) is False
-    assert validator._validate_authors("") is False
-    assert validator._validate_authors(17) is False
-
-
-def test_validate_publisher_list():
-    # Publisher lists must be non-empty and contain only strings
-    assert validator._validate_publishers(valid_values["publishers"]) is True
-    assert validator._validate_publishers(["Harper Collins"]) is True
-    assert validator._validate_publishers([]) is False
-    assert validator._validate_publishers([17]) is False
-    assert validator._validate_publishers("Harper Collins") is False
-
-
-def test_validate_publish_date():
-    # Publish date must be a date string
-    assert validator._validate_publish_date(
-        valid_values["publish_date"]
-    ) is True
-    assert validator._validate_publish_date("2018") is True
-    assert validator._validate_publish_date(2018) is False
-    assert validator._validate_publish_date("") is False
+def test_validate_required_keys():
+    d = {
+        'a': 10,
+        'b': 20,
+        'c': 30
+    }
+    assert validator._validate_required_keys(d, [{'key':'a'}]) is True
+    assert validator._validate_required_keys(d, [{'key': 'b'}, {'key': 'c'}]) is True
+    assert validator._validate_required_keys(d, [{'key': 'a', 'type': 'author'}]) is False
+    assert validator._validate_required_keys(d, [{'key': 'missing_key'}]) is False
 
 
 def test_validate():
     assert validator.validate(valid_values) is True
     invalid_values = valid_values.copy()
     del invalid_values['authors']
-    with pytest.raises(Exception):
+    with pytest.raises(RequiredFieldError):
         validator.validate(invalid_values)
