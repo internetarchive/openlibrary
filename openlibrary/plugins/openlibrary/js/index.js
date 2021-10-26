@@ -218,6 +218,14 @@ jQuery(function () {
             .then((module) => module.init());
     }
 
+    if (document.getElementsByClassName('toast').length) {
+        import(/* webpackChunkName: "Toast" */ './Toast')
+            .then((module) => {
+                Array.from(document.getElementsByClassName('toast'))
+                    .forEach(el => new module.Toast($(el)));
+            });
+    }
+
     const $observationModalLinks = $('.observations-modal-link');
     const $notesModalLinks = $('.notes-modal-link');
     const $notesPageButtons = $('.note-page-buttons')
