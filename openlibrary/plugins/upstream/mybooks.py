@@ -24,9 +24,7 @@ class my_books_redirect(delegate.page):
 
 
 class my_books_view(delegate.page):
-    valid_paths = "currently-reading|want-to-read|already-read|" \
-                  "sponsorships|notes|observations"
-    path = f"/people/([^/]+)/books/(?:({valid_paths}))"
+    path = r"/people/([^/]+)/books/([a-zA-Z_-]+)"
 
     def GET(self, username, key):
         i = web.input(page=1, sort='desc')
