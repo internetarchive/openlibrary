@@ -64,7 +64,7 @@
     "jest": "27.1.0",
     "jquery": "3.6.0",
     "jquery-colorbox": "1.6.4",
-    "jquery-ui": "1.12.1",
+    "jquery-ui": "1.13.0",
     "jquery-validation": "1.19.3",
     "less": "4.1.1",
     "less-loader": "7.3.0",
