@@ -53,41 +53,6 @@ class AbstractBookProvider:
             *(extra_args or [])
         )
 
-    def get_cover_url(self, ed_or_solr: Union[Edition, dict]) -> Optional[str]:
-        """
-        Get the cover url most appropriate for this copy when made available by this
-        provider
-        """
-        size = 'M'
-
-        # Editions
-        if isinstance(ed_or_solr, Edition):
-            return ed_or_solr.get_cover().url(size)
-
-        # Solr document augmented with availability
-        availability = ed_or_solr.get('availability', {})
-
-        if availability.get('openlibrary_edition'):
-            olid = availability.get('openlibrary_edition')
-            return f"{get_coverstore_public_url()}/b/olid/{olid}-{size}.jpg"
-        if availability.get('identifier'):
-            ocaid = ed_or_solr['availability']['identifier']
-            return f"//archive.org/services/img/{ocaid}"
-
-        # Plain solr - we don't know which edition is which here, so this is most
-        # preferable
-        if ed_or_solr.get('cover_i'):
-            cover_i = ed_or_solr["cover_i"]
-            return f'{get_coverstore_public_url()}/b/id/{cover_i}-{size}.jpg'
-        if ed_or_solr.get('cover_edition_key'):
-            olid = ed_or_solr['cover_edition_key']
-            return f"{get_coverstore_public_url()}/b/olid/{olid}-{size}.jpg"
-        if ed_or_solr.get('ocaid'):
-            return f"//archive.org/services/img/{ed_or_solr.get('ocaid')}"
-
-        # No luck
-        return None
-
     def is_own_ocaid(self, ocaid: str) -> bool:
         """Whether the ocaid is an archive of content from this provider"""
         return False
@@ -170,6 +135,41 @@ PROVIDER_ORDER: List[AbstractBookProvider] = [
     # Then link to IA
     InternetArchiveProvider(),
 ]
+
+
+def get_cover_url(ed_or_solr: Union[Edition, dict]) -> Optional[str]:
+    """
+    Get the cover url most appropriate for this edition or solr work search result
+    """
+    size = 'M'
+
+    # Editions
+    if isinstance(ed_or_solr, Edition):
+        return ed_or_solr.get_cover().url(size)
+
+    # Solr document augmented with availability
+    availability = ed_or_solr.get('availability', {})
+
+    if availability.get('openlibrary_edition'):
+        olid = availability.get('openlibrary_edition')
+        return f"{get_coverstore_public_url()}/b/olid/{olid}-{size}.jpg"
+    if availability.get('identifier'):
+        ocaid = ed_or_solr['availability']['identifier']
+        return f"//archive.org/services/img/{ocaid}"
+
+    # Plain solr - we don't know which edition is which here, so this is most
+    # preferable
+    if ed_or_solr.get('cover_i'):
+        cover_i = ed_or_solr["cover_i"]
+        return f'{get_coverstore_public_url()}/b/id/{cover_i}-{size}.jpg'
+    if ed_or_solr.get('cover_edition_key'):
+        olid = ed_or_solr['cover_edition_key']
+        return f"{get_coverstore_public_url()}/b/olid/{olid}-{size}.jpg"
+    if ed_or_solr.get('ocaid'):
+        return f"//archive.org/services/img/{ed_or_solr.get('ocaid')}"
+
+    # No luck
+    return None
 
 
 def is_non_ia_ocaid(ocaid: str) -> bool:

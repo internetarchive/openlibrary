@@ -10,9 +10,7 @@ $else:
 
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book">
   <span class="bookcover">
-    $ cover = "/images/icons/avatar_book-sm.png"
-    $if book_provider:
-      $ cover = book_provider.get_cover_url(doc) or cover
+    $ cover = get_cover_url(doc) or "/images/icons/avatar_book-sm.png"
     <a href="$work_edition_url"><img
             itemprop="image"
             src="$cover"
