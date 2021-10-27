@@ -27,9 +27,9 @@ $ bodyattrs = ctx.get('bodyattrs', [])
       </div>
       $# Paste next line into announcement variable to show the blue banner
       $# <strong>Title:</strong> Description &nbsp; <a href="#" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>
-      $ announcement = None
+      $ announcement = 'Due to a planned power outage on <strong>Wednesday, 2021-10-27, between 8am-1pm PDT</strong>, some services may be impacted.'
       $if announcement:
-        <div class="page-banner page-banner-body">
+        <div class="page-banner page-banner-body" style="background-color: #003266">
          $:announcement
         </div>
     $:page
