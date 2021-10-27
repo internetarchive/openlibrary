@@ -30,7 +30,7 @@ from openlibrary.catalog.utils.query import set_query_host, base_url as get_ol_b
 from openlibrary.core import helpers as h
 from openlibrary.plugins.upstream.utils import url_quote
 from openlibrary.solr.data_provider import get_data_provider, DataProvider
-from openlibrary.solr.types import SolrDocument
+from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.utils import uniq
 from openlibrary.utils.ddc import normalize_ddc, choose_sorting_ddc
 from openlibrary.utils.isbn import opposite_isbn
