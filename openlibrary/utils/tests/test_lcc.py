@@ -15,7 +15,8 @@ TESTS = [
     ('BP-0166.94000000.S277 1999', '\\BP\\166.94\\.S277\\1999', 'BP166.94.S277 1999',
      'backslashes instead of spaces'),
     ('LC-6252.00000000.T4 T4 vol. 33, no. 10', '[LC6252.T4 T4 vol. 33, no. 10]',
-     'LC6252.T4 T4 vol. 33, no. 10', 'brackets')
+     'LC6252.T4 T4 vol. 33, no. 10', 'brackets'),
+    ('SF-0427.00000000.G74', 'SF427 . G74', 'SF427.G74', 'space in cutter1'),
 ]
 
 
