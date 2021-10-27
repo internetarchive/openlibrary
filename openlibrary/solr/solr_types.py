@@ -25,6 +25,8 @@ class SolrDocument(TypedDict):
     number_of_pages_median: Optional[int]
     lccn: Optional[List[str]]
     ia: Optional[List[str]]
+    ia_box_id: Optional[List[str]]
+    ia_loaded_id: Optional[List[str]]
     ia_count: Optional[int]
     oclc: Optional[List[str]]
     isbn: Optional[List[str]]
