@@ -196,7 +196,7 @@ $def seed_attrs(seed):
             $ component_times['get_seeds'] = time() - component_times['get_seeds']
 
         $ availabilities = get_availabilities([seed.document for seed in seeds if seed.type in ['edition', 'work']])
-        $ solr_works = list.get_solr_works(seeds)
+        $ solr_works = get_solr_works(s.key for s in seeds if s.type == 'work')
         $for seed in seeds:
             $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
             $ cover = seed.get_cover()

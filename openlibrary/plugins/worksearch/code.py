@@ -5,7 +5,7 @@ import logging
 import random
 import re
 import string
-from typing import List, Tuple, Any, Union, Optional
+from typing import List, Tuple, Any, Union, Optional, Iterable, Dict
 from unicodedata import normalize
 from json import JSONDecodeError
 import requests
@@ -172,6 +172,15 @@ re_subject_types = re.compile('^(places|times|people)/(.*)')
 re_olid = re.compile(r'^OL\d+([AMW])$')
 
 plurals = dict((f + 's', f) for f in ('publisher', 'author'))
+
+
+@public
+def get_solr_works(work_key: Iterable[str]) -> Dict[str, dict]:
+    from openlibrary.plugins.worksearch.search import get_solr
+    return {
+        doc['key']: doc
+        for doc in get_solr().get_many(set(work_key), fields=DEFAULT_SEARCH_FIELDS)
+    }
 
 
 def process_sort(raw_sort):

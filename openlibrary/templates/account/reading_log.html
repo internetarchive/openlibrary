@@ -40,10 +40,11 @@ $add_metatag(property="og:image", content=meta_photo_url)
   <ul class="list-books">
     $if items:
       $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
+      $ solr_works = get_solr_works(work['key'] for work in items)
       $for item in items:
-        $ work = item
+        $ work = solr_works.get(item['key']) or item
         $ decorations = (bookshelf_id and owners_page) and macros.ReadingLogButton(work, read_status=bookshelf_id)
-        $:macros.SearchResultsWork(work, decorations=decorations)
+        $:macros.SearchResultsWork(work, decorations=decorations, availability=item.get('availability'))
     $else:
       <li>$_('No books are on this shelf')</li>
   </ul>

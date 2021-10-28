@@ -3,8 +3,7 @@
 import web
 from infogami.utils import delegate
 from ..core.lending import get_availabilities
-from ..plugins.worksearch.code import DEFAULT_SEARCH_FIELDS
-from ..plugins.worksearch.search import get_solr
+from ..plugins.worksearch.code import get_solr_works
 
 from ..utils import dateutil
 from .. import app
@@ -94,15 +93,11 @@ class readinglog_stats(app.view):
 
         stats = get_cached_reading_log_stats(limit=limit)
 
-        work_keys = {
+        solr_docs = get_solr_works(
             f"/works/OL{item['work_id']}W"
             for leaderboard in stats['leaderboard'].values()
             for item in leaderboard
-        }
-        solr_docs = {
-            doc['key']: doc
-            for doc in get_solr().get_many(work_keys, fields=DEFAULT_SEARCH_FIELDS)
-        }
+        )
 
         # Fetch works from solr and inject into leaderboard
         for leaderboard in stats['leaderboard'].values():
