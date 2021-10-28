@@ -84,11 +84,9 @@ function get_seed_count() {
 
 window.q.push(function(){
     \$(".listDelete a").on('click', function() {
-        var seed_id = \$(this).closest("li").attr("id");
-
         if (get_seed_count() > 1) {
             \$("#remove-seed-dialog")
-                .data("seed-id", seed_id)
+                .data("seed-key", \$(this).closest("[data-seed-key]").data('seed-key'))
                 .dialog("open");
             \$("#remove-seed-dialog").removeClass('hidden');
         }
@@ -107,13 +105,12 @@ window.q.push(function(){
         buttons: {
             "$:_('Yes, I\'m sure')": function() {
                 var list_key = $:json_encode(list.key);
-                var seed_id = "#" + \$(this).data("seed-id");
-                var seed = \$(seed_id).find("span.seed-key").html();
+                var seed_key = \$(this).data("seed-key");
 
                 var _this = this;
 
-                remove_seed(list_key, seed, function() {
-                    \$(seed_id).remove();
+                remove_seed(list_key, seed_key, function() {
+                    \$(`[data-seed-key="\${seed_key}"]`).remove();
                     // update seed count
                     \$("#list-items-count").load(location.href + " #list-items-count");
 
@@ -172,6 +169,9 @@ $def seed_meta_line(seed):
             $:_('Last updated <span>%(date)s</span>', date=datestr(seed.last_update))
         </span>
 
+$def seed_attrs(seed):
+    data-seed-key="$seed.key"
+
 <div id="contentBody">
     <div id="remove-seed-dialog" class="hidden" title="$_('Remove seed')">$_('Are you sure you want to remove this item from the list?')</div>
     <div id="delete-list-dialog" class="hidden" title="$_('Remove Seed')">
@@ -211,15 +211,14 @@ $def seed_meta_line(seed):
 
             $if seed.type in ['edition', 'work']:
                 $ doc = solr_works.get(seed.key) or seed.document
-                $:macros.SearchResultsWork(doc, availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed))
+                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed))
             $else:
-                <li class="searchResultItem">
+                <li class="searchResultItem" $:seed_attrs(seed)>
                     <span class="bookcover">
                         <a href="$seed.url">
                         <img src="$cover_url" alt="$seed.title"/>
                         </a>
                     </span>
-                    <span class="seed-key hidden">$seed.key</span>
                     <div class="details">
                         <div class="resultTitle">
                             <h3 class="booktitle">

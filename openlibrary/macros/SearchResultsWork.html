@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None)
 
 $code:
   doc_type = (
@@ -19,7 +19,7 @@ $if doc_type == 'infogami_edition' and 'works' in doc:
   $ edition_work = doc['works'][0]
 
 $ max_rendered_authors = 9
-<li class="searchResultItem" itemscope itemtype="https://schema.org/Book">
+<li class="searchResultItem" itemscope itemtype="https://schema.org/Book" $:attrs>
   <span class="bookcover">
     $ cover = get_cover_url(doc) or "/images/icons/avatar_book-sm.png"
     <a href="$work_edition_url"><img
