@@ -2,6 +2,7 @@ import { debounce } from './nonjquery_utils.js';
 import * as SearchUtils from './SearchUtils';
 import { PersistentValue } from './SearchUtils';
 import $ from 'jquery';
+import { websafe } from './jsdef'
 
 /** Mapping of search bar facets to search endpoints */
 const FACET_TO_ENDPOINT = {
@@ -29,7 +30,7 @@ const RENDER_AUTOCOMPLETE_RESULT = {
                 <a href="${work.key}">
                     <img src="//covers.openlibrary.org/b/id/${work.cover_i}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png" alt=""/>
                     <span class="book-desc">
-                        <div class="book-title">${work.title}</div> by <span class="book-author">${author_name}</span>
+                        <div class="book-title">${websafe(work.title)}</div> by <span class="book-author">${websafe(author_name)}</span>
                     </span>
                 </a>
             </li>`;
@@ -39,7 +40,7 @@ const RENDER_AUTOCOMPLETE_RESULT = {
             <li>
                 <a href="/authors/${author.key}">
                     <img src="//covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png" alt=""/>
-                    <span class="author-desc"><div class="author-name">${author.name}</div></span>
+                    <span class="author-desc"><div class="author-name">${websafe(author.name)}</div></span>
                 </a>
             </li>`;
     }

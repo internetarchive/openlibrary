@@ -40,8 +40,8 @@ $code:
         return {
             "seed": seed,
             "type": seed_type,
-            "title": title,
-            "remove_dialog_html": _('Are you sure you want to remove <strong>%(title)s</strong> from your list?', title=title)
+            "title": websafe(title),
+            "remove_dialog_html": _('Are you sure you want to remove <strong>%(title)s</strong> from your list?', title=websafe(title))
         }
 
     def get_list_data(list, seed, include_cover_url=True):
