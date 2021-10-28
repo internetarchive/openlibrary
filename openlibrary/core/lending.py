@@ -364,65 +364,54 @@ def get_availability_of_editions(ol_edition_ids):
     return get_availability('openlibrary_edition', ol_edition_ids)
 
 
+def get_ocaid(item):
+    # Circular import otherwise
+    from ..book_providers import is_non_ia_ocaid
+
+    possible_fields = [
+        'ocaid',  # In editions
+        'identifier',  # In ?? not editions/works/solr
+        'ia',  # In solr work records and worksearch get_docs
+        'lending_identifier',  # In solr works records + worksearch get_doc
+    ]
+    # SOLR WORK RECORDS ONLY:
+    # Open Library only has access to a list of archive.org IDs
+    # and solr isn't currently equipped with the information
+    # necessary to determine which editions may be openly
+    # available. Using public domain date as a heuristic
+    # Long term solution is a full reindex, but this hack will work in the
+    # vast majority of cases for now.
+    # NOTE: there is still a risk pre-1923 books will get a print-diabled-only
+    # or lendable edition.
+    # Note: guaranteed to be int-able if none None
+    US_PD_YEAR = 1923
+    if float(item.get('first_publish_year') or '-inf') > US_PD_YEAR:
+        # Prefer `lending_identifier` over `ia` (push `ia` to bottom)
+        possible_fields.remove('ia')
+        possible_fields.append('ia')
+
+    ocaids = []
+    for field in possible_fields:
+        if item.get(field):
+            ocaids += (
+                item[field] if isinstance(item[field], list) else [item[field]]
+            )
+    ocaids = uniq(ocaids)
+    return next(
+        (ocaid for ocaid in ocaids if not is_non_ia_ocaid(ocaid)),
+        None
+    )
+
+
 @public
-def get_availabilities(
-        items: List,
-        mode: Literal['identifier', 'openlibrary_work'] = "identifier",
-) -> dict:
+def get_availabilities(items: List) -> dict:
     result = {}
-
-    def get_ocaid(item):
-        # Circular import otherwise
-        from ..book_providers import is_non_ia_ocaid
-
-        possible_fields = [
-            'ocaid',  # In editions
-            'identifier',  # In ?? not editions/works/solr
-            'ia',  # In solr work records and worksearch get_docs
-            'lending_identifier',  # In solr works records + worksearch get_doc
-        ]
-        # SOLR WORK RECORDS ONLY:
-        # Open Library only has access to a list of archive.org IDs
-        # and solr isn't currently equipped with the information
-        # necessary to determine which editions may be openly
-        # available. Using public domain date as a heuristic
-        # Long term solution is a full reindex, but this hack will work in the
-        # vast majority of cases for now.
-        # NOTE: there is still a risk pre-1923 books will get a print-diabled-only
-        # or lendable edition.
-        # Note: guaranteed to be int-able if none None
-        US_PD_YEAR = 1923
-        if float(item.get('first_publish_year') or '-inf') > US_PD_YEAR:
-            # Prefer `lending_identifier` over `ia` (push `ia` to bottom)
-            possible_fields.remove('ia')
-            possible_fields.append('ia')
-
-        ocaids = []
-        for field in possible_fields:
-            if item.get(field):
-                ocaids += (
-                    item[field] if isinstance(item[field], list) else [item[field]]
-                )
-        ocaids = uniq(ocaids)
-        return next(
-            (ocaid for ocaid in ocaids if not is_non_ia_ocaid(ocaid)),
-            None
-        )
-
-    if mode == "identifier":
-        ocaids = [ocaid for ocaid in map(get_ocaid, items) if ocaid]
-        availabilities = get_availability_of_ocaids(ocaids)
-        for item in items:
-            ocaid = get_ocaid(item)
-            if ocaid:
-                result[item['key']] = availabilities.get(ocaid)
-    elif mode == "openlibrary_work":
-        _ids = [item['key'].split('/')[-1] for item in items]
-        availabilities = get_availability_of_works(_ids)
-        for item in items:
-            olid = item['key'].split('/')[-1]
-            if olid:
-                result[item['key']] = availabilities.get(olid)
+    ocaids = [ocaid for ocaid in map(get_ocaid, items) if ocaid]
+    availabilities = get_availability_of_ocaids(ocaids)
+    for item in items:
+        ocaid = get_ocaid(item)
+        if ocaid:
+            result[item['key']] = availabilities.get(ocaid)
     return result
 
 
@@ -435,12 +424,21 @@ def add_availability(
     Adds API v2 'availability' key to dicts
     :param items: items with fields containing ocaids
     """
-    availabilities = get_availabilities(items, mode)
-    for item in items:
-        if item['key'] in availabilities:
-            item['availability'] = availabilities[item['key']]
+    if mode == "identifier":
+        ocaids = [ocaid for ocaid in map(get_ocaid, items) if ocaid]
+        availabilities = get_availability_of_ocaids(ocaids)
+        for item in items:
+            ocaid = get_ocaid(item)
+            if ocaid:
+                item['availability'] = availabilities.get(ocaid)
+    elif mode == "openlibrary_work":
+        _ids = [item['key'].split('/')[-1] for item in items]
+        availabilities = get_availability_of_works(_ids)
+        for item in items:
+            olid = item['key'].split('/')[-1]
+            if olid:
+                item['availability'] = availabilities.get(olid)
     return items
-
 
 
 @public
