@@ -196,6 +196,7 @@ $def seed_meta_line(seed):
             $ component_times['get_seeds'] = time() - component_times['get_seeds']
 
         $ availabilities = get_availabilities([seed.document for seed in seeds if seed.type in ['edition', 'work']])
+        $ solr_works = list.get_solr_works(seeds)
         $for seed in seeds:
             $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
             $ cover = seed.get_cover()
@@ -209,7 +210,8 @@ $def seed_meta_line(seed):
                 $ meta_cover_url = cover_url
 
             $if seed.type in ['edition', 'work']:
-                $:macros.SearchResultsWork(seed.document, availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed))
+                $ doc = solr_works.get(seed.key) or seed.document
+                $:macros.SearchResultsWork(doc, availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed))
             $else:
                 <li class="searchResultItem">
                     <span class="bookcover">

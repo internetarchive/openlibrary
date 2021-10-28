@@ -73,6 +73,8 @@ class Solr:
                  fields: Iterable[str] = None,
                  doc_wrapper: Callable[[dict], T] = web.storage,
                  ) -> List[T]:
+        if not keys:
+            return []
         logger.info(f"solr /get: {keys}, {fields}")
         resp = requests.get(f"{self.base_url}/get", params={
             'ids': ','.join(keys),

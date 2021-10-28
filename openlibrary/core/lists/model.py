@@ -171,6 +171,19 @@ class ListMixin:
                                           for a in w.get("authors", [])
                                           if "author" in a)
 
+    def get_solr_works(self, subset):
+        from openlibrary.plugins.worksearch.code import DEFAULT_SEARCH_FIELDS
+
+        work_keys = {
+            seed.key
+            for seed in subset
+            if seed.type == 'work'
+        }
+        return {
+            doc['key']: doc
+            for doc in get_solr().get_many(work_keys, fields=DEFAULT_SEARCH_FIELDS)
+        }
+
     def load_changesets(self, editions):
         """Adds "recent_changeset" to each edition.
 
