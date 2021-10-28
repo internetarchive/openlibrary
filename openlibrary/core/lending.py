@@ -1,6 +1,6 @@
 """Module for providing core functionality of lending on Open Library.
 """
-from typing import Literal, Optional
+from typing import Literal, Optional, List
 
 import web
 import datetime
@@ -363,13 +363,14 @@ def get_availability_of_editions(ol_edition_ids):
     """
     return get_availability('openlibrary_edition', ol_edition_ids)
 
+
 @public
-def add_availability(items, mode="identifier"):
-    """
-    Adds API v2 'availability' key to dicts
-    :param list of dict items: items with fields containing ocaids
-    :rtype: list of dict
-    """
+def get_availabilities(
+        items: List,
+        mode: Literal['identifier', 'openlibrary_work'] = "identifier",
+) -> dict:
+    result = {}
+
     def get_ocaid(item):
         # Circular import otherwise
         from ..book_providers import is_non_ia_ocaid
@@ -414,15 +415,33 @@ def add_availability(items, mode="identifier"):
         for item in items:
             ocaid = get_ocaid(item)
             if ocaid:
-                item['availability'] = availabilities.get(ocaid)
+                result[item['key']] = availabilities.get(ocaid)
     elif mode == "openlibrary_work":
         _ids = [item['key'].split('/')[-1] for item in items]
         availabilities = get_availability_of_works(_ids)
         for item in items:
             olid = item['key'].split('/')[-1]
             if olid:
-                item['availability'] = availabilities.get(olid)
+                result[item['key']] = availabilities.get(olid)
+    return result
+
+
+@public
+def add_availability(
+        items: List,
+        mode: Literal['identifier', 'openlibrary_work'] = "identifier",
+) -> List:
+    """
+    Adds API v2 'availability' key to dicts
+    :param items: items with fields containing ocaids
+    """
+    availabilities = get_availabilities(items, mode)
+    for item in items:
+        if item['key'] in availabilities:
+            item['availability'] = availabilities[item['key']]
     return items
+
+
 
 @public
 def get_availability_of_ocaid(ocaid):

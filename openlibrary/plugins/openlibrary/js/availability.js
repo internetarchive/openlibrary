@@ -51,9 +51,6 @@ function initAvailability() {
         '^/account/books/[^/]+': { // readinglog
             filter: false
         },
-        '^/people/[^/]+/lists/[^/]+': { // lists
-            filter: false,
-        },
         '^/stats/[^/]+': {
             filter: false
         }

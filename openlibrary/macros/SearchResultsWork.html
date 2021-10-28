@@ -3,10 +3,21 @@ $def with (doc, decorations=None, cta=True, availability=None, extra=None)
 $ is_work = doc.get('type', {}).get('key') == '/type/work'
 $ book_url = doc.url() if is_work else doc.key
 $ book_provider = get_book_provider(doc)
-$if book_provider:
+$if book_provider and is_work:
   $ work_edition_url = book_url + '?edition=' + urlquote(book_provider.get_best_identifier_slug(doc))
 $else:
   $ work_edition_url = book_url
+
+$ work = None
+$ edition = None
+
+$if is_work:
+  $ work = doc
+$else:
+  $ edition = doc
+
+$if edition and 'works' in edition and edition['works']:
+  $ work = edition['works'][0]
 
 $ max_rendered_authors = 9
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book">
@@ -29,11 +40,20 @@ $ max_rendered_authors = 9
          </h3>
         </div>
       <span itemprop="author" itemscope itemtype="https://schema.org/Organization" class="bookauthor">$_('by')
-        $if not doc.authors:
+        $ authors = None
+        $if is_work:
+          $ authors = work.get_authors() if 'get_authors' in work else work['authors']
+        $elif edition:
+          $ authors = edition.get_authors() if 'get_authors' in edition else edition['authors']
+
+        $if not authors:
+          $ authors = doc['authors']
+
+        $if not authors:
           <em>$_('Unknown author')</em>
         $else:
-          $ remaining_authors = len(doc.authors) - max_rendered_authors
-          $for a in doc.authors[:max_rendered_authors]:
+          $ remaining_authors = len(authors) - max_rendered_authors
+          $for a in authors[:max_rendered_authors]:
             $ separator = ',' if not loop.last or remaining_authors > 0 else ''
             $if not (hasattr(a, 'name') and a.name) and not (hasattr(a, 'author') and hasattr(a.author, 'name') and a.author.name):
               <em>$_('Unknown author')</em>$(separator)
@@ -65,10 +85,7 @@ $ max_rendered_authors = 9
                 </span>
       </span>
       $if extra:
-        <div class="serp-extras">
-          $:extra
-        </div>
-
+        $:extra
       </div>
 
   <div class="searchResultItemCTA">
@@ -80,7 +97,7 @@ $ max_rendered_authors = 9
 
       <div class="searchResultItemCTA-lending">
         $if cta:
-          $ doc['availability'] = doc.get('availability', {})
+          $ doc['availability'] = doc.get('availability', {}) or availability or {}
           $:macros.LoanStatus(doc, work_key=doc.key)
       </div>
   </div>
