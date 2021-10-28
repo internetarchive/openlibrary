@@ -50,9 +50,6 @@ function initAvailability() {
     var whitelist = {
         '^/account/books/[^/]+': { // readinglog
             filter: false
-        },
-        '^/stats/[^/]+': {
-            filter: false
         }
     }
 

@@ -135,6 +135,29 @@ SORTS = {
     'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
     'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
 }
+DEFAULT_SEARCH_FIELDS = {
+    'key',
+    'author_name',
+    'author_key',
+    'title',
+    'subtitle',
+    'edition_count',
+    'ia',
+    'has_fulltext',
+    'first_publish_year',
+    'cover_i',
+    'cover_edition_key',
+    'public_scan_b',
+    'lending_edition_s',
+    'lending_identifier_s',
+    'language',
+    'ia_collection_s',
+
+    # FIXME: These should be fetched from book_providers, but can't cause circular dep
+    'id_project_gutenberg',
+    'id_librivox',
+    'id_standard_ebooks',
+}
 OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
 re_to_esc = re.compile(r'[\[\]:/]')
@@ -416,12 +439,7 @@ def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=Non
 
     (q_list, use_dismax) = build_q_list(param)
     params = [
-        ('fl', ','.join(fields or [
-            'key', 'author_name', 'author_key', 'title', 'subtitle', 'edition_count',
-            'ia', 'has_fulltext', 'first_publish_year', 'cover_i', 'cover_edition_key',
-            'public_scan_b', 'lending_edition_s', 'lending_identifier_s', 'language',
-            'ia_collection_s', 'id_project_gutenberg', 'id_librivox',
-            'id_standard_ebooks'])),
+        ('fl', ','.join(fields or DEFAULT_SEARCH_FIELDS)),
         ('fq', 'type:work'),
         ('q.op', 'AND'),
         ('start', offset),

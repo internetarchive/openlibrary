@@ -2,6 +2,9 @@
 
 import web
 from infogami.utils import delegate
+from ..core.lending import get_availabilities
+from ..plugins.worksearch.code import DEFAULT_SEARCH_FIELDS
+from ..plugins.worksearch.search import get_solr
 
 from ..utils import dateutil
 from .. import app
@@ -91,18 +94,35 @@ class readinglog_stats(app.view):
 
         stats = get_cached_reading_log_stats(limit=limit)
 
+        work_keys = {
+            f"/works/OL{item['work_id']}W"
+            for leaderboard in stats['leaderboard'].values()
+            for item in leaderboard
+        }
+        solr_docs = {
+            doc['key']: doc
+            for doc in get_solr().get_many(work_keys, fields=DEFAULT_SEARCH_FIELDS)
+        }
+
         # Fetch works from solr and inject into leaderboard
-        for i in range(len(stats['leaderboard']['most_read'])):
-            stats['leaderboard']['most_read'][i]['work'] = web.ctx.site.get(
-                '/works/OL%sW' % stats['leaderboard']['most_read'][i]['work_id'])
-        for i in range(len(stats['leaderboard']['most_wanted_all'])):
-            stats['leaderboard']['most_wanted_all'][i]['work'] = web.ctx.site.get(
-                '/works/OL%sW' % stats['leaderboard']['most_wanted_all'][i]['work_id'])
-        for i in range(len(stats['leaderboard']['most_wanted_month'])):
-            stats['leaderboard']['most_wanted_month'][i]['work'] = web.ctx.site.get(
-                '/works/OL%sW' % stats['leaderboard']['most_wanted_month'][i]['work_id'])
-        for i in range(len(stats['leaderboard']['most_rated_all'])):
-            stats['leaderboard']['most_rated_all'][i]['work'] = web.ctx.site.get(
-                '/works/OL%sW' % stats['leaderboard']['most_rated_all'][i]['work_id'])
+        for leaderboard in stats['leaderboard'].values():
+            for item in leaderboard:
+                key = f"/works/OL{item['work_id']}W"
+                if key in solr_docs:
+                    item['work'] = solr_docs[key]
+                else:
+                    item['work'] = web.ctx.site.get(key)
+
+        works = [
+            item['work']
+            for leaderboard in stats['leaderboard'].values()
+            for item in leaderboard
+        ]
+
+        availabilities = get_availabilities(works)
+        for leaderboard in stats['leaderboard'].values():
+            for item in leaderboard:
+                if availabilities.get(item['work']['key']):
+                    item['availability'] = availabilities.get(item['work']['key'])
 
         return app.render_template("stats/readinglog", stats=stats)

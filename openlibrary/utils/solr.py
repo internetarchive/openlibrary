@@ -2,7 +2,7 @@
 
 import logging
 import re
-from typing import List, Optional, Callable, TypeVar
+from typing import List, Optional, Callable, TypeVar, Iterable
 
 import requests
 import web
@@ -67,6 +67,18 @@ class Solr:
 
         # Solr returns {doc: null} if the record isn't there
         return doc_wrapper(resp['doc']) if resp['doc'] else None
+
+    def get_many(self,
+                 keys: Iterable[str],
+                 fields: Iterable[str] = None,
+                 doc_wrapper: Callable[[dict], T] = web.storage,
+                 ) -> List[T]:
+        logger.info(f"solr /get: {keys}, {fields}")
+        resp = requests.get(f"{self.base_url}/get", params={
+            'ids': ','.join(keys),
+            **({'fl': ','.join(fields)} if fields else {})
+        }).json()
+        return [doc_wrapper(doc) for doc in resp['response']['docs']]
 
     def select(self, query, fields=None, facets=None,
                rows=None, start=None,

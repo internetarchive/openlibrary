@@ -1,23 +1,22 @@
 $def with (doc, decorations=None, cta=True, availability=None, extra=None)
 
-$ is_work = doc.get('type', {}).get('key') == '/type/work'
-$ book_url = doc.url() if is_work else doc.key
+$code:
+  doc_type = (
+    'infogami_work' if doc.get('type', {}).get('key') == '/type/work' else
+    'infogami_edition' if doc.get('type', {}).get('key') == '/type/edition' else
+    'solr_work'
+  )
+
+$ book_url = doc.url() if doc_type.startswith('infogami_') else doc.key
 $ book_provider = get_book_provider(doc)
-$if book_provider and is_work:
+$if book_provider and doc_type.endswith('_work'):
   $ work_edition_url = book_url + '?edition=' + urlquote(book_provider.get_best_identifier_slug(doc))
 $else:
   $ work_edition_url = book_url
 
-$ work = None
-$ edition = None
-
-$if is_work:
-  $ work = doc
-$else:
-  $ edition = doc
-
-$if edition and 'works' in edition and edition['works']:
-  $ work = edition['works'][0]
+$ edition_work = None
+$if doc_type == 'infogami_edition' and 'works' in doc:
+  $ edition_work = doc['works'][0]
 
 $ max_rendered_authors = 9
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book">
@@ -41,24 +40,24 @@ $ max_rendered_authors = 9
         </div>
       <span itemprop="author" itemscope itemtype="https://schema.org/Organization" class="bookauthor">$_('by')
         $ authors = None
-        $if is_work:
-          $ authors = work.get_authors() if 'get_authors' in work else work['authors']
-        $elif edition:
-          $ authors = edition.get_authors() if 'get_authors' in edition else edition['authors']
-
-        $if not authors:
-          $ authors = doc['authors']
-
+        $if doc_type == 'infogami_work':
+          $ authors = doc.get_authors()
+        $elif doc_type == 'infogami_edition':
+          $ authors = edition_work.get_authors() if edition_work else doc.get_authors()
+        $elif doc_type == 'solr_work':
+          $if 'authors' in doc:
+            $ authors = doc['authors']
+          $elif 'author_key' in doc:
+            $ authors = [ { 'key': '/authors/' + key, 'name': name } for key, name in zip(doc['author_key'], doc['author_name']) ]
         $if not authors:
           <em>$_('Unknown author')</em>
         $else:
           $ remaining_authors = len(authors) - max_rendered_authors
           $for a in authors[:max_rendered_authors]:
             $ separator = ',' if not loop.last or remaining_authors > 0 else ''
-            $if not (hasattr(a, 'name') and a.name) and not (hasattr(a, 'author') and hasattr(a.author, 'name') and a.author.name):
-              <em>$_('Unknown author')</em>$(separator)
-              $continue
-            <a itemprop="url" href="$(a.get('url') or a.get('key') or a.author.get('url') or a.author.key)" class="results">$(a.name or a.author.name)</a>$(separator)
+            $ url = a.get('url') or a.get('key') or a.get('author', {}).get('url') or a.get('author', {}).get('key')
+            $ name = a.get('name') or a.get('author', {}).get('name') or _('Unknown author')
+            <a itemprop="url" href="$url" class="results">$name</a>$separator
           $if remaining_authors > 0:
             <small><em><a itemprop="url" href="$work_edition_url"
                                          class="results">$ungettext('and 1 other', 'and %(n)s others', remaining_authors, n=remaining_authors)</a></em></small>
