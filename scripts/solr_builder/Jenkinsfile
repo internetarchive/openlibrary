@@ -12,7 +12,10 @@ pipeline {
   }
   parameters {
     string(name: 'PARTIAL_IMPORT_SIZE', defaultValue: '', description: 'If set to a number, will only import that many records from the dump (useful for testing!)')
+    booleanParam(name: 'WIPE_OLD_POSTGRES', defaultValue: false, description: 'If true, removes the current postgres')
     booleanParam(name: 'REUSE_POSTGRES', defaultValue: false, description: 'If true, assumes a functioning postgres is running/correct')
+
+    booleanParam(name: 'WIPE_OLD_SOLR', defaultValue: false, description: 'If true, removes the current solr')
     booleanParam(name: 'INTO_SOLR_FROM_DUMP', defaultValue: true, description: 'If true, reindexes dump into solr')
     booleanParam(name: 'INDEX_WORKS', defaultValue: true, description: 'If true, reindexes works into solr')
     booleanParam(name: 'INDEX_ORPHANS', defaultValue: true, description: 'If true, reindexes orphans into solr')
@@ -42,6 +45,18 @@ pipeline {
         OL_DUMP_FILE = "${params.PARTIAL_IMPORT_SIZE ? env.PARTIAL_OL_DUMP_FILE : env.FULL_OL_DUMP_FILE}"
       }
       stages {
+        stage('Wipe old postgres') {
+          when { expression { return params.WIPE_OLD_POSTGRES } }
+          steps {
+            dir(env.HOST_SOLR_BUILDER_DIR) {
+              sh(label: 'Stop running db',
+                script: 'docker rm -f -v solr_builder_db_1 solr_builder_adminer_1 || true')
+
+              sh(label: 'Remove db volume',
+                script: 'docker volume rm solr_builder_postgres-data || true')
+            }
+          }
+        }
         stage('Setup') {
           parallel {
             stage('Launch postgres containers') {
@@ -171,6 +186,18 @@ pipeline {
 
               sh(label: 'Start the db containers',
                 script: 'docker-compose up -d --no-deps db adminer')
+            }
+          }
+        }
+        stage('Wipe old solr') {
+          when { expression { return params.WIPE_OLD_SOLR } }
+          steps {
+            dir(env.HOST_SOLR_BUILDER_DIR) {
+              sh(label: 'Stop solr if running',
+                script: 'docker rm -f -v solr_builder_solr_1 || true')
+
+              sh(label: 'Remove solr volume',
+                script: 'docker volume rm solr_builder_solr-data || true')
             }
           }
         }
