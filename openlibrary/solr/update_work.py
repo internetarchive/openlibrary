@@ -14,7 +14,7 @@ import requests
 import sys
 import time
 
-from httpx import HTTPError
+from httpx import HTTPError, TimeoutException
 from six.moves.urllib.parse import urlparse
 from collections import defaultdict
 from unicodedata import normalize
@@ -1112,7 +1112,8 @@ def solr_update(
     try:
         resp = httpx.post(
             f'{solr_base_url}/update',
-            timeout=30,  # The default timeout is silly short
+            # Large batches especially can take a decent chunk of time
+            timeout=120,
             params=params,
             headers={'Content-Type': 'application/json'},
             content=content)
@@ -1125,6 +1126,8 @@ def solr_update(
         except JSONDecodeError:
             logger.error('Error with solr POST update: ' + resp.text)
         resp.raise_for_status()
+    except TimeoutException:
+        logger.error('Timeout Error with solr POST update: ' + content)
     except HTTPError:
         logger.error('Error with solr POST update: ' + content)
 
