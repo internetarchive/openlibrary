@@ -21,7 +21,7 @@ pipeline {
     booleanParam(name: 'INDEX_ORPHANS', defaultValue: true, description: 'If true, reindexes orphans into solr')
     booleanParam(name: 'INDEX_SUBJECTS', defaultValue: true, description: 'If true, reindexes subjects into solr')
     booleanParam(name: 'INDEX_AUTHORS', defaultValue: true, description: 'If true, reindexes authors into solr')
-    string(name: 'MAX_CORES', defaultValue: '12', description: 'Max number of simultaneous cores')
+    string(name: 'MAX_CORES', defaultValue: '18', description: 'Max number of simultaneous cores')
   }
   environment {
     // The *host* location of Jenkins directory
