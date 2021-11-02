@@ -1113,7 +1113,7 @@ def solr_update(
         resp = httpx.post(
             f'{solr_base_url}/update',
             # Large batches especially can take a decent chunk of time
-            timeout=120,
+            timeout=300,
             params=params,
             headers={'Content-Type': 'application/json'},
             content=content)
