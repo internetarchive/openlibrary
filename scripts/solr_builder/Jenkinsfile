@@ -225,7 +225,7 @@ pipeline {
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
                       sh "CHUNK_ETA=70 docker-compose run --name ol_run_works --rm -T ol ./index-type.sh work ${params.MAX_CORES} works"
-                      solr_commit('solr')
+                      solr_commit()
                     }
                   }
                   post {
@@ -246,7 +246,7 @@ pipeline {
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
                       sh "CHUNK_ETA=35 docker-compose run --name ol_run_orphans --rm -T ol ./index-type.sh orphan ${params.MAX_CORES} orphans"
-                      solr_commit('solr')
+                      solr_commit()
                     }
                   }
                   post {
@@ -277,7 +277,7 @@ pipeline {
                             --skip-id-check
                       done
                       """
-                      solr_commit('solr')
+                      solr_commit()
                     }
                   }
                 }
@@ -286,7 +286,7 @@ pipeline {
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
                       sh "docker-compose run --name ol_run_authors --rm -T ol ./index-type.sh author ${params.MAX_CORES} authors"
-                      solr_commit('solr')
+                      solr_commit()
                     }
                   }
                   post {
@@ -342,14 +342,7 @@ pipeline {
   }
 }
 
-String solr_query_count(String solr_name, String type_to_count) {
-  def solr_url = "http://localhost:8983/solr/select/?q=type%3A${type_to_count}&rows=0"
-  def count_cmd = "docker-compose exec -T ${solr_name} curl -s '${solr_url}' | xmlstarlet sel -t -v '//result/@numFound'"
-  def count = sh(script: count_cmd, returnStdout: true).trim()
-  return count
-}
-
-void solr_commit(String solr_name) {
+void solr_commit() {
   sh(label: 'Solr commit the changes',
-    script: "docker-compose exec -T ${solr_name} curl http://localhost:8983/solr/openlibrary/update?commit=true")
+    script: "docker-compose exec -T solr curl http://localhost:8983/solr/openlibrary/update?commit=true")
 }
