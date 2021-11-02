@@ -58,7 +58,7 @@ services:
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
       - COVERSTORE_CONFIG=${COVERSTORE_CONFIG:-/openlibrary/conf/coverstore.yml}
-      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --max-requests 250}
+      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --max-requests 250 --limit-request-line 8190}
     command: docker/ol-covers-start.sh
     expose:
       - 7075
