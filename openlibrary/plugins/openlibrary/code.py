@@ -18,9 +18,6 @@ import math
 import infogami
 
 # make sure infogami.config.features is set
-from openlibrary.book_providers import get_book_provider, get_book_provider_by_name, \
-    get_cover_url
-
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []
 
@@ -931,6 +928,14 @@ def is_bot():
 
 
 def setup_template_globals():
+    # must be imported here, otherwise silently messes up infogami's import execution
+    # order, resulting in random errors like the the /account/login.json endpoint
+    # defined in accounts.py being ignored, and using the infogami endpoint instead.
+    from openlibrary.book_providers import (
+        get_book_provider,
+        get_book_provider_by_name,
+        get_cover_url,
+    )
     web.template.Template.globals.update({
         'next': next,
         'sorted': sorted,
