@@ -493,12 +493,20 @@ class patron_observations(delegate.page):
 class work_delete(delegate.page):
     path = r"/works/(OL\d+W)/[^/]+/delete"
 
-    def get_editions_of_work(self, work: Work, limit: int = 10000) -> list[dict]:
+    def get_editions_of_work(self, work: Work, limit: int = 10_000) -> list[dict]:
         keys: list = web.ctx.site.things({
             "type": "/type/edition",
             "works": work.key,
             "limit": limit
         })
+        if len(keys) == limit:
+            raise web.HTTPError(
+                '400 Bad Request',
+                data=json.dumps({
+                    'error': f'API can only delete {limit} editions per work',
+                }),
+                headers={"Content-Type": "application/json"},
+            )
         return web.ctx.site.get_many(keys, raw=True)
 
     def POST(self, work_id: str):
