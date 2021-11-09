@@ -15,6 +15,7 @@ from infogami.utils.view import render_template  # noqa: F401 used for its side 
 from infogami.plugins.api.code import jsonapi
 from infogami.utils.view import add_flash_message
 from openlibrary import accounts
+from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
@@ -493,12 +494,24 @@ class work_delete(delegate.page):
     path = r"/works/(OL\d+W)/[^/]+/delete"
 
     def get_editions_of_work(self, work: Work) -> list[dict]:
-        keys: list = web.ctx.site.things({"type": "/type/edition", "works": work.key})
+        limit = 1_000  # This is the max limit of the things function
+        keys: list = web.ctx.site.things({
+            "type": "/type/edition",
+            "works": work.key,
+            "limit": limit
+        })
+        if len(keys) == limit:
+            raise web.HTTPError(
+                '400 Bad Request',
+                data=json.dumps({
+                    'error': f'API can only delete {limit} editions per work',
+                }),
+                headers={"Content-Type": "application/json"},
+            )
         return web.ctx.site.get_many(keys, raw=True)
 
     def POST(self, work_id: str):
-        user = accounts.get_current_user()
-        if not (user and (user.is_admin() or user.is_librarian())):
+        if not can_write():
             return web.HTTPError('403 Forbidden')
 
         web_input = web.input(comment=None)
