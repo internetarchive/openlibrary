@@ -59,9 +59,9 @@ class CORSProcessor:
             if web.ctx.path.startswith(p):
                 allowed = "OPTIONS"
 
-        web.header("Access-Control-Allow-Origin", "*")
-        web.header("Access-Control-Allow-Method", allowed)
-        web.header("Access-Control-Max-Age", 3600*24) # one day
+        web.header("access-control-allow-origin", "*")
+        web.header("access-control-allow-method", allowed)
+        web.header("access-control-max-age", 3600*24)  # one day
 
 if __name__ == "__main__":
     import doctest

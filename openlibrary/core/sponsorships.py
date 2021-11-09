@@ -220,7 +220,7 @@ def email_sponsor(recipient, book, bcc="mek@archive.org"):
             '<p>The <a href="https://openlibrary.org">Open Library</a> Team</p>'
         ),
         bcc=bcc,
-        headers={'Content-Type':'text/html;charset=utf-8'}
+        headers={'content-type': 'text/html;charset=utf-8'}
     )
     return resp
 

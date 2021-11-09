@@ -165,8 +165,8 @@ def create_dynamic_document(url, prefix):
 
             if web.modified(etag=v):
                 oneyear = 365 * 24 * 3600
-                web.header("Content-Type", content_type)
-                web.header("Cache-Control", "Public, max-age=%d" % oneyear)
+                web.header("content-type", content_type)
+                web.header("cache-control", "Public, max-age=%d" % oneyear)
                 web.lastmodified(doc.last_modified)
                 web.expires(oneyear)
                 return delegate.RawText(doc.get_text())

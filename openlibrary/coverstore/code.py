@@ -244,13 +244,13 @@ class cover:
             if not web.modified(trim_microsecond(d.created), etag=etag):
                 raise web.notmodified()
 
-            web.header('Cache-Control', 'public')
+            web.header('cache-control', 'public')
             web.expires(100 * 365 * 24 * 3600) # this image is not going to expire in next 100 years.
         else:
-            web.header('Cache-Control', 'public')
+            web.header('cache-control', 'public')
             web.expires(10*60) # Allow the client to cache the image for 10 mins to avoid further requests
 
-        web.header('Content-Type', 'image/jpeg')
+        web.header('content-type', 'image/jpeg')
         try:
             return read_image(d, size)
         except IOError:
@@ -362,7 +362,7 @@ class cover_details:
         d = _query(category, key, value)
 
         if key == 'id':
-            web.header('Content-Type', 'application/json')
+            web.header('content-type', 'application/json')
             d = db.details(value)
             if d:
                 if isinstance(d['created'], datetime.datetime):
@@ -410,7 +410,7 @@ class query:
             result = [process(r) for r in result]
 
         json_data = json.dumps(result)
-        web.header('Content-Type', 'text/javascript')
+        web.header('content-type', 'text/javascript')
         if i.callback:
             return "%s(%s);" % (i.callback, json_data)
         else:

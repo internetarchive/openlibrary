@@ -33,9 +33,11 @@ class GZipMiddleware:
             response.status = status
             response.headers = headers
 
-            if status.startswith("200") and get_response_header("Content-Type", "").startswith("text/"):
-                headers.append(("Content-Encoding", "gzip"))
-                headers.append(("Vary", "Accept-Encoding"))
+            if status.startswith("200") and (
+                get_response_header("content-type", "").startswith("text/")
+            ):
+                headers.append(("content-encoding", "gzip"))
+                headers.append(("vary", "Accept-Encoding"))
                 response.compress = True
             return start_response(status, headers)
 

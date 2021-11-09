@@ -75,7 +75,7 @@ USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openl
 
 
 def download(url):
-    return requests.get(url, headers={'User-Agent': USER_AGENT}).content
+    return requests.get(url, headers={'user-agent': USER_AGENT}).content
 
 
 def urldecode(url):
@@ -156,7 +156,7 @@ def urlencode(data):
             if isinstance(value, file):
                 out.append('--' + BOUNDARY)
                 out.append('Content-Disposition: form-data; name="%s"; filename="%s"' % (key, value.name))
-                out.append('Content-Type: %s' % get_content_type(value.name))
+                out.append('content-type: %s' % get_content_type(value.name))
                 out.append('')
                 out.append(value.read())
             elif isinstance(value, list):

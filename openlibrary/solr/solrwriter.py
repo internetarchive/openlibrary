@@ -36,7 +36,9 @@ class SolrWriter(object):
         conn = self.get_conn()
 
         logger.info('request: %r', xml[:65] + '...' if len(xml) > 65 else xml)
-        conn.request('POST', self.update_url, xml, { 'Content-type': 'text/xml;charset=utf-8'})
+        conn.request(
+            'POST', self.update_url, xml, {'content-type': 'text/xml;charset=utf-8'}
+        )
         response = conn.getresponse()
         response_body = response.read()
 

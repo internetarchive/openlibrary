@@ -95,9 +95,9 @@ class index(delegate.page):
             content_type = "text/plain"
 
         if i.text.lower() == "true":
-            web.header('Content-Type', 'text/plain')
+            web.header('content-type', 'text/plain')
         else:
-            web.header('Content-Type', content_type)
+            web.header('content-type', content_type)
 
         return delegate.RawText(response)
 

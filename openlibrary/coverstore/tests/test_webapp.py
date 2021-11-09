@@ -59,7 +59,7 @@ class WebTestCase:
 
         path = join(static_dir, path)
         content_type, data = utils.urlencode({'olid': olid, 'data': open(path).read()})
-        b.open('/b/upload2', data, {'Content-Type': content_type})
+        b.open('/b/upload2', data, {'content-type': content_type})
         return json.loads(b.data)['id']
 
     def delete(self, id, redirect_url=None):
@@ -122,7 +122,7 @@ class TestWebappWithDB(WebTestCase):
         path = join(static_dir, 'logos/logo-en.png')
         filedata = open(path).read()
         content_type, data = utils.urlencode({'olid': 'OL1234M', 'data': filedata})
-        b.open('/b/upload2', data, {'Content-Type': content_type})
+        b.open('/b/upload2', data, {'content-type': content_type})
         assert b.status == 200
         id = json.loads(b.data)['id']
 
@@ -138,7 +138,7 @@ class TestWebappWithDB(WebTestCase):
         monkeypatch.setattr(code, 'download', mock)
 
         content_type, data = utils.urlencode({'olid': 'OL1234M', 'source_url': source_url})
-        b.open('/b/upload2', data, {'Content-Type': content_type})
+        b.open('/b/upload2', data, {'content-type': content_type})
         assert b.status == 200
         id = json.loads(b.data)['id']
 
@@ -154,7 +154,7 @@ class TestWebappWithDB(WebTestCase):
 
         response = b.open('/b/id/%d.jpg' % id)
         assert b.status == 200
-        assert response.info().getheader('Content-Type') == 'image/jpeg'
+        assert response.info().getheader('content-type') == 'image/jpeg'
         assert b.data == data
 
         b.open('/b/id/%d-S.jpg' % id)

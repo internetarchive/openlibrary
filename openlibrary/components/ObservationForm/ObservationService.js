@@ -12,7 +12,7 @@ export function deleteObservation(type, value, workKey, username) {
     fetch(`${workKey}/observations`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'content-type': 'application/json'
         },
         body: JSON.stringify(data)
     })
@@ -31,7 +31,7 @@ export function addObservation(type, value, workKey, username) {
     fetch(`${workKey}/observations`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'content-type': 'application/json'
         },
         body: JSON.stringify(data)
     })

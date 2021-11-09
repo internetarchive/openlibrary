@@ -916,7 +916,7 @@ class daisy(delegate.page):
 
 
 def to_json(d):
-    web.header('Content-Type', 'application/json')
+    web.header('content-type', 'application/json')
     return delegate.RawText(json.dumps(d))
 
 

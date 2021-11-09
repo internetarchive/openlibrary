@@ -152,7 +152,7 @@ class Akismet(object):
         url = 'http://%sverify-key' % self.baseurl
         # we *don't* trap the error here
         # so if akismet is down it will raise an HTTPError or URLError
-        headers = {'User-Agent' : self.user_agent}
+        headers = {'user-agent': self.user_agent}
         resp = self._safeRequest(url, urlencode(data), headers)
         if resp.lower() == 'valid':
             return True
@@ -282,7 +282,7 @@ class Akismet(object):
         url = '%scomment-check' % self._getURL()
         # we *don't* trap the error here
         # so if akismet is down it will raise an HTTPError or URLError
-        headers = {'User-Agent' : self.user_agent}
+        headers = {'user-agent': self.user_agent}
         resp = self._safeRequest(url, urlencode(data), headers)
         if DEBUG:
             return resp
@@ -313,7 +313,7 @@ class Akismet(object):
         url = '%ssubmit-spam' % self._getURL()
         # we *don't* trap the error here
         # so if akismet is down it will raise an HTTPError or URLError
-        headers = {'User-Agent' : self.user_agent}
+        headers = {'user-agent': self.user_agent}
         self._safeRequest(url, urlencode(data), headers)
 
 
@@ -334,7 +334,7 @@ class Akismet(object):
         url = '%ssubmit-ham' % self._getURL()
         # we *don't* trap the error here
         # so if akismet is down it will raise an HTTPError or URLError
-        headers = {'User-Agent' : self.user_agent}
+        headers = {'user-agent': self.user_agent}
         self._safeRequest(url, urlencode(data), headers)
 
 """

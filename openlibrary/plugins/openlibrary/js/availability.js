@@ -74,7 +74,7 @@ function initAvailability() {
             dataType: 'json',
             contentType: 'application/json',
             beforeSend: function(xhr) {
-                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.setRequestHeader('content-type', 'application/json');
                 xhr.setRequestHeader('Accept', 'application/json');
             },
             success: function(result) {

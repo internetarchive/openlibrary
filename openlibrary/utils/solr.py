@@ -118,7 +118,7 @@ class Solr:
             if not isinstance(payload, bytes):
                 payload = payload.encode("utf-8")
             headers = {
-                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+                "content-type": "application/x-www-form-urlencoded; charset=UTF-8"
             }
             json_data = requests.post(
                 url, data=payload, headers=headers, timeout=10

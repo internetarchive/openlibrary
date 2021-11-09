@@ -399,7 +399,7 @@ class borrow_receive_notification(delegate.page):
     path = r"/borrow/receive_notification"
 
     def GET(self):
-        web.header('Content-Type', 'application/json')
+        web.header('content-type', 'application/json')
         output = json.dumps({'success': False, 'error': 'Only POST is supported'})
         return delegate.RawText(output, content_type='application/json')
 

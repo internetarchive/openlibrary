@@ -86,7 +86,7 @@ class subjects_json(delegate.page):
 
     @jsonapi
     def GET(self, key):
-        web.header('Content-Type', 'application/json')
+        web.header('content-type', 'application/json')
         # If the key is not in the normalized form, redirect to the normalized form.
         nkey = self.normalize_key(key)
         if nkey != key:

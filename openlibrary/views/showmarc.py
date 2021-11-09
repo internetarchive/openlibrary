@@ -115,7 +115,7 @@ class show_marc(app.view):
 
         r0, r1 = offset, offset+100000
         url = 'https://archive.org/download/%s' % filename
-        headers = {'Range': 'bytes=%d-%d' % (r0, r1)}
+        headers = {'range': 'bytes=%d-%d' % (r0, r1)}
 
         try:
             response = requests.get(url, headers=headers)

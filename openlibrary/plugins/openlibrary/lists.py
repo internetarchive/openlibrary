@@ -81,10 +81,10 @@ class lists_delete(delegate.page):
             result = web.ctx.site.save(doc, action="lists", comment="Deleted list.")
         except client.ClientException as e:
             web.ctx.status = e.status
-            web.header("Content-Type", "application/json")
+            web.header("content-type", "application/json")
             return delegate.RawText(e.json)
 
-        web.header("Content-Type", "application/json")
+        web.header("content-type", "application/json")
         return delegate.RawText('{"status": "ok"}')
 
 class lists_json(delegate.page):
@@ -135,7 +135,7 @@ class lists_json(delegate.page):
         return d
 
     def forbidden(self):
-        headers = {"Content-Type": self.get_content_type()}
+        headers = {"content-type": self.get_content_type()}
         data = {
             "message": "Permission denied."
         }
@@ -180,7 +180,7 @@ class lists_json(delegate.page):
                 }
             )
         except client.ClientException as e:
-            headers = {"Content-Type": self.get_content_type()}
+            headers = {"content-type": self.get_content_type()}
             data = {
                 "message": e.message
             }
@@ -188,7 +188,7 @@ class lists_json(delegate.page):
                 data=self.dumps(data),
                 headers=headers)
 
-        web.header("Content-Type", self.get_content_type())
+        web.header("content-type", self.get_content_type())
         return delegate.RawText(self.dumps(result))
 
     def process_seeds(self, seeds):
@@ -259,7 +259,7 @@ class list_view_json(delegate.page):
         lst = get_list(key, raw=raw)
         if not lst or lst['type']['key'] == '/type/delete':
             raise web.notfound()
-        web.header("Content-Type", self.content_type)
+        web.header("content-type", self.content_type)
         return delegate.RawText(formats.dump(lst, self.encoding))
 
 
@@ -334,7 +334,7 @@ class list_seeds(delegate.page):
         }
 
         d = lst._save(comment="Updated list.", action="lists", data=changeset_data)
-        web.header("Content-Type", self.content_type)
+        web.header("content-type", self.content_type)
         return delegate.RawText(formats.dump(d, self.encoding))
 
 
@@ -483,11 +483,11 @@ class export(delegate.page):
             return delegate.RawText(html)
         elif format == "json":
             data = {"editions": self.get_editions(lst, raw=True)}
-            web.header("Content-Type", "application/json")
+            web.header("content-type", "application/json")
             return delegate.RawText(json.dumps(data))
         elif format == "yaml":
             data = {"editions": self.get_editions(lst, raw=True)}
-            web.header("Content-Type", "application/yaml")
+            web.header("content-type", "application/yaml")
             return delegate.RawText(formats.dump_yaml(data))
         else:
             raise web.notfound()
@@ -516,7 +516,7 @@ class feeds(delegate.page):
         return delegate.RawText(text)
 
     def GET_updates_atom(self, lst):
-        web.header("Content-Type", 'application/atom+xml; charset="utf-8"')
+        web.header("content-type", 'application/atom+xml; charset="utf-8"')
         return render_template("lists/feed_updates.xml", lst)
 
 def setup():

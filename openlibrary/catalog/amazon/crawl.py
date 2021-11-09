@@ -49,7 +49,7 @@ def now():
 
 max_size = 1024 * 1024 * 1024 * 10 # 10 GB
 ip = '207.241.229.141'
-content_type_hdr = 'Content-Type: '
+content_type_hdr = 'content-type: '
 re_charset_header = re.compile('; charset=(.+)\r\n')
 version_block = '1 0 Open Library\nURL IP-address Archive-date Content-type Archive-length\n'
 

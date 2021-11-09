@@ -71,7 +71,7 @@ function remove_seed(list_key, seed, success) {
         dataType: "json",
 
         beforeSend: function(xhr) {
-            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("content-type", "application/json");
             xhr.setRequestHeader("Accept", "application/json");
         },
         success: success

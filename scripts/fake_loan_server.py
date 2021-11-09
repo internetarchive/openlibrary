@@ -11,7 +11,7 @@ app = web.application(urls, globals())
 
 class is_loaned_out:
     def GET(self, resource_id):
-        web.header("Content-type", "application/json")
+        web.header("content-type", "application/json")
         return "[]"
 
 if __name__ == "__main__":

@@ -117,7 +117,7 @@ class importapi:
         raise web.HTTPError('400 Bad Request', data=json.dumps(content))
 
     def POST(self):
-        web.header('Content-Type', 'application/json')
+        web.header('content-type', 'application/json')
         if not can_write():
             raise web.HTTPError('403 Forbidden')
 
@@ -158,7 +158,7 @@ class ia_importapi(importapi):
     Request Format:
 
         POST /api/import/ia
-        Content-Type: application/json
+        content-type: application/json
         Authorization: Basic base64-of-username:password
 
         {
@@ -224,7 +224,7 @@ class ia_importapi(importapi):
 
 
     def POST(self):
-        web.header('Content-Type', 'application/json')
+        web.header('content-type', 'application/json')
 
         if not can_write():
             raise web.HTTPError('403 Forbidden')
@@ -398,7 +398,7 @@ class ils_search:
     Request Format:
 
         POST /api/ils_search
-        Content-Type: application/json
+        content-type: application/json
         Authorization: Basic base64-of-username:password
 
         {
@@ -458,12 +458,19 @@ class ils_search:
 
     def error(self, reason):
         d = json.dumps({ "status" : "error", "reason" : reason})
-        return web.HTTPError("400 Bad Request", {"Content-Type": "application/json"}, d)
+        return web.HTTPError("400 Bad Request", {"content-type": "application/json"}, d)
 
 
     def auth_failed(self, reason):
         d = json.dumps({ "status" : "error", "reason" : reason})
-        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-Type": "application/json"}, d)
+        return web.HTTPError(
+            "401 Authorization Required",
+            {
+                "www-authenticate": 'Basic realm="http://openlibrary.org"',
+                "content-type": "application/json"
+            },
+            d,
+        )
 
     def login(self, auth_str):
         if not auth_str:
@@ -593,7 +600,9 @@ class ils_cover_upload:
             return web.seeother(url)
         else:
             d = json.dumps({ "status" : "error", "reason" : reason})
-            return web.HTTPError("400 Bad Request", {"Content-Type": "application/json"}, d)
+            return web.HTTPError(
+                "400 Bad Request", {"content-type": "application/json"}, d
+            )
 
 
     def success(self, i):
@@ -602,11 +611,18 @@ class ils_cover_upload:
             return web.seeother(url)
         else:
             d = json.dumps({ "status" : "ok" })
-            return web.ok(d, {"Content-type": "application/json"})
+            return web.ok(d, {"content-type": "application/json"})
 
     def auth_failed(self, reason):
         d = json.dumps({ "status" : "error", "reason" : reason})
-        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-Type": "application/json"}, d)
+        return web.HTTPError(
+            "401 Authorization Required",
+            {
+                "www-authenticate": 'Basic realm="http://openlibrary.org"',
+                "content-type": "application/json"
+            },
+            d,
+        )
 
     def build_url(self, url, **params):
         if '?' in url:

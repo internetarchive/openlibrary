@@ -107,7 +107,7 @@ def iter_marc(data):
 
 def login(h1, password):
     body = json.dumps({'username': 'LCImportBot', 'password': password})
-    headers = {'Content-Type': 'application/json'}
+    headers = {'content-type': 'application/json'}
     h1.request('POST', base_url + '/account/login', body, headers)
     print(base_url + '/account/login')
     res = h1.getresponse()
@@ -122,8 +122,8 @@ def login(h1, password):
 
 h1 = httplib.HTTPConnection('openlibrary.org')
 headers = {
-    'Content-type': 'application/marc',
-    'Cookie': login(h1, c['ol_bot_pass']),
+    'content-type': 'application/marc',
+    'cookie': login(h1, c['ol_bot_pass']),
 }
 h1.close()
 

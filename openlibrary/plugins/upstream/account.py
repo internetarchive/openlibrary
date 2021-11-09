@@ -730,8 +730,10 @@ class export_books(delegate.page):
                 '{}\n'.format(mapping[book['bookshelf_id']])
             ]
             csv.append(','.join(row))
-        web.header('Content-Type','text/csv')
-        web.header('Content-disposition', 'attachment; filename=OpenLibrary_ReadingLog.csv')
+        web.header('content-type', 'text/csv')
+        web.header(
+            'content-disposition', 'attachment; filename=OpenLibrary_ReadingLog.csv'
+        )
         csv = ''.join(csv)
         return delegate.RawText(csv, content_type="text/csv")
 
@@ -757,7 +759,7 @@ class account_loans_json(delegate.page):
         user = accounts.get_current_user()
         user.update_loan_status()
         loans = borrow.get_loans(user)
-        web.header('Content-Type', 'application/json')
+        web.header('content-type', 'application/json')
         return delegate.RawText(json.dumps({
             "loans": loans
         }))

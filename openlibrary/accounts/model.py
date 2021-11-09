@@ -608,7 +608,7 @@ class InternetArchiveAccount(web.storage):
         url = lending.config_ia_s3_auth_url
         try:
             response = requests.get(url, headers={
-                'Content-Type': 'application/json',
+                'content-type': 'application/json',
                 'authorization': 'LOW %s:%s' % (access_key, secret_key)
             })
             response.raise_for_status()

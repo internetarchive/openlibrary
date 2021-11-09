@@ -910,7 +910,7 @@ class list_search_json(list_search):
             'docs': [doc.preview() for doc in docs]
         }
 
-        web.header('Content-Type', 'application/json')
+        web.header('content-type', 'application/json')
         return delegate.RawText(json.dumps(response))
 
 class subject_search(delegate.page):
@@ -952,7 +952,7 @@ class subject_search_json(subject_search):
         limit = min(1000, limit)  # limit limit to 1000.
 
         response = self.get_results(i.q, offset=offset, limit=limit)['response']
-        web.header('Content-Type', 'application/json')
+        web.header('content-type', 'application/json')
         return delegate.RawText(json.dumps(response))
 
 class author_search(delegate.page):
@@ -999,7 +999,7 @@ class author_search_json(author_search):
         limit = min(1000, limit) # limit limit to 1000.
 
         response = self.get_results(i.q, offset=offset, limit=limit)['response']
-        web.header('Content-Type', 'application/json')
+        web.header('content-type', 'application/json')
         return delegate.RawText(json.dumps(response))
 
 
@@ -1156,7 +1156,7 @@ class search_json(delegate.page):
         response['q'] = q
         response['offset'] = offset
         response['docs'] = response['docs']
-        web.header('Content-Type', 'application/json')
+        web.header('content-type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=4))
 
 def setup():

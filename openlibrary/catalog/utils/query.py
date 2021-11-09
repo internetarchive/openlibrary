@@ -13,7 +13,7 @@ def urlopen(url, data=None):
     version = "%s.%s.%s" % sys.version_info[:3]
     user_agent = 'Mozilla/5.0 (openlibrary; %s) Python/%s' % (__name__, version)
     headers = {
-        'User-Agent': user_agent
+        'user-agent': user_agent
     }
     
     return requests.get(url, data=data, headers=headers)

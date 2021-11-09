@@ -131,7 +131,7 @@ def get_from_archive_bulk(locator):
     """
     if locator.startswith('marc:'):
         locator = locator[5:]
-    filename, offset, length = locator.split (":")
+    filename, offset, length = locator.split(":")
     offset = int(offset)
     length = int(length)
 
@@ -142,7 +142,7 @@ def get_from_archive_bulk(locator):
 
     assert 0 < length < MAX_MARC_LENGTH
 
-    response = urlopen_keep_trying(url, headers={'Range': 'bytes=%d-%d' % (r0, r1)})
+    response = urlopen_keep_trying(url, headers={'range': 'bytes=%d-%d' % (r0, r1)})
     data = None
     if response:
         # this truncates the data to MAX_MARC_LENGTH, but is probably not necessary here?

@@ -343,7 +343,7 @@ def get_pages(type, processor):
 class robotstxt(delegate.page):
     path = '/robots.txt'
     def GET(self):
-        web.header('Content-Type', 'text/plain')
+        web.header('content-type', 'text/plain')
         try:
             is_dev = ('dev' in infogami.config.features or
                       web.ctx.host != 'openlibrary.org')
@@ -363,7 +363,7 @@ class ia_js_cdn(delegate.page):
     path = r'/cdn/archive.org/(donate\.js|analytics\.js)'
 
     def GET(self, filename):
-        web.header('Content-Type', 'text/javascript')
+        web.header('content-type', 'text/javascript')
         raise web.HTTPError('200 OK', {}, fetch_ia_js(filename))
 
 
@@ -371,7 +371,7 @@ class serviceworker(delegate.page):
     path = '/sw.js'
 
     def GET(self):
-        web.header('Content-Type', 'text/javascript')
+        web.header('content-type', 'text/javascript')
         try:
             data = open('static/build/sw.js').read()
             raise web.HTTPError('200 OK', {}, data)
@@ -384,7 +384,7 @@ class assetlinks(delegate.page):
     path = '/.well-known/assetlinks'
 
     def GET(self):
-        web.header('Content-Type', 'application/json')
+        web.header('content-type', 'application/json')
         try:
             data = open('static/.well-known/assetlinks.json').read()
             raise web.HTTPError('200 OK', {}, data)
@@ -396,7 +396,7 @@ class opensearchxml(delegate.page):
     path = '/opensearch.xml'
 
     def GET(self):
-        web.header('Content-Type', 'text/plain')
+        web.header('content-type', 'text/plain')
         try:
             data = open('static/opensearch.xml').read()
             raise web.HTTPError('200 OK', {}, data)
@@ -407,7 +407,7 @@ class opensearchxml(delegate.page):
 class health(delegate.page):
     path = '/health'
     def GET(self):
-        web.header('Content-Type', 'text/plain')
+        web.header('content-type', 'text/plain')
         raise web.HTTPError('200 OK', {}, 'OK')
 
 
@@ -561,9 +561,9 @@ class _yaml(delegate.mode):
         d = self.get_data(key)
 
         if web.input(text='false').text.lower() == 'true':
-            web.header('Content-Type', 'text/plain; charset=utf-8')
+            web.header('content-type', 'text/plain; charset=utf-8')
         else:
-            web.header('Content-Type', 'text/x-yaml; charset=utf-8')
+            web.header('content-type', 'text/x-yaml; charset=utf-8')
 
         raise web.ok(self.dump(d))
 

@@ -506,7 +506,7 @@ class work_delete(delegate.page):
                 data=json.dumps({
                     'error': f'API can only delete {limit} editions per work',
                 }),
-                headers={"Content-Type": "application/json"},
+                headers={"content-type": "application/json"},
             )
         return web.ctx.site.get_many(keys, raw=True)
 

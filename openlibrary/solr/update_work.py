@@ -945,7 +945,7 @@ async def solr_insert_documents(
             f'{solr_base_url}/update',
             timeout=30,  # seconds; the default timeout is silly short
             params=params,
-            headers={'Content-Type': 'application/json'},
+            headers={'content-type': 'application/json'},
             content=json.dumps(documents)
         )
     resp.raise_for_status()
@@ -1115,7 +1115,7 @@ def solr_update(
             f'{solr_base_url}/update',
             timeout=30,  # The default timeout is silly short
             params=params,
-            headers={'Content-Type': 'application/json'},
+            headers={'content-type': 'application/json'},
             content=content)
         try:
             resp_json = resp.json()

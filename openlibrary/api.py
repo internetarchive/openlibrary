@@ -48,7 +48,7 @@ class OpenLibrary:
         headers = headers or {}
         params = params or {}
         if self.cookie:
-            headers['Cookie'] = self.cookie
+            headers['cookie'] = self.cookie
 
         try:
             response = requests.request(method, url, data=data, headers=headers,
@@ -95,7 +95,7 @@ class OpenLibrary:
     def login(self, username, password):
         """Login to Open Library with given credentials.
         """
-        headers = {'Content-Type': 'application/json'}
+        headers = {'content-type': 'application/json'}
         try:
             data = json.dumps(dict(username=username, password=password))
             response = self._request('/account/login', method='POST', data=data, headers=headers)
@@ -103,7 +103,7 @@ class OpenLibrary:
             response = e
 
         if 'Set-Cookie' in response.headers:
-            cookies = response.headers['Set-Cookie'].split(',')
+            cookies = response.headers['set-cookie'].split(',')
             self.cookie =  ';'.join([c.split(';')[0] for c in cookies])
 
     def get(self, key, v=None):
@@ -127,21 +127,21 @@ class OpenLibrary:
         return response.json()['result']
 
     def save(self, key, data, comment=None):
-        headers = {'Content-Type': 'application/json'}
+        headers = {'content-type': 'application/json'}
         data = marshal(data)
         if comment:
-            headers['Opt'] = '"%s/dev/docs/api"; ns=42' % self.base_url
+            headers['opt'] = '"%s/dev/docs/api"; ns=42' % self.base_url
             headers['42-comment'] = comment
         data = json.dumps(data)
         return self._request(key, method="PUT", data=data, headers=headers).content
 
     def _call_write(self, name, query, comment, action):
-        headers = {'Content-Type': 'application/json'}
+        headers = {'content-type': 'application/json'}
         query = marshal(query)
 
         # use HTTP Extension Framework to add custom headers. see RFC 2774 for more details.
         if comment or action:
-            headers['Opt'] = '"%s/dev/docs/api"; ns=42' % self.base_url
+            headers['opt'] = '"%s/dev/docs/api"; ns=42' % self.base_url
         if comment:
             headers['42-comment'] = comment
         if action:
