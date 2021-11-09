@@ -82,7 +82,7 @@ def process_dump(dumpfile):
         if sortkey:
             yield [sortkey, path, last_modified]
 
-re_key = re.compile("^/(authors|works)/OL\d+[AMW]$")
+re_key = re.compile(r"^/(authors|works)/OL\d+[AMW]$")
 
 def get_sort_key(key):
     """Returns a sort key used to group urls in 10K batches.
@@ -127,7 +127,7 @@ def write(path, text):
         with gzip.open(path, 'w') as f:
             f.write(text.encode())
     except Exception as e:
-        print('write fail {}'.format(e))
+        print(f'write fail {e}')
     #os.system("gzip " + path)
 
 def write_tsv(path, rows):
@@ -141,7 +141,7 @@ def system_memory():
         x = os.popen("cat /proc/meminfo | grep MemTotal | sed 's/[^0-9]//g'").read()
         # proc gives memory in KB, converting it to MB
         return int(x) // 1024
-    except IOError:
+    except OSError:
         # default to 1024MB
         return 1024
 
@@ -153,7 +153,7 @@ def system(cmd):
 
 def log(*args):
     msg = " ".join(map(str, args))
-    print("%s %s" % (time.asctime(), msg))
+    print(f"{time.asctime()} {msg}")
 
 def main(dumpfile):
     system("rm -rf sitemaps sitemaps_data.txt*; mkdir sitemaps")

@@ -11,7 +11,6 @@ This script can also be used to copy books and authors from OL to dev instance.
     ./scripts/copydocs.py /authors/OL113592A
     ./scripts/copydocs.py /works/OL1098727W?v=2
 """
-from __future__ import absolute_import, print_function
 
 from collections import namedtuple
 
@@ -38,7 +37,7 @@ def find(server, prefix):
     if prefix == '/type':
         q['type'] = '/type/type'
 
-    return [six.text_type(x) for x in server.query(q)]
+    return [str(x) for x in server.query(q)]
 
 
 def expand(server, keys):
@@ -50,13 +49,11 @@ def expand(server, keys):
     :rtype: typing.Iterator[str]
     """
     if isinstance(server, Disk):
-        for k in keys:
-            yield k
+        yield from keys
     else:
         for key in keys:
             if key.endswith('*'):
-                for k in find(server, key):
-                    yield k
+                yield from find(server, key)
             else:
                 yield key
 
@@ -119,7 +116,7 @@ class Disk:
                 f = open(path, "w")
                 f.write(text)
                 f.close()
-            except IOError:
+            except OSError:
                 print("failed", path)
 
         for doc in marshal(docs):
@@ -134,7 +131,7 @@ class Disk:
 def read_lines(filename):
     try:
         return [line.strip() for line in open(filename)]
-    except IOError:
+    except OSError:
         return []
 
 def get_references(doc, result=None):
@@ -292,8 +289,8 @@ def copy_list(src, dest, list_key, comment):
     for seed in seeds:
         add_seed(seed)
 
-    edition_keys = set(k for k in keys if k.startswith("/books/"))
-    work_keys = set(k for k in keys if k.startswith("/works/"))
+    edition_keys = {k for k in keys if k.startswith("/books/")}
+    work_keys = {k for k in keys if k.startswith("/works/")}
 
     for w in work_keys:
         edition_keys.update(query(type='/type/edition', works=w, limit=500))

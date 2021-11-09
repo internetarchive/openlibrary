@@ -117,11 +117,11 @@ def load_state(path, logfile):
     This assumes the script is being called w/ e.g.:
     /1/var/tmp/imports/2021-08/Bibliographic/*/
     """
-    filenames = sorted([
+    filenames = sorted(
         os.path.join(path, f)
         for f in os.listdir(path)
         if f.startswith("bettworldbks")
-    ])
+    )
     try:
         with open(logfile) as fin:
             active_fname, offset = next(fin).strip().split(',')
@@ -134,7 +134,7 @@ def load_state(path, logfile):
 def update_state(logfile, fname, line_num=0):
     """Records the last file we began processing and the current line"""
     with open(logfile, 'w') as fout:
-        fout.write('%s,%s\n' % (fname, line_num))
+        fout.write(f'{fname},{line_num}\n')
 
 
 def csv_to_ol_json_item(line):
@@ -152,8 +152,8 @@ def batch_import(path, batch, batch_size=5000):
 
     for fname in filenames:
         book_items = []
-        with open(fname, 'r') as f:
-            logger.info("Processing: %s from line %s" % (fname, offset))
+        with open(fname) as f:
+            logger.info(f"Processing: {fname} from line {offset}")
             for line_num, line in enumerate(f):
 
                 # skip over already processed records
