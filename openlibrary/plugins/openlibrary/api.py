@@ -493,7 +493,8 @@ class patron_observations(delegate.page):
 class work_delete(delegate.page):
     path = r"/works/(OL\d+W)/[^/]+/delete"
 
-    def get_editions_of_work(self, work: Work, limit: int = 10_000) -> list[dict]:
+    def get_editions_of_work(self, work: Work) -> list[dict]:
+        limit = 1_000  # This is the max limit of the things function
         keys: list = web.ctx.site.things({
             "type": "/type/edition",
             "works": work.key,
