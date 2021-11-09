@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 import requests
 import sys
 import time
@@ -11,12 +11,11 @@ import feedparser
 from openlibrary.core.imports import Batch
 
 sys.path.insert(0, path.abspath(path.join(path.sep, 'openlibrary')))
-from openlibrary.config import load_config
+from openlibrary.config import load_config  # noqa: E402
 load_config(
-        path.abspath(path.join(
-                    path.sep, 'olsystem', 'etc', 'openlibrary.yml')))
-from openlibrary.core.imports import Batch
-from infogami import config
+    path.abspath(path.join(
+        path.sep, 'olsystem', 'etc', 'openlibrary.yml')))
+from infogami import config  # noqa: E402,F401
 
 FEED_URL = 'https://standardebooks.org/opds/all'
 LAST_UPDATED_TIME = './out/standard_ebooks_last_updated.txt'
@@ -28,7 +27,7 @@ def get_feed():
     return feedparser.parse(r.text)
 
 
-def map_data(entry: Dict[str, Any]) -> Dict[str, str]:
+def map_data(entry):
     """Maps Standard Ebooks feed entry to an Open Library import object."""
     std_ebooks_id = entry.id.replace('https://standardebooks.org/ebooks/', '')
     mapped_data = {
@@ -50,13 +49,16 @@ def create_batch(records: List[Dict[str, str]]) -> None:
     """Creates Standard Ebook batch import job.
 
     Attempts to find existing Standard Ebooks import batch.
-    If nothing is found, a new batch is created. All of the 
+    If nothing is found, a new batch is created. All of the
     given import records are added to the batch job as JSON strings.
     """
     now = time.gmtime(time.time())
-    batch_name = f'standardebooks-{now.tm_year}{now.tm_month}'
+    batch_name = f'standardebooks-{now.tm_year}{now.tm_mon}'
     batch = Batch.find(batch_name) or Batch.new(batch_name)
-    batch.add_items([{'ia_id': r['source_records'][0], 'data': json.dumps(r)} for r in records])
+    batch.add_items([{
+        'ia_id': r['source_records'][0],
+        'data': json.dumps(r)} for r in records]
+    )
 
 
 def get_last_updated_time() -> Optional[str]:
@@ -71,7 +73,7 @@ def get_last_updated_time() -> Optional[str]:
     """
     last_updated = None
 
-    if os.path.exists(LAST_UPDATED_TIME):
+    if path.exists(LAST_UPDATED_TIME):
         with open(LAST_UPDATED_TIME, 'r') as f:
             last_updated = f.readline()
 
@@ -81,7 +83,7 @@ def get_last_updated_time() -> Optional[str]:
 def find_last_updated():
     """Fetches and returns Standard Ebooks most recent update date.
 
-    Returns None if the last modified date is not included in the 
+    Returns None if the last modified date is not included in the
     response headers.
     """
     r = requests.head(FEED_URL)
@@ -92,14 +94,18 @@ def convert_date_string(date_string: str) -> time.struct_time:
     """date_string will be formatted similarly to this:
     Fri, 05 Nov 2021 03:50:24 GMT
 
-    returns datetime representation of the given time, or the earliest possible time if no time given.
+    returns datetime representation of the given time, or the earliest
+    possible time if no time given.
     """
     if not date_string:
         return time.gmtime(0)
     return time.strptime(date_string[5:-4], '%d %b %Y %H:%M:%S')
 
 
-def map_entries(entries: List[Dict[str, Any]], modified_since: time.struct_time) -> List[str]:
+def map_entries(
+    entries,
+    modified_since: time.struct_time
+):
     """Returns a list of import objects."""
     results = []
     for e in entries:
