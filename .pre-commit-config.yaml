@@ -1,5 +1,5 @@
 # To enable this pre-commit hook run:
-# `python3 -m pip install pre-commit` or `brew install pre-commit`
+# `pip install pre-commit` or `brew install pre-commit`
 # Then run `pre-commit install`
 
 # Learn more about this config here: https://pre-commit.com/
