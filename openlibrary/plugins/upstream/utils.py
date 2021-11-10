@@ -871,7 +871,10 @@ class HTMLTagRemover(HTMLParser):
         self.data = []
 
     def handle_data(self, data):
-        self.data.append(data)
+        self.data.append(data.strip())
+
+    def handle_endtag(self, tag):
+        self.data.append('\n' if tag in ('p', 'li') else ' ')
 
 
 @public
@@ -886,13 +889,12 @@ def reformat_html(html_str: str, max_length: Optional[int] = None) -> str:
     parser = HTMLTagRemover()
     # Must have a root node, otherwise the parser will fail
     parser.feed(f'<div>{html_str}</div>')
-
-    content = [web.websafe(s.strip()) for s in parser.data if len(s.strip())]
+    content = [web.websafe(s) for s in parser.data if s]
 
     if max_length:
-        return truncate('\n'.join(content), max_length).replace('\n', '<br>')
+        return truncate(''.join(content), max_length).strip().replace('\n', '<br>')
     else:
-        return '\n'.join(content).replace('\n', '<br>')
+        return ''.join(content).strip().replace('\n', '<br>')
 
 
 def setup():
