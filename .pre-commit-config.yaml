@@ -15,3 +15,7 @@ repos:
         # the results into docker.
         entry: bash -c 'git diff master -U0 | docker-compose run --rm home ./scripts/flake8-diff.sh'
         language: system
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.1.0
+    hooks:
+      - id: codespell  # See setup.cfg for args
