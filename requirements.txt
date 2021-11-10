@@ -14,6 +14,7 @@ lxml==4.6.3
 Pillow==8.2.0
 psycopg2==2.8.6
 pymarc==4.1.1
+pydantic==1.8.2
 python-dateutil==2.8.2
 python-memcached==1.59
 PyYAML==5.4.1

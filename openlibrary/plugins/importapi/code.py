@@ -19,6 +19,8 @@ import base64
 import json
 import re
 
+from pydantic import ValidationError
+
 from openlibrary.plugins.importapi import (import_edition_builder, import_opds,
                                            import_rdf)
 from lxml import etree
@@ -127,6 +129,8 @@ class importapi:
             edition, format = parse_data(data)
         except DataError as e:
             return self.error(str(e), 'Failed to parse import data')
+        except ValidationError as e:
+            return self.error('invalid-value', str(e).replace('\n', ': '))
 
         if not edition:
             return self.error('unknown-error', 'Failed to parse import data')
