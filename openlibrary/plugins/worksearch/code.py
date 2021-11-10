@@ -5,7 +5,7 @@ import logging
 import random
 import re
 import string
-from typing import List, Tuple, Any, Union, Optional
+from typing import List, Tuple, Any, Union, Optional, Iterable, Dict
 from unicodedata import normalize
 from json import JSONDecodeError
 import requests
@@ -135,6 +135,29 @@ SORTS = {
     'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
     'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
 }
+DEFAULT_SEARCH_FIELDS = {
+    'key',
+    'author_name',
+    'author_key',
+    'title',
+    'subtitle',
+    'edition_count',
+    'ia',
+    'has_fulltext',
+    'first_publish_year',
+    'cover_i',
+    'cover_edition_key',
+    'public_scan_b',
+    'lending_edition_s',
+    'lending_identifier_s',
+    'language',
+    'ia_collection_s',
+
+    # FIXME: These should be fetched from book_providers, but can't cause circular dep
+    'id_project_gutenberg',
+    'id_librivox',
+    'id_standard_ebooks',
+}
 OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
 re_to_esc = re.compile(r'[\[\]:/]')
@@ -149,6 +172,15 @@ re_subject_types = re.compile('^(places|times|people)/(.*)')
 re_olid = re.compile(r'^OL\d+([AMW])$')
 
 plurals = dict((f + 's', f) for f in ('publisher', 'author'))
+
+
+@public
+def get_solr_works(work_key: Iterable[str]) -> Dict[str, dict]:
+    from openlibrary.plugins.worksearch.search import get_solr
+    return {
+        doc['key']: doc
+        for doc in get_solr().get_many(set(work_key), fields=DEFAULT_SEARCH_FIELDS)
+    }
 
 
 def process_sort(raw_sort):
@@ -416,12 +448,7 @@ def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=Non
 
     (q_list, use_dismax) = build_q_list(param)
     params = [
-        ('fl', ','.join(fields or [
-            'key', 'author_name', 'author_key', 'title', 'subtitle', 'edition_count',
-            'ia', 'has_fulltext', 'first_publish_year', 'cover_i', 'cover_edition_key',
-            'public_scan_b', 'lending_edition_s', 'lending_identifier_s', 'language',
-            'ia_collection_s', 'id_project_gutenberg', 'id_librivox',
-            'id_standard_ebooks'])),
+        ('fl', ','.join(fields or DEFAULT_SEARCH_FIELDS)),
         ('fq', 'type:work'),
         ('q.op', 'AND'),
         ('start', offset),
