@@ -133,5 +133,5 @@ def test_reformat_html():
     assert f(multi_line_string, 34) == 'This sentence has 32 ' \
         'characters.<br>T...'
 
-    assert f("<script>alert('hello')</script>", 34) == "alert('hello')"
+    assert f("<script>alert('hello')</script>", 34) == "alert(&#39;hello&#39;)"
     assert f("<div>&lt;script&gt;</div>") == "&lt;script&gt;"

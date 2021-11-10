@@ -890,7 +890,7 @@ def reformat_html(html_str: str, max_length: Optional[int] = None) -> str:
     parser = HTMLTagRemover()
     parser.feed(html_str)
 
-    content = [s.strip() for s in parser.data if len(s.strip())]
+    content = [web.websafe(s.strip()) for s in parser.data if len(s.strip())]
 
     if max_length:
         return truncate('\n'.join(content), max_length).replace('\n', '<br>')
