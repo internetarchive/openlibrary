@@ -7,8 +7,5 @@ python --version
 
 echo "Waiting for postgres..."
 until pg_isready --host db; do sleep 5; done
-start=$SECONDS
-make reindex-solr
-duration=$(( SECONDS - start ))
-echo "reindex-solr took $duration seconds"
+time make reindex-solr
 echo "You may now open to localhost:8080"
