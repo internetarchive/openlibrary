@@ -11,6 +11,8 @@ import random
 import xml.etree.ElementTree as etree
 import datetime
 import logging
+from html.parser import HTMLParser
+from typing import Optional
 
 import requests
 
@@ -26,7 +28,7 @@ from infogami.utils.macro import macro
 from infogami.utils.context import context
 from infogami.infobase.client import Thing, Changeset, storify
 
-from openlibrary.core.helpers import commify, parse_datetime
+from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
 from openlibrary.core import cache, ab
 
@@ -860,6 +862,39 @@ def render_once(key):
 @public
 def today():
     return datetime.datetime.today()
+
+
+class HTMLTagRemover(HTMLParser):
+
+    def __init__(self):
+        super().__init__()
+        self.data = []
+
+    def handle_data(self, data):
+        self.data.append(data.strip())
+
+    def handle_endtag(self, tag):
+        self.data.append('\n' if tag in ('p', 'li') else ' ')
+
+
+@public
+def reformat_html(html_str: str, max_length: Optional[int] = None) -> str:
+    """
+    Reformats an HTML string, removing all opening and closing tags.
+    Adds a line break element between each set of text content.
+    Optionally truncates contents that exceeds the given max length.
+
+    returns: A reformatted HTML string
+    """
+    parser = HTMLTagRemover()
+    # Must have a root node, otherwise the parser will fail
+    parser.feed(f'<div>{html_str}</div>')
+    content = [web.websafe(s) for s in parser.data if s]
+
+    if max_length:
+        return truncate(''.join(content), max_length).strip().replace('\n', '<br>')
+    else:
+        return ''.join(content).strip().replace('\n', '<br>')
 
 
 def setup():
