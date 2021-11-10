@@ -84,6 +84,7 @@ def process_dump(dumpfile):
 
 re_key = re.compile(r"^/(authors|works)/OL\d+[AMW]$")
 
+
 def get_sort_key(key):
     """Returns a sort key used to group urls in 10K batches.
 
