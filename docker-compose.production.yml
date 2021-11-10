@@ -65,7 +65,7 @@ services:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/covers_nginx.conf:/etc/nginx/sites-enabled/covers_nginx.conf:ro
       # Needed for HTTPS, since this is a public server
-      - ../olsystem/etc/nginx/sites-available/default-docker.conf:/etc/nginx/sites-enabled/default:ro
+      - ./docker/public_nginx.conf:/etc/nginx/sites-available/public_nginx.conf:ro
       # Needs access to openlibrary for static files
       - ../olsystem:/olsystem
       - /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
@@ -80,7 +80,7 @@ services:
         max-file: "4"
     secrets:
       - petabox_seed
-      # Needed by default-docker.conf
+      # Needed by public_nginx.conf
       - ssl_certificate
       - ssl_certificate_key
 
