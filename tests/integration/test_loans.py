@@ -1,5 +1,3 @@
-#-*- coding: utf-8 -*-
-
 """
 testing loans and waitlist
 """
@@ -57,7 +55,7 @@ class Borrow_Test(unittest.TestCase):
         }
 
         mode = ia_ctas[check_cta]['mode'] if check_cta else 'stream'
-        olsession.driver.get('https://archive.org/%s/%s' % (mode, ocaid))
+        olsession.driver.get(f'https://archive.org/{mode}/{ocaid}')
 
         if check_cta:
             time.sleep(1)
@@ -102,7 +100,7 @@ class Borrow_Test(unittest.TestCase):
                 return False
 
             if make_assert:
-                self.assertTrue(ol_cta_btn, "%s button not found on OL edition page: %s" % (check_cta, olid))
+                self.assertTrue(ol_cta_btn, f"{check_cta} button not found on OL edition page: {olid}")
             elif not ol_cta_btn:
                 return False
             if click:
@@ -123,7 +121,7 @@ class Borrow_Test(unittest.TestCase):
                                    make_assert=True, click=False)
         userid = cta.get_attribute('data-userid')
         self.assertTrue(cta.get_attribute('data-userid') == itemname,
-                        'data-userid should be %s, was %s' % (itemname, userid))
+                        f'data-userid should be {itemname}, was {userid}')
 
     def test_ia_borrow_ol_read_ol_return(self):
         olsession.ia_login(test=self, **LIVE_USER1)

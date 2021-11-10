@@ -1,5 +1,3 @@
-#-*- coding: utf-8 -*-
-
 import time
 import yaml
 import atexit
@@ -10,9 +8,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 
 
-class OLSession(object):
+class OLSession:
     def __init__(self, timeout=10, domain="https://dev.openlibrary.org"):
-        with open('auth.yaml', 'r') as f:
+        with open('auth.yaml') as f:
             self.config = yaml.load(f)
         try:
             self.driver = webdriver.Chrome()
@@ -30,7 +28,7 @@ class OLSession(object):
         return By
 
     def url(self, uri=""):
-        return "%s/%s" % (self._url, uri)
+        return f"{self._url}/{uri}"
 
     def goto(self, uri=""):
         self.driver.get(self.url(uri))
