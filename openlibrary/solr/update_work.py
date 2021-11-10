@@ -1575,7 +1575,7 @@ def get_ia_db(settings):
 
 
 def main(
-        keys: List[str],
+        keys: list[str],
         ol_url="http://openlibrary.org",
         ol_config="openlibrary.yml",
         output_file: str = None,
