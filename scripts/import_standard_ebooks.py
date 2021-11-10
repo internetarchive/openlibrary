@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import json
-from typing import Dict, List, Optional
 import requests
 import sys
 import time
@@ -27,10 +28,10 @@ def get_feed():
     return feedparser.parse(r.text)
 
 
-def map_data(entry):
+def map_data(entry) -> dict:
     """Maps Standard Ebooks feed entry to an Open Library import object."""
     std_ebooks_id = entry.id.replace('https://standardebooks.org/ebooks/', '')
-    mapped_data = {
+    return {
         "title": entry.title,
         "source_records": [f"standardebooks:{std_ebooks_id}"],
         "publishers": [entry.publisher],
@@ -42,10 +43,9 @@ def map_data(entry):
             "standard_ebooks": [std_ebooks_id]
         }
     }
-    return mapped_data
 
 
-def create_batch(records: List[Dict[str, str]]) -> None:
+def create_batch(records: list[dict[str, str]]) -> None:
     """Creates Standard Ebook batch import job.
 
     Attempts to find existing Standard Ebooks import batch.
@@ -61,7 +61,7 @@ def create_batch(records: List[Dict[str, str]]) -> None:
     )
 
 
-def get_last_updated_time() -> Optional[str]:
+def get_last_updated_time() -> str | None:
     """Gets date of last import job.
 
     Last updated dates are read from a local file.  If no
@@ -71,16 +71,14 @@ def get_last_updated_time() -> Optional[str]:
 
     returns last updated date string or None
     """
-    last_updated = None
-
     if path.exists(LAST_UPDATED_TIME):
         with open(LAST_UPDATED_TIME, 'r') as f:
-            last_updated = f.readline()
+            return f.readline()
 
-    return last_updated
+    return None
 
 
-def find_last_updated():
+def find_last_updated() -> str | None:
     """Fetches and returns Standard Ebooks most recent update date.
 
     Returns None if the last modified date is not included in the
@@ -90,12 +88,14 @@ def find_last_updated():
     return r.headers['last-modified'] if r.ok else None
 
 
-def convert_date_string(date_string: str) -> time.struct_time:
-    """date_string will be formatted similarly to this:
+def convert_date_string(date_string: str | None) -> time.struct_time:
+    """Converts HTTP-date format string into a struct_time object.
+
+    The date_string will be formatted similarly to this:
     Fri, 05 Nov 2021 03:50:24 GMT
 
-    returns datetime representation of the given time, or the earliest
-    possible time if no time given.
+    returns struct_time representation of the given time, or the
+    epoch if no time given.
     """
     if not date_string:
         return time.gmtime(0)
@@ -107,15 +107,10 @@ def map_entries(
     modified_since: time.struct_time
 ):
     """Returns a list of import objects."""
-    results = []
-    for e in entries:
-        if e.updated_parsed > modified_since:
-            results.append(map_data(e))
-
-    return results
+    return [map_data(e) for e in entries if e.updated_parsed > modified_since]
 
 
-def import_job():
+def import_job() -> None:
     # Make HEAD request to get last-modified time
     last_modified = find_last_updated()
 
@@ -130,7 +125,7 @@ def import_job():
         print(f'No new updates since {updated_on}. Processing completed.')
         return
 
-    print(f'Last import job: {updated_on}')
+    print(f'Last import job: {updated_on or "No date found"}')
     # Get feed:
     d = get_feed()
 
