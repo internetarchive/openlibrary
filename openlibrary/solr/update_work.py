@@ -1524,6 +1524,7 @@ def update_keys(keys,
             return update_work(w)
         except:
             logger.error("Failed to update work %s", wkey, exc_info=True)
+            return []
 
     timer_results += f"before update wkeys {timer() - start}\n"
     start = timer()
