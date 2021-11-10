@@ -1,4 +1,5 @@
 """Cover management."""
+from __future__ import annotations
 
 import datetime
 from logging import getLogger
@@ -6,10 +7,7 @@ import os
 
 from six import BytesIO
 
-try:
-    from PIL import Image
-except ImportError:
-    import Image
+from PIL import Image
 import web
 
 from openlibrary.coverstore import config, db
@@ -63,8 +61,7 @@ def make_path_prefix(olid, date=None):
     )
 
 
-def write_image(data, prefix):
-    # type: (bytes, str) -> Image
+def write_image(data: bytes, prefix: str) -> Image.Image | None:
     path_prefix = find_image_path(prefix)
     dirname = os.path.dirname(path_prefix)
     if not os.path.exists(dirname):
