@@ -134,4 +134,4 @@ def test_reformat_html():
         'characters.<br>T...'
 
     assert f("<script>alert('hello')</script>", 34) == "alert(&#39;hello&#39;)"
-    assert f("<div>&lt;script&gt;</div>") == "&lt;script&gt;"
+    assert f("&lt;script&gt;") == "&lt;script&gt;"

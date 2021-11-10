@@ -881,14 +881,11 @@ def reformat_html(html_str: str, max_length: Optional[int] = None) -> str:
     Adds a line break element between each set of text content.
     Optionally truncates contents that exceeds the given max length.
 
-    All text nodes in the HTML string are expected to be enclosed
-    within an HTML tag (i.e. <div>content</div>' would be a valid HTML
-    string, but 'content' would be invalid).
-
     returns: A reformatted HTML string
     """
     parser = HTMLTagRemover()
-    parser.feed(html_str)
+    # Must have a root node, otherwise the parser will fail
+    parser.feed(f'<div>{html_str}</div>')
 
     content = [web.websafe(s.strip()) for s in parser.data if len(s.strip())]
 
