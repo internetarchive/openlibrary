@@ -159,6 +159,8 @@
     <field name="number_of_pages_median" type="pint" />
     <field name="lccn" type="text_general" multiValued="true"/>
     <field name="ia" type="string" multiValued="true"/>
+    <field name="ia_box_id" type="string" multiValued="true"/>
+    <field name="ia_loaded_id" type="string" multiValued="true"/>
     <field name="ia_count" type="pint"/>
     <field name="oclc" type="text_en_splitting" multiValued="true"/>
     <field name="isbn" type="string" multiValued="true"/>

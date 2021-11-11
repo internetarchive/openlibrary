@@ -48,6 +48,7 @@ plugin_modules:
     - infogami.plugins.api
 
 plugin_worksearch:
+    solr_next: true
     solr_base_url: http://solr:8983/solr/openlibrary
     spellcheck_count: 3
 

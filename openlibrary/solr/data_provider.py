@@ -8,6 +8,7 @@ Multiple data providers are supported, each is good for different use case.
 import logging
 from typing import Dict, List, Optional
 
+import requests
 import web
 from web import DB
 
@@ -131,6 +132,36 @@ class LegacyDataProvider(DataProvider):
     def clear_cache(self):
         # Nothing's cached, so nothing to clear!
         return
+
+
+class ExternalDataProvider(DataProvider):
+    """
+    Only used for local env, this data provider fetches data using public OL apis
+    """
+    def __init__(self, ol_host: str):
+        self.ol_host = ol_host
+
+    def find_redirects(self, key: str):
+        # NOT IMPLEMENTED
+        return []
+
+    def get_editions_of_work(self, work):
+        resp = requests.get(f"http://{self.ol_host}{work['key']}/editions.json",
+                            params={'limit': 500}).json()
+        if 'next' in resp['links']:
+            logger.warning(f"Too many editions for {work['key']}")
+        return resp['entries']
+
+    def get_metadata(self, identifier: str):
+        return ia.get_metadata(identifier)
+
+    def get_document(self, key: str):
+        return requests.get(f"http://{self.ol_host}{key}.json").json()
+
+    def clear_cache(self):
+        # Nothing's cached, so nothing to clear!
+        return
+
 
 class BetterDataProvider(LegacyDataProvider):
     def __init__(

@@ -100,7 +100,7 @@ LCC_PARTS_RE = re.compile(r'''
     (?P<letters>[A-HJ-NP-VWZ][A-Z-]{0,2})
     \s?
     (?P<number>\d{1,4}(\.\d+)?)?
-    (?P<cutter1>[\s.][^\d\s\[]{1,3}\d*\S*)?
+    (?P<cutter1>\s*\.\s*[^\d\s\[]{1,3}\d*\S*)?
     (?P<rest>\s.*)?
     $
 ''', re.IGNORECASE | re.X)
