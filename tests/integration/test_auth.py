@@ -31,7 +31,6 @@ LINKED_BLOCKED = olsession.config['accounts']['linked_blocked']
 UNREGISTERED = olsession.config['accounts']['unregistered']
 
 
-
 errorLookup = {
     "invalid_email": "The email address you entered is invalid",
     "account_blocked": "This account has been blocked",
@@ -45,12 +44,11 @@ errorLookup = {
     "missing_fields": "Please fill out all fields and try again",
     "email_registered": "This email is already registered",
     "username_registered": "This username is already registered",
-    "max_retries_exceeded": "A problem occurred and we were unable to log you in."
+    "max_retries_exceeded": "A problem occurred and we were unable to log you in.",
 }
 
 
 class Xauth_Test(unittest.TestCase):
-
 
     # ======================================================
     # Basic tests
@@ -74,7 +72,6 @@ class Xauth_Test(unittest.TestCase):
         error = olsession.driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, f'{error} != {_error}')
 
-
     # ======================================================
     # Test successfully linked account
     # ======================================================
@@ -91,7 +88,6 @@ class Xauth_Test(unittest.TestCase):
 
         # finalize by unlinking for future tests
         olsession.unlink(LINKED['email'])
-
 
     # ======================================================
     # All combos of initial IA login audit
@@ -285,7 +281,6 @@ class Xauth_Test(unittest.TestCase):
 
         # finalize by unlinking for future tests
         olsession.unlink(OL_VERIFIED['email'])
-
 
     # ======================================================
     # All combinations of Create & Link attempts after initial

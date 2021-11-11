@@ -16,6 +16,7 @@ import _init_path
 import infogami  # must be after _init_path
 from openlibrary.config import load_config
 
+
 def run_piped(cmds, stdin=None):
     """
     Run the commands piping one's output to the next's input.
@@ -67,12 +68,14 @@ def count_unique_ips_for_day(day):
     else:
         raise IndexError("Cannot find log file for " + day.strftime("%Y-%m-%d"))
 
-    out = run_piped([
-        cat_log_cmd,  # cat the server logs
-        ["awk", '$2 == "openlibrary.org" { print $1 }'],  # get all the IPs
-        ["sort", "-u"],  # get unique only
-        ["wc", "-l"],  # count number of lines
-    ])
+    out = run_piped(
+        [
+            cat_log_cmd,  # cat the server logs
+            ["awk", '$2 == "openlibrary.org" { print $1 }'],  # get all the IPs
+            ["sort", "-u"],  # get unique only
+            ["wc", "-l"],  # count number of lines
+        ]
+    )
 
     return int(out.read())
 
@@ -103,12 +106,18 @@ if __name__ == "__main__":
     import sys
 
     parser = ArgumentParser(
-        description="Store count of unique IPs per day from the past K days (including today) in infobase.")
-    parser.add_argument('config', help="openlibrary.yml (e.g. olsystem/etc/openlibrary.yml)")
-    parser.add_argument('--days', type=int, default=1,
-                        help="how many days to go back")
-    parser.add_argument('--range', nargs=2, type=lambda d: datetime.strptime(d, "%Y-%m-%d"),
-                        help="alternatively, provide a range of dates to visit (like `--range 2018-06-25 2018-07-14`)")
+        description="Store count of unique IPs per day from the past K days (including today) in infobase."
+    )
+    parser.add_argument(
+        'config', help="openlibrary.yml (e.g. olsystem/etc/openlibrary.yml)"
+    )
+    parser.add_argument('--days', type=int, default=1, help="how many days to go back")
+    parser.add_argument(
+        '--range',
+        nargs=2,
+        type=lambda d: datetime.strptime(d, "%Y-%m-%d"),
+        help="alternatively, provide a range of dates to visit (like `--range 2018-06-25 2018-07-14`)",
+    )
     args = parser.parse_args()
 
     if args.range:

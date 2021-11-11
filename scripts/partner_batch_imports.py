@@ -22,20 +22,36 @@ from openlibrary.config import load_config
 
 logger = logging.getLogger("openlibrary.importer.bwb")
 
-SCHEMA_URL = "https://raw.githubusercontent.com/internetarchive" \
-             "/openlibrary-client/master/olclient/schemata/import.schema.json"
+SCHEMA_URL = (
+    "https://raw.githubusercontent.com/internetarchive"
+    "/openlibrary-client/master/olclient/schemata/import.schema.json"
+)
 
 
-class Biblio():
+class Biblio:
 
     ACTIVE_FIELDS = [
-        'title', 'isbn_13', 'publish_date', 'publishers',
-        'weight', 'authors', 'lc_classifications', 'pagination',
-        'languages', 'subjects', 'source_records'
+        'title',
+        'isbn_13',
+        'publish_date',
+        'publishers',
+        'weight',
+        'authors',
+        'lc_classifications',
+        'pagination',
+        'languages',
+        'subjects',
+        'source_records',
     ]
     INACTIVE_FIELDS = [
-        "copyright", "issn", "doi", "lccn", "dewey", "length",
-        "width", "height"
+        "copyright",
+        "issn",
+        "doi",
+        "lccn",
+        "dewey",
+        "length",
+        "width",
+        "height",
     ]
     REQUIRED_FIELDS = requests.get(SCHEMA_URL).json()['required']
 
@@ -48,7 +64,7 @@ class Biblio():
         self.publishers = [data[135]]
         self.weight = data[39]
         self.authors = self.contributors(data)
-        self.lc_classifications = [data[147]] if data[147] else [] 
+        self.lc_classifications = [data[147]] if data[147] else []
         self.pagination = data[36]
         self.languages = [data[37].lower()]
         self.source_records = [self.source_id]
@@ -88,7 +104,7 @@ class Biblio():
             return author
 
         contributors = (
-            (data[21+i*3], data[22+i*3], data[23+i*3]) for i in range(5)
+            (data[21 + i * 3], data[22 + i * 3], data[23 + i * 3]) for i in range(5)
         )
 
         # form list of author dicts
@@ -118,14 +134,12 @@ def load_state(path, logfile):
     /1/var/tmp/imports/2021-08/Bibliographic/*/
     """
     filenames = sorted(
-        os.path.join(path, f)
-        for f in os.listdir(path)
-        if f.startswith("bettworldbks")
+        os.path.join(path, f) for f in os.listdir(path) if f.startswith("bettworldbks")
     )
     try:
         with open(logfile) as fin:
             active_fname, offset = next(fin).strip().split(',')
-            unfinished_filenames = filenames[filenames.index(active_fname):]
+            unfinished_filenames = filenames[filenames.index(active_fname) :]
             return unfinished_filenames, int(offset)
     except (ValueError, OSError):
         return filenames, 0
@@ -140,10 +154,7 @@ def update_state(logfile, fname, line_num=0):
 def csv_to_ol_json_item(line):
     """converts a line to a book item"""
     b = Biblio(line.strip().split('|'))
-    return {
-        'ia_id': b.source_id,
-        'data': b.json()
-    }
+    return {'ia_id': b.source_id, 'data': b.json()}
 
 
 def batch_import(path, batch, batch_size=5000):
@@ -181,8 +192,8 @@ def batch_import(path, batch, batch_size=5000):
 
 def main():
     load_config(
-        os.path.abspath(os.path.join(
-            os.sep, 'olsystem', 'etc', 'openlibrary.yml')))
+        os.path.abspath(os.path.join(os.sep, 'olsystem', 'etc', 'openlibrary.yml'))
+    )
     # Partner data is offset ~15 days from start of month
     date = datetime.date.today() - timedelta(days=15)
     batch_name = "%s-%04d%02d" % ('bwb', date.year, date.month)

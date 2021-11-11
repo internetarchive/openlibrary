@@ -33,8 +33,9 @@ class OLSession:
     def goto(self, uri=""):
         self.driver.get(self.url(uri))
 
-    def ia_login(self, email, password, test=None,
-                 domain="https://archive.org", **kwargs):
+    def ia_login(
+        self, email, password, test=None, domain="https://archive.org", **kwargs
+    ):
         self.driver.get('%s/account/login.php' % domain)
         self.driver.find_element_by_id('username').send_keys(email)
         self.driver.find_element_by_id('password').send_keys(password)
@@ -42,8 +43,8 @@ class OLSession:
         if test:
             test.assertTrue(
                 self.ia_is_logged_in(),
-                "IA Login failed w/ username: %s and password: %s" %
-                (email, password))
+                "IA Login failed w/ username: %s and password: %s" % (email, password),
+            )
 
     def ia_is_logged_in(self, domain="https://archive.org"):
         time.sleep(2)
@@ -57,8 +58,7 @@ class OLSession:
     def ia_logout(self, test=None, domain="https://archive.org"):
         self.driver.get('%s/account/logout.php' % domain)
         if test:
-            test.assertTrue(not self.ia_is_logged_in(),
-                            "Failed to logout of IA")
+            test.assertTrue(not self.ia_is_logged_in(), "Failed to logout of IA")
 
     def login(self, email, password, test=None, **kwargs):
         self.driver.get(self.url('/account/login'))
@@ -66,9 +66,10 @@ class OLSession:
         self.driver.find_element_by_id("password").send_keys(password)
         self.driver.find_element_by_name('login').click()
         if test:
-            test.assertTrue(self.is_logged_in(),
-                "OL Login failed w/ username: %s and password: %s" %
-                (email, password))
+            test.assertTrue(
+                self.is_logged_in(),
+                "OL Login failed w/ username: %s and password: %s" % (email, password),
+            )
 
     def is_logged_in(self):
         time.sleep(2)
@@ -82,11 +83,11 @@ class OLSession:
         time.sleep(2)
         self.wait.until(EC.element_to_be_clickable((By.ID, 'userToggle'))).click()
         self.driver.find_element_by_css_selector(
-            '#headerUserOpen > a:nth-child(5)').click()
+            '#headerUserOpen > a:nth-child(5)'
+        ).click()
         self.driver.get(self.url('/account/login'))
         if test:
-            test.assertTrue(not self.is_logged_in(),
-                            "Failed to logout of OL")
+            test.assertTrue(not self.is_logged_in(), "Failed to logout of OL")
 
     def connect(self, email, password):
         self.wait_for_clickable('linkAccounts')
@@ -98,8 +99,10 @@ class OLSession:
 
     def create(self, username=None):
         self.driver.execute_script(
-            "document.getElementById('debug_token').value='" +
-            self.config['internal_tests_api_key'] + "'");
+            "document.getElementById('debug_token').value='"
+            + self.config['internal_tests_api_key']
+            + "'"
+        )
         time.sleep(1)
         self.wait_for_clickable('createAccount')
         self.driver.find_element_by_id('createAccount').click()
@@ -107,9 +110,14 @@ class OLSession:
 
     def unlink(self, email):
         import requests
+
         email = email.replace('+', '%2b')
-        r = requests.get(self.url('/internal/account/audit?key=%s&email=%s&unlink=true'
-               % (self.config['internal_tests_api_key'], email)))
+        r = requests.get(
+            self.url(
+                '/internal/account/audit?key=%s&email=%s&unlink=true'
+                % (self.config['internal_tests_api_key'], email)
+            )
+        )
 
     def wait_for_clickable(self, css_id, by=By.ID):
         self.wait.until(EC.element_to_be_clickable((by, css_id)))

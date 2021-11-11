@@ -9,11 +9,17 @@ sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
 re_subtag = re.compile('\x1f(.)([^\x1f]*)')
 
+
 def fmt_subfields(line):
     def bold(s):
         return ''.join(c + "\b" + c for c in s)
+
     assert line[-1] == '\x1e'
-    return ''.join(' ' + bold('$' + m.group(1)) + ' ' + translate(m.group(2)) for m in re_subtag.finditer(line[2:-1]))
+    return ''.join(
+        ' ' + bold('$' + m.group(1)) + ' ' + translate(m.group(2))
+        for m in re_subtag.finditer(line[2:-1])
+    )
+
 
 def show_book(data):
     print('leader:', data[:24])
@@ -22,6 +28,7 @@ def show_book(data):
             print(tag, line[:-1])
         else:
             print(tag, line[0:2], fmt_subfields(line))
+
 
 if __name__ == '__main__':
     source = sys.argv[1]

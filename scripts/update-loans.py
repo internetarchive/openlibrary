@@ -11,8 +11,12 @@ from openlibrary.plugins.upstream import borrow
 
 web.config.debug = False
 
+
 def usage():
-    print("python scripts/openlibrary-server openlibrary.yml runscript scripts/update-loans.py [update-loans | update-waitinglists]")
+    print(
+        "python scripts/openlibrary-server openlibrary.yml runscript scripts/update-loans.py [update-loans | update-waitinglists]"
+    )
+
 
 def main():
     try:
@@ -30,6 +34,6 @@ def main():
     else:
         usage()
 
+
 if __name__ == "__main__":
     main()
-

@@ -11,32 +11,35 @@ from scripts.solr_builder.solr_builder.solr_builder import safeget
 
 
 async def index_subjects(
-        subject_type: Literal['subject', 'person', 'place', 'time'],
-        offset=0,
-        limit=1,
-        solr_base_url='http://solr:8983/solr/openlibrary',
-        skip_id_check=False
+    subject_type: Literal['subject', 'person', 'place', 'time'],
+    offset=0,
+    limit=1,
+    solr_base_url='http://solr:8983/solr/openlibrary',
+    skip_id_check=False,
 ):
     """
     :return: Returns number of rows added
     """
     print(json.dumps({'event': 'starting', 'offset': offset}))
     async with httpx.AsyncClient() as client:
-        resp = (await client.get(
-            f'{solr_base_url}/select',
-            timeout=30,  # Usually <10, but just in case
-            params={
-                'q': 'type:work',
-                'rows': 0,
-                'facet': 'true',
-                'facet.field': f'{subject_type}_facet',
-                'facet.limit': limit,
-                'facet.offset': offset,
-                'facet.sort': 'index',
-                'facet.mincount': 1,
-                'wt': 'json',
-                'json.nl': 'arrarr',
-            })).json()
+        resp = (
+            await client.get(
+                f'{solr_base_url}/select',
+                timeout=30,  # Usually <10, but just in case
+                params={
+                    'q': 'type:work',
+                    'rows': 0,
+                    'facet': 'true',
+                    'facet.field': f'{subject_type}_facet',
+                    'facet.limit': limit,
+                    'facet.offset': offset,
+                    'facet.sort': 'index',
+                    'facet.mincount': 1,
+                    'wt': 'json',
+                    'json.nl': 'arrarr',
+                },
+            )
+        ).json()
     facets = resp['facet_counts']['facet_fields'][f'{subject_type}_facet']
     docs = [
         build_subject_doc(subject_type, subject_name, work_count)
@@ -49,23 +52,27 @@ async def index_subjects(
         docs,
         commit_within=commit_way_later_ms,
         solr_base_url=solr_base_url,
-        skip_id_check=skip_id_check
+        skip_id_check=skip_id_check,
     )
-    print(json.dumps({
-        'event': 'completed',
-        'offset': offset,
-        'count': len(docs),
-        'first': safeget(lambda: facets[0][0])
-    }))
+    print(
+        json.dumps(
+            {
+                'event': 'completed',
+                'offset': offset,
+                'count': len(docs),
+                'first': safeget(lambda: facets[0][0]),
+            }
+        )
+    )
     return len(docs)
 
 
 async def index_all_subjects(
-        subject_type: Literal['subject', 'person', 'place', 'time'],
-        chunk_size=10_000,
-        instances=2,
-        solr_base_url='http://solr:8983/solr/openlibrary',
-        skip_id_check=False,
+    subject_type: Literal['subject', 'person', 'place', 'time'],
+    chunk_size=10_000,
+    instances=2,
+    solr_base_url='http://solr:8983/solr/openlibrary',
+    skip_id_check=False,
 ):
     done = False
     active_workers = set()  # type: Set[Future]
@@ -78,19 +85,21 @@ async def index_all_subjects(
         elif len(active_workers) >= instances:
             # Too many running; wait for one to finish
             finished, pending = await asyncio.wait(
-                active_workers,
-                return_when=asyncio.FIRST_COMPLETED)
+                active_workers, return_when=asyncio.FIRST_COMPLETED
+            )
             active_workers = pending
             done = any(task.result() < chunk_size for task in finished)
         else:
             # Can start another worker
-            task = asyncio.create_task(index_subjects(
-                subject_type,
-                offset=offset,
-                limit=chunk_size,
-                solr_base_url=solr_base_url,
-                skip_id_check=skip_id_check,
-            ))
+            task = asyncio.create_task(
+                index_subjects(
+                    subject_type,
+                    offset=offset,
+                    limit=chunk_size,
+                    solr_base_url=solr_base_url,
+                    skip_id_check=skip_id_check,
+                )
+            )
             active_workers.add(task)
             offset += chunk_size
 
