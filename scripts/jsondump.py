@@ -46,9 +46,12 @@ import six
 
 
 commands = {}
+
+
 def command(f):
     commands[f.__name__] = f
     return f
+
 
 @command
 def rawdump(datafile):
@@ -60,12 +63,14 @@ def rawdump(datafile):
     """
     write_rawdump(sys.stdout, read_json(read_data_table(datafile)))
 
+
 @command
 def merge(dump, idump):
     """Merges a large dump with increamental dump.
 
-        $ python jsondump.py bigdump.txt dailydump.txt > bigdump2.txt
+    $ python jsondump.py bigdump.txt dailydump.txt > bigdump2.txt
     """
+
     def read(path):
         for line in xopen(path):
             key, _ = line.split("\t", 1)[0]
@@ -78,11 +83,12 @@ def merge(dump, idump):
 
     sys.stdout.writelines(do_merge())
 
+
 @command
 def json2rawdump(jsonfile):
-    """Converts a file containing json rows to rawdump format.
-    """
+    """Converts a file containing json rows to rawdump format."""
     write_rawdump(sys.stdout, read_json(jsonfile))
+
 
 @command
 def split_types(rawdump):
@@ -99,31 +105,51 @@ def split_types(rawdump):
     for t in files:
         files[t].close()
 
+
 @command
 def bookdump(editions_file, authors_file, languages_file):
-    """Generates bookdump from rawdump.
-    """
+    """Generates bookdump from rawdump."""
+
     def process():
         log("BEGIN read_authors")
-        authors = make_dict((key, strip_json(json_data)) for key, type, json_data in read_rawdump(authors_file))
-        languages = make_dict((key, strip_json(json_data)) for key, type, json_data in read_rawdump(languages_file))
+        authors = make_dict(
+            (key, strip_json(json_data))
+            for key, type, json_data in read_rawdump(authors_file)
+        )
+        languages = make_dict(
+            (key, strip_json(json_data))
+            for key, type, json_data in read_rawdump(languages_file)
+        )
         log("END read_authors")
         for key, type, json_data in read_rawdump(editions_file):
             d = json.loads(strip_json(json_data))
-            d['authors'] = [json.loads(authors.get(a['key']) or '{"key": "%s"}' % a['key']) for a in d.get('authors', []) if isinstance(a, dict)]
-            d['languages'] = [json.loads(languages.get(a['key']) or '{"key": "%s"}' % a['key']) for a in d.get('languages', []) if isinstance(a, dict)]
+            d['authors'] = [
+                json.loads(authors.get(a['key']) or '{"key": "%s"}' % a['key'])
+                for a in d.get('authors', [])
+                if isinstance(a, dict)
+            ]
+            d['languages'] = [
+                json.loads(languages.get(a['key']) or '{"key": "%s"}' % a['key'])
+                for a in d.get('languages', [])
+                if isinstance(a, dict)
+            ]
             yield key, type, json.dumps(d) + "\n"
 
     write_rawdump(sys.stdout, process())
+
 
 @command
 def modified(db, date):
     """Display list of modified keys on a given day.
 
-        $ python jsondump.py modified dbname YYYY-MM-DD
+    $ python jsondump.py modified dbname YYYY-MM-DD
     """
     import os
-    os.system(f"""psql {db} -t -c "select key from thing where last_modified >= '{date}' and last_modified < (date '{date}' + interval '1 day')" """)
+
+    os.system(
+        f"""psql {db} -t -c "select key from thing where last_modified >= '{date}' and last_modified < (date '{date}' + interval '1 day')" """
+    )
+
 
 @command
 def help(cmd=None):
@@ -142,6 +168,7 @@ def help(cmd=None):
             doc = commands[k].__doc__ or " "
             print("  %-10s\t%s" % (k, doc.splitlines()[0]))
 
+
 def get_action(cmd):
     if cmd in commands:
         return commands[cmd]
@@ -149,51 +176,60 @@ def get_action(cmd):
         print("No such command:", cmd, file=sys.stderr)
         return help
 
+
 def listget(x, i, default=None):
     try:
         return x[i]
     except IndexError:
         return default
 
+
 def main():
     action = get_action(listget(sys.argv, 1, "help"))
     action(*sys.argv[2:])
 
-#---
+
+# ---
 def make_sub(d):
     """
-        >>> f = make_sub(dict(a='aa', bb='b'))
-        >>> f('aabbb')
-        'aaaabb'
+    >>> f = make_sub(dict(a='aa', bb='b'))
+    >>> f('aabbb')
+    'aaaabb'
     """
+
     def f(a):
         return d[a.group(0)]
+
     rx = re.compile("|".join(re.escape(key) for key in d))
     return lambda s: s and rx.sub(f, s)
 
+
 def invert_dict(d):
     return {v: k for (k, v) in d.items()}
+
 
 _escape_dict = {'\n': r'\n', '\r': r'\r', '\t': r'\t', '\\': r'\\'}
 
 escape = make_sub(_escape_dict)
 unescape = make_sub(invert_dict(_escape_dict))
 
+
 def doctest_escape():
     r"""
-        >>> escape("\n\t")
-        '\\n\\t'
-        >>> unescape('\\n\\t')
-        '\n\t'
+    >>> escape("\n\t")
+    '\\n\\t'
+    >>> unescape('\\n\\t')
+    '\n\t'
     """
+
 
 def read_data_table(path):
     r"""Read dump of postgres data table assuming that it is sorted by first column.
 
-        >>> list(read_data_table(['1\t1\tJSON-1-1\n', '1\t2\tJSON-1-2\n', '2\t1\tJSON-2-1\n']))
-        ['JSON-1-2\n', 'JSON-2-1\n']
-        >>> list(read_data_table(['1\t1\tJSON\\t1-1\n']))
-        ['JSON\t1-1\n']
+    >>> list(read_data_table(['1\t1\tJSON-1-1\n', '1\t2\tJSON-1-2\n', '2\t1\tJSON-2-1\n']))
+    ['JSON-1-2\n', 'JSON-2-1\n']
+    >>> list(read_data_table(['1\t1\tJSON\\t1-1\n']))
+    ['JSON\t1-1\n']
 
     """
     xthing_id = None
@@ -221,21 +257,24 @@ def read_data_table(path):
 
     yield unescape(xjson)
 
+
 def read_rawdump(file):
     r"""
-        >>> list(read_rawdump(["/foo\t/type/page\tfoo-json\n", "/bar\t/type/doc\tbar-json\n"]))
-        [['/foo', '/type/page', 'foo-json\n'], ['/bar', '/type/doc', 'bar-json\n']]
+    >>> list(read_rawdump(["/foo\t/type/page\tfoo-json\n", "/bar\t/type/doc\tbar-json\n"]))
+    [['/foo', '/type/page', 'foo-json\n'], ['/bar', '/type/doc', 'bar-json\n']]
     """
     return (line.split("\t", 2) for line in xopen(file))
+
 
 def write_rawdump(file, data):
     # assuming that newline is already present in json (column#3).
     file.writelines("%s\t%s\t%s" % row for row in data)
 
+
 def read_json(file):
     r"""
-        >>> list(read_json(['{"key": "/foo", "type": {"key": "/type/page"}, "title": "foo"}\n']))
-        [('/foo', '/type/page', '{"key": "/foo", "type": {"key": "/type/page"}, "title": "foo"}\n')]
+    >>> list(read_json(['{"key": "/foo", "type": {"key": "/type/page"}, "title": "foo"}\n']))
+    [('/foo', '/type/page', '{"key": "/foo", "type": {"key": "/type/page"}, "title": "foo"}\n')]
     """
     for json_data in xopen(file):
         d = json.loads(json_data)
@@ -245,45 +284,59 @@ def read_json(file):
             print(json_data)
         yield ret
 
+
 def xopen(file):
     if isinstance(file, str):
         if file == "-":
             return sys.stdin
         elif file.endswith('.gz'):
             import gzip
+
             return gzip.open(file)
         else:
             return open(file)
     else:
         return file
 
+
 def make_dict(items):
     return dict(items)
 
-re_json_strip = re.compile(r', "(latest_revision|revision|id)": \d+|, "(last_modified|type|created)": {[^{}]*}')
+
+re_json_strip = re.compile(
+    r', "(latest_revision|revision|id)": \d+|, "(last_modified|type|created)": {[^{}]*}'
+)
+
+
 def strip_json(json_data):
     """remove created, last_modified, type, etc from json_data."""
     return re_json_strip.sub("", json_data)
 
+
 def log(*a):
     print(time.asctime(), " ".join(map(str, a)), file=sys.stderr)
 
+
 def capture_stdout(f):
     from six import StringIO
+
     def g(*a):
         stdout, sys.stdout = sys.stdout, StringIO()
         f(*a)
         out, sys.stdout = sys.stdout.getvalue(), stdout
         return out
+
     return g
+
 
 @command
 def test(*args):
-    """Test this module.
-    """
+    """Test this module."""
     sys.argv = args
     import doctest
+
     doctest.testmod()
+
 
 if __name__ == "__main__":
     main()

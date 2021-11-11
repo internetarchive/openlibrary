@@ -30,6 +30,7 @@ from openlibrary.api import OpenLibrary, marshal  # noqa: E402
 
 __version__ = "0.2"
 
+
 def find(server, prefix):
     q = {'key~': prefix, 'limit': 1000}
 
@@ -62,20 +63,50 @@ desc = """Script to copy docs from one OL instance to another.
 Typically used to copy templates, macros, css and js from
 openlibrary.org to dev instance. paths can end with wildcards.
 """
+
+
 def parse_args():
-    parser = OptionParser("usage: %s [options] path1 path2" % sys.argv[0], description=desc, version=__version__)
+    parser = OptionParser(
+        "usage: %s [options] path1 path2" % sys.argv[0],
+        description=desc,
+        version=__version__,
+    )
     parser.add_option("-c", "--comment", dest="comment", default="", help="comment")
-    parser.add_option("--src", dest="src", metavar="SOURCE_URL", default="http://openlibrary.org/", help="URL of the source server (default: %default)")
-    parser.add_option("--dest", dest="dest", metavar="DEST_URL",
-                      default="http://localhost:8080",
-                      help="URL of the destination server (default: %default)")
-    parser.add_option("-r", "--recursive", dest="recursive", action='store_true', default=True, help="Recursively fetch all the referred docs.")
-    parser.add_option("-l", "--list", dest="lists", action="append", default=[], help="copy docs from a list.")
+    parser.add_option(
+        "--src",
+        dest="src",
+        metavar="SOURCE_URL",
+        default="http://openlibrary.org/",
+        help="URL of the source server (default: %default)",
+    )
+    parser.add_option(
+        "--dest",
+        dest="dest",
+        metavar="DEST_URL",
+        default="http://localhost:8080",
+        help="URL of the destination server (default: %default)",
+    )
+    parser.add_option(
+        "-r",
+        "--recursive",
+        dest="recursive",
+        action='store_true',
+        default=True,
+        help="Recursively fetch all the referred docs.",
+    )
+    parser.add_option(
+        "-l",
+        "--list",
+        dest="lists",
+        action="append",
+        default=[],
+        help="copy docs from a list.",
+    )
     return parser.parse_args()
 
 
 class Disk:
-    """Lets us copy templates from and records to the disk as files """
+    """Lets us copy templates from and records to the disk as files"""
 
     def __init__(self, root):
         self.root = root
@@ -86,15 +117,17 @@ class Disk:
         :param typing.List[str] keys:
         :rtype: dict
         """
+
         def f(k):
             return {
                 "key": k,
                 "type": {"key": "/type/template"},
                 "body": {
                     "type": "/type/text",
-                    "value": open(self.root + k.replace(".tmpl", ".html")).read()
-                }
+                    "value": open(self.root + k.replace(".tmpl", ".html")).read(),
+                },
             }
+
         return {k: f(k) for k in keys}
 
     def save_many(self, docs, comment=None):
@@ -103,6 +136,7 @@ class Disk:
         :param typing.List[dict or web.storage] docs:
         :param str or None comment: only here to match the signature of OpenLibrary api
         """
+
         def write(path, text):
             dir = os.path.dirname(path)
             if not os.path.exists(dir):
@@ -128,11 +162,13 @@ class Disk:
                 path = path + ".html"
                 write(path, doc['macro'])
 
+
 def read_lines(filename):
     try:
         return [line.strip() for line in open(filename)]
     except OSError:
         return []
+
 
 def get_references(doc, result=None):
     if result is None:
@@ -274,7 +310,7 @@ def copy_list(src, dest, list_key, comment):
 
     def get_list_seeds(list_key):
         d = jsonget(list_key + "/seeds.json")
-        return d['entries'] #[x['url'] for x in d['entries']]
+        return d['entries']  # [x['url'] for x in d['entries']]
 
     def add_seed(seed):
         if seed['type'] == 'edition':
@@ -297,6 +333,7 @@ def copy_list(src, dest, list_key, comment):
 
     keys = list(edition_keys) + list(work_keys)
     copy(src, dest, keys, comment=comment, recursive=True)
+
 
 def main():
     options, args = parse_args()
@@ -323,6 +360,7 @@ def main():
     keys = list(expand(src, keys))
 
     copy(src, dest, keys, comment=options.comment, recursive=options.recursive)
+
 
 if __name__ == '__main__':
     main()

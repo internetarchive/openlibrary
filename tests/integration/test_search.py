@@ -1,6 +1,7 @@
 import pytest
 from splinter import Browser
 
+
 class TestSearch:
     # host = 'https://openlibrary.org'
     host = 'http://localhost:8080'

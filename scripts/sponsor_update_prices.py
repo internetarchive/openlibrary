@@ -27,7 +27,7 @@ import requests
 import internetarchive as ia
 from getpass import getpass
 
-#15331003-receipt.json
+# 15331003-receipt.json
 BWB_URL = 'https://www.betterworldbooks.com'
 
 
@@ -37,15 +37,19 @@ if __name__ == "__main__":
             order = json.load(fin)
     else:
         session = requests.Session()
-        session.post('%s/account/login' % BWB_URL, data={
-            'user': 'openlibrary+sponsorship@archive.org',
-            'password': getpass('password: '),
-        })
+        session.post(
+            '%s/account/login' % BWB_URL,
+            data={
+                'user': 'openlibrary+sponsorship@archive.org',
+                'password': getpass('password: '),
+            },
+        )
         orders = session.get('%s/services/orders.aspx?op=History' % BWB_URL).json()
         order_ids = [order['OrderID'] for order in orders['Orders']]
         # NB: We select the *last
         order_url = '{}/services/orders.aspx?op=Details&OrderID={}'.format(
-            BWB_URL, order_ids[0])
+            BWB_URL, order_ids[0]
+        )
         order = session.get(order_url).json()
 
     for orderitem in order['Items']:

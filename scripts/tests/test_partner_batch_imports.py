@@ -16,6 +16,6 @@ class TestBiblio:
             'pagination': '226',
             'languages': ['eng'],
             'subjects': ['Sutras', 'Buddhism, sacred books'],
-            'source_records': ['bwb:9780962561856']
+            'source_records': ['bwb:9780962561856'],
         }
         assert b.json() == data

@@ -25,9 +25,10 @@ class FnToCLI:
     if __name__ == '__main__':
         FnToCLI(my_func).run()
     """
+
     def __init__(self, fn: typing.Callable):
         self.fn = fn
-        arg_names = fn.__code__.co_varnames[:fn.__code__.co_argcount]
+        arg_names = fn.__code__.co_varnames[: fn.__code__.co_argcount]
         annotations = fn.__annotations__
         num_required = len(arg_names) - len(fn.__defaults__)  # type: ignore
         default_args = arg_names[num_required:]
@@ -40,7 +41,7 @@ class FnToCLI:
         arg_docs = self.parse_docs(docs)
         self.parser = ArgumentParser(
             description=docs.split(':param', 1)[0],
-            formatter_class=ArgumentDefaultsHelpFormatter
+            formatter_class=ArgumentDefaultsHelpFormatter,
         )
         self.args: typing.Optional[Namespace] = None
         for arg in arg_names:
@@ -71,10 +72,7 @@ class FnToCLI:
         if not self.args:
             self.parse_args()
 
-        return {
-            k.replace('-', '_'): v
-            for k, v in self.args.__dict__.items()
-        }
+        return {k.replace('-', '_'): v for k, v in self.args.__dict__.items()}
 
     def run(self):
         args_dicts = self.args_dict()
@@ -88,15 +86,13 @@ class FnToCLI:
         params = docs.strip().split(':param ')[1:]
         params = [p.strip() for p in params]
         params = [p.split(':', 1) for p in params if p]
-        return {
-            name: docs.strip()
-            for [name, docs] in params
-        }
+        return {name: docs.strip() for [name, docs] in params}
 
     @staticmethod
     def type_to_argparse(typ):
         if typ == bool:
             from argparse import BooleanOptionalAction  # type: ignore
+
             return {'type': typ, 'action': BooleanOptionalAction}
         if typ in (int, str, float):
             return {'type': typ}

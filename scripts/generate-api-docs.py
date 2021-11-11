@@ -30,11 +30,14 @@ $else:
 
 t = web.template.Template(template)
 
+
 def docpath(path):
     return "docs/api/" + path.replace(".py", ".rst").replace("__init__", "index")
 
+
 def modname(path):
     return path.replace(".py", "").replace("/__init__", "").replace("/", ".")
+
 
 def write(path, text):
     dirname = os.path.dirname(path)
@@ -45,6 +48,7 @@ def write(path, text):
     f = open(path, "w")
     f.write(text)
     f.close()
+
 
 def find_python_sources(dir):
     ignores = [
@@ -67,6 +71,7 @@ def find_python_sources(dir):
             if f.endswith(".py"):
                 yield os.path.join(dirpath, f)
 
+
 def generate_docs(dir):
     shutil.rmtree(docpath(dir), ignore_errors=True)
 
@@ -85,7 +90,10 @@ def generate_docs(dir):
     for path in paths:
         dirname = os.path.dirname(path)
         if path.endswith("__init__.py"):
-            submodules = [web.lstrips(docpath(s), docpath(dirname) + "/") for s in submodule_dict[dirname]]
+            submodules = [
+                web.lstrips(docpath(s), docpath(dirname) + "/")
+                for s in submodule_dict[dirname]
+            ]
         else:
             submodules = []
         submodules.sort()
@@ -97,6 +105,7 @@ def generate_docs(dir):
         # set the modification time same as the source file
         mtime = os.stat(path).st_mtime
         os.utime(docpath(path), (mtime, mtime))
+
 
 def generate_index():
     filenames = sorted(os.listdir("docs/api"))
@@ -111,10 +120,12 @@ def generate_index():
     f.write("\n")
     f.write("\n".join("   " + filename for filename in filenames))
 
+
 def main():
     generate_docs("openlibrary")
     generate_docs("infogami")
-    #generate_index()
+    # generate_index()
+
 
 if __name__ == "__main__":
     main()
