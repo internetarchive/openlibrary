@@ -12,13 +12,16 @@ pipeline {
   }
   parameters {
     string(name: 'PARTIAL_IMPORT_SIZE', defaultValue: '', description: 'If set to a number, will only import that many records from the dump (useful for testing!)')
+    booleanParam(name: 'WIPE_OLD_POSTGRES', defaultValue: false, description: 'If true, removes the current postgres')
     booleanParam(name: 'REUSE_POSTGRES', defaultValue: false, description: 'If true, assumes a functioning postgres is running/correct')
+
+    booleanParam(name: 'WIPE_OLD_SOLR', defaultValue: false, description: 'If true, removes the current solr')
     booleanParam(name: 'INTO_SOLR_FROM_DUMP', defaultValue: true, description: 'If true, reindexes dump into solr')
     booleanParam(name: 'INDEX_WORKS', defaultValue: true, description: 'If true, reindexes works into solr')
     booleanParam(name: 'INDEX_ORPHANS', defaultValue: true, description: 'If true, reindexes orphans into solr')
     booleanParam(name: 'INDEX_SUBJECTS', defaultValue: true, description: 'If true, reindexes subjects into solr')
     booleanParam(name: 'INDEX_AUTHORS', defaultValue: true, description: 'If true, reindexes authors into solr')
-    string(name: 'MAX_CORES', defaultValue: '12', description: 'Max number of simultaneous cores')
+    string(name: 'MAX_CORES', defaultValue: '18', description: 'Max number of simultaneous cores')
   }
   environment {
     // The *host* location of Jenkins directory
@@ -42,6 +45,18 @@ pipeline {
         OL_DUMP_FILE = "${params.PARTIAL_IMPORT_SIZE ? env.PARTIAL_OL_DUMP_FILE : env.FULL_OL_DUMP_FILE}"
       }
       stages {
+        stage('Wipe old postgres') {
+          when { expression { return params.WIPE_OLD_POSTGRES } }
+          steps {
+            dir(env.HOST_SOLR_BUILDER_DIR) {
+              sh(label: 'Stop running db',
+                script: 'docker rm -f -v solr_builder_db_1 solr_builder_adminer_1 || true')
+
+              sh(label: 'Remove db volume',
+                script: 'docker volume rm solr_builder_postgres-data || true')
+            }
+          }
+        }
         stage('Setup') {
           parallel {
             stage('Launch postgres containers') {
@@ -174,6 +189,18 @@ pipeline {
             }
           }
         }
+        stage('Wipe old solr') {
+          when { expression { return params.WIPE_OLD_SOLR } }
+          steps {
+            dir(env.HOST_SOLR_BUILDER_DIR) {
+              sh(label: 'Stop solr if running',
+                script: 'docker rm -f -v solr_builder_solr_1 || true')
+
+              sh(label: 'Remove solr volume',
+                script: 'docker volume rm solr_builder_solr-data || true')
+            }
+          }
+        }
         stage('Setup') {
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
@@ -198,7 +225,7 @@ pipeline {
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
                       sh "CHUNK_ETA=70 docker-compose run --name ol_run_works --rm -T ol ./index-type.sh work ${params.MAX_CORES} works"
-                      solr_commit('solr')
+                      solr_commit()
                     }
                   }
                   post {
@@ -219,7 +246,7 @@ pipeline {
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
                       sh "CHUNK_ETA=35 docker-compose run --name ol_run_orphans --rm -T ol ./index-type.sh orphan ${params.MAX_CORES} orphans"
-                      solr_commit('solr')
+                      solr_commit()
                     }
                   }
                   post {
@@ -250,7 +277,7 @@ pipeline {
                             --skip-id-check
                       done
                       """
-                      solr_commit('solr')
+                      solr_commit()
                     }
                   }
                 }
@@ -259,7 +286,7 @@ pipeline {
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
                       sh "docker-compose run --name ol_run_authors --rm -T ol ./index-type.sh author ${params.MAX_CORES} authors"
-                      solr_commit('solr')
+                      solr_commit()
                     }
                   }
                   post {
@@ -315,14 +342,7 @@ pipeline {
   }
 }
 
-String solr_query_count(String solr_name, String type_to_count) {
-  def solr_url = "http://localhost:8983/solr/select/?q=type%3A${type_to_count}&rows=0"
-  def count_cmd = "docker-compose exec -T ${solr_name} curl -s '${solr_url}' | xmlstarlet sel -t -v '//result/@numFound'"
-  def count = sh(script: count_cmd, returnStdout: true).trim()
-  return count
-}
-
-void solr_commit(String solr_name) {
+void solr_commit() {
   sh(label: 'Solr commit the changes',
-    script: "docker-compose exec -T ${solr_name} curl http://localhost:8983/solr/openlibrary/update?commit=true")
+    script: "docker-compose exec -T solr curl http://localhost:8983/solr/openlibrary/update?commit=true")
 }

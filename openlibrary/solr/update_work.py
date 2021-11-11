@@ -7,14 +7,14 @@ import re
 from json import JSONDecodeError
 from math import ceil
 from statistics import median
-from typing import Literal, List, Optional, cast, TypedDict, Set, Dict, Any
+from typing import Literal, List, Optional, cast, TypedDict, Set, Dict, Any, Union
 
 import httpx
 import requests
 import sys
 import time
 
-from httpx import HTTPError
+from httpx import HTTPError, TimeoutException
 from six.moves.urllib.parse import urlparse
 from collections import defaultdict
 from unicodedata import normalize
@@ -24,12 +24,11 @@ import six
 from six.moves.http_client import HTTPConnection
 import web
 
-from infogami.infobase.client import ClientException
 from openlibrary import config
 from openlibrary.catalog.utils.query import set_query_host, base_url as get_ol_base_url
 from openlibrary.core import helpers as h
-from openlibrary.plugins.upstream.utils import url_quote
-from openlibrary.solr.data_provider import get_data_provider, DataProvider
+from openlibrary.solr.data_provider import get_data_provider, DataProvider, \
+    ExternalDataProvider
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.utils import uniq
 from openlibrary.utils.ddc import normalize_ddc, choose_sorting_ddc
@@ -1113,18 +1112,22 @@ def solr_update(
     try:
         resp = httpx.post(
             f'{solr_base_url}/update',
-            timeout=30,  # The default timeout is silly short
+            # Large batches especially can take a decent chunk of time
+            timeout=300,
             params=params,
             headers={'Content-Type': 'application/json'},
             content=content)
         try:
             resp_json = resp.json()
-            if errors := resp_json['responseHeader'].get('errors', []):
+            errors = resp_json['responseHeader'].get('errors', [])
+            if errors:
                 for e in errors:
                     logger.error(f'Error with solr POST update: {e}')
         except JSONDecodeError:
             logger.error('Error with solr POST update: ' + resp.text)
         resp.raise_for_status()
+    except TimeoutException:
+        logger.error('Timeout Error with solr POST update: ' + content)
     except HTTPError:
         logger.error('Error with solr POST update: ' + content)
 
@@ -1547,7 +1550,13 @@ def load_config(c_config='conf/openlibrary.yml'):
         config.load(c_config)
         config.load_config(c_config)
 
-def load_configs(c_host, c_config, c_data_provider='default'):
+
+def load_configs(
+        c_host: str,
+        c_config: str,
+        c_data_provider: Union[
+            DataProvider, Literal['default', 'legacy', 'external']] = 'default'
+) -> DataProvider:
     host = web.lstrips(c_host, "http://").strip("/")
     set_query_host(host)
 
@@ -1561,6 +1570,8 @@ def load_configs(c_host, c_config, c_data_provider='default'):
     if data_provider is None:
         if isinstance(c_data_provider, DataProvider):
             data_provider = c_data_provider
+        elif c_data_provider == 'external':
+            data_provider = ExternalDataProvider(host)
         else:
             data_provider = get_data_provider(c_data_provider, _ia_db)
     return data_provider
@@ -1581,9 +1592,9 @@ def main(
         output_file: str = None,
         commit=True,
         profile=False,
-        data_provider: Literal['default', 'legacy'] = "default",
+        data_provider: Literal['default', 'legacy', 'external'] = "default",
         solr_base: str = None,
-        solr_next=False,
+        solr_next=True,
         update: Literal['update', 'print'] = 'update'
 ):
     """
@@ -1603,6 +1614,9 @@ def main(
     load_configs(ol_url, ol_config, data_provider)
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+
+    if keys[0].startswith('//'):
+        keys = [k[1:] for k in keys]
 
     if solr_base:
         set_solr_base_url(solr_base)

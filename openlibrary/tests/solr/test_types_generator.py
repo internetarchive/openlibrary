@@ -12,5 +12,5 @@ def test_up_to_date():
         generate().strip() == open(types_path).read().strip()
     ), """
     This auto-generated file is out-of-date. Run:
-    ./openlibrary/solr/types_generator.py > ./openlibrary/solr/types.py`
+    ./openlibrary/solr/types_generator.py > ./openlibrary/solr/solr_types.py
     """
