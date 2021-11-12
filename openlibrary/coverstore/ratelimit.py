@@ -9,14 +9,15 @@ import web
 
 from openlibrary.coverstore import config
 
-class ratelimit(object):
+
+class ratelimit:
     "Instances of this class can be used as decorators"
 
     # This class is designed to be sub-classed
-    minutes = 5 # The time period
-    requests = 100 # Number of allowed requests in that time period
+    minutes = 5  # The time period
+    requests = 100  # Number of allowed requests in that time period
 
-    prefix = 'rl-' # Prefix for memcache key
+    prefix = 'rl-'  # Prefix for memcache key
 
     def __init__(self, **options):
         for key, value in options.items():
@@ -32,6 +33,7 @@ class ratelimit(object):
     def __call__(self, fn):
         def wrapper(*args, **kwargs):
             return self.view_wrapper(fn, *args, **kwargs)
+
         functools.update_wrapper(wrapper, fn)
         return wrapper
 
@@ -57,7 +59,9 @@ class ratelimit(object):
     def cache_incr(self, key):
         key = web.safestr(key)
         # add first, to ensure the key exists
-        self.get_cache().incr(key, 1) or self.get_cache().set(key, 1, time=self.expire_after())
+        self.get_cache().incr(key, 1) or self.get_cache().set(
+            key, 1, time=self.expire_after()
+        )
 
     def should_ratelimit(self):
         # ratelimit only if memcache is enabled
@@ -69,18 +73,17 @@ class ratelimit(object):
     def keys_to_check(self):
         now = datetime.datetime.now()
         return [
-            '%s%s-%s' % (
+            '{}{}-{}'.format(
                 self.prefix,
                 web.ctx.ip,
-                (now - datetime.timedelta(minutes = minute)).strftime('%Y%m%d%H%M')
-            ) for minute in range(self.minutes + 1)
+                (now - datetime.timedelta(minutes=minute)).strftime('%Y%m%d%H%M'),
+            )
+            for minute in range(self.minutes + 1)
         ]
 
     def current_key(self):
-        return '%s%s-%s' % (
-            self.prefix,
-            web.ctx.ip,
-            datetime.datetime.now().strftime('%Y%m%d%H%M')
+        return '{}{}-{}'.format(
+            self.prefix, web.ctx.ip, datetime.datetime.now().strftime('%Y%m%d%H%M')
         )
 
     def disallowed(self):

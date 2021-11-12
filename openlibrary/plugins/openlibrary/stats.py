@@ -1,6 +1,5 @@
 """Hooks for collecting performance stats.
 """
-from __future__ import print_function
 
 import logging
 import os
@@ -25,6 +24,7 @@ TIME_BUCKETS = [10, 100, 1000, 5000, 10000, 20000]  # in ms
 
 filters = {}
 
+
 def evaluate_and_store_stat(name, stat, summary):
     """Evaluates whether the given statistic is to be recorded and if
     so, records it."""
@@ -41,14 +41,15 @@ def evaluate_and_store_stat(name, stat, summary):
             if "time" in stat:
                 graphite_stats.put(name, summary[stat.time]["time"] * 100)
             elif "count" in stat:
-                #print "Storing count for key %s"%stat.count
+                # print "Storing count for key %s"%stat.count
                 # XXX-Anand: where is the code to update counts?
                 pass
             else:
                 l.warning("No storage item specified for stat %s", name)
     except Exception as k:
-        l.warning("Error while storing stats (%s). Complete traceback follows"%k)
+        l.warning("Error while storing stats (%s). Complete traceback follows" % k)
         l.warning(traceback.format_exc())
+
 
 def update_all_stats(stats_summary):
     """
@@ -56,6 +57,7 @@ def update_all_stats(stats_summary):
     """
     for stat in config.get("stats", []):
         evaluate_and_store_stat(stat, config.stats.get(stat), stats_summary)
+
 
 def stats_hook():
     """web.py unload hook to add X-OL-Stats header.
@@ -93,12 +95,14 @@ def stats_hook():
     for name, value in stats_summary.items():
         name = name.replace(".", "_")
         time = value.get("time", 0.0) * 1000
-        key  = 'ol.'+name
+        key = 'ol.' + name
         graphite_stats.put(key, time)
+
 
 def format_stats(stats):
     s = " ".join("%s %d %0.03f" % entry for entry in process_stats(stats))
-    return '"%s"' %s
+    return '"%s"' % s
+
 
 labels = {
     "total": "TT",
@@ -108,6 +112,7 @@ labels = {
     "archive.org": "IA",
     "couchdb": "CD",
 }
+
 
 def process_stats(stats):
     """Process stats and returns a list of (label, count, time) for each entry.
@@ -126,6 +131,7 @@ def process_stats(stats):
         d[label] = xcount + count, xtime + time
 
     return [(label, count, time) for label, (count, time) in sorted(d.items())]
+
 
 def register_filter(name, function):
     global filters
@@ -216,18 +222,20 @@ class GraphiteRequestStats:
             self.user = 'logged_in'
 
     def to_metric(self):
-        return '.'.join([
-            'ol',
-            'requests',
-            self.state,
-            self.method,
-            self.response_code,
-            self.user,
-            self.path_level_one,
-            'class_' + self.path_page_name,
-            self.time_bucket,
-            'count',
-        ])
+        return '.'.join(
+            [
+                'ol',
+                'requests',
+                self.state,
+                self.method,
+                self.response_code,
+                self.user,
+                self.path_level_one,
+                'class_' + self.path_page_name,
+                self.time_bucket,
+                'count',
+            ]
+        )
 
 
 def page_load_hook():

@@ -1,5 +1,4 @@
 #!/usr/bin/python2.5
-from __future__ import print_function
 from openlibrary.catalog.marc.fast_parse import *
 from openlibrary.catalog.get_ia import get_from_archive
 import sys
@@ -10,9 +9,11 @@ sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
 re_subtag = re.compile('\x1f[^\x1b]')
 
+
 def fmt_subfields(line, is_marc8=False):
     def bold(s):
         return ''.join(c + "\b" + c for c in s)
+
     assert line[-1] == '\x1e'
 
     encode = {
@@ -27,11 +28,18 @@ def fmt_subfields(line, is_marc8=False):
         if prev is None:
             prev = m.start()
             continue
-        subfields.append(line[prev+3:m.start()+2])
+        subfields.append(line[prev + 3 : m.start() + 2])
         prev = m.start()
-    subfields.append(line[prev+3:-1])
+    subfields.append(line[prev + 3 : -1])
 
-    return ''.join(' ' + bold('$' + i[0]) + ' ' + (translate(i[1:], leader_says_marc8=leader_says_marc8) if i else '') for i in subfields)
+    return ''.join(
+        ' '
+        + bold('$' + i[0])
+        + ' '
+        + (translate(i[1:], leader_says_marc8=leader_says_marc8) if i else '')
+        for i in subfields
+    )
+
 
 def show_book(data):
     is_marc8 = data[9] == ' '
@@ -43,6 +51,7 @@ def show_book(data):
             print(tag, line[:-1])
         else:
             print(tag, line[0:2], fmt_subfields(line, is_marc8=is_marc8))
+
 
 if __name__ == '__main__':
     source = sys.argv[1]

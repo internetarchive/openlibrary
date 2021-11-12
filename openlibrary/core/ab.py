@@ -19,6 +19,7 @@ from infogami import config
 
 logger = logging.getLogger("openlibrary.ab")
 
+
 def get_session():
     if "sixpack_session" not in web.ctx:
         cookies = web.cookies(sixpack_id=None)
@@ -28,17 +29,18 @@ def get_session():
         web.ctx.sixpack_session = session
     return web.ctx.sixpack_session
 
+
 def _get_sixpack_options():
     host = config.get('sixpack_url')
-    return {
-        'host': host
-    }
+    return {'host': host}
+
 
 def get_ab_value(testname):
     cache = web.ctx.setdefault("sixpack_cache", {})
     if testname not in cache:
         cache[testname] = participate(testname)
     return cache[testname]
+
 
 def participate(testname, alternatives=None):
     if alternatives is None:
@@ -53,6 +55,7 @@ def participate(testname, alternatives=None):
         # default value when no alternatives are provided in config.
         value = 'control'
     return value
+
 
 def convert(testname):
     logger.info("convert %s", testname)

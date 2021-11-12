@@ -21,8 +21,13 @@ import six
 
 __all__ = [
     "cached_property",
-    "Cache", "MemoryCache", "MemcacheCache", "RequestCache",
-    "memoize", "memcache_memoize", "get_memcache"
+    "Cache",
+    "MemoryCache",
+    "MemcacheCache",
+    "RequestCache",
+    "memoize",
+    "memcache_memoize",
+    "get_memcache",
 ]
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
@@ -44,21 +49,16 @@ class memcache_memoize:
     :param timeout: timeout in seconds after which the return value must be updated
     :param prethread: Function to call on the new thread to set it up
     """
+
     def __init__(self, f, key_prefix=None, timeout=MINUTE_SECS, prethread=None):
-        """Creates a new memoized function for ``f``.
-        """
+        """Creates a new memoized function for ``f``."""
         self.f = f
         self.key_prefix = key_prefix or self._generate_key_prefix()
         self.timeout = timeout
 
         self._memcache = None
 
-        self.stats = web.storage(
-            calls=0,
-            hits=0,
-            updates=0,
-            async_updates=0
-        )
+        self.stats = web.storage(calls=0, hits=0, updates=0, async_updates=0)
         self.active_threads = {}
         self.prethread = prethread
 
@@ -68,12 +68,16 @@ class memcache_memoize:
             if servers:
                 self._memcache = memcache.Client(servers)
             else:
-                web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
+                web.debug(
+                    "Could not find memcache_servers in the configuration. Used dummy memcache."
+                )
                 try:
                     import mockcache  # Only supports legacy Python
+
                     self._memcache = mockcache.Client()
                 except ImportError:  # Python 3
                     from pymemcache.test.utils import MockMemcacheClient
+
                     self._memcache = MockMemcacheClient()
 
         return self._memcache
@@ -121,8 +125,7 @@ class memcache_memoize:
         return value
 
     def update_async(self, *args, **kw):
-        """Starts the update process asynchronously.
-        """
+        """Starts the update process asynchronously."""
         t = threading.Thread(target=self._update_async_worker, args=args, kwargs=kw)
         self.active_threads[t.getName()] = t
         t.start()
@@ -177,10 +180,11 @@ class memcache_memoize:
             return a
 
     def compute_key(self, args, kw):
-        """Computes memcache key for storing result of function call with given arguments.
-        """
+        """Computes memcache key for storing result of function call with given arguments."""
         key = self.key_prefix + "-" + self.encode_args(args, kw)
-        return key.replace(" ", "_")  # XXX: temporary fix to handle spaces in the arguments
+        return key.replace(
+            " ", "_"
+        )  # XXX: temporary fix to handle spaces in the arguments
 
     def json_encode(self, value):
         """json.dumps without extra spaces.
@@ -190,8 +194,7 @@ class memcache_memoize:
         return json.dumps(value, separators=(",", ":"))
 
     def memcache_set(self, args, kw, value, time):
-        """Adds value and time to memcache. Key is computed from the arguments.
-        """
+        """Adds value and time to memcache. Key is computed from the arguments."""
         key = self.compute_key(args, kw)
         json_data = self.json_encode([value, time])
 
@@ -217,6 +220,7 @@ class memcache_memoize:
 
         return json_str and json.loads(json_str)
 
+
 ####
 
 
@@ -238,14 +242,15 @@ def cached_property(getter):
         value = getter(self)
         self.__dict__[name] = value
         return value
+
     return property(g)
 
 
-class Cache(object):
+class Cache:
     """Cache interface."""
+
     def get(self, key):
-        """Returns the value for given key. Returns None if that key is not present in the cache.
-        """
+        """Returns the value for given key. Returns None if that key is not present in the cache."""
         raise NotImplementedError()
 
     def set(self, key, value, expires=0):
@@ -271,8 +276,8 @@ class Cache(object):
 
 
 class MemoryCache(Cache):
-    """Cache implementation in memory.
-    """
+    """Cache implementation in memory."""
+
     def __init__(self):
         self.d = {}
 
@@ -299,18 +304,23 @@ class MemcacheCache(Cache):
 
     Expects that the memcache servers are specified in web.config.memcache_servers.
     """
+
     @cached_property
     def memcache(self):
         servers = config.get("memcache_servers", None)
         if servers:
             return olmemcache.Client(servers)
         else:
-            web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
+            web.debug(
+                "Could not find memcache_servers in the configuration. Used dummy memcache."
+            )
             try:
                 import mockcache
+
                 return mockcache.Client()
             except ImportError:
                 from pymemcache.test.utils import MockMemcacheClient
+
                 return MockMemcacheClient()
 
     def get(self, key):
@@ -349,6 +359,7 @@ class RequestCache(Cache):
 
     The values are cached only in the context of the current request.
     """
+
     @property
     def d(self):
         return web.ctx.setdefault("request-local-cache", {})
@@ -380,7 +391,7 @@ def _get_cache(engine):
         "memory": memory_cache,
         "memcache": memcache_cache,
         "memcache+memory": memcache_cache,
-        "request": request_cache
+        "request": request_cache,
     }
     return d.get(engine)
 
@@ -439,21 +450,24 @@ class memoize:
         def get_page(key):
             pass
     """
-    def __init__(self, engine="memory", key=None, expires=0, background=False, cacheable=None):
+
+    def __init__(
+        self, engine="memory", key=None, expires=0, background=False, cacheable=None
+    ):
         self.cache = _get_cache(engine)
         self.keyfunc = self._make_key_func(key)
         self.cacheable = cacheable
         self.expires = expires
 
     def _make_key_func(self, key):
-        if isinstance(key, six.string_types):
+        if isinstance(key, str):
             return PrefixKeyFunc(key)
         else:
             return key
 
     def __call__(self, f):
-        """Returns the memoized version of f.
-        """
+        """Returns the memoized version of f."""
+
         @functools.wraps(f)
         def func(*args, **kwargs):
             """The memoized function.
@@ -467,6 +481,7 @@ class memoize:
                 value = f(*args, **kwargs)
                 self.cache_set(key, value)
             return value
+
         return func
 
     def cache_get(self, key):
@@ -514,8 +529,8 @@ class memoize:
 
 
 class PrefixKeyFunc:
-    """A function to generate cache keys using a prefix and arguments.
-    """
+    """A function to generate cache keys using a prefix and arguments."""
+
     def __init__(self, prefix):
         self.prefix = prefix
 
@@ -547,16 +562,21 @@ def method_memoize(f):
     object-local memoize.
     Works only for functions with simple arguments; i.e. JSON serializeable
     """
+
     @functools.wraps(f)
     def g(self, *args, **kwargs):
         cache = self.__dict__.setdefault('_memoize_cache', {})
-        key = json.dumps({
-            'function': f.__name__,
-            'args': args,
-            'kwargs': kwargs,
-        }, sort_keys=True)
+        key = json.dumps(
+            {
+                'function': f.__name__,
+                'args': args,
+                'kwargs': kwargs,
+            },
+            sort_keys=True,
+        )
 
         if key not in cache:
             cache[key] = f(self, *args, **kwargs)
         return cache[key]
+
     return g

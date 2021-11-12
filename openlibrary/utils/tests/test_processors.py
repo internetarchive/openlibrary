@@ -3,9 +3,10 @@ import time
 
 from ..processors import RateLimitProcessor
 
+
 class TestRateLimitProcessor:
-    """py.test testcase for testing RateLimitProcessor.
-    """
+    """py.test testcase for testing RateLimitProcessor."""
+
     def setup_method(self, method):
         web.ctx.ip = "127.0.0.1"
 

@@ -4,14 +4,13 @@ from __future__ import annotations
 import os
 
 root = os.path.dirname(__file__)
-OVERRIDES = {
-    'type': "Literal['work', 'author', 'subject']"
-}
+OVERRIDES = {'type': "Literal['work', 'author', 'subject']"}
 
 
 def generate():
     """This function generates the types.py file."""
     import xml.etree.ElementTree as ET
+
     # read the managed-schema xml file
     solr_schema = ET.parse(os.path.join(root, '../../conf/solr/conf/managed-schema'))
     python_fields: list[str] = []
