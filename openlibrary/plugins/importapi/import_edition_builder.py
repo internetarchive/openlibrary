@@ -17,12 +17,11 @@ A sample dict looks like one of these:
 {'publishers': [u'Ace Books'], 'pagination': u'271 p. ;', 'title': u'Neuromancer', 'lccn': [u'91174394'], 'notes': u'Hugo award book, 1985; Nebula award ; Philip K. Dick award', 'number_of_pages': 271, 'isbn_13': [u'9780441569595'], 'languages': ['eng'], 'dewey_decimal_class': [u'813/.54'], 'lc_classifications': [u'PS3557.I2264 N48 1984', u'PR9199.3.G53 N49 1984'], 'publish_date': '1984', 'publish_country': 'nyu', 'authors': [{'birth_date': u'1948', 'personal_name': u'Gibson, William', 'name': u'Gibson, William', 'entity_type': 'person'}], 'by_statement': u'William Gibson', 'oclc_numbers': ['24379880'], 'publish_places': [u'New York'], 'isbn_10': [u'0441569595']}
 {'publishers': [u'Grosset & Dunlap'], 'pagination': u'156 p.', 'title': u'Great trains of all time', 'lccn': [u'62051844'], 'number_of_pages': 156, 'languages': ['eng'], 'dewey_decimal_class': [u'625.2'], 'lc_classifications': [u'TF147 .H8'], 'publish_date': '1962', 'publish_country': 'nyu', 'authors': [{'birth_date': u'1894', 'personal_name': u'Hubbard, Freeman H.', 'name': u'Hubbard, Freeman H.', 'entity_type': 'person'}], 'by_statement': u'Illustrated by Herb Mott', 'oclc_numbers': [u'1413013'], 'publish_places': [u'New York']}
 """
-from __future__ import print_function
 
 from openlibrary.plugins.importapi.import_validator import import_validator
 
-class import_edition_builder:
 
+class import_edition_builder:
     def add_string(self, key, val):
         self.edition_dict[key] = val
 
@@ -35,15 +34,11 @@ class import_edition_builder:
     def add_author(self, key, val):
         # We don't know birth_date or death_date.
         # Should name and personal_name be the same value?
-        author_dict = {
-           'personal_name': val,
-           'name': val,
-           'entity_type': 'person'
-        }
+        author_dict = {'personal_name': val, 'name': val, 'entity_type': 'person'}
         self.add_list('authors', author_dict)
 
     def add_illustrator(self, key, val):
-        self.add_list('contributions', val + u' (Illustrator)')
+        self.add_list('contributions', val + ' (Illustrator)')
 
     def __init__(self, init_dict=None):
         init_dict = init_dict or {}
@@ -51,24 +46,24 @@ class import_edition_builder:
         self._validate()
 
         self.type_dict = {
-            'title'              : ['title',          self.add_string],
-            'author'             : ['authors',        self.add_author],
-            'publisher'          : ['publishers',     self.add_list],
-            'publish_place'      : ['publish_places', self.add_list],
-            'publish_date'       : ['publish_date',   self.add_string],
-            'pagination'         : ['pagination',     self.add_string],
-            'subject'            : ['subjects',       self.add_list],
-            'language'           : ['languages',      self.add_list],
-            'description'        : ['description',    self.add_string],
-            'lccn'               : ['lccn',           self.add_list],
-            'oclc_number'        : ['oclc_numbers',   self.add_list],
-            'isbn_10'            : ['isbn_10',        self.add_list],
-            'isbn_13'            : ['isbn_13',        self.add_list],
-            'ocaid'              : ['ocaid',          self.add_string],
-            'illustrator'        : ['contributions',  self.add_illustrator],
-            'source_record'      : ['source_records', self.add_list],
+            'title': ['title', self.add_string],
+            'author': ['authors', self.add_author],
+            'publisher': ['publishers', self.add_list],
+            'publish_place': ['publish_places', self.add_list],
+            'publish_date': ['publish_date', self.add_string],
+            'pagination': ['pagination', self.add_string],
+            'subject': ['subjects', self.add_list],
+            'language': ['languages', self.add_list],
+            'description': ['description', self.add_string],
+            'lccn': ['lccn', self.add_list],
+            'oclc_number': ['oclc_numbers', self.add_list],
+            'isbn_10': ['isbn_10', self.add_list],
+            'isbn_13': ['isbn_13', self.add_list],
+            'ocaid': ['ocaid', self.add_string],
+            'illustrator': ['contributions', self.add_illustrator],
+            'source_record': ['source_records', self.add_list],
             'dewey_decimal_class': ['dewey_decimal_class', self.add_list],
-            'lc_classification'  : ['lc_classifications',  self.add_list],
+            'lc_classification': ['lc_classifications', self.add_list],
         }
 
     def _validate(self):
@@ -83,7 +78,7 @@ class import_edition_builder:
             return
 
         if key in self.type_dict:
-            new_key  = self.type_dict[key][0]
+            new_key = self.type_dict[key][0]
             add_func = self.type_dict[key][1]
             add_func(new_key, val)
         else:

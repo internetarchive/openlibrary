@@ -1,6 +1,5 @@
 """Utility to move files from local disk to tar files and update the paths in the db.
 """
-from __future__ import print_function
 import tarfile
 import web
 import os
@@ -12,13 +11,15 @@ from openlibrary.coverstore.coverlib import find_image_path
 import six
 
 
-#logfile = open('log.txt', 'a')
+# logfile = open('log.txt', 'a')
+
 
 def log(*args):
     msg = " ".join(args)
     print(msg)
-    #print >> logfile, msg
-    #logfile.flush()
+    # print >> logfile, msg
+    # logfile.flush()
+
 
 class TarManager:
     def __init__(self):
@@ -30,11 +31,11 @@ class TarManager:
 
     def get_tarfile(self, name):
         id = web.numify(name)
-        tarname = "covers_%s_%s.tar" % (id[:4], id[4:6])
+        tarname = f"covers_{id[:4]}_{id[4:6]}.tar"
 
         # for id-S.jpg, id-M.jpg, id-L.jpg
         if '-' in name:
-            size = name[len(id + '-'):][0].lower()
+            size = name[len(id + '-') :][0].lower()
             tarname = size + "_" + tarname
         else:
             size = ""
@@ -49,7 +50,7 @@ class TarManager:
         return _tarfile, _indexfile
 
     def open_tarfile(self, name):
-        path = os.path.join(config.data_root, "items", name[:-len("_XX.tar")], name)
+        path = os.path.join(config.data_root, "items", name[: -len("_XX.tar")], name)
         dir = os.path.dirname(path)
         if not os.path.exists(dir):
             os.makedirs(dir)
@@ -73,15 +74,19 @@ class TarManager:
 
         tar.addfile(tarinfo, fileobj=fileobj)
 
-        index.write('%s\t%s\t%s\n' % (name, offset, tarinfo.size))
-        return "%s:%s:%s" % (os.path.basename(tar.name), offset, tarinfo.size)
+        index.write(f'{name}\t{offset}\t{tarinfo.size}\n')
+        return f"{os.path.basename(tar.name)}:{offset}:{tarinfo.size}"
 
     def close(self):
         for name, _tarfile, _indexfile in self.tarfiles.values():
             if name:
                 _tarfile.close()
                 _indexfile.close()
+
+
 idx = id
+
+
 def archive():
     """Move files from local disk to tar files and update the paths in the db."""
     tar_manager = TarManager()
@@ -97,20 +102,31 @@ def archive():
 
             files = {
                 'filename': web.storage(name=id + '.jpg', filename=cover.filename),
-                'filename_s': web.storage(name=id + '-S.jpg', filename=cover.filename_s),
-                'filename_m': web.storage(name=id + '-M.jpg', filename=cover.filename_m),
-                'filename_l': web.storage(name=id + '-L.jpg', filename=cover.filename_l),
+                'filename_s': web.storage(
+                    name=id + '-S.jpg', filename=cover.filename_s
+                ),
+                'filename_m': web.storage(
+                    name=id + '-M.jpg', filename=cover.filename_m
+                ),
+                'filename_l': web.storage(
+                    name=id + '-L.jpg', filename=cover.filename_l
+                ),
             }
 
             for d in files.values():
-                d.path = d.filename and os.path.join(config.data_root, "localdisk", d.filename)
+                d.path = d.filename and os.path.join(
+                    config.data_root, "localdisk", d.filename
+                )
 
-            if any(d.path is None or not os.path.exists(d.path) for d in files.values()):
+            if any(
+                d.path is None or not os.path.exists(d.path) for d in files.values()
+            ):
                 print("Missing image file for %010d" % cover.id, file=web.debug)
                 continue
 
-            if isinstance(cover.created, six.string_types):
+            if isinstance(cover.created, str):
                 from infogami.infobase import utils
+
                 cover.created = utils.parse_datetime(cover.created)
 
             timestamp = time.mktime(cover.created.timetuple())
@@ -118,18 +134,20 @@ def archive():
             for d in files.values():
                 d.newname = tar_manager.add_file(d.name, open(d.path), timestamp)
 
-            _db.update('cover', where="id=$cover.id",
+            _db.update(
+                'cover',
+                where="id=$cover.id",
                 archived=True,
                 filename=files['filename'].newname,
                 filename_s=files['filename_s'].newname,
                 filename_m=files['filename_m'].newname,
                 filename_l=files['filename_l'].newname,
-                vars=locals()
+                vars=locals(),
             )
 
             for d in files.values():
                 print('removing', d.path)
                 os.remove(d.path)
     finally:
-        #logfile.close()
+        # logfile.close()
         tar_manager.close()

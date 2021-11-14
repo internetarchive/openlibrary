@@ -11,6 +11,8 @@ re_comma = re.compile('^([A-Z])([A-Za-z ]+?) *, ([A-Z][A-Z a-z]+)$')
 
 re_place_comma = re.compile('^(.+), (.+)$')
 re_paren = re.compile('[()]')
+
+
 def flip_place(s):
     s = remove_trailing_dot(s)
     # Whitechapel (London, England)
@@ -21,12 +23,14 @@ def flip_place(s):
     m = re_place_comma.match(s)
     return m.group(2) + ' ' + m.group(1) if m else s
 
+
 def flip_subject(s):
     m = re_comma.match(s)
     if m:
-        return m.group(3) + ' ' + m.group(1).lower()+m.group(2)
+        return m.group(3) + ' ' + m.group(1).lower() + m.group(2)
     else:
         return s
+
 
 def tidy_subject(s):
     s = s.strip()
@@ -44,9 +48,10 @@ def tidy_subject(s):
         return m.group(3) + ' ' + m.group(1) + m.group(2)
     return s
 
+
 def four_types(i):
-    want = set(['subject', 'time', 'place', 'person'])
-    ret = dict((k, i[k]) for k in want if k in i)
+    want = {'subject', 'time', 'place', 'person'}
+    ret = {k: i[k] for k in want if k in i}
     for j in (j for j in i if j not in want):
         for k, v in i[j].items():
             if 'subject' in ret:
@@ -55,7 +60,10 @@ def four_types(i):
                 ret['subject'] = {k: v}
     return ret
 
+
 re_aspects = re.compile(' [Aa]spects$')
+
+
 def find_aspects(f):
     cur = [(i, j) for i, j in f.get_subfields('ax')]
     if len(cur) < 2 or cur[0][0] != 'a' or cur[1][0] != 'x':
@@ -69,7 +77,9 @@ def find_aspects(f):
         a = 'the Human body'
     return x + ' of ' + flip_subject(a)
 
-subject_fields = set(['600', '610', '611', '630', '648', '650', '651', '662'])
+
+subject_fields = {'600', '610', '611', '630', '648', '650', '651', '662'}
+
 
 def read_subjects(rec):
     subjects = defaultdict(lambda: defaultdict(int))
@@ -77,7 +87,7 @@ def read_subjects(rec):
         f = rec.decode_field(field)
         aspects = find_aspects(f)
 
-        if tag == '600': # people
+        if tag == '600':  # people
             name_and_date = []
             for k, v in f.get_subfields(['a', 'b', 'c', 'd']):
                 v = '(' + v.strip('.() ') + ')' if k == 'd' else v.strip(' /,;:')
@@ -89,7 +99,7 @@ def read_subjects(rec):
             name = remove_trailing_dot(' '.join(name_and_date)).strip()
             if name != '':
                 subjects['person'][name] += 1
-        elif tag == '610': # org
+        elif tag == '610':  # org
             v = ' '.join(f.get_subfield_values('abcd'))
             v = v.strip()
             if v:
@@ -107,14 +117,14 @@ def read_subjects(rec):
                     v = tidy_subject(v)
                 if v:
                     subjects['org'][v] += 1
-        elif tag == '611': # event
+        elif tag == '611':  # event
             v = ' '.join(j.strip() for i, j in f.get_all_subfields() if i not in 'vxyz')
             if v:
                 v = v.strip()
             v = tidy_subject(v)
             if v:
                 subjects['event'][v] += 1
-        elif tag == '630': # work
+        elif tag == '630':  # work
             for v in f.get_subfield_values(['a']):
                 v = v.strip()
                 if v:
@@ -123,14 +133,14 @@ def read_subjects(rec):
                     v = tidy_subject(v)
                 if v:
                     subjects['work'][v] += 1
-        elif tag == '650': # topical
+        elif tag == '650':  # topical
             for v in f.get_subfield_values(['a']):
                 if v:
                     v = v.strip()
                 v = tidy_subject(v)
                 if v:
                     subjects['subject'][v] += 1
-        elif tag == '651': # geo
+        elif tag == '651':  # geo
             for v in f.get_subfield_values(['a']):
                 if v:
                     subjects['place'][flip_place(v).strip()] += 1
@@ -160,7 +170,8 @@ def read_subjects(rec):
             if v:
                 subjects['subject'][v] += 1
 
-    return dict((k, dict(v)) for k, v in subjects.items())
+    return {k: dict(v) for k, v in subjects.items()}
+
 
 def subjects_for_work(rec):
     field_map = {
@@ -172,6 +183,4 @@ def subjects_for_work(rec):
 
     subjects = four_types(read_subjects(rec))
 
-    return dict((field_map[k], list(v)) for k, v in subjects.items())
-
-
+    return {field_map[k]: list(v) for k, v in subjects.items()}

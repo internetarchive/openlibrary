@@ -1,6 +1,5 @@
 """Library to process edition, work and author records and emit (key, property, value) triples that can be combined later for solr indexing.
 """
-from __future__ import print_function
 import os
 import sys
 import re
@@ -13,25 +12,39 @@ import itertools
 
 from openlibrary.data.dump import read_tsv, log
 
+
 def subdict(d, properties):
     unique_properties = set(properties)
     return {k: v for k, v in d.items() if k in unique_properties}
 
+
 def process_edition(doc):
     properties = [
         'key',
-        'isbn_10', 'isbn_13', 'lccn', 'oclc',
-        'dewey_decimal_class', 'lc_classifications',
-        'publishers', 'publish_places', 'publish_date',
-        'title', 'subtitle', 'languages', 'covers',
-        'number_of_pages', 'pagination',
-        'contributions'
+        'isbn_10',
+        'isbn_13',
+        'lccn',
+        'oclc',
+        'dewey_decimal_class',
+        'lc_classifications',
+        'publishers',
+        'publish_places',
+        'publish_date',
+        'title',
+        'subtitle',
+        'languages',
+        'covers',
+        'number_of_pages',
+        'pagination',
+        'contributions',
     ]
     json_data = json.dumps(subdict(doc, properties))
     return [(w['key'], 'edition', json_data) for w in doc.get('works', [])]
 
+
 def fix_subjects(doc):
     """In some records, the subjects are references/text instead of string. This function fixes that."""
+
     def fix(s):
         if isinstance(s, dict):
             if 'value' in s:
@@ -44,6 +57,7 @@ def fix_subjects(doc):
         if name in doc:
             doc[name] = [fix(s) for s in doc[name]]
     return doc
+
 
 def get_subjects(doc):
     for s in doc.get('subjects', []):
@@ -58,16 +72,28 @@ def get_subjects(doc):
     for s in doc.get('subject_times', []):
         yield s, '/subjects/time:' + s.lower().replace(' ', '_')
 
+
 def process_work(doc, author_db, redirect_db):
     doc = fix_subjects(doc)
 
     properties = [
-        "title", "subtitle", "translated_titles", "other_titles",
-        "subjects", "subject_places", "subject_people", "subject_times", "genres",
+        "title",
+        "subtitle",
+        "translated_titles",
+        "other_titles",
+        "subjects",
+        "subject_places",
+        "subject_people",
+        "subject_times",
+        "genres",
     ]
     yield doc['key'], "json", json.dumps(subdict(doc, properties))
 
-    authors = [a['author']['key'] for a in doc.get('authors', []) if 'author' in a and 'key' in a['author']]
+    authors = [
+        a['author']['key']
+        for a in doc.get('authors', [])
+        if 'author' in a and 'key' in a['author']
+    ]
     for akey in set(authors):
         akey = find_redirect(redirect_db, akey) or akey
         olid = akey.split("/")[-1]
@@ -83,10 +109,19 @@ def process_work(doc, author_db, redirect_db):
         for a in authors:
             yield a, "subject", key
 
+
 def process_author(doc):
     key = doc['key']
-    properties = ["name", "personal_name", "alternate_names", "birth_date", "death_date", "date"]
+    properties = [
+        "name",
+        "personal_name",
+        "alternate_names",
+        "birth_date",
+        "death_date",
+        "date",
+    ]
     return [(key, 'json', json.dumps(subdict(doc, properties)))]
+
 
 class Writer:
     def __init__(self):
@@ -111,7 +146,7 @@ class Writer:
     def get_file(self, key):
         filename = self.get_filename(key)
         if filename not in self.files:
-            self.files[filename] = open('solrdump/' + filename, 'w', 5*1024*1024)
+            self.files[filename] = open('solrdump/' + filename, 'w', 5 * 1024 * 1024)
         return self.files[filename]
 
     def write(self, triples):
@@ -128,9 +163,11 @@ class Writer:
         for f in self.files.values():
             f.flush()
 
+
 def process_author_dump(writer, authors_dump):
     import bsddb
-    db = bsddb.btopen('solrdump/authors.db', 'w', cachesize=1024*1024*1024)
+
+    db = bsddb.btopen('solrdump/authors.db', 'w', cachesize=1024 * 1024 * 1024)
 
     properties = ['key', 'name', 'alternate_names', 'personal_name']
     for type, key, revision, timestamp, json_data in read_tsv(authors_dump):
@@ -142,9 +179,11 @@ def process_author_dump(writer, authors_dump):
         writer.write(process_author(author))
     return db
 
+
 def process_redirect_dump(writer, redirects_dump):
     import bsddb
-    db = bsddb.btopen('solrdump/redirects.db', 'w', cachesize=1024*1024*1024)
+
+    db = bsddb.btopen('solrdump/redirects.db', 'w', cachesize=1024 * 1024 * 1024)
 
     for type, key, revision, timestamp, json_data in read_tsv(redirects_dump):
         d = json.loads(json_data)
@@ -164,6 +203,7 @@ def process_redirect_dump(writer, redirects_dump):
                 writer.write([(redirect, "redirect", key)])
 
     return db
+
 
 def find_redirect(redirect_db, key):
     """Finds the redirection of the given key if any.
@@ -199,19 +239,23 @@ def find_redirect(redirect_db, key):
 
     return None
 
+
 def process_work_dump(writer, works_dump, author_db, redirect_db):
     for type, key, revision, timestamp, json_data in read_tsv(works_dump):
         doc = json.loads(json_data)
         writer.write(process_work(doc, author_db, redirect_db))
+
 
 def process_edition_dump(writer, editions_dump):
     for type, key, revision, timestamp, json_data in read_tsv(editions_dump):
         doc = json.loads(json_data)
         writer.write(process_edition(doc))
 
+
 def generate_dump(editions_dump, works_dump, authors_dump, redirects_dump):
     pharse1_process_dumps(editions_dump, works_dump, authors_dump, redirects_dump)
     phase2_process_files()
+
 
 def pharse1_process_dumps(editions_dump, works_dump, authors_dump, redirects_dump):
     writer = Writer()
@@ -229,18 +273,24 @@ def pharse1_process_dumps(editions_dump, works_dump, authors_dump, redirects_dum
     writer = None
     log("done")
 
+
 def phase2_process_files():
-    f = open("solrdump/solrdump_works.txt", "w", 5*1024*1024)
+    f = open("solrdump/solrdump_works.txt", "w", 5 * 1024 * 1024)
 
     for path in glob.glob("solrdump/works_*"):
-        f.writelines("%s\t%s\n" % (key, json.dumps(process_solr_work_record(key, d)))
-            for key, d in process_triples(path))
+        f.writelines(
+            f"{key}\t{json.dumps(process_solr_work_record(key, d))}\n"
+            for key, d in process_triples(path)
+        )
+
 
 def process_work_triples(path):
     for key, work in process_triples(path):
         yield key, process_work_triples(key, work)
 
+
 re_year = re.compile(r'(\d{4})$')
+
 
 def process_solr_work_record(key, d):
     editions = d.pop('edition', [])
@@ -295,7 +345,9 @@ def process_solr_work_record(key, d):
     r['ia_count'] = len(r['ia'])
     r['has_fulltext'] = bool(r['ia'])
 
-    r['publish_year'] = [m.group(1) for m in [re_year.match(date) for date in r['publish_date']] if m]
+    r['publish_year'] = [
+        m.group(1) for m in [re_year.match(date) for date in r['publish_date']] if m
+    ]
     if r['publish_year']:
         r['first_publish_year'] = min(r['publish_year'])
 
@@ -307,14 +359,16 @@ def process_solr_work_record(key, d):
     r['language'] = [basename(lang['key']) for lang in r['language']]
 
     # push google scans to the end
-    r['ia'] = [ia for ia in r['ia'] if not ia.startswith("goog")] + [ia for ia in r['ia'] if ia.startwith("goog")]
+    r['ia'] = [ia for ia in r['ia'] if not ia.startswith("goog")] + [
+        ia for ia in r['ia'] if ia.startwith("goog")
+    ]
 
-    r['author_facet'] =  [' '.join(v) for v in zip(r['author_keys'], r['author_names'])]
+    r['author_facet'] = [' '.join(v) for v in zip(r['author_keys'], r['author_names'])]
     return r
 
+
 def process_triples(path):
-    """Takes a file with triples, sort it using first column and groups it by first column.
-    """
+    """Takes a file with triples, sort it using first column and groups it by first column."""
     print("processing triples from", path)
     cmd = ["sort", path]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
@@ -326,6 +380,8 @@ def process_triples(path):
             d[name].append(value)
         yield key, d
 
+
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

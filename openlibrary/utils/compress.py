@@ -33,7 +33,7 @@ some_record, and restored_record being identical to some_record.
 """
 
 
-class Compressor(object):
+class Compressor:
     def __init__(self, seed):
         c = zlib.compressobj(9)
         d_seed = c.compress(seed.encode())

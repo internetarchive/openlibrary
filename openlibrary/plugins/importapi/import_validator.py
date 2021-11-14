@@ -40,9 +40,8 @@ class Book(BaseModel):
         return v
 
 
-class import_validator(object):
-
-    def validate(self, data: Dict[str, Any]):
+class import_validator:
+    def validate(self, data: dict[str, Any]):
         """Validates the given import data.
 
         Returns True if the import object is valid.

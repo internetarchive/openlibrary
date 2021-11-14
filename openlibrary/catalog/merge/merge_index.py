@@ -3,21 +3,25 @@
 import re
 from openlibrary.catalog.merge.normalize import normalize
 
+
 def short_title(s):
     return normalize(s)[:25]
 
+
 re_letters = re.compile('[A-Za-z]')
+
 
 def clean_lccn(lccn):
     return re_letters.sub('', lccn).strip()
 
+
 re_isbn = re.compile('([-0-9X]{10,})')
+
 
 def clean_isbn(isbn):
     m = re_isbn.search(isbn)
     if m:
         return m.group(1).replace('-', '')
-
 
 
 def add_to_indexes(record):
@@ -44,7 +48,7 @@ def add_to_indexes(record):
         if a not in record:
             continue
         for v in record[a]:
-            if not v or b=='isbn' and len(v) < 10:
+            if not v or b == 'isbn' and len(v) < 10:
                 continue
             if clean:
                 v = clean(v)

@@ -28,8 +28,8 @@ class lists_home(delegate.page):
 
 
 class lists(delegate.page):
-    """Controller for displaying lists of a seed or lists of a person.
-    """
+    """Controller for displaying lists of a seed or lists of a person."""
+
     path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
 
     def is_enabled(self):
@@ -73,10 +73,7 @@ class lists_delete(delegate.page):
         if doc is None or doc.type.key != '/type/list':
             raise web.notfound()
 
-        doc = {
-            "key": key,
-            "type": {"key": "/type/delete"}
-        }
+        doc = {"key": key, "type": {"key": "/type/delete"}}
         try:
             result = web.ctx.site.save(doc, action="lists", comment="Deleted list.")
         except client.ClientException as e:
@@ -86,6 +83,7 @@ class lists_delete(delegate.page):
 
         web.header("Content-Type", "application/json")
         return delegate.RawText('{"status": "ok"}')
+
 
 class lists_json(delegate.page):
     path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
@@ -119,26 +117,22 @@ class lists_json(delegate.page):
             size = len(doc.get_lists(limit=1000))
 
         d = {
-            "links": {
-                "self": web.ctx.path
-            },
+            "links": {"self": web.ctx.path},
             "size": size,
-            "entries": [lst.preview() for lst in lists]
+            "entries": [lst.preview() for lst in lists],
         }
         if offset + len(lists) < size:
             d['links']['next'] = web.changequery(limit=limit, offset=offset + limit)
 
         if offset:
-            offset = max(0, offset-limit)
+            offset = max(0, offset - limit)
             d['links']['prev'] = web.changequery(limit=limit, offset=offset)
 
         return d
 
     def forbidden(self):
         headers = {"Content-Type": self.get_content_type()}
-        data = {
-            "message": "Permission denied."
-        }
+        data = {"message": "Permission denied."}
         return web.HTTPError("403 Forbidden", data=self.dumps(data), headers=headers)
 
     def POST(self, user_key):
@@ -164,29 +158,23 @@ class lists_json(delegate.page):
             name=data.get('name', ''),
             description=data.get('description', ''),
             tags=data.get('tags', []),
-            seeds=seeds
+            seeds=seeds,
         )
 
         if spamcheck.is_spam(lst):
             raise self.forbidden()
 
         try:
-            result = site.save(lst.dict(),
+            result = site.save(
+                lst.dict(),
                 comment="Created new list.",
                 action="lists",
-                data={
-                    "list": {"key": lst.key},
-                    "seeds": seeds
-                }
+                data={"list": {"key": lst.key}, "seeds": seeds},
             )
         except client.ClientException as e:
             headers = {"Content-Type": self.get_content_type()}
-            data = {
-                "message": e.message
-            }
-            raise web.HTTPError(e.status,
-                data=self.dumps(data),
-                headers=headers)
+            data = {"message": e.message}
+            raise web.HTTPError(e.status, data=self.dumps(data), headers=headers)
 
         web.header("Content-Type", self.get_content_type())
         return delegate.RawText(self.dumps(result))
@@ -203,6 +191,7 @@ class lists_json(delegate.page):
             elif seed.startswith("/"):
                 seed = {"key": seed}
             return seed
+
         return [f(seed) for seed in seeds]
 
     def get_content_type(self):
@@ -234,17 +223,14 @@ def get_list(key, raw=False):
             },
             "name": lst.name or None,
             "type": {"key": lst.key},
-            "description": (
-                lst.description and six.text_type(lst.description) or None
-            ),
+            "description": (lst.description and str(lst.description) or None),
             "seed_count": len(lst.seeds),
             "edition_count": lst.edition_count,
-
             "meta": {
                 "revision": lst.revision,
                 "created": lst.created.isoformat(),
                 "last_modified": lst.last_modified.isoformat(),
-            }
+            },
         }
 
 
@@ -274,12 +260,9 @@ def get_list_seeds(key):
     if lst:
         seeds = [seed.dict() for seed in lst.get_seeds()]
         return {
-            "links": {
-                "self": key + "/seeds",
-                "list": key
-            },
+            "links": {"self": key + "/seeds", "list": key},
             "size": len(seeds),
-            "entries": seeds
+            "entries": seeds,
         }
 
 
@@ -330,7 +313,7 @@ class list_seeds(delegate.page):
             "list": {"key": key},
             "seeds": seeds,
             "add": data.get("add", []),
-            "remove": data.get("remove", [])
+            "remove": data.get("remove", []),
         }
 
         d = lst._save(comment="Updated list.", action="lists", data=changeset_data)
@@ -349,7 +332,7 @@ def get_list_editions(key, offset=0, limit=50, api=False):
     if lst:
         offset = offset or 0  # enforce sane int defaults
         all_editions = lst.get_editions(limit=limit, offset=offset, _raw=True)
-        editions = all_editions['editions'][offset:offset+limit]
+        editions = all_editions['editions'][offset : offset + limit]
         if api:
             entries = [e.dict() for e in editions if e.pop("seeds") or e]
             return make_collection(
@@ -357,7 +340,7 @@ def get_list_editions(key, offset=0, limit=50, api=False):
                 entries=entries,
                 limit=limit,
                 offset=offset,
-                key=key
+                key=key,
             )
         return editions
 
@@ -376,8 +359,7 @@ class list_editions_json(delegate.page):
         if not editions:
             raise web.notfound()
         return delegate.RawText(
-            formats.dump(editions, self.encoding),
-            content_type=self.content_type
+            formats.dump(editions, self.encoding), content_type=self.content_type
         )
 
 
@@ -394,14 +376,14 @@ def make_collection(size, entries, limit, offset, key=None):
         "entries": entries,
         "links": {
             "self": web.changequery(),
-        }
+        },
     }
 
     if offset + len(entries) < size:
-        d['links']['next'] = web.changequery(limit=limit, offset=offset+limit)
+        d['links']['next'] = web.changequery(limit=limit, offset=offset + limit)
 
     if offset:
-        d['links']['prev'] = web.changequery(limit=limit, offset=max(0, offset-limit))
+        d['links']['prev'] = web.changequery(limit=limit, offset=max(0, offset - limit))
 
     if key:
         d['links']['list'] = key
@@ -423,10 +405,7 @@ class list_subjects_json(delegate.page):
         limit = h.safeint(i.limit, 20)
 
         data = self.get_subjects(lst, limit=limit)
-        data['links'] = {
-            "self": key + "/subjects",
-            "list": key
-        }
+        data['links'] = {"self": key + "/subjects", "list": key}
 
         text = formats.dump(data, self.encoding)
         return delegate.RawText(text, content_type=self.content_type)
@@ -443,11 +422,7 @@ class list_subjects_json(delegate.page):
             key = "/subjects/" + web.lstrips(key, "subject:")
         else:
             key = "/subjects/" + key
-        return {
-            "name": s['name'],
-            "count": s['count'],
-            "url": key
-        }
+        return {"name": s['name'], "count": s['count'], "url": key}
 
 
 class list_editions_yaml(list_subjects_json):
@@ -479,7 +454,9 @@ class export(delegate.page):
             html = render_template("lists/export_as_html", lst, self.get_editions(lst))
             return delegate.RawText(html)
         elif format == "bibtex":
-            html = render_template("lists/export_as_bibtex", lst, self.get_editions(lst))
+            html = render_template(
+                "lists/export_as_bibtex", lst, self.get_editions(lst)
+            )
             return delegate.RawText(html)
         elif format == "json":
             data = {"editions": self.get_editions(lst, raw=True)}
@@ -493,7 +470,11 @@ class export(delegate.page):
             raise web.notfound()
 
     def get_editions(self, lst, raw=False):
-        editions = sorted(lst.get_all_editions(), key=lambda doc: doc['last_modified']['value'], reverse=True)
+        editions = sorted(
+            lst.get_all_editions(),
+            key=lambda doc: doc['last_modified']['value'],
+            reverse=True,
+        )
 
         if not raw:
             editions = [self.make_doc(e) for e in editions]
@@ -504,6 +485,7 @@ class export(delegate.page):
         data = web.ctx.site._process_dict(common.parse_query(rawdata))
         doc = client.create_thing(web.ctx.site, data['key'], data)
         return doc
+
 
 class feeds(delegate.page):
     path = r"(/people/[^/]+/lists/OL\d+L)/feeds/(updates).(atom)"
@@ -519,8 +501,10 @@ class feeds(delegate.page):
         web.header("Content-Type", 'application/atom+xml; charset="utf-8"')
         return render_template("lists/feed_updates.xml", lst)
 
+
 def setup():
     pass
+
 
 def _get_recently_modified_lists(limit, offset=0):
     """Returns the most recently modified lists as list of dictionaries.
@@ -532,14 +516,27 @@ def _get_recently_modified_lists(limit, offset=0):
     if 'env' not in web.ctx:
         delegate.fakeload()
 
-    keys = web.ctx.site.things({"type": "/type/list", "sort": "-last_modified", "limit": limit, "offset": offset})
+    keys = web.ctx.site.things(
+        {
+            "type": "/type/list",
+            "sort": "-last_modified",
+            "limit": limit,
+            "offset": offset,
+        }
+    )
     lists = web.ctx.site.get_many(keys)
 
     return [lst.dict() for lst in lists]
 
+
 def get_cached_recently_modified_lists(limit, offset=0):
-    f = cache.memcache_memoize(_get_recently_modified_lists, key_prefix="lists.get_recently_modified_lists", timeout=0) # dateutil.HALF_HOUR_SECS)
+    f = cache.memcache_memoize(
+        _get_recently_modified_lists,
+        key_prefix="lists.get_recently_modified_lists",
+        timeout=0,
+    )  # dateutil.HALF_HOUR_SECS)
     return f(limit, offset=offset)
+
 
 def _preload_lists(lists):
     """Preloads all referenced documents for each list.
@@ -577,7 +574,7 @@ def _get_active_lists_in_random(limit=20, preload=True):
     offset = 0
 
     while len(lists) < limit:
-        result = get_cached_recently_modified_lists(limit*5, offset=offset)
+        result = get_cached_recently_modified_lists(limit * 5, offset=offset)
         if not result:
             break
 
@@ -593,11 +590,14 @@ def _get_active_lists_in_random(limit=20, preload=True):
 
     return lists
 
+
 @public
 def get_active_lists_in_random(limit=20, preload=True):
     f = cache.memcache_memoize(
         _get_active_lists_in_random,
-        key_prefix="lists.get_active_lists_in_random", timeout=0)
+        key_prefix="lists.get_active_lists_in_random",
+        timeout=0,
+    )
     lists = f(limit=limit, preload=preload)
     # convert rawdata into models.
     return [web.ctx.site.new(xlist['key'], xlist) for xlist in lists]

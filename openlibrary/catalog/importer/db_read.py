@@ -1,4 +1,3 @@
-from __future__ import print_function
 import web
 import json
 from time import sleep
@@ -16,7 +15,10 @@ db.printing = False
 
 @deprecated("web does not have 'query' attribute")
 def find_author(name):  # unused
-    iter = web.query('select key from thing, author_str where thing_id = id and key_id = 1 and value = $name', {'name': name})
+    iter = web.query(
+        'select key from thing, author_str where thing_id = id and key_id = 1 and value = $name',
+        {'name': name},
+    )
     return [row.key for row in iter]
 
 
@@ -51,9 +53,16 @@ def api_url():
     return "https://openlibrary.org%s/api/" % (':8080' if staging else '')
 
 
-def api_versions(): return api_url() + "versions?"
-def api_things(): return api_url() + "things?"
-def api_get(): return api_url() + "get?key="
+def api_versions():
+    return api_url() + "versions?"
+
+
+def api_things():
+    return api_url() + "things?"
+
+
+def api_get():
+    return api_url() + "get?key="
 
 
 @deprecated("use api_versions() instead")

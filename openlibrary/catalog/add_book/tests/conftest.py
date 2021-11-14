@@ -10,8 +10,10 @@ def add_languages(mock_site):
         ('yid', 'Yiddish'),
     ]
     for code, name in languages:
-        mock_site.save({
-            'key': '/languages/' + code,
-            'name': name,
-            'type': {'key': '/type/language'},
-        })
+        mock_site.save(
+            {
+                'key': '/languages/' + code,
+                'name': name,
+                'type': {'key': '/type/language'},
+            }
+        )

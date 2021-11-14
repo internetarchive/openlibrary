@@ -15,7 +15,10 @@ from infogami.utils.view import public
 from openlibrary.core import cache, helpers as h
 from openlibrary.utils import dateutil
 from openlibrary.utils.isbn import (
-    normalize_isbn, isbn_13_to_isbn_10, isbn_10_to_isbn_13)
+    normalize_isbn,
+    isbn_13_to_isbn_10,
+    isbn_10_to_isbn_13,
+)
 from openlibrary.catalog.add_book import load
 from openlibrary import accounts
 
@@ -23,10 +26,13 @@ from openlibrary import accounts
 logger = logging.getLogger("openlibrary.vendors")
 
 BETTERWORLDBOOKS_BASE_URL = 'https://betterworldbooks.com'
-BETTERWORLDBOOKS_API_URL = ('https://products.betterworldbooks.com/service.aspx?'
-                            'IncludeAmazon=True&ItemId=')
+BETTERWORLDBOOKS_API_URL = (
+    'https://products.betterworldbooks.com/service.aspx?' 'IncludeAmazon=True&ItemId='
+)
 affiliate_server_url = None
-BWB_AFFILIATE_LINK = 'http://www.anrdoezrs.net/links/{}/type/dlg/http://www.betterworldbooks.com/-id-%s'.format(h.affiliate_id('betterworldbooks'))
+BWB_AFFILIATE_LINK = 'http://www.anrdoezrs.net/links/{}/type/dlg/http://www.betterworldbooks.com/-id-%s'.format(
+    h.affiliate_id('betterworldbooks')
+)
 AMAZON_FULL_DATE_RE = re.compile(r'\d{4}-\d\d-\d\d')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 
@@ -35,13 +41,17 @@ def setup(config):
     global affiliate_server_url
     affiliate_server_url = config.get('affiliate_server')
 
+
 class AmazonAPI:
     """Amazon Product Advertising API 5.0 wrapper for Python"""
+
     RESOURCES = {
         'all': [
-            getattr(GetItemsResource, v) for v in
+            getattr(GetItemsResource, v)
+            for v in
             # Hack: pulls all resource consts from GetItemsResource
-            vars(GetItemsResource).keys() if v.isupper()
+            vars(GetItemsResource).keys()
+            if v.isupper()
         ],
         'import': [
             GetItemsResource.IMAGES_PRIMARY_LARGE,
@@ -53,14 +63,18 @@ class AmazonAPI:
             GetItemsResource.ITEMINFO_CLASSIFICATIONS,
             GetItemsResource.OFFERS_LISTINGS_PRICE,
         ],
-        'prices': [
-            GetItemsResource.OFFERS_LISTINGS_PRICE
-        ]
+        'prices': [GetItemsResource.OFFERS_LISTINGS_PRICE],
     }
 
-
-    def __init__(self, key, secret, tag, host='webservices.amazon.com',
-                 region='us-east-1', throttling=0.9):
+    def __init__(
+        self,
+        key,
+        secret,
+        tag,
+        host='webservices.amazon.com',
+        region='us-east-1',
+        throttling=0.9,
+    ):
         """
         Creates an instance containing your API credentials.
 
@@ -79,10 +93,8 @@ class AmazonAPI:
         self.last_query_time = time.time()
 
         self.api = DefaultApi(
-            access_key=key,
-            secret_key=secret,
-            host=host,
-            region=region)
+            access_key=key, secret_key=secret, host=host, region=region
+        )
 
     def search(self, keywords):
         """Adding method to test amz searches from the CLI, unused otherwise"""
@@ -99,8 +111,14 @@ class AmazonAPI:
         if products:
             return next(self.serialize(p) if serialize else p for p in products)
 
-    def get_products(self, asins, serialize=False, marketplace='www.amazon.com',
-                     resources=None, **kwargs):
+    def get_products(
+        self,
+        asins,
+        serialize=False,
+        marketplace='www.amazon.com',
+        resources=None,
+        **kwargs,
+    ):
         """
         :param asins (string): One or more ItemIds like ASIN that
         uniquely identify an item or product URL. (Max 10) Separated
@@ -115,22 +133,26 @@ class AmazonAPI:
         item_ids = asins if type(asins) is list else [asins]
         _resources = self.RESOURCES[resources or 'import']
         try:
-            request = GetItemsRequest(partner_tag=self.tag,
-                                      partner_type=PartnerType.ASSOCIATES,
-                                      marketplace=marketplace,
-                                      item_ids=item_ids,
-                                      resources=_resources,
-                                      **kwargs)
+            request = GetItemsRequest(
+                partner_tag=self.tag,
+                partner_type=PartnerType.ASSOCIATES,
+                marketplace=marketplace,
+                item_ids=item_ids,
+                resources=_resources,
+                **kwargs,
+            )
         except ApiException:
-            logger.error("Amazon fetch failed for: %s" % ', '.join(item_ids),
-                         exc_info=True)
+            logger.error(
+                "Amazon fetch failed for: %s" % ', '.join(item_ids), exc_info=True
+            )
             return None
         response = self.api.get_items(request)
-        products = [
-            p for p in response.items_result.items if p
-        ] if response.items_result else []
-        return (products if not serialize else
-                [self.serialize(p) for p in products])
+        products = (
+            [p for p in response.items_result.items if p]
+            if response.items_result
+            else []
+        )
+        return products if not serialize else [self.serialize(p) for p in products]
 
     @staticmethod
     def serialize(product):
@@ -172,54 +194,80 @@ class AmazonAPI:
         images = getattr(product, 'images')
         edition_info = item_info and getattr(item_info, 'content_info')
         attribution = item_info and getattr(item_info, 'by_line_info')
-        price = (getattr(product, 'offers') and product.offers.listings
-                 and product.offers.listings[0].price)
-        brand = (attribution and getattr(attribution, 'brand') and
-                 getattr(attribution.brand, 'display_value'))
+        price = (
+            getattr(product, 'offers')
+            and product.offers.listings
+            and product.offers.listings[0].price
+        )
+        brand = (
+            attribution
+            and getattr(attribution, 'brand')
+            and getattr(attribution.brand, 'display_value')
+        )
         manufacturer = (
-            item_info and
-            getattr(item_info, 'by_line_info') and
-            getattr(item_info.by_line_info, 'manufacturer') and
-            item_info.by_line_info.manufacturer.display_value
+            item_info
+            and getattr(item_info, 'by_line_info')
+            and getattr(item_info.by_line_info, 'manufacturer')
+            and item_info.by_line_info.manufacturer.display_value
         )
         product_group = (
-            item_info and
-            getattr(item_info, 'classifications',) and
-            getattr(item_info.classifications, 'product_group') and
-            item_info.classifications.product_group.display_value
+            item_info
+            and getattr(
+                item_info,
+                'classifications',
+            )
+            and getattr(item_info.classifications, 'product_group')
+            and item_info.classifications.product_group.display_value
         )
         try:
             publish_date = edition_info and isoparser.parse(
                 edition_info.publication_date.display_value
             ).strftime('%b %d, %Y')
         except Exception:
-            logger.exception("serialize({})".format(product))
+            logger.exception(f"serialize({product})")
             publish_date = None
 
         book = {
-            'url': "https://www.amazon.com/dp/%s/?tag=%s" % (
-                product.asin, h.affiliate_id('amazon')),
+            'url': "https://www.amazon.com/dp/{}/?tag={}".format(
+                product.asin, h.affiliate_id('amazon')
+            ),
             'source_records': ['amazon:%s' % product.asin],
             'isbn_10': [product.asin],
             'isbn_13': [isbn_10_to_isbn_13(product.asin)],
             'price': price and price.display_amount,
             'price_amt': price and price.amount and int(100 * price.amount),
-            'title': (item_info and item_info.title and
-                      getattr(item_info.title, 'display_value')),
-            'cover': (images and images.primary and images.primary.large and
-                      images.primary.large.url),
-            'authors': attribution and [{'name': contrib.name}
-                        for contrib in attribution.contributors],
-            'publishers': list(set(p for p in (brand, manufacturer) if p)),
-            'number_of_pages': (edition_info and edition_info.pages_count and
-                                edition_info.pages_count.display_value),
-            'edition_num': (edition_info and edition_info.edition and
-                            edition_info.edition.display_value),
+            'title': (
+                item_info
+                and item_info.title
+                and getattr(item_info.title, 'display_value')
+            ),
+            'cover': (
+                images
+                and images.primary
+                and images.primary.large
+                and images.primary.large.url
+            ),
+            'authors': attribution
+            and [{'name': contrib.name} for contrib in attribution.contributors],
+            'publishers': list({p for p in (brand, manufacturer) if p}),
+            'number_of_pages': (
+                edition_info
+                and edition_info.pages_count
+                and edition_info.pages_count.display_value
+            ),
+            'edition_num': (
+                edition_info
+                and edition_info.edition
+                and edition_info.edition.display_value
+            ),
             'publish_date': publish_date,
             'product_group': product_group,
             'physical_format': (
-                item_info and item_info.classifications and
-                getattr(item_info.classifications.binding, 'display_value', '').lower()
+                item_info
+                and item_info.classifications
+                and getattr(
+                    item_info.classifications.binding, 'display_value', ''
+                ).lower()
             ),
         }
         return book
@@ -271,13 +319,13 @@ def _get_amazon_metadata(id_, id_type='isbn', resources=None):
             id_ = isbn_13_to_isbn_10(id_)
 
     try:
-        r = requests.get('http://%s/isbn/%s' % (affiliate_server_url, id_))
+        r = requests.get(f'http://{affiliate_server_url}/isbn/{id_}')
         r.raise_for_status()
         return r.json().get('hit') or None
     except requests.exceptions.ConnectionError:
         logger.exception("Affiliate Server unreachable")
     except requests.exceptions.HTTPError:
-        logger.exception("Affiliate Server: id {} not found".format(id_))
+        logger.exception(f"Affiliate Server: id {id_} not found")
     return None
 
 
@@ -312,9 +360,17 @@ def clean_amazon_metadata_for_load(metadata):
 
     # TODO: convert languages into /type/language list
     conforming_fields = [
-        'title', 'authors', 'publish_date', 'source_records',
-        'number_of_pages', 'publishers', 'cover', 'isbn_10',
-        'isbn_13', 'physical_format']
+        'title',
+        'authors',
+        'publish_date',
+        'source_records',
+        'number_of_pages',
+        'publishers',
+        'cover',
+        'isbn_10',
+        'isbn_13',
+        'physical_format',
+    ]
     conforming_metadata = {}
     for k in conforming_fields:
         # if valid key and value not None
@@ -331,7 +387,9 @@ def clean_amazon_metadata_for_load(metadata):
         conforming_metadata['full_title'] = title + ISBD_UNIT_PUNCT + subtitle
         conforming_metadata['subtitle'] = subtitle
     # Record original title if some content has been removed (i.e. parentheses)
-    if metadata['title'] != conforming_metadata.get('full_title', conforming_metadata['title']):
+    if metadata['title'] != conforming_metadata.get(
+        'full_title', conforming_metadata['title']
+    ):
         conforming_metadata['notes'] = "Source title: %s" % metadata['title']
 
     return conforming_metadata
@@ -353,7 +411,8 @@ def create_edition_from_amazon_metadata(id_, id_type='isbn'):
     if md and md.get('product_group') == 'Book':
         with accounts.RunAs('ImportBot'):
             reply = load(
-                clean_amazon_metadata_for_load(md), account_key='account/ImportBot')
+                clean_amazon_metadata_for_load(md), account_key='account/ImportBot'
+            )
             if reply and reply.get('success'):
                 return reply['edition'].get('key')
 
@@ -371,8 +430,10 @@ def cached_get_amazon_metadata(*args, **kwargs):
     # fetch/compose a cache controller obj for
     # "upstream.code._get_amazon_metadata"
     memoized_get_amazon_metadata = cache.memcache_memoize(
-        _get_amazon_metadata, "upstream.code._get_amazon_metadata",
-        timeout=dateutil.WEEK_SECS)
+        _get_amazon_metadata,
+        "upstream.code._get_amazon_metadata",
+        timeout=dateutil.WEEK_SECS,
+    )
     # fetch cached value from this controller
     result = memoized_get_amazon_metadata(*args, **kwargs)
     if result is None:
@@ -380,6 +441,7 @@ def cached_get_amazon_metadata(*args, **kwargs):
         # (corresponding to these input args)
         result = memoized_get_amazon_metadata.update(*args, **kwargs)[0]
     return result
+
 
 @public
 def get_betterworldbooks_metadata(isbn):
@@ -393,7 +455,7 @@ def get_betterworldbooks_metadata(isbn):
     try:
         return _get_betterworldbooks_metadata(isbn)
     except Exception:
-        logger.exception("_get_betterworldbooks_metadata({})".format(isbn))
+        logger.exception(f"_get_betterworldbooks_metadata({isbn})")
         return betterworldbooks_fmt(isbn)
 
 
@@ -415,8 +477,9 @@ def _get_betterworldbooks_metadata(isbn):
     new_price = re.findall(r"<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
     used_price = re.findall(r"<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)
     used_qty = re.findall("<TotalUsed>([0-9]+)</TotalUsed>", response)
-    market_price = re.findall(r"<LowestMarketPrice>\$([0-9.]+)</LowestMarketPrice>",
-                              response)
+    market_price = re.findall(
+        r"<LowestMarketPrice>\$([0-9.]+)</LowestMarketPrice>", response
+    )
     price = qlt = None
 
     if used_qty and used_qty[0] and used_qty[0] != '0':
@@ -441,16 +504,19 @@ def betterworldbooks_fmt(isbn, qlt=None, price=None, market_price=None):
     :param str price: Price of the book as a decimal str, e.g. "4.28"
     :rtype: dict
     """
-    price_fmt = "$%s (%s)" % (price, qlt) if price and qlt else None
+    price_fmt = f"${price} ({qlt})" if price and qlt else None
     return {
         'url': BWB_AFFILIATE_LINK % isbn,
         'isbn': isbn,
         'market_price': market_price,
         'price': price_fmt,
         'price_amt': price,
-        'qlt': qlt
+        'qlt': qlt,
     }
 
 
 cached_get_betterworldbooks_metadata = cache.memcache_memoize(
-    _get_betterworldbooks_metadata, "upstream.code._get_betterworldbooks_metadata", timeout=dateutil.HALF_DAY_SECS)
+    _get_betterworldbooks_metadata,
+    "upstream.code._get_betterworldbooks_metadata",
+    timeout=dateutil.HALF_DAY_SECS,
+)

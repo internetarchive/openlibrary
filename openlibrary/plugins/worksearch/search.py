@@ -11,6 +11,7 @@ def get_solr():
     base_url = config.plugin_worksearch.get('solr_base_url')
     return Solr(base_url)
 
+
 def work_search(query, limit=20, offset=0, **kw):
     """Search for works."""
 
@@ -48,6 +49,7 @@ def work_search(query, limit=20, offset=0, **kw):
 
     return result
 
+
 def process_work_query(query):
     if "author" in query and isinstance(query["author"], dict):
         author = query.pop("author")
@@ -59,16 +61,13 @@ def process_work_query(query):
 
     return query
 
+
 def work_wrapper(w):
     key = w['key']
     if not key.startswith("/works/"):
         key += "/works/"
 
-    d = web.storage(
-        key=key,
-        title=w["title"],
-        edition_count=w["edition_count"]
-    )
+    d = web.storage(key=key, title=w["title"], edition_count=w["edition_count"])
 
     if "cover_id" in w:
         d.cover_id = w["cover_id"]
@@ -91,10 +90,14 @@ def work_wrapper(w):
     w.setdefault('author_key', [])
     w.setdefault('author_name', [])
 
-    d.authors = [web.storage(key='/authors/' + k, name=n)
-                 for k, n in zip(w['author_key'], w['author_name'])]
+    d.authors = [
+        web.storage(key='/authors/' + k, name=n)
+        for k, n in zip(w['author_key'], w['author_name'])
+    ]
 
-    d.first_publish_year = (w['first_publish_year'][0] if 'first_publish_year' in w else None)
+    d.first_publish_year = (
+        w['first_publish_year'][0] if 'first_publish_year' in w else None
+    )
     d.ia = w.get('ia', [])
     d.public_scan = w.get('public_scan_b', bool(d.ia))
     d.has_fulltext = w.get('has_fulltext', "false")

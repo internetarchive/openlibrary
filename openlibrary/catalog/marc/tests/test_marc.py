@@ -3,6 +3,7 @@ from openlibrary.catalog.marc.get_subjects import subjects_for_work
 from openlibrary.catalog.marc.marc_base import MarcBase
 from openlibrary.catalog.marc.parse import read_isbn, read_pagination, read_title
 
+
 class MockField:
     def __init__(self, subfields):
         self.subfield_sequence = subfields
@@ -22,16 +23,18 @@ class MockField:
 
     def get_subfields(self, want):
         for w in want:
-           if w in self.contents:
-               for i in self.contents.get(w):
-                   yield w, i
+            if w in self.contents:
+                for i in self.contents.get(w):
+                    yield w, i
 
     def get_subfield_values(self, want):
         return [v for k, v in self.get_subfields(want)]
 
+
 class MockRecord(MarcBase):
-    """ usage: MockRecord('020', [('a', 'value'), ('c', 'value'), ('c', 'value')])
-        Currently only supports a single tag per Record."""
+    """usage: MockRecord('020', [('a', 'value'), ('c', 'value'), ('c', 'value')])
+    Currently only supports a single tag per Record."""
+
     def __init__(self, marc_field, subfields):
         self.tag = marc_field
         self.field = MockField(subfields)
@@ -46,6 +49,7 @@ class MockRecord(MarcBase):
     def get_fields(self, tag):
         if tag == self.tag:
             return [self.field]
+
 
 # TODO: refactor to not use unittest
 class TestMarcParse(unittest.TestCase):
@@ -88,36 +92,71 @@ class TestMarcParse(unittest.TestCase):
 
     def test_subjects_for_work(self):
         data = [
-            ([  ('a', 'Authors, American'),
-                ('y', '19th century'),
-                ('x', 'Biography.')],
-                {'subject_times': ['19th century'],
-                 'subjects': ['American Authors', 'Biography']}),
-            ([  ('a', 'Western stories'),
-                ('x', 'History and criticism.')],
-                {'subjects': ['Western stories', 'History and criticism']}),
-            ([  ('a', 'United States'),
-                ('x', 'History'),
-                ('y', 'Revolution, 1775-1783'),
-                ('x', 'Influence.')],
+            (
+                [
+                    ('a', 'Authors, American'),
+                    ('y', '19th century'),
+                    ('x', 'Biography.'),
+                ],
+                {
+                    'subject_times': ['19th century'],
+                    'subjects': ['American Authors', 'Biography'],
+                },
+            ),
+            (
+                [('a', 'Western stories'), ('x', 'History and criticism.')],
+                {'subjects': ['Western stories', 'History and criticism']},
+            ),
+            (
+                [
+                    ('a', 'United States'),
+                    ('x', 'History'),
+                    ('y', 'Revolution, 1775-1783'),
+                    ('x', 'Influence.'),
+                ],
                 # TODO: this expectation does not capture the intent or ordering of the original MARC, investigate x subfield!
-                {'subject_times': ['Revolution, 1775-1783'], 'subjects': ['United States', 'Influence', 'History']}),
-                # 'United States -- History -- Revolution, 1775-1783 -- Influence.'
-            ([  ('a', 'West Indies, British'),
-                ('x', 'History'),
-                ('y', '18th century.')],
-                {'subject_times': ['18th century'], 'subjects': ['British West Indies', 'History']}),
-                # 'West Indies, British -- History -- 18th century.'),
-            ([  ('a', 'Great Britain'),
-                ('x', 'Relations'),
-                ('z', 'West Indies, British.')],
-                {'subject_places': ['British West Indies'], 'subjects': ['Great Britain', 'Relations']}),
-                #'Great Britain -- Relations -- West Indies, British.'),
-            ([  ('a', 'West Indies, British'),
-                ('x', 'Relations'),
-                ('z', 'Great Britain.')],
-                {'subject_places': ['Great Britain'], 'subjects': ['British West Indies', 'Relations']})
-                #'West Indies, British -- Relations -- Great Britain.')
+                {
+                    'subject_times': ['Revolution, 1775-1783'],
+                    'subjects': ['United States', 'Influence', 'History'],
+                },
+            ),
+            # 'United States -- History -- Revolution, 1775-1783 -- Influence.'
+            (
+                [
+                    ('a', 'West Indies, British'),
+                    ('x', 'History'),
+                    ('y', '18th century.'),
+                ],
+                {
+                    'subject_times': ['18th century'],
+                    'subjects': ['British West Indies', 'History'],
+                },
+            ),
+            # 'West Indies, British -- History -- 18th century.'),
+            (
+                [
+                    ('a', 'Great Britain'),
+                    ('x', 'Relations'),
+                    ('z', 'West Indies, British.'),
+                ],
+                {
+                    'subject_places': ['British West Indies'],
+                    'subjects': ['Great Britain', 'Relations'],
+                },
+            ),
+            #'Great Britain -- Relations -- West Indies, British.'),
+            (
+                [
+                    ('a', 'West Indies, British'),
+                    ('x', 'Relations'),
+                    ('z', 'Great Britain.'),
+                ],
+                {
+                    'subject_places': ['Great Britain'],
+                    'subjects': ['British West Indies', 'Relations'],
+                },
+            )
+            #'West Indies, British -- Relations -- Great Britain.')
         ]
         for value, expect in data:
             output = subjects_for_work(MockRecord('650', value))
@@ -127,12 +166,21 @@ class TestMarcParse(unittest.TestCase):
 
     def test_read_title(self):
         data = [
-            ([  ('a', 'Railroad construction.'),
-                ('b', 'Theory and practice.'),
-                ('b', 'A textbook for the use of students in colleges and technical schools.')],
-                {'title': 'Railroad construction',
-                # TODO: Investigate whether this colon between subtitles is spaced correctly
-                 'subtitle': 'Theory and practice : A textbook for the use of students in colleges and technical schools'})
+            (
+                [
+                    ('a', 'Railroad construction.'),
+                    ('b', 'Theory and practice.'),
+                    (
+                        'b',
+                        'A textbook for the use of students in colleges and technical schools.',
+                    ),
+                ],
+                {
+                    'title': 'Railroad construction',
+                    # TODO: Investigate whether this colon between subtitles is spaced correctly
+                    'subtitle': 'Theory and practice : A textbook for the use of students in colleges and technical schools',
+                },
+            )
         ]
 
         for (value, expect) in data:
@@ -141,10 +189,17 @@ class TestMarcParse(unittest.TestCase):
 
     def test_by_statement(self):
         data = [
-            ([  ('a', u'Trois contes de No\u0308el'),
-                ('c', u'[par] Madame Georges Renard,'),
-                ('c', u'edited by F. Th. Meylan ...')],
-                {'title': u'Trois contes de No\u0308el', 'by_statement': '[par] Madame Georges Renard, edited by F. Th. Meylan ...'})
+            (
+                [
+                    ('a', 'Trois contes de No\u0308el'),
+                    ('c', '[par] Madame Georges Renard,'),
+                    ('c', 'edited by F. Th. Meylan ...'),
+                ],
+                {
+                    'title': 'Trois contes de No\u0308el',
+                    'by_statement': '[par] Madame Georges Renard, edited by F. Th. Meylan ...',
+                },
+            )
         ]
         for (value, expect) in data:
             output = read_title(MockRecord('245', value))

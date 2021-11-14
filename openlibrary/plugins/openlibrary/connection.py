@@ -17,6 +17,7 @@ import six
 
 logger = logging.getLogger("openlibrary")
 
+
 class ConnectionMiddleware:
     response_type = "json"
 
@@ -105,10 +106,11 @@ class ConnectionMiddleware:
     def store_delete(self, sitename, path, data):
         return self.conn.request(sitename, path, 'DELETE', data)
 
+
 _memcache = None
 
-class IAMiddleware(ConnectionMiddleware):
 
+class IAMiddleware(ConnectionMiddleware):
     def _get_itemid(self, key):
         """Returns internet archive item id from the key.
 
@@ -116,7 +118,7 @@ class IAMiddleware(ConnectionMiddleware):
         is returned, otherwise None is returned.
         """
         if key and key.startswith("/books/ia:") and key.count("/") == 2:
-            return key[len("/books/ia:"):]
+            return key[len("/books/ia:") :]
 
     def get(self, sitename, data):
         key = data.get('key')
@@ -140,8 +142,10 @@ class IAMiddleware(ConnectionMiddleware):
                     self._ensure_no_store_entry(sitename, itemid)
 
                     raise client.ClientException(
-                        "404 Not Found", "notfound",
-                        json.dumps({"key": "/books/ia:" + itemid, "error": "notfound"}))
+                        "404 Not Found",
+                        "notfound",
+                        json.dumps({"key": "/books/ia:" + itemid, "error": "notfound"}),
+                    )
 
                 storedoc = self._ensure_store_entry(sitename, itemid)
 
@@ -157,7 +161,9 @@ class IAMiddleware(ConnectionMiddleware):
     def _find_edition(self, sitename, itemid):
         # match ocaid
         q = {"type": "/type/edition", "ocaid": itemid}
-        keys_json = ConnectionMiddleware.things(self, sitename, {"query": json.dumps(q)})
+        keys_json = ConnectionMiddleware.things(
+            self, sitename, {"query": json.dumps(q)}
+        )
         keys = json.loads(keys_json)
         if keys:
             return keys[0]
@@ -165,7 +171,9 @@ class IAMiddleware(ConnectionMiddleware):
         # Match source_records
         # When there are multiple scan for the same edition, only scan_records is updated.
         q = {"type": "/type/edition", "source_records": "ia:" + itemid}
-        keys_json = ConnectionMiddleware.things(self, sitename, {"query": json.dumps(q)})
+        keys_json = ConnectionMiddleware.things(
+            self, sitename, {"query": json.dumps(q)}
+        )
         keys = json.loads(keys_json)
         if keys:
             return keys[0]
@@ -173,12 +181,12 @@ class IAMiddleware(ConnectionMiddleware):
     def _make_redirect(self, itemid, location):
         timestamp = {"type": "/type/datetime", "value": "2010-01-01T00:00:00"}
         d = {
-            "key": "/books/ia:" +  itemid,
+            "key": "/books/ia:" + itemid,
             "type": {"key": "/type/redirect"},
             "location": location,
             "revision": 1,
             "created": timestamp,
-            "last_modified": timestamp
+            "last_modified": timestamp,
         }
         return json.dumps(d)
 
@@ -207,7 +215,7 @@ class IAMiddleware(ConnectionMiddleware):
                     "_key": key,
                     "type": "ia-scan",
                     "identifier": identifier,
-                    "created": datetime.datetime.utcnow().isoformat()
+                    "created": datetime.datetime.utcnow().isoformat(),
                 }
                 self.store_put(sitename, store_key, json.dumps(doc))
                 return doc
@@ -249,11 +257,10 @@ class IAMiddleware(ConnectionMiddleware):
             "action": "edit-book",
             "changes": json.dumps({"key": key, "revision": 1}),
             "revision": 1,
-
             "kind": "update",
             "id": "0",
             "timestamp": "2010-01-01T00:00:00",
-            "data": {}
+            "data": {},
         }
 
     def dummy_recentchange(self, key):
@@ -268,6 +275,7 @@ class IAMiddleware(ConnectionMiddleware):
             "id": "0",
         }
 
+
 class MemcacheMiddleware(ConnectionMiddleware):
     def __init__(self, conn, memcache_servers):
         ConnectionMiddleware.__init__(self, conn)
@@ -277,6 +285,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
         global _memcache
         if _memcache is None:
             from openlibrary.utils import olmemcache
+
             _memcache = olmemcache.Client(memcache_servers)
         return _memcache
 
@@ -302,7 +311,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
             if result is None:
                 result = ConnectionMiddleware.get(self, sitename, data)
                 if result:
-                    self.mc_set(mc_key, result, time=60) # cache for a minute
+                    self.mc_set(mc_key, result, time=60)  # cache for a minute
             return result
 
     def get_many(self, sitename, data):
@@ -320,13 +329,13 @@ class MemcacheMiddleware(ConnectionMiddleware):
 
             # Memcache expects dict with (key, json) mapping and we have (key, doc) mapping.
             # Converting the docs to json before passing to memcache.
-            self.mc_set_multi(dict((key, json.dumps(doc)) for key, doc in result2.items()))
+            self.mc_set_multi({key: json.dumps(doc) for key, doc in result2.items()})
 
             result.update(result2)
 
-        #@@ too many JSON conversions
+        # @@ too many JSON conversions
         for k in result:
-            if isinstance(result[k], six.string_types):
+            if isinstance(result[k], str):
                 result[k] = json.loads(result[k])
 
         return json.dumps(result)
@@ -369,7 +378,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
         if result is None:
             result = ConnectionMiddleware.store_get(self, sitename, path)
             if result:
-                self.mc_set(path, result, 3600) # cache it only for one hour
+                self.mc_set(path, result, 3600)  # cache it only for one hour
         return result
 
     def store_put(self, sitename, path, data):
@@ -409,7 +418,9 @@ class MemcacheMiddleware(ConnectionMiddleware):
                 # get the email from account doc and invalidate the email.
                 # required in cases of email change.
                 try:
-                    docjson = self.store_get(sitename, "/_store/account/" + data['username'])
+                    docjson = self.store_get(
+                        sitename, "/_store/account/" + data['username']
+                    )
                     doc = json.loads(docjson)
                     deletes.append("/_store/account-email/" + doc["email"])
                     deletes.append("/_store/account-email/" + doc["email"].lower())
@@ -423,26 +434,36 @@ class MemcacheMiddleware(ConnectionMiddleware):
                 deletes.append("/_store/account-email/" + data["email"].lower())
 
             self.mc_delete_multi(deletes)
-            result = ConnectionMiddleware.account_request(self, sitename, path, method, data)
+            result = ConnectionMiddleware.account_request(
+                self, sitename, path, method, data
+            )
             self.mc_delete_multi(deletes)
         else:
-            result = ConnectionMiddleware.account_request(self, sitename, path, method, data)
+            result = ConnectionMiddleware.account_request(
+                self, sitename, path, method, data
+            )
         return result
+
 
 class MigrationMiddleware(ConnectionMiddleware):
     """Temporary middleware to handle upstream to www migration."""
+
     def _process_key(self, key):
         mapping = (
-            "/l/", "/languages/",
-            "/a/", "/authors/",
-            "/b/", "/books/",
-            "/user/", "/people/"
+            "/l/",
+            "/languages/",
+            "/a/",
+            "/authors/",
+            "/b/",
+            "/books/",
+            "/user/",
+            "/people/",
         )
 
         if "/" in key and key.split("/")[1] in ['a', 'b', 'l', 'user']:
             for old, new in web.group(mapping, 2):
                 if key.startswith(old):
-                    return new + key[len(old):]
+                    return new + key[len(old) :]
         return key
 
     def exists(self, key):
@@ -458,7 +479,7 @@ class MigrationMiddleware(ConnectionMiddleware):
         elif isinstance(data, dict):
             if 'key' in data:
                 data['key'] = self._process_key(data['key'])
-            return dict((k, self._process(v)) for k, v in data.items())
+            return {k: self._process(v) for k, v in data.items()}
         else:
             return data
 
@@ -481,7 +502,9 @@ class MigrationMiddleware(ConnectionMiddleware):
             if doc.get("authors"):
                 # some record got empty author records because of an error
                 # temporary hack to fix
-                doc['authors'] = [a for a in doc['authors'] if 'author' in a and 'key' in a['author']]
+                doc['authors'] = [
+                    a for a in doc['authors'] if 'author' in a and 'key' in a['author']
+                ]
         elif type == "/type/edition":
             # get rid of title_prefix.
             if 'title_prefix' in doc:
@@ -500,7 +523,10 @@ class MigrationMiddleware(ConnectionMiddleware):
         json_data = self.get("openlibrary.org", {"key": key})
         if json:
             doc = json.loads(json_data)
-            if doc.get("type", {}).get("key") == "/type/redirect" and doc.get('location') is not None:
+            if (
+                doc.get("type", {}).get("key") == "/type/redirect"
+                and doc.get('location') is not None
+            ):
                 return doc['location']
         return key
 
@@ -509,9 +535,10 @@ class MigrationMiddleware(ConnectionMiddleware):
         if response:
             data = json.loads(response)
             data = self._process(data)
-            data = dict((key, self.fix_doc(doc)) for key, doc in data.items())
+            data = {key: self.fix_doc(doc) for key, doc in data.items()}
             response = json.dumps(data)
         return response
+
 
 class HybridConnection(client.Connection):
     """Infobase connection made of both local and remote connections.
@@ -523,6 +550,7 @@ class HybridConnection(client.Connection):
     using a local connection for reads improves the performance by cutting
     down the overhead of http calls present in case of remote connections.
     """
+
     def __init__(self, reader, writer):
         client.Connection.__init__(self)
         self.reader = reader
@@ -541,6 +569,7 @@ class HybridConnection(client.Connection):
         else:
             return self.writer.request(sitename, path, method, data=data)
 
+
 @web.memoize
 def _update_infobase_config():
     """Updates infobase config when this function is called for the first time.
@@ -549,25 +578,31 @@ def _update_infobase_config():
     """
     # update infobase configuration
     from infogami.infobase import server
+
     if not config.get("infobase"):
         config.infobase = {}
     # This sets web.config.db_parameters
     server.update_config(config.infobase)
 
+
 def create_local_connection():
     _update_infobase_config()
     return client.connect(type='local', **web.config.db_parameters)
 
+
 def create_remote_connection():
     return client.connect(type='remote', base_url=config.infobase_server)
+
 
 def create_hybrid_connection():
     local = create_local_connection()
     remote = create_remote_connection()
     return HybridConnection(local, remote)
 
+
 def OLConnection():
     """Create a connection to Open Library infobase server."""
+
     def create_connection():
         if config.get("connection_type") == "hybrid":
             return create_hybrid_connection()
@@ -587,4 +622,3 @@ def OLConnection():
 
     conn = IAMiddleware(conn)
     return conn
-

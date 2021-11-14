@@ -43,7 +43,7 @@ class OLSession:
         if test:
             test.assertTrue(
                 self.ia_is_logged_in(),
-                "IA Login failed w/ username: %s and password: %s" % (email, password),
+                f"IA Login failed w/ username: {email} and password: {password}",
             )
 
     def ia_is_logged_in(self, domain="https://archive.org"):
@@ -68,7 +68,7 @@ class OLSession:
         if test:
             test.assertTrue(
                 self.is_logged_in(),
-                "OL Login failed w/ username: %s and password: %s" % (email, password),
+                f"OL Login failed w/ username: {email} and password: {password}",
             )
 
     def is_logged_in(self):

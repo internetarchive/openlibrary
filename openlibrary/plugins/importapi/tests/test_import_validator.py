@@ -10,7 +10,7 @@ valid_values = {
     "author": {"name": "Tom Robbins"},
     "authors": [{"name": "Tom Robbins"}, {"name": "Dean Koontz"}],
     "publishers": ["Harper Collins", "OpenStax"],
-    "publish_date": "December 2018"
+    "publish_date": "December 2018",
 }
 
 validator = import_validator()
