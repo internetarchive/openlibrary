@@ -1383,7 +1383,7 @@ def update_author(
             ('facet', 'true'),
             ('facet.mincount', 1),
         ]
-        + {'facet.field', '%s_facet' % field) for field in facet_fields],  # type: ignore
+        + [('facet.field', '%s_facet' % field) for field in facet_fields],  # type: ignore
     ).json()  # type: ignore
     work_count = reply['response']['numFound']
     docs = reply['response'].get('docs', [])
