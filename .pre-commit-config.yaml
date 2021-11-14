@@ -50,11 +50,9 @@ repos:
         additional_dependencies:
           - types-all
 
-  #- repo: https://github.com/asottile/pyupgrade
-  #  rev: v2.29.0
-  #  hooks:
-  #    - id: pyupgrade
-  #      args:
-  #      - --py39-plus
-  #      - ./scripts/*.py  # My globbing foo is no match for...
-  #      - ./tests/*.py    # https://github.com/asottile/pyupgrade/issues/339
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v2.29.0
+    hooks:
+      - id: pyupgrade
+        args:
+        - --py39-plus
