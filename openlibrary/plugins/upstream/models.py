@@ -7,6 +7,7 @@ from functools import cached_property
 import requests
 import sys
 import web
+import json
 
 from collections import defaultdict
 from isbnlib import canonical
@@ -490,6 +491,52 @@ class Edition(models.Edition):
         """
         return "/ia:" in self.key
 
+    def as_json_ld(self):
+        def get_identifier(label):
+            identifier = list(values[0].value for name, values in self.get_identifiers().multi_items() if values[0].label == label)
+            identifier = identifier[0] if identifier else None
+            return identifier
+
+        def get_url(label):
+            url = list(values[0].url for name, values in self.get_identifiers().multi_items() if values[0].label == label)
+            url = url[0] if url else None
+            return url
+
+        json_ld = {
+            "@context": "http://schema.org/",
+            "@type": "Book",
+            "@id": web.ctx.homedomain + self.key,
+            "workExample": [
+                {
+                    "@type": "Book",
+                    "@id": web.ctx.homedomain + self.key,
+                    "isbn": self.get_isbn13() or None,
+                    "image": [
+                         self.get_cover_url("L")
+                    ],
+                    "bookFormat": "http://schema.org/"+ self.physical_format.replace("[", "").replace("]", "") if self.physical_format else None,
+                    "inLanguage": (", ".join(lang.code for lang in self.languages)) or None,
+                    "datePublished": self.publish_date or None,
+                    "sameAs":[
+                        get_url("OCLC/WorldCat"),
+                        get_url("Library Thing"),
+                        get_url("Goodreads")
+                    ]
+                }
+            ]
+            }
+
+        if get_identifier("OCLC/WorldCat"):
+            json_ld['workExample'][0]['identifier'] = [
+                        {
+                        "@type": "PropertyValue",
+                        "propertyID": "OCLC_NUMBER",
+                        "value": get_identifier("OCLC/WorldCat")
+                        }
+                    ]
+
+        return json_ld
+
 class Author(models.Author):
     def get_photos(self):
         return [Image(self._site, "a", id) for id in self.photos if id > 0]
@@ -621,6 +668,41 @@ class Work(models.Work):
         if subjects and not isinstance(subjects[0], six.string_types):
             subjects = [flip(s.name) for s in subjects]
         return subjects
+
+    def as_json_ld(self, edition=None):
+        authors = []
+        for author in self and self.get_authors():
+            authors.append({
+                "@type": "Person",
+                "name": author.name,
+                "sameAs" : web.ctx.homedomain + str(author.url())
+            })
+        
+        json_ld = {
+            "@context": "http://schema.org/",
+            "@type": "Book",
+            "@id": web.ctx.homedomain + self.key,
+            "@id": web.ctx.homedomain + self.key + "/" + self.get('title', ''),
+            "name": self.get('title', '')
+            }
+        rating_value = self and self.get_rating_stats() or {}
+        if rating_value.get('num_ratings',0)>0:
+            json_ld['aggregateRating'] = {
+                "@type": "AggregateRating",
+                "ratingValue": str(rating_value.get('avg_rating',0)), 
+                "bestRating": "5",
+                "ratingCount": str(rating_value.get('num_ratings',0))
+            }
+
+        if authors:
+            json_ld['author'] = authors
+
+        if edition:
+            json_ld['workExample'] = [
+                edition.as_json_ld()
+            ]
+            
+        return json_ld
 
     @staticmethod
     def filter_problematic_subjects(subjects, filter_unicode=True):

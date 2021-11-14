@@ -504,3 +504,10 @@ $if is_privileged_user:
     $:macros.Profile(component_times)
 
 </div>
+
+<script type="application/ld+json">
+  $if work:
+      $:json_encode(work.as_json_ld(edition))
+  $else:
+      $:json_encode(edition.as_json_ld())
+</script>
