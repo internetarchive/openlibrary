@@ -54,7 +54,7 @@ data_provider = cast(DataProvider, None)
 _ia_db = None
 
 solr_base_url = None
-solr_next: Optional[bool] = None
+solr_next: bool | None = None
 
 
 def get_solr_base_url():
@@ -101,7 +101,7 @@ class IALiteMetadata(TypedDict):
     collection: set[str]
 
 
-def get_ia_collection_and_box_id(ia: str) -> Optional[IALiteMetadata]:
+def get_ia_collection_and_box_id(ia: str) -> IALiteMetadata | None:
     """
     Get the collections and boxids of the provided IA id
 
@@ -199,7 +199,7 @@ def pick_cover_edition(editions, work_cover_id):
     )
 
 
-def pick_number_of_pages_median(editions: list[dict]) -> Optional[int]:
+def pick_number_of_pages_median(editions: list[dict]) -> int | None:
     number_of_pages = [
         cast(int, e.get('number_of_pages'))
         for e in editions
@@ -826,7 +826,7 @@ def build_data(w: dict) -> SolrDocument:
 
 
 def build_data2(
-    w: dict, editions: list[dict], authors, ia: dict[str, Optional[IALiteMetadata]]
+    w: dict, editions: list[dict], authors, ia: dict[str, IALiteMetadata | None]
 ) -> SolrDocument:
     """
     Construct the Solr document to insert into Solr for the given work
@@ -1342,7 +1342,7 @@ def update_work(work: dict) -> list[SolrUpdateRequest]:
 
 def update_author(
     akey, a=None, handle_redirects=True
-) -> Optional[list[SolrUpdateRequest]]:
+) -> list[SolrUpdateRequest] | None:
     """
     Get the Solr requests necessary to insert/update/delete an Author in Solr.
     :param akey: The author key, e.g. /authors/OL23A
@@ -1657,9 +1657,9 @@ def load_config(c_config='conf/openlibrary.yml'):
 def load_configs(
     c_host: str,
     c_config: str,
-    c_data_provider: Union[
-        DataProvider, Literal['default', 'legacy', 'external']
-    ] = 'default',
+    c_data_provider: (
+        DataProvider | Literal['default', 'legacy', 'external']
+    ) = 'default',
 ) -> DataProvider:
     host = web.lstrips(c_host, "http://").strip("/")
     set_query_host(host)
