@@ -1371,16 +1371,16 @@ def update_author(
 
     reply = requests.get(
         base_url,
-        params=[
-            ('wt', 'json'),
-            ('json.nl', 'arrarr'),
-            ('q', 'author_key:%s' % author_id),
-            ('sort', 'edition_count desc'),
-            ('row', 1),
-            ('fl', 'title,subtitle'),
-            ('facet', 'true'),
-            ('facet.mincount', 1),
-        ]
+        params={
+            'wt': 'json',
+            'json.nl': 'arrarr',
+            'q': 'author_key:%s' % author_id,
+            'sort': 'edition_count desc',
+            'row': 1,
+            'fl': 'title,subtitle',
+            'facet': 'true',
+            'facet.mincount': 1,
+        }
         + [('facet.field', '%s_facet' % field) for field in facet_fields],
     ).json()  # type: ignore
     work_count = reply['response']['numFound']
