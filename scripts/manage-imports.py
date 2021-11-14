@@ -46,19 +46,19 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
 
 def do_import(item, servername=None, require_marc=True):
     response = ol_import_request(item, servername=servername, require_marc=require_marc)
-    if response and response.startswith('{'):
+    if response and response.startswith("{"):
         d = json.loads(response)
-        if d.get('success') and 'edition' in d:
-            edition = d['edition']
-            logger.info("success: %s %s", edition['status'], edition['key'])
-            item.set_status(edition['status'], ol_key=edition['key'])
+        if d.get("success") and "edition" in d:
+            edition = d["edition"]
+            logger.info("success: %s %s", edition["status"], edition["key"])
+            item.set_status(edition["status"], ol_key=edition["key"])
         else:
-            error_code = d.get('error_code', 'unknown-error')
+            error_code = d.get("error_code", "unknown-error")
             logger.error("failed with error code: %s", error_code)
             item.set_status("failed", error=error_code)
     else:
         logger.error("failed with internal error: %s", response)
-        item.set_status("failed", error='internal-error')
+        item.set_status("failed", error="internal-error")
 
 
 def add_items(batch_name, filename):
@@ -77,8 +77,8 @@ def import_ocaids(*ocaids, **kwargs):
                 --config /olsystem/etc/openlibrary.yml \
                 import-all
     """
-    servername = kwargs.get('servername', None)
-    require_marc = not kwargs.get('no_marc', False)
+    servername = kwargs.get("servername", None)
+    require_marc = not kwargs.get("no_marc", False)
 
     date = datetime.date.today()
     if not ocaids:
@@ -118,8 +118,8 @@ def add_new_scans(args):
 
 
 def import_batch(args, **kwargs):
-    servername = kwargs.get('servername', None)
-    require_marc = not kwargs.get('no_marc', False)
+    servername = kwargs.get("servername", None)
+    require_marc = not kwargs.get("no_marc", False)
     batch_name = args[0]
     batch = Batch.find(batch_name)
     if not batch:
@@ -131,8 +131,8 @@ def import_batch(args, **kwargs):
 
 
 def import_item(args, **kwargs):
-    servername = kwargs.get('servername', None)
-    require_marc = not kwargs.get('no_marc', False)
+    servername = kwargs.get("servername", None)
+    require_marc = not kwargs.get("no_marc", False)
     ia_id = args[0]
     item = ImportItem.find_by_identifier(ia_id)
     if item:
@@ -142,8 +142,8 @@ def import_item(args, **kwargs):
 
 
 def import_all(args, **kwargs):
-    servername = kwargs.get('servername', None)
-    require_marc = not kwargs.get('no_marc', False)
+    servername = kwargs.get("servername", None)
+    require_marc = not kwargs.get("no_marc", False)
     while True:
         items = ImportItem.find_pending()
         if not items:
@@ -185,9 +185,9 @@ def main():
                 os.path.dirname(__file__),
                 os.pardir,
                 os.pardir,
-                'openlibrary',
-                'conf',
-                'openlibrary.yml',
+                "openlibrary",
+                "conf",
+                "openlibrary.yml",
             )
         )
 
@@ -197,10 +197,10 @@ def main():
 
     cmd = sys.argv[1]
     args, flags = [], {
-        'servername': config.get('servername', 'https://openlibrary.org')
+        "servername": config.get("servername", "https://openlibrary.org")
     }
     for i in sys.argv[2:]:
-        if i.startswith('--'):
+        if i.startswith("--"):
             flags[i[2:]] = True
         else:
             args.append(i)
@@ -210,7 +210,7 @@ def main():
             (int(a) for a in args) if (args and len(args) == 2) else (None, None)
         )
         return retroactive_import(
-            start=start, stop=stop, servername=flags['servername']
+            start=start, stop=stop, servername=flags["servername"]
         )
     if cmd == "import-ocaids":
         return import_ocaids(*args, **flags)

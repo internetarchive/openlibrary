@@ -18,11 +18,12 @@ import six
 
 facet_token_length = 12
 
+
 # turn v into a str object, by encoding from unicode or numeric
 # if necessary.
 def coerce_str(v):
     if isinstance(v, str):
-        v = v.encode('utf-8')
+        v = v.encode("utf-8")
     v = str(v)  # in case v is a numeric type
     assert isinstance(v, str), (type(v), v)
     return v
@@ -34,8 +35,8 @@ def facet_token(field, v):
     v = coerce_str(v)
     field = coerce_str(field)
 
-    q = int(mkhash(f'FT,{field},{v}').hexdigest(), 16)
+    q = int(mkhash(f"FT,{field},{v}").hexdigest(), 16)
     for i in range(facet_token_length):
         q, r = divmod(q, 26)
         token.append(string.lowercase[r])
-    return ''.join(token)
+    return "".join(token)

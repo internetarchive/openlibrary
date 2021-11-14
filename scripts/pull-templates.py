@@ -59,12 +59,12 @@ def delete(path):
 
 
 def make_path(doc):
-    if doc['key'].endswith(".css"):
-        return "static/css/" + doc['key'].split("/")[-1]
-    elif doc['key'].endswith(".js"):
-        return "openlibrary/plugins/openlibrary/js/" + doc['key'].split("/")[-1]
+    if doc["key"].endswith(".css"):
+        return "static/css/" + doc["key"].split("/")[-1]
+    elif doc["key"].endswith(".js"):
+        return "openlibrary/plugins/openlibrary/js/" + doc["key"].split("/")[-1]
     else:
-        key = doc['key'].rsplit(".")[0]
+        key = doc["key"].rsplit(".")[0]
         key = web.lstrips(key, options.template_root)
 
         plugin = doc.get("plugin", options.default_plugin)
@@ -74,7 +74,7 @@ def make_path(doc):
 def get_value(doc, property):
     value = doc.get(property, "")
     if isinstance(value, dict) and "value" in value:
-        return value['value']
+        return value["value"]
     else:
         return value
 
@@ -88,15 +88,15 @@ def main():
         docs = ol.query({"key~": pattern, "*": None}, limit=1000)
         for doc in marshal(docs):
             # Anand: special care to ignore bad documents in the database.
-            if "--duplicate" in doc['key']:
+            if "--duplicate" in doc["key"]:
                 continue
 
-            if doc['type']['key'] == '/type/template':
-                write(make_path(doc), get_value(doc, 'body'))
-            elif doc['type']['key'] == '/type/macro':
-                write(make_path(doc), get_value(doc, 'macro'))
-            elif doc['type']['key'] == '/type/rawtext':
-                write(make_path(doc), get_value(doc, 'body'))
+            if doc["type"]["key"] == "/type/template":
+                write(make_path(doc), get_value(doc, "body"))
+            elif doc["type"]["key"] == "/type/macro":
+                write(make_path(doc), get_value(doc, "macro"))
+            elif doc["type"]["key"] == "/type/rawtext":
+                write(make_path(doc), get_value(doc, "body"))
             else:
                 delete(make_path(doc))
 

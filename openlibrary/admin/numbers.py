@@ -39,11 +39,12 @@ class NoStats(TypeError):
 
 sqlitefile = None
 
+
 # Utility functions
 def query_single_thing(db, typ, start, end):
     "Query the counts a single type from the things table"
     q1 = "SELECT id as id from thing where key=$typ"
-    typ = '/type/%s' % typ
+    typ = "/type/%s" % typ
     result = db.query(q1, vars=locals())
     try:
         kid = result[0].id
@@ -64,10 +65,10 @@ def single_thing_skeleton(**kargs):
     `type` is partially applied for admin__[work, edition, user, author, list].
     """
     try:
-        typ = kargs['type']
-        start = kargs['start'].strftime("%Y-%m-%d")
-        end = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
-        db = kargs['thingdb']
+        typ = kargs["type"]
+        start = kargs["start"].strftime("%Y-%m-%d")
+        end = kargs["end"].strftime("%Y-%m-%d %H:%M:%S")
+        db = kargs["thingdb"]
     except KeyError as k:
         raise TypeError(f"{k} is a required argument for admin_range__{typ}")
     return query_single_thing(db, typ, start, end)
@@ -79,9 +80,9 @@ def admin_range__human_edits(**kargs):
     parameters done by humans. `thingdb` is the database.
     """
     try:
-        start = kargs['start'].strftime("%Y-%m-%d")
-        end = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
-        db = kargs['thingdb']
+        start = kargs["start"].strftime("%Y-%m-%d")
+        end = kargs["end"].strftime("%Y-%m-%d %H:%M:%S")
+        db = kargs["thingdb"]
     except KeyError as k:
         raise TypeError("%s is a required argument for admin_range__human_edits" % k)
     q1 = (
@@ -104,9 +105,9 @@ def admin_range__bot_edits(**kargs):
     parameters done by bots. `thingdb` is the database.
     """
     try:
-        start = kargs['start'].strftime("%Y-%m-%d")
-        end = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
-        db = kargs['thingdb']
+        start = kargs["start"].strftime("%Y-%m-%d")
+        end = kargs["end"].strftime("%Y-%m-%d %H:%M:%S")
+        db = kargs["thingdb"]
     except KeyError as k:
         raise TypeError("%s is a required argument for admin_range__bot_edits" % k)
     q1 = (
@@ -121,9 +122,9 @@ def admin_range__bot_edits(**kargs):
 def admin_range__covers(**kargs):
     "Queries the number of covers added between `start` and `end`"
     try:
-        start = kargs['start'].strftime("%Y-%m-%d")
-        end = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
-        db = kargs['coverdb']
+        start = kargs["start"].strftime("%Y-%m-%d")
+        end = kargs["end"].strftime("%Y-%m-%d %H:%M:%S")
+        db = kargs["coverdb"]
     except KeyError as k:
         raise TypeError("%s is a required argument for admin_range__covers" % k)
     q1 = (
@@ -146,7 +147,7 @@ admin_range__members = functools.partial(single_thing_skeleton, type="user")
 def admin_range__visitors(**kargs):
     "Finds number of unique IPs to visit the OL website."
     try:
-        date = kargs['start']
+        date = kargs["start"]
     except KeyError as k:
         raise TypeError("%s is a required argument for admin_range__visitors" % k)
     global sqlitefile
@@ -176,9 +177,9 @@ def admin_range__loans(**kargs):
     WARNING: This script must be run on the node that has infobase logs.
     """
     try:
-        db = kargs['thingdb']
-        start = kargs['start']
-        end = kargs['end']
+        db = kargs["thingdb"]
+        start = kargs["start"]
+        end = kargs["end"]
     except KeyError as k:
         raise TypeError("%s is a required argument for admin_total__ebooks" % k)
     result = db.query(
@@ -192,7 +193,7 @@ def admin_range__loans(**kargs):
 
 
 def admin_total__authors(**kargs):
-    db = kargs['thingdb']
+    db = kargs["thingdb"]
     return _count_things(db, "/type/author")
 
 
@@ -204,7 +205,7 @@ def admin_total__subjects(**kargs):
 
 def admin_total__lists(**kargs):
     try:
-        db = kargs['thingdb']
+        db = kargs["thingdb"]
     except KeyError as k:
         raise TypeError("%s is a required argument for admin_total__lists" % k)
     # Computing total number of lists
@@ -221,18 +222,18 @@ def admin_total__lists(**kargs):
 
 
 def admin_total__covers(**kargs):
-    db = kargs['coverdb']
+    db = kargs["coverdb"]
     return db.query("SELECT count(*) as count FROM cover")[0].count
 
 
 def admin_total__works(**kargs):
-    db = kargs['thingdb']
-    return _count_things(db, '/type/work')
+    db = kargs["thingdb"]
+    return _count_things(db, "/type/work")
 
 
 def admin_total__editions(**kargs):
-    db = kargs['thingdb']
-    return _count_things(db, '/type/edition')
+    db = kargs["thingdb"]
+    return _count_things(db, "/type/edition")
 
 
 def _count_things(db, type):
@@ -245,13 +246,13 @@ def _count_things(db, type):
 
 def _query_count(db, table, type, property, distinct=False):
     type_id = db.where("thing", key=type)[0].id
-    key_id = db.where('property', type=type_id, name=property)[0].id
+    key_id = db.where("property", type=type_id, name=property)[0].id
     if distinct:
-        what = 'count(distinct(thing_id)) as count'
+        what = "count(distinct(thing_id)) as count"
     else:
-        what = 'count(thing_id) as count'
+        what = "count(thing_id) as count"
     result = db.select(
-        table, what=what, where='key_id=$key_id', vars=dict(key_id=key_id)
+        table, what=what, where="key_id=$key_id", vars=dict(key_id=key_id)
     )
     return result[0].count
 
@@ -261,13 +262,13 @@ def admin_total__ebooks(**kargs):
     # The following implementation is too slow. Disabling for now.
     return 0
 
-    db = kargs['thingdb']
+    db = kargs["thingdb"]
     return _query_count(db, "edition_str", "/type/edition", "ocaid")
 
 
 def admin_total__members(**kargs):
-    db = kargs['thingdb']
-    return _count_things(db, '/type/user')
+    db = kargs["thingdb"]
+    return _count_things(db, "/type/user")
 
 
 def admin_delta__ebooks(**kargs):

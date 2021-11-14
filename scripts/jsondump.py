@@ -94,12 +94,12 @@ def json2rawdump(jsonfile):
 def split_types(rawdump):
     """Write each type of objects in separate files."""
     files = {}
-    if not os.path.exists('type'):
-        os.mkdir('type')
+    if not os.path.exists("type"):
+        os.mkdir("type")
 
     for key, type, json_data in read_rawdump(rawdump):
         if type not in files:
-            files[type] = open(type[1:] + '.txt', 'w')
+            files[type] = open(type[1:] + ".txt", "w")
         files[type].write("\t".join([key, type, json_data]))
 
     for t in files:
@@ -123,14 +123,14 @@ def bookdump(editions_file, authors_file, languages_file):
         log("END read_authors")
         for key, type, json_data in read_rawdump(editions_file):
             d = json.loads(strip_json(json_data))
-            d['authors'] = [
-                json.loads(authors.get(a['key']) or '{"key": "%s"}' % a['key'])
-                for a in d.get('authors', [])
+            d["authors"] = [
+                json.loads(authors.get(a["key"]) or '{"key": "%s"}' % a["key"])
+                for a in d.get("authors", [])
                 if isinstance(a, dict)
             ]
-            d['languages'] = [
-                json.loads(languages.get(a['key']) or '{"key": "%s"}' % a['key'])
-                for a in d.get('languages', [])
+            d["languages"] = [
+                json.loads(languages.get(a["key"]) or '{"key": "%s"}' % a["key"])
+                for a in d.get("languages", [])
                 if isinstance(a, dict)
             ]
             yield key, type, json.dumps(d) + "\n"
@@ -208,7 +208,7 @@ def invert_dict(d):
     return {v: k for (k, v) in d.items()}
 
 
-_escape_dict = {'\n': r'\n', '\r': r'\r', '\t': r'\t', '\\': r'\\'}
+_escape_dict = {"\n": r"\n", "\r": r"\r", "\t": r"\t", "\\": r"\\"}
 
 escape = make_sub(_escape_dict)
 unescape = make_sub(invert_dict(_escape_dict))
@@ -278,9 +278,9 @@ def read_json(file):
     """
     for json_data in xopen(file):
         d = json.loads(json_data)
-        ret = (d['key'], d['type']['key'], json_data)
+        ret = (d["key"], d["type"]["key"], json_data)
         if not all(isinstance(i, str) for i in ret):
-            print('not all strings:')
+            print("not all strings:")
             print(json_data)
         yield ret
 
@@ -289,7 +289,7 @@ def xopen(file):
     if isinstance(file, str):
         if file == "-":
             return sys.stdin
-        elif file.endswith('.gz'):
+        elif file.endswith(".gz"):
             import gzip
 
             return gzip.open(file)

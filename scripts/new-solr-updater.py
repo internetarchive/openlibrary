@@ -48,7 +48,7 @@ class InfobaseLog:
         :param str hostname:
         :param str|None exclude: if specified, excludes records that include the string
         """
-        self.base_url = 'http://%s/openlibrary.org/log' % hostname
+        self.base_url = "http://%s/openlibrary.org/log" % hostname
         self.offset = get_default_offset()
         self.exclude = exclude
 
@@ -67,9 +67,9 @@ class InfobaseLog:
                 jsontext = urllib.request.urlopen(url).read()
             except urllib.error.URLError as e:
                 logger.error("Failed to open URL %s", url, exc_info=True)
-                if e.args and e.args[0].args == (111, 'Connection refused'):
+                if e.args and e.args[0].args == (111, "Connection refused"):
                     logger.error(
-                        'make sure infogami server is working, connection refused from %s',
+                        "make sure infogami server is working, connection refused from %s",
                         url,
                     )
                     sys.exit(1)
@@ -80,22 +80,22 @@ class InfobaseLog:
             except:
                 logger.error("Bad JSON: %s", jsontext)
                 raise
-            data = d['data']
+            data = d["data"]
             # no more data is available
             if not data:
                 logger.debug("no more records found")
                 # There's an infobase bug where we'll sometimes get 0 items, but the
                 # binary offset will have incremented...?
-                if 'offset' in d:
+                if "offset" in d:
                     # There's _another_ infobase bug where if you query a future date,
                     # it'll return back 2020-12-01. To avoid solrupdater getting stuck
                     # in a loop, only update the offset if it's newer than the current
-                    old_day, old_boffset = self.offset.split(':')
+                    old_day, old_boffset = self.offset.split(":")
                     old_boffset = int(old_boffset)
-                    new_day, new_boffset = d['offset'].split(':')
+                    new_day, new_boffset = d["offset"].split(":")
                     new_boffset = int(new_boffset)
                     if new_day >= old_day and new_boffset >= old_boffset:
-                        self.offset = d['offset']
+                        self.offset = d["offset"]
                 return
 
             for record in data:
@@ -103,22 +103,22 @@ class InfobaseLog:
                     continue
                 yield record
 
-            self.offset = d['offset']
+            self.offset = d["offset"]
 
 
 def parse_log(records, load_ia_scans: bool):
     for rec in records:
-        action = rec.get('action')
-        if action == 'save':
-            key = rec['data'].get('key')
+        action = rec.get("action")
+        if action == "save":
+            key = rec["data"].get("key")
             if key:
                 yield key
-        elif action == 'save_many':
-            changes = rec['data'].get('changeset', {}).get('changes', [])
+        elif action == "save_many":
+            changes = rec["data"].get("changeset", {}).get("changes", [])
             for c in changes:
-                yield c['key']
+                yield c["key"]
 
-        elif action == 'store.put':
+        elif action == "store.put":
             # A sample record looks like this:
             # {
             #   "action": "store.put",
@@ -129,10 +129,10 @@ def parse_log(records, load_ia_scans: bool):
             #   },
             #   "site": "openlibrary.org"
             # }
-            data = rec.get('data', {}).get("data", {})
+            data = rec.get("data", {}).get("data", {})
             key = data.get("_key", "")
             if data.get("type") == "ebook" and key.startswith("ebooks/books/"):
-                edition_key = data.get('book_key')
+                edition_key = data.get("book_key")
                 if edition_key:
                     yield edition_key
             elif (
@@ -140,7 +140,7 @@ def parse_log(records, load_ia_scans: bool):
                 and data.get("type") == "ia-scan"
                 and key.startswith("ia-scan/")
             ):
-                identifier = data.get('identifier')
+                identifier = data.get("identifier")
                 if identifier and is_allowed_itemid(identifier):
                     yield "/books/ia:" + identifier
 
@@ -148,11 +148,11 @@ def parse_log(records, load_ia_scans: bool):
             # The admin interface writes the keys to update to a document named
             # 'solr-force-update' in the store and whatever keys are written to that
             # are picked by this script
-            elif key == 'solr-force-update':
-                keys = data.get('keys')
+            elif key == "solr-force-update":
+                keys = data.get("keys")
                 yield from keys
 
-        elif action == 'store.delete':
+        elif action == "store.delete":
             key = rec.get("data", {}).get("key")
             # An ia-scan key is deleted when that book is deleted/darked from IA.
             # Delete it from OL solr by updating that key
@@ -181,7 +181,7 @@ def update_keys(keys):
     # FIXME: Some kind of hack introduced to work around DB connectivity issue
     global args
     logger.debug("Args: %s" % str(args))
-    update_work.load_configs(args['ol_url'], args['ol_config'], 'default')
+    update_work.load_configs(args["ol_url"], args["ol_config"], "default")
 
     keys = [
         k
@@ -247,9 +247,9 @@ class Solr:
 def main(
     ol_config: str,
     debugger=False,
-    state_file='solr-update.state',
+    state_file="solr-update.state",
     exclude_edits_containing: str = None,
-    ol_url='http://openlibrary.org/',
+    ol_url="http://openlibrary.org/",
     solr_url: str = None,
     solr_next=True,
     socket_timeout=10,
@@ -272,7 +272,7 @@ def main(
         import debugpy
 
         logger.info("Enabling debugger attachment (attach if it hangs here)")
-        debugpy.listen(address=('0.0.0.0', 3000))
+        debugpy.listen(address=("0.0.0.0", 3000))
         logger.info("Waiting for debugger to attach...")
         debugpy.wait_for_client()
         logger.info("Debugger attached to port 3000")
@@ -297,7 +297,7 @@ def main(
     offset = read_state_file(state_file, initial_state)
 
     logfile = InfobaseLog(
-        config.get('infobase_server'), exclude=exclude_edits_containing
+        config.get("infobase_server"), exclude=exclude_edits_containing
     )
     logfile.seek(offset)
 
