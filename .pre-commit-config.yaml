@@ -32,8 +32,6 @@ repos:
         args:
         - --diff
         - --skip-string-normalization
-        - ./scripts
-        - ./tests
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.1.0
