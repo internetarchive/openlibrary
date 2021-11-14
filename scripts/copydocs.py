@@ -32,11 +32,11 @@ __version__ = "0.2"
 
 
 def find(server, prefix):
-    q = {"key~": prefix, "limit": 1000}
+    q = {'key~': prefix, 'limit': 1000}
 
     # until all properties and backreferences are deleted on production server
-    if prefix == "/type":
-        q["type"] = "/type/type"
+    if prefix == '/type':
+        q['type'] = '/type/type'
 
     return [str(x) for x in server.query(q)]
 
@@ -53,7 +53,7 @@ def expand(server, keys):
         yield from keys
     else:
         for key in keys:
-            if key.endswith("*"):
+            if key.endswith('*'):
                 yield from find(server, key)
             else:
                 yield key
@@ -90,7 +90,7 @@ def parse_args():
         "-r",
         "--recursive",
         dest="recursive",
-        action="store_true",
+        action='store_true',
         default=True,
         help="Recursively fetch all the referred docs.",
     )
@@ -143,7 +143,7 @@ class Disk:
                 os.makedirs(dir)
 
             if isinstance(text, dict):
-                text = text["value"]
+                text = text['value']
 
             try:
                 print("writing", path)
@@ -154,13 +154,13 @@ class Disk:
                 print("failed", path)
 
         for doc in marshal(docs):
-            path = os.path.join(self.root, doc["key"][1:])
-            if doc["type"]["key"] == "/type/template":
+            path = os.path.join(self.root, doc['key'][1:])
+            if doc['type']['key'] == '/type/template':
                 path = path.replace(".tmpl", ".html")
-                write(path, doc["body"])
-            elif doc["type"]["key"] == "/type/macro":
+                write(path, doc['body'])
+            elif doc['type']['key'] == '/type/macro':
                 path = path + ".html"
-                write(path, doc["macro"])
+                write(path, doc['macro'])
 
 
 def read_lines(filename):
@@ -178,15 +178,15 @@ def get_references(doc, result=None):
         for v in doc:
             get_references(v, result)
     elif isinstance(doc, dict):
-        if "key" in doc and len(doc) == 1:
-            result.append(doc["key"])
+        if 'key' in doc and len(doc) == 1:
+            result.append(doc['key'])
 
         for k, v in doc.items():
             get_references(v, result)
     return result
 
 
-class KeyVersionPair(namedtuple("KeyVersionPair", "key version")):
+class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
     """Helper class to store uri's like /works/OL1W?v=2"""
 
     @staticmethod
@@ -196,8 +196,8 @@ class KeyVersionPair(namedtuple("KeyVersionPair", "key version")):
         :rtype: KeyVersionPair
         """
 
-        if "?v=" in uri:
-            key, version = uri.split("?v=")
+        if '?v=' in uri:
+            key, version = uri.split('?v=')
         else:
             key, version = uri, None
         return KeyVersionPair._make([key, version])
@@ -208,7 +208,7 @@ class KeyVersionPair(namedtuple("KeyVersionPair", "key version")):
         """
         uri = self.key
         if self.version:
-            uri += "?v=" + self.version
+            uri += '?v=' + self.version
         return uri
 
     def __str__(self):
@@ -235,11 +235,11 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
         # work records may contain excerpts, which reference the author of the excerpt.
         # Deleting them to prevent loading the users.
         for doc in docs:
-            doc.pop("excerpts", None)
+            doc.pop('excerpts', None)
 
             # Authors are now with works. We don't need authors at editions.
-            if doc["type"]["key"] == "/type/edition":
-                doc.pop("authors", None)
+            if doc['type']['key'] == '/type/edition':
+                doc.pop('authors', None)
 
         return docs
 
@@ -263,13 +263,13 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
         if unversioned_keys:
             print("fetching", unversioned_keys)
             docs2 = get_many(unversioned_keys)
-            cache.update((doc["key"], doc) for doc in docs2)
+            cache.update((doc['key'], doc) for doc in docs2)
             docs.extend(docs2)
         # Do versioned second so they can overwrite if necessary
         if versioned_to_get:
             print("fetching versioned", versioned_to_get)
             docs2 = [src.get(pair.key, int(pair.version)) for pair in versioned_to_get]
-            cache.update((doc["key"], doc) for doc in docs2)
+            cache.update((doc['key'], doc) for doc in docs2)
             docs.extend(docs2)
 
         return docs
@@ -284,9 +284,9 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
             print("found references", refs)
             copy(src, dest, refs, comment, recursive=True, saved=saved, cache=cache)
 
-    docs = [doc for doc in docs if doc["key"] not in saved]
+    docs = [doc for doc in docs if doc['key'] not in saved]
 
-    keys = [doc["key"] for doc in docs]
+    keys = [doc['key'] for doc in docs]
     print("saving", keys)
     print(dest.save_many(docs, comment=comment))
     saved.update(keys)
@@ -306,20 +306,20 @@ def copy_list(src, dest, list_key, comment):
 
     def query(**q):
         print("query", q)
-        return [x["key"] for x in marshal(src.query(q))]
+        return [x['key'] for x in marshal(src.query(q))]
 
     def get_list_seeds(list_key):
         d = jsonget(list_key + "/seeds.json")
-        return d["entries"]  # [x['url'] for x in d['entries']]
+        return d['entries']  # [x['url'] for x in d['entries']]
 
     def add_seed(seed):
-        if seed["type"] == "edition":
-            keys.add(seed["url"])
-        elif seed["type"] == "work":
-            keys.add(seed["url"])
-        elif seed["type"] == "subject":
-            doc = jsonget(seed["url"] + ".json")
-            keys.update(w["key"] for w in doc["works"])
+        if seed['type'] == 'edition':
+            keys.add(seed['url'])
+        elif seed['type'] == 'work':
+            keys.add(seed['url'])
+        elif seed['type'] == 'subject':
+            doc = jsonget(seed['url'] + '.json')
+            keys.update(w['key'] for w in doc['works'])
 
     seeds = get_list_seeds(list_key)
     for seed in seeds:
@@ -329,7 +329,7 @@ def copy_list(src, dest, list_key, comment):
     work_keys = {k for k in keys if k.startswith("/works/")}
 
     for w in work_keys:
-        edition_keys.update(query(type="/type/edition", works=w, limit=500))
+        edition_keys.update(query(type='/type/edition', works=w, limit=500))
 
     keys = list(edition_keys) + list(work_keys)
     copy(src, dest, keys, comment=comment, recursive=True)
@@ -362,5 +362,5 @@ def main():
     copy(src, dest, keys, comment=options.comment, recursive=options.recursive)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

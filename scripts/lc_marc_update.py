@@ -11,47 +11,47 @@ import httplib
 import json
 import argparse
 
-parser = argparse.ArgumentParser(description="Library of Congress MARC update")
-parser.add_argument("--config", default="openlibrary.yml")
+parser = argparse.ArgumentParser(description='Library of Congress MARC update')
+parser.add_argument('--config', default='openlibrary.yml')
 args = parser.parse_args()
 
 config_file = args.config
 config.load(config_file)
-c = config.runtime_config["lc_marc_update"]
-base_url = "http://openlibrary.org"
-import_api_url = base_url + "/api/import"
-internal_error = "<Code>InternalError</Code>"
-no_bucket_error = "<Code>NoSuchBucket</Code>"
+c = config.runtime_config['lc_marc_update']
+base_url = 'http://openlibrary.org'
+import_api_url = base_url + '/api/import'
+internal_error = '<Code>InternalError</Code>'
+no_bucket_error = '<Code>NoSuchBucket</Code>'
 
 
 def put_file(con, ia, filename, data):
-    print("uploading %s" % filename)
+    print('uploading %s' % filename)
     headers = {
-        "authorization": "LOW " + c["s3_key"] + ":" + c["s3_secret"],
+        'authorization': "LOW " + c['s3_key'] + ':' + c['s3_secret'],
         #        'x-archive-queue-derive': 0,
     }
-    url = "http://s3.us.archive.org/" + ia + "/" + filename
+    url = 'http://s3.us.archive.org/' + ia + '/' + filename
     print(url)
     for attempt in range(5):
-        con.request("PUT", url, data, headers)
+        con.request('PUT', url, data, headers)
         try:
             res = con.getresponse()
         except httplib.BadStatusLine as bad:
-            print("bad status line:", bad.line)
+            print('bad status line:', bad.line)
             raise
         body = res.read()
-        if "<Error>" not in body:
+        if '<Error>' not in body:
             return
-        print("error")
+        print('error')
         print(body)
         if no_bucket_error not in body and internal_error not in body:
             sys.exit(0)
-        print("retry")
+        print('retry')
         sleep(5)
-    print("too many failed attempts")
+    print('too many failed attempts')
 
 
-url = "http://archive.org/download/marc_loc_updates/marc_loc_updates_files.xml"
+url = 'http://archive.org/download/marc_loc_updates/marc_loc_updates_files.xml'
 
 attempts = 10
 wait = 5
@@ -62,20 +62,20 @@ for attempt in range(attempts):
     except:
         if attempt == attempts - 1:
             raise
-        print("error on attempt %d, retrying in %s seconds" % (attempt, wait))
+        print('error on attempt %d, retrying in %s seconds' % (attempt, wait))
         sleep(wait)
 
-existing = {f.attrib["name"] for f in root}
+existing = {f.attrib['name'] for f in root}
 # existing.remove("v40.i32.records.utf8") # for testing
 # existing.remove("v40.i32.report") # for testing
 
-host = "rs7.loc.gov"
+host = 'rs7.loc.gov'
 
 to_upload = set()
 
 
 def print_line(f):
-    if "books.test" not in f and f not in existing:
+    if 'books.test' not in f and f not in existing:
         to_upload.add(f)
 
 
@@ -87,9 +87,9 @@ def read_block(block):
 ftp = FTP(host)
 ftp.set_pasv(False)
 welcome = ftp.getwelcome()
-ftp.login(c["lc_update_user"], c["lc_update_pass"])
-ftp.cwd("/emds/books/all")
-ftp.retrlines("NLST", print_line)
+ftp.login(c['lc_update_user'], c['lc_update_pass'])
+ftp.cwd('/emds/books/all')
+ftp.retrlines('NLST', print_line)
 
 if to_upload:
     print(welcome)
@@ -97,7 +97,7 @@ else:
     ftp.close()
     sys.exit(0)
 
-bad = open(c["log_location"] + "lc_marc_bad_import", "a")
+bad = open(c['log_location'] + 'lc_marc_bad_import', 'a')
 
 
 def iter_marc(data):
@@ -110,47 +110,47 @@ def iter_marc(data):
 
 
 def login(h1, password):
-    body = json.dumps({"username": "LCImportBot", "password": password})
-    headers = {"Content-Type": "application/json"}
-    h1.request("POST", base_url + "/account/login", body, headers)
-    print(base_url + "/account/login")
+    body = json.dumps({'username': 'LCImportBot', 'password': password})
+    headers = {'Content-Type': 'application/json'}
+    h1.request('POST', base_url + '/account/login', body, headers)
+    print(base_url + '/account/login')
     res = h1.getresponse()
 
     print(res.read())
-    print("status:", res.status)
+    print('status:', res.status)
     assert res.status == 200
-    cookies = res.getheader("set-cookie").split(",")
-    cookie = ";".join([c.split(";")[0] for c in cookies])
+    cookies = res.getheader('set-cookie').split(',')
+    cookie = ';'.join([c.split(';')[0] for c in cookies])
     return cookie
 
 
-h1 = httplib.HTTPConnection("openlibrary.org")
+h1 = httplib.HTTPConnection('openlibrary.org')
 headers = {
-    "Content-type": "application/marc",
-    "Cookie": login(h1, c["ol_bot_pass"]),
+    'Content-type': 'application/marc',
+    'Cookie': login(h1, c['ol_bot_pass']),
 }
 h1.close()
 
-item_id = "marc_loc_updates"
+item_id = 'marc_loc_updates'
 for f in to_upload:
-    data = ""
-    print("downloading", f)
-    ftp.retrbinary("RETR " + f, read_block)
-    print("done")
-    con = httplib.HTTPConnection("s3.us.archive.org")
+    data = ''
+    print('downloading', f)
+    ftp.retrbinary('RETR ' + f, read_block)
+    print('done')
+    con = httplib.HTTPConnection('s3.us.archive.org')
     con.connect()
     put_file(con, item_id, f, data)
     con.close()
-    if not f.endswith(".records.utf8"):
+    if not f.endswith('.records.utf8'):
         continue
 
-    loc_file = item_id + "/" + f
+    loc_file = item_id + '/' + f
     for p, l, marc_data in iter_marc(data):
-        loc = "%s:%d:%d" % (loc_file, p, l)
-        headers["x-archive-meta-source-record"] = "marc:" + loc
+        loc = '%s:%d:%d' % (loc_file, p, l)
+        headers['x-archive-meta-source-record'] = 'marc:' + loc
         try:
-            h1 = httplib.HTTPConnection("openlibrary.org")
-            h1.request("POST", import_api_url, marc_data, headers)
+            h1 = httplib.HTTPConnection('openlibrary.org')
+            h1.request('POST', import_api_url, marc_data, headers)
             try:
                 res = h1.getresponse()
             except httplib.BadStatusLine:
@@ -162,11 +162,11 @@ for f in to_upload:
                 try:
                     reply = json.loads(body)
                 except ValueError:
-                    print(("not JSON:", repr(body)))
+                    print(('not JSON:', repr(body)))
                     raise BadImport
             assert res.status == 200
             print(reply)
-            assert reply["success"]
+            assert reply['success']
             h1.close()
         except BadImport:
             print(loc, file=bad)

@@ -42,7 +42,7 @@ def store_data(data, day):
     uid = day.strftime("counts-%Y-%m-%d")
     doc = web.ctx.site.store.get(uid) or {}
     doc.update(data)
-    doc["type"] = "admin-stats"
+    doc['type'] = 'admin-stats'
     web.ctx.site.store[uid] = doc
 
 
@@ -109,11 +109,11 @@ if __name__ == "__main__":
         description="Store count of unique IPs per day from the past K days (including today) in infobase."
     )
     parser.add_argument(
-        "config", help="openlibrary.yml (e.g. olsystem/etc/openlibrary.yml)"
+        'config', help="openlibrary.yml (e.g. olsystem/etc/openlibrary.yml)"
     )
-    parser.add_argument("--days", type=int, default=1, help="how many days to go back")
+    parser.add_argument('--days', type=int, default=1, help="how many days to go back")
     parser.add_argument(
-        "--range",
+        '--range',
         nargs=2,
         type=lambda d: datetime.strptime(d, "%Y-%m-%d"),
         help="alternatively, provide a range of dates to visit (like `--range 2018-06-25 2018-07-14`)",

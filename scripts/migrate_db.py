@@ -94,13 +94,13 @@ class Upgrader:
     def get_database_version(self, db):
         schema = self.read_schema(db)
 
-        if "seq" not in schema:
+        if 'seq' not in schema:
             return 10
-        elif "data" not in schema["transaction"]:
+        elif 'data' not in schema['transaction']:
             return 11
-        elif "changes" not in schema["transaction"]:
+        elif 'changes' not in schema['transaction']:
             return 12
-        elif "transaction_index" not in schema:
+        elif 'transaction_index' not in schema:
             return 13
         else:
             return LATEST_VERSION
@@ -133,7 +133,7 @@ def main():
         usage()
     else:
         dbname = sys.argv[1]
-        db = web.database(dbn="postgres", db=dbname, user=os.getenv("USER"), pw="")
+        db = web.database(dbn='postgres', db=dbname, user=os.getenv('USER'), pw='')
         Upgrader().upgrade(db)
 
 

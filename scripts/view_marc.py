@@ -5,34 +5,34 @@ import sys
 import codecs
 import re
 
-sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
+sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
-re_subtag = re.compile("\x1f(.)([^\x1f]*)")
+re_subtag = re.compile('\x1f(.)([^\x1f]*)')
 
 
 def fmt_subfields(line):
     def bold(s):
-        return "".join(c + "\b" + c for c in s)
+        return ''.join(c + "\b" + c for c in s)
 
-    assert line[-1] == "\x1e"
-    return "".join(
-        " " + bold("$" + m.group(1)) + " " + translate(m.group(2))
+    assert line[-1] == '\x1e'
+    return ''.join(
+        ' ' + bold('$' + m.group(1)) + ' ' + translate(m.group(2))
         for m in re_subtag.finditer(line[2:-1])
     )
 
 
 def show_book(data):
-    print("leader:", data[:24])
+    print('leader:', data[:24])
     for tag, line in get_all_tag_lines(data):
-        if tag.startswith("00"):
+        if tag.startswith('00'):
             print(tag, line[:-1])
         else:
             print(tag, line[0:2], fmt_subfields(line))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     source = sys.argv[1]
-    if ":" in source:
+    if ':' in source:
         data = get_from_archive(source)
     else:
         data = open(source).read()

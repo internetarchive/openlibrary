@@ -5,20 +5,20 @@ import smtplib
 import sys
 from email.mime.text import MIMEText
 
-password = open(os.path.expanduser("~/.openlibrary_db_password")).read()
-if password.endswith("\n"):
+password = open(os.path.expanduser('~/.openlibrary_db_password')).read()
+if password.endswith('\n'):
     password = password[:-1]
 db_error = web.database(
-    dbn="postgres", db="ol_errors", host="localhost", user="openlibrary", pw=password
+    dbn='postgres', db='ol_errors', host='localhost', user='openlibrary', pw=password
 )
 db_error.printing = False
 
-body = """When using the Open Library query interface the results should only include
+body = '''When using the Open Library query interface the results should only include
 authors. There shouldn't be any redirects or deleted authors in the results.
 
 Below is a list of bad results for author queries from imports that have
 run today.
-"""
+'''
 
 seen = set()
 bad_count = 0
@@ -30,30 +30,30 @@ for row in db_error.query(
         continue
     seen.add(author)
     bad_count += 1
-    body += "-" * 60 + "\nAuthor name: " + author + "\n"
+    body += '-' * 60 + '\nAuthor name: ' + author + '\n'
     body += (
-        "http://openlibrary.org/query.json?type=/type/author&name=%s"
+        'http://openlibrary.org/query.json?type=/type/author&name=%s'
         % web.urlquote(author)
-        + "\n\n"
+        + '\n\n'
     )
-    body += row.result + "\n"
+    body += row.result + '\n'
 
 if bad_count == 0:
     sys.exit(0)
 
 # print body
 
-addr_from = "edward@archive.org"
-addr_to = "openlibrary@archive.org"
+addr_from = 'edward@archive.org'
+addr_to = 'openlibrary@archive.org'
 # msg = MIMEText(body, 'plain', 'utf-8')
 try:
-    msg = MIMEText(body, "plain", "iso-8859-15")
+    msg = MIMEText(body, 'plain', 'iso-8859-15')
 except UnicodeEncodeError:
-    msg = MIMEText(body, "plain", "utf-8")
-msg["From"] = addr_from
-msg["To"] = addr_to
-msg["Subject"] = "import error report: %d bad author queries" % bad_count
+    msg = MIMEText(body, 'plain', 'utf-8')
+msg['From'] = addr_from
+msg['To'] = addr_to
+msg['Subject'] = "import error report: %d bad author queries" % bad_count
 
-s = smtplib.SMTP("mail.archive.org")
+s = smtplib.SMTP('mail.archive.org')
 s.sendmail(addr_from, [addr_to], msg.as_string())
 s.quit()

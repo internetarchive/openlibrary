@@ -31,17 +31,17 @@ SCHEMA_URL = (
 class Biblio:
 
     ACTIVE_FIELDS = [
-        "title",
-        "isbn_13",
-        "publish_date",
-        "publishers",
-        "weight",
-        "authors",
-        "lc_classifications",
-        "pagination",
-        "languages",
-        "subjects",
-        "source_records",
+        'title',
+        'isbn_13',
+        'publish_date',
+        'publishers',
+        'weight',
+        'authors',
+        'lc_classifications',
+        'pagination',
+        'languages',
+        'subjects',
+        'source_records',
     ]
     INACTIVE_FIELDS = [
         "copyright",
@@ -53,11 +53,11 @@ class Biblio:
         "width",
         "height",
     ]
-    REQUIRED_FIELDS = requests.get(SCHEMA_URL).json()["required"]
+    REQUIRED_FIELDS = requests.get(SCHEMA_URL).json()['required']
 
     def __init__(self, data):
         self.isbn = data[124]
-        self.source_id = "bwb:%s" % self.isbn
+        self.source_id = 'bwb:%s' % self.isbn
         self.isbn_13 = [self.isbn]
         self.title = data[10]
         self.publish_date = data[20][:4]  # YYYY, YYYYMMDD
@@ -69,7 +69,7 @@ class Biblio:
         self.languages = [data[37].lower()]
         self.source_records = [self.source_id]
         self.subjects = [
-            s.capitalize().replace("_", ", ")
+            s.capitalize().replace('_', ', ')
             for s in data[91:100]
             # + data[101:120]
             # + data[153:158]
@@ -94,10 +94,10 @@ class Biblio:
     @staticmethod
     def contributors(data):
         def make_author(name, _, typ):
-            author = {"name": name}
-            if typ == "X":
+            author = {'name': name}
+            if typ == 'X':
                 # set corporate contributor
-                author["entity_type"] = "org"
+                author['entity_type'] = 'org'
             # TODO: sort out contributor types
             # AU = author
             # ED = editor
@@ -138,7 +138,7 @@ def load_state(path, logfile):
     )
     try:
         with open(logfile) as fin:
-            active_fname, offset = next(fin).strip().split(",")
+            active_fname, offset = next(fin).strip().split(',')
             unfinished_filenames = filenames[filenames.index(active_fname) :]
             return unfinished_filenames, int(offset)
     except (ValueError, OSError):
@@ -147,18 +147,18 @@ def load_state(path, logfile):
 
 def update_state(logfile, fname, line_num=0):
     """Records the last file we began processing and the current line"""
-    with open(logfile, "w") as fout:
-        fout.write(f"{fname},{line_num}\n")
+    with open(logfile, 'w') as fout:
+        fout.write(f'{fname},{line_num}\n')
 
 
 def csv_to_ol_json_item(line):
     """converts a line to a book item"""
-    b = Biblio(line.strip().split("|"))
-    return {"ia_id": b.source_id, "data": b.json()}
+    b = Biblio(line.strip().split('|'))
+    return {'ia_id': b.source_id, 'data': b.json()}
 
 
 def batch_import(path, batch, batch_size=5000):
-    logfile = os.path.join(path, "import.log")
+    logfile = os.path.join(path, 'import.log')
     filenames, offset = load_state(path, logfile)
 
     for fname in filenames:
@@ -192,14 +192,14 @@ def batch_import(path, batch, batch_size=5000):
 
 def main():
     load_config(
-        os.path.abspath(os.path.join(os.sep, "olsystem", "etc", "openlibrary.yml"))
+        os.path.abspath(os.path.join(os.sep, 'olsystem', 'etc', 'openlibrary.yml'))
     )
     # Partner data is offset ~15 days from start of month
     date = datetime.date.today() - timedelta(days=15)
-    batch_name = "%s-%04d%02d" % ("bwb", date.year, date.month)
+    batch_name = "%s-%04d%02d" % ('bwb', date.year, date.month)
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch_import(sys.argv[1], batch)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
