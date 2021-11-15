@@ -7,14 +7,14 @@ eventer==0.1.1
 flup-py3==1.0.3
 Genshi==0.7.5
 gunicorn==20.1.0
-httpx==0.18.2
+httpx==0.21.0
 internetarchive==2.1.0
 isbnlib==3.10.6
 lxml==4.6.3
 Pillow==8.2.0
 psycopg2==2.8.6
-pymarc==4.1.1
 pydantic==1.8.2
+pymarc==4.1.1
 python-dateutil==2.8.2
 python-memcached==1.59
 PyYAML==5.4.1
