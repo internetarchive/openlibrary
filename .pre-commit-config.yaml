@@ -11,10 +11,10 @@ repos:
     hooks:
       - id: make-lint-diff
         name: make lint-diff
-        # Running git inside docker is slow for some reason, so do that outside and pipe
-        # the results into docker.
-        entry: bash -c 'git diff master -U0 | docker-compose run --rm home ./scripts/flake8-diff.sh'
-        language: system
+        entry: bash -c 'git diff master -U0 | ./scripts/flake8-diff.sh'
+        language: python
+        additional_dependencies:
+          - flake8
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
