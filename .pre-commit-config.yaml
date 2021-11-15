@@ -11,10 +11,9 @@ repos:
     hooks:
       - id: make-lint-diff
         name: make lint-diff
-        # Running git inside docker is slow for some reason, so do that outside and pipe
-        # the results into docker.
-        entry: bash -c 'git diff master -U0 | docker-compose run --rm home ./scripts/flake8-diff.sh'
+        entry: bash -c 'git diff master -U0 | ./scripts/flake8-diff.sh'
         language: system
+
   - repo: https://github.com/codespell-project/codespell
     rev: v2.1.0
     hooks:
