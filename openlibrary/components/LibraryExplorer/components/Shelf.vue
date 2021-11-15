@@ -29,7 +29,6 @@
 
     <OLCarousel
       class="shelf-carousel"
-      ref="olCarousel"
       :data-short="
         node.children && node.position != 'root'
           ? node.children[node.position].short
@@ -64,8 +63,6 @@
         <BookCover3D
             v-if="features.book3d"
             :width="150" :height="200" :thickness="50" :book="book"
-            :fetchCoordinator="fetchCoordinator"
-            :containerIntersectionRatio="$refs.olCarousel.intersectionRatio"
             :cover="features.cover"
         />
         <FlatBookCover v-else :book="book" :cover="features.cover" />
