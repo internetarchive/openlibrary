@@ -3,6 +3,7 @@
 
 # Setup pre-commit hooks
 # This is in {} so the pyenv and pre-commit steps can run in the background while docker starts
+# A downside is that progress messages from docker and pre-commit may be mixed together.
 {
     pyenv install
     pip install pre-commit
