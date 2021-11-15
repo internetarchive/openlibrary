@@ -31,7 +31,6 @@ USAGE:
         username=anand
         password=anand123
 """
-from __future__ import print_function
 
 import _init_path
 
@@ -163,8 +162,7 @@ class RemoteSource:
         for p in paths:
             p = '/' + p
             if p.endswith('*'):
-                for x in self.find(p):
-                    yield x
+                yield from self.find(p)
             else:
                 yield p
                 
@@ -274,7 +272,7 @@ class Server:
         for path in paths:
             if path.endswith('*'):
                 path = path[:-1]
-            os.system('diff --strip-trailing-cr -u %s %s' % (local.get_path(path), self.local.get_path(path)))
+            os.system(f'diff --strip-trailing-cr -u {local.get_path(path)} {self.local.get_path(path)}')
 
         shutil.rmtree(root)
 

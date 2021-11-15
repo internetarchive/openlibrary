@@ -2,7 +2,6 @@
 """Utility script to extract all translatable messages from templates and 
 macros and write to openlibrary/i18n/messages.pot file.
 """
-from __future__ import print_function
 import _init_path
 
 import sys

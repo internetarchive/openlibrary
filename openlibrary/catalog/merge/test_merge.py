@@ -8,7 +8,7 @@ from openlibrary.catalog.merge.merge import (
 )
 
 """ These tests seem to be duplicates of those in test_amazon.py,
-    which in turn are duplicates of methods that are actually used 
+    which in turn are duplicates of methods that are actually used
     by Open Library in openlibrary.catalog.merge.merge_marc
     Investigate and clean up!
     """

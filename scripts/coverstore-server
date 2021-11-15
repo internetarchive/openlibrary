@@ -16,7 +16,6 @@ start coverstore using gunicorn webserver:
     ./scripts/coverstore-server coverstore.yml --gunicorn -b 0.0.0.0:8080
 
 """
-from __future__ import print_function
 
 import sys
 import os
