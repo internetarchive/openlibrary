@@ -19,10 +19,12 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
     hooks:
-    -   id: check-yaml
-    # -   id: end-of-file-fixer
-    -   id: requirements-txt-fixer
-    -   id: trailing-whitespace
+      - id: check-yaml
+      # - id: end-of-file-fixer
+      - id: requirements-txt-fixer
+      - id: trailing-whitespace
+        args:
+          - --markdown-linebreak-ext=md
 
   - repo: https://github.com/psf/black
     rev: 21.10b0
