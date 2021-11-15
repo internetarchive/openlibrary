@@ -29,27 +29,27 @@ def setup_env():
 
     # required when run as fastcgi
     os.environ['REAL_SCRIPT_NAME'] = ""
-    
+
 def start_server():
     from openlibrary.coverstore import server
     server.main(*sys.argv[1:])
-    
+
 def start_gunicorn_server():
     """Starts the coverstore server using gunicorn server.
     """
     from gunicorn.app.base import Application
-    
+
     configfile = sys.argv.pop(1)
-    
+
     class WSGIServer(Application):
         def init(self, parser, opts, args):
             pass
-            
+
         def load(self):
             from openlibrary.coverstore import server, code
             server.setup(configfile)
             return code.app.wsgifunc(https_middleware)
-            
+
     WSGIServer("%prog coverstore.yml --gunicorn [options]").run()
 
 
@@ -70,11 +70,11 @@ def https_middleware(app):
             environ['wsgi.url_scheme'] = 'https'
         return app(environ, start_response)
     return wrapper
-    
+
 if __name__ == "__main__":
     setup_env()
     if "--gunicorn" in sys.argv:
-        sys.argv.pop(sys.argv.index("--gunicorn"))        
+        sys.argv.pop(sys.argv.index("--gunicorn"))
         start_gunicorn_server()
     else:
         start_server()

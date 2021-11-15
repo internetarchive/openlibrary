@@ -6,7 +6,7 @@
  |  - This notice was added.
  |
  | NOTE: To use this file with StopFilterFactory, you must specify format="snowball"
- 
+
 | Hungarian stop word list
 | prepared by Anna Tordai
 
