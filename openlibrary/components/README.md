@@ -9,7 +9,7 @@ The building of these files happens on `make components`.
 ## Live-reloading dev server
 
 First, update `openlibrary/components/dev.js` to use the component you're developing instead of `HelloWorld.vue`
-Then, outside the docker environment, run: 
+Then, outside the docker environment, run:
 
 ```shell script
 npx @vue/cli-service serve openlibrary/components/dev.js

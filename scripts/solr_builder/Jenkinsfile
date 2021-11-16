@@ -107,7 +107,7 @@ pipeline {
                 dir(env.HOST_SOLR_BUILDER_DIR) {
                   sh(label: 'Import dump into postgres',
                     script: "./psql-import-in-chunks.sh ${env.DUMP_DIR}/${env.OL_DUMP_FILE} ${env.PARALLEL_PROCESSES}")
-                  
+
                   waitUntil {
                     script {
                       // Once completed, the log file says "COPY 8828224" (or however many records)
@@ -116,7 +116,7 @@ pipeline {
                       def error_output = sh(script: 'cat logs/psql-chunk-* | grep -v COPY | cat', returnStdout: true)
                       echo "Assert no psql error"
                       assert !error_output
-                      
+
                       def cores_completed = sh(script: 'cat logs/psql-chunk-* | grep COPY | wc -l', returnStdout: true).trim()
                       echo "Completed ${cores_completed} core(s) of ${env.PARALLEL_PROCESSES}"
                       sleep 15*60 // By default this checks every 15s; that's unnecessary for a ~3.5 hour process
@@ -209,7 +209,7 @@ pipeline {
 
               sh(label: 'Build "lite" ol environment',
                 script: 'docker-compose build --pull ol')
-              
+
               sh(label: 'Build the cython files',
                 script: 'docker-compose run --rm ol ./build-cython.sh')
             }

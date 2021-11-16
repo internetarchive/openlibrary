@@ -35,7 +35,7 @@ $if "type" in doc and doc.type.key == "/type/user":
                                         var list_id = "#" + \$(this).data("list-id");
                                         var key = \$(list_id + " a:first").attr("href");
                                         var dialog = this;
-            
+
                                         \$.post(key + "/delete.json", function() {
                                             \$(list_id).remove();
                                             \$(dialog).dialog("close");
