@@ -20,7 +20,7 @@ repos:
     rev: v4.0.1
     hooks:
       - id: check-yaml
-      # - id: end-of-file-fixer
+      - id: end-of-file-fixer
       - id: requirements-txt-fixer
       - id: trailing-whitespace
         args:
