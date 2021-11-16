@@ -172,9 +172,11 @@ services:
     secrets:
       - ia_db_pw_file
 
-  # This will replace solr-updater once we fully migrate to solr8
+  # solr-updater running for the "next" version of solr we will deploy
   solr-next-updater:
-    profiles: ["ol-home0"]
+    # Set it to something so that it never starts by default ; we have to
+    # explicitly start it (usually only when a solr reindex project is in progress)
+    profiles: ["ol-never"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
     hostname: "$HOSTNAME"
