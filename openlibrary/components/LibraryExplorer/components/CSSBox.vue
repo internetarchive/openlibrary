@@ -105,4 +105,3 @@ export default {
   transform: perspective(2000px) rotateX(-5deg) rotateY(50deg);
 }
 </style>
-

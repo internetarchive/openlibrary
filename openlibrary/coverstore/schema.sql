@@ -39,4 +39,3 @@ create table log (
 );
 
 create index log_timestamp_idx on log(timestamp);
-

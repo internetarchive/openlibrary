@@ -94,4 +94,3 @@ kun    | when
 niin   | so
 nyt    | now
 itse   | self
-

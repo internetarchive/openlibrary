@@ -18,4 +18,3 @@ SOURCE_DATA=(path to data)
 > $CATALOG/import.sh $MYDIR/config.sh "marc" "LC" "marc_records_scriblio_net/part01.dat" <$SOURCE_DATA
 
 see import.sh for details.
-

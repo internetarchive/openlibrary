@@ -9665,4 +9665,3 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT ON TABL
 --
 -- PostgreSQL database dump complete
 --
-
