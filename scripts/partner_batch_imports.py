@@ -16,9 +16,12 @@ import logging
 import requests
 
 # Add openlibrary into our path so we can process config + batch functions
-from openlibrary.core.imports import Batch
+sys.path.insert(0, os.path.abspath(os.path.join(os.sep, 'openlibrary')))
 from infogami import config
 from openlibrary.config import load_config
+
+load_config(os.path.abspath(os.path.join(os.sep, 'olsystem', 'etc', 'openlibrary.yml')))
+from openlibrary.core.imports import Batch
 
 logger = logging.getLogger("openlibrary.importer.bwb")
 
@@ -94,10 +97,9 @@ class Biblio:
         self.length, self.width, self.height = data[40:43]
 
         # Assert importable
-        assert self.isbn_13
-        assert self.primary_format not in self.NONBOOK
-        for field in self.REQUIRED_FIELDS:
+        for field in self.REQUIRED_FIELDS + ['isbn_13']:
             assert getattr(self, field)
+        assert self.primary_format not in self.NONBOOK
 
     @staticmethod
     def contributors(data):
@@ -161,7 +163,12 @@ def update_state(logfile, fname, line_num=0):
 
 def csv_to_ol_json_item(line):
     """converts a line to a book item"""
-    b = Biblio(line.strip().split('|'))
+    try:
+        data = line.decode().strip().split('|')
+    except UnicodeDecodeError:
+        data = line.decode('ISO-8859-1').strip().split('|')
+
+    b = Biblio(data)
     return {'ia_id': b.source_id, 'data': b.json()}
 
 
@@ -171,7 +178,7 @@ def batch_import(path, batch, batch_size=5000):
 
     for fname in filenames:
         book_items = []
-        with open(fname) as f:
+        with open(fname, 'rb') as f:
             logger.info(f"Processing: {fname} from line {offset}")
             for line_num, line in enumerate(f):
 
@@ -183,8 +190,8 @@ def batch_import(path, batch, batch_size=5000):
 
                 try:
                     book_items.append(csv_to_ol_json_item(line))
-                except UnicodeDecodeError:
-                    pass
+                except AssertionError as e:
+                    logger.info(f"Error: {e} from {line}")
 
                 # If we have enough items, submit a batch
                 if not ((line_num + 1) % batch_size):
@@ -199,9 +206,6 @@ def batch_import(path, batch, batch_size=5000):
 
 
 def main():
-    load_config(
-        os.path.abspath(os.path.join(os.sep, 'olsystem', 'etc', 'openlibrary.yml'))
-    )
     # Partner data is offset ~15 days from start of month
     date = datetime.date.today() - timedelta(days=15)
     batch_name = "%s-%04d%02d" % ('bwb', date.year, date.month)
