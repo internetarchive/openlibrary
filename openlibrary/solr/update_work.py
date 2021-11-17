@@ -601,10 +601,9 @@ class SolrProcessor:
             add_list('publish_year', pub_years)
             add('first_publish_year', min(int(y) for y in pub_years))
 
-        if get_solr_next():
-            number_of_pages_median = pick_number_of_pages_median(editions)
-            if number_of_pages_median:
-                add('number_of_pages_median', number_of_pages_median)
+        number_of_pages_median = pick_number_of_pages_median(editions)
+        if number_of_pages_median:
+            add('number_of_pages_median', number_of_pages_median)
 
         field_map = [
             ('lccn', 'lccn'),
@@ -1697,7 +1696,7 @@ def main(
     profile=False,
     data_provider: Literal['default', 'legacy', 'external'] = "default",
     solr_base: str = None,
-    solr_next=True,
+    solr_next=False,
     update: Literal['update', 'print'] = 'update',
 ):
     """
