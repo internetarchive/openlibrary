@@ -4,7 +4,7 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-    paths: [ '**.json', '**.js', '**.vue', '**.less', '**.css', 'vendor/js/**' ]
+    paths: [ '**.json', '**.js', '**.vue', '**.less', '**.css', 'vendor/js/**', '.github/workflows/javascript_tests.yml' ]
 jobs:
   javascript_tests:
     runs-on: ubuntu-latest
