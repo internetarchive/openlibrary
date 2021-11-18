@@ -5,9 +5,6 @@
       :work-key="work_key"
       :username="username"
       />
-    <SubmissionIndicator
-      :submission-status="submissionStatus"
-      />
     <CategorySelector
       ref="categories"
       :observations-array="observationsArray"
@@ -31,18 +28,15 @@
 
 <script>
 import CategorySelector from './ObservationForm/components/CategorySelector'
-import SubmissionIndicator from './ObservationForm/components/SubmissionIndicator'
 import SavedTags from './ObservationForm/components/SavedTags'
 import ValueCard from './ObservationForm/components/ValueCard'
 
-import { submissionStatus } from './ObservationForm/ObservationService'
 import { decodeAndParseJSON, resizeColorbox } from './ObservationForm/Utils'
 
 export default {
     name: 'ObservationForm',
     components: {
         CategorySelector,
-        SubmissionIndicator,
         SavedTags,
         ValueCard
     },
@@ -116,7 +110,6 @@ export default {
              * An array containing all book tag types and values.
              */
             observationsArray: null,
-            submissionStatus: submissionStatus
         }
     },
     methods: {

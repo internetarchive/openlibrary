@@ -1,6 +1,7 @@
 <template>
   <div>
     <h3>Add your reviews:</h3>
+    <p class="subtitle">Reviews listed above have been saved.</p>
     <div class="chip-group">
       <OLChip
         v-for="o in observationsArray"
@@ -129,6 +130,15 @@ export default {
 </script>
 
 <style scoped>
+h3 {
+  margin-bottom: 0;
+}
+
+.subtitle {
+  margin-top: 5px;
+  color: #505050;
+}
+
 .chip-group {
   display: flex;
   flex-wrap: wrap;
