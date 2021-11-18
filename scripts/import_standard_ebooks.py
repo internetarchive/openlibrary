@@ -72,7 +72,7 @@ def get_last_updated_time() -> str | None:
     returns last updated date string or None
     """
     if path.exists(LAST_UPDATED_TIME):
-        with open(LAST_UPDATED_TIME, 'r') as f:
+        with open(LAST_UPDATED_TIME) as f:
             return f.readline()
 
     return None
@@ -100,13 +100,13 @@ def convert_date_string(date_string: str | None) -> time.struct_time:
     >>> str(convert_date_string(None)) # doctest: +NORMALIZE_WHITESPACE
     'time.struct_time(tm_year=1970, tm_mon=1, tm_mday=1, tm_hour=0,
         tm_min=0, tm_sec=0, tm_wday=3, tm_yday=1, tm_isdst=0)'
-    
+
     >>> convert_date_string("") # doctest: +ELLIPSIS
     time.struct_time(tm_year=1970, tm_mon=1, tm_mday=1, tm_hour=0, ...
-    
+
     >>> convert_date_string(0) # doctest: +ELLIPSIS
     time.struct_time(tm_year=1970, tm_mon=1, tm_mday=1, tm_hour=0, ...
-    
+
     >>> convert_date_string("Fri, 05 Nov 2021 03:50:24 GMT") # doctest: +ELLIPSIS
     time.struct_time(tm_year=2021, tm_mon=11, tm_mday=5, tm_hour=3, tm_min=50, ...
     """
