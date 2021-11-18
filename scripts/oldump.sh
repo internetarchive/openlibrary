@@ -21,8 +21,8 @@
 # `openlibrary/data/dump.py`, the `read_data_file()` has a `max_lines` parameter which
 # can control the size of the subset.  In a production setting, leave `max_lines` set
 # to zero so that all records are processed.  When testing, set `max_lines` to a more
-# reasonable number such as 1_000_000.  The first step of the this script will still
-# take 110 minutes to extract the 29GB of data from the database so it is highly
+# reasonable number such as 1_000_000.  The first step of this script will still take
+# 110 minutes to extract the 29GB of data from the database so it is highly
 # recommended to save a copy of data.txt.gz in another directory to accelerate the
 # testing of subsequent job steps.  See `TESTING:` comments below.
 
@@ -35,7 +35,7 @@ fi
 
 SCRIPTS=/openlibrary/scripts
 PSQL_PARAMS=${PSQL_PARAMS:-"-h db openlibrary"}
-TMPDIR=${TMPDIR:-"/openlibrary/dumps"}
+TMPDIR=${TMPDIR:-/openlibrary/dumps}
 
 mkdir -p $TMPDIR
 cd $TMPDIR
