@@ -1,8 +1,3 @@
-const INACTIVE = 'INACTIVE'
-const PENDING = 'PENDING'
-const SUCCESS = 'SUCCESS'
-const FAILURE = 'FAILURE'
-
 /**
  * Sends a POST request to add or delete a patron's observation.
  *
