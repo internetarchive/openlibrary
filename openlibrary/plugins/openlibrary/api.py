@@ -21,7 +21,7 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
-from openlibrary.core.observations import Observations
+from openlibrary.core.observations import Observations, get_observation_metrics
 from openlibrary.core.models import Booknotes, Work
 from openlibrary.core.sponsorships import qualifies_for_sponsorship
 from openlibrary.core.vendors import (
@@ -453,7 +453,7 @@ class price_api(delegate.page):
         return json.dumps(metadata)
 
 
-class patron_observations(delegate.page):
+class internal_observations(delegate.page):
     path = r"/works/OL(\d+)W/observations"
     encoding = "json"
 
@@ -510,6 +510,21 @@ class patron_observations(delegate.page):
             )
 
         return response('Observations removed')
+
+
+class public_observations(delegate.page):
+    path = '/observations'
+    encoding = 'json'
+
+    def GET(self):
+        i = web.input(olid=[])
+        works = i.olid
+        metrics = {w: get_observation_metrics(w) for w in works}
+
+        return delegate.RawText(
+            json.dumps({'observations': metrics}),
+            content_type='application/json'
+        )
 
 
 class work_delete(delegate.page):
