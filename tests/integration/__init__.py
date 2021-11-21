@@ -10,8 +10,11 @@ from selenium.common.exceptions import NoSuchElementException
 
 class OLSession:
     def __init__(self, timeout=10, domain="https://dev.openlibrary.org"):
-        with open('auth.yaml') as f:
-            self.config = yaml.load(f)
+        try:
+            with open('auth.yaml') as f:
+                self.config = yaml.load(f)
+        except FileNotFoundError:
+            self.config = {}
         try:
             self.driver = webdriver.Chrome()
         except:
