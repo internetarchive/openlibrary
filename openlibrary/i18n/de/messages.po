@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2018-03-15 22:37+0000\n"
-"PO-Revision-Date: 2020-08-20 18:49+0200\n"
+"PO-Revision-Date: 2021-11-21 16:47+0100\n"
 "Last-Translator: justcomplaining <justcomplaining@mailbox.org>\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Generated-By: Babel 2.5.3\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Language: de\n"
-"X-Generator: Poedit 2.4.1\n"
+"X-Generator: Poedit 3.0\n"
 
 #: account.py:347 account.py:382 account.py:422 password/reset_success.html:6 verify.html:5 verify/activated.html:6
 #: verify/success.html:6
@@ -657,7 +657,7 @@ msgstr "Optional eine ID-Number &#151; wie eine ISBN &#151; wäre hilfreich..."
 
 #: add.html:57
 msgid "ID Type"
-msgstr "ID-Typ:"
+msgstr "ID-Typ"
 
 #: add.html:60
 msgid "Select"
@@ -850,7 +850,7 @@ msgstr "Mitwirkende"
 
 #: edit/edition.html:413 edition-show.html:172
 msgid "ID Numbers"
-msgstr "ID-Nummern"
+msgstr "IDs"
 
 #: book_cover.html:36 book_cover_single_edition.html:13 book_cover_single_edition.html:31 book_cover_small.html:14
 #: book_cover_work.html:13 book_cover_work.html:27 openlibrary/templates/diff.html:36 show.html:12
@@ -1120,7 +1120,7 @@ msgstr "Z.B. die Dewey-Dezimalklassifikation?"
 
 #: edit/edition.html:502
 msgid "Select one of many..."
-msgstr ""
+msgstr "Wähle einen von mehreren…"
 
 #: edit/edition.html:507
 msgid "Add a new classification type"
@@ -1812,6 +1812,8 @@ msgstr "oder näher heranzoomen."
 #: view.html:57
 msgid "This graph charts editions from this publisher over time. Click to view a single year, or drag across a range."
 msgstr ""
+"Dieser Graph zeigt Ausgaben, die zu diesem Thema veröffentlicht wurden. Klicken um ein einzelne Jahr anzuzeigen oder über "
+"einen Bereich ziehen um diesen auszuwählen."
 
 #: openlibrary/templates/subjects.html:180 view.html:124
 msgid "edition in"
@@ -2029,7 +2031,7 @@ msgstr "Version"
 
 #: openlibrary/templates/history.html:28
 msgid "Comment"
-msgstr "Kommentar"
+msgstr "Kommentieren"
 
 #: openlibrary/templates/history.html:29
 msgid "Diff"
@@ -2105,6 +2107,8 @@ msgstr ""
 #: openlibrary/templates/subjects.html:65
 msgid "This graph charts editions published on this subject. Click to view a single year, or drag across a range."
 msgstr ""
+"Dieser Graph zeigt Ausgaben, die zu diesem Thema veröffentlicht wurden. Klicken um ein einzelne Jahr anzuzeigen oder über "
+"einen Bereich ziehen um diesen auszuwählen."
 
 #: openlibrary/templates/subjects.html:507
 msgid "Related..."
@@ -2112,7 +2116,7 @@ msgstr "Verknüpft..."
 
 #: openlibrary/templates/subjects.html:544
 msgid "Prolific Authors"
-msgstr ""
+msgstr "Produktive Autoren"
 
 #: openlibrary/templates/subjects.html:545
 msgid "who have written the most books on this subject"
