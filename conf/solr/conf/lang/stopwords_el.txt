@@ -1,6 +1,6 @@
 # Lucene Greek Stopwords list
 # Note: by default this file is used after GreekLowerCaseFilter,
-# so when modifying this file use 'σ' instead of 'ς' 
+# so when modifying this file use 'σ' instead of 'ς'
 ο
 η
 το
@@ -11,7 +11,7 @@
 των
 τον
 την
-και 
+και
 κι
 κ
 ειμαι

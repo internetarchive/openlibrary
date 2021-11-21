@@ -1,5 +1,6 @@
 from openlibrary.plugins.ol_infobase import OLIndexer
 
+
 class TestOLIndexer:
     def test_expand_isbns(self):
         indexer = OLIndexer()

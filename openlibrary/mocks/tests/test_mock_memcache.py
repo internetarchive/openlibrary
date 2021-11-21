@@ -1,6 +1,7 @@
 from .. import mock_memcache
 import memcache
 
+
 class Test_mock_memcache:
     def test_set(self):
         m = mock_memcache.Client([])
@@ -22,7 +23,9 @@ class Test_mock_memcache:
 
         assert m.add("a", 2) == False
 
+
 mc = memcache.Client(servers=[])
+
 
 def test_mock_memcache_func_arg(mock_memcache):
     mc.set("a", 1)

@@ -11,11 +11,10 @@ USAGE:
 
     $ ./scripts/openlibrary-server infogami.yml startserver fastcgi 8080
 
-* Run openlibrary as gunicorn server at port 8080    
+* Run openlibrary as gunicorn server at port 8080
 
-    $ ./scripts/openlibrary-server infogami.yml startserver --gunicorn -b 0.0.0.0:8080    
+    $ ./scripts/openlibrary-server infogami.yml startserver --gunicorn -b 0.0.0.0:8080
 """
-from __future__ import print_function
 import sys
 import os
 import yaml
@@ -34,7 +33,7 @@ def setup_env():
 def start_server():
     import _init_path
     args = sys.argv[1:]
-    
+
     if len(args) < 1 or sys.argv[0] in ['-h', '--help']:
         print("USAGE: %s configfile [subcommand] [arguments]" % (sys.argv[0]), file=sys.stderr)
         sys.exit(1)
@@ -53,12 +52,12 @@ def load_infogami(config_file):
 
     config.plugin_path += ['openlibrary.plugins']
     config.site = "openlibrary.org"
-    
+
     infogami.load_config(config_file)
     setup_infobase_config(config_file)
     config.middleware.append(https_middleware)
 
-        
+
 def setup_infobase_config(config_file):
     """Reads the infoabse config file and assign it to config.infobase.
     The config_file is used as base to resolve relative path, if specified in the config.
@@ -73,14 +72,14 @@ class BaseWSGIServer(Application):
     def __init__(self, config_file):
         self.config_file = config_file
         Application.__init__(self)
-    
+
     def init(self, parser, opts, args):
         pass
-        
+
     def load(self):
         import _init_path
         load_infogami(self.config_file)
-        
+
         import infogami
         import web
         infogami._setup()
@@ -88,10 +87,10 @@ class BaseWSGIServer(Application):
         # setup middleware for handling /static
         wsgi_app = web.httpserver.StaticMiddleware(wsgi_app)
         return wsgi_app
-        
+
     def get_wsgi_app(self):
         raise NotImplementedError()
-        
+
 class OLWSGIServer(BaseWSGIServer):
     def get_wsgi_app(self):
         from infogami import config
@@ -117,17 +116,17 @@ def https_middleware(app):
             environ['wsgi.url_scheme'] = 'https'
         return app(environ, start_response)
     return wrapper
-    
+
 def main():
     setup_env()
 
     if "--gunicorn" in sys.argv:
-        sys.argv.pop(sys.argv.index("--gunicorn"))        
+        sys.argv.pop(sys.argv.index("--gunicorn"))
         configfile = sys.argv.pop(1)
         server = OLWSGIServer(configfile)
         server.run()
     else:
         start_server()
-        
+
 if __name__ == "__main__":
     main()

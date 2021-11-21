@@ -3,7 +3,7 @@ from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 from . import db
 
 
-class Ratings(object):
+class Ratings:
 
     VALID_STAR_RATINGS = range(6)  # inclusive: [0 - 5] (0-5 star)
 
@@ -14,14 +14,16 @@ class Ratings(object):
                 'total': Ratings.total_num_books_rated(),
                 'month': Ratings.total_num_books_rated(since=DATE_ONE_MONTH_AGO),
                 'week': Ratings.total_num_books_rated(since=DATE_ONE_WEEK_AGO),
-                'unique': Ratings.total_num_unique_raters()
+                'unique': Ratings.total_num_unique_raters(),
             }
         }
 
     @classmethod
     def total_num_books_rated(cls, since=None, distinct=False):
         oldb = db.get_db()
-        query = "SELECT count(%s work_id) from ratings" % ('DISTINCT' if distinct else '')
+        query = "SELECT count(%s work_id) from ratings" % (
+            'DISTINCT' if distinct else ''
+        )
         if since:
             query += " WHERE created >= $since"
         results = oldb.query(query, vars={'since': since})
@@ -54,9 +56,11 @@ class Ratings(object):
     @classmethod
     def get_rating_stats(cls, work_id):
         oldb = db.get_db()
-        query = ("SELECT AVG(rating) as avg_rating, COUNT(DISTINCT username) as num_ratings"
-                 " FROM ratings"
-                 " WHERE work_id = $work_id")
+        query = (
+            "SELECT AVG(rating) as avg_rating, COUNT(DISTINCT username) as num_ratings"
+            " FROM ratings"
+            " WHERE work_id = $work_id"
+        )
         result = oldb.query(query, vars={'work_id': int(work_id)})
         return result[0] if result else {}
 
@@ -69,10 +73,7 @@ class Ratings(object):
     @classmethod
     def get_users_rating_for_work(cls, username, work_id):
         oldb = db.get_db()
-        data = {
-            'username': username,
-            'work_id': int(work_id)
-        }
+        data = {'username': username, 'work_id': int(work_id)}
         query = 'SELECT * from ratings where username=$username AND work_id=$work_id'
         results = list(oldb.query(query, vars=data))
         rating = results[0].rating if results else None
@@ -81,13 +82,11 @@ class Ratings(object):
     @classmethod
     def remove(cls, username, work_id):
         oldb = db.get_db()
-        where = {
-            'username': username,
-            'work_id': int(work_id)
-        }
+        where = {'username': username, 'work_id': int(work_id)}
         try:
-            return oldb.delete('ratings', where=(
-                'work_id=$work_id AND username=$username'), vars=where)
+            return oldb.delete(
+                'ratings', where=('work_id=$work_id AND username=$username'), vars=where
+            )
         except:  # we want to catch no entry exists
             return None
 
@@ -103,16 +102,26 @@ class Ratings(object):
             return None
 
         # Vote implies user read book; Update reading log status as "Already Read"
-        users_read_status_for_work = Bookshelves.get_users_read_status_of_work(username, work_id)
+        users_read_status_for_work = Bookshelves.get_users_read_status_of_work(
+            username, work_id
+        )
         if users_read_status_for_work != Bookshelves.PRESET_BOOKSHELVES['Already Read']:
-            Bookshelves.add(username, Bookshelves.PRESET_BOOKSHELVES['Already Read'],
-                            work_id, edition_id=edition_id)
+            Bookshelves.add(
+                username,
+                Bookshelves.PRESET_BOOKSHELVES['Already Read'],
+                work_id,
+                edition_id=edition_id,
+            )
 
         users_rating_for_work = cls.get_users_rating_for_work(username, work_id)
         if not users_rating_for_work:
-            return oldb.insert('ratings', username=username,
-                               work_id=work_id, rating=rating, edition_id=edition_id)
+            return oldb.insert(
+                'ratings',
+                username=username,
+                work_id=work_id,
+                rating=rating,
+                edition_id=edition_id,
+            )
         else:
             where = "work_id=$work_id AND username=$username"
-            return oldb.update('ratings', where=where,
-                               rating=rating,  vars=data)
+            return oldb.update('ratings', where=where, rating=rating, vars=data)

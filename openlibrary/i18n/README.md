@@ -17,7 +17,7 @@ In case you want to get started here are the following steps:
 **Step 3:**
 To contribute a translation,
 
-Option 1. [Locate the right target language within the project](https://github.com/internetarchive/openlibrary/tree/master/openlibrary/i18n) (e.g. `es` for Spanish) and then click on the `po` file (the raw file where translation strings are contributed), e.g. [this one for Spanish](https://github.com/internetarchive/openlibrary/tree/master/openlibrary/i18n/es). Click on the pencil (edit) option which will bring you to an [editable page like this](https://github.com/internetarchive/openlibrary/edit/master/openlibrary/i18n/es/messages.po) where you can add or edit translations. When you're satisfied with your translations, scroll down to the bottom of the page where it shows **Commit Changes**, leave a description of your changes and make sure to select the radio button of Create a **new branch**. You can call "translations-es" or dash whatever language you're working with. Then, click `Propose Changes` button and you're done! We can follow up if there are any validation issues which may need to be addressed. 
+Option 1. [Locate the right target language within the project](https://github.com/internetarchive/openlibrary/tree/master/openlibrary/i18n) (e.g. `es` for Spanish) and then click on the `po` file (the raw file where translation strings are contributed), e.g. [this one for Spanish](https://github.com/internetarchive/openlibrary/tree/master/openlibrary/i18n/es). Click on the pencil (edit) option which will bring you to an [editable page like this](https://github.com/internetarchive/openlibrary/edit/master/openlibrary/i18n/es/messages.po) where you can add or edit translations. When you're satisfied with your translations, scroll down to the bottom of the page where it shows **Commit Changes**, leave a description of your changes and make sure to select the radio button of Create a **new branch**. You can call "translations-es" or dash whatever language you're working with. Then, click `Propose Changes` button and you're done! We can follow up if there are any validation issues which may need to be addressed.
 
 Option 2. If you prefer working with `git` you may instead [fork / clone the repository from Github](https://github.com/internetarchive/openlibrary/fork). Install git and follow the instructions on our [Git Cheat Sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet) to get set up.
 
@@ -74,8 +74,8 @@ The messages in the the templates and macros are extracted and `.pot` file is cr
 
 ```bash
 docker-compose run --rm -uroot home ./scripts/i18n-messages extract
-```    
-    
+```
+
 The `.pot` file contains a `msgid` and a `msgstr` for each translation used. The `msgstr` field for each entry is filled with the translation of the required language and that file is placed at `openlibrary/i18n/$locale/messages.po`:
 
 ```bash
@@ -85,7 +85,7 @@ cp openlibrary/i18n/messages.pot openlibrary/i18n/te/messages.po
 ```
 
 The `.po` files are compiled to `.mo` files to be able to use them by gettext system. This is done by `make i18n` automatically when the code is deployed, but needs to be done manually by a maintainer when deploying to dev.openlibrary.org .
-    
+
 ## Glossary
 - `.po` - Portable object file: This is the file where you will translators will add translations to.
 - `.pot` - Portable object template file: This is the file that lists all the strings in Open Library _before_ translation.

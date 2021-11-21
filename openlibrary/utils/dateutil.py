@@ -33,15 +33,16 @@ def date_n_days_ago(n=None, start=None):
 DATE_ONE_MONTH_AGO = date_n_days_ago(n=days_in_current_month())
 DATE_ONE_WEEK_AGO = date_n_days_ago(n=7)
 
+
 def parse_date(datestr):
     """Parses date string.
 
-        >>> parse_date("2010")
-        datetime.date(2010, 1, 1)
-        >>> parse_date("2010-02")
-        datetime.date(2010, 2, 1)
-        >>> parse_date("2010-02-04")
-        datetime.date(2010, 2, 4)
+    >>> parse_date("2010")
+    datetime.date(2010, 1, 1)
+    >>> parse_date("2010-02")
+    datetime.date(2010, 2, 1)
+    >>> parse_date("2010-02-04")
+    datetime.date(2010, 2, 4)
     """
     tokens = datestr.split("-")
     _resize_list(tokens, 3)
@@ -49,11 +50,12 @@ def parse_date(datestr):
     yyyy, mm, dd = tokens[:3]
     return datetime.date(int(yyyy), mm and int(mm) or 1, dd and int(dd) or 1)
 
+
 def parse_daterange(datestr):
     """Parses date range.
 
-        >>> parse_daterange("2010-02")
-        (datetime.date(2010, 2, 1), datetime.date(2010, 3, 1))
+    >>> parse_daterange("2010-02")
+    (datetime.date(2010, 2, 1), datetime.date(2010, 3, 1))
     """
     date = parse_date(datestr)
     tokens = datestr.split("-")
@@ -65,8 +67,10 @@ def parse_daterange(datestr):
     else:
         return date, nextday(date)
 
+
 def nextday(date):
     return date + datetime.timedelta(1)
+
 
 def nextmonth(date):
     """Returns a new date object with first day of the next month."""
@@ -79,12 +83,13 @@ def nextmonth(date):
 
     return datetime.date(year, month, 1)
 
+
 def nextyear(date):
     """Returns a new date object with first day of the next year."""
-    return datetime.date(date.year+1, 1, 1)
+    return datetime.date(date.year + 1, 1, 1)
+
 
 def _resize_list(x, size):
-    """Increase the size of the list x to the specified size it is smaller.
-    """
+    """Increase the size of the list x to the specified size it is smaller."""
     if len(x) < size:
         x += [None] * (size - len(x))

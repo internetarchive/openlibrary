@@ -74,8 +74,9 @@ def gen_html_entries():
             continue
 
         if locale in ALLOW_FAILURES:
-            yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}',
-                               marks=pytest.mark.xfail)
+            yield pytest.param(
+                locale, msgid, msgstr, id=f'{locale}-{msgid}', marks=pytest.mark.xfail
+            )
         else:
             yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}')
 

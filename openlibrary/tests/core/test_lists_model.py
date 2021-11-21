@@ -5,7 +5,7 @@ import pytest
 from openlibrary.core.lists.model import Seed
 
 
-@pytest.mark.xfail(sys.version_info >= (3, ), reason="does not work on Python 3")
+@pytest.mark.xfail(sys.version_info >= (3,), reason="does not work on Python 3")
 def test_seed_with_string():
     seed = Seed([1, 2, 3], "subject/Politics and government")
     assert seed._list == [1, 2, 3]
@@ -20,7 +20,7 @@ class NotAString:
         self.key = "not_a_string.key"
 
 
-@pytest.mark.xfail(sys.version_info >= (3, ), reason="does not work on Python 3")
+@pytest.mark.xfail(sys.version_info >= (3,), reason="does not work on Python 3")
 def test_seed_with_nonstring():
     seed = Seed((1, 2, 3), NotAString())
     assert seed._list == (1, 2, 3)

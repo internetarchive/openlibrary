@@ -17,15 +17,16 @@ class AbstractBookProvider:
     """
     identifier_key: str
 
-    def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> List[str]:
+    def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
         return (
             # If it's an edition
-            ed_or_solr.get('identifiers', {}).get(self.identifier_key, []) or
+            ed_or_solr.get('identifiers', {}).get(self.identifier_key, [])
+            or
             # if it's a solr work record
             ed_or_solr.get(f'id_{self.identifier_key}', [])
         )
 
-    def choose_best_identifier(self, identifiers: List[str]) -> str:
+    def choose_best_identifier(self, identifiers: list[str]) -> str:
         return identifiers[0]
 
     def get_best_identifier(self, ed_or_solr: Union[Edition, dict]) -> str:
@@ -42,15 +43,14 @@ class AbstractBookProvider:
 
     def render_read_button(self, ed_or_solr: Union[Edition, dict]):
         return render_template(
-            self.get_template_path('read_button'),
-            self.get_best_identifier(ed_or_solr)
+            self.get_template_path('read_button'), self.get_best_identifier(ed_or_solr)
         )
 
-    def render_download_options(self, edition: Edition, extra_args: List = None):
+    def render_download_options(self, edition: Edition, extra_args: list = None):
         return render_template(
             self.get_template_path('download_options'),
             self.get_best_identifier(edition),
-            *(extra_args or [])
+            *(extra_args or []),
         )
 
     def is_own_ocaid(self, ocaid: str) -> bool:
@@ -62,7 +62,7 @@ class InternetArchiveProvider(AbstractBookProvider):
     short_name = 'ia'
     identifier_key = 'ocaid'
 
-    def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> List[str]:
+    def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
         # Solr work record augmented with availability
         if ed_or_solr.get('availability', {}).get('identifier'):
             return [ed_or_solr['availability']['identifier']]
@@ -77,7 +77,7 @@ class InternetArchiveProvider(AbstractBookProvider):
     def is_own_ocaid(self, ocaid: str) -> bool:
         return True
 
-    def render_download_options(self, edition: Edition, extra_args: List = None):
+    def render_download_options(self, edition: Edition, extra_args: list = None):
         if edition.is_access_restricted() or not edition.ia_metadata:
             return ''
 
@@ -92,7 +92,8 @@ class InternetArchiveProvider(AbstractBookProvider):
             return render_template(
                 self.get_template_path('download_options'),
                 formats,
-                edition.url('/daisy'))
+                edition.url('/daisy'),
+            )
         else:
             return ''
 
@@ -101,7 +102,7 @@ class LibriVoxProvider(AbstractBookProvider):
     short_name = 'librivox'
     identifier_key = 'librivox'
 
-    def render_download_options(self, edition: Edition, extra_args: List = None):
+    def render_download_options(self, edition: Edition, extra_args: list = None):
         # The template also needs the ocaid, since some of the files are hosted on IA
         return super().render_download_options(edition, [edition.get('ocaid')])
 
@@ -126,7 +127,7 @@ class StandardEbooksProvider(AbstractBookProvider):
         return False
 
 
-PROVIDER_ORDER: List[AbstractBookProvider] = [
+PROVIDER_ORDER: list[AbstractBookProvider] = [
     # These providers act essentially as their own publishers, so link to the first when
     # we're on an edition page
     LibriVoxProvider(),
@@ -145,7 +146,8 @@ def get_cover_url(ed_or_solr: Union[Edition, dict]) -> Optional[str]:
 
     # Editions
     if isinstance(ed_or_solr, Edition):
-        return ed_or_solr.get_cover().url(size)
+        cover = ed_or_solr.get_cover()
+        return cover.url(size) if cover else None
 
     # Solr document augmented with availability
     availability = ed_or_solr.get('availability', {})
@@ -176,24 +178,16 @@ def is_non_ia_ocaid(ocaid: str) -> bool:
     """
     Check if the ocaid "looks like" it's from another provider
     """
-    providers = (
-        provider
-        for provider in PROVIDER_ORDER
-        if provider.short_name != 'ia')
-    return any(
-        provider.is_own_ocaid(ocaid)
-        for provider in providers)
+    providers = (provider for provider in PROVIDER_ORDER if provider.short_name != 'ia')
+    return any(provider.is_own_ocaid(ocaid) for provider in providers)
 
 
 def get_book_provider_by_name(short_name: str) -> Optional[AbstractBookProvider]:
-    return next(
-        (p for p in PROVIDER_ORDER if p.short_name == short_name),
-        None
-    )
+    return next((p for p in PROVIDER_ORDER if p.short_name == short_name), None)
 
 
 def get_book_provider(
-        ed_or_solr: Union[Edition, dict]
+    ed_or_solr: Union[Edition, dict]
 ) -> Optional[AbstractBookProvider]:
 
     # On search results, we want to display IA copies first.
@@ -222,7 +216,7 @@ def get_book_provider(
     provider_overrides = web.input(providerPref=None).providerPref
 
     if provider_overrides:
-        new_order: List[AbstractBookProvider] = []
+        new_order: list[AbstractBookProvider] = []
         for name in provider_overrides.split(','):
             if name == '*':
                 new_order += default_order

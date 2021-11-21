@@ -1,7 +1,7 @@
 $def with (books=None, books_wo_isbns=None)
 
 <div class="my-imports">
-  
+
   $if not books:
     <div class="import-export">
       <div class="import-export__readinglog">
@@ -18,7 +18,7 @@ $def with (books=None, books_wo_isbns=None)
                 type="submit" value="$_('Load Books')">
           </div>
         </form>
-      </div>  
+      </div>
       <div class="import-export__readinglog">
         <h3>$_("Export your Reading Log")</h3>
         <form method="GET" action="/account/export"
@@ -30,7 +30,7 @@ $def with (books=None, books_wo_isbns=None)
       </div>
     </div>
 
-  $else:  
+  $else:
     <div class="import-buttons">
       <div id="myProgress" class="hidden">
         <div id="myBar">Importing...</div>

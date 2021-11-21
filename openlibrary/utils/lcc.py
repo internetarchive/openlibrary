@@ -93,17 +93,20 @@ from openlibrary.utils.ddc import collapse_multiple_space
 # LibraryExplorer/utils/lcc.js :(
 # KEEP IN SYNC!
 
-LCC_PARTS_RE = re.compile(r'''
+LCC_PARTS_RE = re.compile(
+    r'''
     ^
     # trailing dash only valid in "sortable" LCCs
     # Include W, even though technically part of NLM system
     (?P<letters>[A-HJ-NP-VWZ][A-Z-]{0,2})
     \s?
     (?P<number>\d{1,4}(\.\d+)?)?
-    (?P<cutter1>[\s.][^\d\s\[]{1,3}\d*\S*)?
+    (?P<cutter1>\s*\.\s*[^\d\s\[]{1,3}\d*\S*)?
     (?P<rest>\s.*)?
     $
-''', re.IGNORECASE | re.X)
+''',
+    re.IGNORECASE | re.X,
+)
 
 
 def short_lcc_to_sortable_lcc(lcc):
@@ -155,8 +158,9 @@ def clean_raw_lcc(raw_lcc):
     :rtype: basestring
     """
     lcc = collapse_multiple_space(raw_lcc.replace('\\', ' ').strip(' '))
-    if ((lcc.startswith('[') and lcc.endswith(']')) or
-            (lcc.startswith('(') and lcc.endswith(')'))):
+    if (lcc.startswith('[') and lcc.endswith(']')) or (
+        lcc.startswith('(') and lcc.endswith(')')
+    ):
         lcc = lcc[1:-1]
     return lcc
 
@@ -206,8 +210,7 @@ def normalize_lcc_range(start, end):
     :rtype: [str, str]
     """
     return [
-        lcc if lcc == '*' else short_lcc_to_sortable_lcc(lcc)
-        for lcc in (start, end)
+        lcc if lcc == '*' else short_lcc_to_sortable_lcc(lcc) for lcc in (start, end)
     ]
 
 
@@ -216,4 +219,5 @@ def choose_sorting_lcc(sortable_lccs: Iterable[str]) -> str:
     # Note we go to short-form first, so eg 'A123' beats 'A'
     def short_len(lcc: str) -> int:
         return len(sortable_lcc_to_short_lcc(lcc))
+
     return sorted(sortable_lccs, key=short_len, reverse=True)[0]

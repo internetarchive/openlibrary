@@ -4,11 +4,15 @@ from six import StringIO
 
 arc_dir = '/2/edward/amazon/arc'
 urls = (
-    '/', 'index',
-    '/(\d+\.arc)', 'arc_view',
-    '/(\d+\.arc)/(\d+)', 'page_view',
+    '/',
+    'index',
+    r'/(\d+\.arc)',
+    'arc_view',
+    r'/(\d+\.arc)/(\d+)',
+    'page_view',
 )
 app = web.application(urls, globals(), autoreload=True)
+
 
 class arc_view:
     def GET(self, filename):
@@ -20,11 +24,15 @@ class arc_view:
         for pos in idx:
             arc.seek(int(pos))
             line = arc.readline()[:-1].split(' ')
-            ret += '<a href="%s/%d">from ARC</a> OR <a href="%s">original</a> %s <br>' % (filename, int(pos), line[0], line[0])
+            ret += (
+                '<a href="%s/%d">from ARC</a> OR <a href="%s">original</a> %s <br>'
+                % (filename, int(pos), line[0], line[0])
+            )
         idx.close()
 
         ret += '</body></html>'
         return ret
+
 
 class page_view:
     def GET(self, filename, offset):
@@ -35,7 +43,7 @@ class page_view:
         f.readline()
         ret = ''
         while True:
-            line=f.readline()
+            line = f.readline()
             if line == '\r\n':
                 break
         while True:
@@ -48,6 +56,7 @@ class page_view:
             f.readline()
         return ret
 
+
 class index:
     def GET(self):
         ret = '<html><body><ul>'
@@ -57,9 +66,10 @@ class index:
             f = open(arc_dir + '/' + filename)
             line = f.readline()
             f.close()
-            ret += '<li><a href="/%s">%s</a> - %s' % (filename, filename, line)
+            ret += f'<li><a href="/{filename}">{filename}</a> - {line}'
         ret += '</body></html>'
         return ret
+
 
 if __name__ == "__main__":
     app.run()

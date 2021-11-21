@@ -84,16 +84,14 @@ function get_seed_count() {
 
 window.q.push(function(){
     \$(".listDelete a").on('click', function() {
-        var seed_id = \$(this).closest("li").attr("id");
-
         if (get_seed_count() > 1) {
             \$("#remove-seed-dialog")
-                .data("seed-id", seed_id)
+                .data("seed-key", \$(this).closest("[data-seed-key]").data('seed-key'))
                 .dialog("open");
             \$("#remove-seed-dialog").removeClass('hidden');
         }
         else {
-            \$("#delete-list-dialog").dialog("open");            
+            \$("#delete-list-dialog").dialog("open");
             \$("#delete-list-dialog").removeClass('hidden');
         }
 
@@ -107,13 +105,12 @@ window.q.push(function(){
         buttons: {
             "$:_('Yes, I\'m sure')": function() {
                 var list_key = $:json_encode(list.key);
-                var seed_id = "#" + \$(this).data("seed-id");
-                var seed = \$(seed_id).find("span.seed-key").html();
+                var seed_key = \$(this).data("seed-key");
 
                 var _this = this;
 
-                remove_seed(list_key, seed, function() {
-                    \$(seed_id).remove();
+                remove_seed(list_key, seed_key, function() {
+                    \$(`[data-seed-key="\${seed_key}"]`).remove();
                     // update seed count
                     \$("#list-items-count").load(location.href + " #list-items-count");
 
@@ -155,6 +152,26 @@ window.q.push(function(){
 //-->
 </script>
 
+$def remove_item_link():
+    $if ctx.user and ctx.user.key == list.get_owner().key:
+        <span class="listDelete sansserif smaller">
+            <a href="javascript:;"><span></span>$_('Remove this item?')</a>
+        </span>
+
+$def seed_meta_line(seed):
+    <span class="meta">
+        <!-- FIXME: I18N using internal seed.type directly for display is not internationalizable -->
+        <span class="type small">$seed.type</span>
+    </span>
+
+    $if seed.last_update:
+        <span class="time">
+            $:_('Last updated <span>%(date)s</span>', date=datestr(seed.last_update))
+        </span>
+
+$def seed_attrs(seed):
+    data-seed-key="$seed.key"
+
 <div id="contentBody">
     <div id="remove-seed-dialog" class="hidden" title="$_('Remove seed')">$_('Are you sure you want to remove this item from the list?')</div>
     <div id="delete-list-dialog" class="hidden" title="$_('Remove Seed')">
@@ -178,62 +195,42 @@ window.q.push(function(){
             $ seeds = list.get_seeds(sort=True, resolve_redirects=True)[page*page_size:page*page_size+page_size]
             $ component_times['get_seeds'] = time() - component_times['get_seeds']
 
+        $ solr_works = get_solr_works(s.key for s in seeds if s.type == 'work')
+        $ availabilities = get_availabilities([solr_works.get(seed.key) or seed.document for seed in seeds if seed.type in ['edition', 'work']])
         $for seed in seeds:
-            <li id="seed-$loop.index" class="searchResultItem">
-                $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
-                $ cover = seed.get_cover()
-                $if cover:
-                    $ cover_url = item_image(cover.url("M"), default=default_image)
-                $else:
-                    $ cover_url = default_image
+            $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
+            $ cover = seed.get_cover()
+            $if cover:
+                $ cover_url = item_image(cover.url("M"), default=default_image)
+            $else:
+                $ cover_url = default_image
 
-                $# Use first found image as the OpenGraph image
-                $if not meta_cover_url:
-                    $ meta_cover_url = cover_url
-                <span class="bookcover">
-                    <a href="$seed.url">
-                    <img src="$cover_url" alt="$seed.title"/>
-                    </a>
-                </span>
-                <span class="seed-key hidden">$seed.key</span>
-                <div class="details">
-                    <div class="resultTitle">
-                        $if seed.type in ['edition', 'work']:
-                            $ doc = seed.document
-                        <h3 class="booktitle">
-                            <a href="$seed.url" class="results">$seed.title</a>
-                        </h3>
-                        $if seed.type in ['edition', 'work'] and doc.subtitle:
-                            <h4 class="work-subtitle">$doc.subtitle</h4>
-                        $if seed.type in ['edition', 'work']:
-                            $if seed.type == "work":
-                                $ authors = seed.document.get_authors()
-                            $else:
-                                $if seed.document.works:
-                                    $ authors = seed.document.works[0].get_authors()
-                                $else:
-                                    $ authors = seed.document.get_authors()
-                            <div class="author">$:_('by %(name)s', name=render_authors(authors))</div>
-                        <span class="meta">
-                        <!-- FIXME: I18N using internal seed.type directly for display is not internationalizable -->
-                        <span class="type small">$seed.type</span>
-                        </span>
+            $# Use first found image as the OpenGraph image
+            $if not meta_cover_url:
+                $ meta_cover_url = cover_url
 
-                        $if seed.last_update:
-                            <span class="time">
-                                $:_('Last updated <span>%(date)s</span>', date=datestr(seed.last_update))
-                            </span>
-                        </div>
-                </div>
-                <span class="searchResultItemCTA">
-                    $if ctx.user and ctx.user.key == list.get_owner().key:
-                        <span class="listDelete sansserif smaller">
-                            <a href="javascript:;"><span></span>$_('Remove this item?')</a>
-                        </span>
-                    <span class="searchResultItemCTA-lending">
+            $if seed.type in ['edition', 'work']:
+                $ doc = solr_works.get(seed.key) or seed.document
+                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed))
+            $else:
+                <li class="searchResultItem" $:seed_attrs(seed)>
+                    <span class="bookcover">
+                        <a href="$seed.url">
+                        <img src="$cover_url" alt="$seed.title"/>
+                        </a>
                     </span>
-                </span>
-            </li>
+                    <div class="details">
+                        <div class="resultTitle">
+                            <h3 class="booktitle">
+                                <a href="$seed.url" class="results">$seed.title</a>
+                            </h3>
+                            $:seed_meta_line(seed)
+                        </div>
+                    </div>
+                    <span class="searchResultItemCTA">
+                        $:remove_item_link()
+                    </span>
+                </li>
         </ul>
     </div>
 
