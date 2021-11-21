@@ -44,6 +44,6 @@ jobs:
           source scripts/run_doctests.sh
           mypy --install-types --non-interactive .
           # Test across the entire repo
-          python3 -m pip install selenium
+          python3 -m pip install selenium splinter
           pytest || true
           pytest --doctest-modules || true
