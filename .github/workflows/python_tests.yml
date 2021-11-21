@@ -43,3 +43,6 @@ jobs:
           make test-py
           source scripts/run_doctests.sh
           mypy --install-types --non-interactive .
+          # Test across the entire repo
+          pytest || true
+          pytest --doctest-modules || true
