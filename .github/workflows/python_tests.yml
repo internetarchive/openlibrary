@@ -45,5 +45,5 @@ jobs:
           mypy --install-types --non-interactive .
           # Test across the entire repo
           python3 -m pip install selenium splinter
-          pytest || true
-          pytest --doctest-modules || true
+          pytest --ignore=tests/integration/test_auth.py \
+                 --ignore=tests/integration/test_loans.py
