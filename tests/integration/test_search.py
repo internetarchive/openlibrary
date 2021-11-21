@@ -1,7 +1,6 @@
-#-*- encoding: utf-8 -*-
-
 import pytest
 from splinter import Browser
+
 
 class TestSearch:
     # host = 'https://openlibrary.org'

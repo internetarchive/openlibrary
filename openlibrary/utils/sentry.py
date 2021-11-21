@@ -53,12 +53,14 @@ class Sentry:
         self.config = config
         self.enabled = config.get('enabled')  # type: bool
         self.logger = logging.getLogger("sentry")
-        self.logger.info("Setting up sentry (enabled={})".format(self.enabled))
+        self.logger.info(f"Setting up sentry (enabled={self.enabled})")
 
     def init(self):
-        sentry_sdk.init(dsn=self.config['dsn'],
-                        environment=self.config['environment'],
-                        release=get_software_version())
+        sentry_sdk.init(
+            dsn=self.config['dsn'],
+            environment=self.config['environment'],
+            release=get_software_version(),
+        )
 
     def bind_to_webpy_app(self, app):
         # type: (web.application) -> None

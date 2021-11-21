@@ -1,4 +1,3 @@
-
 import web
 import logging
 import json
@@ -7,7 +6,10 @@ import re
 from infogami.utils import delegate
 from infogami import config
 from infogami.utils.view import (
-    require_login, render, render_template, add_flash_message
+    require_login,
+    render,
+    render_template,
+    add_flash_message,
 )
 
 from infogami.infobase.client import ClientException
@@ -22,10 +24,14 @@ from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
-    audit_accounts, Account, OpenLibraryAccount, InternetArchiveAccount, valid_email)
+    audit_accounts,
+    Account,
+    OpenLibraryAccount,
+    InternetArchiveAccount,
+    valid_email,
+)
 from openlibrary.plugins.upstream import borrow, forms, utils
 
-from six.moves import range
 from six.moves import urllib
 
 
@@ -39,40 +45,39 @@ create_link_doc = accounts.create_link_doc
 sendmail = accounts.sendmail
 
 LOGIN_ERRORS = {
-        "invalid_email": "The email address you entered is invalid",
-        "account_blocked": "This account has been blocked",
-        "account_locked": "This account has been blocked",
-        "account_not_found": "No account was found with this email. Please try again",
-        "account_incorrect_password": "The password you entered is incorrect. Please try again",
-        "account_bad_password": "Wrong password. Please try again",
-        "account_not_verified": "Please verify your Open Library account before logging in",
-        "ia_account_not_verified": "Please verify your Internet Archive account before logging in",
-        "missing_fields": "Please fill out all fields and try again",
-        "email_registered": "This email is already registered",
-        "username_registered": "This username is already registered",
-        "ia_login_only": "Sorry, you must use your Internet Archive email and password to log in",
-        "max_retries_exceeded": "A problem occurred and we were unable to log you in.",
-        "invalid_s3keys": "Login attempted with invalid Internet Archive s3 credentials.",
-        "wrong_ia_account": "An Open Library account with this email is already linked to a different Internet Archive account. Please contact info@openlibrary.org."
-    }
+    "invalid_email": "The email address you entered is invalid",
+    "account_blocked": "This account has been blocked",
+    "account_locked": "This account has been blocked",
+    "account_not_found": "No account was found with this email. Please try again",
+    "account_incorrect_password": "The password you entered is incorrect. Please try again",
+    "account_bad_password": "Wrong password. Please try again",
+    "account_not_verified": "Please verify your Open Library account before logging in",
+    "ia_account_not_verified": "Please verify your Internet Archive account before logging in",
+    "missing_fields": "Please fill out all fields and try again",
+    "email_registered": "This email is already registered",
+    "username_registered": "This username is already registered",
+    "ia_login_only": "Sorry, you must use your Internet Archive email and password to log in",
+    "max_retries_exceeded": "A problem occurred and we were unable to log you in.",
+    "invalid_s3keys": "Login attempted with invalid Internet Archive s3 credentials.",
+    "wrong_ia_account": "An Open Library account with this email is already linked to a different Internet Archive account. Please contact info@openlibrary.org.",
+}
+
 
 class availability(delegate.page):
     path = "/internal/fake/availability"
 
     def POST(self):
-        """Internal private API required for testing on localhost
-        """
-        return delegate.RawText(json.dumps({}),
-                                content_type="application/json")
+        """Internal private API required for testing on localhost"""
+        return delegate.RawText(json.dumps({}), content_type="application/json")
+
 
 class loans(delegate.page):
     path = "/internal/fake/loans"
 
     def POST(self):
-        """Internal private API required for testing on localhost
-        """
-        return delegate.RawText(json.dumps({}),
-                                content_type="application/json")
+        """Internal private API required for testing on localhost"""
+        return delegate.RawText(json.dumps({}), content_type="application/json")
+
 
 class xauth(delegate.page):
     path = "/internal/fake/xauth"
@@ -100,14 +105,14 @@ class xauth(delegate.page):
                 "values": {
                     "locked": False,
                     "email": "openlibrary@example.org",
-                    "itemname":"@openlibrary",
-                    "screenname":"openlibrary",
-                    "verified": True
+                    "itemname": "@openlibrary",
+                    "screenname": "openlibrary",
+                    "verified": True,
                 },
-                "version":1
+                "version": 1,
             }
-        return delegate.RawText(json.dumps(result),
-                                content_type="application/json")
+        return delegate.RawText(json.dumps(result), content_type="application/json")
+
 
 class internal_audit(delegate.page):
     path = "/internal/account/audit"
@@ -116,17 +121,20 @@ class internal_audit(delegate.page):
         """Internal API endpoint used for authorized test cases and
         administrators to unlink linked OL and IA accounts.
         """
-        i = web.input(email='', username='', itemname='', key='', unlink='',
-                      new_itemname='')
+        i = web.input(
+            email='', username='', itemname='', key='', unlink='', new_itemname=''
+        )
         if i.key != lending.config_internal_tests_api_key:
             result = {'error': 'Authentication failed for private API'}
         else:
             try:
-                result = OpenLibraryAccount.get(email=i.email, link=i.itemname,
-                                                username=i.username)
+                result = OpenLibraryAccount.get(
+                    email=i.email, link=i.itemname, username=i.username
+                )
                 if result is None:
-                    raise ValueError('Invalid Open Library account email ' \
-                                     'or itemname')
+                    raise ValueError(
+                        'Invalid Open Library account email ' 'or itemname'
+                    )
                 result.enc_password = 'REDACTED'
                 if i.new_itemname:
                     result.link(i.new_itemname)
@@ -135,8 +143,8 @@ class internal_audit(delegate.page):
             except ValueError as e:
                 result = {'error': str(e)}
 
-        return delegate.RawText(json.dumps(result),
-                                content_type="application/json")
+        return delegate.RawText(json.dumps(result), content_type="application/json")
+
 
 class account_migration(delegate.page):
 
@@ -145,65 +153,88 @@ class account_migration(delegate.page):
     def GET(self):
         i = web.input(username='', email='', key='')
         if i.key != lending.config_internal_tests_api_key:
-            return delegate.RawText(json.dumps({
-                'error': 'Authentication failed for private API'
-            }), content_type="application/json")
+            return delegate.RawText(
+                json.dumps({'error': 'Authentication failed for private API'}),
+                content_type="application/json",
+            )
         try:
             if i.username:
                 ol_account = OpenLibraryAccount.get(username=i.username)
             elif i.email:
                 ol_account = OpenLibraryAccount.get(email=i.email)
         except Exception as e:
-            return delegate.RawText(json.dumps({
-                'error': 'bad-account'
-            }), content_type="application/json")
+            return delegate.RawText(
+                json.dumps({'error': 'bad-account'}), content_type="application/json"
+            )
         if ol_account:
             ol_account.enc_password = 'REDACTED'
             if ol_account.itemname:
-                return delegate.RawText(json.dumps({
-                    'status': 'link-exists',
-                    'username': ol_account.username,
-                    'itemname': ol_account.itemname,
-                    'email': ol_account.email.lower()
-                }), content_type="application/json")
+                return delegate.RawText(
+                    json.dumps(
+                        {
+                            'status': 'link-exists',
+                            'username': ol_account.username,
+                            'itemname': ol_account.itemname,
+                            'email': ol_account.email.lower(),
+                        }
+                    ),
+                    content_type="application/json",
+                )
             if not ol_account.itemname:
                 ia_account = InternetArchiveAccount.get(email=ol_account.email.lower())
                 if ia_account:
                     ol_account.link(ia_account.itemname)
-                    return delegate.RawText(json.dumps({
-                        'username': ol_account.username,
-                        'status': 'link-found',
-                        'itemname': ia_account.itemname,
-                        'ol-itemname': ol_account.itemname,
-                        'email': ol_account.email.lower(),
-                        'ia': ia_account
-                    }), content_type="application/json")
+                    return delegate.RawText(
+                        json.dumps(
+                            {
+                                'username': ol_account.username,
+                                'status': 'link-found',
+                                'itemname': ia_account.itemname,
+                                'ol-itemname': ol_account.itemname,
+                                'email': ol_account.email.lower(),
+                                'ia': ia_account,
+                            }
+                        ),
+                        content_type="application/json",
+                    )
 
                 password = OpenLibraryAccount.generate_random_password(16)
                 ia_account = InternetArchiveAccount.create(
                     ol_account.username or ol_account.displayname,
-                    ol_account.email, password, verified=True, retries=USERNAME_RETRIES)
-                return delegate.RawText(json.dumps({
-                    'username': ol_account.username,
-                    'email': ol_account.email,
-                    'itemname': ia_account.itemname,
-                    'password': password,
-                    'status': 'link-created'
-                }), content_type="application/json")
+                    ol_account.email,
+                    password,
+                    verified=True,
+                    retries=USERNAME_RETRIES,
+                )
+                return delegate.RawText(
+                    json.dumps(
+                        {
+                            'username': ol_account.username,
+                            'email': ol_account.email,
+                            'itemname': ia_account.itemname,
+                            'password': password,
+                            'status': 'link-created',
+                        }
+                    ),
+                    content_type="application/json",
+                )
+
 
 class account(delegate.page):
-    """Account preferences.
-    """
+    """Account preferences."""
+
     @require_login
     def GET(self):
         user = accounts.get_current_user()
         return render.account(user)
+
 
 class account_create(delegate.page):
     """New account creation.
 
     Account remains in the pending state until the email is activated.
     """
+
     path = "/account/create"
 
     def GET(self):
@@ -228,7 +259,10 @@ class account_create(delegate.page):
             return recaptcha.Recaptcha(public_key, private_key)
 
     def is_plugin_enabled(self, name):
-        return name in delegate.get_plugins() or "openlibrary.plugins." + name in delegate.get_plugins()
+        return (
+            name in delegate.get_plugins()
+            or "openlibrary.plugins." + name in delegate.get_plugins()
+        )
 
     def POST(self):
         f = self.get_form()  # type: forms.RegisterForm
@@ -249,9 +283,16 @@ class account_create(delegate.page):
                 mls = ['ml_best_of', 'ml_updates']
                 notifications = mls if f.ia_newsletter.checked else []
                 InternetArchiveAccount.create(
-                    screenname=f.username.value, email=f.email.value, password=f.password.value,
-                    notifications=notifications, verified=False, retries=USERNAME_RETRIES)
-                return render['account/verify'](username=f.username.value, email=f.email.value)
+                    screenname=f.username.value,
+                    email=f.email.value,
+                    password=f.password.value,
+                    notifications=notifications,
+                    verified=False,
+                    retries=USERNAME_RETRIES,
+                )
+                return render['account/verify'](
+                    username=f.username.value, email=f.email.value
+                )
             except ValueError:
                 f.note = LOGIN_ERRORS['max_retries_exceeded']
 
@@ -273,6 +314,7 @@ class account_login_json(delegate.page):
         credentials, requires Archive.org s3 keys.
         """
         from openlibrary.plugins.openlibrary.code import BadRequest
+
         d = json.loads(web.data())
         access = d.get('access', None)
         secret = d.get('secret', None)
@@ -280,9 +322,14 @@ class account_login_json(delegate.page):
 
         # Try S3 authentication first, fallback to infogami user, pass
         if access and secret:
-            audit = audit_accounts(None, None, require_link=True,
-                                   s3_access_key=access,
-                                   s3_secret_key=secret, test=test)
+            audit = audit_accounts(
+                None,
+                None,
+                require_link=True,
+                s3_access_key=access,
+                s3_secret_key=secret,
+                test=test,
+            )
             error = audit.get('error')
             if error:
                 raise olib.code.BadRequest(error)
@@ -290,8 +337,8 @@ class account_login_json(delegate.page):
         # Fallback to infogami user/pass
         else:
             from infogami.plugins.api.code import login as infogami_login
-            infogami_login().POST()
 
+            infogami_login().POST()
 
 
 class account_login(delegate.page):
@@ -303,6 +350,7 @@ class account_login(delegate.page):
     * account_bad_password: Error message is displayed with a link to reset password.
     * account_not_verified: Error page is dispalyed with button to "resend verification email".
     """
+
     path = "/account/login"
 
     def render_error(self, error_key, i):
@@ -322,23 +370,40 @@ class account_login(delegate.page):
         return render.login(f)
 
     def POST(self):
-        i = web.input(username="", connect=None, password="", remember=False,
-                      redirect='/', test=False, access=None, secret=None)
+        i = web.input(
+            username="",
+            connect=None,
+            password="",
+            remember=False,
+            redirect='/',
+            test=False,
+            access=None,
+            secret=None,
+        )
         email = i.username  # XXX username is now email
-        audit = audit_accounts(email, i.password, require_link=True,
-                               s3_access_key=i.access,
-                               s3_secret_key=i.secret, test=i.test)
+        audit = audit_accounts(
+            email,
+            i.password,
+            require_link=True,
+            s3_access_key=i.access,
+            s3_secret_key=i.secret,
+            test=i.test,
+        )
         error = audit.get('error')
         if error:
             return self.render_error(error, i)
 
         expires = 3600 * 24 * 7 if i.remember else ""
-        web.setcookie('pd', int(audit.get('special_access')) or '',
-                      expires=expires)
-        web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(),
-                      expires=expires)
-        blacklist = ["/account/login", "/account/password", "/account/email",
-                     "/account/create"]
+        web.setcookie('pd', int(audit.get('special_access')) or '', expires=expires)
+        web.setcookie(
+            config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
+        )
+        blacklist = [
+            "/account/login",
+            "/account/password",
+            "/account/email",
+            "/account/create",
+        ]
         if i.redirect == "" or any([path in i.redirect for path in blacklist]):
             i.redirect = "/account/loans"
         raise web.seeother(i.redirect)
@@ -355,12 +420,16 @@ class account_login(delegate.page):
         account.send_verification_email()
 
         title = _("Hi, %(user)s", user=account.displayname)
-        message = _("We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.", email=account.email)
+        message = _(
+            "We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.",
+            email=account.email,
+        )
         return render.message(title, message)
 
+
 class account_verify(delegate.page):
-    """Verify user account.
-    """
+    """Verify user account."""
+
     path = "/account/verify/([0-9a-f]*)"
 
     def GET(self, code):
@@ -368,19 +437,18 @@ class account_verify(delegate.page):
         if docs:
             doc = docs[0]
 
-            account = accounts.find(username = doc['username'])
+            account = accounts.find(username=doc['username'])
             if account:
                 if account['status'] != "pending":
                     return render['account/verify/activated'](account)
             account.activate()
-            user = web.ctx.site.get("/people/" + doc['username']) #TBD
+            user = web.ctx.site.get("/people/" + doc['username'])  # TBD
             return render['account/verify/success'](account)
         else:
             return render['account/verify/failed']()
 
     def POST(self, code=None):
-        """Called to regenerate account verification code.
-        """
+        """Called to regenerate account verification code."""
         i = web.input(email=None)
         account = accounts.find(email=i.email)
         if not account:
@@ -390,20 +458,27 @@ class account_verify(delegate.page):
         else:
             account.send_verification_email()
             title = _("Hi, %(user)s", user=account.displayname)
-            message = _("We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.", email=account.email)
+            message = _(
+                "We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.",
+                email=account.email,
+            )
             return render.message(title, message)
+
 
 class account_verify_old(account_verify):
     """Old account verification code.
 
     This takes username, email and code as url parameters. The new one takes just the code as part of the url.
     """
+
     path = "/account/verify"
+
     def GET(self):
         # It is too long since we switched to the new account verification links.
         # All old links must be expired by now.
         # Show failed message without thinking.
         return render['account/verify/failed']()
+
 
 class account_validation(delegate.page):
     path = '/account/validate'
@@ -427,19 +502,14 @@ class account_validation(delegate.page):
         if ol_account:
             return _('Email already registered')
 
-
     def GET(self):
         i = web.input()
-        errors = {
-            'email': None,
-            'username': None
-        }
+        errors = {'email': None, 'username': None}
         if i.get('email') is not None:
             errors['email'] = self.validate_email(i.email)
         if i.get('username') is not None:
             errors['username'] = self.validate_username(i.username)
-        return delegate.RawText(json.dumps(errors),
-                                content_type="application/json")
+        return delegate.RawText(json.dumps(errors), content_type="application/json")
 
 
 class account_email_verify(delegate.page):
@@ -458,18 +528,25 @@ class account_email_verify(delegate.page):
     def update_email(self, username, email):
         if accounts.find(email=email):
             title = _("Email address is already used.")
-            message = _("Your email address couldn't be updated. The specified email address is already used.")
+            message = _(
+                "Your email address couldn't be updated. The specified email address is already used."
+            )
         else:
             logger.info("updated email of %s to %s", username, email)
             accounts.update_account(username=username, email=email, status="active")
             title = _("Email verification successful.")
-            message = _('Your email address has been successfully verified and updated in your account.')
+            message = _(
+                'Your email address has been successfully verified and updated in your account.'
+            )
         return render.message(title, message)
 
     def bad_link(self):
         title = _("Email address couldn't be verified.")
-        message = _("Your email address couldn't be verified. The verification link seems invalid.")
+        message = _(
+            "Your email address couldn't be verified. The verification link seems invalid."
+        )
         return render.message(title, message)
+
 
 class account_email_verify_old(account_email_verify):
     path = "/account/email/verify"
@@ -479,6 +556,7 @@ class account_email_verify_old(account_email_verify):
         # All old links must be expired by now.
         # Show failed message without thinking.
         return self.bad_link()
+
 
 class account_ia_email_forgot(delegate.page):
     path = "/account/email/forgot-ia"
@@ -496,7 +574,9 @@ class account_ia_email_forgot(delegate.page):
                 if OpenLibraryAccount.authenticate(i.email, i.password) == "ok":
                     ia_act = act.get_linked_ia_account()
                     if ia_act:
-                        return render_template('account/email/forgot-ia', email=ia_act.email)
+                        return render_template(
+                            'account/email/forgot-ia', email=ia_act.email
+                        )
                     else:
                         err = "Open Library Account not linked. Login with your Open Library credentials to connect or create an Archive.org account"
                 else:
@@ -506,6 +586,7 @@ class account_ia_email_forgot(delegate.page):
         else:
             err = "Please enter a valid Open Library email"
         return render_template('account/email/forgot-ia', err=err)
+
 
 class account_ol_email_forgot(delegate.page):
     path = "/account/email/forgot"
@@ -528,7 +609,7 @@ class account_ol_email_forgot(delegate.page):
             err = "Please enter a username, not an email"
 
         else:
-            err="Sorry, this user does not exist"
+            err = "Sorry, this user does not exist"
 
         return render_template('account/email/forgot', err=err)
 
@@ -556,6 +637,7 @@ class account_password_forgot(delegate.page):
 
         send_forgot_password_email(account.username, i.email)
         return render['account/password/sent'](i.email)
+
 
 class account_password_reset(delegate.page):
 
@@ -605,8 +687,8 @@ class account_audit(delegate.page):
         email = i.get('email')
         password = i.get('password')
         result = audit_accounts(email, password, test=test)
-        return delegate.RawText(json.dumps(result),
-                                content_type="application/json")
+        return delegate.RawText(json.dumps(result), content_type="application/json")
+
 
 class account_privacy(delegate.page):
     path = "/account/privacy"
@@ -620,8 +702,11 @@ class account_privacy(delegate.page):
     def POST(self):
         user = accounts.get_current_user()
         user.save_preferences(web.input())
-        add_flash_message('note', _("Notification preferences have been updated successfully."))
+        add_flash_message(
+            'note', _("Notification preferences have been updated successfully.")
+        )
         web.seeother("/account")
+
 
 class account_notifications(delegate.page):
     path = "/account/notifications"
@@ -636,7 +721,9 @@ class account_notifications(delegate.page):
     def POST(self):
         user = accounts.get_current_user()
         user.save_preferences(web.input())
-        add_flash_message('note', _("Notification preferences have been updated successfully."))
+        add_flash_message(
+            'note', _("Notification preferences have been updated successfully.")
+        )
         web.seeother("/account")
 
 
@@ -656,7 +743,8 @@ class account_my_books_redirect(delegate.page):
     def GET(self, rest='loans'):
         user = accounts.get_current_user()
         username = user.key.split('/')[-1]
-        raise web.seeother('/people/%s/books/%s' % (username, rest))
+        raise web.seeother(f'/people/{username}/books/{rest}')
+
 
 class account_my_books(delegate.page):
     path = "/account/books"
@@ -667,29 +755,29 @@ class account_my_books(delegate.page):
         username = user.key.split('/')[-1]
         raise web.seeother('/people/%s/books' % (username))
 
+
 # This would be by the civi backend which would require the api keys
 class fake_civi(delegate.page):
     path = "/internal/fake/civicrm"
 
     def GET(self):
         i = web.input(entity='Contact')
-        contact = {
-            'values': [{
-                'contact_id': '270430'
-            }]
-        }
+        contact = {'values': [{'contact_id': '270430'}]}
         contributions = {
-            'values': [{
-                "receive_date": "2019-07-31 08:57:00",
-                "custom_52": "9780062457714",
-                "total_amount": "50.00",
-                "custom_53": "ol",
-                "contact_id": "270430",
-                "contribution_status": ""
-            }]
+            'values': [
+                {
+                    "receive_date": "2019-07-31 08:57:00",
+                    "custom_52": "9780062457714",
+                    "total_amount": "50.00",
+                    "custom_53": "ol",
+                    "contact_id": "270430",
+                    "contribution_status": "",
+                }
+            ]
         }
         entity = contributions if i.entity == 'Contribution' else contact
         return delegate.RawText(json.dumps(entity), content_type="application/json")
+
 
 class import_books(delegate.page):
     path = "/account/import"
@@ -700,6 +788,7 @@ class import_books(delegate.page):
         username = user['key'].split('/')[-1]
 
         return MyBooksTemplate(username, 'imports').render()
+
 
 class fetch_goodreads(delegate.page):
     path = "/account/import/goodreads"
@@ -712,6 +801,7 @@ class fetch_goodreads(delegate.page):
         books, books_wo_isbns = process_goodreads_csv(web.input())
         return render['account/import'](books, books_wo_isbns)
 
+
 class export_books(delegate.page):
     path = "/account/export"
 
@@ -722,18 +812,21 @@ class export_books(delegate.page):
         books = Bookshelves.get_users_logged_books(username, limit=10000)
         csv = []
         csv.append('Work Id,Edition Id,Bookshelf\n')
-        mapping = {1:'Want to Read', 2:'Currently Reading', 3:'Already Read'}
+        mapping = {1: 'Want to Read', 2: 'Currently Reading', 3: 'Already Read'}
         for book in books:
             row = [
                 'OL{}W'.format(book['work_id']),
                 'OL{}M'.format(book['edition_id']) if book['edition_id'] else '',
-                '{}\n'.format(mapping[book['bookshelf_id']])
+                '{}\n'.format(mapping[book['bookshelf_id']]),
             ]
             csv.append(','.join(row))
-        web.header('Content-Type','text/csv')
-        web.header('Content-disposition', 'attachment; filename=OpenLibrary_ReadingLog.csv')
+        web.header('Content-Type', 'text/csv')
+        web.header(
+            'Content-disposition', 'attachment; filename=OpenLibrary_ReadingLog.csv'
+        )
         csv = ''.join(csv)
         return delegate.RawText(csv, content_type="text/csv")
+
 
 class account_loans(delegate.page):
     path = "/account/loans"
@@ -758,9 +851,7 @@ class account_loans_json(delegate.page):
         user.update_loan_status()
         loans = borrow.get_loans(user)
         web.header('Content-Type', 'application/json')
-        return delegate.RawText(json.dumps({
-            "loans": loans
-        }))
+        return delegate.RawText(json.dumps({"loans": loans}))
 
 
 class account_waitlist(delegate.page):
@@ -791,23 +882,28 @@ def send_forgot_password_email(username, email):
     web.ctx.site.store[key] = doc
 
     link = web.ctx.home + "/account/password/reset/" + doc['code']
-    msg = render_template("email/password/reminder", username=username, email=email, link=link)
+    msg = render_template(
+        "email/password/reminder", username=username, email=email, link=link
+    )
     sendmail(email, msg)
 
 
 def as_admin(f):
     """Infobase allows some requests only from admin user. This decorator logs in as admin, executes the function and clears the admin credentials."""
+
     def g(*a, **kw):
         try:
             delegate.admin_login()
             return f(*a, **kw)
         finally:
             web.ctx.headers = []
+
     return g
 
 
 def process_goodreads_csv(i):
     import csv
+
     csv_payload = i.csv if isinstance(i.csv, str) else i.csv.decode()
     csv_file = csv.reader(csv_payload.splitlines(), delimiter=',', quotechar='"')
     header = next(csv_file)

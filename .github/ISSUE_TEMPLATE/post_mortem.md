@@ -20,7 +20,7 @@ assignees: ''
 <!-- What fixed the problem? -->
 
 - **Followup actions:**
-<!-- Note any resulting changes or decisions --> 
+<!-- Note any resulting changes or decisions -->
 
 ### Steps to close
 <!-- For instructions, please see: https://github.com/internetarchive/openlibrary/wiki/Disaster-History-Log#how-to -->

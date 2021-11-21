@@ -13,7 +13,7 @@ RUN pip install \
     # For real-time profiling
     cprofilev \
     # Faster python
-    Cython
+    Cython==3.0.0a9
 
 # Build cython files
 RUN ./build-cython.sh

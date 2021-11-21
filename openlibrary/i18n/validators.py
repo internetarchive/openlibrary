@@ -6,7 +6,7 @@ from babel.messages.catalog import TranslationError, Message, Catalog
 from babel.messages.checkers import python_format
 
 
-def validate(message: Message, catalog: Catalog) -> List[str]:
+def validate(message: Message, catalog: Catalog) -> list[str]:
     errors = [f'    {str(err)}' for err in message.check(catalog)]
     if message.python_format and not message.pluralizable and message.string:
         errors.extend(_validate_cfmt(message.id, message.string))
@@ -14,7 +14,7 @@ def validate(message: Message, catalog: Catalog) -> List[str]:
     return errors
 
 
-def _validate_cfmt(msgid: str, msgstr: str) -> List[str]:
+def _validate_cfmt(msgid: str, msgstr: str) -> list[str]:
     errors = []
 
     if _cfmt_fingerprint(msgid) != _cfmt_fingerprint(msgstr):
@@ -34,10 +34,7 @@ def _cfmt_fingerprint(string: str):
     {'%(title)s': 1, '%(first)s': 1, '%(last)s': 1}
     """
     pieces = _parse_cfmt(string)
-    return {
-        key: len(list(grp))
-        for key, grp in groupby(pieces)
-    }
+    return {key: len(list(grp)) for key, grp in groupby(pieces)}
 
 
 def _parse_cfmt(string: str):
@@ -73,7 +70,4 @@ def _parse_cfmt(string: str):
         %%                               # literal "%%"
     '''
 
-    return [
-        m.group(0)
-        for m in re.finditer(cfmt_re, string, flags=re.VERBOSE)
-    ]
+    return [m.group(0) for m in re.finditer(cfmt_re, string, flags=re.VERBOSE)]

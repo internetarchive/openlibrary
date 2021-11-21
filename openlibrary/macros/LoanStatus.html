@@ -25,7 +25,7 @@ $if not waiting_loan:
 $else:
   $ book_provider = get_book_provider.ia
 
-$# Replace existing, possibly inaccurate, availability with results ground truth availability API call: 
+$# Replace existing, possibly inaccurate, availability with results ground truth availability API call:
 $if allow_expensive_availability_check and ocaid:
   $ availability.update(get_cached_groundtruth_availability(ocaid))
 
@@ -128,7 +128,8 @@ $if ocaid and secondary_action and availability.get('is_printdisabled') and book
 $:post
 
 $if ocaid and daisy and book_provider.short_name == 'ia':
-  $:macros.daisy('%s/daisy' % doc.url, protected=availability.get('is_printdisabled'))
+  $ url = doc.get('url') or doc.get('key') + '/-'
+  $:macros.daisy('%s/daisy' % url, protected=availability.get('is_printdisabled'))
 
 $if query_param('debug'):
   $ loanstatus_end_time = time() - loanstatus_start_time

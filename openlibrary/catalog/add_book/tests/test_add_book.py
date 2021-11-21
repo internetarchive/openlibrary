@@ -7,16 +7,22 @@ from infogami.infobase.core import Text
 
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
-    add_db_name, build_pool, editions_matched, isbns_from_record,
-    load, split_subtitle, strip_accents, RequiredField)
+    add_db_name,
+    build_pool,
+    editions_matched,
+    isbns_from_record,
+    load,
+    split_subtitle,
+    strip_accents,
+    RequiredField,
+)
 
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 
 
 def open_test_data(filename):
-    """Returns a file handle to file with specified filename inside test_data directory.
-    """
+    """Returns a file handle to file with specified filename inside test_data directory."""
     root = os.path.dirname(__file__)
     fullpath = os.path.join(root, 'test_data', filename)
     return open(fullpath, mode='rb')
@@ -24,8 +30,7 @@ def open_test_data(filename):
 
 @pytest.fixture
 def ia_writeback(monkeypatch):
-    """Prevent ia writeback from making live requests.
-    """
+    """Prevent ia writeback from making live requests."""
     monkeypatch.setattr(add_book, 'update_ia_metadata_for_ol_edition', lambda olid: {})
 
 
@@ -40,38 +45,53 @@ def test_isbns_from_record():
 
 def test_strip_accents():
     assert strip_accents('Plain ASCII text') == 'Plain ASCII text'
-    assert strip_accents(u'Des idées napoléoniennes') == 'Des idees napoleoniennes'
+    assert strip_accents('Des idées napoléoniennes') == 'Des idees napoleoniennes'
     # It only modifies Unicode Nonspacing Mark characters:
-    assert strip_accents(u'Bokmål : Standard Østnorsk') == u'Bokmal : Standard Østnorsk'
+    assert strip_accents('Bokmål : Standard Østnorsk') == 'Bokmal : Standard Østnorsk'
 
 
 bookseller_titles = [
     # Original title, title, subtitle
     ['Test Title', 'Test Title', None],
-    ['Killers of the Flower Moon: The Osage Murders and the Birth of the FBI',
+    [
+        'Killers of the Flower Moon: The Osage Murders and the Birth of the FBI',
         'Killers of the Flower Moon',
-        'The Osage Murders and the Birth of the FBI'],
-    ['Pachinko (National Book Award Finalist)',
-        'Pachinko', None],
-    ['Trapped in a Video Game (Book 1) (Volume 1)',
-        'Trapped in a Video Game', None],
-    ["An American Marriage (Oprah's Book Club): A Novel",
-        'An American Marriage', 'A Novel'],
-    ['A Növel (German Edition)',
-        'A Növel', None],
-    [('Vietnam Travel Guide 2019: Ho Chi Minh City - First Journey : '
-      '10 Tips For an Amazing Trip'),
+        'The Osage Murders and the Birth of the FBI',
+    ],
+    ['Pachinko (National Book Award Finalist)', 'Pachinko', None],
+    ['Trapped in a Video Game (Book 1) (Volume 1)', 'Trapped in a Video Game', None],
+    [
+        "An American Marriage (Oprah's Book Club): A Novel",
+        'An American Marriage',
+        'A Novel',
+    ],
+    ['A Növel (German Edition)', 'A Növel', None],
+    [
+        (
+            'Vietnam Travel Guide 2019: Ho Chi Minh City - First Journey : '
+            '10 Tips For an Amazing Trip'
+        ),
         'Vietnam Travel Guide 2019 : Ho Chi Minh City - First Journey',
-        '10 Tips For an Amazing Trip'],
-    ['Secrets of Adobe(r) Acrobat(r) 7. 150 Best Practices and Tips (Russian Edition)',
-        'Secrets of Adobe Acrobat 7. 150 Best Practices and Tips', None],
-    [('Last Days at Hot Slit: The Radical Feminism of Andrea Dworkin '
-      '(Semiotext(e) / Native Agents)'),
+        '10 Tips For an Amazing Trip',
+    ],
+    [
+        'Secrets of Adobe(r) Acrobat(r) 7. 150 Best Practices and Tips (Russian Edition)',
+        'Secrets of Adobe Acrobat 7. 150 Best Practices and Tips',
+        None,
+    ],
+    [
+        (
+            'Last Days at Hot Slit: The Radical Feminism of Andrea Dworkin '
+            '(Semiotext(e) / Native Agents)'
+        ),
         'Last Days at Hot Slit',
-        'The Radical Feminism of Andrea Dworkin'],
-    ['Bloody Times: The Funeral of Abraham Lincoln and the Manhunt for Jefferson Davis',
+        'The Radical Feminism of Andrea Dworkin',
+    ],
+    [
+        'Bloody Times: The Funeral of Abraham Lincoln and the Manhunt for Jefferson Davis',
         'Bloody Times',
-        'The Funeral of Abraham Lincoln and the Manhunt for Jefferson Davis'],
+        'The Funeral of Abraham Lincoln and the Manhunt for Jefferson Davis',
+    ],
 ]
 
 
@@ -89,7 +109,12 @@ def test_editions_matched_no_results(mock_site):
 
 
 def test_editions_matched(mock_site, add_languages, ia_writeback):
-    rec = {'title': 'test', 'isbn_13': ['9780190906764'], 'isbn_10': ['0190906766'], 'source_records': ['test:001']}
+    rec = {
+        'title': 'test',
+        'isbn_13': ['9780190906764'],
+        'isbn_10': ['0190906766'],
+        'source_records': ['test:001'],
+    }
     load(rec)
     isbns = isbns_from_record(rec)
 
@@ -200,10 +225,10 @@ def test_load_with_new_author(mock_site, ia_writeback):
 
     # TODO: There is no code that modifies an author if more data is provided.
     # previously the status implied the record was always 'modified', when a match was found.
-    #assert reply['authors'][0]['status'] == 'modified'
-    #a = mock_site.get(akey2)
-    #assert 'entity_type' in a
-    #assert a.entity_type == 'person'
+    # assert reply['authors'][0]['status'] == 'modified'
+    # a = mock_site.get(akey2)
+    # assert 'entity_type' in a
+    # assert a.entity_type == 'person'
 
     assert reply['authors'][0]['status'] == 'matched'
     assert akey1 == akey2 == '/authors/OL1A'
@@ -230,25 +255,28 @@ def test_load_with_new_author(mock_site, ia_writeback):
 
 def test_load_with_redirected_author(mock_site, add_languages):
     """Test importing existing editions without works
-       which have author redirects. A work should be created with
-       the final author.
+    which have author redirects. A work should be created with
+    the final author.
     """
     redirect_author = {
         'type': {'key': '/type/redirect'},
         'name': 'John Smith',
         'key': '/authors/OL55A',
-        'location': '/authors/OL10A'}
+        'location': '/authors/OL10A',
+    }
     final_author = {
         'type': {'key': '/type/author'},
         'name': 'John Smith',
-        'key': '/authors/OL10A'}
+        'key': '/authors/OL10A',
+    }
     orphaned_edition = {
         'title': 'Test item HATS',
         'key': '/books/OL10M',
         'publishers': ['TestPub'],
         'publish_date': '1994',
         'authors': [{'key': '/authors/OL55A'}],
-        'type': {'key': '/type/edition'}}
+        'type': {'key': '/type/edition'},
+    }
     mock_site.save(orphaned_edition)
     mock_site.save(redirect_author)
     mock_site.save(final_author)
@@ -258,7 +286,8 @@ def test_load_with_redirected_author(mock_site, add_languages):
         'authors': [{'name': 'John Smith'}],
         'publishers': ['TestPub'],
         'publish_date': '1994',
-        'source_records': 'ia:test_redir_author'}
+        'source_records': 'ia:test_redir_author',
+    }
     reply = load(rec)
     assert reply['edition']['status'] == 'modified'
     assert reply['edition']['key'] == '/books/OL10M'
@@ -314,10 +343,14 @@ class Test_From_MARC:
         assert reply['success'] is True
         assert reply['edition']['status'] == 'matched'
 
-    @pytest.mark.parametrize('ia', (
-        'coursepuremath00hardrich',
-        'roadstogreatness00gall',
-        'treatiseonhistor00dixo'))
+    @pytest.mark.parametrize(
+        'ia',
+        (
+            'coursepuremath00hardrich',
+            'roadstogreatness00gall',
+            'treatiseonhistor00dixo',
+        ),
+    )
     def test_from_marc(self, ia, mock_site, add_languages):
         data = open_test_data(ia + '_meta.mrc').read()
         assert len(data) == int(data[:5])
@@ -401,19 +434,23 @@ class Test_From_MARC:
         assert edition['pagination'] == 'viii, 264 p.'
         # 8 subjects, 650
         assert len(edition['subjects']) == 8
-        assert sorted(edition['subjects']) == [u'Action and adventure films',
-                                               u'Cinematography',
-                                               u'Miscellanea',
-                                               u'Physics',
-                                               u'Physics in motion pictures',
-                                               u'Popular works',
-                                               u'Science fiction films',
-                                               u'Special effects']
+        assert sorted(edition['subjects']) == [
+            'Action and adventure films',
+            'Cinematography',
+            'Miscellanea',
+            'Physics',
+            'Physics in motion pictures',
+            'Popular works',
+            'Science fiction films',
+            'Special effects',
+        ]
         # Edition description from 520
-        desc = ('Explains the basic laws of physics, covering such topics '
-                'as mechanics, forces, and energy, while deconstructing '
-                'famous scenes and stunts from motion pictures, including '
-                '"Apollo 13" and "Titanic," to determine if they are possible.')
+        desc = (
+            'Explains the basic laws of physics, covering such topics '
+            'as mechanics, forces, and energy, while deconstructing '
+            'famous scenes and stunts from motion pictures, including '
+            '"Apollo 13" and "Titanic," to determine if they are possible.'
+        )
         assert isinstance(edition['description'], Text)
         assert edition['description'] == desc
         # Work description from 520
@@ -441,11 +478,22 @@ def test_build_pool(mock_site):
         'lccn': ['/books/OL1M'],
         'oclc_numbers': ['/books/OL1M'],
         'title': ['/books/OL1M'],
-        'ocaid': ['/books/OL1M']
+        'ocaid': ['/books/OL1M'],
     }
 
-    pool = build_pool({'lccn': ['234'], 'oclc_numbers': ['456'], 'title': 'test', 'ocaid': 'test00test'})
-    assert pool == { 'oclc_numbers': ['/books/OL1M'], 'title': ['/books/OL1M'], 'ocaid': ['/books/OL1M'] }
+    pool = build_pool(
+        {
+            'lccn': ['234'],
+            'oclc_numbers': ['456'],
+            'title': 'test',
+            'ocaid': 'test00test',
+        }
+    )
+    assert pool == {
+        'oclc_numbers': ['/books/OL1M'],
+        'title': ['/books/OL1M'],
+        'ocaid': ['/books/OL1M'],
+    }
 
 
 def test_load_multiple(mock_site):
@@ -464,7 +512,9 @@ def test_load_multiple(mock_site):
     ekey2 = reply['edition']['key']
     assert ekey1 == ekey2
 
-    reply = load({'title': 'Test item', 'source_records': ['ia:test_item2'], 'lccn': ['456']})
+    reply = load(
+        {'title': 'Test item', 'source_records': ['ia:test_item2'], 'lccn': ['456']}
+    )
     assert reply['success'] is True
     ekey3 = reply['edition']['key']
     assert ekey3 != ekey1
@@ -478,11 +528,9 @@ def test_load_multiple(mock_site):
 
 def test_add_db_name():
     authors = [
-        {'name': 'Smith, John' },
-        {'name': 'Smith, John', 'date': '1950' },
-        {   'name': 'Smith, John',
-            'birth_date': '1895',
-            'death_date': '1964' },
+        {'name': 'Smith, John'},
+        {'name': 'Smith, John', 'date': '1950'},
+        {'name': 'Smith, John', 'birth_date': '1895', 'death_date': '1964'},
     ]
     orig = deepcopy(authors)
     add_db_name({'authors': authors})
@@ -496,31 +544,135 @@ def test_add_db_name():
     assert rec == {}
 
 
-
 def test_extra_author(mock_site, add_languages):
-    mock_site.save({
-        "name": "Hubert Howe Bancroft",
-        "death_date": "1918.",
-        "alternate_names": ["HUBERT HOWE BANCROFT", "Hubert Howe Bandcroft"],
-        "key": "/authors/OL563100A",
-        "birth_date": "1832",
-        "personal_name": "Hubert Howe Bancroft",
-        "type": {"key": "/type/author"},
-    })
+    mock_site.save(
+        {
+            "name": "Hubert Howe Bancroft",
+            "death_date": "1918.",
+            "alternate_names": ["HUBERT HOWE BANCROFT", "Hubert Howe Bandcroft"],
+            "key": "/authors/OL563100A",
+            "birth_date": "1832",
+            "personal_name": "Hubert Howe Bancroft",
+            "type": {"key": "/type/author"},
+        }
+    )
 
-    mock_site.save({
-        "title": "The works of Hubert Howe Bancroft",
-        "covers": [6060295, 5551343],
-        "first_sentence": {"type": "/type/text", "value": "When it first became known to Europe that a new continent had been discovered, the wise men, philosophers, and especially the learned ecclesiastics, were sorely perplexed to account for such a discovery."},
-        "subject_places": ["Alaska", "America", "Arizona", "British Columbia", "California", "Canadian Northwest", "Central America", "Colorado", "Idaho", "Mexico", "Montana", "Nevada", "New Mexico", "Northwest Coast of North America", "Northwest boundary of the United States", "Oregon", "Pacific States", "Texas", "United States", "Utah", "Washington (State)", "West (U.S.)", "Wyoming"],
-        "excerpts": [{"excerpt": "When it first became known to Europe that a new continent had been discovered, the wise men, philosophers, and especially the learned ecclesiastics, were sorely perplexed to account for such a discovery."}],
-        "first_publish_date": "1882",
-        "key": "/works/OL3421434W",
-        "authors": [{"type": {"key": "/type/author_role"}, "author": {"key": "/authors/OL563100A"}}],
-        "subject_times": ["1540-1810", "1810-1821", "1821-1861", "1821-1951", "1846-1850", "1850-1950", "1859-", "1859-1950", "1867-1910", "1867-1959", "1871-1903", "Civil War, 1861-1865", "Conquest, 1519-1540", "European intervention, 1861-1867", "Spanish colony, 1540-1810", "To 1519", "To 1821", "To 1846", "To 1859", "To 1867", "To 1871", "To 1889", "To 1912", "Wars of Independence, 1810-1821"],
-        "type": {"key": "/type/work"},
-        "subjects": ["Antiquities", "Archaeology", "Autobiography", "Bibliography", "California Civil War, 1861-1865", "Comparative Literature", "Comparative civilization", "Courts", "Description and travel", "Discovery and exploration", "Early accounts to 1600", "English essays", "Ethnology", "Foreign relations", "Gold discoveries", "Historians", "History", "Indians", "Indians of Central America", "Indians of Mexico", "Indians of North America", "Languages", "Law", "Mayas", "Mexican War, 1846-1848", "Nahuas", "Nahuatl language", "Oregon question", "Political aspects of Law", "Politics and government", "Religion and mythology", "Religions", "Social life and customs", "Spanish", "Vigilance committees", "Writing", "Zamorano 80", "Accessible book", "Protected DAISY"]
-    })
+    mock_site.save(
+        {
+            "title": "The works of Hubert Howe Bancroft",
+            "covers": [6060295, 5551343],
+            "first_sentence": {
+                "type": "/type/text",
+                "value": "When it first became known to Europe that a new continent had been discovered, the wise men, philosophers, and especially the learned ecclesiastics, were sorely perplexed to account for such a discovery.",
+            },
+            "subject_places": [
+                "Alaska",
+                "America",
+                "Arizona",
+                "British Columbia",
+                "California",
+                "Canadian Northwest",
+                "Central America",
+                "Colorado",
+                "Idaho",
+                "Mexico",
+                "Montana",
+                "Nevada",
+                "New Mexico",
+                "Northwest Coast of North America",
+                "Northwest boundary of the United States",
+                "Oregon",
+                "Pacific States",
+                "Texas",
+                "United States",
+                "Utah",
+                "Washington (State)",
+                "West (U.S.)",
+                "Wyoming",
+            ],
+            "excerpts": [
+                {
+                    "excerpt": "When it first became known to Europe that a new continent had been discovered, the wise men, philosophers, and especially the learned ecclesiastics, were sorely perplexed to account for such a discovery."
+                }
+            ],
+            "first_publish_date": "1882",
+            "key": "/works/OL3421434W",
+            "authors": [
+                {
+                    "type": {"key": "/type/author_role"},
+                    "author": {"key": "/authors/OL563100A"},
+                }
+            ],
+            "subject_times": [
+                "1540-1810",
+                "1810-1821",
+                "1821-1861",
+                "1821-1951",
+                "1846-1850",
+                "1850-1950",
+                "1859-",
+                "1859-1950",
+                "1867-1910",
+                "1867-1959",
+                "1871-1903",
+                "Civil War, 1861-1865",
+                "Conquest, 1519-1540",
+                "European intervention, 1861-1867",
+                "Spanish colony, 1540-1810",
+                "To 1519",
+                "To 1821",
+                "To 1846",
+                "To 1859",
+                "To 1867",
+                "To 1871",
+                "To 1889",
+                "To 1912",
+                "Wars of Independence, 1810-1821",
+            ],
+            "type": {"key": "/type/work"},
+            "subjects": [
+                "Antiquities",
+                "Archaeology",
+                "Autobiography",
+                "Bibliography",
+                "California Civil War, 1861-1865",
+                "Comparative Literature",
+                "Comparative civilization",
+                "Courts",
+                "Description and travel",
+                "Discovery and exploration",
+                "Early accounts to 1600",
+                "English essays",
+                "Ethnology",
+                "Foreign relations",
+                "Gold discoveries",
+                "Historians",
+                "History",
+                "Indians",
+                "Indians of Central America",
+                "Indians of Mexico",
+                "Indians of North America",
+                "Languages",
+                "Law",
+                "Mayas",
+                "Mexican War, 1846-1848",
+                "Nahuas",
+                "Nahuatl language",
+                "Oregon question",
+                "Political aspects of Law",
+                "Politics and government",
+                "Religion and mythology",
+                "Religions",
+                "Social life and customs",
+                "Spanish",
+                "Vigilance committees",
+                "Writing",
+                "Zamorano 80",
+                "Accessible book",
+                "Protected DAISY",
+            ],
+        }
+    )
 
     ia = 'workshuberthowe00racegoog'
     src = ia + '_meta.mrc'
@@ -540,50 +692,68 @@ def test_extra_author(mock_site, add_languages):
 
 
 def test_missing_source_records(mock_site, add_languages):
-    mock_site.save({
-        'key': '/authors/OL592898A',
-        'name': 'Michael Robert Marrus',
-        'personal_name': 'Michael Robert Marrus',
-        'type': { 'key': '/type/author' }
-    })
+    mock_site.save(
+        {
+            'key': '/authors/OL592898A',
+            'name': 'Michael Robert Marrus',
+            'personal_name': 'Michael Robert Marrus',
+            'type': {'key': '/type/author'},
+        }
+    )
 
-    mock_site.save({
-        'authors': [{'author': '/authors/OL592898A', 'type': { 'key': '/type/author_role' }}],
-        'key': '/works/OL16029710W',
-        'subjects': ['Nuremberg Trial of Major German War Criminals, Nuremberg, Germany, 1945-1946', 'Protected DAISY', 'Lending library'],
-        'title': 'The Nuremberg war crimes trial, 1945-46',
-        'type': { 'key': '/type/work' },
-    })
+    mock_site.save(
+        {
+            'authors': [
+                {'author': '/authors/OL592898A', 'type': {'key': '/type/author_role'}}
+            ],
+            'key': '/works/OL16029710W',
+            'subjects': [
+                'Nuremberg Trial of Major German War Criminals, Nuremberg, Germany, 1945-1946',
+                'Protected DAISY',
+                'Lending library',
+            ],
+            'title': 'The Nuremberg war crimes trial, 1945-46',
+            'type': {'key': '/type/work'},
+        }
+    )
 
-    mock_site.save({
-        "number_of_pages": 276,
-        "subtitle": "a documentary history",
-        "series": ["The Bedford series in history and culture"],
-        "covers": [6649715, 3865334, 173632],
-        "lc_classifications": ["D804.G42 N87 1997"],
-        "ocaid": "nurembergwarcrim00marr",
-        "contributions": ["Marrus, Michael Robert."],
-        "uri_descriptions": ["Book review (H-Net)"],
-        "title": "The Nuremberg war crimes trial, 1945-46",
-        "languages": [{"key": "/languages/eng"}],
-        "subjects": ["Nuremberg Trial of Major German War Criminals, Nuremberg, Germany, 1945-1946"],
-        "publish_country": "mau", "by_statement": "[compiled by] Michael R. Marrus.",
-        "type": {"key": "/type/edition"},
-        "uris": ["http://www.h-net.org/review/hrev-a0a6c9-aa"],
-        "publishers": ["Bedford Books"],
-        "ia_box_id": ["IA127618"],
-        "key": "/books/OL1023483M",
-        "authors": [{"key": "/authors/OL592898A"}],
-        "publish_places": ["Boston"],
-        "pagination": "xi, 276 p. :",
-        "lccn": ["96086777"],
-        "notes": {"type": "/type/text", "value": "Includes bibliographical references (p. 262-268) and index."},
-        "identifiers": {"goodreads": ["326638"], "librarything": ["1114474"]},
-        "url": ["http://www.h-net.org/review/hrev-a0a6c9-aa"],
-        "isbn_10": ["031216386X", "0312136919"],
-        "publish_date": "1997",
-        "works": [{"key": "/works/OL16029710W"}]
-    })
+    mock_site.save(
+        {
+            "number_of_pages": 276,
+            "subtitle": "a documentary history",
+            "series": ["The Bedford series in history and culture"],
+            "covers": [6649715, 3865334, 173632],
+            "lc_classifications": ["D804.G42 N87 1997"],
+            "ocaid": "nurembergwarcrim00marr",
+            "contributions": ["Marrus, Michael Robert."],
+            "uri_descriptions": ["Book review (H-Net)"],
+            "title": "The Nuremberg war crimes trial, 1945-46",
+            "languages": [{"key": "/languages/eng"}],
+            "subjects": [
+                "Nuremberg Trial of Major German War Criminals, Nuremberg, Germany, 1945-1946"
+            ],
+            "publish_country": "mau",
+            "by_statement": "[compiled by] Michael R. Marrus.",
+            "type": {"key": "/type/edition"},
+            "uris": ["http://www.h-net.org/review/hrev-a0a6c9-aa"],
+            "publishers": ["Bedford Books"],
+            "ia_box_id": ["IA127618"],
+            "key": "/books/OL1023483M",
+            "authors": [{"key": "/authors/OL592898A"}],
+            "publish_places": ["Boston"],
+            "pagination": "xi, 276 p. :",
+            "lccn": ["96086777"],
+            "notes": {
+                "type": "/type/text",
+                "value": "Includes bibliographical references (p. 262-268) and index.",
+            },
+            "identifiers": {"goodreads": ["326638"], "librarything": ["1114474"]},
+            "url": ["http://www.h-net.org/review/hrev-a0a6c9-aa"],
+            "isbn_10": ["031216386X", "0312136919"],
+            "publish_date": "1997",
+            "works": [{"key": "/works/OL16029710W"}],
+        }
+    )
 
     ia = 'nurembergwarcrim1997marr'
     src = ia + '_meta.mrc'
@@ -622,7 +792,15 @@ def test_no_extra_author(mock_site, add_languages):
         "latest_revision": 6,
         "title": "A Separate Pension Plan for Alberta",
         "languages": [{"key": "/languages/eng"}],
-        "subjects": ["Economics", "Alberta", "Political Science / State & Local Government", "Government policy", "Old age pensions", "Pensions", "Social security"],
+        "subjects": [
+            "Economics",
+            "Alberta",
+            "Political Science / State & Local Government",
+            "Government policy",
+            "Old age pensions",
+            "Pensions",
+            "Social security",
+        ],
         "type": {"key": "/type/edition"},
         "physical_dimensions": "9 x 6 x 0.2 inches",
         "publishers": ["The University of Alberta Press"],
@@ -633,7 +811,7 @@ def test_no_extra_author(mock_site, add_languages):
         "isbn_13": ["9780888643513"],
         "isbn_10": ["0888643519"],
         "publish_date": "May 1, 2000",
-        "works": [{"key": "/works/OL1W"}]
+        "works": [{"key": "/works/OL1W"}],
     }
     mock_site.save(edition)
 
@@ -662,8 +840,23 @@ def test_no_extra_author(mock_site, add_languages):
 
 def test_same_twice(mock_site, add_languages):
     rec = {
-            'source_records': ['ia:test_item'],
-            "publishers": ["Ten Speed Press"], "pagination": "20 p.", "description": "A macabre mash-up of the children's classic Pat the Bunny and the present-day zombie phenomenon, with the tactile features of the original book revoltingly re-imagined for an adult audience.", "title": "Pat The Zombie", "isbn_13": ["9781607740360"], "languages": ["eng"], "isbn_10": ["1607740362"], "authors": [{"entity_type": "person", "name": "Aaron Ximm", "personal_name": "Aaron Ximm"}], "contributions": ["Kaveh Soofi (Illustrator)"]}
+        'source_records': ['ia:test_item'],
+        "publishers": ["Ten Speed Press"],
+        "pagination": "20 p.",
+        "description": "A macabre mash-up of the children's classic Pat the Bunny and the present-day zombie phenomenon, with the tactile features of the original book revoltingly re-imagined for an adult audience.",
+        "title": "Pat The Zombie",
+        "isbn_13": ["9781607740360"],
+        "languages": ["eng"],
+        "isbn_10": ["1607740362"],
+        "authors": [
+            {
+                "entity_type": "person",
+                "name": "Aaron Ximm",
+                "personal_name": "Aaron Ximm",
+            }
+        ],
+        "contributions": ["Kaveh Soofi (Illustrator)"],
+    }
     reply = load(rec)
     assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
@@ -679,7 +872,8 @@ def test_existing_work(mock_site, add_languages):
     author = {
         'type': {'key': '/type/author'},
         'name': 'John Smith',
-        'key': '/authors/OL20A'}
+        'key': '/authors/OL20A',
+    }
     existing_work = {
         'authors': [{'author': '/authors/OL20A', 'type': {'key': '/type/author_role'}}],
         'key': '/works/OL16W',
@@ -689,13 +883,13 @@ def test_existing_work(mock_site, add_languages):
     mock_site.save(author)
     mock_site.save(existing_work)
     rec = {
-            'source_records': 'non-marc:test',
-            'title': 'Finding Existing Works',
-            'authors': [{'name': 'John Smith'}],
-            'publishers': ['Black Spot'],
-            'publish_date': 'Jan 09, 2011',
-            'isbn_10': ['1250144051'],
-           }
+        'source_records': 'non-marc:test',
+        'title': 'Finding Existing Works',
+        'authors': [{'name': 'John Smith'}],
+        'publishers': ['Black Spot'],
+        'publish_date': 'Jan 09, 2011',
+        'isbn_10': ['1250144051'],
+    }
 
     reply = load(rec)
     assert reply['success'] is True
@@ -711,7 +905,8 @@ def test_existing_work_with_subtitle(mock_site, add_languages):
     author = {
         'type': {'key': '/type/author'},
         'name': 'John Smith',
-        'key': '/authors/OL20A'}
+        'key': '/authors/OL20A',
+    }
     existing_work = {
         'authors': [{'author': '/authors/OL20A', 'type': {'key': '/type/author_role'}}],
         'key': '/works/OL16W',
@@ -721,14 +916,14 @@ def test_existing_work_with_subtitle(mock_site, add_languages):
     mock_site.save(author)
     mock_site.save(existing_work)
     rec = {
-            'source_records': 'non-marc:test',
-            'title': 'Finding Existing Works',
-            'subtitle': 'the ongoing saga!',
-            'authors': [{'name': 'John Smith'}],
-            'publishers': ['Black Spot'],
-            'publish_date': 'Jan 09, 2011',
-            'isbn_10': ['1250144051'],
-           }
+        'source_records': 'non-marc:test',
+        'title': 'Finding Existing Works',
+        'subtitle': 'the ongoing saga!',
+        'authors': [{'name': 'John Smith'}],
+        'publishers': ['Black Spot'],
+        'publish_date': 'Jan 09, 2011',
+        'isbn_10': ['1250144051'],
+    }
 
     reply = load(rec)
     assert reply['success'] is True

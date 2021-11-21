@@ -11,19 +11,24 @@ from openlibrary.utils import get_software_version
 status_info = {}
 feature_flags = {}
 
+
 class status(delegate.page):
     def GET(self):
         return render_template("status", status_info, feature_flags)
 
+
 @public
 def get_git_revision_short_hash():
-    return (status_info.get('Software version')
-            if status_info and isinstance(status_info, dict) 
-            else None)
+    return (
+        status_info.get('Software version')
+        if status_info and isinstance(status_info, dict)
+        else None
+    )
 
 
 def get_features_enabled():
     return config.features
+
 
 def setup():
     "Basic startup status for the server"

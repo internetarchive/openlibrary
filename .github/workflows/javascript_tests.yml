@@ -4,6 +4,15 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+    paths:
+      - 'Makefile'
+      - '.github/workflows/javascript_tests.yml'
+      - 'vendor/js/**'
+      - '**.json'
+      - '**.js'
+      - '**.vue'
+      - '**.less'
+      - '**.css'
 jobs:
   javascript_tests:
     runs-on: ubuntu-latest
@@ -16,7 +25,7 @@ jobs:
         with:
           # Caching node_modules isn't recommended because it can break across
           # Node versions and won't work with npm ci (See https://github.com/actions/cache/blob/main/examples.md#node---npm )
-          # But we pin the node version, and we don't update it that often anyways. And 
+          # But we pin the node version, and we don't update it that often anyways. And
           # we don't use `npm ci` specifically to try to get faster CI flows. So caching
           # `node_modules` directly.
           path: 'node_modules'

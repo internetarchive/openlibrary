@@ -1,6 +1,5 @@
 import { debounce } from './nonjquery_utils.js';
 import * as Browser from './Browser';
-import { updateWorkAvailability } from './availability';
 import { SearchBar } from './SearchBar';
 import { SearchPage } from './SearchPage';
 import { SearchModeSelector, mode as searchMode } from './SearchUtils';
@@ -45,7 +44,6 @@ export default function init() {
         }
     });
 
-    updateWorkAvailability();
     initReadingListFeature();
     initBorrowAndReadLinks();
     initPreviewButton();

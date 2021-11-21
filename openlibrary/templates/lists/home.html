@@ -50,7 +50,7 @@ $var title: $_('Lists')
                 </div>
                 <div class="description no-img">
                 $if list.description:
-                    $:format(list.description)
+                    <p>$:reformat_html(format(list.description), max_length=250)</p>
                 $else:
                     <p><em class="grey">$_('No description.')</em></p>
                 </div>

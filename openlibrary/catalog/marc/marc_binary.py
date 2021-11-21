@@ -13,7 +13,7 @@ class BadLength(MarcException):
 
 
 def handle_wrapped_lines(_iter):
-    """ 
+    """
     Handles wrapped MARC fields, which appear to be multiple
     fields with the same field number ending with ++
     Have not found an official spec which describe this.
@@ -28,7 +28,9 @@ def handle_wrapped_lines(_iter):
             cur_lines.append(l)
             continue
         if cur_lines:
-            yield cur_tag, cur_lines[0][:-3] + b''.join(i[2:-3] for i in cur_lines[1:]) + l[2:]
+            yield cur_tag, cur_lines[0][:-3] + b''.join(
+                i[2:-3] for i in cur_lines[1:]
+            ) + l[2:]
             cur_tag = None
             cur_lines = []
             continue
@@ -36,7 +38,7 @@ def handle_wrapped_lines(_iter):
     assert not cur_lines
 
 
-class BinaryDataField():
+class BinaryDataField:
     def __init__(self, rec, line):
         """
         :param rec MarcBinary:
@@ -115,7 +117,7 @@ class BinaryDataField():
 
 class MarcBinary(MarcBase):
     def __init__(self, data):
-    # def __init__(self, data: bytes) -> None:  # Python 3 type hint
+        # def __init__(self, data: bytes) -> None:  # Python 3 type hint
         try:
             assert len(data)
             assert isinstance(data, bytes)
@@ -123,7 +125,9 @@ class MarcBinary(MarcBase):
         except Exception:
             raise BadMARC("No MARC data found")
         if len(data) != length:
-            raise BadLength("Record length %s does not match reported length %s." % (len(data), length))
+            raise BadLength(
+                f"Record length {len(data)} does not match reported length {length}."
+            )
         self.data = data
         self.directory_end = data.find(b'\x1e')
         if self.directory_end == -1:
@@ -131,14 +135,16 @@ class MarcBinary(MarcBase):
 
     def iter_directory(self):
         data = self.data
-        directory = data[24:self.directory_end]
+        directory = data[24 : self.directory_end]
         if len(directory) % 12 != 0:
             # directory is the wrong size
             # sometimes the leader includes some utf-8 by mistake
-            directory = data[:self.directory_end].decode('utf-8')[24:]
+            directory = data[: self.directory_end].decode('utf-8')[24:]
             if len(directory) % 12 != 0:
                 raise BadMARC("MARC directory invalid length")
-        iter_dir = (directory[i*12:(i+1)*12] for i in range(len(directory) // 12))
+        iter_dir = (
+            directory[i * 12 : (i + 1) * 12] for i in range(len(directory) // 12)
+        )
         return iter_dir
 
     def leader(self):
@@ -198,26 +204,30 @@ class MarcBinary(MarcBase):
         :return: list of tuples (MARC tag (str), field contents ... bytes or str?)
         """
         want = set(want)
-        return [(line[:3].decode(), self.get_tag_line(line)) for line in self.iter_directory() if line[:3].decode() in want]
+        return [
+            (line[:3].decode(), self.get_tag_line(line))
+            for line in self.iter_directory()
+            if line[:3].decode() in want
+        ]
 
     def get_tag_line(self, line):
         length = int(line[3:7])
         offset = int(line[7:12])
-        data = self.data[self.directory_end:]
+        data = self.data[self.directory_end :]
         # handle off-by-one errors in MARC records
         try:
             if data[offset] != b'\x1e':
                 offset += data[offset:].find(b'\x1e')
-            last = offset+length
+            last = offset + length
             if data[last] != b'\x1e':
                 length += data[last:].find(b'\x1e')
         except IndexError:
             pass
-        tag_line = data[offset + 1:offset + length + 1]
+        tag_line = data[offset + 1 : offset + length + 1]
         if not line[0:2] == '00':
             # marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:636441290:1277
             if tag_line[1:8] == b'{llig}\x1f':
-                tag_line = tag_line[0] + u'\uFE20' + tag_line[7:]
+                tag_line = tag_line[0] + '\uFE20' + tag_line[7:]
         return tag_line
 
     def decode_field(self, field):
