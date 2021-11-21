@@ -8,7 +8,7 @@ from openlibrary.i18n import get_locales
 
 root = os.path.dirname(__file__)
 # Fix these and then remove them from this list
-ALLOW_FAILURES = ('hr', 'pl')  # ('cs', 'hr', 'pl')
+ALLOW_FAILURES = ('cs', 'pl')  # ('cs', 'hr', 'pl')
 
 
 def trees_equal(el1: etree.Element, el2: etree.Element, error=True):
