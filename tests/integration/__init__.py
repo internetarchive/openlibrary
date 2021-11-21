@@ -14,7 +14,7 @@ class OLSession:
             with open('auth.yaml') as f:
                 self.config = yaml.load(f)
         except FileNotFoundError:
-            self.config = {}
+            self.config = {"url": "http://localhost:8080"}
         try:
             self.driver = webdriver.Chrome()
         except:
