@@ -6,7 +6,7 @@
     * pip install pytest  # One time only.
     * python -m pytest
 
-CAUTION: This test takes ~8 sec but may take up to a minute to complete!
+CAUTION: This test takes ~12 sec but may take up to a minute to complete!
 
 TODO: Replace requests with an asyncio alternative such as httpx or trio...
 https://anyio.readthedocs.io/en/stable/testing.html is installed by FastAPI.
@@ -25,6 +25,8 @@ urls = """\
 /authors/OL23919A/works.json?limit=5
 /books/OL7353617M
 /isbn/9780140328721
+/recentchanges/2010/10/20/merge-authors.json
+/recentchanges/2010/10/20/merge-authors.json?limit=5
 /search.json?q=the+moon+is+a+harsh+mistress
 /search.json?q=the+moon+is+a+harsh+mistress&page=2
 /search/authors.json?q=arthur+c+clarke

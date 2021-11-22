@@ -49,7 +49,7 @@ async def read_api_books(
 # --> http://127.0.0.1:8000/api/volumes/brief/isbn/0450002314.json
 # TODO: Lot's of work to do!  https://openlibrary.org/dev/docs/api/read
 @app.get("/api/volumes/brief/{key_type}/{value}.json")
-async def read_api_volumes_brief_isbn(key_type, value, callback: Any = None):
+async def read_api_volumes_brief(key_type, value, callback: Any = None):
     # FastAPI + Pydantic must have a better way to do this...
     assert key_type.lower() in ("isbn", "lccn", "oclc", "olid")
     callback = None  # We do not yet support callbacks  # noqa: F841
@@ -85,6 +85,8 @@ async def read_books(olid):
 # TODO: We will be returning binary content, not a json payload.
 @app.get("/covers/{key_type}/{value}-{size}.jpg")
 async def read_covers_key_type_value_size_jpeg(key_type, value, size):
+    # FastAPI + Pydantic must have a better way to do this...
+    assert key_type.lower() in ("isbn", "lccn", "oclc", "olid")
     covers_url_base = "https://covers.openlibrary.org/b/"
     return requests.get(f"{covers_url_base}/{key_type}/{value}-{size}.jpg").content
 
@@ -94,6 +96,27 @@ async def read_covers_key_type_value_size_jpeg(key_type, value, size):
 @app.get("/isbn/{isbn}")
 async def read_isbn(isbn):
     return requests.get(f"{url_base}/isbn/{isbn}.json").json()
+
+
+# https://openlibrary.org/dev/docs/api/recentchanges
+# http://openlibrary.org/recentchanges/2010/10/20/merge-authors.json
+# --> http://127.0.0.1:8000/recentchanges/2010/10/20/merge-authors.json
+# --> http://127.0.0.1:8000/recentchanges/2010/10/20/merge-authors.json?limit=5
+# TODO: YYYY vs. YYYY/MM vs. YYYY/MM/DD with or without KIND or just KIND!!
+# TODO: Validation: KIND in (add-cover, add-book, edit-book, merge-authors, update,
+#                            revert, new-account, register, lists)
+@app.get("/recentchanges/{yyyy}/{mm}/{dd}/{kind}.json")
+async def read_recentchanges_yyyy_mm_dd_kind(
+    yyyy: int,
+    mm: Optional[int] = None,
+    dd: Optional[int] = None,
+    kind: Optional[str] = None,
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
+    bot: Optional[bool] = None,
+):
+    url = f"{url_base}/recentchanges/{yyyy}/{mm:02}/{dd:02}/{kind}.json"
+    return requests.get(url, params=locals()).json()
 
 
 # http://openlibrary.org/search.json?q=the+moon+is+a+harsh+mistress
