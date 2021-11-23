@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-11-21 15:31+0000\n"
+"POT-Creation-Date: 2021-11-23 08:44+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3528,7 +3528,7 @@ msgid "No primary record"
 msgstr ""
 
 #: merge/authors.html:39
-msgid "You must select a master record to point the duplicates toward."
+msgid "You must select a primary record to point the duplicates toward."
 msgstr ""
 
 #: merge/authors.html:42
@@ -3539,8 +3539,8 @@ msgstr ""
 msgid "<b>Are you sure</b> you want to merge these records?"
 msgstr ""
 
-#: merge/authors.html:51 recentchanges/merge-authors/view.html:21
-msgid "Master"
+#: merge/authors.html:51
+msgid "Primary"
 msgstr ""
 
 #: merge/authors.html:52
@@ -3670,6 +3670,10 @@ msgstr ""
 
 #: recentchanges/merge-authors/view.html:17
 msgid "Details here"
+msgstr ""
+
+#: recentchanges/merge-authors/view.html:21
+msgid "Master"
 msgstr ""
 
 #: recentchanges/merge-authors/view.html:36 type/author/view.html:67
