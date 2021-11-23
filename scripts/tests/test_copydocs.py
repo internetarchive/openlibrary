@@ -39,7 +39,7 @@ class FakeServer:
         else:
             return revisions.get(revision, None)
 
-    def get_many(self, keys, max_length = 100):
+    def get_many(self, keys, max_length = 500):
         """
         :param list of str keys:
         :rtype: dict
