@@ -112,7 +112,7 @@ class OpenLibrary:
         response = self._request(key + '.json', params={'v': v} if v else {})
         return unmarshal(response.json())
 
-    def get_many(self, keys, max_length = 100):
+    def get_many(self, keys, max_length = 500):
         """Get multiple documents in a single request as a dictionary.
         """
         if len(keys) > max_length:
