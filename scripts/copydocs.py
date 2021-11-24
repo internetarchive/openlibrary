@@ -247,7 +247,7 @@ def copy(
         cache = {}
 
     def get_many(keys):
-        docs = marshal(src.get_many(keys, max_length = 100).values())
+        docs = marshal(src.get_many(keys).values())
         # work records may contain excerpts, which reference the author of the excerpt.
         # Deleting them to prevent loading the users.
         for doc in docs:
