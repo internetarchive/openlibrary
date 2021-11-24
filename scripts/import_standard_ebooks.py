@@ -19,7 +19,7 @@ load_config(
 from infogami import config  # noqa: E402,F401
 
 FEED_URL = 'https://standardebooks.org/opds/all'
-LAST_UPDATED_TIME = './out/standard_ebooks_last_updated.txt'
+LAST_UPDATED_TIME = './standard_ebooks_last_updated.txt'
 
 
 def get_feed():
@@ -155,7 +155,7 @@ def import_job() -> None:
     print(f'{len(modified_entries)} entries added to the batch import job.')
 
     # Store timestamp for header
-    with open(LAST_UPDATED_TIME, 'w') as f:
+    with open(LAST_UPDATED_TIME, 'w+') as f:
         f.write(last_modified)
         print(f'Last updated timestamp written to: {LAST_UPDATED_TIME}')
 
