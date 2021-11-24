@@ -187,11 +187,12 @@ def get_book_provider_by_name(short_name: str) -> Optional[AbstractBookProvider]
     return next((p for p in PROVIDER_ORDER if p.short_name == short_name), None)
 
 
+ia_provider = cast(InternetArchiveProvider, get_book_provider_by_name('ia'))
+prefer_ia_provider_order = uniq([ia_provider, *PROVIDER_ORDER])
+
+
 def get_provider_order(prefer_ia=False) -> list[AbstractBookProvider]:
-    default_order = PROVIDER_ORDER
-    if prefer_ia:
-        ia_provider = cast(InternetArchiveProvider, get_book_provider_by_name('ia'))
-        default_order = uniq([ia_provider, *PROVIDER_ORDER])
+    default_order = prefer_ia_provider_order if prefer_ia else PROVIDER_ORDER
 
     provider_order = default_order
     provider_overrides = web.input(providerPref=None).providerPref
@@ -225,7 +226,6 @@ def get_book_provider(
     # OCAIDs that look like they're from other providers.
     prefer_ia = not isinstance(ed_or_solr, Edition)
     if prefer_ia:
-        ia_provider = cast(InternetArchiveProvider, get_book_provider_by_name('ia'))
         ia_ocaids = [
             ocaid
             # Subjects/publisher pages have ia set to a specific value :/
