@@ -17,6 +17,7 @@ from collections import namedtuple
 import json
 import os
 import sys
+from typing import Union
 
 import web
 
@@ -93,6 +94,13 @@ def parse_args():
         action='store_true',
         default=True,
         help="Recursively fetch all the referred docs.",
+    )
+    parser.add_option(
+        "--editions",
+        dest="editions",
+        action='store_true',
+        default=True,
+        help="Also fetch all the editions of works.",
     )
     parser.add_option(
         "-l",
@@ -215,15 +223,23 @@ class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
         return self.to_uri()
 
 
-def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
+def copy(
+        src: Union[Disk, OpenLibrary],
+        dest: Union[Disk, OpenLibrary],
+        keys: list[str],
+        comment: str,
+        recursive=False,
+        editions=False,
+        saved: set[str] = None,
+        cache: dict =None,
+):
     """
-    :param Disk or OpenLibrary src: where we'll be copying form
-    :param Disk or OpenLibrary dest: where we'll be saving to
-    :param typing.List[str] keys:
-    :param str comment: commit to writing when saving the documents
-    :param bool recursive:
-    :param typing.Set[str] or None saved: keys saved so far
-    :param dict or None cache:
+    :param src: where we'll be copying form
+    :param dest: where we'll be saving to
+    :param comment: comment to writing when saving the documents
+    :param recursive: Whether to recursively fetch an referenced docs
+    :param editions: Whether to fetch editions of works as well
+    :param saved: keys saved so far
     """
     if saved is None:
         saved = set()
@@ -274,8 +290,35 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
 
         return docs
 
-    keys = [k for k in keys if k not in saved]
+    keys = [
+        k
+        for k in keys
+        # Ignore /scan_record and /scanning_center ; they can cause infinite loops?
+        if k not in saved and not k.startswith('/scan')]
     docs = fetch(keys)
+
+    if editions:
+        work_keys = [
+            key
+            for key in keys
+            if key.startswith('/works/')
+        ]
+        if not isinstance(src, OpenLibrary):
+            print("Can only fetch editions when using an OL source! Ignoring.")
+        elif work_keys:
+            # eg https://openlibrary.org/search.json?q=key:/works/OL102584W
+            resp = src._request('/search.json', params={
+                'q': ' OR '.join(f'key:{key}' for key in work_keys),
+            }).json()
+            edition_keys = [
+                f"/books/{olid}"
+                for doc in resp['docs']
+                for olid in doc['edition_key']
+            ]
+            if edition_keys:
+                print("copying edition keys")
+                copy(src, dest, edition_keys, comment, recursive=recursive, saved=saved,
+                     cache=cache)
 
     if recursive:
         refs = get_references(docs)
@@ -288,7 +331,13 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
 
     keys = [doc['key'] for doc in docs]
     print("saving", keys)
-    print(dest.save_many(docs, comment=comment))
+    # Sometimes saves in-explicably error ; check infobase logs
+    # group things up to avoid a bad apple failing the batch
+    for group in web.group(docs, 50):
+        try:
+            print(dest.save_many(group, comment=comment))
+        except BaseException:
+            print("Something went wrong saving this batch!")
     saved.update(keys)
 
 
@@ -359,7 +408,7 @@ def main():
     keys = args
     keys = list(expand(src, keys))
 
-    copy(src, dest, keys, comment=options.comment, recursive=options.recursive)
+    copy(src, dest, keys, comment=options.comment, recursive=options.recursive, editions=options.editions)
 
 
 if __name__ == '__main__':
