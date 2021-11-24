@@ -115,7 +115,7 @@ def convert_date_string(date_string: str | None) -> time.struct_time:
     return time.strptime(date_string[5:-4], '%d %b %Y %H:%M:%S')
 
 
-def map_entries(
+def filter_modified_since(
     entries,
     modified_since: time.struct_time
 ):
@@ -147,12 +147,12 @@ def import_job() -> None:
 
     # Map feed entries to list of import objects:
     print(f'Importing all entries that have been updated since {modified_since}.')
-    mapped_entries = map_entries(d.entries, modified_since)
-    print(f'{len(mapped_entries)} import objects created.')
+    modified_entries = filter_modified_since(d.entries, modified_since)
+    print(f'{len(modified_entries)} import objects created.')
 
     # Import all data:
-    create_batch(mapped_entries)
-    print(f'{len(mapped_entries)} entries added to the batch import job.')
+    create_batch(modified_entries)
+    print(f'{len(modified_entries)} entries added to the batch import job.')
 
     # Store timestamp for header
     with open(LAST_UPDATED_TIME, 'w') as f:
