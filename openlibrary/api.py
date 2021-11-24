@@ -112,10 +112,11 @@ class OpenLibrary:
         response = self._request(key + '.json', params={'v': v} if v else {})
         return unmarshal(response.json())
 
-    def get_many(self, keys):
-        """Get multiple documents in a single request as a dictionary."""
-        if len(keys) > 500:
-            # get in chunks of 500 to avoid crossing the URL length limit.
+    def get_many(self, keys, max_length = 500):
+        """Get multiple documents in a single request as a dictionary.
+        """
+        if len(keys) > max_length:
+            # Process in batches to avoid crossing the URL length limit.
             d = {}
             for chunk in web.group(keys, 100):
                 d.update(self._get_many(chunk))
