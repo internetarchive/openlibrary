@@ -288,18 +288,7 @@ $if include_widget:
     </div>
   $if work:
     $if include_rating:
-      <div class="review">
-        $:macros.StarRatings(work, edition)
-        <div class="stats-link">
-            <a class="observations-modal-link"
-            $if username:
-                href="javascript:;" data-context='{"username": "$(username)", "work": "$(work.key)", "id": "stats"}'>
-            $else:
-                href="/account/login?redirect=$(edition_key or work.key)">
-            <img src="/static/images/icons/review.png" class="review-btn">
-            </a>
-        </div>
-      </div>
+      $:macros.StarRatings(work, edition)
     $if edition:
       $if work.has_book_note(username, edition.key.split('/')[-1]):
         $ link_text = _("Update my book note")

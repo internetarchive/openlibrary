@@ -1,4 +1,4 @@
-$def with (work, edition=None, redir_url=None, id='')
+$def with (work, edition=None, redir_url=None, id='', show_modal_link=True)
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ rating = work and username and work.get_users_rating(username)
@@ -13,27 +13,39 @@ $ form_id = "ratingsForm%s" % id
   <input type="hidden" value="true" name="redir"/>
   $if redir_url:
     <input type="hidden" value="$redir_url" name="redir_url"/>
-  <div class="stars">
-    $ NUM_STARS = 5
-    $for star in range(1, NUM_STARS + 1)
-      <input type="submit" value="$star" name="rating"
-        $if rating == star:
-          class="star-$star star-selected"
-        $else:
-          class="star-$star"
-        id="star-$star$id" />
-      <label class="star star-$star $('star-selected' if rating==star else '')"
-        $ properties = []
-        $if star == rating:
-          $ properties.append("ratingValue")
-        $if star == 1:
-          $ properties.append("worstRating")
-        $elif (star == NUM_STARS):
-          $ properties.append("bestRating")
-        $if properties:
-          property="$(' '.join(properties))"
-        for="star-$star$id">$star</label>
-    <span></span>
+  <div class="review">
+    <div class="stars">
+      $ NUM_STARS = 5
+      $for star in range(1, NUM_STARS + 1)
+        <input type="submit" value="$star" name="rating"
+          $if rating == star:
+            class="star-$star star-selected"
+          $else:
+            class="star-$star"
+          id="star-$star$id" />
+        <label class="star star-$star $('star-selected' if rating==star else '')"
+          $ properties = []
+          $if star == rating:
+            $ properties.append("ratingValue")
+          $if star == 1:
+            $ properties.append("worstRating")
+          $elif (star == NUM_STARS):
+            $ properties.append("bestRating")
+          $if properties:
+            property="$(' '.join(properties))"
+          for="star-$star$id">$star</label>
+      <span></span>
+    </div>
+    $if show_modal_link:
+      <div class="stats-link">
+        <a class="observations-modal-link"
+          $if username:
+            href="javascript:;" data-context='{"username": "$(username)", "work": "$(work.key)", "id": "stats"}'>
+          $else:
+            href="/account/login?redirect=$(edition_key or work.key)">
+          <img src="/static/images/icons/review.png" class="review-btn">
+        </a>
+      </div>
   </div>
   $if rating:
       <button type="submit" class="star-messaging">$_("Clear my rating")</button>
