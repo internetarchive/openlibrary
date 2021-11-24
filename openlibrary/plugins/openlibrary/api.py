@@ -453,7 +453,11 @@ class price_api(delegate.page):
         return json.dumps(metadata)
 
 
-class internal_observations(delegate.page):
+class patrons_observations(delegate.page):
+    """"
+    Fetches a patron's observations for a work, requires auth, intended
+    to be used internally to power the My Books Page & books pages modal
+    """"
     path = r"/works/OL(\d+)W/observations"
     encoding = "json"
 
