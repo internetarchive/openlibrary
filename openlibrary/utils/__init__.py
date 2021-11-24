@@ -2,7 +2,7 @@
 
 import re
 from subprocess import PIPE, Popen, STDOUT
-from typing import TypeVar, Iterable, List
+from typing import TypeVar, Iterable, Literal, Callable, Optional
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
 
@@ -52,6 +52,67 @@ def uniq(values: Iterable[T], key=None) -> list[T]:
             s.add(k)
             result.append(v)
     return result
+
+
+def take_best(
+    items: list[T],
+    optimization: Literal["min", "max"],
+    scoring_fn: Callable[[T], float],
+) -> list[T]:
+    """
+    >>> take_best([], 'min', lambda x: x)
+    []
+    >>> take_best([3, 2, 1], 'min', lambda x: x)
+    [1]
+    >>> take_best([3, 4, 5], 'max', lambda x: x)
+    [5]
+    >>> take_best([4, 1, -1, -1], 'min', lambda x: x)
+    [-1, -1]
+    """
+    best_score = float("-inf") if optimization == "max" else float("inf")
+    besties = []
+    for item in items:
+        score = scoring_fn(item)
+        if (optimization == "max" and score > best_score) or (
+            optimization == "min" and score < best_score
+        ):
+            best_score = score
+            besties = [item]
+        elif score == best_score:
+            besties.append(item)
+        else:
+            continue
+    return besties
+
+
+def multisort_best(
+    items: list[T], specs: list[tuple[Literal["min", "max"], Callable[[T], float]]]
+) -> Optional[T]:
+    """
+    Takes the best item, taking into account the multisorts
+
+    >>> multisort_best([], [])
+
+    >>> multisort_best([3,4,5], [('max', lambda x: x)])
+    5
+
+    >>> multisort_best([
+    ...     {'provider': 'ia', 'size': 4},
+    ...     {'provider': 'ia', 'size': 12},
+    ...     {'provider': None, 'size': 42},
+    ... ], [
+    ...     ('min', lambda x: 0 if x['provider'] == 'ia' else 1),
+    ...     ('max', lambda x: x['size']),
+    ... ])
+    {'provider': 'ia', 'size': 12}
+    """
+    if not items:
+        return None
+    pool = items
+    for optimization, fn in specs:
+        # Shrink the pool down each time
+        pool = take_best(pool, optimization, fn)
+    return pool[0]
 
 
 def dicthash(d):

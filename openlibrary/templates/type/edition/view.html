@@ -46,6 +46,8 @@ $elif editions:
       $ [selected_provider, selected_id] = ['ia', query_param('edition')]
     $ provider = get_book_provider_by_name(selected_provider)
     $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), edition)
+  $else:
+    $ edition, provider = get_best_edition(editions)
 
 $ ocaid = edition.get('ocaid')
 $ book_title = edition.get('title', '') or (work.title if work else '')
