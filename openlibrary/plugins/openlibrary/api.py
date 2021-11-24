@@ -519,7 +519,7 @@ class patrons_observations(delegate.page):
 class public_observations(delegate.page):
     """
     Public observations fetches anonymized community reviews
-    for a list of works. Useful for decorating search results. 
+    for a list of works. Useful for decorating search results.
     """
     path = '/observations'
     encoding = 'json'
