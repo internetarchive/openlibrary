@@ -1,4 +1,4 @@
-$def with (work, edition)
+$def with (work, edition=None)
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ rating = work and username and work.get_users_rating(username)

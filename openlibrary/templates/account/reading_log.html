@@ -1,4 +1,4 @@
-$def with (items, key, total_items, owners_page, current_page, sort_order='desc', user=None)
+$def with (items, key, total_items, owners_page, current_page, sort_order='desc', user=None, include_ratings=False)
 
 $ username = user.key.split('/')[-1]
 $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
@@ -44,7 +44,8 @@ $add_metatag(property="og:image", content=meta_photo_url)
       $for item in items:
         $ work = solr_works.get(item['key']) or item
         $ decorations = (bookshelf_id and owners_page) and macros.ReadingLogButton(work, read_status=bookshelf_id)
-        $:macros.SearchResultsWork(work, decorations=decorations, availability=item.get('availability'))
+        $ star_rating = macros.StarRatings(item) if include_ratings else None
+        $:macros.SearchResultsWork(work, decorations=decorations, availability=item.get('availability'), rating=star_rating)
     $else:
       <li>$_('No books are on this shelf')</li>
   </ul>
