@@ -116,7 +116,7 @@ class OpenLibrary:
         """Get multiple documents in a single request as a dictionary.
         """
         if len(keys) > max_length:
-            # get in chunks of 100 to avoid crossing the URL length limit.
+            # Process in batches to avoid crossing the URL length limit.
             d = {}
             for chunk in web.group(keys, 100):
                 d.update(self._get_many(chunk))
