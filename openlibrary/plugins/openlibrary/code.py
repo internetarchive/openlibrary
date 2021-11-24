@@ -1077,6 +1077,7 @@ def setup_template_globals():
     # order, resulting in random errors like the the /account/login.json endpoint
     # defined in accounts.py being ignored, and using the infogami endpoint instead.
     from openlibrary.book_providers import (
+        get_best_edition,
         get_book_provider,
         get_book_provider_by_name,
         get_cover_url,
@@ -1096,6 +1097,7 @@ def setup_template_globals():
             'random': random.Random(),
             'get_lang': lambda: web.ctx.lang,
             'ceil': math.ceil,
+            'get_best_edition': get_best_edition,
             'get_book_provider': get_book_provider,
             'get_book_provider_by_name': get_book_provider_by_name,
             'get_cover_url': get_cover_url,

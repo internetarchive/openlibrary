@@ -1,4 +1,4 @@
-from typing import List, Optional, Union, Literal, cast
+from typing import Optional, Union, Literal, cast
 
 import web
 from web import uniq
@@ -6,6 +6,7 @@ from web import uniq
 from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
+from openlibrary.utils import multisort_best
 
 
 class AbstractBookProvider:
@@ -186,35 +187,15 @@ def get_book_provider_by_name(short_name: str) -> Optional[AbstractBookProvider]
     return next((p for p in PROVIDER_ORDER if p.short_name == short_name), None)
 
 
-def get_book_provider(
-    ed_or_solr: Union[Edition, dict]
-) -> Optional[AbstractBookProvider]:
+ia_provider = cast(InternetArchiveProvider, get_book_provider_by_name('ia'))
+prefer_ia_provider_order = uniq([ia_provider, *PROVIDER_ORDER])
 
-    # On search results, we want to display IA copies first.
-    # Issue is that an edition can be provided by multiple providers; we can easily
-    # choose the correct copy when on an edition, but on a solr record, with all copies
-    # of all editions aggregated, it's more difficult.
-    # So we do some ugly ocaid sniffing to try to guess :/ Idea being that we ignore
-    # OCAIDs that look like they're from other providers.
-    prefer_ia = not isinstance(ed_or_solr, Edition)
-    if prefer_ia:
-        ia_provider = cast(InternetArchiveProvider, get_book_provider_by_name('ia'))
-        ia_ocaids = [
-            ocaid
-            # Subjects/publisher pages have ia set to a specific value :/
-            for ocaid in uniq(ia_provider.get_identifiers(ed_or_solr) or [])
-            if not is_non_ia_ocaid(ocaid)
-        ]
-        prefer_ia = bool(ia_ocaids)
 
-    default_order = PROVIDER_ORDER
-    if prefer_ia:
-        ia_provider = cast(InternetArchiveProvider, get_book_provider_by_name('ia'))
-        default_order = uniq([ia_provider, *PROVIDER_ORDER])
+def get_provider_order(prefer_ia=False) -> list[AbstractBookProvider]:
+    default_order = prefer_ia_provider_order if prefer_ia else PROVIDER_ORDER
 
     provider_order = default_order
     provider_overrides = web.input(providerPref=None).providerPref
-
     if provider_overrides:
         new_order: list[AbstractBookProvider] = []
         for name in provider_overrides.split(','):
@@ -230,12 +211,65 @@ def get_book_provider(
         if new_order:
             provider_order = new_order
 
+    return provider_order
+
+
+def get_book_provider(
+    ed_or_solr: Union[Edition, dict]
+) -> Optional[AbstractBookProvider]:
+
+    # On search results, we want to display IA copies first.
+    # Issue is that an edition can be provided by multiple providers; we can easily
+    # choose the correct copy when on an edition, but on a solr record, with all copies
+    # of all editions aggregated, it's more difficult.
+    # So we do some ugly ocaid sniffing to try to guess :/ Idea being that we ignore
+    # OCAIDs that look like they're from other providers.
+    prefer_ia = not isinstance(ed_or_solr, Edition)
+    if prefer_ia:
+        ia_ocaids = [
+            ocaid
+            # Subjects/publisher pages have ia set to a specific value :/
+            for ocaid in uniq(ia_provider.get_identifiers(ed_or_solr) or [])
+            if not is_non_ia_ocaid(ocaid)
+        ]
+        prefer_ia = bool(ia_ocaids)
+
+    provider_order = get_provider_order(prefer_ia)
+
     for provider in provider_order:
         if provider.get_identifiers(ed_or_solr):
             return provider
 
     # No luck
     return None
+
+
+def get_best_edition(
+        editions: list[Edition]
+) -> tuple[Optional[Edition], Optional[AbstractBookProvider]]:
+    provider_order = get_provider_order(True)
+
+    # Map provider name to position/ranking
+    provider_rank_lookup: dict[Optional[AbstractBookProvider], int] = {
+        provider: i
+        for i, provider in enumerate(provider_order)
+    }
+
+    # Here, we prefer the ia editions
+    augmented_editions = [
+        (edition, get_book_provider(edition))
+        for edition in editions
+    ]
+
+    best = multisort_best(augmented_editions, [
+        # Prefer the providers closest to the top of the list
+        ('min', lambda rec: provider_rank_lookup.get(rec[1], float('inf'))),
+        # Prefer the editions with the most fields
+        ('max', lambda rec: len(dict(rec[0]))),
+        # TODO: Language would go in this queue somewhere
+    ])
+
+    return best if best else (None, None)
 
 
 setattr(get_book_provider, 'ia', get_book_provider_by_name('ia'))
