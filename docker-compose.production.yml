@@ -125,7 +125,7 @@ services:
       - infobase
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./docker/infobase_nginx.conf:/etc/nginx/sites-enabled/infobase_nginx.conf:ro
+      - ./docker/infobase_nginx.conf:/etc/nginx/sites-available/public_nginx.conf:ro
       # Needs olsystem for black-listed IPs
       - ../olsystem:/olsystem
     ports:
@@ -134,6 +134,9 @@ services:
       - webnet
     secrets:
       - petabox_seed
+      # Needed by public_nginx.conf
+      - ssl_certificate
+      - ssl_certificate_key
 
   affiliate-server:
     profiles: ["ol-home0"]
