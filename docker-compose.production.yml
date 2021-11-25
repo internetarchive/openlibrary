@@ -126,7 +126,7 @@ services:
   web_haproxy:
     profiles: ["ol-www0"]
     image: haproxy:2.3.5
-    restart: always
+    restart: unless-stopped
     hostname: "$HOSTNAME"
     networks:
       - webnet
@@ -140,7 +140,7 @@ services:
         max-file: "4"
   web_nginx:
     profiles: ["ol-www0"]
-    restart: always
+    restart: unless-stopped
     hostname: "ol-www0" # always want this hostname (or nginx backups will be misnamed)
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     user: root
@@ -150,8 +150,9 @@ services:
     volumes:
       # nginx configurations
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ../olsystem/etc/nginx/sites-available/default-docker.conf:/etc/nginx/sites-enabled/default:ro
       - ./docker/web_nginx.conf:/etc/nginx/sites-enabled/openlibrary.conf:ro
+      # Needed for HTTPS, since this is a public server
+      - ./docker/public_nginx.conf:/etc/nginx/sites-available/public_nginx.conf:ro
       # archive web log uploads
       - ../olsystem:/olsystem
       # web log rotation
