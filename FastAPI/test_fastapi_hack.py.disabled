@@ -25,6 +25,7 @@ urls = """\
 /authors/OL23919A/works.json?limit=5
 /books/OL7353617M
 /isbn/9780140328721
+/observations/OL7353617M
 /recentchanges/2010/10/20/merge-authors.json
 /recentchanges/2010/10/20/merge-authors.json?limit=5
 /search.json?q=the+moon+is+a+harsh+mistress
@@ -35,6 +36,7 @@ urls = """\
 /works/OL45883W
 """.split()
 # TODO: Add "/covers/isbn/0450002314-L.jpg"
+# TODO: Add "/works/OL45883W/observations"
 
 
 # async def test_urls(urls: list[str] = urls):  # TODO

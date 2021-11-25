@@ -109,8 +109,6 @@ class SmallMediumLarge(str, Enum):
 async def read_covers_key_type_value_size_jpeg(
     key_type: IdIsbnLccnOclcOlid, value, size: SmallMediumLarge
 ) -> bytes:
-    # FastAPI + Pydantic must have a better way to do this...
-    assert key_type.lower() in ("isbn", "lccn", "oclc", "olid")
     covers_url_base = "https://covers.openlibrary.org/b/"
     return requests.get(f"{covers_url_base}/{key_type}/{value}-{size}.jpg").content
 
@@ -120,6 +118,13 @@ async def read_covers_key_type_value_size_jpeg(
 @app.get("/isbn/{isbn}")
 async def read_isbn(isbn):
     return requests.get(f"{url_base}/isbn/{isbn}.json").json()
+
+
+# https://openlibrary.org/observations/OL7353617M.json
+# --> http://127.0.0.1:8000/observations/OL7353617M
+@app.get("/observations/{olid}")
+async def read_observations(olid):
+    return requests.get(f"{url_base}/observations/{olid}.json").json()
 
 
 # https://openlibrary.org/dev/docs/api/recentchanges
@@ -173,3 +178,10 @@ async def read_subjects(subject, details: bool = False):
 @app.get("/works/{olid}")
 async def read_works(olid):
     return requests.get(f"{url_base}/works/{olid}.json").json()
+
+
+# https://openlibrary.org/works/OL45883W/observations.json
+# --> http://127.0.0.1:8000/works/OL45883W/observations
+@app.get("/works/{olid}/observations")
+async def read_works_observations(olid):
+    return requests.get(f"{url_base}/works/{olid}/observations.json").json()
