@@ -74,9 +74,12 @@ services:
       - ../olsystem:/olsystem
       - /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
       # web log rotation
-      - ../olsystem/etc/cron.d/archive-webserver-logs:/etc/cron.d/archive-webserver-logs
       - ../olsystem/etc/logrotate.d/nginx:/etc/logrotate.d/nginx
+      # Persist the nginx logs
       - /1/var/log/nginx:/var/log/nginx
+      # Archive nginx logs regularly
+      - ../olsystem/etc/cron.d/archive-webserver-logs:/etc/cron.d/archive-webserver-logs
+      - archive-webserver-logs-data:/archive-webserver-logs-data
     ports:
       - 80:80
       - 443:443
@@ -156,13 +159,16 @@ services:
       # archive web log uploads
       - ../olsystem:/olsystem
       # web log rotation
-      - ../olsystem/etc/cron.d/archive-webserver-logs:/etc/cron.d/archive-webserver-logs
       - ../olsystem/etc/logrotate.d/nginx:/etc/logrotate.d/nginx
+      # Persist the nginx logs
       - /1/var/log/nginx:/var/log/nginx
       # sitemap generation (we also need olsystem/etc/cron.d + openlibrary/scripts)
       - /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
+      # Archive nginx logs regularly
+      - ../olsystem/etc/cron.d/archive-webserver-logs:/etc/cron.d/archive-webserver-logs
+      - archive-webserver-logs-data:/archive-webserver-logs-data
     ports:
-      - 8080:80 # XXX change to 80!!!
+      - 80:80
       - 443:443
     networks:
       - webnet
@@ -286,3 +292,4 @@ secrets:
 volumes:
     infobase-writelog:
     infobase-errorlog:
+    archive-webserver-logs-data:
