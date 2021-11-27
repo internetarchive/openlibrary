@@ -19,22 +19,44 @@ jobs:
           # https://lxml.de/installation.html#requirements
           sudo apt-get install libxml2-dev libxslt-dev
           pip install --upgrade pip setuptools wheel
-          pip install -r requirements_test.txt
+          pip install "fastapi[all]" -r requirements_test.txt
           pip list --outdated
       - run: make git
-      - shell: python
+      - run: mkdir main
+      - run: touch main/__init__.py
+      - run: python3 scripts/codegen_api_docs.py | tee main/app.py
+      - name: generate openapi.json
+        shell: python
         run: |
-          import inspect
-          import platform
-
-          for name, value in inspect.getmembers(platform):
-              if name[0] != "_" and callable(value):
-                  try:
-                      value = value()
-                  except (IndexError, TypeError):
-                      continue
-                  if str(value).strip("(),' "):
-                      print("{:>21}() = {}".format(name, value))
-
+          import json  # https://github.com/tiangolo/fastapi/issues/1173
           import sys
-          print(sys.platform, sys.version)
+          from fastapi.openapi.utils import get_openapi
+          sys.path.insert(0, ".")  # Enable: from main import app
+          from main import app
+          app.title = "FastAPI shims for Open Library"
+          try:
+              app.version
+          except AttributeError:
+              app.version = "0.0.2"
+          try:
+              app.openapi_version
+          except AttributeError:
+              app.openapi_version = "0.0.2"
+          try:
+              app.description
+          except AttributeError:
+              app.description = "description"
+          try:
+              app.routes
+          except AttributeError:
+              app.routes = "routes"
+          with open("openapi.json", "w") as out_file:
+              json.dump(get_openapi(
+                  title=app.title,
+                  version=app.version,
+                  openapi_version=app.openapi_version,
+                  description=app.description,
+                  routes=app.routes,
+                  # openapi_prefix=app.openapi_prefix,
+              ), out_file)
+      - run: cat openapi.json
