@@ -59,7 +59,7 @@ load_sample_data:
 	curl http://localhost:8080/_dev/process_ebooks # hack to show books in returncart
 
 reindex-solr:
-	PYTHONPATH=$(PWD) python openlibrary/solr/update_work.py
+	PYTHONPATH=$(PWD) python scripts/dev-instance/solr-reindex.py
 
 lint-diff:
 	git diff "$${BASE_BRANCH:-master}" -U0 | ./scripts/flake8-diff.sh
