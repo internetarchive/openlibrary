@@ -3,18 +3,16 @@
 import json
 import yaml
 
-__all__ = [
-    "load_yaml", "dump_yaml"
-]
+__all__ = ["load_yaml", "dump_yaml"]
+
 
 def load_yaml(text):
     return yaml.safe_load(text)
 
+
 def dump_yaml(data):
-    return yaml.safe_dump(data,
-        indent=4,
-        allow_unicode=True,
-        default_flow_style=False)
+    return yaml.safe_dump(data, indent=4, allow_unicode=True, default_flow_style=False)
+
 
 def load(text, format):
     if format == "json":
@@ -23,6 +21,7 @@ def load(text, format):
         return load_yaml(text)
     else:
         raise Exception("unsupported format %r" % format)
+
 
 def dump(data, format):
     if format == "json":

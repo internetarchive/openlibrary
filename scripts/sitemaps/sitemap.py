@@ -40,8 +40,10 @@ t_siteindex = """$def with (names, timestamp)
 sitemap = web.template.Template(t_sitemap)
 siteindex = web.template.Template(t_siteindex)
 
+
 def xopen(filename):
     return gzip.open(filename) if filename.endswith(".gz") else open(filename)
+
 
 def urlsafe(name):
     """Slugifies the name to produce OL url slugs
@@ -61,6 +63,7 @@ def urlsafe(name):
     safepath_re = re.compile(pattern)
     return safepath_re.sub('_', name).replace(' ', '-').strip('_')[:100]
 
+
 def process_dump(dumpfile):
     """Generates a summary file used to generate sitemaps.
 
@@ -72,8 +75,7 @@ def process_dump(dumpfile):
             continue
 
         doc = json.loads(jsontext)
-        title = doc.get('name', '') if type == '/type/author' \
-                else doc.get('title', '')
+        title = doc.get('name', '') if type == '/type/author' else doc.get('title', '')
 
         path = key + "/" + urlsafe(title.strip())
 
@@ -82,7 +84,9 @@ def process_dump(dumpfile):
         if sortkey:
             yield [sortkey, path, last_modified]
 
-re_key = re.compile("^/(authors|works)/OL\d+[AMW]$")
+
+re_key = re.compile(r"^/(authors|works)/OL\d+[AMW]$")
+
 
 def get_sort_key(key):
     """Returns a sort key used to group urls in 10K batches.
@@ -96,6 +100,7 @@ def get_sort_key(key):
     prefix = m.group(1)
     num = int(web.numify(key)) / 10000
     return "%s_%04d" % (prefix, num)
+
 
 def generate_sitemaps(filename):
     rows = (line.strip().split("\t") for line in open(filename))
@@ -112,6 +117,7 @@ def generate_sitemaps(filename):
         if things:
             write("sitemaps/sitemap_%s.xml.gz" % sortkey, sitemap(things))
 
+
 def generate_siteindex():
     filenames = sorted(os.listdir("sitemaps"))
     if "siteindex.xml.gz" in filenames:
@@ -120,6 +126,7 @@ def generate_siteindex():
     index = siteindex(filenames, timestamp)
     write("sitemaps/siteindex.xml.gz", index)
 
+
 def write(path, text):
     try:
         text = web.safestr(text)
@@ -127,13 +134,15 @@ def write(path, text):
         with gzip.open(path, 'w') as f:
             f.write(text.encode())
     except Exception as e:
-        print('write fail {}'.format(e))
-    #os.system("gzip " + path)
+        print(f'write fail {e}')
+    # os.system("gzip " + path)
+
 
 def write_tsv(path, rows):
     lines = ("\t".join(row) + "\n" for row in rows)
     with open(path, "w") as f:
         f.writelines(lines)
+
 
 def system_memory():
     """Returns system memory in MB."""
@@ -141,9 +150,10 @@ def system_memory():
         x = os.popen("cat /proc/meminfo | grep MemTotal | sed 's/[^0-9]//g'").read()
         # proc gives memory in KB, converting it to MB
         return int(x) // 1024
-    except IOError:
+    except OSError:
         # default to 1024MB
         return 1024
+
 
 def system(cmd):
     log("executing:", cmd)
@@ -151,9 +161,11 @@ def system(cmd):
     if status != 0:
         raise Exception("%r failed with exit status: %d" % (cmd, status))
 
+
 def log(*args):
     msg = " ".join(map(str, args))
-    print("%s %s" % (time.asctime(), msg))
+    print(f"{time.asctime()} {msg}")
+
 
 def main(dumpfile):
     system("rm -rf sitemaps sitemaps_data.txt*; mkdir sitemaps")
@@ -164,7 +176,7 @@ def main(dumpfile):
 
     log("sorting sitemaps_data.txt")
     # use half of system of 3GB whichever is smaller
-    sort_mem = min(system_memory()/2, 3072)
+    sort_mem = min(system_memory() / 2, 3072)
     system("sort -S%dM sitemaps_data.txt > sitemaps_data.txt.sorted" % sort_mem)
 
     log("generating sitemaps")
@@ -173,6 +185,8 @@ def main(dumpfile):
 
     log("done")
 
+
 if __name__ == "__main__":
     import sys
+
     main(sys.argv[1])

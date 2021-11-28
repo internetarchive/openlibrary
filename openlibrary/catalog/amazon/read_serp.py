@@ -1,4 +1,3 @@
-from __future__ import print_function
 from lxml.html import fromstring
 from openlibrary.catalog.utils.arc import read_arc, read_body
 import os
@@ -8,10 +7,11 @@ arc_dir = '/2/edward/amazon/arc'
 
 re_book_url = re.compile('^http://www.amazon.com/[^/]+/dp/([0-9A-Z]{10})/')
 re_result_count = re.compile('^Showing ([,0-9]+) - ([,0-9]+) of ([,0-9]+) Results$')
-re_title = re.compile('<title>Amazon.com: (.*?)(:?, Page \d+)?</title>')
-crawled = set(i[:-1] for i in open('/2/edward/amazon/crawled'))
+re_title = re.compile(r'<title>Amazon.com: (.*?)(:?, Page \d+)?</title>')
+crawled = {i[:-1] for i in open('/2/edward/amazon/crawled')}
 
 # /2/edward/amazon/arc/20100311*.arc
+
 
 def find_pt(doc):
     found = []
@@ -24,6 +24,7 @@ def find_pt(doc):
         found.append(m.group(1))
     return found
 
+
 def find_srtitle(doc):
     found = []
     for e in doc.find_class('srTitle'):
@@ -35,14 +36,15 @@ def find_srtitle(doc):
         found.append(m.group(1))
     return found
 
+
 found_books = set()
 
 prev = ''
 for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
     if not filename.startswith('20100412'):
         continue
-    for url, wire in read_arc(arc_dir +'/' + filename):
-        #print filename, url
+    for url, wire in read_arc(arc_dir + '/' + filename):
+        # print filename, url
         if url.startswith('file'):
             continue
         if not url.startswith('http://www.amazon.com/s?'):
@@ -63,7 +65,7 @@ for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
         if rc:
             m = re_result_count.match(rc[0].text)
             if m:
-                (a, b, c) = map(lambda i: int(i.replace(',','')), m.groups())
+                (a, b, c) = map(lambda i: int(i.replace(',', '')), m.groups())
                 if a == c + 1 and b == c:
                     continue
         for e in doc.find_class('fastTrackList'):

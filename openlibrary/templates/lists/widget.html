@@ -40,8 +40,8 @@ $code:
         return {
             "seed": seed,
             "type": seed_type,
-            "title": title,
-            "remove_dialog_html": _('Are you sure you want to remove <strong>%(title)s</strong> from your list?', title=title)
+            "title": websafe(title),
+            "remove_dialog_html": _('Are you sure you want to remove <strong>%(title)s</strong> from your list?', title=websafe(title))
         }
 
     def get_list_data(list, seed, include_cover_url=True):
@@ -103,7 +103,7 @@ $jsdef render_my_lists(lists, property):
             <p class="list">
                 <a href="$list.key" class="add-to-list" data-list-key="$list.key">$list.name</a>
             </p>
-           
+
 $jsdef render_already_lists(lists, user_key):
     $for list in lists:
         $if list['active']:
@@ -289,12 +289,12 @@ $if include_widget:
   $if work:
     $if include_rating:
       $:macros.StarRatings(work, edition)
-
-    $if work.has_book_note(username, edition.key.split('/')[-1]):
-      $ link_text = _("Update my book note")
-    $else:
-      $ link_text = _("Add a book note")
-    $:macros.NotesModal(work, edition, link_text, 'cta', 'cta-section patron-metadata')
+    $if edition:
+      $if work.has_book_note(username, edition.key.split('/')[-1]):
+        $ link_text = _("Update my book note")
+      $else:
+        $ link_text = _("Add a book note")
+      $:macros.NotesModal(work, edition, link_text, 'cta', 'cta-section patron-metadata')
 
 
 $if include_showcase:

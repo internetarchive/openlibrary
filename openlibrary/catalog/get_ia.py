@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import traceback
 import xml.parsers.expat
 
@@ -12,7 +10,9 @@ from time import sleep
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
-from openlibrary.catalog.marc.fast_parse import read_file as fast_read_file  # Deprecated import
+from openlibrary.catalog.marc.fast_parse import (
+    read_file as fast_read_file,
+)  # Deprecated import
 from openlibrary.core import ia
 
 
@@ -50,7 +50,7 @@ def get_marc_record_from_ia(identifier):
     marc_xml_filename = identifier + '_marc.xml'
     marc_bin_filename = identifier + '_meta.mrc'
 
-    item_base = '{}{}/'.format(IA_DOWNLOAD_URL, identifier)
+    item_base = f'{IA_DOWNLOAD_URL}{identifier}/'
 
     # Try marc.xml first
     if marc_xml_filename in filenames:
@@ -95,7 +95,9 @@ def files(identifier):
     for i in tree.getroot():
         assert i.tag == 'file'
         name = i.attrib['name']
-        if name == 'wfm_bk_marc' or name.endswith('.mrc') or name.endswith('.marc') or name.endswith('.out') or name.endswith('.dat') or name.endswith('.records.utf8'):
+        if name == 'wfm_bk_marc' or name.endswith(
+            ('.dat', '.marc', '.mrc', '.out', '.records.utf8')
+        ):
             size = i.find('size')
             if size is not None:
                 yield name, int(size.text)
@@ -129,11 +131,11 @@ def get_from_archive_bulk(locator):
     """
     if locator.startswith('marc:'):
         locator = locator[5:]
-    filename, offset, length = locator.split (":")
+    filename, offset, length = locator.split(":")
     offset = int(offset)
     length = int(length)
 
-    r0, r1 = offset, offset+length-1
+    r0, r1 = offset, offset + length - 1
     # get the next record's length in this request
     r1 += 5
     url = IA_DOWNLOAD_URL + filename
@@ -147,7 +149,9 @@ def get_from_archive_bulk(locator):
         data = response.content[:MAX_MARC_LENGTH]
         len_in_rec = int(data[:5])
         if len_in_rec != length:
-            data, next_offset, next_length = get_from_archive_bulk('%s:%d:%d' % (filename, offset, len_in_rec))
+            data, next_offset, next_length = get_from_archive_bulk(
+                '%s:%d:%d' % (filename, offset, len_in_rec)
+            )
         else:
             next_length = data[length:]
             data = data[:length]
@@ -178,7 +182,7 @@ def read_marc_file(part, f, pos=0):
 
 def item_file_url(identifier, ending, host=None, path=None):
     if host and path:
-        url = 'http://{}{}/{}_{}'.format(host, path, identifier, ending)
+        url = f'http://{host}{path}/{identifier}_{ending}'
     else:
         url = '{0}{1}/{1}_{2}'.format(IA_DOWNLOAD_URL, identifier, ending)
     return url
@@ -189,7 +193,7 @@ def marc_formats(identifier, host=None, path=None):
         identifier + '_marc.xml': 'xml',
         identifier + '_meta.mrc': 'bin',
     }
-    has = { 'xml': False, 'bin': False }
+    has = {'xml': False, 'bin': False}
     url = item_file_url(identifier, 'files.xml', host, path)
     for attempt in range(10):
         f = urlopen_keep_trying(url)
@@ -197,7 +201,7 @@ def marc_formats(identifier, host=None, path=None):
             break
         sleep(10)
     if f is None:
-        #TODO: log this, if anything uses this code
+        # TODO: log this, if anything uses this code
         msg = "error reading %s_files.xml" % identifier
         return has
     data = f.content

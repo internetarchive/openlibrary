@@ -1,6 +1,5 @@
-import { Toast } from '../Toast.js';
+import { FadingToast } from '../Toast.js';
 import '../../../../../static/css/components/metadata-form.less';
-import '../../../../../static/css/components/toast.less';
 
 /**
  * Initializes a collection of notes modals.
@@ -35,7 +34,7 @@ function addNotesModalButtonListeners() {
                 contentType: false,
                 processData: false,
                 success: function() {
-                    showToast($('body'), 'Update successful!')
+                    showToast('Update successful!')
                     $.colorbox.close();
                     $deleteButton.removeClass('hidden');
                 }
@@ -62,7 +61,7 @@ function addNotesModalButtonListeners() {
                 contentType: false,
                 processData: false,
                 success: function() {
-                    showToast($('body'), 'Note deleted.');
+                    showToast('Note deleted.');
                     $.colorbox.close();
                     $button.toggleClass('hidden');
                     $button.closest('form').find('textarea').val('');
@@ -96,7 +95,7 @@ export function addNotesPageButtonListeners() {
             contentType: false,
             processData: false,
             success: function() {
-                showToast($('body'), 'Update successful!')
+                showToast('Update successful!')
             }
         });
     });
@@ -118,7 +117,7 @@ export function addNotesPageButtonListeners() {
                 contentType: false,
                 processData: false,
                 success: function() {
-                    showToast($('body'), 'Note deleted.');
+                    showToast('Note deleted.');
 
                     // Remove list element from UI:
                     if ($parent.closest('.notes-list').children().length === 1) {
@@ -162,11 +161,11 @@ function addNotesReloadListeners($notesTextareas) {
 /**
  * Creates and displays a toast component.
  *
- * @param {JQuery} $parent Mount point for toast component
  * @param {String} message Message displayed in toast component
+ * @param {JQuery} $parent Mount point for toast component
  */
-function showToast($parent, message) {
-    new Toast($parent, message).show();
+function showToast(message, $parent) {
+    new FadingToast(message, $parent).show();
 }
 
 /**
@@ -420,6 +419,6 @@ function submitObservation($input, workOlid, data, sectionType) {
             toastMessage = `${capitalizedType} save failed...`;
         })
         .always(function() {
-            showToast($input.closest('.metadata-form'), toastMessage);
+            showToast(toastMessage, $input.closest('.metadata-form'));
         });
 }

@@ -16,6 +16,9 @@ dummy_sendmail: True
 debug: True
 
 coverstore_url: http://covers:7075
+# URL to use inside HTML files; must be publicly accessible from
+# a client's browser
+coverstore_public_url: http://localhost:7075
 
 state_dir: var/run
 
@@ -45,11 +48,9 @@ plugin_modules:
     - infogami.plugins.api
 
 plugin_worksearch:
+    solr_next: true
     solr_base_url: http://solr:8983/solr/openlibrary
     spellcheck_count: 3
-    ebook_count_db_parameters:
-        db: openlibrary_ebook_count
-        host: localhost
 
 http_request_timeout: 10
 
@@ -74,9 +75,6 @@ features:
     support: admin
     undo: enabled
     upstream: enabled
-    user_metadata:
-        filter: usergroup
-        usergroup: /usergroup/beta-testers
 
 upstream_to_www_migration: true
 default_template_root: /upstream

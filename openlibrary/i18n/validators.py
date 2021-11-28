@@ -6,30 +6,15 @@ from babel.messages.catalog import TranslationError, Message, Catalog
 from babel.messages.checkers import python_format
 
 
-def validate(message: Message, catalog: Catalog) -> List[str]:
-    errors = _validate_fuzzy(message)
-    errors.extend([f'    {str(err)}' for err in message.check(catalog)])
+def validate(message: Message, catalog: Catalog) -> list[str]:
+    errors = [f'    {str(err)}' for err in message.check(catalog)]
     if message.python_format and not message.pluralizable and message.string:
         errors.extend(_validate_cfmt(message.id, message.string))
 
     return errors
 
 
-def _validate_fuzzy(message: Message) -> List[str]:
-    """Returns an error list if the message is fuzzy.
-
-    If a fuzzy flag is found above the header of a `.po`
-    file, the message will have `None` as its line number.
-    """
-    errors = []
-    if message.fuzzy:
-        if message.lineno:
-            errors.append('    Is fuzzy')
-
-    return errors
-
-
-def _validate_cfmt(msgid: str, msgstr: str) -> List[str]:
+def _validate_cfmt(msgid: str, msgstr: str) -> list[str]:
     errors = []
 
     if _cfmt_fingerprint(msgid) != _cfmt_fingerprint(msgstr):
@@ -49,10 +34,7 @@ def _cfmt_fingerprint(string: str):
     {'%(title)s': 1, '%(first)s': 1, '%(last)s': 1}
     """
     pieces = _parse_cfmt(string)
-    return {
-        key: len(list(grp))
-        for key, grp in groupby(pieces)
-    }
+    return {key: len(list(grp)) for key, grp in groupby(pieces)}
 
 
 def _parse_cfmt(string: str):
@@ -88,7 +70,4 @@ def _parse_cfmt(string: str):
         %%                               # literal "%%"
     '''
 
-    return [
-        m.group(0)
-        for m in re.finditer(cfmt_re, string, flags=re.VERBOSE)
-    ]
+    return [m.group(0) for m in re.finditer(cfmt_re, string, flags=re.VERBOSE)]

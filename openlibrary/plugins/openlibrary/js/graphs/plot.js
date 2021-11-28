@@ -8,6 +8,7 @@ import 'flot/jquery.flot.selection.js';
 import 'flot/jquery.flot.crosshair.js';
 import 'flot/jquery.flot.stack.js';
 import 'flot/jquery.flot.pie.js';
+import 'flot/jquery.flot.time.js';
 
 /**
  * A special graph loaded on the following URLs:
@@ -226,7 +227,7 @@ export function loadGraph(id, options = {}, tooltip_message = '', color = null) 
         if (tooltip_message) {
             return plot_tooltip_graph($(node), data, tooltip_message, color);
         } else {
-            return $.plot($(node), data, options);
+            return $.plot($(node), [{data: data}], options);
         }
     }
 }

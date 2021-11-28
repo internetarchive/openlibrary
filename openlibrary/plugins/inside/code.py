@@ -22,8 +22,14 @@ class search_inside(delegate.page):
         results = fulltext_search(query, page=page, limit=RESULTS_PER_PAGE)
         search_time = time() - search_start
 
-        return render_template('search/inside.tmpl', query, results, search_time,
-                               page=page, results_per_page=RESULTS_PER_PAGE)
+        return render_template(
+            'search/inside.tmpl',
+            query,
+            results,
+            search_time,
+            page=page,
+            results_per_page=RESULTS_PER_PAGE,
+        )
 
 
 class search_inside_json(delegate.page):

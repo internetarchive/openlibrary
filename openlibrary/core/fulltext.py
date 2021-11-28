@@ -30,10 +30,9 @@ def fulltext_search_api(params):
 
 def fulltext_search(q, page=1, limit=100, js=False):
     offset = (page - 1) * limit
-    ia_results = fulltext_search_api({
-        'q': q, 'from': offset,
-        'size': limit, 'olonly': 'true'
-    })
+    ia_results = fulltext_search_api(
+        {'q': q, 'from': offset, 'size': limit, 'olonly': 'true'}
+    )
 
     if 'error' not in ia_results and ia_results['hits']:
         hits = ia_results['hits'].get('hits', [])
@@ -41,10 +40,13 @@ def fulltext_search(q, page=1, limit=100, js=False):
         availability = get_availability_of_ocaids(ocaids)
         if 'error' in availability:
             return []
-        editions = web.ctx.site.get_many([
-            '/books/%s' % availability[ocaid].get('openlibrary_edition')
-            for ocaid in availability
-            if availability[ocaid].get('openlibrary_edition')])
+        editions = web.ctx.site.get_many(
+            [
+                '/books/%s' % availability[ocaid].get('openlibrary_edition')
+                for ocaid in availability
+                if availability[ocaid].get('openlibrary_edition')
+            ]
+        )
         for ed in editions:
             if ed.ocaid in ocaids:
                 idx = ocaids.index(ed.ocaid)

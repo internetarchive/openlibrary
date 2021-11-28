@@ -218,6 +218,14 @@ jQuery(function () {
             .then((module) => module.init());
     }
 
+    if (document.getElementsByClassName('toast').length) {
+        import(/* webpackChunkName: "Toast" */ './Toast')
+            .then((module) => {
+                Array.from(document.getElementsByClassName('toast'))
+                    .forEach(el => new module.Toast($(el)));
+            });
+    }
+
     const $observationModalLinks = $('.observations-modal-link');
     const $notesModalLinks = $('.notes-modal-link');
     const $notesPageButtons = $('.note-page-buttons')
@@ -260,6 +268,11 @@ jQuery(function () {
             .then(module => module.initAddBookImport());
     }
 
+    if (document.getElementById('autofill-dev-credentials')) {
+        document.getElementById('username').value = 'openlibrary@example.com'
+        document.getElementById('password').value = 'admin123'
+        document.getElementById('remember').checked = true
+    }
     if (document.getElementById('adminLinks')) {
         import(/* webpackChunkName: "admin" */ './admin')
             .then((module) => module.initAdmin());

@@ -17,26 +17,44 @@ TESTS_FROM_OCLC = [
     ("658.404 92", ['658.404 92'], "Dewey numbers followed by 92 or 920."),
     ("658.404 920", ['658.404 920'], "Dewey numbers followed by 92 or 920."),
     ("942.082 [B]", ['942.082 B'], "Uppercase B in post-1971 numbers."),
-    ("*657.6", ['657.6*'],
-     "LC assigned Dewey numbers according to both the 14th and the 15th editions of "
-     "the Dewey schedules."),
-    ("*735.29 735.42", ['735.29*', '735.42'],
-     "LC assigned Dewey numbers according to both the 14th and the 15th editions of "
-     "the Dewey schedules."),
+    (
+        "*657.6",
+        ['657.6*'],
+        "LC assigned Dewey numbers according to both the 14th and the 15th editions of "
+        "the Dewey schedules.",
+    ),
+    (
+        "*735.29 735.42",
+        ['735.29*', '735.42'],
+        "LC assigned Dewey numbers according to both the 14th and the 15th editions of "
+        "the Dewey schedules.",
+    ),
     ("081s", ['081 s'], "Series numbers."),
     ("081 s", ['081 s'], "Series numbers."),
-    ("(015.73)", ['015.73 s'],
-     "Parentheses indicating Dewey numbers assigned to a series."),
-    ("015.73 s", ['015.73 s'],
-     "Parentheses indicating Dewey numbers assigned to a series."),
-    ("(015.73) 015.791", ['015.73 s', '015.791'],
-     "Two Dewey numbers: one in parentheses, one not."),
+    (
+        "(015.73)",
+        ['015.73 s'],
+        "Parentheses indicating Dewey numbers assigned to a series.",
+    ),
+    (
+        "015.73 s",
+        ['015.73 s'],
+        "Parentheses indicating Dewey numbers assigned to a series.",
+    ),
+    (
+        "(015.73) 015.791",
+        ['015.73 s', '015.791'],
+        "Two Dewey numbers: one in parentheses, one not.",
+    ),
     ("-222.14", ['-222.14'], "Dewey numbers with minus signs."),
     ("-222.14 (927.5)", ['-222.14', '927.5 s'], "Dewey numbers with minus signs."),
     ("[320.9777]", ['320.9777'], "Dewey numbers in brackets."),
     ("[016.3584] 012", ['016.3584'], "Dewey numbers in brackets."),
-    ("081s [370.19'342]", ['081 s', '370.19342'],
-     "Dewey number followed by lowercase s and a second number in brackets."),
+    (
+        "081s [370.19'342]",
+        ['081 s', '370.19342'],
+        "Dewey number followed by lowercase s and a second number in brackets.",
+    ),
     ("C364/.971", ['364.971'], "Canadian CIP"),
 ]
 TESTS = [
@@ -44,13 +62,19 @@ TESTS = [
     ('1', ['001'], 'whole number padding'),
     ('hello world!', [], 'junk'),
     ('978123412341', [], 'junk'),
-    ('338.9/009171/7 019', ['338.90091717'],
-     'Dewey number with segmentation and edition number'),
+    (
+        '338.9/009171/7 019',
+        ['338.90091717'],
+        'Dewey number with segmentation and edition number',
+    ),
     ('332.6 021', ['332.6'], 'Dewey number and DDC edition number'),
     ('[E] 021', ['[E]'], 'Juvenile work and DDC edition number'),
     ('015', ['015'], 'Single Dewey number with edition number pattern'),
-    ('(015.73) 015.791 021', ['015.73 s', '015.791'],
-     'Two Dewey numbers and one edition number'),
+    (
+        '(015.73) 015.791 021',
+        ['015.73 s', '015.791'],
+        'Two Dewey numbers and one edition number',
+    ),
     ('813. 54', ['813.54'], 'Space after decimal'),
     ('813.′54', ['813.54'], 'Curly quote separator (real world)'),
     ('813’.54', ['813.54'], 'Other kind of curly quote (real world)'),
@@ -76,8 +100,9 @@ def test_noramlize_ddc(raw_ddc, expected, name):
     assert normalize_ddc(raw_ddc) == expected
 
 
-@pytest.mark.parametrize("raw_ddc,expected,name", TESTS_FROM_OCLC,
-                         ids=[t[2] for t in TESTS_FROM_OCLC])
+@pytest.mark.parametrize(
+    "raw_ddc,expected,name", TESTS_FROM_OCLC, ids=[t[2] for t in TESTS_FROM_OCLC]
+)
 def test_normalize_ddc_with_oclc_spec(raw_ddc, expected, name):
     assert normalize_ddc(raw_ddc) == expected
 
@@ -94,8 +119,9 @@ PREFIX_TESTS = [
 ]
 
 
-@pytest.mark.parametrize("prefix,normed,name", PREFIX_TESTS,
-                         ids=[t[-1] for t in PREFIX_TESTS])
+@pytest.mark.parametrize(
+    "prefix,normed,name", PREFIX_TESTS, ids=[t[-1] for t in PREFIX_TESTS]
+)
 def test_normalize_ddc_prefix(prefix, normed, name):
     assert normalize_ddc_prefix(prefix) == normed
 
@@ -107,8 +133,9 @@ RANGE_TESTS = [
 ]
 
 
-@pytest.mark.parametrize("raw,normed,name", RANGE_TESTS,
-                         ids=[t[-1] for t in RANGE_TESTS])
+@pytest.mark.parametrize(
+    "raw,normed,name", RANGE_TESTS, ids=[t[-1] for t in RANGE_TESTS]
+)
 def test_normalize_ddc_range(raw, normed, name):
     assert normalize_ddc_range(*raw) == normed
 
@@ -117,11 +144,12 @@ SORTING_DDC_TEST = [
     (['123', '123.554'], '123.554', 'Chooses longest'),
     (['j123', '123'], '123', 'Prefer without j'),
     (['-222.14', '927.5'], '927.5', 'Prefer without -'),
-    (['-222.14'], '-222.14', 'Begrudgingly uses prefixed if only option')
+    (['-222.14'], '-222.14', 'Begrudgingly uses prefixed if only option'),
 ]
 
 
-@pytest.mark.parametrize("ddcs,outpt,name", SORTING_DDC_TEST,
-                         ids=[t[-1] for t in SORTING_DDC_TEST])
+@pytest.mark.parametrize(
+    "ddcs,outpt,name", SORTING_DDC_TEST, ids=[t[-1] for t in SORTING_DDC_TEST]
+)
 def test_choose_sorting_ddc(ddcs, outpt, name):
     assert choose_sorting_ddc(ddcs) == outpt

@@ -30,7 +30,7 @@ OBSERVATIONS = {
                 {'id': 5, 'name': 'Medium paced'},
                 {'id': 6, 'name': 'Fast paced'},
                 {'id': 7, 'name': 'Meandering'},
-            ]
+            ],
         },
         {
             'id': 2,
@@ -83,9 +83,9 @@ OBSERVATIONS = {
                 {'id': 2, 'name': 'Not technical'},
                 {'id': 3, 'name': 'Somewhat technical'},
                 {'id': 4, 'name': 'Technical'},
-                {'id': 5, 'name': 'Very technical'}
+                {'id': 5, 'name': 'Very technical'},
             ],
-            'deleted': True
+            'deleted': True,
         },
         {
             'id': 5,
@@ -98,15 +98,15 @@ OBSERVATIONS = {
                 {'id': 2, 'name': 'Very unoriginal'},
                 {'id': 3, 'name': 'Somewhat unoriginal'},
                 {'id': 4, 'name': 'Somewhat original'},
-                {'id': 5, 'name': 'Very original'}
+                {'id': 5, 'name': 'Very original'},
             ],
-            'deleted': True
+            'deleted': True,
         },
         {
             'id': 6,
             'label': 'Difficulty',
             'description': 'How would you rate the difficulty of '
-                           'this book for a general audience?',
+            'this book for a general audience?',
             'multi_choice': True,
             'order': [6, 7, 8, 9, 10, 11, 12],
             'values': [
@@ -135,9 +135,9 @@ OBSERVATIONS = {
                 {'id': 2, 'name': 'Not useful'},
                 {'id': 3, 'name': 'Somewhat useful'},
                 {'id': 4, 'name': 'Useful'},
-                {'id': 5, 'name': 'Very useful'}
+                {'id': 5, 'name': 'Very useful'},
             ],
-            'deleted': True
+            'deleted': True,
         },
         {
             'id': 8,
@@ -175,18 +175,49 @@ OBSERVATIONS = {
                 {'id': 5, 'name': 'Yes, it has typos'},
                 {'id': 6, 'name': 'Yes, it is inaccurate'},
                 {'id': 7, 'name': 'Yes, it is misleading'},
-                {'id': 8, 'name': 'Yes, it is biased'}
+                {'id': 8, 'name': 'Yes, it is biased'},
             ],
-            'deleted': True
+            'deleted': True,
         },
         {
             'id': 10,
             'label': 'Genres',
             'description': 'What are the genres of this book?',
             'multi_choice': True,
-            'order': [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-                      18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-                      32, 33],
+            'order': [
+                1,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+                27,
+                28,
+                29,
+                30,
+                31,
+                32,
+                33,
+            ],
             'values': [
                 {'id': 1, 'name': 'Sci-fi'},
                 {'id': 2, 'name': 'Philosophy', 'deleted': True},
@@ -221,7 +252,7 @@ OBSERVATIONS = {
                 {'id': 31, 'name': 'Philosophical'},
                 {'id': 32, 'name': 'Essay'},
                 {'id': 33, 'name': 'Review'},
-            ]
+            ],
         },
         {
             'id': 11,
@@ -232,9 +263,9 @@ OBSERVATIONS = {
             'values': [
                 {'id': 1, 'name': 'Nonfiction'},
                 {'id': 2, 'name': 'Fiction'},
-                {'id': 3, 'name': 'Biography'}
+                {'id': 3, 'name': 'Biography'},
             ],
-            'deleted': True
+            'deleted': True,
         },
         {
             'id': 12,
@@ -249,16 +280,43 @@ OBSERVATIONS = {
                 {'id': 4, 'name': 'Elementary'},
                 {'id': 5, 'name': 'Kindergarten'},
                 {'id': 6, 'name': 'Baby'},
-                {'id': 7, 'name': 'General audiences'}
+                {'id': 7, 'name': 'General audiences'},
             ],
-            'deleted': True
+            'deleted': True,
         },
         {
             'id': 13,
             'label': 'Mood',
             'description': 'What are the moods of this book?',
             'multi_choice': True,
-            'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26],
+            'order': [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+            ],
             'values': [
                 {'id': 1, 'name': 'Scientific'},
                 {'id': 2, 'name': 'Dry'},
@@ -286,7 +344,7 @@ OBSERVATIONS = {
                 {'id': 24, 'name': 'Reflective'},
                 {'id': 25, 'name': 'Inspiring'},
                 {'id': 26, 'name': 'Cheerful'},
-            ]
+            ],
         },
         {
             'id': 14,
@@ -309,7 +367,7 @@ OBSERVATIONS = {
                 {'id': 12, 'name': 'Best in class'},
                 {'id': 13, 'name': 'Overhyped'},
                 {'id': 14, 'name': 'Underrated'},
-            ]
+            ],
         },
         {
             'id': 15,
@@ -331,7 +389,7 @@ OBSERVATIONS = {
                 {'id': 11, 'name': 'Review'},
                 {'id': 12, 'name': 'Classic'},
             ],
-            'deleted': True
+            'deleted': True,
         },
         {
             'id': 16,
@@ -343,13 +401,13 @@ OBSERVATIONS = {
                 {'id': 1, 'name': 'Short'},
                 {'id': 2, 'name': 'Medium'},
                 {'id': 3, 'name': 'Long'},
-            ]
+            ],
         },
         {
             'id': 17,
             'label': 'Credibility',
             'description': 'How factually accurate and reliable '
-                           'is the content of this book?',
+            'is the content of this book?',
             'multi_choice': True,
             'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
             'values': [
@@ -364,13 +422,13 @@ OBSERVATIONS = {
                 {'id': 9, 'name': 'Misleading'},
                 {'id': 10, 'name': 'Controversial'},
                 {'id': 11, 'name': 'Trendy'},
-            ]
+            ],
         },
         {
             'id': 18,
             'label': 'Features',
             'description': 'What text features does this book utilize?'
-                           'does this book make use of?',
+            'does this book make use of?',
             'multi_choice': True,
             'order': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
             'values': [
@@ -385,7 +443,7 @@ OBSERVATIONS = {
                 {'id': 9, 'name': 'Chapters'},
                 {'id': 10, 'name': 'Appendix'},
                 {'id': 11, 'name': 'Bibliography'},
-            ]
+            ],
         },
         {
             'id': 19,
@@ -402,13 +460,13 @@ OBSERVATIONS = {
                 {'id': 6, 'name': 'Racism'},
                 {'id': 7, 'name': 'Sexual themes'},
                 {'id': 8, 'name': 'Drugs'},
-            ]
+            ],
         },
         {
             'id': 20,
             'label': 'Style',
             'description': 'What type of verbiage, nomenclature, '
-                           'or symbols are employed in this book?',
+            'or symbols are employed in this book?',
             'multi_choice': True,
             'order': [1, 2, 3, 4, 5],
             'values': [
@@ -417,7 +475,7 @@ OBSERVATIONS = {
                 {'id': 3, 'name': 'Neologisms'},
                 {'id': 4, 'name': 'Slang'},
                 {'id': 5, 'name': 'Olde'},
-            ]
+            ],
         },
         {
             'id': 21,
@@ -435,7 +493,7 @@ OBSERVATIONS = {
                 {'id': 7, 'name': 'Inspiration'},
                 {'id': 8, 'name': 'Fact checking'},
                 {'id': 9, 'name': 'Problem solving'},
-            ]
+            ],
         },
     ]
 }
@@ -479,12 +537,13 @@ def get_observations():
                 'label': o['label'],
                 'description': o['description'],
                 'multi_choice': o['multi_choice'],
-                'values': _sort_values(o['order'], o['values'])
+                'values': _sort_values(o['order'], o['values']),
             }
 
             observations_list.append(list_item)
 
     return {'observations': observations_list}
+
 
 def _sort_values(order_list, values_list):
     """
@@ -497,14 +556,18 @@ def _sort_values(order_list, values_list):
 
     for id in order_list:
         value = next(
-            (v['name'] for v in values_list
-                if v['id'] == id and not v.get('deleted', False)),
-            None
+            (
+                v['name']
+                for v in values_list
+                if v['id'] == id and not v.get('deleted', False)
+            ),
+            None,
         )
         if value:
             ordered_values.append(value)
 
     return ordered_values
+
 
 def _get_deleted_types_and_values():
     """
@@ -512,10 +575,7 @@ def _get_deleted_types_and_values():
 
     return: Deleted types and values dictionary.
     """
-    results = {
-        'types': [],
-        'values': defaultdict(list)
-    }
+    results = {'types': [], 'values': defaultdict(list)}
 
     for o in OBSERVATIONS['observations']:
         if 'deleted' in o and o['deleted']:
@@ -540,7 +600,8 @@ def convert_observation_ids(id_dict):
     for k in id_dict:
         if not types_and_values[str(k)].get('deleted', False):
             conversion_results[types_and_values[str(k)]['type']] = [
-                types_and_values[str(k)]['values'][str(i)]['name'] for i in id_dict[k]
+                types_and_values[str(k)]['values'][str(i)]['name']
+                for i in id_dict[k]
                 if not types_and_values[str(k)]['values'][str(i)].get('deleted', False)
             ]
 
@@ -549,9 +610,8 @@ def convert_observation_ids(id_dict):
 
 
 @cache.memoize(
-    engine="memcache",
-    key="all_observation_types_and_values",
-    expires=cache_duration)
+    engine="memcache", key="all_observation_types_and_values", expires=cache_duration
+)
 def _get_all_types_and_values():
     """
     Returns a dictionary of observation types and values mappings.  The keys for the
@@ -567,7 +627,7 @@ def _get_all_types_and_values():
             'values': {
                 str(v['id']): {'name': v['name'], 'deleted': v.get('deleted', False)}
                 for v in o['values']
-            }
+            },
         }
 
     return types_and_values
@@ -620,7 +680,9 @@ def get_observation_metrics(work_olid):
     metrics['observations'] = []
 
     if total_respondents > 0:
-        respondents_per_type_dict = Observations.count_unique_respondents_by_type(work_id)
+        respondents_per_type_dict = Observations.count_unique_respondents_by_type(
+            work_id
+        )
         observation_totals = Observations.count_observations(work_id)
 
         if not observation_totals:
@@ -632,17 +694,15 @@ def get_observation_metrics(work_olid):
 
         current_type_id = observation_totals[0]['type_id']
         observation_item = next(
-            (o for o in OBSERVATIONS['observations']
-                if current_type_id == o['id'])
+            o for o in OBSERVATIONS['observations'] if current_type_id == o['id']
         )
 
         current_observation = {
             'label': observation_item['label'],
             'description': observation_item['description'],
             'multi_choice': observation_item['multi_choice'],
-            'total_respondents_for_type':
-                respondents_per_type_dict[current_type_id],
-            'values': []
+            'total_respondents_for_type': respondents_per_type_dict[current_type_id],
+            'values': [],
         }
 
         total_responses = 0
@@ -654,24 +714,29 @@ def get_observation_metrics(work_olid):
                 metrics['observations'].append(current_observation)
                 current_type_id = i['type_id']
                 observation_item = next(
-                    (o for o in OBSERVATIONS['observations']
-                        if current_type_id == o['id'])
+                    o
+                    for o in OBSERVATIONS['observations']
+                    if current_type_id == o['id']
                 )
                 current_observation = {
                     'label': observation_item['label'],
                     'description': observation_item['description'],
                     'multi_choice': observation_item['multi_choice'],
-                    'total_respondents_for_type':
-                        respondents_per_type_dict[current_type_id],
-                    'values': []
+                    'total_respondents_for_type': respondents_per_type_dict[
+                        current_type_id
+                    ],
+                    'values': [],
                 }
-            current_observation['values'].append({
-                'value': next((
-                    v['name'] for v in observation_item['values']
-                    if v['id'] == i['value_id']
-                )),
-                'count': i['total']
-            })
+            current_observation['values'].append(
+                {
+                    'value': next(
+                        v['name']
+                        for v in observation_item['values']
+                        if v['id'] == i['value_id']
+                    ),
+                    'count': i['total'],
+                }
+            )
             total_responses += i['total']
 
         current_observation['total_responses'] = total_responses
@@ -679,7 +744,7 @@ def get_observation_metrics(work_olid):
     return metrics
 
 
-class Observations(object):
+class Observations:
 
     NULL_EDITION_VALUE = -1
 
@@ -688,31 +753,21 @@ class Observations(object):
         return {
             'total_reviews': {
                 'total': Observations.total_reviews(),
-                'month': Observations.total_reviews(
-                    since=DATE_ONE_MONTH_AGO
-                ),
-                'week': Observations.total_reviews(
-                    since=DATE_ONE_WEEK_AGO
-                ),
+                'month': Observations.total_reviews(since=DATE_ONE_MONTH_AGO),
+                'week': Observations.total_reviews(since=DATE_ONE_WEEK_AGO),
             },
             'total_books_reviewed': {
                 'total': Observations.total_books_reviewed(),
-                'month': Observations.total_books_reviewed(
-                    since=DATE_ONE_MONTH_AGO
-                ),
-                'week': Observations.total_books_reviewed(
-                    since=DATE_ONE_WEEK_AGO
-                ),
+                'month': Observations.total_books_reviewed(since=DATE_ONE_MONTH_AGO),
+                'week': Observations.total_books_reviewed(since=DATE_ONE_WEEK_AGO),
             },
             'total_reviewers': {
                 'total': Observations.total_unique_respondents(),
                 'month': Observations.total_unique_respondents(
                     since=DATE_ONE_MONTH_AGO
                 ),
-                'week': Observations.total_unique_respondents(
-                    since=DATE_ONE_WEEK_AGO
-                ),
-            }
+                'week': Observations.total_unique_respondents(since=DATE_ONE_WEEK_AGO),
+            },
         }
 
     @classmethod
@@ -781,7 +836,9 @@ class Observations(object):
 
         if len(deleted_observations['values']):
             for key in deleted_observations['values']:
-                deleted_value_ids = ', '.join(str(i) for i in deleted_observations['values'][key])
+                deleted_value_ids = ', '.join(
+                    str(i) for i in deleted_observations['values'][key]
+                )
                 query += f'AND NOT (observation_type = {str(key)} AND observation_value IN ({deleted_value_ids})) '
 
         query += 'GROUP BY type'
@@ -800,9 +857,7 @@ class Observations(object):
         return: A list of value counts for the given work.
         """
         oldb = db.get_db()
-        data = {
-            'work_id': work_id
-        }
+        data = {'work_id': work_id}
         query = """
             SELECT
               observation_type as type_id,
@@ -819,7 +874,9 @@ class Observations(object):
 
         if len(deleted_observations['values']):
             for key in deleted_observations['values']:
-                deleted_value_ids = ', '.join(str(i) for i in deleted_observations['values'][key])
+                deleted_value_ids = ', '.join(
+                    str(i) for i in deleted_observations['values'][key]
+                )
                 query += f'AND NOT (observation_type = {str(key)} AND observation_value IN ({deleted_value_ids})) '
 
         query += """
@@ -838,9 +895,7 @@ class Observations(object):
         one observation
         """
         oldb = db.get_db()
-        data = {
-            'username': username
-        }
+        data = {'username': username}
         query = """
             SELECT
               COUNT(DISTINCT(work_id))
@@ -857,9 +912,11 @@ class Observations(object):
 
         return: Type and value key-value pair
         """
-        observation = next((o for o in OBSERVATIONS['observations'] if o['id'] == type_id))
+        observation = next(
+            o for o in OBSERVATIONS['observations'] if o['id'] == type_id
+        )
         key = observation['label']
-        value = next((v['name'] for v in observation['values'] if v['id'] == value_id))
+        value = next(v['name'] for v in observation['values'] if v['id'] == value_id)
 
         return ObservationKeyValue(key, value)
 
@@ -874,10 +931,7 @@ class Observations(object):
         return: A list of a patron's observations
         """
         oldb = db.get_db()
-        data = {
-            'username': username,
-            'work_id': work_id
-        }
+        data = {'username': username, 'work_id': work_id}
         query = """
             SELECT
                 observations.observation_type AS type,
@@ -896,11 +950,7 @@ class Observations(object):
         containing all of the observations for that work_id.
         """
         oldb = db.get_db()
-        data = {
-            'username': username,
-            'limit': limit,
-            'offset': limit * (page - 1)
-        }
+        data = {'username': username, 'limit': limit, 'offset': limit * (page - 1)}
         query = """
             SELECT
                 work_id,
@@ -936,8 +986,8 @@ class Observations(object):
 
     @classmethod
     def persist_observation(
-            cls, username, work_id, observation, action,
-            edition_id=NULL_EDITION_VALUE):
+        cls, username, work_id, observation, action, edition_id=NULL_EDITION_VALUE
+    ):
         """Inserts or deletes a single observation, depending on the given action.
 
         If the action is 'delete', the observation will be deleted
@@ -959,11 +1009,11 @@ class Observations(object):
             return: An ObservationsIds tuple
             """
             key = list(observation)[0]
-            item = next((o for o in OBSERVATIONS['observations'] if o['label'] == key))
+            item = next(o for o in OBSERVATIONS['observations'] if o['label'] == key)
 
             return ObservationIds(
                 item['id'],
-                next((v['id'] for v in item['values'] if v['name'] == observation[key]))
+                next(v['id'] for v in item['values'] if v['name'] == observation[key]),
             )
 
         oldb = db.get_db()
@@ -974,28 +1024,19 @@ class Observations(object):
             'work_id': work_id,
             'edition_id': edition_id,
             'observation_type': observation_ids.type_id,
-            'observation_value': observation_ids.value_id
+            'observation_value': observation_ids.value_id,
         }
 
         where_clause = 'username=$username AND work_id=$work_id AND observation_type=$observation_type '
-
 
         if action == 'delete':
             # Delete observation and return:
             where_clause += 'AND observation_value=$observation_value'
 
-            return oldb.delete(
-                'observations',
-                vars=data,
-                where=where_clause
-            )
+            return oldb.delete('observations', vars=data, where=where_clause)
         elif not cls.get_multi_choice(list(observation)[0]):
             # A radio button value has changed.  Delete old value, if one exists:
-            oldb.delete(
-                'observations',
-                vars=data,
-                where=where_clause
-            )
+            oldb.delete('observations', vars=data, where=where_clause)
 
         # Insert new value and return:
         return oldb.insert(
@@ -1004,13 +1045,18 @@ class Observations(object):
             work_id=work_id,
             edition_id=edition_id,
             observation_type=observation_ids.type_id,
-            observation_value=observation_ids.value_id
+            observation_value=observation_ids.value_id,
         )
 
     @classmethod
     def remove_observations(
-            cls, username, work_id, edition_id=NULL_EDITION_VALUE,
-            observation_type=None, observation_value=None):
+        cls,
+        username,
+        work_id,
+        edition_id=NULL_EDITION_VALUE,
+        observation_type=None,
+        observation_value=None,
+    ):
         """Deletes observations from the observations table.  If both
         observation_type and observation_value are passed, only one
         row will be deleted from the table.  Otherwise, all of a
@@ -1025,15 +1071,13 @@ class Observations(object):
             'work_id': work_id,
             'edition_id': edition_id,
             'observation_type': observation_type,
-            'observation_value': observation_value
+            'observation_value': observation_value,
         }
 
-        where_clause = 'username=$username AND work_id=$work_id AND edition_id=$edition_id'
+        where_clause = (
+            'username=$username AND work_id=$work_id AND edition_id=$edition_id'
+        )
         if observation_type and observation_value:
             where_clause += ' AND observation_type=$observation_type AND observation_value=$observation_value'
 
-        return oldb.delete(
-            'observations',
-            where=(where_clause),
-            vars=data
-        )
+        return oldb.delete('observations', where=(where_clause), vars=data)

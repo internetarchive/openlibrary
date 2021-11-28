@@ -1,8 +1,8 @@
 """Infobase schema for Open Library
 """
-from __future__ import print_function
 from infogami.infobase import dbstore
 import web
+
 
 def get_schema():
     schema = dbstore.Schema()
@@ -105,9 +105,11 @@ def get_schema():
     schema.sql = lambda: web.safestr(_sql()) + more_sql
     return schema
 
+
 def register_schema():
     """Register the schema defined in this module as the default schema."""
     dbstore.default_schema = get_schema()
+
 
 if __name__ == "__main__":
     print(get_schema().sql())

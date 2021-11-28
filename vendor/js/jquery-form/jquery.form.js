@@ -286,7 +286,7 @@ $.fn.ajaxSubmit = function(options) {
 				var data, doc;
 
 				doc = io.contentWindow ? io.contentWindow.document : io.contentDocument ? io.contentDocument : io.document;
-				
+
 				var isXml = opts.dataType === 'xml' || doc.XMLDocument || $.isXMLDoc(doc);
 				log('isXml='+isXml);
 				if (!isXml && (doc.body === null || doc.body.innerHTML === '')) {
@@ -318,7 +318,7 @@ $.fn.ajaxSubmit = function(options) {
 						var pre = doc.getElementsByTagName('pre')[0];
 						if (pre)
 							xhr.responseText = pre.innerHTML;
-					}			  
+					}
 				}
 				else if (opts.dataType === 'xml' && !xhr.responseXML && xhr.responseText !== null) {
 					xhr.responseXML = toXml(xhr.responseText);

@@ -18,6 +18,7 @@ key_patterns = {
     'author': '/authors/OL%dA',
 }
 
+
 class MockSite:
     def __init__(self):
         self.reset()
@@ -59,7 +60,7 @@ class MockSite:
         doc['latest_revision'] = rev
         doc['last_modified'] = {
             "type": "/type/datetime",
-            "value": timestamp.isoformat()
+            "value": timestamp.isoformat(),
         }
         if rev == 1:
             doc['created'] = doc['last_modified']
@@ -76,12 +77,20 @@ class MockSite:
         doc = self._save_doc(query, timestamp)
 
         changes = [{"key": doc['key'], "revision": doc['revision']}]
-        changeset = self._make_changeset(timestamp=timestamp, kind=action, comment=comment, data=data, changes=changes)
+        changeset = self._make_changeset(
+            timestamp=timestamp,
+            kind=action,
+            comment=comment,
+            data=data,
+            changes=changes,
+        )
         self.changesets.append(changeset)
 
         self.reindex(doc)
 
-    def save_many(self, query, comment=None,  action=None, data=None, timestamp=None, author=None):
+    def save_many(
+        self, query, comment=None, action=None, data=None, timestamp=None, author=None
+    ):
         timestamp = timestamp or datetime.datetime.utcnow()
         docs = [self._save_doc(doc, timestamp) for doc in query]
 
@@ -89,7 +98,14 @@ class MockSite:
             author = {"key": author.key}
 
         changes = [{"key": doc['key'], "revision": doc['revision']} for doc in docs]
-        changeset = self._make_changeset(timestamp=timestamp, kind=action, comment=comment, data=data, changes=changes, author=author)
+        changeset = self._make_changeset(
+            timestamp=timestamp,
+            kind=action,
+            comment=comment,
+            data=data,
+            changes=changes,
+            author=author,
+        )
 
         self.changesets.append(changeset)
         for doc in docs:
@@ -98,7 +114,7 @@ class MockSite:
     def quicksave(self, key, type="/type/object", **kw):
         """Handy utility to save an object with less code and get the saved object as return value.
 
-            foo = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
+        foo = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
         """
         query = {
             "key": key,
@@ -117,10 +133,9 @@ class MockSite:
             "data": data,
             "changes": changes,
             "timestamp": timestamp.isoformat(),
-
             "author": author,
             "ip": "127.0.0.1",
-            "bot": False
+            "bot": False,
         }
 
     def get(self, key, revision=None):
@@ -137,7 +152,7 @@ class MockSite:
                 d[k] = self._process(v)
             return client.create_thing(self, d.get('key'), d)
         elif isinstance(value, common.Reference):
-            return client.create_thing(self, six.text_type(value), None)
+            return client.create_thing(self, str(value), None)
         else:
             return value
 
@@ -164,14 +179,15 @@ class MockSite:
                 flat = common.flatten_dict(v)[0]
                 k += '.' + web.rstrips(flat[0], '.key')
                 v = flat[1]
-            keys = set(k for k in self.filter_index(self.index, k, v) if k in keys)
+            keys = {k for k in self.filter_index(self.index, k, v) if k in keys}
 
         keys = sorted(keys)
-        return keys[offset:offset+limit]
+        return keys[offset : offset + limit]
 
     def filter_index(self, index, name, value):
         operations = {
-            "~": lambda i, value: isinstance(i.value, six.string_types) and i.value.startswith(web.rstrips(value, "*")),
+            "~": lambda i, value: isinstance(i.value, str)
+            and i.value.startswith(web.rstrips(value, "*")),
             "<": lambda i, value: i.value < value,
             ">": lambda i, value: i.value > value,
             "!": lambda i, value: i.value != value,
@@ -194,12 +210,12 @@ class MockSite:
         else:
             names = [name]
 
-        if isinstance(value, list): # Match any of the elements in value if it's a list
+        if isinstance(value, list):  # Match any of the elements in value if it's a list
             for n in names:
                 for i in index:
                     if i.name == n and any(f(i, v) for v in value):
                         yield i.key
-        else: # Otherwise just match directly
+        else:  # Otherwise just match directly
             for n in names:
                 for i in index:
                     if i.name == n and f(i, value):
@@ -215,8 +231,10 @@ class MockSite:
                 k = web.rstrips(k, ".value")
 
             if k.endswith(".key"):
-                yield web.storage(key=key, datatype="ref", name=web.rstrips(k, ".key"), value=v)
-            elif isinstance(v, six.string_types):
+                yield web.storage(
+                    key=key, datatype="ref", name=web.rstrips(k, ".key"), value=v
+                )
+            elif isinstance(v, str):
                 yield web.storage(key=key, datatype="str", name=k, value=v)
             elif isinstance(v, int):
                 yield web.storage(key=key, datatype="int", name=k, value=v)
@@ -241,8 +259,7 @@ class MockSite:
         return self._process_dict(data)
 
     def new(self, key, data=None):
-        """Creates a new thing in memory.
-        """
+        """Creates a new thing in memory."""
         data = common.parse_query(data)
         data = self._process_dict(data or {})
         return client.create_thing(self, key, data)
@@ -259,7 +276,8 @@ class MockSite:
                 username=username,
                 email=email,
                 password=password,
-                data={"displayname": displayname})
+                data={"displayname": displayname},
+            )
         except common.InfobaseException as e:
             raise client.ClientException("bad_data", str(e))
 
@@ -280,7 +298,9 @@ class MockSite:
             self.account_manager.set_auth_token("/people/" + username)
         else:
             d = {"code": status}
-            raise client.ClientException("bad_data", msg="Login failed", json=json.dumps(d))
+            raise client.ClientException(
+                "bad_data", msg="Login failed", json=json.dumps(d)
+            )
 
     def find_account(self, username=None, email=None):
         if username is not None:
@@ -304,12 +324,14 @@ class MockSite:
             if a._check_salted_hash(a.secret_key, user_key + "," + login_time, digest):
                 return self.get(user_key)
 
+
 class MockConnection:
     def get_auth_token(self):
         return web.ctx.infobase_auth_token
 
     def set_auth_token(self, token):
         web.ctx.infobase_auth_token = token
+
 
 class MockStore(dict):
     def __setitem__(self, key, doc):
@@ -339,24 +361,26 @@ class MockStore(dict):
     def items(self, **kw):
         return [(doc["_key"], doc) for doc in self._query(**kw)]
 
+
 @pytest.fixture
 def mock_site(request):
     """mock_site funcarg.
 
     Creates a mock site, assigns it to web.ctx.site and returns it.
     """
+
     def read_types():
         for path in glob.glob("openlibrary/plugins/openlibrary/types/*.type"):
             text = open(path).read()
             doc = eval(text, dict(true=True, false=False))
             if isinstance(doc, list):
-                for d in doc:
-                    yield d
+                yield from doc
             else:
                 yield doc
 
     def setup_models():
         from openlibrary.plugins.upstream import models
+
         models.setup()
 
     site = MockSite()

@@ -39,11 +39,15 @@ $elif editions:
   $# Set a dummy default editions
   $ edition = editions[0]
   $# edition selection strategy (e.g. language, by id, first w/ ocaid)
-  $ selected_ocaid = query_param('edition')
-  $for e in editions:
-    $if e.get('ocaid'):
-      $if not selected_ocaid or selected_ocaid == e.get('ocaid'):
-        $ edition = e
+  $if query_param('edition'):
+    $if ':' in query_param('edition'):
+      $ [selected_provider, selected_id] = query_param('edition').split(':')
+    $else:
+      $ [selected_provider, selected_id] = ['ia', query_param('edition')]
+    $ provider = get_book_provider_by_name(selected_provider)
+    $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), edition)
+  $else:
+    $ edition, provider = get_best_edition(editions)
 
 $ ocaid = edition.get('ocaid')
 $ book_title = edition.get('title', '') or (work.title if work else '')
@@ -321,7 +325,7 @@ $if is_privileged_user:
       </div>
 
       <a name="edition-details" class="section-anchor"></a>
-      <div class="tab-section edition-info">  
+      <div class="tab-section edition-info">
         $if not page.is_fake_record():
           $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
             $if edition and page.type.key in ["/type/work"]:
@@ -346,9 +350,9 @@ $if is_privileged_user:
           $if edition.edition_name:
             <div class="work-line">
               $edition.edition_name
-            </div> 
-          $:render_template("type/edition/publisher_line", edition)    
-          <hr>  
+            </div>
+          $:render_template("type/edition/publisher_line", edition)
+          <hr>
           $if edition.first_sentence:
             <div>
             <h3 class="edition-header">$_("First Sentence")</h3>

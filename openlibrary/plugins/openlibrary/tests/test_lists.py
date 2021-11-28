@@ -1,7 +1,9 @@
 from openlibrary.plugins.openlibrary import lists
 
+
 def test_process_seeds():
     process_seeds = lists.lists_json().process_seeds
+
     def f(s):
         return process_seeds([s])[0]
 

@@ -1,6 +1,5 @@
 """Spam control using akismet api.
 """
-from __future__ import print_function
 import socket
 
 # akismet module changes socket default timeout.
@@ -8,6 +7,7 @@ import socket
 timeout = socket.getdefaulttimeout()
 
 from openlibrary.plugins.akismet import Akismet
+
 socket.setdefaulttimeout(timeout)
 import web
 
@@ -28,6 +28,7 @@ if baseurl:
     Akismet.antispam_baseurl = baseurl
 
 api = Akismet(key=api_key, blog_url=blog_url, agent='OpenLibrary')
+
 
 class hooks(client.hook):
     def before_register(self, d):
@@ -60,7 +61,7 @@ class hooks(client.hook):
         data['SERVER_SOFTWARE'] = web.ctx.env.get('SERVER_SOFTWARE', '')
         data['HTTP_ACCEPT'] = web.ctx.env.get('HTTP_ACCEPT', '')
 
-        data = dict((web.safestr(k), web.safestr(v)) for k, v in data.items())
+        data = {web.safestr(k): web.safestr(v) for k, v in data.items()}
 
         spam = api.comment_check(web.safestr(comment), data)
         if spamlog:

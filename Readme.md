@@ -39,7 +39,7 @@ Here's a quick public tour of Open Library to get your familiar with the service
 
 Run `docker-compose up` and visit http://localhost:8080
 
-Need more details? Checkout the [Docker instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md) 
+Need more details? Checkout the [Docker instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)
 or [video tutorial](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4).
 
 ***Alternatively***, if you do not want to set up Open Library on your local computer, try Gitpod!
@@ -49,7 +49,7 @@ Warning: This integration is still experimental.
 
 ### Developer's Guide
 
-For instructions on administrating your Open Library instance, refer to the Developer's [Quickstart](https://github.com/internetarchive/openlibrary/wiki/Getting-Started) Guide. 
+For instructions on administrating your Open Library instance, refer to the Developer's [Quickstart](https://github.com/internetarchive/openlibrary/wiki/Getting-Started) Guide.
 
 You can also find more information regarding Developer Documentation for Open Library in the Open Library [Wiki](https://github.com/internetarchive/openlibrary/wiki/)
 
@@ -65,7 +65,7 @@ You can also find more information regarding Developer Documentation for Open Li
 
 ### The Backend
 
-OpenLibrary is developed on top of the Infogami wiki system, which is itself built on top of the web.py Python web framework and the Infobase database framework. 
+OpenLibrary is developed on top of the Infogami wiki system, which is itself built on top of the web.py Python web framework and the Infobase database framework.
 
 - [Overview of Backend Web Technologies](https://openlibrary.org/about/tech)
 

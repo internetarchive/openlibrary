@@ -1,5 +1,3 @@
-#-*- coding: utf-8 -*-
-
 """
 ol/ia auth bridge tests
 """
@@ -33,7 +31,6 @@ LINKED_BLOCKED = olsession.config['accounts']['linked_blocked']
 UNREGISTERED = olsession.config['accounts']['unregistered']
 
 
-
 errorLookup = {
     "invalid_email": "The email address you entered is invalid",
     "account_blocked": "This account has been blocked",
@@ -47,35 +44,33 @@ errorLookup = {
     "missing_fields": "Please fill out all fields and try again",
     "email_registered": "This email is already registered",
     "username_registered": "This username is already registered",
-    "max_retries_exceeded": "A problem occurred and we were unable to log you in."
+    "max_retries_exceeded": "A problem occurred and we were unable to log you in.",
 }
 
 
 class Xauth_Test(unittest.TestCase):
-
 
     # ======================================================
     # Basic tests
     # ======================================================
 
     def test_empty_submit(self):
-        olsession.login(u'', u'')
+        olsession.login('', '')
         _error = errorLookup['invalid_email']
         error = olsession.driver.find_element_by_class_name('note').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
     def test_missing_email(self):
-        olsession.login(u'', u'password')
+        olsession.login('', 'password')
         _error = errorLookup['invalid_email']
         error = olsession.driver.find_element_by_class_name('note').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
     def test_unregistered_email(self):
-        olsession.login(u'mek+invalid_email@archive.org', u'password')
+        olsession.login('mek+invalid_email@archive.org', 'password')
         _error = errorLookup['account_not_found']
         error = olsession.driver.find_element_by_class_name('note').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
     # ======================================================
     # Test successfully linked account
@@ -94,40 +89,39 @@ class Xauth_Test(unittest.TestCase):
         # finalize by unlinking for future tests
         olsession.unlink(LINKED['email'])
 
-
     # ======================================================
     # All combos of initial IA login audit
     # ======================================================
 
     def test_ia_missing_password(self):
-        olsession.login(IA_VERIFIED['email'], u'password')
+        olsession.login(IA_VERIFIED['email'], 'password')
         _error = errorLookup['account_bad_password']
         error = olsession.driver.find_element_by_class_name('note').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
     def test_ia_incorrect_password(self):
-        olsession.login(IA_VERIFIED['email'], u'password')
+        olsession.login(IA_VERIFIED['email'], 'password')
         _error = errorLookup['account_bad_password']
         error = olsession.driver.find_element_by_class_name('note').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
     def test_ia_blocked(self):
         olsession.login(**IA_BLOCKED)
         _error = errorLookup['account_locked']
         error = olsession.driver.find_element_by_class_name('note').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
     def test_ia_blocked_incorrect_password(self):
         olsession.login(IA_BLOCKED['email'], '')
         _error = errorLookup['account_bad_password']
         error = olsession.driver.find_element_by_class_name('note').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
     def test_ia_unverified(self):
         olsession.login(**IA_UNVERIFIED)
         _error = errorLookup['account_not_verified']
         error = olsession.driver.find_element_by_class_name('note').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
     # ======================================================
     # All combinations of connect attempts after initial
@@ -141,7 +135,7 @@ class Xauth_Test(unittest.TestCase):
         olsession.wait_for_visible('connectError')
         _error = errorLookup['account_blocked']
         error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
     def test_ia_verified_connect_ol_linked(self):
         # Link LINKED accounts
@@ -156,7 +150,7 @@ class Xauth_Test(unittest.TestCase):
         olsession.wait_for_visible('connectError')
         _error = errorLookup['account_already_linked']
         error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
         # finalize by unlinking for future tests
         olsession.unlink(LINKED['email'])
@@ -169,7 +163,7 @@ class Xauth_Test(unittest.TestCase):
         olsession.wait_for_visible('connectError')
         _error = errorLookup['account_not_verified']
         error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
     def test_ia_verified_connect_ia_unverified(self):
         olsession.unlink(OL_VERIFIED['email'])
@@ -178,7 +172,7 @@ class Xauth_Test(unittest.TestCase):
         olsession.wait_for_visible('connectError')
         _error = errorLookup['account_not_found']
         error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
     def test_ia_verified_CASE(self):
         olsession.unlink(OL_VERIFIED['email'])
@@ -195,7 +189,7 @@ class Xauth_Test(unittest.TestCase):
         olsession.wait_for_visible('connectError')
         _error = errorLookup['account_not_found']
         error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
     def test_ia_verified_connect_ol_verified(self):
         olsession.unlink(OL_VERIFIED['email'])
@@ -222,7 +216,7 @@ class Xauth_Test(unittest.TestCase):
         olsession.wait_for_visible('connectError')
         _error = errorLookup['account_blocked']
         error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
     def test_ol_verified_connect_ol_linked(self):
         # Link LINKED accounts
@@ -237,7 +231,7 @@ class Xauth_Test(unittest.TestCase):
         olsession.wait_for_visible('connectError')
         _error = errorLookup['account_already_linked']
         error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
         # finalize by unlinking for future tests
         olsession.unlink(LINKED['email'])
@@ -250,7 +244,7 @@ class Xauth_Test(unittest.TestCase):
         olsession.wait_for_visible('connectError')
         _error = errorLookup['account_not_found']
         error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
     def test_ol_verified_connect_ia_unverified(self):
         olsession.unlink(OL_VERIFIED['email'])
@@ -259,7 +253,7 @@ class Xauth_Test(unittest.TestCase):
         olsession.wait_for_visible('connectError')
         _error = errorLookup['account_not_verified']
         error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
     def test_ol_verified_connect_ol_verified(self):
         olsession.unlink(OL_VERIFIED['email'])
@@ -268,7 +262,7 @@ class Xauth_Test(unittest.TestCase):
         olsession.wait_for_visible('connectError')
         _error = errorLookup['account_not_found']
         error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
     def test_ol_verified_connect_ia_verified(self):
         olsession.unlink(OL_VERIFIED['email'])
@@ -288,7 +282,6 @@ class Xauth_Test(unittest.TestCase):
         # finalize by unlinking for future tests
         olsession.unlink(OL_VERIFIED['email'])
 
-
     # ======================================================
     # All combinations of Create & Link attempts after initial
     # successful audit from an IA account
@@ -300,7 +293,7 @@ class Xauth_Test(unittest.TestCase):
         olsession.create('')
         _error = errorLookup['max_retries_exceeded']
         error = olsession.driver.find_element_by_class_name('note').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')
 
     # ======================================================
     # All combinations of Create & Link attempts after initial
@@ -313,4 +306,4 @@ class Xauth_Test(unittest.TestCase):
         olsession.create('')
         _error = errorLookup['max_retries_exceeded']
         error = olsession.driver.find_element_by_class_name('note').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+        self.assertTrue(error == _error, f'{error} != {_error}')

@@ -42,4 +42,4 @@ jobs:
           make lint
           make test-py
           source scripts/run_doctests.sh
-          mypy .
+          mypy --install-types --non-interactive .

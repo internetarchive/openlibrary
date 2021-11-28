@@ -22,7 +22,9 @@ def runfcgi(func, addr=('localhost', 8000)):
 
     return flups.WSGIServer(func, multiplexed=True, bindAddress=addr, **config).run()
 
+
 web.wsgi.runfcgi = runfcgi
+
 
 def load_config(configfile):
     with open(configfile) as in_file:
@@ -52,6 +54,7 @@ def main(configfile, *args):
     else:
         sys.argv = [sys.argv[0]] + list(args)
         code.app.run()
+
 
 if __name__ == "__main__":
     main(*sys.argv[1:])

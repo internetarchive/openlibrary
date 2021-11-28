@@ -1,5 +1,4 @@
 #!/usr/bin/python2.5
-from __future__ import print_function
 from openlibrary.catalog.marc.fast_parse import *
 import sys
 from collections import defaultdict

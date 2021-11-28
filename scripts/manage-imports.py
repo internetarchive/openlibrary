@@ -23,10 +23,9 @@ def get_ol(servername=None):
 
 
 def ol_import_request(item, retries=5, servername=None, require_marc=True):
-    """Requests OL to import an item and retries on server errors.
-    """
+    """Requests OL to import an item and retries on server errors."""
     # logger uses batch_id:id for item.data identifier if no item.ia_id
-    _id = item.ia_id or "%s:%s" % (item.batch_id, item.id)
+    _id = item.ia_id or f"{item.batch_id}:{item.id}"
     logger.info("importing %s", _id)
     for i in range(retries):
         if i != 0:
@@ -37,7 +36,7 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
             if item.data:
                 return ol.import_data(item.data)
             return ol.import_ocaid(item.ia_id, require_marc=require_marc)
-        except IOError as e:
+        except OSError as e:
             logger.warning("Failed to contact OL server. error=%s", e)
         except OLError as e:
             if e.code < 500:
@@ -62,9 +61,7 @@ def do_import(item, servername=None, require_marc=True):
         item.set_status("failed", error='internal-error')
 
 
-def add_items(args):
-    batch_name = args[0]
-    filename = args[1]
+def add_items(batch_name, filename):
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.load_items(filename)
 
@@ -105,8 +102,7 @@ def import_ocaids(*ocaids, **kwargs):
 
 
 def add_new_scans(args):
-    """Adds new scans from yesterday.
-    """
+    """Adds new scans from yesterday."""
     if args:
         datestr = args[0]
         yyyy, mm, dd = datestr.split("-")
@@ -157,6 +153,7 @@ def import_all(args, **kwargs):
         for item in items:
             do_import(item, servername=servername, require_marc=require_marc)
 
+
 def retroactive_import(start=None, stop=None, servername=None):
     """Retroactively searches and imports all previously missed books
     (through all time) in the Archive.org database which were
@@ -165,7 +162,8 @@ def retroactive_import(start=None, stop=None, servername=None):
     """
     scribe3_repub_states = [19, 20, 22]
     items = get_candidate_ocaids(
-        scanned_within_days=None, repub_states=scribe3_repub_states)[start:stop]
+        scanned_within_days=None, repub_states=scribe3_repub_states
+    )[start:stop]
     date = datetime.date.today()
     batch_name = "new-scans-%04d%02d" % (date.year, date.month)
     batch = Batch.find(batch_name) or Batch.new(batch_name)
@@ -177,20 +175,30 @@ def retroactive_import(start=None, stop=None, servername=None):
 def main():
     if "--config" in sys.argv:
         index = sys.argv.index("--config")
-        configfile = sys.argv[index+1]
-        del sys.argv[index:index+2]
+        configfile = sys.argv[index + 1]
+        del sys.argv[index : index + 2]
     else:
         import os
-        configfile = os.path.abspath(os.path.join(
-            os.path.dirname(__file__), os.pardir, os.pardir,
-            'openlibrary', 'conf', 'openlibrary.yml'))
+
+        configfile = os.path.abspath(
+            os.path.join(
+                os.path.dirname(__file__),
+                os.pardir,
+                os.pardir,
+                'openlibrary',
+                'conf',
+                'openlibrary.yml',
+            )
+        )
 
     load_config(configfile)
 
     from infogami import config
 
     cmd = sys.argv[1]
-    args, flags = [], {'servername': config.get('servername', 'https://openlibrary.org')}
+    args, flags = [], {
+        'servername': config.get('servername', 'https://openlibrary.org')
+    }
     for i in sys.argv[2:]:
         if i.startswith('--'):
             flags[i[2:]] = True
@@ -198,13 +206,16 @@ def main():
             args.append(i)
 
     if cmd == "import-retro":
-        start, stop = (int(a) for a in args) if \
-                      (args and len(args) == 2) else (None, None)
-        return retroactive_import(start=start, stop=stop, servername=flags['servername'])
+        start, stop = (
+            (int(a) for a in args) if (args and len(args) == 2) else (None, None)
+        )
+        return retroactive_import(
+            start=start, stop=stop, servername=flags['servername']
+        )
     if cmd == "import-ocaids":
         return import_ocaids(*args, **flags)
     if cmd == "add-items":
-        return add_items(args)
+        return add_items(*args)
     elif cmd == "add-new-scans":
         return add_new_scans(args)
     elif cmd == "import-batch":

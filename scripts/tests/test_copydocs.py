@@ -1,7 +1,7 @@
 from ..copydocs import copy, KeyVersionPair
 
 
-class TestKeyVersionPair():
+class TestKeyVersionPair:
     def test_from_uri(self):
         pair = KeyVersionPair.from_uri('/works/OL1W?v=7')
         assert pair.key == '/works/OL1W'
@@ -39,7 +39,7 @@ class FakeServer:
         else:
             return revisions.get(revision, None)
 
-    def get_many(self, keys):
+    def get_many(self, keys, max_length = 500):
         """
         :param list of str keys:
         :rtype: dict

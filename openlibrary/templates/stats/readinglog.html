@@ -63,7 +63,7 @@ $def with (stats)
     <div class="mybooks-list">
       <ul class="list-books">
         $for book in stats['leaderboard']['most_wanted_all']:
-            $:macros.SearchResultsWork(book['work'], decorations=ungettext("Added 1 time", "Added %(count)d times", book['cnt'], count=book['cnt']))
+            $:macros.SearchResultsWork(book['work'], decorations=ungettext("Added 1 time", "Added %(count)d times", book['cnt'], count=book['cnt']), availability=book.get('availability'))
       </ul>
     </div>
 
@@ -71,7 +71,7 @@ $def with (stats)
     <div class="mybooks-list">
       <ul class="list-books">
         $for book in stats['leaderboard']['most_wanted_month']:
-            $:macros.SearchResultsWork(book['work'], decorations=ungettext("Added 1 time", "Added %(count)d times", book['cnt'], count=book['cnt']))
+            $:macros.SearchResultsWork(book['work'], decorations=ungettext("Added 1 time", "Added %(count)d times", book['cnt'], count=book['cnt']), availability=book.get('availability'))
       </ul>
     </div>
 
@@ -80,7 +80,7 @@ $def with (stats)
     <div class="mybooks-list">
       <ul class="list-books">
         $for book in stats['leaderboard']['most_read']:
-            $:macros.SearchResultsWork(book['work'], decorations=ungettext("Added 1 time", "Added %(count)d times", book['cnt'], count=book['cnt']))
+            $:macros.SearchResultsWork(book['work'], decorations=ungettext("Added 1 time", "Added %(count)d times", book['cnt'], count=book['cnt']), availability=book.get('availability'))
       </ul>
     </div>
 
@@ -89,7 +89,7 @@ $def with (stats)
     <div class="mybooks-list">
       <ul class="list-books">
         $for book in stats['leaderboard']['most_rated_all']:
-            $:macros.SearchResultsWork(book['work'], decorations=ungettext("Added 1 time", "Added %(count)d times", book['cnt'], count=book['cnt']))
+            $:macros.SearchResultsWork(book['work'], decorations=ungettext("Added 1 time", "Added %(count)d times", book['cnt'], count=book['cnt']), availability=book.get('availability'))
       </ul>
     </div>
   </div>

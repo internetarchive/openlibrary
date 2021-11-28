@@ -31,7 +31,8 @@
     "test": "npm run test:js && bundlesize",
     "test:js": "jest --testRegex tests/unit/**/test.*.js",
     "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "build-storybook": "build-storybook",
+    "deploy-storybook": "storybook-to-ghpages --ci --branch=storybook"
   },
   "devDependencies": {
     "@babel/core": "7.14.8",
@@ -41,6 +42,7 @@
     "@storybook/addon-actions": "6.3.8",
     "@storybook/addon-essentials": "6.3.8",
     "@storybook/addon-links": "6.3.8",
+    "@storybook/storybook-deployer": "2.8.10",
     "@storybook/vue": "6.3.8",
     "@vue/cli": "4.5.13",
     "@vue/cli-plugin-babel": "4.5.13",

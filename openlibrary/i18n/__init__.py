@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import sys
 from typing import List
 
@@ -19,6 +17,7 @@ from .validators import validate
 
 root = os.path.dirname(__file__)
 
+
 def _compile_translation(po, mo):
     try:
         catalog = read_po(open(po, 'rb'))
@@ -37,8 +36,13 @@ def _validate_catalog(catalog, locale):
     for message in catalog:
         message_errors = validate(message, catalog)
 
-        if message_errors:
-            if message.lineno:
+        if message.lineno:
+            if message.fuzzy:
+                print(
+                    f'openlibrary/i18n/{locale}/messages.po:'
+                    f'{message.lineno}: "{message.string}" is fuzzy'
+                )
+            if message_errors:
                 validation_errors.append(
                     f'openlibrary/i18n/{locale}/messages.po:'
                     f'{message.lineno}: {message.string}'
@@ -55,7 +59,7 @@ def _validate_catalog(catalog, locale):
     return len(validation_errors)
 
 
-def validate_translations(args: List[str]):
+def validate_translations(args: list[str]):
     """Validates all locales passed in as arguments.
 
     If no arguments are passed, all locales will be validated.
@@ -86,38 +90,36 @@ def get_locales():
     return [
         d
         for d in os.listdir(root)
-        if (os.path.isdir(os.path.join(root, d)) and
-            os.path.exists(os.path.join(root, d, 'messages.po')))
+        if (
+            os.path.isdir(os.path.join(root, d))
+            and os.path.exists(os.path.join(root, d, 'messages.po'))
+        )
     ]
+
 
 def extract_templetor(fileobj, keywords, comment_tags, options):
     """Extract i18n messages from web.py templates."""
     try:
         instring = fileobj.read().decode('utf-8')
         # Replace/remove inline js '\$' which interferes with the Babel python parser:
-        cleaned_string = instring.replace('\$', '')
+        cleaned_string = instring.replace(r'\$', '')
         code = web.template.Template.generate_code(cleaned_string, fileobj.name)
-        f = BytesIO(code.encode('utf-8')) # Babel wants bytes, not strings
+        f = BytesIO(code.encode('utf-8'))  # Babel wants bytes, not strings
     except Exception as e:
         print('Failed to extract ' + fileobj.name + ':', repr(e), file=web.debug)
         return []
     return extract_python(f, keywords, comment_tags, options)
 
 
-def extract_messages(dirs: List[str]):
-    catalog = Catalog(
-        project='Open Library',
-        copyright_holder='Internet Archive'
-    )
-    METHODS = [
-        ("**.py", "python"),
-        ("**.html", "openlibrary.i18n:extract_templetor")
-    ]
+def extract_messages(dirs: list[str]):
+    catalog = Catalog(project='Open Library', copyright_holder='Internet Archive')
+    METHODS = [("**.py", "python"), ("**.html", "openlibrary.i18n:extract_templetor")]
     COMMENT_TAGS = ["NOTE:"]
 
     for d in dirs:
-        extracted = extract_from_dir(d, METHODS, comment_tags=COMMENT_TAGS,
-                                     strip_comment_tags=True)
+        extracted = extract_from_dir(
+            d, METHODS, comment_tags=COMMENT_TAGS, strip_comment_tags=True
+        )
 
         counts = {}
         for filename, lineno, message, comments, context in extracted:
@@ -136,7 +138,7 @@ def extract_messages(dirs: List[str]):
     print('wrote template to', path)
 
 
-def compile_translations(locales: List[str]):
+def compile_translations(locales: list[str]):
     locales_to_update = locales or get_locales()
 
     for locale in locales_to_update:
@@ -147,7 +149,7 @@ def compile_translations(locales: List[str]):
             _compile_translation(po_path, mo_path)
 
 
-def update_translations(locales: List[str]):
+def update_translations(locales: list[str]):
     locales_to_update = locales or get_locales()
     print(f"Updating {locales_to_update}")
 
@@ -203,12 +205,14 @@ def load_translations(lang):
     if os.path.exists(mo_path):
         return Translations(open(mo_path, 'rb'))
 
+
 @web.memoize
 def load_locale(lang):
     try:
         return babel.Locale(lang)
     except babel.UnknownLocaleError:
         pass
+
 
 class GetText:
     def __call__(self, string, *args, **kwargs):
@@ -226,13 +230,16 @@ class GetText:
 
     def __getattr__(self, key):
         from infogami.utils.i18n import strings
+
         # for backward-compatability
         return strings.get('', key)
+
 
 class LazyGetText:
     def __call__(self, string, *args, **kwargs):
         """Translate a given string lazily."""
         return LazyObject(lambda: GetText()(string, *args, **kwargs))
+
 
 class LazyObject:
     def __init__(self, creator):
@@ -269,11 +276,13 @@ def ungettext(s1, s2, _n, *a, **kw):
     else:
         return value
 
+
 def gettext_territory(code):
     """Returns the territory name in the current locale."""
     # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
     locale = load_locale(web.ctx.lang)
     return locale.territories.get(code, code)
+
 
 gettext = GetText()
 ugettext = gettext

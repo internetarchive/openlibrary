@@ -1,4 +1,3 @@
-from __future__ import print_function
 from lxml import etree
 from openlibrary.catalog.marc.parse import read_edition
 from unicodedata import normalize
@@ -13,17 +12,22 @@ subfield_tag = slim + 'subfield'
 collection_tag = slim + 'collection'
 record_tag = slim + 'record'
 
+
 def norm(s):
-    return normalize('NFC', six.text_type(s))
+    return normalize('NFC', str(s))
+
 
 class BadSubtag:
     pass
 
+
 class MultipleTitles:
     pass
 
+
 class MultipleWorkTitles:
     pass
+
 
 class datafield:
     def __init__(self, element):
@@ -34,11 +38,12 @@ class datafield:
         self.indicator2 = element.attrib['ind2']
         for i in element:
             assert i.tag == subfield_tag
-            text = norm(i.text) if i.text else u''
+            text = norm(i.text) if i.text else ''
             if i.attrib['code'] == '':
                 raise BadSubtag
             self.contents.setdefault(i.attrib['code'], []).append(text)
             self.subfield_sequence.append((i.attrib['code'], text))
+
 
 class xml_rec:
     def __init__(self, f):
@@ -74,7 +79,7 @@ class xml_rec:
             assert len(self.dataFields[tag]) == 1
         element = self.dataFields[tag][0]
         if element.tag == control_tag:
-            return norm(element.text) if element.text else u''
+            return norm(element.text) if element.text else ''
         if element.tag == data_tag:
             return datafield(element)
         return default
@@ -83,10 +88,11 @@ class xml_rec:
         if tag not in self.dataFields:
             return []
         if self.dataFields[tag][0].tag == control_tag:
-            return [norm(i.text) if i.text else u'' for i in self.dataFields[tag]]
+            return [norm(i.text) if i.text else '' for i in self.dataFields[tag]]
         if self.dataFields[tag][0].tag == data_tag:
             return [datafield(i) for i in self.dataFields[tag]]
         return []
+
 
 def parse(f):
     rec = xml_rec(f)
