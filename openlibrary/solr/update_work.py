@@ -1500,8 +1500,8 @@ def update_keys(
     start = timer()
     logger.debug("BEGIN update_keys")
     commit_way_later_dur = 1000 * 60 * 60 * 24 * 5  # 5 days?
-    timer_results = f"RESULTS OF TIMER FOR KEYS LIKE {keys[0]}" \
-                    f" with {number_threads} threads \n"
+    timer_results = (f"RESULTS OF TIMER FOR KEYS LIKE {keys[0]}"
+                     f" with {number_threads} threads \n")
 
     def _solr_update(requests: list[SolrUpdateRequest], commitWithin=60000):
         if update == 'update':
