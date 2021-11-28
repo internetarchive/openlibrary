@@ -1748,6 +1748,7 @@ def main(
     solr_base: str = None,
     solr_next=False,
     update: Literal['update', 'print'] = 'update',
+    number_threads=16,
 ):
     """
     Insert the documents with the given keys into Solr.
@@ -1762,6 +1763,7 @@ def main(
     :param solr_base: If wanting to override openlibrary.yml
     :param solr_next: Whether to assume schema of next solr version is active
     :param update: Whether/how to do the actual solr update call
+    :param number_threads: how many threads to use when updating keys
     """
     load_configs(ol_url, ol_config, data_provider)
 
@@ -1782,4 +1784,4 @@ def main(
         _, info = f(keys, commit)
         print(info)
     else:
-        update_keys(keys, commit=commit, output_file=output_file, update=update)
+        update_keys(keys, commit=commit, output_file=output_file, update=update, number_threads=number_threads)
