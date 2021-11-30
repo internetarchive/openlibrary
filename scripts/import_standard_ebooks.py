@@ -1,9 +1,9 @@
-from __future__ import annotations
-
+#! /usr/bin/env python
 import json
 import requests
 import sys
 import time
+from typing import Any, Dict, List, Optional
 
 import os.path as path
 
@@ -28,12 +28,12 @@ def get_feed():
     return feedparser.parse(r.text)
 
 
-def map_data(entry) -> dict:
+def map_data(entry) -> Dict[str, Any]:
     """Maps Standard Ebooks feed entry to an Open Library import object."""
     std_ebooks_id = entry.id.replace('https://standardebooks.org/ebooks/', '')
     return {
         "title": entry.title,
-        "source_records": [f"standardebooks:{std_ebooks_id}"],
+        "source_records": [f"standard_ebooks:{std_ebooks_id}"],
         "publishers": [entry.publisher],
         "publish_date": entry.dc_issued[0:4],
         "authors": [{"name": author.name} for author in entry.authors],
@@ -45,7 +45,7 @@ def map_data(entry) -> dict:
     }
 
 
-def create_batch(records: list[dict[str, str]]) -> None:
+def create_batch(records: List[Dict[str, str]]) -> None:
     """Creates Standard Ebook batch import job.
 
     Attempts to find existing Standard Ebooks import batch.
@@ -61,7 +61,7 @@ def create_batch(records: list[dict[str, str]]) -> None:
     )
 
 
-def get_last_updated_time() -> str | None:
+def get_last_updated_time() -> Optional[str]:
     """Gets date of last import job.
 
     Last updated dates are read from a local file.  If no
@@ -78,7 +78,7 @@ def get_last_updated_time() -> str | None:
     return None
 
 
-def find_last_updated() -> str | None:
+def find_last_updated() -> Optional[str]:
     """Fetches and returns Standard Ebooks most recent update date.
 
     Returns None if the last modified date is not included in the
@@ -88,7 +88,7 @@ def find_last_updated() -> str | None:
     return r.headers['last-modified'] if r.ok else None
 
 
-def convert_date_string(date_string: str | None) -> time.struct_time:
+def convert_date_string(date_string: Optional[str]) -> time.struct_time:
     """Converts HTTP-date format string into a struct_time object.
 
     The date_string will be formatted similarly to this:
@@ -118,7 +118,7 @@ def convert_date_string(date_string: str | None) -> time.struct_time:
 def filter_modified_since(
     entries,
     modified_since: time.struct_time
-):
+) -> List[Dict[str, str]]:
     """Returns a list of import objects."""
     return [map_data(e) for e in entries if e.updated_parsed > modified_since]
 
