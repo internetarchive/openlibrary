@@ -51,9 +51,9 @@ repos:
           - types-all
 
   - repo: https://github.com/asottile/pyupgrade
-     rev: v2.29.0
-     hooks:
-       - id: pyupgrade
-         args:
-         - --py39-plus
-         - --keep-runtime-typing
+    rev: v2.29.0
+    hooks:
+      - id: pyupgrade
+        args:
+          - --py39-plus
+          - --keep-runtime-typing
