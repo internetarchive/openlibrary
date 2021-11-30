@@ -55,4 +55,5 @@ repos:
     hooks:
       - id: pyupgrade
         args:
-        - --py39-plus
+          - --py39-plus
+          - --keep-runtime-typing
