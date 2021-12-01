@@ -40,9 +40,6 @@ SCRIPTS=/openlibrary/scripts
 PSQL_PARAMS=${PSQL_PARAMS:-"-h db openlibrary"}
 TMPDIR=${TMPDIR:-/openlibrary/dumps}
 
-mkdir -p $TMPDIR
-cd $TMPDIR
-
 date=$1
 archive=$2
 
@@ -52,6 +49,10 @@ dump=ol_dump_$date
 function log() {
     echo "* $@" 1>&2
 }
+
+MSG="$USER has started $0 $1 $2 in $TMPDIR on ${HOSTNAME:-$HOST} at $(date)"
+log $MSG
+logger $MSG
 
 # create a clean directory
 log "clean directory: $TMPDIR/dumps"
@@ -134,5 +135,9 @@ mkdir -p $TMPDIR/sitemaps
 cd $TMPDIR/sitemaps
 time python $SCRIPTS/sitemaps/sitemap.py $TMPDIR/dumps/$dump/$dump.txt.gz > sitemaps.log
 ls -lh
+
+MSG="$USER has completed $0 $1 $2 in $TMPDIR on ${HOSTNAME:-$HOST} at $(date)"
+echo $MSG
+logger $MSG
 
 echo "done"
