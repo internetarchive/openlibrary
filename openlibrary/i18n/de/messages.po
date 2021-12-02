@@ -250,7 +250,7 @@ msgid ""
 "Please enter your <a href=\"https://archive.org\">Internet Archive</a> email and "
 "password to access your Open Library account."
 msgstr ""
-"Bitte geben Sie Ihr <a href=„https://archive.org“>Internet Archive</a> E-Mail-"
+"Bitte geben Sie Ihr <a href=\"https://archive.org\">Internet Archive</a> E-Mail-"
 "Adresse und  Passwort für ihr Open-Library-Konto ein."
 
 #: account/create.html:46 login.html:18
@@ -513,7 +513,7 @@ msgid ""
 "a>."
 msgstr ""
 "Ihre Frage wurde an das Support-Team gesendet. Wir melden uns in Kürze. Sie "
-"können uns auch auf <a href=„https://twitter.com/openlibrary“>Twitter</a> "
+"können uns auch auf <a href=\"https://twitter.com/openlibrary\">Twitter</a> "
 "kontaktieren."
 
 #: support.html:19
@@ -522,8 +522,8 @@ msgid ""
 "\">Frequently Asked Questions</a> (FAQ) to see if your question is answered "
 "there. Thank you."
 msgstr ""
-"Bitte sehen Sie auf unseren <a href=/help/>Hilfe Seiten</a> und den <a href=„/"
-"help/faq“>Frequently Asked Questions</a> (FAQ) to See if your question is "
+"Bitte sehen Sie auf unseren <a href=\"/help/\">Hilfe Seiten</a> und den <a href=\"/"
+"help/faq\">Frequently Asked Questions</a> (FAQ) to See if your question is "
 "answered there. Thank you."
 
 #: support.html:22
@@ -991,8 +991,8 @@ msgid ""
 "By signing up, you agree to the Internet Archive's <a href='//archive.org/about/"
 "terms.php' target='_blank'>Terms of Service</a>."
 msgstr ""
-"Die Nutzung der Open Library fällt unter die <a href=\"//archive.org/about/terms."
-"php\">Nutzungsbedingungen (AGB)</a> des Internet Archives."
+"Die Nutzung der Open Library fällt unter die <a href='//archive.org/about/terms."
+"php' target='_blank'>Nutzungsbedingungen (AGB)</a> des Internet Archives."
 
 #: account/delete.html:6 account/delete.html:10
 msgid "Delete Account"
@@ -3220,15 +3220,6 @@ msgstr "Kroatisch"
 msgid "Telugu"
 msgstr "Telugu"
 
-# | msgid ""
-# | "Open Library is an initiative of the <a href=\"//archive.org/\">Internet
-# "
-# | "Archive</a>, a 501(c)(3) non-profit, building a digital library of "
-# | "Internet sites and other cultural artifacts in digital form.<br/>Other <a
-# "
-# | "href=\"//archive.org/projects/\">projects</a> include the <a href=\"//"
-# | "archive.org/web/\">Wayback Machine</a>, <a href=\"//archive.org/"
-# | "\">archive.org</a> and <a href=\"//archive-it.org\">archive-it.org</a>"
 #: lib/nav_foot.html:73
 msgid ""
 "Open Library is an initiative of the <a href=\"//archive.org/\">Internet "
@@ -3241,7 +3232,7 @@ msgstr ""
 "Open Library ist ein Projekt des <a href=\"//archive.org/\">Internet Archive</"
 "a>s, einer gemeinnützigen Organisation aus den USA nach 501(c)(3), die eine "
 "digitale Bibliothek der Internetseiten und anderer kultureller Gegenstände "
-"zusammenstellt.<br/>Andere <a href=\"//archive.org/projects/\">Projekte</a> sind "
+"zusammenstellt. Andere <a href=\"//archive.org/projects/\">Projekte</a> sind "
 "die <a href=\"//archive.org/web/\">Wayback Machine</a>, <a href=\"//archive.org/"
 "\">archive.org</a> und <a href=\"//archive-it.org\">archive-it.org</a>"
 
@@ -3251,7 +3242,7 @@ msgid ""
 "version <a href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</"
 "a>"
 msgstr ""
-"Version <a href=„https://github.com/internetarchive/openlibrary/commit/%s“>%s</a>"
+"Version <a href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
 
 #: lib/nav_head.html:10
 msgid "My Profile"
@@ -3334,10 +3325,10 @@ msgid ""
 "title=\"Create an Open Library account\">create an account</a>, your IP address "
 "is concealed and you can more easily keep track of all your edits and additions."
 msgstr ""
-"<strong>Sie sind nicht <a href=„/account/login“ title=„Anmelden“>eingeloggt</a>."
+"<strong>Sie sind nicht <a href=\"/account/login\" title=\"Anmelden\">eingeloggt</a>."
 "</strong> Die OpenLibrary zeichnet Ihre IP-Adresse auf und zeigt diese in der "
-"öffentlichen Änderungshistorie an. Wenn Sie einen <a href=„/account/create“ "
-"title=„Bei Open Library registrieren“>Account anlegen</a> möchten, wird Ihre IP-"
+"öffentlichen Änderungshistorie an. Wenn Sie einen <a href=\"/account/create\" "
+"title=\"Bei Open Library registrieren\">Account anlegen</a> möchten, wird Ihre IP-"
 "Adresse nicht mehr angezeigt und Sie können Ihrer Bearbeitungen besser im Blick "
 "behalten."
 
@@ -3405,7 +3396,7 @@ msgstr "Anmelden"
 #: lists/header.html:47 lists/header.html:56
 #, python-format
 msgid "<a href=\"%(href)s\">%(name)s</a> / Lists"
-msgstr "<a href=„%(href)s“>%(name)s</a> / Listen"
+msgstr "<a href=\"%(href)s\">%(name)s</a> / Listen"
 
 #: lists/header.html:16
 #, python-format
@@ -3484,7 +3475,7 @@ msgstr "Aktive Listen"
 #: lists/home.html:48
 #, python-format
 msgid "from <a href=\"%(key)s\">%(owner)s</a>"
-msgstr "von <a href=„%(key)s“>%(owner)s</a>"
+msgstr "von <a href=\"%(key)s\">%(owner)s</a>"
 
 #: lists/home.html:51 lists/preview.html:23 lists/snippet.html:18
 #: type/list/embed.html:17 type/list/view_body.html:38
@@ -3553,7 +3544,7 @@ msgstr "Bisher keine Listen!"
 
 #: lists/preview.html:17
 msgid "by <a href=\"$owner.key\">You</a>"
-msgstr "von <a href=„$owner.key“>Ihnen</a>"
+msgstr "von <a href=\"$owner.key\">Ihnen</a>"
 
 #: lists/widget.html:48
 #, python-format
@@ -4238,7 +4229,7 @@ msgid ""
 "Showing all works by author. Would you like to see <a href=\"%(url)s\">only "
 "ebooks</a>?"
 msgstr ""
-"Zeigt all Werke eines Autors. Möchten Sie nur <a href=„%(url)s“>eBooks</a> sehen?"
+"Zeigt all Werke eines Autors. Möchten Sie nur <a href=\"%(url)s\">eBooks</a> sehen?"
 
 #: type/author/view.html:121
 #, python-format
@@ -4246,7 +4237,7 @@ msgid ""
 "Showing ebooks only. Would you like to see <a href=\"%(url)s\">everything</a> by "
 "this author?"
 msgstr ""
-"Zeige nur eBooks des Autors. Möchten Sie <a href=„%(url)s“>alles</a> von diesem "
+"Zeige nur eBooks des Autors. Möchten Sie <a href=\"%(url)s\">alles</a> von diesem "
 "Autor sehen?"
 
 #: type/author/view.html:164
@@ -4371,7 +4362,7 @@ msgid ""
 "one</a></b>?"
 msgstr ""
 "Diese Ausgabe hat bisher keine Beschreibung. Können Sie eine <b><a "
-"href=‚%(url)s‘>hinzufügen</a></b>?"
+"href='%(url)s'>hinzufügen</a></b>?"
 
 # | msgid "First Published"
 #: type/edition/view.html:268 type/work/view.html:268
@@ -4414,7 +4405,7 @@ msgstr "anonym hinzugefügt."
 
 #: type/edition/view.html:321 type/work/view.html:321
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
-msgstr "Links außerhalb der <span class=„gray small sansserif“>Open Library</span>"
+msgstr "Links außerhalb der <span class=\"gray small sansserif\">Open Library</span>"
 
 #: type/edition/view.html:325 type/work/view.html:325
 msgid "Wikipedia"
@@ -4567,7 +4558,7 @@ msgstr "Abonnieren"
 #: type/list/exports.html:36 type/list/exports.html:56
 #, python-format
 msgid "Watch activity via <a rel=\"nofollow\" href=\"%s\">Atom feed</a>"
-msgstr "Aktivitäten via <a rel=„nofollow“ href=„%s“>Atom feed</a> verfolgen"
+msgstr "Aktivitäten via <a rel=\"nofollow\" href=\"%s\">Atom feed</a> verfolgen"
 
 #: type/list/exports.html:43
 msgid "Export Not Available"
