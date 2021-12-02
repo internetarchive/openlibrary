@@ -113,15 +113,15 @@ ls -lhR
 
 
 function archive_dumps() {
-    # copy stuff to archive.org
+    # Copy stuff to archive.org.  For progress on transfers, see:
+    # https://catalogd.archive.org/catalog.php?checked=1&all=1&banner=rsync%20timeout
     # TODO: Switch to ia client tool. This will only work in production 'til then
     python /olsystem/bin/uploaditem.py $dump --nowait --uploader=openlibrary@archive.org
     python /olsystem/bin/uploaditem.py $cdump --nowait --uploader=openlibrary@archive.org
 }
 
 # Only archive if that caller has requested it and we are not testing.
-if [ "$archive" == "--archive" ];
-then
+if [ "$archive" == "--archive" ]; then
     if [[ -z $OLDUMP_TESTING ]]; then
         archive_dumps
     fi
