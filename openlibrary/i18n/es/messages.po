@@ -656,7 +656,7 @@ msgstr "Unirse a la lista de espera para «%(title)s»"
 
 #: LoanStatus.html:89 widget.html:44
 msgid "Join Waitlist"
-msgstr "Unirse a la lista de espera"
+msgstr "Reservar"
 
 #: widget.html:48
 #, python-format
@@ -4462,7 +4462,7 @@ msgstr "Este libro está revisado"
 
 #: type/list/embed.html:75
 msgid "Checked out"
-msgstr "Revisado"
+msgstr "Prestado"
 
 #: type/list/embed.html:78
 msgid "Borrow book"
@@ -4802,7 +4802,7 @@ msgstr "Reseñas"
 
 #: LoanStatus.html:38
 msgid "Return eBook"
-msgstr "Devolver libro electrónico"
+msgstr "Devolver libro"
 
 #: LoanStatus.html:45
 msgid "Really return this book?"
@@ -4839,7 +4839,7 @@ msgstr ""
 
 #: LoanStatus.html:95
 msgid "Checked Out"
-msgstr "Retirado"
+msgstr "Prestado"
 
 #: LoanStatus.html:104
 msgid "Donate Book"
@@ -4852,7 +4852,7 @@ msgstr ""
 
 #: LoanStatus.html:111 LoanStatus.html:116
 msgid "Not in Library"
-msgstr "No en la biblioteca"
+msgstr "No en biblioteca"
 
 #: NotesModal.html:33
 msgid "My private notes about this edition:"
