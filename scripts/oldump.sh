@@ -102,8 +102,9 @@ ls -lhR
 function archive_dumps() {
     # copy stuff to archive.org
     # TODO: Switch to ia client tool. This will only work in production 'til then
-    python /olsystem/bin/uploaditem.py $dump --nowait --uploader=openlibrary@archive.org
-    python /olsystem/bin/uploaditem.py $cdump --nowait --uploader=openlibrary@archive.org
+     ia $dump $dump.txt.gz --metadata "uploader:openlibrary@archive.org" --metadata "title:$dump" --metadata "collection:ol_exports"
+     ia $cdump $cdump.txt.gz  --metadata "uploader:openlibrary@archive.org" --metadata "title:$cdump" --metadata "collection:ol_exports"
+
 }
 
 if [ "$archive" == "--archive" ];
