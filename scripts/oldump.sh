@@ -25,8 +25,14 @@
 # 110 minutes to extract the 29GB of data from the database so it is highly
 # recommended to save a copy of data.txt.gz in another directory to accelerate the
 # testing of subsequent job steps.  See `TESTING:` comments below.
+#
+# Successful data dumps are transferred to:
+#     https://archive.org/details/ol_exports?sort=-publicdate
 
 set -e
+
+# To run a testing subset of the full ol-dump, uncomment the following line.
+# export OLDUMP_TESTING=true
 
 if [ $# -lt 1 ]; then
     echo "USAGE: $0 yyyy-mm-dd [--archive]" 1>&2
@@ -36,9 +42,6 @@ fi
 SCRIPTS=/openlibrary/scripts
 PSQL_PARAMS=${PSQL_PARAMS:-"-h db openlibrary"}
 TMPDIR=${TMPDIR:-/openlibrary/dumps}
-
-mkdir -p $TMPDIR
-cd $TMPDIR
 
 date=$1
 archive=$2
@@ -50,10 +53,15 @@ function log() {
     echo "* $@" 1>&2
 }
 
+MSG="$USER has started $0 $1 $2 in $TMPDIR on ${HOSTNAME:-$HOST} at $(date)"
+log $MSG
+logger $MSG
+
 # create a clean directory
 log "clean directory: $TMPDIR/dumps"
-rm -rf $TMPDIR/dumps  # TESTING: comment this out
 mkdir -p $TMPDIR/dumps
+# Remove any leftover ol_cdump* and ol_dump* files or directories.
+rm -rf $TMPDIR/dumps/ol_*
 cd $TMPDIR/dumps
 
 # Generate Reading Log/Ratings dumps
@@ -65,19 +73,27 @@ time psql $PSQL_PARAMS --set=upto="$date" -f $SCRIPTS/dump-ratings.sql | gzip -c
 ls -lhR
 
 log "generating the data table: data.txt.gz -- takes approx. 110 minutes..."
-# NOTE: When testing, it is useful to save `data.txt.gz` file to another directory.
-time psql $PSQL_PARAMS -c "copy data to stdout" | gzip -c > data.txt.gz  # TESTING: comment this out
+# In production, we copy the contents of our database into the `data.txt.gz` file.
+# else if we are testing, save a lot of time by using a preexisting `data.txt.gz`.
+if [[ -z $OLDUMP_TESTING ]]; then
+    time psql $PSQL_PARAMS -c "copy data to stdout" | gzip -c > data.txt.gz
+fi
 ls -lhR  # data.txt.gz is 29G
 
 # generate cdump, sort and generate dump
 log "generating $cdump.txt.gz -- takes approx. 500 minutes for 192,000,000+ records..."
+# if $OLDUMP_TESTING has been exported then `oldump.py cdump` will only process a subset.
 time $SCRIPTS/oldump.py cdump data.txt.gz $date | gzip -c > $cdump.txt.gz
 log "generated $cdump.txt.gz"
 ls -lhR  # ol_cdump_2021-11-14.txt.gz is 25G
 
 echo "deleting the data table dump"
 # remove the dump of data table
-rm -f data.txt.gz  # TESTING: comment this out
+# In production, we remove the raw database dump to save disk space.
+# else if we are testing, we keep the raw database dump for subsequent test runs.
+if [[ -z $OLDUMP_TESTING ]]; then
+    rm -f data.txt.gz
+fi
 
 echo "generating the dump -- takes approx. 485 minutes for 173,000,000+ records..."
 time gzip -cd $cdump.txt.gz | python $SCRIPTS/oldump.py sort --tmpdir $TMPDIR | python $SCRIPTS/oldump.py dump | gzip -c > $dump.txt.gz
@@ -100,15 +116,19 @@ ls -lhR
 
 
 function archive_dumps() {
-    # copy stuff to archive.org
+    # Copy data dumps to https://archive.org/details/ol_exports?sort=-publicdate
+    # For progress on transfers, see:
+    # https://catalogd.archive.org/catalog.php?checked=1&all=1&banner=rsync%20timeout
     # TODO: Switch to ia client tool. This will only work in production 'til then
     python /olsystem/bin/uploaditem.py $dump --nowait --uploader=openlibrary@archive.org
     python /olsystem/bin/uploaditem.py $cdump --nowait --uploader=openlibrary@archive.org
 }
 
-if [ "$archive" == "--archive" ];
-then
-    archive_dumps
+# Only archive if that caller has requested it and we are not testing.
+if [ "$archive" == "--archive" ]; then
+    if [[ -z $OLDUMP_TESTING ]]; then
+        archive_dumps
+    fi
 fi
 
 
@@ -119,5 +139,9 @@ mkdir -p $TMPDIR/sitemaps
 cd $TMPDIR/sitemaps
 time python $SCRIPTS/sitemaps/sitemap.py $TMPDIR/dumps/$dump/$dump.txt.gz > sitemaps.log
 ls -lh
+
+MSG="$USER has completed $0 $1 $2 in $TMPDIR on ${HOSTNAME:-$HOST} at $(date)"
+echo $MSG
+logger $MSG
 
 echo "done"

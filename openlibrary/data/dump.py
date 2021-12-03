@@ -107,9 +107,12 @@ def generate_cdump(data_file, date=None):
     #   False
     #   >>> "2010-05-17T10:20:30" < "2010-05-17Z"
     #   True
+    #
+    # If scripts/oldump.sh has exported $OLDUMP_TESTING then save a lot of time by only
+    # processing a subset of the lines in data_file.
+    max_lines = 1_000_000 if os.getenv("OLDUMP_TESTING") else 0  # 0 means unlimited.
     filter = date and (lambda doc: doc["last_modified"]["value"] < date + "Z")
-
-    print_dump(read_data_file(data_file), filter=filter)
+    print_dump(read_data_file(data_file, max_lines), filter=filter)
 
 
 def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
