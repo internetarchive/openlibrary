@@ -25,7 +25,7 @@
 # 110 minutes to extract the 29GB of data from the database so it is highly
 # recommended to save a copy of data.txt.gz in another directory to accelerate the
 # testing of subsequent job steps.  See `TESTING:` comments below.
-# 
+#
 # Successful data dumps are transferred to:
 #     https://archive.org/details/ol_exports?sort=-publicdate
 
