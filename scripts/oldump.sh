@@ -25,6 +25,9 @@
 # 110 minutes to extract the 29GB of data from the database so it is highly
 # recommended to save a copy of data.txt.gz in another directory to accelerate the
 # testing of subsequent job steps.  See `TESTING:` comments below.
+# 
+# Successful data dumps are transferred to:
+#     https://archive.org/details/ol_exports?sort=-publicdate
 
 set -e
 
@@ -113,7 +116,8 @@ ls -lhR
 
 
 function archive_dumps() {
-    # Copy stuff to archive.org.  For progress on transfers, see:
+    # Copy data dumps to https://archive.org/details/ol_exports?sort=-publicdate
+    # For progress on transfers, see:
     # https://catalogd.archive.org/catalog.php?checked=1&all=1&banner=rsync%20timeout
     # TODO: Switch to ia client tool. This will only work in production 'til then
     python /olsystem/bin/uploaditem.py $dump --nowait --uploader=openlibrary@archive.org
