@@ -103,7 +103,7 @@ function archive_dumps() {
     # copy stuff to archive.org
     # TODO: Switch to ia client tool. This will only work in production 'til then
     log "ia version is v$(ia --version)"  # ia version is v1.9.0
-    # Need to pre-generate `${dump}_files.xml` and `${dump}_meta.xml` via a subset of `uploaditeems.py`
+    # Need to pre-generate `${dump}_files.xml` and `${dump}_meta.xml` via a subset of `uploaditem.py`
     ia upload $dump $dump --metadata "uploader:openlibrary@archive.org" --metadata "title:$dump" --metadata "collection:ol_exports"
     ia upload $cdump $cdump --metadata "uploader:openlibrary@archive.org" --metadata "title:$cdump" --metadata "collection:ol_exports"
 }
