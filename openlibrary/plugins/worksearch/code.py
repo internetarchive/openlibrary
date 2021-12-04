@@ -18,7 +18,7 @@ from infogami import config
 from infogami.utils import delegate, stats
 from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core.lending import add_availability, get_availability_of_ocaids
-from openlibrary.core.models import Edition  # noqa: E402
+from openlibrary.core.models import Edition, Work  # noqa: E402
 from openlibrary.plugins.inside.code import fulltext_search
 from openlibrary.plugins.openlibrary.lists import get_list_editions
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -807,6 +807,8 @@ class search(delegate.page):
             get_availability_of_ocaids,
             fulltext_search,
             FACET_FIELDS,
+            Work.get_users_read_status,
+            url=web.ctx.fullpath
         )
 
 
