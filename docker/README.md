@@ -19,7 +19,7 @@ git reset --hard HEAD
 
 ### For Users of Macs Containing an M1 Chip
 
-Make sure that you are using [Docker Desktop >= 4.3.0](https://docs.docker.com/desktop/mac/release-notes/) so that you will not need to install Rosetta 2 in order to run Docker.
+Please use [Docker Desktop >= 4.3.0](https://docs.docker.com/desktop/mac/release-notes/) and make sure that Docker Desktop Preferences `General / Use Docker Compose V2` is checked so that it is no longer required to install Rosetta 2 to run Docker.
 
 If you are experiencing issues building JS, you may need to increase the RAM available to Docker. The defaults of 2GB ram and 1GB Swap are not enough. We recommend requirements of 4GB ram and 2GB swap. This resolved the error message of `Killed` when running `build-assets`.
 
