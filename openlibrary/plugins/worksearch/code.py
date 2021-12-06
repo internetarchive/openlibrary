@@ -1108,7 +1108,7 @@ class author_search(delegate.page):
             'work_count',
         ]
         q = escape_colon(escape_bracket(q), valid_fields)
-        q_has_fields = ':' in q.replace(r'\:', '')
+        q_has_fields = ':' in q.replace(r'\:', '') or '*' in q
 
         d = run_solr_search(
             solr_select_url,
