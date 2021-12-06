@@ -55,7 +55,6 @@ def find_python_sources(dir):
         "openlibrary/catalog.*",
         "openlibrary/solr.*",
         "openlibrary/plugins/recaptcha.*",
-        "openlibrary/plugins/akismet.*",
         ".*tests",
         "infogami/plugins.*",
         "infogami.utils.markdown",
