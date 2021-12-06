@@ -128,45 +128,17 @@ ALTER TABLE public.author_str OWNER TO openlibrary;
 -- Name: bookshelves; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
-CREATE TABLE public.bookshelves (
-    id integer NOT NULL,
-    name text,
-    description text,
-    archived boolean DEFAULT false,
-    updated timestamp without time zone DEFAULT timezone('utc'::text, now()),
-    created timestamp without time zone DEFAULT timezone('utc'::text, now())
-);
-
-
 ALTER TABLE public.bookshelves OWNER TO postgres;
 
 --
 -- Name: bookshelves_books; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
-CREATE TABLE public.bookshelves_books (
-    username text NOT NULL,
-    work_id integer NOT NULL,
-    bookshelf_id integer NOT NULL,
-    edition_id integer,
-    updated timestamp without time zone DEFAULT timezone('utc'::text, now()),
-    created timestamp without time zone DEFAULT timezone('utc'::text, now())
-);
-
-
 ALTER TABLE public.bookshelves_books OWNER TO postgres;
 
 --
 -- Name: bookshelves_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
-
-CREATE SEQUENCE public.bookshelves_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
 
 ALTER TABLE public.bookshelves_id_seq OWNER TO postgres;
 
@@ -181,29 +153,14 @@ ALTER SEQUENCE public.bookshelves_id_seq OWNED BY public.bookshelves.id;
 -- Name: bookshelves_votes; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
-CREATE TABLE public.bookshelves_votes (
-    username text NOT NULL,
-    bookshelf_id integer NOT NULL,
-    updated timestamp without time zone DEFAULT timezone('utc'::text, now()),
-    created timestamp without time zone DEFAULT timezone('utc'::text, now())
-);
-
-
 ALTER TABLE public.bookshelves_votes OWNER TO postgres;
 
 --
 -- Name: bookshelves_votes_bookshelf_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE SEQUENCE public.bookshelves_votes_bookshelf_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
 ALTER TABLE public.bookshelves_votes_bookshelf_id_seq OWNER TO postgres;
+
 
 --
 -- Name: bookshelves_votes_bookshelf_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -427,16 +384,6 @@ ALTER TABLE public.publisher_str OWNER TO openlibrary;
 --
 -- Name: ratings; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
-
-CREATE TABLE public.ratings (
-    username text NOT NULL,
-    work_id integer NOT NULL,
-    rating integer,
-    edition_id integer,
-    updated timestamp without time zone DEFAULT timezone('utc'::text, now()),
-    created timestamp without time zone DEFAULT timezone('utc'::text, now())
-);
-
 
 ALTER TABLE public.ratings OWNER TO postgres;
 
@@ -978,20 +925,6 @@ CREATE TABLE public.work_str (
 ALTER TABLE public.work_str OWNER TO openlibrary;
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.bookshelves ALTER COLUMN id SET DEFAULT nextval('public.bookshelves_id_seq'::regclass);
-
-
---
--- Name: bookshelf_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.bookshelves_votes ALTER COLUMN bookshelf_id SET DEFAULT nextval('public.bookshelves_votes_bookshelf_id_seq'::regclass);
-
-
---
 -- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
 --
 
@@ -1318,37 +1251,10 @@ COPY public.author_str (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: bookshelves; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.bookshelves (id, name, description, archived, updated, created) FROM stdin;
-1	Want to Read	A list of books I want to read	f	2020-11-19 03:39:09.603171	2020-11-19 03:39:09.603171
-2	Currently Reading	A list of books I am currently reading	f	2020-11-19 03:39:09.60446	2020-11-19 03:39:09.60446
-3	Already Read	A list of books I have finished reading	f	2020-11-19 03:39:09.605349	2020-11-19 03:39:09.605349
-\.
-
-
---
--- Data for Name: bookshelves_books; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.bookshelves_books (username, work_id, bookshelf_id, edition_id, updated, created) FROM stdin;
-\.
-
-
---
 -- Name: bookshelves_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
 SELECT pg_catalog.setval('public.bookshelves_id_seq', 3, true);
-
-
---
--- Data for Name: bookshelves_votes; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.bookshelves_votes (username, bookshelf_id, updated, created) FROM stdin;
-\.
 
 
 --
@@ -4971,15 +4877,6 @@ COPY public.publisher_ref (thing_id, key_id, value, ordering) FROM stdin;
 COPY public.publisher_str (thing_id, key_id, value, ordering) FROM stdin;
 \.
 
-
---
--- Data for Name: ratings; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.ratings (username, work_id, rating, edition_id, updated, created) FROM stdin;
-\.
-
-
 --
 -- Data for Name: scan_boolean; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
@@ -8552,22 +8449,6 @@ ALTER TABLE ONLY public.author_str
 
 ALTER TABLE ONLY public.author_str
     ADD CONSTRAINT author_str_thing_id_fkey FOREIGN KEY (thing_id) REFERENCES public.thing(id);
-
-
---
--- Name: bookshelves_books_bookshelf_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.bookshelves_books
-    ADD CONSTRAINT bookshelves_books_bookshelf_id_fkey FOREIGN KEY (bookshelf_id) REFERENCES public.bookshelves(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: bookshelves_votes_bookshelf_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.bookshelves_votes
-    ADD CONSTRAINT bookshelves_votes_bookshelf_id_fkey FOREIGN KEY (bookshelf_id) REFERENCES public.bookshelves(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
