@@ -55,11 +55,14 @@ class Biblio:
     ]
     REQUIRED_FIELDS = requests.get(SCHEMA_URL).json()['required']
 
+    NONBOOK = ['A2', 'AA', 'AB', 'AJ', 'AVI', 'AZ', 'BK', 'BM', 'C3', 'CD', 'CE', 'CF', 'CR', 'CRM', 'CRW', 'CX', 'D3', 'DA', 'DD', 'DF', 'DI', 'DL', 'DO', 'DR', 'DRM', 'DRW', 'DS', 'DV', 'EC', 'FC', 'FI', 'FM', 'FR', 'FZ', 'GB', 'GC', 'GM', 'GR', 'H3', 'H5', 'L3', 'L5', 'LP', 'MAC', 'MC', 'MF', 'MG', 'MH', 'ML', 'MS', 'MSX', 'MZ', 'N64', 'NGA', 'NGB', 'NGC', 'NGE', 'NT', 'OR', 'OS', 'PC', 'PP', 'PRP', 'PS', 'PSC', 'PY', 'QU', 'RE', 'RV', 'SA', 'SD', 'SG', 'SH', 'SK', 'SL', 'SMD', 'SN', 'SO', 'SO1', 'SO2', 'SR', 'SU', 'TA', 'TB', 'TR', 'TS', 'TY', 'UX', 'V35', 'V8', 'VC', 'VD', 'VE', 'VF', 'VK', 'VM', 'VN', 'VO', 'VP', 'VS', 'VU', 'VY', 'VZ', 'WA', 'WC', 'WI', 'WL', 'WM', 'WP', 'WT', 'WX', 'XL', 'XZ', 'ZF', 'ZZ']
+
     def __init__(self, data):
         self.isbn = data[124]
         self.source_id = 'bwb:%s' % self.isbn
         self.isbn_13 = [self.isbn]
         self.title = data[10]
+        self.primary_format = data[6]
         self.publish_date = data[20][:4]  # YYYY, YYYYMMDD
         self.publishers = [data[135]]
         self.weight = data[39]
@@ -88,6 +91,7 @@ class Biblio:
 
         # Assert importable
         assert self.isbn_13
+        assert self.primary_format not in self.NONBOOK
         for field in self.REQUIRED_FIELDS:
             assert getattr(self, field)
 
