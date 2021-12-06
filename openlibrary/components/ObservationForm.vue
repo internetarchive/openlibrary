@@ -5,7 +5,6 @@
       :work-key="work_key"
       :username="username"
       />
-
     <CategorySelector
       ref="categories"
       :observations-array="observationsArray"

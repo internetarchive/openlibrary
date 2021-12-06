@@ -1,40 +1,32 @@
 /**
- * Sends a POST request to delete a patron's observation.
+ * Sends a POST request to add or delete a patron's observation.
  *
+ * @param {'add' | 'delete'} action 'add' if an observation is being created, 'delete' if an observation is being deleted.
  * @param {String} type The observation's type
  * @param {String} value The observation's value
  * @param {String} workKey Location of work, in the form `/works/<work OLID>`
- * @param {String} username Username of patron that is deleting an observation
+ * @param {String} username Username of patron that is updating an observation
+ *
+ * @returns A Promise representing the state of the POST request.
  */
-export function deleteObservation(type, value, workKey, username) {
-    const data = constructDataObject(type, value, username, 'delete');
+export function updateObservation(action, type, value, workKey, username) {
+    const data = constructDataObject(type, value, username, action)
 
-    fetch(`${workKey}/observations`, {
+    return fetch(`${workKey}/observations`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
     })
-}
-
-/**
- * Sends a POST request to add a new patron observation about a work.
- *
- * @param {String} type The observation's type
- * @param {String} value The observation's value
- * @param {String} workKey Location of work, in the form `/works/<work OLID>`
- * @param {String} username Username of patron that is adding an observation
- */
-export function addObservation(type, value, workKey, username) {
-    const data = constructDataObject(type, value, username, 'add');
-    fetch(`${workKey}/observations`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Server response was not ok')
+            }
+        })
+        .catch(error => {
+            throw error
+        })
 }
 
 /**
