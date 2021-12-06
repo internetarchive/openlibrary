@@ -7,8 +7,8 @@ $else:
     $ duplicates = change.data.get("duplicates", [])
 
     $if page.key == master:
-        $# comment in the master record
-        Merged $len(duplicates) duplicate author records into this master. See <a href="$change.url()">details</a>.
+        $# comment in the primary record
+        Merged $len(duplicates) duplicate author records into this primary. See <a href="$change.url()">details</a>.
     $elif page.key in duplicates:
         $# comment in the duplicate record
         Marked as duplicate. See <a href="$change.url()">details</a>.

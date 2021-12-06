@@ -9,20 +9,15 @@
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  &Logo {
-    margin-left: 9px;
-  }
-  &Message {
-    -webkit-box-flex: 1;
-    -ms-flex: 1;
-    flex: 1;
-    text-align: right;
+  // This is to right align the donate button
+  a:last-child {
+    margin-left: auto;
   }
 }
 // Changes color of heart unicode character
 .heart {
   color: @heart-color;
-  font-size: 1.2em;
+  font-size: 1.0em;
 }
 
 /* stylelint-disable selector-max-specificity */

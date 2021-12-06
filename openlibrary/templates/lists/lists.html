@@ -1,10 +1,11 @@
-$def with (doc, lists)
+$def with (doc, lists, show_header=True)
 
-<div id="contentHead">
-    $ header = render_template("lists/header", doc, lists)
-    $var title: $_('%(owner)s / Lists', owner=header.title)
-    $:header
-</div>
+$if show_header:
+    <div id="contentHead">
+        $ header = render_template("lists/header", doc, lists)
+        $var title: $_('%(owner)s / Lists', owner=header.title)
+        $:header
+    </div>
 
 $if doc.key.startswith("/subjects/"):
     $ seed = doc.get_seed()
@@ -34,7 +35,7 @@ $if "type" in doc and doc.type.key == "/type/user":
                                         var list_id = "#" + \$(this).data("list-id");
                                         var key = \$(list_id + " a:first").attr("href");
                                         var dialog = this;
-            
+
                                         \$.post(key + "/delete.json", function() {
                                             \$(list_id).remove();
                                             \$(dialog).dialog("close");

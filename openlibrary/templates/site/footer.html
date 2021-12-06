@@ -17,7 +17,28 @@ $if cssfile == 'user' or 'admin':
         $:render_template("site/stats")
     $:render_template("lib/nav_foot", page)
 
-    <script src="//archive.org/includes/analytics.js?v=0c15bbe" type="text/javascript"></script>
+    <!--Will be moved inside index.js-->
+    <script type="text/javascript">
+      if ("serviceWorker" in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register("/sw.js").then(registration => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            console.log(registration);
+          }).catch(error => {
+            console.log("ServiceWorker registration failed");
+            console.log(error);
+          });
+        });
+      }
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent the mini-infobar from appearing on mobile
+        e.preventDefault();
+      });
+    </script>
+
+    <!-- Must be loaded after jquery -->
+    <script src="/cdn/archive.org/analytics.js" type="text/javascript"></script>
     <script src="$static_url('build/all.js')" type="text/javascript"></script>
     <!-- Passes total_time for analytics to ol.analytics.js -->
     <div class="analytics-stats-time-calculator" data-time="$total_time"></div>

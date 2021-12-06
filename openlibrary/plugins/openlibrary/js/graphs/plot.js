@@ -8,6 +8,7 @@ import 'flot/jquery.flot.selection.js';
 import 'flot/jquery.flot.crosshair.js';
 import 'flot/jquery.flot.stack.js';
 import 'flot/jquery.flot.pie.js';
+import 'flot/jquery.flot.time.js';
 
 /**
  * A special graph loaded on the following URLs:
@@ -72,12 +73,12 @@ export function loadEditionsGraph() {
         $('#x').text(pos.x.toFixed(0));
         $('#y').text(pos.y.toFixed(0));
         if (item) {
-            if (previousPoint != item.datapoint) {
+            if (previousPoint !== item.datapoint) {
                 previousPoint = item.datapoint;
                 $('#chartLabel').remove();
                 x = item.datapoint[0].toFixed(0);
                 y = item.datapoint[1].toFixed(0);
-                if (y == 1) {
+                if (y === 1) {
                     showTooltip(item.pageX, item.pageY,
                         `${y} edition in ${x}`);
                 } else {
@@ -97,7 +98,7 @@ export function loadEditionsGraph() {
 
     $('.chartYaxis').css({top: '60px', left: '-60px'});
 
-    if (dateFrom == (dateTo - 1)) {
+    if (dateFrom === (dateTo - 1)) {
         $('.clickdata').text(`Published in ${dateFrom}`);
     } else {
         $('.clickdata').text(`Published between ${dateFrom} & ${dateTo-1}.`);
@@ -226,7 +227,7 @@ export function loadGraph(id, options = {}, tooltip_message = '', color = null) 
         if (tooltip_message) {
             return plot_tooltip_graph($(node), data, tooltip_message, color);
         } else {
-            return $.plot($(node), data, options);
+            return $.plot($(node), [{data: data}], options);
         }
     }
 }

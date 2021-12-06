@@ -13,7 +13,6 @@
   min-height: 10px;
   padding-right: 1.5em;
   .cover-animation {
-    transform: perspective(0) rotateX(0deg);
     transition: transform .8s, opacity .8s;
   }
   .cover-animation:hover {
@@ -30,6 +29,7 @@
 // Center (editionAbout)
 div.editionAbout {
   margin-bottom: 20px;
+  overflow: hidden;
   p {
     margin: 1em 0;
     font-size: 13px;
@@ -48,6 +48,12 @@ div.editionAbout {
 
 .work-subtitle{
   margin-top: 0;
+}
+
+.work-description{
+  pre {
+    overflow: auto;
+  }
 }
 
 .workFooter {
@@ -258,6 +264,7 @@ div.editionTools {
   padding: 10px;
   border: 1px solid @lighter-grey;
   border-radius: 5px;
+  clear: both;
 }
 
 .preview-languages {

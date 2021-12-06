@@ -89,17 +89,24 @@ from typing import Iterable
 
 from openlibrary.utils.ddc import collapse_multiple_space
 
-LCC_PARTS_RE = re.compile(r'''
+# WARNING: Parts of this code have been translated into JS in
+# LibraryExplorer/utils/lcc.js :(
+# KEEP IN SYNC!
+
+LCC_PARTS_RE = re.compile(
+    r'''
     ^
     # trailing dash only valid in "sortable" LCCs
     # Include W, even though technically part of NLM system
     (?P<letters>[A-HJ-NP-VWZ][A-Z-]{0,2})
     \s?
     (?P<number>\d{1,4}(\.\d+)?)?
-    (?P<cutter1>[\s.][^\d\s\[]{1,3}\d*\S*)?
+    (?P<cutter1>\s*\.\s*[^\d\s\[]{1,3}\d*\S*)?
     (?P<rest>\s.*)?
     $
-''', re.IGNORECASE | re.X)
+''',
+    re.IGNORECASE | re.X,
+)
 
 
 def short_lcc_to_sortable_lcc(lcc):
@@ -151,8 +158,9 @@ def clean_raw_lcc(raw_lcc):
     :rtype: basestring
     """
     lcc = collapse_multiple_space(raw_lcc.replace('\\', ' ').strip(' '))
-    if ((lcc.startswith('[') and lcc.endswith(']')) or
-            (lcc.startswith('(') and lcc.endswith(')'))):
+    if (lcc.startswith('[') and lcc.endswith(']')) or (
+        lcc.startswith('(') and lcc.endswith(')')
+    ):
         lcc = lcc[1:-1]
     return lcc
 
@@ -162,19 +170,33 @@ def normalize_lcc_prefix(prefix):
     :param str prefix: An LCC prefix
     :return: Prefix transformed to be a prefix for sortable LCC
     :rtype: str|None
+
+    >>> normalize_lcc_prefix('A123')
+    'A--0123'
+    >>> normalize_lcc_prefix('A123.')
+    'A--0123'
+    >>> normalize_lcc_prefix('A123.0')
+    'A--0123.0'
+    >>> normalize_lcc_prefix('A123.C')
+    'A--0123.00000000.C'
+    >>> normalize_lcc_prefix('A123.C0')
+    'A--0123.00000000.C0'
+    >>> normalize_lcc_prefix('E--')
+    'E--'
+    >>> normalize_lcc_prefix('PN-')
+    'PN-'
     """
     if re.match(r'^[A-Z]+$', prefix, re.I):
         return prefix
     else:
-        # A123* should be normalized to A--0123*
-        # A123.* should be normalized to A--0123.*
-        # A123.C* should be normalized to A--0123.00000000.C*
         lcc_norm = short_lcc_to_sortable_lcc(prefix.rstrip('.'))
         if lcc_norm:
             result = lcc_norm.rstrip('0')
             if '.' in prefix and prefix.endswith('0'):
                 zeros_to_add = len(prefix) - len(prefix.rstrip('0'))
                 result += '0' * zeros_to_add
+            elif result.endswith('-0000.'):
+                result = result.rstrip('0.')
             return result.rstrip('.')
         else:
             return None
@@ -188,8 +210,7 @@ def normalize_lcc_range(start, end):
     :rtype: [str, str]
     """
     return [
-        lcc if lcc == '*' else short_lcc_to_sortable_lcc(lcc)
-        for lcc in (start, end)
+        lcc if lcc == '*' else short_lcc_to_sortable_lcc(lcc) for lcc in (start, end)
     ]
 
 
@@ -198,4 +219,5 @@ def choose_sorting_lcc(sortable_lccs: Iterable[str]) -> str:
     # Note we go to short-form first, so eg 'A123' beats 'A'
     def short_len(lcc: str) -> int:
         return len(sortable_lcc_to_short_lcc(lcc))
+
     return sorted(sortable_lccs, key=short_len, reverse=True)[0]

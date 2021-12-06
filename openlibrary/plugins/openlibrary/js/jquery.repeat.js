@@ -73,7 +73,7 @@ export default function($){
             data = formdata();
             data.index = nextRowId;
 
-            if (options.validate && options.validate(data) == false) {
+            if (options.validate && options.validate(data) === false) {
                 return;
             }
 

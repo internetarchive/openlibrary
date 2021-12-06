@@ -4,15 +4,20 @@ from .. import addbook
 from openlibrary import accounts
 from openlibrary.mocks.mock_infobase import MockSite
 
+
 def strip_nones(d):
-    return dict((k, v) for k, v in d.items() if v is not None)
+    return {k: v for k, v in d.items() if v is not None}
 
 
 def mock_user():
-    return type('MockUser', (object,), {
-        'is_admin': lambda slf: False,
-        'is_librarian': lambda slf: False,
-    })()
+    return type(
+        'MockUser',
+        (object,),
+        {
+            'is_admin': lambda slf: False,
+            'is_librarian': lambda slf: False,
+        },
+    )()
 
 
 class TestSaveBookHelper:
@@ -23,6 +28,7 @@ class TestSaveBookHelper:
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
         s = addbook.SaveBookHelper(None, None)
+
         def f(data):
             return strip_nones(s.process_work(web.storage(data)))
 
@@ -33,19 +39,24 @@ class TestSaveBookHelper:
     def test_editing_orphan_creates_work(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many([
-            {
-                "type": {"key": "/type/edition"},
-                "key": "/books/OL1M",
-                "title": "Original Edition Title",
-            }])
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                }
+            ]
+        )
         edition = web.ctx.site.get("/books/OL1M")
 
-        formdata = web.storage({
-            "work--key": "",
-            "work--title": "Original Edition Title",
-            "edition--title": "Original Edition Title"
-        })
+        formdata = web.storage(
+            {
+                "work--key": "",
+                "work--title": "Original Edition Title",
+                "edition--title": "Original Edition Title",
+            }
+        )
 
         s = addbook.SaveBookHelper(None, edition)
         s.save(formdata)
@@ -57,27 +68,32 @@ class TestSaveBookHelper:
     def test_never_create_an_orphan(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many([
-            {
-                "type": {"key": "/type/work"},
-                "key": "/works/OL1W",
-                "title": "Original Work Title"
-            },
-            {
-                "type": {"key": "/type/edition"},
-                "key": "/books/OL1M",
-                "title": "Original Edition Title",
-                "works": [{"key": "/works/OL1W"}]
-            }])
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL1W",
+                    "title": "Original Work Title",
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                    "works": [{"key": "/works/OL1W"}],
+                },
+            ]
+        )
         edition = web.ctx.site.get("/books/OL1M")
         work = web.ctx.site.get("/works/OL1W")
 
-        formdata = web.storage({
-            "work--key": "/works/OL1W",
-            "work--title": "Original Work Title",
-            "edition--title": "Original Edition Title",
-            "edition--works--0--key": "",
-        })
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Original Work Title",
+                "edition--title": "Original Edition Title",
+                "edition--works--0--key": "",
+            }
+        )
 
         s = addbook.SaveBookHelper(work, edition)
         s.save(formdata)
@@ -87,20 +103,25 @@ class TestSaveBookHelper:
     def test_moving_orphan(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many([
-            {
-                "type": {"key": "/type/edition"},
-                "key": "/books/OL1M",
-                "title": "Original Edition Title",
-            }])
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                }
+            ]
+        )
         edition = web.ctx.site.get("/books/OL1M")
 
-        formdata = web.storage({
-            "work--key": "",
-            "work--title": "Original Edition Title",
-            "edition--title": "Original Edition Title",
-            "edition--works--0--key": "/works/OL1W",
-        })
+        formdata = web.storage(
+            {
+                "work--key": "",
+                "work--title": "Original Edition Title",
+                "edition--title": "Original Edition Title",
+                "edition--works--0--key": "/works/OL1W",
+            }
+        )
 
         s = addbook.SaveBookHelper(None, edition)
         s.save(formdata)
@@ -111,25 +132,30 @@ class TestSaveBookHelper:
     def test_moving_orphan_ignores_work_edits(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many([
-            {
-                "type": {"key": "/type/work"},
-                "key": "/works/OL1W",
-                "title": "Original Work Title"
-            },
-            {
-                "type": {"key": "/type/edition"},
-                "key": "/books/OL1M",
-                "title": "Original Edition Title",
-            }])
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL1W",
+                    "title": "Original Work Title",
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                },
+            ]
+        )
         edition = web.ctx.site.get("/books/OL1M")
 
-        formdata = web.storage({
-            "work--key": "",
-            "work--title": "Modified Work Title",
-            "edition--title": "Original Edition Title",
-            "edition--works--0--key": "/works/OL1W",
-        })
+        formdata = web.storage(
+            {
+                "work--key": "",
+                "work--title": "Modified Work Title",
+                "edition--title": "Original Edition Title",
+                "edition--works--0--key": "/works/OL1W",
+            }
+        )
 
         s = addbook.SaveBookHelper(None, edition)
         s.save(formdata)
@@ -139,28 +165,33 @@ class TestSaveBookHelper:
     def test_editing_work(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many([
-            {
-                "type": {"key": "/type/work"},
-                "key": "/works/OL1W",
-                "title": "Original Work Title"
-            },
-            {
-                "type": {"key": "/type/edition"},
-                "key": "/books/OL1M",
-                "title": "Original Edition Title",
-                "works": [{"key": "/works/OL1W"}],
-            }])
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL1W",
+                    "title": "Original Work Title",
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                    "works": [{"key": "/works/OL1W"}],
+                },
+            ]
+        )
 
         work = web.ctx.site.get("/works/OL1W")
         edition = web.ctx.site.get("/books/OL1M")
 
-        formdata = web.storage({
-            "work--key": "/works/OL1W",
-            "work--title": "Modified Work Title",
-            "edition--title": "Original Edition Title",
-            "edition--works--0--key": "/works/OL1W",
-        })
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Modified Work Title",
+                "edition--title": "Original Edition Title",
+                "edition--works--0--key": "/works/OL1W",
+            }
+        )
 
         s = addbook.SaveBookHelper(work, edition)
         s.save(formdata)
@@ -171,28 +202,33 @@ class TestSaveBookHelper:
     def test_editing_edition(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many([
-            {
-                "type": {"key": "/type/work"},
-                "key": "/works/OL1W",
-                "title": "Original Work Title"
-            },
-            {
-                "type": {"key": "/type/edition"},
-                "key": "/books/OL1M",
-                "title": "Original Edition Title",
-                "works": [{"key": "/works/OL1W"}],
-            }])
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL1W",
+                    "title": "Original Work Title",
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                    "works": [{"key": "/works/OL1W"}],
+                },
+            ]
+        )
 
         work = web.ctx.site.get("/works/OL1W")
         edition = web.ctx.site.get("/books/OL1M")
 
-        formdata = web.storage({
-            "work--key": "/works/OL1W",
-            "work--title": "Original Work Title",
-            "edition--title": "Modified Edition Title",
-            "edition--works--0--key": "/works/OL1W",
-        })
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Original Work Title",
+                "edition--title": "Modified Edition Title",
+                "edition--works--0--key": "/works/OL1W",
+            }
+        )
 
         s = addbook.SaveBookHelper(work, edition)
         s.save(formdata)
@@ -203,28 +239,33 @@ class TestSaveBookHelper:
     def test_editing_work_and_edition(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many([
-            {
-                "type": {"key": "/type/work"},
-                "key": "/works/OL1W",
-                "title": "Original Work Title"
-            },
-            {
-                "type": {"key": "/type/edition"},
-                "key": "/books/OL1M",
-                "title": "Original Edition Title",
-                "works": [{"key": "/works/OL1W"}],
-            }])
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL1W",
+                    "title": "Original Work Title",
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                    "works": [{"key": "/works/OL1W"}],
+                },
+            ]
+        )
 
         work = web.ctx.site.get("/works/OL1W")
         edition = web.ctx.site.get("/books/OL1M")
 
-        formdata = web.storage({
-            "work--key": "/works/OL1W",
-            "work--title": "Modified Work Title",
-            "edition--title": "Modified Edition Title",
-            "edition--works--0--key": "/works/OL1W",
-        })
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Modified Work Title",
+                "edition--title": "Modified Edition Title",
+                "edition--works--0--key": "/works/OL1W",
+            }
+        )
 
         s = addbook.SaveBookHelper(work, edition)
         s.save(formdata)
@@ -235,28 +276,33 @@ class TestSaveBookHelper:
     def test_moving_edition(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many([
-            {
-                "type": {"key": "/type/work"},
-                "key": "/works/OL1W",
-                "title": "Original Work Title"
-            },
-            {
-                "type": {"key": "/type/edition"},
-                "key": "/books/OL1M",
-                "title": "Original Edition Title",
-                "works": [{"key": "/works/OL1W"}],
-            }])
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL1W",
+                    "title": "Original Work Title",
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                    "works": [{"key": "/works/OL1W"}],
+                },
+            ]
+        )
 
         work = web.ctx.site.get("/works/OL1W")
         edition = web.ctx.site.get("/books/OL1M")
 
-        formdata = web.storage({
-            "work--key": "/works/OL1W",
-            "work--title": "Original Work Title",
-            "edition--title": "Original Edition Title",
-            "edition--works--0--key": "/works/OL2W",
-        })
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Original Work Title",
+                "edition--title": "Original Edition Title",
+                "edition--works--0--key": "/works/OL2W",
+            }
+        )
 
         s = addbook.SaveBookHelper(work, edition)
         s.save(formdata)
@@ -266,28 +312,33 @@ class TestSaveBookHelper:
     def test_moving_edition_ignores_changes_to_work(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many([
-            {
-                "type": {"key": "/type/work"},
-                "key": "/works/OL1W",
-                "title": "Original Work Title"
-            },
-            {
-                "type": {"key": "/type/edition"},
-                "key": "/books/OL1M",
-                "title": "Original Edition Title",
-                "works": [{"key": "/works/OL1W"}],
-            }])
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL1W",
+                    "title": "Original Work Title",
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                    "works": [{"key": "/works/OL1W"}],
+                },
+            ]
+        )
 
         work = web.ctx.site.get("/works/OL1W")
         edition = web.ctx.site.get("/books/OL1M")
 
-        formdata = web.storage({
-            "work--key": "/works/OL1W",
-            "work--title": "Modified Work Title",
-            "edition--title": "Original Edition Title",
-            "edition--works--0--key": "/works/OL2W",  # Changing work
-        })
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL1W",
+                "work--title": "Modified Work Title",
+                "edition--title": "Original Edition Title",
+                "edition--works--0--key": "/works/OL2W",  # Changing work
+            }
+        )
 
         s = addbook.SaveBookHelper(work, edition)
         s.save(formdata)
@@ -297,28 +348,33 @@ class TestSaveBookHelper:
     def test_moving_edition_to_new_work(self, monkeypatch):
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
-        web.ctx.site.save_many([
-            {
-                "type": {"key": "/type/work"},
-                "key": "/works/OL100W",
-                "title": "Original Work Title"
-            },
-            {
-                "type": {"key": "/type/edition"},
-                "key": "/books/OL1M",
-                "title": "Original Edition Title",
-                "works": [{"key": "/works/OL100W"}],
-            }])
+        web.ctx.site.save_many(
+            [
+                {
+                    "type": {"key": "/type/work"},
+                    "key": "/works/OL100W",
+                    "title": "Original Work Title",
+                },
+                {
+                    "type": {"key": "/type/edition"},
+                    "key": "/books/OL1M",
+                    "title": "Original Edition Title",
+                    "works": [{"key": "/works/OL100W"}],
+                },
+            ]
+        )
 
         work = web.ctx.site.get("/works/OL100W")
         edition = web.ctx.site.get("/books/OL1M")
 
-        formdata = web.storage({
-            "work--key": "/works/OL100W",
-            "work--title": "FOO BAR",
-            "edition--title": "Original Edition Title",
-            "edition--works--0--key": "__new__",
-        })
+        formdata = web.storage(
+            {
+                "work--key": "/works/OL100W",
+                "work--title": "FOO BAR",
+                "edition--title": "Original Edition Title",
+                "edition--works--0--key": "__new__",
+            }
+        )
 
         s = addbook.SaveBookHelper(work, edition)
         s.save(formdata)

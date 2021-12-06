@@ -6,19 +6,24 @@ import openlibrary.catalog.merge.normalize as merge
 import six
 
 try:
-    cmp = cmp       # Python 2
+    cmp = cmp  # Python 2
 except NameError:
+
     def cmp(x, y):  # Python 3
         return (x > y) - (x < y)
 
 
-re_date = map (re.compile, [
-    r'(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
-    r'(?P<birth_date>\d+\??)-',
-    r'b\.? (?P<birth_date>(?:ca\. )?\d+\??)',
-    r'd\.? (?P<death_date>(?:ca\. )?\d+\??)',
-    r'(?P<birth_date>.*\d+.*)-(?P<death_date>.*\d+.*)',
-    r'^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$'])
+re_date = map(
+    re.compile,
+    [
+        r'(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
+        r'(?P<birth_date>\d+\??)-',
+        r'b\.? (?P<birth_date>(?:ca\. )?\d+\??)',
+        r'd\.? (?P<death_date>(?:ca\. )?\d+\??)',
+        r'(?P<birth_date>.*\d+.*)-(?P<death_date>.*\d+.*)',
+        r'^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$',
+    ],
+)
 
 re_ad_bc = re.compile(r'\b(B\.C\.?|A\.D\.?)')
 re_date_fl = re.compile('^fl[., ]')
@@ -85,9 +90,10 @@ def flip_name(name):
 def remove_trailing_number_dot(date):
     m = re_number_dot.search(date)
     if m:
-        return date[:-len(m.group(1))]
+        return date[: -len(m.group(1))]
     else:
         return date
+
 
 def remove_trailing_dot(s):
     if s.endswith(" Dept."):
@@ -97,10 +103,11 @@ def remove_trailing_dot(s):
         s = s[:-1]
     return s
 
+
 def fix_l_in_date(date):
     if not 'l' in date:
         return date
-    return re_l_in_date.sub(lambda m:m.group(1).replace('l', '1'), date)
+    return re_l_in_date.sub(lambda m: m.group(1).replace('l', '1'), date)
 
 
 re_ca = re.compile(r'ca\.([^ ])')
@@ -110,16 +117,16 @@ def parse_date(date):
     if re_date_fl.match(date):
         return {}
     date = remove_trailing_number_dot(date)
-    date = re_ca.sub(lambda m:'ca. ' + m.group(1), date)
+    date = re_ca.sub(lambda m: 'ca. ' + m.group(1), date)
     if date.find('-') == -1:
         for r in re_date:
             m = r.search(date)
             if m:
-                return dict((k, fix_l_in_date(v)) for k, v in m.groupdict().items())
+                return {k: fix_l_in_date(v) for k, v in m.groupdict().items()}
         return {}
 
     parts = date.split('-')
-    i = { 'birth_date': parts[0].strip() }
+    i = {'birth_date': parts[0].strip()}
     if len(parts) == 2:
         parts[1] = parts[1].strip()
         if parts[1]:
@@ -144,52 +151,63 @@ def pick_first_date(dates):
 
     dates = list(dates)
     if len(dates) == 1 and re_cent.match(dates[0]):
-        return { 'date': fix_l_in_date(dates[0]) }
+        return {'date': fix_l_in_date(dates[0])}
 
     for date in dates:
         result = parse_date(date)
         if result != {}:
             return result
 
-    return { 'date': fix_l_in_date(' '.join([remove_trailing_number_dot(d) for d in dates])) }
+    return {
+        'date': fix_l_in_date(' '.join([remove_trailing_number_dot(d) for d in dates]))
+    }
+
 
 re_drop = re.compile('[?,]')
 
+
 def match_with_bad_chars(a, b):
-    if six.text_type(a) == six.text_type(b):
+    if str(a) == str(b):
         return True
-    a = normalize('NFKD', six.text_type(a)).lower()
-    b = normalize('NFKD', six.text_type(b)).lower()
+    a = normalize('NFKD', str(a)).lower()
+    b = normalize('NFKD', str(b)).lower()
     if a == b:
         return True
     a = a.encode('ASCII', 'ignore')
     b = b.encode('ASCII', 'ignore')
     if a == b:
         return True
+
     def drop(s):
         return re_drop.sub('', six.ensure_text(s))
+
     return drop(a) == drop(b)
+
 
 def accent_count(s):
     return len([c for c in norm(s) if ord(c) > 127])
 
+
 def norm(s):
-    return normalize('NFC', s) if isinstance(s, six.text_type) else s
+    return normalize('NFC', s) if isinstance(s, str) else s
+
 
 def pick_best_name(names):
     names = [norm(n) for n in names]
     n1 = names[0]
     assert all(match_with_bad_chars(n1, n2) for n2 in names[1:])
-    names.sort(key=lambda n:accent_count(n), reverse=True)
+    names.sort(key=lambda n: accent_count(n), reverse=True)
     assert '?' not in names[0]
     return names[0]
+
 
 def pick_best_author(authors):
     n1 = authors[0]['name']
     assert all(match_with_bad_chars(n1, a['name']) for a in authors[1:])
-    authors.sort(key=lambda a:accent_count(a['name']), reverse=True)
+    authors.sort(key=lambda a: accent_count(a['name']), reverse=True)
     assert '?' not in authors[0]['name']
     return authors[0]
+
 
 def tidy_isbn(input):
     output = []
@@ -216,10 +234,13 @@ def tidy_isbn(input):
         output.append(i)
     return output
 
+
 def strip_count(counts):
     foo = {}
     for i, j in counts:
-        foo.setdefault(i.rstrip('.').lower() if isinstance(i, six.string_types) else i, []).append((i, j))
+        foo.setdefault(i.rstrip('.').lower() if isinstance(i, str) else i, []).append(
+            (i, j)
+        )
     ret = {}
     for k, v in foo.items():
         m = max(v, key=lambda x: len(x[1]))[0]
@@ -229,10 +250,14 @@ def strip_count(counts):
         ret[m] = bar
     return sorted(ret.items(), key=lambda x: len(x[1]), reverse=True)
 
+
 def fmt_author(a):
     if 'birth_date' in a or 'death_date' in a:
-        return "%s (%s-%s)" % ( a['name'], a.get('birth_date', ''), a.get('death_date', '') )
+        return "{} ({}-{})".format(
+            a['name'], a.get('birth_date', ''), a.get('death_date', '')
+        )
     return a['name']
+
 
 def get_title(e):
     if e.get('title_prefix', None) is not None:
@@ -252,7 +277,7 @@ def mk_norm(s):
 
     :param str s: A book title to normalize and strip.
     :rtype: str
-    :return: a lowercase string with no spaces, containg the main words of the title.
+    :return: a lowercase string with no spaces, containing the main words of the title.
     """
 
     m = re_brackets.match(s)
@@ -269,9 +294,12 @@ def mk_norm(s):
 
 def error_mail(msg_from, msg_to, subject, body):
     assert isinstance(msg_to, list)
-    msg = 'From: %s\nTo: %s\nSubject: %s\n\n%s' % (msg_from, ', '.join(msg_to), subject, body)
+    msg = 'From: {}\nTo: {}\nSubject: {}\n\n{}'.format(
+        msg_from, ', '.join(msg_to), subject, body
+    )
 
     import smtplib
+
     server = smtplib.SMTP('mail.archive.org')
     server.sendmail(msg_from, msg_to, msg)
     server.quit()

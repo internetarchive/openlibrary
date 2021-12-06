@@ -36,7 +36,7 @@ Notes:
 
 ## Final Sync
 
-TODO. Something along the lines of: Add a solrupdater to docker-compose.production.yml that points to the new server, and set its offset to be the correct date.
+TODO. Something along the lines of: Add a solrupdater to docker-compose.production.yml that points to the new server, and set its offset to be the correct date. See [5493 Move production solr from solr1 to solr0](https://github.com/internetarchive/openlibrary/issues/5493) for hints.
 
 ## Deploy
 
@@ -60,12 +60,15 @@ cd /opt/openlibrary
 # Copy file from solrbuilder server (4min; 2020-11-05 ol-solr0)
 time scp YOU@SOLR_BUILDER_SERVER:/tmp/solr/solrbuilder-2020-03-02.tar.gz /tmp/solr/solrbuilder-2020-03-02.tar.gz
 
-# Restore backup file (8min; 2020-11-05 ol-solr0)
-time sudo docker-compose run --no-deps --rm -v /tmp/solr:/backup solr \
-    bash -c "tar xf /backup/solrbuilder-2020-03-02.tar.gz"
+# Restore backup file (7min; 2021-08-11 ol-solr0)
+# Note the name "openlibrary_solr-data" should match "{OL_DIR}_{SOLR_DATA_VOLUME}", where:
+#    OL_DIR: is the name of the directory where the openlibrary repo is; likely openlibrary
+#    SOLR_DATA_VOLUME: is the name of the volume the solr service uses; defined in docker-compose.yml
+time docker run -v openlibrary_solr-data:/var/solr/data -v /tmp/solr:/backup ubuntu:xenial \
+    tar xzf /backup/solrbuilder-2021-08-11.tar.gz
 
 # Start the services
-COMPOSE_FILE="docker-compose.yml:docker-compose.production.yml" docker-compose --profile=ol-solr0 up -d
+COMPOSE_FILE="docker-compose.yml:docker-compose.production.yml" HOSTNAME="$HOSTNAME"docker-compose --profile=ol-solr0 up -d
 ```
 
 ## Resetting

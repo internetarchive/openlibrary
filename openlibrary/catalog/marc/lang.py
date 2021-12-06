@@ -3,6 +3,7 @@ from catalog.infostore import get_site
 site = get_site()
 lang = set(site.things({'type': '/type/language'}))
 
+
 def add_lang(edition):
     if 'languages' not in edition:
         return

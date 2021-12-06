@@ -55,9 +55,13 @@ $def with (notes, user, num_found, page=1, results_per_page=25)
                   </div>
                   <div class="book-note">
                     $ textarea_id = str(k) + "-notes-textarea"
-                    <textarea class="notes-textarea" id="$textarea_id" rows="10" readonly>$i['notes'][k]</textarea>
-                    $ id = str(k) + "edition-modal-link"
-                    $:macros.NotesModal(i.work, edition, _('View or update note'), id, 'notes-view-modal-link', reload_id=textarea_id)
+                    $ button_div_id = str(k) + "-note-form-buttons"
+                    <textarea class="notes-textarea" id="$textarea_id" rows="10">$i['notes'][k]</textarea>
+                    <input type="hidden" name="workId" value="$work_id" />
+                    <div class="note-page-buttons" id="$button_div_id">
+                      <button class="delete-note-button cta-btn cta-btn--shell" type="button">$_("Delete Note")</button>
+                      <button class="update-note-link-button">$_("Save Note")</button>
+                    </div>
                   </div>
                 </li>
             </ul>

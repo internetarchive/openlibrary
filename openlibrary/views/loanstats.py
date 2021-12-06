@@ -2,10 +2,13 @@
 
 import web
 from infogami.utils import delegate
+from ..core.lending import get_availabilities
+from ..plugins.worksearch.code import get_solr_works
 
 from ..utils import dateutil
 from .. import app
 from ..core import cache
+from ..core.observations import Observations
 from ..core.bookshelves import Bookshelves
 from ..core.ratings import Ratings
 from ..plugins.admin.code import get_counts
@@ -21,12 +24,13 @@ def reading_log_summary():
 
     stats = Bookshelves.summary()
     stats.update(Ratings.summary())
+    stats.update(Observations.summary())
     return stats
 
 
 cached_reading_log_summary = cache.memcache_memoize(
-    reading_log_summary, 'stats.readling_log_summary',
-    timeout=dateutil.HOUR_SECS)
+    reading_log_summary, 'stats.readling_log_summary', timeout=dateutil.HOUR_SECS
+)
 
 
 def reading_log_leaderboard(limit=None):
@@ -35,26 +39,32 @@ def reading_log_leaderboard(limit=None):
         delegate.fakeload()
 
     most_read = Bookshelves.most_logged_books(
-        Bookshelves.PRESET_BOOKSHELVES['Already Read'], limit=limit)
+        Bookshelves.PRESET_BOOKSHELVES['Already Read'], limit=limit
+    )
     most_wanted_all = Bookshelves.most_logged_books(
-        Bookshelves.PRESET_BOOKSHELVES['Want to Read'], limit=limit)
+        Bookshelves.PRESET_BOOKSHELVES['Want to Read'], limit=limit
+    )
     most_wanted_month = Bookshelves.most_logged_books(
-        Bookshelves.PRESET_BOOKSHELVES['Want to Read'], limit=limit,
-        since=dateutil.DATE_ONE_MONTH_AGO)
+        Bookshelves.PRESET_BOOKSHELVES['Want to Read'],
+        limit=limit,
+        since=dateutil.DATE_ONE_MONTH_AGO,
+    )
     return {
         'leaderboard': {
             'most_read': most_read,
             'most_wanted_all': most_wanted_all,
             'most_wanted_month': most_wanted_month,
-            'most_rated_all': Ratings.most_rated_books()
+            'most_rated_all': Ratings.most_rated_books(),
         }
     }
 
 
 def cached_reading_log_leaderboard(limit=None):
     return cache.memcache_memoize(
-        reading_log_leaderboard, 'stats.readling_log_leaderboard',
-        timeout=dateutil.HOUR_SECS )(limit)
+        reading_log_leaderboard,
+        'stats.readling_log_leaderboard',
+        timeout=dateutil.HOUR_SECS,
+    )(limit)
 
 
 def get_cached_reading_log_stats(limit):
@@ -89,18 +99,31 @@ class readinglog_stats(app.view):
 
         stats = get_cached_reading_log_stats(limit=limit)
 
+        solr_docs = get_solr_works(
+            f"/works/OL{item['work_id']}W"
+            for leaderboard in stats['leaderboard'].values()
+            for item in leaderboard
+        )
+
         # Fetch works from solr and inject into leaderboard
-        for i in range(len(stats['leaderboard']['most_read'])):
-            stats['leaderboard']['most_read'][i]['work'] = web.ctx.site.get(
-                '/works/OL%sW' % stats['leaderboard']['most_read'][i]['work_id'])
-        for i in range(len(stats['leaderboard']['most_wanted_all'])):
-            stats['leaderboard']['most_wanted_all'][i]['work'] = web.ctx.site.get(
-                '/works/OL%sW' % stats['leaderboard']['most_wanted_all'][i]['work_id'])
-        for i in range(len(stats['leaderboard']['most_wanted_month'])):
-            stats['leaderboard']['most_wanted_month'][i]['work'] = web.ctx.site.get(
-                '/works/OL%sW' % stats['leaderboard']['most_wanted_month'][i]['work_id'])
-        for i in range(len(stats['leaderboard']['most_rated_all'])):
-            stats['leaderboard']['most_rated_all'][i]['work'] = web.ctx.site.get(
-                '/works/OL%sW' % stats['leaderboard']['most_rated_all'][i]['work_id'])
+        for leaderboard in stats['leaderboard'].values():
+            for item in leaderboard:
+                key = f"/works/OL{item['work_id']}W"
+                if key in solr_docs:
+                    item['work'] = solr_docs[key]
+                else:
+                    item['work'] = web.ctx.site.get(key)
+
+        works = [
+            item['work']
+            for leaderboard in stats['leaderboard'].values()
+            for item in leaderboard
+        ]
+
+        availabilities = get_availabilities(works)
+        for leaderboard in stats['leaderboard'].values():
+            for item in leaderboard:
+                if availabilities.get(item['work']['key']):
+                    item['availability'] = availabilities.get(item['work']['key'])
 
         return app.render_template("stats/readinglog", stats=stats)

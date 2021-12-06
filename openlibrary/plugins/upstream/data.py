@@ -11,25 +11,38 @@ import requests
 IA_BASE_URL = config.get('ia_base_url')
 
 
-
 def get_ol_dumps():
     """Get list of all archive.org items in the ol_exports collection uploaded by archive.org staff."""
-    url = IA_BASE_URL + '/advancedsearch.php?q=(ol_dump+OR+ol_cdump)+AND+collection:ol_exports&fl[]=identifier&output=json&rows=1000'
+    url = (
+        IA_BASE_URL
+        + '/advancedsearch.php?q=(ol_dump+OR+ol_cdump)+AND+collection:ol_exports&fl[]=identifier&output=json&rows=1000'
+    )
     docs = requests.get(url).json()['response']['docs']
     return sorted(doc['identifier'] for doc in docs)
 
 
 # cache the result for half an hour
-get_ol_dumps = web.memoize(get_ol_dumps, 30*60, background=True)
-#public(get_ol_dumps)
+get_ol_dumps = web.memoize(get_ol_dumps, 30 * 60, background=True)
+# public(get_ol_dumps)
 
 
 def download_url(item, filename):
-    return "%s/download/%s/%s" % (IA_BASE_URL, item, filename)
+    return f"{IA_BASE_URL}/download/{item}/{filename}"
+
+
+DUMP_PREFIXES = (
+    '',
+    '_authors',
+    '_editions',
+    '_works',
+    '_deworks',
+    '_ratings',
+    '_reading-log',
+)
 
 
 class ol_dump_latest(delegate.page):
-    path = "/data/ol_dump(|_authors|_editions|_works|_deworks)_latest.txt.gz"
+    path = f"/data/ol_dump({'|'.join(DUMP_PREFIXES)})_latest.txt.gz"
 
     def GET(self, prefix):
         items = [item for item in get_ol_dumps() if item.startswith("ol_dump")]
@@ -54,7 +67,7 @@ class ol_cdump_latest(delegate.page):
 
 
 class ol_dumps(delegate.page):
-    path = "/data/ol_dump(|_authors|_editions|_works)_(\d\d\d\d-\d\d-\d\d).txt.gz"
+    path = rf"/data/ol_dump({'|'.join(DUMP_PREFIXES)})_(\d\d\d\d-\d\d-\d\d).txt.gz"
 
     def GET(self, prefix, date):
         item = "ol_dump_" + date
@@ -66,7 +79,7 @@ class ol_dumps(delegate.page):
 
 
 class ol_cdumps(delegate.page):
-    path = "/data/ol_cdump_(\d\d\d\d-\d\d-\d\d).txt.gz"
+    path = r"/data/ol_cdump_(\d\d\d\d-\d\d-\d\d).txt.gz"
 
     def GET(self, date):
         item = "ol_cdump_" + date

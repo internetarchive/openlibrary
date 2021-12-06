@@ -7,9 +7,9 @@ USAGE:
     ./scripts/sync [push|pull|diff] [-s|--server server] paths
 
     Pull all templates from openlibrary.org:
-    
+
         ./scripts/sync pull --server http://openlibrary.org templates/*
-        
+
     By default all the templates and macros are saved to
     openlibrary/plugins/oltemplates and css and js files are saved to
     static. When the server is upstream.openlibrary.org, the templates
@@ -20,7 +20,7 @@ USAGE:
 
         ./scripts/sync push --server http://dev.openlibrary.org templates/* macros/*
 
-    For pushing items to a server, the username and password on that server must be 
+    For pushing items to a server, the username and password on that server must be
     specified in ~/.olrc. The .olrc file must be in the following format.
 
         [openlibrary.org]
@@ -31,7 +31,6 @@ USAGE:
         username=anand
         password=anand123
 """
-from __future__ import print_function
 
 import _init_path
 
@@ -51,10 +50,10 @@ class LocalSource:
         self.root = root
         self.static = static
         self.type_root = "openlibrary/plugins/openlibrary"
-        
+
     def get_path(self, path):
         """Find the path in the filesystem for the specified resource path.
-        
+
             >>> s = LocalSource('openlibrary/plugins/oltemplates', 'static')
             >>> s.get_path('templates/site.tmpl')
             'openlibrary/plugins/oltemplates/templates/site.html'
@@ -80,7 +79,7 @@ class LocalSource:
             return self.static + '/' + path
         else:
             return None
-    
+
     def expand(self, paths):
         for p in paths:
             if p is None:
@@ -91,10 +90,10 @@ class LocalSource:
                         yield os.path.join(dirpath, f)
             else:
                 yield p
-                
+
     def get_name(self, path):
         """Reverse of get_path.
-        
+
             >>> s = LocalSource('openlibrary/plugins/oltemplates', 'static')
             >>> s.get_name('openlibrary/plugins/oltemplates/templates/site.html')
             'templates/site.tmpl'
@@ -118,13 +117,13 @@ class LocalSource:
             path = path.replace('.html', '.tmpl')
         elif path.startswith('macros/'):
             path = path.replace('.html', '')
-            
+
         return path
-        
+
     def read(self, paths):
         for p in self.expand(self.get_path(p) for p in paths):
             yield self.get_name(p), open(p).read()
-            
+
     def write(self, data):
         for name, text in data:
             path = self.get_path(name)
@@ -148,29 +147,28 @@ class RemoteSource:
         self.server = server
         if self.server.endswith('/'):
             self.server = server[:-1]
-        
+
     def find(self, prefix):
         q = {'key~': prefix, 'limit': 1000}
-        
+
         # until all properties and backreferences are deleted on production server
         if prefix == '/type':
             q['type'] = '/type/type'
-            
+
         paths = urllib.urlopen(self.server + '/query.json?' + urllib.urlencode(q)).read()
         return [x['key'] for x in simplejson.loads(paths)]
-        
+
     def expand(self, paths):
         for p in paths:
             p = '/' + p
             if p.endswith('*'):
-                for x in self.find(p):
-                    yield x
+                yield from self.find(p)
             else:
                 yield p
-                
+
     def to_text(self, thing):
         type = thing['type']['key']
-        
+
         def get(d, key):
             if key in d:
                 value = d[key]
@@ -182,16 +180,16 @@ class RemoteSource:
 
         #@@ why is this?
         if thing.get('latest_revision') == 1:
-            return None 
-        
+            return None
+
         if type == '/type/type':
             for k in ['id', 'latest_revision', 'revision', 'last_modified', 'created', 'permission', 'child_permission']:
                 thing.pop(k, None)
-                
+
             # no need to sync primitive types
             if thing.get('kind') == 'primitive':
                 return None
-                
+
             from infogami.infobase.common import prepr
             return prepr(thing)
         if type == '/type/template':
@@ -202,17 +200,17 @@ class RemoteSource:
             return get(thing, 'body')
         else:
             return None
-        
+
     def read(self, paths):
         paths = list(self.expand(paths))
-        
+
         d = simplejson.dumps({'key': paths, '*': None, 'limit': 1000})
         url = self.server + '/query.json?' + urllib.urlencode(dict(query=d))
         data = urllib.urlopen(url).read()
-        
+
         for x in simplejson.loads(data):
             yield x['key'][1:], self.to_text(x)
-            
+
     def get_ol(self):
         config = ConfigParser()
         config.read(os.path.expanduser('~/.olrc'))
@@ -220,7 +218,7 @@ class RemoteSource:
         ol = olapi.OpenLibrary(self.server)
         ol.autologin()
         return ol
-        
+
     def write(self, data):
         def process(name, text):
             key = '/' + name
@@ -238,27 +236,27 @@ class RemoteSource:
                 return {'key': key, 'body': {'value': text, 'type': '/type/text'}, 'type': {'key': '/type/rawtext'}, 'content_type': 'text/css'}
             else:
                 return None
-                
+
         query = [process(name, d) for name, d in data]
-        
+
         ol = self.get_ol()
         print(ol.save_many(query))
-        
+
 class Server:
     def __init__(self, server, upstream=False):
         if upstream:
             self.local = LocalSource('openlibrary/plugins/upstream', 'static/upstream')
         else:
             self.local = LocalSource('openlibrary/plugins/oltemplates', 'static')
-            
+
         self.remote = RemoteSource(server)
-        
+
     def run(self, cmd, paths):
         return getattr(self, cmd)(paths)
-                
+
     def pull(self, paths):
         self.local.write(self.remote.read(paths))
-        
+
     def push(self, paths):
         self.remote.write(self.local.read(paths))
 
@@ -274,13 +272,13 @@ class Server:
         for path in paths:
             if path.endswith('*'):
                 path = path[:-1]
-            os.system('diff --strip-trailing-cr -u %s %s' % (local.get_path(path), self.local.get_path(path)))
+            os.system(f'diff --strip-trailing-cr -u {local.get_path(path)} {self.local.get_path(path)}')
 
         shutil.rmtree(root)
 
 def parse_args(args):
     """Parses the args and returns command, server and paths.
-    
+
         >>> parse_args('./scripts/server pull templates/* macros/*'.split())
         ('pull', 'http://openlibrary.org', ['templates/*', 'macros/*'])
         >>> parse_args('./scripts/server pull --server http://dev.openlibrary.org templates/* macros/*'.split())
@@ -297,20 +295,20 @@ def parse_args(args):
     parser = OptionParser("./scripts/sync [push|pull|diff] [--server server] paths")
     parser.add_option("-s", "--server", dest="server", default='http://openlibrary.org', help="OL server")
     parser.add_option("--upstream", dest="upstream", action='store_true', default=False, help="pass this option to use templates from upstream plugin.")
-    
+
     cmd = args[1]
-    sys.argv = args[:1] + args[2:] 
+    sys.argv = args[:1] + args[2:]
     options, args = parser.parse_args()
     server = options.server
-    
+
     if cmd not in ['push', 'pull', 'diff', 'delete', 'test']:
         parser.error('Unknown command: %s' % repr(cmd))
-        
+
     if 'upstream' in options.server:
         options.upstream = True
-        
+
     return cmd, options, args
-    
+
 def main(args):
     if '-h' in args or '--help' in args:
         print(__doc__)
@@ -322,7 +320,7 @@ def main(args):
         else:
             server = Server(options.server, options.upstream)
             return server.run(cmd, paths)
-    
+
 if __name__ == "__main__":
     main(sys.argv)
-    
+

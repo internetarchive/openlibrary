@@ -34,7 +34,7 @@ class OLError(Exception):
         self.code = e.response.status_code
         self.headers = e.response.headers
         self.text = e.response.text
-        Exception.__init__(self, "{}. Response: {}".format(e, self.text))
+        Exception.__init__(self, f"{e}. Response: {self.text}")
 
 
 class OpenLibrary:
@@ -51,8 +51,9 @@ class OpenLibrary:
             headers['Cookie'] = self.cookie
 
         try:
-            response = requests.request(method, url, data=data, headers=headers,
-                                        params=params)
+            response = requests.request(
+                method, url, data=data, headers=headers, params=params
+            )
             response.raise_for_status()
             return response
         except requests.HTTPError as e:
@@ -93,28 +94,29 @@ class OpenLibrary:
         return self.login(username, password)
 
     def login(self, username, password):
-        """Login to Open Library with given credentials.
-        """
+        """Login to Open Library with given credentials."""
         headers = {'Content-Type': 'application/json'}
         try:
             data = json.dumps(dict(username=username, password=password))
-            response = self._request('/account/login', method='POST', data=data, headers=headers)
+            response = self._request(
+                '/account/login', method='POST', data=data, headers=headers
+            )
         except OLError as e:
             response = e
 
         if 'Set-Cookie' in response.headers:
             cookies = response.headers['Set-Cookie'].split(',')
-            self.cookie =  ';'.join([c.split(';')[0] for c in cookies])
+            self.cookie = ';'.join([c.split(';')[0] for c in cookies])
 
     def get(self, key, v=None):
         response = self._request(key + '.json', params={'v': v} if v else {})
         return unmarshal(response.json())
 
-    def get_many(self, keys):
+    def get_many(self, keys, max_length = 500):
         """Get multiple documents in a single request as a dictionary.
         """
-        if len(keys) > 500:
-            # get in chunks of 500 to avoid crossing the URL length limit.
+        if len(keys) > max_length:
+            # Process in batches to avoid crossing the URL length limit.
             d = {}
             for chunk in web.group(keys, 100):
                 d.update(self._get_many(chunk))
@@ -147,7 +149,9 @@ class OpenLibrary:
         if action:
             headers['42-action'] = action
 
-        response = self._request('/api/' + name, method="POST", data=json.dumps(query), headers=headers)
+        response = self._request(
+            '/api/' + name, method="POST", data=json.dumps(query), headers=headers
+        )
         return response.json()
 
     def save_many(self, query, comment=None, action=None):
@@ -178,6 +182,7 @@ class OpenLibrary:
         q = dict(q or {})
         q.update(kw)
         q = marshal(q)
+
         def unlimited_query(q):
             q['limit'] = 1000
             q.setdefault('offset', 0)
@@ -185,8 +190,7 @@ class OpenLibrary:
 
             while True:
                 result = self.query(q)
-                for r in result:
-                    yield r
+                yield from result
                 if len(result) < 1000:
                     break
                 q['offset'] += len(result)
@@ -198,38 +202,44 @@ class OpenLibrary:
             return unmarshal(response.json())
 
     def import_ocaid(self, ocaid, require_marc=True):
-        data = {'identifier': ocaid, 'require_marc': 'true' if require_marc else 'false'}
+        data = {
+            'identifier': ocaid,
+            'require_marc': 'true' if require_marc else 'false',
+        }
         return self._request('/api/import/ia', method='POST', data=data).text
+
+    def import_data(self, data):
+        return self._request('/api/import', method='POST', data=data).text
 
 
 def marshal(data):
     """Serializes the specified data in the format required by OL.::
 
-        >>> marshal(datetime.datetime(2009, 1, 2, 3, 4, 5, 6789))
-        {'type': '/type/datetime', 'value': '2009-01-02T03:04:05.006789'}
+    >>> marshal(datetime.datetime(2009, 1, 2, 3, 4, 5, 6789))
+    {'type': '/type/datetime', 'value': '2009-01-02T03:04:05.006789'}
     """
     if isinstance(data, list):
         return [marshal(d) for d in data]
     elif isinstance(data, dict):
-        return dict((k, marshal(v)) for k, v in data.items())
+        return {k: marshal(v) for k, v in data.items()}
     elif isinstance(data, datetime.datetime):
         return {"type": "/type/datetime", "value": data.isoformat()}
     elif isinstance(data, Text):
-        return {"type": "/type/text", "value": six.text_type(data)}
+        return {"type": "/type/text", "value": str(data)}
     elif isinstance(data, Reference):
-        return {"key": six.text_type(data)}
+        return {"key": str(data)}
     else:
         return data
 
 
 def unmarshal(d):
-    u"""Converts OL serialized objects to python.::
+    """Converts OL serialized objects to python.::
 
-        >>> unmarshal({"type": "/type/text",
-        ...            "value": "hello, world"})  # doctest: +ALLOW_UNICODE
-        <text: u'hello, world'>
-        >>> unmarshal({"type": "/type/datetime", "value": "2009-01-02T03:04:05.006789"})
-        datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)
+    >>> unmarshal({"type": "/type/text",
+    ...            "value": "hello, world"})  # doctest: +ALLOW_UNICODE
+    <text: u'hello, world'>
+    >>> unmarshal({"type": "/type/datetime", "value": "2009-01-02T03:04:05.006789"})
+    datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)
     """
     if isinstance(d, list):
         return [unmarshal(v) for v in d]
@@ -244,7 +254,7 @@ def unmarshal(d):
             else:
                 return d['value']
         else:
-            return dict([(k, unmarshal(v)) for k, v in d.items()])
+            return {k: unmarshal(v) for k, v in d.items()}
     else:
         return d
 
@@ -252,8 +262,8 @@ def unmarshal(d):
 def parse_datetime(value):
     """Parses ISO datetime formatted string.::
 
-        >>> parse_datetime("2009-01-02T03:04:05.006789")
-        datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)
+    >>> parse_datetime("2009-01-02T03:04:05.006789")
+    datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)
     """
     if isinstance(value, datetime.datetime):
         return value
@@ -262,11 +272,11 @@ def parse_datetime(value):
         return datetime.datetime(*map(int, tokens))
 
 
-class Text(six.text_type):
+class Text(str):
     def __repr__(self):
-        return u"<text: %s>" % six.text_type.__repr__(self)
+        return "<text: %s>" % str.__repr__(self)
 
 
-class Reference(six.text_type):
+class Reference(str):
     def __repr__(self):
-        return u"<ref: %s>" % six.text_type.__repr__(self)
+        return "<ref: %s>" % str.__repr__(self)

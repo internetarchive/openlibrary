@@ -59,7 +59,7 @@ export const editionIdentifiersSample = `<fieldset id="identifiers">
                 <input type="hidden" name="edition--identifiers--3--name" value="goodreads">
                 <input type="hidden" name="edition--identifiers--3--value" value="44415839">
             </td>
-            
+
             <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
         </tr></tbody>
 </table>

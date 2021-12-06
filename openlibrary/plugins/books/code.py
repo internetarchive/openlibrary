@@ -11,6 +11,7 @@ from infogami.plugins.api.code import jsonapi
 
 from openlibrary.plugins.books import dynlinks, readlinks
 
+
 class books_json(delegate.page):
     path = "/api/books"
 
@@ -21,17 +22,21 @@ class books_json(delegate.page):
             i.format = 'json'
         return dynlinks.dynlinks(i.bibkeys.split(","), i)
 
+
 class read_singleget(delegate.page):
-    """Handle the single-lookup form of the Hathi-style API
-    """
-    path = r"/api/volumes/(brief|full)/(oclc|lccn|issn|isbn|htid|olid|recordnumber)/(.+)"
+    """Handle the single-lookup form of the Hathi-style API"""
+
+    path = (
+        r"/api/volumes/(brief|full)/(oclc|lccn|issn|isbn|htid|olid|recordnumber)/(.+)"
+    )
     encoding = "json"
+
     @jsonapi
     def GET(self, brief_or_full, idtype, idval):
         i = web.input()
 
         web.ctx.headers = []
-        req = '%s:%s' % (idtype, idval)
+        req = f'{idtype}:{idval}'
         result = readlinks.readlinks(req, i)
         if req in result:
             result = result[req]
@@ -39,13 +44,15 @@ class read_singleget(delegate.page):
             result = []
         return json.dumps(result)
 
+
 class read_multiget(delegate.page):
-    """Handle the multi-lookup form of the Hathi-style API
-    """
+    """Handle the multi-lookup form of the Hathi-style API"""
+
     path = r"/api/volumes/(brief|full)/json/(.+)"
     path_re = re.compile(path)
+
     @jsonapi
-    def GET(self, brief_or_full, req): # params aren't used, see below
+    def GET(self, brief_or_full, req):  # params aren't used, see below
         i = web.input()
 
         # Work around issue with gunicorn where semicolon and after

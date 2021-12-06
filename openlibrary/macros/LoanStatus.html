@@ -14,11 +14,18 @@ $ loanstatus_start_time = time()
 $ availability = (doc.availability or {}) if hasattr(doc, 'availability') else {}
 $ ocaid = doc.get('ocaid') or availability.get('identifier')
 $ work_key = work_key or (doc.get('works') and doc.works[0].key)
+$ no_index = hasattr(doc, 'get_ia_meta_fields') and doc.get_ia_meta_fields().get('noindex', False)
 
 $ waiting_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_waiting_loan_for(ocaid)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
 
-$# Replace existing, possibly inaccurate, availability with results ground truth availability API call: 
+
+$if not waiting_loan:
+  $ book_provider = get_book_provider(doc)
+$else:
+  $ book_provider = get_book_provider.ia
+
+$# Replace existing, possibly inaccurate, availability with results ground truth availability API call:
 $if allow_expensive_availability_check and ocaid:
   $ availability.update(get_cached_groundtruth_availability(ocaid))
 
@@ -43,6 +50,9 @@ $if user_loan:
         });
       });
     </script>
+
+$elif book_provider and book_provider.short_name != 'ia':
+  $:book_provider.render_read_button(doc)
 
 $elif availability.get('is_readable'):
   $:macros.ReadButton(ocaid, listen=listen)
@@ -111,14 +121,15 @@ $else:
        data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
   </div>
 
-$if ocaid and secondary_action and availability.get('is_printdisabled'):
-  $:macros.BookPreview(ocaid)
+$if ocaid and secondary_action and availability.get('is_printdisabled') and book_provider.short_name == 'ia':
+  $:macros.BookPreview(ocaid, linkback=not no_index)
   $:macros.BookSearchInside(ocaid)
 
 $:post
 
-$if ocaid and daisy:
-  $:macros.daisy('/ia/%s/daisy' % ocaid, protected=availability.get('is_printdisabled'))
+$if ocaid and daisy and book_provider.short_name == 'ia':
+  $ url = doc.get('url') or doc.get('key') + '/-'
+  $:macros.daisy('%s/daisy' % url, protected=availability.get('is_printdisabled'))
 
 $if query_param('debug'):
   $ loanstatus_end_time = time() - loanstatus_start_time

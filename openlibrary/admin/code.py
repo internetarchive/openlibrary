@@ -10,6 +10,7 @@ app = web.auto_application()
 app.add_processor(utils.admin_processor)
 app.notfound = utils.notfound
 
+
 class home(app.page):
     path = "/admin/?"
 
@@ -17,13 +18,16 @@ class home(app.page):
         stats = admin.get_stats()
         return render_template("admin/index", stats)
 
+
 class static(app.page):
     path = "(/(?:images|js|css)/.*)"
 
     def GET(self, path):
         raise web.seeother("/static/upstream" + path)
 
+
 def setup():
     # load templates from this package so that they are available via render_template
     from infogami.utils import template
+
     template.load_templates(os.path.dirname(__file__))

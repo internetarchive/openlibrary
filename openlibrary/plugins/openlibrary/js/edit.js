@@ -58,10 +58,10 @@ export function initRoleValidation() {
     $('#roles').repeat({
         vars: {prefix: 'edition--'},
         validate: function (data) {
-            if (data.role == '' || data.role == '---') {
+            if (data.role === '' || data.role === '---') {
                 return error('#role-errors', '#select-role', dataConfig['Please select a role.']);
             }
-            if (data.name == '') {
+            if (data.name === '') {
                 return error('#role-errors', '#role-name', dataConfig['You need to give this ROLE a name.'].replace(/ROLE/, data.role));
             }
             $('#role-errors').hide();
@@ -75,20 +75,20 @@ export function initIdentifierValidation() {
     $('#identifiers').repeat({
         vars: {prefix: 'edition--'},
         validate: function (data) {
-            if (data.name == '' || data.name == '---') {
+            if (data.name === '' || data.name === '---') {
                 return error('#id-errors', 'select-id', dataConfig['Please select an identifier.'])
             }
             const label = $('#select-id').find(`option[value='${data.name}']`).html();
-            if (data.value == '') {
+            if (data.value === '') {
                 return error('#id-errors', 'id-value', dataConfig['You need to give a value to ID.'].replace(/ID/, label));
             }
             if (['ocaid'].includes(data.name) && /\s/g.test(data.value)) {
                 return error('#id-errors', 'id-value', dataConfig['ID ids cannot contain whitespace.'].replace(/ID/, label));
             }
-            if (data.name == 'isbn_10' && data.value.length != 10) {
+            if (data.name === 'isbn_10' && data.value.length !== 10) {
                 return error('#id-errors', 'id-value', dataConfig['ID must be exactly 10 characters [0-9] or X.'].replace(/ID/, label));
             }
-            if (data.name == 'isbn_13' && data.value.replace(/-/g, '').length != 13) {
+            if (data.name === 'isbn_13' && data.value.replace(/-/g, '').length !== 13) {
                 return error('#id-errors', 'id-value', dataConfig['ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'].replace(/ID/, label));
             }
             $('id-errors').hide();
@@ -102,10 +102,10 @@ export function initClassificationValidation() {
     $('#classifications').repeat({
         vars: {prefix: 'edition--'},
         validate: function (data) {
-            if (data.name == '' || data.name == '---') {
+            if (data.name === '' || data.name === '---') {
                 return error('#classification-errors', '#select-classification', dataConfig['Please select a classification.']);
             }
-            if (data.value == '') {
+            if (data.value === '') {
                 const label = $('#select-classification').find(`option[value='${data.name}']`).html();
                 return error('#classification-errors', '#classification-value', dataConfig['You need to give a value to CLASS.'].replace(/CLASS/, label));
             }

@@ -43,7 +43,7 @@ $if q and 'error' not in results:
     <ul class="subjectList">
     $for doc in response['docs']:
         $ n = doc['name']
-        $ key = '/subjects/' + url_map.get(doc['type'], '') + n.lower().replace(' ', '_').replace('?', '').replace(',', '')
+        $ key = '/subjects/' + url_map.get(doc['type'], '') + n.lower().replace(' ', '_').replace('?', '').replace(',', '').replace('/', '')
 
         <li>
             <a href="$key">$n</a>

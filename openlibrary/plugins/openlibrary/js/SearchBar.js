@@ -2,6 +2,7 @@ import { debounce } from './nonjquery_utils.js';
 import * as SearchUtils from './SearchUtils';
 import { PersistentValue } from './SearchUtils';
 import $ from 'jquery';
+import { websafe } from './jsdef'
 
 /** Mapping of search bar facets to search endpoints */
 const FACET_TO_ENDPOINT = {
@@ -29,7 +30,7 @@ const RENDER_AUTOCOMPLETE_RESULT = {
                 <a href="${work.key}">
                     <img src="//covers.openlibrary.org/b/id/${work.cover_i}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png" alt=""/>
                     <span class="book-desc">
-                        <div class="book-title">${work.title}</div> by <span class="book-author">${author_name}</span>
+                        <div class="book-title">${websafe(work.title)}</div> by <span class="book-author">${websafe(author_name)}</span>
                     </span>
                 </a>
             </li>`;
@@ -38,8 +39,8 @@ const RENDER_AUTOCOMPLETE_RESULT = {
         return `
             <li>
                 <a href="/authors/${author.key}">
-                    <img src="http://covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png" alt=""/>
-                    <span class="author-desc"><div class="author-name">${author.name}</div></span>
+                    <img src="//covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png" alt=""/>
+                    <span class="author-desc"><div class="author-name">${websafe(author.name)}</div></span>
                 </a>
             </li>`;
     }
@@ -100,7 +101,7 @@ export class SearchBar {
 
         if (urlParams.q) {
             let q = urlParams.q.replace(/\+/g, ' ');
-            if (this.facet.read() === 'title' && q.indexOf('title:') != -1) {
+            if (this.facet.read() === 'title' && q.indexOf('title:') !== -1) {
                 const parts = q.split('"');
                 if (parts.length === 3) {
                     q = parts[1];
@@ -220,7 +221,7 @@ export class SearchBar {
      * @return {String}
      */
     static marshalBookSearchQuery(q) {
-        if (q && q.indexOf(':') == -1 && q.indexOf('"') == -1) {
+        if (q && q.indexOf(':') === -1 && q.indexOf('"') === -1) {
             q = `title: "${q}"`;
         }
         return q;
@@ -299,7 +300,7 @@ export class SearchBar {
     handleFacetSelectChange(event) {
         const newFacet = event.target.value;
         // We don't want to persist advanced becaues it behaves like a button
-        if (newFacet == 'advanced') {
+        if (newFacet === 'advanced') {
             event.preventDefault();
             this.navigateTo('/advancedsearch');
         } else {

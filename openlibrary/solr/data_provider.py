@@ -8,6 +8,7 @@ Multiple data providers are supported, each is good for different use case.
 import logging
 from typing import Dict, List, Optional
 
+import requests
 import web
 from web import DB
 
@@ -18,7 +19,8 @@ logger = logging.getLogger("openlibrary.solr.data_provider")
 
 global ia_database
 
-def get_data_provider(type="default",ia_db=''):
+
+def get_data_provider(type="default", ia_db=''):
     global ia_database
     ia_database = ia_db
     """Returns the data provider of given type.
@@ -103,9 +105,11 @@ class DataProvider:
     def clear_cache(self):
         raise NotImplementedError()
 
+
 class LegacyDataProvider(DataProvider):
     def __init__(self):
-        from openlibrary.catalog.utils.query import  query_iter, withKey
+        from openlibrary.catalog.utils.query import query_iter, withKey
+
         self._query_iter = query_iter
         self._withKey = withKey
 
@@ -117,7 +121,7 @@ class LegacyDataProvider(DataProvider):
 
     def get_editions_of_work(self, work):
         logger.info("find_editions_of_work %s", work['key'])
-        q = {'type':'/type/edition', 'works': work['key'], '*': None}
+        q = {'type': '/type/edition', 'works': work['key'], '*': None}
         return list(self._query_iter(q))
 
     def get_metadata(self, identifier):
@@ -132,23 +136,55 @@ class LegacyDataProvider(DataProvider):
         # Nothing's cached, so nothing to clear!
         return
 
+
+class ExternalDataProvider(DataProvider):
+    """
+    Only used for local env, this data provider fetches data using public OL apis
+    """
+
+    def __init__(self, ol_host: str):
+        self.ol_host = ol_host
+
+    def find_redirects(self, key: str):
+        # NOT IMPLEMENTED
+        return []
+
+    def get_editions_of_work(self, work):
+        resp = requests.get(
+            f"http://{self.ol_host}{work['key']}/editions.json", params={'limit': 500}
+        ).json()
+        if 'next' in resp['links']:
+            logger.warning(f"Too many editions for {work['key']}")
+        return resp['entries']
+
+    def get_metadata(self, identifier: str):
+        return ia.get_metadata(identifier)
+
+    def get_document(self, key: str):
+        return requests.get(f"http://{self.ol_host}{key}.json").json()
+
+    def clear_cache(self):
+        # Nothing's cached, so nothing to clear!
+        return
+
+
 class BetterDataProvider(LegacyDataProvider):
     def __init__(
-            self,
-            site: Site = None,
-            db: DB = None,
-            ia_db: DB = None,
+        self,
+        site: Site = None,
+        db: DB = None,
+        ia_db: DB = None,
     ):
         LegacyDataProvider.__init__(self)
 
         # cache for documents
-        self.cache: Dict[str, dict] = {}
-        self.metadata_cache: Dict[str, Optional[dict]] = {}
+        self.cache: dict[str, dict] = {}
+        self.metadata_cache: dict[str, Optional[dict]] = {}
 
         # cache for redirects
-        self.redirect_cache: Dict[str, List[str]] = {}
+        self.redirect_cache: dict[str, list[str]] = {}
 
-        self.edition_keys_of_works_cache: Dict[str, List[str]] = {}
+        self.edition_keys_of_works_cache: dict[str, list[str]] = {}
 
         import infogami
         from infogami.utils import delegate
@@ -161,6 +197,7 @@ class BetterDataProvider(LegacyDataProvider):
             delegate.fakeload()
 
             from openlibrary.solr.process_stats import get_db
+
             self.db: DB = get_db()
         else:
             self.db = db
@@ -188,15 +225,16 @@ class BetterDataProvider(LegacyDataProvider):
 
         logger.info("preload_metadata %s", identifiers)
 
-        fields = ('identifier, boxid, isbn, ' +
-                  'title, description, publisher, creator, ' +
-                  'date, collection, ' +
-                  'repub_state, mediatype, noindex')
+        fields = (
+            'identifier, boxid, isbn, '
+            + 'title, description, publisher, creator, '
+            + 'date, collection, '
+            + 'repub_state, mediatype, noindex'
+        )
 
-        rows = self.ia_db.select('metadata',
-            what=fields,
-            where='identifier IN $identifiers',
-            vars=locals())
+        rows = self.ia_db.select(
+            'metadata', what=fields, where='identifier IN $identifiers', vars=locals()
+        )
 
         for row in rows:
             self.metadata_cache[row.identifier] = row
@@ -205,7 +243,7 @@ class BetterDataProvider(LegacyDataProvider):
             self.metadata_cache.setdefault(id, None)
 
     def get_document(self, key):
-        #logger.info("get_document %s", key)
+        # logger.info("get_document %s", key)
         if key not in self.cache:
             self.preload_documents([key])
         if key not in self.cache:
@@ -213,12 +251,14 @@ class BetterDataProvider(LegacyDataProvider):
         return self.cache.get(key) or {"key": key, "type": {"key": "/type/delete"}}
 
     def preload_documents(self, keys):
-        identifiers = [k.replace("/books/ia:", "") for k in keys if k.startswith("/books/ia:")]
-        #self.preload_ia_items(identifiers)
+        identifiers = [
+            k.replace("/books/ia:", "") for k in keys if k.startswith("/books/ia:")
+        ]
+        # self.preload_ia_items(identifiers)
         re_key = web.re_compile(r"/(books|works|authors)/OL\d+[MWA]")
 
-        keys2 = set(k for k in keys if re_key.match(k))
-        #keys2.update(k for k in self.ia_redirect_cache.values() if k is not None)
+        keys2 = {k for k in keys if re_key.match(k)}
+        # keys2.update(k for k in self.ia_redirect_cache.values() if k is not None)
         self.preload_documents0(keys2)
         self._preload_works()
         self._preload_authors()
@@ -226,7 +266,7 @@ class BetterDataProvider(LegacyDataProvider):
         self._preload_metadata_of_editions()
 
         # for all works and authors, find redirects as they'll requested later
-        keys3 = [k for k in self.cache if k.startswith("/works/") or k.startswith("/authors/")]
+        keys3 = [k for k in self.cache if k.startswith(("/works/", "/authors/"))]
         self.preload_redirects(keys3)
 
     def preload_documents0(self, keys):
@@ -240,8 +280,7 @@ class BetterDataProvider(LegacyDataProvider):
                 self.cache[doc['key']] = doc.dict()
 
     def _preload_works(self):
-        """Preloads works for all editions in the cache.
-        """
+        """Preloads works for all editions in the cache."""
         keys = []
         for doc in self.cache.values():
             if doc and doc['type']['key'] == '/type/edition' and doc.get('works'):
@@ -262,13 +301,12 @@ class BetterDataProvider(LegacyDataProvider):
             if doc and doc['type']['key'] == '/type/edition':
                 if doc.get('ocaid'):
                     identifiers.append(doc['ocaid'])
-                #source_records = doc.get("source_records", [])
-                #identifiers.extend(r[len("ia:"):] for r in source_records if r.startswith("ia:"))
+                # source_records = doc.get("source_records", [])
+                # identifiers.extend(r[len("ia:"):] for r in source_records if r.startswith("ia:"))
         self.preload_metadata(identifiers)
 
     def _preload_authors(self):
-        """Preloads authors for all works in the cache.
-        """
+        """Preloads authors for all works in the cache."""
         keys = []
         for doc in self.cache.values():
             if doc and doc['type']['key'] == '/type/work' and doc.get('authors'):
@@ -278,8 +316,7 @@ class BetterDataProvider(LegacyDataProvider):
         self.preload_documents0(list(set(keys)))
 
     def find_redirects(self, key):
-        """Returns all the keys that are redirected to this.
-        """
+        """Returns all the keys that are redirected to this."""
         self.preload_redirects([key])
         return self.redirect_cache[key]
 
@@ -295,7 +332,7 @@ class BetterDataProvider(LegacyDataProvider):
         query = {
             "type": "/type/redirect",
             "location": keys,
-            "a:location": None # asking it to fill location in results
+            "a:location": None,  # asking it to fill location in results
         }
         for k in keys:
             self.redirect_cache.setdefault(k, [])
@@ -312,7 +349,9 @@ class BetterDataProvider(LegacyDataProvider):
         return [self.cache[k] for k in edition_keys]
 
     def preload_editions_of_works(self, work_keys):
-        work_keys = [wkey for wkey in work_keys if wkey not in self.edition_keys_of_works_cache]
+        work_keys = [
+            wkey for wkey in work_keys if wkey not in self.edition_keys_of_works_cache
+        ]
         if not work_keys:
             return
         logger.info("preload_editions_of_works %s ..", work_keys[:5])
@@ -320,21 +359,26 @@ class BetterDataProvider(LegacyDataProvider):
         # Infobase doesn't has a way to do find editions of multiple works at once.
         # Using raw SQL to avoid making individual infobase queries, which is very
         # time consuming.
-        key_query = ("select id from property where name='works'" +
-                    " and type=(select id from thing where key='/type/edition')")
+        key_query = (
+            "select id from property where name='works'"
+            + " and type=(select id from thing where key='/type/edition')"
+        )
 
-        q = ("SELECT edition.key as edition_key, work.key as work_key" +
-            " FROM thing as edition, thing as work, edition_ref" +
-            " WHERE edition_ref.thing_id=edition.id" +
-            "   AND edition_ref.value=work.id" +
-            "   AND edition_ref.key_id=({})".format(key_query) +
-            "   AND work.key in $keys")
+        q = (
+            "SELECT edition.key as edition_key, work.key as work_key"
+            + " FROM thing as edition, thing as work, edition_ref"
+            + " WHERE edition_ref.thing_id=edition.id"
+            + "   AND edition_ref.value=work.id"
+            + f"   AND edition_ref.key_id=({key_query})"
+            + "   AND work.key in $keys"
+        )
         result = self.db.query(q, vars=dict(keys=work_keys))
         for row in result:
-            self.edition_keys_of_works_cache.setdefault(row.work_key, []).append(row.edition_key)
+            self.edition_keys_of_works_cache.setdefault(row.work_key, []).append(
+                row.edition_key
+            )
 
-        keys = [k for _keys in self.edition_keys_of_works_cache.values()
-                  for k in _keys]
+        keys = [k for _keys in self.edition_keys_of_works_cache.values() for k in _keys]
         self.preload_documents0(keys)
         return
 

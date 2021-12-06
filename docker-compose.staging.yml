@@ -11,7 +11,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
-    restart: always
+    restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - GUNICORN_OPTS= --workers 4 --timeout 180
@@ -30,6 +30,9 @@ services:
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
       - .:/openlibrary
+
+  memcached:
+    restart: unless-stopped
 
 volumes:
   ol-vendor:

@@ -5,7 +5,7 @@ REPO_DIRS="/opt/olsystem /opt/openlibrary /opt/openlibrary/vendor/infogami /opt/
 
 for REPO_DIR in $REPO_DIRS; do
     echo $REPO_DIR
-    
+
     for SERVER in $SERVERS; do
 	ssh $SERVER "cd $REPO_DIR; echo -ne $SERVER'\t'; git rev-parse HEAD"
     done

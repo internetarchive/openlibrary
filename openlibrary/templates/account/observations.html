@@ -26,7 +26,7 @@ $def with (observations, user, num_found, page=1, results_per_page=25)
               $ modal_id = str(work_id) + "-observations-modal"
               $ list_id = str(work_id) + "-observations-list"
 
-              <h3 class="observations-header">Observations</h3>
+              <h3 class="observations-header">$_('Reviews')</h3>
               <ul class="observations-list" id="$list_id">
                 $for k in sorted(i['observations']):
                   $ category = k.capitalize()
@@ -37,7 +37,7 @@ $def with (observations, user, num_found, page=1, results_per_page=25)
               </ul>
               <div class="observation-buttons">
                 <button class="delete-observations-button cta-btn" id="$work_id-observation-delete">$_('Delete')</button>
-                $:macros.ObservationsModal(i.work, _('Update Observations'), modal_id, classes="observations-update-link", reload_id=list_id)
+                $:macros.ObservationsModal(i.work, _('Update Reviews'), modal_id, classes="observations-update-link", reload_id=list_id)
               </div>
             </div>
           </li>

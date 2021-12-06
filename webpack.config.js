@@ -29,7 +29,9 @@ module.exports = {
     // A map of ResourceLoader module / entry chunk names to JavaScript files to pack.
     entry: {
         all: './openlibrary/plugins/openlibrary/js/index.js',
+        partnerLib: './openlibrary/plugins/openlibrary/js/partner_ol_lib.js',
         vue: './openlibrary/plugins/openlibrary/js/vue.js',
+        sw: './openlibrary/plugins/openlibrary/js/service-worker.js',
     },
 
     resolve: {
@@ -39,7 +41,7 @@ module.exports = {
         new webpack.ProvidePlugin({
             $: 'jquery',
             jQuery: 'jquery'
-        })
+        }),
     ],
     module: {
         rules: [{

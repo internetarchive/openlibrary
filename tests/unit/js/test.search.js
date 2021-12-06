@@ -43,11 +43,11 @@ function createSearchFacets(totalFacet = 2, visibleFacet = 2, minVisibleFacet = 
         </div>
     `;
 
-    if (visibleFacet == minVisibleFacet) {
+    if (visibleFacet === minVisibleFacet) {
         divTestFacet.querySelector('#test_bull').style.display = 'none';
         divTestFacet.querySelector('#test_less').style.display = 'none';
     }
-    if (visibleFacet == totalFacet) {
+    if (visibleFacet === totalFacet) {
         divTestFacet.querySelector('#test_more').style.display = 'none';
         divTestFacet.querySelector('#test_bull').style.display = 'none';
     }

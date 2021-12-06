@@ -101,7 +101,7 @@ const Carousel = {
             const availabilityStatus = availabilityStatuses[availability.status] || availabilityStatuses.error;
             const cls = availabilityStatus.cls;
             const cta = availabilityStatus.cta;
-            const url = cls == 'cta-btn--available' ? `/borrow/ia/${ocaid}` : work.key;
+            const url = cls === 'cta-btn--available' ? `/borrow/ia/${ocaid}` : work.key;
 
             if (!cover.id && ocaid) {
                 cover.type = 'ia';
@@ -151,7 +151,7 @@ const Carousel = {
                     loadMore.locked = true; // lock for critical section
                     slick.addSlide('<div class="carousel__item carousel__loading-end">Loading...</div>');
 
-                    if (loadMore.pageMode == 'page') {
+                    if (loadMore.pageMode === 'page') {
                         // for first time, we're on page 1 already so initialize as page 2
                         // otherwise advance to next page
                         loadMore.page = loadMore.page ? loadMore.page + 1 : 2;
