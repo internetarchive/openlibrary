@@ -94,6 +94,41 @@ class ratings(delegate.page):
     path = r"/works/OL(\d+)W/ratings"
     encoding = "json"
 
+    @jsonapi
+    def GET(self, work_id):
+        from openlibrary.core.ratings import Ratings
+        stats = Ratings.get_work_ratings_summary(work_id)
+
+        if stats:
+            return json.dumps({
+                'summary': {
+                    'average': stats['ratings_average'],
+                    'count': stats['ratings_count'],
+                },
+                'counts': {
+                    '1': stats['ratings_count_1'],
+                    '2': stats['ratings_count_2'],
+                    '3': stats['ratings_count_3'],
+                    '4': stats['ratings_count_4'],
+                    '5': stats['ratings_count_5'],
+                },
+            })
+        else:
+            return json.dumps({
+                'summary': {
+                    'average': None,
+                    'count': 0,
+                },
+                'counts': {
+                    '1': 0,
+                    '2': 0,
+                    '3': 0,
+                    '4': 0,
+                    '5': 0,
+                },
+            })
+
+
     def POST(self, work_id):
         """Registers new ratings for this work"""
         user = accounts.get_current_user()

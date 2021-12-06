@@ -1,6 +1,18 @@
+from typing import TypedDict, Optional
+
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
+
+
+class WorkRatingsSummary(TypedDict):
+    ratings_average: float
+    ratings_count: int
+    ratings_count_1: int
+    ratings_count_2: int
+    ratings_count_3: int
+    ratings_count_4: int
+    ratings_count_5: int
 
 
 class Ratings:
@@ -63,6 +75,27 @@ class Ratings:
         )
         result = oldb.query(query, vars={'work_id': int(work_id)})
         return result[0] if result else {}
+
+    @classmethod
+    def get_work_ratings_summary(cls, work_id: int) -> Optional[WorkRatingsSummary]:
+        oldb = db.get_db()
+        # NOTE: Using some old postgres syntax here :/ for modern postgres syntax,
+        # see the query in solr_builder.py
+        query = """
+            SELECT
+                avg(rating)::FLOAT as ratings_average,
+                count(*) as ratings_count,
+                sum( CASE WHEN rating = 1 THEN 1 ELSE 0 END ) as ratings_count_1,
+                sum( CASE WHEN rating = 2 THEN 1 ELSE 0 END ) as ratings_count_2,
+                sum( CASE WHEN rating = 3 THEN 1 ELSE 0 END ) as ratings_count_3,
+                sum( CASE WHEN rating = 4 THEN 1 ELSE 0 END ) as ratings_count_4,
+                sum( CASE WHEN rating = 5 THEN 1 ELSE 0 END ) as ratings_count_5
+            FROM ratings
+            WHERE work_id = $work_id
+            GROUP BY work_id
+        """
+        result = oldb.query(query, vars={'work_id': work_id})
+        return result[0] if result else None
 
     @classmethod
     def get_all_works_ratings(cls, work_id):
