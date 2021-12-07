@@ -8,7 +8,7 @@ flup-py3==1.0.3
 Genshi==0.7.5
 gunicorn==20.1.0
 httpx==0.18.2
-internetarchive==2.1.0
+internetarchive==2.2.0
 isbnlib==3.10.6
 lxml==4.6.3
 Pillow==8.2.0
