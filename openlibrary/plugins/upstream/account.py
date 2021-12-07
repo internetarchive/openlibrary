@@ -741,9 +741,11 @@ class account_my_books_redirect(delegate.page):
 
     @require_login
     def GET(self, rest='loans'):
+        i = web.input(page=1)
         user = accounts.get_current_user()
         username = user.key.split('/')[-1]
-        raise web.seeother(f'/people/{username}/books/{rest}')
+        query_params = f'?page={i.page}' if h.safeint(i.page) > 1 else ''
+        raise web.seeother(f'/people/{username}/books/{rest}{query_params}')
 
 
 class account_my_books(delegate.page):

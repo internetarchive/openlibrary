@@ -12,6 +12,9 @@ $ form_id = "ratingsForm%s" % id
   <input type="hidden" value="$edition_key" name="edition_id"/>
   <input type="hidden" value="true" name="redir"/>
   $if redir_url:
+    $ page = query_param('page', '0')
+    $if safeint(page) > 1:
+      <input type="hidden" value="$page" name="page"/>
     <input type="hidden" value="$redir_url" name="redir_url"/>
   <div class="review">
     <div class="stars">
