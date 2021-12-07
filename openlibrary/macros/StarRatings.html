@@ -5,7 +5,7 @@ $ rating = work and username and work.get_users_rating(username)
 $ edition_key = edition.key if edition else ""
 $ form_id = "ratingsForm%s" % id
 
-<form id="$form_id" method="POST" action="$(work.key)/ratings.json"
+<form class="star-rating-form" id="$form_id" method="POST" action="$(work.key)/ratings.json"
       property="reviewRating" typeof="Rating" vocab="http://schema.org/">
   <meta property="worstRating" content="1"/>
   <meta property="bestRating" content="5"/>

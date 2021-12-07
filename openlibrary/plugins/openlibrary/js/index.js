@@ -316,4 +316,11 @@ jQuery(function () {
             .find('details')
             .removeAttr('open');
     });
+
+    // Prevent default star rating behavior:
+    const ratingForms = document.querySelectorAll('.star-rating-form')
+    if (ratingForms) {
+        import('./handlers')
+            .then((module) => module.initRatingHandlers(ratingForms));
+    }
 });
