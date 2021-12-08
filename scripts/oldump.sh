@@ -103,8 +103,8 @@ function archive_dumps() {
     # copy stuff to archive.org
     # TODO: Switch to ia client tool. This will only work in production 'til then
     log "ia version is v$(ia --version)"  # ia version is v1.9.0
-    ia upload $dump $dump/ --metadata "collection:ol_exports" #this needs configuration in home folder
-    ia upload $cdump $cdump/ --metadata "collection:ol_exports" #this needs configuration in home folder
+    ia upload $dump $dump/ --metadata "collection:ol_exports" --metadata "year:${date:0:4}"#this needs configuration in home folder
+    ia upload $cdump $cdump/ --metadata "collection:ol_exports" --metadata "year:${date:0:4}"#this needs configuration in home folder
 }
 
 if [ "$archive" == "--archive" ];
