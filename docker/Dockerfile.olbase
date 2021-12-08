@@ -60,6 +60,8 @@ RUN apt-get update && apt-get -y install --no-install-recommends openresty
 RUN rm /usr/sbin/nginx
 RUN curl -L https://archive.org/download/nginx/nginx -o /usr/sbin/nginx
 RUN chmod +x /usr/sbin/nginx
+# Remove the stock nginx config file
+RUN rm /etc/nginx/sites-enabled/default
 
 # Install latest pyenv (https://github.com/pyenv/pyenv-installer)
 USER openlibrary
