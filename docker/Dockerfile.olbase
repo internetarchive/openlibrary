@@ -46,6 +46,23 @@ RUN apt-get -qq update && apt-get install -y build-essential libssl-dev zlib1g-d
     libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
     xz-utils tk-dev libffi-dev liblzma-dev python-openssl git
 
+# Install Archive.org nginx w/ IP anonymization
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends nginx curl \
+    # nginx-plus
+    apt-transport-https lsb-release ca-certificates wget \
+    # log rotation service for ol-nginx
+    logrotate
+RUN wget -O - https://openresty.org/package/pubkey.gpg | apt-key add -
+RUN echo "deb http://openresty.org/package/ubuntu $(lsb_release -sc) main" \
+    | tee /etc/apt/sources.list.d/openresty.list
+RUN apt-get update && apt-get -y install --no-install-recommends openresty
+RUN rm /usr/sbin/nginx
+RUN curl -L https://archive.org/download/nginx/nginx -o /usr/sbin/nginx
+RUN chmod +x /usr/sbin/nginx
+# Remove the stock nginx config file
+RUN rm /etc/nginx/sites-enabled/default
+
 # Install latest pyenv (https://github.com/pyenv/pyenv-installer)
 USER openlibrary
 RUN curl https://pyenv.run | bash && \
