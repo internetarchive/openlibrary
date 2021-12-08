@@ -5,7 +5,7 @@
 ## docker-compose up -d
 ##
 
-version: "3.1"
+version: "3.8"
 services:
   web:
     profiles: ["ol-web1", "ol-web2"]
@@ -48,41 +48,43 @@ services:
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
     hostname: "$HOSTNAME"
-    environment:
-      - GUNICORN_OPTS= --workers 30 --max-requests 500
-      - COVERSTORE_CONFIG=/olsystem/etc/coverstore.yml
-    volumes:
-      - ../olsystem:/olsystem
-      - /1:/1
+    #environment:
+    #  - GUNICORN_OPTS= --workers 30 --max-requests 500
+    #  - COVERSTORE_CONFIG=/olsystem/etc/coverstore.yml
+    #volumes:
+    #  - ../olsystem:/olsystem
+    #  - /1:/1
+    deploy:
+      replicas: 2
 
   covers_nginx:
     profiles: ["ol-covers0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     user: root
     command: docker/ol-nginx-start.sh
-    environment:
-      - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs
+    #environment:
+    #  - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs
     restart: unless-stopped
     depends_on:
       - covers
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./docker/covers_nginx.conf:/etc/nginx/sites-enabled/covers_nginx.conf:ro
+      - ./docker/covers_nginx.conf:/etc/nginx/sites-enabled/default:ro
       # Needed for HTTPS, since this is a public server
       - ./docker/public_nginx.conf:/etc/nginx/sites-available/public_nginx.conf:ro
       # Needs access to openlibrary for static files
-      - ../olsystem:/olsystem
-      - /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
+      #- ../olsystem:/olsystem
+      #- /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
       # web log rotation
-      - ../olsystem/etc/logrotate.d/nginx:/etc/logrotate.d/nginx
+      #- ../olsystem/etc/logrotate.d/nginx:/etc/logrotate.d/nginx
       # Persist the nginx logs
-      - /1/var/log/nginx:/var/log/nginx
+      #- /1/var/log/nginx:/var/log/nginx
       # Archive nginx logs regularly
-      - ../olsystem/etc/cron.d/archive-webserver-logs:/etc/cron.d/archive-webserver-logs
-      - archive-webserver-logs-data:/archive-webserver-logs-data
+      #- ../olsystem/etc/cron.d/archive-webserver-logs:/etc/cron.d/archive-webserver-logs
+      #- archive-webserver-logs-data:/archive-webserver-logs-data
     ports:
       - 80:80
-      - 443:443
+      - 1234:443
     networks:
       - webnet
     logging:
@@ -281,15 +283,15 @@ services:
 # secrets mounted to /run/secrets/
 # e.g. /run/secrets/ia_db_pw_file
 secrets:
-    ia_db_pw_file:
-      file: /opt/.petabox/dbserver
+  ia_db_pw_file:
+    file: /opt/.petabox/dbserver
 
-    # SSL-related secrets
-    ssl_certificate:
-      file: /opt/.petabox/openlibrary.org.combined.crt
-    ssl_certificate_key:
-      file: /opt/.petabox/openlibrary.org.nopassword.key
+  # SSL-related secrets
+  ssl_certificate:
+    file: ./example.crt
+  ssl_certificate_key:
+    file: ./example.key
 volumes:
-    infobase-writelog:
-    infobase-errorlog:
-    archive-webserver-logs-data:
+  infobase-writelog:
+  infobase-errorlog:
+  archive-webserver-logs-data:
