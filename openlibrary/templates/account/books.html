@@ -147,7 +147,9 @@ $var title: $header_title
       $:render_template('account/import')
     $elif key == 'lists':
       $:render_template('lists/lists', items, lists, show_header=False)
-    $elif key in {'currently-reading', 'want-to-read', 'already-read', 'sponsorships'}:
+    $elif key == 'already-read':
+      $:render_template('account/reading_log', items, key, counts[key], owners_page, current_page, sort_order=sort_order, user=user, include_ratings=owners_page)
+    $elif key in {'currently-reading', 'want-to-read', 'sponsorships'}:
       $:render_template('account/reading_log', items, key, counts[key], owners_page, current_page, sort_order=sort_order, user=user)
     $else:
       $:render_template('type/list/view', items, check_owner=False, owns_page=True)

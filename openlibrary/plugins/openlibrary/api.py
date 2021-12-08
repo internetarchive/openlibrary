@@ -132,8 +132,10 @@ class ratings(delegate.page):
     def POST(self, work_id):
         """Registers new ratings for this work"""
         user = accounts.get_current_user()
-        i = web.input(edition_id=None, rating=None, redir=False)
-        key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
+        i = web.input(edition_id=None, rating=None, redir=False, redir_url=None, page=None)
+        key = (i.redir_url if i.redir_url else
+            i.edition_id if i.edition_id else
+            ('/works/OL%sW' % work_id))
         edition_id = (
             int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
         )
@@ -166,6 +168,11 @@ class ratings(delegate.page):
             r = response('rating added')
 
         if i.redir:
+            p = h.safeint(i.page, 1)
+            query_params = f'?page={p}' if p > 1 else ''
+            if i.page:
+                raise web.seeother(f'{key}{query_params}')
+
             raise web.seeother(key)
         return r
 
