@@ -21,12 +21,9 @@ from infogami.infobase.client import ClientException
 from openlibrary.core import stats, helpers
 
 try:
-    try:
-        from simplejson.errors import JSONDecodeError
-    except ImportError:
-        from json.decoder import JSONDecodeError
-except ImportError:  # legacy Python
-    JSONDecodeError = ValueError
+    from simplejson.errors import JSONDecodeError
+except ImportError:
+    from json.decoder import JSONDecodeError  # type: ignore
 
 logger = logging.getLogger("openlibrary.account.model")
 
