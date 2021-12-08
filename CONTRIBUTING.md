@@ -5,7 +5,7 @@ This welcome section is intended for new contributors.
 
 ### Quick Tour
 
-A quick public tour of Open Library to get your familiar with the service and its offerings (10min)
+A quick public tour of Open Library to get you familiar with the service and its offerings (10min)
 
 [![archive org_embed_openlibrary-tour-2020_openlibrary ogv (1)](https://user-images.githubusercontent.com/978325/91348906-55940d00-e799-11ea-83b9-17cd4d99642b.png)](https://archive.org/embed/openlibrary-tour-2020/openlibrary.ogv)
 
