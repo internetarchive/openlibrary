@@ -1,6 +1,3 @@
-[submodule "vendor/infogami"]
-	path = vendor/infogami
-	url = https://github.com/internetarchive/infogami.git
 [submodule "vendor/js/wmd"]
 	path = vendor/js/wmd
 	url = https://github.com/internetarchive/wmd.git
