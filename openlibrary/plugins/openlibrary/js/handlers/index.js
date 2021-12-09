@@ -1,3 +1,5 @@
+import { FadingToast } from '../Toast.js';
+
 export function initRatingHandlers(ratingForms) {
     for (const form of ratingForms) {
         form.addEventListener('submit', function(e) {
@@ -28,7 +30,10 @@ function handleRatingSubmission(event, form) {
             },
             body: new URLSearchParams(formData)
         })
-            .then(function() {
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Ratings update failed')
+                }
                 // Repaint stars
                 form.querySelectorAll('.star-selected').forEach((elem) => {
                     elem.classList.remove('star-selected');
@@ -51,8 +56,7 @@ function handleRatingSubmission(event, form) {
                 }
             })
             .catch((error) => {
-                // TODO: Display failure toast
-                console.log(error)
+                new FadingToast(error.message).show();
             })
     }
 }
