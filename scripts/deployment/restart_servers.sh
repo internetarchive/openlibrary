@@ -24,10 +24,5 @@ fi
 
 for SERVER in $SERVERS; do
     HOSTNAME=$(host $SERVER | cut -d " " -f 1)
-    EXTRA_OPTS=""
-    if [[ $SERVER == ol-covers0* ]]; then
-        EXTRA_OPTS="--scale covers=2"
-    fi
-
-    ssh $SERVER "cd /opt/openlibrary; COMPOSE_FILE=$PRODUCTION HOSTNAME=$HOSTNAME OLIMAGE=$OLIMAGE docker-compose --profile $(echo $SERVER | cut -f1 -d '.') up --no-deps -d $EXTRA_OPTS"
+    ssh $SERVER "cd /opt/openlibrary; COMPOSE_FILE=$PRODUCTION HOSTNAME=$HOSTNAME OLIMAGE=$OLIMAGE docker-compose --profile $(echo $SERVER | cut -f1 -d '.') up --no-deps -d"
 done
