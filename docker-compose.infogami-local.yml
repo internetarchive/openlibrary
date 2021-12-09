@@ -3,7 +3,7 @@
 ## docker-compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.infogami-local.yml up -d
 ##
 
-version: "3.1"
+version: "3.8"
 services:
   web:
     volumes:
