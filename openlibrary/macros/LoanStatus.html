@@ -113,7 +113,9 @@ $elif ('eligibility' in doc) or (check_sponsorship and not ocaid and not availab
         <a href="https://openlibrary.org/bookdrive" target="_blank">$_('Learn More')</a>
       </p>
   $else:
-    <a href="$work_key" class="cta-btn cta-btn--missing" data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
+    <div class="cta-button-group">
+      <a href="$work_key" class="cta-btn cta-btn--missing" data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
+    </div>
 
 $else:
   <div class="cta-button-group">
