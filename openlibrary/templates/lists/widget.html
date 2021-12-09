@@ -225,7 +225,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                 </div>
 
               $else:
-                <a href="/account/login?redir=$pageurl" class="dropclick plain">
+                <a href="/account/login?redirect=$pageurl" class="dropclick plain">
                   <h3>$('Add to List')</h3>
                   <div class="arrow"></div>
                 </a>
@@ -280,7 +280,7 @@ $if include_widget:
 
                   <button class="unactivated" type="submit">$_('Want to Read')</button>
                 </form>
-                <a href="/account/login?redir=$(page_url)" class="dropclick-prevent dropclick-unactivated">
+                <a href="/account/login?redirect=$(page_url)" class="dropclick-prevent dropclick-unactivated">
                   <div class="arrow arrow-unactivated"></div>
                 </a>
             </div>
@@ -289,7 +289,7 @@ $if include_widget:
   $if work:
     $if include_rating:
       $:macros.StarRatings(work, edition)
-    $if edition:
+    $if ctx.user and edition:
       $if work.has_book_note(username, edition.key.split('/')[-1]):
         $ link_text = _("Update my book note")
       $else:
