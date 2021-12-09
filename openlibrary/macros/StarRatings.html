@@ -50,6 +50,8 @@ $ form_id = "ratingsForm%s" % id
         </a>
       </div>
   </div>
-  $if rating:
-      <button type="submit" class="star-messaging">$_("Clear my rating")</button>
+  $ class_list = "star-messaging"
+  $if not rating:
+    $ class_list = "%s hidden" % (class_list)
+  <button type="submit" class="$class_list">$_("Clear my rating")</button>
 </form>
