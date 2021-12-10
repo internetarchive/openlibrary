@@ -3,6 +3,7 @@ on:
   push:
     branches: [ master ]
     paths: [ 'stories/**' ]
+  workflow_dispatch:
 jobs:
   deploy_storybook:
     runs-on: ubuntu-latest
