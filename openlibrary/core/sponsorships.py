@@ -23,7 +23,7 @@ try:
 except ImportError:
     BLOCKED_PATRONS = []
 
-    def eligibility_check(edition):
+    def eligibility_check(edition, patron=None):
         """For testing if Internet Archive book sponsorship check unavailable"""
         return False
 
