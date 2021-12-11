@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
 "POT-Creation-Date: 2021-11-23 08:44+0000\n"
-"PO-Revision-Date: 2021-12-07 21:20+0100\n"
+"PO-Revision-Date: 2021-12-11 19:04+0100\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
 "Language-Team: fr <traduc@traduc.org>\n"
@@ -795,7 +795,7 @@ msgstr "Zoomer"
 
 #: work_search.html:195
 msgid "Focus your results using these"
-msgstr "Affinez les résultats avec cela"
+msgstr "Affinez les résultats avec ces"
 
 #: work_search.html:195
 msgid "filters"
@@ -819,7 +819,7 @@ msgstr "non"
 
 #: work_search.html:222
 msgid "Filter results for ebook availability"
-msgstr "Filtrer les résultats par disponibilité des livres électroniques"
+msgstr "Filtrer les résultats par disponibilité de livres électroniques"
 
 #: work_search.html:224
 #, python-format
@@ -849,7 +849,7 @@ msgstr "Notes de livre"
 
 #: EditionNavBar.html:20 account/books.html:32 account/observations.html:33
 msgid "Reviews"
-msgstr "Avis"
+msgstr "Critiques"
 
 #: account/books.html:34
 msgid "Books You've Checked Out"
@@ -860,9 +860,8 @@ msgid "Books You're Waiting For"
 msgstr "Livres que vous attendez"
 
 #: account/books.html:38
-#, fuzzy
 msgid "Imports and Exports"
-msgstr "Options d'import et d'export"
+msgstr "Imports et exports"
 
 #: account/books.html:40 lib/nav_head.html:12
 msgid "My Lists"
@@ -878,14 +877,12 @@ msgid "Checked out"
 msgstr "Emprunté"
 
 #: account/books.html:60
-#, fuzzy
 msgid "Waitlist"
-msgstr "Réserver"
+msgstr "Liste d'attente"
 
 #: account/books.html:64
-#, fuzzy
 msgid "Loan History"
-msgstr "Mon historique d'emprunt"
+msgstr "Historique d'emprunt"
 
 #: ReadingLogButton.html:9 account/books.html:70
 #: account/readinglog_shelf_name.html:8 lists/widget.html:128
@@ -904,26 +901,22 @@ msgid "Already Read"
 msgstr "Déjà lu"
 
 #: account/books.html:75
-#, fuzzy
 msgid "My Notes"
-msgstr "Par des bots"
+msgstr "Mes notes"
 
 #: account/books.html:76
-#, fuzzy
 msgid "My Reviews"
-msgstr "Avis"
+msgstr "Mes critiques"
 
 #: account/books.html:78
-#, fuzzy
 msgid "Reading Stats"
-msgstr "Mes statistiques de lecture"
+msgstr "Statistiques de lecture"
 
 #: account/books.html:79
 msgid "Import & Export Options"
-msgstr "Options d'import et export"
+msgstr "Options d'import et d'export"
 
 #: account/books.html:87
-#, fuzzy
 msgid "Sponsoring"
 msgstr "Parrainage"
 
@@ -936,14 +929,12 @@ msgid "Lists"
 msgstr "Listes"
 
 #: account/books.html:91
-#, fuzzy
 msgid "See All"
 msgstr "Tout voir"
 
 #: account/books.html:117
-#, fuzzy
 msgid "View stats about this shelf"
-msgstr "Aucun livre n'est sur cette étagère"
+msgstr "Voir les statistiques de cette étagère"
 
 #: account/books.html:117 account/readinglog_stats.html:93 admin/index.html:19
 msgid "Stats"
@@ -956,10 +947,9 @@ msgstr ""
 "utilisateurs."
 
 #: account/books.html:125
-#, fuzzy
 msgid "Your book reviews will be shared anonymously with other patrons."
 msgstr ""
-"Vos commentaires de livres seront partagés anonymement aux autres "
+"Vos critiques de livre seront partagées anonymement avec les autres "
 "utilisateurs."
 
 #: account/books.html:128
@@ -1037,7 +1027,7 @@ msgstr "Importer de Goodreads"
 
 #: account/import.html:18
 msgid "File size limit 10MB and .csv file type only"
-msgstr "Taille de fichier limite 10MB et fichier .csv seulement"
+msgstr "Taille de fichier limitée à 10MB et fichier .csv seulement"
 
 #: account/import.html:22
 msgid "Load Books"
@@ -1169,11 +1159,11 @@ msgstr "Supprimer"
 
 #: account/observations.html:44
 msgid "Update Reviews"
-msgstr ""
+msgstr "Mettre à jour les critiques"
 
 #: account/observations.html:50
 msgid "No observations found."
-msgstr "Aucun commentaire trouvé."
+msgstr "Aucune critique trouvée."
 
 #: account/privacy.html:7
 msgid "Your Privacy on Open Library"
@@ -1249,7 +1239,7 @@ msgstr "Date d'ajout (la plus récente)"
 
 #: account/reading_log.html:36 account/reading_log.html:40
 msgid "Date Added (oldest)"
-msgstr "Date d'ajout (la plus anciene)"
+msgstr "Date d'ajout (la plus ancienne)"
 
 #: account/reading_log.html:53
 msgid "No books are on this shelf"
@@ -1334,7 +1324,7 @@ msgstr "Œuvres correspondantes"
 
 #: account/readinglog_stats.html:148
 msgid "Click on a bar to see matching works"
-msgstr "Cliquer sur une barre pour voir des œuvres correspondantes"
+msgstr "Cliquez sur une barre pour voir des œuvres correspondantes"
 
 #: account/verify.html:7
 msgid "Verification email sent"
@@ -1782,17 +1772,16 @@ msgstr "Options de téléchargement"
 
 #: book_providers/gutenberg_download_options.html:15
 msgid "Download an HTML from Project Gutenberg"
-msgstr ""
+msgstr "Télécharger un fichier HTML de Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html:15
 #: book_providers/standard_ebooks_download_options.html:13
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #: book_providers/gutenberg_download_options.html:16
-#, fuzzy
 msgid "Download a text version from Project Gutenberg"
-msgstr "Télécharger une version texte d'Internet Archive"
+msgstr "Télécharger une version texte de Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html:16
 #: book_providers/ia_download_options.html:14
@@ -1801,24 +1790,23 @@ msgstr "Texte brut"
 
 #: book_providers/gutenberg_download_options.html:17
 msgid "Download an ePub from Project Gutenberg"
-msgstr ""
+msgstr "Télécharger un ePub de Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html:18
 msgid "Download a Kindle file from Project Gutenberg"
-msgstr ""
+msgstr "Télécharger un fichier Kindle de Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html:18
-#, fuzzy
 msgid "Kindle"
-msgstr "Type"
+msgstr "Kindle"
 
 #: book_providers/gutenberg_download_options.html:19
 msgid "More at Project Gutenberg"
-msgstr ""
+msgstr "Davantage au Project Gutenberg"
 
 #: book_providers/gutenberg_read_button.html:10
 msgid "Read eBook from Project Gutenberg"
-msgstr ""
+msgstr "Lire des livres électroniques de Project Gutenberg"
 
 #: book_providers/gutenberg_read_button.html:21
 msgid ""
@@ -1828,11 +1816,15 @@ msgid ""
 "thousands of volunteers in the creation and distribution of over 60,000 "
 "free eBooks."
 msgstr ""
+"Ce livre est disponible sur <a "
+"href=\"https://www.gutenberg.org/\">Project Gutenberg</a>. Project "
+"Gutenberg est un fournisseur approuvé de livres électroniques classiques "
+", soutenant des milliers de volontaires dans la création et la "
+"distribution de plus de 60 000 livres électroniques gratuits."
 
 #: book_providers/gutenberg_read_button.html:22
 #: book_providers/librivox_read_button.html:25
 #: book_providers/standard_ebooks_read_button.html:22
-#, fuzzy
 msgid "Learn more"
 msgstr "En savoir plus"
 
@@ -1876,34 +1868,32 @@ msgid "DAISY"
 msgstr "DAISY"
 
 #: book_providers/librivox_download_options.html:12
-#, fuzzy
 msgid "Download a ZIP file of the whole book from Internet Archive"
-msgstr "Télécharger un fichier MOBI d'Internet Archive"
+msgstr "Télécharger un fichier ZIP du livre complet d'Internet Archive"
 
 #: book_providers/librivox_download_options.html:12
 msgid "Whole Book MP3"
-msgstr ""
+msgstr "MP3 du livre complet"
 
 #: book_providers/librivox_download_options.html:13
 msgid "Get the RSS Feed from LibriVox"
-msgstr ""
+msgstr "Récupérer le flux RSS de LibriVox"
 
 #: book_providers/librivox_download_options.html:13
 msgid "RSS Feed"
-msgstr ""
+msgstr "Flux RSS"
 
 #: book_providers/librivox_download_options.html:14
 msgid "More at LibriVox"
-msgstr ""
+msgstr "Davantage à Librivox"
 
 #: book_providers/librivox_read_button.html:9
 msgid "Listen to a reading from LibriVox"
-msgstr ""
+msgstr "Écouter une lecture de Librivox"
 
 #: book_providers/librivox_read_button.html:17
-#, fuzzy
 msgid "Audiobook"
-msgstr "Livre au hasard"
+msgstr "Livre audio"
 
 #: book_providers/librivox_read_button.html:24
 msgid ""
@@ -1912,34 +1902,38 @@ msgid ""
 "provider of public domain audiobooks, narrated by volunteers, distributed"
 " for free on the internet."
 msgstr ""
+"Ce livre est disponible sur <a "
+"href=\"https://librivox.org/\">LibriVox</a>. Librivox est un fournisseur "
+"approuvé de livres audio dans le domaine publique, narrés par des "
+"volontaires et distribués gratuitement sur internet."
 
 #: book_providers/standard_ebooks_download_options.html:13
 msgid "Download an HTML from Standard Ebooks"
-msgstr ""
+msgstr "Télécharger un fichier HTML de Standard Ebooks"
 
 #: book_providers/standard_ebooks_download_options.html:14
 msgid "Download an ePub from Standard Ebook."
-msgstr ""
+msgstr "Télécharger un ePub de Standard Ebook."
 
 #: book_providers/standard_ebooks_download_options.html:15
 msgid "Download a Kindle file from Standard Ebooks"
-msgstr ""
+msgstr "Télécharger un fichier Kindle de Standard Ebooks"
 
 #: book_providers/standard_ebooks_download_options.html:15
 msgid "Kindle (azw3)"
-msgstr ""
+msgstr "Kindle (azw3)"
 
 #: book_providers/standard_ebooks_download_options.html:16
 msgid "Download a Kobo file from Standard Ebooks"
-msgstr ""
+msgstr "Télécharger un fichier Kobo de Standard Ebooks"
 
 #: book_providers/standard_ebooks_download_options.html:16
 msgid "Kobo (kepub)"
-msgstr ""
+msgstr "Kobo (kepub)"
 
 #: book_providers/standard_ebooks_download_options.html:17
 msgid "View the source code for this Standard Ebook at GitHub"
-msgstr ""
+msgstr "Voir le code source de ce livre Standard Ebooks sur GitHub"
 
 #: Subnavigation.html:13
 #: book_providers/standard_ebooks_download_options.html:17
@@ -1948,11 +1942,11 @@ msgstr "Code source"
 
 #: book_providers/standard_ebooks_download_options.html:18
 msgid "More at Standard Ebooks"
-msgstr ""
+msgstr "Davantage à Standard Ebooks"
 
 #: book_providers/standard_ebooks_read_button.html:10
 msgid "Read eBook from Standard eBooks"
-msgstr ""
+msgstr "Lire des livres électroniques de Standard eBooks"
 
 #: book_providers/standard_ebooks_read_button.html:21
 msgid ""
@@ -1962,6 +1956,12 @@ msgid ""
 "new editions of public domain ebooks that are lovingly formatted, open "
 "source, free of copyright restrictions, and free of cost."
 msgstr ""
+"Ce livre est disponible sur <a "
+"href=\"https://standardebooks.org/\">Standard Ebooks</a>. Standard Ebooks"
+" est un fournisseur approuvé de livres et un projet conduit par des "
+"volontaires qui produit de nouvelles éditions de livres électroniques "
+"dans le domaine publique qui sont mises en forme avec amour, ouvertes, "
+"libres de droits et gratuites."
 
 #: books/add.html:7 books/check.html:10
 msgid "Add a book"
@@ -2580,7 +2580,7 @@ msgstr "Pagination ?"
 
 #: books/edit/edition.html:578
 msgid "Note the highest number in each pagination pattern."
-msgstr "Notez le plus grand numéro de chaque modèle de pagination."
+msgstr "Entrez le plus grand numéro de chaque modèle de pagination."
 
 #: books/edit/edition.html:578 lib/nav_foot.html:45
 msgid "Help"
@@ -2982,7 +2982,7 @@ msgstr "Essayer l'explorateur de bibliothèque virtuel"
 
 #: home/welcome.html:55
 msgid "Digital shelves organized like a physical library"
-msgstr "Étagéres numériques organisées comme dans une bibliothèque"
+msgstr "Étagères numériques organisées comme dans une bibliothèque"
 
 #: home/welcome.html:68
 msgid "Be an Open Librarian"
@@ -3088,8 +3088,8 @@ msgid ""
 "your text. You can preview your work in real time below the editing "
 "field."
 msgstr ""
-"Nous utilisons un système dit Markdown pour formater le texte dans vos "
-"modifications sur Open Library. Certaines balises HTML sont aussi "
+"Nous utilisons un système dit Markdown pour mettre en forme le texte dans"
+" vos modifications sur Open Library. Certaines balises HTML sont aussi "
 "acceptées. Les paragraphes sont générés automatiquement à partir des "
 "retours complets à la ligne (lignes vides) dans votre texte. Vous pouvez "
 "prévisualiser votre travail en temps réel sous le champ de modification."
@@ -3252,31 +3252,31 @@ msgstr "Changer la langue du site"
 
 #: lib/nav_foot.html:59
 msgid "Czech"
-msgstr "Tchèque"
+msgstr "tchèque"
 
 #: lib/nav_foot.html:60 lib/search_foot.html:33
 msgid "German"
-msgstr "Allemand"
+msgstr "allemand"
 
 #: lib/nav_foot.html:61 lib/search_foot.html:32
 msgid "English"
-msgstr "Anglais"
+msgstr "anglais"
 
 #: lib/nav_foot.html:62 lib/search_foot.html:35
 msgid "Spanish"
-msgstr "Espagnol"
+msgstr "espagnol"
 
 #: lib/nav_foot.html:63 lib/search_foot.html:34
 msgid "French"
-msgstr "Français"
+msgstr "français"
 
 #: lib/nav_foot.html:64
 msgid "Croatian"
-msgstr "Croate"
+msgstr "croate"
 
 #: lib/nav_foot.html:65
 msgid "Telugu"
-msgstr "Télougou"
+msgstr "télougou"
 
 #: lib/nav_foot.html:73
 msgid ""
@@ -3415,31 +3415,31 @@ msgstr "n'importe lequel"
 
 #: lib/search_foot.html:36
 msgid "Russian"
-msgstr "Russe"
+msgstr "russe"
 
 #: lib/search_foot.html:37
 msgid "Italian"
-msgstr "Italien"
+msgstr "italien"
 
 #: lib/search_foot.html:38
 msgid "Chinese"
-msgstr "Chinois"
+msgstr "chinois"
 
 #: lib/search_foot.html:39
 msgid "Arabic"
-msgstr "Arabe"
+msgstr "arabe"
 
 #: lib/search_foot.html:40
 msgid "Japanese"
-msgstr "Japonais"
+msgstr "japonais"
 
 #: lib/search_foot.html:41
 msgid "Portuguese"
-msgstr "Portugais"
+msgstr "portugais"
 
 #: lib/search_foot.html:42
 msgid "Polish"
-msgstr "Polonais"
+msgstr "polonais"
 
 #: lib/search_foot.html:68 lib/search_head.html:34
 msgid "Only eBooks"
@@ -3660,7 +3660,7 @@ msgstr[1] "%(count)d listes"
 
 #: lists/widget.html:298
 msgid "Update my book note"
-msgstr "Mettre à jour ma note du livre"
+msgstr "Mettre à jour ma note de livre"
 
 #: lists/widget.html:300
 msgid "Add a book note"
@@ -3715,7 +3715,6 @@ msgid "No primary record"
 msgstr "Pas d'entrée principale"
 
 #: merge/authors.html:39
-#, fuzzy
 msgid "You must select a primary record to point the duplicates toward."
 msgstr "Vous devez sélectionner une entrée principale comme cible des doublons."
 
@@ -3729,7 +3728,7 @@ msgstr "<b>Êtes-vous sûr</b> de vouloir fusionner ces entrées ?"
 
 #: merge/authors.html:51
 msgid "Primary"
-msgstr ""
+msgstr "Principal"
 
 #: merge/authors.html:52
 msgid "Merge"
@@ -3745,19 +3744,19 @@ msgstr "Visiter la page de cet auteur dans une nouvelle fenêtre"
 
 #: observations/review_component.html:16
 msgid "Community Reviews"
-msgstr "Avis de la communauté"
+msgstr "Critiques de la communauté"
 
 #: observations/review_component.html:39
 msgid "No community reviews have been submitted for this work."
-msgstr "Aucun avis de la communauté n'a été enregsitré pour cette œuvre."
+msgstr "Aucune critique de la communauté n'a été enregistrée pour cette œuvre."
 
 #: observations/review_component.html:42
 msgid "+ Add your community review"
-msgstr "+ Ajouter votre avis communautaire"
+msgstr "+ Ajouter votre critique communautaire"
 
 #: observations/review_component.html:44
 msgid "+ Log in to add your community review"
-msgstr "+ Se connecter pour ajouter votre avis communautaire"
+msgstr "+ Se connecter pour ajouter votre critique communautaire"
 
 #: publishers/notfound.html:10
 msgid "Publishers"
@@ -3796,7 +3795,7 @@ msgid ""
 " single year, or drag across a range."
 msgstr ""
 "Ce graphique montre les éditions de l'éditeur en fonction du temps. "
-"Cliquer pour voir une seule année ou cliquer-glisser pour sélectionner un"
+"Cliquez pour voir une seule année ou cliquez-glissez pour sélectionner un"
 " intervalle."
 
 #: publishers/view.html:52
@@ -4118,11 +4117,11 @@ msgstr "Introduction"
 
 #: type/about/edit.html:30
 msgid "This appears in first column."
-msgstr "Ceci apparait dans la première colonne."
+msgstr "Ceci apparaît dans la première colonne."
 
 #: type/about/edit.html:40
 msgid "This appears in the second column, at top."
-msgstr "Ceci apparait dans la deuxième colonne, en haut."
+msgstr "Ceci apparaît dans la deuxième colonne, en haut."
 
 #: type/about/edit.html:49
 msgid "Mailing List"
@@ -4130,7 +4129,7 @@ msgstr "Liste de diffusion"
 
 #: type/about/edit.html:50
 msgid "This appears below the links list."
-msgstr "Ceci apparait sous la liste de liens."
+msgstr "Ceci apparaît sous la liste de liens."
 
 #: type/author/edit.html:13
 msgid "Edit Author"
@@ -4650,11 +4649,11 @@ msgstr ""
 
 #: type/list/view_body.html:257
 msgid "List Metadata"
-msgstr "Métadonnées de liste"
+msgstr "Métadonnées de la liste"
 
 #: type/list/view_body.html:258
 msgid "Derived from seed metadata"
-msgstr "Dérivé des métadonnées des éléments"
+msgstr "Dérivées des métadonnées des éléments"
 
 #: type/local_id/view.html:22
 msgid "Source Item"
@@ -4690,7 +4689,7 @@ msgstr "Type"
 
 #: type/type/view.html:31
 msgid "Backreferences"
-msgstr "Anciennes références"
+msgstr "Références précédentes"
 
 #: type/user/edit.html:13
 msgid "Currently Editing:"
@@ -4778,9 +4777,8 @@ msgid "Availability"
 msgstr "Disponibilité"
 
 #: type/work/editions_datatable.html:37
-#, fuzzy
 msgid "Add another edition?"
-msgstr "Ajouter une autre édition"
+msgstr "Ajouter une autre édition ?"
 
 #: AffiliateLinks.html:15
 msgid "Better World Books"
@@ -4905,7 +4903,7 @@ msgstr "Mes notes privées sur cette édition :"
 
 #: ObservationsModal.html:24
 msgid "My Book Review"
-msgstr "Mes avis de livre"
+msgstr "Mes critiques de livre"
 
 #: Pager.html:26
 msgid "First"
@@ -4972,11 +4970,11 @@ msgid "Return book"
 msgstr "Rendre le livre"
 
 #: SearchResultsWork.html:67
-#, fuzzy, python-format
+#, python-format
 msgid "and 1 other"
 msgid_plural "and %(n)s others"
-msgstr[0] "Ajouter une autre"
-msgstr[1] ""
+msgstr[0] "et 1 autre"
+msgstr[1] "et %(n)s autres"
 
 #: SearchResultsWork.html:78
 msgid "languages"
@@ -5001,11 +4999,11 @@ msgstr "Intégrer"
 
 #: StarRatings.html:51
 msgid "Clear my rating"
-msgstr "Supprimer ma note"
+msgstr "Supprimer mon évaluation"
 
 #: StarRatingsStats.html:21
 msgid "Ratings"
-msgstr "Notes"
+msgstr "Évaluations"
 
 #: StarRatingsStats.html:23
 msgid "Want to read"
@@ -5112,11 +5110,11 @@ msgstr "Consulter WorldCat pour une édition près de chez vous"
 
 #: daisy.html:10
 msgid "Encrypted daisy download for authorized print-disabled patrons"
-msgstr "Téléchargement daisy encrypté pour utilisateurs malvoyants habilités"
+msgstr "Téléchargement daisy chiffré pour utilisateurs malvoyants habilités"
 
 #: daisy.html:12
 msgid "Encrypted daisy lock"
-msgstr "Verrou daisy encrypté"
+msgstr "Verrou daisy chiffré"
 
 #: daisy.html:14
 msgid "Download for print-disabled"
