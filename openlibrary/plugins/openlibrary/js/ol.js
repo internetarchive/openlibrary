@@ -96,7 +96,7 @@ export function initReadingListFeature() {
         // new shelf to the server and removing the associated item.
         // Note that any change to this select will result in the book changing
         // shelf.
-        const $searchPage = $('.searchPage')[0] || null
+        const $searchPage = $('.search-page')[0] || null
         $.ajax({
             url: $self.closest('form').attr('action'),
             type: 'POST',
@@ -105,8 +105,11 @@ export function initReadingListFeature() {
             },
             datatype: 'json',
             success: function() {
-                if ($searchPage===null) {
+                if (!$searchPage) {
                     $self.closest('.searchResultItem').remove();
+                }
+                else {
+                    $('.search-page').load(' #book-shelf');
                 }
             }
         });

@@ -1,8 +1,8 @@
-$def with (work, read_status, url=None, searchPage = None)
+$def with (work, read_status, url=None, form_classes="")
 
 $if ctx.user:
-  <form method="POST" action="$(work.key)/bookshelves.json?debug=true" class="reading-log-lite $(searchPage)">
-    <select name="bookshelf_id">
+  <form method="POST" action="$(work.key)/bookshelves.json" class="reading-log-lite $(form_classes)">
+    <select name="bookshelf_id" id="book-shelf">
       $ shelf_names = {1: _('Want to Read'), 2: _('Currently Reading'), 3: _('Already Read') }
       $for shelf_id in [1, 2, 3]:
         $ is_selected = read_status == shelf_id
@@ -17,10 +17,12 @@ $else:
   <div class="dropit">
     <div class="dropper on">
         <div class="log-work">
+          <form method="POST" action="$(work.key)/bookshelves.json">
             <button class="unactivated" type="submit">$_('Want to Read')</button>
-            <a href="/account/login?redir=$(url)" class="dropclick-prevent dropclick-unactivated">
-              <div class="arrow arrow-unactivated"></div>
-            </a>
+          </form>
+          <a href="/account/login?redir=$(url)" class="dropclick-prevent dropclick-unactivated">
+            <div class="arrow arrow-unactivated"></div>
+          </a>
         </div>
     </div>
   </div>

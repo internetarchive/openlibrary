@@ -167,7 +167,7 @@ $ )
                 $ ocaid = work.ia[0] if work.ia else None
                 $ availability = (work.get('availability') or {}).get('status')
                 $ users_work_read_status = get_users_read_status(work, username) if work and username else None
-                $ decorations = macros.ReadingLogButton(work, read_status=users_work_read_status, url=url, searchPage="searchPage")
+                $ decorations = macros.ReadingLogButton(work, read_status=users_work_read_status, url=url, form_classes="search-page")
                 $# if we're explicitly showing *everything*...
                 $# or if we're showing only things with ocaids which are available...
                 $if 'has_fulltext' not in param or (ocaid and availability and availability not in ['error', 'private']):
