@@ -12,7 +12,7 @@ import uniqBy from 'lodash/uniqBy';
  */
 export async function move_to_work(edition_ids, old_work, new_work) {
     for (let olid of edition_ids) {
-        const url = `/book/${olid}.json`;
+        const url = `/books/${olid}.json`;
         const record = await fetch(url).then(r => r.json());
 
         record.works = [{key: `/works/${new_work}`}];
