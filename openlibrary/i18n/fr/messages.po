@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
 "POT-Creation-Date: 2021-09-20 19:55+0000\n"
-"PO-Revision-Date: 2021-11-22 23:29+0100\n"
+"PO-Revision-Date: 2021-12-07 21:20+0100\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
 "Language-Team: fr <traduc@traduc.org>\n"
@@ -73,7 +73,7 @@ msgstr "Voir ou modifier vos listes"
 
 #: account.html:24
 msgid "Import and Export Options"
-msgstr "Options d'import et export"
+msgstr "Options d'import et d'export"
 
 #: account.html:26
 msgid "Please contact us if you need help with anything else."
@@ -663,7 +663,7 @@ msgstr "Rejoindre la liste d'attente pour « %(title)s »"
 
 #: LoanStatus.html:89 widget.html:44
 msgid "Join Waitlist"
-msgstr "Rejoindre la liste d'attente"
+msgstr "Réserver"
 
 #: widget.html:48
 #, python-format
@@ -991,7 +991,7 @@ msgstr "Aucun livre n'est sur cette étagère"
 
 #: account/borrow.html:7 account/borrow.html:72
 msgid "Books You've Checked Out"
-msgstr "Livres empruntés"
+msgstr "Livres que vous avez empruntés"
 
 #: account/borrow.html:52
 msgid ""
@@ -1110,7 +1110,6 @@ msgid "Internet Archive"
 msgstr "Internet Archive"
 
 #: account/borrow.html:239
-#, fuzzy
 msgid "eBooks everywhere"
 msgstr "des livres électroniques partout"
 
@@ -2021,8 +2020,9 @@ msgid ""
 "We already know about <b>%(work_title)s</b>, but not the <b>%(year)s "
 "%(publisher)s edition</b>. Thanks! Do you know any more about this edition?"
 msgstr ""
-"Nous connaissons déjà <b>%(work_title)s</b>, mais pas l'<b>édition %(year)s "
-"%(publisher)s</b>. Merci ! Que connaissez-vous de plus sur cette édition ?"
+"Nous connaissons déjà <b>%(work_title)s</b>, mais pas l'<b>édition "
+"%(publisher)s %(year)s</b>. Merci ! Que connaissez-vous de plus sur cette "
+"édition ?"
 
 #: books/edit.html:35
 #, python-format
@@ -2030,12 +2030,12 @@ msgid ""
 "We already know about the <b>%(year)s %(publisher)s edition</b> of <b>"
 "%(work_title)s</b>, but please, tell us more!"
 msgstr ""
-"Nous connaissons déjà l'<b>édition %(year)s %(publisher)s</b> de <b>"
+"Nous connaissons déjà l'<b>édition %(publisher)s %(year)s</b> de <b>"
 "%(work_title)s</b>, mais dites-nous en plus !"
 
 #: books/edit.html:37
 msgid "Editing..."
-msgstr "Modification…"
+msgstr "En cours de modification…"
 
 #: EditButtons.html:25 EditButtonsMacros.html:27 books/edit.html:41
 #: type/template/edit.html:51
@@ -2227,7 +2227,7 @@ msgstr "Habituellement distingué par une fonte différente ou plus petite."
 
 #: books/edit/edition.html:113
 msgid "Publishing Info"
-msgstr "Informations de l'édition"
+msgstr "Informations sur la publication"
 
 #: books/edit/edition.html:119
 msgid "For example"
@@ -2251,7 +2251,7 @@ msgstr "Qu'elle est la date des droits d'auteur ?"
 
 #: books/edit/edition.html:152
 msgid "The year following the copyright statement."
-msgstr "L'année suivant la déclaration des droits d'auteur."
+msgstr "L'année qui suit la déclaration des droits d'auteur."
 
 #: books/edit/edition.html:161
 msgid "Edition Name (if applicable):"
@@ -2276,7 +2276,7 @@ msgstr "Veuillez sélectionner un rôle."
 
 #: books/edit/edition.html:202
 msgid "You need to give this ROLE a name."
-msgstr "Vous devez donner un nom à ce RÔLE."
+msgstr "Vous devez donner un nom à ROLE."
 
 #: books/edit/edition.html:204
 msgid "List the people involved"
@@ -2296,7 +2296,7 @@ msgstr "Supprimer ce contributeur"
 
 #: books/edit/edition.html:264
 msgid "By Statement:"
-msgstr ""
+msgstr "Déclaration des contributeurs :"
 
 #: books/edit/edition.html:275
 msgid "Languages"
@@ -2348,7 +2348,7 @@ msgstr "Des remarques sur cette édition spécifique ?"
 
 #: books/edit/edition.html:367
 msgid "Anything about the book that may be of interest."
-msgstr "Tout ce qui pourrait être intéressant à propos du livre."
+msgstr "Tout ce qui pourrait être intéressant à propos de ce livre."
 
 #: books/edit/edition.html:376
 msgid "Is it known by any other titles?"
@@ -2377,7 +2377,7 @@ msgid ""
 "Sometimes editions can be associated with the wrong work. You can correct "
 "that here."
 msgstr ""
-"Parfois les éditions sont associées à la mauvaise œuvre. Vous pouvez "
+"Parfois des éditions sont associées à la mauvaise œuvre. Vous pouvez "
 "corriger cela ici."
 
 #: books/edit/edition.html:394
@@ -2395,7 +2395,7 @@ msgstr "Veuillez sélectionner un identifiant."
 
 #: books/edit/edition.html:414
 msgid "You need to give a value to ID."
-msgstr "Vous devez donner une valeur à cet ID."
+msgstr "Vous devez donner une valeur à l'identifiant."
 
 #: books/edit/edition.html:414
 msgid "ID ids cannot contain whitespace."
@@ -2434,7 +2434,7 @@ msgstr "Veuillez sélectionner une classification."
 
 #: books/edit/edition.html:493
 msgid "You need to give a value to CLASS."
-msgstr "Vous devez donner une valeur à cette CLASS."
+msgstr "Vous devez donner une valeur à CLASS."
 
 #: books/edit/edition.html:494 type/edition/view.html:332
 #: type/edition/view.html:414 type/work/view.html:332 type/work/view.html:414
@@ -2468,9 +2468,7 @@ msgstr "Quelle sorte de livre est-ce ?"
 
 #: books/edit/edition.html:559
 msgid "Paperback; Hardcover, etc."
-msgstr ""
-"Paperback (broché, couverture pliable), Hardcover (relié, couverture "
-"rigide), etc."
+msgstr "De poche; relié, etc."
 
 #: books/edit/edition.html:567
 msgid "How many pages?"
@@ -2563,11 +2561,11 @@ msgstr "Extraits pour l'instant…"
 
 #: books/edit/excerpts.html:70 books/edit/excerpts.html:92
 msgid "noted:"
-msgstr "notés :"
+msgstr "a commenté :"
 
 #: books/edit/excerpts.html:72 books/edit/excerpts.html:94
 msgid "An anonymous note:"
-msgstr "Une remarque anonyme :"
+msgstr "Un commentaire anonyme :"
 
 #: books/edit/excerpts.html:90
 msgid "From page"
@@ -2869,7 +2867,7 @@ msgstr "Nous sommes une bibliothèque, donc nous prêtons aussi des livres"
 
 #: home/stats.html:44
 msgid "eBooks Borrowed"
-msgstr "eBooks empruntés"
+msgstr "Livres empruntés"
 
 #: home/welcome.html:26
 msgid "Read Free Library Books Online"
@@ -3007,7 +3005,7 @@ msgstr ""
 #: lib/markdown.html:17
 msgid "Formatting marks should envelope the effected text, for example:"
 msgstr ""
-"Les balises de formatage doivent entourer le texte affecté, par exemple:"
+"Les balises de mise en forme doivent entourer le texte affecté, par exemple:"
 
 #: lib/markdown.html:76
 msgid ""
@@ -3811,7 +3809,7 @@ msgstr "ISBN"
 
 #: search/advancedsearch.html:46
 msgid "Full Text Search"
-msgstr "Recherche en texte intégral"
+msgstr "Recherche en plein texte"
 
 #: search/authors.html:28
 msgid "Is the same author listed twice?"
@@ -3836,7 +3834,7 @@ msgstr "Rechercher %s sur Open Library"
 
 #: BookSearchInside.html:9 search/inside.html:10
 msgid "Search Inside"
-msgstr "Recherche interne"
+msgstr "Recherche plein texte"
 
 #: search/inside.html:34
 #, python-format
@@ -4478,7 +4476,7 @@ msgstr "Ce livre est déjà emprunté"
 
 #: type/list/embed.html:75
 msgid "Checked out"
-msgstr "Prêté"
+msgstr "Emprunté"
 
 #: type/list/embed.html:78
 msgid "Borrow book"
@@ -4623,7 +4621,7 @@ msgstr "Type"
 
 #: type/type/view.html:31
 msgid "Backreferences"
-msgstr ""
+msgstr "Anciennes références"
 
 #: type/user/edit.html:13
 msgid "Currently Editing:"
@@ -4817,7 +4815,7 @@ msgstr "Avis"
 
 #: LoanStatus.html:38
 msgid "Return eBook"
-msgstr "Rendre le livre électronique"
+msgstr "Rendre le livre"
 
 #: LoanStatus.html:45
 msgid "Really return this book?"
@@ -4852,7 +4850,7 @@ msgstr "Ce livre est déjà emprunté, veuillez réessayer plus tard."
 
 #: LoanStatus.html:95
 msgid "Checked Out"
-msgstr "Prêté"
+msgstr "Emprunté"
 
 #: LoanStatus.html:104
 msgid "Donate Book"
@@ -4866,9 +4864,8 @@ msgstr ""
 "bibliothéque ?"
 
 #: LoanStatus.html:111 LoanStatus.html:116
-#, fuzzy
 msgid "Not in Library"
-msgstr "Pas dans la bibliothèque"
+msgstr "Indisponible"
 
 #: NotesModal.html:33
 msgid "My private notes about this edition:"
