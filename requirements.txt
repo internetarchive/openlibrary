@@ -10,7 +10,7 @@ gunicorn==20.1.0
 httpx==0.18.2
 internetarchive==2.2.0
 isbnlib==3.10.6
-lxml==4.6.3
+lxml==4.6.5
 Pillow==8.2.0
 psycopg2==2.8.6
 pydantic==1.8.2
