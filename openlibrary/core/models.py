@@ -409,6 +409,8 @@ class Edition(Thing):
             return None  # consider raising ValueError
 
         isbn13 = to_isbn_13(isbn)
+        if isbn13 is None:
+            return None  # consider raising ValueError
         isbn10 = isbn_13_to_isbn_10(isbn13)
 
         # Attempt to fetch book from OL
