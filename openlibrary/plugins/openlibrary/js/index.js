@@ -320,7 +320,7 @@ jQuery(function () {
     // Prevent default star rating behavior:
     const ratingForms = document.querySelectorAll('.star-rating-form')
     if (ratingForms) {
-        import('./handlers')
+        import(/* webpackChunkName: "star-ratings" */'./handlers')
             .then((module) => module.initRatingHandlers(ratingForms));
     }
 });
