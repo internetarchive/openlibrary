@@ -103,8 +103,8 @@ function archive_dumps() {
     # copy stuff to archive.org
     # TODO: Switch to ia client tool. This will only work in production 'til then
     log "ia version is v$(ia --version)"  # ia version is v2.2.0
-    ia --config-file=/olsystem/etc/ia.ini upload $dump  $dump/  --metadata "collection:ol_exports" --metadata "year:${date:0:4}" --retries 300
-    ia --config-file=/olsystem/etc/ia.ini upload $cdump $cdump/ --metadata "collection:ol_exports" --metadata "year:${date:0:4}" --retries 300
+    ia --config-file=/olsystem/etc/ia.ini upload $dump  $dump/  --metadata "collection:ol_exports" --metadata "year:${date:0:4}" --metadata "format:Data" --retries 300
+    ia --config-file=/olsystem/etc/ia.ini upload $cdump $cdump/ --metadata "collection:ol_exports" --metadata "year:${date:0:4}" --metadata "format:Data" --retries 300
 }
 
 if [ "$archive" == "--archive" ];
