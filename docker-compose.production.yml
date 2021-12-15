@@ -5,7 +5,7 @@
 ## docker-compose up -d
 ##
 
-version: "3.1"
+version: "3.8"
 services:
   web:
     profiles: ["ol-web1", "ol-web2"]
@@ -54,6 +54,8 @@ services:
     volumes:
       - ../olsystem:/olsystem
       - /1:/1
+    deploy:
+      replicas: 2
 
   covers_nginx:
     profiles: ["ol-covers0"]
