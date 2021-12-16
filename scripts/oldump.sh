@@ -120,8 +120,9 @@ function archive_dumps() {
     # For progress on transfers, see:
     # https://catalogd.archive.org/catalog.php?checked=1&all=1&banner=rsync%20timeout
     # TODO: Switch to ia client tool. This will only work in production 'til then
-    python /olsystem/bin/uploaditem.py $dump --nowait --uploader=openlibrary@archive.org
-    python /olsystem/bin/uploaditem.py $cdump --nowait --uploader=openlibrary@archive.org
+    log "ia version is v$(ia --version)"  # ia version is v2.2.0
+    ia --config-file=/olsystem/etc/ia.ini upload $dump  $dump/  --metadata "collection:ol_exports" --metadata "year:${date:0:4}" --metadata "format:Data" --retries 300
+    ia --config-file=/olsystem/etc/ia.ini upload $cdump $cdump/ --metadata "collection:ol_exports" --metadata "year:${date:0:4}" --metadata "format:Data" --retries 300
 }
 
 # Only archive if that caller has requested it and we are not testing.
