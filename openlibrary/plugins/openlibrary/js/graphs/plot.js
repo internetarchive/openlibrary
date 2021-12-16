@@ -93,11 +93,11 @@ export function loadEditionsGraph() {
         }
     });
 
-    placeholder.bind("plotclick", function (event, pos, item) {
+    placeholder.bind('plotclick', function (event, pos, item) {
 
         if (item) {
             plot.unhighlight();
-            let yearFrom = item.datapoint[0].toFixed(0);
+            const yearFrom = item.datapoint[0].toFixed(0);
             applyDateFilter(yearFrom, yearFrom);
 
             plot.highlight(item.series,item.datapoint);
@@ -107,7 +107,7 @@ export function loadEditionsGraph() {
         }
     });
 
-    placeholder.bind("plotselected", function (event, ranges) {
+    placeholder.bind('plotselected', function (event, ranges) {
         plot = $.plot(placeholder, data,
             $.extend(true, {}, options, {
                 xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
@@ -115,13 +115,13 @@ export function loadEditionsGraph() {
             })
         );
 
-        let yearFrom = ranges.xaxis.from.toFixed(0);
-        let yearTo = ranges.xaxis.to.toFixed(0);
+        const yearFrom = ranges.xaxis.from.toFixed(0);
+        const yearTo = ranges.xaxis.to.toFixed(0);
         applyDateFilter(yearFrom, yearTo);
     });
 
-    function applyDateFilter(yearFrom, yearTo, hideSelector=".chartUnzoom", showSelector=".chartZoom") {
-        document.dispatchEvent(new CustomEvent('filter', { "detail": { "yearFrom": yearFrom, "yearTo": yearTo } }));
+    function applyDateFilter(yearFrom, yearTo, hideSelector='.chartUnzoom', showSelector='.chartZoom') {
+        document.dispatchEvent(new CustomEvent('filter', { detail: { yearFrom: yearFrom, yearTo: yearTo } }));
         $(hideSelector).hide();
         $(showSelector).removeClass('hidden').show();
     }
@@ -130,12 +130,12 @@ export function loadEditionsGraph() {
     dateFrom = plot.getAxes().xaxis.min.toFixed(0);
     dateTo = plot.getAxes().xaxis.max.toFixed(0);
 
-    $(".resetSelection").click(function() {
+    $('.resetSelection').on('click', function() {
         plot = $.plot(placeholder, data, options);
 
-        let yearFrom = plot.getAxes().xaxis.min.toFixed(0);
-        let yearTo = plot.getAxes().xaxis.max.toFixed(0);
-        applyDateFilter(yearFrom, yearTo, ".chartZoom", ".chartUnzoom");
+        const yearFrom = plot.getAxes().xaxis.min.toFixed(0);
+        const yearTo = plot.getAxes().xaxis.max.toFixed(0);
+        applyDateFilter(yearFrom, yearTo, '.chartZoom', '.chartUnzoom');
     });
 
     $('.chartYaxis').css({top: '60px', left: '-60px'});
