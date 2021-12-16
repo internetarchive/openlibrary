@@ -22,11 +22,9 @@ $if cssfile == 'user' or 'admin':
       if ("serviceWorker" in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register("/sw.js").then(registration => {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            console.log(registration);
+
           }).catch(error => {
             console.log("ServiceWorker registration failed");
-            console.log(error);
           });
         });
       }
