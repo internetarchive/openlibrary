@@ -1,4 +1,4 @@
-$def with (user, loans)
+$def with (user, loans, test=False)
 
 <style type="text/css">
 .date, .waitrank {
@@ -54,7 +54,13 @@ window.q.push(function(){
 
 <div>
   $if len(loans) == 0:
-    <div><em>$_("You've not checked out any books at this moment.")</em></div>
+    <!-- <div><em>$_("You've not checked out any books at this moment.")</em></div> -->
+
+        $:render_template("books/custom_carousel", books=readonline_carousel(), title=_('Classic Books'), url="/read", key="public_domain", test=test)
+
+        $:render_template("home/categories", test=test) 
+
+
 $else:
   $# Have current loans
   <div class="borrow borrow-table collapse">
