@@ -17,4 +17,4 @@ Closes #
 <!-- @ tag stakeholders of this bug -->
 
 
-<!-- Attribution Disclaimer: By proposing this pull request, I affirm to have made a best-effort and exercised my discretion to make sure relevant sections of this code which non-trivially leverage code suggestions, code generation, or code snippets from sources (e.g. Stack Overflow, GitHub) have been annotated with basic attribution so reviewers & contributors may have confidence and access to the correct context to evaluate and use this code. -->
+<!-- Attribution Disclaimer: By proposing this pull request, I affirm to have made a best-effort and exercised my discretion to make sure relevant sections of this code which substantially leverage code suggestions, code generation, or code snippets from sources (e.g. Stack Overflow, GitHub) have been annotated with basic attribution so reviewers & contributors may have confidence and access to the correct context to evaluate and use this code. -->
