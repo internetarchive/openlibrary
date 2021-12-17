@@ -58,10 +58,6 @@ window.q.push(function(){
     $:render_template("books/custom_carousel", books=readonline_carousel(), title=_('Classic Books'), url="/read", key="public_domain", test=test, compact_mode=True)
     $:render_template("home/categories", test=test)
     Check out our <a href="/collections">special collections</a>
-
-
-
-
 $else:
   $# Have current loans
   <div class="borrow borrow-table collapse">
