@@ -54,11 +54,12 @@ window.q.push(function(){
 
 <div>
   $if len(loans) == 0:
-    <!-- <div><em>$_("You've not checked out any books at this moment.")</em></div> -->
+    <div><em>$_("You've not checked out any books at this moment.")</em></div>
+    $:render_template("books/custom_carousel", books=readonline_carousel(), title=_('Classic Books'), url="/read", key="public_domain", test=test, compact_mode=True)
+    $:render_template("home/categories", test=test)
+    Check out our <a href="/collections">special collections</a>
 
-        $:render_template("books/custom_carousel", books=readonline_carousel(), title=_('Classic Books'), url="/read", key="public_domain", test=test)
 
-        $:render_template("home/categories", test=test) 
 
 
 $else:
