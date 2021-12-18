@@ -455,9 +455,7 @@ export default {
 
     .multiselect__content {
       display: flex !important;
-      // Since this control is always at the bottom for us, have the results in
-      // reverse order, so that the likeliest match is closest to the input field.
-      flex-direction: column-reverse;
+      flex-direction: column;
     }
   }
 
@@ -484,8 +482,6 @@ export default {
     display: flex;
     flex-direction: column-reverse;
     border-radius: 4px 4px 0 0;
-    overflow: hidden;
-    overflow: clip;
     box-shadow: 0 0 5px rgba(0, 0, 0, .2);
     background: linear-gradient(to bottom, #fff, #ebdfc5 150%);
     max-width: 100%;
