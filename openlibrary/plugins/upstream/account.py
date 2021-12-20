@@ -360,9 +360,10 @@ class account_login(delegate.page):
         return render.login(f)
 
     def GET(self):
-        referer = web.ctx.env.get('HTTP_REFERER', '/')
+        referer = web.ctx.env.get('HTTP_REFERER', '')
         # Don't set referer if request is from offsite
-        if 'openlibrary.org' not in referer:
+        if ('openlibrary.org' not in referer
+            or referer.endswith('openlibrary.org/')):
             referer = None
         i = web.input(redirect=referer)
         f = forms.Login()
@@ -400,8 +401,6 @@ class account_login(delegate.page):
         )
         blacklist = [
             "/account/login",
-            "/account/password",
-            "/account/email",
             "/account/create",
         ]
         if i.redirect == "" or any([path in i.redirect for path in blacklist]):
