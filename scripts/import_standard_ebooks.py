@@ -15,7 +15,8 @@ from infogami import config  # noqa: F401
 
 FEED_URL = 'https://standardebooks.org/opds/all'
 LAST_UPDATED_TIME = './standard_ebooks_last_updated.txt'
-
+IMAGE_REL = 'http://opds-spec.org/image'
+BASE_SE_URL = 'https://standardebooks.org'
 
 def get_feed():
     """Fetches and returns Standard Ebook's feed."""
@@ -26,7 +27,9 @@ def get_feed():
 def map_data(entry) -> dict[str, Any]:
     """Maps Standard Ebooks feed entry to an Open Library import object."""
     std_ebooks_id = entry.id.replace('https://standardebooks.org/ebooks/', '')
-    return {
+    image_uris = filter(lambda link: link.rel == IMAGE_REL, entry.links)
+
+    import_record =  {
         "title": entry.title,
         "source_records": [f"standard_ebooks:{std_ebooks_id}"],
         "publishers": [entry.publisher],
@@ -38,6 +41,11 @@ def map_data(entry) -> dict[str, Any]:
             "standard_ebooks": [std_ebooks_id]
         }
     }
+
+    if image_uris:
+        import_record['cover'] = f'{BASE_SE_URL}{list(image_uris)[0]["href"]}'
+
+    return import_record
 
 
 def create_batch(records: list[dict[str, str]]) -> None:
@@ -162,9 +170,10 @@ def import_job(
             print(json.dumps(record))
 
     # Store timestamp for header
-    with open(LAST_UPDATED_TIME, 'w+') as f:
-        f.write(last_modified)
-        print(f'Last updated timestamp written to: {LAST_UPDATED_TIME}')
+    if not dry_run:
+        with open(LAST_UPDATED_TIME, 'w+') as f:
+            f.write(last_modified)
+            print(f'Last updated timestamp written to: {LAST_UPDATED_TIME}')
 
 
 if __name__ == '__main__':
