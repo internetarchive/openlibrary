@@ -2,7 +2,7 @@
 import json
 import requests
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import os.path as path
 
@@ -23,7 +23,7 @@ def get_feed():
     return feedparser.parse(r.text)
 
 
-def map_data(entry) -> Dict[str, Any]:
+def map_data(entry) -> dict[str, Any]:
     """Maps Standard Ebooks feed entry to an Open Library import object."""
     std_ebooks_id = entry.id.replace('https://standardebooks.org/ebooks/', '')
     return {
@@ -40,7 +40,7 @@ def map_data(entry) -> Dict[str, Any]:
     }
 
 
-def create_batch(records: List[Dict[str, str]]) -> None:
+def create_batch(records: list[dict[str, str]]) -> None:
     """Creates Standard Ebook batch import job.
 
     Attempts to find existing Standard Ebooks import batch.
@@ -113,7 +113,7 @@ def convert_date_string(date_string: Optional[str]) -> time.struct_time:
 def filter_modified_since(
     entries,
     modified_since: time.struct_time
-) -> List[Dict[str, str]]:
+) -> list[dict[str, str]]:
     """Returns a list of import objects."""
     return [map_data(e) for e in entries if e.updated_parsed > modified_since]
 
