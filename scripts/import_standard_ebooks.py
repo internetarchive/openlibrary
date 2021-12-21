@@ -162,9 +162,10 @@ def import_job(
             print(json.dumps(record))
 
     # Store timestamp for header
-    with open(LAST_UPDATED_TIME, 'w+') as f:
-        f.write(last_modified)
-        print(f'Last updated timestamp written to: {LAST_UPDATED_TIME}')
+    if not dry_run:
+        with open(LAST_UPDATED_TIME, 'w+') as f:
+            f.write(last_modified)
+            print(f'Last updated timestamp written to: {LAST_UPDATED_TIME}')
 
 
 if __name__ == '__main__':
