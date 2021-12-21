@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 import json
 import requests
-import sys
 import time
 from typing import Any, Dict, List, Optional
 
@@ -10,13 +9,9 @@ import os.path as path
 import feedparser
 
 from openlibrary.core.imports import Batch
-
-sys.path.insert(0, path.abspath(path.join(path.sep, 'openlibrary')))
-from openlibrary.config import load_config  # noqa: E402
-load_config(
-    path.abspath(path.join(
-        path.sep, 'olsystem', 'etc', 'openlibrary.yml')))
-from infogami import config  # noqa: E402,F401
+from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
+from openlibrary.config import load_config
+from infogami import config  # noqa: F401
 
 FEED_URL = 'https://standardebooks.org/opds/all'
 LAST_UPDATED_TIME = './standard_ebooks_last_updated.txt'
@@ -123,7 +118,16 @@ def filter_modified_since(
     return [map_data(e) for e in entries if e.updated_parsed > modified_since]
 
 
-def import_job() -> None:
+def import_job(
+        ol_config: str,
+        dry_run=False,
+) -> None:
+    """
+    :param ol_config: Path to openlibrary.yml file
+    :param dry_run: If true, only print out records to import
+    """
+    load_config(ol_config)
+
     # Make HEAD request to get last-modified time
     last_modified = find_last_updated()
 
@@ -150,9 +154,12 @@ def import_job() -> None:
     modified_entries = filter_modified_since(d.entries, modified_since)
     print(f'{len(modified_entries)} import objects created.')
 
-    # Import all data:
-    create_batch(modified_entries)
-    print(f'{len(modified_entries)} entries added to the batch import job.')
+    if not dry_run:
+        create_batch(modified_entries)
+        print(f'{len(modified_entries)} entries added to the batch import job.')
+    else:
+        for record in modified_entries:
+            print(json.dumps(record))
 
     # Store timestamp for header
     with open(LAST_UPDATED_TIME, 'w+') as f:
@@ -162,5 +169,5 @@ def import_job() -> None:
 
 if __name__ == '__main__':
     print("Start: Standard Ebooks import job")
-    import_job()
+    FnToCLI(import_job).run()
     print("End: Standard Ebooks import job")
