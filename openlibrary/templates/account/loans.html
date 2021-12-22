@@ -55,7 +55,8 @@ window.q.push(function(){
 <div>
   $if len(loans) == 0:
     <div><em>$_("You've not checked out any books at this moment.")</em></div>
-    $:render_template("books/custom_carousel", books=readonline_carousel(), title=_('Classic Books'), url="/read", key="public_domain", test=test, compact_mode=True)
+    <div>Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific category:</div>
+     $:render_template("home/custom_ia_carousel", title=_('Books We Love'), key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["lending___last_browse desc"], limit=18, test=test, compact_mode=True)
     $:render_template("home/categories", test=test)
     Check out our <a href="/collections">special collections</a>
 $else:
