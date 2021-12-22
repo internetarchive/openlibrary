@@ -4,6 +4,10 @@ records and then batch submit into the ImportBot
 `import_item` table (http://openlibrary.org/admin/imports)
 which queues items to be imported via the
 Open Library JSON import API: https://openlibrary.org/api/import
+
+To Run:
+
+PYTHONPATH=. python ./scripts/partner_batch_imports.py /olsystem/etc/openlibrary.yml
 """
 
 import os
@@ -15,13 +19,10 @@ from datetime import timedelta
 import logging
 import requests
 
-# Add openlibrary into our path so we can process config + batch functions
-sys.path.insert(0, os.path.abspath(os.path.join(os.sep, 'openlibrary')))
-from infogami import config
+from infogami import config  # noqa: F401
 from openlibrary.config import load_config
-
-load_config(os.path.abspath(os.path.join(os.sep, 'olsystem', 'etc', 'openlibrary.yml')))
 from openlibrary.core.imports import Batch
+from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.bwb")
 
@@ -205,7 +206,9 @@ def batch_import(path, batch, batch_size=5000):
             update_state(logfile, fname, line_num)
 
 
-def main():
+def main(ol_config: str):
+    load_config(ol_config)
+
     # Partner data is offset ~15 days from start of month
     date = datetime.date.today() - timedelta(days=15)
     batch_name = "%s-%04d%02d" % ('bwb', date.year, date.month)
@@ -214,4 +217,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    FnToCLI(main).run()

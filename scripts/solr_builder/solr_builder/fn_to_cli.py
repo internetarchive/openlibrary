@@ -30,11 +30,12 @@ class FnToCLI:
         self.fn = fn
         arg_names = fn.__code__.co_varnames[: fn.__code__.co_argcount]
         annotations = fn.__annotations__
-        num_required = len(arg_names) - len(fn.__defaults__)  # type: ignore
+        defaults = fn.__defaults__ or []  # type: ignore
+        num_required = len(arg_names) - len(defaults)
         default_args = arg_names[num_required:]
         defaults = {
             arg: default
-            for [arg, default] in zip(default_args, fn.__defaults__)  # type: ignore
+            for [arg, default] in zip(default_args, defaults)
         }
 
         docs = fn.__doc__ or ''
