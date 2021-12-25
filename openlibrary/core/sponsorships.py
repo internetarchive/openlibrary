@@ -33,19 +33,51 @@ SETUP_COST_CENTS = 300
 PAGE_COST_CENTS = 12
 
 
-def get_sponsored_editions(user):
+def get_sponsored_editions_civi(user):
+    """
+    Deprecated by get_sponsored_editions but worth maintaining as we
+    may periodicaly have to programatically access data from civi
+    since it is the ground-truth of this data.
+
+    Gets a list of books from the civi API which internet archive
+    @archive_username has sponsored
+
+    :param user user: infogami user
+    :rtype: list
+    :return: list of archive.org items sponsored by user
+    """
+    archive_id = get_internet_archive_id(user.key if 'key' in user else user._key)
+    # MyBooks page breaking on local environments without archive_id check
+    if archive_id:
+        contact_id = get_contact_id_by_username(archive_id) if archive_id else None
+        return get_sponsorships_by_contact_id(contact_id) if contact_id else []
+    return {}
+
+
+def get_sponsored_editions(user, page=1, civi=False):
     """
     Gets a list of books from the civi API which internet archive
     @archive_username has sponsored
 
     :param user user: infogami user
     :rtype: list
-    :return: list of editions sponsored by user
+    :return: list of archive.org editions sponsored by user
     """
     archive_id = get_internet_archive_id(user.key if 'key' in user else user._key)
-    # MyBooks page breaking on local environments without archive_id check
-    contact_id = get_contact_id_by_username(archive_id) if archive_id else None
-    return get_sponsorships_by_contact_id(contact_id) if contact_id else []
+    if archive_id:
+        url = 'https://archive.org/advancedsearch.php'
+        params = urlencode({
+            'fl[]': ['identifier', 'openlibrary_edition'],
+            'sort[]': 'date',
+            'output': 'json',
+            'page': page,
+            'rows': 50,
+            'q': f'donor:{archive_id}'
+        }, doseq=True)
+        r = requests.get(f'{url}?{params}')
+        # e.g. [{'openlibrary_edition': 'OL24896084M', 'identifier': 'isbn_9780691160191'}]
+        return r.json()['response'].get('docs')
+    return {}
 
 
 def do_we_want_it(isbn):
