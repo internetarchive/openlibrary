@@ -36,7 +36,7 @@ PAGE_COST_CENTS = 12
 def get_sponsored_editions_civi(user):
     """
     Deprecated by get_sponsored_editions but worth maintaining as we
-    may periodicaly have to programatically access data from civi
+    may periodically have to programmatically access data from civi
     since it is the ground-truth of this data.
 
     Gets a list of books from the civi API which internet archive
@@ -54,9 +54,9 @@ def get_sponsored_editions_civi(user):
     return {}
 
 
-def get_sponsored_editions(user, page=1, civi=False):
+def get_sponsored_editions(user, page=1):
     """
-    Gets a list of books from the civi API which internet archive
+    Gets a list of books from archive.org elasticsearch
     @archive_username has sponsored
 
     :param user user: infogami user
