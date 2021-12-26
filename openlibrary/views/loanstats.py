@@ -72,7 +72,6 @@ def get_cached_reading_log_stats(limit):
     stats.update(cached_reading_log_leaderboard(limit))
     return stats
 
-
 class stats(app.view):
     path = "/stats"
 
@@ -88,14 +87,40 @@ class lending_stats(app.view):
     def GET(self, key, value):
         raise web.seeother("/")
 
+def get_activity_stream(limit=None):
+    # enable to work w/ cached
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+    return Bookshelves.get_recently_logged_books(limit=limit)
+
+def get_cached_activity_stream(limit):
+    return cache.memcache_memoize(
+        get_activity_stream,
+        'stats.activity_stream',
+        timeout=dateutil.HOUR_SECS,
+    )(limit)
+
+class activity_stream(app.view):
+    path = "/trending"
+
+    def GET(self):
+        logged_books = get_activity_stream(limit=20)
+        work_index = get_solr_works(f"/works/OL{book['work_id']}W" for book in logged_books)
+        availability_index = get_availabilities(work_index.values())
+        for work_key in availability_index:
+            work_index[work_key]['availability'] = availability_index[work_key]
+        for i, logged_book in enumerate(logged_books):
+            key = f"/works/OL{logged_book['work_id']}W"
+            logged_books[i]['work'] = work_index[key]
+        return app.render_template("trending", logged_books=logged_books)
 
 class readinglog_stats(app.view):
     path = "/stats/readinglog"
 
     def GET(self):
         MAX_LEADERBOARD_SIZE = 50
-        i = web.input(limit="10")
-        limit = int(i.limit) if int(i.limit) < 51 else 50
+        i = web.input(limit="10", mode="all")
+        limit = min(int(i.limit), 50)
 
         stats = get_cached_reading_log_stats(limit=limit)
 

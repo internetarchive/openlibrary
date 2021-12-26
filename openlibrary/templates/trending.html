@@ -1,0 +1,15 @@
+$def with (logged_books=None)
+
+<div id="contentBody">
+  <h1>$_('Activity Stream')</h1>
+
+  <div class="mybooks-list">
+    <ul class="list-books">
+      $if logged_books:
+        $for entry in logged_books:
+          $ shelf = {1: "Want to Read", 2: "Currently Reading", 3: "Read"}[entry['bookshelf_id']]
+          $:macros.SearchResultsWork(entry['work'], extra="Anonymous " + "marked as " + shelf + " at " + entry['created'].strftime("%m/%d/%Y at %H:%M:%S"), availability=entry['work'].get('availability'))
+    </ul>
+  </div>
+
+</div>

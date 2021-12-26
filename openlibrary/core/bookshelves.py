@@ -167,11 +167,29 @@ class Bookshelves:
                 "LIMIT $limit OFFSET $offset"
             )
         if bookshelf_id is None:
-            query = "SELECT * from bookshelves_books WHERE " "username=$username"
+            query = "SELECT * from bookshelves_books WHERE username=$username"
             # XXX Removing limit, offset, etc from data looks like a bug
             # unrelated / not fixing in this PR.
             data = {'username': username}
         return list(oldb.query(query, vars=data))
+
+
+    @classmethod
+    def get_recently_logged_books(cls, bookshelf_id=None, limit=50, page=1):
+        oldb = db.get_db()
+        page = int(page) if page else 1
+        data = {
+            'bookshelf_id': bookshelf_id,
+            'limit': limit,
+            'offset': limit * (page - 1),
+        }
+        where = "WHERE bookshelf_id=$bookshelf_id " if bookshelf_id else ""
+        query = (
+            f"SELECT * from bookshelves_books {where} "
+            "ORDER BY created DESC LIMIT $limit OFFSET $offset"
+        )
+        return list(oldb.query(query, vars=data))
+
 
     @classmethod
     def get_users_read_status_of_work(cls, username, work_id):
