@@ -1,7 +1,10 @@
 from typing import Literal
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
+import logging
 from . import db
+
+logger = logging.getLogger(__name__)
 
 
 class Bookshelves:
@@ -70,22 +73,26 @@ class Bookshelves:
         return results[0] if results else None
 
     @classmethod
-    def most_logged_books(cls, shelf_id, limit=10, since=False):
+    def most_logged_books(cls, shelf_id=None, limit=10, since=False):
         """Returns a ranked list of work OLIDs (in the form of an integer --
         i.e. OL123W would be 123) which have been most logged by
         users. This query is limited to a specific shelf_id (e.g. 1
         for "Want to Read").
         """
         oldb = db.get_db()
-        query = 'select work_id, count(*) as cnt from bookshelves_books WHERE bookshelf_id=$shelf_id '
+        where = 'WHERE bookshelf_id' + ('=$shelf_id' if shelf_id else ' IS NOT NULL ')
         if since:
-            query += " AND created >= $since"
+            where += 'AND created >= $since'
+        query = f'select work_id, count(*) as cnt from bookshelves_books {where}'
         query += ' group by work_id order by cnt desc limit $limit'
-        return list(
+        logger.info("Query: %s", query)
+        logged_books = list(
             oldb.query(
                 query, vars={'shelf_id': shelf_id, 'limit': limit, 'since': since}
             )
         )
+        logger.info("Results: %s", logged_books)
+        return logged_books
 
     @classmethod
     def count_total_books_logged_by_user(cls, username, bookshelf_ids=None):

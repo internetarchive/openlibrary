@@ -1,15 +1,24 @@
-$def with (logged_books=None)
+$def with (logged_books=None, mode='now')
 
 <div id="contentBody">
-  <h1>$_('Activity Stream')</h1>
+  $ pages = {'now': 'Now', 'daily': 'Today', 'weekly': 'This Week', 'monthly': 'This Month', 'yearly': 'This Year', 'forever': 'All Time'}
+  <h1>$_('Trending Books'): $_(pages[mode])</h1>
+  <p>Books patrons in the community have added to their shelves</p>
+  <p>
+    $for p in pages:
+      <a style="$('font-weight: bold;' if p==mode else '')" href="/trending/$(p)">$pages[p]</a>
+  </p>
 
   <div class="mybooks-list">
     <ul class="list-books">
       $if logged_books:
         $for entry in logged_books:
-          $ shelf = {1: "Want to Read", 2: "Currently Reading", 3: "Read"}[entry['bookshelf_id']]
-          $:macros.SearchResultsWork(entry['work'], extra="Anonymous " + "marked as " + shelf + " at " + entry['created'].strftime("%m/%d/%Y at %H:%M:%S"), availability=entry['work'].get('availability'))
+          $if 'bookshelf_id' in entry:
+            $ shelf = {1: "Want to Read", 2: "Currently Reading", 3: "Read"}[entry['bookshelf_id']]
+            $ extra = "Anonymous " + "marked as " + shelf + " at " + entry['created'].strftime("%m/%d/%Y at %H:%M:%S")
+          $else:
+            $ extra = 'Logged %i times %s' % (entry['cnt'], pages[mode])
+          $:macros.SearchResultsWork(entry['work'], extra=extra, availability=entry['work'].get('availability'))
     </ul>
   </div>
-
 </div>

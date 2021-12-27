@@ -33,6 +33,18 @@ cached_reading_log_summary = cache.memcache_memoize(
 )
 
 
+def get_most_logged_books(shelf_id=None, since=dateutil.DATE_ONE_DAY_AGO, limit=20):
+    """
+    shelf_id: Bookshelves.PRESET_BOOKSHELVES['Want to Read'|'Already Read'|'Currently Reading']
+    since: DATE_ONE_YEAR_AGO, DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO, DATE_ONE_DAY_AGO
+    """
+    # enable to work w/ cached
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+
+    return Bookshelves.most_logged_books(shelf_id=shelf_id, since=since, limit=limit)
+
+
 def reading_log_leaderboard(limit=None):
     # enable to work w/ cached
     if 'env' not in web.ctx:
@@ -101,10 +113,25 @@ def get_cached_activity_stream(limit):
     )(limit)
 
 class activity_stream(app.view):
-    path = "/trending"
+    path = "/trending(/?.*)"
 
-    def GET(self):
-        logged_books = get_activity_stream(limit=20)
+    def GET(self, page=''):
+        if not page:
+            raise web.seeother("/trending/now")
+        page = page[1:]
+        limit = 20
+        if page == "now":
+            logged_books = get_activity_stream(limit=limit)
+        else:
+            shelf_id = None  # optional; get from web.input()?
+            logged_books = get_most_logged_books(since={
+                'daily': dateutil.DATE_ONE_DAY_AGO,
+                'weekly': dateutil.DATE_ONE_WEEK_AGO,
+                'monthly': dateutil.DATE_ONE_MONTH_AGO,
+                'yearly': dateutil.DATE_ONE_YEAR_AGO,
+                'forever': None,
+            }[page], limit=limit)
+
         work_index = get_solr_works(f"/works/OL{book['work_id']}W" for book in logged_books)
         availability_index = get_availabilities(work_index.values())
         for work_key in availability_index:
@@ -112,7 +139,8 @@ class activity_stream(app.view):
         for i, logged_book in enumerate(logged_books):
             key = f"/works/OL{logged_book['work_id']}W"
             logged_books[i]['work'] = work_index[key]
-        return app.render_template("trending", logged_books=logged_books)
+        return app.render_template("trending", logged_books=logged_books, mode=page)
+
 
 class readinglog_stats(app.view):
     path = "/stats/readinglog"
