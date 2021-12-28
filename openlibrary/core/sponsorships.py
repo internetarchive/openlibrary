@@ -77,7 +77,7 @@ def get_sponsored_editions(user, page=1):
         r = requests.get(f'{url}?{params}')
         # e.g. [{'openlibrary_edition': 'OL24896084M', 'identifier': 'isbn_9780691160191'}]
         return r.json()['response'].get('docs')
-    return {}
+    return []
 
 
 def do_we_want_it(isbn):
