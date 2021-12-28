@@ -5,9 +5,8 @@ from infogami.utils.view import render_template
 def setup():
     pass
 
-
-class author(delegate.page):
-    path = "/authors"
+class swagger(delegate.page):
+    path = "/api/docs"
 
     def GET(self):
-        return render_template("authors/index.html")
+        return render_template("swagger/swaggerui.html")
