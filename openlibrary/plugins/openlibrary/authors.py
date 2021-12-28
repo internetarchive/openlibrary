@@ -11,3 +11,15 @@ class author(delegate.page):
 
     def GET(self):
         return render_template("authors/index.html")
+
+class dist(delegate.page):
+    path = "/ap"
+
+    def GET(self):
+        return render_template("dist/index.html")
+
+class swagger(delegate.page):
+    path = "/api/docs1"
+
+    def GET(self):
+        return render_template("swagger/swaggerui.html")
