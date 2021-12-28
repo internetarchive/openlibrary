@@ -51,7 +51,7 @@ def get_sponsored_editions_civi(user):
     if archive_id:
         contact_id = get_contact_id_by_username(archive_id) if archive_id else None
         return get_sponsorships_by_contact_id(contact_id) if contact_id else []
-    return {}
+    return []
 
 
 def get_sponsored_editions(user, page=1):
