@@ -198,7 +198,7 @@ class MyBooksTemplate:
                         '/books/%s' % doc['openlibrary_edition']
                         for doc in sponsorships
                     ])
-                )
+                ) if sponsorships else None
             elif self.key in self.READING_LOG_KEYS:
                 data = add_availability(
                     self.readlog.get_works(
