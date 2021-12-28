@@ -45,7 +45,7 @@ $if "ip" in query and ctx.user and ctx.user.is_admin():
                 <td class="history">$c.ip</td>
             <td class="comment">
                 $if c.kind == 'add-cover':
-                    <img src='$:call_template("comment", c)'/>
+                    Added new cover <img class="comment__cover" src='$:call_template("comment", c)' alt=""/>
                 $else:
                     $:call_template("comment", c)
             </td>
