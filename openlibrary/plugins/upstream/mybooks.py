@@ -236,7 +236,6 @@ class MyBooksTemplate:
     def _prepare_data(
         self,
         logged_in_user,
-        sponsorships=None,
         page=1,
         username=None,
     ):
