@@ -193,7 +193,12 @@ class MyBooksTemplate:
             self.counts['sponsorships'] = len(sponsorships)
 
             if self.key == 'sponsorships':
-                data = self._prepare_data(logged_in_user, sponsorships=sponsorships)
+                data = add_availability(
+                    web.ctx.site.get_many([
+                        '/books/%s' % doc['openlibrary_edition']
+                        for doc in sponsorships
+                    ])
+                ) if sponsorships else None
             elif self.key in self.READING_LOG_KEYS:
                 data = add_availability(
                     self.readlog.get_works(
@@ -231,20 +236,9 @@ class MyBooksTemplate:
     def _prepare_data(
         self,
         logged_in_user,
-        sponsorships=None,
         page=1,
         username=None,
     ):
-        if sponsorships:
-            return (
-                web.ctx.site.get(
-                    web.ctx.site.things(
-                        {'type': '/type/edition', 'isbn_%s' % len(s['isbn']): s['isbn']}
-                    )[0]
-                )
-                for s in sponsorships
-            )
-
         if self.key == 'loans':
             logged_in_user.update_loan_status()
             return borrow.get_loans(logged_in_user)
