@@ -18,6 +18,7 @@ from openlibrary.plugins.worksearch.search import get_solr
 import six
 from six.moves import urllib
 
+from typing import Dict
 
 logger = logging.getLogger("openlibrary.lists.model")
 
@@ -162,7 +163,7 @@ class ListMixin:
             for k in doc['edition_key']:
                 yield "/books/" + k
 
-    def get_export_list(self):
+    def get_export_list(self)  -> Dict[str, list]:
         """Returns all the editions, works and authors of this list in arbitrary order.
 
         The return value is an iterator over all the entries. Each entry is a dictionary.

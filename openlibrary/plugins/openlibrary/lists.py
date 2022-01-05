@@ -18,6 +18,7 @@ from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.worksearch import subjects
 
+from typing import Dict
 
 class lists_home(delegate.page):
     path = "/lists"
@@ -471,7 +472,7 @@ class export(delegate.page):
         else:
             raise web.notfound()
     
-    def get_exports(self, lst, raw=False):
+    def get_exports(self, lst: list, raw: bool = False) -> Dict[str, list]:
         export_data = lst.get_export_list()
         if "editions" in export_data:
             export_data["editions"] = sorted(
