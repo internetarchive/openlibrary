@@ -32,8 +32,3 @@ with open ("openlibrary/plugins/openlibrary/pages/languages.page", "r") as langu
 
 with open("openlibrary/plugins/openlibrary/pages/new_languages.page","w") as file:
   file.write(render_languagues)
-  
-    
-
-
-
