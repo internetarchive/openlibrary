@@ -595,8 +595,9 @@ class SolrProcessor:
         pub_dates = {e[k] for e in editions if e.get(k)}
         add_list(k, pub_dates)
         pub_years = {
-            m.group(1) for m in (re_year.search(date) for date in pub_dates) if m
+            self.get_pub_year(e) for e in editions
         }
+        pub_years = pub_years - {None,}
         if pub_years:
             add_list('publish_year', pub_years)
             add('first_publish_year', min(int(y) for y in pub_years))
