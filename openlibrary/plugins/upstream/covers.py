@@ -84,7 +84,7 @@ class add_cover(delegate.page):
 
     def save(self, book, coverid, url=None):
         book.covers = [coverid] + [cover.id for cover in book.get_covers()]
-        book._save('%s/b/id/%s-S.jpg' % (
+        book._save('{}/b/id/{}-S.jpg'.format(
             get_coverstore_public_url(), coverid),
             action="add-cover", data={"url": url})
 
