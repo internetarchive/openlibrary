@@ -8,7 +8,7 @@ feedparser==6.0.8
 flup-py3==1.0.3
 Genshi==0.7.5
 gunicorn==20.1.0
-httpx==0.18.2
+httpx==0.21.3
 internetarchive==2.1.0
 isbnlib==3.10.6
 lxml==4.6.3
