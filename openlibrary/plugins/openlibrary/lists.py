@@ -465,7 +465,7 @@ class export(delegate.page):
             data = self.get_exports(lst, raw=True)
             web.header("Content-Type", "application/json")
             return delegate.RawText(json.dumps(data))
-        elif format == "yaml": 
+        elif format == "yaml":
             data = self.get_exports(lst, raw=True)
             web.header("Content-Type", "application/yaml")
             return delegate.RawText(formats.dump_yaml(data))
