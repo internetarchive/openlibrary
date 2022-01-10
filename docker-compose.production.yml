@@ -50,7 +50,8 @@ services:
     environment:
       - TEST_URL=http://openlibrary.org/search.json?q=hello&mode=everything&limit=0
       - CONTAINER_NAMES=openlibrary_solr_1 openlibrary_solr_haproxy_1
-      - SEND_SLACK_MESSAGE=true
+      # XXX this service doesn't have internet access at the moment
+      #- SEND_SLACK_MESSAGE=true
     env_file:
       - ../olsystem/etc/solr_restarter.env
     volumes:
