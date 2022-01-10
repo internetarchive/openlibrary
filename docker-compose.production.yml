@@ -43,6 +43,26 @@ services:
         max-size: "512m"
         max-file: "4"
 
+  solr_restarter:
+    profiles: ["ol-solr0"]
+    build: scripts/solr_restarter
+    restart: unless-stopped
+    environment:
+      - TEST_URL=http://openlibrary.org/search.json?q=hello&mode=everything&limit=0
+      - CONTAINER_NAMES=openlibrary_solr_1 openlibrary_solr_haproxy_1
+      # XXX this service doesn't have internet access at the moment
+      #- SEND_SLACK_MESSAGE=true
+    env_file:
+      - ../olsystem/etc/solr_restarter.env
+    volumes:
+      # Forward the docker socket, since this needs to be able to
+      # run docker commands
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
   covers:
     profiles: ["ol-covers0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
