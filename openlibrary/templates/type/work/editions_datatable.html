@@ -19,15 +19,9 @@ $ book_keys = []
             $ book_keys.append(book['key'].replace('/books/', ''))
             $ edition_sort_key = str(loop.index0+1).zfill(index_padding)
             $if book.key != edition.key:
-              $if render_first_flag == 1:
-                <tr class="highlight">
-                  $:render_template("books/edition-sort", book, edition_sort_key, render_first=True)
-                </tr>
-                $ render_first_flag = 0
-              $else:
-                <tr>
-                  $:render_template("books/edition-sort", book, edition_sort_key)
-                </tr>
+              <tr>
+                $:render_template("books/edition-sort", book, edition_sort_key)
+              </tr>
         $ edition_list_secs = time() - edition_list_start
     </tbody>
 </table>
