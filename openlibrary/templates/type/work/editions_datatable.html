@@ -14,7 +14,6 @@ $ book_keys = []
         $ edition_list_start = time()
         $ editions = editions or work.get_sorted_editions()
         $ index_padding = len(str(len(editions)))
-        $ render_first_flag = 1
         $for book in editions:
             $ book_keys.append(book['key'].replace('/books/', ''))
             $ edition_sort_key = str(loop.index0+1).zfill(index_padding)
