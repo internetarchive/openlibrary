@@ -722,7 +722,7 @@ class Work(models.Work):
     def get_sorted_editions(self, ebooks_only=False, limit=10000):
         """
         Get this work's editions sorted by publication year
-        :param bool ocaid_only:
+        :param bool ebooks_only:
         :rtype: list[Edition]
         """
         use_solr_data = (
