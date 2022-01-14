@@ -719,9 +719,10 @@ class Work(models.Work):
             if 'openlibrary_edition' in availability[work_id]:
                 return '/books/%s' % availability[work_id]['openlibrary_edition']
 
-    def get_sorted_editions(self):
+    def get_sorted_editions(self, ebooks_only=False, limit=10000):
         """
         Get this work's editions sorted by publication year
+        :param bool ocaid_only:
         :rtype: list[Edition]
         """
         use_solr_data = (
@@ -735,7 +736,9 @@ class Work(models.Work):
                 "/books/" + olid for olid in self._solr_data.get('edition_key')
             ]
         else:
-            db_query = {"type": "/type/edition", "works": self.key, "limit": 10000}
+            db_query = {"type": "/type/edition", "works": self.key, "limit": limit}
+            if ebooks_only:
+                db_query["ocaid~"] = "*"
             edition_keys = web.ctx.site.things(db_query)
 
         editions = web.ctx.site.get_many(edition_keys)
