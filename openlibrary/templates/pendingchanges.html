@@ -1,0 +1,17 @@
+$def with(requests=None)
+
+<form method="POST">
+  <p>Submit Work Merge Request (test)</p>
+  <input name="work_ids" placeholder="work_ids csv (e.g. OL123W,OL234W,OL345W)">
+  <input type="submit">
+</form>
+
+<h1>Community Edit Requests</h1>
+
+$if requests:
+  <table>
+    $for r in requests:
+      <tr>
+	<td>$r</td>
+      </tr>
+  </table>

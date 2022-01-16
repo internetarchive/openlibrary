@@ -18,8 +18,10 @@ from infogami.utils.context import context
 
 from openlibrary import accounts
 
-from openlibrary.plugins.upstream import addbook, covers, merge_authors, models, utils
+from openlibrary.plugins.upstream import addbook, covers, models, utils
 from openlibrary.plugins.upstream import spamcheck
+from openlibrary.plugins.upstream import merge_authors
+from openlibrary.plugins.upstream import edits
 from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused imports?
 from openlibrary.plugins.upstream.utils import render_component
 
@@ -344,6 +346,8 @@ def setup():
     addbook.setup()
     covers.setup()
     merge_authors.setup()
+    #merge_works.setup() # ILE code
+    edits.setup()
 
     from openlibrary.plugins.upstream import data, jsdef
 
