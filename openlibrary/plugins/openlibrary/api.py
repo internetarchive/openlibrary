@@ -362,8 +362,8 @@ class author_works(delegate.page):
             raise web.notfound('')
         else:
             i = web.input(limit=50, offset=0)
-            limit = h.safeint(i.limit) or 50
-            offset = h.safeint(i.offset) or 0
+            limit = h.safeint(i.limit, 50)
+            offset = h.safeint(i.offset, 0)
 
             data = self.get_works_data(doc, limit=limit, offset=offset)
             return delegate.RawText(json.dumps(data), content_type="application/json")
