@@ -154,9 +154,7 @@ $if is_privileged_user:
         <link itemprop="exampleOfWork" href="$work.key">
 
     <div class="editionCover">
-      $ component_times['databarWork'] = time()
       $:macros.databarWork(edition or work, editions_page=True, render_times=component_times)
-      $ component_times['databarWork'] = time() - component_times['databarWork']
     </div>
 
     <div class="editionAbout">

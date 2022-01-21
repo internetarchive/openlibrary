@@ -44,28 +44,28 @@ $if isbn_10 and not asin:
           $if not page.is_fake_record():
               $:render_template('covers/change', page, ".edition-cover .bookCover img")
         </div>
-        $ render_times['Sidebar: DonateModal'] = time()
+        $ render_times['databarWork: DonateModal'] = time()
         $:macros.DonateModal(page, ids={'isbn': isbn_13, 'asin': asin, 'prices': True})
-        $ render_times['Sidebar: DonateModal'] = time() - render_times['Sidebar: DonateModal']
+        $ render_times['databarWork: DonateModal'] = time() - render_times['databarWork: DonateModal']
 
         $ work = (page.works and page.works[0]) or page
         $ edition = page.works and page
 
-        $ render_times['Sidebar: List widget'] = time()
+        $ render_times['databarWork: List widget'] = time()
         $ lists_widget = render_template('lists/widget', edition or work, include_rating=True, include_header=False, include_widget=True, include_showcase=False, user_lists_only=False)
-        $ render_times['Sidebar: List widget'] = time() - render_times['Sidebar: List widget']
+        $ render_times['databarWork: List widget'] = time() - render_times['databarWork: List widget']
 
         $# For the Works & Editions page, always use ground_truth_availability API for selected Edition
-        $ render_times['Sidebar: LoanStatus'] = time()
+        $ render_times['databarWork: LoanStatus'] = time()
         $:macros.LoanStatus(page, allow_expensive_availability_check=True, secondary_action=editions_page, check_sponsorship=editions_page, sponsorship_help=editions_page, check_loan_status=editions_page, post=lists_widget)
-        $ render_times['Sidebar: LoanStatus'] = time() - render_times['Sidebar: LoanStatus']
+        $ render_times['databarWork: LoanStatus'] = time() - render_times['databarWork: LoanStatus']
 
         $if editions_page:
-          $ render_times['Sidebar: Book provider'] = time()
+          $ render_times['databarWork: Book provider'] = time()
           $ book_provider = get_book_provider(page)
           $if book_provider:
             $:book_provider.render_download_options(page)
-          $ render_times['Sidebar: Book provider'] = time() - render_times['Sidebar: Book provider']
+          $ render_times['databarWork: Book provider'] = time() - render_times['databarWork: Book provider']
       </div>
     </div>
 
@@ -88,9 +88,9 @@ $if isbn_10 and not asin:
 
         <div class="cta-section">
           <p class="cta-section-title">$_('Buy this book')</p>
-          $ render_times['AffiliateLinks'] = time()
+          $ render_times['databarWork: AffiliateLinks'] = time()
           $:macros.AffiliateLinks(page, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
-          $ render_times['AffiliateLinks'] = time() - render_times['AffiliateLinks']
+          $ render_times['databarWork: AffiliateLinks'] = time() - render_times['databarWork: AffiliateLinks']
         </div>
       </div>
     </div>
