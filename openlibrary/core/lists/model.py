@@ -348,11 +348,6 @@ class Seed:
                 return None
 
     @py3_cached_property
-    def solrdata(self):
-        # TODO: This looks dead?
-        return {'last_update': self.document.get('last_modified')}
-
-    @py3_cached_property
     def type(self):
         if self._type:
             return self._type
@@ -408,7 +403,7 @@ class Seed:
 
     @py3_cached_property
     def last_update(self):
-        return self.solrdata.get("last_update") or None
+        return self.document.get('last_modified')
 
     def dict(self):
         if self.type == "subject":
