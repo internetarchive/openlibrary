@@ -59,16 +59,8 @@ class ListMixin:
 
         return [process(seed) for seed in self.seeds]
 
-    def _get_edition_count(self):
-        return sum(seed.edition_count for seed in self.get_seeds())
-
-    def _get_work_count(self):
-        return sum(seed.work_count for seed in self.get_seeds())
-
-    def _get_ebook_count(self):
-        return sum(seed.ebook_count for seed in self.get_seeds())
-
-    def _get_last_update(self):
+    @py3_cached_property
+    def last_update(self):
         last_updates = [seed.last_update for seed in self.get_seeds()]
         last_updates = [x for x in last_updates if x]
         if last_updates:
@@ -76,10 +68,9 @@ class ListMixin:
         else:
             return None
 
-    work_count = cached_property("work_count", _get_work_count)
-    edition_count = cached_property("edition_count", _get_edition_count)
-    ebook_count = cached_property("ebook_count", _get_ebook_count)
-    last_update = cached_property("last_update", _get_last_update)
+    @property
+    def seed_count(self):
+        return len(self.seeds)
 
     def preview(self):
         """Return data to preview this list.
@@ -90,8 +81,7 @@ class ListMixin:
             "url": self.key,
             "full_url": self.url(),
             "name": self.name or "",
-            "seed_count": len(self.seeds),
-            "edition_count": self.edition_count,
+            "seed_count": self.seed_count,
             "last_update": self.last_update and self.last_update.isoformat() or None,
         }
 
@@ -310,9 +300,6 @@ class Seed:
     """Seed of a list.
 
     Attributes:
-        * work_count
-        * edition_count
-        * ebook_count
         * last_update
         * type - "edition", "work" or "subject"
         * document - reference to the edition/work document
@@ -423,18 +410,6 @@ class Seed:
     def last_update(self):
         return self.solrdata.get("last_update") or None
 
-    @py3_cached_property
-    def ebook_count(self):
-        return self.solrdata.get('ebook_count', 0)
-
-    @py3_cached_property
-    def edition_count(self):
-        return self.solrdata.get('edition_count', 0)
-
-    @py3_cached_property
-    def work_count(self):
-        return self.solrdata.get('work_count', 0)
-
     def dict(self):
         if self.type == "subject":
             url = self.url
@@ -448,9 +423,6 @@ class Seed:
             "full_url": full_url,
             "type": self.type,
             "title": self.title,
-            "work_count": self.work_count,
-            "edition_count": self.edition_count,
-            "ebook_count": self.ebook_count,
             "last_update": self.last_update and self.last_update.isoformat() or None,
         }
         cover = self.get_cover()
