@@ -1,6 +1,6 @@
 """Helper functions used by the List model.
 """
-from functools import cached_property as py3_cached_property
+from functools import cached_property
 from typing import Union
 
 import web
@@ -29,26 +29,6 @@ def get_subject(key):
     return subjects.get_subject(key)
 
 
-def cached_property(name, getter):
-    """Just like property, but the getter is called only for the first access.
-
-    All subsequent accesses will use the cached value.
-
-    The name argument must be same as the property name.
-
-    Sample Usage:
-
-        count = cached_property("count", get_count)
-    """
-
-    def f(self):
-        value = getter(self)
-        self.__dict__[name] = value
-        return value
-
-    return property(f)
-
-
 class ListMixin:
     def _get_rawseeds(self):
         def process(seed):
@@ -59,7 +39,7 @@ class ListMixin:
 
         return [process(seed) for seed in self.seeds]
 
-    @py3_cached_property
+    @cached_property
     def last_update(self):
         last_updates = [seed.last_update for seed in self.get_seeds()]
         last_updates = [x for x in last_updates if x]
@@ -319,7 +299,7 @@ class Seed:
         else:
             self.key = value.key
 
-    @py3_cached_property
+    @cached_property
     def document(self):
         if isinstance(self.value, str):
             return get_subject(self.get_subject_url(self.value))
@@ -347,7 +327,7 @@ class Seed:
                 )
                 return None
 
-    @py3_cached_property
+    @cached_property
     def type(self):
         if self._type:
             return self._type
@@ -401,7 +381,7 @@ class Seed:
         else:
             return None
 
-    @py3_cached_property
+    @cached_property
     def last_update(self):
         return self.document.get('last_modified')
 
