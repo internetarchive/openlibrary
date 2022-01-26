@@ -16,7 +16,9 @@ $ ocaid = doc.get('ocaid') or availability.get('identifier')
 $ work_key = work_key or (doc.get('works') and doc.works[0].key)
 $ no_index = hasattr(doc, 'get_ia_meta_fields') and doc.get_ia_meta_fields().get('noindex', False)
 
+$ waiting_loan_start_time = time()
 $ waiting_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_waiting_loan_for(ocaid)
+$ waiting_loan_total_time = time() - waiting_loan_start_time
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
 
 
@@ -31,7 +33,9 @@ $if allow_expensive_availability_check and ocaid:
 
 $ borrow_link = '/borrow/ia/%s' % ocaid
 
+$ get_loan_for_start_time = time()
 $ user_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_loan_for(ocaid)
+$ get_loan_for_total_time = time() - get_loan_for_start_time
 $if user_loan:
   $:macros.ReadButton(ocaid, loan=user_loan, listen=listen)
   $ return_url = doc.url().rsplit('/', 1)[0] + '/do_return/borrow'
@@ -135,5 +139,7 @@ $if ocaid and daisy and book_provider.short_name == 'ia':
 
 $if query_param('debug'):
   $ loanstatus_end_time = time() - loanstatus_start_time
+  <p>get_waiting_loan_for(ocaid) took $("%.2f" % waiting_loan_total_time) seconds</p>
+  <p>get_loan_for(ocaid) took $("%.2f" % get_loan_for_total_time) seconds</p>
   <p>LoanStatus took $("%.2f" % loanstatus_end_time) seconds</p>
   <p>$availability</p>
