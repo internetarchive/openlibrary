@@ -51,8 +51,7 @@ $if isbn_10 and not asin:
         $ edition = page.works and page
         $ lists_widget = render_template('lists/widget', edition or work, include_rating=True, include_header=False, include_widget=True, include_showcase=False, user_lists_only=False)
 
-        $# For the Works & Editions page, always use ground_truth_availability API for selected Edition
-        $:macros.LoanStatus(page, allow_expensive_availability_check=True, secondary_action=editions_page, check_sponsorship=editions_page, sponsorship_help=editions_page, check_loan_status=editions_page, post=lists_widget)
+        $:macros.LoanStatus(page, secondary_action=editions_page, check_sponsorship=editions_page, sponsorship_help=editions_page, check_loan_status=editions_page, post=lists_widget)
 
         $if editions_page:
           $ book_provider = get_book_provider(page)

@@ -24,6 +24,7 @@ $# Fetch a work's editions
 $# Used for loading the editions table
 $# Book availability of editions injected by bulk get_availability API
 $ editions = work.get_sorted_editions()
+$ availabilities = {e.availability.get('identifier'): e.availability for e in editions}
 $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
 
 $# This collects which books are previewable in any manner
@@ -32,8 +33,8 @@ $ previews = [e for e in editions if e.get('ocaid')]
 $# Choose an edition to render
 $if page.key.startswith('/books'):
   $# We are on an editions page: an edition has been explicitly selected
-  $# NOTE: Editions use the ground_truth_availability API
   $ edition = page
+  $ edition['availability'] = edition.get('ocaid') and availabilities.get(edition['ocaid']) or {}
 $elif editions:
   $# We're presumably on a work url
   $# Set a dummy default editions
@@ -48,6 +49,7 @@ $elif editions:
     $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), edition)
   $else:
     $ edition, provider = get_best_edition(editions)
+    $ edition['availability'] = edition.get('ocaid') and availabilities.get(edition['ocaid']) or {}
 
 $ ocaid = edition.get('ocaid')
 $ book_title = edition.get('title', '') or (work.title if work else '')
