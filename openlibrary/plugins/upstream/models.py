@@ -23,6 +23,7 @@ from openlibrary.plugins.upstream import account
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.book_providers import get_book_providers
 
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
@@ -725,21 +726,29 @@ class Work(models.Work):
         :param bool ebooks_only:
         :rtype: list[Edition]
         """
-        use_solr_data = (
-            self._solr_data
-            and self._solr_data.get('edition_key')
-            and len(self._solr_data.get('edition_key')) == self.edition_count
-        )
+        
+        db_query = {"type": "/type/edition", "works": self.key, "limit": limit}
 
-        if use_solr_data:
-            edition_keys = [
-                "/books/" + olid for olid in self._solr_data.get('edition_key')
-            ]
+        if ebooks_only:
+            edition_keys = []
+            # Always use solr data whether it's up to date or not
+            # to determine which providers this book has
+            # We only make additional queries when a trusted book provider identifier is present
+            for provider in get_book_providers(self.solr_data):
+                edition_keys += web.ctx.site.things({**db_query, **provider.editions_query})
         else:
-            db_query = {"type": "/type/edition", "works": self.key, "limit": limit}
-            if ebooks_only:
-                db_query["ocaid~"] = "*"
-            edition_keys = web.ctx.site.things(db_query)
+            solr_is_up_to_date = (
+                self._solr_data
+                and self._solr_data.get('edition_key')
+                and len(self._solr_data.get('edition_key')) == self.edition_count
+            )
+            if solr_is_up_to_date:
+                edition_keys = [
+                    "/books/" + olid for olid in self._solr_data.get('edition_key')
+                ]
+            else:
+                # given librarians are probably doing this, show all editions
+                edition_keys = web.ctx.site.things(db_query)
 
         editions = web.ctx.site.get_many(edition_keys)
         editions.sort(
