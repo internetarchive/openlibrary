@@ -3,6 +3,8 @@
 import json
 import yaml
 
+from openlibrary.core.helpers import NothingEncoder
+
 __all__ = ["load_yaml", "dump_yaml"]
 
 
@@ -25,7 +27,7 @@ def load(text, format):
 
 def dump(data, format):
     if format == "json":
-        return json.dumps(data)
+        return json.dumps(data, cls=NothingEncoder)
     elif format == "yml":
         return dump_yaml(data)
     else:
