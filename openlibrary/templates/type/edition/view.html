@@ -25,6 +25,9 @@ $# Used for loading the editions table
 $# Book availability of editions injected by bulk get_availability API
 $ ebooks_only = query_param('mode') != 'all'
 $ editions = work.get_sorted_editions(ebooks_only=ebooks_only)
+$if not editions:
+  $ ebooks_only = False
+  $ editions = work.get_sorted_editions()
 $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
 
 $# This collects which books are previewable in any manner
@@ -224,7 +227,7 @@ $if is_privileged_user:
         </div>
         $:macros.ReadMore("subjects")
     </div>
-      $:macros.EditionNavBar(len(editions), show_observations)
+      $:macros.EditionNavBar(work.edition_count, show_observations)
 
       $if ebooks_only:
         <p>
@@ -243,7 +246,8 @@ $if is_privileged_user:
 
       <a name="editions-list" class="section-anchor"></a>
       $ component_times['EditionsTable'] = time()
-      $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
+      $if editions:
+        $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
       $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
 
       <a name="work-details" class="section-anchor"></a>

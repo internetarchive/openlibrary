@@ -22,6 +22,10 @@ class AbstractBookProvider:
     def editions_query(self):
         return {f"identifiers.{self.identifier_key}~": "*"}
 
+    @property
+    def solr_key(self):
+        return f"id_{self.identifier_key}"
+
     def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
         return (
             # If it's an edition
@@ -70,6 +74,10 @@ class InternetArchiveProvider(AbstractBookProvider):
     @property
     def editions_query(self):
         return {f"{self.identifier_key}~": "*"}
+
+    @property
+    def solr_key(self):
+        return f"ia"
 
     def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
         # Solr work record augmented with availability
@@ -280,6 +288,10 @@ def get_best_edition(
     ])
 
     return best if best else (None, None)
+
+
+def get_solr_keys():
+    return [p.solr_key for p in PROVIDER_ORDER]
 
 
 setattr(get_book_provider, 'ia', get_book_provider_by_name('ia'))

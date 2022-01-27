@@ -23,7 +23,6 @@ from openlibrary.plugins.upstream import account
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
 from openlibrary.plugins.worksearch.search import get_solr
-from openlibrary.book_providers import get_book_providers
 
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
@@ -602,6 +601,7 @@ class Work(models.Work):
 
     @cached_property
     def _solr_data(self):
+        from openlibrary.book_providers import get_solr_keys
         fields = [
             "cover_edition_key",
             "cover_id",
@@ -610,9 +610,7 @@ class Work(models.Work):
             "has_fulltext",
             "lending_edition_s",
             "public_scan_b",
-            "ia",
-        ]
-
+        ] + get_solr_keys()
         solr = get_solr()
         stats.begin("solr", get=self.key, fields=fields)
         try:
@@ -726,16 +724,19 @@ class Work(models.Work):
         :param bool ebooks_only:
         :rtype: list[Edition]
         """
-        
+
         db_query = {"type": "/type/edition", "works": self.key, "limit": limit}
 
         if ebooks_only:
+            from openlibrary.book_providers import get_book_providers
             edition_keys = []
             # Always use solr data whether it's up to date or not
             # to determine which providers this book has
-            # We only make additional queries when a trusted book provider identifier is present
-            for provider in get_book_providers(self.solr_data):
-                edition_keys += web.ctx.site.things({**db_query, **provider.editions_query})
+            # We only make additional queries when a
+            # trusted book provider identifier is present
+            for provider in get_book_providers(self._solr_data):
+                query = {**db_query, **provider.editions_query}
+                edition_keys += web.ctx.site.things(query)
         else:
             solr_is_up_to_date = (
                 self._solr_data
