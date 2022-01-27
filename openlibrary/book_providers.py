@@ -18,6 +18,10 @@ class AbstractBookProvider:
     """
     identifier_key: str
 
+    @property
+    def editions_query(self):
+        return {f"identifiers.{self.identifier_key}~": "*"}
+
     def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
         return (
             # If it's an edition
@@ -62,6 +66,10 @@ class AbstractBookProvider:
 class InternetArchiveProvider(AbstractBookProvider):
     short_name = 'ia'
     identifier_key = 'ocaid'
+
+    @property
+    def editions_query(self):
+        return {f"{self.identifier_key}~": "*"}
 
     def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
         # Solr work record augmented with availability
@@ -214,7 +222,7 @@ def get_provider_order(prefer_ia=False) -> list[AbstractBookProvider]:
     return provider_order
 
 
-def get_book_provider(
+def get_book_providers(
     ed_or_solr: Union[Edition, dict]
 ) -> Optional[AbstractBookProvider]:
 
@@ -235,13 +243,15 @@ def get_book_provider(
         prefer_ia = bool(ia_ocaids)
 
     provider_order = get_provider_order(prefer_ia)
-
     for provider in provider_order:
         if provider.get_identifiers(ed_or_solr):
-            return provider
+            yield provider
 
-    # No luck
-    return None
+
+def get_book_provider(
+        ed_or_solr: Union[Edition, dict]
+) -> Optional[AbstractBookProvider]:
+    return next(get_book_providers(ed_or_solr), None)
 
 
 def get_best_edition(
