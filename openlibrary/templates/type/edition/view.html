@@ -232,7 +232,6 @@ $if is_privileged_user:
       $if ebooks_only:
         <p>
           $ungettext("Showing one ebook only.", "Showing %(count)d ebooks only", len(editions), count=len(editions)) <a href="?mode=all">$_("View all %(count)d editions?", count=work.edition_count)</a>
-         
         </p>
 
       <p class="preview-languages">
