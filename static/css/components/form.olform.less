@@ -15,7 +15,7 @@
     padding: 10px 0 2px;
 
     label {
-      font-size: 1.0em;
+      font-size: 1em;
       font-family: @lucida_sans_serif-5;
       font-weight: 700;
     }
@@ -28,30 +28,30 @@
     width: 100%;
   }
 
-  input[type=number],
-  input[type=text] {
+  input[type="number"],
+  input[type="text"] {
     margin: 0 10px 5px 0;
   }
 
-  input[type=number],
-  input[type=text],
-  input[type=email],
-  input[type=password],
+  input[type="number"],
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
   textarea {
-    font-size: 1.0em;
+    font-size: 1em;
     font-family: @lucida_sans_serif-5;
     padding: 3px;
     max-width: 100%;
   }
 
-  input[type=number] {
-    width: 4em;
+  input[type="email"],
+  input[type="password"],
+  .required {
+    padding: 0px;
   }
 
-  input[type=email],
-  input[type=password],
-  .required {
-    // padding: 8px;
+  input[type="number"] {
+    width: 4em;
   }
 
   select {
@@ -70,11 +70,11 @@
     /* stylelint-disable selector-max-specificity */
     .major {
       // stylelint-disable-next-line max-nesting-depth
-      input[type=text],
-      input[type=email],
-      input[type=password],
+      input[type="text"],
+      input[type="email"],
+      input[type="password"],
       textarea {
-        font-size: .875em;
+        font-size: 0.875em;
         width: 100%;
       }
     }
@@ -118,7 +118,7 @@
   height: 265px;
 }
 
-@media all and ( min-width: @width-breakpoint-desktop ) {
+@media all and (min-width: @width-breakpoint-desktop) {
   .olform {
     // formBackLeft and formBackRight are presently only used in
     // openlibrary/templates/books/edit/edition.html (edit form)
@@ -138,12 +138,12 @@
   }
 }
 
-@media all and ( min-width: @width-breakpoint-desktop ) {
+@media all and (min-width: @width-breakpoint-desktop) {
   /* stylelint-disable selector-max-specificity */
   .olform {
-    input[type=text],
-    input[type=email],
-    input[type=password],
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
     textarea {
       width: 475px;
     }
