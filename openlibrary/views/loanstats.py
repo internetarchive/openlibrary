@@ -32,8 +32,12 @@ cached_reading_log_summary = cache.memcache_memoize(
     reading_log_summary, 'stats.readling_log_summary', timeout=dateutil.HOUR_SECS
 )
 
+def cached_get_most_logged_books(shelf_id=None, since_days=1, limit=20):
+    return cache.memcache_memoize(
+        get_most_logged_books, 'stats.trending', timeout=dateutil.HOUR_SECS
+    )(shelf_id=shelf_id, since_days=since_days, limit=limit)
 
-def get_most_logged_books(shelf_id=None, since=dateutil.DATE_ONE_DAY_AGO, limit=20):
+def get_most_logged_books(shelf_id=None, since_days=1, limit=20):
     """
     shelf_id: Bookshelves.PRESET_BOOKSHELVES['Want to Read'|'Already Read'|'Currently Reading']
     since: DATE_ONE_YEAR_AGO, DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO, DATE_ONE_DAY_AGO
@@ -42,7 +46,12 @@ def get_most_logged_books(shelf_id=None, since=dateutil.DATE_ONE_DAY_AGO, limit=
     if 'env' not in web.ctx:
         delegate.fakeload()
 
-    return Bookshelves.most_logged_books(shelf_id=shelf_id, since=since, limit=limit)
+    # Return as dict to enable cache serialization
+    return [dict(book) for book in
+            Bookshelves.most_logged_books(
+                shelf_id=shelf_id,
+                since=dateutil.date_n_days_ago(since_days),
+                limit=limit)]
 
 
 def reading_log_leaderboard(limit=None):
@@ -124,11 +133,11 @@ class activity_stream(app.view):
             logged_books = get_activity_stream(limit=limit)
         else:
             shelf_id = None  # optional; get from web.input()?
-            logged_books = get_most_logged_books(since={
-                'daily': dateutil.DATE_ONE_DAY_AGO,
-                'weekly': dateutil.DATE_ONE_WEEK_AGO,
-                'monthly': dateutil.DATE_ONE_MONTH_AGO,
-                'yearly': dateutil.DATE_ONE_YEAR_AGO,
+            logged_books = cached_get_most_logged_books(since_days={
+                'daily': 1,
+                'weekly': 7,
+                'monthly': 30,
+                'yearly': 365,
                 'forever': None,
             }[page], limit=limit)
 
@@ -138,7 +147,8 @@ class activity_stream(app.view):
             work_index[work_key]['availability'] = availability_index[work_key]
         for i, logged_book in enumerate(logged_books):
             key = f"/works/OL{logged_book['work_id']}W"
-            logged_books[i]['work'] = work_index[key]
+            if key in work_index:
+                logged_books[i]['work'] = work_index[key]
         return app.render_template("trending", logged_books=logged_books, mode=page)
 
 
