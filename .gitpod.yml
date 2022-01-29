@@ -16,4 +16,4 @@ tasks:
   # init runs once for each commit to the default branch
   init: ./scripts/setup_gitpod.sh
   # command runs each time a user starts their workspace
-  command: docker-compose run --rm home npm run-script watch-css
+  command: docker-compose up
