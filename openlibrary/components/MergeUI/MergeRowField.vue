@@ -91,7 +91,7 @@ export default {
             let title = `.${this.field}`;
             if (this.value instanceof Array) {
                 const length = this.value.length;
-                title += ` (${length} item${length == 1 ? '' : 's'})`;
+                title += ` (${length} item${length === 1 ? '' : 's'})`;
             }
             return title;
         }

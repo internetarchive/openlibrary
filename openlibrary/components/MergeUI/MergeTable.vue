@@ -165,10 +165,10 @@ export default {
             if (!this.master_key || !this.records || !this.editions || !this.lists || !this.bookshelves)
                 return undefined;
 
-            const master = this.records.find(r => r.key == this.master_key);
+            const master = this.records.find(r => r.key === this.master_key);
             const dupes = this.records
                 .filter(r => this.selected[r.key])
-                .filter(r => r.key != this.master_key);
+                .filter(r => r.key !== this.master_key);
             const records = [master, ...dupes];
             const editions_to_move = _.flatMap(
                 dupes,
@@ -190,7 +190,7 @@ export default {
             if (!this.merge) return false;
             return field in this.merge.sources
                 ? this.merge.sources[field].includes(record.key)
-                : record.key == this.master_key;
+                : record.key === this.master_key;
         }
     },
     computed: {

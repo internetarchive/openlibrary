@@ -25,9 +25,9 @@ SelectionManager.init = function () {
     $(providerSelectors.join(', '))
         .addClass('dc-selectable')
         .on('click', SelectionManager.toggleSelected);
-    for (let provider of providers) {
+    for (const provider of providers) {
         if (provider.addHandle) {
-            for (let el of $(provider.selector).toArray()) {
+            for (const el of $(provider.selector).toArray()) {
                 const handle = $('<span class="dc-select-handle">&bull;</span>');
                 handle[0].addEventListener('click', ev => ev.preventDefault(), { capture: true });
                 $(el).prepend(handle);
@@ -51,7 +51,7 @@ SelectionManager.toggleSelected = function (clickEvent) {
     const provider = SelectionManager.getProvider(el);
     // FIXME: this is a bug if we support selecting multiple types
     const count = $('.dc-selected').length;
-    SelectionManager.setStatusText(`${count} ${count == 1 ? provider.singular : provider.plural} selected`);
+    SelectionManager.setStatusText(`${count} ${count === 1 ? provider.singular : provider.plural} selected`);
     $('#dc-drag-actions').empty();
     const img_src = provider.image(el);
 
@@ -61,16 +61,16 @@ SelectionManager.toggleSelected = function (clickEvent) {
         $('#dc-drag-status .images').append(`<img src="${img_src}" style="padding: ${(1 - factor) * 5}px 0; width: ${(factor ** 3) * 100}%"/>`);
 
         const actions = SelectionManager.ACTIONS.filter(a => {
-            return a.applies_to_type == provider.singular &&
+            return a.applies_to_type === provider.singular &&
         (a.multiple_only ? count > 1 : count > 0);
         });
         const items = SelectionManager.getSelectedItems();
-        for (let action of actions) {
+        for (const action of actions) {
             $('#dc-drag-actions').append($(`<a target="_blank" href="${action.href(items)}">${action.name}</a>`));
         }
     } else {
         el.removeEventListener('dragstart', SelectionManager.dragStart);
-        const img_el = $('#dc-drag-status .images img').toArray().find(el => el.src == img_src);
+        const img_el = $('#dc-drag-status .images img').toArray().find(el => el.src === img_src);
         $(img_el).remove();
     }
 };

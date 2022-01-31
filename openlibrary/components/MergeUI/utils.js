@@ -36,10 +36,10 @@ export function merge(master, dupes) {
     const sources = {};
     const subsources = {}; // for array elements
 
-    for (let field in result) {
+    for (const field in result) {
         sources[field] = [master.key];
         if (result[field] instanceof Array) {
-            for (let el of result[field]) {
+            for (const el of result[field]) {
                 subsources[field] = {
                     [hash_subel(field, el)]: [master.key]
                 };
@@ -47,9 +47,9 @@ export function merge(master, dupes) {
         }
     }
 
-    for (let dupe of dupes) {
-        for (let field in dupe) {
-            if (!(field in result) && field != 'subtitle') {
+    for (const dupe of dupes) {
+        for (const field in dupe) {
+            if (!(field in result) && field !== 'subtitle') {
                 result[field] = dupe[field];
                 sources[field] = [dupe.key];
             } else if (result[field] instanceof Array) {
@@ -60,14 +60,14 @@ export function merge(master, dupes) {
     }
 
     // dedup
-    for (let key in result) {
+    for (const key in result) {
         if (!(result[key] instanceof Array))
             continue;
         switch (key) {
         case 'authors':
             const authors = _.cloneDeep(result.authors);
             authors
-                .filter(a => typeof a.type == 'string')
+                .filter(a => typeof a.type === 'string')
                 .forEach(a => a.type = { key: a.type });
             result.authors = _.uniqWith(authors, _.isEqual);
             break;
