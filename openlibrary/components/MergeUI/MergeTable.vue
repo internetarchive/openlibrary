@@ -46,12 +46,20 @@
             <a :href="`${record.key}/-/lists`">{{lists[record.key].size}} list{{lists[record.key].size == 1 ? '' : 's'}}</a>
           </td>
           <td v-else>⏳</td>
-          <td v-if="bookshelves" class="bookshelf-counts" style="white-space: nowrap;">
-            <span v-for="(value, name, index) in bookshelves[record.key]" :key="index" :title="name">
-              {{value}}
-            </span>
+          <td class="bookshelf-counts" style="white-space: nowrap;">
+            <div v-if="bookshelves">
+              <span v-for="(value, name, index) in bookshelves[record.key]" :key="index" :title="name">
+                {{value}}
+              </span>
+            </div>
+            <div v-else>⏳ / ⏳ / ⏳</div>
+
+            <div>
+              Ratings:
+                <span v-if="ratings">{{ratings[record.key].summary.count}}</span>
+                <span v-else>⏳</span>
+            </div>
           </td>
-          <td v-else>⏳</td>
         </template>
       </MergeRow>
     </tbody>
@@ -79,7 +87,7 @@ import Vue from 'vue';
 import AsyncComputed from 'vue-async-computed';
 import MergeRow from './MergeRow.vue';
 import EditionSnippet from './EditionSnippet.vue';
-import { merge, get_editions, get_lists, get_bookshelves } from './utils.js';
+import { merge, get_editions, get_lists, get_bookshelves, get_ratings } from './utils.js';
 
 Vue.use(AsyncComputed);
 
@@ -158,6 +166,18 @@ export default {
             const responses = promises.map(p => p.value || p);
             return _.fromPairs(
                 this.records.map((work, i) => [work.key, responses[i].counts])
+            );
+        },
+
+        async ratings() {
+            if (!this.records) return null;
+
+            const promises = await Promise.all(
+                this.records.map(r => get_ratings(r.key))
+            );
+            const responses = promises.map(p => p.value || p);
+            return _.fromPairs(
+                this.records.map((work, i) => [work.key, responses[i]])
             );
         },
 

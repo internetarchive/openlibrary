@@ -120,6 +120,10 @@ export function get_bookshelves(key) {
     return fetch(`${key}/bookshelves.json`).then(r => r.json());
 }
 
+export function get_ratings(key) {
+    return fetch(`${key}/ratings.json`).then(r => r.json());
+}
+
 
 /**
  *
