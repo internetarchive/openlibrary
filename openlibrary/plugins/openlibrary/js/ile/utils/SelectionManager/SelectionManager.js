@@ -7,14 +7,14 @@ export default SelectionManager;
 
 SelectionManager.inited = false;
 SelectionManager.DRAG_TOOLBAR_HTML = `
-<div id="dc-drag-toolbar">
+<div id="ile-drag-toolbar">
     <div style="flex: 1">
-        <div id="dc-drag-status">
+        <div id="ile-drag-status">
             <div class="text"></div>
             <div class="images"></div>
         </div>
     </div>
-    <div id="dc-drag-actions"></div>
+    <div id="ile-drag-actions"></div>
 </div>`.trim();
 
 
@@ -23,12 +23,12 @@ SelectionManager.init = function () {
     const providers = SelectionManager.getPossibleProviders();
     const providerSelectors = providers.map(p => p.selector);
     $(providerSelectors.join(', '))
-        .addClass('dc-selectable')
+        .addClass('ile-selectable')
         .on('click', SelectionManager.toggleSelected);
     for (const provider of providers) {
         if (provider.addHandle) {
             for (const el of $(provider.selector).toArray()) {
-                const handle = $('<span class="dc-select-handle">&bull;</span>');
+                const handle = $('<span class="ile-select-handle">&bull;</span>');
                 handle[0].addEventListener('click', ev => ev.preventDefault(), { capture: true });
                 $(el).prepend(handle);
             }
@@ -45,20 +45,20 @@ SelectionManager.init = function () {
  */
 SelectionManager.toggleSelected = function (clickEvent) {
     const el = clickEvent.currentTarget;
-    el.classList.toggle('dc-selected');
-    const selected = el.classList.contains('dc-selected');
+    el.classList.toggle('ile-selected');
+    const selected = el.classList.contains('ile-selected');
     el.draggable = selected;
     const provider = SelectionManager.getProvider(el);
     // FIXME: this is a bug if we support selecting multiple types
-    const count = $('.dc-selected').length;
+    const count = $('.ile-selected').length;
     SelectionManager.setStatusText(`${count} ${count === 1 ? provider.singular : provider.plural} selected`);
-    $('#dc-drag-actions').empty();
+    $('#ile-drag-actions').empty();
     const img_src = provider.image(el);
 
     if (selected) {
         el.addEventListener('dragstart', SelectionManager.dragStart);
-        const factor = -sigmoid($('#dc-drag-status .images img').length) + 1 + 0.5;
-        $('#dc-drag-status .images').append(`<img src="${img_src}" style="padding: ${(1 - factor) * 5}px 0; width: ${(factor ** 3) * 100}%"/>`);
+        const factor = -sigmoid($('#ile-drag-status .images img').length) + 1 + 0.5;
+        $('#ile-drag-status .images').append(`<img src="${img_src}" style="padding: ${(1 - factor) * 5}px 0; width: ${(factor ** 3) * 100}%"/>`);
 
         const actions = SelectionManager.ACTIONS.filter(a => {
             return a.applies_to_type === provider.singular &&
@@ -66,19 +66,19 @@ SelectionManager.toggleSelected = function (clickEvent) {
         });
         const items = SelectionManager.getSelectedItems();
         for (const action of actions) {
-            $('#dc-drag-actions').append($(`<a target="_blank" href="${action.href(items)}">${action.name}</a>`));
+            $('#ile-drag-actions').append($(`<a target="_blank" href="${action.href(items)}">${action.name}</a>`));
         }
     } else {
         el.removeEventListener('dragstart', SelectionManager.dragStart);
-        const img_el = $('#dc-drag-status .images img').toArray().find(el => el.src === img_src);
+        const img_el = $('#ile-drag-status .images img').toArray().find(el => el.src === img_src);
         $(img_el).remove();
     }
 };
 
 SelectionManager.dragStart = function (dragEvent) {
-    const selected = $('.dc-selected').toArray();
+    const selected = $('.ile-selected').toArray();
     if (selected.length > 1) {
-        dragEvent.dataTransfer.setDragImage($('#dc-drag-status')[0], 0, 0);
+        dragEvent.dataTransfer.setDragImage($('#ile-drag-status')[0], 0, 0);
     }
     const data = {
         from: location.pathname.match(/OL\d+[AWM]/)[0],
@@ -88,7 +88,7 @@ SelectionManager.dragStart = function (dragEvent) {
 };
 
 SelectionManager.getSelectedItems = function () {
-    return $('.dc-selected').toArray().map(el => SelectionManager.getProvider(el).data(el));
+    return $('.ile-selected').toArray().map(el => SelectionManager.getProvider(el).data(el));
 };
 
 SelectionManager.onDrop = function (ev) {
@@ -100,7 +100,7 @@ SelectionManager.onDrop = function (ev) {
 
 SelectionManager.allowDrop = function (ev) {
     const handler = SelectionManager.getHandler();
-    if ($('.dc-selected').length || !handler) return;
+    if ($('.ile-selected').length || !handler) return;
 
     ev.preventDefault();
     SelectionManager.setStatusText(handler.message);
@@ -123,7 +123,7 @@ SelectionManager.getProvider = function (el) {
 }
 
 SelectionManager.setStatusText = function (text) {
-    $('#dc-drag-status .text').text(text);
+    $('#ile-drag-status .text').text(text);
 }
 
 SelectionManager.DROP_HANDLERS = [
