@@ -1,11 +1,19 @@
+// @ts-check
 import $ from 'jquery';
 import { move_to_work, move_to_author } from '../ol.js';
 import './SelectionManager.less';
 
+/**
+ * The SelectionManager is responsible for making things (e.g. books in search results,
+ * or authors on books pages) on Open Library selectable and drag/droppable from one
+ * Open Library window to another.
+ */
 const SelectionManager = {};
 export default SelectionManager;
 
 SelectionManager.inited = false;
+
+/** This is the main ILE toolbar. Should be moved to a Vue component. */
 SelectionManager.DRAG_TOOLBAR_HTML = `
 <div id="ile-drag-toolbar">
     <div style="flex: 1">
@@ -20,11 +28,15 @@ SelectionManager.DRAG_TOOLBAR_HTML = `
 
 SelectionManager.init = function () {
     SelectionManager.inited = true;
+
+    // Label each selectable element with a class, and bind the click event
     const providers = SelectionManager.getPossibleProviders();
     const providerSelectors = providers.map(p => p.selector);
     $(providerSelectors.join(', '))
         .addClass('ile-selectable')
         .on('click', SelectionManager.toggleSelected);
+
+    // Some providers need a "handle" to allow dragging.
     for (const provider of providers) {
         if (provider.addHandle) {
             for (const el of $(provider.selector).toArray()) {
@@ -35,13 +47,16 @@ SelectionManager.init = function () {
         }
     }
 
+    // Add the ILE toolbar
     $(document.body).append($(SelectionManager.DRAG_TOOLBAR_HTML));
-    document.body.addEventListener('drop', SelectionManager.onDrop);
-    document.body.addEventListener('dragover', SelectionManager.allowDrop);
+
+    // Add the drag/drop handlers to the main white part of the page
+    document.addEventListener('drop', SelectionManager.onDrop);
+    document.addEventListener('dragover', SelectionManager.allowDrop);
 };
 
 /**
- * @param {MouseEvent} clickEvent
+ * @param {MouseEvent & { currentTarget: HTMLElement }} clickEvent
  */
 SelectionManager.toggleSelected = function (clickEvent) {
     const el = clickEvent.currentTarget;
@@ -60,10 +75,10 @@ SelectionManager.toggleSelected = function (clickEvent) {
         const factor = -sigmoid($('#ile-drag-status .images img').length) + 1 + 0.5;
         $('#ile-drag-status .images').append(`<img src="${img_src}" style="padding: ${(1 - factor) * 5}px 0; width: ${(factor ** 3) * 100}%"/>`);
 
-        const actions = SelectionManager.ACTIONS.filter(a => {
-            return a.applies_to_type === provider.singular &&
-        (a.multiple_only ? count > 1 : count > 0);
-        });
+        const actions = SelectionManager.ACTIONS.filter(a => (
+            a.applies_to_type === provider.singular &&
+            (a.multiple_only ? count > 1 : count > 0)
+        ));
         const items = SelectionManager.getSelectedItems();
         for (const action of actions) {
             $('#ile-drag-actions').append($(`<a target="_blank" href="${action.href(items)}">${action.name}</a>`));
@@ -75,22 +90,28 @@ SelectionManager.toggleSelected = function (clickEvent) {
     }
 };
 
-SelectionManager.dragStart = function (dragEvent) {
+/**
+ * @param {DragEvent} ev
+ */
+SelectionManager.dragStart = function (ev) {
     const selected = $('.ile-selected').toArray();
     if (selected.length > 1) {
-        dragEvent.dataTransfer.setDragImage($('#ile-drag-status')[0], 0, 0);
+        ev.dataTransfer.setDragImage($('#ile-drag-status')[0], 0, 0);
     }
     const data = {
         from: location.pathname.match(/OL\d+[AWM]/)[0],
         items: SelectionManager.getSelectedItems()
     };
-    dragEvent.dataTransfer.setData('text', JSON.stringify(data));
+    ev.dataTransfer.setData('text', JSON.stringify(data));
 };
 
 SelectionManager.getSelectedItems = function () {
     return $('.ile-selected').toArray().map(el => SelectionManager.getProvider(el).data(el));
 };
 
+/**
+ * @param {DragEvent} ev
+ */
 SelectionManager.onDrop = function (ev) {
     ev.preventDefault();
     const handler = SelectionManager.getHandler();
@@ -98,6 +119,9 @@ SelectionManager.onDrop = function (ev) {
     handler.ondrop(data);
 }
 
+/**
+ * @param {DragEvent} ev
+ */
 SelectionManager.allowDrop = function (ev) {
     const handler = SelectionManager.getHandler();
     if ($('.ile-selected').length || !handler) return;
@@ -122,11 +146,20 @@ SelectionManager.getProvider = function (el) {
         .find(p => p.path.test(location.pathname) && el.matches(p.selector));
 }
 
+/**
+ * @param {string} text
+ */
 SelectionManager.setStatusText = function (text) {
     $('#ile-drag-status .text').text(text);
 }
 
+/**
+ * Drop handlers define patterns for how certain drops should be handled.
+ * Currently there's no way to match based on what's being dropped, only
+ * where.
+ */
 SelectionManager.DROP_HANDLERS = [
+    /** Dropping books from one author to another */
     {
         path: /\/authors\/OL\d+A.*/,
         message: 'Move to this author',
@@ -143,6 +176,7 @@ SelectionManager.DROP_HANDLERS = [
             }
         }
     },
+    /** Dropping editions from one work to another */
     {
         path: /\/works\/OL\d+W.*/,
         message: 'Move to this work',
@@ -161,31 +195,29 @@ SelectionManager.DROP_HANDLERS = [
     },
 ];
 
+/**
+ * Selection Providers define what is selectable on a page. E.g. the path regex
+ * determines the url to apply the selection provider to.
+ */
 SelectionManager.SELECTION_PROVIDERS = [
+    /**
+     * This selection provider makes books in search results selectable.
+     */
     {
-        path: /\/authors\/OL\d+A.*/,
+        path: /(\/authors\/OL\d+A.*|\/search)/,
         selector: '.searchResultItem',
         image: el => $(el).find('.bookcover img')[0].src,
         singular: 'work',
         plural: 'works',
         /**
-     * @param {HTMLElement} el
-     * @return {WorkOLID}
-     **/
+         * @param {HTMLElement} el
+         * @return {import('../ol.js').WorkOLID}
+         **/
         data: el => $(el).find('.booktitle a')[0].href.match(/OL\d+W/)[0],
     },
-    {
-        path: /\/search/,
-        selector: '.searchResultItem',
-        image: el => $(el).find('.bookcover img')[0].src,
-        singular: 'work',
-        plural: 'works',
-        /**
-     * @param {HTMLElement} el
-     * @return {WorkOLID}
-     **/
-        data: el => $(el).find('.booktitle a')[0].href.match(/OL\d+W/)[0],
-    },
+    /**
+     * This selection provider makes editions in the editions table selectable.
+     */
     {
         path: /\/works\/OL\d+W.*/,
         selector: '.book',
@@ -193,11 +225,14 @@ SelectionManager.SELECTION_PROVIDERS = [
         singular: 'edition',
         plural: 'editions',
         /**
-     * @param {HTMLElement} el
-     * @return {EditionOLID}
-     **/
+         * @param {HTMLElement} el
+         * @return {import('../ol.js').EditionOLID}
+         **/
         data: el => $(el).find('.title a')[0].href.match(/OL\d+M/)[0],
     },
+    /**
+     * This selection provider makes author names on the books page selectable.
+     */
     {
         path: /\/works\/OL\d+W.*/,
         selector: 'a[href^="/authors/OL"]',
@@ -206,13 +241,16 @@ SelectionManager.SELECTION_PROVIDERS = [
         singular: 'author',
         plural: 'authors',
         /**
-     * @param {HTMLElement} el
-     * @return {AuthorOLID}
-     **/
+         * @param {HTMLAnchorElement} el
+         * @return {import('../ol.js').AuthorOLID}
+         **/
         data: el => el.href.match(/OL\d+A/)[0],
     },
 ];
 
+/**
+ * Actions get enabled when a certain selections are made.
+ */
 SelectionManager.ACTIONS = [
     {
         applies_to_type: 'work',
@@ -221,6 +259,7 @@ SelectionManager.ACTIONS = [
         href: olids => `/works/merge?records=${olids.join(',')}`,
     },
     {
+        // Someday, anyways!
         applies_to_type: 'edition',
         multiple_only: true,
         name: 'Merge Editions...',

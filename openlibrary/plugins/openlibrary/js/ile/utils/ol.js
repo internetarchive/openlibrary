@@ -6,6 +6,7 @@ import uniqBy from 'lodash/uniqBy';
 /** @typedef {OLID} AuthorOLID */
 
 /**
+ * Move the given editions from one work to another.
  * @param {EditionOLID[]} edition_ids
  * @param {WorkOLID} old_work
  * @param {WorkOLID} new_work
@@ -24,6 +25,7 @@ export async function move_to_work(edition_ids, old_work, new_work) {
 }
 
 /**
+ * Move the given works from one author to another.
  * @param {WorkOLID[]} edition_ids
  * @param {AuthorOLID} old_author
  * @param {AuthorOLID} new_author
