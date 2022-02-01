@@ -178,14 +178,19 @@ SelectionManager.DROP_HANDLERS = [
     },
     /** Dropping editions from one work to another */
     {
-        path: /\/works\/OL\d+W.*/,
+        path: /(\/works\/OL\d+W.*|\/books\/OL\d+M.*)/,
         message: 'Move to this work',
         async ondrop(data) {
             // eslint-disable-next-line no-console
             console.log('move', data);
             SelectionManager.setStatusText('Working...');
             try {
-                await move_to_work(data.items, data.from, location.pathname.match(/OL\d+W/)[0]);
+                let workOlid = location.pathname.match(/OL\d+W/)?.[0];
+                if (!workOlid) {
+                    const ed = await fetch(`/books/${location.pathname.match(/OL\d+M/)[0]}.json`).then(r => r.json());
+                    workOlid = ed.works[0].key.match(/OL\d+W/)[0];
+                }
+                await move_to_work(data.items, data.from, workOlid);
                 SelectionManager.setStatusText('Completed!');
             } catch (e) {
                 SelectionManager.setStatusText('Errored!');
@@ -219,7 +224,7 @@ SelectionManager.SELECTION_PROVIDERS = [
      * This selection provider makes editions in the editions table selectable.
      */
     {
-        path: /\/works\/OL\d+W.*/,
+        path: /(\/works\/OL\d+W.*|\/books\/OL\d+M.*)/,
         selector: '.book',
         image: el => $(el).find('.cover img')[0].src,
         singular: 'edition',
@@ -234,7 +239,7 @@ SelectionManager.SELECTION_PROVIDERS = [
      * This selection provider makes author names on the books page selectable.
      */
     {
-        path: /\/works\/OL\d+W.*/,
+        path: /(\/works\/OL\d+W.*|\/books\/OL\d+M.*)/,
         selector: 'a[href^="/authors/OL"]',
         addHandle: true,
         image: el => `https://covers.openlibrary.org/a/olid/${el.href.match(/OL\d+A/)[0]}-M.jpg?default=https://openlibrary.org/images/icons/avatar_author-lg.png`,
