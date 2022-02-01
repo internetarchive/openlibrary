@@ -55,7 +55,7 @@
     "chartjs-plugin-datalabels": "0.7.0",
     "core-js": "3.16.0",
     "css-loader": "5.2.7",
-    "datatables.net-dt": "1.10.25",
+    "datatables.net-dt": "1.11.4",
     "details-polyfill": "1.2.0",
     "eslint": "6.8.0",
     "eslint-plugin-no-jquery": "2.6.0",
