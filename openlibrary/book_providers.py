@@ -1,4 +1,4 @@
-from typing import Optional, Union, Literal, cast
+from typing import Optional, Union, Literal, Iterator, cast
 
 import web
 from web import uniq
@@ -232,7 +232,7 @@ def get_provider_order(prefer_ia=False) -> list[AbstractBookProvider]:
 
 def get_book_providers(
     ed_or_solr: Union[Edition, dict]
-) -> Optional[AbstractBookProvider]:
+) -> Iterator[AbstractBookProvider]:
 
     # On search results, we want to display IA copies first.
     # Issue is that an edition can be provided by multiple providers; we can easily
