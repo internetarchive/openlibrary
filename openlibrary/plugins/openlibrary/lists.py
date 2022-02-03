@@ -18,7 +18,6 @@ from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.worksearch import subjects
 
-from typing import Dict
 
 class lists_home(delegate.page):
     path = "/lists"
