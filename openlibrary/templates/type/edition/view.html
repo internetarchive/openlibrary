@@ -158,9 +158,7 @@ $if is_privileged_user:
         <link itemprop="exampleOfWork" href="$work.key">
 
     <div class="editionCover">
-      $ component_times['databarWork'] = time()
-      $:macros.databarWork(edition or work, editions_page=True)
-      $ component_times['databarWork'] = time() - component_times['databarWork']
+      $:macros.databarWork(edition or work, editions_page=True, render_times=component_times)
     </div>
 
     <div class="editionAbout">
@@ -466,8 +464,13 @@ $if is_privileged_user:
       </div>
 
       $if show_observations:
+        $ component_times['get_observation_metrics'] = time()
         $ reader_observations = get_observation_metrics(work['key'])
+        $ component_times['get_observation_metrics'] = time() - component_times['get_observation_metrics']
+
+        $ component_times['Review component'] = time()
         $:render_template("observations/review_component", work, reader_observations, page.key)
+        $ component_times['Review component'] = time() - component_times['Review component']
     </div>
   </div>
 
