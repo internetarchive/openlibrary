@@ -2,7 +2,7 @@ amightygirl.paapi5-python-sdk==1.0.0
 Babel==2.9.1
 beautifulsoup4==4.10.0
 DBUtils==1.3
-Deprecated==1.2.12
+Deprecated==1.2.13
 eventer==0.1.1
 feedparser==6.0.8
 flup-py3==1.0.3
@@ -14,7 +14,7 @@ isbnlib==3.10.6
 lxml==4.6.3
 Pillow==8.2.0
 psycopg2==2.8.6
-pydantic==1.8.2
+pydantic==1.9.0
 pymarc==4.1.1
 python-dateutil==2.8.2
 python-memcached==1.59
