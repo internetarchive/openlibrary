@@ -18,12 +18,20 @@ function getIsbnToElementMap(container) {
  * @param {string[]} isbnList
  * @returns {Promise<Array>}
  */
-async function getAvailabilityDataFromArchiveOrg(isbnList) {
-    const apiBaseUrl = 'https://archive.org/services/availability'
-    const apiUrl = `${apiBaseUrl}?isbn=${isbnList.join(',')}`;
+async function getAvailabilityDataFromOpenLibrary(isbnList) {
+    const apiBaseUrl = 'https://openlibrary.org/search.json';
+    const apiUrl = `${apiBaseUrl}?fields=*,availability&q=isbn:${isbnList.join('+OR+')}`;
     const response = await fetch(apiUrl);
     const jsonResponse = await response.json();
-    return jsonResponse.responses;
+    const olDocs = jsonResponse.docs;
+    const isbnToAvailabilityDataMap = {};
+    olDocs.forEach((doc) => {
+        const isbnList = doc.isbn;
+        isbnList.forEach((isbn) => {
+            isbnToAvailabilityDataMap[isbn] = doc?.availability;
+        });
+    });
+    return isbnToAvailabilityDataMap;
 }
 
 /**
@@ -47,14 +55,14 @@ async function addOpenLibraryButtons(options) {
         )
     }
     const foundIsbnElementsMap = getIsbnToElementMap(bookContainer);
-    const availabilityResults = await getAvailabilityDataFromArchiveOrg(Object.keys(foundIsbnElementsMap))
+    const availabilityResults = await getAvailabilityDataFromOpenLibrary(Object.keys(foundIsbnElementsMap))
     Object.keys(foundIsbnElementsMap).map((isbn) => {
         const availability = availabilityResults[isbn]
         if (availability && availability.status !== 'error') {
             const e = foundIsbnElementsMap[isbn]
             const buttons = selectorToPlaceBtnIn ? e.querySelector(selectorToPlaceBtnIn) : e;
             const openLibraryBtnLink = document.createElement('a')
-            openLibraryBtnLink.href = `https://openlibrary.org/borrow/ia/${availability.identifier}`
+            openLibraryBtnLink.href = `https://openlibrary.org/works/${availability.openlibrary_work}`
             openLibraryBtnLink.text = textOnBtn || 'Open Library'
             openLibraryBtnLink.classList.add('openlibrary-btn')
             buttons.append(openLibraryBtnLink);
