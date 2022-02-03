@@ -1,14 +1,9 @@
-footer {
-  .lang-details {
-    width: 150px;
-  }
-  .lang-summary {
-    font-weight: 600;
-  }
-}
 .translate-icon {
   width: 1.5em;
   vertical-align: middle;
+}
+.language-component {
+  cursor: pointer;
 }
 .language-component summary::marker {
   content: "";
@@ -17,13 +12,6 @@ footer {
   content: " ▼";
   zoom: 70%;
   vertical-align: middle;
-}
-.language-dropdown-component {
-  margin: 0 !important;
-  li {
-    padding: 3px 8px;
-    margin: 0;
-  }
 }
 .dropdown-menu {
   width: 150px;
@@ -55,23 +43,19 @@ footer {
     // stylelint-enable max-nesting-depth, selector-max-specificity
   }
 }
-@media only screen and (min-width: @width-breakpoint-tablet) {
-  .language-component {
-    display: none;
-  }
-  .iaBar .language-component {
-    position: relative;
-    display: block;
-    // stylelint-disable selector-max-specificity, max-nesting-depth
-    .language-dropdown-component {
-      position: absolute;
-      right: 0;
-      top: 30px;
-      z-index: @z-index-level-5;
-      li {
-        padding: 8px;
-      }
+
+.iaBar .language-component {
+  position: relative;
+  display: block;
+  // stylelint-disable selector-max-specificity, max-nesting-depth
+  .language-dropdown-component {
+    position: absolute;
+    right: 0;
+    top: 30px;
+    z-index: @z-index-level-5;
+    li {
+      padding: 8px 12px;
     }
-    // stylelint-enable max-nesting-depth, selector-max-specificity
   }
+  // stylelint-enable max-nesting-depth, selector-max-specificity
 }
