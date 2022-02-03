@@ -175,6 +175,7 @@ class borrow(delegate.page):
             borrow_access = user_can_borrow_edition(user, edition)
 
             if not (s3_keys or borrow_access):
+                stats.increment('ol.loans.outdatedAvailabilityStatus')
                 raise web.seeother(error_redirect)
 
             lending.s3_loan_api(
