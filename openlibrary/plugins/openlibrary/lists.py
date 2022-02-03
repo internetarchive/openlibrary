@@ -471,7 +471,8 @@ class export(delegate.page):
         else:
             raise web.notfound()
     
-    def get_exports(self, lst: list, raw: bool = False) -> Dict[str, list]:
+    def get_exports(self, lst: list, raw: bool = False) -> d
+    ict[str, list]:
         export_data = lst.get_export_list()
         if "editions" in export_data:
             export_data["editions"] = sorted(
