@@ -14,7 +14,7 @@ isbnlib==3.10.6
 lxml==4.6.3
 Pillow==8.2.0
 psycopg2==2.8.6
-pydantic==1.8.2
+pydantic==1.9.0
 pymarc==4.1.1
 python-dateutil==2.8.2
 python-memcached==1.59
