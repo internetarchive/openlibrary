@@ -53,14 +53,18 @@ export class FadingToast extends Toast {
      * @param {number} [timeout] Amount of time, in milliseconds, that the component will be visible
      */
     constructor(message, $parent=null, timeout=DEFAULT_TIMEOUT) {
-        super(
-            // TODO(i18n-js)
-            $(`<div class="toast">
-                <span class="toast__body">${message}</span>
-                <a class="toast__close">&times;<span class="shift">Close</span></a>
-            </div>`),
-            $parent
-        );
+        // TODO(i18n-js)
+        const $toast = $(`<div class="toast">
+            <span class="toast__body">${message}</span>
+            <a class="toast__close">&times;<span class="shift">Close</span></a>
+        </div>`)
+
+        // Prevent sending null parent:
+        if ($parent) {
+            super($toast, $parent);
+        } else {
+            super($toast);
+        }
         this.timeout = timeout;
     }
 
