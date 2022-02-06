@@ -27,8 +27,8 @@ def find_ia_account(email=None):
 
 
 Login = Form(
-    Textbox('username', description=_('Username'), klass='required'),
-    Password('password', description=_('Password'), klass='required'),
+    Textbox('username', description=_('Username'), klass='textarea'),
+    Password('password', description=_('Password'), klass='textarea'),
     Hidden('redirect'),
 )
 forms.login = Login
@@ -76,7 +76,7 @@ class RegisterForm(Form):
         Textbox(
             'email',
             description=_('Your email address'),
-            klass='required',
+            klass='textarea',
             id='emailAddr',
             validators=[
                 vemail,
@@ -88,7 +88,7 @@ class RegisterForm(Form):
         Textbox(
             'username',
             description=_('Choose a screen name'),
-            klass='required',
+            klass='textarea',
             help=_("Letters and numbers only please, and at least 3 characters."),
             autocapitalize="off",
             validators=[vlogin, username_validator],
@@ -96,13 +96,13 @@ class RegisterForm(Form):
         Password(
             'password',
             description=_('Choose a password'),
-            klass='required',
+            klass='textarea',
             validators=[vpass],
         ),
         Password(
             'password2',
             description=_('Confirm password'),
-            klass='required',
+            klass='textarea',
             validators=[
                 vpass,
                 EqualToValidator('password', _("Passwords didn't match.")),

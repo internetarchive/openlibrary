@@ -64,20 +64,25 @@ export function initRealTimeValidation() {
         var value2 = document.getElementById('password2').value;
         if (value && value2) {
             if (value2 === value) {
-                $('#password2Message').removeClass().addClass('darkgreen').text('');
-                $('label[for="password2"]').removeClass();
-                $(document.getElementById('password2')).removeClass().addClass('required');
+                $(document.getElementById('password2')).removeClass('required invalid');
+                $('label[for="password2"]').removeClass('invalid');
+                $('#password2Message').removeClass('invalid').addClass('darkgreen').text('');
             }
             else {
-                $(document.getElementById('password2')).removeClass().addClass('required invalid');
-                $('label[for="password2"]').removeClass().addClass('invalid');
-                $('#password2Message').removeClass().addClass('invalid').text('Passwords didnt match');
+                $(document.getElementById('password2')).addClass('required invalid');
+                $('label[for="password2"]').addClass('invalid');
+                $('#password2Message').removeClass('darkgreen').addClass('invalid').text('Passwords do not match');
             }
         }
         else {
-            $('label[for="password2"]').removeClass();
-            $(document.getElementById('password2')).removeClass().addClass('required');
-            $('#password2Message').removeClass().text('');
+            if (!value) {
+                $(document.getElementById('password')).addClass('required');
+                $('label[for="password"]').removeClass('invalid');
+                $('#passwordMessage').removeClass('invalid').text('');
+            }
+            $(document.getElementById('password2')).addClass('required');
+            $('label[for="password2"]').removeClass('invalid');
+            $('#password2Message').removeClass('invalid').text('');
         }
     }
 
