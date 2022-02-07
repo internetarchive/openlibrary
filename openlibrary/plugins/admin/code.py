@@ -30,6 +30,10 @@ from openlibrary import accounts
 from openlibrary.core import lending, admin as admin_stats, helpers as h, imports, cache
 from openlibrary.core.waitinglist import Stats as WLStats
 from openlibrary.core.sponsorships import summary, sync_completed_sponsored_books
+from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.ratings import Ratings
+from openlibrary.core.booknotes import Booknotes
+from openlibrary.core.observations import Observations
 
 from openlibrary.plugins.upstream import forms, spamcheck
 from openlibrary.plugins.upstream.account import send_forgot_password_email
@@ -200,6 +204,56 @@ class add_work_to_staff_picks:
 
         return delegate.RawText(json.dumps(results), content_type="application/json")
 
+
+class resolve_redirects:
+    def GET(self):
+        params = web.input(key='', test=False)
+        summary = {
+            'key': params.key,
+            'redirect_chain': [],
+            'resolved_key': None
+        }
+        if params.key:
+            key = params.key
+            while not summary['resolved_key']:
+                thing = web.ctx.site.get(key)
+                if thing.type.key == "/type/redirect":
+                    summary['redirect_chain'].append({
+                        "key": thing.key,
+                        "occurrences": {},
+                        "updates": {},
+                    })
+                    key = thing.location
+                else:
+                    summary['resolved_key'] = thing.key
+
+            for i, _ in enumerate(summary['redirect_chain']):
+                r = summary['redirect_chain'][i]
+                olid = r['key'].split('/')[-1][2:-1]
+                new_olid = summary['resolved_key'].split('/')[-1][2:-1]
+
+                # count reading log entries
+                r['occurrences']['readinglog'] = len(
+                    Bookshelves.get_works_shelves(olid))
+                r['occurrences']['ratings'] = len(
+                    Ratings.get_all_works_ratings(olid))
+                r['occurrences']['booknotes'] = len(
+                    Booknotes.get_booknotes_for_work(olid))
+                r['occurrences']['observations'] = len(
+                    Observations.get_observations_for_work(olid))
+
+                # track updates
+                r['updates']['readinglog'] = list(
+                    Bookshelves.update_work_id(olid, new_olid, _test=params.test))
+                r['updates']['ratings'] = list(
+                    Ratings.update_work_id(olid, new_olid, _test=params.test))
+                r['updates']['booknotes'] = list(
+                    Booknotes.update_work_id(olid, new_olid, _test=params.test))
+                r['updates']['observations'] = list(
+                    Observations.update_work_id(olid, new_olid, _test=params.test))
+
+        return delegate.RawText(
+            json.dumps(summary), content_type="application/json")
 
 class sync_ol_ia:
     def GET(self):
@@ -829,6 +883,8 @@ def setup():
     register_admin_page('/admin/permissions', permissions, label="")
     register_admin_page('/admin/solr', solr, label="", librarians=True)
     register_admin_page('/admin/sync', sync_ol_ia, label="", librarians=True)
+    register_admin_page('/admin/resolve_redirects', resolve_redirects, label="Resolve Redirects")
+
     register_admin_page(
         '/admin/staffpicks', add_work_to_staff_picks, label="", librarians=True
     )
