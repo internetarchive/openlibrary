@@ -43,6 +43,9 @@ class Input:
         if 'klass' in kw:
             kw['class'] = kw.pop('klass')
 
+        if 'ariaRequired' in kw:
+            kw['aria-required'] = kw.pop('ariaRequired')
+
         self.attrs = AttributeList(kw)
 
     def get_type(self):

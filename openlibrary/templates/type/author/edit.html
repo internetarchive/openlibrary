@@ -26,7 +26,7 @@ $putctx("robots", "noindex,nofollow")
                 </span>
             </div>
             <div class="input">
-                <input type="text" name="author--name" id="name" value="$page.name" class="textarea"/>
+                <input type="text" name="author--name" id="name" value="$page.name" class="textarea" aria-required="true"/>
             </div>
         </div>
     </div>
@@ -51,7 +51,7 @@ $putctx("robots", "noindex,nofollow")
                             </div>
                             <div class="input">
                                 <textarea name="author--bio"
-                                    class="markdown olform__input--large" id="wmd-input" rows="6">$page.bio</textarea>
+                                    class="markdown olform__input--large" id="wmd-input" rows="6" aria-required="true">$page.bio</textarea>
                             </div>
                         </div>
 
@@ -61,7 +61,7 @@ $putctx("robots", "noindex,nofollow")
                                 <label for="birth_date">$_("Date of birth")</label>
                             </div>
                             <div class="input birthInputAcc">
-                                <input type="text" name="author--birth_date" id="birth_date" value="$page.birth_date"/>
+                                <input type="text" name="author--birth_date" id="birth_date" value="$page.birth_date" aria-required="true"/>
                             </div>
                         </div>
 

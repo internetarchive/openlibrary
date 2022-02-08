@@ -78,6 +78,7 @@ class RegisterForm(Form):
             description=_('Your email address'),
             klass='textarea',
             id='emailAddr',
+            ariaRequired="true",
             validators=[
                 vemail,
                 email_not_already_used,
@@ -91,18 +92,21 @@ class RegisterForm(Form):
             klass='textarea',
             help=_("Letters and numbers only please, and at least 3 characters."),
             autocapitalize="off",
+            ariaRequired="true",
             validators=[vlogin, username_validator],
         ),
         Password(
             'password',
             description=_('Choose a password'),
             klass='textarea',
+            ariaRequired="true",
             validators=[vpass],
         ),
         Password(
             'password2',
             description=_('Confirm password'),
             klass='textarea',
+            ariaRequired="true",
             validators=[
                 vpass,
                 EqualToValidator('password', _("Passwords didn't match.")),
