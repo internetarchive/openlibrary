@@ -369,6 +369,7 @@ class SolrProcessor:
                 e['public_scan'] = ('lendinglibrary' not in collection) and (
                     'printdisabled' not in collection
                 )
+                e['access_restricted_item'] = ia_meta_fields.get('access-restricted-item', False)
 
             if 'identifiers' in e:
                 for k, id_list in e['identifiers'].items():
@@ -739,53 +740,69 @@ class SolrProcessor:
         def add_list(name, values):
             doc[name] = list(values)
 
+        # Q: How do I change what values I have available from Archive.org metadata?
+        #    Because I'm pretty sure we're missing e.g. lending___status etc...
+        #    It looks like it may? Just not computed values
+        # 1. is in inlibrary? i.e. borrowable
+        # 2. is it not access-restricted-item?
+
+        borrowable_editions = set()
+        printdisabled_editions = set()
+        open_editions = set()
+        unclassified_editions = set()
+
+        language_editions = {}
+        
         pub_goog = set()  # google
         pub_nongoog = set()
         nonpub_goog = set()
         nonpub_nongoog = set()
-
-        public_scan = False
+        
         all_collection = set()
+        public_scan = False
         lending_edition = None
         in_library_edition = None
         lending_ia_identifier = None
-        printdisabled = set()
+
         for e in editions:
             if 'ocaid' not in e:
                 continue
+
+            assert isinstance(e['ocaid'], str)
+            ocaid = e['ocaid'].strip()
+            collections = e.get('ia_collection', [])
+            all_collection.update(collections)
+            
+            if 'inlibrary' in collections:
+                borrowable_editions.add(ocaid)
+            elif 'printdisabled' in collections:
+                printdisabled_editions.add(ocaid)
+                printdisabled.add(re_edition_key.match(e['key']).group(1))
+            elif e.get('public_scan') and not e.get('access_restricted_item', False):
+                public_scan = True
+                open_editions.add(ocaid)
+            else:
+                unclassified_editions.add(ocaid)
+
+            # partners may still rely on these legacy fields, leave logic unchanged
             if not lending_edition and 'lendinglibrary' in e.get('ia_collection', []):
                 lending_edition = re_edition_key.match(e['key']).group(1)
                 lending_ia_identifier = e['ocaid']
             if not in_library_edition and 'inlibrary' in e.get('ia_collection', []):
                 in_library_edition = re_edition_key.match(e['key']).group(1)
                 lending_ia_identifier = e['ocaid']
-            if 'printdisabled' in e.get('ia_collection', []):
-                printdisabled.add(re_edition_key.match(e['key']).group(1))
-            all_collection.update(e.get('ia_collection', []))
-            assert isinstance(e['ocaid'], str)
-            i = e['ocaid'].strip()
-            if e.get('public_scan'):
-                public_scan = True
-                if i.endswith('goog'):
-                    pub_goog.add(i)
-                else:
-                    pub_nongoog.add(i)
-            else:
-                if i.endswith('goog'):
-                    nonpub_goog.add(i)
-                else:
-                    nonpub_nongoog.add(i)
+
         ia_list = (
-            list(pub_nongoog)
-            + list(pub_goog)
-            + list(nonpub_nongoog)
-            + list(nonpub_goog)
+            list(open_editions) +
+            list(borrowable_editions) +
+            list(printdisabled_editions) +
+            list(unclassified_editions)
         )
+        add_list('ia', ia_list)
         add("ebook_count_i", len(ia_list))
 
         has_fulltext = any(e.get('ocaid', None) for e in editions)
 
-        add_list('ia', ia_list)
         if has_fulltext:
             add('public_scan_b', public_scan)
         if all_collection:
