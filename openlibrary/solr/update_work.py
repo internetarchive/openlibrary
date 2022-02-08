@@ -778,7 +778,7 @@ class SolrProcessor:
             elif 'printdisabled' in collections:
                 printdisabled_editions.add(ocaid)
                 printdisabled.add(re_edition_key.match(e['key']).group(1))
-            elif e.get('public_scan') and not e.get('access_restricted_item', False):
+            elif not e.get('access_restricted_item', False):
                 public_scan = True
                 open_editions.add(ocaid)
             else:
