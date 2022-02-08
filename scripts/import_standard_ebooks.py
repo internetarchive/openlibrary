@@ -66,10 +66,10 @@ def create_batch(records: list[dict[str, str]]) -> None:
     now = time.gmtime(time.time())
     batch_name = f'standardebooks-{now.tm_year}{now.tm_mon}'
     batch = Batch.find(batch_name) or Batch.new(batch_name)
-    batch.add_items([{
-        'ia_id': r['source_records'][0],
-        'data': json.dumps(r)} for r in records]
-    )
+    batch.add_items([
+        {'ia_id': r['source_records'][0], 'data': r}
+        for r in records
+    ])
 
 
 def get_last_updated_time() -> Optional[str]:
