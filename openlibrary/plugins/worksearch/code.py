@@ -1050,7 +1050,7 @@ def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet
 
     # deal with special /lists/ key queries
     query['q'], page, offset, limit = cache.memcache_memoize(
-        "rewrite_list_editions_query", "search.list_query", timeout=5*60)(
+        rewrite_list_editions_query, "search.list_query", timeout=5*60)(
         query['q'],
         page,
         offset,
