@@ -22,7 +22,7 @@ from openlibrary.core import ia
 
 logger = logging.getLogger("openlibrary.solr.data_provider")
 
-IA_METADATA_FIELDS = ('identifier', 'boxid', 'collection')
+IA_METADATA_FIELDS = ('identifier', 'boxid', 'collection', 'access-restricted-item')
 OCAID_PATTERN = re.compile(r'^[^\s&#?/]+$')
 
 

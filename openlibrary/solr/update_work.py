@@ -95,6 +95,7 @@ def set_solr_next(val: bool):
 class IALiteMetadata(TypedDict):
     boxid: set[str]
     collection: set[str]
+    access_restricted_item: str
 
 
 def get_ia_collection_and_box_id(ia: str) -> Optional[IALiteMetadata]:
@@ -131,6 +132,7 @@ def get_ia_collection_and_box_id(ia: str) -> Optional[IALiteMetadata]:
     return {
         'boxid': set(get_list(metadata, 'boxid')),
         'collection': set(get_list(metadata, 'collection')),
+        'access_restricted_item': metadata.get('access-restricted-item'),
     }
 
 
@@ -369,7 +371,7 @@ class SolrProcessor:
                 e['public_scan'] = ('lendinglibrary' not in collection) and (
                     'printdisabled' not in collection
                 )
-                e['access_restricted_item'] = ia_meta_fields.get('access-restricted-item', False)
+                e['access_restricted_item'] = ia_meta_fields.get('access_restricted_item', False)
 
             if 'identifiers' in e:
                 for k, id_list in e['identifiers'].items():
@@ -725,7 +727,8 @@ class SolrProcessor:
             datetimestr_to_int(doc.get('last_modified')) for doc in [work] + editions
         )
 
-    def add_ebook_info(self, doc, editions):
+    @staticmethod
+    def add_ebook_info(doc, editions):
         """
         Add ebook information from the editions to the work Solr document.
 
@@ -740,24 +743,18 @@ class SolrProcessor:
         def add_list(name, values):
             doc[name] = list(values)
 
-        # Q: How do I change what values I have available from Archive.org metadata?
-        #    Because I'm pretty sure we're missing e.g. lending___status etc...
-        #    It looks like it may? Just not computed values
-        # 1. is in inlibrary? i.e. borrowable
-        # 2. is it not access-restricted-item?
-
         borrowable_editions = set()
         printdisabled_editions = set()
         open_editions = set()
         unclassified_editions = set()
 
         language_editions = {}
-        
+
         pub_goog = set()  # google
         pub_nongoog = set()
         nonpub_goog = set()
         nonpub_nongoog = set()
-        
+        printdisabled = set()
         all_collection = set()
         public_scan = False
         lending_edition = None
@@ -772,18 +769,20 @@ class SolrProcessor:
             ocaid = e['ocaid'].strip()
             collections = e.get('ia_collection', [])
             all_collection.update(collections)
-            
+
             if 'inlibrary' in collections:
                 borrowable_editions.add(ocaid)
             elif 'printdisabled' in collections:
                 printdisabled_editions.add(ocaid)
-                printdisabled.add(re_edition_key.match(e['key']).group(1))
-            elif not e.get('access_restricted_item', False):
+            elif e.get('access_restricted_item', False) == "true":
+                unclassified_editions.add(ocaid)
+            else:
                 public_scan = True
                 open_editions.add(ocaid)
-            else:
-                unclassified_editions.add(ocaid)
 
+            # Legacy
+            if 'printdisabled' in collections:
+                printdisabled.add(re_edition_key.match(e['key']).group(1))
             # partners may still rely on these legacy fields, leave logic unchanged
             if not lending_edition and 'lendinglibrary' in e.get('ia_collection', []):
                 lending_edition = re_edition_key.match(e['key']).group(1)

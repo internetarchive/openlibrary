@@ -3,6 +3,7 @@ import pytest
 from openlibrary.solr import update_work
 from openlibrary.solr.data_provider import DataProvider
 from openlibrary.solr.update_work import (
+    SolrProcessor,
     build_data,
     pick_cover_edition,
     pick_number_of_pages_median,
@@ -252,7 +253,7 @@ class Test_build_data:
                     w,
                     key="/books/OL1M",
                     ocaid='foo00bar',
-                    _ia_meta={"collection": ['lendinglibrary', 'americana']},
+                    _ia_meta={"collection": ['inlibrary', 'americana']},
                 ),
             ]
         )
@@ -262,7 +263,7 @@ class Test_build_data:
         assert 'printdisabled_s' not in d
         assert d['lending_edition_s'] == 'OL1M'
         assert d['ia'] == ['foo00bar']
-        assert sss(d['ia_collection_s']) == sss("americana;lendinglibrary")
+        assert sss(d['ia_collection_s']) == sss("americana;inlibrary")
         assert d['edition_count'] == 1
         assert d['ebook_count_i'] == 1
 
@@ -276,13 +277,13 @@ class Test_build_data:
                     w,
                     key="/books/OL1M",
                     ocaid='foo01bar',
-                    _ia_meta={"collection": ['lendinglibrary', 'americana']},
+                    _ia_meta={"collection": ['inlibrary', 'americana']},
                 ),
                 make_edition(
                     w,
                     key="/books/OL2M",
                     ocaid='foo02bar',
-                    _ia_meta={"collection": ['lendinglibrary', 'internetarchivebooks']},
+                    _ia_meta={"collection": ['inlibrary', 'internetarchivebooks']},
                 ),
             ]
         )
@@ -293,7 +294,7 @@ class Test_build_data:
         assert d['lending_edition_s'] == 'OL1M'
         assert sorted(d['ia']) == ['foo01bar', 'foo02bar']
         assert sss(d['ia_collection_s']) == sss(
-            "lendinglibrary;americana;internetarchivebooks"
+            "inlibrary;americana;internetarchivebooks"
         )
         assert d['edition_count'] == 2
         assert d['ebook_count_i'] == 2
@@ -363,7 +364,7 @@ class Test_build_data:
                     w,
                     key="/books/OL3M",
                     ocaid='foo01bar',
-                    _ia_meta={"collection": ['lendinglibrary', 'americana']},
+                    _ia_meta={"collection": ['inlibrary', 'americana']},
                 ),
                 make_edition(
                     w,
@@ -380,7 +381,7 @@ class Test_build_data:
         assert d['lending_edition_s'] == 'OL3M'
         assert sorted(d['ia']) == ['foo00bar', 'foo01bar', 'foo02bar']
         assert sss(d['ia_collection_s']) == sss(
-            "americana;inlibrary;lendinglibrary;printdisabled"
+            "americana;inlibrary;printdisabled"
         )
 
         assert d['edition_count'] == 4
@@ -687,3 +688,35 @@ class Test_pick_number_of_pages_median:
         assert pick_number_of_pages_median(eds) == 122
         eds = [{}, {}] + [{'number_of_pages': n} for n in [123, 122, 1]]
         assert pick_number_of_pages_median(eds) == 122
+
+class Test_Sort_Editions_Ocaids:
+
+    def test_sort(self):
+        doc = {}
+        editions = [{
+            "key": "/books/OL789M",
+            "ocaid": "ocaid_restricted",
+            "access_restricted_item": "true",
+            "ia_collection": []
+        }, {
+            "key": "/books/OL567M",
+            "ocaid": "ocaid_printdisabled",
+            "access_restricted_item": "true",
+            "ia_collection": ["printdisabled"]
+        }, {
+            "key": "/books/OL234M",
+            "ocaid": "ocaid_borrowable",
+            "access_restricted_item": "true",
+            "ia_collection": ["inlibrary"]
+        }, {
+            "key": "/books/OL123M",
+            "ocaid": "ocaid_open",
+            "access_restricted_item": "false",
+            "ia_collection": []
+        }]
+        SolrProcessor.add_ebook_info(doc, editions)
+        assert len(doc.get('ia', [])) == 4
+        assert doc['ia'][0] == "ocaid_open"
+        assert doc['ia'][1] == "ocaid_borrowable"
+        assert doc['ia'][2] == "ocaid_printdisabled"
+        assert doc['ia'][3] == "ocaid_restricted"
