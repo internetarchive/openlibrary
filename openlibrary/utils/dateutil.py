@@ -30,8 +30,10 @@ def date_n_days_ago(n=None, start=None):
     return (_start - datetime.timedelta(days=n)) if n else None
 
 
+DATE_ONE_YEAR_AGO = date_n_days_ago(n=365)
 DATE_ONE_MONTH_AGO = date_n_days_ago(n=days_in_current_month())
 DATE_ONE_WEEK_AGO = date_n_days_ago(n=7)
+DATE_ONE_DAY_AGO = date_n_days_ago(n=1)
 
 
 def parse_date(datestr):
