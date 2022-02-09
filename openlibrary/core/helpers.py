@@ -107,8 +107,24 @@ def sanitize(html, encoding='utf8'):
     return stream.render()
 
 
+class NothingEncoder(json.JSONEncoder):
+    def default(self, obj):
+        """Custom JSON encoder for handling Nothing values.
+
+        Returns None if a value is a Nothing object. Otherwise,
+        encode values using the default JSON encoder.
+        """
+        if isinstance(obj, Nothing):
+            return None
+        return super().default(obj)
+
+
 def json_encode(d, **kw):
-    """Same as json.dumps."""
+    """Calls json.dumps on the given data d.
+    If d is a Nothing object, passes an empty list to json.dumps.
+
+    Returns the json.dumps results.
+    """
     return json.dumps([] if isinstance(d, Nothing) else d, **kw)
 
 
