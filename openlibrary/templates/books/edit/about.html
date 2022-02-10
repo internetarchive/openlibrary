@@ -21,7 +21,8 @@ $def with (work)
             $for s in work.get_subjects():
                 $ s = s.replace('"', '""')
                 $subjects.append('"' + s + '"' if ',' in s else s)
-            <input type="text" name="work--subjects" id="about-subjects" value="$', '.join(subjects)" tabindex="0"/>
+            <textarea name="work--subjects" id="about-subjects" cols="55" rows="1" wrap="soft"
+            onkeyup="this.style.height = 'auto'; this.style.height = (3 + this.scrollHeight)+'px';" tabindex="0">$', '.join(subjects)</textarea>
         </div>
     </div>
 
@@ -35,7 +36,8 @@ $def with (work)
             $for s in work.subject_people:
                 $ s = s.replace('"', '""')
                 $subjects.append('"' + s + '"' if ',' in s else s)
-            <input type="text" name="work--subject_people" id="about-people" value="$', '.join(subjects)" tabindex="0"/>
+            <textarea name="work--subject_people" id="about-people" cols="55" rows="1" wrap="soft"
+            onkeyup="this.style.height = 'auto'; this.style.height = (3 + this.scrollHeight)+'px';" tabindex="0">$', '.join(subjects)</textarea>
         </div>
     </div>
 
@@ -49,7 +51,8 @@ $def with (work)
             $for s in work.subject_places:
                 $ s = s.replace('"', '""')
                 $subjects.append('"' + s + '"' if ',' in s else s)
-            <input type="text" name="work--subject_places" id="about-places" value="$', '.join(subjects)" tabindex="0"/>
+            <textarea name="work--subject_places" id="about-places" cols="55" rows="1" wrap="soft"
+            onkeyup="this.style.height = 'auto'; this.style.height = (3 + this.scrollHeight)+'px';" tabindex="0">$', '.join(subjects)</textarea>
         </div>
     </div>
 
