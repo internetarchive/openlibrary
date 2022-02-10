@@ -1,22 +1,25 @@
-$def with(work, tags=[])
+$def with(work,location,tags=[])
 
-$def render_subjects(label, subjects, prefix=""):
+$def render_subjects(label, subjects, track-value, prefix=""):
   $if subjects:
     <div class="section link-box">
       <h6>$label</h6>
       <span>
         $for subject in subjects:
-          <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',', '').replace('/', ''))">$subject</a>$cond(not loop.last, ",", "")
+          <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',', '').replace('/', ''))" data-ol-link-track="$track-value">$subject</a>$cond(not loop.last, ",", "")
       </span>
     </div>
 
 $if work:
   $for tag in tags:
     $if tag=="Subjects":
-      $:render_subjects(_("Subjects"), work.get_subjects())
+      $if location=="work":
+        $:render_subjects(_("Subjects"), work.get_subjects(),"WorkSection|SubjectClick")
+      $else:
+        $:render_subjects(_("Subjects"), work.get_subjects(),"BookOverview|SubjectClick")
     $elif tag=="People":
-      $:render_subjects(_("People"), work.subject_people, prefix="person:")
+      $:render_subjects(_("People"), work.subject_people,"WorkSection|SubjectPeopleClick", prefix="person:")
     $elif tag=="Places":
-      $:render_subjects(_("Places"), work.subject_places, prefix="place:")
+      $:render_subjects(_("Places"), work.subject_places,"WorkSection|SubjectPlacesClick", prefix="place:")
     $elif tag=="Times":
-      $:render_subjects(_("Times"), work.subject_times, prefix="time:")
+      $:render_subjects(_("Times"), work.subject_times,"WorkSection|SubjectTimesClick", prefix="time:")
