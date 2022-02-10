@@ -728,15 +728,19 @@ class Work(models.Work):
         db_query = {"type": "/type/edition", "works": self.key, "limit": limit}
 
         if ebooks_only:
-            from openlibrary.book_providers import get_book_providers
             edition_keys = []
-            # Always use solr data whether it's up to date or not
-            # to determine which providers this book has
-            # We only make additional queries when a
-            # trusted book provider identifier is present
-            for provider in get_book_providers(self._solr_data):
-                query = {**db_query, **provider.editions_query}
-                edition_keys += web.ctx.site.things(query)
+            if self._solr_data:
+                from openlibrary.book_providers import get_book_providers
+                # Always use solr data whether it's up to date or not
+                # to determine which providers this book has
+                # We only make additional queries when a
+                # trusted book provider identifier is present
+                for provider in get_book_providers(self._solr_data):
+                    query = {**db_query, **provider.editions_query}
+                    edition_keys += web.ctx.site.things(query)
+            else:
+                db_query["ocaid~"] = "*"
+
         else:
             solr_is_up_to_date = (
                 self._solr_data
