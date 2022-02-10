@@ -1,0 +1,11 @@
+$def with(openstax_id)
+
+$ url = 'https://openstax.org/details/books/' + openstax_id
+
+<hr>
+<div class="cta-section">
+  <p class="cta-section-title">$_('Download Options')</p>
+    <ul class="ebook-download-options">
+      <li><a href="$url" title="$_('Download book from OpenStax')">$_('More at OpenStax')</a></li>
+    </ul>
+</div>
