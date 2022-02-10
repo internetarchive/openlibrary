@@ -132,7 +132,7 @@ class ratings(delegate.page):
     def POST(self, work_id):
         """Registers new ratings for this work"""
         user = accounts.get_current_user()
-        i = web.input(edition_id=None, rating=None, redir=False, redir_url=None, page=None)
+        i = web.input(edition_id=None, rating=None, redir=False, redir_url=None, page=None, ajax=False)
         key = (i.redir_url if i.redir_url else
             i.edition_id if i.edition_id else
             ('/works/OL%sW' % work_id))
@@ -167,7 +167,7 @@ class ratings(delegate.page):
             )
             r = response('rating added')
 
-        if i.redir:
+        if i.redir and not i.ajax:
             p = h.safeint(i.page, 1)
             query_params = f'?page={p}' if p > 1 else ''
             if i.page:
@@ -362,8 +362,8 @@ class author_works(delegate.page):
             raise web.notfound('')
         else:
             i = web.input(limit=50, offset=0)
-            limit = h.safeint(i.limit) or 50
-            offset = h.safeint(i.offset) or 0
+            limit = h.safeint(i.limit, 50)
+            offset = h.safeint(i.offset, 0)
 
             data = self.get_works_data(doc, limit=limit, offset=offset)
             return delegate.RawText(json.dumps(data), content_type="application/json")

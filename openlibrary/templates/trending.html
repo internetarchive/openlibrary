@@ -1,0 +1,25 @@
+$def with (logged_books=None, mode='now')
+
+<div id="contentBody">
+  $ pages = {'now': 'Now', 'daily': 'Today', 'weekly': 'This Week', 'monthly': 'This Month', 'yearly': 'This Year', 'forever': 'All Time'}
+  <h1>$_('Trending Books'): $_(pages[mode])</h1>
+  <p>$_("See what readers from the community are adding to their bookshelves")</p>
+  <p>
+    $for p in pages:
+      <a style="$('font-weight: bold;' if p==mode else '')" href="/trending/$(p)">$pages[p]</a>
+  </p>
+
+  <div class="mybooks-list">
+    <ul class="list-books">
+      $if logged_books:
+        $for entry in logged_books:
+          $if 'bookshelf_id' in entry:
+            $ shelf = {1: "Want to Read", 2: "Currently Reading", 3: "Read"}[entry['bookshelf_id']]
+            $ extra = "Someone marked as " + shelf + ", " + entry['created'].strftime("%m/%d/%Y at %H:%M:%S")
+          $else:
+            $ extra = 'Logged %i times %s' % (entry['cnt'], pages[mode])
+          $if entry.get('work'):
+            $:macros.SearchResultsWork(entry['work'], extra=extra, availability=entry['work'].get('availability'))
+    </ul>
+  </div>
+</div>

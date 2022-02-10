@@ -241,12 +241,7 @@ class AmazonAPI:
                 and item_info.title
                 and getattr(item_info.title, 'display_value')
             ),
-            'cover': (
-                images
-                and images.primary
-                and images.primary.large
-                and images.primary.large.url
-            ),
+            'covers': (images.primary.large.url if images and images.primary and images.primary.large and images.primary.large.url and not '/01RmK+J4pJL.' in images.primary.large.url else None),
             'authors': attribution
             and [{'name': contrib.name} for contrib in attribution.contributors],
             'publishers': list({p for p in (brand, manufacturer) if p}),
