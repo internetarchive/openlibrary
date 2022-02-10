@@ -6,7 +6,6 @@ $if subjects:
     <div class="carousel-section-header">
       <h2 class="home-h2"><a href="/subjects">$_('Browse by Subject')</a></h2>
     </div>
-    <hr>
     <div class="carousel-container">
       <div class="carousel carousel--progressively-enhanced" id="categories_carousel"
         data-config="$json_encode(['#categories_carousel', 6, 5, 4, 3, 2])">
@@ -19,6 +18,7 @@ $if subjects:
               <div class="category-icon">
                 <img class="category-img" src="/static/images/categories/$(icon).svg"
                     width="30" height="30"
+                    loading="lazy"
                     alt="$_('browse %(subject)s books', subject=presentable_subject_name)"/>
               </div>
               <p class="category-title">$presentable_subject_name</p>

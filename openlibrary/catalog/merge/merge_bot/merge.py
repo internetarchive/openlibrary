@@ -1,12 +1,12 @@
 #!/usr/bin/python2.5
 
-from __future__ import print_function
 import openlibrary.catalog.merge.merge_marc as marc
 import openlibrary.catalog.merge.amazon as amazon
 from openlibrary.catalog.utils.query import get_mc, withKey
 
 from openlibrary.catalog.get_ia import get_from_archive
 import openlibrary.catalog.marc.fast_parse as fast_parse
+
 
 def try_amazon(key):
     thing = withKey(key)
@@ -22,6 +22,7 @@ def try_amazon(key):
         authors = []
     return amazon.build_amazon(thing, authors)
 
+
 def get_record(key, mc):
     data = get_from_archive(mc)
     try:
@@ -36,7 +37,8 @@ def get_record(key, mc):
         print(rec)
         raise
 
-def attempt_merge(a, m, threshold, debug = False):
+
+def attempt_merge(a, m, threshold, debug=False):
     l1 = amazon.level1_merge(a, m)
     total = sum(i[2] for i in l1)
     if debug:
@@ -49,8 +51,40 @@ def attempt_merge(a, m, threshold, debug = False):
         print(total, l2)
     return total >= threshold
 
-sample_amazon = {'publishers': ['New Riders Press'], 'isbn': ['0321525655'], 'number_of_pages': 240, 'short_title': 'presentation zen simple i', 'normalized_title': 'presentation zen simple ideas on presentation design and delivery voices that matter', 'full_title': 'Presentation Zen Simple Ideas on Presentation Design and Delivery (Voices That Matter)', 'titles': ['Presentation Zen Simple Ideas on Presentation Design and Delivery (Voices That Matter)', 'presentation zen simple ideas on presentation design and delivery voices that matter', 'Presentation Zen Simple Ideas on Presentation Design and Delivery', 'presentation zen simple ideas on presentation design and delivery'], 'publish_date': '2007', 'authors': ['Garr Reynolds']}
-sample_marc = {'publishers': [u'New Riders'], 'isbn': ['9780321525659', '0321525655'], 'lccn': ['2008297172'], 'number_of_pages': 229, 'short_title': u'presentation zen simple i', 'normalized_title': u'presentation zen simple ideas on presentation design and delivery', 'full_title': u'Presentation zen simple ideas on presentation design and delivery', 'titles': [u'Presentation zen simple ideas on presentation design and delivery', u'presentation zen simple ideas on presentation design and delivery'], 'publish_date': '2008', 'publish_country': 'cau', 'authors': [{'db_name': u'Reynolds, Garr.', 'name': u'Reynolds, Garr.'}]}
+
+sample_amazon = {
+    'publishers': ['New Riders Press'],
+    'isbn': ['0321525655'],
+    'number_of_pages': 240,
+    'short_title': 'presentation zen simple i',
+    'normalized_title': 'presentation zen simple ideas on presentation design and delivery voices that matter',
+    'full_title': 'Presentation Zen Simple Ideas on Presentation Design and Delivery (Voices That Matter)',
+    'titles': [
+        'Presentation Zen Simple Ideas on Presentation Design and Delivery (Voices That Matter)',
+        'presentation zen simple ideas on presentation design and delivery voices that matter',
+        'Presentation Zen Simple Ideas on Presentation Design and Delivery',
+        'presentation zen simple ideas on presentation design and delivery',
+    ],
+    'publish_date': '2007',
+    'authors': ['Garr Reynolds'],
+}
+sample_marc = {
+    'publishers': ['New Riders'],
+    'isbn': ['9780321525659', '0321525655'],
+    'lccn': ['2008297172'],
+    'number_of_pages': 229,
+    'short_title': 'presentation zen simple i',
+    'normalized_title': 'presentation zen simple ideas on presentation design and delivery',
+    'full_title': 'Presentation zen simple ideas on presentation design and delivery',
+    'titles': [
+        'Presentation zen simple ideas on presentation design and delivery',
+        'presentation zen simple ideas on presentation design and delivery',
+    ],
+    'publish_date': '2008',
+    'publish_country': 'cau',
+    'authors': [{'db_name': 'Reynolds, Garr.', 'name': 'Reynolds, Garr.'}],
+}
+
 
 def amazon_and_marc(key1, key2):
     if all(k in ('/b/OL9621221M', '/b/OL20749803M') for k in (key1, key2)):
@@ -67,6 +101,7 @@ def amazon_and_marc(key1, key2):
         rec_marc = get_record(key1, mc1)
     return rec_amazon, rec_marc
 
+
 def marc_and_marc(key1, key2):
     mc1 = get_mc(key1)
     rec1 = get_record(key1, mc1)
@@ -74,8 +109,9 @@ def marc_and_marc(key1, key2):
     rec2 = get_record(key2, mc2)
     return rec1, rec2
 
+
 if __name__ == '__main__':
-    key1 = '/b/OL9621221M' # amazon
+    key1 = '/b/OL9621221M'  # amazon
     key2 = '/b/OL20749803M'
     rec_amazon, rec_marc = amazon_and_marc(key1, key2)
     threshold = 875

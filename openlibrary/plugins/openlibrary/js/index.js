@@ -196,7 +196,7 @@ jQuery(function () {
         import(/* webpackChunkName: "carousel" */ './carousel')
             .then((module) => { module.init($carouselElements);
                 $('.slick-slide').each(function () {
-                    if ($(this).attr('aria-describedby') != undefined) {
+                    if ($(this).attr('aria-describedby') !== undefined) {
                         $(this).attr('id',$(this).attr('aria-describedby'));
                     }
                 });
@@ -218,9 +218,18 @@ jQuery(function () {
             .then((module) => module.init());
     }
 
+    if (document.getElementsByClassName('toast').length) {
+        import(/* webpackChunkName: "Toast" */ './Toast')
+            .then((module) => {
+                Array.from(document.getElementsByClassName('toast'))
+                    .forEach(el => new module.Toast($(el)));
+            });
+    }
+
     const $observationModalLinks = $('.observations-modal-link');
     const $notesModalLinks = $('.notes-modal-link');
-    if ($observationModalLinks.length || $notesModalLinks.length) {
+    const $notesPageButtons = $('.note-page-buttons')
+    if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length) {
         import(/* webpackChunkName: "modal-links" */ './modals')
             .then(module => {
                 if ($observationModalLinks.length) {
@@ -229,12 +238,10 @@ jQuery(function () {
                 if ($notesModalLinks.length) {
                     module.initNotesModal($notesModalLinks);
                 }
+                if ($notesPageButtons.length) {
+                    module.addNotesPageButtonListeners();
+                }
             });
-    }
-
-    if (document.getElementsByClassName('manageCovers').length) {
-        import(/* webpackChunkName: "covers" */ './covers')
-            .then((module) => module.initCoversChange());
     }
 
     const manageCoversElement = document.getElementsByClassName('manageCovers').length;
@@ -261,9 +268,19 @@ jQuery(function () {
             .then(module => module.initAddBookImport());
     }
 
+    if (document.getElementById('autofill-dev-credentials')) {
+        document.getElementById('username').value = 'openlibrary@example.com'
+        document.getElementById('password').value = 'admin123'
+        document.getElementById('remember').checked = true
+    }
     if (document.getElementById('adminLinks')) {
         import(/* webpackChunkName: "admin" */ './admin')
             .then((module) => module.initAdmin());
+    }
+
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        import(/* webpackChunkName: "offline-banner" */ './offline-banner')
+            .then((module) => module.initOfflineBanner());
     }
 
     if (document.getElementById('searchFacets')) {
@@ -287,6 +304,10 @@ jQuery(function () {
 
     $('#wikiselect').on('focus', function(){$(this).trigger('select');})
 
+    $('.hamburger-component .mask-menu').on('click', function () {
+        $('details[open]').not(this).removeAttr('open');
+    });
+
     // Open one dropdown at a time.
     $(document).on('click', function (event) {
         const $openMenus = $('.header-dropdown details[open]').parents('.header-dropdown');
@@ -295,4 +316,11 @@ jQuery(function () {
             .find('details')
             .removeAttr('open');
     });
+
+    // Prevent default star rating behavior:
+    const ratingForms = document.querySelectorAll('.star-rating-form')
+    if (ratingForms) {
+        import(/* webpackChunkName: "star-ratings" */'./handlers')
+            .then((module) => module.initRatingHandlers(ratingForms));
+    }
 });

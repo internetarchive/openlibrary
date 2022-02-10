@@ -83,6 +83,7 @@ def find_author(name):
     :rtype: list
     :return: A list of OL author representations than match name
     """
+
     def walk_redirects(obj, seen):
         seen.add(obj['key'])
         while obj['type']['key'] == '/type/redirect':
@@ -152,7 +153,7 @@ def import_author(author, eastern=False):
     :param dict author: Author import record {"name": "Some One"}
     :param bool eastern: Eastern name order
     :rtype: dict
-    :return: Open Library style Author representation, either exisiting with "key",
+    :return: Open Library style Author representation, either existing with "key",
              or new candidate without "key".
     """
     existing = find_entity(author)
@@ -177,11 +178,12 @@ def import_author(author, eastern=False):
 class InvalidLanguage(Exception):
     def __init__(self, code):
         self.code = code
+
     def __str__(self):
         return "invalid language code: '%s'" % self.code
 
 
-type_map = { 'description': 'text', 'notes': 'text', 'number_of_pages': 'int' }
+type_map = {'description': 'text', 'notes': 'text', 'number_of_pages': 'int'}
 
 
 def build_query(rec):
@@ -194,7 +196,7 @@ def build_query(rec):
     :return: Open Library style edition representation
     """
     book = {
-        'type': { 'key': '/type/edition'},
+        'type': {'key': '/type/edition'},
     }
 
     for k, v in rec.items():

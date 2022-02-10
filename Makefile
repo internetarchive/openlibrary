@@ -6,7 +6,7 @@
 BUILD=static/build
 ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
 GITHUB_EDITOR_WIDTH=127
-FLAKE_EXCLUDE=./.*,scripts/20*,vendor/*,node_modules/*
+FLAKE_EXCLUDE=./.*,vendor/*,node_modules/*
 COMPONENTS_DIR=openlibrary/components
 
 # Use python from local env if it exists or else default to python in the path.
@@ -74,7 +74,11 @@ ifndef CI
 endif
 
 test-py:
-	pytest . --ignore=tests/integration --ignore=scripts/2011 --ignore=infogami --ignore=vendor --ignore=node_modules
+	pytest . --ignore=tests/integration --ignore=infogami --ignore=vendor --ignore=node_modules
+
+test-i18n:
+  # Valid locale codes should be added as arguments to validate
+	$(PYTHON) ./scripts/i18n-messages validate de es fr ja
 
 test:
-	make test-py && npm run test
+	make test-py && npm run test && make test-i18n

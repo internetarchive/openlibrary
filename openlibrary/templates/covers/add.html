@@ -62,7 +62,7 @@ $if status:
                     <label id="imageWeb" for="imageUrl">$_("Or, paste in the image URL if it's on the web.")</label>
                 </div>
                 <div class="input">
-                    <input type="text" name="url" id="imageUrl" value="$data.get('url', 'http://')" onClick="if(!this._haschanged && this.value == 'http://'){this.value=''};this._haschanged=true;"/>
+                    <input type="text" name="url" id="imageUrl" value="$data.get('url', 'https://')" onClick="if(!this._haschanged && this.value == 'https://'){this.value=''};this._haschanged=true;"/>
                 </div>
             </div>
 

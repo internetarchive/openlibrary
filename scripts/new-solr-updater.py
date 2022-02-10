@@ -21,6 +21,7 @@ import socket
 from openlibrary.solr import update_work
 from openlibrary.config import load_config
 from infogami import config
+from openlibrary.solr.update_work import CommitRequest
 
 logger = logging.getLogger("openlibrary.solr-updater")
 # FIXME: Some kind of hack introduced to work around DB connectivity issue
@@ -30,9 +31,12 @@ args = {}
 def read_state_file(path, initial_state: str = None):
     try:
         return open(path).read()
-    except IOError:
-        logger.error("State file %s is not found. Reading log from the beginning of today", path)
+    except OSError:
+        logger.error(
+            "State file %s is not found. Reading log from the beginning of today", path
+        )
         return initial_state or f"{datetime.date.today().isoformat()}:0"
+
 
 def get_default_offset():
     return datetime.date.today().isoformat() + ":0"
@@ -55,17 +59,19 @@ class InfobaseLog:
         self.offset = offset.strip()
 
     def read_records(self, max_fetches=10):
-        """Reads all the available log records from the server.
-        """
+        """Reads all the available log records from the server."""
         for i in range(max_fetches):
-            url = "%s/%s?limit=100" % (self.base_url, self.offset)
+            url = f"{self.base_url}/{self.offset}?limit=100"
             logger.debug("Reading log from %s", url)
             try:
                 jsontext = urllib.request.urlopen(url).read()
             except urllib.error.URLError as e:
                 logger.error("Failed to open URL %s", url, exc_info=True)
                 if e.args and e.args[0].args == (111, 'Connection refused'):
-                    logger.error('make sure infogami server is working, connection refused from %s', url)
+                    logger.error(
+                        'make sure infogami server is working, connection refused from %s',
+                        url,
+                    )
                     sys.exit(1)
                 raise
 
@@ -129,8 +135,11 @@ def parse_log(records, load_ia_scans: bool):
                 edition_key = data.get('book_key')
                 if edition_key:
                     yield edition_key
-            elif (load_ia_scans and data.get("type") == "ia-scan" and
-                  key.startswith("ia-scan/")):
+            elif (
+                load_ia_scans
+                and data.get("type") == "ia-scan"
+                and key.startswith("ia-scan/")
+            ):
                 identifier = data.get('identifier')
                 if identifier and is_allowed_itemid(identifier):
                     yield "/books/ia:" + identifier
@@ -141,8 +150,7 @@ def parse_log(records, load_ia_scans: bool):
             # are picked by this script
             elif key == 'solr-force-update':
                 keys = data.get('keys')
-                for k in keys:
-                    yield k
+                yield from keys
 
         elif action == 'store.delete':
             key = rec.get("data", {}).get("key")
@@ -151,6 +159,7 @@ def parse_log(records, load_ia_scans: bool):
             if key.startswith("ia-scan/"):
                 ol_key = "/works/ia:" + key.split("/")[-1]
                 yield ol_key
+
 
 def is_allowed_itemid(identifier):
     if not re.match("^[a-zA-Z0-9_.-]*$", identifier):
@@ -164,6 +173,7 @@ def is_allowed_itemid(identifier):
 
     return True
 
+
 def update_keys(keys):
     if not keys:
         return 0
@@ -173,7 +183,11 @@ def update_keys(keys):
     logger.debug("Args: %s" % str(args))
     update_work.load_configs(args['ol_url'], args['ol_config'], 'default')
 
-    keys = [k for k in keys if k.count("/") == 2 and k.split("/")[1] in ("books", "authors", "works")]
+    keys = [
+        k
+        for k in keys
+        if k.count("/") == 2 and k.split("/")[1] in ("books", "authors", "works")
+    ]
 
     count = 0
     for chunk in web.group(keys, 100):
@@ -188,6 +202,7 @@ def update_keys(keys):
         logger.info("updated %d documents", count)
 
     return count
+
 
 class Solr:
     def __init__(self):
@@ -209,34 +224,44 @@ class Solr:
 
         dt = time.time() - self.t_start
         if self.total_docs > 100 or dt > 60:
-            logger.info("doing solr commit (%d docs updated, last commit was %0.1f seconds ago)", self.total_docs, dt)
+            logger.info(
+                "doing solr commit (%d docs updated, last commit was %0.1f seconds ago)",
+                self.total_docs,
+                dt,
+            )
             self._solr_commit()
             self.reset()
         else:
-            logger.debug("skipping solr commit (%d docs updated, last commit was %0.1f seconds ago)", self.total_docs, dt)
+            logger.debug(
+                "skipping solr commit (%d docs updated, last commit was %0.1f seconds ago)",
+                self.total_docs,
+                dt,
+            )
 
     def _solr_commit(self):
         logger.info("BEGIN commit")
-        update_work.solr_update(['<commit/>'])
+        update_work.solr_update([CommitRequest()])
         logger.info("END commit")
 
 
 def main(
-        ol_config: str,
-        debugger=False,
-        state_file='solr-update.state',
-        exclude_edits_containing: str = None,
-        ol_url='http://openlibrary.org/',
-        solr_url: str = None,
-        socket_timeout=10,
-        load_ia_scans=False,
-        commit=True,
-        initial_state: str = None,
+    ol_config: str,
+    debugger=False,
+    state_file='solr-update.state',
+    exclude_edits_containing: str = None,
+    ol_url='http://openlibrary.org/',
+    solr_url: str = None,
+    solr_next=False,
+    socket_timeout=10,
+    load_ia_scans=False,
+    commit=True,
+    initial_state: str = None,
 ):
     """
     :param debugger: Wait for a debugger to attach before beginning
     :param exclude_edits_containing: Don't index matching edits
     :param solr_url: If wanting to override what's in the config file
+    :param solr_next: Whether to assume new schema/etc are used
     :param initial_state: State to use if state file doesn't exist. Defaults to today.
     """
     FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
@@ -264,13 +289,16 @@ def main(
     if solr_url:
         update_work.set_solr_base_url(solr_url)
 
+    update_work.set_solr_next(solr_next)
+
     logger.info("loading config from %s", ol_config)
     load_config(ol_config)
 
     offset = read_state_file(state_file, initial_state)
 
-    logfile = InfobaseLog(config.get('infobase_server'),
-                          exclude=exclude_edits_containing)
+    logfile = InfobaseLog(
+        config.get('infobase_server'), exclude=exclude_edits_containing
+    )
     logfile.seek(offset)
 
     solr = Solr()
@@ -300,6 +328,7 @@ def main(
 
 if __name__ == "__main__":
     from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
+
     cli = FnToCLI(main)
     args = cli.args_dict()
     cli.run()

@@ -12,7 +12,6 @@ How to run:
     ./scripts/openlibrary-server openlibrary.yml runmain openlibrary.solr.process_stats --load
 
 """
-from __future__ import print_function
 import sys
 import web
 import json
@@ -26,6 +25,7 @@ from ..core.loanstats import LoanStats
 
 logger = logging.getLogger("openlibrary.solr")
 
+
 @web.memoize
 def get_db():
     return web.database(**web.config.db_parameters)
@@ -37,23 +37,29 @@ def get_document(key):
 
 metadata_cache = {}
 
+
 def get_metadata(ia_id):
     if ia_id not in metadata_cache:
         metadata_cache[ia_id] = _get_metadata(ia_id)
     return metadata_cache[ia_id]
+
 
 def _get_metadata(ia_id):
     if not ia_id:
         return {}
     db = get_ia_db()
     if db:
-        result = db.query("SELECT collection, sponsor, contributor FROM metadata WHERE identifier=$ia_id", vars=locals())
+        result = db.query(
+            "SELECT collection, sponsor, contributor FROM metadata WHERE identifier=$ia_id",
+            vars=locals(),
+        )
         meta = result and result[0] or {}
         if meta:
             meta['collection'] = meta['collection'].split(";")
     else:
         meta = ia.get_metadata(ia_id)
     return meta
+
 
 def preload(entries):
     logger.info("preload")
@@ -64,6 +70,7 @@ def preload(entries):
     ia_ids = [book.ocaid for book in books]
     preload_metadata(ia_ids)
 
+
 def preload_metadata(ia_ids):
     logger.info("preload metadata for %s identifiers", len(ia_ids))
     # ignore already loaded ones
@@ -73,7 +80,10 @@ def preload_metadata(ia_ids):
         return
 
     db = get_ia_db()
-    rows = db.query("SELECT identifier, collection, sponsor, contributor FROM metadata WHERE identifier IN $ia_ids", vars=locals())
+    rows = db.query(
+        "SELECT identifier, collection, sponsor, contributor FROM metadata WHERE identifier IN $ia_ids",
+        vars=locals(),
+    )
     for row in rows:
         row['collection'] = row['collection'].split(";")
         identifier = row.pop('identifier')
@@ -83,6 +93,7 @@ def preload_metadata(ia_ids):
     missing = [id for id in ia_ids if id not in metadata_cache]
     for id in missing:
         metadata_cache[id] = {}
+
 
 class LoanEntry(web.storage):
     @property
@@ -116,7 +127,7 @@ class LoanEntry(web.storage):
 
     def get_iaid(self):
         if self.book_key.startswith("/books/ia:"):
-            return self.book_key[len("/books/ia:"):]
+            return self.book_key[len("/books/ia:") :]
         else:
             return self.book and self.book.ocaid
 
@@ -152,18 +163,24 @@ def process(data):
         hours = dt.days * 24 + dt.seconds // 3600
         solrdoc['duration_hours_i'] = hours
 
-    #last_updated = h.parse_datetime(doc.get('t_end') or doc.get('t_start'))
+    # last_updated = h.parse_datetime(doc.get('t_end') or doc.get('t_start'))
     solrdoc['last_updated_dt'] = (doc.get('t_end') or doc.get('t_start')) + 'Z'
 
     solrdoc['subject_key'] = []
     solrdoc['subject_facet'] = []
+
     def add_subjects(type):
         subjects = doc.get_subjects(type)
         if type == 'subject':
-            system_subjects = ['protected_daisy', 'accessible_book', 'in_library', 'lending_library']
+            system_subjects = [
+                'protected_daisy',
+                'accessible_book',
+                'in_library',
+                'lending_library',
+            ]
             subjects = [s for s in subjects if s.slug not in system_subjects]
-        solrdoc['subject_key'] += [type+":"+s.slug for s in subjects]
-        solrdoc['subject_facet'] += [type+":"+s.title for s in subjects]
+        solrdoc['subject_key'] += [type + ":" + s.slug for s in subjects]
+        solrdoc['subject_facet'] += [type + ":" + s.title for s in subjects]
 
     add_subjects("subject")
     add_subjects("place")
@@ -175,42 +192,57 @@ def process(data):
         solrdoc['publish_year'] = year
 
     # Remove None values
-    solrdoc = dict((k, v) for k, v in solrdoc.items() if v is not None)
+    solrdoc = {k: v for k, v in solrdoc.items() if v is not None}
     return solrdoc
+
 
 def read_events():
     for line in sys.stdin:
         doc = json.loads(line.strip())
         yield doc
 
+
 def read_events_from_db(keys=None, day=None):
     if keys:
-        result = get_db().query("SELECT key, json FROM stats WHERE key in $keys ORDER BY updated", vars=locals())
+        result = get_db().query(
+            "SELECT key, json FROM stats WHERE key in $keys ORDER BY updated",
+            vars=locals(),
+        )
     elif day:
         last_updated = day
-        result = get_db().query("SELECT key, json FROM stats WHERE updated >= $last_updated AND updated < $last_updated::timestamp + interval '1' day ORDER BY updated", vars=locals())
+        result = get_db().query(
+            "SELECT key, json FROM stats WHERE updated >= $last_updated AND updated < $last_updated::timestamp + interval '1' day ORDER BY updated",
+            vars=locals(),
+        )
     else:
         last_updated = LoanStats().get_last_updated()
-        result = get_db().query("SELECT key, json FROM stats WHERE updated > $last_updated ORDER BY updated limit 10000", vars=locals())
+        result = get_db().query(
+            "SELECT key, json FROM stats WHERE updated > $last_updated ORDER BY updated limit 10000",
+            vars=locals(),
+        )
     for row in result.list():
         doc = json.loads(row.json)
         doc['key'] = row.key
         yield doc
 
+
 def debug():
-    """Prints debug info about solr.
-    """
+    """Prints debug info about solr."""
+
 
 def add_events_to_solr(events):
     events = list(events)
     preload(events)
 
     solrdocs = (process(e) for e in events)
-    solrdocs = (doc for doc in solrdocs if doc) # ignore Nones
+    solrdocs = (doc for doc in solrdocs if doc)  # ignore Nones
     update_solr(solrdocs)
 
+
 def main(*args):
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+    )
     if "--load" in args:
         docs = read_events()
         update_solr(docs)
@@ -237,16 +269,18 @@ def main(*args):
             except Exception:
                 logger.error("Failed to process %s", e['doc']['_id'], exc_info=True)
 
+
 def fix_subject_key(doc, name, prefix):
     if name in doc:
         doc[name] = [v.replace(prefix, '') for v in doc[name]]
+
 
 def update_solr(docs):
     # stats_solr is defined in olsystem etc/openlibrary.yml
     solr = SolrWriter(config.stats_solr or "localhost:8983")
     for doc in docs:
         # temp fix for handling already processed data
-        doc = dict((k, v) for k, v in doc.items() if v is not None)
+        doc = {k: v for k, v in doc.items() if v is not None}
         if isinstance(doc.get("ia_collections_id"), str):
             doc['ia_collections_id'] = doc['ia_collections_id'].split(";")
 
@@ -255,8 +289,15 @@ def update_solr(docs):
         fix_subject_key(doc, 'person_key', '/subjects/person:')
         fix_subject_key(doc, 'time_key', '/subjects/time:')
 
-        system_subjects = ['subject:Protected DAISY', 'subject:Accessible book', 'subject:In library', 'subject:Lending library']
-        doc['subject_facet'] = [s for s in doc['subject_facet'] if s not in system_subjects]
+        system_subjects = [
+            'subject:Protected DAISY',
+            'subject:Accessible book',
+            'subject:In library',
+            'subject:Lending library',
+        ]
+        doc['subject_facet'] = [
+            s for s in doc['subject_facet'] if s not in system_subjects
+        ]
 
         solr.update(doc)
     solr.commit()

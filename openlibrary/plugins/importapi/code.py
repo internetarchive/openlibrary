@@ -19,8 +19,13 @@ import base64
 import json
 import re
 
-from openlibrary.plugins.importapi import (import_edition_builder, import_opds,
-                                           import_rdf)
+from pydantic import ValidationError
+
+from openlibrary.plugins.importapi import (
+    import_edition_builder,
+    import_opds,
+    import_rdf,
+)
 from lxml import etree
 import logging
 
@@ -80,7 +85,9 @@ def parse_data(data):
                 root = root[0]
             rec = MarcXml(root)
             edition = read_edition(rec)
-            edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
+            edition_builder = import_edition_builder.import_edition_builder(
+                init_dict=edition
+            )
             format = 'marcxml'
         else:
             raise DataError('unrecognized-XML-format')
@@ -89,12 +96,14 @@ def parse_data(data):
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
         format = 'json'
     elif data[:MARC_LENGTH_POS].isdigit():
-        #Marc Binary
+        # Marc Binary
         if len(data) < MARC_LENGTH_POS or len(data) != int(data[:MARC_LENGTH_POS]):
             raise DataError('no-marc-record')
         rec = MarcBinary(data)
         edition = read_edition(rec)
-        edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
+        edition_builder = import_edition_builder.import_edition_builder(
+            init_dict=edition
+        )
         format = 'marc'
     else:
         raise DataError('unrecognised-import-format')
@@ -104,15 +113,10 @@ def parse_data(data):
 
 
 class importapi:
-    """/api/import endpoint for general data formats.
-    """
+    """/api/import endpoint for general data formats."""
 
     def error(self, error_code, error='Invalid item', **kwargs):
-        content = {
-            'success': False,
-            'error_code': error_code,
-            'error': error
-        }
+        content = {'success': False, 'error_code': error_code, 'error': error}
         content.update(kwargs)
         raise web.HTTPError('400 Bad Request', data=json.dumps(content))
 
@@ -127,6 +131,8 @@ class importapi:
             edition, format = parse_data(data)
         except DataError as e:
             return self.error(str(e), 'Failed to parse import data')
+        except ValidationError as e:
+            return self.error('invalid-value', str(e).replace('\n', ': '))
 
         if not edition:
             return self.error('unknown-error', 'Failed to parse import data')
@@ -139,6 +145,7 @@ class importapi:
             return self.error('missing-required-field', str(e))
         except ClientException as e:
             return self.error('bad-request', **json.loads(e.json))
+
 
 def raise_non_book_marc(marc_record, **kwargs):
     details = 'Item rejected'
@@ -166,16 +173,17 @@ class ia_importapi(importapi):
             "require_marc": "true",
             "bulk_marc": "false"
         }
-    """    
+    """
 
     @classmethod
-    def ia_import(cls, identifier, require_marc=True):
+    def ia_import(cls, identifier, require_marc=True, force_import=False):
         """
         Performs logic to fetch archive.org item + metadata,
         produces a data dict, then loads into Open Library
 
         :param str identifier: archive.org ocaid
         :param bool require_marc: require archive.org item have MARC record?
+        :param bool force_import: force import of this record
         :rtype: dict
         :returns: the data of the imported book or raises  BookImportError
         """
@@ -196,7 +204,7 @@ class ia_importapi(importapi):
 
         # Case 3 - Can the item be loaded into Open Library?
         status = ia.get_item_status(identifier, metadata)
-        if status != 'ok':
+        if status != 'ok' and not force_import:
             raise BookImportError(status, 'Prohibited Item %s' % identifier)
 
         # Case 4 - Does this item have a marc record?
@@ -204,11 +212,14 @@ class ia_importapi(importapi):
         if require_marc and not marc_record:
             raise BookImportError('no-marc-record')
         if marc_record:
-            raise_non_book_marc(marc_record)
+            if not force_import:
+                raise_non_book_marc(marc_record)
             try:
                 edition_data = read_edition(marc_record)
             except MarcException as e:
-                logger.error('failed to read from MARC record %s: %s', identifier, str(e))
+                logger.error(
+                    'failed to read from MARC record %s: %s', identifier, str(e)
+                )
                 raise BookImportError('invalid-marc-record')
         else:
             try:
@@ -220,7 +231,6 @@ class ia_importapi(importapi):
         edition_data = cls.populate_edition_data(edition_data, identifier)
         return cls.load_book(edition_data)
 
-
     def POST(self):
         web.header('Content-Type', 'application/json')
 
@@ -230,6 +240,7 @@ class ia_importapi(importapi):
         i = web.input()
 
         require_marc = not (i.get('require_marc') == 'false')
+        force_import = i.get('force_import') == 'true'
         bulk_marc = i.get('bulk_marc') == 'true'
 
         if 'identifier' not in i:
@@ -241,38 +252,55 @@ class ia_importapi(importapi):
             # Get binary MARC by identifier = ocaid/filename:offset:length
             re_bulk_identifier = re.compile(r"([^/]*)/([^:]*):(\d*):(\d*)")
             try:
-                ocaid, filename, offset, length = re_bulk_identifier.match(identifier).groups()
+                ocaid, filename, offset, length = re_bulk_identifier.match(
+                    identifier
+                ).groups()
                 data, next_offset, next_length = get_from_archive_bulk(identifier)
-                next_data = {'next_record_offset': next_offset, 'next_record_length': next_length}
+                next_data = {
+                    'next_record_offset': next_offset,
+                    'next_record_length': next_length,
+                }
                 rec = MarcBinary(data)
                 edition = read_edition(rec)
             except MarcException as e:
-                details = "%s: %s" % (identifier, str(e))
+                details = f"{identifier}: {str(e)}"
                 logger.error("failed to read from bulk MARC record %s", details)
                 return self.error('invalid-marc-record', details, **next_data)
 
             actual_length = int(rec.leader()[:MARC_LENGTH_POS])
-            edition['source_records'] = 'marc:%s/%s:%s:%d' % (ocaid, filename, offset, actual_length)
+            edition['source_records'] = 'marc:%s/%s:%s:%d' % (
+                ocaid,
+                filename,
+                offset,
+                actual_length,
+            )
 
             local_id = i.get('local_id')
             if local_id:
                 local_id_type = web.ctx.site.get('/local_ids/' + local_id)
                 prefix = local_id_type.urn_prefix
+                force_import = True
                 id_field, id_subfield = local_id_type.id_location.split('$')
+
                 def get_subfield(field, id_subfield):
                     if isinstance(field, str):
                         return field
                     subfields = field[1].get_subfield_values(id_subfield)
                     return subfields[0] if subfields else None
-                _ids = [get_subfield(f, id_subfield) for f in rec.read_fields([id_field]) if f and get_subfield(f, id_subfield)]
-                edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in _ids]
+
+                _ids = [
+                    get_subfield(f, id_subfield)
+                    for f in rec.read_fields([id_field])
+                    if f and get_subfield(f, id_subfield)
+                ]
+                edition['local_id'] = [f'urn:{prefix}:{_id}' for _id in _ids]
 
             # Don't add the book if the MARC record is a non-monograph item,
-            # unless it is a serial (etc) for a scanning partner.
-            try:
-                raise_non_book_marc(rec, **next_data)
-            except BookImportError as e:
-                if not (local_id and e.error_code == 'item-is-serial'):
+            # unless it is a scanning partner record and/or force_import is set.
+            if not force_import:
+                try:
+                    raise_non_book_marc(rec, **next_data)
+                except BookImportError as e:
                     return self.error(e.error_code, e.error, **e.kwargs)
             result = add_book.load(edition)
 
@@ -281,10 +309,11 @@ class ia_importapi(importapi):
             return json.dumps(result)
 
         try:
-            return self.ia_import(identifier, require_marc=require_marc)
+            return self.ia_import(
+                identifier, require_marc=require_marc, force_import=force_import
+            )
         except BookImportError as e:
             return self.error(e.error_code, e.error, **e.kwargs)
-
 
     @staticmethod
     def get_ia_record(metadata):
@@ -374,10 +403,7 @@ class ia_importapi(importapi):
 
     @staticmethod
     def status_matched(key):
-        reply = {
-            'success': True,
-            'edition': {'key': key, 'status': 'matched'}
-        }
+        reply = {'success': True, 'edition': {'key': key, 'status': 'matched'}}
         return json.dumps(reply)
 
 
@@ -421,11 +447,12 @@ class ils_search:
     When authorization header is not provided and match is not found,
     status='notfound' is returned instead of creating a new record.
     """
+
     def POST(self):
         try:
             rawdata = json.loads(web.data())
         except ValueError as e:
-            raise self.error("Unparseable JSON input \n %s" % web.data())
+            raise self.error("Unparsable JSON input \n %s" % web.data())
 
         # step 1: prepare the data
         data = self.prepare_input_data(rawdata)
@@ -449,15 +476,20 @@ class ils_search:
         d = self.format_result(matches, auth_header, keys)
         return json.dumps(d)
 
-
     def error(self, reason):
-        d = json.dumps({ "status" : "error", "reason" : reason})
+        d = json.dumps({"status": "error", "reason": reason})
         return web.HTTPError("400 Bad Request", {"Content-Type": "application/json"}, d)
 
-
     def auth_failed(self, reason):
-        d = json.dumps({ "status" : "error", "reason" : reason})
-        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-Type": "application/json"}, d)
+        d = json.dumps({"status": "error", "reason": reason})
+        return web.HTTPError(
+            "401 Authorization Required",
+            {
+                "WWW-Authenticate": 'Basic realm="http://openlibrary.org"',
+                "Content-Type": "application/json",
+            },
+            d,
+        )
 
     def login(self, auth_str):
         if not auth_str:
@@ -473,8 +505,8 @@ class ils_search:
 
     def prepare_input_data(self, rawdata):
         data = dict(rawdata)
-        identifiers = rawdata.get('identifiers',{})
-        #TODO: Massage single strings here into lists. e.g. {"google" : "123"} into {"google" : ["123"]}.
+        identifiers = rawdata.get('identifiers', {})
+        # TODO: Massage single strings here into lists. e.g. {"google" : "123"} into {"google" : ["123"]}.
         for i in ["oclc_numbers", "lccn", "ocaid", "isbn"]:
             if i in data:
                 val = data.pop(i)
@@ -485,9 +517,9 @@ class ils_search:
 
         if "authors" in data:
             authors = data.pop("authors")
-            data['authors'] = [{"name" : i} for i in authors]
+            data['authors'] = [{"name": i} for i in authors]
 
-        return {"doc" : data}
+        return {"doc": data}
 
     def search(self, params):
         matches = records.search(params)
@@ -501,32 +533,39 @@ class ils_search:
         if doc and doc['key']:
             doc = web.ctx.site.get(doc['key']).dict()
             # Sanitise for only information that we want to return.
-            for i in ["created", "last_modified", "latest_revision", "type", "revision"]:
+            for i in [
+                "created",
+                "last_modified",
+                "latest_revision",
+                "type",
+                "revision",
+            ]:
                 doc.pop(i)
             # Main status information
             d = {
                 'status': 'found',
                 'key': doc['key'],
-                'olid': doc['key'].split("/")[-1]
+                'olid': doc['key'].split("/")[-1],
             }
             # Cover information
             covers = doc.get('covers') or []
             if covers and covers[0] > 0:
                 d['cover'] = {
                     "small": "https://covers.openlibrary.org/b/id/%s-S.jpg" % covers[0],
-                    "medium": "https://covers.openlibrary.org/b/id/%s-M.jpg" % covers[0],
+                    "medium": "https://covers.openlibrary.org/b/id/%s-M.jpg"
+                    % covers[0],
                     "large": "https://covers.openlibrary.org/b/id/%s-L.jpg" % covers[0],
                 }
 
             # Pull out identifiers to top level
-            identifiers = doc.pop("identifiers",{})
+            identifiers = doc.pop("identifiers", {})
             for i in identifiers:
                 d[i] = identifiers[i]
             d.update(doc)
 
         else:
             if authenticated:
-                d = { 'status': 'created' , 'works' : [], 'authors' : [], 'editions': [] }
+                d = {'status': 'created', 'works': [], 'authors': [], 'editions': []}
                 for i in keys:
                     if i.startswith('/books'):
                         d['editions'].append(i)
@@ -535,10 +574,9 @@ class ils_search:
                     if i.startswith('/authors'):
                         d['authors'].append(i)
             else:
-                d = {
-                    'status': 'notfound'
-                    }
+                d = {'status': 'notfound'}
         return d
+
 
 def http_basic_auth():
     auth = web.ctx.env.get('HTTP_AUTHORIZATION')
@@ -581,26 +619,35 @@ class ils_cover_upload:
                   "reason" : "bad olid"
                 }
     """
+
     def error(self, i, reason):
         if i.redirect_url:
             url = self.build_url(i.redirect_url, status="error", reason=reason)
             return web.seeother(url)
         else:
-            d = json.dumps({ "status" : "error", "reason" : reason})
-            return web.HTTPError("400 Bad Request", {"Content-Type": "application/json"}, d)
-
+            d = json.dumps({"status": "error", "reason": reason})
+            return web.HTTPError(
+                "400 Bad Request", {"Content-Type": "application/json"}, d
+            )
 
     def success(self, i):
         if i.redirect_url:
             url = self.build_url(i.redirect_url, status="ok")
             return web.seeother(url)
         else:
-            d = json.dumps({ "status" : "ok" })
+            d = json.dumps({"status": "ok"})
             return web.ok(d, {"Content-type": "application/json"})
 
     def auth_failed(self, reason):
-        d = json.dumps({ "status" : "error", "reason" : reason})
-        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-Type": "application/json"}, d)
+        d = json.dumps({"status": "error", "reason": reason})
+        return web.HTTPError(
+            "401 Authorization Required",
+            {
+                "WWW-Authenticate": 'Basic realm="http://openlibrary.org"',
+                "Content-Type": "application/json",
+            },
+            d,
+        )
 
     def build_url(self, url, **params):
         if '?' in url:
@@ -638,6 +685,7 @@ class ils_cover_upload:
             raise self.auth_failed("Invalid credentials")
 
         from openlibrary.plugins.upstream import covers
+
         add_cover = covers.add_cover()
 
         data = add_cover.upload(key, i)

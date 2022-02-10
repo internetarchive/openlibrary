@@ -25,22 +25,24 @@ class FnToCLI:
     if __name__ == '__main__':
         FnToCLI(my_func).run()
     """
+
     def __init__(self, fn: typing.Callable):
         self.fn = fn
-        arg_names = fn.__code__.co_varnames[:fn.__code__.co_argcount]
+        arg_names = fn.__code__.co_varnames[: fn.__code__.co_argcount]
         annotations = fn.__annotations__
-        num_required = len(arg_names) - len(fn.__defaults__)  # type: ignore
+        defaults = fn.__defaults__ or []  # type: ignore
+        num_required = len(arg_names) - len(defaults)
         default_args = arg_names[num_required:]
         defaults = {
             arg: default
-            for [arg, default] in zip(default_args, fn.__defaults__)  # type: ignore
+            for [arg, default] in zip(default_args, defaults)
         }
 
         docs = fn.__doc__ or ''
         arg_docs = self.parse_docs(docs)
         self.parser = ArgumentParser(
             description=docs.split(':param', 1)[0],
-            formatter_class=ArgumentDefaultsHelpFormatter
+            formatter_class=ArgumentDefaultsHelpFormatter,
         )
         self.args: typing.Optional[Namespace] = None
         for arg in arg_names:
@@ -71,10 +73,7 @@ class FnToCLI:
         if not self.args:
             self.parse_args()
 
-        return {
-            k.replace('-', '_'): v
-            for k, v in self.args.__dict__.items()
-        }
+        return {k.replace('-', '_'): v for k, v in self.args.__dict__.items()}
 
     def run(self):
         args_dicts = self.args_dict()
@@ -88,19 +87,17 @@ class FnToCLI:
         params = docs.strip().split(':param ')[1:]
         params = [p.strip() for p in params]
         params = [p.split(':', 1) for p in params if p]
-        return {
-            name: docs.strip()
-            for [name, docs] in params
-        }
+        return {name: docs.strip() for [name, docs] in params}
 
     @staticmethod
     def type_to_argparse(typ):
         if typ == bool:
             from argparse import BooleanOptionalAction  # type: ignore
+
             return {'type': typ, 'action': BooleanOptionalAction}
         if typ in (int, str, float):
             return {'type': typ}
-        if typ == typing.List[str]:
+        if typ == list[str]:
             return {'nargs': '*'}
         if not hasattr(typ, '__origin__'):
             raise ValueError(f'Cannot determine type of {typ}')

@@ -1,175 +1,158 @@
-$def with (items, key, sponsorship_count=None, reading_log_counts=None, lists=None, user=None, logged_in_user=None, public=False, sort_order='desc', booknotes_counts=None)
+$def with (items, key, counts, lists=None, user=None, logged_in_user=None, public=False, sort_order='desc', owners_page=False)
 
 $# Displays a user's reading log
 $# :param list items:
-$# :param Literal['currently-reading', 'want-to-read', 'already-read', 'sponsorships', 'loans', 'waitlist'] key:
-$# :param int? sponsorship_count: number of books the user is sponsoring
-$# :param Dict[Literal['currently-reading', 'want-to-read', 'already-read'], int] reading_log_counts:
+$# :param Literal['currently-reading', 'want-to-read', 'already-read', 'sponsorships', 'loans', 'waitlist', 'notes', 'observations'] key:
+$# :param Dict[str: int] counts:
 $# :param list? lists:
 $# :param user:
 $# :param bool public:
-$# :param Dict[Literal['notes', 'observations'], int] booknotes_counts: Number of notes and observations left by patron
 
-$ title = _('My Books')
-$ urlbase = ctx.path.rsplit('/', 1)[0]
 $ username = user.key.split('/')[-1]
-$ owners_page = logged_in_user and urlbase.startswith('/people/'+logged_in_user.key.split('/')[-1])
-$ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 
 $ current_page = int(input(page=1).page)
-$if key == 'sponsorships':
-  $ total_items = sponsorship_count
-$elif key == 'notes' or key == 'observations':
-  $ total_items = int(booknotes_counts[key])
-$else:
-  $ total_items = int(reading_log_counts[key])
+$ total_items = counts.get(key, None)
 
 $ userDisplayName = user.displayname or ctx.user.displayname
 $ userKey = user.key or ctx.user.key
 
 $ header_title = unicode(render_template('account/readinglog_shelf_name', key)).strip()
 $ breadcrumb = _("Reading Log")
-$if key == 'currently-reading':
-  $ og_title = _("Books %(username)s is reading", username=userDisplayName)
-  $ og_description = _("%(username)s is reading %(total)d books. Join %(username)s on OpenLibrary.org and tell the world what you're reading.", username=userDisplayName, total=total_items)
-$elif key == 'want-to-read':
-  $ og_title = _("Books %(username)s wants to read", username=userDisplayName)
-  $ og_description = _("%(username)s wants to read %(total)d books. Join %(username)s on OpenLibrary.org and share the books that you'll soon be reading!", username=userDisplayName, total=total_items)
-$elif key == 'already-read':
-  $ og_title = _("Books %(username)s has read", username=userDisplayName)
-  $ og_description = _("%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about.", username=userDisplayName, total=total_items)
-$elif key == 'sponsorships':
-  $ header_title = _("Sponsorships")
+
+$if not header_title:
+  $if key == 'sponsorships':
+    $ header_title = _("Sponsorships")
+  $elif key == 'notes':
+    $ header_title = _("Book Notes")
+  $elif key == 'observations':
+    $ header_title = _("Reviews")
+  $elif key == 'loans':
+    $ header_title = _("Books You've Checked Out")
+  $elif key == 'waitlist':
+    $ header_title = _("Books You're Waiting For")
+  $elif key == 'imports':
+    $ header_title = _("Imports and Exports")
+  $elif key == 'lists':
+    $ header_title = _('My Lists')
+  $elif key == 'list':
+    $ header_title = items.get('name', 'List')
+  $else:
+    $ header_title = key
   $ breadcrumb = header_title
-  $ og_title = _("Books %(userdisplayname)s is sponsoring", userdisplayname=userDisplayName)
-  $ og_description = "{username} is sponsoring {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=userDisplayName, total=total_items)
-$elif key == 'notes':
-  $ header_title = _("Book Notes")
-  $ breadcrumb = header_title
-  $ og_title = None
-$elif key == 'observations':
-  $ header_title = _("Observations")
-  $ breadcrumb = header_title
-  $ og_title = None
+$var title: $header_title
 
-$if owners_page:
-  $var title: $header_title
-$else:
-  $var title: $userDisplayName &raquo; $header_title
-
-$if og_title:
-  $putctx("description", og_description)
-  $add_metatag(property="og:title", content=og_title)
-  $add_metatag(property="og:url", content=request.canonical_url)
-  $add_metatag(property="og:site_name", content="Open Library")
-  $add_metatag(property="og:description", content=og_description)
-  $add_metatag(property="og:image", content=meta_photo_url)
-
-<div id="contentHead">
-  <div id="mybooks">
-    <div class="small sansserif grey account-settings-menu">
-      <a href="$userKey">$userDisplayName</a> &raquo; $breadcrumb
-    </div>
-    <div>
-
-    </div>
-    <div>
-      <h1 style="display:inline">
-        $if not owners_page:
-          $userDisplayName &raquo; $header_title
-        $else:
-          $header_title
-      </h1>
-
-      $if owners_page and key not in ['notes', 'observations']:
-        <a href="$ctx.path/stats" title="$('View stats about this shelf')">$_('Stats')</a>
-    </div>
-
+<div class="mybooks">
+  <div class="mybooks-menu">
     $if owners_page:
-      <h3>
-        $if key == 'notes':
-          $_('Your book notes are private and cannot be viewed by other patrons.')
-        $elif key == 'observations':
-          $_('Your book observations will be shared anonymously with other patrons.')
-        $else:
-          $if public:
-            $_('Your reading log is currently set to public')
-            <button onclick="prompt('Copy share link to clipboard:', window.location.protocol + '//' + window.location.hostname + '/people/$(username)/books/$(key)');">Share</button> or
-          $else:
-            $_('Your reading log is currently set to private')
-          &mdash;
-          <a href="/account/privacy">$_('Manage your privacy settings')</a>
-      </h3>
-
-    <div class="mybooks">
-      <div class="mybooks-menu">
-        <ul class="preset-lists">
-          <li class="subsection">$_('Reading Log')</li>
-          <li><a href="$urlbase/currently-reading" $('class=selected' if key == 'currently-reading' else '')>$_('Currently Reading (%(count)d)', count=reading_log_counts['currently-reading'])</a></li>
-          <li><a href="$urlbase/want-to-read" $('class=selected' if key == 'want-to-read' else '')>$_('Want to Read (%(count)d)', count=reading_log_counts['want-to-read'])</a></li>
-          <li><a href="$urlbase/already-read" $('class=selected' if key == 'already-read' else '')>$_('Already Read (%(count)d)', count=reading_log_counts['already-read'])</a></li>
-        </ul>
-        $if owners_page and ctx.user and ctx.user.in_sponsorship_beta():
-          <!-- only show to owners -->
-          <ul class="preset-lists">
-            <li class="subsection">$_('Sponsorships')</li>
-            <li><a href="$urlbase/sponsorships" $('class=selected' if key == 'sponsorships' else '')>Sponsoring ($sponsorship_count)</a></li>
-          </ul>
-        $if lists:
-          <ul class="user-lists">
-            <li class="subsection">$_('Lists')</li>
-            <div class="list-overflow">
-              $for lst in lists:
-                <li><a class="list-link" href="$(lst.key)">$lst['name'] ($(len(lst.seeds)))</a></li>
-            </div>
-          </ul>
-        $if user.is_beta_tester():
-          <ul class="booknotes-list">
-            <li class="subsection">$_('Notes & Observations')</li>
-            <li><a $('class=selected' if key=='notes' else '') href="$urlbase/notes">$_('My notes (%(count)d)', count=booknotes_counts['notes'])</a></li>
-            <li><a $('class=selected' if key=='observations' else '') href="$urlbase/observations">$_('My observations (%(count)d)', count=booknotes_counts['observations'])</a></li>
-          </ul>
-      </div>
-      $if key == 'notes':
-        $:render_template('account/notes', items, user, booknotes_counts['notes'], page=current_page)
-      $elif key == 'observations':
-        $:render_template('account/observations', items, user, booknotes_counts['observations'], page=current_page)
-      $else:
-        <div class="mybooks-list">
-          <span class="mybooks-tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" style="margin-right:10px;" width="9" height="11">
-            $if sort_order == 'desc':
-              <strong class="lightgreen">$_("Date Added (newest)")</strong>
-              |
-              <a href="$ctx.path?sort=asc">$_("Date Added (oldest)")</a>
-            $else:
-              <a href="$ctx.path?sort=desc">$_("Date Added (newest)")</a>
-              |
-              <strong class="lightgreen">$_("Date Added (oldest)")</strong>
-          </span>
-
-          $:macros.Pager(current_page, total_items, results_per_page=25)
-          <ul class="list-books">
-            $if items:
-              $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
-              $for item in items:
-                $if key == 'loans':
-                  $ edition = get_document(item['book'])
-                  $ work = get_document(edition.works[0]) if (edition.get('type', {}).get('key') == '/type/work' and edition.works and edition.works[0]) else None
-                  $ decorations = owners_page and macros.ManageLoansButtons(item, edition) or ''
-                  $:macros.SearchResultsWork(work or edition, decorations=decorations, cta=False)
-                $elif key == 'waitlists':
-                  $ edition = item
-                  $ decorations = owners_page and macros.ManageWaitlistButton(edition) or ''
-                  $:macros.SearchResultsWork(edition, decorations=decorations, cta=False)
-                $else:
-                  $ work = item
-                  $ decorations = (bookshelf_id and owners_page) and macros.ReadingLogButton(work, read_status=bookshelf_id)
-                  $:macros.SearchResultsWork(work, decorations=decorations, cta=False)
-            $else:
-              <li>$_('No books are on this shelf')</li>
-          </ul>
-          $:macros.Pager(current_page, total_items, results_per_page=25)
+      <ul class="sidebar-section">
+        <li class="section-header">$_('Loans')</li>
+        <li>
+          <a href="/account/loans" $('class=selected' if key == 'loans' else '')>
+            $_('Checked out')
+          </a>
+        </li>
+        <li>
+          <a href="/account/waitlist" $('class=selected' if key == 'waitlist' else '')>
+            $_('Waitlist')
+          </a>
+        </li>
+        <li>
+          <a class="external-link" href="https://archive.org/account/?tab=loans#loans-history">$_('Loan History')</a>
+        </li>
+      </ul>
+    $if public or owners_page:
+      <ul class="sidebar-section">
+        <li class="section-header">$_('Reading Log')</li>
+        <li><a href="/people/$username/books/currently-reading" $('class=selected' if key == 'currently-reading' else '')><span class="li-count">$counts['currently-reading']</span>$_('Currently Reading')</a></li>
+        <li><a href="/people/$username/books/want-to-read" $('class=selected' if key == 'want-to-read' else '')><span class="li-count">$counts['want-to-read']</span>$_('Want to Read')</a></li>
+        <li><a href="/people/$username/books/already-read" $('class=selected' if key == 'already-read' else '')><span class="li-count">$counts['already-read']</span>$_('Already Read')</a></li>
+      $if owners_page:
+        <hr>
+        <li><a $('class=selected' if key=='notes' else '') href="/people/$username/books/notes"><span class="li-count">$counts['notes']</span>$_('My Notes')</a></li>
+        <li><a $('class=selected' if key=='observations' else '') href="/people/$username/books/observations"><span class="li-count">$counts['observations']</span>$_('My Reviews')</a></li>
+        <hr>
+        <li><a href="/account/books/already-read/stats">$_('Reading Stats')</a></li>
+        <li><a href="/account/import" $('class=selected' if key=='imports' else '')>$_("Import & Export Options")</a></li>
+      </ul>
+    $if owners_page and ctx.user and ctx.user.in_sponsorship_beta():
+      <ul class="sidebar-section">
+        <li class="section-header">$_('Sponsorships')</li>
+        $ sponsorship_count = ''
+        $if counts.get('sponsorships', None):
+          $ sponsorship_count = "%d" % counts['sponsorships']
+        <li><a href="/people/$username/books/sponsorships" $('class=selected' if key == 'sponsorships' else '')><span class="li-count">$sponsorship_count</span>$_('Sponsoring')</a></li>
+      </ul>
+    $if owners_page:
+      <ul class="sidebar-section">
+        <li class="section-header section-header-split"><span>$_('Lists')</span> <a href="/people/$username/lists" class="li-count">$_('See All') ($len(lists))</a></li>
+        <div class="list-overflow">
+          $for lst in lists:
+            $ list_id = lst.key.split('/')[-1]
+            $ class_list = ''
+            $if lst == items:
+              $ class_list = class_list + 'selected'
+            <li><a class="$class_list" href="/people/$username/lists/$list_id"><span class="li-count">$(len(lst.seeds))</span>$lst['name']</a></li>
         </div>
+      </ul>
+  </div>
+  <div class="mybooks-details">
+    <header>
+      <div>
+        <div class="small sansserif grey account-settings-menu">
+          <a href="$userKey">$userDisplayName</a> &raquo; $breadcrumb
+        </div>
+        <div>
+          <h1 class="details-title">
+            $if not owners_page:
+              $userDisplayName &raquo; $header_title
+            $else:
+              $header_title
+          </h1>
+
+          $if owners_page and key in ['currently-reading', 'already-read', 'want-to-read']:
+            <a href="$ctx.path/stats" title="$_('View stats about this shelf')">$_('Stats')</a>
+        </div>
+
+        $if owners_page:
+          <p>
+            $if key == 'notes':
+              $_('Your book notes are private and cannot be viewed by other patrons.')
+            $elif key == 'observations':
+              $_('Your book reviews will be shared anonymously with other patrons.')
+            $elif key in ['currently-reading', 'already-read', 'want-to-read']:
+              $if public:
+                $_('Your reading log is currently set to public')
+                <button onclick="prompt('Copy share link to clipboard:', window.location.protocol + '//' + window.location.hostname + '/people/$(username)/books/$(key)');">Share</button> or
+              $else:
+                $_('Your reading log is currently set to private')
+              &mdash;
+              <a href="/account/privacy">$_('Manage your privacy settings')</a>
+          </p>
+      </div>
+      $if key == 'list':
+        <div>
+          $:macros.databarView(items)
+        </div>
+    </header>
+    <div class="details-content">
+    $if key == 'loans':
+      $:render_template('account/loans', logged_in_user, items)
+    $elif key == 'waitlist':
+      $:render_template('account/waitlist', logged_in_user)
+    $elif key == 'notes':
+      $:render_template('account/notes', items, user, counts['notes'], page=current_page)
+    $elif key == 'observations':
+      $:render_template('account/observations', items, user, counts['observations'], page=current_page)
+    $elif key == 'imports':
+      $:render_template('account/import')
+    $elif key == 'lists':
+      $:render_template('lists/lists', items, lists, show_header=False)
+    $elif key == 'already-read':
+      $:render_template('account/reading_log', items, key, counts[key], owners_page, current_page, sort_order=sort_order, user=user, include_ratings=owners_page)
+    $elif key in {'currently-reading', 'want-to-read', 'sponsorships'}:
+      $:render_template('account/reading_log', items, key, counts[key], owners_page, current_page, sort_order=sort_order, user=user)
+    $else:
+      $:render_template('type/list/view', items, check_owner=False, owns_page=True)
     </div>
   </div>
 </div>

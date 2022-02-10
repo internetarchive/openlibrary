@@ -3,7 +3,7 @@ version: '3.1'
 services:
   db:
     image: postgres
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: example
     working_dir: "/solr_builder"
@@ -16,14 +16,14 @@ services:
 
   adminer:
     image: adminer
-    restart: always
+    restart: unless-stopped
     ports:
       - 8087:8080
     networks:
       - db-access
 
   solr:
-    image: solr:8.8.2
+    image: solr:8.10.1
     restart: on-failure
     environment:
       # This is optimized for bulk loading, but should be shortened for production
@@ -34,7 +34,7 @@ services:
       - 8983:8983
     volumes:
       - solr-data:/var/solr/data
-      - ../../conf/solr8-ol:/opt/solr/server/solr/configsets/olconfig:ro
+      - ../../conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
     networks:
       - solr-access
     command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig

@@ -8,7 +8,7 @@ from infogami.infobase import client
 
 from openlibrary.core import helpers as h
 
-#TODO: fix this. openlibrary.core should not import plugins.
+# TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.core.helpers import private_collection_in
@@ -28,6 +28,7 @@ from six.moves import urllib
 from .ia import get_metadata_direct
 from .waitinglist import WaitingLoan
 from ..accounts import OpenLibraryAccount
+from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
 
 
 def _get_ol_base_url():
@@ -38,6 +39,7 @@ def _get_ol_base_url():
     else:
         return web.ctx.home
 
+
 class Image:
     def __init__(self, site, category, id):
         self._site = site
@@ -45,7 +47,7 @@ class Image:
         self.id = id
 
     def info(self):
-        url = '%s/%s/id/%s.json' % (h.get_coverstore_url(), self.category, self.id)
+        url = f'{get_coverstore_url()}/{self.category}/id/{self.id}.json'
         if url.startswith("//"):
             url = "http:" + url
         try:
@@ -56,23 +58,25 @@ class Image:
             d['author'] = d['author'] and self._site.get(d['author'])
 
             return web.storage(d)
-        except IOError:
+        except OSError:
             # coverstore is down
             return None
 
     def url(self, size="M"):
-        return "%s/%s/id/%s-%s.jpg" % (h.get_coverstore_url(), self.category, self.id, size.upper())
+        """Get the public URL of the image."""
+        coverstore_url = get_coverstore_public_url()
+        return f"{coverstore_url}/{self.category}/id/{self.id}-{size.upper()}.jpg"
 
     def __repr__(self):
         return "<image: %s/%d>" % (self.category, self.id)
+
 
 class Thing(client.Thing):
     """Base class for all OL models."""
 
     @cache.method_memoize
     def get_history_preview(self):
-        """Returns history preview.
-        """
+        """Returns history preview."""
         history = self._get_history_preview()
         history = web.storage(history)
 
@@ -81,8 +85,7 @@ class Thing(client.Thing):
         history.created = self.created
 
         def process(v):
-            """Converts entries in version dict into objects.
-            """
+            """Converts entries in version dict into objects."""
             v = web.storage(v)
             v.created = h.parse_datetime(v.created)
             v.author = v.author and self._site.get(v.author, lazy=True)
@@ -101,7 +104,7 @@ class Thing(client.Thing):
             h['initial'] = h['recent'][-1:]
             h['recent'] = h['recent'][:-1]
         else:
-            h['initial'] = self._get_versions(limit=1, offset=self.revision-1)
+            h['initial'] = self._get_versions(limit=1, offset=self.revision - 1)
             h['recent'] = self._get_versions(limit=4)
         return h
 
@@ -118,8 +121,7 @@ class Thing(client.Thing):
         return versions
 
     def get_most_recent_change(self):
-        """Returns the most recent change.
-        """
+        """Returns the most recent change."""
         preview = self.get_history_preview()
         if preview.recent:
             return preview.recent[0]
@@ -129,13 +131,12 @@ class Thing(client.Thing):
     def prefetch(self):
         """Prefetch all the anticipated data."""
         preview = self.get_history_preview()
-        authors = set(v.author.key for v in preview.initial + preview.recent if v.author)
+        authors = {v.author.key for v in preview.initial + preview.recent if v.author}
         # preload them
         self._site.get_many(list(authors))
 
     def _make_url(self, label, suffix, relative=True, **params):
-        """Make url of the form $key/$label$suffix?$params.
-        """
+        """Make url of the form $key/$label$suffix?$params."""
         if label is not None:
             u = self.key + "/" + h.urlsafe(label) + suffix
         else:
@@ -186,7 +187,7 @@ class Thing(client.Thing):
             "type": "/type/list",
             "seeds": {"key": self.key},
             "limit": limit,
-            "offset": offset
+            "offset": offset,
         }
         return self._site.things(q)
 
@@ -199,9 +200,10 @@ class Thing(client.Thing):
             "l": self._get_lists_cached(),
         }
 
+
 class Edition(Thing):
-    """Class to represent /type/edition objects in OL.
-    """
+    """Class to represent /type/edition objects in OL."""
+
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
 
@@ -210,6 +212,7 @@ class Edition(Thing):
 
     def __repr__(self):
         return "<Edition: %s>" % repr(self.title)
+
     __str__ = __repr__
 
     def full_title(self):
@@ -274,9 +277,11 @@ class Edition(Thing):
 
     def is_access_restricted(self):
         collections = self.get_ia_collections()
-        return ('printdisabled' in collections
-                or 'lendinglibrary' in collections
-                or self.get_ia_meta_fields().get("access-restricted") is True)
+        return (
+            'printdisabled' in collections
+            or 'lendinglibrary' in collections
+            or self.get_ia_meta_fields().get("access-restricted") is True
+        )
 
     def is_in_private_collection(self):
         """Private collections are lendable books that should not be
@@ -286,8 +291,9 @@ class Edition(Thing):
 
     def in_borrowable_collection(self):
         collections = self.get_ia_collections()
-        return (('lendinglibrary' in collections or 'inlibrary' in collections)
-                and not self.is_in_private_collection())
+        return (
+            'lendinglibrary' in collections or 'inlibrary' in collections
+        ) and not self.is_in_private_collection()
 
     def get_waitinglist(self):
         """Returns list of records for all users currently waiting for this book."""
@@ -302,37 +308,42 @@ class Edition(Thing):
     @property  # type: ignore
     @cache.method_memoize
     def sponsorship_data(self):
-        was_sponsored = 'openlibraryscanningteam' in self.ia_metadata.get('collection', [])
+        was_sponsored = 'openlibraryscanningteam' in self.ia_metadata.get(
+            'collection', []
+        )
         if not was_sponsored:
             return None
 
         donor = self.ia_metadata.get('donor')
 
-        return web.storage({
-            'donor': donor,
-            'donor_account': OpenLibraryAccount.get_by_link(donor) if donor else None,
-            'donor_msg': self.ia_metadata.get('donor_msg'),
-        })
+        return web.storage(
+            {
+                'donor': donor,
+                'donor_account': OpenLibraryAccount.get_by_link(donor)
+                if donor
+                else None,
+                'donor_msg': self.ia_metadata.get('donor_msg'),
+            }
+        )
 
     def get_waitinglist_size(self, ia=False):
-        """Returns the number of people on waiting list to borrow this book.
-        """
+        """Returns the number of people on waiting list to borrow this book."""
         return waitinglist.get_waitinglist_size(self.key)
-
 
     def get_loans(self):
         from ..plugins.upstream import borrow
+
         return borrow.get_edition_loans(self)
 
     def get_ebook_status(self):
         """
-            None
-            "read-online"
-            "borrow-available"
-            "borrow-checkedout"
-            "borrow-user-checkedout"
-            "borrow-user-waiting"
-            "protected"
+        None
+        "read-online"
+        "borrow-available"
+        "borrow-checkedout"
+        "borrow-user-checkedout"
+        "borrow-user-waiting"
+        "protected"
         """
         if self.get("ocaid"):
             if not self.is_access_restricted():
@@ -347,7 +358,9 @@ class Edition(Thing):
             if not user:
                 return "borrow-checkedout"
 
-            checkedout_by_user = any(loan.get('user') == user.key for loan in self.get_current_loans())
+            checkedout_by_user = any(
+                loan.get('user') == user.key for loan in self.get_current_loans()
+            )
             if checkedout_by_user:
                 return "borrow-user-checkedout"
             if user.is_waiting_for(self):
@@ -356,8 +369,7 @@ class Edition(Thing):
                 return "borrow-checkedout"
 
     def is_lendable_book(self):
-        """Returns True if the book is lendable.
-        """
+        """Returns True if the book is lendable."""
         return self.in_borrowable_collection()
 
     def get_ia_download_link(self, suffix):
@@ -381,7 +393,7 @@ class Edition(Thing):
                 filename = self.ocaid + suffix
 
             if filename:
-                return "https://archive.org/download/%s/%s" % (self.ocaid, filename)
+                return f"https://archive.org/download/{self.ocaid}/{filename}"
 
     @classmethod
     def from_isbn(cls, isbn):
@@ -397,19 +409,23 @@ class Edition(Thing):
             return None  # consider raising ValueError
 
         isbn13 = to_isbn_13(isbn)
+        if isbn13 is None:
+            return None  # consider raising ValueError
         isbn10 = isbn_13_to_isbn_10(isbn13)
 
         # Attempt to fetch book from OL
         for isbn in [isbn13, isbn10]:
             if isbn:
-                matches = web.ctx.site.things({
-                    "type": "/type/edition", 'isbn_%s' % len(isbn): isbn
-                })
+                matches = web.ctx.site.things(
+                    {"type": "/type/edition", 'isbn_%s' % len(isbn): isbn}
+                )
                 if matches:
                     return web.ctx.site.get(matches[0])
 
         # Attempt to create from amazon, then fetch from OL
-        key = (isbn10 or isbn13) and create_edition_from_amazon_metadata(isbn10 or isbn13)
+        key = (isbn10 or isbn13) and create_edition_from_amazon_metadata(
+            isbn10 or isbn13
+        )
         if key:
             return web.ctx.site.get(key)
 
@@ -422,16 +438,21 @@ class Edition(Thing):
         """
         Create a dummy work from an orphaned_edition.
         """
-        return web.ctx.site.new('', {
-            'key': '',
-            'type': {'key': '/type/work'},
-            'title': self.title,
-            'authors': [
-                {'type': {'key': '/type/author_role'}, 'author': {'key': a['key']}}
-                for a in self.get('authors', [])],
-            'editions': [self],
-            'subjects': self.get('subjects', []),
-        })
+        return web.ctx.site.new(
+            '',
+            {
+                'key': '',
+                'type': {'key': '/type/work'},
+                'title': self.title,
+                'authors': [
+                    {'type': {'key': '/type/author_role'}, 'author': {'key': a['key']}}
+                    for a in self.get('authors', [])
+                ],
+                'editions': [self],
+                'subjects': self.get('subjects', []),
+            },
+        )
+
 
 def some(values):
     """Returns the first value that is True from the values iterator.
@@ -442,9 +463,10 @@ def some(values):
         if v:
             return v
 
+
 class Work(Thing):
-    """Class to represent /type/work objects in OL.
-    """
+    """Class to represent /type/work objects in OL."""
+
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
 
@@ -453,6 +475,7 @@ class Work(Thing):
 
     def __repr__(self):
         return "<Work: %s>" % repr(self.key)
+
     __str__ = __repr__
 
     @property  # type: ignore
@@ -495,6 +518,16 @@ class Work(Thing):
         edition_id = extract_numeric_id_from_olid(edition_olid) if edition_olid else -1
         return Booknotes.get_patron_booknote(username, work_id, edition_id=edition_id)
 
+    def has_book_note(self, username, edition_olid):
+        if not username:
+            return False
+        work_id = extract_numeric_id_from_olid(self.key)
+        edition_id = extract_numeric_id_from_olid(edition_olid)
+        return (
+            len(Booknotes.get_patron_booknote(username, work_id, edition_id=edition_id))
+            > 0
+        )
+
     def get_users_observations(self, username):
         if not username:
             return None
@@ -512,11 +545,19 @@ class Work(Thing):
         if not self.key:  # a dummy work
             return {'want-to-read': 0, 'currently-reading': 0, 'already-read': 0}
         work_id = extract_numeric_id_from_olid(self.key)
-        num_users_by_bookshelf = Bookshelves.get_num_users_by_bookshelf_by_work_id(work_id)
+        num_users_by_bookshelf = Bookshelves.get_num_users_by_bookshelf_by_work_id(
+            work_id
+        )
         return {
-            'want-to-read': num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0),
-            'currently-reading': num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES['Currently Reading'], 0),
-            'already-read': num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0)
+            'want-to-read': num_users_by_bookshelf.get(
+                Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0
+            ),
+            'currently-reading': num_users_by_bookshelf.get(
+                Bookshelves.PRESET_BOOKSHELVES['Currently Reading'], 0
+            ),
+            'already-read': num_users_by_bookshelf.get(
+                Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0
+            ),
         }
 
     def get_rating_stats(self):
@@ -527,7 +568,7 @@ class Work(Thing):
         if rating_stats and rating_stats['num_ratings'] > 0:
             return {
                 'avg_rating': round(rating_stats['avg_rating'], 2),
-                'num_ratings': rating_stats['num_ratings']
+                'num_ratings': rating_stats['num_ratings'],
             }
 
     def _get_d(self):
@@ -537,12 +578,12 @@ class Work(Thing):
         return {
             "h": self._get_history_preview(),
             "l": self._get_lists_cached(),
-            "e": self.edition_count
+            "e": self.edition_count,
         }
 
     def _make_subject_link(self, title, prefix=""):
-        slug = web.safestr(title.lower().replace(' ', '_').replace(',',''))
-        key = "/subjects/%s%s" % (prefix, slug)
+        slug = web.safestr(title.lower().replace(' ', '_').replace(',', ''))
+        key = f"/subjects/{prefix}{slug}"
         return web.storage(key=key, title=title, slug=slug)
 
     def get_subject_links(self, type="subject"):
@@ -586,11 +627,10 @@ class Work(Thing):
         solrdata = web.storage(self._solr_data or {})
         d = {}
         if solrdata.get('has_fulltext') and solrdata.get('public_scan_b'):
-            d['read_url'] = "https://archive.org/stream/{0}".format(solrdata.ia[0])
+            d['read_url'] = f"https://archive.org/stream/{solrdata.ia[0]}"
             d['has_ebook'] = True
         elif solrdata.get('lending_edition_s'):
-            d['borrow_url'] = "/books/{0}/x/borrow".format(solrdata.lending_edition_s)
-            #d['borrowed'] = solrdata.checked_out
+            d['borrow_url'] = f"/books/{solrdata.lending_edition_s}/x/borrow"
             d['has_ebook'] = True
         if solrdata.get('ia'):
             d['ia'] = solrdata.get('ia')
@@ -598,8 +638,8 @@ class Work(Thing):
 
 
 class Author(Thing):
-    """Class to represent /type/author objects in OL.
-    """
+    """Class to represent /type/author objects in OL."""
+
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
 
@@ -608,8 +648,8 @@ class Author(Thing):
 
     def __repr__(self):
         return "<Author: %s>" % repr(self.key)
-    __str__ = __repr__
 
+    __str__ = __repr__
 
     def foaf_agent(self):
         """
@@ -623,9 +663,8 @@ class Author(Thing):
         return 'Agent'
 
     def get_edition_count(self):
-        return self._site._request(
-                '/count_editions_by_author',
-                data={'key': self.key})
+        return self._site._request('/count_editions_by_author', data={'key': self.key})
+
     edition_count = property(get_edition_count)
 
     def get_lists(self, limit=50, offset=0, sort=True):
@@ -649,10 +688,9 @@ class User(Thing):
         return account.get("status")
 
     def get_usergroups(self):
-        keys = self._site.things({
-            'type': '/type/usergroup',
-            'members': self.key})
+        keys = self._site.things({'type': '/type/usergroup', 'members': self.key})
         return self._site.get_many(keys)
+
     usergroups = property(get_usergroups)
 
     def get_account(self):
@@ -674,7 +712,10 @@ class User(Thing):
     def save_preferences(self, new_prefs, msg='updating user preferences'):
         key = '%s/preferences' % self.key
         old_prefs = web.ctx.site.get(key)
-        prefs = (old_prefs and old_prefs.dict()) or {'key': key, 'type': {'key': '/type/object'}}
+        prefs = (old_prefs and old_prefs.dict()) or {
+            'key': key,
+            'type': {'key': '/type/object'},
+        }
         if 'notifications' not in prefs:
             prefs['notifications'] = self.DEFAULT_PREFERENCES
         prefs['notifications'].update(new_prefs)
@@ -699,6 +740,9 @@ class User(Thing):
 
     def is_beta_tester(self):
         return self.is_usergroup_member('/usergroup/beta-testers')
+
+    def has_librarian_tools(self):
+        return self.is_usergroup_member('/usergroup/librarian-tools')
 
     def get_lists(self, seed=None, limit=100, offset=0, sort=True):
         """Returns all the lists of this user.
@@ -728,7 +772,7 @@ class User(Thing):
             "type": "/type/list",
             "key~": self.key + "/lists/*",
             "limit": limit,
-            "offset": offset
+            "offset": offset,
         }
         if seed:
             if isinstance(seed, Thing):
@@ -759,22 +803,19 @@ class User(Thing):
 
         # since the owner is part of the URL, it might be difficult to handle
         # change of ownerships. Need to think of a way to handle redirects.
-        key = "%s/lists/OL%sL" % (self.key, id)
+        key = f"{self.key}/lists/OL{id}L"
         doc = {
             "key": key,
-            "type": {
-                "key": "/type/list"
-            },
+            "type": {"key": "/type/list"},
             "name": name,
             "description": description,
             "seeds": seeds,
-            "tags": tags
+            "tags": tags,
         }
         return self._site.new(key, doc)
 
     def is_waiting_for(self, book):
-        """Returns True if this user is waiting to loan given book.
-        """
+        """Returns True if this user is waiting to loan given book."""
         return waitinglist.is_user_waiting_for(self.key, book.key)
 
     def get_waitinglist(self):
@@ -782,8 +823,7 @@ class User(Thing):
         return waitinglist.get_waitinglist_for_user(self.key)
 
     def has_borrowed(self, book):
-        """Returns True if this user has borrowed given book.
-        """
+        """Returns True if this user has borrowed given book."""
         loan = self.get_loan_for(book.ocaid)
         return loan is not None
 
@@ -793,6 +833,7 @@ class User(Thing):
         Returns None if this user hasn't borrowed the given book.
         """
         from ..plugins.upstream import borrow
+
         loans = borrow.get_loans(self)
         for loan in loans:
             if ocaid == loan['ocaid']:
@@ -807,6 +848,7 @@ class User(Thing):
 
     def __repr__(self):
         return "<User: %s>" % repr(self.key)
+
     __str__ = __repr__
 
     def render_link(self, cls=None):
@@ -819,7 +861,8 @@ class User(Thing):
         if cls:
             extra_attrs += 'class="%s" ' % cls
         # Why nofollow?
-        return '<a rel="nofollow" href="%s" %s>%s</a>' % (self.key, extra_attrs, web.net.htmlquote(self.displayname))
+        return f'<a rel="nofollow" href="{self.key}" {extra_attrs}>{web.net.htmlquote(self.displayname)}</a>'
+
 
 class List(Thing, ListMixin):
     """Class to represent /type/list objects in OL.
@@ -832,6 +875,7 @@ class List(Thing, ListMixin):
         * cover - id of the book cover. Picked from one of its editions.
         * tags - list of tags to describe this list.
     """
+
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
 
@@ -845,8 +889,7 @@ class List(Thing, ListMixin):
             return self._site.get(key)
 
     def get_cover(self):
-        """Returns a cover object.
-        """
+        """Returns a cover object."""
         return self.cover and Image(self._site, "b", self.cover)
 
     def get_tags(self):
@@ -854,7 +897,7 @@ class List(Thing, ListMixin):
 
         Each tag object will contain name and url fields.
         """
-        return [web.storage(name=t, url=self.key + u"/tags/" + t) for t in self.tags]
+        return [web.storage(name=t, url=self.key + "/tags/" + t) for t in self.tags]
 
     def _get_subjects(self):
         """Returns list of subjects inferred from the seeds.
@@ -863,7 +906,7 @@ class List(Thing, ListMixin):
         # sample subjects
         return [
             web.storage(title="Cheese", url="/subjects/cheese"),
-            web.storage(title="San Francisco", url="/subjects/place:san_francisco")
+            web.storage(title="San Francisco", url="/subjects/place:san_francisco"),
         ]
 
     def add_seed(self, seed):
@@ -886,8 +929,7 @@ class List(Thing, ListMixin):
             return True
 
     def remove_seed(self, seed):
-        """Removes a seed for the list.
-        """
+        """Removes a seed for the list."""
         if isinstance(seed, Thing):
             seed = {"key": seed.key}
 
@@ -907,10 +949,10 @@ class List(Thing, ListMixin):
         return -1
 
     def __repr__(self):
-        return "<List: %s (%r)>" % (self.key, self.name)
+        return f"<List: {self.key} ({self.name!r})>"
+
 
 class UserGroup(Thing):
-
     @classmethod
     def from_key(cls, key):
         """
@@ -935,7 +977,7 @@ class UserGroup(Thing):
         if not any(userkey == member['key'] for member in members):
             members.append({'key': userkey})
             self.members = members
-            web.ctx.site.save(self.dict(), "Adding %s to %s" % (userkey, self.key))
+            web.ctx.site.save(self.dict(), f"Adding {userkey} to {self.key}")
 
 
 class Subject(web.storage):
@@ -944,7 +986,7 @@ class Subject(web.storage):
             "type": "/type/list",
             "seeds": self.get_seed(),
             "limit": limit,
-            "offset": offset
+            "offset": offset,
         }
         keys = web.ctx.site.things(q)
         lists = web.ctx.site.get_many(keys)
@@ -977,8 +1019,9 @@ class Subject(web.storage):
             if cover_id:
                 return Image(web.ctx.site, "b", cover_id)
 
+
 def register_models():
-    client.register_thing_class(None, Thing) # default
+    client.register_thing_class(None, Thing)  # default
     client.register_thing_class('/type/edition', Edition)
     client.register_thing_class('/type/work', Work)
     client.register_thing_class('/type/author', Author)
@@ -986,9 +1029,9 @@ def register_models():
     client.register_thing_class('/type/list', List)
     client.register_thing_class('/type/usergroup', UserGroup)
 
+
 def register_types():
-    """Register default types for various path patterns used in OL.
-    """
+    """Register default types for various path patterns used in OL."""
     from infogami.utils import types
 
     types.register_type('^/authors/[^/]*$', '/type/author')

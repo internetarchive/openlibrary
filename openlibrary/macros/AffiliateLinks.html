@@ -58,11 +58,15 @@ $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
     $for store in primary_stores:
       $:affiliate_link(store['key'], store['analytics_key'], store['name'], store['link'], store.get('price', ''), store.get('price_note', ''))
     $if more_stores:
-      <details>
-        <summary>$_('More')</summary>
-        $for store in more_stores:
-          $:affiliate_link(store['key'], store['analytics_key'], store['name'], store['link'], store.get('price', ''), store.get('price_note', ''))
-      </details>
-    
-    <p>When you buy books using these links the Internet Archive may earn a <a class="nostyle" href="/help/faq/about#selling">small commission</a>.</p>
+      <li class="more">
+        <details>
+          <summary>$_('More')</summary>
+          <ul>
+            $for store in more_stores:
+              $:affiliate_link(store['key'], store['analytics_key'], store['name'], store['link'], store.get('price', ''), store.get('price_note', ''))
+          </ul>
+        </details>
+      </li>
+
 </ul>
+<p>When you buy books using these links the Internet Archive may earn a <a class="nostyle" href="/help/faq/about#selling">small commission</a>.</p>

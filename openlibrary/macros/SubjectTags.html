@@ -6,7 +6,7 @@ $def render_subjects(label, subjects, prefix=""):
       <h6>$label</h6>
       <span>
         $for subject in subjects:
-          <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',',''))">$subject</a>$cond(not loop.last,",","")
+          <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',', '').replace('/', ''))">$subject</a>$cond(not loop.last, ",", "")
       </span>
     </div>
 

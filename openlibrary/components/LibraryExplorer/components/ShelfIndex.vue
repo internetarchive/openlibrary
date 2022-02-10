@@ -2,7 +2,7 @@
   <ol class="shelf-label--subclasses">
     <li>
       <a
-        :class="{ selected: index == 'root' }"
+        :class="{ selected: index === 'root' }"
         href="#"
         @click.prevent="index = 'root'"
         >
@@ -13,7 +13,7 @@
     </li>
     <li v-for="(child, i) of node.children || []" :key="i">
       <a
-        :class="{ selected: index == i }"
+        :class="{ selected: index === i }"
         href="#"
         @click.prevent="index = i"
         >

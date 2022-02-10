@@ -5,12 +5,12 @@
 ## docker-compose up -d
 ##
 
-version: "3.1"
+version: "3.8"
 services:
   web:
     profiles: ["ol-web1", "ol-web2"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
-    restart: always
+    restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - GUNICORN_OPTS= --workers 50 --timeout 300 --max-requests 500
@@ -22,14 +22,16 @@ services:
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
 
   solr:
-    # TODO: Currently solr is deployed in a "special" way
-    profiles: []
-    restart: always
+    profiles: ["ol-solr0"]
+    environment:
+      # More memory for production
+      - SOLR_JAVA_MEM=-Xms10g -Xmx10g
+    restart: unless-stopped
 
   solr_haproxy:
-    profiles: ["ol-solr1"]
+    profiles: ["ol-solr0"]
     image: haproxy:2.3.5
-    restart: always
+    restart: unless-stopped
     networks:
       - webnet
     volumes:
@@ -41,10 +43,30 @@ services:
         max-size: "512m"
         max-file: "4"
 
+  solr_restarter:
+    profiles: ["ol-solr0"]
+    build: scripts/solr_restarter
+    restart: unless-stopped
+    environment:
+      - TEST_URL=http://openlibrary.org/search.json?q=hello&mode=everything&limit=0
+      - CONTAINER_NAMES=openlibrary_solr_1 openlibrary_solr_haproxy_1
+      # XXX this service doesn't have internet access at the moment
+      #- SEND_SLACK_MESSAGE=true
+    env_file:
+      - ../olsystem/etc/solr_restarter.env
+    volumes:
+      # Forward the docker socket, since this needs to be able to
+      # run docker commands
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
   covers:
     profiles: ["ol-covers0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
-    restart: always
+    restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - GUNICORN_OPTS= --workers 30 --max-requests 500
@@ -52,21 +74,34 @@ services:
     volumes:
       - ../olsystem:/olsystem
       - /1:/1
+    deploy:
+      replicas: 2
 
   covers_nginx:
     profiles: ["ol-covers0"]
-    image: nginx:1.19.4
-    restart: always
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    user: root
+    command: docker/ol-nginx-start.sh
+    environment:
+      - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs
+    restart: unless-stopped
     depends_on:
       - covers
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/covers_nginx.conf:/etc/nginx/sites-enabled/covers_nginx.conf:ro
       # Needed for HTTPS, since this is a public server
-      - ../olsystem/etc/nginx/sites-available/default-docker.conf:/etc/nginx/sites-enabled/default:ro
+      - ./docker/public_nginx.conf:/etc/nginx/sites-available/public_nginx.conf:ro
       # Needs access to openlibrary for static files
       - ../olsystem:/olsystem
       - /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
+      # web log rotation
+      - ../olsystem/etc/logrotate.d/nginx:/etc/logrotate.d/nginx
+      # Persist the nginx logs
+      - /1/var/log/nginx:/var/log/nginx
+      # Archive nginx logs regularly
+      - ../olsystem/etc/cron.d/archive-webserver-logs:/etc/cron.d/archive-webserver-logs
+      - archive-webserver-logs-data:/archive-webserver-logs-data
     ports:
       - 80:80
       - 443:443
@@ -77,8 +112,7 @@ services:
         max-size: "512m"
         max-file: "4"
     secrets:
-      - petabox_seed
-      # Needed by default-docker.conf
+      # Needed by public_nginx.conf
       - ssl_certificate
       - ssl_certificate_key
 
@@ -91,7 +125,7 @@ services:
     hostname: "$HOSTNAME"
     user: root
     command: docker/ol-cron-start.sh
-    restart: always
+    restart: unless-stopped
     volumes:
       - ../olsystem/etc/cron.d/openlibrary.ol_home0:/etc/cron.d/openlibrary.ol_home0:ro
       - ../olsystem:/olsystem
@@ -105,7 +139,7 @@ services:
   infobase:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
-    restart: always
+    restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - INFOBASE_OPTS= fastcgi
@@ -114,11 +148,66 @@ services:
       - ../olsystem:/olsystem
       - infobase-writelog:/1/var/lib/openlibrary/infobase/log
       - infobase-errorlog:/1/var/log/openlibrary/infobase-errors
+  web_haproxy:
+    profiles: ["ol-www0"]
+    image: haproxy:2.3.5
+    restart: unless-stopped
+    hostname: "$HOSTNAME"
+    networks:
+      - webnet
+    volumes:
+      - ../olsystem/etc/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - 7072:7072
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+  web_nginx:
+    profiles: ["ol-www0"]
+    restart: unless-stopped
+    hostname: "ol-www0" # always want this hostname (or nginx backups will be misnamed)
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    user: root
+    command: docker/ol-nginx-start.sh
+    environment:
+      - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs
+    volumes:
+      # nginx configurations
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/web_nginx.conf:/etc/nginx/sites-enabled/openlibrary.conf:ro
+      # Needed for HTTPS, since this is a public server
+      - ./docker/public_nginx.conf:/etc/nginx/sites-available/public_nginx.conf:ro
+      # archive web log uploads
+      - ../olsystem:/olsystem
+      # web log rotation
+      - ../olsystem/etc/logrotate.d/nginx:/etc/logrotate.d/nginx
+      # Persist the nginx logs
+      - /1/var/log/nginx:/var/log/nginx
+      # sitemap generation (we also need olsystem/etc/cron.d + openlibrary/scripts)
+      - /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
+      # Archive nginx logs regularly
+      - ../olsystem/etc/cron.d/archive-webserver-logs:/etc/cron.d/archive-webserver-logs
+      - archive-webserver-logs-data:/archive-webserver-logs-data
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - webnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+    secrets:
+      - ssl_certificate
+      - ssl_certificate_key
 
   infobase_nginx:
     profiles: ["ol-home0"]
-    image: nginx:1.19.4
-    restart: always
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    user: root
+    command: docker/ol-nginx-start.sh
+    restart: unless-stopped
     depends_on:
       - infobase
     volumes:
@@ -126,17 +215,17 @@ services:
       - ./docker/infobase_nginx.conf:/etc/nginx/sites-enabled/infobase_nginx.conf:ro
       # Needs olsystem for black-listed IPs
       - ../olsystem:/olsystem
+      # Log rotation
+      - ../olsystem/etc/logrotate.d/nginx:/etc/logrotate.d/nginx
     ports:
       - 7000:7000
     networks:
       - webnet
-    secrets:
-      - petabox_seed
 
   affiliate-server:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
-    restart: always
+    restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - AFFILIATE_CONFIG=/openlibrary.yml
@@ -144,7 +233,7 @@ services:
     ports:
       - 31337:31337
     volumes:
-      -  /opt/olsystem/etc/openlibrary.yml:/openlibrary.yml
+      - /opt/olsystem/etc/openlibrary.yml:/openlibrary.yml
     networks:
       - webnet
     logging:
@@ -155,11 +244,13 @@ services:
   solr-updater:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
-    restart: always
+    restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
+      - EXTRA_OPTS=--solr-url http://ol-solr0:8984/solr/openlibrary
+        --no-solr-next
     volumes:
       - ../olsystem:/olsystem
     logging:
@@ -169,18 +260,20 @@ services:
     secrets:
       - ia_db_pw_file
 
-  # This will replace solr-updater once we fully migrate to solr8
-  solr8-updater:
-    profiles: ["ol-home0"]
+  # solr-updater running for the "next" version of solr we will deploy
+  solr-next-updater:
+    # Set it to something so that it never starts by default ; we have to
+    # explicitly start it (usually only when a solr reindex project is in progress)
+    profiles: ["ol-never"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
-    restart: always
+    restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - PYENV_VERSION=${PYENV_VERSION:-}
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
-      - STATE_FILE=solr8-update.offset
-      - EXTRA_OPTS=--solr-url http://ol-solr1:8984/solr/openlibrary --initial-state '2021-04-12:0'
+      - STATE_FILE=solr-next-update.offset
+      - EXTRA_OPTS=--solr-url http://ol-solr1:8984/solr/openlibrary --solr-next
     volumes:
       - solr-updater-data:/solr-updater-data
       - ../olsystem:/olsystem
@@ -195,7 +288,7 @@ services:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     command: docker/ol-importbot-start.sh
-    restart: always
+    restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
@@ -207,10 +300,9 @@ services:
       - webnet
       - dbnet
 
+# secrets mounted to /run/secrets/
+# e.g. /run/secrets/ia_db_pw_file
 secrets:
-    petabox_seed:
-      file: /opt/.petabox/seed
-
     ia_db_pw_file:
       file: /opt/.petabox/dbserver
 
@@ -222,3 +314,4 @@ secrets:
 volumes:
     infobase-writelog:
     infobase-errorlog:
+    archive-webserver-logs-data:

@@ -64,7 +64,7 @@ export function initGoodreadsImport() {
             if (shelves[shelf]){
                 shelf_id = shelves[shelf];
             }
-            if (checked && shelf_id != 0) {
+            if (checked && shelf_id !== 0) {
                 prevPromise = prevPromise.then(function () { // prevPromise changes in each iteration
                     $(`[isbn=${value['ISBN']}]`).addClass('selected');
                     return getWork(value['ISBN']); // return a new Promise
@@ -80,7 +80,7 @@ export function initGoodreadsImport() {
                         },
                         datatype: 'json',
                         success: function () {
-                            if (value['My Rating'] != '0') {
+                            if (value['My Rating'] !== '0') {
                                 $.ajax({
                                     url: `${obj['works'][0].key}/ratings.json`,
                                     type: 'POST',
@@ -117,7 +117,7 @@ export function initGoodreadsImport() {
                     func1(++count);
                 });
             }
-            else if (checked && shelf_id == 0) {
+            else if (checked && shelf_id === 0) {
                 $(`[isbn=${value['ISBN']}]`).append('<td class="error-imported">Error</td><td class="error-imported">Book in different Shelf</td>');
                 func1(++count);
             }

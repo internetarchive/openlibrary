@@ -11,7 +11,6 @@ USAGE:
 
     $ python ./scripts/infobase-server infobase.yaml fastcgi 7070
 """
-from __future__ import print_function
 
 import logging
 import os
@@ -52,7 +51,7 @@ def start(config_file, *args):
     sys.argv = [sys.argv[0]] + list(args)
 
     # The web.py runfcgi is using multiplexed=True option for fastcgi server
-    # and that seem to cause some memory leaks. Using a varient of runfcgi
+    # and that seem to cause some memory leaks. Using a variant of runfcgi
     # that sets multiplexed=False.
     if 'fastcgi' in sys.argv:
         sys.argv.remove('fastcgi')
@@ -71,7 +70,7 @@ def runfcgi(func, addr=('localhost', 8000)):
     import flup.server.fcgi as flups
     # Start fcgi server with multiplexed=False
     # Noticed memory leaks when running with multiplexed=True.
-    logger.info("flups.WSGIServer({}, bindAddress={})".format(func, addr))
+    logger.info(f"flups.WSGIServer({func}, bindAddress={addr})")
     return flups.WSGIServer(func, multiplexed=False, bindAddress=addr, debug=False).run()
 
 def start_gunicorn_server():
@@ -91,11 +90,11 @@ def start_gunicorn_server():
             return server.app.wsgifunc()
 
     WSGIServer("%prog infobase.yml --gunicorn [options]").run()
-    
+
 
 if __name__ == "__main__":
     setup_env()
-    
+
     if "--gunicorn" in sys.argv:
         sys.argv.pop(sys.argv.index("--gunicorn"))
         start_gunicorn_server()

@@ -1,6 +1,5 @@
 import { debounce } from './nonjquery_utils.js';
 import * as Browser from './Browser';
-import { updateWorkAvailability } from './availability';
 import { SearchBar } from './SearchBar';
 import { SearchPage } from './SearchPage';
 import { SearchModeSelector, mode as searchMode } from './SearchUtils';
@@ -45,7 +44,6 @@ export default function init() {
         }
     });
 
-    updateWorkAvailability();
     initReadingListFeature();
     initBorrowAndReadLinks();
     initPreviewButton();
@@ -118,7 +116,7 @@ export function initBorrowAndReadLinks() {
     /* eslint-disable no-unused-vars */
     // used in openlibrary/macros/AvailabilityButton.html and openlibrary/macros/LoanStatus.html
     $(function(){
-        $('.cta-btn--borrow,.cta-btn--read').on('click', function(){
+        $('.cta-btn--ia.cta-btn--borrow,.cta-btn--ia.cta-btn--read').on('click', function(){
             $(this).removeClass('cta-btn cta-btn--available').addClass('cta-btn cta-btn--available--load');
         });
     });

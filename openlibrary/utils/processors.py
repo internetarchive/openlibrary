@@ -3,13 +3,12 @@
 import web
 import time
 
-__all__ = [
-    "RateLimitProcessor"
-]
+__all__ = ["RateLimitProcessor"]
+
 
 class RateLimitProcessor:
-    """Application processor to ratelimit the access per ip.
-    """
+    """Application processor to ratelimit the access per ip."""
+
     def __init__(self, limit, window_size=600, path_regex="/.*"):
         """Creates a rate-limit processor to limit the number of
         requests/ip in the time frame.

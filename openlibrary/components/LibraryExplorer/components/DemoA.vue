@@ -1,6 +1,6 @@
 <template>
   <div>
-    <OLCarousel :query="`${activeSection.query} ${filter}`" :offset="activeSection.position">
+    <OLCarousel :query="`${classification.field}:${activeSection.query} ${filter}`" :offset="activeSection.position">
       <template v-slot:cover-label="{book}">
         <span
           :title="book[classification.field].join('\n')"

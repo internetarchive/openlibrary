@@ -36,76 +36,39 @@ Notes:
 
 ## Final Sync
 
-NOTE: These aren't the exact instructions; use with discretion.
-
-We now have to deal with any changes that occurred since the dump. The last step is to run `solr-updater` on dev linked to the production Infobase logs, and the new solr. Something like:
-
-```bash
-DAY_BEFORE_DUMP='2019-04-30'
-cd /opt/openlibrary/openlibrary/
-cp conf/openlibrary.yml conf/solrbuilder-openlibrary.yml
-vim conf/solrbuilder-openlibrary.yml # Modify to point to new solr
-echo "${DAY_BEFORE_DUMP}:0" > solr-builder.offset
-```
-
-Create `/etc/supervisor/conf.d/solrbuilder-solrupdater.conf` with:
-```
-[program:solrbuilder-solrupdater]
-command=python3 /opt/openlibrary/openlibrary/scripts/new-solr-updater.py
-  --config /opt/openlibrary/openlibrary/conf/solrbuilder-openlibrary.yml
-  --state-file /opt/openlibrary/openlibrary/solr-builder.offset
-  --socket-timeout 600
-user=solrupdater
-directory=/opt/openlibrary/openlibrary
-redirect_stderr=true
-stdout_logfile=/var/log/openlibrary/solrbuilder-solrupdater.log
-environment=USER=solrupdater
-```
-
-Then start it:
-
-```bash
-supervisorctl start solrbuilder-solrupdater
-```
-
-### Notes
-
-- Monitor the logs for solrupdater. It will sometimes get overloading and slow down a lot; restarting it fixes the issues though.
-- 3 weeks of edits takes ~1 week to reindex.
+TODO. Something along the lines of: Add a solrupdater to docker-compose.production.yml that points to the new server, and set its offset to be the correct date. See [5493 Move production solr from solr1 to solr0](https://github.com/internetarchive/openlibrary/issues/5493) for hints.
 
 ## Deploy
 
-Now that the solr is ready, we can dump its database and import it into the solr on production. Here is the command to do that from OJF
+Now that the solr is ready, we can dump its database and import it into the solr on production. Here is the command to do that from the solrbuilder server:
 
 ```sh
 time docker run --rm \
     --volumes-from solr_builder_solr_1 \
-    -v /storage/openlibrary/solr:/backup \
+    -v /tmp/solr:/backup \
     ubuntu:xenial \
-    tar czf /backup/solrbuilder-$(date +%Y-%m-%d).tar.gz /var/lib/solr/data
+    tar czf /backup/solrbuilder-$(date +%Y-%m-%d).tar.gz /var/solr/data
 ```
 
 (Last run: 41min/14G with 2020-10 dump; OJF)
 
-Copy this dump onto ol-solr0, and there run
+Then on the production server (ol-solr0) run:
 
 ```sh
 cd /opt/openlibrary
-# Build Solr
-time sudo docker-compose build solr
-# If this fails due to docker container not getting interent access (currently a problem on ol-solr0 as of 2020-06-22). 
-# Use this:
-# sudo docker build --network=host -t olsolr:latest -f docker/Dockerfile.olsolr .
 
-# Copy file (4min; 2020-11-05 ol-solr0)
-time scp YOU@server.openjournal.foundation:/storage/openlibrary/solr/solrbuilder-2020-03-02.tar.gz ~
+# Copy file from solrbuilder server (4min; 2020-11-05 ol-solr0)
+time scp YOU@SOLR_BUILDER_SERVER:/tmp/solr/solrbuilder-2020-03-02.tar.gz /tmp/solr/solrbuilder-2020-03-02.tar.gz
 
-# Restore backup file (8min; 2020-11-05 ol-solr0)
-time sudo docker-compose run --no-deps --rm -v $HOME:/backup solr \
-    bash -c "tar xf /backup/solrbuilder-2020-03-02.tar.gz"
+# Restore backup file (7min; 2021-08-11 ol-solr0)
+# Note the name "openlibrary_solr-data" should match "{OL_DIR}_{SOLR_DATA_VOLUME}", where:
+#    OL_DIR: is the name of the directory where the openlibrary repo is; likely openlibrary
+#    SOLR_DATA_VOLUME: is the name of the volume the solr service uses; defined in docker-compose.yml
+time docker run -v openlibrary_solr-data:/var/solr/data -v /tmp/solr:/backup ubuntu:xenial \
+    tar xzf /backup/solrbuilder-2021-08-11.tar.gz
 
-# Start the service
-sudo ENV=prod docker-compose up -d --no-deps solr
+# Start the services
+COMPOSE_FILE="docker-compose.yml:docker-compose.production.yml" HOSTNAME="$HOSTNAME"docker-compose --profile=ol-solr0 up -d
 ```
 
 ## Resetting

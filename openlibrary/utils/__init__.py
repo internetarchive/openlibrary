@@ -2,8 +2,10 @@
 
 import re
 from subprocess import PIPE, Popen, STDOUT
+from typing import TypeVar, Iterable, Literal, Callable, Optional
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
+
 
 def str_to_key(s):
     return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
@@ -12,22 +14,29 @@ def str_to_key(s):
 def finddict(dicts, **filters):
     """Find a dictionary that matches given filter conditions.
 
-        >>> dicts = [{"x": 1, "y": 2}, {"x": 3, "y": 4}]
-        >>> sorted(finddict(dicts, x=1).items())
-        [('x', 1), ('y', 2)]
+    >>> dicts = [{"x": 1, "y": 2}, {"x": 3, "y": 4}]
+    >>> sorted(finddict(dicts, x=1).items())
+    [('x', 1), ('y', 2)]
     """
     for d in dicts:
-        if (all(d.get(k) == v for k, v in filters.items())):
+        if all(d.get(k) == v for k, v in filters.items()):
             return d
+
 
 re_solr_range = re.compile(r'\[.+\bTO\b.+\]', re.I)
 re_bracket = re.compile(r'[\[\]]')
+
+
 def escape_bracket(q):
     if re_solr_range.search(q):
         return q
-    return re_bracket.sub(lambda m:'\\'+m.group(), q)
+    return re_bracket.sub(lambda m: '\\' + m.group(), q)
 
-def uniq(values, key=None):
+
+T = TypeVar('T')
+
+
+def uniq(values: Iterable[T], key=None) -> list[T]:
     """Returns the unique entries from the given values in the original order.
 
     The value of the optional `key` parameter should be a function that takes
@@ -44,6 +53,68 @@ def uniq(values, key=None):
             result.append(v)
     return result
 
+
+def take_best(
+    items: list[T],
+    optimization: Literal["min", "max"],
+    scoring_fn: Callable[[T], float],
+) -> list[T]:
+    """
+    >>> take_best([], 'min', lambda x: x)
+    []
+    >>> take_best([3, 2, 1], 'min', lambda x: x)
+    [1]
+    >>> take_best([3, 4, 5], 'max', lambda x: x)
+    [5]
+    >>> take_best([4, 1, -1, -1], 'min', lambda x: x)
+    [-1, -1]
+    """
+    best_score = float("-inf") if optimization == "max" else float("inf")
+    besties = []
+    for item in items:
+        score = scoring_fn(item)
+        if (optimization == "max" and score > best_score) or (
+            optimization == "min" and score < best_score
+        ):
+            best_score = score
+            besties = [item]
+        elif score == best_score:
+            besties.append(item)
+        else:
+            continue
+    return besties
+
+
+def multisort_best(
+    items: list[T], specs: list[tuple[Literal["min", "max"], Callable[[T], float]]]
+) -> Optional[T]:
+    """
+    Takes the best item, taking into account the multisorts
+
+    >>> multisort_best([], [])
+
+    >>> multisort_best([3,4,5], [('max', lambda x: x)])
+    5
+
+    >>> multisort_best([
+    ...     {'provider': 'ia', 'size': 4},
+    ...     {'provider': 'ia', 'size': 12},
+    ...     {'provider': None, 'size': 42},
+    ... ], [
+    ...     ('min', lambda x: 0 if x['provider'] == 'ia' else 1),
+    ...     ('max', lambda x: x['size']),
+    ... ])
+    {'provider': 'ia', 'size': 12}
+    """
+    if not items:
+        return None
+    pool = items
+    for optimization, fn in specs:
+        # Shrink the pool down each time
+        pool = take_best(pool, optimization, fn)
+    return pool[0]
+
+
 def dicthash(d):
     """Dictionaries are not hashable. This function converts dictionary into nested
     tuples, so that it can hashed.
@@ -55,15 +126,22 @@ def dicthash(d):
     else:
         return d
 
+
 author_olid_re = re.compile(r'^OL\d+A$')
+
+
 def is_author_olid(s):
     """Case sensitive check for strings like 'OL123A'."""
     return bool(author_olid_re.match(s))
 
+
 work_olid_re = re.compile(r'^OL\d+W$')
+
+
 def is_work_olid(s):
     """Case sensitive check for strings like 'OL123W'."""
     return bool(work_olid_re.match(s))
+
 
 def extract_numeric_id_from_olid(olid):
     """
@@ -79,6 +157,7 @@ def extract_numeric_id_from_olid(olid):
     if not is_number(olid[-1].lower()):
         olid = olid[:-1]
     return olid
+
 
 def is_number(s):
     try:

@@ -12,10 +12,16 @@ class TestBetterDataProvider:
             db=MagicMock(),
             ia_db=MagicMock(),
         )
-        mock_site.get_many.return_value = [Thing(mock_site, '/works/OL1W', {
-            'key': '/works/OL1W',
-            'type': {'key': '/type/work'},
-        })]
+        mock_site.get_many.return_value = [
+            Thing(
+                mock_site,
+                '/works/OL1W',
+                {
+                    'key': '/works/OL1W',
+                    'type': {'key': '/type/work'},
+                },
+            )
+        ]
         assert mock_site.get_many.call_count == 0
         dp.get_document('/works/OL1W')
         assert mock_site.get_many.call_count == 1
@@ -29,10 +35,16 @@ class TestBetterDataProvider:
             db=MagicMock(),
             ia_db=MagicMock(),
         )
-        mock_site.get_many.return_value = [Thing(mock_site, '/works/OL1W', {
-            'key': '/works/OL1W',
-            'type': {'key': '/type/work'},
-        })]
+        mock_site.get_many.return_value = [
+            Thing(
+                mock_site,
+                '/works/OL1W',
+                {
+                    'key': '/works/OL1W',
+                    'type': {'key': '/type/work'},
+                },
+            )
+        ]
         assert mock_site.get_many.call_count == 0
         dp.get_document('/works/OL1W')
         assert mock_site.get_many.call_count == 1

@@ -8,6 +8,7 @@
   left: 0;
   right: 0;
   z-index: @z-index-level-17;
+  pointer-events: none;
 }
 
 .toast {
@@ -16,25 +17,22 @@
   width: max-content;
   margin: 0 auto 20px;
   padding: 1em;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: auto;
 
   background-color: @light-beige;
   border: 1px solid @mid-grey;
   box-shadow: 0 .5rem 1rem @boxshadow-black;
 
-  visibility: hidden;
-
-  .toast--close {
+  .toast__close {
     padding-left: .75em;
   }
 
-  .toast--close:hover {
+  .toast__close:hover {
     cursor: pointer;
     text-decoration: none;
   }
-}
-
-.show {
-  visibility: visible;
 }
 
 @media screen and (max-width: @width-breakpoint-tablet) {

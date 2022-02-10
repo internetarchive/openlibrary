@@ -1,16 +1,15 @@
 from typing import Literal
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
+import logging
 from . import db
 
+logger = logging.getLogger(__name__)
 
-class Bookshelves(object):
 
-    PRESET_BOOKSHELVES = {
-        'Want to Read': 1,
-        'Currently Reading': 2,
-        'Already Read': 3
-    }
+class Bookshelves:
+
+    PRESET_BOOKSHELVES = {'Want to Read': 1, 'Currently Reading': 2, 'Already Read': 3}
 
     PRESET_BOOKSHELVES_JSON = {
         'want_to_read': 1,
@@ -24,13 +23,13 @@ class Bookshelves(object):
             'total_books_logged': {
                 'total': Bookshelves.total_books_logged(),
                 'month': Bookshelves.total_books_logged(since=DATE_ONE_MONTH_AGO),
-                'week': Bookshelves.total_books_logged(since=DATE_ONE_WEEK_AGO)
+                'week': Bookshelves.total_books_logged(since=DATE_ONE_WEEK_AGO),
             },
             'total_users_logged': {
                 'total': Bookshelves.total_unique_users(),
                 'month': Bookshelves.total_unique_users(since=DATE_ONE_MONTH_AGO),
-                'week': Bookshelves.total_unique_users(since=DATE_ONE_WEEK_AGO)
-            }
+                'week': Bookshelves.total_unique_users(since=DATE_ONE_WEEK_AGO),
+            },
         }
 
     @classmethod
@@ -74,18 +73,26 @@ class Bookshelves(object):
         return results[0] if results else None
 
     @classmethod
-    def most_logged_books(cls, shelf_id, limit=10, since=False):
+    def most_logged_books(cls, shelf_id=None, limit=10, since=False):
         """Returns a ranked list of work OLIDs (in the form of an integer --
         i.e. OL123W would be 123) which have been most logged by
         users. This query is limited to a specific shelf_id (e.g. 1
         for "Want to Read").
         """
         oldb = db.get_db()
-        query = 'select work_id, count(*) as cnt from bookshelves_books WHERE bookshelf_id=$shelf_id '
+        where = 'WHERE bookshelf_id' + ('=$shelf_id' if shelf_id else ' IS NOT NULL ')
         if since:
-            query += " AND created >= $since"
+            where += 'AND created >= $since'
+        query = f'select work_id, count(*) as cnt from bookshelves_books {where}'
         query += ' group by work_id order by cnt desc limit $limit'
-        return list(oldb.query(query, vars={'shelf_id': shelf_id, 'limit': limit, 'since': since}))
+        logger.info("Query: %s", query)
+        logged_books = list(
+            oldb.query(
+                query, vars={'shelf_id': shelf_id, 'limit': limit, 'since': since}
+            )
+        )
+        logger.info("Results: %s", logged_books)
+        return logged_books
 
     @classmethod
     def count_total_books_logged_by_user(cls, username, bookshelf_ids=None):
@@ -93,8 +100,11 @@ class Bookshelves(object):
         with the option of limiting the count to specific bookshelves
         by `bookshelf_id`
         """
-        return sum(cls.count_total_books_logged_by_user_per_shelf(
-            username, bookshelf_ids=bookshelf_ids).values())
+        return sum(
+            cls.count_total_books_logged_by_user_per_shelf(
+                username, bookshelf_ids=bookshelf_ids
+            ).values()
+        )
 
     @classmethod
     def count_total_books_logged_by_user_per_shelf(cls, username, bookshelf_ids=None):
@@ -109,17 +119,26 @@ class Bookshelves(object):
         """
         oldb = db.get_db()
         data = {'username': username}
-        _bookshelf_ids = ','.join([str(x) for x in bookshelf_ids or cls.PRESET_BOOKSHELVES.values()])
-        query = ("SELECT bookshelf_id, count(*) from bookshelves_books WHERE "
-                 "bookshelf_id=ANY('{" + _bookshelf_ids + "}'::int[]) "
-                 "AND username=$username GROUP BY bookshelf_id")
+        _bookshelf_ids = ','.join(
+            [str(x) for x in bookshelf_ids or cls.PRESET_BOOKSHELVES.values()]
+        )
+        query = (
+            "SELECT bookshelf_id, count(*) from bookshelves_books WHERE "
+            "bookshelf_id=ANY('{" + _bookshelf_ids + "}'::int[]) "
+            "AND username=$username GROUP BY bookshelf_id"
+        )
         result = oldb.query(query, vars=data)
-        return dict([(i['bookshelf_id'], i['count']) for i in result]) if result else {}
+        return {i['bookshelf_id']: i['count'] for i in result} if result else {}
 
     @classmethod
-    def get_users_logged_books(cls, username, bookshelf_id=None, limit=100, page=1,
-                               sort: Literal['created asc', 'created desc'] =
-                               'created desc'):
+    def get_users_logged_books(
+        cls,
+        username,
+        bookshelf_id=None,
+        limit=100,
+        page=1,
+        sort: Literal['created asc', 'created desc'] = 'created desc',
+    ):
         """Returns a list of Reading Log database records for books which
         the user has logged. Records are described in core/schema.py
         and include:
@@ -138,25 +157,46 @@ class Bookshelves(object):
             'username': username,
             'limit': limit,
             'offset': limit * (page - 1),
-            'bookshelf_id': bookshelf_id
+            'bookshelf_id': bookshelf_id,
         }
         if sort == 'created desc':
-            query = ("SELECT * from bookshelves_books WHERE "
-                     "bookshelf_id=$bookshelf_id AND username=$username "
-                     "ORDER BY created DESC "
-                     "LIMIT $limit OFFSET $offset")
+            query = (
+                "SELECT * from bookshelves_books WHERE "
+                "bookshelf_id=$bookshelf_id AND username=$username "
+                "ORDER BY created DESC "
+                "LIMIT $limit OFFSET $offset"
+            )
         else:
-            query = ("SELECT * from bookshelves_books WHERE "
-                     "bookshelf_id=$bookshelf_id AND username=$username "
-                     "ORDER BY created ASC "
-                     "LIMIT $limit OFFSET $offset")
+            query = (
+                "SELECT * from bookshelves_books WHERE "
+                "bookshelf_id=$bookshelf_id AND username=$username "
+                "ORDER BY created ASC "
+                "LIMIT $limit OFFSET $offset"
+            )
         if bookshelf_id is None:
-            query = ("SELECT * from bookshelves_books WHERE "
-                     "username=$username")
+            query = "SELECT * from bookshelves_books WHERE username=$username"
             # XXX Removing limit, offset, etc from data looks like a bug
             # unrelated / not fixing in this PR.
-            data = { 'username': username }
+            data = {'username': username}
         return list(oldb.query(query, vars=data))
+
+
+    @classmethod
+    def get_recently_logged_books(cls, bookshelf_id=None, limit=50, page=1):
+        oldb = db.get_db()
+        page = int(page) if page else 1
+        data = {
+            'bookshelf_id': bookshelf_id,
+            'limit': limit,
+            'offset': limit * (page - 1),
+        }
+        where = "WHERE bookshelf_id=$bookshelf_id " if bookshelf_id else ""
+        query = (
+            f"SELECT * from bookshelves_books {where} "
+            "ORDER BY created DESC LIMIT $limit OFFSET $offset"
+        )
+        return list(oldb.query(query, vars=data))
+
 
     @classmethod
     def get_users_read_status_of_work(cls, username, work_id):
@@ -166,14 +206,13 @@ class Bookshelves(object):
         exists.
         """
         oldb = db.get_db()
-        data = {
-            'username': username,
-            'work_id': int(work_id)
-        }
+        data = {'username': username, 'work_id': int(work_id)}
         bookshelf_ids = ','.join([str(x) for x in cls.PRESET_BOOKSHELVES.values()])
-        query = ("SELECT bookshelf_id from bookshelves_books WHERE "
-                 "bookshelf_id=ANY('{" + bookshelf_ids + "}'::int[]) "
-                 "AND username=$username AND work_id=$work_id")
+        query = (
+            "SELECT bookshelf_id from bookshelves_books WHERE "
+            "bookshelf_id=ANY('{" + bookshelf_ids + "}'::int[]) "
+            "AND username=$username AND work_id=$work_id"
+        )
         result = list(oldb.query(query, vars=data))
         return result[0].bookshelf_id if result else None
 
@@ -191,27 +230,36 @@ class Bookshelves(object):
 
         users_status = cls.get_users_read_status_of_work(username, work_id)
         if not users_status:
-            return oldb.insert('bookshelves_books', username=username,
-                               bookshelf_id=bookshelf_id,
-                               work_id=work_id, edition_id=edition_id)
+            return oldb.insert(
+                'bookshelves_books',
+                username=username,
+                bookshelf_id=bookshelf_id,
+                work_id=work_id,
+                edition_id=edition_id,
+            )
         else:
             where = "work_id=$work_id AND username=$username"
-            return oldb.update('bookshelves_books', where=where,
-                               bookshelf_id=bookshelf_id, edition_id=edition_id, vars=data)
+            return oldb.update(
+                'bookshelves_books',
+                where=where,
+                bookshelf_id=bookshelf_id,
+                edition_id=edition_id,
+                vars=data,
+            )
 
     @classmethod
     def remove(cls, username, work_id, bookshelf_id=None):
         oldb = db.get_db()
-        where = {
-            'username': username,
-            'work_id': int(work_id)
-        }
+        where = {'username': username, 'work_id': int(work_id)}
         if bookshelf_id:
             where['bookshelf_id'] = int(bookshelf_id)
 
         try:
-            return oldb.delete('bookshelves_books',
-                               where=('work_id=$work_id AND username=$username'), vars=where)
+            return oldb.delete(
+                'bookshelves_books',
+                where=('work_id=$work_id AND username=$username'),
+                vars=where,
+            )
         except:  # we want to catch no entry exists
             return None
 
@@ -233,11 +281,13 @@ class Bookshelves(object):
         count}.
         """
         oldb = db.get_db()
-        query = ("SELECT bookshelf_id, count(DISTINCT username) as user_count from bookshelves_books where"
-                 " work_id=$work_id"
-                 " GROUP BY bookshelf_id")
+        query = (
+            "SELECT bookshelf_id, count(DISTINCT username) as user_count from bookshelves_books where"
+            " work_id=$work_id"
+            " GROUP BY bookshelf_id"
+        )
         result = oldb.query(query, vars={'work_id': int(work_id)})
-        return dict([(i['bookshelf_id'], i['user_count']) for i in result]) if result else {}
+        return {i['bookshelf_id']: i['user_count'] for i in result} if result else {}
 
     @classmethod
     def user_with_most_books(cls):
@@ -248,10 +298,12 @@ class Bookshelves(object):
         """
         oldb = db.get_db()
         _bookshelf_ids = ','.join([str(x) for x in cls.PRESET_BOOKSHELVES.values()])
-        query = ("SELECT username, count(*) AS counted "
-                 "FROM bookshelves_books WHERE "
-                 "bookshelf_id=ANY('{" + _bookshelf_ids + "}'::int[]) "
-                 "GROUP BY username "
-                 "ORDER BY counted DESC, username LIMIT 100")
+        query = (
+            "SELECT username, count(*) AS counted "
+            "FROM bookshelves_books WHERE "
+            "bookshelf_id=ANY('{" + _bookshelf_ids + "}'::int[]) "
+            "GROUP BY username "
+            "ORDER BY counted DESC, username LIMIT 100"
+        )
         result = oldb.query(query)
         return list(result)

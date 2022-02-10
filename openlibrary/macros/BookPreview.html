@@ -1,8 +1,8 @@
-$def with (ocaid)
+$def with (ocaid, linkback=True)
 $# :param str ocaid:
 
 <a class="cta-btn cta-btn--shell cta-btn--preview"
-   data-iframe-src="https://archive.org/stream/$ocaid?wrapper=false"
+   data-iframe-src="https://archive.org/embed/$ocaid"
    data-iframe-link="https://archive.org/details/$ocaid"
    data-ol-link-track="CTAClick|Preview" href="#bookPreview">$_('Preview')</a>
 
@@ -20,7 +20,8 @@ $if render_once('book-preview-floater'):
         <p class="learn-more">
           <a data-key="book_preview_learn_more"
              data-ol-link-track="book_preview_learn_more">
-            $_("See more about this book on Archive.org")
+	    $if linkback:
+              $_("See more about this book on Archive.org")
           </a>
         </p>
       </div>

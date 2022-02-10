@@ -2,26 +2,43 @@ $def with (page)
 
 <header id="header-bar" class="header-bar">
   $if ctx.user:
-    $ loginLinks = []
+    $ loginLinks = [
+    $     { "href": ctx.user.key, "text": _("My Profile") },
+    $     { "href": homepath() + "/account/loans", "text": _("My Loans") },
+    $     { "href": ctx.user.key + "/lists", "text": _("My Lists") },
+    $     { "href": "/account/books", "text": _("My Reading Log") },
+    $     { "href": "/account/books/already-read/stats", "text": _("My Reading Stats") },
+    $     { "href": homepath() + "/account", "text": _("Settings") },
+    $     { "post": "/account/logout", "text": _("Log out") },
+    $ ]
   $else:
     $ loginLinks = [
-    $     { "href": "/account/login", "text": _("Log in") },
-    $     { "href": "/account/create", "text": _("Sign up") }
+    $     { "loginClass": "login-links" }
     $ ]
   $ moreLinks = [
   $     { "href": "/books/add", "text": _("Add a Book") },
-  $     { "href": "/sponsorship", "text": _("Sponsor a Book") },
   $     { "href": "/recentchanges", "text": _("Recent Community Edits") },
   $     { "href": "/developers", "text": _("Developer Center") },
   $     { "href": "/help", "text": _("Help & Support") }
   $ ]
+  $ browseLinks = [
+  $     { "href": "/subjects", "text": _("Subjects") },
+  $     { "new": "", "href": "/explore", "text": _("Library Explorer") },
+  $     { "href": "/lists", "text": _("Lists") },
+  $     { "new": "", "href": "/collections", "text": _("Collections") },
+  $     { "href": "/k-12", "text": _("K-12 Student Library") },
+  $     { "href": "/random", "text": _("Random Book") },
+  $     { "href": "/advancedsearch", "text": _("Advanced Search") }
+  $ ]
   $ hamburgerProps = {
   $  'name': 'hamburger',
-  $  'links': loginLinks + moreLinks,
-  $  'image': '/static/images/menu.png',
-  $  'label': 'additional options menu'
+  $  'links': [ { "subsection": _("My Open Library") } ] + loginLinks +
+  $     [ { "subsection": _("Browse") } ] + browseLinks + [ { "subsection": _("More") } ] + moreLinks,
+  $  'image': '/static/images/hamburger-icon.svg',
+  $  'image-class': 'hamburger__icon',
+  $  'label': 'additional options menu',
+  $  'show_mask': True
   $ }
-  $:render_template("lib/header_dropdown", hamburgerProps )
 
   <div class="logo-component">
     <a href="/" title="$_('The Internet Archive\'s Open Library: One page for every book')">
@@ -36,14 +53,7 @@ $def with (page)
   $ browseProps = {
   $   'name': 'browse',
   $   'label': _('Browse'),
-  $   'links': [
-  $     { "href": "/subjects", "text": _("Subjects") },
-  $     { "href": "/lists", "text": _("Lists") },
-  $     { "href": "/collections", "text": _("Collections") },
-  $     { "href": "/k-12", "text": _("K-12 Student Library") },
-  $     { "href": "/random", "text": _("Random Book") },
-  $     { "href": "/advancedsearch", "text": _("Advanced Search") }
-  $   ]
+  $   'links': browseLinks
   $ }
 
   $ moreProps = {
@@ -103,18 +113,19 @@ $def with (page)
         # dev environment), this get_internet_archive_id returns None. Setting it to an
         # empty string returns a valid image ¯\_(ツ)_/¯
         'image': 'https://archive.org/services/img/' + (get_internet_archive_id(ctx.user.key) or ''),
-        'links': [
-          { "href": ctx.user.key, "text": _("My Profile") },
-          { "href": homepath() + "/account/loans", "text": _("My Loans") },
-          { "href": ctx.user.key + "/lists", "text": _("My Lists") },
-          { "href": "/account/books", "text": _("My Reading Log") },
-          { "href": "/account/books/already-read/stats", "text": _("My Reading Stats") },
-          { "href": homepath() + "/account", "text": _("Settings") },
-          { "post": "/account/logout", "text": _("Log out") }
-        ]
+        'image-class': 'header-dropdown__icon',
+        'links': loginLinks
       }
-    $# Add book notes link between 'My Reading Stats' and 'Settings' for beta testers:
-    $if ctx.user.is_beta_tester():
-      $accountProps['links'].insert(5, { "href": "/account/books/notes", "text": _("My Book Notes") })
+
+    $accountProps['links'].insert(5, { "href": "/account/books/notes", "text": _("My Book Notes") })
     $:render_template("lib/header_dropdown", accountProps )
+
+  $:render_template("lib/header_dropdown", hamburgerProps )
+
+</header>
+<header class="header-bar mobile">
+  <ul class="navigation-component mobile">
+    <li>$:render_template("lib/header_dropdown", browseProps )</li>
+    <li>$:render_template("lib/header_dropdown", moreProps )</li>
+  </ul>
 </header>

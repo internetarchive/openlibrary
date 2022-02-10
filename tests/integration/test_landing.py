@@ -1,7 +1,6 @@
-#-*- encoding: utf-8 -*-
-
 import pytest
 from splinter import Browser
+
 
 class TestLanding:
 
@@ -44,6 +43,3 @@ class TestLanding:
         url = self.host + '/'
         browser.visit(url)
         assert browser.is_element_present_by_css("#CarouselWaitlist")
-
-
-

@@ -8,9 +8,11 @@ class MockSite:
     def _get_backreferences(self, thing):
         return {}
 
+
 class MockLendableEdition(models.Edition):
     def get_ia_collections(self):
         return ['lendinglibrary']
+
 
 class MockPrivateEdition(models.Edition):
     def get_ia_collections(self):
@@ -19,11 +21,7 @@ class MockPrivateEdition(models.Edition):
 
 class TestEdition:
     def mock_edition(self, edition_class):
-        data = {
-            "key": "/books/OL1M",
-            "type": {"key": "/type/edition"},
-            "title": "foo"
-        }
+        data = {"key": "/books/OL1M", "type": {"key": "/type/edition"}, "title": "foo"}
         return edition_class(MockSite(), "/books/OL1M", data=data)
 
     def test_url(self):
@@ -62,11 +60,7 @@ class TestEdition:
 
 class TestAuthor:
     def test_url(self):
-        data = {
-            "key": "/authors/OL1A",
-            "type": {"key": "/type/author"},
-            "name": "foo"
-        }
+        data = {"key": "/authors/OL1A", "type": {"key": "/type/author"}, "name": "foo"}
 
         e = models.Author(MockSite(), "/authors/OL1A", data=data)
 
@@ -84,9 +78,7 @@ class TestAuthor:
 
 class TestSubject:
     def test_url(self):
-        subject = models.Subject({
-            "key": "/subjects/love"
-        })
+        subject = models.Subject({"key": "/subjects/love"})
         assert subject.url() == "/subjects/love"
         assert subject.url("/lists") == "/subjects/love/lists"
 
@@ -100,13 +92,14 @@ class TestList:
 
     def _test_list_owner(self, user_key):
         from openlibrary.mocks.mock_infobase import MockSite
+
         site = MockSite()
         list_key = user_key + "/lists/OL1L"
 
         self.save_doc(site, "/type/user", user_key)
         self.save_doc(site, "/type/list", list_key)
 
-        list =  site.get(list_key)
+        list = site.get(list_key)
         assert list is not None
         assert isinstance(list, models.List)
 
@@ -114,9 +107,6 @@ class TestList:
         assert list.get_owner().key == user_key
 
     def save_doc(self, site, type, key, **fields):
-        d = {
-            "key": key,
-            "type": {"key": type}
-        }
+        d = {"key": key, "type": {"key": type}}
         d.update(fields)
         site.save(d)

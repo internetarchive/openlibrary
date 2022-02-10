@@ -101,7 +101,7 @@ const Carousel = {
             const availabilityStatus = availabilityStatuses[availability.status] || availabilityStatuses.error;
             const cls = availabilityStatus.cls;
             const cta = availabilityStatus.cta;
-            const url = cls == 'cta-btn--available' ? `/borrow/ia/${ocaid}` : work.key;
+            const url = cls === 'cta-btn--available' ? `/borrow/ia/${ocaid}` : work.key;
 
             if (!cover.id && ocaid) {
                 cover.type = 'ia';
@@ -151,7 +151,7 @@ const Carousel = {
                     loadMore.locked = true; // lock for critical section
                     slick.addSlide('<div class="carousel__item carousel__loading-end">Loading...</div>');
 
-                    if (loadMore.pageMode == 'page') {
+                    if (loadMore.pageMode === 'page') {
                         // for first time, we're on page 1 already so initialize as page 2
                         // otherwise advance to next page
                         loadMore.page = loadMore.page ? loadMore.page + 1 : 2;
@@ -174,6 +174,32 @@ const Carousel = {
                             loadMore.locked = false;
                         });
                 }
+            });
+
+            document.addEventListener('filter', function(ev) {
+                url.searchParams.set('published_in', `${ev.detail.yearFrom}-${ev.detail.yearTo}`);
+
+                // Reset the page count - the result set is now 'new'
+                loadMore.page = 2;
+
+                const slick = $(selector).slick('getSlick');
+                const totalSlides = slick.$slides.length;
+
+                // Remove the current slides
+                slick.removeSlide(totalSlides, true, true);
+                slick.addSlide('<div class="carousel__item carousel__loading-end">Loading...</div>');
+
+                $.ajax({ url: url, type: 'GET' })
+                    .then(function(results) {
+                        const works = results.works || results.docs;
+                        // Remove loading indicator
+                        slick.slickRemove(0);
+                        works.forEach(work => slick.addSlide(addWork(work)));
+                        if (!works.length) {
+                            loadMore.allDone = true;
+                        }
+                        loadMore.locked = false;
+                    });
             });
         }
     }

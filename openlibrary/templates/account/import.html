@@ -1,24 +1,12 @@
 $def with (books=None, books_wo_isbns=None)
 
-$ title = "Import and Export Options"
-$var title: $_(title)
+<div class="my-imports">
 
-<div id="contentHead">
-    <div class="small sansserif grey account-settings-menu">
-      <a href="$ctx.user.key">$ctx.user.displayname</a>
-      &raquo;
-      <a href="$homepath()/account">$_("Settings")</a>
-      &raquo; $title
-    </div>
-    <h1>$title</h1>
-</div>
-
-<div id="contentBody">
-  
   $if not books:
     <div class="import-export">
       <div class="import-export__readinglog">
         <h3>$_("Import from Goodreads")</h3>
+        <p>For instructions on exporting data refer to: <a href="https://www.goodreads.com/review/import">Goodreads Import/Export</a></p>
         <form method="POST" action="/account/import/goodreads"
             enctype="multipart/form-data" class="olform olform--decoration">
           <div>
@@ -30,7 +18,7 @@ $var title: $_(title)
                 type="submit" value="$_('Load Books')">
           </div>
         </form>
-      </div>  
+      </div>
       <div class="import-export__readinglog">
         <h3>$_("Export your Reading Log")</h3>
         <form method="GET" action="/account/export"
@@ -42,7 +30,7 @@ $var title: $_(title)
       </div>
     </div>
 
-  $else:  
+  $else:
     <div class="import-buttons">
       <div id="myProgress" class="hidden">
         <div id="myBar">Importing...</div>

@@ -20,7 +20,7 @@
 export function range(begin, end, step) {
     var r, i;
     step = step || 1;
-    if (end == undefined) {
+    if (end === undefined) {
         end = begin;
         begin = 0;
     }
@@ -75,11 +75,11 @@ ForLoop.prototype.next = function() {
     this.index0 = i;
     this.index = i+1;
 
-    this.first = (i == 0);
-    this.last = (i == this.length-1);
+    this.first = (i === 0);
+    this.last = (i === this.length-1);
 
-    this.odd = (this.index % 2 == 1);
-    this.even = (this.index % 2 == 0);
+    this.odd = (this.index % 2 === 1);
+    this.even = (this.index % 2 === 0);
     this.parity = ['even', 'odd'][this.index % 2];
 
     this.revindex0 = this.length - i;
@@ -114,7 +114,7 @@ export function websafe(value) {
     // Safari 6 is failing with weird javascript error in this function.
     // Added try-catch to avoid it.
     try {
-        if (value == null || value == undefined) {
+        if (value === null || value === undefined) {
             return '';
         }
         else {

@@ -1,6 +1,5 @@
-import { Toast } from '../Toast.js';
+import { FadingToast } from '../Toast.js';
 import '../../../../../static/css/components/metadata-form.less';
-import '../../../../../static/css/components/toast.less';
 
 /**
  * Initializes a collection of notes modals.
@@ -8,19 +7,19 @@ import '../../../../../static/css/components/toast.less';
  * @param {JQuery} $modalLinks  A collection of notes modal links.
  */
 export function initNotesModal($modalLinks) {
-    addClickListeners($modalLinks);
-    addNotesButtonListeners();
+    addClickListeners($modalLinks, '640px');
+    addNotesModalButtonListeners();
     addNotesReloadListeners($('.notes-textarea'));
 }
 
 /**
- * Adds click listeners to buttons in all notes forms on a page.
+ * Adds click listeners to buttons in all notes modals on a page.
  */
-function addNotesButtonListeners() {
-    $('.update-note-button').on('click', function(){
+function addNotesModalButtonListeners() {
+    $('.update-note-button').on('click', function(event){
+        event.preventDefault();
         // Get form data
-        const formData = new FormData($(this).prop('form'));
-
+        const formData = new FormData($(this).closest('form')[0]);
         if (formData.get('notes')) {
             const $deleteButton = $($(this).siblings()[0]);
 
@@ -35,7 +34,7 @@ function addNotesButtonListeners() {
                 contentType: false,
                 processData: false,
                 success: function() {
-                    showToast($('body'), 'Update successful!')
+                    showToast('Update successful!')
                     $.colorbox.close();
                     $deleteButton.removeClass('hidden');
                 }
@@ -44,29 +43,99 @@ function addNotesButtonListeners() {
     });
 
     $('.delete-note-button').on('click', function() {
-        const $button = $(this);
+        if (confirm('Really delete this book note?')) {
+            const $button = $(this);
 
-        // Get form data
-        const formData = new FormData($button.prop('form'));
+            // Get form data
+            const formData = new FormData($button.prop('form'));
 
-        // Post data
-        const workOlid = formData.get('work_id');
-        formData.delete('work_id');
-        formData.delete('notes');
+            // Post data
+            const workOlid = formData.get('work_id');
+            formData.delete('work_id');
+            formData.delete('notes');
+
+            $.ajax({
+                url: `/works/${workOlid}/notes.json`,
+                data: formData,
+                type: 'POST',
+                contentType: false,
+                processData: false,
+                success: function() {
+                    showToast('Note deleted.');
+                    $.colorbox.close();
+                    $button.toggleClass('hidden');
+                    $button.closest('form').find('textarea').val('');
+                }
+            });
+        }
+    });
+}
+
+/**
+* Add listeners to update and delete buttons on the notes page.
+*
+* On successful delete, list elements related to the note are removedd
+* from the view.
+*/
+export function addNotesPageButtonListeners() {
+    $('.update-note-link-button').on('click', function(event) {
+        event.preventDefault();
+        const workId = $(this).parent().siblings('input')[0].value;
+        const editionId = $(this).parent().attr('id').split('-')[0];
+        const note = $(this).parent().siblings('textarea')[0].value;
+
+        const formData = new FormData();
+        formData.append('notes', note);
+        formData.append('edition_id', `OL${editionId}M`);
 
         $.ajax({
-            url: `/works/${workOlid}/notes.json`,
+            url: `/works/OL${workId}W/notes.json`,
             data: formData,
             type: 'POST',
             contentType: false,
             processData: false,
             success: function() {
-                showToast($('body'), 'Note deleted.');
-                $.colorbox.close();
-                $button.toggleClass('hidden');
-                $button.closest('form').find('textarea').val('');
+                showToast('Update successful!')
             }
         });
+    });
+
+    $('.delete-note-button').on('click', function() {
+        if (confirm('Really delete this book note?')) {
+            const $parent = $(this).parent();
+
+            const workId = $(this).parent().siblings('input')[0].value;
+            const editionId = $(this).parent().attr('id').split('-')[0];
+
+            const formData = new FormData();
+            formData.append('edition_id', `OL${editionId}M`);
+
+            $.ajax({
+                url: `/works/OL${workId}W/notes.json`,
+                data: formData,
+                type: 'POST',
+                contentType: false,
+                processData: false,
+                success: function() {
+                    showToast('Note deleted.');
+
+                    // Remove list element from UI:
+                    if ($parent.closest('.notes-list').children().length === 1) {
+                        // This is the last edition for a set of notes on a work.
+                        // Remove the work element:
+                        $parent.closest('.main-list-item').remove();
+
+                        if (!$('.main-list-item').length) {
+                            $('.list-container')[0].innerText = 'No notes found.';
+                        }
+                    } else {
+                        // Notes for other editions of the work exist
+                        // Remove the edition's notes list item:
+                        $parent.closest('.notes-list-item').remove();
+                    }
+                }
+            });
+        }
     });
 }
 
@@ -92,11 +161,11 @@ function addNotesReloadListeners($notesTextareas) {
 /**
  * Creates and displays a toast component.
  *
- * @param {JQuery} $parent Mount point for toast component
  * @param {String} message Message displayed in toast component
+ * @param {JQuery} $parent Mount point for toast component
  */
-function showToast($parent, message) {
-    new Toast($parent, message).show();
+function showToast(message, $parent) {
+    new FadingToast(message, $parent).show();
 }
 
 /**
@@ -108,7 +177,7 @@ function showToast($parent, message) {
  * @param {JQuery} $modalLinks  A collection of observations modal links.
  */
 export function initObservationsModal($modalLinks) {
-    addClickListeners($modalLinks);
+    addClickListeners($modalLinks, '800px');
     addObservationReloadListeners($('.observations-list'))
     addDeleteObservationsListeners($('.delete-observations-button'));
 
@@ -128,11 +197,11 @@ export function initObservationsModal($modalLinks) {
  *
  * @param {JQuery} $modalLinks  A collection of modal links.
  */
-function addClickListeners($modalLinks) {
+function addClickListeners($modalLinks, maxWidth) {
     $modalLinks.each(function(_i, modalLinkElement) {
         $(modalLinkElement).on('click', function() {
             const context = $(this).data('context');
-            displayModal(context.id, context.reloadId);
+            displayModal(context.id, context.reloadId, maxWidth);
         })
     })
 }
@@ -272,12 +341,13 @@ function clearForm($form) {
  * @param {String} modalId  A string that uniquely identifies a modal.
  * @param {String} [reloadId]   ID of list receiving a reload event
  */
-function displayModal(modalId, reloadId) {
+function displayModal(modalId, reloadId, maxWidth) {
     $.colorbox({
         inline: true,
         opacity: '0.5',
         href: `#${modalId}-metadata-form`,
-        width: '60%',
+        width: '100%',
+        maxWidth: maxWidth,
         onClosed: function() {
             if (reloadId) {
                 $(`#${reloadId}`).trigger('contentReload');
@@ -333,6 +403,8 @@ function addObservationChangeListeners($parent, context) {
  */
 function submitObservation($input, workOlid, data, sectionType) {
     let toastMessage;
+    const capitalizedType = sectionType[0].toUpperCase() + sectionType.substring(1);
+
     // Make AJAX call
     $.ajax({
         type: 'POST',
@@ -341,12 +413,12 @@ function submitObservation($input, workOlid, data, sectionType) {
         data: JSON.stringify(data)
     })
         .done(function() {
-            toastMessage = `${sectionType} saved!`;
+            toastMessage = `${capitalizedType} saved!`;
         })
         .fail(function() {
-            toastMessage = `${sectionType} save failed...`;
+            toastMessage = `${capitalizedType} save failed...`;
         })
         .always(function() {
-            showToast($input.closest('.metadata-form'), toastMessage);
+            showToast(toastMessage, $input.closest('.metadata-form'));
         });
 }

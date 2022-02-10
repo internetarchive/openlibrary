@@ -1,5 +1,7 @@
 $def with (page, edition=None)
 
+$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
+
 $ component_times = {}
 $ component_times['TotalTime'] = time()
 
@@ -21,7 +23,11 @@ $ component_times['get_sorted_editions'] = time()
 $# Fetch a work's editions
 $# Used for loading the editions table
 $# Book availability of editions injected by bulk get_availability API
-$ editions = work.get_sorted_editions()
+$ ebooks_only = query_param('mode') != 'all'
+$ editions = work.get_sorted_editions(ebooks_only=ebooks_only)
+$if not editions:
+  $ ebooks_only = False
+  $ editions = work.get_sorted_editions()
 $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
 
 $# This collects which books are previewable in any manner
@@ -37,11 +43,15 @@ $elif editions:
   $# Set a dummy default editions
   $ edition = editions[0]
   $# edition selection strategy (e.g. language, by id, first w/ ocaid)
-  $ selected_ocaid = query_param('edition')
-  $for e in editions:
-    $if e.get('ocaid'):
-      $if not selected_ocaid or selected_ocaid == e.get('ocaid'):
-        $ edition = e
+  $if query_param('edition'):
+    $if ':' in query_param('edition'):
+      $ [selected_provider, selected_id] = query_param('edition').split(':')
+    $else:
+      $ [selected_provider, selected_id] = ['ia', query_param('edition')]
+    $ provider = get_book_provider_by_name(selected_provider)
+    $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), edition)
+  $else:
+    $ edition, provider = get_best_edition(editions)
 
 $ ocaid = edition.get('ocaid')
 $ book_title = edition.get('title', '') or (work.title if work else '')
@@ -139,7 +149,7 @@ $ authors_byline = get_authors_byline(page, include_schema=True)
 $:macros.Metatags(title=title_with_site, image=meta_cover_url, description=description)
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
-$if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
+$if is_privileged_user:
   $:render_template("type/edition/admin_bar", work, edition, ocaid)
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
@@ -148,9 +158,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         <link itemprop="exampleOfWork" href="$work.key">
 
     <div class="editionCover">
-      $ component_times['databarWork'] = time()
-      $:macros.databarWork(edition or work, editions_page=True)
-      $ component_times['databarWork'] = time() - component_times['databarWork']
+      $:macros.databarWork(edition or work, editions_page=True, render_times=component_times)
     </div>
 
     <div class="editionAbout">
@@ -219,6 +227,11 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
     </div>
       $:macros.EditionNavBar(work.edition_count, show_observations)
 
+      $if ebooks_only:
+        <p>
+          $ungettext("Showing one ebook only.", "Showing %(count)d ebooks only", len(editions), count=len(editions)) <a href="?mode=all">$_("View all %(count)d editions?", count=work.edition_count)</a>
+        </p>
+
       <p class="preview-languages">
         $ seen = set()
         $if previews:
@@ -230,9 +243,9 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       </p>
 
       <a name="editions-list" class="section-anchor"></a>
-
       $ component_times['EditionsTable'] = time()
-      $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
+      $if editions:
+        $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
       $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
 
       <a name="work-details" class="section-anchor"></a>
@@ -319,7 +332,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
       </div>
 
       <a name="edition-details" class="section-anchor"></a>
-      <div class="tab-section edition-info">  
+      <div class="tab-section edition-info">
         $if not page.is_fake_record():
           $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
             $if edition and page.type.key in ["/type/work"]:
@@ -344,23 +357,13 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
           $if edition.edition_name:
             <div class="work-line">
               $edition.edition_name
-            </div> 
-          $:render_template("type/edition/publisher_line", edition)    
-          <hr>  
+            </div>
+          $:render_template("type/edition/publisher_line", edition)
+          <hr>
           $if edition.first_sentence:
             <div>
             <h3 class="edition-header">$_("First Sentence")</h3>
             <p>"$(edition.first_sentence)"</p>
-            </div>
-
-          $if edition.description:
-            <div class="section">
-              <h3 class="edition-header">$_("Edition Description")</h3>
-              <div class="edition-description">
-                <div class="addReadMore showlesscontent">
-                  $:sanitize(format(edition.description))
-                </div>
-              </div>
             </div>
 
         $if edition:
@@ -437,10 +440,12 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
             <h3 class="list-header collapse">$_("ID Numbers")</h3>
             <dl class="meta">
                 $:display_identifiers("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
+                $ no_index = edition.get_ia_meta_fields().get('noindex', False)
                 $for name, values in edition.get_identifiers().multi_items():
                     $ identifier_label = values[0].label
                     $if not (edition.is_in_private_collection() and identifier_label == 'Internet Archive'):
-                        $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
+                        $if is_privileged_user or not (no_index and identifier_label == 'Internet Archive'):
+                            $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
             $:display_goodreads("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
             $for name, values in edition.get_identifiers().multi_items():
                 $:display_goodreads(values[0].label, values)
@@ -448,11 +453,14 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
           </div>
       </div>
 
-      $# BookNotes feature:
-      $if ctx.user and ctx.user.is_beta_tester():
-        $if show_observations:
-          $ reader_observations = get_observation_metrics(work['key'])
-          $:render_template("observations/stats_component", work, edition, reader_observations, work_title, page.key)
+      $if show_observations:
+        $ component_times['get_observation_metrics'] = time()
+        $ reader_observations = get_observation_metrics(work['key'])
+        $ component_times['get_observation_metrics'] = time() - component_times['get_observation_metrics']
+
+        $ component_times['Review component'] = time()
+        $:render_template("observations/review_component", work, reader_observations, page.key)
+        $ component_times['Review component'] = time() - component_times['Review component']
     </div>
   </div>
 
@@ -460,7 +468,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
     $# pages like /books/ia:foo00bar are fake records created from metadata API.
     $# Adding them to lists doesn't work. Disabling it to avoid any issues.
     $if "lists" in ctx.features and not page.is_fake_record():
-      <h2 class="home-h2"><a href="$page.url()/lists">$_('Lists containing this Book')</a></h2>
+      <h2 class="home-h2" id="lists-section"><a href="$page.url()/lists">$_('Lists containing this Book')</a></h2>
       <div class="user-book-options">
         <div class="Tools tools-override">
           $if work:
