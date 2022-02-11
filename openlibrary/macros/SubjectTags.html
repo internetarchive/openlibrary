@@ -1,12 +1,12 @@
 $def with(work,location,tags=[])
 
-$def render_subjects(label, subjects, track-value, prefix=""):
+$def render_subjects(label, subjects, track_value, prefix=""):
   $if subjects:
     <div class="section link-box">
       <h6>$label</h6>
       <span>
         $for subject in subjects:
-          <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',', '').replace('/', ''))" data-ol-link-track="$track-value">$subject</a>$cond(not loop.last, ",", "")
+          <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',', '').replace('/', ''))" data-ol-link-track="$track_value">$subject</a>$cond(not loop.last, ",", "")
       </span>
     </div>
 
