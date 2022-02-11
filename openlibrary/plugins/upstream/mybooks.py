@@ -5,6 +5,7 @@ from infogami.utils import delegate
 from infogami.utils.view import public, safeint, render
 
 from openlibrary import accounts
+from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.lending import add_availability
@@ -391,6 +392,12 @@ class ReadingLog:
         else:  # must be a list or invalid page!
             # works = web.ctx.site.get_many([ ... ])
             raise
+
+
+@public
+def get_read_status(work_key, username):
+    work_id = extract_numeric_id_from_olid(work_key.split('/')[-1])
+    return Bookshelves.get_users_read_status_of_work(username, work_id)
 
 
 class PatronBooknotes:

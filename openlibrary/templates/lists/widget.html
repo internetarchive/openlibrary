@@ -1,4 +1,4 @@
-$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, user_lists_only=False, readinglog_only=False, read_status=None, rating=None, _user_lists=None)
+$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, user_lists_only=False, readinglog_only=False, read_status=None, _user_lists=None, uid=None)
 
 $ edition = page if page.key.startswith("/books/") else None
 $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
@@ -6,8 +6,8 @@ $ work_key = work and work.key
 $ edition_key = edition and edition.key
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ users_work_read_status = read_status or work.get_users_read_status(username) if work and username else None
-$ users_work_rating = rating or work.get_users_rating(username) if work and username else None
-$ uid = str(random.randint(1000, 9999))
+$if not uid:
+    $ uid = str(random.randint(1000, 9999))
 $ container_id = 'widget-lists-wrapper-%s' % str(uid)
 
 <div id="$container_id" class="lists-widget-container">
@@ -264,28 +264,7 @@ $if include_header:
   </div>
 
 $if include_widget:
-  $if ctx.user or not work_key:
-    <div class="widget-add $:(not work_key and 'old-style-lists')">
-      $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url(), readinglog_only, False,user_key)
-    </div>
-  $else:
-    <div class="dropit">
-        <div class="dropper on">
-          $if work:
-            <div class="log-work">
-              <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
-                <input type="hidden" name="action" value="add"/>
-                  $if edition_key:
-                    <input type="hidden" name="edition_id" value="$(edition_key)"/>
-
-                  <button class="unactivated" type="submit">$_('Want to Read')</button>
-                </form>
-                <a href="/account/login?redirect=$(page_url)" class="dropclick-prevent dropclick-unactivated">
-                  <div class="arrow arrow-unactivated"></div>
-                </a>
-            </div>
-        </div>
-    </div>
+  $:macros.ReadingLogDropper(user_lists, work, edition, users_work_read_status=users_work_read_status, page_url=page_url)
   $if work:
     $if include_rating:
       $:macros.StarRatings(work, edition)

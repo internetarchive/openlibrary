@@ -168,7 +168,10 @@ $ )
                 $# if we're explicitly showing *everything*...
                 $# or if we're showing only things with ocaids which are available...
                 $if 'has_fulltext' not in param or (ocaid and availability and availability not in ['error', 'private']):
-                    $:macros.SearchResultsWork(work)
+                    $ username = ctx.user and ctx.user.key.split('/')[-1]
+                    $ read_status = get_read_status(work.key, username)
+                    $ dropper = macros.ReadingLogDropper([], work=work, reading_log_only=True, page_url="/search", users_work_read_status=read_status)
+                    $:macros.SearchResultsWork(work, reading_log=dropper)
           </ul>
           $:macros.Pager(page, num_found, rows)
         </div>

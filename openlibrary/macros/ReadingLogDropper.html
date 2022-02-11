@@ -1,0 +1,178 @@
+$def with (lists, work=None, edition=None, users_work_read_status=None, reading_log_only=False, use_work=False, page_url=None)
+
+$ user_key = ctx.user and ctx.user.key
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+$ work_key = work and work.key
+$ edition_key = edition and edition.key
+
+$if ctx.user or not work_key:
+  <div class="widget-add $:(not work_key and 'old-style-lists')">
+    <div class="dropit Tools">
+      $if edition_key and not work_key:
+        <div class="dropper on edition-page-lists-dropdown">
+      $else:
+        <div class="dropper on">
+      $if work_key:
+        <div class="log-work">
+          <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
+            $if users_work_read_status == 3:
+                $ message = _("Already Read")
+            $elif users_work_read_status == 2:
+                $ message = _("Currently Reading")
+            $else:
+                $ message = _("Want to Read")
+            $if users_work_read_status:
+              <input type="hidden" name="action" value="remove"/>
+              <input type="hidden" name="redir" value="true"/>
+              <input type="hidden" name="bookshelf_id" value="$(users_work_read_status)"/>
+              <button class="book-progress-btn want-to-read activated"
+                      type="submit">
+                <span class="activated-check">✓</span> $(message)
+              </button>
+            $else:
+              <input type="hidden" name="action" value="add"/>
+              <input type="hidden" name="redir" value="true"/>
+              <input type="hidden" name="bookshelf_id" value="1"/>
+              <button class="book-progress-btn want-to-read unactivated"
+                      type="submit">
+                $(message)
+              </button>
+
+            $if edition_key:
+              <input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>
+          </form>
+
+          $if users_work_read_status:
+            <a href="javascript:;" class="dropclick dropclick-activated">
+              <div class="arrow arrow-activated"></div>
+            </a>
+          $else:
+            <a href="javascript:;" class="dropclick dropclick-unactivated">
+              <div class="arrow arrow-unactivated"></div>
+            </a>
+        </div>
+        <div class="dropdown">
+          <div class="read-statuses">
+            $if users_work_read_status == 2 or users_work_read_status == 3:
+              <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
+                <input type="hidden" name="action" value="add"/>
+                <input type="hidden" name="redir" value="true"/>
+                <input type="hidden" name="bookshelf_id" value="1"/>
+                $if edition_key:
+                  <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                <button class="nostyle-btn" type="submit">$_('Want to Read')</button>
+              </form>
+
+            $if users_work_read_status != 2:
+              <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
+                <input type="hidden" name="action" value="add"/>
+                <input type="hidden" name="redir" value="true"/>
+                <input type="hidden" name="bookshelf_id" value="2"/>
+                $if edition_key:
+                  <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                <button class="nostyle-btn" type="submit">$('Currently Reading')</button>
+              </form>
+
+            $if users_work_read_status != 3:
+              <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
+                <input type="hidden" name="action" value="add"/>
+                <input type="hidden" name="redir" value="true"/>
+                <input type="hidden" name="bookshelf_id" value="3"/>
+                $if edition_key:
+                  <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                <button class="nostyle-btn" type="submit">$_('Already Read')</button>
+              </form>
+          </div>
+
+          $if not reading_log_only:
+            <div class="reading-lists">
+              <p class="reading-list-title">$_('My Reading Lists:')</p>
+              <div class="my-lists">
+                $for list in lists:
+                    $if list['active']:
+                      <p class="list">
+                          <a href="$list.key" class="add-to-list" data-list-key="$list.key">$list.name</a>
+                      </p>
+              </div>
+              $if edition_key:
+                  <p class="create checkboxes">
+                    <label>
+                       <input type="checkbox" class="work-checkbox"
+                          $if use_work:
+                            checked
+                       /> <span>$_('Use this Work')</span>
+                    </label>
+                  </p>
+              <p class="create"><a href="javascript:;" class="create-new-list">$_('Create a new list')</a>
+                <a aria-controls="addList"
+                  class="hidden listClick dialog--open"></a>
+              </p>
+            </div>
+        </div>
+      $else:
+          $if username:
+            <div class="reading-lists">
+              <a href="javascript:;" class="dropclick">
+                <h3>$_('Add to List')</h3>
+                <div class="arrow arrow-activated"></div>
+              </a>
+              <div class="dropdown">
+                <div class="my-lists">
+                  $for list in lists:
+                    $if list['active']:
+                      <p class="list">
+                          <a href="$list.key" class="add-to-list" data-list-key="$list.key">$list.name</a>
+                      </p>
+                </div>
+                <p class="create"><a href="javascript:;" class="create-new-list">$_('Create a new list')</a>
+                </p>
+              </div>
+            </div>
+
+          $else:
+            <a href="/account/login?redirect=$page_url" class="dropclick plain">
+              <h3>$('Add to List')</h3>
+              <div class="arrow"></div>
+            </a>
+      </div>
+    </div>
+    <ul id="already-lists" class="listLists">
+      $for list in lists:
+        $if list['active']:
+          $ remove = (list.owner.key == user_key)
+          <li>
+            <span class="image">
+              <a href="$list.key"><img src="$list.cover_url" alt="$_('Cover of: %(title)s', title=list.name)" title="$_('Cover of: %(title)s', title=list.name)"/></a>
+            </span>
+            <span class="data">
+              <span class="label">
+                <a href="$list.key" title="$_('See this list')">$list.name</a>
+                  $if remove:
+                    <a href="$list.key" class="remove-from-list red smaller arial plain" data-list-key="$list.key" title="$_('Remove from your list?')">[X]</a>
+              </span>
+              $if remove:
+                <span class="owner">from <a href="$list.owner.key">$_('You')</a></span>
+              $else:
+                <span class="owner">from <a href="$list.owner.key">$list.owner.displayname</a></span>
+            </span>
+          </li>
+    </ul>
+  </div>
+$else:
+  <div class="dropit">
+      <div class="dropper on">
+        $if work:
+          <div class="log-work">
+            <form method="POST" action="$(work_key)/bookshelves.json">
+              <input type="hidden" name="action" value="add"/>
+                $if edition_key:
+                  <input type="hidden" name="edition_id" value="$(edition_key)"/>
+
+                <button class="unactivated" type="submit">$_('Want to Read')</button>
+              </form>
+              <a href="/account/login?redirect=$(page_url)" class="dropclick-prevent dropclick-unactivated">
+                <div class="arrow arrow-unactivated"></div>
+              </a>
+          </div>
+      </div>
+  </div>
