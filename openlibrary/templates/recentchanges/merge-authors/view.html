@@ -18,7 +18,11 @@ $ master = change.get_master()
 
         <div id="recordMaster">
             <span id="recordMasterTitle" class="larger">
-                <strong><a href="$master.key">$master.name</a></strong>
+                $if master.key:
+                    <strong><a href="$master.key">$master.name</a></strong>
+                $else:
+                    <strong>$master.name</strong>
+
             </span>
             <span id="recordMasterDate" class="smaller">
                 $if master.birth_date or master.death_date:
