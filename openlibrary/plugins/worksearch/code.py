@@ -20,7 +20,7 @@ from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core.lending import add_availability, get_availability_of_ocaids
 from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.plugins.inside.code import fulltext_search
-from openlibrary.plugins.openlibrary.lists import get_list_editions
+from openlibrary.plugins.openlibrary.lists import get_list_editions, get_list_works
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import escape_bracket
@@ -1192,14 +1192,16 @@ def rewrite_list_editions_query(q, page, offset, limit):
     return the query, unchanged, exactly as it entered the
     function. If it does contain a lists key, then use the pagination
     information to fetch the right block of keys from the
-    lists_editions API and then feed these editions resulting work
+    lists_editions and lists_works API and then feed these editions resulting work
     keys into solr with the form key:(OL123W, OL234W). This way, we
     can use the solr API to fetch list works and render them in
     carousels in the right format.
     """
     if '/lists/' in q:
         editions = get_list_editions(q, offset=offset, limit=limit)
-        work_ids = [ed.get('works')[0]['key'] for ed in editions]
+        works = get_list_works(q, offset=offset, limit=limit)
+        finalList = editions + works
+        work_ids = [lt.get('works')[0]['key'] for lt in finalList]
         q = 'key:(' + ' OR '.join(work_ids) + ')'
         # We've applied the offset to fetching get_list_editions to
         # produce the right set of discrete work IDs. We don't want
