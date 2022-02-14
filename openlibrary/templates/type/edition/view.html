@@ -25,10 +25,10 @@ $# Used for loading the editions table
 $# Book availability of editions injected by bulk get_availability API
 $ ebooks_only = query_param('mode') != 'all'
 $ editions = work.get_sorted_editions(ebooks_only=ebooks_only)
-$ availabilities = {e.availability.get('identifier'): e.availability for e in editions}
 $if not editions:
   $ ebooks_only = False
   $ editions = work.get_sorted_editions()
+$ availabilities = {e.availability.get('identifier'): e.availability for e in editions}
 $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
 
 $# This collects which books are previewable in any manner
@@ -38,7 +38,6 @@ $# Choose an edition to render
 $if page.key.startswith('/books'):
   $# We are on an editions page: an edition has been explicitly selected
   $ edition = page
-  $ edition['availability'] = edition.get('ocaid') and availabilities.get(edition['ocaid']) or {}
 $elif editions:
   $# We're presumably on a work url
   $# Set a dummy default editions
@@ -53,8 +52,9 @@ $elif editions:
     $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), edition)
   $else:
     $ edition, provider = get_best_edition(editions)
-    $ edition['availability'] = edition.get('ocaid') and availabilities.get(edition['ocaid']) or {}
 
+$if not edition.get('availability'):
+  $ edition['availability'] = edition.get('ocaid') and availabilities.get(edition['ocaid']) or {}
 $ ocaid = edition.get('ocaid')
 $ book_title = edition.get('title', '') or (work.title if work else '')
 $ work_title = work.title if work else edition.get('title', '')
