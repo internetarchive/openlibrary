@@ -1,9 +1,11 @@
-$def with (lists, work=None, edition=None, users_work_read_status=None, reading_log_only=False, use_work=False, page_url=None)
+$def with (lists, work=None, edition=None, users_work_read_status=None, reading_log_only=False, use_work=False, page_url=None, uid='')
 
 $ user_key = ctx.user and ctx.user.key
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ work_key = work and work.key
 $ edition_key = edition and edition.key
+
+$ unique_postfix = '-%s' % str(uid) if uid else ''
 
 $if ctx.user or not work_key:
   <div class="widget-add $:(not work_key and 'old-style-lists')">
@@ -21,35 +23,28 @@ $if ctx.user or not work_key:
                 $ message = _("Currently Reading")
             $else:
                 $ message = _("Want to Read")
-            $if users_work_read_status:
-              <input type="hidden" name="action" value="remove"/>
-              <input type="hidden" name="redir" value="true"/>
-              <input type="hidden" name="bookshelf_id" value="$(users_work_read_status)"/>
-              <button class="book-progress-btn want-to-read activated"
-                      type="submit">
-                <span class="activated-check">✓</span> $(message)
-              </button>
-            $else:
-              <input type="hidden" name="action" value="add"/>
-              <input type="hidden" name="redir" value="true"/>
-              <input type="hidden" name="bookshelf_id" value="1"/>
-              <button class="book-progress-btn want-to-read unactivated"
-                      type="submit">
-                $(message)
-              </button>
+
+            $ action_value = 'remove' if users_work_read_status else 'add'
+            $ bookshelf_id_value = users_work_read_status or '1'
+            $ activated_status = 'activated' if users_work_read_status else 'unactivated'
+            $ checkmark_visibility = '' if users_work_read_status else ' hidden'
+            $ checkmark = '<span class="activated-check">✓</span> ' if users_work_read_status else ''
+
+            <input id="" type="hidden" name="action" value="$(action_value)"/>
+            <input type="hidden" name="redir" value="true"/>
+            <input id="" type="hidden" name="bookshelf_id" value="$(bookshelf_id_value)"/>
+
+            <button class="book-progress-btn want-to-read $(activated_status)" type="submit">
+              $:(checkmark)$(message)
+            </button>
 
             $if edition_key:
               <input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>
           </form>
 
-          $if users_work_read_status:
-            <a href="javascript:;" class="dropclick dropclick-activated">
-              <div class="arrow arrow-activated"></div>
-            </a>
-          $else:
-            <a href="javascript:;" class="dropclick dropclick-unactivated">
-              <div class="arrow arrow-unactivated"></div>
-            </a>
+          <a href="javascript:;" class="dropclick dropclick-$(activated_status)">
+            <div class="arrow arrow-$(activated_status)"></div>
+          </a>
         </div>
         <div class="dropdown">
           <div class="read-statuses">
@@ -128,7 +123,6 @@ $if ctx.user or not work_key:
                 </p>
               </div>
             </div>
-
           $else:
             <a href="/account/login?redirect=$page_url" class="dropclick plain">
               <h3>$('Add to List')</h3>
@@ -136,27 +130,6 @@ $if ctx.user or not work_key:
             </a>
       </div>
     </div>
-    <ul id="already-lists" class="listLists">
-      $for list in lists:
-        $if list['active']:
-          $ remove = (list.owner.key == user_key)
-          <li>
-            <span class="image">
-              <a href="$list.key"><img src="$list.cover_url" alt="$_('Cover of: %(title)s', title=list.name)" title="$_('Cover of: %(title)s', title=list.name)"/></a>
-            </span>
-            <span class="data">
-              <span class="label">
-                <a href="$list.key" title="$_('See this list')">$list.name</a>
-                  $if remove:
-                    <a href="$list.key" class="remove-from-list red smaller arial plain" data-list-key="$list.key" title="$_('Remove from your list?')">[X]</a>
-              </span>
-              $if remove:
-                <span class="owner">from <a href="$list.owner.key">$_('You')</a></span>
-              $else:
-                <span class="owner">from <a href="$list.owner.key">$list.owner.displayname</a></span>
-            </span>
-          </li>
-    </ul>
   </div>
 $else:
   <div class="dropit">

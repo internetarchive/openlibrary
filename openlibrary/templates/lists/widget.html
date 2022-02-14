@@ -231,9 +231,6 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                 </a>
       </div>
     </div>
-    <ul id="already-lists" class="listLists">
-      $:render_already_lists(lists, user_key)
-    </ul>
 
 $jsdef render_widget_display(lists, limit, user_key):
     $for i, list in enumerate(lists):
@@ -265,6 +262,9 @@ $if include_header:
 
 $if include_widget:
   $:macros.ReadingLogDropper(user_lists, work, edition, users_work_read_status=users_work_read_status, page_url=page_url)
+  <ul id="already-lists" class="listLists">
+    $:render_already_lists(user_lists, user_key)
+  </ul>
   $if work:
     $if include_rating:
       $:macros.StarRatings(work, edition)
