@@ -119,6 +119,20 @@ class ListMixin:
         # Might be an issue of the total number of editions is too big, but
         # that isn't the case for most lists.
 
+    def get_works(self, limit=50, offset=0, _raw=False):
+        work_keys = {
+            seed.key for seed in self.seeds if seed and seed.type.key == '/type/work'
+        }
+
+        works = web.ctx.site.get_many(list(work_keys))
+
+        return {
+            "count": len(works),
+            "offset": offset,
+            "limit": limit,
+            "works": works,
+        }
+
     def get_all_editions(self):
         """Returns all the editions of this list in arbitrary order.
 
