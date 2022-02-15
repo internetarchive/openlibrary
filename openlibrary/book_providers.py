@@ -144,12 +144,21 @@ class StandardEbooksProvider(AbstractBookProvider):
         return False
 
 
+class OpenStaxProvider(AbstractBookProvider):
+    short_name = 'openstax'
+    identifier_key = 'openstax'
+
+    def is_own_ocaid(self, ocaid: str) -> bool:
+        return False
+
+
 PROVIDER_ORDER: list[AbstractBookProvider] = [
     # These providers act essentially as their own publishers, so link to the first when
     # we're on an edition page
     LibriVoxProvider(),
     ProjectGutenbergProvider(),
     StandardEbooksProvider(),
+    OpenStaxProvider(),
     # Then link to IA
     InternetArchiveProvider(),
 ]
