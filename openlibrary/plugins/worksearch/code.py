@@ -1200,9 +1200,10 @@ def rewrite_list_editions_query(q, page, offset, limit):
     if '/lists/' in q:
         editions = get_list_editions(q, offset=offset, limit=limit)
         works = get_list_works(q, offset=offset, limit=limit)
-        finalList = editions + works
-        work_ids = [lt.get('works')[0]['key'] for lt in finalList]
-        q = 'key:(' + ' OR '.join(work_ids) + ')'
+        editions_ids = [lt.get('works')[0]['key'] for lt in editions]
+        works_ids = [lt.get('key') for lt in works]
+        final_ids = editions_ids + works_ids
+        q = 'key:(' + ' OR '.join(final_ids) + ')'
         # We've applied the offset to fetching get_list_editions to
         # produce the right set of discrete work IDs. We don't want
         # it applied to paginate our resulting solr query.
