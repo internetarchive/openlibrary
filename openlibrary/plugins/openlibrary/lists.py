@@ -344,22 +344,6 @@ def get_list_editions(key, offset=0, limit=50, api=False):
             )
         return editions
 
-def get_list_works(key, offset=0, limit=50, api=False):
-    lst = web.ctx.site.get(key)
-    if lst:
-        offset = offset or 0
-        all_works = lst.get_works(limit=limit, offset=offset, _raw=True)
-        works = all_works['works'][offset : offset + limit]
-        if api:
-            entries = [e.dict() for e in works if e.pop("seeds") or e]
-            return make_collection(
-                size=all_works['count'],
-                entries=entries,
-                limit=limit,
-                offset=offset,
-                key=key,
-            )
-        return works
 
 class list_editions_json(delegate.page):
     path = r"(/people/[^/]+/lists/OL\d+L)/editions"

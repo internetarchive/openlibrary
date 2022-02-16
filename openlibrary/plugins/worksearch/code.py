@@ -17,10 +17,10 @@ from six.moves import urllib
 from infogami import config
 from infogami.utils import delegate, stats
 from infogami.utils.view import public, render, render_template, safeint
+from openlibrary.core import cache
 from openlibrary.core.lending import add_availability, get_availability_of_ocaids
 from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.plugins.inside.code import fulltext_search
-from openlibrary.plugins.openlibrary.lists import get_list_editions, get_list_works
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import escape_bracket
@@ -1192,7 +1192,7 @@ def random_author_search(limit=10):
     return search_results['response']
 
 
-def rewrite_list_editions_query(q, page, offset, limit):
+def rewrite_list_query(q, page, offset, limit):
     """Takes a solr query. If it doesn't contain a /lists/ key, then
     return the query, unchanged, exactly as it entered the
     function. If it does contain a lists key, then use the pagination
@@ -1202,13 +1202,22 @@ def rewrite_list_editions_query(q, page, offset, limit):
     can use the solr API to fetch list works and render them in
     carousels in the right format.
     """
+    def cached_get_list_book_keys(key, offset, limit):
+        # make cacheable
+        if 'env' not in web.ctx:
+            delegate.fakeload()
+        lst = web.ctx.site.get(key)
+        return lst.get_book_keys(offset=offset, limit=limit)
+
     if '/lists/' in q:
-        editions = get_list_editions(q, offset=offset, limit=limit)
-        works = get_list_works(q, offset=offset, limit=limit)
-        editions_ids = [lt.get('works')[0]['key'] for lt in editions]
-        works_ids = [lt.get('key') for lt in works]
-        final_ids = editions_ids + works_ids
-        q = 'key:(' + ' OR '.join(final_ids) + ')'
+        # we're making an assumption that q is just a list key
+        book_keys = cache.memcache_memoize(
+            cached_get_list_book_keys,
+            "search.list_books_query",
+            timeout=5*60)(q, offset, limit)
+
+        q = f"key:({' OR '.join(book_keys)})"
+
         # We've applied the offset to fetching get_list_editions to
         # produce the right set of discrete work IDs. We don't want
         # it applied to paginate our resulting solr query.
@@ -1240,7 +1249,7 @@ def work_search(
         sort = process_sort(sort)
 
     # deal with special /lists/ key queries
-    query['q'], page, offset, limit = rewrite_list_editions_query(
+    query['q'], page, offset, limit = rewrite_list_query(
         query['q'], page, offset, limit
     )
     try:
@@ -1306,7 +1315,7 @@ class search_json(delegate.page):
 
         # If the query is a /list/ key, create custom list_editions_query
         q = query.get('q', '')
-        query['q'], page, offset, limit = rewrite_list_editions_query(
+        query['q'], page, offset, limit = rewrite_list_query(
             q, page, offset, limit
         )
         response = work_search(

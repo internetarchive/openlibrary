@@ -97,6 +97,14 @@ class ListMixin:
             "last_update": self.last_update and self.last_update.isoformat() or None,
         }
 
+    def get_book_keys(self, offset=0, limit=50):
+        offset = offset or 0
+        return list({
+            (seed.works[0].key if seed.works else seed.key)
+            for seed in self.seeds
+            if seed.key.startswith(('/books', '/works'))
+        })[offset : offset + limit]
+
     def get_editions(self, limit=50, offset=0, _raw=False):
         """Returns the editions objects belonged to this list ordered by last_modified.
 
@@ -118,20 +126,6 @@ class ListMixin:
         # We should be able to get the editions from solr and return that.
         # Might be an issue of the total number of editions is too big, but
         # that isn't the case for most lists.
-
-    def get_works(self, limit=50, offset=0, _raw=False):
-        work_keys = {
-            seed.key for seed in self.seeds if seed and seed.type.key == '/type/work'
-        }
-
-        works = web.ctx.site.get_many(list(work_keys))
-
-        return {
-            "count": len(works),
-            "offset": offset,
-            "limit": limit,
-            "works": works,
-        }
 
     def get_all_editions(self):
         """Returns all the editions of this list in arbitrary order.
