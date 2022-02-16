@@ -450,23 +450,64 @@ class export(delegate.page):
         format = web.input(format="html").format
 
         if format == "html":
-            html = render_template("lists/export_as_html", lst, self.get_editions(lst))
+            data = self.get_exports(lst)
+            html = render_template("lists/export_as_html", lst, data["editions"], data["works"], data["authors"])
             return delegate.RawText(html)
         elif format == "bibtex":
+            data = self.get_exports(lst)
             html = render_template(
-                "lists/export_as_bibtex", lst, self.get_editions(lst)
+                "lists/export_as_bibtex", lst, data["editions"], data["works"], data["authors"]
             )
             return delegate.RawText(html)
         elif format == "json":
-            data = {"editions": self.get_editions(lst, raw=True)}
+            data = self.get_exports(lst, raw=True)
             web.header("Content-Type", "application/json")
             return delegate.RawText(json.dumps(data))
         elif format == "yaml":
-            data = {"editions": self.get_editions(lst, raw=True)}
+            data = self.get_exports(lst, raw=True)
             web.header("Content-Type", "application/yaml")
             return delegate.RawText(formats.dump_yaml(data))
         else:
             raise web.notfound()
+
+    def get_exports(self, lst: list, raw: bool = False) -> dict[str, list]:
+        export_data = lst.get_export_list()
+        if "editions" in export_data:
+            export_data["editions"] = sorted(
+                export_data["editions"],
+                key=lambda doc: doc['last_modified']['value'],
+                reverse=True,
+            )
+        if "works" in export_data:
+            export_data["works"] = sorted(
+                export_data["works"],
+                key=lambda doc: doc['last_modified']['value'],
+                reverse=True,
+            )
+        if "authors" in export_data:
+            export_data["authors"] = sorted(
+                export_data["authors"],
+                key=lambda doc: doc['last_modified']['value'],
+                reverse=True,
+            )
+
+        if not raw:
+            if "editions" in export_data:
+                export_data["editions"] = [self.make_doc(e) for e in export_data["editions"]]
+                lst.preload_authors(export_data["editions"])
+            else:
+                export_data["editions"] = []
+            if "works" in export_data:
+                export_data["works"] = [self.make_doc(e) for e in export_data["works"]]
+                lst.preload_authors(export_data["works"])
+            else:
+                export_data["works"] = []
+            if "authors" in export_data:
+                export_data["authors"] = [self.make_doc(e) for e in export_data["authors"]]
+                lst.preload_authors(export_data["authors"])
+            else:
+                export_data["authors"] = []
+        return export_data
 
     def get_editions(self, lst, raw=False):
         editions = sorted(

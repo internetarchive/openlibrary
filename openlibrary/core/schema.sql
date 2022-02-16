@@ -33,6 +33,7 @@ CREATE TABLE bookshelves_books (
     work_id integer NOT NULL,
     bookshelf_id INTEGER references bookshelves(id) ON DELETE CASCADE ON UPDATE CASCADE,
     edition_id integer default null,
+    private BOOLEAN,
     updated timestamp without time zone default (current_timestamp at time zone 'utc'),
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
     primary key (username, work_id, bookshelf_id)

@@ -89,7 +89,7 @@ def get_schema():
         status text default 'pending',
         error text,
         ia_id text,
-        data text UNIQUE,
+        data text,
         ol_key text,
         comments text,
         UNIQUE (batch_id, ia_id)
@@ -98,7 +98,6 @@ def get_schema():
     CREATE INDEX import_item_import_time ON import_item(import_time);
     CREATE INDEX import_item_status ON import_item(status);
     CREATE INDEX import_item_ia_id ON import_item(ia_id);
-    CREATE INDEX import_item_data ON import_item(data);
     """
 
     # monkey patch schema.sql to include the custom functions

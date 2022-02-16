@@ -29,7 +29,14 @@ def map_data(entry) -> dict[str, Any]:
     std_ebooks_id = entry.id.replace('https://standardebooks.org/ebooks/', '')
     image_uris = filter(lambda link: link.rel == IMAGE_REL, entry.links)
 
-    import_record =  {
+    # Standard ebooks only has English works at this time ; because we don't have an
+    # easy way to translate the language codes they store in the feed to the MARC
+    # language codes, we're just gonna handle English for now, and have it error
+    # if Standard Ebooks ever adds non-English works.
+    marc_lang_code = 'eng' if entry.language.startswith('en-') else None
+    if not marc_lang_code:
+        raise ValueError(f'Feed entry language {entry.language} is not supported.')
+    import_record = {
         "title": entry.title,
         "source_records": [f"standard_ebooks:{std_ebooks_id}"],
         "publishers": [entry.publisher],
@@ -39,7 +46,8 @@ def map_data(entry) -> dict[str, Any]:
         "subjects": [tag.term for tag in entry.tags],
         "identifiers": {
             "standard_ebooks": [std_ebooks_id]
-        }
+        },
+        "languages": [marc_lang_code]
     }
 
     if image_uris:
@@ -58,10 +66,10 @@ def create_batch(records: list[dict[str, str]]) -> None:
     now = time.gmtime(time.time())
     batch_name = f'standardebooks-{now.tm_year}{now.tm_mon}'
     batch = Batch.find(batch_name) or Batch.new(batch_name)
-    batch.add_items([{
-        'ia_id': r['source_records'][0],
-        'data': json.dumps(r)} for r in records]
-    )
+    batch.add_items([
+        {'ia_id': r['source_records'][0], 'data': r}
+        for r in records
+    ])
 
 
 def get_last_updated_time() -> Optional[str]:

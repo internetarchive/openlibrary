@@ -287,7 +287,7 @@ def get_sponsored_books():
             'collection',
             'isbn',
         ],
-        params={'page': 1, 'rows': 1000, 'scope': 'all'},
+        params={'page': 1, 'rows': 1000},
         config={'general': {'secure': False}},
     )
     return [

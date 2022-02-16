@@ -154,6 +154,7 @@ DEFAULT_SEARCH_FIELDS = {
     'id_project_gutenberg',
     'id_librivox',
     'id_standard_ebooks',
+    'id_openstax',
 }
 OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
@@ -594,6 +595,7 @@ def get_doc(doc):  # called from work_search template
     e_id_project_gutenberg = doc.find("arr[@name='id_project_gutenberg']") or []
     e_id_librivox = doc.find("arr[@name='id_librivox']") or []
     e_id_standard_ebooks = doc.find("arr[@name='id_standard_ebooks']") or []
+    e_id_openstax = doc.find("arr[@name='id_openstax']") or []
 
     first_pub = None
     e_first_pub = doc.find("int[@name='first_publish_year']")
@@ -662,6 +664,7 @@ def get_doc(doc):  # called from work_search template
         id_project_gutenberg=[e.text for e in e_id_project_gutenberg],
         id_librivox=[e.text for e in e_id_librivox],
         id_standard_ebooks=[e.text for e in e_id_standard_ebooks],
+        id_openstax=[e.text for e in e_id_openstax],
     )
 
     doc.url = doc.key + '/' + urlsafe(doc.title)
@@ -694,6 +697,7 @@ def work_object(w):  # called by works_by_author
         id_project_gutenberg=w.get('id_project_gutenberg'),
         id_librivox=w.get('id_librivox'),
         id_standard_ebooks=w.get('id_standard_ebooks'),
+        id_openstax=w.get('id_openstax'),
     )
 
     for f in 'has_fulltext', 'subtitle':
@@ -847,6 +851,7 @@ def works_by_author(
                     'id_project_gutenberg',
                     'id_librivox',
                     'id_standard_ebooks',
+                    'id_openstax',
                     'cover_i',
                 ]
             ),

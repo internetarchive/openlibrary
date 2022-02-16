@@ -601,6 +601,7 @@ class Work(models.Work):
 
     @cached_property
     def _solr_data(self):
+        from openlibrary.book_providers import get_solr_keys
         fields = [
             "cover_edition_key",
             "cover_id",
@@ -609,9 +610,7 @@ class Work(models.Work):
             "has_fulltext",
             "lending_edition_s",
             "public_scan_b",
-            "ia",
-        ]
-
+        ] + get_solr_keys()
         solr = get_solr()
         stats.begin("solr", get=self.key, fields=fields)
         try:
@@ -719,24 +718,42 @@ class Work(models.Work):
             if 'openlibrary_edition' in availability[work_id]:
                 return '/books/%s' % availability[work_id]['openlibrary_edition']
 
-    def get_sorted_editions(self):
+    def get_sorted_editions(self, ebooks_only=False, limit=10000):
         """
         Get this work's editions sorted by publication year
+        :param bool ebooks_only:
         :rtype: list[Edition]
         """
-        use_solr_data = (
-            self._solr_data
-            and self._solr_data.get('edition_key')
-            and len(self._solr_data.get('edition_key')) == self.edition_count
-        )
 
-        if use_solr_data:
-            edition_keys = [
-                "/books/" + olid for olid in self._solr_data.get('edition_key')
-            ]
+        db_query = {"type": "/type/edition", "works": self.key, "limit": limit}
+
+        if ebooks_only:
+            edition_keys = []
+            if self._solr_data:
+                from openlibrary.book_providers import get_book_providers
+                # Always use solr data whether it's up to date or not
+                # to determine which providers this book has
+                # We only make additional queries when a
+                # trusted book provider identifier is present
+                for provider in get_book_providers(self._solr_data):
+                    query = {**db_query, **provider.editions_query}
+                    edition_keys += web.ctx.site.things(query)
+            else:
+                db_query["ocaid~"] = "*"
+
         else:
-            db_query = {"type": "/type/edition", "works": self.key, "limit": 10000}
-            edition_keys = web.ctx.site.things(db_query)
+            solr_is_up_to_date = (
+                self._solr_data
+                and self._solr_data.get('edition_key')
+                and len(self._solr_data.get('edition_key')) == self.edition_count
+            )
+            if solr_is_up_to_date:
+                edition_keys = [
+                    "/books/" + olid for olid in self._solr_data.get('edition_key')
+                ]
+            else:
+                # given librarians are probably doing this, show all editions
+                edition_keys = web.ctx.site.things(db_query)
 
         editions = web.ctx.site.get_many(edition_keys)
         editions.sort(
