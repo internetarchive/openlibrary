@@ -35,12 +35,11 @@ $# This collects which books are previewable in any manner
 $ previews = [e for e in editions if e.get('ocaid')]
 
 $# Choose an edition to render
-$if page.key.startswith('/books'):
+$if page.key.startswith('/books') or not editions:
   $# We are on an editions page: an edition has been explicitly selected
   $ edition = page
-$elif editions:
+$else:
   $# We're presumably on a work url
-  $# Set a dummy default editions
   $ edition = editions[0]
   $# edition selection strategy (e.g. language, by id, first w/ ocaid)
   $if query_param('edition'):
@@ -62,7 +61,6 @@ $ book_subtitle = edition.get('subtitle', '')
 $ title_suffix = cond(edition.get('publish_date'), u"({0} edition)".format(edition.get('publish_date')), "(edition)")
 $ title = book_title + " " + title_suffix
 $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
-$ book_description = (edition and edition.description) or (work and work.description)
 $ edition_count = work.edition_count if work and work.edition_count else 1
 $ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
 $ _x = ctx.setdefault('cssfile', 'book')
