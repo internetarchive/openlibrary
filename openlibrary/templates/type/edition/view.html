@@ -244,8 +244,7 @@ $if is_privileged_user:
 
       <a name="editions-list" class="section-anchor"></a>
       $ component_times['EditionsTable'] = time()
-      $if editions:
-        $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
+      $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
       $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
 
       <a name="work-details" class="section-anchor"></a>
