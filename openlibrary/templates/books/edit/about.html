@@ -71,8 +71,7 @@ $def with (work)
                 $subjects.append('"' + s + '"' if ',' in s else s)
             $ subject_str = ', '.join(subjects)
             $ rows = len(subject_str) // 95
-            <textarea name="work--subject_times" id="about-time" rows="$rows" wrap="soft"
-                      tabindex="0">$', '.join(subjects)</textarea>
+            <textarea name="work--subject_times" id="about-time" rows="$rows" wrap="soft" tabindex="0">$', '.join(subjects)</textarea>
         </div>
     </div>
 
