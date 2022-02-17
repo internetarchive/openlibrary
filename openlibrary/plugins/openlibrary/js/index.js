@@ -288,6 +288,18 @@ jQuery(function () {
             .then((module) => module.initSearchFacets());
     }
 
+    const droppers = document.getElementsByClassName('widget-add');
+
+    if (droppers.length) {
+        import(/* webpackChunkName: "lists" */ './lists')
+            .then((module) => {
+                module.initDroppers(droppers);
+                const actionableListItems = document.querySelectorAll('.actionable-item')
+                module.registerListItems(actionableListItems);
+            }
+            );
+    }
+
     if ($('#cboxPrevious').length) {
         $('#cboxPrevious').attr({'aria-label': 'Previous button', 'aria-hidden': 'true'});
     }

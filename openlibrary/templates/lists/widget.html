@@ -80,14 +80,18 @@ $var page_lists = page_lists
 
 $jsdef show_list(list, user_key):
     $ remove = (list.owner.key == user_key)
-    <li>
+    $ actionable = 'class=actionable-item' if remove else ''
+    <li $actionable>
         <span class="image">
           <a href="$list.key"><img src="$list.cover_url" alt="$_('Cover of: %(title)s', title=list.name)" title="$_('Cover of: %(title)s', title=list.name)"/></a>
         </span>
         <span class="data">
             <span class="label">
-                <a href="$list.key" title="$_('See this list')">$list.name</a>
+                <a href="$list.key" data-list-title="$(list.name)" title="$_('See this list')">$list.name</a>
                 $if remove:
+                    <input type="hidden" name="seed-title" value="$(seed_info['title'])"/>
+                    <input type="hidden" name="seed-key" value="$(seed_info['seed']['key'])"/>
+                    <input type="hidden" name="seed-type" value="$(seed_info['type'])"/>
                     <a href="$list.key" class="remove-from-list red smaller arial plain" data-list-key="$list.key" title="$_('Remove from your list?')">[X]</a>
             </span>
             $if remove:
@@ -260,9 +264,11 @@ $if include_header:
     $:render_head(seed_info['type'], page_lists, page_url)
   </div>
 
+$ default_seed_key = seed_info['seed']['key'] if isinstance(seed_info['seed'], dict) else seed_info['seed']
+
 $if include_widget:
-  $:macros.ReadingLogDropper(user_lists, work, edition, users_work_read_status=users_work_read_status, page_url=page_url)
-  <ul id="already-lists" class="listLists">
+  $:macros.ReadingLogDropper(user_lists, work=work, edition=edition, key=default_seed_key, users_work_read_status=users_work_read_status, page_url=page_url)
+  <ul id="already-lists" class="listLists already-lists">
     $:render_already_lists(user_lists, user_key)
   </ul>
   $if work:
@@ -284,142 +290,7 @@ $if include_showcase:
 $if render_once('lists/widget.remove-dialog'):
     <div id="remove-dialog" class="hidden" title="$_('Remove')"></div>
 
-$if ctx.user and render_once('lists/widget.addList'):
-    <div class="hidden">
-        <div class="floaterAdd" id="addList">
-            <div class="floaterHead">
-                <h2>$_('Create a new list')</h2>
-                <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
-            </div>
-            <form method="post" class="floatform" name="new-list" id="new-list">
-            <div class="formElement">
-                <div class="label">
-                    <label for="list_label">$_('Name:')</label>
-                </div>
-                <div class="input">
-                    <input type="text" name="list_label" id="list_label" class="text required" value=""/>
-                </div>
-            </div>
-            <div class="formElement">
-                <div class="label">
-                    <label for="list_desc">$_('Description:')</label>
-                </div>
-                <div class="input">
-                    <textarea name="list_desc" id="list_desc" rows="5" cols="30"></textarea>
-                </div>
-            </div>
-            <div class="formElement">
-                <div class="input">
-                    <button type="submit" class="larger">$_('Create new list')</button>
-                    &nbsp; &nbsp;
-                    <a class="small dialog--close plain red">$_('Cancel')</a>
-                </div>
-                <div class="label"></div>
-            </div>
-            </form>
-        </div>
-    </div>
 
-$if render_once('lists-api-js'):
-    <script type="text/javascript">
-    window.Lists = {
-        create: function(user_key, data, success, complete) {
-            this.ajax({
-                url: user_key + "/lists.json",
-                data: data,
-                success: function(resp) {
-                    var list = {
-                        key: resp.key,
-                        name: data.name,
-                        active: true,
-                        owner: {key: user_key},
-                        cover_url: "/images/icons/avatar_book-sm.png",
-
-                        edition_count: 1,
-                        description: websafe(data.description)
-                    };
-                    Lists.user_lists.push(list);
-                    Lists.user_lists_by_key[list.key] = list;
-                    for (var i = 0; i < data.seeds.length; i++) {
-                        var seed = data.seeds[i];
-                        Lists.user_lists_by_key[list.key][seed.key || seed] = true;
-                    }
-                    success && success(resp);
-                },
-                complete: complete
-            });
-        },
-        add: function(list_key, seed, success, complete) {
-            this.ajax({
-                url: list_key + "/seeds.json",
-                data: { add: [seed] },
-                success: function(resp) {
-                    Lists.lists_things_matrix[list_key] = Lists.lists_things_matrix[list_key] || {};
-                    Lists.lists_things_matrix[list_key][seed.key || seed] = true;
-                    success && success(resp);
-                },
-                complete: complete
-            });
-        },
-        remove: function(list_key, seed, success, complete) {
-            this.ajax({
-                url: list_key + "/seeds.json",
-                data: { remove: [seed] },
-                success: function(resp) {
-                    delete Lists.lists_things_matrix[list_key][seed.key || seed];
-                    success && success(resp);
-                },
-                complete: complete
-            });
-        },
-        ajax: function(d) {
-            \$.ajax({
-                type: "POST",
-                url: d.url,
-                contentType: "application/json",
-                data: JSON.stringify(d.data),
-                dataType: "json",
-
-                beforeSend: function(xhr) {
-                    xhr.setRequestHeader("Content-Type", "application/json");
-                    xhr.setRequestHeader("Accept", "application/json");
-                },
-                success: d.success,
-                complete: d.complete
-            });
-        },
-        seed_lists: {}, // seed key -> containing list key
-        widgets: [],
-
-        set_user_lists: function(lists) {
-            if (this.user_lists) throw Error("Can only set user lists once!");
-
-            this.user_lists = lists;
-            this.user_lists_by_key = {};
-
-            for (var i = 0; i < this.user_lists.length; i++) {
-                var list = this.user_lists[i];
-                this.user_lists_by_key[list.key] = list;
-            }
-        },
-
-        lists_things_matrix: {},
-        add_to_list_things_matrix: function(to_add) {
-            for (var list_key in to_add) {
-                for (var thing_key in to_add[list_key]) {
-                    this.lists_things_matrix[list_key] = this.lists_things_matrix[list_key] || {};
-                    this.lists_things_matrix[list_key][thing_key] = to_add[list_key][thing_key];
-                }
-            }
-        },
-
-        has_seed: function(list_key, seed) {
-            return list_key in this.lists_things_matrix && this.lists_things_matrix[list_key][seed.key || seed];
-        }
-    };
-
-    Lists.set_user_lists($:json_encode(user_lists));
-    </script>
 
 $code:
     def build_contains_dict(user_list, seeds):
@@ -434,220 +305,5 @@ $code:
 
 $ default_seed_key = seed_info['seed']['key'] if isinstance(seed_info['seed'], dict) else seed_info['seed']
 
-<script type="text/javascript">
-window.q.push(function() {
-    var \$container = \$("#$container_id");
 
-    Lists.seed_lists[$:json_encode(default_seed_key)] = $:json_encode(page_lists);
-    Lists.add_to_list_things_matrix($:json_encode(build_contains_dict(_user_lists, [seed_info['seed'], work_seed_info and work_seed_info['seed']])));
-
-    var default_seed_info = $:json_encode(seed_info);
-    default_seed_info.lists = Lists.seed_lists[$:json_encode(default_seed_key)];
-    var work_seed_info = null;
-
-    $if work_seed_info:
-        Lists.seed_lists[$:json_encode(work.key)] = $:json_encode(get_page_lists(work, work_seed_info));
-        work_seed_info = $:json_encode(work_seed_info);
-        work_seed_info.lists = Lists.seed_lists[$:json_encode(work.key)];
-
-    var user_key = $:json_encode(user_key);
-    var page_url = $:json_encode(page_url);
-
-    var users_work_read_status = $(users_work_read_status or 'null');
-    var work_key = '$(work_key)';
-    var edition_key = '$(edition_key)';
-    var username = '$(username or "")';
-    var listWidgetIndex = Lists.widgets.length;
-
-    /** Whether to use the default thing or work (if work v. edition) */
-    function get_active_seed_info() {
-        var checkbox = \$container.find(".work-checkbox")[0];
-        return checkbox && checkbox.checked && work_seed_info ? work_seed_info : default_seed_info;
-    }
-
-    function reload_widget() {
-        var seed_info = get_active_seed_info();
-        \$container.find(".lists-widget-head").html(render_head(seed_info.type, seed_info.lists, page_url));
-        \$container.find(".widget-add").html(render_widget_add(
-            Lists.user_lists,
-            work_key,
-            edition_key,
-            users_work_read_status,
-            username,
-            page_url,
-            false,
-            work_seed_info && seed_info.type == 'work' ));
-
-        update_my_lists();
-        setup_events();
-
-        // We've added new .dropclick element. Need to setup listeners again.
-        \$container.find('.dropclick').on('click', function(){
-            \$(this).closest('.dropdown').slideToggle();
-            \$(this).closest('.arrow').toggleClass("up");
-        });
-    }
-
-    // the active lists of this seed
-    function remove_page_list(lists, list) {
-        for (var i=0; i<lists.length; i++) {
-            var pagelist = lists[i];
-            if (lists[i].key == list.key) {
-                lists.splice(i, 1);
-                break;
-            }
-        }
-    }
-
-    function create_new_list_submit_handler(form) {
-        // disable form while waiting for response
-        \$("#addList").find("#new-list button").attr("disabled", true);
-
-        var seed_info = get_active_seed_info();
-        var data = {
-            name: \$("#addList").find("#list_label").val(),
-            description: \$("#addList").find("#list_desc").val(),
-            seeds: [seed_info.seed]
-        };
-
-        Lists.create(user_key, data, function() {
-            \$.fn.colorbox.close();
-        }, function(){
-            // re-enable form now that the request is finished
-            reload_widget();
-            \$("#addList").find("#new-list button").attr("disabled", false);
-        });
-        return false;
-    }
-
-    /** Prunes lists off my_lists if seed is on list */
-    function update_my_lists() {
-        var listsThatDontContainIt = [];
-        var listsThatContainIt = [];
-        var seed_info = get_active_seed_info();
-        for (var i = 0; i < Lists.user_lists.length; i++) {
-            var list = Lists.user_lists[i];
-            if (Lists.has_seed(list.key, seed_info.seed)) {
-                listsThatContainIt.push(list);
-            } else {
-                listsThatDontContainIt.push(list);
-            }
-        }
-        \$container.find(".my-lists").html(render_my_lists(listsThatDontContainIt, 'key'));
-        \$container.find("#already-lists").html(render_already_lists(listsThatContainIt, user_key));
-        var filteredShowcaseLists = seed_info.lists;
-        if (Lists.user_lists.length) {
-            filteredShowcaseLists = filteredShowcaseLists.filter(function(list) {
-                return list.owner.key != Lists.user_lists[0].owner.key;
-            });
-        }
-        \$container.find("#list-lists").html(render_widget_display(listsThatContainIt.concat(filteredShowcaseLists), 3, user_key));
-        setup_widget_display_events();
-    }
-
-    function setup_widget_display_events() {
-        \$container.find("a.add-to-list").on('click', function(event) {
-            event.preventDefault();
-            close_popup();
-
-            \$(this).unbind("click");   // ignore clicks while waiting for response
-
-            var list = Lists.user_lists_by_key[\$(this).data('list-key')];
-
-            var seed_info = get_active_seed_info();
-            Lists.add(list.key, seed_info.seed, function() {
-                list.active = true;
-            }, function(data){
-                reload_widget();    // reload widget regardless of success or failure
-            });
-            return false;
-        });
-
-        \$container.find("a.remove-from-list").on('click', function(event) {
-            event.preventDefault();
-            setup_dialog();
-
-            \$("#remove-dialog")
-                .html(get_active_seed_info().remove_dialog_html)
-                .data("list-key", \$(this).data("list-key"))
-                .dialog("open");
-            return false;
-        });
-    }
-
-    function setup_events() {
-        \$container.find(".work-checkbox").on('click', update_my_lists);
-        \$container.find(".create-new-list").on('click', function() {
-           window.activeListWidgetIndex = listWidgetIndex;
-           close_popup();
-           \$.colorbox({
-             inline: true,
-             opacity: "0.5",
-             href: "#addList",
-             onOpen: function() {
-                \$('#addList').find("#new-list").ol_validate({
-                    // list widget index of the "active"
-                    submitHandler: function(form) {
-                        Lists.widgets[window.activeListWidgetIndex].create_new_list_submit_handler(form);
-                    }
-                });
-            }
-           });
-        });
-    }
-
-    function close_popup() {
-        \$(this).next('.dropdown').slideToggle();
-        \$(this).parent().find('.arrow').toggleClass("down");
-    }
-
-    function setup_dialog() {
-        \$("#remove-dialog").ol_confirm_dialog(function() {
-            var list = Lists.user_lists_by_key[\$(this).data("list-key")];
-            var _this = this;
-
-            var seed_info = get_active_seed_info();
-            Lists.remove(list.key, seed_info.seed, function() {
-                list.active = false;
-                remove_page_list(seed_info.lists, list);
-                reload_widget();
-                \$(_this).dialog("close");
-            });
-        });
-    }
-
-    Lists.widgets.push({
-        create_new_list_submit_handler: create_new_list_submit_handler,
-        reload_widget: reload_widget,
-        \$container: \$container,
-        default_seed_info: default_seed_info,
-        work_seed_info: work_seed_info,
-        user_key: user_key,
-        page_url: page_url,
-        users_work_read_status: users_work_read_status,
-        edition_key: edition_key,
-        username: username,
-        update_my_lists: update_my_lists,
-        listWidgetIndex: listWidgetIndex
-    });
-
-    setup_events();
-    update_my_lists(); // update set of eligible lists for this seed
-
-    var mylist = \$container.find('.dropdown');
-    var listitems = mylist.children('p.list').get();
-    var listcreate = \$container.find('.dropdown p.create');
-    listitems.sort(function(a, b) {
-       var compA = \$(a).text().toUpperCase();
-       var compB = \$(b).text().toUpperCase();
-       return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
-    })
-    \$.each(listitems, function(idx, itm) { mylist.append(itm); });
-    \$container.find('.dropdown').append(listcreate);
-
-    \$(document).on( 'click', '.book-progress-btn, .nostyle-btn', function(e) {
-       \$('.book-progress-btn').text("$_('saving...')");
-    });
-});
-</script>
 </div>

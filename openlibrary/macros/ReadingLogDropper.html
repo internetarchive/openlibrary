@@ -1,11 +1,9 @@
-$def with (lists, work=None, edition=None, users_work_read_status=None, reading_log_only=False, use_work=False, page_url=None, uid='')
+$def with (lists, work=None, edition=None, key=None, users_work_read_status=None, reading_log_only=False, use_work=False, page_url=None)
 
 $ user_key = ctx.user and ctx.user.key
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ work_key = work and work.key
 $ edition_key = edition and edition.key
-
-$ unique_postfix = '-%s' % str(uid) if uid else ''
 
 $if ctx.user or not work_key:
   <div class="widget-add $:(not work_key and 'old-style-lists')">
@@ -33,6 +31,8 @@ $if ctx.user or not work_key:
             <input id="" type="hidden" name="action" value="$(action_value)"/>
             <input type="hidden" name="redir" value="true"/>
             <input id="" type="hidden" name="bookshelf_id" value="$(bookshelf_id_value)"/>
+            <input id="user-key" type="hidden" name="user-key" value="$(user_key)" />
+            <input id="default-key" type="hidden" name="default-key" value="$(key)" />
 
             <button class="book-progress-btn want-to-read $(activated_status)" type="submit">
               $:(checkmark)$(message)
@@ -40,6 +40,7 @@ $if ctx.user or not work_key:
 
             $if edition_key:
               <input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>
+            <input type="hidden" id="work_id" name="work_id" value="$(work_key)"/>
           </form>
 
           <a href="javascript:;" class="dropclick dropclick-$(activated_status)">
@@ -84,9 +85,9 @@ $if ctx.user or not work_key:
               <p class="reading-list-title">$_('My Reading Lists:')</p>
               <div class="my-lists">
                 $for list in lists:
-                    $if list['active']:
+                    $if not list['active']:
                       <p class="list">
-                          <a href="$list.key" class="add-to-list" data-list-key="$list.key">$list.name</a>
+                          <a href="$list.key" class="add-to-list" data-list-cover-url="$list.cover_url" data-list-key="$list.key">$list.name</a>
                       </p>
               </div>
               $if edition_key:
@@ -106,6 +107,7 @@ $if ctx.user or not work_key:
         </div>
       $else:
           $if username:
+            <input id="default-key" type="hidden" name="default-key" value="$(key)" />
             <div class="reading-lists">
               <a href="javascript:;" class="dropclick">
                 <h3>$_('Add to List')</h3>
@@ -114,7 +116,7 @@ $if ctx.user or not work_key:
               <div class="dropdown">
                 <div class="my-lists">
                   $for list in lists:
-                    $if list['active']:
+                    $if not list['active']:
                       <p class="list">
                           <a href="$list.key" class="add-to-list" data-list-key="$list.key">$list.name</a>
                       </p>
@@ -131,6 +133,41 @@ $if ctx.user or not work_key:
       </div>
     </div>
   </div>
+  $if not reading_log_only and render_once('lists/widget.addList'):
+    <div class="hidden">
+        <div class="floaterAdd" id="addList">
+            <div class="floaterHead">
+                <h2>$_('Create a new list')</h2>
+                <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+            </div>
+            <form method="post" class="floatform" name="new-list" id="new-list">
+                <div class="formElement">
+                    <div class="label">
+                        <label for="list_label">$_('Name:')</label>
+                    </div>
+                    <div class="input">
+                        <input type="text" name="list_label" id="list_label" class="text required" value="" required/>
+                    </div>
+                </div>
+                <div class="formElement">
+                    <div class="label">
+                        <label for="list_desc">$_('Description:')</label>
+                    </div>
+                    <div class="input">
+                        <textarea name="list_desc" id="list_desc" rows="5" cols="30"></textarea>
+                    </div>
+                </div>
+                <div class="formElement">
+                    <div class="input">
+                        <button id="create-list-button" type="submit" class="larger">$_('Create new list')</button>
+                        &nbsp; &nbsp;
+                        <a class="small dialog--close plain red">$_('Cancel')</a>
+                    </div>
+                    <div class="label"></div>
+                </div>
+            </form>
+        </div>
+    </div>
 $else:
   <div class="dropit">
       <div class="dropper on">
