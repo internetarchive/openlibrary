@@ -21,8 +21,10 @@ $def with (work)
             $for s in work.get_subjects():
                 $ s = s.replace('"', '""')
                 $subjects.append('"' + s + '"' if ',' in s else s)
-            <textarea name="work--subjects" id="about-subjects" cols="55" rows="1" wrap="soft"
-            onkeyup="this.style.height = 'auto'; this.style.height = (3 + this.scrollHeight)+'px';" tabindex="0">$', '.join(subjects)</textarea>
+            $ subject_str = ', '.join(subjects)
+            $ rows = len(subject_str) // 95
+            <textarea name="work--subjects" id="about-subjects"  rows="$rows" wrap="soft"
+            tabindex="0">$subject_str</textarea>
         </div>
     </div>
 
