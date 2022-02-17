@@ -556,8 +556,7 @@ class PrefixKeyFunc:
 
         memcache doesn't like spaces in the key.
         """
-        return json.dumps([] if isinstance(value, Nothing) else value, separators=(",", ":"), sort_keys=True)
-
+        return json.dumps(value, separators=(",", ":"), sort_keys=True)
 
 def method_memoize(f):
     """
