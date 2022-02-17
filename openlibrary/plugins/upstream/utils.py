@@ -13,6 +13,7 @@ import datetime
 import logging
 from html.parser import HTMLParser
 from typing import Optional
+from urllib.parse import quote
 
 import requests
 
@@ -934,7 +935,7 @@ def get_blog_feeds():
 
 
 class Request:
-    path = property(lambda self: web.ctx.path)
+    path = property(lambda self: web.ctx.path + quote(web.ctx.query))
     home = property(lambda self: web.ctx.home)
     domain = property(lambda self: web.ctx.host)
 
