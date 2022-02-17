@@ -465,6 +465,11 @@ $if is_privileged_user:
     <div class="obgp-data">
       <p>Teo's Open Book Genome Project Container</p>
       <div>
+        $# We'll want to add a new function to the Editions model called `get_genome()`
+        $# in https://github.com/internetarchive/openlibrary/blob/master/openlibrary/plugins/upstream/models.py#L45
+        $# which fetches the genome for this (or, for starters, any) book genome
+        $# e.g. https://archive.org/download/hitmiss0000jete_u7v5/book_genome.json
+        $edition.get_genome()
       </div>
     </div>
   </div>
