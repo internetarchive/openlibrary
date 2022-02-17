@@ -55,9 +55,11 @@ $if isbn_10 and not asin:
         $ lists_widget = render_template('lists/widget', edition or work, include_rating=True, include_header=False, include_widget=True, include_showcase=False, user_lists_only=False)
         $ render_times['databarWork: List widget'] = time() - render_times['databarWork: List widget']
 
-        $# For the Works & Editions page, always use ground_truth_availability API for selected Edition
+        $# For the Works & Editions page, only use ground_truth_availability API for selected Edition
+        $# if edition availability status is private or error
         $ render_times['databarWork: LoanStatus'] = time()
-        $:macros.LoanStatus(page, allow_expensive_availability_check=True, secondary_action=editions_page, check_sponsorship=editions_page, sponsorship_help=editions_page, check_loan_status=editions_page, post=lists_widget)
+        $ expensive_check = page.get('availability', {}).get('status') in ['private', 'error']
+        $:macros.LoanStatus(page, allow_expensive_availability_check=expensive_check, secondary_action=editions_page, check_sponsorship=editions_page, sponsorship_help=editions_page, check_loan_status=editions_page, post=lists_widget)
         $ render_times['databarWork: LoanStatus'] = time() - render_times['databarWork: LoanStatus']
 
         $if editions_page:

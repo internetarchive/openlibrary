@@ -17,10 +17,10 @@ from six.moves import urllib
 from infogami import config
 from infogami.utils import delegate, stats
 from infogami.utils.view import public, render, render_template, safeint
+from openlibrary.core import cache
 from openlibrary.core.lending import add_availability, get_availability_of_ocaids
 from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.plugins.inside.code import fulltext_search
-from openlibrary.plugins.openlibrary.lists import get_list_editions
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import escape_bracket
@@ -154,6 +154,7 @@ DEFAULT_SEARCH_FIELDS = {
     'id_project_gutenberg',
     'id_librivox',
     'id_standard_ebooks',
+    'id_openstax',
 }
 OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
@@ -594,6 +595,7 @@ def get_doc(doc):  # called from work_search template
     e_id_project_gutenberg = doc.find("arr[@name='id_project_gutenberg']") or []
     e_id_librivox = doc.find("arr[@name='id_librivox']") or []
     e_id_standard_ebooks = doc.find("arr[@name='id_standard_ebooks']") or []
+    e_id_openstax = doc.find("arr[@name='id_openstax']") or []
 
     first_pub = None
     e_first_pub = doc.find("int[@name='first_publish_year']")
@@ -662,6 +664,7 @@ def get_doc(doc):  # called from work_search template
         id_project_gutenberg=[e.text for e in e_id_project_gutenberg],
         id_librivox=[e.text for e in e_id_librivox],
         id_standard_ebooks=[e.text for e in e_id_standard_ebooks],
+        id_openstax=[e.text for e in e_id_openstax],
     )
 
     doc.url = doc.key + '/' + urlsafe(doc.title)
@@ -694,6 +697,7 @@ def work_object(w):  # called by works_by_author
         id_project_gutenberg=w.get('id_project_gutenberg'),
         id_librivox=w.get('id_librivox'),
         id_standard_ebooks=w.get('id_standard_ebooks'),
+        id_openstax=w.get('id_openstax'),
     )
 
     for f in 'has_fulltext', 'subtitle':
@@ -847,6 +851,7 @@ def works_by_author(
                     'id_project_gutenberg',
                     'id_librivox',
                     'id_standard_ebooks',
+                    'id_openstax',
                     'cover_i',
                 ]
             ),
@@ -1187,20 +1192,32 @@ def random_author_search(limit=10):
     return search_results['response']
 
 
-def rewrite_list_editions_query(q, page, offset, limit):
+def rewrite_list_query(q, page, offset, limit):
     """Takes a solr query. If it doesn't contain a /lists/ key, then
     return the query, unchanged, exactly as it entered the
     function. If it does contain a lists key, then use the pagination
     information to fetch the right block of keys from the
-    lists_editions API and then feed these editions resulting work
+    lists_editions and lists_works API and then feed these editions resulting work
     keys into solr with the form key:(OL123W, OL234W). This way, we
     can use the solr API to fetch list works and render them in
     carousels in the right format.
     """
+    def cached_get_list_book_keys(key, offset, limit):
+        # make cacheable
+        if 'env' not in web.ctx:
+            delegate.fakeload()
+        lst = web.ctx.site.get(key)
+        return lst.get_book_keys(offset=offset, limit=limit)
+
     if '/lists/' in q:
-        editions = get_list_editions(q, offset=offset, limit=limit)
-        work_ids = [ed.get('works')[0]['key'] for ed in editions]
-        q = 'key:(' + ' OR '.join(work_ids) + ')'
+        # we're making an assumption that q is just a list key
+        book_keys = cache.memcache_memoize(
+            cached_get_list_book_keys,
+            "search.list_books_query",
+            timeout=5*60)(q, offset, limit)
+
+        q = f"key:({' OR '.join(book_keys)})"
+
         # We've applied the offset to fetching get_list_editions to
         # produce the right set of discrete work IDs. We don't want
         # it applied to paginate our resulting solr query.
@@ -1232,7 +1249,7 @@ def work_search(
         sort = process_sort(sort)
 
     # deal with special /lists/ key queries
-    query['q'], page, offset, limit = rewrite_list_editions_query(
+    query['q'], page, offset, limit = rewrite_list_query(
         query['q'], page, offset, limit
     )
     try:
@@ -1298,7 +1315,7 @@ class search_json(delegate.page):
 
         # If the query is a /list/ key, create custom list_editions_query
         q = query.get('q', '')
-        query['q'], page, offset, limit = rewrite_list_editions_query(
+        query['q'], page, offset, limit = rewrite_list_query(
             q, page, offset, limit
         )
         response = work_search(
