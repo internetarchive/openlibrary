@@ -28,7 +28,6 @@ $if ctx.user or not work_key:
             $ checkmark_visibility = '' if users_work_read_status else ' hidden'
 
             <input type="hidden" name="action" value="$(action_value)"/>
-            <input type="hidden" name="redir" value="true"/>
             <input type="hidden" name="bookshelf_id" value="$(bookshelf_id_value)"/>
             <input type="hidden" name="user-key" value="$(user_key)" />
             <input type="hidden" name="default-key" value="$(key)" />
@@ -58,7 +57,6 @@ $if ctx.user or not work_key:
 
             <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
               <input type="hidden" name="action" value="add"/>
-              <input type="hidden" name="redir" value="true"/>
               <input type="hidden" name="bookshelf_id" value="1"/>
               $if edition_key:
                 <input type="hidden" name="edition_id" value="$(edition_key)"/>
@@ -67,7 +65,6 @@ $if ctx.user or not work_key:
 
             <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
               <input type="hidden" name="action" value="add"/>
-              <input type="hidden" name="redir" value="true"/>
               <input type="hidden" name="bookshelf_id" value="2"/>
               $if edition_key:
                 <input type="hidden" name="edition_id" value="$(edition_key)"/>
@@ -76,7 +73,6 @@ $if ctx.user or not work_key:
 
             <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
               <input type="hidden" name="action" value="add"/>
-              <input type="hidden" name="redir" value="true"/>
               <input type="hidden" name="bookshelf_id" value="3"/>
               $if edition_key:
                 <input type="hidden" name="edition_id" value="$(edition_key)"/>
