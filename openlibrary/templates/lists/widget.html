@@ -1,16 +1,11 @@
-$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, user_lists_only=False, readinglog_only=False, read_status=None, _user_lists=None, uid=None)
+$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, user_lists_only=False, read_status=None, _user_lists=None)
 
 $ edition = page if page.key.startswith("/books/") else None
 $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
-$ work_key = work and work.key
-$ edition_key = edition and edition.key
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ users_work_read_status = read_status or work.get_users_read_status(username) if work and username else None
-$if not uid:
-    $ uid = str(random.randint(1000, 9999))
-$ container_id = 'widget-lists-wrapper-%s' % str(uid)
 
-<div id="$container_id" class="lists-widget-container">
+<div class="lists-widget-container">
 $if "lists" not in ctx.features:
     $return
 
@@ -67,7 +62,6 @@ $code:
         return [get_list_data(list, seed_info['seed']) for list in page.get_lists(sort=False)]
 
 $ seed_info = get_seed_info(page)
-$ work_seed_info= edition and work and get_seed_info(work)
 $ user_lists = get_user_lists(seed_info)
 $if user_lists_only:
     $ page_lists = [list for list in user_lists if list.active]
@@ -78,7 +72,7 @@ $ page_url = page.url()
 
 $var page_lists = page_lists
 
-$jsdef show_list(list, user_key):
+$def show_list(list, user_key):
     $ remove = (list.owner.key == user_key)
     $ actionable = 'class=actionable-item' if remove else ''
     <li $actionable>
@@ -101,147 +95,17 @@ $jsdef show_list(list, user_key):
         </span>
     </li>
 
-$jsdef render_my_lists(lists, property):
-    $for list in lists:
-        $if list[property]:
-            <p class="list">
-                <a href="$list.key" class="add-to-list" data-list-key="$list.key">$list.name</a>
-            </p>
-
-$jsdef render_already_lists(lists, user_key):
+$def render_already_lists(lists, user_key):
     $for list in lists:
         $if list['active']:
             $:show_list(list, user_key)
 
-$jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl, readinglogonly, use_work, user_key):
-    <div class="dropit">
-          $if edition_key and not work_key:
-            <div class="dropper on edition-page-lists-dropdown">
-          $else:
-            <div class="dropper on">
-          $if work_key:
-            <div class="log-work">
-              <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
-                $if users_work_read_status == 3:
-                    $ message = _("Already Read")
-                $elif users_work_read_status == 2:
-                    $ message = _("Currently Reading")
-                $else:
-                    $ message = _("Want to Read")
-                $if users_work_read_status:
-                  <input type="hidden" name="action" value="remove"/>
-                  <input type="hidden" name="redir" value="true"/>
-                  <input type="hidden" name="bookshelf_id" value="$(users_work_read_status)"/>
-                  <button class="book-progress-btn want-to-read activated"
-                          type="submit">
-                    <span class="activated-check">✓</span> $(message)
-                  </button>
-                $else:
-                  <input type="hidden" name="action" value="add"/>
-                  <input type="hidden" name="redir" value="true"/>
-                  <input type="hidden" name="bookshelf_id" value="1"/>
-                  <button class="book-progress-btn want-to-read unactivated"
-                          type="submit">
-                    $(message)
-                  </button>
-
-                $if edition_key:
-                  <input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>
-              </form>
-
-              $if users_work_read_status:
-                <a href="javascript:;" class="dropclick dropclick-activated">
-                  <div class="arrow arrow-activated"></div>
-                </a>
-              $else:
-                <a href="javascript:;" class="dropclick dropclick-unactivated">
-                  <div class="arrow arrow-unactivated"></div>
-                </a>
-            </div>
-            <div class="dropdown">
-              <div class="read-statuses">
-                $if users_work_read_status == 2 or users_work_read_status == 3:
-                  <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
-                    <input type="hidden" name="action" value="add"/>
-                    <input type="hidden" name="redir" value="true"/>
-                    <input type="hidden" name="bookshelf_id" value="1"/>
-                    $if edition_key:
-                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
-                    <button class="nostyle-btn" type="submit">$_('Want to Read')</button>
-                  </form>
-
-                $if users_work_read_status != 2:
-                  <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
-                    <input type="hidden" name="action" value="add"/>
-                    <input type="hidden" name="redir" value="true"/>
-                    <input type="hidden" name="bookshelf_id" value="2"/>
-                    $if edition_key:
-                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
-                    <button class="nostyle-btn" type="submit">$('Currently Reading')</button>
-                  </form>
-
-                $if users_work_read_status != 3:
-                  <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
-                    <input type="hidden" name="action" value="add"/>
-                    <input type="hidden" name="redir" value="true"/>
-                    <input type="hidden" name="bookshelf_id" value="3"/>
-                    $if edition_key:
-                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
-                    <button class="nostyle-btn" type="submit">$_('Already Read')</button>
-                  </form>
-              </div>
-
-              $if not readinglogonly:
-                <div class="reading-lists">
-                  <p class="reading-list-title">$_('My Reading Lists:')</p>
-                  <div class="my-lists">
-                    $:render_my_lists(lists, 'active')
-                  </div>
-                  $if edition_key:
-                      <p class="create checkboxes">
-                        <label>
-                           <input type="checkbox" class="work-checkbox"
-                              $if use_work:
-                                checked
-                           /> <span>$_('Use this Work')</span>
-                        </label>
-                      </p>
-                  <p class="create"><a href="javascript:;" class="create-new-list">$_('Create a new list')</a>
-                    <a aria-controls="addList"
-                      class="hidden listClick dialog--open"></a>
-                  </p>
-                </div>
-            </div>
-          $else:
-              $if username:
-                <div class="reading-lists">
-                  <a href="javascript:;" class="dropclick">
-                    <h3>$_('Add to List')</h3>
-                    <div class="arrow arrow-activated"></div>
-                  </a>
-                  <div class="dropdown">
-                    <div class="my-lists">
-                        $:render_my_lists(lists, 'active')
-                    </div>
-                    <p class="create"><a href="javascript:;" class="create-new-list">$_('Create a new list')</a>
-                    </p>
-                  </div>
-                </div>
-
-              $else:
-                <a href="/account/login?redirect=$pageurl" class="dropclick plain">
-                  <h3>$('Add to List')</h3>
-                  <div class="arrow"></div>
-                </a>
-      </div>
-    </div>
-
-$jsdef render_widget_display(lists, limit, user_key):
+$def render_widget_display(lists, limit, user_key):
     $for i, list in enumerate(lists):
         $if i < limit:
             $:show_list(list, user_key)
 
-$jsdef render_head(seed_type, page_lists, page_url):
+$def render_head(seed_type, page_lists, page_url):
     $if seed_type == "subject":
         <div class="head">
           <h3>Lists</h3>
@@ -281,7 +145,6 @@ $if include_widget:
         $ link_text = _("Add a book note")
       $:macros.NotesModal(work, edition, link_text, 'cta', 'cta-section patron-metadata')
 
-
 $if include_showcase:
   <ul id="list-lists" class="listLists">
     $:render_widget_display(page_lists, 3, user_key)
@@ -289,21 +152,5 @@ $if include_showcase:
 
 $if render_once('lists/widget.remove-dialog'):
     <div id="remove-dialog" class="hidden" title="$_('Remove')"></div>
-
-
-
-$code:
-    def build_contains_dict(user_list, seeds):
-        result = {}
-        for list in user_list:
-            result[list.key] = {}
-            for seed in seeds:
-                if seed and list.has_seed(seed):
-                    seed_key = seed['key'] if isinstance(seed_info['seed'], dict) else seed
-                    result[list.key][seed_key] = True;
-        return result
-
-$ default_seed_key = seed_info['seed']['key'] if isinstance(seed_info['seed'], dict) else seed_info['seed']
-
 
 </div>
