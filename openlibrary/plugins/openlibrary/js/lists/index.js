@@ -1,4 +1,4 @@
-import { createList, addToList, removeFromList } from './ListService'
+import { createList, addToList, removeFromList, updateReadingLog } from './ListService'
 
 const actionableItems = {}
 const dropperLists = {}
@@ -20,7 +20,15 @@ function addListeners(listComponents) {
         }
 
         const createListButton = dropper.querySelector('.create-new-list')
-        addCreateListClickListener(createListButton, dropper)
+        if (createListButton) {
+            addCreateListClickListener(createListButton, dropper)
+        }
+
+        const submitButtons = dropper.querySelectorAll('button')
+
+        for (const button of submitButtons) {
+            addReadingLogButtonClickListener(button)
+        }
     }
 }
 
@@ -62,13 +70,17 @@ function addListClickListener(elem, parentDropper) {
             }
 
             // close dropper
-            $(parentDropper).find('.dropdown').first().slideToggle(25);
-            $(parentDropper).find('.arrow').first().toggleClass('up');
+            toggleDropper(parentDropper)
         }
 
         addToList(listKey, seed, successCallback)
 
     })
+}
+
+function toggleDropper(dropper) {
+    $(dropper).find('.dropdown').first().slideToggle(25);
+    $(dropper).find('.arrow').first().toggleClass('up');
 }
 
 function addCreateListClickListener(submitButton, parentDropper) {
@@ -133,6 +145,82 @@ function addCreateListClickListener(submitButton, parentDropper) {
 function clearCreateListForm() {
     document.querySelector('#list_label').value = '';
     document.querySelector('#list_desc').value = '';
+}
+
+function addReadingLogButtonClickListener(button) {
+    button.addEventListener('click', function(event) {
+        event.preventDefault();
+
+        const form = button.parentElement
+        const dropper = button.closest('.widget-add')
+        const primaryButton = dropper.querySelector('.want-to-read')
+        const initialText = primaryButton.children[1].innerText
+        const dropClick = dropper.querySelector('.dropclick')
+
+        primaryButton.children[1].innerText = 'saving...'
+
+        const success = function() {
+            if (button.classList.contains('want-to-read')) {
+                // Primary button pressed
+                // Toggle checkmark
+                button.children[0].classList.toggle('hidden')
+
+                // Toggle button class 'activated' <-> 'unactivated'
+                button.classList.toggle('activated')
+                button.classList.toggle('unactivated')
+
+                // Toggle dropclick and arrow
+                dropClick.classList.toggle('dropclick-activated')
+                dropClick.classList.toggle('dropclick-unactivated')
+
+                dropClick.children[0].classList.toggle('arrow-activated')
+                dropClick.children[0].classList.toggle('arrow-unactivated')
+
+                //Toggle action value 'add' <-> 'remove'
+                const actionInput = form.querySelector('input[name=action]')
+                if (actionInput.value === 'add') {
+                    actionInput.value = 'remove'
+                } else {
+                    actionInput.value = 'add'
+                }
+
+                button.children[1].innerText = initialText
+            } else {
+                toggleDropper(dropper)
+                // Secondary button pressed
+
+                // Change primary button's text to new value:
+                primaryButton.children[1].innerText = button.innerText
+
+                // Show checkmark:
+                primaryButton.children[0].classList.remove('hidden')
+
+                // Ensure button and dropclick arrow have activated classes:
+                primaryButton.classList.remove('unactivated')
+                primaryButton.classList.add('activated')
+                dropClick.classList.remove('dropclick-unactivated')
+                dropClick.classList.add('dropclick-activated')
+                dropClick.children[0].classList.remove('arrow-unactivated')
+                dropClick.children[0].classList.add('arrow-activated')
+
+                // Update primary form's hidden inputs:
+                const newBookshelfId = button.parentElement.querySelector('input[name=bookshelf_id]').value
+                dropper.querySelector('input[name=action]').value = 'remove'
+                dropper.querySelector('input[name=bookshelf_id]').value = newBookshelfId
+
+                // Hide clicked dropdown button, but show all others
+                const dropdownButtons = dropper.querySelectorAll('.dropdown button')
+                for (const btn of dropdownButtons) {
+                    btn.classList.remove('hidden')
+                }
+                button.classList.add('hidden')
+            }
+        }
+
+        updateReadingLog(form, success)
+
+    })
+
 }
 
 export function registerListItems(listItemElements) {

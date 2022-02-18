@@ -41,3 +41,16 @@ export function removeFromList(listKey, seed, success) {
         success: success
     });
 }
+
+export function updateReadingLog(formElem, success) {
+    const formData = new FormData(formElem)
+
+    $.ajax({
+        type: 'POST',
+        url: formElem.getAttribute('action'),
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: success
+    })
+}

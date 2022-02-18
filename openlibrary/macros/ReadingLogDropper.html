@@ -26,16 +26,16 @@ $if ctx.user or not work_key:
             $ bookshelf_id_value = users_work_read_status or '1'
             $ activated_status = 'activated' if users_work_read_status else 'unactivated'
             $ checkmark_visibility = '' if users_work_read_status else ' hidden'
-            $ checkmark = '<span class="activated-check">✓</span> ' if users_work_read_status else ''
 
-            <input id="" type="hidden" name="action" value="$(action_value)"/>
+            <input type="hidden" name="action" value="$(action_value)"/>
             <input type="hidden" name="redir" value="true"/>
-            <input id="" type="hidden" name="bookshelf_id" value="$(bookshelf_id_value)"/>
-            <input id="user-key" type="hidden" name="user-key" value="$(user_key)" />
-            <input id="default-key" type="hidden" name="default-key" value="$(key)" />
+            <input type="hidden" name="bookshelf_id" value="$(bookshelf_id_value)"/>
+            <input type="hidden" name="user-key" value="$(user_key)" />
+            <input type="hidden" name="default-key" value="$(key)" />
 
             <button class="book-progress-btn want-to-read $(activated_status)" type="submit">
-              $:(checkmark)$(message)
+              <span class="activated-check$(checkmark_visibility)">✓</span>
+              <span class="btn-text">$(message)</span>
             </button>
 
             $if edition_key:
@@ -49,35 +49,39 @@ $if ctx.user or not work_key:
         </div>
         <div class="dropdown">
           <div class="read-statuses">
-            $if users_work_read_status == 2 or users_work_read_status == 3:
-              <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
-                <input type="hidden" name="action" value="add"/>
-                <input type="hidden" name="redir" value="true"/>
-                <input type="hidden" name="bookshelf_id" value="1"/>
-                $if edition_key:
-                  <input type="hidden" name="edition_id" value="$(edition_key)"/>
-                <button class="nostyle-btn" type="submit">$_('Want to Read')</button>
-              </form>
+            $ classes = ['', '', '']
 
-            $if users_work_read_status != 2:
-              <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
-                <input type="hidden" name="action" value="add"/>
-                <input type="hidden" name="redir" value="true"/>
-                <input type="hidden" name="bookshelf_id" value="2"/>
-                $if edition_key:
-                  <input type="hidden" name="edition_id" value="$(edition_key)"/>
-                <button class="nostyle-btn" type="submit">$('Currently Reading')</button>
-              </form>
+            $if not users_work_read_status:
+              $ users_work_read_status = 1
 
-            $if users_work_read_status != 3:
-              <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
-                <input type="hidden" name="action" value="add"/>
-                <input type="hidden" name="redir" value="true"/>
-                <input type="hidden" name="bookshelf_id" value="3"/>
-                $if edition_key:
-                  <input type="hidden" name="edition_id" value="$(edition_key)"/>
-                <button class="nostyle-btn" type="submit">$_('Already Read')</button>
-              </form>
+            $ classes[int(users_work_read_status) - 1] = ' hidden'
+
+            <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
+              <input type="hidden" name="action" value="add"/>
+              <input type="hidden" name="redir" value="true"/>
+              <input type="hidden" name="bookshelf_id" value="1"/>
+              $if edition_key:
+                <input type="hidden" name="edition_id" value="$(edition_key)"/>
+              <button class="nostyle-btn$(classes[0])" type="submit">$_('Want to Read')</button>
+            </form>
+
+            <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
+              <input type="hidden" name="action" value="add"/>
+              <input type="hidden" name="redir" value="true"/>
+              <input type="hidden" name="bookshelf_id" value="2"/>
+              $if edition_key:
+                <input type="hidden" name="edition_id" value="$(edition_key)"/>
+              <button class="nostyle-btn$(classes[1])" type="submit">$('Currently Reading')</button>
+            </form>
+
+            <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
+              <input type="hidden" name="action" value="add"/>
+              <input type="hidden" name="redir" value="true"/>
+              <input type="hidden" name="bookshelf_id" value="3"/>
+              $if edition_key:
+                <input type="hidden" name="edition_id" value="$(edition_key)"/>
+              <button class="nostyle-btn$(classes[2])" type="submit">$_('Already Read')</button>
+            </form>
           </div>
 
           $if not reading_log_only:
