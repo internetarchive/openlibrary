@@ -1,4 +1,5 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
+
 import _init_path
 from openlibrary.data import dump
 
