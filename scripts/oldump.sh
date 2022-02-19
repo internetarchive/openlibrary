@@ -55,7 +55,7 @@ function log() {
 
 MSG="$USER has started $0 $1 $2 in $TMPDIR on ${HOSTNAME:-$HOST} at $(date)"
 log $MSG
-logger $MSG
+# logger $MSG  # logger is blocking the cron job
 
 # create a clean directory
 log "clean directory: $TMPDIR/dumps"
@@ -143,6 +143,6 @@ ls -lh
 
 MSG="$USER has completed $0 $1 $2 in $TMPDIR on ${HOSTNAME:-$HOST} at $(date)"
 echo $MSG
-logger $MSG
+# logger $MSG  # logger is blocking the cron job
 
 echo "done"
