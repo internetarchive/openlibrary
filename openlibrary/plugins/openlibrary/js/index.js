@@ -298,12 +298,14 @@ jQuery(function () {
         $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
     }
 
+    // "Want to Read" buttons:
     const droppers = document.getElementsByClassName('widget-add');
 
     if (droppers.length) {
         import(/* webpackChunkName: "lists" */ './lists')
             .then((module) => {
                 module.initDroppers(droppers);
+                // Removable list items:
                 const actionableListItems = document.querySelectorAll('.actionable-item')
                 module.registerListItems(actionableListItems);
             }

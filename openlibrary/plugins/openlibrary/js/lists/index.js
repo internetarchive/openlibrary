@@ -1,17 +1,40 @@
-import { createList, addToList, removeFromList, updateReadingLog } from './ListService'
+/**
+ * Defines code needed for the reading log/list dropper.
+ * @module lists/index
+ */
 
+import { createList, addToList, removeFromList, updateReadingLog } from './ListService'
+/**
+ * Maps a list key to an array of references to removeable list items.
+ */
 const actionableItems = {}
+
+/**
+ * @typedef ListData
+ * @type {object}
+ * @property {string} title - The list's title
+ * @property {string} anchor - A reference to the list's dropper link
+ */
+/**
+ * Maps a list key to an object containing the list's title and a reference
+ * to the list's dropper link.
+ *
+ * @type {Object.<string, ListData}
+ */
 const dropperLists = {}
 
+/**
+ * Add all necessary event listeners to the given collection of reading
+ * log droppers.
+ *
+ * @param {HTMLCollection} droppers Collection of reading log droppers.
+ */
 export function initDroppers(droppers) {
-    addListeners(droppers);
-}
-
-function addListeners(listComponents) {
-    for (const dropper of listComponents) {
+    for (const dropper of droppers) {
         const anchors = dropper.querySelectorAll('.add-to-list');
 
         for (const anchor of anchors) {
+            // Store reference to anchor and list title:
             dropperLists[anchor.dataset.listKey] = {
                 title: anchor.innerText,
                 element: anchor
@@ -19,9 +42,14 @@ function addListeners(listComponents) {
             addListClickListener(anchor, dropper);
         }
 
-        const createListButton = dropper.querySelector('.create-new-list')
-        if (createListButton) {
-            addCreateListClickListener(createListButton, dropper)
+        const openModalButton = dropper.querySelector('.create-new-list')
+        if (openModalButton) {
+            addOpenModalClickListener(openModalButton)
+
+            const createListButton = document.querySelector('#create-list-button')
+            if (createListButton) {
+                addCreateListClickListener(createListButton, dropper)
+            }
         }
 
         const submitButtons = dropper.querySelectorAll('button')
@@ -32,6 +60,14 @@ function addListeners(listComponents) {
     }
 }
 
+/**
+ * Adds click listeners to the given "add-to-list" link in the given dropper.
+ *
+ * On click the item is added to the list, and the view is updated.
+ *
+ * @param {HTMLAnchorElement} elem A link that adds an item to a list.
+ * @param {HTMLDivElement} parentDropper The link's parent dropper element.
+ */
 function addListClickListener(elem, parentDropper) {
     elem.addEventListener('click', function(event){
         event.preventDefault()
@@ -78,12 +114,24 @@ function addListClickListener(elem, parentDropper) {
     })
 }
 
+/**
+ * Toggles given dropper's expanded state.
+ *
+ * @param {HTMLDivElement} dropper A reading log button reference.
+ */
 function toggleDropper(dropper) {
     $(dropper).find('.dropdown').first().slideToggle(25);
     $(dropper).find('.arrow').first().toggleClass('up');
 }
 
-function addCreateListClickListener(submitButton, parentDropper) {
+/**
+ * Add listener to dropper's create list button.
+ *
+ * When pressed, a modal with the list creation form will open.
+ *
+ * @param {HTMLButtonElement} submitButton Dropper's create list button.
+ */
+function addOpenModalClickListener(submitButton) {
     submitButton.addEventListener('click', function(event) {
         event.preventDefault()
 
@@ -95,58 +143,76 @@ function addCreateListClickListener(submitButton, parentDropper) {
             onClosed: clearCreateListForm
         })
     })
-
-    const createListButton = document.querySelector('#create-list-button')
-    if (createListButton) {
-        const nameField = document.querySelector('#list_label');
-        const descriptionField = document.querySelector('#list_desc')
-        const workCheckBox = parentDropper.querySelector('.work-checkbox')
-        const hiddenWorkInput = parentDropper.querySelector('input[name=work_id]')
-        const hiddenKeyInput = parentDropper.querySelector('input[name=default-key]')
-        const hiddenUserInput = parentDropper.querySelector('input[name=user-key]')
-
-        createListButton.addEventListener('click', function(event){
-            // if form is valid:
-            if (nameField.checkValidity()) {
-                // prevent default button behavior
-                event.preventDefault()
-
-                let seed;
-                if (workCheckBox && workCheckBox.checked) {
-                    // seed is work key
-                    seed = hiddenWorkInput.value
-                } else {
-                    // seed is edition key
-                    seed = hiddenKeyInput.value
-                }
-
-                // Make call to create list
-                const data = {
-                    name: nameField.value,
-                    description: descriptionField.value,
-                    seeds: [seed],
-                }
-
-                const successCallback = function(listKey, listTitle) {
-                    // Add actionable item to view, map
-                    const li = updateAlreadyList(listKey, listTitle, '/images/icons/avatar_book-sm.png')
-                    actionableItems[listKey] = [li]
-                }
-
-                createList(hiddenUserInput.value, data, successCallback)
-
-                // Close colorbox
-                $.colorbox.close()
-            }
-        })
-    }
 }
 
+/**
+ * Adds click listener to the create list modal's submit button.
+ *
+ * When clicked the form is validated, a new list is created, and the
+ * item is added to the new list.
+ *
+ * @param {HTMLButtonElement} button The modal's submit button.
+ * @param {HTMLDivElement} parentDropper The dropper from which the modal was opened.
+ */
+function addCreateListClickListener(button, parentDropper) {
+    const nameField = document.querySelector('#list_label');
+    const descriptionField = document.querySelector('#list_desc')
+    const workCheckBox = parentDropper.querySelector('.work-checkbox')
+    const hiddenWorkInput = parentDropper.querySelector('input[name=work_id]')
+    const hiddenKeyInput = parentDropper.querySelector('input[name=default-key]')
+    const hiddenUserInput = parentDropper.querySelector('input[name=user-key]')
+
+    button.addEventListener('click', function(event){
+        // if form is valid:
+        if (nameField.checkValidity()) {
+            // prevent default button behavior
+            event.preventDefault()
+
+            let seed;
+            if (workCheckBox && workCheckBox.checked) {
+                // seed is work key
+                seed = hiddenWorkInput.value
+            } else {
+                // seed is edition key
+                seed = hiddenKeyInput.value
+            }
+
+            // Make call to create list
+            const data = {
+                name: nameField.value,
+                description: descriptionField.value,
+                seeds: [seed],
+            }
+
+            const successCallback = function(listKey, listTitle) {
+                // Add actionable item to view, map
+                const li = updateAlreadyList(listKey, listTitle, '/images/icons/avatar_book-sm.png')
+                actionableItems[listKey] = [li]
+            }
+
+            createList(hiddenUserInput.value, data, successCallback)
+
+            // Close colorbox
+            $.colorbox.close()
+        }
+    })
+}
+
+/**
+ * Clears the inputs of the "Create new list" modal form.
+ */
 function clearCreateListForm() {
     document.querySelector('#list_label').value = '';
     document.querySelector('#list_desc').value = '';
 }
 
+/**
+ * Adds click listener to the given reading log button.
+ *
+ * On click, the patron's reading log will be updated, and the dropper
+ * will be repainted with the new state.
+ * @param {HTMLButtonElement} button Adds click listener to the given reading log button.
+ */
 function addReadingLogButtonClickListener(button) {
     button.addEventListener('click', function(event) {
         event.preventDefault();
@@ -218,11 +284,15 @@ function addReadingLogButtonClickListener(button) {
         }
 
         updateReadingLog(form, success)
-
     })
-
 }
 
+/**
+ * Adds click listeners to the given list items.
+ *
+ * Stores references to each given list item.
+ * @param {HTMLCollection} listItemElements Collection of removeable list item elements.
+ */
 export function registerListItems(listItemElements) {
     for (const elem of listItemElements) {
         addRemoveClickListener(elem);
@@ -239,6 +309,15 @@ export function registerListItems(listItemElements) {
     }
 }
 
+/**
+ * Adds click listeners to the "[X]" anchor element of each given
+ * removeable list item.
+ *
+ * On click, the item will be removed from the associated list, and all
+ * corresponding removeable list item elements will be removed.
+ *
+ * @param {HTMLLIElement} elem A list item element that can be removed.
+ */
 function addRemoveClickListener(elem) {
     const label = elem.querySelector('.label');
     const anchors = label.querySelectorAll('a');
@@ -276,6 +355,15 @@ function addRemoveClickListener(elem) {
     })
 }
 
+/**
+ * Creates a new add-to-list dropper link element, attaches new element to the DOM,
+ * and adds click listener to the element.
+ *
+ * @param {string} listKey The list's key, in the form "/people/{username}/lists/{list OLID}"
+ * @param {string} listTitle The list's title
+ * @param {string} coverUrl The list's cover image URL
+ * @returns {HTMLParagraphElement} The newly created add-to-list link.
+ */
 function updateDropperList(listKey, listTitle, coverUrl) {
     const itemMarkUp = `<a href="${listKey}" class="add-to-list" data-list-cover-url="${coverUrl}" data-list-key="${listKey}">${listTitle}</a>`
 
@@ -289,12 +377,22 @@ function updateDropperList(listKey, listTitle, coverUrl) {
     return p
 }
 
-function updateAlreadyList(listKey, listTitle, listUrl) {
+/**
+ * Creates a new removeable list item element, attaches new element to the DOM, and adds click
+ * listener to the element.
+ *
+ * @param {string} listKey    The list's key, in the form of "/people/{username}/lists/{list OLID}"
+ * @param {string} listTitle  The name of the list.
+ * @param {string} coverUrl   Location of the list's cover image.
+ *
+ * @returns {HTMLLIElement} The newly created list item element.
+ */
+function updateAlreadyList(listKey, listTitle, coverUrl) {
     const alreadyLists = document.querySelector('.already-lists');
     const splitKey = listKey.split('/')
     const userKey = `/${splitKey[1]}/${splitKey[2]}`
     const itemMarkUp = `<span class="image">
-          <a href="${listKey}"><img src="${listUrl}" alt="Cover of: ${listTitle}" title="Cover of: ${listTitle}"/></a>
+          <a href="${listKey}"><img src="${coverUrl}" alt="Cover of: ${listTitle}" title="Cover of: ${listTitle}"/></a>
         </span>
         <span class="data">
             <span class="label">
