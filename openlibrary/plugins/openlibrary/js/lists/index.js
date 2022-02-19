@@ -4,6 +4,8 @@
  */
 
 import { createList, addToList, removeFromList, updateReadingLog } from './ListService'
+import { websafe } from '../jsdef'
+
 /**
  * Maps a list key to an array of references to removeable list items.
  */
@@ -180,7 +182,7 @@ function addCreateListClickListener(button, parentDropper) {
             // Make call to create list
             const data = {
                 name: nameField.value,
-                description: descriptionField.value,
+                description: websafe(descriptionField.value),
                 seeds: [seed],
             }
 
