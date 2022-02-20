@@ -98,7 +98,7 @@ export default class LazyBookCard {
                     const coverId = editionRecord.covers.find(x => x !== -1);
                     if (coverId) {
                         cardEl.updateState({
-                            coverSrc: `http://covers.openlibrary.org/b/id/${coverId}-M.jpg`,
+                            coverSrc: `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`,
                         });
                     }
                 }
