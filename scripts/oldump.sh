@@ -96,7 +96,7 @@ if [[ -z $OLDUMP_TESTING ]]; then
 fi
 
 echo "generating the dump -- takes approx. 485 minutes for 173,000,000+ records..."
-time gzip -cd $cdump.txt.gz | python $SCRIPTS/oldump.py sort --tmpdir $TMPDIR | python $SCRIPTS/oldump.py dump | gzip -c > $dump.txt.gz
+time gzip -cd $cdump.txt.gz | $SCRIPTS/oldump.py sort --tmpdir $TMPDIR | $SCRIPTS/oldump.py dump | gzip -c > $dump.txt.gz
 echo "generated $dump.txt.gz"
 ls -lhR
 
@@ -104,7 +104,7 @@ ls -lhR
 rm -rf $TMPDIR/oldumpsort
 
 echo "splitting the dump: ol_dump_%s_$date.txt.gz -- takes approx. 85 minutes for 68,000,000+ records..."
-time gzip -cd $dump.txt.gz | python $SCRIPTS/oldump.py split --format ol_dump_%s_$date.txt.gz
+time gzip -cd $dump.txt.gz | $SCRIPTS/oldump.py split --format ol_dump_%s_$date.txt.gz
 echo "done"
 
 mkdir -p $dump $cdump
@@ -138,7 +138,7 @@ log "generating sitemaps"
 rm -fr $TMPDIR/sitemaps
 mkdir -p $TMPDIR/sitemaps
 cd $TMPDIR/sitemaps
-time python $SCRIPTS/sitemaps/sitemap.py $TMPDIR/dumps/$dump/$dump.txt.gz > sitemaps.log
+time $SCRIPTS/sitemaps/sitemap.py $TMPDIR/dumps/$dump/$dump.txt.gz > sitemaps.log
 ls -lh
 
 MSG="$USER has completed $0 $1 $2 in $TMPDIR on ${HOSTNAME:-$HOST} at $(date)"
