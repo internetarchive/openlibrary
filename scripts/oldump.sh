@@ -39,6 +39,8 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
+PATH="/home/openlibrary/.pyenv/plugins/pyenv-virtualenv/shims:/home/openlibrary/.pyenv/bin:$PATH"
+PYTHON=$(pyenv which python3.9)
 SCRIPTS=/openlibrary/scripts
 PSQL_PARAMS=${PSQL_PARAMS:-"-h db openlibrary"}
 TMPDIR=${TMPDIR:-/openlibrary/dumps}
@@ -83,7 +85,7 @@ ls -lhR  # data.txt.gz is 29G
 # generate cdump, sort and generate dump
 log "generating $cdump.txt.gz -- takes approx. 500 minutes for 192,000,000+ records..."
 # if $OLDUMP_TESTING has been exported then `oldump.py cdump` will only process a subset.
-time $SCRIPTS/oldump.py cdump data.txt.gz $date | gzip -c > $cdump.txt.gz
+time $PYTHON $SCRIPTS/oldump.py cdump data.txt.gz $date | gzip -c > $cdump.txt.gz
 log "generated $cdump.txt.gz"
 ls -lhR  # ol_cdump_2021-11-14.txt.gz is 25G
 
@@ -96,7 +98,7 @@ if [[ -z $OLDUMP_TESTING ]]; then
 fi
 
 echo "generating the dump -- takes approx. 485 minutes for 173,000,000+ records..."
-time gzip -cd $cdump.txt.gz | $SCRIPTS/oldump.py sort --tmpdir $TMPDIR | $SCRIPTS/oldump.py dump | gzip -c > $dump.txt.gz
+time gzip -cd $cdump.txt.gz | $PYTHON $SCRIPTS/oldump.py sort --tmpdir $TMPDIR | $PYTHON $SCRIPTS/oldump.py dump | gzip -c > $dump.txt.gz
 echo "generated $dump.txt.gz"
 ls -lhR
 
@@ -104,7 +106,7 @@ ls -lhR
 rm -rf $TMPDIR/oldumpsort
 
 echo "splitting the dump: ol_dump_%s_$date.txt.gz -- takes approx. 85 minutes for 68,000,000+ records..."
-time gzip -cd $dump.txt.gz | $SCRIPTS/oldump.py split --format ol_dump_%s_$date.txt.gz
+time gzip -cd $dump.txt.gz | $PYTHON $SCRIPTS/oldump.py split --format ol_dump_%s_$date.txt.gz
 echo "done"
 
 mkdir -p $dump $cdump
@@ -138,7 +140,7 @@ log "generating sitemaps"
 rm -fr $TMPDIR/sitemaps
 mkdir -p $TMPDIR/sitemaps
 cd $TMPDIR/sitemaps
-time $SCRIPTS/sitemaps/sitemap.py $TMPDIR/dumps/$dump/$dump.txt.gz > sitemaps.log
+time $PYTHON $SCRIPTS/sitemaps/sitemap.py $TMPDIR/dumps/$dump/$dump.txt.gz > sitemaps.log
 ls -lh
 
 MSG="$USER has completed $0 $1 $2 in $TMPDIR on ${HOSTNAME:-$HOST} at $(date)"
