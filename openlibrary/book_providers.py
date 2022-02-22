@@ -81,7 +81,9 @@ class InternetArchiveProvider(AbstractBookProvider):
 
     def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
         # Solr work record augmented with availability
-        if ed_or_solr.get('availability', {}).get('identifier'):
+        # Sometimes it's set explicitly to None, for some reason
+        availability = ed_or_solr.get('availability', {}) or {}
+        if availability.get('identifier'):
             return [ed_or_solr['availability']['identifier']]
 
         # Edition
