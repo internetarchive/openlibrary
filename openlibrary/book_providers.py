@@ -178,7 +178,7 @@ def get_cover_url(ed_or_solr: Union[Edition, dict]) -> Optional[str]:
         return cover.url(size) if cover else None
 
     # Solr document augmented with availability
-    availability = ed_or_solr.get('availability', {})
+    availability = ed_or_solr.get('availability', {}) or {}
 
     if availability.get('openlibrary_edition'):
         olid = availability.get('openlibrary_edition')
