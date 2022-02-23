@@ -287,10 +287,6 @@ def get_available(
         sorts=sorts,
     )
     if not url:
-        fmt = (
-            "get_available(limit={}, page={}, subject={}, query={}, "
-            "work_id={}, _type={}, sorts={}"
-        )
         logger.error(
             'get_available failed',
             extra={
@@ -299,7 +295,7 @@ def get_available(
                 'subject': subject,
                 'query': query,
                 'work_id': work_id,
-                '_type': _type,
+                'type': _type,
                 'sorts': sorts,
             },
         )
