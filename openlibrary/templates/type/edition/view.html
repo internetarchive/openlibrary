@@ -184,6 +184,8 @@ $if is_privileged_user:
       $:macros.StarRatingsStats(work)
       $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
 
+      <a name="edition-overview"></a>
+      $:macros.EditionNavBar(work.edition_count, show_observations)
       <div class="edition-omniline">
         $:render_template("type/edition/publisher_line", edition)
 
@@ -225,8 +227,6 @@ $if is_privileged_user:
         </div>
         $:macros.ReadMore("subjects")
     </div>
-      $:macros.EditionNavBar(work.edition_count, show_observations)
-
       $if ebooks_only:
         <p>
           $ungettext("Showing one ebook only.", "Showing %(count)d ebooks only", len(editions), count=len(editions)) <a href="?mode=all">$_("View all %(count)d editions?", count=work.edition_count)</a>
@@ -247,7 +247,6 @@ $if is_privileged_user:
       $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
       $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
 
-      <a name="work-details" class="section-anchor"></a>
       <div class="tab-section work-info">
         <h2 class="work-title"><a href="$work.key">$work_title</a></h2>
           $if work and work.subtitle:
