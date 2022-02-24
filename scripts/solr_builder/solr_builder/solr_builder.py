@@ -16,11 +16,10 @@ import psycopg2
 
 from openlibrary.core import ia
 from openlibrary.solr import update_work
-from openlibrary.solr.data_provider import DataProvider
+from openlibrary.solr.data_provider import IA_METADATA_FIELDS, DataProvider
 from openlibrary.solr.update_work import load_configs, update_keys
 
 logger = logging.getLogger("openlibrary.solr-builder")
-LITE_METADATA_FIELDS = ('identifier', 'boxid', 'collection')
 OCAID_PATTERN = re.compile(r'^[^\s&#?/]+$')
 
 
@@ -238,7 +237,7 @@ class LocalPostgresDataProvider(DataProvider):
                     params={
                         'q': f"identifier:({' OR '.join(ocaids)})",
                         'rows': len(ocaids),
-                        'fl': ','.join(LITE_METADATA_FIELDS),
+                        'fl': ','.join(IA_METADATA_FIELDS),
                         'page': 1,
                         'output': 'json',
                         'save': 'yes',
@@ -276,7 +275,7 @@ class LocalPostgresDataProvider(DataProvider):
             if 'error' not in response:
                 lite_metadata = {
                     key: response['result'][key]
-                    for key in LITE_METADATA_FIELDS
+                    for key in IA_METADATA_FIELDS
                     if key in response['result']
                 }
                 return lite_metadata

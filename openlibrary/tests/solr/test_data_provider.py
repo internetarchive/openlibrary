@@ -10,7 +10,6 @@ class TestBetterDataProvider:
         dp = BetterDataProvider(
             site=mock_site,
             db=MagicMock(),
-            ia_db=MagicMock(),
         )
         mock_site.get_many.return_value = [
             Thing(
@@ -33,7 +32,6 @@ class TestBetterDataProvider:
         dp = BetterDataProvider(
             site=mock_site,
             db=MagicMock(),
-            ia_db=MagicMock(),
         )
         mock_site.get_many.return_value = [
             Thing(

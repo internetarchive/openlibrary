@@ -17,14 +17,11 @@ from openlibrary.core import ia
 
 logger = logging.getLogger("openlibrary.solr.data_provider")
 
-global ia_database
+IA_METADATA_FIELDS = ('identifier', 'boxid', 'collection')
 
 
-def get_data_provider(type="default", ia_db=''):
-    global ia_database
-    ia_database = ia_db
-    """Returns the data provider of given type.
-    """
+def get_data_provider(type="default"):
+    """Returns the data provider of given type."""
     if type == "default":
         return BetterDataProvider()
     elif type == "legacy":
@@ -173,8 +170,14 @@ class BetterDataProvider(LegacyDataProvider):
         self,
         site: Site = None,
         db: DB = None,
-        ia_db: DB = None,
     ):
+        """Test with
+        import web; import infogami
+        from openlibrary.config import load_config
+        load_config('/openlibrary/config/openlibrary.yml')
+        infogami._setup()
+        from infogami import config
+        """
         LegacyDataProvider.__init__(self)
 
         # cache for documents
@@ -202,45 +205,50 @@ class BetterDataProvider(LegacyDataProvider):
         else:
             self.db = db
 
-        # self.ia_db = get_ia_db
-        # Ignore mypy because it can't find ia_database for some reason :/
-        self.ia_db: DB = ia_db or ia_database  # type: ignore
-
     def get_metadata(self, identifier):
-        """Alternate implementation of ia.get_metadata() that uses IA db directly."""
+        """Alternate implementation of ia.get_metadata() that uses ES."""
         logger.info("get_metadata %s", identifier)
+        # ES will fail for no-scope items, we should have
+        # a role-user (creds) which accesses noindex
         self.preload_metadata([identifier])
-        if self.metadata_cache.get(identifier):
-            d = web.storage(self.metadata_cache[identifier])
-            d.publisher = d.publisher and d.publisher.split(";")
-            d.collection = d.collection and d.collection.split(";")
-            d.isbn = d.isbn and d.isbn.split(";")
-            d.creator = d.creator and d.creator.split(";")
-            return d
+        if not self.metadata_cache.get(identifier):
+            md = {
+                k: v
+                for (k, v) in ia.get_metadata(identifier).items()
+                if k in IA_METADATA_FIELDS
+            }
+            self.metadata_cache[identifier] = md
+        return web.storage(self.metadata_cache[identifier])
 
-    def preload_metadata(self, identifiers):
+    def preload_metadata(self, identifiers: list[str]):
         identifiers = [id for id in identifiers if id not in self.metadata_cache]
-        if not (identifiers and self.ia_db):
-            return
 
         logger.info("preload_metadata %s", identifiers)
 
-        fields = (
-            'identifier, boxid, isbn, '
-            + 'title, description, publisher, creator, '
-            + 'date, collection, '
-            + 'repub_state, mediatype, noindex'
+        if not identifiers:
+            return
+
+        r = requests.get(
+            "https://archive.org/advancedsearch.php",
+            params={
+                'q': f"identifier:({' OR '.join(identifiers)})",
+                'rows': str(len(identifiers)),
+                'fl': ','.join(IA_METADATA_FIELDS),
+                'page': '1',
+                'output': 'json',
+                'save': 'yes',
+            },
         )
 
-        rows = self.ia_db.select(
-            'metadata', what=fields, where='identifier IN $identifiers', vars=locals()
-        )
+        if r.status_code == 200:
+            print(r.json())
+            rows = r.json()['response']['docs']
+            for row in rows:
+                row = web.storage(row)
+                self.metadata_cache[row.identifier] = row
 
-        for row in rows:
-            self.metadata_cache[row.identifier] = row
-
-        for id in identifiers:
-            self.metadata_cache.setdefault(id, None)
+        for identifier in identifiers:
+            self.metadata_cache.setdefault(identifier, None)
 
     def get_document(self, key):
         # logger.info("get_document %s", key)
