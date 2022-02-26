@@ -560,7 +560,7 @@ class SolrProcessor:
         zdata = ZipFile(BytesIO(requests.get(url).content))
         ia_wishlist_set = {line.strip() for line in zdata.open(zdata.namelist()[0]).readlines()}
         return ia_wishlist_set
-    
+
     def build_data(self, w, editions, subjects, has_fulltext):
         """
         Get the Solr document to insert for the provided work.
@@ -652,10 +652,9 @@ class SolrProcessor:
         if ddcs:
             add_list("ddc", ddcs)
             add("ddc_sort", choose_sorting_ddc(ddcs))
-       
-        
+
         add_list("isbn", self.get_isbns(editions))
-                   
+
         ia_wishlist = self.get_editions_on_ia_wishlist(editions)
         if ia_wishlist:
             add_list("ia_wishlist", ia_wishlist)
@@ -712,7 +711,7 @@ class SolrProcessor:
         :param list[dict] editions: editions
         :rtype: lst[str]
         """
-        ia_wishlist_set = self.get_ia_wishlist() 
+        ia_wishlist_set = self.get_ia_wishlist()
         ia_wishlist = []
         for e in edition:           
             isbn13s = {
@@ -725,8 +724,8 @@ class SolrProcessor:
                     ia_wishlist.append(re_edition_key.match(e['key']).group(1))
                     break
         return ia_wishlist
-                   
-                   
+
+
     def get_isbns(self, editions):
         """
         Get all ISBNs of the given editions. Calculates complementary ISBN13 for each ISBN10 and vice-versa.
