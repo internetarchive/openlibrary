@@ -7,6 +7,8 @@ from json import JSONDecodeError
 from math import ceil
 from statistics import median
 from typing import Literal, List, Optional, cast, TypedDict, Set, Dict, Any, Union
+from io import BytesIO
+from zipfile import ZipFile
 
 import httpx
 import requests
@@ -552,6 +554,13 @@ class SolrProcessor:
                 )
         return subjects
 
+    @staticmethod
+    def get_ia_wishlist():
+        url = "https://archive.org/download/open_libraries_wish_list/wishlist_isbn13_v6.csv.zip"
+        zdata = ZipFile(BytesIO(requests.get().content))
+        ia_wishlist_set = set([line.strip() for line in zdata.open(zdata.namelist()[0]).readlines()])
+        return ia_wishlist_set
+    
     def build_data(self, w, editions, subjects, has_fulltext):
         """
         Get the Solr document to insert for the provided work.
@@ -643,8 +652,16 @@ class SolrProcessor:
         if ddcs:
             add_list("ddc", ddcs)
             add("ddc_sort", choose_sorting_ddc(ddcs))
-
+       
+        data = set(line.replace('\n', '').strip() for line in zdata.open(zdata.namelist()[0]).readline())
+        data = set(zdata.open(zdata.namelist()[0]).readlines()
+        
         add_list("isbn", self.get_isbns(editions))
+                   
+        ia_wishlist = self.get_editions_on_ia_wishlist(editions)
+        if ia_wishlist:
+            add_list("ia_wishlist", ia_wishlist)
+
         add("last_modified_i", self.get_last_modified(w, editions))
 
         self.add_ebook_info(d, editions)
@@ -692,6 +709,26 @@ class SolrProcessor:
             if e.get('subtitle') and e['subtitle'] != subtitle
         }
 
+    def get_editions_on_ia_wishlist(self, editions):
+        """
+        :param list[dict] editions: editions
+        :rtype: lst[str]
+        """
+        ia_wishlist_set = self.get_ia_wishlist() 
+        ia_wishlist = []
+        for e in edition:           
+            isbn13s = set([
+                isbn.replace("_", "").strip()
+                for isbn in e.get("isbn_10", []) + e.get("isbn_13", [])
+            ])
+            for isbn in isbn13s:
+                isbn13 = isbn if len(str(isbn)) == 13 else opposite_isbn(isbn)
+                if isbn13 and isbn_13 in ia_wishlist_set:
+                    ia_wishlist.append(re_edition_key.match(e['key']).group(1))
+                    break
+        return ia_wishlist
+                   
+                   
     def get_isbns(self, editions):
         """
         Get all ISBNs of the given editions. Calculates complementary ISBN13 for each ISBN10 and vice-versa.
