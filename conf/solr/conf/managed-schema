@@ -162,6 +162,7 @@
     <field name="ia_box_id" type="string" multiValued="true"/>
     <field name="ia_loaded_id" type="string" multiValued="true"/>
     <field name="ia_count" type="pint"/>
+    <field name="ia_wishlist" type="string" multiValued="true"/>
     <field name="oclc" type="text_en_splitting" multiValued="true"/>
     <field name="isbn" type="string" multiValued="true"/>
 
