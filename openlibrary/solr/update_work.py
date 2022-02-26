@@ -713,7 +713,7 @@ class SolrProcessor:
         """
         ia_wishlist_set = self.get_ia_wishlist()
         ia_wishlist = []
-        for e in edition:           
+        for e in edition:
             isbn13s = {
                 isbn.replace("_", "").strip()
                 for isbn in e.get("isbn_10", []) + e.get("isbn_13", [])
