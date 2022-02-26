@@ -557,7 +557,7 @@ class SolrProcessor:
     @staticmethod
     def get_ia_wishlist():
         url = "https://archive.org/download/open_libraries_wish_list/wishlist_isbn13_v6.csv.zip"
-        zdata = ZipFile(BytesIO(requests.get().content))
+        zdata = ZipFile(BytesIO(requests.get(url).content))
         ia_wishlist_set = set([line.strip() for line in zdata.open(zdata.namelist()[0]).readlines()])
         return ia_wishlist_set
     
@@ -653,8 +653,6 @@ class SolrProcessor:
             add_list("ddc", ddcs)
             add("ddc_sort", choose_sorting_ddc(ddcs))
        
-        data = set(line.replace('\n', '').strip() for line in zdata.open(zdata.namelist()[0]).readline())
-        data = set(zdata.open(zdata.namelist()[0]).readlines()
         
         add_list("isbn", self.get_isbns(editions))
                    
