@@ -713,14 +713,14 @@ class SolrProcessor:
         """
         ia_wishlist_set = self.get_ia_wishlist()
         ia_wishlist = []
-        for e in edition:
+        for e in editions:
             isbn13s = {
                 isbn.replace("_", "").strip()
                 for isbn in e.get("isbn_10", []) + e.get("isbn_13", [])
             }
             for isbn in isbn13s:
                 isbn13 = isbn if len(str(isbn)) == 13 else opposite_isbn(isbn)
-                if isbn13 and isbn_13 in ia_wishlist_set:
+                if isbn13 and isbn13 in ia_wishlist_set:
                     ia_wishlist.append(re_edition_key.match(e['key']).group(1))
                     break
         return ia_wishlist
