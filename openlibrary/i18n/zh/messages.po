@@ -253,7 +253,7 @@ msgid ""
 "Please enter your <a href=\"https://archive.org\">Internet Archive</a> email "
 "and password to access your Open Library account."
 msgstr ""
-"请输入您的电子邮箱地址和密码 <a " 
+"请输入您的电子邮箱地址和密码 <a "
 "href=\"https://archive.org\">Internet Archive</a> 以进入您的开放图书馆账号。"
 
 #: account/create.html:46 login.html:18
@@ -396,7 +396,7 @@ msgstr "地点"
 #: type/author/view.html:163 type/list/view.html:274 work_search.html:69
 msgid "People"
 msgstr "人物"
-	
+
 #: SubjectTags.html:29 subjects.html:9 type/list/view.html:276
 #: work_search.html:71
 msgid "Times"
@@ -408,12 +408,12 @@ msgstr "时间"
 msgid "1 work"
 msgid_plural "%(count)d works"
 msgstr[0] "1份作品"
-msgstr[1] "%(count)d 份作品"	
+msgstr[1] "%(count)d 份作品"
 
 #: subjects.html:22
 #, python-format
 msgid "Search for books with subject %(name)s."
-msgstr "搜索有 %(name)s 主题的作品。"	
+msgstr "搜索有 %(name)s 主题的作品。"
 
 #: authors/index.html:20 lib/nav_head.html:92 lib/search_head.html:24
 #: lists/home.html:25 publishers/notfound.html:19 publishers/view.html:115
@@ -426,7 +426,7 @@ msgstr "搜索"
 	
 #: publishers/view.html:32 subjects.html:37
 msgid "Publishing History"
-msgstr "出版历史"	
+msgstr "出版历史"
 
 #: subjects.html:39
 msgid ""
@@ -447,7 +447,7 @@ msgstr "重置图表"
 #: publishers/view.html:34 subjects.html:40
 msgid "or continue zooming in."
 msgstr "或继续缩放。"
-	
+
 #: subjects.html:41
 msgid "This graph charts editions published on this subject."
 msgstr "这张图表记录了这一主题出版的版本。"
