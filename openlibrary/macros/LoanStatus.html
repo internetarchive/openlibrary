@@ -106,7 +106,7 @@ $elif availability.get('is_lendable'):
     </div>
   $if secondary_action:
     $:macros.BookPreview(ocaid, linkback=not no_index)
-    
+
 $elif ('eligibility' in doc) or (check_sponsorship and not ocaid and not availability.get('is_lendable')):
   $ sponsorship = doc.get('eligibility') if 'eligibility' in doc else qualifies_for_sponsorship(doc, donate_only=True)
   $if sponsorship.get('is_eligible'):
@@ -119,7 +119,7 @@ $elif ('eligibility' in doc) or (check_sponsorship and not ocaid and not availab
         $_("We don't have this book yet. Can you donate it to the Lending Library?")
         <a href="https://openlibrary.org/bookdrive" target="_blank">$_('Learn More')</a>
       </p>
-     
+
 $elif ocaid and availability.get('is_previewable') and book_provider.short_name == 'ia':
   $:macros.BookPreview(ocaid, linkback=not no_index)
   $if secondary_action:
