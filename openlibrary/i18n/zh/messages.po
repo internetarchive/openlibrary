@@ -423,7 +423,7 @@ msgstr "搜索有 %(name)s 主题的作品。"
 #: work_search.html:84
 msgid "Search"
 msgstr "搜索"
-	
+
 #: publishers/view.html:32 subjects.html:37
 msgid "Publishing History"
 msgstr "出版历史"
@@ -439,10 +439,10 @@ msgstr ""
 "X轴上是时间，Y轴上是出版版本的数量。"
 "<a href=\"#subjectRelated\">点击这里跳过此"
 "图表</a>。"
-	
+
 #: publishers/view.html:34 subjects.html:40
 msgid "Reset chart"
-msgstr "重置图表"	
+msgstr "重置图表"
 
 #: publishers/view.html:34 subjects.html:40
 msgid "or continue zooming in."
