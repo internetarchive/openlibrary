@@ -780,3 +780,219 @@ msgstr "搜索包含 \"%s\" 短语的书籍？"
 #: work_search.html:194
 msgid "Zoom In"
 msgstr "放大"
+
+#: work_search.html:195
+msgid "Focus your results using these"
+msgstr "使用这些来集中您的搜索结果"
+
+#: work_search.html:195
+msgid "filters"
+msgstr "过滤"
+
+#: work_search.html:207
+msgid "Merge duplicate authors from this search"
+msgstr "合并本次搜索中的重复作者"
+
+#: type/work/editions.html:17 work_search.html:207
+msgid "Merge duplicates"
+msgstr "合并重复的内容"
+
+#: work_search.html:219
+msgid "yes"
+msgstr "是"
+
+#: work_search.html:221
+msgid "no"
+msgstr "否"
+
+#: work_search.html:222
+msgid "Filter results for ebook availability"
+msgstr "可获得的电子书的筛选结果"
+
+#: work_search.html:224
+#, python-format
+msgid "Filter results for %(facet)s"
+msgstr "%(facet)s的筛选结果"
+
+#: work_search.html:229
+msgid "more"
+msgstr "更多"
+
+#: work_search.html:233
+msgid "less"
+msgstr "更少"
+
+#: account/books.html:17
+msgid "My Books"
+msgstr "我的书籍"
+
+#: account/books.html:35 account/books.html:111 type/user/view.html:50
+#: type/user/view.html:55
+msgid "Reading Log"
+msgstr "阅读日志"
+
+#: account/books.html:37
+#, python-format
+msgid "Books %(username)s is reading"
+msgstr "%(username)s正在阅读的书籍"
+
+#: account/books.html:38
+#, python-format
+msgid ""
+"%(username)s is reading %(total)d books. Join %(username)s on OpenLibrary."
+"org and tell the world what you're reading."
+msgstr ""
+"%(username)s正在阅读%(total)d本书。在 OpenLibrary.org 加入%(username)s"
+"并告诉世界您正在阅读什么吧。"
+
+#: account/books.html:40
+#, python-format
+msgid "Books %(username)s wants to read"
+msgstr "%(username)s想要阅读的书籍"
+
+#: account/books.html:41
+#, python-format
+msgid ""
+"%(username)s wants to read %(total)d books. Join %(username)s on OpenLibrary."
+"org and share the books that you'll soon be reading!"
+msgstr ""
+"%(username)s想要阅读%(total)d本书。在 OpenLibrary.org 加入%(username)s"
+"并分享您即将阅读的书籍吧！"
+
+#: account/books.html:43
+#, python-format
+msgid "Books %(username)s has read"
+msgstr "%(username)s已经读过的书籍"
+
+#: account/books.html:44
+#, python-format
+msgid ""
+"%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org "
+"and tell the world about the books that you care about."
+msgstr ""
+"%(username)s已经读了%(total)d本书。在 OpenLibrary.org 加入%(username)s"
+"并告诉世界您所在乎的书吧。"
+
+#: account/books.html:46 account/books.html:119
+msgid "Sponsorships"
+msgstr "赞助"
+
+#: account/books.html:48
+#, python-format
+msgid "Books %(userdisplayname)s is sponsoring"
+msgstr "%(userdisplayname)s正在赞助的书籍"
+
+#: account/books.html:51
+msgid "Book Notes"
+msgstr "书籍笔记"
+
+#: account/books.html:55
+msgid "Observations"
+msgstr "观察"
+
+#: account/books.html:89 account/readinglog_stats.html:97 admin/index.html:19
+msgid "Stats"
+msgstr "统计"
+
+#: account/books.html:95
+msgid "Your book notes are private and cannot be viewed by other patrons."
+msgstr ""
+"您的书籍笔记是私密的，其他用户无法看到。"
+
+#: account/books.html:97
+msgid "Your book observations will be shared anonymously with other patrons."
+msgstr ""
+"您的书籍观察将以匿名方式分享给其他用户。"
+
+#: account/books.html:100
+msgid "Your reading log is currently set to public"
+msgstr "您的阅读日志目前被设置为公开"
+
+#: account/books.html:103
+msgid "Your reading log is currently set to private"
+msgstr ""您的阅读日志目前被设置为私密
+
+#: account/books.html:105 type/user/view.html:57
+msgid "Manage your privacy settings"
+msgstr "管理您的隐私设置"
+
+#: account/books.html:112
+#, python-format
+msgid "Currently Reading (%(count)d)"
+msgstr "目前(%(count)d)份阅读"
+
+#: account/books.html:113
+#, python-format
+msgid "Want to Read (%(count)d)"
+msgstr "(%(count)d)份阅读的"
+
+#: account/books.html:114
+#, python-format
+msgid "Already Read (%(count)d)"
+msgstr "(%(count)d)份已经阅读的"
+
+#: account/books.html:124 lib/nav_head.html:32 lib/nav_head.html:86
+#: lib/search_head.html:70 lists/home.html:7 lists/home.html:10
+#: lists/widget.html:261 recentchanges/index.html:41 search/lists.html:10
+#: type/list/embed.html:27 type/list/view.html:50 type/user/view.html:35
+#: type/user/view.html:66
+msgid "Lists"
+msgstr "清单"
+
+#: account/books.html:131
+msgid "Notes & Observations"
+msgstr "笔记和观察"
+
+#: account/books.html:132
+#, python-format
+msgid "My notes (%(count)d)"
+msgstr "我的笔记(%(count)d)"
+
+#: account/books.html:133
+#, python-format
+msgid "My observations (%(count)d)"
+msgstr "我的观察(%(count)d)"
+
+#: account/books.html:136
+msgid "Import / Export"
+msgstr "导入 / 导出"
+
+#: account/books.html:137
+msgid "Import & Export Options"
+msgstr "导入和导出选项"
+
+#: account/books.html:146 search/sort_options.html:7
+msgid "Sorting by"
+msgstr "排序为"
+
+#: account/books.html:148 account/books.html:152
+msgid "Date Added (newest)"
+msgstr "添加日期（最新）"
+
+#: account/books.html:150 account/books.html:154
+msgid "Date Added (oldest)"
+msgstr "添加日期（最早）"
+
+#: account/books.html:176
+msgid "No books are on this shelf"
+msgstr "这个书架是空的"
+
+#: account/borrow.html:7 account/borrow.html:72
+msgid "Books You've Checked Out"
+msgstr "您已借阅的书籍"
+
+#: account/borrow.html:52
+msgid ""
+"You have 5 ebooks out at the moment. That's the limit! You can free up slots "
+"by returning books early."
+msgstr ""
+"您目前已经借阅了5本电子书。已经达到限度了！"
+"您可以通过提前归还书籍来腾出额度。"
+
+#: account/borrow.html:74
+msgid "You've not checked out any books at this moment."
+msgstr "您目前还没有借阅任何书籍。"
+
+#: account/borrow.html:85
+msgid "Loan actions"
+msgstr "租借举动"
