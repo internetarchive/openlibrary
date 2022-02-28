@@ -60,7 +60,7 @@ class public_my_books_json(delegate.page):
                     'work': {
                         'title': w.get('title'),
                         'key': w.key,
-                        'author_keys': [a.author.get("key") for a in w.get('authors', []) if a.author], 
+                        'author_keys': [a.author.get("key") for a in w.get('authors', []) if a.author],
                         'author_names': [
                             str(a.author.name) for a in w.get('authors', [])
                         ],
