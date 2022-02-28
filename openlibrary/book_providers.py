@@ -81,7 +81,9 @@ class InternetArchiveProvider(AbstractBookProvider):
 
     def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
         # Solr work record augmented with availability
-        if ed_or_solr.get('availability', {}).get('identifier'):
+        # Sometimes it's set explicitly to None, for some reason
+        availability = ed_or_solr.get('availability', {}) or {}
+        if availability.get('identifier'):
             return [ed_or_solr['availability']['identifier']]
 
         # Edition
@@ -144,12 +146,21 @@ class StandardEbooksProvider(AbstractBookProvider):
         return False
 
 
+class OpenStaxProvider(AbstractBookProvider):
+    short_name = 'openstax'
+    identifier_key = 'openstax'
+
+    def is_own_ocaid(self, ocaid: str) -> bool:
+        return False
+
+
 PROVIDER_ORDER: list[AbstractBookProvider] = [
     # These providers act essentially as their own publishers, so link to the first when
     # we're on an edition page
     LibriVoxProvider(),
     ProjectGutenbergProvider(),
     StandardEbooksProvider(),
+    OpenStaxProvider(),
     # Then link to IA
     InternetArchiveProvider(),
 ]
@@ -167,7 +178,7 @@ def get_cover_url(ed_or_solr: Union[Edition, dict]) -> Optional[str]:
         return cover.url(size) if cover else None
 
     # Solr document augmented with availability
-    availability = ed_or_solr.get('availability', {})
+    availability = ed_or_solr.get('availability', {}) or {}
 
     if availability.get('openlibrary_edition'):
         olid = availability.get('openlibrary_edition')
