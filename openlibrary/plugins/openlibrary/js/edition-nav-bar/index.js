@@ -1,21 +1,51 @@
 import { debounce } from '../nonjquery_utils'
 
-let listItems;
-
 export function initNavbar(navbarElem) {
-    listItems = navbarElem.querySelectorAll('li');
+    const listItems = navbarElem.querySelectorAll('li');
+    const linkedSections = []
+    let selectedSection
 
     // Add click listeners
-    for (const li of listItems) {
-        li.addEventListener('click', function() {
-            debounce(selectELement(li), 300, false)
+    for (let i = 0; i < listItems.length; ++i) {
+        const index = i;
+        listItems[i].addEventListener('click', function() {
+            debounce(selectELement(listItems[i], index), 300, false)
         })
+
+        linkedSections.push(document.querySelector(listItems[i].children[0].hash))
+        if (listItems[i].classList.contains('selected')) {
+            selectedSection = linkedSections[linkedSections.length - 1]
+        }
     }
+
+    function selectELement(selectedElem, targetIndex) {
+        for (const li of listItems) {
+            li.classList.remove('selected')
+        }
+        selectedElem.classList.add('selected')
+        selectedSection = linkedSections[targetIndex];
+    }
+
+    // Add scroll listener
+    document.addEventListener('scroll', function() {
+        const navbarBoundingRect = navbarElem.getBoundingClientRect();
+        const selectedBoundingRect = selectedSection.getBoundingClientRect();
+
+        // Check if navbar is not within selected element's bounds:
+        if (selectedBoundingRect.bottom < navbarBoundingRect.top ||
+          selectedBoundingRect.top > navbarBoundingRect.bottom){
+            for (let i = 0; i < linkedSections.length; i++) {
+                if (linkedSections[i].id !== selectedSection.id) {
+                // Bounds test:
+                    const br = linkedSections[i].getBoundingClientRect();
+                    if (br.top < navbarBoundingRect.bottom && br.bottom > navbarBoundingRect.top) {
+                        selectELement(listItems[i], i)
+                        break;
+                    }
+                }
+            }
+        }
+    })
 }
 
-function selectELement(targetElem) {
-    for (const li of listItems) {
-        li.classList.remove('selected')
-    }
-    targetElem.classList.add('selected')
-}
+
