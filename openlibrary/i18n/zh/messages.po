@@ -996,3 +996,129 @@ msgstr "您目前还没有借阅任何书籍。"
 #: account/borrow.html:85
 msgid "Loan actions"
 msgstr "租借举动"
+
+#: ManageLoansButtons.html:13 account/borrow.html:112
+#, python-format
+msgid "There is one person waiting for this book."
+msgid_plural "There are %(n)d people waiting for this book."
+msgstr[0] "有一个人正在等待这本书籍。"
+msgstr[1] "有%(n)d个人正在等待这本书籍。"
+
+#: account/borrow.html:118
+msgid "Not yet downloaded."
+msgstr "尚未下载。"
+
+#: account/borrow.html:119
+msgid "Download Now"
+msgstr "立即下载"
+
+#: account/borrow.html:128
+msgid "Return via<br/>Adobe Digital Editions"
+msgstr "通过<br/>Adobe Digital Editions返回"
+
+#: account/borrow.html:136
+msgid "Books You're Waiting For"
+msgstr "您正在等到的书籍"
+
+#: account/borrow.html:139
+msgid "You are not waiting for any books at this moment."
+msgstr "您目前没有在等待任何书籍。"
+
+#: account/borrow.html:142
+msgid "Leave the Waiting List"
+msgstr "退出等候名单"
+
+#: account/borrow.html:142
+msgid ""
+"Are you sure you want to leave the waiting list of<br/><strong>TITLE</"
+"strong>?"
+msgstr ""
+"您确定要退出<br/><strong>TITLE</strong>的等候名单吗？"
+
+#: account/borrow.html:161 admin/loans_table.html:43 admin/menu.html:33
+msgid "Status"
+msgstr "状态"
+
+#: RecentChangesAdmin.html:23 account/borrow.html:162 admin/loans_table.html:47
+msgid "Actions"
+msgstr "行动"
+
+#: account/borrow.html:184
+#, python-format
+msgid "Waiting for 1 day"
+msgid_plural "Waiting for %(count)d days"
+msgstr[0] "等待1天"
+msgstr[1] "等待%(count)d天"
+
+#: account/borrow.html:191
+msgid "You are the next person to receive this book."
+msgstr "您是下一个收到这本书籍的人。"
+
+#: ManageWaitlistButton.html:21 account/borrow.html:193
+#, python-format
+msgid "There is one person ahead of you in the waiting list."
+msgid_plural "There are %(count)d people ahead of you in the waiting list."
+msgstr[0] "等候名单上还有1个人排在您前面。"
+msgstr[1] "等候名单上还有%(count)d个人排在您前面。"
+
+#: account/borrow.html:202
+msgid "You have less than an hour to borrow it."
+msgstr "您还有不到一个小时的时间来借阅它。"
+
+#: account/borrow.html:204
+#, python-format
+msgid "You have one more hour to borrow it."
+msgid_plural "You have %(hours)d more hours to borrow it."
+msgstr[0] "您还有一个小时的时间来借阅它。"
+msgstr[1] "您还有%(hours)d个小时的时间来借阅它。"
+
+#: account/borrow.html:211
+msgid "Borrow Now"
+msgstr "立即借阅"
+
+#: account/borrow.html:216
+msgid "Leave the waiting list?"
+msgstr "要退出这个等候名单吗？"
+
+#: account/borrow.html:225
+msgid "My Loan History"
+msgstr "我的租借历史"
+
+#: account/borrow.html:233
+msgid "There are 2 different sources for borrowing books through Open Library:"
+msgstr ""
+"在开放图书馆借阅书籍有两个不同的来源："
+
+#: account/borrow.html:237
+msgid "Internet Archive"
+msgstr "互联网档案馆"
+
+#: account/borrow.html:239
+msgid "eBooks everywhere"
+msgstr "电子书无处不在"
+
+#: account/borrow.html:241
+msgid ""
+"The <a href=\"//archive.org/\">Internet Archive</a> and several partner "
+"libraries are offering thousands of eBooks for loan to anyone with an Open "
+"Library account, anywhere in the world."
+msgstr ""
+"<a href=\"//archive.org/\">互联网档案馆</a>和若干合作图书馆正为世界各地拥有"
+"开放图书馆账号的用户提供数千本电子书借阅。"
+
+#: account/borrow.html:247
+msgid "physical books from your local library"
+msgstr "来自当地图书馆的实体书"
+
+#: account/borrow.html:249
+msgid ""
+"We connect our records to WorldCat wherever possible. You can tell WorldCat "
+"your postcode/zip code, and it will tell you the closest library with a copy "
+"of the book."
+msgstr ""
+"我们尽可能地将我们的记录连接到WorldCat。您可以告诉WorldCat您的邮政编码，"
+"它会告诉您离您最近的有这本书的图书馆。"
+
+#: account/borrow.html:254
+msgid "Getting Started"
+msgstr "开始"
