@@ -25,23 +25,21 @@ $# Used for loading the editions table
 $# Book availability of editions injected by bulk get_availability API
 $ ebooks_only = query_param('mode') != 'all'
 $ editions = work.get_sorted_editions(ebooks_only=ebooks_only)
-$ availabilities = {e.availability.get('identifier'): e.availability for e in editions}
 $if not editions:
   $ ebooks_only = False
   $ editions = work.get_sorted_editions()
+$ availabilities = {e.availability.get('identifier'): e.availability for e in editions}
 $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
 
 $# This collects which books are previewable in any manner
 $ previews = [e for e in editions if e.get('ocaid')]
 
 $# Choose an edition to render
-$if page.key.startswith('/books'):
+$if page.key.startswith('/books') or not editions:
   $# We are on an editions page: an edition has been explicitly selected
   $ edition = page
-  $ edition['availability'] = edition.get('ocaid') and availabilities.get(edition['ocaid']) or {}
-$elif editions:
+$else:
   $# We're presumably on a work url
-  $# Set a dummy default editions
   $ edition = editions[0]
   $# edition selection strategy (e.g. language, by id, first w/ ocaid)
   $if query_param('edition'):
@@ -53,8 +51,9 @@ $elif editions:
     $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), edition)
   $else:
     $ edition, provider = get_best_edition(editions)
-    $ edition['availability'] = edition.get('ocaid') and availabilities.get(edition['ocaid']) or {}
 
+$if not edition.get('availability'):
+  $ edition['availability'] = edition.get('ocaid') and availabilities.get(edition['ocaid']) or {}
 $ ocaid = edition.get('ocaid')
 $ book_title = edition.get('title', '') or (work.title if work else '')
 $ work_title = work.title if work else edition.get('title', '')
@@ -62,7 +61,6 @@ $ book_subtitle = edition.get('subtitle', '')
 $ title_suffix = cond(edition.get('publish_date'), u"({0} edition)".format(edition.get('publish_date')), "(edition)")
 $ title = book_title + " " + title_suffix
 $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
-$ book_description = (edition and edition.description) or (work and work.description)
 $ edition_count = work.edition_count if work and work.edition_count else 1
 $ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
 $ _x = ctx.setdefault('cssfile', 'book')
@@ -223,7 +221,7 @@ $if is_privileged_user:
 
     <div class="subjects">
         <div class="subjects-content restricted-view">
-        $:macros.SubjectTags(work, ["Subjects"])
+        $:macros.SubjectTags(work,"overview", ["Subjects"])
         </div>
         $:macros.ReadMore("subjects")
     </div>
@@ -246,8 +244,7 @@ $if is_privileged_user:
 
       <a name="editions-list" class="section-anchor"></a>
       $ component_times['EditionsTable'] = time()
-      $if editions:
-        $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
+      $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
       $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
 
       <a name="work-details" class="section-anchor"></a>
@@ -264,7 +261,7 @@ $if is_privileged_user:
         <hr>
 
         $ component_times['SubjectsTags'] = time()
-        $:macros.SubjectTags(work, ["Subjects", "People", "Places", "Times"])
+        $:macros.SubjectTags(work,"work", ["Subjects", "People", "Places", "Times"])
         $ component_times['SubjectsTags'] = time() - component_times['SubjectsTags']
 
         <hr>
@@ -474,14 +471,14 @@ $if is_privileged_user:
       <div class="user-book-options">
         <div class="Tools tools-override">
           $if work:
-            $ component_times['WorkListTime'] = time()
+            $ component_times['lists widget: WorkListTime'] = time()
             $:render_template("lists/widget", work, include_header=False, include_widget=False)
-            $ component_times['WorkListTime'] = time() - component_times['WorkListTime']
+            $ component_times['lists widget: WorkListTime'] = time() - component_times['lists widget: WorkListTime']
 
           $if edition:
-            $ component_times['EditionListTime'] = time()
+            $ component_times['lists widget: EditionListTime'] = time()
             $:render_template("lists/widget", edition, include_header=False, include_widget=False)
-            $ component_times['EditionListTime'] = time() - component_times['EditionListTime']
+            $ component_times['lists widget: EditionListTime'] = time() - component_times['lists widget: EditionListTime']
         </div>
       </div>
   </div>

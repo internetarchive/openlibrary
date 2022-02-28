@@ -1,8 +1,13 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
+
+import sys
+
 import _init_path
-from openlibrary.data import dump
+
 
 if __name__ == "__main__":
-    import sys
+    print("{}: Python {}.{}.{}".format(__file__, *sys.version_info))
+
+    from openlibrary.data import dump
 
     dump.main(sys.argv[1], sys.argv[2:])
