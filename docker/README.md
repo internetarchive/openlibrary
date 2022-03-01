@@ -1,4 +1,4 @@
-# Welcome to the new Docker based Open Library development environment!
+# Welcome to the Docker Installation Guide for Open Library Developers
 
 ## Setup/Teardown Commands
 

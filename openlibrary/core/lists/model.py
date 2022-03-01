@@ -18,7 +18,6 @@ from openlibrary.plugins.worksearch.search import get_solr
 import six
 from six.moves import urllib
 
-
 logger = logging.getLogger("openlibrary.lists.model")
 
 # this will be imported on demand to avoid circular dependency
@@ -98,6 +97,14 @@ class ListMixin:
             "last_update": self.last_update and self.last_update.isoformat() or None,
         }
 
+    def get_book_keys(self, offset=0, limit=50):
+        offset = offset or 0
+        return list({
+            (seed.works[0].key if seed.works else seed.key)
+            for seed in self.seeds
+            if seed.key.startswith(('/books', '/works'))
+        })[offset : offset + limit]
+
     def get_editions(self, limit=50, offset=0, _raw=False):
         """Returns the editions objects belonged to this list ordered by last_modified.
 
@@ -161,6 +168,37 @@ class ListMixin:
                 continue
             for k in doc['edition_key']:
                 yield "/books/" + k
+
+    def get_export_list(self)  -> dict[str, list]:
+        """Returns all the editions, works and authors of this list in arbitrary order.
+
+        The return value is an iterator over all the entries. Each entry is a dictionary.
+
+        This works even for lists with too many seeds as it doesn't try to
+        return entries in the order of last-modified.
+        """
+
+        # Separate by type each of the keys
+        edition_keys = {
+            seed.key for seed in self.seeds if seed and seed.type.key == '/type/edition'
+        }
+        work_keys = {
+            "/works/%s" % seed.key.split("/")[-1] for seed in self.seeds if seed and seed.type.key == '/type/work'
+        }
+        author_keys = {
+            "/authors/%s" % seed.key.split("/")[-1] for seed in self.seeds if seed and seed.type.key == '/type/author'
+        }
+
+        # Create the return dictionary
+        export_list = {}
+        if edition_keys:
+            export_list["editions"] = [doc.dict() for doc in web.ctx.site.get_many(list(edition_keys))]
+        if work_keys:
+            export_list["works"] = [doc.dict() for doc in web.ctx.site.get_many(list(work_keys))]
+        if author_keys:
+            export_list["authors"] = [doc.dict() for doc in web.ctx.site.get_many(list(author_keys))]
+
+        return export_list
 
     def _preload(self, keys):
         keys = list(set(keys))

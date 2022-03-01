@@ -99,8 +99,9 @@ class Biblio:
 
         # Assert importable
         for field in self.REQUIRED_FIELDS + ['isbn_13']:
-            assert getattr(self, field)
-        assert self.primary_format not in self.NONBOOK
+            assert getattr(self, field), field
+        # This seems to be eliminating books too aggressively
+        #assert self.primary_format not in self.NONBOOK, f"{self.primary_format} is NONBOOK"
 
     @staticmethod
     def contributors(data):
@@ -206,14 +207,14 @@ def batch_import(path, batch, batch_size=5000):
             update_state(logfile, fname, line_num)
 
 
-def main(ol_config: str):
+def main(ol_config: str, batch_path: str):
     load_config(ol_config)
 
     # Partner data is offset ~15 days from start of month
     date = datetime.date.today() - timedelta(days=15)
     batch_name = "%s-%04d%02d" % ('bwb', date.year, date.month)
     batch = Batch.find(batch_name) or Batch.new(batch_name)
-    batch_import(sys.argv[1], batch)
+    batch_import(batch_path, batch)
 
 
 if __name__ == '__main__':

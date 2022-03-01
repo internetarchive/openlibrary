@@ -1,4 +1,4 @@
-from typing import Optional, Union, Literal, cast
+from typing import Optional, Union, Literal, Iterator, cast
 
 import web
 from web import uniq
@@ -17,6 +17,14 @@ class AbstractBookProvider:
     see https://openlibrary.org/config/edition
     """
     identifier_key: str
+
+    @property
+    def editions_query(self):
+        return {f"identifiers.{self.identifier_key}~": "*"}
+
+    @property
+    def solr_key(self):
+        return f"id_{self.identifier_key}"
 
     def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
         return (
@@ -63,9 +71,19 @@ class InternetArchiveProvider(AbstractBookProvider):
     short_name = 'ia'
     identifier_key = 'ocaid'
 
+    @property
+    def editions_query(self):
+        return {f"{self.identifier_key}~": "*"}
+
+    @property
+    def solr_key(self):
+        return f"ia"
+
     def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
         # Solr work record augmented with availability
-        if ed_or_solr.get('availability', {}).get('identifier'):
+        # Sometimes it's set explicitly to None, for some reason
+        availability = ed_or_solr.get('availability', {}) or {}
+        if availability.get('identifier'):
             return [ed_or_solr['availability']['identifier']]
 
         # Edition
@@ -128,12 +146,21 @@ class StandardEbooksProvider(AbstractBookProvider):
         return False
 
 
+class OpenStaxProvider(AbstractBookProvider):
+    short_name = 'openstax'
+    identifier_key = 'openstax'
+
+    def is_own_ocaid(self, ocaid: str) -> bool:
+        return False
+
+
 PROVIDER_ORDER: list[AbstractBookProvider] = [
     # These providers act essentially as their own publishers, so link to the first when
     # we're on an edition page
     LibriVoxProvider(),
     ProjectGutenbergProvider(),
     StandardEbooksProvider(),
+    OpenStaxProvider(),
     # Then link to IA
     InternetArchiveProvider(),
 ]
@@ -151,7 +178,7 @@ def get_cover_url(ed_or_solr: Union[Edition, dict]) -> Optional[str]:
         return cover.url(size) if cover else None
 
     # Solr document augmented with availability
-    availability = ed_or_solr.get('availability', {})
+    availability = ed_or_solr.get('availability', {}) or {}
 
     if availability.get('openlibrary_edition'):
         olid = availability.get('openlibrary_edition')
@@ -214,9 +241,9 @@ def get_provider_order(prefer_ia=False) -> list[AbstractBookProvider]:
     return provider_order
 
 
-def get_book_provider(
+def get_book_providers(
     ed_or_solr: Union[Edition, dict]
-) -> Optional[AbstractBookProvider]:
+) -> Iterator[AbstractBookProvider]:
 
     # On search results, we want to display IA copies first.
     # Issue is that an edition can be provided by multiple providers; we can easily
@@ -235,13 +262,15 @@ def get_book_provider(
         prefer_ia = bool(ia_ocaids)
 
     provider_order = get_provider_order(prefer_ia)
-
     for provider in provider_order:
         if provider.get_identifiers(ed_or_solr):
-            return provider
+            yield provider
 
-    # No luck
-    return None
+
+def get_book_provider(
+        ed_or_solr: Union[Edition, dict]
+) -> Optional[AbstractBookProvider]:
+    return next(get_book_providers(ed_or_solr), None)
 
 
 def get_best_edition(
@@ -270,6 +299,10 @@ def get_best_edition(
     ])
 
     return best if best else (None, None)
+
+
+def get_solr_keys():
+    return [p.solr_key for p in PROVIDER_ORDER]
 
 
 setattr(get_book_provider, 'ia', get_book_provider_by_name('ia'))

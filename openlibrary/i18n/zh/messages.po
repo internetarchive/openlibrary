@@ -1,0 +1,782 @@
+# Chinese translations for Open Library.
+# Copyright (C) 2018 Internet Archive
+# This file is distributed under the same license as the Open Library
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Open Library VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2021-09-20 19:55+0000\n"
+"PO-Revision-Date: 2021-10-01 15:28+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.7.0\n"
+"X-Generator: Poedit 2.3\n"
+
+#: account.html:7 account.html:12 account/import.html:14
+#: account/notifications.html:13 account/privacy.html:13 lib/nav_head.html:15
+#: lib/search_head.html:71 type/user/view.html:27
+msgid "Settings"
+msgstr "设置"
+
+#: account.html:16
+msgid "Change Password"
+msgstr "修改密码"
+
+#: account.html:17
+msgid "Update Email Address"
+msgstr "更新电子邮箱地址"
+
+#: account.html:18
+msgid "Your Notifications"
+msgstr "您的消息通知"
+
+#: account.html:19
+msgid "Internet Archive Announcements"
+msgstr "互联网档案公告"
+
+#: account.html:20
+msgid "Your Privacy Settings"
+msgstr "您的隐私设置"
+
+#: account.html:21 databarDiff.html:12
+msgid "View"
+msgstr "查看"
+
+#: account.html:21
+msgid "or"
+msgstr "或"
+
+#: account.html:21 databarHistory.html:27 databarTemplate.html:13
+#: databarView.html:34 type/edition/view.html:357 type/work/view.html:357
+msgid "Edit"
+msgstr "编辑"
+
+#: account.html:21
+msgid "Your Profile Page"
+msgstr "您的个人资料页"
+
+#: account.html:22
+msgid "View or Edit your Reading Log"
+msgstr "查看或编辑您的阅读日志"
+
+#: account.html:23
+msgid "View or Edit your Lists"
+msgstr "查看或编辑您的清单"
+
+#: account.html:24
+msgid "Import and Export Options"
+msgstr "导入和导出选项"
+
+#: account.html:26
+msgid "Please contact us if you need help with anything else."
+msgstr ""
+"如果您还需要其他帮助，请联系我们。"
+
+#: barcodescanner.html:7
+msgid "Barcode Scanner (Beta)"
+msgstr "条形码扫描器 (Beta)"
+
+#: barcodescanner.html:14
+msgid "Point your camera at a barcode! 📷"
+msgstr "请将您的相机对准条形码！ 📷"
+
+#: account/borrow.html:82 borrow_admin.html:104
+#, python-format
+msgid "1 Current Loan"
+msgid_plural "%(count)d Current Loans"
+msgstr[0] "目前的贷款"
+msgstr[1] "%(count)d 目前贷款"
+
+#: account/borrow.html:84 admin/loans_table.html:41 borrow_admin.html:106
+msgid "Loan Expires"
+msgstr "贷款到期"
+
+#: borrow_admin.html:168
+#, python-format
+msgid "%d person waiting"
+msgid_plural "%d people waiting"
+msgstr[0] "%d 人等待中"
+msgstr[1] "%d 人等待中"
+
+#: ManageWaitlistButton.html:11 borrow_admin.html:186
+#, python-format
+msgid "Waiting for %d day"
+msgid_plural "Waiting for %d days"
+msgstr[0] "等待 %d 天"
+msgstr[1] "等待 %d 天"
+
+#: diff.html:7
+#, python-format
+msgid "Diff on %s"
+msgstr "不同于 %s"
+
+#: diff.html:26
+msgid "Added"
+msgstr "已添加"
+
+#: diff.html:27
+msgid "Modified"
+msgstr "已修改"
+
+#: diff.html:28
+msgid "Removed"
+msgstr "已移除"
+
+#: diff.html:29
+msgid "Not changed"
+msgstr "没有改变"
+
+#: diff.html:39
+#, python-format
+msgid "Revision %d"
+msgstr "修订 %d"
+
+#: AuthorList.html:9 SearchResultsWork.html:39 books/check.html:32
+#: books/edit/edition.html:75 books/show.html:16 covers/book_cover.html:41
+#: covers/book_cover_single_edition.html:36 covers/book_cover_work.html:32
+#: diff.html:42 lists/preview.html:20 type/edition/publisher_line.html:15
+#: type/edition/view.html:188 type/work/view.html:188
+msgid "by"
+msgstr "出自于"
+
+#: diff.html:44
+msgid "by Anonymous"
+msgstr "作者：匿名"
+
+#: diff.html:110
+msgid "Differences"
+msgstr "不同之处"
+
+#: diff.html:168
+msgid "Both the revisions are identical."
+msgstr "两次修订都是相同的。"
+
+#: edit_yaml.html:14 lib/edit_head.html:17
+msgid "You're in edit mode."
+msgstr "您现在处于编辑模式。"
+
+#: edit_yaml.html:15 lib/edit_head.html:18
+msgid "Cancel, and go back."
+msgstr "取消并返回。"
+
+#: edit_yaml.html:22
+msgid "YAML Representation:"
+msgstr "YAML 代表:"
+
+#: BookPreview.html:11 editpage.html:15
+msgid "Preview"
+msgstr "预览"
+
+#: history.html:23
+msgid "History of edits to"
+msgstr "编辑历史"
+
+#: history.html:31
+msgid "Revision"
+msgstr "修订"
+
+#: RecentChanges.html:17 RecentChangesAdmin.html:20 RecentChangesUsers.html:20
+#: admin/ip/view.html:44 admin/people/edits.html:41 history.html:32
+#: recentchanges/render.html:30 recentchanges/updated_records.html:28
+msgid "When"
+msgstr "何时"
+
+#: RecentChanges.html:19 admin/ip/view.html:46 admin/loans_table.html:46
+#: admin/people/edits.html:43 admin/waitinglists.html:28 history.html:33
+#: recentchanges/render.html:32
+msgid "Who"
+msgstr "何人"
+
+#: RecentChanges.html:20 RecentChangesUsers.html:22 admin/ip/view.html:47
+#: admin/people/edits.html:44 history.html:34 recentchanges/render.html:33
+#: recentchanges/updated_records.html:30
+msgid "Comment"
+msgstr "评论"
+
+#: history.html:35
+msgid "Diff"
+msgstr "差异"
+
+#: history.html:42 history.html:73
+msgid "Compare"
+msgstr "对比"
+
+#: history.html:42 history.html:73
+msgid "See Diff"
+msgstr "查看差异"
+
+#: history.html:48 lib/history.html:78
+#, python-format
+msgid "View revision %s"
+msgstr "查看修订 %s"
+
+#: history.html:85
+msgid "Back"
+msgstr "返回"
+
+#: Pager.html:34 history.html:87 lib/pagination.html:37 showmarc.html:54
+msgid "Next"
+msgstr "下一个"
+
+#: internalerror.html:14
+msgid "Sorry. There seems to be a problem with what you were just looking at."
+msgstr "十分抱歉。您刚刚看的东西似乎出现了问题。"
+
+#: internalerror.html:15
+#, python-format
+msgid ""
+"We've noted the error %s and will look into it as soon as possible. Head for "
+"<a href=\"/\">home</a>?"
+msgstr ""
+"我们已注意到此错误 %s 并将尽快调查此错误。前往 "
+"<a href=\"/\">首页</a>?"
+
+#: lib/nav_head.html:31 library_explorer.html:6
+msgid "Library Explorer"
+msgstr "图书馆资源管理器"
+
+#: lib/header_dropdown.html:46 lib/nav_head.html:108 login.html:10
+#: login.html:62
+msgid "Log In"
+msgstr "登录"
+
+#: login.html:15
+msgid ""
+"Please enter your <a href=\"https://archive.org\">Internet Archive</a> email "
+"and password to access your Open Library account."
+msgstr ""
+"请输入您的电子邮箱地址和密码 <a "
+"href=\"https://archive.org\">Internet Archive</a> 以进入您的开放图书馆账号。"
+
+#: account/create.html:46 login.html:18
+#, python-format
+msgid "You are already logged into Open Library as %(user)s."
+msgstr "您已经以 %(user)s 登录开放图书馆了。"
+
+#: account/create.html:47 login.html:19
+msgid ""
+"If you'd like to create a new, different Open Library account, you'll need "
+"to <a href=\"javascript:;\" onclick=\"document.forms['logout']."
+"submit()\">log out</a> and start the signup process afresh."
+msgstr ""
+"如果您想要创建一个新的开放图书馆账号，您需要 "
+"to <a href=\"javascript:;\" onclick=\"document.forms['logout']."
+"submit()\">退出当前登录</a>并重新开始创建新账号的流程。"
+
+#: login.html:29
+msgid "Email"
+msgstr "电子邮箱"
+
+#: login.html:31
+msgid "Forgot your Internet Archive email?"
+msgstr "忘记您的Internet Archive电子邮箱？"
+
+#: account/email/forgot-ia.html:33 forms.py:20 login.html:41
+msgid "Password"
+msgstr "密码"
+
+#: login.html:51
+msgid "Remember me"
+msgstr "记住我"
+
+#: account/email/forgot.html:48 login.html:66
+msgid "Forgot your Password?"
+msgstr "忘记您的密码？"
+
+#: login.html:68
+msgid ""
+"Not a member of Open Library? <a href=\"/account/create\">Sign up now</a>."
+msgstr ""
+"还不是开放图书馆的成员？<a href=\"/account/create"
+"\">那么现在就注册吧</a>。"
+
+#: messages.html:11
+msgid "Created new author record."
+msgstr "创建了新的作者记录。"
+
+#: messages.html:12
+msgid "Created new edition record."
+msgstr "创建了新的编辑记录。"
+
+#: messages.html:13
+msgid "Created new work record."
+msgstr "创建了新的作品记录。"
+
+#: messages.html:14
+msgid "Added new book."
+msgstr "添加了新的书籍。"
+
+#: messages.html:16
+msgid "Thank you very much for adding that new book!"
+msgstr "非常感谢您添加了这本新的书籍！"
+
+#: messages.html:17 messages.html:18
+msgid "Thank you very much for improving that record!"
+msgstr "非常感谢您完善了这份记录！"
+
+#: notfound.html:7
+#, python-format
+msgid "%(path)s is not found"
+msgstr "%(path)s 未找到"
+
+#: languages/notfound.html:10 notfound.html:14
+msgid "404 - Page Not Found"
+msgstr "404 - 该页面不存在"
+
+#: notfound.html:18
+#, python-format
+msgid "%(path)s does not exist."
+msgstr "%(path)s 不存在。"
+
+#: notfound.html:22
+msgid "Create it?"
+msgstr "要创建吗？"
+
+#: notfound.html:26
+msgid "Looking for a template/macro?"
+msgstr "在寻找模板？/macro?"
+
+#: permission.html:10
+msgid "Permission of"
+msgstr "权限"
+
+#: permission.html:18
+msgid "Permission"
+msgstr "权限"
+
+#: permission.html:28
+msgid "Child Permission"
+msgstr "儿童权限"
+
+#: permission_denied.html:10
+msgid "Permission denied."
+msgstr "权限被拒绝。"
+
+#: permission_denied.html:30
+#, python-format
+msgid "You may <a href=\"%s\">log in</a> if you have the required permissions."
+msgstr ""
+"您可以<a href=\"%s\">登录</a>如果您拥有所需权限。"
+
+#: showamazon.html:8 showamazon.html:11 showbwb.html:8 showbwb.html:11
+msgid "Record details of"
+msgstr "记录此细节"
+
+#: showamazon.html:15 showbwb.html:15
+msgid "This record came from"
+msgstr "这份记录来自"
+
+#: showia.html:42 showmarc.html:48
+msgid "Invalid MARC record."
+msgstr "无效的MARC记录。"
+
+#: status.html:17
+msgid "Server status"
+msgstr "服务器状态"
+
+#: SubjectTags.html:23 lib/nav_foot.html:28 lib/nav_head.html:30
+#: subjects.html:9 subjects/notfound.html:11 type/author/view.html:161
+#: type/list/view.html:273 work_search.html:68
+msgid "Subjects"
+msgstr "主题"
+
+#: SubjectTags.html:27 subjects.html:9 type/author/view.html:162
+#: type/list/view.html:275 work_search.html:70
+msgid "Places"
+msgstr "地点"
+
+#: type/author/view.html:163 type/list/view.html:274 work_search.html:69
+msgid "People"
+msgstr "人物"
+
+#: SubjectTags.html:29 subjects.html:9 type/list/view.html:276
+#: work_search.html:71
+msgid "Times"
+msgstr "时间"
+
+#: merge/authors.html:89 publishers/view.html:17 subjects.html:19
+#: type/author/view.html:110
+#, python-format
+msgid "1 work"
+msgid_plural "%(count)d works"
+msgstr[0] "1份作品"
+msgstr[1] "%(count)d 份作品"
+
+#: subjects.html:22
+#, python-format
+msgid "Search for books with subject %(name)s."
+msgstr "搜索有 %(name)s 主题的作品。"
+
+#: authors/index.html:20 lib/nav_head.html:92 lib/search_head.html:24
+#: lists/home.html:25 publishers/notfound.html:19 publishers/view.html:115
+#: search/advancedsearch.html:44 search/authors.html:48 search/inside.html:17
+#: search/lists.html:17 search/publishers.html:19 search/subjects.html:34
+#: subjects.html:27 subjects/notfound.html:19 type/local_id/view.html:42
+#: work_search.html:84
+msgid "Search"
+msgstr "搜索"
+
+#: publishers/view.html:32 subjects.html:37
+msgid "Publishing History"
+msgstr "出版历史"
+
+#: subjects.html:39
+msgid ""
+"This is a chart to show the publishing history of editions of works about "
+"this subject. Along the X axis is time, and on the y axis is the count of "
+"editions published. <a href=\"#subjectRelated\">Click here to skip the "
+"chart</a>."
+msgstr ""
+"这张图表展示了有关这一主题的作品版本的出版历史。 "
+"X轴上是时间，Y轴上是出版版本的数量。"
+"<a href=\"#subjectRelated\">点击这里跳过此"
+"图表</a>。"
+
+#: publishers/view.html:34 subjects.html:40
+msgid "Reset chart"
+msgstr "重置图表"
+
+#: publishers/view.html:34 subjects.html:40
+msgid "or continue zooming in."
+msgstr "或继续缩放。"
+
+#: subjects.html:41
+msgid "This graph charts editions published on this subject."
+msgstr "这张图表记录了这一主题出版的版本。"
+
+#: publishers/view.html:42 subjects.html:47
+msgid "Editions Published"
+msgstr "版本已出版"
+
+#: admin/imports.html:18 publishers/view.html:44 subjects.html:49
+msgid "You need to have JavaScript turned on to see the nifty chart!"
+msgstr "您需要打开JavaScript才能看到漂亮的图表!"
+
+#: publishers/view.html:46 subjects.html:51
+msgid "Year of Publication"
+msgstr "出版年份"
+
+#: subjects.html:57
+msgid "Related..."
+msgstr "相关的..."
+
+#: publishers/view.html:64 subjects.html:71
+msgid "None found."
+msgstr "未发现。"
+
+#: publishers/view.html:81 subjects.html:86
+msgid "See more books by, and learn about, this author"
+msgstr "查看更多该作者的书籍，以及了解该作者"
+
+#: account/borrow.html:159 authors/index.html:27 publishers/view.html:83
+#: search/authors.html:66 search/publishers.html:29 search/subjects.html:89
+#: subjects.html:88
+#, python-format
+msgid "1 book"
+msgid_plural "%(count)d books"
+msgstr[0] "1本书"
+msgstr[1] "%(count)d 本书"
+
+#: subjects.html:92
+msgid "Prolific Authors"
+msgstr "多产作家"
+
+#: subjects.html:93
+msgid "who have written the most books on this subject"
+msgstr "在这个主题写过最多书籍的作家"
+
+#: publishers/view.html:104 subjects.html:109
+msgid "Get more information about this publisher"
+msgstr "获取更多关于该出版商的信息"
+
+#: SearchResultsWork.html:55 books/check.html:36 merge/authors.html:82
+#: publishers/view.html:106 subjects.html:111
+#, python-format
+msgid "1 edition"
+msgid_plural "%(count)s editions"
+msgstr[0] "1个版本"
+msgstr[1] "%(count)s 个版本"
+
+#: support.html:7 support.html:10
+msgid "How can we help?"
+msgstr "我们能提供什么帮助？"
+
+#: support.html:16
+msgid ""
+"Your question has been sent to our support team. We'll get back to you "
+"shortly. You can also <a href=\"https://twitter.com/openlibrary\">contact us "
+"on Twitter</a>."
+msgstr ""
+"您的提问已发送到我们的支持团队。我们将"
+"很快给您答复。您也可以<a href=\"https://twitter.com/"
+"openlibrary\">在推特上联系我们</a>。"
+
+#: support.html:19
+msgid ""
+"Please check our <a href=\"/help/\">Help Pages</a> and <a href=\"/help/faq"
+"\">Frequently Asked Questions</a> (FAQ) to see if your question is answered "
+"there. Thank you."
+msgstr ""
+"请查看我们的<a href=\"/help/\">帮助页面</a> 和 <a "
+"href=\"/help/faq\">常见问题</a>看看您的疑问是否得到解答。"
+"谢谢。"
+
+#: support.html:22
+msgid "Your Name"
+msgstr "您的名字"
+
+#: support.html:27
+msgid "Your Email Address"
+msgstr "您的电子邮箱地址"
+
+#: support.html:28
+msgid "We'll need this if you want a reply"
+msgstr "我们需要这些资料如果您想要得到答复。"
+
+#: support.html:29
+msgid ""
+"If you wish to be contacted by other means, please add your contact "
+"preference and details to your question."
+msgstr ""
+"如果您希望我们用其他方式联系您，请添加您的"
+"首选联系方式和您问题的详情。"
+
+#: support.html:33
+msgid "Topic"
+msgstr "主题"
+
+#: support.html:36
+msgid "Select..."
+msgstr "选择..."
+
+#: support.html:37
+msgid "Borrowing Help"
+msgstr "借阅帮助"
+
+#: support.html:38
+msgid "Developer/Code Question"
+msgstr "开发人员/代码问题"
+
+#: support.html:39
+msgid "Editing Issue"
+msgstr "编辑问题"
+
+#: support.html:40
+msgid "Login Trouble"
+msgstr "登录问题"
+
+#: support.html:41
+msgid "Spam Report"
+msgstr "垃圾邮件举报"
+
+#: support.html:42
+msgid "Waiting List"
+msgstr "等候名单"
+
+#: support.html:43
+msgid "Other Question"
+msgstr "其他问题"
+
+#: support.html:49
+msgid "Your Question"
+msgstr "您的问题"
+
+#: support.html:50
+msgid "Note: our staff will likely only be able respond in English."
+msgstr "注意：我们的工作人员可能只能用英语回复。"
+
+#: support.html:54
+msgid ""
+"If you encounter an error message, please include it. For questions about "
+"our books, please provide the title/author or Open Library ID."
+msgstr ""
+"如果您遇到了错误信息，请加上它。如果对我们的书籍"
+"有疑问，请提供书名/作者或者开发图书馆的ID。"
+
+#: support.html:58
+msgid "Which page were you looking at?"
+msgstr "您当时在看哪一个页面？"
+
+#: support.html:69
+msgid "Send"
+msgstr "发送"
+
+#: EditButtons.html:23 EditButtonsMacros.html:26 account/create.html:86
+#: account/notifications.html:59 account/password/reset.html:24
+#: account/privacy.html:56 admin/imports-add.html:28 books/add.html:84
+#: books/edit/addfield.html:87 books/edit/addfield.html:133
+#: books/edit/addfield.html:177 covers/add.html:78 covers/manage.html:51
+#: databarAuthor.html:66 databarEdit.html:13 lists/widget.html:340
+#: merge/authors.html:97 support.html:71
+msgid "Cancel"
+msgstr "取消"
+
+#: viewpage.html:13
+msgid "Revert to this revision?"
+msgstr "要恢复到这一修订版本吗？"
+
+#: viewpage.html:16
+msgid "Revert to this revision"
+msgstr "恢复到这一修订版本"
+
+#: widget.html:33
+#, python-format
+msgid "Read \"%(title)s\""
+msgstr "阅读 \"%(title)s\""
+
+#: LoanReadForm.html:9 ReadButton.html:19 books/show.html:34
+#: type/list/embed.html:69 widget.html:33
+msgid "Read"
+msgstr "阅读"
+
+#: widget.html:38
+#, python-format
+msgid "Borrow \"%(title)s\""
+msgstr "借阅 \"%(title)s\""
+
+#: ReadButton.html:15 type/list/embed.html:80 widget.html:38
+msgid "Borrow"
+msgstr "借阅"
+
+#: widget.html:44
+#, python-format
+msgid "Join waitlist for &quot;%(title)s&quot;"
+msgstr "加入 «%(title)s» 等候名单"
+
+#: LoanStatus.html:89 widget.html:44
+msgid "Join Waitlist"
+msgstr "加入等候名单"
+
+#: widget.html:48
+#, python-format
+msgid "Learn more about &quot;%(title)s&quot; at OpenLibrary"
+msgstr "在开放图书馆了解更多关于«%(title)s»的信息"
+
+#: LoanStatus.html:108 widget.html:48
+msgid "Learn More"
+msgstr "了解更多"
+
+#: widget.html:50
+msgid "on "
+msgstr "在"
+
+#: search/authors.html:37 search/subjects.html:27 work_search.html:58
+#: work_search.html:169
+#, python-format
+msgid "1 hit"
+msgid_plural "%(count)s hits"
+msgstr[0] "1 次点击"
+msgstr[1] "%(count)s 次点击"
+
+#: lib/nav_foot.html:30 lib/nav_head.html:36 search/advancedsearch.html:7
+#: search/advancedsearch.html:10 search/advancedsearch.html:14
+#: work_search.html:62
+msgid "Advanced Search"
+msgstr "高级搜索"
+
+#: work_search.html:66
+msgid "eBook?"
+msgstr "电子书？"
+
+#: books/add.html:34 books/edit.html:85 books/edit/edition.html:244
+#: lib/nav_head.html:83 lib/search_foot.html:9 lib/search_head.html:9
+#: search/advancedsearch.html:20 work_search.html:67 work_search.html:147
+msgid "Author"
+msgstr "作者"
+
+#: work_search.html:72
+msgid "First published"
+msgstr "首次出版"
+
+#: lib/search_foot.html:14 lib/search_head.html:14
+#: search/advancedsearch.html:40 work_search.html:73
+msgid "Publisher"
+msgstr "出版商"
+
+#: lib/search_foot.html:29 work_search.html:74
+msgid "Language"
+msgstr "语言"
+
+#: work_search.html:75
+msgid "Classic eBooks"
+msgstr "经典电子书"
+
+#: work_search.html:82
+msgid "Keywords"
+msgstr "关键词"
+
+#: recentchanges/index.html:60 work_search.html:87
+msgid "Everything"
+msgstr "所有"
+
+#: work_search.html:89
+msgid "Ebooks"
+msgstr "电子书"
+
+#: work_search.html:91
+msgid "Print Disabled"
+msgstr "禁止打印"
+
+#: work_search.html:107
+msgid "eBook"
+msgstr "电子书"
+
+#: work_search.html:110
+msgid "Classic eBook"
+msgstr "经典电子书"
+
+#: work_search.html:129
+msgid "Explore Classic eBooks"
+msgstr "浏览经典电子书"
+
+#: work_search.html:129
+msgid "Only Classic eBooks"
+msgstr "仅限经典电子书"
+
+#: work_search.html:133 work_search.html:135 work_search.html:137
+#: work_search.html:139
+#, python-format
+msgid "Explore books about %(subject)s"
+msgstr "浏览关于 %(subject)s 的书籍"
+
+#: merge/authors.html:84 work_search.html:141
+msgid "First published in"
+msgstr "首次出版于"
+
+#: work_search.html:143
+msgid "Written in"
+msgstr "写于"
+
+#: work_search.html:145
+msgid "Published by"
+msgstr "出版自"
+
+#: work_search.html:148
+msgid "Click to remove this facet"
+msgstr "点击删除此面"
+
+#: work_search.html:150
+#, python-format
+msgid "%(title)s - search"
+msgstr "%(title)s - 搜索"
+
+#: search/lists.html:29 work_search.html:164
+msgid "No results found."
+msgstr "没有找到任何结果。"
+
+#: search/lists.html:30 work_search.html:165
+#, python-format
+msgid "Search for books containing the phrase \"%s\"?"
+msgstr "搜索包含 \"%s\" 短语的书籍？"
+
+#: work_search.html:194
+msgid "Zoom In"
+msgstr "放大"

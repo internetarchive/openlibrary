@@ -8,6 +8,9 @@ $# :param list? lists:
 $# :param user:
 $# :param bool public:
 
+$ component_times = {}
+$ component_times['TotalTime'] = time()
+
 $ username = user.key.split('/')[-1]
 
 $ current_page = int(input(page=1).page)
@@ -42,6 +45,7 @@ $if not header_title:
 $var title: $header_title
 
 <div class="mybooks">
+  $ component_times['Sidebar'] = time()
   <div class="mybooks-menu">
     $if owners_page:
       <ul class="sidebar-section">
@@ -95,7 +99,9 @@ $var title: $header_title
         </div>
       </ul>
   </div>
+  $ component_times['Sidebar'] = time() - component_times['Sidebar']
   <div class="mybooks-details">
+    $ component_times['Details header'] = time()
     <header>
       <div>
         <div class="small sansserif grey account-settings-menu">
@@ -134,6 +140,8 @@ $var title: $header_title
           $:macros.databarView(items)
         </div>
     </header>
+    $ component_times['Details header'] = time() - component_times['Details header']
+    $ component_times['Details content'] = time()
     <div class="details-content">
     $if key == 'loans':
       $:render_template('account/loans', logged_in_user, items)
@@ -154,5 +162,10 @@ $var title: $header_title
     $else:
       $:render_template('type/list/view', items, check_owner=False, owns_page=True)
     </div>
+    $ component_times['Details content'] = time() - component_times['Details content']
   </div>
 </div>
+
+$ component_times['TotalTime'] = time() - component_times['TotalTime']
+$if query_param('debug'):
+  $:macros.Profile(component_times)

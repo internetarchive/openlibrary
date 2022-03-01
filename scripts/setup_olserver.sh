@@ -50,4 +50,19 @@ sudo chmod g+w -R /opt/openlibrary /opt/olsystem
 sudo find /opt/openlibrary -type d -exec chmod g+s {} \;
 sudo find /opt/olsystem -type d -exec chmod g+s {} \;
 
+# Setup docker ferm rules for internal-only servers
+# Note: This is a bit of an anti-pattern ; we should be using docker, not ferm to manage
+# container network access. That would let us use expose/ports from our docker-compose
+# to determine what's public. But we'd need a cross-cluster network managed by swarm to
+# do that.
+PUBLIC_FACING=${PUBLIC_FACING:-'false'}
+if [[ $PUBLIC_FACING != 'true' ]]; then
+    echo "*** Setting up ferm rules for internal-only servers. ***"
+    echo "*** This server will not be accessible from the internet. ***"
+    sudo mkdir -p /etc/ferm/docker-user/
+    sudo cp /opt/olsystem/etc/ferm/docker-user/ferm.rules /etc/ferm/docker-user/ferm.rules
+    sudo service ferm restart
+    sudo service docker restart
+fi
+
 ls -Fla  # containerd, olsystem, openlibrary owned by openlibrary

@@ -12,7 +12,7 @@ A quick public tour of Open Library to get you familiar with the service and its
 ### Onboarding
 
 A comprehensive volunteer orientation video to learn what it means to work on Open Library (1.5h). This video is a companion to our [Orientation Guide](https://docs.google.com/document/d/1fkTDqYFx2asuMWwSIDQRHJlnu-AGWpMrDDd9o5z8Cik/edit#).
-If you're looking for a good first issue, check out [Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+label%3A%22Good+First+Issue%22).
+If you're looking for a good first issue, check out [Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Good+First+Issue%22+label%3A%22Needs%3A+Help%22+-label%3A%22Needs%3A+Triage%22+-label%3A%22Needs%3A+Lead%22).
 
 [![archive org_details_openlibrary-orientation-2020_start=80](https://user-images.githubusercontent.com/978325/91350387-78272580-e79b-11ea-9e26-85cfd1d38fe1.png)](https://archive.org/details/openlibrary-orientation-2020?start=80)
 
@@ -59,16 +59,14 @@ Our login process on Open Library's dev instance is a bit funky. You need to cor
 - If you notice a set of entries on Open Library which need to be updated (possibly in bulk) please report them as an issue to https://github.com/internetarchive/openlibrary-client (the Open Library Client).
 
 ### Tagging
-- If a task requires immediate fixing, please respond to its corresponding issue by asking if it can be promoted to [`blocker`](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3Ablocker) using the blocker issue label.
+- If an issue requires immediate fixing, please include a comment requesting for it to be labeled and promoted as [`Priority: 0`](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Priority%3A+0%22+).
 
-## Picking Tasks
-We usually discuss weekly goals via our Tuesday Community Call and using slack.
+## Picking Good First Issues
 
-### Picking 1st task
-- Look for issues with labels such as [`good first issue`](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) and [`easy`](https://github.com/internetarchive/openlibrary/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+label%3Aeasy)
+[Here's a list of good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Good+First+Issue%22+label%3A%22Needs%3A+Help%22+-label%3A%22Needs%3A+Triage%22+-label%3A%22Needs%3A+Lead%22) to help you get started. If you have questions, please ask the [Lead](https://github.com/internetarchive/openlibrary/wiki/Using-Managed-Labels-to-Track-Issues#triage) designated by the `Lead: @person` label on the issue.
 
 ### Our Roadmap(s)
-- Our quarterly goals can be found on the corresponding projects board: https://github.com/internetarchive/openlibrary/projects
+You can see this year (and previous year's) roadmap(s) [here](https://docs.google.com/document/d/1KJr3A81Gew7nfuyo9PnCLCjNBDs5c7iR4loOGm1Pafs/edit).
 
 ## Development Practices
 
