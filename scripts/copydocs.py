@@ -238,13 +238,15 @@ def copy(
             for key in keys
             if key.startswith('/works/')
         ]
-        if not isinstance(src, OpenLibrary):
-            print("Can only fetch editions when using an OL source! Ignoring.")
-        elif work_keys:
+
+        assert isinstance(src, OpenLibrary), "fetching editions only works with OL src"
+        if work_keys:
             # eg https://openlibrary.org/search.json?q=key:/works/OL102584W
-            resp = src._request('/search.json', params={
-                'q': ' OR '.join(f'key:{key}' for key in work_keys),
-            }).json()
+            resp = src.search(
+                'key:' + ' OR '.join(work_keys),
+                limit=len(work_keys),
+                fields=['edition_key'],
+            )
             edition_keys = [
                 f"/books/{olid}"
                 for doc in resp['docs']
@@ -327,6 +329,8 @@ def main(
         recursive=True,
         editions=True,
         lists: list[str] = None,
+        search: str = None,
+        search_limit: int = 10,
 ):
     """
     Script to copy docs from one OL instance to another.
@@ -334,18 +338,20 @@ def main(
     openlibrary.org to dev instance. paths can end with wildcards.
 
     USAGE:
+        # Copy all templates
         ./scripts/copydocs.py --src http://openlibrary.org /templates/*
+        # Copy specific records
+        ./scripts/copydocs.py /authors/OL113592A /works/OL1098727W?v=2
+        # Copy search results
+        ./scripts/copydocs.py --search "publisher:librivox" --search-limit 10
 
-    This script can also be used to copy books and authors from OL to dev instance.
-
-        ./scripts/copydocs.py /authors/OL113592A
-        ./scripts/copydocs.py /works/OL1098727W?v=2
 
     :param src: URL of the source open library server
     :param dest: URL of the destination open library server
     :param recursive: Recursively fetch all the referred docs
     :param editions: Also fetch all the editions of works
     :param lists: Copy docs from list(s)
+    :param search: Run a search on open library and copy docs from the results
     """
 
     # Mypy doesn't handle union-ing types across if statements -_-
@@ -364,6 +370,13 @@ def main(
 
     for list_key in (lists or []):
         copy_list(src_ol, dest_ol, list_key, comment=comment)
+
+    if search:
+        assert isinstance(src_ol, OpenLibrary), "Search only works with OL src"
+        keys += [
+            doc['key']
+            for doc in src_ol.search(search, limit=search_limit, fields=['key'])['docs']
+        ]
 
     keys = list(expand(src_ol, ('/' + k.lstrip('/') for k in keys)))
 
