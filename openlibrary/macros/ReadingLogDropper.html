@@ -68,7 +68,7 @@ $if ctx.user or not work_key:
               <input type="hidden" name="bookshelf_id" value="2"/>
               $if edition_key:
                 <input type="hidden" name="edition_id" value="$(edition_key)"/>
-              <button class="nostyle-btn$(classes[1])" type="submit">$('Currently Reading')</button>
+              <button class="nostyle-btn$(classes[1])" type="submit">$_('Currently Reading')</button>
             </form>
 
             <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
@@ -127,7 +127,7 @@ $if ctx.user or not work_key:
             </div>
           $else:
             <a href="/account/login?redirect=$page_url" class="dropclick plain">
-              <h3>$('Add to List')</h3>
+              <h3>$_('Add to List')</h3>
               <div class="arrow"></div>
             </a>
       </div>

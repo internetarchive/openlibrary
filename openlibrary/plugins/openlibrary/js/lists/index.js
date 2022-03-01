@@ -21,7 +21,7 @@ const actionableItems = {}
  * Maps a list key to an object containing the list's title and a reference
  * to the list's dropper link.
  *
- * @type {Object.<string, ListData}
+ * @type {Record<string, ListData>}
  */
 const dropperLists = {}
 
