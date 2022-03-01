@@ -51,7 +51,7 @@
     "babel-eslint": "10.1.0",
     "babel-loader": "8.2.2",
     "bundlesize": "0.18.1",
-    "chart.js": "2.9.4",
+    "chart.js": "3.7.1",
     "chartjs-plugin-datalabels": "0.7.0",
     "core-js": "3.16.0",
     "css-loader": "5.2.7",
