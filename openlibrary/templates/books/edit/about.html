@@ -21,7 +21,9 @@ $def with (work)
             $for s in work.get_subjects():
                 $ s = s.replace('"', '""')
                 $subjects.append('"' + s + '"' if ',' in s else s)
-            <input type="text" name="work--subjects" id="about-subjects" value="$', '.join(subjects)" tabindex="0"/>
+            $ subject_str = ', '.join(subjects)
+            $ rows = len(subject_str) // 95
+            <textarea name="work--subjects" id="about-subjects" rows="$rows" wrap="soft" tabindex="0">$subject_str</textarea>
         </div>
     </div>
 
@@ -35,7 +37,9 @@ $def with (work)
             $for s in work.subject_people:
                 $ s = s.replace('"', '""')
                 $subjects.append('"' + s + '"' if ',' in s else s)
-            <input type="text" name="work--subject_people" id="about-people" value="$', '.join(subjects)" tabindex="0"/>
+            $ subject_str = ', '.join(subjects)
+            $ rows = len(subject_str) // 95
+            <textarea name="work--subject_people" id="about-people" rows="$rows" wrap="soft" tabindex="0">$subject_str</textarea>
         </div>
     </div>
 
@@ -49,7 +53,9 @@ $def with (work)
             $for s in work.subject_places:
                 $ s = s.replace('"', '""')
                 $subjects.append('"' + s + '"' if ',' in s else s)
-            <input type="text" name="work--subject_places" id="about-places" value="$', '.join(subjects)" tabindex="0"/>
+            $ subject_str = ', '.join(subjects)
+            $ rows = len(subject_str) // 95
+            <textarea name="work--subject_places" id="about-places" rows="$rows" wrap="soft" tabindex="0">$subject_str</textarea>
         </div>
     </div>
 
@@ -63,7 +69,9 @@ $def with (work)
             $for s in work.subject_times:
                 $ s = s.replace('"', '""')
                 $subjects.append('"' + s + '"' if ',' in s else s)
-            <input type="text" name="work--subject_times" id="about-time" value="$', '.join(subjects)" tabindex="0"/>
+            $ subject_str = ', '.join(subjects)
+            $ rows = len(subject_str) // 95
+            <textarea name="work--subject_times" id="about-time" rows="$rows" wrap="soft" tabindex="0">$subject_str</textarea>
         </div>
     </div>
 

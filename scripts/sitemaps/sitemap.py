@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 """Script to generate XML sitemap of openlibrary.org website.
 
 USAGE:

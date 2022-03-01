@@ -17,7 +17,7 @@ repos:
           - flake8
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v4.1.0
     hooks:
       - id: check-yaml
       # - id: end-of-file-fixer
@@ -27,7 +27,7 @@ repos:
           - --markdown-linebreak-ext=md
 
   - repo: https://github.com/psf/black
-    rev: 21.10b0
+    rev: 22.1.0
     hooks:
       - id: black
         language_version: python3  # Should be a command that runs python3.6+
@@ -41,7 +41,7 @@ repos:
       - id: codespell  # See setup.cfg for args
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v0.910-1'
+    rev: 'v0.931'
     hooks:
       - id: mypy
         args:
@@ -51,7 +51,7 @@ repos:
           - types-all
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.29.0
+    rev: v2.31.0
     hooks:
       - id: pyupgrade
         args:
