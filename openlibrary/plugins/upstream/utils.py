@@ -24,6 +24,7 @@ from six.moves.urllib.parse import (
     urlencode as parse_urlencode,
     urlparse,
     urlunparse,
+    quote
 )
 
 from infogami import config
@@ -937,6 +938,7 @@ class Request:
     path = property(lambda self: web.ctx.path)
     home = property(lambda self: web.ctx.home)
     domain = property(lambda self: web.ctx.host)
+    fullpath = property(lambda self: quote(web.ctx.fullpath))
 
     @property
     def canonical_url(self):
