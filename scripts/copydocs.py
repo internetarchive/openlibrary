@@ -1,17 +1,4 @@
 #! /usr/bin/env python
-"""Script to copy docs from one OL instance to another.
-Typically used to copy templates, macros, css and js from
-openlibrary.org to dev instance, defaulting to localhost.
-
-USAGE:
-    ./scripts/copydocs.py --src http://openlibrary.org /templates/*
-
-This script can also be used to copy books and authors from OL to dev instance.
-
-    ./scripts/copydocs.py /authors/OL113592A
-    ./scripts/copydocs.py /works/OL1098727W?v=2
-"""
-
 from collections import namedtuple
 
 import json
@@ -21,9 +8,7 @@ from typing import Union
 
 import web
 
-from optparse import OptionParser
-
-import six
+from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 sys.path.insert(0, ".")  # Enable scripts/copydocs.py to be run.
 import scripts._init_path  # noqa: E402,F401
@@ -47,7 +32,7 @@ def expand(server, keys):
     Expands keys like "/templates/*" to be all template keys.
 
     :param Disk or OpenLibrary server:
-    :param typing.List[str] keys:
+    :param typing.Iterable[str] keys:
     :rtype: typing.Iterator[str]
     """
     if isinstance(server, Disk):
@@ -58,59 +43,6 @@ def expand(server, keys):
                 yield from find(server, key)
             else:
                 yield key
-
-
-desc = """Script to copy docs from one OL instance to another.
-Typically used to copy templates, macros, css and js from
-openlibrary.org to dev instance. paths can end with wildcards.
-"""
-
-
-def parse_args():
-    parser = OptionParser(
-        "usage: %s [options] path1 path2" % sys.argv[0],
-        description=desc,
-        version=__version__,
-    )
-    parser.add_option("-c", "--comment", dest="comment", default="", help="comment")
-    parser.add_option(
-        "--src",
-        dest="src",
-        metavar="SOURCE_URL",
-        default="http://openlibrary.org/",
-        help="URL of the source server (default: %default)",
-    )
-    parser.add_option(
-        "--dest",
-        dest="dest",
-        metavar="DEST_URL",
-        default="http://localhost:8080",
-        help="URL of the destination server (default: %default)",
-    )
-    parser.add_option(
-        "-r",
-        "--recursive",
-        dest="recursive",
-        action='store_true',
-        default=True,
-        help="Recursively fetch all the referred docs.",
-    )
-    parser.add_option(
-        "--editions",
-        dest="editions",
-        action='store_true',
-        default=True,
-        help="Also fetch all the editions of works.",
-    )
-    parser.add_option(
-        "-l",
-        "--list",
-        dest="lists",
-        action="append",
-        default=[],
-        help="copy docs from a list.",
-    )
-    return parser.parse_args()
 
 
 class Disk:
@@ -169,6 +101,9 @@ class Disk:
             elif doc['type']['key'] == '/type/macro':
                 path = path + ".html"
                 write(path, doc['macro'])
+            else:
+                path = path + ".json"
+                write(path, json.dumps(doc, indent=2))
 
 
 def read_lines(filename):
@@ -384,32 +319,56 @@ def copy_list(src, dest, list_key, comment):
     copy(src, dest, keys, comment=comment, recursive=True)
 
 
-def main():
-    options, args = parse_args()
+def main(
+        keys: list[str],
+        src="http://openlibrary.org/",
+        dest="http://localhost:8080",
+        comment="",
+        recursive=True,
+        editions=True,
+        lists: list[str] = None,
+):
+    """
+    Script to copy docs from one OL instance to another.
+    Typically used to copy templates, macros, css and js from
+    openlibrary.org to dev instance. paths can end with wildcards.
 
-    if options.src.startswith("http://"):
-        src = OpenLibrary(options.src)
-    else:
-        src = Disk(options.src)
+    USAGE:
+        ./scripts/copydocs.py --src http://openlibrary.org /templates/*
 
-    if options.dest.startswith("http://"):
-        dest = OpenLibrary(options.dest)
-        section = "[%s]" % web.lstrips(options.dest, "http://").strip("/")
+    This script can also be used to copy books and authors from OL to dev instance.
+
+        ./scripts/copydocs.py /authors/OL113592A
+        ./scripts/copydocs.py /works/OL1098727W?v=2
+
+    :param src: URL of the source open library server
+    :param dest: URL of the destination open library server
+    :param recursive: Recursively fetch all the referred docs
+    :param editions: Also fetch all the editions of works
+    :param lists: Copy docs from list(s)
+    """
+
+    # Mypy doesn't handle union-ing types across if statements -_-
+    # https://github.com/python/mypy/issues/6233
+    src_ol: Union[Disk, OpenLibrary] = (
+        OpenLibrary(src) if src.startswith("http://") else Disk(src))
+    dest_ol: Union[Disk, OpenLibrary] = (
+        OpenLibrary(dest) if dest.startswith("http://") else Disk(dest))
+
+    if isinstance(dest_ol, OpenLibrary):
+        section = "[%s]" % web.lstrips(dest, "http://").strip("/")
         if section in read_lines(os.path.expanduser("~/.olrc")):
-            dest.autologin()
+            dest_ol.autologin()
         else:
-            dest.login("admin", "admin123")
-    else:
-        dest = Disk(options.dest)
+            dest_ol.login("admin", "admin123")
 
-    for list_key in options.lists:
-        copy_list(src, dest, list_key, comment=options.comment)
+    for list_key in (lists or []):
+        copy_list(src_ol, dest_ol, list_key, comment=comment)
 
-    keys = args
-    keys = list(expand(src, keys))
+    keys = list(expand(src_ol, ('/' + k.lstrip('/') for k in keys)))
 
-    copy(src, dest, keys, comment=options.comment, recursive=options.recursive, editions=options.editions)
+    copy(src_ol, dest_ol, keys, comment=comment, recursive=recursive, editions=editions)
 
 
 if __name__ == '__main__':
-    main()
+    FnToCLI(main).run()
