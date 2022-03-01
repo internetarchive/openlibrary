@@ -135,8 +135,8 @@ $if ocaid and secondary_action and availability.get('is_printdisabled') and book
 $:post
 
 $if ocaid and daisy and book_provider.short_name == 'ia':
-  $ url = doc.get('url') or doc.get('key') + '/-'
-  $:macros.daisy('%s/daisy' % url, protected=availability.get('is_printdisabled'))
+  $ url = 'https://archive.org/download/%s/%s_daisy.zip'  % (ocaid, ocaid)
+  $:macros.daisy(url, protected=availability.get('is_printdisabled'))
 
 $if query_param('debug'):
   $ loanstatus_end_time = time() - loanstatus_start_time
