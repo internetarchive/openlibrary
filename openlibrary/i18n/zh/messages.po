@@ -1122,3 +1122,164 @@ msgstr ""
 #: account/borrow.html:254
 msgid "Getting Started"
 msgstr "开始"
+
+#: account/borrow.html:255
+msgid ""
+"All you need to borrow a book scanned at the Internet Archive is an Open "
+"Library account and Adobe Digital Editions."
+msgstr ""
+"您只需要一个开放图书馆的账号和Adobe Digital Editions，就可以"
+"借到在互联网档案馆扫描过的书籍。"
+
+#: account/borrow.html:256
+msgid ""
+"Loans through WorldCat are managed through your local libraries, not through "
+"Open Library."
+msgstr ""
+"通过WorldCat的借阅是由您的当地图书馆管理的，而不是开放图书馆管理的。"
+
+#: account/borrow.html:258
+msgid ""
+"Check out the <a href=\"/help/faq#section-borrowing\"><strong>Lending FAQ</"
+"strong></a> for more information."
+msgstr ""
+"查看<a href=\"/help/faq#section-borrowing\"><strong>"
+"出借常见问题</strong></a>了解更多信息。"
+
+#: account/borrow.html:261
+msgid "Which books are available?"
+msgstr "有哪些书籍能够借阅？"
+
+#: account/borrow.html:262
+#, python-format
+msgid ""
+"Browse all the available books through the <a href=\"/subjects/"
+"lending_library\">\"Lending Library\"</a> subject, or try a <a href=\"/"
+"search?subject_facet=Lending%20library\">search</a>."
+msgstr ""
+"通过<a href=\"/subjects/lending_library\">\"图书馆出借\"</a>主题，或者尝试<a "
+"href=\"/search?subject_facet=Lending%20library\">搜索</a>浏览所有可以借阅的书籍。"
+
+#: account/borrow.html:267
+msgid "Help/Downloads"
+msgstr "帮助/下载"
+
+#: account/borrow.html:269
+msgid "Download Adobe Digital Editions"
+msgstr "下载Adobe Digital Editions"
+
+#: account/borrow.html:270
+msgid ""
+"<a href=\"http://www.adobe.com/products/digitaleditions/help/\">Help</a> on "
+"adobe.com"
+msgstr ""
+"<a href=\"http://www.adobe.com/products/digitaleditions/help/\">帮助</a> 在 "
+"adobe.com"
+
+#: account/borrow.html:273
+msgid ""
+"If you work at a library and are interested to find out more about lending "
+"ebooks through Open Library, please <a href=\"/contact\">get in touch with "
+"us</a>!"
+msgstr ""
+"如果您在图书馆工作，并有兴趣了解更多关于通过开放图书馆出借电子书的信息，"
+"请<a href=\"/contact\">与我们联系</a>!"
+
+#: account/create.html:9
+msgid "Sign Up to Open Library"
+msgstr "注册开放图使馆账号"
+
+#: account/create.html:12 account/create.html:85 lib/header_dropdown.html:47
+#: lib/nav_head.html:109 lib/search_head.html:78
+msgid "Sign Up"
+msgstr "注册"
+
+#: account/create.html:14
+msgid "Complete the form below to create a new Internet Archive account."
+msgstr ""
+"完成以下表格来创建一个新的互联网档案馆账户。"
+
+#: account/create.html:15
+msgid "Each field is required"
+msgstr "每个空白处都是必填的"
+
+#: account/create.html:56
+msgid "Your URL"
+msgstr "您的URL"
+
+#: account/create.html:56
+msgid "screenname"
+msgstr "网名"
+
+#: account/create.html:73
+msgid ""
+"If you have security settings or privacy blockers installed, please disable "
+"them to see the reCAPTCHA."
+msgstr ""
+"如果您开启了安全设置或者安装了隐私禁止程序，请关闭它们以查看reCAPTCHA。"
+
+#: account/create.html:77
+msgid "Incorrect. Please try again."
+msgstr "错误。请重试。"
+
+#: account/create.html:81
+msgid ""
+"By signing up, you agree to the Internet Archive's <a href='//archive.org/"
+"about/terms.php' target='_blank'>Terms of Service</a>."
+msgstr ""
+"通过完成注册程序，您同意接受互联网档案馆的<a href='//archive.org/"
+"about/terms.php' target='_blank'>服务条款</a>。"
+
+#: account/delete.html:6 account/delete.html:10
+msgid "Delete Account"
+msgstr "注销账户"
+
+#: account/delete.html:15
+msgid "Sorry, this functionality is not yet implemented."
+msgstr "很抱歉，此功能尚未实现。"
+
+#: account/import.html:25
+msgid "Import from Goodreads"
+msgstr "从Goodreads导入"
+
+#: account/import.html:30
+msgid "File size limit 10MB and .csv file type only"
+msgstr "文件大小限制为10MB，且只能使用.csv文件类型。"
+
+#: account/import.html:34
+msgid "Load Books"
+msgstr "加载书籍"
+
+#: account/import.html:39
+msgid "Export your Reading Log"
+msgstr "导出您的阅读日志"
+
+#: account/import.html:43
+msgid "Download (.csv format)"
+msgstr "下载(.csv 格式)"
+
+#: account/not_verified.html:7 account/not_verified.html:18
+#: account/verify/failed.html:10
+msgid "Oops!"
+msgstr "哎呀!"
+
+#: account/not_verified.html:36 account/verify/failed.html:29
+msgid "Resend the verification email"
+msgstr "重新发送验证邮件"
+
+#: SearchResultsWork.html:41 SearchResultsWork.html:45 account/notes.html:25
+#: account/observations.html:26
+msgid "Unknown author"
+msgstr "未知作者"
+
+#: account/notes.html:35
+msgid "My notes for an edition of "
+msgstr "我的笔记于"
+
+#: account/notes.html:39
+msgid "Title Missing"
+msgstr "缺少标题"
+
+#: account/notes.html:46 type/work/editions.html:36
+msgid "Publish date unknown"
+msgstr "出版日期不详"
