@@ -1283,3 +1283,207 @@ msgstr "缺少标题"
 #: account/notes.html:46 type/work/editions.html:36
 msgid "Publish date unknown"
 msgstr "出版日期不详"
+
+#: account/notes.html:48 books/edition-sort.html:58 books/works-show.html:30
+#: type/work/editions.html:38
+msgid "Publisher unknown"
+msgstr "出版商不详"
+
+#: account/notes.html:53 type/work/editions.html:47
+#, python-format
+msgid "in %(language)s"
+msgstr "%(language)s"
+
+#: NotesModal.html:40 account/notes.html:66
+msgid "Delete Note"
+msgstr "删除笔记"
+
+#: NotesModal.html:41 account/notes.html:67
+msgid "Save Note"
+msgstr "保存笔记"
+
+#: account/notes.html:75
+msgid "No notes found."
+msgstr "没有发现任何笔记。"
+
+#: account/notifications.html:7 account/notifications.html:16
+msgid "Notifications from Open Library"
+msgstr "来自开放图书馆的通知"
+
+#: account/notifications.html:14
+msgid "Notifications"
+msgstr "通知"
+
+#: account/notifications.html:31
+msgid ""
+"Notifications are connected to Lists at the moment. If one of the books on "
+"your list gets edited, or a new book comes into the catalog, we'll let you "
+"know, if you want."
+msgstr ""
+"目前，通知是和清单互通的。当您清单上的某本书籍被编辑了，或者有新的书籍进入目录，"
+"如果您需要，我们会通知您这些变化。"
+
+#: account/notifications.html:35
+msgid "Would you like to receive very occasional emails from Open Library?"
+msgstr ""
+"您想不定期地收到来自开放图书馆的邮件吗？"
+
+#: account/notifications.html:42
+msgid "No, thank you"
+msgstr "不用了，谢谢"
+
+#: account/notifications.html:49
+msgid "Yes! Please!"
+msgstr "好的！"
+
+#: EditButtons.html:21 EditButtonsMacros.html:24 account/notifications.html:57
+#: account/privacy.html:54 covers/manage.html:50
+msgid "Save"
+msgstr "保存"
+
+#: account/observations.html:43
+msgid "Delete"
+msgstr "删除"
+
+#: account/observations.html:44
+msgid "Update Observations"
+msgstr "更新观察"
+
+#: account/observations.html:50
+msgid "No observations found."
+msgstr "没有发现任何观察。"
+
+#: account/privacy.html:7
+msgid "Your Privacy on Open Library"
+msgstr "您在开放图书馆的隐私"
+
+#: account/privacy.html:16
+msgid "Privacy Settings"
+msgstr "隐私设置"
+
+#: account/privacy.html:39
+msgid "Yes"
+msgstr "是"
+
+#: account/privacy.html:46 books/edit/edition.html:305
+msgid "No"
+msgstr "否"
+
+#: ReadingLogButton.html:9 account/readinglog_shelf_name.html:8
+#: lists/widget.html:128
+msgid "Currently Reading"
+msgstr "正在阅读"
+
+#: account/readinglog_shelf_name.html:10
+msgid "Want To Read"
+msgstr "想要阅读"
+
+#: ReadingLogButton.html:9 account/readinglog_shelf_name.html:12
+#: lists/widget.html:126 lists/widget.html:190
+msgid "Already Read"
+msgstr "已经阅读过的"
+
+#: account/readinglog_stats.html:8 account/readinglog_stats.html:99
+#, python-format
+msgid "\"%(shelf_name)s\" Stats"
+msgstr "\"%(shelf_name)s\"状态"
+
+#: account/readinglog_stats.html:101
+#, python-format
+msgid ""
+"Displaying stats about <strong>%d</strong> books. Note all charts show only "
+"the top 20 bars. Note reading log stats are private."
+msgstr ""
+"显示有关书籍<strong>%d</strong>的统计数据。所有图表只显示前20条。"
+"阅读日志的统计数据的私人的。"
+
+#: account/readinglog_stats.html:106
+msgid "Author Stats"
+msgstr "作者的统计数据"
+
+#: account/readinglog_stats.html:111
+msgid "Most Read Authors"
+msgstr "阅读次数最多的作者"
+
+#: account/readinglog_stats.html:112
+msgid "Works by Author Sex"
+msgstr "以作者性别分类的作品"
+
+#: account/readinglog_stats.html:113
+msgid "Works by Author Ethnicity"
+msgstr "以作者族裔分类的作品"
+
+#: account/readinglog_stats.html:114
+msgid "Works by Author Country of Citizenship"
+msgstr "以作者国籍分类的作品"
+
+#: account/readinglog_stats.html:115
+msgid "Works by Author Country of Birth"
+msgstr "以作者出生国家分类的作品"
+
+#: account/readinglog_stats.html:125
+msgid ""
+"Demographic statistics powered by <a href=\"https://www.wikidata.org/"
+"\">Wikidata</a>. Here's a <a id=\"wd-query-sample\" href=\"\">sample</a> of "
+"the query used."
+msgstr ""
+"人口统计数据来源于<a href=\"https://www.wikidata.org/"
+"\">Wikidata</a>。以下是使用的查询<a id=\"wd-query-sample\" href=\"\">样本</a>。 "
+
+#: account/readinglog_stats.html:127
+msgid "Work Stats"
+msgstr "作品统计数据"
+
+#: account/readinglog_stats.html:133
+msgid "Works by Subject"
+msgstr "按主题分类的作品"
+
+#: account/readinglog_stats.html:134
+msgid "Works by People"
+msgstr "按人物分类的作品"
+
+#: account/readinglog_stats.html:135
+msgid "Works by Places"
+msgstr "按地点分类的作品"
+
+#: account/readinglog_stats.html:136
+msgid "Works by Time Period"
+msgstr "按时期分类的作品"
+
+#: account/readinglog_stats.html:148
+msgid "Matching works"
+msgstr "匹配的作品"
+
+#: account/readinglog_stats.html:152
+msgid "Click on a bar to see matching works"
+msgstr "点击一个栏查看匹配的作品"
+
+#: account/verify.html:7
+msgid "Verification email sent"
+msgstr "已发送验证邮件"
+
+#: account.py:362 account.py:397 account/password/reset_success.html:10
+#: account/verify.html:9 account/verify/activated.html:10
+#: account/verify/success.html:10
+#, python-format
+msgid "Hi, %(user)s"
+msgstr "你好， %(user)s"
+
+#: account/email/forgot-ia.html:10 account/email/forgot.html:10
+msgid "Forgot Your Internet Archive Email?"
+msgstr "忘记了您互联网档案馆的电子邮箱？"
+
+#: account/email/forgot-ia.html:12
+msgid ""
+"Please enter your Open Library email and password, and we’ll retrieve your "
+"Archive.org email."
+msgstr ""
+"请输入您开放图书馆的电子邮箱和密码，我们会找回您Archive.org.的电子邮箱。"
+
+#: account/email/forgot-ia.html:17
+msgid "Your email is:"
+msgstr "您的电子邮箱是:"
+
+#: account/email/forgot-ia.html:18
+msgid "Return to Log In?"
+msgstr "返回登录界面？"
