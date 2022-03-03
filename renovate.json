@@ -6,19 +6,19 @@
     {
       "matchPackageNames": ["eslint", "babel-eslint", "eslint-plugin-no-jquery", "eslint-plugin-vue"],
       "groupName": "eslint",
-      "automerge": true,
+      "automerge": true
     },
     {
       "matchPackageNames": ["jest", "bundlesize", "sinon", "stylelint", "stylelint-declaration-use-variable"],
-      "automerge": true,
+      "automerge": true
     },
     {
       "matchPackageNames": ["flake8", "mypy", "pytest", "safety"],
-      "automerge": true,
+      "automerge": true
     },
     {
       "matchDatasources": ["github-actions"],
-      "automerge": true,
+      "automerge": true
     }
   ]
 }
