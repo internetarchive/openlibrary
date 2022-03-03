@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None)
 
 $code:
   doc_type = (
@@ -99,6 +99,9 @@ $ max_rendered_authors = 9
           $ doc['availability'] = doc.get('availability', {}) or availability or {}
           $:macros.LoanStatus(doc, work_key=doc.key)
       </div>
+
+      $if reading_log:
+        $:reading_log
 
       $if rating:
         $:rating

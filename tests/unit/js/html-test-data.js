@@ -71,3 +71,31 @@ export const bookDropdownSample = `
         <div class="arrow arrow-unactivated"></div>
     </a>
 `;
+
+export const listCreationForm = `
+    <form method="post" class="floatform" name="new-list" id="new-list">
+    <div class="formElement">
+        <div class="label">
+            <label for="list_label">Name:</label>
+        </div>
+        <div class="input">
+            <input type="text" name="list_label" id="list_label" class="text required" value="sample text" required="">
+        </div>
+    </div>
+    <div class="formElement">
+        <div class="label">
+            <label for="list_desc">Description:</label>
+        </div>
+        <div class="input">
+            <textarea name="list_desc" id="list_desc" rows="5" cols="30">Sample text</textarea>
+        </div>
+    </div>
+    <div class="formElement">
+        <div class="input">
+            <button id="create-list-button" type="submit" class="larger">Create new list</button>
+            &nbsp; &nbsp;
+            <a class="small dialog--close plain red" href="javascript:;">Cancel</a>
+        </div>
+    </div>
+    </form>
+`

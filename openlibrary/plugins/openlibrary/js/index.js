@@ -72,6 +72,25 @@ jQuery(function () {
         import(/* webpackChunkName: "details-polyfill" */ 'details-polyfill');
     }
 
+    // Polyfill for .matches()
+    if (!Element.prototype.matches) {
+        Element.prototype.matches =
+          Element.prototype.msMatchesSelector ||
+          Element.prototype.webkitMatchesSelector;
+    }
+
+    // Polyfill for .closest()
+    if (!Element.prototype.closest) {
+        Element.prototype.closest = function(s) {
+            let el = this;
+            do {
+                if (Element.prototype.matches.call(el, s)) return el;
+                el = el.parentElement || el.parentNode;
+            } while (el !== null && el.nodeType === 1);
+            return null;
+        };
+    }
+
     const $markdownTextAreas = $('textarea.markdown');
     // Live NodeList is cast to static array to avoid infinite loops
     const $carouselElements = $('.carousel--progressively-enhanced');
@@ -296,6 +315,20 @@ jQuery(function () {
     }
     if ($('#cboxSlideshow').length) {
         $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
+    }
+
+    // "Want to Read" buttons:
+    const droppers = document.getElementsByClassName('widget-add');
+
+    if (droppers.length) {
+        import(/* webpackChunkName: "lists" */ './lists')
+            .then((module) => {
+                module.initDroppers(droppers);
+                // Removable list items:
+                const actionableListItems = document.querySelectorAll('.actionable-item')
+                module.registerListItems(actionableListItems);
+            }
+            );
     }
 
     $(document).on('click', '.slide-toggle', function () {
