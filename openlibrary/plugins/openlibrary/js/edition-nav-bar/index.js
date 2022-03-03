@@ -1,8 +1,30 @@
 import { debounce } from '../nonjquery_utils'
 
+/**
+ * Adds navbar-related click and scroll listeners
+ *
+ * @param {HTMLUListElement} navbarElem The navbar
+ */
 export function initNavbar(navbarElem) {
+    /**
+     * Each list item in the navbar.
+     *
+     * @type {HTMLCollection<HTMLLIElement}
+     */
     const listItems = navbarElem.querySelectorAll('li');
+
+    /**
+     * The targets of the navbar links.
+     *
+     * @type {Array<HTMLElement>}
+     */
     const linkedSections = []
+
+    /**
+     * Reference to the selected target element.
+     *
+     * @type {HTMLElement}
+     */
     let selectedSection
 
     // Add click listeners
@@ -18,6 +40,17 @@ export function initNavbar(navbarElem) {
         }
     }
 
+    /**
+     * Adds 'selected' class to the given element.
+     *
+     * Removes 'selected' class from all navbar links, then adds
+     * 'selected' to the newly selected link.
+     *
+     * Stores reference to the selected target.
+     *
+     * @param {HTMLLIElement} selectedElem Element corresponding to the 'selected' navbar item.
+     * @param {Number} targetIndex The index
+     */
     function selectElement(selectedElem, targetIndex) {
         for (const li of listItems) {
             li.classList.remove('selected')
@@ -26,7 +59,7 @@ export function initNavbar(navbarElem) {
         selectedSection = linkedSections[targetIndex];
     }
 
-    // Add scroll listener
+    // Add scroll listener that changes 'selected' navbar item based on page position:
     document.addEventListener('scroll', function() {
         const navbarBoundingRect = navbarElem.getBoundingClientRect()
         const selectedBoundingRect = selectedSection.getBoundingClientRect();
@@ -38,6 +71,8 @@ export function initNavbar(navbarElem) {
                 // Do not do bounds check on selected item:
                 if (linkedSections[i].id !== selectedSection.id) {
                     const br = linkedSections[i].getBoundingClientRect()
+
+                    // If navbar overlaps with an unselected target section, select that section:
                     if (br.top < navbarBoundingRect.bottom && br.bottom > navbarBoundingRect.bottom) {
                         selectElement(listItems[i], i)
                         break;
