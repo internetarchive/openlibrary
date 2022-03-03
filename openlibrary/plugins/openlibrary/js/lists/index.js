@@ -202,8 +202,10 @@ function addCreateListClickListener(button, parentDropper) {
 
 /**
  * Clears the inputs of the "Create new list" modal form.
+ *
+ * NOTE: This function intended for internal use.
  */
-function clearCreateListForm() {
+export function clearCreateListForm() {
     document.querySelector('#list_label').value = '';
     document.querySelector('#list_desc').value = '';
 }
