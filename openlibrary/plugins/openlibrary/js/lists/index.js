@@ -181,7 +181,7 @@ function addCreateListClickListener(button, parentDropper) {
 
             // Make call to create list
             const data = {
-                name: nameField.value,
+                name: websafe(nameField.value),
                 description: websafe(descriptionField.value),
                 seeds: [seed],
             }
@@ -393,18 +393,21 @@ function updateAlreadyList(listKey, listTitle, coverUrl) {
     const alreadyLists = document.querySelector('.already-lists');
     const splitKey = listKey.split('/')
     const userKey = `/${splitKey[1]}/${splitKey[2]}`
+    const i18nInput = document.querySelector('input[name=list-i18n-strings]')
+    const i18nStrings = JSON.parse(i18nInput.value)
+
     const itemMarkUp = `<span class="image">
-          <a href="${listKey}"><img src="${coverUrl}" alt="Cover of: ${listTitle}" title="Cover of: ${listTitle}"/></a>
+          <a href="${listKey}"><img src="${coverUrl}" alt="${i18nStrings['cover_of']}${listTitle}" title="${i18nStrings['cover_of']}${listTitle}"/></a>
         </span>
         <span class="data">
             <span class="label">
-                <a href="${listKey}" data-list-title="${listTitle}" title="See this list">${listTitle}</a>
+                <a href="${listKey}" data-list-title="${listTitle}" title="${i18nStrings['see_this_list']}">${listTitle}</a>
                 <input type="hidden" name="seed-title" value="${listTitle}"/>
                 <input type="hidden" name="seed-key" value="${listKey}"/>
                 <input type="hidden" name="seed-type" value="edition"/>
-                <a href="${listKey}" class="remove-from-list red smaller arial plain" data-list-key="${listKey}" title="Remove from your list?">[X]</a>
+                <a href="${listKey}" class="remove-from-list red smaller arial plain" data-list-key="${listKey}" title="${i18nStrings['remove_from_list']}">[X]</a>
             </span>
-            <span class="owner">from <a href="${userKey}">You</a></span>
+            <span class="owner">${i18nStrings['from']} <a href="${userKey}">${i18nStrings['you']}</a></span>
         </span>`
 
     const li = document.createElement('li')

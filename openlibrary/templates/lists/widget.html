@@ -130,7 +130,19 @@ $if include_header:
 
 $ default_seed_key = seed_info['seed']['key'] if isinstance(seed_info['seed'], dict) else seed_info['seed']
 
+$def i18n_input():
+  $ show_list_i18n_strings = {
+    $ "cover_of": _('Cover of: %(title)s', title=''),
+    $ "see_this_list": _('See this list'),
+    $ "remove_from_list": _('Remove from your list?'),
+    $ "from": _('from'),
+    $ "you": _('You')
+    $ }
+  <input type="hidden" name="list-i18n-strings" value="$json_encode(show_list_i18n_strings)">
+
 $if include_widget:
+  $if render_once('lists/widget.i18n-strings'):
+    $:i18n_input()
   $:macros.ReadingLogDropper(user_lists, work=work, edition=edition, key=default_seed_key, users_work_read_status=users_work_read_status, page_url=page_url)
   <ul id="already-lists" class="listLists already-lists">
     $:render_already_lists(user_lists, user_key)
@@ -146,6 +158,8 @@ $if include_widget:
       $:macros.NotesModal(work, edition, link_text, 'cta', 'cta-section patron-metadata')
 
 $if include_showcase:
+  $if render_once('lists/widget.i18n-strings'):
+    $i18n_input()
   <ul id="list-lists" class="listLists">
     $:render_widget_display(page_lists, 3, user_key)
   </ul>
