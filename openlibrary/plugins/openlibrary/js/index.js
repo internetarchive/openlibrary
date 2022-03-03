@@ -323,4 +323,10 @@ jQuery(function () {
         import(/* webpackChunkName: "star-ratings" */'./handlers')
             .then((module) => module.initRatingHandlers(ratingForms));
     }
+
+    const navbar = document.querySelector('.work-menu');
+    if (navbar) {
+        import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
+            .then((module) => module.initNavbar(navbar));
+    }
 });
