@@ -89,10 +89,10 @@ RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary && chown openlibrary:open
 WORKDIR /openlibrary
 
 USER openlibrary
-COPY requirements*.txt ./
+COPY --chown=openlibrary:openlibrary requirements*.txt ./
 RUN python3.9 -m pip install --default-timeout=100 -r requirements.txt
 
-COPY package*.json ./
+COPY --chown=openlibrary:openlibrary package*.json ./
 RUN npm ci
 
 COPY --chown=openlibrary:openlibrary . /openlibrary

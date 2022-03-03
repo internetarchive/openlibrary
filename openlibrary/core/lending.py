@@ -305,9 +305,13 @@ def get_available(
         # carousel queries) needs Open Library to forward user IPs so
         # we can attribute requests to end-users
         client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
-
+        headers = {
+            "x-client-id": client_ip,
+            "x-preferred-client-id": client_ip,
+            "x-application-id": "openlibrary"
+        }
         response = requests.get(
-            url, headers={"x-client-id": client_ip}, timeout=config_http_request_timeout
+            url, headers=headers, timeout=config_http_request_timeout
         )
         items = response.json().get('response', {}).get('docs', [])
         results = {}
