@@ -4873,7 +4873,7 @@ msgstr ""
 
 #: LoanStatus.html:120 LoanStatus.html:125
 msgid "Not in Library"
-msgstr "Nicht in meiner Bibliothek"
+msgstr "Nicht in der Bibliothek"
 
 #: NotesModal.html:33
 msgid "My private notes about this edition:"
