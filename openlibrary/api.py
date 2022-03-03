@@ -201,6 +201,14 @@ class OpenLibrary:
             response = self._request("/query.json", params=dict(query=json.dumps(q)))
             return unmarshal(response.json())
 
+    def search(self, query, limit=10, offset=0, fields: list[str] = None):
+        return self._request('/search.json', params={
+            'q': query,
+            'limit': limit,
+            'offset': offset,
+            **({'fields': ','.join(fields)} if fields else {})
+        }).json()
+
     def import_ocaid(self, ocaid, require_marc=True):
         data = {
             'identifier': ocaid,
