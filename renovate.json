@@ -1,5 +1,24 @@
 {
   "extends": [
     "config:base"
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": ["eslint", "babel-eslint", "eslint-plugin-no-jquery", "eslint-plugin-vue"],
+      "groupName": "eslint",
+      "automerge": true,
+    },
+    {
+      "matchPackageNames": ["jest", "bundlesize", "sinon", "stylelint", "stylelint-declaration-use-variable"],
+      "automerge": true,
+    },
+    {
+      "matchPackageNames": ["flake8", "mypy", "pytest", "safety"],
+      "automerge": true,
+    },
+    {
+      "matchDatasources": ["github-actions"],
+      "automerge": true,
+    }
   ]
 }
