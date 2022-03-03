@@ -16,20 +16,21 @@ git checkout -b $NEW_BRANCH
 
 while read line; do
     branch=${line/\*\*/}
+    branch=$(echo $branch | grep -o -E '^[^#]+')
     if [[ -z $line || $line == "#"* ]] ; then
         :
     elif [[ ! -z $ONLY_STARRED && $line != "**"* ]] ; then
         :
     elif [[ $branch == "https://github.com/internetarchive/openlibrary/pull/"*".patch" ]] ; then
-        echo -e "---\n$branch"
+        echo -e "---\n$line"
         curl -L $branch | git am -3
-    elif [[ $branch == "https://"* ]] ; then
-        echo -e "---\n$branch"
+    elif [[ $branch == "https://"* || $branch == "origin pull/"* ]] ; then
+        echo -e "---\n$line"
         git pull $branch
         # If the merge didn't succeed automatically, abort it
         [[ $(git ls-files -u) ]] && git merge --abort
     else
-        echo -e "---\n$branch"
+        echo -e "---\n$line"
         git merge $branch
         # If the merge didn't succeed automatically, abort it
         [[ $(git ls-files -u) ]] && git merge --abort
