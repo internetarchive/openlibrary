@@ -184,8 +184,8 @@ $if is_privileged_user:
       $:macros.StarRatingsStats(work)
       $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
 
-      <a id="edition-overview" name="edition-overview"></a>
       $:macros.EditionNavBar(work.edition_count, show_observations)
+      <a id="edition-overview" name="edition-overview"></a>
       <div class="edition-omniline">
         $:render_template("type/edition/publisher_line", edition)
 

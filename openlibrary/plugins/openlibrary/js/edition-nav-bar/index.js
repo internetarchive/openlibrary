@@ -28,24 +28,19 @@ export function initNavbar(navbarElem) {
 
     // Add scroll listener
     document.addEventListener('scroll', function() {
-        const navbarBoundingRect = navbarElem.getBoundingClientRect();
-        if (navbarBoundingRect.top > 0 && selectedSection.id !== linkedSections[0].id) {
-            selectedSection = linkedSections[0];
-            selectElement(listItems[0], 0)
-        } else {
-            const selectedBoundingRect = selectedSection.getBoundingClientRect();
+        const navbarBoundingRect = navbarElem.getBoundingClientRect()
+        const selectedBoundingRect = selectedSection.getBoundingClientRect();
 
-            // Check if navbar is not within selected element's bounds:
-            if (selectedBoundingRect.bottom < navbarBoundingRect.top ||
-            selectedBoundingRect.top > navbarBoundingRect.bottom){
-                for (let i = 0; i < linkedSections.length; i++) {
-                    if (linkedSections[i].id !== selectedSection.id) {
-                        // Bounds test:
-                        const br = linkedSections[i].getBoundingClientRect();
-                        if (br.top <= navbarBoundingRect.bottom && br.bottom > navbarBoundingRect.top) {
-                            selectElement(listItems[i], i)
-                            break;
-                        }
+        // Check if navbar is not within selected element's bounds:
+        if (selectedBoundingRect.bottom < navbarBoundingRect.top ||
+            selectedBoundingRect.top > navbarBoundingRect.bottom) {
+            for (let i = 0; i < linkedSections.length; ++i) {
+                // Do not do bounds check on selected item:
+                if (linkedSections[i].id !== selectedSection.id) {
+                    const br = linkedSections[i].getBoundingClientRect()
+                    if (br.top < navbarBoundingRect.bottom && br.bottom > navbarBoundingRect.bottom) {
+                        selectElement(listItems[i], i)
+                        break;
                     }
                 }
             }
