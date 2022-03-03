@@ -1,8 +1,8 @@
 FROM openlibrary/olbase:latest
 WORKDIR /openlibrary
 
-COPY requirements*.txt ./
+COPY --chown=openlibrary:openlibrary requirements*.txt ./
 RUN python3.9 -m pip install -r requirements_test.txt
 
-COPY package*.json ./
+COPY --chown=openlibrary:openlibrary package*.json ./
 RUN npm install
