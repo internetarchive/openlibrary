@@ -242,7 +242,7 @@ $if is_privileged_user:
 
       $if editions_limit and len(editions) and len(editions) < work.edition_count:
         <p>
-	  $_("Showing %(count)d featured editions", count=len(editions)).
+          $_("Showing %(count)d featured editions", count=len(editions)).
           <a href="?mode=all">$_("View all %(count)d editions?", count=work.edition_count)</a>
         </p>
 
