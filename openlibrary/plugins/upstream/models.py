@@ -24,6 +24,7 @@ from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
 from openlibrary.plugins.worksearch.search import get_solr
 
+from openlibrary.utils import dateutil
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
 import six
@@ -718,17 +719,20 @@ class Work(models.Work):
             if 'openlibrary_edition' in availability[work_id]:
                 return '/books/%s' % availability[work_id]['openlibrary_edition']
 
-    def get_sorted_editions(self, ebooks_only=False, limit=10000):
+    def get_sorted_editions(self, ebooks_only=False, covers_only=False, limit=None, keys=None):
         """
         Get this work's editions sorted by publication year
         :param bool ebooks_only:
+        :param int limit:
+        :param list[str] keys: ensure keys included in fetched editions
         :rtype: list[Edition]
         """
-
-        db_query = {"type": "/type/edition", "works": self.key, "limit": limit}
+        edition_keys = keys or []
+        db_query = {"type": "/type/edition", "works": self.key}
+        if limit:
+            db_query['limit'] = limit
 
         if ebooks_only:
-            edition_keys = []
             if self._solr_data:
                 from openlibrary.book_providers import get_book_providers
                 # Always use solr data whether it's up to date or not
@@ -740,29 +744,35 @@ class Work(models.Work):
                     edition_keys += web.ctx.site.things(query)
             else:
                 db_query["ocaid~"] = "*"
+        elif limit and covers_only:
+            # if we're going to be picky and there's no ebooks
+            # try to favor editions with covers
+            db_query["covers_i~"] = "*"
 
-        else:
+        if not edition_keys:
             solr_is_up_to_date = (
                 self._solr_data
                 and self._solr_data.get('edition_key')
                 and len(self._solr_data.get('edition_key')) == self.edition_count
             )
             if solr_is_up_to_date:
-                edition_keys = [
+                edition_keys += [
                     "/books/" + olid for olid in self._solr_data.get('edition_key')
                 ]
             else:
                 # given librarians are probably doing this, show all editions
-                edition_keys = web.ctx.site.things(db_query)
+                edition_keys += web.ctx.site.things(db_query)
 
-        editions = web.ctx.site.get_many(edition_keys)
+        editions = web.ctx.site.get_many(list(set(edition_keys)))
         editions.sort(
             key=lambda ed: ed.get_publish_year() or -sys.maxsize, reverse=True
         )
 
-        availability = lending.get_availability_of_ocaids(
-            [ed.ocaid for ed in editions if ed.ocaid]
-        )
+        # 2022-03 Once we know the availability-type of editions (e.g. open)
+        # via editions-search, we can sidestep get_availability to only
+        # check availability for borrowable editions
+        ocaids = [ed.ocaid for ed in editions if ed.ocaid]
+        availability = lending.get_availability_of_ocaids(ocaids) if ocaids else {}
         for ed in editions:
             ed.availability = availability.get(ed.ocaid) or {"status": "error"}
 

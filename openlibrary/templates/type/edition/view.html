@@ -17,17 +17,29 @@ $elif page.works:
 $else:
   $ work = page.make_work_from_orphaned_edition()
   $ show_observations = False
+
 $ edition = storage({})
+$if page.key.startswith('/books'):
+  $# We are on an editions page: an edition has been explicitly selected
+  $ edition = page
 
 $ component_times['get_sorted_editions'] = time()
+
 $# Fetch a work's editions
 $# Used for loading the editions table
 $# Book availability of editions injected by bulk get_availability API
 $ ebooks_only = query_param('mode') != 'all'
-$ editions = work.get_sorted_editions(ebooks_only=ebooks_only)
+
+$# For performance reasons, only load 10
+$# Tradeoff: decreases/limits our ability to select best edition
+$ editions_limit = 10 if not query_param('mode') else None
+$ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=edition and [edition.key])
+
 $if not editions:
+  $# use ebooks_only to determine whether to lazyload editions table
   $ ebooks_only = False
-  $ editions = work.get_sorted_editions()
+  $ editions_limit = 3 if not query_param('mode') else None
+  $ editions = work.get_sorted_editions(limit=editions_limit, covers_only=True)
 $ availabilities = {e.availability.get('identifier'): e.availability for e in editions}
 $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
 
@@ -35,10 +47,7 @@ $# This collects which books are previewable in any manner
 $ previews = [e for e in editions if e.get('ocaid')]
 
 $# Choose an edition to render
-$if page.key.startswith('/books') or not editions:
-  $# We are on an editions page: an edition has been explicitly selected
-  $ edition = page
-$else:
+$if not edition:
   $# We're presumably on a work url
   $ edition = editions[0]
   $# edition selection strategy (e.g. language, by id, first w/ ocaid)
@@ -51,6 +60,9 @@ $else:
     $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), edition)
   $else:
     $ edition, provider = get_best_edition(editions)
+
+$# Just in case edition is not set, treat as work
+$ edition = edition or page
 
 $if not edition.get('availability'):
   $ edition['availability'] = edition.get('ocaid') and availabilities.get(edition['ocaid']) or {}
@@ -227,9 +239,11 @@ $if is_privileged_user:
         </div>
         $:macros.ReadMore("subjects")
     </div>
-      $if ebooks_only:
+
+      $if editions_limit and len(editions) and len(editions) < work.edition_count:
         <p>
-          $ungettext("Showing one ebook only.", "Showing %(count)d ebooks only", len(editions), count=len(editions)) <a href="?mode=all">$_("View all %(count)d editions?", count=work.edition_count)</a>
+          $_("Showing %(count)d featured editions", count=len(editions)).
+          <a href="?mode=all">$_("View all %(count)d editions?", count=work.edition_count)</a>
         </p>
 
       <p class="preview-languages">
