@@ -272,7 +272,10 @@ $if is_privileged_user:
         $if work.description:
           <h4>$_("Work Description")</h4>
           <div class="work-description">
-            $:sanitize(format(work.description))
+            <div class="work-description-content restricted-view">
+              $:sanitize(format(work.description))
+            </div>
+            $:macros.ReadMore('work-description')
           </div>
 
         $if work.original_languages:
