@@ -1486,4 +1486,295 @@ msgstr "您的电子邮箱是:"
 
 #: account/email/forgot-ia.html:18
 msgid "Return to Log In?"
-msgstr "返回登录界面？"
+msgstr "返回登录界面吗？"
+
+#: account/email/forgot-ia.html:27
+msgid "Open Library Email"
+msgstr "开放图书馆电子邮箱"
+
+#: account/email/forgot-ia.html:38
+msgid "Retrieve Archive.org Email"
+msgstr "找回Archive.org电子邮箱"
+
+#: account/email/forgot-ia.html:43 account/password/forgot.html:10
+#: account/password/forgot.html:11
+msgid "Forgot your Archive.org Password?"
+msgstr "忘记Archive.org密码？"
+
+#: account/email/forgot.html:15
+msgid "Forgot Your Open Library Email?"
+msgstr "忘记开放图书馆电子邮箱？"
+
+#: account/password/forgot.html:7 account/password/sent.html:7
+msgid "Username/Password Reminder"
+msgstr "用户名/密码提醒"
+
+#: account/password/forgot.html:11
+msgid "Click here."
+msgstr "点击这里。"
+
+#: account/password/forgot.html:23
+msgid "Send It"
+msgstr "发送"
+
+#: account/password/reset.html:7 account/password/reset.html:10
+#: admin/people/view.html:162
+msgid "Reset Password"
+msgstr "重置密码"
+
+#: account/password/reset.html:15
+msgid "Please enter a new password for your Open Library account."
+msgstr ""
+"请为您的开放图书馆账号输入新的密码。"
+
+#: account/password/reset.html:23
+msgid "Reset"
+msgstr "重置"
+
+#: account/password/reset_success.html:7
+msgid "Password Reset Successful"
+msgstr "密码重置成功"
+
+#: account/password/reset_success.html:14
+msgid ""
+"Your password has been updated. Please <a href='/account/login?"
+"redirect=/'>log in to continue</a>."
+msgstr ""
+"您的密码已更改。请<a href='/account/login?"
+"redirect=/'>登录</a>。"
+
+#: account/password/sent.html:10
+msgid "Done."
+msgstr "完成。"
+
+#: account/password/sent.html:14
+#, python-format
+msgid ""
+"We've sent an email to %(email)s with a reminder of your username and "
+"instructions to help you reset your Open Library password. Please check your "
+"inbox for a note from us."
+msgstr ""
+"我们已经向%(email)s发送了您的用户名和重置开放图书馆密码的操作指示。"
+"请检查您的收件箱。"
+
+#: account/verify/activated.html:7
+msgid "Account already activated"
+msgstr "账号已激活"
+
+#: account/verify/activated.html:15
+#, python-format
+msgid ""
+"Your account has been activated already. Please <a href=\"%s\">log in to "
+"continue</a>."
+msgstr ""
+"您的账号已激活。请<a href=\"%s\">登录</a>。"
+
+#: account/verify/failed.html:7
+msgid "Email Verification Failed"
+msgstr "电子邮箱验证失败"
+
+#: account/verify/failed.html:14
+msgid ""
+"Your email address couldn't be verified. Your verification link seems "
+"invalid or expired."
+msgstr ""
+"无法验证您的电子邮箱地址。您的验证链接似乎无效或已过期。"
+
+#: account/verify/failed.html:22
+msgid "Enter your email address here"
+msgstr "请在这里输入您的电子邮箱地址"
+
+#: account/verify/failed.html:25
+msgid "No user registered with this email address."
+msgstr ""
+"没有用户使用此电子邮箱地址注册。"
+
+#: account/verify/success.html:7
+msgid "Email Verification Successful"
+msgstr "电子邮箱验证成功"
+
+#: account/verify/success.html:15
+#, python-format
+msgid ""
+"Yay! Your email address has been verified. Please <a href='%s'>log in to "
+"continue</a>."
+msgstr ""
+"太好了！您的电子邮箱地址已通过验证。请<a href='%s'>登录</a>。"
+
+#: admin/attach_debugger.html:22
+msgid "Waiting for debugger to attach..."
+msgstr "正在等待调试器连接..."
+
+#: admin/attach_debugger.html:22
+msgid "Start"
+msgstr "开始"
+
+#: admin/graphs.html:47
+msgid "Today"
+msgstr "今日"
+
+#: admin/graphs.html:48
+msgid "This Week"
+msgstr "这周"
+
+#: admin/imports-add.html:26 admin/ip/view.html:95 admin/people/edits.html:92
+#: covers/add.html:77
+msgid "Submit"
+msgstr "提交"
+
+#: admin/loans_table.html:17
+msgid "BookReader"
+msgstr "BookReader"
+
+#: DownloadOptions.html:20 admin/loans_table.html:18
+msgid "PDF"
+msgstr "PDF"
+
+#: DownloadOptions.html:24 admin/loans_table.html:19
+msgid "ePub"
+msgstr "ePub"
+
+#: admin/loans_table.html:31
+#, python-format
+msgid "%d Current Loan"
+msgid_plural "%d Current Loans"
+msgstr[0] "目前 %d 份租借"
+msgstr[1] "目前 %d 份租借"
+
+#: RecentChanges.html:18 RecentChangesUsers.html:21 admin/ip/view.html:45
+#: admin/loans_table.html:45 admin/people/edits.html:42
+#: recentchanges/render.html:31 recentchanges/updated_records.html:29
+msgid "What"
+msgstr "什么"
+
+#: admin/menu.html:19
+msgid "Admin Center"
+msgstr "管理中心"
+
+#: admin/menu.html:21
+msgid "Sponsorship"
+msgstr "赞助"
+
+#: admin/menu.html:22 admin/people/view.html:225 lib/search_head.html:69
+#: type/user/view.html:29
+msgid "Loans"
+msgstr "租借"
+
+#: admin/menu.html:23
+msgid "Waiting Lists"
+msgstr "等候名单"
+
+#: admin/menu.html:24
+msgid "Block IPs"
+msgstr "IP屏蔽"
+
+#: admin/menu.html:25
+msgid "Spam Words"
+msgstr "垃圾邮件词条"
+
+#: admin/menu.html:26
+msgid "Solr"
+msgstr "Solr"
+
+#: admin/menu.html:27
+msgid "Imports"
+msgstr "导入"
+
+#: admin/menu.html:29
+msgid "Graphs"
+msgstr "图表"
+
+#: admin/menu.html:30
+msgid "Inspect store"
+msgstr "检查商店"
+
+#: admin/menu.html:31
+msgid "Inspect memcache"
+msgstr "检查记忆缓存"
+
+#: admin/people/view.html:172 admin/profile.html:7
+msgid "Admin"
+msgstr "管理员"
+
+#: admin/solr.html:31
+msgid "Enter the keys to reindex in Solr"
+msgstr "输入要在Solr中重新索引的密钥"
+
+#: admin/solr.html:32
+msgid "Write one entry per line"
+msgstr "每行写一个条目"
+
+#: admin/solr.html:41
+msgid "Update"
+msgstr "更新"
+
+#: admin/waitinglists.html:29
+msgid "Expires"
+msgstr "到期的"
+
+#: admin/waitinglists.html:30
+msgid "Loan Status"
+msgstr "租借状态"
+
+#: admin/ip/index.html:18
+msgid "List of Banned IPs"
+msgstr "被禁止的IP名单"
+
+#: admin/ip/index.html:22 admin/people/index.html:57
+msgid "Date/Time"
+msgstr "日期/时间"
+
+#: admin/ip/index.html:23
+msgid "IP address"
+msgstr "IP地址"
+
+#: admin/ip/index.html:26
+msgid "# of edits"
+msgstr "编辑数"
+
+#: admin/ip/view.html:21
+#, python-format
+msgid "Block %s"
+msgstr "拦截 %s"
+
+#: EditButtons.html:9 EditButtonsMacros.html:11 admin/ip/view.html:86
+#: admin/people/edits.html:83
+msgid "Please, leave a short note about what you changed:"
+msgstr "请留下一个简短的备注，说明你所改变的内容:"
+
+#: RecentChanges.html:61 RecentChangesAdmin.html:56 RecentChangesUsers.html:58
+#: admin/people/edits.html:100 recentchanges/render.html:61
+msgid "Older"
+msgstr "较早的"
+
+#: RecentChanges.html:64 RecentChangesAdmin.html:58 RecentChangesAdmin.html:60
+#: RecentChangesUsers.html:61 admin/people/edits.html:103
+#: recentchanges/render.html:64
+msgid "Newer"
+msgstr "较新的"
+
+#: admin/people/index.html:16
+msgid "Find Account"
+msgstr "寻找账号"
+
+#: admin/people/index.html:32 admin/people/view.html:152
+msgid "Email Address:"
+msgstr "电子邮箱地址:"
+
+#: admin/people/index.html:51
+msgid "Recent Accounts"
+msgstr ""近期账号
+
+#: admin/people/index.html:58 type/author/edit.html:26
+#: type/language/view.html:27
+msgid "Name"
+msgstr "名字"
+
+#: admin/people/index.html:59
+msgid "email"
+msgstr "电子邮箱"
+
+#: admin/people/index.html:60
+msgid "Edits"
+msgstr "编辑"
+
