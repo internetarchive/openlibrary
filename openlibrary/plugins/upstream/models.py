@@ -768,7 +768,7 @@ class Work(models.Work):
                     edition_keys += web.ctx.site.things(db_query)
             return list(set(edition_keys))
 
-        if limit <= 25:
+        if limit and limit <= 25:
             # if we have a reasonable limit, then cache editions to make the
             # default view fast
             ten_minutes = 10 * dateutil.MINUTE_SECS
