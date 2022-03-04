@@ -12,9 +12,9 @@ from isbnlib import canonical
 from infogami import config
 from infogami.infobase import client
 from infogami.utils.view import safeint
-from infogami.utils import stats, delegate
+from infogami.utils import stats
 
-from openlibrary.core import models, ia, cache
+from openlibrary.core import models, ia
 from openlibrary.core.models import Image
 from openlibrary.core import lending
 
@@ -727,55 +727,43 @@ class Work(models.Work):
         :param list[str] keys: ensure keys included in fetched editions
         :rtype: list[Edition]
         """
-        def get_edition_keys(work_key):
-            if 'env' not in web.ctx:
-                delegate.fakeload()
+        edition_keys = keys or []
+        db_query = {"type": "/type/edition", "works": self.key}
+        if limit:
+            db_query['limit'] = limit
 
-            edition_keys = keys or []
-            db_query = {"type": "/type/edition", "works": work_key}
-            if limit:
-                db_query['limit'] = limit
+        if ebooks_only:
+            if self._solr_data:
+                from openlibrary.book_providers import get_book_providers
+                # Always use solr data whether it's up to date or not
+                # to determine which providers this book has
+                # We only make additional queries when a
+                # trusted book provider identifier is present
+                for provider in get_book_providers(self._solr_data):
+                    query = {**db_query, **provider.editions_query}
+                    edition_keys += web.ctx.site.things(query)
+            else:
+                db_query["ocaid~"] = "*"
+        elif limit and covers_only:
+            # if we're going to be picky and there's no ebooks
+            # try to favor editions with covers
+            db_query["covers_i~"] = "*"
 
-            if ebooks_only:
-                if self._solr_data:
-                    from openlibrary.book_providers import get_book_providers
-                    # Always use solr data whether it's up to date or not
-                    # to determine which providers this book has
-                    # We only make additional queries when a
-                    # trusted book provider identifier is present
-                    for provider in get_book_providers(self._solr_data):
-                        query = {**db_query, **provider.editions_query}
-                        edition_keys += web.ctx.site.things(query)
-                else:
-                    db_query["ocaid~"] = "*"
-            elif limit and covers_only:
-                # if we're going to be picky and there's no ebooks
-                # try to favor editions with covers
-                db_query["covers_i~"] = "*"
+        if not edition_keys:
+            solr_is_up_to_date = (
+                self._solr_data
+                and self._solr_data.get('edition_key')
+                and len(self._solr_data.get('edition_key')) == self.edition_count
+            )
+            if solr_is_up_to_date:
+                edition_keys += [
+                    "/books/" + olid for olid in self._solr_data.get('edition_key')
+                ]
+            else:
+                # given librarians are probably doing this, show all editions
+                edition_keys += web.ctx.site.things(db_query)
 
-            if not edition_keys:
-                solr_is_up_to_date = (
-                    self._solr_data
-                    and self._solr_data.get('edition_key')
-                    and len(self._solr_data.get('edition_key')) == self.edition_count
-                )
-                if solr_is_up_to_date:
-                    edition_keys += [
-                        "/books/" + olid for olid in self._solr_data.get('edition_key')
-                    ]
-                else:
-                    # given librarians are probably doing this, show all editions
-                    edition_keys += web.ctx.site.things(db_query)
-            return list(set(edition_keys))
-
-        if limit and limit <= 25:
-            # if we have a reasonable limit, then cache editions to make the
-            # default view fast
-            ten_minutes = 10 * dateutil.MINUTE_SECS
-            get_edition_keys = cache.memcache_memoize(
-                get_edition_keys, 'books_page.get_edition_keys', timeout=ten_minutes)
-
-        editions = web.ctx.site.get_many(get_edition_keys(self.key))
+        editions = web.ctx.site.get_many(list(set(edition_keys)))
         editions.sort(
             key=lambda ed: ed.get_publish_year() or -sys.maxsize, reverse=True
         )
