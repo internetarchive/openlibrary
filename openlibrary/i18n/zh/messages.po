@@ -1778,3 +1778,214 @@ msgstr "电子邮箱"
 msgid "Edits"
 msgstr "编辑"
 
+#: admin/people/index.html:75 admin/people/view.html:239
+msgid "Edit History"
+msgstr "编辑历史"
+
+#: admin/people/view.html:148 lists/widget.html:322
+msgid "Name:"
+msgstr "名字:"
+
+#: admin/people/view.html:174
+msgid "Bot"
+msgstr "Bot"
+
+#: admin/people/view.html:192
+msgid "# Edits"
+msgstr "编辑数"
+
+#: admin/people/view.html:196
+msgid "Member Since:"
+msgstr "会员始于:"
+
+#: admin/people/view.html:205
+msgid "Last Login:"
+msgstr "上一次登录:"
+
+#: admin/people/view.html:214
+msgid "Tags:"
+msgstr "标签:"
+
+#: admin/people/view.html:235
+msgid "Waiting Loans"
+msgstr "等待中的租借"
+
+#: admin/people/view.html:248
+msgid "Debug Info"
+msgstr "调试信息"
+
+#: authors/index.html:8 authors/index.html:11 lib/nav_foot.html:27
+#: merge/authors.html:53 publishers/view.html:87
+msgid "Authors"
+msgstr "作者"
+
+#: authors/index.html:17
+msgid "Search for an Author"
+msgstr "搜索作者"
+
+#: authors/index.html:38 search/authors.html:76
+#, python-format
+msgid "about %(subjects)s"
+msgstr "关于%(subjects)s"
+
+#: authors/index.html:39 search/authors.html:77
+#, python-format
+msgid "including <i>%(topwork)s</i>"
+msgstr "包含<i>%(topwork)s</i>"
+
+#: books/add.html:7 books/check.html:10
+msgid "Add a book"
+msgstr "添加书籍"
+
+#: books/add.html:11
+msgid "Add a book to Open Library"
+msgstr "在开放图书馆添加书籍"
+
+#: books/add.html:13
+msgid ""
+"We require a minimum set of fields to create a new record. These are those "
+"fields."
+msgstr ""
+"创建一份新的记录需要一组最基本的字段。以下是那些字段。"
+
+#: books/add.html:24 books/edit.html:79 books/edit/edition.html:95
+#: lib/nav_head.html:82 lib/search_foot.html:8 lib/search_head.html:8
+#: search/advancedsearch.html:16 type/about/edit.html:19 type/i18n/edit.html:64
+#: type/page/edit.html:20 type/rawtext/edit.html:18 type/template/edit.html:18
+msgid "Title"
+msgstr "标题"
+
+#: books/add.html:34
+msgid ""
+"Like, \"Agatha Christie\" or \"Jean-Paul Sartre.\" We'll also do a live "
+"check to see if we already know the author."
+msgstr ""
+"就像\"阿加莎·克里斯蒂\" 或者 \"让-保罗·萨特。\" 我们也将实时检查我们是否已经"
+"知道作者。"
+
+#: books/add.html:39 books/edit/edition.html:118
+msgid "Who is the publisher?"
+msgstr "谁是出版商？"
+
+#: books/add.html:46 books/edit/edition.html:138
+msgid "When was it published?"
+msgstr "它是哪个时候出版的？"
+
+#: books/add.html:46
+msgid "The year it was published is plenty."
+msgstr "它的出版年份很多。"
+
+#: books/add.html:54
+msgid ""
+"And optionally, an ID number &#151; like an ISBN &#151; would be helpful..."
+msgstr ""
+"此外，一个ID号码 &#151; 例如 ISBN &#151; 会是有帮助的..."
+
+#: books/add.html:55
+msgid "ID Type"
+msgstr "ID 类型"
+
+#: books/add.html:58
+msgid "Select"
+msgstr "选择"
+
+#: books/add.html:72
+msgid "Since you are not logged in, please satisfy the reCAPTCHA below."
+msgstr ""
+"由于您没有登录，请完成下面的reCAPTCHA。"
+
+#: EditButtons.html:17 EditButtonsMacros.html:20 books/add.html:79
+msgid ""
+"By saving a change to this wiki, you agree that your contribution is given "
+"freely to the world under <a href=\"https://creativecommons.org/publicdomain/"
+"zero/1.0/\" target=\"_blank\" title=\"This link to Creative Commons will "
+"open in a new window\">CC0</a>. Yippee!"
+msgstr ""
+"在这个Wiki上保存修改，就代表您同意在<a href=\"https://creativecommons.org/"
+"publicdomain/zero/1.0/\" target=\"_blank\" title=\"把您的贡献免费提供给世界。"
+"跳转到Creative Commons的链接将会在新窗口打开\">CC0</a>。耶！"
+
+#: books/add.html:82
+msgid "Add this book now"
+msgstr "立即添加此书"
+
+#: books/add.html:82 books/edit/addfield.html:85 books/edit/addfield.html:131
+#: books/edit/addfield.html:175 books/edit/edition.html:226
+#: books/edit/edition.html:456 books/edit/edition.html:521
+#: books/edit/excerpts.html:50 covers/change.html:49
+msgid "Add"
+msgstr "添加"
+
+#: books/author-autocomplete.html:13
+msgid "Create a new record for"
+msgstr "创建一份新的记录，用于"
+
+#: books/author-autocomplete.html:42
+msgid "Remove this author"
+msgstr "移除此作者"
+
+#: books/author-autocomplete.html:43
+msgid "Add another author?"
+msgstr "添加另外一位作者吗？"
+
+#: books/check.html:13 lib/nav_foot.html:41 lib/nav_head.html:23
+msgid "Add a Book"
+msgstr "添加书籍"
+
+#: books/check.html:15
+#, python-format
+msgid ""
+"One moment... It looks like we already have <em>some potential matches</em> "
+"for <b>%(title)s</b> by <b>%(author)s</b>."
+msgstr ""
+"等等... 我们好像已经有一些<b>%(author)s</b>写的<b>%(title)s</b>的<em>可能匹配</em>了。"
+
+#: books/check.html:17
+msgid ""
+"Rather than creating a duplicate record, please click through the result you "
+"think best matches your book."
+msgstr ""
+"请点击您认为最符合您书籍的结果，而不是创建一份重复的记录。"
+
+#: books/check.html:27 books/check.html:31
+msgid "Select this book"
+msgstr "选择此书籍"
+
+#: books/check.html:38
+#, python-format
+msgid "First published in %(year)d"
+msgstr "首次出版于%(year)d"
+
+#: books/custom_carousel.html:33
+#, python-format
+msgid " by %(name)s"
+msgstr "来自 %(name)s"
+
+#: books/edit.html:28 books/edit.html:31 books/edit.html:34
+msgid "Add a little more?"
+msgstr "再添加一些吗？"
+
+#: books/edit.html:29
+msgid ""
+"Thank you for adding that book! Any more information you could provide would "
+"be wonderful!"
+msgstr ""
+"感谢您添加了这本书籍！任何您能够提供的更多信息都将是很棒的！"
+
+#: books/edit.html:32
+#, python-format
+msgid ""
+"We already know about <b>%(work_title)s</b>, but not the <b>%(year)s "
+"%(publisher)s edition</b>. Thanks! Do you know any more about this edition?"
+msgstr ""
+"我们已经知道<b>%(work_title)s</b>, 但不知道<b>%(year)s "
+"%(publisher)s版本</b>。十分感谢！您还知道更多关于这个版本的信息吗？"
+
+#: books/edit.html:35
+#, python-format
+msgid ""
+"We already know about the <b>%(year)s %(publisher)s edition</b> of <b>"
+"%(work_title)s</b>, but please, tell us more!"
+msgstr ""
+"我们已经知道<b>%(work_title)s</b>的<b>%(year)s %(publisher)s 版本，但还是"
+"请告诉我们更多信息！"
