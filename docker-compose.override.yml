@@ -2,7 +2,7 @@
 # is used without the -f parameter. It contains local development specific
 # configuration options which we don't want to apply to production/staging
 
-version: "3.8"
+version: "3.3"
 services:
   web:
     build:
@@ -78,7 +78,7 @@ services:
   home:
     image: "oldev:${OLDEV_TAG:-latest}"
     environment:
-      - PYENV_VERSION=${PYENV_VERSION:-}
+      - PYENV_VERSION=${PYENV_VERSION}
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
