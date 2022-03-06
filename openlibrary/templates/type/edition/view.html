@@ -235,7 +235,9 @@ $if is_privileged_user:
 
     <div class="subjects">
         <div class="subjects-content restricted-view">
-        $:macros.SubjectTags(work,"overview", ["Subjects"])
+        $ component_times['SubjectsTags'] = time()
+        $:macros.SubjectTags(work,"work", ["Subjects", "People", "Places", "Times"])
+        $ component_times['SubjectsTags'] = time() - component_times['SubjectsTags']
         </div>
         $:macros.ReadMore("subjects")
     </div>
@@ -271,12 +273,6 @@ $if is_privileged_user:
             <p class="first-published-date">
               $_("First published in %s", work.first_publish_year)
             </p>
-        <hr>
-
-        $ component_times['SubjectsTags'] = time()
-        $:macros.SubjectTags(work,"work", ["Subjects", "People", "Places", "Times"])
-        $ component_times['SubjectsTags'] = time() - component_times['SubjectsTags']
-
         <hr>
 
         $if not work.excerpts and work.first_sentence:
