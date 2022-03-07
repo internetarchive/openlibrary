@@ -224,8 +224,7 @@ def get_list(key, raw=False):
             "name": lst.name or None,
             "type": {"key": lst.key},
             "description": (lst.description and str(lst.description) or None),
-            "seed_count": len(lst.seeds),
-            "edition_count": lst.edition_count,
+            "seed_count": lst.seed_count,
             "meta": {
                 "revision": lst.revision,
                 "created": lst.created.isoformat(),
