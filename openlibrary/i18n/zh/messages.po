@@ -1989,3 +1989,387 @@ msgid ""
 msgstr ""
 "我们已经知道<b>%(work_title)s</b>的<b>%(year)s %(publisher)s 版本，但还是"
 "请告诉我们更多信息！"
+
+#: books/edit.html:37
+msgid "Editing..."
+msgstr "编辑中..."
+
+#: EditButtons.html:25 EditButtonsMacros.html:27 books/edit.html:41
+#: type/template/edit.html:51
+msgid "Delete Record"
+msgstr "删除记录"
+
+#: books/edit.html:58
+msgid "Work Details"
+msgstr "作品详情"
+
+#: books/edit.html:63
+msgid "Unknown publisher edition"
+msgstr "出版商版本未知"
+
+#: books/edit.html:73
+msgid "This Work"
+msgstr "这份作品"
+
+#: books/edit.html:79
+msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
+msgstr "使用<b><i>标题: 副标题</i></b>来添加一个副标题。"
+
+#: books/edit.html:79 books/edit/addfield.html:100 books/edit/addfield.html:145
+#: type/author/edit.html:29
+msgid "Required field"
+msgstr "必须填写"
+
+#: books/edit.html:86
+msgid ""
+"You can search by author name (like <em>j k rowling</em>) or by Open Library "
+"ID (like <a href=\"/authors/OL23919A\" target=\"_blank\"><em>OL23919A</em></"
+"a>)."
+msgstr ""
+"您可以通过作者名字来搜索(例如 <em>j k rowling</em>)或者通过开放图书馆的ID搜索"
+"(例如 <a href=\"/authors/OL23919A\" target=\"_blank\"><em>OL23919A</em></a>)。"
+
+#: books/edit.html:91
+msgid "Author editing requires javascript"
+msgstr "作者编辑需要使用javascript"
+
+#: books/edit.html:104
+msgid "Add Excerpts"
+msgstr "添加节选"
+
+#: books/edit.html:110 type/about/edit.html:39 type/author/edit.html:44
+msgid "Links"
+msgstr "链接"
+
+#: books/edit/edition.html:65 books/edition-sort.html:37 lists/preview.html:9
+#: lists/snippet.html:9 lists/widget.html:89 type/work/editions.html:27
+#, python-format
+msgid "Cover of: %(title)s"
+msgstr "%(title)s封面"
+
+#: books/edition-sort.html:44
+#, python-format
+msgid "%(title)s: %(subtitle)s"
+msgstr "%(title)s: %(subtitle)s"
+
+#: books/edition-sort.html:56
+#, python-format
+msgid "Publish date unknown, %(publisher)s"
+msgstr "出版日期未知, %(publisher)s"
+
+#: books/edition-sort.html:66
+#, python-format
+msgid "in %(languagelist)s"
+msgstr "%(languagelist)s"
+
+#: books/edition-sort.html:94
+msgid "Libraries near you:"
+msgstr "在您附近的图书馆:"
+
+#: books/edit/about.html:10
+msgid "How would you describe this book?"
+msgstr "您会如何描述这本书呢？"
+
+#: books/edit/about.html:11
+msgid "There's no wrong answer here."
+msgstr "这个问题没有固定答案。"
+
+#: books/edit/about.html:20
+msgid "Subject keywords?"
+msgstr "主题关键词？"
+
+#: books/edit/about.html:21
+msgid "Please separate with commas."
+msgstr "请用逗号隔开。"
+
+#: books/edit/about.html:21 books/edit/about.html:35 books/edit/about.html:49
+#: books/edit/about.html:63 books/edit/addfield.html:77
+#: books/edit/addfield.html:104 books/edit/addfield.html:113
+#: books/edit/addfield.html:149 books/edit/edition.html:106
+#: books/edit/edition.html:129 books/edit/edition.html:162
+#: books/edit/edition.html:172 books/edit/edition.html:265
+#: books/edit/edition.html:367 books/edit/edition.html:381
+#: books/edit/edition.html:582 books/edit/excerpts.html:19
+#: books/edit/web.html:23 type/author/edit.html:107
+msgid "For example:"
+msgstr "例如:"
+
+#: books/edit/about.html:34
+msgid "A person? Or, people?"
+msgstr "一个人？或者是，一群人？"
+
+#: books/edit/about.html:48
+msgid "Note any places mentioned?"
+msgstr "标注任何提到的地点吗？"
+
+#: books/edit/about.html:62
+msgid "When is it set or about?"
+msgstr "它是什么时候开始的，或者说是什么时候的事？"
+
+#: books/edit/addfield.html:70
+msgid "Add a New Contributor Role"
+msgstr "添加一个新的贡献值角色"
+
+#: books/edit/addfield.html:77 books/edit/addfield.html:104
+#: books/edit/addfield.html:149
+msgid "What should we show in the menu?"
+msgstr "我们该在菜单上展示什么？"
+
+#: books/edit/addfield.html:96
+msgid "Add a New Type of Identifier"
+msgstr "添加一个新的识别符类型"
+
+#: books/edit/addfield.html:113
+msgid "If the system has a website, what's the homepage?"
+msgstr "如果该系统有一个网站，那么它的主页是？"
+
+#: books/edit/addfield.html:122
+msgid "Please leave a note: Why is this ID useful?"
+msgstr "请留下一个说明：为什么这个ID是有用的？"
+
+#: books/edit/addfield.html:141
+msgid "Add a New Classification System"
+msgstr "添加一个新的分类体系"
+
+#: books/edit/addfield.html:158
+msgid "Please leave a note: Why is this classification useful?"
+msgstr "请留下一个说明: 为什么这个分类是有用的？"
+
+#: books/edit/addfield.html:167
+msgid ""
+"Can you direct us to more information about this classification system "
+"online?"
+msgstr ""
+"您可以指导我们如何在网上找到更多关于这个分类的信息吗？"
+
+#: books/edit/edition.html:22
+msgid "Select this language"
+msgstr "选择此语言"
+
+#: books/edit/edition.html:31 books/edit/edition.html:40
+msgid "Remove this language"
+msgstr "删除此语言"
+
+#: books/edit/edition.html:32
+msgid "Add another language?"
+msgstr "添加另外一个语言？"
+
+#: books/edit/edition.html:51
+msgid "Remove this work"
+msgstr "删除这份作品"
+
+#: books/edit/edition.html:59 books/edit/edition.html:400
+msgid "-- Move to a new work"
+msgstr "-- 转移到新的作品"
+
+#: EditionNavBar.html:17 books/edit/edition.html:86
+msgid "This Edition"
+msgstr "此版本"
+
+#: books/edit/edition.html:96
+msgid "Enter the title of this specific edition."
+msgstr "输入该特定版本的标题。"
+
+#: books/edit/edition.html:105
+msgid "Subtitle"
+msgstr "副标题"
+
+#: books/edit/edition.html:106
+msgid "Usually distinguished by different or smaller type."
+msgstr "通常用不同或更小的字体来区分。"
+
+#: books/edit/edition.html:113
+msgid "Publishing Info"
+msgstr "出版信息"
+
+#: books/edit/edition.html:119
+msgid "For example"
+msgstr "例如"
+
+#: books/edit/edition.html:128
+msgid "Where was the book published?"
+msgstr "这本书是哪个时候出版的？"
+
+#: books/edit/edition.html:129
+msgid "City, Country please."
+msgstr "请说明城市和国家"
+
+#: books/edit/edition.html:139
+msgid "You should be able to find this in the first few pages of the book."
+msgstr "您应该能够在书籍的前几页找到这个信息。"
+
+#: books/edit/edition.html:151
+msgid "What is the copyright date?"
+msgstr "版权日期是多少？·"
+
+#: books/edit/edition.html:152
+msgid "The year following the copyright statement."
+msgstr "版本声明后面的年份。"
+
+#: books/edit/edition.html:161
+msgid "Edition Name (if applicable):"
+msgstr "版本名称 (若适用):"
+
+#: books/edit/edition.html:171
+msgid "Series Name (if applicable)"
+msgstr "系列名称 (若适用)"
+
+#: books/edit/edition.html:172
+msgid "The name of the publisher's series."
+msgstr "出版商的系列名称。"
+
+#: books/edit/edition.html:200 type/edition/view.html:439
+#: type/work/view.html:439
+msgid "Contributors"
+msgstr "贡献者"
+
+#: books/edit/edition.html:202
+msgid "Please select a role."
+msgstr "请选择一个角色。"
+
+#: books/edit/edition.html:202
+msgid "You need to give this ROLE a name."
+msgstr "您需要给这个角色一个名字。"
+
+#: books/edit/edition.html:204
+msgid "List the people involved"
+msgstr "列出有关的人物"
+
+#: books/edit/edition.html:214
+msgid "Select role"
+msgstr "选择角色"
+
+#: books/edit/edition.html:219
+msgid "Add a new role"
+msgstr "添加一个新角色"
+
+#: books/edit/edition.html:239 books/edit/edition.html:255
+msgid "Remove this contributor"
+msgstr "删除这个贡献者"
+
+#: books/edit/edition.html:264
+msgid "By Statement:"
+msgstr "声明:"
+
+#: books/edit/edition.html:275
+msgid "Languages"
+msgstr "语言"
+
+#: books/edit/edition.html:279
+msgid "What language is this edition written in?"
+msgstr "这个版本是用什么语言写的？"
+
+#: books/edit/edition.html:291
+msgid "Is it a translation of another book?"
+msgstr "它是另外一本书的译本吗》"
+
+#: books/edit/edition.html:309
+msgid "Yes, it's a translation"
+msgstr "是的，它是一份译本
+
+#: books/edit/edition.html:314
+msgid "What's the original book?"
+msgstr "原著是什么？"
+
+#: books/edit/edition.html:323
+msgid "What language was the original written in?"
+msgstr "原著使用什么语言写的？"
+
+#: books/edit/edition.html:341
+msgid "Description of this edition"
+msgstr "该版本的描述"
+
+#: books/edit/edition.html:342
+msgid "Only if it's different from the work's description"
+msgstr "只有当它和作品的描述不同时"
+
+#: TableOfContents.html:10 books/edit/edition.html:351
+msgid "Table of Contents"
+msgstr "目录"
+
+#: books/edit/edition.html:352
+msgid ""
+"Use a \"*\" for an indent, a \"|\" to add a column, and line breaks for new "
+"lines. Like this:"
+msgstr ""
+"使用 \"*\"表示缩进，使用 \"|\"表示增加一列，使用换行符表示新的一行。例如："
+
+#: books/edit/edition.html:366
+msgid "Any notes about this specific edition?"
+msgstr "对这个具体版本有什么说明吗？"
+
+#: books/edit/edition.html:367
+msgid "Anything about the book that may be of interest."
+msgstr "关于这本书的任何可能感兴趣的东西。"
+
+#: books/edit/edition.html:376
+msgid "Is it known by any other titles?"
+msgstr "它是否有其他标题？"
+
+#: books/edit/edition.html:377
+msgid ""
+"Use this field if the title is different on the cover or spine. If the "
+"edition is a collection or anthology, you may also add the individual titles "
+"of each work here."
+msgstr ""
+"如果封面或书脊上的标题不同，请使用此栏。如果该版本是一个文集或选集，你也可以"
+"在这里添加每部作品的单独标题。"
+
+#: books/edit/edition.html:381
+msgid "is an alternate title for"
+msgstr "这是一个替代的标题，用于"
+
+#: books/edit/edition.html:391
+msgid "What work is this an edition of?"
+msgstr "这是哪份作品的版本？"
+
+#: books/edit/edition.html:393
+msgid ""
+"Sometimes editions can be associated with the wrong work. You can correct "
+"that here."
+msgstr ""
+"版本有的时候和错误的作品相匹配。您可以在这里纠正。"
+
+#: books/edit/edition.html:394
+msgid "You can search by title or by Open Library ID (like"
+msgstr ""
+"您可以通过标题或者开放图书馆ID搜索（例如 "
+
+#: books/edit/edition.html:397
+msgid "WARNING: Any edits made to the work from this page will be ignored."
+msgstr ""
+"请注意：从这个页面对作品进行的任何编辑都会被忽略。"
+
+#: books/edit/edition.html:414
+msgid "Please select an identifier."
+msgstr "请选择一个识别符。"
+
+#: books/edit/edition.html:414
+msgid "You need to give a value to ID."
+msgstr "您需要给ID一个数值。"
+
+#: books/edit/edition.html:414
+msgid "ID ids cannot contain whitespace."
+msgstr "ID不能包含空格。"
+
+#: books/edit/edition.html:414
+msgid "ID must be exactly 10 characters [0-9] or X."
+msgstr "ID必须正好是10个字符[0-9]或X。"
+
+#: books/edit/edition.html:414
+msgid "ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4"
+msgstr ""
+"ID必须正好是13个字符[0-9]。例如：978-1-56619-909-4"
+
+#: books/edit/edition.html:416 type/author/view.html:173
+#: type/edition/view.html:460 type/work/view.html:460
+msgid "ID Numbers"
+msgstr "ID号码"
+
+#: books/edit/edition.html:422
+msgid "Do you know any identifiers for this edition?"
+msgstr "您知道此版本的任何识别符吗？"
+
+#: books/edit/edition.html:423
+msgid "Like, ISBN?"
+msgstr "例如，ISBN?"
