@@ -28,12 +28,14 @@ $ component_times['get_sorted_editions'] = time()
 $# Fetch a work's editions
 $# Used for loading the editions table
 $# Book availability of editions injected by bulk get_availability API
+$ edition_count = work.edition_count if work and work.edition_count else 1
 $ ebooks_only = query_param('mode') != 'all'
 
-$# For performance reasons, only load 10
-$# Tradeoff: decreases/limits our ability to select best edition
-$ editions_limit = 10 if not query_param('mode') else None
-$ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=edition and [edition.key])
+$# For performance reasons, limit to 10 ebooks
+$# Tradeoff: limits our ability to select best edition
+$ editions_limit = 10 if not query_param('mode') and edition_count > 10 else None
+$if editions_limit or query_param('mode') == 'ebooks':
+  $ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=edition and [edition.key])
 
 $if not editions:
   $# use ebooks_only to determine whether to lazyload editions table
@@ -73,7 +75,6 @@ $ book_subtitle = edition.get('subtitle', '')
 $ title_suffix = cond(edition.get('publish_date'), u"({0} edition)".format(edition.get('publish_date')), "(edition)")
 $ title = book_title + " " + title_suffix
 $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
-$ edition_count = work.edition_count if work and work.edition_count else 1
 $ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
 $ _x = ctx.setdefault('cssfile', 'book')
 
