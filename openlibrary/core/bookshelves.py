@@ -224,7 +224,7 @@ class Bookshelves:
             'work_ids': work_ids,
         }
         query = (
-            "SELECT bookshelf_id from bookshelves_books WHERE "
+            "SELECT work_id, bookshelf_id from bookshelves_books WHERE "
             "username=$username AND "
             "work_id IN $work_ids"
         )

@@ -408,7 +408,8 @@ def add_read_statuses(username, works):
     for result in results:
         results_map[f"OL{result['work_id']}W"] = result['bookshelf_id']
     for work in works:
-        work['readinglog'] = results_map[work.key.split('/')[-1]] or None
+        work_olid = work.key.split('/')[-1]
+        work['readinglog'] = results_map.get(work_olid, None)
     return works
 
 
