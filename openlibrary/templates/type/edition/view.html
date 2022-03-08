@@ -182,7 +182,9 @@ $if is_privileged_user:
       <div class="work-line">
         $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title$cond(work.subtitle, ': %s' % work.subtitle)</a>
         $if work.first_publish_year:
-          ($work.first_publish_year)
+            <span class="first-published-date">
+              ($_("First published in %s", work.first_publish_year))
+            </span>
       </div>
 
       $:render_template("type/edition/book_title", work, edition)
@@ -261,16 +263,6 @@ $if is_privileged_user:
       $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
 
       <div class="tab-section work-info">
-        <h2 class="work-title"><a href="$work.key">$work_title</a></h2>
-          $if work and work.subtitle:
-            <h3>
-              $work.subtitle
-            </h3>
-          $if work and work.first_publish_year:
-            <p class="first-published-date">
-              $_("First published in %s", work.first_publish_year)
-            </p>
-        <hr>
 
         $ component_times['SubjectsTags'] = time()
         $:macros.SubjectTags(work,"work", ["Subjects", "People", "Places", "Times"])
