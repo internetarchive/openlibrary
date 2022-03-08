@@ -2373,3 +2373,197 @@ msgstr "您知道此版本的任何识别符吗？"
 #: books/edit/edition.html:423
 msgid "Like, ISBN?"
 msgstr "例如，ISBN?"
+
+#: books/edit/edition.html:441 books/edit/edition.html:509
+msgid "Select one of many..."
+msgstr "从众多之中选择一个..."
+
+#: books/edit/edition.html:493
+msgid "Please select a classification."
+msgstr "请选择一个分类法。"
+
+#: books/edit/edition.html:493
+msgid "You need to give a value to CLASS."
+msgstr "您需要赋予CLASS一个数值。"
+
+#: books/edit/edition.html:494 type/edition/view.html:332
+#: type/edition/view.html:414 type/work/view.html:332 type/work/view.html:414
+msgid "Classifications"
+msgstr "分类法"
+
+#: books/edit/edition.html:500
+msgid "Do you know any classifications of this edition?"
+msgstr "您知道这个版本有什么分类法吗？"
+
+#: books/edit/edition.html:501
+msgid "Like, Dewey Decimal?"
+msgstr "例如，杜威十进制图书分类法？"
+
+#: books/edit/edition.html:514
+msgid "Add a new classification type"
+msgstr "添加一个新的分类法类型"
+
+#: books/edit/edition.html:531 books/edit/edition.html:540
+msgid "Remove this classification"
+msgstr "删除这个分类法"
+
+#: books/edit/edition.html:552 type/edition/view.html:448
+#: type/work/view.html:448
+msgid "The Physical Object"
+msgstr "实物"
+
+#: books/edit/edition.html:558
+msgid "What sort of book is it?"
+msgstr "这是一本什么样的书籍？"
+
+#: books/edit/edition.html:559
+msgid "Paperback; Hardcover, etc."
+msgstr "平装书，精装书，等等。"
+
+#: books/edit/edition.html:567
+msgid "How many pages?"
+msgstr "有多少页？"
+
+#: books/edit/edition.html:577
+msgid "Pagination?"
+msgstr "编页码是？"
+
+#: books/edit/edition.html:578
+msgid "Note the highest number in each pagination pattern."
+msgstr "留意每个分页样式的最高编号。"
+
+#: books/edit/edition.html:578 lib/nav_foot.html:45
+msgid "Help"
+msgstr "帮助"
+
+#: books/edit/edition.html:588
+msgid "How much does the book weigh?"
+msgstr "这本书有多重？"
+
+#: books/edit/edition.html:603 type/edition/view.html:453
+#: type/work/view.html:453
+msgid "Dimensions"
+msgstr "尺寸"
+
+#: books/edit/edition.html:615
+msgid "Height:"
+msgstr "高度:"
+
+#: books/edit/edition.html:620
+msgid "Width:"
+msgstr "长度:"
+
+#: books/edit/edition.html:625
+msgid "Depth:"
+msgstr "宽度:"
+
+#: books/edit/edition.html:640
+msgid "Admin Only"
+msgstr "仅限管理员"
+
+#: books/edit/edition.html:643
+msgid "Additional Metadata"
+msgstr "其他元数据"
+
+#: books/edit/edition.html:644
+msgid "This field can accept arbitrary key:value pairs"
+msgstr "这个字段接受任意键：值对。"
+
+#: books/edit/edition.html:656
+msgid "First sentence"
+msgstr "第一个句子"
+
+#: books/edit/excerpts.html:13
+msgid ""
+"If there are particular (short) passages you feel represent the book well, "
+"please feel free to transcribe them here."
+msgstr ""
+"如果有一些你觉得能很好地代表这本书的特别（短）段落，请随意在这里抄录下它们。"
+
+#: books/edit/excerpts.html:18
+msgid "Page number?"
+msgstr "页码？"
+
+#: books/edit/excerpts.html:23
+msgid "This is the first sentence."
+msgstr "这是第一个句子。"
+
+#: books/edit/excerpts.html:30
+msgid "Transcribe the excerpt"
+msgstr "抄写摘录"
+
+#: books/edit/excerpts.html:31
+msgid "Maximum length is 2000 characters. No HTML allowed."
+msgstr "最大长度为2000个字符。不允许使用HTML。"
+
+#: books/edit/excerpts.html:41
+msgid "Why did you choose this excerpt?"
+msgstr "您为什么选择这个摘录呢？"
+
+#: books/edit/excerpts.html:42
+msgid "Add an optional note."
+msgstr "添加一个可选的注释。"
+
+#: books/edit/excerpts.html:56
+msgid "Excerpts so far..."
+msgstr "目前的摘录..."
+
+#: books/edit/excerpts.html:70 books/edit/excerpts.html:92
+msgid "noted:"
+msgstr "注:"
+
+#: books/edit/excerpts.html:72 books/edit/excerpts.html:94
+msgid "An anonymous note:"
+msgstr "一个匿名说明:"
+
+#: books/edit/excerpts.html:90
+msgid "From page"
+msgstr "从页数"
+
+#: books/edit/web.html:13
+msgid ""
+"Please connect Open Library records to <u>good</u><span class=\"orange\">*</"
+"span> online resources."
+msgstr ""
+"请将开放图书馆的记录连接到<u>good</u><span class=\"orange\">*</span>在线资源。"
+
+#: books/edit/web.html:19
+msgid "Give your link a label"
+msgstr "给您的链接贴一个标签"
+
+#: books/edit/web.html:44 books/edit/web.html:53
+msgid "Remove this link"
+msgstr "删除这个链接"
+
+#: books/edit/web.html:65
+msgid ""
+"\"Good\" means no spammy links, please. Keep them relevant to the book. "
+"Irrelevant sites may be removed. Blatant spam will be deleted without "
+"remorse."
+msgstr ""
+"\"Good\"意味着没有垃圾链接（拜托了！）。请让它们和书籍有关。不相关的网站可能会被删除。"
+"公然的垃圾邮件将被不留情地删除。"
+
+#: covers/add.html:11
+msgid "There are two ways to put an author's image on Open Library"
+msgstr "有两种方法可以将作者的图片放在开放图书馆上。"
+
+#: covers/add.html:13
+msgid "Image Guidelines"
+msgstr "图片指南"
+
+#: covers/add.html:15
+msgid "There are two ways to put a cover image on Open Library"
+msgstr "有两种方法可以将封面放在开放图书馆上。"
+
+#: covers/add.html:17
+msgid "Cover Guidelines"
+msgstr "封面指南"
+
+#: covers/add.html:22 covers/add.html:26
+msgid "Please provide a valid image."
+msgstr "请提供一张有效的图片。"
+
+#: covers/add.html:24
+msgid "Please provide an image URL."
+msgstr "请提供一个有效的图片URL。"
