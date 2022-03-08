@@ -937,6 +937,7 @@ class Request:
     path = property(lambda self: web.ctx.path)
     home = property(lambda self: web.ctx.home)
     domain = property(lambda self: web.ctx.host)
+    fullpath = property(lambda self: web.ctx.fullpath)
 
     @property
     def canonical_url(self):
