@@ -83,6 +83,17 @@ div.editionAbout {
   vertical-align: middle;
 }
 
+.clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+}
+
+.clamp::before {
+  content: "+ ";
+}
+
 .restricted-view{
   display: block;
   z-index: @z-index-level-1;
@@ -176,7 +187,7 @@ h2.edition-byline {
 }
 
 a.section-anchor {
-  height: 45px;
+  height: 20px;
   display: block;
 }
 
@@ -255,6 +266,7 @@ div.editionTools {
   display: flex;
   border-bottom: 1px solid @lighter-grey;
   margin-bottom: 10px;
+  background: @grey-fafafa;
 
   h4 {
     padding-right: 5px;
@@ -273,7 +285,6 @@ div.editionTools {
 }
 
 .preview-languages {
-  margin-bottom: -30px !important;
   font-size: .8em;
   color: @grey;
 }
