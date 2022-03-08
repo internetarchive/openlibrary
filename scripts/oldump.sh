@@ -84,7 +84,7 @@ mkdir -p $TMPDIR/dumps
 cd $TMPDIR/dumps
 
 # If there's not already a completed dump
-if [[ ! -d /1/var/tmp/dumps/ol_cdump_2022-03-02 ]]
+if [[ ! -d /1/var/tmp/dumps/ol_cdump_$date ]]
 then
 
   # Generate Reading Log/Ratings dumps
