@@ -166,8 +166,10 @@ class Test_build_data:
             "Another 2000",
             "2001-01-02",  # ISO 8601 formatted dates now supported
             "01-02-2003",
+            "2004 May 23",
             "Jan 2002",
             "Bad date 12",
+            "Bad date 123412314",
         ]
         work = make_work()
         update_work.data_provider = FakeDataProvider(
@@ -175,7 +177,7 @@ class Test_build_data:
         )
 
         d = build_data(work)
-        assert sorted(d['publish_year']) == ["2000", "2001", "2002", "2003"]
+        assert sorted(d['publish_year']) == ["2000", "2001", "2002", "2003", "2004"]
         assert d["first_publish_year"] == 2000
 
     def test_isbns(self):

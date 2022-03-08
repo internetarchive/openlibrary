@@ -43,9 +43,8 @@ re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
 re_bad_char = re.compile('[\x01\x0b\x1a-\x1e]')
 re_edition_key = re.compile(r"/books/([^/]+)")
-re_iso_date = re.compile(r'^(\d{4})-\d\d-\d\d$')
 re_solr_field = re.compile(r'^[-\w]+$', re.U)
-re_year = re.compile(r'(\d{4})$')
+re_year = re.compile(r'\b(\d{4})\b')
 
 # This will be set to a data provider; have faith, mypy!
 data_provider = cast(DataProvider, None)
@@ -491,9 +490,6 @@ class SolrProcessor:
         """
         pub_date = e.get('publish_date', None)
         if pub_date:
-            m = re_iso_date.match(pub_date)
-            if m:
-                return m.group(1)
             m = re_year.search(pub_date)
             if m:
                 return m.group(1)
