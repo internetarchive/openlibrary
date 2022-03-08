@@ -215,6 +215,7 @@ $if is_privileged_user:
             </h4>
       </div>
 
+      $ work_desc_displayed = False
       $if work and work.description or edition and edition.description:
         <div class="book-description">
             <div class="book-description-content restricted-view">
@@ -222,6 +223,7 @@ $if is_privileged_user:
                     $:sanitize(format(edition.description))
                 $elif work and work.description:
                     $:sanitize(format(work.description))
+                    $ work_desc_displayed = True
             </div>
             $:macros.ReadMore("book-description")
         </div>
@@ -266,7 +268,7 @@ $if is_privileged_user:
           <h4>$_("First Sentence")</h4>
           <p class="largest" title=$_("First Sentence")><em>"$work.first_sentence"</em></p>
 
-        $if work.description:
+        $if work.description and not work_desc_displayed:
           <h4>$_("Work Description")</h4>
           <div class="work-description">
             <div class="work-description-content restricted-view">
