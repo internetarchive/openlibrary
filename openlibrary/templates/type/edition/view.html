@@ -34,7 +34,8 @@ $ ebooks_only = query_param('mode') != 'all'
 $# For performance reasons, limit to 10 ebooks
 $# Tradeoff: limits our ability to select best edition
 $ editions_limit = 10 if not query_param('mode') and edition_count > 10 else None
-$ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=edition and [edition.key])
+$if editions_limit:
+  $ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=edition and [edition.key])
 
 $if not editions:
   $# use ebooks_only to determine whether to lazyload editions table
