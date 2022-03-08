@@ -4,10 +4,10 @@ export function initReadMoreButton() {
       style on parent .clamp tag
      */
     $('.clamp').on('click', function(){
-	const up = $(this);
-	if (up.hasClass('clamp')) {
-            up.css({"display": up.css("display") === "-webkit-box" ? "unset" : "-webkit-box"});
-	}
+        const up = $(this);
+        if (up.hasClass('clamp')) {
+            up.css({display: up.css('display') === '-webkit-box' ? 'unset' : '-webkit-box'});
+        }
     });
     $('.read-more-button').on('click',function(){
         const up = $(this).parent().parent();
