@@ -313,20 +313,6 @@ $if is_privileged_user:
                   <li><a href="$link.url">$link.title</a></li>
               </ul>
           </div>
-
-        $if work.edition_count > 1:
-          $if (work.lc_classifications or work.dewey_number):
-              <div class="section">
-                  <h4 class="collapse">$_("Classifications")</h4>
-                  <table class="meta"><tbody>
-                  $if work.lc_classifications:
-                      <tr><td class="title"><span class="title">$_('Library of Congress')</span></td>
-                      <td><span class="object">$thingrepr(work.lc_classifications)</span></td></tr>
-                  $if work.dewey_number:
-                      <tr><td class="title"><span class="title">$_('Dewey')</span></td>
-                      <td><span class="object">$thingrepr(work.dewey_number)</span></td></tr>
-                  </tbody></table>
-              </div>
       </div>
 
       <a id="edition-details" name="edition-details" class="section-anchor"></a>
