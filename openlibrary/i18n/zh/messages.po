@@ -2567,3 +2567,199 @@ msgstr "请提供一张有效的图片。"
 #: covers/add.html:24
 msgid "Please provide an image URL."
 msgstr "请提供一个有效的图片URL。"
+
+#: covers/add.html:39
+msgid "<strong>Pick one</strong> from the existing covers,"
+msgstr "从现有的封面中<strong>选择一个</strong>，"
+
+#: covers/add.html:60
+msgid "Choose a JPG, GIF or PNG on your computer,"
+msgstr "从您的电脑中选择一个JPG, GIF, 或者PNG文件,"
+
+#: covers/add.html:69
+msgid "Or, paste in the image URL if it's on the web."
+msgstr "如果是在线图片，请粘贴图片的URL。"
+
+#: BookPreview.html:19 DonateModal.html:15 NotesModal.html:30
+#: ObservationsModal.html:25 covers/author_photo.html:22
+#: covers/book_cover.html:39 covers/book_cover_single_edition.html:34
+#: covers/book_cover_work.html:30 covers/change.html:44 lib/markdown.html:12
+#: lists/lists.html:52 lists/widget.html:317
+msgid "Close"
+msgstr "关闭"
+
+#: covers/book_cover.html:22
+msgid "Pull up a bigger book cover"
+msgstr "上传一个更大的书本封面"
+
+#: covers/book_cover.html:22 covers/book_cover_single_edition.html:18
+#: covers/book_cover_small.html:18 covers/book_cover_work.html:18
+#, python-format
+msgid "Cover of: %(title)s by %(authors)s"
+msgstr "作者%(authors)s %(title)s的封面"
+
+#: covers/book_cover.html:33 covers/book_cover_single_edition.html:29
+#: covers/book_cover_small.html:21 covers/book_cover_work.html:21
+#: covers/book_cover_work.html:25
+#, python-format
+msgid "We need a book cover for: %(title)s"
+msgstr "我们需要一个%(title)s的封面"
+
+#: covers/book_cover_single_edition.html:18 covers/book_cover_work.html:18
+msgid "View a larger book cover"
+msgstr "查看更大的书本封面"
+
+#: covers/book_cover_small.html:18 covers/book_cover_small.html:21
+#: covers/book_cover_small.html:25
+#, python-format
+msgid "Go to the main page for %(title)s"
+msgstr "前往%(title)s的主页面"
+
+#: covers/change.html:15
+msgid "Author Photos"
+msgstr "作者照片"
+
+#: covers/change.html:17
+msgid "Manage Author Photos"
+msgstr "管理作者照片"
+
+#: covers/change.html:20
+msgid "Add Author Photo"
+msgstr "添加作者照片"
+
+#: covers/change.html:25
+msgid "Book Covers"
+msgstr "书本封面"
+
+#: covers/change.html:28
+msgid "Manage Covers"
+msgstr "管理封面"
+
+#: covers/change.html:31
+msgid "Add Cover Image"
+msgstr "添加封面图片"
+
+#: covers/change.html:50
+msgid "Manage"
+msgstr "管理"
+
+#: covers/manage.html:11
+msgid ""
+"You can drag and drop thumbnails to reorder, or into the trash to delete "
+"them."
+msgstr ""
+"您可以拖放缩略图来重新排序，或者放入垃圾箱来删除它们。"
+
+#: covers/saved.html:16
+msgid "Saved!"
+msgstr "已保存!"
+
+#: covers/saved.html:19
+msgid "Notes:"
+msgstr "说明:"
+
+#: covers/saved.html:29
+msgid "Add another image"
+msgstr "添加另一张图片"
+
+#: covers/saved.html:35
+msgid "Finished"
+msgstr "完成"
+
+#: history/comment.html:26
+#, python-format
+msgid "Imported from %(source)s  <a href=\"%(url)s\">%(type)s record</a>."
+msgstr "从%(source)s导入 <a href=\"%(url)s\">%(type)s 记录</a>。"
+
+#: history/comment.html:28
+#, python-format
+msgid "Found a <a href=\"%(url)s\">matching record</a> from %(source)s."
+msgstr ""
+"从%(source)s寻找<a href=\"%(url)s\">匹配的记录</a>。"
+
+#: history/comment.html:35
+msgid "Edited without comment."
+msgstr "编辑而不评论。"
+
+#: home/about.html:9
+msgid "About the Project"
+msgstr "关于该项目"
+
+#: home/about.html:15
+msgid ""
+"Open Library is an open, editable library catalog, building towards a web "
+"page for every book ever published."
+msgstr ""
+"开放图书馆是一个开放的、可编辑的图书馆目录，为有史以来出版的每本书建立一个网页。"
+
+#: AffiliateLinks.html:70 home/about.html:16 lib/nav_head.html:41
+#: lib/nav_head.html:66
+msgid "More"
+msgstr "更多"
+
+#: home/about.html:19
+msgid ""
+"Just like Wikipedia, you can contribute new information or corrections to "
+"the catalog. You can browse by <a href=\"/subjects\">subjects</a>, <a href="
+"\"/authors\">authors</a> or <a href=\"/lists\">lists</a> members have "
+"created. If you love books, why not help build a library?"
+msgstr ""
+"就像维基百科一样，你可以向目录贡献新的信息或提供更正。您可以通过<a href=\"/subjects\">"
+"主题</a>, <a href=\"/authors\">作者</a> 或者 <a href=\"/lists\">榜单</a>来浏览"
+"成员已经创建的信息。如果热爱书籍，为什么不帮忙建立一个图书馆呢？"
+
+#: home/about.html:23
+msgid "Latest Blog Posts"
+msgstr "最新的博客文章"
+
+#: home/categories.html:11
+msgid "Browse by Subject"
+msgstr "以主题浏览"
+
+#: home/categories.html:25
+#, python-format
+msgid "browse %(subject)s books"
+msgstr "浏览有关%(subject)s的书籍"
+
+#: home/categories.html:30
+#, python-format
+msgid "1 Book"
+msgid_plural "%(count)s Books"
+msgstr[0] "1 本书"
+msgstr[1] "%(count)s 本书"
+
+#: home/index.html:8 home/welcome.html:9
+msgid "Welcome to Open Library"
+msgstr "欢迎来到开放图书馆"
+
+#: home/index.html:26
+msgid "Classic Books"
+msgstr "经典图书"
+
+#: home/index.html:31
+msgid "Books We Love"
+msgstr "我们喜爱的书籍"
+
+#: home/index.html:33
+msgid "Recently Returned"
+msgstr "近期归还的书"
+
+#: home/index.html:35
+msgid "Romance"
+msgstr "浪漫的"
+
+#: home/index.html:37
+msgid "Kids"
+msgstr "儿童"
+
+#: home/index.html:39
+msgid "Thrillers"
+msgstr "惊悚小说"
+
+#: home/index.html:41
+msgid "Textbooks"
+msgstr "教科书"
+
+#: home/stats.html:9 site/around_the_library.html:52
+msgid "Around the Library"
+msgstr "图书馆周围"
