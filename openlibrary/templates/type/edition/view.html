@@ -237,17 +237,16 @@ $if is_privileged_user:
         </div>
 
     <div class="subjects">
-        <div class="subjects-content restricted-view">
-        $:macros.SubjectTags(work,"overview", ["Subjects"])
-        </div>
-        $:macros.ReadMore("subjects")
+      <div class="subjects-content">
+        $ component_times['SubjectsTags'] = time()
+        $:macros.SubjectTags(work, ["Subjects", "People", "Places", "Times"])
+        $ component_times['SubjectsTags'] = time() - component_times['SubjectsTags']
+      </div>
     </div>
 
-      $if editions_limit and len(editions) and len(editions) < work.edition_count:
-        <p>
-          $_("Showing %(count)d featured editions", count=len(editions)).
-          <a href="?mode=all">$_("View all %(count)d editions?", count=work.edition_count)</a>
-        </p>
+    <hr/>
+
+    <a id="editions-list" name="editions-list" class="section-anchor"></a>
 
       <p class="preview-languages">
         $ seen = set()
@@ -259,18 +258,11 @@ $if is_privileged_user:
               <a href="$work.key?edition=$(e.ocaid)">$e.languages[0].name</a>
       </p>
 
-      <a id="editions-list" name="editions-list" class="section-anchor"></a>
       $ component_times['EditionsTable'] = time()
-      $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
+      $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition, editions_limit=editions_limit)
       $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
 
       <div class="tab-section work-info">
-
-        $ component_times['SubjectsTags'] = time()
-        $:macros.SubjectTags(work,"work", ["Subjects", "People", "Places", "Times"])
-        $ component_times['SubjectsTags'] = time() - component_times['SubjectsTags']
-
-        <hr>
 
         $if not work.excerpts and work.first_sentence:
           <h4>$_("First Sentence")</h4>
