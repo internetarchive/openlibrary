@@ -73,7 +73,7 @@ export function initNavbar(navbarElem) {
                     const br = linkedSections[i].getBoundingClientRect()
 
                     // If navbar overlaps with an unselected target section, select that section:
-                    if (br.top < navbarBoundingRect.bottom && br.bottom > navbarBoundingRect.bottom) {
+                    if (br.top <= navbarBoundingRect.bottom && br.bottom >= navbarBoundingRect.bottom) {
                         selectElement(listItems[i], i)
                         break;
                     }
