@@ -236,7 +236,7 @@ $if is_privileged_user:
 
     <div class="subjects">
       <div class="subjects-content">
-	$ component_times['SubjectsTags'] = time()
+        $ component_times['SubjectsTags'] = time()
         $:macros.SubjectTags(work, ["Subjects", "People", "Places", "Times"])
         $ component_times['SubjectsTags'] = time() - component_times['SubjectsTags']
       </div>
