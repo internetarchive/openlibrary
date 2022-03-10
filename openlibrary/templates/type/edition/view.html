@@ -1,6 +1,7 @@
 $def with (page, edition=None)
 
 $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
+$ is_librarian = ctx.user and ctx.user.is_librarian()
 
 $ component_times = {}
 $ component_times['TotalTime'] = time()
@@ -199,22 +200,32 @@ $if is_privileged_user:
 
       $:macros.EditionNavBar(work.edition_count, show_observations)
       <a id="edition-overview" name="edition-overview"></a>
-      <div class="edition-omniline">
-        $:render_template("type/edition/publisher_line", edition)
+      <div>
+        <div class="edition-omniline">
+          $:render_template("type/edition/publisher_line", edition)
 
-        $if edition:
-          $if edition.languages:
-            <h4 class="language">
-              $def lang_span(): <span itemprop="inLanguage">$:thingrepr(edition.languages)</span>
-              $:_('Written in %(language)s', language=lang_span())
-            </h4>
-          $if edition.number_of_pages:
-            <h4 class="year">&mdash;
-              <span class="edition-pages"
-                    itemprop="numberOfPages">$edition.number_of_pages</span> $_("pages")
-            </h4>
+          $if edition:
+            $if edition.languages:
+              <h4 class="language">
+                $def lang_span(): <span itemprop="inLanguage">$:thingrepr(edition.languages)</span>
+                $:_('Written in %(language)s', language=lang_span())
+              </h4>
+            $if edition.number_of_pages:
+              <h4 class="year">&mdash;
+                <span class="edition-pages"
+                      itemprop="numberOfPages">$edition.number_of_pages</span> $_("pages")
+              </h4>
+        </div>
+        $if is_librarian:
+          <div>
+            <ul>
+              $if edition:
+                <li><span>Open Library: </span><span>$edition.key.split("/")[-1]</span></li>
+              $if ocaid:
+                <li><span>Internet Archive: </span><span><a href="https://www.archive.org/details/$ocaid">$ocaid</a></span></li>
+            </ul>
+          </div>
       </div>
-
       $if work and work.description or edition and edition.description:
         <div class="book-description">
             <div class="book-description-content restricted-view">
