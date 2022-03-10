@@ -29,18 +29,17 @@ $# Fetch a work's editions
 $# Used for loading the editions table
 $# Book availability of editions injected by bulk get_availability API
 $ edition_count = work.edition_count if work and work.edition_count else 1
-$ ebooks_only = query_param('mode') != 'all'
+$ ebooks_only = query_param('mode') == 'ebooks' or (query_param('mode') != 'all' and edition_count > 10)
 
 $# For performance reasons, limit to 10 ebooks
 $# Tradeoff: limits our ability to select best edition
-$ editions_limit = 10 if not query_param('mode') and edition_count > 10 else None
-$if editions_limit or query_param('mode') == 'ebooks':
+$ editions_limit = None if not query_param('mode') else 10
+$if ebooks_only:
   $ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=edition and [edition.key])
 
 $if not editions:
   $# use ebooks_only to determine whether to lazyload editions table
   $ ebooks_only = False
-  $ editions_limit = 3 if not query_param('mode') else None
   $ editions = work.get_sorted_editions(limit=editions_limit, covers_only=True)
 $ availabilities = {e.availability.get('identifier'): e.availability for e in editions}
 $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
@@ -240,7 +239,7 @@ $if is_privileged_user:
         $:macros.ReadMore("subjects")
     </div>
 
-      $if editions_limit and len(editions) and len(editions) < work.edition_count:
+      $if editions_limit or (len(editions) < work.edition_count):
         <p>
           $_("Showing %(count)d featured editions", count=len(editions)).
           <a href="?mode=all">$_("View all %(count)d editions?", count=work.edition_count)</a>
