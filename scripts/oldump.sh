@@ -42,6 +42,7 @@ TMPDIR=${TMPDIR:-/openlibrary/dumps}
 
 date=$1
 archive=$2
+overwrite=$3
 
 cdump=ol_cdump_$date
 dump=ol_dump_$date
@@ -78,6 +79,12 @@ function archive_dumps() {
 
 log "[$(date)] $0 $1 $2"
 log "<host:${HOSTNAME:-$HOST}> <user:$USER> <dir:$TMPDIR>"
+
+if [[ $@ == *'--overwrite'* ]]
+then
+   log "Cleaning Up: Found --cleanup, removing old files"
+   cleanup
+fi
 
 # create a clean directory
 mkdir -p $TMPDIR/dumps
