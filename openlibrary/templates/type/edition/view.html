@@ -51,7 +51,6 @@ $ previews = [e for e in editions if e.get('ocaid')]
 $# Choose an edition to render
 $if not edition:
   $# We're presumably on a work url
-  $ edition = editions[0]
   $# edition selection strategy (e.g. language, by id, first w/ ocaid)
   $if query_param('edition'):
     $if ':' in query_param('edition'):
