@@ -193,7 +193,7 @@ class DataProvider:
             logger.warning(f'Error fetching metadata for {ocaid}')
             return None
 
-    def get_document(self, key):
+    async def get_document(self, key):
         """Returns the document with specified key from the database.
 
         :param str key: type-prefixed key (ex: /books/OL1M)
@@ -211,7 +211,7 @@ class DataProvider:
             logger.debug("IA metadata cache miss")
             return ia.get_metadata_direct(identifier)
 
-    def preload_documents(self, keys):
+    async def preload_documents(self, keys):
         """
         Preload a set of documents in a single request. Should make subsequent calls to
         get_document faster.
@@ -296,7 +296,7 @@ class LegacyDataProvider(DataProvider):
         q = {'type': '/type/edition', 'works': work['key'], '*': None}
         return list(self._query_iter(q))
 
-    def get_document(self, key):
+    async def get_document(self, key):
         logger.info("get_document %s", key)
         return self._withKey(key)
 
@@ -322,7 +322,7 @@ class ExternalDataProvider(DataProvider):
             logger.warning(f"Too many editions for {work['key']}")
         return resp['entries']
 
-    def get_document(self, key: str):
+    async def get_document(self, key: str):
         return requests.get(f"http://{self.ol_host}{key}.json").json()
 
 
@@ -365,15 +365,15 @@ class BetterDataProvider(LegacyDataProvider):
         else:
             self.db = db
 
-    def get_document(self, key):
+    async def get_document(self, key):
         # logger.info("get_document %s", key)
         if key not in self.cache:
-            self.preload_documents([key])
+            await self.preload_documents([key])
         if key not in self.cache:
             logger.warn("NOT FOUND %s", key)
         return self.cache.get(key) or {"key": key, "type": {"key": "/type/delete"}}
 
-    def preload_documents(self, keys):
+    async def preload_documents(self, keys):
         identifiers = [
             k.replace("/books/ia:", "") for k in keys if k.startswith("/books/ia:")
         ]
@@ -386,7 +386,7 @@ class BetterDataProvider(LegacyDataProvider):
         self._preload_works()
         self._preload_authors()
         self._preload_editions()
-        self._preload_metadata_of_editions()
+        await self._preload_metadata_of_editions()
 
         # for all works and authors, find redirects as they'll requested later
         keys3 = [k for k in self.cache if k.startswith(("/works/", "/authors/"))]
@@ -418,7 +418,7 @@ class BetterDataProvider(LegacyDataProvider):
                 keys.append(doc['key'])
         self.preload_editions_of_works(keys)
 
-    def _preload_metadata_of_editions(self):
+    async def _preload_metadata_of_editions(self):
         identifiers = []
         for doc in self.cache.values():
             if doc and doc['type']['key'] == '/type/edition':
@@ -426,7 +426,7 @@ class BetterDataProvider(LegacyDataProvider):
                     identifiers.append(doc['ocaid'])
                 # source_records = doc.get("source_records", [])
                 # identifiers.extend(r[len("ia:"):] for r in source_records if r.startswith("ia:"))
-        self.preload_metadata(identifiers)
+        await self.preload_metadata(identifiers)
 
     def _preload_authors(self):
         """Preloads authors for all works in the cache."""

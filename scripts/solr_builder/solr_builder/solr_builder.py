@@ -237,7 +237,7 @@ class LocalPostgresDataProvider(DataProvider):
         else:
             return self.get_editions_of_work_direct(work)
 
-    def get_document(self, key):
+    async def get_document(self, key):
         if key in self.cache:
             logger.debug("get_document cache hit %s", key)
             return self.cache[key]
@@ -558,7 +558,7 @@ async def main(
                 db.ia_cache.update(db2.ia_cache)
                 db.cached_work_editions_ranges += db2.cached_work_editions_ranges
 
-            update_keys(
+            await update_keys(
                 keys,
                 commit=False,
                 commit_way_later=True,

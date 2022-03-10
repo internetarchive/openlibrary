@@ -8,4 +8,5 @@ flake8==4.0.1
 mypy==0.910
 pymemcache==3.5.0
 pytest==6.2.5
+pytest-asyncio==0.18.2
 safety==1.10.3
