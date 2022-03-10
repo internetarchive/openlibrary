@@ -5,9 +5,14 @@ data required for solr.
 
 Multiple data providers are supported, each is good for different use case.
 """
+import asyncio
+import itertools
 import logging
-from typing import Dict, List, Optional
+import re
+from typing import Iterable, List, Optional, Sized
 
+import httpx
+from httpx import HTTPError
 import requests
 import web
 from web import DB
@@ -17,18 +22,90 @@ from openlibrary.core import ia
 
 logger = logging.getLogger("openlibrary.solr.data_provider")
 
-global ia_database
+IA_METADATA_FIELDS = ('identifier', 'boxid', 'collection')
+OCAID_PATTERN = re.compile(r'^[^\s&#?/]+$')
 
 
-def get_data_provider(type="default", ia_db=''):
-    global ia_database
-    ia_database = ia_db
-    """Returns the data provider of given type.
-    """
+def get_data_provider(type="default"):
+    """Returns the data provider of given type."""
     if type == "default":
         return BetterDataProvider()
     elif type == "legacy":
         return LegacyDataProvider()
+
+
+def is_valid_ocaid(ocaid: str):
+    return bool(OCAID_PATTERN.match(ocaid))
+
+
+def batch(items: list, max_batch_len: int):
+    """
+    >>> list(batch([1,2,3,4,5], 2))
+    [[1, 2], [3, 4], [5]]
+    >>> list(batch([], 2))
+    []
+    >>> list(batch([1,2,3,4,5], 3))
+    [[1, 2, 3], [4, 5]]
+    >>> list(batch([1,2,3,4,5], 5))
+    [[1, 2, 3, 4, 5]]
+    >>> list(batch([1,2,3,4,5], 6))
+    [[1, 2, 3, 4, 5]]
+    """
+    start = 0
+    while start < len(items):
+        yield items[start : start + max_batch_len]
+        start += max_batch_len
+
+
+def batch_until_len(items: Iterable[Sized], max_batch_len: int):
+    batch_len = 0
+    batch = []  # type: List[Sized]
+    for item in items:
+        if batch_len + len(item) > max_batch_len and batch:
+            yield batch
+            batch = [item]
+            batch_len = len(item)
+        else:
+            batch.append(item)
+            batch_len += len(item)
+    if batch:
+        yield batch
+
+
+def partition(lst: list, parts: int):
+    """
+    >>> list(partition([1,2,3,4,5,6], 1))
+    [[1, 2, 3, 4, 5, 6]]
+    >>> list(partition([1,2,3,4,5,6], 2))
+    [[1, 2, 3], [4, 5, 6]]
+    >>> list(partition([1,2,3,4,5,6], 3))
+    [[1, 2], [3, 4], [5, 6]]
+    >>> list(partition([1,2,3,4,5,6], 4))
+    [[1], [2], [3], [4, 5, 6]]
+    >>> list(partition([1,2,3,4,5,6], 5))
+    [[1], [2], [3], [4], [5, 6]]
+    >>> list(partition([1,2,3,4,5,6], 6))
+    [[1], [2], [3], [4], [5], [6]]
+    >>> list(partition([1,2,3,4,5,6], 7))
+    [[1], [2], [3], [4], [5], [6]]
+
+    >>> list(partition([1,2,3,4,5,6,7], 3))
+    [[1, 2], [3, 4], [5, 6, 7]]
+
+    >>> list(partition([], 5))
+    []
+    """
+    if not lst:
+        return
+
+    total_len = len(lst)
+    parts = min(total_len, parts)
+    size = total_len // parts
+
+    for i in range(0, parts):
+        start = i * size
+        end = total_len if (i == parts - 1) else ((i + 1) * size)
+        yield lst[start:end]
 
 
 class DataProvider:
@@ -40,7 +117,83 @@ class DataProvider:
     in this module.
     """
 
-    def get_document(self, key):
+    def __init__(self) -> None:
+        self.ia_cache: dict[str, Optional[dict]] = dict()
+
+    @staticmethod
+    async def _get_lite_metadata(ocaids: list[str], _recur_depth=0, _max_recur_depth=3):
+        """
+        For bulk fetch, some of the ocaids in Open Library may be bad
+        and break archive.org ES fetches. When this happens, we (up to
+        3 times) recursively split up the pool of ocaids to do as many
+        successful sub-bulk fetches as we can and then when limit is
+        reached, downstream code will fetch remaining ocaids individually
+        (and skip bad ocaids)
+        """
+        if not ocaids or _recur_depth > _max_recur_depth:
+            logger.warning(
+                'Max recursion exceeded trying fetch IA data', extra={'ocaids': ocaids}
+            )
+            return []
+
+        try:
+            async with httpx.AsyncClient() as client:
+                r = await client.get(
+                    "https://archive.org/advancedsearch.php",
+                    timeout=30,  # The default is silly short
+                    params={
+                        'q': f"identifier:({' OR '.join(ocaids)})",
+                        'rows': len(ocaids),
+                        'fl': ','.join(IA_METADATA_FIELDS),
+                        'page': 1,
+                        'output': 'json',
+                        'save': 'yes',
+                    },
+                )
+            r.raise_for_status()
+            return r.json()['response']['docs']
+        except HTTPError:
+            logger.warning("IA bulk query failed")
+        except (ValueError, KeyError):
+            logger.warning(f"IA bulk query failed {r.status_code}: {r.json()['error']}")
+
+        # Only here if an exception occurred
+        # there's probably a bad apple; try splitting the batch
+        parts = await asyncio.gather(
+            *(
+                DataProvider._get_lite_metadata(part, _recur_depth=_recur_depth + 1)
+                for part in partition(ocaids, 6)
+            )
+        )
+        return list(itertools.chain(*parts))
+
+    @staticmethod
+    async def _get_lite_metadata_direct(ocaid: str):
+        try:
+            async with httpx.AsyncClient() as client:
+                r = await client.get(
+                    f"https://archive.org/metadata/{ocaid}/metadata",
+                    timeout=30,  # The default is silly short
+                )
+            r.raise_for_status()
+            response = r.json()
+            if 'error' not in response:
+                lite_metadata = {
+                    key: response['result'][key]
+                    for key in IA_METADATA_FIELDS
+                    if key in response['result']
+                }
+                return lite_metadata
+            else:
+                return {
+                    'error': response['error'],
+                    'identifier': ocaid,
+                }
+        except HTTPError:
+            logger.warning(f'Error fetching metadata for {ocaid}')
+            return None
+
+    async def get_document(self, key):
         """Returns the document with specified key from the database.
 
         :param str key: type-prefixed key (ex: /books/OL1M)
@@ -48,17 +201,17 @@ class DataProvider:
         """
         raise NotImplementedError()
 
-    def get_metadata(self, identifier):
-        """
-        Returns archive.org metadata for given identifier.
+    def get_metadata(self, identifier: str):
+        if identifier in self.ia_cache:
+            logger.debug("IA metadata cache hit")
+            return self.ia_cache[identifier]
+        elif not is_valid_ocaid(identifier):
+            return None
+        else:
+            logger.debug("IA metadata cache miss")
+            return ia.get_metadata_direct(identifier)
 
-        :param str identifier: Internet Archive id (aka ocaid)
-        :return:
-        :rtype: web.storage or None
-        """
-        raise NotImplementedError()
-
-    def preload_documents(self, keys):
+    async def preload_documents(self, keys):
         """
         Preload a set of documents in a single request. Should make subsequent calls to
         get_document faster.
@@ -68,12 +221,30 @@ class DataProvider:
         """
         pass
 
-    def preload_metadata(self, identifiers):
-        """
-        :param list of str identifiers: list of Internet Archive ids (aka ocaids)
-        :return:
-        """
-        pass
+    async def preload_metadata(self, ocaids: list[str]):
+        invalid_ocaids = {ocaid for ocaid in ocaids if not is_valid_ocaid(ocaid)}
+        if invalid_ocaids:
+            logger.warning(f"Trying to cache invalid OCAIDs: {invalid_ocaids}")
+        valid_ocaids = list(set(ocaids) - invalid_ocaids)
+        batches = list(batch_until_len(valid_ocaids, 3000))
+        # Start them all async
+        tasks = [asyncio.create_task(self._get_lite_metadata(b)) for b in batches]
+        for task in tasks:
+            for doc in await task:
+                self.ia_cache[doc['identifier']] = doc
+
+        missing_ocaids = [ocaid for ocaid in valid_ocaids if ocaid not in self.ia_cache]
+        missing_ocaid_batches = list(batch(missing_ocaids, 6))
+        for ocaids in missing_ocaid_batches:
+            # Start them all async
+            tasks = [
+                asyncio.create_task(self._get_lite_metadata_direct(ocaid))
+                for ocaid in ocaids
+            ]
+            for task in tasks:
+                lite_metadata = await task
+                if lite_metadata:
+                    self.ia_cache[lite_metadata['identifier']] = lite_metadata
 
     def preload_editions_of_works(self, work_keys):
         """
@@ -103,13 +274,14 @@ class DataProvider:
         raise NotImplementedError()
 
     def clear_cache(self):
-        raise NotImplementedError()
+        self.ia_cache.clear()
 
 
 class LegacyDataProvider(DataProvider):
     def __init__(self):
         from openlibrary.catalog.utils.query import query_iter, withKey
 
+        super().__init__()
         self._query_iter = query_iter
         self._withKey = withKey
 
@@ -124,17 +296,9 @@ class LegacyDataProvider(DataProvider):
         q = {'type': '/type/edition', 'works': work['key'], '*': None}
         return list(self._query_iter(q))
 
-    def get_metadata(self, identifier):
-        logger.info("find_metadata %s", identifier)
-        return ia.get_metadata(identifier)
-
-    def get_document(self, key):
+    async def get_document(self, key):
         logger.info("get_document %s", key)
         return self._withKey(key)
-
-    def clear_cache(self):
-        # Nothing's cached, so nothing to clear!
-        return
 
 
 class ExternalDataProvider(DataProvider):
@@ -143,6 +307,7 @@ class ExternalDataProvider(DataProvider):
     """
 
     def __init__(self, ol_host: str):
+        super().__init__()
         self.ol_host = ol_host
 
     def find_redirects(self, key: str):
@@ -157,15 +322,8 @@ class ExternalDataProvider(DataProvider):
             logger.warning(f"Too many editions for {work['key']}")
         return resp['entries']
 
-    def get_metadata(self, identifier: str):
-        return ia.get_metadata(identifier)
-
-    def get_document(self, key: str):
+    async def get_document(self, key: str):
         return requests.get(f"http://{self.ol_host}{key}.json").json()
-
-    def clear_cache(self):
-        # Nothing's cached, so nothing to clear!
-        return
 
 
 class BetterDataProvider(LegacyDataProvider):
@@ -173,13 +331,18 @@ class BetterDataProvider(LegacyDataProvider):
         self,
         site: Site = None,
         db: DB = None,
-        ia_db: DB = None,
     ):
-        LegacyDataProvider.__init__(self)
+        """Test with
+        import web; import infogami
+        from openlibrary.config import load_config
+        load_config('/openlibrary/config/openlibrary.yml')
+        infogami._setup()
+        from infogami import config
+        """
+        super().__init__()
 
         # cache for documents
         self.cache: dict[str, dict] = {}
-        self.metadata_cache: dict[str, Optional[dict]] = {}
 
         # cache for redirects
         self.redirect_cache: dict[str, list[str]] = {}
@@ -202,55 +365,15 @@ class BetterDataProvider(LegacyDataProvider):
         else:
             self.db = db
 
-        # self.ia_db = get_ia_db
-        # Ignore mypy because it can't find ia_database for some reason :/
-        self.ia_db: DB = ia_db or ia_database  # type: ignore
-
-    def get_metadata(self, identifier):
-        """Alternate implementation of ia.get_metadata() that uses IA db directly."""
-        logger.info("get_metadata %s", identifier)
-        self.preload_metadata([identifier])
-        if self.metadata_cache.get(identifier):
-            d = web.storage(self.metadata_cache[identifier])
-            d.publisher = d.publisher and d.publisher.split(";")
-            d.collection = d.collection and d.collection.split(";")
-            d.isbn = d.isbn and d.isbn.split(";")
-            d.creator = d.creator and d.creator.split(";")
-            return d
-
-    def preload_metadata(self, identifiers):
-        identifiers = [id for id in identifiers if id not in self.metadata_cache]
-        if not (identifiers and self.ia_db):
-            return
-
-        logger.info("preload_metadata %s", identifiers)
-
-        fields = (
-            'identifier, boxid, isbn, '
-            + 'title, description, publisher, creator, '
-            + 'date, collection, '
-            + 'repub_state, mediatype, noindex'
-        )
-
-        rows = self.ia_db.select(
-            'metadata', what=fields, where='identifier IN $identifiers', vars=locals()
-        )
-
-        for row in rows:
-            self.metadata_cache[row.identifier] = row
-
-        for id in identifiers:
-            self.metadata_cache.setdefault(id, None)
-
-    def get_document(self, key):
+    async def get_document(self, key):
         # logger.info("get_document %s", key)
         if key not in self.cache:
-            self.preload_documents([key])
+            await self.preload_documents([key])
         if key not in self.cache:
             logger.warn("NOT FOUND %s", key)
         return self.cache.get(key) or {"key": key, "type": {"key": "/type/delete"}}
 
-    def preload_documents(self, keys):
+    async def preload_documents(self, keys):
         identifiers = [
             k.replace("/books/ia:", "") for k in keys if k.startswith("/books/ia:")
         ]
@@ -263,7 +386,7 @@ class BetterDataProvider(LegacyDataProvider):
         self._preload_works()
         self._preload_authors()
         self._preload_editions()
-        self._preload_metadata_of_editions()
+        await self._preload_metadata_of_editions()
 
         # for all works and authors, find redirects as they'll requested later
         keys3 = [k for k in self.cache if k.startswith(("/works/", "/authors/"))]
@@ -295,7 +418,7 @@ class BetterDataProvider(LegacyDataProvider):
                 keys.append(doc['key'])
         self.preload_editions_of_works(keys)
 
-    def _preload_metadata_of_editions(self):
+    async def _preload_metadata_of_editions(self):
         identifiers = []
         for doc in self.cache.values():
             if doc and doc['type']['key'] == '/type/edition':
@@ -303,7 +426,7 @@ class BetterDataProvider(LegacyDataProvider):
                     identifiers.append(doc['ocaid'])
                 # source_records = doc.get("source_records", [])
                 # identifiers.extend(r[len("ia:"):] for r in source_records if r.startswith("ia:"))
-        self.preload_metadata(identifiers)
+        await self.preload_metadata(identifiers)
 
     def _preload_authors(self):
         """Preloads authors for all works in the cache."""
@@ -383,7 +506,7 @@ class BetterDataProvider(LegacyDataProvider):
         return
 
     def clear_cache(self):
+        super().clear_cache()
         self.cache.clear()
-        self.metadata_cache.clear()
         self.redirect_cache.clear()
         self.edition_keys_of_works_cache.clear()

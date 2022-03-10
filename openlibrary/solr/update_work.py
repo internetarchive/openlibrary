@@ -48,7 +48,6 @@ re_year = re.compile(r'\b(\d{4})\b')
 
 # This will be set to a data provider; have faith, mypy!
 data_provider = cast(DataProvider, None)
-_ia_db = None
 
 solr_base_url = None
 solr_next: Optional[bool] = None
@@ -426,7 +425,7 @@ class SolrProcessor:
             if 'author' in a
         ]
 
-    def get_author(self, a):
+    async def get_author(self, a):
         """
         Get author dict from author entry in the work.
 
@@ -446,9 +445,9 @@ class SolrProcessor:
         if not m:
             logger.error('invalid author key: %s', key)
             return
-        return data_provider.get_document(key)
+        return await data_provider.get_document(key)
 
-    def extract_authors(self, w):
+    async def extract_authors(self, w):
         """
         Get the full author objects of the given work
 
@@ -456,19 +455,20 @@ class SolrProcessor:
         :rtype: list[dict]
         """
         authors = [
-            self.get_author(a)
+            await self.get_author(a)
             for a in SolrProcessor.normalize_authors(w.get("authors", []))
         ]
 
         if any(a['type']['key'] == '/type/redirect' for a in authors):
             if self.resolve_redirects:
-
-                def resolve(a):
-                    if a['type']['key'] == '/type/redirect':
-                        a = data_provider.get_document(a['location'])
-                    return a
-
-                authors = [resolve(a) for a in authors]
+                authors = [
+                    (
+                        await data_provider.get_document(a['location'])
+                        if a['type']['key'] == '/type/redirect'
+                        else a
+                    )
+                    for a in authors
+                ]
             else:
                 # we don't want to raise an exception but just write a warning on the log
                 # raise AuthorRedirect
@@ -590,10 +590,10 @@ class SolrProcessor:
         k = 'publish_date'
         pub_dates = {e[k] for e in editions if e.get(k)}
         add_list(k, pub_dates)
-        pub_years = {
-            self.get_pub_year(e) for e in editions
+        pub_years = {self.get_pub_year(e) for e in editions}
+        pub_years = pub_years - {
+            None,
         }
-        pub_years = pub_years - {None,}
         if pub_years:
             add_list('publish_year', pub_years)
             add('first_publish_year', min(int(y) for y in pub_years))
@@ -800,7 +800,7 @@ class SolrProcessor:
             add('printdisabled_s', ';'.join(list(printdisabled)))
 
 
-def build_data(w: dict) -> SolrDocument:
+async def build_data(w: dict) -> SolrDocument:
     """
     Construct the Solr document to insert into Solr for the given work
 
@@ -812,7 +812,7 @@ def build_data(w: dict) -> SolrDocument:
         editions = w['editions']
     else:
         editions = data_provider.get_editions_of_work(w)
-    authors = SolrProcessor().extract_authors(w)
+    authors = await SolrProcessor().extract_authors(w)
 
     iaids = [e["ocaid"] for e in editions if "ocaid" in e]
     ia = {iaid: get_ia_collection_and_box_id(iaid) for iaid in iaids}
@@ -1276,7 +1276,7 @@ def build_subject_doc(
     }
 
 
-def update_work(work: dict) -> list[SolrUpdateRequest]:
+async def update_work(work: dict) -> list[SolrUpdateRequest]:
     """
     Get the Solr requests necessary to insert/update this work into Solr.
 
@@ -1311,10 +1311,10 @@ def update_work(work: dict) -> list[SolrUpdateRequest]:
         # Hack to add subjects when indexing /books/ia:xxx
         if work.get("subjects"):
             fake_work['subjects'] = work['subjects']
-        return update_work(fake_work)
+        return await update_work(fake_work)
     elif work['type']['key'] == '/type/work':
         try:
-            solr_doc = build_data(work)
+            solr_doc = await build_data(work)
         except:
             logger.error("failed to update work %s", work['key'], exc_info=True)
         else:
@@ -1334,7 +1334,7 @@ def update_work(work: dict) -> list[SolrUpdateRequest]:
     return requests
 
 
-def update_author(
+async def update_author(
     akey, a=None, handle_redirects=True
 ) -> Optional[list[SolrUpdateRequest]]:
     """
@@ -1351,7 +1351,7 @@ def update_author(
     assert m
     author_id = m.group(1)
     if not a:
-        a = data_provider.get_document(akey)
+        a = await data_provider.get_document(akey)
     if a['type']['key'] in ('/type/redirect', '/type/delete') or not a.get(
         'name', None
     ):
@@ -1469,7 +1469,7 @@ def solr_select_work(edition_key):
         return docs[0]['key']  # /works/ prefix is in solr
 
 
-def update_keys(
+async def update_keys(
     keys,
     commit=True,
     output_file=None,
@@ -1506,9 +1506,8 @@ def update_keys(
             pass
 
     global data_provider
-    global _ia_db
     if data_provider is None:
-        data_provider = get_data_provider('default', _ia_db)
+        data_provider = get_data_provider('default')
 
     wkeys = set()
 
@@ -1520,14 +1519,14 @@ def update_keys(
     # Get works for all the editions
     ekeys = {k for k in keys if k.startswith("/books/")}
 
-    data_provider.preload_documents(ekeys)
+    await data_provider.preload_documents(ekeys)
     for k in ekeys:
         logger.debug("processing edition %s", k)
-        edition = data_provider.get_document(k)
+        edition = await data_provider.get_document(k)
 
         if edition and edition['type']['key'] == '/type/redirect':
             logger.warn("Found redirect to %s", edition['location'])
-            edition = data_provider.get_document(edition['location'])
+            edition = await data_provider.get_document(edition['location'])
 
         # When the given key is not found or redirects to another edition/work,
         # explicitly delete the key. It won't get deleted otherwise.
@@ -1571,7 +1570,7 @@ def update_keys(
     # Add work keys
     wkeys.update(k for k in keys if k.startswith("/works/"))
 
-    data_provider.preload_documents(wkeys)
+    await data_provider.preload_documents(wkeys)
     data_provider.preload_editions_of_works(wkeys)
 
     # update works
@@ -1580,8 +1579,8 @@ def update_keys(
     for k in wkeys:
         logger.debug("updating work %s", k)
         try:
-            w = data_provider.get_document(k)
-            requests += update_work(w)
+            w = await data_provider.get_document(k)
+            requests += await update_work(w)
         except:
             logger.error("Failed to update work %s", k, exc_info=True)
 
@@ -1602,11 +1601,11 @@ def update_keys(
     requests = []
     akeys = {k for k in keys if k.startswith("/authors/")}
 
-    data_provider.preload_documents(akeys)
+    await data_provider.preload_documents(akeys)
     for k in akeys:
         logger.debug("updating author %s", k)
         try:
-            requests += update_author(k) or []
+            requests += await update_author(k) or []
         except:
             logger.error("Failed to update author %s", k, exc_info=True)
 
@@ -1635,11 +1634,11 @@ def solr_escape(query):
     return re.sub(r'([\s\-+!()|&{}\[\]^"~*?:\\])', r'\\\1', query)
 
 
-def do_updates(keys):
+async def do_updates(keys):
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
     )
-    update_keys(keys, commit=False)
+    await update_keys(keys, commit=False)
 
 
 def load_config(c_config='conf/openlibrary.yml'):
@@ -1660,10 +1659,6 @@ def load_configs(
 
     load_config(c_config)
 
-    global _ia_db
-    if 'ia_db' in config.runtime_config:
-        _ia_db = get_ia_db(config.runtime_config['ia_db'])
-
     global data_provider
     if data_provider is None:
         if isinstance(c_data_provider, DataProvider):
@@ -1671,26 +1666,16 @@ def load_configs(
         elif c_data_provider == 'external':
             data_provider = ExternalDataProvider(host)
         else:
-            data_provider = get_data_provider(c_data_provider, _ia_db)
+            data_provider = get_data_provider(c_data_provider)
     return data_provider
 
 
-def get_ia_db(settings):
-    host = settings['host']
-    db = settings['db']
-    user = settings['user']
-    pw = os.popen(settings['pw_file']).read().strip()
-    ia_db = web.database(dbn="postgres", host=host, db=db, user=user, pw=pw)
-    return ia_db
-
-
-def main(
+async def main(
     keys: list[str],
     ol_url="http://openlibrary.org",
     ol_config="openlibrary.yml",
     output_file: str = None,
     commit=True,
-    profile=False,
     data_provider: Literal['default', 'legacy', 'external'] = "default",
     solr_base: str = None,
     solr_next=False,
@@ -1704,7 +1689,6 @@ def main(
     :param ol_config: Open Library config file
     :param output_file: Where to save output
     :param commit: Whether to also trigger a Solr commit
-    :param profile: Profile this code to identify the bottlenecks
     :param data_provider: Name of the data provider to use
     :param solr_base: If wanting to override openlibrary.yml
     :param solr_next: Whether to assume schema of next solr version is active
@@ -1724,12 +1708,7 @@ def main(
 
     set_solr_next(solr_next)
 
-    if profile:
-        f = web.profile(update_keys)
-        _, info = f(keys, commit)
-        print(info)
-    else:
-        update_keys(keys, commit=commit, output_file=output_file, update=update)
+    await update_keys(keys, commit=commit, output_file=output_file, update=update)
 
 
 if __name__ == '__main__':
