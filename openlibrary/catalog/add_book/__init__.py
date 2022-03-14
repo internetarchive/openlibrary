@@ -811,7 +811,7 @@ def load(rec, account_key=None):
         'source_records',
     ]
     for f in edition_fields:
-        if f not in rec:
+        if f not in rec or not rec[f]:
             continue
         # ensure values is a list
         values = rec[f] if isinstance(rec[f], list) else [rec[f]]
