@@ -175,11 +175,7 @@ def csv_to_ol_json_item(line):
 
 def is_low_quality_book(book_item):
     """check if a book item is of low quality"""
-    book_title_breakup = book_item.title.split()
-    if "Notebook" in book_title_breakup and book_item.publisher == "Independently Published":
-        return True
-    else:
-        return False
+    return ("notebook" in book_item.title.casefold() and "independently published" in book_item.publisher.casefold())
 
 
 def batch_import(path, batch, batch_size=5000):
