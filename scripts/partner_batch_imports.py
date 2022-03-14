@@ -100,8 +100,7 @@ class Biblio:
         # Assert importable
         for field in self.REQUIRED_FIELDS + ['isbn_13']:
             assert getattr(self, field), field
-        # This seems to be eliminating books too aggressively
-        #assert self.primary_format not in self.NONBOOK, f"{self.primary_format} is NONBOOK"
+        assert self.primary_format not in self.NONBOOK, f"{self.primary_format} is NONBOOK"
 
     @staticmethod
     def contributors(data):
