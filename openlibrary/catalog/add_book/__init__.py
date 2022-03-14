@@ -805,6 +805,7 @@ def load(rec, account_key=None):
 
     # Add list fields to edition as needed
     edition_fields = [
+        'identifiers',
         'local_id',
         'lccn',
         'lc_classifications',
