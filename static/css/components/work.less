@@ -137,11 +137,17 @@ h2.edition-byline {
 
   &.sticky {
     position: sticky;
-    top: 0;
+    top: 50px;
     display: block;
     background: @white;
     z-index: @z-index-level-3;
     padding-top: 10px;
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .work-menu.sticky {
+    top: 0;
   }
 }
 
