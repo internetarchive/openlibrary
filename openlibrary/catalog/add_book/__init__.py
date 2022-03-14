@@ -805,7 +805,6 @@ def load(rec, account_key=None):
 
     # Add list fields to edition as needed
     edition_fields = [
-        'identifiers',
         'local_id',
         'lccn',
         'lc_classifications',
@@ -824,6 +823,15 @@ def load(rec, account_key=None):
         else:
             e[f] = to_add = values
         if to_add:
+            need_edition_save = True
+
+    # Add new identifiers
+    if 'identifiers' in rec:
+        identifiers = defaultdict(set, e.get('identifiers', {}))
+        for k, vals in rec.identifiers:
+            identifiers[k].update(vals)
+        if e.get('identifiers') != identifiers:
+            e['identifiers'] = {k: list(vals) for k, vals in identifiers.items()}
             need_edition_save = True
 
     edits = []
