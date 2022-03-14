@@ -809,6 +809,7 @@ def load(rec, account_key=None):
         'local_id',
         'lccn',
         'lc_classifications',
+        'oclc_numbers',
         'source_records',
     ]
     for f in edition_fields:
