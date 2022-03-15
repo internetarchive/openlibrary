@@ -1,8 +1,7 @@
-$def with (doc, work_key=None, listen=True, daisy=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False, user_lists=None, post='')
+$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False, user_lists=None, post='')
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * listen whether to display listen button
-$# * daisy whether to display daisy print-disabled link
 $# * allow_expensive_availability_check whether to check the groundtruth availability if can't get availability from specified fields
 $# * secondary_action whether to display the preview/search inside button
 $# * check_sponsorship whether to check if the book is eligible for sponsorship
@@ -11,7 +10,7 @@ $# * check_loan_status whether to check the user's loan status to determine read
 
 $ loanstatus_start_time = time()
 
-$ loans = 5
+$ loans = len(ctx.user.get_loans())
 $ max_loans = loans == 5
 
 $ availability = (doc.availability or {}) if hasattr(doc, 'availability') else {}
@@ -78,12 +77,12 @@ $elif availability.get('is_lendable'):
     </div>
     <a href="/account/loans">Manage my loans</a>
   $elif availability.get("available_to_borrow") or availability.get("available_to_browse"):
-    $:macros.ReadButton(ocaid, borrow=True, listen=listen, disabled=max_loans)
+    $:macros.ReadButton(ocaid, borrow=True, listen=listen)
   $elif availability.get('available_to_waitlist'):
-    $ wlsize = availability.get('users_on_waitlist') or availability.get('num_waitlist')
     $if waiting_loan:
       <p class="waitinglist-message">
         $ spot = waiting_loan['position']
+        $ wlsize = waiting_loan['wl_size']
         $if spot == 1:
           $:_('You are <strong>next</strong> on the waiting list')
         $else:
@@ -96,6 +95,7 @@ $elif availability.get('is_lendable'):
       </form>
     $else:
       $# "JOIN-WAITLIST" button
+      $ wlsize = availability.get('users_on_waitlist') or availability.get('num_waitlist')
       <p class="waitinglist-message">
         $if wlsize:
           $_("Readers waiting for this title: %(count)s", count=wlsize)
@@ -112,6 +112,8 @@ $elif availability.get('is_lendable'):
       <a href="$work_key" class="cta-btn cta-btn--missing" title="$_('This book is currently checked out, please check back later.')"
        data-ol-link-track="CTAClick|CheckedOut">$_('Checked Out')</a>
     </div>
+  $if secondary_action:
+    $:macros.BookPreview(ocaid, linkback=not no_index)
 
 $elif ('eligibility' in doc) or (check_sponsorship and not ocaid and not availability.get('is_lendable')):
   $ sponsorship = doc.get('eligibility') if 'eligibility' in doc else qualifies_for_sponsorship(doc, donate_only=True)
@@ -125,10 +127,11 @@ $elif ('eligibility' in doc) or (check_sponsorship and not ocaid and not availab
         $_("We don't have this book yet. Can you donate it to the Lending Library?")
         <a href="https://openlibrary.org/bookdrive" target="_blank">$_('Learn More')</a>
       </p>
-  $else:
-    <div class="cta-button-group">
-      <a href="$work_key" class="cta-btn cta-btn--missing" data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
-    </div>
+
+$elif ocaid and availability.get('is_previewable') and book_provider.short_name == 'ia':
+  $:macros.BookPreview(ocaid, linkback=not no_index)
+  $if secondary_action:
+      $:macros.BookSearchInside(ocaid)
 
 $else:
   <div class="cta-button-group">
@@ -136,15 +139,7 @@ $else:
        data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
   </div>
 
-$if ocaid and secondary_action and availability.get('is_printdisabled') and book_provider.short_name == 'ia':
-  $:macros.BookPreview(ocaid, linkback=not no_index)
-  $:macros.BookSearchInside(ocaid)
-
 $:post
-
-$if ocaid and daisy and book_provider.short_name == 'ia':
-  $ url = doc.get('url') or doc.get('key') + '/-'
-  $:macros.daisy('%s/daisy' % url, protected=availability.get('is_printdisabled'))
 
 $if query_param('debug'):
   $ loanstatus_end_time = time() - loanstatus_start_time
