@@ -1033,6 +1033,7 @@ class works_autocomplete(delegate.page):
 
         solr = get_solr()
 
+        # look for ID in query string here
         q = solr.escape(i.q).strip()
         query_is_key = is_work_olid(q.upper())
         if query_is_key:
