@@ -53,6 +53,7 @@ ALL_FIELDS = [
     "subtitle",
     "alternative_title",
     "alternative_subtitle",
+    "edition_count",
     "edition_key",
     "by_statement",
     "publish_date",
@@ -107,6 +108,7 @@ FACET_FIELDS = [
 FIELD_NAME_MAP = {
     'author': 'author_name',
     'authors': 'author_name',
+    'editions': 'edition_count',
     'by': 'author_name',
     'publishers': 'publisher',
     # "Private" fields

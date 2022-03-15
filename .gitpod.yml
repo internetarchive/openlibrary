@@ -22,4 +22,4 @@ github:
   prebuilds:
     # Don't prebuild for PRs coming from this repo
     # Don't need this running on all renovatebot's PRs; it's slow
-    pullRequests: true
+    pullRequests: false

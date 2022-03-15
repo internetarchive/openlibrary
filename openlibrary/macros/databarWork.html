@@ -56,9 +56,9 @@ $if isbn_10 and not asin:
         $ render_times['databarWork: List widget'] = time() - render_times['databarWork: List widget']
 
         $# For the Works & Editions page, only use ground_truth_availability API for selected Edition
-        $# if edition availability status is private or error
+        $# if edition availability status is error
         $ render_times['databarWork: LoanStatus'] = time()
-        $ expensive_check = page.get('availability', {}).get('status') in ['private', 'error']
+        $ expensive_check = page.get('availability', {}).get('status') in ['error']
         $:macros.LoanStatus(page, allow_expensive_availability_check=expensive_check, secondary_action=editions_page, check_sponsorship=editions_page, sponsorship_help=editions_page, check_loan_status=editions_page, post=lists_widget)
         $ render_times['databarWork: LoanStatus'] = time() - render_times['databarWork: LoanStatus']
 

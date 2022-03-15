@@ -41,7 +41,7 @@ $def with (page)
         <h2>$:_('Help')</h2>
         <ul>
           <li><a href="/help">$_('Help Center')</a></li>
-          <li><a href="/contact?path=$request.path" title="$_('Problems')">$_('Report A Problem')</a></li>
+          <li><a href="/contact?$:urlencode(dict(path=request.fullpath))" title="$_('Problems')">$_('Report A Problem')</a></li>
           <li><a href="/help/faq/editing" title="$_('Suggest Edits')">$_('Suggesting Edits')</a></li>
         </ul>
         <aside id="footer-icons">

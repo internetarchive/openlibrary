@@ -1,7 +1,7 @@
 """Helper functions used by the List model.
 """
-import datetime
-import time
+from functools import cached_property
+from typing import Union
 
 import web
 import logging
@@ -14,9 +14,6 @@ from openlibrary.core import helpers as h
 from openlibrary.core import cache
 
 from openlibrary.plugins.worksearch.search import get_solr
-
-import six
-from six.moves import urllib
 
 logger = logging.getLogger("openlibrary.lists.model")
 
@@ -31,26 +28,6 @@ def get_subject(key):
     return subjects.get_subject(key)
 
 
-def cached_property(name, getter):
-    """Just like property, but the getter is called only for the first access.
-
-    All subsequent accesses will use the cached value.
-
-    The name argument must be same as the property name.
-
-    Sample Usage:
-
-        count = cached_property("count", get_count)
-    """
-
-    def f(self):
-        value = getter(self)
-        self.__dict__[name] = value
-        return value
-
-    return property(f)
-
-
 class ListMixin:
     def _get_rawseeds(self):
         def process(seed):
@@ -61,16 +38,8 @@ class ListMixin:
 
         return [process(seed) for seed in self.seeds]
 
-    def _get_edition_count(self):
-        return sum(seed.edition_count for seed in self.get_seeds())
-
-    def _get_work_count(self):
-        return sum(seed.work_count for seed in self.get_seeds())
-
-    def _get_ebook_count(self):
-        return sum(seed.ebook_count for seed in self.get_seeds())
-
-    def _get_last_update(self):
+    @cached_property
+    def last_update(self):
         last_updates = [seed.last_update for seed in self.get_seeds()]
         last_updates = [x for x in last_updates if x]
         if last_updates:
@@ -78,10 +47,9 @@ class ListMixin:
         else:
             return None
 
-    work_count = cached_property("work_count", _get_work_count)
-    edition_count = cached_property("edition_count", _get_edition_count)
-    ebook_count = cached_property("ebook_count", _get_ebook_count)
-    last_update = cached_property("last_update", _get_last_update)
+    @property
+    def seed_count(self):
+        return len(self.seeds)
 
     def preview(self):
         """Return data to preview this list.
@@ -92,8 +60,7 @@ class ListMixin:
             "url": self.key,
             "full_url": self.url(),
             "name": self.name or "",
-            "seed_count": len(self.seeds),
-            "edition_count": self.edition_count,
+            "seed_count": self.seed_count,
             "last_update": self.last_update and self.last_update.isoformat() or None,
         }
 
@@ -347,18 +314,10 @@ class ListMixin:
         return Image(self._site, 'b', cover_id)
 
 
-def valuesort(d):
-    """Sorts the keys in the dictionary based on the values."""
-    return sorted(d, key=lambda k: d[k])
-
-
 class Seed:
     """Seed of a list.
 
     Attributes:
-        * work_count
-        * edition_count
-        * ebook_count
         * last_update
         * type - "edition", "work" or "subject"
         * document - reference to the edition/work document
@@ -367,56 +326,47 @@ class Seed:
         * cover
     """
 
-    def __init__(self, list, value):
+    def __init__(self, list, value: Union[web.storage, str]):
         self._list = list
         self._type = None
 
         self.value = value
         if isinstance(value, str):
             self.key = value
-            self.type = "subject"
+            self._type = "subject"
         else:
             self.key = value.key
 
-        self._solrdata = None
-
-    def get_document(self):
+    @cached_property
+    def document(self):
         if isinstance(self.value, str):
-            doc = get_subject(self.get_subject_url(self.value))
+            return get_subject(self.get_subject_url(self.value))
         else:
-            doc = self.value
-        return doc
-
-    document = cached_property("document", get_document)
-
-    def _get_document_basekey(self):
-        return self.document.key.split("/")[-1]
+            return self.value
 
     def get_solr_query_term(self):
-        if self.type == 'edition':
-            return "edition_key:" + self._get_document_basekey()
-        elif self.type == 'work':
-            return 'key:/works/' + self._get_document_basekey()
-        elif self.type == 'author':
-            return "author_key:" + self._get_document_basekey()
-        elif self.type == 'subject':
-            type, value = self.key.split(":", 1)
+        if self.type == 'subject':
+            typ, value = self.key.split(":", 1)
             # escaping value as it can have special chars like : etc.
             value = get_solr().escape(value)
-            return f"{type}_key:{value}"
+            return f"{typ}_key:{value}"
+        else:
+            doc_basekey = self.document.key.split("/")[-1]
+            if self.type == 'edition':
+                return f"edition_key:{doc_basekey}"
+            elif self.type == 'work':
+                return f'key:/works/{doc_basekey}'
+            elif self.type == 'author':
+                return f"author_key:{doc_basekey}"
+            else:
+                logger.warning(
+                    f"Cannot get solr query term for seed type {self.type}",
+                    extra={'list': self._list.key, 'seed': self.key},
+                )
+                return None
 
-    def get_solrdata(self):
-        if self._solrdata is None:
-            self._solrdata = self._load_solrdata()
-        return self._solrdata
-
-    def _load_solrdata(self):
-        return {'last_update': self.document.get('last_modified')}
-
-    def _inttime_to_datetime(self, t):
-        return datetime.datetime(*time.gmtime(t)[:6])
-
-    def get_type(self):
+    @cached_property
+    def type(self):
         if self._type:
             return self._type
         type = self.document.type.key
@@ -432,26 +382,19 @@ class Seed:
         else:
             return "unknown"
 
-    type = property(get_type)
-
-    @type.setter
-    def type(self, value):
-        self._type = value
-
-    def get_title(self):
-        if self.type == "work" or self.type == "edition":
+    @property
+    def title(self):
+        if self.type in ("work", "edition"):
             return self.document.title or self.key
         elif self.type == "author":
             return self.document.name or self.key
         elif self.type == "subject":
-            return self._get_subject_title()
+            return self.key.replace("_", " ")
         else:
             return self.key
 
-    def _get_subject_title(self):
-        return self.key.replace("_", " ")
-
-    def get_url(self):
+    @property
+    def url(self):
         if self.document:
             return self.document.url()
         else:
@@ -476,26 +419,9 @@ class Seed:
         else:
             return None
 
-    def _get_last_update(self):
-        return self.get_solrdata().get("last_update") or None
-
-    def _get_ebook_count(self):
-        return self.get_solrdata().get('ebook_count', 0)
-
-    def _get_edition_count(self):
-        return self.get_solrdata().get('edition_count', 0)
-
-    def _get_work_count(self):
-        return self.get_solrdata().get('work_count', 0)
-
-    work_count = property(_get_work_count)
-    edition_count = property(_get_edition_count)
-    ebook_count = property(_get_ebook_count)
-    last_update = property(_get_last_update)
-
-    title = property(get_title)
-    url = property(get_url)
-    cover = property(get_cover)
+    @cached_property
+    def last_update(self):
+        return self.document.get('last_modified')
 
     def dict(self):
         if self.type == "subject":
@@ -510,9 +436,6 @@ class Seed:
             "full_url": full_url,
             "type": self.type,
             "title": self.title,
-            "work_count": self.work_count,
-            "edition_count": self.edition_count,
-            "ebook_count": self.ebook_count,
             "last_update": self.last_update and self.last_update.isoformat() or None,
         }
         cover = self.get_cover()
@@ -524,7 +447,3 @@ class Seed:
         return f"<seed: {self.type} {self.key}>"
 
     __str__ = __repr__
-
-
-def crossproduct(A, B):
-    return [(a, b) for a in A for b in B]
