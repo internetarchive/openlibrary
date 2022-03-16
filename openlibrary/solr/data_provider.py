@@ -138,6 +138,7 @@ class DataProvider:
 
         try:
             async with httpx.AsyncClient() as client:
+                headers = { "x-application-id": "openlibrary" }
                 r = await client.get(
                     "https://archive.org/advancedsearch.php",
                     timeout=30,  # The default is silly short
@@ -149,6 +150,7 @@ class DataProvider:
                         'output': 'json',
                         'save': 'yes',
                     },
+                    headers=headers,
                 )
             r.raise_for_status()
             return r.json()['response']['docs']
