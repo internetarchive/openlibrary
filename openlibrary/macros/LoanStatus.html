@@ -1,12 +1,14 @@
 $def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False, user_lists=None, post='')
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
-$# * listen whether to display listen button
-$# * allow_expensive_availability_check whether to check the groundtruth availability if can't get availability from specified fields
-$# * secondary_action whether to display the preview/search inside button
-$# * check_sponsorship whether to check if the book is eligible for sponsorship
-$# * sponsorship_help whether to show the sponsorship help text
-$# * check_loan_status whether to check the user's loan status to determine read button
+$# * listen - whether to display listen button
+$# * allow_expensive_availability_check - whether to check the groundtruth availability
+$#     if can't get availability from specified fields
+$# * secondary_action - whether to display elements (e.g. preview, searhc inside)
+$#     on just e.g. editions page or within search results, editions table, etc
+$# * check_sponsorship - whether to check if the book is eligible for sponsorship
+$# * sponsorship_help - whether to show the sponsorship help text
+$# * check_loan_status - whether to check the user's loan status to determine read button
 
 $ loanstatus_start_time = time()
 
@@ -32,6 +34,7 @@ $if allow_expensive_availability_check and ocaid:
 
 $ borrow_link = '/borrow/ia/%s' % ocaid
 
+$# Checks to see if patron has actively loan / waitlist for this book
 $ get_loan_for_start_time = time()
 $ user_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_loan_for(ocaid)
 $ get_loan_for_total_time = time() - get_loan_for_start_time
@@ -55,16 +58,25 @@ $if user_loan:
     </script>
 
 $elif book_provider and book_provider.short_name != 'ia':
+  $# Partner Trusted Book Provider Read Buttons
   $:book_provider.render_read_button(doc)
 
 $elif availability.get('is_readable'):
+  $# Open / Publicly Readable (Unrestricted)
   $:macros.ReadButton(ocaid, listen=listen)
   $if secondary_action:
     $:macros.BookSearchInside(ocaid)
 
 $elif ocaid and ctx.user and ctx.user.is_printdisabled():
+  $# Exemptions for patrons with Print Disabilities
+  $# We know there's an ocaid
+  $# We know we don't have this book loaned / waitlisted
+  $# We know this book is not `is_readable`
+  $# This book must either be: `is_lendable`, `is_printdisabled`, `is_restricted`
   $ std_borrow = availability and availability.get('is_lendable')
   $:macros.ReadButton(ocaid, borrow=std_borrow, printdisabled=not std_borrow, listen=listen)
+  $if secondary_action and (availability.get('is_printdisabled') or availability.get('is_lendable')):
+    $:macros.BookPreview(ocaid, linkback=not no_index)
 
 $elif availability.get('is_lendable'):
   $if availability.get("available_to_borrow") or availability.get("available_to_browse"):
