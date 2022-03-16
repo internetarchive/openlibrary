@@ -115,6 +115,8 @@ $elif availability.get('is_lendable'):
       <a href="$work_key" class="cta-btn cta-btn--missing" title="$_('This book is currently checked out, please check back later.')"
        data-ol-link-track="CTAClick|CheckedOut">$_('Checked Out')</a>
     </div>
+    $if not secondary_action:
+      $:macros.BookPreview(ocaid, linkback=not no_index)
   $if secondary_action:
     $:macros.BookPreview(ocaid, linkback=not no_index)
 
