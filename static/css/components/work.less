@@ -247,8 +247,19 @@ div.editionTools {
 
 .edition-omniline {
   display: flex;
+  padding: 10px;
+  overflow-x: auto;
   border-bottom: 1px solid @lighter-grey;
   margin-bottom: 10px;
+
+  &-item {
+    flex: 1;
+    font-size: .8em;
+
+    div {
+      font-weight: bold;
+    }
+  }
 
   h4 {
     padding-right: 5px;
@@ -256,17 +267,6 @@ div.editionTools {
 
   h4:last-child {
     padding-right: 0;
-  }
-}
-
-.id-list {
-  font-size: 12px;
-  border-bottom: 1px solid @lighter-grey;
-  padding-bottom: 10px;
-
-  li {
-    display: flex;
-    justify-content: space-between;
   }
 }
 
@@ -278,7 +278,6 @@ div.editionTools {
 }
 
 .preview-languages {
-  margin-bottom: -30px !important;
   font-size: .8em;
   color: @grey;
 }
