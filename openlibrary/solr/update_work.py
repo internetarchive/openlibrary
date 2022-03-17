@@ -95,7 +95,7 @@ def set_solr_next(val: bool):
 class IALiteMetadata(TypedDict):
     boxid: set[str]
     collection: set[str]
-    access_restricted_item: str
+    access_restricted_item: Optional[Literal['true', 'false']]
 
 
 def get_ia_collection_and_box_id(ia: str) -> Optional[IALiteMetadata]:

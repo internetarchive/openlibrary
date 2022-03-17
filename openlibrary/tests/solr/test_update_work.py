@@ -715,8 +715,9 @@ class Test_Sort_Editions_Ocaids:
             "ia_collection": []
         }]
         SolrProcessor.add_ebook_info(doc, editions)
-        assert len(doc.get('ia', [])) == 4
-        assert doc['ia'][0] == "ocaid_open"
-        assert doc['ia'][1] == "ocaid_borrowable"
-        assert doc['ia'][2] == "ocaid_printdisabled"
-        assert doc['ia'][3] == "ocaid_restricted"
+        assert doc['ia'] == [
+            "ocaid_open",
+            "ocaid_borrowable",
+            "ocaid_printdisabled",
+            "ocaid_restricted"
+        ]
