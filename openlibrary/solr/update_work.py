@@ -748,12 +748,6 @@ class SolrProcessor:
         open_editions = set()
         unclassified_editions = set()
 
-        language_editions = {}
-
-        pub_goog = set()  # google
-        pub_nongoog = set()
-        nonpub_goog = set()
-        nonpub_nongoog = set()
         printdisabled = set()
         all_collection = set()
         public_scan = False
@@ -792,7 +786,8 @@ class SolrProcessor:
                 lending_ia_identifier = e['ocaid']
 
         ia_list = (
-            list(open_editions) +
+            # deprioritize_low_quality_goog
+            sorted(list(open_editions), key=lambda ocaid: ocaid.endswith("goog")) +
             list(borrowable_editions) +
             list(printdisabled_editions) +
             list(unclassified_editions)
