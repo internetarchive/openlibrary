@@ -712,7 +712,7 @@ class Test_Sort_Editions_Ocaids:
             "key": "/books/OL123M",
             "ocaid": "ocaid_open",
             "access_restricted_item": "false",
-            "ia_collection": []
+            "ia_collection": ["americanlibraries"]
         }]
         SolrProcessor.add_ebook_info(doc, editions)
         assert doc['ia'] == [
