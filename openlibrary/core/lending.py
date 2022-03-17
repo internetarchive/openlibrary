@@ -563,7 +563,6 @@ def get_loans_of_user(user_key):
     loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
     loans = [Loan(d) for d in loandata] + (
         _get_ia_loans_of_user(account.itemname)
-        + _get_ia_loans_of_user(userkey2userid(user_key))
     )
     return loans
 
