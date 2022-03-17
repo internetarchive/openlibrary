@@ -185,7 +185,9 @@ $if is_privileged_user:
       <div class="work-line">
         $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title$cond(work.subtitle, ': %s' % work.subtitle)</a>
         $if work.first_publish_year:
-          ($work.first_publish_year)
+            <span class="first-published-date">
+              ($_("First published in %s", work.first_publish_year))
+            </span>
       </div>
 
       $:render_template("type/edition/book_title", work, edition)
@@ -271,12 +273,13 @@ $if is_privileged_user:
         </p>
 
       $if work and work.description or edition and edition.description:
+        $if edition and edition.description:
+          $ overview_desc = edition.description
+        $else:
+          $ overview_desc = work.description
         <div class="book-description">
             <div class="book-description-content restricted-view">
-                $if edition and edition.description:
-                    $:sanitize(format(edition.description))
-                $elif work and work.description:
-                    $:sanitize(format(work.description))
+                $:sanitize(format(overview_desc))
             </div>
             $:macros.ReadMore("book-description")
         </div>
@@ -290,46 +293,27 @@ $if is_privileged_user:
         </div>
 
     <div class="subjects">
-        <div class="subjects-content restricted-view">
-        $:macros.SubjectTags(work,"overview", ["Subjects"])
-        </div>
-        $:macros.ReadMore("subjects")
+      <div class="subjects-content">
+        $ component_times['SubjectsTags'] = time()
+        $:macros.SubjectTags(work, ["Subjects", "People", "Places", "Times"])
+        $ component_times['SubjectsTags'] = time() - component_times['SubjectsTags']
+      </div>
     </div>
 
-      $if editions_limit and len(editions) and len(editions) < work.edition_count:
-        <p>
-          $_("Showing %(count)d featured editions", count=len(editions)).
-          <a href="?mode=all">$_("View all %(count)d editions?", count=work.edition_count)</a>
-        </p>
+    <hr/>
 
       <a id="editions-list" name="editions-list" class="section-anchor"></a>
       $ component_times['EditionsTable'] = time()
-      $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition)
+      $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition, editions_limit=editions_limit)
       $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
 
       <div class="tab-section work-info">
-        <h2 class="work-title"><a href="$work.key">$work_title</a></h2>
-          $if work and work.subtitle:
-            <h3>
-              $work.subtitle
-            </h3>
-          $if work and work.first_publish_year:
-            <p class="first-published-date">
-              $_("First published in %s", work.first_publish_year)
-            </p>
-        <hr>
-
-        $ component_times['SubjectsTags'] = time()
-        $:macros.SubjectTags(work,"work", ["Subjects", "People", "Places", "Times"])
-        $ component_times['SubjectsTags'] = time() - component_times['SubjectsTags']
-
-        <hr>
 
         $if not work.excerpts and work.first_sentence:
           <h4>$_("First Sentence")</h4>
           <p class="largest" title=$_("First Sentence")><em>"$work.first_sentence"</em></p>
 
-        $if work.description:
+        $if work.description and work.description != overview_desc:
           <h4>$_("Work Description")</h4>
           <div class="work-description">
             <div class="work-description-content restricted-view">
@@ -376,20 +360,6 @@ $if is_privileged_user:
                   <li><a href="$link.url">$link.title</a></li>
               </ul>
           </div>
-
-        $if work.edition_count > 1:
-          $if (work.lc_classifications or work.dewey_number):
-              <div class="section">
-                  <h4 class="collapse">$_("Classifications")</h4>
-                  <table class="meta"><tbody>
-                  $if work.lc_classifications:
-                      <tr><td class="title"><span class="title">$_('Library of Congress')</span></td>
-                      <td><span class="object">$thingrepr(work.lc_classifications)</span></td></tr>
-                  $if work.dewey_number:
-                      <tr><td class="title"><span class="title">$_('Dewey')</span></td>
-                      <td><span class="object">$thingrepr(work.dewey_number)</span></td></tr>
-                  </tbody></table>
-              </div>
       </div>
 
       <a id="edition-details" name="edition-details" class="section-anchor"></a>

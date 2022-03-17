@@ -1,4 +1,4 @@
-$def with (work, editions=None, edition=None)
+$def with (work, editions=None, edition=None, editions_limit=None)
 
 $ book_keys = []
 $ edition_list_start = time()
@@ -34,6 +34,9 @@ $else:
 $ edition_list_secs = time() - edition_list_start
 
 <p class="small sansserif edition-adder">
+  $if editions_limit and len(editions) and len(editions) < work.edition_count:
+    $_("Showing %(count)d featured editions", count=len(editions)).
+    <a href="?mode=all">$_("View all %(count)d editions?", count=work.edition_count)</a>
   <a href="/books/add?work=$work.key" title="$_('Add another edition of %(work)s', work=work.title)">$_("Add another edition?")</a>
 </p>
 
