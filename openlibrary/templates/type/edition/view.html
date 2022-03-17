@@ -245,10 +245,17 @@ $if is_privileged_user:
                  <div>Internet Archive</div>
                   <span><a href="https://www.archive.org/details/$ocaid">$ocaid</a></span>
                 </div>
-              $if edition.identifiers.get('isbn_10') or edition.identifiers.get('isbn_13'):
+
+              $ edition_identifiers = edition.get_identifiers()
+              $ isbn = None
+              $if 'isbn_13' in edition_identifiers.keys():
+                $ isbn = edition_identifiers['isbn_13']['value']
+              $elif 'isbn_10' in edition_identifiers.keys():
+                $ isbn = edition_identifiers['isbn_10']['value']
+              $if isbn:
                 <div class="edition-omniline-item">
                   <div>ISBN</div>
-                  <span>$(edition.identifiers.get('isbn_10') or edition.identifiers.get('isbn_13'))</span>
+                  <span>$isbn</span>
                 </div>
           </div>
       </div>
