@@ -110,13 +110,11 @@ $elif availability.get('is_lendable'):
         <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="$_('Join Waitlist')"/>
       </form>
   $else:
-    $# Checked out
+    $# Checked out: Show checkout out + preview if secondary, else just preview
     <div class="cta-button-group">
       <a href="$work_key" class="cta-btn cta-btn--missing" title="$_('This book is currently checked out, please check back later.')"
        data-ol-link-track="CTAClick|CheckedOut">$_('Checked Out')</a>
     </div>
-    $if not secondary_action:
-      $:macros.BookPreview(ocaid, linkback=not no_index)
   $if secondary_action:
     $:macros.BookPreview(ocaid, linkback=not no_index)
 
