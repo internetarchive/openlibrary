@@ -5,6 +5,9 @@
   "git-submodules": {
     "enabled": true
   },
+  "pip_requirements": {
+    "fileMatch": ["requirements.*\.txt$"]
+  },
   "packageRules": [
     {
       "matchPackageNames": ["eslint", "babel-eslint", "eslint-plugin-no-jquery", "eslint-plugin-vue"],
