@@ -337,16 +337,14 @@ def get_availability(key, ids):
         return {}
 
     def update_availability_schema_to_v2(v1_resp, ocaid):
+        """This functionattempts to take the output of e.g. Bulk Availability
+        API and add/infer attributes which are missing (but are
+        present on Ground Truth API)
+        """
+        # TODO: Make less brittle; maybe add simplelists/copy counts to Bulk Availability
         v1_resp['identifier'] = ocaid
         v1_resp['is_restricted'] = v1_resp['status'] != 'open'
-        v1_resp['is_printdisabled'] = v1_resp.get('is_printdisabled', False)
-        v1_resp['is_lendable'] = v1_resp['status'] == 'borrow_available'
-        v1_resp['is_readable'] = v1_resp['status'] == 'open'
-        # TODO: Make less brittle; maybe add simplelists/copy counts to IA availability
-        # endpoint
-        v1_resp['is_browseable'] = (
-            v1_resp['is_lendable'] and v1_resp['status'] == 'error'
-        )
+        v1_resp['is_browseable'] = v1_resp.get('available_to_browse', False)
         # For debugging
         v1_resp['__src__'] = 'core.models.lending.get_availability'
         return v1_resp
