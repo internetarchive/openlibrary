@@ -1,6 +1,7 @@
 $def with (page, edition=None)
 
 $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
+$ is_librarian = ctx.user and ctx.user.is_librarian()
 
 $ component_times = {}
 $ component_times['TotalTime'] = time()
@@ -201,21 +202,75 @@ $if is_privileged_user:
 
       $:macros.EditionNavBar(work.edition_count, show_observations)
       <a id="edition-overview" name="edition-overview"></a>
-      <div class="edition-omniline">
-        $:render_template("type/edition/publisher_line", edition)
-
+      <div>
         $if edition:
-          $if edition.languages:
-            <h4 class="language">
-              $def lang_span(): <span itemprop="inLanguage">$:thingrepr(edition.languages)</span>
-              $:_('Written in %(language)s', language=lang_span())
-            </h4>
-          $if edition.number_of_pages:
-            <h4 class="year">&mdash;
-              <span class="edition-pages"
-                    itemprop="numberOfPages">$edition.number_of_pages</span> $_("pages")
-            </h4>
+          <div class="edition-omniline">
+            $if edition.publish_date:
+              <div class="edition-omniline-item">
+                <div>$_("Publish Date")</div>
+                <span itemprop="datePublished">$edition.publish_date</span>
+              </div>
+            $if edition.publishers:
+              <div class="edition-omniline-item">
+                <div>$_("Publishers")</div>
+                <span>
+                $for p in edition.publishers:
+                  $if "publishers" in ctx.features:
+                    <a itemprop="publisher" href="/publishers/$p.replace(' ', '_')"
+                       title="$_('Show other books from %(publisher)s', publisher=p)"
+                       >$p</a>$cond(loop.last, "", ", ")
+                  $else:
+                    <a itemprop="publisher" href="/search?publisher_facet=$p.replace('&','%26')"
+                       title="$_('Search for other books from %(publisher)s', publisher=p)"
+                       >$p</a>$cond(loop.last, "", ", ")
+                </span>
+              </div>
+            $if edition.languages:
+              <div class="edition-omniline-item">
+                <div class="language">$_("Language")</div>
+                <span itemprop="inLanguage">$:thingrepr(edition.languages)</span>
+              </div>
+            $if edition.number_of_pages:
+              <div class="edition-omniline-item">
+                <div class="pages">$_("Pages")</div>
+                <span class="edition-pages"
+                      itemprop="numberOfPages"
+                      >$edition.number_of_pages</span>
+              </div>
+            $if is_librarian:
+              <div class="edition-omniline-item">
+                <div>Open Library</div>
+                <span>$edition.key.split("/")[-1]</span>
+              </div>
+              $if ocaid:
+                <div class="edition-omniline-item">
+                 <div>Internet Archive</div>
+                  <span><a href="https://www.archive.org/details/$ocaid">$ocaid</a></span>
+                </div>
+
+              $ edition_identifiers = edition.get_identifiers()
+              $ isbn = None
+              $if 'isbn_13' in edition_identifiers.keys():
+                $ isbn = edition_identifiers['isbn_13']['value']
+              $elif 'isbn_10' in edition_identifiers.keys():
+                $ isbn = edition_identifiers['isbn_10']['value']
+              $if isbn:
+                <div class="edition-omniline-item">
+                  <div>ISBN</div>
+                  <span>$isbn</span>
+                </div>
+          </div>
       </div>
+
+      $ seen = set()
+      $if previews:
+        <p class="preview-languages">
+          Previews available in:
+          $for e in previews:
+            $if e.languages[0].name not in seen:
+              $ seen.add(e.languages[0].name)
+              <a href="$work.key?edition=$(e.ocaid)">$e.languages[0].name</a>
+        </p>
 
       $if work and work.description or edition and edition.description:
         $if edition and edition.description:
@@ -247,18 +302,7 @@ $if is_privileged_user:
 
     <hr/>
 
-    <a id="editions-list" name="editions-list" class="section-anchor"></a>
-
-      <p class="preview-languages">
-        $ seen = set()
-        $if previews:
-          Previews available in:
-          $for e in previews:
-            $if e.languages[0].name not in seen:
-              $ seen.add(e.languages[0].name)
-              <a href="$work.key?edition=$(e.ocaid)">$e.languages[0].name</a>
-      </p>
-
+      <a id="editions-list" name="editions-list" class="section-anchor"></a>
       $ component_times['EditionsTable'] = time()
       $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition, editions_limit=editions_limit)
       $ component_times['EditionsTable'] = time() - component_times['EditionsTable']

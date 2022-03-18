@@ -261,9 +261,22 @@ div.editionTools {
 
 .edition-omniline {
   display: flex;
+  flex-direction: column;
+  padding: 10px;
   border-bottom: 1px solid @lighter-grey;
   margin-bottom: 10px;
   background: @grey-fafafa;
+
+  &-item {
+    display: flex;
+    justify-content: space-between;
+    flex: 1;
+    font-size: .8em;
+
+    div {
+      font-weight: bold;
+    }
+  }
 
   h4 {
     padding-right: 5px;
@@ -271,6 +284,20 @@ div.editionTools {
 
   h4:last-child {
     padding-right: 0;
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .edition-omniline {
+    flex-direction: row;
+    justify-content: space-between;
+    overflow-x: auto;
+
+    &-item {
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+    }
   }
 }
 
