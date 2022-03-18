@@ -12,7 +12,7 @@ httpx==0.18.2
 internetarchive==2.3.0
 isbnlib==3.10.10
 lxml==4.6.3
-Pillow==9.0.0
+Pillow==9.0.1
 psycopg2==2.8.6
 pydantic==1.9.0
 pymarc==4.1.1
