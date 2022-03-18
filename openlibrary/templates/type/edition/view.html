@@ -475,11 +475,11 @@ $if is_privileged_user:
         $:render_template("observations/review_component", work, reader_observations, page.key)
         $ component_times['Review component'] = time() - component_times['Review component']
       <a id="lists-section" name="lists-section tab-section" class="section-anchor"></a>
-      <div class="workFooter">
+      <div class="workFooter tab-section">
         $# pages like /books/ia:foo00bar are fake records created from metadata API.
         $# Adding them to lists doesn't work. Disabling it to avoid any issues.
         $if "lists" in ctx.features and not page.is_fake_record():
-          <h2 class="home-h2"><a href="$page.url()/lists">$_('Lists containing this Book')</a></h2>
+          <h2 class="list-heading"><a href="$page.url()/lists">$_('Lists containing this Book')</a></h2>
           <div class="user-book-options">
             <div class="Tools tools-override">
               $if work:
