@@ -378,7 +378,7 @@ class Test_build_data:
         assert d['has_fulltext'] is True
         assert d['public_scan_b'] is True
         assert d['printdisabled_s'] == 'OL4M'
-        assert d['lending_edition_s'] == 'OL3M'
+        assert d['lending_edition_s'] == 'OL2M'
         assert sorted(d['ia']) == ['foo00bar', 'foo01bar', 'foo02bar']
         assert sss(d['ia_collection_s']) == sss(
             "americana;inlibrary;printdisabled"
