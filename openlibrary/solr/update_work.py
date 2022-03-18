@@ -736,13 +736,6 @@ class SolrProcessor:
         :param list[dict] editions: Editions with extra data from process_editions
         """
 
-        def add(name, value):
-            if value is not None:
-                doc[name] = value
-
-        def add_list(name, values):
-            doc[name] = list(values)
-
         class AvailabilityEnum(IntEnum):
             PUBLIC = 1
             BORROWABLE = 2
@@ -774,28 +767,28 @@ class SolrProcessor:
             )
 
         ia_eds = sorted((e for e in editions if 'ocaid' in e), key=get_ia_sorting_key)
-        add_list('ia', [e['ocaid'].strip() for e in ia_eds])
-        add("ebook_count_i", len(ia_eds))
+        doc['ia'] = [e['ocaid'].strip() for e in ia_eds]
+        doc["ebook_count_i"] = len(ia_eds)
 
         # These should always be set, for some reason.
-        add("has_fulltext", False)
-        add("public_scan_b", False)
+        doc["has_fulltext"] = False
+        doc["public_scan_b"] = False
 
         if ia_eds:
             best_availability = get_ia_sorting_key(ia_eds[0])[0]
             best_ed = ia_eds[0]
             if best_availability < AvailabilityEnum.UNCLASSIFIED:
-                add("has_fulltext", True)
+                doc["has_fulltext"] = True
             if best_availability == AvailabilityEnum.PUBLIC:
-                add('public_scan_b', True)
+                doc['public_scan_b'] = True
 
             all_collection = uniq(c for e in ia_eds for c in e.get('ia_collection', []))
             if all_collection:
-                add('ia_collection_s', ';'.join(all_collection))
+                doc['ia_collection_s'] = ';'.join(all_collection)
 
             if best_availability < AvailabilityEnum.PRINTDISABLED:
-                add('lending_edition_s', re_edition_key.match(best_ed['key']).group(1))
-                add('lending_identifier_s', best_ed['ocaid'])
+                doc['lending_edition_s'] = re_edition_key.match(best_ed['key']).group(1)
+                doc['lending_identifier_s'] = best_ed['ocaid']
 
             printdisabled = [
                 re_edition_key.match(ed['key']).group(1)
@@ -803,7 +796,7 @@ class SolrProcessor:
                 if 'printdisabled' in ed.get('ia_collection', [])
             ]
             if printdisabled:
-                add('printdisabled_s', ';'.join(printdisabled))
+                doc['printdisabled_s'] = ';'.join(printdisabled)
 
 
 async def build_data(w: dict) -> SolrDocument:
