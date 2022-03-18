@@ -81,7 +81,7 @@ services:
       - db
 
   home:
-    image: "oldev:${OLDEV_TAG:-latest}"
+    image: "${OLIMAGE:-oldev:latest}"
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
