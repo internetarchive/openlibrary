@@ -263,62 +263,7 @@ $if is_privileged_user:
       $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition, editions_limit=editions_limit)
       $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
 
-      <div class="tab-section work-info">
-
-        $if not work.excerpts and work.first_sentence:
-          <h4>$_("First Sentence")</h4>
-          <p class="largest" title=$_("First Sentence")><em>"$work.first_sentence"</em></p>
-
-        $if work.description and work.description != overview_desc:
-          <h4>$_("Work Description")</h4>
-          <div class="work-description">
-            <div class="work-description-content restricted-view">
-              $:sanitize(format(work.description))
-            </div>
-            $:macros.ReadMore('work-description')
-          </div>
-
-        $if work.original_languages:
-          <div class="sansserif smallest">$_("Original languages")</div>
-          <!-- TODO: Double check that these language names are localized -->
-          $', '.join(lang.name for lang in work.original_languages)<p>
-
-        $if work.excerpts:
-          <h4>$_("Excerpts")</h4>
-          <div class="section">
-              $for excerpt in work.excerpts:
-                  <div class="excerpt addReadMore showlesscontent">
-                      <div class="text">
-                          $for line in excerpt.excerpt.split('\n'):
-                              $line<br/>
-                      </div>
-                      <div class="attribution">
-                          $if excerpt.pages:
-                              $_("Page %(page)s", page=excerpt.pages),
-                          $if excerpt.author:
-                              $def excerpt_author_link(): <a href="$excerpt.author.key">$excerpt.author.displayname</a>
-                              $:_("added by %(authorlink)s.", authorlink=str(excerpt_author_link()).strip())
-                          $else:
-                              $_("added anonymously.")
-                          $if excerpt.comment:
-                              "<em>$excerpt.comment</em>"
-                      </div>
-                  </div>
-          </div>
-
-        $if work.links or (work.wikipedia and work.wikipedia.startswith("http")):
-          <h4>$:_('Links <span class="gray small sansserif">outside Open Library</span>')</h4>
-          <div class="section">
-              <ul class="booklinks sansserif">
-              $if work.wikipedia and work.wikipedia.startswith("http"):
-                  <li><a href="$page.wikipedia">$_('Wikipedia')</a></li>
-              $for link in work.links:
-                  <li><a href="$link.url">$link.title</a></li>
-              </ul>
-          </div>
-      </div>
-
-      <a id="edition-details" name="edition-details" class="section-anchor"></a>
+      <a id="details" name="details" class="section-anchor"></a>
       <div class="tab-section edition-info">
         $if not page.is_fake_record():
           $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
@@ -333,19 +278,8 @@ $if is_privileged_user:
             <a class="linkButton larger" href="$edit_url" title="$_('Edit this template')"
               data-ol-link-track="CTAClick|Edit" accesskey="e">$_("Edit")</a>
           </div>
-        $if not edition:
-          <p>$_("No editions available")</p>
         $if edition:
-          <h2 class="work-title" itemprop="name">$book_title</h2>
-          $if edition.subtitle:
-            <h3>
-              $edition.subtitle
-            </h3>
-          $if edition.edition_name:
-            <div class="work-line">
-              $edition.edition_name
-            </div>
-          $:render_template("type/edition/publisher_line", edition)
+          <h2 class="details-title" itemprop="name">$_("Book Details")</h2>
           <hr>
           $if edition.first_sentence:
             <div>
@@ -438,6 +372,58 @@ $if is_privileged_user:
                 $:display_goodreads(values[0].label, values)
             </dl>
           </div>
+          $if work:
+            $if not work.excerpts and work.first_sentence:
+              <h4>$_("First Sentence")</h4>
+              <p class="largest" title=$_("First Sentence")><em>"$work.first_sentence"</em></p>
+
+            $if work.description and work.description != overview_desc:
+              <h4>$_("Work Description")</h4>
+              <div class="work-description">
+                <div class="work-description-content restricted-view">
+                  $:sanitize(format(work.description))
+                </div>
+                $:macros.ReadMore('work-description')
+              </div>
+
+            $if work.original_languages:
+              <div class="sansserif smallest">$_("Original languages")</div>
+              <!-- TODO: Double check that these language names are localized -->
+              $', '.join(lang.name for lang in work.original_languages)<p>
+
+            $if work.excerpts:
+              <h4>$_("Excerpts")</h4>
+              <div class="section">
+                $for excerpt in work.excerpts:
+                  <div class="excerpt addReadMore showlesscontent">
+                    <div class="text">
+                      $for line in excerpt.excerpt.split('\n'):
+                        $line<br/>
+                    </div>
+                    <div class="attribution">
+                      $if excerpt.pages:
+                        $_("Page %(page)s", page=excerpt.pages),
+                      $if excerpt.author:
+                        $def excerpt_author_link(): <a href="$excerpt.author.key">$excerpt.author.displayname</a>
+                        $:_("added by %(authorlink)s.", authorlink=str(excerpt_author_link()).strip())
+                      $else:
+                        $_("added anonymously.")
+                      $if excerpt.comment:
+                        "<em>$excerpt.comment</em>"
+                    </div>
+                  </div>
+              </div>
+
+            $if work.links or (work.wikipedia and work.wikipedia.startswith("http")):
+              <h4>$:_('Links <span class="gray small sansserif">outside Open Library</span>')</h4>
+              <div class="section">
+                <ul class="booklinks sansserif">
+                $if work.wikipedia and work.wikipedia.startswith("http"):
+                  <li><a href="$page.wikipedia">$_('Wikipedia')</a></li>
+                $for link in work.links:
+                  <li><a href="$link.url">$link.title</a></li>
+                </ul>
+              </div>
       </div>
 
       $if show_observations:
