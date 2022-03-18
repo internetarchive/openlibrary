@@ -721,3 +721,20 @@ class Test_Sort_Editions_Ocaids:
             "ocaid_printdisabled",
             "ocaid_restricted"
         ]
+
+    def test_goog_deprioritized(self):
+        doc = {}
+        editions = [
+            {
+                "key": "/books/OL789M",
+                "ocaid": "foobargoog",
+                "ia_collection": [],
+            },
+            {
+                "key": "/books/OL789M",
+                "ocaid": "foobarblah",
+                "ia_collection": [],
+            },
+        ]
+        SolrProcessor.add_ebook_info(doc, editions)
+        assert doc['ia'] == ["foobarblah", "foobargoog"]
