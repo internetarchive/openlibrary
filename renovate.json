@@ -6,7 +6,7 @@
     "enabled": true
   },
   "pip_requirements": {
-    "fileMatch": ["requirements.*\\.txt$"]
+    "fileMatch": ["(^|/)requirements[^/]*\\.txt$"]
   },
   "packageRules": [
     {
