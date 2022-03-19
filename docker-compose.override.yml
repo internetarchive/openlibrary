@@ -67,8 +67,10 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
-    ports:
-      - 7000:7000
+    # Commented out because not needed for most dev work
+    # See https://github.com/internetarchive/openlibrary/issues/6315
+    # ports:
+    #  - 7000:7000
     volumes:
       - ol-vendor:/openlibrary/vendor
       - .:/openlibrary
