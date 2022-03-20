@@ -32,9 +32,7 @@ logger.setLevel(logging.DEBUG)
 sentry = Sentry(getattr(config, 'sentry', {}))
 if sentry.enabled:
     sentry.init()
-
-
-division_by_zero = 1 / 0  # TODO (cclauss): Remove this line!!
+    division_by_zero = 1 / 0  # TODO (cclauss): Remove this line!!
 
 
 def print_dump(json_records, filter=None):
