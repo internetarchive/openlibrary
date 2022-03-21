@@ -5,9 +5,13 @@ ENV LANG en_US.UTF-8
 # required for postgres
 ENV LC_ALL POSIX
 
-# add openlibrary users
-RUN groupadd --system openlibrary \
-  && useradd --no-log-init --system --gid openlibrary --create-home openlibrary
+# Create openlibrary users
+# We use 999:999 for the openlibrary user. Any volume mounts which require read/write
+# access by the container should be set to this user. Ideally we would use a number
+# larger than 10,000 to avoid host OS uid/gid conflicts, but this is what we have
+# at the moment.
+RUN groupadd --system --gid 999 openlibrary \
+  && useradd --no-log-init --system -u 999 --gid openlibrary --create-home openlibrary
 
 # Misc OL dependencies
 RUN apt-get -qq update && apt-get install -y \
