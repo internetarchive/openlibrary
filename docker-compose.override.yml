@@ -67,7 +67,10 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
-    # Commented out because not needed for most dev work
+    # Commented out because not needed for most dev work, and 7000 conflicts
+    # with OS port on Mac. Uncomment if you need to test infobase directly.
+    # Mac users can do eg "7070:7000" to change the por tused on the host
+    # machine to avoid conflicts.
     # See https://github.com/internetarchive/openlibrary/issues/6315
     # ports:
     #  - 7000:7000
