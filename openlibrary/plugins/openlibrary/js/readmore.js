@@ -1,20 +1,4 @@
 export function initReadMoreButton() {
-    /*
-      Clamper shows used to show more/less by toggling `hidden`
-      style on parent .clamp tag
-     */
-    $('.clamp').on('click', function(){
-        const up = $(this);
-        if (up.hasClass('clamp')) {
-            up.css({display: up.css('display') === '-webkit-box' ? 'unset' : '-webkit-box'});
-
-            if (up.attr('data-before') === '+ ') {
-                up.attr('data-before', '- ')
-            } else {
-                up.attr('data-before', '+ ')
-            }
-        }
-    });
     $('.read-more-button').on('click',function(){
         const up = $(this).parent().parent();
         $(`.${up.attr('class')}-content`).removeClass('restricted-height', 300);
@@ -32,6 +16,25 @@ export function initReadMoreButton() {
             $(`.${$(this).parent().attr('class')}.read-more`).addClass('hidden');
         } else {
             $(this).addClass('restricted-height');
+        }
+    });
+}
+
+export function initClampers() {
+    /*
+      Clamper shows used to show more/less by toggling `hidden`
+      style on parent .clamp tag
+     */
+    $('.clamp').on('click', function(){
+        const up = $(this);
+        if (up.hasClass('clamp')) {
+            up.css({display: up.css('display') === '-webkit-box' ? 'unset' : '-webkit-box'});
+
+            if (up.attr('data-before') === '+ ') {
+                up.attr('data-before', '- ')
+            } else {
+                up.attr('data-before', '+ ')
+            }
         }
     });
 }
