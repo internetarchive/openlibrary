@@ -3,18 +3,23 @@ $def with (edition, ocaid=None)
 $ table_of_contents = edition.get_table_of_contents()
 $if table_of_contents and len(table_of_contents) > 1:
   <div class="section">
-    <h3 class="collapse">$_("Table of Contents")</h3>
-    <table class="meta sansserif" id="toc-table">
-      <tbody>
-        $for toc in table_of_contents:
-          <tr class="toc-level-$toc.level">
-            <td class="toc-label">$toc.label</td>
-              $if ocaid and toc.pagenum.isdigit():
-                <td class="toc-title"><a href="//archive.org/stream/$ocaid#page/$toc.pagenum">$toc.title</a></td>
-              $else:
-                <td class="toc-title">$toc.title</td>
-              <td class="toc-pagenum">$toc.pagenum</td>
-          </tr>
-      </tbody>
-    </table>
+    <div class="toc">
+      <div class="toc-content restricted-view">
+        <h3 class="collapse">$_("Table of Contents")</h3>
+        <table class="meta sansserif" id="toc-table">
+          <tbody>
+            $for toc in table_of_contents:
+              <tr class="toc-level-$toc.level">
+                <td class="toc-label">$toc.label</td>
+                  $if ocaid and toc.pagenum.isdigit():
+                    <td class="toc-title"><a href="//archive.org/stream/$ocaid#page/$toc.pagenum">$toc.title</a></td>
+                  $else:
+                    <td class="toc-title">$toc.title</td>
+                  <td class="toc-pagenum">$toc.pagenum</td>
+              </tr>
+          </tbody>
+        </table>
+      </div>
+      $:macros.ReadMore('toc')
+    </div>
   </div>
