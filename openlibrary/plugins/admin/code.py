@@ -34,6 +34,7 @@ from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.observations import Observations
+from openlibrary.core.models import Work
 
 from openlibrary.plugins.upstream import forms, spamcheck
 from openlibrary.plugins.upstream.account import send_forgot_password_email
@@ -214,18 +215,15 @@ class resolve_redirects:
             'resolved_key': None
         }
         if params.key:
-            key = params.key
-            while not summary['resolved_key']:
-                thing = web.ctx.site.get(key)
-                if thing.type.key == "/type/redirect":
-                    summary['redirect_chain'].append({
-                        "key": thing.key,
-                        "occurrences": {},
-                        "updates": {},
-                    })
-                    key = thing.location
-                else:
-                    summary['resolved_key'] = thing.key
+            redirect_chain = Work.get_redirect_chain(params.key)
+            summary['redirect_chain'] = [
+                {
+                    "key": thing.key,
+                    "occurrences": {},
+                    "updates": {}
+                } for thing in redirect_chain
+            ]
+            summary['resolved_key'] = redirect_chain[-1].key
 
             for i, _ in enumerate(summary['redirect_chain']):
                 r = summary['redirect_chain'][i]
