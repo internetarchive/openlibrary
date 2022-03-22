@@ -110,3 +110,37 @@ class TestList:
         d = {"key": key, "type": {"key": type}}
         d.update(fields)
         site.save(d)
+
+
+class TestWork:
+
+    def test_resolve_redirect_chain(self, monkeypatch):
+        # e.g. https://openlibrary.org/works/OL2163721W.json
+
+        # Chain:
+        type_redir = {"key": "/type/redirect"}
+        type_work = {"key": "/type/work"}
+        work1_key = "/works/OL123W"
+        work2_key = "/works/OL234W"
+        work3_key = "/works/OL345W"
+        work4_key = "/works/OL456W"
+        work1 = {"key": work1_key, "location": work2_key, "type": type_redir}
+        work2 = {"key": work2_key, "location": work3_key, "type": type_redir}
+        work3 = {"key": work3_key, "location": work4_key, "type": type_redir}
+        work4 = {"key": work4_key, "type": type_work}
+
+        import web
+        from openlibrary.mocks import mock_infobase
+        site = mock_infobase.MockSite()
+        site.save(web.storage(work1))
+        site.save(web.storage(work2))
+        site.save(web.storage(work3))
+        site.save(web.storage(work4))
+        monkeypatch.setattr(web.ctx, "site", site, raising=False)
+
+        work_key = "/works/OL123W"
+        redirect_chain = models.Work.get_redirect_chain(work_key)
+        assert redirect_chain
+        resolved_work = redirect_chain[-1]
+        assert str(resolved_work.type) == type_work['key'], f"{resolved_work} of type {resolved_work.type} should be {type_work['key']}"
+        assert resolved_work.key == work4_key, f"Should be work4.key: {resolved_work}"
