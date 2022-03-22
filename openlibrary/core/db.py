@@ -50,7 +50,6 @@ class CommonExtras:
                         for k, v in row.items()
                         if k in cls.PRIMARY_KEY
                     ])
-                    web.debug(where)
                     try:
                         # try to update the row to new_work_id
                         oldb.query(f"UPDATE {cls.TABLENAME} set work_id={new_work_id} where {where}")
@@ -65,7 +64,10 @@ class CommonExtras:
         except:
             t.rollback()
             raise
-        t.rollback() if _test else t.commit()
+        if _test:
+            t.rollback()
+        else:
+            t.commit()
         return rows_changed, rows_deleted
 
 
