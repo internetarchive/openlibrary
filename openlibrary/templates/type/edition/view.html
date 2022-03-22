@@ -183,8 +183,8 @@ $if is_privileged_user:
       <div class="work-line">
         $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title$cond(work.subtitle, ': %s' % work.subtitle)</a>
         $if work.first_publish_year:
-            <span class="first-published-date">
-              ($_("First published in %s", work.first_publish_year))
+            <span class="first-published-date" title="$_('First published in %s', work.first_publish_year)">
+              ($work.first_publish_year)
             </span>
       </div>
 
