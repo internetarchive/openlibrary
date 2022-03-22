@@ -1,6 +1,7 @@
 """Interface to access the database of openlibrary.
 """
 import web
+from sqlite3 import IntegrityError
 from psycopg2.errors import UniqueViolation
 from infogami.utils import stats
 
@@ -37,7 +38,7 @@ class CommonExtras:
                 where="work_id=$work_id",
                 work_id=new_work_id,
                 vars={"work_id": current_work_id})
-        except UniqueViolation:
+        except (UniqueViolation, IntegrityError):
             try:
                 # get records with old work_id
                 rows = oldb.select(
@@ -54,7 +55,7 @@ class CommonExtras:
                         # try to update the row to new_work_id
                         oldb.query(f"UPDATE {cls.TABLENAME} set work_id={new_work_id} where {where}")
                         rows_changed += 1
-                    except UniqueViolation:
+                    except (UniqueViolation, IntegrityError):
                         # otherwise, delete row with current_work_id if failed
                         oldb.query(f"DELETE FROM {cls.TABLENAME} WHERE {where}")
                         rows_deleted += 1
