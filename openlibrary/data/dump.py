@@ -29,12 +29,6 @@ logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
 
 
-sentry = Sentry(getattr(config, 'sentry', {}))
-if sentry.enabled:
-    sentry.init()
-    division_by_zero = 1 / 0  # TODO (cclauss): Remove this line!!
-
-
 def print_dump(json_records, filter=None):
     """Print the given json_records in the dump format."""
     for i, json_data in enumerate(json_records):
@@ -380,4 +374,9 @@ def main(cmd, args):
 
 
 if __name__ == "__main__":
+    sentry = Sentry(getattr(config, 'sentry', {}))
+    if sentry.enabled:
+        sentry.init()
+        division_by_zero = 1 / 0  # TODO (cclauss): Remove this line!!
+
     main(sys.argv[1], sys.argv[2:])
