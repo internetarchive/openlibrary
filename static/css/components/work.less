@@ -90,14 +90,10 @@ div.editionAbout {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
   overflow: hidden;
-
-  &:hover {
-    cursor: pointer;
-  }
 }
 
 .clamp::before {
-  content: attr(data-before);
+  content: "+ ";
 }
 
 .restricted-view{

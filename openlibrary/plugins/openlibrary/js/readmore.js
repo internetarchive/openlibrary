@@ -7,12 +7,6 @@ export function initReadMoreButton() {
         const up = $(this);
         if (up.hasClass('clamp')) {
             up.css({display: up.css('display') === '-webkit-box' ? 'unset' : '-webkit-box'});
-
-            if (up.attr('data-before') === '+ ') {
-                up.attr('data-before', '- ')
-            } else {
-                up.attr('data-before', '+ ')
-            }
         }
     });
     $('.read-more-button').on('click',function(){
