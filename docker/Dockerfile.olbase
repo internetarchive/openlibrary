@@ -68,6 +68,13 @@ COPY --chown=openlibrary:openlibrary requirements*.txt ./
 RUN python -m pip install --upgrade pip wheel \
  && python -m pip install --default-timeout=100 -r requirements.txt
 
+# Link the ia CLI binary into /usr/local/bin so that it shows up
+# on the PATH. Do this instead of trying to modify the PATH, because
+# that causes headaches with su, cron, etc.
+USER root
+RUN ln -s /home/openlibrary/.local/bin/ia /usr/local/bin/ia
+USER openlibrary
+
 COPY --chown=openlibrary:openlibrary package*.json ./
 RUN npm ci
 
