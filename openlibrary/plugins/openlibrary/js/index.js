@@ -196,18 +196,9 @@ jQuery(function () {
             .then(module => module.initRealTimeValidation());
     }
     // conditionally load readmore button based on class in the page
-    const readMoreButtons = document.getElementsByClassName('read-more-button');
-    const clampers = document.getElementsByClassName('clamp');
-    if (readMoreButtons.length || clampers.length) {
+    if (document.getElementsByClassName('read-more-button').length) {
         import(/* webpackChunkName: "readmore" */ './readmore.js')
-            .then(module => {
-                if (readMoreButtons.length) {
-                    module.initReadMoreButton();
-                }
-                if (clampers.length) {
-                    module.initClampers();
-                }
-            });
+            .then(module => module.initReadMoreButton());
     }
     // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
