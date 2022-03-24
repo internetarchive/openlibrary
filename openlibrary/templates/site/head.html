@@ -31,10 +31,7 @@ $def with (page)
     $ style = 'build/page-%s.css'%ctx.get('cssfile', 'user')
     <link href="$static_url(style)" rel="stylesheet" type="text/css" />
 
-    <!-- Don't hide content with clamp if no js to show more/less -->
-    <noscript>
-      <style>.clamp { -webkit-line-clamp: unset !important; }</style>
-    </noscript>
+
  <script>
 
 /* @licstart  The following is the entire license notice for the
