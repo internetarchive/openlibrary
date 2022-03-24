@@ -39,6 +39,9 @@ div.editionAbout {
     margin: 0;
   }
 
+  p.featured-count {
+    margin-bottom: 10px;
+  }
 }
 
 .work-title{
@@ -57,7 +60,6 @@ div.editionAbout {
 }
 
 .workFooter {
-  border-top: 1px solid @lighter-grey;
   ul.listLists {
     display: flex;
   }
@@ -81,6 +83,21 @@ div.editionAbout {
 
 .checkboxes input {
   vertical-align: middle;
+}
+
+.clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.clamp::before {
+  content: attr(data-before);
 }
 
 .restricted-view{
@@ -176,7 +193,7 @@ h2.edition-byline {
 }
 
 a.section-anchor {
-  height: 45px;
+  height: 20px;
   display: block;
 }
 
@@ -253,8 +270,22 @@ div.editionTools {
 
 .edition-omniline {
   display: flex;
+  flex-direction: column;
+  padding: 10px;
   border-bottom: 1px solid @lighter-grey;
   margin-bottom: 10px;
+  background: @grey-fafafa;
+
+  &-item {
+    display: flex;
+    justify-content: space-between;
+    flex: 1;
+    font-size: .8em;
+
+    div {
+      font-weight: bold;
+    }
+  }
 
   h4 {
     padding-right: 5px;
@@ -262,6 +293,20 @@ div.editionTools {
 
   h4:last-child {
     padding-right: 0;
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .edition-omniline {
+    flex-direction: row;
+    justify-content: space-between;
+    overflow-x: auto;
+
+    &-item {
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+    }
   }
 }
 
@@ -273,7 +318,6 @@ div.editionTools {
 }
 
 .preview-languages {
-  margin-bottom: -30px !important;
   font-size: .8em;
   color: @grey;
 }
@@ -290,4 +334,10 @@ div.editionTools {
   display: flex;
   justify-content: center;
   background: @lightest-grey;
+}
+
+.list-heading {
+  font-size: 1.2em;
+  font-weight: normal;
+  color: @link-blue;
 }
