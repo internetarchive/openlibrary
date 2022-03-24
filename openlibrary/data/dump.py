@@ -374,7 +374,7 @@ def main(cmd, args):
 
 
 if __name__ == "__main__":
-    sentry = Sentry(getattr(config, 'sentry', {}))
+    sentry = Sentry(getattr(config, 'sentry_cron_jobs', {}))
     if sentry.enabled:
         sentry.init()
         division_by_zero = 1 / 0  # TODO (cclauss): Remove this line!!
