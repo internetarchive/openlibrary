@@ -169,6 +169,7 @@ class AuthorMergeEngine(BasicMergeEngine):
             },
             'docs': docs,
         }
+        docs = resolve_edition_author_redirects(docs)
 
         result = web.ctx.site.save_many(
             docs,
@@ -201,6 +202,20 @@ class AuthorMergeEngine(BasicMergeEngine):
 
 
 re_whitespace = re.compile(r'\s+')
+
+
+def resolve_edition_author_redirects(docs):
+    """
+    Finds the editions in a set of docs, checks if any of their author values
+    resolve to redirects, and replaces those redirects with the resolved value.
+    """
+    for doc in docs:
+        if doc['type']['key'] == '/type/edition' and 'authors' in doc:
+            for author in doc['authors']:
+                thing = web.ctx.site.get(author['key'])
+                if thing.type.key == '/type/redirect':
+                    author['key'] = thing.location
+    return docs
 
 
 def space_squash_and_strip(s):
