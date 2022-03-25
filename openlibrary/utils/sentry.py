@@ -7,8 +7,7 @@ from sentry_sdk.utils import capture_internal_exceptions
 from openlibrary.utils import get_software_version
 
 
-def header_name_from_env(env_name):
-    # type: (str) -> str
+def header_name_from_env(env_name: str) -> str:
     """
     Convert an env name as stored in web.ctx.env to a "normal"
     header name
@@ -24,8 +23,7 @@ def header_name_from_env(env_name):
     return header_name.lower().replace('_', '-')
 
 
-def add_web_ctx_to_event(event, hint):
-    # type: (dict, dict) -> dict
+def add_web_ctx_to_event(event: dict, hint: dict) -> dict:
     if not web.ctx:
         return event
 
@@ -48,10 +46,9 @@ def add_web_ctx_to_event(event, hint):
 
 
 class Sentry:
-    def __init__(self, config):
-        # type: (dict) -> None
+    def __init__(self, config: dict) -> None:
         self.config = config
-        self.enabled = config.get('enabled')  # type: bool
+        self.enabled: bool = config.get('enabled')
         self.logger = logging.getLogger("sentry")
         self.logger.info(f"Setting up sentry (enabled={self.enabled})")
 
@@ -62,8 +59,7 @@ class Sentry:
             release=get_software_version(),
         )
 
-    def bind_to_webpy_app(self, app):
-        # type: (web.application) -> None
+    def bind_to_webpy_app(self, app: web.application) -> None:
         _internalerror = app.internalerror
 
         def capture_exception():
