@@ -34,27 +34,29 @@ set -e
 # To run a testing subset of the full ol-dump, uncomment the following line.
 # export OLDUMP_TESTING=true
 
-PATH="/home/openlibrary/.pyenv/plugins/pyenv-virtualenv/shims:/home/openlibrary/.pyenv/bin:$PATH"
-PYTHON=$(pyenv which python3.9)
+source /home/openlibrary/.bashrc
 SCRIPTS=/openlibrary/scripts
 PSQL_PARAMS=${PSQL_PARAMS:-"-h db openlibrary"}
 TMPDIR=${TMPDIR:-/openlibrary/dumps}
+OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
 
-date=$1
+yymm=`date +\%Y-\%m`
+yymmdd=$1
 archive=$2
 overwrite=$3
 
-cdump=ol_cdump_$date
-dump=ol_dump_$date
+cdump=ol_cdump_$yymmdd
+dump=ol_dump_$yymmdd
 
 if [ $# -lt 1 ]; then
-    echo "USAGE: $0 yyyy-mm-dd [--archive]" 1>&2
+    echo "USAGE: $0 yyyy-mm-dd [--archive] [--overwrite]" 1>&2
     exit 1
 fi
 
 function cleanup() {
     rm -f $TMPDIR/data.txt.gz
     rm -rf $TMPDIR/dumps/ol_*
+
 }
 
 function log() {
@@ -70,14 +72,15 @@ function archive_dumps() {
     is_uploaded=$(ia list ${dump} | wc -l)
     if [[ $is_uploaded == 0 ]]
     then
-	ia --config-file=/olsystem/etc/ia.ini upload $dump  $dump/  --metadata "collection:ol_exports" --metadata "year:${date:0:4}" --metadata "format:Data" --retries 300
-	ia --config-file=/olsystem/etc/ia.ini upload $cdump $cdump/ --metadata "collection:ol_exports" --metadata "year:${date:0:4}" --metadata "format:Data" --retries 300
+	ia --config-file=/olsystem/etc/ia.ini upload $dump  $dump/  --metadata "collection:ol_exports" --metadata "year:${yymm:0:4}" --metadata "format:Data" --retries 300
+	ia --config-file=/olsystem/etc/ia.ini upload $cdump $cdump/ --metadata "collection:ol_exports" --metadata "year:${yymm:0:4}" --metadata "format:Data" --retries 300
     else
 	log "Skipping: Archival Zip already exists"
     fi
 }
 
-log "[$(date)] $0 $1 $2"
+# script <date> --archive --overwrite
+log "[$(date)] $0 $1 $2 $3"
 log "<host:${HOSTNAME:-$HOST}> <user:$USER> <dir:$TMPDIR>"
 
 if [[ $@ == *'--overwrite'* ]]
@@ -90,26 +93,26 @@ fi
 mkdir -p $TMPDIR/dumps
 cd $TMPDIR/dumps
 
-# If there's not already a completed dump
-if [[ ! -d /1/var/tmp/dumps/ol_cdump_$date ]]
+# If there's not already a completed dump for this YY-MM
+if [[ ! -d $(compgen -G "ol_cdump_$yymm*") ]]
 then
 
   # Generate Reading Log/Ratings dumps
-  if [[ ! -f $(compgen -G "ol_dump_reading-log_*.txt.gz") ]]
+  if [[ ! -f $(compgen -G "ol_dump_reading-log_$yymm*.txt.gz") ]]
   then
-      log "generating reading log table: ol_dump_reading-log_$date.txt.gz"
-      time psql $PSQL_PARAMS --set=upto="$date" -f $SCRIPTS/dump-reading-log.sql | gzip -c > ol_dump_reading-log_$date.txt.gz
+      log "generating reading log table: ol_dump_reading-log_$yymmdd.txt.gz"
+      time psql $PSQL_PARAMS --set=upto="$yymmdd" -f $SCRIPTS/dump-reading-log.sql | gzip -c > ol_dump_reading-log_$yymmdd.txt.gz
   else
-      log "Skipping: $(compgen -G 'ol_dump_reading-log_*.txt.gz')"
+      log "Skipping: $(compgen -G "ol_dump_reading-log_$yymm*.txt.gz")"
   fi
 
 
-  if [[ ! -f $(compgen -G "ol_dump_ratings_*.txt.gz") ]]
+  if [[ ! -f $(compgen -G "ol_dump_ratings_$yymm*.txt.gz") ]]
   then
-      log "generating ratings table: ol_dump_ratings_$date.txt.gz"
-      time psql $PSQL_PARAMS --set=upto="$date" -f $SCRIPTS/dump-ratings.sql | gzip -c > ol_dump_ratings_$date.txt.gz
+      log "generating ratings table: ol_dump_ratings_$yymmdd.txt.gz"
+      time psql $PSQL_PARAMS --set=upto="$yymmdd" -f $SCRIPTS/dump-ratings.sql | gzip -c > ol_dump_ratings_$yymmdd.txt.gz
   else
-      log "Skipping: $(compgen -G 'ol_dump_ratings_*.txt.gz')"
+      log "Skipping: $(compgen -G "ol_dump_ratings_$yymm*.txt.gz")"
   fi
 
 
@@ -126,35 +129,36 @@ then
   fi
 
 
-  if [[ ! -f $(compgen -G "ol_cdump_*.txt.gz") ]]
+  if [[ ! -f $(compgen -G "ol_cdump_$yymm*.txt.gz") ]]
   then
       # generate cdump, sort and generate dump
       log "generating $cdump.txt.gz -- takes approx. 500 minutes for 192,000,000+ records..."
       # if $OLDUMP_TESTING has been exported then `oldump.py cdump` will only process a subset.
-      time $PYTHON $SCRIPTS/oldump.py cdump data.txt.gz $date | gzip -c > $cdump.txt.gz
-      log "generated $(compgen -G 'ol_cdump_*.txt.gz')"
+      time python $SCRIPTS/oldump.py cdump data.txt.gz $yymmdd | gzip -c > $cdump.txt.gz
+      log "generated $(compgen -G "ol_cdump_$yymm*.txt.gz")"
   else
-      log "Skipping: $(compgen -G 'ol_cdump_*.txt.gz')"
+      log "Skipping: $(compgen -G "ol_cdump_$yymm*.txt.gz")"
   fi
 
 
   if [[ ! -f $(compgen -G "ol_dump_*.txt.gz") ]]
   then
       echo "generating the dump -- takes approx. 485 minutes for 173,000,000+ records..."
-      time gzip -cd $(compgen -G "ol_cdump_*.txt.gz") | $PYTHON $SCRIPTS/oldump.py sort --tmpdir $TMPDIR | $PYTHON $SCRIPTS/oldump.py dump | gzip -c > $dump.txt.gz
-      echo "generating $(compgen -G 'ol_dump_*.txt.gz')"
+      time gzip -cd $(compgen -G "ol_cdump_$yymm*.txt.gz") | python $SCRIPTS/oldump.py sort --tmpdir $TMPDIR | python $SCRIPTS/oldump.py dump | gzip -c > $dump.txt.gz
+      echo "generating $(compgen -G "ol_dump_$yymm*.txt.gz")"
   else
-      echo "Skipping: $(compgen -G 'ol_dump_*.txt.gz')"
+      echo "Skipping: $(compgen -G "ol_dump_$yymm*.txt.gz")"
   fi
 
 
-  if [[ ! -f $(compgen -G "ol_dump_*_*.txt.gz") ]]
+  if [[ ! -f $(compgen -G "ol_dump_*_$yymm*.txt.gz") ]]
   then
-      echo "splitting the dump: ol_dump_%s_$date.txt.gz -- takes approx. 85 minutes for 68,000,000+ records..."
-      time gzip -cd $dump.txt.gz | $PYTHON $SCRIPTS/oldump.py split --format ol_dump_%s_$date.txt.gz
-      rm -rf $TMPDIR/oldumpsort
+      mkdir -p $TMPDIR/../oldumpsort
+      echo "splitting the dump: ol_dump_%s_$yymmdd.txt.gz -- takes approx. 85 minutes for 68,000,000+ records..."
+      time gzip -cd $dump.txt.gz | python $SCRIPTS/oldump.py split --format ol_dump_%s_$yymmdd.txt.gz
+      rm -rf $TMPDIR/../oldumpsort
   else
-      echo "Skipping $(compgen -G 'ol_dump_*_*.txt.gz')"
+      echo "Skipping $(compgen -G "ol_dump_*_$yymm*.txt.gz")"
   fi
 
   mkdir -p $dump $cdump
@@ -185,14 +189,14 @@ then
     log "generating sitemaps"
     mkdir -p $TMPDIR/sitemaps
     cd $TMPDIR/sitemaps
-    time $PYTHON $SCRIPTS/sitemaps/sitemap.py $TMPDIR/dumps/$dump/$dump.txt.gz > sitemaps.log
+    time python $SCRIPTS/sitemaps/sitemap.py $TMPDIR/dumps/$dump/$dump.txt.gz > sitemaps.log
     rm -fr $TMPDIR/sitemaps
     ls -lh
 else
     log "Skipping sitemap"
 fi
 
-MSG="$(date): $USER has completed $0 $1 $2 in $TMPDIR on ${HOSTNAME:-$HOST}"
+MSG="$(date): $USER has completed $0 $1 $2 $3 in $TMPDIR on ${HOSTNAME:-$HOST}"
 echo $MSG
 
 # remove the dump of data table

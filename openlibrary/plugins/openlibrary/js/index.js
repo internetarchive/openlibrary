@@ -196,9 +196,18 @@ jQuery(function () {
             .then(module => module.initRealTimeValidation());
     }
     // conditionally load readmore button based on class in the page
-    if (document.getElementsByClassName('read-more-button').length) {
+    const readMoreButtons = document.getElementsByClassName('read-more-button');
+    const clampers = document.getElementsByClassName('clamp');
+    if (readMoreButtons.length || clampers.length) {
         import(/* webpackChunkName: "readmore" */ './readmore.js')
-            .then(module => module.initReadMoreButton());
+            .then(module => {
+                if (readMoreButtons.length) {
+                    module.initReadMoreButton();
+                }
+                if (clampers.length) {
+                    module.initClampers();
+                }
+            });
     }
     // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {

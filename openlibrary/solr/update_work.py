@@ -95,6 +95,7 @@ def set_solr_next(val: bool):
 class IALiteMetadata(TypedDict):
     boxid: set[str]
     collection: set[str]
+    access_restricted_item: Optional[Literal['true', 'false']]
 
 
 def get_ia_collection_and_box_id(ia: str) -> Optional[IALiteMetadata]:
@@ -131,6 +132,7 @@ def get_ia_collection_and_box_id(ia: str) -> Optional[IALiteMetadata]:
     return {
         'boxid': set(get_list(metadata, 'boxid')),
         'collection': set(get_list(metadata, 'collection')),
+        'access_restricted_item': metadata.get('access-restricted-item'),
     }
 
 
@@ -369,6 +371,7 @@ class SolrProcessor:
                 e['public_scan'] = ('lendinglibrary' not in collection) and (
                     'printdisabled' not in collection
                 )
+                e['access_restricted_item'] = ia_meta_fields.get('access_restricted_item', False)
 
             if 'identifiers' in e:
                 for k, id_list in e['identifiers'].items():
@@ -724,7 +727,8 @@ class SolrProcessor:
             datetimestr_to_int(doc.get('last_modified')) for doc in [work] + editions
         )
 
-    def add_ebook_info(self, doc, editions):
+    @staticmethod
+    def add_ebook_info(doc, editions):
         """
         Add ebook information from the editions to the work Solr document.
 
@@ -739,53 +743,60 @@ class SolrProcessor:
         def add_list(name, values):
             doc[name] = list(values)
 
-        pub_goog = set()  # google
-        pub_nongoog = set()
-        nonpub_goog = set()
-        nonpub_nongoog = set()
+        borrowable_editions = set()
+        printdisabled_editions = set()
+        open_editions = set()
+        unclassified_editions = set()
 
-        public_scan = False
+        printdisabled = set()
         all_collection = set()
+        public_scan = False
         lending_edition = None
         in_library_edition = None
         lending_ia_identifier = None
-        printdisabled = set()
+
         for e in editions:
             if 'ocaid' not in e:
                 continue
+
+            assert isinstance(e['ocaid'], str)
+            ocaid = e['ocaid'].strip()
+            collections = e.get('ia_collection', [])
+            all_collection.update(collections)
+
+            if 'inlibrary' in collections:
+                borrowable_editions.add(ocaid)
+            elif 'printdisabled' in collections:
+                printdisabled_editions.add(ocaid)
+            elif e.get('access_restricted_item', False) == "true" or not collections:
+                unclassified_editions.add(ocaid)
+            else:
+                public_scan = True
+                open_editions.add(ocaid)
+
+            # Legacy
+            if 'printdisabled' in collections:
+                printdisabled.add(re_edition_key.match(e['key']).group(1))
+            # partners may still rely on these legacy fields, leave logic unchanged
             if not lending_edition and 'lendinglibrary' in e.get('ia_collection', []):
                 lending_edition = re_edition_key.match(e['key']).group(1)
                 lending_ia_identifier = e['ocaid']
             if not in_library_edition and 'inlibrary' in e.get('ia_collection', []):
                 in_library_edition = re_edition_key.match(e['key']).group(1)
                 lending_ia_identifier = e['ocaid']
-            if 'printdisabled' in e.get('ia_collection', []):
-                printdisabled.add(re_edition_key.match(e['key']).group(1))
-            all_collection.update(e.get('ia_collection', []))
-            assert isinstance(e['ocaid'], str)
-            i = e['ocaid'].strip()
-            if e.get('public_scan'):
-                public_scan = True
-                if i.endswith('goog'):
-                    pub_goog.add(i)
-                else:
-                    pub_nongoog.add(i)
-            else:
-                if i.endswith('goog'):
-                    nonpub_goog.add(i)
-                else:
-                    nonpub_nongoog.add(i)
+
         ia_list = (
-            list(pub_nongoog)
-            + list(pub_goog)
-            + list(nonpub_nongoog)
-            + list(nonpub_goog)
+            # deprioritize_low_quality_goog
+            sorted(list(open_editions), key=lambda ocaid: ocaid.endswith("goog")) +
+            list(borrowable_editions) +
+            list(printdisabled_editions) +
+            list(unclassified_editions)
         )
+        add_list('ia', ia_list)
         add("ebook_count_i", len(ia_list))
 
         has_fulltext = any(e.get('ocaid', None) for e in editions)
 
-        add_list('ia', ia_list)
         if has_fulltext:
             add('public_scan_b', public_scan)
         if all_collection:

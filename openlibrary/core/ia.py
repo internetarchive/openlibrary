@@ -358,7 +358,7 @@ def get_candidate_ocaids(
     qvars = {
         'c1': '%opensource%',
         'c2': '%additional_collections%',
-        'c3': '%booksgrouptest%',
+        'c3': '%litigationworks%',
     }
 
     _valid_repub_states_sql = "(%s)" % (', '.join(str(i) for i in repub_states))
@@ -369,11 +369,12 @@ def get_candidate_ocaids(
         + " WHERE repub_state IN "
         + _valid_repub_states_sql
         + "   AND mediatype='texts'"
-        + "   AND (noindex IS NULL OR collection LIKE $c3)"
+        + "   AND (noindex IS NULL)"
         + "   AND scancenter IS NOT NULL"
         + "   AND scanner IS NOT NULL"
         + "   AND collection NOT LIKE $c1"
         + "   AND collection NOT LIKE $c2"
+        + "   AND collection NOT LIKE $c3"
         + "   AND (curatestate IS NULL OR curatestate NOT IN ('freeze', 'dark'))"
         + "   AND scandate is NOT NULL"
         + "   AND lower(format) LIKE '%%pdf%%'"

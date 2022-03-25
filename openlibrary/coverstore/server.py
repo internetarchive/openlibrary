@@ -36,8 +36,7 @@ def load_config(configfile):
         web.config.fastcgi = d['fastcgi']
 
 
-def setup(configfile):
-    # type: (str) -> None
+def setup(configfile: str) -> None:
     load_config(configfile)
 
     sentry = Sentry(getattr(config, 'sentry', {}))
