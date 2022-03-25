@@ -38,6 +38,7 @@ source /home/openlibrary/.bashrc
 SCRIPTS=/openlibrary/scripts
 PSQL_PARAMS=${PSQL_PARAMS:-"-h db openlibrary"}
 TMPDIR=${TMPDIR:-/openlibrary/dumps}
+OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
 
 yymm=`date +\%Y-\%m`
 yymmdd=$1

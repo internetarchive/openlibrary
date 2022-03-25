@@ -20,6 +20,7 @@ import web
 
 from infogami import config
 from infogami.infobase.utils import flatten_dict
+from openlibrary.config import load_config
 from openlibrary.data import db
 from openlibrary.data.sitemap import generate_html_index, generate_sitemaps
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -374,9 +375,12 @@ def main(cmd, args):
 
 
 if __name__ == "__main__":
-    sentry = Sentry(getattr(config, 'sentry_cron_jobs', {}))
-    if sentry.enabled:
-        sentry.init()
-        division_by_zero = 1 / 0  # TODO (cclauss): Remove this line!!
+    ol_config = os.getenv("OL_CONFIG")
+    if ol_config:
+        logger.info(f"loading config from {ol_config}")
+        load_config(ol_config)
+        sentry = Sentry(getattr(config, 'sentry_cron_jobs', {}))
+        if sentry.enabled:
+            sentry.init()
 
     main(sys.argv[1], sys.argv[2:])
