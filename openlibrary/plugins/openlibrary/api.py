@@ -25,9 +25,8 @@ from openlibrary.core.observations import Observations, get_observation_metrics
 from openlibrary.core.models import Booknotes, Work
 from openlibrary.core.sponsorships import qualifies_for_sponsorship
 from openlibrary.core.vendors import (
-    get_amazon_metadata,
     create_edition_from_amazon_metadata,
-    search_amazon,
+    get_amazon_metadata,
     get_betterworldbooks_metadata,
 )
 
