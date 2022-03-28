@@ -34,7 +34,6 @@ set -e
 # To run a testing subset of the full ol-dump, uncomment the following line.
 # export OLDUMP_TESTING=true
 
-source /home/openlibrary/.bashrc
 SCRIPTS=/openlibrary/scripts
 PSQL_PARAMS=${PSQL_PARAMS:-"-h db openlibrary"}
 TMPDIR=${TMPDIR:-/openlibrary/dumps}
@@ -153,10 +152,10 @@ then
 
   if [[ ! -f $(compgen -G "ol_dump_*_$yymm*.txt.gz") ]]
   then
-      mkdir -p $TMPDIR/../oldumpsort
+      mkdir -p $TMPDIR/oldumpsort
       echo "splitting the dump: ol_dump_%s_$yymmdd.txt.gz -- takes approx. 85 minutes for 68,000,000+ records..."
       time gzip -cd $dump.txt.gz | python $SCRIPTS/oldump.py split --format ol_dump_%s_$yymmdd.txt.gz
-      rm -rf $TMPDIR/../oldumpsort
+      rm -rf $TMPDIR/oldumpsort
   else
       echo "Skipping $(compgen -G "ol_dump_*_$yymm*.txt.gz")"
   fi
