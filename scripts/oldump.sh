@@ -34,7 +34,6 @@ set -e
 # To run a testing subset of the full ol-dump, uncomment the following line.
 # export OLDUMP_TESTING=true
 
-source /home/openlibrary/.bashrc
 SCRIPTS=/openlibrary/scripts
 PSQL_PARAMS=${PSQL_PARAMS:-"-h db openlibrary"}
 TMPDIR=${TMPDIR:-/openlibrary/dumps}
