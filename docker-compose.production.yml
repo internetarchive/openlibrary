@@ -266,7 +266,6 @@ services:
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
-      - PYENV_VERSION=${PYENV_VERSION:-}
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
       - STATE_FILE=solr-next-update.offset
@@ -288,7 +287,6 @@ services:
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OPENLIBRARY_RCFILE=/olsystem/etc/olrc-importbot
-      - PYENV_VERSION=${PYENV_VERSION:-}
     volumes:
       - ../olsystem:/olsystem
     networks:
