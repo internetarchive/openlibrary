@@ -1,7 +1,6 @@
 FROM openlibrary/olbase:latest
 
 ENV PYTHONPATH=/openlibrary:/openlibrary/vendor/infogami
-ENV PYENV_VERSION=3.9.4
 
 USER root
 COPY requirements*.txt ./
