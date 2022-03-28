@@ -4,7 +4,7 @@
 
 # Learn more about this config here: https://pre-commit.com/
 default_language_version:
-  python: python3.9
+  python: python3.10
 
 repos:
   - repo: local
@@ -50,6 +50,6 @@ repos:
     rev: v2.37.3
     hooks:
       - id: pyupgrade
-        args:
+        args:  # Solr on Cython is not yet ready for 3.10 type hints
           - --py39-plus
           - --keep-runtime-typing

@@ -17,14 +17,18 @@ permissions:
 
 jobs:
   python_tests:
-    runs-on: ubuntu-18.04  # Should match Dockerfile.olbase, but had to be bumped as older version no longer supported
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10"]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
       - uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: ${{ matrix.python-version }}
       - uses: actions/cache@v3
         with:
           path: ${{ env.pythonLocation }}
