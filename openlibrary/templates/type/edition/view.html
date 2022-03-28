@@ -319,6 +319,17 @@ $if is_privileged_user:
         $if edition:
           <h2 class="details-title" itemprop="name">$_("Book Details")</h2>
           <hr>
+          $if edition.publish_places:
+            <div class="section">
+              <h3 class="edition-header">$_('Published in')</h3>
+              <p>
+              $for p in edition.publish_places:
+                <a href="/search/subjects?q=$p.replace('&','%26').replace(' ','%20')"
+                  title="$_('Search for subjects about %(place)s', place=p)">
+                    $p
+                </a>$cond(loop.last, "", ", ")
+              </p>
+            </div>
           $if edition.first_sentence:
             <div>
             <h3 class="edition-header">$_("First Sentence")</h3>
