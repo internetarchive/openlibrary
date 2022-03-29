@@ -38,19 +38,23 @@ $# Fetch a work's editions
 $# Used for loading the editions table
 $# Book availability of editions injected by bulk get_availability API
 $ edition_count = work.edition_count if work and work.edition_count else 1
-$ ebooks_only = query_param('mode') == 'ebooks' or (query_param('mode') != 'all' and edition_count > 10)
+$ ebooks_only = (query_param('mode') == 'ebooks') or (query_param('mode') != 'all' and edition_count > 10)
 
 $# For performance reasons, limit to 10 ebooks
 $# Tradeoff: limits our ability to select best edition
-$ editions_limit = None if not query_param('mode') else 10
+$ editions_limit = 10 if not query_param('mode') else None
+$# key ensures the current edition we're on or requested edition are fetched by get_sorted_editions
+$ keys = (edition and [edition.key]) or (selected_provider=="ia" and selected_id and [work.get_olid_by_ocaid(selected_id)])
 $if ebooks_only:
-  $# key ensures the current edition we're on or requested edition are fetched by get_sorted_editions
-  $ keys = (edition and [edition.key]) or (selected_provider=="ia" and selected_id and [work.get_olid_by_ocaid(selected_id)])
   $ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=keys)
 $if not editions:
   $# use ebooks_only to determine whether to lazyload editions table
   $ ebooks_only = False
-  $ editions = work.get_sorted_editions(limit=editions_limit, covers_only=True)
+  $# if there's a limit, attempt to choose books w/ covers
+  $ editions = work.get_sorted_editions(limit=editions_limit, covers_only=True, keys=keys)
+$if not editions:
+  $# if there weren't any editions with covers, just fetch what we have (edge case)
+  $ editions = work.get_sorted_editions(limit=editions_limit, keys=keys)
 $ availabilities = {e.availability.get('identifier'): e.availability for e in editions}
 $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
 
@@ -58,9 +62,10 @@ $# This collects which books are previewable in any manner
 $ previews = [e for e in editions if e.get('ocaid')]
 
 $# Choose an edition to render
-$if not edition:
+$if editions and not edition:
   $# We're presumably on a work url
   $# edition selection strategy (e.g. language, by id, first w/ ocaid)
+  $ edition = editions[0]
   $if selected_provider and selected_id:
     $ provider = get_book_provider_by_name(selected_provider)
     $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), edition)
