@@ -24,6 +24,14 @@ $if page.key.startswith('/books'):
   $# We are on an editions page: an edition has been explicitly selected
   $ edition = page
 
+$ selected_provider = None
+$ selected_id = None
+$if query_param('edition'):
+  $if ':' in query_param('edition'):
+    $ [selected_provider, selected_id] = query_param('edition').split(':')
+  $else:
+    $ [selected_provider, selected_id] = ['ia', query_param('edition')]
+
 $ component_times['get_sorted_editions'] = time()
 
 $# Fetch a work's editions
@@ -36,8 +44,9 @@ $# For performance reasons, limit to 10 ebooks
 $# Tradeoff: limits our ability to select best edition
 $ editions_limit = None if not query_param('mode') else 10
 $if ebooks_only:
-  $ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=edition and [edition.key])
-
+  $# key ensures the current edition we're on or requested edition are fetched by get_sorted_editions
+  $ keys = (edition and [edition.key]) or (selected_provider=="ia" and selected_id and [work.get_olid_by_ocaid(selected_id)])
+  $ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=keys)
 $if not editions:
   $# use ebooks_only to determine whether to lazyload editions table
   $ ebooks_only = False
@@ -52,11 +61,7 @@ $# Choose an edition to render
 $if not edition:
   $# We're presumably on a work url
   $# edition selection strategy (e.g. language, by id, first w/ ocaid)
-  $if query_param('edition'):
-    $if ':' in query_param('edition'):
-      $ [selected_provider, selected_id] = query_param('edition').split(':')
-    $else:
-      $ [selected_provider, selected_id] = ['ia', query_param('edition')]
+  $if selected_provider and selected_id:
     $ provider = get_book_provider_by_name(selected_provider)
     $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), edition)
   $else:
