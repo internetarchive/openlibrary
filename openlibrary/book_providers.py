@@ -18,9 +18,19 @@ class AbstractBookProvider:
     """
     identifier_key: str
 
+    def get_olids(self, identifier):
+        return web.ctx.site.things({
+            "type": "/type/edition",
+            self.db_selector: identifier
+        })
+
     @property
     def editions_query(self):
-        return {f"identifiers.{self.identifier_key}~": "*"}
+        return {f"{self.db_selector}~": "*"}
+
+    @property
+    def db_selector(self):
+        return f"identifiers.{self.identifier_key}"
 
     @property
     def solr_key(self):
@@ -72,8 +82,8 @@ class InternetArchiveProvider(AbstractBookProvider):
     identifier_key = 'ocaid'
 
     @property
-    def editions_query(self):
-        return {f"{self.identifier_key}~": "*"}
+    def db_selector(self):
+        return self.identifier_key
 
     @property
     def solr_key(self):

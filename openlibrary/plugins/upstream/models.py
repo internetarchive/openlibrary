@@ -719,7 +719,7 @@ class Work(models.Work):
             if 'openlibrary_edition' in availability[work_id]:
                 return '/books/%s' % availability[work_id]['openlibrary_edition']
 
-    def get_sorted_editions(self, ebooks_only=False, covers_only=False, limit=None, keys=None):
+    def get_sorted_editions(self, ebooks_only=False, limit=None, keys=None):
         """
         Get this work's editions sorted by publication year
         :param bool ebooks_only:
@@ -727,11 +727,10 @@ class Work(models.Work):
         :param list[str] keys: ensure keys included in fetched editions
         :rtype: list[Edition]
         """
-        edition_keys = keys or []
         db_query = {"type": "/type/edition", "works": self.key}
-        if limit:
-            db_query['limit'] = limit
+        db_query['limit'] = limit or 10000
 
+        edition_keys = []
         if ebooks_only:
             if self._solr_data:
                 from openlibrary.book_providers import get_book_providers
@@ -744,10 +743,6 @@ class Work(models.Work):
                     edition_keys += web.ctx.site.things(query)
             else:
                 db_query["ocaid~"] = "*"
-        elif limit and covers_only:
-            # if we're going to be picky and there's no ebooks
-            # try to favor editions with covers
-            db_query["covers_i~"] = "*"
 
         if not edition_keys:
             solr_is_up_to_date = (
@@ -763,6 +758,7 @@ class Work(models.Work):
                 # given librarians are probably doing this, show all editions
                 edition_keys += web.ctx.site.things(db_query)
 
+        edition_keys.extend(keys or [])
         editions = web.ctx.site.get_many(list(set(edition_keys)))
         editions.sort(
             key=lambda ed: ed.get_publish_year() or -sys.maxsize, reverse=True
