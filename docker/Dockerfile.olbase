@@ -1,4 +1,4 @@
-FROM python:3.9.4-slim
+FROM python:3.10.4-slim
 
 ENV LANG en_US.UTF-8
 
