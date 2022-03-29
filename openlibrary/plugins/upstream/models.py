@@ -719,10 +719,6 @@ class Work(models.Work):
             if 'openlibrary_edition' in availability[work_id]:
                 return '/books/%s' % availability[work_id]['openlibrary_edition']
 
-    @staticmethod
-    def get_olid_by_ocaid(ocaid):
-        return web.ctx.site.get(f"/books/ia:{ocaid}").location
-
     def get_sorted_editions(self, ebooks_only=False, covers_only=False, limit=None, keys=None):
         """
         Get this work's editions sorted by publication year
