@@ -343,7 +343,6 @@ $if is_privileged_user:
             <p>"$(edition.first_sentence)"</p>
             </div>
 
-        $if edition:
           $ component_times['TableOfContents'] = time()
           $:macros.TableOfContents(edition, ocaid)
           $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
