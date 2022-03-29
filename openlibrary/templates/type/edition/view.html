@@ -26,11 +26,13 @@ $if page.key.startswith('/books'):
 
 $ selected_provider = None
 $ selected_id = None
+$ provider = None
 $if query_param('edition'):
   $if ':' in query_param('edition'):
     $ [selected_provider, selected_id] = query_param('edition').split(':')
   $else:
     $ [selected_provider, selected_id] = ['ia', query_param('edition')]
+  $ provider = get_book_provider_by_name(selected_provider)
 
 $ component_times['get_sorted_editions'] = time()
 
@@ -44,7 +46,7 @@ $# For performance reasons, limit to 10 ebooks
 $# Tradeoff: limits our ability to select best edition
 $ editions_limit = 10 if not query_param('mode') else None
 $# key ensures the current edition we're on or requested edition are fetched by get_sorted_editions
-$ keys = (edition and [edition.key]) or (selected_provider=="ia" and selected_id and [work.get_olid_by_ocaid(selected_id)])
+$ keys = (edition and [edition.key]) or (provider and provider.get_olids(selected_id))
 $if ebooks_only:
   $ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=keys)
 $if not editions:
@@ -66,8 +68,7 @@ $if editions and not edition:
   $# We're presumably on a work url
   $# edition selection strategy (e.g. language, by id, first w/ ocaid)
   $ edition = editions[0]
-  $if selected_provider and selected_id:
-    $ provider = get_book_provider_by_name(selected_provider)
+  $if provider:
     $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), edition)
   $else:
     $ edition, provider = get_best_edition(editions)
