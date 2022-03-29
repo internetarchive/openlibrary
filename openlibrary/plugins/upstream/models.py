@@ -719,7 +719,7 @@ class Work(models.Work):
             if 'openlibrary_edition' in availability[work_id]:
                 return '/books/%s' % availability[work_id]['openlibrary_edition']
 
-    def get_sorted_editions(self, ebooks_only=False, covers_only=False, limit=None, keys=None):
+    def get_sorted_editions(self, ebooks_only=False, limit=None, keys=None):
         """
         Get this work's editions sorted by publication year
         :param bool ebooks_only:
@@ -743,10 +743,6 @@ class Work(models.Work):
                     edition_keys += web.ctx.site.things(query)
             else:
                 db_query["ocaid~"] = "*"
-        elif limit and covers_only:
-            # if we're going to be picky and there's no ebooks
-            # try to favor editions with covers
-            db_query["covers_i~"] = "*"
 
         if not edition_keys:
             solr_is_up_to_date = (
