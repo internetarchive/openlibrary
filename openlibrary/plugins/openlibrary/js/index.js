@@ -197,7 +197,7 @@ jQuery(function () {
     }
     // conditionally load readmore button based on class in the page
     const readMoreButtons = document.getElementsByClassName('read-more-button');
-    const clampers = document.getElementsByClassName('clamp');
+    const clampers = document.querySelectorAll('.clamp');
     if (readMoreButtons.length || clampers.length) {
         import(/* webpackChunkName: "readmore" */ './readmore.js')
             .then(module => {
@@ -205,7 +205,7 @@ jQuery(function () {
                     module.initReadMoreButton();
                 }
                 if (clampers.length) {
-                    module.initClampers();
+                    module.initClampers(clampers);
                 }
             });
     }
