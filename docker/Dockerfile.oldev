@@ -5,5 +5,12 @@ COPY --chown=openlibrary:openlibrary requirements*.txt ./
 RUN python -m pip install -r requirements_test.txt \
  && python -m pip list --outdated
 
+# Link the pytest CLI binary into /usr/local/bin so that it shows up
+# on the PATH. Do this instead of trying to modify the PATH, because
+# that causes headaches with su, cron, etc.
+USER root
+RUN ln -s /home/openlibrary/.local/bin/pytest /usr/local/bin/pytest
+USER openlibrary
+
 COPY --chown=openlibrary:openlibrary package*.json ./
 RUN npm install
