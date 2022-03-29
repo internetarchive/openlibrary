@@ -249,15 +249,16 @@ $if is_privileged_user:
                 </div>
 
               $ edition_identifiers = edition.get_identifiers()
-              $ isbn = None
+              $ isbns = []
               $if 'isbn_13' in edition_identifiers.keys():
-                $ isbn = edition_identifiers['isbn_13']['value']
-              $elif 'isbn_10' in edition_identifiers.keys():
-                $ isbn = edition_identifiers['isbn_10']['value']
-              $if isbn:
+                $ isbns.append(edition_identifiers['isbn_13']['value'])
+              $if 'isbn_10' in edition_identifiers.keys():
+                $ isbns.append(edition_identifiers['isbn_10']['value'])
+              $if isbns:
                 <div class="edition-omniline-item">
-                  <div>ISBN</div>
-                  <span>$isbn</span>
+                  <div>ISBNs</div>
+                  $for isbn in isbns:
+                    <span>$isbn</span>
                 </div>
           </div>
       </div>
