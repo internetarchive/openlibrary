@@ -44,7 +44,7 @@ $ ebooks_only = (query_param('mode') == 'ebooks') or (query_param('mode') != 'al
 
 $# For performance reasons, limit to 10 ebooks
 $# Tradeoff: limits our ability to select best edition
-$ editions_limit = 10 if not query_param('mode') else None
+$ editions_limit = None if query_param('mode') in ['all', 'ebooks'] else 10
 $# key ensures the current edition we're on or requested edition are fetched by get_sorted_editions
 $ keys = (edition and [edition.key]) or (provider and provider.get_olids(selected_id))
 $if ebooks_only:
@@ -63,9 +63,8 @@ $# Choose an edition to render
 $if editions and not edition:
   $# We're presumably on a work url
   $# edition selection strategy (e.g. language, by id, first w/ ocaid)
-  $ edition = editions[0]
   $if provider:
-    $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), edition)
+    $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), editions[0])
   $else:
     $ edition, provider = get_best_edition(editions)
 
