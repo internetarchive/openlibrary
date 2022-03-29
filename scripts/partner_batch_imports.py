@@ -172,6 +172,10 @@ def csv_to_ol_json_item(line):
     b = Biblio(data)
     return {'ia_id': b.source_id, 'data': b.json()}
 
+def is_low_quality_book(book_item):
+    """check if a book item is of low quality"""
+    return ("notebook" in book_item.title.casefold() and "independently published" in book_item.publisher.casefold())
+
 
 def batch_import(path, batch, batch_size=5000):
     logfile = os.path.join(path, 'import.log')
@@ -190,7 +194,9 @@ def batch_import(path, batch, batch_size=5000):
                     offset = 0
 
                 try:
-                    book_items.append(csv_to_ol_json_item(line))
+                    book_item = csv_to_ol_json_item(line)
+                    if not is_low_quality_book(book_item["data"]):
+                        book_items.append(book_item)
                 except AssertionError as e:
                     logger.info(f"Error: {e} from {line}")
 
@@ -204,7 +210,6 @@ def batch_import(path, batch, batch_size=5000):
             if book_items:
                 batch.add_items(book_items)
             update_state(logfile, fname, line_num)
-
 
 def main(ol_config: str, batch_path: str):
     load_config(ol_config)
