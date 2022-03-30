@@ -64,6 +64,7 @@ $if not edition:
 
 $# Just in case edition is not set, treat as work
 $ edition = edition or page
+$ is_editionless_work = edition.type != '/type/edition'
 
 $if not edition.get('availability'):
   $ edition['availability'] = edition.get('ocaid') and availabilities.get(edition['ocaid']) or {}
@@ -496,7 +497,7 @@ $if is_privileged_user:
                 $:render_template("lists/widget", work, include_header=False, include_widget=False)
                 $ component_times['lists widget: WorkListTime'] = time() - component_times['lists widget: WorkListTime']
 
-              $if edition and edition.type != '/type/edition':
+              $if edition and is_editionless_work:
                 $ component_times['lists widget: EditionListTime'] = time()
                 $:render_template("lists/widget", edition, include_header=False, include_widget=False)
                 $ component_times['lists widget: EditionListTime'] = time() - component_times['lists widget: EditionListTime']
