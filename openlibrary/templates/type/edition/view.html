@@ -87,7 +87,7 @@ $var title: $title
 
 $code:
     def has_any(*keys):
-        return any(page[k] for k in keys)
+        return any(edition[k] for k in keys)
 
 $code:
     def get_description(book):
@@ -249,15 +249,16 @@ $if is_privileged_user:
                 </div>
 
               $ edition_identifiers = edition.get_identifiers()
-              $ isbn = None
+              $ isbns = []
               $if 'isbn_13' in edition_identifiers.keys():
-                $ isbn = edition_identifiers['isbn_13']['value']
-              $elif 'isbn_10' in edition_identifiers.keys():
-                $ isbn = edition_identifiers['isbn_10']['value']
-              $if isbn:
+                $ isbns.append(edition_identifiers['isbn_13']['value'])
+              $if 'isbn_10' in edition_identifiers.keys():
+                $ isbns.append(edition_identifiers['isbn_10']['value'])
+              $if isbns:
                 <div class="edition-omniline-item">
-                  <div>ISBN</div>
-                  <span>$isbn</span>
+                  <div>ISBNs</div>
+                  $for isbn in isbns:
+                    <span>$isbn</span>
                 </div>
           </div>
       </div>
@@ -342,7 +343,6 @@ $if is_privileged_user:
             <p>"$(edition.first_sentence)"</p>
             </div>
 
-        $if edition:
           $ component_times['TableOfContents'] = time()
           $:macros.TableOfContents(edition, ocaid)
           $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
