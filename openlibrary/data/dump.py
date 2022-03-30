@@ -266,17 +266,13 @@ def make_bsddb(dbfile, dump_file):
 
 
 def _process_key(key):
-    mapping = (
-        "/l/",
-        "/languages/",
-        "/a/",
-        "/authors/",
-        "/b/",
-        "/books/",
-        "/user/",
-        "/people/",
-    )
-    for old, new in web.group(mapping, 2):
+    mapping = {
+        "/l/": "/languages/",
+        "/a/": "/authors/",
+        "/b/": "/books/",
+        "/user/": "/people/",
+    }
+    for old, new in mapping.items():
         if key.startswith(old):
             return new + key[len(old) :]
     return key
