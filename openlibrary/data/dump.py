@@ -50,7 +50,7 @@ def print_dump(json_records, filter=None, print=print):
         if key.startswith(("/b/", "/scan", "/old/")) or not key.startswith("/"):
             continue
 
-        if filter and filter(d) is False:
+        if filter and not filter(d):
             continue
 
         type_key = d["type"]["key"]
