@@ -2,7 +2,7 @@ import infogami
 from infogami.utils import delegate
 from openlibrary.utils.sentry import Sentry
 
-sentry = None  # type: Sentry
+sentry: Sentry = None
 
 
 def setup():
