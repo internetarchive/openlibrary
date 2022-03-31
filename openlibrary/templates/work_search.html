@@ -161,6 +161,9 @@ $ )
         <div id="searchResults">
           <ul class="list-books">
             $ works = add_availability([get_doc(d) for d in docs])
+            $ username = ctx.user and ctx.user.key.split('/')[-1]
+            $if username:
+                $ works = add_read_statuses(username, works)
 
             $for work in works:
                 $ ocaid = work.ia[0] if work.ia else None
@@ -168,7 +171,9 @@ $ )
                 $# if we're explicitly showing *everything*...
                 $# or if we're showing only things with ocaids which are available...
                 $if 'has_fulltext' not in param or (ocaid and availability and availability not in ['error', 'private']):
-                    $:macros.SearchResultsWork(work)
+                    $ read_status = work.get('readinglog', None)
+                    $ dropper = macros.ReadingLogDropper([], work=work, reading_log_only=True, page_url="/search", users_work_read_status=read_status)
+                    $:macros.SearchResultsWork(work, reading_log=dropper)
           </ul>
           $:macros.Pager(page, num_found, rows)
         </div>

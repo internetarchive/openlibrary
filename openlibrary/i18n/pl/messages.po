@@ -2394,7 +2394,7 @@ msgstr "Przeglądaj według tematów"
 #: categories.html:26
 #, python-format
 msgid "browse %(subject)s books"
-msgstr "przeglądaj według %(subjects)s książek"
+msgstr "przeglądaj według %(subject)s książek"
 
 #: categories.html:31
 #, python-format

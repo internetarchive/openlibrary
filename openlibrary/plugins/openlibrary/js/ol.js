@@ -72,11 +72,6 @@ export function initReadingListFeature() {
         $(this).closest('.arrow').toggleClass('up');
     }, 300, false));
 
-    $(document).on('click', '.work-menu li', debounce(function() {
-        $('.work-menu li').removeClass('selected');
-        $(this).addClass('selected');
-    }, 300, false));
-
     // Close any open dropdown list if the user clicks outside...
     $(document).on('click', function() {
         closeDropdown($('.widget-add'));

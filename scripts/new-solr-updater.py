@@ -174,7 +174,7 @@ def is_allowed_itemid(identifier):
     return True
 
 
-def update_keys(keys):
+async def update_keys(keys):
     if not keys:
         return 0
 
@@ -193,7 +193,7 @@ def update_keys(keys):
     for chunk in web.group(keys, 100):
         chunk = list(chunk)
         count += len(chunk)
-        update_work.do_updates(chunk)
+        await update_work.do_updates(chunk)
 
         # Caches should not persist between different calls to update_keys!
         update_work.data_provider.clear_cache()
@@ -244,7 +244,7 @@ class Solr:
         logger.info("END commit")
 
 
-def main(
+async def main(
     ol_config: str,
     debugger=False,
     state_file='solr-update.state',
@@ -306,7 +306,7 @@ def main(
     while True:
         records = logfile.read_records()
         keys = parse_log(records, load_ia_scans)
-        count = update_keys(keys)
+        count = await update_keys(keys)
 
         if logfile.tell() != offset:
             offset = logfile.tell()

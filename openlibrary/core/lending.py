@@ -287,10 +287,6 @@ def get_available(
         sorts=sorts,
     )
     if not url:
-        fmt = (
-            "get_available(limit={}, page={}, subject={}, query={}, "
-            "work_id={}, _type={}, sorts={}"
-        )
         logger.error(
             'get_available failed',
             extra={
@@ -299,7 +295,7 @@ def get_available(
                 'subject': subject,
                 'query': query,
                 'work_id': work_id,
-                '_type': _type,
+                'type': _type,
                 'sorts': sorts,
             },
         )
@@ -309,9 +305,13 @@ def get_available(
         # carousel queries) needs Open Library to forward user IPs so
         # we can attribute requests to end-users
         client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
-
+        headers = {
+            "x-client-id": client_ip,
+            "x-preferred-client-id": client_ip,
+            "x-application-id": "openlibrary"
+        }
         response = requests.get(
-            url, headers={"x-client-id": client_ip}, timeout=config_http_request_timeout
+            url, headers=headers, timeout=config_http_request_timeout
         )
         items = response.json().get('response', {}).get('docs', [])
         results = {}
@@ -337,17 +337,14 @@ def get_availability(key, ids):
         return {}
 
     def update_availability_schema_to_v2(v1_resp, ocaid):
-        collections = v1_resp.get('collection', [])
+        """This functionattempts to take the output of e.g. Bulk Availability
+        API and add/infer attributes which are missing (but are
+        present on Ground Truth API)
+        """
+        # TODO: Make less brittle; maybe add simplelists/copy counts to Bulk Availability
         v1_resp['identifier'] = ocaid
         v1_resp['is_restricted'] = v1_resp['status'] != 'open'
-        v1_resp['is_printdisabled'] = 'printdisabled' in collections
-        v1_resp['is_lendable'] = 'inlibrary' in collections
-        v1_resp['is_readable'] = v1_resp['status'] == 'open'
-        # TODO: Make less brittle; maybe add simplelists/copy counts to IA availability
-        # endpoint
-        v1_resp['is_browseable'] = (
-            v1_resp['is_lendable'] and v1_resp['status'] == 'error'
-        )
+        v1_resp['is_browseable'] = v1_resp.get('available_to_browse', False)
         # For debugging
         v1_resp['__src__'] = 'core.models.lending.get_availability'
         return v1_resp
@@ -564,7 +561,6 @@ def get_loans_of_user(user_key):
     loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
     loans = [Loan(d) for d in loandata] + (
         _get_ia_loans_of_user(account.itemname)
-        + _get_ia_loans_of_user(userkey2userid(user_key))
     )
     return loans
 

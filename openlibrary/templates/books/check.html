@@ -42,12 +42,15 @@ $var title: $_("Add a book")
     <p class="small sansserif clearfix">None of these match the book I want to add. <a href="javascript:;" id="bookAddCont">Continue</a>.</p>
 
     <form method="POST" id="addbook" class="olform addbook1 hidden" name="edit">
-        <input type="hidden" id="work" name="work" value=""/>
+        <input type="hidden" id="work" name="work" value="none-of-these"/>
         <input type="hidden" name="title" value="$d.title"/>
-        <input type="hidden" name="author_key" value="$d.author_key"/>
         <input type="hidden" name="publisher" value="$d.publisher"/>
         <input type="hidden" name="publish_date" value="$d.publish_date"/>
         <input type="hidden" name="id_name" value="$d.id_name"/>
         <input type="hidden" name="id_value" value="$d.id_value"/>
+        $for author in d.authors:
+            <input type="hidden" name="authors--$loop.index0--author--key" value="$author['author']['key']"/>
+        $for name in d.author_names:
+            <input type="hidden" name="author_names--$loop.index0" value="$name"/>
     </form>
 </div>

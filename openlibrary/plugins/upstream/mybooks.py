@@ -5,6 +5,7 @@ from infogami.utils import delegate
 from infogami.utils.view import public, safeint, render
 
 from openlibrary import accounts
+from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.lending import add_availability
@@ -60,9 +61,14 @@ class public_my_books_json(delegate.page):
                     'work': {
                         'title': w.get('title'),
                         'key': w.key,
-                        'author_keys': [a.author.key for a in w.get('authors', [])],
+                        'author_keys': [
+                            a.author.get("key")
+                            for a in w.get('authors', []) if a.author
+                        ],
                         'author_names': [
-                            str(a.author.name) for a in w.get('authors', [])
+                            str(a.author.name)
+                            for a in w.get('authors', [])
+                            if type(a.author) is not str
                         ],
                         'first_publish_year': w.first_publish_year or None,
                         'lending_edition_s': (
@@ -386,6 +392,25 @@ class ReadingLog:
         else:  # must be a list or invalid page!
             # works = web.ctx.site.get_many([ ... ])
             raise
+
+
+@public
+def get_read_status(work_key, username):
+    work_id = extract_numeric_id_from_olid(work_key.split('/')[-1])
+    return Bookshelves.get_users_read_status_of_work(username, work_id)
+
+
+@public
+def add_read_statuses(username, works):
+    work_ids = [extract_numeric_id_from_olid(work.key.split('/')[-1]) for work in works]
+    results = Bookshelves.get_users_read_status_of_works(username, work_ids)
+    results_map = {}
+    for result in results:
+        results_map[f"OL{result['work_id']}W"] = result['bookshelf_id']
+    for work in works:
+        work_olid = work.key.split('/')[-1]
+        work['readinglog'] = results_map.get(work_olid, None)
+    return works
 
 
 class PatronBooknotes:

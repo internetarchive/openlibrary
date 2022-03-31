@@ -217,6 +217,20 @@ class Bookshelves:
         return result[0].bookshelf_id if result else None
 
     @classmethod
+    def get_users_read_status_of_works(cls, username, work_ids):
+        oldb = db.get_db()
+        data = {
+            'username': username,
+            'work_ids': work_ids,
+        }
+        query = (
+            "SELECT work_id, bookshelf_id from bookshelves_books WHERE "
+            "username=$username AND "
+            "work_id IN $work_ids"
+        )
+        return list(oldb.query(query, vars=data))
+
+    @classmethod
     def add(cls, username, bookshelf_id, work_id, edition_id=None):
         """Adds a book with `work_id` to user's bookshelf designated by
         `bookshelf_id`"""

@@ -17,3 +17,9 @@ tasks:
   init: ./scripts/setup_gitpod.sh
   # command runs each time a user starts their workspace
   command: docker-compose up
+
+github:
+  prebuilds:
+    # Don't prebuild for PRs coming from this repo
+    # Don't need this running on all renovatebot's PRs; it's slow
+    pullRequests: false

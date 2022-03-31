@@ -99,8 +99,8 @@ class Biblio:
 
         # Assert importable
         for field in self.REQUIRED_FIELDS + ['isbn_13']:
-            assert getattr(self, field)
-        assert self.primary_format not in self.NONBOOK
+            assert getattr(self, field), field
+        assert self.primary_format not in self.NONBOOK, f"{self.primary_format} is NONBOOK"
 
     @staticmethod
     def contributors(data):
@@ -172,6 +172,10 @@ def csv_to_ol_json_item(line):
     b = Biblio(data)
     return {'ia_id': b.source_id, 'data': b.json()}
 
+def is_low_quality_book(book_item):
+    """check if a book item is of low quality"""
+    return ("notebook" in book_item.title.casefold() and "independently published" in book_item.publisher.casefold())
+
 
 def batch_import(path, batch, batch_size=5000):
     logfile = os.path.join(path, 'import.log')
@@ -190,7 +194,9 @@ def batch_import(path, batch, batch_size=5000):
                     offset = 0
 
                 try:
-                    book_items.append(csv_to_ol_json_item(line))
+                    book_item = csv_to_ol_json_item(line)
+                    if not is_low_quality_book(book_item["data"]):
+                        book_items.append(book_item)
                 except AssertionError as e:
                     logger.info(f"Error: {e} from {line}")
 
@@ -205,15 +211,14 @@ def batch_import(path, batch, batch_size=5000):
                 batch.add_items(book_items)
             update_state(logfile, fname, line_num)
 
-
-def main(ol_config: str):
+def main(ol_config: str, batch_path: str):
     load_config(ol_config)
 
     # Partner data is offset ~15 days from start of month
     date = datetime.date.today() - timedelta(days=15)
     batch_name = "%s-%04d%02d" % ('bwb', date.year, date.month)
     batch = Batch.find(batch_name) or Batch.new(batch_name)
-    batch_import(sys.argv[1], batch)
+    batch_import(batch_path, batch)
 
 
 if __name__ == '__main__':

@@ -3,10 +3,11 @@ import itertools
 import logging
 import os
 import re
+from enum import IntEnum
 from json import JSONDecodeError
 from math import ceil
 from statistics import median
-from typing import Literal, List, Optional, cast, TypedDict, Set, Dict, Any, Union
+from typing import Literal, List, Optional, cast, TypedDict, Any, Union
 
 import httpx
 import requests
@@ -43,13 +44,11 @@ re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
 re_bad_char = re.compile('[\x01\x0b\x1a-\x1e]')
 re_edition_key = re.compile(r"/books/([^/]+)")
-re_iso_date = re.compile(r'^(\d{4})-\d\d-\d\d$')
 re_solr_field = re.compile(r'^[-\w]+$', re.U)
-re_year = re.compile(r'(\d{4})$')
+re_year = re.compile(r'\b(\d{4})\b')
 
 # This will be set to a data provider; have faith, mypy!
 data_provider = cast(DataProvider, None)
-_ia_db = None
 
 solr_base_url = None
 solr_next: Optional[bool] = None
@@ -97,6 +96,7 @@ def set_solr_next(val: bool):
 class IALiteMetadata(TypedDict):
     boxid: set[str]
     collection: set[str]
+    access_restricted_item: Optional[Literal['true', 'false']]
 
 
 def get_ia_collection_and_box_id(ia: str) -> Optional[IALiteMetadata]:
@@ -133,6 +133,7 @@ def get_ia_collection_and_box_id(ia: str) -> Optional[IALiteMetadata]:
     return {
         'boxid': set(get_list(metadata, 'boxid')),
         'collection': set(get_list(metadata, 'collection')),
+        'access_restricted_item': metadata.get('access-restricted-item'),
     }
 
 
@@ -371,6 +372,7 @@ class SolrProcessor:
                 e['public_scan'] = ('lendinglibrary' not in collection) and (
                     'printdisabled' not in collection
                 )
+                e['access_restricted_item'] = ia_meta_fields.get('access_restricted_item', False)
 
             if 'identifiers' in e:
                 for k, id_list in e['identifiers'].items():
@@ -427,7 +429,7 @@ class SolrProcessor:
             if 'author' in a
         ]
 
-    def get_author(self, a):
+    async def get_author(self, a):
         """
         Get author dict from author entry in the work.
 
@@ -447,9 +449,9 @@ class SolrProcessor:
         if not m:
             logger.error('invalid author key: %s', key)
             return
-        return data_provider.get_document(key)
+        return await data_provider.get_document(key)
 
-    def extract_authors(self, w):
+    async def extract_authors(self, w):
         """
         Get the full author objects of the given work
 
@@ -457,19 +459,20 @@ class SolrProcessor:
         :rtype: list[dict]
         """
         authors = [
-            self.get_author(a)
+            await self.get_author(a)
             for a in SolrProcessor.normalize_authors(w.get("authors", []))
         ]
 
         if any(a['type']['key'] == '/type/redirect' for a in authors):
             if self.resolve_redirects:
-
-                def resolve(a):
-                    if a['type']['key'] == '/type/redirect':
-                        a = data_provider.get_document(a['location'])
-                    return a
-
-                authors = [resolve(a) for a in authors]
+                authors = [
+                    (
+                        await data_provider.get_document(a['location'])
+                        if a['type']['key'] == '/type/redirect'
+                        else a
+                    )
+                    for a in authors
+                ]
             else:
                 # we don't want to raise an exception but just write a warning on the log
                 # raise AuthorRedirect
@@ -491,9 +494,6 @@ class SolrProcessor:
         """
         pub_date = e.get('publish_date', None)
         if pub_date:
-            m = re_iso_date.match(pub_date)
-            if m:
-                return m.group(1)
             m = re_year.search(pub_date)
             if m:
                 return m.group(1)
@@ -577,7 +577,6 @@ class SolrProcessor:
         add('seed', BaseDocBuilder().compute_seeds(w, editions))
         add('title', w.get('title'))
         add('subtitle', w.get('subtitle'))
-        add('has_fulltext', has_fulltext)
 
         add_list("alternative_title", self.get_alternate_titles(w, editions))
         add_list('alternative_subtitle', self.get_alternate_subtitles(w, editions))
@@ -594,8 +593,9 @@ class SolrProcessor:
         k = 'publish_date'
         pub_dates = {e[k] for e in editions if e.get(k)}
         add_list(k, pub_dates)
-        pub_years = {
-            m.group(1) for m in (re_year.search(date) for date in pub_dates) if m
+        pub_years = {self.get_pub_year(e) for e in editions}
+        pub_years = pub_years - {
+            None,
         }
         if pub_years:
             add_list('publish_year', pub_years)
@@ -727,7 +727,8 @@ class SolrProcessor:
             datetimestr_to_int(doc.get('last_modified')) for doc in [work] + editions
         )
 
-    def add_ebook_info(self, doc, editions):
+    @staticmethod
+    def add_ebook_info(doc, editions):
         """
         Add ebook information from the editions to the work Solr document.
 
@@ -735,75 +736,70 @@ class SolrProcessor:
         :param list[dict] editions: Editions with extra data from process_editions
         """
 
-        def add(name, value):
-            if value is not None:
-                doc[name] = value
+        class AvailabilityEnum(IntEnum):
+            PUBLIC = 1
+            BORROWABLE = 2
+            PRINTDISABLED = 3
+            UNCLASSIFIED = 4
 
-        def add_list(name, values):
-            doc[name] = list(values)
-
-        pub_goog = set()  # google
-        pub_nongoog = set()
-        nonpub_goog = set()
-        nonpub_nongoog = set()
-
-        public_scan = False
-        all_collection = set()
-        lending_edition = None
-        in_library_edition = None
-        lending_ia_identifier = None
-        printdisabled = set()
-        for e in editions:
-            if 'ocaid' not in e:
-                continue
-            if not lending_edition and 'lendinglibrary' in e.get('ia_collection', []):
-                lending_edition = re_edition_key.match(e['key']).group(1)
-                lending_ia_identifier = e['ocaid']
-            if not in_library_edition and 'inlibrary' in e.get('ia_collection', []):
-                in_library_edition = re_edition_key.match(e['key']).group(1)
-                lending_ia_identifier = e['ocaid']
-            if 'printdisabled' in e.get('ia_collection', []):
-                printdisabled.add(re_edition_key.match(e['key']).group(1))
-            all_collection.update(e.get('ia_collection', []))
-            assert isinstance(e['ocaid'], str)
-            i = e['ocaid'].strip()
-            if e.get('public_scan'):
-                public_scan = True
-                if i.endswith('goog'):
-                    pub_goog.add(i)
-                else:
-                    pub_nongoog.add(i)
+        def get_ia_availability_enum(
+            collections: list[str],
+            access_restricted_item: bool,
+        ) -> AvailabilityEnum:
+            if 'inlibrary' in collections:
+                return AvailabilityEnum.BORROWABLE
+            elif 'printdisabled' in collections:
+                return AvailabilityEnum.PRINTDISABLED
+            elif access_restricted_item or not collections:
+                return AvailabilityEnum.UNCLASSIFIED
             else:
-                if i.endswith('goog'):
-                    nonpub_goog.add(i)
-                else:
-                    nonpub_nongoog.add(i)
-        ia_list = (
-            list(pub_nongoog)
-            + list(pub_goog)
-            + list(nonpub_nongoog)
-            + list(nonpub_goog)
-        )
-        add("ebook_count_i", len(ia_list))
+                return AvailabilityEnum.PUBLIC
 
-        has_fulltext = any(e.get('ocaid', None) for e in editions)
+        def get_ia_sorting_key(ed: dict) -> tuple[AvailabilityEnum, str]:
+            ocaid = ed['ocaid'].strip()
+            return (
+                get_ia_availability_enum(
+                    ed.get('ia_collection', []),
+                    ed.get('access_restricted_item') == "true",
+                ),
+                # De-prioritize google scans because they are lower quality
+                '0: non-goog' if not ocaid.endswith('goog') else '1: goog',
+            )
 
-        add_list('ia', ia_list)
-        if has_fulltext:
-            add('public_scan_b', public_scan)
-        if all_collection:
-            add('ia_collection_s', ';'.join(all_collection))
-        if lending_edition:
-            add('lending_edition_s', lending_edition)
-            add('lending_identifier_s', lending_ia_identifier)
-        elif in_library_edition:
-            add('lending_edition_s', in_library_edition)
-            add('lending_identifier_s', lending_ia_identifier)
-        if printdisabled:
-            add('printdisabled_s', ';'.join(list(printdisabled)))
+        ia_eds = sorted((e for e in editions if 'ocaid' in e), key=get_ia_sorting_key)
+        doc['ia'] = [e['ocaid'].strip() for e in ia_eds]
+        doc["ebook_count_i"] = len(ia_eds)
+
+        # These should always be set, for some reason.
+        doc["has_fulltext"] = False
+        doc["public_scan_b"] = False
+
+        if ia_eds:
+            best_availability = get_ia_sorting_key(ia_eds[0])[0]
+            best_ed = ia_eds[0]
+            if best_availability < AvailabilityEnum.UNCLASSIFIED:
+                doc["has_fulltext"] = True
+            if best_availability == AvailabilityEnum.PUBLIC:
+                doc['public_scan_b'] = True
+
+            all_collection = uniq(c for e in ia_eds for c in e.get('ia_collection', []))
+            if all_collection:
+                doc['ia_collection_s'] = ';'.join(all_collection)
+
+            if best_availability < AvailabilityEnum.PRINTDISABLED:
+                doc['lending_edition_s'] = re_edition_key.match(best_ed['key']).group(1)
+                doc['lending_identifier_s'] = best_ed['ocaid']
+
+            printdisabled = [
+                re_edition_key.match(ed['key']).group(1)
+                for ed in ia_eds
+                if 'printdisabled' in ed.get('ia_collection', [])
+            ]
+            if printdisabled:
+                doc['printdisabled_s'] = ';'.join(printdisabled)
 
 
-def build_data(w: dict) -> SolrDocument:
+async def build_data(w: dict) -> SolrDocument:
     """
     Construct the Solr document to insert into Solr for the given work
 
@@ -815,7 +811,7 @@ def build_data(w: dict) -> SolrDocument:
         editions = w['editions']
     else:
         editions = data_provider.get_editions_of_work(w)
-    authors = SolrProcessor().extract_authors(w)
+    authors = await SolrProcessor().extract_authors(w)
 
     iaids = [e["ocaid"] for e in editions if "ocaid" in e]
     ia = {iaid: get_ia_collection_and_box_id(iaid) for iaid in iaids}
@@ -1279,7 +1275,7 @@ def build_subject_doc(
     }
 
 
-def update_work(work: dict) -> list[SolrUpdateRequest]:
+async def update_work(work: dict) -> list[SolrUpdateRequest]:
     """
     Get the Solr requests necessary to insert/update this work into Solr.
 
@@ -1314,10 +1310,10 @@ def update_work(work: dict) -> list[SolrUpdateRequest]:
         # Hack to add subjects when indexing /books/ia:xxx
         if work.get("subjects"):
             fake_work['subjects'] = work['subjects']
-        return update_work(fake_work)
+        return await update_work(fake_work)
     elif work['type']['key'] == '/type/work':
         try:
-            solr_doc = build_data(work)
+            solr_doc = await build_data(work)
         except:
             logger.error("failed to update work %s", work['key'], exc_info=True)
         else:
@@ -1337,7 +1333,7 @@ def update_work(work: dict) -> list[SolrUpdateRequest]:
     return requests
 
 
-def update_author(
+async def update_author(
     akey, a=None, handle_redirects=True
 ) -> Optional[list[SolrUpdateRequest]]:
     """
@@ -1354,7 +1350,7 @@ def update_author(
     assert m
     author_id = m.group(1)
     if not a:
-        a = data_provider.get_document(akey)
+        a = await data_provider.get_document(akey)
     if a['type']['key'] in ('/type/redirect', '/type/delete') or not a.get(
         'name', None
     ):
@@ -1472,7 +1468,7 @@ def solr_select_work(edition_key):
         return docs[0]['key']  # /works/ prefix is in solr
 
 
-def update_keys(
+async def update_keys(
     keys,
     commit=True,
     output_file=None,
@@ -1509,9 +1505,8 @@ def update_keys(
             pass
 
     global data_provider
-    global _ia_db
     if data_provider is None:
-        data_provider = get_data_provider('default', _ia_db)
+        data_provider = get_data_provider('default')
 
     wkeys = set()
 
@@ -1523,14 +1518,14 @@ def update_keys(
     # Get works for all the editions
     ekeys = {k for k in keys if k.startswith("/books/")}
 
-    data_provider.preload_documents(ekeys)
+    await data_provider.preload_documents(ekeys)
     for k in ekeys:
         logger.debug("processing edition %s", k)
-        edition = data_provider.get_document(k)
+        edition = await data_provider.get_document(k)
 
         if edition and edition['type']['key'] == '/type/redirect':
             logger.warn("Found redirect to %s", edition['location'])
-            edition = data_provider.get_document(edition['location'])
+            edition = await data_provider.get_document(edition['location'])
 
         # When the given key is not found or redirects to another edition/work,
         # explicitly delete the key. It won't get deleted otherwise.
@@ -1574,7 +1569,7 @@ def update_keys(
     # Add work keys
     wkeys.update(k for k in keys if k.startswith("/works/"))
 
-    data_provider.preload_documents(wkeys)
+    await data_provider.preload_documents(wkeys)
     data_provider.preload_editions_of_works(wkeys)
 
     # update works
@@ -1583,8 +1578,8 @@ def update_keys(
     for k in wkeys:
         logger.debug("updating work %s", k)
         try:
-            w = data_provider.get_document(k)
-            requests += update_work(w)
+            w = await data_provider.get_document(k)
+            requests += await update_work(w)
         except:
             logger.error("Failed to update work %s", k, exc_info=True)
 
@@ -1605,11 +1600,11 @@ def update_keys(
     requests = []
     akeys = {k for k in keys if k.startswith("/authors/")}
 
-    data_provider.preload_documents(akeys)
+    await data_provider.preload_documents(akeys)
     for k in akeys:
         logger.debug("updating author %s", k)
         try:
-            requests += update_author(k) or []
+            requests += await update_author(k) or []
         except:
             logger.error("Failed to update author %s", k, exc_info=True)
 
@@ -1638,11 +1633,11 @@ def solr_escape(query):
     return re.sub(r'([\s\-+!()|&{}\[\]^"~*?:\\])', r'\\\1', query)
 
 
-def do_updates(keys):
+async def do_updates(keys):
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
     )
-    update_keys(keys, commit=False)
+    await update_keys(keys, commit=False)
 
 
 def load_config(c_config='conf/openlibrary.yml'):
@@ -1663,10 +1658,6 @@ def load_configs(
 
     load_config(c_config)
 
-    global _ia_db
-    if 'ia_db' in config.runtime_config:
-        _ia_db = get_ia_db(config.runtime_config['ia_db'])
-
     global data_provider
     if data_provider is None:
         if isinstance(c_data_provider, DataProvider):
@@ -1674,26 +1665,16 @@ def load_configs(
         elif c_data_provider == 'external':
             data_provider = ExternalDataProvider(host)
         else:
-            data_provider = get_data_provider(c_data_provider, _ia_db)
+            data_provider = get_data_provider(c_data_provider)
     return data_provider
 
 
-def get_ia_db(settings):
-    host = settings['host']
-    db = settings['db']
-    user = settings['user']
-    pw = os.popen(settings['pw_file']).read().strip()
-    ia_db = web.database(dbn="postgres", host=host, db=db, user=user, pw=pw)
-    return ia_db
-
-
-def main(
+async def main(
     keys: list[str],
     ol_url="http://openlibrary.org",
     ol_config="openlibrary.yml",
     output_file: str = None,
     commit=True,
-    profile=False,
     data_provider: Literal['default', 'legacy', 'external'] = "default",
     solr_base: str = None,
     solr_next=False,
@@ -1707,7 +1688,6 @@ def main(
     :param ol_config: Open Library config file
     :param output_file: Where to save output
     :param commit: Whether to also trigger a Solr commit
-    :param profile: Profile this code to identify the bottlenecks
     :param data_provider: Name of the data provider to use
     :param solr_base: If wanting to override openlibrary.yml
     :param solr_next: Whether to assume schema of next solr version is active
@@ -1727,12 +1707,7 @@ def main(
 
     set_solr_next(solr_next)
 
-    if profile:
-        f = web.profile(update_keys)
-        _, info = f(keys, commit)
-        print(info)
-    else:
-        update_keys(keys, commit=commit, output_file=output_file, update=update)
+    await update_keys(keys, commit=commit, output_file=output_file, update=update)
 
 
 if __name__ == '__main__':

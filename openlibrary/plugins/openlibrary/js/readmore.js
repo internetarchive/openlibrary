@@ -19,3 +19,28 @@ export function initReadMoreButton() {
         }
     });
 }
+
+export function initClampers(clampers) {
+    for (const clamper of clampers) {
+        if (clamper.clientHeight === clamper.scrollHeight) {
+            clamper.classList.remove('clamp')
+        } else {
+            /*
+                Clamper shows used to show more/less by toggling `hidden`
+                style on parent .clamp tag
+            */
+            $(clamper).on('click', function() {
+                const up = $(this);
+                if (up.hasClass('clamp')) {
+                    up.css({display: up.css('display') === '-webkit-box' ? 'unset' : '-webkit-box'});
+
+                    if (up.attr('data-before') === '\u25BE ') {
+                        up.attr('data-before', '\u25B8 ')
+                    } else {
+                        up.attr('data-before', '\u25BE ')
+                    }
+                }
+            })
+        }
+    }
+}

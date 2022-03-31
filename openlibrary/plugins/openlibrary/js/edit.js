@@ -279,21 +279,18 @@ export function initEditLinks() {
 export function initEdit() {
     var hash = document.location.hash || '#edition';
     var tab = hash.split('/')[0];
-    var link = `#link_${tab.substr(1)}`;
+    var link = `#link_${tab.substring(1)}`;
     var fieldname = `:input${hash.replace('/', '-')}`;
 
     $(link).trigger('click');
 
     // input field is enabled only after the tab is selected and that takes some time after clicking the link.
     // wait for 1 sec after clicking the link and focus the input field
-    setTimeout(function() {
+    if ($(fieldname).length !== 0) {
+        setTimeout(function() {
         // scroll such that top of the content is visible
-        if ($(fieldname).length !== 0) {
             $(fieldname).trigger('focus');
-        }
-        else {
-            $('#tabsAddbook > div:visible :input').first().trigger('focus');
-        }
-        $(window).scrollTop($('#contentHead').offset().top);
-    }, 1000);
+            $(window).scrollTop($('#contentHead').offset().top);
+        }, 1000);
+    }
 }

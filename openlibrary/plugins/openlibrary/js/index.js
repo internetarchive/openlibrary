@@ -72,6 +72,25 @@ jQuery(function () {
         import(/* webpackChunkName: "details-polyfill" */ 'details-polyfill');
     }
 
+    // Polyfill for .matches()
+    if (!Element.prototype.matches) {
+        Element.prototype.matches =
+          Element.prototype.msMatchesSelector ||
+          Element.prototype.webkitMatchesSelector;
+    }
+
+    // Polyfill for .closest()
+    if (!Element.prototype.closest) {
+        Element.prototype.closest = function(s) {
+            let el = this;
+            do {
+                if (Element.prototype.matches.call(el, s)) return el;
+                el = el.parentElement || el.parentNode;
+            } while (el !== null && el.nodeType === 1);
+            return null;
+        };
+    }
+
     const $markdownTextAreas = $('textarea.markdown');
     // Live NodeList is cast to static array to avoid infinite loops
     const $carouselElements = $('.carousel--progressively-enhanced');
@@ -177,9 +196,18 @@ jQuery(function () {
             .then(module => module.initRealTimeValidation());
     }
     // conditionally load readmore button based on class in the page
-    if (document.getElementsByClassName('read-more-button').length) {
+    const readMoreButtons = document.getElementsByClassName('read-more-button');
+    const clampers = document.querySelectorAll('.clamp');
+    if (readMoreButtons.length || clampers.length) {
         import(/* webpackChunkName: "readmore" */ './readmore.js')
-            .then(module => module.initReadMoreButton());
+            .then(module => {
+                if (readMoreButtons.length) {
+                    module.initReadMoreButton();
+                }
+                if (clampers.length) {
+                    module.initClampers(clampers);
+                }
+            });
     }
     // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
@@ -298,6 +326,20 @@ jQuery(function () {
         $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
     }
 
+    // "Want to Read" buttons:
+    const droppers = document.getElementsByClassName('widget-add');
+
+    if (droppers.length) {
+        import(/* webpackChunkName: "lists" */ './lists')
+            .then((module) => {
+                module.initDroppers(droppers);
+                // Removable list items:
+                const actionableListItems = document.querySelectorAll('.actionable-item')
+                module.registerListItems(actionableListItems);
+            }
+            );
+    }
+
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
@@ -322,5 +364,11 @@ jQuery(function () {
     if (ratingForms) {
         import(/* webpackChunkName: "star-ratings" */'./handlers')
             .then((module) => module.initRatingHandlers(ratingForms));
+    }
+
+    const navbar = document.querySelector('.work-menu');
+    if (navbar) {
+        import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
+            .then((module) => module.initNavbar(navbar));
     }
 });
