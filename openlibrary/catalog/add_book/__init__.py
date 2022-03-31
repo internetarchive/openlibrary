@@ -827,11 +827,12 @@ def load(rec, account_key=None):
 
     # Add new identifiers
     if 'identifiers' in rec:
-        identifiers = defaultdict(set, e.get('identifiers', {}))
+        identifiers = defaultdict(list, e.dict().get('identifiers', {}))
         for k, vals in rec['identifiers'].items():
-            identifiers[k].update(vals)
-        if e.get('identifiers') != identifiers:
-            e['identifiers'] = {k: list(vals) for k, vals in identifiers.items()}
+            identifiers[k].extend(vals)
+            identifiers[k] = list(set(identifiers[k]))
+        if e.dict().get('identifiers') != identifiers:
+            e['identifiers'] = identifiers
             need_edition_save = True
 
     edits = []
