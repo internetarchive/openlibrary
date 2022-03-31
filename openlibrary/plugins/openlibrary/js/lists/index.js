@@ -183,7 +183,7 @@ function addCreateListClickListener(button, parentDropper) {
             const data = {
                 name: websafe(nameField.value),
                 description: websafe(descriptionField.value),
-                seeds: [seed],
+                seeds: [ { key: seed } ],
             }
 
             const successCallback = function(listKey, listTitle) {

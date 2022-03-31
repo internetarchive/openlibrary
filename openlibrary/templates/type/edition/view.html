@@ -24,24 +24,35 @@ $if page.key.startswith('/books'):
   $# We are on an editions page: an edition has been explicitly selected
   $ edition = page
 
+$ selected_provider = None
+$ selected_id = None
+$ provider = None
+$if query_param('edition'):
+  $if ':' in query_param('edition'):
+    $ [selected_provider, selected_id] = query_param('edition').split(':')
+  $else:
+    $ [selected_provider, selected_id] = ['ia', query_param('edition')]
+  $ provider = get_book_provider_by_name(selected_provider)
+
 $ component_times['get_sorted_editions'] = time()
 
 $# Fetch a work's editions
 $# Used for loading the editions table
 $# Book availability of editions injected by bulk get_availability API
 $ edition_count = work.edition_count if work and work.edition_count else 1
-$ ebooks_only = query_param('mode') == 'ebooks' or (query_param('mode') != 'all' and edition_count > 10)
+$ ebooks_only = (query_param('mode') == 'ebooks') or (query_param('mode') != 'all' and edition_count > 10)
 
 $# For performance reasons, limit to 10 ebooks
 $# Tradeoff: limits our ability to select best edition
-$ editions_limit = None if not query_param('mode') else 10
+$ editions_limit = None if query_param('mode') in ['all', 'ebooks'] else 10
+$# key ensures the current edition we're on or requested edition are fetched by get_sorted_editions
+$ keys = (edition and [edition.key]) or (provider and provider.get_olids(selected_id))
 $if ebooks_only:
-  $ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=edition and [edition.key])
-
+  $ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=keys)
 $if not editions:
   $# use ebooks_only to determine whether to lazyload editions table
   $ ebooks_only = False
-  $ editions = work.get_sorted_editions(limit=editions_limit, covers_only=True)
+  $ editions = work.get_sorted_editions(limit=editions_limit, keys=keys)
 $ availabilities = {e.availability.get('identifier'): e.availability for e in editions}
 $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
 
@@ -49,21 +60,17 @@ $# This collects which books are previewable in any manner
 $ previews = [e for e in editions if e.get('ocaid')]
 
 $# Choose an edition to render
-$if not edition:
+$if editions and not edition:
   $# We're presumably on a work url
   $# edition selection strategy (e.g. language, by id, first w/ ocaid)
-  $if query_param('edition'):
-    $if ':' in query_param('edition'):
-      $ [selected_provider, selected_id] = query_param('edition').split(':')
-    $else:
-      $ [selected_provider, selected_id] = ['ia', query_param('edition')]
-    $ provider = get_book_provider_by_name(selected_provider)
-    $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), edition)
+  $if provider:
+    $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), editions[0])
   $else:
     $ edition, provider = get_best_edition(editions)
 
 $# Just in case edition is not set, treat as work
 $ edition = edition or page
+$ is_editionless_work = edition.type != '/type/edition'
 
 $if not edition.get('availability'):
   $ edition['availability'] = edition.get('ocaid') and availabilities.get(edition['ocaid']) or {}
@@ -81,7 +88,7 @@ $var title: $title
 
 $code:
     def has_any(*keys):
-        return any(page[k] for k in keys)
+        return any(edition[k] for k in keys)
 
 $code:
     def get_description(book):
@@ -243,15 +250,16 @@ $if is_privileged_user:
                 </div>
 
               $ edition_identifiers = edition.get_identifiers()
-              $ isbn = None
+              $ isbns = []
               $if 'isbn_13' in edition_identifiers.keys():
-                $ isbn = edition_identifiers['isbn_13']['value']
-              $elif 'isbn_10' in edition_identifiers.keys():
-                $ isbn = edition_identifiers['isbn_10']['value']
-              $if isbn:
+                $ isbns.append(edition_identifiers['isbn_13']['value'])
+              $if 'isbn_10' in edition_identifiers.keys():
+                $ isbns.append(edition_identifiers['isbn_10']['value'])
+              $if isbns:
                 <div class="edition-omniline-item">
-                  <div>ISBN</div>
-                  <span>$isbn</span>
+                  <div>ISBNs</div>
+                  $for isbn in isbns:
+                    <span>$isbn</span>
                 </div>
           </div>
       </div>
@@ -319,13 +327,23 @@ $if is_privileged_user:
         $if edition:
           <h2 class="details-title" itemprop="name">$_("Book Details")</h2>
           <hr>
+          $if edition.publish_places:
+            <div class="section">
+              <h3 class="edition-header">$_('Published in')</h3>
+              <p>
+              $for p in edition.publish_places:
+                <a href="/search/subjects?q=$p.replace('&','%26').replace(' ','%20')"
+                  title="$_('Search for subjects about %(place)s', place=p)">
+                    $p
+                </a>$cond(loop.last, "", ", ")
+              </p>
+            </div>
           $if edition.first_sentence:
             <div>
             <h3 class="edition-header">$_("First Sentence")</h3>
             <p>"$(edition.first_sentence)"</p>
             </div>
 
-        $if edition:
           $ component_times['TableOfContents'] = time()
           $:macros.TableOfContents(edition, ocaid)
           $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
@@ -485,7 +503,7 @@ $if is_privileged_user:
                 $:render_template("lists/widget", work, include_header=False, include_widget=False)
                 $ component_times['lists widget: WorkListTime'] = time() - component_times['lists widget: WorkListTime']
 
-              $if edition:
+              $if edition and is_editionless_work:
                 $ component_times['lists widget: EditionListTime'] = time()
                 $:render_template("lists/widget", edition, include_header=False, include_widget=False)
                 $ component_times['lists widget: EditionListTime'] = time() - component_times['lists widget: EditionListTime']

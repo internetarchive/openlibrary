@@ -828,7 +828,7 @@ def load(rec, account_key=None):
     # Add new identifiers
     if 'identifiers' in rec:
         identifiers = defaultdict(set, e.get('identifiers', {}))
-        for k, vals in rec.identifiers:
+        for k, vals in rec['identifiers']:
             identifiers[k].update(vals)
         if e.get('identifiers') != identifiers:
             e['identifiers'] = {k: list(vals) for k, vals in identifiers.items()}

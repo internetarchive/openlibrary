@@ -378,7 +378,7 @@ class Test_build_data:
         assert d['has_fulltext'] is True
         assert d['public_scan_b'] is True
         assert d['printdisabled_s'] == 'OL4M'
-        assert d['lending_edition_s'] == 'OL3M'
+        assert d['lending_edition_s'] == 'OL2M'
         assert sorted(d['ia']) == ['foo00bar', 'foo01bar', 'foo02bar']
         assert sss(d['ia_collection_s']) == sss(
             "americana;inlibrary;printdisabled"
@@ -721,3 +721,20 @@ class Test_Sort_Editions_Ocaids:
             "ocaid_printdisabled",
             "ocaid_restricted"
         ]
+
+    def test_goog_deprioritized(self):
+        doc = {}
+        editions = [
+            {
+                "key": "/books/OL789M",
+                "ocaid": "foobargoog",
+                "ia_collection": [],
+            },
+            {
+                "key": "/books/OL789M",
+                "ocaid": "foobarblah",
+                "ia_collection": [],
+            },
+        ]
+        SolrProcessor.add_ebook_info(doc, editions)
+        assert doc['ia'] == ["foobarblah", "foobargoog"]
