@@ -127,24 +127,18 @@ def dicthash(d):
         return d
 
 
-author_olid_embedded_re = re.compile(r'.*?(OL\d+A).*', re.IGNORECASE)
+author_olid_embedded_re = re.compile(r'OL\d+A', re.IGNORECASE)
 
 def find_author_olid_in_string(s):
-    try:
-        found = re.search(author_olid_embedded_re, s).group(1)
-    except AttributeError:
-        found = ''
-    return found.upper()
+    found = re.search(author_olid_embedded_re, s)
+    return found.group(0).upper() if found else ""
 
 
-work_olid_embedded_re = re.compile(r'.*?(OL\d+W).*', re.IGNORECASE)
+work_olid_embedded_re = re.compile(r'OL\d+W', re.IGNORECASE)
 
 def find_work_olid_in_string(s):
-    try:
-        found = re.search(work_olid_embedded_re, s).group(1)
-    except AttributeError:
-        found = ''
-    return found.upper()
+    found = re.search(work_olid_embedded_re, s)
+    return found.group(0).upper() if found else ""
 
 
 def extract_numeric_id_from_olid(olid):
