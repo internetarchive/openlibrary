@@ -1987,7 +1987,7 @@ msgid ""
 "We already know about the <b>%(year)s %(publisher)s edition</b> of <b>"
 "%(work_title)s</b>, but please, tell us more!"
 msgstr ""
-"我们已经知道<b>%(work_title)s</b>的<b>%(year)s %(publisher)s 版本，但还是"
+"我们已经知道<b>%(work_title)s</b>的<b>%(year)s %(publisher)s 版本</b>，但还是"
 "请告诉我们更多信息！"
 
 #: books/edit.html:37
