@@ -3649,7 +3649,7 @@ msgstr "Możesz się <a href=\"%s\">zalogować</a> jeśli masz wymagane uprawnie
 #: openlibrary/templates/subjects.html:22
 #, python-format
 msgid "Search for books with subject %(name)s."
-msgstr "Szukaj książek o tematyce %(names)s."
+msgstr "Szukaj książek o tematyce %(name)s."
 
 #: openlibrary/templates/subjects.html:46
 msgid ""

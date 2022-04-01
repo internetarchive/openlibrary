@@ -23,7 +23,7 @@ msgstr ""
 #: verify.html:5 verify/activated.html:6 verify/success.html:6
 #, python-format
 msgid "Hi, %(user)s"
-msgstr "Ahoj %(user)"
+msgstr "Ahoj %(user)s"
 
 #: account.py:348 account.py:383
 #, fuzzy, python-format
