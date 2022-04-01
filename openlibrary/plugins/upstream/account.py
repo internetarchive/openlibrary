@@ -265,7 +265,7 @@ class account_create(delegate.page):
         )
 
     def POST(self):
-        f = self.get_form()  # type: forms.RegisterForm
+        f: forms.RegisterForm = self.get_form()
 
         if f.validates(web.input()):
             try:
