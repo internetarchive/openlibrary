@@ -1938,7 +1938,7 @@ msgid ""
 "One moment... It looks like we already have <em>some potential matches</em> "
 "for <b>%(title)s</b> by <b>%(author)s</b>."
 msgstr ""
-"等等... 我们好像已经有一些<b>%(author)s</b>写的<b>%(title)s</b>的<em>可能匹配</em>了。"
+"<!-- i18n-lint no-tree-equal -->等等... 我们好像已经有一些<b>%(author)s</b>写的<b>%(title)s</b>的<em>可能匹配</em>了。"
 
 #: books/check.html:17
 msgid ""

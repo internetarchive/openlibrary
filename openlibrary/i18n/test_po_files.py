@@ -85,4 +85,5 @@ def gen_html_entries():
 def test_html_format(locale: str, msgid: str, msgstr: str):
     id_tree = etree.fromstring(f'<root>{msgid}</root>')
     str_tree = etree.fromstring(f'<root>{msgstr}</root>')
-    assert trees_equal(id_tree, str_tree)
+    if not msgstr.startswith('<!-- i18n-lint no-tree-equal -->'):
+        assert trees_equal(id_tree, str_tree)
