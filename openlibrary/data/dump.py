@@ -19,7 +19,6 @@ import time
 import web
 
 from infogami import config
-from infogami.infobase.utils import flatten_dict
 from openlibrary.config import load_config
 from openlibrary.data import db
 from openlibrary.data.sitemap import generate_html_index, generate_sitemaps
