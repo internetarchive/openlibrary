@@ -232,6 +232,7 @@ def make_index(dump_file):
             created = "-"
         print("\t".join([web.safestr(path), web.safestr(title), created, timestamp]))
 
+
 def _process_key(key):
     mapping = {
         "/l/": "/languages/",
@@ -283,13 +284,7 @@ def _invert_dict(d):
 
 
 _pgencode_dict = {"\n": r"\n", "\r": r"\r", "\t": r"\t", "\\": r"\\"}
-_pgencode = _make_sub(_pgencode_dict)
 _pgdecode = _make_sub(_invert_dict(_pgencode_dict))
-
-
-def pgencode(text):
-    """Reverse of pgdecode."""
-    return _pgdecode(text)
 
 
 def pgdecode(text):
@@ -330,6 +325,7 @@ def main(cmd, args):
         func(*args, **kwargs)
     elif cmd == "solrdump":
         from openlibrary.data import solr  # noqa: E402 avoid circular import
+
         solr.generate_dump(*args, **kwargs)
     else:
         logger.error(f"Unknown command: {cmd}")
@@ -341,7 +337,7 @@ if __name__ == "__main__":
     if ol_config:
         logger.info(f"loading config from {ol_config}")
         load_config(ol_config)
-        sentry = Sentry(getattr(config, 'sentry_cron_jobs', {}))
+        sentry = Sentry(getattr(config, "sentry_cron_jobs", {}))
         if sentry.enabled:
             sentry.init()
 
