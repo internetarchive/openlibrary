@@ -279,12 +279,8 @@ def _make_sub(d):
     return lambda s: s and rx.sub(f, s)
 
 
-def _invert_dict(d):
-    return {v: k for (k, v) in d.items()}
-
-
-_pgencode_dict = {"\n": r"\n", "\r": r"\r", "\t": r"\t", "\\": r"\\"}
-_pgdecode = _make_sub(_invert_dict(_pgencode_dict))
+_pgdecode_dict = {r"\n": "\n", r"\r": "\r", r"\t": "\t", r"\\": "\\"}
+_pgdecode = _make_sub(_pgdecode_dict)
 
 
 def pgdecode(text):
