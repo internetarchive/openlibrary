@@ -2763,3 +2763,227 @@ msgstr "教科书"
 #: home/stats.html:9 site/around_the_library.html:52
 msgid "Around the Library"
 msgstr "图书馆周围"
+
+#: home/stats.html:10
+msgid ""
+"Here's what's happened over the last 28 days. More <a href=\"/recentchanges"
+"\">recent changes</a>"
+msgstr ""
+"以下是过去28天里发生的情况。更多 <a href=\"/recentchanges\">近期的变更</a>"
+
+#: home/stats.html:15 home/stats.html:17
+msgid "See all visitors to OpenLibrary.org"
+msgstr "查看OpenLibrary.org的所有访客"
+
+#: home/stats.html:17
+msgid "Unique Visitors"
+msgstr "独特访客"
+
+#: home/stats.html:22 home/stats.html:24
+msgid "How many new Open Library members have we welcomed?"
+msgstr ""
+"我们已经迎来了多少位新的开放图书馆成员？"
+
+#: home/stats.html:24
+msgid "New Members"
+msgstr "新成员"
+
+#: home/stats.html:28 home/stats.html:30
+msgid "People are constantly updating the catalog"
+msgstr "人们在不断地更新目录"
+
+#: home/stats.html:30
+msgid "Catalog Edits"
+msgstr "目录编辑"
+
+#: home/stats.html:35 home/stats.html:37
+msgid "Members can create Lists"
+msgstr "成员可以创建列表"
+
+#: home/stats.html:37
+msgid "Lists Created"
+msgstr "已创建的列表"
+
+#: home/stats.html:42 home/stats.html:44
+msgid "We're a library, so we lend books, too"
+msgstr "我们是一个图书馆，所以我们也提供书籍借阅"
+
+#: home/stats.html:44
+msgid "eBooks Borrowed"
+msgstr "已借阅的电子书"
+
+#: home/welcome.html:26
+msgid "Read Free Library Books Online"
+msgstr "在线阅读免费图书馆书籍"
+
+#: home/welcome.html:27
+msgid "Millions of books available through Controlled Digital Lending"
+msgstr ""
+"通过可控数字借阅提供数百万册图书"
+
+#: home/welcome.html:40
+msgid "Keep Track of your Favorite Books"
+msgstr "追踪您喜爱的书籍"
+
+#: home/welcome.html:41
+msgid "Organize your Books using Lists & the Reading Log"
+msgstr "使用清单和阅读日志来整理您的书籍"
+
+#: home/welcome.html:54
+msgid "Try the virtual Library Explorer"
+msgstr "试试虚拟图书馆资源管理器"
+
+#: home/welcome.html:55
+msgid "Digital shelves organized like a physical library"
+msgstr "像实体图书馆一样组织起来的数字书架"
+
+#: home/welcome.html:68
+msgid "Be an Open Librarian"
+msgstr "成为一名开放图书馆员"
+
+#: home/welcome.html:69
+msgid "Dozens of ways you can help improve the library"
+msgstr "您可以通过多种方式帮忙改善图书馆"
+
+#: home/welcome.html:82
+msgid "Send us feedback"
+msgstr "给我们发送反馈意见"
+
+#: home/welcome.html:83
+msgid "Your feedback will help us improve these cards"
+msgstr "您的反馈将帮助我们改进这些卡片"
+
+#: languages/index.html:15
+#, python-format
+msgid "%s book"
+msgid_plural "%s books"
+msgstr[0] "%s 本书"
+msgstr[1] "%s 本书"
+
+#: languages/notfound.html:7
+#, python-format
+msgid "%s is not found"
+msgstr "未找到 %s"
+
+#: languages/notfound.html:14
+#, python-format
+msgid "%s does not exist."
+msgstr "%s 不存在。"
+
+#: lib/edit_head.html:22 lib/view_head.html:14
+msgid "This doc was last edited by"
+msgstr "本文档最后由以下人员编辑"
+
+#: lib/edit_head.html:24 lib/view_head.html:16
+msgid "This doc was last edited anonymously"
+msgstr "本文档最后由匿名人士编辑"
+
+#: lib/header_dropdown.html:26
+msgid "Menu"
+msgstr "菜单"
+
+#: lib/header_dropdown.html:58
+msgid "New!"
+msgstr "新的!"
+
+#: databarDiff.html:9 databarEdit.html:10 databarTemplate.html:9
+#: databarView.html:26 databarView.html:28 lib/history.html:21
+msgid "History"
+msgstr "历史"
+
+#: lib/history.html:25
+#, python-format
+msgid "Created %(date)s"
+msgstr "于 %(date)s 创建"
+
+#: lib/history.html:32
+#, python-format
+msgid "1 revision"
+msgid_plural "%(count)d revisions"
+msgstr[0] "1 次修订"
+msgstr[1] "%(count)d 次修订"
+
+#: lib/history.html:44
+msgid "Download catalog record:"
+msgstr "下载目录记录:"
+
+#: lib/history.html:52
+msgid "Cite this on Wikipedia"
+msgstr "在维基百科上引用此内容"
+
+#: lib/history.html:52
+msgid "Wikipedia citation"
+msgstr "维基百科引文"
+
+#: lib/history.html:62
+msgid "Copy and paste this code into your Wikipedia page."
+msgstr "复制并粘贴此代码到您的维基百科页面。"
+
+#: lib/history.html:83 lib/history.html:85
+msgid "an anonymous user"
+msgstr "一位匿名用户"
+
+#: lib/history.html:87
+#, python-format
+msgid "Created by %(user)s"
+msgstr "由 %(user)s 创建"
+
+#: lib/history.html:89
+#, python-format
+msgid "Edited by %(user)s"
+msgstr "由 %(user)s 编辑"
+
+#: lib/markdown.html:16
+msgid ""
+"We use a system called Markdown to format the text in your edits on Open "
+"Library. Some HTML formatting is also accepted. Paragraphs are automatically "
+"generated from any hard-break returns (blank lines) within your text. You "
+"can preview your work in real time below the editing field."
+msgstr ""
+"我们使用一个叫做Markdown的系统来设计您在开放图书馆上编辑的文本的版式。"
+"我们也接受一些HTML格式的文件。段落是由文本中另起一行（空行）自动生成的。"
+"您可以在编辑栏下面实时预览您的文本。"
+
+#: lib/markdown.html:17
+msgid "Formatting marks should envelope the effected text, for example:"
+msgstr "格式化标记应环绕相关的文本，例如:"
+
+#: lib/markdown.html:76
+msgid ""
+"To \"escape\" any Markdown tags (i.e. use an asterisk as an asterisk rather "
+"than emphasizing text) place a backslash \\ prior to the character."
+msgstr ""
+"如果想 \"避免\" 任何Markdown标签（即把星号作为星号使用，而不是强调"
+"文本），请在字符之前放置一个反斜线 \\。"
+
+#: lib/nav_foot.html:13
+msgid "Vision"
+msgstr "愿景"
+
+#: lib/nav_foot.html:14
+msgid "Volunteer"
+msgstr "志愿者"
+
+#: lib/nav_foot.html:15
+msgid "Partner With Us"
+msgstr "与我们合作"
+
+#: lib/nav_foot.html:16
+msgid "Jobs"
+msgstr "工作机会"
+
+#: lib/nav_foot.html:16
+msgid "Careers"
+msgstr "职业发展"
+
+#: lib/nav_foot.html:17
+msgid "Blog"
+msgstr "博客"
+
+#: lib/nav_foot.html:18
+msgid "Terms of Service"
+msgstr "服务条款"
+
+#: lib/nav_foot.html:19
+msgid "Donate"
+msgstr "捐助"
