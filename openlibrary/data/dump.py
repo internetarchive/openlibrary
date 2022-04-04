@@ -328,9 +328,6 @@ def main(cmd, args):
     }.get(cmd)
     if func:
         func(*args, **kwargs)
-    elif cmd == "solrdump":
-        from openlibrary.data import solr  # noqa: E402 avoid circular import
-        solr.generate_dump(*args, **kwargs)
     else:
         logger.error(f"Unknown command: {cmd}")
         print("Unknown command:", cmd, file=sys.stderr)
