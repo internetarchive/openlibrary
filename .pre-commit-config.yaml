@@ -47,6 +47,7 @@ repos:
         args:
           - --ignore-missing-imports
           - --scripts-are-modules
+          - --exclude=scripts/solr_builder/solr_builder/fn_to_cli.py
         additional_dependencies:
           - types-all
 
