@@ -1386,7 +1386,7 @@ msgstr "已经阅读过的"
 #: account/readinglog_stats.html:8 account/readinglog_stats.html:99
 #, python-format
 msgid "\"%(shelf_name)s\" Stats"
-msgstr "\"%(shelf_name)s\"状态"
+msgstr "\"%(shelf_name)s\"统计数据"
 
 #: account/readinglog_stats.html:101
 #, python-format
@@ -2987,3 +2987,354 @@ msgstr "服务条款"
 #: lib/nav_foot.html:19
 msgid "Donate"
 msgstr "捐助"
+
+#: lib/nav_foot.html:23
+msgid "Discover"
+msgstr "发现"
+
+#: lib/nav_foot.html:25
+msgid "Go home"
+msgstr "返回主页"
+
+#: lib/nav_foot.html:25
+msgid "Home"
+msgstr "主页"
+
+#: lib/nav_foot.html:26
+msgid "Explore Books"
+msgstr "探索书籍"
+
+#: lib/nav_foot.html:26
+msgid "Books"
+msgstr "书籍"
+
+#: lib/nav_foot.html:27
+msgid "Explore authors"
+msgstr "探索作者"
+
+#: lib/nav_foot.html:28
+msgid "Explore subjects"
+msgstr "探索主题"
+
+#: lib/nav_foot.html:29
+msgid "Explore collections"
+msgstr "探索收藏"
+
+#: lib/nav_foot.html:29 lib/nav_head.html:33
+msgid "Collections"
+msgstr "收藏"
+
+#: lib/nav_foot.html:31
+msgid "Navigate to top of this page"
+msgstr "导航至本页面顶部"
+
+#: lib/nav_foot.html:31
+msgid "Return to Top"
+msgstr "回到顶部"
+
+#: lib/nav_foot.html:35
+msgid "Develop"
+msgstr "开发"
+
+#: lib/nav_foot.html:37
+msgid "Explore Open Library Developer Center"
+msgstr "探索开放图书馆开发人员中心"
+
+#: lib/nav_foot.html:37 lib/nav_head.html:26
+msgid "Developer Center"
+msgstr "开发人员中心"
+
+#: lib/nav_foot.html:38
+msgid "Explore Open Library APIs"
+msgstr "探索开放图书馆API"
+
+#: lib/nav_foot.html:38
+msgid "API Documentation"
+msgstr "DAPI文档"
+
+#: lib/nav_foot.html:39
+msgid "Bulk Open Library data"
+msgstr "批量开放图书馆数据"
+
+#: lib/nav_foot.html:39
+msgid "Bulk Data Dumps"
+msgstr "批量数据转存"
+
+#: lib/nav_foot.html:40
+msgid "Write a bot"
+msgstr "编写一个bot"
+
+#: lib/nav_foot.html:40
+msgid "Writing Bots"
+msgstr "编写bot"
+
+#: lib/nav_foot.html:41
+msgid "Add a new book to Open Library"
+msgstr "在开放图书馆添加新书"
+
+#: lib/nav_foot.html:47
+msgid "Help Center"
+msgstr "帮助中心"
+
+#: lib/nav_foot.html:48
+msgid "Problems"
+msgstr "问题"
+
+#: lib/nav_foot.html:48
+msgid "Report A Problem"
+msgstr "报告一个问题"
+
+#: lib/nav_foot.html:49
+msgid "Suggest Edits"
+msgstr "提出编辑建议"
+
+#: lib/nav_foot.html:49
+msgid "Suggesting Edits"
+msgstr "编辑建议"
+
+#: lib/nav_foot.html:57
+msgid "Change Website Language"
+msgstr "改变网站使用的语言"
+
+#: lib/nav_foot.html:59
+msgid "Czech"
+msgstr "捷克语"
+
+#: lib/nav_foot.html:60 lib/search_foot.html:33
+msgid "German"
+msgstr "德语"
+
+#: lib/nav_foot.html:61 lib/search_foot.html:32
+msgid "English"
+msgstr "英语"
+
+#: lib/nav_foot.html:62 lib/search_foot.html:35
+msgid "Spanish"
+msgstr "西班牙语"
+
+#: lib/nav_foot.html:63 lib/search_foot.html:34
+msgid "French"
+msgstr "法语"
+
+#: lib/nav_foot.html:64
+msgid "Croatian"
+msgstr "克罗地亚语"
+
+#: lib/nav_foot.html:65
+msgid "Telugu"
+msgstr "泰卢固语"
+
+#: lib/nav_foot.html:73
+msgid ""
+"Open Library is an initiative of the <a href=\"//archive.org/\">Internet "
+"Archive</a>, a 501(c)(3) non-profit, building a digital library of Internet "
+"sites and other cultural artifacts in  digital form. Other <a href=\"//"
+"archive.org/projects/\">projects</a> include the <a href=\"//archive.org/web/"
+"\">Wayback Machine</a>, <a href=\"//archive.org/\">archive.org</a> and <a "
+"href=\"//archive-it.org\">archive-it.org</a>"
+msgstr ""
+"开放图书馆是由<a href=\"//archive.org/\">互联网档案馆</a>提出的一个倡议，它是一"
+"个501(c)(3)非营利组织，意在建立一个数字图书馆，用数字形式收录互联网网站和其他文化艺术品。"
+"其他的<a href=\"//archive.org/projects/\">项目</a>包括<a href=\"//archive.org/web/\">"
+"Wayback Machine</a>, <a href=\"//archive.org/\">archive.org</a>和<a href=\"//archive-it.org"
+"\">archive-it.org</a>"
+
+#: lib/nav_foot.html:78
+#, python-format
+msgid ""
+"version <a href=\"https://github.com/internetarchive/openlibrary/commit/%s\">"
+"%s</a>"
+msgstr ""
+"版本 <a href=\"https://github.com/internetarchive/openlibrary/commit/%s\">"
+"%s</a>"
+
+#: lib/nav_head.html:10
+msgid "My Profile"
+msgstr "我的个人资料"
+
+#: lib/nav_head.html:11
+msgid "My Loans"
+msgstr "我的租借"
+
+#: lib/nav_head.html:12
+msgid "My Lists"
+msgstr "我的清单"
+
+#: lib/nav_head.html:13
+msgid "My Reading Log"
+msgstr "我的阅读日志"
+
+#: lib/nav_head.html:14
+msgid "My Reading Stats"
+msgstr "我的阅读统计数据"
+
+#: lib/nav_head.html:16
+msgid "Log out"
+msgstr "退出登录"
+
+#: lib/nav_head.html:24
+msgid "Sponsor a Book"
+msgstr "赞助一本书籍"
+
+#: lib/nav_head.html:25
+msgid "Recent Community Edits"
+msgstr "最近的社区编辑"
+
+#: lib/nav_head.html:27
+msgid "Help & Support"
+msgstr "帮助与支持"
+
+#: lib/nav_head.html:34
+msgid "K-12 Student Library"
+msgstr "K-12学生图书馆"
+
+#: lib/nav_head.html:35
+msgid "Random Book"
+msgstr "随机书籍"
+
+#: lib/nav_head.html:40
+msgid "My Open Library"
+msgstr "我的开放图书馆"
+
+#: lib/nav_head.html:41 lib/nav_head.html:60
+msgid "Browse"
+msgstr "浏览"
+
+#: lib/nav_head.html:49
+msgid "The Internet Archive's Open Library: One page for every book"
+msgstr "来自互联网档案馆的开放图书馆:每一本书籍都有一个页面"
+
+#: lib/nav_head.html:53 type/list/embed.html:22
+msgid "Open Library logo"
+msgstr "开放图书馆logo"
+
+#: lib/nav_head.html:81
+msgid "All"
+msgstr "全部"
+
+#: lib/nav_head.html:84
+msgid "Text"
+msgstr "文本"
+
+#: lib/nav_head.html:85 lib/search_foot.html:11 lib/search_head.html:11
+#: search/advancedsearch.html:28
+msgid "Subject"
+msgstr "主题"
+
+#: lib/nav_head.html:87 lib/search_foot.html:63 lib/search_head.html:29
+msgid "Advanced"
+msgstr "高级的"
+
+#: NotesModal.html:29 lib/nav_head.html:125
+msgid "My Book Notes"
+msgstr "我的图书笔记"
+
+#: lib/not_logged.html:7
+msgid ""
+"<strong>You are not <a href=\"/account/login\" title=\"Log in now\">logged "
+"in</a>.</strong> Open Library will record your IP address and include it in "
+"this page's publicly accessible edit history. If you <a href=\"/account/"
+"create\" title=\"Create an Open Library account\">create an account</a>, "
+"your IP address is concealed and you can more easily keep track of all your "
+"edits and additions."
+msgstr ""
+"<strong>您还没有<a href=\"/account/login\" title=\"立即登录\">登录</a>。</strong>"
+"开放图书馆将记录您的IP地址，并将其纳入本页面可公开访问的编辑历史。"
+"如果您<a href=\"/account/create\" title=\"创建一个开放图书馆账号\">创建一个账号</a>,"
+"您的IP地址会被隐藏，而且您可以更容易地跟踪您所有编辑和添加的内容。"
+
+#: Pager.html:27 lib/pagination.html:22
+msgid "Previous"
+msgstr "之前的"
+
+#: lib/search_foot.html:12 lib/search_head.html:12
+#: search/advancedsearch.html:32
+msgid "Place"
+msgstr "地点"
+
+#: lib/search_foot.html:13 lib/search_head.html:13
+#: search/advancedsearch.html:36
+msgid "Person"
+msgstr "人物"
+
+#: lib/search_foot.html:31
+msgid "any"
+msgstr "任何的都可以"
+
+#: lib/search_foot.html:36
+msgid "Russian"
+msgstr "俄罗斯语"
+
+#: lib/search_foot.html:37
+msgid "Italian"
+msgstr "意大利语"
+
+#: lib/search_foot.html:38
+msgid "Chinese"
+msgstr "中文"
+
+#: lib/search_foot.html:39
+msgid "Arabic"
+msgstr "阿拉伯语"
+
+#: lib/search_foot.html:40
+msgid "Japanese"
+msgstr "日语"
+
+#: lib/search_foot.html:41
+msgid "Portuguese"
+msgstr "葡萄牙语"
+
+#: lib/search_foot.html:42
+msgid "Polish"
+msgstr "波兰语"
+
+#: lib/search_foot.html:68 lib/search_head.html:34
+msgid "Only eBooks"
+msgstr "仅限电子书"
+
+#: lib/search_foot.html:70 lib/search_head.html:36
+msgid "Search eBook text"
+msgstr "搜索电子书文本"
+
+#: lib/search_head.html:68
+msgid "Your Profile"
+msgstr "您的个人资料"
+
+#: lib/search_head.html:76
+msgid "Log in"
+msgstr "登录"
+
+#: lists/header.html:11 lists/header.html:24 lists/header.html:38
+#: lists/header.html:47 lists/header.html:56
+#, python-format
+msgid "<a href=\"%(href)s\">%(name)s</a> / Lists"
+msgstr "<a href=\"%(href)s\">%(name)s</a> / 清单"
+
+#: lists/header.html:16
+#, python-format
+msgid "This author is on <strong>1 list</strong>."
+msgid_plural "This author is on <strong>%(count)s lists</strong>."
+msgstr[0] "此作者在<strong>1 个清单里</strong>。"
+msgstr[1] "此作者在<strong>%(count)s个清单里</strong>。"
+
+#: lists/header.html:31
+#, python-format
+msgid "This is edition is on <strong>1 list</strong>."
+msgid_plural "This edition is on <strong>%(count)s lists</strong>."
+msgstr[0] "此版本在<strong>1 个清单里</strong>。"
+msgstr[1] "此版本在<strong>%(count)s 个清单里</strong>。"
+
+#: lists/header.html:40
+#, python-format
+msgid "This work is on <strong>1 list</strong>."
+msgid_plural "This work is on <strong>%(count)s lists</strong>."
+msgstr[0] "此作品在<strong>1 个清单里</strong>。"
+msgstr[1] "此作品在<strong>%(count)s 个清单里</strong>。"
+
+#: lists/header.html:49
+#, python-format
+msgid "%(name)s has 1 list."
+msgid_plural "%(name)s has %(count)s lists."
+msgstr[0] "%(name)s 有 1 个清单。"
+msgstr[1] "%(name)s有 %(count)s 个清单。"
