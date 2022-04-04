@@ -44,7 +44,9 @@ repos:
     rev: 'v0.942'
     hooks:
       - id: mypy
-        args: [--exclude=scripts/solr_builder/solr_builder/fn_to_cli.py, --ignore-missing-imports, --scripts-are-modules]
+        args:
+          - --ignore-missing-imports
+          - --scripts-are-modules
         additional_dependencies:
           - types-all
 
