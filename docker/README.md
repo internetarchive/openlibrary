@@ -68,7 +68,8 @@ For example, to access Solr admin, go to http://localhost:8983/solr/admin/
 
 While running the `oldev` container, gunicorn is configured to auto-reload modified files. To see the effects of your changes in the running container, the following apply:
 
-- **Editing Python files or web templates?** Simply save the file; gunicorn will auto-reload it.
+- **Editing Python files or web templates (e.g. HTML)?** Simply save the file; gunicorn will auto-reload it.
+    - Note that the home page `openlibrary\templates\home` is cached and each change will take time to apply unless you run `docker-compose restart memcached` which restarts the `memecached` container and renders the change directly. Changing any other web template, auto applies and doesn't need any further commands.
 - **Editing frontend css or js?** Run `docker-compose run --rm home npm run-script build-assets`. This will re-generate the assets in the persistent `ol-build` volume mount (so the latest changes will be available between stopping / starting  `web` containers). Note, if you want to view the generated output you will need to attach to the container (`docker-compose exec web bash`) to examine the files in the volume, not in your local dir.
 - **Watching for file changes (frontend)** To watch for js file changes, run `docker-compose run --rm home npm run-script watch`. Similarly, for css (.less) files, run `docker-compose run --rm home npm run-script watch-css`.
 - **Editing pip packages?** Rebuild the `home` service: `docker-compose build home`
