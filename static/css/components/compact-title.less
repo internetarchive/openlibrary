@@ -1,0 +1,52 @@
+@import "../less/font-families.less";
+
+.compact-title {
+  background: @white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: @z-index-level-3;
+  position: fixed;
+  top: -35px;
+  height: var(--compact-title-height);
+  width: 100%;
+  max-width: calc(var(--test-body-mobile-width) - var(--sidebar-width-with-margin));
+
+  &__heading {
+    font-size: 1.25em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: @georgia_serif-1;
+    font-weight: 600;
+  }
+
+  &--slidein {
+    animation-duration: .75s;
+    animation-name: slidein;
+  }
+
+  @keyframes slidein {
+    from {
+      top: calc(-1 * var(--compact-title-height));
+    }
+    to {
+      top: 0;
+    }
+  }
+
+  &--slideout {
+    animation-duration: .25s;
+    animation-name: slideout;
+  }
+
+  @keyframes slideout {
+    from {
+      top: 0;
+    }
+
+    to {
+      top: calc(-1 * var(--compact-title-height));
+    }
+  }
+}

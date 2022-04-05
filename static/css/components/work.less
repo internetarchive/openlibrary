@@ -56,67 +56,6 @@ div.editionAbout {
   margin-bottom: 0;
 }
 
-.compact-title {
-  background: @white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: @z-index-level-3;
-  position: fixed;
-  top: -35px;
-  height: var(--compact-title-height);
-  width: 100%;
-  max-width: calc(var(--test-body-mobile-width) - var(--sidebar-width-with-margin));
-
-  h1 {
-    font-size: 1.25em;
-    background: @white;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  div {
-    display: unset;
-    background: @white;
-    max-height: var(--compact-title-height);
-  }
-
-  .linkButton {
-    padding: 3px 6px;
-    font-size: 12px;
-  }
-
-  &--slidein {
-    animation-duration: .75s;
-    animation-name: slidein;
-  }
-
-  @keyframes slidein {
-    from {
-      top: calc(-1 * var(--compact-title-height));
-    }
-    to {
-      top: 0;
-    }
-  }
-
-  &--slideout {
-    animation-duration: .25s;
-    animation-name: slideout;
-  }
-
-  @keyframes slideout {
-    from {
-      top: 0;
-    }
-
-    to {
-      top: calc(-1 * var(--compact-title-height));
-    }
-  }
-}
-
 .work-subtitle{
   margin-top: 0;
 }
@@ -410,4 +349,8 @@ div.editionTools {
   font-size: 1.2em;
   font-weight: normal;
   color: @link-blue;
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  @import (less) "components/compact-title.less";
 }
