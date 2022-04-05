@@ -3516,7 +3516,7 @@ msgstr "od <a href=\"%(key)s\">%(owner)s</a>"
 #, python-format
 msgid "1 item"
 msgid_plural "%(count)d items"
-msgstr[0] "%(count)d element"
+msgstr[0] "1 element"
 msgstr[1] "%(count)d elementa"
 msgstr[2] "%(count)d elemenata"
 
