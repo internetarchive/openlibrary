@@ -15,26 +15,18 @@ class TestPrintDump:
         ]
 
         print_dump(map(json.dumps, records))
-        assert (
-            capsys.readouterr().out
-            == "\t".join(
-                [
-                    "/type/edition",
-                    "/books/OL1M",
-                    "1",
-                    "2019-01-01T00:00:00.000",
-                    json.dumps(
-                        {
-                            "key": "/books/OL1M",
-                            "type": {"key": "/type/edition"},
-                            "revision": 1,
-                            "last_modified": {"value": "2019-01-01T00:00:00.000"},
-                        }
-                    ),
-                ]
-            )
-            + "\n"
-        )
+        assert capsys.readouterr().out.strip() == "\t".join([
+            "/type/edition",
+            "/books/OL1M",
+            "1",
+            "2019-01-01T00:00:00.000",
+            json.dumps({
+                "key": "/books/OL1M",
+                "type": {"key": "/type/edition"},
+                "revision": 1,
+                "last_modified": {"value": "2019-01-01T00:00:00.000"},
+            }),
+        ])
 
     def test_excludes_sensitive_pages(self, capsys):
         records = [
