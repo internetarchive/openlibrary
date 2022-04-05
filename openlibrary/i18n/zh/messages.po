@@ -3338,3 +3338,273 @@ msgid "%(name)s has 1 list."
 msgid_plural "%(name)s has %(count)s lists."
 msgstr[0] "%(name)s 有 1 个清单。"
 msgstr[1] "%(name)s有 %(count)s 个清单。"
+
+#: lists/header.html:59
+#, python-format
+msgid "This subject is on <strong>1 list</strong>."
+msgid_plural "This subject is on <strong>%(count)s lists</strong>."
+msgstr[0] "此主题在<strong>1 个清单里</strong>。"
+msgstr[1] "此主题在<strong>%(count)s 个清单里</strong>。"
+
+#: lists/header.html:88
+msgid "Hm. Can't find it."
+msgstr "唔，找不到。"
+
+#: lists/home.html:16
+msgid "Create a list of any Subjects, Authors, Works or specific Editions."
+msgstr "为任何主题，作者，作品，或者特定版本创建一个清单。"
+
+#: lists/home.html:17
+msgid ""
+"Once you've made a list, you can <strong>watch for updates</strong> or "
+"<strong>export</strong> all the editions in a list as HTML, BibTeX or JSON. "
+"See all your lists and any activity using the \"Lists\" link on your Account "
+"page."
+msgstr ""
+"一旦您创建了一个清单，您可以<strong>关注更新情况</strong>或者以HTML, BibTeX 或 JSON"
+"的格式<strong>导出</strong>清单中的所有版本。使用您账号页面上的\"清单\"链接来查看您"
+"所有的清单和任何活动。"
+
+#: lists/home.html:18
+msgid "Enjoy!"
+msgstr "尽情享受吧！"
+
+#: lists/home.html:20
+#, python-format
+msgid ""
+"For the top 2000+ most requested eBooks in California for the print disabled "
+"<a href=\"%(url)s\">click here</a>."
+msgstr ""
+"关于加州前2000多本最被需求的，给有阅读障碍读者的电子书，请<a href=\"%(url)s\">"
+"点击这里</a>。"
+
+#: lists/home.html:24
+msgid "Find a list by name"
+msgstr "按名称查找清单"
+
+#: lists/home.html:31
+msgid "Active Lists"
+msgstr "活跃请单"
+
+#: lists/home.html:48
+#, python-format
+msgid "from <a href=\"%(key)s\">%(owner)s</a>"
+msgstr "来自<a href=\"%(key)s\">%(owner)s</a>"
+
+#: lists/home.html:51 lists/preview.html:23 lists/snippet.html:18
+#: type/list/embed.html:17 type/list/view.html:40
+#, python-format
+msgid "1 item"
+msgid_plural "%(count)d items"
+msgstr[0] "1 个项目"
+msgstr[1] "%(count)d 个项目"
+
+#: lists/home.html:53 lists/preview.html:26 lists/snippet.html:20
+#, python-format
+msgid "Last modified %(date)s"
+msgstr "最后一次修改于%(date)s"
+
+#: lists/home.html:59 lists/snippet.html:26
+msgid "No description."
+msgstr "没有描述。"
+
+#: lists/home.html:65 lists/lists.html:123 type/user/view.html:81
+msgid "Recent Activity"
+msgstr "近期的活动"
+
+#: lists/home.html:66 type/user/view.html:67
+msgid "See all"
+msgstr "查看全部"
+
+#: lists/lists.html:9
+#, python-format
+msgid "%(owner)s / Lists"
+msgstr "%(owner)s / 清单"
+
+#: lists/lists.html:29
+msgid "Delete this list"
+msgstr "删除此清单"
+
+#: lists/lists.html:37 type/list/view.html:115 type/list/view.html:146
+msgid "Yes, I'm sure"
+msgstr "是的，我确定"
+
+#: lists/lists.html:48 type/list/view.html:133 type/list/view.html:155
+msgid "No, cancel"
+msgstr "不，还是取消吧"
+
+#: lists/lists.html:60
+msgid "Delete list"
+msgstr "删除清单"
+
+#: lists/lists.html:60
+msgid "Are you sure you want to delete this list?"
+msgstr "确定要删除这个清单吗？"
+
+#: lists/lists.html:67
+msgid "Remove this seed?"
+msgstr "删除这个元素吗？"
+
+#: lists/lists.html:108
+#, python-format
+msgid ""
+"Are you sure you want to remove <strong>%(title)s</strong> from this list?"
+msgstr ""
+"确定要删除这个清单里的<strong>%(title)s</strong>吗？"
+
+#: lists/lists.html:120
+msgid "No lists yet!"
+msgstr "还没有任何清单！"
+
+#: lists/preview.html:17
+msgid "by <a href=\"$owner.key\">You</a>"
+msgstr "由<a href=\"$owner.key\">您</a>"
+
+#: lists/widget.html:48
+#, python-format
+msgid ""
+"Are you sure you want to remove <strong>%(title)s</strong> from your list?"
+msgstr ""
+"确定要删除您清单里的<strong>%(title)s</strong>吗？"
+
+#: lists/widget.html:93
+msgid "See this list"
+msgstr "查看这个清单"
+
+#: lists/widget.html:95
+msgid "Remove from your list?"
+msgstr "要从您的清单里删除吗？"
+
+#: lists/widget.html:98
+msgid "You"
+msgstr "您"
+
+#: ReadingLogButton.html:9 lists/widget.html:130 lists/widget.html:170
+#: lists/widget.html:285
+msgid "Want to Read"
+msgstr "想读"
+
+#: lists/widget.html:196
+msgid "My Reading Lists:"
+msgstr "我的阅读清单:"
+
+#: lists/widget.html:206
+msgid "Use this Work"
+msgstr "使用这个作品"
+
+#: databarAuthor.html:27 databarAuthor.html:34 lists/widget.html:209
+#: lists/widget.html:226 lists/widget.html:316
+msgid "Create a new list"
+msgstr "创建一个新的清单"
+
+#: lists/widget.html:219
+msgid "Add to List"
+msgstr "添加到清单"
+
+#: lists/widget.html:251
+msgid "watch for edits or export all records"
+msgstr "关注编辑情况或导出所有记录"
+
+#: lists/widget.html:258
+#, python-format
+msgid "%(count)d List"
+msgid_plural "%(count)d Lists"
+msgstr[0] "%(count)d 个清单"
+msgstr[1] "%(count)d 个清单"
+
+#: lists/widget.html:298
+msgid "Update my book note"
+msgstr "更新我的图书笔记"
+
+#: lists/widget.html:300
+msgid "Add a book note"
+msgstr "添加一份图书笔记"
+
+#: ReadingLogButton.html:15 lists/widget.html:310
+msgid "Remove"
+msgstr "删除"
+
+#: lists/widget.html:330
+msgid "Description:"
+msgstr "描述:"
+
+#: lists/widget.html:338
+msgid "Create new list"
+msgstr "创建新的清单"
+
+#: lists/widget.html:674
+msgid "saving..."
+msgstr "保存中..."
+
+#: merge/authors.html:7 merge/authors.html:11 merge/authors.html:95
+msgid "Merge Authors"
+msgstr "合并作者"
+
+#: merge/authors.html:18
+msgid "No authors selected."
+msgstr "未选择作者。"
+
+#: merge/authors.html:22
+msgid "Please select a primary author record."
+msgstr "请选择主要作者的档案。"
+
+#: merge/authors.html:24
+msgid "Please select some authors to merge."
+msgstr "请选择一些作者进行合并。"
+
+#: merge/authors.html:27
+msgid "Select a \"primary\" record that best represents the author -"
+msgstr "请选择一份最能代表此作者的\"首要\"档案 -"
+
+#: merge/authors.html:30
+msgid "Select author records which should be merged with the primary"
+msgstr ""
+"选择应与主档案合并的作者档案。"
+
+#: merge/authors.html:34
+msgid "Press MERGE AUTHORS."
+msgstr "按下 合并作者。"
+
+#: merge/authors.html:38
+msgid "No primary record"
+msgstr "没有主档案"
+
+#: merge/authors.html:39
+msgid "You must select a master record to point the duplicates toward."
+msgstr "你必须选择一个主记录，以指导副本。"
+
+#: merge/authors.html:42
+msgid "Please Be Careful..."
+msgstr "请小心..."
+
+#: merge/authors.html:43
+msgid "<b>Are you sure</b> you want to merge these records?"
+msgstr "<b>您确定</b>要合并这些档案吗？"
+
+#: merge/authors.html:51 recentchanges/merge-authors/view.html:21
+msgid "Master"
+msgstr "大师"
+
+#: merge/authors.html:52
+msgid "Merge"
+msgstr "合并"
+
+#: merge/authors.html:82
+msgid "Open in a new window"
+msgstr "在新窗口打开"
+
+#: merge/authors.html:89
+msgid "Visit this author's page in a new window"
+msgstr "在新窗口中访问该作者的页面"
+
+#: observations/review_component.html:16
+msgid "Community Reviews"
+msgstr "社区评论"
+
+#: observations/review_component.html:39
+msgid "No community reviews have been submitted for this work."
+msgstr "这份作品还没有任何社区评论。"
+
+#: observations/review_component.html:42
+msgid "+ Add your community review"
+msgstr "+ 添加您的社区评论"
