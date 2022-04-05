@@ -1,6 +1,4 @@
-$def with (work, edition, page)
-
-$ book_title = edition.get('title', '') or (work.title if work else '')
+$def with (book_title, edition, page)
 
 $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
   $if edition and page.type.key in ["/type/work"]:
