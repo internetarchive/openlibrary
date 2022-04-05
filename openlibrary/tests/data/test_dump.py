@@ -1,6 +1,6 @@
 import json
 
-from openlibrary.data.dump import print_dump
+from openlibrary.data.dump import print_dump,pgdecode
 
 
 class TestPrintDump:
@@ -45,3 +45,12 @@ class TestPrintDump:
 
         print_dump(map(json.dumps, records))
         assert capsys.readouterr().out == ""
+
+class TestPgDecode:
+    def test_pgdecode_substitute(self):
+        assert pgdecode(r"\n\r\t\\") == "\n\r\t\\"
+
+    def test_pgdecode_ascii_printable(self):
+        import string
+
+        assert pgdecode(string.printable) == string.printable
