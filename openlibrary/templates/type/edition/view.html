@@ -189,6 +189,7 @@ $if is_privileged_user:
             </span>
       </div>
 
+      $:render_template("type/edition/compact_title", work, edition, page)
       $:render_template("type/edition/book_title", work, edition)
 
       $ authors = (work or edition).get_authors()

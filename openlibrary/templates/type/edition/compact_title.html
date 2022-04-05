@@ -1,0 +1,30 @@
+$def with (work, edition, page)
+
+$ book_title = edition.get('title', '') or (work.title if work else '')
+
+$if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
+  $if edition and page.type.key in ["/type/work"]:
+    $ edit_url = edition.url(suffix="/edit")
+  $else:
+    $ edit_url = page.url(suffix="/edit")
+$else:
+  $ edit_url = page.key + "?m=edit"
+
+
+<div class="compact-title hidden">
+  <h1 class="work-title" itemprop="name">$book_title</h1>
+  <div class="editButton" id="sticky-edit">
+    <a class="linkButton" href="$edit_url" title="$_('Edit this template')"
+      data-ol-link-track="CTAClick|StickyEdit">$_("Edit")</a>
+  </div>
+
+  $if edition:
+    $if edition.subtitle:
+      <h2 class="work-subtitle">
+        $edition.subtitle
+      </h2>
+    $if edition.edition_name:
+      <div class="work-line">
+        $edition.edition_name
+      </div>
+</div>

@@ -1,5 +1,12 @@
 @import (less) "base/dl.less";
 
+:root {
+  --sidebar-width: 225px;
+  --sidebar-width-with-margin: calc(60px + var(--sidebar-width));
+  --compact-title-height: 35px;
+  --test-body-mobile-width: 1060px;
+}
+
 /* stylelint-disable no-descending-specificity */
 .workDetails {
   padding: 20px 0;
@@ -47,6 +54,67 @@ div.editionAbout {
 .work-title{
   margin-top: 5px;
   margin-bottom: 0;
+}
+
+.compact-title {
+  background: @white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: @z-index-level-3;
+  position: fixed;
+  top: -35px;
+  height: var(--compact-title-height);
+  width: 100%;
+  max-width: calc(var(--test-body-mobile-width) - var(--sidebar-width-with-margin));
+
+  h1 {
+    font-size: 1.25em;
+    background: @white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  div {
+    display: unset;
+    background: @white;
+    max-height: var(--compact-title-height);
+  }
+
+  .linkButton {
+    padding: 3px 6px;
+    font-size: 12px;
+  }
+
+  &--slidein {
+    animation-duration: .75s;
+    animation-name: slidein;
+  }
+
+  @keyframes slidein {
+    from {
+      top: calc(-1 * var(--compact-title-height));
+    }
+    to {
+      top: 0;
+    }
+  }
+
+  &--slideout {
+    animation-duration: .25s;
+    animation-name: slideout;
+  }
+
+  @keyframes slideout {
+    from {
+      top: 0;
+    }
+
+    to {
+      top: calc(-1 * var(--compact-title-height));
+    }
+  }
 }
 
 .work-subtitle{
@@ -166,7 +234,7 @@ h2.edition-byline {
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
   .work-menu.sticky {
-    top: 0;
+    top: var(--compact-title-height);
   }
 }
 
@@ -237,7 +305,7 @@ div.editionTools {
   }
   div.edition {
     &Cover {
-      width: 225px;
+      width: var(--sidebar-width);
       margin-right: 1.5em;
       margin-bottom: 0;
     }
