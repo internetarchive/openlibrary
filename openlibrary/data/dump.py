@@ -50,7 +50,7 @@ def print_dump(json_records, filter=None, print=print):
         if key.startswith(("/b/", "/scan", "/old/")) or not key.startswith("/"):
             continue
 
-        if filter and filter(d) is False:
+        if filter and not filter(d):
             continue
 
         type_key = d["type"]["key"]
@@ -232,39 +232,6 @@ def make_index(dump_file):
             created = "-"
         print("\t".join([web.safestr(path), web.safestr(title), created, timestamp]))
 
-
-def make_bsddb(dbfile, dump_file):
-    import bsddb
-
-    db = bsddb.btopen(dbfile, "w", cachesize=1024 * 1024 * 1024)
-
-    indexable_keys = {
-        "authors.key",
-        "works.key",  # edition
-        "authors.author.key",
-        "subjects",
-        "subject_places",
-        "subject_people",
-        "subject_times",  # work
-    }
-    for type, key, revision, timestamp, json_data in read_tsv(dump_file):
-        db[key] = json_data
-        d = json.loads(json_data)
-        index = [(k, v) for k, v in flatten_dict(d) if k in indexable_keys]
-        for k, v in index:
-            k = web.rstrips(k, ".key")
-            if k.startswith("subject"):
-                v = "/" + v.lower().replace(" ", "_")
-
-            dbkey = web.safestr(f"by_{k}{v}")
-            if dbkey in db:
-                db[dbkey] = db[dbkey] + " " + key
-            else:
-                db[dbkey] = key
-    db.close()
-    log("done")
-
-
 def _process_key(key):
     mapping = {
         "/l/": "/languages/",
@@ -356,7 +323,6 @@ def main(cmd, args):
         "sort": sort_dump,
         "split": split_dump,
         "index": make_index,
-        "bsddb": make_bsddb,
         "sitemaps": generate_sitemaps,
         "htmlindex": generate_html_index,
     }.get(cmd)
@@ -364,7 +330,6 @@ def main(cmd, args):
         func(*args, **kwargs)
     elif cmd == "solrdump":
         from openlibrary.data import solr  # noqa: E402 avoid circular import
-
         solr.generate_dump(*args, **kwargs)
     else:
         logger.error(f"Unknown command: {cmd}")

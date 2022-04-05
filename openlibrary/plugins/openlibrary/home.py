@@ -774,7 +774,7 @@ def readonline_carousel():
         data = random_ebooks()
         if len(data) > 30:
             data = lending.add_availability(random.sample(data, 30))
-            data = [d for d in data if d['availability']['is_readable']]
+            data = [d for d in data if d['availability'].get('is_readable')]
         return storify(data)
 
     except Exception:
