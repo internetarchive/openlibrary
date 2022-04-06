@@ -81,10 +81,12 @@ function addListClickListener(elem, parentDropper) {
         let seed;
         const isWork = workCheckBox && workCheckBox.checked
 
+        // Seed will be a string if it's type is 'subject'
         if (isWork) {
-            seed = hiddenWorkInput.value
+            seed = { key: hiddenWorkInput.value }
         } else {
-            seed = hiddenKeyInput.value
+            const seedIsSubject = hiddenKeyInput.value[0] !== '/'
+            seed = seedIsSubject ? hiddenKeyInput.value : { key: hiddenKeyInput.value }
         }
 
         const listKey = elem.dataset.listKey;
@@ -183,7 +185,7 @@ function addCreateListClickListener(button, parentDropper) {
             const data = {
                 name: websafe(nameField.value),
                 description: websafe(descriptionField.value),
-                seeds: [ { key: seed } ],
+                seeds: [seed],
             }
 
             const successCallback = function(listKey, listTitle) {
@@ -332,7 +334,11 @@ function addRemoveClickListener(elem) {
     const anchors = label.querySelectorAll('a');
     const listTitle = anchors[0].dataset.listTitle;
     const listKey = anchors[1].dataset.listKey;
-    const seed = label.querySelector('input[name=seed-key').value;
+    const type = label.querySelector('input[name=seed-type]').value;
+    const key = label.querySelector('input[name=seed-key]').value;
+
+    const seed = type === 'subject' ? key : { key: key }
+
     anchors[1].addEventListener('click', function(event) {
         event.preventDefault()
 

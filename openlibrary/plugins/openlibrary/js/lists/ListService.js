@@ -53,7 +53,7 @@ export function createList(userKey, data, success) {
 export function addToList(listKey, seed, success) {
     post({
         url: `${listKey}/seeds.json`,
-        data: { add: [ { key: seed } ] },
+        data: { add: [seed] },
         success: success
     });
 }
@@ -69,7 +69,7 @@ export function addToList(listKey, seed, success) {
 export function removeFromList(listKey, seed, success) {
     post({
         url: `${listKey}/seeds.json`,
-        data: { remove: [ { key: seed } ] },
+        data: { remove: [seed] },
         success: success
     });
 }
