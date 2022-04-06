@@ -82,10 +82,10 @@ function addListClickListener(elem, parentDropper) {
         const isWork = workCheckBox && workCheckBox.checked
 
         // Seed will be a string if it's type is 'subject'
+        const seedIsSubject = hiddenKeyInput.value[0] !== '/'
         if (isWork) {
             seed = { key: hiddenWorkInput.value }
         } else {
-            const seedIsSubject = hiddenKeyInput.value[0] !== '/'
             seed = seedIsSubject ? hiddenKeyInput.value : { key: hiddenKeyInput.value }
         }
 
@@ -93,9 +93,10 @@ function addListClickListener(elem, parentDropper) {
 
         const successCallback = function() {
             if (!isWork) {
+                const seedKey = seedIsSubject ? seed : seed['key']
                 const listTitle = elem.innerText;
                 const listUrl = elem.dataset.listCoverUrl
-                const li = updateAlreadyList(listKey, listTitle, listUrl)
+                const li = updateAlreadyList(listKey, listTitle, listUrl, seedKey)
 
                 if (dropperLists.hasOwnProperty(listKey)) {
                     dropperLists[listKey].element.remove()
@@ -189,8 +190,9 @@ function addCreateListClickListener(button, parentDropper) {
             }
 
             const successCallback = function(listKey, listTitle) {
+                const seedKey = typeof seed === 'string' ? seed : seed['key']
                 // Add actionable item to view, map
-                const li = updateAlreadyList(listKey, listTitle, '/images/icons/avatar_book-sm.png')
+                const li = updateAlreadyList(listKey, listTitle, '/images/icons/avatar_book-sm.png', seedKey)
                 actionableItems[listKey] = [li]
             }
 
@@ -402,12 +404,13 @@ function updateDropperList(listKey, listTitle, coverUrl) {
  *
  * @returns {HTMLLIElement} The newly created list item element.
  */
-function updateAlreadyList(listKey, listTitle, coverUrl) {
+function updateAlreadyList(listKey, listTitle, coverUrl, seedKey) {
     const alreadyLists = document.querySelector('.already-lists');
     const splitKey = listKey.split('/')
     const userKey = `/${splitKey[1]}/${splitKey[2]}`
     const i18nInput = document.querySelector('input[name=list-i18n-strings]')
     const i18nStrings = JSON.parse(i18nInput.value)
+    const seedType = seedKey[0] !== '/' ? 'subject' : ''
 
     const itemMarkUp = `<span class="image">
           <a href="${listKey}"><img src="${coverUrl}" alt="${i18nStrings['cover_of']}${listTitle}" title="${i18nStrings['cover_of']}${listTitle}"/></a>
@@ -416,8 +419,8 @@ function updateAlreadyList(listKey, listTitle, coverUrl) {
             <span class="label">
                 <a href="${listKey}" data-list-title="${listTitle}" title="${i18nStrings['see_this_list']}">${listTitle}</a>
                 <input type="hidden" name="seed-title" value="${listTitle}"/>
-                <input type="hidden" name="seed-key" value="${listKey}"/>
-                <input type="hidden" name="seed-type" value="edition"/>
+                <input type="hidden" name="seed-key" value="${seedKey}"/>
+                <input type="hidden" name="seed-type" value="${seedType}"/>
                 <a href="${listKey}" class="remove-from-list red smaller arial plain" data-list-key="${listKey}" title="${i18nStrings['remove_from_list']}">[X]</a>
             </span>
             <span class="owner">${i18nStrings['from']} <a href="${userKey}">${i18nStrings['you']}</a></span>
