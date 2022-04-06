@@ -3740,3 +3740,201 @@ msgstr "ISBN"
 #: search/advancedsearch.html:46
 msgid "Full Text Search"
 msgstr "全文搜索"
+
+#: search/authors.html:28
+msgid "Is the same author listed twice?"
+msgstr "同一个作者被列入两次？"
+
+#: search/authors.html:29
+msgid "Merge authors"
+msgstr "合并作者"
+
+#: search/authors.html:32
+msgid "Author Search"
+msgstr "作者搜索"
+
+#: search/authors.html:39
+msgid "No hits"
+msgstr "没有结果"
+
+#: search/inside.html:7
+#, python-format
+msgid "Search Open Library for %s"
+msgstr "在开发图书馆里查找 %s"
+
+#: BookSearchInside.html:9 search/inside.html:10
+msgid "Search Inside"
+msgstr "在内部搜索"
+
+#: search/inside.html:34
+#, python-format
+msgid "No hits for: %(query)s"
+msgstr "未找到符合条件: %(query)s"
+
+#: search/inside.html:37
+#, python-format
+msgid "About 1 result found in %(seconds)s"
+msgid_plural "About %(count)s results found in %(seconds)s"
+msgstr[0] "在%(seconds)s秒内找到约1个结果"
+msgstr[1] "在%(seconds)s秒内找到约%(count)s个结果"
+
+#: search/lists.html:7
+msgid "Search results for Lists"
+msgstr "清单的搜索结果"
+
+#: search/publishers.html:9
+msgid "Publishers Search"
+msgstr "搜索出版商"
+
+#: search/sort_options.html:10
+msgid "Relevance"
+msgstr "相关信息"
+
+#: search/sort_options.html:11
+msgid "Most Editions"
+msgstr "大多数的版本"
+
+#: search/sort_options.html:12
+msgid "First Published"
+msgstr "首次出版"
+
+#: search/sort_options.html:13
+msgid "Most Recent"
+msgstr "最新的"
+
+#: search/sort_options.html:14
+msgid "Random"
+msgstr "随机"
+
+#: search/sort_options.html:31
+msgid "Shuffle"
+msgstr "随机混杂"
+
+#: search/subjects.html:19
+msgid "Subject Search"
+msgstr "搜索主题"
+
+#: search/subjects.html:74
+msgid "time"
+msgstr "时间"
+
+#: search/subjects.html:76
+msgid "subject"
+msgstr "主题"
+
+#: search/subjects.html:78
+msgid "place"
+msgstr "地点"
+
+#: search/subjects.html:80
+msgid "org"
+msgstr "组织"
+
+#: search/subjects.html:82
+msgid "event"
+msgstr "事件"
+
+#: search/subjects.html:84
+msgid "person"
+msgstr "人物"
+
+#: search/subjects.html:86
+msgid "work"
+msgstr "工作"
+
+#: site/around_the_library.html:52
+msgid "View all recent changes"
+msgstr "查看所有近期的变更"
+
+#: site/body.html:18
+msgid "It looks like you're offline."
+msgstr "看起来您已经离线了。"
+
+#: site/neck.html:15
+msgid ""
+"Open Library is an open, editable library catalog, building towards a web "
+"page for every book ever published. Read, borrow, and discover more than 3M "
+"books for free."
+msgstr ""
+"开放图书馆是一个开放的、可编辑的图书馆目录，为有史以来出版的每本书建立一个页面。"
+"来免费阅读、借阅和发现超过300多万本图书吧。"
+
+#: site/neck.html:17
+msgid "Open Library"
+msgstr "开放图书馆"
+
+#: stats/readinglog.html:8
+msgid "Reading Log Stats"
+msgstr "阅读日志的统计数据"
+
+#: stats/readinglog.html:11
+msgid "# Books Logged"
+msgstr "已登记书籍的数量"
+
+#: stats/readinglog.html:12
+msgid "The total number of books logged using the Reading Log feature"
+msgstr ""
+"使用阅读日志功能记录的书籍总数"
+
+#: stats/readinglog.html:16 stats/readinglog.html:33 stats/readinglog.html:50
+msgid "All time"
+msgstr "全部时间"
+
+#: stats/readinglog.html:20 stats/readinglog.html:37 stats/readinglog.html:54
+msgid "This Month"
+msgstr "这个月"
+
+#: stats/readinglog.html:28
+msgid "# Unique Users Logging Books"
+msgstr "登记书籍的独特用户数量"
+
+#: stats/readinglog.html:29
+msgid ""
+"The total number of unique users who have logged at least one book using the "
+"Reading Log feature"
+msgstr ""
+"使用阅读日志功能记录了至少一本书的独特用户总数"
+
+#: stats/readinglog.html:45
+msgid "# Books Starred"
+msgstr "标上星号的书籍数量"
+
+#: stats/readinglog.html:46
+msgid "The total number of books which have been starred"
+msgstr "已经标上星号的书籍总数"
+
+#: stats/readinglog.html:58
+msgid "Total # Unique Raters (all time)"
+msgstr "独特评分员的总数(全部时间)"
+
+#: stats/readinglog.html:66
+msgid "Most Wanted Books (All Time)"
+msgstr "人们最想要的书(全部时间)"
+
+#: stats/readinglog.html:70 stats/readinglog.html:78 stats/readinglog.html:87
+#: stats/readinglog.html:96
+#, python-format
+msgid "Added 1 time"
+msgid_plural "Added %(count)d times"
+msgstr[0] "已添加1次"
+msgstr[1] "已添加%(count)d次"
+
+#: stats/readinglog.html:74
+msgid "Most Wanted Books (This Month)"
+msgstr "人们最想要的书(这个月)"
+
+#: stats/readinglog.html:82
+msgid "Most Logged Books"
+msgstr "登记最多的书"
+
+#: stats/readinglog.html:83
+msgid "Most Read Books (All Time)"
+msgstr "阅读量最多的书(全部时间)"
+
+#: stats/readinglog.html:91
+msgid "Most Rated Books"
+msgstr "评分最高的书"
+
+#: stats/readinglog.html:92
+msgid "Most Rated Books (All Time)"
+msgstr "评分最高的书(全部时间)"
