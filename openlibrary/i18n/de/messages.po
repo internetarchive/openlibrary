@@ -5558,11 +5558,6 @@ msgstr "Entwicklungszentrum"
 msgid "My Account"
 msgstr "Mein Konto"
 
-#: home.html:45
-#, python-format
-msgid "%(listname)s </a> from <a href=\"%(key)s\">%(owner)s</a>"
-msgstr "%(listname)s </a> von <a href=\"%(key)s\">%(owner)s</a>"
-
 #: preview.html:40
 msgid "Themes:"
 msgstr "Themen:"
