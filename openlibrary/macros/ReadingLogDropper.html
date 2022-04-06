@@ -7,6 +7,7 @@ $ edition_key = edition and edition.key
 
 $if ctx.user or not work_key:
   <div class="widget-add $:(not work_key and 'old-style-lists')">
+    <input type="hidden" name="user-key" value="$(user_key)" />
     <div class="dropit Tools">
       $if edition_key and not work_key:
         <div class="dropper on edition-page-lists-dropdown">
@@ -29,7 +30,6 @@ $if ctx.user or not work_key:
 
             <input type="hidden" name="action" value="$(action_value)"/>
             <input type="hidden" name="bookshelf_id" value="$(bookshelf_id_value)"/>
-            <input type="hidden" name="user-key" value="$(user_key)" />
             <input type="hidden" name="default-key" value="$(key)" />
 
             <button class="book-progress-btn want-to-read $(activated_status)" type="submit">
