@@ -401,6 +401,7 @@ function updateDropperList(listKey, listTitle, coverUrl) {
  * @param {string} listKey    The list's key, in the form of "/people/{username}/lists/{list OLID}"
  * @param {string} listTitle  The name of the list.
  * @param {string} coverUrl   Location of the list's cover image.
+ * @param {string} seedKey    The target seed's key.
  *
  * @returns {HTMLLIElement} The newly created list item element.
  */
