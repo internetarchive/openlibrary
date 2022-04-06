@@ -692,7 +692,6 @@ class Test_pick_number_of_pages_median:
 class Test_Sort_Editions_Ocaids:
 
     def test_sort(self):
-        doc = {}
         editions = [{
             "key": "/books/OL789M",
             "ocaid": "ocaid_restricted",
@@ -714,8 +713,8 @@ class Test_Sort_Editions_Ocaids:
             "access_restricted_item": "false",
             "ia_collection": ["americanlibraries"]
         }]
-        SolrProcessor.add_ebook_info(doc, editions)
-        assert doc['ia'] == [
+
+        assert SolrProcessor.get_ebook_info(editions)['ia'] == [
             "ocaid_open",
             "ocaid_borrowable",
             "ocaid_printdisabled",
@@ -723,7 +722,6 @@ class Test_Sort_Editions_Ocaids:
         ]
 
     def test_goog_deprioritized(self):
-        doc = {}
         editions = [
             {
                 "key": "/books/OL789M",
@@ -736,5 +734,5 @@ class Test_Sort_Editions_Ocaids:
                 "ia_collection": [],
             },
         ]
-        SolrProcessor.add_ebook_info(doc, editions)
-        assert doc['ia'] == ["foobarblah", "foobargoog"]
+        assert SolrProcessor.get_ebook_info(editions)['ia'] == ["foobarblah", "foobargoog"]
+
