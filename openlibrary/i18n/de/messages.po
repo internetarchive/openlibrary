@@ -5546,12 +5546,6 @@ msgid "There are two ways to get a cover image on Open Library"
 msgstr ""
 "Es gibt zwei Wege, ein Umschlagsbild (oder Cover) zur Open Library hinzuzufügen"
 
-#: add.html:126
-msgid "<u>Or</u></span>, paste in the image URL if it's on the web."
-msgstr ""
-"<u>Oder</u></span> fügen Sie den Link zum Bild ein, wenn es im Internet "
-"verfügbar ist."
-
 #: nav_foot.html:35
 msgid "Explore Open Library Development Center"
 msgstr "Entdecke das Open Library Entwicklungszentrum"
