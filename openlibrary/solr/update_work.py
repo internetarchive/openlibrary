@@ -647,7 +647,7 @@ class SolrProcessor:
         add_list("isbn", self.get_isbns(editions))
         add("last_modified_i", self.get_last_modified(w, editions))
 
-        self.add_ebook_info(d, editions)
+        d|=self.get_ebook_info(editions)
 
         # Anand - Oct 2013
         # If not public scan then add the work to Protected DAISY subject.
@@ -728,14 +728,12 @@ class SolrProcessor:
         )
 
     @staticmethod
-    def add_ebook_info(doc, editions):
+    def get_ebook_info(editions):
         """
         Add ebook information from the editions to the work Solr document.
-
-        :param dict doc: Solr document for the work these editions belong to.
         :param list[dict] editions: Editions with extra data from process_editions
         """
-
+        ebook_info={}
         class AvailabilityEnum(IntEnum):
             PUBLIC = 1
             BORROWABLE = 2
@@ -767,28 +765,28 @@ class SolrProcessor:
             )
 
         ia_eds = sorted((e for e in editions if 'ocaid' in e), key=get_ia_sorting_key)
-        doc['ia'] = [e['ocaid'].strip() for e in ia_eds]
-        doc["ebook_count_i"] = len(ia_eds)
+        ebook_info['ia'] = [e['ocaid'].strip() for e in ia_eds]
+        ebook_info["ebook_count_i"] = len(ia_eds)
 
         # These should always be set, for some reason.
-        doc["has_fulltext"] = False
-        doc["public_scan_b"] = False
+        ebook_info["has_fulltext"] = False
+        ebook_info["public_scan_b"] = False
 
         if ia_eds:
             best_availability = get_ia_sorting_key(ia_eds[0])[0]
             best_ed = ia_eds[0]
             if best_availability < AvailabilityEnum.UNCLASSIFIED:
-                doc["has_fulltext"] = True
+                ebook_info["has_fulltext"] = True
             if best_availability == AvailabilityEnum.PUBLIC:
-                doc['public_scan_b'] = True
+                ebook_info['public_scan_b'] = True
 
             all_collection = uniq(c for e in ia_eds for c in e.get('ia_collection', []))
             if all_collection:
-                doc['ia_collection_s'] = ';'.join(all_collection)
+                ebook_info['ia_collection_s'] = ';'.join(all_collection)
 
             if best_availability < AvailabilityEnum.PRINTDISABLED:
-                doc['lending_edition_s'] = re_edition_key.match(best_ed['key']).group(1)
-                doc['lending_identifier_s'] = best_ed['ocaid']
+                ebook_info['lending_edition_s'] = re_edition_key.match(best_ed['key']).group(1)
+                ebook_info['lending_identifier_s'] = best_ed['ocaid']
 
             printdisabled = [
                 re_edition_key.match(ed['key']).group(1)
@@ -796,8 +794,10 @@ class SolrProcessor:
                 if 'printdisabled' in ed.get('ia_collection', [])
             ]
             if printdisabled:
-                doc['printdisabled_s'] = ';'.join(printdisabled)
-
+                ebook_info['printdisabled_s'] = ';'.join(printdisabled)
+        return ebook_info   
+   
+        
 
 async def build_data(w: dict) -> SolrDocument:
     """
