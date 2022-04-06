@@ -1,5 +1,5 @@
 import sys
-from typing import List
+from typing import Iterator
 
 import web
 import os
@@ -8,7 +8,7 @@ import shutil
 import babel
 from babel._compat import BytesIO
 from babel.support import Translations
-from babel.messages import Catalog
+from babel.messages import Catalog, Message
 from babel.messages.pofile import read_po, write_po
 from babel.messages.mofile import write_mo
 from babel.messages.extract import extract_from_file, extract_from_dir, extract_python
@@ -16,6 +16,21 @@ from babel.messages.extract import extract_from_file, extract_from_dir, extract_
 from .validators import validate
 
 root = os.path.dirname(__file__)
+
+
+def error_color_fn(text: str) -> str:
+    """Styles the text for printing to console with error color."""
+    return '\033[91m' + text + '\033[0m'
+
+
+def success_color_fn(text: str) -> str:
+    """Styles the text for printing to console with success color."""
+    return '\033[92m' + text + '\033[0m'
+
+
+def warning_color_fn(text: str) -> str:
+    """Styles the text for printing to console with warning color."""
+    return '\033[93m' + text + '\033[0m'
 
 
 def _compile_translation(po, mo):
@@ -31,32 +46,19 @@ def _compile_translation(po, mo):
         raise e
 
 
-def _validate_catalog(catalog, locale):
-    validation_errors = []
+def _validate_catalog(
+    catalog: Catalog,
+) -> Iterator[tuple[Message, list[str], list[str]]]:
     for message in catalog:
-        message_errors = validate(message, catalog)
-
         if message.lineno:
+            warnings: list[str] = []
+            errors: list[str] = validate(message, catalog)
+
             if message.fuzzy:
-                print(
-                    f'openlibrary/i18n/{locale}/messages.po:'
-                    f'{message.lineno}: "{message.string}" is fuzzy'
-                )
-            if message_errors:
-                validation_errors.append(
-                    f'openlibrary/i18n/{locale}/messages.po:'
-                    f'{message.lineno}: {message.string}'
-                )
-            for e in message_errors:
-                validation_errors.append(e)
+                warnings.append(f'"{message.string}" is fuzzy')
 
-    if validation_errors:
-        print("Validation failed...")
-        print("Please correct the following errors before proceeding:")
-        for e in validation_errors:
-            print(e)
-
-    return len(validation_errors)
+            if warnings or errors:
+                yield message, warnings, errors
 
 
 def validate_translations(args: list[str]):
@@ -74,11 +76,37 @@ def validate_translations(args: list[str]):
         po_path = os.path.join(root, locale, 'messages.po')
 
         if os.path.exists(po_path):
+            num_errors = 0
+            error_print: list[str] = []
             catalog = read_po(open(po_path, 'rb'))
-            num_errors = _validate_catalog(catalog, locale)
+            for message, warnings, errors in _validate_catalog(catalog):
+                for w in warnings:
+                    print(
+                        warning_color_fn(
+                            f'openlibrary/i18n/{locale}/messages.po:{message.lineno}: '
+                        )
+                        + w
+                    )
+
+                    if errors:
+                        num_errors += len(errors)
+                        error_print.append(
+                            error_color_fn(
+                                f'openlibrary/i18n/{locale}/messages.po:{message.lineno}: '
+                            )
+                            + repr(message.string),
+                        )
+                        error_print.extend(errors)
 
             if num_errors == 0:
-                print(f'Translations for locale "{locale}" are valid!')
+                print(
+                    success_color_fn(f'Translations for locale "{locale}" are valid!')
+                )
+            else:
+                for e in error_print:
+                    print(e)
+                print(error_color_fn("\nValidation failed..."))
+                print(error_color_fn("Please correct the errors before proceeding."))
             results[locale] = num_errors
         else:
             print(f'Portable object file for locale "{locale}" does not exist.')
@@ -172,6 +200,68 @@ def update_translations(locales: list[str]):
             print(f"ERROR: {po_path} does not exist...")
 
     compile_translations(locales_to_update)
+
+
+def check_status(locales: list[str]):
+    locales_to_update = locales or get_locales()
+    pot_path = os.path.join(root, 'messages.pot')
+
+    with open(pot_path, 'rb') as f:
+        message_ids = {message.id for message in read_po(f)}
+
+    for locale in locales_to_update:
+        po_path = os.path.join(root, locale, 'messages.po')
+
+        if os.path.exists(po_path):
+            with open(po_path, 'rb') as f:
+                catalog = read_po(f)
+                ids_with_translations = {
+                    message.id for message in catalog if ''.join(message.string).strip()
+                }
+
+            ids_completed = message_ids.intersection(ids_with_translations)
+            errors = _validate_catalog(catalog)
+            total_warnings = 0
+            total_errors = 0
+            for message, warnings, errors in errors:
+                total_warnings += len(warnings)
+                total_errors += len(errors)
+
+            percent_complete = len(ids_completed) / len(message_ids) * 100
+            all_green = (
+                percent_complete == 100 and total_warnings == 0 and total_errors == 0
+            )
+            total_color = success_color_fn if all_green else lambda x: x
+            warnings_color = (
+                warning_color_fn if total_warnings > 0 else success_color_fn
+            )
+            errors_color = error_color_fn if total_errors > 0 else success_color_fn
+            percent_color = (
+                success_color_fn
+                if percent_complete == 100
+                else warning_color_fn
+                if percent_complete > 25
+                else error_color_fn
+            )
+            print(
+                total_color(
+                    '\t'.join(
+                        [
+                            locale,
+                            percent_color(f'{percent_complete:6.2f}% complete'),
+                            warnings_color(f'{total_warnings:2d} warnings'),
+                            errors_color(f'{total_errors:2d} errors'),
+                            f'openlibrary/i18n/{locale}/messages.po',
+                        ]
+                    )
+                )
+            )
+
+            if len(locales) == 1:
+                print(f'---- validate {locale} ----')
+                validate_translations(locales)
+        else:
+            print(f"ERROR: {po_path} does not exist...")
 
 
 def generate_po(args):
