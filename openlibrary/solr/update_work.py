@@ -795,9 +795,9 @@ class SolrProcessor:
             ]
             if printdisabled:
                 ebook_info['printdisabled_s'] = ';'.join(printdisabled)
-        return ebook_info   
-   
-        
+        return ebook_info
+
+
 
 async def build_data(w: dict) -> SolrDocument:
     """
