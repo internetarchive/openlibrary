@@ -3608,3 +3608,135 @@ msgstr "这份作品还没有任何社区评论。"
 #: observations/review_component.html:42
 msgid "+ Add your community review"
 msgstr "+ 添加您的社区评论"
+
+#: observations/review_component.html:44
+msgid "+ Log in to add your community review"
+msgstr "+ 登录以添加您的社区评论"
+
+#: publishers/notfound.html:10
+msgid "Publishers"
+msgstr "出版商"
+
+#: publishers/notfound.html:13
+#, python-format
+msgid "We couldn't find any books published by %(publisher)s."
+msgstr "我们没法找到任何由%(publisher)s出版的书籍。"
+
+#: publishers/notfound.html:15 subjects/notfound.html:15
+msgid "Try something else?"
+msgstr "试试别的？"
+
+#: publishers/view.html:19
+#, python-format
+msgid "1 ebook"
+msgid_plural "%(count)s ebooks"
+msgstr[0] "1 本电子书"
+msgstr[1] "%(count)s 本电子书"
+
+#: publishers/view.html:33
+msgid ""
+"This is a chart to show the when this publisher published books. Along the X "
+"axis is time, and on the y axis is the count of editions published. <a href="
+"\"#subjectRelated\">Click here to skip the chart</a>."
+msgstr ""
+"这张图表显示了该出版社何时出版了书籍。X轴上的是出版时间，Y轴上的是出版的版本数量。"
+"<a href=\"#subjectRelated\">点击这里跳过图表</a>。"
+
+#: publishers/view.html:35
+msgid ""
+"This graph charts editions from this publisher over time. Click to view a "
+"single year, or drag across a range."
+msgstr ""
+"该图显示了该出版社版本随时间变化的情况。点击查看单个年份，或拖动鼠标来查看一个范"
+"围内的内容。"
+
+#: publishers/view.html:52
+msgid "Common Subjects"
+msgstr "常见主题"
+
+#: publishers/view.html:88
+msgid "published most by this publisher"
+msgstr "该出版商出版最多的"
+
+#: recentchanges/header.html:31 recentchanges/index.html:7
+#: recentchanges/index.html:13
+msgid "Recent Changes"
+msgstr "近期的变更"
+
+#: recentchanges/index.html:34
+msgid "Books Edited"
+msgstr "编辑过的书籍"
+
+#: recentchanges/index.html:35
+msgid "Author Merges"
+msgstr "作者合并"
+
+#: recentchanges/index.html:36
+msgid "Books Added"
+msgstr "已添加的书籍"
+
+#: recentchanges/index.html:37
+msgid "Covers Added"
+msgstr "已添加的封面"
+
+#: recentchanges/index.html:58
+msgid "By Humans"
+msgstr "由人们提供"
+
+#: recentchanges/index.html:59
+msgid "By Bots"
+msgstr "由bots提供"
+
+#: recentchanges/default/message.html:29
+#: recentchanges/edit-book/message.html:29 site/around_the_library.html:45
+msgid "opened a new Open Library account!"
+msgstr "开通一个新的开放图书馆账号!"
+
+#: recentchanges/merge-authors/message.html:13
+#, python-format
+msgid "%(who)s merged one duplicate of %(master)s"
+msgid_plural "%(who)s merged %(count)d duplicates of %(master)s"
+msgstr[0] "%(who)s 合并了 一份重复的%(master)s。"
+msgstr[1] "%(who)s 合并了%(count)d份重复的%(master)s。"
+
+#: recentchanges/merge-authors/message.html:20
+#, python-format
+msgid "one duplicate of %(master)s was merged anonymously"
+msgid_plural "%(count)d duplicates of %(master)s were merged anonymously"
+msgstr[0] "一份重复的%(master)s被匿名合并了"
+msgstr[1] "%(count)d 份重复的%(master)s被匿名合并了"
+
+#: recentchanges/merge-authors/view.html:8
+msgid "Author Merge"
+msgstr "作者合并"
+
+#: recentchanges/merge-authors/view.html:16
+msgid "This merge has been undone."
+msgstr "这一合并已被撤销。"
+
+#: recentchanges/merge-authors/view.html:17
+msgid "Details here"
+msgstr "详情请见这里"
+
+#: recentchanges/merge-authors/view.html:36 type/author/view.html:67
+msgid "Duplicates"
+msgstr "重复的内容"
+
+#: recentchanges/merge-authors/view.html:45
+#, python-format
+msgid "1 record modified."
+msgid_plural "%(count)d records modified."
+msgstr[0] "1 条记录已被修改。"
+msgstr[1] "%(count)d 条记录已被修改。"
+
+#: recentchanges/merge-authors/view.html:49
+msgid "Updated Records"
+msgstr "已更新的记录"
+
+#: search/advancedsearch.html:24
+msgid "ISBN"
+msgstr "ISBN"
+
+#: search/advancedsearch.html:46
+msgid "Full Text Search"
+msgstr "全文搜索"
