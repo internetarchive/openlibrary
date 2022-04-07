@@ -3938,3 +3938,210 @@ msgstr "评分最高的书"
 #: stats/readinglog.html:92
 msgid "Most Rated Books (All Time)"
 msgstr "评分最高的书(全部时间)"
+
+#: subjects/notfound.html:13
+msgid "We couldn't find any books about"
+msgstr "我们未能找到任何相关的书籍"
+
+#: type/about/edit.html:9 type/i18n/edit.html:12 type/page/edit.html:9
+#: type/permission/edit.html:9 type/rawtext/edit.html:9
+#: type/template/edit.html:9 type/usergroup/edit.html:9
+#, python-format
+msgid "Edit %(title)s"
+msgstr "编辑 %(title)s"
+
+#: type/about/edit.html:20
+msgid ""
+"This only appears in the document head, and gets attached to bookmark labels"
+msgstr ""
+"这只显示在文档头部，并被附加到书签上"
+
+#: type/about/edit.html:29
+msgid "Intro"
+msgstr "简介"
+
+#: type/about/edit.html:30
+msgid "This appears in first column."
+msgstr "这显示在第一栏里。"
+
+#: type/about/edit.html:40
+msgid "This appears in the second column, at top."
+msgstr "这显示在第二栏的顶端。"
+
+#: type/about/edit.html:49
+msgid "Mailing List"
+msgstr "邮件名单"
+
+#: type/about/edit.html:50
+msgid "This appears below the links list."
+msgstr "这显示在链接名单的下方。"
+
+#: type/author/edit.html:13
+msgid "Edit Author"
+msgstr "编辑作者"
+
+#: type/author/edit.html:28
+msgid ""
+"Please use natural order. For example: <strong>Leo Tolstoy</strong> not "
+"<strong>Tolstoy, Leo</strong>."
+msgstr ""
+"请使用自然顺序。例如: <strong>Leo Tolstoy</strong>，而不是<strong>"
+"Tolstoy, Leo</strong>。"
+
+#: type/author/edit.html:43
+msgid "About"
+msgstr "关于"
+
+#: type/author/edit.html:53
+msgid "A short bio?"
+msgstr "一个简短的介绍？"
+
+#: type/author/edit.html:54
+msgid ""
+"If you \"borrow\" information from somewhere, please make sure to cite the "
+"source."
+msgstr ""
+"如果您从其他地方\"借用\"了任何信息, 请务必注明信息的来源。"
+
+#: type/author/edit.html:65
+msgid "Date of birth"
+msgstr "出生日期"
+
+#: type/author/edit.html:74
+msgid "Date of death"
+msgstr "死亡日期"
+
+#: type/author/edit.html:83
+msgid ""
+"We're not storing structured dates (yet) so a date like \"21 May 2000\" is "
+"recommended."
+msgstr ""
+"我们（还）没有储存结构化的日期表达格式，所以建议使用像\"21 May 2000\"这样的日期"
+"格式。"
+
+#: type/author/edit.html:92
+msgid "Date"
+msgstr "日期"
+
+#: type/author/edit.html:99
+msgid ""
+"This is a deprecated field. You can help improve this record by removing "
+"this date and populating the \"Date of birth\" and \"Date of death\" fields. "
+"Thanks!"
+msgstr ""
+"这是一个废弃的字段。你可以通过删除这个日期并填入"出生日期"和"死亡日期"字段来帮助"
+"改进这个记录。谢谢！"
+
+#: type/author/edit.html:106
+msgid "Does this author go by any other names?"
+msgstr "这位作者是否还有其他名字？"
+
+#: type/author/edit.html:123
+msgid "Websites"
+msgstr "网站"
+
+#: type/author/edit.html:124
+msgid "Deprecated"
+msgstr "已废弃的"
+
+#: type/author/view.html:18
+msgid "name missing"
+msgstr "缺失名字"
+
+#: type/author/view.html:19 type/edition/view.html:58 type/work/view.html:58
+#, python-format
+msgid "%(page_title)s | Open Library"
+msgstr "%(page_title)s | 开放图书馆"
+
+#: type/author/view.html:32
+#, python-format
+msgid "Author of %(book_titles)s"
+msgstr "%(book_titles)s的作者"
+
+#: type/author/view.html:65
+msgid "Merging Authors..."
+msgstr "合并作者中..."
+
+#: type/author/view.html:66
+msgid "In progress..."
+msgstr "进行中..."
+
+#: type/author/view.html:78
+msgid "Refresh the page?"
+msgstr "刷新页面吗？"
+
+#: type/author/view.html:79
+msgid "Success!"
+msgstr "成功了！"
+
+#: type/author/view.html:80
+msgid ""
+"OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> "
+"the update.</i>"
+msgstr ""
+"好的。正在进行合并。<i>需要<u>几分钟的时间来完成</u>此更新。</i>"
+
+#: type/author/view.html:84
+msgid "Argh!"
+msgstr "啊呀！"
+
+#: type/author/view.html:85
+msgid "That merge didn't work. It's our fault, and we've made a note of it."
+msgstr "这次合并失败了。这是我们的错误，我们已经将它记录下来了。"
+
+#: type/author/view.html:97
+msgid "Website"
+msgstr "网站
+
+#: type/author/view.html:103
+msgid "Location"
+msgstr "位置"
+
+#: type/author/view.html:111
+msgid "Add another?"
+msgstr "要添加另外一个吗？"
+
+#: type/author/view.html:119
+#, python-format
+msgid ""
+"Showing all works by author. Would you like to see <a href=\"%(url)s\">only "
+"ebooks</a>?"
+msgstr ""
+"目前显示作者的所有作品。您是否希望<a href=\"%(url)s"\">只看电子书</a>?"
+
+#: type/author/view.html:121
+#, python-format
+msgid ""
+"Showing ebooks only. Would you like to see <a href=\"%(url)s\">everything</"
+"a> by this author?"
+msgstr ""
+"目前只显示电子书。您是否希望查看此作者的<a href=\"%(url)s\">所有作品</a> de este autor?"
+
+#: type/author/view.html:164
+msgid "Time"
+msgstr "时间"
+
+#: type/author/view.html:175
+msgid "OLID"
+msgstr "OLID"
+
+#: type/author/view.html:186
+msgid "Links <span class=\"gray small sansserif\">(outside Open Library)"
+msgstr ""
+"<span class=\"gray small sansserif\">的链接(在开放图书馆之外)"
+
+#: type/author/view.html:196
+msgid "No links yet."
+msgstr "还没有任何链接"
+
+#: type/author/view.html:196
+msgid "Add one"
+msgstr "添加一个"
+
+#: type/author/view.html:203
+msgid "Alternative names"
+msgstr "备选名称"
+
+#: type/delete/view.html:11
+msgid "This page has been deleted"
+msgstr "此页面已被删除"
