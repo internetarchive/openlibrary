@@ -5,9 +5,7 @@ from unittest.mock import MagicMock
 # TODO: Can we remove _init_path someday :(
 sys.modules['_init_path'] = MagicMock()
 
-# TODO: Rename this file to not be with hyphens
-new_solr_updater = import_module('scripts.new-solr-updater')
-parse_log = new_solr_updater.parse_log
+from scripts.solr_updater import parse_log  # noqa: E402
 
 
 class TestParseLog:
