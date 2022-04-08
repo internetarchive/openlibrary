@@ -26,7 +26,7 @@ from openlibrary.solr.update_work import CommitRequest
 
 logger = logging.getLogger("openlibrary.solr-updater")
 # FIXME: Some kind of hack introduced to work around DB connectivity issue
-args = {}
+args = {}  # type: ignore
 
 
 def read_state_file(path, initial_state: str = None):
