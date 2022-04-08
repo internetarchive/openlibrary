@@ -303,7 +303,7 @@ async def main(
     """
     FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
     logging.basicConfig(level=logging.INFO, format=FORMAT)
-    logger.info("BEGIN new-solr-updater")
+    logger.info("BEGIN solr_updater")
 
     if debugger:
         import debugpy
