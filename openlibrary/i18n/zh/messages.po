@@ -4145,3 +4145,243 @@ msgstr "备选名称"
 #: type/delete/view.html:11
 msgid "This page has been deleted"
 msgstr "此页面已被删除"
+
+#: type/delete/view.html:16
+msgid "What would you like to do?"
+msgstr "您想做什么呢？"
+
+#: type/delete/view.html:19
+msgid "Go back where I came from"
+msgstr "回到我一开始的地方"
+
+#: type/delete/view.html:21
+msgid "View the previous version"
+msgstr "查看之前的版本"
+
+#: type/delete/view.html:22
+msgid "Recreate it"
+msgstr "重新创建"
+
+#: type/delete/view.html:23
+msgid "See the page's history"
+msgstr "查看网页历史"
+
+#: type/doc/edit.html:33 type/page/edit.html:31
+msgid "Document Body:"
+msgstr "文档正文:"
+
+#: type/edition/admin_bar.html:17
+msgid "Add to Staff Picks"
+msgstr "添加到"工作人员精选"中"
+
+#: type/edition/admin_bar.html:22
+msgid "Sync Archive.org ID"
+msgstr "同步 Archive.org ID"
+
+#: type/edition/admin_bar.html:25
+msgid "View Book on Archive.org"
+msgstr "查看Archive.org上的书籍"
+
+#: type/edition/admin_bar.html:28
+msgid "Orphaned Edition"
+msgstr "孤儿版本"
+
+#: type/edition/publisher_line.html:11
+msgid "This edition was published"
+msgstr "此版本已出版"
+
+#: SearchResultsWork.html:58 type/edition/publisher_line.html:13
+#: type/edition/publisher_line.html:26
+msgid "in"
+msgstr "在"
+
+#: type/edition/publisher_line.html:19
+#, python-format
+msgid "Show other books from %(publisher)s"
+msgstr "显示其他来自%(publisher)s的书籍"
+
+#: type/edition/publisher_line.html:23
+#, python-format
+msgid "Search for other books from %(publisher)s"
+msgstr "搜索其他来自%(publisher)s的书籍"
+
+#: type/edition/publisher_line.html:29
+#, python-format
+msgid "Search for subjects about %(place)s"
+msgstr "搜索有关%(place)s的主题"
+
+#: type/edition/view.html:179 type/work/view.html:179
+msgid "An edition of"
+msgstr "版本"
+
+#: type/edition/view.html:205 type/work/view.html:205
+#, python-format
+msgid "Written in %(language)s"
+msgstr "用%(language)s撰写"
+
+#: type/edition/view.html:210 type/work/view.html:210
+msgid "pages"
+msgstr "页面"
+
+#: type/edition/view.html:228 type/work/view.html:228
+#, python-format
+msgid ""
+"This edition doesn't have a description yet. Can you <b><a "
+"href='%(url)s'>add one</a></b>?"
+msgstr ""
+"这个版本还没有描述。您是否可以帮忙<b><a "
+"href='%(url)s'>添加一个</a></b>?"
+
+#: type/edition/view.html:266 type/work/view.html:266
+#, python-format
+msgid "First published in %s"
+msgstr "首次出版于%s"
+
+#: type/edition/view.html:277 type/edition/view.html:278
+#: type/edition/view.html:375 type/work/view.html:277 type/work/view.html:278
+#: type/work/view.html:375
+msgid "First Sentence"
+msgstr "首句"
+
+#: type/edition/view.html:281 type/work/view.html:281
+msgid "Work Description"
+msgstr "作品描述"
+
+#: type/edition/view.html:287 type/work/view.html:287
+msgid "Original languages"
+msgstr "原本使用的语言"
+
+#: type/edition/view.html:292 type/work/view.html:292
+msgid "Excerpts"
+msgstr "摘录"
+
+#: type/edition/view.html:302 type/work/view.html:302
+#, python-format
+msgid "Page %(page)s"
+msgstr "第%(page)s页"
+
+#: type/edition/view.html:309 type/work/view.html:309
+#, python-format
+msgid "added by %(authorlink)s."
+msgstr "由%(authorlink)s添加。"
+
+#: type/edition/view.html:311 type/work/view.html:311
+msgid "added anonymously."
+msgstr "匿名添加。"
+
+#: type/edition/view.html:319 type/work/view.html:319
+msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
+msgstr ""
+"链接<span class=\"gray small sansserif\">在开放图书馆之外</span>"
+
+#: type/edition/view.html:323 type/work/view.html:323
+msgid "Wikipedia"
+msgstr "维基百科"
+
+#: type/edition/view.html:335 type/work/view.html:335
+msgid "Library of Congress"
+msgstr "美国国会图书馆"
+
+#: type/edition/view.html:338 type/work/view.html:338
+msgid "Dewey"
+msgstr "Dewey"
+
+#: databarHistory.html:26 databarView.html:33 type/edition/view.html:356
+#: type/work/view.html:356
+msgid "Edit this template"
+msgstr "编辑此模板"
+
+#: type/edition/view.html:360 type/work/view.html:360
+msgid "No editions available"
+msgstr "没有可用的版本"
+
+#: type/edition/view.html:381 type/work/view.html:381
+msgid "Edition Description"
+msgstr "版本描述"
+
+#: type/edition/view.html:396 type/work/view.html:396
+msgid "Edition Notes"
+msgstr "版本说明"
+
+#: type/edition/view.html:401 type/work/view.html:401
+msgid "Series"
+msgstr "系列"
+
+#: type/edition/view.html:402 type/work/view.html:402
+msgid "Volume"
+msgstr "卷"
+
+#: type/edition/view.html:403 type/work/view.html:403
+msgid "Genre"
+msgstr "体裁"
+
+#: type/edition/view.html:404 type/work/view.html:404
+msgid "Other Titles"
+msgstr "其他标题"
+
+#: type/edition/view.html:405 type/work/view.html:405
+msgid "Copyright Date"
+msgstr "版权日期"
+
+#: type/edition/view.html:406 type/work/view.html:406
+msgid "Translation Of"
+msgstr "以下语言的翻译"
+
+#: type/edition/view.html:407 type/work/view.html:407
+msgid "Translated From"
+msgstr "翻译自"
+
+#: type/edition/view.html:426 type/work/view.html:426
+msgid "External Links"
+msgstr "外部链接"
+
+#: type/edition/view.html:450 type/work/view.html:450
+msgid "Format"
+msgstr "格式"
+
+#: type/edition/view.html:451 type/work/view.html:451
+msgid "Pagination"
+msgstr "页码"
+
+#: type/edition/view.html:452 type/work/view.html:452
+msgid "Number of pages"
+msgstr "页数"
+
+#: type/edition/view.html:454 type/work/view.html:454
+msgid "Weight"
+msgstr "重量"
+
+#: type/edition/view.html:486 type/work/view.html:486
+msgid "Lists containing this Book"
+msgstr "包含这本书籍的所有清单"
+
+#: type/language/view.html:22
+msgid "Code"
+msgstr "代码"
+
+#: type/list/edit.html:14
+msgid "Edit List"
+msgstr "编辑清单"
+
+#: type/list/edit.html:25
+msgid "Label"
+msgstr "标签"
+
+#: type/list/edit.html:34 type/user/edit.html:39
+msgid "Description"
+msgstr "描述"
+
+#: type/list/embed.html:22
+msgid "Visit Open Library"
+msgstr "访问开放图书馆"
+
+#: type/list/embed.html:41 type/list/view.html:175
+msgid "Unknown authors"
+msgstr "作者未知"
+
+#: type/list/embed.html:67
+msgid ""
+"Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT "
+"formats from main book page"
+msgstr ""
+"在在线图书阅读器中打开。可从书籍主页面下载ePub、DAISY、PDF、TXT格式的资料。"
