@@ -1,10 +1,11 @@
-from typing import List, Union, Tuple, Any
+from typing import Iterable, List, Union, Tuple, Any
 
 import web
 import json
 import babel
 import babel.core
 import babel.dates
+from babel.lists import format_list
 from collections import defaultdict
 import re
 import random
@@ -208,6 +209,13 @@ def list_recent_pages(path, limit=100, offset=0):
     # queries are very slow with != conditions
     # q['type'] != '/type/delete'
     return web.ctx.site.get_many(web.ctx.site.things(q))
+
+
+@public
+def commify_list(items: Iterable[Any]):
+    # If the list item is a template/html element, we strip it
+    # so that there is no space before the comma.
+    return format_list([str(x).strip() for x in items], locale=web.ctx.lang)
 
 
 @public
