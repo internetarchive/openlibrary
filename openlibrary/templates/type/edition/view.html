@@ -119,16 +119,12 @@ $code:
     description = get_description(page)
     putctx("description", description)
 
-$code:
-    def get_authors_byline(page, include_schema=False):
-        schema_attribute = cond(include_schema, ' itemprop="author"', '')
-        authors = cond(work, work and work.get_authors(), edition and edition.get_authors())
-        if authors:
-            return ', '.join('<a href="%s"%s>%s</a>' % (a.url(), schema_attribute, truncate(a.name, 40)) if a.name else "<em>Unknown author</em>" for a in authors)
-        elif (edition or work).author_names:
-            return ('<span%s>' % (schema_attribute)) + ", ".join((edition or work).author_names) + "</span>"
-        else:
-            return None
+$def render_author_link(name, url):
+  $ rendered_name = cond(name, truncate(name, 40), _("Unknown author"))
+  $if url:
+    <a href="$url" itemprop="author">$rendered_name</a>
+  $else:
+    <span itemprop="author">$rendered_name</span>
 
 $def display_value(label, value, itemprop=None):
     $if value:
@@ -163,8 +159,6 @@ $def display_goodreads(label, ids):
         $for id in ids:
             <dd><a href="$id.url">$id.value</a></dd>
 
-$ authors_byline = get_authors_byline(page, include_schema=True)
-
 $:macros.Metatags(title=title_with_site, image=meta_cover_url, description=description)
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
@@ -197,9 +191,16 @@ $if is_privileged_user:
 
       $:render_template("type/edition/book_title", work, edition)
 
-      $if authors_byline:
-        $# authors_byline susceptible to xss!
-        <h2 class="edition-byline">$_("by") $:authors_byline</h2>
+      $ authors = (work or edition).get_authors()
+      $ author_names = (work or edition).author_names
+      $if authors:
+        <h2 class="edition-byline">
+          $:_("by %(name)s", name=commify_list([render_author_link(author.name, author.url()) for author in authors]))
+        </h2>
+      $elif author_names:
+        <h2 class="edition-byline">
+          $:_("by %(name)s", name=commify_list([render_author_link(name, None) for name in author_names]))
+        </h2>
 
       $ component_times['ReadlogStats'] = time()
       $:macros.StarRatingsStats(work)
