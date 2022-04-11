@@ -213,9 +213,11 @@ def list_recent_pages(path, limit=100, offset=0):
 
 @public
 def commify_list(items: Iterable[Any]):
+    # Not sure why lang is sometimes ''
+    lang = web.ctx.lang or 'en'
     # If the list item is a template/html element, we strip it
     # so that there is no space before the comma.
-    return format_list([str(x).strip() for x in items], locale=web.ctx.lang)
+    return format_list([str(x).strip() for x in items], locale=lang)
 
 
 @public
