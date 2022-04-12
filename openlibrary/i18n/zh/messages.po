@@ -4385,3 +4385,182 @@ msgid ""
 "formats from main book page"
 msgstr ""
 "在在线图书阅读器中打开。可从书籍主页面下载ePub、DAISY、PDF、TXT格式的资料。"
+
+#: type/list/embed.html:73
+msgid "This book is checked out"
+msgstr "这本书已经借出了"
+
+#: type/list/embed.html:75
+msgid "Checked out"
+msgstr "借阅"
+
+#: type/list/embed.html:78
+msgid "Borrow book"
+msgstr "借阅书籍"
+
+#: type/list/embed.html:83
+msgid "Protected DAISY"
+msgstr "受保护的DAISY"
+
+#: DownloadOptions.html:27 type/list/embed.html:85
+msgid "DAISY"
+msgstr "DAISY"
+
+#: type/list/embed.html:100 type/list/view.html:226
+#, python-format
+msgid "by %(name)s"
+msgstr "来自%(name)s"
+
+#: type/list/exports.html:30
+msgid "Export"
+msgstr "导出"
+
+#: type/list/exports.html:31
+#, python-format
+msgid "as %(json_link)s, %(html_link)s, or %(bibtex_link)s"
+msgstr "以 %(json_link)s, %(html_link)s 或者 %(bibtex_link)s"
+
+#: type/list/exports.html:35 type/list/exports.html:55
+msgid "Subscribe"
+msgstr "订阅"
+
+#: type/list/exports.html:36 type/list/exports.html:56
+#, python-format
+msgid "Watch activity via <a rel=\"nofollow\" href=\"%s\">Atom feed</a>"
+msgstr ""
+"通过<a rel=\"nofollow\" href=\"%s\">Atom feed</a>观察活动"
+
+#: type/list/exports.html:43
+msgid "Export Not Available"
+msgstr "无法导出"
+
+#: type/list/exports.html:48
+#, python-format
+msgid ""
+"Only lists with up to %(max)s editions can be exported. This one has "
+"%(count)s."
+msgstr ""
+"无法导出超过%(max)s个版本的清单。这个清单里有%(count)s个。"
+
+#: type/list/exports.html:50
+#, python-format
+msgid ""
+"Try removing some seeds for more focus, or look at <a href=\"%s\">bulk "
+"download</a> of the catalog."
+msgstr ""
+"试着去掉一些元素，以更好地聚焦，或者查看目录中的<a href=\"%s\">批量下载</a>。"
+
+#: type/list/view.html:8
+#, python-format
+msgid "%(name)s | Lists | Open Library"
+msgstr "%(name)s | 清单 | 开放图书馆"
+
+#: type/list/view.html:18
+#, python-format
+msgid "%(title)s: %(description)s"
+msgstr "%(title)s: %(description)s"
+
+#: type/list/view.html:29
+msgid "View the list on Open Library."
+msgstr "查看在开放图书馆中的清单。"
+
+#: type/list/view.html:166
+msgid "Remove seed"
+msgstr "移除元素"
+
+#: type/list/view.html:166
+msgid "Are you sure you want to remove this item from the list?"
+msgstr "您确定要把这个项目从清单中删除吗？"
+
+#: type/list/view.html:167
+msgid "Remove Seed"
+msgstr "移除元素"
+
+#: type/list/view.html:168
+msgid ""
+"You are about to remove the last item in the list. That will delete the "
+"whole list. Are you sure you want to continue?"
+msgstr ""
+"您即将删除这个清单中的最后一个项目。这将会删除整个清单。您确定要继续吗？"
+
+#: type/list/view.html:234
+#, python-format
+msgid "Last updated <span>%(date)s</span>"
+msgstr "最后一次更新于<span>%(date)s</span>"
+
+#: type/list/view.html:241
+msgid "Remove this item?"
+msgstr "要删除这个项目吗？"
+
+#: type/list/view.html:254
+msgid "List Metadata"
+msgstr "清单的元数据"
+
+#: type/list/view.html:255
+msgid "Derived from seed metadata"
+msgstr "来源于种子元数据"
+
+#: type/local_id/view.html:22
+msgid "Source Item"
+msgstr "来源项目"
+
+#: type/local_id/view.html:34
+msgid "prefix"
+msgstr "前缀"
+
+#: type/local_id/view.html:38
+msgid "Example"
+msgstr "例子"
+
+#: type/permission/view.html:17
+msgid "Readers"
+msgstr "读者"
+
+#: type/permission/view.html:23
+msgid "Writers"
+msgstr "作者"
+
+#: type/rawtext/edit.html:31 type/template/edit.html:41
+msgid "Document Body"
+msgstr "文档正文"
+
+#: type/template/edit.html:51
+msgid "Delete this template?"
+msgstr "要删除这个模板吗？"
+
+#: type/type/view.html:19
+msgid "Kind"
+msgstr "种类"
+
+#: type/type/view.html:31
+msgid "Backreferences"
+msgstr "反向引用"
+
+#: type/user/edit.html:13
+msgid "Currently Editing:"
+msgstr "目前正在编辑:"
+
+#: type/user/edit.html:25
+msgid "Display Name"
+msgstr "显示名字"
+
+#: type/user/view.html:24
+#, python-format
+msgid "Joined %(date)s"
+msgstr "于%(date)s加入"
+
+#: type/user/view.html:32
+msgid "admin page"
+msgstr "管理员页面"
+
+#: type/user/view.html:53
+#, python-format
+msgid ""
+"You are publicly sharing the books you are <a href=\"%(username)s/books/"
+"currently-reading\">currently reading</a>, <a href=\"%(username)s/books/"
+"already-read\">have already read</a>, and <a href=\"%(username)s/books/want-"
+"to-read\">want to read</a>."
+msgstr ""
+"您正在公开分享您<a href=\"%(username)s/books/currently-reading\">目前正在"
+"阅读的书籍</a>, <a href=\"%(username)s/books/already-read\">读过的书藉</a>"
+"和 <a href=\"%(username)s/books/want-to-read\">想读的书籍</a>。"
