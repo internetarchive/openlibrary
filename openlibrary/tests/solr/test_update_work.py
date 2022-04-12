@@ -747,14 +747,23 @@ class TestSolrUpdate:
     def sample_response_200(self):
         return Response(
             200,
-            content=b"""
-            {"responseHeader": {"errors": [], "maxErrors": -1, "status": 0, "QTime": 183}}
-            """.strip(),
+            request=MagicMock(),
+            content=json.dumps(
+                {
+                    "responseHeader": {
+                        "errors": [],
+                        "maxErrors": -1,
+                        "status": 0,
+                        "QTime": 183,
+                    }
+                }
+            ),
         )
 
     def sample_global_error(self):
         return Response(
             400,
+            request=MagicMock(),
             content=json.dumps(
                 {
                     'responseHeader': {
@@ -780,6 +789,7 @@ class TestSolrUpdate:
     def sample_individual_error(self):
         return Response(
             400,
+            request=MagicMock(),
             content=json.dumps(
                 {
                     'responseHeader': {
@@ -799,7 +809,11 @@ class TestSolrUpdate:
         )
 
     def sample_response_503(self):
-        return Response(503, content=b"<html><body><h1>503 Service Unavailable</h1>")
+        return Response(
+            503,
+            request=MagicMock(),
+            content=b"<html><body><h1>503 Service Unavailable</h1>",
+        )
 
     def test_successful_response(self, monkeypatch, sleepless):
         mock_post = MagicMock(return_value=self.sample_response_200())
@@ -855,3 +869,16 @@ class TestSolrUpdate:
         )
 
         assert mock_post.call_count == 1
+
+    def test_other_non_ok_status(self, monkeypatch, sleepless):
+        mock_post = MagicMock(
+            return_value=Response(500, request=MagicMock(), content="{}")
+        )
+        monkeypatch.setattr(httpx, "post", mock_post)
+
+        solr_update(
+            [CommitRequest()],
+            solr_base_url="http://localhost:8983/solr/foobar",
+        )
+
+        assert mock_post.call_count > 1

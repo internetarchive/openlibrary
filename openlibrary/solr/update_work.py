@@ -14,7 +14,7 @@ import requests
 import sys
 import time
 
-from httpx import HTTPError, TimeoutException
+from httpx import HTTPError, HTTPStatusError, TimeoutException
 from six.moves.urllib.parse import urlparse
 from collections import defaultdict
 from unicodedata import normalize
@@ -1191,12 +1191,11 @@ def solr_update(
                 content=content,
             )
 
-            try:
+            if resp.status_code == 400:
                 resp_json = resp.json()
 
-                indiv_errors = resp_json['responseHeader'].get('errors', [])
+                indiv_errors = resp_json.get('responseHeader', {}).get('errors', [])
                 if indiv_errors:
-                    # These are usually valid errors; no need to retry
                     for e in indiv_errors:
                         logger.error(f'Individual Solr POST Error: {e}')
 
@@ -1204,14 +1203,15 @@ def solr_update(
                 if global_error:
                     logger.error(f'Global Solr POST Error: {global_error.get("msg")}')
 
-                if indiv_errors or global_error:
-                    # These errors likely won't be fixed by a retry, so get out
-                    return resp_json
-                else:
+                if not (indiv_errors or global_error):
+                    # We can handle the above errors. Any other 400 status codes
+                    # are fatal and should cause a retry
                     resp.raise_for_status()
-            except JSONDecodeError:
-                logger.error(f'Non-JSON Solr POST Error: {resp.text}')
-                raise
+            else:
+                resp.raise_for_status()
+        except HTTPStatusError as e:
+            logger.error(f'HTTP Status Solr POST Error: {e}')
+            raise
         except TimeoutException:
             logger.error(f'Timeout Solr POST Error: {content}')
             raise
@@ -1220,7 +1220,7 @@ def solr_update(
             raise
 
     retry = RetryStrategy(
-        [JSONDecodeError, TimeoutException, HTTPError],
+        [HTTPStatusError, TimeoutException, HTTPError],
         max_retries=5,
         delay=8,
     )
