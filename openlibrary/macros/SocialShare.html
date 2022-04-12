@@ -4,17 +4,28 @@ $# :param str page_url: absolute url excluding params
 
 $def embed_iframe(page_url):
   <iframe frameborder="0" width="165" height="400" src="$(page_url)/-/widget"></iframe>
-
+  <script>shareData = {
+    title: 'MDN',
+    text: 'Learn web development on MDN!',
+    url: 'https://developer.mozilla.org'
+  }
+const btn = document.querySelector('button');
+const resultPara = document.querySelector('.result');
+// Share must be triggered by "user activation"
+btn.addEventListener('click', async () => {
+  try {
+    await navigator.share(shareData)
+    resultPara.textContent = 'MDN shared successfully'
+  } catch(err) {
+    resultPara.textContent = 'Error: ' + err
+  }
+});</script>
 <div class="shareLinks cta-section">
   <p class="cta-section-title">$_('Share this book')</p>
   <ul class="shareLinks-list">
-    $for share_link in share_links:
-      $ track_tag = share_link['text'].replace(' ', '-')
       <li>
-        <a href="$share_link['url']" class="sansserif large" target="_blank" data-ol-link-track="Share|$track_tag">
-          <img title="Share on $(share_link['text'])" alt="$(share_link['text'])" class="share-link" src="$static_url('images/%s.svg' % share_link['text'].lower())"/>
-        </a>
-        <div class="share-source">$share_link['text']</div>
+        <p><button>Share MDN!</button></p>
+        <p class="result"></p>
       </li>
 
     <li>
