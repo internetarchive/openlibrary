@@ -4,29 +4,11 @@ $# :param str page_url: absolute url excluding params
 
 $def embed_iframe(page_url):
   <iframe frameborder="0" width="165" height="400" src="$(page_url)/-/widget"></iframe>
-  <script>shareData = {
-    title: 'MDN',
-    text: 'Learn web development on MDN!',
-    url: 'https://developer.mozilla.org'
-  }
-const btn = document.querySelector('button');
-const resultPara = document.querySelector('.result');
-// Share must be triggered by "user activation"
-btn.addEventListener('click', async () => {
-  try {
-    await navigator.share(shareData)
-    resultPara.textContent = 'MDN shared successfully'
-  } catch(err) {
-    resultPara.textContent = 'Error: ' + err
-  }
-});</script>
+  
 <div class="shareLinks cta-section">
   <p class="cta-section-title">$_('Share this book')</p>
+
   <ul class="shareLinks-list">
-      <li>
-        <p><button>Share MDN!</button></p>
-        <p class="result"></p>
-      </li>
     <li>
       <button id ="mdn">Share MDN!</button>
     </li>
@@ -48,9 +30,6 @@ btn.addEventListener('click', async () => {
 
 <script>
 
-  function paoole(){
-    console.log("HER00000");
-  }
 
     let shareData = {
       title: 'MDN',
