@@ -353,6 +353,18 @@ class Test_build_data:
         assert d['edition_count'] == 1
         assert d['ebook_count_i'] == 1
 
+    def test_get_alternate_titles(self):
+        f = SolrProcessor.get_alternate_titles
+
+        no_title = {}
+        only_title = {'title': 'foo'}
+        with_subtitle = {'title': 'foo 2', 'subtitle': 'bar'}
+
+        assert f([]) == set()
+        assert f([no_title]) == set()
+        assert f([only_title, no_title]) == {'foo'}
+        assert f([with_subtitle, only_title]) == {'foo 2: bar', 'foo'}
+
     @pytest.mark.asyncio
     async def test_with_multiple_editions(self):
         w = make_work()
