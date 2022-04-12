@@ -27,6 +27,9 @@ btn.addEventListener('click', async () => {
         <p><button>Share MDN!</button></p>
         <p class="result"></p>
       </li>
+    <li>
+      <button id ="mdn">Share MDN!</button>
+    </li>
 
     <li>
       $# rm special characters from url such as single quote which break js prompt/iframe
@@ -40,3 +43,34 @@ btn.addEventListener('click', async () => {
     </li>
   </ul>
 </div>
+
+
+
+<script>
+
+  function paoole(){
+    console.log("HER00000");
+  }
+
+    let shareData = {
+      title: 'MDN',
+      text: 'Learn web development on MDN!',
+      url: 'https://developer.mozilla.org',
+    }
+
+    const btn = document.querySelector('#mdn');
+    console.log(btn)
+    const resultPara = document.querySelector('.result');
+
+    btn.addEventListener('click', () => {
+      navigator.share(shareData)
+        .then(() =>
+          resultPara.textContent = 'MDN shared successfully'
+        )
+        .catch((e) =>
+          resultPara.textContent = 'Error: ' + e
+        )
+    });
+
+
+</script>
