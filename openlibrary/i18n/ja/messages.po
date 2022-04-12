@@ -2153,7 +2153,7 @@ msgid "Choose a JPG, GIF or PNG on your computer,"
 msgstr ""
 
 #: add.html:126
-msgid "<span class=\"highlight\"><u>Or</u></span>, paste in the image URL if it's on the web."
+msgid "Or, paste in the image URL if it's on the web."
 msgstr ""
 
 #: add.html:134
