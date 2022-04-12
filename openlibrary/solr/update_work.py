@@ -37,6 +37,7 @@ from openlibrary.utils import uniq
 from openlibrary.utils.ddc import normalize_ddc, choose_sorting_ddc
 from openlibrary.utils.isbn import opposite_isbn
 from openlibrary.utils.lcc import short_lcc_to_sortable_lcc, choose_sorting_lcc
+from openlibrary.utils.retry import MaxRetriesExceeded, RetryStrategy
 
 logger = logging.getLogger("openlibrary.solr")
 
@@ -1177,29 +1178,57 @@ def solr_update(
         params['commitWithin'] = commit_within
     if skip_id_check:
         params['overwrite'] = 'false'
-    logger.debug(f"POSTing update to {solr_base_url}/update {params}")
-    try:
-        resp = httpx.post(
-            f'{solr_base_url}/update',
-            # Large batches especially can take a decent chunk of time
-            timeout=300,
-            params=params,
-            headers={'Content-Type': 'application/json'},
-            content=content,
-        )
+
+    def make_request():
+        logger.debug(f"POSTing update to {solr_base_url}/update {params}")
         try:
-            resp_json = resp.json()
-            errors = resp_json['responseHeader'].get('errors', [])
-            if errors:
-                for e in errors:
-                    logger.error(f'Error with solr POST update: {e}')
-        except JSONDecodeError:
-            logger.error('Error with solr POST update: ' + resp.text)
-        resp.raise_for_status()
-    except TimeoutException:
-        logger.error('Timeout Error with solr POST update: ' + content)
-    except HTTPError:
-        logger.error('Error with solr POST update: ' + content)
+            resp = httpx.post(
+                f'{solr_base_url}/update',
+                # Large batches especially can take a decent chunk of time
+                timeout=300,
+                params=params,
+                headers={'Content-Type': 'application/json'},
+                content=content,
+            )
+
+            try:
+                resp_json = resp.json()
+
+                indiv_errors = resp_json['responseHeader'].get('errors', [])
+                if indiv_errors:
+                    # These are usually valid errors; no need to retry
+                    for e in indiv_errors:
+                        logger.error(f'Individual Solr POST Error: {e}')
+
+                global_error = resp_json.get('error')
+                if global_error:
+                    logger.error(f'Global Solr POST Error: {global_error.get("msg")}')
+
+                if indiv_errors or global_error:
+                    # These errors likely won't be fixed by a retry, so get out
+                    return resp_json
+                else:
+                    resp.raise_for_status()
+            except JSONDecodeError:
+                logger.error(f'Non-JSON Solr POST Error: {resp.text}')
+                raise
+        except TimeoutException:
+            logger.error(f'Timeout Solr POST Error: {content}')
+            raise
+        except HTTPError as e:
+            logger.error(f'HTTP Solr POST Error: {e}')
+            raise
+
+    retry = RetryStrategy(
+        [JSONDecodeError, TimeoutException, HTTPError],
+        max_retries=5,
+        delay=8,
+    )
+
+    try:
+        return retry(make_request)
+    except MaxRetriesExceeded as e:
+        logger.error(f'Max retries exceeded for Solr POST: {e.last_exception}')
 
 
 def get_subject(key):
