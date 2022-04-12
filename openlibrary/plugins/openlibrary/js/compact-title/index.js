@@ -1,8 +1,49 @@
+/**
+ * Defines functions related to the compact title component.
+ * @module compact-title/index
+ */
+
+/**
+ * True if compact title component is visible on screen.
+ * @type {boolean}
+ */
 let isTitleVisible = false
 
+/**
+ * Navbar is "stuck" when it reaches this position on the Y-axis.
+ */
+const navbarStickyHeight = getTitleComponentHeight()
+
+/**
+ * Returns a number representing the compact title component's height.
+ *
+ * The compact title's height is fetched from a CSS variable.
+ *
+ * @returns {Number} The height of the compact title component.
+ */
+function getTitleComponentHeight() {
+    const titleHeightWithUnits =  getComputedStyle(document.body).getPropertyValue('--compact-title-height');
+
+    return Number(titleHeightWithUnits.replace(/\D/g,''))
+}
+
+/**
+ * Enables compact title component.
+ *
+ * The compact title component is initially hidden and off-screen.
+ * The component's visibility is dependant on the navbar's position
+ * on the page.
+ *
+ * This function sets up the scroll event listener and ensures that
+ * the compact title is visible if the navbar is initially stickied
+ * to the top of the page (this can happen on page refresh).
+ *
+ * @param {HTMLElement} navbar The book page navbar component
+ * @param {HTMLElement} title The compact title component
+ */
 export function initCompactTitle(navbar, title) {
     // Show compact title on page reload:
-    if (navbar.getBoundingClientRect().top === 35) {
+    if (navbar.getBoundingClientRect().top === navbarStickyHeight) {
         title.classList.remove('hidden')
         title.style.top = '0px'
         isTitleVisible = true
@@ -13,10 +54,19 @@ export function initCompactTitle(navbar, title) {
     })
 }
 
+/**
+ * Displays or hides compact title component based on navbar's position.
+ *
+ * Determines navbar's Y-axis position on the page.  Repositions compact
+ * title component if navbar becomes either "stuck" or "unstuck".
+ *
+ * @param {HTMLElement} navbar The book page navbar component
+ * @param {HTMLELement} title The compact title component
+ */
 function onScroll(navbar, title) {
     const navbarY = navbar.getBoundingClientRect().top;
 
-    if (navbarY === 35) {
+    if (navbarY === navbarStickyHeight) {
         if (title.classList.contains('hidden')) {
             title.classList.remove('hidden')
         }
@@ -29,7 +79,7 @@ function onScroll(navbar, title) {
     } else {
         if (isTitleVisible) {
             isTitleVisible = false
-            title.style.top = '-35px'
+            title.style.top = `-${navbarStickyHeight}px`
             title.classList.remove('compact-title--slidein')
             title.classList.add('compact-title--slideout')
         }
