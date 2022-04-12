@@ -72,3 +72,13 @@ def render_template(request):
         return str(d) if as_string else d
 
     return render
+
+
+@pytest.fixture
+def sleepless(monkeypatch):
+    import time
+
+    def sleep(seconds):
+        pass
+
+    monkeypatch.setattr(time, 'sleep', sleep)
