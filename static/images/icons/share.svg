@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg width="33.867mm" height="33.867mm" version="1.1" viewBox="0 0 33.867 33.867" xmlns="http://www.w3.org/2000/svg">
+ <g transform="matrix(.22222 0 0 .22222 11.271 11.254)">
+  <g fill-rule="evenodd" stroke-width=".79375">
+   <circle cx="-25.319" cy="25.559" r="25.4"/>
+   <circle cx="76.281" cy="-25.241" r="25.4"/>
+   <circle cx="76.281" cy="76.359" r="25.4"/>
+  </g>
+  <rect transform="rotate(-26.87)" x="-40.87" y="4.1481" width="119.75" height="15.875" stroke-width=".9104"/>
+  <rect transform="matrix(.89203 .45197 .45197 -.89203 0 0)" x="-17.719" y="-41.545" width="119.75" height="15.875" stroke-width=".9104"/>
+ </g>
+</svg>
