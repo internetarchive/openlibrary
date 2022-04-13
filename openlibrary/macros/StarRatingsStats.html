@@ -12,6 +12,7 @@ $ avg = rating_stats.get('avg_rating')
       $if (stats_decimal >= 0.5) and (stats_decimal < 1):
         $:('<span class="readers-stats__star--half">★</span>')
       <span itemprop="ratingValue">$avg</span>
+      <span class="dot">·</span>
   </li>
   <li>
     <span itemprop="reviewCount">$rating_stats.get('num_ratings', 0)</span> $_("Ratings")
