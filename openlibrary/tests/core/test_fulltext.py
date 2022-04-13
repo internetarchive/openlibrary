@@ -6,8 +6,8 @@ from openlibrary.core import fulltext
 
 
 class Test_fulltext_search_api:
-    def test_config(self):
-        assert not hasattr(config, "plugin_inside")
+    def test_no_config(self, monkeypatch):
+        monkeypatch.delattr(config, "plugin_inside")
         response = fulltext.fulltext_search_api({})
         assert response == {"error": "Unable to prepare search engine"}
 
