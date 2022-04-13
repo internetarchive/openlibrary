@@ -265,14 +265,10 @@ $if is_privileged_user:
           </div>
       </div>
 
-      $ seen = set()
-      $if previews:
-        <p class="preview-languages">
-          $for e in previews:
-            $if len(e.languages)!=0:
-               Previews available in:
-               $break
-            $break
+      $ seen = set()      
+      $if previews and any([len(e.languages) for e in previews]):
+        <p class="preview-languages">         
+          Previews available in:            
           $for e in previews:
             $if e.languages[0].name not in seen:
               $ seen.add(e.languages[0].name)
