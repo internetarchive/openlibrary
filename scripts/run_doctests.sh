@@ -22,7 +22,6 @@ pytest --doctest-modules \
         --ignore=openlibrary/catalog/amazon/import.py \
         --ignore=openlibrary/catalog/amazon/list_done.py \
         --ignore=openlibrary/catalog/amazon/load_merge.py \
-        --ignore=openlibrary/catalog/amazon/read_serp.py \
         --ignore=openlibrary/catalog/marc/lang.py \
         --ignore=openlibrary/catalog/marc/read_toc.py \
         --ignore=openlibrary/catalog/marc/show_records.py \
