@@ -4564,3 +4564,180 @@ msgstr ""
 "您正在公开分享您<a href=\"%(username)s/books/currently-reading\">目前正在"
 "阅读的书籍</a>, <a href=\"%(username)s/books/already-read\">读过的书藉</a>"
 "和 <a href=\"%(username)s/books/want-to-read\">想读的书籍</a>。"
+
+#: type/user/view.html:55
+msgid "You have chosen to make your"
+msgstr "您选择让您的"
+
+#: type/user/view.html:55
+msgid "private"
+msgstr "私人的"
+
+#: type/user/view.html:60
+#, python-format
+msgid ""
+"Here are the books %(user)s is <a href=\"%(username)s/books/currently-reading"
+"\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have "
+"already read</a>, and <a href=\"%(username)s/books/want-to-read\">want to "
+"read</a>!"
+msgstr ""
+"以下的书籍是%(user)s目前<a href=\"%(username)s/books/currently-reading\">"
+"正在阅读的</a>, <a href=\"%(username)s/books/already-read\">读过的</a>"
+"和 <a href=\"%(username)s/books/want-to-read\">想读的</a>!"
+
+#: type/user/view.html:62
+msgid "This reader has chosen to make their Reading Log private."
+msgstr "这位读者选择将其阅读日志设置作为私人的。"
+
+#: RecentChangesUsers.html:64 type/user/view.html:84
+msgid "No edits. Yet."
+msgstr "当前还没有编辑。"
+
+#: SearchResultsWork.html:52 type/work/editions.html:11
+#, python-format
+msgid "First published in %(year)s"
+msgstr "首次出版于%(year)s"
+
+#: type/work/editions.html:14 type/work/editions_datatable.html:37
+#, python-format
+msgid "Add another edition of %(work)s"
+msgstr "为%(work)s添加另外一个版本"
+
+#: UserEditRow.html:25 type/work/editions.html:14
+msgid "Add another"
+msgstr "另加"
+
+#: type/work/editions.html:43
+msgid "Title missing"
+msgstr "标题缺失"
+
+#: type/work/editions_datatable.html:13
+msgid "Edition"
+msgstr "版本"
+
+#: type/work/editions_datatable.html:14
+msgid "Availability"
+msgstr "可获得性"
+
+#: type/work/editions_datatable.html:37
+msgid "Add another edition?"
+msgstr "添加另外一个版本？"
+
+#: AffiliateLinks.html:15
+msgid "Better World Books"
+msgstr "更好的世界书籍"
+
+#: AffiliateLinks.html:19
+msgid " - includes shipping"
+msgstr " - 包含邮费"
+
+#: AffiliateLinks.html:25
+msgid "Amazon"
+msgstr "亚马逊"
+
+#: AffiliateLinks.html:32
+msgid "Bookshop.org"
+msgstr "Bookshop.org"
+
+#: AffiliateLinks.html:54
+#, python-format
+msgid "Look for this edition for sale at %(store)s"
+msgstr "在%(store)s里寻找这个版本的销售"
+
+#: AuthorList.html:9
+msgid "Go to this author's page"
+msgstr "前往这个作者的页面"
+
+#: AuthorList.html:11
+msgid "by an <em>unknown author</em>"
+msgstr "出自<em>未知的作者</em>"
+
+#: BookPreview.html:18
+msgid "Preview Book"
+msgstr "预览书籍"
+
+#: BookPreview.html:28
+msgid "See more about this book on Archive.org"
+msgstr "在Archive.org上查看更多关于此书的信息"
+
+#: DownloadOptions.html:17
+msgid "Download Options"
+msgstr "下载选项"
+
+#: DownloadOptions.html:20
+msgid "Download a PDF from Internet Archive"
+msgstr "从互联网档案馆下载PDF格式"
+
+#: DownloadOptions.html:22
+msgid "Download a text version from Internet Archive"
+msgstr "从互联网档案馆下载文本版本"
+
+#: DownloadOptions.html:22
+msgid "Plain text"
+msgstr "纯文本"
+
+#: DownloadOptions.html:24
+msgid "Download an ePub from Internet Archive"
+msgstr "从互联网档案馆下载ePub"
+
+#: DownloadOptions.html:26
+msgid "Download a MOBI file from Internet Archive"
+msgstr "从互联网档案馆下载MOBI文件"
+
+#: DownloadOptions.html:26
+msgid "MOBI"
+msgstr "MOBI"
+
+#: DownloadOptions.html:27
+msgid "Download open DAISY from Internet Archive (print-disabled format)"
+msgstr ""
+"从互联网档案馆下载开放的DAISY（禁用打印格式）"
+
+#: EditButtons.html:9 EditButtonsMacros.html:12
+msgid "(Optional, but very useful!)"
+msgstr "(这不是必选的，但是非常有用!)"
+
+#: EditButtons.html:27
+msgid ""
+"<em>Please Note:</em> Only Admins can delete things. <a href=\"/contact\" "
+"class=\"blue\">Let us know</a> if there's a problem."
+msgstr ""
+"<em>请注意:</em>只有管理员才能删除东西。如果有问题，请<a href=\"/contact\" "
+"class=\"blue\">告知我们</a>。"
+
+#: EditButtonsMacros.html:27
+msgid "Delete this record"
+msgstr "删除此纪录"
+
+#: EditionNavBar.html:10
+#, python-format
+msgid "View %(count)s Edition"
+msgid_plural "View %(count)s Editions"
+msgstr[0] "查看%(count)s个版本"
+msgstr[1] "查看%(count)s个版本"
+
+#: EditionNavBar.html:14
+msgid "Overview"
+msgstr "概述"
+
+#: EditionNavBar.html:20
+msgid "Reviews"
+msgstr "评价"
+
+#: LoanStatus.html:38
+msgid "Return eBook"
+msgstr "归还电子书"
+
+#: LoanStatus.html:45
+msgid "Really return this book?"
+msgstr "确定归还这本书吗？"
+
+#: LoanStatus.html:70
+msgid "You are <strong>next</strong> on the waiting list"
+msgstr "您是等候名单上的<strong>下一个</strong>"
+
+#: LoanStatus.html:72
+#, python-format
+msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
+msgstr ""
+"在这个有着%(wlsize)d位等候者的等候名单中，您排在第<strong>#%(spot)d</strong>位。"
