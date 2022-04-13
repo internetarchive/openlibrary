@@ -4,7 +4,7 @@ from openlibrary.utils.retry import MaxRetriesExceeded, RetryStrategy
 
 
 class TestRetryStrategy:
-    def test_exception_filter(self, sleepless):
+    def test_exception_filter(self, monkeytime):
         foo = Mock(side_effect=ZeroDivisionError)
         retry = RetryStrategy([ZeroDivisionError], max_retries=3)
         with pytest.raises(MaxRetriesExceeded):
@@ -17,7 +17,7 @@ class TestRetryStrategy:
         assert retry(foo) == 1
         assert foo.call_count == 1
 
-    def test_retry(self, sleepless):
+    def test_retry(self, monkeytime):
         foo = Mock(side_effect=[ZeroDivisionError, 1])
         retry = RetryStrategy([ZeroDivisionError], max_retries=3)
         assert retry(foo) == 1
@@ -30,7 +30,7 @@ class TestRetryStrategy:
             retry(foo)
         assert foo.call_count == 1
 
-    def test_last_exception(self):
+    def test_last_exception(self, monkeytime):
         retry = RetryStrategy([ZeroDivisionError], max_retries=3)
         with pytest.raises(MaxRetriesExceeded):
             try:

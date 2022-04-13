@@ -815,7 +815,7 @@ class TestSolrUpdate:
             content=b"<html><body><h1>503 Service Unavailable</h1>",
         )
 
-    def test_successful_response(self, monkeypatch, sleepless):
+    def test_successful_response(self, monkeypatch, monkeytime):
         mock_post = MagicMock(return_value=self.sample_response_200())
         monkeypatch.setattr(httpx, "post", mock_post)
 
@@ -826,7 +826,7 @@ class TestSolrUpdate:
 
         assert mock_post.call_count == 1
 
-    def test_non_json_solr_503(self, monkeypatch, sleepless):
+    def test_non_json_solr_503(self, monkeypatch, monkeytime):
         mock_post = MagicMock(return_value=self.sample_response_503())
         monkeypatch.setattr(httpx, "post", mock_post)
 
@@ -837,7 +837,7 @@ class TestSolrUpdate:
 
         assert mock_post.call_count > 1
 
-    def test_solr_offline(self, monkeypatch, sleepless):
+    def test_solr_offline(self, monkeypatch, monkeytime):
         mock_post = MagicMock(side_effect=ConnectError('', request=None))
         monkeypatch.setattr(httpx, "post", mock_post)
 
@@ -848,7 +848,7 @@ class TestSolrUpdate:
 
         assert mock_post.call_count > 1
 
-    def test_invalid_solr_request(self, monkeypatch, sleepless):
+    def test_invalid_solr_request(self, monkeypatch, monkeytime):
         mock_post = MagicMock(return_value=self.sample_global_error())
         monkeypatch.setattr(httpx, "post", mock_post)
 
@@ -859,7 +859,7 @@ class TestSolrUpdate:
 
         assert mock_post.call_count == 1
 
-    def test_bad_apple_in_solr_request(self, monkeypatch, sleepless):
+    def test_bad_apple_in_solr_request(self, monkeypatch, monkeytime):
         mock_post = MagicMock(return_value=self.sample_individual_error())
         monkeypatch.setattr(httpx, "post", mock_post)
 
@@ -870,7 +870,7 @@ class TestSolrUpdate:
 
         assert mock_post.call_count == 1
 
-    def test_other_non_ok_status(self, monkeypatch, sleepless):
+    def test_other_non_ok_status(self, monkeypatch, monkeytime):
         mock_post = MagicMock(
             return_value=Response(500, request=MagicMock(), content="{}")
         )
