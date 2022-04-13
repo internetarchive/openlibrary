@@ -65,30 +65,30 @@ def test_sorted_work_editions():
 QUERY_PARSER_TESTS = {
     'No fields': ('query here', [{'field': 'text', 'value': 'query here'}]),
     'Author field': (
-        'title:food rules author:pollan',
+        'food rules author:pollan',
         [
-            {'field': 'title', 'value': 'food rules'},
+            {'field': 'text', 'value': 'food rules'},
             {'field': 'author_name', 'value': 'pollan'},
         ],
     ),
     'Field aliases': (
         'title:food rules by:pollan',
         [
-            {'field': 'title', 'value': 'food rules'},
+            {'field': 'alternative_title', 'value': 'food rules'},
             {'field': 'author_name', 'value': 'pollan'},
         ],
     ),
     'Fields are case-insensitive aliases': (
-        'title:food rules By:pollan',
+        'food rules By:pollan',
         [
-            {'field': 'title', 'value': 'food rules'},
+            {'field': 'text', 'value': 'food rules'},
             {'field': 'author_name', 'value': 'pollan'},
         ],
     ),
     'Quotes': (
         'title:"food rules" author:pollan',
         [
-            {'field': 'title', 'value': '"food rules"'},
+            {'field': 'alternative_title', 'value': '"food rules"'},
             {'field': 'author_name', 'value': 'pollan'},
         ],
     ),
@@ -96,7 +96,7 @@ QUERY_PARSER_TESTS = {
         'query here title:food rules author:pollan',
         [
             {'field': 'text', 'value': 'query here'},
-            {'field': 'title', 'value': 'food rules'},
+            {'field': 'alternative_title', 'value': 'food rules'},
             {'field': 'author_name', 'value': 'pollan'},
         ],
     ),
@@ -109,7 +109,10 @@ QUERY_PARSER_TESTS = {
     'Colons in field': (
         'title:flatland:a romance of many dimensions',
         [
-            {'field': 'title', 'value': r'flatland\:a romance of many dimensions'},
+            {
+                'field': 'alternative_title',
+                'value': r'flatland\:a romance of many dimensions',
+            },
         ],
     ),
     'Operators': (
@@ -229,7 +232,7 @@ def test_build_q_list():
     }
     expect = (
         [
-            'title:((Holidays are Hell))',
+            'alternative_title:((Holidays are Hell))',
             'author_name:((Kim Harrison))',
             'OR',
             'author_name:((Lynsay Sands))',
@@ -237,7 +240,7 @@ def test_build_q_list():
         False,
     )
     query_fields = [
-        {'field': 'title', 'value': '(Holidays are Hell)'},
+        {'field': 'alternative_title', 'value': '(Holidays are Hell)'},
         {'field': 'author_name', 'value': '(Kim Harrison)'},
         {'op': 'OR'},
         {'field': 'author_name', 'value': '(Lynsay Sands)'},
