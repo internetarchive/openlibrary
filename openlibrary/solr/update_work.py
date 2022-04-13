@@ -579,7 +579,7 @@ class SolrProcessor:
         add('subtitle', w.get('subtitle'))
 
         add_list("alternative_title", self.get_alternate_titles((w, *editions)))
-        add_list('alternative_subtitle', self.get_alternate_subtitles(w, editions))
+        add_list('alternative_subtitle', self.get_alternate_subtitles((w, *editions)))
 
         add('edition_count', len(editions))
 
@@ -674,20 +674,10 @@ class SolrProcessor:
 
         return result
 
-    def get_alternate_subtitles(self, w, editions):
-        """
-        Get subtitles from the editions as alternative titles.
-
-        :param dict w:
-        :param list[dict] editions:
-        :rtype: set[str]
-        """
-        subtitle = w.get('subtitle')
-        return {
-            e['subtitle']
-            for e in editions
-            if e.get('subtitle') and e['subtitle'] != subtitle
-        }
+    @staticmethod
+    def get_alternate_subtitles(books: Iterable[dict]) -> set[str]:
+        """Get subtitles from the editions as alternative titles."""
+        return {bookish['subtitle'] for bookish in books if bookish.get('subtitle')}
 
     def get_isbns(self, editions):
         """
