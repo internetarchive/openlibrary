@@ -23,6 +23,7 @@ from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.plugins.inside.code import fulltext_search
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import urlencode
+from openlibrary.solr.update_work import get_solr_next
 from openlibrary.utils import escape_bracket
 from openlibrary.utils.ddc import (
     normalize_ddc,
@@ -112,7 +113,9 @@ FIELD_NAME_MAP = {
     'by': 'author_name',
     'publishers': 'publisher',
     'subtitle': 'alternative_subtitle',
+    **({'title': 'alternative_title'} if get_solr_next() else {}),
     'work_subtitle': 'subtitle',
+    'work_title': 'title',
     # "Private" fields
     # This is private because we'll change it to a multi-valued field instead of a
     # plain string at the next opportunity, which will make it much more usable.
@@ -498,7 +501,10 @@ def run_solr_query(
         if use_dismax:
             params.append(('q', ' '.join(q_list)))
             params.append(('defType', 'dismax'))
-            params.append(('qf', 'text title^20 author_name^20'))
+            if get_solr_next():
+                params.append(('qf', 'text alternative_title^20 author_name^20'))
+            else:
+                params.append(('qf', 'text title^20 author_name^20'))
             params.append(('bf', 'min(100,edition_count)'))
         else:
             params.append(('q', ' '.join(q_list + ['_val_:"sqrt(edition_count)"^10'])))
