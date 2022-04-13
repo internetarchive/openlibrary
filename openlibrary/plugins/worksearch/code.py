@@ -111,6 +111,8 @@ FIELD_NAME_MAP = {
     'editions': 'edition_count',
     'by': 'author_name',
     'publishers': 'publisher',
+    'subtitle': 'alternative_subtitle',
+    'work_subtitle': 'subtitle',
     # "Private" fields
     # This is private because we'll change it to a multi-valued field instead of a
     # plain string at the next opportunity, which will make it much more usable.
