@@ -39,14 +39,6 @@ from openlibrary.utils.lcc import (
 
 logger = logging.getLogger("openlibrary.worksearch")
 
-if hasattr(config, 'plugin_worksearch'):
-    solr_select_url = (
-        config.plugin_worksearch.get('solr_base_url', 'localhost') + '/select'
-    )
-
-    default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
-
-
 ALL_FIELDS = [
     "key",
     "redirects",
@@ -177,6 +169,13 @@ re_subject_types = re.compile('^(places|times|people)/(.*)')
 re_olid = re.compile(r'^OL\d+([AMW])$')
 
 plurals = {f + 's': f for f in ('publisher', 'author')}
+
+if hasattr(config, 'plugin_worksearch'):
+    solr_select_url = (
+        config.plugin_worksearch.get('solr_base_url', 'localhost') + '/select'
+    )
+
+    default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
 
 @public
