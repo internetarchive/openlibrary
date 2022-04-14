@@ -19,9 +19,15 @@ $ total_items = counts.get(key, None)
 $ userDisplayName = user.displayname or ctx.user.displayname
 $ userKey = user.key or ctx.user.key
 
-$ header_title = unicode(render_template('account/readinglog_shelf_name', key)).strip()
 $ breadcrumb = _("Reading Log")
+$ header_title = ""
 
+$if key == 'currently-reading':
+  $ header_title = _("Currently Reading")
+$elif key == 'want-to-read':
+  $ header_title = _("Want To Read")
+$elif key == 'already-read':
+  $ header_title = _("Already Read")
 $if not header_title:
   $if key == 'sponsorships':
     $ header_title = _("Sponsorships")
@@ -47,6 +53,12 @@ $var title: $header_title
 <div class="mybooks">
   $ component_times['Sidebar'] = time()
   <div class="mybooks-menu">
+    <ul class="sidebar-section">
+      <li class="section-header">$username</li>
+      <li><a href="/people/$username" $('class=selected' if key == 'profile' else '')>$_('Profile Page')</a></li>
+      $if owners_page:
+        <li><a href="/account" $('class=selected' if key == 'settings' else '')>$_('Settings & Privacy')</a></li>
+    </ul>
     $if owners_page:
       <ul class="sidebar-section">
         <li class="section-header">$_('Loans')</li>
