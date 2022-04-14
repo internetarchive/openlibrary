@@ -4741,3 +4741,194 @@ msgstr "您是等候名单上的<strong>下一个</strong>"
 msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
 msgstr ""
 "在这个有着%(wlsize)d位等候者的等候名单中，您排在第<strong>#%(spot)d</strong>位。"
+
+#: LoanStatus.html:77
+msgid "Leave waiting list"
+msgstr "离开等候名单"
+
+#: LoanStatus.html:83
+#, python-format
+msgid "Readers waiting for this title: %(count)s"
+msgstr "等候这个标题的读者人数: %(count)s"
+
+#: LoanStatus.html:85
+msgid "You'll be next in line."
+msgstr "您将是下一位。"
+
+#: LoanStatus.html:94
+msgid "This book is currently checked out, please check back later."
+msgstr ""
+"这本书目前已经被借走了，请稍后再回来查看。"
+
+#: LoanStatus.html:95
+msgid "Checked Out"
+msgstr "借阅"
+
+#: LoanStatus.html:104
+msgid "Donate Book"
+msgstr "捐赠图书"
+
+#: LoanStatus.html:107
+msgid "We don't have this book yet. Can you donate it to the Lending Library?"
+msgstr ""
+"我们目前还没有这本书。您可以把这本书捐赠到借阅室吗？"
+
+#: LoanStatus.html:111 LoanStatus.html:116
+msgid "Not in Library"
+msgstr "不在图书馆里"
+
+#: NotesModal.html:33
+msgid "My private notes about this edition:"
+msgstr "我对这个版本的私人笔记:"
+
+#: ObservationsModal.html:24
+msgid "My Book Review"
+msgstr "我的书评"
+
+#: Pager.html:26
+msgid "First"
+msgstr "第一"
+
+#: ReadButton.html:11
+msgid "Special Access"
+msgstr "特殊访问"
+
+#: ReadButton.html:12
+msgid ""
+"Special ebook access from the Internet Archive for patrons with qualifying "
+"print disabilities"
+msgstr ""
+"为符合条件的阅读障碍者提供互联网档案馆的特殊电子书访问。"
+
+#: ReadButton.html:16
+msgid "Borrow ebook from Internet Archive"
+msgstr "从互联网档案馆租借电子书"
+
+#: ReadButton.html:20
+msgid "Read ebook from Internet Archive"
+msgstr "阅读互联网档案馆上的电子书"
+
+#: ReadButton.html:39
+msgid "Listen"
+msgstr "聆听"
+
+#: ReadMore.html:7
+msgid "Read more"
+msgstr "阅读更多"
+
+#: ReadMore.html:8
+msgid "Read less"
+msgstr "阅读更少"
+
+#: RecentChanges.html:54
+msgid "View MARC"
+msgstr "查看 MARC"
+
+#: RecentChangesAdmin.html:21
+msgid "Path"
+msgstr "路径"
+
+#: RecentChangesAdmin.html:22
+msgid "Comments"
+msgstr "评论"
+
+#: RecentChangesAdmin.html:41
+msgid "view"
+msgstr "查看"
+
+#: RecentChangesAdmin.html:42
+msgid "edit"
+msgstr "编辑"
+
+#: RecentChangesAdmin.html:43
+msgid "diff"
+msgstr "差异"
+
+#: ReturnForm.html:8
+msgid "Return book"
+msgstr "返还图书"
+
+#: SearchResultsWork.html:58
+msgid "languages"
+msgstr "语言"
+
+#: SearchResultsWork.html:61
+#, python-format
+msgid "%s previewable"
+msgstr "%s 可预览的"
+
+#: SocialShare.html:16
+msgid "Share this book"
+msgstr "分享这本书"
+
+#: SocialShare.html:31
+msgid "Embed this book in your website"
+msgstr "在您的网站上嵌入此书"
+
+#: SocialShare.html:35
+msgid "Embed"
+msgstr "嵌入"
+
+#: StarRatings.html:51
+msgid "Clear my rating"
+msgstr "清除我的评分"
+
+#: StarRatingsStats.html:21
+msgid "Ratings"
+msgstr "评分"
+
+#: StarRatingsStats.html:23
+msgid "Want to read"
+msgstr "想读"
+
+#: StarRatingsStats.html:24
+msgid "Currently reading"
+msgstr "正在读"
+
+#: StarRatingsStats.html:25
+msgid "Have read"
+msgstr "已读"
+
+#: Subnavigation.html:9
+msgid "Developer Center (Home)"
+msgstr "开发者中心（首页）"
+
+#: Subnavigation.html:10
+msgid "Web API"
+msgstr "网页API"
+
+#: Subnavigation.html:11
+msgid "Client Library"
+msgstr "客户图书馆"
+
+#: Subnavigation.html:12
+msgid "Data Dumps"
+msgstr "数据转存"
+
+#: Subnavigation.html:13
+msgid "Source Code"
+msgstr "源代码"
+
+#: Subnavigation.html:14
+msgid "Report an Issue"
+msgstr "报告问题"
+
+#: Subnavigation.html:15
+msgid "Licensing"
+msgstr "许可证"
+
+#: Subnavigation.html:19
+msgid "Welcome"
+msgstr "欢迎"
+
+#: Subnavigation.html:20
+msgid "Searching Open Library"
+msgstr "在开放图书馆中搜索"
+
+#: Subnavigation.html:21
+msgid "Reading Books"
+msgstr "阅读书籍"
+
+#: Subnavigation.html:22
+msgid "Adding & Editing Books"
+msgstr "添加和编辑书籍"
