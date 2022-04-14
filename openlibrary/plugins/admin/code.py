@@ -240,14 +240,18 @@ class resolve_redirects:
                     Observations.get_observations_for_work(olid))
 
                 # track updates
-                r['updates']['readinglog'] = list(
-                    Bookshelves.update_work_id(olid, new_olid, _test=params.test))
-                r['updates']['ratings'] = list(
-                    Ratings.update_work_id(olid, new_olid, _test=params.test))
-                r['updates']['booknotes'] = list(
-                    Booknotes.update_work_id(olid, new_olid, _test=params.test))
-                r['updates']['observations'] = list(
-                    Observations.update_work_id(olid, new_olid, _test=params.test))
+                r['updates']['readinglog'] = Bookshelves.update_work_id(
+                    olid, new_olid, _test=params.test
+                )
+                r['updates']['ratings'] = Ratings.update_work_id(
+                    olid, new_olid, _test=params.test
+                )
+                r['updates']['booknotes'] = Booknotes.update_work_id(
+                    olid, new_olid, _test=params.test
+                )
+                r['updates']['observations'] = Observations.update_work_id(
+                    olid, new_olid, _test=params.test
+                )
 
         return delegate.RawText(
             json.dumps(summary), content_type="application/json")
