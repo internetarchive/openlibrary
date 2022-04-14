@@ -20,6 +20,7 @@ class Ratings(db.CommonExtras):
     TABLENAME = "ratings"
     VALID_STAR_RATINGS = range(6)  # inclusive: [0 - 5] (0-5 star)
     PRIMARY_KEY = ["username", "work_id"]
+    ALLOW_DELETE_ON_CONFLICT = True
 
     @classmethod
     def summary(cls):

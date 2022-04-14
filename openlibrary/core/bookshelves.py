@@ -12,6 +12,7 @@ class Bookshelves(db.CommonExtras):
     TABLENAME = "bookshelves_books"
     PRIMARY_KEY = ["username", "work_id", "bookshelf_id"]
     PRESET_BOOKSHELVES = {'Want to Read': 1, 'Currently Reading': 2, 'Already Read': 3}
+    ALLOW_DELETE_ON_CONFLICT = True
 
     PRESET_BOOKSHELVES_JSON = {
         'want_to_read': 1,

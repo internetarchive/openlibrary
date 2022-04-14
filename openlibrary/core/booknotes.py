@@ -6,6 +6,7 @@ class Booknotes(db.CommonExtras):
     TABLENAME = "booknotes"
     PRIMARY_KEY = ["username", "work_id", "edition_id"]
     NULL_EDITION_VALUE = -1
+    ALLOW_DELETE_ON_CONFLICT = False
 
     @classmethod
     def total_booknotes(cls):

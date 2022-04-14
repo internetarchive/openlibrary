@@ -749,6 +749,7 @@ class Observations(db.CommonExtras):
     TABLENAME = "observations"
     NULL_EDITION_VALUE = -1
     PRIMARY_KEY = ["work_id", "edition_id", "username", "observation_value", "observation_type"]
+    ALLOW_DELETE_ON_CONFLICT = True
 
     @classmethod
     def summary(cls):

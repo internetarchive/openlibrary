@@ -32,6 +32,7 @@ class CommonExtras:
         t = oldb.transaction()
         rows_changed = 0
         rows_deleted = 0
+        failed_deletes = 0
 
         try:
             rows_changed = oldb.update(
@@ -40,19 +41,27 @@ class CommonExtras:
                 work_id=new_work_id,
                 vars={"work_id": current_work_id})
         except (UniqueViolation, IntegrityError):
-            rows_changed, rows_deleted = cls.update_work_ids_individually(
-                current_work_id,
-                new_work_id,
-                _test=_test
+            (
+                rows_changed,
+                rows_deleted,
+                failed_deletes,
+            ) = cls.update_work_ids_individually(
+                current_work_id, new_work_id, _test=_test
             )
         t.rollback() if _test else t.commit()
-        return rows_changed, rows_deleted
+        return {
+            'rows_changed': rows_changed,
+            'rows_deleted': rows_deleted,
+            'failed_deletes': failed_deletes,
+        }
 
     @classmethod
     def update_work_ids_individually(cls, current_work_id, new_work_id, _test=False):
         oldb = get_db()
         rows_changed = 0
         rows_deleted = 0
+        failed_deletes = 0
+
         # get records with old work_id
         # `list` used to solve sqlite cursor test
         rows = list(oldb.select(
@@ -76,8 +85,15 @@ class CommonExtras:
                 # otherwise, delete row with current_work_id if failed
                 oldb.query(f"DELETE FROM {cls.TABLENAME} WHERE {where}")
                 rows_deleted += 1
-                t_delete.rollback() if _test else t_delete.commit()
-        return rows_changed, rows_deleted
+                if _test or not cls.ALLOW_DELETE_ON_CONFLICT:
+                    t_delete.rollback()
+                else:
+                    t_delete.commit()
+
+                if not cls.ALLOW_DELETE_ON_CONFLICT:
+                    failed_deletes += 1
+                    rows_deleted -= 1
+        return rows_changed, rows_deleted, failed_deletes
 
 
 def _proxy(method_name):
