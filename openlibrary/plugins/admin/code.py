@@ -208,12 +208,19 @@ class add_work_to_staff_picks:
 
 class resolve_redirects:
     def GET(self):
-        params = web.input(key='', test=False)
-        summary = {
-            'key': params.key,
-            'redirect_chain': [],
-            'resolved_key': None
-        }
+        return self.main(test=True)
+
+    def POST(self):
+        return self.main(test=False)
+
+    def main(self, test=False):
+        params = web.input(key='', test='')
+
+        # Provide an escape hatch to let POST requests preview
+        if test is False and params.test:
+            test = True
+
+        summary = {'key': params.key, 'redirect_chain': [], 'resolved_key': None}
         if params.key:
             redirect_chain = Work.get_redirect_chain(params.key)
             summary['redirect_chain'] = [
@@ -241,16 +248,16 @@ class resolve_redirects:
 
                 # track updates
                 r['updates']['readinglog'] = Bookshelves.update_work_id(
-                    olid, new_olid, _test=params.test
+                    olid, new_olid, _test=test
                 )
                 r['updates']['ratings'] = Ratings.update_work_id(
-                    olid, new_olid, _test=params.test
+                    olid, new_olid, _test=test
                 )
                 r['updates']['booknotes'] = Booknotes.update_work_id(
-                    olid, new_olid, _test=params.test
+                    olid, new_olid, _test=test
                 )
                 r['updates']['observations'] = Observations.update_work_id(
-                    olid, new_olid, _test=params.test
+                    olid, new_olid, _test=test
                 )
 
         return delegate.RawText(
