@@ -1,12 +1,4 @@
-$def with (book_title, edition, page)
-
-$if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
-  $if edition and page.type.key in ["/type/work"]:
-    $ edit_url = edition.url(suffix="/edit")
-  $else:
-    $ edit_url = page.url(suffix="/edit")
-$else:
-  $ edit_url = page.key + "?m=edit"
+$def with (book_title, edit_url)
 
 <div class="compact-title hidden">
   <span class="compact-title__heading">$book_title</span>
