@@ -312,7 +312,7 @@ def _get_amazon_metadata(
 
     :param str id_: The item id: isbn (10/13), or Amazon ASIN.
     :param str id_type: 'isbn' or 'asin'.
-    :param ??? resources: ???
+    :param resources: Used for AWSE Commerce Service lookup -- See Amazon docs
     :param int retries: Number of times to query affiliate server before returning None
     :param float sleep_sec: Delay time.sleep(sleep_sec) seconds before each retry
     :return: A single book item's metadata, or None.
