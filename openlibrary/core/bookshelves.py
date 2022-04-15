@@ -85,7 +85,7 @@ class Bookshelves(db.CommonExtras):
         oldb = db.get_db()
         where = 'WHERE bookshelf_id' + ('=$shelf_id' if shelf_id else ' IS NOT NULL ')
         if since:
-            where += 'AND created >= $since'
+            where += ' AND created >= $since'
         query = f'select work_id, count(*) as cnt from bookshelves_books {where}'
         query += ' group by work_id order by cnt desc limit $limit'
         logger.info("Query: %s", query)
