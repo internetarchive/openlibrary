@@ -105,7 +105,7 @@ FIELD_NAME_MAP = {
     'by': 'author_name',
     'publishers': 'publisher',
     'subtitle': 'alternative_subtitle',
-    **({'title': 'alternative_title'} if get_solr_next() else {}),
+    #**({'title': 'alternative_title'} if get_solr_next() else {}),
     'work_subtitle': 'subtitle',
     'work_title': 'title',
     # "Private" fields
