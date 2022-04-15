@@ -15,6 +15,17 @@ $def with (page)
         <meta name="robots" content="noindex">
     <meta name="theme-color" content="#e2dcc5">
 
+    $# Use better check
+    $if request.domain.startswith('localhost'):
+      <script>
+        // Connect to websocket for auto-reload
+        var ws = new WebSocket("ws://localhost:9292");
+        ws.onmessage = function(event) {
+          if (event.data == "reload") {
+              window.location.reload();
+          }
+        };
+      </script>
 
     <link rel="canonical" href="$request.canonical_url" />
     <link rel="preconnect" href="https://analytics.archive.org">

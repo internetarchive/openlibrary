@@ -25,6 +25,21 @@ services:
       - db
       - infobase
 
+  watcher:
+    image: "${OLIMAGE:-oldev:latest}"
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    ports:
+      # Auto-reload port
+      - 9292:9292
+    volumes:
+      - ol-vendor:/openlibrary/vendor
+      - ol-build:/openlibrary/static/build
+      - ol-nodemodules:/openlibrary/node_modules
+      - .:/openlibrary
+    command: docker/ol-watcher-start.sh
+
   solr:
     ports:
       - 8983:8983
