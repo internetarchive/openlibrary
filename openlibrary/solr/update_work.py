@@ -7,7 +7,7 @@ from enum import IntEnum
 from json import JSONDecodeError
 from math import ceil
 from statistics import median
-from typing import Literal, List, Optional, cast, TypedDict, Any, Union
+from typing import Iterable, Literal, List, Optional, cast, TypedDict, Any, Union
 
 import httpx
 import requests
@@ -579,8 +579,8 @@ class SolrProcessor:
         add('title', w.get('title'))
         add('subtitle', w.get('subtitle'))
 
-        add_list("alternative_title", self.get_alternate_titles(w, editions))
-        add_list('alternative_subtitle', self.get_alternate_subtitles(w, editions))
+        add_list("alternative_title", self.get_alternate_titles((w, *editions)))
+        add_list('alternative_subtitle', self.get_alternate_subtitles((w, *editions)))
 
         add('edition_count', len(editions))
 
@@ -658,40 +658,27 @@ class SolrProcessor:
 
         return d
 
-    def get_alternate_titles(self, w, editions):
-        """
-        Get titles from the editions as alternative titles.
-
-        :param dict w:
-        :param list[dict] editions:
-        :rtype: set[str]
-        """
+    @staticmethod
+    def get_alternate_titles(books: Iterable[dict]) -> set[str]:
+        """Get titles from the editions as alternative titles."""
         result = set()
-        for e in editions:
-            result.add(e.get('title'))
-            result.update(e.get('work_titles', []))
-            result.update(e.get('other_titles', []))
+        for bookish in books:
+            full_title = bookish.get('title')
+            if not full_title:
+                # None would've got in if any of the editions has no title.
+                continue
+            if bookish.get('subtitle'):
+                full_title += ': ' + bookish['subtitle']
+            result.add(full_title)
+            result.update(bookish.get('work_titles', []))
+            result.update(bookish.get('other_titles', []))
 
-        # Remove original title and None.
-        # None would've got in if any of the editions has no title.
-        result.discard(None)
-        result.discard(w.get('title'))
         return result
 
-    def get_alternate_subtitles(self, w, editions):
-        """
-        Get subtitles from the editions as alternative titles.
-
-        :param dict w:
-        :param list[dict] editions:
-        :rtype: set[str]
-        """
-        subtitle = w.get('subtitle')
-        return {
-            e['subtitle']
-            for e in editions
-            if e.get('subtitle') and e['subtitle'] != subtitle
-        }
+    @staticmethod
+    def get_alternate_subtitles(books: Iterable[dict]) -> set[str]:
+        """Get subtitles from the editions as alternative titles."""
+        return {bookish['subtitle'] for bookish in books if bookish.get('subtitle')}
 
     def get_isbns(self, editions):
         """
