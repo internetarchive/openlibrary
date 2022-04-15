@@ -7,14 +7,14 @@ from enum import IntEnum
 from json import JSONDecodeError
 from math import ceil
 from statistics import median
-from typing import Literal, List, Optional, cast, TypedDict, Any, Union
+from typing import Iterable, Literal, List, Optional, cast, TypedDict, Any, Union
 
 import httpx
 import requests
 import sys
 import time
 
-from httpx import HTTPError, TimeoutException
+from httpx import HTTPError, HTTPStatusError, TimeoutException
 from six.moves.urllib.parse import urlparse
 from collections import defaultdict
 from unicodedata import normalize
@@ -37,6 +37,7 @@ from openlibrary.utils import uniq
 from openlibrary.utils.ddc import normalize_ddc, choose_sorting_ddc
 from openlibrary.utils.isbn import opposite_isbn
 from openlibrary.utils.lcc import short_lcc_to_sortable_lcc, choose_sorting_lcc
+from openlibrary.utils.retry import MaxRetriesExceeded, RetryStrategy
 
 logger = logging.getLogger("openlibrary.solr")
 
@@ -578,8 +579,8 @@ class SolrProcessor:
         add('title', w.get('title'))
         add('subtitle', w.get('subtitle'))
 
-        add_list("alternative_title", self.get_alternate_titles(w, editions))
-        add_list('alternative_subtitle', self.get_alternate_subtitles(w, editions))
+        add_list("alternative_title", self.get_alternate_titles((w, *editions)))
+        add_list('alternative_subtitle', self.get_alternate_subtitles((w, *editions)))
 
         add('edition_count', len(editions))
 
@@ -647,7 +648,7 @@ class SolrProcessor:
         add_list("isbn", self.get_isbns(editions))
         add("last_modified_i", self.get_last_modified(w, editions))
 
-        self.add_ebook_info(d, editions)
+        d|=self.get_ebook_info(editions)
 
         # Anand - Oct 2013
         # If not public scan then add the work to Protected DAISY subject.
@@ -657,40 +658,27 @@ class SolrProcessor:
 
         return d
 
-    def get_alternate_titles(self, w, editions):
-        """
-        Get titles from the editions as alternative titles.
-
-        :param dict w:
-        :param list[dict] editions:
-        :rtype: set[str]
-        """
+    @staticmethod
+    def get_alternate_titles(books: Iterable[dict]) -> set[str]:
+        """Get titles from the editions as alternative titles."""
         result = set()
-        for e in editions:
-            result.add(e.get('title'))
-            result.update(e.get('work_titles', []))
-            result.update(e.get('other_titles', []))
+        for bookish in books:
+            full_title = bookish.get('title')
+            if not full_title:
+                # None would've got in if any of the editions has no title.
+                continue
+            if bookish.get('subtitle'):
+                full_title += ': ' + bookish['subtitle']
+            result.add(full_title)
+            result.update(bookish.get('work_titles', []))
+            result.update(bookish.get('other_titles', []))
 
-        # Remove original title and None.
-        # None would've got in if any of the editions has no title.
-        result.discard(None)
-        result.discard(w.get('title'))
         return result
 
-    def get_alternate_subtitles(self, w, editions):
-        """
-        Get subtitles from the editions as alternative titles.
-
-        :param dict w:
-        :param list[dict] editions:
-        :rtype: set[str]
-        """
-        subtitle = w.get('subtitle')
-        return {
-            e['subtitle']
-            for e in editions
-            if e.get('subtitle') and e['subtitle'] != subtitle
-        }
+    @staticmethod
+    def get_alternate_subtitles(books: Iterable[dict]) -> set[str]:
+        """Get subtitles from the editions as alternative titles."""
+        return {bookish['subtitle'] for bookish in books if bookish.get('subtitle')}
 
     def get_isbns(self, editions):
         """
@@ -728,14 +716,12 @@ class SolrProcessor:
         )
 
     @staticmethod
-    def add_ebook_info(doc, editions):
+    def get_ebook_info(editions):
         """
         Add ebook information from the editions to the work Solr document.
-
-        :param dict doc: Solr document for the work these editions belong to.
         :param list[dict] editions: Editions with extra data from process_editions
         """
-
+        ebook_info={}
         class AvailabilityEnum(IntEnum):
             PUBLIC = 1
             BORROWABLE = 2
@@ -767,28 +753,28 @@ class SolrProcessor:
             )
 
         ia_eds = sorted((e for e in editions if 'ocaid' in e), key=get_ia_sorting_key)
-        doc['ia'] = [e['ocaid'].strip() for e in ia_eds]
-        doc["ebook_count_i"] = len(ia_eds)
+        ebook_info['ia'] = [e['ocaid'].strip() for e in ia_eds]
+        ebook_info["ebook_count_i"] = len(ia_eds)
 
         # These should always be set, for some reason.
-        doc["has_fulltext"] = False
-        doc["public_scan_b"] = False
+        ebook_info["has_fulltext"] = False
+        ebook_info["public_scan_b"] = False
 
         if ia_eds:
             best_availability = get_ia_sorting_key(ia_eds[0])[0]
             best_ed = ia_eds[0]
             if best_availability < AvailabilityEnum.UNCLASSIFIED:
-                doc["has_fulltext"] = True
+                ebook_info["has_fulltext"] = True
             if best_availability == AvailabilityEnum.PUBLIC:
-                doc['public_scan_b'] = True
+                ebook_info['public_scan_b'] = True
 
             all_collection = uniq(c for e in ia_eds for c in e.get('ia_collection', []))
             if all_collection:
-                doc['ia_collection_s'] = ';'.join(all_collection)
+                ebook_info['ia_collection_s'] = ';'.join(all_collection)
 
             if best_availability < AvailabilityEnum.PRINTDISABLED:
-                doc['lending_edition_s'] = re_edition_key.match(best_ed['key']).group(1)
-                doc['lending_identifier_s'] = best_ed['ocaid']
+                ebook_info['lending_edition_s'] = re_edition_key.match(best_ed['key']).group(1)
+                ebook_info['lending_identifier_s'] = best_ed['ocaid']
 
             printdisabled = [
                 re_edition_key.match(ed['key']).group(1)
@@ -796,7 +782,9 @@ class SolrProcessor:
                 if 'printdisabled' in ed.get('ia_collection', [])
             ]
             if printdisabled:
-                doc['printdisabled_s'] = ';'.join(printdisabled)
+                ebook_info['printdisabled_s'] = ';'.join(printdisabled)
+        return ebook_info
+
 
 
 async def build_data(w: dict) -> SolrDocument:
@@ -1177,29 +1165,57 @@ def solr_update(
         params['commitWithin'] = commit_within
     if skip_id_check:
         params['overwrite'] = 'false'
-    logger.debug(f"POSTing update to {solr_base_url}/update {params}")
-    try:
-        resp = httpx.post(
-            f'{solr_base_url}/update',
-            # Large batches especially can take a decent chunk of time
-            timeout=300,
-            params=params,
-            headers={'Content-Type': 'application/json'},
-            content=content,
-        )
+
+    def make_request():
+        logger.debug(f"POSTing update to {solr_base_url}/update {params}")
         try:
-            resp_json = resp.json()
-            errors = resp_json['responseHeader'].get('errors', [])
-            if errors:
-                for e in errors:
-                    logger.error(f'Error with solr POST update: {e}')
-        except JSONDecodeError:
-            logger.error('Error with solr POST update: ' + resp.text)
-        resp.raise_for_status()
-    except TimeoutException:
-        logger.error('Timeout Error with solr POST update: ' + content)
-    except HTTPError:
-        logger.error('Error with solr POST update: ' + content)
+            resp = httpx.post(
+                f'{solr_base_url}/update',
+                # Large batches especially can take a decent chunk of time
+                timeout=300,
+                params=params,
+                headers={'Content-Type': 'application/json'},
+                content=content,
+            )
+
+            if resp.status_code == 400:
+                resp_json = resp.json()
+
+                indiv_errors = resp_json.get('responseHeader', {}).get('errors', [])
+                if indiv_errors:
+                    for e in indiv_errors:
+                        logger.error(f'Individual Solr POST Error: {e}')
+
+                global_error = resp_json.get('error')
+                if global_error:
+                    logger.error(f'Global Solr POST Error: {global_error.get("msg")}')
+
+                if not (indiv_errors or global_error):
+                    # We can handle the above errors. Any other 400 status codes
+                    # are fatal and should cause a retry
+                    resp.raise_for_status()
+            else:
+                resp.raise_for_status()
+        except HTTPStatusError as e:
+            logger.error(f'HTTP Status Solr POST Error: {e}')
+            raise
+        except TimeoutException:
+            logger.error(f'Timeout Solr POST Error: {content}')
+            raise
+        except HTTPError as e:
+            logger.error(f'HTTP Solr POST Error: {e}')
+            raise
+
+    retry = RetryStrategy(
+        [HTTPStatusError, TimeoutException, HTTPError],
+        max_retries=5,
+        delay=8,
+    )
+
+    try:
+        return retry(make_request)
+    except MaxRetriesExceeded as e:
+        logger.error(f'Max retries exceeded for Solr POST: {e.last_exception}')
 
 
 def get_subject(key):

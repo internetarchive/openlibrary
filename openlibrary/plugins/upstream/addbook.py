@@ -14,7 +14,7 @@ from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.worksearch.search import get_solr
-from openlibrary.utils import is_author_olid, is_work_olid
+from openlibrary.utils import find_author_olid_in_string, find_work_olid_in_string
 from openlibrary.i18n import gettext as _
 from openlibrary import accounts
 import logging
@@ -192,7 +192,7 @@ class addbook(delegate.page):
             _test="false",
         )
 
-        if spamcheck.is_spam(i):
+        if spamcheck.is_spam(i, allow_privileged_edits=True):
             return render_template(
                 "message.html", "Oops", 'Something went wrong. Please try again later.'
             )
@@ -837,7 +837,7 @@ class book_edit(delegate.page):
     def POST(self, key):
         i = web.input(v=None, _method="GET")
 
-        if spamcheck.is_spam():
+        if spamcheck.is_spam(allow_privileged_edits=True):
             return render_template(
                 "message.html", "Oops", 'Something went wrong. Please try again later.'
             )
@@ -907,7 +907,7 @@ class work_edit(delegate.page):
     def POST(self, key):
         i = web.input(v=None, _method="GET")
 
-        if spamcheck.is_spam():
+        if spamcheck.is_spam(allow_privileged_edits=True):
             return render_template(
                 "message.html", "Oops", 'Something went wrong. Please try again later.'
             )
@@ -1033,11 +1033,11 @@ class works_autocomplete(delegate.page):
 
         solr = get_solr()
 
+        # look for ID in query string here
         q = solr.escape(i.q).strip()
-        query_is_key = is_work_olid(q.upper())
-        if query_is_key:
-            # ensure uppercase; key is case sensitive in solr
-            solr_q = 'key:"/works/%s"' % q.upper()
+        embedded_olid = find_work_olid_in_string(q)
+        if embedded_olid:
+            solr_q = 'key:"/works/%s"' % embedded_olid
         else:
             solr_q = f'title:"{q}"^2 OR title:({q}*)'
 
@@ -1054,9 +1054,9 @@ class works_autocomplete(delegate.page):
         # exclude fake works that actually have an edition key
         docs = [d for d in data['docs'] if d['key'][-1] == 'W']
 
-        if query_is_key and not docs:
+        if embedded_olid and not docs:
             # Grumble! Work not in solr yet. Create a dummy.
-            key = '/works/%s' % q.upper()
+            key = '/works/%s' % embedded_olid
             work = web.ctx.site.get(key)
             if work:
                 docs = [work.as_fake_solr_record()]
@@ -1081,10 +1081,9 @@ class authors_autocomplete(delegate.page):
         solr = get_solr()
 
         q = solr.escape(i.q).strip()
-        query_is_key = is_author_olid(q.upper())
-        if query_is_key:
-            # ensure uppercase; key is case sensitive in solr
-            solr_q = 'key:"/authors/%s"' % q.upper()
+        embedded_olid = find_author_olid_in_string(q)
+        if embedded_olid:
+            solr_q = 'key:"/authors/%s"' % embedded_olid
         else:
             prefix_q = q + "*"
             solr_q = f'name:({prefix_q}) OR alternate_names:({prefix_q})'
@@ -1099,9 +1098,9 @@ class authors_autocomplete(delegate.page):
         data = solr.select(solr_q, **params)
         docs = data['docs']
 
-        if query_is_key and not docs:
+        if embedded_olid and not docs:
             # Grumble! Must be a new author. Fetch from db, and build a "fake" solr resp
-            key = '/authors/%s' % q.upper()
+            key = '/authors/%s' % embedded_olid
             author = web.ctx.site.get(key)
             if author:
                 docs = [author.as_fake_solr_record()]

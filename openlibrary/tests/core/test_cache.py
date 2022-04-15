@@ -60,16 +60,20 @@ class Test_memcache_memoize:
 
         assert m.memcache_get([20], {})[0] == 400
 
-    def test_timeout(self):
+    def test_timeout(self, monkeytime):
         m = self.square_memoize()
         m.timeout = 0.1
         s = m.stats
 
         assert m(10) == 100
-        time.sleep(0.1)
 
+        time.sleep(0.1)
         assert m(10) == 100
-        assert [s.calls, s.hits, s.updates, s.async_updates] == [2, 1, 1, 1]
+        assert [s.calls, s.hits, s.updates, s.async_updates] == [2, 1, 1, 0]
+
+        time.sleep(0.01)
+        assert m(10) == 100
+        assert [s.calls, s.hits, s.updates, s.async_updates] == [3, 2, 1, 1]
 
     def test_delete(self):
         m = self.square_memoize()
