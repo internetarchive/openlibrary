@@ -754,6 +754,24 @@ class Test_Sort_Editions_Ocaids:
         ]
         assert SolrProcessor.get_ebook_info(editions)['ia'] == ["foobarblah", "foobargoog"]
 
+    def test_excludes_fav_ia_collections(self):
+        doc = {}
+        editions = [
+            {
+                "key": "/books/OL789M",
+                "ocaid": "foobargoog",
+                "ia_collection": ['americanlibraries', 'fav-foobar'],
+            },
+            {
+                "key": "/books/OL789M",
+                "ocaid": "foobarblah",
+                "ia_collection": ['fav-bluebar', 'blah'],
+            },
+        ]
+
+        doc = SolrProcessor.get_ebook_info(editions)
+        assert doc['ia_collection_s'] == "americanlibraries;blah"
+
 
 class TestSolrUpdate:
     def sample_response_200(self):
