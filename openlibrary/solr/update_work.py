@@ -768,7 +768,13 @@ class SolrProcessor:
             if best_availability == AvailabilityEnum.PUBLIC:
                 ebook_info['public_scan_b'] = True
 
-            all_collection = uniq(c for e in ia_eds for c in e.get('ia_collection', []))
+            all_collection = sorted(uniq(
+                c
+                for e in ia_eds
+                for c in e.get('ia_collection', [])
+                # Exclude fav-* collections because they're not useful to us.
+                if not c.startswith('fav-')
+            ))
             if all_collection:
                 ebook_info['ia_collection_s'] = ';'.join(all_collection)
 
