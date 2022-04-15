@@ -3,7 +3,7 @@
 @offscreen-position: -45px;
 @desktop-title-max-width: @test-body-mobile-width - @sidebar-width-with-margin;
 
-@media screen and (min-width: @width-breakpoint-tablet) {
+@media screen and (min-width: (@width-breakpoint-tablet + 1px)) {
   .compact-title {
     background: @white;
     display: flex;
