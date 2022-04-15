@@ -643,11 +643,11 @@ msgid "Email Verification Successful"
 msgstr "Ověření emailu uspělo"
 
 #: verify/success.html:11
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Yay! Your email address has been verified. Please <a href='%s'>log in to "
 "continue</a>."
-msgstr "Váš email úspěšně ověřen a aktualizován ve vašem účtu."
+msgstr ""
 
 #: add.html:3 check.html:3
 msgid "Add a book"
