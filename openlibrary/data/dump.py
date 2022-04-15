@@ -29,7 +29,7 @@ logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
 
 
-def print_dump(json_records, filter=None, print=print):
+def print_dump(json_records, filter=None):
     """Print the given json_records in the dump format."""
     for i, raw_json_data in enumerate(json_records):
         if i % 1_000_000 == 0:

@@ -47,7 +47,7 @@ class TestService:
         assert s.wait() == 0
         assert s.poll() == 0
 
-    def test_stop(self, tmpdir):
+    def test_stop(self, monkeytime, tmpdir):
         s = self.create_service(
             "sleep",
             {
