@@ -1,11 +1,9 @@
 @import (less) "base/dl.less";
 
-:root {
-  --sidebar-width: 225px;
-  --sidebar-width-with-margin: calc(60px + var(--sidebar-width));
-  --compact-title-height: 35px;
-  --test-body-mobile-width: 1060px;
-}
+@sidebar-width: 225px;
+@sidebar-width-with-margin: 60px + @sidebar-width;
+@compact-title-height: 35px;
+@test-body-mobile-width: 1060px;
 
 /* stylelint-disable no-descending-specificity */
 .workDetails {
@@ -157,7 +155,6 @@ h2.edition-byline {
   border-bottom: 1px solid @lighter-grey;
   padding-bottom: 5px;
   font-weight: bold;
-  margin-top: 20px;
 
   &.sticky {
     position: sticky;
@@ -173,7 +170,7 @@ h2.edition-byline {
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
   .work-menu.sticky {
-    top: var(--compact-title-height);
+    top: @compact-title-height;
   }
 }
 
@@ -244,7 +241,7 @@ div.editionTools {
   }
   div.edition {
     &Cover {
-      width: var(--sidebar-width);
+      width: @sidebar-width;
       margin-right: 1.5em;
       margin-bottom: 0;
     }
@@ -351,6 +348,4 @@ div.editionTools {
   color: @link-blue;
 }
 
-@media only screen and (min-width: @width-breakpoint-tablet) {
-  @import (less) "components/compact-title.less";
-}
+@import (less) "components/compact-title.less";

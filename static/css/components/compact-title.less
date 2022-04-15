@@ -1,52 +1,71 @@
 @import "../less/font-families.less";
 
-.compact-title {
-  background: @white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: @z-index-level-3;
-  position: fixed;
-  top: calc(-1 * var(--compact-title-height));
-  height: var(--compact-title-height);
-  width: 100%;
-  max-width: calc(var(--test-body-mobile-width) - var(--sidebar-width-with-margin));
+@offscreen-position: -45px;
+@desktop-title-max-width: @test-body-mobile-width - @sidebar-width-with-margin;
 
-  &__heading {
-    font-size: 1.25em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-family: @georgia_serif-1;
-    font-weight: 600;
-  }
+@media screen and (min-width: @width-breakpoint-tablet) {
+  .compact-title {
+    background: @white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: @z-index-level-4;
+    position: fixed;
+    top: @offscreen-position;
+    height: @compact-title-height;
+    width: 100%;
+    padding: 0 14px;
 
-  &--slidein {
-    animation-duration: .75s;
-    animation-name: slidein;
-  }
-
-  @keyframes slidein {
-    from {
-      top: calc(-1 * var(--compact-title-height));
-    }
-    to {
-      top: 0;
-    }
-  }
-
-  &--slideout {
-    animation-duration: .25s;
-    animation-name: slideout;
-  }
-
-  @keyframes slideout {
-    from {
-      top: 0;
+    &__edit-btn {
+      transform: translate(-27px, 5px);
     }
 
-    to {
-      top: calc(-1 * var(--compact-title-height));
+    &__heading {
+      font-size: 1.25em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: @georgia_serif-1;
+      font-weight: 600;
+    }
+
+    &--slidein {
+      animation-duration: .5s;
+      animation-name: slidein;
+    }
+
+    @keyframes slidein {
+      from {
+        top: @offscreen-position;
+      }
+      to {
+        top: 0;
+      }
+    }
+
+    &--slideout {
+      animation-duration: .15s;
+      animation-name: slideout;
+    }
+
+    @keyframes slideout {
+      from {
+        top: 0;
+      }
+
+      to {
+        top: @offscreen-position;
+      }
+    }
+  }
+}
+
+@media only screen and (min-width: @test-body-mobile-width) {
+  .compact-title {
+    max-width: @desktop-title-max-width;
+
+    &__edit-btn {
+      transform: translate(0, 5px);
     }
   }
 }

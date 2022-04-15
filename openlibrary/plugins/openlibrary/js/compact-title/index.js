@@ -12,20 +12,12 @@ let isTitleVisible = false
 /**
  * Navbar is "stuck" when it reaches this position on the Y-axis.
  */
-const navbarStickyHeight = getTitleComponentHeight()
+const navbarStickyHeight = 35;
 
 /**
- * Returns a number representing the compact title component's height.
- *
- * The compact title's height is fetched from a CSS variable.
- *
- * @returns {Number} The height of the compact title component.
+ * Offscreen "top" value of compact title.
  */
-function getTitleComponentHeight() {
-    const titleHeightWithUnits =  getComputedStyle(document.body).getPropertyValue('--compact-title-height');
-
-    return Number(titleHeightWithUnits.replace(/\D/g,''))
-}
+const offscreenY = '-45px';
 
 /**
  * Enables compact title component.
@@ -79,7 +71,7 @@ function onScroll(navbar, title) {
     } else {
         if (isTitleVisible) {
             isTitleVisible = false
-            title.style.top = `-${navbarStickyHeight}px`
+            title.style.top = offscreenY
             title.classList.remove('compact-title--slidein')
             title.classList.add('compact-title--slideout')
         }
