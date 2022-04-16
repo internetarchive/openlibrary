@@ -22,6 +22,8 @@ tasks:
     chmod o+rx /workspace/openlibrary
   # init runs once for each commit to the default branch
   init: ./scripts/setup_gitpod.sh
+  env:
+    OLCONF_COVERSTORE_PUBLIC_URL: "https://7075-${GITPOD_WORKSPACE_ID}.${GITPOD_WORKSPACE_CLUSTER_HOST}"
   # command runs each time a user starts their workspace
   command: docker-compose up
 

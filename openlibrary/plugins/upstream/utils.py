@@ -15,6 +15,7 @@ import logging
 from html.parser import HTMLParser
 from typing import Optional
 
+import os
 import requests
 
 import six
@@ -322,7 +323,11 @@ def get_coverstore_url() -> str:
 
 @public
 def get_coverstore_public_url() -> str:
-    return config.get('coverstore_public_url', get_coverstore_url()).rstrip('/')
+    # TODO: Move this into config.get
+    return (
+        os.environ.get('OLCONF_COVERSTORE_PUBLIC_URL') or
+        config.get('coverstore_public_url', get_coverstore_url())
+    ).rstrip('/')
 
 
 def _get_changes_v1_raw(query, revision=None):

@@ -8,6 +8,8 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+    environment:
+      - OLCONF_COVERSTORE_PUBLIC_URL=${OLCONF_COVERSTORE_PUBLIC_URL:-}
     ports:
       # Debugger
       - 3000:3000
