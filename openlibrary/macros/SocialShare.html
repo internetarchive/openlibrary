@@ -5,51 +5,128 @@ $# :param str page_url: absolute url excluding params
 $def embed_iframe(page_url):
   <iframe frameborder="0" width="165" height="400" src="$(page_url)/-/widget"></iframe>
   
+
+<style>
+
+
+</style>
+
+  
+
+
+
+
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v3.0.6/css/line.css">
+  
+
+  
+
+
+</head>
+
+
 <div class="shareLinks cta-section">
-  <p class="cta-section-title">$_('Share this book')</p>
 
-  <ul class="shareLinks-list">
-    <li>
-      <button id ="mdn">Share MDN!</button>
-    </li>
 
-    <li>
-      $# rm special characters from url such as single quote which break js prompt/iframe
-      $ clean_url = page_url.replace("'", "\\'")
-      $ iframe_html = str(embed_iframe(clean_url)).strip()
-      <a class="embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed"
-         onclick="prompt('Copy embed code to clipboard:', '$iframe_html');">
-        <img alt="Embed icon" class="share-link" src="$static_url('images/embed.png')">
+  <div>
+    <p style="display: inline-block" class="cta-section-title">$_('Share this book')
+
+    </p>
+    
+    <ul class="shareLinks-list" style="display: inline-block; margin-left: 50px; margin-bottom: 4px;">
+      <a class="view-modal">
+          <img class="share-btn" src="../../static/images/icons/share.svg"/>
       </a>
-      <div class="share-source">$_('Embed')</div>
-    </li>
-  </ul>
+    </ul>
+
+  </div>
+  
 </div>
+
+
+    <div class="popup">
+      <header>
+        <span>Share this book</span>
+        <div class="close">
+          <i class="uil uil-times"></i>
+        </div>
+      </header>
+      <div class="content">
+        <p>Share via</p>
+        <ul class="icons">
+
+          $for share_link in share_links:
+          $ track_tag = share_link['text'].replace(' ', '-')
+            
+              <a href="$share_link['url']" class="sansserif large" target="_blank" data-ol-link-track="Share|$track_tag">
+                <img title="Share on $(share_link['text'])" alt="$(share_link['text'])" class="share-link" src="$static_url('images/%s.svg' % share_link['text'].lower())"/>
+              </a>
+              
+            
+
+          
+
+          
+        $# rm special characters from url such as single quote which break js prompt/iframe
+        $ clean_url = page_url.replace("'", "\\'")
+        $ iframe_html = str(embed_iframe(clean_url)).strip()
+        <a class="embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed"
+          onclick="prompt('Copy embed code to clipboard:', '$iframe_html');">
+          <img alt="Embed icon" class="share-link" src="$static_url('images/embed.png')">
+        </a>
+          
+
+
+
+        </ul>
+        <p>Or copy link</p>
+        <div class="copy-field">
+          <i class="url-icon uil uil-link"></i>
+          <input type="text" readonly value="$page_url">
+          <button class="copy-button">Copy</button>
+        </div>
+      </div>
+    </div>
+
+
+
+
+    
+
+    
+  
 
 
 
 <script>
+  
+  const viewBtn = document.querySelector(".view-modal"),
+  popup = document.querySelector(".popup"),
+  close = popup.querySelector(".close"),
+  field = popup.querySelector(".copy-field"),
+  input = field.querySelector("input"),
+  copy = field.querySelector("button");
 
+  viewBtn.onclick = ()=>{
+    popup.classList.toggle("show");
+  }
+  close.onclick = ()=>{
+    viewBtn.click();
+  }
 
-    let shareData = {
-      title: 'MDN',
-      text: 'Learn web development on MDN!',
-      url: 'https://developer.mozilla.org',
+  copy.onclick = ()=>{
+    input.select(); //select input value
+    if(document.execCommand("copy")){ //if the selected text copy
+      field.classList.add("active");
+      copy.innerText = "Copied";
+      setTimeout(()=>{
+        window.getSelection().removeAllRanges(); //remove selection from document
+        field.classList.remove("active");
+        copy.innerText = "Copy";
+      }, 3000);
     }
-
-    const btn = document.querySelector('#mdn');
-    console.log(btn)
-    const resultPara = document.querySelector('.result');
-
-    btn.addEventListener('click', () => {
-      navigator.share(shareData)
-        .then(() =>
-          resultPara.textContent = 'MDN shared successfully'
-        )
-        .catch((e) =>
-          resultPara.textContent = 'Error: ' + e
-        )
-    });
-
+  }
 
 </script>
