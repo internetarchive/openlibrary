@@ -29,8 +29,13 @@ export function initClampers(clampers) {
                 Clamper shows used to show more/less by toggling `hidden`
                 style on parent .clamp tag
             */
-            $(clamper).on('click', function() {
+            $(clamper).on('click', function(event) {
                 const up = $(this);
+            if (event.target.nodeName=="A"){
+                return
+            }
+            else{
+                
                 if (up.hasClass('clamp')) {
                     up.css({display: up.css('display') === '-webkit-box' ? 'unset' : '-webkit-box'});
 
@@ -39,6 +44,7 @@ export function initClampers(clampers) {
                     } else {
                         up.attr('data-before', '\u25BE ')
                     }
+                }
                 }
             })
         }
