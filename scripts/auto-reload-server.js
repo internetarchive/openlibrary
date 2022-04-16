@@ -42,10 +42,17 @@ class AutoReloadServer {
     }
 
     /**
+     * @param {string} origin
+     */
+    isValidOrigin(origin) {
+        return origin.startsWith('http://localhost') || origin.endsWith('.gitpod.io');
+    }
+
+    /**
      * @param {websocket.request} request
      */
     onWSRequest(request) {
-        if (!request.origin.startsWith('http://localhost')) {
+        if (!this.isValidOrigin(request.origin)) {
             // Make sure we only accept requests from an allowed origin
             request.reject();
             console.log(`${new Date().toISOString()} Connection from origin ${request.origin} rejected.`);
