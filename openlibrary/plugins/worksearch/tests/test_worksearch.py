@@ -65,9 +65,9 @@ def test_sorted_work_editions():
 QUERY_PARSER_TESTS = {
     'No fields': ('query here', [{'field': 'text', 'value': 'query here'}]),
     'Author field': (
-        'title:food rules author:pollan',
+        'food rules author:pollan',
         [
-            {'field': 'title', 'value': 'food rules'},
+            {'field': 'text', 'value': 'food rules'},
             {'field': 'author_name', 'value': 'pollan'},
         ],
     ),
@@ -79,9 +79,9 @@ QUERY_PARSER_TESTS = {
         ],
     ),
     'Fields are case-insensitive aliases': (
-        'title:food rules By:pollan',
+        'food rules By:pollan',
         [
-            {'field': 'title', 'value': 'food rules'},
+            {'field': 'text', 'value': 'food rules'},
             {'field': 'author_name', 'value': 'pollan'},
         ],
     ),
@@ -109,7 +109,10 @@ QUERY_PARSER_TESTS = {
     'Colons in field': (
         'title:flatland:a romance of many dimensions',
         [
-            {'field': 'title', 'value': r'flatland\:a romance of many dimensions'},
+            {
+                'field': 'title',
+                'value': r'flatland\:a romance of many dimensions',
+            },
         ],
     ),
     'Operators': (

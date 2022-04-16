@@ -266,7 +266,7 @@ $if is_privileged_user:
       </div>
 
       $ seen = set()
-      $if previews:
+      $if previews and any([len(e.languages) for e in previews]):
         <p class="preview-languages">
           Previews available in:
           $for e in previews:

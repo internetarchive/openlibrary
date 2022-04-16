@@ -23,6 +23,7 @@ from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.plugins.inside.code import fulltext_search
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import urlencode
+from openlibrary.solr.update_work import get_solr_next
 from openlibrary.utils import escape_bracket
 from openlibrary.utils.ddc import (
     normalize_ddc,
@@ -37,14 +38,6 @@ from openlibrary.utils.lcc import (
 )
 
 logger = logging.getLogger("openlibrary.worksearch")
-
-if hasattr(config, 'plugin_worksearch'):
-    solr_select_url = (
-        config.plugin_worksearch.get('solr_base_url', 'localhost') + '/select'
-    )
-
-    default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
-
 
 ALL_FIELDS = [
     "key",
@@ -111,6 +104,10 @@ FIELD_NAME_MAP = {
     'editions': 'edition_count',
     'by': 'author_name',
     'publishers': 'publisher',
+    'subtitle': 'alternative_subtitle',
+    #**({'title': 'alternative_title'} if get_solr_next() else {}),
+    'work_subtitle': 'subtitle',
+    'work_title': 'title',
     # "Private" fields
     # This is private because we'll change it to a multi-valued field instead of a
     # plain string at the next opportunity, which will make it much more usable.
@@ -172,6 +169,13 @@ re_subject_types = re.compile('^(places|times|people)/(.*)')
 re_olid = re.compile(r'^OL\d+([AMW])$')
 
 plurals = {f + 's': f for f in ('publisher', 'author')}
+
+if hasattr(config, 'plugin_worksearch'):
+    solr_select_url = (
+        config.plugin_worksearch.get('solr_base_url', 'localhost') + '/select'
+    )
+
+    default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
 
 @public
@@ -496,7 +500,10 @@ def run_solr_query(
         if use_dismax:
             params.append(('q', ' '.join(q_list)))
             params.append(('defType', 'dismax'))
-            params.append(('qf', 'text title^20 author_name^20'))
+            if get_solr_next():
+                params.append(('qf', 'text alternative_title^20 author_name^20'))
+            else:
+                params.append(('qf', 'text title^20 author_name^20'))
             params.append(('bf', 'min(100,edition_count)'))
         else:
             params.append(('q', ' '.join(q_list + ['_val_:"sqrt(edition_count)"^10'])))

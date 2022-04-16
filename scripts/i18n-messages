@@ -16,6 +16,7 @@ def help():
     print("  compile  - compile the message files (.po) to .mo")
     print("  extract  - extract i18n messages from templates and macros")
     print("  update   - update the existing translations by adding newly added string to it.")
+    print("  status   - check completeness and warnings/error summary of translations")
     print("  validate - check message file for errors")
     print("  help     - display this help message")
 
@@ -35,6 +36,8 @@ def main(cmd, args):
         i18n.update_translations(args)
     elif cmd == 'add':
         i18n.generate_po(args)
+    elif cmd == 'status':
+        i18n.check_status(args)
     elif cmd == 'validate':
         results = i18n.validate_translations(args)
 
