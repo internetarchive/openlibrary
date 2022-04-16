@@ -1,8 +1,7 @@
-from __future__ import annotations
-
 import logging
 import re
 import time
+from typing import Optional, Union
 
 import requests
 from dateutil import parser as isoparser
@@ -109,7 +108,7 @@ class AmazonAPI:
 
     def get_products(
         self,
-        asins: list | str,
+        asins: Union[list, str],
         serialize: bool = False,
         marketplace: str = 'www.amazon.com',
         resources=None,
@@ -305,7 +304,7 @@ def _get_amazon_metadata(
     resources=None,
     retries: int = 3,
     sleep_sec: float = 0.1,
-) -> dict | None:
+) -> Optional[dict]:
     """Uses the Amazon Product Advertising API ItemLookup operation to locatate a
     specific book by identifier; either 'isbn' or 'asin'.
     https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemLookup.html
@@ -342,7 +341,7 @@ def _get_amazon_metadata(
     return None
 
 
-def split_amazon_title(full_title: str) -> tuple[str, str | None]:
+def split_amazon_title(full_title: str) -> tuple[str, Optional[str]]:
     """Splits an Amazon title into (title, subtitle),
     strips parenthetical tags.
     :param str full_title:
@@ -406,7 +405,7 @@ def clean_amazon_metadata_for_load(metadata: dict) -> dict:
     return conforming_metadata
 
 
-def create_edition_from_amazon_metadata(id_: str, id_type: str = 'isbn') -> str | None:
+def create_edition_from_amazon_metadata(id_: str, id_type: str = 'isbn') -> Optional[str]:
     """Fetches Amazon metadata by id from Amazon Product Advertising API, attempts to
     create OL edition from metadata, and returns the resulting edition key `/key/OL..M`
     if successful or None otherwise.
@@ -453,7 +452,7 @@ def cached_get_amazon_metadata(*args, **kwargs):
 
 
 @public
-def get_betterworldbooks_metadata(isbn: str) -> dict | None:
+def get_betterworldbooks_metadata(isbn: str) -> Optional[dict]:
     """
     :param str isbn: Unnormalisied ISBN10 or ISBN13
     :return: Metadata for a single BWB book, currently listed on their catalog, or
@@ -469,7 +468,7 @@ def get_betterworldbooks_metadata(isbn: str) -> dict | None:
         return betterworldbooks_fmt(isbn)
 
 
-def _get_betterworldbooks_metadata(isbn: str) -> dict | None:
+def _get_betterworldbooks_metadata(isbn: str) -> Optional[dict]:
     """Returns price and other metadata (currently minimal)
     for a book currently available on betterworldbooks.com
 
@@ -509,10 +508,10 @@ def _get_betterworldbooks_metadata(isbn: str) -> dict | None:
 
 def betterworldbooks_fmt(
     isbn: str,
-    qlt: str | None = None,
-    price: str | None = None,
-    market_price: list[str] | None = None,
-) -> dict | None:
+    qlt: Optional[str] = None,
+    price: Optional[str] = None,
+    market_price: Optional[list[str]] = None,
+) -> Optional[dict]:
     """Defines a standard interface for returning bwb price info
 
     :param str isbn:
