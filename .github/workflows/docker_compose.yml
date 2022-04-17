@@ -5,9 +5,9 @@
 name: docker_compose
 on:
   push:
-    branches: [ $default-branch ]
+    branches: [ master ]
   pull_request:
-    branches: [ $default-branch ]
+    branches: [ master ]
 jobs:
   docker_compose:
     strategy:
