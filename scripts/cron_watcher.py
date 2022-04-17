@@ -12,42 +12,38 @@ Send daily email with failures only or slack failures
 
 from datetime import date, timedelta
 
-import bs4
-import httpx
+from internetarchive import search_items
 
-DATA_DUMPS_URL = "https://archive.org/details/ol_exports?sort=-publicdate"
 # Last day of last month is the first day of this month minus one day.
 last_day_of_last_month = date.today().replace(day=1) - timedelta(days=1)
 yyyy_mm = f"{last_day_of_last_month:%Y-%m}"
 
 
-async def find_last_months_dumps_on_ia(yyyy_mm: str = yyyy_mm) -> bool:
+def find_last_months_dumps_on_ia(yyyy_mm: str = yyyy_mm) -> bool:
     """
-    Return True if both ol_dump_yyyy and ol_cdump_yyyy files have been saved on the
-    Internet Archive.
+    Return True if both ol_dump_yyyy_mm and ol_cdump_yyyy_mm files
+    have been saved on Internet Archive collection:ol_exports.
+
+    >>> next_month = date.today().replace(day=1) + timedelta(days=31)
+    >>> find_last_months_dumps_on_ia(f"{next_month:%Y-%m}")
+    False
     """
-    prefixes = (f"ol_dump_{yyyy_mm}", f"ol_cdump_{yyyy_mm}")
+    prefixes = {f"ol_dump_{yyyy_mm}": 0, f"ol_cdump_{yyyy_mm}": 0}
     # print(prefixes)
-    async with httpx.AsyncClient() as client:
-        response = await client.get(DATA_DUMPS_URL)
-    response.raise_for_status()
-    soup = bs4.BeautifulSoup(response.content, features="html.parser")
-    found = 0
-    # <div class="item-ia" data-id="ol_dump_2019-10-31" data-mediatype="data">
-    for item_ia in soup.find_all("div", class_="item-ia"):
-        if item_ia["data-id"].startswith(prefixes):
-            # print(item_ia["data-id"])
-            found += 1
-            if found >= 2:
-                break
-    return found >= 2
+    for item in search_items("collection:ol_exports"):
+        for prefix in prefixes:
+            if item["identifier"].startswith(prefix):
+                prefixes[prefix] += 1
+                # Is there at least one item id starting with each prefix?
+                if files_with_both_prefixes_found := all(prefixes.values()):
+                    return files_with_both_prefixes_found
+    return all(prefixes.values())
 
 
 if __name__ == "__main__":
-    import asyncio
     import sys
 
-    both_files_found = asyncio.run(find_last_months_dumps_on_ia())
-    print(f"{both_files_found = }")
-    if not both_files_found:
+    files_with_both_prefixes_found = find_last_months_dumps_on_ia()
+    print(f"{files_with_both_prefixes_found = }")
+    if not files_with_both_prefixes_found:
         sys.exit(1)
