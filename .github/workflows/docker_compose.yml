@@ -23,9 +23,9 @@ jobs:
           submodules: true
       # https://github.com/internetarchive/openlibrary/tree/master/docker
       - run: |
-          ${{ $matrix.docker_compose }} version || true
-          ${{ $matrix.docker_compose }} build
-          ${{ $matrix.docker_compose }} up -d
-          ${{ $matrix.docker_compose }} logs -f --tail=10
+          ${{ matrix.docker_compose }} version || true
+          ${{ matrix.docker_compose }} build
+          ${{ matrix.docker_compose }} up -d
+          ${{ matrix.docker_compose }} logs -f --tail=10
           sleep 60  # One minute of uptime and then...
-          ${{ $matrix.docker_compose }} down
+          ${{ matrix.docker_compose }} down
