@@ -24,6 +24,42 @@ def no_requests(monkeypatch):
     monkeypatch.setattr("requests.sessions.Session.request", mock_request)
 
 
+@pytest.fixture(autouse=True)
+def no_sleep(monkeypatch):
+    def mock_sleep(*args, **kwargs):
+        raise Warning(
+            '''
+            Sleeping is blocked in the testing environment.
+            Use monkeytime instead; it stubs time.time() and time.sleep().
+
+            Eg:
+                def test_foo(monkeytime):
+                    assert time.time() == 1
+                    time.sleep(1)
+                    assert time.time() == 2
+
+            If you need more methods stubbed, edit monkeytime in openlibrary/conftest.py
+            '''
+        )
+
+    monkeypatch.setattr("time.sleep", mock_sleep)
+
+
+@pytest.fixture
+def monkeytime(monkeypatch):
+    cur_time = 1
+
+    def time():
+        return cur_time
+
+    def sleep(secs):
+        nonlocal cur_time
+        cur_time += secs
+
+    monkeypatch.setattr("time.time", time)
+    monkeypatch.setattr("time.sleep", sleep)
+
+
 @pytest.fixture
 def wildcard():
     return Wildcard()
