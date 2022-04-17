@@ -1,0 +1,31 @@
+# A GitHub Action to build and run Open Library.  Try to use:
+# `docker-compose` (Python-based),
+# `docker compose` (Go-based)
+
+name: docker_compose
+on:
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
+jobs:
+  docker_compose:
+    strategy:
+      fail-fast: false
+      matrix:
+        env:  # Legacy Python app with `-` vs. Go app without `-`
+          - docker_compose: docker-compose
+          - docker_compose: docker compose
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      # https://github.com/internetarchive/openlibrary/tree/master/docker
+      - run: |
+          ${{ $matrix.docker_compose }} version || true
+          ${{ $matrix.docker_compose }} build
+          ${{ $matrix.docker_compose }} up -d
+          ${{ $matrix.docker_compose }} logs -f --tail=10
+          sleep 60  # One minute of uptime and then...
+          ${{ $matrix.docker_compose }} down
