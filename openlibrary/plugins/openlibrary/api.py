@@ -396,34 +396,6 @@ class author_works(delegate.page):
         return {"links": links, "size": size, "entries": works}
 
 
-class amazon_search_api(delegate.page):
-    """Librarian + admin only endpoint to check for books
-    available on Amazon via the Product Advertising API
-    ItemSearch operation.
-
-    https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemSearch.html
-
-    Currently experimental to explore what data is available to affiliates.
-
-    :return: JSON {"results": []} containing Amazon product metadata
-             for items matching the title and author search parameters.
-    :rtype: str
-    """
-
-    path = '/_tools/amazon_search'
-
-    @jsonapi
-    def GET(self):
-        user = accounts.get_current_user()
-        if not (user and (user.is_admin() or user.is_librarian())):
-            return web.HTTPError('403 Forbidden')
-        i = web.input(title='', author='')
-        if not (i.author or i.title):
-            return json.dumps({'error': 'author or title required'})
-        results = search_amazon(title=i.title, author=i.author)
-        return json.dumps(results)
-
-
 class sponsorship_eligibility_check(delegate.page):
     path = r'/sponsorship/eligibility/(.*)'
 
