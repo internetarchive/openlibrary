@@ -500,7 +500,7 @@ def run_solr_query(
         if use_dismax:
             params.append(('q', ' '.join(q_list)))
             params.append(('defType', 'dismax'))
-            if get_solr_next():
+            if False:  # get_solr_next():
                 params.append(('qf', 'text alternative_title^20 author_name^20'))
             else:
                 params.append(('qf', 'text title^20 author_name^20'))
