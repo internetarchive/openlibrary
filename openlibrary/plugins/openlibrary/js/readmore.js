@@ -33,7 +33,7 @@ export function initClampers(clampers) {
                 const up = $(this);
 
                 // prevent the subjects from collapsing/expanding when the <a> link is being clicked 
-                if (event.target.nodeName == "A") {
+                if (event.target.nodeName === 'A') {
                     return
                 }
                 else {
