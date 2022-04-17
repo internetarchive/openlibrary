@@ -32,7 +32,7 @@ export function initClampers(clampers) {
             $(clamper).on('click', function (event) {
                 const up = $(this);
 
-                // prevent the subjects from collapsing/expanding when the <a> link is being clicked 
+                // prevent the subjects from collapsing/expanding when the <a> link is being clicked
                 if (event.target.nodeName === 'A') {
                     return
                 }
