@@ -6,24 +6,9 @@ $def embed_iframe(page_url):
   <iframe frameborder="0" width="165" height="400" src="$(page_url)/-/widget"></iframe>
   
 
-<style>
-
-
-</style>
-
-  
-
-
-
-
 <head>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
   <link rel="stylesheet" href="https://unicons.iconscout.com/release/v3.0.6/css/line.css">
-  
-
-  
-
-
 </head>
 
 
@@ -66,9 +51,6 @@ $def embed_iframe(page_url):
               
             
 
-          
-
-          
         $# rm special characters from url such as single quote which break js prompt/iframe
         $ clean_url = page_url.replace("'", "\\'")
         $ iframe_html = str(embed_iframe(clean_url)).strip()
@@ -77,8 +59,6 @@ $def embed_iframe(page_url):
           <img alt="Embed icon" class="share-link" src="$static_url('images/embed.png')">
         </a>
           
-
-
 
         </ul>
         <p>Or copy link</p>
@@ -91,42 +71,8 @@ $def embed_iframe(page_url):
     </div>
 
 
-
-
-    
-
-    
-  
-
-
-
 <script>
   
-  const viewBtn = document.querySelector(".view-modal"),
-  popup = document.querySelector(".popup"),
-  close = popup.querySelector(".close"),
-  field = popup.querySelector(".copy-field"),
-  input = field.querySelector("input"),
-  copy = field.querySelector("button");
-
-  viewBtn.onclick = ()=>{
-    popup.classList.toggle("show");
-  }
-  close.onclick = ()=>{
-    viewBtn.click();
-  }
-
-  copy.onclick = ()=>{
-    input.select(); //select input value
-    if(document.execCommand("copy")){ //if the selected text copy
-      field.classList.add("active");
-      copy.innerText = "Copied";
-      setTimeout(()=>{
-        window.getSelection().removeAllRanges(); //remove selection from document
-        field.classList.remove("active");
-        copy.innerText = "Copy";
-      }, 3000);
-    }
-  }
+  
 
 </script>
