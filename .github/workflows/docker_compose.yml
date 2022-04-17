@@ -12,10 +12,10 @@ jobs:
   docker_compose:
     strategy:
       fail-fast: false
-      matrix:
-        env:  # Legacy Python app with `-` vs. Go app without `-`
-          - docker_compose: docker-compose
-          - docker_compose: docker compose
+      matrix:  # Python-based docker-compose (with `-`) vs. Go-based docker-compose (without `-`)
+        docker_compose:
+          - docker-compose
+          - docker compose
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
