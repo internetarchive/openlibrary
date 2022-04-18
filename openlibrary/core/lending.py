@@ -116,6 +116,7 @@ def compose_ia_url(
     _type: Literal['authors', 'subjects'] = None,
     sorts=None,
     advanced=True,
+    rate_limit_exempt=True,
 ) -> Optional[str]:
     """This needs to be exposed by a generalized API endpoint within
     plugins/api/browse which lets lazy-load more items for
@@ -196,6 +197,8 @@ def compose_ia_url(
         ('page', page),
         ('output', 'json'),
     ]
+    if rate_limit_exempt:
+        params.append(('service', 'metadata__unlimited'))
     if not sorts or not isinstance(sorts, list):
         sorts = ['']
     for sort in sorts:
