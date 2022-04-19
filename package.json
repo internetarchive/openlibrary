@@ -29,7 +29,7 @@
     "lint-fix:js": "eslint --fix --ext js,vue .",
     "lint-fix:css": "stylelint --fix ./**/*.{less,vue}",
     "test": "npm run test:js && bundlesize",
-    "test:js": "jest --testRegex tests/unit/**/test.*.js",
+    "test:js": "jest",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook",
     "deploy-storybook": "storybook-to-ghpages --ci --branch=storybook"
