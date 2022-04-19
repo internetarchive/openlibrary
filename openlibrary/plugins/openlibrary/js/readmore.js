@@ -1,5 +1,5 @@
 export function initReadMoreButton() {
-    $('.read-more-button').on('click', function () {
+    $('.read-more-button').on('click',function(){
         const up = $(this).parent().parent();
         $(`.${up.attr('class')}-content`).removeClass('restricted-height', 300);
         $(`.${up.attr('class')}.read-more`).addClass('hidden');
