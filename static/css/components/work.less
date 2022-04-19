@@ -165,6 +165,26 @@ h2.edition-byline {
     padding-top: 10px;
     white-space: nowrap;
     overflow-x: auto;
+    // Make tab bar full width on mobile
+    margin-left: -@contentBody-padding;
+    margin-right: -@contentBody-padding;
+
+    // indent it a bit to make it look more scrollable
+    &:before, &:after {
+      display: inline-block;
+      content: "";
+      width: 20%;
+    }
+
+    scroll-behavior: smooth;
+  }
+}
+
+@media (min-width: @width-breakpoint-mobile) {
+  .work-menu.sticky {
+    &:before, &:after {
+      display: none;
+    }
   }
 }
 
@@ -172,6 +192,8 @@ h2.edition-byline {
   .work-menu.sticky {
     top: @compact-title-height;
     padding-top: 2px;
+    margin-left: 0;
+    margin-right: 0;
   }
 }
 
