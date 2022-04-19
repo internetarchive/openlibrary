@@ -92,6 +92,10 @@
     "workbox-webpack-plugin": "6.1.5"
   },
   "jest": {
+    "roots": [
+      "<rootDir>/openlibrary/plugins/openlibrary/js/",
+      "<rootDir>/tests/unit/js/"
+    ],
     "testEnvironment": "jsdom",
     "collectCoverageFrom": [
       "openlibrary/plugins/openlibrary/js/**/*.js"
