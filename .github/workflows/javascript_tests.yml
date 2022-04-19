@@ -18,11 +18,11 @@ jobs:
   javascript_tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: '16' # # Should match what's in our Dockerfile
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: npm-cache
         with:
           # Caching node_modules isn't recommended because it can break across
