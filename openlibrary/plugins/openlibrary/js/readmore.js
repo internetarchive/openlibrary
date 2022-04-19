@@ -36,16 +36,14 @@ export function initClampers(clampers) {
                 if (event.target.nodeName === 'A') {
                     return
                 }
-                else {
 
-                    if (up.hasClass('clamp')) {
-                        up.css({ display: up.css('display') === '-webkit-box' ? 'unset' : '-webkit-box' });
+                if (up.hasClass('clamp')) {
+                    up.css({ display: up.css('display') === '-webkit-box' ? 'unset' : '-webkit-box' });
 
-                        if (up.attr('data-before') === '\u25BE ') {
-                            up.attr('data-before', '\u25B8 ')
-                        } else {
-                            up.attr('data-before', '\u25BE ')
-                        }
+                    if (up.attr('data-before') === '\u25BE ') {
+                        up.attr('data-before', '\u25B8 ')
+                    } else {
+                        up.attr('data-before', '\u25BE ')
                     }
                 }
             })
