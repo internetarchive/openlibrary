@@ -371,4 +371,13 @@ jQuery(function () {
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
             .then((module) => module.initNavbar(navbar));
     }
+
+    $(".editionAll").remove().insertBefore($(".editionCover"));;
+    $(".work-line").remove().insertBefore($(".cta-button-group"));;
+    $(".edition-byline").remove().insertBefore($(".cta-button-group"));;
+    $(".work-title").remove().insertBefore($(".cta-button-group"));;
+    $(".work-subtitle").remove().insertBefore($(".cta-button-group"));;
+    $(".readers-stats").remove().insertBefore($(".cta-button-group"));;
+
+
 });
