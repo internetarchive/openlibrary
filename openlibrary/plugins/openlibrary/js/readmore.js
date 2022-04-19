@@ -11,8 +11,8 @@ export function initReadMoreButton() {
         $(`.${up.attr('class')}.read-more`).removeClass('hidden');
         $(`.${up.attr('class')}.read-less`).addClass('hidden');
     });
-    $('.restricted-view').each(function () {
-        if ($(this).outerHeight() < 50) {
+    $('.restricted-view').each(function() {
+        if ($(this).outerHeight()<50) {
             $(`.${$(this).parent().attr('class')}.read-more`).addClass('hidden');
         } else {
             $(this).addClass('restricted-height');
