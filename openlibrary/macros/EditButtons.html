@@ -17,8 +17,4 @@ $def with (comment=None)
     <button type="submit" class="larger" name="_save" title="$_('Save')">$_("Save")</button>
     &nbsp;
     <a href="javascript:history.go(-1);" class="small red">$_('Cancel')</a>
-    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
-        <span class="adminOnly right"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="delete">$_("Delete Record")</button></span>
-    $else:
-        <div class="adminDelete">$:_('<em>Please Note:</em> Only Admins can delete things. <a href="/contact" class="blue">Let us know</a> if there\'s a problem.')</div>
 </div>
