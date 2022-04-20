@@ -11,7 +11,7 @@
     align-items: baseline;
     z-index: @z-index-level-4;
     position: fixed;
-    top: @offscreen-position;
+    top: 0;
     height: @compact-title-height;
     // TODO: Magic 20px fixed in future PR
     width: calc(100% - 20px);
@@ -37,10 +37,7 @@
 
     @keyframes slidein {
       from {
-        top: @offscreen-position;
-      }
-      to {
-        top: 0;
+        transform: translateY(@offscreen-position);
       }
     }
 
@@ -50,12 +47,8 @@
     }
 
     @keyframes slideout {
-      from {
-        top: 0;
-      }
-
       to {
-        top: @offscreen-position;
+        transform: translateY(@offscreen-position);
       }
     }
   }

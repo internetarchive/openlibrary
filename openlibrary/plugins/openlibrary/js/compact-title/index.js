@@ -15,11 +15,6 @@ let isTitleVisible = false
 const navbarStickyHeight = 35;
 
 /**
- * Offscreen "top" value of compact title.
- */
-const offscreenY = '-45px';
-
-/**
  * Enables compact title component.
  *
  * The compact title component is initially hidden and off-screen.
@@ -35,15 +30,11 @@ const offscreenY = '-45px';
  */
 export function initCompactTitle(navbar, title) {
     // Show compact title on page reload:
-    if (navbar.getBoundingClientRect().top === navbarStickyHeight) {
-        title.classList.remove('hidden')
-        title.style.top = '0px'
-        isTitleVisible = true
-    }
-
+    onScroll(navbar, title);
+    // And update on scroll
     window.addEventListener('scroll', function() {
         onScroll(navbar, title)
-    })
+    });
 }
 
 /**
@@ -53,10 +44,11 @@ export function initCompactTitle(navbar, title) {
  * title component if navbar becomes either "stuck" or "unstuck".
  *
  * @param {HTMLElement} navbar The book page navbar component
- * @param {HTMLELement} title The compact title component
+ * @param {HTMLElement} title The compact title component
  */
 function onScroll(navbar, title) {
     const navbarY = navbar.getBoundingClientRect().top;
+    const $titleChildren = $(title).children();
 
     if (navbarY === navbarStickyHeight) {
         if (title.classList.contains('hidden')) {
@@ -64,17 +56,16 @@ function onScroll(navbar, title) {
         }
         if (!isTitleVisible) {
             isTitleVisible = true
-            title.style.top = '0px'
-            title.classList.remove('compact-title--slideout')
-            title.classList.add('compact-title--slidein')
+            $titleChildren
+                .addClass('compact-title--slidein')
+                .one('animationend', () => $titleChildren.removeClass('compact-title--slidein'));
         }
     } else {
         if (isTitleVisible) {
             isTitleVisible = false
-            title.style.top = offscreenY
-            title.classList.remove('compact-title--slidein')
-            title.classList.add('compact-title--slideout')
-            $(title).one('animationend', () => title.classList.add('hidden'))
+            $(title)
+                .addClass('compact-title--slideout')
+                .one('animationend', () => $(title).addClass('hidden').removeClass('compact-title--slideout'));
         }
     }
 }
