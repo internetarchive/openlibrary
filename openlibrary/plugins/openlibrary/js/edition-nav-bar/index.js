@@ -59,6 +59,13 @@ export function initNavbar(navbarElem) {
         }
         selectedElem.classList.add('selected')
         selectedSection = linkedSections[targetIndex];
+        // Scroll to / center the item
+        // Note: We don't use the browser native scrollIntoView method because
+        // that method scrolls _recursively_, so it also tries to scroll the
+        // body to center the element on the screen, causing weird jitters.
+        navbarElem.scrollTo({
+            left: selectedElem.offsetLeft - (navbarElem.clientWidth - selectedElem.offsetWidth) / 2,
+        });
     }
 
     // Add scroll listener that changes 'selected' navbar item based on page position:
