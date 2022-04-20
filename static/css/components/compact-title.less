@@ -8,16 +8,17 @@
     background: @white;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: baseline;
     z-index: @z-index-level-4;
     position: fixed;
     top: @offscreen-position;
     height: @compact-title-height;
-    width: 100%;
+    // TODO: Magic 20px fixed in future PR
+    width: calc(100% - 20px);
     padding: 0 14px;
 
     &__edit-btn {
-      transform: translate(-27px, 5px);
+      transform: translateY(6px);
     }
 
     &__heading {
@@ -60,12 +61,9 @@
   }
 }
 
-@media only screen and (min-width: @test-body-mobile-width) {
+@media only screen and (min-width: @width-breakpoint-desktop) {
   .compact-title {
+    width: calc(100% - @sidebar-width-with-margin);
     max-width: @desktop-title-max-width;
-
-    &__edit-btn {
-      transform: translate(0, 5px);
-    }
   }
 }

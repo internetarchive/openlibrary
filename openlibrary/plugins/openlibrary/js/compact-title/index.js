@@ -74,6 +74,7 @@ function onScroll(navbar, title) {
             title.style.top = offscreenY
             title.classList.remove('compact-title--slidein')
             title.classList.add('compact-title--slideout')
+            $(title).one('animationend', () => title.classList.add('hidden'))
         }
     }
 }
