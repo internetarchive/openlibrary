@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 export function initReadMoreButton() {
     $('.read-more-button').on('click',function(){
         const up = $(this).parent().parent();
