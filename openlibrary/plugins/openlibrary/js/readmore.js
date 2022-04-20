@@ -30,6 +30,7 @@ export function initReadMoreButton() {
         $(`.${up.attr('class')}.read-more`).removeClass('hidden');
         $(`.${up.attr('class')}.read-less`).addClass('hidden');
     });
+    resetReadMoreButtons();
     $(window).on('resize', debounce(resetReadMoreButtons, 50));
 }
 
