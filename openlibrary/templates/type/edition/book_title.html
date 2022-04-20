@@ -1,6 +1,4 @@
-$def with (work, edition)
-
-$ book_title = edition.get('title', '') or (work.title if work else '')
+$def with (book_title, edition)
 
 <h1 class="work-title" itemprop="name">$book_title</h1>
 

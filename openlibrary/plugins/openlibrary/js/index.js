@@ -368,7 +368,12 @@ jQuery(function () {
 
     const navbar = document.querySelector('.work-menu');
     if (navbar) {
+        const compactTitle = document.querySelector('.compact-title')
+        // Add position-aware navbar JS:
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
             .then((module) => module.initNavbar(navbar));
+        // Add sticky title component animations:
+        import(/* webpackChunkName: "compact-title" */ './compact-title')
+            .then((module) => module.initCompactTitle(navbar, compactTitle))
     }
 });

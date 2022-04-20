@@ -189,7 +189,16 @@ $if is_privileged_user:
             </span>
       </div>
 
-      $:render_template("type/edition/book_title", work, edition)
+      $ book_title = edition.get('title', '') or (work.title if work else '')
+      $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
+        $if edition and page.type.key in ["/type/work"]:
+          $ edit_url = edition.url(suffix="/edit")
+        $else:
+          $ edit_url = page.url(suffix="/edit")
+      $else:
+        $ edit_url = page.key + "?m=edit"
+      $:render_template("type/edition/compact_title", book_title, edit_url)
+      $:render_template("type/edition/book_title", book_title, edition)
 
       $ authors = (work or edition).get_authors()
       $ author_names = (work or edition).author_names
@@ -312,19 +321,6 @@ $if is_privileged_user:
 
       <a id="details" name="details" class="section-anchor"></a>
       <div class="tab-section edition-info">
-        $if not page.is_fake_record():
-          $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
-            $if edition and page.type.key in ["/type/work"]:
-                $ edit_url = edition.url(suffix="/edit")
-            $else:
-                $ edit_url = page.url(suffix="/edit")
-          $else:
-            $ edit_url = page.key + "?m=edit"
-          <div class="editButton">
-            <!-- FIXME: accesskey / keyboard shortcut needs i18n -->
-            <a class="linkButton larger" href="$edit_url" title="$_('Edit this template')"
-              data-ol-link-track="CTAClick|Edit" accesskey="e">$_("Edit")</a>
-          </div>
         $if edition:
           <h2 class="details-title" itemprop="name">$_("Book Details")</h2>
           <hr>

@@ -31,9 +31,21 @@ $def with (page)
     $ style = 'build/page-%s.css'%ctx.get('cssfile', 'user')
     <link href="$static_url(style)" rel="stylesheet" type="text/css" />
 
-    <!-- Don't hide content with clamp if no js to show more/less -->
     <noscript>
-      <style>.clamp { -webkit-line-clamp: unset !important; }</style>
+      <style>
+        /* Don't hide content with clamp if no js to show more/less */
+        .clamp {
+          -webkit-line-clamp: unset !important;
+        }
+
+        /* @width-breakpoint-tablet media query: */
+        @media only screen and (min-width: 768px) {
+          /* Sticky navbar to top of screen if compact title cannot be stickied */
+          .work-menu {
+            top: 0 !important;
+          }
+        }
+      </style>
     </noscript>
  <script>
 
