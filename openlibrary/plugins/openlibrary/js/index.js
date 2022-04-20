@@ -377,7 +377,7 @@ jQuery(function () {
     const mq = window.matchMedia('(max-width: 960px)');
     if (mq.matches) {
         // window width is less than 960px
-        // replace divs inside book cover
+        // reposition divs inside book cover
         $('.editionAll').remove().insertBefore($('.editionCover'));
         $('.work-line').remove().insertBefore($('.cta-button-group'));
         $('.edition-byline').remove().insertBefore($('.cta-button-group'));
