@@ -371,11 +371,11 @@ jQuery(function () {
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
             .then((module) => module.initNavbar(navbar));
     }
-    
-    
-    // Change book header in mobile 
+
+
+    // Change book header in mobile
     const mq = window.matchMedia('(max-width: 960px)');
-    if (mq.matches) {        
+    if (mq.matches) {
         // window width is less than 960px
         // replace divs inside book cover
         $('.editionAll').remove().insertBefore($('.editionCover'));
