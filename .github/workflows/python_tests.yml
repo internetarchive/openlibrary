@@ -4,12 +4,16 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+    paths-ignore:
+      - '.github/workflows/javascript_tests.yml'
+      - 'vendor/js/**'
+      - 'package*.json'
+      - '**.js'
+      - '**.vue'
+      - '**.less'
+      - '**.css'
 jobs:
   python_tests:
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [3.9]
     runs-on: ubuntu-18.04  # Should match Dockerfile.olbase, but had to be bumped as older version no longer supported
     steps:
       - uses: actions/checkout@v3
@@ -17,7 +21,7 @@ jobs:
           submodules: true
       - uses: actions/setup-python@v3
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.9
       - uses: actions/cache@v3
         with:
           path: ${{ env.pythonLocation }}
