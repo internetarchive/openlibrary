@@ -374,16 +374,16 @@ jQuery(function () {
     
     
     // Change book header in mobile 
-    var mq = window.matchMedia( "(max-width: 960px)" );
-    if (mq.matches) {
+    const mq = window.matchMedia('(max-width: 960px)');
+    if (mq.matches) {        
         // window width is less than 960px
         // replace divs inside book cover
-        $(".editionAll").remove().insertBefore($(".editionCover"));;
-        $(".work-line").remove().insertBefore($(".cta-button-group"));;
-        $(".edition-byline").remove().insertBefore($(".cta-button-group"));;
-        $(".work-title").remove().insertBefore($(".cta-button-group"));;
-        $(".work-subtitle").remove().insertBefore($(".cta-button-group"));;
-        $(".readers-stats").remove().insertBefore($(".cta-button-group"));;
+        $('.editionAll').remove().insertBefore($('.editionCover'));
+        $('.work-line').remove().insertBefore($('.cta-button-group'));
+        $('.edition-byline').remove().insertBefore($('.cta-button-group'));
+        $('.work-title').remove().insertBefore($('.cta-button-group'));
+        $('.work-subtitle').remove().insertBefore($('.cta-button-group'));
+        $('.readers-stats').remove().insertBefore($('.cta-button-group'));
     }
 
 });
