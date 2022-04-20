@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 export function initReadMoreButton() {
     $('.read-more-button').on('click',function(){
         const up = $(this).parent().parent();
@@ -29,10 +31,16 @@ export function initClampers(clampers) {
                 Clamper shows used to show more/less by toggling `hidden`
                 style on parent .clamp tag
             */
-            $(clamper).on('click', function() {
+            $(clamper).on('click', function (event) {
                 const up = $(this);
+
+                // prevent the subjects from collapsing/expanding when the <a> link is being clicked
+                if (event.target.nodeName === 'A') {
+                    return
+                }
+
                 if (up.hasClass('clamp')) {
-                    up.css({display: up.css('display') === '-webkit-box' ? 'unset' : '-webkit-box'});
+                    up.css({ display: up.css('display') === '-webkit-box' ? 'unset' : '-webkit-box' });
 
                     if (up.attr('data-before') === '\u25BE ') {
                         up.attr('data-before', '\u25B8 ')
