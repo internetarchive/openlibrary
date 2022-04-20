@@ -61,10 +61,14 @@ $ counts = counts or pa.get_sidebar_counts
       <li class="section-header section-header-split"><span>$_('Lists')</span> <a href="/people/$username/lists" class="li-count">$_('See All') ($len(lists))</a></li>
         <div class="list-overflow">
           $for lst in lists:
+          $# e.g. OL1L from /people/mekBot/lists/OL1L
             $ list_id = lst.key.split('/')[-1]
             $ class_list = ''
-            $if lst == items:
-              $ class_list = class_list + 'selected'
+            $if key == 'list':
+              $# e.g. /people/openlibrary/lists/OL1L/MyList
+              $ path_id = ctx.path.split('/')[4]
+              $if list_id == path_id:
+                $ class_list = class_list + 'selected'
             <li><a class="$class_list" href="/people/$username/lists/$list_id"><span class="li-count">$(len(lst.seeds))</span>$lst['name']</a></li>
         </div>
     </ul>
