@@ -1,4 +1,21 @@
 import { debounce } from './nonjquery_utils.js';
+import $ from 'jquery';
+
+export function resetReadMoreButtons(){
+    $('.restricted-view').each(function() {
+        const className = $(this).parent().attr('class');
+        // 58 is based on the height attribute of .restricted-height
+        if ($(this)[0].scrollHeight <= 58) {
+            $(`.${className}.read-more`).addClass('hidden');
+            $(`.${className}.read-less`).addClass('hidden');
+            $(this).removeClass('restricted-height');
+        } else {
+            $(`.${className}.read-more`).removeClass('hidden');
+            $(`.${className}.read-less`).addClass('hidden');
+            $(this).addClass('restricted-height');
+        }
+    });
+}
 
 export function initReadMoreButton() {
     $('.read-more-button').on('click',function(){
@@ -13,20 +30,6 @@ export function initReadMoreButton() {
         $(`.${up.attr('class')}.read-more`).removeClass('hidden');
         $(`.${up.attr('class')}.read-less`).addClass('hidden');
     });
-    const resetReadMoreButtons = () => $('.restricted-view').each(function() {
-        const className = $(this).parent().attr('class');
-        // 58 is based on the height attribute of .restricted-height
-        if ($(this)[0].scrollHeight <= 58) {
-            $(`.${className}.read-more`).addClass('hidden');
-            $(`.${className}.read-less`).addClass('hidden');
-            $(this).removeClass('restricted-height');
-        } else {
-            $(`.${className}.read-more`).removeClass('hidden');
-            $(`.${className}.read-less`).addClass('hidden');
-            $(this).addClass('restricted-height');
-        }
-    });
-    resetReadMoreButtons();
     $(window).on('resize', debounce(resetReadMoreButtons, 50));
 }
 
