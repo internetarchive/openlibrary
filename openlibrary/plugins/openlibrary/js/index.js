@@ -371,7 +371,7 @@ jQuery(function () {
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
             .then((module) => module.initNavbar(navbar));
     }
-    
+
 
    //Repositions divs when screen size changes
    const mediaQuery = window.matchMedia('(max-width: 960px)');
@@ -384,7 +384,7 @@ jQuery(function () {
            $('.work-title').remove().insertBefore($('.cta-button-group'));
            $('.work-subtitle').remove().insertBefore($('.cta-button-group'));
            $('.readers-stats').remove().insertBefore($('.cta-button-group'));
-        } else {                        
+        } else {
             //Returns divs in their original position based on the html
             $('.readers-stats').remove().insertBefore($('.work-menu'));
             $('.work-line').remove().insertBefore($('.readers-stats'));
@@ -404,6 +404,6 @@ jQuery(function () {
     mediaQuery.addListener(handleScreenChange)
     handleScreenChange(mediaQuery)
 
-        
+
 
 });
