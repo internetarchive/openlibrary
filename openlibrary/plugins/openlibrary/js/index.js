@@ -371,7 +371,7 @@ jQuery(function () {
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
             .then((module) => module.initNavbar(navbar));
     }
-    
+
 
     //Repositions divs when screen size changes
     const mediaQuery = window.matchMedia('(max-width: 960px)');
@@ -403,6 +403,6 @@ jQuery(function () {
     mediaQuery.addListener(handleScreenChange)
     handleScreenChange(mediaQuery)
 
-        
+
 
 });
