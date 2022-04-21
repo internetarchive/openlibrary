@@ -392,7 +392,7 @@ jQuery(function () {
             $('.work-subtitle').remove().insertBefore($('.readers-stats'));
             $('.edition-byline').remove().insertBefore($('.readers-stats'));
             //Removes duplications that were caused
-            $('.readers-stats:gt(0)').remove();           
+            $('.readers-stats:gt(0)').remove();
             $('.work-line:gt(0)').remove();
             $('.work-title:gt(0)').remove();
             $('.work-subtitle:gt(0)').remove();
