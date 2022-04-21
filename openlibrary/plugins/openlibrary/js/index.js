@@ -371,8 +371,8 @@ jQuery(function () {
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
             .then((module) => module.initNavbar(navbar));
     }
-    
-    
+
+
    //Repositions divs when screen size changes
    const mediaQuery = window.matchMedia('(max-width: 960px)');
    function handleScreenChange(e) {
@@ -383,11 +383,11 @@ jQuery(function () {
         $('.edition-byline').remove().insertBefore($('.cta-button-group'));
         $('.work-title').remove().insertBefore($('.cta-button-group'));
         $('.work-subtitle').remove().insertBefore($('.cta-button-group'));
-        $('.readers-stats').remove().insertBefore($('.cta-button-group'));        
+        $('.readers-stats').remove().insertBefore($('.cta-button-group'));
      }else{
         //Returns divs in their original position based on the html
         $('.readers-stats').remove().insertBefore($('.work-menu'));
-        $('.work-line').remove().insertBefore($('.readers-stats'));       
+        $('.work-line').remove().insertBefore($('.readers-stats'));
         $('.work-title').remove().insertBefore($('.readers-stats'));
         $('.work-subtitle').remove().insertBefore($('.readers-stats'));
         $('.edition-byline').remove().insertBefore($('.readers-stats'));
@@ -396,7 +396,7 @@ jQuery(function () {
         $('.work-line').not(':first').remove();
         $('.work-title').not(':first').remove();
         $('.work-subtitle').not(':first').remove();
-        $('.edition-byline').not(':first').remove();       
+        $('.edition-byline').not(':first').remove();
      }
     }
 
@@ -404,6 +404,6 @@ jQuery(function () {
     mediaQuery.addListener(handleScreenChange)
     handleScreenChange(mediaQuery)
 
-        
+
 
 });
