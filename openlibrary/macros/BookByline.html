@@ -1,0 +1,11 @@
+$def with(author_names_and_urls, limit=None, overflow_url=None, itemprop='author')
+
+$def render_author_link(name, url):
+  $ itemprop_attr = 'itemprop="%s"' % itemprop if itemprop else ''
+  $ rendered_name = cond(name, truncate(name, 40), _("Unknown author"))
+  $if url:
+    <a href="$url" $:itemprop_attr>$rendered_name</a>
+  $else:
+    <span $:itemprop_attr>$rendered_name</span>
+
+$:_("by %(name)s", name=commify_list([render_author_link(name, url) for name, url in author_names_and_urls]))
