@@ -2,11 +2,18 @@
 *{
   box-sizing: border-box;
 }
-
+/* Coding By CodingNepal - youtube.com/codingnepal */
 
 .view-modal, .popup{
   position: absolute;
 }
+.header-share{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 20px;
+}
+
 .copy-button{
   outline: none;
   cursor: pointer;
@@ -46,7 +53,7 @@
               opacity 0.2s 0s ease-in-out,
               transform 0.2s 0s ease-in-out;
   z-index: 10;
-
+  font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif;
 }
 .popup :is(.icons, .copy-field){
   display: flex;
@@ -77,13 +84,10 @@ span{
   background: #ebedf9;
 }
 .popup .content{
-  margin: 20px 0;
+  margin: 0px 0;
 }
 .popup .icons{
   margin: 15px 0 20px 0;
-}
-.content p{
-  font-size: 16px;
 }
 .content .icons a{
   height: 50px;

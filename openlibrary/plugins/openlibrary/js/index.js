@@ -124,7 +124,8 @@ jQuery(function () {
     }
 
 
-    //js code for the Share module in the book page
+    /* js code for the Share module in the book page
+     * Coding By CodingNepal - youtube.com/codingnepal */
     const viewBtn = document.querySelector(".view-modal"),
     popup = document.querySelector(".popup"),
     close = popup.querySelector(".close"),

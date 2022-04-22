@@ -34,14 +34,14 @@ $def embed_iframe(page_url):
 
 
     <div class="popup">
-      <header>
-        <span>Share this book</span>
-        <div class="close">
-          <i class="uil uil-times"></i>
-        </div>
-      </header>
+      
       <div class="content">
-        <p>Share via</p>
+        <header class="header-share">
+          <p>Share via</p>
+            <div class="close">
+              <i class="uil uil-times"></i>
+            </div>
+        </header>
         <ul class="icons">
 
           $for share_link in share_links:
