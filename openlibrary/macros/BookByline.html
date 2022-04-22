@@ -1,11 +1,23 @@
-$def with(author_names_and_urls, limit=None, overflow_url=None, itemprop='author')
+$def with(author_names_and_urls, limit=None, overflow_url=None, attrs='')
 
 $def render_author_link(name, url):
-  $ itemprop_attr = 'itemprop="%s"' % itemprop if itemprop else ''
   $ rendered_name = cond(name, truncate(name, 40), _("Unknown author"))
   $if url:
-    <a href="$url" $:itemprop_attr>$rendered_name</a>
+    <a href="$url" $:attrs>$rendered_name</a>
   $else:
-    <span $:itemprop_attr>$rendered_name</span>
+    <span $:attrs>$rendered_name</span>
 
-$:_("by %(name)s", name=commify_list([render_author_link(name, url) for name, url in author_names_and_urls]))
+$def render_overflow_link(remaining_authors, overflow_url):
+  <small><em><a href="$overflow_url" $:attrs>$ungettext('1 other', '%(n)s others', remaining_authors, n=remaining_authors)</a></em></small>
+
+$code:
+  if limit is None:
+    limit = len(author_names_and_urls)
+
+  remaining_authors = max(0, len(author_names_and_urls) - limit)
+  render_items = [render_author_link(name, url) for name, url in author_names_and_urls][:limit]
+
+  if remaining_authors > 0:
+    render_items.append(render_overflow_link(remaining_authors, overflow_url))
+
+$:_("by %(name)s", name=commify_list(render_items))

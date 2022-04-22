@@ -197,11 +197,11 @@ $if is_privileged_user:
       $ author_names = (work or edition).author_names
       $if authors:
         <h2 class="edition-byline">
-          $:macros.BookByline([(author.name, author.url()) for author in authors])
+          $:macros.BookByline([(author.name, author.url()) for author in authors], attrs='itemprop="author"')
         </h2>
       $elif author_names:
         <h2 class="edition-byline">
-          $:macros.BookByline([(name, None) for name in author_names])
+          $:macros.BookByline([(name, None) for name in author_names], attrs='itemprop="author"')
         </h2>
 
       $ component_times['ReadlogStats'] = time()

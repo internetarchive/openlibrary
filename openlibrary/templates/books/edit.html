@@ -48,7 +48,7 @@ $putctx("robots", "noindex,nofollow")
         <h1 class="editFormBookTitle">$this_title</h1>
         $if authors:
             <h3 class="editFormBookAuthors">
-                $:macros.BookByline([(author.name, author.url()) for author in authors], itemprop=None)
+                $:macros.BookByline([(author.name, author.url()) for author in authors])
             </h3>
         <div id="tabsAddbook">
             <ul>
