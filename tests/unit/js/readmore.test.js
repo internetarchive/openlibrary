@@ -51,7 +51,7 @@ describe('initClampers', () => {
 
     });
     const DUMMY_HTML = ClamperSample
-    
+
     test('Clicking anchor tag does not expand', () => {
         const $clamper = $(DUMMY_HTML);
         jest
@@ -76,5 +76,5 @@ describe('initClampers', () => {
         $($clamper).find('h6').first().trigger('click');
         expect($clamper.css('display')).not.toBe('unset');
     });
-    
+
 });
