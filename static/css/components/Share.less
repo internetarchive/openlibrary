@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
 @import (less) "less/colors.less";
 @import (less) "less/font-families.less";
 *{
@@ -54,7 +53,7 @@
   transition : top 0s 0s ease-in-out,
     opacity .2s 0s ease-in-out,
     transform .2s 0s ease-in-out;
-  z-index: 10;
+  z-index: @z-index-level-4;
   font-family: @lucida_sans_serif-1;
 }
 .popup :is(.icons, .copy-field){
@@ -86,10 +85,10 @@ span{
   background: @grey-ebedf9;
 }
 .popup .content{
-  margin: 0 0;
+  margin: 0;
 }
 .popup .icons{
-  margin: 15px 0 20px 0;
+  margin: 15px 0 20px;
 }
 .content .icons a{
   height: 50px;
@@ -98,53 +97,38 @@ span{
   text-decoration: none;
   border: 1px solid transparent;
 }
-.icons a i{
-  transition: transform .3s ease-in-out;
+.copy-field i{
+  width: 50px;
+  font-size: 18px;
+  text-align: center;
 }
-.icons a:nth-child(1){
-  color: @blue-1877F2;
-  border-color: @blue-b7d4fb;
-}
-.icons a:nth-child(1):hover{
-  background: @blue-1877F2;
-}
-.icons a:nth-child(2){
-  color: @blue-46C1F6;
-  border-color: @blue-b6e7fc;
-}
-.icons a:nth-child(2):hover{
-  background: @blue-46C1F6;
-}
-.icons a:nth-child(3){
-  color: @pink-e1306c;
-  border-color: @pink-f5bccf;
-}
-.icons a:nth-child(3):hover{
-  background: @pink-e1306c;
-}
-.icons a:nth-child(4){
-  color: @orange-FFA300;
-  border-color: @orange-FFA300;
-}
-.icons a:nth-child(4):hover{
-  background: @orange-FFA300;
+.copy-field.active i{
+  color: @purple-7d2ae8;
 }
 .icons a:nth-child(5){
   color: @blue-0088cc;
-  border-color: @blue-b3e6ff;
 }
-.icons a:nth-child(5):hover{
-  background: @blue-0088cc;
+.icons a:nth-child(4){
+  color: @orange-FFA300;
+}
+.icons a:nth-child(3){
+  color: @pink-e1306c;
+}
+.icons a:nth-child(2){
+  color: @blue-46C1F6;
+}
+.icons a:nth-child(1){
+  color: @blue-1877F2;
 }
 .icons a:hover{
-  color: @white;;
+  color: @white;
   border-color: transparent;
 }
 .icons a:hover i{
   transform: scale(1.2);
 }
 .content .copy-field{
-  margin: 12px 0 -5px 0;
+  margin: 12px 0 -5px;
   height: 45px;
   border-radius: 4px;
   padding: 0 5px;
@@ -152,14 +136,6 @@ span{
 }
 .copy-field.active{
   border-color: @purple-7d2ae8;
-}
-.copy-field i{
-  width: 50px;
-  font-size: 18px;
-  text-align: center;
-}
-.copy-field.active i{
-  color: purple-7d2ae8;
 }
 .copy-field input{
   width: 100%;
