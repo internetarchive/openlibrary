@@ -4947,10 +4947,10 @@ msgstr "Buch zurückgeben"
 
 #: SearchResultsWork.html:67
 #, python-format
-msgid "and 1 other"
-msgid_plural "and %(n)s others"
-msgstr[0] "und 1 weitere"
-msgstr[1] "und %(n)s weitere"
+msgid "1 other"
+msgid_plural "%(n)s others"
+msgstr[0] "1 weitere"
+msgstr[1] "%(n)s weitere"
 
 #: SearchResultsWork.html:78
 msgid "languages"

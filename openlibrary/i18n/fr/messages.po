@@ -4971,10 +4971,10 @@ msgstr "Rendre le livre"
 
 #: SearchResultsWork.html:67
 #, python-format
-msgid "and 1 other"
-msgid_plural "and %(n)s others"
-msgstr[0] "et 1 autre"
-msgstr[1] "et %(n)s autres"
+msgid "1 other"
+msgid_plural "%(n)s others"
+msgstr[0] "1 autre"
+msgstr[1] "%(n)s autres"
 
 #: SearchResultsWork.html:78
 msgid "languages"
