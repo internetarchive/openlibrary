@@ -52,7 +52,7 @@ describe('initClampers', () => {
     });
     const DUMMY_HTML = ClamperSample
     
-    test("Clicking anchor tag does not expand", () => {
+    test('Clicking anchor tag does not expand', () => {
         const $clamper = $(DUMMY_HTML);
         jest
             .spyOn($clamper[0], 'scrollHeight', 'get')
@@ -62,9 +62,9 @@ describe('initClampers', () => {
             .mockImplementation(() => 10);
         initClampers($clamper);
         $($clamper).find('a').first().trigger('click');
-        expect($clamper.css("display")).toBe('unset');
+        expect($clamper.css('display')).toBe('unset');
     });
-    test("Clicking non-anchor tag does clamp", () => {
+    test('Clicking non-anchor tag does clamp', () => {
         const $clamper = $(DUMMY_HTML);
         jest
             .spyOn($clamper[0], 'scrollHeight', 'get')
