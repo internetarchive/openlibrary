@@ -1,8 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
-
-@purple-one : rgb(125, 42, 232);
-@white : rgb(255, 255, 255);
-
+@import (less) "less/colors.less";
+@import (less) "less/font-families.less";
 *{
   box-sizing: border-box;
 }
@@ -27,13 +25,13 @@
   transition: background .1s linear, border-color .1s linear, color .1s linear;
 }
 .view-modal{
-  color: @purple-one;
+  color: @purple-7d2ae8;
   font-size: 18px;
-  background: rgb(255, 255, 255);
+  background: @white;
   transform: translate(-50%, -50%);
 }
 .popup{
-  background: rgb(255, 255, 255);
+  background: @white;
   padding: 25px;
   border-radius: 15px;
   left: 50%;
@@ -41,7 +39,7 @@
   width: 100%;
   opacity: 0;
   pointer-events: none;
-  box-shadow: 0 10px 15px rgba(0,0,0,.1);
+  box-shadow: 0 10px 15px @black;
   transform: translate(-50%, -50%) scale(1.2);
   transition: top 0s .2s ease-in-out,
     opacity .2s 0s ease-in-out,
@@ -57,7 +55,7 @@
     opacity .2s 0s ease-in-out,
     transform .2s 0s ease-in-out;
   z-index: 10;
-  font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif;
+  font-family: @lucida_sans_serif-1;
 }
 .popup :is(.icons, .copy-field){
   display: flex;
@@ -77,15 +75,15 @@ span{
   transition: all .3s ease-in-out;
 }
 .close{
-  color: rgb(135, 135, 135);
+  color: @grey-878787;
   font-size: 17px;
-  background: rgb(242, 243, 251);
+  background: @grey-f2f3fb;
   height: 33px;
   width: 33px;
   cursor: pointer;
 }
 .close:hover{
-  background: rgb(235, 237, 249);
+  background: @grey-ebedf9;
 }
 .popup .content{
   margin: 0 0;
@@ -104,42 +102,42 @@ span{
   transition: transform .3s ease-in-out;
 }
 .icons a:nth-child(1){
-  color: rgb(24, 119, 242);
-  border-color: rgb(183, 212, 251);
+  color: @blue-1877F2;
+  border-color: @blue-b7d4fb;
 }
 .icons a:nth-child(1):hover{
-  background: rgb(24, 119, 242);
+  background: @blue-1877F2;
 }
 .icons a:nth-child(2){
-  color: rgb(70, 193, 246);
-  border-color: rgb(182, 231, 252);
+  color: @blue-46C1F6;
+  border-color: @blue-b6e7fc;
 }
 .icons a:nth-child(2):hover{
-  background: rgb(70, 193, 246);
+  background: @blue-46C1F6;
 }
 .icons a:nth-child(3){
-  color: rgb(225, 48, 108);
-  border-color: rgb(245, 188, 207);
+  color: @pink-e1306c;
+  border-color: @pink-f5bccf;
 }
 .icons a:nth-child(3):hover{
-  background: rgb(225, 48, 108);
+  background: @pink-e1306c;
 }
 .icons a:nth-child(4){
-  color: rgb(255, 163, 0);
-  border-color: rgb(255, 163, 0);
+  color: @orange-FFA300;
+  border-color: @orange-FFA300;
 }
 .icons a:nth-child(4):hover{
-  background: rgb(255, 163, 0);
+  background: @orange-FFA300;
 }
 .icons a:nth-child(5){
-  color: rgb(0, 136, 204);
-  border-color: rgb(179, 230, 255);
+  color: @blue-0088cc;
+  border-color: @blue-b3e6ff;
 }
 .icons a:nth-child(5):hover{
-  background: rgb(0, 136, 204);
+  background: @blue-0088cc;
 }
 .icons a:hover{
-  color: rgb(255, 255, 255);
+  color: @white;;
   border-color: transparent;
 }
 .icons a:hover i{
@@ -150,10 +148,10 @@ span{
   height: 45px;
   border-radius: 4px;
   padding: 0 5px;
-  border: 1px solid rgb(225, 225, 225);
+  border: 1px solid @grey-e1e1e1;
 }
 .copy-field.active{
-  border-color: rgb(125, 42, 232);
+  border-color: @purple-7d2ae8;
 }
 .copy-field i{
   width: 50px;
@@ -161,7 +159,7 @@ span{
   text-align: center;
 }
 .copy-field.active i{
-  color: rgb(125, 42, 232);
+  color: purple-7d2ae8;
 }
 .copy-field input{
   width: 100%;
@@ -173,10 +171,10 @@ span{
 .copy-field .copy-button{
   color: @white;
   padding: 5px 18px;
-  background: rgb(125, 42, 232);
+  background: @purple-7d2ae8;
 }
 .copy-field .copy-button:hover{
-  background: rgb(141, 57, 250);
+  background: @purple-8d39fa;
 }
 .share-btn {
   width: 35px;
