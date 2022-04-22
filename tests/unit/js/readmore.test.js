@@ -1,6 +1,6 @@
 import { initClampers, resetReadMoreButtons } from '../../../openlibrary/plugins/openlibrary/js/readmore';
 import $ from 'jquery';
-import {ClamperSample} from './html-test-data'
+import {clamperSample} from './html-test-data'
 
 describe('resetReadMoreButtons', () => {
     const $dummyEl = $('<div class="a-parent"><div class="restricted-view"></div></div>');
@@ -50,10 +50,9 @@ describe('initClampers', () => {
         expect(clamper.classList.contains('clamp')).toBe(true);
 
     });
-    const DUMMY_HTML = ClamperSample
 
     test('Clicking anchor tag does not expand', () => {
-        const $clamper = $(DUMMY_HTML);
+        const $clamper = $(clamperSample);
         jest
             .spyOn($clamper[0], 'scrollHeight', 'get')
             .mockImplementation(() => 100);
@@ -65,7 +64,7 @@ describe('initClampers', () => {
         expect($clamper.css('display')).toBe('unset');
     });
     test('Clicking non-anchor tag does clamp', () => {
-        const $clamper = $(DUMMY_HTML);
+        const $clamper = $(clamperSample);
         jest
             .spyOn($clamper[0], 'scrollHeight', 'get')
             .mockImplementation(() => 100);
