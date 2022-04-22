@@ -1,39 +1,41 @@
 $def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None)
 
 $code:
+  max_rendered_authors = 9
   doc_type = (
     'infogami_work' if doc.get('type', {}).get('key') == '/type/work' else
     'infogami_edition' if doc.get('type', {}).get('key') == '/type/edition' else
     'solr_work'
   )
 
-$ book_url = doc.url() if doc_type.startswith('infogami_') else doc.key
-$ book_provider = get_book_provider(doc)
-$if book_provider and doc_type.endswith('_work'):
-  $ work_edition_url = book_url + '?edition=' + urlquote(book_provider.get_best_identifier_slug(doc))
-$else:
-  $ work_edition_url = book_url
+  book_url = doc.url() if doc_type.startswith('infogami_') else doc.key
+  book_provider = get_book_provider(doc)
+  if book_provider and doc_type.endswith('_work'):
+    work_edition_url = book_url + '?edition=' + urlquote(book_provider.get_best_identifier_slug(doc))
+  else:
+    work_edition_url = book_url
 
-$ edition_work = None
-$if doc_type == 'infogami_edition' and 'works' in doc:
-  $ edition_work = doc['works'][0]
+  edition_work = None
+  if doc_type == 'infogami_edition' and 'works' in doc:
+    edition_work = doc['works'][0]
 
-$ max_rendered_authors = 9
+  full_title = doc.title + (': ' + doc.subtitle if doc.get('subtitle') else '')
+
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book" $:attrs>
   <span class="bookcover">
     $ cover = get_cover_url(doc) or "/images/icons/avatar_book-sm.png"
     <a href="$work_edition_url"><img
             itemprop="image"
             src="$cover"
-            alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"
+            alt="$_('Cover of: %(title)s', title=full_title)"
+            title="$_('Cover of: %(title)s', title=full_title)"
     /></a>
   </span>
 
   <div class="details">
       <div class="resultTitle">
          <h3 itemprop="name" class="booktitle">
-           <a itemprop="url" href="$work_edition_url"
-              class="results">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a>
+           <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>
            $if doc.get('publish_date'):
              ($(doc['publish_date']))
          </h3>
@@ -71,7 +73,7 @@ $ max_rendered_authors = 9
           <a href="$work_edition_url#editions-list">$ungettext('1 edition', '%(count)d editions', doc.edition_count, count=doc.edition_count)</a>
           $if doc.get('languages'):
             <span class="languages">
-              $_('in') <a class="hoverlink" title="$(', '.join(doc.languages))">$(len(doc.languages)) $_('languages')</a>
+              $:ungettext('in <a class="hoverlink" title="%(langs)s">1 language</a>', 'in <a class="hoverlink" title="%(langs)s">%(count)d languages</a>', len(doc.languages), count=len(doc.languages), langs=commify_list(doc.languages))
             </span>
           $if doc.get('ia'):
             &mdash; $_('%s previewable', len(doc.get('ia')))
@@ -81,7 +83,7 @@ $ max_rendered_authors = 9
                   <a href="$(book_url)?edition=ia:$(urlquote(i))">
                     <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="Cover of edition $i">
                   </a>
-                </span>
+              </span>
       </span>
       $if extra:
         $:extra
