@@ -4,7 +4,7 @@ jobs:
   codegen_api_docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
       - uses: actions/setup-python@v3
