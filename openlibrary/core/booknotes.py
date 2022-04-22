@@ -1,14 +1,17 @@
 from . import db
 
 
-class Booknotes:
+class Booknotes(db.CommonExtras):
 
+    TABLENAME = "booknotes"
+    PRIMARY_KEY = ["username", "work_id", "edition_id"]
     NULL_EDITION_VALUE = -1
+    ALLOW_DELETE_ON_CONFLICT = False
 
     @classmethod
     def total_booknotes(cls):
         oldb = db.get_db()
-        query = "SELECT count(*) from booknotes"
+        query = f"SELECT count(*) from {cls.TABLENAME}"
         return oldb.query(query)['count']
 
     @classmethod
@@ -38,6 +41,12 @@ class Booknotes:
             query += " AND created >= $since"
         query += ' group by work_id order by cnt desc limit $limit'
         return list(oldb.query(query, vars={'limit': limit, 'since': since}))
+
+    @classmethod
+    def get_booknotes_for_work(cls, work_id):
+        oldb = db.get_db()
+        query = "SELECT * from booknotes where work_id=$work_id"
+        return list(oldb.query(query, vars={"work_id": work_id}))
 
     @classmethod
     def count_total_booksnotes_by_user(cls, username):
@@ -79,10 +88,8 @@ class Booknotes:
         limit=100,
         page=1,
     ):
-        """
-        By default, get all a patron's booknotes. if work_id, get book note for that work_id and edition_id.
-
-        return:
+        """By default, get all a patron's booknotes. if work_id, get book
+        note for that work_id and edition_id.
         """
         oldb = db.get_db()
         page = int(page) if page else 1

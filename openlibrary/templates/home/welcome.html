@@ -41,20 +41,6 @@ $def with (test=False)
 
       <div class="carousel__item tutorial__item">
         <a
-        href="/search/inside"
-        tabindex="0"
-        data-ol-link-track="OnboardingCarouselClick|Explore"
-        >
-          <img src="/static/images/onboarding/fulltext.png" />
-          <div class="card__text">
-            <p>Try Fulltext Search</p>
-            <p class="small">Find matching results within the text of millions of books.</p>
-          </div>
-        </a>
-      </div>
-
-      <div class="carousel__item tutorial__item">
-        <a
           href="/explore"
           tabindex="0"
           data-ol-link-track="OnboardingCarouselClick|Explore"
@@ -63,6 +49,20 @@ $def with (test=False)
           <div class="card__text">
             <p>$_("Try the virtual Library Explorer")</p>
             <p class="small">$_("Digital shelves organized like a physical library")</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="carousel__item tutorial__item">
+        <a
+        href="/search/inside"
+        tabindex="0"
+        data-ol-link-track="OnboardingCarouselClick|FulltextSearch"
+        >
+          <img src="/static/images/onboarding/fulltext.png" />
+          <div class="card__text">
+            <p>$_('Try Fulltext Search')</p>
+            <p class="small">$_('Find matching results within the text of millions of books')</p>
           </div>
         </a>
       </div>

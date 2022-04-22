@@ -28,12 +28,16 @@ def _update_spam_doc(**kwargs):
     web.ctx.site.store["spamwords"] = doc
 
 
-def is_spam(i=None):
+def is_spam(i=None, allow_privileged_edits=False):
     user = web.ctx.site.get_user()
 
-    # Prevent deleted users from making edits.
-    if user and user.type.key == '/type/delete':
-        return True
+    if user:
+        # Allow admins and librarians to make edits:
+        if allow_privileged_edits and (user.is_admin() or user.is_librarian()):
+            return False
+        # Prevent deleted users from making edits:
+        if user.type.key == '/type/delete':
+            return True
 
     email = user and user.get_email() or ""
     if is_spam_email(email):

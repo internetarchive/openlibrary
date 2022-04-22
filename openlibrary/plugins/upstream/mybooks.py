@@ -155,6 +155,10 @@ class readinglog_stats(delegate.page):
             lang=web.ctx.lang,
         )
 
+@public
+def get_public_patron_account(username):
+    user = web.ctx.site.get('/people/%s' % username)
+    return ReadingLog(user=user)
 
 class MyBooksTemplate:
     # Reading log shelves
@@ -286,6 +290,23 @@ class ReadingLog:
     @property
     def lists(self):
         return self.user.get_lists()
+
+    @property
+    def sponsorship_counts(self):
+        return {
+            'sponsorships': len(get_sponsored_editions(self.user))
+        }
+
+    @property
+    def booknotes_counts(self):
+        return PatronBooknotes.get_counts(self.user.get_username())
+
+    @property
+    def get_sidebar_counts(self):
+        counts = self.reading_log_counts
+        counts.update(self.sponsorship_counts)
+        counts.update(self.booknotes_counts)
+        return counts
 
     @property
     def reading_log_counts(self):

@@ -1,8 +1,9 @@
 """Interface to access the database of openlibrary.
 """
 import web
+from sqlite3 import IntegrityError
+from psycopg2.errors import UniqueViolation
 from infogami.utils import stats
-
 
 @web.memoize
 def _get_db():
@@ -15,6 +16,84 @@ def get_db():
     The database object is cached so that one object is used everywhere.
     """
     return _get_db()
+
+
+class CommonExtras:
+    """
+    A set of methods used by bookshelves, booknotes, ratings, and observations tables
+    """
+
+    @classmethod
+    def update_work_id(cls, current_work_id, new_work_id, _test=False):
+        """This method allows all instances of a work_id (such as that of a
+        redirect) to be updated to a new work_id.
+        """
+        oldb = get_db()
+        t = oldb.transaction()
+        rows_changed = 0
+        rows_deleted = 0
+        failed_deletes = 0
+
+        try:
+            rows_changed = oldb.update(
+                cls.TABLENAME,
+                where="work_id=$work_id",
+                work_id=new_work_id,
+                vars={"work_id": current_work_id})
+        except (UniqueViolation, IntegrityError):
+            (
+                rows_changed,
+                rows_deleted,
+                failed_deletes,
+            ) = cls.update_work_ids_individually(
+                current_work_id, new_work_id, _test=_test
+            )
+        t.rollback() if _test else t.commit()
+        return {
+            'rows_changed': rows_changed,
+            'rows_deleted': rows_deleted,
+            'failed_deletes': failed_deletes,
+        }
+
+    @classmethod
+    def update_work_ids_individually(cls, current_work_id, new_work_id, _test=False):
+        oldb = get_db()
+        rows_changed = 0
+        rows_deleted = 0
+        failed_deletes = 0
+
+        # get records with old work_id
+        # `list` used to solve sqlite cursor test
+        rows = list(oldb.select(
+            cls.TABLENAME,
+            where="work_id=$work_id",
+            vars={"work_id": current_work_id}))
+        for row in rows:
+            where = " AND ".join([
+                f"{k}='{v}'"
+                for k, v in row.items()
+                if k in cls.PRIMARY_KEY
+            ])
+            try:
+                # try to update the row to new_work_id
+                t_update = oldb.transaction()
+                oldb.query(f"UPDATE {cls.TABLENAME} set work_id={new_work_id} where {where}")
+                rows_changed += 1
+                t_update.rollback() if _test else t_update.commit()
+            except (UniqueViolation, IntegrityError):
+                t_delete = oldb.transaction()
+                # otherwise, delete row with current_work_id if failed
+                oldb.query(f"DELETE FROM {cls.TABLENAME} WHERE {where}")
+                rows_deleted += 1
+                if _test or not cls.ALLOW_DELETE_ON_CONFLICT:
+                    t_delete.rollback()
+                else:
+                    t_delete.commit()
+
+                if not cls.ALLOW_DELETE_ON_CONFLICT:
+                    failed_deletes += 1
+                    rows_deleted -= 1
+        return rows_changed, rows_deleted, failed_deletes
 
 
 def _proxy(method_name):

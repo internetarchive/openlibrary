@@ -1,3 +1,23 @@
+import { debounce } from './nonjquery_utils.js';
+import $ from 'jquery';
+
+export function resetReadMoreButtons(){
+    $('.restricted-view').each(function() {
+        const className = $(this).parent().attr('class');
+        // 58 is based on the height attribute of .restricted-height
+        if ($(this)[0].scrollHeight <= 58) {
+            $(`.${className}.read-more`).addClass('hidden');
+            $(`.${className}.read-less`).addClass('hidden');
+            $(this).removeClass('restricted-height');
+        } else {
+            $(`.${className}.read-more`).removeClass('hidden');
+            $(`.${className}.read-less`).addClass('hidden');
+            $(this).addClass('restricted-height');
+        }
+    });
+}
+
+
 export function initReadMoreButton() {
     $('.read-more-button').on('click',function(){
         const up = $(this).parent().parent();
@@ -11,13 +31,8 @@ export function initReadMoreButton() {
         $(`.${up.attr('class')}.read-more`).removeClass('hidden');
         $(`.${up.attr('class')}.read-less`).addClass('hidden');
     });
-    $('.restricted-view').each(function() {
-        if ($(this).outerHeight()<50) {
-            $(`.${$(this).parent().attr('class')}.read-more`).addClass('hidden');
-        } else {
-            $(this).addClass('restricted-height');
-        }
-    });
+    resetReadMoreButtons();
+    $(window).on('resize', debounce(resetReadMoreButtons, 50));
 }
 
 export function initClampers(clampers) {
@@ -29,10 +44,16 @@ export function initClampers(clampers) {
                 Clamper shows used to show more/less by toggling `hidden`
                 style on parent .clamp tag
             */
-            $(clamper).on('click', function() {
+            $(clamper).on('click', function (event) {
                 const up = $(this);
+
+                // prevent the subjects from collapsing/expanding when the <a> link is being clicked
+                if (event.target.nodeName === 'A') {
+                    return
+                }
+
                 if (up.hasClass('clamp')) {
-                    up.css({display: up.css('display') === '-webkit-box' ? 'unset' : '-webkit-box'});
+                    up.css({ display: up.css('display') === '-webkit-box' ? 'unset' : '-webkit-box' });
 
                     if (up.attr('data-before') === '\u25BE ') {
                         up.attr('data-before', '\u25B8 ')
