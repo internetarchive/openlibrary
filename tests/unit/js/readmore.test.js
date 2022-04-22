@@ -1,5 +1,6 @@
 import { initClampers, resetReadMoreButtons } from '../../../openlibrary/plugins/openlibrary/js/readmore';
 import $ from 'jquery';
+import {ClamperSample} from './html-test-data'
 
 describe('resetReadMoreButtons', () => {
     const $dummyEl = $('<div class="a-parent"><div class="restricted-view"></div></div>');
@@ -49,30 +50,8 @@ describe('initClampers', () => {
         expect(clamper.classList.contains('clamp')).toBe(true);
 
     });
-    const DUMMY_HTML = 
-    `<span class='clamp' data-before='▾  ' style='display: unset;'>
-        <h6>Subjects</h6>
-        <a>Ghosts</a>
-        <a>Monsters</a>
-        <a>Vampires</a>
-        <a>Witches</a> 
-        <a>Challenges and Overcoming Obstacles</a> 
-        <a>Magic and Supernatural</a> 
-        <a>Cleverness</a>
-        <a>School Life</a> 
-        <a>school stories</a>     
-        <a>Wizards</a>
-        <a>Magic</a>
-        <a>MAGIA</a> 
-        <a>MAGOS</a>
-        <a>Juvenile fiction</a>
-        <a>Fiction</a>
-        <a>NOVELAS INGLESAS</a> 
-        <a>Schools</a>
-        <a>orphans</a>
-        <a>fantasy fiction</a> 
-        <a>England in fiction</a>
-      </span>`;
+    const DUMMY_HTML = ClamperSample
+    
     test("Clicking anchor tag does not expand", () => {
         const $clamper = $(DUMMY_HTML);
         jest
