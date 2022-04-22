@@ -20,4 +20,7 @@ $code:
   if remaining_authors > 0:
     render_items.append(render_overflow_link(remaining_authors, overflow_url))
 
-$:_("by %(name)s", name=commify_list(render_items))
+$if render_items:
+  $:_("by %(name)s", name=commify_list(render_items))
+$else:
+  $:_("by an <em>unknown author</em>")
