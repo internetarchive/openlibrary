@@ -1,4 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
+
+@purple-one : rgb(125, 42, 232);
+@white : rgb(255, 255, 255);
+
 *{
   box-sizing: border-box;
 }
@@ -20,16 +24,16 @@
   font-weight: 500;
   border-radius: 4px;
   border: 2px solid transparent;
-  transition: background 0.1s linear, border-color 0.1s linear, color 0.1s linear;
+  transition: background .1s linear, border-color .1s linear, color .1s linear;
 }
 .view-modal{
-  color: #7d2ae8;
+  color: @purple-one;
   font-size: 18px;
-  background: #fff;
+  background: rgb(255, 255, 255);
   transform: translate(-50%, -50%);
 }
 .popup{
-  background: #fff;
+  background: rgb(255, 255, 255);
   padding: 25px;
   border-radius: 15px;
   left: 50%;
@@ -37,21 +41,21 @@
   width: 100%;
   opacity: 0;
   pointer-events: none;
-  box-shadow: 0px 10px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 15px rgba(0,0,0,.1);
   transform: translate(-50%, -50%) scale(1.2);
-  transition: top 0s 0.2s ease-in-out,
-              opacity 0.2s 0s ease-in-out,
-              transform 0.2s 0s ease-in-out;
+  transition: top 0s .2s ease-in-out,
+    opacity .2s 0s ease-in-out,
+    transform .2s 0s ease-in-out;
   position: fixed;
 }
 .popup.show{
   top: 50%;
   opacity: 1;
   pointer-events: auto;
-  transform:translate(-50%, -50%) scale(1);
-  transition: top 0s 0s ease-in-out,
-              opacity 0.2s 0s ease-in-out,
-              transform 0.2s 0s ease-in-out;
+  transform : translate(-50%, -50%) scale(1);
+  transition : top 0s 0s ease-in-out,
+    opacity .2s 0s ease-in-out,
+    transform .2s 0s ease-in-out;
   z-index: 10;
   font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif;
 }
@@ -65,26 +69,26 @@ span{
   font-size: 14px;
   font-weight: 500;
 }
- .close, .icons a{
+.close, .icons a{
   display: flex;
   align-items: center;
   border-radius: 50%;
   justify-content: center;
-  transition: all 0.3s ease-in-out;
+  transition: all .3s ease-in-out;
 }
 .close{
-  color: #878787;
+  color: rgb(135, 135, 135);
   font-size: 17px;
-  background: #f2f3fb;
+  background: rgb(242, 243, 251);
   height: 33px;
   width: 33px;
   cursor: pointer;
 }
- .close:hover{
-  background: #ebedf9;
+.close:hover{
+  background: rgb(235, 237, 249);
 }
 .popup .content{
-  margin: 0px 0;
+  margin: 0 0;
 }
 .popup .icons{
   margin: 15px 0 20px 0;
@@ -97,45 +101,45 @@ span{
   border: 1px solid transparent;
 }
 .icons a i{
-  transition: transform 0.3s ease-in-out;
+  transition: transform .3s ease-in-out;
 }
 .icons a:nth-child(1){
-  color: #1877F2;
-  border-color: #b7d4fb;
+  color: rgb(24, 119, 242);
+  border-color: rgb(183, 212, 251);
 }
 .icons a:nth-child(1):hover{
-  background: #1877F2;
+  background: rgb(24, 119, 242);
 }
 .icons a:nth-child(2){
-  color: #46C1F6;
-  border-color: #b6e7fc;
+  color: rgb(70, 193, 246);
+  border-color: rgb(182, 231, 252);
 }
 .icons a:nth-child(2):hover{
-  background: #46C1F6;
+  background: rgb(70, 193, 246);
 }
 .icons a:nth-child(3){
-  color: #e1306c;
-  border-color: #f5bccf;
+  color: rgb(225, 48, 108);
+  border-color: rgb(245, 188, 207);
 }
 .icons a:nth-child(3):hover{
-  background: #e1306c;
+  background: rgb(225, 48, 108);
 }
 .icons a:nth-child(4){
-  color: #FFA300;
-  border-color: #FFA300;
+  color: rgb(255, 163, 0);
+  border-color: rgb(255, 163, 0);
 }
 .icons a:nth-child(4):hover{
-  background: #FFA300;
+  background: rgb(255, 163, 0);
 }
 .icons a:nth-child(5){
-  color: #0088cc;
-  border-color: #b3e6ff;
+  color: rgb(0, 136, 204);
+  border-color: rgb(179, 230, 255);
 }
 .icons a:nth-child(5):hover{
-  background: #0088cc;
+  background: rgb(0, 136, 204);
 }
 .icons a:hover{
-  color: #fff;
+  color: rgb(255, 255, 255);
   border-color: transparent;
 }
 .icons a:hover i{
@@ -146,10 +150,10 @@ span{
   height: 45px;
   border-radius: 4px;
   padding: 0 5px;
-  border: 1px solid #e1e1e1;
+  border: 1px solid rgb(225, 225, 225);
 }
 .copy-field.active{
-  border-color: #7d2ae8;
+  border-color: rgb(125, 42, 232);
 }
 .copy-field i{
   width: 50px;
@@ -157,7 +161,7 @@ span{
   text-align: center;
 }
 .copy-field.active i{
-  color: #7d2ae8;
+  color: rgb(125, 42, 232);
 }
 .copy-field input{
   width: 100%;
@@ -167,14 +171,14 @@ span{
   font-size: 15px;
 }
 .copy-field .copy-button{
-  color: #fff;
+  color: @white;
   padding: 5px 18px;
-  background: #7d2ae8;
+  background: rgb(125, 42, 232);
 }
 .copy-field .copy-button:hover{
-  background: #8d39fa;
+  background: rgb(141, 57, 250);
 }
 .share-btn {
- width:35px;
- height:35px
+  width: 35px;
+  height: 35px;
 }
