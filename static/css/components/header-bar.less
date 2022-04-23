@@ -735,10 +735,13 @@ div.search-facet:focus-within {
   }
 }
 
-// We should review this media query to determine if it is in fact needed.
-@media only screen and (min-width: 25em) {
-  .header-bar {
 
+// We should review this media query to determine if it is in fact needed.
+@media only screen and (min-width: 25em) {  
+  .header-bar {
+    .search-bar-component{
+      margin-right: 15px;
+    }
     .navigation-component {
       .dropdown-menu {
         border-top: none;
@@ -749,7 +752,7 @@ div.search-facet:focus-within {
   }
 }
 
-@media only screen and (min-width: 30em) {
+@media only screen and (min-width: 30em) {  
   .header-bar {
     margin: 0 auto;
 
@@ -783,7 +786,7 @@ div.search-facet:focus-within {
     .search-component {
       margin-right: 0;
     }
-
+    
     .hamburger-component summary {
       margin-left: 10px;
     }
@@ -884,7 +887,7 @@ div.search-facet:focus-within {
     box-shadow: 0 1px 2px rgb(0 0 0 / 15%);
     z-index: @z-index-level-3;
   }
-
+  
   .header-bar {
     .logo-component .logo-icon {
       margin-top: 5px;
@@ -898,6 +901,9 @@ div.search-facet:focus-within {
       .search-facet-selector {
         margin-top: 1px;
       }
+    }
+    .account__icon{
+      margin-right: 20px;    
     }
     &.mobile {
       padding: 10px 0;
