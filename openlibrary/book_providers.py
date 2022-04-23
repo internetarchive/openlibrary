@@ -238,6 +238,16 @@ def get_cover_url(ed_or_solr: Union[Edition, dict]) -> Optional[str]:
         cover = ed_or_solr.get_cover()
         return cover.url(size) if cover else None
 
+    # Solr edition
+    elif ed_or_solr['key'].startswith('/books/'):
+        if ed_or_solr.get('cover_i'):
+            return (
+                get_coverstore_public_url()
+                + f'/b/id/{ed_or_solr["cover_i"]}-{size}.jpg'
+            )
+        else:
+            return None
+
     # Solr document augmented with availability
     availability = ed_or_solr.get('availability', {}) or {}
 
@@ -309,13 +319,17 @@ def get_book_providers(
     ed_or_solr: Union[Edition, dict]
 ) -> Iterator[AbstractBookProvider]:
 
-    # On search results, we want to display IA copies first.
+    # On search results which don't have an edition selected, we want to display
+    # IA copies first.
     # Issue is that an edition can be provided by multiple providers; we can easily
-    # choose the correct copy when on an edition, but on a solr record, with all copies
-    # of all editions aggregated, it's more difficult.
+    # choose the correct copy when on an edition, but on a solr work record, with all
+    # copies of all editions aggregated, it's more difficult.
     # So we do some ugly ocaid sniffing to try to guess :/ Idea being that we ignore
     # OCAIDs that look like they're from other providers.
-    prefer_ia = not isinstance(ed_or_solr, Edition)
+    has_edition = isinstance(ed_or_solr, Edition) or ed_or_solr['key'].startswith(
+        '/books/'
+    )
+    prefer_ia = not has_edition
     if prefer_ia:
         ia_ocaids = [
             ocaid

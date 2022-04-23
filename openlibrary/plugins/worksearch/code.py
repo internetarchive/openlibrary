@@ -471,9 +471,7 @@ def run_solr_query(
 
     (q_list, use_dismax) = build_q_list(param)
     params = [
-        ('fl', ','.join(fields or DEFAULT_SEARCH_FIELDS)),
         ('fq', 'type:work'),
-        ('q.op', 'AND'),
         ('start', offset),
         ('rows', rows),
         ('wt', param.get('wt', 'json')),
@@ -492,13 +490,112 @@ def run_solr_query(
             params.append(('facet.field', facet))
 
     if q_list:
-        if use_dismax:
-            params.append(('q', ' '.join(q_list)))
-            params.append(('defType', 'dismax'))
-            params.append(('qf', 'text alternative_title^20 author_name^20'))
-            params.append(('bf', 'min(100,edition_count)'))
+        if web.input(editions='').get('editions') == 'true':
+            EDITION_FIELDS = {
+                # Internals
+                'edition_key': 'key',
+                'text': 'text',
+                # Display data
+                'title': 'title',
+                'title_suggest': 'title_suggest',
+                'subtitle': 'subtitle',
+                'alternative_title': 'title',
+                'alternative_subtitle': 'subtitle',
+                'cover_i': 'cover_i',
+                # Misc useful data
+                'language': 'language',
+                'publisher': 'publisher',
+                'publish_date': 'publish_date',
+                'publish_year': 'publish_year',
+                # Identifiers
+                'isbn': 'isbn',
+                'id_*': 'id_*',
+                # IA
+                'ia': 'ia',
+                'ia_collection': 'ia_collection',
+                'ia_box_id': 'ia_box_id',
+            }
+            if True or use_dismax:
+                work_query = (
+                    '''{{!edismax q.op="AND" qf="{qf}" bf="{bf}"}}({q})'''.format(
+                        q=' '.join(q_list),
+                        qf='text alternative_title^20 author_name^20',
+                        bf='min(100,edition_count)',
+                    )
+                )
+                params.append(('q', work_query))
+
+                ed_q_list = []
+                for q in q_list:
+                    if ':' not in q:
+                        ed_q_list.append(q)
+                        continue
+                    field, val = q.split(':', 1)
+                    if field in EDITION_FIELDS:
+                        ed_q_list.append(f'{EDITION_FIELDS[field]}:({val})')
+                    elif field in ALL_FIELDS:
+                        # Work only fields we can't use in edition queries
+                        pass
+                    else:
+                        raise ValueError(f'Unknown field: {field}')
+
+                # params.append(('edQuery', ed_query))
+                # params.append(
+                #     (
+                #         'fl',
+                #         ','.join(
+                #             (fields or list(DEFAULT_SEARCH_FIELDS))
+                #             + [
+                #                 'editions',
+                #                 '[child limit=1 childFilter=$edQuery]',
+                #             ]
+                #         ),
+                #     )
+                # )
+
+                params.append(('editions.fq', 'type:edition'))
+                params.append(
+                    (
+                        'editions.q',
+                        ' '.join(
+                            [
+                                '({!terms f=_root_ v=$row.key}) AND '
+                                '({!edismax q.op="AND" bq="%(bq)s" v="%(v)s" qf="%(qf)s"})'
+                                % {
+                                    'qf': 'text title^20',
+                                    'v': " ".join(ed_q_list),
+                                    'bq': '(ia:*) (language:eng) (cover_i:*)',
+                                }
+                            ]
+                        ),
+                    )
+                )
+                params.append(('editions.rows', 1))
+                params.append(
+                    (
+                        'fl',
+                        ','.join(
+                            (fields or list(DEFAULT_SEARCH_FIELDS))
+                            + [
+                                'editions:[subquery]',
+                            ]
+                        ),
+                    )
+                )
+            else:
+                raise NotImplementedError()
         else:
-            params.append(('q', ' '.join(q_list + ['_val_:"sqrt(edition_count)"^10'])))
+            params.append(('fl', ','.join(fields or DEFAULT_SEARCH_FIELDS)))
+            params.append(('q.op', 'AND'))
+            if use_dismax:
+                params.append(('q', ' '.join(q_list)))
+                params.append(('defType', 'dismax'))
+                params.append(('qf', 'text alternative_title^20 author_name^20'))
+                params.append(('bf', 'min(100,edition_count)'))
+            else:
+                params.append(
+                    ('q', ' '.join(q_list + ['_val_:"sqrt(edition_count)"^10']))
+                )
 
     if 'public_scan' in param:
         v = param.pop('public_scan').lower()
@@ -622,6 +719,15 @@ def get_doc(doc: SolrDocument):
         id_librivox=doc.get('id_librivox', []),
         id_standard_ebooks=doc.get('id_standard_ebooks', []),
         id_openstax=doc.get('id_openstax', []),
+        # matching_editions=doc.get('editions', {}).get('numFound'),
+        editions=[
+            web.storage({**ed, 'url': f"{ed['key']}/{urlsafe(ed['title'])}"})
+            for ed in doc.get('editions', {}).get('docs', [])
+        ],
+        # editions=[
+        #     web.storage({**ed, 'url': f"{ed['key']}/{urlsafe(ed['title'])}"})
+        #     for ed in doc.get('editions', [])
+        # ],
     )
 
 

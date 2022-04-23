@@ -168,7 +168,8 @@ $ )
         <div class="resultsContainer search-results-container">
         <div id="searchResults">
           <ul class="list-books">
-            $ works = add_availability([get_doc(d) for d in docs])
+            $ works = [get_doc(d) for d in docs]
+            $ add_availability([(w.get('editions') or [None])[0] or w for w in works])
             $ username = ctx.user and ctx.user.key.split('/')[-1]
             $if username:
                 $ works = add_read_statuses(username, works)

@@ -600,6 +600,7 @@ class Work(models.Work):
         from openlibrary.book_providers import get_solr_keys
 
         fields = [
+            "key",
             "cover_edition_key",
             "cover_id",
             "edition_key",
