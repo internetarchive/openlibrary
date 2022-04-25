@@ -4,7 +4,6 @@ $def with (books=None, books_wo_isbns=None)
 
   $if not books:
     <div class="import-export">
-      <h2>$_("Import Options")</h2>
       <div class="import-export__section">
         <h3>$_("Import from Goodreads")</h3>
         <p>For instructions on exporting data refer to: <a href="https://www.goodreads.com/review/import">Goodreads Import/Export</a></p>
@@ -20,7 +19,6 @@ $def with (books=None, books_wo_isbns=None)
           </div>
         </form>
       </div>
-      <h2>$_("Export Options")</h2>
       <div class="import-export__section">
         <h3>$_("Export your Reading Log")</h3>
         <p>$_("Download a copy of your reading log.") <a href="/help/faq/reading-log.en#reading-log">$_("What is this?")</a></p>
