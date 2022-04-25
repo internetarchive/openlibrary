@@ -1,4 +1,3 @@
-from pydoc import describe
 import web
 import logging
 import json
