@@ -10,7 +10,7 @@
   },
   "packageRules": [
     {
-      "matchPackageNames": ["eslint", "babel-eslint", "eslint-plugin-no-jquery", "eslint-plugin-vue"],
+      "matchPackageNames": ["eslint", "@babel/eslint-parser", "eslint-plugin-no-jquery", "eslint-plugin-vue"],
       "groupName": "eslint",
       "automerge": true
     },
