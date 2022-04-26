@@ -102,3 +102,9 @@ Languages with deprecated translations:
 * kn Kannada
 * mr Marathi
 * nl Dutch
+
+## Internationalizing Infogami Pages
+
+@cdrini has a script to help automate the creation if i18n versions of openlibrary.org infogami pages (e.g. https://openlibrary.org/about v. https://openlibrary.org/about.es):
+
+https://gist.github.com/cdrini/615d75653e1e47115930fa394e83ab17
