@@ -1,25 +1,44 @@
 $def with (edition_count=1, show_observations=False)
 
-<ul class="work-menu sticky">
-  <li class="selected">
-    <a href="#edition-overview">$_("Overview")</a>
-  </li>
-  <li>
-    <a href="#editions-list">
-      $ungettext('View %(count)s Edition', 'View %(count)s Editions', edition_count, count=edition_count)
-    </a>
-  </li>
-  <li>
-    <a href="#details">$_("Details")</a>
-  </li>
-  $if show_observations:
-    <li>
-      <a href="#reader-observations">$_("Reviews")</a>
-    </li>
-  <li>
-    <a href="#lists-section">$_("Lists")</a>
-  </li>
-  <li>
-    <a href="#related-work-carousel">$_("Related Books")</a>
-  </li>
-</ul>
+$ navbar_class = "work-menu sticky"
+$ selected_index = 0
+
+$code:
+  nav_items = [
+    {
+      "link_text": _("Overview"),
+      "href": "#edition-overview",
+      "ol_link_track": "BookPageNavBar|Overview"
+    },
+    {
+      "link_text": ungettext('View %(count)s Edition', 'View %(count)s Editions', edition_count, count=edition_count),
+      "href": "#editions-list",
+      "ol_link_track": "BookPageNavBar|EditionTable"
+    },
+    {
+      "link_text": _("Details"),
+      "href": "#details",
+      "ol_link_track": "BookPageNavBar|Details"
+    },
+    {
+      "link_text": _("Lists"),
+      "href": "#lists-section",
+      "ol_link_track": "BookPageNavBar|Lists"
+    },
+    {
+      "link_text": _("Related Books"),
+      "href": "#related-work-carousel",
+      "ol_link_track": "BookPageNavBar|RelatedBooks"
+    }
+  ]
+
+  if show_observations:
+    nav_items.insert(3,
+      {
+        "link_text": _("Reviews"),
+        "href": "#reader-observations",
+        "ol_link_track": "BookPageNavBar|Reviews"
+      }
+    )
+
+$:render_template("lib/navbar", nav_items, navbar_class=navbar_class, selected_index=3)

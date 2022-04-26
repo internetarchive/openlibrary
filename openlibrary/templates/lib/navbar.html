@@ -1,0 +1,26 @@
+$def with (nav_items, navbar_class='', selected_index=None)
+
+$# nav_items : list of objects containing data for rendering navbar item
+$# An element of the nav_items list has the following properties:
+$#   link_text : Required string used as the navbar item's text
+$#   "href": Required string URL of the navbar item
+$#   "ol_link_track": Optional string used to populate data-ol-link-track attributes
+$#
+$# navbar_class : String class list assigned to the navbar's parent element
+$# selected_index : Integer denoting the index of the selected navbar item
+
+$if nav_items:
+  <ul class="$navbar_class">
+    $for item in nav_items:
+      $ selected = ''
+      $if selected_index and selected_index == loop.index0:
+        $ selected = "selected"
+
+      $ data = ''
+      $if item.get("ol_link_track", None):
+        $ data = 'data-ol-link-track=%s' % item["ol_link_track"]
+
+      <li class="$selected">
+        <a href="$item['href']" $data>$item['link_text']</a>
+      </li>
+  </ul>
