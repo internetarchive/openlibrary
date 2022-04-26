@@ -858,13 +858,8 @@ class account_loans_json(delegate.page):
 class account_waitlist(delegate.page):
     path = "/account/waitlist"
 
-    @require_login
     def GET(self):
-        user = accounts.get_current_user()
-        username = user['key'].split('/')[-1]
-
-        return MyBooksTemplate(username, 'waitlist').render()
-
+        raise web.seeother("/account/loans")
 
 # Disabling be cause it prevents account_my_books_redirect from working
 # for some reason. The purpose of this class is to not show the "Create" link for

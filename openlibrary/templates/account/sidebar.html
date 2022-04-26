@@ -22,13 +22,8 @@ $ counts = counts or pa.get_sidebar_counts
       <ul class="sidebar-section">
         <li class="section-header">$_('Loans')</li>
         <li>
-          <a href="/account/loans" $('class=selected' if key == 'loans' else '')>
-            $_('Checked out')
-          </a>
-        </li>
-        <li>
-          <a href="/account/waitlist" $('class=selected' if key == 'waitlist' else '')>
-            $_('Waitlist')
+          <a href="/account/loans" $('class=selected' if key == 'loans' or key =='waitlist' else '')>
+            $_('Loans')
           </a>
         </li>
         <li>
