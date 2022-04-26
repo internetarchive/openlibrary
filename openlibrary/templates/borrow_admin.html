@@ -53,7 +53,7 @@ $def format_users(users):
                             </span>
                             <span class="author">
                             $ authors = page.works[0].get_authors()
-                            $:macros.AuthorList(authors)
+                            $:macros.BookByline([(a.name, a.url()) for a in authors])
                             </span>
                             <br/>
                             <span class="publisher">
