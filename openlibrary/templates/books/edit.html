@@ -5,6 +5,12 @@ $ this_title = work.title + ': ' + work.subtitle if work.get('subtitle', None) e
 $var title: $this_title
 $putctx("robots", "noindex,nofollow")
 
+$# Forms will bind the "enter" key to the first submit button ; in the case
+$# we show the delete button for librarians, that becomes the first submit
+$# button! So we duplicate the save button here to make sure that it's always
+$# the default "enter" action.
+<button type="submit" class="hidden" name="_save" form="addWork" tabindex="-1"></button>
+
 <div id="contentHead" class="editFormHead">
     $code:
         def find_mode():
@@ -34,7 +40,9 @@ $putctx("robots", "noindex,nofollow")
             note = ""
     <h2 class="editFormTitle">$:title</h2>
     $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
-        <span class="adminOnly right"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="delete" form="addWork">$_("Delete Record")</button></span>
+        <span class="adminOnly right">
+            <button type="submit" name="_delete" value="true" id="delete" form="addWork">$_("Delete Record")</button>
+        </span>
     $if not ctx.user:
         $:render_template("lib/not_logged")
     $:note
