@@ -83,7 +83,10 @@ def gen_html_entries():
 
 @pytest.mark.parametrize("locale,msgid,msgstr", gen_html_entries())
 def test_html_format(locale: str, msgid: str, msgstr: str):
-    id_tree = etree.fromstring(f'<root>{msgid}</root>')
-    str_tree = etree.fromstring(f'<root>{msgstr}</root>')
+    # Need this to support &nbsp;, since etree only parses XML.
+    # Find a better solution?
+    entities = '<!DOCTYPE text [ <!ENTITY nbsp "&#160;"> ]>'
+    id_tree = etree.fromstring(f'{entities}<root>{msgid}</root>')
+    str_tree = etree.fromstring(f'{entities}<root>{msgstr}</root>')
     if not msgstr.startswith('<!-- i18n-lint no-tree-equal -->'):
         assert trees_equal(id_tree, str_tree)
