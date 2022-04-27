@@ -17,24 +17,16 @@ $ counts = counts or pa.get_sidebar_counts
       <li><a href="/people/$username" $('class=selected' if key == 'profile' else '')>$_('Profile Page')</a></li>
       $if owners_page:
         <li><a href="/account" $('class=selected' if key == 'settings' else '')>$_('Settings & Privacy')</a></li>
-    </ul>
-    $if owners_page:
-      <ul class="sidebar-section">
-        <li class="section-header">$_('Loans')</li>
         <li>
           <a href="/account/loans" $('class=selected' if key == 'loans' else '')>
-            $_('Checked out')
-          </a>
-        </li>
-        <li>
-          <a href="/account/waitlist" $('class=selected' if key == 'waitlist' else '')>
-            $_('Waitlist')
+            $_('My Loans & Holds')
           </a>
         </li>
         <li>
           <a class="external-link" href="https://archive.org/account/?tab=loans#loans-history">$_('Loan History')</a>
         </li>
-      </ul>
+        <li><a href="/account/import" $('class=selected' if key=='imports' else '')>$_("Import & Export Options")</a></li>
+    </ul>
     $if public or owners_page:
       <ul class="sidebar-section">
         <li class="section-header">$_('Reading Log')</li>
@@ -47,7 +39,6 @@ $ counts = counts or pa.get_sidebar_counts
         <li><a $('class=selected' if key=='observations' else '') href="/people/$username/books/observations"><span class="li-count">$counts['observations']</span>$_('My Reviews')</a></li>
         <hr>
         <li><a href="/account/books/already-read/stats">$_('Reading Stats')</a></li>
-        <li><a href="/account/import" $('class=selected' if key=='imports' else '')>$_("Import & Export Options")</a></li>
       </ul>
     $if owners_page and ctx.user and ctx.user.in_sponsorship_beta():
       <ul class="sidebar-section">
