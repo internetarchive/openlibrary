@@ -33,7 +33,7 @@ class ReadableUrlProcessor:
         (r'/\w+/ia:[a-zA-Z0-9_\.-]+', '/type/edition', 'title', 'untitled'),
         (r'/\w+/OL\d+A', '/type/author', 'name', 'noname'),
         (r'/\w+/OL\d+W', '/type/work', 'title', 'untitled'),
-        (r'/[/\w]+/OL\d+L', '/type/list', 'name', 'unnamed'),
+        (r'/[/\w\-]+/OL\d+L', '/type/list', 'name', 'unnamed'),
     ]
 
     def __call__(self, handler):

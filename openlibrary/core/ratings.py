@@ -15,9 +15,12 @@ class WorkRatingsSummary(TypedDict):
     ratings_count_5: int
 
 
-class Ratings:
+class Ratings(db.CommonExtras):
 
+    TABLENAME = "ratings"
     VALID_STAR_RATINGS = range(6)  # inclusive: [0 - 5] (0-5 star)
+    PRIMARY_KEY = ["username", "work_id"]
+    ALLOW_DELETE_ON_CONFLICT = True
 
     @classmethod
     def summary(cls):
@@ -101,7 +104,7 @@ class Ratings:
     def get_all_works_ratings(cls, work_id):
         oldb = db.get_db()
         query = 'select * from ratings where work_id=$work_id'
-        return list(oldb.query(query, vars={'work_id': work_id}))
+        return list(oldb.query(query, vars={'work_id': int(work_id)}))
 
     @classmethod
     def get_users_rating_for_work(cls, username, work_id):

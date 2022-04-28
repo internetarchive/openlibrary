@@ -744,9 +744,12 @@ def get_observation_metrics(work_olid):
     return metrics
 
 
-class Observations:
+class Observations(db.CommonExtras):
 
+    TABLENAME = "observations"
     NULL_EDITION_VALUE = -1
+    PRIMARY_KEY = ["work_id", "edition_id", "username", "observation_value", "observation_type"]
+    ALLOW_DELETE_ON_CONFLICT = True
 
     @classmethod
     def summary(cls):
@@ -944,6 +947,12 @@ class Observations:
         return list(oldb.query(query, vars=data))
 
     @classmethod
+    def get_observations_for_work(cls, work_id):
+        oldb = db.get_db()
+        query = "SELECT * from observations where work_id=$work_id"
+        return list(oldb.query(query, vars={"work_id": work_id}))
+
+    @classmethod
     def get_observations_grouped_by_work(cls, username, limit=25, page=1):
         """
         Returns a list of records which contain a work id and a JSON string
@@ -1081,3 +1090,17 @@ class Observations:
             where_clause += ' AND observation_type=$observation_type AND observation_value=$observation_value'
 
         return oldb.delete('observations', where=(where_clause), vars=data)
+
+    @classmethod
+    def select_all_by_username(cls, username, _test=False):
+        rows = super().select_all_by_username(username, _test=_test)
+        types_and_values = _get_all_types_and_values()
+
+        for row in rows:
+            type_id = f"{row['observation_type']}"
+            value_id = f"{row['observation_value']}"
+            row['observation_type'] = types_and_values[type_id]['type']
+            row['observation_value'] = types_and_values[type_id]['values'][value_id]['name']
+
+        return rows
+

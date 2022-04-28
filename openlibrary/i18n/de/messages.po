@@ -722,7 +722,7 @@ msgstr "E-Books"
 
 #: work_search.html:91
 msgid "Print Disabled"
-msgstr ""
+msgstr "Gesperrter Druck"
 
 #: work_search.html:107
 msgid "eBook"
@@ -4184,7 +4184,7 @@ msgstr "Autoren zusammenführen…"
 
 #: type/author/view.html:66
 msgid "In progress..."
-msgstr ""
+msgstr "In Bearbeitung..."
 
 #: type/author/view.html:78
 msgid "Refresh the page?"
@@ -4248,9 +4248,9 @@ msgstr "Zeit"
 msgid "OLID"
 msgstr "OLID"
 
-#: type/author/view.html:186
+#: view.html:202
 msgid "Links <span class=\"gray small sansserif\">(outside Open Library)"
-msgstr ""
+msgstr "Links <span class=\"gray small sansserif\">(außerhalb von Open Library)"
 
 #: type/author/view.html:196
 msgid "No links yet."
@@ -4525,9 +4525,9 @@ msgstr ""
 "Online anzeigen. Downloads sind in den Formaten ePub, DAISY, PDF und TXT auf der "
 "Hauptseite des Buchs zu finden"
 
-#: type/list/embed.html:72
+#: embed.html:73
 msgid "This book is checked out"
-msgstr ""
+msgstr "Dieses Buch ist ausgeliehen"
 
 #: type/list/embed.html:77
 msgid "Borrow book"
@@ -4585,10 +4585,10 @@ msgstr ""
 msgid "%(name)s | Lists | Open Library"
 msgstr "%(name)s | Listen | Open Library"
 
-#: type/list/view_body.html:18
+#: view.html:14
 #, python-format
 msgid "%(title)s: %(description)s"
-msgstr ""
+msgstr "%(title)s: %(description)s"
 
 #: type/list/view_body.html:27
 msgid "View the list on Open Library."
@@ -4947,10 +4947,10 @@ msgstr "Buch zurückgeben"
 
 #: SearchResultsWork.html:67
 #, python-format
-msgid "and 1 other"
-msgid_plural "and %(n)s others"
-msgstr[0] "und 1 weitere"
-msgstr[1] "und %(n)s weitere"
+msgid "1 other"
+msgid_plural "%(n)s others"
+msgstr[0] "1 weitere"
+msgstr[1] "%(n)s weitere"
 
 #: SearchResultsWork.html:78
 msgid "languages"
@@ -5057,6 +5057,12 @@ msgid ""
 "will alter its presentation and the data fields available for editing its "
 "content."
 msgstr ""
+"Jedes Stück der Open Library ist definiert über seinen angezeigten Inhaltstyp; "
+"üblicherweise über die Definition des Inhalts (z.B. Autoren, Ausgaben, Werke) "
+"aber manchmal auch über die Verwendung des Inhalts (z.B. Makro, Vorlage, "
+"Klartext). Dies für eine bestehende Seite zu ändern, ändert auch deren "
+"Darstellung und die zur Verfügung stehenden Datenfelder um den Inhalt zu "
+"bearbeiten."
 
 #: TypeChanger.html:22
 msgid "Please use caution changing Page Type!"
@@ -5265,6 +5271,393 @@ msgstr ""
 #: forms.py:149
 msgid "Invalid password"
 msgstr "Ungültiges Passwort"
+
+#: view.html:160
+#, python-format
+msgid ""
+"<a href=\"%(url)s\"><strong>1 edition</strong></a> of <strong class=\"booktitle"
+"\">%(title)s</strong> found in the catalog."
+msgid_plural ""
+"<a href=\"%(url)s\"><strong>%(count)d editions</strong></a> of <strong class="
+"\"booktitle\">%(title)s</strong> found in the catalog."
+msgstr[0] ""
+"<a href=\"%(url)s\"><strong>1 Ausgabe</strong></a> von <strong class=\"booktitle"
+"\">%(title)s</strong> in diesem Katalog gefunden."
+msgstr[1] ""
+"<a href=\"%(url)s\"><strong>%(count)d Ausgaben</strong></a> von <strong class="
+"\"booktitle\">%(title)s</strong> in diesem Katalog gefunden."
+
+#: view.html:241
+msgid "Published"
+msgstr "Herausgegeben"
+
+#: view.html:288
+msgid "About the Edition"
+msgstr "Über diese Ausgabe"
+
+#: view.html:115 view.html:291
+msgid "About the Book"
+msgstr "Über das Buch"
+
+#: view.html:107 view.html:295
+#, python-format
+msgid ""
+"There's no description for this book yet. Can you <b><a href='%(url)s'>add one</"
+"a></b>?"
+msgstr ""
+"Diese Ausgabe hat bisher keine Beschreibung. Möchten Sie eine <b><a "
+"href='%(url)s'>hinzufügen</a></b>?"
+
+#: embed.html:17 home.html:48 preview.html:23 snippet.html:18 view.html:32
+#, python-format
+msgid "1 seed"
+msgid_plural "%(count)d seeds"
+msgstr[0] "1 Seed"
+msgstr[1] "%(count)d Seeds"
+
+#: embed.html:113 view.html:222
+#, python-format
+msgid "- 1 edition"
+msgid_plural "- %(count)s editions"
+msgstr[0] "- 1 Ausgabe"
+msgstr[1] "- %(count)s Ausgaben"
+
+#: embed.html:115 view.html:224
+#, python-format
+msgid "- 1 work"
+msgid_plural "- %(count)s works"
+msgstr[0] "- 1 Werk"
+msgstr[1] "- %(count)s Werke"
+
+#: view.html:158
+msgid ""
+"You are about the remove the last item in the list. That will delete the whole "
+"list. Are you sure you want to continue?"
+msgstr ""
+"Sie sind dabei, den letzten Eintrag von der Liste zu entfernen. Dadurch wird die "
+"gesamte Liste gelöscht. Sind Sie sicher, dass Sie fortfahren möchten?"
+
+#: view.html:220
+#, python-format
+msgid "- <a href=\"%(url)s\">1 edition</a> in catalog"
+msgid_plural "- <a href=\"%(url)s\">%(count)s editions</a> in catalog"
+msgstr[0] "- <a href=\"%(url)s\">1 Ausgabe</a> im Katalog"
+msgstr[1] "- <a href=\"%(url)s\">%(count)s Ausgaben</a> im Katalog"
+
+#: view.html:228
+msgid "Download DAISY eBook for print disabled"
+msgstr "Lade DAISY eBook mit gesperrtem Druck herunter "
+
+#: openlibrary/macros/SearchResultsWork.html:60 view.html:246
+msgid "Download DAISY"
+msgstr "DAISY herunterladen"
+
+#: view.html:48
+#, python-format
+msgid ""
+"This user has chosen to publicly share the books they are <a href=\"%(username)s/"
+"books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/"
+"already-read\">have already read</a>, and <a href=\"%(username)s/books/want-to-"
+"read\">want to read</a>!"
+msgstr ""
+"Diese Person hat sich entschieden die Bücher die sie <a href=\"%(username)s/"
+"books/currently-reading\">aktuell liest</a>, bereits <a href=\"%(username)s/"
+"books/already-read\">gelesen hat</a> und <a href=\"%(username)s/books/want-to-"
+"read\">lesen möchte</a> öffentlich zu teilen!"
+
+#: view.html:50
+msgid "This user has chosen to keep their Reading Log private"
+msgstr "Diese Person hat sich entschieden ihr Lese-Logbuch privat zu halten"
+
+#: editions_datatable.html:24
+msgid "Locate"
+msgstr ""
+
+#: editions_datatable.html:45
+#, python-format
+msgid "Merge editions"
+msgstr "Ausgaben zusammenführen"
+
+#: view.html:23
+#, python-format
+msgid "%(title)s by %(author)s"
+msgstr "%(title)s von %(author)s"
+
+#: view.html:34
+#, python-format
+msgid "Subjects: %(subjectlist)s"
+msgstr "Themen: %(subjectlist)s"
+
+#: view.html:36
+#, python-format
+msgid "Places: %(placelist)s"
+msgstr "Orte: %(placelist)s"
+
+#: view.html:38
+#, python-format
+msgid "People: %(peoplelist)s"
+msgstr "Personen: %(peoplelist)s"
+
+#: view.html:40
+#, python-format
+msgid "Times: %(timelist)s"
+msgstr "Zeiten: %(timelist)s"
+
+#: view.html:76
+#, python-format
+msgid "By %(author)s"
+msgstr "Von %(author)s"
+
+#: view.html:78
+msgid "By <em>unknown author</em>"
+msgstr "Von <em>unbekannter Person</em>"
+
+#: view.html:82
+msgid "Go to the editions section to read or download ebooks."
+msgstr ""
+"Gehen Sie in die Sektion der Ausgabe um diese zu Lesen oder ein eBook "
+"herunterzuladen."
+
+#: books.html:15 nav_head.html:78 nav_head.html:79
+msgid "My Books"
+msgstr "Meine Bücher"
+
+#: books.html:77
+#, python-format
+msgid "Currently Reading (%(count)d)"
+msgstr "Lesen aktuell (%(count)d)"
+
+#: books.html:78
+#, python-format
+msgid "Want to Read (%(count)d)"
+msgstr "Möchten es lesen (%(count)d)"
+
+#: books.html:79
+#, python-format
+msgid "Already Read (%(count)d)"
+msgstr "Bereits gelesen (%(count)d)"
+
+#: borrow.html:52
+msgid ""
+"You have 5 ebooks out at the moment. That's the limit! You can free up slots by "
+"returning books early."
+msgstr ""
+"Sie haben aktuell 5 eBooks geliehen. Das ist das Limit! Sie können Plätze frei "
+"machen in dem Sie eBooks früher zurückgeben."
+
+#: borrow.html:85
+#, python-format
+msgid "%(count)d Current Loans"
+msgstr "%(count)d aktuelle Ausleihen"
+
+#: borrow.html:140
+msgid "How To Return eBooks through Adobe Digital Editions"
+msgstr ""
+
+#: borrow.html:142
+msgid "Open Adobe Digital Editions"
+msgstr "Adobe Digital Editions öffnen"
+
+#: borrow.html:143
+msgid "Click the Library icon at the upper left corner"
+msgstr ""
+
+#: borrow.html:144
+msgid "Move your mouse over the cover of the eBook you wish to return"
+msgstr ""
+
+#: borrow.html:145
+msgid "Find the arrow at the upper left of the cover and open the eBook menu"
+msgstr ""
+
+#: borrow.html:146
+msgid "Click \"Return Borrowed Item\""
+msgstr ""
+
+#: borrow.html:147
+msgid "Click \"Return\" to confirm"
+msgstr ""
+
+#: borrow.html:148
+msgid "Done!"
+msgstr "Erledigt!"
+
+#: borrow.html:250
+msgid "Internet Archive"
+msgstr "Internet Archive"
+
+#: borrow.html:252
+msgid "eBooks everywhere"
+msgstr "E-Books von anderen Anbietern"
+
+#: borrow.html:274
+msgid "Which books are available?"
+msgstr "Welche Bücher sind verfügbar?"
+
+#: borrow.html:280
+msgid "Help/Downloads"
+msgstr "Hilfe/Downloads"
+
+#: borrow.html:282
+msgid "Download Adobe Digital Editions"
+msgstr ""
+
+#: borrow.html:283
+msgid ""
+"<a href=\"http://www.adobe.com/products/digitaleditions/help/\">Help</a> on "
+"adobe.com"
+msgstr ""
+
+#: create.html:71
+#, python-format
+msgid "Your URL: %s"
+msgstr "Ihre URL: %s"
+
+#: custom_carousel.html:34
+msgid "Sponsor"
+msgstr "Sponsor"
+
+#: edit.html:149
+msgid "Delete this book?"
+msgstr "Dieses Buch löschen?"
+
+#: edition-sort.html:108
+msgid "Look for this edition at WorldCat"
+msgstr "Suchen Sie nach dieser Ausgabe in der WorldCat"
+
+#: edit/edition.html:161
+msgid "Is there a copyright date?"
+msgstr "Gibt es ein Copyright-Datum?"
+
+#: edit/edition.html:357
+msgid "Is there a By Statement?"
+msgstr "Ist eine Angabe wie „geschrieben von“ vorhanden?"
+
+#: edit/edition.html:740
+msgid "ID must be exactly 13 digits [0-9]."
+msgstr "ID muss aus exakt 13 Ziffern bestehen."
+
+#: add.html:11
+msgid "There are two ways to place an author's image on Open Library"
+msgstr "Es gibt zwei Wege, ein Bild des Autors zur Open Library hinzuzufügen"
+
+#: add.html:14 add.html:20
+msgid "There are two ways to get a cover image on Open Library"
+msgstr ""
+"Es gibt zwei Wege, ein Umschlagsbild (oder Cover) zur Open Library hinzuzufügen"
+
+#: nav_foot.html:35
+msgid "Explore Open Library Development Center"
+msgstr "Entdecke das Open Library Entwicklungszentrum"
+
+#: nav_foot.html:35
+msgid "Development Center"
+msgstr "Entwicklungszentrum"
+
+#: nav_head.html:116
+msgid "My Account"
+msgstr "Mein Konto"
+
+#: preview.html:40
+msgid "Themes:"
+msgstr "Themen:"
+
+#: snippet.html:9 widget.html:81
+#, python-format
+msgid "Cover of: %(listname)s"
+msgstr "Buchdekcel von: %(listname)s"
+
+#: authors.html:58
+msgid "Select author records which should be merged with the master"
+msgstr ""
+
+#: authors.html:66
+msgid "No Primary record"
+msgstr "Kein Primärer Eintrag"
+
+#: editions.html:7 editions.html:10 editions2.html:7
+#, python-format
+msgid "Merge Editions"
+msgstr "Ausgaben zusammenführen"
+
+#: editions.html:17
+msgid "No editions selected."
+msgstr "Keine Ausgaben ausgewählt."
+
+#: editions2.html:10
+#, python-format
+msgid "Merging %(count)d editions of"
+msgstr "Zusammenführen von  %(count)d Ausgaben von"
+
+#: editions2.html:43
+msgid "Merge Preview"
+msgstr "Vorschau"
+
+#: editions2.html:45
+msgid "Please review the merged values before saving."
+msgstr "Bitte überprüfen sie die Werte für die Zusammenführung vor dem Speichern."
+
+#: history.html:8 history.html:12
+msgid "Merge History"
+msgstr "Verlauf"
+
+#: advancedsearch.html:11
+msgid "Keyword"
+msgstr "Schlüsselwort"
+
+#: body.html:31
+msgid "<strong>Together</strong>, let's build an Open Library for the World."
+msgstr ""
+"Lass uns <strong>zusammen</strong> eine offene Bibliothek für die Welt bauen."
+
+#: openlibrary/templates/work_search.html:220
+#, python-format
+msgid "Showing books with similar text to: <strong>%(query)s</strong>"
+msgstr "Zeige Bücher mit ähnlichem Text an: <strong>%(query)s</strong>"
+
+#: openlibrary/macros/AvailabilityButton.html:50
+msgid "You're <strong>next</strong> in line"
+msgstr "Sie sind der <strong>nächste</strong> in der Warteliste"
+
+#: openlibrary/macros/AvailabilityButton.html:52
+#, python-format
+msgid "There is <strong>#1</strong> reader ahead of you"
+msgid_plural "There are <strong>#%(count)d</strong> readers ahead of you"
+msgstr[0] "Es befindet sich <strong>1</strong> Leser vor Ihnen in der Warteliste."
+msgstr[1] ""
+"Es befinden sich <strong>%(count)d</strong> Leser vor Ihnen in der Warteliste."
+
+#: openlibrary/macros/AvailabilityButton.html:68
+msgid "Be first in line!"
+msgstr "Seien Sie der Erste in der Warteliste!"
+
+#: openlibrary/macros/AvailabilityButton.html:76
+msgid "Print-disabled access available"
+msgstr "Mit gesperrtem Druck verfügbar"
+
+#: openlibrary/macros/LoanStatus.html:73
+#, python-format
+msgid "Readers waiting for this title: %(count)d"
+msgstr "Lesende die auf diesen Titel warten: %(count)d"
+
+#: openlibrary/macros/LoanStatus.html:87
+#, python-format
+msgid "Sponsor eBook"
+msgstr "eBook spnsern"
+
+#: openlibrary/macros/LoanStatus.html:89
+#, python-format
+msgid ""
+"We don't have this book yet. You can add it to our Lending Library with a "
+"%(price)s tax deductible donation."
+msgstr ""
+"Dieses Buch haben wir noch nicht. Sie können es mit einer %(price)s "
+"abzugsfähigen Spende unserer Leihbibliothek hinzufügen."
+
+#: openlibrary/macros/SearchResultsWork.html:44
+#, python-format
+msgid "- first published in %(year)s"
+msgstr "Zuerst veröffentlicht %(year)s"
 
 #~ msgid ""
 #~ "We've sent an email to %(email)s. You'll need to read that and click on the "
@@ -5515,3 +5908,31 @@ msgstr "Ungültiges Passwort"
 
 #~ msgid "Edition Search"
 #~ msgstr "Ausgabensuche"
+
+#~ msgid "%d book"
+#~ msgid_plural "%d books"
+#~ msgstr[0] "%d Buch"
+#~ msgstr[1] "%d Bücher"
+
+#~ msgid "Add edition"
+#~ msgstr "Ausgabe hinzufügen"
+
+#~ msgid "<u>Or</u></span>, paste in a URL to an image if it's on the web."
+#~ msgstr ""
+#~ "<u>Oder</u></span> fügen Sie den Link zum Bild ein, wenn es im Internet "
+#~ "verfügbar ist."
+
+#~ msgid "Librarian Mode"
+#~ msgstr "Bibliothekar*innen-Modus"
+
+#~ msgid "Full-Text Search on Archive.org"
+#~ msgstr "Volltextsuche auf Archive.org"
+
+#~ msgid "More Subjects"
+#~ msgstr "Mehr Themen"
+
+#~ msgid "editions in"
+#~ msgstr "Ausgaben in"
+
+#~ msgid "Search Results"
+#~ msgstr "Suchergebnisse"

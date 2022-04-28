@@ -165,7 +165,7 @@ export function initAuthorMultiInputAutocomplete() {
             {
                 endpoint: '/authors/_autocomplete',
                 // Don't render "Create new author" if searching by key
-                addnew: query => !/^OL\d+A/i.test(query),
+                addnew: query => !/OL\d+A/i.test(query),
             },
             {
                 minChars: 2,

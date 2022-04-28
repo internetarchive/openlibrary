@@ -7,9 +7,12 @@ from . import db
 logger = logging.getLogger(__name__)
 
 
-class Bookshelves:
+class Bookshelves(db.CommonExtras):
 
+    TABLENAME = "bookshelves_books"
+    PRIMARY_KEY = ["username", "work_id", "bookshelf_id"]
     PRESET_BOOKSHELVES = {'Want to Read': 1, 'Currently Reading': 2, 'Already Read': 3}
+    ALLOW_DELETE_ON_CONFLICT = True
 
     PRESET_BOOKSHELVES_JSON = {
         'want_to_read': 1,
@@ -82,7 +85,7 @@ class Bookshelves:
         oldb = db.get_db()
         where = 'WHERE bookshelf_id' + ('=$shelf_id' if shelf_id else ' IS NOT NULL ')
         if since:
-            where += 'AND created >= $since'
+            where += ' AND created >= $since'
         query = f'select work_id, count(*) as cnt from bookshelves_books {where}'
         query += ' group by work_id order by cnt desc limit $limit'
         logger.info("Query: %s", query)
@@ -245,7 +248,7 @@ class Bookshelves:
         users_status = cls.get_users_read_status_of_work(username, work_id)
         if not users_status:
             return oldb.insert(
-                'bookshelves_books',
+                cls.TABLENAME,
                 username=username,
                 bookshelf_id=bookshelf_id,
                 work_id=work_id,
@@ -254,7 +257,7 @@ class Bookshelves:
         else:
             where = "work_id=$work_id AND username=$username"
             return oldb.update(
-                'bookshelves_books',
+                cls.TABLENAME,
                 where=where,
                 bookshelf_id=bookshelf_id,
                 edition_id=edition_id,
@@ -270,7 +273,7 @@ class Bookshelves:
 
         try:
             return oldb.delete(
-                'bookshelves_books',
+                cls.TABLENAME,
                 where=('work_id=$work_id AND username=$username'),
                 vars=where,
             )
@@ -281,9 +284,9 @@ class Bookshelves:
     def get_works_shelves(cls, work_id, lazy=False):
         """Bookshelves this work is on"""
         oldb = db.get_db()
-        query = "SELECT * from bookshelves_books where work_id=$work_id"
+        query = f"SELECT * from {cls.TABLENAME} where work_id=$work_id"
         try:
-            result = oldb.query(query, vars={'work_id': int(work_id)})
+            result = oldb.query(query, vars={'work_id': work_id})
             return result if lazy else list(result)
         except:
             return None

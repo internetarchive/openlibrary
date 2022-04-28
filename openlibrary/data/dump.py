@@ -19,7 +19,6 @@ import time
 import web
 
 from infogami import config
-from infogami.infobase.utils import flatten_dict
 from openlibrary.config import load_config
 from openlibrary.data import db
 from openlibrary.data.sitemap import generate_html_index, generate_sitemaps
@@ -30,7 +29,7 @@ logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
 
 
-def print_dump(json_records, filter=None, print=print):
+def print_dump(json_records, filter=None):
     """Print the given json_records in the dump format."""
     for i, raw_json_data in enumerate(json_records):
         if i % 1_000_000 == 0:
@@ -50,7 +49,7 @@ def print_dump(json_records, filter=None, print=print):
         if key.startswith(("/b/", "/scan", "/old/")) or not key.startswith("/"):
             continue
 
-        if filter and filter(d) is False:
+        if filter and not filter(d):
             continue
 
         type_key = d["type"]["key"]
@@ -233,38 +232,6 @@ def make_index(dump_file):
         print("\t".join([web.safestr(path), web.safestr(title), created, timestamp]))
 
 
-def make_bsddb(dbfile, dump_file):
-    import bsddb
-
-    db = bsddb.btopen(dbfile, "w", cachesize=1024 * 1024 * 1024)
-
-    indexable_keys = {
-        "authors.key",
-        "works.key",  # edition
-        "authors.author.key",
-        "subjects",
-        "subject_places",
-        "subject_people",
-        "subject_times",  # work
-    }
-    for type, key, revision, timestamp, json_data in read_tsv(dump_file):
-        db[key] = json_data
-        d = json.loads(json_data)
-        index = [(k, v) for k, v in flatten_dict(d) if k in indexable_keys]
-        for k, v in index:
-            k = web.rstrips(k, ".key")
-            if k.startswith("subject"):
-                v = "/" + v.lower().replace(" ", "_")
-
-            dbkey = web.safestr(f"by_{k}{v}")
-            if dbkey in db:
-                db[dbkey] = db[dbkey] + " " + key
-            else:
-                db[dbkey] = key
-    db.close()
-    log("done")
-
-
 def _process_key(key):
     mapping = {
         "/l/": "/languages/",
@@ -311,18 +278,8 @@ def _make_sub(d):
     return lambda s: s and rx.sub(f, s)
 
 
-def _invert_dict(d):
-    return {v: k for (k, v) in d.items()}
-
-
-_pgencode_dict = {"\n": r"\n", "\r": r"\r", "\t": r"\t", "\\": r"\\"}
-_pgencode = _make_sub(_pgencode_dict)
-_pgdecode = _make_sub(_invert_dict(_pgencode_dict))
-
-
-def pgencode(text):
-    """Reverse of pgdecode."""
-    return _pgdecode(text)
+_pgdecode_dict = {r"\n": "\n", r"\r": "\r", r"\t": "\t", r"\\": "\\"}
+_pgdecode = _make_sub(_pgdecode_dict)
 
 
 def pgdecode(text):
@@ -356,16 +313,11 @@ def main(cmd, args):
         "sort": sort_dump,
         "split": split_dump,
         "index": make_index,
-        "bsddb": make_bsddb,
         "sitemaps": generate_sitemaps,
         "htmlindex": generate_html_index,
     }.get(cmd)
     if func:
         func(*args, **kwargs)
-    elif cmd == "solrdump":
-        from openlibrary.data import solr  # noqa: E402 avoid circular import
-
-        solr.generate_dump(*args, **kwargs)
     else:
         logger.error(f"Unknown command: {cmd}")
         print("Unknown command:", cmd, file=sys.stderr)
@@ -376,7 +328,7 @@ if __name__ == "__main__":
     if ol_config:
         logger.info(f"loading config from {ol_config}")
         load_config(ol_config)
-        sentry = Sentry(getattr(config, 'sentry_cron_jobs', {}))
+        sentry = Sentry(getattr(config, "sentry_cron_jobs", {}))
         if sentry.enabled:
             sentry.init()
 

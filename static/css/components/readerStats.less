@@ -6,14 +6,23 @@
 .readers-stats {
   color: @grey;
   font-size: .9em;
+  margin-bottom: 20px;
   li {
     list-style-type: none;
     display: inline-block;
-    &:not(:last-child):after {
+
+    &:not(:first-child,:last-child):after {
       content: "·";
       margin: 0 4px;
     }
+
   }
+  .dot {
+    list-style-type: none;
+    display: inline-block;
+    margin: 0 4px;
+  }
+
   &__star {
     color: @gold;
     font-size: 1.5em;

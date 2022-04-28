@@ -1,0 +1,61 @@
+@import "../less/font-families.less";
+
+@offscreen-position: -45px;
+@desktop-title-max-width: @test-body-mobile-width - @sidebar-width-with-margin;
+
+@media screen and (min-width: (@width-breakpoint-tablet + 1px)) {
+  .compact-title {
+    background: @white;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    z-index: @z-index-level-4;
+    position: fixed;
+    top: 0;
+    height: @compact-title-height;
+    width: calc(100% - @contentBody-padding);
+    padding: 0 14px;
+
+    &__edit-btn {
+      transform: translateY(6px);
+    }
+
+    &__heading {
+      font-size: 1.25em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: @georgia_serif-1;
+      font-weight: 600;
+    }
+
+    &--slidein {
+      animation-duration: .5s;
+      animation-name: slidein;
+    }
+
+    @keyframes slidein {
+      from {
+        transform: translateY(@offscreen-position);
+      }
+    }
+
+    &--slideout {
+      animation-duration: .15s;
+      animation-name: slideout;
+    }
+
+    @keyframes slideout {
+      to {
+        transform: translateY(@offscreen-position);
+      }
+    }
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-desktop) {
+  .compact-title {
+    width: calc(100% - @sidebar-width-with-margin);
+    max-width: @desktop-title-max-width;
+  }
+}

@@ -29,7 +29,7 @@
     "lint-fix:js": "eslint --fix --ext js,vue .",
     "lint-fix:css": "stylelint --fix ./**/*.{less,vue}",
     "test": "npm run test:js && bundlesize",
-    "test:js": "jest --testRegex tests/unit/**/test.*.js",
+    "test:js": "jest",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook",
     "deploy-storybook": "storybook-to-ghpages --ci --branch=storybook"
@@ -48,7 +48,7 @@
     "@vue/cli-plugin-babel": "4.5.13",
     "@vue/cli-plugin-eslint": "4.5.13",
     "@vue/cli-service": "4.5.13",
-    "babel-eslint": "10.1.0",
+    "@babel/eslint-parser": "^7.17.0",
     "babel-loader": "8.2.2",
     "bundlesize": "0.18.1",
     "chart.js": "2.9.4",
@@ -92,6 +92,10 @@
     "workbox-webpack-plugin": "6.1.5"
   },
   "jest": {
+    "roots": [
+      "<rootDir>/openlibrary/plugins/openlibrary/js/",
+      "<rootDir>/tests/unit/js/"
+    ],
     "testEnvironment": "jsdom",
     "collectCoverageFrom": [
       "openlibrary/plugins/openlibrary/js/**/*.js"

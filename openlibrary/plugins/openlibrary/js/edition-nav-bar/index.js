@@ -16,6 +16,8 @@ export function initNavbar(navbarElem) {
     /**
      * The targets of the navbar links.
      *
+     * Elements are ordered from highest position on the page to lowest.
+     *
      * @type {Array<HTMLElement>}
      */
     const linkedSections = []
@@ -57,28 +59,22 @@ export function initNavbar(navbarElem) {
         }
         selectedElem.classList.add('selected')
         selectedSection = linkedSections[targetIndex];
+        // Scroll to / center the item
+        // Note: We don't use the browser native scrollIntoView method because
+        // that method scrolls _recursively_, so it also tries to scroll the
+        // body to center the element on the screen, causing weird jitters.
+        navbarElem.scrollTo({
+            left: selectedElem.offsetLeft - (navbarElem.clientWidth - selectedElem.offsetWidth) / 2,
+        });
     }
 
     // Add scroll listener that changes 'selected' navbar item based on page position:
     document.addEventListener('scroll', function() {
-        const navbarBoundingRect = navbarElem.getBoundingClientRect()
-        const selectedBoundingRect = selectedSection.getBoundingClientRect();
-
-        // Check if navbar is not within selected element's bounds:
-        if (selectedBoundingRect.bottom < navbarBoundingRect.top ||
-            selectedBoundingRect.top > navbarBoundingRect.bottom) {
-            for (let i = 0; i < linkedSections.length; ++i) {
-                // Do not do bounds check on selected item:
-                if (linkedSections[i].id !== selectedSection.id) {
-                    const br = linkedSections[i].getBoundingClientRect()
-
-                    // If navbar overlaps with an unselected target section, select that section:
-                    if (br.top <= navbarBoundingRect.bottom && br.bottom >= navbarBoundingRect.bottom) {
-                        selectElement(listItems[i], i)
-                        break;
-                    }
-                }
-            }
+        let i = linkedSections.length
+        // Find index of lowest element on the page that is positioned below the navbar:
+        while (--i > 0 && navbarElem.offsetTop < linkedSections[i].offsetTop) {}
+        if (linkedSections[i] !== selectedSection) {
+            selectElement(listItems[i], i)
         }
     })
 }

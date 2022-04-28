@@ -33,7 +33,7 @@ class FnToCLI:
         defaults = fn.__defaults__ or []  # type: ignore
         num_required = len(arg_names) - len(defaults)
         default_args = arg_names[num_required:]
-        defaults = {
+        defaults = {  # type: ignore
             arg: default
             for [arg, default] in zip(default_args, defaults)
         }
@@ -52,7 +52,7 @@ class FnToCLI:
             if arg in annotations:
                 arg_opts = self.type_to_argparse(annotations[arg])
             elif arg in defaults:
-                arg_opts = self.type_to_argparse(type(defaults[arg]))
+                arg_opts = self.type_to_argparse(type(defaults[arg]))  # type: ignore
             else:
                 raise ValueError(f'{arg} has no type information')
 
@@ -61,7 +61,7 @@ class FnToCLI:
 
             if optional:
                 opt_name = f'--{cli_name}' if len(cli_name) > 1 else f'-{cli_name}'
-                self.parser.add_argument(opt_name, default=defaults[arg], **arg_opts)
+                self.parser.add_argument(opt_name, default=defaults[arg], **arg_opts)  # type: ignore
             else:
                 self.parser.add_argument(cli_name, **arg_opts)
 

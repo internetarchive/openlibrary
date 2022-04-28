@@ -2294,8 +2294,8 @@ msgid "Choose a JPG, GIF or PNG on your computer,"
 msgstr "Wybierz plik JPG, GIF lub PNG z Twojego komputera."
 
 #: add.html:126
-msgid "<span class=\"highlight\"><u>Or</u></span>, paste in the image URL if it's on the web."
-msgstr "<span class=\"highlight\"><u>Lub</u></span> wklej URL obrazu z adresu internetowego."
+msgid "Or, paste in the image URL if it's on the web."
+msgstr "Lub wklej URL obrazu z adresu internetowego."
 
 #: add.html:134
 msgid "Submit"
@@ -3649,7 +3649,7 @@ msgstr "Możesz się <a href=\"%s\">zalogować</a> jeśli masz wymagane uprawnie
 #: openlibrary/templates/subjects.html:22
 #, python-format
 msgid "Search for books with subject %(name)s."
-msgstr "Szukaj książek o tematyce %(names)s."
+msgstr "Szukaj książek o tematyce %(name)s."
 
 #: openlibrary/templates/subjects.html:46
 msgid ""

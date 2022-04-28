@@ -636,6 +636,20 @@ class Work(Thing):
             d['ia'] = solrdata.get('ia')
         return d
 
+    @staticmethod
+    def get_redirect_chain(work_key: str) -> list:
+        resolved_key = None
+        redirect_chain = []
+        key = work_key
+        while not resolved_key:
+            thing = web.ctx.site.get(key)
+            redirect_chain.append(thing)
+            if thing.type.key == "/type/redirect":
+                key = thing.location
+            else:
+                resolved_key = thing.key
+        return redirect_chain
+
 
 class Author(Thing):
     """Class to represent /type/author objects in OL."""

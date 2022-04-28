@@ -140,7 +140,7 @@ stats: # This section is used to state what stats need to be gathered.
       pattern: /api/volumes/.*
       time: total
 
-# prefixes ignored for /books/ia:xxx URLs and new-solr-updater.py
+# prefixes ignored for /books/ia:xxx URLs and solr_updater.py
 ia_ignore_prefixes:
     - "jstor-"
     - "imslp-"

@@ -4728,8 +4728,8 @@ msgstr ""
 
 #: SearchResultsWork.html:67
 #, python-format
-msgid "and 1 other"
-msgid_plural "and %(n)s others"
+msgid "1 other"
+msgid_plural "%(n)s others"
 msgstr[0] ""
 msgstr[1] ""
 

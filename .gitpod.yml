@@ -11,8 +11,13 @@ ports:
   onOpen: ignore
 tasks:
 - name: Start App
-  # run chown because https://github.com/gitpod-io/gitpod/issues/4851
-  before: sudo chown -R gitpod:999 /workspace/openlibrary/
+  before: |
+    # run chown because https://github.com/gitpod-io/gitpod/issues/4851
+    sudo chown -R gitpod:999 /workspace/openlibrary
+    # Give container (ie group) write access to this volume
+    sudo chmod g+w -R /workspace/openlibrary/
+    # because: https://github.com/gitpod-io/gitpod/issues/9311
+    chmod o+rx /workspace/openlibrary
   # init runs once for each commit to the default branch
   init: ./scripts/setup_gitpod.sh
   # command runs each time a user starts their workspace

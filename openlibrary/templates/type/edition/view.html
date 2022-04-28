@@ -119,17 +119,6 @@ $code:
     description = get_description(page)
     putctx("description", description)
 
-$code:
-    def get_authors_byline(page, include_schema=False):
-        schema_attribute = cond(include_schema, ' itemprop="author"', '')
-        authors = cond(work, work and work.get_authors(), edition and edition.get_authors())
-        if authors:
-            return ', '.join('<a href="%s"%s>%s</a>' % (a.url(), schema_attribute, truncate(a.name, 40)) if a.name else "<em>Unknown author</em>" for a in authors)
-        elif (edition or work).author_names:
-            return ('<span%s>' % (schema_attribute)) + ", ".join((edition or work).author_names) + "</span>"
-        else:
-            return None
-
 $def display_value(label, value, itemprop=None):
     $if value:
         <dt>$label</dt>
@@ -163,8 +152,6 @@ $def display_goodreads(label, ids):
         $for id in ids:
             <dd><a href="$id.url">$id.value</a></dd>
 
-$ authors_byline = get_authors_byline(page, include_schema=True)
-
 $:macros.Metatags(title=title_with_site, image=meta_cover_url, description=description)
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
@@ -195,11 +182,27 @@ $if is_privileged_user:
             </span>
       </div>
 
-      $:render_template("type/edition/book_title", work, edition)
+      $ book_title = edition.get('title', '') or (work.title if work else '')
+      $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
+        $if edition and page.type.key in ["/type/work"]:
+          $ edit_url = edition.url(suffix="/edit")
+        $else:
+          $ edit_url = page.url(suffix="/edit")
+      $else:
+        $ edit_url = page.key + "?m=edit"
+      $:render_template("type/edition/compact_title", book_title, edit_url)
+      $:render_template("type/edition/book_title", book_title, edition)
 
-      $if authors_byline:
-        $# authors_byline susceptible to xss!
-        <h2 class="edition-byline">$_("by") $:authors_byline</h2>
+      $ authors = (work or edition).get_authors()
+      $ author_names = (work or edition).author_names
+      $if authors:
+        <h2 class="edition-byline">
+          $:macros.BookByline([(author.name, author.url()) for author in authors], attrs='itemprop="author"')
+        </h2>
+      $elif author_names:
+        <h2 class="edition-byline">
+          $:macros.BookByline([(name, None) for name in author_names], attrs='itemprop="author"')
+        </h2>
 
       $ component_times['ReadlogStats'] = time()
       $:macros.StarRatingsStats(work)
@@ -251,10 +254,10 @@ $if is_privileged_user:
 
               $ edition_identifiers = edition.get_identifiers()
               $ isbns = []
-              $if 'isbn_13' in edition_identifiers.keys():
-                $ isbns.append(edition_identifiers['isbn_13']['value'])
-              $if 'isbn_10' in edition_identifiers.keys():
-                $ isbns.append(edition_identifiers['isbn_10']['value'])
+              $for name, values in edition_identifiers.multi_items():
+                $if name in ["isbn_10", "isbn_13"]:
+                  $for value in values:
+                    $isbns.append(value['value'])
               $if isbns:
                 <div class="edition-omniline-item">
                   <div>ISBNs</div>
@@ -265,7 +268,7 @@ $if is_privileged_user:
       </div>
 
       $ seen = set()
-      $if previews:
+      $if previews and any([len(e.languages) for e in previews]):
         <p class="preview-languages">
           Previews available in:
           $for e in previews:
@@ -311,19 +314,6 @@ $if is_privileged_user:
 
       <a id="details" name="details" class="section-anchor"></a>
       <div class="tab-section edition-info">
-        $if not page.is_fake_record():
-          $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
-            $if edition and page.type.key in ["/type/work"]:
-                $ edit_url = edition.url(suffix="/edit")
-            $else:
-                $ edit_url = page.url(suffix="/edit")
-          $else:
-            $ edit_url = page.key + "?m=edit"
-          <div class="editButton">
-            <!-- FIXME: accesskey / keyboard shortcut needs i18n -->
-            <a class="linkButton larger" href="$edit_url" title="$_('Edit this template')"
-              data-ol-link-track="CTAClick|Edit" accesskey="e">$_("Edit")</a>
-          </div>
         $if edition:
           <h2 class="details-title" itemprop="name">$_("Book Details")</h2>
           <hr>
@@ -514,6 +504,7 @@ $if is_privileged_user:
   </div>
 
   $ component_times['RelatedWorksCarousel'] = time()
+  <a id="related-work-carousel" name="related-work-carousel tab-section" class="section-anchor"></a>
   <div class="RelatedWorksCarousel" data-workid="$work.key.split('/')[-1]">
     <div class="hidden loadingIndicator">
         <figure>

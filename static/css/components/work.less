@@ -1,5 +1,10 @@
 @import (less) "base/dl.less";
 
+@sidebar-width: 225px;
+@sidebar-width-with-margin: 60px + @sidebar-width;
+@compact-title-height: 35px;
+@test-body-mobile-width: 1060px;
+
 /* stylelint-disable no-descending-specificity */
 .workDetails {
   padding: 20px 0;
@@ -150,7 +155,6 @@ h2.edition-byline {
   border-bottom: 1px solid @lighter-grey;
   padding-bottom: 5px;
   font-weight: bold;
-  margin-top: 20px;
 
   &.sticky {
     position: sticky;
@@ -159,12 +163,37 @@ h2.edition-byline {
     background: @white;
     z-index: @z-index-level-3;
     padding-top: 10px;
+    white-space: nowrap;
+    overflow-x: auto;
+    // Make tab bar full width on mobile
+    margin-left: -@contentBody-padding;
+    margin-right: -@contentBody-padding;
+
+    // indent it a bit to make it look more scrollable
+    &:before, &:after {
+      display: inline-block;
+      content: "";
+      width: 20%;
+    }
+
+    scroll-behavior: smooth;
+  }
+}
+
+@media (min-width: @width-breakpoint-mobile) {
+  .work-menu.sticky {
+    &:before, &:after {
+      display: none;
+    }
   }
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
   .work-menu.sticky {
-    top: 0;
+    top: @compact-title-height;
+    padding-top: 2px;
+    margin-left: 0;
+    margin-right: 0;
   }
 }
 
@@ -235,7 +264,7 @@ div.editionTools {
   }
   div.edition {
     &Cover {
-      width: 225px;
+      width: @sidebar-width;
       margin-right: 1.5em;
       margin-bottom: 0;
     }
@@ -341,3 +370,5 @@ div.editionTools {
   font-weight: normal;
   color: @link-blue;
 }
+
+@import (less) "components/compact-title.less";
