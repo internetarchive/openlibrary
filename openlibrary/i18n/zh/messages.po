@@ -4107,7 +4107,7 @@ msgid ""
 "Showing all works by author. Would you like to see <a href=\"%(url)s\">only "
 "ebooks</a>?"
 msgstr ""
-"目前显示作者的所有作品。您是否希望<a href=\"%(url)s"\">只看电子书</a>?"
+"目前显示作者的所有作品。您是否希望<a href=\"%(url)s\">只看电子书</a>?"
 
 #: type/author/view.html:121
 #, python-format
