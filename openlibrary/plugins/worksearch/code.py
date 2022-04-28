@@ -516,9 +516,12 @@ def run_solr_query(
                 'ia_box_id': 'ia_box_id',
             }
             if True or use_dismax:
+                work_q_list = q_list
+                if work_q_list[0].startswith('text:'):
+                    work_q_list[0] = work_q_list[0][len('text:') :]
                 work_query = (
                     '''{{!edismax q.op="AND" qf="{qf}" bf="{bf}"}}({q})'''.format(
-                        q=' '.join(q_list),
+                        q=' '.join(work_q_list),
                         qf='text alternative_title^20 author_name^20',
                         bf='min(100,edition_count)',
                     )
@@ -538,6 +541,8 @@ def run_solr_query(
                         pass
                     else:
                         raise ValueError(f'Unknown field: {field}')
+                if ed_q_list and ed_q_list[0].startswith('text:'):
+                    ed_q_list[0] = ed_q_list[0][len('text:') :]
 
                 # params.append(('edQuery', ed_query))
                 # params.append(
@@ -557,16 +562,14 @@ def run_solr_query(
                 params.append(
                     (
                         'editions.q',
-                        ' '.join(
-                            [
-                                '({!terms f=_root_ v=$row.key}) AND '
-                                '({!edismax q.op="AND" bq="%(bq)s" v="%(v)s" qf="%(qf)s"})'
-                                % {
-                                    'qf': 'text title^20',
-                                    'v': " ".join(ed_q_list),
-                                    'bq': '(ia:*) (language:eng) (cover_i:*)',
-                                }
-                            ]
+                        (
+                            '({!terms f=_root_ v=$row.key}) AND '
+                            '({!edismax q.op="AND" bq="%(bq)s" v="%(v)s" qf="%(qf)s"})'
+                            % {
+                                'qf': 'text title^4',
+                                'v': " ".join(ed_q_list),
+                                'bq': 'language:eng^40 ia:*^10',
+                            }
                         ),
                     )
                 )
