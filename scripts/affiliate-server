@@ -41,7 +41,8 @@ from openlibrary.utils.isbn import (
 logger = logging.getLogger("affiliate-server")
 
 urls = (
-    '/isbn/([0-9X-]+)', 'Submit'
+    '/isbn/([0-9X-]+)', 'Submit',
+    '/status', 'Status',
 )
 
 API_MAX_ITEMS_PER_CALL = 10
@@ -106,6 +107,13 @@ def amazon_lookup():
 
 threading.Thread(target=amazon_lookup).start()
 
+class Status:
+    def GET(self):
+        return json.dumps({
+            "queue_size": web.amazon_queue.qsize(),
+            "queue": list(web.amazon_queue.queue),
+        })
+
 
 class Submit:
 
@@ -138,7 +146,8 @@ class Submit:
             return json.dumps({"status": "success", "hit": product})
 
         # Cache misses will be submitted to Amazon as ASINs (isbn10)
-        web.amazon_queue.put_nowait(isbn10)
+        if isbn10 not in web.amazon_queue.queue:
+            web.amazon_queue.put_nowait(isbn10)
         qsize = web.amazon_queue.qsize()
         stats.put("Amazon queue qsize", qsize, 0.05)  # send one sample in 20 to statsd
         return json.dumps({"status": "submitted", "queue": qsize})
