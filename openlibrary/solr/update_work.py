@@ -27,6 +27,7 @@ import web
 from openlibrary import config
 from openlibrary.catalog.utils.query import set_query_host, base_url as get_ol_base_url
 from openlibrary.core import helpers as h
+from openlibrary.plugins.upstream.utils import safeget
 from openlibrary.solr.data_provider import (
     get_data_provider,
     DataProvider,
@@ -302,22 +303,6 @@ def datetimestr_to_int(datestr):
         t = datetime.datetime.utcnow()
 
     return int(time.mktime(t.timetuple()))
-
-
-def safeget(func):
-    """
-    TODO: DRY with solrbuilder copy
-    >>> safeget(lambda: {}['foo'])
-    >>> safeget(lambda: {}['foo']['bar'][0])
-    >>> safeget(lambda: {'foo': []}['foo'][0])
-    >>> safeget(lambda: {'foo': {'bar': [42]}}['foo']['bar'][0])
-    42
-    >>> safeget(lambda: {'foo': 'blah'}['foo']['bar'])
-    """
-    try:
-        return func()
-    except (KeyError, IndexError, TypeError):
-        return None
 
 
 class SolrProcessor:
