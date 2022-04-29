@@ -457,6 +457,26 @@ def parse_json_from_solr_query(
         return None
 
 
+@public
+def has_solr_editions_enabled():
+    def read_query_string():
+        return web.input(editions=None).get('editions')
+
+    def read_cookie():
+        if "SOLR_EDITIONS" in web.ctx.env.get("HTTP_COOKIE", ""):
+            return web.cookies().get('SOLR_EDITIONS')
+
+    qs_value = read_query_string()
+    if qs_value is not None:
+        return qs_value == 'true'
+
+    cookie_value = read_cookie()
+    if cookie_value is not None:
+        return cookie_value == 'true'
+
+    return True
+
+
 def run_solr_query(
     param=None,
     rows=100,
@@ -494,7 +514,7 @@ def run_solr_query(
             params.append(('facet.field', facet))
 
     if q_list:
-        if web.input(editions='').get('editions') == 'true':
+        if has_solr_editions_enabled():
             EDITION_FIELDS = {
                 # Internals
                 'edition_key': 'key',
