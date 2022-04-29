@@ -16,7 +16,7 @@ $code:
   book_url = doc.url() if doc_type.startswith('infogami_') else doc.key
   book_provider = get_book_provider(doc)
   if doc_type == 'solr_edition':
-    work_edition_url = selected_ed.url
+    work_edition_url = book_url + '?edition=' + urlquote('key:' + selected_ed.key)
   elif book_provider and doc_type.endswith('_work'):
     work_edition_url = book_url + '?edition=' + urlquote(book_provider.get_best_identifier_slug(doc))
   else:
@@ -31,7 +31,7 @@ $code:
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book" $:attrs>
   <span class="bookcover">
     $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
-    <a href="https://openlibrary.org$work_edition_url"><img
+    <a href="$work_edition_url"><img
             itemprop="image"
             src="$cover"
             alt="$_('Cover of: %(title)s', title=full_title)"
