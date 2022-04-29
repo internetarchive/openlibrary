@@ -104,6 +104,43 @@ class CommonExtras:
             vars={"username": username}
         ))
 
+    @classmethod
+    def update_username(cls, username, new_username, _test=False):
+        oldb = get_db()
+        t = oldb.transaction()
+
+        try:
+            rows_changed = oldb.update(
+                cls.TABLENAME,
+                where="username=$username",
+                username=new_username,
+                vars={"username": username}
+            )
+        except (UniqueViolation, IntegrityError):
+            # if any of the records would conflict with an exiting
+            # record associated with new_username
+            pass  # assuming impossible for now, not a great assumption
+
+        t.rollback() if _test else t.commit()
+        return rows_changed
+
+    @classmethod
+    def delete_all_by_username(cls, username, _test=False):
+        oldb = get_db()
+        t = oldb.transaction()
+
+        try:
+            rows_deleted = oldb.delete(
+                cls.TABLENAME,
+                where="username=$username",
+                vars={"username": username}
+            )
+        except (UniqueViolation, IntegrityError):
+            pass
+
+        t.rollback() if _test else t.commit()
+        return rows_deleted
+
 
 def _proxy(method_name):
     """Create a new function that call method with given name on the

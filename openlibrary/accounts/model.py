@@ -19,6 +19,10 @@ from infogami.utils.view import render_template, public
 from infogami.infobase.client import ClientException
 
 from openlibrary.core import stats, helpers
+from openlibrary.core.booknotes import Booknotes
+from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.observations import Observations
+from openlibrary.core.ratings import Ratings
 
 try:
     from simplejson.errors import JSONDecodeError
@@ -324,6 +328,30 @@ class Account(web.storage):
         """Enables/disables the bot flag."""
         self.bot = flag
         self._save()
+
+    def anonymize(self, test=False):
+        for i in range(10):
+            logger.info(f'random uuid: {generate_uuid()}')
+
+        # Generate new unique username for patron:
+        # Note: Cannot test "True" result locally:
+        uuid = self.get_activation_link()['code'] if self.get_activation_link() else generate_uuid()
+        new_username = f'anonymous-{uuid}'
+        results = {'new_username': new_username}
+
+        # TODO: Clear patron's profile page:
+
+        # TODO: Remove patron from all usergroups:
+
+        # Delete all of the patron's book notes:
+        results['booknotes_count'] = Booknotes.delete_all_by_username(self.username, _test=test)
+
+        # Anonymize patron's username in OL DB tables:
+        results['ratings_count'] = Ratings.update_username(self.username, new_username, _test=test)
+        results['observations_count'] = Observations.update_username(self.username, new_username, _test=test)
+        results['bookshelves_count'] = Bookshelves.update_username(self.username, new_username, _test=test)
+
+        return results
 
     @property
     def itemname(self):
