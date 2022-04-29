@@ -663,11 +663,14 @@ def get_languages():
 
 
 def autocomplete_languages(prefix: str):
-    prefix = prefix.lower()
+    def normalize(s: str) -> str:
+        return strip_accents(s).lower()
+
+    prefix = normalize(prefix)
     user_lang = web.ctx.lang or 'en'
     for lang in get_languages().values():
         user_lang_name = safeget(lambda: lang['name_translated'][user_lang][0])
-        if user_lang_name and user_lang_name.lower().startswith(prefix):
+        if user_lang_name and normalize(user_lang_name).startswith(prefix):
             yield web.storage(
                 key=lang.key,
                 code=lang.code,
@@ -677,7 +680,7 @@ def autocomplete_languages(prefix: str):
 
         lang_iso_code = safeget(lambda: lang['identifiers']['iso_639_1'][0])
         native_lang_name = safeget(lambda: lang['name_translated'][lang_iso_code][0])
-        if native_lang_name and native_lang_name.lower().startswith(prefix):
+        if native_lang_name and normalize(native_lang_name).startswith(prefix):
             yield web.storage(
                 key=lang.key,
                 code=lang.code,
@@ -685,7 +688,7 @@ def autocomplete_languages(prefix: str):
             )
             continue
 
-        if lang.name.lower().startswith(prefix):
+        if normalize(lang.name).startswith(prefix):
             yield web.storage(
                 key=lang.key,
                 code=lang.code,
