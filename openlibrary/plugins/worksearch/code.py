@@ -570,10 +570,10 @@ def run_solr_query(
                         'editions.q',
                         (
                             '({!terms f=_root_ v=$row.key}) AND '
-                            '({!edismax q.op="AND" bq="%(bq)s" v="%(v)s" qf="%(qf)s"})'
+                            '({!edismax bq="%(bq)s" v="%(v)s" qf="%(qf)s"})'
                             % {
                                 'qf': 'text title^4',
-                                'v': " ".join(ed_q_list),
+                                'v': " ".join(ed_q_list).replace('"', '\\"'),
                                 'bq': f'language:{user_lang}^40 ia:*^10',
                             }
                         ),
