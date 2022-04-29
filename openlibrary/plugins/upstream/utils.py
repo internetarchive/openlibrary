@@ -1,5 +1,6 @@
 import functools
 from typing import Iterable, List, Union, Tuple, Any
+import unicodedata
 
 import web
 import json
@@ -640,6 +641,19 @@ def safeget(func):
         return func()
     except (KeyError, IndexError, TypeError):
         return None
+
+
+def strip_accents(s: str) -> str:
+    # http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string
+    try:
+        s.encode('ascii')
+        return s
+    except UnicodeEncodeError:
+        return ''.join(
+            c
+            for c in unicodedata.normalize('NFD', s)
+            if unicodedata.category(c) != 'Mn'
+        )
 
 
 @functools.cache
