@@ -698,6 +698,14 @@ def get_language_name(lang_or_key: Union[Thing, str]):
     return safeget(lambda: lang['name_translated'][user_lang][0]) or lang.name
 
 
+@functools.cache
+def convert_iso_to_marc(iso_639_1: str) -> str:
+    for lang in get_languages().values():
+        code = safeget(lambda: lang['identifiers']['iso_639_1'][0])
+        if code == iso_639_1:
+            return lang.code
+
+
 @public
 def get_author_config():
     return _get_author_config()

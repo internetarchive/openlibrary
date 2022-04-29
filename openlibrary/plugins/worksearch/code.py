@@ -22,7 +22,11 @@ from openlibrary.core.lending import add_availability, get_availability_of_ocaid
 from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.plugins.inside.code import fulltext_search
 from openlibrary.plugins.openlibrary.processors import urlsafe
-from openlibrary.plugins.upstream.utils import get_language_name, urlencode
+from openlibrary.plugins.upstream.utils import (
+    convert_iso_to_marc,
+    get_language_name,
+    urlencode,
+)
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.utils import escape_bracket
 from openlibrary.utils.ddc import (
@@ -559,6 +563,8 @@ def run_solr_query(
                 # )
 
                 params.append(('editions.fq', 'type:edition'))
+                user_lang = convert_iso_to_marc(web.ctx.lang or 'en')
+
                 params.append(
                     (
                         'editions.q',
@@ -568,7 +574,7 @@ def run_solr_query(
                             % {
                                 'qf': 'text title^4',
                                 'v': " ".join(ed_q_list),
-                                'bq': 'language:eng^40 ia:*^10',
+                                'bq': f'language:{user_lang}^40 ia:*^10',
                             }
                         ),
                     )
