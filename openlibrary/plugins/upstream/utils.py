@@ -645,13 +645,13 @@ def safeget(func):
 @functools.cache
 def get_languages():
     keys = web.ctx.site.things({"type": "/type/language", "limit": 1000})
-    return list(web.ctx.site.get_many(keys))
+    return {lang.key: lang for lang in web.ctx.site.get_many(keys)}
 
 
 def autocomplete_languages(prefix: str):
     prefix = prefix.lower()
     user_lang = web.ctx.lang or 'en'
-    for lang in get_languages():
+    for lang in get_languages().values():
         user_lang_name = safeget(lambda: lang['name_translated'][user_lang][0])
         if user_lang_name and user_lang_name.lower().startswith(prefix):
             yield web.storage(
@@ -678,6 +678,20 @@ def autocomplete_languages(prefix: str):
                 name=lang.name,
             )
             continue
+
+
+def get_language(lang_or_key: Union[Thing, str]) -> Thing:
+    if isinstance(lang_or_key, str):
+        return get_languages()[lang_or_key]
+    else:
+        return lang_or_key
+
+
+@public
+def get_language_name(lang_or_key: Union[Thing, str]):
+    user_lang = web.ctx.lang or 'en'
+    lang = get_language(lang_or_key)
+    return safeget(lambda: lang['name_translated'][user_lang][0]) or lang.name
 
 
 @public
