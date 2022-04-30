@@ -4941,11 +4941,11 @@ msgstr "Vrati knjigu"
 
 #: SearchResultsWork.html:67
 #, python-format
-msgid "and 1 other"
-msgid_plural "and %(n)s others"
-msgstr[0] "i još 1"
-msgstr[1] "i još %(n)s"
-msgstr[2] "i još %(n)s"
+msgid "1 other"
+msgid_plural "%(n)s others"
+msgstr[0] "još 1"
+msgstr[1] "još %(n)s"
+msgstr[2] "još %(n)s"
 
 #: SearchResultsWork.html:78
 msgid "languages"

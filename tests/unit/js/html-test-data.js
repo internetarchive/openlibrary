@@ -97,5 +97,30 @@ export const listCreationForm = `
             <a class="small dialog--close plain red" href="javascript:;">Cancel</a>
         </div>
     </div>
-    </form>
-`
+    </form>`
+
+export const clamperSample = `
+      <span class='clamp' data-before='▾  ' style='display: unset;'>
+          <h6>Subjects</h6>
+          <a>Ghosts</a>
+          <a>Monsters</a>
+          <a>Vampires</a>
+          <a>Witches</a>
+          <a>Challenges and Overcoming Obstacles</a>
+          <a>Magic and Supernatural</a>
+          <a>Cleverness</a>
+          <a>School Life</a>
+          <a>school stories</a>
+          <a>Wizards</a>
+          <a>Magic</a>
+          <a>MAGIA</a>
+          <a>MAGOS</a>
+          <a>Juvenile fiction</a>
+          <a>Fiction</a>
+          <a>NOVELAS INGLESAS</a>
+          <a>Schools</a>
+          <a>orphans</a>
+          <a>fantasy fiction</a>
+          <a>England in fiction</a>
+      </span>`
+

@@ -1,0 +1,26 @@
+$def with(author_names_and_urls, limit=None, overflow_url=None, attrs='')
+
+$def render_author_link(name, url):
+  $ rendered_name = cond(name, truncate(name, 40), _("Unknown author"))
+  $if url:
+    <a href="$url" $:attrs>$rendered_name</a>
+  $else:
+    <span $:attrs>$rendered_name</span>
+
+$def render_overflow_link(remaining_authors, overflow_url):
+  <small><em><a href="$overflow_url" $:attrs>$ungettext('1 other', '%(n)s others', remaining_authors, n=remaining_authors)</a></em></small>
+
+$code:
+  if limit is None:
+    limit = len(author_names_and_urls)
+
+  remaining_authors = max(0, len(author_names_and_urls) - limit)
+  render_items = [render_author_link(name, url) for name, url in author_names_and_urls][:limit]
+
+  if remaining_authors > 0:
+    render_items.append(render_overflow_link(remaining_authors, overflow_url))
+
+$if render_items:
+  $:_("by %(name)s", name=commify_list(render_items))
+$else:
+  $:_("by an <em>unknown author</em>")

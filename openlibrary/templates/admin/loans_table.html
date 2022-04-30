@@ -63,7 +63,7 @@ $else:
                     </span>
 
                     <span class="author">
-                    $# :macros.AuthorList(book.get_authors())
+                    $# :macros.BookByline([(a.name, a.url()) for a in book.get_authors()])
                     </span>
                     <div class="date">
                     $if waiting_loan:

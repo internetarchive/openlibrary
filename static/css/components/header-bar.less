@@ -258,7 +258,7 @@
     }
 
     .hamburger__icon.logged {
-      padding-left: 26px;
+      padding-left: 45px;
     }
 
     @keyframes sweep {
@@ -735,10 +735,18 @@ div.search-facet:focus-within {
   }
 }
 
+@media only screen and (max-width: 25em) {
+  .search-bar-component{
+    margin-right: 15px;
+  }
+}
+
 // We should review this media query to determine if it is in fact needed.
 @media only screen and (min-width: 25em) {
   .header-bar {
-
+    .search-bar-component{
+      margin-right: 15px;
+    }
     .navigation-component {
       .dropdown-menu {
         border-top: none;
@@ -898,6 +906,9 @@ div.search-facet:focus-within {
       .search-facet-selector {
         margin-top: 1px;
       }
+    }
+    .account__icon{
+      margin-right: 20px;
     }
     &.mobile {
       padding: 10px 0;

@@ -1,7 +1,0 @@
-$def with (authors)
-
-$if authors:
-    $ author_list = ', '.join('<a class="borrowResults" href="%s">%s</a>' % (a.url(), truncate(a.name, 40)) for a in authors)
-    $_("by") <span title="$_('Go to this author\'s page')">$:author_list</span>
-$else:
-    $:_("by an <em>unknown author</em>")
