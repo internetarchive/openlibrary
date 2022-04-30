@@ -513,6 +513,36 @@ def run_solr_query(
         for facet in FACET_FIELDS:
             params.append(('facet.field', facet))
 
+    if 'public_scan' in param:
+        v = param.pop('public_scan').lower()
+        if v in ('true', 'false'):
+            if v == 'false':
+                # also constrain on print disabled since the index may not be in sync
+                param.setdefault('print_disabled', 'false')
+            params.append(('fq', 'public_scan_b:%s' % v))
+
+    if 'print_disabled' in param:
+        v = param.pop('print_disabled').lower()
+        if v in ('true', 'false'):
+            minus = '-' if v == 'false' else ''
+            params.append(('fq', '%ssubject_key:protected_daisy' % minus))
+
+    if 'has_fulltext' in param:
+        v = param['has_fulltext'].lower()
+        if v not in ('true', 'false'):
+            del param['has_fulltext']
+        params.append(('fq', 'has_fulltext:%s' % v))
+
+    for field in FACET_FIELDS:
+        if field == 'has_fulltext':
+            continue
+        if field == 'author_facet':
+            field = 'author_key'
+        if field not in param:
+            continue
+        values = param[field]
+        params += [('fq', f'{field}:"{val}"') for val in values if val]
+
     if q_list:
         if has_solr_editions_enabled():
             EDITION_FIELDS = {
@@ -539,6 +569,18 @@ def run_solr_query(
                 'ia_collection': 'ia_collection',
                 'ia_box_id': 'ia_box_id',
             }
+
+            def convert_work_field_to_edition_field(
+                work_field_val: str,
+            ) -> Optional[str]:
+                field, val = work_field_val.split(':', 1)
+                if field in EDITION_FIELDS:
+                    return f'{EDITION_FIELDS[field]}:{val}'
+                elif field in ALL_FIELDS:
+                    return
+                else:
+                    raise ValueError(f'Unknown field: {field}')
+
             if True or use_dismax:
                 work_q_list = q_list
                 if work_q_list[0].startswith('text:'):
@@ -557,14 +599,11 @@ def run_solr_query(
                     if ':' not in q:
                         ed_q_list.append(q)
                         continue
-                    field, val = q.split(':', 1)
-                    if field in EDITION_FIELDS:
-                        ed_q_list.append(f'{EDITION_FIELDS[field]}:({val})')
-                    elif field in ALL_FIELDS:
-                        # Work only fields we can't use in edition queries
-                        pass
-                    else:
-                        raise ValueError(f'Unknown field: {field}')
+
+                    ed_field_val = convert_work_field_to_edition_field(q)
+                    if ed_field_val:
+                        ed_q_list.append(ed_field_val)
+
                 if ed_q_list and ed_q_list[0].startswith('text:'):
                     ed_q_list[0] = ed_q_list[0][len('text:') :]
 
@@ -583,6 +622,13 @@ def run_solr_query(
                 # )
 
                 params.append(('editions.fq', 'type:edition'))
+                for param_name, param_value in params:
+                    if param_name != 'fq' or param_value.startswith('type:'):
+                        continue
+                    ed_q = convert_work_field_to_edition_field(param_value)
+                    if ed_q:
+                        params.append(('editions.fq', ed_q))
+
                 user_lang = convert_iso_to_marc(web.ctx.lang or 'en')
 
                 params.append(
@@ -625,36 +671,6 @@ def run_solr_query(
                 params.append(
                     ('q', ' '.join(q_list + ['_val_:"sqrt(edition_count)"^10']))
                 )
-
-    if 'public_scan' in param:
-        v = param.pop('public_scan').lower()
-        if v in ('true', 'false'):
-            if v == 'false':
-                # also constrain on print disabled since the index may not be in sync
-                param.setdefault('print_disabled', 'false')
-            params.append(('fq', 'public_scan_b:%s' % v))
-
-    if 'print_disabled' in param:
-        v = param.pop('print_disabled').lower()
-        if v in ('true', 'false'):
-            minus = '-' if v == 'false' else ''
-            params.append(('fq', '%ssubject_key:protected_daisy' % minus))
-
-    if 'has_fulltext' in param:
-        v = param['has_fulltext'].lower()
-        if v not in ('true', 'false'):
-            del param['has_fulltext']
-        params.append(('fq', 'has_fulltext:%s' % v))
-
-    for field in FACET_FIELDS:
-        if field == 'has_fulltext':
-            continue
-        if field == 'author_facet':
-            field = 'author_key'
-        if field not in param:
-            continue
-        values = param[field]
-        params += [('fq', f'{field}:"{val}"') for val in values if val]
 
     if sort:
         params.append(('sort', sort))
