@@ -606,6 +606,7 @@ def run_solr_query(
 
                 if ed_q_list and ed_q_list[0].startswith('text:'):
                     ed_q_list[0] = ed_q_list[0][len('text:') :]
+                ed_q_list = [f'+{term}' if ':' in term else term for term in ed_q_list]
 
                 # params.append(('edQuery', ed_query))
                 # params.append(
