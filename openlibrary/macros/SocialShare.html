@@ -1,9 +1,19 @@
-$def with (share_links, page_url)
+$def with (share_links, page_url, id, class_list='' ,reload_id=None)
 $# :param list[dict] share_links:
 $# :param str page_url: absolute url excluding params
 
+
+$ context = {
+  $ "id": id
+  $ }
+
+$if reload_id:
+  $ context['reloadId'] = reload_id
+
+
+
 $def embed_iframe(page_url):
-  <iframe frameborder="0" width="165" height="400" src="$(page_url)/-/widget"></iframe>
+<iframe frameborder="0" width="165" height="400" src="$(page_url)/-/widget"></iframe>
 
 
 <head>
@@ -11,7 +21,7 @@ $def embed_iframe(page_url):
 </head>
 
 
-<div class="shareLinks cta-section">
+<div class="$class_list">
 
 
   <div>
@@ -20,43 +30,44 @@ $def embed_iframe(page_url):
     </p>
 
     <ul class="shareLinks-list" style="display: inline-block; margin-left: 50px; margin-bottom: 4px;">
-      <a class="view-modal">
-          <img class="share-btn" src="../../static/images/icons/share.svg"/>
+      <a class="view-modal share-modal-link" href="javascript:;" data-context="$json_encode(context)">
+        <img class="share-btn" src="../../static/images/icons/share.svg" />
       </a>
     </ul>
 
   </div>
 
-</div>
+
 
   <div class="hidden">
-    <div class="popup">
+    <div id="$id-metadata-form" class="floaterAdd metadata-form">
 
       <div class="content">
-        <header class="header-share">
-          <p>Share via</p>
-            <div class="close">
-              <i class="uil uil-times"></i>
-            </div>
-        </header>
+        <div class="floaterHead">
+          
+          <h2>Share via</h2>
+          <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+          
+        </div>
         <ul class="icons">
 
-          $for share_link in share_links:
-          $ track_tag = share_link['text'].replace(' ', '-')
+            $for share_link in share_links:
+            $ track_tag = share_link['text'].replace(' ', '-')
 
-              <a href="$share_link['url']" class="sansserif large" target="_blank" data-ol-link-track="Share|$track_tag">
-                <img title="Share on $(share_link['text'])" alt="$(share_link['text'])" class="share-link" src="$static_url('images/%s.svg' % share_link['text'].lower())"/>
-              </a>
+            <a href="$share_link['url']" class="sansserif large" target="_blank" data-ol-link-track="Share|$track_tag">
+              <img title="Share on $(share_link['text'])" alt="$(share_link['text'])" class="share-link"
+                src="$static_url('images/%s.svg' % share_link['text'].lower())" />
+            </a>
 
 
 
-        $# rm special characters from url such as single quote which break js prompt/iframe
-        $ clean_url = page_url.replace("'", "\\'")
-        $ iframe_html = str(embed_iframe(clean_url)).strip()
-        <a class="embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed"
-          onclick="prompt('Copy embed code to clipboard:', '$iframe_html');">
-          <img alt="Embed icon" class="share-link" src="$static_url('images/embed.png')">
-        </a>
+          $# rm special characters from url such as single quote which break js prompt/iframe
+          $ clean_url = page_url.replace("'", "\\'")
+          $ iframe_html = str(embed_iframe(clean_url)).strip()
+          <a class="embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed"
+            onclick="prompt('Copy embed code to clipboard:', '$iframe_html');">
+            <img alt="Embed icon" class="share-link" src="$static_url('images/embed.png')">
+          </a>
 
 
         </ul>
@@ -69,4 +80,4 @@ $def embed_iframe(page_url):
       </div>
     </div>
   </div>
-
+</div>

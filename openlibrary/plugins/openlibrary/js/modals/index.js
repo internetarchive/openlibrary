@@ -12,6 +12,11 @@ export function initNotesModal($modalLinks) {
     addNotesReloadListeners($('.notes-textarea'));
 }
 
+export function initShareModal($modalLinks){
+    addClickListeners($modalLinks, '640px');
+}
+
+
 /**
  * Adds click listeners to buttons in all notes modals on a page.
  */
