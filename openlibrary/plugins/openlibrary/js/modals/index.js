@@ -13,7 +13,7 @@ export function initNotesModal($modalLinks) {
 }
 
 export function initShareModal($modalLinks){
-    addClickListeners($modalLinks, '640px');
+    addClickListeners($modalLinks, '380px');
 }
 
 

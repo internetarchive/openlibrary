@@ -275,9 +275,9 @@ jQuery(function () {
             });
     }
 
-    
     const $shareModalLinks = $('.share-modal-link');
     if ($shareModalLinks.length) {
+        import('./Share')
         import(/* webpackChunkName: "modal-links" */ './modals')
             .then(module => {      
                 module.initShareModal($shareModalLinks)

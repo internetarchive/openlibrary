@@ -1,3 +1,9 @@
+const viewBtn = document.querySelector('.view-modal'),
+        popup = document.querySelector('.popup'),
+        close = popup.querySelector('.close'),
+        field = popup.querySelector('.copy-field'),
+        input = field.querySelector('input'),
+        copy = field.querySelector('button');
 copy.onclick = () => {
     input.select(); //select input value
     if (document.execCommand('copy')) { //if the selected text copy
