@@ -18,6 +18,7 @@ const DEFAULT_JSON_FIELDS = [
     'key',
     'cover_i',
     'title',
+    'subtitle',
     'author_name',
     'name',
 ];
@@ -30,7 +31,7 @@ const RENDER_AUTOCOMPLETE_RESULT = {
                 <a href="${work.key}">
                     <img src="//covers.openlibrary.org/b/id/${work.cover_i}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png" alt=""/>
                     <span class="book-desc">
-                        <div class="book-title">${websafe(work.title)}</div> by <span class="book-author">${websafe(author_name)}</span>
+                        <div class="book-title">${websafe(work.title)}</div><div class="book-subtitle">${websafe(work.subtitle)}</div> by <span class="book-author">${websafe(author_name)}</span>
                     </span>
                 </a>
             </li>`;
