@@ -126,7 +126,7 @@ $if isbn_10 and not asin:
           $if not page.is_fake_record():
               $:render_template('covers/change', page, ".edition-cover .bookCover img")
         </div>
-
+      <!--This section appears only in mobile/tablet screens-->
       <div class="mobile-book-header">
         <div class="work-line">
           $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title$cond(work.subtitle, ': %s' % work.subtitle)</a>
