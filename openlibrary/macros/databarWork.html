@@ -1,8 +1,5 @@
 $def with (page, editions_page=False, render_times={})
 
-$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
-$ is_librarian = ctx.user and ctx.user.is_librarian()
-
 $ component_times = {}
 $ component_times['TotalTime'] = time()
 
@@ -33,40 +30,6 @@ $if query_param('edition'):
   $else:
     $ [selected_provider, selected_id] = ['ia', query_param('edition')]
   $ provider = get_book_provider_by_name(selected_provider)
-
-$ component_times['get_sorted_editions'] = time()
-
-$# Fetch a work's editions
-$# Used for loading the editions table
-$# Book availability of editions injected by bulk get_availability API
-$ edition_count = work.edition_count if work and work.edition_count else 1
-$ ebooks_only = (query_param('mode') == 'ebooks') or (query_param('mode') != 'all' and edition_count > 10)
-
-$# For performance reasons, limit to 10 ebooks
-$# Tradeoff: limits our ability to select best edition
-$ editions_limit = None if query_param('mode') in ['all', 'ebooks'] else 10
-$# key ensures the current edition we're on or requested edition are fetched by get_sorted_editions
-$ keys = (edition and [edition.key]) or (provider and provider.get_olids(selected_id))
-$if ebooks_only:
-  $ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=keys)
-$if not editions:
-  $# use ebooks_only to determine whether to lazyload editions table
-  $ ebooks_only = False
-  $ editions = work.get_sorted_editions(limit=editions_limit, keys=keys)
-$ availabilities = {e.availability.get('identifier'): e.availability for e in editions}
-$ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
-
-$# This collects which books are previewable in any manner
-$ previews = [e for e in editions if e.get('ocaid')]
-
-$# Choose an edition to render
-$if editions and not edition:
-  $# We're presumably on a work url
-  $# edition selection strategy (e.g. language, by id, first w/ ocaid)
-  $if provider:
-    $ edition = next((e for e in editions if selected_id in provider.get_identifiers(e)), editions[0])
-  $else:
-    $ edition, provider = get_best_edition(editions)
 
 $# Just in case edition is not set, treat as work
 $ edition = edition or page
@@ -118,48 +81,6 @@ $code:
         return meta
     description = get_description(page)
     putctx("description", description)
-
-$def display_value(label, value, itemprop=None):
-    $if value:
-        <dt>$label</dt>
-        $if itemprop:
-            <dd itemprop="$itemprop" class="object">$:thingrepr(value)</dd>
-        $else:
-            <dd class="object">$:thingrepr(value)</dd>
-
-$def display_identifiers(label, ids, itemprop=None):
-    $if label != "Goodreads":
-        $ all_ids = [-1!=id['value'].find('openlib-') for id in ids]
-        $if (True in all_ids) and (1==len(all_ids)):
-            $return
-
-        <!-- FIXME: Identifier names need to be translated (I18N) -->
-        <dt>$label</dt>
-        <dd class="object" $:cond(itemprop, 'itemprop="%s"' % itemprop, '')>
-            $for id in ids:
-                $ sep = cond(loop.last, "", ", ")
-                $if -1 != id.value.find('openlib-'):
-                    $continue
-                $if id.url:
-                    <a href="$id.url$('?tag=' + affiliate_id('amazon') if 'amazon.' in id.url else '')">$id.value</a>$sep
-                $else:
-                    ${id.value}$sep
-        </dd>
-
-$def display_goodreads(label, ids):
-    $if label == "Goodreads":
-        <dt>$label</dt>
-        $for id in ids:
-            <dd><a href="$id.url">$id.value</a></dd>
-
-$:macros.Metatags(title=title_with_site, image=meta_cover_url, description=description)
-$set_share_links(url=request.canonical_url, title=title, view_context=ctx)
-
-$if is_privileged_user:
-  $:render_template("type/edition/admin_bar", work, edition, ocaid)
-
-
-
 
 $if page.type.key == '/type/work' and page.edition_count == 1:
     $ edit_url = page.editions[0].key + '?m=edit'
