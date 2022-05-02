@@ -61,10 +61,6 @@ window.q.push(function(){
   $if len(loans) == 0:
     <div><em>$_("You've not checked out any books at this moment.")</em></div>
     <br>
-    <div>Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:</div>
-     $:render_template("home/custom_ia_carousel", title=_('Books We Love'), key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["lending___last_browse desc"], limit=18, test=test, compact_mode=True)
-    $:render_template("home/categories", test=test)
-    Or, check out our <a href="/collections">special collections</a>.
 $else:
   $# Have current loans
   <div class="borrow borrow-table collapse">
@@ -125,13 +121,11 @@ $else:
     </table>
   </div>
 </div>
-<br/>
+
 <hr/>
 
 <header>
-<h1 class="details-title">
-      Books You're Waiting For
-  </h1>
+    <h1 class="details-title">$_("Books You're Waiting For")</h1>
 </header>
 
 <div>
@@ -223,3 +217,12 @@ $else:
           </table>
         </div>
 </div>
+
+<br/>
+<hr/>
+<br/>
+
+<div>Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:</div>
+     $:render_template("home/custom_ia_carousel", title=_('Books We Love'), key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["lending___last_browse desc"], limit=18, test=test, compact_mode=True)
+    $:render_template("home/categories", test=test)
+    Or, check out our <a href="/collections">special collections</a>.

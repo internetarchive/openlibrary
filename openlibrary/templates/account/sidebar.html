@@ -17,19 +17,10 @@ $ counts = counts or pa.get_sidebar_counts
       <li><a href="/people/$username" $('class=selected' if key == 'profile' else '')>$_('Profile Page')</a></li>
       $if owners_page:
         <li><a href="/account" $('class=selected' if key == 'settings' else '')>$_('Settings & Privacy')</a></li>
+        <hr/>
+        <li><a href="/account/loans" $('class=selected' if key == 'loans' else '')>$_('Loans')</a></li>
+        <li><a class="external-link" href="https://archive.org/account/?tab=loans#loans-history">$_('Loan History')</a></li>
     </ul>
-    $if owners_page:
-      <ul class="sidebar-section">
-        <li class="section-header">$_('Loans')</li>
-        <li>
-          <a href="/account/loans" $('class=selected' if key == 'loans' or key =='waitlist' else '')>
-            $_('Loans')
-          </a>
-        </li>
-        <li>
-          <a class="external-link" href="https://archive.org/account/?tab=loans#loans-history">$_('Loan History')</a>
-        </li>
-      </ul>
     $if public or owners_page:
       <ul class="sidebar-section">
         <li class="section-header">$_('Reading Log')</li>

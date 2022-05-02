@@ -2,7 +2,7 @@ $def with (items, key, counts, lists=None, user=None, logged_in_user=None, publi
 
 $# Displays a user's reading log
 $# :param list items:
-$# :param Literal['currently-reading', 'want-to-read', 'already-read', 'sponsorships', 'loans', 'waitlist', 'notes', 'observations'] key:
+$# :param Literal['currently-reading', 'want-to-read', 'already-read', 'sponsorships', 'loans', 'notes', 'observations'] key:
 $# :param Dict[str: int] counts:
 $# :param list? lists:
 $# :param user:
@@ -36,9 +36,7 @@ $if not header_title:
   $elif key == 'observations':
     $ header_title = _("Reviews")
   $elif key == 'loans':
-    $ header_title = _("Books You've Checked Out")
-  $elif key == 'waitlist':
-    $ header_title = _("Books You're Waiting For")
+    $ header_title = _("Loans")
   $elif key == 'imports':
     $ header_title = _("Imports and Exports")
   $elif key == 'lists':
@@ -98,8 +96,6 @@ $var title: $header_title
     $ component_times['Details content'] = time()
     <div class="details-content">
     $if key == 'loans':
-      $:render_template('account/loans', logged_in_user, items)
-    $elif key == 'waitlist':
       $:render_template('account/loans', logged_in_user, items)
     $elif key == 'notes':
       $:render_template('account/notes', items, user, counts['notes'], page=current_page)
