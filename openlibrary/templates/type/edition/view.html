@@ -173,7 +173,7 @@ $if is_privileged_user:
         $:macros.databarView(page, edition)
         $ component_times['EditTopbar'] = time() - component_times['EditTopbar']
       </div>
-
+    <div class="desktop-view-only">
       <div class="work-line">
         $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title$cond(work.subtitle, ': %s' % work.subtitle)</a>
         $if work.first_publish_year:
@@ -207,7 +207,7 @@ $if is_privileged_user:
       $ component_times['ReadlogStats'] = time()
       $:macros.StarRatingsStats(work)
       $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
-
+    </div>
       $:macros.EditionNavBar(work.edition_count, show_observations)
       <a id="edition-overview" name="edition-overview"></a>
       <div>

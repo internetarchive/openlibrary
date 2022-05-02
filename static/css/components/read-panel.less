@@ -4,7 +4,9 @@
  */
 
 // .Tools .btn-notice is a legacy selector. Remove at earliest opportunity.
-
+.mobile-book-header{
+  visibility:hidden;
+}
 .waitinglist-message {
   white-space: nowrap;
   margin: 0 0 10px;
@@ -116,7 +118,11 @@
   list-style: none;
   font-size: 12px;
 }
-
+@media only screen and (max-width: 960px){
+  .mobile-book-header{
+    visibility:visible;
+  }
+}
 // For the button at the top
 @import (less) "components/buttonCta.less";
 // for the share links at the bottom
