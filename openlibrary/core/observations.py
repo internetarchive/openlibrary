@@ -1090,3 +1090,17 @@ class Observations(db.CommonExtras):
             where_clause += ' AND observation_type=$observation_type AND observation_value=$observation_value'
 
         return oldb.delete('observations', where=(where_clause), vars=data)
+
+    @classmethod
+    def select_all_by_username(cls, username, _test=False):
+        rows = super().select_all_by_username(username, _test=_test)
+        types_and_values = _get_all_types_and_values()
+
+        for row in rows:
+            type_id = f"{row['observation_type']}"
+            value_id = f"{row['observation_value']}"
+            row['observation_type'] = types_and_values[type_id]['type']
+            row['observation_value'] = types_and_values[type_id]['values'][value_id]['name']
+
+        return rows
+

@@ -95,6 +95,15 @@ class CommonExtras:
                     rows_deleted -= 1
         return rows_changed, rows_deleted, failed_deletes
 
+    @classmethod
+    def select_all_by_username(cls, username, _test=False):
+        oldb = get_db()
+        return list(oldb.select(
+            cls.TABLENAME,
+            where="username=$username",
+            vars={"username": username}
+        ))
+
 
 def _proxy(method_name):
     """Create a new function that call method with given name on the

@@ -4,7 +4,7 @@ $def with (books=None, books_wo_isbns=None)
 
   $if not books:
     <div class="import-export">
-      <div class="import-export__readinglog">
+      <div class="import-export__section">
         <h3>$_("Import from Goodreads")</h3>
         <p>For instructions on exporting data refer to: <a href="https://www.goodreads.com/review/import">Goodreads Import/Export</a></p>
         <form method="POST" action="/account/import/goodreads"
@@ -19,12 +19,58 @@ $def with (books=None, books_wo_isbns=None)
           </div>
         </form>
       </div>
-      <div class="import-export__readinglog">
+      <div class="import-export__section">
         <h3>$_("Export your Reading Log")</h3>
+        <p>$_("Download a copy of your reading log.") <a href="/help/faq/reading-log.en#reading-log">$_("What is this?")</a></p>
         <form method="GET" action="/account/export"
             enctype="multipart/form-data" class="olform olform--decoration">
+          <input type="hidden" name="type" value="reading_log">
           <div>
-            <input type="submit" class="readingLog_download cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')">
+            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')">
+          </div>
+        </form>
+      </div>
+      <div class="import-export__section">
+        <h3>$_("Export your book notes")</h3>
+        <p>$_("Download a copy of your book notes.") <a href="/help/faq/book-notes">$_("What are book notes?")</a></p>
+        <form method="GET" action="/account/export"
+            enctype="multipart/form-data" class="olform olform--decoration">
+          <input type="hidden" name="type" value="book_notes">
+          <div>
+            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')">
+          </div>
+        </form>
+      </div>
+      <div class="import-export__section">
+        <h3>$_("Export your reviews")</h3>
+        <p>$_("Download a copy of your review tags.") <a href="/help/faq/reviews#book-tags">$_("What are review tags?")</a></p>
+        <form method="GET" action="/account/export"
+            enctype="multipart/form-data" class="olform olform--decoration">
+          <input type="hidden" name="type" value="reviews">
+          <div>
+            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')">
+          </div>
+        </form>
+      </div>
+      <div class="import-export__section">
+        <h3>$_("Export your list overview")</h3>
+        <p>$_("Download a summary of your lists and their contents.") <a href="/help/faq/reading-log.en#lists">$_("What are lists?")</a></p>
+        <form method="GET" action="/account/export"
+            enctype="multipart/form-data" class="olform olform--decoration">
+          <input type="hidden" name="type" value="lists">
+          <div>
+            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')">
+          </div>
+        </form>
+      </div>
+      <div class="import-export__section">
+        <h3>$_("Export your star ratings")</h3>
+        <p>$_("Download a copy of your star ratings") <a href="/help/faq/reviews#star-ratings">$_("What are star ratings?")</a></p>
+        <form method="GET" action="/account/export"
+            enctype="multipart/form-data" class="olform olform--decoration">
+          <input type="hidden" name="type" value="ratings">
+          <div>
+            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')">
           </div>
         </form>
       </div>

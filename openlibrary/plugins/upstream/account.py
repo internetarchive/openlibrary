@@ -19,7 +19,10 @@ import infogami.core.code as core
 from openlibrary import accounts
 from openlibrary.i18n import gettext as _
 from openlibrary.core import helpers as h, lending
+from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.observations import Observations
+from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins import openlibrary as olib
@@ -806,10 +809,39 @@ class fetch_goodreads(delegate.page):
 class export_books(delegate.page):
     path = "/account/export"
 
+    date_format = '%Y-%m-%d %H:%M:%S'
+
     @require_login
     def GET(self):
+        i = web.input(type='')
+        filename = ''
+
         user = accounts.get_current_user()
         username = user.key.split('/')[-1]
+
+        if i.type == 'reading_log':
+            data = self.generate_reading_log(username)
+            filename = 'OpenLibrary_ReadingLog.csv'
+        elif i.type == 'book_notes':
+            data = self.generate_book_notes(username)
+            filename = 'OpenLibrary_BookNotes.csv'
+        elif i.type == 'reviews':
+            data = self.generate_reviews(username)
+            filename = 'OpenLibrary_Reviews.csv'
+        elif i.type == 'lists':
+            data = self.generate_list_overview(user.get_lists(limit=1000))
+            filename = 'Openlibrary_ListOverview.csv'
+        elif i.type == 'ratings':
+            data = self.generate_star_ratings(username)
+            filename = 'OpenLibrary_Ratings.csv'
+
+        web.header('Content-Type', 'text/csv')
+        web.header(
+            'Content-disposition', f'attachment; filename={filename}'
+        )
+        return delegate.RawText('' or data, content_type="text/csv")
+
+    def generate_reading_log(self, username):
         books = Bookshelves.get_users_logged_books(username, limit=10000)
         csv = []
         csv.append('Work Id,Edition Id,Bookshelf\n')
@@ -821,12 +853,84 @@ class export_books(delegate.page):
                 '{}\n'.format(mapping[book['bookshelf_id']]),
             ]
             csv.append(','.join(row))
-        web.header('Content-Type', 'text/csv')
-        web.header(
-            'Content-disposition', 'attachment; filename=OpenLibrary_ReadingLog.csv'
-        )
-        csv = ''.join(csv)
-        return delegate.RawText(csv, content_type="text/csv")
+        return ''.join(csv)
+
+    def generate_book_notes(self, username):
+        csv = []
+        csv.append('Work ID,Edition ID,Note,Created On')
+        notes = Booknotes.select_all_by_username(username)
+
+        for note in notes:
+            escaped_note = note['notes'].replace('"', '""')
+            row = [
+                f"OL{note['work_id']}W",
+                f"OL{note['edition_id']}M",
+                f'"{escaped_note}"',
+                note['created'].strftime(self.date_format)
+            ]
+            csv.append(','.join(row))
+
+        return '\n'.join(csv)
+
+    def generate_reviews(self, username):
+        csv = []
+        csv.append('Work ID,Review Category,Review Value,Created On')
+        observations = Observations.select_all_by_username(username)
+
+        for o in observations:
+            row = [
+                f"OL{o['work_id']}W",
+                f'"{o["observation_type"]}"',
+                f'"{o["observation_value"]}"',
+                o['created'].strftime(self.date_format)
+            ]
+            csv.append(','.join(row))
+
+        return '\n'.join(csv)
+
+    def generate_list_overview(self, lists):
+        csv = []
+        csv.append('List ID,List Name,List Description,Entry,Created On,Last Updated')
+
+        for list in lists:
+            logger.info(list)
+            logger.info(vars(list))
+            logger.info(dir(list))
+            list_id = list.key.split('/')[-1]
+            created_on = list.created.strftime(self.date_format)
+            last_updated = list.last_modified.strftime(self.date_format) if list.last_modified else ''
+            for seed in list.seeds:
+                entry = seed
+                if not isinstance(seed, str):
+                    entry = seed.key
+                row = [
+                    list_id,
+                    f'"{list.name}"' if list.name else '', # Replace double quotes?
+                    f'"{list.description}"' if list.description else '',
+                    entry,
+                    created_on,
+                    last_updated
+                ]
+                csv.append(','.join(row))
+
+        return '\n'.join(csv)
+
+
+    def generate_star_ratings(self, username):
+        csv = []
+        csv.append('Work ID,Edition ID,Rating,Created On')
+        ratings = Ratings.select_all_by_username(username)
+
+        for rating in ratings:
+            row = [
+                f"OL{rating['work_id']}W",
+                f"OL{rating['edition_id']}M" if rating['edition_id'] else '',
+                f"{rating['rating']}",
+                rating['created'].strftime(self.date_format)
+            ]
+            csv.append(','.join(row))
+
+        return '\n'.join(csv)
 
 
 class account_loans(delegate.page):
