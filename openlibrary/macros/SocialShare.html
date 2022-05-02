@@ -40,8 +40,10 @@ $def embed_iframe(page_url):
 
 
   <div class="hidden">
+    <div class="popup">
     <div id="$id-metadata-form" class="floaterAdd metadata-form">
 
+      
       <div class="content">
         <div class="floaterHead">
           
@@ -49,7 +51,7 @@ $def embed_iframe(page_url):
           <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
           
         </div>
-        <ul class="icons">
+        <ul class="share-icons">
 
             $for share_link in share_links:
             $ track_tag = share_link['text'].replace(' ', '-')
@@ -79,5 +81,6 @@ $def embed_iframe(page_url):
         </div>
       </div>
     </div>
+  </div>
   </div>
 </div>

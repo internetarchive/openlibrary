@@ -56,17 +56,17 @@
   z-index: @z-index-level-4;
   font-family: @lucida_sans_serif-1;
 }
-.popup :is(.icons, .copy-field){
+.share-icons, .copy-field{
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
 }
 
 span{
   font-size: 14px;
   font-weight: 500;
 }
-.close, .icons a{
+.close, .share-icons a{
   display: flex;
   align-items: center;
   border-radius: 50%;
@@ -87,10 +87,10 @@ span{
 .popup .content{
   margin: 0;
 }
-.popup .icons{
+.popup .share-icons{
   margin: 15px 0 20px;
 }
-.content .icons a{
+.content .share-icons a{
   height: 50px;
   width: 50px;
   font-size: 20px;
@@ -105,26 +105,26 @@ span{
 .copy-field.active i{
   color: @purple-7d2ae8;
 }
-.icons a:nth-child(5){
+.share-icons a:nth-child(5){
   color: @blue-0088cc;
 }
-.icons a:nth-child(4){
+.share-icons a:nth-child(4){
   color: @orange-FFA300;
 }
-.icons a:nth-child(3){
+.share-icons a:nth-child(3){
   color: @pink-e1306c;
 }
-.icons a:nth-child(2){
+.share-icons a:nth-child(2){
   color: @blue-46C1F6;
 }
-.icons a:nth-child(1){
+.share-icons a:nth-child(1){
   color: @blue-1877F2;
 }
-.icons a:hover{
+.share-icons a:hover{
   color: @white;
   border-color: transparent;
 }
-.icons a:hover i{
+.share-icons a:hover i{
   transform: scale(1.2);
 }
 .content .copy-field{
