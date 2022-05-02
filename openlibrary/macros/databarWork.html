@@ -126,7 +126,7 @@ $if isbn_10 and not asin:
           $if not page.is_fake_record():
               $:render_template('covers/change', page, ".edition-cover .bookCover img")
         </div>
-        
+
       <div class="mobile-book-header">
         <div class="work-line">
           $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title$cond(work.subtitle, ': %s' % work.subtitle)</a>
@@ -135,7 +135,7 @@ $if isbn_10 and not asin:
                 ($work.first_publish_year)
               </span>
         </div>
-  
+
         $ book_title = edition.get('title', '') or (work.title if work else '')
         $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
           $if edition and page.type.key in ["/type/work"]:
@@ -146,7 +146,7 @@ $if isbn_10 and not asin:
           $ edit_url = page.key + "?m=edit"
         $:render_template("type/edition/compact_title", book_title, edit_url)
         $:render_template("type/edition/book_title", book_title, edition)
-  
+
         $ authors = (work or edition).get_authors()
         $ author_names = (work or edition).author_names
         $if authors:
@@ -157,7 +157,7 @@ $if isbn_10 and not asin:
           <h2 class="edition-byline">
             $:macros.BookByline([(name, None) for name in author_names], attrs='itemprop="author"')
           </h2>
-  
+
         $ component_times['ReadlogStats'] = time()
         $:macros.StarRatingsStats(work)
         $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
