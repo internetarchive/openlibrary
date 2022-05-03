@@ -124,7 +124,7 @@ jQuery(function () {
     }
 
 
-    
+
 
     const edition = document.getElementById('tabsAddbook');
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
@@ -279,7 +279,7 @@ jQuery(function () {
     if ($shareModalLinks.length) {
         import('./Share')
         import(/* webpackChunkName: "modal-links" */ './modals')
-            .then(module => {      
+            .then(module => {
                 module.initShareModal($shareModalLinks)
             });
     }
