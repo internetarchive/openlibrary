@@ -632,7 +632,7 @@ class SaveBookHelper:
 
     def process_new_fields(self, formdata):
         def f(name):
-            val = formdata.get(name, None)
+            val = formdata.get(name)
             return val and json.loads(val)
 
         new_roles = f('select-role-json')
