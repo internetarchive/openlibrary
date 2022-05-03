@@ -542,7 +542,8 @@ class SaveBookHelper:
         formdata = utils.unflatten(formdata)
         work_data, edition_data = self.process_input(formdata)
 
-        self.process_new_fields(formdata)
+        if not delete:
+            self.process_new_fields(formdata)
 
         saveutil = DocSaveHelper()
 
@@ -631,7 +632,7 @@ class SaveBookHelper:
 
     def process_new_fields(self, formdata):
         def f(name):
-            val = formdata.get(name)
+            val = formdata.get(name, None)
             return val and json.loads(val)
 
         new_roles = f('select-role-json')
