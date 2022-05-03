@@ -512,3 +512,23 @@ class delete:
                 return 'cover has been deleted successfully.'
         else:
             return 'no such id: %s' % id
+
+
+def overlay_covers_over_background(five_seeds):
+    """This method take as an input a list with the five books, from a list, 
+    and put their cover in the correct spot in order to create a new image for social-card"""
+    
+    background = Image.open("../../static/images/Twitter_Post_Background_Shelf_Color.png")
+
+    for seed in five_seeds:
+        cover = seed.get_cover()
+
+        img = Image.open("//covers.openlibrary.org/b/" + cover.type + "/" + cover.id + "-M.jpg")
+
+        # resize the image
+        size = (1354,2030)
+        background = background.resize(size,Image.ANTIALIAS)
+
+        background.paste(img, (0, 0), img)
+    
+    background.save('how_to_superimpose_two_images_02.png',"PNG")
