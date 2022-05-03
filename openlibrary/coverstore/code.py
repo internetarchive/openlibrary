@@ -8,6 +8,9 @@ import memcache
 import requests
 import web
 
+from PIL import Image
+import numpy as np
+
 from openlibrary.coverstore import config, db, ratelimit
 from openlibrary.coverstore.coverlib import read_file, read_image, save_image
 from openlibrary.coverstore.utils import (
