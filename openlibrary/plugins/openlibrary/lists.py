@@ -639,3 +639,13 @@ def get_active_lists_in_random(limit=20, preload=True):
     lists = f(limit=limit, preload=preload)
     # convert rawdata into models.
     return [web.ctx.site.new(xlist['key'], xlist) for xlist in lists]
+
+def create_list_preview(lst_key):
+    """Fetches the five first seeds of a list"""
+    lst = web.ctx.site.get(lst_key)
+    new_list = lst.seeds
+    five_seeds = []
+    for i in range(5):
+        if new_list[i]:
+            five_seeds.add(new_list[i])
+    return five_seeds
