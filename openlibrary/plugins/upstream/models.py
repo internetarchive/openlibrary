@@ -488,7 +488,7 @@ class Edition(models.Edition):
                 self['isbn_13'][0] if self.get('isbn_13') else self['isbn_10'][0]
             )
         if self.lccn:
-            citation['lccn'] = self.lccn[0]
+            citation['lccn'] = self.lccn[0].replace(' ', '')
         if self.get('oclc_numbers'):
             citation['oclc'] = self.oclc_numbers[0]
         citation['ol'] = str(self.get_olid())[2:]
