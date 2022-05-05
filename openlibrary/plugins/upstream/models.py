@@ -476,13 +476,13 @@ class Edition(models.Edition):
         isbns = self.get('isbn_13', []) + self.get('isbn_10', [None])
         citation.update({
             'date': self.get('publish_date'),
-            'orig-date': self.works[0]['first_publish_year'],
+            'orig-date': self.works[0].get('first_publish_date'),
             'title': self.title.replace("[", "&#91").replace("]", "&#93"),
             'url': f'https://archive.org/details/{self.ocaid}' if self.ocaid else None,
             'publication-place': self.get('publish_places', [None])[0],
             'publisher': self.get('publishers', [None])[0],
             'isbn': isbns[0],
-            'issn': self.get('identifiers', []).get('issn', [None])[0],
+            'issn': self.get('identifiers', {}).get('issn', [None])[0],
         })
 
         if self.lccn:
@@ -491,6 +491,8 @@ class Edition(models.Edition):
             citation['oclc'] = self.oclc_numbers[0]
         citation['ol'] = str(self.get_olid())[2:]
         # TODO: add 'ol-access': 'free' if the item is free to read.
+        if citation['date'] == citation['orig-date']:
+            citation.pop('orig-date')
         return citation
 
     def is_fake_record(self):
