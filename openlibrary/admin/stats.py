@@ -65,6 +65,9 @@ def store_data(data, date):
     doc = web.ctx.site.store.get(uid) or {}
     doc.update(data)
     doc['type'] = 'admin-stats'
+    # as per https://github.com/internetarchive/infogami/blob/master/infogami/infobase/_dbstore/store.py#L79-L83
+    # avoid document collisions if multiple tasks updating stats in competition (race)
+    doc["_rev"] = None
     web.ctx.site.store[uid] = doc
 
 
