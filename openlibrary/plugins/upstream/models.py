@@ -463,47 +463,37 @@ class Edition(models.Edition):
     @property
     def wp_citation_fields(self):
         """
-        Builds a wikipedia citation as defined by http://en.wikipedia.org/wiki/Template:Cite#Citing_books
+        Builds a Wikipedia book citation as defined by https://en.wikipedia.org/wiki/Template:Cite_book
         """
-        result = {
-            "title": self.title.replace("[", "&#91").replace("]", "&#93"),
-            "publication-date": self.get('publish_date'),
-            "ol": str(self.get_olid())[2:],
-        }
-
-        if self.ocaid:
-            result['url'] = "https://archive.org/details/" + self.ocaid
-
-        if self.lccn:
-            result['lccn'] = self.lccn[0]
-
-        if self.issn:
-            result['issn'] = self.issn[0]
-
-        if self.get('isbn_10'):
-            result['isbn'] = (
-                self['isbn_13'][0] if self.get('isbn_13') else self['isbn_10'][0]
-            )
-
-        if self.get('oclc_numbers'):
-            result['oclc'] = self.oclc_numbers[0]
-
-        if self.works[0].get('first_publish_year'):
-            result['origyear'] = self.works[0]['first_publish_year']
-
-        if self.get('publishers'):
-            result['publisher'] = self['publishers'][0]
-
-        if self.get('publish_places'):
-            result['publication-place'] = self['publish_places'][0]
-
+        citation = {}
         authors = [ar.author for ar in self.works[0].authors]
         if len(authors) == 1:
-            result['author'] = authors[0].name
+            citation['author'] = authors[0].name
         else:
             for i, a in enumerate(authors):
-                result['author%s' % (i + 1)] = a.name
-        return result
+                citation['author%s' % (i + 1)] = a.name
+
+        citation.update({
+            'date': self.get('publish_date'),
+            'orig-date': self.works[0]['first_publish_year'],
+            'title': self.title.replace("[", "&#91").replace("]", "&#93"),
+            'url': f'https://archive.org/details/{self.ocaid}' if self.ocaid else None,
+            'publication-place': self.get('publish_places', [None])[0],
+            'publisher': self.get('publishers', [None])[0],
+        })
+        if self.issn:
+            citation['issn'] = self.issn[0]
+        if self.get('isbn_10'):
+            citation['isbn'] = (
+                self['isbn_13'][0] if self.get('isbn_13') else self['isbn_10'][0]
+            )
+        if self.lccn:
+            citation['lccn'] = self.lccn[0]
+        if self.get('oclc_numbers'):
+            citation['oclc'] = self.oclc_numbers[0]
+        citation['ol'] = str(self.get_olid())[2:]
+        # TODO: add 'ol-access': 'free' if the item is free to read.
+        return citation
 
     def is_fake_record(self):
         """Returns True if this is a record is not a real record from database,
