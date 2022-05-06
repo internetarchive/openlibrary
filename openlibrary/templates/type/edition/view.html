@@ -162,7 +162,7 @@ $ component_times['ReadlogStats'] = time()
 $ star_ratings_stats = macros.StarRatingsStats(work)
 $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
 
-$ render_summary= render_template("type/edition/render_summary", work, edition, ocaid, work_title, star_ratings_stats)
+$ render_summary= render_template("type/edition/title_summary", work, edition, ocaid, work_title, star_ratings_stats)
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
   <div class="workDetails">
@@ -191,11 +191,7 @@ $ render_summary= render_template("type/edition/render_summary", work, edition, 
       $else:
         $ edit_url = page.key + "?m=edit"
 
-      $:render_template("type/edition/compact_title", book_title, edit_url)
-
-      $ component_times['ReadlogStats'] = time()
-      $:macros.StarRatingsStats(work)
-      $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
+      $:render_template("type/edition/compact_title", book_title, edit_url)      
     </div>
       $:macros.EditionNavBar(work.edition_count, show_observations)
       <a id="edition-overview" name="edition-overview"></a>
