@@ -166,7 +166,7 @@ $ render_summary= render_template("type/edition/render_summary",page,work,editio
     $if work:
         <link itemprop="exampleOfWork" href="$work.key">
 
-    <div class="editionCover">      
+    <div class="editionCover">
       $:macros.databarWork(edition or work, editions_page=True, render_times=component_times,summary=render_summary)
     </div>
 
@@ -177,7 +177,7 @@ $ render_summary= render_template("type/edition/render_summary",page,work,editio
         $ component_times['EditTopbar'] = time() - component_times['EditTopbar']
       </div>
     <!--This section appears only in desktop-->
-    <div class="desktop-book-header">      
+    <div class="desktop-book-header">
       $:render_summary
 
       $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
