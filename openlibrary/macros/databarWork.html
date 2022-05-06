@@ -56,7 +56,7 @@ $if isbn_10 and not asin:
               $:render_template('covers/change', page, ".edition-cover .bookCover img")
         </div>
       <!--This section appears only in mobile/tablet screens-->
-      <div class="mobile-book-header">        
+      <div class="mobile-book-header">
         $if summary!=None:
            $:summary
         $:macros.StarRatingsStats(work)
