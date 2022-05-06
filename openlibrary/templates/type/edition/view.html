@@ -191,7 +191,7 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
       $else:
         $ edit_url = page.key + "?m=edit"
 
-      $:render_template("type/edition/compact_title", book_title, edit_url)      
+      $:render_template("type/edition/compact_title", book_title, edit_url)
     </div>
       $:macros.EditionNavBar(work.edition_count, show_observations)
       <a id="edition-overview" name="edition-overview"></a>
