@@ -128,39 +128,9 @@ $if isbn_10 and not asin:
         </div>
       <!--This section appears only in mobile/tablet screens-->
       <div class="mobile-book-header">
-        <div class="work-line">
-          $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title$cond(work.subtitle, ': %s' % work.subtitle)</a>
-          $if work.first_publish_year:
-              <span class="first-published-date" title="$_('First published in %s', work.first_publish_year)">
-                ($work.first_publish_year)
-              </span>
-        </div>
+        $:summary
 
-        $ book_title = edition.get('title', '') or (work.title if work else '')
-        $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
-          $if edition and page.type.key in ["/type/work"]:
-            $ edit_url = edition.url(suffix="/edit")
-          $else:
-            $ edit_url = page.url(suffix="/edit")
-        $else:
-          $ edit_url = page.key + "?m=edit"
-        $:render_template("type/edition/compact_title", book_title, edit_url)
-        $:render_template("type/edition/book_title", book_title, edition)
-
-        $ authors = (work or edition).get_authors()
-        $ author_names = (work or edition).author_names
-        $if authors:
-          <h2 class="edition-byline">
-            $:macros.BookByline([(author.name, author.url()) for author in authors], attrs='itemprop="author"')
-          </h2>
-        $elif author_names:
-          <h2 class="edition-byline">
-            $:macros.BookByline([(name, None) for name in author_names], attrs='itemprop="author"')
-          </h2>
-
-        $ component_times['ReadlogStats'] = time()
         $:macros.StarRatingsStats(work)
-        $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
       </div>
 
         $ render_times['databarWork: DonateModal'] = time()
