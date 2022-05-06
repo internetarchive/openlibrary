@@ -17,6 +17,8 @@ from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.worksearch import subjects
 
 
+from PIL import Image
+
 class lists_home(delegate.page):
     path = "/lists"
 
@@ -643,9 +645,13 @@ def get_active_lists_in_random(limit=20, preload=True):
 def create_list_preview(lst_key):
     """Fetches the five first seeds of a list"""
     lst = web.ctx.site.get(lst_key)
-    new_list = lst.seeds
-    five_seeds = []
-    for i in range(5):
-        if new_list[i]:
-            five_seeds.add(new_list[i])
+    five_seeds = lst.seeds[0:5]
     return five_seeds
+
+class lists_preview(delegate.page):
+    path = r"(/people/[^/]+/lists/OL\d+L)/preview"
+
+    def GET(self, key):
+        web.header("Content-Type", "image/png")
+        with open('social-card-image.png', 'rb') as f:
+            return delegate.RawText(f.read())

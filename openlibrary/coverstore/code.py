@@ -1,15 +1,16 @@
 import array
 import datetime
+import io
 import json
 import logging
 import os
 
 import memcache
 import requests
+from openlibrary.plugins.openlibrary.lists import create_list_preview
 import web
 
 from PIL import Image
-import numpy as np
 
 from openlibrary.coverstore import config, db, ratelimit
 from openlibrary.coverstore.coverlib import read_file, read_image, save_image
@@ -45,6 +46,8 @@ urls = (
     'touch',
     '/([^ /]*)/delete',
     'delete',
+    '/preview',
+    'list_preview'
 )
 app = web.application(urls, locals())
 
@@ -517,24 +520,30 @@ class delete:
             return 'no such id: %s' % id
 
 
-def overlay_covers_over_background(five_seeds):
+def overlay_covers_over_background():
     """This method take as an input a list with the five books, from a list, 
     and put their cover in the correct spot in order to create a new image for social-card"""
     
-    background = Image.open("../../static/images/Twitter_Post_Background_Shelf_Color.png")
+    five_seeds = create_list_preview("/people/openlibrary/lists/OL1L")
+    background = Image.open("/openlibrary/static/images/Twitter_Post_Background_Shelf_Color.png")
+    
     text_size=(344,33)
     logo_size=(168,41)
     text_position=(340,406)
-    logo_position(823,439)
+    logo_position=(823,439)
     for seed in five_seeds:
         cover = seed.get_cover()
 
-        img = Image.open("//covers.openlibrary.org/b/" + cover.type + "/" + cover.id + "-M.jpg")
+        if  cover:
+            response = requests.get(f"https://covers.openlibrary.org/b/id/{cover.id}-M.jpg")
+            image_bytes = io.BytesIO(response.content)
 
-        # resize the image
-        size = (162,263)
-        background = background.resize(size,Image.ANTIALIAS)
+            img = Image.open(image_bytes)
 
-        background.paste(img, (33, 97), img)
+            # resize the image
+            # size = (162,263)
+            # background = background.resize(size,Image.ANTIALIAS)
+
+            background.paste(img, (13, 17))
     
-    background.save('how_to_superimpose_two_images_02.png',"PNG")
+    background.save('social-card-image.png',"PNG")
