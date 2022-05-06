@@ -1,4 +1,4 @@
-$def with (work,edition,ocaid,work_title,page)
+$def with (page,work,edition,ocaid,work_title)
 
 <div class="work-line">
     $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title$cond(work.subtitle, ': %s' % work.subtitle)</a>

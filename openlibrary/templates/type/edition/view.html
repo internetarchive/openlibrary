@@ -158,7 +158,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 $if is_privileged_user:
   $:render_template("type/edition/admin_bar", work, edition, ocaid)
 $ render_summary = None
-$ render_summary= render_template("type/edition/render_summary",work,edition,ocaid,work_title,page)
+$ render_summary= render_template("type/edition/render_summary",page,work,edition,ocaid,work_title)
 
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
@@ -179,7 +179,7 @@ $ render_summary= render_template("type/edition/render_summary",work,edition,oca
     <!--This section appears only in desktop-->
     <div class="desktop-book-header">      
       $:render_summary
-      
+
       $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
         $if edition and page.type.key in ["/type/work"]:
           $ edit_url = edition.url(suffix="/edit")
