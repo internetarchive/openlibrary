@@ -1,13 +1,5 @@
 $def with (page, editions_page=False, render_times={}, summary=None)
 
-$if page.key.startswith('/works'):
-  $ work = page
-$elif page.works:
-  $ work = list(page.works)[0]
-$else:
-  $ work = page.make_work_from_orphaned_edition()
-  $ show_observations = False
-
 $if page.type.key == '/type/work' and page.edition_count == 1:
     $ edit_url = page.editions[0].key + '?m=edit'
 $elif page.type.key in ["/type/work", "/type/edition", "/type/author"]:
