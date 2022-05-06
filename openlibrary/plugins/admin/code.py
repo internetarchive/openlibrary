@@ -404,7 +404,7 @@ class people_view:
         return web.seeother("/")
 
     def POST_anonymize_account(self, account):
-        results = account.anonymize(test=True)
+        results = account.anonymize()
         msg = (
             f"Account anonymized. New username: {results['new_username']}. "
             f"Notes deleted: {results['booknotes_count']}. "

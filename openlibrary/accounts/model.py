@@ -334,14 +334,10 @@ class Account(web.storage):
             logger.info(f'random uuid: {generate_uuid()}')
 
         # Generate new unique username for patron:
-        # Note: Cannot test "True" result locally:
+        # Note: Cannot test get_activation_link() locally
         uuid = self.get_activation_link()['code'] if self.get_activation_link() else generate_uuid()
         new_username = f'anonymous-{uuid}'
         results = {'new_username': new_username}
-
-        # TODO: Clear patron's profile page:
-
-        # TODO: Remove patron from all usergroups:
 
         # Delete all of the patron's book notes:
         results['booknotes_count'] = Booknotes.delete_all_by_username(self.username, _test=test)
@@ -350,6 +346,19 @@ class Account(web.storage):
         results['ratings_count'] = Ratings.update_username(self.username, new_username, _test=test)
         results['observations_count'] = Observations.update_username(self.username, new_username, _test=test)
         results['bookshelves_count'] = Bookshelves.update_username(self.username, new_username, _test=test)
+
+        patron = self.get_user()
+
+        # Remove patron from all usergroups:
+        for grp in patron.usergroups:
+            grp.remove_user(patron.key)
+
+        # Set preferences to default:
+        patron.save_preferences(patron.DEFAULT_PREFERENCES, msg='Reset preferences to default')
+
+        # Clear patron's profile page:
+        data = {'key': patron.key, 'type': '/type/delete'}
+        patron.set_data(data)
 
         return results
 

@@ -877,6 +877,10 @@ class User(Thing):
         # Why nofollow?
         return f'<a rel="nofollow" href="{self.key}" {extra_attrs}>{web.net.htmlquote(self.displayname)}</a>'
 
+    def set_data(self, data):
+        self._data = data
+        self._save()
+
 
 class List(Thing, ListMixin):
     """Class to represent /type/list objects in OL.
@@ -992,6 +996,21 @@ class UserGroup(Thing):
             members.append({'key': userkey})
             self.members = members
             web.ctx.site.save(self.dict(), f"Adding {userkey} to {self.key}")
+
+    def remove_user(self, userkey):
+        if not web.ctx.site.get(userkey):
+            raise KeyError("Invalid userkey")
+
+        members = self.get('members', [])
+
+        # find index of userkey and remove user
+        for i, m in enumerate(members):
+            if m.get('key', None) == userkey:
+                members.pop(i)
+                break
+
+        self.members = members
+        web.ctx.site.save(self.dict(), f"Removing {userkey} from {self.key}")
 
 
 class Subject(web.storage):
