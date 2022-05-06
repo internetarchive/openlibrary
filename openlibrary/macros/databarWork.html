@@ -1,12 +1,6 @@
 $def with (page, editions_page=False, render_times={}, summary=None)
 
-$ component_times = {}
-$ component_times['TotalTime'] = time()
 
-$ tab = input(tab=None).tab
-$ editions = []
-$ page_type = page.key.split('/')[1]
-$ show_observations = True
 
 $if page.key.startswith('/works'):
   $ work = page
@@ -16,71 +10,6 @@ $else:
   $ work = page.make_work_from_orphaned_edition()
   $ show_observations = False
 
-$ edition = storage({})
-$if page.key.startswith('/books'):
-  $# We are on an editions page: an edition has been explicitly selected
-  $ edition = page
-
-$ selected_provider = None
-$ selected_id = None
-$ provider = None
-$if query_param('edition'):
-  $if ':' in query_param('edition'):
-    $ [selected_provider, selected_id] = query_param('edition').split(':')
-  $else:
-    $ [selected_provider, selected_id] = ['ia', query_param('edition')]
-  $ provider = get_book_provider_by_name(selected_provider)
-
-$# Just in case edition is not set, treat as work
-$ edition = edition or page
-$ is_editionless_work = edition.type != '/type/edition'
-
-$if not edition.get('availability'):
-  $ edition['availability'] = edition.get('ocaid') and availabilities.get(edition['ocaid']) or {}
-$ ocaid = edition.get('ocaid')
-$ book_title = edition.get('title', '') or (work.title if work else '')
-$ work_title = work.title if work else edition.get('title', '')
-$ book_subtitle = edition.get('subtitle', '')
-$ title_suffix = cond(edition.get('publish_date'), u"({0} edition)".format(edition.get('publish_date')), "(edition)")
-$ title = book_title + " " + title_suffix
-$ title_with_site = _("%(page_title)s | Open Library", page_title=title)
-$ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
-$ _x = ctx.setdefault('cssfile', 'book')
-
-$var title: $title
-
-$code:
-    def has_any(*keys):
-        return any(edition[k] for k in keys)
-
-$code:
-    def get_description(book):
-        if book.publishers and book.publish_date:
-            ed_info = book.publish_date + ', ' + ', '.join(book.publishers)
-        elif book.publish_date:
-            ed_info = book.publish_date
-        elif book.publishers:
-            ed_info = ', '.join(book.publishers)
-        else:
-            ed_info = 'unknown'
-
-        title = cond(work, work.title, book.title)
-        authors = cond(work, work and work.get_authors(), book.get_authors())
-        author_info = " by " + ", ".join(a.name or "Unknown author" for a in authors)
-
-        format = ""
-        if book.physical_format:
-            format += book.physical_format.replace('[', '').replace(']', '')
-
-        if book.languages:
-            format += ' in ' + ', '.join(lang.name for lang in book.languages)
-        if book.edition_name:
-            format += " - " + book.edition_name
-
-        meta = title + author_info + ", " + ed_info + " edition, " + format
-        return meta
-    description = get_description(page)
-    putctx("description", description)
 
 $if page.type.key == '/type/work' and page.edition_count == 1:
     $ edit_url = page.editions[0].key + '?m=edit'
@@ -127,9 +56,9 @@ $if isbn_10 and not asin:
               $:render_template('covers/change', page, ".edition-cover .bookCover img")
         </div>
       <!--This section appears only in mobile/tablet screens-->
-      <div class="mobile-book-header">
-        $:summary
-
+      <div class="mobile-book-header">        
+        $if summary!=None:
+           $:summary
         $:macros.StarRatingsStats(work)
       </div>
 
