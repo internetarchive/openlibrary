@@ -775,6 +775,7 @@ def readonline_carousel():
         if len(data) > 30:
             data = lending.add_availability(random.sample(data, 30))
             data = [d for d in data if d['availability'].get('is_readable')]
+        print(storify(data))
         return storify(data)
 
     except Exception:

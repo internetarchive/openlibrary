@@ -21,7 +21,7 @@ $add_metatag(name="twitter:card", content="homepage_summary")
 
   $:render_template("books/custom_carousel", books=readonline_carousel(), title=_('Classic Books'), url="/read", key="public_domain", test=test)
 
-  $:render_template("books/custom_carousel", books=get_most_logged_books(), title=_('PAO Books'), url="/trending", test=test)
+  $:render_template("books/custom_carousel", books=get_logged_books_carousel(), title=_('Trending Books'), url="/trending", test=test)
 
 
   $if monthly_reads and not test:
