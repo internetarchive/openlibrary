@@ -39,6 +39,22 @@ def cached_get_most_logged_books(shelf_id=None, since_days=1, limit=20):
     )(shelf_id=shelf_id, since_days=since_days, limit=limit)
 
 @public
+def get_logged_books_carousel():
+    books = cached_get_most_logged_books()
+    work_index = get_solr_works(f"/works/OL{book['work_id']}W" for book in books)
+    availability_index = get_availabilities(work_index.values())
+    for work_key in availability_index:
+        work_index[work_key]['availability'] = availability_index[work_key]
+
+    tab = []
+    for i, logged_book in enumerate(books):
+        key = f"/works/OL{logged_book['work_id']}W"
+        if key in work_index:
+            tab.append(work_index[key])
+    return tab
+
+
+@public
 def get_most_logged_books(shelf_id=None, since_days=1, limit=20):
     """
     shelf_id: Bookshelves.PRESET_BOOKSHELVES['Want to Read'|'Already Read'|'Currently Reading']
