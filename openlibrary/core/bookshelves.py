@@ -76,22 +76,23 @@ class Bookshelves(db.CommonExtras):
         return results[0] if results else None
 
     @classmethod
-    def most_logged_books(cls, shelf_id=None, limit=10, since=False):
+    def most_logged_books(cls, shelf_id=None, limit=10, since=False, page=1):
         """Returns a ranked list of work OLIDs (in the form of an integer --
         i.e. OL123W would be 123) which have been most logged by
         users. This query is limited to a specific shelf_id (e.g. 1
         for "Want to Read").
         """
+        offset = (page - 1) * limit
         oldb = db.get_db()
         where = 'WHERE bookshelf_id' + ('=$shelf_id' if shelf_id else ' IS NOT NULL ')
         if since:
             where += ' AND created >= $since'
         query = f'select work_id, count(*) as cnt from bookshelves_books {where}'
-        query += ' group by work_id order by cnt desc limit $limit'
+        query += ' group by work_id order by cnt desc limit $limit offset $offset'
         logger.info("Query: %s", query)
         logged_books = list(
             oldb.query(
-                query, vars={'shelf_id': shelf_id, 'limit': limit, 'since': since}
+                query, vars={'shelf_id': shelf_id, 'limit': limit, 'offset': offset, 'since': since}
             )
         )
         logger.info("Results: %s", logged_books)

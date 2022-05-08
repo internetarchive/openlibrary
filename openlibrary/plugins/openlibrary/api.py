@@ -8,7 +8,7 @@ import web
 import re
 import json
 from collections import defaultdict
-
+from openlibrary.views.loanstats import get_logged_books_carousel
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render_template  # noqa: F401 used for its side effects
@@ -67,21 +67,26 @@ class browse(delegate.page):
 
     def GET(self):
         i = web.input(
-            q='', page=1, limit=100, subject='', work_id='', _type='', sorts=''
+            q='', page=1, limit=100, subject='', work_id='', _type='', sorts='',
+            trending=False
         )
-        sorts = i.sorts.split(',')
-        page = int(i.page)
-        limit = int(i.limit)
-        url = lending.compose_ia_url(
-            query=i.q,
-            limit=limit,
-            page=page,
-            subject=i.subject,
-            work_id=i.work_id,
-            _type=i._type,
-            sorts=sorts,
-        )
-        works = lending.get_available(url=url) if url else []
+        if i.trending:
+           works= get_logged_books_carousel(limit = int(i.limit),page=int(i.page))
+           url=""
+        else:
+            sorts = i.sorts.split(',')
+            page = int(i.page)
+            limit = int(i.limit)
+            url = lending.compose_ia_url(
+                query=i.q,
+                limit=limit,
+                page=page,
+                subject=i.subject,
+                work_id=i.work_id,
+                _type=i._type,
+                sorts=sorts,
+            )
+            works = lending.get_available(url=url) if url else []
         result = {
             'query': url,
             'works': [work.dict() for work in works],
