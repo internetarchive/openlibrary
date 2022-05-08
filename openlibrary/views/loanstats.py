@@ -4,6 +4,7 @@ import web
 from infogami.utils import delegate
 from ..core.lending import get_availabilities
 from ..plugins.worksearch.code import get_solr_works
+from infogami.utils.view import public
 
 from ..utils import dateutil
 from .. import app
@@ -37,6 +38,7 @@ def cached_get_most_logged_books(shelf_id=None, since_days=1, limit=20):
         get_most_logged_books, 'stats.trending', timeout=dateutil.HOUR_SECS
     )(shelf_id=shelf_id, since_days=since_days, limit=limit)
 
+@public
 def get_most_logged_books(shelf_id=None, since_days=1, limit=20):
     """
     shelf_id: Bookshelves.PRESET_BOOKSHELVES['Want to Read'|'Already Read'|'Currently Reading']
