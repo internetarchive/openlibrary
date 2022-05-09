@@ -893,9 +893,6 @@ class export_books(delegate.page):
         csv.append('List ID,List Name,List Description,Entry,Created On,Last Updated')
 
         for list in lists:
-            logger.info(list)
-            logger.info(vars(list))
-            logger.info(dir(list))
             list_id = list.key.split('/')[-1]
             created_on = list.created.strftime(self.date_format)
             last_updated = list.last_modified.strftime(self.date_format) if list.last_modified else ''
@@ -903,10 +900,12 @@ class export_books(delegate.page):
                 entry = seed
                 if not isinstance(seed, str):
                     entry = seed.key
+                list_name = list.name.replace('"', '""') if list.name else ''
+                list_desc = list.description.replace('"', '""') if list.description else ''
                 row = [
                     list_id,
-                    f'"{list.name}"' if list.name else '', # Replace double quotes?
-                    f'"{list.description}"' if list.description else '',
+                    f'"{list_name}"',
+                    f'"{list_desc}"',
                     entry,
                     created_on,
                     last_updated
