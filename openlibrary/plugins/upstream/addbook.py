@@ -1,5 +1,6 @@
 """Handlers for adding and editing books."""
 
+import itertools
 import web
 import json
 import csv
@@ -1015,13 +1016,9 @@ class languages_autocomplete(delegate.page):
     def GET(self):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
-
-        languages = [
-            lang
-            for lang in utils.get_languages()
-            if lang.name.lower().startswith(i.q.lower())
-        ]
-        return to_json(languages[: i.limit])
+        return to_json(
+            list(itertools.islice(utils.autocomplete_languages(i.q), i.limit))
+        )
 
 
 class works_autocomplete(delegate.page):

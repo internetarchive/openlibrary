@@ -161,3 +161,11 @@ def test_reformat_html():
 
     assert f("<script>alert('hello')</script>", 34) == "alert(&#39;hello&#39;)"
     assert f("&lt;script&gt;") == "&lt;script&gt;"
+
+
+def test_strip_accents():
+    f = utils.strip_accents
+    assert f('Plain ASCII text') == 'Plain ASCII text'
+    assert f('Des idées napoléoniennes') == 'Des idees napoleoniennes'
+    # It only modifies Unicode Nonspacing Mark characters:
+    assert f('Bokmål : Standard Østnorsk') == 'Bokmal : Standard Østnorsk'

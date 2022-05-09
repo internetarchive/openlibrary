@@ -243,7 +243,8 @@ export default {
     },
 
     async created() {
-        this.topLanguages = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages.json`).then(r => r.json());
+        const params = CONFIGS.LANG ? `?lang=${CONFIGS.LANG}` : '';
+        this.topLanguages = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages.json${params}`).then(r => r.json());
         this.langOpts = this.topLanguages;
     },
 
@@ -311,11 +312,13 @@ export default {
                 // fetch top languages
                 this.langOpts = this.topLanguages;
             } else {
+                const params = new URLSearchParams({q: query, limit: 15});
+                if (CONFIGS.LANG) {
+                    params.set('lang', CONFIGS.LANG);
+                }
                 // Actually search
-                this.langOpts = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages/_autocomplete.json?${new URLSearchParams({
-                    q: query,
-                    limit: 15,
-                })}`).then(r => r.json());
+                this.langOpts = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages/_autocomplete.json?${params}`)
+                    .then(r => r.json());
             }
 
             this.langLoading = false;

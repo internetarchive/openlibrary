@@ -10,6 +10,7 @@ const CONFIGS = {
     OL_BASE_LANGS: urlParams.get('ol_base_langs') || OL_BASE_DEFAULT || '',
     OL_BASE_PUBLIC: urlParams.get('ol_base') || 'openlibrary.org',
     DEBUG_MODE: urlParams.get('debug') === 'true',
+    LANG: urlParams.get('lang'),
 };
 
 for (const key of ['OL_BASE_COVERS', 'OL_BASE_SEARCH', 'OL_BASE_BOOKS', 'OL_BASE_LANGS']) {

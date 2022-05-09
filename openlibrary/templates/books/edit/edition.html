@@ -17,9 +17,10 @@ $jsdef render_language_autocomplete_item(item):
     </div>
 
 $# Render the ith language input field
-$jsdef render_language_field(i, language):
+$jsdef render_language_field(i, language, i18n_name):
+    $ lang_name = i18n_name or language.name
     <div class="input">
-      <input name="languages--$i" class="language language-autocomplete" type="text" id="language-$i" value="$language.name"/>
+      <input name="languages--$i" class="language language-autocomplete" type="text" id="language-$i" value="$lang_name"/>
       <input name="edition--languages--$i--key" type="hidden" id="language-$i-key" value="$language.key" />
       <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this language')">[x]</a>
       <br/><a href="javascript:;" class="add small">$_('Add another language?')</a>
@@ -274,9 +275,9 @@ $jsdef render_work_autocomplete_item(item):
                 </div>
                 $if book.languages:
                     $for i, lang in enumerate(book.languages):
-                        $:render_language_field(i, lang)
+                        $:render_language_field(i, lang, get_language_name(lang))
                 $else:
-                    $:render_language_field(0, storage(name="", key=""))
+                    $:render_language_field(0, storage(name="", key=""), None)
             </div>
 
             <div class="formElement" id="translated-from">

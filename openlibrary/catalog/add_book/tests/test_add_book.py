@@ -13,7 +13,6 @@ from openlibrary.catalog.add_book import (
     isbns_from_record,
     load,
     split_subtitle,
-    strip_accents,
     RequiredField,
 )
 
@@ -41,13 +40,6 @@ def test_isbns_from_record():
     assert '9780190906764' in result
     assert '0190906766' in result
     assert len(result) == 2
-
-
-def test_strip_accents():
-    assert strip_accents('Plain ASCII text') == 'Plain ASCII text'
-    assert strip_accents('Des idées napoléoniennes') == 'Des idees napoleoniennes'
-    # It only modifies Unicode Nonspacing Mark characters:
-    assert strip_accents('Bokmål : Standard Østnorsk') == 'Bokmal : Standard Østnorsk'
 
 
 bookseller_titles = [

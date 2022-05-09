@@ -8,6 +8,8 @@ import web
 import json
 import logging
 
+from openlibrary.plugins.upstream.utils import get_language_name
+
 from . import subjects
 from . import search
 
@@ -15,12 +17,6 @@ from six.moves import urllib
 
 
 logger = logging.getLogger("openlibrary.worksearch")
-
-
-def get_language_name(code):
-    doc = web.ctx.site.get('/languages/' + code)
-    name = doc and doc.name
-    return name or code
 
 
 class languages(subjects.subjects):
@@ -52,8 +48,8 @@ def get_top_languages(limit):
     )
     return [
         web.storage(
-            name=get_language_name(row.value),
-            key='/languages/' + row.value,
+            name=get_language_name(f'/languages/{row.value}'),
+            key=f'/languages/{row.value}',
             count=row.count,
         )
         for row in result['facets']['language']

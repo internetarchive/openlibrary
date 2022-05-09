@@ -73,7 +73,7 @@ $code:
           <a href="$work_edition_url#editions-list">$ungettext('1 edition', '%(count)d editions', doc.edition_count, count=doc.edition_count)</a>
           $if doc.get('languages'):
             <span class="languages">
-              $:ungettext('in <a class="hoverlink" title="%(langs)s">1 language</a>', 'in <a class="hoverlink" title="%(langs)s">%(count)d languages</a>', len(doc.languages), count=len(doc.languages), langs=commify_list(doc.languages))
+              $:ungettext('in <a class="hoverlink" title="%(langs)s">1 language</a>', 'in <a class="hoverlink" title="%(langs)s">%(count)d languages</a>', len(doc.languages), count=len(doc.languages), langs=commify_list([get_language_name('/languages/' + lang) for lang in doc.languages]))
             </span>
           $if doc.get('ia'):
             &mdash; $_('%s previewable', len(doc.get('ia')))

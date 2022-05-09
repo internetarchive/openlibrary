@@ -59,7 +59,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
           <!-- Formats are store as a raw string -->
           $book.physical_format.replace('[', '').replace(']','')
           $if book.languages:
-            $_('in %(languagelist)s', languagelist=', '.join(l.name for l in book.languages))
+            $:_('in %(languagelist)s', languagelist=commify_list(thingrepr(l) for l in book.languages))
           $if book.edition_name:
             - $book.edition_name
         </div>
