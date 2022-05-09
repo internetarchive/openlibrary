@@ -67,9 +67,9 @@ want = (
         '730',
         '740',  # other titles
         '852',  # location
-        '856',
+        '856',  # electronic location / URL
     ]
-)  # URL
+)
 
 
 def read_dnb(rec):
@@ -470,10 +470,10 @@ def read_description(rec):
 def read_url(rec):
     found = []
     for f in rec.get_fields('856'):
-        contents = f.get_contents(['u', '3', 'z'])
+        contents = f.get_contents(['u', 'y', '3', 'z', 'x'])
         if not contents.get('u'):
             continue
-        title = (contents.get('3') or contents.get('z', ['External source']))[0].strip()
+        title = (contents.get('y') or contents.get('3') or contents.get('z') or contents.get('x', ['External source']))[0].strip()
         found += [{'url': u.strip(), 'title': title} for u in contents['u']]
     return found
 
