@@ -100,7 +100,7 @@ $if isbn_10 and not asin:
     <div class="panel list-view">
       <div class="btn-notice">
           $if ctx.get('share_links'):
-            $:macros.SocialShare(ctx.get('share_links'), request.home + page.key,'pao', 'shareLinks cta-section')
+            $:macros.SocialShare(ctx.get('share_links'), request.home + page.key)
         </div>
     </div>
 
