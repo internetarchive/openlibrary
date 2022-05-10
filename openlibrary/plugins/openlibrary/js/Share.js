@@ -4,7 +4,7 @@ export function initShareModal($modalLinks){
             $.colorbox({
                 inline: true,
                 opacity: '0.5',
-                href: `#social-modal-content`,
+                href: '#social-modal-content',
                 width: '100%',
                 maxWidth: '400px'
             });
