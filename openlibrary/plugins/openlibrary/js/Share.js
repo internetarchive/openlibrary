@@ -1,17 +1,13 @@
-const popup = document.querySelector('.popup'),
-    field = popup.querySelector('.copy-field'),
-    input = field.querySelector('input'),
-    copy = field.querySelector('button');
-copy.onclick = () => {
-    input.select(); //select input value
-    if (document.execCommand('copy')) {
-        //if the selected text copy
-        field.classList.add('active');
-        copy.innerText = 'Copied';
-        setTimeout(() => {
-            window.getSelection().removeAllRanges(); //remove selection from document
-            field.classList.remove('active');
-            copy.innerText = 'Copy';
-        }, 3000);
-    }
-};
+export function initShareModal($modalLinks){
+    $modalLinks.each(function() {
+        this.addEventListener('click', function() {
+            $.colorbox({
+                inline: true,
+                opacity: '0.5',
+                href: `#social-modal-content`,
+                width: '100%',
+                maxWidth: '400px'
+            });
+        })
+    })
+}
