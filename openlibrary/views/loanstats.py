@@ -39,7 +39,7 @@ def cached_get_most_logged_books(shelf_id=None, since_days=1, limit=20):
     )(shelf_id=shelf_id, since_days=since_days, limit=limit)
 
 @public
-def get_logged_books_carousel(since_days=1, limit=20 ,page=1):
+def get_logged_books_carousel(since_days=1, limit=7 ,page=1):
     books = get_most_logged_books(since_days = since_days, limit = limit, page = page)
     work_index = get_solr_works(f"/works/OL{book['work_id']}W" for book in books)
     availability_index = get_availabilities(work_index.values())
