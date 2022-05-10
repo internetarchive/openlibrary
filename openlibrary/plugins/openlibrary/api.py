@@ -71,8 +71,12 @@ class browse(delegate.page):
             trending=False
         )
         if i.trending:
-           works= get_logged_books_carousel(limit = int(i.limit),page=int(i.page))
+           works = get_logged_books_carousel(limit = int(i.limit), page = int(i.page))
            url=""
+           result = {
+            'query': url,
+            'works': [dict(work) for work in works],
+            }
         else:
             sorts = i.sorts.split(',')
             page = int(i.page)
@@ -87,10 +91,10 @@ class browse(delegate.page):
                 sorts=sorts,
             )
             works = lending.get_available(url=url) if url else []
-        result = {
-            'query': url,
-            'works': [work.dict() for work in works],
-        }
+            result = {
+                'query': url,
+                'works': [work.dict() for work in works],
+            }
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
 

@@ -22,7 +22,7 @@ $add_metatag(name="twitter:card", content="homepage_summary")
   $if not test:
     $:macros.QueryCarousel(query="ddc:8* first_publish_year:[* TO 1950] publish_year:[2000 TO *] -public_scan_b:false", title=_('Classic Books'), key="public_domain", url="/read", sort='random.hourly')
 
-  $:render_template("books/custom_carousel", books=get_logged_books_carousel(), title=_('Trending Books'), url="/trending", test=test,load_more={"url": "/browse.json?trending=true", "mode": "page", "limit": 20})
+  $:render_template("books/custom_carousel", books=get_logged_books_carousel(), title=_('Trending Books'), url="/trending", test=test,load_more={"url": "/browse.json?trending=true", "mode": "page", "limit": 7})
 
 
   $if monthly_reads and not test:
