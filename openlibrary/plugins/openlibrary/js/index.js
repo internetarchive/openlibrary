@@ -123,9 +123,6 @@ jQuery(function () {
             .then(module => module.initEditionsTable());
     }
 
-
-
-
     const edition = document.getElementById('tabsAddbook');
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
     const addRowButton = document.getElementById('add_row_button');
