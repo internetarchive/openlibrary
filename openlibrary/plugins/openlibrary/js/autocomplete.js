@@ -108,13 +108,17 @@ export default function($) {
         const options = $.extend(default_ac_opts, ac_opts, {
             source: function (q, response) {
                 const term = q.term;
+                const params = {
+                    q: term,
+                    limit: options.max,
+                    timestamp: new Date()
+                };
+                if (location.search.indexOf('lang=') !== -1) {
+                    params.lang = new URLSearchParams(location.search).get('lang');
+                }
                 return $.ajax({
                     url: ol_ac_opts.endpoint,
-                    data: {
-                        q: term,
-                        limit: options.max,
-                        timestamp: new Date()
-                    }
+                    data: params
                 }).then((results) => {
                     response(
                         mapApiResultsToAutocompleteSuggestions(

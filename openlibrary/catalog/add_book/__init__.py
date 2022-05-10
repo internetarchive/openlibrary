@@ -25,7 +25,6 @@ A record is loaded by calling the load function.
 import json
 import re
 
-import unicodedata as ucd
 import web
 
 from collections import defaultdict
@@ -40,6 +39,7 @@ from openlibrary import accounts
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.utils import mk_norm
 from openlibrary.core import lending
+from openlibrary.plugins.upstream.utils import strip_accents
 from openlibrary.utils import uniq, dicthash
 from openlibrary.utils.isbn import normalize_isbn
 
@@ -103,15 +103,6 @@ bad_titles = {
 }
 
 subject_fields = ['subjects', 'subject_places', 'subject_times', 'subject_people']
-
-
-def strip_accents(s):
-    """http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string"""
-    try:
-        s.encode('ascii')
-        return s
-    except UnicodeEncodeError:
-        return ''.join(c for c in ucd.normalize('NFD', s) if ucd.category(c) != 'Mn')
 
 
 def normalize(s):

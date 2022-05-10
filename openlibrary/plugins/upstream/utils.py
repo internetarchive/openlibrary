@@ -1,4 +1,6 @@
+import functools
 from typing import Iterable, List, Union, Tuple, Any
+import unicodedata
 
 import web
 import json
@@ -625,24 +627,88 @@ def parse_toc(text):
     return [parse_toc_row(line) for line in text.splitlines() if line.strip(" |")]
 
 
-_languages = None
+def safeget(func):
+    """
+    TODO: DRY with solrbuilder copy
+    >>> safeget(lambda: {}['foo'])
+    >>> safeget(lambda: {}['foo']['bar'][0])
+    >>> safeget(lambda: {'foo': []}['foo'][0])
+    >>> safeget(lambda: {'foo': {'bar': [42]}}['foo']['bar'][0])
+    42
+    >>> safeget(lambda: {'foo': 'blah'}['foo']['bar'])
+    """
+    try:
+        return func()
+    except (KeyError, IndexError, TypeError):
+        return None
+
+
+def strip_accents(s: str) -> str:
+    # http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string
+    try:
+        s.encode('ascii')
+        return s
+    except UnicodeEncodeError:
+        return ''.join(
+            c
+            for c in unicodedata.normalize('NFD', s)
+            if unicodedata.category(c) != 'Mn'
+        )
+
+
+@functools.cache
+def get_languages():
+    keys = web.ctx.site.things({"type": "/type/language", "limit": 1000})
+    return {lang.key: lang for lang in web.ctx.site.get_many(keys)}
+
+
+def autocomplete_languages(prefix: str):
+    def normalize(s: str) -> str:
+        return strip_accents(s).lower()
+
+    prefix = normalize(prefix)
+    user_lang = web.ctx.lang or 'en'
+    for lang in get_languages().values():
+        user_lang_name = safeget(lambda: lang['name_translated'][user_lang][0])
+        if user_lang_name and normalize(user_lang_name).startswith(prefix):
+            yield web.storage(
+                key=lang.key,
+                code=lang.code,
+                name=user_lang_name,
+            )
+            continue
+
+        lang_iso_code = safeget(lambda: lang['identifiers']['iso_639_1'][0])
+        native_lang_name = safeget(lambda: lang['name_translated'][lang_iso_code][0])
+        if native_lang_name and normalize(native_lang_name).startswith(prefix):
+            yield web.storage(
+                key=lang.key,
+                code=lang.code,
+                name=native_lang_name,
+            )
+            continue
+
+        if normalize(lang.name).startswith(prefix):
+            yield web.storage(
+                key=lang.key,
+                code=lang.code,
+                name=lang.name,
+            )
+            continue
+
+
+def get_language(lang_or_key: Union[Thing, str]) -> Thing:
+    if isinstance(lang_or_key, str):
+        return get_languages()[lang_or_key]
+    else:
+        return lang_or_key
 
 
 @public
-def get_languages():
-    global _languages
-    if _languages is None:
-        keys = web.ctx.site.things(
-            {"type": "/type/language", "key~": "/languages/*", "limit": 1000}
-        )
-        _languages = sorted(
-            (
-                web.storage(name=d.name, code=d.code, key=d.key)
-                for d in web.ctx.site.get_many(keys)
-            ),
-            key=lambda d: d.name.lower(),
-        )
-    return _languages
+def get_language_name(lang_or_key: Union[Thing, str]):
+    user_lang = web.ctx.lang or 'en'
+    lang = get_language(lang_or_key)
+    return safeget(lambda: lang['name_translated'][user_lang][0]) or lang.name
 
 
 @public

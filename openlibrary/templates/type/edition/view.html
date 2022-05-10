@@ -274,7 +274,7 @@ $if is_privileged_user:
           $for e in previews:
             $if e.languages[0].name not in seen:
               $ seen.add(e.languages[0].name)
-              <a href="$work.key?edition=$(e.ocaid)">$e.languages[0].name</a>
+              <a href="$work.key?edition=$(e.ocaid)">$get_language_name(e.languages[0].key)</a>
         </p>
 
       $if work and work.description or edition and edition.description:
