@@ -274,8 +274,7 @@ jQuery(function () {
 
     const $shareModalLinks = $('.share-modal-link');
     if ($shareModalLinks.length) {
-        import('./Share')
-        import(/* webpackChunkName: "modal-links" */ './modals')
+        import(/* webpackChunkName: "share-links" */ './Share')
             .then(module => {
                 module.initShareModal($shareModalLinks)
             });
