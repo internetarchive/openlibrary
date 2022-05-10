@@ -5,20 +5,11 @@ $# :param str page_url: absolute url excluding params
 $def embed_iframe(page_url):
   <iframe frameborder="0" width="165" height="400" src="$(page_url)/-/widget"></iframe>
 
-
-
-
-<div class="$class_list">
-
-
-  <div>
-    <p class="pao-section-title">$_('Share this book')
-
-    </p>
-
-    <ul class="shareLinks-list" style="display: inline-block; margin-left: 50px; margin-bottom: 4px;">
-      <a class="view-modal share-modal-link" href="javascript:;" data-context="$json_encode(context)">
-        <img class="share-btn" src="../../static/images/icons/share.svg" />
+<div class="cta-section">
+  <div class="share-link-container">
+    <a class="share-modal-link" href="javascript:;">
+      <p class="cta-section-title">$_('Share this book')</p>
+      <img class="share-btn" src="/static/images/icons/share.svg" />
       </a>
     </ul>
 
