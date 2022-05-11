@@ -11,6 +11,8 @@ from openlibrary.plugins.openlibrary.lists import create_list_preview
 import web
 
 from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
 
 from openlibrary.coverstore import config, db, ratelimit
 from openlibrary.coverstore.coverlib import read_file, read_image, save_image
@@ -525,6 +527,8 @@ def overlay_covers_over_background():
     and put their cover in the correct spot in order to create a new image for social-card"""
     
     five_seeds = create_list_preview("/people/openlibrary/lists/OL1L")
+    lst = web.ctx.site.get("/people/openlibrary/lists/OL1L")
+    title=lst.name
     background = Image.open("/openlibrary/static/images/Twitter_Post_Background_Shelf_Color.png")
     
     text_size=(344,33)
@@ -532,7 +536,7 @@ def overlay_covers_over_background():
     text_position=(340,406)
     logo_position=(823,439)
     for seed in five_seeds:
-        cover = seed.get_cover()
+        cover = seed.get_cover()        
 
         if  cover:
             response = requests.get(f"https://covers.openlibrary.org/b/id/{cover.id}-M.jpg")
@@ -545,5 +549,9 @@ def overlay_covers_over_background():
             # background = background.resize(size,Image.ANTIALIAS)
 
             background.paste(img, (13, 17))
-    
+    draw = ImageDraw.Draw(background)
+    #myFont = ImageFont.truetype('FreeMono.ttf', 65)
+    draw.text((340, 406), title, fill =(255, 255, 255))
     background.save('social-card-image.png',"PNG")
+    
+    
