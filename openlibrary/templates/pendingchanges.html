@@ -10,8 +10,16 @@ $def with(requests=None)
 
 $if requests:
   <table>
+    <tr>
+      <th>url</th>
+      <th>submitter</th>
+      <th>reviewer</th>
+    </tr>
     $for r in requests:
-      <tr>
-	<td>$r</td>
+      <tr title='$r'>
+	$ url = "%s&mrid=%s" % (r['url'], r['id'])
+	<td><a href="$url">$url</a></td>
+	<td>$r['submitter']</td>
+	<td>$r['reviewer']</td>
       </tr>
   </table>
