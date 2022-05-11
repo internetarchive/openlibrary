@@ -155,12 +155,10 @@ def load_state(path, logfile):
     except (ValueError, OSError):
         return filenames, 0
 
-
 def update_state(logfile, fname, line_num=0):
     """Records the last file we began processing and the current line"""
     with open(logfile, 'w') as fout:
         fout.write(f'{fname},{line_num}\n')
-
 
 def csv_to_ol_json_item(line):
     """converts a line to a book item"""
@@ -174,8 +172,11 @@ def csv_to_ol_json_item(line):
 
 def is_low_quality_book(book_item):
     """check if a book item is of low quality"""
-    return ("notebook" in book_item.title.casefold() and "independently published" in book_item.publisher.casefold())
-
+    return (
+        "notebook" in book_item['title'].casefold() and
+        any("independently published" in publisher.casefold()
+            for publisher in book_item['publishers'])
+    )
 
 def batch_import(path, batch, batch_size=5000):
     logfile = os.path.join(path, 'import.log')
@@ -197,7 +198,7 @@ def batch_import(path, batch, batch_size=5000):
                     book_item = csv_to_ol_json_item(line)
                     if not is_low_quality_book(book_item["data"]):
                         book_items.append(book_item)
-                except AssertionError as e:
+                except (AssertionError, IndexError) as e:
                     logger.info(f"Error: {e} from {line}")
 
                 # If we have enough items, submit a batch
