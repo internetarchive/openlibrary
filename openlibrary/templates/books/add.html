@@ -17,7 +17,9 @@ $var title: $_("Add a book")
 
         $ author = (work and work.authors and work.authors[0].author) or author
         <div class="formElement">
-            <div class="label"><label for="title">$_("Title")</label></div>
+            <div class="label">
+                <label for="title">$_("Title")</label> <span class="tip">$:_("Use <b><i>Title: Subtitle</i></b> to add a subtitle.")</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
+            </div>
             <div class="input">
                 $if work:
                     <input type="text" id="title" disabled="disabled" value="$work.title"/>
@@ -32,14 +34,18 @@ $var title: $_("Add a book")
         </div>
 
         <div class="formElement">
-            <div class="label"><label for="publisher">$_("Who is the publisher?")</label></div>
+            <div class="label">
+                <label for="publisher">$_("Who is the publisher?")</label> <span class="tip">$_("For example"): <em>Oxford University Press; Penguin; W.W. Norton</em></span><span class="red">*<span class="tip">$_("Required field")</span></span>
+            </div>
             <div class="input">
                 <input type="text" name="publisher" class="required" id="publisher"/>
             </div>
         </div>
 
         <div class="formElement">
-            <div class="label"><label for="publish_date">$_("When was it published?")</label> <span class="smaller lighter">$_("The year it was published is plenty.")</span></div>
+            <div class="label">
+                <label for="publish_date">$_("When was it published?")</label> <span class="tip">$_("You should be able to find this in the first few pages of the book.")</span><span class="red">*<span class="tip">$_("Required field")</span></span>
+            </div>
             <div class="input">
                 <input type="text" name="publish_date" class="required publish-date" id="publish_date"/>
             </div>
