@@ -12,8 +12,9 @@ export default class SelectionManager {
     /**
      * @param {import('../../index.js').IntegratedLibrarianEnvironment} ile
      */
-    constructor(ile) {
+    constructor(ile, curpath=location.pathname) {
         this.ile = ile;
+        this.curpath = curpath;
         this.inited = false;
 
         this.toggleSelected = this.toggleSelected.bind(this);
@@ -92,7 +93,7 @@ export default class SelectionManager {
             ev.dataTransfer.setDragImage($('#ile-drag-status')[0], 0, 0);
         }
         const data = {
-            from: location.pathname.match(/OL\d+[AWM]/)[0],
+            from: this.curpath.match(/OL\d+[AWM]/)[0],
             items: this.getSelectedItems()
         };
         ev.dataTransfer.setData('text', JSON.stringify(data));
@@ -125,11 +126,11 @@ export default class SelectionManager {
     }
 
     getHandler() {
-        return SelectionManager.DROP_HANDLERS.find(h => h.path.test(location.pathname));
+        return SelectionManager.DROP_HANDLERS.find(h => h.path.test(this.curpath));
     }
 
     getPossibleProviders() {
-        return SelectionManager.SELECTION_PROVIDERS.filter(p => p.path.test(location.pathname));
+        return SelectionManager.SELECTION_PROVIDERS.filter(p => p.path.test(this.curpath));
     }
 
     /**
@@ -137,7 +138,7 @@ export default class SelectionManager {
      */
     getProvider(el) {
         return SelectionManager.SELECTION_PROVIDERS
-            .find(p => p.path.test(location.pathname) && el.matches(p.selector));
+            .find(p => p.path.test(this.curpath) && el.matches(p.selector));
     }
 }
 
