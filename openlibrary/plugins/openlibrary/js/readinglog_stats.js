@@ -146,7 +146,7 @@ export function init(config) {
               VALUES ?olids { ${authors.map(a => `"${a.key.split('/')[2]}"`).join(' ')} }
               ?x wdt:P648 ?olids;
                  wdt:P648 ?olid.
-                 
+
               ${
     SPARQL_FIELDS.map(f => (f.render || defaultFieldRender)(f))
         .join('\n')
