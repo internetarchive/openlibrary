@@ -8,150 +8,138 @@ import './SelectionManager.less';
  * or authors on books pages) on Open Library selectable and drag/droppable from one
  * Open Library window to another.
  */
-const SelectionManager = {};
-export default SelectionManager;
+export default class SelectionManager {
+    /**
+     * @param {import('../../index.js').IntegratedLibrarianEnvironment} ile
+     */
+    constructor(ile) {
+        this.ile = ile;
+        this.inited = false;
 
-SelectionManager.inited = false;
+        this.toggleSelected = this.toggleSelected.bind(this);
+        this.dragStart = this.dragStart.bind(this);
+        this.onDrop = this.onDrop.bind(this);
+        this.allowDrop = this.allowDrop.bind(this);
+    }
 
-/** This is the main ILE toolbar. Should be moved to a Vue component. */
-SelectionManager.DRAG_TOOLBAR_HTML = `
-<div id="ile-drag-toolbar">
-    <div style="flex: 1">
-        <div id="ile-drag-status">
-            <div class="text"></div>
-            <div class="images"></div>
-        </div>
-    </div>
-    <div id="ile-drag-actions"></div>
-</div>`.trim();
+    init() {
+        this.inited = true;
 
+        // Label each selectable element with a class, and bind the click event
+        const providers = this.getPossibleProviders();
+        const providerSelectors = providers.map(p => p.selector);
+        $(providerSelectors.join(', '))
+            .addClass('ile-selectable')
+            .on('click', this.toggleSelected);
 
-SelectionManager.init = function () {
-    SelectionManager.inited = true;
-
-    // Label each selectable element with a class, and bind the click event
-    const providers = SelectionManager.getPossibleProviders();
-    const providerSelectors = providers.map(p => p.selector);
-    $(providerSelectors.join(', '))
-        .addClass('ile-selectable')
-        .on('click', SelectionManager.toggleSelected);
-
-    // Some providers need a "handle" to allow dragging.
-    for (const provider of providers) {
-        if (provider.addHandle) {
-            for (const el of $(provider.selector).toArray()) {
-                const handle = $('<span class="ile-select-handle">&bull;</span>');
-                handle[0].addEventListener('click', ev => ev.preventDefault(), { capture: true });
-                $(el).prepend(handle);
+        // Some providers need a "handle" to allow dragging.
+        for (const provider of providers) {
+            if (provider.addHandle) {
+                for (const el of $(provider.selector).toArray()) {
+                    const handle = $('<span class="ile-select-handle">&bull;</span>');
+                    handle[0].addEventListener('click', ev => ev.preventDefault(), { capture: true });
+                    $(el).prepend(handle);
+                }
             }
         }
+
+        // Add the drag/drop handlers to the main white part of the page
+        document.addEventListener('drop', this.onDrop);
+        document.addEventListener('dragover', this.allowDrop);
     }
 
-    // Add the ILE toolbar
-    $(document.body).append($(SelectionManager.DRAG_TOOLBAR_HTML));
+    /**
+     * @param {MouseEvent & { currentTarget: HTMLElement }} clickEvent
+     */
+    toggleSelected(clickEvent) {
+        const el = clickEvent.currentTarget;
+        el.classList.toggle('ile-selected');
+        const selected = el.classList.contains('ile-selected');
+        el.draggable = selected;
+        const provider = this.getProvider(el);
+        // FIXME: this is a bug if we support selecting multiple types
+        const count = $('.ile-selected').length;
+        this.ile.setStatusText(`${count} ${count === 1 ? provider.singular : provider.plural} selected`);
+        $('#ile-drag-actions').empty();
+        const img_src = provider.image(el);
 
-    // Add the drag/drop handlers to the main white part of the page
-    document.addEventListener('drop', SelectionManager.onDrop);
-    document.addEventListener('dragover', SelectionManager.allowDrop);
-};
+        if (selected) {
+            el.addEventListener('dragstart', this.dragStart);
+            const factor = -sigmoid($('#ile-drag-status .images img').length) + 1 + 0.5;
+            $('#ile-drag-status .images').append(`<img src="${img_src}" style="padding: ${(1 - factor) * 5}px 0; width: ${(factor ** 3) * 100}%"/>`);
 
-/**
- * @param {MouseEvent & { currentTarget: HTMLElement }} clickEvent
- */
-SelectionManager.toggleSelected = function (clickEvent) {
-    const el = clickEvent.currentTarget;
-    el.classList.toggle('ile-selected');
-    const selected = el.classList.contains('ile-selected');
-    el.draggable = selected;
-    const provider = SelectionManager.getProvider(el);
-    // FIXME: this is a bug if we support selecting multiple types
-    const count = $('.ile-selected').length;
-    SelectionManager.setStatusText(`${count} ${count === 1 ? provider.singular : provider.plural} selected`);
-    $('#ile-drag-actions').empty();
-    const img_src = provider.image(el);
-
-    if (selected) {
-        el.addEventListener('dragstart', SelectionManager.dragStart);
-        const factor = -sigmoid($('#ile-drag-status .images img').length) + 1 + 0.5;
-        $('#ile-drag-status .images').append(`<img src="${img_src}" style="padding: ${(1 - factor) * 5}px 0; width: ${(factor ** 3) * 100}%"/>`);
-
-        const actions = SelectionManager.ACTIONS.filter(a => (
-            a.applies_to_type === provider.singular &&
-            (a.multiple_only ? count > 1 : count > 0)
-        ));
-        const items = SelectionManager.getSelectedItems();
-        for (const action of actions) {
-            $('#ile-drag-actions').append($(`<a target="_blank" href="${action.href(items)}">${action.name}</a>`));
+            const actions = SelectionManager.ACTIONS.filter(a => (
+                a.applies_to_type === provider.singular &&
+                (a.multiple_only ? count > 1 : count > 0)
+            ));
+            const items = this.getSelectedItems();
+            for (const action of actions) {
+                $('#ile-drag-actions').append($(`<a target="_blank" href="${action.href(items)}">${action.name}</a>`));
+            }
+        } else {
+            el.removeEventListener('dragstart', this.dragStart);
+            const img_el = $('#ile-drag-status .images img').toArray().find(el => el.src === img_src);
+            $(img_el).remove();
         }
-    } else {
-        el.removeEventListener('dragstart', SelectionManager.dragStart);
-        const img_el = $('#ile-drag-status .images img').toArray().find(el => el.src === img_src);
-        $(img_el).remove();
     }
-};
 
-/**
- * @param {DragEvent} ev
- */
-SelectionManager.dragStart = function (ev) {
-    const selected = $('.ile-selected').toArray();
-    if (selected.length > 1) {
-        ev.dataTransfer.setDragImage($('#ile-drag-status')[0], 0, 0);
+    /**
+     * @param {DragEvent} ev
+     */
+    dragStart(ev) {
+        const selected = $('.ile-selected').toArray();
+        if (selected.length > 1) {
+            ev.dataTransfer.setDragImage($('#ile-drag-status')[0], 0, 0);
+        }
+        const data = {
+            from: location.pathname.match(/OL\d+[AWM]/)[0],
+            items: this.getSelectedItems()
+        };
+        ev.dataTransfer.setData('text', JSON.stringify(data));
     }
-    const data = {
-        from: location.pathname.match(/OL\d+[AWM]/)[0],
-        items: SelectionManager.getSelectedItems()
-    };
-    ev.dataTransfer.setData('text', JSON.stringify(data));
-};
 
-SelectionManager.getSelectedItems = function () {
-    return $('.ile-selected').toArray().map(el => SelectionManager.getProvider(el).data(el));
-};
+    getSelectedItems() {
+        return $('.ile-selected').toArray().map(el => this.getProvider(el).data(el));
+    }
 
-/**
- * @param {DragEvent} ev
- */
-SelectionManager.onDrop = function (ev) {
-    ev.preventDefault();
-    const handler = SelectionManager.getHandler();
-    const data = JSON.parse(ev.dataTransfer.getData('text'));
-    handler.ondrop(data);
+    /**
+     * @param {DragEvent} ev
+     */
+    onDrop(ev) {
+        ev.preventDefault();
+        const handler = this.getHandler();
+        const data = JSON.parse(ev.dataTransfer.getData('text'));
+        handler.ondrop(data);
+    }
+
+    /**
+     * @param {DragEvent} ev
+     */
+    allowDrop(ev) {
+        const handler = this.getHandler();
+        if ($('.ile-selected').length || !handler) return;
+
+        ev.preventDefault();
+        this.ile.setStatusText(handler.message);
+    }
+
+    getHandler() {
+        return SelectionManager.DROP_HANDLERS.find(h => h.path.test(location.pathname));
+    }
+
+    getPossibleProviders() {
+        return SelectionManager.SELECTION_PROVIDERS.filter(p => p.path.test(location.pathname));
+    }
+
+    /**
+     * @param {HTMLElement} el
+     */
+    getProvider(el) {
+        return SelectionManager.SELECTION_PROVIDERS
+            .find(p => p.path.test(location.pathname) && el.matches(p.selector));
+    }
 }
 
-/**
- * @param {DragEvent} ev
- */
-SelectionManager.allowDrop = function (ev) {
-    const handler = SelectionManager.getHandler();
-    if ($('.ile-selected').length || !handler) return;
-
-    ev.preventDefault();
-    SelectionManager.setStatusText(handler.message);
-};
-
-SelectionManager.getHandler = function () {
-    return SelectionManager.DROP_HANDLERS.find(h => h.path.test(location.pathname));
-};
-
-SelectionManager.getPossibleProviders = function () {
-    return SelectionManager.SELECTION_PROVIDERS.filter(p => p.path.test(location.pathname));
-};
-
-/**
- * @param {HTMLElement} el
- */
-SelectionManager.getProvider = function (el) {
-    return SelectionManager.SELECTION_PROVIDERS
-        .find(p => p.path.test(location.pathname) && el.matches(p.selector));
-}
-
-/**
- * @param {string} text
- */
-SelectionManager.setStatusText = function (text) {
-    $('#ile-drag-status .text').text(text);
-}
 
 /**
  * Drop handlers define patterns for how certain drops should be handled.
@@ -166,12 +154,12 @@ SelectionManager.DROP_HANDLERS = [
         async ondrop(data) {
             // eslint-disable-next-line no-console
             console.log('move', data);
-            SelectionManager.setStatusText('Working...');
+            window.ILE.setStatusText('Working...');
             try {
                 await move_to_author(data.items, data.from, location.pathname.match(/OL\d+A/)[0]);
-                SelectionManager.setStatusText('Completed!');
+                window.ILE.setStatusText('Completed!');
             } catch (e) {
-                SelectionManager.setStatusText('Errored!');
+                window.ILE.setStatusText('Errored!');
                 throw e;
             }
         }
@@ -183,7 +171,7 @@ SelectionManager.DROP_HANDLERS = [
         async ondrop(data) {
             // eslint-disable-next-line no-console
             console.log('move', data);
-            SelectionManager.setStatusText('Working...');
+            window.ILE.setStatusText('Working...');
             try {
                 let workOlid = location.pathname.match(/OL\d+W/)?.[0];
                 if (!workOlid) {
@@ -191,9 +179,9 @@ SelectionManager.DROP_HANDLERS = [
                     workOlid = ed.works[0].key.match(/OL\d+W/)[0];
                 }
                 await move_to_work(data.items, data.from, workOlid);
-                SelectionManager.setStatusText('Completed!');
+                window.ILE.setStatusText('Completed!');
             } catch (e) {
-                SelectionManager.setStatusText('Errored!');
+                window.ILE.setStatusText('Errored!');
                 throw e;
             }
         }
