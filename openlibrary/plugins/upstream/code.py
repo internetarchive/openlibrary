@@ -98,12 +98,13 @@ class merge_work(delegate.page):
 
     def GET(self):
         user = web.ctx.site.get_user()
-        if not user or (not user.is_admin() and not user.is_librarian()):
+        has_access = user and (
+            (user.is_admin() or user.is_librarian())
+            and user.is_usergroup_member('/usergroup/librarian-work-merge')
+        )
+        if not has_access:
             raise web.HTTPError('403 Forbidden')
         return render_template('merge/works')
-
-    def POST(self):
-        pass
 
 
 @web.memoize
