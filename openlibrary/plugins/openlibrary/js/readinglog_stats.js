@@ -152,10 +152,6 @@ export function init(config) {
         .join('\n')
 }
 
-              # Only show modern-day countries in the the country of birth section
-              FILTER NOT EXISTS { ?country_of_birth wdt:P31 wd:Q3024240. }
-              FILTER NOT EXISTS { ?country_of_birth wdt:P576 ?date_dissolved. }
-
               SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],${config.lang},en". }
             }
         `;
