@@ -44,8 +44,8 @@ export default class SelectionManager {
         }
 
         // Add the drag/drop handlers to the main white part of the page
-        document.addEventListener('drop', this.onDrop);
-        document.addEventListener('dragover', this.allowDrop);
+        document.getElementById('test-body-mobile').addEventListener('drop', this.onDrop);
+        document.getElementById('test-body-mobile').addEventListener('dragover', this.allowDrop);
     }
 
     /**
@@ -121,6 +121,7 @@ export default class SelectionManager {
 
         ev.preventDefault();
         this.ile.setStatusText(handler.message);
+        document.getElementById('test-body-mobile').classList.add('ile-drag-over');
     }
 
     getHandler() {
