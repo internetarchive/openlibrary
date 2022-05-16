@@ -255,6 +255,11 @@ function addReadingLogButtonClickListener(button) {
                 }
 
                 button.children[1].innerText = initialText
+
+                // Close dropper if expanded:
+                if ($(dropper).find('.arrow').first().hasClass('up')) {
+                    toggleDropper(dropper)
+                }
             } else {
                 toggleDropper(dropper)
                 // Secondary button pressed
