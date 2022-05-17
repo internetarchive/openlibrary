@@ -1,4 +1,4 @@
-$def with (page, editions_page=False, render_times={})
+$def with (page, editions_page=False, render_times={}, summary=None)
 
 $if page.type.key == '/type/work' and page.edition_count == 1:
     $ edit_url = page.editions[0].key + '?m=edit'
@@ -44,6 +44,12 @@ $if isbn_10 and not asin:
           $if not page.is_fake_record():
               $:render_template('covers/change', page, ".edition-cover .bookCover img")
         </div>
+        $if summary:
+          <!--This section appears only in mobile/tablet screens-->
+          <div class="mobile-book-header">
+             $:summary
+          </div>
+
         $ render_times['databarWork: DonateModal'] = time()
         $:macros.DonateModal(page, ids={'isbn': isbn_13, 'asin': asin, 'prices': True})
         $ render_times['databarWork: DonateModal'] = time() - render_times['databarWork: DonateModal']

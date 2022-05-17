@@ -158,13 +158,19 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 $if is_privileged_user:
   $:render_template("type/edition/admin_bar", work, edition, ocaid)
 
+$ component_times['ReadlogStats'] = time()
+$ star_ratings_stats = macros.StarRatingsStats(work)
+$ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
+
+$ render_summary= render_template("type/edition/title_summary", work, edition, ocaid, work_title, star_ratings_stats)
+
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
   <div class="workDetails">
     $if work:
         <link itemprop="exampleOfWork" href="$work.key">
 
     <div class="editionCover">
-      $:macros.databarWork(edition or work, editions_page=True, render_times=component_times)
+      $:macros.databarWork(edition or work, editions_page=True, render_times=component_times,summary=render_summary)
     </div>
 
     <div class="editionAbout">
@@ -173,16 +179,10 @@ $if is_privileged_user:
         $:macros.databarView(page, edition)
         $ component_times['EditTopbar'] = time() - component_times['EditTopbar']
       </div>
+    <!--This section appears only in desktop-->
+    <div class="desktop-book-header">
+      $:render_summary
 
-      <div class="work-line">
-        $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title$cond(work.subtitle, ': %s' % work.subtitle)</a>
-        $if work.first_publish_year:
-            <span class="first-published-date" title="$_('First published in %s', work.first_publish_year)">
-              ($work.first_publish_year)
-            </span>
-      </div>
-
-      $ book_title = edition.get('title', '') or (work.title if work else '')
       $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
         $if edition and page.type.key in ["/type/work"]:
           $ edit_url = edition.url(suffix="/edit")
@@ -190,24 +190,8 @@ $if is_privileged_user:
           $ edit_url = page.url(suffix="/edit")
       $else:
         $ edit_url = page.key + "?m=edit"
+    </div>
       $:render_template("type/edition/compact_title", book_title, edit_url)
-      $:render_template("type/edition/book_title", book_title, edition)
-
-      $ authors = (work or edition).get_authors()
-      $ author_names = (work or edition).author_names
-      $if authors:
-        <h2 class="edition-byline">
-          $:macros.BookByline([(author.name, author.url()) for author in authors], attrs='itemprop="author"')
-        </h2>
-      $elif author_names:
-        <h2 class="edition-byline">
-          $:macros.BookByline([(name, None) for name in author_names], attrs='itemprop="author"')
-        </h2>
-
-      $ component_times['ReadlogStats'] = time()
-      $:macros.StarRatingsStats(work)
-      $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
-
       $:macros.EditionNavBar(work.edition_count, show_observations)
       <a id="edition-overview" name="edition-overview"></a>
       <div>

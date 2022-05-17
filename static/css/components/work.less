@@ -191,6 +191,7 @@ h2.edition-byline {
     top: @compact-title-height;
     margin-left: 0;
     margin-right: 0;
+    width: 100%;
   }
 }
 
@@ -366,6 +367,17 @@ div.editionTools {
   font-size: 1.2em;
   font-weight: normal;
   color: @link-blue;
+}
+@media only screen and (max-width: @width-breakpoint-desktop){
+  .desktop-book-header{
+    display: none;
+  }
+}
+
+.mobile-book-header {
+  h1 {
+    line-height: normal;
+  }
 }
 
 @import (less) "components/compact-title.less";
