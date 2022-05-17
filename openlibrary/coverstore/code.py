@@ -7,10 +7,12 @@ import os
 
 import memcache
 import requests
-from openlibrary.plugins.openlibrary.lists import create_list_preview
+from openlibrary.plugins.openlibrary.lists import create_list_preview, create_preview_recommendation_text
 import web
 
 from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
 
 from openlibrary.coverstore import config, db, ratelimit
 from openlibrary.coverstore.coverlib import read_file, read_image, save_image
@@ -523,12 +525,12 @@ class delete:
 def overlay_covers_over_background():
     """This method take as an input a list with the five books, from a list, 
     and put their cover in the correct spot in order to create a new image for social-card"""
-    
-    five_seeds = create_list_preview("/people/openlibrary/lists/OL5L")
+
+    five_seeds = create_list_preview("/people/openlibrary/lists/OL1L")     
     background = Image.open("/openlibrary/static/images/Twitter_Post_Background_Shelf_Color.png")
-
+    
     logo = Image.open("/openlibrary/static/images/Open_Library_logo.png")
-
+    recom_text = create_preview_recommendation_text("/people/openlibrary/lists/OL1L")
     text_size=(344,33)
     logo_size=(168,41)
     text_position=(340,406)
@@ -536,7 +538,7 @@ def overlay_covers_over_background():
 
     image = []
     for seed in five_seeds:
-        cover = seed.get_cover()
+        cover = seed.get_cover()        
 
         if  cover:
             response = requests.get(f"https://covers.openlibrary.org/b/id/{cover.id}-M.jpg")
@@ -577,5 +579,11 @@ def overlay_covers_over_background():
 
     logo = logo.resize(logo_size, Image.ANTIALIAS)
     background.paste(logo, logo_position, logo)
+
+    draw = ImageDraw.Draw(background)
+    #myFont = ImageFont.truetype('FreeMono.ttf', 65)
+    draw.text((340, 406), recom_text, fill =(255, 255, 255))
     
     background.save('social-card-image.png',"PNG", quality=100)
+    
+    
