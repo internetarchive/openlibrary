@@ -272,6 +272,16 @@ jQuery(function () {
             });
     }
 
+    const $shareModalLinks = $('.share-modal-link');
+    if ($shareModalLinks.length) {
+        import(/* webpackChunkName: "share-links" */ './Share')
+            .then(module => {
+                module.initShareModal($shareModalLinks)
+            });
+    }
+
+
+
     const manageCoversElement = document.getElementsByClassName('manageCovers').length;
     const addCoversElement = document.getElementsByClassName('imageIntro').length;
     const saveCoversElement = document.getElementsByClassName('imageSaved').length;
