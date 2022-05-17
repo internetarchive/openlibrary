@@ -648,6 +648,12 @@ def create_list_preview(lst_key):
     five_seeds = lst.seeds[0:5]
     return five_seeds
 
+
+def twitter_social_card():
+    """This method, take as input a list and it created an API endpoint for twitter social cards"""
+    
+
+
 class lists_preview(delegate.page):
     path = r"(/people/[^/]+/lists/OL\d+L)/preview"
 

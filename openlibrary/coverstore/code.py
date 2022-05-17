@@ -524,13 +524,17 @@ def overlay_covers_over_background():
     """This method take as an input a list with the five books, from a list, 
     and put their cover in the correct spot in order to create a new image for social-card"""
     
-    five_seeds = create_list_preview("/people/openlibrary/lists/OL1L")
+    five_seeds = create_list_preview("/people/openlibrary/lists/OL5L")
     background = Image.open("/openlibrary/static/images/Twitter_Post_Background_Shelf_Color.png")
-    
+
+    logo = Image.open("/openlibrary/static/images/Open_Library_logo.png")
+
     text_size=(344,33)
     logo_size=(168,41)
     text_position=(340,406)
     logo_position=(823,439)
+
+    image = []
     for seed in five_seeds:
         cover = seed.get_cover()
 
@@ -540,10 +544,38 @@ def overlay_covers_over_background():
 
             img = Image.open(image_bytes)
 
-            # resize the image
-            # size = (162,263)
-            # background = background.resize(size,Image.ANTIALIAS)
+            #resize the image
+            size = (162,263)
+            image.append(img.resize(size,Image.ANTIALIAS))
 
-            background.paste(img, (13, 17))
+
+    if len(image) == 5:
+        background.paste(image[0], (33, 102))
+        background.paste(image[1], (228, 102))
+        background.paste(image[2], (430, 102))
+        background.paste(image[3], (637, 102))
+        background.paste(image[4], (822, 102))
+
+    elif len(image) == 4:
+        background.paste(image[0], (72, 102))
+        background.paste(image[1], (312, 102))
+        background.paste(image[2], (557, 102))
+        background.paste(image[3], (780, 102))
     
-    background.save('social-card-image.png',"PNG")
+    elif len(image) == 3:
+        background.paste(image[0], (184, 102))
+        background.paste(image[1], (425, 102))
+        background.paste(image[2], (671, 102))
+
+    elif len(image) == 2:
+        background.paste(image[0], (304, 102))
+        background.paste(image[1], (545, 102))
+
+    else:
+        background.paste(image[0], (428, 102))
+
+
+    logo = logo.resize(logo_size, Image.ANTIALIAS)
+    background.paste(logo, logo_position, logo)
+    
+    background.save('social-card-image.png',"PNG", quality=100)
