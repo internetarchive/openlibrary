@@ -537,15 +537,19 @@ class SolrProcessor:
                 )
         return subjects
 
-    def build_data(self, w, editions, subjects, has_fulltext):
+    def build_data(
+        self,
+        w: dict,
+        editions: list[dict],
+        subjects: dict[str, dict[str, int]],
+        has_fulltext: bool,
+        ia_metadata: dict[str, Optional[IALiteMetadata]],
+    ) -> dict:
         """
         Get the Solr document to insert for the provided work.
 
-        :param dict w: Work
-        :param list[dict] editions: Editions of work
-        :param dict[str, dict[str, int]] subjects: subject counts grouped by subject_type
-        :param bool has_fulltext:
-        :rtype: dict
+        :param w: Work
+        :param subjects: subject counts grouped by subject_type
         """
         d = {}
 
@@ -632,7 +636,7 @@ class SolrProcessor:
         add_list("isbn", self.get_isbns(editions))
         add("last_modified_i", self.get_last_modified(w, editions))
 
-        d|=self.get_ebook_info(editions)
+        d |= self.get_ebook_info(editions, ia_metadata)
 
         # Anand - Oct 2013
         # If not public scan then add the work to Protected DAISY subject.
@@ -700,10 +704,12 @@ class SolrProcessor:
         )
 
     @staticmethod
-    def get_ebook_info(editions):
+    def get_ebook_info(
+        editions: list[dict],
+        ia_metadata: dict[str, Optional[IALiteMetadata]],
+    ) -> dict:
         """
         Add ebook information from the editions to the work Solr document.
-        :param list[dict] editions: Editions with extra data from process_editions
         """
         ebook_info={}
         class AvailabilityEnum(IntEnum):
@@ -727,10 +733,11 @@ class SolrProcessor:
 
         def get_ia_sorting_key(ed: dict) -> tuple[AvailabilityEnum, str]:
             ocaid = ed['ocaid'].strip()
+            md = ia_metadata.get(ocaid, {})
             return (
                 get_ia_availability_enum(
-                    ed.get('ia_collection', []),
-                    ed.get('access_restricted_item') == "true",
+                    md.get('collection', []),
+                    md.get('access_restricted_item') == "true",
                 ),
                 # De-prioritize google scans because they are lower quality
                 '0: non-goog' if not ocaid.endswith('goog') else '1: goog',
@@ -752,13 +759,16 @@ class SolrProcessor:
             if best_availability == AvailabilityEnum.PUBLIC:
                 ebook_info['public_scan_b'] = True
 
-            all_collection = sorted(uniq(
-                c
-                for e in ia_eds
-                for c in e.get('ia_collection', [])
-                # Exclude fav-* collections because they're not useful to us.
-                if not c.startswith('fav-')
-            ))
+            all_collection = sorted(
+                uniq(
+                    c
+                    for md in ia_metadata.values()
+                    if md
+                    for c in md.get('collection', [])
+                    # Exclude fav-* collections because they're not useful to us.
+                    if not c.startswith('fav-')
+                )
+            )
             if all_collection:
                 ebook_info['ia_collection_s'] = ';'.join(all_collection)
 
@@ -776,8 +786,10 @@ class SolrProcessor:
         return ebook_info
 
 
-
-async def build_data(w: dict) -> SolrDocument:
+async def build_data(
+    w: dict,
+    ia_metadata: dict[str, Optional[IALiteMetadata]] = None,
+) -> SolrDocument:
     """
     Construct the Solr document to insert into Solr for the given work
 
@@ -791,9 +803,10 @@ async def build_data(w: dict) -> SolrDocument:
         editions = data_provider.get_editions_of_work(w)
     authors = await SolrProcessor().extract_authors(w)
 
-    iaids = [e["ocaid"] for e in editions if "ocaid" in e]
-    ia = {iaid: get_ia_collection_and_box_id(iaid) for iaid in iaids}
-    return build_data2(w, editions, authors, ia)
+    if ia_metadata is None:
+        iaids = [e["ocaid"] for e in editions if "ocaid" in e]
+        ia_metadata = {iaid: get_ia_collection_and_box_id(iaid) for iaid in iaids}
+    return build_data2(w, editions, authors, ia_metadata)
 
 
 def build_data2(
@@ -841,7 +854,7 @@ def build_data2(
     def add_field_list(doc, name, field_list):
         doc[name] = list(field_list)
 
-    doc = p.build_data(w, editions, subjects, has_fulltext)
+    doc = p.build_data(w, editions, subjects, has_fulltext, ia)
 
     work_cover_id = next(
         itertools.chain(
