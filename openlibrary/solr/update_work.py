@@ -542,7 +542,6 @@ class SolrProcessor:
         w: dict,
         editions: list[dict],
         subjects: dict[str, dict[str, int]],
-        has_fulltext: bool,
         ia_metadata: dict[str, Optional[IALiteMetadata]],
     ) -> dict:
         """
@@ -641,7 +640,7 @@ class SolrProcessor:
         # Anand - Oct 2013
         # If not public scan then add the work to Protected DAISY subject.
         # This is not the right place to add it, but seems to the quickest way.
-        if has_fulltext and not d.get('public_scan_b'):
+        if d.get('has_fulltext') and not d.get('public_scan_b'):
             subjects['subject']['Protected DAISY'] = 1
 
         return d
@@ -854,7 +853,7 @@ def build_data2(
     def add_field_list(doc, name, field_list):
         doc[name] = list(field_list)
 
-    doc = p.build_data(w, editions, subjects, has_fulltext, ia)
+    doc = p.build_data(w, editions, subjects, ia)
 
     work_cover_id = next(
         itertools.chain(
