@@ -1,8 +1,6 @@
 import string
 from hashlib import sha1 as mkhash
 
-import six
-
 
 # choose token length to make collisions unlikely (if there is a
 # rare collision once in a while, we tolerate it, it just means

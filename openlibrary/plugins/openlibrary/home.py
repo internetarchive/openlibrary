@@ -16,9 +16,6 @@ from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream.utils import get_blog_feeds, get_coverstore_public_url
 from openlibrary.plugins.worksearch import search, subjects
 
-import six
-
-
 logger = logging.getLogger("openlibrary.home")
 
 CAROUSELS_PRESETS = {

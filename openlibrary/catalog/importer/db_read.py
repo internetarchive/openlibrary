@@ -4,7 +4,7 @@ from time import sleep
 
 import requests
 from deprecated import deprecated
-from six.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 
 
 staging = False

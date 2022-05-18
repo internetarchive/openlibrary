@@ -11,7 +11,7 @@ from openlibrary.catalog.marc.marc_xml import DataField, MarcXml
 from lxml import etree
 import os
 import json
-from six.moves.collections_abc import Iterable
+from collections.abc import Iterable
 
 collection_tag = '{http://www.loc.gov/MARC21/slim}collection'
 record_tag = '{http://www.loc.gov/MARC21/slim}record'

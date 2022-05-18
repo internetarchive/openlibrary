@@ -15,13 +15,12 @@ import sys
 import time
 
 from httpx import HTTPError, HTTPStatusError, TimeoutException
-from six.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
 from collections import defaultdict
 from unicodedata import normalize
 
 import json
-import six
-from six.moves.http_client import HTTPConnection
+from http.client import HTTPConnection
 import web
 
 from openlibrary import config

@@ -8,8 +8,6 @@ import web
 import datetime
 from collections import defaultdict
 
-import six
-
 
 class DocumentLoader:
     def __init__(self, **params):

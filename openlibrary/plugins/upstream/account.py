@@ -35,7 +35,7 @@ from openlibrary.accounts import (
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
 
-from six.moves import urllib
+import urllib
 
 
 logger = logging.getLogger("openlibrary.account")

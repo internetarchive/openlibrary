@@ -12,8 +12,6 @@ from infogami.utils import stats
 from openlibrary.core import cache
 from openlibrary.utils.dateutil import date_n_days_ago
 
-import six
-
 logger = logging.getLogger('openlibrary.ia')
 
 # FIXME: We can't reference `config` in module scope like this; it will always be undefined!

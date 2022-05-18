@@ -1,5 +1,6 @@
 """Handlers for adding and editing books."""
 
+import io
 import itertools
 import web
 import json
@@ -26,8 +27,7 @@ from openlibrary.plugins.upstream.utils import render_template, fuzzy_find
 from openlibrary.plugins.upstream.account import as_admin
 from openlibrary.plugins.recaptcha import recaptcha
 
-import six
-from six.moves import urllib
+import urllib
 from web.webapi import SeeOther
 
 
@@ -724,7 +724,7 @@ class SaveBookHelper:
             """
             if not subjects:
                 return
-            f = six.StringIO(subjects.replace('\r\n',''))
+            f = io.StringIO(subjects.replace('\r\n',''))
             dedup = set()
             for s in next(csv.reader(f, dialect='excel', skipinitialspace=True)):
                 if s.lower() not in dedup:

@@ -29,7 +29,7 @@ from openlibrary.plugins.importapi import (
 from lxml import etree
 import logging
 
-from six.moves import urllib
+import urllib
 
 MARC_LENGTH_POS = 5
 logger = logging.getLogger('openlibrary.importapi')

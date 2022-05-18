@@ -12,8 +12,6 @@ from openlibrary.core import ia
 
 import logging
 
-import six
-
 
 logger = logging.getLogger("openlibrary")
 

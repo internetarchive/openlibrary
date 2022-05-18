@@ -3,8 +3,6 @@
 import pytest
 import web
 
-import six
-
 from infogami.infobase.tests.pytest_wildcard import Wildcard
 from infogami.utils import template
 from infogami.utils.view import render_template as infobase_render_template
