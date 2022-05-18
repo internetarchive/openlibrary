@@ -140,6 +140,8 @@ DEFAULT_SEARCH_FIELDS = {
     'subtitle',
     'edition_count',
     'ia',
+    'isbn',
+    'oclc',
     'has_fulltext',
     'first_publish_year',
     'cover_i',
@@ -598,6 +600,8 @@ def get_doc(doc: SolrDocument):
         url=f"{doc['key']}/{urlsafe(doc['title'])}",
         edition_count=doc['edition_count'],
         ia=doc.get('ia', []),
+        isbn=doc.get('isbn', []),
+        oclc=doc.get('oclc', []),
         collections=(
             set(doc['ia_collection_s'].split(';'))
             if doc.get('ia_collection_s')
@@ -796,6 +800,8 @@ def works_by_author(
                     'subtitle',
                     'edition_count',
                     'ia',
+                    'isbn',
+                    'oclc',
                     'cover_edition_key',
                     'has_fulltext',
                     'language',

@@ -72,11 +72,6 @@ $if isbn_10 and not asin:
     </div>
 
     $ prices = page.key.startswith('/books/')
-
-    $ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
-    $ isbn_13 = page.get_isbn13()
-    $ isbn_10 = page.get_isbn10()
-
     $ asin = None
     $if page.get('identifiers'):
         $if page.identifiers.get('amazon'):
