@@ -27,7 +27,7 @@ from openlibrary.utils import dateutil
 
 from lxml import etree
 
-from six.moves import urllib
+import urllib
 
 
 logger = logging.getLogger("openlibrary.borrow")

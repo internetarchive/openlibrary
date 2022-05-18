@@ -2,7 +2,7 @@ import requests
 import web
 import json
 from time import sleep
-from six.moves import urllib
+import urllib
 import sys
 
 

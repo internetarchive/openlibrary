@@ -9,8 +9,6 @@ from openlibrary.core.admin import Stats
 from openlibrary.mocks.mock_infobase import MockSite
 from bs4 import BeautifulSoup
 
-import six
-
 from openlibrary import core
 from openlibrary.plugins.openlibrary import home
 

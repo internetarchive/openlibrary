@@ -3,7 +3,7 @@
 import web
 from infogami import config
 
-from six.moves import urllib
+import urllib
 
 
 def get_graphite_base_url():

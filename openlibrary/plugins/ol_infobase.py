@@ -12,7 +12,6 @@ import sys
 import traceback
 
 import requests
-import six
 import web
 
 from infogami.infobase import cache, common, config, dbstore, server

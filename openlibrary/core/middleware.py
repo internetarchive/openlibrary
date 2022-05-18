@@ -1,7 +1,7 @@
 """WSGI middleware used in Open Library.
 """
 import web
-from six import BytesIO
+from io import BytesIO
 import gzip
 
 

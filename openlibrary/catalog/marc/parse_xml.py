@@ -2,8 +2,6 @@ from lxml import etree
 from openlibrary.catalog.marc.parse import read_edition
 from unicodedata import normalize
 
-import six
-
 slim = '{http://www.loc.gov/MARC21/slim}'
 leader_tag = slim + 'leader'
 data_tag = slim + 'datafield'

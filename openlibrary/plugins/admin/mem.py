@@ -4,8 +4,6 @@ from openlibrary.plugins.admin import memory
 import web
 import gc
 
-import six
-
 
 def render_template(name, *a, **kw):
     return render[name](*a, **kw)

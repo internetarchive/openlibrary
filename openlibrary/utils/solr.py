@@ -7,7 +7,7 @@ from typing import List, Optional, Callable, TypeVar, Iterable
 import requests
 import web
 
-from six.moves import urllib
+import urllib
 
 
 logger = logging.getLogger("openlibrary.logger")

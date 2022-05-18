@@ -18,8 +18,6 @@ from openlibrary.utils import olmemcache
 from openlibrary.utils.dateutil import MINUTE_SECS
 from openlibrary.core.helpers import NothingEncoder
 
-import six
-
 
 __all__ = [
     "cached_property",

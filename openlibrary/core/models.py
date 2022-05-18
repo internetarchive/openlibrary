@@ -23,7 +23,7 @@ from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.core.lists.model import ListMixin, Seed
 from . import cache, waitinglist
 
-from six.moves import urllib
+import urllib
 
 from .ia import get_metadata_direct
 from .waitinglist import WaitingLoan

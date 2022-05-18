@@ -10,8 +10,7 @@ from openlibrary.catalog.get_ia import get_from_local, get_ia
 from openlibrary.catalog.merge.merge_marc import build_marc
 import openlibrary.catalog.marc.fast_parse as fast_parse
 
-import six
-from six.moves import urllib
+import urllib
 
 
 re_amazon = re.compile(r'^([A-Z0-9]{10}),(\d+):(.*)$', re.S)

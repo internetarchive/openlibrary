@@ -8,8 +8,6 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template, public
 from infogami.infobase import client, common
 
-import six
-
 from openlibrary.accounts import get_current_user
 from openlibrary.core import formats, cache
 import openlibrary.core.helpers as h

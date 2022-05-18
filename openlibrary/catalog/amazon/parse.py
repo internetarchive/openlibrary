@@ -6,8 +6,7 @@ from warnings import warn
 from math import floor
 from pprint import pprint
 
-import six
-from six.moves import html_entities
+from html.entities import name2codepoint
 
 
 class BrokenTitle(Exception):
@@ -69,7 +68,7 @@ def unescape(text):
         else:
             # named entity
             try:
-                text = chr(html_entities.name2codepoint[text[1:-1]])
+                text = chr(name2codepoint[text[1:-1]])
             except KeyError:
                 pass
         return text  # leave as is

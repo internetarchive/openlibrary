@@ -3,7 +3,7 @@
 
 import json
 import re
-from six.moves import urllib
+import urllib
 import web
 
 from infogami.utils import delegate

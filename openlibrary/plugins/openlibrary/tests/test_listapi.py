@@ -4,7 +4,7 @@ import json
 
 import cookielib
 
-from six.moves import urllib
+import urllib
 
 
 def pytest_funcarg__config(request):
