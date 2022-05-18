@@ -4,7 +4,7 @@ from os.path import abspath, dirname, join, pardir
 
 import pytest
 import web
-from six.moves import urllib
+import urllib
 
 from openlibrary.coverstore import archive, code, config, coverlib, schema, utils
 

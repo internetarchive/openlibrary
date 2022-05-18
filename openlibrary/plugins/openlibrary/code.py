@@ -863,7 +863,7 @@ def changequery(query=None, **kw):
 
 from infogami.core.db import get_recent_changes as _get_recentchanges
 
-from six.moves import urllib
+import urllib
 
 
 @public

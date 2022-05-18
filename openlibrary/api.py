@@ -23,7 +23,6 @@ import json
 import web
 import logging
 import requests
-import six
 from configparser import ConfigParser
 
 logger = logging.getLogger("openlibrary.api")

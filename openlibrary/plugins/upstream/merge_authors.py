@@ -3,7 +3,6 @@
 import re
 
 import json
-import six
 import web
 
 from infogami.infobase.client import ClientException

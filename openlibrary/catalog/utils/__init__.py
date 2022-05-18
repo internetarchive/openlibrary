@@ -3,14 +3,9 @@ import web
 from unicodedata import normalize
 import openlibrary.catalog.merge.normalize as merge
 
-import six
 
-try:
-    cmp = cmp  # Python 2
-except NameError:
-
-    def cmp(x, y):  # Python 3
-        return (x > y) - (x < y)
+def cmp(x, y):
+    return (x > y) - (x < y)
 
 
 re_date = map(
@@ -179,7 +174,7 @@ def match_with_bad_chars(a, b):
         return True
 
     def drop(s):
-        return re_drop.sub('', six.ensure_text(s))
+        return re_drop.sub('', s.decode() if isinstance(s, bytes) else s)
 
     return drop(a) == drop(b)
 

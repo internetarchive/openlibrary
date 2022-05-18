@@ -3,7 +3,7 @@ import logging
 import requests
 import web
 
-from six.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 
 from collections import OrderedDict
 from infogami.utils.view import public

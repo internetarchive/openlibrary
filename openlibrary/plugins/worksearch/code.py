@@ -11,7 +11,7 @@ from json import JSONDecodeError
 import requests
 import web
 from requests import Response
-from six.moves import urllib
+import urllib
 
 from infogami import config
 from infogami.utils import delegate, stats

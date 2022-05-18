@@ -3,8 +3,6 @@ from unicodedata import normalize
 
 from openlibrary.catalog.marc.marc_base import MarcBase, MarcException
 
-import six
-
 data_tag = '{http://www.loc.gov/MARC21/slim}datafield'
 control_tag = '{http://www.loc.gov/MARC21/slim}controlfield'
 subfield_tag = '{http://www.loc.gov/MARC21/slim}subfield'

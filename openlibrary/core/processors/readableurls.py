@@ -7,7 +7,7 @@ import web
 from infogami.utils.view import render
 from openlibrary.core import helpers as h
 
-from six.moves import urllib
+import urllib
 
 logger = logging.getLogger("openlibrary.readableurls")
 

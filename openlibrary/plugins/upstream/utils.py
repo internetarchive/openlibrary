@@ -19,10 +19,10 @@ from typing import Optional
 
 import requests
 
-import six
-from six.moves import urllib
-from six.moves.collections_abc import MutableMapping
-from six.moves.urllib.parse import (
+from html import unescape
+import urllib
+from collections.abc import MutableMapping
+from urllib.parse import (
     parse_qs,
     urlencode as parse_urlencode,
     urlparse,
@@ -530,7 +530,7 @@ def urlencode(dict_or_list_of_tuples: Union[dict, list[tuple[str, Any]]]) -> str
     You probably want to use this, if you're looking to urlencode parameters. This will
     encode things to utf8 that would otherwise cause urlencode to error.
     """
-    from six.moves.urllib.parse import urlencode as og_urlencode
+    from urllib.parse import urlencode as og_urlencode
 
     tuples = dict_or_list_of_tuples
     if isinstance(dict_or_list_of_tuples, dict):
@@ -541,10 +541,7 @@ def urlencode(dict_or_list_of_tuples: Union[dict, list[tuple[str, Any]]]) -> str
 
 @public
 def entity_decode(text):
-    try:
-        return six.moves.html_parser.unescape(text)
-    except AttributeError:
-        return six.moves.html_parser.HTMLParser().unescape(text)
+    return unescape(text)
 
 
 @public

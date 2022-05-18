@@ -4,7 +4,7 @@ Usage: python oclc_to_marc.py oclc_1 oclc_2
 """
 import requests
 
-from six.moves import urllib
+import urllib
 
 
 root = "https://openlibrary.org"

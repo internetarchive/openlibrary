@@ -1,7 +1,7 @@
 from catalog.marc.MARC21 import MARC21Record
 from catalog.marc.parse import pick_first_date
 
-from six.moves import urllib
+import urllib
 
 
 entity_fields = ('name', 'birth_date', 'death_date', 'date')
