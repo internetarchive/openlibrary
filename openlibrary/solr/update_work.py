@@ -94,6 +94,13 @@ def set_solr_next(val: bool):
     solr_next = val
 
 
+def extract_edition_olid(key: str) -> str:
+    m = re_edition_key.match(key)
+    if not m:
+        raise ValueError(f'Invalid key: {key}')
+    return m.group(1)
+
+
 class IALiteMetadata(TypedDict):
     boxid: set[str]
     collection: set[str]
@@ -571,9 +578,7 @@ class SolrProcessor:
 
         add('edition_count', len(editions))
 
-        add_list(
-            "edition_key", [re_edition_key.match(e['key']).group(1) for e in editions]
-        )
+        add_list("edition_key", [extract_edition_olid(e['key']) for e in editions])
         add_list(
             "by_statement", {e["by_statement"] for e in editions if "by_statement" in e}
         )
@@ -710,7 +715,8 @@ class SolrProcessor:
         """
         Add ebook information from the editions to the work Solr document.
         """
-        ebook_info={}
+        ebook_info: dict[str, Any] = {}
+
         class AvailabilityEnum(IntEnum):
             PUBLIC = 1
             BORROWABLE = 2
@@ -718,7 +724,7 @@ class SolrProcessor:
             UNCLASSIFIED = 4
 
         def get_ia_availability_enum(
-            collections: list[str],
+            collections: set[str],
             access_restricted_item: bool,
         ) -> AvailabilityEnum:
             if 'inlibrary' in collections:
@@ -732,12 +738,15 @@ class SolrProcessor:
 
         def get_ia_sorting_key(ed: dict) -> tuple[AvailabilityEnum, str]:
             ocaid = ed['ocaid'].strip()
-            md = ia_metadata.get(ocaid, {})
-            return (
-                get_ia_availability_enum(
-                    md.get('collection', []),
+            md = ia_metadata.get(ocaid)
+            availability = AvailabilityEnum.UNCLASSIFIED
+            if md is not None:
+                availability = get_ia_availability_enum(
+                    md.get('collection', set()),
                     md.get('access_restricted_item') == "true",
-                ),
+                )
+            return (
+                availability,
                 # De-prioritize google scans because they are lower quality
                 '0: non-goog' if not ocaid.endswith('goog') else '1: goog',
             )
@@ -772,11 +781,11 @@ class SolrProcessor:
                 ebook_info['ia_collection_s'] = ';'.join(all_collection)
 
             if best_availability < AvailabilityEnum.PRINTDISABLED:
-                ebook_info['lending_edition_s'] = re_edition_key.match(best_ed['key']).group(1)
+                ebook_info['lending_edition_s'] = extract_edition_olid(best_ed['key'])
                 ebook_info['lending_identifier_s'] = best_ed['ocaid']
 
             printdisabled = [
-                re_edition_key.match(ed['key']).group(1)
+                extract_edition_olid(ed['key'])
                 for ed in ia_eds
                 if 'printdisabled' in ed.get('ia_collection', [])
             ]
@@ -970,7 +979,7 @@ def build_data2(
     if ia_box_id:
         add_field_list(doc, 'ia_box_id', ia_box_id)
 
-    return doc
+    return cast(SolrDocument, doc)
 
 
 async def solr_insert_documents(
