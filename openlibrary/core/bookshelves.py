@@ -188,7 +188,7 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def get_recently_logged_books(cls, bookshelf_id=None, limit=50, page=1):
         oldb = db.get_db()
-        page = int(page) if page else 1 
+        page = int(page) if page else 1
         data = {
             'bookshelf_id': bookshelf_id,
             'limit': limit,

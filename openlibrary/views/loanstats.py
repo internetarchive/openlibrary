@@ -52,7 +52,7 @@ def get_logged_books_carousel(since_days=1, limit=18 ,page=1):
         if key in work_index:
             tab.append(work_index[key])
     print(tab)
-    return tab 
+    return tab
 
 
 
