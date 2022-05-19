@@ -35,7 +35,9 @@ $else:
     <div class="no-stats-message">$_('No community reviews have been submitted for this work.')</div>
   <div class="review-cta">
     $if ctx.user:
-      $:macros.ObservationsModal(work, _('+ Add your community review'), 'stats', 'stats-link')
+      $ link_text = _('+ Add your community review')
+      $ link_markup = '<a href="javascript:;" class="observations-modal-link">%s</a>' % link_text
+      $:macros.ObservationsModal(work, link_markup, 'stats', 'stats-link')
     $else:
       <a class="login-link" href="/account/login?redirect=$(key)#reader-observations">$_('+ Log in to add your community review')</a>
   </div>

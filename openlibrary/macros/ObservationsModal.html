@@ -1,6 +1,6 @@
-$def with (work, link_content, id, classes='', reload_id=None)
+$def with (work, link_markup, id, classes='', reload_id=None)
 $# :param Work work: The work that is being reviewed
-$# :param str link_content: Content contained within the modal link. Not websafe.
+$# :param str link_markup: arkup for element that triggers observations modal
 $# :param str id: Unique identifier for this modal
 $# :param str classes: HTML classes for this component
 $# :param str reload_id: Reference to UI component that will update when observations are added or removed
@@ -18,11 +18,11 @@ $if reload_id:
   $ context['reloadId'] = reload_id
 
 <div class="$classes">
-  <a class="observations-modal-link" href="javascript:;" data-context="$json_encode(context)">$:link_content</a>
+  $:link_markup
 
   $if ctx.user:
     <div class="hidden">
-      <div id="$id-metadata-form" class="floaterAdd metadata-form">
+      <div id="$id-metadata-form" class="floaterAdd metadata-form" data-context="$json_encode(context)">
         <div class="floaterHead">
           <h2>$_("My Book Review")</h2>
           <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>

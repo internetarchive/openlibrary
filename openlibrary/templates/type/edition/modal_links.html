@@ -1,18 +1,21 @@
 $def with (work, edition, page_url)
 
-$def link_content(img_src, link_text):
-  <img class="icon-link__image" src="$img_src">
-  <div class="icon-link__text">$link_text</div>
+$def icon_link(link_class, img_src, link_text):
+  $ href = 'javascript:;' if ctx.user else 'localhost:8080'
+  <a href="$href" class="$link_class">
+    <img class="icon-link__image" src="$img_src">
+    <div class="icon-link__text">$link_text</div>
+  </a>
 
 <div class="modal-links">
-  $ review_content = link_content("/static/images/icons/review.png", _("Review"))
+  $ review_content = icon_link("observations-modal-link", "/static/images/icons/review.png", _("Review"))
   $:macros.ObservationsModal(work, review_content, 'sidebar-review')
 
-  $ notes_content = link_content("/static/images/icons/notes.svg", _("Notes"))
-  $:macros.NotesModal(work, edition, notes_content, 'sidebar-notes', redirect='localhost:8080')
+  $ notes_content = icon_link("notes-modal-link", "/static/images/icons/notes.svg", _("Notes"))
+  $:macros.NotesModal(work, edition, notes_content, 'sidebar-notes')
 
   $if ctx.get('share_links'):
-    $ share_content = link_content("/static/images/icons/share.svg", _("Share"))
+    $ share_content = icon_link("share-modal-link", "/static/images/icons/share.svg", _("Share"))
     $ share_links = ctx.get('share_links')
     $:macros.ShareModal(share_links, page_url, share_content)
 </div>
