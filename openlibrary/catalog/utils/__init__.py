@@ -9,7 +9,7 @@ def cmp(x, y):
 
 
 re_date = map(
-    re.compile,
+    re.compile,  # type: ignore[arg-type]
     [
         r'(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
         r'(?P<birth_date>\d+\??)-',

@@ -37,7 +37,7 @@ def init_plugin():
     dbstore.Indexer = OLIndexer
 
     if config.get('errorlog'):
-        common.record_exception = lambda: save_error(config.errorlog, 'infobase')
+        common.record_exception = lambda: save_error(config.errorlog, 'infobase')  # type: ignore[attr-defined]
 
     ol = server.get_site('openlibrary.org')
     ib = server._infobase
@@ -555,7 +555,7 @@ _Indexer = dbstore.Indexer
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 
 
-class OLIndexer(_Indexer):
+class OLIndexer(_Indexer):  # type: ignore[misc,valid-type]
     """OL custom indexer to index normalized_title etc."""
 
     def compute_index(self, doc):

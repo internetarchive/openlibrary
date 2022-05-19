@@ -24,7 +24,7 @@ from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused i
 from openlibrary.plugins.upstream.utils import render_component
 
 if not config.get('coverstore_url'):
-    config.coverstore_url = "https://covers.openlibrary.org"
+    config.coverstore_url = "https://covers.openlibrary.org"  # type: ignore[attr-defined]
 
 
 class static(delegate.page):

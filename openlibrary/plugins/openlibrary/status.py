@@ -1,6 +1,7 @@
 import datetime
 import socket
 import sys
+from typing import Any
 
 from infogami import config
 from infogami.utils import delegate
@@ -8,8 +9,8 @@ from infogami.utils.view import render_template, public
 from openlibrary.core import stats
 from openlibrary.utils import get_software_version
 
-status_info = {}
-feature_flags = {}
+status_info: dict[str, Any] = {}
+feature_flagso: dict[str, Any] = {}
 
 
 class status(delegate.page):

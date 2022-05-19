@@ -1,6 +1,8 @@
 import asyncio
 import typing
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, Namespace
+from argparse import (
+    ArgumentParser, ArgumentDefaultsHelpFormatter, BooleanOptionalAction, Namespace
+)
 
 
 class FnToCLI:
@@ -30,10 +32,10 @@ class FnToCLI:
         self.fn = fn
         arg_names = fn.__code__.co_varnames[: fn.__code__.co_argcount]
         annotations = fn.__annotations__
-        defaults = fn.__defaults__ or []  # type: ignore
+        defaults: list = fn.__defaults__ or []  # type: ignore[assignment]
         num_required = len(arg_names) - len(defaults)
         default_args = arg_names[num_required:]
-        defaults = {  # type: ignore
+        defaults: dict = {  # type: ignore[no-redef]
             arg: default
             for [arg, default] in zip(default_args, defaults)
         }
@@ -52,7 +54,7 @@ class FnToCLI:
             if arg in annotations:
                 arg_opts = self.type_to_argparse(annotations[arg])
             elif arg in defaults:
-                arg_opts = self.type_to_argparse(type(defaults[arg]))  # type: ignore
+                arg_opts = self.type_to_argparse(type(defaults[arg]))  # type: ignore[call-overload]
             else:
                 raise ValueError(f'{arg} has no type information')
 
@@ -61,7 +63,7 @@ class FnToCLI:
 
             if optional:
                 opt_name = f'--{cli_name}' if len(cli_name) > 1 else f'-{cli_name}'
-                self.parser.add_argument(opt_name, default=defaults[arg], **arg_opts)  # type: ignore
+                self.parser.add_argument(opt_name, default=defaults[arg], **arg_opts)  # type: ignore[call-overload]
             else:
                 self.parser.add_argument(cli_name, **arg_opts)
 
@@ -92,8 +94,6 @@ class FnToCLI:
     @staticmethod
     def type_to_argparse(typ):
         if typ == bool:
-            from argparse import BooleanOptionalAction  # type: ignore
-
             return {'type': typ, 'action': BooleanOptionalAction}
         if typ in (int, str, float):
             return {'type': typ}

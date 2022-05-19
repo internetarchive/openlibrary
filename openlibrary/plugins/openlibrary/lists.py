@@ -10,6 +10,7 @@ from infogami.infobase import client, common
 
 from openlibrary.accounts import get_current_user
 from openlibrary.core import formats, cache
+from openlibrary.core.lists.model import ListMixin
 import openlibrary.core.helpers as h
 from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream import spamcheck
@@ -422,7 +423,8 @@ class list_subjects_json(delegate.page):
         return {"name": s['name'], "count": s['count'], "url": key}
 
 
-class list_editions_yaml(list_subjects_json):
+# This class is defined twice in this file. Should this be list_subjects_yaml() ?
+class list_editions_yaml(list_subjects_json):    # type: ignore[no-redef]
     encoding = "yml"
     content_type = 'text/yaml; charset="utf-8"'
 
@@ -468,7 +470,7 @@ class export(delegate.page):
         else:
             raise web.notfound()
 
-    def get_exports(self, lst: list, raw: bool = False) -> dict[str, list]:
+    def get_exports(self, lst: ListMixin, raw: bool = False) -> dict[str, list]:
         export_data = lst.get_export_list()
         if "editions" in export_data:
             export_data["editions"] = sorted(

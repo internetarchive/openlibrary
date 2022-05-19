@@ -608,7 +608,7 @@ class SolrProcessor:
             add("lcc_sort", choose_sorting_lcc(lccs))
 
         def get_edition_ddcs(ed: dict):
-            ddcs = ed.get('dewey_decimal_class', [])  # type: List[str]
+            ddcs: list[str] = ed.get('dewey_decimal_class', [])
             if len(ddcs) > 1:
                 # In DDC, `92` or `920` is sometimes appended to a DDC to denote
                 # "Biography". We have a clause to handle this if it's part of the same
@@ -1372,7 +1372,7 @@ async def update_author(
 
     reply = requests.get(
         base_url,
-        params=[  # type: ignore
+        params=[  # type: ignore[arg-type]
             ('wt', 'json'),
             ('json.nl', 'arrarr'),
             ('q', 'author_key:%s' % author_id),
@@ -1382,8 +1382,8 @@ async def update_author(
             ('facet', 'true'),
             ('facet.mincount', 1),
         ]
-        + [('facet.field', '%s_facet' % field) for field in facet_fields],  # type: ignore
-    ).json()  # type: ignore
+        + [('facet.field', '%s_facet' % field) for field in facet_fields],
+    ).json()
     work_count = reply['response']['numFound']
     docs = reply['response'].get('docs', [])
     top_work = None

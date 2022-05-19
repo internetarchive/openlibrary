@@ -5,7 +5,7 @@ from collections import defaultdict
 
 # read a MARC binary showing one record at a time
 
-field_counts = defaultdict(int)
+field_counts: dict[str, int] = defaultdict(int)
 
 for data, length in read_file(open(sys.argv[1])):
     print(data[:24])
