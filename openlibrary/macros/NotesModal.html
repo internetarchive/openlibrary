@@ -1,4 +1,9 @@
-$def with (work, edition, link_text, id, class_list='', reload_id=None)
+$def with (work, edition, link_content, id, class_list='', redirect='')
+$# :param Work work: The work that is referenced by this modal
+$# :param Edition edition: The edition that is referenced by this modal
+$# :param str link_content: Content contained within the modal link. Not websafe.
+$# :param str id: Unique identifier for this modal
+$# :param str class_list: HTML classes for this component
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ notes = work.get_users_notes(username, edition.key.split('/')[-1])
@@ -13,11 +18,9 @@ $ context = {
   $ "id": id
   $ }
 
-$if reload_id:
-  $ context['reloadId'] = reload_id
-
 <div class="$class_list">
-  <a class="notes-modal-link" href="javascript:;" data-context="$json_encode(context)">$link_text</a>
+  $ href = redirect or "javascript:;"
+  <a class="notes-modal-link" href="$href" data-context="$json_encode(context)">$:link_content</a>
 
   <div class="hidden">
     <div id="$id-metadata-form" class="floaterAdd metadata-form">

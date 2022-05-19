@@ -1,5 +1,4 @@
-$def with (work, edition=None, redir_url=None, id='', show_modal_link=True)
-
+$def with (work, edition=None, redir_url=None, id='')
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ rating = work and username and work.get_users_rating(username)
 $ edition_key = edition.key if edition else ""
@@ -37,18 +36,9 @@ $ form_id = "ratingsForm%s" % id
           $if properties:
             property="$(' '.join(properties))"
           for="star-$star$id">$star</label>
+      $# Empty span is necessary. It displays the filled stars.
       <span></span>
     </div>
-    $if show_modal_link:
-      <div class="stats-link">
-        <a class="observations-modal-link"
-          $if username:
-            href="javascript:;" data-context='{"username": "$(username)", "work": "$(work.key)", "id": "stats"}'>
-          $else:
-            href="/account/login?redirect=$(edition_key or work.key)">
-          <img src="/static/images/icons/review.png" class="review-btn">
-        </a>
-      </div>
   </div>
   $ class_list = "star-messaging"
   $if not rating:
