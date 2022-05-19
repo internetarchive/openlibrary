@@ -19,7 +19,7 @@ $add_metatag(name="twitter:card", content="homepage_summary")
 
   $:render_template("home/welcome", test=test)
 
-  $:render_template("books/custom_carousel", books=get_logged_books_carousel(), title=_('Trending Books'), url="/trending", test=test,load_more={"url": "/browse.json?trending=true", "mode": "page", "limit": 7})
+  $:render_template("books/custom_carousel", books=get_logged_books_carousel(), title=_('Trending Books'), url="/trending", test=test,load_more={"url": "/browse.json?trending=true", "mode": "page", "limit": 18})
 
   $:render_template("books/custom_carousel", books=readonline_carousel(), title=_('Classic Books'), url="/read", key="public_domain", test=test)
 
