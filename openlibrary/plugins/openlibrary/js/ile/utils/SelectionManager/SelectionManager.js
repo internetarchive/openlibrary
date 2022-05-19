@@ -64,19 +64,19 @@ export default class SelectionManager {
         $('#ile-drag-actions').empty();
         const img_src = provider.image(el);
 
+        const actions = SelectionManager.ACTIONS.filter(a => (
+            a.applies_to_type === provider.singular &&
+            (a.multiple_only ? count > 1 : count > 0)
+        ));
+        const items = this.getSelectedItems();
+        for (const action of actions) {
+            $('#ile-drag-actions').append($(`<a target="_blank" href="${action.href(items)}">${action.name}</a>`));
+        }
+
         if (selected) {
             el.addEventListener('dragstart', this.dragStart);
             const factor = -sigmoid($('#ile-drag-status .images img').length) + 1 + 0.5;
             $('#ile-drag-status .images').append(`<img src="${img_src}" style="padding: ${(1 - factor) * 5}px 0; width: ${(factor ** 3) * 100}%"/>`);
-
-            const actions = SelectionManager.ACTIONS.filter(a => (
-                a.applies_to_type === provider.singular &&
-                (a.multiple_only ? count > 1 : count > 0)
-            ));
-            const items = this.getSelectedItems();
-            for (const action of actions) {
-                $('#ile-drag-actions').append($(`<a target="_blank" href="${action.href(items)}">${action.name}</a>`));
-            }
         } else {
             el.removeEventListener('dragstart', this.dragStart);
             const img_el = $('#ile-drag-status .images img').toArray().find(el => el.src === img_src);
