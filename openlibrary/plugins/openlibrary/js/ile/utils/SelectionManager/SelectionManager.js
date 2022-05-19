@@ -72,7 +72,7 @@ export default class SelectionManager {
         for (const action of actions) {
             $('#ile-drag-actions').append($(`<a target="_blank" href="${action.href(items)}">${action.name}</a>`));
         }
-        
+
         if (selected) {
             el.addEventListener('dragstart', this.dragStart);
             const factor = -sigmoid($('#ile-drag-status .images img').length) + 1 + 0.5;
