@@ -1,0 +1,18 @@
+$def with (work, edition, page_url)
+
+$def link_content(img_src, link_text):
+  <img class="icon-link__image" src="$img_src">
+  <div class="icon-link__text">$link_text</div>
+
+<div class="modal-links">
+  $ review_content = link_content("/static/images/icons/review.png", _("Review"))
+  $:macros.ObservationsModal(work, review_content, 'sidebar-review')
+
+  $ notes_content = link_content("/static/images/icons/notes.svg", _("Notes"))
+  $:macros.NotesModal(work, edition, notes_content, 'sidebar-notes', redirect='localhost:8080')
+
+  $if ctx.get('share_links'):
+    $ share_content = link_content("/static/images/icons/share.svg", _("Share"))
+    $ share_links = ctx.get('share_links')
+    $:macros.ShareModal(share_links, page_url, share_content)
+</div>
