@@ -69,6 +69,7 @@ $if isbn_10 and not asin:
         $ render_times['databarWork: LoanStatus'] = time() - render_times['databarWork: LoanStatus']
 
         $if modal_links:
+          <hr>
           $:modal_links
         $if editions_page:
           $ render_times['databarWork: Book provider'] = time()
