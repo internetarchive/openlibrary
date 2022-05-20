@@ -5,6 +5,7 @@ import string
 import time
 import threading
 import functools
+from typing import Callable, Union
 
 import memcache
 import json
@@ -33,6 +34,17 @@ __all__ = [
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
 
 
+class CtxThreadForwarder:
+    def before_fork(self):
+        pass
+
+    def fork_init(self):
+        pass
+
+    def key_suffix(self):
+        return ""
+
+
 class memcache_memoize:
     """Memoizes a function, caching its return values in memcached for each input.
 
@@ -47,10 +59,15 @@ class memcache_memoize:
     :param key_prefix: key prefix used in memcache to store memoized results. A random value will be used if not specified.
     :param servers: list of  memcached servers, each specified as "ip:port"
     :param timeout: timeout in seconds after which the return value must be updated
-    :param prethread: Function to call on the new thread to set it up
     """
 
-    def __init__(self, f, key_prefix=None, timeout=MINUTE_SECS, prethread=None):
+    def __init__(
+        self,
+        f,
+        key_prefix: Union[str, Callable[[], str]] = None,
+        timeout=MINUTE_SECS,
+        ctx_forwarders: list[CtxThreadForwarder] = None,
+    ):
         """Creates a new memoized function for ``f``."""
         self.f = f
         self.key_prefix = key_prefix or self._generate_key_prefix()
@@ -60,7 +77,8 @@ class memcache_memoize:
 
         self.stats = web.storage(calls=0, hits=0, updates=0, async_updates=0)
         self.active_threads = {}
-        self.prethread = prethread
+        self.ctx_forwarders = ctx_forwarders or []
+        self.__name__ = f.__name__
 
     def _get_memcache(self):
         if self._memcache is None:
@@ -102,6 +120,9 @@ class memcache_memoize:
         Returns the cached value when available. Computes and adds the result
         to memcache when not available. Updates asynchronously after timeout.
         """
+        for f in self.ctx_forwarders:
+            f.before_fork()
+
         _cache = kw.pop("_cache", None)
         if _cache == "delete":
             self.memcache_delete(args, kw)
@@ -138,8 +159,8 @@ class memcache_memoize:
             return
 
         try:
-            if self.prethread:
-                self.prethread()
+            for f in self.ctx_forwarders:
+                f.fork_init()
             self.update(*args, **kw)
         finally:
             # Remove current thread from active threads
@@ -181,17 +202,26 @@ class memcache_memoize:
 
     def compute_key(self, args, kw):
         """Computes memcache key for storing result of function call with given arguments."""
-        key = self.key_prefix + "-" + self.encode_args(args, kw)
-        return key.replace(
-            " ", "_"
-        )  # XXX: temporary fix to handle spaces in the arguments
+        key = '-'.join(
+            (
+                self.key_prefix,
+                *(f.key_suffix() for f in self.ctx_forwarders),
+                self.encode_args(args, kw),
+            )
+        )
+        # XXX: temporary fix to handle spaces in the arguments
+        return key.replace(" ", "_")
 
     def json_encode(self, value):
         """json.dumps without extra spaces.
 
         memcache doesn't like spaces in the key.
         """
-        return json.dumps([] if isinstance(value, Nothing) else value, separators=(",", ":"), cls=NothingEncoder)
+        return json.dumps(
+            [] if isinstance(value, Nothing) else value,
+            separators=(",", ":"),
+            cls=NothingEncoder,
+        )
 
     def memcache_set(self, args, kw, value, time):
         """Adds value and time to memcache. Key is computed from the arguments."""
@@ -555,6 +585,7 @@ class PrefixKeyFunc:
         memcache doesn't like spaces in the key.
         """
         return json.dumps(value, separators=(",", ":"), sort_keys=True)
+
 
 def method_memoize(f):
     """

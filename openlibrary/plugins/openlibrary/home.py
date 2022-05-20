@@ -1,6 +1,7 @@
 """Controller for home page.
 """
 import datetime
+import functools
 import random
 import web
 import logging
@@ -591,6 +592,40 @@ def get_monthly_reads(month):
     }.get(month)
 
 
+class FakeloadForwarder(cache.CtxThreadForwarder):
+    def fork_init(self):
+        if 'env' not in web.ctx:
+            delegate.fakeload()
+
+
+class LangForwarder(cache.CtxThreadForwarder):
+    def before_fork(self):
+        self.lang = web.ctx.lang
+
+    def key_suffix(self):
+        return self.lang
+
+    def fork_init(self):
+        web.ctx.lang = self.lang
+
+
+class PrintDisabledForwarder(cache.CtxThreadForwarder):
+    def before_fork(self):
+        self.print_disabled = web.cookies().get('pd', '')
+
+    def key_suffix(self):
+        return f'pd-{self.print_disabled}'
+
+    def fork_init(self):
+        web.setcookie('pd', self.print_disabled)
+
+
+@functools.partial(
+    cache.memcache_memoize,
+    timeout=5 * dateutil.MINUTE_SECS,
+    # Forward context when this is computed on a separate thread
+    ctx_forwarders=[FakeloadForwarder(), LangForwarder(), PrintDisabledForwarder()],
+)
 def get_homepage():
     try:
         stats = admin.get_stats()
@@ -610,47 +645,15 @@ def get_homepage():
     return dict(page)
 
 
-def get_cached_homepage():
-    five_minutes = 5 * dateutil.MINUTE_SECS
-    lang = web.ctx.lang
-    pd = web.cookies().get('pd', False)
-    key = "home.homepage." + lang
-    if pd:
-        key += '.pd'
-
-    return cache.memcache_memoize(
-        get_homepage, key, timeout=five_minutes, prethread=caching_prethread()
-    )()
-
-
-# Because of caching, memcache will call `get_homepage` on another thread! So we
-# need a way to carry some information to that computation on the other thread.
-# We do that by using a python closure. The outer function is executed on the main
-# thread, so all the web.* stuff is correct. The inner function is executed on the
-# other thread, so all the web.* stuff will be dummy.
-def caching_prethread():
-    # web.ctx.lang is undefined on the new thread, so need to transfer it over
-    lang = web.ctx.lang
-
-    def main():
-        # Leaving this in since this is a bit strange, but you can see it clearly
-        # in action with this debug line:
-        # web.debug(f'XXXXXXXXXXX web.ctx.lang={web.ctx.get("lang")}; {lang=}')
-        delegate.fakeload()
-        web.ctx.lang = lang
-
-    return main
-
-
 class home(delegate.page):
     path = "/"
 
     def GET(self):
-        cached_homepage = get_cached_homepage()
+        homepage = get_homepage()
         # when homepage is cached, home/index.html template
         # doesn't run ctx.setdefault to set the cssfile so we must do so here:
         web.template.Template.globals['ctx']['cssfile'] = 'home'
-        return web.template.TemplateResult(cached_homepage)
+        return web.template.TemplateResult(homepage)
 
 
 class random_book(delegate.page):
@@ -685,11 +688,14 @@ def get_ia_carousel_books(
     return formatted_books
 
 
+@public
+@functools.partial(
+    cache.memcache_memoize,
+    key_prefix="home.featured_subjects",
+    timeout=dateutil.HOUR_SECS,
+    ctx_forwarders=[FakeloadForwarder(), LangForwarder()],
+)
 def get_featured_subjects():
-    # web.ctx must be initialized as it won't be available to the background thread.
-    if 'env' not in web.ctx:
-        delegate.fakeload()
-
     FEATURED_SUBJECTS = [
         {'key': '/subjects/art', 'presentable_name': _('Art')},
         {'key': '/subjects/science_fiction', 'presentable_name': _('Science Fiction')},
@@ -714,16 +720,6 @@ def get_featured_subjects():
         {**subject, **(subjects.get_subject(subject['key'], limit=0) or {})}
         for subject in FEATURED_SUBJECTS
     ]
-
-
-@public
-def get_cached_featured_subjects():
-    return cache.memcache_memoize(
-        get_featured_subjects,
-        f"home.featured_subjects.{web.ctx.lang}",
-        timeout=dateutil.HOUR_SECS,
-        prethread=caching_prethread(),
-    )()
 
 
 @public

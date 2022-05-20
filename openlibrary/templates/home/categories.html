@@ -1,6 +1,6 @@
 $def with (test=False)
 
-$ subjects = get_cached_featured_subjects() if not test else []
+$ subjects = get_featured_subjects() if not test else []
 $if subjects:
   <div class="carousel-section">
     <div class="carousel-section-header">
