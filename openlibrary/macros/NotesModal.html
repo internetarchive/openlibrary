@@ -1,7 +1,7 @@
-$def with (work, edition, link_content, id, class_list='', redirect='')
+$def with (work, edition, link_markup, id, class_list='')
 $# :param Work work: The work that is referenced by this modal
 $# :param Edition edition: The edition that is referenced by this modal
-$# :param str link_content: Content contained within the modal link. Not websafe.
+$# :param str link_markup: Markup for element that triggers book notes modal
 $# :param str id: Unique identifier for this modal
 $# :param str class_list: HTML classes for this component
 
@@ -19,11 +19,10 @@ $ context = {
   $ }
 
 <div class="$class_list">
-  $ href = redirect or "javascript:;"
-  <a class="notes-modal-link" href="$href" data-context="$json_encode(context)">$:link_content</a>
+  $:link_markup
 
   <div class="hidden">
-    <div id="$id-metadata-form" class="floaterAdd metadata-form">
+    <div id="$id-metadata-form" class="floaterAdd metadata-form" data-context="$json_encode(context)">
       <div class="floaterHead">
         <h2>$_("My Book Notes")</h2>
         <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>

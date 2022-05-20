@@ -1,7 +1,7 @@
-$def with (share_links, page_url, link_content, classes='')
+$def with (share_links, page_url, link_markup, classes='')
 $# :param list[dict] share_links:
 $# :param str page_url: absolute url excluding params
-$# :param str link_content: Content contained within the modal link. Not websafe.
+$# :param str link_markup: Markup for element that triggers share modal
 $# :param str classes: HTML classes for this component
 
 
@@ -9,7 +9,7 @@ $def embed_iframe(page_url):
   <iframe frameborder="0" width="165" height="400" src="$(page_url)/-/widget"></iframe>
 
 <div class="$classes">
-  <a class="share-modal-link icon-link" href="javascript:;">$:link_content</a>
+  $:link_markup
 
   <div class="hidden">
     <div id="social-modal-content" class="floaterAdd">
