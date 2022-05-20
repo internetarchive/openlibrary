@@ -1,6 +1,11 @@
 import { FadingToast } from '../Toast.js';
 import '../../../../../static/css/components/metadata-form.less';
 
+
+export function initShareModal($modalLinks) {
+    addClickListeners($modalLinks, '400px');
+}
+
 /**
  * Initializes a collection of notes modals.
  *
@@ -355,7 +360,7 @@ function clearForm($form) {
  */
 function displayModal(content, maxWidth) {
     const modalId = `#${content.id}`
-    const context = JSON.parse(content.dataset['context']);
+    const context = content.dataset['context'] ? JSON.parse(content.dataset['context']) : null;
     const reloadId = context ? context.reloadId : null;
 
     $.colorbox({
