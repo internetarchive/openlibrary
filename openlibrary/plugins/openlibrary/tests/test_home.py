@@ -150,7 +150,6 @@ class TestHomeTemplates:
             "Kids",
             "Thrillers",
             "Romance",
-            "Classic Books",
             "Textbooks",
         ]
         for h in headers:
