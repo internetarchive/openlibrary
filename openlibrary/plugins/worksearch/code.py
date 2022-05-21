@@ -484,10 +484,15 @@ def run_solr_query(
     sort=None,
     spellcheck_count=None,
     offset=None,
-    fields=None,
+    fields: Union[str, list[str]] = None,
     facet=True,
 ):
     param = param or {}
+
+    if not fields:
+        fields = []
+    elif isinstance(fields, str):
+        fields = fields.split(',')
 
     # use page when offset is not specified
     if offset is None:
