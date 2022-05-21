@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 """
 Fake loan status server to make dev instance work with borrowing books.
 """

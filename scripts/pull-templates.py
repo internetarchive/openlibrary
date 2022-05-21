@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 """Script to pull templates and macros from an openlibrary instance to repository.
 """
 import _init_path
