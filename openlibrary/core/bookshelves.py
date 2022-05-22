@@ -1,7 +1,9 @@
-from typing import Literal
+from __future__ import annotations
+import logging
+from datetime import date
+from typing import Literal, Optional
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
-import logging
 from . import db
 
 logger = logging.getLogger(__name__)
@@ -21,7 +23,7 @@ class Bookshelves(db.CommonExtras):
     }
 
     @classmethod
-    def summary(cls):
+    def summary(cls) -> dict[str, dict[str, int]]:
         return {
             'total_books_logged': {
                 'total': Bookshelves.total_books_logged(),
@@ -36,7 +38,9 @@ class Bookshelves(db.CommonExtras):
         }
 
     @classmethod
-    def total_books_logged(cls, shelf_ids=None, since=None):
+    def total_books_logged(
+        cls, shelf_ids: Optional[list[str]] = None, since: Optional[date] = None
+    ) -> int:
         """Returns (int) number of books logged across all Reading Log shelves (e.g. those
         specified in PRESET_BOOKSHELVES). One may alternatively specify a
         `list` of `shelf_ids` to isolate or span multiple
@@ -48,7 +52,6 @@ class Bookshelves(db.CommonExtras):
             shelf_ids (list) - one or more bookshelf_id values, see
                 also the default values specified in PRESET_BOOKSHELVES
             since (datetime.date) - returns all logged books after date
-
         """
 
         oldb = db.get_db()
@@ -60,10 +63,10 @@ class Bookshelves(db.CommonExtras):
         elif since:
             query += " WHERE created >= $since"
         results = oldb.query(query, vars={'since': since, 'shelf_ids': shelf_ids})
-        return results[0] if results else None
+        return results[0] if results else 0
 
     @classmethod
-    def total_unique_users(cls, since=None):
+    def total_unique_users(cls, since: Optional[date] = None) -> int:
         """Returns the total number of unique users who have logged a
         book. `since` may be provided to only return the number of users after
         a certain datetime.date.
@@ -73,10 +76,12 @@ class Bookshelves(db.CommonExtras):
         if since:
             query += " WHERE created >= $since"
         results = oldb.query(query, vars={'since': since})
-        return results[0] if results else None
+        return results[0] if results else 0
 
     @classmethod
-    def most_logged_books(cls, shelf_id=None, limit=10, since=False, page=1, fetch=False):
+    def most_logged_books(
+        cls, shelf_id: str = '', limit: int = 10, since: Optional[date] = None, page=1, fetch=False
+    ) -> list:
         """Returns a ranked list of work OLIDs (in the form of an integer --
         i.e. OL123W would be 123) which have been most logged by
         users. This query is limited to a specific shelf_id (e.g. 1
@@ -127,7 +132,9 @@ class Bookshelves(db.CommonExtras):
         return readinglog_items
 
     @classmethod
-    def count_total_books_logged_by_user(cls, username, bookshelf_ids=None):
+    def count_total_books_logged_by_user(
+        cls, username: str, bookshelf_ids: Optional[list[str]] = None
+    ) -> int:
         """Counts the (int) total number of books logged by this `username`,
         with the option of limiting the count to specific bookshelves
         by `bookshelf_id`
@@ -139,7 +146,9 @@ class Bookshelves(db.CommonExtras):
         )
 
     @classmethod
-    def count_total_books_logged_by_user_per_shelf(cls, username, bookshelf_ids=None):
+    def count_total_books_logged_by_user_per_shelf(
+        cls, username: str, bookshelf_ids: Optional[list[str]] = None
+    ) -> dict[str, int]:
         """Returns a dict mapping the specified user's bookshelves_ids to the
         number of number of books logged per each shelf, i.e. {bookshelf_id:
         count}. By default, we limit bookshelf_ids to those in PRESET_BOOKSHELVES
@@ -165,12 +174,12 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def get_users_logged_books(
         cls,
-        username,
-        bookshelf_id=None,
-        limit=100,
-        page=1,
+        username: str,
+        bookshelf_id: Optional[str] = None,
+        limit: int = 100,
+        page: int = 1,
         sort: Literal['created asc', 'created desc'] = 'created desc',
-    ):
+    ) -> list:
         """Returns a list of Reading Log database records for books which
         the user has logged. Records are described in core/schema.py
         and include:
@@ -205,18 +214,17 @@ class Bookshelves(db.CommonExtras):
                 "ORDER BY created ASC "
                 "LIMIT $limit OFFSET $offset"
             )
-        if bookshelf_id is None:
+        if not bookshelf_id:
             query = "SELECT * from bookshelves_books WHERE username=$username"
             # XXX Removing limit, offset, etc from data looks like a bug
             # unrelated / not fixing in this PR.
             data = {'username': username}
         return list(oldb.query(query, vars=data))
 
-
     @classmethod
-    def get_recently_logged_books(cls, bookshelf_id=None, limit=50, page=1, fetch=False):
+    def get_recently_logged_books(cls, bookshelf_id=None, limit=50, page=1, fetch=False) -> list:
         oldb = db.get_db()
-        page = int(page) if page else 1
+        page = int(page or 1)
         data = {
             'bookshelf_id': bookshelf_id,
             'limit': limit,
@@ -230,9 +238,8 @@ class Bookshelves(db.CommonExtras):
         logged_books = list(oldb.query(query, vars=data))
         return cls.fetch(logged_books) if fetch else logged_books
 
-
     @classmethod
-    def get_users_read_status_of_work(cls, username, work_id):
+    def get_users_read_status_of_work(cls, username: str, work_id: str) -> str:
         """A user can mark a book as (1) want to read, (2) currently reading,
         or (3) already read. Each of these states is mutually
         exclusive. Returns the user's read state of this work, if one
@@ -247,10 +254,10 @@ class Bookshelves(db.CommonExtras):
             "AND username=$username AND work_id=$work_id"
         )
         result = list(oldb.query(query, vars=data))
-        return result[0].bookshelf_id if result else None
+        return result[0].bookshelf_id if result else ''
 
     @classmethod
-    def get_users_read_status_of_works(cls, username, work_ids):
+    def get_users_read_status_of_works(cls, username: str, work_ids: list[str]) -> list:
         oldb = db.get_db()
         data = {
             'username': username,
@@ -264,12 +271,14 @@ class Bookshelves(db.CommonExtras):
         return list(oldb.query(query, vars=data))
 
     @classmethod
-    def add(cls, username, bookshelf_id, work_id, edition_id=None):
+    def add(
+        cls, username: str, bookshelf_id: Optional[str], work_id: str, edition_id=None
+    ) -> None:
         """Adds a book with `work_id` to user's bookshelf designated by
         `bookshelf_id`"""
         oldb = db.get_db()
-        work_id = int(work_id)
-        bookshelf_id = int(bookshelf_id)
+        work_id = int(work_id)  # type: ignore
+        bookshelf_id = int(bookshelf_id)  # type: ignore
         data = {
             'work_id': work_id,
             'username': username,
@@ -295,7 +304,7 @@ class Bookshelves(db.CommonExtras):
             )
 
     @classmethod
-    def remove(cls, username, work_id, bookshelf_id=None):
+    def remove(cls, username: str, work_id: str, bookshelf_id: Optional[str] = None):
         oldb = db.get_db()
         where = {'username': username, 'work_id': int(work_id)}
         if bookshelf_id:
@@ -311,7 +320,7 @@ class Bookshelves(db.CommonExtras):
             return None
 
     @classmethod
-    def get_works_shelves(cls, work_id, lazy=False):
+    def get_works_shelves(cls, work_id: str, lazy: bool = False):
         """Bookshelves this work is on"""
         oldb = db.get_db()
         query = f"SELECT * from {cls.TABLENAME} where work_id=$work_id"
@@ -322,14 +331,15 @@ class Bookshelves(db.CommonExtras):
             return None
 
     @classmethod
-    def get_num_users_by_bookshelf_by_work_id(cls, work_id):
+    def get_num_users_by_bookshelf_by_work_id(cls, work_id: str) -> dict[str, int]:
         """Returns a dict mapping a work_id to the
-        number of number of users who have placed that work_id in each shelf, i.e. {bookshelf_id:
-        count}.
+        number of number of users who have placed that work_id in each shelf,
+        i.e. {bookshelf_id: count}.
         """
         oldb = db.get_db()
         query = (
-            "SELECT bookshelf_id, count(DISTINCT username) as user_count from bookshelves_books where"
+            "SELECT bookshelf_id, count(DISTINCT username) as user_count "
+            "from bookshelves_books where"
             " work_id=$work_id"
             " GROUP BY bookshelf_id"
         )
@@ -337,11 +347,13 @@ class Bookshelves(db.CommonExtras):
         return {i['bookshelf_id']: i['user_count'] for i in result} if result else {}
 
     @classmethod
-    def user_with_most_books(cls):
+    def user_with_most_books(cls) -> list:
         """
         Which super patrons have the most books logged?
 
-        SELECT username, count(*) AS counted from bookshelves_books WHERE bookshelf_id=ANY('{1,3,2}'::int[]) GROUP BY username ORDER BY counted DESC, username LIMIT 10
+        SELECT username, count(*) AS counted from bookshelves_books
+          WHERE bookshelf_id=ANY('{1,3,2}'::int[]) GROUP BY username
+            ORDER BY counted DESC, username LIMIT 10
         """
         oldb = db.get_db()
         _bookshelf_ids = ','.join([str(x) for x in cls.PRESET_BOOKSHELVES.values()])
