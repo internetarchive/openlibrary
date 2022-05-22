@@ -1,6 +1,7 @@
 import logging
 from datetime import date
-from typing import Literal, Optional, cast
+from typing import Iterable, Literal, Optional, cast
+
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
@@ -94,17 +95,8 @@ class Bookshelves(db.CommonExtras):
         query = f'select work_id, count(*) as cnt from bookshelves_books {where}'
         query += ' group by work_id order by cnt desc limit $limit offset $offset'
         logger.info("Query: %s", query)
-        logged_books = list(
-            oldb.query(
-                query,
-                vars={
-                    'shelf_id': shelf_id,
-                    'limit': limit,
-                    'offset': offset,
-                    'since': since,
-                },
-            )
-        )
+        data = {'shelf_id': shelf_id, 'limit': limit, 'offset': offset, 'since': since}
+        logged_books = list(oldb.query(query, vars=data))
         return cls.fetch(logged_books) if fetch else logged_books
 
     @classmethod
@@ -180,21 +172,17 @@ class Bookshelves(db.CommonExtras):
         cls,
         username: str,
         bookshelf_id: str = None,
-        limit=100,
-        page=1,
+        limit: int = 100,
+        page: int = 1,  # Not zero-based counting!
         sort: Literal['created asc', 'created desc'] = 'created desc',
-    ) -> list:
+    ) -> list[dict]:
         """Returns a list of Reading Log database records for books which
         the user has logged. Records are described in core/schema.py
         and include:
 
         :param username: who logged this book
-        :param work_id: the Open Library work ID as an int (e.g. OL123W becomes 123)
         :param bookshelf_id: the ID of the bookshelf, see: PRESET_BOOKSHELVES.
             If bookshelf_id is None, return books from all bookshelves.
-        :param edition_id: the specific edition logged, if applicable
-        :param created: date the book was logged
-
         """
         oldb = db.get_db()
         page = int(page or 1)
@@ -226,8 +214,41 @@ class Bookshelves(db.CommonExtras):
         return list(oldb.query(query, vars=data))
 
     @classmethod
+    def iterate_users_logged_books(cls, username: str) -> Iterable[dict]:
+        """
+        Heavy users will have long lists of books which consume lots of memory and
+        cause performance issues.  So, instead of creating a big list, let's repeatedly
+        get small lists like get_users_logged_books() and yield one book at a time.
+        """
+        if not username or not isinstance(username, str):
+            raise ValueError(f"username must be a string, not {username}.")
+        oldb = db.get_db()
+        block = 0
+        LIMIT = 100  # Is there an ideal block size?!?
+
+        def get_a_block_of_books() -> list:
+            data = {
+                "username": username,
+                "limit": LIMIT,
+                "offset": LIMIT * block
+            }
+            query = (
+                "SELECT * from bookshelves_books WHERE username=$username "
+                "ORDER BY created DESC LIMIT $limit OFFSET $offset"
+            )
+            return list(oldb.query(query, vars=data))
+
+        while books := get_a_block_of_books():
+            block += 1
+            yield from books
+
+    @classmethod
     def get_recently_logged_books(
-        cls, bookshelf_id=None, limit=50, page=1, fetch=False
+        cls,
+        bookshelf_id=None,
+        limit=50,
+        page=1,
+        fetch=False,
     ) -> list:
         oldb = db.get_db()
         page = int(page or 1)
@@ -324,7 +345,7 @@ class Bookshelves(db.CommonExtras):
                 where=('work_id=$work_id AND username=$username'),
                 vars=where,
             )
-        except:  # we want to catch no entry exists
+        except Exception:  # we want to catch no entry exists
             return None
 
     @classmethod
@@ -335,7 +356,7 @@ class Bookshelves(db.CommonExtras):
         try:
             result = oldb.query(query, vars={'work_id': work_id})
             return result if lazy else list(result)
-        except:
+        except Exception:
             return None
 
     @classmethod
