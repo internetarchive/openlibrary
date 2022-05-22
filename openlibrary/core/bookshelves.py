@@ -193,7 +193,7 @@ class Bookshelves(db.CommonExtras):
 
         """
         oldb = db.get_db()
-        page = int(page) if page else 1
+        page = int(page or 1)
         data = {
             'username': username,
             'limit': limit,
