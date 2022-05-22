@@ -1,4 +1,5 @@
-from typing import Literal
+import sys
+from typing import Iterable, Literal
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 import logging
@@ -136,12 +137,12 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def get_users_logged_books(
         cls,
-        username,
-        bookshelf_id=None,
-        limit=100,
-        page=1,
+        username: str,
+        bookshelf_id: int = None,
+        limit: int = 100,
+        page: int = 1,
         sort: Literal['created asc', 'created desc'] = 'created desc',
-    ):
+    ) -> list[dict]:
         """Returns a list of Reading Log database records for books which
         the user has logged. Records are described in core/schema.py
         and include:
@@ -152,10 +153,9 @@ class Bookshelves(db.CommonExtras):
             If bookshelf_id is None, return books from all bookshelves.
         edition_id (int) [optional] - the specific edition logged, if applicable
         created (datetime) - date the book was logged
-
         """
         oldb = db.get_db()
-        page = int(page) if page else 1
+        page = int(page or 1)  # Not zero-based counting!
         data = {
             'username': username,
             'limit': limit,
@@ -183,6 +183,33 @@ class Bookshelves(db.CommonExtras):
             data = {'username': username}
         return list(oldb.query(query, vars=data))
 
+    @classmethod
+    def iterate_users_logged_books(cls, username: str) -> Iterable[dict]:
+        """Heavy users will have long lists of books which consume lots of memory and
+        cause performance issues.  So, instead of creating a big list, let's repeatedly
+        get small lists from get_users_logged_books() and yield one book at a time."""
+        assert username
+        oldb = db.get_db()
+        block = 0
+        LIMIT = 100  # What is the ideak block size?!?
+
+        def get_a_block_of_books() -> list:
+            data = {
+                "username": username,
+                "limit": LIMIT,
+                "offset": LIMIT * block
+            }
+            query = (
+                "SELECT * from bookshelves_books WHERE username=$username "
+                "ORDER BY created DESC LIMIT $limit OFFSET $offset"
+            )
+            books = list(oldb.query(query, vars=data))
+            print(f"Block {block} has {len(books)} books", file=sys.stderr)
+            return books
+
+        while books := get_a_block_of_books():
+            block += 1
+            yield from books
 
     @classmethod
     def get_recently_logged_books(cls, bookshelf_id=None, limit=50, page=1):
