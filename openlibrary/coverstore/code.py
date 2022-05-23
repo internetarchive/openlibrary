@@ -13,6 +13,8 @@ import web
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
+import textwrap
+
 
 from openlibrary.coverstore import config, db, ratelimit
 from openlibrary.coverstore.coverlib import read_file, read_image, save_image
@@ -531,11 +533,12 @@ def overlay_covers_over_background():
     
     logo = Image.open("/openlibrary/static/images/Open_Library_logo.png")
     recom_text = create_preview_recommendation_text("/people/openlibrary/lists/OL1L")
+    para = textwrap.wrap(recom_text, width=35)
     text_size=(344,33)
     logo_size=(168,41)
     text_position=(340,406)
     logo_position=(823,439)
-
+    W, H = background.size
     image = []
     for seed in five_seeds:
         cover = seed.get_cover()        
@@ -575,14 +578,22 @@ def overlay_covers_over_background():
 
     else:
         background.paste(image[0], (428, 102))
-
+        
 
     logo = logo.resize(logo_size, Image.ANTIALIAS)
     background.paste(logo, logo_position, logo)
 
-    draw = ImageDraw.Draw(background)
-    #myFont = ImageFont.truetype('FreeMono.ttf', 65)
-    draw.text((340, 406), recom_text, fill =(255, 255, 255))
+    draw = ImageDraw.Draw(background)   
+    font = ImageFont.truetype("/openlibrary/static/fonts/news_serif_bolditalic.ttf", 22)
+    #w,h = draw.textsize(recom_text)
+    #draw.text(((W - w) / 2, 406), recom_text, fill =(255, 255, 255), font=font)
+    current_h=406
+    for line in para:
+        w, h = draw.textsize(line, font=font)
+        draw.text(((W - w) / 2, current_h), line, font=font)
+        current_h += h + 10
+
+
     
     background.save('social-card-image.png',"PNG", quality=100)
     
