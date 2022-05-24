@@ -555,29 +555,29 @@ def overlay_covers_over_background():
 
 
     if len(image) == 5:
-        background.paste(image[0], (33, 102))
-        background.paste(image[1], (228, 102))
-        background.paste(image[2], (430, 102))
-        background.paste(image[3], (637, 102))
-        background.paste(image[4], (822, 102))
+        background.paste(image[0], (41, 102))
+        background.paste(image[1], (236, 102))
+        background.paste(image[2], (431, 102))
+        background.paste(image[3], (626, 102))
+        background.paste(image[4], (821, 102))
 
     elif len(image) == 4:
         background.paste(image[0], (72, 102))
         background.paste(image[1], (312, 102))
-        background.paste(image[2], (557, 102))
-        background.paste(image[3], (780, 102))
+        background.paste(image[2], (552, 102))
+        background.paste(image[3], (792, 102))
     
     elif len(image) == 3:
-        background.paste(image[0], (184, 102))
-        background.paste(image[1], (425, 102))
-        background.paste(image[2], (671, 102))
+        background.paste(image[0], (190, 102))
+        background.paste(image[1], (431, 102))
+        background.paste(image[2], (672, 102))
 
     elif len(image) == 2:
-        background.paste(image[0], (304, 102))
-        background.paste(image[1], (545, 102))
+        background.paste(image[0], (312, 102))
+        background.paste(image[1], (552, 102))
 
     else:
-        background.paste(image[0], (428, 102))
+        background.paste(image[0], (431, 102))
         
 
     logo = logo.resize(logo_size, Image.ANTIALIAS)
