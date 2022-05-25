@@ -1,8 +1,13 @@
 <template>
   <div id="app">
-    <MergeTable :olids="url.searchParams.get('records', '').split(',')" ref="mergeTable"/>
-
+    <MergeTable 
+        :olids="url.searchParams.get('records', '').split(',')" 
+        :show_diffs="show_diffs" 
+        ref="mergeTable"
+        />
     <button @click="doMerge" :disabled="mergeStatus == 'Saving...'">Do Merge</button>
+    <div id="diffs-toggle"><input type="checkbox" id="diff-checkbox" title="Show textual differences" v-model="show_diffs" />
+    <label for="diff-checkbox">Show text diffs</label></div>
     <pre v-if="mergeStatus">{{mergeStatus}}</pre>
   </div>
 </template>
@@ -19,7 +24,8 @@ export default {
     data() {
         return {
             url: new URL(location.toString()),
-            mergeStatus: null
+            mergeStatus: null,
+            show_diffs: false
         }
     },
     methods: {
@@ -40,8 +46,19 @@ export default {
 }
 </script>
 
-<style>
+<style lang="less">
 #app {
-  font-family: Roboto;
+    font-size: 0.9em;
+
+    button {
+        font-size: 1.3em;
+        padding: 5px;
+        margin: 5px;
+    }
+
+    div#diffs-toggle {
+        float: right;
+        padding: 4px 8px 0 0;
+    }
 }
 </style>
