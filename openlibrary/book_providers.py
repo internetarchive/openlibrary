@@ -250,10 +250,6 @@ class DirectProvider(AbstractBookProvider):
             # TODO: Not implemented for search/solr yet
             return []
 
-    def render_download_options(self, edition: Edition, extra_args: list = None):
-        # TODO: Not implemented yet
-        return ''
-
 
 PROVIDER_ORDER: list[AbstractBookProvider] = [
     # These providers act essentially as their own publishers, so link to the first when
