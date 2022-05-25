@@ -9,22 +9,22 @@
     <tbody>
       <MergeRow
         v-for="record in records"
-        :key="record.olid"
+        :key="record.key"
         :record="record"
         :fields="fields"
         :editions="editions"
         :lists="lists"
         :bookshelves="bookshelves"
         :ratings="ratings"
-        :class="{ selected: selected[record.olid]}"
+        :class="{ selected: selected[record.key]}"
         :cellSelected="isCellUsed"
         :merged="merge ? merge.record : null"
         :show_diffs="show_diffs"
       >
         <template #pre>
           <td class="col-controls">
-            <input type="radio" name="master_key" title="Primary Record" v-model="master_key" :value="record.olid" />
-            <input type="checkbox" title="Include in Merge" v-model="selected[record.olid]" />
+            <input type="radio" name="master_key" title="Primary Record" v-model="master_key" :value="record.key" />
+            <input type="checkbox" title="Include in Merge" v-model="selected[record.key]" />
           </td>
         </template>
       </MergeRow>
@@ -62,7 +62,7 @@ function fetchRecord(olid) {
     const endpoint = `/${type}/${olid}.json`;
     // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
     const url = location.host.endsWith('.openlibrary.org') ? `https://openlibrary.org${endpoint}` : endpoint;
-    return fetch(url).then(r => r.json()).then(json => {json.olid = olid; return json;});
+    return fetch(url).then(r => r.json());
 }
 
 export default {
@@ -71,13 +71,10 @@ export default {
         MergeRow
     },
     data() {
-        const sorted = _.sortBy(this.olids, olid =>
-            parseFloat(olid.match(/\d+/)[0])
-        );
         return {
-            master_key: sorted[0],
+            master_key: null,
             /** @type {{[key: string]: Boolean}} */
-            selected: [_.fromPairs(this.olids.map(olid => [olid, false]))]
+            selected: []
         };
     },
     props: {
@@ -90,7 +87,8 @@ export default {
                 parseFloat(olid.match(/\d+/)[0])
             );
             const records = await Promise.all(sorted.map(fetchRecord));
-            this.selected = _.fromPairs(records.map(record => [record.olid, record.type.key.includes('work')]));
+            this.master_key = records[0].key
+            this.selected = _.fromPairs(records.map(record => [record.key, record.type.key.includes('work')]));
             return records;
         },
 
@@ -153,10 +151,10 @@ export default {
             if (!this.master_key || !this.records || !this.editions || !this.lists || !this.bookshelves)
                 return undefined;
 
-            const master = this.records.find(r => r.olid === this.master_key);
+            const master = this.records.find(r => r.key === this.master_key);
             const dupes = this.records
-                .filter(r => this.selected[r.olid])
-                .filter(r => r.olid !== this.master_key);
+                .filter(r => this.selected[r.key])
+                .filter(r => r.key !== this.master_key);
             const records = [master, ...dupes];
             const editions_to_move = _.flatMap(
                 dupes,
@@ -178,7 +176,7 @@ export default {
             if (!this.merge) return false;
             return field in this.merge.sources
                 ? this.merge.sources[field].includes(record.key)
-                : record.olid === this.master_key;
+                : record.key === this.master_key;
         }
     },
     computed: {
@@ -212,7 +210,6 @@ export default {
             const exclude = [
                 'latest_revision',
                 'id',
-                'olid'
             ];
             const recordFields = _.uniq(_.flatMap(this.records, Object.keys));
             const otherFields = _.difference(recordFields, [
