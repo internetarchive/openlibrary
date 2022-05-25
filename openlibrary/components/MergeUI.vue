@@ -80,7 +80,7 @@ export default {
 #app {
     font-size: 0.9em;
 
-    button {
+    & > button {
         font-size: 1.3em;
         padding: 5px;
         margin: 5px;
