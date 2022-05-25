@@ -116,19 +116,27 @@ export function get_editions(work_key) {
     const endpoint = `${work_key}/editions.json`;
     // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
     const url = location.host.endsWith('.openlibrary.org') ? `https://openlibrary.org${endpoint}` : endpoint;
-    return fetch(url).then(r => r.json());
+    return fetch(url).then(r => {
+        return (r.ok) ? r.json() : {'size':0, entries:[]}; 
+    });
 }
 
 export function get_lists(key, limit=10) {
-    return fetch(`${key}/lists.json?${new URLSearchParams({ limit })}`).then(r => r.json());
+    return fetch(`${key}/lists.json?${new URLSearchParams({ limit })}`).then(r => {
+        return (r.ok) ? r.json() : {'size':0, entries:[]}; 
+    });
 }
 
 export function get_bookshelves(key) {
-    return fetch(`${key}/bookshelves.json`).then(r => r.json());
+    return fetch(`${key}/bookshelves.json`).then(r => {
+        return (r.ok) ? r.json() : {counts:{}}; 
+    });
 }
 
 export function get_ratings(key) {
-    return fetch(`${key}/ratings.json`).then(r => r.json());
+    return fetch(`${key}/ratings.json`).then(r => {
+        return (r.ok) ? r.json() : {'summary':{}, counts:{}};
+    });
 }
 
 /**
