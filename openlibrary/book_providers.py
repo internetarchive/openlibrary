@@ -38,7 +38,7 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
     The key in the identifiers field on editions;
     see https://openlibrary.org/config/edition
     """
-    identifier_key: str
+    identifier_key: Optional[str]
 
     def get_olids(self, identifier):
         return web.ctx.site.things(
@@ -229,9 +229,36 @@ class CitaPressProvider(AbstractBookProvider):
         return False
 
 
+class DirectProvider(AbstractBookProvider):
+    short_name = 'direct'
+    identifier_key = None
+
+    @property
+    def db_selector(self):
+        return "providers.url"
+
+    @property
+    def solr_key(self):
+        # TODO: Not implemented yet
+        return None
+
+    def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
+        # It's an edition
+        if ed_or_solr.get('providers'):
+            return [b['url'] for b in ed_or_solr['providers']]
+        else:
+            # TODO: Not implemented for search/solr yet
+            return []
+
+    def render_download_options(self, edition: Edition, extra_args: list = None):
+        # TODO: Not implemented yet
+        return ''
+
+
 PROVIDER_ORDER: list[AbstractBookProvider] = [
     # These providers act essentially as their own publishers, so link to the first when
     # we're on an edition page
+    DirectProvider(),
     LibriVoxProvider(),
     ProjectGutenbergProvider(),
     StandardEbooksProvider(),
@@ -389,7 +416,7 @@ def get_best_edition(
 
 
 def get_solr_keys():
-    return [p.solr_key for p in PROVIDER_ORDER]
+    return [p.solr_key for p in PROVIDER_ORDER if p]
 
 
 setattr(get_book_provider, 'ia', get_book_provider_by_name('ia'))  # noqa: B010
