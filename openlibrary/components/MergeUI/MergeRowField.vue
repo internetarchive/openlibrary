@@ -55,7 +55,7 @@
     >
       <li v-for="string in value" :key="string">{{string}}</li>
     </ul>
-    
+
     <!-- Description/First Sentence -->
     <TextDiff
       v-else-if="['description','first_sentence'].includes(field)"
