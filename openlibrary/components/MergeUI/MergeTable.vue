@@ -3,76 +3,36 @@
     <thead>
       <tr>
         <th rowspan="2"></th>
-        <th rowspan="2"></th>
-        <th v-for="field in fields" :key="field" rowspan="2">{{field}}</th>
-        <th colspan="3">Backreferences</th>
-      </tr>
-      <tr>
-        <th>Editions</th>
-        <th>Lists</th>
-        <th>Reading Log</th>
+        <th v-for="field in fields" :key="field" rowspan="2">{{field.replace(/\_/g, ' ').replace(/\|/g, ', ')}}</th>
       </tr>
     </thead>
     <tbody>
       <MergeRow
         v-for="record in records"
-        :key="record.key"
+        :key="record.olid"
         :record="record"
         :fields="fields"
-        :class="{ selected: selected[record.key] }"
+        :editions="editions"
+        :lists="lists"
+        :bookshelves="bookshelves"
+        :ratings="ratings"
+        :class="{ selected: selected[record.olid]}"
         :cellSelected="isCellUsed"
         :merged="merge ? merge.record : null"
+        :show_diffs="show_diffs"
       >
         <template #pre>
-          <td>
-            <input type="radio" name="master_key" v-model="master_key" :value="record.key" />
-          </td>
-          <td>
-            <input type="checkbox" v-model="selected[record.key]" />
-          </td>
-        </template>
-        <template #post>
-          <td v-if="editions">
-            {{editions[record.key].size}} edition{{editions[record.key].size == 1 ? '' : 's'}}
-            <div class="td-container" style="width: 400px;">
-              <EditionSnippet
-                v-for="edition in editions[record.key].entries"
-                :key="edition.key"
-                :edition="edition"
-              />
-            </div>
-          </td>
-          <td v-if="lists" style="white-space: nowrap;">
-            <a :href="`${record.key}/-/lists`">{{lists[record.key].size}} list{{lists[record.key].size == 1 ? '' : 's'}}</a>
-          </td>
-          <td v-else>⏳</td>
-          <td class="bookshelf-counts" style="white-space: nowrap;">
-            <div v-if="bookshelves">
-              <span v-for="(value, name, index) in bookshelves[record.key]" :key="index" :title="name">
-                {{value}}
-              </span>
-            </div>
-            <div v-else>⏳ / ⏳ / ⏳</div>
-
-            <div>
-              Ratings:
-                <span v-if="ratings">{{ratings[record.key].summary.count}}</span>
-                <span v-else>⏳</span>
-            </div>
+          <td class="col-controls">
+            <input type="radio" name="master_key" title="Primary Record" v-model="master_key" :value="record.olid" />
+            <input type="checkbox" title="Include in Merge" v-model="selected[record.olid]" />
           </td>
         </template>
       </MergeRow>
     </tbody>
     <tfoot>
-      <MergeRow v-if="merge" :record="merge.record" :selected="selected" :fields="fields">
+      <MergeRow v-if="merge" :record="merge.record" :selected="selected" :fields="fields" :merged="merge">
         <template #pre>
           <td />
-          <td />
-        </template>
-        <template #post>
-          <td>{{merge.edition_count}} edition{{merge.edition_count == 1 ? '' : 's'}}</td>
-          <td>{{merge.list_count}} list{{merge.list_count == 1 ? '' : 's'}}</td>
-          <td>??</td>
         </template>
       </MergeRow>
       <tr v-else><td>⏳</td></tr>
@@ -103,7 +63,7 @@ function fetchRecord(olid) {
     const endpoint = `/${type}/${olid}.json`;
     // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
     const url = location.host.endsWith('.openlibrary.org') ? `https://openlibrary.org${endpoint}` : endpoint;
-    return fetch(url).then(r => r.json());
+    return fetch(url).then(r => r.json()).then(json => {json.olid = olid; return json;});
 }
 
 export default {
@@ -117,20 +77,23 @@ export default {
             parseFloat(olid.match(/\d+/)[0])
         );
         return {
-            master_key: `/works/${sorted[0]}`,
+            master_key: sorted[0],
             /** @type {{[key: string]: Boolean}} */
-            selected: _.fromPairs(this.olids.map(olid => [`/works/${olid}`, true]))
+            selected: [_.fromPairs(this.olids.map(olid => [olid, false]))]
         };
     },
     props: {
-        olids: Array
+        olids: Array,
+        show_diffs: Boolean
     },
     asyncComputed: {
         async records() {
             const sorted = _.sortBy(this.olids, olid =>
                 parseFloat(olid.match(/\d+/)[0])
             );
-            return await Promise.all(sorted.map(fetchRecord));
+            const records = await Promise.all(sorted.map(fetchRecord));
+            this.selected = _.fromPairs(records.map(record => [record.olid, record.type.key.includes('work')]));
+            return records;
         },
 
         async editions() {
@@ -140,9 +103,16 @@ export default {
                 this.records.map(r => get_editions(r.key))
             );
             const editions = editionPromises.map(p => p.value || p);
-            return _.fromPairs(
+            const editionsMap = _.fromPairs(
                 this.records.map((work, i) => [work.key, editions[i]])
             );
+         
+            // If any of the records are editions, insert the record as its own edition list
+            Object.keys(editionsMap).forEach((key, index) => {
+              if (key.includes('M')) editionsMap[key] = {'size':1, 'entries': [this.records[index]]};
+            });
+
+            return editionsMap;
         },
 
         async lists() {
@@ -185,10 +155,10 @@ export default {
             if (!this.master_key || !this.records || !this.editions || !this.lists || !this.bookshelves)
                 return undefined;
 
-            const master = this.records.find(r => r.key === this.master_key);
+            const master = this.records.find(r => r.olid === this.master_key);
             const dupes = this.records
-                .filter(r => this.selected[r.key])
-                .filter(r => r.key !== this.master_key);
+                .filter(r => this.selected[r.olid])
+                .filter(r => r.olid !== this.master_key);
             const records = [master, ...dupes];
             const editions_to_move = _.flatMap(
                 dupes,
@@ -210,42 +180,62 @@ export default {
             if (!this.merge) return false;
             return field in this.merge.sources
                 ? this.merge.sources[field].includes(record.key)
-                : record.key === this.master_key;
+                : record.olid === this.master_key;
         }
     },
     computed: {
         fields() {
             const at_start = ['covers'];
-            const together = ['key', 'title', 'subtitle', 'authors'];
+            const together = ['key', 'title', 'subtitle', 'authors', 'error'];
             const subjects = [
                 'subjects',
                 'subject_people',
                 'subject_places',
                 'subject_times'
             ];
-            const at_end = [
+            const record_data = [
                 'created',
                 'last_modified',
                 'revision',
-                'type'
+                'type',
+                'location'
+            ];
+            const identifiers = [
+                'first_publish_date',
+                'dewey_number',
+                'lc_classifications'
+            ];
+            const text_data = [
+                'description',
+                'excerpts',
+                'first_sentence',
+                'links'
             ];
             const exclude = [
-                'latest_revision'
+                'latest_revision',
+                'id'
             ];
             const recordFields = _.uniq(_.flatMap(this.records, Object.keys));
-            const middleFields = _.difference(recordFields, [
+            const otherFields = _.difference(recordFields, [
                 ...at_start,
                 ...together,
                 ...subjects,
-                ...at_end,
+                ...record_data,
+                ...identifiers,
+                ...text_data,
                 ...exclude
             ]);
+            const usedIdentifiers = _.intersection(identifiers, recordFields);
+            const usedTextData = _.intersection(text_data, recordFields);
             return [
                 ...at_start,
                 together.join('|'),
+                record_data.join('|'),
+                'editions',
+                'references',
+                ...usedIdentifiers,
                 subjects.join('|'),
-                ...middleFields,
-                at_end.join('|')
+                ...usedTextData
             ];
         }
     }
@@ -253,41 +243,131 @@ export default {
 </script>
 
 <style lang="less">
-@row-height: 80px;
+@row-height: 100px;
+@row-padding: 8px;
+@table-background: rgb(248, 248, 248);
+@selection-background: rgb(220, 224, 238);
 
 body {
-  font-size: .9em;
+  font-size: .85em;
 }
 time {
   white-space: nowrap;
 }
 
-table {
+table.main {
+  border-collapse: collapse;
+
   thead,
   tfoot {
     position: sticky;
-    background: white;
     z-index: 300;
   }
-  thead {
+  & > thead {
+    background: rgb(240, 237, 226);
     top: 0;
+    font-variant: small-caps;
   }
-  tfoot {
+  & > tbody {
+    background: @table-background;
+  }
+  & > tfoot {
+    background: @selection-background;
     bottom: 0;
+  
+    & > tr {
+      border-top: 4px double;
+      box-shadow: 0 2px 4px inset black;
+    }
   }
+
   & > tbody > tr,
   & > tfoot > tr {
     &:hover {
-      background: rgba(200, 200, 0, .2);
+      background: rgba(200, 200, 0, .1);
     }
     & > td {
+      max-height: @row-height;
+      max-width: 300px;
       position: relative;
+      vertical-align: top;
+      border-bottom: 4px solid rgba(255, 255, 255, 0.9);
+      box-sizing: border-box;
+      padding: 0;
+
+      & > div {
+        height: calc(@row-height - @row-padding * 2);
+        max-height: calc(@row-height - @row-padding * 2);
+        overflow-y: auto;
+        padding: @row-padding;
+        margin-right: 4px;
+      }
+
+      & > div.field-covers {
+        width: 100px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        float: left;
+        margin-right: 8px;
+        .wrapper {
+          img {
+            width: 100%;
+          }
+        }
+      }
+
+      & > div.wrap-key--title--subtitle--authors--error {
+        min-width: max-content;
+        padding: 0 0 calc(@row-padding * 2) 0;
+
+        & > div {
+          padding: @row-padding @row-padding 0 @row-padding;
+          &:last-child {
+            padding-bottom: @row-padding;
+          }
+        }
+
+        div.field-subtitle {
+          padding-left: 1em;
+          padding-top: 0;
+        }
+      }
+
+      & > div.wrap-created--last_modified--revision--type--location {
+        white-space: nowrap;
+        padding: @row-padding 0 @row-padding 0;
+
+        & > div {
+          padding: calc(@row-padding/2) @row-padding 0 @row-padding;
+          &:nth-child(1), &:nth-child(2) {
+            padding-top: @row-padding;
+          }
+          &:last-child {
+            padding-bottom: @row-padding;
+          }
+        }
+        
+        & > div.field-created { padding-right: 0; }
+        & > div.field-last_modified { padding-left: 0; }
+        & > div.field-created, & > div.field-last_modified { 
+          display: inline; 
+          font-size: 0.95em;
+        }
+        & > div.field-last_modified::before { content: "…"; }
+        & > div.field-revision > div::before { content: "v"; }
+
+      }
 
       & > .td-container {
-        max-height: @row-height;
         overflow-y: auto;
-        resize: horizontal;
+        resize: vertical;
       }
+    }
+
+    & > td.col-key--title--subtitle--authors--error,
+    & > .col-subjects--subject_people--subject_places--subject_times,
+    & > td.col-editions  {
+      max-width: max-content;
     }
   }
 
@@ -297,48 +377,67 @@ table {
 }
 
 .field-container {
-  max-height: @row-height;
   overflow-y: auto;
+}
+
+.field-container.selected {
+  background: @selection-background;
+}
+
+td.col-controls {
+  text-align: center;
+  line-height: 2em;
+}
+
+div.field-error {
+  font-weight: 700;
+  color: red;
 }
 
 td.col-description {
   min-width: 200px;
+}
+
+td.col-description, td.col-excerpts, td.col-first_sentence, td.col-links {
   font-size: .9em;
-}
-
-.field-covers {
-  width: 100px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  float: left;
-  img {
-    width: 100%;
+  div {
+    max-height: @row-height;
   }
-  margin-right: 8px;
-}
-.col-key--title--subtitle--authors {
-  display: block;
-  border: 1px solid rgba(0, 0, 0, .5);
-  border-radius: 5px;
-
-  & > div {
-    width: 300px;
-    overflow-y: auto;
-    max-height: 100px;
+  ul {
+    padding: 0;
+    margin: 0;
   }
 }
 
-.col-subjects--subject_people--subject_places--subject_times .field-container {
-  border: 1px solid rgba(0, 0, 0, .3);
+div.field-lc_classifications li, div.field-dewey_number li {
+  font-size: .9em;
+  white-space: nowrap;
+}
+
+li.excerpt-item {
+  padding-bottom: 0.4em;
+}
+
+.col-subjects--subject_people--subject_places--subject_times > 
+  div.wrap-subjects--subject_people--subject_places--subject_times {
+  height: @row-height;
+  max-height: @row-height;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  .field-container {
+    min-height: 16px;
+    padding: 4px;
+    border-bottom: 4px solid @table-background;
+    flex: 1 1 auto;
+    &:last-child{
+        border-bottom: 0;
+    }
+  }
 }
 
 .field-authors {
-  thead {
-    display: none;
-  }
-  td:nth-child(0),
-  td:nth-child(1),
-  td:nth-child(2) {
+  thead, td.author-index, td.author-type {
     display: none;
   }
 }
@@ -352,10 +451,11 @@ ul.reset {
 }
 
 .pill-list {
-  min-width: 300px;
+  min-width: 250px;
   text-align: center;
 }
 .pill {
+  font-size: .9em;
   display: inline-block;
   white-space: nowrap;
   border: 1px solid;
@@ -366,41 +466,35 @@ ul.reset {
   background: rgba(255, 255, 255, .4);
 }
 
-table {
-  border-collapse: collapse;
-}
-tfoot > tr {
-  border-top: 4px double;
-  box-shadow: 0 2px 4px inset black;
-}
-
-td {
-  border: 1px solid rgba(255, 255, 255, .9);
-  padding: 4px;
-  box-sizing: border-box;
-}
-
-.field-container.selected {
-  background: rgba(0, 50, 200, .2);
-}
-
 .field-subject_people::before {
-  content: "🕴";
+  content: "👤";
   float: left;
+  padding-left: 3px;
 }
 .field-subject_places::before {
-  content: "🗺";
+  content: "🌎";
   float: left;
+  padding-left: 3px;
 }
 .field-subject_times::before {
-  content: "⌚";
+  content: "🕗";
   float: left;
+  padding-left: 3px;
 }
+
+td.col-editions div.td-container {
+  width: 400px;
+  max-height: calc(@row-height - 30px);
+}
+
+.col-references > div {
+  white-space: nowrap;
+  & > div {
+    padding-bottom: @row-padding;
+  }
+}
+
 .bookshelf-counts span:not(:first-child)::before {
   content: " / ";
 }
-
-.field-created, .field-last_modified { display: inline; }
-.field-last_modified::before { content: " … "; }
-.field-revision > div::before { content: "v"; }
 </style>
