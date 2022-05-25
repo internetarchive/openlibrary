@@ -1,8 +1,8 @@
 <template>
   <div id="app">
-    <MergeTable 
-        :olids="url.searchParams.get('records', '').split(',')" 
-        :show_diffs="show_diffs" 
+    <MergeTable
+        :olids="url.searchParams.get('records', '').split(',')"
+        :show_diffs="show_diffs"
         ref="mergeTable"
         />
     <button @click="doMerge" :disabled="mergeStatus == 'Saving...'">Do Merge</button>
