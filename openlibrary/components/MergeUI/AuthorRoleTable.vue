@@ -36,7 +36,7 @@ export default {
     },
     computed: {
         fields() {
-            return _.uniq(_.flatMap(this.roles, function(input) { const keys=Object.keys(input); keys.sort; return keys; }));
+            return _.uniq(_.flatMap(this.roles, Object.keys)).sort();
         }
     }
 }
