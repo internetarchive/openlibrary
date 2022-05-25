@@ -1,6 +1,9 @@
 <template>
-    <div>
+    <div v-if="show_diffs">
         <span v-for="(part, i) in diff" :key="i" :class="part">{{part.value}}</span>
+    </div>
+    <div v-else>
+        {{left}}
     </div>
 </template>
 
@@ -11,6 +14,7 @@ export default {
     props: {
         left: String,
         right: String,
+        show_diffs: Boolean,
         resolution: {
             default: 'char',
             validator: val => ['char', 'word'].includes(val),
