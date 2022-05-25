@@ -1,0 +1,27 @@
+$def with (work, edition, page_url)
+
+$def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None):
+  $ href = 'javascript:;'
+  $if not ctx.user and login_redirect:
+    $# Change classname to avoid adding click listeners and redirect to login page:
+    $ href = '/account/login?redirect=%s' % ctx.path
+    $ link_class = '%s--redirect' % link_class
+
+  $ ga_attr = 'data-ol-link-track=%s' % ga_data if ga_data else ''
+  <a href="$href" class="$link_class icon-link" $ga_attr>
+    <img class="icon-link__image" src="$img_src">
+    <div class="icon-link__text">$link_text</div>
+  </a>
+
+<div class="modal-links">
+  $ review_content = icon_link("observations-modal-link", "/static/images/icons/reviews.svg", _("Review"), ga_data="ModalLinkClick|ReviewIcon")
+  $:macros.ObservationsModal(work, review_content, 'sidebar-review')
+
+  $ notes_content = icon_link("notes-modal-link", "/static/images/icons/notes.svg", _("Notes"), ga_data="ModalLinkClick|NoteIcon")
+  $:macros.NotesModal(work, edition, notes_content, 'sidebar-notes')
+
+  $if ctx.get('share_links'):
+    $ share_content = icon_link("share-modal-link", "/static/images/icons/share.svg", _("Share"), login_redirect=False, ga_data="ModalLinkClick|ShareIcon")
+    $ share_links = ctx.get('share_links')
+    $:macros.ShareModal(share_links, page_url, share_content)
+</div>

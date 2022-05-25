@@ -170,7 +170,13 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
         <link itemprop="exampleOfWork" href="$work.key">
 
     <div class="editionCover">
-      $:macros.databarWork(edition or work, editions_page=True, render_times=component_times,summary=render_summary)
+      $ share_url = request.home + (edition or work).key
+
+      $ component_times['databarWork: Modal Links'] = time()
+      $ modal_links = render_template("type/edition/modal_links", work, edition, share_url)
+      $ component_times['databarWork: Modal Links'] = time() - component_times['databarWork: Modal Links']
+
+      $:macros.databarWork(edition or work, editions_page=True, render_times=component_times,summary=render_summary, modal_links=modal_links)
     </div>
 
     <div class="editionAbout">
