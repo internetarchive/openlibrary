@@ -14,7 +14,7 @@ from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
-logger = logging.getLogger("openlibrary.importer.bwb")
+logger = logging.getLogger("openlibrary.importer.pressbooks")
 
 
 langs = {
@@ -120,7 +120,7 @@ def main(ol_config: str, filename: str, batch_size=5000, dry_run=False):
     if not dry_run:
         load_config(ol_config)
         date = datetime.date.today()
-        batch_name = "%s-%04d%02d" % ('pressbooks', date.year, date.month)
+        batch_name = f"pressbooks-{date:%Y%m}"
         batch = Batch.find(batch_name) or Batch.new(batch_name)
 
     with open(filename, 'rb') as f:
