@@ -7,6 +7,7 @@
       :value="record[field]"
       :merged="merged"
       :class="{ selected: cellSelected && cellSelected(record, field) }"
+      :show_diffs="show_diffs"
     />
   </div>
 </template>
@@ -33,6 +34,9 @@ export default {
         merged: {
             type: Object,
             required: false
+        },
+        show_diffs: {
+            type: Boolean
         }
     },
     computed: {
