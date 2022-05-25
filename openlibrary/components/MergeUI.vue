@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <MergeTable :olids="olids" ref="mergeTable"/>
+    <MergeTable :olids="olids" :show_diffs="show_diffs" ref="mergeTable"/>
     <div class="action-bar">
         <div class="comment-input" v-if="mrid">
             <label for="comment">Comment: </label>

@@ -46,7 +46,6 @@ import _ from 'lodash';
 import Vue from 'vue';
 import AsyncComputed from 'vue-async-computed';
 import MergeRow from './MergeRow.vue';
-import EditionSnippet from './EditionSnippet.vue';
 import { merge, get_editions, get_lists, get_bookshelves, get_ratings } from './utils.js';
 
 Vue.use(AsyncComputed);
@@ -69,7 +68,6 @@ function fetchRecord(olid) {
 export default {
     name: 'MergeTable',
     components: {
-        EditionSnippet,
         MergeRow
     },
     data() {
@@ -106,10 +104,10 @@ export default {
             const editionsMap = _.fromPairs(
                 this.records.map((work, i) => [work.key, editions[i]])
             );
-         
+
             // If any of the records are editions, insert the record as its own edition list
             Object.keys(editionsMap).forEach((key, index) => {
-              if (key.includes('M')) editionsMap[key] = {'size':1, 'entries': [this.records[index]]};
+                if (key.includes('M')) editionsMap[key] = {size: 1, entries: [this.records[index]]};
             });
 
             return editionsMap;
@@ -213,7 +211,8 @@ export default {
             ];
             const exclude = [
                 'latest_revision',
-                'id'
+                'id',
+                'olid'
             ];
             const recordFields = _.uniq(_.flatMap(this.records, Object.keys));
             const otherFields = _.difference(recordFields, [
@@ -235,7 +234,8 @@ export default {
                 'references',
                 ...usedIdentifiers,
                 subjects.join('|'),
-                ...usedTextData
+                ...usedTextData,
+                ...otherFields
             ];
         }
     }
@@ -274,7 +274,7 @@ table.main {
   & > tfoot {
     background: @selection-background;
     bottom: 0;
-  
+
     & > tr {
       border-top: 4px double;
       box-shadow: 0 2px 4px inset black;
@@ -346,11 +346,11 @@ table.main {
             padding-bottom: @row-padding;
           }
         }
-        
+
         & > div.field-created { padding-right: 0; }
         & > div.field-last_modified { padding-left: 0; }
-        & > div.field-created, & > div.field-last_modified { 
-          display: inline; 
+        & > div.field-created, & > div.field-last_modified {
+          display: inline;
           font-size: 0.95em;
         }
         & > div.field-last_modified::before { content: "…"; }
@@ -418,7 +418,7 @@ li.excerpt-item {
   padding-bottom: 0.4em;
 }
 
-.col-subjects--subject_people--subject_places--subject_times > 
+.col-subjects--subject_people--subject_places--subject_times >
   div.wrap-subjects--subject_people--subject_places--subject_times {
   height: @row-height;
   max-height: @row-height;
