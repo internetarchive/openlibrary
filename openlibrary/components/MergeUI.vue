@@ -10,6 +10,8 @@
             <button class="merge-btn" @click="doMerge" :disabled="mergeStatus == 'Saving...'">Do Merge</button>
             <button class="reject-btn" v-if="mrid" @click="rejectMerge">Reject Merge</button>
         </div>
+        <div id="diffs-toggle"><input type="checkbox" id="diff-checkbox" title="Show textual differences" v-model="show_diffs" />
+        <label for="diff-checkbox">Show text diffs</label></div>
     </div>
     <pre v-if="mergeStatus">{{mergeStatus}}</pre>
   </div>
@@ -35,6 +37,7 @@ export default {
         return {
             url: new URL(location.toString()),
             mergeStatus: null,
+            show_diffs: false,
             comment: ''
         }
     },
@@ -75,7 +78,18 @@ export default {
 
 <style lang="less">
 #app {
-  font-family: Roboto;
+    font-size: 0.9em;
+
+    button {
+        font-size: 1.3em;
+        padding: 5px;
+        margin: 5px;
+    }
+
+    div#diffs-toggle {
+        float: right;
+        padding: 4px 8px 0 0;
+    }
 }
 
 .btn-group {
