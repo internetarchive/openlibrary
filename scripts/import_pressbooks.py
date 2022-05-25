@@ -8,6 +8,7 @@ import json
 import datetime
 import logging
 import requests
+import html
 
 from infogami import config  # noqa: F401
 from openlibrary.config import load_config
@@ -39,7 +40,7 @@ def convert_pressbooks_to_ol(data):
             isbn.split(' ')[0].replace('-', '') for isbn in data['isbn'].split('; ')
         ]
     if data.get('name'):
-        book['title'] = data['name']
+        book['title'] = html.unescape(data['name'])
     if data.get('languageCode'):
         book['languages'] = [langs[data['languageCode'].split('-', 1)[0]]]
     if data.get('author'):
