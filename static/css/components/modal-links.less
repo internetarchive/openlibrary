@@ -1,0 +1,36 @@
+.modal-links {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px;
+
+  .icon-link {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+
+    transition: background-color .2s;
+    padding-bottom: 6px;
+
+    &:hover {
+      background-color: @icon-link-grey;
+    }
+
+    &__text {
+      font-size: 12px;
+      line-height: 12px;
+    }
+
+    &__image {
+      width: 2em;
+      height: 2em;
+      object-fit: contain;
+    }
+  }
+}
