@@ -6,8 +6,12 @@
         ref="mergeTable"
         />
     <button @click="doMerge" :disabled="mergeStatus == 'Saving...'">Do Merge</button>
-    <div id="diffs-toggle"><input type="checkbox" id="diff-checkbox" title="Show textual differences" v-model="show_diffs" />
-    <label for="diff-checkbox">Show text diffs</label></div>
+    <div id="diffs-toggle">
+        <label>
+            <input type="checkbox" title="Show textual differences" v-model="show_diffs" />
+            Show text diffs
+        </label>
+    </div>
     <pre v-if="mergeStatus">{{mergeStatus}}</pre>
   </div>
 </template>
