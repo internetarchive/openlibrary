@@ -5,14 +5,14 @@
         :show_diffs="show_diffs"
         ref="mergeTable"
         />
-    <button @click="doMerge" :disabled="mergeStatus == 'Saving...'">Do Merge</button>
+    <button @click="doMerge" :disabled="mergeStatus != 'Do Merge'">{{mergeStatus}}</button>
     <div id="diffs-toggle">
         <label>
             <input type="checkbox" title="Show textual differences" v-model="show_diffs" />
             Show text diffs
         </label>
     </div>
-    <pre v-if="mergeStatus">{{mergeStatus}}</pre>
+    <pre v-if="mergeOutput">{{mergeOutput}}</pre>
   </div>
 </template>
 
@@ -28,9 +28,18 @@ export default {
     data() {
         return {
             url: new URL(location.toString()),
-            mergeStatus: null,
+            mergeStatus: 'Loading...',
+            mergeOutput: null,
             show_diffs: false
         }
+    },
+    mounted() {
+        this.$watch(
+        "$refs.mergeTable.merge",
+            (new_value, old_value) => {
+                if (new_value && new_value !== old_value) this.mergeStatus = 'Do Merge';
+            }
+        );
     },
     methods: {
         async doMerge() {
@@ -40,11 +49,12 @@ export default {
             this.mergeStatus = 'Saving...';
             try {
                 const r = await do_merge(master, dupes, editions_to_move);
-                this.mergeStatus = await r.json();
+                this.mergeOutput = await r.json();
             } catch (e) {
-                this.mergeStatus = e.message;
+                this.mergeOutput = e.message;
                 throw e;
             }
+            this.mergeStatus = 'Do Merge';
         }
     }
 }
