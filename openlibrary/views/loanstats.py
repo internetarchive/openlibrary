@@ -52,11 +52,6 @@ def get_logged_books_carousel(since_days=1, limit=18 ,page=1):
         if key in work_index:
             tab.append(work_index[key])
     return tab
-
-
-
-
-
 @public
 def get_most_logged_books(shelf_id=None, since_days=1, limit=20 ,page=1):
     """
