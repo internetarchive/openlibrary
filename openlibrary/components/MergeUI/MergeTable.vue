@@ -157,7 +157,7 @@ export default {
             const dupes = this.records
                 .filter(r => this.selected[r.key])
                 .filter(r => r.key !== this.master_key);
-            const work_dupes = dupes.filter(r => r.type.key == '/type/work');
+            const work_dupes = dupes.filter(r => r.type.key === '/type/work');
             const records = [master, ...dupes];
             const editions_to_move = _.flatMap(
                 dupes,
