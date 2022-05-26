@@ -44,20 +44,5 @@ class community_edits_queue(delegate.page):
             requests = CommunityEditsQueue.get_requests(page=i.page)
             return render_template('pendingchanges', requests=requests)
 
-
-class FakeWorkMergeUI(delegate.page):
-    path = '/works/merge'
-    def GET(self):
-        i = web.input(mrid="", records="", action="")
-        page = """
-        <form action="/merges" method="POST">
-          <input type="hidden" name="mrid" value="{mrid}">
-          <input type="hidden" name="action" value="{action}">
-          <input type="submit">
-        </form>
-        """.format(**i)
-        return page
-
-
 def setup():
     pass
