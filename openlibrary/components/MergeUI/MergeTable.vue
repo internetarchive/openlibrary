@@ -2,8 +2,8 @@
   <table class="main">
     <thead>
       <tr>
-        <th rowspan="2"></th>
-        <th v-for="field in fields" :key="field" rowspan="2">{{field.replace(/\_/g, ' ').replace(/\|/g, ', ')}}</th>
+        <th></th>
+        <th v-for="field in fields" :key="field">{{field.replace(/\_/g, ' ').replace(/\|/g, ', ')}}</th>
       </tr>
     </thead>
     <tbody>
@@ -22,10 +22,11 @@
         :show_diffs="show_diffs"
       >
         <template #pre>
-          <td class="col-controls">
+          <td class="col-controls" v-if="['/type/edition','/type/work'].includes(record.type.key)">
             <input type="radio" name="master_key" title="Primary Record" v-model="master_key" :value="record.key" />
             <input type="checkbox" title="Include in Merge" v-model="selected[record.key]" />
           </td>
+          <td v-else />
         </template>
       </MergeRow>
     </tbody>
@@ -83,10 +84,11 @@ export default {
     },
     asyncComputed: {
         async records() {
-            const sorted = _.sortBy(this.olids, olid =>
+            const olids_sorted = _.sortBy(this.olids, olid =>
                 parseFloat(olid.match(/\d+/)[0])
             );
-            const records = await Promise.all(sorted.map(fetchRecord));
+            const records_unsorted = await Promise.all(olids_sorted.map(fetchRecord));
+            const records = _.orderBy(records_unsorted, record => record.type.key, 'desc');
             this.master_key = records[0].key
             this.selected = _.fromPairs(records.map(record => [record.key, record.type.key.includes('work')]));
             return records;
@@ -155,13 +157,14 @@ export default {
             const dupes = this.records
                 .filter(r => this.selected[r.key])
                 .filter(r => r.key !== this.master_key);
+            const work_dupes = dupes.filter(r => r.type.key == '/type/work');
             const records = [master, ...dupes];
             const editions_to_move = _.flatMap(
                 dupes,
                 work => this.editions[work.key].entries
             );
 
-            const [record, sources] = merge(master, dupes);
+            const [record, sources] = merge(master, work_dupes);
 
             const extras = {
                 edition_count: _.sum(records.map(r => this.editions[r.key].size)),
@@ -261,9 +264,12 @@ table.main {
     z-index: 300;
   }
   & > thead {
-    background: rgb(240, 237, 226);
     top: 0;
-    font-variant: small-caps;
+    & > th {
+      font-variant: small-caps;
+      margin-right: 4px;
+      background: rgb(240, 237, 226);
+    }
   }
   & > tbody {
     background: @table-background;
