@@ -70,7 +70,7 @@ class CommunityEditsQueue:
 
         # XXX should there be any validation of the url?
         # i.e. does this represent a valid merge/delete request?
-        
+
         return oldb.insert(
             "community_edits_queue",
             submitter=submitter,
@@ -89,7 +89,7 @@ class CommunityEditsQueue:
             reviewer=reviewer,
             vars={"rid": rid}
         )
-    
+
     @classmethod
     def close_request(cls, rid, comment=None):
         """XXX comment not being used here yet"""
@@ -127,4 +127,4 @@ class CommunityEditsQueue:
             where="rid=$rid",
             vars={"rid": rid, "comments": comment}
         )
-        
+
