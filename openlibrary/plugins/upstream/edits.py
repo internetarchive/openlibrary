@@ -15,13 +15,19 @@ class community_edits_queue(delegate.page):
     path = '/merges'
 
     def POST(self):
-        i = web.input(work_ids="", rtype="merge-works", mrid=None, action=None, comment=None)
+        i = web.input(
+            work_ids="",
+            rtype="merge-works",
+            mrid=None,
+            action=None,  # approve, close, comment
+            comment=None
+        )
         user = accounts.get_current_user()
         username = user['key'].split('/')[-1]
         if i.mrid:
             action = f"{i.action}_request"
             result = getattr(CommunityEditsQueue, action)(
-                mrid, comment=i.comment
+                i.mrid, comment=i.comment
             )
         if i.rtype == "merge-works":
             # normalization
@@ -39,10 +45,9 @@ class community_edits_queue(delegate.page):
 
     def GET(self):
         i = web.input(page=1)
-        user = web.ctx.site.get_user()
-        if user:
-            requests = CommunityEditsQueue.get_requests(page=i.page)
-            return render_template('pendingchanges', requests=requests)
+        merge_requests = CommunityEditsQueue.get_requests(page=i.page)
+        return render_template('merge_queue', merge_requests=merge_requests)
+
 
 def setup():
     pass

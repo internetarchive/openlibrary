@@ -70,7 +70,7 @@ class CommunityEditsQueue:
 
         # XXX should there be any validation of the url?
         # i.e. does this represent a valid merge/delete request?
-        
+
         return oldb.insert(
             "community_edits_queue",
             submitter=submitter,
@@ -89,9 +89,10 @@ class CommunityEditsQueue:
             reviewer=reviewer,
             vars={"rid": rid}
         )
-    
+
     @classmethod
     def close_request(cls, rid, comment=None):
+        """XXX comment not being used here yet"""
         oldb = db.get_db()
         oldb.update(
             "community_edits_queue",
@@ -102,6 +103,7 @@ class CommunityEditsQueue:
 
     @classmethod
     def approve_request(cls, rid, comment=None):
+        """XXX comment not being used here yet"""
         oldb = db.get_db()
         oldb.update(
             "community_edits_queue",
@@ -113,9 +115,9 @@ class CommunityEditsQueue:
     @classmethod
     def comment_request(cls, rid, username, comment):
         oldb = db.get_db()
-        comments.setdefault("comments", [])
+        comment.setdefault("comments", [])
         # isoformat to avoid to-json issues
-        comments["comments"].append({
+        comment["comments"].append({
             "timestamp": datetime.datetime.utcnow().isoformat(),
             "username": username,
             "message": comment
@@ -125,4 +127,3 @@ class CommunityEditsQueue:
             where="rid=$rid",
             vars={"rid": rid, "comments": comment}
         )
-        

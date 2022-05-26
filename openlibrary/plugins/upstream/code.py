@@ -106,7 +106,8 @@ class merge_work(delegate.page):
         )
         if not has_access:
             raise web.HTTPError('403 Forbidden')
-        return render_template('merge/works')
+        i = web.input(mrid="")
+        return render_template('merge/works', mrid=i.mrid)
 
 
 @web.memoize
