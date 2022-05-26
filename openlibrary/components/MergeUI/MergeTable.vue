@@ -265,7 +265,7 @@ table.main {
   }
   & > thead {
     top: 0;
-    & > th {
+    & > tr > th {
       font-variant: small-caps;
       margin-right: 4px;
       background: rgb(240, 237, 226);
