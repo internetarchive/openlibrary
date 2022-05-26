@@ -1,4 +1,4 @@
-$def with(requests=None)
+$def with(merge_requests=None)
 
 <form method="POST">
   <p>Submit Work Merge Request (test)</p>
@@ -8,14 +8,14 @@ $def with(requests=None)
 
 <h1>Community Edit Requests</h1>
 
-$if requests:
+$if merge_requests:
   <table>
     <tr>
       <th>url</th>
       <th>submitter</th>
       <th>reviewer</th>
     </tr>
-    $for r in requests:
+    $for r in merge_requests:
       <tr title='$r'>
 	$ url = "%s&mrid=%s" % (r['url'], r['id'])
 	<td><a href="$url">$url</a></td>
