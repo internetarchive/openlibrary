@@ -27,7 +27,7 @@ class community_edits_queue(delegate.page):
         if i.mrid:
             action = f"{i.action}_request"
             result = getattr(CommunityEditsQueue, action)(
-                mrid, comment=i.comment
+                i.mrid, comment=i.comment
             )
         if i.rtype == "merge-works":
             # normalization
