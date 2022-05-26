@@ -7,7 +7,7 @@
             <input name="comment" v-model="comment" type="text">
         </div>
         <div class="btn-group">
-            <button class="merge-btn" @click="doMerge" :disabled="mergeStatus == 'Saving...'">Do Merge</button>
+            <button class="merge-btn" @click="doMerge" :disabled="mergeStatus != 'Do Merge'">{{mergeStatus}}</button>
             <button class="reject-btn" v-if="mrid" @click="rejectMerge">Reject Merge</button>
         </div>
         <div id="diffs-toggle">
@@ -16,7 +16,7 @@
             Show text diffs
         </label>
     </div>
-    <pre v-if="mergeStatus">{{mergeStatus}}</pre>
+    <pre v-if="mergeOutput">{{mergeOutput}}</pre>
   </div>
 </template>
 
@@ -39,7 +39,8 @@ export default {
     data() {
         return {
             url: new URL(location.toString()),
-            mergeStatus: null,
+            mergeStatus: 'Loading...',
+            mergeOutput: null,
             show_diffs: false,
             comment: ''
         }
@@ -49,6 +50,14 @@ export default {
             return this.url.searchParams.get('records', '').split(',')
         }
     },
+    mounted() {
+        this.$watch(
+        "$refs.mergeTable.merge",
+            (new_value, old_value) => {
+                if (new_value && new_value !== old_value) this.mergeStatus = 'Do Merge';
+            }
+        );
+    },
     methods: {
         async doMerge() {
             if (!this.$refs.mergeTable.merge) return;
@@ -57,7 +66,7 @@ export default {
             this.mergeStatus = 'Saving...';
             try {
                 const r = await do_merge(master, dupes, editions_to_move, this.mrid);
-                this.mergeStatus = await r.json();
+                this.mergeOutput = await r.json();
 
                 if (this.mrid) {
                     await update_merge_request(this.mrid, 'approve', this.comment)
@@ -66,19 +75,21 @@ export default {
                     await createMergeRequest(workIds)
                 }
             } catch (e) {
-                this.mergeStatus = e.message;
+                this.mergeOutput = e.message;
                 throw e;
             }
+            this.mergeStatus = 'Do Merge';
         },
 
         async rejectMerge() {
             try {
                 await update_merge_request(this.mrid, 'decline', this.comment)
-                this.mergeStatus = 'Merge request closed'
+                this.mergeOutput = 'Merge request closed'
             } catch (e) {
-                this.mergeStatus = e.message;
+                this.mergeOutput = e.message;
                 throw e;
             }
+            this.mergeStatus = 'Reject Merge';
         }
     }
 }
