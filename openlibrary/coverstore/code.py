@@ -550,44 +550,52 @@ def overlay_covers_over_background():
             img = Image.open(image_bytes)
 
             #resize the image
-            size = (162,263)
-            image.append(img.resize(size,Image.ANTIALIAS))
-
-
+            basewidth = 162
+            wpercent = (basewidth / float(img.size[0]))
+            hsize = int((float(img.size[1]) * float(wpercent)))
+            img = img.resize((basewidth, hsize), Image.ANTIALIAS)
+            #w, h = img.size
+            #ratio = h//w
+            #new_height = ratio*162
+            #size = (162,new_height)
+            #image.append(img.resize(size,Image.ANTIALIAS))
+            image.append(img)
+    max_height=0
+    for img in image:
+        if (img.size[1] > max_height):
+            max_height = img.size[1]
     if len(image) == 5:
-        background.paste(image[0], (41, 102))
-        background.paste(image[1], (236, 102))
-        background.paste(image[2], (431, 102))
-        background.paste(image[3], (626, 102))
-        background.paste(image[4], (821, 102))
+        background.paste(image[0], (41, 104 + max_height - image[0].size[1]))
+        background.paste(image[1], (236, 104 + max_height - image[1].size[1]))
+        background.paste(image[2], (431, 104 + max_height - image[2].size[1]))
+        background.paste(image[3], (626, 104 + max_height - image[3].size[1]))
+        background.paste(image[4], (821, 104 + max_height - image[4].size[1]))
 
     elif len(image) == 4:
-        background.paste(image[0], (72, 102))
-        background.paste(image[1], (312, 102))
-        background.paste(image[2], (552, 102))
-        background.paste(image[3], (792, 102))
+        background.paste(image[0], (72, 104 + max_height - image[0].size[1]))
+        background.paste(image[1], (312, 104 + max_height - image[1].size[1]))
+        background.paste(image[2], (552, 104 + max_height - image[2].size[1]))
+        background.paste(image[3], (792, 104 + max_height - image[3].size[1]))
     
     elif len(image) == 3:
-        background.paste(image[0], (190, 102))
-        background.paste(image[1], (431, 102))
-        background.paste(image[2], (672, 102))
+        background.paste(image[0], (190, 104 + max_height - image[0].size[1]))
+        background.paste(image[1], (431, 104 + max_height - image[1].size[1]))
+        background.paste(image[2], (672, 104 + max_height - image[2].size[1]))
 
     elif len(image) == 2:
-        background.paste(image[0], (312, 102))
-        background.paste(image[1], (552, 102))
+        background.paste(image[0], (312, 104 + max_height - image[0].size[1]))
+        background.paste(image[1], (552, 104 + max_height - image[1].size[1]))
 
     else:
-        background.paste(image[0], (431, 102))
+        background.paste(image[0], (431, 104 + max_height - image[0].size[1]))
         
 
     logo = logo.resize(logo_size, Image.ANTIALIAS)
     background.paste(logo, logo_position, logo)
 
     draw = ImageDraw.Draw(background)   
-    font = ImageFont.truetype("/openlibrary/static/fonts/news_serif_bolditalic.ttf", 22)
-    #w,h = draw.textsize(recom_text)
-    #draw.text(((W - w) / 2, 406), recom_text, fill =(255, 255, 255), font=font)
-    current_h=406
+    font = ImageFont.truetype("/openlibrary/static/fonts/news_serif_bolditalic.ttf", 24)    
+    current_h=404
     for line in para:
         w, h = draw.textsize(line, font=font)
         draw.text(((W - w) / 2, current_h), line, font=font)
