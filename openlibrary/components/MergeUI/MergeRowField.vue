@@ -2,7 +2,9 @@
   <div class="field-container" :class="`field-${field}`" :title="title">
     <!-- Type -->
     <div v-if="field == 'type'" :title="JSON.stringify(value)">{{value.key}}</div>
-    <!-- Authors Array -->
+     <!-- Location -->
+    <div v-else-if="field == 'location'" :title="JSON.stringify(value)">{{value}}</div>
+   <!-- Authors Array -->
     <AuthorRoleTable v-else-if="field == 'authors'" :roles="value" />
     <!-- Excerpts Array -->
     <ExcerptsTable v-else-if="field == 'excerpts'" :excerpts="value" />
