@@ -52,7 +52,7 @@ export default {
     },
     mounted() {
         this.$watch(
-        "$refs.mergeTable.merge",
+            '$refs.mergeTable.merge',
             (new_value, old_value) => {
                 if (new_value && new_value !== old_value) this.mergeStatus = 'Do Merge';
             }
