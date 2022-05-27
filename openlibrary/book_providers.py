@@ -1,4 +1,4 @@
-from typing import Optional, Union, Literal, Iterator, cast
+from typing import Optional, TypedDict, Union, Literal, Iterator, cast, TypeVar, Generic
 
 import web
 from web import uniq
@@ -6,10 +6,31 @@ from web import uniq
 from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
-from openlibrary.utils import multisort_best
+from openlibrary.utils import OrderedEnum, multisort_best
 
 
-class AbstractBookProvider:
+class EbookAccess(OrderedEnum):
+    # Keep in sync with solr/conf/enumsConfig.xml !
+    NO_EBOOK = 0
+    UNCLASSIFIED = 1
+    PRINTDISABLED = 2
+    BORROWABLE = 3
+    PUBLIC = 4
+
+    def to_solr_str(self):
+        return self.name.lower()
+
+
+class IALiteMetadata(TypedDict):
+    boxid: set[str]
+    collection: set[str]
+    access_restricted_item: Optional[Literal['true', 'false']]
+
+
+TProviderMetadata = TypeVar('TProviderMetadata')
+
+
+class AbstractBookProvider(Generic[TProviderMetadata]):
     short_name: str
 
     """
@@ -76,8 +97,19 @@ class AbstractBookProvider:
         """Whether the ocaid is an archive of content from this provider"""
         return False
 
+    def get_access(
+        self,
+        edition: dict,
+        metadata: TProviderMetadata = None,
+    ) -> EbookAccess:
+        """
+        Return the access level of the edition.
+        """
+        # Most providers are for public-only ebooks right now
+        return EbookAccess.PUBLIC
 
-class InternetArchiveProvider(AbstractBookProvider):
+
+class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
     short_name = 'ia'
     identifier_key = 'ocaid'
 
@@ -125,6 +157,25 @@ class InternetArchiveProvider(AbstractBookProvider):
             )
         else:
             return ''
+
+    def get_access(self, edition: dict, metadata: IALiteMetadata = None) -> EbookAccess:
+        if not metadata:
+            if edition.get('ocaid'):
+                return EbookAccess.UNCLASSIFIED
+            else:
+                return EbookAccess.NO_EBOOK
+
+        collections = metadata.get('collection', set())
+        access_restricted_item = metadata.get('access_restricted_item') == "true"
+
+        if 'inlibrary' in collections:
+            return EbookAccess.BORROWABLE
+        elif 'printdisabled' in collections:
+            return EbookAccess.PRINTDISABLED
+        elif access_restricted_item or not collections:
+            return EbookAccess.UNCLASSIFIED
+        else:
+            return EbookAccess.PUBLIC
 
 
 class LibriVoxProvider(AbstractBookProvider):
@@ -232,7 +283,10 @@ def get_provider_order(prefer_ia=False) -> list[AbstractBookProvider]:
     default_order = prefer_ia_provider_order if prefer_ia else PROVIDER_ORDER
 
     provider_order = default_order
-    provider_overrides = web.input(providerPref=None).providerPref
+    provider_overrides = None
+    # Need this to work in test environments
+    if 'env' in web.ctx:
+        provider_overrides = web.input(providerPref=None, _method='GET').providerPref
     if provider_overrides:
         new_order: list[AbstractBookProvider] = []
         for name in provider_overrides.split(','):
