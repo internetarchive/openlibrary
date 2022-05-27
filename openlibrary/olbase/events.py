@@ -14,7 +14,7 @@ import eventer
 from infogami.infobase import config, server
 from openlibrary.utils import olmemcache
 
-logger = logging.getLogger("openlibrary.olbase")
+logger = logging.getLogger('openlibrary.olbase')
 
 
 def setup():
@@ -22,16 +22,16 @@ def setup():
 
 
 def setup_event_listener():
-    logger.info("setting up infobase events for Open Library")
+    logger.info('setting up infobase events for Open Library')
 
     ol = server.get_site('openlibrary.org')
     ib = server._infobase
 
     # Convert infobase event into generic eventer event
-    ib.add_event_listener(lambda event: eventer.trigger("infobase.all", event))
+    ib.add_event_listener(lambda event: eventer.trigger('infobase.all', event))
 
 
-@eventer.bind("infobase.all")
+@eventer.bind('infobase.all')
 def trigger_subevents(event):
     """Trigger infobase.edit event for edits."""
     if event.name in ['save', 'save_many']:
@@ -40,20 +40,20 @@ def trigger_subevents(event):
         author = changeset['author'] or changeset['ip']
         keys = [c['key'] for c in changeset['changes']]
         logger.info(
-            "Edit by %s, changeset_id=%s, changes=%s", author, changeset["id"], keys
+            'Edit by %s, changeset_id=%s, changes=%s', author, changeset['id'], keys
         )
 
-        eventer.trigger("infobase.edit", changeset)
+        eventer.trigger('infobase.edit', changeset)
 
 
-@eventer.bind("infobase.edit")
+@eventer.bind('infobase.edit')
 def invalidate_memcache(changeset):
     """Invalidate memcache entries effected by this change."""
     memcache_client = get_memcache()
     if memcache_client:
         keys = MemcacheInvalidater().find_keys(changeset)
         if keys:
-            logger.info("invalidating %s", keys)
+            logger.info('invalidating %s', keys)
             memcache_client.delete_multi(keys)
 
 
@@ -78,7 +78,7 @@ class MemcacheInvalidater:
 
         The data entry stores the history, lists and edition_count of a page.
         """
-        return ["d" + c['key'] for c in changeset['changes']]
+        return ['d' + c['key'] for c in changeset['changes']]
 
     def find_lists(self, changeset):
         """Returns the list entries effected by this change.
@@ -87,13 +87,13 @@ class MemcacheInvalidater:
         seed are invalidated.
         """
         docs = changeset['docs'] + changeset['old_docs']
-        rx = web.re_compile(r"(/people/[^/]*)/lists/OL\d+L")
+        rx = web.re_compile(r'(/people/[^/]*)/lists/OL\d+L')
         for doc in docs:
             match = doc and rx.match(doc['key'])
             if match:
-                yield "d" + match.group(1)  # d/users/foo
+                yield 'd' + match.group(1)  # d/users/foo
                 for seed in doc.get('seeds', []):
-                    yield "d" + self.seed_to_key(seed)
+                    yield 'd' + self.seed_to_key(seed)
 
     def find_edition_counts(self, changeset):
         """Returns the edition_count entries effected by this change."""
@@ -103,7 +103,7 @@ class MemcacheInvalidater:
     def find_edition_counts_for_doc(self, doc):
         """Returns the memcache keys to be invalided for edition_counts effected by editing this doc."""
         if doc and doc['type']['key'] == '/type/edition':
-            return ["d" + w['key'] for w in doc.get("works", [])]
+            return ['d' + w['key'] for w in doc.get('works', [])]
         else:
             return []
 
@@ -120,15 +120,15 @@ class MemcacheInvalidater:
         """
         if isinstance(seed, dict):
             return seed['key']
-        elif seed.startswith("subject:"):
-            return "/subjects/" + seed[len("subject:") :]
+        elif seed.startswith('subject:'):
+            return '/subjects/' + seed[len('subject:') :]
         else:
-            return "/subjects/" + seed
+            return '/subjects/' + seed
 
 
 @web.memoize
 def get_memcache():
     """Returns memcache client created from infobase configuration."""
-    cache = config.get("cache", {})
-    if cache.get("type") == "memcache":
+    cache = config.get('cache', {})
+    if cache.get('type') == 'memcache':
         return olmemcache.Client(cache['servers'])

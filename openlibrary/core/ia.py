@@ -146,17 +146,17 @@ class ItemEdition(dict):
         dict.__init__(self)
         self.itemid = itemid
 
-        timestamp = {"type": "/type/datetime", "value": "2010-01-01T00:00:00"}
+        timestamp = {'type': '/type/datetime', 'value': '2010-01-01T00:00:00'}
 
         self.update(
             {
-                "key": "/books/ia:" + itemid,
-                "type": {"key": "/type/edition"},
-                "title": itemid,
-                "ocaid": itemid,
-                "revision": 1,
-                "created": timestamp,
-                "last_modified": timestamp,
+                'key': '/books/ia:' + itemid,
+                'type': {'key': '/type/edition'},
+                'title': itemid,
+                'ocaid': itemid,
+                'revision': 1,
+                'created': timestamp,
+                'last_modified': timestamp,
             }
         )
 
@@ -175,46 +175,46 @@ class ItemEdition(dict):
         * no-ol-import
         """
         # Not a book, or scan not complete or no images uploaded
-        if metadata.get("mediatype") != "texts":
-            return "not-texts-item"
+        if metadata.get('mediatype') != 'texts':
+            return 'not-texts-item'
 
-        if metadata.get("repub_state", "4") not in VALID_READY_REPUB_STATES:
-            return "bad-repub-state"
+        if metadata.get('repub_state', '4') not in VALID_READY_REPUB_STATES:
+            return 'bad-repub-state'
 
-        if "imagecount" not in metadata:
+        if 'imagecount' not in metadata:
             if not (item_server and item_path):
-                return "no-imagecount"
+                return 'no-imagecount'
             else:
                 manifest = get_item_manifest(itemid, item_server, item_path)
                 if not manifest.get('numPages'):
-                    return "no-imagecount"
+                    return 'no-imagecount'
 
         # items start with these prefixes are not books
-        ignore_prefixes = config.get("ia_ignore_prefixes", [])
+        ignore_prefixes = config.get('ia_ignore_prefixes', [])
         for prefix in ignore_prefixes:
             # ignore all JSTOR items
             if itemid.startswith(prefix):
-                return "prefix-blacklisted"
+                return 'prefix-blacklisted'
 
         # Anand - Oct 2013
         # If an item is with noindex=true and it is not marked as
         # lending or printdisabled, ignore it.  It would have been
         # marked as noindex=true for some reason.
-        collections = metadata.get("collection", [])
+        collections = metadata.get('collection', [])
         if not isinstance(collections, list):
             collections = [collections]
         if (
-            metadata.get("noindex") == "true"
-            and "printdisabled" not in collections
-            and "inlibrary" not in collections
-            and "lendinglibrary" not in collections
+            metadata.get('noindex') == 'true'
+            and 'printdisabled' not in collections
+            and 'inlibrary' not in collections
+            and 'lendinglibrary' not in collections
         ):
-            return "noindex-true"
+            return 'noindex-true'
         # Gio - April 2016
         # items with metadata no_ol_import=true will be not imported
-        if metadata.get("no_ol_import", '').lower() == 'true':
-            return "no-ol-import"
-        return "ok"
+        if metadata.get('no_ol_import', '').lower() == 'true':
+            return 'no-ol-import'
+        return 'ok'
 
     @classmethod
     def is_valid_item(cls, itemid, metadata):
@@ -245,7 +245,7 @@ class ItemEdition(dict):
                 value = [v for v in value if v != {}]
                 if value:
                     if isinstance(value[0], str):
-                        value = "\n\n".join(value)
+                        value = '\n\n'.join(value)
                     else:
                         value = value[0]
                 else:
@@ -270,15 +270,15 @@ class ItemEdition(dict):
         isbn_13 = []
         if isbns:
             for isbn in isbns:
-                isbn = isbn.replace("-", "").strip()
+                isbn = isbn.replace('-', '').strip()
                 if len(isbn) == 13:
                     isbn_13.append(isbn)
                 elif len(isbn) == 10:
                     isbn_10.append(isbn)
         if isbn_10:
-            self["isbn_10"] = isbn_10
+            self['isbn_10'] = isbn_10
         if isbn_13:
-            self["isbn_13"] = isbn_13
+            self['isbn_13'] = isbn_13
 
 
 _ia_db = None
@@ -295,7 +295,7 @@ def get_ia_db(configfile=None):
 
         load_config(configfile)
 
-    if not config.get("ia_db"):
+    if not config.get('ia_db'):
         return None
     global _ia_db
     if not _ia_db:
@@ -304,7 +304,7 @@ def get_ia_db(configfile=None):
         db = settings['db']
         user = settings['user']
         pw = os.popen(settings['pw_file']).read().strip()
-        _ia_db = web.database(dbn="postgres", host=host, db=db, user=user, pw=pw)
+        _ia_db = web.database(dbn='postgres', host=host, db=db, user=user, pw=pw)
     return _ia_db
 
 
@@ -359,22 +359,22 @@ def get_candidate_ocaids(
         'c3': '%litigationworks%',
     }
 
-    _valid_repub_states_sql = "(%s)" % (', '.join(str(i) for i in repub_states))
+    _valid_repub_states_sql = '(%s)' % (', '.join(str(i) for i in repub_states))
     q = (
-        "SELECT "
-        + ("count(identifier)" if count else "identifier")
-        + " FROM metadata"
-        + " WHERE repub_state IN "
+        'SELECT '
+        + ('count(identifier)' if count else 'identifier')
+        + ' FROM metadata'
+        + ' WHERE repub_state IN '
         + _valid_repub_states_sql
         + "   AND mediatype='texts'"
-        + "   AND (noindex IS NULL)"
-        + "   AND scancenter IS NOT NULL"
-        + "   AND scanner IS NOT NULL"
-        + "   AND collection NOT LIKE $c1"
-        + "   AND collection NOT LIKE $c2"
-        + "   AND collection NOT LIKE $c3"
+        + '   AND (noindex IS NULL)'
+        + '   AND scancenter IS NOT NULL'
+        + '   AND scanner IS NOT NULL'
+        + '   AND collection NOT LIKE $c1'
+        + '   AND collection NOT LIKE $c2'
+        + '   AND collection NOT LIKE $c3'
         + "   AND (curatestate IS NULL OR curatestate NOT IN ('freeze', 'dark'))"
-        + "   AND scandate is NOT NULL"
+        + '   AND scandate is NOT NULL'
         + "   AND lower(format) LIKE '%%pdf%%'"
     )
 
@@ -385,8 +385,8 @@ def get_candidate_ocaids(
         q += " AND (lower(format) LIKE '%%marc;%%' OR lower(format) LIKE '%%marc')"
 
     if min_scandate:
-        qvars['min_scandate'] = min_scandate.strftime("%Y%m%d")
-        q += " AND scandate > $min_scandate"
+        qvars['min_scandate'] = min_scandate.strftime('%Y%m%d')
+        q += ' AND scandate > $min_scandate'
 
     if date:
         qvars['date'] = date.isoformat()

@@ -4,7 +4,7 @@ from isbnlib import canonical
 def check_digit_10(isbn):
     """Takes the first 9 digits of an ISBN10 and returns the calculated final checkdigit."""
     if len(isbn) != 9:
-        raise ValueError("%s is not a valid ISBN 10" % isbn)
+        raise ValueError('%s is not a valid ISBN 10' % isbn)
     sum = 0
     for i in range(len(isbn)):
         c = int(isbn[i])

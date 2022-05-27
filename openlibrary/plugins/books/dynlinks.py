@@ -57,7 +57,7 @@ def split_key(bib_key):
     if key == 'isbn':
         # 'isbn_' is a special indexed field that gets both isbn_10 and isbn_13 in the normalized form.
         key = 'isbn_'
-        value = value.replace("-", "")  # normalize isbn by stripping hyphens
+        value = value.replace('-', '')  # normalize isbn by stripping hyphens
 
     if key == 'oclc':
         key = 'oclc_numbers'
@@ -133,9 +133,9 @@ def uniq(values):
 
 def process_result(result, jscmd):
     d = {
-        "details": process_result_for_details,
-        "data": DataProcessor().process,
-        "viewapi": process_result_for_viewapi,
+        'details': process_result_for_details,
+        'data': DataProcessor().process,
+        'viewapi': process_result_for_viewapi,
     }
 
     f = d.get(jscmd) or d['viewapi']
@@ -147,13 +147,13 @@ def get_many_as_dict(keys):
 
 
 def get_url(doc):
-    base = web.ctx.get("home", "https://openlibrary.org")
+    base = web.ctx.get('home', 'https://openlibrary.org')
     if base == 'http://[unknown]':
-        base = "https://openlibrary.org"
-    if doc['key'].startswith(("/books/", "/works/")):
-        return base + doc['key'] + "/" + urlsafe(doc.get("title", "untitled"))
-    elif doc['key'].startswith("/authors/"):
-        return base + doc['key'] + "/" + urlsafe(doc.get("name", "unnamed"))
+        base = 'https://openlibrary.org'
+    if doc['key'].startswith(('/books/', '/works/')):
+        return base + doc['key'] + '/' + urlsafe(doc.get('title', 'untitled'))
+    elif doc['key'].startswith('/authors/'):
+        return base + doc['key'] + '/' + urlsafe(doc.get('name', 'unnamed'))
     else:
         return base + doc['key']
 
@@ -178,8 +178,8 @@ class DataProcessor:
         author_keys = [a['author']['key'] for a in work.get('authors', [])]
         return [
             {
-                "url": get_url(self.authors[key]),
-                "name": self.authors[key].get("name", ""),
+                'url': get_url(self.authors[key]),
+                'name': self.authors[key].get('name', ''),
             }
             for key in author_keys
         ]
@@ -203,14 +203,14 @@ class DataProcessor:
                 if 'value' in name:
                     name = name['value']
                 elif 'key' in name:
-                    name = name['key'].split("/")[-1].replace("_", " ")
+                    name = name['key'].split('/')[-1].replace('_', ' ')
                 else:
                     return {}
 
             return {
-                "name": name,
-                "url": "https://openlibrary.org/subjects/{}{}".format(
-                    prefix, name.lower().replace(" ", "_")
+                'name': name,
+                'url': 'https://openlibrary.org/subjects/{}{}'.format(
+                    prefix, name.lower().replace(' ', '_')
                 ),
             }
 
@@ -225,8 +225,8 @@ class DataProcessor:
 
         def format_excerpt(e):
             return {
-                "text": get_value(e.get("excerpt", {})),
-                "comment": e.get("comment", ""),
+                'text': get_value(e.get('excerpt', {})),
+                'comment': e.get('comment', ''),
             }
 
         def format_table_of_contents(toc):
@@ -234,9 +234,9 @@ class DataProcessor:
             def row(r):
                 if isinstance(r, str):
                     level = 0
-                    label = ""
+                    label = ''
                     title = r
-                    pagenum = ""
+                    pagenum = ''
                 else:
                     level = h.safeint(r.get('level', '0'), 0)
                     label = r.get('label', '')
@@ -249,15 +249,15 @@ class DataProcessor:
             return [row for row in d if any(row.values())]
 
         d = {
-            "url": get_url(doc),
-            "key": doc['key'],
-            "title": doc.get("title", ""),
-            "subtitle": doc.get("subtitle", ""),
-            "authors": self.get_authors(w),
-            "number_of_pages": doc.get("number_of_pages", ""),
-            "pagination": doc.get("pagination", ""),
-            "weight": doc.get("weight", ""),
-            "by_statement": doc.get("by_statement", ""),
+            'url': get_url(doc),
+            'key': doc['key'],
+            'title': doc.get('title', ''),
+            'subtitle': doc.get('subtitle', ''),
+            'authors': self.get_authors(w),
+            'number_of_pages': doc.get('number_of_pages', ''),
+            'pagination': doc.get('pagination', ''),
+            'weight': doc.get('weight', ''),
+            'by_statement': doc.get('by_statement', ''),
             'identifiers': web.dictadd(
                 doc.get('identifiers', {}),
                 {
@@ -265,7 +265,7 @@ class DataProcessor:
                     'isbn_13': doc.get('isbn_13', []),
                     'lccn': doc.get('lccn', []),
                     'oclc': doc.get('oclc_numbers', []),
-                    'openlibrary': [doc['key'].split("/")[-1]],
+                    'openlibrary': [doc['key'].split('/')[-1]],
                 },
             ),
             'classifications': web.dictadd(
@@ -275,28 +275,28 @@ class DataProcessor:
                     'dewey_decimal_class': doc.get('dewey_decimal_class', []),
                 },
             ),
-            "publishers": [{"name": p} for p in doc.get("publishers", "")],
-            "publish_places": [{"name": p} for p in doc.get("publish_places", "")],
-            "publish_date": doc.get("publish_date"),
-            "subjects": get_subjects("subjects", ""),
-            "subject_places": get_subjects("subject_places", "place:"),
-            "subject_people": get_subjects("subject_people", "person:"),
-            "subject_times": get_subjects("subject_times", "time:"),
-            "excerpts": [format_excerpt(e) for e in w.get("excerpts", [])],
-            "notes": get_value(doc.get("notes", "")),
-            "table_of_contents": format_table_of_contents(
-                doc.get("table_of_contents", [])
+            'publishers': [{'name': p} for p in doc.get('publishers', '')],
+            'publish_places': [{'name': p} for p in doc.get('publish_places', '')],
+            'publish_date': doc.get('publish_date'),
+            'subjects': get_subjects('subjects', ''),
+            'subject_places': get_subjects('subject_places', 'place:'),
+            'subject_people': get_subjects('subject_people', 'person:'),
+            'subject_times': get_subjects('subject_times', 'time:'),
+            'excerpts': [format_excerpt(e) for e in w.get('excerpts', [])],
+            'notes': get_value(doc.get('notes', '')),
+            'table_of_contents': format_table_of_contents(
+                doc.get('table_of_contents', [])
             ),
-            "links": [
-                dict(title=link.get("title"), url=link['url'])
+            'links': [
+                dict(title=link.get('title'), url=link['url'])
                 for link in w.get('links', '')
                 if link.get('url')
             ],
         }
 
-        for fs in [doc.get("first_sentence"), w.get('first_sentence')]:
+        for fs in [doc.get('first_sentence'), w.get('first_sentence')]:
             if fs:
-                e = {"text": get_value(fs), "comment": "", "first_sentence": True}
+                e = {'text': get_value(fs), 'comment': '', 'first_sentence': True}
                 d['excerpts'].insert(0, e)
                 break
 
@@ -305,22 +305,22 @@ class DataProcessor:
             availability = get_ia_availability(itemid)
 
             d = {
-                "preview_url": "https://archive.org/details/" + itemid,
-                "availability": availability,
-                "formats": {},
+                'preview_url': 'https://archive.org/details/' + itemid,
+                'availability': availability,
+                'formats': {},
             }
 
-            prefix = f"https://archive.org/download/{itemid}/{itemid}"
+            prefix = f'https://archive.org/download/{itemid}/{itemid}'
             if availability == 'full':
-                d["read_url"] = "https://archive.org/stream/%s" % (itemid)
+                d['read_url'] = 'https://archive.org/stream/%s' % (itemid)
                 d['formats'] = {
-                    "pdf": {"url": prefix + ".pdf"},
-                    "epub": {"url": prefix + ".epub"},
-                    "text": {"url": prefix + "_djvu.txt"},
+                    'pdf': {'url': prefix + '.pdf'},
+                    'epub': {'url': prefix + '.epub'},
+                    'text': {'url': prefix + '_djvu.txt'},
                 }
-            elif availability == "borrow":
-                d['borrow_url'] = "https://openlibrary.org{}/{}/borrow".format(
-                    doc['key'], h.urlsafe(doc.get("title", "untitled"))
+            elif availability == 'borrow':
+                d['borrow_url'] = 'https://openlibrary.org{}/{}/borrow'.format(
+                    doc['key'], h.urlsafe(doc.get('title', 'untitled'))
                 )
                 loanstatus = web.ctx.site.store.get(
                     'ebooks/' + doc['ocaid'], {'borrowed': 'false'}
@@ -329,15 +329,15 @@ class DataProcessor:
 
             return d
 
-        if doc.get("ocaid"):
+        if doc.get('ocaid'):
             d['ebooks'] = [ebook(doc)]
 
         if doc.get('covers'):
             cover_id = doc['covers'][0]
             d['cover'] = {
-                "small": "https://covers.openlibrary.org/b/id/%s-S.jpg" % cover_id,
-                "medium": "https://covers.openlibrary.org/b/id/%s-M.jpg" % cover_id,
-                "large": "https://covers.openlibrary.org/b/id/%s-L.jpg" % cover_id,
+                'small': 'https://covers.openlibrary.org/b/id/%s-S.jpg' % cover_id,
+                'medium': 'https://covers.openlibrary.org/b/id/%s-M.jpg' % cover_id,
+                'large': 'https://covers.openlibrary.org/b/id/%s-L.jpg' % cover_id,
             }
 
         d['identifiers'] = trim(d['identifiers'])
@@ -361,7 +361,7 @@ def get_authors(docs):
 
     if authors:
         for a in ol_get_many(uniq(authors)):
-            author_dict[a['key']] = {"key": a['key'], "name": a.get("name", "")}
+            author_dict[a['key']] = {'key': a['key'], 'name': a.get('name', '')}
 
     return author_dict
 
@@ -416,7 +416,7 @@ def process_doc_for_viewapi(bib_key, page):
 
     if page.get('covers'):
         d['thumbnail_url'] = (
-            'https://covers.openlibrary.org/b/id/%s-S.jpg' % page["covers"][0]
+            'https://covers.openlibrary.org/b/id/%s-S.jpg' % page['covers'][0]
         )
 
     return d
@@ -435,31 +435,31 @@ def format_result(result, options):
         return json.dumps(result)
     else:  # js
         json_data = json.dumps(result)
-        callback = options.get("callback")
+        callback = options.get('callback')
         if callback:
             # the API handles returning the data as a callback
-            return "%s" % json_data
+            return '%s' % json_data
         else:
-            return "var _OLBookInfo = %s;" % json_data
+            return 'var _OLBookInfo = %s;' % json_data
 
 
 def dynlinks(bib_keys, options):
     # for backward-compatibility
-    if options.get("details", "").lower() == "true":
-        options["jscmd"] = "details"
+    if options.get('details', '').lower() == 'true':
+        options['jscmd'] = 'details'
 
     try:
         result = query_docs(bib_keys)
         result = process_result(result, options.get('jscmd'))
     except:
-        print("Error in processing Books API", file=sys.stderr)
+        print('Error in processing Books API', file=sys.stderr)
         register_exception()
 
         result = {}
     return format_result(result, options)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import doctest
 
     doctest.testmod()

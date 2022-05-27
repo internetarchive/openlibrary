@@ -123,4 +123,3 @@ export const clamperSample = `
           <a>fantasy fiction</a>
           <a>England in fiction</a>
       </span>`
-

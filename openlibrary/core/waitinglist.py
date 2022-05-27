@@ -22,7 +22,7 @@ from . import db
 from . import lending
 
 
-logger = logging.getLogger("openlibrary.waitinglist")
+logger = logging.getLogger('openlibrary.waitinglist')
 
 _wl_api = lending.ia_lending_api
 
@@ -32,7 +32,7 @@ def _get_book(identifier):
     if keys:
         return web.ctx.site.get(keys[0])
     else:
-        key = "/books/ia:" + identifier
+        key = '/books/ia:' + identifier
         return web.ctx.site.get(key)
 
 
@@ -41,18 +41,18 @@ class WaitingLoan(dict):
         return _get_book(self['identifier'])
 
     def get_user_key(self):
-        user_key = self.get("user_key")
+        user_key = self.get('user_key')
         if user_key:
             return user_key
 
-        userid = self.get("userid")
-        username = ""
+        userid = self.get('userid')
+        username = ''
         if userid.startswith('@'):
             account = OpenLibraryAccount.get(link=userid)
             username = account.username
         elif userid.startswith('ol:'):
-            username = userid[len("ol:") :]
-        return "/people/%s" % username
+            username = userid[len('ol:') :]
+        return '/people/%s' % username
 
     def get_user(self):
         user_key = self.get_user_key()
@@ -71,7 +71,7 @@ class WaitingLoan(dict):
         return delta.days + 1
 
     def get_expiry_in_hours(self):
-        if "expiry" in self:
+        if 'expiry' in self:
             delta = h.parse_datetime(self['expiry']) - datetime.datetime.utcnow()
             delta_seconds = delta.days * 24 * 3600 + delta.seconds
             delta_hours = delta_seconds / 3600
@@ -159,11 +159,11 @@ class WaitingLoan(dict):
 class Stats:
     def get_popular_books(self, limit=10):
         rows = db.query(
-            "select book_key, count(*) as count"
-            + " from waitingloan"
-            + " group by 1"
-            + " order by 2 desc"
-            + " limit $limit",
+            'select book_key, count(*) as count'
+            + ' from waitingloan'
+            + ' group by 1'
+            + ' order by 2 desc'
+            + ' limit $limit',
             vars=locals(),
         ).list()
         docs = web.ctx.site.get_many([row.book_key for row in rows])
@@ -174,17 +174,17 @@ class Stats:
 
     def get_counts_by_status(self):
         rows = db.query(
-            "SELECT status, count(*) as count FROM waitingloan group by 1 order by 2"
+            'SELECT status, count(*) as count FROM waitingloan group by 1 order by 2'
         )
         return rows.list()
 
     def get_available_waiting_loans(self, offset=0, limit=10):
         rows = db.query(
-            "SELECT * FROM waitingloan"
+            'SELECT * FROM waitingloan'
             + " WHERE status='available'"
-            + " ORDER BY expiry desc "
-            + " OFFSET $offset"
-            + " LIMIT $limit",
+            + ' ORDER BY expiry desc '
+            + ' OFFSET $offset'
+            + ' LIMIT $limit',
             vars=locals(),
         )
         return [WaitingLoan(row) for row in rows]
@@ -261,7 +261,7 @@ def on_waitinglist_update(identifier):
 def update_ebook(ebook_key, **data):
     ebook = web.ctx.site.store.get(ebook_key) or {}
     # update ebook document.
-    ebook2 = dict(ebook, _key=ebook_key, type="ebook")
+    ebook2 = dict(ebook, _key=ebook_key, type='ebook')
     ebook2.update(data)
     if ebook != ebook2:  # save if modified
         web.ctx.site.store[ebook_key] = dict(ebook2, _rev=None)  # force update
@@ -280,7 +280,7 @@ def sendmail_book_available(book):
             return
         email = user.get_email()
         sendmail_with_template(
-            "email/waitinglist_book_available",
+            'email/waitinglist_book_available',
             to=email,
             user=user,
             book=book,
@@ -288,14 +288,14 @@ def sendmail_book_available(book):
         )
         record.update(available_email_sent=True)
         logger.info(
-            "%s is available, send email to the first person in WL. wl-size=%s",
+            '%s is available, send email to the first person in WL. wl-size=%s',
             book.key,
             len(wl),
         )
 
 
 def _get_expiry_in_days(loan):
-    if loan.get("expiry"):
+    if loan.get('expiry'):
         delta = h.parse_datetime(loan['expiry']) - datetime.datetime.utcnow()
         # +1 to count the partial day
         return delta.days + 1
@@ -321,10 +321,10 @@ def update_all_waitinglists():
     identifiers = {row['identifier'] for row in rows}
     for identifier in identifiers:
         try:
-            _wl_api.request("loan.sync", identifier=identifier)
+            _wl_api.request('loan.sync', identifier=identifier)
         except Exception:
             logger.error(
-                "failed to update waitinglist for %s", identifier, exc_info=True
+                'failed to update waitinglist for %s', identifier, exc_info=True
             )
 
 
@@ -335,9 +335,9 @@ def update_all_ebooks():
     loan_keys = web.ctx.site.store.keys(type='/type/loan', limit=-1)
 
     for k in loan_keys:
-        id = k[len("loan-") :]
+        id = k[len('loan-') :]
         # would have already been updated
         if id in identifiers:
             continue
-        logger.info("updating ebooks/" + id)
+        logger.info('updating ebooks/' + id)
         update_ebook('ebooks/' + id, borrowed='true', wl_size=0)

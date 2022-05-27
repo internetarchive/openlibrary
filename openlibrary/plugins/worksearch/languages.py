@@ -16,28 +16,28 @@ from . import search
 import urllib
 
 
-logger = logging.getLogger("openlibrary.worksearch")
+logger = logging.getLogger('openlibrary.worksearch')
 
 
 class languages(subjects.subjects):
     path = '(/languages/[^_][^/]*)'
 
     def is_enabled(self):
-        return "languages" in web.ctx.features
+        return 'languages' in web.ctx.features
 
 
 class languages_json(subjects.subjects_json):
     path = '(/languages/[^_][^/]*)'
-    encoding = "json"
+    encoding = 'json'
 
     def is_enabled(self):
-        return "languages" in web.ctx.features
+        return 'languages' in web.ctx.features
 
     def normalize_key(self, key):
         return key
 
     def process_key(self, key):
-        return key.replace("_", " ")
+        return key.replace('_', ' ')
 
 
 def get_top_languages(limit):
@@ -57,18 +57,18 @@ def get_top_languages(limit):
 
 
 class index(delegate.page):
-    path = "/languages"
+    path = '/languages'
 
     def GET(self):
-        return render_template("languages/index", get_top_languages(500))
+        return render_template('languages/index', get_top_languages(500))
 
     def is_enabled(self):
         return True
 
 
 class index_json(delegate.page):
-    path = "/languages"
-    encoding = "json"
+    path = '/languages'
+    encoding = 'json'
 
     @jsonapi
     def GET(self):
@@ -79,11 +79,11 @@ class language_search(delegate.page):
     path = '/search/languages'
 
     def GET(self):
-        i = web.input(q="")
+        i = web.input(q='')
         solr = search.get_solr()
-        q = {"language": i.q}
+        q = {'language': i.q}
 
-        result = solr.select(q, facets=["language"], fields=["language"], rows=0)
+        result = solr.select(q, facets=['language'], fields=['language'], rows=0)
         result = self.process_result(result)
         return render_template('search/languages', i.q, result)
 
@@ -93,8 +93,8 @@ class language_search(delegate.page):
         def process(p):
             return web.storage(
                 name=p.value,
-                key="/languages/" + p.value.replace(" ", "_"),
-                count=solr.select({"language": p.value}, rows=0)['num_found'],
+                key='/languages/' + p.value.replace(' ', '_'),
+                count=solr.select({'language': p.value}, rows=0)['num_found'],
             )
 
         language_facets = result['facets']['language'][:25]
@@ -108,25 +108,25 @@ class LanguageEngine(subjects.SubjectEngine):
     def get_ebook_count(self, name, value, publish_year):
         # Query solr for this publish_year and publish_year combination and read the has_fulltext=true facet
         solr = search.get_solr()
-        q = {"language": value}
+        q = {'language': value}
 
         if isinstance(publish_year, list):
             q['publish_year'] = tuple(publish_year)  # range
         elif publish_year:
             q['publish_year'] = publish_year
 
-        result = solr.select(q, facets=["has_fulltext"], rows=0)
-        counts = {v.value: v.count for v in result["facets"]["has_fulltext"]}
+        result = solr.select(q, facets=['has_fulltext'], rows=0)
+        counts = {v.value: v.count for v in result['facets']['has_fulltext']}
         return counts.get('true')
 
 
 def setup():
     d = web.storage(
-        name="language",
-        key="languages",
-        prefix="/languages/",
-        facet="language",
-        facet_key="language",
+        name='language',
+        key='languages',
+        prefix='/languages/',
+        facet='language',
+        facet_key='language',
         engine=LanguageEngine,
     )
     subjects.SUBJECTS.append(d)

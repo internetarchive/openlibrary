@@ -76,14 +76,14 @@ def read_file(f):
         else:
             length = f.read(5)
             buf = length
-        if length == "":
+        if length == '':
             break
         if not length.isdigit():
             raise InvalidMarcFile
         int_length = int(length)
         data = buf + f.read(int_length - len(buf))
         buf = None
-        if not data.endswith("\x1e\x1d"):
+        if not data.endswith('\x1e\x1d'):
             # skip bad record, should warn somehow
             end_index = data.rfind('\x1e\x1d')
             if end_index != -1:
@@ -97,7 +97,7 @@ def read_file(f):
             assert int_length
             buf = data[int_length:]
             data = data[:int_length]
-        assert data.endswith("\x1e\x1d")
+        assert data.endswith('\x1e\x1d')
         if len(data) < int_length:
             break
         yield (data, int_length)
@@ -337,7 +337,7 @@ def read_publisher(line, is_marc8=False):
 
 @deprecated
 def read_author_org(line, is_marc8=False):
-    name = " ".join(
+    name = ' '.join(
         v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'], is_marc8)
     )
     return [
@@ -350,7 +350,7 @@ def read_author_org(line, is_marc8=False):
 
 @deprecated
 def read_author_event(line, is_marc8=False):
-    name = " ".join(
+    name = ' '.join(
         v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b', 'd', 'n'], is_marc8)
     )
     return [

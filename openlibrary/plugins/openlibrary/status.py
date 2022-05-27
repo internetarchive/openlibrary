@@ -14,7 +14,7 @@ feature_flags = {}
 
 class status(delegate.page):
     def GET(self):
-        return render_template("status", status_info, feature_flags)
+        return render_template('status', status_info, feature_flags)
 
 
 @public
@@ -31,14 +31,14 @@ def get_features_enabled():
 
 
 def setup():
-    "Basic startup status for the server"
+    'Basic startup status for the server'
     global status_info, feature_flags
     host = socket.gethostname()
     status_info = {
-        "Software version": get_software_version(),
-        "Python version": sys.version.split()[0],
-        "Host": host,
-        "Start time": datetime.datetime.utcnow(),
+        'Software version': get_software_version(),
+        'Python version': sys.version.split()[0],
+        'Host': host,
+        'Start time': datetime.datetime.utcnow(),
     }
     feature_flags = get_features_enabled()
 

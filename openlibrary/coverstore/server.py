@@ -12,10 +12,10 @@ from openlibrary.utils.sentry import Sentry
 
 def runfcgi(func, addr=('localhost', 8000)):
     """Runs a WSGI function as a FastCGI pre-fork server."""
-    config = dict(web.config.get("fastcgi", {}))
+    config = dict(web.config.get('fastcgi', {}))
 
-    mode = config.pop("mode", None)
-    if mode == "prefork":
+    mode = config.pop('mode', None)
+    if mode == 'prefork':
         import flup.server.fcgi_fork as flups
     else:
         import flup.server.fcgi as flups
@@ -55,5 +55,5 @@ def main(configfile, *args):
         code.app.run()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main(*sys.argv[1:])

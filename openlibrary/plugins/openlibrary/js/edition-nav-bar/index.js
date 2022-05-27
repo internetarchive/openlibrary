@@ -78,5 +78,3 @@ export function initNavbar(navbarElem) {
         }
     })
 }
-
-

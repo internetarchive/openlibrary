@@ -4162,4 +4162,3 @@ msgstr "Przejdź na WorldCat, by znaleźć najbliższa bibliotekę z tym wydanie
 #~ msgid_plural "%s editions"
 #~ msgstr[0] "%s wydanie"
 #~ msgstr[1] "%s wydań"
-

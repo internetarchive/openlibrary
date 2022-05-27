@@ -47,7 +47,7 @@ def test_sorted_work_editions():
 {
  "edition_key":["OL7536692M","OL7825368M","OL3026366M"]}]
 }}'''
-    expect = ["OL7536692M", "OL7825368M", "OL3026366M"]
+    expect = ['OL7536692M', 'OL7825368M', 'OL3026366M']
     assert sorted_work_editions('OL100000W', json_data=json_data) == expect
 
 
@@ -173,7 +173,7 @@ QUERY_PARSER_TESTS = {
 
 
 @pytest.mark.parametrize(
-    "query,parsed_query", QUERY_PARSER_TESTS.values(), ids=QUERY_PARSER_TESTS.keys()
+    'query,parsed_query', QUERY_PARSER_TESTS.values(), ids=QUERY_PARSER_TESTS.keys()
 )
 def test_query_parser_fields(query, parsed_query):
     assert list(parse_query_fields(query)) == parsed_query

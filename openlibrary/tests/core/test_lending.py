@@ -7,7 +7,7 @@ class TestAddAvailability:
             return {'foo': {'status': 'available'}}
 
         monkeypatch.setattr(
-            lending, "get_availability_of_ocaids", mock_get_availability_of_ocaids
+            lending, 'get_availability_of_ocaids', mock_get_availability_of_ocaids
         )
 
         f = lending.add_availability
@@ -33,7 +33,7 @@ class TestAddAvailability:
             return {'foo': {'status': 'error'}}
 
         monkeypatch.setattr(
-            lending, "get_availability_of_ocaids", mock_get_availability_of_ocaids
+            lending, 'get_availability_of_ocaids', mock_get_availability_of_ocaids
         )
 
         f = lending.add_availability

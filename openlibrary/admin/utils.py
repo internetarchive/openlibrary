@@ -17,11 +17,11 @@ def admin_processor(handler):
     delegate.context.setdefault('usergroup', 'admin')
 
     page = handler()
-    return render_template("site", page)
+    return render_template('site', page)
 
 
 def notfound():
     msg = render_template(
-        "site", render_template("notfound", web.ctx.path, create=False)
+        'site', render_template('notfound', web.ctx.path, create=False)
     )
     return web.notfound(msg)

@@ -3,9 +3,9 @@ import datetime
 
 
 def test_parse_date():
-    assert dateutil.parse_date("2010") == datetime.date(2010, 1, 1)
-    assert dateutil.parse_date("2010-02") == datetime.date(2010, 2, 1)
-    assert dateutil.parse_date("2010-02-03") == datetime.date(2010, 2, 3)
+    assert dateutil.parse_date('2010') == datetime.date(2010, 1, 1)
+    assert dateutil.parse_date('2010-02') == datetime.date(2010, 2, 1)
+    assert dateutil.parse_date('2010-02-03') == datetime.date(2010, 2, 3)
 
 
 def test_nextday():
@@ -31,15 +31,15 @@ def test_nextyear():
 
 
 def test_parse_daterange():
-    assert dateutil.parse_daterange("2010") == (
+    assert dateutil.parse_daterange('2010') == (
         datetime.date(2010, 1, 1),
         datetime.date(2011, 1, 1),
     )
-    assert dateutil.parse_daterange("2010-02") == (
+    assert dateutil.parse_daterange('2010-02') == (
         datetime.date(2010, 2, 1),
         datetime.date(2010, 3, 1),
     )
-    assert dateutil.parse_daterange("2010-02-03") == (
+    assert dateutil.parse_daterange('2010-02-03') == (
         datetime.date(2010, 2, 3),
         datetime.date(2010, 2, 4),
     )

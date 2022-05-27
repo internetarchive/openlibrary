@@ -11,7 +11,7 @@ from openlibrary.coverstore import config
 
 
 class ratelimit:
-    "Instances of this class can be used as decorators"
+    'Instances of this class can be used as decorators'
 
     # This class is designed to be sub-classed
     minutes = 5  # The time period
@@ -65,7 +65,7 @@ class ratelimit:
 
     def should_ratelimit(self):
         # ratelimit only if memcache is enabled
-        return bool(config.get("memcache_servers"))
+        return bool(config.get('memcache_servers'))
 
     def get_counters(self):
         return self.cache_get_many(self.keys_to_check())
@@ -87,9 +87,9 @@ class ratelimit:
         )
 
     def disallowed(self):
-        "Over-ride this method if you want to log incidents"
+        'Over-ride this method if you want to log incidents'
         raise web.Forbidden('Rate limit exceeded')
 
     def expire_after(self):
-        "Used for setting the memcached cache expiry"
+        'Used for setting the memcached cache expiry'
         return (self.minutes + 1) * 60

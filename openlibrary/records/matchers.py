@@ -32,11 +32,11 @@ logger = Logging.getLogger(__name__)
 
 
 def match_isbn(params):
-    "Search by ISBN for exact matches"
-    if "isbn" in params.get("identifiers", {}):
-        isbns = params["identifiers"]["isbn"]
+    'Search by ISBN for exact matches'
+    if 'isbn' in params.get('identifiers', {}):
+        isbns = params['identifiers']['isbn']
         q = {'type': '/type/edition', 'isbn_': [str(x) for x in isbns]}
-        logger.debug("ISBN query : %s", q)
+        logger.debug('ISBN query : %s', q)
         ekeys = list(web.ctx.site.things(q))
         if ekeys:
             return ekeys
@@ -44,11 +44,11 @@ def match_isbn(params):
 
 
 def match_identifiers(params):
-    "Match by identifiers"
+    'Match by identifiers'
     print(params)
     counts = defaultdict(int)
-    identifiers = copy.deepcopy(params.get("identifiers", {}))
-    for i in ["oclc_numbers", "lccn", "ocaid"]:
+    identifiers = copy.deepcopy(params.get('identifiers', {}))
+    for i in ['oclc_numbers', 'lccn', 'ocaid']:
         if i in identifiers:
             val = identifiers.pop(i)
             query = {'type': '/type/edition', i: val}
@@ -56,7 +56,7 @@ def match_identifiers(params):
             for i in matches:
                 counts[i] += 1
     for k, v in identifiers.items():  # Rest of the identifiers
-        print("Trying ", k, v)
+        print('Trying ', k, v)
         query = {'type': '/type/edition', 'identifiers': {k: v}}
         matches = web.ctx.site.things(query)
         for i in matches:
@@ -66,7 +66,7 @@ def match_identifiers(params):
 
 
 def match_tap_infogami(params):
-    "Search infogami using title, author and publishers"
+    'Search infogami using title, author and publishers'
     return []
 
 

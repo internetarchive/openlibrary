@@ -6,7 +6,7 @@ chars = string.ascii_letters + string.digits
 
 
 def random_string(n):
-    return "".join([random.choice(chars) for i in range(n)])
+    return ''.join([random.choice(chars) for i in range(n)])
 
 
 class Disk:
@@ -46,13 +46,13 @@ class Disk:
         if os.path.exists(path):
             return open(path).read()
 
-    def make_filename(self, prefix=""):
+    def make_filename(self, prefix=''):
         def exists(filename):
             return os.path.exists(os.path.join(self.root, filename))
 
-        filename = prefix + "_" + random_string(4)
+        filename = prefix + '_' + random_string(4)
         while exists(filename):
-            filename = prefix + "_" + random_string(4)
+            filename = prefix + '_' + random_string(4)
         return filename
 
 
@@ -76,7 +76,7 @@ class LayeredDisk:
         return self.disks[0].write(data, headers)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import doctest
 
     doctest.testmod()

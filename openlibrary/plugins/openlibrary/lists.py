@@ -18,24 +18,24 @@ from openlibrary.plugins.worksearch import subjects
 
 
 class lists_home(delegate.page):
-    path = "/lists"
+    path = '/lists'
 
     def GET(self):
         delegate.context.setdefault('cssfile', 'lists')
-        return render_template("lists/home")
+        return render_template('lists/home')
 
 
 class lists(delegate.page):
     """Controller for displaying lists of a seed or lists of a person."""
 
-    path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
+    path = '(/(?:people|books|works|authors|subjects)/[^/]+)/lists'
 
     def is_enabled(self):
-        return "lists" in web.ctx.features
+        return 'lists' in web.ctx.features
 
     def GET(self, path):
         # If logged in patron is viewing their lists page, use MyBooksTemplate
-        if path.startswith("/people/"):
+        if path.startswith('/people/'):
             user = get_current_user()
             username = path.split('/')[-1]
 
@@ -49,7 +49,7 @@ class lists(delegate.page):
         return self.render(doc, lists)
 
     def get_doc(self, key):
-        if key.startswith("/subjects/"):
+        if key.startswith('/subjects/'):
             s = subjects.get_subject(key)
             if s.work_count > 0:
                 return s
@@ -59,37 +59,37 @@ class lists(delegate.page):
             return web.ctx.site.get(key)
 
     def render(self, doc, lists):
-        return render_template("lists/lists.html", doc, lists)
+        return render_template('lists/lists.html', doc, lists)
 
 
 class lists_delete(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)/delete"
-    encoding = "json"
+    path = r'(/people/[^/]+/lists/OL\d+L)/delete'
+    encoding = 'json'
 
     def POST(self, key):
         doc = web.ctx.site.get(key)
         if doc is None or doc.type.key != '/type/list':
             raise web.notfound()
 
-        doc = {"key": key, "type": {"key": "/type/delete"}}
+        doc = {'key': key, 'type': {'key': '/type/delete'}}
         try:
-            result = web.ctx.site.save(doc, action="lists", comment="Deleted list.")
+            result = web.ctx.site.save(doc, action='lists', comment='Deleted list.')
         except client.ClientException as e:
             web.ctx.status = e.status
-            web.header("Content-Type", "application/json")
+            web.header('Content-Type', 'application/json')
             return delegate.RawText(e.json)
 
-        web.header("Content-Type", "application/json")
+        web.header('Content-Type', 'application/json')
         return delegate.RawText('{"status": "ok"}')
 
 
 class lists_json(delegate.page):
-    path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
-    encoding = "json"
-    content_type = "application/json"
+    path = '(/(?:people|books|works|authors|subjects)/[^/]+)/lists'
+    encoding = 'json'
+    content_type = 'application/json'
 
     def GET(self, path):
-        if path.startswith("/subjects/"):
+        if path.startswith('/subjects/'):
             doc = subjects.get_subject(path)
         else:
             doc = web.ctx.site.get(path)
@@ -115,9 +115,9 @@ class lists_json(delegate.page):
             size = len(doc.get_lists(limit=1000))
 
         d = {
-            "links": {"self": web.ctx.path},
-            "size": size,
-            "entries": [lst.preview() for lst in lists],
+            'links': {'self': web.ctx.path},
+            'size': size,
+            'entries': [lst.preview() for lst in lists],
         }
         if offset + len(lists) < size:
             d['links']['next'] = web.changequery(limit=limit, offset=offset + limit)
@@ -129,13 +129,13 @@ class lists_json(delegate.page):
         return d
 
     def forbidden(self):
-        headers = {"Content-Type": self.get_content_type()}
-        data = {"message": "Permission denied."}
-        return web.HTTPError("403 Forbidden", data=self.dumps(data), headers=headers)
+        headers = {'Content-Type': self.get_content_type()}
+        data = {'message': 'Permission denied.'}
+        return web.HTTPError('403 Forbidden', data=self.dumps(data), headers=headers)
 
     def POST(self, user_key):
         # POST is allowed only for /people/foo/lists
-        if not user_key.startswith("/people/"):
+        if not user_key.startswith('/people/'):
             raise web.nomethod()
 
         site = web.ctx.site
@@ -165,29 +165,29 @@ class lists_json(delegate.page):
         try:
             result = site.save(
                 lst.dict(),
-                comment="Created new list.",
-                action="lists",
-                data={"list": {"key": lst.key}, "seeds": seeds},
+                comment='Created new list.',
+                action='lists',
+                data={'list': {'key': lst.key}, 'seeds': seeds},
             )
         except client.ClientException as e:
-            headers = {"Content-Type": self.get_content_type()}
-            data = {"message": e.message}
+            headers = {'Content-Type': self.get_content_type()}
+            data = {'message': e.message}
             raise web.HTTPError(e.status, data=self.dumps(data), headers=headers)
 
-        web.header("Content-Type", self.get_content_type())
+        web.header('Content-Type', self.get_content_type())
         return delegate.RawText(self.dumps(result))
 
     def process_seeds(self, seeds):
         def f(seed):
             if isinstance(seed, dict):
                 return seed
-            elif seed.startswith("/subjects/"):
-                seed = seed.split("/")[-1]
-                if seed.split(":")[0] not in ["place", "person", "time"]:
-                    seed = "subject:" + seed
-                seed = seed.replace(",", "_").replace("__", "_")
-            elif seed.startswith("/"):
-                seed = {"key": seed}
+            elif seed.startswith('/subjects/'):
+                seed = seed.split('/')[-1]
+                if seed.split(':')[0] not in ['place', 'person', 'time']:
+                    seed = 'subject:' + seed
+                seed = seed.replace(',', '_').replace('__', '_')
+            elif seed.startswith('/'):
+                seed = {'key': seed}
             return seed
 
         return [f(seed) for seed in seeds]
@@ -203,8 +203,8 @@ class lists_json(delegate.page):
 
 
 class lists_yaml(lists_json):
-    encoding = "yml"
-    content_type = "text/yaml"
+    encoding = 'yml'
+    content_type = 'text/yaml'
 
 
 def get_list(key, raw=False):
@@ -213,42 +213,42 @@ def get_list(key, raw=False):
         if raw:
             return lst.dict()
         return {
-            "links": {
-                "self": lst.key,
-                "seeds": lst.key + "/seeds",
-                "subjects": lst.key + "/subjects",
-                "editions": lst.key + "/editions",
+            'links': {
+                'self': lst.key,
+                'seeds': lst.key + '/seeds',
+                'subjects': lst.key + '/subjects',
+                'editions': lst.key + '/editions',
             },
-            "name": lst.name or None,
-            "type": {"key": lst.key},
-            "description": (lst.description and str(lst.description) or None),
-            "seed_count": lst.seed_count,
-            "meta": {
-                "revision": lst.revision,
-                "created": lst.created.isoformat(),
-                "last_modified": lst.last_modified.isoformat(),
+            'name': lst.name or None,
+            'type': {'key': lst.key},
+            'description': (lst.description and str(lst.description) or None),
+            'seed_count': lst.seed_count,
+            'meta': {
+                'revision': lst.revision,
+                'created': lst.created.isoformat(),
+                'last_modified': lst.last_modified.isoformat(),
             },
         }
 
 
 class list_view_json(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)"
-    encoding = "json"
-    content_type = "application/json"
+    path = r'(/people/[^/]+/lists/OL\d+L)'
+    encoding = 'json'
+    content_type = 'application/json'
 
     def GET(self, key):
         i = web.input()
-        raw = i.get("_raw") == "true"
+        raw = i.get('_raw') == 'true'
         lst = get_list(key, raw=raw)
         if not lst or lst['type']['key'] == '/type/delete':
             raise web.notfound()
-        web.header("Content-Type", self.content_type)
+        web.header('Content-Type', self.content_type)
         return delegate.RawText(formats.dump(lst, self.encoding))
 
 
 class list_view_yaml(list_view_json):
-    encoding = "yml"
-    content_type = "text/yaml"
+    encoding = 'yml'
+    content_type = 'text/yaml'
 
 
 @public
@@ -257,17 +257,17 @@ def get_list_seeds(key):
     if lst:
         seeds = [seed.dict() for seed in lst.get_seeds()]
         return {
-            "links": {"self": key + "/seeds", "list": key},
-            "size": len(seeds),
-            "entries": seeds,
+            'links': {'self': key + '/seeds', 'list': key},
+            'size': len(seeds),
+            'entries': seeds,
         }
 
 
 class list_seeds(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)/seeds"
-    encoding = "json"
+    path = r'(/people/[^/]+/lists/OL\d+L)/seeds'
+    encoding = 'json'
 
-    content_type = "application/json"
+    content_type = 'application/json'
 
     def GET(self, key):
         lst = get_list_seeds(key)
@@ -287,39 +287,39 @@ class list_seeds(delegate.page):
 
         data = formats.load(web.data(), self.encoding)
 
-        data.setdefault("add", [])
-        data.setdefault("remove", [])
+        data.setdefault('add', [])
+        data.setdefault('remove', [])
 
         # support /subjects/foo and /books/OL1M along with subject:foo and {"key": "/books/OL1M"}.
         process_seeds = lists_json().process_seeds
 
-        for seed in process_seeds(data["add"]):
+        for seed in process_seeds(data['add']):
             lst.add_seed(seed)
 
-        for seed in process_seeds(data["remove"]):
+        for seed in process_seeds(data['remove']):
             lst.remove_seed(seed)
 
         seeds = []
-        for seed in data["add"] + data["remove"]:
+        for seed in data['add'] + data['remove']:
             if isinstance(seed, dict):
                 seeds.append(seed['key'])
             else:
                 seeds.append(seed)
 
         changeset_data = {
-            "list": {"key": key},
-            "seeds": seeds,
-            "add": data.get("add", []),
-            "remove": data.get("remove", []),
+            'list': {'key': key},
+            'seeds': seeds,
+            'add': data.get('add', []),
+            'remove': data.get('remove', []),
         }
 
-        d = lst._save(comment="Updated list.", action="lists", data=changeset_data)
-        web.header("Content-Type", self.content_type)
+        d = lst._save(comment='Updated list.', action='lists', data=changeset_data)
+        web.header('Content-Type', self.content_type)
         return delegate.RawText(formats.dump(d, self.encoding))
 
 
 class list_seed_yaml(list_seeds):
-    encoding = "yml"
+    encoding = 'yml'
     content_type = 'text/yaml; charset="utf-8"'
 
 
@@ -331,7 +331,7 @@ def get_list_editions(key, offset=0, limit=50, api=False):
         all_editions = lst.get_editions(limit=limit, offset=offset, _raw=True)
         editions = all_editions['editions'][offset : offset + limit]
         if api:
-            entries = [e.dict() for e in editions if e.pop("seeds") or e]
+            entries = [e.dict() for e in editions if e.pop('seeds') or e]
             return make_collection(
                 size=all_editions['count'],
                 entries=entries,
@@ -343,10 +343,10 @@ def get_list_editions(key, offset=0, limit=50, api=False):
 
 
 class list_editions_json(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)/editions"
-    encoding = "json"
+    path = r'(/people/[^/]+/lists/OL\d+L)/editions'
+    encoding = 'json'
 
-    content_type = "application/json"
+    content_type = 'application/json'
 
     def GET(self, key):
         i = web.input(limit=50, offset=0)
@@ -361,18 +361,18 @@ class list_editions_json(delegate.page):
 
 
 class list_editions_yaml(list_editions_json):
-    encoding = "yml"
+    encoding = 'yml'
     content_type = 'text/yaml; charset="utf-8"'
 
 
 def make_collection(size, entries, limit, offset, key=None):
     d = {
-        "size": size,
-        "start": offset,
-        "end": offset + limit,
-        "entries": entries,
-        "links": {
-            "self": web.changequery(),
+        'size': size,
+        'start': offset,
+        'end': offset + limit,
+        'entries': entries,
+        'links': {
+            'self': web.changequery(),
         },
     }
 
@@ -389,9 +389,9 @@ def make_collection(size, entries, limit, offset, key=None):
 
 
 class list_subjects_json(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)/subjects"
-    encoding = "json"
-    content_type = "application/json"
+    path = r'(/people/[^/]+/lists/OL\d+L)/subjects'
+    encoding = 'json'
+    content_type = 'application/json'
 
     def GET(self, key):
         lst = web.ctx.site.get(key)
@@ -402,7 +402,7 @@ class list_subjects_json(delegate.page):
         limit = h.safeint(i.limit, 20)
 
         data = self.get_subjects(lst, limit=limit)
-        data['links'] = {"self": key + "/subjects", "list": key}
+        data['links'] = {'self': key + '/subjects', 'list': key}
 
         text = formats.dump(data, self.encoding)
         return delegate.RawText(text, content_type=self.content_type)
@@ -415,96 +415,110 @@ class list_subjects_json(delegate.page):
 
     def _process_subject(self, s):
         key = s['key']
-        if key.startswith("subject:"):
-            key = "/subjects/" + web.lstrips(key, "subject:")
+        if key.startswith('subject:'):
+            key = '/subjects/' + web.lstrips(key, 'subject:')
         else:
-            key = "/subjects/" + key
-        return {"name": s['name'], "count": s['count'], "url": key}
+            key = '/subjects/' + key
+        return {'name': s['name'], 'count': s['count'], 'url': key}
 
 
 class list_editions_yaml(list_subjects_json):
-    encoding = "yml"
+    encoding = 'yml'
     content_type = 'text/yaml; charset="utf-8"'
 
 
 class lists_embed(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)/embed"
+    path = r'(/people/[^/]+/lists/OL\d+L)/embed'
 
     def GET(self, key):
         doc = web.ctx.site.get(key)
         if doc is None or doc.type.key != '/type/list':
             raise web.notfound()
-        return render_template("type/list/embed", doc)
+        return render_template('type/list/embed', doc)
 
 
 class export(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)/export"
+    path = r'(/people/[^/]+/lists/OL\d+L)/export'
 
     def GET(self, key):
         lst = web.ctx.site.get(key)
         if not lst:
             raise web.notfound()
 
-        format = web.input(format="html").format
+        format = web.input(format='html').format
 
-        if format == "html":
-            data = self.get_exports(lst)
-            html = render_template("lists/export_as_html", lst, data["editions"], data["works"], data["authors"])
-            return delegate.RawText(html)
-        elif format == "bibtex":
+        if format == 'html':
             data = self.get_exports(lst)
             html = render_template(
-                "lists/export_as_bibtex", lst, data["editions"], data["works"], data["authors"]
+                'lists/export_as_html',
+                lst,
+                data['editions'],
+                data['works'],
+                data['authors'],
             )
             return delegate.RawText(html)
-        elif format == "json":
+        elif format == 'bibtex':
+            data = self.get_exports(lst)
+            html = render_template(
+                'lists/export_as_bibtex',
+                lst,
+                data['editions'],
+                data['works'],
+                data['authors'],
+            )
+            return delegate.RawText(html)
+        elif format == 'json':
             data = self.get_exports(lst, raw=True)
-            web.header("Content-Type", "application/json")
+            web.header('Content-Type', 'application/json')
             return delegate.RawText(json.dumps(data))
-        elif format == "yaml":
+        elif format == 'yaml':
             data = self.get_exports(lst, raw=True)
-            web.header("Content-Type", "application/yaml")
+            web.header('Content-Type', 'application/yaml')
             return delegate.RawText(formats.dump_yaml(data))
         else:
             raise web.notfound()
 
     def get_exports(self, lst: list, raw: bool = False) -> dict[str, list]:
         export_data = lst.get_export_list()
-        if "editions" in export_data:
-            export_data["editions"] = sorted(
-                export_data["editions"],
+        if 'editions' in export_data:
+            export_data['editions'] = sorted(
+                export_data['editions'],
                 key=lambda doc: doc['last_modified']['value'],
                 reverse=True,
             )
-        if "works" in export_data:
-            export_data["works"] = sorted(
-                export_data["works"],
+        if 'works' in export_data:
+            export_data['works'] = sorted(
+                export_data['works'],
                 key=lambda doc: doc['last_modified']['value'],
                 reverse=True,
             )
-        if "authors" in export_data:
-            export_data["authors"] = sorted(
-                export_data["authors"],
+        if 'authors' in export_data:
+            export_data['authors'] = sorted(
+                export_data['authors'],
                 key=lambda doc: doc['last_modified']['value'],
                 reverse=True,
             )
 
         if not raw:
-            if "editions" in export_data:
-                export_data["editions"] = [self.make_doc(e) for e in export_data["editions"]]
-                lst.preload_authors(export_data["editions"])
+            if 'editions' in export_data:
+                export_data['editions'] = [
+                    self.make_doc(e) for e in export_data['editions']
+                ]
+                lst.preload_authors(export_data['editions'])
             else:
-                export_data["editions"] = []
-            if "works" in export_data:
-                export_data["works"] = [self.make_doc(e) for e in export_data["works"]]
-                lst.preload_authors(export_data["works"])
+                export_data['editions'] = []
+            if 'works' in export_data:
+                export_data['works'] = [self.make_doc(e) for e in export_data['works']]
+                lst.preload_authors(export_data['works'])
             else:
-                export_data["works"] = []
-            if "authors" in export_data:
-                export_data["authors"] = [self.make_doc(e) for e in export_data["authors"]]
-                lst.preload_authors(export_data["authors"])
+                export_data['works'] = []
+            if 'authors' in export_data:
+                export_data['authors'] = [
+                    self.make_doc(e) for e in export_data['authors']
+                ]
+                lst.preload_authors(export_data['authors'])
             else:
-                export_data["authors"] = []
+                export_data['authors'] = []
         return export_data
 
     def get_editions(self, lst, raw=False):
@@ -526,7 +540,7 @@ class export(delegate.page):
 
 
 class feeds(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)/feeds/(updates).(atom)"
+    path = r'(/people/[^/]+/lists/OL\d+L)/feeds/(updates).(atom)'
 
     def GET(self, key, name, fmt):
         lst = web.ctx.site.get(key)
@@ -536,8 +550,8 @@ class feeds(delegate.page):
         return delegate.RawText(text)
 
     def GET_updates_atom(self, lst):
-        web.header("Content-Type", 'application/atom+xml; charset="utf-8"')
-        return render_template("lists/feed_updates.xml", lst)
+        web.header('Content-Type', 'application/atom+xml; charset="utf-8"')
+        return render_template('lists/feed_updates.xml', lst)
 
 
 def setup():
@@ -556,10 +570,10 @@ def _get_recently_modified_lists(limit, offset=0):
 
     keys = web.ctx.site.things(
         {
-            "type": "/type/list",
-            "sort": "-last_modified",
-            "limit": limit,
-            "offset": offset,
+            'type': '/type/list',
+            'sort': '-last_modified',
+            'limit': limit,
+            'offset': offset,
         }
     )
     lists = web.ctx.site.get_many(keys)
@@ -570,7 +584,7 @@ def _get_recently_modified_lists(limit, offset=0):
 def get_cached_recently_modified_lists(limit, offset=0):
     f = cache.memcache_memoize(
         _get_recently_modified_lists,
-        key_prefix="lists.get_recently_modified_lists",
+        key_prefix='lists.get_recently_modified_lists',
         timeout=0,
     )  # dateutil.HALF_HOUR_SECS)
     return f(limit, offset=offset)
@@ -586,11 +600,11 @@ def _preload_lists(lists):
         if not isinstance(xlist, dict):
             xlist = xlist.dict()
 
-        owner = xlist['key'].rsplit("/lists/", 1)[0]
+        owner = xlist['key'].rsplit('/lists/', 1)[0]
         keys.add(owner)
 
-        for seed in xlist.get("seeds", []):
-            if isinstance(seed, dict) and "key" in seed:
+        for seed in xlist.get('seeds', []):
+            if isinstance(seed, dict) and 'key' in seed:
                 keys.add(seed['key'])
 
     web.ctx.site.get_many(list(keys))
@@ -618,7 +632,7 @@ def _get_active_lists_in_random(limit=20, preload=True):
 
         offset += len(result)
         # ignore lists with 4 or less seeds
-        lists += [xlist for xlist in result if len(xlist.get("seeds", [])) > 4]
+        lists += [xlist for xlist in result if len(xlist.get('seeds', [])) > 4]
 
     if len(lists) > limit:
         lists = random.sample(lists, limit)
@@ -633,7 +647,7 @@ def _get_active_lists_in_random(limit=20, preload=True):
 def get_active_lists_in_random(limit=20, preload=True):
     f = cache.memcache_memoize(
         _get_active_lists_in_random,
-        key_prefix="lists.get_active_lists_in_random",
+        key_prefix='lists.get_active_lists_in_random',
         timeout=0,
     )
     lists = f(limit=limit, preload=preload)

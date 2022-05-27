@@ -13,23 +13,23 @@ from openlibrary.plugins.books import dynlinks, readlinks
 
 
 class books_json(delegate.page):
-    path = "/api/books"
+    path = '/api/books'
 
     @jsonapi
     def GET(self):
-        i = web.input(bibkeys='', callback=None, details="false")
+        i = web.input(bibkeys='', callback=None, details='false')
         if web.ctx.path.endswith('.json'):
             i.format = 'json'
-        return dynlinks.dynlinks(i.bibkeys.split(","), i)
+        return dynlinks.dynlinks(i.bibkeys.split(','), i)
 
 
 class read_singleget(delegate.page):
     """Handle the single-lookup form of the Hathi-style API"""
 
     path = (
-        r"/api/volumes/(brief|full)/(oclc|lccn|issn|isbn|htid|olid|recordnumber)/(.+)"
+        r'/api/volumes/(brief|full)/(oclc|lccn|issn|isbn|htid|olid|recordnumber)/(.+)'
     )
-    encoding = "json"
+    encoding = 'json'
 
     @jsonapi
     def GET(self, brief_or_full, idtype, idval):
@@ -48,7 +48,7 @@ class read_singleget(delegate.page):
 class read_multiget(delegate.page):
     """Handle the multi-lookup form of the Hathi-style API"""
 
-    path = r"/api/volumes/(brief|full)/json/(.+)"
+    path = r'/api/volumes/(brief|full)/json/(.+)'
     path_re = re.compile(path)
 
     @jsonapi
@@ -58,7 +58,7 @@ class read_multiget(delegate.page):
         # Work around issue with gunicorn where semicolon and after
         # get truncated.  (web.input() still seems ok)
         # see https://github.com/benoitc/gunicorn/issues/215
-        raw_uri = web.ctx.env.get("RAW_URI")
+        raw_uri = web.ctx.env.get('RAW_URI')
         if raw_uri:
             raw_path = urllib.parse.urlsplit(raw_uri).path
 

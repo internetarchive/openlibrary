@@ -3,15 +3,15 @@ from . import db
 
 class Booknotes(db.CommonExtras):
 
-    TABLENAME = "booknotes"
-    PRIMARY_KEY = ["username", "work_id", "edition_id"]
+    TABLENAME = 'booknotes'
+    PRIMARY_KEY = ['username', 'work_id', 'edition_id']
     NULL_EDITION_VALUE = -1
     ALLOW_DELETE_ON_CONFLICT = False
 
     @classmethod
     def total_booknotes(cls):
         oldb = db.get_db()
-        query = f"SELECT count(*) from {cls.TABLENAME}"
+        query = f'SELECT count(*) from {cls.TABLENAME}'
         return oldb.query(query)['count']
 
     @classmethod
@@ -26,9 +26,9 @@ class Booknotes(db.CommonExtras):
         this in mind and design accordingly
         """
         oldb = db.get_db()
-        query = "select count(DISTINCT username) from booknotes"
+        query = 'select count(DISTINCT username) from booknotes'
         if since:
-            query += " WHERE created >= $since"
+            query += ' WHERE created >= $since'
         results = oldb.query(query, vars={'since': since})
         return results[0] if results else None
 
@@ -36,24 +36,24 @@ class Booknotes(db.CommonExtras):
     def most_notable_books(cls, limit=10, since=False):
         """Across all patrons"""
         oldb = db.get_db()
-        query = "select work_id, count(*) as cnt from booknotes"
+        query = 'select work_id, count(*) as cnt from booknotes'
         if since:
-            query += " AND created >= $since"
+            query += ' AND created >= $since'
         query += ' group by work_id order by cnt desc limit $limit'
         return list(oldb.query(query, vars={'limit': limit, 'since': since}))
 
     @classmethod
     def get_booknotes_for_work(cls, work_id):
         oldb = db.get_db()
-        query = "SELECT * from booknotes where work_id=$work_id"
-        return list(oldb.query(query, vars={"work_id": work_id}))
+        query = 'SELECT * from booknotes where work_id=$work_id'
+        return list(oldb.query(query, vars={'work_id': work_id}))
 
     @classmethod
     def count_total_booksnotes_by_user(cls, username):
         """Counts the (int) total number of books logged by this `username`"""
         oldb = db.get_db()
         data = {'username': username}
-        query = "SELECT count(*) from booknotes WHERE username=$username"
+        query = 'SELECT count(*) from booknotes WHERE username=$username'
         return oldb.query(query, vars=data)[0]['count']
 
     @classmethod
@@ -101,12 +101,12 @@ class Booknotes(db.CommonExtras):
             'offset': limit * (page - 1),
             'search': search,
         }
-        query = "SELECT * from booknotes WHERE username=$username "
+        query = 'SELECT * from booknotes WHERE username=$username '
         if work_id:
-            query += "AND work_id=$work_id AND edition_id=$edition_id "
+            query += 'AND work_id=$work_id AND edition_id=$edition_id '
         if search:
             query += "AND notes LIKE '%$search%' "
-        query += "LIMIT $limit OFFSET $offset"
+        query += 'LIMIT $limit OFFSET $offset'
         return list(oldb.query(query, vars=data))
 
     @classmethod
@@ -144,10 +144,10 @@ class Booknotes(db.CommonExtras):
         """
         oldb = db.get_db()
         data = {
-            "work_id": work_id,
-            "username": username,
-            "notes": notes,
-            "edition_id": edition_id,
+            'work_id': work_id,
+            'username': username,
+            'notes': notes,
+            'edition_id': edition_id,
         }
         records = cls.get_patron_booknotes(
             username, work_id=work_id, edition_id=edition_id
@@ -162,7 +162,7 @@ class Booknotes(db.CommonExtras):
             )
         return oldb.update(
             'booknotes',
-            where="work_id=$work_id AND username=$username AND edition_id=$edition_id",
+            where='work_id=$work_id AND username=$username AND edition_id=$edition_id',
             notes=notes,
             edition_id=edition_id,
             vars=data,

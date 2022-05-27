@@ -14,8 +14,8 @@ class ProfileProcessor:
     """Processor to profile the webpage when ?_profile=true is added to the url."""
 
     def __call__(self, handler):
-        i = web.input(_method="GET", _profile="")
-        if i._profile.lower() == "true":
+        i = web.input(_method='GET', _profile='')
+        if i._profile.lower() == 'true':
             out, result = web.profile(handler)()
             if isinstance(out, web.template.TemplateResult):
                 out.__body__ = (
@@ -51,13 +51,13 @@ class CORSProcessor:
     def __call__(self, handler):
         if self.is_cors_path():
             self.add_cors_headers()
-        if web.ctx.method == "OPTIONS":
-            raise web.ok("")
+        if web.ctx.method == 'OPTIONS':
+            raise web.ok('')
         else:
             return handler()
 
     def is_cors_path(self):
-        if self.cors_prefixes is None or web.ctx.path.endswith(".json"):
+        if self.cors_prefixes is None or web.ctx.path.endswith('.json'):
             return True
         for path_segment in self.cors_prefixes:
             if web.ctx.path.startswith(path_segment):
@@ -66,18 +66,18 @@ class CORSProcessor:
 
     def add_cors_headers(self):
         # Allow anyone to access GET and OPTIONS requests
-        allowed = "GET, OPTIONS"
+        allowed = 'GET, OPTIONS'
         # unless the path is /account/* or /admin/*
-        for p in ["/account", "/admin"]:
+        for p in ['/account', '/admin']:
             if web.ctx.path.startswith(p):
-                allowed = "OPTIONS"
+                allowed = 'OPTIONS'
 
-        web.header("Access-Control-Allow-Origin", "*")
-        web.header("Access-Control-Allow-Method", allowed)
-        web.header("Access-Control-Max-Age", 3600 * 24)  # one day
+        web.header('Access-Control-Allow-Origin', '*')
+        web.header('Access-Control-Allow-Method', allowed)
+        web.header('Access-Control-Max-Age', 3600 * 24)  # one day
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import doctest
 
     doctest.testmod()

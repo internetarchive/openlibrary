@@ -32,19 +32,19 @@ UNREGISTERED = olsession.config['accounts']['unregistered']
 
 
 errorLookup = {
-    "invalid_email": "The email address you entered is invalid",
-    "account_blocked": "This account has been blocked",
-    "account_locked": "This account has been blocked",
-    "account_not_found": "Wrong email. Please try again",
-    "account_incorrect_password": "Wrong password. Please try again",
-    "account_bad_password": "Wrong password. Please try again",
-    "account_not_verified": "This account must be verified before login can be completed",
-    "invalid_bridgeEmail": "Failed to link account: invalid email",
-    "account_already_linked": "This account has already been linked",
-    "missing_fields": "Please fill out all fields and try again",
-    "email_registered": "This email is already registered",
-    "username_registered": "This username is already registered",
-    "max_retries_exceeded": "A problem occurred and we were unable to log you in.",
+    'invalid_email': 'The email address you entered is invalid',
+    'account_blocked': 'This account has been blocked',
+    'account_locked': 'This account has been blocked',
+    'account_not_found': 'Wrong email. Please try again',
+    'account_incorrect_password': 'Wrong password. Please try again',
+    'account_bad_password': 'Wrong password. Please try again',
+    'account_not_verified': 'This account must be verified before login can be completed',
+    'invalid_bridgeEmail': 'Failed to link account: invalid email',
+    'account_already_linked': 'This account has already been linked',
+    'missing_fields': 'Please fill out all fields and try again',
+    'email_registered': 'This email is already registered',
+    'username_registered': 'This username is already registered',
+    'max_retries_exceeded': 'A problem occurred and we were unable to log you in.',
 }
 
 

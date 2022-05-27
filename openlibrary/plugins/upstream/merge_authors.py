@@ -59,7 +59,7 @@ class BasicRedirectEngine:
         """
         if isinstance(doc, dict):
             if list(doc) == ['key']:
-                return {"key": master} if doc['key'] in duplicates else doc
+                return {'key': master} if doc['key'] in duplicates else doc
             else:
                 return {
                     k: self.update_references(v, master, duplicates)
@@ -130,12 +130,12 @@ class BasicMergeEngine:
 
 class AuthorRedirectEngine(BasicRedirectEngine):
     def find_references(self, key):
-        q = {"type": "/type/edition", "authors": key, "limit": 10000}
+        q = {'type': '/type/edition', 'authors': key, 'limit': 10000}
         edition_keys = web.ctx.site.things(q)
         editions = get_many(edition_keys)
         work_keys_1 = [w['key'] for e in editions for w in e.get('works', [])]
 
-        q = {"type": "/type/work", "authors": {"author": {"key": key}}, "limit": 10000}
+        q = {'type': '/type/work', 'authors': {'author': {'key': key}}, 'limit': 10000}
         work_keys_2 = web.ctx.site.things(q)
         return edition_keys + work_keys_1 + work_keys_2
 
@@ -172,8 +172,8 @@ class AuthorMergeEngine(BasicMergeEngine):
         result = web.ctx.site.save_many(
             docs,
             comment='merge authors',
-            action="merge-authors",
-            data={"master": master, "duplicates": list(duplicates)},
+            action='merge-authors',
+            data={'master': master, 'duplicates': list(duplicates)},
         )
         before_revs = {doc['key']: doc.get('revision') for doc in docs}
         after_revs = {row['key']: row['revision'] for row in result}
@@ -219,14 +219,14 @@ def fix_table_of_contents(table_of_contents):
     def row(r):
         if isinstance(r, str):
             level = 0
-            label = ""
+            label = ''
             title = web.safeunicode(r)
-            pagenum = ""
+            pagenum = ''
         elif 'value' in r:
             level = 0
-            label = ""
+            label = ''
             title = web.safeunicode(r['value'])
-            pagenum = ""
+            pagenum = ''
         else:
             level = safeint(r.get('level', '0'), 0)
             label = r.get('label', '')
@@ -247,7 +247,7 @@ def get_many(keys):
 
     def process(doc):
         # some books have bad table_of_contents. Fix them to avoid failure on save.
-        if doc['type']['key'] == "/type/edition" and 'table_of_contents' in doc:
+        if doc['type']['key'] == '/type/edition' and 'table_of_contents' in doc:
             doc['table_of_contents'] = fix_table_of_contents(doc['table_of_contents'])
         return doc
 
@@ -255,7 +255,7 @@ def get_many(keys):
 
 
 def make_redirect_doc(key, redirect):
-    return {"key": key, "type": {"key": "/type/redirect"}, "location": redirect}
+    return {'key': key, 'type': {'key': '/type/redirect'}, 'location': redirect}
 
 
 class merge_authors(delegate.page):
@@ -263,12 +263,12 @@ class merge_authors(delegate.page):
 
     def is_enabled(self):
         user = web.ctx.site.get_user()
-        return "merge-authors" in web.ctx.features or (user and user.is_admin())
+        return 'merge-authors' in web.ctx.features or (user and user.is_admin())
 
     def filter_authors(self, keys):
-        docs = web.ctx.site.get_many(["/authors/" + k for k in keys])
+        docs = web.ctx.site.get_many(['/authors/' + k for k in keys])
         d = {doc.key: doc.type.key for doc in docs}
-        return [k for k in keys if d.get("/authors/" + k) == '/type/author']
+        return [k for k in keys if d.get('/authors/' + k) == '/type/author']
 
     def GET(self):
         i = web.input(key=[])
@@ -296,7 +296,7 @@ class merge_authors(delegate.page):
 
         if not i.master or len(selected) == 0:
             return render_template(
-                "merge/authors",
+                'merge/authors',
                 keys,
                 top_books_from_author=top_books_from_author,
                 formdata=formdata,
@@ -304,11 +304,11 @@ class merge_authors(delegate.page):
         else:
             # redirect to the master. The master will display a progressbar and call the merge_authors_json to trigger the merge.
             raise web.seeother(
-                "/authors/"
+                '/authors/'
                 + i.master
-                + "/-/"
-                + "?merge=true&duplicates="
-                + ",".join(selected)
+                + '/-/'
+                + '?merge=true&duplicates='
+                + ','.join(selected)
             )
 
 
@@ -318,12 +318,12 @@ class merge_authors_json(delegate.page):
     This is called from the master author page to trigger the merge while displaying progress.
     """
 
-    path = "/authors/merge"
-    encoding = "json"
+    path = '/authors/merge'
+    encoding = 'json'
 
     def is_enabled(self):
         user = web.ctx.site.get_user()
-        return "merge-authors" in web.ctx.features or (user and user.is_admin())
+        return 'merge-authors' in web.ctx.features or (user and user.is_admin())
 
     def POST(self):
         data = json.loads(web.data())
@@ -335,7 +335,7 @@ class merge_authors_json(delegate.page):
             result = engine.merge(master, duplicates)
         except ClientException as e:
             raise web.badrequest(json.loads(e.json))
-        return delegate.RawText(json.dumps(result), content_type="application/json")
+        return delegate.RawText(json.dumps(result), content_type='application/json')
 
 
 def setup():

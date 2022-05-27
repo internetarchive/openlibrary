@@ -26,8 +26,8 @@ class MockSite:
         if config.get('infobase') is None:
             config.infobase = {}
 
-        infobase_config.secret_key = "foobar"
-        config.infobase['secret_key'] = "foobar"
+        infobase_config.secret_key = 'foobar'
+        config.infobase['secret_key'] = 'foobar'
 
         self.account_manager = self.create_account_manager()
 
@@ -39,7 +39,7 @@ class MockSite:
 
     def create_account_manager(self):
         # Hack to use the accounts stuff from Infogami
-        infobase_config.user_root = "/people"
+        infobase_config.user_root = '/people'
 
         store = web.storage(store=self.store)
         site = web.storage(store=store, save_many=self.save_many)
@@ -57,8 +57,8 @@ class MockSite:
         doc['revision'] = rev
         doc['latest_revision'] = rev
         doc['last_modified'] = {
-            "type": "/type/datetime",
-            "value": timestamp.isoformat(),
+            'type': '/type/datetime',
+            'value': timestamp.isoformat(),
         }
         if rev == 1:
             doc['created'] = doc['last_modified']
@@ -74,7 +74,7 @@ class MockSite:
 
         doc = self._save_doc(query, timestamp)
 
-        changes = [{"key": doc['key'], "revision": doc['revision']}]
+        changes = [{'key': doc['key'], 'revision': doc['revision']}]
         changeset = self._make_changeset(
             timestamp=timestamp,
             kind=action,
@@ -93,9 +93,9 @@ class MockSite:
         docs = [self._save_doc(doc, timestamp) for doc in query]
 
         if author:
-            author = {"key": author.key}
+            author = {'key': author.key}
 
-        changes = [{"key": doc['key'], "revision": doc['revision']} for doc in docs]
+        changes = [{'key': doc['key'], 'revision': doc['revision']} for doc in docs]
         changeset = self._make_changeset(
             timestamp=timestamp,
             kind=action,
@@ -109,14 +109,14 @@ class MockSite:
         for doc in docs:
             self.reindex(doc)
 
-    def quicksave(self, key, type="/type/object", **kw):
+    def quicksave(self, key, type='/type/object', **kw):
         """Handy utility to save an object with less code and get the saved object as return value.
 
         foo = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
         """
         query = {
-            "key": key,
-            "type": {"key": type},
+            'key': key,
+            'type': {'key': type},
         }
         query.update(kw)
         self.save(query)
@@ -125,15 +125,15 @@ class MockSite:
     def _make_changeset(self, timestamp, kind, comment, data, changes, author=None):
         id = len(self.changesets)
         return {
-            "id": id,
-            "kind": kind or "update",
-            "comment": comment,
-            "data": data,
-            "changes": changes,
-            "timestamp": timestamp.isoformat(),
-            "author": author,
-            "ip": "127.0.0.1",
-            "bot": False,
+            'id': id,
+            'kind': kind or 'update',
+            'comment': comment,
+            'data': data,
+            'changes': changes,
+            'timestamp': timestamp.isoformat(),
+            'author': author,
+            'ip': '127.0.0.1',
+            'bot': False,
         }
 
     def get(self, key, revision=None):
@@ -184,14 +184,14 @@ class MockSite:
 
     def filter_index(self, index, name, value):
         operations = {
-            "~": lambda i, value: isinstance(i.value, str)
-            and i.value.startswith(web.rstrips(value, "*")),
-            "<": lambda i, value: i.value < value,
-            ">": lambda i, value: i.value > value,
-            "!": lambda i, value: i.value != value,
-            "=": lambda i, value: i.value == value,
+            '~': lambda i, value: isinstance(i.value, str)
+            and i.value.startswith(web.rstrips(value, '*')),
+            '<': lambda i, value: i.value < value,
+            '>': lambda i, value: i.value > value,
+            '!': lambda i, value: i.value != value,
+            '=': lambda i, value: i.value == value,
         }
-        pattern = ".*([%s])$" % "".join(operations)
+        pattern = '.*([%s])$' % ''.join(operations)
         rx = web.re_compile(pattern)
         m = rx.match(name)
 
@@ -199,7 +199,7 @@ class MockSite:
             op = m.group(1)
             name = name[:-1]
         else:
-            op = "="
+            op = '='
 
         f = operations[op]
 
@@ -225,17 +225,17 @@ class MockSite:
 
         for k, v in index:
             # for handling last_modified.value
-            if k.endswith(".value"):
-                k = web.rstrips(k, ".value")
+            if k.endswith('.value'):
+                k = web.rstrips(k, '.value')
 
-            if k.endswith(".key"):
+            if k.endswith('.key'):
                 yield web.storage(
-                    key=key, datatype="ref", name=web.rstrips(k, ".key"), value=v
+                    key=key, datatype='ref', name=web.rstrips(k, '.key'), value=v
                 )
             elif isinstance(v, str):
-                yield web.storage(key=key, datatype="str", name=k, value=v)
+                yield web.storage(key=key, datatype='str', name=k, value=v)
             elif isinstance(v, int):
-                yield web.storage(key=key, datatype="int", name=k, value=v)
+                yield web.storage(key=key, datatype='int', name=k, value=v)
 
     def reindex(self, doc):
         self.index = [i for i in self.index if i.key != doc['key']]
@@ -274,10 +274,10 @@ class MockSite:
                 username=username,
                 email=email,
                 password=password,
-                data={"displayname": displayname},
+                data={'displayname': displayname},
             )
         except common.InfobaseException as e:
-            raise client.ClientException("bad_data", str(e))
+            raise client.ClientException('bad_data', str(e))
 
     def activate_account(self, username):
         try:
@@ -287,30 +287,30 @@ class MockSite:
 
     def update_account(self, username, **kw):
         status = self.account_manager.update(username, **kw)
-        if status != "ok":
-            raise client.ClientException("bad_data", "Account activation failed.")
+        if status != 'ok':
+            raise client.ClientException('bad_data', 'Account activation failed.')
 
     def login(self, username, password):
         status = self.account_manager.login(username, password)
-        if status == "ok":
-            self.account_manager.set_auth_token("/people/" + username)
+        if status == 'ok':
+            self.account_manager.set_auth_token('/people/' + username)
         else:
-            d = {"code": status}
+            d = {'code': status}
             raise client.ClientException(
-                "bad_data", msg="Login failed", json=json.dumps(d)
+                'bad_data', msg='Login failed', json=json.dumps(d)
             )
 
     def find_account(self, username=None, email=None):
         if username is not None:
-            return self.store.get("account/" + username)
+            return self.store.get('account/' + username)
         else:
             try:
-                return self.store.values(type="account", name="email", value=email)[0]
+                return self.store.values(type='account', name='email', value=email)[0]
             except IndexError:
                 return None
 
     def get_user(self):
-        auth_token = web.ctx.get("infobase_auth_token", "")
+        auth_token = web.ctx.get('infobase_auth_token', '')
 
         if auth_token:
             try:
@@ -319,7 +319,7 @@ class MockSite:
                 return
 
             a = self.account_manager
-            if a._check_salted_hash(a.secret_key, user_key + "," + login_time, digest):
+            if a._check_salted_hash(a.secret_key, user_key + ',' + login_time, digest):
                 return self.get(user_key)
 
 
@@ -343,7 +343,7 @@ class MockStore(dict):
 
     def _query(self, type=None, name=None, value=None, limit=100, offset=0):
         for doc in dict.values(self):
-            if type is not None and doc.get("type", "") != type:
+            if type is not None and doc.get('type', '') != type:
                 continue
             if name is not None and doc.get(name) != value:
                 continue
@@ -357,7 +357,7 @@ class MockStore(dict):
         return [doc for doc in self._query(**kw)]
 
     def items(self, **kw):
-        return [(doc["_key"], doc) for doc in self._query(**kw)]
+        return [(doc['_key'], doc) for doc in self._query(**kw)]
 
 
 @pytest.fixture
@@ -368,7 +368,7 @@ def mock_site(request):
     """
 
     def read_types():
-        for path in glob.glob("openlibrary/plugins/openlibrary/types/*.type"):
+        for path in glob.glob('openlibrary/plugins/openlibrary/types/*.type'):
             text = open(path).read()
             doc = eval(text, dict(true=True, false=False))
             if isinstance(doc, list):

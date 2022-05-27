@@ -9,4 +9,3 @@ Sitemap: https://openlibrary.org/static/sitemaps/siteindex.xml.gz
 
 User-agent: Baiduspider
 Crawl-delay: 0.5
-

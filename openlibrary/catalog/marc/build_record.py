@@ -205,11 +205,11 @@ def read_title(fields):
         del contents['b'][0]
     edition['title'] = title
     if 'b' in contents and contents['b']:
-        edition["subtitle"] = ' : '.join([x.strip(' /,;:') for x in contents['b']])
+        edition['subtitle'] = ' : '.join([x.strip(' /,;:') for x in contents['b']])
     if 'c' in contents:
-        edition["by_statement"] = ' '.join(contents['c'])
+        edition['by_statement'] = ' '.join(contents['c'])
     if 'h' in contents:
-        edition["physical_format"] = ' '.join(contents['h'])
+        edition['physical_format'] = ' '.join(contents['h'])
     return edition
 
 
@@ -288,14 +288,14 @@ def read_publisher(fields):
     for line in fields['260']:
         contents = get_contents(line, ['a', 'b'])
         if 'b' in contents:
-            publisher += [x.strip(" /,;:") for x in contents['b']]
+            publisher += [x.strip(' /,;:') for x in contents['b']]
         if 'a' in contents:
-            publish_place += [x.strip(" /.,;:") for x in contents['a']]
+            publish_place += [x.strip(' /.,;:') for x in contents['a']]
     edition = {}
     if publisher:
-        edition["publishers"] = publisher
+        edition['publishers'] = publisher
     if publish_place:
-        edition["publish_places"] = publish_place
+        edition['publish_places'] = publish_place
     return edition
 
 
@@ -309,7 +309,7 @@ def read_pagination(fields):
     for line in fields['300']:
         pagination += get_subfield_values(line, ['a'])
     if pagination:
-        edition["pagination"] = ' '.join(pagination)
+        edition['pagination'] = ' '.join(pagination)
         num = (
             []
         )  # http://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:2617696:825
@@ -318,7 +318,7 @@ def read_pagination(fields):
             num += [int(i) for i in re_int.findall(x)]
         valid = [i for i in num if i < max_number_of_pages]
         if valid:
-            edition["number_of_pages"] = max(valid)
+            edition['number_of_pages'] = max(valid)
     return edition
 
 
@@ -391,7 +391,7 @@ def read_subjects(fields):
             continue
         for line in fields[tag]:
             a = get_subfield_values(line, subdivision)
-            b = " -- ".join(get_subfield_values(line, subfields) + a)
+            b = ' -- '.join(get_subfield_values(line, subfields) + a)
             found.append(b)
 
     return {'subjects': found} if found else {}
@@ -496,7 +496,7 @@ def read_description(fields):
             wrap = True
         else:
             wrap = False
-    return {'description': "\n\n".join(found)} if found else {}
+    return {'description': '\n\n'.join(found)} if found else {}
 
 
 @deprecated(REASON)
@@ -521,7 +521,7 @@ def read_other_titles(fields):
             if title not in found:
                 found.append(title)
 
-    return {"other_titles": found} if found else {}
+    return {'other_titles': found} if found else {}
 
 
 @deprecated(REASON)
@@ -557,13 +557,13 @@ def build_record(data):
     f = fields['008'][0]
     publish_date = str(f)[7:11]
     if publish_date.isdigit():
-        edition["publish_date"] = publish_date
+        edition['publish_date'] = publish_date
     publish_country = str(f)[15:18]
     if publish_country not in ('|||', '   '):
-        edition["publish_country"] = publish_country
+        edition['publish_country'] = publish_country
     lang = str(f)[35:38]
     if lang not in ('   ', '|||'):
-        edition["languages"] = [{'key': '/l/' + lang}]
+        edition['languages'] = [{'key': '/l/' + lang}]
     edition.update(read_lccn(fields))
     edition.update(read_isbn(fields))
     edition.update(read_oclc(fields))

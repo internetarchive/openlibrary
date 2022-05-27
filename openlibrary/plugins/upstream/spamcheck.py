@@ -3,13 +3,13 @@ import web
 
 
 def get_spam_words():
-    doc = web.ctx.site.store.get("spamwords") or {}
-    return doc.get("spamwords", [])
+    doc = web.ctx.site.store.get('spamwords') or {}
+    return doc.get('spamwords', [])
 
 
 def get_spam_domains():
-    doc = web.ctx.site.store.get("spamwords") or {}
-    return doc.get("domains", [])
+    doc = web.ctx.site.store.get('spamwords') or {}
+    return doc.get('domains', [])
 
 
 def set_spam_words(words):
@@ -23,9 +23,9 @@ def set_spam_domains(domains):
 
 
 def _update_spam_doc(**kwargs):
-    doc = web.ctx.site.store.get("spamwords") or {}
-    doc.update(_key="spamwords", **kwargs)
-    web.ctx.site.store["spamwords"] = doc
+    doc = web.ctx.site.store.get('spamwords') or {}
+    doc.update(_key='spamwords', **kwargs)
+    web.ctx.site.store['spamwords'] = doc
 
 
 def is_spam(i=None, allow_privileged_edits=False):
@@ -39,7 +39,7 @@ def is_spam(i=None, allow_privileged_edits=False):
         if user.type.key == '/type/delete':
             return True
 
-    email = user and user.get_email() or ""
+    email = user and user.get_email() or ''
     if is_spam_email(email):
         return True
 
@@ -57,5 +57,5 @@ def is_spam(i=None, allow_privileged_edits=False):
 
 
 def is_spam_email(email):
-    domain = email.split("@")[-1].lower()
+    domain = email.split('@')[-1].lower()
     return domain in get_spam_domains()

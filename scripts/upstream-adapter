@@ -3,5 +3,5 @@
 import _init_path
 from openlibrary.plugins.upstream import adapter
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     adapter.main()

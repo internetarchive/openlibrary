@@ -25,7 +25,7 @@ try:
 except ImportError:
     from json.decoder import JSONDecodeError  # type: ignore
 
-logger = logging.getLogger("openlibrary.account.model")
+logger = logging.getLogger('openlibrary.account.model')
 
 
 def append_random_suffix(text, limit=9999):
@@ -54,7 +54,7 @@ def sendmail(to, msg, cc=None):
             + web.safestr(msg)
         )
 
-        print("sending email", message, file=web.debug)
+        print('sending email', message, file=web.debug)
     else:
         web.sendmail(
             config.from_address,
@@ -91,19 +91,19 @@ def get_secret_key():
 
 
 def generate_uuid():
-    return str(uuid.uuid4()).replace("-", "")
+    return str(uuid.uuid4()).replace('-', '')
 
 
 def send_verification_email(username, email):
     """Sends account verification email."""
-    key = "account/%s/verify" % username
+    key = 'account/%s/verify' % username
 
     doc = create_link_doc(key, username, email)
     web.ctx.site.store[key] = doc
 
-    link = web.ctx.home + "/account/verify/" + doc['code']
+    link = web.ctx.home + '/account/verify/' + doc['code']
     msg = render_template(
-        "email/account/verify", username=username, email=email, password=None, link=link
+        'email/account/verify', username=username, email=email, password=None, link=link
     )
     sendmail(email, msg)
 
@@ -119,25 +119,25 @@ def create_link_doc(key, username, email):
     expires = now + datetime.timedelta(days=14)
 
     return {
-        "_key": key,
-        "_rev": None,
-        "type": "account-link",
-        "username": username,
-        "email": email,
-        "code": code,
-        "created_on": now.isoformat(),
-        "expires_on": expires.isoformat(),
+        '_key': key,
+        '_rev': None,
+        'type': 'account-link',
+        'username': username,
+        'email': email,
+        'code': code,
+        'created_on': now.isoformat(),
+        'expires_on': expires.isoformat(),
     }
 
 
 class Link(web.storage):
     def get_expiration_time(self):
-        d = self['expires_on'].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        d = self['expires_on'].split('.')[0]
+        return datetime.datetime.strptime(d, '%Y-%m-%dT%H:%M:%S')
 
     def get_creation_time(self):
-        d = self['created_on'].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        d = self['created_on'].split('.')[0]
+        return datetime.datetime.strptime(d, '%Y-%m-%dT%H:%M:%S')
 
     def delete(self):
         del web.ctx.site.store[self['_key']]
@@ -146,7 +146,7 @@ class Link(web.storage):
 class Account(web.storage):
     @property
     def username(self):
-        return self._key.split("/")[-1]
+        return self._key.split('/')[-1]
 
     def get_edit_count(self):
         user = self.get_user()
@@ -155,7 +155,7 @@ class Account(web.storage):
     @property
     def registered_on(self):
         """Returns the registration time."""
-        t = self.get("created_on")
+        t = self.get('created_on')
         return t and helpers.parse_datetime(t)
 
     @property
@@ -168,14 +168,14 @@ class Account(web.storage):
         doc = self.get_user()
         if doc:
             return doc.displayname or self.username
-        elif "data" in self:
-            return self.data.get("displayname") or self.username
+        elif 'data' in self:
+            return self.data.get('displayname') or self.username
         else:
             return self.username
 
     def creation_time(self):
-        d = self['created_on'].split(".")[0]
-        return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        d = self['created_on'].split('.')[0]
+        return datetime.datetime.strptime(d, '%Y-%m-%dT%H:%M:%S')
 
     def get_recentchanges(self, limit=100, offset=0):
         q = dict(author=self.get_user().key, limit=limit, offset=offset)
@@ -198,15 +198,15 @@ class Account(web.storage):
 
     def block(self):
         """Blocks this account."""
-        web.ctx.site.update_account(self.username, status="blocked")
+        web.ctx.site.update_account(self.username, status='blocked')
 
     def unblock(self):
         """Unblocks this account."""
-        web.ctx.site.update_account(self.username, status="active")
+        web.ctx.site.update_account(self.username, status='active')
 
     def is_blocked(self):
         """Tests if this account is blocked."""
-        return getattr(self, 'status', '') == "blocked"
+        return getattr(self, 'status', '') == 'blocked'
 
     def login(self, password):
         """Tries to login with the given password and returns the status.
@@ -222,16 +222,16 @@ class Account(web.storage):
         If the login is successful, the `last_login` time is updated.
         """
         if self.is_blocked():
-            return "account_blocked"
+            return 'account_blocked'
         try:
             web.ctx.site.login(self.username, password)
         except ClientException as e:
-            code = e.get_data().get("code")
+            code = e.get_data().get('code')
             return code
         else:
             self['last_login'] = datetime.datetime.utcnow().isoformat()
             self._save()
-            return "ok"
+            return 'ok'
 
     @classmethod
     def generate_random_password(cls, n=12):
@@ -242,10 +242,10 @@ class Account(web.storage):
 
     def generate_login_code(self):
         """Returns a string that can be set as login cookie to log in as this user."""
-        user_key = "/people/" + self.username
+        user_key = '/people/' + self.username
         t = datetime.datetime(*time.gmtime()[:6]).isoformat()
-        text = f"{user_key},{t}"
-        return text + "," + generate_hash(get_secret_key(), text)
+        text = f'{user_key},{t}'
+        return text + ',' + generate_hash(get_secret_key(), text)
 
     def _save(self):
         """Saves this account in store."""
@@ -258,7 +258,7 @@ class Account(web.storage):
         The `last_login` will not be available for accounts, who haven't
         been logged in after this feature is added.
         """
-        t = self.get("last_login")
+        t = self.get('last_login')
         return t and helpers.parse_datetime(t)
 
     def get_user(self):
@@ -269,16 +269,16 @@ class Account(web.storage):
         :rtype: User
         :returns: Not an Account obj, but a /people/xxx User
         """
-        key = "/people/" + self.username
+        key = '/people/' + self.username
         return web.ctx.site.get(key)
 
     def get_creation_info(self):
-        key = "/people/" + self.username
+        key = '/people/' + self.username
         doc = web.ctx.site.get(key)
         return doc.get_creation_info()
 
     def get_activation_link(self):
-        key = "account/%s/verify" % self.username
+        key = 'account/%s/verify' % self.username
         doc = web.ctx.site.store.get(key)
         if doc:
             return Link(doc)
@@ -286,7 +286,7 @@ class Account(web.storage):
             return False
 
     def get_password_reset_link(self):
-        key = "account/%s/password" % self.username
+        key = 'account/%s/password' % self.username
         doc = web.ctx.site.store.get(key)
         if doc:
             return Link(doc)
@@ -296,12 +296,12 @@ class Account(web.storage):
     def get_links(self):
         """Returns all the verification links present in the database."""
         return web.ctx.site.store.values(
-            type="account-link", name="username", value=self.username
+            type='account-link', name='username', value=self.username
         )
 
     def get_tags(self):
         """Returns list of tags that this user has."""
-        return self.get("tags", [])
+        return self.get('tags', [])
 
     def has_tag(self, tag):
         return tag in self.get_tags()
@@ -406,7 +406,7 @@ class OpenLibraryAccount(Account):
             raise ValueError('something_went_wrong')
 
         if verified:
-            key = "account/%s/verify" % username
+            key = 'account/%s/verify' % username
             doc = create_link_doc(key, username, email)
             web.ctx.site.store[key] = doc
             web.ctx.site.activate_account(username=username)
@@ -434,7 +434,7 @@ class OpenLibraryAccount(Account):
             return cls.get_by_username(username, test=test)
         elif key:
             return cls.get_by_key(key, test=test)
-        raise ValueError("Open Library email or Archive.org itemname required.")
+        raise ValueError('Open Library email or Archive.org itemname required.')
 
     @classmethod
     def get_by_key(cls, key, test=False):
@@ -445,14 +445,14 @@ class OpenLibraryAccount(Account):
     def get_by_username(cls, username, test=False):
         """Retrieves and OpenLibraryAccount by username if it exists or"""
         match = web.ctx.site.store.values(
-            type="account", name="username", value=username, limit=1
+            type='account', name='username', value=username, limit=1
         )
 
         if len(match):
             return cls(match[0])
 
         lower_match = web.ctx.site.store.values(
-            type="account", name="lusername", value=username, limit=1
+            type='account', name='lusername', value=username, limit=1
         )
 
         if len(lower_match):
@@ -466,7 +466,7 @@ class OpenLibraryAccount(Account):
         :rtype: OpenLibraryAccount or None
         """
         ol_accounts = web.ctx.site.store.values(
-            type="account", name="internetarchive_itemname", value=link
+            type='account', name='internetarchive_itemname', value=link
         )
         return cls(ol_accounts[0]) if ol_accounts else None
 
@@ -483,10 +483,10 @@ class OpenLibraryAccount(Account):
         """
         email = email.strip()
         email_doc = web.ctx.site.store.get(
-            "account-email/" + email
-        ) or web.ctx.site.store.get("account-email/" + email.lower())
+            'account-email/' + email
+        ) or web.ctx.site.store.get('account-email/' + email.lower())
         if email_doc and 'username' in email_doc:
-            doc = web.ctx.site.store.get("account/" + email_doc['username'])
+            doc = web.ctx.site.store.get('account/' + email_doc['username'])
             return cls(doc) if doc else None
         return None
 
@@ -530,16 +530,16 @@ class OpenLibraryAccount(Account):
     def authenticate(cls, email, password, test=False):
         ol_account = cls.get(email=email, test=test)
         if not ol_account:
-            return "account_not_found"
+            return 'account_not_found'
         if ol_account.is_blocked():
-            return "account_blocked"
+            return 'account_blocked'
         try:
             web.ctx.site.login(ol_account.username, password)
         except ClientException as e:
-            code = e.get_data().get("code")
+            code = e.get_data().get('code')
             return code
         else:
-            return "ok"
+            return 'ok'
 
 
 class InternetArchiveAccount(web.storage):
@@ -682,7 +682,7 @@ class InternetArchiveAccount(web.storage):
         response = cls.xauth(
             email=email,
             test=test,
-            op="info",
+            op='info',
             s3_key=s3_key,
             s3_secret=s3_secret,
             xauth_url=xauth_url,
@@ -695,7 +695,7 @@ class InternetArchiveAccount(web.storage):
     def authenticate(cls, email, password, test=False):
         email = email.strip().lower()
         response = cls.xauth(
-            'authenticate', test=test, **{"email": email, "password": password}
+            'authenticate', test=test, **{'email': email, 'password': password}
         )
         if not response.get('success'):
             reason = response['values'].get('reason')
@@ -749,7 +749,7 @@ def audit_accounts(
 
     if not ia_login.get('success'):
         # Prioritize returning other errors over `account_not_found`
-        if ia_login['values'].get('reason') != "account_not_found":
+        if ia_login['values'].get('reason') != 'account_not_found':
             return {'error': ia_login['values'].get('reason')}
         return {'error': 'account_not_found'}
 

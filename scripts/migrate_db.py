@@ -24,24 +24,24 @@ class Upgrader:
     def upgrade(self, db):
         v = self.get_database_version(db)
 
-        print("current db version:", v)
-        print("latest version:", LATEST_VERSION)
+        print('current db version:', v)
+        print('latest version:', LATEST_VERSION)
 
         t = db.transaction()
         try:
             for i in range(v, LATEST_VERSION):
-                print("upgrading to", i + 1)
-                f = getattr(self, "upgrade_%03d" % (i + 1))
+                print('upgrading to', i + 1)
+                f = getattr(self, 'upgrade_%03d' % (i + 1))
                 f(db)
         except:
             print()
-            print("**ERROR**: Failed to complete the upgrade. rolling back...")
+            print('**ERROR**: Failed to complete the upgrade. rolling back...')
             print()
             t.rollback()
             raise
         else:
             t.commit()
-            print("done")
+            print('done')
 
     def upgrade_011(self, db):
         """Add seq table."""
@@ -54,25 +54,25 @@ class Upgrader:
 
     def upgrade_012(self, db):
         """Add data column to transaction table."""
-        db.query("ALTER TABLE transaction ADD COLUMN data text")
+        db.query('ALTER TABLE transaction ADD COLUMN data text')
 
     def upgrade_013(self, db):
         """Add changes column to transaction table."""
-        db.query("ALTER TABLE transaction ADD COLUMN changes text")
+        db.query('ALTER TABLE transaction ADD COLUMN changes text')
 
         # populate changes
         rows = db.query(
-            "SELECT thing.key, version.revision, version.transaction_id"
-            + " FROM  thing, version"
-            + " WHERE thing.id=version.thing_id"
-            + " ORDER BY version.transaction_id"
+            'SELECT thing.key, version.revision, version.transaction_id'
+            + ' FROM  thing, version'
+            + ' WHERE thing.id=version.thing_id'
+            + ' ORDER BY version.transaction_id'
         )
 
         for tx_id, changes in itertools.groupby(rows, lambda row: row.transaction_id):
-            changes = [{"key": row.key, "revision": row.revision} for row in changes]
+            changes = [{'key': row.key, 'revision': row.revision} for row in changes]
             db.update(
-                "transaction",
-                where="id=$tx_id",
+                'transaction',
+                where='id=$tx_id',
                 changes=json.dumps(changes),
                 vars=locals(),
             )
@@ -107,8 +107,8 @@ class Upgrader:
 
     def read_schema(self, db):
         rows = db.query(
-            "SELECT table_name, column_name,  data_type "
-            + " FROM information_schema.columns"
+            'SELECT table_name, column_name,  data_type '
+            + ' FROM information_schema.columns'
             + " WHERE table_schema = 'public'"
         )
 
@@ -121,7 +121,7 @@ class Upgrader:
 
 def usage():
     print(file=sys.stderr)
-    print("USAGE: %s dbname" % sys.argv[0], file=sys.stderr)
+    print('USAGE: %s dbname' % sys.argv[0], file=sys.stderr)
     print(file=sys.stderr)
 
 
@@ -129,7 +129,7 @@ def main():
     if len(sys.argv) != 2:
         usage()
         sys.exit(1)
-    elif sys.argv[1] in ["-h", "--help"]:
+    elif sys.argv[1] in ['-h', '--help']:
         usage()
     else:
         dbname = sys.argv[1]
@@ -137,5 +137,5 @@ def main():
         Upgrader().upgrade(db)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

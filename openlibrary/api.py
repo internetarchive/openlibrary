@@ -12,8 +12,8 @@ Sample Usage::
     ol.save("/sandbox", page, "test from api")
 """
 
-__version__ = "0.1"
-__author__ = "Anand Chitipothu <anandology@gmail.com>"
+__version__ = '0.1'
+__author__ = 'Anand Chitipothu <anandology@gmail.com>'
 
 
 import os
@@ -25,7 +25,7 @@ import logging
 import requests
 from configparser import ConfigParser
 
-logger = logging.getLogger("openlibrary.api")
+logger = logging.getLogger('openlibrary.api')
 
 
 class OLError(Exception):
@@ -33,16 +33,16 @@ class OLError(Exception):
         self.code = e.response.status_code
         self.headers = e.response.headers
         self.text = e.response.text
-        Exception.__init__(self, f"{e}. Response: {self.text}")
+        Exception.__init__(self, f'{e}. Response: {self.text}')
 
 
 class OpenLibrary:
-    def __init__(self, base_url="https://openlibrary.org"):
-        self.base_url = base_url.rstrip('/') if base_url else "https://openlibrary.org"
+    def __init__(self, base_url='https://openlibrary.org'):
+        self.base_url = base_url.rstrip('/') if base_url else 'https://openlibrary.org'
         self.cookie = None
 
     def _request(self, path, method='GET', data=None, headers=None, params=None):
-        logger.info("%s %s", method, path)
+        logger.info('%s %s', method, path)
         url = self.base_url + path
         headers = headers or {}
         params = params or {}
@@ -80,13 +80,13 @@ class OpenLibrary:
         config = ConfigParser()
 
         configfile = os.getenv('OPENLIBRARY_RCFILE', os.path.expanduser('~/.olrc'))
-        logger.info("reading %s", configfile)
+        logger.info('reading %s', configfile)
         config.read(configfile)
 
         section = section or self.base_url.split('://')[-1]
 
         if not config.has_section(section):
-            raise Exception("No section found with name %s in ~/.olrc" % repr(section))
+            raise Exception('No section found with name %s in ~/.olrc' % repr(section))
 
         username = config.get(section, 'username')
         password = config.get(section, 'password')
@@ -112,8 +112,7 @@ class OpenLibrary:
         return unmarshal(response.json())
 
     def get_many(self, keys):
-        """Get multiple documents in a single request as a dictionary.
-        """
+        """Get multiple documents in a single request as a dictionary."""
         if len(keys) > 100:
             # Process in batches to avoid crossing the URL length limit.
             d = {}
@@ -124,7 +123,7 @@ class OpenLibrary:
             return self._get_many(keys)
 
     def _get_many(self, keys):
-        response = self._request("/api/get_many", params={"keys": json.dumps(keys)})
+        response = self._request('/api/get_many', params={'keys': json.dumps(keys)})
         return response.json()['result']
 
     def save(self, key, data, comment=None):
@@ -134,7 +133,7 @@ class OpenLibrary:
             headers['Opt'] = '"%s/dev/docs/api"; ns=42' % self.base_url
             headers['42-comment'] = comment
         data = json.dumps(data)
-        return self._request(key, method="PUT", data=data, headers=headers).content
+        return self._request(key, method='PUT', data=data, headers=headers).content
 
     def _call_write(self, name, query, comment, action):
         headers = {'Content-Type': 'application/json'}
@@ -149,14 +148,14 @@ class OpenLibrary:
             headers['42-action'] = action
 
         response = self._request(
-            '/api/' + name, method="POST", data=json.dumps(query), headers=headers
+            '/api/' + name, method='POST', data=json.dumps(query), headers=headers
         )
         return response.json()
 
     def save_many(self, query, comment=None, action=None):
         return self._call_write('save_many', query, comment, action)
 
-    def write(self, query, comment="", action=""):
+    def write(self, query, comment='', action=''):
         """Internal write API."""
         return self._call_write('write', query, comment, action)
 
@@ -197,16 +196,19 @@ class OpenLibrary:
         if 'limit' in q and q['limit'] == False:
             return unlimited_query(q)
         else:
-            response = self._request("/query.json", params=dict(query=json.dumps(q)))
+            response = self._request('/query.json', params=dict(query=json.dumps(q)))
             return unmarshal(response.json())
 
     def search(self, query, limit=10, offset=0, fields: list[str] = None):
-        return self._request('/search.json', params={
-            'q': query,
-            'limit': limit,
-            'offset': offset,
-            **({'fields': ','.join(fields)} if fields else {})
-        }).json()
+        return self._request(
+            '/search.json',
+            params={
+                'q': query,
+                'limit': limit,
+                'offset': offset,
+                **({'fields': ','.join(fields)} if fields else {}),
+            },
+        ).json()
 
     def import_ocaid(self, ocaid, require_marc=True):
         data = {
@@ -230,11 +232,11 @@ def marshal(data):
     elif isinstance(data, dict):
         return {k: marshal(v) for k, v in data.items()}
     elif isinstance(data, datetime.datetime):
-        return {"type": "/type/datetime", "value": data.isoformat()}
+        return {'type': '/type/datetime', 'value': data.isoformat()}
     elif isinstance(data, Text):
-        return {"type": "/type/text", "value": str(data)}
+        return {'type': '/type/text', 'value': str(data)}
     elif isinstance(data, Reference):
-        return {"key": str(data)}
+        return {'key': str(data)}
     else:
         return data
 
@@ -281,9 +283,9 @@ def parse_datetime(value):
 
 class Text(str):
     def __repr__(self):
-        return "<text: %s>" % str.__repr__(self)
+        return '<text: %s>' % str.__repr__(self)
 
 
 class Reference(str):
     def __repr__(self):
-        return "<ref: %s>" % str.__repr__(self)
+        return '<ref: %s>' % str.__repr__(self)

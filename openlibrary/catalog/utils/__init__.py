@@ -91,7 +91,7 @@ def remove_trailing_number_dot(date):
 
 
 def remove_trailing_dot(s):
-    if s.endswith(" Dept."):
+    if s.endswith(' Dept.'):
         return s
     m = re_end_dot.search(s)
     if m:
@@ -248,7 +248,7 @@ def strip_count(counts):
 
 def fmt_author(a):
     if 'birth_date' in a or 'death_date' in a:
-        return "{} ({}-{})".format(
+        return '{} ({}-{})'.format(
             a['name'], a.get('birth_date', ''), a.get('death_date', '')
         )
     return a['name']

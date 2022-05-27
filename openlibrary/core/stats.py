@@ -16,17 +16,17 @@ from statsd import StatsClient
 
 from infogami import config
 
-l = logging.getLogger("openlibrary.pystats")
+l = logging.getLogger('openlibrary.pystats')
 
 
 def create_stats_client(cfg=config):
-    "Create the client which can be used for logging statistics"
-    logger = logging.getLogger("pystatsd.client")
+    'Create the client which can be used for logging statistics'
+    logger = logging.getLogger('pystatsd.client')
     logger.addHandler(logging.StreamHandler())
     try:
-        stats_server = cfg.get("admin", {}).get("statsd_server", None)
+        stats_server = cfg.get('admin', {}).get('statsd_server', None)
         if stats_server:
-            host, port = stats_server.rsplit(":", 1)
+            host, port = stats_server.rsplit(':', 1)
             return StatsClient(host, port)
         else:
             logger.critical("Couldn't find statsd_server section in config")
@@ -37,18 +37,18 @@ def create_stats_client(cfg=config):
 
 
 def put(key, value, rate=1.0):
-    "Records this ``value`` with the given ``key``. It is stored as a millisecond count"
+    'Records this ``value`` with the given ``key``. It is stored as a millisecond count'
     global client
     if client:
-        l.debug(f"Putting {value} as {key}")
+        l.debug(f'Putting {value} as {key}')
         client.timing(key, value, rate)
 
 
 def increment(key, n=1, rate=1.0):
-    "Increments the value of ``key`` by ``n``"
+    'Increments the value of ``key`` by ``n``'
     global client
     if client:
-        l.debug("Incrementing %s" % key)
+        l.debug('Incrementing %s' % key)
         for i in range(n):
             try:
                 client.increment(key, sample_rate=rate)

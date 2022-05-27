@@ -43,8 +43,8 @@ http://github.com/anandology/notebook/tree/master/2010/03/jsdef/
 
 """
 
-__author__ = "Anand Chitipothu <anandology@gmail.com>"
-__version__ = "0.3"
+__author__ = 'Anand Chitipothu <anandology@gmail.com>'
+__version__ = '0.3'
 
 """change notes:
 
@@ -90,10 +90,10 @@ class JSDefNode(DefNode):
     def __init__(self, *a, **kw):
         DefNode.__init__(self, *a, **kw)
         self.suite.sections.append(JSNode(self))
-        self.stmt = self.stmt.replace("jsdef", "def")
+        self.stmt = self.stmt.replace('jsdef', 'def')
 
 
-INDENT = "    "
+INDENT = '    '
 
 
 class JSNode:
@@ -101,12 +101,12 @@ class JSNode:
         self.node = node
         self._count = 0
 
-    def emit(self, indent, text_indent=""):
+    def emit(self, indent, text_indent=''):
         # Code generation logic is changed in version 0.34
-        if web.__version__ < "0.34":
-            return indent[4:] + 'yield "", %s\n' % repr(self.jsemit(self.node, ""))
+        if web.__version__ < '0.34':
+            return indent[4:] + 'yield "", %s\n' % repr(self.jsemit(self.node, ''))
         else:
-            return indent[4:] + 'self.extend(%s)\n' % repr(self.jsemit(self.node, ""))
+            return indent[4:] + 'self.extend(%s)\n' % repr(self.jsemit(self.node, ''))
 
     def jsemit(self, node, indent):
         r"""Emit Javascript for given node.::
@@ -117,54 +117,54 @@ class JSNode:
         >>> jsemit(web.template.AssignmentNode("x = 1"), "")
         'var x = 1;\n'
         """
-        name = "jsemit_" + node.__class__.__name__
+        name = 'jsemit_' + node.__class__.__name__
         f = getattr(self, name, None)
         if f:
             return f(node, indent)
         else:
-            return ""
+            return ''
 
     def jsemit_SuiteNode(self, node, indent):
-        return "".join(self.jsemit(s, indent) for s in node.sections)
+        return ''.join(self.jsemit(s, indent) for s in node.sections)
 
     def jsemit_LineNode(self, node, indent):
-        text = ["self.push(%s);" % self.jsemit(n, "") for n in node.nodes]
-        return indent + " ".join(text) + "\n"
+        text = ['self.push(%s);' % self.jsemit(n, '') for n in node.nodes]
+        return indent + ' '.join(text) + '\n'
 
     def jsemit_TextNode(self, node, indent):
         return json.dumps(node.value)
 
     def jsemit_ExpressionNode(self, node, indent):
         if node.escape:
-            return "websafe(%s)" % py2js(node.value)
+            return 'websafe(%s)' % py2js(node.value)
         else:
             return py2js(node.value)
 
     def jsemit_AssignmentNode(self, node, indent):
-        return indent + "var " + py2js(node.code) + ";\n"
+        return indent + 'var ' + py2js(node.code) + ';\n'
 
     def jsemit_StatementNode(self, node, indent):
-        return indent + py2js(node.stmt) + ";\n"
+        return indent + py2js(node.stmt) + ';\n'
 
     def jsemit_BlockNode(self, node, indent):
-        text = ""
+        text = ''
 
-        jsnames = {"elif": "else if"}
+        jsnames = {'elif': 'else if'}
 
-        for n in ["if", "elif", "else", "for"]:
+        for n in ['if', 'elif', 'else', 'for']:
             if node.stmt.startswith(n):
                 name = n
                 break
         else:
-            return ""
+            return ''
 
-        expr = node.stmt[len(name) :].strip(": ")
-        expr = expr and "(" + expr + ")"
+        expr = node.stmt[len(name) :].strip(': ')
+        expr = expr and '(' + expr + ')'
 
         jsname = jsnames.get(name, name)
-        text += indent + f"{jsname} {py2js(expr)} {{\n"
+        text += indent + f'{jsname} {py2js(expr)} {{\n'
         text += self.jsemit(node.suite, indent + INDENT)
-        text += indent + "}\n"
+        text += indent + '}\n'
         return text
 
     jsemit_IfNode = jsemit_BlockNode
@@ -175,28 +175,28 @@ class JSNode:
         tok = PythonTokenizer(node.stmt)
         tok.consume_till('in')
         a = node.stmt[: tok.index].strip()  # for i in
-        a = a[len("for") : -len("in")].strip()  # strip `for` and `in`
+        a = a[len('for') : -len('in')].strip()  # strip `for` and `in`
 
         b = node.stmt[tok.index : -1].strip()  # rest of for stmt excluding :
-        b = web.re_compile(r"loop.setup\((.*)\)").match(b).group(1)
+        b = web.re_compile(r'loop.setup\((.*)\)').match(b).group(1)
 
-        text = ""
-        text += indent + f"foreach({py2js(b)}, loop, function(loop, {a}) {{\n"
+        text = ''
+        text += indent + f'foreach({py2js(b)}, loop, function(loop, {a}) {{\n'
         text += self.jsemit(node.suite, indent + INDENT)
-        text += indent + "});\n"
+        text += indent + '});\n'
         return text
 
     def jsemit_JSDefNode(self, node, indent):
-        text = ""
+        text = ''
         text += '<script type="text/javascript"><!--\n'
 
-        text += node.stmt.replace("def ", "function ").strip(": ") + "{\n"
+        text += node.stmt.replace('def ', 'function ').strip(': ') + '{\n'
         text += '    var self = [], loop;\n'
         text += self.jsemit(node.suite, indent + INDENT)
         text += '    return self.join("");\n'
-        text += "}\n"
+        text += '}\n'
 
-        text += "//--></script>\n"
+        text += '//--></script>\n'
         return text
 
 
@@ -231,13 +231,13 @@ def py2js(expr):
     >>> py2js("x or not y")
     'x || ! y'
     """
-    d = {"and": "&&", "or": "||", "not": "!"}
+    d = {'and': '&&', 'or': '||', 'not': '!'}
 
     def f(tokens):
         for t in tokens:
             yield d.get(t, t)
 
-    return "".join(f(tokenize(expr)))
+    return ''.join(f(tokenize(expr)))
 
 
 def _testrun(code):
@@ -245,7 +245,7 @@ def _testrun(code):
     root = parser.parse(code)
     node = root.suite
     jnode = JSNode(node)
-    return jnode.jsemit(node, "")
+    return jnode.jsemit(node, '')
 
 
 def _test():
@@ -266,7 +266,7 @@ def _test():
     """
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import doctest
 
     doctest.testmod()

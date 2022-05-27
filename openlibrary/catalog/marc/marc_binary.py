@@ -123,15 +123,15 @@ class MarcBinary(MarcBase):
             assert isinstance(data, bytes)
             length = int(data[:5])
         except Exception:
-            raise BadMARC("No MARC data found")
+            raise BadMARC('No MARC data found')
         if len(data) != length:
             raise BadLength(
-                f"Record length {len(data)} does not match reported length {length}."
+                f'Record length {len(data)} does not match reported length {length}.'
             )
         self.data = data
         self.directory_end = data.find(b'\x1e')
         if self.directory_end == -1:
-            raise BadMARC("MARC directory not found")
+            raise BadMARC('MARC directory not found')
 
     def iter_directory(self):
         data = self.data
@@ -141,7 +141,7 @@ class MarcBinary(MarcBase):
             # sometimes the leader includes some utf-8 by mistake
             directory = data[: self.directory_end].decode('utf-8')[24:]
             if len(directory) % 12 != 0:
-                raise BadMARC("MARC directory invalid length")
+                raise BadMARC('MARC directory invalid length')
         iter_dir = (
             directory[i * 12 : (i + 1) * 12] for i in range(len(directory) // 12)
         )

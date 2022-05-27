@@ -7,18 +7,18 @@ def test_olmarkdown():
 
     def p(html):
         # markdown always wraps the result in <p>.
-        return "<p>%s\n</p>" % html
+        return '<p>%s\n</p>' % html
 
-    assert md("**foo**") == p("<strong>foo</strong>")
-    assert md("<b>foo</b>") == p('<b>foo</b>')
-    assert md("https://openlibrary.org") == p(
+    assert md('**foo**') == p('<strong>foo</strong>')
+    assert md('<b>foo</b>') == p('<b>foo</b>')
+    assert md('https://openlibrary.org') == p(
         '<a href="https://openlibrary.org" rel="nofollow">'
         + 'https://openlibrary.org'
         + '</a>'
     )
-    assert md("http://example.org") == p(
+    assert md('http://example.org') == p(
         '<a href="http://example.org" rel="nofollow">' + 'http://example.org' + '</a>'
     )
 
     # why extra spaces?
-    assert md("a\nb") == p("a<br/>\n   b")
+    assert md('a\nb') == p('a<br/>\n   b')

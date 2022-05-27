@@ -4,11 +4,11 @@ import pytest
 
 @pytest.fixture
 def dummy_crontabfile(request):
-    "Creates a dummy crontab file that can be used for to try things"
+    'Creates a dummy crontab file that can be used for to try things'
     cronfile = os.tmpnam()
     ip = """* * * * * /bin/true
 * * * * * /bin/true"""
-    f = open(cronfile, "w")
+    f = open(cronfile, 'w')
     f.write(ip)
     f.close()
     request.addfinalizer(lambda: os.remove(cronfile))
@@ -19,11 +19,11 @@ def dummy_crontabfile(request):
 def crontabfile(request):
     """Creates a file with an actual command that we can use to test
     running of cron lines"""
-    if os.path.exists("/tmp/crontest"):
-        os.unlink("/tmp/crontest")
+    if os.path.exists('/tmp/crontest'):
+        os.unlink('/tmp/crontest')
     cronfile = os.tmpnam()
-    ip = "* * * * * touch /tmp/crontest"
-    f = open(cronfile, "w")
+    ip = '* * * * * touch /tmp/crontest'
+    f = open(cronfile, 'w')
     f.write(ip)
     f.close()
     request.addfinalizer(lambda: os.remove(cronfile))

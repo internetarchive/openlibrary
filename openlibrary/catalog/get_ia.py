@@ -59,7 +59,7 @@ def get_marc_record_from_ia(identifier):
             root = etree.fromstring(data)
             return MarcXml(root)
         except Exception as e:
-            print("Unable to read MarcXML: %s" % e)
+            print('Unable to read MarcXML: %s' % e)
             traceback.print_exc()
 
     # If that fails, try marc.bin
@@ -89,7 +89,7 @@ def files(identifier):
     try:
         tree = etree.parse(urlopen_keep_trying(url).content)
     except:
-        print("error reading", url)
+        print('error reading', url)
         raise
     assert tree
     for i in tree.getroot():
@@ -131,7 +131,7 @@ def get_from_archive_bulk(locator):
     """
     if locator.startswith('marc:'):
         locator = locator[5:]
-    filename, offset, length = locator.split(":")
+    filename, offset, length = locator.split(':')
     offset = int(offset)
     length = int(length)
 
@@ -175,7 +175,7 @@ def read_marc_file(part, f, pos=0):
     :return: (Next position, Current source_record name, Current single MARC record)
     """
     for data, int_length in fast_read_file(f):
-        loc = "marc:%s:%d:%d" % (part, pos, int_length)
+        loc = 'marc:%s:%d:%d' % (part, pos, int_length)
         pos += int_length
         yield (pos, loc, data)
 
@@ -202,7 +202,7 @@ def marc_formats(identifier, host=None, path=None):
         sleep(10)
     if f is None:
         # TODO: log this, if anything uses this code
-        msg = "error reading %s_files.xml" % identifier
+        msg = 'error reading %s_files.xml' % identifier
         return has
     data = f.content
     try:

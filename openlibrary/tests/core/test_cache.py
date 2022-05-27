@@ -6,25 +6,25 @@ from openlibrary.mocks import mock_memcache
 
 class Test_memcache_memoize:
     def test_encode_args(self):
-        m = cache.memcache_memoize(None, key_prefix="foo")
+        m = cache.memcache_memoize(None, key_prefix='foo')
 
         assert m.encode_args([]) == ''
-        assert m.encode_args(["a"]) == '"a"'
+        assert m.encode_args(['a']) == '"a"'
         assert m.encode_args([1]) == '1'
-        assert m.encode_args(["a", 1]) == '"a",1'
-        assert m.encode_args([{"a": 1}]) == '{"a":1}'
-        assert m.encode_args([["a", 1]]) == '["a",1]'
+        assert m.encode_args(['a', 1]) == '"a",1'
+        assert m.encode_args([{'a': 1}]) == '{"a":1}'
+        assert m.encode_args([['a', 1]]) == '["a",1]'
 
     def test_generate_key_prefix(self):
         def foo():
             pass
 
         m = cache.memcache_memoize(foo)
-        assert m.key_prefix[:4] == "foo_"
+        assert m.key_prefix[:4] == 'foo_'
 
     def test_random_string(self):
-        m = cache.memcache_memoize(None, "foo")
-        assert m._random_string(0) == ""
+        m = cache.memcache_memoize(None, 'foo')
+        assert m._random_string(0) == ''
 
         s1 = m._random_string(1)
         assert isinstance(s1, str)
@@ -38,7 +38,7 @@ class Test_memcache_memoize:
         def square(x):
             return x * x
 
-        m = cache.memcache_memoize(square, key_prefix="square")
+        m = cache.memcache_memoize(square, key_prefix='square')
         m._memcache = mock_memcache.Client([])
         return m
 
@@ -83,7 +83,7 @@ class Test_memcache_memoize:
         assert m.stats.updates == 1
 
         # this should clear the cache and the next call should update the cache.
-        m(10, _cache="delete")
+        m(10, _cache='delete')
 
         m(10)
         assert m.stats.updates == 2
@@ -104,36 +104,36 @@ class Test_memoize:
             """Returns square x."""
             return x * x
 
-        msquare = cache.memoize(engine="memory", key="square")(square)
+        msquare = cache.memoize(engine='memory', key='square')(square)
         assert msquare.__name__ == square.__name__
         assert msquare.__doc__ == square.__doc__
 
     def test_cache(self):
-        @cache.memoize(engine="memory", key="square")
+        @cache.memoize(engine='memory', key='square')
         def square(x):
             return x * x
 
         assert square(2) == 4
-        assert self.get("square-2") == 4
+        assert self.get('square-2') == 4
 
         # It should read from cache instead of computing if entry is present in the cache
         self.set('square-42', 43)
         assert square(42) == 43
 
     def test_cache_with_tuple_keys(self):
-        @cache.memoize(engine="memory", key=lambda x: (str(x), "square"))
+        @cache.memoize(engine='memory', key=lambda x: (str(x), 'square'))
         def square(x):
             return x * x
 
-        @cache.memoize(engine="memory", key=lambda x: (str(x), "double"))
+        @cache.memoize(engine='memory', key=lambda x: (str(x), 'double'))
         def double(x):
             return x + x
 
-        assert self.get("3") is None
+        assert self.get('3') is None
         assert square(3) == 9
-        assert self.get("3") == {"square": 9}
+        assert self.get('3') == {'square': 9}
         assert double(3) == 6
-        assert self.get("3") == {"square": 9, "double": 6}
+        assert self.get('3') == {'square': 9, 'double': 6}
 
 
 class Test_method_memoize:

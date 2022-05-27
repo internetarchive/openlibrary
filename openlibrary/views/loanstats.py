@@ -32,10 +32,12 @@ cached_reading_log_summary = cache.memcache_memoize(
     reading_log_summary, 'stats.readling_log_summary', timeout=dateutil.HOUR_SECS
 )
 
+
 def cached_get_most_logged_books(shelf_id=None, since_days=1, limit=20):
     return cache.memcache_memoize(
         get_most_logged_books, 'stats.trending', timeout=dateutil.HOUR_SECS
     )(shelf_id=shelf_id, since_days=since_days, limit=limit)
+
 
 def get_most_logged_books(shelf_id=None, since_days=1, limit=20):
     """
@@ -47,11 +49,12 @@ def get_most_logged_books(shelf_id=None, since_days=1, limit=20):
         delegate.fakeload()
 
     # Return as dict to enable cache serialization
-    return [dict(book) for book in
-            Bookshelves.most_logged_books(
-                shelf_id=shelf_id,
-                since=dateutil.date_n_days_ago(since_days),
-                limit=limit)]
+    return [
+        dict(book)
+        for book in Bookshelves.most_logged_books(
+            shelf_id=shelf_id, since=dateutil.date_n_days_ago(since_days), limit=limit
+        )
+    ]
 
 
 def reading_log_leaderboard(limit=None):
@@ -93,26 +96,29 @@ def get_cached_reading_log_stats(limit):
     stats.update(cached_reading_log_leaderboard(limit))
     return stats
 
+
 class stats(app.view):
-    path = "/stats"
+    path = '/stats'
 
     def GET(self):
         counts = get_counts()
         counts.reading_log = cached_reading_log_summary()
-        return app.render_template("admin/index", counts)
+        return app.render_template('admin/index', counts)
 
 
 class lending_stats(app.view):
-    path = "/stats/lending(?:/%s/(.+))?" % LENDING_TYPES
+    path = '/stats/lending(?:/%s/(.+))?' % LENDING_TYPES
 
     def GET(self, key, value):
-        raise web.seeother("/")
+        raise web.seeother('/')
+
 
 def get_activity_stream(limit=None):
     # enable to work w/ cached
     if 'env' not in web.ctx:
         delegate.fakeload()
     return Bookshelves.get_recently_logged_books(limit=limit)
+
 
 def get_cached_activity_stream(limit):
     return cache.memcache_memoize(
@@ -121,27 +127,33 @@ def get_cached_activity_stream(limit):
         timeout=dateutil.HOUR_SECS,
     )(limit)
 
+
 class activity_stream(app.view):
-    path = "/trending(/?.*)"
+    path = '/trending(/?.*)'
 
     def GET(self, page=''):
         if not page:
-            raise web.seeother("/trending/now")
+            raise web.seeother('/trending/now')
         page = page[1:]
         limit = 20
-        if page == "now":
+        if page == 'now':
             logged_books = get_activity_stream(limit=limit)
         else:
             shelf_id = None  # optional; get from web.input()?
-            logged_books = cached_get_most_logged_books(since_days={
-                'daily': 1,
-                'weekly': 7,
-                'monthly': 30,
-                'yearly': 365,
-                'forever': None,
-            }[page], limit=limit)
+            logged_books = cached_get_most_logged_books(
+                since_days={
+                    'daily': 1,
+                    'weekly': 7,
+                    'monthly': 30,
+                    'yearly': 365,
+                    'forever': None,
+                }[page],
+                limit=limit,
+            )
 
-        work_index = get_solr_works(f"/works/OL{book['work_id']}W" for book in logged_books)
+        work_index = get_solr_works(
+            f"/works/OL{book['work_id']}W" for book in logged_books
+        )
         availability_index = get_availabilities(work_index.values())
         for work_key in availability_index:
             work_index[work_key]['availability'] = availability_index[work_key]
@@ -149,15 +161,15 @@ class activity_stream(app.view):
             key = f"/works/OL{logged_book['work_id']}W"
             if key in work_index:
                 logged_books[i]['work'] = work_index[key]
-        return app.render_template("trending", logged_books=logged_books, mode=page)
+        return app.render_template('trending', logged_books=logged_books, mode=page)
 
 
 class readinglog_stats(app.view):
-    path = "/stats/readinglog"
+    path = '/stats/readinglog'
 
     def GET(self):
         MAX_LEADERBOARD_SIZE = 50
-        i = web.input(limit="10", mode="all")
+        i = web.input(limit='10', mode='all')
         limit = min(int(i.limit), 50)
 
         stats = get_cached_reading_log_stats(limit=limit)
@@ -189,4 +201,4 @@ class readinglog_stats(app.view):
                 if availabilities.get(item['work']['key']):
                     item['availability'] = availabilities.get(item['work']['key'])
 
-        return app.render_template("stats/readinglog", stats=stats)
+        return app.render_template('stats/readinglog', stats=stats)

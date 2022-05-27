@@ -228,7 +228,7 @@ class addbook(delegate.page):
         if author:
             d['authors'] = [author]
 
-        page = web.ctx.site.new("", d)
+        page = web.ctx.site.new('', d)
         return render.edit(page, self.path, 'Add Book')
 
     def POST(self):
@@ -594,6 +594,7 @@ class opds(delegate.mode):
             raise web.notfound('')
         else:
             from openlibrary.plugins.openlibrary import opds
+
             try:
                 result = opds.OPDSEntry(page).to_string()
             except:
@@ -889,7 +890,7 @@ def get_cover_id(key):
     try:
         _, cat, oln = key.split('/')
         return requests.get(
-            f"https://covers.openlibrary.org/{cat}/query?olid={oln}&limit=1"
+            f'https://covers.openlibrary.org/{cat}/query?olid={oln}&limit=1'
         ).json()[0]
     except (IndexError, json.decoder.JSONDecodeError, TypeError, ValueError):
         return None
@@ -994,7 +995,7 @@ def _get_relatedcarousels_component(workid):
 def get_cached_relatedcarousels_component(*args, **kwargs):
     memoized_get_component_metadata = cache.memcache_memoize(
         _get_relatedcarousels_component,
-        "book.bookspage.component.relatedcarousels",
+        'book.bookspage.component.relatedcarousels',
         timeout=dateutil.HALF_DAY_SECS,
     )
     return (
@@ -1008,11 +1009,11 @@ class Partials(delegate.page):
 
     def GET(self):
         i = web.input(workid=None, _component=None)
-        component = i.pop("_component")
+        component = i.pop('_component')
         partial = {}
-        if component == "RelatedWorkCarousel":
+        if component == 'RelatedWorkCarousel':
             partial = _get_relatedcarousels_component(i.workid)
-        return delegate.RawText(json.dumps(partial), content_type="application/json")
+        return delegate.RawText(json.dumps(partial), content_type='application/json')
 
 
 def is_bot():

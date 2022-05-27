@@ -39,7 +39,7 @@ def store_data(data, day):
     :param datetime day:
     :return:
     """
-    uid = day.strftime("counts-%Y-%m-%d")
+    uid = day.strftime('counts-%Y-%m-%d')
     doc = web.ctx.site.store.get(uid) or {}
     doc.update(data)
     doc['type'] = 'admin-stats'
@@ -54,26 +54,26 @@ def count_unique_ips_for_day(day):
     :return: A dict of the form `{visitors: int}`
     :rtype: int
     """
-    basedir = "/var/log/nginx/"
+    basedir = '/var/log/nginx/'
 
     # Cat the logs we'll be processing
-    log_file = basedir + "access.log"
-    zipped_log_file = log_file + day.strftime("-%Y%m%d.gz")
+    log_file = basedir + 'access.log'
+    zipped_log_file = log_file + day.strftime('-%Y%m%d.gz')
 
     if os.path.exists(zipped_log_file):
-        cat_log_cmd = ["zcat", zipped_log_file]
+        cat_log_cmd = ['zcat', zipped_log_file]
     elif day > (datetime.today() - timedelta(days=5)):
         # if recent day, then they haven't been compressed yet
-        cat_log_cmd = ["cat", log_file]
+        cat_log_cmd = ['cat', log_file]
     else:
-        raise IndexError("Cannot find log file for " + day.strftime("%Y-%m-%d"))
+        raise IndexError('Cannot find log file for ' + day.strftime('%Y-%m-%d'))
 
     out = run_piped(
         [
             cat_log_cmd,  # cat the server logs
-            ["awk", '$2 == "openlibrary.org" { print $1 }'],  # get all the IPs
-            ["sort", "-u"],  # get unique only
-            ["wc", "-l"],  # count number of lines
+            ['awk', '$2 == "openlibrary.org" { print $1 }'],  # get all the IPs
+            ['sort', '-u'],  # get unique only
+            ['wc', '-l'],  # count number of lines
         ]
     )
 
@@ -101,22 +101,22 @@ def main(config, start, end):
         current += timedelta(days=1)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     from argparse import ArgumentParser
     import sys
 
     parser = ArgumentParser(
-        description="Store count of unique IPs per day from the past K days (including today) in infobase."
+        description='Store count of unique IPs per day from the past K days (including today) in infobase.'
     )
     parser.add_argument(
-        'config', help="openlibrary.yml (e.g. olsystem/etc/openlibrary.yml)"
+        'config', help='openlibrary.yml (e.g. olsystem/etc/openlibrary.yml)'
     )
-    parser.add_argument('--days', type=int, default=1, help="how many days to go back")
+    parser.add_argument('--days', type=int, default=1, help='how many days to go back')
     parser.add_argument(
         '--range',
         nargs=2,
-        type=lambda d: datetime.strptime(d, "%Y-%m-%d"),
-        help="alternatively, provide a range of dates to visit (like `--range 2018-06-25 2018-07-14`)",
+        type=lambda d: datetime.strptime(d, '%Y-%m-%d'),
+        help='alternatively, provide a range of dates to visit (like `--range 2018-06-25 2018-07-14`)',
     )
     args = parser.parse_args()
 

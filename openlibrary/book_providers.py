@@ -19,22 +19,21 @@ class AbstractBookProvider:
     identifier_key: str
 
     def get_olids(self, identifier):
-        return web.ctx.site.things({
-            "type": "/type/edition",
-            self.db_selector: identifier
-        })
+        return web.ctx.site.things(
+            {'type': '/type/edition', self.db_selector: identifier}
+        )
 
     @property
     def editions_query(self):
-        return {f"{self.db_selector}~": "*"}
+        return {f'{self.db_selector}~': '*'}
 
     @property
     def db_selector(self):
-        return f"identifiers.{self.identifier_key}"
+        return f'identifiers.{self.identifier_key}'
 
     @property
     def solr_key(self):
-        return f"id_{self.identifier_key}"
+        return f'id_{self.identifier_key}'
 
     def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
         return (
@@ -58,7 +57,7 @@ class AbstractBookProvider:
         return f'{self.short_name}:{self.get_best_identifier(ed_or_solr)}'
 
     def get_template_path(self, typ: Literal['read_button', 'download_options']) -> str:
-        return f"book_providers/{self.short_name}_{typ}.html"
+        return f'book_providers/{self.short_name}_{typ}.html'
 
     def render_read_button(self, ed_or_solr: Union[Edition, dict]):
         return render_template(
@@ -87,7 +86,7 @@ class InternetArchiveProvider(AbstractBookProvider):
 
     @property
     def solr_key(self):
-        return f"ia"
+        return f'ia'
 
     def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
         # Solr work record augmented with availability
@@ -192,19 +191,19 @@ def get_cover_url(ed_or_solr: Union[Edition, dict]) -> Optional[str]:
 
     if availability.get('openlibrary_edition'):
         olid = availability.get('openlibrary_edition')
-        return f"{get_coverstore_public_url()}/b/olid/{olid}-{size}.jpg"
+        return f'{get_coverstore_public_url()}/b/olid/{olid}-{size}.jpg'
     if availability.get('identifier'):
         ocaid = ed_or_solr['availability']['identifier']
-        return f"//archive.org/services/img/{ocaid}"
+        return f'//archive.org/services/img/{ocaid}'
 
     # Plain solr - we don't know which edition is which here, so this is most
     # preferable
     if ed_or_solr.get('cover_i'):
-        cover_i = ed_or_solr["cover_i"]
+        cover_i = ed_or_solr['cover_i']
         return f'{get_coverstore_public_url()}/b/id/{cover_i}-{size}.jpg'
     if ed_or_solr.get('cover_edition_key'):
         olid = ed_or_solr['cover_edition_key']
-        return f"{get_coverstore_public_url()}/b/olid/{olid}-{size}.jpg"
+        return f'{get_coverstore_public_url()}/b/olid/{olid}-{size}.jpg'
     if ed_or_solr.get('ocaid'):
         return f"//archive.org/services/img/{ed_or_solr.get('ocaid')}"
 
@@ -278,35 +277,34 @@ def get_book_providers(
 
 
 def get_book_provider(
-        ed_or_solr: Union[Edition, dict]
+    ed_or_solr: Union[Edition, dict]
 ) -> Optional[AbstractBookProvider]:
     return next(get_book_providers(ed_or_solr), None)
 
 
 def get_best_edition(
-        editions: list[Edition]
+    editions: list[Edition],
 ) -> tuple[Optional[Edition], Optional[AbstractBookProvider]]:
     provider_order = get_provider_order(True)
 
     # Map provider name to position/ranking
     provider_rank_lookup: dict[Optional[AbstractBookProvider], int] = {
-        provider: i
-        for i, provider in enumerate(provider_order)
+        provider: i for i, provider in enumerate(provider_order)
     }
 
     # Here, we prefer the ia editions
-    augmented_editions = [
-        (edition, get_book_provider(edition))
-        for edition in editions
-    ]
+    augmented_editions = [(edition, get_book_provider(edition)) for edition in editions]
 
-    best = multisort_best(augmented_editions, [
-        # Prefer the providers closest to the top of the list
-        ('min', lambda rec: provider_rank_lookup.get(rec[1], float('inf'))),
-        # Prefer the editions with the most fields
-        ('max', lambda rec: len(dict(rec[0]))),
-        # TODO: Language would go in this queue somewhere
-    ])
+    best = multisort_best(
+        augmented_editions,
+        [
+            # Prefer the providers closest to the top of the list
+            ('min', lambda rec: provider_rank_lookup.get(rec[1], float('inf'))),
+            # Prefer the editions with the most fields
+            ('max', lambda rec: len(dict(rec[0]))),
+            # TODO: Language would go in this queue somewhere
+        ],
+    )
 
     return best if best else (None, None)
 

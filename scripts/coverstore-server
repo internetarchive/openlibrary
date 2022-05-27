@@ -21,22 +21,26 @@ import sys
 import os
 import _init_path
 import web
+
 web.config.debug = False
+
 
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable
-    os.environ['PYTHON_EGG_CACHE'] = "/tmp/.python-eggs"
+    os.environ['PYTHON_EGG_CACHE'] = '/tmp/.python-eggs'
 
     # required when run as fastcgi
-    os.environ['REAL_SCRIPT_NAME'] = ""
+    os.environ['REAL_SCRIPT_NAME'] = ''
+
 
 def start_server():
     from openlibrary.coverstore import server
+
     server.main(*sys.argv[1:])
 
+
 def start_gunicorn_server():
-    """Starts the coverstore server using gunicorn server.
-    """
+    """Starts the coverstore server using gunicorn server."""
     from gunicorn.app.base import Application
 
     configfile = sys.argv.pop(1)
@@ -47,10 +51,11 @@ def start_gunicorn_server():
 
         def load(self):
             from openlibrary.coverstore import server, code
+
             server.setup(configfile)
             return code.app.wsgifunc(https_middleware)
 
-    WSGIServer("%prog coverstore.yml --gunicorn [options]").run()
+    WSGIServer('%prog coverstore.yml --gunicorn [options]').run()
 
 
 def https_middleware(app):
@@ -63,18 +68,21 @@ def https_middleware(app):
     Using that value to overwrite wsgi.url_scheme in the WSGI environ,
     which is used by all redirects and other utilities.
     """
-    print("** https_middleware")
+    print('** https_middleware')
+
     def wrapper(environ, start_response):
-        print("HTTP_X_SCHEME", environ.get("HTTP_X_SCHEME"))
+        print('HTTP_X_SCHEME', environ.get('HTTP_X_SCHEME'))
         if environ.get('HTTP_X_SCHEME') == 'https':
             environ['wsgi.url_scheme'] = 'https'
         return app(environ, start_response)
+
     return wrapper
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     setup_env()
-    if "--gunicorn" in sys.argv:
-        sys.argv.pop(sys.argv.index("--gunicorn"))
+    if '--gunicorn' in sys.argv:
+        sys.argv.pop(sys.argv.index('--gunicorn'))
         start_gunicorn_server()
     else:
         start_server()

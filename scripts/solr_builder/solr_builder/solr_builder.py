@@ -15,7 +15,7 @@ from openlibrary.solr.data_provider import DataProvider
 from openlibrary.solr.update_work import load_configs, update_keys
 
 
-logger = logging.getLogger("openlibrary.solr-builder")
+logger = logging.getLogger('openlibrary.solr-builder')
 
 
 def config_section_to_dict(config_file, section):
@@ -59,7 +59,7 @@ class LocalPostgresDataProvider(DataProvider):
         :param str db_conf_file: file to DB config with [postgres] section
         """
         super().__init__()
-        self._db_conf = config_section_to_dict(db_conf_file, "postgres")
+        self._db_conf = config_section_to_dict(db_conf_file, 'postgres')
         self._conn = None  # type: psycopg2._psycopg.connection
         self.cache = dict()
         self.cached_work_editions_ranges = []
@@ -200,7 +200,7 @@ class LocalPostgresDataProvider(DataProvider):
 
     def find_redirects(self, key):
         """Returns keys of all things which redirect to this one."""
-        logger.debug("find_redirects %s", key)
+        logger.debug('find_redirects %s', key)
         q = (
             """
         SELECT "Key" FROM test
@@ -239,10 +239,10 @@ class LocalPostgresDataProvider(DataProvider):
 
     async def get_document(self, key):
         if key in self.cache:
-            logger.debug("get_document cache hit %s", key)
+            logger.debug('get_document cache hit %s', key)
             return self.cache[key]
 
-        logger.debug("get_document cache miss %s", key)
+        logger.debug('get_document cache miss %s', key)
 
         q = (
             """
@@ -289,13 +289,13 @@ def build_job_query(
     :param offset: Use `start_at` if possible.
     :param last_modified: Only import docs modified after this date.
     """
-    type = {"works": "work", "orphans": "edition", "authors": "author"}[job]
+    type = {'works': 'work', 'orphans': 'edition', 'authors': 'author'}[job]
 
     q_select = """SELECT "Key", "JSON" FROM test"""
     q_where = """WHERE "Type" = '/type/%s'""" % type
     q_order = """ORDER BY "Key" """
-    q_offset = ""
-    q_limit = ""
+    q_offset = ''
+    q_limit = ''
 
     if offset:
         q_offset = """OFFSET %d""" % offset
@@ -305,8 +305,8 @@ def build_job_query(
 
     if last_modified:
         q_where += """ AND "LastModified" >= '%s'""" % last_modified
-        q_order = ""
-        q_limit = ""
+        q_order = ''
+        q_limit = ''
 
     if start_at:
         q_where += """ AND "Key" >= '%s'""" % start_at
@@ -320,9 +320,9 @@ def build_job_query(
 async def main(
     cmd: Literal['index', 'fetch-end'],
     job: Literal['works', 'orphans', 'authors'],
-    postgres="postgres.ini",
-    ol="http://ol/",
-    ol_config="../../conf/openlibrary.yml",
+    postgres='postgres.ini',
+    ol='http://ol/',
+    ol_config='../../conf/openlibrary.yml',
     solr: str = None,
     skip_solr_id_check=True,
     start_at: str = None,
@@ -352,7 +352,7 @@ async def main(
     logging.basicConfig(
         filename=log_file,
         level=log_level,
-        format="%(asctime)s [%(levelname)s] %(message)s",
+        format='%(asctime)s [%(levelname)s] %(message)s',
     )
 
     if solr:
@@ -503,7 +503,7 @@ async def main(
             with LocalPostgresDataProvider(postgres) as db2:
                 key_range = [keys[0], keys[-1]]
 
-                if job == "works":
+                if job == 'works':
                     # cache editions
                     editions_time, _ = simple_timeit(
                         lambda: db2.cache_work_editions(*key_range)
@@ -530,7 +530,7 @@ async def main(
                         q_auth=plog.last_entry.q_auth + authors_time,
                         cached=len(db.cache) + len(db2.cache),
                     )
-                elif job == "orphans":
+                elif job == 'orphans':
                     # cache editions' ocaid metadata
                     ocaids_time, _ = await simple_timeit_async(
                         db2.cache_cached_editions_ia_metadata()
@@ -548,7 +548,7 @@ async def main(
                         q_auth=plog.last_entry.q_auth + authors_time,
                         cached=len(db.cache) + len(db2.cache),
                     )
-                elif job == "authors":
+                elif job == 'authors':
                     # Nothing to cache; update_work.py queries solr directly for each
                     # other, and provides no way to cache.
                     pass

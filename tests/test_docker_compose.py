@@ -21,7 +21,7 @@ class TestDockerCompose:
         root_services = set(root_dc['services'])
         prod_services = set(prod_dc['services'])
         missing = root_services - prod_services
-        assert missing == set(), "docker-compose.production.yml missing services"
+        assert missing == set(), 'docker-compose.production.yml missing services'
 
     def test_all_prod_services_need_profile(self):
         """

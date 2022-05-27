@@ -27,7 +27,7 @@ def _sendmail(to, msg, cc=None, frm=None):
             + web.safestr(msg)
         )
 
-        print("sending email", message, file=web.debug)
+        print('sending email', message, file=web.debug)
     else:
         web.sendmail(
             frm, to, subject=msg.subject.strip(), message=web.safestr(msg), cc=cc

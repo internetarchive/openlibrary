@@ -46,7 +46,7 @@ def parse_date(datestr):
     >>> parse_date("2010-02-04")
     datetime.date(2010, 2, 4)
     """
-    tokens = datestr.split("-")
+    tokens = datestr.split('-')
     _resize_list(tokens, 3)
 
     yyyy, mm, dd = tokens[:3]
@@ -60,7 +60,7 @@ def parse_daterange(datestr):
     (datetime.date(2010, 2, 1), datetime.date(2010, 3, 1))
     """
     date = parse_date(datestr)
-    tokens = datestr.split("-")
+    tokens = datestr.split('-')
 
     if len(tokens) == 1:  # only year specified
         return date, nextyear(date)

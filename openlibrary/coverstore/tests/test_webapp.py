@@ -44,7 +44,7 @@ class Mock:
         return self.default
 
     def setup_call(self, *a, **kw):
-        _return = kw.pop("_return", None)
+        _return = kw.pop('_return', None)
         call = a, kw, _return
         self.calls.append(call)
 
@@ -80,7 +80,7 @@ class WebTestCase:
 
 
 @pytest.mark.skip(
-    reason="Currently needs running db and openlibrary user. TODO: Make this more flexible."
+    reason='Currently needs running db and openlibrary user. TODO: Make this more flexible.'
 )
 class TestDB:
     def test_write(self, setup_db, image_dir):
@@ -95,11 +95,11 @@ class TestDB:
 
 class TestWebapp(WebTestCase):
     def test_get(self):
-        assert code.app.request('/').status == "200 OK"
+        assert code.app.request('/').status == '200 OK'
 
 
 @pytest.mark.skip(
-    reason="Currently needs running db and openlibrary user. TODO: Make this more flexible."
+    reason='Currently needs running db and openlibrary user. TODO: Make this more flexible.'
 )
 class TestWebappWithDB(WebTestCase):
     def test_touch(self):

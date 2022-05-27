@@ -8,10 +8,10 @@ class TestRateLimitProcessor:
     """py.test testcase for testing RateLimitProcessor."""
 
     def setup_method(self, method):
-        web.ctx.ip = "127.0.0.1"
+        web.ctx.ip = '127.0.0.1'
 
     def test_check_rate(self, monkeypatch):
-        monkeypatch.setattr(time, "time", lambda: 123456)
+        monkeypatch.setattr(time, 'time', lambda: 123456)
         p = RateLimitProcessor(10)
 
         for i in range(10):
@@ -22,7 +22,7 @@ class TestRateLimitProcessor:
         p = RateLimitProcessor(10, window_size=10)
 
         d = web.storage(time=1)
-        monkeypatch.setattr(time, "time", lambda: d.time)
+        monkeypatch.setattr(time, 'time', lambda: d.time)
 
         # window should continue to be the same from time 1 to 9.
         w = p.get_window()

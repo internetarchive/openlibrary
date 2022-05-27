@@ -37,11 +37,11 @@ class CoverstoreMiddleware:
 
         from openlibrary.coverstore import code, server
 
-        server.load_config("conf/coverstore.yml")
+        server.load_config('conf/coverstore.yml')
         self.coverstore_app = code.app.wsgifunc()
 
     def __call__(self, environ, start_response):
-        root = "/covers"
+        root = '/covers'
         if environ['PATH_INFO'].startswith(root):
             environ['PATH_INFO'] = environ['PATH_INFO'][len(root) :]
             environ['SCRIPT_NAME'] = environ['SCRIPT_NAME'] + root
@@ -71,22 +71,22 @@ def setup_solr_updater():
     # infobase API. It requires setting the host before start using it.
     from openlibrary.catalog.utils.query import set_query_host
 
-    dev_instance_url = config.get("dev_instance_url", "http://127.0.0.1:8080/")
-    host = web.lstrips(dev_instance_url, "http://").strip("/")
+    dev_instance_url = config.get('dev_instance_url', 'http://127.0.0.1:8080/')
+    host = web.lstrips(dev_instance_url, 'http://').strip('/')
     set_query_host(host)
 
 
 class is_loaned_out(delegate.page):
-    path = "/is_loaned_out/.*"
+    path = '/is_loaned_out/.*'
 
     def GET(self):
-        return delegate.RawText("[]", content_type="application/json")
+        return delegate.RawText('[]', content_type='application/json')
 
 
 class process_ebooks(delegate.page):
     """Hack to add ebooks to store so that books are visible in the returncart."""
 
-    path = "/_dev/process_ebooks"
+    path = '/_dev/process_ebooks'
 
     def GET(self):
         from openlibrary.plugins.worksearch.search import get_solr
@@ -98,17 +98,17 @@ class process_ebooks(delegate.page):
         def make_doc(d):
             # Makes a store doc from solr doc
             return {
-                "_key": "ebooks/books/" + d['lending_edition_s'],
-                "_rev": None,  # Don't worry about consistency
-                "type": "ebook",
-                "book_key": "/books/" + d['lending_edition_s'],
-                "borrowed": "false",
+                '_key': 'ebooks/books/' + d['lending_edition_s'],
+                '_rev': None,  # Don't worry about consistency
+                'type': 'ebook',
+                'book_key': '/books/' + d['lending_edition_s'],
+                'borrowed': 'false',
             }
 
         docs = [make_doc(d) for d in result['docs']]
         docdict = {d['_key']: d for d in docs}
         web.ctx.site.store.update(docdict)
-        return delegate.RawText("ok\n")
+        return delegate.RawText('ok\n')
 
 
 @oltask
@@ -137,32 +137,32 @@ def update_solr(changeset):
 def add_ol_user():
     """Creates openlibrary user with admin previleges."""
     # Create openlibrary user
-    if web.ctx.site.get("/people/openlibrary") is None:
+    if web.ctx.site.get('/people/openlibrary') is None:
         web.ctx.site.register(
-            username="openlibrary",
-            email="openlibrary@example.com",
-            password="openlibrary",
-            displayname="Open Library",
+            username='openlibrary',
+            email='openlibrary@example.com',
+            password='openlibrary',
+            displayname='Open Library',
         )
-        web.ctx.site.activate_account(username="openlibrary")
+        web.ctx.site.activate_account(username='openlibrary')
 
-    if web.ctx.site.get("/usergroup/api") is None:
+    if web.ctx.site.get('/usergroup/api') is None:
         g_api = web.ctx.site.new(
-            "/usergroup/api",
+            '/usergroup/api',
             {
-                "key": "/usergroup/api",
-                "type": "/type/usergroup",
-                "members": [{"key": "/people/openlibrary"}],
+                'key': '/usergroup/api',
+                'type': '/type/usergroup',
+                'members': [{'key': '/people/openlibrary'}],
             },
         )
-        g_api._save(comment="Added openlibrary user to API usergroup.")
+        g_api._save(comment='Added openlibrary user to API usergroup.')
 
-    g_admin = web.ctx.site.get("/usergroup/admin").dict()
+    g_admin = web.ctx.site.get('/usergroup/admin').dict()
     g_admin.setdefault('members', [])
-    members = [m['key'] for m in g_admin["members"]]
+    members = [m['key'] for m in g_admin['members']]
     if 'openlibrary' not in members:
-        g_admin['members'].append({"key": "/people/openlibrary"})
-        web.ctx.site.save(g_admin, "Added openlibrary user to admin usergroup.")
+        g_admin['members'].append({'key': '/people/openlibrary'})
+        web.ctx.site.save(g_admin, 'Added openlibrary user to admin usergroup.')
 
 
 @infogami.action
@@ -176,10 +176,10 @@ def load_sample_data():
     This is unused as of now.
     """
     env = {}
-    with open("scripts/copydocs.py") as in_file:
+    with open('scripts/copydocs.py') as in_file:
         exec(in_file.read(), env, env)
     src = env['OpenLibrary']()
     dest = web.ctx.site
-    comment = "Loaded sample data."
-    list_key = "/people/anand/lists/OL1815L"
+    comment = 'Loaded sample data.'
+    list_key = '/people/anand/lists/OL1815L'
     env['copy_list'](src, dest, list_key, comment=comment)

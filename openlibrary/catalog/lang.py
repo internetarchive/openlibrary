@@ -10,7 +10,7 @@ def cftime():
 
 
 def warn(msg):
-    sys.stderr.write("%s\n" % msg)
+    sys.stderr.write('%s\n' % msg)
 
 
 def die(msg):
@@ -44,7 +44,7 @@ class Box:
 
     def get(self):
         if self.empty:
-            raise Exception("get: box is empty")
+            raise Exception('get: box is empty')
         else:
             return self.value
 

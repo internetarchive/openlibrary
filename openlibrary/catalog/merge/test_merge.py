@@ -15,12 +15,12 @@ from openlibrary.catalog.merge.merge import (
 
 
 def test_full_title():
-    assert full_title({'title': "Hamlet"}) == "Hamlet"
+    assert full_title({'title': 'Hamlet'}) == 'Hamlet'
     edition = {
         'title': 'Flatland',
         'subtitle': 'A Romance of Many Dimensions',
     }
-    assert full_title(edition) == "Flatland A Romance of Many Dimensions"
+    assert full_title(edition) == 'Flatland A Romance of Many Dimensions'
 
 
 def test_merge_titles():
@@ -56,7 +56,7 @@ def test_merge_titles2():
     assert compare_title(amazon, marc) == ('full-title', 'exact match', 600)
 
 
-@pytest.mark.skip(reason="Did not pass when rescuing tests. Check thresholds.")
+@pytest.mark.skip(reason='Did not pass when rescuing tests. Check thresholds.')
 def test_merge():
     amazon = {
         'publisher': 'Collins',
@@ -94,7 +94,7 @@ def test_merge():
     assert attempt_merge(amazon, marc, threshold)
 
 
-@pytest.mark.skip(reason="Should be tested on openlibrary.catalog.merge.merge_marc.")
+@pytest.mark.skip(reason='Should be tested on openlibrary.catalog.merge.merge_marc.')
 def test_merge2():
     amazon = {
         'publisher': 'Collins',
@@ -133,7 +133,7 @@ def test_merge2():
     assert attempt_merge(amazon, marc, threshold)
 
 
-@pytest.mark.skip(reason="Did not pass when rescuing tests. Check thresholds.")
+@pytest.mark.skip(reason='Did not pass when rescuing tests. Check thresholds.')
 def test_merge3():
     amazon = {
         'publisher': 'Intl Specialized Book Service Inc',
@@ -170,7 +170,7 @@ def test_merge3():
     assert attempt_merge(amazon, marc, threshold)
 
 
-@pytest.mark.skip(reason="Did not pass when rescuing tests. Check thresholds.")
+@pytest.mark.skip(reason='Did not pass when rescuing tests. Check thresholds.')
 def test_merge4():
     amazon = {
         'publisher': 'HarperCollins Publishers Ltd',
@@ -203,7 +203,7 @@ def test_merge4():
     assert attempt_merge(amazon, marc, threshold)
 
 
-@pytest.mark.skip(reason="Should be tested on openlibrary.catalog.merge.merge_marc.")
+@pytest.mark.skip(reason='Should be tested on openlibrary.catalog.merge.merge_marc.')
 def test_merge5():
     amazon = {
         'publisher': 'HarperCollins Publishers (Australia) Pty Ltd',
@@ -247,7 +247,7 @@ def test_merge5():
     assert attempt_merge(amazon, marc, threshold)
 
 
-@pytest.mark.skip(reason="Did not pass when rescuing tests. Check thresholds.")
+@pytest.mark.skip(reason='Did not pass when rescuing tests. Check thresholds.')
 def test_merge6():
     amazon = {
         'publisher': 'Fount',
@@ -276,7 +276,7 @@ def test_merge6():
     assert attempt_merge(amazon, marc, threshold)
 
 
-@pytest.mark.skip(reason="Should be tested on openlibrary.catalog.merge.merge_marc.")
+@pytest.mark.skip(reason='Should be tested on openlibrary.catalog.merge.merge_marc.')
 def test_merge7():
     amazon = {
         'publisher': 'HarperCollins Publishers Ltd',

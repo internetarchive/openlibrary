@@ -4,7 +4,7 @@ from infogami.infobase import client
 
 from openlibrary.core import helpers as h
 
-__all__ = ["InvalidationProcessor"]
+__all__ = ['InvalidationProcessor']
 
 
 class InvalidationProcessor:
@@ -68,7 +68,7 @@ class InvalidationProcessor:
       process.
     """
 
-    def __init__(self, prefixes, timeout=60, cookie_name="lastupdate"):
+    def __init__(self, prefixes, timeout=60, cookie_name='lastupdate'):
         self.prefixes = prefixes
         self.timeout = datetime.timedelta(0, timeout)
 
@@ -84,7 +84,7 @@ class InvalidationProcessor:
 
     def __call__(self, handler):
         def t(date):
-            return date.isoformat().split("T")[-1]
+            return date.isoformat().split('T')[-1]
 
         cookie_time = self.get_cookie_time()
 
@@ -131,9 +131,9 @@ class InvalidationProcessor:
         keys = []
         for prefix in self.prefixes:
             q = {
-                "key~": prefix + "*",
-                "last_modified>": self.last_poll_time.isoformat(),
-                "limit": 1000,
+                'key~': prefix + '*',
+                'last_modified>': self.last_poll_time.isoformat(),
+                'limit': 1000,
             }
             keys += web.ctx.site.things(q)
 
@@ -142,7 +142,7 @@ class InvalidationProcessor:
             docs = web.ctx.site.get_many(keys)
             for doc in docs:
                 try:
-                    client._run_hooks("on_new_version", doc)
+                    client._run_hooks('on_new_version', doc)
                 except Exception:
                     pass
             self.last_update_time = max(doc.last_modified for doc in docs)
@@ -168,7 +168,7 @@ class _InvalidationHook:
         return self
 
     def on_new_version(self, doc):
-        if web.ctx.get("_invalidation_inprogress"):
+        if web.ctx.get('_invalidation_inprogress'):
             # This event is triggered from invalidation. ignore it.
             return
 

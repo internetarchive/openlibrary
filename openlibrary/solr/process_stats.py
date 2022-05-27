@@ -23,7 +23,7 @@ from ..core import ia, helpers as h
 from ..core.ia import get_ia_db
 from ..core.loanstats import LoanStats
 
-logger = logging.getLogger("openlibrary.solr")
+logger = logging.getLogger('openlibrary.solr')
 
 
 @web.memoize
@@ -50,19 +50,19 @@ def _get_metadata(ia_id):
     db = get_ia_db()
     if db:
         result = db.query(
-            "SELECT collection, sponsor, contributor FROM metadata WHERE identifier=$ia_id",
+            'SELECT collection, sponsor, contributor FROM metadata WHERE identifier=$ia_id',
             vars=locals(),
         )
         meta = result and result[0] or {}
         if meta:
-            meta['collection'] = meta['collection'].split(";")
+            meta['collection'] = meta['collection'].split(';')
     else:
         meta = ia.get_metadata(ia_id)
     return meta
 
 
 def preload(entries):
-    logger.info("preload")
+    logger.info('preload')
     book_keys = [e['book'] for e in entries]
     # this will be cached in web.ctx.site, so the later
     # requests will be fulfilled from cache.
@@ -72,7 +72,7 @@ def preload(entries):
 
 
 def preload_metadata(ia_ids):
-    logger.info("preload metadata for %s identifiers", len(ia_ids))
+    logger.info('preload metadata for %s identifiers', len(ia_ids))
     # ignore already loaded ones
     ia_ids = [id for id in ia_ids if id and id not in metadata_cache]
 
@@ -81,11 +81,11 @@ def preload_metadata(ia_ids):
 
     db = get_ia_db()
     rows = db.query(
-        "SELECT identifier, collection, sponsor, contributor FROM metadata WHERE identifier IN $ia_ids",
+        'SELECT identifier, collection, sponsor, contributor FROM metadata WHERE identifier IN $ia_ids',
         vars=locals(),
     )
     for row in rows:
-        row['collection'] = row['collection'].split(";")
+        row['collection'] = row['collection'].split(';')
         identifier = row.pop('identifier')
         metadata_cache[identifier] = row
 
@@ -104,7 +104,7 @@ class LoanEntry(web.storage):
     def book(self):
         return get_document(self['book'])
 
-    def get_subjects(self, type="subject"):
+    def get_subjects(self, type='subject'):
         w = self.book and self.book.works[0]
         if w:
             return w.get_subject_links(type)
@@ -123,11 +123,11 @@ class LoanEntry(web.storage):
             title = self.book.title
         else:
             title = self.metadata.get('title')
-        return title or "Untitled"
+        return title or 'Untitled'
 
     def get_iaid(self):
-        if self.book_key.startswith("/books/ia:"):
-            return self.book_key[len("/books/ia:") :]
+        if self.book_key.startswith('/books/ia:'):
+            return self.book_key[len('/books/ia:') :]
         else:
             return self.book and self.book.ocaid
 
@@ -143,19 +143,19 @@ def process(data):
     #     return
 
     solrdoc = {
-        "key": doc.key,
-        "type": "stats",
-        "stats_type_s": "loan",
-        "book_key_s": doc.book_key,
-        "author_keys_id": doc.get_author_keys(),
-        "title": doc.get_title(),
-        "ia": doc.get_iaid(),
-        "resource_type_s": doc.resource_type,
-        "ia_collections_id": doc.metadata.get("collection", []),
-        "sponsor_s": doc.metadata.get("sponsor"),
-        "contributor_s": doc.metadata.get("contributor"),
-        "start_time_dt": doc.t_start + "Z",
-        "start_day_s": doc.t_start.split("T")[0],
+        'key': doc.key,
+        'type': 'stats',
+        'stats_type_s': 'loan',
+        'book_key_s': doc.book_key,
+        'author_keys_id': doc.get_author_keys(),
+        'title': doc.get_title(),
+        'ia': doc.get_iaid(),
+        'resource_type_s': doc.resource_type,
+        'ia_collections_id': doc.metadata.get('collection', []),
+        'sponsor_s': doc.metadata.get('sponsor'),
+        'contributor_s': doc.metadata.get('contributor'),
+        'start_time_dt': doc.t_start + 'Z',
+        'start_day_s': doc.t_start.split('T')[0],
     }
 
     if doc.get('t_end'):
@@ -179,13 +179,13 @@ def process(data):
                 'lending_library',
             ]
             subjects = [s for s in subjects if s.slug not in system_subjects]
-        solrdoc['subject_key'] += [type + ":" + s.slug for s in subjects]
-        solrdoc['subject_facet'] += [type + ":" + s.title for s in subjects]
+        solrdoc['subject_key'] += [type + ':' + s.slug for s in subjects]
+        solrdoc['subject_facet'] += [type + ':' + s.title for s in subjects]
 
-    add_subjects("subject")
-    add_subjects("place")
-    add_subjects("person")
-    add_subjects("time")
+    add_subjects('subject')
+    add_subjects('place')
+    add_subjects('person')
+    add_subjects('time')
 
     year = doc.book and doc.book.get_publish_year()
     if year:
@@ -205,7 +205,7 @@ def read_events():
 def read_events_from_db(keys=None, day=None):
     if keys:
         result = get_db().query(
-            "SELECT key, json FROM stats WHERE key in $keys ORDER BY updated",
+            'SELECT key, json FROM stats WHERE key in $keys ORDER BY updated',
             vars=locals(),
         )
     elif day:
@@ -217,7 +217,7 @@ def read_events_from_db(keys=None, day=None):
     else:
         last_updated = LoanStats().get_last_updated()
         result = get_db().query(
-            "SELECT key, json FROM stats WHERE updated > $last_updated ORDER BY updated limit 10000",
+            'SELECT key, json FROM stats WHERE updated > $last_updated ORDER BY updated limit 10000',
             vars=locals(),
         )
     for row in result.list():
@@ -241,23 +241,23 @@ def add_events_to_solr(events):
 
 def main(*args):
     logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+        level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s'
     )
-    if "--load" in args:
+    if '--load' in args:
         docs = read_events()
         update_solr(docs)
-    elif args and args[0] == "--load-from-db":
+    elif args and args[0] == '--load-from-db':
         events = read_events_from_db()
         add_events_to_solr(events)
-    elif args and args[0] == "--load-keys":
+    elif args and args[0] == '--load-keys':
         keys = args[1:]
         events = read_events_from_db(keys=keys)
         add_events_to_solr(events)
-    elif args and args[0] == "--day":
+    elif args and args[0] == '--day':
         day = args[1]
         events = read_events_from_db(day=day)
         add_events_to_solr(events)
-    elif args and args[0] == "--debug":
+    elif args and args[0] == '--debug':
         debug()
     else:
         docs = read_events()
@@ -267,7 +267,7 @@ def main(*args):
                 result = process(e['doc'])
                 print(json.dumps(result))
             except Exception:
-                logger.error("Failed to process %s", e['doc']['_id'], exc_info=True)
+                logger.error('Failed to process %s', e['doc']['_id'], exc_info=True)
 
 
 def fix_subject_key(doc, name, prefix):
@@ -277,12 +277,12 @@ def fix_subject_key(doc, name, prefix):
 
 def update_solr(docs):
     # stats_solr is defined in olsystem etc/openlibrary.yml
-    solr = SolrWriter(config.stats_solr or "localhost:8983")
+    solr = SolrWriter(config.stats_solr or 'localhost:8983')
     for doc in docs:
         # temp fix for handling already processed data
         doc = {k: v for k, v in doc.items() if v is not None}
-        if isinstance(doc.get("ia_collections_id"), str):
-            doc['ia_collections_id'] = doc['ia_collections_id'].split(";")
+        if isinstance(doc.get('ia_collections_id'), str):
+            doc['ia_collections_id'] = doc['ia_collections_id'].split(';')
 
         fix_subject_key(doc, 'subject_key', '/subjects/')
         fix_subject_key(doc, 'place_key', '/subjects/place:')

@@ -20,14 +20,14 @@ from openlibrary.core.helpers import NothingEncoder
 
 
 __all__ = [
-    "cached_property",
-    "Cache",
-    "MemoryCache",
-    "MemcacheCache",
-    "RequestCache",
-    "memoize",
-    "memcache_memoize",
-    "get_memcache",
+    'cached_property',
+    'Cache',
+    'MemoryCache',
+    'MemcacheCache',
+    'RequestCache',
+    'memoize',
+    'memcache_memoize',
+    'get_memcache',
 ]
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
@@ -64,12 +64,12 @@ class memcache_memoize:
 
     def _get_memcache(self):
         if self._memcache is None:
-            servers = config.get("memcache_servers")
+            servers = config.get('memcache_servers')
             if servers:
                 self._memcache = memcache.Client(servers)
             else:
                 web.debug(
-                    "Could not find memcache_servers in the configuration. Used dummy memcache."
+                    'Could not find memcache_servers in the configuration. Used dummy memcache.'
                 )
                 try:
                     import mockcache  # Only supports legacy Python
@@ -86,15 +86,15 @@ class memcache_memoize:
 
     def _generate_key_prefix(self):
         try:
-            prefix = self.f.__name__ + "_"
+            prefix = self.f.__name__ + '_'
         except (AttributeError, TypeError):
-            prefix = ""
+            prefix = ''
 
         return prefix + self._random_string(10)
 
     def _random_string(self, n):
         chars = string.ascii_letters + string.digits
-        return "".join(random.choice(chars) for i in range(n))
+        return ''.join(random.choice(chars) for i in range(n))
 
     def __call__(self, *args, **kw):
         """Memoized function call.
@@ -102,8 +102,8 @@ class memcache_memoize:
         Returns the cached value when available. Computes and adds the result
         to memcache when not available. Updates asynchronously after timeout.
         """
-        _cache = kw.pop("_cache", None)
-        if _cache == "delete":
+        _cache = kw.pop('_cache', None)
+        if _cache == 'delete':
             self.memcache_delete(args, kw)
             return None
 
@@ -131,9 +131,9 @@ class memcache_memoize:
         t.start()
 
     def _update_async_worker(self, *args, **kw):
-        key = self.compute_key(args, kw) + "/flag"
+        key = self.compute_key(args, kw) + '/flag'
 
-        if not self.memcache.add(key, "true"):
+        if not self.memcache.add(key, 'true'):
             # already somebody else is computing this value.
             return
 
@@ -175,15 +175,15 @@ class memcache_memoize:
         a = self.json_encode(list(args))[1:-1]
 
         if kw:
-            return a + "-" + self.json_encode(kw)
+            return a + '-' + self.json_encode(kw)
         else:
             return a
 
     def compute_key(self, args, kw):
         """Computes memcache key for storing result of function call with given arguments."""
-        key = self.key_prefix + "-" + self.encode_args(args, kw)
+        key = self.key_prefix + '-' + self.encode_args(args, kw)
         return key.replace(
-            " ", "_"
+            ' ', '_'
         )  # XXX: temporary fix to handle spaces in the arguments
 
     def json_encode(self, value):
@@ -191,20 +191,24 @@ class memcache_memoize:
 
         memcache doesn't like spaces in the key.
         """
-        return json.dumps([] if isinstance(value, Nothing) else value, separators=(",", ":"), cls=NothingEncoder)
+        return json.dumps(
+            [] if isinstance(value, Nothing) else value,
+            separators=(',', ':'),
+            cls=NothingEncoder,
+        )
 
     def memcache_set(self, args, kw, value, time):
         """Adds value and time to memcache. Key is computed from the arguments."""
         key = self.compute_key(args, kw)
         json_data = self.json_encode([value, time])
 
-        stats.begin("memcache.set", key=key)
+        stats.begin('memcache.set', key=key)
         self.memcache.set(key, json_data)
         stats.end()
 
     def memcache_delete(self, args, kw):
         key = self.compute_key(args, kw)
-        stats.begin("memcache.delete", key=key)
+        stats.begin('memcache.delete', key=key)
         self.memcache.delete(key)
         stats.end()
 
@@ -214,7 +218,7 @@ class memcache_memoize:
         Returns (value, time) when the value is available, None otherwise.
         """
         key = self.compute_key(args, kw)
-        stats.begin("memcache.get", key=key)
+        stats.begin('memcache.get', key=key)
         json_str = self.memcache.get(key)
         stats.end(hit=bool(json_str))
 
@@ -307,12 +311,12 @@ class MemcacheCache(Cache):
 
     @cached_property
     def memcache(self):
-        servers = config.get("memcache_servers", None)
+        servers = config.get('memcache_servers', None)
         if servers:
             return olmemcache.Client(servers)
         else:
             web.debug(
-                "Could not find memcache_servers in the configuration. Used dummy memcache."
+                'Could not find memcache_servers in the configuration. Used dummy memcache.'
             )
             try:
                 import mockcache
@@ -325,7 +329,7 @@ class MemcacheCache(Cache):
 
     def get(self, key):
         key = web.safestr(key)
-        stats.begin("memcache.get", key=key)
+        stats.begin('memcache.get', key=key)
         value = self.memcache.get(key)
         stats.end(hit=value is not None)
         return value and json.loads(value)
@@ -333,7 +337,7 @@ class MemcacheCache(Cache):
     def set(self, key, value, expires=0):
         key = web.safestr(key)
         value = json.dumps(value)
-        stats.begin("memcache.set", key=key)
+        stats.begin('memcache.set', key=key)
         value = self.memcache.set(key, value, expires)
         stats.end()
         return value
@@ -341,14 +345,14 @@ class MemcacheCache(Cache):
     def add(self, key, value, expires=0):
         key = web.safestr(key)
         value = json.dumps(value)
-        stats.begin("memcache.add", key=key)
+        stats.begin('memcache.add', key=key)
         value = self.memcache.add(key, value, expires)
         stats.end()
         return value
 
     def delete(self, key):
         key = web.safestr(key)
-        stats.begin("memcache.delete", key=key)
+        stats.begin('memcache.delete', key=key)
         value = self.memcache.delete(key)
         stats.end()
         return value
@@ -362,7 +366,7 @@ class RequestCache(Cache):
 
     @property
     def d(self):
-        return web.ctx.setdefault("request-local-cache", {})
+        return web.ctx.setdefault('request-local-cache', {})
 
     def get(self, key):
         return self.d.get(key)
@@ -388,10 +392,10 @@ def get_memcache():
 
 def _get_cache(engine):
     d = {
-        "memory": memory_cache,
-        "memcache": memcache_cache,
-        "memcache+memory": memcache_cache,
-        "request": request_cache,
+        'memory': memory_cache,
+        'memcache': memcache_cache,
+        'memcache+memory': memcache_cache,
+        'request': request_cache,
     }
     return d.get(engine)
 
@@ -452,7 +456,7 @@ class memoize:
     """
 
     def __init__(
-        self, engine="memory", key=None, expires=0, background=False, cacheable=None
+        self, engine='memory', key=None, expires=0, background=False, cacheable=None
     ):
         self.cache = _get_cache(engine)
         self.keyfunc = self._make_key_func(key)
@@ -535,7 +539,7 @@ class PrefixKeyFunc:
         self.prefix = prefix
 
     def __call__(self, *a, **kw):
-        return self.prefix + "-" + self.encode_args(a, kw)
+        return self.prefix + '-' + self.encode_args(a, kw)
 
     def encode_args(self, args, kw=None):
         kw = kw or {}
@@ -545,7 +549,7 @@ class PrefixKeyFunc:
         a = self.json_encode(list(args))[1:-1]
 
         if kw:
-            return a + "-" + self.json_encode(kw)
+            return a + '-' + self.json_encode(kw)
         else:
             return a
 
@@ -554,7 +558,8 @@ class PrefixKeyFunc:
 
         memcache doesn't like spaces in the key.
         """
-        return json.dumps(value, separators=(",", ":"), sort_keys=True)
+        return json.dumps(value, separators=(',', ':'), sort_keys=True)
+
 
 def method_memoize(f):
     """

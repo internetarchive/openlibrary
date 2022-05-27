@@ -7,25 +7,28 @@ import _init_path
 import sys
 from openlibrary import i18n
 
+
 def help():
-    print("utility to manage i18n messages")
+    print('utility to manage i18n messages')
     print()
-    print("USAGE: %s [extract|compile|update|validate]" % sys.argv[0])
+    print('USAGE: %s [extract|compile|update|validate]' % sys.argv[0])
     print()
-    print("Available Commands:")
-    print("  compile  - compile the message files (.po) to .mo")
-    print("  extract  - extract i18n messages from templates and macros")
-    print("  update   - update the existing translations by adding newly added string to it.")
-    print("  status   - check completeness and warnings/error summary of translations")
-    print("  validate - check message file for errors")
-    print("  help     - display this help message")
+    print('Available Commands:')
+    print('  compile  - compile the message files (.po) to .mo')
+    print('  extract  - extract i18n messages from templates and macros')
+    print(
+        '  update   - update the existing translations by adding newly added string to it.'
+    )
+    print('  status   - check completeness and warnings/error summary of translations')
+    print('  validate - check message file for errors')
+    print('  help     - display this help message')
+
 
 def main(cmd, args):
     if cmd == 'extract':
         message_sources = [
             'openlibrary/templates/',
             'openlibrary/macros/',
-
             # TODO: We should check all python files somehow, but too slow
             'openlibrary/plugins/upstream',
         ]
@@ -46,7 +49,7 @@ def main(cmd, args):
             num_errors = num_errors + error_count
 
         if num_errors == 0:
-            print("Validation passed!")
+            print('Validation passed!')
         else:
             print(f'Validation failed.\n{num_errors} errors found...')
             sys.exit(1)
@@ -55,10 +58,11 @@ def main(cmd, args):
     elif cmd == 'help':
         help()
     else:
-        print("unknown command: %s" % repr(cmd), file=sys.stderr)
+        print('unknown command: %s' % repr(cmd), file=sys.stderr)
         sys.exit(2)
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     if len(sys.argv) >= 2:
         main(sys.argv[1], sys.argv[2:])
     else:

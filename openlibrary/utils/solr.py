@@ -10,7 +10,7 @@ import web
 import urllib
 
 
-logger = logging.getLogger("openlibrary.logger")
+logger = logging.getLogger('openlibrary.logger')
 
 
 def urlencode(d, doseq=False):
@@ -52,7 +52,7 @@ class Solr:
         'a\\[b\\]c'
         """
         chars = r'+-!(){}[]^"~*?:\\'
-        pattern = "([%s])" % re.escape(chars)
+        pattern = '([%s])' % re.escape(chars)
         return web.re_compile(pattern).sub(r'\\\1', query)
 
     def get(
@@ -62,9 +62,9 @@ class Solr:
         doc_wrapper: Callable[[dict], T] = web.storage,
     ) -> Optional[T]:
         """Get a specific item from solr"""
-        logger.info(f"solr /get: {key}, {fields}")
+        logger.info(f'solr /get: {key}, {fields}')
         resp = requests.get(
-            f"{self.base_url}/get",
+            f'{self.base_url}/get',
             params={'id': key, **({'fl': ','.join(fields)} if fields else {})},
         ).json()
 
@@ -79,9 +79,9 @@ class Solr:
     ) -> list[T]:
         if not keys:
             return []
-        logger.info(f"solr /get: {keys}, {fields}")
+        logger.info(f'solr /get: {keys}, {fields}')
         resp = requests.get(
-            f"{self.base_url}/get",
+            f'{self.base_url}/get',
             params={
                 'ids': ','.join(keys),
                 **({'fl': ','.join(fields)} if fields else {}),
@@ -118,17 +118,17 @@ class Solr:
         params['start'] = start or 0
 
         if fields:
-            params['fl'] = ",".join(fields)
+            params['fl'] = ','.join(fields)
 
         if facets:
-            params['facet'] = "true"
+            params['facet'] = 'true'
             params['facet.field'] = []
 
             for f in facets:
                 if isinstance(f, dict):
-                    name = f.pop("name")
+                    name = f.pop('name')
                     for k, v in f.items():
-                        params[f"f.{name}.facet.{k}"] = v
+                        params[f'f.{name}.facet.{k}'] = v
                 else:
                     name = f
                 params['facet.field'].append(name)
@@ -136,17 +136,17 @@ class Solr:
         # switch to POST request when the payload is too big.
         # XXX: would it be a good idea to switch to POST always?
         payload = urlencode(params, doseq=True)
-        url = self.base_url + "/select"
+        url = self.base_url + '/select'
         if len(payload) < 500:
-            url = url + "?" + payload
-            logger.info("solr request: %s", url)
+            url = url + '?' + payload
+            logger.info('solr request: %s', url)
             json_data = requests.get(url, timeout=10).json()
         else:
-            logger.info("solr request: %s ...", url)
+            logger.info('solr request: %s ...', url)
             if not isinstance(payload, bytes):
-                payload = payload.encode("utf-8")
+                payload = payload.encode('utf-8')
             headers = {
-                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
             }
             json_data = requests.post(
                 url, data=payload, headers=headers, timeout=10
@@ -185,21 +185,21 @@ class Solr:
     def _prepare_select(self, query):
         def escape(v):
             # TODO: improve this
-            return v.replace('"', r'\"').replace("(", "\\(").replace(")", "\\)")
+            return v.replace('"', r'\"').replace('(', '\\(').replace(')', '\\)')
 
         def escape_value(v):
             if isinstance(v, tuple):  # hack for supporting range
-                return f"[{escape(v[0])} TO {escape(v[1])}]"
+                return f'[{escape(v[0])} TO {escape(v[1])}]'
             elif isinstance(v, list):  # one of
-                return "(%s)" % " OR ".join(escape_value(x) for x in v)
+                return '(%s)' % ' OR '.join(escape_value(x) for x in v)
             else:
                 return '"%s"' % escape(v)
 
         if isinstance(query, dict):
-            op = query.pop("_op", "AND")
-            if op.upper() != "OR":
-                op = "AND"
-            op = " " + op + " "
+            op = query.pop('_op', 'AND')
+            if op.upper() != 'OR':
+                op = 'AND'
+            op = ' ' + op + ' '
 
             q = op.join(f'{k}:{escape_value(v)}' for k, v in query.items())
         else:

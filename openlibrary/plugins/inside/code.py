@@ -33,8 +33,8 @@ class search_inside(delegate.page):
 
 
 class search_inside_json(delegate.page):
-    path = "/search/inside"
-    encoding = "json"
+    path = '/search/inside'
+    encoding = 'json'
 
     def GET(self):
         i = web.input(q='', page=1, limit=RESULTS_PER_PAGE)

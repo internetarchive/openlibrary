@@ -7,10 +7,10 @@ from pydantic import BaseModel, ValidationError, validator
 class Author(BaseModel):
     name: str
 
-    @validator("name")
+    @validator('name')
     def author_name_must_not_be_an_empty_string(cls, v):
         if not v:
-            raise ValueError("name must not be an empty string")
+            raise ValueError('name must not be an empty string')
         return v
 
 
@@ -21,13 +21,13 @@ class Book(BaseModel):
     publishers: list[str]
     publish_date: str
 
-    @validator("source_records", "authors", "publishers")
+    @validator('source_records', 'authors', 'publishers')
     def list_must_not_be_empty(cls, v):
         if not v:
-            raise ValueError("Lists must not be empty")
+            raise ValueError('Lists must not be empty')
         return v
 
-    @validator("source_records", "publishers", each_item=True)
+    @validator('source_records', 'publishers', each_item=True)
     def list_items_must_not_be_empty(cls, v):
         assert v != '', 'Empty strings are not permitted'
         return v
@@ -35,7 +35,7 @@ class Book(BaseModel):
     @validator('title', 'publish_date')
     def strings_must_not_be_empty(cls, v):
         if not len(v):
-            raise ValueError("Field must have a non-empty string value")
+            raise ValueError('Field must have a non-empty string value')
         return v
 
 

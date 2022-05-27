@@ -17,11 +17,11 @@ from sixpack.sixpack import Session
 import logging
 from infogami import config
 
-logger = logging.getLogger("openlibrary.ab")
+logger = logging.getLogger('openlibrary.ab')
 
 
 def get_session():
-    if "sixpack_session" not in web.ctx:
+    if 'sixpack_session' not in web.ctx:
         cookies = web.cookies(sixpack_id=None)
         session = Session(client_id=cookies.sixpack_id, options=_get_sixpack_options())
         if session.client_id != cookies.sixpack_id:
@@ -36,7 +36,7 @@ def _get_sixpack_options():
 
 
 def get_ab_value(testname):
-    cache = web.ctx.setdefault("sixpack_cache", {})
+    cache = web.ctx.setdefault('sixpack_cache', {})
     if testname not in cache:
         cache[testname] = participate(testname)
     return cache[testname]
@@ -44,12 +44,12 @@ def get_ab_value(testname):
 
 def participate(testname, alternatives=None):
     if alternatives is None:
-        ab_config = config.get("ab", {})
+        ab_config = config.get('ab', {})
         alternatives = ab_config.get(testname)
     if alternatives:
-        force = web.input(_method="GET").get("sixpack-force-" + testname)
+        force = web.input(_method='GET').get('sixpack-force-' + testname)
         response = get_session().participate(testname, alternatives, force=force)
-        logger.info("participate %s %s -> %s", testname, alternatives, response)
+        logger.info('participate %s %s -> %s', testname, alternatives, response)
         value = response['alternative']['name']
     else:
         # default value when no alternatives are provided in config.
@@ -58,5 +58,5 @@ def participate(testname, alternatives=None):
 
 
 def convert(testname):
-    logger.info("convert %s", testname)
+    logger.info('convert %s', testname)
     return get_session().convert(testname)

@@ -21,5 +21,3 @@ assignees: ''
 
 ### Stakeholders
 <!-- @ tag stakeholders of this bug -->
-
-

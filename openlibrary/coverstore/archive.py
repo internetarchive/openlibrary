@@ -13,7 +13,7 @@ from openlibrary.coverstore.coverlib import find_image_path
 
 
 def log(*args):
-    msg = " ".join(args)
+    msg = ' '.join(args)
     print(msg)
     # print >> logfile, msg
     # logfile.flush()
@@ -29,14 +29,14 @@ class TarManager:
 
     def get_tarfile(self, name):
         id = web.numify(name)
-        tarname = f"covers_{id[:4]}_{id[4:6]}.tar"
+        tarname = f'covers_{id[:4]}_{id[4:6]}.tar'
 
         # for id-S.jpg, id-M.jpg, id-L.jpg
         if '-' in name:
             size = name[len(id + '-') :][0].lower()
-            tarname = size + "_" + tarname
+            tarname = size + '_' + tarname
         else:
-            size = ""
+            size = ''
 
         _tarname, _tarfile, _indexfile = self.tarfiles[size.upper()]
         if _tarname != tarname:
@@ -48,7 +48,7 @@ class TarManager:
         return _tarfile, _indexfile
 
     def open_tarfile(self, name):
-        path = os.path.join(config.data_root, "items", name[: -len("_XX.tar")], name)
+        path = os.path.join(config.data_root, 'items', name[: -len('_XX.tar')], name)
         dir = os.path.dirname(path)
         if not os.path.exists(dir):
             os.makedirs(dir)
@@ -73,7 +73,7 @@ class TarManager:
         tar.addfile(tarinfo, fileobj=fileobj)
 
         index.write(f'{name}\t{offset}\t{tarinfo.size}\n')
-        return f"{os.path.basename(tar.name)}:{offset}:{tarinfo.size}"
+        return f'{os.path.basename(tar.name)}:{offset}:{tarinfo.size}'
 
     def close(self):
         for name, _tarfile, _indexfile in self.tarfiles.values():
@@ -94,7 +94,7 @@ def archive():
     try:
         covers = _db.select('cover', where='archived=$f', order='id', vars={'f': False})
         for cover in covers:
-            id = "%010d" % cover.id
+            id = '%010d' % cover.id
 
             print('archiving', cover)
 
@@ -113,13 +113,13 @@ def archive():
 
             for d in files.values():
                 d.path = d.filename and os.path.join(
-                    config.data_root, "localdisk", d.filename
+                    config.data_root, 'localdisk', d.filename
                 )
 
             if any(
                 d.path is None or not os.path.exists(d.path) for d in files.values()
             ):
-                print("Missing image file for %010d" % cover.id, file=web.debug)
+                print('Missing image file for %010d' % cover.id, file=web.debug)
                 continue
 
             if isinstance(cover.created, str):
@@ -134,7 +134,7 @@ def archive():
 
             _db.update(
                 'cover',
-                where="id=$cover.id",
+                where='id=$cover.id',
                 archived=True,
                 filename=files['filename'].newname,
                 filename_s=files['filename_s'].newname,

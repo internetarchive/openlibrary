@@ -91,7 +91,7 @@ def test_merge2():
     assert attempt_merge(amazon, marc, threshold)
 
 
-@pytest.mark.skip(reason="Did not pass when rescuing tests. Check thresholds.")
+@pytest.mark.skip(reason='Did not pass when rescuing tests. Check thresholds.')
 def test_merge3():
     amazon = {
         'publishers': ['Intl Specialized Book Service Inc'],
@@ -127,7 +127,7 @@ def test_merge3():
     assert attempt_merge(amazon, marc, threshold)
 
 
-@pytest.mark.skip(reason="Did not pass when rescuing tests. Check thresholds.")
+@pytest.mark.skip(reason='Did not pass when rescuing tests. Check thresholds.')
 def test_merge4():
     amazon = {
         'publishers': ['HarperCollins Publishers Ltd'],
@@ -202,7 +202,7 @@ def test_merge5():
     assert attempt_merge(amazon, marc, threshold)
 
 
-@pytest.mark.skip(reason="Did not pass when rescuing tests. Check thresholds.")
+@pytest.mark.skip(reason='Did not pass when rescuing tests. Check thresholds.')
 def test_merge6():
     amazon = {
         'publishers': ['Fount'],

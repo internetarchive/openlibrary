@@ -27,7 +27,7 @@ no_bucket_error = '<Code>NoSuchBucket</Code>'
 def put_file(con, ia, filename, data):
     print('uploading %s' % filename)
     headers = {
-        'authorization': "LOW " + c['s3_key'] + ':' + c['s3_secret'],
+        'authorization': 'LOW ' + c['s3_key'] + ':' + c['s3_secret'],
         #        'x-archive-queue-derive': 0,
     }
     url = 'http://s3.us.archive.org/' + ia + '/' + filename

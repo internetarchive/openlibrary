@@ -60,7 +60,7 @@ def four_types(i):
     return get_subjects.four_types(i)
 
 
-archive_url = "http://archive.org/download/"
+archive_url = 'http://archive.org/download/'
 
 
 @deprecated

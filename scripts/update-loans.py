@@ -14,7 +14,7 @@ web.config.debug = False
 
 def usage():
     print(
-        "python scripts/openlibrary-server openlibrary.yml runscript scripts/update-loans.py [update-loans | update-waitinglists]"
+        'python scripts/openlibrary-server openlibrary.yml runscript scripts/update-loans.py [update-loans | update-waitinglists]'
     )
 
 
@@ -22,18 +22,18 @@ def main():
     try:
         cmd = sys.argv[1]
     except IndexError:
-        cmd = "help"
+        cmd = 'help'
 
-    if cmd == "update-loans":
+    if cmd == 'update-loans':
         borrow.update_all_loan_status()
-    elif cmd == "update-waitinglists":
+    elif cmd == 'update-waitinglists':
         waitinglist.prune_expired_waitingloans()
         waitinglist.update_all_waitinglists()
-    elif cmd == "update-waitinglist":
+    elif cmd == 'update-waitinglist':
         waitinglist.update_waitinglist(sys.argv[2])
     else:
         usage()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

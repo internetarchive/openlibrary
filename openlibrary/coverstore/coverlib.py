@@ -12,9 +12,9 @@ import web
 from openlibrary.coverstore import config, db
 from openlibrary.coverstore.utils import random_string, rm_f
 
-logger = getLogger("openlibrary.coverstore.coverlib")
+logger = getLogger('openlibrary.coverstore.coverlib')
 
-__all__ = ["save_image", "read_image", "read_file"]
+__all__ = ['save_image', 'read_image', 'read_file']
 
 
 def save_image(data, category, olid, author=None, ip=None, source_url=None):
@@ -26,7 +26,7 @@ def save_image(data, category, olid, author=None, ip=None, source_url=None):
 
     img = write_image(data, prefix)
     if img is None:
-        raise ValueError("Bad Image")
+        raise ValueError('Bad Image')
 
     d = web.storage(
         {
@@ -51,7 +51,7 @@ def save_image(data, category, olid, author=None, ip=None, source_url=None):
 def make_path_prefix(olid, date=None):
     """Makes a file prefix for storing an image."""
     date = date or datetime.date.today()
-    return "%04d/%02d/%02d/%s-%s" % (
+    return '%04d/%02d/%02d/%s-%s' % (
         date.year,
         date.month,
         date.day,
@@ -75,11 +75,11 @@ def write_image(data: bytes, prefix: str) -> Optional[Image.Image]:
             img = img.convert('RGB')
 
         for name, size in config.image_sizes.items():
-            path = f"{path_prefix}-{name}.jpg"
+            path = f'{path_prefix}-{name}.jpg'
             resize_image(img, size).save(path, quality=90)
         return img
     except OSError:
-        logger.exception("write_image() failed")
+        logger.exception('write_image() failed')
 
         # cleanup
         rm_f(prefix + '.jpg')
@@ -127,7 +127,7 @@ def read_file(path):
 def read_image(d, size):
     if size:
         filename = (
-            d['filename_' + size.lower()] or d.filename + "-%s.jpg" % size.upper()
+            d['filename_' + size.lower()] or d.filename + '-%s.jpg' % size.upper()
         )
     else:
         filename = d.filename

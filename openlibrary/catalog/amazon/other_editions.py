@@ -34,7 +34,7 @@ def read_bucket_table(f):
 
 
 def parse_html(html):
-    soup = BeautifulSoup(html, "lxml")
+    soup = BeautifulSoup(html, 'lxml')
     for tr in soup('tr')[2:]:
         td = tr('td')
         assert len(td) == 3
@@ -44,7 +44,7 @@ def parse_html(html):
         (nl, link, desc) = td0
         assert nl == '\n'
         href = link['href']
-        if href.startswith("http://www.amazon.com:80/gp/redirect.html"):
+        if href.startswith('http://www.amazon.com:80/gp/redirect.html'):
             # audio book, skip for now
             continue
         m = re_link.match(link['href'])
@@ -62,12 +62,12 @@ def get_from_amazon(isbn):
 
 
 def find_others(isbn, dir):
-    filename = dir + "/" + isbn
+    filename = dir + '/' + isbn
     if len(isbn) != 10:
         return []
     if not os.path.exists(filename):
         open(filename, 'w').write(get_from_amazon(isbn))
-    html = read_bucket_table(open(dir + "/" + isbn))
+    html = read_bucket_table(open(dir + '/' + isbn))
     if not html:
         return []
     l = [

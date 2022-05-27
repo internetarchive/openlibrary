@@ -18,14 +18,14 @@ RESULTS_PER_PAGE = 25
 
 
 class my_books_redirect(delegate.page):
-    path = "/people/([^/]+)/books"
+    path = '/people/([^/]+)/books'
 
     def GET(self, username):
         raise web.seeother('/people/%s/books/want-to-read' % username)
 
 
 class my_books_view(delegate.page):
-    path = r"/people/([^/]+)/books/([a-zA-Z_-]+)"
+    path = r'/people/([^/]+)/books/([a-zA-Z_-]+)'
 
     def GET(self, username, key):
         i = web.input(page=1, sort='desc')
@@ -33,8 +33,8 @@ class my_books_view(delegate.page):
 
 
 class public_my_books_json(delegate.page):
-    encoding = "json"
-    path = "/people/([^/]+)/books/([a-zA-Z_-]+)"
+    encoding = 'json'
+    path = '/people/([^/]+)/books/([a-zA-Z_-]+)'
 
     def GET(self, username, key='want-to-read'):
         i = web.input(page=1, limit=5000)
@@ -45,7 +45,7 @@ class public_my_books_json(delegate.page):
         if not user:
             return delegate.RawText(
                 json.dumps({'error': 'User %s not found' % username}),
-                content_type="application/json",
+                content_type='application/json',
             )
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         logged_in_user = accounts.get_current_user()
@@ -62,8 +62,9 @@ class public_my_books_json(delegate.page):
                         'title': w.get('title'),
                         'key': w.key,
                         'author_keys': [
-                            a.author.get("key")
-                            for a in w.get('authors', []) if a.author
+                            a.author.get('key')
+                            for a in w.get('authors', [])
+                            if a.author
                         ],
                         'author_names': [
                             str(a.author.name)
@@ -90,7 +91,7 @@ class public_my_books_json(delegate.page):
                     },
                     'logged_edition': w.get('logged_edition') or None,
                     'logged_date': (
-                        w.get('logged_date').strftime("%Y/%m/%d, %H:%M:%S")
+                        w.get('logged_date').strftime('%Y/%m/%d, %H:%M:%S')
                         if w.get('logged_date')
                         else None
                     ),
@@ -99,22 +100,22 @@ class public_my_books_json(delegate.page):
             ]
             return delegate.RawText(
                 json.dumps({'page': page, 'reading_log_entries': records_json}),
-                content_type="application/json",
+                content_type='application/json',
             )
         else:
             return delegate.RawText(
                 json.dumps({'error': 'Shelf %s not found or not accessible' % key}),
-                content_type="application/json",
+                content_type='application/json',
             )
 
 
 class readinglog_stats(delegate.page):
-    path = "/people/([^/]+)/books/([a-zA-Z_-]+)/stats"
+    path = '/people/([^/]+)/books/([a-zA-Z_-]+)/stats'
 
     def GET(self, username, key='loans'):
         user = web.ctx.site.get('/people/%s' % username)
         if not user:
-            return render.notfound("User %s" % username, create=False)
+            return render.notfound('User %s' % username, create=False)
 
         cur_user = accounts.get_current_user()
         if not cur_user or cur_user.key.split('/')[-1] != username:
@@ -155,27 +156,29 @@ class readinglog_stats(delegate.page):
             lang=web.ctx.lang,
         )
 
+
 @public
 def get_public_patron_account(username):
     user = web.ctx.site.get('/people/%s' % username)
     return ReadingLog(user=user)
 
+
 class MyBooksTemplate:
     # Reading log shelves
-    READING_LOG_KEYS = {"currently-reading", "want-to-read", "already-read"}
+    READING_LOG_KEYS = {'currently-reading', 'want-to-read', 'already-read'}
 
     # Keys that can be accessed when not logged in
-    PUBLIC_KEYS = READING_LOG_KEYS | {"lists", "list"}
+    PUBLIC_KEYS = READING_LOG_KEYS | {'lists', 'list'}
 
     # Keys that are only accessible when logged in
     # unioned with the public keys
     ALL_KEYS = PUBLIC_KEYS | {
-        "loans",
-        "waitlist",
-        "sponsorships",
-        "notes",
-        "observations",
-        "imports",
+        'loans',
+        'waitlist',
+        'sponsorships',
+        'notes',
+        'observations',
+        'imports',
     }
 
     def __init__(self, username, key):
@@ -188,7 +191,7 @@ class MyBooksTemplate:
 
     def render(self, page=1, sort='desc', list=None):
         if not self.user:
-            return render.notfound("User %s" % self.username, create=False)
+            return render.notfound('User %s' % self.username, create=False)
         logged_in_user = accounts.get_current_user()
         is_logged_in_user = (
             logged_in_user and logged_in_user.key.split('/')[-1] == self.username
@@ -203,18 +206,24 @@ class MyBooksTemplate:
             self.counts['sponsorships'] = len(sponsorships)
 
             if self.key == 'sponsorships':
-                data = add_availability(
-                    web.ctx.site.get_many([
-                        '/books/%s' % doc['openlibrary_edition']
-                        for doc in sponsorships
-                    ])
-                ) if sponsorships else None
+                data = (
+                    add_availability(
+                        web.ctx.site.get_many(
+                            [
+                                '/books/%s' % doc['openlibrary_edition']
+                                for doc in sponsorships
+                            ]
+                        )
+                    )
+                    if sponsorships
+                    else None
+                )
             elif self.key in self.READING_LOG_KEYS:
                 data = add_availability(
                     self.readlog.get_works(
                         self.key, page=page, sort='created', sort_order=sort
                     ),
-                    mode="openlibrary_work",
+                    mode='openlibrary_work',
                 )
             elif self.key == 'list':
                 data = list
@@ -226,7 +235,7 @@ class MyBooksTemplate:
                 self.readlog.get_works(
                     self.key, page=page, sort='created', sort_order=sort
                 ),
-                mode="openlibrary_work",
+                mode='openlibrary_work',
             )
 
         if data is not None:
@@ -293,9 +302,7 @@ class ReadingLog:
 
     @property
     def sponsorship_counts(self):
-        return {
-            'sponsorships': len(get_sponsored_editions(self.user))
-        }
+        return {'sponsorships': len(get_sponsored_editions(self.user))}
 
     @property
     def booknotes_counts(self):
@@ -340,7 +347,7 @@ class ReadingLog:
         waitlists = self.user.get_waitinglist()
         keyed_waitlists = {w['identifier']: w for w in waitlists}
         ocaids = [i['identifier'] for i in waitlists]
-        edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": ocaids})
+        edition_keys = web.ctx.site.things({'type': '/type/edition', 'ocaid': ocaids})
         editions = web.ctx.site.get_many(edition_keys)
         for i in range(len(editions)):
             # insert the waitlist_entry corresponding to this edition

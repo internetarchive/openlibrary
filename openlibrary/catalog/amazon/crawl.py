@@ -36,7 +36,7 @@ re_rh_n = re.compile(r'%2Cn%3A(\d+)')
 re_facet_count = re.compile('^\xa0\\(([\\d,]+)\\)$')
 '\xa0(8)'
 
-base_url = "http://www.amazon.com/s?ie=UTF8&rh="
+base_url = 'http://www.amazon.com/s?ie=UTF8&rh='
 rh = 'i:stripbooks,p_n_feature_browse-bin:618083011,p_n_date:'
 
 out_dir = '/0/amazon'
@@ -232,14 +232,14 @@ def read_page(params):
     cats = get_cats(root)
     print('cats 1')
     for a, b, c in cats:
-        print("%8d %-30s %8d" % (a, b, c))
+        print('%8d %-30s %8d' % (a, b, c))
     # return grand_total, [], cats
 
     books = set()
 
     books.update(read_books(params, root))
     for page in range(2, min((pages, 100)) + 1):
-        params_with_page = params + "&page=%d" % page
+        params_with_page = params + '&page=%d' % page
         books.update(read_books(params_with_page, get_url(params_with_page)))
         print(page, len(books))
 
@@ -248,12 +248,12 @@ def read_page(params):
     cats = get_cats(root)
     print('cats 2')
     for a, b, c in cats:
-        print("%8d %30s %8d" % (a, b, c))
+        print('%8d %30s %8d' % (a, b, c))
     print('cat total:', sum(i[2] for i in cats))
     if total > max_results:
         for n, title, count in cats:
             print(repr(n, title, count))
-            params_with_cat = params + ",n:" + str(n)
+            params_with_cat = params + ',n:' + str(n)
             root = get_url(params_with_cat)
             cat_total = get_total(root)
             pages = (cat_total / page_size) + 1
@@ -267,7 +267,7 @@ def read_page(params):
                 print('WARNING: Personalized Books')
                 continue
             for page in range(2, min((pages, 100)) + 1):
-                params_with_page = params_with_cat + "&page=%d" % page
+                params_with_page = params_with_cat + '&page=%d' % page
                 try:
                     books.update(
                         read_books(params_with_page, get_url(params_with_page))
@@ -282,7 +282,7 @@ def read_page(params):
                         page,
                         cat_total / page_size,
                         len(books),
-                        "%.1f%%" % percent(len(books), grand_total),
+                        '%.1f%%' % percent(len(books), grand_total),
                     )
                 )
 
@@ -322,10 +322,10 @@ if __name__ == '__main__':
     # cur = date(2009, 12, 25)
     while True:
         print(cur)
-        total, books, cats = read_page(rh + cur.strftime("%Y%m%d"))
-        open(out_dir + '/total.' + str(cur), 'w').write(str(total) + "\n")
+        total, books, cats = read_page(rh + cur.strftime('%Y%m%d'))
+        open(out_dir + '/total.' + str(cur), 'w').write(str(total) + '\n')
 
-        out = open(out_dir + "/cats." + str(cur), 'w')
+        out = open(out_dir + '/cats.' + str(cur), 'w')
         for i in cats:
             print(i, file=out)
         out.close()

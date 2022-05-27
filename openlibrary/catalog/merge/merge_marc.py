@@ -25,7 +25,7 @@ def build_titles(title):
     normalized_title = normalize(title).lower()
     titles = [title, normalized_title]
     if title.find(' & ') != -1:
-        t = title.replace(" & ", " and ")
+        t = title.replace(' & ', ' and ')
         titles.append(t)
         titles.append(normalize(t))
     t2 = []
@@ -212,7 +212,7 @@ def compare_authors(e1, e2):
 
 
 def title_replace_amp(amazon):
-    return normalize(amazon['full-title'].replace(" & ", " and ")).lower()
+    return normalize(amazon['full-title'].replace(' & ', ' and ')).lower()
 
 
 def substr_match(a, b):
@@ -369,12 +369,12 @@ def editions_match(e1, e2, threshold, debug=False):
     level1 = level1_merge(e1, e2)
     total = sum(i[2] for i in level1)
     if debug:
-        print(f"E1: {e1}\nE2: {e2}")
-        print(f"TOTAL 1 = {total} : {level1}")
+        print(f'E1: {e1}\nE2: {e2}')
+        print(f'TOTAL 1 = {total} : {level1}')
     if total >= threshold:
         return True
     level2 = level2_merge(e1, e2)
     total = sum(i[2] for i in level2)
     if debug:
-        print(f"TOTAL 2 = {total} : {level2}")
+        print(f'TOTAL 2 = {total} : {level2}')
     return total >= threshold

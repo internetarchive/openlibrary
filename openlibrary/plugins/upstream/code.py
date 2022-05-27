@@ -24,11 +24,11 @@ from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused i
 from openlibrary.plugins.upstream.utils import render_component
 
 if not config.get('coverstore_url'):
-    config.coverstore_url = "https://covers.openlibrary.org"
+    config.coverstore_url = 'https://covers.openlibrary.org'
 
 
 class static(delegate.page):
-    path = "/images/.*"
+    path = '/images/.*'
 
     def GET(self):
         host = 'https://%s' % web.ctx.host if 'openlibrary.org' in web.ctx.host else ''
@@ -45,7 +45,7 @@ class edit(core.edit):
             if page is None:
                 raise web.seeother(key)
             else:
-                raise web.seeother(page.url(suffix="/edit"))
+                raise web.seeother(page.url(suffix='/edit'))
         else:
             return core.edit.GET(self, key)
 
@@ -61,7 +61,7 @@ class edit(core.edit):
 
 
 class change_cover(delegate.mode):
-    path = r"(/books/OL\d+M)/cover"
+    path = r'(/books/OL\d+M)/cover'
 
     def GET(self, key):
         page = web.ctx.site.get(key)
@@ -71,7 +71,7 @@ class change_cover(delegate.mode):
 
 
 class change_photo(change_cover):
-    path = r"(/authors/OL\d+A)/photo"
+    path = r'(/authors/OL\d+A)/photo'
 
 
 del delegate.modes[
@@ -80,21 +80,21 @@ del delegate.modes[
 
 
 class components_test(delegate.page):
-    path = "/_dev/components/HelloWorld"
+    path = '/_dev/components/HelloWorld'
 
     def GET(self):
         return render_component('HelloWorld') + render_component('HelloWorld')
 
 
 class library_explorer(delegate.page):
-    path = "/explore"
+    path = '/explore'
 
     def GET(self):
         return render_template('library_explorer')
 
 
 class merge_work(delegate.page):
-    path = "/works/merge"
+    path = '/works/merge'
 
     def GET(self):
         user = web.ctx.site.get_user()
@@ -135,11 +135,11 @@ def static_url(path):
     """Takes path relative to static/ and constructs url to that resource with hash."""
     pardir = os.path.pardir
     fullpath = os.path.abspath(
-        os.path.join(__file__, pardir, pardir, pardir, pardir, "static", path)
+        os.path.join(__file__, pardir, pardir, pardir, pardir, 'static', path)
     )
     with open(fullpath, 'rb') as in_file:
         digest = hashlib.md5(in_file.read()).hexdigest()
-    return f"/static/{path}?v={digest}"
+    return f'/static/{path}?v={digest}'
 
 
 class DynamicDocument:
@@ -158,10 +158,10 @@ class DynamicDocument:
         docs = sorted(web.ctx.site.get_many(keys), key=lambda doc: doc.key)
         if docs:
             self.last_modified = min(doc.last_modified for doc in docs)
-            self._text = "\n\n".join(doc.get('body', '') for doc in docs)
+            self._text = '\n\n'.join(doc.get('body', '') for doc in docs)
         else:
             self.last_modified = datetime.datetime.utcnow()
-            self._text = ""
+            self._text = ''
 
     def get_text(self):
         """Returns text of the combined documents"""
@@ -179,16 +179,16 @@ def create_dynamic_document(url, prefix):
     doc = DynamicDocument(prefix)
 
     if url.endswith('.js'):
-        content_type = "text/javascript"
-    elif url.endswith(".css"):
-        content_type = "text/css"
+        content_type = 'text/javascript'
+    elif url.endswith('.css'):
+        content_type = 'text/css'
     else:
-        content_type = "text/plain"
+        content_type = 'text/plain'
 
     class page(delegate.page):
         """Handler for serving the combined content."""
 
-        path = "__registered_later_without_using_this__"
+        path = '__registered_later_without_using_this__'
 
         def GET(self):
             i = web.input(v=None)
@@ -198,14 +198,14 @@ def create_dynamic_document(url, prefix):
 
             if web.modified(etag=v):
                 oneyear = 365 * 24 * 3600
-                web.header("Content-Type", content_type)
-                web.header("Cache-Control", "Public, max-age=%d" % oneyear)
+                web.header('Content-Type', content_type)
+                web.header('Cache-Control', 'Public, max-age=%d' % oneyear)
                 web.lastmodified(doc.last_modified)
                 web.expires(oneyear)
                 return delegate.RawText(doc.get_text())
 
         def url(self):
-            return url + "?v=" + doc.md5()
+            return url + '?v=' + doc.md5()
 
         def reload(self):
             doc.update()
@@ -223,10 +223,10 @@ def create_dynamic_document(url, prefix):
     return page
 
 
-all_js = create_dynamic_document("/js/all.js", config.get("js_root", "/js"))
+all_js = create_dynamic_document('/js/all.js', config.get('js_root', '/js'))
 web.template.Template.globals['all_js'] = all_js()
 
-all_css = create_dynamic_document("/css/all.css", config.get("css_root", "/css"))
+all_css = create_dynamic_document('/css/all.css', config.get('css_root', '/css'))
 web.template.Template.globals['all_css'] = all_css()
 
 
@@ -238,13 +238,13 @@ def reload():
 
 def setup_jquery_urls():
     if config.get('use_google_cdn', True):
-        jquery_url = "http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"
+        jquery_url = 'http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js'
         jqueryui_url = (
-            "http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"
+            'http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js'
         )
     else:
-        jquery_url = "/static/upstream/js/jquery-1.3.2.min.js"
-        jqueryui_url = "/static/upstream/js/jquery-ui-1.7.2.min.js"
+        jquery_url = '/static/upstream/js/jquery-1.3.2.min.js'
+        jqueryui_url = '/static/upstream/js/jquery-ui-1.7.2.min.js'
 
     web.template.Template.globals['jquery_url'] = jquery_url
     web.template.Template.globals['jqueryui_url'] = jqueryui_url
@@ -263,7 +263,7 @@ def get_document(key, limit_redirs=5):
         doc = web.ctx.site.get(key)
         if doc is None:
             return None
-        if doc.type.key == "/type/redirect":
+        if doc.type.key == '/type/redirect':
             key = doc.location
         else:
             return doc
@@ -275,7 +275,7 @@ class revert(delegate.mode):
         raise web.seeother(web.changequery(m=None))
 
     def POST(self, key):
-        i = web.input("v", _comment=None)
+        i = web.input('v', _comment=None)
         v = i.v and safeint(i.v, None)
 
         if v is None:
@@ -283,7 +283,7 @@ class revert(delegate.mode):
 
         if not web.ctx.site.can_write(key) or not user_is_admin_or_librarian():
             return render.permission_denied(
-                web.ctx.fullpath, "Permission denied to edit " + key + "."
+                web.ctx.fullpath, 'Permission denied to edit ' + key + '.'
             )
 
         thing = web.ctx.site.get(key, i.v)
@@ -292,18 +292,18 @@ class revert(delegate.mode):
             raise web.notfound()
 
         def revert(thing):
-            if thing.type.key == "/type/delete" and thing.revision > 1:
+            if thing.type.key == '/type/delete' and thing.revision > 1:
                 prev = web.ctx.site.get(thing.key, thing.revision - 1)
-                if prev.type.key in ["/type/delete", "/type/redirect"]:
+                if prev.type.key in ['/type/delete', '/type/redirect']:
                     return revert(prev)
                 else:
-                    prev._save("revert to revision %d" % prev.revision)
+                    prev._save('revert to revision %d' % prev.revision)
                     return prev
-            elif thing.type.key == "/type/redirect":
+            elif thing.type.key == '/type/redirect':
                 redirect = web.ctx.site.get(thing.location)
                 if redirect and redirect.type.key not in [
-                    "/type/delete",
-                    "/type/redirect",
+                    '/type/delete',
+                    '/type/redirect',
                 ]:
                     return redirect
                 else:
@@ -332,7 +332,7 @@ class revert(delegate.mode):
         for k in thing:
             thing[k] = process(thing[k])
 
-        comment = i._comment or "reverted to revision %d" % v
+        comment = i._comment or 'reverted to revision %d' % v
         thing._save(comment)
         raise web.seeother(key)
 
@@ -354,22 +354,22 @@ def setup():
 
     web.template.Template.globals.update(
         {
-            "gettext": ugettext,
-            "ugettext": ugettext,
-            "_": ugettext,
-            "ungettext": ungettext,
-            "gettext_territory": gettext_territory,
-            "random": random.Random(),
-            "commify": web.commify,
-            "group": web.group,
-            "storage": web.storage,
-            "all": all,
-            "any": any,
-            "locals": locals,
+            'gettext': ugettext,
+            'ugettext': ugettext,
+            '_': ugettext,
+            'ungettext': ungettext,
+            'gettext_territory': gettext_territory,
+            'random': random.Random(),
+            'commify': web.commify,
+            'group': web.group,
+            'storage': web.storage,
+            'all': all,
+            'any': any,
+            'locals': locals,
         }
     )
 
-    web.template.STATEMENT_NODES["jsdef"] = jsdef.JSDefNode
+    web.template.STATEMENT_NODES['jsdef'] = jsdef.JSDefNode
 
     setup_jquery_urls()
 

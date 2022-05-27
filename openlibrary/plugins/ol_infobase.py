@@ -22,7 +22,7 @@ from ..utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10, normalize_isbn
 # relative import
 from .openlibrary import schema
 
-logger = logging.getLogger("infobase.ol")
+logger = logging.getLogger('infobase.ol')
 
 
 def init_plugin():
@@ -54,7 +54,7 @@ def init_plugin():
         # ol.store.indexer = Indexer()
 
         if config.get('http_listeners'):
-            logger.info("setting up http listeners")
+            logger.info('setting up http listeners')
             ol.add_trigger(None, http_notify)
 
         # # memcache invalidator is not required now. It was added for future use.
@@ -65,41 +65,41 @@ def init_plugin():
 
     # hook to add count functionality
     server.app.add_mapping(
-        r"/([^/]*)/count_editions_by_author", __name__ + ".count_editions_by_author"
+        r'/([^/]*)/count_editions_by_author', __name__ + '.count_editions_by_author'
     )
     server.app.add_mapping(
-        r"/([^/]*)/count_editions_by_work", __name__ + ".count_editions_by_work"
+        r'/([^/]*)/count_editions_by_work', __name__ + '.count_editions_by_work'
     )
     server.app.add_mapping(
-        r"/([^/]*)/count_edits_by_user", __name__ + ".count_edits_by_user"
+        r'/([^/]*)/count_edits_by_user', __name__ + '.count_edits_by_user'
     )
-    server.app.add_mapping(r"/([^/]*)/most_recent", __name__ + ".most_recent")
-    server.app.add_mapping(r"/([^/]*)/clear_cache", __name__ + ".clear_cache")
-    server.app.add_mapping(r"/([^/]*)/stats/(\d\d\d\d-\d\d-\d\d)", __name__ + ".stats")
-    server.app.add_mapping(r"/([^/]*)/has_user", __name__ + ".has_user")
-    server.app.add_mapping(r"/([^/]*)/olid_to_key", __name__ + ".olid_to_key")
-    server.app.add_mapping(r"/_reload_config", __name__ + ".reload_config")
-    server.app.add_mapping(r"/_inspect", __name__ + "._inspect")
+    server.app.add_mapping(r'/([^/]*)/most_recent', __name__ + '.most_recent')
+    server.app.add_mapping(r'/([^/]*)/clear_cache', __name__ + '.clear_cache')
+    server.app.add_mapping(r'/([^/]*)/stats/(\d\d\d\d-\d\d-\d\d)', __name__ + '.stats')
+    server.app.add_mapping(r'/([^/]*)/has_user', __name__ + '.has_user')
+    server.app.add_mapping(r'/([^/]*)/olid_to_key', __name__ + '.olid_to_key')
+    server.app.add_mapping(r'/_reload_config', __name__ + '.reload_config')
+    server.app.add_mapping(r'/_inspect', __name__ + '._inspect')
 
 
 def setup_logging():
     try:
-        logconfig = config.get("logging_config_file")
+        logconfig = config.get('logging_config_file')
         if logconfig and os.path.exists(logconfig):
             logging.config.fileConfig(logconfig, disable_existing_loggers=False)
-        logger.info("logging initialized")
-        logger.debug("debug")
+        logger.info('logging initialized')
+        logger.debug('debug')
     except Exception as e:
-        print("Unable to set logging configuration:", str(e), file=sys.stderr)
+        print('Unable to set logging configuration:', str(e), file=sys.stderr)
         raise
 
 
 class reload_config:
     @server.jsonify
     def POST(self):
-        logging.info("reloading logging config")
+        logging.info('reloading logging config')
         setup_logging()
-        return {"ok": "true"}
+        return {'ok': 'true'}
 
 
 class _inspect:
@@ -109,7 +109,7 @@ class _inspect:
     """
 
     def GET(self):
-        sys.modules.pop("_inspect", None)
+        sys.modules.pop('_inspect', None)
         try:
             import _inspect
 
@@ -149,7 +149,7 @@ def count(table, type, key, value):
     return (
         get_db()
         .query(
-            "SELECT count(*) FROM " + table + " WHERE key_id=$pid AND value=$value_id",
+            'SELECT count(*) FROM ' + table + ' WHERE key_id=$pid AND value=$value_id',
             vars=locals(),
         )[0]
         .count
@@ -178,7 +178,7 @@ class count_edits_by_user:
         return (
             get_db()
             .query(
-                "SELECT count(*) as count FROM transaction WHERE author_id=$author_id",
+                'SELECT count(*) as count FROM transaction WHERE author_id=$author_id',
                 vars=locals(),
             )[0]
             .count
@@ -188,16 +188,16 @@ class count_edits_by_user:
 class has_user:
     @server.jsonify
     def GET(self, sitename):
-        i = server.input("username")
+        i = server.input('username')
 
         # Don't allows OLIDs to be usernames
-        if web.re_compile(r"OL\d+[A-Z]").match(i.username.upper()):
+        if web.re_compile(r'OL\d+[A-Z]').match(i.username.upper()):
             return True
 
-        key = "/user/" + i.username.lower()
-        type_user = get_thing_id("/type/user")
+        key = '/user/' + i.username.lower()
+        type_user = get_thing_id('/type/user')
         d = get_db().query(
-            "SELECT * from thing WHERE lower(key) = $key AND type=$type_user",
+            'SELECT * from thing WHERE lower(key) = $key AND type=$type_user',
             vars=locals(),
         )
         return bool(d)
@@ -216,7 +216,7 @@ class stats:
 
     def nextday(self, today):
         return (
-            get_db().query("SELECT date($today) + 1 AS value", vars=locals())[0].value
+            get_db().query('SELECT date($today) + 1 AS value', vars=locals())[0].value
         )
 
     def edits(self, today, tomorrow, bots=False):
@@ -245,7 +245,7 @@ class stats:
     def count(self, tables, where, vars):
         return (
             get_db()
-            .select(what="count(*) as value", tables=tables, where=where, vars=vars)[0]
+            .select(what='count(*) as value', tables=tables, where=where, vars=vars)[0]
             .value
         )
 
@@ -299,7 +299,7 @@ def write(path, data):
 
 def save_error(dir, prefix):
     try:
-        logger.error("Error", exc_info=True)
+        logger.error('Error', exc_info=True)
         error = web.djangoerror()
         now = datetime.datetime.utcnow()
         path = '%s/%04d-%02d-%02d/%s-%02d%02d%02d.%06d.html' % (
@@ -589,7 +589,7 @@ class OLIndexer(_Indexer):
             title = title.decode('utf-8', 'ignore')
 
         if not isinstance(title, str):
-            return ""
+            return ''
 
         norm = strip_accents(title).lower()
         norm = norm.replace(' and ', ' ')

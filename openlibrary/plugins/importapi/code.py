@@ -250,7 +250,7 @@ class ia_importapi(importapi):
         # First check whether this is a non-book, bulk-marc item
         if bulk_marc:
             # Get binary MARC by identifier = ocaid/filename:offset:length
-            re_bulk_identifier = re.compile(r"([^/]*)/([^:]*):(\d*):(\d*)")
+            re_bulk_identifier = re.compile(r'([^/]*)/([^:]*):(\d*):(\d*)')
             try:
                 ocaid, filename, offset, length = re_bulk_identifier.match(
                     identifier
@@ -263,8 +263,8 @@ class ia_importapi(importapi):
                 rec = MarcBinary(data)
                 edition = read_edition(rec)
             except MarcException as e:
-                details = f"{identifier}: {str(e)}"
-                logger.error("failed to read from bulk MARC record %s", details)
+                details = f'{identifier}: {str(e)}'
+                logger.error('failed to read from bulk MARC record %s', details)
                 return self.error('invalid-marc-record', details, **next_data)
 
             actual_length = int(rec.leader()[:MARC_LENGTH_POS])
@@ -389,14 +389,14 @@ class ia_importapi(importapi):
         :return: OL item key of matching item: '/books/OL..M'
         """
         # match ocaid
-        q = {"type": "/type/edition", "ocaid": identifier}
+        q = {'type': '/type/edition', 'ocaid': identifier}
         keys = web.ctx.site.things(q)
         if keys:
             return keys[0]
 
         # Match source_records
         # When there are multiple scans for the same edition, only source_records is updated.
-        q = {"type": "/type/edition", "source_records": "ia:" + identifier}
+        q = {'type': '/type/edition', 'source_records': 'ia:' + identifier}
         keys = web.ctx.site.things(q)
         if keys:
             return keys[0]
@@ -452,7 +452,7 @@ class ils_search:
         try:
             rawdata = json.loads(web.data())
         except ValueError as e:
-            raise self.error("Unparsable JSON input \n %s" % web.data())
+            raise self.error('Unparsable JSON input \n %s' % web.data())
 
         # step 1: prepare the data
         data = self.prepare_input_data(rawdata)
@@ -465,7 +465,7 @@ class ils_search:
             auth_header = http_basic_auth()
             self.login(auth_header)
         except accounts.ClientException:
-            raise self.auth_failed("Invalid credentials")
+            raise self.auth_failed('Invalid credentials')
 
         # step 4: create if logged in
         keys = []
@@ -477,16 +477,16 @@ class ils_search:
         return json.dumps(d)
 
     def error(self, reason):
-        d = json.dumps({"status": "error", "reason": reason})
-        return web.HTTPError("400 Bad Request", {"Content-Type": "application/json"}, d)
+        d = json.dumps({'status': 'error', 'reason': reason})
+        return web.HTTPError('400 Bad Request', {'Content-Type': 'application/json'}, d)
 
     def auth_failed(self, reason):
-        d = json.dumps({"status": "error", "reason": reason})
+        d = json.dumps({'status': 'error', 'reason': reason})
         return web.HTTPError(
-            "401 Authorization Required",
+            '401 Authorization Required',
             {
-                "WWW-Authenticate": 'Basic realm="http://openlibrary.org"',
-                "Content-Type": "application/json",
+                'WWW-Authenticate': 'Basic realm="http://openlibrary.org"',
+                'Content-Type': 'application/json',
             },
             d,
         )
@@ -494,7 +494,7 @@ class ils_search:
     def login(self, auth_str):
         if not auth_str:
             return
-        auth_str = auth_str.replace("Basic ", "")
+        auth_str = auth_str.replace('Basic ', '')
         try:
             auth_str = base64.decodebytes(bytes(auth_str, 'utf-8'))
             auth_str = auth_str.decode('utf-8')
@@ -507,7 +507,7 @@ class ils_search:
         data = dict(rawdata)
         identifiers = rawdata.get('identifiers', {})
         # TODO: Massage single strings here into lists. e.g. {"google" : "123"} into {"google" : ["123"]}.
-        for i in ["oclc_numbers", "lccn", "ocaid", "isbn"]:
+        for i in ['oclc_numbers', 'lccn', 'ocaid', 'isbn']:
             if i in data:
                 val = data.pop(i)
                 if not isinstance(val, list):
@@ -515,11 +515,11 @@ class ils_search:
                 identifiers[i] = val
         data['identifiers'] = identifiers
 
-        if "authors" in data:
-            authors = data.pop("authors")
-            data['authors'] = [{"name": i} for i in authors]
+        if 'authors' in data:
+            authors = data.pop('authors')
+            data['authors'] = [{'name': i} for i in authors]
 
-        return {"doc": data}
+        return {'doc': data}
 
     def search(self, params):
         matches = records.search(params)
@@ -529,36 +529,36 @@ class ils_search:
         return records.create(items)
 
     def format_result(self, matches, authenticated, keys):
-        doc = matches.pop("doc", {})
+        doc = matches.pop('doc', {})
         if doc and doc['key']:
             doc = web.ctx.site.get(doc['key']).dict()
             # Sanitise for only information that we want to return.
             for i in [
-                "created",
-                "last_modified",
-                "latest_revision",
-                "type",
-                "revision",
+                'created',
+                'last_modified',
+                'latest_revision',
+                'type',
+                'revision',
             ]:
                 doc.pop(i)
             # Main status information
             d = {
                 'status': 'found',
                 'key': doc['key'],
-                'olid': doc['key'].split("/")[-1],
+                'olid': doc['key'].split('/')[-1],
             }
             # Cover information
             covers = doc.get('covers') or []
             if covers and covers[0] > 0:
                 d['cover'] = {
-                    "small": "https://covers.openlibrary.org/b/id/%s-S.jpg" % covers[0],
-                    "medium": "https://covers.openlibrary.org/b/id/%s-M.jpg"
+                    'small': 'https://covers.openlibrary.org/b/id/%s-S.jpg' % covers[0],
+                    'medium': 'https://covers.openlibrary.org/b/id/%s-M.jpg'
                     % covers[0],
-                    "large": "https://covers.openlibrary.org/b/id/%s-L.jpg" % covers[0],
+                    'large': 'https://covers.openlibrary.org/b/id/%s-L.jpg' % covers[0],
                 }
 
             # Pull out identifiers to top level
-            identifiers = doc.pop("identifiers", {})
+            identifiers = doc.pop('identifiers', {})
             for i in identifiers:
                 d[i] = identifiers[i]
             d.update(doc)
@@ -580,7 +580,7 @@ class ils_search:
 
 def http_basic_auth():
     auth = web.ctx.env.get('HTTP_AUTHORIZATION')
-    return auth and web.lstrips(auth, "")
+    return auth and web.lstrips(auth, '')
 
 
 class ils_cover_upload:
@@ -622,43 +622,43 @@ class ils_cover_upload:
 
     def error(self, i, reason):
         if i.redirect_url:
-            url = self.build_url(i.redirect_url, status="error", reason=reason)
+            url = self.build_url(i.redirect_url, status='error', reason=reason)
             return web.seeother(url)
         else:
-            d = json.dumps({"status": "error", "reason": reason})
+            d = json.dumps({'status': 'error', 'reason': reason})
             return web.HTTPError(
-                "400 Bad Request", {"Content-Type": "application/json"}, d
+                '400 Bad Request', {'Content-Type': 'application/json'}, d
             )
 
     def success(self, i):
         if i.redirect_url:
-            url = self.build_url(i.redirect_url, status="ok")
+            url = self.build_url(i.redirect_url, status='ok')
             return web.seeother(url)
         else:
-            d = json.dumps({"status": "ok"})
-            return web.ok(d, {"Content-type": "application/json"})
+            d = json.dumps({'status': 'ok'})
+            return web.ok(d, {'Content-type': 'application/json'})
 
     def auth_failed(self, reason):
-        d = json.dumps({"status": "error", "reason": reason})
+        d = json.dumps({'status': 'error', 'reason': reason})
         return web.HTTPError(
-            "401 Authorization Required",
+            '401 Authorization Required',
             {
-                "WWW-Authenticate": 'Basic realm="http://openlibrary.org"',
-                "Content-Type": "application/json",
+                'WWW-Authenticate': 'Basic realm="http://openlibrary.org"',
+                'Content-Type': 'application/json',
             },
             d,
         )
 
     def build_url(self, url, **params):
         if '?' in url:
-            return url + "&" + urllib.parse.urlencode(params)
+            return url + '&' + urllib.parse.urlencode(params)
         else:
-            return url + "?" + urllib.parse.urlencode(params)
+            return url + '?' + urllib.parse.urlencode(params)
 
     def login(self, auth_str):
         if not auth_str:
-            raise self.auth_failed("No credentials provided")
-        auth_str = auth_str.replace("Basic ", "")
+            raise self.auth_failed('No credentials provided')
+        auth_str = auth_str.replace('Basic ', '')
         try:
             auth_str = base64.decodebytes(bytes(auth_str, 'utf-8'))
             auth_str = auth_str.decode('utf-8')
@@ -668,21 +668,21 @@ class ils_cover_upload:
         accounts.login(username, password)
 
     def POST(self):
-        i = web.input(olid=None, file={}, redirect_url=None, url="")
+        i = web.input(olid=None, file={}, redirect_url=None, url='')
 
         if not i.olid:
-            self.error(i, "olid missing")
+            self.error(i, 'olid missing')
 
         key = '/books/' + i.olid
         book = web.ctx.site.get(key)
         if not book:
-            raise self.error(i, "bad olid")
+            raise self.error(i, 'bad olid')
 
         try:
             auth_header = http_basic_auth()
             self.login(auth_header)
         except accounts.ClientException:
-            raise self.auth_failed("Invalid credentials")
+            raise self.auth_failed('Invalid credentials')
 
         from openlibrary.plugins.upstream import covers
 
@@ -695,10 +695,10 @@ class ils_cover_upload:
             add_cover.save(book, coverid)
             raise self.success(i)
         else:
-            raise self.error(i, "upload failed")
+            raise self.error(i, 'upload failed')
 
 
-add_hook("import", importapi)
-add_hook("ils_search", ils_search)
-add_hook("ils_cover_upload", ils_cover_upload)
-add_hook("import/ia", ia_importapi)
+add_hook('import', importapi)
+add_hook('ils_search', ils_search)
+add_hook('ils_cover_upload', ils_cover_upload)
+add_hook('import/ia', ia_importapi)

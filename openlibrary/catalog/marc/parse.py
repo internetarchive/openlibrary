@@ -305,14 +305,14 @@ def read_publisher(rec):
         f.remove_brackets()
         contents = f.get_contents(['a', 'b'])
         if 'b' in contents:
-            publisher += [x.strip(" /,;:") for x in contents['b']]
+            publisher += [x.strip(' /,;:') for x in contents['b']]
         if 'a' in contents:
-            publish_places += [x.strip(" /.,;:") for x in contents['a'] if x]
+            publish_places += [x.strip(' /.,;:') for x in contents['a'] if x]
     edition = {}
     if publisher:
-        edition["publishers"] = publisher
+        edition['publishers'] = publisher
     if len(publish_places) and publish_places[0]:
-        edition["publish_places"] = publish_places
+        edition['publish_places'] = publish_places
     return edition
 
 
@@ -464,7 +464,7 @@ def read_description(rec):
         this = [i for i in f.get_subfield_values(['a']) if i]
         found += this
     if found:
-        return "\n\n".join(found).strip(' ')
+        return '\n\n'.join(found).strip(' ')
 
 
 def read_url(rec):
@@ -473,7 +473,12 @@ def read_url(rec):
         contents = f.get_contents(['u', 'y', '3', 'z', 'x'])
         if not contents.get('u'):
             continue
-        title = (contents.get('y') or contents.get('3') or contents.get('z') or contents.get('x', ['External source']))[0].strip()
+        title = (
+            contents.get('y')
+            or contents.get('3')
+            or contents.get('z')
+            or contents.get('x', ['External source'])
+        )[0].strip()
         found += [{'url': u.strip(), 'title': title} for u in contents['u']]
     return found
 
@@ -638,12 +643,12 @@ def read_edition(rec):
         publish_date = f[7:11]
 
         if publish_date.isdigit() and publish_date != '0000':
-            edition["publish_date"] = publish_date
+            edition['publish_date'] = publish_date
         if f[6] == 't':
-            edition["copyright_date"] = f[11:15]
+            edition['copyright_date'] = f[11:15]
         publish_country = f[15:18]
         if publish_country not in ('|||', '   ', '\x01\x01\x01', '???'):
-            edition["publish_country"] = publish_country.strip()
+            edition['publish_country'] = publish_country.strip()
         lang = f[35:38]
         if lang not in ('   ', '|||', '', '???', 'zxx'):
             # diebrokeradical400poll

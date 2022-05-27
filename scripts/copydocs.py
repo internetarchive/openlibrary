@@ -10,11 +10,11 @@ import web
 
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
-sys.path.insert(0, ".")  # Enable scripts/copydocs.py to be run.
+sys.path.insert(0, '.')  # Enable scripts/copydocs.py to be run.
 import scripts._init_path  # noqa: E402,F401
 from openlibrary.api import OpenLibrary, marshal  # noqa: E402
 
-__version__ = "0.2"
+__version__ = '0.2'
 
 
 def find(server, prefix):
@@ -60,11 +60,11 @@ class Disk:
 
         def f(k):
             return {
-                "key": k,
-                "type": {"key": "/type/template"},
-                "body": {
-                    "type": "/type/text",
-                    "value": open(self.root + k.replace(".tmpl", ".html")).read(),
+                'key': k,
+                'type': {'key': '/type/template'},
+                'body': {
+                    'type': '/type/text',
+                    'value': open(self.root + k.replace('.tmpl', '.html')).read(),
                 },
             }
 
@@ -86,23 +86,23 @@ class Disk:
                 text = text['value']
 
             try:
-                print("writing", path)
-                f = open(path, "w")
+                print('writing', path)
+                f = open(path, 'w')
                 f.write(text)
                 f.close()
             except OSError:
-                print("failed", path)
+                print('failed', path)
 
         for doc in marshal(docs):
             path = os.path.join(self.root, doc['key'][1:])
             if doc['type']['key'] == '/type/template':
-                path = path.replace(".tmpl", ".html")
+                path = path.replace('.tmpl', '.html')
                 write(path, doc['body'])
             elif doc['type']['key'] == '/type/macro':
-                path = path + ".html"
+                path = path + '.html'
                 write(path, doc['macro'])
             else:
-                path = path + ".json"
+                path = path + '.json'
                 write(path, json.dumps(doc, indent=2))
 
 
@@ -159,14 +159,14 @@ class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
 
 
 def copy(
-        src: Union[Disk, OpenLibrary],
-        dest: Union[Disk, OpenLibrary],
-        keys: list[str],
-        comment: str,
-        recursive=False,
-        editions=False,
-        saved: set[str] = None,
-        cache: dict =None,
+    src: Union[Disk, OpenLibrary],
+    dest: Union[Disk, OpenLibrary],
+    keys: list[str],
+    comment: str,
+    recursive=False,
+    editions=False,
+    saved: set[str] = None,
+    cache: dict = None,
 ):
     """
     :param src: where we'll be copying form
@@ -212,13 +212,13 @@ def copy(
         unversioned_keys = [pair.key for pair in key_pairs if pair.version is None]
         versioned_to_get = [pair for pair in key_pairs if pair.version is not None]
         if unversioned_keys:
-            print("fetching", unversioned_keys)
+            print('fetching', unversioned_keys)
             docs2 = get_many(unversioned_keys)
             cache.update((doc['key'], doc) for doc in docs2)
             docs.extend(docs2)
         # Do versioned second so they can overwrite if necessary
         if versioned_to_get:
-            print("fetching versioned", versioned_to_get)
+            print('fetching versioned', versioned_to_get)
             docs2 = [src.get(pair.key, int(pair.version)) for pair in versioned_to_get]
             cache.update((doc['key'], doc) for doc in docs2)
             docs.extend(docs2)
@@ -229,17 +229,14 @@ def copy(
         k
         for k in keys
         # Ignore /scan_record and /scanning_center ; they can cause infinite loops?
-        if k not in saved and not k.startswith('/scan')]
+        if k not in saved and not k.startswith('/scan')
+    ]
     docs = fetch(keys)
 
     if editions:
-        work_keys = [
-            key
-            for key in keys
-            if key.startswith('/works/')
-        ]
+        work_keys = [key for key in keys if key.startswith('/works/')]
 
-        assert isinstance(src, OpenLibrary), "fetching editions only works with OL src"
+        assert isinstance(src, OpenLibrary), 'fetching editions only works with OL src'
         if work_keys:
             # eg https://openlibrary.org/search.json?q=key:/works/OL102584W
             resp = src.search(
@@ -248,33 +245,38 @@ def copy(
                 fields=['edition_key'],
             )
             edition_keys = [
-                f"/books/{olid}"
-                for doc in resp['docs']
-                for olid in doc['edition_key']
+                f'/books/{olid}' for doc in resp['docs'] for olid in doc['edition_key']
             ]
             if edition_keys:
-                print("copying edition keys")
-                copy(src, dest, edition_keys, comment, recursive=recursive, saved=saved,
-                     cache=cache)
+                print('copying edition keys')
+                copy(
+                    src,
+                    dest,
+                    edition_keys,
+                    comment,
+                    recursive=recursive,
+                    saved=saved,
+                    cache=cache,
+                )
 
     if recursive:
         refs = get_references(docs)
-        refs = [r for r in set(refs) if not r.startswith(("/type/", "/languages/"))]
+        refs = [r for r in set(refs) if not r.startswith(('/type/', '/languages/'))]
         if refs:
-            print("found references", refs)
+            print('found references', refs)
             copy(src, dest, refs, comment, recursive=True, saved=saved, cache=cache)
 
     docs = [doc for doc in docs if doc['key'] not in saved]
 
     keys = [doc['key'] for doc in docs]
-    print("saving", keys)
+    print('saving', keys)
     # Sometimes saves in-explicably error ; check infobase logs
     # group things up to avoid a bad apple failing the batch
     for group in web.group(docs, 50):
         try:
             print(dest.save_many(group, comment=comment))
         except BaseException:
-            print("Something went wrong saving this batch!")
+            print('Something went wrong saving this batch!')
     saved.update(keys)
 
 
@@ -282,20 +284,20 @@ def copy_list(src, dest, list_key, comment):
     keys = set()
 
     def jsonget(url):
-        url = url.encode("utf-8")
+        url = url.encode('utf-8')
         text = src._request(url).read()
         return json.loads(text)
 
     def get(key):
-        print("get", key)
+        print('get', key)
         return marshal(src.get(list_key))
 
     def query(**q):
-        print("query", q)
+        print('query', q)
         return [x['key'] for x in marshal(src.query(q))]
 
     def get_list_seeds(list_key):
-        d = jsonget(list_key + "/seeds.json")
+        d = jsonget(list_key + '/seeds.json')
         return d['entries']  # [x['url'] for x in d['entries']]
 
     def add_seed(seed):
@@ -311,8 +313,8 @@ def copy_list(src, dest, list_key, comment):
     for seed in seeds:
         add_seed(seed)
 
-    edition_keys = {k for k in keys if k.startswith("/books/")}
-    work_keys = {k for k in keys if k.startswith("/works/")}
+    edition_keys = {k for k in keys if k.startswith('/books/')}
+    work_keys = {k for k in keys if k.startswith('/works/')}
 
     for w in work_keys:
         edition_keys.update(query(type='/type/edition', works=w, limit=500))
@@ -322,15 +324,15 @@ def copy_list(src, dest, list_key, comment):
 
 
 def main(
-        keys: list[str],
-        src="http://openlibrary.org/",
-        dest="http://localhost:8080",
-        comment="",
-        recursive=True,
-        editions=True,
-        lists: list[str] = None,
-        search: str = None,
-        search_limit: int = 10,
+    keys: list[str],
+    src='http://openlibrary.org/',
+    dest='http://localhost:8080',
+    comment='',
+    recursive=True,
+    editions=True,
+    lists: list[str] = None,
+    search: str = None,
+    search_limit: int = 10,
 ):
     """
     Script to copy docs from one OL instance to another.
@@ -357,22 +359,24 @@ def main(
     # Mypy doesn't handle union-ing types across if statements -_-
     # https://github.com/python/mypy/issues/6233
     src_ol: Union[Disk, OpenLibrary] = (
-        OpenLibrary(src) if src.startswith("http://") else Disk(src))
+        OpenLibrary(src) if src.startswith('http://') else Disk(src)
+    )
     dest_ol: Union[Disk, OpenLibrary] = (
-        OpenLibrary(dest) if dest.startswith("http://") else Disk(dest))
+        OpenLibrary(dest) if dest.startswith('http://') else Disk(dest)
+    )
 
     if isinstance(dest_ol, OpenLibrary):
-        section = "[%s]" % web.lstrips(dest, "http://").strip("/")
-        if section in read_lines(os.path.expanduser("~/.olrc")):
+        section = '[%s]' % web.lstrips(dest, 'http://').strip('/')
+        if section in read_lines(os.path.expanduser('~/.olrc')):
             dest_ol.autologin()
         else:
-            dest_ol.login("admin", "admin123")
+            dest_ol.login('admin', 'admin123')
 
-    for list_key in (lists or []):
+    for list_key in lists or []:
         copy_list(src_ol, dest_ol, list_key, comment=comment)
 
     if search:
-        assert isinstance(src_ol, OpenLibrary), "Search only works with OL src"
+        assert isinstance(src_ol, OpenLibrary), 'Search only works with OL src'
         keys += [
             doc['key']
             for doc in src_ol.search(search, limit=search_limit, fields=['key'])['docs']

@@ -20,17 +20,17 @@ from web import DB
 from infogami.infobase.client import Site
 from openlibrary.core import ia
 
-logger = logging.getLogger("openlibrary.solr.data_provider")
+logger = logging.getLogger('openlibrary.solr.data_provider')
 
 IA_METADATA_FIELDS = ('identifier', 'boxid', 'collection', 'access-restricted-item')
 OCAID_PATTERN = re.compile(r'^[^\s&#?/]+$')
 
 
-def get_data_provider(type="default"):
+def get_data_provider(type='default'):
     """Returns the data provider of given type."""
-    if type == "default":
+    if type == 'default':
         return BetterDataProvider()
-    elif type == "legacy":
+    elif type == 'legacy':
         return LegacyDataProvider()
 
 
@@ -139,7 +139,7 @@ class DataProvider:
         try:
             async with httpx.AsyncClient() as client:
                 r = await client.get(
-                    "https://archive.org/advancedsearch.php",
+                    'https://archive.org/advancedsearch.php',
                     timeout=30,  # The default is silly short
                     params={
                         'q': f"identifier:({' OR '.join(ocaids)})",
@@ -153,7 +153,7 @@ class DataProvider:
             r.raise_for_status()
             return r.json()['response']['docs']
         except HTTPError:
-            logger.warning("IA bulk query failed")
+            logger.warning('IA bulk query failed')
         except (ValueError, KeyError):
             logger.warning(f"IA bulk query failed {r.status_code}: {r.json()['error']}")
 
@@ -172,7 +172,7 @@ class DataProvider:
         try:
             async with httpx.AsyncClient() as client:
                 r = await client.get(
-                    f"https://archive.org/metadata/{ocaid}/metadata",
+                    f'https://archive.org/metadata/{ocaid}/metadata',
                     timeout=30,  # The default is silly short
                 )
             r.raise_for_status()
@@ -203,12 +203,12 @@ class DataProvider:
 
     def get_metadata(self, identifier: str):
         if identifier in self.ia_cache:
-            logger.debug("IA metadata cache hit")
+            logger.debug('IA metadata cache hit')
             return self.ia_cache[identifier]
         elif not is_valid_ocaid(identifier):
             return None
         else:
-            logger.debug("IA metadata cache miss")
+            logger.debug('IA metadata cache miss')
             return ia.get_metadata_direct(identifier)
 
     async def preload_documents(self, keys):
@@ -224,7 +224,7 @@ class DataProvider:
     async def preload_metadata(self, ocaids: list[str]):
         invalid_ocaids = {ocaid for ocaid in ocaids if not is_valid_ocaid(ocaid)}
         if invalid_ocaids:
-            logger.warning(f"Trying to cache invalid OCAIDs: {invalid_ocaids}")
+            logger.warning(f'Trying to cache invalid OCAIDs: {invalid_ocaids}')
         valid_ocaids = list(set(ocaids) - invalid_ocaids)
         batches = list(batch_until_len(valid_ocaids, 3000))
         # Start them all async
@@ -287,17 +287,17 @@ class LegacyDataProvider(DataProvider):
 
     def find_redirects(self, key):
         """Returns keys of all things which are redirected to this one."""
-        logger.info("find_redirects %s", key)
+        logger.info('find_redirects %s', key)
         q = {'type': '/type/redirect', 'location': key}
         return [r['key'] for r in self._query_iter(q)]
 
     def get_editions_of_work(self, work):
-        logger.info("find_editions_of_work %s", work['key'])
+        logger.info('find_editions_of_work %s', work['key'])
         q = {'type': '/type/edition', 'works': work['key'], '*': None}
         return list(self._query_iter(q))
 
     async def get_document(self, key):
-        logger.info("get_document %s", key)
+        logger.info('get_document %s', key)
         return self._withKey(key)
 
 
@@ -323,7 +323,7 @@ class ExternalDataProvider(DataProvider):
         return resp['entries']
 
     async def get_document(self, key: str):
-        return requests.get(f"http://{self.ol_host}{key}.json").json()
+        return requests.get(f'http://{self.ol_host}{key}.json').json()
 
 
 class BetterDataProvider(LegacyDataProvider):
@@ -370,15 +370,15 @@ class BetterDataProvider(LegacyDataProvider):
         if key not in self.cache:
             await self.preload_documents([key])
         if key not in self.cache:
-            logger.warn("NOT FOUND %s", key)
-        return self.cache.get(key) or {"key": key, "type": {"key": "/type/delete"}}
+            logger.warn('NOT FOUND %s', key)
+        return self.cache.get(key) or {'key': key, 'type': {'key': '/type/delete'}}
 
     async def preload_documents(self, keys):
         identifiers = [
-            k.replace("/books/ia:", "") for k in keys if k.startswith("/books/ia:")
+            k.replace('/books/ia:', '') for k in keys if k.startswith('/books/ia:')
         ]
         # self.preload_ia_items(identifiers)
-        re_key = web.re_compile(r"/(books|works|authors)/OL\d+[MWA]")
+        re_key = web.re_compile(r'/(books|works|authors)/OL\d+[MWA]')
 
         keys2 = {k for k in keys if re_key.match(k)}
         # keys2.update(k for k in self.ia_redirect_cache.values() if k is not None)
@@ -389,14 +389,14 @@ class BetterDataProvider(LegacyDataProvider):
         await self._preload_metadata_of_editions()
 
         # for all works and authors, find redirects as they'll requested later
-        keys3 = [k for k in self.cache if k.startswith(("/works/", "/authors/"))]
+        keys3 = [k for k in self.cache if k.startswith(('/works/', '/authors/'))]
         self.preload_redirects(keys3)
 
     def preload_documents0(self, keys):
         keys = [k for k in keys if k not in self.cache]
         if not keys:
             return
-        logger.info("preload_documents0 %s", keys)
+        logger.info('preload_documents0 %s', keys)
         for chunk in web.group(keys, 100):
             docs = self.get_site().get_many(list(chunk))
             for doc in docs:
@@ -447,15 +447,15 @@ class BetterDataProvider(LegacyDataProvider):
         keys = [k for k in keys if k not in self.redirect_cache]
         if not keys:
             return
-        logger.info("preload_redirects %s", keys)
+        logger.info('preload_redirects %s', keys)
         for chunk in web.group(keys, 100):
             self._preload_redirects0(list(chunk))
 
     def _preload_redirects0(self, keys):
         query = {
-            "type": "/type/redirect",
-            "location": keys,
-            "a:location": None,  # asking it to fill location in results
+            'type': '/type/redirect',
+            'location': keys,
+            'a:location': None,  # asking it to fill location in results
         }
         for k in keys:
             self.redirect_cache.setdefault(k, [])
@@ -477,7 +477,7 @@ class BetterDataProvider(LegacyDataProvider):
         ]
         if not work_keys:
             return
-        logger.info("preload_editions_of_works %s ..", work_keys[:5])
+        logger.info('preload_editions_of_works %s ..', work_keys[:5])
 
         # Infobase doesn't has a way to do find editions of multiple works at once.
         # Using raw SQL to avoid making individual infobase queries, which is very
@@ -488,12 +488,12 @@ class BetterDataProvider(LegacyDataProvider):
         )
 
         q = (
-            "SELECT edition.key as edition_key, work.key as work_key"
-            + " FROM thing as edition, thing as work, edition_ref"
-            + " WHERE edition_ref.thing_id=edition.id"
-            + "   AND edition_ref.value=work.id"
-            + f"   AND edition_ref.key_id=({key_query})"
-            + "   AND work.key in $keys"
+            'SELECT edition.key as edition_key, work.key as work_key'
+            + ' FROM thing as edition, thing as work, edition_ref'
+            + ' WHERE edition_ref.thing_id=edition.id'
+            + '   AND edition_ref.value=work.id'
+            + f'   AND edition_ref.key_id=({key_query})'
+            + '   AND work.key in $keys'
         )
         result = self.db.query(q, vars=dict(keys=work_keys))
         for row in result:

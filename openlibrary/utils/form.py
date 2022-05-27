@@ -21,7 +21,7 @@ class AttributeList(dict):
         return AttributeList(self)
 
     def __str__(self):
-        return " ".join(f'{k}="{web.websafe(v)}"' for k, v in self.items())
+        return ' '.join(f'{k}="{web.websafe(v)}"' for k, v in self.items())
 
     def __repr__(self):
         return '<attrs: %s>' % repr(str(self))
@@ -30,7 +30,7 @@ class AttributeList(dict):
 class Input:
     def __init__(self, name, description=None, value=None, **kw):
         self.name = name
-        self.description = description or ""
+        self.description = description or ''
         self.value = value
         self.validators = kw.pop('validators', [])
 
@@ -82,7 +82,7 @@ class Textbox(Input):
     """
 
     def get_type(self):
-        return "text"
+        return 'text'
 
 
 class Password(Input):
@@ -93,7 +93,7 @@ class Password(Input):
     """
 
     def get_type(self):
-        return "password"
+        return 'password'
 
 
 class Checkbox(Input):
@@ -104,7 +104,7 @@ class Checkbox(Input):
         return self.value is not None
 
     def get_type(self):
-        return "checkbox"
+        return 'checkbox'
 
     def render(self):
         if self.value is not None:
@@ -120,7 +120,7 @@ class Hidden(Input):
         return True
 
     def get_type(self):
-        return "hidden"
+        return 'hidden'
 
 
 class Form:
@@ -189,10 +189,10 @@ class Validator:
             return False
 
     def __repr__(self):
-        return "<validator: %r >" % self.msg
+        return '<validator: %r >' % self.msg
 
 
-notnull = Validator("Required", bool)
+notnull = Validator('Required', bool)
 
 
 class RegexpValidator(Validator):
@@ -204,7 +204,7 @@ class RegexpValidator(Validator):
         return bool(self.rexp.match(value))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import doctest
 
     doctest.testmod()

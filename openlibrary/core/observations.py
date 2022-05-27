@@ -142,7 +142,7 @@ OBSERVATIONS = {
         {
             'id': 8,
             'label': 'Breadth',
-            'description': "How would you describe the breadth and depth of this book?",
+            'description': 'How would you describe the breadth and depth of this book?',
             'multi_choice': True,
             'order': [7, 8, 9, 10, 11, 12, 13],
             'values': [
@@ -257,7 +257,7 @@ OBSERVATIONS = {
         {
             'id': 11,
             'label': 'Fictionality',
-            'description': "Is this book a work of fact or fiction?",
+            'description': 'Is this book a work of fact or fiction?',
             'multi_choice': False,
             'order': [1, 2, 3],
             'values': [
@@ -270,7 +270,7 @@ OBSERVATIONS = {
         {
             'id': 12,
             'label': 'Audience',
-            'description': "What are the intended age groups for this book?",
+            'description': 'What are the intended age groups for this book?',
             'multi_choice': True,
             'order': [1, 2, 3, 4, 5, 6, 7],
             'values': [
@@ -502,7 +502,7 @@ cache_duration = config.get('observation_cache_duration') or 86400
 
 
 @public
-@cache.memoize(engine="memcache", key="observations", expires=cache_duration)
+@cache.memoize(engine='memcache', key='observations', expires=cache_duration)
 def get_observations():
     """
     Returns a dictionary of observations that are used to populate forms for patron feedback about a book.
@@ -610,7 +610,7 @@ def convert_observation_ids(id_dict):
 
 
 @cache.memoize(
-    engine="memcache", key="all_observation_types_and_values", expires=cache_duration
+    engine='memcache', key='all_observation_types_and_values', expires=cache_duration
 )
 def _get_all_types_and_values():
     """
@@ -746,9 +746,15 @@ def get_observation_metrics(work_olid):
 
 class Observations(db.CommonExtras):
 
-    TABLENAME = "observations"
+    TABLENAME = 'observations'
     NULL_EDITION_VALUE = -1
-    PRIMARY_KEY = ["work_id", "edition_id", "username", "observation_value", "observation_type"]
+    PRIMARY_KEY = [
+        'work_id',
+        'edition_id',
+        'username',
+        'observation_value',
+        'observation_type',
+    ]
     ALLOW_DELETE_ON_CONFLICT = True
 
     @classmethod
@@ -776,17 +782,17 @@ class Observations(db.CommonExtras):
     @classmethod
     def total_reviews(cls, since=None):
         oldb = db.get_db()
-        query = "SELECT COUNT(*) from observations"
+        query = 'SELECT COUNT(*) from observations'
         if since:
-            query += " WHERE created >= $since"
+            query += ' WHERE created >= $since'
         return oldb.query(query, vars={'since': since})[0]['count']
 
     @classmethod
     def total_books_reviewed(cls, since=None):
         oldb = db.get_db()
-        query = "SELECT COUNT(DISTINCT(work_id)) from observations"
+        query = 'SELECT COUNT(DISTINCT(work_id)) from observations'
         if since:
-            query += " WHERE created >= $since"
+            query += ' WHERE created >= $since'
         return oldb.query(query, vars={'since': since})[0]['count']
 
     @classmethod
@@ -803,14 +809,14 @@ class Observations(db.CommonExtras):
             'work_id': work_id,
             'since': since,
         }
-        query = "SELECT COUNT(DISTINCT(username)) FROM observations"
+        query = 'SELECT COUNT(DISTINCT(username)) FROM observations'
 
         if work_id:
-            query += " WHERE work_id = $work_id"
+            query += ' WHERE work_id = $work_id'
             if since:
-                query += " AND created >= $since"
+                query += ' AND created >= $since'
         elif since:
-            query += " WHERE created >= $since"
+            query += ' WHERE created >= $since'
         return oldb.query(query, vars=data)[0]['count']
 
     @classmethod
@@ -942,15 +948,15 @@ class Observations(db.CommonExtras):
             FROM observations
             WHERE observations.username=$username"""
         if work_id:
-            query += " AND work_id=$work_id"
+            query += ' AND work_id=$work_id'
 
         return list(oldb.query(query, vars=data))
 
     @classmethod
     def get_observations_for_work(cls, work_id):
         oldb = db.get_db()
-        query = "SELECT * from observations where work_id=$work_id"
-        return list(oldb.query(query, vars={"work_id": work_id}))
+        query = 'SELECT * from observations where work_id=$work_id'
+        return list(oldb.query(query, vars={'work_id': work_id}))
 
     @classmethod
     def get_observations_grouped_by_work(cls, username, limit=25, page=1):
@@ -1100,7 +1106,8 @@ class Observations(db.CommonExtras):
             type_id = f"{row['observation_type']}"
             value_id = f"{row['observation_value']}"
             row['observation_type'] = types_and_values[type_id]['type']
-            row['observation_value'] = types_and_values[type_id]['values'][value_id]['name']
+            row['observation_value'] = types_and_values[type_id]['values'][value_id][
+                'name'
+            ]
 
         return rows
-

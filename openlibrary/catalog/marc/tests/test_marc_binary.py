@@ -2,7 +2,7 @@ import os
 
 from openlibrary.catalog.marc.marc_binary import BinaryDataField, MarcBinary
 
-test_data = "%s/test_data/bin_input/" % os.path.dirname(__file__)
+test_data = '%s/test_data/bin_input/' % os.path.dirname(__file__)
 
 
 class MockMARC:
