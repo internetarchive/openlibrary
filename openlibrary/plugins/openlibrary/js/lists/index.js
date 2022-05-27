@@ -85,8 +85,10 @@ function addListClickListener(elem, parentDropper) {
         const seedIsSubject = hiddenKeyInput.value[0] !== '/'
         if (isWork) {
             seed = { key: hiddenWorkInput.value }
+        } else if (seedIsSubject) {
+            seed = hiddenKeyInput.value
         } else {
-            seed = seedIsSubject ? hiddenKeyInput.value : { key: hiddenKeyInput.value }
+            seed = { key: hiddenKeyInput.value }
         }
 
         const listKey = elem.dataset.listKey;
