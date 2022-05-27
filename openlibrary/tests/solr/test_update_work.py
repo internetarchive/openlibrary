@@ -440,26 +440,21 @@ class Test_build_data:
         ),
     }
 
-    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "doc_lccs,solr_lccs,sort_lcc_index", LCC_TESTS.values(), ids=LCC_TESTS.keys()
     )
-    async def test_lccs(self, doc_lccs, solr_lccs, sort_lcc_index):
-        work = make_work()
-        update_work.data_provider = FakeDataProvider(
+    def test_lccs(self, doc_lccs, solr_lccs, sort_lcc_index):
+        doc = SolrProcessor.get_lccs(
             [
-                work,
-                make_edition(work, lc_classifications=doc_lccs),
+                make_edition(None, lc_classifications=doc_lccs),
             ]
         )
-        d = await build_data(work)
         if solr_lccs:
-            assert sorted(d.get('lcc')) == solr_lccs
+            assert sorted(doc['lcc']) == solr_lccs
             if sort_lcc_index is not None:
-                assert d.get('lcc_sort') == solr_lccs[sort_lcc_index]
+                assert doc['lcc_sort'] == solr_lccs[sort_lcc_index]
         else:
-            assert 'lcc' not in d
-            assert 'lcc_sort' not in d
+            assert doc == {}
 
     DDC_TESTS = {
         'Remove dupes': (['123.5', '123.5'], ['123.5'], 0),
@@ -482,25 +477,20 @@ class Test_build_data:
         'Skips 092s': (['092', '123.5'], ['123.5'], 0),
     }
 
-    @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "doc_ddcs,solr_ddcs,sort_ddc_index", DDC_TESTS.values(), ids=DDC_TESTS.keys()
     )
-    async def test_ddcs(self, doc_ddcs, solr_ddcs, sort_ddc_index):
-        work = make_work()
-        update_work.data_provider = FakeDataProvider(
+    def test_ddcs(self, doc_ddcs, solr_ddcs, sort_ddc_index):
+        doc = SolrProcessor.get_ddcs(
             [
-                work,
-                make_edition(work, dewey_decimal_class=doc_ddcs),
+                make_edition(None, dewey_decimal_class=doc_ddcs),
             ]
         )
-        d = await build_data(work)
         if solr_ddcs:
-            assert sorted(d.get('ddc')) == solr_ddcs
-            assert d.get('ddc_sort') == solr_ddcs[sort_ddc_index]
+            assert sorted(doc['ddc']) == solr_ddcs
+            assert doc['ddc_sort'] == solr_ddcs[sort_ddc_index]
         else:
-            assert 'ddc' not in d
-            assert 'ddc_sort' not in d
+            assert doc == {}
 
 
 class MockResponse:

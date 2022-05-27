@@ -546,14 +546,14 @@ class SolrProcessor:
         editions: list[dict],
         subjects: dict[str, dict[str, int]],
         ia_metadata: dict[str, Optional['bp.IALiteMetadata']],
-    ) -> dict:
+    ) -> SolrDocument:
         """
         Get the Solr document to insert for the provided work.
 
         :param w: Work
         :param subjects: subject counts grouped by subject_type
         """
-        d = {}
+        d: SolrDocument = {}
 
         def add(name, value):
             if value is not None:
@@ -604,13 +604,36 @@ class SolrProcessor:
             values = {v for e in editions if db_key in e for v in e[db_key]}
             add_list(solr_key, values)
 
+        d |= self.get_lccs(editions)
+        d |= self.get_ddcs(editions)
+
+        add_list("isbn", self.get_isbns(editions))
+        add("last_modified_i", self.get_last_modified(w, editions))
+
+        d |= self.get_ebook_info(editions, ia_metadata)
+
+        # Anand - Oct 2013
+        # If not public scan then add the work to Protected DAISY subject.
+        # This is not the right place to add it, but seems to the quickest way.
+        if d.get('has_fulltext') and not d.get('public_scan_b'):
+            subjects['subject']['Protected DAISY'] = 1
+
+        return d
+
+    @staticmethod
+    def get_lccs(editions: Iterable[dict]) -> SolrDocument:
         raw_lccs = {lcc for ed in editions for lcc in ed.get('lc_classifications', [])}
         lccs = {lcc for lcc in map(short_lcc_to_sortable_lcc, raw_lccs) if lcc}
         if lccs:
-            add_list("lcc", lccs)
-            # Choose the... idk, longest for sorting?
-            add("lcc_sort", choose_sorting_lcc(lccs))
+            return {
+                'lcc': list(lccs),
+                'lcc_sort': choose_sorting_lcc(lccs),
+            }
+        else:
+            return {}
 
+    @staticmethod
+    def get_ddcs(editions: Iterable[dict]) -> SolrDocument:
         def get_edition_ddcs(ed: dict):
             ddcs = ed.get('dewey_decimal_class', [])  # type: List[str]
             if len(ddcs) > 1:
@@ -630,21 +653,12 @@ class SolrProcessor:
         raw_ddcs = {ddc for ed in editions for ddc in get_edition_ddcs(ed)}
         ddcs = {ddc for raw_ddc in raw_ddcs for ddc in normalize_ddc(raw_ddc)}
         if ddcs:
-            add_list("ddc", ddcs)
-            add("ddc_sort", choose_sorting_ddc(ddcs))
-
-        add_list("isbn", self.get_isbns(editions))
-        add("last_modified_i", self.get_last_modified(w, editions))
-
-        d |= self.get_ebook_info(editions, ia_metadata)
-
-        # Anand - Oct 2013
-        # If not public scan then add the work to Protected DAISY subject.
-        # This is not the right place to add it, but seems to the quickest way.
-        if d.get('has_fulltext') and not d.get('public_scan_b'):
-            subjects['subject']['Protected DAISY'] = 1
-
-        return d
+            return {
+                'ddc': list(ddcs),
+                'ddc_sort': choose_sorting_ddc(ddcs),
+            }
+        else:
+            return {}
 
     @staticmethod
     def get_alternate_titles(books: Iterable[dict]) -> set[str]:
@@ -707,11 +721,11 @@ class SolrProcessor:
     def get_ebook_info(
         editions: list[dict],
         ia_metadata: dict[str, Optional['bp.IALiteMetadata']],
-    ) -> dict:
+    ) -> SolrDocument:
         """
         Add ebook information from the editions to the work Solr document.
         """
-        ebook_info: dict[str, Any] = {}
+        ebook_info: SolrDocument = {}
         ia_provider = cast(
             bp.InternetArchiveProvider, bp.get_book_provider_by_name('ia')
         )
