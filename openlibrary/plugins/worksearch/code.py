@@ -22,7 +22,6 @@ from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.plugins.inside.code import fulltext_search
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import get_language_name, urlencode
-from openlibrary.solr.update_work import get_solr_next
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.utils import escape_bracket
 from openlibrary.utils.ddc import (
