@@ -543,7 +543,8 @@ class SaveBookHelper:
         formdata = utils.unflatten(formdata)
         work_data, edition_data = self.process_input(formdata)
 
-        self.process_new_fields(formdata)
+        if not delete:
+            self.process_new_fields(formdata)
 
         saveutil = DocSaveHelper()
 
