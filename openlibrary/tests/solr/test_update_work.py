@@ -183,7 +183,7 @@ class Test_build_data:
             "Bad date 123412314",
         ]
         editions = [make_edition(None, publish_date=date) for date in test_dates]
-        d = SolrProcessor.get_publish_dates(editions)
+        d = SolrProcessor.build_publish_date_data(editions)
         assert sorted(d['publish_year']) == [2000, 2001, 2002, 2003, 2004]
         assert d["first_publish_year"] == 2000
 
@@ -439,7 +439,7 @@ class Test_build_data:
         "doc_lccs,solr_lccs,sort_lcc_index", LCC_TESTS.values(), ids=LCC_TESTS.keys()
     )
     def test_lccs(self, doc_lccs, solr_lccs, sort_lcc_index):
-        doc = SolrProcessor.get_lccs(
+        doc = SolrProcessor.build_lcc_data(
             [
                 make_edition(None, lc_classifications=doc_lccs),
             ]
@@ -476,7 +476,7 @@ class Test_build_data:
         "doc_ddcs,solr_ddcs,sort_ddc_index", DDC_TESTS.values(), ids=DDC_TESTS.keys()
     )
     def test_ddcs(self, doc_ddcs, solr_ddcs, sort_ddc_index):
-        doc = SolrProcessor.get_ddcs(
+        doc = SolrProcessor.build_ddc_data(
             [
                 make_edition(None, dewey_decimal_class=doc_ddcs),
             ]
@@ -681,7 +681,7 @@ class Test_Sort_Editions_Ocaids:
             },
         }
 
-        assert SolrProcessor.get_ebook_info(editions, ia_md)['ia'] == [
+        assert SolrProcessor.build_ebook_data(editions, ia_md)['ia'] == [
             "ocaid_open",
             "ocaid_borrowable",
             "ocaid_printdisabled",
@@ -693,7 +693,7 @@ class Test_Sort_Editions_Ocaids:
             {"key": "/books/OL789M", "ocaid": "foobargoog"},
             {"key": "/books/OL789M", "ocaid": "foobarblah"},
         ]
-        assert SolrProcessor.get_ebook_info(editions, {})['ia'] == [
+        assert SolrProcessor.build_ebook_data(editions, {})['ia'] == [
             "foobarblah",
             "foobargoog",
         ]
@@ -709,7 +709,7 @@ class Test_Sort_Editions_Ocaids:
             "foobarblah": {"collection": ['fav-bluebar', 'blah']},
         }
 
-        doc = SolrProcessor.get_ebook_info(editions, ia_md)
+        doc = SolrProcessor.build_ebook_data(editions, ia_md)
         assert doc['ia_collection_s'] == "americanlibraries;blah"
 
 

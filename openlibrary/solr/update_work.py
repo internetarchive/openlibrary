@@ -580,7 +580,7 @@ class SolrProcessor:
             "by_statement", {e["by_statement"] for e in editions if "by_statement" in e}
         )
 
-        d |= self.get_publish_dates(editions)
+        d |= self.build_publish_date_data(editions)
 
         number_of_pages_median = pick_number_of_pages_median(editions)
         if number_of_pages_median:
@@ -596,13 +596,13 @@ class SolrProcessor:
             values = {v for e in editions if db_key in e for v in e[db_key]}
             add_list(solr_key, values)
 
-        d |= self.get_lccs(editions)
-        d |= self.get_ddcs(editions)
+        d |= self.build_lcc_data(editions)
+        d |= self.build_ddc_data(editions)
 
         add_list("isbn", self.get_isbns(editions))
         add("last_modified_i", self.get_last_modified(w, editions))
 
-        d |= self.get_ebook_info(editions, ia_metadata)
+        d |= self.build_ebook_data(editions, ia_metadata)
 
         # Anand - Oct 2013
         # If not public scan then add the work to Protected DAISY subject.
@@ -613,7 +613,7 @@ class SolrProcessor:
         return d
 
     @staticmethod
-    def get_publish_dates(editions: Iterable[dict]) -> SolrDocument:
+    def build_publish_date_data(editions: Iterable[dict]) -> SolrDocument:
         doc: SolrDocument = {}
         pub_dates = {e['publish_date'] for e in editions if e.get('publish_date')}
         pub_years = {
@@ -630,7 +630,7 @@ class SolrProcessor:
         return doc
 
     @staticmethod
-    def get_lccs(editions: Iterable[dict]) -> SolrDocument:
+    def build_lcc_data(editions: Iterable[dict]) -> SolrDocument:
         raw_lccs = {lcc for ed in editions for lcc in ed.get('lc_classifications', [])}
         lccs = {lcc for lcc in map(short_lcc_to_sortable_lcc, raw_lccs) if lcc}
         if lccs:
@@ -642,7 +642,7 @@ class SolrProcessor:
             return {}
 
     @staticmethod
-    def get_ddcs(editions: Iterable[dict]) -> SolrDocument:
+    def build_ddc_data(editions: Iterable[dict]) -> SolrDocument:
         def get_edition_ddcs(ed: dict):
             ddcs = ed.get('dewey_decimal_class', [])  # type: List[str]
             if len(ddcs) > 1:
@@ -727,7 +727,7 @@ class SolrProcessor:
         )
 
     @staticmethod
-    def get_ebook_info(
+    def build_ebook_data(
         editions: list[dict],
         ia_metadata: dict[str, Optional['bp.IALiteMetadata']],
     ) -> SolrDocument:
