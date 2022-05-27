@@ -113,7 +113,6 @@ $ has_profile = person.get_user() is not None
             <button type="submit" name="action" value="block_account_and_revert" style="float: right; background: #ffbbbb;">block and revert all edits</button>
             <button type="submit" name="action" value="block_account">block this account</button>
             &nbsp;&nbsp;<button type="submit" name="action" value="send_password_reset_email">send password reset email</button>
-            <button type="submit" name="action" value="anonymize_account" style="float: right; background: #ffbbbb;">Anonymize Account</button>
             <br/>
             <br/>
             <div class="small">Registered on <span class="time">$datestr(person.registered_on, relative=False)</span>.</div>
@@ -214,9 +213,24 @@ $ has_profile = person.get_user() is not None
                 <a class="tag $cond(person.has_tag(t), 'active')">$t</a>
         </td>
     </tr>
+    <tr>
+        <td>$_("Anonymize Account:")</td>
+        <td>
+            <form method="POST" id="anonymize-form">
+                <button type="submit" name="action" value="anonymize_account" style="float: right;" onclick="confirmAnonymize(event)">$_("Anonymize Account")</button>
+            </form>
+        </td>
+    </tr>
     </tbody>
   </table>
 
+<script>
+    function confirmAnonymize(event) {
+        if(!confirm('Really anonymize this patron? This will delete the patron\'s profile page and booknotes, and anonymize the patron\'s reading log, reviews, and star ratings.')) {
+            event.preventDefault()
+        }
+    }
+</script>
 
 <h2>$_("Loans")</h2>
 <div>
