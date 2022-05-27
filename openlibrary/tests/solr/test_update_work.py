@@ -171,8 +171,7 @@ class Test_build_data:
         d = await build_data(work)
         assert d['edition_key'] == ["OL1M", "OL2M", "OL3M"]
 
-    @pytest.mark.asyncio
-    async def test_publish_year(self):
+    def test_publish_year(self):
         test_dates = [
             "2000",
             "Another 2000",
@@ -183,13 +182,9 @@ class Test_build_data:
             "Bad date 12",
             "Bad date 123412314",
         ]
-        work = make_work()
-        update_work.data_provider = FakeDataProvider(
-            [work] + [make_edition(work, publish_date=date) for date in test_dates]
-        )
-
-        d = await build_data(work)
-        assert sorted(d['publish_year']) == ["2000", "2001", "2002", "2003", "2004"]
+        editions = [make_edition(None, publish_date=date) for date in test_dates]
+        d = SolrProcessor.get_publish_dates(editions)
+        assert sorted(d['publish_year']) == [2000, 2001, 2002, 2003, 2004]
         assert d["first_publish_year"] == 2000
 
     @pytest.mark.asyncio

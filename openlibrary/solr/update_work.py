@@ -325,7 +325,7 @@ class SolrProcessor:
         :rtype: list[dict]
         """
         for e in editions:
-            pub_year = self.get_pub_year(e)
+            pub_year = SolrProcessor.get_pub_year(e)
             if pub_year:
                 e['pub_year'] = pub_year
 
@@ -472,19 +472,20 @@ class SolrProcessor:
 
         return authors
 
-    def get_pub_year(self, e):
+    @staticmethod
+    def get_pub_year(e: dict) -> Optional[int]:
         """
         Get the year the given edition was published.
-
-        :param dict e: Full edition dict
-        :return: Year edition was published
-        :rtype: str or None
         """
         pub_date = e.get('publish_date', None)
-        if pub_date:
-            m = re_year.search(pub_date)
-            if m:
-                return m.group(1)
+        if not pub_date:
+            return None
+
+        m = re_year.search(pub_date)
+        if not m:
+            return None
+
+        return int(m.group(1))
 
     def get_subject_counts(self, w, editions, has_fulltext):
         """
@@ -579,16 +580,7 @@ class SolrProcessor:
             "by_statement", {e["by_statement"] for e in editions if "by_statement" in e}
         )
 
-        k = 'publish_date'
-        pub_dates = {e[k] for e in editions if e.get(k)}
-        add_list(k, pub_dates)
-        pub_years = {self.get_pub_year(e) for e in editions}
-        pub_years = pub_years - {
-            None,
-        }
-        if pub_years:
-            add_list('publish_year', pub_years)
-            add('first_publish_year', min(int(y) for y in pub_years))
+        d |= self.get_publish_dates(editions)
 
         number_of_pages_median = pick_number_of_pages_median(editions)
         if number_of_pages_median:
@@ -619,6 +611,23 @@ class SolrProcessor:
             subjects['subject']['Protected DAISY'] = 1
 
         return d
+
+    @staticmethod
+    def get_publish_dates(editions: Iterable[dict]) -> SolrDocument:
+        doc: SolrDocument = {}
+        pub_dates = {e['publish_date'] for e in editions if e.get('publish_date')}
+        pub_years = {
+            year
+            for year in map(SolrProcessor.get_pub_year, editions)
+            if year is not None
+        }
+        if pub_dates:
+            doc['publish_date'] = list(pub_dates)
+        if pub_years:
+            doc['publish_year'] = list(pub_years)
+            doc['first_publish_year'] = min(pub_years)
+
+        return doc
 
     @staticmethod
     def get_lccs(editions: Iterable[dict]) -> SolrDocument:
