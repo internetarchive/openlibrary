@@ -45,7 +45,7 @@ def convert_pressbooks_to_ol(data):
         book['languages'] = [langs[data['languageCode'].split('-', 1)[0]]]
     if data.get('author'):
         book['authors'] = [{"name": a} for a in data.get('author')]
-    if data.get('image'):
+    if data.get('image') and not data['image'].endswith('default-book-cover.jpg'):
         book['cover'] = data['image']
     description = (
         (data.get('description') or '')
