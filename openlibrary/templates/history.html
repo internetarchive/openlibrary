@@ -78,9 +78,9 @@ $ rev = page.latest_revision or page.revision
         <div class="sansserif">
         $ page = safeint(query_param("page", "0"))
         $if page != 0:
-            <a href="$:changequery(page=page - 1)" rel="nofollow">&larr; $_("Back")</a>
+            <a href="$changequery(page=page - 1)" rel="nofollow">&larr; $_("Back")</a>
         $if len(h) == 20:
-            <a href="$:changequery(page=page + 1)" rel="nofollow">$_("Next") &rarr;</a>
+            <a href="$changequery(page=page + 1)" rel="nofollow">$_("Next") &rarr;</a>
         </div>
 
 </div>

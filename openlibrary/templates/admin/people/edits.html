@@ -90,9 +90,9 @@ $def call_template(name, change):
 $if paginate:
     <div class="historyPager small sansserif gray">
         $if len(changes) == limit:
-            <a href="$:changequery(page=page + 1)" rel="nofollow">&larr; $_("Older")</a>
+            <a href="$changequery(page=page + 1)" rel="nofollow">&larr; $_("Older")</a>
         $if page > 1:
              &nbsp;|&nbsp;
-            <a href="$:changequery(page=page - 1)" rel="nofollow">$_("Newer") &rarr;</a>
+            <a href="$changequery(page=page - 1)" rel="nofollow">$_("Newer") &rarr;</a>
     </div>
 </div>
