@@ -330,9 +330,6 @@ class Account(web.storage):
         self._save()
 
     def anonymize(self, test=False):
-        for i in range(10):
-            logger.info(f'random uuid: {generate_uuid()}')
-
         # Generate new unique username for patron:
         # Note: Cannot test get_activation_link() locally
         uuid = self.get_activation_link()['code'] if self.get_activation_link() else generate_uuid()
@@ -347,18 +344,27 @@ class Account(web.storage):
         results['observations_count'] = Observations.update_username(self.username, new_username, _test=test)
         results['bookshelves_count'] = Bookshelves.update_username(self.username, new_username, _test=test)
 
-        patron = self.get_user()
+        if not test:
+            patron = self.get_user()
+            email = self.email
+            username = self.username
 
-        # Remove patron from all usergroups:
-        for grp in patron.usergroups:
-            grp.remove_user(patron.key)
+            # Remove patron from all usergroups:
+            for grp in patron.usergroups:
+                grp.remove_user(patron.key)
 
-        # Set preferences to default:
-        patron.save_preferences(patron.DEFAULT_PREFERENCES, msg='Reset preferences to default')
+            # Set preferences to default:
+            patron.save_preferences(patron.DEFAULT_PREFERENCES, msg='Reset preferences to default')
 
-        # Clear patron's profile page:
-        data = {'key': patron.key, 'type': '/type/delete'}
-        patron.set_data(data)
+            # Clear patron's profile page:
+            data = {'key': patron.key, 'type': '/type/delete'}
+            patron.set_data(data)
+
+            # Remove account information from store:
+            del web.ctx.site.store[f'account/{username}']
+            del web.ctx.site.store[f'account/{username}/verify']
+            del web.ctx.site.store[f'account/{username}/password']
+            del web.ctx.site.store[f'account-email/{email}']
 
         return results
 
