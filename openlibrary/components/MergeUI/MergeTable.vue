@@ -243,7 +243,7 @@ export default {
 </script>
 
 <style lang="less">
-@row-height: 100px;
+@row-height: 105px;
 @row-padding: 8px;
 @table-background: rgb(248, 248, 248);
 @selection-background: rgb(220, 224, 238);
@@ -431,7 +431,7 @@ li.excerpt-item {
   .field-container {
     min-height: 16px;
     padding: 4px;
-    border-bottom: 4px solid @table-background;
+    border-bottom: 2px solid @table-background;
     flex: 1 1 auto;
     &:last-child{
         border-bottom: 0;
@@ -495,6 +495,10 @@ td.col-editions div.td-container {
   & > div {
     padding-bottom: @row-padding;
   }
+}
+
+div.field-links li {
+  margin-bottom: 8px;
 }
 
 .bookshelf-counts span:not(:first-child)::before {
