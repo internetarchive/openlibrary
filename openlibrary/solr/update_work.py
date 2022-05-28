@@ -556,14 +556,13 @@ class SolrProcessor:
             add('number_of_pages_median', number_of_pages_median)
 
         if get_solr_next():
-            add_list("editions", [
-                build_edition_data(ed, {
-                    **(
-                        {'collection': list(ed['ia_collection'])}
-                        if 'ia_collection' in ed else {}),
-                })
-                for ed in editions
-            ])
+            add_list(
+                "editions",
+                [
+                    build_edition_data(ed, ia_metadata.get(ed.get('ocaid', '').strip()))
+                    for ed in editions
+                ],
+            )
 
         field_map = [
             ('lccn', 'lccn'),
@@ -668,33 +667,21 @@ class SolrProcessor:
             bp.InternetArchiveProvider, bp.get_book_provider_by_name('ia')
         )
 
-        # Default values
-        best_access = bp.EbookAccess.NO_EBOOK
-        ebook_count = 0
+        solr_editions = [
+            EditionSolrBuilder(e, ia_metadata.get(e.get('ocaid', '').strip()))
+            for e in editions
+        ]
 
-        for edition in editions:
-            provider = bp.get_book_provider(edition)
-            if provider is None:
-                continue
-
-            if provider == ia_provider:
-                access = provider.get_access(
-                    edition, ia_metadata.get(edition['ocaid'].strip())
-                )
-            else:
-                access = provider.get_access(edition)
-
-            if access > best_access:
-                best_access = access
-
-            if access > bp.EbookAccess.UNCLASSIFIED:
-                ebook_count += 1
-
-        ebook_info["ebook_count_i"] = ebook_count
+        ebook_info["ebook_count_i"] = sum(
+            1 for e in solr_editions if e.ebook_access > bp.EbookAccess.UNCLASSIFIED
+        )
         if get_solr_next():
-            ebook_info["ebook_access"] = best_access.to_solr_str()
-        ebook_info["has_fulltext"] = best_access > bp.EbookAccess.UNCLASSIFIED
-        ebook_info["public_scan_b"] = best_access == bp.EbookAccess.PUBLIC
+            ebook_info["ebook_access"] = max(
+                (e.ebook_access for e in solr_editions),
+                default=bp.EbookAccess.NO_EBOOK,
+            ).to_solr_str()
+        ebook_info["has_fulltext"] = any(e.has_fulltext for e in solr_editions)
+        ebook_info["public_scan_b"] = any(e.public_scan_b for e in solr_editions)
 
         # IA-specific stuff
 
@@ -714,14 +701,7 @@ class SolrProcessor:
 
         if ia_eds:
             all_collection = sorted(
-                uniq(
-                    c
-                    for md in ia_metadata.values()
-                    if md
-                    for c in md.get('collection', [])
-                    # Exclude fav-* collections because they're not useful to us.
-                    if not c.startswith('fav-')
-                )
+                uniq(c for e in solr_editions for c in e.ia_collection)
             )
             if all_collection:
                 ebook_info['ia_collection'] = all_collection

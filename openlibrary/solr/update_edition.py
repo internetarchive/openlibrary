@@ -1,7 +1,9 @@
+from functools import cached_property
 import logging
 import re
 from typing import cast, Optional
 
+import openlibrary.book_providers as bp
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.utils import uniq
 from openlibrary.utils.isbn import opposite_isbn
@@ -22,9 +24,10 @@ def is_sine_nomine(pub: str) -> bool:
 
 
 class EditionSolrBuilder:
-    def __init__(self, edition: dict, ia_metadata: dict = None):
+    def __init__(self, edition: dict, ia_metadata: bp.IALiteMetadata = None):
         self.edition = edition
         self.ia_metadata = ia_metadata
+        self.provider = bp.get_book_provider(edition)
 
     def get(self, key: str, default=None):
         return self.edition.get(key, default)
@@ -111,15 +114,14 @@ class EditionSolrBuilder:
 
     @property
     def ia_collection(self) -> list[str]:
-        if self.ia_metadata:
-            return self.ia_metadata.get('collection') or []
-        else:
-            return []
+        collections = self.ia_metadata['collection'] if self.ia_metadata else set()
+        # Exclude fav-* collections because they're not useful to us.
+        return [c for c in collections if not c.startswith('fav-')]
 
     @property
     def ia_box_id(self) -> list[str]:
         if self.ia_metadata:
-            return self.ia_metadata.get('boxid') or []
+            return list(self.ia_metadata.get('boxid') or [])
         else:
             return []
 
@@ -145,8 +147,28 @@ class EditionSolrBuilder:
             identifiers[f'id_{solr_key}'] = uniq(v.strip() for v in id_list)
         return identifiers
 
+    @cached_property
+    def ebook_access(self) -> bp.EbookAccess:
+        if not self.provider:
+            return bp.EbookAccess.NO_EBOOK
+        elif isinstance(self.provider, bp.InternetArchiveProvider):
+            return self.provider.get_access(self.edition, self.ia_metadata)
+        else:
+            return self.provider.get_access(self.edition)
 
-def build_edition_data(edition: dict, ia_metadata: dict) -> SolrDocument:
+    @property
+    def has_fulltext(self) -> bool:
+        return self.ebook_access > bp.EbookAccess.UNCLASSIFIED
+
+    @property
+    def public_scan_b(self) -> bool:
+        return self.ebook_access == bp.EbookAccess.PUBLIC
+
+
+def build_edition_data(
+    edition: dict,
+    ia_metadata: bp.IALiteMetadata = None,
+) -> SolrDocument:
     """
     Build the solr document for the given edition to store as a nested
     document
@@ -175,6 +197,10 @@ def build_edition_data(edition: dict, ia_metadata: dict) -> SolrDocument:
         'ia': [ed.ia] if ed.ia else None,
         'ia_collection': ed.ia_collection,
         'ia_box_id': ed.ia_box_id,
+        # Ebook access
+        'ebook_access': ed.ebook_access.to_solr_str(),
+        'has_fulltext': ed.has_fulltext,
+        'public_scan_b': ed.public_scan_b,
     })
 
     return cast(SolrDocument, {
