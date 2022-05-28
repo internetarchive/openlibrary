@@ -20,7 +20,8 @@ repos:
     rev: v4.2.0
     hooks:
       - id: check-yaml
-      # - id: end-of-file-fixer
+      - id: double-quote-string-fixer  # enabling this will modified many Python files
+      # - id: end-of-file-fixer  # enabling this fixer will modify 400+ of files!
       - id: requirements-txt-fixer
       - id: trailing-whitespace
         args:
