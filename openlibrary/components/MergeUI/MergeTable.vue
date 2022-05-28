@@ -60,10 +60,12 @@ function fetchRecord(olid) {
         M: 'books',
         A: 'authors'
     }[olid[olid.length - 1]];
-    const endpoint = `/${type}/${olid}.json`;
+    const record_key = `/${type}/${olid}`;
     // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
-    const url = location.host.endsWith('.openlibrary.org') ? `https://openlibrary.org${endpoint}` : endpoint;
-    return fetch(url).then(r => r.json());
+    const url = location.host.endsWith('.openlibrary.org') ? `https://openlibrary.org${record_key}.json` : `${record_key}.json`;
+    return fetch(url).then(r => {
+        return (r.ok) ? r.json() : {key: record_key, type: {key: '/type/none'}, error: r.statusText};
+    });
 }
 
 export default {
