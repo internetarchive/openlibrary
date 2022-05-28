@@ -12,7 +12,7 @@ re_subtag = re.compile('\x1f(.)([^\x1f]*)')
 
 def fmt_subfields(line):
     def bold(s):
-        return ''.join(c + "\b" + c for c in s)
+        return ''.join(c + '\b' + c for c in s)
 
     assert line[-1] == '\x1e'
     return ''.join(

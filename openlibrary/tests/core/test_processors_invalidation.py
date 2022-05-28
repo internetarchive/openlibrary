@@ -31,18 +31,18 @@ class TestInvalidationProcessor:
         """When a document is saved, cookie must be set with its timestamp."""
         self._monkeypatch_web(monkeypatch)
 
-        doc = {"key": "/templates/site.tmpl", "type": "/type/template"}
+        doc = {'key': '/templates/site.tmpl', 'type': '/type/template'}
         web.ctx.site.save(doc, timestamp=datetime.datetime(2010, 1, 1))
 
         hook = invalidation._InvalidationHook(
-            "/templates/site.tmpl", cookie_name="invalidation-cookie", expire_time=120
+            '/templates/site.tmpl', cookie_name='invalidation-cookie', expire_time=120
         )
         hook.on_new_version(web.ctx.site.get(doc['key']))
 
         assert self.cookie == {
-            "name": "invalidation-cookie",
-            "value": "2010-01-01T00:00:00",
-            "expires": 120,
+            'name': 'invalidation-cookie',
+            'value': '2010-01-01T00:00:00',
+            'expires': 120,
         }
 
     def test_reload(self, monkeypatch):
@@ -54,7 +54,7 @@ class TestInvalidationProcessor:
         p = invalidation.InvalidationProcessor(prefixes=['/templates/'])
 
         # save a doc after creating the processor
-        doc = {"key": "/templates/site.tmpl", "type": "/type/template"}
+        doc = {'key': '/templates/site.tmpl', 'type': '/type/template'}
         web.ctx.site.save(doc)
 
         # reload and make sure the hook gets called
@@ -63,18 +63,18 @@ class TestInvalidationProcessor:
         assert self.hook.call_count == 1
         assert (
             self.hook.recent_doc.dict()
-            == web.ctx.site.get("/templates/site.tmpl").dict()
+            == web.ctx.site.get('/templates/site.tmpl').dict()
         )
 
         # last_update_time must get updated
         assert (
-            p.last_update_time == web.ctx.site.get("/templates/site.tmpl").last_modified
+            p.last_update_time == web.ctx.site.get('/templates/site.tmpl').last_modified
         )
 
     def test_reload_on_timeout(self, monkeypatch):
         # create the processor at 60 seconds past in time
         mock_now = datetime.datetime.utcnow() - datetime.timedelta(seconds=60)
-        monkeypatch.setattr(datetime, "datetime", MockDatetime(mock_now))
+        monkeypatch.setattr(datetime, 'datetime', MockDatetime(mock_now))
 
         p = invalidation.InvalidationProcessor(prefixes=['/templates'], timeout=60)
 
@@ -86,7 +86,7 @@ class TestInvalidationProcessor:
         self._monkeypatch_hooks(monkeypatch)
 
         # save a doc
-        doc = {"key": "/templates/site.tmpl", "type": "/type/template"}
+        doc = {'key': '/templates/site.tmpl', 'type': '/type/template'}
         web.ctx.site.save(doc)
 
         # call the processor
@@ -94,13 +94,13 @@ class TestInvalidationProcessor:
         assert self.hook.call_count == 1
         assert (
             self.hook.recent_doc.dict()
-            == web.ctx.site.get("/templates/site.tmpl").dict()
+            == web.ctx.site.get('/templates/site.tmpl').dict()
         )
 
     def test_is_timeout(self, monkeypatch):
         # create the processor at 60 seconds past in time
         mock_now = datetime.datetime.utcnow() - datetime.timedelta(seconds=60)
-        monkeypatch.setattr(datetime, "datetime", MockDatetime(mock_now))
+        monkeypatch.setattr(datetime, 'datetime', MockDatetime(mock_now))
 
         p = invalidation.InvalidationProcessor(prefixes=['/templates'], timeout=60)
 
@@ -121,11 +121,11 @@ class TestInvalidationProcessor:
         self._monkeypatch_hooks(monkeypatch)
 
         p = invalidation.InvalidationProcessor(
-            prefixes=['/templates'], cookie_name="invalidation_cookie"
+            prefixes=['/templates'], cookie_name='invalidation_cookie'
         )
 
         # save a doc
-        doc = {"key": "/templates/site.tmpl", "type": "/type/template"}
+        doc = {'key': '/templates/site.tmpl', 'type': '/type/template'}
         web.ctx.site.save(doc)
 
         # call the processor
@@ -135,10 +135,10 @@ class TestInvalidationProcessor:
         assert self.hook.call_count == 0
 
         web.ctx.env['HTTP_COOKIE'] = (
-            "invalidation_cookie=" + datetime.datetime.utcnow().isoformat()
+            'invalidation_cookie=' + datetime.datetime.utcnow().isoformat()
         )
         # Clear parsed cookie cache to force our new value to be parsed
-        if "_parsed_cookies" in web.ctx:
+        if '_parsed_cookies' in web.ctx:
             del web.ctx._parsed_cookies
         p(lambda: None)
 
@@ -146,7 +146,7 @@ class TestInvalidationProcessor:
         assert self.hook.call_count == 1
         assert (
             self.hook.recent_doc.dict()
-            == web.ctx.site.get("/templates/site.tmpl").dict()
+            == web.ctx.site.get('/templates/site.tmpl').dict()
         )
 
     def test_setcookie_after_reload(self, monkeypatch):
@@ -154,11 +154,11 @@ class TestInvalidationProcessor:
         self._monkeypatch_hooks(monkeypatch)
 
         p = invalidation.InvalidationProcessor(
-            prefixes=['/templates'], cookie_name="invalidation_cookie", timeout=60
+            prefixes=['/templates'], cookie_name='invalidation_cookie', timeout=60
         )
 
         # save a doc
-        doc = {"key": "/templates/site.tmpl", "type": "/type/template"}
+        doc = {'key': '/templates/site.tmpl', 'type': '/type/template'}
         web.ctx.site.save(doc)
 
         p.reload()
@@ -167,9 +167,9 @@ class TestInvalidationProcessor:
         p(lambda: None)
 
         assert self.cookie == {
-            "name": "invalidation_cookie",
-            "expires": p.expire_time,
-            "value": web.ctx.site.get("/templates/site.tmpl").last_modified.isoformat(),
+            'name': 'invalidation_cookie',
+            'expires': p.expire_time,
+            'value': web.ctx.site.get('/templates/site.tmpl').last_modified.isoformat(),
         }
 
     def _load_fake_context(self):
@@ -178,8 +178,8 @@ class TestInvalidationProcessor:
         app.load(env)
 
     def _monkeypatch_web(self, monkeypatch):
-        monkeypatch.setattr(web, "ctx", web.storage(x=1))
-        monkeypatch.setattr(web.webapi, "ctx", web.ctx)
+        monkeypatch.setattr(web, 'ctx', web.storage(x=1))
+        monkeypatch.setattr(web.webapi, 'ctx', web.ctx)
 
         self._load_fake_context()
         web.ctx.site = MockSite()
@@ -187,8 +187,8 @@ class TestInvalidationProcessor:
         def setcookie(name, value, expires):
             self.cookie = dict(name=name, value=value, expires=expires)
 
-        monkeypatch.setattr(web, "setcookie", setcookie)
+        monkeypatch.setattr(web, 'setcookie', setcookie)
 
     def _monkeypatch_hooks(self, monkeypatch):
         self.hook = MockHook()
-        monkeypatch.setattr(client, "hooks", [self.hook])
+        monkeypatch.setattr(client, 'hooks', [self.hook])

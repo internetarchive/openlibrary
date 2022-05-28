@@ -10,7 +10,7 @@ query_host = 'openlibrary.org'
 
 
 def urlopen(url, data=None):
-    version = "%s.%s.%s" % sys.version_info[:3]
+    version = '%s.%s.%s' % sys.version_info[:3]
     user_agent = f'Mozilla/5.0 (openlibrary; {__name__}) Python/{version}'
     headers = {'User-Agent': user_agent}
 
@@ -47,11 +47,11 @@ def has_cover_retry(key):
 
 
 def base_url():
-    return "http://" + query_host
+    return 'http://' + query_host
 
 
 def query_url():
-    return base_url() + "/query.json?query="
+    return base_url() + '/query.json?query='
 
 
 def get_all_ia():
@@ -62,7 +62,7 @@ def get_all_ia():
     q['offset'] = 0
 
     while True:
-        url = base_url() + "/api/things?query=" + web.urlquote(json.dumps(q))
+        url = base_url() + '/api/things?query=' + web.urlquote(json.dumps(q))
         ret = jsonload(url)['result']
         yield from ret
         if not ret:

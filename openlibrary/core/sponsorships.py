@@ -28,7 +28,7 @@ except ImportError:
         return False
 
 
-logger = logging.getLogger("openlibrary.sponsorship")
+logger = logging.getLogger('openlibrary.sponsorship')
 SETUP_COST_CENTS = 300
 PAGE_COST_CENTS = 12
 
@@ -104,7 +104,7 @@ def do_we_want_it(isbn):
         dwwi = data.get('response', 0)
         return dwwi == 1, data.get('books', [])
     except:
-        logger.error("DWWI Failed for isbn %s" % isbn, exc_info=True)
+        logger.error('DWWI Failed for isbn %s' % isbn, exc_info=True)
     # err on the side of false negative
     return False, []
 
@@ -163,7 +163,7 @@ def qualifies_for_sponsorship(edition, scan_only=False, donate_only=False, patro
         }
         return resp
 
-    work_id = edition.works[0].key.split("/")[-1]
+    work_id = edition.works[0].key.split('/')[-1]
     edition_id = edition.key.split('/')[-1]
     dwwi, matches = do_we_want_it(edition.isbn)
     if dwwi:
@@ -232,25 +232,25 @@ def sync_completed_sponsored_books(dryrun=False):
         book.ocaid = ocaid_lookup[book.key]
         with accounts.RunAs('ImportBot'):
             if not dryrun:
-                web.ctx.site.save(book.dict(), "Adding ocaid for completed sponsorship")
+                web.ctx.site.save(book.dict(), 'Adding ocaid for completed sponsorship')
             fixed.append({'key': book.key, 'ocaid': book.ocaid})
             # TODO: send out an email?... Requires Civi.
-            if book.ocaid.startswith("isbn_"):
-                isbn = book.ocaid.split("_")[-1]
+            if book.ocaid.startswith('isbn_'):
+                isbn = book.ocaid.split('_')[-1]
                 sponsorship = get_sponsorship_by_isbn(isbn)
-                contact = sponsorship and sponsorship.get("contact")
-                email = contact and contact.get("email")
+                contact = sponsorship and sponsorship.get('contact')
+                email = contact and contact.get('email')
                 if not dryrun and email:
                     email_sponsor(email, book)
     return json.dumps(fixed)
 
 
-def email_sponsor(recipient, book, bcc="mek@archive.org"):
+def email_sponsor(recipient, book, bcc='mek@archive.org'):
     url = 'https://openlibrary.org%s' % book.key
     resp = web.sendmail(
-        "openlibrary@archive.org",
+        'openlibrary@archive.org',
         recipient,
-        "Internet Archive: Your Open Library Book Sponsorship is Ready",
+        'Internet Archive: Your Open Library Book Sponsorship is Ready',
         (
             '<p>'
             + f'<a href="{url}">{book.title}</a> '

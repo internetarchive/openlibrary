@@ -8,7 +8,7 @@ from openlibrary.core.lending import get_availability_of_ocaids
 from openlibrary.plugins.openlibrary.home import format_book_data
 from urllib.parse import urlencode
 
-logger = logging.getLogger("openlibrary.inside")
+logger = logging.getLogger('openlibrary.inside')
 
 
 def fulltext_search_api(params):

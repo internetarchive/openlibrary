@@ -13,11 +13,11 @@ from openlibrary.core import ia
 import logging
 
 
-logger = logging.getLogger("openlibrary")
+logger = logging.getLogger('openlibrary')
 
 
 class ConnectionMiddleware:
-    response_type = "json"
+    response_type = 'json'
 
     def __init__(self, conn):
         self.conn = conn
@@ -45,22 +45,22 @@ class ConnectionMiddleware:
             return self.save(sitename, path, data)
         elif path == '/save_many':
             return self.save_many(sitename, data)
-        elif path.startswith("/_store/") and not path.startswith("/_store/_"):
+        elif path.startswith('/_store/') and not path.startswith('/_store/_'):
             if method == 'GET':
                 return self.store_get(sitename, path)
             elif method == 'PUT':
                 return self.store_put(sitename, path, data)
             elif method == 'DELETE':
                 return self.store_delete(sitename, path, data)
-        elif path == "/_store/_save_many" and method == 'POST':
+        elif path == '/_store/_save_many' and method == 'POST':
             # save multiple things at once
             return self.store_put_many(sitename, data)
-        elif path.startswith("/account"):
+        elif path.startswith('/account'):
             return self.account_request(sitename, path, method, data)
 
         return self.conn.request(sitename, path, method, data)
 
-    def account_request(self, sitename, path, method="GET", data=None):
+    def account_request(self, sitename, path, method='GET', data=None):
         return self.conn.request(sitename, path, method, data)
 
     def get(self, sitename, data):
@@ -99,7 +99,7 @@ class ConnectionMiddleware:
         return self.conn.request(sitename, path, 'PUT', data)
 
     def store_put_many(self, sitename, data):
-        return self.conn.request(sitename, "/_store/_save_many", 'POST', data)
+        return self.conn.request(sitename, '/_store/_save_many', 'POST', data)
 
     def store_delete(self, sitename, path, data):
         return self.conn.request(sitename, path, 'DELETE', data)
@@ -115,8 +115,8 @@ class IAMiddleware(ConnectionMiddleware):
         If the key is of the form "/books/ia:.*", the part ofter "/books/ia:"
         is returned, otherwise None is returned.
         """
-        if key and key.startswith("/books/ia:") and key.count("/") == 2:
-            return key[len("/books/ia:") :]
+        if key and key.startswith('/books/ia:') and key.count('/') == 2:
+            return key[len('/books/ia:') :]
 
     def get(self, sitename, data):
         key = data.get('key')
@@ -140,9 +140,9 @@ class IAMiddleware(ConnectionMiddleware):
                     self._ensure_no_store_entry(sitename, itemid)
 
                     raise client.ClientException(
-                        "404 Not Found",
-                        "notfound",
-                        json.dumps({"key": "/books/ia:" + itemid, "error": "notfound"}),
+                        '404 Not Found',
+                        'notfound',
+                        json.dumps({'key': '/books/ia:' + itemid, 'error': 'notfound'}),
                     )
 
                 storedoc = self._ensure_store_entry(sitename, itemid)
@@ -150,17 +150,17 @@ class IAMiddleware(ConnectionMiddleware):
                 # Hack to add additional subjects /books/ia: pages
                 # Adding subjects to store docs, will add these subjects to the books.
                 # These subjects are used when indexing the books in solr.
-                if storedoc.get("subjects"):
-                    doc.setdefault("subjects", []).extend(storedoc['subjects'])
+                if storedoc.get('subjects'):
+                    doc.setdefault('subjects', []).extend(storedoc['subjects'])
                 return json.dumps(doc)
         else:
             return ConnectionMiddleware.get(self, sitename, data)
 
     def _find_edition(self, sitename, itemid):
         # match ocaid
-        q = {"type": "/type/edition", "ocaid": itemid}
+        q = {'type': '/type/edition', 'ocaid': itemid}
         keys_json = ConnectionMiddleware.things(
-            self, sitename, {"query": json.dumps(q)}
+            self, sitename, {'query': json.dumps(q)}
         )
         keys = json.loads(keys_json)
         if keys:
@@ -168,57 +168,57 @@ class IAMiddleware(ConnectionMiddleware):
 
         # Match source_records
         # When there are multiple scan for the same edition, only scan_records is updated.
-        q = {"type": "/type/edition", "source_records": "ia:" + itemid}
+        q = {'type': '/type/edition', 'source_records': 'ia:' + itemid}
         keys_json = ConnectionMiddleware.things(
-            self, sitename, {"query": json.dumps(q)}
+            self, sitename, {'query': json.dumps(q)}
         )
         keys = json.loads(keys_json)
         if keys:
             return keys[0]
 
     def _make_redirect(self, itemid, location):
-        timestamp = {"type": "/type/datetime", "value": "2010-01-01T00:00:00"}
+        timestamp = {'type': '/type/datetime', 'value': '2010-01-01T00:00:00'}
         d = {
-            "key": "/books/ia:" + itemid,
-            "type": {"key": "/type/redirect"},
-            "location": location,
-            "revision": 1,
-            "created": timestamp,
-            "last_modified": timestamp,
+            'key': '/books/ia:' + itemid,
+            'type': {'key': '/type/redirect'},
+            'location': location,
+            'revision': 1,
+            'created': timestamp,
+            'last_modified': timestamp,
         }
         return json.dumps(d)
 
     def _ensure_no_store_entry(self, sitename, identifier):
-        key = "ia-scan/" + identifier
-        store_key = "/_store/" + key
+        key = 'ia-scan/' + identifier
+        store_key = '/_store/' + key
         # If the entry is not found, create an entry
         try:
             jsontext = self.store_get(sitename, store_key)
-            self.store_delete(sitename, store_key, {"_rev": None})
+            self.store_delete(sitename, store_key, {'_rev': None})
         except client.ClientException as e:
             # nothing to do if that doesn't exist
             pass
 
     def _ensure_store_entry(self, sitename, identifier):
-        key = "ia-scan/" + identifier
-        store_key = "/_store/" + key
+        key = 'ia-scan/' + identifier
+        store_key = '/_store/' + key
         # If the entry is not found, create an entry
         try:
             jsontext = self.store_get(sitename, store_key)
             return json.loads(jsontext)
         except client.ClientException as e:
-            logger.error("error", exc_info=True)
-            if e.status.startswith("404"):
+            logger.error('error', exc_info=True)
+            if e.status.startswith('404'):
                 doc = {
-                    "_key": key,
-                    "type": "ia-scan",
-                    "identifier": identifier,
-                    "created": datetime.datetime.utcnow().isoformat(),
+                    '_key': key,
+                    'type': 'ia-scan',
+                    'identifier': identifier,
+                    'created': datetime.datetime.utcnow().isoformat(),
                 }
                 self.store_put(sitename, store_key, json.dumps(doc))
                 return doc
         except:
-            logger.error("error", exc_info=True)
+            logger.error('error', exc_info=True)
 
     def versions(self, sitename, data):
         # handle the query of type {"query": '{"key": "/books/ia:foo00bar", ...}}
@@ -246,31 +246,31 @@ class IAMiddleware(ConnectionMiddleware):
 
     def dummy_edit(self, key):
         return {
-            "comment": "",
-            "author": None,
-            "ip": "127.0.0.1",
-            "created": "2012-01-01T00:00:00",
-            "bot": False,
-            "key": key,
-            "action": "edit-book",
-            "changes": json.dumps({"key": key, "revision": 1}),
-            "revision": 1,
-            "kind": "update",
-            "id": "0",
-            "timestamp": "2010-01-01T00:00:00",
-            "data": {},
+            'comment': '',
+            'author': None,
+            'ip': '127.0.0.1',
+            'created': '2012-01-01T00:00:00',
+            'bot': False,
+            'key': key,
+            'action': 'edit-book',
+            'changes': json.dumps({'key': key, 'revision': 1}),
+            'revision': 1,
+            'kind': 'update',
+            'id': '0',
+            'timestamp': '2010-01-01T00:00:00',
+            'data': {},
         }
 
     def dummy_recentchange(self, key):
         return {
-            "comment": "",
-            "author": None,
-            "ip": "127.0.0.1",
-            "timestamp": "2012-01-01T00:00:00",
-            "data": {},
-            "changes": [{"key": key, "revision": 1}],
-            "kind": "update",
-            "id": "0",
+            'comment': '',
+            'author': None,
+            'ip': '127.0.0.1',
+            'timestamp': '2012-01-01T00:00:00',
+            'data': {},
+            'changes': [{'key': key, 'revision': 1}],
+            'kind': 'update',
+            'id': '0',
         }
 
 
@@ -291,20 +291,20 @@ class MemcacheMiddleware(ConnectionMiddleware):
         key = data.get('key')
         revision = data.get('revision')
 
-        if key.startswith("_"):
+        if key.startswith('_'):
             # Don't cache keys that starts with _ to avoid considering _store/foo as things.
             # The _store stuff is used for storing infobase store docs.
             return ConnectionMiddleware.get(self, sitename, data)
 
         if revision is None:
-            stats.begin("memcache.get", key=key)
+            stats.begin('memcache.get', key=key)
             result = self.memcache.get(key)
             stats.end(hit=bool(result))
 
             return result or ConnectionMiddleware.get(self, sitename, data)
         else:
             # cache get requests with revisions for a minute
-            mc_key = "%s@%d" % (key, revision)
+            mc_key = '%s@%d' % (key, revision)
             result = self.mc_get(mc_key)
             if result is None:
                 result = ConnectionMiddleware.get(self, sitename, data)
@@ -315,7 +315,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
     def get_many(self, sitename, data):
         keys = json.loads(data['keys'])
 
-        stats.begin("memcache.get_multi")
+        stats.begin('memcache.get_multi')
         result = self.memcache.get_multi(keys)
         stats.end(found=len(result))
 
@@ -339,33 +339,33 @@ class MemcacheMiddleware(ConnectionMiddleware):
         return json.dumps(result)
 
     def mc_get(self, key):
-        stats.begin("memcache.get", key=key)
+        stats.begin('memcache.get', key=key)
         result = self.memcache.get(key)
         stats.end(hit=bool(result))
         return result
 
     def mc_delete(self, key):
-        stats.begin("memcache.delete", key=key)
+        stats.begin('memcache.delete', key=key)
         self.memcache.delete(key)
         stats.end()
 
     def mc_add(self, key, value, time=0):
-        stats.begin("memcache.add", key=key, time=time)
+        stats.begin('memcache.add', key=key, time=time)
         self.memcache.add(key, value)
         stats.end()
 
     def mc_set(self, key, value, time=0):
-        stats.begin("memcache.set", key=key)
+        stats.begin('memcache.set', key=key)
         self.memcache.add(key, value, time=time)
         stats.end()
 
     def mc_set_multi(self, mapping):
-        stats.begin("memcache.set_multi")
+        stats.begin('memcache.set_multi')
         self.memcache.set_multi(mapping)
         stats.end()
 
     def mc_delete_multi(self, keys):
-        stats.begin("memcache.delete_multi")
+        stats.begin('memcache.delete_multi')
         self.memcache.delete_multi(keys)
         stats.end()
 
@@ -393,7 +393,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
 
     def store_put_many(self, sitename, datajson):
         data = json.loads(datajson)
-        mc_keys = ["/_store/" + doc['_key'] for doc in data]
+        mc_keys = ['/_store/' + doc['_key'] for doc in data]
         self.mc_delete_multi(mc_keys)
         result = ConnectionMiddleware.store_put_many(self, sitename, datajson)
         self.mc_delete_multi(mc_keys)
@@ -406,30 +406,30 @@ class MemcacheMiddleware(ConnectionMiddleware):
         self.mc_delete(key)
         return result
 
-    def account_request(self, sitename, path, method="GET", data=None):
+    def account_request(self, sitename, path, method='GET', data=None):
         # For post requests, remove the account entry from the cache.
-        if method == "POST" and isinstance(data, dict):
+        if method == 'POST' and isinstance(data, dict):
             deletes = []
             if 'username' in data:
-                deletes.append("/_store/account/" + data["username"])
+                deletes.append('/_store/account/' + data['username'])
 
                 # get the email from account doc and invalidate the email.
                 # required in cases of email change.
                 try:
                     docjson = self.store_get(
-                        sitename, "/_store/account/" + data['username']
+                        sitename, '/_store/account/' + data['username']
                     )
                     doc = json.loads(docjson)
-                    deletes.append("/_store/account-email/" + doc["email"])
-                    deletes.append("/_store/account-email/" + doc["email"].lower())
+                    deletes.append('/_store/account-email/' + doc['email'])
+                    deletes.append('/_store/account-email/' + doc['email'].lower())
                 except client.ClientException:
                     # ignore
                     pass
             if 'email' in data:
                 # if email is being passed, that that email doc is likely to be changed.
                 # remove that also from cache.
-                deletes.append("/_store/account-email/" + data["email"])
-                deletes.append("/_store/account-email/" + data["email"].lower())
+                deletes.append('/_store/account-email/' + data['email'])
+                deletes.append('/_store/account-email/' + data['email'].lower())
 
             self.mc_delete_multi(deletes)
             result = ConnectionMiddleware.account_request(
@@ -448,17 +448,17 @@ class MigrationMiddleware(ConnectionMiddleware):
 
     def _process_key(self, key):
         mapping = (
-            "/l/",
-            "/languages/",
-            "/a/",
-            "/authors/",
-            "/b/",
-            "/books/",
-            "/user/",
-            "/people/",
+            '/l/',
+            '/languages/',
+            '/a/',
+            '/authors/',
+            '/b/',
+            '/books/',
+            '/user/',
+            '/people/',
         )
 
-        if "/" in key and key.split("/")[1] in ['a', 'b', 'l', 'user']:
+        if '/' in key and key.split('/')[1] in ['a', 'b', 'l', 'user']:
             for old, new in web.group(mapping, 2):
                 if key.startswith(old):
                     return new + key[len(old) :]
@@ -466,7 +466,7 @@ class MigrationMiddleware(ConnectionMiddleware):
 
     def exists(self, key):
         try:
-            d = ConnectionMiddleware.get(self, "openlibrary.org", {"key": key})
+            d = ConnectionMiddleware.get(self, 'openlibrary.org', {'key': key})
             return True
         except client.ClientException as e:
             return False
@@ -482,7 +482,7 @@ class MigrationMiddleware(ConnectionMiddleware):
             return data
 
     def get(self, sitename, data):
-        if web.ctx.get('path') == "/api/get" and 'key' in data:
+        if web.ctx.get('path') == '/api/get' and 'key' in data:
             data['key'] = self._process_key(data['key'])
 
         response = ConnectionMiddleware.get(self, sitename, data)
@@ -494,16 +494,16 @@ class MigrationMiddleware(ConnectionMiddleware):
         return response
 
     def fix_doc(self, doc):
-        type = doc.get("type", {}).get("key")
+        type = doc.get('type', {}).get('key')
 
-        if type == "/type/work":
-            if doc.get("authors"):
+        if type == '/type/work':
+            if doc.get('authors'):
                 # some record got empty author records because of an error
                 # temporary hack to fix
                 doc['authors'] = [
                     a for a in doc['authors'] if 'author' in a and 'key' in a['author']
                 ]
-        elif type == "/type/edition":
+        elif type == '/type/edition':
             # get rid of title_prefix.
             if 'title_prefix' in doc:
                 title = doc['title_prefix'].strip() + ' ' + doc.get('title', '')
@@ -518,11 +518,11 @@ class MigrationMiddleware(ConnectionMiddleware):
 
         This is a hack to work-around that isse.
         """
-        json_data = self.get("openlibrary.org", {"key": key})
+        json_data = self.get('openlibrary.org', {'key': key})
         if json:
             doc = json.loads(json_data)
             if (
-                doc.get("type", {}).get("key") == "/type/redirect"
+                doc.get('type', {}).get('key') == '/type/redirect'
                 and doc.get('location') is not None
             ):
                 return doc['location']
@@ -561,8 +561,8 @@ class HybridConnection(client.Connection):
     def get_auth_token(self):
         return self.writer.get_auth_token()
 
-    def request(self, sitename, path, method="GET", data=None):
-        if method == "GET":
+    def request(self, sitename, path, method='GET', data=None):
+        if method == 'GET':
             return self.reader.request(sitename, path, method, data=data)
         else:
             return self.writer.request(sitename, path, method, data=data)
@@ -577,7 +577,7 @@ def _update_infobase_config():
     # update infobase configuration
     from infogami.infobase import server
 
-    if not config.get("infobase"):
+    if not config.get('infobase'):
         config.infobase = {}
     # This sets web.config.db_parameters
     server.update_config(config.infobase)
@@ -602,14 +602,14 @@ def OLConnection():
     """Create a connection to Open Library infobase server."""
 
     def create_connection():
-        if config.get("connection_type") == "hybrid":
+        if config.get('connection_type') == 'hybrid':
             return create_hybrid_connection()
         elif config.get('infobase_server'):
             return create_remote_connection()
-        elif config.get("infobase", {}).get('db_parameters'):
+        elif config.get('infobase', {}).get('db_parameters'):
             return create_local_connection()
         else:
-            raise Exception("db_parameters are not specified in the configuration")
+            raise Exception('db_parameters are not specified in the configuration')
 
     conn = create_connection()
     if config.get('memcache_servers'):

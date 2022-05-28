@@ -135,7 +135,7 @@ for archive_id, name, total in sorted(archive, key=lambda x: x[2]):
             remaining = total - i
             remaining2 = grand_total - overall
             print(
-                "%8d %6.2f%% %5.3f rec/sec %.3f minutes left"
+                '%8d %6.2f%% %5.3f rec/sec %.3f minutes left'
                 % (
                     i,
                     (float(i) * 100) / total,
@@ -145,7 +145,7 @@ for archive_id, name, total in sorted(archive, key=lambda x: x[2]):
                 end=' ',
             )
             print(
-                f"overall: {(float(overall) * 100) / grand_total:6.2f}% {float((t1_overall/overall) * remaining2) / 60:.3f} minutes left"
+                f'overall: {(float(overall) * 100) / grand_total:6.2f}% {float((t1_overall/overall) * remaining2) / 60:.3f} minutes left'
             )
 
     print(archive_id)

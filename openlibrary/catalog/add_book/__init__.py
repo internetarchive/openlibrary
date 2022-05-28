@@ -77,7 +77,7 @@ class RequiredField(Exception):
         self.f = f
 
     def __str__(self):
-        return "missing required field: %s" % self.f
+        return 'missing required field: %s' % self.f
 
 
 # don't use any of these as work titles
@@ -266,7 +266,7 @@ def add_cover(cover_url, ekey, account_key=None):
     if not account_key:
         user = accounts.get_current_user()
         if not user:
-            raise RuntimeError("accounts.get_current_user() failed")
+            raise RuntimeError('accounts.get_current_user() failed')
         account_key = user.get('key') or user.get('_key')
     params = {
         'author': account_key,
@@ -332,7 +332,7 @@ def create_ol_subjects_for_ocaid(ocaid, subjects):
     if r.status_code != 200:
         return f'{item.identifier} failed: {r.content}'
     else:
-        return "success for %s" % item.identifier
+        return 'success for %s' % item.identifier
 
 
 def update_ia_metadata_for_ol_edition(edition_id):

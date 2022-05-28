@@ -28,7 +28,7 @@ def add_web_ctx_to_event(event: dict, hint: dict) -> dict:
         return event
 
     with capture_internal_exceptions():
-        request_info = event.setdefault("request", {})
+        request_info = event.setdefault('request', {})
 
         headers = {}
         env = {}
@@ -38,10 +38,10 @@ def add_web_ctx_to_event(event: dict, hint: dict) -> dict:
             else:
                 env[k] = v
 
-        request_info["url"] = web.ctx.home + web.ctx.fullpath
-        request_info["headers"] = headers
-        request_info["env"] = env
-        request_info["method"] = web.ctx.method
+        request_info['url'] = web.ctx.home + web.ctx.fullpath
+        request_info['headers'] = headers
+        request_info['env'] = env
+        request_info['method'] = web.ctx.method
     return event
 
 
@@ -49,8 +49,8 @@ class Sentry:
     def __init__(self, config: dict) -> None:
         self.config = config
         self.enabled: bool = config.get('enabled')
-        self.logger = logging.getLogger("sentry")
-        self.logger.info(f"Setting up sentry (enabled={self.enabled})")
+        self.logger = logging.getLogger('sentry')
+        self.logger.info(f'Setting up sentry (enabled={self.enabled})')
 
     def init(self):
         sentry_sdk.init(

@@ -12,18 +12,18 @@ app.notfound = utils.notfound
 
 
 class home(app.page):
-    path = "/admin/?"
+    path = '/admin/?'
 
     def GET(self):
         stats = admin.get_stats()
-        return render_template("admin/index", stats)
+        return render_template('admin/index', stats)
 
 
 class static(app.page):
-    path = "(/(?:images|js|css)/.*)"
+    path = '(/(?:images|js|css)/.*)'
 
     def GET(self, path):
-        raise web.seeother("/static/upstream" + path)
+        raise web.seeother('/static/upstream' + path)
 
 
 def setup():

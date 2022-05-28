@@ -13,7 +13,7 @@ def get_schema():
     schema.add_table_group('user', '/type/usergroup')
     schema.add_table_group('user', '/type/permission')
 
-    datatypes = ["str", "int", "ref", "boolean"]
+    datatypes = ['str', 'int', 'ref', 'boolean']
 
     schema.add_table_group('edition', '/type/edition', datatypes)
     schema.add_table_group('author', '/type/author', datatypes)
@@ -110,5 +110,5 @@ def register_schema():
     dbstore.default_schema = get_schema()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     print(get_schema().sql())

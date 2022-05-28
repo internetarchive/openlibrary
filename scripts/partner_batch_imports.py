@@ -24,11 +24,11 @@ from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
-logger = logging.getLogger("openlibrary.importer.bwb")
+logger = logging.getLogger('openlibrary.importer.bwb')
 
 SCHEMA_URL = (
-    "https://raw.githubusercontent.com/internetarchive"
-    "/openlibrary-client/master/olclient/schemata/import.schema.json"
+    'https://raw.githubusercontent.com/internetarchive'
+    '/openlibrary-client/master/olclient/schemata/import.schema.json'
 )
 
 
@@ -48,14 +48,14 @@ class Biblio:
         'source_records',
     ]
     INACTIVE_FIELDS = [
-        "copyright",
-        "issn",
-        "doi",
-        "lccn",
-        "dewey",
-        "length",
-        "width",
-        "height",
+        'copyright',
+        'issn',
+        'doi',
+        'lccn',
+        'dewey',
+        'length',
+        'width',
+        'height',
     ]
     REQUIRED_FIELDS = requests.get(SCHEMA_URL).json()['required']
 
@@ -100,7 +100,7 @@ class Biblio:
         # Assert importable
         for field in self.REQUIRED_FIELDS + ['isbn_13']:
             assert getattr(self, field), field
-        assert self.primary_format not in self.NONBOOK, f"{self.primary_format} is NONBOOK"
+        assert self.primary_format not in self.NONBOOK, f'{self.primary_format} is NONBOOK'
 
     @staticmethod
     def contributors(data):
@@ -145,7 +145,7 @@ def load_state(path, logfile):
     /1/var/tmp/imports/2021-08/Bibliographic/*/
     """
     filenames = sorted(
-        os.path.join(path, f) for f in os.listdir(path) if f.startswith("bettworldbks")
+        os.path.join(path, f) for f in os.listdir(path) if f.startswith('bettworldbks')
     )
     try:
         with open(logfile) as fin:
@@ -173,8 +173,8 @@ def csv_to_ol_json_item(line):
 def is_low_quality_book(book_item):
     """check if a book item is of low quality"""
     return (
-        "notebook" in book_item['title'].casefold() and
-        any("independently published" in publisher.casefold()
+        'notebook' in book_item['title'].casefold() and
+        any('independently published' in publisher.casefold()
             for publisher in book_item['publishers'])
     )
 
@@ -185,7 +185,7 @@ def batch_import(path, batch, batch_size=5000):
     for fname in filenames:
         book_items = []
         with open(fname, 'rb') as f:
-            logger.info(f"Processing: {fname} from line {offset}")
+            logger.info(f'Processing: {fname} from line {offset}')
             for line_num, line in enumerate(f):
 
                 # skip over already processed records
@@ -196,10 +196,10 @@ def batch_import(path, batch, batch_size=5000):
 
                 try:
                     book_item = csv_to_ol_json_item(line)
-                    if not is_low_quality_book(book_item["data"]):
+                    if not is_low_quality_book(book_item['data']):
                         book_items.append(book_item)
                 except (AssertionError, IndexError) as e:
-                    logger.info(f"Error: {e} from {line}")
+                    logger.info(f'Error: {e} from {line}')
 
                 # If we have enough items, submit a batch
                 if not ((line_num + 1) % batch_size):
@@ -217,7 +217,7 @@ def main(ol_config: str, batch_path: str):
 
     # Partner data is offset ~15 days from start of month
     date = datetime.date.today() - timedelta(days=15)
-    batch_name = "%s-%04d%02d" % ('bwb', date.year, date.month)
+    batch_name = '%s-%04d%02d' % ('bwb', date.year, date.month)
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch_import(batch_path, batch)
 

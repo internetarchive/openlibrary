@@ -54,7 +54,7 @@ def get_all_counts():
 def get_objects():
     """Returns a list of live objects."""
     objects = gc.get_objects()
-    dicts = {id(o.__dict__) for o in objects if hasattr(o, "__dict__")}
+    dicts = {id(o.__dict__) for o in objects if hasattr(o, '__dict__')}
     return (
         obj for obj in gc.get_objects() if obj is not _mark and id(obj) not in dicts
     )
@@ -73,6 +73,6 @@ def _get_type(obj):
 
     mod = t.__module__
     name = t.__name__
-    if mod != "__builtin__":
-        name = mod + "." + name
+    if mod != '__builtin__':
+        name = mod + '.' + name
     return name

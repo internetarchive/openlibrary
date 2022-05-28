@@ -49,7 +49,7 @@ class LocalSource:
     def __init__(self, root, static):
         self.root = root
         self.static = static
-        self.type_root = "openlibrary/plugins/openlibrary"
+        self.type_root = 'openlibrary/plugins/openlibrary'
 
     def get_path(self, path):
         """Find the path in the filesystem for the specified resource path.
@@ -292,9 +292,9 @@ def parse_args(args):
             ...
         SystemExit: 2
     """
-    parser = OptionParser("./scripts/sync [push|pull|diff] [--server server] paths")
-    parser.add_option("-s", "--server", dest="server", default='http://openlibrary.org', help="OL server")
-    parser.add_option("--upstream", dest="upstream", action='store_true', default=False, help="pass this option to use templates from upstream plugin.")
+    parser = OptionParser('./scripts/sync [push|pull|diff] [--server server] paths')
+    parser.add_option('-s', '--server', dest='server', default='http://openlibrary.org', help='OL server')
+    parser.add_option('--upstream', dest='upstream', action='store_true', default=False, help='pass this option to use templates from upstream plugin.')
 
     cmd = args[1]
     sys.argv = args[:1] + args[2:]
@@ -314,13 +314,13 @@ def main(args):
         print(__doc__)
     else:
         cmd, options, paths = parse_args(args)
-        if cmd == "test":
+        if cmd == 'test':
             import doctest
             doctest.testmod()
         else:
             server = Server(options.server, options.upstream)
             return server.run(cmd, paths)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main(sys.argv)
 

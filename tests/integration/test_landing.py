@@ -22,24 +22,24 @@ class TestLanding:
     def test_categories_carousel(self, browser):
         url = self.host + '/'
         browser.visit(url)
-        assert browser.is_element_present_by_css(".categoryCarousel")
+        assert browser.is_element_present_by_css('.categoryCarousel')
 
     def test_popular_carousel(self, browser):
         url = self.host + '/'
         browser.visit(url)
-        assert browser.is_element_present_by_css("#CarouselPopular")
+        assert browser.is_element_present_by_css('#CarouselPopular')
 
     def test_read_carousel(self, browser):
         url = self.host + '/'
         browser.visit(url)
-        assert browser.is_element_present_by_css("#read-carousel")
+        assert browser.is_element_present_by_css('#read-carousel')
 
     def test_return_carousel(self, browser):
         url = self.host + '/'
         browser.visit(url)
-        assert browser.is_element_present_by_css("#returncart_carousel")
+        assert browser.is_element_present_by_css('#returncart_carousel')
 
     def test_waitlist_carousel(self, browser):
         url = self.host + '/'
         browser.visit(url)
-        assert browser.is_element_present_by_css("#CarouselWaitlist")
+        assert browser.is_element_present_by_css('#CarouselWaitlist')

@@ -21,7 +21,7 @@ def make_sub(d):
     def f(a):
         return d[a.group(0)]
 
-    rx = re.compile("|".join(re.escape(key) for key in d))
+    rx = re.compile('|'.join(re.escape(key) for key in d))
     return lambda s: s and rx.sub(f, s)
 
 
@@ -73,7 +73,7 @@ for data in read_input():
     rec_no += 1
     if rec_no % 100000 == 0:
         t1 = time() - t0
-        print(f"{web.commify(rec_no)} {(float(t1) / 60.0):.2f} minutes")
+        print(f'{web.commify(rec_no)} {(float(t1) / 60.0):.2f} minutes')
     try:
         d = json.loads(data)
     except:

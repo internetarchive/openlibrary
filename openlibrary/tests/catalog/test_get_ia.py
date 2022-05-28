@@ -12,22 +12,22 @@ class MockResponse:
 
     def __init__(self, data):
         self.content = data
-        self.text = data.decode("utf-8")
+        self.text = data.decode('utf-8')
 
 
 def return_test_marc_bin(url):
-    assert url, f"return_test_marc_bin({url})"
-    return return_test_marc_data(url, "bin_input")
+    assert url, f'return_test_marc_bin({url})'
+    return return_test_marc_data(url, 'bin_input')
 
 
 def return_test_marc_xml(url):
-    assert url, f"return_test_marc_xml({url})"
-    return return_test_marc_data(url, "xml_input")
+    assert url, f'return_test_marc_xml({url})'
+    return return_test_marc_data(url, 'xml_input')
 
 
-def return_test_marc_data(url, test_data_subdir="xml_input"):
+def return_test_marc_data(url, test_data_subdir='xml_input'):
     filename = url.split('/')[-1]
-    test_data_dir = f"/../../catalog/marc/tests/test_data/{test_data_subdir}/"
+    test_data_dir = f'/../../catalog/marc/tests/test_data/{test_data_subdir}/'
     path = os.path.dirname(__file__) + test_data_dir + filename
     return MockResponse(open(path, mode='rb').read())
 
@@ -97,30 +97,30 @@ class TestGetIA:
         result = get_ia.get_marc_record_from_ia(item)
         assert isinstance(
             result, MarcXml
-        ), f"{item}: expected instanceof MarcXml, got {type(result)}"
+        ), f'{item}: expected instanceof MarcXml, got {type(result)}'
 
     @pytest.mark.parametrize('item', bin_items)
     def test_no_marc_xml(self, item, monkeypatch):
         """When no XML MARC is listed in _filenames, the Binary MARC should be fetched."""
         monkeypatch.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_bin)
         monkeypatch.setattr(
-            ia, 'get_metadata', lambda itemid: {'_filenames': [itemid + "_meta.mrc"]}
+            ia, 'get_metadata', lambda itemid: {'_filenames': [itemid + '_meta.mrc']}
         )
 
         result = get_ia.get_marc_record_from_ia(item)
         assert isinstance(
             result, MarcBinary
-        ), f"{item}: expected instanceof MarcBinary, got {type(result)}"
+        ), f'{item}: expected instanceof MarcBinary, got {type(result)}'
         field_245 = next(result.read_fields(['245']))
         title = next(field_245[1].get_all_subfields())[1].encode('utf8')
-        print(f"{item}:\n\tUNICODE: [{result.leader()[9]}]\n\tTITLE: {title}")
+        print(f'{item}:\n\tUNICODE: [{result.leader()[9]}]\n\tTITLE: {title}')
 
     @pytest.mark.parametrize('bad_marc', bad_marcs)
     def test_incorrect_length_marcs(self, bad_marc, monkeypatch):
         """If a Binary MARC has a different length than stated in the MARC leader, it is probably due to bad character conversions."""
         monkeypatch.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_bin)
         monkeypatch.setattr(
-            ia, 'get_metadata', lambda itemid: {'_filenames': [itemid + "_meta.mrc"]}
+            ia, 'get_metadata', lambda itemid: {'_filenames': [itemid + '_meta.mrc']}
         )
 
         with pytest.raises(BadLength):

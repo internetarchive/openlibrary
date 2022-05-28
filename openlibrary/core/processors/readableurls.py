@@ -9,7 +9,7 @@ from openlibrary.core import helpers as h
 
 import urllib
 
-logger = logging.getLogger("openlibrary.readableurls")
+logger = logging.getLogger('openlibrary.readableurls')
 
 try:
     from booklending_utils.openlibrary import is_exclusion
@@ -38,12 +38,12 @@ class ReadableUrlProcessor:
 
     def __call__(self, handler):
         # temp hack to handle languages and users during upstream-to-www migration
-        if web.ctx.path.startswith("/l/"):
-            raise web.seeother("/languages/" + web.ctx.path[len("/l/") :])
+        if web.ctx.path.startswith('/l/'):
+            raise web.seeother('/languages/' + web.ctx.path[len('/l/') :])
 
-        if web.ctx.path.startswith("/user/"):
+        if web.ctx.path.startswith('/user/'):
             if not web.ctx.site.get(web.ctx.path):
-                raise web.seeother("/people/" + web.ctx.path[len("/user/") :])
+                raise web.seeother('/people/' + web.ctx.path[len('/user/') :])
 
         real_path, readable_path = get_readable_path(
             web.ctx.site, web.ctx.path, self.patterns, encoding=web.ctx.encoding
@@ -56,7 +56,7 @@ class ReadableUrlProcessor:
         if (
             readable_path != web.ctx.path
             and readable_path != urllib.parse.quote(web.safestr(web.ctx.path))
-            and web.ctx.method == "GET"
+            and web.ctx.method == 'GET'
         ):
             raise web.redirect(
                 web.safeunicode(readable_path) + web.safeunicode(web.ctx.query)
@@ -78,7 +78,7 @@ class ReadableUrlProcessor:
 
         # Exclude noindex items
         if web.ctx.get('exclude'):
-            web.ctx.status = "404 Not Found"
+            web.ctx.status = '404 Not Found'
             return render.notfound(web.ctx.path)
 
         return out
@@ -93,38 +93,38 @@ def _get_object(site, key):
     """
     obj = site.get(key)
 
-    if obj is None and key.startswith("/a/"):
-        key = "/authors/" + key[len("/a/") :]
+    if obj is None and key.startswith('/a/'):
+        key = '/authors/' + key[len('/a/') :]
         obj = key and site.get(key)
 
-    if obj is None and key.startswith("/b/"):
-        key = "/books/" + key[len("/b/") :]
+    if obj is None and key.startswith('/b/'):
+        key = '/books/' + key[len('/b/') :]
         obj = key and site.get(key)
 
-    if obj is None and key.startswith("/user/"):
-        key = "/people/" + key[len("/user/") :]
+    if obj is None and key.startswith('/user/'):
+        key = '/people/' + key[len('/user/') :]
         obj = key and site.get(key)
 
-    basename = key.split("/")[-1]
+    basename = key.split('/')[-1]
 
     # redirect all /.*/ia:foo to /books/ia:foo
-    if obj is None and basename.startswith("ia:"):
-        key = "/books/" + basename
+    if obj is None and basename.startswith('ia:'):
+        key = '/books/' + basename
         obj = site.get(key)
 
     # redirect all /.*/OL123W to /works/OL123W
-    if obj is None and basename.startswith("OL") and basename.endswith("W"):
-        key = "/works/" + basename
+    if obj is None and basename.startswith('OL') and basename.endswith('W'):
+        key = '/works/' + basename
         obj = site.get(key)
 
     # redirect all /.*/OL123M to /books/OL123M
-    if obj is None and basename.startswith("OL") and basename.endswith("M"):
-        key = "/books/" + basename
+    if obj is None and basename.startswith('OL') and basename.endswith('M'):
+        key = '/books/' + basename
         obj = site.get(key)
 
     # redirect all /.*/OL123A to /authors/OL123A
-    if obj is None and basename.startswith("OL") and basename.endswith("A"):
-        key = "/authors/" + basename
+    if obj is None and basename.startswith('OL') and basename.endswith('A'):
+        key = '/authors/' + basename
         obj = site.get(key)
 
     # Disabled temporarily as the index is not ready the db
@@ -149,13 +149,13 @@ def get_readable_path(site, path, patterns, encoding=None):
             if m:
                 prefix = m.group()
                 extra = web.lstrips(path, prefix)
-                tokens = extra.split("/", 2)
+                tokens = extra.split('/', 2)
 
                 # `extra` starts with "/". So first token is always empty.
-                middle = web.listget(tokens, 1, "")
-                suffix = web.listget(tokens, 2, "")
+                middle = web.listget(tokens, 1, '')
+                suffix = web.listget(tokens, 2, '')
                 if suffix:
-                    suffix = "/" + suffix
+                    suffix = '/' + suffix
 
                 return _type, _property, default_title, prefix, middle, suffix
         return None, None, None, None, None, None
@@ -166,7 +166,7 @@ def get_readable_path(site, path, patterns, encoding=None):
         path = web.safeunicode(path)
         return (path, path)
 
-    if encoding is not None or path.endswith((".json", ".rdf", ".yml")):
+    if encoding is not None or path.endswith(('.json', '.rdf', '.yml')):
         key, ext = os.path.splitext(path)
 
         thing = _get_object(site, key)
@@ -191,7 +191,7 @@ def get_readable_path(site, path, patterns, encoding=None):
         except ImportError:
             middle = '/' + h.urlsafe(title.strip())
     else:
-        middle = ""
+        middle = ''
 
     if is_exclusion(thing):
         web.ctx.exclude = True

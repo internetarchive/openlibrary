@@ -69,7 +69,7 @@ def test_compressor():
     >>> test_compressor()  # Self-doctest this code.
     """
     c = Compressor(__doc__)
-    test_string = "zlib is a pretty good compression algorithm"
+    test_string = 'zlib is a pretty good compression algorithm'
     ct = c.compress(test_string)
     # print('initial length=%d, compressed=%d' % (len(test_string), len(ct)))
     # the above string compresses from 43 bytes to 29 bytes using the
@@ -77,7 +77,7 @@ def test_compressor():
     dt = c.decompress(ct)
     assert dt == test_string, (dt, test_string)
     # Test that utf-8 encoded bytes return the utf-8 string
-    ct = c.compress(test_string.encode("utf-8"))
+    ct = c.compress(test_string.encode('utf-8'))
     # print('initial length=%d, compressed=%d' % (len(test_string), len(ct)))
     # the above string compresses from 43 bytes to 29 bytes using the
     # current doc text as compression seed, not bad for such short input.
@@ -85,5 +85,5 @@ def test_compressor():
     assert dt == test_string, (dt, test_string)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     test_compressor()

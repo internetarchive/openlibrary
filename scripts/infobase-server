@@ -21,19 +21,19 @@ import web
 
 from openlibrary.utils.sentry import Sentry
 
-logger = logging.getLogger("openlibrary." + __file__)
+logger = logging.getLogger('openlibrary.' + __file__)
 
 
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable
-    os.environ['PYTHON_EGG_CACHE'] = "/tmp/.python-eggs"
+    os.environ['PYTHON_EGG_CACHE'] = '/tmp/.python-eggs'
 
     # required when run as fastcgi
-    os.environ['REAL_SCRIPT_NAME'] = ""
+    os.environ['REAL_SCRIPT_NAME'] = ''
 
 def main(args):
     if len(args) < 1 or args[0] in ['-h', '--help']:
-        print("USAGE: %s configfile [port]" % (sys.argv[0]), file=sys.stderr)
+        print('USAGE: %s configfile [port]' % (sys.argv[0]), file=sys.stderr)
         sys.exit(1)
 
     start(*args)
@@ -70,7 +70,7 @@ def runfcgi(func, addr=('localhost', 8000)):
     import flup.server.fcgi as flups
     # Start fcgi server with multiplexed=False
     # Noticed memory leaks when running with multiplexed=True.
-    logger.info(f"flups.WSGIServer({func}, bindAddress={addr})")
+    logger.info(f'flups.WSGIServer({func}, bindAddress={addr})')
     return flups.WSGIServer(func, multiplexed=False, bindAddress=addr, debug=False).run()
 
 def start_gunicorn_server():
@@ -89,14 +89,14 @@ def start_gunicorn_server():
             server.load_config(configfile)
             return server.app.wsgifunc()
 
-    WSGIServer("%prog infobase.yml --gunicorn [options]").run()
+    WSGIServer('%prog infobase.yml --gunicorn [options]').run()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     setup_env()
 
-    if "--gunicorn" in sys.argv:
-        sys.argv.pop(sys.argv.index("--gunicorn"))
+    if '--gunicorn' in sys.argv:
+        sys.argv.pop(sys.argv.index('--gunicorn'))
         start_gunicorn_server()
     else:
         main(sys.argv[1:])

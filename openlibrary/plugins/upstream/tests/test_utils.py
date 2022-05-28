@@ -42,7 +42,7 @@ def test_set_share_links():
             self.share_links = None
 
     test_context = TestContext()
-    utils.set_share_links(url='https://foo.com', title="bar", view_context=test_context)
+    utils.set_share_links(url='https://foo.com', title='bar', view_context=test_context)
     assert test_context.share_links == [
         {
             'text': 'Facebook',
@@ -132,15 +132,15 @@ def test_canonical_url():
 def test_get_coverstore_url(monkeypatch):
     from infogami import config
 
-    monkeypatch.delattr(config, "coverstore_url", raising=False)
-    assert utils.get_coverstore_url() == "https://covers.openlibrary.org"
+    monkeypatch.delattr(config, 'coverstore_url', raising=False)
+    assert utils.get_coverstore_url() == 'https://covers.openlibrary.org'
 
-    monkeypatch.setattr(config, "coverstore_url", "https://0.0.0.0:80", raising=False)
-    assert utils.get_coverstore_url() == "https://0.0.0.0:80"
+    monkeypatch.setattr(config, 'coverstore_url', 'https://0.0.0.0:80', raising=False)
+    assert utils.get_coverstore_url() == 'https://0.0.0.0:80'
 
     # make sure trailing / is always stripped
-    monkeypatch.setattr(config, "coverstore_url", "https://0.0.0.0:80/", raising=False)
-    assert utils.get_coverstore_url() == "https://0.0.0.0:80"
+    monkeypatch.setattr(config, 'coverstore_url', 'https://0.0.0.0:80/', raising=False)
+    assert utils.get_coverstore_url() == 'https://0.0.0.0:80'
 
 
 def test_reformat_html():
@@ -159,8 +159,8 @@ def test_reformat_html():
     )
     assert f(multi_line_string, 34) == 'This sentence has 32 ' 'characters.<br>T...'
 
-    assert f("<script>alert('hello')</script>", 34) == "alert(&#39;hello&#39;)"
-    assert f("&lt;script&gt;") == "&lt;script&gt;"
+    assert f("<script>alert('hello')</script>", 34) == 'alert(&#39;hello&#39;)'
+    assert f('&lt;script&gt;') == '&lt;script&gt;'
 
 
 def test_strip_accents():

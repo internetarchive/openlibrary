@@ -90,11 +90,11 @@ def amazon_title(amazon_first_parts, marc_first_parts):
         return False
     if compare_parts(marc_first_parts, amazon_first_parts[1:]):
         if verbose:
-            print("match with Amazon title")
+            print('match with Amazon title')
         return True
     if match_seq(marc_first_parts, amazon_first_parts[1:]):
         if verbose:
-            print("partial match, with Amazon title")
+            print('partial match, with Amazon title')
         return True
     return False
 
@@ -105,24 +105,24 @@ def marc_title(amazon_first_parts, marc_first_parts):
         return False
     if compare_parts(marc_first_parts[:-1], amazon_first_parts):
         if verbose:
-            print("match with MARC end title")
+            print('match with MARC end title')
         return True
     if normalize(amazon_first_parts[0]) in titles:
         if compare_parts(marc_first_parts[:-1], amazon_first_parts[1:]):
             if verbose:
-                print("match, both with titles")
+                print('match, both with titles')
             return True
         if match_seq(marc_first_parts[:-1], amazon_first_parts[1:]):
             if verbose:
-                print("partial match, both with titles")
+                print('partial match, both with titles')
             return True
     if match_seq(marc_first_parts[:-1], amazon_first_parts):
         if verbose:
-            print("partial match with MARC end title")
+            print('partial match with MARC end title')
         return True
     if match_seq(marc_first_parts, amazon_first_parts):
         if verbose:
-            print("partial match with MARC end title")
+            print('partial match with MARC end title')
     return False
 
 
@@ -295,7 +295,7 @@ def match_name(amazon, marc, last_name_only_ok=True):
     amazon_first_parts = split_parts(amazon[0 : -(len(m.group(1)) + 1)])
     if compare_parts(marc_first_parts, amazon_first_parts):
         if verbose:
-            print("match")
+            print('match')
         return True
     if marc_title(amazon_first_parts, marc_first_parts):
         return True
@@ -303,10 +303,10 @@ def match_name(amazon, marc, last_name_only_ok=True):
         return True
     if match_seq(amazon_first_parts, marc_first_parts):
         if verbose:
-            print("partial match")
+            print('partial match')
         return True
     if verbose:
-        print("no match")
+        print('no match')
     return False
 
 

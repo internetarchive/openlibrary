@@ -29,12 +29,12 @@ from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
 
 def follow_redirect(doc):
-    if isinstance(doc, str) and doc.startswith("/a/"):
+    if isinstance(doc, str) and doc.startswith('/a/'):
         # Some edition records have authors as ["/a/OL1A""] insead of [{"key": "/a/OL1A"}].
         # Hack to fix it temporarily.
-        doc = web.ctx.site.get(doc.replace("/a/", "/authors/"))
+        doc = web.ctx.site.get(doc.replace('/a/', '/authors/'))
 
-    if doc and doc.type.key == "/type/redirect":
+    if doc and doc.type.key == '/type/redirect':
         key = doc.location
         return web.ctx.site.get(key)
     else:
@@ -58,7 +58,7 @@ class Edition(models.Edition):
     def get_authors(self):
         """Added to provide same interface for work and edition"""
         authors = [follow_redirect(a) for a in self.authors]
-        authors = [a for a in authors if a and a.type.key == "/type/author"]
+        authors = [a for a in authors if a and a.type.key == '/type/author']
         return authors
 
     def get_next(self):
@@ -114,7 +114,7 @@ class Edition(models.Edition):
     def get_ia_cover(self, itemid, size):
         image_sizes = dict(S=(116, 58), M=(180, 360), L=(500, 500))
         w, h = image_sizes[size.upper()]
-        return f"https://archive.org/download/{itemid}/page/cover_w{w}_h{h}.jpg"
+        return f'https://archive.org/download/{itemid}/page/cover_w{w}_h{h}.jpg'
 
     def get_isbn10(self):
         """Fetches either isbn_10 or isbn_13 from record and returns canonical
@@ -307,8 +307,8 @@ class Edition(models.Edition):
         id_map = {}
         for id in config:
             id_map[id.name] = id
-            id.setdefault("label", id.name)
-            id.setdefault("url_format", None)
+            id.setdefault('label', id.name)
+            id.setdefault('url_format', None)
 
         d = MultiDict()
 
@@ -372,19 +372,19 @@ class Edition(models.Edition):
                 self.identifiers[name] = value
 
     def get_classifications(self):
-        names = ["dewey_decimal_class", "lc_classifications"]
+        names = ['dewey_decimal_class', 'lc_classifications']
         return self._process_identifiers(
             get_edition_config().classifications, names, self.classifications
         )
 
     def set_classifications(self, classifications):
-        names = ["dewey_decimal_class", "lc_classifications"]
+        names = ['dewey_decimal_class', 'lc_classifications']
         d = defaultdict(list)
         for c in classifications:
             if (
                 'name' not in c
                 or 'value' not in c
-                or not web.re_compile("[a-z0-9_]*").match(c['name'])
+                or not web.re_compile('[a-z0-9_]*').match(c['name'])
             ):
                 continue
             d[c['name']].append(c['value'])
@@ -402,36 +402,36 @@ class Edition(models.Edition):
     def get_weight(self):
         """returns weight as a storage object with value and units fields."""
         w = self.weight
-        return w and UnitParser(["value"]).parse(w)
+        return w and UnitParser(['value']).parse(w)
 
     def set_weight(self, w):
-        self.weight = w and UnitParser(["value"]).format(w)
+        self.weight = w and UnitParser(['value']).format(w)
 
     def get_physical_dimensions(self):
         d = self.physical_dimensions
-        return d and UnitParser(["height", "width", "depth"]).parse(d)
+        return d and UnitParser(['height', 'width', 'depth']).parse(d)
 
     def set_physical_dimensions(self, d):
         # don't overwrite physical dimensions if nothing was passed in - there
         # may be dimensions in the database that don't conform to the d x d x d format
         if d:
-            self.physical_dimensions = UnitParser(["height", "width", "depth"]).format(
+            self.physical_dimensions = UnitParser(['height', 'width', 'depth']).format(
                 d
             )
 
     def get_toc_text(self):
         def format_row(r):
-            return "*" * r.level + " " + " | ".join([r.label, r.title, r.pagenum])
+            return '*' * r.level + ' ' + ' | '.join([r.label, r.title, r.pagenum])
 
-        return "\n".join(format_row(r) for r in self.get_table_of_contents())
+        return '\n'.join(format_row(r) for r in self.get_table_of_contents())
 
     def get_table_of_contents(self):
         def row(r):
             if isinstance(r, str):
                 level = 0
-                label = ""
+                label = ''
                 title = r
-                pagenum = ""
+                pagenum = ''
             else:
                 level = safeint(r.get('level', '0'), 0)
                 label = r.get('label', '')
@@ -464,13 +464,13 @@ class Edition(models.Edition):
         Builds a wikipedia citation as defined by http://en.wikipedia.org/wiki/Template:Cite#Citing_books
         """
         result = {
-            "title": self.title.replace("[", "&#91").replace("]", "&#93"),
-            "publication-date": self.get('publish_date'),
-            "ol": str(self.get_olid())[2:],
+            'title': self.title.replace('[', '&#91').replace(']', '&#93'),
+            'publication-date': self.get('publish_date'),
+            'ol': str(self.get_olid())[2:],
         }
 
         if self.ocaid:
-            result['url'] = "https://archive.org/details/" + self.ocaid
+            result['url'] = 'https://archive.org/details/' + self.ocaid
 
         if self.lccn:
             result['lccn'] = self.lccn[0]
@@ -510,12 +510,12 @@ class Edition(models.Edition):
         The /books/ia:foo00bar records are not stored in the database, but
         created at runtime using the data from archive.org metadata API.
         """
-        return "/ia:" in self.key
+        return '/ia:' in self.key
 
 
 class Author(models.Author):
     def get_photos(self):
-        return [Image(self._site, "a", id) for id in self.photos if id > 0]
+        return [Image(self._site, 'a', id) for id in self.photos if id > 0]
 
     def get_photo(self):
         photos = self.get_photos()
@@ -529,7 +529,7 @@ class Author(models.Author):
         return self.key.split('/')[-1]
 
     def get_books(self, q=''):
-        i = web.input(sort='editions', page=1, rows=20, mode="")
+        i = web.input(sort='editions', page=1, rows=20, mode='')
         try:
             # safegaurd from passing zero/negative offsets to solr
             page = max(1, int(i.page))
@@ -540,7 +540,7 @@ class Author(models.Author):
             sort=i.sort,
             page=page,
             rows=i.rows,
-            has_fulltext=i.mode == "ebooks",
+            has_fulltext=i.mode == 'ebooks',
             query=q,
         )
 
@@ -574,7 +574,7 @@ class Work(models.Work):
 
     def get_covers(self, use_solr=True):
         if self.covers:
-            return [Image(self._site, "w", id) for id in self.covers if id > 0]
+            return [Image(self._site, 'w', id) for id in self.covers if id > 0]
         elif use_solr:
             return self.get_covers_from_solr()
         else:
@@ -584,15 +584,15 @@ class Work(models.Work):
         try:
             w = self._solr_data
         except Exception as e:
-            logging.getLogger("openlibrary").exception(
+            logging.getLogger('openlibrary').exception(
                 'Unable to retrieve covers from solr'
             )
             return []
         if w:
             if 'cover_id' in w:
-                return [Image(self._site, "w", int(w['cover_id']))]
+                return [Image(self._site, 'w', int(w['cover_id']))]
             elif 'cover_edition_key' in w:
-                cover_edition = web.ctx.site.get("/books/" + w['cover_edition_key'])
+                cover_edition = web.ctx.site.get('/books/' + w['cover_edition_key'])
                 cover = cover_edition and cover_edition.get_cover()
                 if cover:
                     return [cover]
@@ -602,20 +602,20 @@ class Work(models.Work):
     def _solr_data(self):
         from openlibrary.book_providers import get_solr_keys
         fields = [
-            "cover_edition_key",
-            "cover_id",
-            "edition_key",
-            "first_publish_year",
-            "has_fulltext",
-            "lending_edition_s",
-            "public_scan_b",
+            'cover_edition_key',
+            'cover_id',
+            'edition_key',
+            'first_publish_year',
+            'has_fulltext',
+            'lending_edition_s',
+            'public_scan_b',
         ] + get_solr_keys()
         solr = get_solr()
-        stats.begin("solr", get=self.key, fields=fields)
+        stats.begin('solr', get=self.key, fields=fields)
         try:
             return solr.get(self.key, fields=fields)
         except Exception as e:
-            logging.getLogger("openlibrary").exception("Failed to get solr data")
+            logging.getLogger('openlibrary').exception('Failed to get solr data')
             return None
         finally:
             stats.end()
@@ -639,7 +639,7 @@ class Work(models.Work):
     def get_authors(self):
         authors = [a.author for a in self.authors]
         authors = [follow_redirect(a) for a in authors]
-        authors = [a for a in authors if a and a.type.key == "/type/author"]
+        authors = [a for a in authors if a and a.type.key == '/type/author']
         return authors
 
     def get_subjects(self):
@@ -647,9 +647,9 @@ class Work(models.Work):
         subjects = self.subjects
 
         def flip(name):
-            if name.count(",") == 1:
-                a, b = name.split(",")
-                return b.strip() + " " + a.strip()
+            if name.count(',') == 1:
+                a, b = name.split(',')
+                return b.strip() + ' ' + a.strip()
             return name
 
         if subjects and not isinstance(subjects[0], str):
@@ -725,7 +725,7 @@ class Work(models.Work):
         :param list[str] keys: ensure keys included in fetched editions
         :rtype: list[Edition]
         """
-        db_query = {"type": "/type/edition", "works": self.key}
+        db_query = {'type': '/type/edition', 'works': self.key}
         db_query['limit'] = limit or 10000
 
         edition_keys = []
@@ -740,7 +740,7 @@ class Work(models.Work):
                     query = {**db_query, **provider.editions_query}
                     edition_keys += web.ctx.site.things(query)
             else:
-                db_query["ocaid~"] = "*"
+                db_query['ocaid~'] = '*'
 
         if not edition_keys:
             solr_is_up_to_date = (
@@ -750,7 +750,7 @@ class Work(models.Work):
             )
             if solr_is_up_to_date:
                 edition_keys += [
-                    "/books/" + olid for olid in self._solr_data.get('edition_key')
+                    '/books/' + olid for olid in self._solr_data.get('edition_key')
                 ]
             else:
                 # given librarians are probably doing this, show all editions
@@ -768,22 +768,22 @@ class Work(models.Work):
         ocaids = [ed.ocaid for ed in editions if ed.ocaid]
         availability = lending.get_availability_of_ocaids(ocaids) if ocaids else {}
         for ed in editions:
-            ed.availability = availability.get(ed.ocaid) or {"status": "error"}
+            ed.availability = availability.get(ed.ocaid) or {'status': 'error'}
 
         return editions
 
     def has_ebook(self):
         w = self._solr_data or {}
-        return w.get("has_fulltext", False)
+        return w.get('has_fulltext', False)
 
     first_publish_year = property(
-        lambda self: self._solr_data.get("first_publish_year")
+        lambda self: self._solr_data.get('first_publish_year')
     )
 
     def get_edition_covers(self):
         editions = web.ctx.site.get_many(
             web.ctx.site.things(
-                {"type": "/type/edition", "works": self.key, "limit": 1000}
+                {'type': '/type/edition', 'works': self.key, 'limit': 1000}
             )
         )
         existing = {int(c.id) for c in self.get_covers()}
@@ -820,7 +820,7 @@ class User(models.User):
 
     def get_edit_history(self, limit=10, offset=0):
         return web.ctx.site.versions(
-            {"author": self.key, "limit": limit, "offset": offset}
+            {'author': self.key, 'limit': limit, 'offset': offset}
         )
 
     def get_users_settings(self):
@@ -828,15 +828,15 @@ class User(models.User):
         return settings.dict().get('notifications') if settings else {}
 
     def get_creation_info(self):
-        if web.ctx.path.startswith("/admin"):
+        if web.ctx.path.startswith('/admin'):
             d = web.ctx.site.versions(
-                {'key': self.key, "sort": "-created", "limit": 1}
+                {'key': self.key, 'sort': '-created', 'limit': 1}
             )[0]
-            return web.storage({"ip": d.ip, "member_since": d.created})
+            return web.storage({'ip': d.ip, 'member_since': d.created})
 
     def get_edit_count(self):
-        if web.ctx.path.startswith("/admin"):
-            return web.ctx.site._request('/count_edits_by_user', data={"key": self.key})
+        if web.ctx.path.startswith('/admin'):
+            return web.ctx.site._request('/count_edits_by_user', data={'key': self.key})
         else:
             return 0
 
@@ -872,17 +872,17 @@ class UnitParser:
 
     def format(self, d):
         return (
-            " x ".join(str(d.get(k, '')) for k in self.fields)
+            ' x '.join(str(d.get(k, '')) for k in self.fields)
             + ' '
             + d.get('units', '')
         )
 
     def parse(self, s):
         """Parse the string and return storage object with specified fields and units."""
-        pattern = "^" + " *x *".join("([0-9.]*)" for f in self.fields) + " *(.*)$"
+        pattern = '^' + ' *x *'.join('([0-9.]*)' for f in self.fields) + ' *(.*)$'
         rx = web.re_compile(pattern)
         m = rx.match(s)
-        return m and web.storage(zip(self.fields + ["units"], m.groups()))
+        return m and web.storage(zip(self.fields + ['units'], m.groups()))
 
 
 class Changeset(client.Changeset):
@@ -891,7 +891,7 @@ class Changeset(client.Changeset):
 
     def _get_doc(self, key, revision):
         if revision == 0:
-            return {"key": key, "type": {"key": "/type/delete"}}
+            return {'key': key, 'type': {'key': '/type/delete'}}
         else:
             d = web.ctx.site.get(key, revision).dict()
             return d
@@ -911,9 +911,9 @@ class Changeset(client.Changeset):
         docs = [self._get_doc(c['key'], c['revision'] - 1) for c in self.changes]
         docs = self.process_docs_before_undo(docs)
 
-        data = {"parent_changeset": self.id}
+        data = {'parent_changeset': self.id}
         comment = 'undo ' + self.comment
-        return web.ctx.site.save_many(docs, action="undo", data=data, comment=comment)
+        return web.ctx.site.save_many(docs, action='undo', data=data, comment=comment)
 
     def get_undo_changeset(self):
         """Returns the changeset that undone this transaction if one exists, None otherwise."""
@@ -923,7 +923,7 @@ class Changeset(client.Changeset):
             pass
 
         changesets = web.ctx.site.recentchanges(
-            {"kind": "undo", "data": {"parent_changeset": self.id}}
+            {'kind': 'undo', 'data': {'parent_changeset': self.id}}
         )
         # return the first undo changeset
         self._undo_changeset = changesets and changesets[-1] or None
@@ -933,7 +933,7 @@ class Changeset(client.Changeset):
 class NewAccountChangeset(Changeset):
     def get_user(self):
         keys = [c.key for c in self.get_changes()]
-        user_key = "/people/" + keys[0].split("/")[2]
+        user_key = '/people/' + keys[0].split('/')[2]
         return web.ctx.site.get(user_key)
 
 
@@ -942,11 +942,11 @@ class MergeAuthors(Changeset):
         return self.get_undo_changeset() is None
 
     def get_master(self):
-        master = self.data.get("master")
+        master = self.data.get('master')
         return master and web.ctx.site.get(master, lazy=True)
 
     def get_duplicates(self):
-        duplicates = self.data.get("duplicates")
+        duplicates = self.data.get('duplicates')
         changes = {c['key']: c['revision'] for c in self.changes}
 
         return duplicates and [
@@ -976,23 +976,23 @@ class AddBookChangeset(Changeset):
 
     def get_edition(self):
         for doc in self.get_changes():
-            if doc.key.startswith("/books/"):
+            if doc.key.startswith('/books/'):
                 return doc
 
     def get_author(self):
         for doc in self.get_changes():
-            if doc.key.startswith("/authors/"):
+            if doc.key.startswith('/authors/'):
                 return doc
 
 
 class ListChangeset(Changeset):
     def get_added_seed(self):
-        added = self.data.get("add")
+        added = self.data.get('add')
         if added and len(added) == 1:
             return self.get_seed(added[0])
 
     def get_removed_seed(self):
-        removed = self.data.get("remove")
+        removed = self.data.get('remove')
         if removed and len(removed) == 1:
             return self.get_seed(removed[0])
 

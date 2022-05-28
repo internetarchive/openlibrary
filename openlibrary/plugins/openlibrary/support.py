@@ -13,7 +13,7 @@ from openlibrary.core.cache import get_memcache
 from openlibrary.plugins.upstream.addbook import get_recaptcha
 from openlibrary.utils.dateutil import MINUTE_SECS
 
-logger = logging.getLogger("openlibrary")
+logger = logging.getLogger('openlibrary')
 
 
 class contact(delegate.page):
@@ -25,19 +25,19 @@ class contact(delegate.page):
         hashed_ip = hashlib.md5(web.ctx.ip.encode('utf-8')).hexdigest()
         has_emailed_recently = get_memcache().get('contact-POST-%s' % hashed_ip)
         recaptcha = has_emailed_recently and get_recaptcha()
-        return render_template("support", email=email, url=i.path, recaptcha=recaptcha)
+        return render_template('support', email=email, url=i.path, recaptcha=recaptcha)
 
     def POST(self):
         form = web.input()
-        patron_name = form.get("name", "")
-        email = form.get("email", "")
-        topic = form.get("topic", "")
-        description = form.get("question", "")
-        url = form.get("url", "")
+        patron_name = form.get('name', '')
+        email = form.get('email', '')
+        topic = form.get('topic', '')
+        description = form.get('question', '')
+        url = form.get('url', '')
         user = accounts.get_current_user()
-        useragent = web.ctx.env.get("HTTP_USER_AGENT", "")
+        useragent = web.ctx.env.get('HTTP_USER_AGENT', '')
         if not all([email, topic, description]):
-            return ""
+            return ''
 
         hashed_ip = hashlib.md5(web.ctx.ip.encode('utf-8')).hexdigest()
         has_emailed_recently = get_memcache().get('contact-POST-%s' % hashed_ip)
@@ -45,7 +45,7 @@ class contact(delegate.page):
             recap = get_recaptcha()
             if recap and not recap.validate():
                 return render_template(
-                    "message.html",
+                    'message.html',
                     'Recaptcha solution was incorrect',
                     (
                         'Please <a href="javascript:history.back()">go back</a> and try '
@@ -53,24 +53,24 @@ class contact(delegate.page):
                     ),
                 )
 
-        default_assignees = config.get("support_default_assignees", {})
-        topic_key = str(topic.replace(" ", "_").lower())
+        default_assignees = config.get('support_default_assignees', {})
+        topic_key = str(topic.replace(' ', '_').lower())
         if topic_key in default_assignees:
             assignee = default_assignees.get(topic_key)
         else:
-            assignee = default_assignees.get("default", "openlibrary@archive.org")
-        stats.increment("ol.support.all")
-        subject = "Support case *%s*" % topic
+            assignee = default_assignees.get('default', 'openlibrary@archive.org')
+        stats.increment('ol.support.all')
+        subject = 'Support case *%s*' % topic
 
         url = web.ctx.home + url
-        displayname = user and user.get_name() or ""
-        username = user and user.get_username() or ""
+        displayname = user and user.get_name() or ''
+        username = user and user.get_username() or ''
 
         message = SUPPORT_EMAIL_TEMPLATE % locals()
         sendmail(email, assignee, subject, message)
 
-        get_memcache().set('contact-POST-%s' % hashed_ip, "true", time=15 * MINUTE_SECS)
-        return render_template("email/case_created", assignee)
+        get_memcache().set('contact-POST-%s' % hashed_ip, 'true', time=15 * MINUTE_SECS)
+        return render_template('email/case_created', assignee)
 
 
 def sendmail(from_address, to_address, subject, message):
@@ -90,7 +90,7 @@ def sendmail(from_address, to_address, subject, message):
             + web.safestr(message)
         )
 
-        logger.info("sending email:\n%s", msg)
+        logger.info('sending email:\n%s', msg)
     else:
         web.sendmail(from_address, to_address, subject, message)
 

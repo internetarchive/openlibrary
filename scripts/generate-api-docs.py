@@ -32,11 +32,11 @@ t = web.template.Template(template)
 
 
 def docpath(path):
-    return "docs/api/" + path.replace(".py", ".rst").replace("__init__", "index")
+    return 'docs/api/' + path.replace('.py', '.rst').replace('__init__', 'index')
 
 
 def modname(path):
-    return path.replace(".py", "").replace("/__init__", "").replace("/", ".")
+    return path.replace('.py', '').replace('/__init__', '').replace('/', '.')
 
 
 def write(path, text):
@@ -44,30 +44,30 @@ def write(path, text):
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 
-    print("writing", path)
-    f = open(path, "w")
+    print('writing', path)
+    f = open(path, 'w')
     f.write(text)
     f.close()
 
 
 def find_python_sources(dir):
     ignores = [
-        "openlibrary/catalog.*",
-        "openlibrary/solr.*",
-        "openlibrary/plugins/recaptcha.*",
-        ".*tests",
-        "infogami/plugins.*",
-        "infogami.utils.markdown",
+        'openlibrary/catalog.*',
+        'openlibrary/solr.*',
+        'openlibrary/plugins/recaptcha.*',
+        '.*tests',
+        'infogami/plugins.*',
+        'infogami.utils.markdown',
     ]
-    re_ignore = re.compile("|".join(ignores))
+    re_ignore = re.compile('|'.join(ignores))
 
     for dirpath, dirnames, filenames in os.walk(dir):
         if re_ignore.match(dirpath):
-            print("ignoring", dirpath)
+            print('ignoring', dirpath)
             continue
 
         for f in filenames:
-            if f.endswith(".py"):
+            if f.endswith('.py'):
                 yield os.path.join(dirpath, f)
 
 
@@ -81,16 +81,16 @@ def generate_docs(dir):
     for path in paths:
         dir = os.path.dirname(path)
 
-        if path.endswith("__init__.py"):
+        if path.endswith('__init__.py'):
             dir = os.path.dirname(dir)
 
         submodule_dict[dir].append(path)
 
     for path in paths:
         dirname = os.path.dirname(path)
-        if path.endswith("__init__.py"):
+        if path.endswith('__init__.py'):
             submodules = [
-                web.lstrips(docpath(s), docpath(dirname) + "/")
+                web.lstrips(docpath(s), docpath(dirname) + '/')
                 for s in submodule_dict[dirname]
             ]
         else:
@@ -107,24 +107,24 @@ def generate_docs(dir):
 
 
 def generate_index():
-    filenames = sorted(os.listdir("docs/api"))
+    filenames = sorted(os.listdir('docs/api'))
 
-    f = open("docs/api/index.rst", "w")
+    f = open('docs/api/index.rst', 'w')
 
-    f.write("API Documentation\n")
-    f.write("=================\n")
-    f.write("\n")
-    f.write(".. toctree::\n")
-    f.write("   :maxdepth: 1\n")
-    f.write("\n")
-    f.write("\n".join("   " + filename for filename in filenames))
+    f.write('API Documentation\n')
+    f.write('=================\n')
+    f.write('\n')
+    f.write('.. toctree::\n')
+    f.write('   :maxdepth: 1\n')
+    f.write('\n')
+    f.write('\n'.join('   ' + filename for filename in filenames))
 
 
 def main():
-    generate_docs("openlibrary")
-    generate_docs("infogami")
+    generate_docs('openlibrary')
+    generate_docs('infogami')
     # generate_index()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

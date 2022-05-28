@@ -28,8 +28,8 @@ def ol(request):
 
 @web.memoize
 def load_plugins():
-    config.plugin_path = ["openlibrary.plugins", ""]
-    config.plugins = ["openlibrary", "worksearch", "upstream", "admin"]
+    config.plugin_path = ['openlibrary.plugins', '']
+    config.plugins = ['openlibrary', 'worksearch', 'upstream', 'admin']
 
     delegate._load()
 
@@ -37,7 +37,7 @@ def load_plugins():
 class EMail(web.storage):
     def extract_links(self):
         """Extracts link from the email message."""
-        return re.findall(r"http://[^\s]*", self.message)
+        return re.findall(r'http://[^\s]*', self.message)
 
 
 class OLBrowser(AppBrowser):
@@ -57,7 +57,7 @@ class OL:
         self.monkeypatch = monkeypatch(request)
         self.site = mock_site(request)
 
-        self.monkeypatch.setattr(ol_infobase, "init_plugin", lambda: None)
+        self.monkeypatch.setattr(ol_infobase, 'init_plugin', lambda: None)
 
         self._load_plugins(request)
         self._mock_sendmail(request)
@@ -68,7 +68,7 @@ class OL:
         return OLBrowser(delegate.app)
 
     def setup_config(self):
-        config.from_address = "Open Library <noreply@openlibrary.org>"
+        config.from_address = 'Open Library <noreply@openlibrary.org>'
 
     def _load_plugins(self, request):
         def create_site():
@@ -79,7 +79,7 @@ class OL:
                 web.ctx.conn.set_auth_token(auth_token)
             return self.site
 
-        self.monkeypatch.setattr(delegate, "create_site", create_site)
+        self.monkeypatch.setattr(delegate, 'create_site', create_site)
 
         load_plugins()
 
@@ -97,4 +97,4 @@ class OL:
                 headers=headers,
             )
 
-        self.monkeypatch.setattr(web, "sendmail", sendmail)
+        self.monkeypatch.setattr(web, 'sendmail', sendmail)

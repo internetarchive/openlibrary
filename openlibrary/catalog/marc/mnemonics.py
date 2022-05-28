@@ -701,7 +701,7 @@ def load_table(filename):
     for line in (i.split(',') for i in open(filename) if i.startswith('{')):
         key = line[0]
         value = ''
-        for d in line[2].strip().split(" "):
+        for d in line[2].strip().split(' '):
             assert len(d) == 4
             assert d[3] == 'd'
             value += chr(int(d[0:3]))

@@ -17,9 +17,9 @@ class WorkRatingsSummary(TypedDict):
 
 class Ratings(db.CommonExtras):
 
-    TABLENAME = "ratings"
+    TABLENAME = 'ratings'
     VALID_STAR_RATINGS = range(6)  # inclusive: [0 - 5] (0-5 star)
-    PRIMARY_KEY = ["username", "work_id"]
+    PRIMARY_KEY = ['username', 'work_id']
     ALLOW_DELETE_ON_CONFLICT = True
 
     @classmethod
@@ -36,20 +36,20 @@ class Ratings(db.CommonExtras):
     @classmethod
     def total_num_books_rated(cls, since=None, distinct=False):
         oldb = db.get_db()
-        query = "SELECT count(%s work_id) from ratings" % (
+        query = 'SELECT count(%s work_id) from ratings' % (
             'DISTINCT' if distinct else ''
         )
         if since:
-            query += " WHERE created >= $since"
+            query += ' WHERE created >= $since'
         results = oldb.query(query, vars={'since': since})
         return results[0] if results else None
 
     @classmethod
     def total_num_unique_raters(cls, since=None):
         oldb = db.get_db()
-        query = "select count(DISTINCT username) from ratings"
+        query = 'select count(DISTINCT username) from ratings'
         if since:
-            query += " WHERE created >= $since"
+            query += ' WHERE created >= $since'
         results = oldb.query(query, vars={'since': since})
         return results[0] if results else None
 
@@ -58,7 +58,7 @@ class Ratings(db.CommonExtras):
         oldb = db.get_db()
         query = 'select work_id, count(*) as cnt from ratings '
         if since:
-            query += " WHERE created >= $since"
+            query += ' WHERE created >= $since'
         query += ' group by work_id order by cnt desc limit $limit'
         return list(oldb.query(query, vars={'limit': limit, 'since': since}))
 
@@ -72,9 +72,9 @@ class Ratings(db.CommonExtras):
     def get_rating_stats(cls, work_id):
         oldb = db.get_db()
         query = (
-            "SELECT AVG(rating) as avg_rating, COUNT(DISTINCT username) as num_ratings"
-            " FROM ratings"
-            " WHERE work_id = $work_id"
+            'SELECT AVG(rating) as avg_rating, COUNT(DISTINCT username) as num_ratings'
+            ' FROM ratings'
+            ' WHERE work_id = $work_id'
         )
         result = oldb.query(query, vars={'work_id': int(work_id)})
         return result[0] if result else {}
@@ -159,5 +159,5 @@ class Ratings(db.CommonExtras):
                 edition_id=edition_id,
             )
         else:
-            where = "work_id=$work_id AND username=$username"
+            where = 'work_id=$work_id AND username=$username'
             return oldb.update('ratings', where=where, rating=rating, vars=data)

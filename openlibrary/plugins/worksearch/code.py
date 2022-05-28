@@ -37,66 +37,66 @@ from openlibrary.utils.lcc import (
     short_lcc_to_sortable_lcc,
 )
 
-logger = logging.getLogger("openlibrary.worksearch")
+logger = logging.getLogger('openlibrary.worksearch')
 
 ALL_FIELDS = [
-    "key",
-    "redirects",
-    "title",
-    "subtitle",
-    "alternative_title",
-    "alternative_subtitle",
-    "edition_count",
-    "edition_key",
-    "by_statement",
-    "publish_date",
-    "lccn",
-    "ia",
-    "oclc",
-    "isbn",
-    "contributor",
-    "publish_place",
-    "publisher",
-    "first_sentence",
-    "author_key",
-    "author_name",
-    "author_alternative_name",
-    "subject",
-    "person",
-    "place",
-    "time",
-    "has_fulltext",
-    "title_suggest",
-    "edition_count",
-    "publish_year",
-    "language",
-    "number_of_pages",
-    "ia_count",
-    "publisher_facet",
-    "author_facet",
-    "first_publish_year",
+    'key',
+    'redirects',
+    'title',
+    'subtitle',
+    'alternative_title',
+    'alternative_subtitle',
+    'edition_count',
+    'edition_key',
+    'by_statement',
+    'publish_date',
+    'lccn',
+    'ia',
+    'oclc',
+    'isbn',
+    'contributor',
+    'publish_place',
+    'publisher',
+    'first_sentence',
+    'author_key',
+    'author_name',
+    'author_alternative_name',
+    'subject',
+    'person',
+    'place',
+    'time',
+    'has_fulltext',
+    'title_suggest',
+    'edition_count',
+    'publish_year',
+    'language',
+    'number_of_pages',
+    'ia_count',
+    'publisher_facet',
+    'author_facet',
+    'first_publish_year',
     # Subjects
-    "subject_key",
-    "person_key",
-    "place_key",
-    "time_key",
+    'subject_key',
+    'person_key',
+    'place_key',
+    'time_key',
     # Classifications
-    "lcc",
-    "ddc",
-    "lcc_sort",
-    "ddc_sort",
+    'lcc',
+    'ddc',
+    'lcc_sort',
+    'ddc_sort',
 ]
 FACET_FIELDS = [
-    "has_fulltext",
-    "author_facet",
-    "language",
-    "first_publish_year",
-    "publisher_facet",
-    "subject_facet",
-    "person_facet",
-    "place_facet",
-    "time_facet",
-    "public_scan_b",
+    'has_fulltext',
+    'author_facet',
+    'language',
+    'first_publish_year',
+    'publisher_facet',
+    'subject_facet',
+    'person_facet',
+    'place_facet',
+    'time_facet',
+    'public_scan_b',
 ]
 FIELD_NAME_MAP = {
     'author': 'author_name',
@@ -385,14 +385,14 @@ def build_q_list(param):
             v = param['author'].strip()
             m = re_author_key.search(v)
             if m:
-                q_list.append("author_key:(%s)" % m.group(1))
+                q_list.append('author_key:(%s)' % m.group(1))
             else:
                 v = re_to_esc.sub(r'\\\g<0>', v)
                 # Somehow v can be empty at this point,
                 #   passing the following with empty strings causes a severe error in SOLR
                 if v:
                     q_list.append(
-                        "(author_name:({name}) OR author_alternative_name:({name}))".format(
+                        '(author_name:({name}) OR author_alternative_name:({name}))'.format(
                             name=v
                         )
                     )
@@ -423,12 +423,12 @@ def build_q_list(param):
 def execute_solr_query(
     solr_path: str, params: Union[dict, list[tuple[str, Any]]]
 ) -> Optional[Response]:
-    stats.begin("solr", url=f'{solr_path}?{urlencode(params)}')
+    stats.begin('solr', url=f'{solr_path}?{urlencode(params)}')
     try:
         response = requests.get(solr_path, params=params, timeout=10)
         response.raise_for_status()
     except requests.HTTPError:
-        logger.exception("Failed solr query")
+        logger.exception('Failed solr query')
         return None
     finally:
         stats.end()
@@ -443,12 +443,12 @@ def parse_json_from_solr_query(
     """
     response = execute_solr_query(solr_path, params)
     if not response:
-        logger.error("Error parsing empty search engine response")
+        logger.error('Error parsing empty search engine response')
         return None
     try:
         return response.json()
     except JSONDecodeError:
-        logger.exception("Error parsing search engine response")
+        logger.exception('Error parsing search engine response')
         return None
 
 
@@ -667,7 +667,7 @@ class scan(delegate.page):
     Experimental EAN barcode scanner page to scan and add/view books by their barcodes.
     """
 
-    path = "/barcodescanner"
+    path = '/barcodescanner'
 
     def GET(self):
         return render.barcodescanner()
@@ -824,7 +824,7 @@ def works_by_author(
     if has_fulltext:
         params.append(('fq', 'has_fulltext:true'))
 
-    if sort == "editions":
+    if sort == 'editions':
         params.append(('sort', 'edition_count desc'))
     elif sort.startswith('old'):
         params.append(('sort', 'first_publish_year asc'))
@@ -834,17 +834,17 @@ def works_by_author(
         params.append(('sort', 'title asc'))
 
     facet_fields = [
-        "author_facet",
-        "language",
-        "publish_year",
-        "publisher_facet",
-        "subject_facet",
-        "person_facet",
-        "place_facet",
-        "time_facet",
+        'author_facet',
+        'language',
+        'publish_year',
+        'publisher_facet',
+        'subject_facet',
+        'person_facet',
+        'place_facet',
+        'time_facet',
     ]
     for f in facet_fields:
-        params.append(("facet.field", f))
+        params.append(('facet.field', f))
 
     reply = parse_json_from_solr_query(solr_select_url, params)
     if reply is None:
@@ -891,7 +891,7 @@ def sorted_work_editions(wkey, json_data=None):
     if reply is None or reply.get('response', {}).get('numFound', 0) == 0:
         return []
     # TODO: Deep JSON structure defense - for now, let it blow up so easier to detect
-    return reply["response"]['docs'][0].get('edition_key', [])
+    return reply['response']['docs'][0].get('edition_key', [])
 
 
 def top_books_from_author(akey, rows=5, offset=0):
@@ -918,10 +918,10 @@ def top_books_from_author(akey, rows=5, offset=0):
 
 
 class advancedsearch(delegate.page):
-    path = "/advancedsearch"
+    path = '/advancedsearch'
 
     def GET(self):
-        return render_template("search/advancedsearch.html")
+        return render_template('search/advancedsearch.html')
 
 
 def escape_colon(q, vf):
@@ -949,7 +949,7 @@ def parse_search_response(json_data):
     try:
         return json.loads(json_data)
     except json.JSONDecodeError:
-        logger.exception("Error parsing search engine response")
+        logger.exception('Error parsing search engine response')
         m = re_pre.search(json_data)
         if m is None:
             return {'error': 'Error parsing search engine response'}
@@ -976,10 +976,10 @@ class list_search(delegate.page):
 
         keys = web.ctx.site.things(
             {
-                "type": "/type/list",
-                "name~": q,
-                "limit": int(limit),
-                "offset": int(offset),
+                'type': '/type/list',
+                'name~': q,
+                'limit': int(limit),
+                'offset': int(offset),
             }
         )
 
@@ -1017,15 +1017,15 @@ class subject_search(delegate.page):
         results = run_solr_search(
             solr_select_url,
             {
-                "fq": "type:subject",
-                "q.op": "AND",
-                "q": q,
-                "start": offset,
-                "rows": limit,
-                "fl": ",".join(valid_fields),
-                "qt": "standard",
-                "wt": "json",
-                "sort": "work_count desc",
+                'fq': 'type:subject',
+                'q.op': 'AND',
+                'q': q,
+                'start': offset,
+                'rows': limit,
+                'fl': ','.join(valid_fields),
+                'qt': 'standard',
+                'wt': 'json',
+                'sort': 'work_count desc',
             },
         )
         response = results['response']
@@ -1095,7 +1095,7 @@ class author_search(delegate.page):
         for doc in docs:
             # replace /authors/OL1A with OL1A
             # The template still expects the key to be in the old format
-            doc['key'] = doc['key'].split("/")[-1]
+            doc['key'] = doc['key'].split('/')[-1]
         return d
 
 
@@ -1135,15 +1135,15 @@ def random_author_search(limit=10):
 
     docs = search_results.get('response', {}).get('docs', [])
 
-    assert docs, f"random_author_search({limit}) returned no docs"
+    assert docs, f'random_author_search({limit}) returned no docs'
     assert (
         len(docs) == limit
-    ), f"random_author_search({limit}) returned {len(docs)} docs"
+    ), f'random_author_search({limit}) returned {len(docs)} docs'
 
     for doc in docs:
         # replace /authors/OL1A with OL1A
         # The template still expects the key to be in the old format
-        doc['key'] = doc['key'].split("/")[-1]
+        doc['key'] = doc['key'].split('/')[-1]
 
     return search_results['response']
 
@@ -1169,7 +1169,7 @@ def rewrite_list_query(q, page, offset, limit):
         # we're making an assumption that q is just a list key
         book_keys = cache.memcache_memoize(
             cached_get_list_book_keys,
-            "search.list_books_query",
+            'search.list_books_query',
             timeout=5*60)(q, offset, limit)
 
         q = f"key:({' OR '.join(book_keys)})"
@@ -1221,7 +1221,7 @@ def work_search(
         )
         response = reply['response'] or ''
     except (ValueError, OSError) as e:
-        logger.error("Error in processing search API.")
+        logger.error('Error in processing search API.')
         response = dict(start=0, numFound=0, docs=[], error=str(e))
 
     # backward compatibility
@@ -1232,8 +1232,8 @@ def work_search(
 
 
 class search_json(delegate.page):
-    path = "/search"
-    encoding = "json"
+    path = '/search'
+    encoding = 'json'
 
     def GET(self):
         i = web.input(
@@ -1254,18 +1254,18 @@ class search_json(delegate.page):
 
         sort = query.get('sort', None)
 
-        limit = safeint(query.pop("limit", "100"), default=100)
-        if "offset" in query:
-            offset = safeint(query.pop("offset", 0), default=0)
+        limit = safeint(query.pop('limit', '100'), default=100)
+        if 'offset' in query:
+            offset = safeint(query.pop('offset', 0), default=0)
             page = None
         else:
             offset = None
-            page = safeint(query.pop("page", "1"), default=1)
+            page = safeint(query.pop('page', '1'), default=1)
 
         fields = query.pop('fields', '*').split(',')
         facet = query.pop('_facet', 'true').lower() in ['true']
         spellcheck_count = safeint(
-            query.pop("_spellcheck_count", default_spellcheck_count),
+            query.pop('_spellcheck_count', default_spellcheck_count),
             default=default_spellcheck_count,
         )
 

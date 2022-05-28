@@ -5,7 +5,7 @@ import yaml
 
 from openlibrary.core.helpers import NothingEncoder
 
-__all__ = ["load_yaml", "dump_yaml"]
+__all__ = ['load_yaml', 'dump_yaml']
 
 
 def load_yaml(text):
@@ -17,18 +17,18 @@ def dump_yaml(data):
 
 
 def load(text, format):
-    if format == "json":
+    if format == 'json':
         return json.loads(text)
-    elif format == "yaml":
+    elif format == 'yaml':
         return load_yaml(text)
     else:
-        raise Exception("unsupported format %r" % format)
+        raise Exception('unsupported format %r' % format)
 
 
 def dump(data, format):
-    if format == "json":
+    if format == 'json':
         return json.dumps(data, cls=NothingEncoder)
-    elif format == "yml":
+    elif format == 'yml':
         return dump_yaml(data)
     else:
-        raise Exception("unsupported format %r" % format)
+        raise Exception('unsupported format %r' % format)

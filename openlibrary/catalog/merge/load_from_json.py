@@ -31,7 +31,7 @@ def add_to_index(fh, value, key):
         value = str(value)
     except UnicodeEncodeError:
         return
-    print("\t".join([key, esc(value)]), file=fh)
+    print('\t'.join([key, esc(value)]), file=fh)
 
 
 def short_title(s):
@@ -104,11 +104,11 @@ for line in open(filename):
         remaining = total - rec_no
         sec = remaining / rec_per_sec_total
         print(
-            "%d current: %.3f overall: %.3f" % (rec_no, rec_per_sec, rec_per_sec_total),
+            '%d current: %.3f overall: %.3f' % (rec_no, rec_per_sec, rec_per_sec_total),
             end=' ',
         )
         mins = sec / 60
-        print("%.3f minutes left" % mins)
+        print('%.3f minutes left' % mins)
 
     # split line
     key, type, json_data = line.split('\t')
@@ -123,7 +123,7 @@ for line in open(filename):
         raise
 
 print(rec_no)
-print("closing files")
+print('closing files')
 for v in files.values():
     v.close()
-print("finished")
+print('finished')

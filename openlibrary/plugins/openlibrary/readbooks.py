@@ -45,23 +45,23 @@ def books(fbooks, fauthors):
         web.query("SELECT * FROM thing WHERE site_id=1 AND key='/type/edition'")[0].id
     )
     result = select(
-        "SELECT * FROM datum ORDER BY thing_id WHERE end_revision=2147483647"
+        'SELECT * FROM datum ORDER BY thing_id WHERE end_revision=2147483647'
     )
     t1 = time.time()
     for i, t in enumerate(parse_datum(result)):
         if t['type'] == type_author:
             fauthors.write(str(t))
-            fauthors.write("\n")
+            fauthors.write('\n')
         elif t['type'] == type_edition:
             fbooks.write(str(t))
-            fbooks.write("\n")
+            fbooks.write('\n')
 
         if i and i % 10000 == 0:
             t2 = time.time()
             dt = t2 - t1
             t1 = t2
             print(
-                "%d: 10000 books read in %f time. %f things/sec" % (i, dt, 10000 / dt)
+                '%d: 10000 books read in %f time. %f things/sec' % (i, dt, 10000 / dt)
             )
 
 
@@ -72,12 +72,12 @@ def main():
     web.config.db_printing = True
     web.load()
 
-    fbooks = open("books.txt", "w")
-    fauthors = open("authors.txt", "w")
+    fbooks = open('books.txt', 'w')
+    fauthors = open('authors.txt', 'w')
     books(fbooks, fauthors)
     fbooks.close()
     fauthors.close()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

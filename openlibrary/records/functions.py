@@ -76,30 +76,30 @@ def search(params):
 
     """
     params = copy.deepcopy(params)
-    doc = params.pop("doc")
+    doc = params.pop('doc')
 
     matches = []
     # TODO: We are looking only at edition searches here. This should be expanded to works.
-    if "isbn" in doc.get('identifiers', {}):
+    if 'isbn' in doc.get('identifiers', {}):
         matches.extend(find_matches_by_isbn(doc['identifiers']['isbn']))
 
-    if "identifiers" in doc:
+    if 'identifiers' in doc:
         d = find_matches_by_identifiers(doc['identifiers'])
         matches.extend(d['all'])
         matches.extend(
             d['any']
         )  # TODO: These are very poor matches. Maybe we should put them later.
 
-    if "publisher" in doc or "publish_date" in doc or "title" in doc:
+    if 'publisher' in doc or 'publish_date' in doc or 'title' in doc:
         matches.extend(find_matches_by_title_and_publishers(doc))
 
     return massage_search_results(matches, doc)
 
 
 def find_matches_by_isbn(isbns):
-    "Find matches using isbns."
+    'Find matches using isbns.'
     q = {'type': '/type/edition', 'isbn_': str(isbns[0])}
-    print("ISBN query : ", q)
+    print('ISBN query : ', q)
     ekeys = list(web.ctx.site.things(q))
     if ekeys:
         return ekeys[:1]  # TODO: We artificially match only one item here
@@ -124,7 +124,7 @@ def find_matches_by_identifiers(identifiers):
     identifiers = copy.deepcopy(identifiers)
     # Find matches that match everything.
     q = {'type': '/type/edition'}
-    for i in ["oclc_numbers", "lccn", "ocaid"]:
+    for i in ['oclc_numbers', 'lccn', 'ocaid']:
         if i in identifiers:
             q[i] = identifiers[i]
     matches_all = web.ctx.site.things(q)
@@ -132,7 +132,7 @@ def find_matches_by_identifiers(identifiers):
     # Find matches for any of the given parameters and take the union
     # of all such matches
     matches_any = set()
-    for i in ["oclc_numbers", "lccn", "ocaid"]:
+    for i in ['oclc_numbers', 'lccn', 'ocaid']:
         q = {'type': '/type/edition'}
         if i in identifiers:
             q[i] = identifiers[i]
@@ -142,11 +142,11 @@ def find_matches_by_identifiers(identifiers):
 
 
 def find_matches_by_title_and_publishers(doc):
-    "Find matches using title and author in the given doc"
+    'Find matches using title and author in the given doc'
     # TODO: Use normalised_title instead of the regular title
     # TODO: Use catalog.add_book.load_book:build_query instead of this
     q = {'type': '/type/edition'}
-    for key in ["title", 'publishers', 'publish_date']:
+    for key in ['title', 'publishers', 'publish_date']:
         if key in doc:
             q[key] = doc[key]
     ekeys = web.ctx.site.things(q)
@@ -188,11 +188,11 @@ def edition_to_doc(thing):
     doc = thing.dict()
 
     # Process identifiers
-    identifiers = doc.get("identifiers", {})
-    for i in ["oclc_numbers", "lccn", "ocaid"]:
+    identifiers = doc.get('identifiers', {})
+    for i in ['oclc_numbers', 'lccn', 'ocaid']:
         if i in doc:
             identifiers[i] = doc.pop(i)
-    for i in ["isbn_10", "isbn_13"]:
+    for i in ['isbn_10', 'isbn_13']:
         if i in doc:
             identifiers.setdefault('isbn', []).extend(doc.pop(i))
     doc['identifiers'] = identifiers
@@ -200,8 +200,8 @@ def edition_to_doc(thing):
     # TODO : Process classifiers here too
 
     # Unpack works and authors
-    if "works" in doc:
-        work = doc.pop("works")[0]
+    if 'works' in doc:
+        work = doc.pop('works')[0]
         doc['work'] = work
         authors = [{'key': str(x.author)} for x in thing.works[0].authors]
         doc['authors'] = authors
@@ -271,10 +271,10 @@ def things_to_matches(things):
         if not isinstance(thing, Thing):
             thing = web.ctx.site.get(thing)
         key = thing['key']
-        if key.startswith("/books"):
+        if key.startswith('/books'):
             edition = key
             work = thing.works[0].key
-        if key.startswith("/works"):
+        if key.startswith('/works'):
             work = key
             edition = None
         matches.append(dict(edition=edition, work=work))
@@ -287,7 +287,7 @@ def create(records):
     Creates one or more new records in the system.
     TODO: Describe Input/output
     """
-    doc = records["doc"]
+    doc = records['doc']
     if doc:
         things = doc_to_things(copy.deepcopy(doc))
         web.ctx.site.save_many(things, 'Import new records.')
@@ -303,18 +303,18 @@ def edition_doc_to_things(doc):
     """
     retval = []
     # Unpack identifiers
-    identifiers = doc.get("identifiers", {})
-    for i in ["oclc_numbers", "isbn_10", "isbn_13", "lccn", "ocaid"]:
+    identifiers = doc.get('identifiers', {})
+    for i in ['oclc_numbers', 'isbn_10', 'isbn_13', 'lccn', 'ocaid']:
         if i in identifiers:
             doc[i] = identifiers.pop(i)
-    if "isbn" in identifiers:
-        isbns = identifiers.pop("isbn")
+    if 'isbn' in identifiers:
+        isbns = identifiers.pop('isbn')
         isbn_10 = [x for x in isbns if len(x) == 10]
         isbn_13 = [x for x in isbns if len(x) == 13]
         if isbn_10:
-            doc["isbn_10"] = isbn_10
+            doc['isbn_10'] = isbn_10
         if isbn_13:
-            doc["isbn_13"] = isbn_13
+            doc['isbn_13'] = isbn_13
 
     # TODO: Unpack classifiers
 

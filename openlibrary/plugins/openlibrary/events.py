@@ -6,7 +6,7 @@ import web
 
 import eventer
 
-logger = logging.getLogger("openlibrary.events")
+logger = logging.getLogger('openlibrary.events')
 
 
 def on_page_edit(page):
@@ -21,9 +21,9 @@ class EditHook(client.hook):
         # The argument passes by Infobase is not a thing object.
         # Create a thing object to pass to event listeners.
         page = web.ctx.site.get(page['key'])
-        eventer.trigger("page.edit", page)
+        eventer.trigger('page.edit', page)
 
 
 def setup():
     """Installs handlers for various events."""
-    eventer.bind("page.edit", on_page_edit)
+    eventer.bind('page.edit', on_page_edit)

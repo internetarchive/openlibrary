@@ -63,7 +63,7 @@ def new(
             archived=False,
         )
 
-        db.insert("log", action="new", timestamp=now, cover_id=cover_id)
+        db.insert('log', action='new', timestamp=now, cover_id=cover_id)
     except:
         t.rollback()
         raise
@@ -103,7 +103,7 @@ def query(category, olid, offset=0, limit=10):
 
 def details(id):
     try:
-        return getdb().select('cover', what='*', where="id=$id", vars=locals())[0]
+        return getdb().select('cover', what='*', where='id=$id', vars=locals())[0]
     except IndexError:
         return None
 
@@ -116,8 +116,8 @@ def touch(id):
     db = getdb()
     t = db.transaction()
     try:
-        db.query("UPDATE cover SET last_modified=$now where id=$id", vars=locals())
-        db.insert("log", action="touch", timestamp=now, cover_id=id)
+        db.query('UPDATE cover SET last_modified=$now where id=$id', vars=locals())
+        db.insert('log', action='touch', timestamp=now, cover_id=id)
     except:
         t.rollback()
         raise
@@ -136,7 +136,7 @@ def delete(id):
             'UPDATE cover set deleted=$true AND last_modified=$now WHERE id=$id',
             vars=locals(),
         )
-        db.insert("log", action="delete", timestamp=now, cover_id=id)
+        db.insert('log', action='delete', timestamp=now, cover_id=id)
     except:
         t.rollback()
         raise

@@ -10,12 +10,12 @@ class Test_ils_cover_upload:
     def test_build_url(self):
         build_url = code.ils_cover_upload().build_url
         assert (
-            build_url("http://example.com/foo", status="ok")
-            == "http://example.com/foo?status=ok"
+            build_url('http://example.com/foo', status='ok')
+            == 'http://example.com/foo?status=ok'
         )
         assert (
-            build_url("http://example.com/foo?bar=true", status="ok")
-            == "http://example.com/foo?bar=true&status=ok"
+            build_url('http://example.com/foo?bar=true', status='ok')
+            == 'http://example.com/foo?bar=true&status=ok'
         )
 
 
@@ -23,12 +23,12 @@ class Test_ils_search:
     def test_format_result(self, mock_site):
         format_result = code.ils_search().format_result
 
-        assert format_result({"doc": {}}, False, "") == {'status': 'notfound'}
+        assert format_result({'doc': {}}, False, '') == {'status': 'notfound'}
 
         doc = {'key': '/books/OL1M', 'type': {'key': '/type/edition'}}
         timestamp = datetime.datetime(2010, 1, 2, 3, 4, 5)
         mock_site.save(doc, timestamp=timestamp)
-        assert format_result({'doc': doc}, False, "") == {
+        assert format_result({'doc': doc}, False, '') == {
             'status': 'found',
             'olid': 'OL1M',
             'key': '/books/OL1M',
@@ -41,7 +41,7 @@ class Test_ils_search:
         }
         timestamp = datetime.datetime(2011, 1, 2, 3, 4, 5)
         mock_site.save(doc, timestamp=timestamp)
-        assert format_result({'doc': doc}, False, "") == {
+        assert format_result({'doc': doc}, False, '') == {
             'status': 'found',
             'olid': 'OL1M',
             'key': '/books/OL1M',

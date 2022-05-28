@@ -103,7 +103,7 @@ class Borrow_Test(unittest.TestCase):
             if make_assert:
                 self.assertTrue(
                     ol_cta_btn,
-                    f"{check_cta} button not found on OL edition page: {olid}",
+                    f'{check_cta} button not found on OL edition page: {olid}',
                 )
             elif not ol_cta_btn:
                 return False
@@ -122,7 +122,7 @@ class Borrow_Test(unittest.TestCase):
 
     def ol_verify_userid(self, olid, itemname):
         cta = self.ol_get_book_cta(
-            olid, check_cta="read", make_assert=True, click=False
+            olid, check_cta='read', make_assert=True, click=False
         )
         userid = cta.get_attribute('data-userid')
         self.assertTrue(
@@ -134,17 +134,17 @@ class Borrow_Test(unittest.TestCase):
         olsession.ia_login(test=self, **LIVE_USER1)
         olsession.login(test=self, **LIVE_USER1)
         self.ol_get_book_cta(
-            OL_EDITION, check_cta="return", make_assert=False, click=True
+            OL_EDITION, check_cta='return', make_assert=False, click=True
         )
         self.ia_get_book_cta(
-            ocaid=IA_EDITION, check_cta="return", make_assert=False, click=True
+            ocaid=IA_EDITION, check_cta='return', make_assert=False, click=True
         )
         self.ia_get_book_cta(
-            ocaid=IA_EDITION, check_cta="borrow", make_assert=True, click=True
+            ocaid=IA_EDITION, check_cta='borrow', make_assert=True, click=True
         )
         self.ol_verify_userid(OL_EDITION, LIVE_USER1['itemname'])
         self.ol_get_book_cta(
-            OL_EDITION, check_cta="return", make_assert=True, click=True
+            OL_EDITION, check_cta='return', make_assert=True, click=True
         )
         olsession.logout(test=self)
         olsession.ia_logout(test=self)
@@ -153,18 +153,18 @@ class Borrow_Test(unittest.TestCase):
         olsession.ia_login(test=self, **LIVE_USER1)
         olsession.login(test=self, **LIVE_USER1)
         self.ol_get_book_cta(
-            OL_EDITION, check_cta="return", make_assert=False, click=True
+            OL_EDITION, check_cta='return', make_assert=False, click=True
         )
         self.ol_get_book_cta(
-            OL_EDITION, check_cta="borrow", make_assert=True, click=True
+            OL_EDITION, check_cta='borrow', make_assert=True, click=True
         )
         self.close_bookreader_switch_back_to_ol()
         self.ia_get_book_cta(
-            IA_EDITION, check_cta="return", make_assert=True, click=False
+            IA_EDITION, check_cta='return', make_assert=True, click=False
         )
         self.ol_verify_userid(OL_EDITION, LIVE_USER1['itemname'])
         self.ol_get_book_cta(
-            OL_EDITION, check_cta="return", make_assert=False, click=True
+            OL_EDITION, check_cta='return', make_assert=False, click=True
         )
         olsession.logout(test=self)
         olsession.ia_logout(test=self)
@@ -173,21 +173,21 @@ class Borrow_Test(unittest.TestCase):
         olsession.ia_login(test=self, **LIVE_USER2)
         olsession.login(test=self, **LIVE_USER2)
         self.ol_get_book_cta(
-            OL_EDITION, check_cta="unwaitlist", make_assert=False, click=True
+            OL_EDITION, check_cta='unwaitlist', make_assert=False, click=True
         )
         olsession.logout(test=self)
         olsession.login(test=self, **LIVE_USER1)
         self.ol_get_book_cta(
-            OL_EDITION, check_cta="return", make_assert=False, click=True
+            OL_EDITION, check_cta='return', make_assert=False, click=True
         )
         self.ol_get_book_cta(
-            OL_EDITION, check_cta="borrow", make_assert=True, click=True
+            OL_EDITION, check_cta='borrow', make_assert=True, click=True
         )
         self.close_bookreader_switch_back_to_ol()
         olsession.logout(test=self)
         olsession.login(test=self, **LIVE_USER2)
         self.ol_get_book_cta(
-            OL_EDITION, check_cta="waitlist", make_assert=True, click=True
+            OL_EDITION, check_cta='waitlist', make_assert=True, click=True
         )
 
         # go to /account/loans page and assert
@@ -195,25 +195,25 @@ class Borrow_Test(unittest.TestCase):
         link = olsession.driver.find_element_by_xpath(
             '//a[@href="/books/%s"]' % OL_EDITION
         )
-        self.assertTrue(link, "Book not found in waiting list on loans page")
+        self.assertTrue(link, 'Book not found in waiting list on loans page')
 
         olsession.logout(test=self)
         olsession.login(test=self, **LIVE_USER1)
         self.ol_get_book_cta(
-            OL_EDITION, check_cta="return", make_assert=True, click=True
+            OL_EDITION, check_cta='return', make_assert=True, click=True
         )
         olsession.logout(test=self)
         olsession.login(test=self, **LIVE_USER2)
         self.ol_get_book_cta(
-            OL_EDITION, check_cta="borrow", make_assert=True, click=True
+            OL_EDITION, check_cta='borrow', make_assert=True, click=True
         )
         self.close_bookreader_switch_back_to_ol()
         self.ol_verify_userid(OL_EDITION, LIVE_USER2['itemname'])
         self.ia_get_book_cta(
-            IA_EDITION, check_cta="return", make_assert=True, click=True
+            IA_EDITION, check_cta='return', make_assert=True, click=True
         )
         self.ol_get_book_cta(
-            OL_EDITION, check_cta="return", make_assert=False, click=True
+            OL_EDITION, check_cta='return', make_assert=False, click=True
         )
         olsession.logout(test=self)
         olsession.ia_logout(test=self)

@@ -20,7 +20,7 @@ from openlibrary.plugins.worksearch.search import work_search
 from openlibrary.utils import str_to_key, finddict
 
 
-__all__ = ["SubjectEngine", "get_subject"]
+__all__ = ['SubjectEngine', 'get_subject']
 
 # These two are available in .code module. Importing it here will result in a
 # circular import. To avoid that, these values are set by the code.setup
@@ -28,39 +28,39 @@ __all__ = ["SubjectEngine", "get_subject"]
 read_author_facet = None
 solr_select_url = None
 
-logger = logging.getLogger("openlibrary.worksearch")
+logger = logging.getLogger('openlibrary.worksearch')
 
-re_chars = re.compile("([%s])" % re.escape(r'+-!(){}[]^"~*?:\\'))
+re_chars = re.compile('([%s])' % re.escape(r'+-!(){}[]^"~*?:\\'))
 re_year = re.compile(r'\b(\d+)$')
 
 SUBJECTS = [
     web.storage(
-        name="person",
-        key="people",
-        prefix="/subjects/person:",
-        facet="person_facet",
-        facet_key="person_key",
+        name='person',
+        key='people',
+        prefix='/subjects/person:',
+        facet='person_facet',
+        facet_key='person_key',
     ),
     web.storage(
-        name="place",
-        key="places",
-        prefix="/subjects/place:",
-        facet="place_facet",
-        facet_key="place_key",
+        name='place',
+        key='places',
+        prefix='/subjects/place:',
+        facet='place_facet',
+        facet_key='place_key',
     ),
     web.storage(
-        name="time",
-        key="times",
-        prefix="/subjects/time:",
-        facet="time_facet",
-        facet_key="time_key",
+        name='time',
+        key='times',
+        prefix='/subjects/time:',
+        facet='time_facet',
+        facet_key='time_key',
     ),
     web.storage(
-        name="subject",
-        key="subjects",
-        prefix="/subjects/",
-        facet="subject_facet",
-        facet_key="subject_key",
+        name='subject',
+        key='subjects',
+        prefix='/subjects/',
+        facet='subject_facet',
+        facet_key='subject_key',
     ),
 ]
 
@@ -86,10 +86,10 @@ class subjects(delegate.page):
 
         delegate.context.setdefault('cssfile', 'subject')
         if not subj or subj.work_count == 0:
-            web.ctx.status = "404 Not Found"
+            web.ctx.status = '404 Not Found'
             page = render_template('subjects/notfound.tmpl', key)
         else:
-            page = render_template("subjects", page=subj)
+            page = render_template('subjects', page=subj)
 
         return page
 
@@ -97,10 +97,10 @@ class subjects(delegate.page):
         key = key.lower()
 
         # temporary code to handle url change from /people/ to /person:
-        if key.count("/") == 3:
-            key = key.replace("/people/", "/person:")
-            key = key.replace("/places/", "/place:")
-            key = key.replace("/times/", "/time:")
+        if key.count('/') == 3:
+            key = key.replace('/people/', '/person:')
+            key = key.replace('/places/', '/place:')
+            key = key.replace('/times/', '/time:')
         return key
 
 
@@ -231,7 +231,7 @@ def get_subject(
     def create_engine():
         for d in SUBJECTS:
             if key.startswith(d.prefix):
-                Engine = d.get("engine") or SubjectEngine
+                Engine = d.get('engine') or SubjectEngine
                 return Engine()
         return SubjectEngine()
 
@@ -262,7 +262,7 @@ class SubjectEngine:
 
         q = self.make_query(key, filters)
         subject_type = meta.name
-        name = meta.path.replace("_", " ")
+        name = meta.path.replace('_', ' ')
 
         if details:
             kw = self.query_optons_for_details()
@@ -279,8 +279,8 @@ class SubjectEngine:
             # XXX-Anand: Oct 2013
             # Somewhere something is broken, work keys are coming as OL1234W/works/
             # Quick fix it solve that issue.
-            if w.key.endswith("/works/"):
-                w.key = "/works/" + w.key.replace("/works/", "")
+            if w.key.endswith('/works/'):
+                w.key = '/works/' + w.key.replace('/works/', '')
 
         subject = Subject(
             key=key,
@@ -291,15 +291,15 @@ class SubjectEngine:
         )
 
         if details:
-            subject.ebook_count = dict(result.facets["has_fulltext"]).get("true", 0)
+            subject.ebook_count = dict(result.facets['has_fulltext']).get('true', 0)
 
-            subject.subjects = result.facets["subject_facet"]
-            subject.places = result.facets["place_facet"]
-            subject.people = result.facets["person_facet"]
-            subject.times = result.facets["time_facet"]
+            subject.subjects = result.facets['subject_facet']
+            subject.places = result.facets['place_facet']
+            subject.people = result.facets['person_facet']
+            subject.times = result.facets['time_facet']
 
-            subject.authors = result.facets["author_facet"]
-            subject.publishers = result.facets["publisher_facet"]
+            subject.authors = result.facets['author_facet']
+            subject.publishers = result.facets['publisher_facet']
             subject.languages = result.facets['language']
 
             # Ignore bad dates when computing publishing_history
@@ -307,13 +307,13 @@ class SubjectEngine:
             current_year = datetime.datetime.utcnow().year
             subject.publishing_history = [
                 [year, count]
-                for year, count in result.facets["publish_year"]
+                for year, count in result.facets['publish_year']
                 if 1000 < year <= current_year + 1
             ]
 
             # strip self from subjects and use that to find exact name
             for i, s in enumerate(subject[meta.key]):
-                if "key" in s and s.key.lower() == key.lower():
+                if 'key' in s and s.key.lower() == key.lower():
                     subject.name = s.name
                     subject[meta.key].pop(i)
                     break
@@ -341,9 +341,9 @@ class SubjectEngine:
         q = {meta.facet_key: self.normalize_key(meta.path)}
 
         if filters:
-            if filters.get("has_fulltext") == "true":
-                q['has_fulltext'] = "true"
-            if filters.get("publish_year"):
+            if filters.get('has_fulltext') == 'true':
+                q['has_fulltext'] = 'true'
+            if filters.get('publish_year'):
                 q['publish_year'] = filters['publish_year']
         return q
 
@@ -351,23 +351,23 @@ class SubjectEngine:
         return str_to_key(key).lower()
 
     def facet_wrapper(self, facet, value, count):
-        if facet == "publish_year":
+        if facet == 'publish_year':
             return [int(value), count]
-        elif facet == "publisher_facet":
+        elif facet == 'publisher_facet':
             return web.storage(
-                name=value, count=count, key="/publishers/" + value.replace(" ", "_")
+                name=value, count=count, key='/publishers/' + value.replace(' ', '_')
             )
-        elif facet == "author_facet":
+        elif facet == 'author_facet':
             author = read_author_facet(value)
-            return web.storage(name=author[1], key="/authors/" + author[0], count=count)
-        elif facet in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
+            return web.storage(name=author[1], key='/authors/' + author[0], count=count)
+        elif facet in ['subject_facet', 'person_facet', 'place_facet', 'time_facet']:
             return web.storage(
                 key=finddict(SUBJECTS, facet=facet).prefix
-                + str_to_key(value).replace(" ", "_"),
+                + str_to_key(value).replace(' ', '_'),
                 name=value,
                 count=count,
             )
-        elif facet == "has_fulltext":
+        elif facet == 'has_fulltext':
             return [value, count]
         else:
             return web.storage(name=value, count=count)
@@ -376,16 +376,16 @@ class SubjectEngine:
         """Additional query options to be added when details=True."""
         kw = {}
         kw['facets'] = [
-            {"name": "author_facet", "sort": "count"},
-            "language",
-            "publisher_facet",
-            {"name": "publish_year", "limit": -1},
-            "subject_facet",
-            "person_facet",
-            "place_facet",
-            "time_facet",
-            "has_fulltext",
-            "language",
+            {'name': 'author_facet', 'sort': 'count'},
+            'language',
+            'publisher_facet',
+            {'name': 'publish_year', 'limit': -1},
+            'subject_facet',
+            'person_facet',
+            'place_facet',
+            'time_facet',
+            'has_fulltext',
+            'language',
         ]
         kw['facet.mincount'] = 1
         kw['facet.limit'] = 25

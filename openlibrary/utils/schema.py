@@ -3,11 +3,11 @@
 """
 
 __all__ = [
-    "Schema",
-    "Table",
-    "Column",
-    "register_datatype",
-    "register_constant",
+    'Schema',
+    'Table',
+    'Column',
+    'register_datatype',
+    'register_constant',
 ]
 
 _datatypes = {}
@@ -53,7 +53,7 @@ class AbstractAdapter:
         return self.native_types[type]
 
     def index_name(self, table, columns):
-        return "_".join([table] + columns + ["idx"])
+        return '_'.join([table] + columns + ['idx'])
 
     def references_to_sql(self, column_name, value):
         # foreign key constraints are not supported by default
@@ -69,7 +69,7 @@ class AbstractAdapter:
                 value = value.sql(self)
             else:
                 value = sqlrepr(value)
-            return "default %s" % (value)
+            return 'default %s' % (value)
         elif option == 'null':
             return {True: 'null', False: 'not null'}[value]
         elif option == 'references':
@@ -162,12 +162,12 @@ class SQLiteAdapter(AbstractAdapter):
         'boolean': 'boolean',
     }
     constants = {
-        'CURRENT_TIMESTAMP': "CURRENT_TIMESTAMP",
-        'CURRENT_DATE': "CURRENT_DATE",
-        'CURRENT_TIME': "CURRENT_TIME",
-        'CURRENT_UTC_TIMESTAMP': "CURRENT_TIMESTAMP",
-        'CURRENT_UTC_DATE': "CURRENT_DATE",
-        'CURRENT_UTC_TIME': "CURRENT_TIME",
+        'CURRENT_TIMESTAMP': 'CURRENT_TIMESTAMP',
+        'CURRENT_DATE': 'CURRENT_DATE',
+        'CURRENT_TIME': 'CURRENT_TIME',
+        'CURRENT_UTC_TIMESTAMP': 'CURRENT_TIMESTAMP',
+        'CURRENT_UTC_DATE': 'CURRENT_DATE',
+        'CURRENT_UTC_TIME': 'CURRENT_TIME',
     }
 
 
@@ -230,7 +230,7 @@ class Schema:
         self.indexes.append(i)
 
     def sql(self, engine):
-        return "\n".join(x.sql(engine) for x in self.tables + self.indexes)
+        return '\n'.join(x.sql(engine) for x in self.tables + self.indexes)
 
 
 class Table:
@@ -252,8 +252,8 @@ class Table:
         for c in self.columns:
             for constraint in c.constraints:
                 columns.append(constraint)
-        return "create table {} (\n    {}\n);".format(
-            self.name, ",\n    ".join(columns)
+        return 'create table {} (\n    {}\n);'.format(
+            self.name, ',\n    '.join(columns)
         )
 
 
@@ -300,7 +300,7 @@ class Column:
             else:
                 tokens.append(result)
 
-        return " ".join(tokens)
+        return ' '.join(tokens)
 
 
 class Index:
@@ -334,7 +334,7 @@ class Index:
             s = 'create index '
 
         s += adapter.index_name(self.table, self.columns)
-        s += ' on {}({});'.format(self.table, ", ".join(self.columns))
+        s += ' on {}({});'.format(self.table, ', '.join(self.columns))
         return s
 
 
@@ -396,7 +396,7 @@ def _test():
     """
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     register_adapter('mock', MockAdapter)
 
     import doctest

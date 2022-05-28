@@ -15,7 +15,7 @@ from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
-logger = logging.getLogger("openlibrary.importer.pressbooks")
+logger = logging.getLogger('openlibrary.importer.pressbooks')
 
 
 langs = {
@@ -34,7 +34,7 @@ langs = {
 
 
 def convert_pressbooks_to_ol(data):
-    book = {"source_records": ['pressbooks:%s' % data['url']]}
+    book = {'source_records': ['pressbooks:%s' % data['url']]}
     if data.get('isbn'):
         book['isbn_13'] = [
             isbn.split(' ')[0].replace('-', '') for isbn in data['isbn'].split('; ')
@@ -44,7 +44,7 @@ def convert_pressbooks_to_ol(data):
     if data.get('languageCode'):
         book['languages'] = [langs[data['languageCode'].split('-', 1)[0]]]
     if data.get('author'):
-        book['authors'] = [{"name": a} for a in data.get('author')]
+        book['authors'] = [{'name': a} for a in data.get('author')]
     if data.get('image') and not data['image'].endswith('default-book-cover.jpg'):
         book['cover'] = data['image']
     description = (
@@ -71,7 +71,7 @@ def convert_pressbooks_to_ol(data):
             s.strip().capitalize() for s in subjects if s  # Sometimes they're null?
         ]
 
-    book['publishers'] = [p for p in (data.get('networkName'), "Pressbooks") if p]
+    book['publishers'] = [p for p in (data.get('networkName'), 'Pressbooks') if p]
 
     book['providers'] = [
         {
@@ -103,7 +103,7 @@ def convert_pressbooks_to_ol(data):
 
     contributors = [
         [
-            {"name": person, "role": ol_role}
+            {'name': person, 'role': ol_role}
             for person in (data.get(pressbooks_field) or [])
         ]
         for pressbooks_field, ol_role in contributors_map.items()
@@ -121,7 +121,7 @@ def main(ol_config: str, filename: str, batch_size=5000, dry_run=False):
     if not dry_run:
         load_config(ol_config)
         date = datetime.date.today()
-        batch_name = f"pressbooks-{date:%Y%m}"
+        batch_name = f'pressbooks-{date:%Y%m}'
         batch = Batch.find(batch_name) or Batch.new(batch_name)
 
     with open(filename, 'rb') as f:

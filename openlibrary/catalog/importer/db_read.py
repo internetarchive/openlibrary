@@ -50,22 +50,22 @@ def set_staging(v):
 
 
 def api_url():
-    return "https://openlibrary.org%s/api/" % (':8080' if staging else '')
+    return 'https://openlibrary.org%s/api/' % (':8080' if staging else '')
 
 
 def api_versions():
-    return api_url() + "versions?"
+    return api_url() + 'versions?'
 
 
 def api_things():
-    return api_url() + "things?"
+    return api_url() + 'things?'
 
 
 def api_get():
-    return api_url() + "get?key="
+    return api_url() + 'get?key='
 
 
-@deprecated("use api_versions() instead")
+@deprecated('use api_versions() instead')
 def get_versions(q):  # unused
     url = api_versions() + urlencode({'query': json.dumps(q)})
     return read_from_url(url)

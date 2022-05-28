@@ -21,7 +21,7 @@ class MissingAuthor(Exception):
     pass
 
 
-role_re = re.compile(r"^ \(([^)]+)\)")
+role_re = re.compile(r'^ \(([^)]+)\)')
 
 #: sample: ' [Paperback, Large Print]'
 
@@ -56,10 +56,10 @@ re_html_in_title = re.compile('</?(i|em|br)>', re.I)
 def unescape(text):
     def fixup(m):
         text = m.group(0)
-        if text[:2] == "&#":
+        if text[:2] == '&#':
             # character reference
             try:
-                if text[:3] == "&#x":
+                if text[:3] == '&#x':
                     return chr(int(text[3:-1], 16))
                 else:
                     return chr(int(text[2:-1]))
@@ -73,7 +73,7 @@ def unescape(text):
                 pass
         return text  # leave as is
 
-    return re.sub(r"&#?\w+;", fixup, text)
+    return re.sub(r'&#?\w+;', fixup, text)
 
 
 def to_dict(k, v):
@@ -133,7 +133,7 @@ def get_title_and_authors(doc, title_from_html):
     book = {
         'full_title': full_title,
         'title': title,
-        'has_cover_img': "no-image-avail" not in prodImage.attrib['src'],
+        'has_cover_img': 'no-image-avail' not in prodImage.attrib['src'],
     }
 
     authors = []
@@ -190,13 +190,13 @@ def read_price_block(doc):
         if heading == 'List Price:':
             m = re_list_price.match(value)
             list_price = dollars_and_cents(m.group(1), m.group(2))
-            book["list_price"] = list_price
-        elif heading == "Price:":
+            book['list_price'] = list_price
+        elif heading == 'Price:':
             b = tr[1][0]
             assert b.tag == 'b' and b.attrib['class'] == 'priceLarge'
             m = re_amazon_price.match(b.text)
             amazon_price = dollars_and_cents(m.group(1), m.group(2))
-            book["amazon_price"] = amazon_price
+            book['amazon_price'] = amazon_price
         elif heading == 'You Save:':
             continue  # don't need to check
             # fails for 057124954X: '$0.04\n      \n    '
@@ -207,7 +207,7 @@ def read_price_block(doc):
         elif heading == 'Value Priced at:':
             continue  # skip
             m = re_amazon_price.match(value)
-            book["value_priced_at"] = dollars_and_cents(m.group(1), m.group(2))
+            book['value_priced_at'] = dollars_and_cents(m.group(1), m.group(2))
         elif heading == 'Import List Price:':
             pass
 
@@ -339,9 +339,9 @@ def read_series(doc):
     (series_num, series_id, series) = re_series.match(tostring(li)).groups()
     found = {}
     if series_num:
-        found["series_num"] = int(series_num)
-    found["series"] = series
-    found["series_id"] = series_id
+        found['series_num'] = int(series_num)
+    found['series'] = series
+    found['series_id'] = series_id
     return found
 
 
@@ -393,7 +393,7 @@ def read_product_details(doc):
             break
         if h == 'Amazon.com Sales Rank':
             m = re_sales_rank.match(b.tail)
-            found['sales_rank'] = int(m.group(1).replace(",", ""))
+            found['sales_rank'] = int(m.group(1).replace(',', ''))
             break
         if h in ('Shipping Information', 'Note', 'Shipping'):
             continue
@@ -408,20 +408,20 @@ def read_product_details(doc):
     return found
 
 
-re_pub_date = re.compile(r"^(.*) \((.*\d{4})\)$")
-re_pub_edition = re.compile("^(.*); (.*)$")
+re_pub_date = re.compile(r'^(.*) \((.*\d{4})\)$')
+re_pub_edition = re.compile('^(.*); (.*)$')
 
 
 def parse_publisher(edition):
     if 'publisher' in edition:
-        m = re_pub_date.match(edition["publisher"])
+        m = re_pub_date.match(edition['publisher'])
         if m:
-            edition["publisher"] = m.group(1)
-            edition["publish_date"] = m.group(2)
-        m = re_pub_edition.match(edition["publisher"])
+            edition['publisher'] = m.group(1)
+            edition['publish_date'] = m.group(2)
+        m = re_pub_edition.match(edition['publisher'])
         if m:
-            edition["publisher"] = m.group(1)
-            edition["edition"] = m.group(2)
+            edition['publisher'] = m.group(1)
+            edition['edition'] = m.group(2)
 
 
 re_latest_blog_posts = re.compile(r'\s*(.*?) latest blog posts')
@@ -440,12 +440,12 @@ def read_plog(doc):
     name = m.group(1)
     found = {}
     if name.endswith("'s"):
-        found["plog_name"] = name[:-2]
+        found['plog_name'] = name[:-2]
     else:
         assert name.endswith("s'")
-        found["plog_name"] = name[:-1]
+        found['plog_name'] = name[:-1]
     div = table[2][1][0]
-    found["plog_img"] = div[0].attrib['src'].replace(".T.", ".L.")
+    found['plog_img'] = div[0].attrib['src'].replace('.T.', '.L.')
     ul = div[-1]
     assert ul.tag == 'ul' and ul.attrib['class'] == 'profileLink'
     li = ul[0]
@@ -454,7 +454,7 @@ def read_plog(doc):
 
     href = li[0].attrib['href']
     m = re_plog_link.match(href)
-    found["plog_id"] = m.group(1)
+    found['plog_id'] = m.group(1)
 
     return found
 
@@ -520,7 +520,7 @@ def read_first_sentence(inside):
     assert div[0].tag == 'strong'
     assert div[0].text == 'First Sentence:'
     assert div[1].tag == 'br'
-    return div[1].tail.strip("\n \xa0")
+    return div[1].tail.strip('\n \xa0')
 
 
 def find_bucket(doc, text):

@@ -56,7 +56,7 @@ def uniq(values: Iterable[T], key=None) -> list[T]:
 
 def take_best(
     items: list[T],
-    optimization: Literal["min", "max"],
+    optimization: Literal['min', 'max'],
     scoring_fn: Callable[[T], float],
 ) -> list[T]:
     """
@@ -69,12 +69,12 @@ def take_best(
     >>> take_best([4, 1, -1, -1], 'min', lambda x: x)
     [-1, -1]
     """
-    best_score = float("-inf") if optimization == "max" else float("inf")
+    best_score = float('-inf') if optimization == 'max' else float('inf')
     besties = []
     for item in items:
         score = scoring_fn(item)
-        if (optimization == "max" and score > best_score) or (
-            optimization == "min" and score < best_score
+        if (optimization == 'max' and score > best_score) or (
+            optimization == 'min' and score < best_score
         ):
             best_score = score
             besties = [item]
@@ -86,7 +86,7 @@ def take_best(
 
 
 def multisort_best(
-    items: list[T], specs: list[tuple[Literal["min", "max"], Callable[[T], float]]]
+    items: list[T], specs: list[tuple[Literal['min', 'max'], Callable[[T], float]]]
 ) -> Optional[T]:
     """
     Takes the best item, taking into account the multisorts
@@ -180,5 +180,5 @@ def is_number(s):
 
 
 def get_software_version():  # -> str:
-    cmd = "git rev-parse --short HEAD --".split()
+    cmd = 'git rev-parse --short HEAD --'.split()
     return str(Popen(cmd, stdout=PIPE, stderr=STDOUT).stdout.read().decode().strip())

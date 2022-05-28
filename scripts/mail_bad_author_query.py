@@ -52,7 +52,7 @@ except UnicodeEncodeError:
     msg = MIMEText(body, 'plain', 'utf-8')
 msg['From'] = addr_from
 msg['To'] = addr_to
-msg['Subject'] = "import error report: %d bad author queries" % bad_count
+msg['Subject'] = 'import error report: %d bad author queries' % bad_count
 
 s = smtplib.SMTP('mail.archive.org')
 s.sendmail(addr_from, [addr_to], msg.as_string())

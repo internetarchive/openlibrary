@@ -37,9 +37,9 @@ class CommonExtras:
         try:
             rows_changed = oldb.update(
                 cls.TABLENAME,
-                where="work_id=$work_id",
+                where='work_id=$work_id',
                 work_id=new_work_id,
-                vars={"work_id": current_work_id})
+                vars={'work_id': current_work_id})
         except (UniqueViolation, IntegrityError):
             (
                 rows_changed,
@@ -66,10 +66,10 @@ class CommonExtras:
         # `list` used to solve sqlite cursor test
         rows = list(oldb.select(
             cls.TABLENAME,
-            where="work_id=$work_id",
-            vars={"work_id": current_work_id}))
+            where='work_id=$work_id',
+            vars={'work_id': current_work_id}))
         for row in rows:
-            where = " AND ".join([
+            where = ' AND '.join([
                 f"{k}='{v}'"
                 for k, v in row.items()
                 if k in cls.PRIMARY_KEY
@@ -77,13 +77,13 @@ class CommonExtras:
             try:
                 # try to update the row to new_work_id
                 t_update = oldb.transaction()
-                oldb.query(f"UPDATE {cls.TABLENAME} set work_id={new_work_id} where {where}")
+                oldb.query(f'UPDATE {cls.TABLENAME} set work_id={new_work_id} where {where}')
                 rows_changed += 1
                 t_update.rollback() if _test else t_update.commit()
             except (UniqueViolation, IntegrityError):
                 t_delete = oldb.transaction()
                 # otherwise, delete row with current_work_id if failed
-                oldb.query(f"DELETE FROM {cls.TABLENAME} WHERE {where}")
+                oldb.query(f'DELETE FROM {cls.TABLENAME} WHERE {where}')
                 rows_deleted += 1
                 if _test or not cls.ALLOW_DELETE_ON_CONFLICT:
                     t_delete.rollback()
@@ -100,8 +100,8 @@ class CommonExtras:
         oldb = get_db()
         return list(oldb.select(
             cls.TABLENAME,
-            where="username=$username",
-            vars={"username": username}
+            where='username=$username',
+            vars={'username': username}
         ))
 
 
@@ -114,22 +114,22 @@ def _proxy(method_name):
     """
 
     def f(*args, **kwargs):
-        stats.begin("db", method=method_name, args=list(args), kwargs=kwargs)
+        stats.begin('db', method=method_name, args=list(args), kwargs=kwargs)
         m = getattr(get_db(), method_name)
         result = m(*args, **kwargs)
         stats.end()
         return result
 
     f.__name__ = method_name
-    f.__doc__ = "Equivalent to get_db().%s(*args, **kwargs)." "" % method_name
+    f.__doc__ = 'Equivalent to get_db().%s(*args, **kwargs).' '' % method_name
     return f
 
 
-query = _proxy("query")
-select = _proxy("select")
-where = _proxy("where")
+query = _proxy('query')
+select = _proxy('select')
+where = _proxy('where')
 
-insert = _proxy("insert")
-update = _proxy("update")
-delete = _proxy("delete")
-transaction = _proxy("transaction")
+insert = _proxy('insert')
+update = _proxy('update')
+delete = _proxy('delete')
+transaction = _proxy('transaction')

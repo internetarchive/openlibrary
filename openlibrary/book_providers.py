@@ -20,21 +20,21 @@ class AbstractBookProvider:
 
     def get_olids(self, identifier):
         return web.ctx.site.things({
-            "type": "/type/edition",
+            'type': '/type/edition',
             self.db_selector: identifier
         })
 
     @property
     def editions_query(self):
-        return {f"{self.db_selector}~": "*"}
+        return {f'{self.db_selector}~': '*'}
 
     @property
     def db_selector(self):
-        return f"identifiers.{self.identifier_key}"
+        return f'identifiers.{self.identifier_key}'
 
     @property
     def solr_key(self):
-        return f"id_{self.identifier_key}"
+        return f'id_{self.identifier_key}'
 
     def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
         return (
@@ -58,7 +58,7 @@ class AbstractBookProvider:
         return f'{self.short_name}:{self.get_best_identifier(ed_or_solr)}'
 
     def get_template_path(self, typ: Literal['read_button', 'download_options']) -> str:
-        return f"book_providers/{self.short_name}_{typ}.html"
+        return f'book_providers/{self.short_name}_{typ}.html'
 
     def render_read_button(self, ed_or_solr: Union[Edition, dict]):
         return render_template(
@@ -87,7 +87,7 @@ class InternetArchiveProvider(AbstractBookProvider):
 
     @property
     def solr_key(self):
-        return f"ia"
+        return f'ia'
 
     def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
         # Solr work record augmented with availability
@@ -192,19 +192,19 @@ def get_cover_url(ed_or_solr: Union[Edition, dict]) -> Optional[str]:
 
     if availability.get('openlibrary_edition'):
         olid = availability.get('openlibrary_edition')
-        return f"{get_coverstore_public_url()}/b/olid/{olid}-{size}.jpg"
+        return f'{get_coverstore_public_url()}/b/olid/{olid}-{size}.jpg'
     if availability.get('identifier'):
         ocaid = ed_or_solr['availability']['identifier']
-        return f"//archive.org/services/img/{ocaid}"
+        return f'//archive.org/services/img/{ocaid}'
 
     # Plain solr - we don't know which edition is which here, so this is most
     # preferable
     if ed_or_solr.get('cover_i'):
-        cover_i = ed_or_solr["cover_i"]
+        cover_i = ed_or_solr['cover_i']
         return f'{get_coverstore_public_url()}/b/id/{cover_i}-{size}.jpg'
     if ed_or_solr.get('cover_edition_key'):
         olid = ed_or_solr['cover_edition_key']
-        return f"{get_coverstore_public_url()}/b/olid/{olid}-{size}.jpg"
+        return f'{get_coverstore_public_url()}/b/olid/{olid}-{size}.jpg'
     if ed_or_solr.get('ocaid'):
         return f"//archive.org/services/img/{ed_or_solr.get('ocaid')}"
 

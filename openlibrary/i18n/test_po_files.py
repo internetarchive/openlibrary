@@ -63,7 +63,7 @@ def gen_po_msg_pairs():
             msgids, msgstrs = ([key.id], [key.string])
 
         for msgid, msgstr in zip(msgids, msgstrs):
-            if msgstr == "":
+            if msgstr == '':
                 continue
             yield locale, msgid, msgstr
 
@@ -81,7 +81,7 @@ def gen_html_entries():
             yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}')
 
 
-@pytest.mark.parametrize("locale,msgid,msgstr", gen_html_entries())
+@pytest.mark.parametrize('locale,msgid,msgstr', gen_html_entries())
 def test_html_format(locale: str, msgid: str, msgstr: str):
     # Need this to support &nbsp;, since etree only parses XML.
     # Find a better solution?

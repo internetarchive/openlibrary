@@ -100,7 +100,7 @@ class proxy:
         else:
             self.process_error()
 
-        web.ctx.status = f"{self.status_code} {self.status_msg}"
+        web.ctx.status = f'{self.status_code} {self.status_msg}'
         web.ctx.headers = self.headers.items()
         return self.output
 
@@ -259,7 +259,7 @@ class save(proxy):
 
 class save_many(proxy):
     def before_request(self):
-        i = web.input(_method="POST")
+        i = web.input(_method='POST')
         if 'query' in i:
             q = json.loads(i['query'])
             q = convert_dict(q)
@@ -269,7 +269,7 @@ class save_many(proxy):
 
 class reindex(proxy):
     def before_request(self):
-        i = web.input(_method="POST")
+        i = web.input(_method='POST')
         if 'keys' in i:
             keys = [convert_key(k) for k in json.loads(i['keys'])]
             i['keys'] = json.dumps(keys)

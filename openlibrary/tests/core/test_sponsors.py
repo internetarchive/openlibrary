@@ -69,7 +69,7 @@ class TestSponsorship:
         assert matches == []
 
         # We need a copy ...
-        r = storage({'json': lambda: {"response": 1}})
+        r = storage({'json': lambda: {'response': 1}})
         monkeypatch.setattr(sponsorships.requests, 'get', lambda url, **kwargs: r)
         dwwi, matches = do_we_want_it(isbn)
         assert dwwi == True

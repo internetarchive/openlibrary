@@ -5,12 +5,12 @@ from pydantic import ValidationError
 from openlibrary.plugins.importapi.import_validator import import_validator
 
 valid_values = {
-    "title": "Beowulf",
-    "source_records": ["key:value"],
-    "author": {"name": "Tom Robbins"},
-    "authors": [{"name": "Tom Robbins"}, {"name": "Dean Koontz"}],
-    "publishers": ["Harper Collins", "OpenStax"],
-    "publish_date": "December 2018",
+    'title': 'Beowulf',
+    'source_records': ['key:value'],
+    'author': {'name': 'Tom Robbins'},
+    'authors': [{'name': 'Tom Robbins'}, {'name': 'Dean Koontz'}],
+    'publishers': ['Harper Collins', 'OpenStax'],
+    'publish_date': 'December 2018',
 }
 
 validator = import_validator()

@@ -12,7 +12,7 @@ class GZipMiddleware:
         self.app = app
 
     def __call__(self, environ, start_response):
-        accept_encoding = environ.get("HTTP_ACCEPT_ENCODING", "")
+        accept_encoding = environ.get('HTTP_ACCEPT_ENCODING', '')
         if not 'gzip' in accept_encoding:
             return self.app(environ, start_response)
 
@@ -35,16 +35,16 @@ class GZipMiddleware:
             response.status = status
             response.headers = headers
 
-            if status.startswith("200") and get_response_header(
-                "Content-Type", ""
-            ).startswith("text/"):
-                headers.append(("Content-Encoding", "gzip"))
-                headers.append(("Vary", "Accept-Encoding"))
+            if status.startswith('200') and get_response_header(
+                'Content-Type', ''
+            ).startswith('text/'):
+                headers.append(('Content-Encoding', 'gzip'))
+                headers.append(('Vary', 'Accept-Encoding'))
                 response.compress = True
             return start_response(status, headers)
 
         data = self.app(environ, new_start_response)
         if response.compress:
-            return [compress(b"".join(data), 9)]
+            return [compress(b''.join(data), 9)]
         else:
             return data

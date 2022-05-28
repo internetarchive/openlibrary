@@ -21,20 +21,20 @@ def recentchanges(query):
 
 
 class index2(delegate.page):
-    path = "/recentchanges"
+    path = '/recentchanges'
 
     def GET(self):
-        if features.is_enabled("recentchanges_v2"):
+        if features.is_enabled('recentchanges_v2'):
             return index().render()
         else:
             return render.recentchanges()
 
 
 class index(delegate.page):
-    path = "/recentchanges(/[^/0-9][^/]*)"
+    path = '/recentchanges(/[^/0-9][^/]*)'
 
     def is_enabled(self):
-        return features.is_enabled("recentchanges_v2")
+        return features.is_enabled('recentchanges_v2')
 
     def GET(self, kind):
         return self.render(kind=kind)
@@ -48,21 +48,21 @@ class index(delegate.page):
             query['end_date'] = end_date.isoformat()
 
         if kind:
-            query['kind'] = kind and kind.strip("/")
+            query['kind'] = kind and kind.strip('/')
 
-        if web.ctx.encoding in ["json", "yml"]:
+        if web.ctx.encoding in ['json', 'yml']:
             return self.handle_encoding(query, web.ctx.encoding)
 
-        return render_template("recentchanges/index", query)
+        return render_template('recentchanges/index', query)
 
     def handle_encoding(self, query, encoding):
-        i = web.input(bot="", limit=100, offset=0, text="false")
+        i = web.input(bot='', limit=100, offset=0, text='false')
 
         # The bot stuff is handled in the template for the regular path.
         # We need to handle it here for api.
-        if i.bot.lower() == "true":
+        if i.bot.lower() == 'true':
             query['bot'] = True
-        elif i.bot.lower() == "false":
+        elif i.bot.lower() == 'false':
             query['bot'] = False
 
         # and limit and offset business too
@@ -86,17 +86,17 @@ class index(delegate.page):
 
         result = [c.dict() for c in web.ctx.site.recentchanges(query)]
 
-        if encoding == "json":
+        if encoding == 'json':
             response = json.dumps(result)
-            content_type = "application/json"
-        elif encoding == "yml":
+            content_type = 'application/json'
+        elif encoding == 'yml':
             response = self.yaml_dump(result)
-            content_type = "text/x-yaml"
+            content_type = 'text/x-yaml'
         else:
-            response = ""
-            content_type = "text/plain"
+            response = ''
+            content_type = 'text/plain'
 
-        if i.text.lower() == "true":
+        if i.text.lower() == 'true':
             web.header('Content-Type', 'text/plain')
         else:
             web.header('Content-Type', content_type)
@@ -108,38 +108,38 @@ class index(delegate.page):
 
 
 class index_with_date(index):
-    path = r"/recentchanges/(\d\d\d\d(?:/\d\d)?(?:/\d\d)?)(/[^/]*)?"
+    path = r'/recentchanges/(\d\d\d\d(?:/\d\d)?(?:/\d\d)?)(/[^/]*)?'
 
     def GET(self, date, kind):
-        date = date.replace("/", "-")
+        date = date.replace('/', '-')
         return self.render(kind=kind, date=date)
 
 
 class recentchanges_redirect(delegate.page):
-    path = r"/recentchanges/goto/(\d+)"
+    path = r'/recentchanges/goto/(\d+)'
 
     def is_enabled(self):
-        return features.is_enabled("recentchanges_v2")
+        return features.is_enabled('recentchanges_v2')
 
     def GET(self, id):
         id = int(id)
         change = web.ctx.site.get_change(id)
         if not change:
-            web.ctx.status = "404 Not Found"
+            web.ctx.status = '404 Not Found'
             return render.notfound(web.ctx.path)
 
         raise web.found(change.url())
 
 
 class recentchanges_view(delegate.page):
-    path = r"/recentchanges/\d\d\d\d/\d\d/\d\d/[^/]*/(\d+)"
+    path = r'/recentchanges/\d\d\d\d/\d\d/\d\d/[^/]*/(\d+)'
 
     def is_enabled(self):
-        return features.is_enabled("recentchanges_v2")
+        return features.is_enabled('recentchanges_v2')
 
     def get_change_url(self, change):
         t = change.timestamp
-        return "/recentchanges/%04d/%02d/%02d/%s/%s" % (
+        return '/recentchanges/%04d/%02d/%02d/%s/%s' % (
             t.year,
             t.month,
             t.day,
@@ -151,7 +151,7 @@ class recentchanges_view(delegate.page):
         id = int(id)
         change = web.ctx.site.get_change(id)
         if not change:
-            web.ctx.status = "404 Not Found"
+            web.ctx.status = '404 Not Found'
             return render.notfound(web.ctx.path)
 
         if web.ctx.encoding == 'json':
@@ -161,21 +161,21 @@ class recentchanges_view(delegate.page):
         if path != web.ctx.path:
             raise web.redirect(path)
         else:
-            tname = "recentchanges/" + change.kind + "/view"
+            tname = 'recentchanges/' + change.kind + '/view'
             if tname in render:
                 return render_template(tname, change)
             else:
-                return render_template("recentchanges/default/view", change)
+                return render_template('recentchanges/default/view', change)
 
     def render_json(self, change):
         return delegate.RawText(
-            json.dumps(change.dict()), content_type="application/json"
+            json.dumps(change.dict()), content_type='application/json'
         )
 
     def POST(self, id):
-        if not features.is_enabled("undo"):
+        if not features.is_enabled('undo'):
             return render_template(
-                "permission_denied", web.ctx.path, "Permission denied to undo."
+                'permission_denied', web.ctx.path, 'Permission denied to undo.'
             )
 
         id = int(id)

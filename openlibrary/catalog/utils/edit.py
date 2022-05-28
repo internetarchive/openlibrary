@@ -32,7 +32,7 @@ def get_with_retry(ol, k):
 
 def amazon_source_records(asin):
     iter = db_amazon.select('amazon', where='asin = $asin', vars={'asin': asin})
-    return ["amazon:%s:%s:%d:%d" % (asin, r.seg, r.start, r.length) for r in iter]
+    return ['amazon:%s:%s:%d:%d' % (asin, r.seg, r.start, r.length) for r in iter]
 
 
 def has_dot(s):

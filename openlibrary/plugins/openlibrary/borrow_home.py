@@ -18,42 +18,42 @@ from openlibrary.plugins.worksearch.subjects import SubjectEngine
 
 
 class borrow(delegate.page):
-    path = "/borrow"
+    path = '/borrow'
 
     def GET(self):
         raise web.seeother('/subjects/in_library#ebooks=true')
 
 
 class borrow(delegate.page):
-    path = "/borrow"
-    encoding = "json"
+    path = '/borrow'
+    encoding = 'json'
 
     def is_enabled(self):
-        return "inlibrary" in web.ctx.features
+        return 'inlibrary' in web.ctx.features
 
     @jsonapi
     def GET(self):
         i = web.input(
-            offset=0, limit=12, rand=-1, details="false", has_fulltext="false"
+            offset=0, limit=12, rand=-1, details='false', has_fulltext='false'
         )
 
         filters = {}
-        if i.get("has_fulltext") == "true":
-            filters["has_fulltext"] = "true"
+        if i.get('has_fulltext') == 'true':
+            filters['has_fulltext'] = 'true'
 
-        if i.get("published_in"):
-            if "-" in i.published_in:
-                begin, end = i.published_in.split("-", 1)
+        if i.get('published_in'):
+            if '-' in i.published_in:
+                begin, end = i.published_in.split('-', 1)
 
                 if (
                     h.safeint(begin, None) is not None
                     and h.safeint(end, None) is not None
                 ):
-                    filters["publish_year"] = [begin, end]
+                    filters['publish_year'] = [begin, end]
             else:
                 y = h.safeint(i.published_in, None)
                 if y is not None:
-                    filters["publish_year"] = i.published_in
+                    filters['publish_year'] = i.published_in
 
         i.limit = h.safeint(i.limit, 12)
         i.offset = h.safeint(i.offset, 0)
@@ -68,7 +68,7 @@ class borrow(delegate.page):
             web.ctx.site,
             offset=i.offset,
             limit=i.limit,
-            details=i.details.lower() == "true",
+            details=i.details.lower() == 'true',
             inlibrary=False,
             **filters
         )
@@ -76,39 +76,39 @@ class borrow(delegate.page):
 
 
 class read(delegate.page):
-    path = "/read"
+    path = '/read'
 
     def GET(self):
         web.seeother('/subjects/accessible_book#ebooks=true')
 
 
 class read(delegate.page):
-    path = "/read"
-    encoding = "json"
+    path = '/read'
+    encoding = 'json'
 
     @jsonapi
     def GET(self):
         i = web.input(
-            offset=0, limit=12, rand=-1, details="false", has_fulltext="false"
+            offset=0, limit=12, rand=-1, details='false', has_fulltext='false'
         )
 
         filters = {}
-        if i.get("has_fulltext") == "true":
-            filters["has_fulltext"] = "true"
+        if i.get('has_fulltext') == 'true':
+            filters['has_fulltext'] = 'true'
 
-        if i.get("published_in"):
-            if "-" in i.published_in:
-                begin, end = i.published_in.split("-", 1)
+        if i.get('published_in'):
+            if '-' in i.published_in:
+                begin, end = i.published_in.split('-', 1)
 
                 if (
                     h.safeint(begin, None) is not None
                     and h.safeint(end, None) is not None
                 ):
-                    filters["publish_year"] = [begin, end]
+                    filters['publish_year'] = [begin, end]
             else:
                 y = h.safeint(i.published_in, None)
                 if y is not None:
-                    filters["publish_year"] = i.published_in
+                    filters['publish_year'] = i.published_in
 
         i.limit = h.safeint(i.limit, 12)
         i.offset = h.safeint(i.offset, 0)
@@ -123,14 +123,14 @@ class read(delegate.page):
             web.ctx.site,
             offset=i.offset,
             limit=i.limit,
-            details=i.details.lower() == "true",
+            details=i.details.lower() == 'true',
             **filters
         )
         return json.dumps(subject)
 
 
 class borrow_about(delegate.page):
-    path = "/borrow/about"
+    path = '/borrow/about'
 
     def GET(self):
         raise web.notfound()
@@ -158,15 +158,15 @@ def convert_works_to_editions(site, works):
 
 
 def get_lending_library(site, inlibrary=False, **kw):
-    kw.setdefault("sort", "first_publish_year desc")
+    kw.setdefault('sort', 'first_publish_year desc')
 
     if inlibrary:
         subject = CustomSubjectEngine().get_subject(
-            "/subjects/lending_library", in_library=True, **kw
+            '/subjects/lending_library', in_library=True, **kw
         )
     else:
         subject = CustomSubjectEngine().get_subject(
-            "/subjects/lending_library", in_library=False, **kw
+            '/subjects/lending_library', in_library=False, **kw
         )
 
     subject['key'] = '/borrow'
@@ -175,8 +175,8 @@ def get_lending_library(site, inlibrary=False, **kw):
 
 
 def get_readable_books(site, **kw):
-    kw.setdefault("sort", "first_publish_year desc")
-    subject = ReadableBooksEngine().get_subject("/subjects/dummy", **kw)
+    kw.setdefault('sort', 'first_publish_year desc')
+    subject = ReadableBooksEngine().get_subject('/subjects/dummy', **kw)
     subject['key'] = '/read'
     return subject
 
@@ -193,7 +193,7 @@ class ReadableBooksEngine(SubjectEngine):
     """
 
     def make_query(self, key, filters):
-        return {"public_scan_b": "true"}
+        return {'public_scan_b': 'true'}
 
     def get_ebook_count(self, name, value, publish_year):
         # we are not displaying ebook count.
@@ -208,9 +208,9 @@ class CustomSubjectEngine(SubjectEngine):
         meta = self.get_meta(key)
 
         q = {
-            meta.facet_key: ["lending_library"],
-            'public_scan_b': "false",
-            'NOT borrowed_b': "true",
+            meta.facet_key: ['lending_library'],
+            'public_scan_b': 'false',
+            'NOT borrowed_b': 'true',
             # show only books in last 20 or so years
             'publish_year': (str(1990), str(datetime.date.today().year)),  # range
         }
@@ -218,9 +218,9 @@ class CustomSubjectEngine(SubjectEngine):
         if filters:
             if filters.get('in_library') is True:
                 q[meta.facet_key].append('in_library')
-            if filters.get("has_fulltext") == "true":
-                q['has_fulltext'] = "true"
-            if filters.get("publish_year"):
+            if filters.get('has_fulltext') == 'true':
+                q['has_fulltext'] = 'true'
+            if filters.get('publish_year'):
                 q['publish_year'] = filters['publish_year']
 
         return q
@@ -236,13 +236,13 @@ def on_loan_created_statsdb(loan):
     key = _get_loan_key(loan)
     t_start = datetime.datetime.utcfromtimestamp(loan['loaned_at'])
     d = {
-        "book": loan['book'],
-        "identifier": loan['ocaid'],
-        "resource_type": loan['resource_type'],
-        "t_start": t_start.isoformat(),
-        "status": "active",
+        'book': loan['book'],
+        'identifier': loan['ocaid'],
+        'resource_type': loan['resource_type'],
+        't_start': t_start.isoformat(),
+        'status': 'active',
     }
-    d['library'] = "/libraries/internet_archive"
+    d['library'] = '/libraries/internet_archive'
     d['geoip_country'] = None  # we removed geoip
     statsdb.add_entry(key, d)
 
@@ -253,12 +253,12 @@ def on_loan_completed_statsdb(loan):
     t_start = datetime.datetime.utcfromtimestamp(loan['loaned_at'])
     t_end = datetime.datetime.utcfromtimestamp(loan['returned_at'])
     d = {
-        "book": loan['book'],
-        "identifier": loan['ocaid'],
-        "resource_type": loan['resource_type'],
-        "t_start": t_start.isoformat(),
-        "t_end": t_end.isoformat(),
-        "status": "completed",
+        'book': loan['book'],
+        'identifier': loan['ocaid'],
+        'resource_type': loan['resource_type'],
+        't_start': t_start.isoformat(),
+        't_end': t_end.isoformat(),
+        'status': 'completed',
     }
     old = statsdb.get_entry(key)
     if old:
@@ -272,9 +272,9 @@ def _get_loan_key(loan):
     # Using _key as key for loan stats will result in overwriting previous loans.
     # Using the unique uuid to create the loan key and falling back to _key
     # when uuid is not available.
-    return "loans/" + loan.get("uuid") or loan["_key"]
+    return 'loans/' + loan.get('uuid') or loan['_key']
 
 
 def setup():
-    eventer.bind("loan-created", on_loan_created_statsdb)
-    eventer.bind("loan-completed", on_loan_completed_statsdb)
+    eventer.bind('loan-created', on_loan_created_statsdb)
+    eventer.bind('loan-completed', on_loan_completed_statsdb)

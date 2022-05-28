@@ -43,7 +43,7 @@ siteindex = web.template.Template(t_siteindex)
 
 
 def xopen(filename):
-    return gzip.open(filename) if filename.endswith(".gz") else open(filename)
+    return gzip.open(filename) if filename.endswith('.gz') else open(filename)
 
 
 def urlsafe(name):
@@ -54,13 +54,13 @@ def urlsafe(name):
     package
     """
     # unsafe chars according to RFC 2396
-    reserved = ";/?:@&=+$,"
+    reserved = ';/?:@&=+$,'
     delims = '<>#%"'
-    unwise = "{}|\\^[]`"
+    unwise = '{}|\\^[]`'
     space = ' \n\r'
 
     unsafe = reserved + delims + unwise + space
-    pattern = '[%s]+' % "".join(re.escape(c) for c in unsafe)
+    pattern = '[%s]+' % ''.join(re.escape(c) for c in unsafe)
     safepath_re = re.compile(pattern)
     return safepath_re.sub('_', name).replace(' ', '-').strip('_')[:100]
 
@@ -70,7 +70,7 @@ def process_dump(dumpfile):
 
     The summary file contains: sort-key, path and last_modified columns.
     """
-    rows = (line.decode().strip().split("\t") for line in xopen(dumpfile))
+    rows = (line.decode().strip().split('\t') for line in xopen(dumpfile))
     for type, key, revision, last_modified, jsontext in rows:
         if type not in ['/type/work', '/type/author']:
             continue
@@ -78,7 +78,7 @@ def process_dump(dumpfile):
         doc = json.loads(jsontext)
         title = doc.get('name', '') if type == '/type/author' else doc.get('title', '')
 
-        path = key + "/" + urlsafe(title.strip())
+        path = key + '/' + urlsafe(title.strip())
 
         last_modified = last_modified.replace(' ', 'T') + 'Z'
         sortkey = get_sort_key(key)
@@ -86,7 +86,7 @@ def process_dump(dumpfile):
             yield [sortkey, path, last_modified]
 
 
-re_key = re.compile(r"^/(authors|works)/OL\d+[AMW]$")
+re_key = re.compile(r'^/(authors|works)/OL\d+[AMW]$')
 
 
 def get_sort_key(key):
@@ -100,11 +100,11 @@ def get_sort_key(key):
         return
     prefix = m.group(1)
     num = int(web.numify(key)) / 10000
-    return "%s_%04d" % (prefix, num)
+    return '%s_%04d' % (prefix, num)
 
 
 def generate_sitemaps(filename):
-    rows = (line.strip().split("\t") for line in open(filename))
+    rows = (line.strip().split('\t') for line in open(filename))
     for sortkey, chunk in itertools.groupby(rows, lambda row: row[0]):
         things = []
 
@@ -116,16 +116,16 @@ def generate_sitemaps(filename):
             things.append(web.storage(path=path, last_modified=last_modified))
 
         if things:
-            write("sitemaps/sitemap_%s.xml.gz" % sortkey, sitemap(things))
+            write('sitemaps/sitemap_%s.xml.gz' % sortkey, sitemap(things))
 
 
 def generate_siteindex():
-    filenames = sorted(os.listdir("sitemaps"))
-    if "siteindex.xml.gz" in filenames:
-        filenames.remove("siteindex.xml.gz")
+    filenames = sorted(os.listdir('sitemaps'))
+    if 'siteindex.xml.gz' in filenames:
+        filenames.remove('siteindex.xml.gz')
     timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S') + 'Z'
     index = siteindex(filenames, timestamp)
-    write("sitemaps/siteindex.xml.gz", index)
+    write('sitemaps/siteindex.xml.gz', index)
 
 
 def write(path, text):
@@ -140,8 +140,8 @@ def write(path, text):
 
 
 def write_tsv(path, rows):
-    lines = ("\t".join(row) + "\n" for row in rows)
-    with open(path, "w") as f:
+    lines = ('\t'.join(row) + '\n' for row in rows)
+    with open(path, 'w') as f:
         f.writelines(lines)
 
 
@@ -157,37 +157,37 @@ def system_memory():
 
 
 def system(cmd):
-    log("executing:", cmd)
+    log('executing:', cmd)
     status = os.system(cmd)
     if status != 0:
-        raise Exception("%r failed with exit status: %d" % (cmd, status))
+        raise Exception('%r failed with exit status: %d' % (cmd, status))
 
 
 def log(*args):
-    msg = " ".join(map(str, args))
-    print(f"{time.asctime()} {msg}")
+    msg = ' '.join(map(str, args))
+    print(f'{time.asctime()} {msg}')
 
 
 def main(dumpfile):
-    system("rm -rf sitemaps sitemaps_data.txt*; mkdir sitemaps")
+    system('rm -rf sitemaps sitemaps_data.txt*; mkdir sitemaps')
 
-    log("processing the dump")
+    log('processing the dump')
     rows = process_dump(dumpfile)
-    write_tsv("sitemaps_data.txt", rows)
+    write_tsv('sitemaps_data.txt', rows)
 
-    log("sorting sitemaps_data.txt")
+    log('sorting sitemaps_data.txt')
     # use half of system of 3GB whichever is smaller
     sort_mem = min(system_memory() / 2, 3072)
-    system("sort -S%dM sitemaps_data.txt > sitemaps_data.txt.sorted" % sort_mem)
+    system('sort -S%dM sitemaps_data.txt > sitemaps_data.txt.sorted' % sort_mem)
 
-    log("generating sitemaps")
-    generate_sitemaps("sitemaps_data.txt.sorted")
+    log('generating sitemaps')
+    generate_sitemaps('sitemaps_data.txt.sorted')
     generate_siteindex()
 
-    log("done")
+    log('done')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import sys
 
     main(sys.argv[1])

@@ -30,7 +30,7 @@ from lxml import etree
 import urllib
 
 
-logger = logging.getLogger("openlibrary.borrow")
+logger = logging.getLogger('openlibrary.borrow')
 
 ########## Constants
 
@@ -74,7 +74,7 @@ bookreader_stream_base = 'https://' + bookreader_host + '/stream'
 # Handler for /books/{bookid}/{title}/borrow
 class checkout_with_ocaid(delegate.page):
 
-    path = "/borrow/ia/(.*)"
+    path = '/borrow/ia/(.*)'
 
     def GET(self, ocaid):
         """Redirect shim: Translate an IA identifier into an OL identifier and
@@ -98,7 +98,7 @@ class checkout_with_ocaid(delegate.page):
 
 # Handler for /books/{bookid}/{title}/borrow
 class borrow(delegate.page):
-    path = "(/books/.*)/borrow"
+    path = '(/books/.*)/borrow'
 
     def GET(self, key):
         return self.POST(key)
@@ -107,7 +107,7 @@ class borrow(delegate.page):
         """Called when the user wants to borrow the edition"""
 
         i = web.input(
-            action='borrow', format=None, ol_host=None, _autoReadAloud=None, q=""
+            action='borrow', format=None, ol_host=None, _autoReadAloud=None, q=''
         )
 
         ol_host = i.ol_host or 'openlibrary.org'
@@ -122,7 +122,7 @@ class borrow(delegate.page):
 
         if i.q:
             _q = urllib.parse.quote(i.q, safe='')
-            raise web.seeother(archive_url + "#page/-/mode/2up/search/%s" % _q)
+            raise web.seeother(archive_url + '#page/-/mode/2up/search/%s' % _q)
 
         # Make a call to availability v2 update the subjects according
         # to result if `open`, redirect to bookreader
@@ -140,8 +140,8 @@ class borrow(delegate.page):
             ia_itemname = account.itemname if account else None
             s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
         if not user or not ia_itemname or not s3_keys:
-            web.setcookie(config.login_cookie_name, "", expires=-1)
-            redirect_url = "/account/login?redirect={}/borrow?action={}".format(
+            web.setcookie(config.login_cookie_name, '', expires=-1)
+            redirect_url = '/account/login?redirect={}/borrow?action={}'.format(
                 edition_redirect, action
             )
             if i._autoReadAloud is not None:
@@ -211,7 +211,7 @@ class borrow(delegate.page):
 
 # Handler for /books/{bookid}/{title}/_borrow_status
 class borrow_status(delegate.page):
-    path = "(/books/.*)/_borrow_status"
+    path = '(/books/.*)/_borrow_status'
 
     def GET(self, key):
         global lending_subjects
@@ -244,21 +244,21 @@ class borrow_status(delegate.page):
 
         output_text = json.dumps(output)
 
-        content_type = "application/json"
+        content_type = 'application/json'
         if i.callback:
-            content_type = "text/javascript"
+            content_type = 'text/javascript'
             output_text = f'{i.callback} ( {output_text} );'
 
         return delegate.RawText(output_text, content_type=content_type)
 
 
 class borrow_admin(delegate.page):
-    path = "(/books/.*)/borrow_admin"
+    path = '(/books/.*)/borrow_admin'
 
     def GET(self, key):
         if not is_admin():
             return render_template(
-                'permission_denied', web.ctx.path, "Permission denied."
+                'permission_denied', web.ctx.path, 'Permission denied.'
             )
 
         edition = web.ctx.site.get(key)
@@ -267,7 +267,7 @@ class borrow_admin(delegate.page):
 
         if edition.ocaid:
             lending.sync_loan(edition.ocaid)
-            ebook_key = "ebooks/" + edition.ocaid
+            ebook_key = 'ebooks/' + edition.ocaid
             ebook = web.ctx.site.store.get(ebook_key) or {}
         else:
             ebook = None
@@ -280,20 +280,20 @@ class borrow_admin(delegate.page):
             user_loans = get_loans(user)
 
         return render_template(
-            "borrow_admin", edition, edition_loans, ebook, user_loans, web.ctx.ip
+            'borrow_admin', edition, edition_loans, ebook, user_loans, web.ctx.ip
         )
 
     def POST(self, key):
         if not is_admin():
             return render_template(
-                'permission_denied', web.ctx.path, "Permission denied."
+                'permission_denied', web.ctx.path, 'Permission denied.'
             )
 
         edition = web.ctx.site.get(key)
         if not edition:
             raise web.notfound()
         if not edition.ocaid:
-            raise web.seeother(edition.url("/borrow_admin"))
+            raise web.seeother(edition.url('/borrow_admin'))
 
         lending.sync_loan(edition.ocaid)
         i = web.input(action=None, loan_key=None)
@@ -306,12 +306,12 @@ class borrow_admin(delegate.page):
 
 
 class borrow_admin_no_update(delegate.page):
-    path = "(/books/.*)/borrow_admin_no_update"
+    path = '(/books/.*)/borrow_admin_no_update'
 
     def GET(self, key):
         if not is_admin():
             return render_template(
-                'permission_denied', web.ctx.path, "Permission denied."
+                'permission_denied', web.ctx.path, 'Permission denied.'
             )
 
         edition = web.ctx.site.get(key)
@@ -327,13 +327,13 @@ class borrow_admin_no_update(delegate.page):
             user_loans = get_loans(user)
 
         return render_template(
-            "borrow_admin_no_update", edition, edition_loans, user_loans, web.ctx.ip
+            'borrow_admin_no_update', edition, edition_loans, user_loans, web.ctx.ip
         )
 
     def POST(self, key):
         if not is_admin():
             return render_template(
-                'permission_denied', web.ctx.path, "Permission denied."
+                'permission_denied', web.ctx.path, 'Permission denied.'
             )
 
         i = web.input(action=None, loan_key=None)
@@ -347,11 +347,11 @@ class borrow_admin_no_update(delegate.page):
 
 
 class ia_loan_status(delegate.page):
-    path = r"/ia_loan_status/(.*)"
+    path = r'/ia_loan_status/(.*)'
 
     def GET(self, itemid):
         d = get_borrow_status(itemid, include_resources=False, include_ia=False)
-        return delegate.RawText(json.dumps(d), content_type="application/json")
+        return delegate.RawText(json.dumps(d), content_type='application/json')
 
 
 @public
@@ -367,7 +367,7 @@ def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=N
     if edition:
         editions = [edition]
     else:
-        edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": itemid})
+        edition_keys = web.ctx.site.things({'type': '/type/edition', 'ocaid': itemid})
         editions = web.ctx.site.get_many(edition_keys)
     has_waitinglist = editions and any(e.get_waitinglist_size() > 0 for e in editions)
 
@@ -399,8 +399,8 @@ def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=N
                         resource_pattern, resource_urn
                     ).groups()
                 else:
-                    resource_type, resource_id = "bookreader", resource_urn
-                resource_type = "resource_" + resource_type
+                    resource_type, resource_id = 'bookreader', resource_urn
+                resource_type = 'resource_' + resource_type
                 if is_loaned_out(resource_id):
                     d[resource_type] = 'checkedout'
                 else:
@@ -410,12 +410,12 @@ def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=N
 
 # Handler for /iauth/{itemid}
 class ia_auth(delegate.page):
-    path = r"/ia_auth/(.*)"
+    path = r'/ia_auth/(.*)'
 
     def GET(self, item_id):
         i = web.input(_method='GET', callback=None, loan=None, token=None)
 
-        content_type = "application/json"
+        content_type = 'application/json'
 
         # check that identifier is valid
 
@@ -425,7 +425,7 @@ class ia_auth(delegate.page):
         output = auth_json
 
         if i.callback:
-            content_type = "text/javascript"
+            content_type = 'text/javascript'
             output = f'{i.callback} ( {output} );'
 
         return delegate.RawText(output, content_type=content_type)
@@ -433,7 +433,7 @@ class ia_auth(delegate.page):
 
 # Handler for /borrow/receive_notification - receive ACS4 status update notifications
 class borrow_receive_notification(delegate.page):
-    path = r"/borrow/receive_notification"
+    path = r'/borrow/receive_notification'
 
     def GET(self):
         web.header('Content-Type', 'application/json')
@@ -459,7 +459,7 @@ class ia_borrow_notify(delegate.page):
         {"identifier": "foo00bar"}
     """
 
-    path = "/borrow/notify"
+    path = '/borrow/notify'
 
     def POST(self):
         payload = web.data()
@@ -540,7 +540,7 @@ def get_all_store_values(**query):
         for new_item in new_items:
             new_item[1].update({'store_key': new_item[0]})
             # XXX-Anand: Handling the existing loans
-            new_item[1].setdefault("ocaid", None)
+            new_item[1].setdefault('ocaid', None)
             values.append(new_item[1])
         if len(new_items) < query['limit']:
             got_all = True
@@ -590,7 +590,7 @@ def get_loan_key(resource_id):
     if len(loan_keys) > 1:
         # raise Exception('Found too many local loan records for resource %s' % resource_id)
         logger.error(
-            "Found too many loan records for resource %s: %s", resource_id, loan_keys
+            'Found too many loan records for resource %s: %s', resource_id, loan_keys
         )
 
     loan_key = loan_keys[0]['key']
@@ -704,7 +704,7 @@ def _update_loan_status(loan_key, loan, bss_status=None):
         # delete loan record if has expired
         # $$$ consolidate logic for checking expiry.  keep loan record for some time after it expires.
         if loan['expiry'] and loan['expiry'] < datetime.datetime.utcnow().isoformat():
-            logger.info("%s: loan expired. deleting...", loan_key)
+            logger.info('%s: loan expired. deleting...', loan_key)
             web.ctx.site.store.delete(loan_key)
         return
 
@@ -737,7 +737,7 @@ def update_loan_from_bss_status(loan_key, loan, status):
 
         # Was returned, expired, or timed out
         web.ctx.site.store.delete(loan_key)
-        logger.info("%s: loan returned or expired or timedout, deleting...", loan_key)
+        logger.info('%s: loan returned or expired or timedout, deleting...', loan_key)
         return
 
     # Book has non-returned status
@@ -745,7 +745,7 @@ def update_loan_from_bss_status(loan_key, loan, status):
     if loan['expiry'] != status['until']:
         loan['expiry'] = status['until']
         web.ctx.site.store[loan_key] = loan
-        logger.info("%s: updated expiry to %s", loan_key, loan['expiry'])
+        logger.info('%s: updated expiry to %s', loan_key, loan['expiry'])
 
 
 def update_all_loan_status():
@@ -759,7 +759,7 @@ def update_all_loan_status():
     loans = web.ctx.site.store.values(type='/type/loan', limit=-1)
     acs4_loans = [loan for loan in loans if loan['resource_type'] in ['epub', 'pdf']]
     for i, loan in enumerate(acs4_loans):
-        logger.info("processing loan %s (%s)", loan['_key'], i)
+        logger.info('processing loan %s (%s)', loan['_key'], i)
         bss_status = None
         if resource_uses_bss(loan['resource_id']):
             try:
@@ -912,7 +912,7 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
 
             else:
                 # Couldn't validate using token - they need to go to Open Library
-                error_message = "Lending Library Book"
+                error_message = 'Lending Library Book'
                 resolution_message = (
                     'This book is part of the <a href="%(base_url)s/subjects/Lending_library" title="Open Library Lending Library">lending library</a>. Please <a href="%(base_url)s/ia/%(item_id)s/borrow" title="Borrow book page on Open Library">visit this book\'s page on Open Library</a> to access the book.  You must have cookies enabled for archive.org and openlibrary.org to access borrowed books.'
                     % resolution_dict
@@ -944,7 +944,7 @@ def make_access_key():
         return config.ia_access_secret.encode('utf-8')
     except AttributeError:
         raise RuntimeError(
-            "config value config.ia_access_secret is not present -- check your config"
+            'config value config.ia_access_secret is not present -- check your config'
         )
 
 
@@ -1002,7 +1002,7 @@ def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host, ia_userid=N
         'id': item_id,
         'bookPath': book_path,
         'olHost': ol_host,
-        'olAuthUrl': f"https://{ol_host}/ia_auth/XXX",
+        'olAuthUrl': f'https://{ol_host}/ia_auth/XXX',
         'iaUserId': ia_userid,
         'iaAuthToken': make_ia_token(ia_userid, READER_AUTH_SECONDS),
     }

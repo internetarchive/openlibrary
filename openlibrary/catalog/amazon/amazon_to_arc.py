@@ -36,9 +36,9 @@ host = 'www.amazon.com'
 sock = socket.create_connection((host, 80))
 
 url = 'http://openlibrary.org/type/work'
-url = "http://www.amazon.com/dp/1847195881"
+url = 'http://www.amazon.com/dp/1847195881'
 get(sock, host, url)
 
 url = 'http://openlibrary.org/type/edition'
-url = "http://www.amazon.com/dp/0393062287"
+url = 'http://www.amazon.com/dp/0393062287'
 get(sock, host, url)

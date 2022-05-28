@@ -31,9 +31,9 @@ def ol_query(name, value):
 
 
 def get_solr_select_url():
-    c = config.get("plugin_worksearch")
+    c = config.get('plugin_worksearch')
     base_url = c and c.get('solr_base_url')
-    return base_url and (base_url + "/select")
+    return base_url and (base_url + '/select')
 
 
 def get_work_iaids(wkey):
@@ -44,14 +44,14 @@ def get_work_iaids(wkey):
     stats.begin('solr', url=wkey)
     solr_select = (
         solr_select_url
-        + f"?version=2.2&q.op=AND&q={q}&rows=10&fl={filter}&qt=standard&wt=json&fq=type:work"
+        + f'?version=2.2&q.op=AND&q={q}&rows=10&fl={filter}&qt=standard&wt=json&fq=type:work'
     )
     reply = requests.get(solr_select).json()
     stats.end()
     print(reply)
     if reply['response']['numFound'] == 0:
         return []
-    return reply["response"]['docs'][0].get(filter, [])
+    return reply['response']['docs'][0].get(filter, [])
 
 
 # multi-get version (not yet used)
@@ -61,7 +61,7 @@ def get_works_iaids(wkeys):
     q = '+OR+'.join(['key:' + wkey for wkey in wkeys])
     solr_select = (
         solr_select_url
-        + f"?version=2.2&q.op=AND&q={q}&rows=10&fl={filter}&qt=standard&wt=json&fq=type:work"
+        + f'?version=2.2&q.op=AND&q={q}&rows=10&fl={filter}&qt=standard&wt=json&fq=type:work'
     )
     reply = requests.get(solr_select).json()
     if reply['response']['numFound'] == 0:
@@ -77,7 +77,7 @@ def get_eids_for_wids(wids):
     q = '+OR+'.join(wids)
     solr_select = (
         solr_select_url
-        + f"?version=2.2&q.op=AND&q={q}&rows=10&fl=key,{filter}&qt=standard&wt=json&fq=type:work"
+        + f'?version=2.2&q.op=AND&q={q}&rows=10&fl=key,{filter}&qt=standard&wt=json&fq=type:work'
     )
     reply = requests.get(solr_select).json()
     if reply['response']['numFound'] == 0:
@@ -94,7 +94,7 @@ def get_solr_edition_records(iaids):
     q = '+OR+'.join('ia:' + id for id in iaids)
     solr_select = (
         solr_select_url
-        + f"?version=2.2&q.op=AND&q={q}&rows=10&fl=key,{filter}&qt=standard&wt=json"
+        + f'?version=2.2&q.op=AND&q={q}&rows=10&fl=key,{filter}&qt=standard&wt=json'
     )
     reply = requests.get(solr_select).json()
     if reply['response']['numFound'] == 0:
@@ -143,7 +143,7 @@ class ReadProcessor:
         if meta is None:
             return None
 
-        collections = meta.get("collection", [])
+        collections = meta.get('collection', [])
 
         if status == 'missing':
             return None
@@ -181,9 +181,9 @@ class ReadProcessor:
             # can be rewrit in terms of iaid
             # XXX covers url from yaml?
             result['cover'] = {
-                "small": "https://covers.openlibrary.org/b/id/%s-S.jpg" % cover_id,
-                "medium": "https://covers.openlibrary.org/b/id/%s-M.jpg" % cover_id,
-                "large": "https://covers.openlibrary.org/b/id/%s-L.jpg" % cover_id,
+                'small': 'https://covers.openlibrary.org/b/id/%s-S.jpg' % cover_id,
+                'medium': 'https://covers.openlibrary.org/b/id/%s-M.jpg' % cover_id,
+                'large': 'https://covers.openlibrary.org/b/id/%s-L.jpg' % cover_id,
             }
 
         return result
@@ -236,7 +236,7 @@ class ReadProcessor:
                 status = 'missing'
                 edition = None
             else:
-                collections = meta.get("collection", [])
+                collections = meta.get('collection', [])
                 edition = self.iaid_to_ed.get(iaid)
             if not edition:
                 status = 'missing'

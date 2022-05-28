@@ -31,7 +31,7 @@ from getpass import getpass
 BWB_URL = 'https://www.betterworldbooks.com'
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     if len(sys.argv) > 1:
         with open(sys.argv[1]) as fin:
             order = json.load(fin)

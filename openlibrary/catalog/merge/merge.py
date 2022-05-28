@@ -19,7 +19,7 @@ def build_titles(title):
     normalized_title = normalize(title).lower()
     titles = [title, normalized_title]
     if title.find(' & ') != -1:
-        t = title.replace(" & ", " and ")
+        t = title.replace(' & ', ' and ')
         titles.append(t)
         titles.append(normalize(t))
     t2 = []
@@ -125,7 +125,7 @@ def compare_authors(amazon, marc):
 
 
 def title_replace_amp(amazon):
-    return normalize(amazon['full-title'].replace(" & ", " and ")).lower()
+    return normalize(amazon['full-title'].replace(' & ', ' and ')).lower()
 
 
 def substr_match(a, b):

@@ -12,10 +12,10 @@ def find_entity(site, entity):
     print(entity)
     things = site.things(entity)
     if not things:
-        print("person not found")
+        print('person not found')
         return
 
-    print("found", len(things), "match")
+    print('found', len(things), 'match')
     for key in things:
         db_entity = site.withKey(key, lazy=False)._get_data()
         for field in entity_fields:
@@ -26,7 +26,7 @@ def find_entity(site, entity):
 
 
 def get_from_archive(locator):
-    (file, offset, length) = locator.split(":")
+    (file, offset, length) = locator.split(':')
     offset = int(offset)
     length = int(length)
 
@@ -52,7 +52,7 @@ def contrib(r):
         contrib = {}
         if 'a' not in f.contents and 'c' not in f.contents:
             continue  # should at least be a name or title
-        name = " ".join(
+        name = ' '.join(
             [j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'abc']
         )
         if 'd' in f.contents:
@@ -76,7 +76,7 @@ def contrib(r):
         print(f.subfield_sequence)
         contrib = {
             'entity_type': 'org',
-            'name': " ".join(
+            'name': ' '.join(
                 [j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'ab']
             ),
         }
@@ -87,7 +87,7 @@ def contrib(r):
         print(f.subfield_sequence)
         contrib = {
             'entity_type': 'event',
-            'name': " ".join(
+            'name': ' '.join(
                 [j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'acdn']
             ),
         }

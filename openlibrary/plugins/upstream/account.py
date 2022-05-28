@@ -38,7 +38,7 @@ from openlibrary.plugins.upstream import borrow, forms, utils
 import urllib
 
 
-logger = logging.getLogger("openlibrary.account")
+logger = logging.getLogger('openlibrary.account')
 
 USERNAME_RETRIES = 3
 
@@ -48,42 +48,42 @@ create_link_doc = accounts.create_link_doc
 sendmail = accounts.sendmail
 
 LOGIN_ERRORS = {
-    "invalid_email": "The email address you entered is invalid",
-    "account_blocked": "This account has been blocked",
-    "account_locked": "This account has been blocked",
-    "account_not_found": "No account was found with this email. Please try again",
-    "account_incorrect_password": "The password you entered is incorrect. Please try again",
-    "account_bad_password": "Wrong password. Please try again",
-    "account_not_verified": "Please verify your Open Library account before logging in",
-    "ia_account_not_verified": "Please verify your Internet Archive account before logging in",
-    "missing_fields": "Please fill out all fields and try again",
-    "email_registered": "This email is already registered",
-    "username_registered": "This username is already registered",
-    "ia_login_only": "Sorry, you must use your Internet Archive email and password to log in",
-    "max_retries_exceeded": "A problem occurred and we were unable to log you in.",
-    "invalid_s3keys": "Login attempted with invalid Internet Archive s3 credentials.",
-    "wrong_ia_account": "An Open Library account with this email is already linked to a different Internet Archive account. Please contact info@openlibrary.org.",
+    'invalid_email': 'The email address you entered is invalid',
+    'account_blocked': 'This account has been blocked',
+    'account_locked': 'This account has been blocked',
+    'account_not_found': 'No account was found with this email. Please try again',
+    'account_incorrect_password': 'The password you entered is incorrect. Please try again',
+    'account_bad_password': 'Wrong password. Please try again',
+    'account_not_verified': 'Please verify your Open Library account before logging in',
+    'ia_account_not_verified': 'Please verify your Internet Archive account before logging in',
+    'missing_fields': 'Please fill out all fields and try again',
+    'email_registered': 'This email is already registered',
+    'username_registered': 'This username is already registered',
+    'ia_login_only': 'Sorry, you must use your Internet Archive email and password to log in',
+    'max_retries_exceeded': 'A problem occurred and we were unable to log you in.',
+    'invalid_s3keys': 'Login attempted with invalid Internet Archive s3 credentials.',
+    'wrong_ia_account': 'An Open Library account with this email is already linked to a different Internet Archive account. Please contact info@openlibrary.org.',
 }
 
 
 class availability(delegate.page):
-    path = "/internal/fake/availability"
+    path = '/internal/fake/availability'
 
     def POST(self):
         """Internal private API required for testing on localhost"""
-        return delegate.RawText(json.dumps({}), content_type="application/json")
+        return delegate.RawText(json.dumps({}), content_type='application/json')
 
 
 class loans(delegate.page):
-    path = "/internal/fake/loans"
+    path = '/internal/fake/loans'
 
     def POST(self):
         """Internal private API required for testing on localhost"""
-        return delegate.RawText(json.dumps({}), content_type="application/json")
+        return delegate.RawText(json.dumps({}), content_type='application/json')
 
 
 class xauth(delegate.page):
-    path = "/internal/fake/xauth"
+    path = '/internal/fake/xauth'
 
     def POST(self):
         """Internal private API required for testing login on localhost
@@ -92,33 +92,33 @@ class xauth(delegate.page):
         unsuccessful login attempts depending on the provided GET parameters
         """
         i = web.input(email='', op=None)
-        result = {"error": "incorrect option specified"}
-        if i.op == "authenticate":
+        result = {'error': 'incorrect option specified'}
+        if i.op == 'authenticate':
             result = {
-                "success": True,
-                "version": 1,
-                "values": {
-                    "access": 'foo',
-                    "secret": 'foo',
+                'success': True,
+                'version': 1,
+                'values': {
+                    'access': 'foo',
+                    'secret': 'foo',
                 },
             }
-        elif i.op == "info":
+        elif i.op == 'info':
             result = {
-                "success": True,
-                "values": {
-                    "locked": False,
-                    "email": "openlibrary@example.org",
-                    "itemname": "@openlibrary",
-                    "screenname": "openlibrary",
-                    "verified": True,
+                'success': True,
+                'values': {
+                    'locked': False,
+                    'email': 'openlibrary@example.org',
+                    'itemname': '@openlibrary',
+                    'screenname': 'openlibrary',
+                    'verified': True,
                 },
-                "version": 1,
+                'version': 1,
             }
-        return delegate.RawText(json.dumps(result), content_type="application/json")
+        return delegate.RawText(json.dumps(result), content_type='application/json')
 
 
 class internal_audit(delegate.page):
-    path = "/internal/account/audit"
+    path = '/internal/account/audit'
 
     def GET(self):
         """Internal API endpoint used for authorized test cases and
@@ -146,19 +146,19 @@ class internal_audit(delegate.page):
             except ValueError as e:
                 result = {'error': str(e)}
 
-        return delegate.RawText(json.dumps(result), content_type="application/json")
+        return delegate.RawText(json.dumps(result), content_type='application/json')
 
 
 class account_migration(delegate.page):
 
-    path = "/internal/account/migration"
+    path = '/internal/account/migration'
 
     def GET(self):
         i = web.input(username='', email='', key='')
         if i.key != lending.config_internal_tests_api_key:
             return delegate.RawText(
                 json.dumps({'error': 'Authentication failed for private API'}),
-                content_type="application/json",
+                content_type='application/json',
             )
         try:
             if i.username:
@@ -167,7 +167,7 @@ class account_migration(delegate.page):
                 ol_account = OpenLibraryAccount.get(email=i.email)
         except Exception as e:
             return delegate.RawText(
-                json.dumps({'error': 'bad-account'}), content_type="application/json"
+                json.dumps({'error': 'bad-account'}), content_type='application/json'
             )
         if ol_account:
             ol_account.enc_password = 'REDACTED'
@@ -181,7 +181,7 @@ class account_migration(delegate.page):
                             'email': ol_account.email.lower(),
                         }
                     ),
-                    content_type="application/json",
+                    content_type='application/json',
                 )
             if not ol_account.itemname:
                 ia_account = InternetArchiveAccount.get(email=ol_account.email.lower())
@@ -198,7 +198,7 @@ class account_migration(delegate.page):
                                 'ia': ia_account,
                             }
                         ),
-                        content_type="application/json",
+                        content_type='application/json',
                     )
 
                 password = OpenLibraryAccount.generate_random_password(16)
@@ -219,7 +219,7 @@ class account_migration(delegate.page):
                             'status': 'link-created',
                         }
                     ),
-                    content_type="application/json",
+                    content_type='application/json',
                 )
 
 
@@ -238,7 +238,7 @@ class account_create(delegate.page):
     Account remains in the pending state until the email is activated.
     """
 
-    path = "/account/create"
+    path = '/account/create'
 
     def GET(self):
         f = self.get_form()
@@ -264,7 +264,7 @@ class account_create(delegate.page):
     def is_plugin_enabled(self, name):
         return (
             name in delegate.get_plugins()
-            or "openlibrary.plugins." + name in delegate.get_plugins()
+            or 'openlibrary.plugins.' + name in delegate.get_plugins()
         )
 
     def POST(self):
@@ -307,8 +307,8 @@ del delegate.pages['/account/register']
 
 class account_login_json(delegate.page):
 
-    encoding = "json"
-    path = "/account/login"
+    encoding = 'json'
+    path = '/account/login'
 
     def POST(self):
         """Overrides `account_login` and infogami.login to prevent users from
@@ -354,7 +354,7 @@ class account_login(delegate.page):
     * account_not_verified: Error page is dispalyed with button to "resend verification email".
     """
 
-    path = "/account/login"
+    path = '/account/login'
 
     def render_error(self, error_key, i):
         f = forms.Login()
@@ -375,9 +375,9 @@ class account_login(delegate.page):
 
     def POST(self):
         i = web.input(
-            username="",
+            username='',
             connect=None,
-            password="",
+            password='',
             remember=False,
             redirect='/',
             test=False,
@@ -397,31 +397,31 @@ class account_login(delegate.page):
         if error:
             return self.render_error(error, i)
 
-        expires = 3600 * 24 * 365 if i.remember else ""
+        expires = 3600 * 24 * 365 if i.remember else ''
         web.setcookie('pd', int(audit.get('special_access')) or '', expires=expires)
         web.setcookie(
             config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
         )
         blacklist = [
-            "/account/login",
-            "/account/create",
+            '/account/login',
+            '/account/create',
         ]
-        if i.redirect == "" or any([path in i.redirect for path in blacklist]):
-            i.redirect = "/account/loans"
+        if i.redirect == '' or any([path in i.redirect for path in blacklist]):
+            i.redirect = '/account/loans'
         raise web.seeother(i.redirect)
 
     def POST_resend_verification_email(self, i):
         try:
             ol_login = OpenLibraryAccount.authenticate(i.email, i.password)
         except ClientException as e:
-            code = e.get_data().get("code")
-            if code != "account_not_verified":
-                return self.error("account_incorrect_password", i)
+            code = e.get_data().get('code')
+            if code != 'account_not_verified':
+                return self.error('account_incorrect_password', i)
 
         account = OpenLibraryAccount.get(email=i.email)
         account.send_verification_email()
 
-        title = _("Hi, %(user)s", user=account.displayname)
+        title = _('Hi, %(user)s', user=account.displayname)
         message = _(
             "We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.",
             email=account.email,
@@ -432,19 +432,19 @@ class account_login(delegate.page):
 class account_verify(delegate.page):
     """Verify user account."""
 
-    path = "/account/verify/([0-9a-f]*)"
+    path = '/account/verify/([0-9a-f]*)'
 
     def GET(self, code):
-        docs = web.ctx.site.store.values(type="account-link", name="code", value=code)
+        docs = web.ctx.site.store.values(type='account-link', name='code', value=code)
         if docs:
             doc = docs[0]
 
             account = accounts.find(username=doc['username'])
             if account:
-                if account['status'] != "pending":
+                if account['status'] != 'pending':
                     return render['account/verify/activated'](account)
             account.activate()
-            user = web.ctx.site.get("/people/" + doc['username'])  # TBD
+            user = web.ctx.site.get('/people/' + doc['username'])  # TBD
             return render['account/verify/success'](account)
         else:
             return render['account/verify/failed']()
@@ -454,12 +454,12 @@ class account_verify(delegate.page):
         i = web.input(email=None)
         account = accounts.find(email=i.email)
         if not account:
-            return render_template("account/verify/failed", email=i.email)
-        elif account['status'] != "pending":
+            return render_template('account/verify/failed', email=i.email)
+        elif account['status'] != 'pending':
             return render['account/verify/activated'](account)
         else:
             account.send_verification_email()
-            title = _("Hi, %(user)s", user=account.displayname)
+            title = _('Hi, %(user)s', user=account.displayname)
             message = _(
                 "We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.",
                 email=account.email,
@@ -473,7 +473,7 @@ class account_verify_old(account_verify):
     This takes username, email and code as url parameters. The new one takes just the code as part of the url.
     """
 
-    path = "/account/verify"
+    path = '/account/verify'
 
     def GET(self):
         # It is too long since we switched to the new account verification links.
@@ -493,7 +493,7 @@ class account_validation(delegate.page):
             return _('Username may only contain numbers and letters')
         ol_account = OpenLibraryAccount.get(username=username)
         if ol_account:
-            return _("Username unavailable")
+            return _('Username unavailable')
 
     @staticmethod
     def validate_email(email):
@@ -511,11 +511,11 @@ class account_validation(delegate.page):
             errors['email'] = self.validate_email(i.email)
         if i.get('username') is not None:
             errors['username'] = self.validate_username(i.username)
-        return delegate.RawText(json.dumps(errors), content_type="application/json")
+        return delegate.RawText(json.dumps(errors), content_type='application/json')
 
 
 class account_email_verify(delegate.page):
-    path = "/account/email/verify/([0-9a-f]*)"
+    path = '/account/email/verify/([0-9a-f]*)'
 
     def GET(self, code):
         link = accounts.get_link(code)
@@ -529,14 +529,14 @@ class account_email_verify(delegate.page):
 
     def update_email(self, username, email):
         if accounts.find(email=email):
-            title = _("Email address is already used.")
+            title = _('Email address is already used.')
             message = _(
                 "Your email address couldn't be updated. The specified email address is already used."
             )
         else:
-            logger.info("updated email of %s to %s", username, email)
-            accounts.update_account(username=username, email=email, status="active")
-            title = _("Email verification successful.")
+            logger.info('updated email of %s to %s', username, email)
+            accounts.update_account(username=username, email=email, status='active')
+            title = _('Email verification successful.')
             message = _(
                 'Your email address has been successfully verified and updated in your account.'
             )
@@ -551,7 +551,7 @@ class account_email_verify(delegate.page):
 
 
 class account_email_verify_old(account_email_verify):
-    path = "/account/email/verify"
+    path = '/account/email/verify'
 
     def GET(self):
         # It is too long since we switched to the new email verification links.
@@ -561,63 +561,63 @@ class account_email_verify_old(account_email_verify):
 
 
 class account_ia_email_forgot(delegate.page):
-    path = "/account/email/forgot-ia"
+    path = '/account/email/forgot-ia'
 
     def GET(self):
         return render_template('account/email/forgot-ia')
 
     def POST(self):
         i = web.input(email='', password='')
-        err = ""
+        err = ''
 
         if valid_email(i.email):
             act = OpenLibraryAccount.get(email=i.email)
             if act:
-                if OpenLibraryAccount.authenticate(i.email, i.password) == "ok":
+                if OpenLibraryAccount.authenticate(i.email, i.password) == 'ok':
                     ia_act = act.get_linked_ia_account()
                     if ia_act:
                         return render_template(
                             'account/email/forgot-ia', email=ia_act.email
                         )
                     else:
-                        err = "Open Library Account not linked. Login with your Open Library credentials to connect or create an Archive.org account"
+                        err = 'Open Library Account not linked. Login with your Open Library credentials to connect or create an Archive.org account'
                 else:
-                    err = "Incorrect password"
+                    err = 'Incorrect password'
             else:
-                err = "Sorry, this Open Library account does not exist"
+                err = 'Sorry, this Open Library account does not exist'
         else:
-            err = "Please enter a valid Open Library email"
+            err = 'Please enter a valid Open Library email'
         return render_template('account/email/forgot-ia', err=err)
 
 
 class account_ol_email_forgot(delegate.page):
-    path = "/account/email/forgot"
+    path = '/account/email/forgot'
 
     def GET(self):
         return render_template('account/email/forgot')
 
     def POST(self):
         i = web.input(username='', password='')
-        err = ""
+        err = ''
         act = OpenLibraryAccount.get(username=i.username)
 
         if act:
-            if OpenLibraryAccount.authenticate(act.email, i.password) == "ok":
+            if OpenLibraryAccount.authenticate(act.email, i.password) == 'ok':
                 return render_template('account/email/forgot', email=act.email)
             else:
-                err = "Incorrect password"
+                err = 'Incorrect password'
 
         elif valid_email(i.username):
-            err = "Please enter a username, not an email"
+            err = 'Please enter a username, not an email'
 
         else:
-            err = "Sorry, this user does not exist"
+            err = 'Sorry, this user does not exist'
 
         return render_template('account/email/forgot', err=err)
 
 
 class account_password_forgot(delegate.page):
-    path = "/account/password/forgot"
+    path = '/account/password/forgot'
 
     def GET(self):
         f = forms.ForgotPassword()
@@ -634,7 +634,7 @@ class account_password_forgot(delegate.page):
         account = accounts.find(email=i.email)
 
         if account.is_blocked():
-            f.note = utils.get_error("account_blocked")
+            f.note = utils.get_error('account_blocked')
             return render_template('account/password/forgot', f)
 
         send_forgot_password_email(account.username, i.email)
@@ -643,13 +643,13 @@ class account_password_forgot(delegate.page):
 
 class account_password_reset(delegate.page):
 
-    path = "/account/password/reset/([0-9a-f]*)"
+    path = '/account/password/reset/([0-9a-f]*)'
 
     def GET(self, code):
-        docs = web.ctx.site.store.values(type="account-link", name="code", value=code)
+        docs = web.ctx.site.store.values(type='account-link', name='code', value=code)
         if not docs:
-            title = _("Password reset failed.")
-            message = "Your password reset link seems invalid or expired."
+            title = _('Password reset failed.')
+            message = 'Your password reset link seems invalid or expired.'
             return render.message(title, message)
 
         f = forms.ResetPassword()
@@ -658,8 +658,8 @@ class account_password_reset(delegate.page):
     def POST(self, code):
         link = accounts.get_link(code)
         if not link:
-            title = _("Password reset failed.")
-            message = "The password reset link seems invalid or expired."
+            title = _('Password reset failed.')
+            message = 'The password reset link seems invalid or expired.'
             return render.message(title, message)
 
         username = link['username']
@@ -667,12 +667,12 @@ class account_password_reset(delegate.page):
 
         accounts.update_account(username, password=i.password)
         link.delete()
-        return render_template("account/password/reset_success", username=username)
+        return render_template('account/password/reset_success', username=username)
 
 
 class account_audit(delegate.page):
 
-    path = "/account/audit"
+    path = '/account/audit'
 
     def POST(self):
         """When the user attempts a login, an audit is performed to determine
@@ -689,11 +689,11 @@ class account_audit(delegate.page):
         email = i.get('email')
         password = i.get('password')
         result = audit_accounts(email, password, test=test)
-        return delegate.RawText(json.dumps(result), content_type="application/json")
+        return delegate.RawText(json.dumps(result), content_type='application/json')
 
 
 class account_privacy(delegate.page):
-    path = "/account/privacy"
+    path = '/account/privacy'
 
     @require_login
     def GET(self):
@@ -705,13 +705,13 @@ class account_privacy(delegate.page):
         user = accounts.get_current_user()
         user.save_preferences(web.input())
         add_flash_message(
-            'note', _("Notification preferences have been updated successfully.")
+            'note', _('Notification preferences have been updated successfully.')
         )
-        web.seeother("/account")
+        web.seeother('/account')
 
 
 class account_notifications(delegate.page):
-    path = "/account/notifications"
+    path = '/account/notifications'
 
     @require_login
     def GET(self):
@@ -724,13 +724,13 @@ class account_notifications(delegate.page):
         user = accounts.get_current_user()
         user.save_preferences(web.input())
         add_flash_message(
-            'note', _("Notification preferences have been updated successfully.")
+            'note', _('Notification preferences have been updated successfully.')
         )
-        web.seeother("/account")
+        web.seeother('/account')
 
 
 class account_lists(delegate.page):
-    path = "/account/lists"
+    path = '/account/lists'
 
     @require_login
     def GET(self):
@@ -739,7 +739,7 @@ class account_lists(delegate.page):
 
 
 class account_my_books_redirect(delegate.page):
-    path = "/account/books/(.*)"
+    path = '/account/books/(.*)'
 
     @require_login
     def GET(self, rest='loans'):
@@ -751,7 +751,7 @@ class account_my_books_redirect(delegate.page):
 
 
 class account_my_books(delegate.page):
-    path = "/account/books"
+    path = '/account/books'
 
     @require_login
     def GET(self):
@@ -762,7 +762,7 @@ class account_my_books(delegate.page):
 
 # This would be by the civi backend which would require the api keys
 class fake_civi(delegate.page):
-    path = "/internal/fake/civicrm"
+    path = '/internal/fake/civicrm'
 
     def GET(self):
         i = web.input(entity='Contact')
@@ -770,21 +770,21 @@ class fake_civi(delegate.page):
         contributions = {
             'values': [
                 {
-                    "receive_date": "2019-07-31 08:57:00",
-                    "custom_52": "9780062457714",
-                    "total_amount": "50.00",
-                    "custom_53": "ol",
-                    "contact_id": "270430",
-                    "contribution_status": "",
+                    'receive_date': '2019-07-31 08:57:00',
+                    'custom_52': '9780062457714',
+                    'total_amount': '50.00',
+                    'custom_53': 'ol',
+                    'contact_id': '270430',
+                    'contribution_status': '',
                 }
             ]
         }
         entity = contributions if i.entity == 'Contribution' else contact
-        return delegate.RawText(json.dumps(entity), content_type="application/json")
+        return delegate.RawText(json.dumps(entity), content_type='application/json')
 
 
 class import_books(delegate.page):
-    path = "/account/import"
+    path = '/account/import'
 
     @require_login
     def GET(self):
@@ -795,10 +795,10 @@ class import_books(delegate.page):
 
 
 class fetch_goodreads(delegate.page):
-    path = "/account/import/goodreads"
+    path = '/account/import/goodreads'
 
     def GET(self):
-        raise web.seeother("/account/import")
+        raise web.seeother('/account/import')
 
     @require_login
     def POST(self):
@@ -807,7 +807,7 @@ class fetch_goodreads(delegate.page):
 
 
 class export_books(delegate.page):
-    path = "/account/export"
+    path = '/account/export'
 
     date_format = '%Y-%m-%d %H:%M:%S'
 
@@ -839,7 +839,7 @@ class export_books(delegate.page):
         web.header(
             'Content-disposition', f'attachment; filename={filename}'
         )
-        return delegate.RawText('' or data, content_type="text/csv")
+        return delegate.RawText('' or data, content_type='text/csv')
 
     def generate_reading_log(self, username):
         books = Bookshelves.get_users_logged_books(username, limit=10000)
@@ -933,7 +933,7 @@ class export_books(delegate.page):
 
 
 class account_loans(delegate.page):
-    path = "/account/loans"
+    path = '/account/loans'
 
     @require_login
     def GET(self):
@@ -946,8 +946,8 @@ class account_loans(delegate.page):
 
 class account_loans_json(delegate.page):
 
-    encoding = "json"
-    path = "/account/loans"
+    encoding = 'json'
+    path = '/account/loans'
 
     @require_login
     def GET(self):
@@ -955,14 +955,14 @@ class account_loans_json(delegate.page):
         user.update_loan_status()
         loans = borrow.get_loans(user)
         web.header('Content-Type', 'application/json')
-        return delegate.RawText(json.dumps({"loans": loans}))
+        return delegate.RawText(json.dumps({'loans': loans}))
 
 
 class account_waitlist(delegate.page):
-    path = "/account/waitlist"
+    path = '/account/waitlist'
 
     def GET(self):
-        raise web.seeother("/account/loans")
+        raise web.seeother('/account/loans')
 
 # Disabling be cause it prevents account_my_books_redirect from working
 # for some reason. The purpose of this class is to not show the "Create" link for
@@ -975,14 +975,14 @@ class account_waitlist(delegate.page):
 
 
 def send_forgot_password_email(username, email):
-    key = "account/%s/password" % username
+    key = 'account/%s/password' % username
 
     doc = create_link_doc(key, username, email)
     web.ctx.site.store[key] = doc
 
-    link = web.ctx.home + "/account/password/reset/" + doc['code']
+    link = web.ctx.home + '/account/password/reset/' + doc['code']
     msg = render_template(
-        "email/password/reminder", username=username, email=email, link=link
+        'email/password/reminder', username=username, email=email, link=link
     )
     sendmail(email, msg)
 

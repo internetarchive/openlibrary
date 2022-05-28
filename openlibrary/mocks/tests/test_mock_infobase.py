@@ -20,70 +20,70 @@ class TestMockSite:
 
     def test_get(self, mock_site):
         doc = {
-            "key": "/books/OL1M",
-            "type": {"key": "/type/edition"},
-            "title": "The Test Book",
+            'key': '/books/OL1M',
+            'type': {'key': '/type/edition'},
+            'title': 'The Test Book',
         }
         timestamp = datetime.datetime(2010, 1, 2, 3, 4, 5)
 
         mock_site.save(doc, timestamp=timestamp)
 
-        assert mock_site.get("/books/OL1M").dict() == {
-            "key": "/books/OL1M",
-            "type": {"key": "/type/edition"},
-            "title": "The Test Book",
-            "revision": 1,
-            "latest_revision": 1,
-            "last_modified": {"type": "/type/datetime", "value": "2010-01-02T03:04:05"},
-            "created": {"type": "/type/datetime", "value": "2010-01-02T03:04:05"},
+        assert mock_site.get('/books/OL1M').dict() == {
+            'key': '/books/OL1M',
+            'type': {'key': '/type/edition'},
+            'title': 'The Test Book',
+            'revision': 1,
+            'latest_revision': 1,
+            'last_modified': {'type': '/type/datetime', 'value': '2010-01-02T03:04:05'},
+            'created': {'type': '/type/datetime', 'value': '2010-01-02T03:04:05'},
         }
-        assert mock_site.get("/books/OL1M").__class__.__name__ == "Edition"
+        assert mock_site.get('/books/OL1M').__class__.__name__ == 'Edition'
 
     def test_query(self, mock_site):
         doc = {
-            "key": "/books/OL1M",
-            "type": {"key": "/type/edition"},
-            "title": "The Test Book",
-            "subjects": ["love", "san_francisco"],
-            "isbn_10": ["0123456789"],
-            "isbn_13": ["0123456789abc"],
+            'key': '/books/OL1M',
+            'type': {'key': '/type/edition'},
+            'title': 'The Test Book',
+            'subjects': ['love', 'san_francisco'],
+            'isbn_10': ['0123456789'],
+            'isbn_13': ['0123456789abc'],
         }
         timestamp = datetime.datetime(2010, 1, 2, 3, 4, 5)
 
         mock_site.reset()
         mock_site.save(doc, timestamp=timestamp)
 
-        assert mock_site.things({"type": "/type/edition"}) == ["/books/OL1M"]
-        assert mock_site.things({"type": "/type/work"}) == []
+        assert mock_site.things({'type': '/type/edition'}) == ['/books/OL1M']
+        assert mock_site.things({'type': '/type/work'}) == []
 
-        assert mock_site.things({"type": "/type/edition", "subjects": "love"}) == [
-            "/books/OL1M"
+        assert mock_site.things({'type': '/type/edition', 'subjects': 'love'}) == [
+            '/books/OL1M'
         ]
-        assert mock_site.things({"type": "/type/edition", "subjects": "hate"}) == []
+        assert mock_site.things({'type': '/type/edition', 'subjects': 'hate'}) == []
 
-        assert mock_site.things({"key~": "/books/*"}) == ["/books/OL1M"]
-        assert mock_site.things({"key~": "/works/*"}) == []
+        assert mock_site.things({'key~': '/books/*'}) == ['/books/OL1M']
+        assert mock_site.things({'key~': '/works/*'}) == []
 
-        assert mock_site.things({"last_modified>": "2010-01-01"}) == ["/books/OL1M"]
-        assert mock_site.things({"last_modified>": "2010-01-03"}) == []
+        assert mock_site.things({'last_modified>': '2010-01-01'}) == ['/books/OL1M']
+        assert mock_site.things({'last_modified>': '2010-01-03'}) == []
 
-        assert mock_site.things({"isbn_10": ["nomatch", "0123456789"]}) == [
-            "/books/OL1M"
+        assert mock_site.things({'isbn_10': ['nomatch', '0123456789']}) == [
+            '/books/OL1M'
         ]
-        assert mock_site.things({"isbn_10": "0123456789"}) == ["/books/OL1M"]
-        assert mock_site.things({"isbn_": "0123456789"}) == ["/books/OL1M"]
-        assert mock_site.things({"isbn_": ["0123456789abc"]}) == ["/books/OL1M"]
+        assert mock_site.things({'isbn_10': '0123456789'}) == ['/books/OL1M']
+        assert mock_site.things({'isbn_': '0123456789'}) == ['/books/OL1M']
+        assert mock_site.things({'isbn_': ['0123456789abc']}) == ['/books/OL1M']
 
     def test_work_authors(self, mock_site):
-        a2 = mock_site.quicksave("/authors/OL2A", "/type/author", name="A2")
+        a2 = mock_site.quicksave('/authors/OL2A', '/type/author', name='A2')
         work = mock_site.quicksave(
-            "/works/OL1W",
-            "/type/work",
-            title="Foo",
-            authors=[{"author": {"key": "/authors/OL2A"}}],
+            '/works/OL1W',
+            '/type/work',
+            title='Foo',
+            authors=[{'author': {'key': '/authors/OL2A'}}],
         )
         book = mock_site.quicksave(
-            "/books/OL1M", "/type/edition", title="Foo", works=[{"key": "/works/OL1W"}]
+            '/books/OL1M', '/type/edition', title='Foo', works=[{'key': '/works/OL1W'}]
         )
 
         w = book.works[0]

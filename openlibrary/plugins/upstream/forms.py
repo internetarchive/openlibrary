@@ -34,30 +34,30 @@ Login = Form(
 forms.login = Login
 
 email_already_used = Validator(
-    _("No user registered with this email address"),
+    _('No user registered with this email address'),
     lambda email: find_account(email=email) is not None,
 )
 email_not_already_used = Validator(
-    _("Email already registered"), lambda email: not find_ia_account(email=email)
+    _('Email already registered'), lambda email: not find_ia_account(email=email)
 )
 email_not_disposable = Validator(
-    _("Disposable email not permitted"),
+    _('Disposable email not permitted'),
     lambda email: not email.lower().endswith('dispostable.com'),
 )
 email_domain_not_blocked = Validator(
-    _("Your email provider is not recognized."),
+    _('Your email provider is not recognized.'),
     lambda email: not spamcheck.is_spam_email(email),
 )
 username_validator = Validator(
-    _("Username already used"),
+    _('Username already used'),
     lambda username: not find_account(lusername=username.lower()),
 )
 
 vlogin = RegexpValidator(
-    r"^[A-Za-z0-9-_]{3,20}$", _('Must be between 3 and 20 letters and numbers')
+    r'^[A-Za-z0-9-_]{3,20}$', _('Must be between 3 and 20 letters and numbers')
 )
-vpass = RegexpValidator(r".{3,20}", _('Must be between 3 and 20 characters'))
-vemail = RegexpValidator(r".*@.*", _("Must be a valid email address"))
+vpass = RegexpValidator(r'.{3,20}', _('Must be between 3 and 20 characters'))
+vemail = RegexpValidator(r'.*@.*', _('Must be a valid email address'))
 
 
 class EqualToValidator(Validator):
@@ -89,8 +89,8 @@ class RegisterForm(Form):
             'username',
             description=_('Choose a screen name'),
             klass='required',
-            help=_("Letters and numbers only please, and at least 3 characters."),
-            autocapitalize="off",
+            help=_('Letters and numbers only please, and at least 3 characters.'),
+            autocapitalize='off',
             validators=[vlogin, username_validator],
         ),
         Password(
@@ -146,16 +146,16 @@ def verify_password(password):
     return True
 
 
-validate_password = Validator(_("Invalid password"), verify_password)
+validate_password = Validator(_('Invalid password'), verify_password)
 
 ForgotPassword = Form(
     Textbox(
         'email',
-        description=_("Your email address"),
+        description=_('Your email address'),
         validators=[vemail, email_already_used],
     )
 )
 
 ResetPassword = Form(
-    Password('password', description=_("Choose a password"), validators=[vpass])
+    Password('password', description=_('Choose a password'), validators=[vpass])
 )

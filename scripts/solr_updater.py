@@ -24,7 +24,7 @@ from openlibrary.config import load_config
 from infogami import config
 from openlibrary.solr.update_work import CommitRequest
 
-logger = logging.getLogger("openlibrary.solr-updater")
+logger = logging.getLogger('openlibrary.solr-updater')
 # FIXME: Some kind of hack introduced to work around DB connectivity issue
 args = {}  # type: ignore
 
@@ -34,13 +34,13 @@ def read_state_file(path, initial_state: str = None):
         return open(path).read()
     except OSError:
         logger.error(
-            "State file %s is not found. Reading log from the beginning of today", path
+            'State file %s is not found. Reading log from the beginning of today', path
         )
-        return initial_state or f"{datetime.date.today().isoformat()}:0"
+        return initial_state or f'{datetime.date.today().isoformat()}:0'
 
 
 def get_default_offset():
-    return datetime.date.today().isoformat() + ":0"
+    return datetime.date.today().isoformat() + ':0'
 
 
 class InfobaseLog:
@@ -62,12 +62,12 @@ class InfobaseLog:
     def read_records(self, max_fetches=10):
         """Reads all the available log records from the server."""
         for i in range(max_fetches):
-            url = f"{self.base_url}/{self.offset}?limit=100"
-            logger.debug("Reading log from %s", url)
+            url = f'{self.base_url}/{self.offset}?limit=100'
+            logger.debug('Reading log from %s', url)
             try:
                 jsontext = urllib.request.urlopen(url).read()
             except urllib.error.URLError as e:
-                logger.error("Failed to open URL %s", url, exc_info=True)
+                logger.error('Failed to open URL %s', url, exc_info=True)
                 if e.args and e.args[0].args == (111, 'Connection refused'):
                     logger.error(
                         'make sure infogami server is working, connection refused from %s',
@@ -79,12 +79,12 @@ class InfobaseLog:
             try:
                 d = json.loads(jsontext)
             except:
-                logger.error("Bad JSON: %s", jsontext)
+                logger.error('Bad JSON: %s', jsontext)
                 raise
             data = d['data']
             # no more data is available
             if not data:
-                logger.debug("no more records found")
+                logger.debug('no more records found')
                 # There's an infobase bug where we'll sometimes get 0 items, but the
                 # binary offset will have incremented...?
                 if 'offset' in d:
@@ -166,20 +166,20 @@ def parse_log(records, load_ia_scans: bool):
             #   },
             #   "site": "openlibrary.org"
             # }
-            data = rec.get('data', {}).get("data", {})
-            key = data.get("_key", "")
-            if data.get("type") == "ebook" and key.startswith("ebooks/books/"):
+            data = rec.get('data', {}).get('data', {})
+            key = data.get('_key', '')
+            if data.get('type') == 'ebook' and key.startswith('ebooks/books/'):
                 edition_key = data.get('book_key')
                 if edition_key:
                     yield edition_key
             elif (
                 load_ia_scans
-                and data.get("type") == "ia-scan"
-                and key.startswith("ia-scan/")
+                and data.get('type') == 'ia-scan'
+                and key.startswith('ia-scan/')
             ):
                 identifier = data.get('identifier')
                 if identifier and is_allowed_itemid(identifier):
-                    yield "/books/ia:" + identifier
+                    yield '/books/ia:' + identifier
 
             # Hack to force updating something from admin interface
             # The admin interface writes the keys to update to a document named
@@ -190,20 +190,20 @@ def parse_log(records, load_ia_scans: bool):
                 yield from keys
 
         elif action == 'store.delete':
-            key = rec.get("data", {}).get("key")
+            key = rec.get('data', {}).get('key')
             # An ia-scan key is deleted when that book is deleted/darked from IA.
             # Delete it from OL solr by updating that key
-            if key.startswith("ia-scan/"):
-                ol_key = "/works/ia:" + key.split("/")[-1]
+            if key.startswith('ia-scan/'):
+                ol_key = '/works/ia:' + key.split('/')[-1]
                 yield ol_key
 
 
 def is_allowed_itemid(identifier):
-    if not re.match("^[a-zA-Z0-9_.-]*$", identifier):
+    if not re.match('^[a-zA-Z0-9_.-]*$', identifier):
         return False
 
     # items starts with these prefixes are not books. Ignore them.
-    ignore_prefixes = config.get("ia_ignore_prefixes", [])
+    ignore_prefixes = config.get('ia_ignore_prefixes', [])
     for prefix in ignore_prefixes:
         if identifier.startswith(prefix):
             return False
@@ -217,13 +217,13 @@ async def update_keys(keys):
 
     # FIXME: Some kind of hack introduced to work around DB connectivity issue
     global args
-    logger.debug("Args: %s" % str(args))
+    logger.debug('Args: %s' % str(args))
     update_work.load_configs(args['ol_url'], args['ol_config'], 'default')
 
     keys = [
         k
         for k in keys
-        if k.count("/") == 2 and k.split("/")[1] in ("books", "authors", "works")
+        if k.count('/') == 2 and k.split('/')[1] in ('books', 'authors', 'works')
     ]
 
     count = 0
@@ -236,7 +236,7 @@ async def update_keys(keys):
         update_work.data_provider.clear_cache()
 
     if count:
-        logger.info("updated %d documents", count)
+        logger.info('updated %d documents', count)
 
     return count
 
@@ -262,7 +262,7 @@ class Solr:
         dt = time.time() - self.t_start
         if self.total_docs > 100 or dt > 60:
             logger.info(
-                "doing solr commit (%d docs updated, last commit was %0.1f seconds ago)",
+                'doing solr commit (%d docs updated, last commit was %0.1f seconds ago)',
                 self.total_docs,
                 dt,
             )
@@ -270,15 +270,15 @@ class Solr:
             self.reset()
         else:
             logger.debug(
-                "skipping solr commit (%d docs updated, last commit was %0.1f seconds ago)",
+                'skipping solr commit (%d docs updated, last commit was %0.1f seconds ago)',
                 self.total_docs,
                 dt,
             )
 
     def _solr_commit(self):
-        logger.info("BEGIN commit")
+        logger.info('BEGIN commit')
         update_work.solr_update([CommitRequest()])
-        logger.info("END commit")
+        logger.info('END commit')
 
 
 async def main(
@@ -301,18 +301,18 @@ async def main(
     :param solr_next: Whether to assume new schema/etc are used
     :param initial_state: State to use if state file doesn't exist. Defaults to today.
     """
-    FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
+    FORMAT = '%(asctime)-15s %(levelname)s %(message)s'
     logging.basicConfig(level=logging.INFO, format=FORMAT)
-    logger.info("BEGIN solr_updater")
+    logger.info('BEGIN solr_updater')
 
     if debugger:
         import debugpy
 
-        logger.info("Enabling debugger attachment (attach if it hangs here)")
+        logger.info('Enabling debugger attachment (attach if it hangs here)')
         debugpy.listen(address=('0.0.0.0', 3000))
-        logger.info("Waiting for debugger to attach...")
+        logger.info('Waiting for debugger to attach...')
         debugpy.wait_for_client()
-        logger.info("Debugger attached to port 3000")
+        logger.info('Debugger attached to port 3000')
 
     # Sometimes archive.org requests blocks forever.
     # Setting a timeout will make the request fail instead of waiting forever.
@@ -320,7 +320,7 @@ async def main(
 
     # set OL URL when running on a dev-instance
     if ol_url:
-        host = web.lstrips(ol_url, "http://").strip("/")
+        host = web.lstrips(ol_url, 'http://').strip('/')
         update_work.set_query_host(host)
 
     if solr_url:
@@ -328,7 +328,7 @@ async def main(
 
     update_work.set_solr_next(solr_next)
 
-    logger.info("loading config from %s", ol_config)
+    logger.info('loading config from %s', ol_config)
     load_config(ol_config)
 
     offset = read_state_file(state_file, initial_state)
@@ -347,23 +347,23 @@ async def main(
 
         if logfile.tell() != offset:
             offset = logfile.tell()
-            logger.info("saving offset %s", offset)
-            with open(state_file, "w") as f:
+            logger.info('saving offset %s', offset)
+            with open(state_file, 'w') as f:
                 f.write(offset)
 
         if commit:
             solr.commit(ndocs=count)
         else:
-            logger.info("not doing solr commit as commit is off")
+            logger.info('not doing solr commit as commit is off')
 
         # don't sleep after committing some records.
         # While the commit was on, some more edits might have happened.
         if count == 0:
-            logger.debug("No more log records available, sleeping...")
+            logger.debug('No more log records available, sleeping...')
             time.sleep(5)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
     cli = FnToCLI(main)

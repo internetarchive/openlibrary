@@ -9,7 +9,7 @@ from selenium.common.exceptions import NoSuchElementException
 
 
 class OLSession:
-    def __init__(self, timeout=10, domain="https://dev.openlibrary.org"):
+    def __init__(self, timeout=10, domain='https://dev.openlibrary.org'):
         with open('auth.yaml') as f:
             self.config = yaml.load(f)
         try:
@@ -27,14 +27,14 @@ class OLSession:
     def selenium_selector(self):
         return By
 
-    def url(self, uri=""):
-        return f"{self._url}/{uri}"
+    def url(self, uri=''):
+        return f'{self._url}/{uri}'
 
-    def goto(self, uri=""):
+    def goto(self, uri=''):
         self.driver.get(self.url(uri))
 
     def ia_login(
-        self, email, password, test=None, domain="https://archive.org", **kwargs
+        self, email, password, test=None, domain='https://archive.org', **kwargs
     ):
         self.driver.get('%s/account/login.php' % domain)
         self.driver.find_element_by_id('username').send_keys(email)
@@ -43,10 +43,10 @@ class OLSession:
         if test:
             test.assertTrue(
                 self.ia_is_logged_in(),
-                f"IA Login failed w/ username: {email} and password: {password}",
+                f'IA Login failed w/ username: {email} and password: {password}',
             )
 
-    def ia_is_logged_in(self, domain="https://archive.org"):
+    def ia_is_logged_in(self, domain='https://archive.org'):
         time.sleep(2)
         self.driver.get('%s/account/' % domain)
         try:
@@ -55,20 +55,20 @@ class OLSession:
             return False
         return True
 
-    def ia_logout(self, test=None, domain="https://archive.org"):
+    def ia_logout(self, test=None, domain='https://archive.org'):
         self.driver.get('%s/account/logout.php' % domain)
         if test:
-            test.assertTrue(not self.ia_is_logged_in(), "Failed to logout of IA")
+            test.assertTrue(not self.ia_is_logged_in(), 'Failed to logout of IA')
 
     def login(self, email, password, test=None, **kwargs):
         self.driver.get(self.url('/account/login'))
-        self.driver.find_element_by_id("username").send_keys(email)
-        self.driver.find_element_by_id("password").send_keys(password)
+        self.driver.find_element_by_id('username').send_keys(email)
+        self.driver.find_element_by_id('password').send_keys(password)
         self.driver.find_element_by_name('login').click()
         if test:
             test.assertTrue(
                 self.is_logged_in(),
-                f"OL Login failed w/ username: {email} and password: {password}",
+                f'OL Login failed w/ username: {email} and password: {password}',
             )
 
     def is_logged_in(self):
@@ -87,7 +87,7 @@ class OLSession:
         ).click()
         self.driver.get(self.url('/account/login'))
         if test:
-            test.assertTrue(not self.is_logged_in(), "Failed to logout of OL")
+            test.assertTrue(not self.is_logged_in(), 'Failed to logout of OL')
 
     def connect(self, email, password):
         self.wait_for_clickable('linkAccounts')

@@ -37,17 +37,17 @@ def map_data(entry) -> dict[str, Any]:
     if not marc_lang_code:
         raise ValueError(f'Feed entry language {entry.language} is not supported.')
     import_record = {
-        "title": entry.title,
-        "source_records": [f"standard_ebooks:{std_ebooks_id}"],
-        "publishers": [entry.publisher],
-        "publish_date": entry.dc_issued[0:4],
-        "authors": [{"name": author.name} for author in entry.authors],
-        "description": entry.content[0].value,
-        "subjects": [tag.term for tag in entry.tags],
-        "identifiers": {
-            "standard_ebooks": [std_ebooks_id]
+        'title': entry.title,
+        'source_records': [f'standard_ebooks:{std_ebooks_id}'],
+        'publishers': [entry.publisher],
+        'publish_date': entry.dc_issued[0:4],
+        'authors': [{'name': author.name} for author in entry.authors],
+        'description': entry.content[0].value,
+        'subjects': [tag.term for tag in entry.tags],
+        'identifiers': {
+            'standard_ebooks': [std_ebooks_id]
         },
-        "languages": [marc_lang_code]
+        'languages': [marc_lang_code]
     }
 
     if image_uris:
@@ -185,6 +185,6 @@ def import_job(
 
 
 if __name__ == '__main__':
-    print("Start: Standard Ebooks import job")
+    print('Start: Standard Ebooks import job')
     FnToCLI(import_job).run()
-    print("End: Standard Ebooks import job")
+    print('End: Standard Ebooks import job')

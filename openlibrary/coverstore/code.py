@@ -21,7 +21,7 @@ from openlibrary.coverstore.utils import (
 )
 from openlibrary.plugins.openlibrary.processors import CORSProcessor
 
-logger = logging.getLogger("coverstore")
+logger = logging.getLogger('coverstore')
 
 urls = (
     '/',
@@ -54,7 +54,7 @@ def get_cover_id(olkeys):
         doc = ol_get(olkey)
         if not doc:
             continue
-        is_author = doc['key'].startswith("/authors")
+        is_author = doc['key'].startswith('/authors')
         covers = doc.get('photos' if is_author else 'covers', [])
         # Sometimes covers is stored as [None] or [-1] to indicate no covers.
         # If so, consider there are no covers.
@@ -64,15 +64,15 @@ def get_cover_id(olkeys):
 
 def _query(category, key, value):
     if key == 'olid':
-        prefixes = dict(a="/authors/", b="/books/", w="/works/")
+        prefixes = dict(a='/authors/', b='/books/', w='/works/')
         if category in prefixes:
             olkey = prefixes[category] + value
             return get_cover_id([olkey])
     else:
         if category == 'b':
             if key == 'isbn':
-                value = value.replace("-", "").strip()
-                key = "isbn_"
+                value = value.replace('-', '').strip()
+                key = 'isbn_'
             if key == 'oclc':
                 key = 'oclc_numbers'
             olkeys = ol_things(key, value)
@@ -80,9 +80,9 @@ def _query(category, key, value):
     return None
 
 
-ERROR_EMPTY = 1, "No image found"
-ERROR_INVALID_URL = 2, "Invalid URL"
-ERROR_BAD_IMAGE = 3, "Invalid Image"
+ERROR_EMPTY = 1, 'No image found'
+ERROR_INVALID_URL = 2, 'Invalid URL'
+ERROR_BAD_IMAGE = 3, 'Invalid Image'
 
 
 class index:
@@ -91,8 +91,8 @@ class index:
 
 
 def _cleanup():
-    web.ctx.pop("_fieldstorage", None)
-    web.ctx.pop("_data", None)
+    web.ctx.pop('_fieldstorage', None)
+    web.ctx.pop('_data', None)
     web.ctx.env = {}
 
 
@@ -112,7 +112,7 @@ class upload:
 
         def error(code__msg):
             (code, msg) = code__msg
-            print("ERROR: upload failed, ", i.olid, code, repr(msg), file=web.debug)
+            print('ERROR: upload failed, ', i.olid, code, repr(msg), file=web.debug)
             _cleanup()
             url = changequery(failure_url, errcode=code, errmsg=msg)
             raise web.seeother(url)
@@ -156,15 +156,15 @@ class upload2:
             olid=None, author=None, data=None, source_url=None, ip=None, _unicode=False
         )
 
-        web.ctx.pop("_fieldstorage", None)
-        web.ctx.pop("_data", None)
+        web.ctx.pop('_fieldstorage', None)
+        web.ctx.pop('_data', None)
 
         def error(code__msg):
             (code, msg) = code__msg
             _cleanup()
             e = web.badrequest()
-            e.data = json.dumps({"code": code, "message": msg})
-            logger.exception("upload2.POST() failed: " + e.data)
+            e.data = json.dumps({'code': code, 'message': msg})
+            logger.exception('upload2.POST() failed: ' + e.data)
             raise e
 
         source_url = i.source_url
@@ -192,7 +192,7 @@ class upload2:
             error(ERROR_BAD_IMAGE)
 
         _cleanup()
-        return json.dumps({"ok": "true", "id": d.id})
+        return json.dumps({'ok': 'true', 'id': d.id})
 
 
 def trim_microsecond(date):
@@ -204,7 +204,7 @@ def zipview_url(item, zipfile, filename):
     # http or https
     protocol = web.ctx.protocol
     return (
-        "%(protocol)s://archive.org/download/%(item)s/%(zipfile)s/%(filename)s"
+        '%(protocol)s://archive.org/download/%(item)s/%(zipfile)s/%(filename)s'
         % locals()
     )
 
@@ -214,37 +214,37 @@ IMAGES_PER_ITEM = 10000
 
 
 def zipview_url_from_id(coverid, size):
-    suffix = size and ("-" + size.upper())
+    suffix = size and ('-' + size.upper())
     item_index = coverid / IMAGES_PER_ITEM
-    itemid = "olcovers%d" % item_index
-    zipfile = itemid + suffix + ".zip"
-    filename = "%d%s.jpg" % (coverid, suffix)
+    itemid = 'olcovers%d' % item_index
+    zipfile = itemid + suffix + '.zip'
+    filename = '%d%s.jpg' % (coverid, suffix)
     return zipview_url(itemid, zipfile, filename)
 
 
 class cover:
     def GET(self, category, key, value, size):
-        i = web.input(default="true")
+        i = web.input(default='true')
         key = key.lower()
 
         def is_valid_url(url):
-            return url.startswith(("http://", "https://"))
+            return url.startswith(('http://', 'https://'))
 
         def notfound():
             if (
                 config.default_image
-                and i.default.lower() != "false"
+                and i.default.lower() != 'false'
                 and not is_valid_url(i.default)
             ):
                 return read_file(config.default_image)
             elif is_valid_url(i.default):
                 raise web.seeother(i.default)
             else:
-                raise web.notfound("")
+                raise web.notfound('')
 
         def redirect(id):
-            size_part = size and ("-" + size) or ""
-            url = f"/{category}/id/{id}{size_part}.jpg"
+            size_part = size and ('-' + size) or ''
+            url = f'/{category}/id/{id}{size_part}.jpg'
 
             query = web.ctx.env.get('QUERY_STRING')
             if query:
@@ -252,7 +252,7 @@ class cover:
             raise web.found(url)
 
         if key == 'isbn':
-            value = value.replace("-", "").strip()  # strip hyphens from ISBN
+            value = value.replace('-', '').strip()  # strip hyphens from ISBN
             # Disabling ratelimit as iptables is taking care of botnets.
             # value = self.ratelimit_query(category, key, value)
             value = self.query(category, key, value)
@@ -277,7 +277,7 @@ class cover:
             raise web.notfound()
 
         # redirect to archive.org cluster for large size and original images whenever possible
-        if value and (size == "L" or size == "") and self.is_cover_in_cluster(value):
+        if value and (size == 'L' or size == '') and self.is_cover_in_cluster(value):
             url = zipview_url_from_id(int(value), size)
             raise web.found(url)
 
@@ -287,7 +287,7 @@ class cover:
 
         # set cache-for-ever headers only when requested with ID
         if key == 'id':
-            etag = f"{d.id}-{size.lower()}"
+            etag = f'{d.id}-{size.lower()}'
             if not web.modified(trim_microsecond(d.created), etag=etag):
                 raise web.notmodified()
 
@@ -307,45 +307,45 @@ class cover:
         except OSError:
             raise web.notfound()
 
-    def get_ia_cover_url(self, identifier, size="M"):
-        url = "https://archive.org/metadata/%s/metadata" % identifier
+    def get_ia_cover_url(self, identifier, size='M'):
+        url = 'https://archive.org/metadata/%s/metadata' % identifier
         try:
-            d = requests.get(url).json().get("result", {})
+            d = requests.get(url).json().get('result', {})
         except (OSError, ValueError):
             return
 
         # Not a text item or no images or scan is not complete yet
         if (
-            d.get("mediatype") != "texts"
-            or d.get("repub_state", "4") not in ["4", "6"]
-            or "imagecount" not in d
+            d.get('mediatype') != 'texts'
+            or d.get('repub_state', '4') not in ['4', '6']
+            or 'imagecount' not in d
         ):
             return
 
         w, h = config.image_sizes[size.upper()]
-        return "https://archive.org/download/%s/page/cover_w%d_h%d.jpg" % (
+        return 'https://archive.org/download/%s/page/cover_w%d_h%d.jpg' % (
             identifier,
             w,
             h,
         )
 
-    def get_details(self, coverid, size=""):
+    def get_details(self, coverid, size=''):
         try:
             coverid = int(coverid)
         except ValueError:
             return None
 
         # Use tar index if available to avoid db query. We have 0-6M images in tar balls.
-        if isinstance(coverid, int) and coverid < 6000000 and size in "sml":
+        if isinstance(coverid, int) and coverid < 6000000 and size in 'sml':
             path = self.get_tar_filename(coverid, size)
 
             if path:
                 if size:
-                    key = "filename_%s" % size
+                    key = 'filename_%s' % size
                 else:
-                    key = "filename"
+                    key = 'filename'
                 return web.storage(
-                    {"id": coverid, key: path, "created": datetime.datetime(2010, 1, 1)}
+                    {'id': coverid, key: path, 'created': datetime.datetime(2010, 1, 1)}
                 )
 
         return db.details(coverid)
@@ -355,7 +355,7 @@ class cover:
         It is found by looking at the config variable max_coveritem_index.
         """
         try:
-            return int(coverid) < IMAGES_PER_ITEM * config.get("max_coveritem_index", 0)
+            return int(coverid) < IMAGES_PER_ITEM * config.get('max_coveritem_index', 0)
         except (TypeError, ValueError):
             return False
 
@@ -369,13 +369,13 @@ class cover:
         imgsize = array_size and array_size[index]
 
         if size:
-            prefix = "%s_covers" % size
+            prefix = '%s_covers' % size
         else:
-            prefix = "covers"
+            prefix = 'covers'
 
         if imgsize:
-            name = "%010d" % coverid
-            return f"{prefix}_{name[:4]}_{name[4:6]}.tar:{offset}:{imgsize}"
+            name = '%010d' % coverid
+            return f'{prefix}_{name[:4]}_{name[4:6]}.tar:{offset}:{imgsize}'
 
     def query(self, category, key, value):
         return _query(category, key, value)
@@ -393,14 +393,14 @@ def get_tar_index(tarindex, size):
 
 
 def get_tarindex_path(index, size):
-    name = "%06d" % index
+    name = '%06d' % index
     if size:
-        prefix = "%s_covers" % size
+        prefix = '%s_covers' % size
     else:
-        prefix = "covers"
+        prefix = 'covers'
 
-    itemname = f"{prefix}_{name[:4]}"
-    filename = f"{prefix}_{name[:4]}_{name[4:6]}.index"
+    itemname = f'{prefix}_{name[:4]}'
+    filename = f'{prefix}_{name[:4]}_{name[4:6]}.index'
     return os.path.join('items', itemname, filename)
 
 
@@ -412,7 +412,7 @@ def parse_tarindex(file):
     for line in file:
         line = line.strip()
         if line:
-            name, offset, imgsize = line.split("\t")
+            name, offset, imgsize = line.split('\t')
             coverid = int(name[:10])  # First 10 chars is coverid, followed by ".jpg"
             index = coverid % 10000
             array_offset[index] = int(offset)
@@ -433,23 +433,23 @@ class cover_details:
                     d['last_modified'] = d['last_modified'].isoformat()
                 return json.dumps(d)
             else:
-                raise web.notfound("")
+                raise web.notfound('')
         else:
             value = _query(category, key, value)
             if value is None:
-                return web.notfound("")
+                return web.notfound('')
             else:
-                return web.found(f"/{category}/id/{value}.json")
+                return web.found(f'/{category}/id/{value}.json')
 
 
 class query:
     def GET(self, category):
         i = web.input(
-            olid=None, offset=0, limit=10, callback=None, details="false", cmd=None
+            olid=None, offset=0, limit=10, callback=None, details='false', cmd=None
         )
         offset = safeint(i.offset, 0)
         limit = safeint(i.limit, 10)
-        details = i.details.lower() == "true"
+        details = i.details.lower() == 'true'
 
         if limit > 100:
             limit = 100
@@ -458,7 +458,7 @@ class query:
             i.olid = i.olid.split(',')
         result = db.query(category, i.olid, offset=offset, limit=limit)
 
-        if i.cmd == "ids":
+        if i.cmd == 'ids':
             result = {r.olid: r.id for r in result}
         elif not details:
             result = [r.id for r in result]
@@ -480,7 +480,7 @@ class query:
         json_data = json.dumps(result)
         web.header('Content-Type', 'text/javascript')
         if i.callback:
-            return f"{i.callback}({json_data});"
+            return f'{i.callback}({json_data});'
         else:
             return json_data
 

@@ -28,12 +28,12 @@ import sys
 import time
 
 __all__ = [
-    "setup_database",
-    "setup_memcache",
-    "longquery",
-    "iterdocs",
+    'setup_database',
+    'setup_memcache',
+    'longquery',
+    'iterdocs',
     # "get_docs",  # "get_docs()" is not defined.
-    "update_docs",
+    'update_docs',
 ]
 
 db_parameters = None
@@ -90,10 +90,10 @@ def longquery(query, vars, chunk_size=10000):
 
     tx = db.transaction()
     try:
-        db.query("DECLARE longquery NO SCROLL CURSOR FOR " + query, vars=vars)
+        db.query('DECLARE longquery NO SCROLL CURSOR FOR ' + query, vars=vars)
         while True:
             chunk = db.query(
-                "FETCH FORWARD $chunk_size FROM longquery", vars=locals()
+                'FETCH FORWARD $chunk_size FROM longquery', vars=locals()
             ).list()
             if chunk:
                 yield chunk
@@ -110,18 +110,18 @@ def _fill_data(docs):
         if not keys:
             return []
         return db.query(
-            "SELECT thing.id, thing.key, data.revision, data.data"
-            + " FROM thing, data"
-            + " WHERE thing.id = data.thing_id"
-            + " AND thing.latest_revision = data.revision"
-            + " AND key in $keys",
+            'SELECT thing.id, thing.key, data.revision, data.data'
+            + ' FROM thing, data'
+            + ' WHERE thing.id = data.thing_id'
+            + ' AND thing.latest_revision = data.revision'
+            + ' AND key in $keys',
             vars=locals(),
         )
 
     keys = [doc.key for doc in docs]
 
     d = mc and mc.get_multi(keys) or {}
-    debug(f"{len(d)}/{len(keys)} found in memcache")
+    debug(f'{len(d)}/{len(keys)} found in memcache')
 
     keys = [doc.key for doc in docs if doc.key not in d]
     for row in get(keys):
@@ -137,18 +137,18 @@ def read_docs(keys, for_update=False):
     if not keys:
         return []
 
-    debug("BEGIN SELECT")
-    q = "SELECT thing.id, thing.key, thing.latest_revision as revision FROM thing WHERE key IN $keys"
+    debug('BEGIN SELECT')
+    q = 'SELECT thing.id, thing.key, thing.latest_revision as revision FROM thing WHERE key IN $keys'
     if for_update:
-        q += " FOR UPDATE"
+        q += ' FOR UPDATE'
     docs = db.query(q, vars=locals())
     docs = docs.list()
-    debug("END SELECT")
+    debug('END SELECT')
     _fill_data(docs)
     return docs
 
 
-def update_docs(docs, comment, author, ip="127.0.0.1"):
+def update_docs(docs, comment, author, ip='127.0.0.1'):
     """Updates the given docs in the database by writing all the docs in a chunk.
 
     This doesn't update the index tables. Avoid this function if you have any change that requires updating the index tables.
@@ -162,7 +162,7 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
 
         # lock the rows in the table
         rows = db.query(
-            "SELECT id, key, latest_revision FROM thing where id IN $thing_ids FOR UPDATE",
+            'SELECT id, key, latest_revision FROM thing where id IN $thing_ids FOR UPDATE',
             vars=locals(),
         )
 
@@ -175,16 +175,16 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
             doc.data['last_modified']['value'] = now.isoformat()
 
         tx_id = db.insert(
-            "transaction",
+            'transaction',
             author_id=author_id,
-            action="bulk_update",
-            ip="127.0.0.1",
+            action='bulk_update',
+            ip='127.0.0.1',
             created=now,
             comment=comment,
         )
-        debug("INSERT version")
+        debug('INSERT version')
         db.multiple_insert(
-            "version",
+            'version',
             [
                 dict(thing_id=doc.id, transaction_id=tx_id, revision=doc.revision)
                 for doc in docs
@@ -192,31 +192,31 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
             seqname=False,
         )
 
-        debug("INSERT data")
+        debug('INSERT data')
         data = [
             web.storage(
                 thing_id=doc.id, revision=doc.revision, data=json.dumps(doc.data)
             )
             for doc in docs
         ]
-        db.multiple_insert("data", data, seqname=False)
+        db.multiple_insert('data', data, seqname=False)
 
-        debug("UPDATE thing")
+        debug('UPDATE thing')
         db.query(
-            "UPDATE thing set latest_revision=latest_revision+1 WHERE id IN $thing_ids",
+            'UPDATE thing set latest_revision=latest_revision+1 WHERE id IN $thing_ids',
             vars=locals(),
         )
     except:
         t.rollback()
-        debug("ROLLBACK")
+        debug('ROLLBACK')
         raise
     else:
         t.commit()
-        debug("COMMIT")
+        debug('COMMIT')
 
         mapping = {doc.key: d.data for doc, d in zip(docs, data)}
         mc and mc.set_multi(mapping)
-        debug("MC SET")
+        debug('MC SET')
 
 
 def debug(*a):
@@ -225,4 +225,4 @@ def debug(*a):
 
 @web.memoize
 def get_thing_id(key):
-    return db.query("SELECT * FROM thing WHERE key=$key", vars=locals())[0].id
+    return db.query('SELECT * FROM thing WHERE key=$key', vars=locals())[0].id

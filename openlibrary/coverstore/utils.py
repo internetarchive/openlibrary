@@ -34,7 +34,7 @@ def safeint(value, default=None):
 
 
 def get_ol_url():
-    return web.rstrips(config.ol_url, "/")
+    return web.rstrips(config.ol_url, '/')
 
 
 def ol_things(key, value):
@@ -64,13 +64,13 @@ def ol_get(olkey):
         return oldb.get(olkey)
     else:
         try:
-            return json.loads(download(get_ol_url() + olkey + ".json"))
+            return json.loads(download(get_ol_url() + olkey + '.json'))
         except OSError:
             return None
 
 
 USER_AGENT = (
-    "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
+    'Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)'
 )
 
 
@@ -86,7 +86,7 @@ def urldecode(url):
     ('http://google.com/', {})
     """
     base, query = splitquery(url)
-    query = query or ""
+    query = query or ''
     items = [item.split('=', 1) for item in query.split('&') if '=' in item]
     d = {unquote(k): unquote_plus(v) for (k, v) in items}
     return base, d
@@ -108,7 +108,7 @@ def read_file(path, offset, size, chunk=50 * 1024):
     >>> len(b"".join(read_file('/dev/urandom', 100, 10000)))
     10000
     """
-    with open(path, "rb") as f:
+    with open(path, 'rb') as f:
         f.seek(offset)
         while size:
             data = f.read(min(chunk, size))
@@ -116,7 +116,7 @@ def read_file(path, offset, size, chunk=50 * 1024):
             if data:
                 yield data
             else:
-                raise OSError("file truncated")
+                raise OSError('file truncated')
 
 
 def rm_f(filename):
@@ -130,7 +130,7 @@ chars = string.ascii_letters + string.digits
 
 
 def random_string(n):
-    return "".join([random.choice(chars) for i in range(n)])
+    return ''.join([random.choice(chars) for i in range(n)])
 
 
 def urlencode(data):
@@ -170,7 +170,7 @@ def urlencode(data):
                 out.append('')
                 out.append(value)
 
-        BOUNDARY = "----------ThIs_Is_tHe_bouNdaRY_$"
+        BOUNDARY = '----------ThIs_Is_tHe_bouNdaRY_$'
         CRLF = '\r\n'
         out = []
         for k, v in data.items():
@@ -180,7 +180,7 @@ def urlencode(data):
         return content_type, body
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import doctest
 
     doctest.testmod()

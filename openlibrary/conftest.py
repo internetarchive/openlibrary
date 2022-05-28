@@ -19,7 +19,7 @@ def no_requests(monkeypatch):
     def mock_request(*args, **kwargs):
         raise Warning('Network requests are blocked in the testing environment')
 
-    monkeypatch.setattr("requests.sessions.Session.request", mock_request)
+    monkeypatch.setattr('requests.sessions.Session.request', mock_request)
 
 
 @pytest.fixture(autouse=True)
@@ -40,7 +40,7 @@ def no_sleep(monkeypatch):
             '''
         )
 
-    monkeypatch.setattr("time.sleep", mock_sleep)
+    monkeypatch.setattr('time.sleep', mock_sleep)
 
 
 @pytest.fixture
@@ -54,8 +54,8 @@ def monkeytime(monkeypatch):
         nonlocal cur_time
         cur_time += secs
 
-    monkeypatch.setattr("time.time", time)
-    monkeypatch.setattr("time.sleep", sleep)
+    monkeypatch.setattr('time.time', time)
+    monkeypatch.setattr('time.sleep', sleep)
 
 
 @pytest.fixture
@@ -66,16 +66,16 @@ def wildcard():
 @pytest.fixture
 def render_template(request):
     """Utility to test templates."""
-    template.load_templates("openlibrary")
+    template.load_templates('openlibrary')
 
     # TODO: call setup on upstream and openlibrary plugins to
     # load all globals.
-    web.template.Template.globals["_"] = gettext
+    web.template.Template.globals['_'] = gettext
     web.template.Template.globals.update(helpers.helpers)
 
     web.ctx.env = web.storage()
     web.ctx.headers = []
-    web.ctx.lang = "en"
+    web.ctx.lang = 'en'
 
     # ol_infobase.init_plugin call is failing when trying to import plugins.openlibrary.code.
     # monkeypatch to avoid that.
@@ -101,7 +101,7 @@ def render_template(request):
     request.addfinalizer(finalizer)
 
     def render(name, *a, **kw):
-        as_string = kw.pop("as_string", True)
+        as_string = kw.pop('as_string', True)
         d = infobase_render_template(name, *a, **kw)
         return str(d) if as_string else d
 

@@ -34,29 +34,29 @@ from infogami.utils.view import safeint
 from openlibrary.i18n import gettext as _  # noqa: F401
 
 __all__ = [
-    "sanitize",
-    "json_encode",
-    "safesort",
-    "days_since",
-    "datestr",
-    "format_date",
-    "sprintf",
-    "cond",
-    "commify",
-    "truncate",
-    "datetimestr_utc",
-    "urlsafe",
-    "texsafe",
-    "percentage",
-    "affiliate_id",
-    "bookreader_host",
-    "private_collections",
-    "private_collection_in",
+    'sanitize',
+    'json_encode',
+    'safesort',
+    'days_since',
+    'datestr',
+    'format_date',
+    'sprintf',
+    'cond',
+    'commify',
+    'truncate',
+    'datetimestr_utc',
+    'urlsafe',
+    'texsafe',
+    'percentage',
+    'affiliate_id',
+    'bookreader_host',
+    'private_collections',
+    'private_collection_in',
     # functions imported from elsewhere
-    "parse_datetime",
-    "safeint",
+    'parse_datetime',
+    'safeint',
 ]
-__docformat__ = "restructuredtext en"
+__docformat__ = 'restructuredtext en'
 
 
 def sanitize(html, encoding='utf8'):
@@ -89,7 +89,7 @@ def sanitize(html, encoding='utf8'):
     except genshi.ParseError:
         if BeautifulSoup:
             # Bad html. Tidy it up using BeautifulSoup
-            html = str(BeautifulSoup(html, "lxml"))
+            html = str(BeautifulSoup(html, 'lxml'))
             try:
                 html = genshi.HTML(html)
             except Exception:
@@ -102,7 +102,7 @@ def sanitize(html, encoding='utf8'):
     stream = (
         html
         | genshi.filters.HTMLSanitizer()
-        | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
+        | genshi.filters.Transformer('//a').attr('rel', get_nofollow)
     )
     return stream.render()
 
@@ -164,20 +164,20 @@ def datestr(then, now=None, lang=None, relative=True):
 
 
 def datetimestr_utc(then):
-    return then.strftime("%Y-%m-%dT%H:%M:%SZ")
+    return then.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
 def format_date(date, lang=None):
     lang = lang or web.ctx.lang
     locale = _get_babel_locale(lang)
-    return babel.dates.format_date(date, format="long", locale=locale)
+    return babel.dates.format_date(date, format='long', locale=locale)
 
 
 def _get_babel_locale(lang):
     try:
         return babel.Locale(lang)
     except babel.core.UnknownLocaleError:
-        return babel.Locale("en")
+        return babel.Locale('en')
 
 
 def sprintf(s, *a, **kw):
@@ -195,7 +195,7 @@ def sprintf(s, *a, **kw):
         return s
 
 
-def cond(pred, true_value, false_value=""):
+def cond(pred, true_value, false_value=''):
     """Lisp style cond function.
 
     Hanly to use instead of if-else expression.
@@ -209,7 +209,7 @@ def cond(pred, true_value, false_value=""):
 def commify(number, lang=None):
     """localized version of web.commify"""
     try:
-        lang = lang or web.ctx.get("lang") or "en"
+        lang = lang or web.ctx.get('lang') or 'en'
         return babel.numbers.format_number(int(number), lang)
     except:
         return str(number)
@@ -221,7 +221,7 @@ def truncate(text, limit):
         return ''
     if len(text) <= limit:
         return text
-    return text[:limit] + "..."
+    return text[:limit] + '...'
 
 
 def urlsafe(path):
@@ -233,13 +233,13 @@ def urlsafe(path):
 def _get_safepath_re():
     """Make regular expression that matches all unsafe chars."""
     # unsafe chars according to RFC 2396
-    reserved = ";/?:@&=+$,"
+    reserved = ';/?:@&=+$,'
     delims = '<>#%"'
-    unwise = "{}|\\^[]`"
+    unwise = '{}|\\^[]`'
     space = ' \n\r'
 
     unsafe = reserved + delims + unwise + space
-    pattern = '[%s]+' % "".join(re.escape(c) for c in unsafe)
+    pattern = '[%s]+' % ''.join(re.escape(c) for c in unsafe)
     return re.compile(pattern)
 
 
@@ -277,7 +277,7 @@ def texsafe(text):
     """
     global _texsafe_re
     if _texsafe_re is None:
-        pattern = "[%s]" % re.escape("".join(list(_texsafe_map)))
+        pattern = '[%s]' % re.escape(''.join(list(_texsafe_map)))
         _texsafe_re = re.compile(pattern)
 
     return _texsafe_re.sub(lambda m: _texsafe_map[m.group(0)], text)

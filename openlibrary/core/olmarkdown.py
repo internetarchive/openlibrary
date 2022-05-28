@@ -33,7 +33,7 @@ class LineBreaksPreprocessor(markdown.Preprocessor):
                 and not markdown.RE.regExp['tabbed'].match(lines[i])
                 and not LINK_REFERENCE_RE.match(lines[i])
             ):
-                lines[i] += "<br />"
+                lines[i] += '<br />'
         return lines
 
 

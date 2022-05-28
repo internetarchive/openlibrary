@@ -7,7 +7,7 @@ import requests
 import urllib
 
 
-root = "https://openlibrary.org"
+root = 'https://openlibrary.org'
 
 
 def wget(path):
@@ -22,9 +22,9 @@ def find_marc_url(d):
     # and picking the machine comment from the last one
     result = wget('%s.json?m=history&offset=%d' % (d['key'], d['revision'] - 3))
     if result:
-        return result[-1]['machine_comment'] or ""
+        return result[-1]['machine_comment'] or ''
     else:
-        return ""
+        return ''
 
 
 def main(oclc):
@@ -34,13 +34,13 @@ def main(oclc):
     result = wget('/query.json?' + query)
 
     for d in result:
-        print("\t".join([oclc, d['key'], find_marc_url(d)]))
+        print('\t'.join([oclc, d['key'], find_marc_url(d)]))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import sys
 
-    if len(sys.argv) == 1 or "-h" in sys.argv or "--help" in sys.argv:
+    if len(sys.argv) == 1 or '-h' in sys.argv or '--help' in sys.argv:
         print(__doc__, file=sys.stderr)
     else:
         for oclc in sys.argv[1:]:

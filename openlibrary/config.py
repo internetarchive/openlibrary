@@ -46,7 +46,7 @@ def setup_infobase_config(config_file):
     """Reads the infobase config file and assign it to config.infobase.
     The config_file is used as base to resolve relative path, if specified in the config.
     """
-    if config.get("infobase_config_file"):
+    if config.get('infobase_config_file'):
         dir = os.path.dirname(config_file)
         path = os.path.join(dir, config.infobase_config_file)
         with open(path) as in_file:

@@ -21,21 +21,21 @@ class MockPrivateEdition(models.Edition):
 
 class TestEdition:
     def mock_edition(self, edition_class):
-        data = {"key": "/books/OL1M", "type": {"key": "/type/edition"}, "title": "foo"}
-        return edition_class(MockSite(), "/books/OL1M", data=data)
+        data = {'key': '/books/OL1M', 'type': {'key': '/type/edition'}, 'title': 'foo'}
+        return edition_class(MockSite(), '/books/OL1M', data=data)
 
     def test_url(self):
         e = self.mock_edition(models.Edition)
-        assert e.url() == "/books/OL1M/foo"
-        assert e.url(v=1) == "/books/OL1M/foo?v=1"
-        assert e.url(suffix="/add-cover") == "/books/OL1M/foo/add-cover"
+        assert e.url() == '/books/OL1M/foo'
+        assert e.url(v=1) == '/books/OL1M/foo?v=1'
+        assert e.url(suffix='/add-cover') == '/books/OL1M/foo/add-cover'
 
         data = {
-            "key": "/books/OL1M",
-            "type": {"key": "/type/edition"},
+            'key': '/books/OL1M',
+            'type': {'key': '/type/edition'},
         }
-        e = models.Edition(MockSite(), "/books/OL1M", data=data)
-        assert e.url() == "/books/OL1M/untitled"
+        e = models.Edition(MockSite(), '/books/OL1M', data=data)
+        assert e.url() == '/books/OL1M/untitled'
 
     def test_get_ebook_info(self):
         e = self.mock_edition(models.Edition)
@@ -60,44 +60,44 @@ class TestEdition:
 
 class TestAuthor:
     def test_url(self):
-        data = {"key": "/authors/OL1A", "type": {"key": "/type/author"}, "name": "foo"}
+        data = {'key': '/authors/OL1A', 'type': {'key': '/type/author'}, 'name': 'foo'}
 
-        e = models.Author(MockSite(), "/authors/OL1A", data=data)
+        e = models.Author(MockSite(), '/authors/OL1A', data=data)
 
-        assert e.url() == "/authors/OL1A/foo"
-        assert e.url(v=1) == "/authors/OL1A/foo?v=1"
-        assert e.url(suffix="/add-photo") == "/authors/OL1A/foo/add-photo"
+        assert e.url() == '/authors/OL1A/foo'
+        assert e.url(v=1) == '/authors/OL1A/foo?v=1'
+        assert e.url(suffix='/add-photo') == '/authors/OL1A/foo/add-photo'
 
         data = {
-            "key": "/authors/OL1A",
-            "type": {"key": "/type/author"},
+            'key': '/authors/OL1A',
+            'type': {'key': '/type/author'},
         }
-        e = models.Author(MockSite(), "/authors/OL1A", data=data)
-        assert e.url() == "/authors/OL1A/unnamed"
+        e = models.Author(MockSite(), '/authors/OL1A', data=data)
+        assert e.url() == '/authors/OL1A/unnamed'
 
 
 class TestSubject:
     def test_url(self):
-        subject = models.Subject({"key": "/subjects/love"})
-        assert subject.url() == "/subjects/love"
-        assert subject.url("/lists") == "/subjects/love/lists"
+        subject = models.Subject({'key': '/subjects/love'})
+        assert subject.url() == '/subjects/love'
+        assert subject.url('/lists') == '/subjects/love/lists'
 
 
 class TestList:
     def test_owner(self):
         models.register_models()
-        self._test_list_owner("/people/anand")
-        self._test_list_owner("/people/anand-test")
-        self._test_list_owner("/people/anand_test")
+        self._test_list_owner('/people/anand')
+        self._test_list_owner('/people/anand-test')
+        self._test_list_owner('/people/anand_test')
 
     def _test_list_owner(self, user_key):
         from openlibrary.mocks.mock_infobase import MockSite
 
         site = MockSite()
-        list_key = user_key + "/lists/OL1L"
+        list_key = user_key + '/lists/OL1L'
 
-        self.save_doc(site, "/type/user", user_key)
-        self.save_doc(site, "/type/list", list_key)
+        self.save_doc(site, '/type/user', user_key)
+        self.save_doc(site, '/type/list', list_key)
 
         list = site.get(list_key)
         assert list is not None
@@ -107,7 +107,7 @@ class TestList:
         assert list.get_owner().key == user_key
 
     def save_doc(self, site, type, key, **fields):
-        d = {"key": key, "type": {"key": type}}
+        d = {'key': key, 'type': {'key': type}}
         d.update(fields)
         site.save(d)
 
@@ -118,16 +118,16 @@ class TestWork:
         # e.g. https://openlibrary.org/works/OL2163721W.json
 
         # Chain:
-        type_redir = {"key": "/type/redirect"}
-        type_work = {"key": "/type/work"}
-        work1_key = "/works/OL123W"
-        work2_key = "/works/OL234W"
-        work3_key = "/works/OL345W"
-        work4_key = "/works/OL456W"
-        work1 = {"key": work1_key, "location": work2_key, "type": type_redir}
-        work2 = {"key": work2_key, "location": work3_key, "type": type_redir}
-        work3 = {"key": work3_key, "location": work4_key, "type": type_redir}
-        work4 = {"key": work4_key, "type": type_work}
+        type_redir = {'key': '/type/redirect'}
+        type_work = {'key': '/type/work'}
+        work1_key = '/works/OL123W'
+        work2_key = '/works/OL234W'
+        work3_key = '/works/OL345W'
+        work4_key = '/works/OL456W'
+        work1 = {'key': work1_key, 'location': work2_key, 'type': type_redir}
+        work2 = {'key': work2_key, 'location': work3_key, 'type': type_redir}
+        work3 = {'key': work3_key, 'location': work4_key, 'type': type_redir}
+        work4 = {'key': work4_key, 'type': type_work}
 
         import web
         from openlibrary.mocks import mock_infobase
@@ -136,11 +136,11 @@ class TestWork:
         site.save(web.storage(work2))
         site.save(web.storage(work3))
         site.save(web.storage(work4))
-        monkeypatch.setattr(web.ctx, "site", site, raising=False)
+        monkeypatch.setattr(web.ctx, 'site', site, raising=False)
 
-        work_key = "/works/OL123W"
+        work_key = '/works/OL123W'
         redirect_chain = models.Work.get_redirect_chain(work_key)
         assert redirect_chain
         resolved_work = redirect_chain[-1]
         assert str(resolved_work.type) == type_work['key'], f"{resolved_work} of type {resolved_work.type} should be {type_work['key']}"
-        assert resolved_work.key == work4_key, f"Should be work4.key: {resolved_work}"
+        assert resolved_work.key == work4_key, f'Should be work4.key: {resolved_work}'

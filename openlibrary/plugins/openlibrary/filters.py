@@ -4,14 +4,14 @@ Filters used to check if a certain statistic should be recorded
 import re
 import logging
 
-l = logging.getLogger("openlibrary.stats_filters")
+l = logging.getLogger('openlibrary.stats_filters')
 
 import web
 from infogami import config
 
 
 def all(**params):
-    "Returns true for all requests"
+    'Returns true for all requests'
     return True
 
 

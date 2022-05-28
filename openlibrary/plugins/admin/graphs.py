@@ -7,7 +7,7 @@ import urllib
 
 
 def get_graphite_base_url():
-    return config.get("graphite_base_url", "")
+    return config.get('graphite_base_url', '')
 
 
 class GraphiteGraph:
@@ -36,7 +36,7 @@ class GraphiteGraph:
 
     def get_queryparams(self, **options):
         """Returns query params to be passed to the image URL for rendering this graph."""
-        options["target"] = [s.name for s in self.series_list]
+        options['target'] = [s.name for s in self.series_list]
         return options
 
     def render(self, **options):
@@ -60,21 +60,21 @@ class Series:
 
         :return: Returns self
         """
-        self.name = "{}({}, {})".format(
-            funcname, self.name, ", ".join(repr(a) for a in args)
+        self.name = '{}({}, {})'.format(
+            funcname, self.name, ', '.join(repr(a) for a in args)
         )
         return self
 
     def alias(self, name):
         """Shorthand for calling s.apply("alias", name)"""
-        return self.apply("alias", name)
+        return self.apply('alias', name)
 
     def __repr__(self):
-        return "<series: %r>" % self.name
+        return '<series: %r>' % self.name
 
     def __str__(self):
         # Returning empty string to allow template use $g.add("foo") without printing anything.
-        return ""
+        return ''
 
 
 def setup():

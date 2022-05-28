@@ -41,11 +41,11 @@ import web
 from .functions import massage_search_results, thing_to_doc
 from .matchers import match_functions
 
-logger = Logging.getLogger("openlibrary.importapi")
+logger = Logging.getLogger('openlibrary.importapi')
 
 
 def search(params):
-    params = params["doc"]
+    params = params['doc']
     matched_keys = run_matchers(params)
     filtered_keys = run_filter(matched_keys, params)
     return massage_search_results(list(filtered_keys))
@@ -57,7 +57,7 @@ def run_matchers(params):
     """
     keys = []
     for i in match_functions:
-        logger.debug("Running %s", i.__name__)
+        logger.debug('Running %s', i.__name__)
         keys.append(i(params))
     return itertools.chain.from_iterable(keys)
 
@@ -112,7 +112,7 @@ def run_filter(matched_keys, params):
             # In case of the 'title' and 'authors', if it's there in
             # the search params, it *should* match.
             for k in i2:
-                if k == "title" or k == "authors":
+                if k == 'title' or k == 'authors':
                     # Special case title and authors. Return False if not present in thing
                     # TODO: Convert author names to keys.
                     if k not in i1 or not compare(i1[k], i2[k]):

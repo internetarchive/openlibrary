@@ -19,7 +19,7 @@ class Recaptcha(web.form.Input):
 
     def validate(self, value=None):
         i = web.input()
-        url = "https://www.google.com/recaptcha/api/siteverify"
+        url = 'https://www.google.com/recaptcha/api/siteverify'
         params = {
             'secret': self._private_key,
             'response': i.get('g-recaptcha-response'),
@@ -29,7 +29,7 @@ class Recaptcha(web.form.Input):
         try:
             r = requests.get(url, params=params, timeout=3)
         except requests.exceptions.RequestException as e:
-            logging.getLogger("openlibrary").exception(
+            logging.getLogger('openlibrary').exception(
                 'Recaptcha call failed: letting user through'
             )
             return True

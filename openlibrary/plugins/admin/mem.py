@@ -29,9 +29,9 @@ class Object:
             else:
                 return repr(self.obj)
         except:
-            return "failed"
+            return 'failed'
 
-        return render_template("admin/memory/object", self.obj)
+        return render_template('admin/memory/object', self.obj)
 
     def get_referrers(self):
         d = []
@@ -41,7 +41,7 @@ class Object:
             if isinstance(o, dict):
                 name = web.dictfind(o, self.obj)
                 for r in gc.get_referrers(o):
-                    if getattr(r, "__dict__", None) is o:
+                    if getattr(r, '__dict__', None) is o:
                         o = r
                         break
             elif isinstance(o, dict):  # other dict types
@@ -56,7 +56,7 @@ class Object:
     def get_referents(self):
         d = []
 
-        _dict = getattr(self.obj, "__dict__", None)
+        _dict = getattr(self.obj, '__dict__', None)
         if _dict:
             for k, v in self.obj.__dict__.items():
                 d.append(Object(v, name=k))
@@ -68,22 +68,22 @@ class Object:
 
 
 class _memory:
-    path = "/memory"
+    path = '/memory'
 
     def GET(self):
-        i = web.input(page=1, sort="diff", prefix="")
+        i = web.input(page=1, sort='diff', prefix='')
 
         page = safeint(i.page, 1)
         end = page * 50
         begin = end - 50
 
-        if i.sort not in ["count", "mark", "diff"]:
-            i.sort = "diff"
+        if i.sort not in ['count', 'mark', 'diff']:
+            i.sort = 'diff'
 
         counts = [c for c in memory.get_counts() if c.type.startswith(i.prefix)]
         counts.sort(key=lambda c: c[i.sort], reverse=True)
         return render_template(
-            "admin/memory/index", counts[begin:end], page, sort=i.sort
+            'admin/memory/index', counts[begin:end], page, sort=i.sort
         )
 
     def POST(self):
@@ -92,12 +92,12 @@ class _memory:
 
 
 class _memory_type:
-    path = "/memory/type/(.*)"
+    path = '/memory/type/(.*)'
 
     def GET(self, type):
         objects = memory.get_objects_by_type(type)
 
-        i = web.input(page=1, diff="false")
+        i = web.input(page=1, diff='false')
 
         page = safeint(i.page, 1)
         end = page * 50
@@ -105,11 +105,11 @@ class _memory_type:
 
         objects = [Object(obj) for obj in memory.get_objects_by_type(type)]
 
-        if i.diff == "true":
+        if i.diff == 'true':
             marked = memory._mark_ids.get(type, [])
             objects = [obj for obj in objects if obj.get_id() not in marked]
 
-        return render_template("admin/memory/type", type, objects, page)
+        return render_template('admin/memory/type', type, objects, page)
 
 
 def first(it):
@@ -120,7 +120,7 @@ def first(it):
 
 
 class _memory_id:
-    path = "/memory/id/(.*)"
+    path = '/memory/id/(.*)'
 
     def get_object(self, _id):
         for obj in memory.get_objects():
@@ -131,4 +131,4 @@ class _memory_id:
         obj = self.get_object(_id)
         if not obj:
             raise web.notfound()
-        return render_template("admin/memory/object", obj)
+        return render_template('admin/memory/object', obj)

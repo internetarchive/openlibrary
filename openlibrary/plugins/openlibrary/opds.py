@@ -24,12 +24,12 @@ class OPDS:
         'xsi': xmlns_xsi,
     }
 
-    atom = "{%s}" % xmlns_atom
-    dcterms = "{%s}" % xmlns_dcterms
-    opdsNS = "{%s}" % xmlns_opds
-    rdvocab = "{%s}" % xmlns_rdvocab
-    bibo = "{%s}" % xmlns_bibo
-    xsi = "{%s}" % xmlns_xsi
+    atom = '{%s}' % xmlns_atom
+    dcterms = '{%s}' % xmlns_dcterms
+    opdsNS = '{%s}' % xmlns_opds
+    rdvocab = '{%s}' % xmlns_rdvocab
+    bibo = '{%s}' % xmlns_bibo
+    xsi = '{%s}' % xmlns_xsi
 
     fileExtMap = {
         'pdf': 'application/pdf',
@@ -109,7 +109,7 @@ class OPDS:
 
     # __init__()
     # ___________________________________________________________________________
-    def __init__(self, root_name="feed"):
+    def __init__(self, root_name='feed'):
 
         self.root = self.create_root(root_name)
 
@@ -129,7 +129,7 @@ class OPDSEntry(OPDS):
     # add_category()
     # ___________________________________________________________________________
     def add_category(self, term, label):
-        return self._add_subelement("category", term=term, label=label)
+        return self._add_subelement('category', term=term, label=label)
 
     # add_indirect_acq()
     # ___________________________________________________________________________
@@ -212,7 +212,7 @@ class OPDSEntry(OPDS):
         atomID = 'https://openlibrary.org' + bookID + '.opds'
         title = book.title
         if book.subtitle:
-            title += " " + book.subtitle
+            title += ' ' + book.subtitle
         updated = parse_datetime(book.last_modified).strftime('%Y-%m-%dT%H:%M:%SZ')
 
         work = book.works and book.works[0]
@@ -318,4 +318,4 @@ def xmlsafe(s):
     if isinstance(s, bytes):
         s = s.decode('utf-8')
     # ignore the first 32 bytes of ASCII, which are not allowed in XML
-    return "".join(c for c in s if ord(c) >= 0x20)
+    return ''.join(c for c in s if ord(c) >= 0x20)

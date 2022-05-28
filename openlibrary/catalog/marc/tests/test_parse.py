@@ -74,14 +74,14 @@ bin_samples = [
     '13dipolarcycload00burk_meta.mrc',
 ]
 
-test_data = "%s/test_data" % os.path.dirname(__file__)
+test_data = '%s/test_data' % os.path.dirname(__file__)
 
 
 class TestParseMARCXML:
     @pytest.mark.parametrize('i', xml_samples)
     def test_xml(self, i):
-        expect_filename = f"{test_data}/xml_expect/{i}_marc.xml"
-        path = f"{test_data}/xml_input/{i}_marc.xml"
+        expect_filename = f'{test_data}/xml_expect/{i}_marc.xml'
+        path = f'{test_data}/xml_input/{i}_marc.xml'
         element = etree.parse(open(path)).getroot()
         # Handle MARC XML collection elements in our test_data expectations:
         if element.tag == collection_tag and element[0].tag == record_tag:

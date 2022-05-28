@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 class Bookshelves(db.CommonExtras):
 
-    TABLENAME = "bookshelves_books"
-    PRIMARY_KEY = ["username", "work_id", "bookshelf_id"]
+    TABLENAME = 'bookshelves_books'
+    PRIMARY_KEY = ['username', 'work_id', 'bookshelf_id']
     PRESET_BOOKSHELVES = {'Want to Read': 1, 'Currently Reading': 2, 'Already Read': 3}
     ALLOW_DELETE_ON_CONFLICT = True
 
@@ -52,13 +52,13 @@ class Bookshelves(db.CommonExtras):
         """
 
         oldb = db.get_db()
-        query = "SELECT count(*) from bookshelves_books"
+        query = 'SELECT count(*) from bookshelves_books'
         if shelf_ids:
-            query += " WHERE bookshelf_id IN ($shelf_ids)"
+            query += ' WHERE bookshelf_id IN ($shelf_ids)'
             if since:
-                query += " AND created >= $since"
+                query += ' AND created >= $since'
         elif since:
-            query += " WHERE created >= $since"
+            query += ' WHERE created >= $since'
         results = oldb.query(query, vars={'since': since, 'shelf_ids': shelf_ids})
         return results[0] if results else None
 
@@ -69,9 +69,9 @@ class Bookshelves(db.CommonExtras):
         a certain datetime.date.
         """
         oldb = db.get_db()
-        query = "select count(DISTINCT username) from bookshelves_books"
+        query = 'select count(DISTINCT username) from bookshelves_books'
         if since:
-            query += " WHERE created >= $since"
+            query += ' WHERE created >= $since'
         results = oldb.query(query, vars={'since': since})
         return results[0] if results else None
 
@@ -88,13 +88,13 @@ class Bookshelves(db.CommonExtras):
             where += ' AND created >= $since'
         query = f'select work_id, count(*) as cnt from bookshelves_books {where}'
         query += ' group by work_id order by cnt desc limit $limit'
-        logger.info("Query: %s", query)
+        logger.info('Query: %s', query)
         logged_books = list(
             oldb.query(
                 query, vars={'shelf_id': shelf_id, 'limit': limit, 'since': since}
             )
         )
-        logger.info("Results: %s", logged_books)
+        logger.info('Results: %s', logged_books)
         return logged_books
 
     @classmethod
@@ -126,9 +126,9 @@ class Bookshelves(db.CommonExtras):
             [str(x) for x in bookshelf_ids or cls.PRESET_BOOKSHELVES.values()]
         )
         query = (
-            "SELECT bookshelf_id, count(*) from bookshelves_books WHERE "
+            'SELECT bookshelf_id, count(*) from bookshelves_books WHERE '
             "bookshelf_id=ANY('{" + _bookshelf_ids + "}'::int[]) "
-            "AND username=$username GROUP BY bookshelf_id"
+            'AND username=$username GROUP BY bookshelf_id'
         )
         result = oldb.query(query, vars=data)
         return {i['bookshelf_id']: i['count'] for i in result} if result else {}
@@ -164,20 +164,20 @@ class Bookshelves(db.CommonExtras):
         }
         if sort == 'created desc':
             query = (
-                "SELECT * from bookshelves_books WHERE "
-                "bookshelf_id=$bookshelf_id AND username=$username "
-                "ORDER BY created DESC "
-                "LIMIT $limit OFFSET $offset"
+                'SELECT * from bookshelves_books WHERE '
+                'bookshelf_id=$bookshelf_id AND username=$username '
+                'ORDER BY created DESC '
+                'LIMIT $limit OFFSET $offset'
             )
         else:
             query = (
-                "SELECT * from bookshelves_books WHERE "
-                "bookshelf_id=$bookshelf_id AND username=$username "
-                "ORDER BY created ASC "
-                "LIMIT $limit OFFSET $offset"
+                'SELECT * from bookshelves_books WHERE '
+                'bookshelf_id=$bookshelf_id AND username=$username '
+                'ORDER BY created ASC '
+                'LIMIT $limit OFFSET $offset'
             )
         if bookshelf_id is None:
-            query = "SELECT * from bookshelves_books WHERE username=$username"
+            query = 'SELECT * from bookshelves_books WHERE username=$username'
             # XXX Removing limit, offset, etc from data looks like a bug
             # unrelated / not fixing in this PR.
             data = {'username': username}
@@ -193,10 +193,10 @@ class Bookshelves(db.CommonExtras):
             'limit': limit,
             'offset': limit * (page - 1),
         }
-        where = "WHERE bookshelf_id=$bookshelf_id " if bookshelf_id else ""
+        where = 'WHERE bookshelf_id=$bookshelf_id ' if bookshelf_id else ''
         query = (
-            f"SELECT * from bookshelves_books {where} "
-            "ORDER BY created DESC LIMIT $limit OFFSET $offset"
+            f'SELECT * from bookshelves_books {where} '
+            'ORDER BY created DESC LIMIT $limit OFFSET $offset'
         )
         return list(oldb.query(query, vars=data))
 
@@ -212,9 +212,9 @@ class Bookshelves(db.CommonExtras):
         data = {'username': username, 'work_id': int(work_id)}
         bookshelf_ids = ','.join([str(x) for x in cls.PRESET_BOOKSHELVES.values()])
         query = (
-            "SELECT bookshelf_id from bookshelves_books WHERE "
+            'SELECT bookshelf_id from bookshelves_books WHERE '
             "bookshelf_id=ANY('{" + bookshelf_ids + "}'::int[]) "
-            "AND username=$username AND work_id=$work_id"
+            'AND username=$username AND work_id=$work_id'
         )
         result = list(oldb.query(query, vars=data))
         return result[0].bookshelf_id if result else None
@@ -227,9 +227,9 @@ class Bookshelves(db.CommonExtras):
             'work_ids': work_ids,
         }
         query = (
-            "SELECT work_id, bookshelf_id from bookshelves_books WHERE "
-            "username=$username AND "
-            "work_id IN $work_ids"
+            'SELECT work_id, bookshelf_id from bookshelves_books WHERE '
+            'username=$username AND '
+            'work_id IN $work_ids'
         )
         return list(oldb.query(query, vars=data))
 
@@ -255,7 +255,7 @@ class Bookshelves(db.CommonExtras):
                 edition_id=edition_id,
             )
         else:
-            where = "work_id=$work_id AND username=$username"
+            where = 'work_id=$work_id AND username=$username'
             return oldb.update(
                 cls.TABLENAME,
                 where=where,
@@ -284,7 +284,7 @@ class Bookshelves(db.CommonExtras):
     def get_works_shelves(cls, work_id, lazy=False):
         """Bookshelves this work is on"""
         oldb = db.get_db()
-        query = f"SELECT * from {cls.TABLENAME} where work_id=$work_id"
+        query = f'SELECT * from {cls.TABLENAME} where work_id=$work_id'
         try:
             result = oldb.query(query, vars={'work_id': work_id})
             return result if lazy else list(result)
@@ -299,9 +299,9 @@ class Bookshelves(db.CommonExtras):
         """
         oldb = db.get_db()
         query = (
-            "SELECT bookshelf_id, count(DISTINCT username) as user_count from bookshelves_books where"
-            " work_id=$work_id"
-            " GROUP BY bookshelf_id"
+            'SELECT bookshelf_id, count(DISTINCT username) as user_count from bookshelves_books where'
+            ' work_id=$work_id'
+            ' GROUP BY bookshelf_id'
         )
         result = oldb.query(query, vars={'work_id': int(work_id)})
         return {i['bookshelf_id']: i['user_count'] for i in result} if result else {}
@@ -316,11 +316,11 @@ class Bookshelves(db.CommonExtras):
         oldb = db.get_db()
         _bookshelf_ids = ','.join([str(x) for x in cls.PRESET_BOOKSHELVES.values()])
         query = (
-            "SELECT username, count(*) AS counted "
-            "FROM bookshelves_books WHERE "
+            'SELECT username, count(*) AS counted '
+            'FROM bookshelves_books WHERE '
             "bookshelf_id=ANY('{" + _bookshelf_ids + "}'::int[]) "
-            "GROUP BY username "
-            "ORDER BY counted DESC, username LIMIT 100"
+            'GROUP BY username '
+            'ORDER BY counted DESC, username LIMIT 100'
         )
         result = oldb.query(query)
         return list(result)

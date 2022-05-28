@@ -24,7 +24,7 @@ from openlibrary.utils.isbn import (
     normalize_isbn,
 )
 
-logger = logging.getLogger("openlibrary.vendors")
+logger = logging.getLogger('openlibrary.vendors')
 
 BETTERWORLDBOOKS_BASE_URL = 'https://betterworldbooks.com'
 BETTERWORLDBOOKS_API_URL = (
@@ -219,11 +219,11 @@ class AmazonAPI:
                 edition_info.publication_date.display_value
             ).strftime('%b %d, %Y')
         except Exception:
-            logger.exception(f"serialize({product})")
+            logger.exception(f'serialize({product})')
             publish_date = None
 
         book = {
-            'url': "https://www.amazon.com/dp/{}/?tag={}".format(
+            'url': 'https://www.amazon.com/dp/{}/?tag={}'.format(
                 product.asin, h.affiliate_id('amazon')
             ),
             'source_records': ['amazon:%s' % product.asin],
@@ -335,9 +335,9 @@ def _get_amazon_metadata(
         time.sleep(sleep_sec)  # sleep before recursive call
         return _get_amazon_metadata(id_, id_type, resources, retries - 1, sleep_sec)
     except requests.exceptions.ConnectionError:
-        logger.exception("Affiliate Server unreachable")
+        logger.exception('Affiliate Server unreachable')
     except requests.exceptions.HTTPError:
-        logger.exception(f"Affiliate Server: id {id_} not found")
+        logger.exception(f'Affiliate Server: id {id_} not found')
     return None
 
 
@@ -400,7 +400,7 @@ def clean_amazon_metadata_for_load(metadata: dict) -> dict:
         conforming_metadata['subtitle'] = subtitle
     # Record original title if some content has been removed (i.e. parentheses)
     if metadata['title'] != conforming_metadata.get('full_title', title):
-        conforming_metadata['notes'] = "Source title: %s" % metadata['title']
+        conforming_metadata['notes'] = 'Source title: %s' % metadata['title']
 
     return conforming_metadata
 
@@ -442,7 +442,7 @@ def cached_get_amazon_metadata(*args, **kwargs):
     # "upstream.code._get_amazon_metadata"
     memoized_get_amazon_metadata = cache.memcache_memoize(
         _get_amazon_metadata,
-        "upstream.code._get_amazon_metadata",
+        'upstream.code._get_amazon_metadata',
         timeout=dateutil.WEEK_SECS,
     )
     # fetch cached value from this controller
@@ -464,7 +464,7 @@ def get_betterworldbooks_metadata(isbn: str) -> Optional[dict]:
     try:
         return _get_betterworldbooks_metadata(isbn)
     except Exception:
-        logger.exception(f"_get_betterworldbooks_metadata({isbn})")
+        logger.exception(f'_get_betterworldbooks_metadata({isbn})')
         return betterworldbooks_fmt(isbn)
 
 
@@ -483,12 +483,12 @@ def _get_betterworldbooks_metadata(isbn: str) -> Optional[dict]:
     if response.status_code != requests.codes.ok:
         return {'error': response.text, 'code': response.status_code}
     text = response.text
-    new_qty = re.findall("<TotalNew>([0-9]+)</TotalNew>", text)
-    new_price = re.findall(r"<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", text)
-    used_price = re.findall(r"<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", text)
-    used_qty = re.findall("<TotalUsed>([0-9]+)</TotalUsed>", text)
+    new_qty = re.findall('<TotalNew>([0-9]+)</TotalNew>', text)
+    new_price = re.findall(r'<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>', text)
+    used_price = re.findall(r'<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>', text)
+    used_qty = re.findall('<TotalUsed>([0-9]+)</TotalUsed>', text)
     market_price = re.findall(
-        r"<LowestMarketPrice>\$([0-9.]+)</LowestMarketPrice>", text
+        r'<LowestMarketPrice>\$([0-9.]+)</LowestMarketPrice>', text
     )
     price = qlt = None
 
@@ -519,7 +519,7 @@ def betterworldbooks_fmt(
     :param str price: Price of the book as a decimal str, e.g. "4.28"
     :rtype: dict or None
     """
-    price_fmt = f"${price} ({qlt})" if price and qlt else None
+    price_fmt = f'${price} ({qlt})' if price and qlt else None
     return {
         'url': BWB_AFFILIATE_LINK % isbn,
         'isbn': isbn,
@@ -532,6 +532,6 @@ def betterworldbooks_fmt(
 
 cached_get_betterworldbooks_metadata = cache.memcache_memoize(
     _get_betterworldbooks_metadata,
-    "upstream.code._get_betterworldbooks_metadata",
+    'upstream.code._get_betterworldbooks_metadata',
     timeout=dateutil.HALF_DAY_SECS,
 )

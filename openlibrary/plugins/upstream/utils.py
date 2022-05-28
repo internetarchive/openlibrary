@@ -118,8 +118,8 @@ class MultiDict(MutableMapping):
 @macro
 @public
 def render_template(name, *a, **kw):
-    if "." in name:
-        name = name.rsplit(".", 1)[0]
+    if '.' in name:
+        name = name.rsplit('.', 1)[0]
     return render[name](*a, **kw)
 
 
@@ -154,7 +154,7 @@ def render_component(name, attrs=None, json_encode=True):
             val = urllib.parse.quote(val)
         attrs_str += f' {key}="{val}"'
     html = ''
-    included = web.ctx.setdefault("included-components", [])
+    included = web.ctx.setdefault('included-components', [])
 
     if len(included) == 0:
         # Need to include Vue
@@ -175,18 +175,18 @@ def render_component(name, attrs=None, json_encode=True):
 @public
 def get_error(name, *args):
     """Return error with the given name from errors.tmpl template."""
-    return get_message_from_template("errors", name, args)
+    return get_message_from_template('errors', name, args)
 
 
 @public
 def get_message(name, *args):
     """Return message with given name from messages.tmpl template"""
-    return get_message_from_template("messages", name, args)
+    return get_message_from_template('messages', name, args)
 
 
 def get_message_from_template(template_name, name, args):
-    d = render_template(template_name).get("messages", {})
-    msg = d.get(name) or name.lower().replace("_", " ")
+    d = render_template(template_name).get('messages', {})
+    msg = d.get(name) or name.lower().replace('_', ' ')
 
     if msg and args:
         return msg % args
@@ -227,7 +227,7 @@ def json_encode(d):
     return json.dumps(d)
 
 
-def unflatten(d, separator="--"):
+def unflatten(d, separator='--'):
     """Convert flattened data into nested form.
 
     >>> unflatten({"a": 1, "b--x": 2, "b--y": 3, "c--0": 4, "c--1": 5})
@@ -277,7 +277,7 @@ def fuzzy_find(value, options, stopwords=None):
     if not options:
         return value
 
-    rx = web.re_compile(r"[-_\.&, ]+")
+    rx = web.re_compile(r'[-_\.&, ]+')
 
     # build word frequency
     d = defaultdict(list)
@@ -301,8 +301,8 @@ def fuzzy_find(value, options, stopwords=None):
 def radio_input(checked=False, **params):
     params['type'] = 'radio'
     if checked:
-        params['checked'] = "checked"
-    return "<input %s />" % " ".join(
+        params['checked'] = 'checked'
+    return '<input %s />' % ' '.join(
         [f'{k}="{web.websafe(v)}"' for k, v in params.items()]
     )
 
@@ -394,13 +394,13 @@ def get_changes_v2(query, revision=None):
 
         change.get = change.__dict__.get
         change.get_comment = lambda: get_comment(change)
-        change.machine_comment = change.data.get("machine_comment")
+        change.machine_comment = change.data.get('machine_comment')
 
         return change
 
     def get_comment(change):
-        t = get_template("recentchanges/" + change.kind + "/comment") or get_template(
-            "recentchanges/default/comment"
+        t = get_template('recentchanges/' + change.kind + '/comment') or get_template(
+            'recentchanges/default/comment'
         )
         return t(change, page)
 
@@ -419,15 +419,15 @@ def get_history(page):
         revision=page.revision, lastest_revision=page.revision, created=page.created
     )
     if h.revision < 5:
-        h.recent = get_changes({"key": page.key, "limit": 5}, revision=page.revision)
+        h.recent = get_changes({'key': page.key, 'limit': 5}, revision=page.revision)
         h.initial = h.recent[-1:]
         h.recent = h.recent[:-1]
     else:
         h.initial = get_changes(
-            {"key": page.key, "limit": 1, "offset": h.revision - 1},
+            {'key': page.key, 'limit': 1, 'offset': h.revision - 1},
             revision=page.revision,
         )
-        h.recent = get_changes({"key": page.key, "limit": 4}, revision=page.revision)
+        h.recent = get_changes({'key': page.key, 'limit': 4}, revision=page.revision)
 
     return h
 
@@ -435,7 +435,7 @@ def get_history(page):
 @public
 def get_version(key, revision):
     try:
-        return web.ctx.site.versions({"key": key, "revision": revision, "limit": 1})[0]
+        return web.ctx.site.versions({'key': key, 'revision': revision, 'limit': 1})[0]
     except IndexError:
         return None
 
@@ -443,7 +443,7 @@ def get_version(key, revision):
 @public
 def get_recent_author(doc):
     versions = get_changes_v1(
-        {'key': doc.key, 'limit': 1, "offset": 0}, revision=doc.revision
+        {'key': doc.key, 'limit': 1, 'offset': 0}, revision=doc.revision
     )
     if versions:
         return versions[0].author
@@ -459,17 +459,17 @@ def get_recent_accounts(limit=5, offset=0):
 
 def get_locale():
     try:
-        return babel.Locale(web.ctx.get("lang") or "en")
+        return babel.Locale(web.ctx.get('lang') or 'en')
     except babel.core.UnknownLocaleError:
-        return babel.Locale("en")
+        return babel.Locale('en')
 
 
 @public
 def process_version(v):
     """Looks at the version and adds machine_comment required for showing "View MARC" link."""
     comments = [
-        "found a matching marc record",
-        "add publisher and source",
+        'found a matching marc record',
+        'add publisher and source',
     ]
     if v.key.startswith('/books/') and not v.get('machine_comment'):
         thing = v.get('thing') or web.ctx.site.get(v.key, v.revision)
@@ -480,7 +480,7 @@ def process_version(v):
         ):
             marc = thing.source_records[-1]
             if marc.startswith('marc:'):
-                v.machine_comment = marc[len("marc:") :]
+                v.machine_comment = marc[len('marc:') :]
             else:
                 v.machine_comment = marc
     return v
@@ -495,11 +495,11 @@ def is_thing(t):
 def putctx(key, value):
     """Save a value in the context."""
     context[key] = value
-    return ""
+    return ''
 
 
 class Metatag:
-    def __init__(self, tag="meta", **attrs):
+    def __init__(self, tag='meta', **attrs):
         self.tag = tag
         self.attrs = attrs
 
@@ -512,7 +512,7 @@ class Metatag:
 
 
 @public
-def add_metatag(tag="meta", **attrs):
+def add_metatag(tag='meta', **attrs):
     context.setdefault('metatags', [])
     context.metatags.append(Metatag(tag, **attrs))
 
@@ -555,7 +555,7 @@ def set_share_links(url='#', title='', view_context=None):
         view_context (object that has/can-have share_links attribute)
     """
     encoded_url = url_quote(url)
-    text = url_quote("Check this out: " + entity_decode(title))
+    text = url_quote('Check this out: ' + entity_decode(title))
     links = [
         {
             'text': 'Facebook',
@@ -602,15 +602,15 @@ def parse_toc_row(line):
     >>> f("1.1 | Apple")
     (0, '1.1', 'Apple', '')
     """
-    RE_LEVEL = web.re_compile(r"(\**)(.*)")
+    RE_LEVEL = web.re_compile(r'(\**)(.*)')
     level, text = RE_LEVEL.match(line.strip()).groups()
 
-    if "|" in text:
-        tokens = text.split("|", 2)
+    if '|' in text:
+        tokens = text.split('|', 2)
         label, title, page = pad(tokens, 3, '')
     else:
         title = text
-        label = page = ""
+        label = page = ''
 
     return web.storage(
         level=len(level), label=label.strip(), title=title.strip(), pagenum=page.strip()
@@ -621,7 +621,7 @@ def parse_toc(text):
     """Parses each line of toc"""
     if text is None:
         return []
-    return [parse_toc_row(line) for line in text.splitlines() if line.strip(" |")]
+    return [parse_toc_row(line) for line in text.splitlines() if line.strip(' |')]
 
 
 def safeget(func):
@@ -655,7 +655,7 @@ def strip_accents(s: str) -> str:
 
 @functools.cache
 def get_languages():
-    keys = web.ctx.site.things({"type": "/type/language", "limit": 1000})
+    keys = web.ctx.site.things({'type': '/type/language', 'limit': 1000})
     return {lang.key: lang for lang in web.ctx.site.get_many(keys)}
 
 
@@ -722,7 +722,7 @@ def _get_author_config():
 
     """
     thing = web.ctx.site.get('/config/author')
-    if hasattr(thing, "identifiers"):
+    if hasattr(thing, 'identifiers'):
         identifiers = [web.storage(t.dict()) for t in thing.identifiers if 'name' in t]
     else:
         identifiers = {}
@@ -768,7 +768,7 @@ class HTML(str):
         str.__init__(self, web.safeunicode(html))
 
     def __repr__(self):
-        return "<html: %s>" % str.__repr__(self)
+        return '<html: %s>' % str.__repr__(self)
 
 
 _websafe = web.websafe
@@ -836,7 +836,7 @@ if config.get('upstream_memcache_servers'):
 
 def _get_recent_changes():
     site = web.ctx.get('site') or delegate.create_site()
-    web.ctx.setdefault("ip", "127.0.0.1")
+    web.ctx.setdefault('ip', '127.0.0.1')
 
     # The recentchanges can have multiple revisions for a document if it has been modified more than once.
     # Take only the most recent revision in that case.
@@ -850,20 +850,20 @@ def _get_recent_changes():
             return False
 
     # ignore reverts
-    re_revert = web.re_compile(r"reverted to revision \d+")
+    re_revert = web.re_compile(r'reverted to revision \d+')
 
     def is_revert(r):
-        return re_revert.match(r.comment or "")
+        return re_revert.match(r.comment or '')
 
     # take the 100 recent changes, filter them and take the first 50
-    q = {"bot": False, "limit": 100}
+    q = {'bot': False, 'limit': 100}
     result = site.versions(q)
     result = [r for r in result if not is_visited(r.key) and not is_revert(r)]
     result = result[:50]
 
     def process_thing(thing):
         t = web.storage()
-        for k in ["key", "title", "name", "displayname"]:
+        for k in ['key', 'title', 'name', 'displayname']:
             t[k] = thing[k]
         t['type'] = web.storage(key=thing.type.key)
         return t
@@ -886,7 +886,7 @@ def _get_recent_changes2():
     if 'env' not in web.ctx:
         delegate.fakeload()
 
-    q = {"bot": False, "limit": 100}
+    q = {'bot': False, 'limit': 100}
     changes = web.ctx.site.recentchanges(q)
 
     def is_ignored(c):
@@ -899,13 +899,13 @@ def _get_recent_changes2():
         )
 
     def render(c):
-        t = get_template("recentchanges/" + c.kind + "/message") or get_template(
-            "recentchanges/default/message"
+        t = get_template('recentchanges/' + c.kind + '/message') or get_template(
+            'recentchanges/default/message'
         )
         return t(c)
 
     messages = [render(c) for c in changes if not is_ignored(c)]
-    messages = [m for m in messages if str(m.get("ignore", "false")).lower() != "true"]
+    messages = [m for m in messages if str(m.get('ignore', 'false')).lower() != 'true']
     return messages
 
 
@@ -917,7 +917,7 @@ _get_recent_changes2 = web.memoize(
 
 @public
 def get_random_recent_changes(n):
-    if "recentchanges_v2" in web.ctx.get("features", []):
+    if 'recentchanges_v2' in web.ctx.get('features', []):
         changes = _get_recent_changes2()
     else:
         changes = _get_recent_changes()
@@ -931,14 +931,14 @@ def get_random_recent_changes(n):
 
 
 def _get_blog_feeds():
-    url = "https://blog.openlibrary.org/feed/"
+    url = 'https://blog.openlibrary.org/feed/'
     try:
-        stats.begin("get_blog_feeds", url=url)
+        stats.begin('get_blog_feeds', url=url)
         tree = etree.fromstring(requests.get(url).text)
     except Exception:
         # Handle error gracefully.
-        logging.getLogger("openlibrary").error(
-            "Failed to fetch blog feeds", exc_info=True
+        logging.getLogger('openlibrary').error(
+            'Failed to fetch blog feeds', exc_info=True
         )
         return []
     finally:
@@ -946,17 +946,17 @@ def _get_blog_feeds():
 
     def parse_item(item):
         pubdate = datetime.datetime.strptime(
-            item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S +0000'
+            item.find('pubDate').text, '%a, %d %b %Y %H:%M:%S +0000'
         ).isoformat()
         return dict(
-            title=item.find("title").text, link=item.find("link").text, pubdate=pubdate
+            title=item.find('title').text, link=item.find('link').text, pubdate=pubdate
         )
 
-    return [parse_item(item) for item in tree.findall(".//item")]
+    return [parse_item(item) for item in tree.findall('.//item')]
 
 
 _get_blog_feeds = cache.memcache_memoize(
-    _get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=5 * 60
+    _get_blog_feeds, key_prefix='upstream.get_blog_feeds', timeout=5 * 60
 )
 
 
@@ -965,11 +965,11 @@ def get_donation_include(include):
 
     # The following allows archive.org staff to test banners without
     # needing to reload openlibrary services:
-    dev_host = web_input.pop("dev_host", "")  # e.g. `www-user`
+    dev_host = web_input.pop('dev_host', '')  # e.g. `www-user`
     if dev_host and re.match('^[a-zA-Z0-9-.]+$', dev_host):
-        script_src = "https://%s.archive.org/includes/donate.js" % dev_host
+        script_src = 'https://%s.archive.org/includes/donate.js' % dev_host
     else:
-        script_src = "/cdn/archive.org/donate.js"
+        script_src = '/cdn/archive.org/donate.js'
 
     if 'ymd' in web_input:
         script_src += '?ymd=' + web_input.ymd
@@ -993,7 +993,7 @@ def item_image(image_path, default=None):
         return default
     if image_path.startswith('https:'):
         return image_path
-    return "https:" + image_path
+    return 'https:' + image_path
 
 
 @public
@@ -1024,7 +1024,7 @@ class Request:
         host = web.ctx.host or ''
         url = host + readable_path + query
         if url:
-            url = "https://" + url
+            url = 'https://' + url
             parsed_url = urlparse(url)
 
             parsed_query = parse_qs(parsed_url.query)
@@ -1105,7 +1105,7 @@ def setup():
         {
             'HTML': HTML,
             'request': Request(),
-            'logger': logging.getLogger("openlibrary.template"),
+            'logger': logging.getLogger('openlibrary.template'),
             'sum': sum,
             'get_donation_include': get_donation_include,
             'websafe': web.websafe,

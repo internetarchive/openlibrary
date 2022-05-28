@@ -105,8 +105,8 @@ def validate_translations(args: list[str]):
             else:
                 for e in error_print:
                     print(e)
-                print(error_color_fn("\nValidation failed..."))
-                print(error_color_fn("Please correct the errors before proceeding."))
+                print(error_color_fn('\nValidation failed...'))
+                print(error_color_fn('Please correct the errors before proceeding.'))
             results[locale] = num_errors
         else:
             print(f'Portable object file for locale "{locale}" does not exist.')
@@ -141,8 +141,8 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
 
 def extract_messages(dirs: list[str]):
     catalog = Catalog(project='Open Library', copyright_holder='Internet Archive')
-    METHODS = [("**.py", "python"), ("**.html", "openlibrary.i18n:extract_templetor")]
-    COMMENT_TAGS = ["NOTE:"]
+    METHODS = [('**.py', 'python'), ('**.html', 'openlibrary.i18n:extract_templetor')]
+    COMMENT_TAGS = ['NOTE:']
 
     for d in dirs:
         extracted = extract_from_dir(
@@ -156,7 +156,7 @@ def extract_messages(dirs: list[str]):
 
         for filename, count in counts.items():
             path = filename if d == filename else os.path.join(d, filename)
-            print(f"{count}\t{path}", file=sys.stderr)
+            print(f'{count}\t{path}', file=sys.stderr)
 
     path = os.path.join(root, 'messages.pot')
     f = open(path, 'wb')
@@ -179,7 +179,7 @@ def compile_translations(locales: list[str]):
 
 def update_translations(locales: list[str]):
     locales_to_update = locales or get_locales()
-    print(f"Updating {locales_to_update}")
+    print(f'Updating {locales_to_update}')
 
     pot_path = os.path.join(root, 'messages.pot')
     template = read_po(open(pot_path, 'rb'))
@@ -197,7 +197,7 @@ def update_translations(locales: list[str]):
             f.close()
             print('updated', po_path)
         else:
-            print(f"ERROR: {po_path} does not exist...")
+            print(f'ERROR: {po_path} does not exist...')
 
     compile_translations(locales_to_update)
 
@@ -261,7 +261,7 @@ def check_status(locales: list[str]):
                 print(f'---- validate {locale} ----')
                 validate_translations(locales)
         else:
-            print(f"ERROR: {po_path} does not exist...")
+            print(f'ERROR: {po_path} does not exist...')
 
 
 def generate_po(args):
@@ -272,19 +272,19 @@ def generate_po(args):
 
         if os.path.exists(po_dir):
             if os.path.exists(po_dest):
-                print(f"Portable object file already exists at {po_dest}")
+                print(f'Portable object file already exists at {po_dest}')
             else:
                 shutil.copy(pot_src, po_dest)
                 os.chmod(po_dest, 0o666)
-                print(f"File created at {po_dest}")
+                print(f'File created at {po_dest}')
         else:
             os.mkdir(po_dir)
             os.chmod(po_dir, 0o777)
             shutil.copy(pot_src, po_dest)
             os.chmod(po_dest, 0o666)
-            print(f"File created at {po_dest}")
+            print(f'File created at {po_dest}')
     else:
-        print("Add failed. Missing required locale code.")
+        print('Add failed. Missing required locale code.')
 
 
 @web.memoize

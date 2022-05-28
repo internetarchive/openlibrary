@@ -74,13 +74,13 @@ def test_flip_name():
 
 
 def test_pick_first_date():
-    assert pick_first_date(["Mrs.", "1839-"]) == {'birth_date': '1839'}
-    assert pick_first_date(["1882-."]) == {'birth_date': '1882'}
-    assert pick_first_date(["1900-1990.."]) == {
+    assert pick_first_date(['Mrs.', '1839-']) == {'birth_date': '1839'}
+    assert pick_first_date(['1882-.']) == {'birth_date': '1882'}
+    assert pick_first_date(['1900-1990..']) == {
         'birth_date': '1900',
         'death_date': '1990',
     }
-    assert pick_first_date(["4th/5th cent."]) == {'date': '4th/5th cent.'}
+    assert pick_first_date(['4th/5th cent.']) == {'date': '4th/5th cent.'}
 
 
 def test_pick_best_name():

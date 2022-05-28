@@ -63,6 +63,6 @@ class subview(_app.view):
 @macro
 @public
 def render_template(name, *a, **kw):
-    if "." in name:
-        name = name.rsplit(".", 1)[0]
+    if '.' in name:
+        name = name.rsplit('.', 1)[0]
     return render[name](*a, **kw)

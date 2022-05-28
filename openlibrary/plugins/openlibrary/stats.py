@@ -20,7 +20,7 @@ from infogami.utils import (
 
 import openlibrary.plugins.openlibrary.filters as stats_filters
 
-l = logging.getLogger("openlibrary.stats")
+l = logging.getLogger('openlibrary.stats')
 TIME_BUCKETS = [10, 100, 1000, 5000, 10000, 20000]  # in ms
 
 filters = {}
@@ -35,20 +35,20 @@ def evaluate_and_store_stat(name, stat, summary):
     try:
         f = filters[stat.filter]
     except KeyError:
-        l.warning("Filter %s not registered", stat.filter)
+        l.warning('Filter %s not registered', stat.filter)
         return
     try:
         if f(**stat):
-            if "time" in stat:
-                graphite_stats.put(name, summary[stat.time]["time"] * 100)
-            elif "count" in stat:
+            if 'time' in stat:
+                graphite_stats.put(name, summary[stat.time]['time'] * 100)
+            elif 'count' in stat:
                 # print "Storing count for key %s"%stat.count
                 # XXX-Anand: where is the code to update counts?
                 pass
             else:
-                l.warning("No storage item specified for stat %s", name)
+                l.warning('No storage item specified for stat %s', name)
     except Exception as k:
-        l.warning("Error while storing stats (%s). Complete traceback follows" % k)
+        l.warning('Error while storing stats (%s). Complete traceback follows' % k)
         l.warning(traceback.format_exc())
 
 
@@ -56,7 +56,7 @@ def update_all_stats(stats_summary):
     """
     Run through the filters and record requested items in graphite
     """
-    for stat in config.get("stats", []):
+    for stat in config.get('stats', []):
         evaluate_and_store_stat(stat, config.stats.get(stat), stats_summary)
 
 
@@ -68,8 +68,8 @@ def stats_hook():
     stats_summary = stats.stats_summary()
     update_all_stats(stats_summary)
     try:
-        if "stats-header" in web.ctx.features:
-            web.header("X-OL-Stats", format_stats(stats_summary))
+        if 'stats-header' in web.ctx.features:
+            web.header('X-OL-Stats', format_stats(stats_summary))
     except Exception as e:
         # don't let errors in stats collection break the app.
         print(str(e), file=web.debug)
@@ -81,7 +81,7 @@ def stats_hook():
 
     memcache_hits = 0
     memcache_misses = 0
-    for s in web.ctx.get("stats", []):
+    for s in web.ctx.get('stats', []):
         if s.name == 'memcache.get':
             if s.data['hit']:
                 memcache_hits += 1
@@ -94,24 +94,24 @@ def stats_hook():
         graphite_stats.increment('ol.memcache.misses', memcache_misses, rate=0.025)
 
     for name, value in stats_summary.items():
-        name = name.replace(".", "_")
-        time = value.get("time", 0.0) * 1000
+        name = name.replace('.', '_')
+        time = value.get('time', 0.0) * 1000
         key = 'ol.' + name
         graphite_stats.put(key, time)
 
 
 def format_stats(stats):
-    s = " ".join("%s %d %0.03f" % entry for entry in process_stats(stats))
+    s = ' '.join('%s %d %0.03f' % entry for entry in process_stats(stats))
     return '"%s"' % s
 
 
 labels = {
-    "total": "TT",
-    "memcache": "MC",
-    "infobase": "IB",
-    "solr": "SR",
-    "archive.org": "IA",
-    "couchdb": "CD",
+    'total': 'TT',
+    'memcache': 'MC',
+    'infobase': 'IB',
+    'solr': 'SR',
+    'archive.org': 'IA',
+    'couchdb': 'CD',
 }
 
 
@@ -122,11 +122,11 @@ def process_stats(stats):
     """
     d = {}
     for name, value in stats.items():
-        name = name.split(".")[0]
+        name = name.split('.')[0]
 
-        label = labels.get(name, "OT")
-        count = value.get("count", 0)
-        time = value.get("time", 0.0)
+        label = labels.get(name, 'OT')
+        count = value.get('count', 0)
+        time = value.get('time', 0.0)
 
         xcount, xtime = d.get(label, [0, 0])
         d[label] = xcount + count, xtime + time
@@ -316,10 +316,10 @@ def setup():
     """
 
     # Initialise the stats filters
-    register_filter("all", stats_filters.all)
-    register_filter("url", stats_filters.url)
-    register_filter("loggedin", stats_filters.loggedin)
-    register_filter("not_loggedin", stats_filters.not_loggedin)
+    register_filter('all', stats_filters.all)
+    register_filter('url', stats_filters.url)
+    register_filter('loggedin', stats_filters.loggedin)
+    register_filter('not_loggedin', stats_filters.not_loggedin)
 
     # Disabled temporarily (2020-04-07); they (the first two more specifically) looked
     # like they were causing too much load on graphite servers.

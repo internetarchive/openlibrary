@@ -32,14 +32,14 @@ from openlibrary.core.vendors import (
 
 
 class book_availability(delegate.page):
-    path = "/availability/v2"
+    path = '/availability/v2'
 
     def GET(self):
         i = web.input(type='', ids='')
         id_type = i.type
         ids = i.ids.split(',')
         result = self.get_book_availability(id_type, ids)
-        return delegate.RawText(json.dumps(result), content_type="application/json")
+        return delegate.RawText(json.dumps(result), content_type='application/json')
 
     def POST(self):
         i = web.input(type='')
@@ -47,23 +47,23 @@ class book_availability(delegate.page):
         id_type = i.type
         ids = j.get('ids', [])
         result = self.get_book_availability(id_type, ids)
-        return delegate.RawText(json.dumps(result), content_type="application/json")
+        return delegate.RawText(json.dumps(result), content_type='application/json')
 
     def get_book_availability(self, id_type, ids):
         return (
             lending.get_availability_of_works(ids)
-            if id_type == "openlibrary_work"
+            if id_type == 'openlibrary_work'
             else lending.get_availability_of_editions(ids)
-            if id_type == "openlibrary_edition"
+            if id_type == 'openlibrary_edition'
             else lending.get_availability_of_ocaids(ids)
-            if id_type == "identifier"
+            if id_type == 'identifier'
             else []
         )
 
 
 class browse(delegate.page):
-    path = "/browse"
-    encoding = "json"
+    path = '/browse'
+    encoding = 'json'
 
     def GET(self):
         i = web.input(
@@ -86,12 +86,12 @@ class browse(delegate.page):
             'query': url,
             'works': [work.dict() for work in works],
         }
-        return delegate.RawText(json.dumps(result), content_type="application/json")
+        return delegate.RawText(json.dumps(result), content_type='application/json')
 
 
 class ratings(delegate.page):
-    path = r"/works/OL(\d+)W/ratings"
-    encoding = "json"
+    path = r'/works/OL(\d+)W/ratings'
+    encoding = 'json'
 
     @jsonapi
     def GET(self, work_id):
@@ -144,9 +144,9 @@ class ratings(delegate.page):
 
         username = user.key.split('/')[2]
 
-        def response(msg, status="success"):
+        def response(msg, status='success'):
             return delegate.RawText(
-                json.dumps({status: msg}), content_type="application/json"
+                json.dumps({status: msg}), content_type='application/json'
             )
 
         if i.rating is None:
@@ -159,7 +159,7 @@ class ratings(delegate.page):
                 if rating not in models.Ratings.VALID_STAR_RATINGS:
                     raise ValueError
             except ValueError:
-                return response('invalid rating', status="error")
+                return response('invalid rating', status='error')
 
             models.Ratings.add(
                 username=username, work_id=work_id, rating=rating, edition_id=edition_id
@@ -177,8 +177,8 @@ class ratings(delegate.page):
 
 
 class booknotes(delegate.page):
-    path = r"/works/OL(\d+)W/notes"
-    encoding = "json"
+    path = r'/works/OL(\d+)W/notes'
+    encoding = 'json'
 
     def POST(self, work_id):
         """
@@ -202,9 +202,9 @@ class booknotes(delegate.page):
 
         username = user.key.split('/')[2]
 
-        def response(msg, status="success"):
+        def response(msg, status='success'):
             return delegate.RawText(
-                json.dumps({status: msg}), content_type="application/json"
+                json.dumps({status: msg}), content_type='application/json'
             )
 
         if i.notes is None:
@@ -216,7 +216,7 @@ class booknotes(delegate.page):
         )
 
         if i.redir:
-            raise web.seeother("/works/%s" % work_id)
+            raise web.seeother('/works/%s' % work_id)
 
         return response('note added')
 
@@ -226,8 +226,8 @@ class booknotes(delegate.page):
 
 
 class work_bookshelves(delegate.page):
-    path = r"/works/OL(\d+)W/bookshelves"
-    encoding = "json"
+    path = r'/works/OL(\d+)W/bookshelves'
+    encoding = 'json'
 
     @jsonapi
     def GET(self, work_id):
@@ -260,7 +260,7 @@ class work_bookshelves(delegate.page):
         user = accounts.get_current_user()
         i = web.input(
             edition_id=None,
-            action="add",
+            action='add',
             redir=False,
             bookshelf_id=None,
             dont_remove=False,
@@ -281,7 +281,7 @@ class work_bookshelves(delegate.page):
         except (TypeError, ValueError):
             return delegate.RawText(
                 json.dumps({'error': 'Invalid bookshelf'}),
-                content_type="application/json",
+                content_type='application/json',
             )
 
         if (not i.dont_remove) and bookshelf_id == current_status or bookshelf_id == -1:
@@ -302,17 +302,17 @@ class work_bookshelves(delegate.page):
             raise web.seeother(key)
         return delegate.RawText(
             json.dumps({'bookshelves_affected': work_bookshelf}),
-            content_type="application/json",
+            content_type='application/json',
         )
 
 
 class work_editions(delegate.page):
-    path = r"(/works/OL\d+W)/editions"
-    encoding = "json"
+    path = r'(/works/OL\d+W)/editions'
+    encoding = 'json'
 
     def GET(self, key):
         doc = web.ctx.site.get(key)
-        if not doc or doc.type.key != "/type/work":
+        if not doc or doc.type.key != '/type/work':
             raise web.notfound('')
         else:
             i = web.input(limit=50, offset=0)
@@ -320,7 +320,7 @@ class work_editions(delegate.page):
             offset = h.safeint(i.offset) or 0
 
             data = self.get_editions_data(doc, limit=limit, offset=offset)
-            return delegate.RawText(json.dumps(data), content_type="application/json")
+            return delegate.RawText(json.dumps(data), content_type='application/json')
 
     def get_editions_data(self, work, limit, offset):
         if limit > 1000:
@@ -328,18 +328,18 @@ class work_editions(delegate.page):
 
         keys = web.ctx.site.things(
             {
-                "type": "/type/edition",
-                "works": work.key,
-                "limit": limit,
-                "offset": offset,
+                'type': '/type/edition',
+                'works': work.key,
+                'limit': limit,
+                'offset': offset,
             }
         )
         editions = web.ctx.site.get_many(keys, raw=True)
 
         size = work.edition_count
         links = {
-            "self": web.ctx.fullpath,
-            "work": work.key,
+            'self': web.ctx.fullpath,
+            'work': work.key,
         }
 
         if offset > 0:
@@ -348,16 +348,16 @@ class work_editions(delegate.page):
         if offset + len(editions) < size:
             links['next'] = web.changequery(offset=offset + limit)
 
-        return {"links": links, "size": size, "entries": editions}
+        return {'links': links, 'size': size, 'entries': editions}
 
 
 class author_works(delegate.page):
-    path = r"(/authors/OL\d+A)/works"
-    encoding = "json"
+    path = r'(/authors/OL\d+A)/works'
+    encoding = 'json'
 
     def GET(self, key):
         doc = web.ctx.site.get(key)
-        if not doc or doc.type.key != "/type/author":
+        if not doc or doc.type.key != '/type/author':
             raise web.notfound('')
         else:
             i = web.input(limit=50, offset=0)
@@ -365,7 +365,7 @@ class author_works(delegate.page):
             offset = h.safeint(i.offset, 0)
 
             data = self.get_works_data(doc, limit=limit, offset=offset)
-            return delegate.RawText(json.dumps(data), content_type="application/json")
+            return delegate.RawText(json.dumps(data), content_type='application/json')
 
     def get_works_data(self, author, limit, offset):
         if limit > 1000:
@@ -373,18 +373,18 @@ class author_works(delegate.page):
 
         keys = web.ctx.site.things(
             {
-                "type": "/type/work",
-                "authors": {"author": {"key": author.key}},
-                "limit": limit,
-                "offset": offset,
+                'type': '/type/work',
+                'authors': {'author': {'key': author.key}},
+                'limit': limit,
+                'offset': offset,
             }
         )
         works = web.ctx.site.get_many(keys, raw=True)
 
         size = author.get_work_count()
         links = {
-            "self": web.ctx.fullpath,
-            "author": author.key,
+            'self': web.ctx.fullpath,
+            'author': author.key,
         }
 
         if offset > 0:
@@ -393,7 +393,7 @@ class author_works(delegate.page):
         if offset + len(works) < size:
             links['next'] = web.changequery(offset=offset + limit)
 
-        return {"links": links, "size": size, "entries": works}
+        return {'links': links, 'size': size, 'entries': works}
 
 
 class sponsorship_eligibility_check(delegate.page):
@@ -408,7 +408,7 @@ class sponsorship_eligibility_check(delegate.page):
             else models.Edition.from_isbn(_id)
         )
         if not edition:
-            return json.dumps({"status": "error", "reason": "Invalid ISBN 13"})
+            return json.dumps({'status': 'error', 'reason': 'Invalid ISBN 13'})
         return json.dumps(
             qualifies_for_sponsorship(edition, scan_only=i.scan_only, patron=i.patron)
         )
@@ -471,8 +471,8 @@ class patrons_observations(delegate.page):
     Fetches a patron's observations for a work, requires auth, intended
     to be used internally to power the My Books Page & books pages modal
     """
-    path = r"/works/OL(\d+)W/observations"
-    encoding = "json"
+    path = r'/works/OL(\d+)W/observations'
+    encoding = 'json'
 
     def GET(self, work_id):
         user = accounts.get_current_user()
@@ -490,7 +490,7 @@ class patrons_observations(delegate.page):
             patron_observations[kv_pair.key].append(kv_pair.value)
 
         return delegate.RawText(
-            json.dumps(patron_observations), content_type="application/json"
+            json.dumps(patron_observations), content_type='application/json'
         )
 
     def POST(self, work_id):
@@ -505,9 +505,9 @@ class patrons_observations(delegate.page):
             data['username'], work_id, data['observation'], data['action']
         )
 
-        def response(msg, status="success"):
+        def response(msg, status='success'):
             return delegate.RawText(
-                json.dumps({status: msg}), content_type="application/json"
+                json.dumps({status: msg}), content_type='application/json'
             )
 
         return response('Observations added')
@@ -521,9 +521,9 @@ class patrons_observations(delegate.page):
 
         Observations.remove_observations(username, work_id)
 
-        def response(msg, status="success"):
+        def response(msg, status='success'):
             return delegate.RawText(
-                json.dumps({status: msg}), content_type="application/json"
+                json.dumps({status: msg}), content_type='application/json'
             )
 
         return response('Observations removed')
@@ -549,12 +549,12 @@ class public_observations(delegate.page):
 
 
 class work_delete(delegate.page):
-    path = r"/works/(OL\d+W)/[^/]+/delete"
+    path = r'/works/(OL\d+W)/[^/]+/delete'
 
     def get_editions_of_work(self, work: Work) -> list[dict]:
         limit = 1_000  # This is the max limit of the things function
         keys: list = web.ctx.site.things(
-            {"type": "/type/edition", "works": work.key, "limit": limit}
+            {'type': '/type/edition', 'works': work.key, 'limit': limit}
         )
         if len(keys) == limit:
             raise web.HTTPError(
@@ -564,7 +564,7 @@ class work_delete(delegate.page):
                         'error': f'API can only delete {limit} editions per work',
                     }
                 ),
-                headers={"Content-Type": "application/json"},
+                headers={'Content-Type': 'application/json'},
             )
         return web.ctx.site.get_many(keys, raw=True)
 
@@ -593,5 +593,5 @@ class work_delete(delegate.page):
                     'status': 'ok',
                 }
             ),
-            content_type="application/json",
+            content_type='application/json',
         )

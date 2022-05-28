@@ -23,12 +23,12 @@ class TestWaitingLoan:
 
     @pytest.mark.xfail(run=False)
     def test_update(self):
-        w = WaitingLoan.new(user_key="U1", identifier="B1")
+        w = WaitingLoan.new(user_key='U1', identifier='B1')
         assert w['status'] == 'waiting'
         w.update(status='available')
         assert w['status'] == 'available'
 
-        w2 = WaitingLoan.find(user_key="U1", identifier="B1")
+        w2 = WaitingLoan.find(user_key='U1', identifier='B1')
         assert w2['status'] == 'available'
 
     @pytest.mark.xfail(run=False)

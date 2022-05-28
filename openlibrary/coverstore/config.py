@@ -1,10 +1,10 @@
-image_engine = "pil"
+image_engine = 'pil'
 image_sizes = dict(S=(116, 58), M=(180, 360), L=(500, 500))
 
 default_image = None
 data_root = None
 
-ol_url = "http://openlibrary.org/"
+ol_url = 'http://openlibrary.org/'
 
 # ids of the blocked covers
 # this is used to block covers when someone requests
