@@ -35,6 +35,8 @@ def is_spam(i=None, allow_privileged_edits=False):
         # Allow admins and librarians to make edits:
         if allow_privileged_edits and (user.is_admin() or user.is_librarian()):
             return False
+        if user.is_read_only():
+            return True
         # Prevent deleted users from making edits:
         if user.type.key == '/type/delete':
             return True
