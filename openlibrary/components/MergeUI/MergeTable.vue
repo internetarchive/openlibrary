@@ -36,7 +36,7 @@
           <td />
         </template>
       </MergeRow>
-      <tr v-else><td>⏳</td></tr>
+      <tr v-else><td :colspan="fields ? fields.length+1 : 1"><div>⏳</div></td></tr>
     </tfoot>
   </table>
 </template>
@@ -259,6 +259,7 @@ time {
 
 table.main {
   border-collapse: collapse;
+  min-width: 100%;
 
   thead,
   tfoot {
@@ -283,6 +284,10 @@ table.main {
     & > tr {
       border-top: 4px double;
       box-shadow: 0 2px 4px inset black;
+
+      & > td > div {
+        min-height: @row-height;
+      }
     }
   }
 
