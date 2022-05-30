@@ -2,7 +2,7 @@ $def with (doc, lists, show_header=True)
 
 $if show_header:
     <div id="contentHead">
-        $ header = render_template("lists/header", doc, lists)
+        $ header = render_template("eader", doc, lists)
         $var title: $_('%(owner)s / Lists', owner=header.title)
         $:header
     </div>
