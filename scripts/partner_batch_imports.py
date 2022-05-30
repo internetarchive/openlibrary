@@ -192,7 +192,7 @@ def csv_to_ol_json_item(line):
     return {'ia_id': b.source_id, 'data': b.json()}
 
 def is_low_quality_book(book_item):
-    """check if a book item is of low quality which means that 1) 'notebook' in in its
+    """check if a book item is of low quality which means that 1) 'notebook' is in its
     title (regardless of case) AND 2) one of its publishers (regardless of case) is in
     the set of low quality publishers.  Leverage Python set intersection for speed."""
     return (
