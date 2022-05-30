@@ -28,7 +28,7 @@ def _update_spam_doc(**kwargs) -> None:
     doc.update(_key="spamwords", **kwargs)
     web.ctx.site.store["spamwords"] = doc
 
- 
+
 def is_spam(i=None, allow_privileged_edits: bool = False) -> bool:
     user = web.ctx.site.get_user()
 
