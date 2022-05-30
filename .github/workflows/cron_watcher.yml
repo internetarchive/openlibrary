@@ -1,0 +1,21 @@
+# A GitHub Action to verify that certain Open Library cron jobs have completed successfully.
+# Data dumps happen on the 1st day of the month so check on them on the 2nd day of the month.
+# Partner dumps happen on the 17th day of the month so check on them on the 18th day of the month.
+# Always check again two days later in case they needed to be re-run.
+# https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
+
+name: cron_watcher
+on:
+  schedule:  # At 3:45am on the 2nd, 4th, 18th, and 20th day of the month.
+    - cron: '45 3 2,4,18,20 * *'  # https://cron.help
+  workflow_dispatch:  # This job can also be run on-demand.
+jobs:
+  cron_watcher:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: actions/setup-python@v3
+      - run: pip install internetarchive
+      - run: scripts/cron_watcher.py
