@@ -26,6 +26,27 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.bwb")
 
+LOW_QUALITY_PUBLISHERS: set[str] = {
+    "1570 publishing",
+    "bahija",
+    "bruna murino",
+    "creative elegant edition",
+    "delsee notebooks",
+    "grace garcia",
+    "holo",
+    "jeryx publishing",
+    "mado",
+    "mazzo",
+    "mikemix",
+    "mitch allison",
+    "pickleball publishing",
+    "pizzelle passion",
+    "punny cuaderno",
+    "razal koraya",
+    "t. d. publishing",
+    "tobias publishing",
+}
+
 SCHEMA_URL = (
     "https://raw.githubusercontent.com/internetarchive"
     "/openlibrary-client/master/olclient/schemata/import.schema.json"
@@ -171,11 +192,12 @@ def csv_to_ol_json_item(line):
     return {'ia_id': b.source_id, 'data': b.json()}
 
 def is_low_quality_book(book_item):
-    """check if a book item is of low quality"""
+    """check if a book item is of low quality which means that 1) 'notebook' in in its
+    title (regardless of case) AND 2) one of its publishers (regardless of case) is in
+    the set of low quality publishers.  Leverage Python set intersection for speed."""
     return (
         "notebook" in book_item['title'].casefold() and
-        any("independently published" in publisher.casefold()
-            for publisher in book_item['publishers'])
+        {p.casefold() for p in book_item['publishers']} & LOW_QUALITY_PUBLISHERS
     )
 
 def batch_import(path, batch, batch_size=5000):
