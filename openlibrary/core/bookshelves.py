@@ -39,7 +39,7 @@ class Bookshelves(db.CommonExtras):
 
     @classmethod
     def total_books_logged(
-        cls, shelf_ids: Optional[list[str]] = None, since: Optional[date] = None
+        cls, shelf_ids: list[str] = None, since: date = None
     ) -> int:
         """Returns (int) number of books logged across all Reading Log shelves (e.g. those
         specified in PRESET_BOOKSHELVES). One may alternatively specify a
