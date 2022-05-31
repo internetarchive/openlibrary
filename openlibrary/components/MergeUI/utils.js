@@ -105,11 +105,19 @@ export function make_redirect(master_key, dupe) {
     };
 }
 
-export function get_editions(work_key) {
+export function get_editions(work_key, limit=50) {
     const endpoint = `${work_key}/editions.json`;
     // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
     const url = location.host.endsWith('.openlibrary.org') ? `https://openlibrary.org${endpoint}` : endpoint;
-    return fetch(url).then(r => r.json());
+    return fetch(`${url}?${new URLSearchParams({ limit })}`).then(r => {
+        let response = r.json();
+        return response.then(data => {
+            if (data && data.size && data.size > 50 && limit === 50)
+                return get_editions(work_key, data.size);
+            else
+                return response;
+        });
+    })
 }
 
 export function get_lists(key, limit=10) {
