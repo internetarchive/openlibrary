@@ -2,17 +2,18 @@ $def with (input, q_param, do_search, get_doc, get_availability_of_ocaids, fullt
 
 $ fulltext_names = {'true': 'Ebooks', 'false': 'Exclude ebooks'}
 
-$def add_facet_url(k, v):
-    $if k != 'has_fulltext':
-        $changequery(page=None,**{k:param.get(k, []) + [v]})
-    $else:
-        $changequery(page=None,**{k:v})
+$code:
+    def add_facet_url(k, v):
+        if k != 'has_fulltext':
+            return changequery(page=None,**{k:param.get(k, []) + [v]})
+        else:
+            return changequery(page=None,**{k:v})
 
-$def del_facet_url(k, v):
-    $if k != 'has_fulltext':
-        $changequery(page=None,**{k:[i for i in param.get(k, []) if i != v]})
-    $else:
-        $changequery(page=None,**{k:None})
+    def del_facet_url(k, v):
+        if k != 'has_fulltext':
+            return changequery(page=None,**{k:[i for i in param.get(k, []) if i != v]})
+        else:
+            return changequery(page=None,**{k:None})
 
 $ param = {}
 $for p in ['q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor', 'publish_place', 'lccn', 'ia', 'first_sentence', 'publisher', 'author_key', 'debug', 'subject', 'place', 'person', 'time'] + facet_fields:
@@ -135,7 +136,7 @@ $ )
                             <span title="$_('Published by')">$display</span>
                         $elif header == 'author_key':
                             <span title="$_('Author')">$display</span>
-                        <span style="padding-right:15px;"><a href="$:del_facet_url(header, k)" title="$_('Click to remove this facet')" class="facetRemove plain red">[x]</a></span>
+                        <span style="padding-right:15px;"><a href="$del_facet_url(header, k)" title="$_('Click to remove this facet')" class="facetRemove plain red">[x]</a></span>
                 </strong></span></p>
             $var title: $_('%(title)s - search', title=', '.join(title))
 
@@ -214,9 +215,9 @@ $elif param and len(docs):
                        $ display = _('yes')
                     $else:
                        $ display = _('no')
-                    <span class="small"><a href="$:add_facet_url(header, k)" title="$_('Filter results for ebook availability')">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
+                    <span class="small"><a href="$add_facet_url(header, k)" title="$_('Filter results for ebook availability')">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
                 $else:
-                    <span class="small"><a href="$:add_facet_url(header, k)" title="$_('Filter results for %(facet)s', facet=display)">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
+                    <span class="small"><a href="$add_facet_url(header, k)" title="$_('Filter results for %(facet)s', facet=display)">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
                 </div>
             $if len(counts) > start_facet_count:
                 <div class="facetMoreLess">

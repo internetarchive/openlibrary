@@ -45,7 +45,7 @@ $add_metatag(property="og:image", content=meta_photo_url)
       $for item in items:
         $ work = solr_works.get(item['key']) or item
         $ decorations = (bookshelf_id and owners_page) and macros.ReadingLogButton(work, read_status=bookshelf_id)
-        $ star_rating = macros.StarRatings(item, redir_url='/account/books/already-read', id=item_number, show_modal_link=False) if include_ratings else None
+        $ star_rating = macros.StarRatings(item, redir_url='/account/books/already-read', id=item_number) if include_ratings else None
         $:macros.SearchResultsWork(work, decorations=decorations, availability=item.get('availability'), rating=star_rating)
         $ item_number = item_number + 1
     $else:

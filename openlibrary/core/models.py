@@ -758,6 +758,9 @@ class User(Thing):
     def has_librarian_tools(self):
         return self.is_usergroup_member('/usergroup/librarian-tools')
 
+    def is_read_only(self):
+        return self.is_usergroup_member('/usergroup/read-only')
+
     def get_lists(self, seed=None, limit=100, offset=0, sort=True):
         """Returns all the lists of this user.
 

@@ -37,7 +37,9 @@ $def with (observations, user, num_found, page=1, results_per_page=25)
               </ul>
               <div class="observation-buttons">
                 <button class="delete-observations-button cta-btn" id="$work_id-observation-delete">$_('Delete')</button>
-                $:macros.ObservationsModal(i.work, _('Update Reviews'), modal_id, classes="observations-update-link", reload_id=list_id)
+                $ link_text = _('Update Reviews')
+                $ link_markup = '<a href="javascript:;" class="observations-modal-link">%s</a>' % link_text
+                $:macros.ObservationsModal(i.work, link_markup, modal_id, classes="observations-update-link", reload_id=list_id)
               </div>
             </div>
           </li>

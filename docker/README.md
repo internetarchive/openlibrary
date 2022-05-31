@@ -6,7 +6,7 @@ Before attempting to build openlibrary using the Docker instructions below, plea
 
 - Install `docker-ce`: https://docs.docker.com/get-docker/ (tested with version 19.*)
 - Install `docker-compose`: https://docs.docker.com/compose/install/
-- Make sure you `git clone` openlibrary using `ssh` instead of `https` as git submodules (e.g. `infogami` and `acs`) may not fetch correctly otherwise. You can modify an existing openlibrary repository using `git remote rm origin` and then `git remote add origin git@github.com:internetarchive/openlibrary.git`
+- Make sure you `git clone` openlibrary using `ssh` instead of `https` as git submodules (e.g. `infogami` and `acs`) may not fetch correctly otherwise. You can modify an existing openlibrary repository using `git remote rm origin` and then `git remote add origin git@github.com:internetarchive/openlibrary.git`. Then run `git submodule init; git submodule sync; git submodule update` to get rid of the issue.
 
 ## Setup/Teardown Commands
 
