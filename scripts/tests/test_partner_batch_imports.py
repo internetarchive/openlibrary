@@ -12,6 +12,7 @@ non_books = [
     "AUS49852633|1423639103||9781423639107|US|I|TS||||I Like Big Books T-Shirt X-Large|||1 vol.|||||||20141201|Gibbs Smith, Publisher|DE|X||||||||||||||ENG||0.280|27.940|22.860|2.540||||||T|||||||20748||||||326333|AUD|39.99||||||||||||||||||||||||||||||||||||||||||||||||||||||||||BIP,OTH|49852633|35|9781423639107|49099247|||19801468|||||||Gibbs Smith, Publisher||1||||||||||||||||NON000000|||WZ|||",  # noqa: E501
 ]
 
+
 class TestBiblio:
     def test_sample_csv_row(self):
         b = Biblio(csv_row.strip().split('|'))

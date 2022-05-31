@@ -18,6 +18,7 @@ LAST_UPDATED_TIME = './standard_ebooks_last_updated.txt'
 IMAGE_REL = 'http://opds-spec.org/image'
 BASE_SE_URL = 'https://standardebooks.org'
 
+
 def get_feed():
     """Fetches and returns Standard Ebook's feed."""
     r = requests.get(FEED_URL)
@@ -44,10 +45,8 @@ def map_data(entry) -> dict[str, Any]:
         "authors": [{"name": author.name} for author in entry.authors],
         "description": entry.content[0].value,
         "subjects": [tag.term for tag in entry.tags],
-        "identifiers": {
-            "standard_ebooks": [std_ebooks_id]
-        },
-        "languages": [marc_lang_code]
+        "identifiers": {"standard_ebooks": [std_ebooks_id]},
+        "languages": [marc_lang_code],
     }
 
     if image_uris:
@@ -66,10 +65,7 @@ def create_batch(records: list[dict[str, str]]) -> None:
     now = time.gmtime(time.time())
     batch_name = f'standardebooks-{now.tm_year}{now.tm_mon}'
     batch = Batch.find(batch_name) or Batch.new(batch_name)
-    batch.add_items([
-        {'ia_id': r['source_records'][0], 'data': r}
-        for r in records
-    ])
+    batch.add_items([{'ia_id': r['source_records'][0], 'data': r} for r in records])
 
 
 def get_last_updated_time() -> Optional[str]:
@@ -127,16 +123,15 @@ def convert_date_string(date_string: Optional[str]) -> time.struct_time:
 
 
 def filter_modified_since(
-    entries,
-    modified_since: time.struct_time
+    entries, modified_since: time.struct_time
 ) -> list[dict[str, str]]:
     """Returns a list of import objects."""
     return [map_data(e) for e in entries if e.updated_parsed > modified_since]
 
 
 def import_job(
-        ol_config: str,
-        dry_run=False,
+    ol_config: str,
+    dry_run=False,
 ) -> None:
     """
     :param ol_config: Path to openlibrary.yml file

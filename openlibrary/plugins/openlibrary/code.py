@@ -594,6 +594,7 @@ class opds(delegate.mode):
             raise web.notfound('')
         else:
             from openlibrary.plugins.openlibrary import opds
+
             try:
                 result = opds.OPDSEntry(page).to_string()
             except:

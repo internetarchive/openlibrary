@@ -364,7 +364,9 @@ class SolrProcessor:
                 e['public_scan'] = ('lendinglibrary' not in collection) and (
                     'printdisabled' not in collection
                 )
-                e['access_restricted_item'] = ia_meta_fields.get('access_restricted_item', False)
+                e['access_restricted_item'] = ia_meta_fields.get(
+                    'access_restricted_item', False
+                )
 
             if 'identifiers' in e:
                 for k, id_list in e['identifiers'].items():

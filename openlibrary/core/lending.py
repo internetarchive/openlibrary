@@ -313,7 +313,7 @@ def get_available(
         headers = {
             "x-client-id": client_ip,
             "x-preferred-client-id": client_ip,
-            "x-application-id": "openlibrary"
+            "x-application-id": "openlibrary",
         }
         response = requests.get(
             url, headers=headers, timeout=config_http_request_timeout
@@ -564,9 +564,7 @@ def get_loans_of_user(user_key):
     account = OpenLibraryAccount.get(username=user_key.split('/')[-1])
 
     loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
-    loans = [Loan(d) for d in loandata] + (
-        _get_ia_loans_of_user(account.itemname)
-    )
+    loans = [Loan(d) for d in loandata] + (_get_ia_loans_of_user(account.itemname))
     return loans
 
 

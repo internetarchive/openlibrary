@@ -32,10 +32,12 @@ cached_reading_log_summary = cache.memcache_memoize(
     reading_log_summary, 'stats.readling_log_summary', timeout=dateutil.HOUR_SECS
 )
 
+
 def cached_get_most_logged_books(shelf_id=None, since_days=1, limit=20):
     return cache.memcache_memoize(
         get_most_logged_books, 'stats.trending', timeout=dateutil.HOUR_SECS
     )(shelf_id=shelf_id, since_days=since_days, limit=limit)
+
 
 def get_most_logged_books(shelf_id=None, since_days=1, limit=20):
     """
@@ -47,11 +49,12 @@ def get_most_logged_books(shelf_id=None, since_days=1, limit=20):
         delegate.fakeload()
 
     # Return as dict to enable cache serialization
-    return [dict(book) for book in
-            Bookshelves.most_logged_books(
-                shelf_id=shelf_id,
-                since=dateutil.date_n_days_ago(since_days),
-                limit=limit)]
+    return [
+        dict(book)
+        for book in Bookshelves.most_logged_books(
+            shelf_id=shelf_id, since=dateutil.date_n_days_ago(since_days), limit=limit
+        )
+    ]
 
 
 def reading_log_leaderboard(limit=None):
@@ -93,6 +96,7 @@ def get_cached_reading_log_stats(limit):
     stats.update(cached_reading_log_leaderboard(limit))
     return stats
 
+
 class stats(app.view):
     path = "/stats"
 
@@ -108,11 +112,13 @@ class lending_stats(app.view):
     def GET(self, key, value):
         raise web.seeother("/")
 
+
 def get_activity_stream(limit=None):
     # enable to work w/ cached
     if 'env' not in web.ctx:
         delegate.fakeload()
     return Bookshelves.get_recently_logged_books(limit=limit)
+
 
 def get_cached_activity_stream(limit):
     return cache.memcache_memoize(
@@ -120,6 +126,7 @@ def get_cached_activity_stream(limit):
         'stats.activity_stream',
         timeout=dateutil.HOUR_SECS,
     )(limit)
+
 
 class activity_stream(app.view):
     path = "/trending(/?.*)"
@@ -133,15 +140,20 @@ class activity_stream(app.view):
             logged_books = get_activity_stream(limit=limit)
         else:
             shelf_id = None  # optional; get from web.input()?
-            logged_books = cached_get_most_logged_books(since_days={
-                'daily': 1,
-                'weekly': 7,
-                'monthly': 30,
-                'yearly': 365,
-                'forever': None,
-            }[page], limit=limit)
+            logged_books = cached_get_most_logged_books(
+                since_days={
+                    'daily': 1,
+                    'weekly': 7,
+                    'monthly': 30,
+                    'yearly': 365,
+                    'forever': None,
+                }[page],
+                limit=limit,
+            )
 
-        work_index = get_solr_works(f"/works/OL{book['work_id']}W" for book in logged_books)
+        work_index = get_solr_works(
+            f"/works/OL{book['work_id']}W" for book in logged_books
+        )
         availability_index = get_availabilities(work_index.values())
         for work_key in availability_index:
             work_index[work_key]['availability'] = availability_index[work_key]

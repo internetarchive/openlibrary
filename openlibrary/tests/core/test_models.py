@@ -113,7 +113,6 @@ class TestList:
 
 
 class TestWork:
-
     def test_resolve_redirect_chain(self, monkeypatch):
         # e.g. https://openlibrary.org/works/OL2163721W.json
 
@@ -131,6 +130,7 @@ class TestWork:
 
         import web
         from openlibrary.mocks import mock_infobase
+
         site = mock_infobase.MockSite()
         site.save(web.storage(work1))
         site.save(web.storage(work2))
@@ -142,5 +142,7 @@ class TestWork:
         redirect_chain = models.Work.get_redirect_chain(work_key)
         assert redirect_chain
         resolved_work = redirect_chain[-1]
-        assert str(resolved_work.type) == type_work['key'], f"{resolved_work} of type {resolved_work.type} should be {type_work['key']}"
+        assert (
+            str(resolved_work.type) == type_work['key']
+        ), f"{resolved_work} of type {resolved_work.type} should be {type_work['key']}"
         assert resolved_work.key == work4_key, f"Should be work4.key: {resolved_work}"

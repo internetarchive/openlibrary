@@ -449,12 +449,22 @@ class export(delegate.page):
 
         if format == "html":
             data = self.get_exports(lst)
-            html = render_template("lists/export_as_html", lst, data["editions"], data["works"], data["authors"])
+            html = render_template(
+                "lists/export_as_html",
+                lst,
+                data["editions"],
+                data["works"],
+                data["authors"],
+            )
             return delegate.RawText(html)
         elif format == "bibtex":
             data = self.get_exports(lst)
             html = render_template(
-                "lists/export_as_bibtex", lst, data["editions"], data["works"], data["authors"]
+                "lists/export_as_bibtex",
+                lst,
+                data["editions"],
+                data["works"],
+                data["authors"],
             )
             return delegate.RawText(html)
         elif format == "json":
@@ -491,7 +501,9 @@ class export(delegate.page):
 
         if not raw:
             if "editions" in export_data:
-                export_data["editions"] = [self.make_doc(e) for e in export_data["editions"]]
+                export_data["editions"] = [
+                    self.make_doc(e) for e in export_data["editions"]
+                ]
                 lst.preload_authors(export_data["editions"])
             else:
                 export_data["editions"] = []
@@ -501,7 +513,9 @@ class export(delegate.page):
             else:
                 export_data["works"] = []
             if "authors" in export_data:
-                export_data["authors"] = [self.make_doc(e) for e in export_data["authors"]]
+                export_data["authors"] = [
+                    self.make_doc(e) for e in export_data["authors"]
+                ]
                 lst.preload_authors(export_data["authors"])
             else:
                 export_data["authors"] = []

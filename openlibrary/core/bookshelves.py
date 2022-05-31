@@ -183,7 +183,6 @@ class Bookshelves(db.CommonExtras):
             data = {'username': username}
         return list(oldb.query(query, vars=data))
 
-
     @classmethod
     def get_recently_logged_books(cls, bookshelf_id=None, limit=50, page=1):
         oldb = db.get_db()
@@ -199,7 +198,6 @@ class Bookshelves(db.CommonExtras):
             "ORDER BY created DESC LIMIT $limit OFFSET $offset"
         )
         return list(oldb.query(query, vars=data))
-
 
     @classmethod
     def get_users_read_status_of_work(cls, username, work_id):

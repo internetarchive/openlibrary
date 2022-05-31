@@ -34,8 +34,7 @@ class FnToCLI:
         num_required = len(arg_names) - len(defaults)
         default_args = arg_names[num_required:]
         defaults = {  # type: ignore
-            arg: default
-            for [arg, default] in zip(default_args, defaults)
+            arg: default for [arg, default] in zip(default_args, defaults)
         }
 
         docs = fn.__doc__ or ''

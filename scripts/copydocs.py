@@ -159,14 +159,14 @@ class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
 
 
 def copy(
-        src: Union[Disk, OpenLibrary],
-        dest: Union[Disk, OpenLibrary],
-        keys: list[str],
-        comment: str,
-        recursive=False,
-        editions=False,
-        saved: set[str] = None,
-        cache: dict =None,
+    src: Union[Disk, OpenLibrary],
+    dest: Union[Disk, OpenLibrary],
+    keys: list[str],
+    comment: str,
+    recursive=False,
+    editions=False,
+    saved: set[str] = None,
+    cache: dict = None,
 ):
     """
     :param src: where we'll be copying form
@@ -229,15 +229,12 @@ def copy(
         k
         for k in keys
         # Ignore /scan_record and /scanning_center ; they can cause infinite loops?
-        if k not in saved and not k.startswith('/scan')]
+        if k not in saved and not k.startswith('/scan')
+    ]
     docs = fetch(keys)
 
     if editions:
-        work_keys = [
-            key
-            for key in keys
-            if key.startswith('/works/')
-        ]
+        work_keys = [key for key in keys if key.startswith('/works/')]
 
         assert isinstance(src, OpenLibrary), "fetching editions only works with OL src"
         if work_keys:
@@ -248,14 +245,19 @@ def copy(
                 fields=['edition_key'],
             )
             edition_keys = [
-                f"/books/{olid}"
-                for doc in resp['docs']
-                for olid in doc['edition_key']
+                f"/books/{olid}" for doc in resp['docs'] for olid in doc['edition_key']
             ]
             if edition_keys:
                 print("copying edition keys")
-                copy(src, dest, edition_keys, comment, recursive=recursive, saved=saved,
-                     cache=cache)
+                copy(
+                    src,
+                    dest,
+                    edition_keys,
+                    comment,
+                    recursive=recursive,
+                    saved=saved,
+                    cache=cache,
+                )
 
     if recursive:
         refs = get_references(docs)
@@ -322,15 +324,15 @@ def copy_list(src, dest, list_key, comment):
 
 
 def main(
-        keys: list[str],
-        src="http://openlibrary.org/",
-        dest="http://localhost:8080",
-        comment="",
-        recursive=True,
-        editions=True,
-        lists: list[str] = None,
-        search: str = None,
-        search_limit: int = 10,
+    keys: list[str],
+    src="http://openlibrary.org/",
+    dest="http://localhost:8080",
+    comment="",
+    recursive=True,
+    editions=True,
+    lists: list[str] = None,
+    search: str = None,
+    search_limit: int = 10,
 ):
     """
     Script to copy docs from one OL instance to another.
@@ -357,9 +359,11 @@ def main(
     # Mypy doesn't handle union-ing types across if statements -_-
     # https://github.com/python/mypy/issues/6233
     src_ol: Union[Disk, OpenLibrary] = (
-        OpenLibrary(src) if src.startswith("http://") else Disk(src))
+        OpenLibrary(src) if src.startswith("http://") else Disk(src)
+    )
     dest_ol: Union[Disk, OpenLibrary] = (
-        OpenLibrary(dest) if dest.startswith("http://") else Disk(dest))
+        OpenLibrary(dest) if dest.startswith("http://") else Disk(dest)
+    )
 
     if isinstance(dest_ol, OpenLibrary):
         section = "[%s]" % web.lstrips(dest, "http://").strip("/")
@@ -368,7 +372,7 @@ def main(
         else:
             dest_ol.login("admin", "admin123")
 
-    for list_key in (lists or []):
+    for list_key in lists or []:
         copy_list(src_ol, dest_ol, list_key, comment=comment)
 
     if search:

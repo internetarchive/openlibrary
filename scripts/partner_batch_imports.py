@@ -100,7 +100,9 @@ class Biblio:
         # Assert importable
         for field in self.REQUIRED_FIELDS + ['isbn_13']:
             assert getattr(self, field), field
-        assert self.primary_format not in self.NONBOOK, f"{self.primary_format} is NONBOOK"
+        assert (
+            self.primary_format not in self.NONBOOK
+        ), f"{self.primary_format} is NONBOOK"
 
     @staticmethod
     def contributors(data):
@@ -155,10 +157,12 @@ def load_state(path, logfile):
     except (ValueError, OSError):
         return filenames, 0
 
+
 def update_state(logfile, fname, line_num=0):
     """Records the last file we began processing and the current line"""
     with open(logfile, 'w') as fout:
         fout.write(f'{fname},{line_num}\n')
+
 
 def csv_to_ol_json_item(line):
     """converts a line to a book item"""
@@ -170,13 +174,14 @@ def csv_to_ol_json_item(line):
     b = Biblio(data)
     return {'ia_id': b.source_id, 'data': b.json()}
 
+
 def is_low_quality_book(book_item):
     """check if a book item is of low quality"""
-    return (
-        "notebook" in book_item['title'].casefold() and
-        any("independently published" in publisher.casefold()
-            for publisher in book_item['publishers'])
+    return "notebook" in book_item['title'].casefold() and any(
+        "independently published" in publisher.casefold()
+        for publisher in book_item['publishers']
     )
+
 
 def batch_import(path, batch, batch_size=5000):
     logfile = os.path.join(path, 'import.log')
@@ -211,6 +216,7 @@ def batch_import(path, batch, batch_size=5000):
             if book_items:
                 batch.add_items(book_items)
             update_state(logfile, fname, line_num)
+
 
 def main(ol_config: str, batch_path: str):
     load_config(ol_config)

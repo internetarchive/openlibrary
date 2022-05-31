@@ -601,6 +601,7 @@ class Work(models.Work):
     @cached_property
     def _solr_data(self):
         from openlibrary.book_providers import get_solr_keys
+
         fields = [
             "cover_edition_key",
             "cover_id",
@@ -732,6 +733,7 @@ class Work(models.Work):
         if ebooks_only:
             if self._solr_data:
                 from openlibrary.book_providers import get_book_providers
+
                 # Always use solr data whether it's up to date or not
                 # to determine which providers this book has
                 # We only make additional queries when a
