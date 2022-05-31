@@ -110,7 +110,7 @@ export function get_editions(work_key, limit=50) {
     // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
     const url = location.host.endsWith('.openlibrary.org') ? `https://openlibrary.org${endpoint}` : endpoint;
     return fetch(`${url}?${new URLSearchParams({ limit })}`).then(r => {
-        let response = r.json();
+        const response = r.json();
         return response.then(data => {
             if (data && data.size && data.size > 50 && limit === 50)
                 return get_editions(work_key, data.size);
