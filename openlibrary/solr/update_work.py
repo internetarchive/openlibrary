@@ -490,14 +490,11 @@ class SolrProcessor:
             if m:
                 return m.group(1)
 
-    def get_subject_counts(self, w, editions, has_fulltext):
+    def get_subject_counts(self, w):
         """
         Get the counts of the work's subjects grouped by subject type.
-        Also includes subjects like "Accessible book" or "Protected DAISY" based on editions.
 
         :param dict w: Work
-        :param list[dict] editions: Editions of Work
-        :param bool has_fulltext: Whether this work has a copy on IA
         :rtype: dict[str, dict[str, int]]
         :return: Subjects grouped by type, then by subject and count. Example:
         `{ subject: { "some subject": 1 }, person: { "some person": 1 } }`
@@ -532,30 +529,18 @@ class SolrProcessor:
                     raise
         # FIXME END_REMOVE
 
-        # TODO This literally *exactly* how has_fulltext is calculated
-        if any(e.get('ocaid', None) for e in editions):
-            subjects.setdefault('subject', {})
-            subjects['subject']['Accessible book'] = (
-                subjects['subject'].get('Accessible book', 0) + 1
-            )
-            if not has_fulltext:
-                subjects['subject']['Protected DAISY'] = (
-                    subjects['subject'].get('Protected DAISY', 0) + 1
-                )
         return subjects
 
     def build_data(
         self,
         w: dict,
         editions: list[dict],
-        subjects: dict[str, dict[str, int]],
         ia_metadata: dict[str, Optional[IALiteMetadata]],
     ) -> dict:
         """
         Get the Solr document to insert for the provided work.
 
         :param w: Work
-        :param subjects: subject counts grouped by subject_type
         """
         d = {}
 
@@ -641,12 +626,6 @@ class SolrProcessor:
         add("last_modified_i", self.get_last_modified(w, editions))
 
         d |= self.get_ebook_info(editions, ia_metadata)
-
-        # Anand - Oct 2013
-        # If not public scan then add the work to Protected DAISY subject.
-        # This is not the right place to add it, but seems to the quickest way.
-        if d.get('has_fulltext') and not d.get('public_scan_b'):
-            subjects['subject']['Protected DAISY'] = 1
 
         return d
 
@@ -852,17 +831,13 @@ def build_data2(
     identifiers: dict[str, list] = defaultdict(list)
     editions = p.process_editions(w, editions, ia, identifiers)
 
-    has_fulltext = any(e.get('ocaid', None) for e in editions)
-
-    subjects = p.get_subject_counts(w, editions, has_fulltext)
-
     def add_field(doc, name, value):
         doc[name] = value
 
     def add_field_list(doc, name, field_list):
         doc[name] = list(field_list)
 
-    doc = p.build_data(w, editions, subjects, ia)
+    doc = p.build_data(w, editions, ia)
 
     work_cover_id = next(
         itertools.chain(
@@ -958,9 +933,10 @@ def build_data2(
     add_field_list(
         doc, 'author_facet', (' '.join(v) for v in zip(author_keys, author_names))
     )
+
+    subjects = p.get_subject_counts(w)
     # if subjects:
     #    add_field(doc, 'fiction', subjects['fiction'])
-
     for k in 'person', 'place', 'subject', 'time':
         if k not in subjects:
             continue
