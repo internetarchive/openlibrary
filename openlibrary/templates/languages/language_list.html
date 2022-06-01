@@ -1,8 +1,6 @@
-$def with (classes=None)
+$def with (classes='')
 
-$ class_attr = 'class=%s' % classes if classes else ''
-
-<ul id="locale-options" $class_attr>
+<ul class="locale-options $classes">
   <li><a href="#" lang="cs" data-lang-id="cs" title="$_('Czech')">Čeština (cs)</a></li>
   <li><a href="#" lang="de" data-lang-id="de" title="$_('German')">Deutsch (de)</a></li>
   <li><a href="#" lang="en" data-lang-id="en" title="$_('English')">English (en)</a></li>
