@@ -335,43 +335,6 @@ class Edition(Thing):
 
         return borrow.get_edition_loans(self)
 
-    def get_ebook_status(self):
-        """
-        None
-        "read-online"
-        "borrow-available"
-        "borrow-checkedout"
-        "borrow-user-checkedout"
-        "borrow-user-waiting"
-        "protected"
-        """
-        if self.get("ocaid"):
-            if not self.is_access_restricted():
-                return "read-online"
-            if not self.is_lendable_book():
-                return "protected"
-
-            if self.get_available_loans():
-                return "borrow-available"
-
-            user = web.ctx.site.get_user()
-            if not user:
-                return "borrow-checkedout"
-
-            checkedout_by_user = any(
-                loan.get('user') == user.key for loan in self.get_current_loans()
-            )
-            if checkedout_by_user:
-                return "borrow-user-checkedout"
-            if user.is_waiting_for(self):
-                return "borrow-user-waiting"
-            else:
-                return "borrow-checkedout"
-
-    def is_lendable_book(self):
-        """Returns True if the book is lendable."""
-        return self.in_borrowable_collection()
-
     def get_ia_download_link(self, suffix):
         """Returns IA download link for given suffix.
         The suffix is usually one of '.pdf', '.epub', '.mobi', '_djvu.txt'
@@ -381,7 +344,7 @@ class Edition(Thing):
             # The _filenames field is set by ia.get_metadata function
             filenames = metadata.get("_filenames")
             if filenames:
-                filename = some(f for f in filenames if f.endswith(suffix))
+                filename = next((f for f in filenames if f.endswith(suffix)), None)
             else:
                 # filenames is not in cache.
                 # This is required only until all the memcache entries expire
@@ -454,16 +417,6 @@ class Edition(Thing):
         )
 
 
-def some(values):
-    """Returns the first value that is True from the values iterator.
-    Works like any, but returns the value instead of bool(value).
-    Returns None if none of the values is True.
-    """
-    for v in values:
-        if v:
-            return v
-
-
 class Work(Thing):
     """Class to represent /type/work objects in OL."""
 
@@ -483,16 +436,6 @@ class Work(Thing):
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "e"))
     def edition_count(self):
         return self._site._request("/count_editions_by_work", data={"key": self.key})
-
-    def get_one_edition(self):
-        """Returns any one of the editions.
-
-        Used to get the only edition when edition_count==1.
-        """
-        # If editions from solr are available, use that.
-        # Otherwise query infobase to get the editions (self.editions makes infobase query).
-        editions = self.get_sorted_editions() or self.editions
-        return editions and editions[0] or None
 
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
