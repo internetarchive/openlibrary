@@ -179,9 +179,9 @@ ls -lhR
 # ========
 # Only archive if that caller has requested it and we are not testing.
 if [ $@ == *'--archive'* ]; then
-    if [[ -z $OLDUMP_TESTING ]]; then
-	  archive_dumps
-    fi
+  if [[ -z $OLDUMP_TESTING ]]; then
+    archive_dumps
+  fi
 fi
 
 # =================
