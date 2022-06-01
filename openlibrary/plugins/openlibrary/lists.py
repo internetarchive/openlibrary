@@ -15,6 +15,7 @@ from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.worksearch import subjects
+from openlibrary.coverstore.code import overlay_covers_over_background
 
 
 from PIL import Image
@@ -659,6 +660,8 @@ class lists_preview(delegate.page):
     path = r"(/people/[^/]+/lists/OL\d+L)/preview"
 
     def GET(self, key):
+        overlay_covers_over_background(key)
+        
         web.header("Content-Type", "image/png")
         with open('social-card-image.png', 'rb') as f:
             return delegate.RawText(f.read())

@@ -524,15 +524,15 @@ class delete:
             return 'no such id: %s' % id
 
 
-def overlay_covers_over_background():
+def overlay_covers_over_background(key):
     """This method take as an input a list with the five books, from a list, 
     and put their cover in the correct spot in order to create a new image for social-card"""
 
-    five_seeds = create_list_preview("/people/openlibrary/lists/OL1L")     
+    five_seeds = create_list_preview(key)     
     background = Image.open("/openlibrary/static/images/Twitter_Post_Background_Shelf_Color.png")
     
     logo = Image.open("/openlibrary/static/images/Open_Library_logo.png")
-    recom_text = create_preview_recommendation_text("/people/openlibrary/lists/OL1L")
+    recom_text = create_preview_recommendation_text(key)
     para = textwrap.wrap(recom_text, width=35)
     text_size=(344,33)
     logo_size=(168,41)
