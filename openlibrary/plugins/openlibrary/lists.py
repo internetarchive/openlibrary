@@ -649,7 +649,7 @@ def create_list_preview(lst_key):
     five_seeds = lst.seeds[0:5]
     return five_seeds
 
-def create_preview_recommendation_text(lst_key):   
+def create_preview_recommendation_text(lst_key):
     lst = web.ctx.site.get(lst_key)
     list_title = lst.name
     list_owner = lst.get_owner()

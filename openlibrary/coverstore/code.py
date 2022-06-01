@@ -530,7 +530,7 @@ def overlay_covers_over_background(key):
 
     five_seeds = create_list_preview(key)     
     background = Image.open("/openlibrary/static/images/Twitter_Post_Background_Shelf_Color.png")
-    
+
     logo = Image.open("/openlibrary/static/images/Open_Library_logo.png")
     recom_text = create_preview_recommendation_text(key)
     para = textwrap.wrap(recom_text, width=35)
@@ -541,7 +541,7 @@ def overlay_covers_over_background(key):
     W, H = background.size
     image = []
     for seed in five_seeds:
-        cover = seed.get_cover()        
+        cover = seed.get_cover()
 
         if  cover:
             response = requests.get(f"https://covers.openlibrary.org/b/id/{cover.id}-M.jpg")
@@ -552,7 +552,7 @@ def overlay_covers_over_background(key):
             #resize the image
             basewidth = 162
             wpercent = (basewidth / float(img.size[0]))
-            hsize = int((float(img.size[1]) * float(wpercent)))
+            hsize = int(float(img.size[1]) * float(wpercent))
             img = img.resize((basewidth, hsize), Image.ANTIALIAS)
             #w, h = img.size
             #ratio = h//w
@@ -576,7 +576,7 @@ def overlay_covers_over_background(key):
         background.paste(image[1], (312, 104 + max_height - image[1].size[1]))
         background.paste(image[2], (552, 104 + max_height - image[2].size[1]))
         background.paste(image[3], (792, 104 + max_height - image[3].size[1]))
-    
+
     elif len(image) == 3:
         background.paste(image[0], (190, 104 + max_height - image[0].size[1]))
         background.paste(image[1], (431, 104 + max_height - image[1].size[1]))
@@ -588,13 +588,13 @@ def overlay_covers_over_background(key):
 
     else:
         background.paste(image[0], (431, 104 + max_height - image[0].size[1]))
-        
+
 
     logo = logo.resize(logo_size, Image.ANTIALIAS)
     background.paste(logo, logo_position, logo)
 
-    draw = ImageDraw.Draw(background)   
-    font = ImageFont.truetype("/openlibrary/static/fonts/news_serif_bolditalic.ttf", 24)    
+    draw = ImageDraw.Draw(background)
+    font = ImageFont.truetype("/openlibrary/static/fonts/news_serif_bolditalic.ttf", 24)
     current_h=404
     for line in para:
         w, h = draw.textsize(line, font=font)
@@ -602,7 +602,7 @@ def overlay_covers_over_background(key):
         current_h += h + 10
 
 
-    
+
     background.save('social-card-image.png',"PNG", quality=100)
-    
-    
+
+
