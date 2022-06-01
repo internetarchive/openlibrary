@@ -525,10 +525,10 @@ class delete:
 
 
 def overlay_covers_over_background(key):
-    """This method take as an input a list with the five books, from a list, 
+    """This method take as an input a list with the five books, from a list,
     and put their cover in the correct spot in order to create a new image for social-card"""
 
-    five_seeds = create_list_preview(key)     
+    five_seeds = create_list_preview(key)
     background = Image.open("/openlibrary/static/images/Twitter_Post_Background_Shelf_Color.png")
 
     logo = Image.open("/openlibrary/static/images/Open_Library_logo.png")

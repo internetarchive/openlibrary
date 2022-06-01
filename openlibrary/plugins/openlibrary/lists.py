@@ -661,7 +661,7 @@ class lists_preview(delegate.page):
 
     def GET(self, key):
         overlay_covers_over_background(key)
-        
+
         web.header("Content-Type", "image/png")
         with open('social-card-image.png', 'rb') as f:
             return delegate.RawText(f.read())
