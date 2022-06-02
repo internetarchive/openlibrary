@@ -10,13 +10,10 @@ To Run:
 PYTHONPATH=. python ./scripts/partner_batch_imports.py /olsystem/etc/openlibrary.yml
 """
 
-import os
-import re
-import sys
-import web
 import datetime
-from datetime import timedelta
 import logging
+import os
+
 import requests
 
 from infogami import config  # noqa: F401
@@ -191,14 +188,26 @@ def csv_to_ol_json_item(line):
     b = Biblio(data)
     return {'ia_id': b.source_id, 'data': b.json()}
 
+
 def is_low_quality_book(book_item) -> bool:
-    """check if a book item is of low quality which means that 1) 'notebook' is in its
+    """
+    Check if a book item is of low quality which means that 1) 'notebook' is in its
     title (regardless of case) AND 2) one of its publishers (regardless of case) is in
-    the set of low quality publishers.  Leverage Python set intersection for speed."""
-    return bool(
-        "notebook" in book_item['title'].casefold() and
-        {p.casefold() for p in book_item['publishers']} & LOW_QUALITY_PUBLISHERS
-    )
+    the set of low quality publishers.  Leverage Python set intersection for speed.
+    """
+    publishers = {publisher.casefold() for publisher in book_item["publishers"]}
+    book_title = book_item["title"].casefold()  # should we .split() ?
+    if low_quality := "notebook" in book_title and publishers & LOW_QUALITY_PUBLISHERS:
+        return bool(low_quality)
+    """
+    A recent independently published book with these key words in its title (regardless
+    of case) is also considered a low quality book.
+    """
+    created_year = int(book_item.get("created", "0")[:4])  # YYYY
+    return "independently published" in publishers and created_year >= 2018 and any(
+                title in book_title for title in ("annotated", "annoté", "illustrated")
+            )
+
 
 def batch_import(path, batch, batch_size=5000):
     logfile = os.path.join(path, 'import.log')
@@ -234,11 +243,12 @@ def batch_import(path, batch, batch_size=5000):
                 batch.add_items(book_items)
             update_state(logfile, fname, line_num)
 
+
 def main(ol_config: str, batch_path: str):
     load_config(ol_config)
 
     # Partner data is offset ~15 days from start of month
-    date = datetime.date.today() - timedelta(days=15)
+    date = datetime.date.today() - datetime.timedelta(days=15)
     batch_name = "%s-%04d%02d" % ('bwb', date.year, date.month)
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch_import(batch_path, batch)

@@ -34,7 +34,7 @@ class TestBiblio:
         data = input_.strip().split('|')
         code = data[6]
         with pytest.raises(AssertionError, match=f'{code} is NONBOOK'):
-            b = Biblio(data)
+            _ = Biblio(data)
 
 
 def test_is_low_quality_book():
@@ -49,5 +49,20 @@ def test_is_low_quality_book():
     assert is_low_quality_book(book) is True, book
     book["publishers"] = ["hol", "mad", "mazz", "mikemi", "tobias publishers"]
     assert is_low_quality_book(book) is False, book
-    book["publishers"] =["razal", "tobias publishing", "koraya", "pickleball", "d"]
+    book["publishers"] = ["razal", "tobias publishing", "koraya", "pickleball", "d"]
     assert is_low_quality_book(book) is True, book
+
+    book = {
+        "title": "A aNNotaTEd Z",
+        "publishers": ["Independently Published"],
+        "created": "2017-09-01T05:14:17",
+    }
+    assert is_low_quality_book(book) is False, book
+    book["created"] = "2018"
+    assert is_low_quality_book(book) is True, book
+    book["publishers"] = ["Independently Publish"]
+    assert is_low_quality_book(book) is False, book
+    book["publishers"] += ["Independently Published"]
+    assert is_low_quality_book(book) is True, book
+    book["title"] = "A aNNotaTE Z"
+    assert is_low_quality_book(book) is False, book
