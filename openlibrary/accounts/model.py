@@ -354,7 +354,10 @@ class Account(web.storage):
                 grp.remove_user(patron.key)
 
             # Set preferences to default:
-            patron.save_preferences(patron.DEFAULT_PREFERENCES, msg='Reset preferences to default')
+            patron.save_preferences({
+                'updates': 'no',
+                'public_readlog': 'no'
+            })
 
             # Clear patron's profile page:
             data = {'key': patron.key, 'type': '/type/delete'}
