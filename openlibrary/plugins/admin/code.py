@@ -290,7 +290,7 @@ class people_view:
         if not user:
             raise web.notfound()
 
-        i = web.input(action=None, tag=None, bot=None)
+        i = web.input(action=None, tag=None, bot=None, dry_run=None)
         if i.action == "update_email":
             return self.POST_update_email(user, i)
         elif i.action == "update_password":
@@ -316,7 +316,8 @@ class people_view:
         elif i.action == "su":
             return self.POST_su(user)
         elif i.action == "anonymize_account":
-            return self.POST_anonymize_account(user)
+            test = True if i.dry_run else False
+            return self.POST_anonymize_account(user, test)
         else:
             raise web.seeother(web.ctx.path)
 
@@ -403,8 +404,8 @@ class people_view:
         web.setcookie(config.login_cookie_name, code, expires="")
         return web.seeother("/")
 
-    def POST_anonymize_account(self, account):
-        results = account.anonymize()
+    def POST_anonymize_account(self, account, test):
+        results = account.anonymize(test=test)
         msg = (
             f"Account anonymized. New username: {results['new_username']}. "
             f"Notes deleted: {results['booknotes_count']}. "

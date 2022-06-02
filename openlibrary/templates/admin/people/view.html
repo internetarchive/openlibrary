@@ -216,21 +216,15 @@ $ has_profile = person.get_user() is not None
     <tr>
         <td>$_("Anonymize Account:")</td>
         <td>
-            <form method="POST" id="anonymize-form">
-                <button type="submit" name="action" value="anonymize_account" style="float: right;" onclick="confirmAnonymize(event)">$_("Anonymize Account")</button>
+            <form method="POST" id="anonymize-form" action="?debug=true">
+                <input type="checkbox" id="dry-run-checkbox" name="dry_run">
+                <label for="dry-run-checkbox">Dry Run</label>
+                <button type="submit" name="action" value="anonymize_account" style="float: right;" class="account-anonymization-button" data-display-name="$person.username">$_("Anonymize Account")</button>
             </form>
         </td>
     </tr>
     </tbody>
   </table>
-
-<script>
-    function confirmAnonymize(event) {
-        if(!confirm('Really anonymize this patron? This will delete the patron\'s profile page and booknotes, and anonymize the patron\'s reading log, reviews, and star ratings.')) {
-            event.preventDefault()
-        }
-    }
-</script>
 
 <h2>$_("Loans")</h2>
 <div>

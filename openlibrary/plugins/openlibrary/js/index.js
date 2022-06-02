@@ -301,9 +301,18 @@ jQuery(function () {
         document.getElementById('password').value = 'admin123'
         document.getElementById('remember').checked = true
     }
-    if (document.getElementById('adminLinks')) {
+    const anonymizationButton = document.querySelector('.account-anonymization-button')
+    const adminLinks = document.getElementById('adminLinks')
+    if (adminLinks || anonymizationButton) {
         import(/* webpackChunkName: "admin" */ './admin')
-            .then((module) => module.initAdmin());
+            .then(module => {
+                if (adminLinks) {
+                    module.initAdmin();
+                }
+                if (anonymizationButton) {
+                    module.initAnonymizationButton(anonymizationButton);
+                }
+            });
     }
 
     if (window.matchMedia('(display-mode: standalone)').matches) {
