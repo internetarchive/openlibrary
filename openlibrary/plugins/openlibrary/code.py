@@ -603,6 +603,24 @@ class opds(delegate.mode):
                     result, content_type=' application/atom+xml;profile=opds'
                 )
 
+class opds_feed(delegate.page):
+    path = '/opds/?(.*)'
+
+    def GET(self, partner=None):
+        mapping = {
+            "pressbooks": "ol__:pressbooks",
+            "sfpl": "ol__:marc:marc_openlibraries_sanfranciscopubliclibrary",
+            "ithaca_college": "ol__:marc:marc_ithaca_college",
+            "phillips_academy": "ol__:marc:marc_openlibraries_phillipsacademy",
+            "marygrove": "ol__:marc:marc_marygrove",
+            "trent": "ol__:marc:OpenLibraries-Trent-MARCs",
+            "claremont": "ol__:marc:marc_claremont_school_theology",
+        }
+        data = (
+            mapping if not partner else
+            requests.get(f'https://services-opds-feature-openlibrary.dev.archive.org/catalog?query={mapping.get(partner)}').json()
+        )
+        return delegate.RawText(json.dumps(data), content_type="application/json")
 
 delegate.media_types['application/marcxml+xml'] = 'marcxml'
 
