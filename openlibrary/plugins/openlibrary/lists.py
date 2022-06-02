@@ -659,9 +659,17 @@ def create_preview_recommendation_text(lst_key):
 class lists_preview(delegate.page):
     path = r"(/people/[^/]+/lists/OL\d+L)/preview"
 
-    def GET(self, key):
-        overlay_covers_over_background(key)
+    def GET(self, path):
+        background = overlay_covers_over_background(path)
 
         web.header("Content-Type", "image/png")
-        with open('social-card-image.png', 'rb') as f:
-            return delegate.RawText(f.read())
+        # with open('social-card-image.png', 'rb') as f:
+
+        # with open(background, "rb") as f:
+
+        # f = Image.frombuffer("I;16", (5, 10), background, "raw", "I;12")
+
+        # b = base64.b64encode(background)
+        # img = Image.open(io.BytesIO(b))
+        # img.show()
+        return delegate.RawText(img.read())

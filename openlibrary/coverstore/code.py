@@ -7,7 +7,7 @@ import os
 
 import memcache
 import requests
-from openlibrary.plugins.openlibrary.lists import create_list_preview, create_preview_recommendation_text
+
 import web
 
 from PIL import Image
@@ -524,15 +524,16 @@ class delete:
             return 'no such id: %s' % id
 
 
-def overlay_covers_over_background(key):
+def overlay_covers_over_background(path):
     """This method take as an input a list with the five books, from a list,
     and put their cover in the correct spot in order to create a new image for social-card"""
+    from openlibrary.plugins.openlibrary.lists import create_list_preview, create_preview_recommendation_text
 
-    five_seeds = create_list_preview(key)
+    five_seeds = create_list_preview(path)
     background = Image.open("/openlibrary/static/images/Twitter_Post_Background_Shelf_Color.png")
 
     logo = Image.open("/openlibrary/static/images/Open_Library_logo.png")
-    recom_text = create_preview_recommendation_text(key)
+    recom_text = create_preview_recommendation_text(path)
     para = textwrap.wrap(recom_text, width=35)
     text_size=(344,33)
     logo_size=(168,41)
@@ -603,6 +604,11 @@ def overlay_covers_over_background(key):
 
 
 
-    background.save('social-card-image.png',"PNG", quality=100)
+    # background.save('social-card-image.png',"PNG", quality=100)
+    buf = io.BytesIO()
+    background.save(buf, format='PNG')
+    byte_im = buf.getvalue()
+
+    return byte_im
 
 
