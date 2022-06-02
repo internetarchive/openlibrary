@@ -12,6 +12,7 @@ non_books = [
     "AUS49852633|1423639103||9781423639107|US|I|TS||||I Like Big Books T-Shirt X-Large|||1 vol.|||||||20141201|Gibbs Smith, Publisher|DE|X||||||||||||||ENG||0.280|27.940|22.860|2.540||||||T|||||||20748||||||326333|AUD|39.99||||||||||||||||||||||||||||||||||||||||||||||||||||||||||BIP,OTH|49852633|35|9781423639107|49099247|||19801468|||||||Gibbs Smith, Publisher||1||||||||||||||||NON000000|||WZ|||",  # noqa: E501
 ]
 
+
 class TestBiblio:
     def test_sample_csv_row(self):
         b = Biblio(csv_row.strip().split('|'))
@@ -34,7 +35,7 @@ class TestBiblio:
         data = input_.strip().split('|')
         code = data[6]
         with pytest.raises(AssertionError, match=f'{code} is NONBOOK'):
-            b = Biblio(data)
+            _ = Biblio(data)
 
 
 def test_is_low_quality_book():
@@ -49,5 +50,20 @@ def test_is_low_quality_book():
     assert is_low_quality_book(book) is True, book
     book["publishers"] = ["hol", "mad", "mazz", "mikemi", "tobias publishers"]
     assert is_low_quality_book(book) is False, book
-    book["publishers"] =["razal", "tobias publishing", "koraya", "pickleball", "d"]
+    book["publishers"] = ["razal", "tobias publishing", "koraya", "pickleball", "d"]
     assert is_low_quality_book(book) is True, book
+
+    book = {
+        "title": "A aNNotaTEd Z",
+        "publishers": ["Independently Published"],
+        "created": "2017-09-01T05:14:17",
+    }
+    assert is_low_quality_book(book) is False, book
+    book["created"] = "2018"
+    assert is_low_quality_book(book) is True, book
+    book["publishers"] = ["Independently Publish"]
+    assert is_low_quality_book(book) is False, book
+    book["publishers"] += ["Independently Published"]
+    assert is_low_quality_book(book) is True, book
+    book["title"] = "A aNNotaTE Z"
+    assert is_low_quality_book(book) is False, book
