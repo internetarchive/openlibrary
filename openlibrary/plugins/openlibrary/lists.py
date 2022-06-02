@@ -660,10 +660,12 @@ class lists_preview(delegate.page):
     path = r"(/people/[^/]+/lists/OL\d+L)/preview"
 
     def GET(self, path):
-        background = overlay_covers_over_background(path)
-
+        image_bytes = overlay_covers_over_background(path)
+        binary_file = open("social-card-image.png", "wb")
+        binary_file.write(image_bytes)
+        binary_file.close()
         web.header("Content-Type", "image/png")
-        # with open('social-card-image.png', 'rb') as f:
+        with open('social-card-image.png', 'rb') as f:
 
         # with open(background, "rb") as f:
 
@@ -672,4 +674,4 @@ class lists_preview(delegate.page):
         # b = base64.b64encode(background)
         # img = Image.open(io.BytesIO(b))
         # img.show()
-        return delegate.RawText(img.read())
+          return delegate.RawText(f.read())
