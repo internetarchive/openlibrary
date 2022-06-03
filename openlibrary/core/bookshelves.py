@@ -187,11 +187,11 @@ class Bookshelves(db.CommonExtras):
     def iterate_users_logged_books(cls, username: str) -> Iterable[dict]:
         """Heavy users will have long lists of books which consume lots of memory and
         cause performance issues.  So, instead of creating a big list, let's repeatedly
-        get small lists from get_users_logged_books() and yield one book at a time."""
+        get small lists like get_users_logged_books() and yield one book at a time."""
         assert username
         oldb = db.get_db()
         block = 0
-        LIMIT = 100  # What is the ideak block size?!?
+        LIMIT = 100  # What is the ideal block size?!?
 
         def get_a_block_of_books() -> list:
             data = {
@@ -203,9 +203,7 @@ class Bookshelves(db.CommonExtras):
                 "SELECT * from bookshelves_books WHERE username=$username "
                 "ORDER BY created DESC LIMIT $limit OFFSET $offset"
             )
-            books = list(oldb.query(query, vars=data))
-            print(f"Block {block} has {len(books)} books", file=sys.stderr)
-            return books
+            return list(oldb.query(query, vars=data))
 
         while books := get_a_block_of_books():
             block += 1

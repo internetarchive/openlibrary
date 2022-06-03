@@ -863,6 +863,9 @@ class export_books(delegate.page):
             work_id
             edition_id
             bookshelf
+            my_ratings
+            ratings_average
+            ratings_count
             authors
             title
             subjects
@@ -909,6 +912,14 @@ class export_books(delegate.page):
                     item.replace(",", ":") for item in work.get(field, "")
                 )
             work["created"] = work.get("created", {}).get("value", "").split("T")[0]
+            work["my_ratings"] = (
+                Ratings.get_users_rating_for_work(username, book["work_id"]) or ""
+            )
+            if ratings_summary := Ratings.get_work_ratings_summary(book["work_id"]):
+                work["ratings_average"] = ratings_summary["ratings_average"]
+                work["ratings_count"] = ratings_summary["ratings_count"]
+            else:
+                work["ratings_average"] = work["ratings_count"] = 0
             for field in fields:
                 work[field] = work.get(field) or ""
             return work
