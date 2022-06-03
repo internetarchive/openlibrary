@@ -243,9 +243,14 @@ class DirectProvider(AbstractBookProvider):
         return None
 
     def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
+        NS = 'http://opds-spec.org'
         # It's an edition
         if ed_or_solr.get('providers'):
-            return [b['url'] for b in ed_or_solr['providers']]
+            return [
+                b.get('url') or b.get('href')
+                for b in ed_or_solr['providers']
+                if b.get('url') or b.get('rel') == f"{NS}/acquisition/open-access"
+            ]
         else:
             # TODO: Not implemented for search/solr yet
             return []
