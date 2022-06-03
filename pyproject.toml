@@ -10,4 +10,4 @@
 
 [tool.black]
 skip-string-normalization = true
-target-version = ['py39', 'py310', 'py311']
+target-version = ['py39', 'py310']
