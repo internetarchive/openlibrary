@@ -120,7 +120,7 @@ class Biblio:
             assert getattr(self, field), field
         assert (
             self.primary_format not in self.NONBOOK
-        ), f'{self.primary_format} is NONBOOK'
+        ), f"{self.primary_format} is NONBOOK"
 
     @staticmethod
     def contributors(data):
