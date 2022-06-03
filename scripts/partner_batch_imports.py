@@ -53,17 +53,17 @@ SCHEMA_URL = (
 class Biblio:
 
     ACTIVE_FIELDS = [
-        "title",
-        "isbn_13",
-        "publish_date",
-        "publishers",
-        "weight",
-        "authors",
-        "lc_classifications",
-        "pagination",
-        "languages",
-        "subjects",
-        "source_records",
+        'title',
+        'isbn_13',
+        'publish_date',
+        'publishers',
+        'weight',
+        'authors',
+        'lc_classifications',
+        'pagination',
+        'languages',
+        'subjects',
+        'source_records',
     ]
     INACTIVE_FIELDS = [
         "copyright",
@@ -75,7 +75,7 @@ class Biblio:
         "width",
         "height",
     ]
-    REQUIRED_FIELDS = requests.get(SCHEMA_URL).json()["required"]
+    REQUIRED_FIELDS = requests.get(SCHEMA_URL).json()['required']
 
     NONBOOK = """A2 AA AB AJ AVI AZ BK BM C3 CD CE CF CR CRM CRW CX D3 DA DD DF DI DL
     DO DR DRM DRW DS DV EC FC FI FM FR FZ GB GC GM GR H3 H5 L3 L5 LP MAC MC MF MG MH ML
@@ -85,7 +85,7 @@ class Biblio:
 
     def __init__(self, data):
         self.isbn = data[124]
-        self.source_id = f"bwb:{self.isbn}"
+        self.source_id = f'bwb:{self.isbn}'
         self.isbn_13 = [self.isbn]
         self.title = data[10]
         self.primary_format = data[6]
@@ -98,7 +98,7 @@ class Biblio:
         self.languages = [data[37].lower()]
         self.source_records = [self.source_id]
         self.subjects = [
-            s.capitalize().replace("_", ", ")
+            s.capitalize().replace('_', ', ')
             for s in data[91:100]
             # + data[101:120]
             # + data[153:158]
@@ -116,19 +116,19 @@ class Biblio:
         self.length, self.width, self.height = data[40:43]
 
         # Assert importable
-        for field in self.REQUIRED_FIELDS + ["isbn_13"]:
+        for field in self.REQUIRED_FIELDS + ['isbn_13']:
             assert getattr(self, field), field
         assert (
             self.primary_format not in self.NONBOOK
-        ), f"{self.primary_format} is NONBOOK"
+        ), f'{self.primary_format} is NONBOOK'
 
     @staticmethod
     def contributors(data):
         def make_author(name, _, typ):
-            author = {"name": name}
-            if typ == "X":
+            author = {'name': name}
+            if typ == 'X':
                 # set corporate contributor
-                author["entity_type"] = "org"
+                author['entity_type'] = 'org'
             # TODO: sort out contributor types
             # AU = author
             # ED = editor
@@ -169,7 +169,7 @@ def load_state(path, logfile):
     )
     try:
         with open(logfile) as fin:
-            active_fname, offset = next(fin).strip().split(",")
+            active_fname, offset = next(fin).strip().split(',')
             unfinished_filenames = filenames[filenames.index(active_fname) :]
             return unfinished_filenames, int(offset)
     except (ValueError, OSError):
@@ -178,19 +178,19 @@ def load_state(path, logfile):
 
 def update_state(logfile, fname, line_num=0):
     """Records the last file we began processing and the current line"""
-    with open(logfile, "w") as fout:
-        fout.write(f"{fname},{line_num}\n")
+    with open(logfile, 'w') as fout:
+        fout.write(f'{fname},{line_num}\n')
 
 
 def csv_to_ol_json_item(line):
     """converts a line to a book item"""
     try:
-        data = line.decode().strip().split("|")
+        data = line.decode().strip().split('|')
     except UnicodeDecodeError:
-        data = line.decode("ISO-8859-1").strip().split("|")
+        data = line.decode('ISO-8859-1').strip().split('|')
 
     b = Biblio(data)
-    return {"ia_id": b.source_id, "data": b.json()}
+    return {'ia_id': b.source_id, 'data': b.json()}
 
 
 def is_low_quality_book(book_item) -> bool:
@@ -212,12 +212,12 @@ def is_low_quality_book(book_item) -> bool:
 
 
 def batch_import(path, batch, batch_size=5000):
-    logfile = os.path.join(path, "import.log")
+    logfile = os.path.join(path, 'import.log')
     filenames, offset = load_state(path, logfile)
 
     for fname in filenames:
         book_items = []
-        with open(fname, "rb") as f:
+        with open(fname, 'rb') as f:
             logger.info(f"Processing: {fname} from line {offset}")
             for line_num, line in enumerate(f):
 
@@ -251,10 +251,10 @@ def main(ol_config: str, batch_path: str):
 
     # Partner data is offset ~15 days from start of month
     date = datetime.date.today() - datetime.timedelta(days=15)
-    batch_name = "%s-%04d%02d" % ("bwb", date.year, date.month)
+    batch_name = "%s-%04d%02d" % ('bwb', date.year, date.month)
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch_import(batch_path, batch)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     FnToCLI(main).run()
