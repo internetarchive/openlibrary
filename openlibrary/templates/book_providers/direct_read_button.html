@@ -1,10 +1,21 @@
-$def with(url)
+$def with(provider)
 
-<div class="cta-button-group">
-  <a
-      href="$url"
-      title="$_('Read free online')"
-      class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--direct"
+$if provider.get('url') or provider.get('rel') == 'http://opds-spec.org/acquisition/open-access':
+  $ url = provider.get('url') or provider.get('href')
+  <div class="cta-button-group">
+    <a
+        href="$url"
+        title="$_('Read free online')"
+        class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--direct"
+        target="_blank"
+    >$_('Read')</a>
+  </div>
+
+$elif provider.get('rel') == 'http://opds-spec.org/acquisition/sample':
+  <div class="cta-button-group">
+    <a class="cta-btn cta-btn--shell cta-btn--external"
+      data-ol-link-track="CTAClick|Preview"
       target="_blank"
-  >$_('Read')</a>
-</div>
+      href="$provider.get('href')"
+    >$_('Preview')</a>
+  </div>

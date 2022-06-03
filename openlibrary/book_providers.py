@@ -249,11 +249,37 @@ class DirectProvider(AbstractBookProvider):
             return [
                 b.get('url') or b.get('href')
                 for b in ed_or_solr['providers']
-                if b.get('url') or b.get('rel') == f"{NS}/acquisition/open-access"
+                if b.get('url')
+                or (
+                    b.get('rel')
+                    in (
+                        f"{NS}/acquisition/open-access",
+                        f"{NS}/acquisition/sample",
+                    )
+                )
             ]
         else:
             # TODO: Not implemented for search/solr yet
             return []
+
+    def render_read_button(self, ed_or_solr: Union[Edition, dict]):
+        NS = 'http://opds-spec.org'
+
+        def acq_sort(b):
+            if b.get('url') or b.get('rel') == f'{NS}/acquisition/open-access':
+                return 0
+            elif b.get('rel') == f'{NS}/acquisition/sample':
+                return 1
+            else:
+                return 2
+
+        acq_sorted = sorted(
+            (p for p in ed_or_solr.get('providers', []) if acq_sort(p) < 2),
+            key=acq_sort,
+        )
+        if not acq_sorted:
+            return ''
+        return render_template(self.get_template_path('read_button'), acq_sorted[0])
 
 
 PROVIDER_ORDER: list[AbstractBookProvider] = [

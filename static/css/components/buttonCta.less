@@ -72,6 +72,11 @@ a.cta-btn {
     color: @white;
     &:hover { background-color: darken(@primary-blue, 20%); }
   }
+
+  &--shell&--external {
+    background-blend-mode: difference;
+  }
+
   &--shell, &--shell:link, &--shell:visited {
     .shell-btn--active();
   }
