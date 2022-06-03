@@ -615,6 +615,7 @@ class opds_feed(delegate.page):
             "marygrove": "ol__:marc:marc_marygrove",
             "trent": "ol__:marc:OpenLibraries-Trent-MARCs",
             "claremont": "ol__:marc:marc_claremont_school_theology",
+            "standard_ebooks": "ol__:standard_ebooks",
         }
         data = (
             mapping if not partner else
