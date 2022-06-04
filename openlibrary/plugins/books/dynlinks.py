@@ -1,6 +1,8 @@
 import json
-import web
 import sys
+from typing import Iterable, Mapping, Optional
+
+import web
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.core import helpers as h
@@ -9,7 +11,7 @@ from openlibrary.core import ia
 from infogami.utils.delegate import register_exception
 
 
-def split_key(bib_key):
+def split_key(bib_key: str) -> tuple[Optional[str], Optional[str]]:
     """
     >>> split_key('1234567890')
     ('isbn_', '1234567890')
@@ -54,6 +56,7 @@ def split_key(bib_key):
         key = 'olid'
         value = bib_key.upper()
 
+    value = value or ""
     if key == 'isbn':
         # 'isbn_' is a special indexed field that gets both isbn_10 and isbn_13 in the normalized form.
         key = 'isbn_'
@@ -79,7 +82,10 @@ def ol_query(name, value):
         return keys[0]
 
 
-def ol_get_many_as_dict(keys):
+def ol_get_many_as_dict(keys: Iterable[str]) -> dict:
+    """
+    Ex.: ol_get_many_as_dict(['/books/OL2058361M', '/works/OL54120W'])
+    """
     keys_with_revisions = [k for k in keys if '@' in k]
     keys2 = [k for k in keys if '@' not in k]
 
@@ -94,11 +100,11 @@ def ol_get_many_as_dict(keys):
     return result
 
 
-def ol_get_many(keys):
+def ol_get_many(keys: Iterable[str]) -> list:
     return [doc.dict() for doc in web.ctx.site.get_many(keys)]
 
 
-def query_keys(bib_keys):
+def query_keys(bib_keys: Iterable[str]) -> dict:
     """Given a list of bibkeys, returns a mapping from bibkey to OL key.
 
     >> query(["isbn:1234567890"])
@@ -118,7 +124,7 @@ def query_keys(bib_keys):
     return {k: v for k, v in d.items() if v is not None}
 
 
-def query_docs(bib_keys):
+def query_docs(bib_keys: Iterable[str]) -> dict:
     """Given a list of bib_keys, returns a mapping from bibkey to OL doc."""
     mapping = query_keys(bib_keys)
     thingdict = ol_get_many_as_dict(uniq(mapping.values()))
@@ -127,7 +133,7 @@ def query_docs(bib_keys):
     }
 
 
-def uniq(values):
+def uniq(values: Iterable) -> list:
     return list(set(values))
 
 
@@ -142,11 +148,11 @@ def process_result(result, jscmd):
     return f(result)
 
 
-def get_many_as_dict(keys):
+def get_many_as_dict(keys: Iterable[str]) -> dict:
     return {doc['key']: doc for doc in ol_get_many(keys)}
 
 
-def get_url(doc):
+def get_url(doc: Mapping[str, str]) -> str:
     base = web.ctx.get("home", "https://openlibrary.org")
     if base == 'http://[unknown]':
         base = "https://openlibrary.org"
