@@ -56,18 +56,17 @@ def split_key(bib_key: str) -> tuple[Optional[str], Optional[str]]:
         key = 'olid'
         value = bib_key.upper()
 
-    value = value or ""
     if key == 'isbn':
         # 'isbn_' is a special indexed field that gets both isbn_10 and isbn_13 in the normalized form.
         key = 'isbn_'
-        value = value.replace("-", "")  # normalize isbn by stripping hyphens
+        value = (value or "").replace("-", "")  # normalize isbn by stripping hyphens
 
     if key == 'oclc':
         key = 'oclc_numbers'
 
     if key == 'olid':
         key = 'key'
-        value = '/books/' + value.upper()
+        value = '/books/' + (value or "").upper()
 
     return key, value
 
