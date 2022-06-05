@@ -1,6 +1,6 @@
 import json
 import sys
-from typing import Iterable, Mapping, Optional
+from typing import Hashable, Iterable, Mapping, Optional
 
 import web
 
@@ -132,7 +132,7 @@ def query_docs(bib_keys: Iterable[str]) -> dict:
     }
 
 
-def uniq(values: Iterable) -> list:
+def uniq(values: Iterable[Hashable]) -> list:
     return list(set(values))
 
 
