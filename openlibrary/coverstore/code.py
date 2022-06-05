@@ -532,13 +532,13 @@ def overlay_covers_over_background(path):
     five_seeds = create_list_preview(path)
     background = Image.open("/openlibrary/static/images/Twitter_Post_Background_Shelf_Color.png")
 
-    logo = Image.open("/openlibrary/static/images/Open_Library_logo.png")
+    logo = Image.open("/openlibrary/static/images/Open_Library_logo_2.png")
     recom_text = create_preview_recommendation_text(path)
     para = textwrap.wrap(recom_text, width=35)
     text_size=(344,33)
-    logo_size=(168,41)
+    logo_size=(168,61)
     text_position=(340,406)
-    logo_position=(823,439)
+    logo_position=(823,424)
     W, H = background.size
     image = []
     for seed in five_seeds:
@@ -602,9 +602,6 @@ def overlay_covers_over_background(path):
         draw.text(((W - w) / 2, current_h), line, font=font)
         current_h += h + 10
 
-
-
-    # background.save('social-card-image.png',"PNG", quality=100)
     buf = io.BytesIO()
     background.save(buf, format='PNG')
     byte_im = buf.getvalue()

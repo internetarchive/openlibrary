@@ -2,6 +2,7 @@
 """
 import json
 import random
+import tempfile
 import web
 
 from infogami.utils import delegate
@@ -18,7 +19,6 @@ from openlibrary.plugins.worksearch import subjects
 from openlibrary.coverstore.code import overlay_covers_over_background
 
 
-from PIL import Image
 
 class lists_home(delegate.page):
     path = "/lists"
@@ -661,17 +661,9 @@ class lists_preview(delegate.page):
 
     def GET(self, path):
         image_bytes = overlay_covers_over_background(path)
-        binary_file = open("social-card-image.png", "wb")
+        binary_file = tempfile.NamedTemporaryFile()
         binary_file.write(image_bytes)
-        binary_file.close()
+
         web.header("Content-Type", "image/png")
-        with open('social-card-image.png', 'rb') as f:
-
-        # with open(background, "rb") as f:
-
-        # f = Image.frombuffer("I;16", (5, 10), background, "raw", "I;12")
-
-        # b = base64.b64encode(background)
-        # img = Image.open(io.BytesIO(b))
-        # img.show()
-          return delegate.RawText(f.read())
+        with open(binary_file.name, 'rb') as f:
+            return delegate.RawText(f.read())
