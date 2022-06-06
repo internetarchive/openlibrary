@@ -530,7 +530,7 @@ def overlay_covers_over_background(path):
     from openlibrary.plugins.openlibrary.lists import create_list_preview, create_preview_recommendation_text
 
     five_seeds = create_list_preview(path)
-    background = Image.open("/openlibrary/static/images/Twitter_Post_Background_Shelf_Color.png")
+    background = Image.open("/openlibrary/static/images/Twitter_Social_Card_Background.png")
 
     logo = Image.open("/openlibrary/static/images/Open_Library_logo_2.png")
     recom_text = create_preview_recommendation_text(path)
@@ -566,26 +566,26 @@ def overlay_covers_over_background(path):
         if (img.size[1] > max_height):
             max_height = img.size[1]
     if len(image) == 5:
-        background.paste(image[0], (41, 104 + max_height - image[0].size[1]))
-        background.paste(image[1], (236, 104 + max_height - image[1].size[1]))
+        background.paste(image[0], (63, 104 + max_height - image[0].size[1]))
+        background.paste(image[1], (247, 104 + max_height - image[1].size[1]))
         background.paste(image[2], (431, 104 + max_height - image[2].size[1]))
-        background.paste(image[3], (626, 104 + max_height - image[3].size[1]))
-        background.paste(image[4], (821, 104 + max_height - image[4].size[1]))
+        background.paste(image[3], (615, 104 + max_height - image[3].size[1]))
+        background.paste(image[4], (799, 104 + max_height - image[4].size[1]))
 
     elif len(image) == 4:
-        background.paste(image[0], (72, 104 + max_height - image[0].size[1]))
-        background.paste(image[1], (312, 104 + max_height - image[1].size[1]))
-        background.paste(image[2], (552, 104 + max_height - image[2].size[1]))
-        background.paste(image[3], (792, 104 + max_height - image[3].size[1]))
+        background.paste(image[0], (155, 104 + max_height - image[0].size[1]))
+        background.paste(image[1], (339, 104 + max_height - image[1].size[1]))
+        background.paste(image[2], (523, 104 + max_height - image[2].size[1]))
+        background.paste(image[3], (707, 104 + max_height - image[3].size[1]))
 
     elif len(image) == 3:
-        background.paste(image[0], (190, 104 + max_height - image[0].size[1]))
+        background.paste(image[0], (247, 104 + max_height - image[0].size[1]))
         background.paste(image[1], (431, 104 + max_height - image[1].size[1]))
-        background.paste(image[2], (672, 104 + max_height - image[2].size[1]))
+        background.paste(image[2], (615, 104 + max_height - image[2].size[1]))
 
     elif len(image) == 2:
-        background.paste(image[0], (312, 104 + max_height - image[0].size[1]))
-        background.paste(image[1], (552, 104 + max_height - image[1].size[1]))
+        background.paste(image[0], (339, 104 + max_height - image[0].size[1]))
+        background.paste(image[1], (523, 104 + max_height - image[1].size[1]))
 
     else:
         background.paste(image[0], (431, 104 + max_height - image[0].size[1]))
@@ -599,7 +599,7 @@ def overlay_covers_over_background(path):
     current_h=404
     for line in para:
         w, h = draw.textsize(line, font=font)
-        draw.text(((W - w) / 2, current_h), line, font=font)
+        draw.text(((W - w) / 2, current_h), line, font=font, fill=(0,0,0))
         current_h += h + 10
 
     buf = io.BytesIO()
