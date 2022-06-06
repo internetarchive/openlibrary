@@ -10,9 +10,7 @@ import requests
 
 import web
 
-from PIL import Image
-from PIL import ImageDraw
-from PIL import ImageFont
+from PIL import Image, ImageDraw, ImageFont
 import textwrap
 
 
@@ -525,8 +523,8 @@ class delete:
 
 
 def overlay_covers_over_background(path):
-    """This method take as an input a list with the five books, from a list,
-    and put their cover in the correct spot in order to create a new image for social-card"""
+    """This function takes a list of five books and puts their covers in the correct
+    locations to create a new image for social-card"""
     from openlibrary.plugins.openlibrary.lists import create_list_preview, create_preview_recommendation_text
 
     five_seeds = create_list_preview(path)
@@ -593,10 +591,8 @@ def overlay_covers_over_background(path):
         draw.text(((W - w) / 2, current_h), line, font=font, fill=(0,0,0))
         current_h += h + 10
 
-    buf = io.BytesIO()
-    background.save(buf, format='PNG')
-    byte_im = buf.getvalue()
-
-    return byte_im
+    with io.BytesIO() as buf:
+        background.save(buf, format='PNG')
+        return buf.getvalue()
 
 
