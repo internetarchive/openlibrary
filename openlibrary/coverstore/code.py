@@ -535,10 +535,7 @@ def overlay_covers_over_background(path):
     logo = Image.open("/openlibrary/static/images/Open_Library_logo_2.png")
     recom_text = create_preview_recommendation_text(path)
     para = textwrap.wrap(recom_text, width=35)
-    text_size=(344,33)
-    logo_size=(168,61)
-    text_position=(340,406)
-    logo_position=(823,424)
+
     W, H = background.size
     image = []
     for seed in five_seeds:
@@ -550,53 +547,47 @@ def overlay_covers_over_background(path):
 
             img = Image.open(image_bytes)
 
-            #resize the image
             basewidth = 162
             wpercent = (basewidth / float(img.size[0]))
             hsize = int(float(img.size[1]) * float(wpercent))
             img = img.resize((basewidth, hsize), Image.ANTIALIAS)
-            #w, h = img.size
-            #ratio = h//w
-            #new_height = ratio*162
-            #size = (162,new_height)
-            #image.append(img.resize(size,Image.ANTIALIAS))
             image.append(img)
     max_height=0
     for img in image:
         if (img.size[1] > max_height):
             max_height = img.size[1]
     if len(image) == 5:
-        background.paste(image[0], (63, 104 + max_height - image[0].size[1]))
-        background.paste(image[1], (247, 104 + max_height - image[1].size[1]))
-        background.paste(image[2], (431, 104 + max_height - image[2].size[1]))
-        background.paste(image[3], (615, 104 + max_height - image[3].size[1]))
-        background.paste(image[4], (799, 104 + max_height - image[4].size[1]))
+        background.paste(image[0], (63, 174 + max_height - image[0].size[1]))
+        background.paste(image[1], (247, 174 + max_height - image[1].size[1]))
+        background.paste(image[2], (431, 174 + max_height - image[2].size[1]))
+        background.paste(image[3], (615, 174 + max_height - image[3].size[1]))
+        background.paste(image[4], (799, 174 + max_height - image[4].size[1]))
 
     elif len(image) == 4:
-        background.paste(image[0], (155, 104 + max_height - image[0].size[1]))
-        background.paste(image[1], (339, 104 + max_height - image[1].size[1]))
-        background.paste(image[2], (523, 104 + max_height - image[2].size[1]))
-        background.paste(image[3], (707, 104 + max_height - image[3].size[1]))
+        background.paste(image[0], (155, 174 + max_height - image[0].size[1]))
+        background.paste(image[1], (339, 174 + max_height - image[1].size[1]))
+        background.paste(image[2], (523, 174 + max_height - image[2].size[1]))
+        background.paste(image[3], (707, 174 + max_height - image[3].size[1]))
 
     elif len(image) == 3:
-        background.paste(image[0], (247, 104 + max_height - image[0].size[1]))
-        background.paste(image[1], (431, 104 + max_height - image[1].size[1]))
-        background.paste(image[2], (615, 104 + max_height - image[2].size[1]))
+        background.paste(image[0], (247, 174 + max_height - image[0].size[1]))
+        background.paste(image[1], (431, 174 + max_height - image[1].size[1]))
+        background.paste(image[2], (615, 174 + max_height - image[2].size[1]))
 
     elif len(image) == 2:
-        background.paste(image[0], (339, 104 + max_height - image[0].size[1]))
-        background.paste(image[1], (523, 104 + max_height - image[1].size[1]))
+        background.paste(image[0], (339, 174 + max_height - image[0].size[1]))
+        background.paste(image[1], (523, 174 + max_height - image[1].size[1]))
 
     else:
-        background.paste(image[0], (431, 104 + max_height - image[0].size[1]))
+        background.paste(image[0], (431, 174 + max_height - image[0].size[1]))
 
 
-    logo = logo.resize(logo_size, Image.ANTIALIAS)
-    background.paste(logo, logo_position, logo)
+    logo = logo.resize((120,74), Image.ANTIALIAS)
+    background.paste(logo, (880, 14), logo)
 
     draw = ImageDraw.Draw(background)
-    font = ImageFont.truetype("/openlibrary/static/fonts/news_serif_bolditalic.ttf", 24)
-    current_h=404
+    font = ImageFont.truetype("/openlibrary/static/fonts/NotoSans-Regular.ttf", 24)
+    current_h = 48
     for line in para:
         w, h = draw.textsize(line, font=font)
         draw.text(((W - w) / 2, current_h), line, font=font, fill=(0,0,0))
