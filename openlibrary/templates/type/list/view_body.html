@@ -277,4 +277,4 @@ $def seed_attrs(seed):
 
 $if meta_cover_url is not None:
     $add_metatag(property="og:image", content=meta_cover_url)
-    $add_metatag(property="twitter:image", content="https://openlibrary.org/$(list.key)/preview.png")
+    $add_metatag(property="twitter:image", content=request.canonical_url + "/preview.png")
