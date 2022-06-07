@@ -525,14 +525,12 @@ class delete:
 def overlay_covers_over_background(path):
     """This function takes a list of five books and puts their covers in the correct
     locations to create a new image for social-card"""
-    from openlibrary.plugins.openlibrary.lists import create_list_preview, create_preview_recommendation_text
+    from openlibrary.plugins.openlibrary.lists import create_list_preview
 
     five_seeds = create_list_preview(path)
     background = Image.open("/openlibrary/static/images/Twitter_Social_Card_Background.png")
 
     logo = Image.open("/openlibrary/static/images/Open_Library_logo_2.png")
-    recom_text = create_preview_recommendation_text(path)
-    para = textwrap.wrap(recom_text, width=35)
 
     W, H = background.size
     image = []
@@ -584,12 +582,18 @@ def overlay_covers_over_background(path):
     background.paste(logo, (880, 14), logo)
 
     draw = ImageDraw.Draw(background)
-    font = ImageFont.truetype("/openlibrary/static/fonts/NotoSans-Regular.ttf", 24)
+    font_author = ImageFont.truetype("/openlibrary/static/fonts/NotoSans-Regular.ttf", 26)
+    font_title = ImageFont.truetype("/openlibrary/static/fonts/NotoSans-SemiBold.ttf", 26)
+    lst = web.ctx.site.get(path)
+    para = textwrap.wrap(lst.name, width=35)
     current_h = 48
     for line in para:
-        w, h = draw.textsize(line, font=font)
-        draw.text(((W - w) / 2, current_h), line, font=font, fill=(0,0,0))
+        w, h = draw.textsize(line, font=font_title)
+        draw.text(((W - w) / 2, current_h), line, font=font_title, fill=(0,0,0))
         current_h += h + 10
+    w, h = draw.textsize(line, font=font_author)
+    author_text = f"by {lst.get_owner().displayname}"
+    draw.text(((W - w) / 2, current_h), author_text, font=font_author, fill=(0,0,0))
 
     with io.BytesIO() as buf:
         background.save(buf, format='PNG')

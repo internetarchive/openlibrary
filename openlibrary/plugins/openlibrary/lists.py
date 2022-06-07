@@ -649,12 +649,6 @@ def create_list_preview(lst_key):
     five_seeds = lst.seeds[0:5]
     return five_seeds
 
-def create_preview_recommendation_text(lst_key):
-    lst = web.ctx.site.get(lst_key)
-    list_title = lst.name
-    list_owner = lst.get_owner()
-    recom_text = list_owner.displayname + "'s " + list_title
-    return recom_text
 
 class lists_preview(delegate.page):
     path = r"(/people/[^/]+/lists/OL\d+L)/preview.png"
