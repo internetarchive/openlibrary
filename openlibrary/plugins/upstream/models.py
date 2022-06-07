@@ -27,8 +27,6 @@ from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils import dateutil
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
-import six
-
 
 def follow_redirect(doc):
     if isinstance(doc, str) and doc.startswith("/a/"):

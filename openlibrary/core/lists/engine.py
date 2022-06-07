@@ -4,8 +4,6 @@
 import collections
 import re
 
-import six
-
 
 def reduce_seeds(values):
     """Function to reduce the seed values got from works db."""

@@ -1,5 +1,5 @@
 from .. import code
-from six.moves import cStringIO as StringIO
+from io import StringIO
 import web
 import datetime
 

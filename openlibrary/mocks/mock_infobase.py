@@ -9,8 +9,6 @@ import web
 from infogami.infobase import client, common, account, config as infobase_config
 from infogami import config
 
-import six
-
 
 key_patterns = {
     'work': '/works/OL%dW',

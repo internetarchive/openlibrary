@@ -81,19 +81,24 @@ function addListClickListener(elem, parentDropper) {
         let seed;
         const isWork = workCheckBox && workCheckBox.checked
 
+        // Seed will be a string if it's type is 'subject'
+        const seedIsSubject = hiddenKeyInput.value[0] !== '/'
         if (isWork) {
-            seed = hiddenWorkInput.value
-        } else {
+            seed = { key: hiddenWorkInput.value }
+        } else if (seedIsSubject) {
             seed = hiddenKeyInput.value
+        } else {
+            seed = { key: hiddenKeyInput.value }
         }
 
         const listKey = elem.dataset.listKey;
 
         const successCallback = function() {
             if (!isWork) {
+                const seedKey = seedIsSubject ? seed : seed['key']
                 const listTitle = elem.innerText;
                 const listUrl = elem.dataset.listCoverUrl
-                const li = updateAlreadyList(listKey, listTitle, listUrl)
+                const li = updateAlreadyList(listKey, listTitle, listUrl, seedKey)
 
                 if (dropperLists.hasOwnProperty(listKey)) {
                     dropperLists[listKey].element.remove()
@@ -183,12 +188,13 @@ function addCreateListClickListener(button, parentDropper) {
             const data = {
                 name: websafe(nameField.value),
                 description: websafe(descriptionField.value),
-                seeds: [ { key: seed } ],
+                seeds: [seed],
             }
 
             const successCallback = function(listKey, listTitle) {
+                const seedKey = typeof seed === 'string' ? seed : seed['key']
                 // Add actionable item to view, map
-                const li = updateAlreadyList(listKey, listTitle, '/images/icons/avatar_book-sm.png')
+                const li = updateAlreadyList(listKey, listTitle, '/images/icons/avatar_book-sm.png', seedKey)
                 actionableItems[listKey] = [li]
             }
 
@@ -255,6 +261,11 @@ function addReadingLogButtonClickListener(button) {
                 }
 
                 button.children[1].innerText = initialText
+
+                // Close dropper if expanded:
+                if ($(dropper).find('.arrow').first().hasClass('up')) {
+                    toggleDropper(dropper)
+                }
             } else {
                 toggleDropper(dropper)
                 // Secondary button pressed
@@ -327,7 +338,11 @@ function addRemoveClickListener(elem) {
     const anchors = label.querySelectorAll('a');
     const listTitle = anchors[0].dataset.listTitle;
     const listKey = anchors[1].dataset.listKey;
-    const seed = label.querySelector('input[name=seed-key').value;
+    const type = label.querySelector('input[name=seed-type]').value;
+    const key = label.querySelector('input[name=seed-key]').value;
+
+    const seed = type === 'subject' ? key : { key: key }
+
     anchors[1].addEventListener('click', function(event) {
         event.preventDefault()
 
@@ -388,15 +403,17 @@ function updateDropperList(listKey, listTitle, coverUrl) {
  * @param {string} listKey    The list's key, in the form of "/people/{username}/lists/{list OLID}"
  * @param {string} listTitle  The name of the list.
  * @param {string} coverUrl   Location of the list's cover image.
+ * @param {string} seedKey    The target seed's key.
  *
  * @returns {HTMLLIElement} The newly created list item element.
  */
-function updateAlreadyList(listKey, listTitle, coverUrl) {
+function updateAlreadyList(listKey, listTitle, coverUrl, seedKey) {
     const alreadyLists = document.querySelector('.already-lists');
     const splitKey = listKey.split('/')
     const userKey = `/${splitKey[1]}/${splitKey[2]}`
     const i18nInput = document.querySelector('input[name=list-i18n-strings]')
     const i18nStrings = JSON.parse(i18nInput.value)
+    const seedType = seedKey[0] !== '/' ? 'subject' : ''
 
     const itemMarkUp = `<span class="image">
           <a href="${listKey}"><img src="${coverUrl}" alt="${i18nStrings['cover_of']}${listTitle}" title="${i18nStrings['cover_of']}${listTitle}"/></a>
@@ -405,8 +422,8 @@ function updateAlreadyList(listKey, listTitle, coverUrl) {
             <span class="label">
                 <a href="${listKey}" data-list-title="${listTitle}" title="${i18nStrings['see_this_list']}">${listTitle}</a>
                 <input type="hidden" name="seed-title" value="${listTitle}"/>
-                <input type="hidden" name="seed-key" value="${listKey}"/>
-                <input type="hidden" name="seed-type" value="edition"/>
+                <input type="hidden" name="seed-key" value="${seedKey}"/>
+                <input type="hidden" name="seed-type" value="${seedType}"/>
                 <a href="${listKey}" class="remove-from-list red smaller arial plain" data-list-key="${listKey}" title="${i18nStrings['remove_from_list']}">[X]</a>
             </span>
             <span class="owner">${i18nStrings['from']} <a href="${userKey}">${i18nStrings['you']}</a></span>

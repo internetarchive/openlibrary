@@ -5,7 +5,6 @@ import sys
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.core import helpers as h
 from openlibrary.core import ia
-import six
 
 from infogami.utils.delegate import register_exception
 

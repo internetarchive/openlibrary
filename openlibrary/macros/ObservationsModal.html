@@ -1,7 +1,13 @@
-$def with (work, link_text, id, classes='', reload_id=None)
+$def with (work, link_markup, id, classes='', reload_id=None)
+$# :param Work work: The work that is being reviewed
+$# :param str link_markup: arkup for element that triggers observations modal
+$# :param str id: Unique identifier for this modal
+$# :param str classes: HTML classes for this component
+$# :param str reload_id: Reference to UI component that will update when observations are added or removed
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 
+$# The following data is accessed via JS:
 $ context = {
   $ "username": username,
   $ "work": work.key,
@@ -12,15 +18,16 @@ $if reload_id:
   $ context['reloadId'] = reload_id
 
 <div class="$classes">
-  <a class="observations-modal-link" href="javascript:;" data-context="$json_encode(context)">$link_text</a>
+  $:link_markup
 
-  <div class="hidden">
-    <div id="$id-metadata-form" class="floaterAdd metadata-form">
-      <div class="floaterHead">
-        <h2>$_("My Book Review")</h2>
-        <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+  $if ctx.user:
+    <div class="hidden">
+      <div id="$id-metadata-form" class="floaterAdd metadata-form" data-context="$json_encode(context)">
+        <div class="floaterHead">
+          <h2>$_("My Book Review")</h2>
+          <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+        </div>
+        $:render_component('ObservationForm', attrs=dict(schema=dict(get_observations()), observations=dict(work.get_users_observations(username)), work_key=work.key, username=username))
       </div>
-      $:render_component('ObservationForm', attrs=dict(schema=dict(get_observations()), observations=dict(work.get_users_observations(username)), work_key=work.key, username=username))
     </div>
-  </div>
 </div>

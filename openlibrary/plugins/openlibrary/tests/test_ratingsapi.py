@@ -3,7 +3,7 @@ import web
 import json
 
 import cookielib
-from six.moves import urllib
+import urllib
 
 from openlibrary.plugins.openlibrary.api import ratings
 from openlibrary import accounts

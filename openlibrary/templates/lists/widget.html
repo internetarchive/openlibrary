@@ -83,9 +83,14 @@ $def show_list(list, user_key):
             <span class="label">
                 <a href="$list.key" data-list-title="$(list.name)" title="$_('See this list')">$list.name</a>
                 $if remove:
+                    $if seed_info['type'] == 'subject':
+                        $ seed_key = seed_info['seed']
+                    $else:
+                        $ seed_key = seed_info['seed']['key']
                     <input type="hidden" name="seed-title" value="$(seed_info['title'])"/>
-                    <input type="hidden" name="seed-key" value="$(seed_info['seed']['key'])"/>
+                    <input type="hidden" name="seed-key" value="$seed_key"/>
                     <input type="hidden" name="seed-type" value="$(seed_info['type'])"/>
+
                     <a href="$list.key" class="remove-from-list red smaller arial plain" data-list-key="$list.key" title="$_('Remove from your list?')">[X]</a>
             </span>
             $if remove:
@@ -150,12 +155,6 @@ $if include_widget:
   $if work:
     $if include_rating:
       $:macros.StarRatings(work, edition)
-    $if ctx.user and edition:
-      $if work.has_book_note(username, edition.key.split('/')[-1]):
-        $ link_text = _("Update my book note")
-      $else:
-        $ link_text = _("Add a book note")
-      $:macros.NotesModal(work, edition, link_text, 'cta', 'cta-section patron-metadata')
 
 $if include_showcase:
   $if render_once('lists/widget.i18n-strings'):

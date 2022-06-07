@@ -4,7 +4,7 @@ from logging import getLogger
 import os
 from typing import Optional
 
-from six import BytesIO
+from io import BytesIO
 
 from PIL import Image
 import web

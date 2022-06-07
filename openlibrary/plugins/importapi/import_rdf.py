@@ -4,8 +4,6 @@ OL Import API RDF parser
 
 from openlibrary.plugins.importapi import import_edition_builder
 
-import six
-
 
 def parse_string(e, key):
     return (key, e.text)

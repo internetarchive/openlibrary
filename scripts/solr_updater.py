@@ -9,7 +9,6 @@ Changes:
 from typing import Iterator, Union
 import _init_path
 
-from six.moves import urllib
 import logging
 import json
 import datetime
@@ -18,6 +17,7 @@ import web
 import sys
 import re
 import socket
+import urllib
 
 from openlibrary.solr import update_work
 from openlibrary.config import load_config

@@ -593,11 +593,9 @@ class opds(delegate.mode):
         if not page:
             raise web.notfound('')
         else:
-            from infogami.utils import template
             from openlibrary.plugins.openlibrary import opds
-
             try:
-                result = template.typetemplate('opds')(page, opds)
+                result = opds.OPDSEntry(page).to_string()
             except:
                 raise web.notfound('')
             else:
@@ -863,7 +861,7 @@ def changequery(query=None, **kw):
 
 from infogami.core.db import get_recent_changes as _get_recentchanges
 
-from six.moves import urllib
+import urllib
 
 
 @public

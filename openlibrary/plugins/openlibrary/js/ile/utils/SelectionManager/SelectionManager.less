@@ -1,0 +1,78 @@
+@selection-outline: #009fff;
+@selection-background: #c2e8ff;
+@ile-toolbar-background: #0067d5;
+@ile-toolbar-text-color: white;
+// Not sure where to put this...
+@ile-toolbar-z-index: 99999;
+
+.ile-drag-over {
+  box-shadow: 0 0 10px 2px inset @selection-outline;
+}
+.ile-selectable {
+  box-shadow: 0 0 0 2px inset rgba(0,0,0,.1);
+  transition-duration: .2s;
+  transition-property: background-color, box-shadow;
+  border-radius: 4px;
+}
+.ile-selected {
+  box-shadow: 0 0 0 2px inset @selection-outline;
+  background: @selection-background;
+}
+#ile-toolbar {
+  display: flex;
+  position: sticky;
+  bottom: 0;
+  background: @ile-toolbar-background;
+  color: @ile-toolbar-text-color;
+  z-index: @ile-toolbar-z-index;
+  font-size: .9em;
+}
+#ile-drag-status {
+  display: inline-block;
+}
+
+#ile-drag-status .text {
+  border-radius: 100px;
+  background: @ile-toolbar-background;
+  padding: 4px 16px;
+}
+#ile-drag-status .images {
+  position: absolute;
+  top: calc(100% + 5px);
+  display: flex;
+  left: 8px;
+}
+#ile-drag-status .images img {
+  width: 30px;
+  height: 80px;
+  object-fit: cover;
+}
+#ile-drag-status .images img:first-child { width: auto; }
+#ile-drag-actions a {
+  padding: 4px 16px;
+  display: inline-block;
+  color: @ile-toolbar-text-color;
+  text-decoration: none;
+  border-left: 2px dotted @ile-toolbar-text-color;
+  transition: background .2s;
+}
+#ile-drag-actions a:hover { background: rgba(0,0,0,.15); }
+
+a.ile-selectable[href^="/authors/OL"] {
+  padding-right: 4px;
+  text-decoration: none;
+}
+
+.ile-select-handle {
+  padding: 0 5px;
+  text-decoration: none;
+  opacity: .2;
+  cursor: default;
+  transition: opacity .2s;
+  color: @selection-outline;
+}
+
+.ile-selected .ile-select-handle,
+.ile-select-handle:hover {
+  opacity: 1;
+}

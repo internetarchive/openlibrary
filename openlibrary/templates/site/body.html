@@ -5,6 +5,10 @@ $ bodyclass = ctx.get('bodyclass', [])
 $ show_banners = cssfile != 'form'
 $ bodyattrs = ctx.get('bodyattrs', [])
 
+$if ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ctx.path.startswith('/books/OL') or ctx.path.startswith('/search'):
+  $if ctx.user and ((ctx.user.is_librarian() or ctx.user.is_admin()) and ctx.user.is_usergroup_member('/usergroup/librarian-work-merge')):
+    $bodyclass.append('show-librarian-tools')
+
 <body class="$(' '.join(bodyclass))" $:(' '.join(bodyattrs))>
   <script>
       // Provide a signal that JS will load

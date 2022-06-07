@@ -1,4 +1,4 @@
-$def with (page, editions_page=False, render_times={})
+$def with (page, editions_page=False, render_times={}, summary=None, modal_links=None)
 
 $if page.type.key == '/type/work' and page.edition_count == 1:
     $ edit_url = page.editions[0].key + '?m=edit'
@@ -44,6 +44,12 @@ $if isbn_10 and not asin:
           $if not page.is_fake_record():
               $:render_template('covers/change', page, ".edition-cover .bookCover img")
         </div>
+        $if summary:
+          <!--This section appears only in mobile/tablet screens-->
+          <div class="mobile-book-header">
+             $:summary
+          </div>
+
         $ render_times['databarWork: DonateModal'] = time()
         $:macros.DonateModal(page, ids={'isbn': isbn_13, 'asin': asin, 'prices': True})
         $ render_times['databarWork: DonateModal'] = time() - render_times['databarWork: DonateModal']
@@ -62,6 +68,9 @@ $if isbn_10 and not asin:
         $:macros.LoanStatus(page, allow_expensive_availability_check=expensive_check, secondary_action=editions_page, check_sponsorship=editions_page, sponsorship_help=editions_page, check_loan_status=editions_page, post=lists_widget)
         $ render_times['databarWork: LoanStatus'] = time() - render_times['databarWork: LoanStatus']
 
+        $if modal_links:
+          <hr>
+          $:modal_links
         $if editions_page:
           $ render_times['databarWork: Book provider'] = time()
           $ book_provider = get_book_provider(page)
@@ -95,13 +104,6 @@ $if isbn_10 and not asin:
           $ render_times['databarWork: AffiliateLinks'] = time() - render_times['databarWork: AffiliateLinks']
         </div>
       </div>
-    </div>
-
-    <div class="panel list-view">
-      <div class="btn-notice">
-          $if ctx.get('share_links'):
-            $:macros.SocialShare(ctx.get('share_links'), request.home + page.key)
-        </div>
     </div>
 
     $if edition and edition.sponsorship_data:

@@ -153,7 +153,6 @@ h2.edition-byline {
 
 .work-menu {
   border-bottom: 1px solid @lighter-grey;
-  padding-bottom: 5px;
   font-weight: bold;
 
   &.sticky {
@@ -162,7 +161,6 @@ h2.edition-byline {
     display: block;
     background: @white;
     z-index: @z-index-level-3;
-    padding-top: 10px;
     white-space: nowrap;
     overflow-x: auto;
     // Make tab bar full width on mobile
@@ -191,34 +189,34 @@ h2.edition-byline {
 @media only screen and (min-width: @width-breakpoint-tablet) {
   .work-menu.sticky {
     top: @compact-title-height;
-    padding-top: 2px;
     margin-left: 0;
     margin-right: 0;
+    width: 100%;
   }
 }
 
 .work-menu li {
   display: inline;
-  padding: 0 15px;
-  padding-bottom: 5px;
   font-size: 13px;
 }
 
 .work-menu li a {
   text-decoration: none;
   color: @grey;
-}
-
-.work-menu li.selected {
-  border-bottom: 2px solid @link-blue;
-}
-
-.work-menu li:hover {
-  border-bottom: 2px solid @link-blue;
+  padding: 12px 15px 8px;
+  display: inline-block;
+  @media only screen and (min-width: @width-breakpoint-tablet) {
+    padding-top: 4px;
+  }
 }
 
 .work-menu li.selected a {
   color: @link-blue;
+  border-bottom: 2px solid @link-blue;
+}
+
+.work-menu li:hover a {
+  border-bottom: 2px solid @link-blue;
 }
 
 a.section-anchor {
@@ -369,6 +367,17 @@ div.editionTools {
   font-size: 1.2em;
   font-weight: normal;
   color: @link-blue;
+}
+@media only screen and (max-width: @width-breakpoint-desktop){
+  .desktop-book-header{
+    display: none;
+  }
+}
+
+.mobile-book-header {
+  h1 {
+    line-height: normal;
+  }
 }
 
 @import (less) "components/compact-title.less";

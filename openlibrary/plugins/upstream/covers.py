@@ -3,9 +3,8 @@
 from logging import getLogger
 
 import requests
-import six
 import web
-from six import BytesIO
+from io import BytesIO
 
 from infogami.utils import delegate
 from infogami.utils.view import safeint

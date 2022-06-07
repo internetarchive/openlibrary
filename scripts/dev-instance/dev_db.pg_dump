@@ -125,8 +125,34 @@ CREATE TABLE public.author_str (
 ALTER TABLE public.author_str OWNER TO openlibrary;
 
 --
+-- Name: booknotes; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
+--
+
+CREATE TABLE public.booknotes (
+    username text NOT NULL,
+    work_id integer NOT NULL,
+    edition_id integer DEFAULT (-1) NOT NULL,
+    notes text NOT NULL,
+    updated timestamp without time zone DEFAULT timezone('utc'::text, now()),
+    created timestamp without time zone DEFAULT timezone('utc'::text, now())
+);
+
+
+ALTER TABLE public.booknotes OWNER TO postgres;
+
+--
 -- Name: bookshelves; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
+
+CREATE TABLE public.bookshelves (
+    id integer NOT NULL,
+    name text,
+    description text,
+    archived boolean DEFAULT false,
+    updated timestamp without time zone DEFAULT timezone('utc'::text, now()),
+    created timestamp without time zone DEFAULT timezone('utc'::text, now())
+);
+
 
 ALTER TABLE public.bookshelves OWNER TO postgres;
 
@@ -134,11 +160,30 @@ ALTER TABLE public.bookshelves OWNER TO postgres;
 -- Name: bookshelves_books; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
+CREATE TABLE public.bookshelves_books (
+    username text NOT NULL,
+    work_id integer NOT NULL,
+    bookshelf_id integer NOT NULL,
+    edition_id integer,
+    private boolean,
+    updated timestamp without time zone DEFAULT timezone('utc'::text, now()),
+    created timestamp without time zone DEFAULT timezone('utc'::text, now())
+);
+
+
 ALTER TABLE public.bookshelves_books OWNER TO postgres;
 
 --
 -- Name: bookshelves_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
+
+CREATE SEQUENCE public.bookshelves_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
 
 ALTER TABLE public.bookshelves_id_seq OWNER TO postgres;
 
@@ -153,14 +198,29 @@ ALTER SEQUENCE public.bookshelves_id_seq OWNED BY public.bookshelves.id;
 -- Name: bookshelves_votes; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
+CREATE TABLE public.bookshelves_votes (
+    username text NOT NULL,
+    bookshelf_id integer NOT NULL,
+    updated timestamp without time zone DEFAULT timezone('utc'::text, now()),
+    created timestamp without time zone DEFAULT timezone('utc'::text, now())
+);
+
+
 ALTER TABLE public.bookshelves_votes OWNER TO postgres;
 
 --
 -- Name: bookshelves_votes_bookshelf_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-ALTER TABLE public.bookshelves_votes_bookshelf_id_seq OWNER TO postgres;
+CREATE SEQUENCE public.bookshelves_votes_bookshelf_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 
+
+ALTER TABLE public.bookshelves_votes_bookshelf_id_seq OWNER TO postgres;
 
 --
 -- Name: bookshelves_votes_bookshelf_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -292,6 +352,22 @@ CREATE TABLE public.meta (
 ALTER TABLE public.meta OWNER TO openlibrary;
 
 --
+-- Name: observations; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
+--
+
+CREATE TABLE public.observations (
+    work_id integer NOT NULL,
+    edition_id integer DEFAULT (-1) NOT NULL,
+    username text NOT NULL,
+    observation_type integer NOT NULL,
+    observation_value integer NOT NULL,
+    created timestamp without time zone DEFAULT timezone('utc'::text, now())
+);
+
+
+ALTER TABLE public.observations OWNER TO postgres;
+
+--
 -- Name: property; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
@@ -384,6 +460,16 @@ ALTER TABLE public.publisher_str OWNER TO openlibrary;
 --
 -- Name: ratings; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
+
+CREATE TABLE public.ratings (
+    username text NOT NULL,
+    work_id integer NOT NULL,
+    rating integer,
+    edition_id integer,
+    updated timestamp without time zone DEFAULT timezone('utc'::text, now()),
+    created timestamp without time zone DEFAULT timezone('utc'::text, now())
+);
+
 
 ALTER TABLE public.ratings OWNER TO postgres;
 
@@ -925,6 +1011,20 @@ CREATE TABLE public.work_str (
 ALTER TABLE public.work_str OWNER TO openlibrary;
 
 --
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.bookshelves ALTER COLUMN id SET DEFAULT nextval('public.bookshelves_id_seq'::regclass);
+
+
+--
+-- Name: bookshelf_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.bookshelves_votes ALTER COLUMN bookshelf_id SET DEFAULT nextval('public.bookshelves_votes_bookshelf_id_seq'::regclass);
+
+
+--
 -- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
 --
 
@@ -1251,10 +1351,45 @@ COPY public.author_str (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
+-- Data for Name: booknotes; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.booknotes (username, work_id, edition_id, notes, updated, created) FROM stdin;
+\.
+
+
+--
+-- Data for Name: bookshelves; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.bookshelves (id, name, description, archived, updated, created) FROM stdin;
+1	Want to Read	A list of books I want to read	f	2022-05-25 22:03:50.632041	2022-05-25 22:03:50.632041
+2	Currently Reading	A list of books I am currently reading	f	2022-05-25 22:03:50.633232	2022-05-25 22:03:50.633232
+3	Already Read	A list of books I have finished reading	f	2022-05-25 22:03:50.634206	2022-05-25 22:03:50.634206
+\.
+
+
+--
+-- Data for Name: bookshelves_books; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.bookshelves_books (username, work_id, bookshelf_id, edition_id, private, updated, created) FROM stdin;
+\.
+
+
+--
 -- Name: bookshelves_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
 SELECT pg_catalog.setval('public.bookshelves_id_seq', 3, true);
+
+
+--
+-- Data for Name: bookshelves_votes; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.bookshelves_votes (username, bookshelf_id, updated, created) FROM stdin;
+\.
 
 
 --
@@ -1949,6 +2084,9 @@ COPY public.data (thing_id, revision, data) FROM stdin;
 665	1	{"description": {"type": "/type/text", "value": "Group of librarians. \\r\\n\\r\\nLibrarians have permission to edit all pages on the website, including the developer documentation."}, "created": {"type": "/type/datetime", "value": "2017-12-24T02:53:58.459826"}, "last_modified": {"type": "/type/datetime", "value": "2017-12-24T02:53:58.459826"}, "latest_revision": 1, "key": "/usergroup/librarians", "type": {"key": "/type/usergroup"}, "revision": 1}
 666	1	{"description": {"type": "/type/text", "value": "User Group for beta-testers.\\r\\n\\r\\nPeople in the group will get to see the beta features of Open Library."}, "created": {"type": "/type/datetime", "value": "2020-11-19T03:45:35.476156"}, "m": "edit", "last_modified": {"type": "/type/datetime", "value": "2020-11-19T03:45:35.476156"}, "latest_revision": 1, "key": "/usergroup/beta-testers", "type": {"key": "/type/usergroup"}, "revision": 1}
 667	1	{"identifiers": [{"label": "ISNI", "name": "isni", "notes": "", "url": "http://www.isni.org/@@@", "website": "http://www.isni.org/"}, {"label": "LibriVox", "name": "librivox", "notes": "Should be a number", "url": "https://librivox.org/author/@@@", "website": "https://librivox.org"}, {"label": "Project Gutenberg", "name": "project_gutenberg", "notes": "Should be a number", "url": "https://www.gutenberg.org/ebooks/author/@@@", "website": "https://www.gutenberg.org"}, {"label": "VIAF", "name": "viaf", "notes": "", "url": "https://viaf.org/viaf/@@@", "website": "https://viaf.org"}, {"label": "Wikidata", "name": "wikidata", "notes": "", "url": "https://www.wikidata.org/wiki/@@@", "website": "https://wikidata.org"}], "key": "/config/author", "type": {"key": "/type/object"}, "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2021-10-07T20:31:34.001079"}, "last_modified": {"type": "/type/datetime", "value": "2021-10-07T20:31:34.001079"}}
+668	1	{"body": {"type": "/type/text", "value": "{{PageList(\\"/usergroup\\")}}"}, "type": {"key": "/type/page"}, "title": "User Groups", "m": "edit", "key": "/usergroup", "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2022-05-13T00:32:11.984130"}, "last_modified": {"type": "/type/datetime", "value": "2022-05-13T00:32:11.984130"}}
+669	1	{"description": {"type": "/type/text", "value": "Librarians who are permitted to use work merge UI."}, "key": "/usergroup/librarian-work-merge", "members": [{"key": "/people/openlibrary"}], "type": {"key": "/type/usergroup"}, "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2022-05-13T00:32:45.651043"}, "last_modified": {"type": "/type/datetime", "value": "2022-05-13T00:32:45.651043"}}
+670	1	{"description": {"type": "/type/text", "value": "Patrons who are not permitted to edit records that are spam-checked."}, "type": {"key": "/type/usergroup"}, "m": "edit", "key": "/usergroup/read-only", "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2022-05-25T21:42:26.830114"}, "last_modified": {"type": "/type/datetime", "value": "2022-05-25T21:42:26.830114"}}
 \.
 
 
@@ -3120,6 +3258,8 @@ COPY public.datum_str (thing_id, key_id, value, ordering) FROM stdin;
 667	30	http://www.isni.org/@@@	\N
 667	30	https://www.gutenberg.org/ebooks/author/@@@	\N
 667	134	Should be a number	\N
+668	135	edit	\N
+668	36	User Groups	\N
 \.
 
 
@@ -4698,6 +4838,14 @@ COPY public.meta (version) FROM stdin;
 
 
 --
+-- Data for Name: observations; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.observations (work_id, edition_id, username, observation_type, observation_value, created) FROM stdin;
+\.
+
+
+--
 -- Data for Name: property; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
@@ -4836,6 +4984,7 @@ COPY public.property (id, type, name) FROM stdin;
 132	31	identifiers.amazon
 133	12	m
 134	14	identifiers.notes
+135	50	m
 \.
 
 
@@ -4843,7 +4992,7 @@ COPY public.property (id, type, name) FROM stdin;
 -- Name: property_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('public.property_id_seq', 134, true);
+SELECT pg_catalog.setval('public.property_id_seq', 135, true);
 
 
 --
@@ -4876,6 +5025,15 @@ COPY public.publisher_ref (thing_id, key_id, value, ordering) FROM stdin;
 
 COPY public.publisher_str (thing_id, key_id, value, ordering) FROM stdin;
 \.
+
+
+--
+-- Data for Name: ratings; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.ratings (username, work_id, rating, edition_id, updated, created) FROM stdin;
+\.
+
 
 --
 -- Data for Name: scan_boolean; Type: TABLE DATA; Schema: public; Owner: openlibrary
@@ -4934,13 +5092,13 @@ COPY public.store (id, key, json) FROM stdin;
 5	account-email/userbot@example.com	{"username": "AccountBot", "type": "account-email"}
 6	account/AccountBot	{"status": "active", "username": "AccountBot", "type": "account", "data": {"displayname": "AccountBot"}, "created_on": "2013-03-20T10:27:02.560602", "lusername": "accountbot", "enc_password": "b859a$7677638bb1c3f82bf7e1484b4b34b014", "email": "userbot@example.com"}
 8	account-email/openlibrary@example.com	{"username": "openlibrary", "type": "account-email"}
-10	account/openlibrary	{"status": "active", "username": "openlibrary", "enc_password": "dcd90$ab61967218c45d5095dac4f61ab82ccc", "created_on": "2013-03-20T10:27:09.689977", "last_login": "2013-03-26T11:15:26.425677", "lusername": "openlibrary", "type": "account", "data": {"displayname": "Open Library"}, "email": "openlibrary@example.com"}
 22	ebooks/books/OL24503867M	{"borrowed": "false", "type": "ebook", "book_key": "/books/OL24503867M"}
 23	ebooks/books/OL24620876M	{"borrowed": "false", "type": "ebook", "book_key": "/books/OL24620876M"}
 24	ebooks/books/OL24405389M	{"borrowed": "false", "type": "ebook", "book_key": "/books/OL24405389M"}
 25	ebooks/books/OL24972169M	{"borrowed": "false", "type": "ebook", "book_key": "/books/OL24972169M"}
 30	ebooks/books/OL24982896M	{"borrowed": "false", "type": "ebook", "book_key": "/books/OL24982896M"}
 31	ebooks/books/OL24605334M	{"borrowed": "false", "type": "ebook", "book_key": "/books/OL24605334M"}
+33	account/openlibrary	{"status": "active", "username": "openlibrary", "enc_password": "dcd90$ab61967218c45d5095dac4f61ab82ccc", "created_on": "2013-03-20T10:27:09.689977", "last_login": "2013-03-26T11:15:26.425677", "lusername": "openlibrary", "type": "account", "data": {"displayname": "Open Library"}, "email": "openlibrary@example.com", "internetarchive_itemname": "@openlibrary", "s3_keys": {"access": "foo", "secret": "foo"}}
 \.
 
 
@@ -4948,7 +5106,7 @@ COPY public.store (id, key, json) FROM stdin;
 -- Name: store_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('public.store_id_seq', 31, true);
+SELECT pg_catalog.setval('public.store_id_seq', 33, true);
 
 
 --
@@ -4978,15 +5136,6 @@ COPY public.store_index (id, store_id, type, name, value) FROM stdin;
 36	6	account	lusername	accountbot
 45	8	account-email	_key	account-email/openlibrary@example.com
 46	8	account-email	username	openlibrary
-55	10	account	_key	account/openlibrary
-56	10	account	data.displayname	Open Library
-57	10	account	last_login	2013-03-26T11:15:26.425677
-58	10	account	status	active
-59	10	account	enc_password	dcd90$ab61967218c45d5095dac4f61ab82ccc
-60	10	account	created_on	2013-03-20T10:27:09.689977
-61	10	account	lusername	openlibrary
-62	10	account	username	openlibrary
-63	10	account	email	openlibrary@example.com
 132	22	ebook	_key	ebooks/books/OL24503867M
 133	22	ebook	book_key	/books/OL24503867M
 134	22	ebook	borrowed	false
@@ -5005,6 +5154,18 @@ COPY public.store_index (id, store_id, type, name, value) FROM stdin;
 173	31	ebook	_key	ebooks/books/OL24605334M
 174	31	ebook	book_key	/books/OL24605334M
 175	31	ebook	borrowed	false
+186	33	account	_key	account/openlibrary
+187	33	account	enc_password	dcd90$ab61967218c45d5095dac4f61ab82ccc
+188	33	account	last_login	2013-03-26T11:15:26.425677
+189	33	account	s3_keys.secret	foo
+190	33	account	created_on	2013-03-20T10:27:09.689977
+191	33	account	s3_keys.access	foo
+192	33	account	email	openlibrary@example.com
+193	33	account	internetarchive_itemname	@openlibrary
+194	33	account	status	active
+195	33	account	username	openlibrary
+196	33	account	lusername	openlibrary
+197	33	account	data.displayname	Open Library
 \.
 
 
@@ -5012,7 +5173,7 @@ COPY public.store_index (id, store_id, type, name, value) FROM stdin;
 -- Name: store_index_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('public.store_index_id_seq', 175, true);
+SELECT pg_catalog.setval('public.store_index_id_seq', 197, true);
 
 
 --
@@ -5719,6 +5880,9 @@ COPY public.thing (id, key, type, latest_revision, created, last_modified) FROM 
 665	/usergroup/librarians	12	1	2017-12-24 02:53:58.459826	2017-12-24 02:53:58.459826
 666	/usergroup/beta-testers	12	1	2020-11-19 03:45:35.476156	2020-11-19 03:45:35.476156
 667	/config/author	14	1	2021-10-07 20:31:34.001079	2021-10-07 20:31:34.001079
+668	/usergroup	50	1	2022-05-13 00:32:11.98413	2022-05-13 00:32:11.98413
+669	/usergroup/librarian-work-merge	12	1	2022-05-13 00:32:45.651043	2022-05-13 00:32:45.651043
+670	/usergroup/read-only	12	1	2022-05-25 21:42:26.830114	2022-05-25 21:42:26.830114
 \.
 
 
@@ -5726,7 +5890,7 @@ COPY public.thing (id, key, type, latest_revision, created, last_modified) FROM 
 -- Name: thing_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('public.thing_id_seq', 667, true);
+SELECT pg_catalog.setval('public.thing_id_seq', 670, true);
 
 
 --
@@ -5780,6 +5944,9 @@ COPY public.transaction (id, action, author_id, ip, comment, bot, created, chang
 44	update	524	10.0.2.2		f	2017-12-24 02:53:58.459826	[{"key": "/usergroup/librarians", "revision": 1}]	{}
 45	update	524	172.21.0.1		f	2020-11-19 03:45:35.476156	[{"key": "/usergroup/beta-testers", "revision": 1}]	{}
 46	update	524	172.18.0.1		f	2021-10-07 20:31:34.001079	[{"key": "/config/author", "revision": 1}]	{}
+47	update	524	192.168.16.1		f	2022-05-13 00:32:11.98413	[{"key": "/usergroup", "revision": 1}]	{}
+48	update	524	192.168.16.1		f	2022-05-13 00:32:45.651043	[{"key": "/usergroup/librarian-work-merge", "revision": 1}]	{}
+49	update	524	172.22.0.1	Create read-only usergroup	f	2022-05-25 21:42:26.830114	[{"key": "/usergroup/read-only", "revision": 1}]	{}
 \.
 
 
@@ -5787,7 +5954,7 @@ COPY public.transaction (id, action, author_id, ip, comment, bot, created, chang
 -- Name: transaction_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('public.transaction_id_seq', 46, true);
+SELECT pg_catalog.setval('public.transaction_id_seq', 49, true);
 
 
 --
@@ -6303,6 +6470,7 @@ COPY public.user_ref (thing_id, key_id, value, ordering) FROM stdin;
 527	13	524	\N
 20	13	524	\N
 20	13	24	\N
+669	13	524	\N
 \.
 
 
@@ -6318,6 +6486,7 @@ COPY public.user_str (thing_id, key_id, value, ordering) FROM stdin;
 27	14	AccountBot	\N
 524	14	Open Library	\N
 666	133	edit	\N
+670	133	edit	\N
 \.
 
 
@@ -7006,6 +7175,9 @@ COPY public.version (id, thing_id, revision, transaction_id) FROM stdin;
 678	665	1	44
 679	666	1	45
 680	667	1	46
+681	668	1	47
+682	669	1	48
+683	670	1	49
 \.
 
 
@@ -7013,7 +7185,7 @@ COPY public.version (id, thing_id, revision, transaction_id) FROM stdin;
 -- Name: version_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
-SELECT pg_catalog.setval('public.version_id_seq', 680, true);
+SELECT pg_catalog.setval('public.version_id_seq', 683, true);
 
 
 --
@@ -7664,6 +7836,14 @@ ALTER TABLE ONLY public.account
 
 
 --
+-- Name: booknotes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
+--
+
+ALTER TABLE ONLY public.booknotes
+    ADD CONSTRAINT booknotes_pkey PRIMARY KEY (username, work_id, edition_id);
+
+
+--
 -- Name: bookshelves_books_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
 
@@ -7685,6 +7865,14 @@ ALTER TABLE ONLY public.bookshelves
 
 ALTER TABLE ONLY public.bookshelves_votes
     ADD CONSTRAINT bookshelves_votes_pkey PRIMARY KEY (username, bookshelf_id);
+
+
+--
+-- Name: observations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
+--
+
+ALTER TABLE ONLY public.observations
+    ADD CONSTRAINT observations_pkey PRIMARY KEY (work_id, edition_id, username, observation_value, observation_type);
 
 
 --
@@ -8452,6 +8640,22 @@ ALTER TABLE ONLY public.author_str
 
 
 --
+-- Name: bookshelves_books_bookshelf_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.bookshelves_books
+    ADD CONSTRAINT bookshelves_books_bookshelf_id_fkey FOREIGN KEY (bookshelf_id) REFERENCES public.bookshelves(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: bookshelves_votes_bookshelf_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.bookshelves_votes
+    ADD CONSTRAINT bookshelves_votes_bookshelf_id_fkey FOREIGN KEY (bookshelf_id) REFERENCES public.bookshelves(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
 -- Name: data_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
@@ -9105,6 +9309,16 @@ GRANT SELECT ON TABLE public.author_str TO readcreateaccess;
 
 
 --
+-- Name: TABLE booknotes; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON TABLE public.booknotes FROM PUBLIC;
+REVOKE ALL ON TABLE public.booknotes FROM postgres;
+GRANT ALL ON TABLE public.booknotes TO postgres;
+GRANT SELECT ON TABLE public.booknotes TO readcreateaccess;
+
+
+--
 -- Name: TABLE bookshelves; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9222,6 +9436,16 @@ REVOKE ALL ON TABLE public.meta FROM PUBLIC;
 REVOKE ALL ON TABLE public.meta FROM openlibrary;
 GRANT ALL ON TABLE public.meta TO openlibrary;
 GRANT SELECT ON TABLE public.meta TO readcreateaccess;
+
+
+--
+-- Name: TABLE observations; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON TABLE public.observations FROM PUBLIC;
+REVOKE ALL ON TABLE public.observations FROM postgres;
+GRANT ALL ON TABLE public.observations TO postgres;
+GRANT SELECT ON TABLE public.observations TO readcreateaccess;
 
 
 --

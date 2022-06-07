@@ -7,7 +7,7 @@ for REPO_DIR in $REPO_DIRS; do
     echo $REPO_DIR
 
     for SERVER in $SERVERS; do
-	ssh $SERVER "cd $REPO_DIR; echo -ne $SERVER'\t'; git rev-parse HEAD"
+	ssh $SERVER "cd $REPO_DIR; echo -ne $SERVER'\t'; sudo git rev-parse HEAD"
     done
     echo "---"
 done

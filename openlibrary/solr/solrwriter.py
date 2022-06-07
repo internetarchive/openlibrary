@@ -2,12 +2,10 @@
 """
 import logging
 import re
+from http.client import HTTPConnection
 
 from lxml.etree import tostring, Element
 from unicodedata import normalize
-
-import six
-
 
 logger = logging.getLogger("openlibrary.solrwriter")
 
@@ -28,7 +26,7 @@ class SolrWriter:
 
     def get_conn(self):
         if self.conn is None:
-            self.conn = six.moves.http_client.HTTPConnection(self.host)
+            self.conn = HTTPConnection(self.host)
         return self.conn
 
     def request(self, xml):

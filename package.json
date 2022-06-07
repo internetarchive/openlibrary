@@ -57,10 +57,12 @@
     "css-loader": "5.2.7",
     "datatables.net-dt": "1.10.25",
     "details-polyfill": "1.2.0",
+    "diff": "4.0.1",
     "eslint": "6.8.0",
     "eslint-plugin-no-jquery": "2.6.0",
     "eslint-plugin-vue": "7.15.0",
     "flot": "0.8.3",
+    "isbn3": "1.1.1",
     "jest": "27.5.1",
     "jquery": "3.6.0",
     "jquery-colorbox": "1.6.4",
@@ -96,6 +98,10 @@
       "<rootDir>/openlibrary/plugins/openlibrary/js/",
       "<rootDir>/tests/unit/js/"
     ],
+    "transform": {
+      "^.+\\.js$": "babel-jest",
+      "^.+\\.(css|less)$": "./tests/unit/js/styleMock.js"
+    },
     "testEnvironment": "jsdom",
     "collectCoverageFrom": [
       "openlibrary/plugins/openlibrary/js/**/*.js"

@@ -1,0 +1,22 @@
+$def with (work, edition, ocaid, work_title, star_ratings_stats)
+
+<div class="work-line">
+    $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title$cond(work.subtitle, ': %s' % work.subtitle)</a>
+    $if work.first_publish_year:
+        <span class="first-published-date" title="$_('First published in %s', work.first_publish_year)">
+          ($work.first_publish_year)
+        </span>
+  </div>
+  $ book_title = edition.get('title', '') or (work.title if work else '')
+  $:render_template("type/edition/book_title", book_title, edition)
+  $ authors = (work or edition).get_authors()
+  $ author_names = (work or edition).author_names
+  $if authors:
+    <h2 class="edition-byline">
+      $:macros.BookByline([(author.name, author.url()) for author in authors], attrs='itemprop="author"')
+    </h2>
+  $elif author_names:
+    <h2 class="edition-byline">
+      $:macros.BookByline([(name, None) for name in author_names], attrs='itemprop="author"')
+    </h2>
+$:star_ratings_stats

@@ -11,8 +11,7 @@ This adapter module is a filter that sits above an Infobase server and fakes the
 import json
 import web
 
-import six
-from six.moves import urllib
+import urllib
 
 
 urls = (

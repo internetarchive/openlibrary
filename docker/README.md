@@ -1,5 +1,13 @@
 # Welcome to the Docker Installation Guide for Open Library Developers
 
+## Prerequisites & Troubleshooting
+
+Before attempting to build openlibrary using the Docker instructions below, please follow this checklist. If you encounter an error, this section may serve as a troubleshooting guide:
+
+- Install `docker-ce`: https://docs.docker.com/get-docker/ (tested with version 19.*)
+- Install `docker-compose`: https://docs.docker.com/compose/install/
+- Make sure you `git clone` openlibrary using `ssh` instead of `https` as git submodules (e.g. `infogami` and `acs`) may not fetch correctly otherwise. You can modify an existing openlibrary repository using `git remote rm origin` and then `git remote add origin git@github.com:internetarchive/openlibrary.git`. Then run `git submodule init; git submodule sync; git submodule update` to get rid of the issue.
+
 ## Setup/Teardown Commands
 
 ### For Windows Users Only
@@ -22,14 +30,6 @@ git reset --hard HEAD
 Please use [Docker Desktop >= 4.3.0](https://docs.docker.com/desktop/mac/release-notes/) and make sure that Docker Desktop Preferences `General / Use Docker Compose V2` is checked so that it is no longer required to install Rosetta 2 to run Docker.
 
 If you are experiencing issues building JS, you may need to increase the RAM available to Docker. The defaults of 2GB ram and 1GB Swap are not enough. We recommend requirements of 4GB ram and 2GB swap. This resolved the error message of `Killed` when running `build-assets`.
-
-### Prerequisites & Troubleshooting
-
-Before attempting to build openlibrary using the Docker instructions below, please follow this checklist. If you encounter an error, this section may serve as a troubleshooting guide:
-
-- Install `docker-ce`: https://docs.docker.com/get-docker/ (tested with version 19.*)
-- Install `docker-compose`: https://docs.docker.com/compose/install/
-- Make sure you `git clone` openlibrary using `ssh` instead of `https` as git submodules (e.g. `infogami` and `acs`) may not fetch correctly otherwise. You can modify an existing openlibrary repository using `git remote rm origin` and then `git remote add origin git@github.com:internetarchive/openlibrary.git`
 
 ### For All Users
 All commands are from the project root directory:
