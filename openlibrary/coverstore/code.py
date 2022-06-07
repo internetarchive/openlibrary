@@ -582,18 +582,20 @@ def overlay_covers_over_background(path):
     background.paste(logo, (880, 14), logo)
 
     draw = ImageDraw.Draw(background)
-    font_author = ImageFont.truetype("/openlibrary/static/fonts/NotoSans-Regular.ttf", 26)
-    font_title = ImageFont.truetype("/openlibrary/static/fonts/NotoSans-SemiBold.ttf", 26)
+    font_author = ImageFont.truetype("/openlibrary/static/fonts/NotoSans-LightItalic.ttf", 22)
+    font_title = ImageFont.truetype("/openlibrary/static/fonts/NotoSans-SemiBold.ttf", 28)
     lst = web.ctx.site.get(path)
-    para = textwrap.wrap(lst.name, width=35)
-    current_h = 48
+    para = textwrap.wrap(lst.name, width=45)
+    current_h = 42
+    author_text = f"A list by {lst.get_owner().displayname}"
+    w, h = draw.textsize(author_text, font=font_author)
+    draw.text(((W - w) / 2, current_h), author_text, font=font_author, fill=(0,0,0))
+    current_h += h + 5
+
     for line in para:
         w, h = draw.textsize(line, font=font_title)
         draw.text(((W - w) / 2, current_h), line, font=font_title, fill=(0,0,0))
-        current_h += h + 10
-    w, h = draw.textsize(line, font=font_author)
-    author_text = f"by {lst.get_owner().displayname}"
-    draw.text(((W - w) / 2, current_h), author_text, font=font_author, fill=(0,0,0))
+        current_h += h
 
     with io.BytesIO() as buf:
         background.save(buf, format='PNG')
