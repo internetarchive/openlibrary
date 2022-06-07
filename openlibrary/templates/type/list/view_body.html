@@ -17,7 +17,7 @@ $putctx("description", meta_description)
 $if days_since(list.created) < 30:
     $ putctx('robots', 'noindex')
 
-$add_metatag(property="twitter:card", content="summary")
+$add_metatag(property="twitter:card", content="summary_large_image")
 $add_metatag(property="twitter:site", content="@openlibrary")
 $add_metatag(property="twitter:title", content=title_with_site)
 $add_metatag(property="twitter:description", content= _("View the list on Open Library."))
