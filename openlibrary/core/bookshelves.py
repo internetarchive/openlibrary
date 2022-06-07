@@ -82,7 +82,7 @@ class Bookshelves(db.CommonExtras):
         users. This query is limited to a specific shelf_id (e.g. 1
         for "Want to Read").
         """
-        offset=(page-1)*limit
+        offset = (page - 1) * limit
         oldb = db.get_db()
         where = 'WHERE bookshelf_id' + ('=$shelf_id' if shelf_id else ' IS NOT NULL ')
         if since:
