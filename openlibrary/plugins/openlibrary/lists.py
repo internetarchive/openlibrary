@@ -661,9 +661,5 @@ class lists_preview(delegate.page):
 
     def GET(self, path):
         image_bytes = overlay_covers_over_background(path)
-        binary_file = tempfile.NamedTemporaryFile()
-        binary_file.write(image_bytes)
-
         web.header("Content-Type", "image/png")
-        with open(binary_file.name, 'rb') as f:
-            return delegate.RawText(f.read())
+        return delegate.RawText(image_bytes)
