@@ -657,7 +657,7 @@ def create_preview_recommendation_text(lst_key):
     return recom_text
 
 class lists_preview(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)/preview"
+    path = r"(/people/[^/]+/lists/OL\d+L)/preview.png"
 
     def GET(self, path):
         image_bytes = overlay_covers_over_background(path)
