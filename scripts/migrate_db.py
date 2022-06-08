@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 """Script to migrate the OL database to latest schema.
 """
 

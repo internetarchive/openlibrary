@@ -1,4 +1,4 @@
-#!/usr/bin/python2.5
+#!/usr/bin/env python
 from openlibrary.catalog.marc.fast_parse import *
 from openlibrary.catalog.get_ia import get_from_archive
 import sys
