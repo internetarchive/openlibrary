@@ -1184,19 +1184,17 @@ def rewrite_list_query(q, page, offset, limit):
 
 @public
 def work_search(
-    query,
-    sort=None,
-    page=1,
-    offset=0,
-    limit=100,
-    fields='*',
-    facet=True,
-    spellcheck_count=None,
-):
+    query: dict,
+    sort: str = None,
+    page: int = 1,
+    offset: int = 0,
+    limit: int = 100,
+    fields: str = '*',
+    facet: bool = True,
+    spellcheck_count: int = None,
+) -> dict:
     """
-    params:
-    query: dict
-    sort: str editions|old|new|scans
+    :param sort: key of SORTS dict at the top of this file
     """
     # Ensure we don't mutate the `query` passed in by reference
     query = copy.deepcopy(query)
@@ -1219,8 +1217,9 @@ def work_search(
             facet=facet,
             spellcheck_count=spellcheck_count,
         )
-        response = reply['response'] or ''
-    except (ValueError, OSError) as e:
+        assert reply, "Received None response from run_solr_query"
+        response = reply['response']
+    except (ValueError, OSError, AssertionError) as e:
         logger.error("Error in processing search API.")
         response = dict(start=0, numFound=0, docs=[], error=str(e))
 
