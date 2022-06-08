@@ -14,6 +14,9 @@
 #             --> scripts/oldump.py
 #                 --> openlibrary/data/dump.py
 #
+# To watch the logs on ol-home0, use:
+# ol-home0% docker logs -f openlibrary_cron-jobs_1 2>&1 | grep openlibrary.dump
+#
 # Testing (stats as of November 2021):
 # The cron job takes 18+ hours to process 192,000,000+ records in 29GB of data!!
 #
@@ -45,7 +48,8 @@ yyyymm=${yyyymmdd:0:7}  # 2022-05-31 --> 2022-05
 cdump=ol_cdump_$yyyymmdd
 dump=ol_dump_$yyyymmdd
 
-if [ $# -lt 1 ]; then
+if [ $# -lt 1 ]
+then
     echo "USAGE: $0 yyyy-mm-dd [--archive] [--overwrite]" 1>&2
     exit 1
 fi
@@ -68,8 +72,11 @@ function archive_dumps() {
     is_uploaded=$(ia list ${dump} | wc -l)
     if [[ $is_uploaded == 0 ]]
     then
+        log "archive_dumps(): $dump"
 	ia --config-file=/olsystem/etc/ia.ini upload $dump  $dump/  --metadata "collection:ol_exports" --metadata "year:${yyyymm:0:4}" --metadata "format:Data" --retries 300
+        log "archive_dumps(): $cdump"
 	ia --config-file=/olsystem/etc/ia.ini upload $cdump $cdump/ --metadata "collection:ol_exports" --metadata "year:${yyyymm:0:4}" --metadata "format:Data" --retries 300
+        log "archive_dumps(): $dump and $cdump have been archived to https://archive.org/details/ol_exports?sort=-publicdate"
     else
 	log "Skipping: Archival Zip already exists"
     fi
@@ -199,7 +206,7 @@ else
     log "Skipping sitemaps"
 fi
 
-log $USER has completed $@ in $TMPDIR on ${HOSTNAME:-$HOST}"
+log "$USER has completed $@ in $TMPDIR on ${HOSTNAME:-$HOST}"
 
 # remove the dump of data table
 # In production, we remove the raw database dump to save disk space.
