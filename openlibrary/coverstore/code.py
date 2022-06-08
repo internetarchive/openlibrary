@@ -48,8 +48,6 @@ urls = (
     'touch',
     '/([^ /]*)/delete',
     'delete',
-    '/preview',
-    'list_preview'
 )
 app = web.application(urls, locals())
 
@@ -522,12 +520,11 @@ class delete:
             return 'no such id: %s' % id
 
 
-def overlay_covers_over_background(path):
+def render_list_preview_image(lst_key):
     """This function takes a list of five books and puts their covers in the correct
     locations to create a new image for social-card"""
-    from openlibrary.plugins.openlibrary.lists import create_list_preview
-
-    five_seeds = create_list_preview(path)
+    lst = web.ctx.site.get(lst_key)
+    five_seeds = lst.seeds[0:5]
     background = Image.open("/openlibrary/static/images/Twitter_Social_Card_Background.png")
 
     logo = Image.open("/openlibrary/static/images/Open_Library_logo_2.png")
@@ -584,7 +581,7 @@ def overlay_covers_over_background(path):
     draw = ImageDraw.Draw(background)
     font_author = ImageFont.truetype("/openlibrary/static/fonts/NotoSans-LightItalic.ttf", 22)
     font_title = ImageFont.truetype("/openlibrary/static/fonts/NotoSans-SemiBold.ttf", 28)
-    lst = web.ctx.site.get(path)
+
     para = textwrap.wrap(lst.name, width=45)
     current_h = 42
     author_text = f"A list by {lst.get_owner().displayname}"

@@ -16,7 +16,7 @@ from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.worksearch import subjects
-from openlibrary.coverstore.code import overlay_covers_over_background
+from openlibrary.coverstore.code import render_list_preview_image
 
 
 
@@ -643,17 +643,11 @@ def get_active_lists_in_random(limit=20, preload=True):
     # convert rawdata into models.
     return [web.ctx.site.new(xlist['key'], xlist) for xlist in lists]
 
-def create_list_preview(lst_key):
-    """Fetches the five first seeds of a list"""
-    lst = web.ctx.site.get(lst_key)
-    five_seeds = lst.seeds[0:5]
-    return five_seeds
-
 
 class lists_preview(delegate.page):
     path = r"(/people/[^/]+/lists/OL\d+L)/preview.png"
 
-    def GET(self, path):
-        image_bytes = overlay_covers_over_background(path)
+    def GET(self, lst_key):
+        image_bytes = render_list_preview_image(lst_key)
         web.header("Content-Type", "image/png")
         return delegate.RawText(image_bytes)
