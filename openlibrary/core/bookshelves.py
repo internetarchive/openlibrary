@@ -76,26 +76,55 @@ class Bookshelves(db.CommonExtras):
         return results[0] if results else None
 
     @classmethod
-    def most_logged_books(cls, shelf_id=None, limit=10, since=False):
+    def most_logged_books(cls, shelf_id=None, limit=10, since=False, page=1, fetch=False):
         """Returns a ranked list of work OLIDs (in the form of an integer --
         i.e. OL123W would be 123) which have been most logged by
         users. This query is limited to a specific shelf_id (e.g. 1
         for "Want to Read").
         """
+        offset = (page - 1) * limit
         oldb = db.get_db()
         where = 'WHERE bookshelf_id' + ('=$shelf_id' if shelf_id else ' IS NOT NULL ')
         if since:
             where += ' AND created >= $since'
         query = f'select work_id, count(*) as cnt from bookshelves_books {where}'
-        query += ' group by work_id order by cnt desc limit $limit'
+        query += ' group by work_id order by cnt desc limit $limit offset $offset'
         logger.info("Query: %s", query)
         logged_books = list(
             oldb.query(
-                query, vars={'shelf_id': shelf_id, 'limit': limit, 'since': since}
+                query, vars={'shelf_id': shelf_id, 'limit': limit, 'offset': offset, 'since': since}
             )
         )
-        logger.info("Results: %s", logged_books)
-        return logged_books
+        return cls.fetch(logged_books) if fetch else logged_books
+
+    @classmethod
+    def fetch(cls, readinglog_items):
+        """Given a list of readinglog_items, such as those returned by
+        Bookshelves.most_logged_books, fetch the corresponding Open Library
+        book records from solr with availability
+        """
+        from openlibrary.plugins.worksearch.code import get_solr_works
+        from openlibrary.core.lending import get_availabilities
+
+        # This gives us a dict of all the works representing
+        # the logged_books, keyed by work_id
+        work_index = get_solr_works(
+            f"/works/OL{i['work_id']}W"
+            for i in readinglog_items
+        )
+
+        # Loop over each work in the index and inject its availability
+        availability_index = get_availabilities(work_index.values())
+        for work_key in availability_index:
+            work_index[work_key]['availability'] = availability_index[work_key]
+
+        # Return items from the work_index in the order
+        # they are represented by the trending logged books
+        for i, item in enumerate(readinglog_items):
+            key = f"/works/OL{item['work_id']}W"
+            if key in work_index:
+                readinglog_items[i]['work'] = work_index[key]
+        return readinglog_items
 
     @classmethod
     def count_total_books_logged_by_user(cls, username, bookshelf_ids=None):
@@ -185,7 +214,7 @@ class Bookshelves(db.CommonExtras):
 
 
     @classmethod
-    def get_recently_logged_books(cls, bookshelf_id=None, limit=50, page=1):
+    def get_recently_logged_books(cls, bookshelf_id=None, limit=50, page=1, fetch=False):
         oldb = db.get_db()
         page = int(page) if page else 1
         data = {
@@ -198,7 +227,8 @@ class Bookshelves(db.CommonExtras):
             f"SELECT * from bookshelves_books {where} "
             "ORDER BY created DESC LIMIT $limit OFFSET $offset"
         )
-        return list(oldb.query(query, vars=data))
+        logged_books = list(oldb.query(query, vars=data))
+        return cls.fetch(logged_books) if fetch else logged_books
 
 
     @classmethod
