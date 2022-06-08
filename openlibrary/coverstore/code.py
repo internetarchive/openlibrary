@@ -600,5 +600,3 @@ def overlay_covers_over_background(path):
     with io.BytesIO() as buf:
         background.save(buf, format='PNG')
         return buf.getvalue()
-
-
