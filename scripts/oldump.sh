@@ -48,7 +48,7 @@ yyyymm=${yyyymmdd:0:7}  # 2022-05-31 --> 2022-05
 cdump=ol_cdump_$yyyymmdd
 dump=ol_dump_$yyyymmdd
 
-if [ $# -lt 1 ]
+if [[ $# -lt 1 ]]
 then
     echo "USAGE: $0 yyyy-mm-dd [--archive] [--overwrite]" 1>&2
     exit 1
@@ -57,6 +57,7 @@ fi
 function cleanup() {
     rm -f $TMPDIR/dumps/data.txt.gz
     rm -rf $TMPDIR/dumps/ol_*
+    rm -rf $TMPDIR/sitemaps
 }
 
 function log() {
@@ -185,10 +186,14 @@ ls -lhR
 # Archival
 # ========
 # Only archive if that caller has requested it and we are not testing.
-if [ $@ == *'--archive'* ]; then
+if [[ $@ == *'--archive'* ]]; then
   if [[ -z $OLDUMP_TESTING ]]; then
     archive_dumps
+  else
+    log "Skipping archival: Test mode"
   fi
+else
+  log "Skipping archival: Option omitted"
 fi
 
 # =================

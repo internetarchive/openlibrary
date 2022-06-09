@@ -30,9 +30,8 @@ logger.setLevel(logging.DEBUG)
 
 
 def log(*args) -> None:
-    msg = f"{datetime.now():%Y-%m-%d %H:%M:%S} [openlibrary.dump] " + " ".join(
-        str(a) for a in args
-    )
+    args_str = " ".join(str(a) for a in args)
+    msg = f"{datetime.now():%Y-%m-%d %H:%M:%S} [openlibrary.dump] {args_str}"
     logger.info(msg)
     print(msg, file=sys.stderr)
 
