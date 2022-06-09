@@ -527,7 +527,7 @@ def render_list_preview_image(lst_key):
     five_seeds = lst.seeds[0:5]
     background = Image.open("/openlibrary/static/images/Twitter_Social_Card_Background.png")
 
-    logo = Image.open("/openlibrary/static/images/Open_Library_logo_2.png")
+    logo = Image.open("/openlibrary/static/images/Open_Library_logo.png")
 
     W, H = background.size
     image = []
