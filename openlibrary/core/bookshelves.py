@@ -1,7 +1,6 @@
-from __future__ import annotations
 import logging
 from datetime import date
-from typing import Literal, Optional
+from typing import Literal, Optional, cast
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
@@ -23,24 +22,22 @@ class Bookshelves(db.CommonExtras):
     }
 
     @classmethod
-    def summary(cls) -> dict[str, dict[str, int]]:
+    def summary(cls):
         return {
             'total_books_logged': {
-                'total': Bookshelves.total_books_logged() or 0,
-                'month': Bookshelves.total_books_logged(since=DATE_ONE_MONTH_AGO) or 0,
-                'week': Bookshelves.total_books_logged(since=DATE_ONE_WEEK_AGO) or 0,
+                'total': Bookshelves.total_books_logged(),
+                'month': Bookshelves.total_books_logged(since=DATE_ONE_MONTH_AGO),
+                'week': Bookshelves.total_books_logged(since=DATE_ONE_WEEK_AGO),
             },
             'total_users_logged': {
-                'total': Bookshelves.total_unique_users() or 0,
-                'month': Bookshelves.total_unique_users(since=DATE_ONE_MONTH_AGO) or 0,
-                'week': Bookshelves.total_unique_users(since=DATE_ONE_WEEK_AGO) or 0,
+                'total': Bookshelves.total_unique_users(),
+                'month': Bookshelves.total_unique_users(since=DATE_ONE_MONTH_AGO),
+                'week': Bookshelves.total_unique_users(since=DATE_ONE_WEEK_AGO),
             },
         }
 
     @classmethod
-    def total_books_logged(
-        cls, shelf_ids: list[str] = None, since: date = None
-    ) -> Optional[int]:
+    def total_books_logged(cls, shelf_ids: list[str] = None, since: date = None) -> int:
         """Returns (int) number of books logged across all Reading Log shelves (e.g. those
         specified in PRESET_BOOKSHELVES). One may alternatively specify a
         `list` of `shelf_ids` to isolate or span multiple
@@ -48,10 +45,9 @@ class Bookshelves(db.CommonExtras):
         books logged since a specific date. Any python datetime.date
         type should work.
 
-        Args:
-            shelf_ids (list) - one or more bookshelf_id values, see
-                also the default values specified in PRESET_BOOKSHELVES
-            since (datetime.date) - returns all logged books after date
+        :param shelf_ids: one or more bookshelf_id values, see also the default values
+            specified in PRESET_BOOKSHELVES
+        :param since: returns all logged books after date
         """
 
         oldb = db.get_db()
@@ -62,11 +58,14 @@ class Bookshelves(db.CommonExtras):
                 query += " AND created >= $since"
         elif since:
             query += " WHERE created >= $since"
-        results = oldb.query(query, vars={'since': since, 'shelf_ids': shelf_ids})
-        return results[0] if results else None
+        results = cast(
+            tuple[int],
+            oldb.query(query, vars={'since': since, 'shelf_ids': shelf_ids}),
+        )
+        return results[0]
 
     @classmethod
-    def total_unique_users(cls, since: date = None) ->  Optional[int]:
+    def total_unique_users(cls, since: date = None) -> int:
         """Returns the total number of unique users who have logged a
         book. `since` may be provided to only return the number of users after
         a certain datetime.date.
@@ -75,12 +74,12 @@ class Bookshelves(db.CommonExtras):
         query = "select count(DISTINCT username) from bookshelves_books"
         if since:
             query += " WHERE created >= $since"
-        results = oldb.query(query, vars={'since': since})
-        return results[0] if results else None
+        results = cast(tuple[int], oldb.query(query, vars={'since': since}))
+        return results[0]
 
     @classmethod
     def most_logged_books(
-        cls, shelf_id: str = '', limit: int = 10, since: date = None, page=1, fetch=False
+        cls, shelf_id='', limit=10, since: date = None, page=1, fetch=False
     ) -> list:
         """Returns a ranked list of work OLIDs (in the form of an integer --
         i.e. OL123W would be 123) which have been most logged by
@@ -176,20 +175,20 @@ class Bookshelves(db.CommonExtras):
         cls,
         username: str,
         bookshelf_id: str = None,
-        limit: int = 100,
-        page: int = 1,
+        limit=100,
+        page=1,
         sort: Literal['created asc', 'created desc'] = 'created desc',
     ) -> list:
         """Returns a list of Reading Log database records for books which
         the user has logged. Records are described in core/schema.py
         and include:
 
-        username (str) - who logged this book
-        work_id (int) - the Open Library work ID as an int (e.g. OL123W becomes 123)
-        bookshelf_id (int) - the ID of the bookshelf, see: PRESET_BOOKSHELVES.
+        :param username: who logged this book
+        :param work_id: the Open Library work ID as an int (e.g. OL123W becomes 123)
+        :param bookshelf_id: the ID of the bookshelf, see: PRESET_BOOKSHELVES.
             If bookshelf_id is None, return books from all bookshelves.
-        edition_id (int) [optional] - the specific edition logged, if applicable
-        created (datetime) - date the book was logged
+        :param edition_id: the specific edition logged, if applicable
+        :param created: date the book was logged
 
         """
         oldb = db.get_db()
