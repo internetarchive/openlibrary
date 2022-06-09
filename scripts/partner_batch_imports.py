@@ -13,6 +13,7 @@ PYTHONPATH=. python ./scripts/partner_batch_imports.py /olsystem/etc/openlibrary
 import datetime
 import logging
 import os
+import re
 
 import requests
 
@@ -23,25 +24,39 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.bwb")
 
-LOW_QUALITY_PUBLISHERS: set[str] = {
-    "1570 publishing",
-    "bahija",
-    "bruna murino",
-    "creative elegant edition",
-    "delsee notebooks",
-    "grace garcia",
-    "holo",
-    "jeryx publishing",
-    "mado",
-    "mazzo",
-    "mikemix",
-    "mitch allison",
-    "pickleball publishing",
-    "pizzelle passion",
-    "punny cuaderno",
-    "razal koraya",
-    "t. d. publishing",
-    "tobias publishing",
+LOW_QUALITY_PUBLISHERS = {
+    x.casefold()
+    for x in (
+        "1570 publishing",
+        "bahija",
+        "bruna murino",
+        "creative elegant edition",
+        "delsee notebooks",
+        "grace garcia",
+        "holo",
+        "jeryx publishing",
+        "mado",
+        "mazzo",
+        "mikemix",
+        "mitch allison",
+        "pickleball publishing",
+        "pizzelle passion",
+        "punny cuaderno",
+        "razal koraya",
+        "t. d. publishing",
+        "tobias publishing",
+    )
+}
+
+INDEPENDENTLY_PUBLISHED_TITLE_EXCLUDE_LIST = {
+    x.casefold()
+    for x in (
+        'annotated',
+        'annoté',
+        'illustrated',
+        'Illustrée',
+        'notebook',
+    )
 }
 
 SCHEMA_URL = (
@@ -191,22 +206,23 @@ def csv_to_ol_json_item(line):
 
 def is_low_quality_book(book_item) -> bool:
     """
-    Check if a book item is of low quality which means that 1) 'notebook' is in its
-    title (regardless of case) AND 2) one of its publishers (regardless of case) is in
-    the set of low quality publishers.  Leverage Python set intersection for speed.
+    Check if a book item is of low quality which means that 1) one of its publishers
+    (regardless of case) is in the set of low quality publishers.  Leverage Python set
+    intersection for speed.
     """
     publishers = {publisher.casefold() for publisher in book_item["publishers"]}
-    book_title = book_item["title"].casefold()  # should we .split() ?
-    if low_quality := "notebook" in book_title and publishers & LOW_QUALITY_PUBLISHERS:
-        return bool(low_quality)
-    """
-    A recent independently published book with these key words in its title (regardless
-    of case) is also considered a low quality book.
-    """
-    created_year = int(book_item.get("created", "0")[:4])  # YYYY
-    return "independently published" in publishers and created_year >= 2018 and any(
-                title in book_title for title in ("annotated", "annoté", "illustrated")
-            )
+    if publishers & LOW_QUALITY_PUBLISHERS:
+        return True
+
+    # A recent independently published book with these key words in its title
+    # (regardless of case) is also considered a low quality book.
+    title_words = set(re.split(r'\W+', book_item["title"].casefold()))
+    publish_year = int(book_item.get("publish_date", "0")[:4])  # YYYY
+    return bool(
+        "independently published" in publishers
+        and publish_year >= 2018
+        and title_words & INDEPENDENTLY_PUBLISHED_TITLE_EXCLUDE_LIST
+    )
 
 
 def batch_import(path, batch, batch_size=5000):

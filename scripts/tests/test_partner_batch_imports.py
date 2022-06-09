@@ -43,7 +43,7 @@ def test_is_low_quality_book():
     book["publishers"] = ["Al", "hOlO", "Zach"]
     assert is_low_quality_book(book) is True, book
     book["title"] = "A NoTe-BoOk Z"
-    assert is_low_quality_book(book) is False, book
+    assert is_low_quality_book(book) is True, book
 
     book = {"title": "NOTEBOOK", "publishers": ["pickleball publishing"]}
     assert is_low_quality_book(book) is True, book
@@ -55,10 +55,10 @@ def test_is_low_quality_book():
     book = {
         "title": "A aNNotaTEd Z",
         "publishers": ["Independently Published"],
-        "created": "2017-09-01T05:14:17",
+        "publish_date": "2017-09-01T05:14:17",
     }
     assert is_low_quality_book(book) is False, book
-    book["created"] = "2018"
+    book["publish_date"] = "2018"
     assert is_low_quality_book(book) is True, book
     book["publishers"] = ["Independently Publish"]
     assert is_low_quality_book(book) is False, book
@@ -66,3 +66,11 @@ def test_is_low_quality_book():
     assert is_low_quality_book(book) is True, book
     book["title"] = "A aNNotaTE Z"
     assert is_low_quality_book(book) is False, book
+
+    assert is_low_quality_book(
+        {
+            'title': 'A tale of two cities (annotated)',
+            'publish_date': '2020',
+            'publishers': ['Independently Published'],
+        }
+    )
