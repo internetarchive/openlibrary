@@ -8,7 +8,6 @@ $ component_times['TotalTime'] = time()
 
 $ page = safeint(query_param('page'), 1) - 1
 $ page_size = 50
-$ meta_cover_url = None # Add metatag for image at end of this template, if a cover image is present
 $ meta_description = title
 $if list.description:
     $ meta_description = _("%(title)s: %(description)s", title=title, description=list.description)
@@ -21,13 +20,14 @@ $add_metatag(property="twitter:card", content="summary_large_image")
 $add_metatag(property="twitter:site", content="@openlibrary")
 $add_metatag(property="twitter:title", content=title_with_site)
 $add_metatag(property="twitter:description", content= _("View the list on Open Library."))
-
+$add_metatag(property="twitter:image", content=request.canonical_url + "/preview.png")
 
 $add_metatag(property="og:title", content=title_with_site)
 $add_metatag(property="og:type", content="website")
 $add_metatag(property="og:url", content=request.canonical_url)
 $add_metatag(property="og:site_name", content="Open Library")
 $add_metatag(property="og:description", content=meta_description)
+$add_metatag(property="og:image", content=request.canonical_url + "/preview.png")
 
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
@@ -206,10 +206,6 @@ $def seed_attrs(seed):
             $else:
                 $ cover_url = default_image
 
-            $# Use first found image as the OpenGraph image
-            $if not meta_cover_url:
-                $ meta_cover_url = cover_url
-
             $if seed.type in ['edition', 'work']:
                 $ doc = solr_works.get(seed.key) or seed.document
                 $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed))
@@ -274,7 +270,3 @@ $def seed_attrs(seed):
 
     $:render_template("lib/history", list)
 </div>
-
-$if meta_cover_url is not None:
-    $add_metatag(property="og:image", content=meta_cover_url)
-    $add_metatag(property="twitter:image", content=request.canonical_url + "/preview.png")
