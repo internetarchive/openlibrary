@@ -1,3 +1,4 @@
+from typing import Any, Iterable, Mapping
 import web
 import logging
 import json
@@ -806,6 +807,49 @@ class fetch_goodreads(delegate.page):
         return render['account/import'](books, books_wo_isbns)
 
 
+def csv_string(source: Iterable[Mapping], row_formatter: callable = None) -> str:
+    """
+    Given an list of dicts, generate comma separated values where each dict is a row.
+    An optional reformatter function can be provided to transform or enrich each dict.
+    The order and names of the formatter's the output dict keys will determine the
+    order and header column titles of the resulting csv string.
+    :param source: An iterable of all the rows that should appear in the csv strring.
+    :param formatter: A callable that accepts a Mapping and returns a dict.
+    >>> csv = csv_string([{"row_id": x, "t w o": 2, "upper": x.upper()} for x in "ab"])
+    >>> csv.splitlines()
+    ['Row ID,T W O,Upper', 'a,2,A', 'b,2,B']
+    """
+    if not row_formatter:  # The default formatter reuses the inbound dict unmodified
+
+        def row_formatter(row: dict) -> dict:
+            return row
+
+    def csv_header_and_format(row: Mapping[str, Any]) -> tuple[str, str]:
+        """
+        Convert the keys of a dict into csv header and format strings for generating a
+        comma separated values string.  This will only be run on the first row of data.
+        >>> csv_header_and_format({"zero": 0, "one_id_id": 1, "t_w_o": 2, "THREE": 3})
+        ('Zero,One Id ID,T W O,Three', '{item_zero},{one_id_id},{t_w_o},{THREE}')
+        """
+        return (  # The .replace("_Id,", "_ID,") converts "Edition Id" --> "Edition ID"
+            ",".join(f.replace("_", " ").title() for f in row).replace(" Id,", " ID,"),
+            ",".join("{%s}" % field for field in row),
+        )
+
+    def csv_body() -> Iterable[str]:
+        """
+        On the first row, use csv_header_and_format() to get and yield the csv_header.
+        Then use csv_format to yield each row as a string of comma separated values.
+        """
+        for i, row in enumerate(source):
+            if i == 0:  # Only on first row, make header and format from the dict keys
+                csv_header, csv_format = csv_header_and_format(row_formatter(row))
+                yield csv_header
+            yield csv_format.format(**row_formatter(row))
+
+    return '\n'.join(csv_body())
+
+
 class export_books(delegate.page):
     path = "/account/export"
 
@@ -855,38 +899,29 @@ class export_books(delegate.page):
             csv.append(','.join(row))
         return ''.join(csv)
 
-    def generate_book_notes(self, username):
-        csv = []
-        csv.append('Work ID,Edition ID,Note,Created On')
-        notes = Booknotes.select_all_by_username(username)
+    def generate_book_notes(self, username: str) -> str:
+        def format_booknote(booknote: Mapping) -> dict:
+            escaped_note = booknote['notes'].replace('"', '""')
+            return {
+                "work_id": f"OL{booknote['work_id']}W",
+                "edition_id": f"OL{booknote['edition_id']}M",
+                "note":  f'"{escaped_note}"',
+                "created_on": booknote['created'].strftime(self.date_format),
+            }
 
-        for note in notes:
-            escaped_note = note['notes'].replace('"', '""')
-            row = [
-                f"OL{note['work_id']}W",
-                f"OL{note['edition_id']}M",
-                f'"{escaped_note}"',
-                note['created'].strftime(self.date_format)
-            ]
-            csv.append(','.join(row))
+        return csv_string(Booknotes.select_all_by_username(username), format_booknote)
 
-        return '\n'.join(csv)
+    def generate_reviews(self, username: str) -> str:
+        def format_observation(observation: Mapping) -> dict:
+            return {
+                "work_id": f"OL{observation['work_id']}W",
+                "review_category": f'"{observation["observation_type"]}"',
+                "review_value": f'"{observation["observation_value"]}"',
+                "created_on": observation['created'].strftime(self.date_format),
+            }
 
-    def generate_reviews(self, username):
-        csv = []
-        csv.append('Work ID,Review Category,Review Value,Created On')
         observations = Observations.select_all_by_username(username)
-
-        for o in observations:
-            row = [
-                f"OL{o['work_id']}W",
-                f'"{o["observation_type"]}"',
-                f'"{o["observation_value"]}"',
-                o['created'].strftime(self.date_format)
-            ]
-            csv.append(','.join(row))
-
-        return '\n'.join(csv)
+        return csv_string(observations, format_observation)
 
     def generate_list_overview(self, lists):
         csv = []
@@ -914,22 +949,18 @@ class export_books(delegate.page):
 
         return '\n'.join(csv)
 
+    def generate_star_ratings(self, username: str) -> str:
+        def format_rating(rating: Mapping) -> dict:
+            if edition_id := rating.get("edition_id") or "":
+                edition_id = f"OL{edition_id}M"
+            return {
+                "Work ID": f"OL{rating['work_id']}W",
+                "Edition ID": edition_id,
+                "Rating": f"{rating['rating']}",
+                "Created On": rating['created'].strftime(self.date_format),
+            }
 
-    def generate_star_ratings(self, username):
-        csv = []
-        csv.append('Work ID,Edition ID,Rating,Created On')
-        ratings = Ratings.select_all_by_username(username)
-
-        for rating in ratings:
-            row = [
-                f"OL{rating['work_id']}W",
-                f"OL{rating['edition_id']}M" if rating['edition_id'] else '',
-                f"{rating['rating']}",
-                rating['created'].strftime(self.date_format)
-            ]
-            csv.append(','.join(row))
-
-        return '\n'.join(csv)
+        return csv_string(Ratings.select_all_by_username(username), format_rating)
 
 
 class account_loans(delegate.page):
