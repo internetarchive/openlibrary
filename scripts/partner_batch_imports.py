@@ -24,7 +24,7 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.bwb")
 
-AUTHOR_EXCLUDE_LIST = {
+EXCLUDED_AUTHORS = {
     x.casefold()
     for x in (
         "1570 publishing",
@@ -48,7 +48,7 @@ AUTHOR_EXCLUDE_LIST = {
     )
 }
 
-INDEPENDENTLY_PUBLISHED_TITLE_EXCLUDE_LIST = {
+EXCLUDED_INDEPENDENTLY_PUBLISHED_TITLES = {
     x.casefold()
     for x in (
         'annotated',
@@ -211,22 +211,21 @@ def csv_to_ol_json_item(line):
 def is_low_quality_book(book_item) -> bool:
     """
     Check if a book item is of low quality which means that 1) one of its authors
-    (regardless of case) is in the set of low quality authors.  Leverage Python set
-    intersection for speed.
+    (regardless of case) is in the set of excluded authors.
     """
-    authors = {a['name'].casefold() for a in book_item.get('authors', [])}
-    if authors & AUTHOR_EXCLUDE_LIST:
+    authors = {a['name'].casefold() for a in book_item.get('authors') or []}
+    if authors & EXCLUDED_AUTHORS:  # Leverage Python set intersection for speed.
         return True
 
-    # A recent independently published book with these key words in its title
+    # A recent independently published book with excluded key words in its title
     # (regardless of case) is also considered a low quality book.
-    title_words = set(re.split(r'\W+', book_item["title"].casefold()))
-    publishers = {p.casefold() for p in book_item.get('publishers', [])}
+    title_words = {re.split(r'\W+', book_item["title"].casefold())}
+    publishers = {p.casefold() for p in book_item.get('publishers') or []}
     publish_year = int(book_item.get("publish_date", "0")[:4])  # YYYY
     return bool(
         "independently published" in publishers
         and publish_year >= 2018
-        and title_words & INDEPENDENTLY_PUBLISHED_TITLE_EXCLUDE_LIST
+        and title_words & EXCLUDED_INDEPENDENTLY_PUBLISHED_TITLES
     )
 
 
