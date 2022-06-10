@@ -39,27 +39,39 @@ class TestBiblio:
 
 
 def test_is_low_quality_book():
-    book = {"title": "A NoTeBoOk Z", "publishers": ["Al", "Zach"]}
+    book = {"title": "A NoTeBoOk Z", "authors": [{"name": "Al"}, {"name": "Zach"}]}
     assert is_low_quality_book(book) is False, book
-    book["publishers"] = ["Al", "hOlO", "Zach"]
+    book["authors"] = [{"name": "Al"}, {"name": "hOlO"}, {"name": "Zach"}]
     assert is_low_quality_book(book) is True, book
     book["title"] = "A NoTe-BoOk Z"
-    assert is_low_quality_book(book) is False, book
-
-    book = {"title": "NOTEBOOK", "publishers": ["pickleball publishing"]}
     assert is_low_quality_book(book) is True, book
-    book["publishers"] = ["hol", "mad", "mazz", "mikemi", "tobias publishers"]
+
+    book = {"title": "NOTEBOOK", "authors": [{"name": "pickleball publishing"}]}
+    assert is_low_quality_book(book) is True, book
+    book["authors"] = [
+        {"name": "hol"},
+        {"name": "mad"},
+        {"name": "mazz"},
+        {"name": "mikemi"},
+        {"name": "tobias publishers"},
+    ]
     assert is_low_quality_book(book) is False, book
-    book["publishers"] = ["razal", "tobias publishing", "koraya", "pickleball", "d"]
+    book["authors"] = [
+        {"name": "razal"},
+        {"name": "tobias publishing"},
+        {"name": "koraya"},
+        {"name": "pickleball"},
+        {"name": "d"},
+    ]
     assert is_low_quality_book(book) is True, book
 
     book = {
         "title": "A aNNotaTEd Z",
         "publishers": ["Independently Published"],
-        "created": "2017-09-01T05:14:17",
+        "publish_date": "2017-09-01T05:14:17",
     }
     assert is_low_quality_book(book) is False, book
-    book["created"] = "2018"
+    book["publish_date"] = "2018"
     assert is_low_quality_book(book) is True, book
     book["publishers"] = ["Independently Publish"]
     assert is_low_quality_book(book) is False, book
@@ -67,3 +79,11 @@ def test_is_low_quality_book():
     assert is_low_quality_book(book) is True, book
     book["title"] = "A aNNotaTE Z"
     assert is_low_quality_book(book) is False, book
+
+    assert is_low_quality_book(
+        {
+            'title': 'A tale of two cities (annotated)',
+            'publish_date': '2020',
+            'publishers': ['Independently Published'],
+        }
+    )

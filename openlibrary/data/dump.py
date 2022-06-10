@@ -18,21 +18,17 @@ from datetime import datetime
 
 import web
 
-from infogami import config
-from openlibrary.config import load_config
 from openlibrary.data import db
 from openlibrary.data.sitemap import generate_html_index, generate_sitemaps
 from openlibrary.plugins.openlibrary.processors import urlsafe
-from openlibrary.utils.sentry import Sentry
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
 
 
 def log(*args) -> None:
-    msg = f"{datetime.now():%Y-%m-%d %H:%M:%S} [openlibrary.dump] " + " ".join(
-        str(a) for a in args
-    )
+    args_str = " ".join(str(a) for a in args)
+    msg = f"{datetime.now():%Y-%m-%d %H:%M:%S} [openlibrary.dump] {args_str}"
     logger.info(msg)
     print(msg, file=sys.stderr)
 
@@ -67,7 +63,7 @@ def print_dump(json_records, filter=None):
 
         print("\t".join([type_key, key, str(d["revision"]), timestamp, json_data]))
     minutes = (datetime.now() - start_time).seconds // 60
-    log(f"print_dump() processed {i} records in {minutes} minutes.")
+    log(f"    print_dump() processed {i:,} records in {minutes:,} minutes.")
 
 
 def read_data_file(filename: str, max_lines: int = 0):
@@ -83,7 +79,7 @@ def read_data_file(filename: str, max_lines: int = 0):
         if max_lines and i >= max_lines:
             break
     minutes = (datetime.now() - start_time).seconds // 60
-    log(f"read_data_file() processed {i} records in {minutes} minutes.")
+    log(f"read_data_file() processed {i:,} records in {minutes:,} minutes.")
 
 
 def xopen(path: str, mode: str):
@@ -107,7 +103,7 @@ def read_tsv(file, strip=True):
             line = line.strip()
         yield line.split("\t")
     minutes = (datetime.now() - start_time).seconds // 60
-    log(f"read_tsv() processed {i} records in {minutes} minutes.")
+    log(f" read_tsv() processed {i:,} records in {minutes:,} minutes.")
 
 
 def generate_cdump(data_file, date=None):
@@ -165,7 +161,7 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
         if status != 0:
             raise Exception("sort failed with status %d" % status)
     minutes = (datetime.now() - start_time).seconds // 60
-    log(f"sort_dump() processed {i} records in {minutes} minutes.")
+    log(f"sort_dump() processed {i:,} records in {minutes:,} minutes.")
 
 
 def generate_dump(cdump_file=None):
@@ -175,7 +171,7 @@ def generate_dump(cdump_file=None):
     """
 
     def process(data):
-        revision = lambda cols: int(cols[2])
+        revision = lambda cols: int(cols[2])  # noqa: E731
         for key, rows in itertools.groupby(data, key=lambda cols: cols[1]):
             row = max(rows, key=revision)
             yield row
@@ -186,7 +182,7 @@ def generate_dump(cdump_file=None):
     # group by key and find the max by revision
     sys.stdout.writelines(tjoin(row) for row in process(data))
     minutes = (datetime.now() - start_time).seconds // 60
-    log(f"generate_dump({cdump_file}) ran in {minutes} minutes.")
+    log(f"generate_dump({cdump_file}) ran in {minutes:,} minutes.")
 
 
 def generate_idump(day, **db_parameters):
@@ -208,6 +204,7 @@ def generate_idump(day, **db_parameters):
 
 def split_dump(dump_file=None, format="oldump_%s.txt"):
     """Split dump into authors, editions and works."""
+    log(f"split_dump({dump_file}, format={format})")
     start_time = datetime.now()
     types = ("/type/edition", "/type/author", "/type/work", "/type/redirect")
     files = {}
@@ -226,11 +223,12 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
     for f in files.values():
         f.close()
     minutes = (datetime.now() - start_time).seconds // 60
-    log(f"split_dump() processed {i} records in {minutes} minutes.")
+    log(f"split_dump() processed {i:,} records in {minutes:,} minutes.")
 
 
 def make_index(dump_file):
     """Make index with "path", "title", "created" and "last_modified" columns."""
+    log(f"make_index({dump_file})")
     start_time = datetime.now()
     for i, type, key, revision, timestamp, json_data in enumerate(read_tsv(dump_file)):
         data = json.loads(json_data)
@@ -252,7 +250,7 @@ def make_index(dump_file):
             created = "-"
         print("\t".join([web.safestr(path), web.safestr(title), created, timestamp]))
     minutes = (datetime.now() - start_time).seconds // 60
-    log(f"split_dump() processed {i} records in {minutes} minutes.")
+    log(f"make_index() processed {i:,} records in {minutes:,} minutes.")
 
 
 def _process_key(key):
@@ -347,13 +345,4 @@ def main(cmd, args):
 
 
 if __name__ == "__main__":
-    ol_config = os.getenv("OL_CONFIG")
-    if ol_config:
-        logger.info(f"loading config from {ol_config}")
-        load_config(ol_config)
-        sentry = Sentry(getattr(config, "sentry_cron_jobs", {}))
-        if sentry.enabled:
-            sentry.init()
-
-    log(f"sentry.enabled = {bool(ol_config and sentry.enabled)}")
     main(sys.argv[1], sys.argv[2:])

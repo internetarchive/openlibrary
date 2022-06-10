@@ -1,0 +1,13 @@
+# Minimal configuration to ensure that Black does not convert quotes.
+# Black does not support reading its configuration from `setup.cfg`.
+# This file can be deleted when we convert to favoring double quotes.
+# https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html
+
+# NOTE: You have to use single-quoted strings in TOML for regular expressions.
+# It's the equivalent of r-strings in Python.  Multiline strings are treated as
+# verbose regular expressions by Black.  Use [ ] to denote a significant space
+# character.
+
+[tool.black]
+skip-string-normalization = true
+target-version = ['py39', 'py310']

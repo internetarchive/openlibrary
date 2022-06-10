@@ -1,4 +1,4 @@
-#!/usr/bin/python2.5
+#!/usr/bin/env python
 # converts from text files containing MARC tags to text versions of merge pools
 
 import re

@@ -312,7 +312,7 @@ class ReadingLog:
     def reading_log_counts(self):
         counts = Bookshelves.count_total_books_logged_by_user_per_shelf(
             self.user.get_username()
-        )
+        ) if self.user.get_username() else {}
         return {
             'want-to-read': counts.get(
                 Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0
