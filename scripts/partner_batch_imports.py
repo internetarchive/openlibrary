@@ -219,7 +219,7 @@ def is_low_quality_book(book_item) -> bool:
 
     # A recent independently published book with excluded key words in its title
     # (regardless of case) is also considered a low quality book.
-    title_words = {re.split(r'\W+', book_item["title"].casefold())}
+    title_words = set(re.split(r'\W+', book_item["title"].casefold()))
     publishers = {p.casefold() for p in book_item.get('publishers') or []}
     publish_year = int(book_item.get("publish_date", "0")[:4])  # YYYY
     return bool(
