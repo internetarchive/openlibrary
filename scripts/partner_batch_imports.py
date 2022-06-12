@@ -56,6 +56,7 @@ EXCLUDED_INDEPENDENTLY_PUBLISHED_TITLES = {
         'illustrated',
         'Illustrée',
         'notebook',
+        'summary',
     )
 }
 
