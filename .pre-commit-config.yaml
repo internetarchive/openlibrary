@@ -20,8 +20,10 @@ repos:
     rev: v4.3.0
     hooks:
       - id: check-yaml
+      - id: detect-private-key
       - id: end-of-file-fixer
         types_or: [python]
+      - id: mixed-line-ending
       - id: requirements-txt-fixer
       - id: trailing-whitespace
         args:
@@ -30,8 +32,7 @@ repos:
   - repo: https://github.com/psf/black
     rev: 22.3.0
     hooks:
-      - id: black
-        language_version: python3  # Should be a command that runs python3.6+
+      - id: black  # See pyproject.toml for args
         args:
         - --diff
 
