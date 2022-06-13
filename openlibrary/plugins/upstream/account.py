@@ -1,5 +1,5 @@
-import logging
 import json
+import logging
 import re
 from typing import Any, Callable
 from collections.abc import Iterable, Mapping
@@ -35,7 +35,6 @@ from openlibrary.accounts import (
     valid_email,
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
-
 
 logger = logging.getLogger("openlibrary.account")
 
@@ -951,31 +950,32 @@ class export_books(delegate.page):
         return csv_string(observations, format_observation)
 
     def generate_list_overview(self, lists):
-        csv = []
-        csv.append('List ID,List Name,List Description,Entry,Created On,Last Updated')
+        row = {
+            "list_id": "",
+            "list_name": "",
+            "list_description": "",
+            "entry": "",
+            "created_on": "",
+            "last_updated": "",
+        }
 
-        for list in lists:
-            list_id = list.key.split('/')[-1]
-            created_on = list.created.strftime(self.date_format)
-            if last_updated := list.last_modified or "":
-                last_updated = last_updated.strftime(self.date_format)
-            for seed in list.seeds:
-                entry = seed
-                if not isinstance(seed, str):
-                    entry = seed.key
-                list_name = (list.name or '').replace('"', '""')
-                list_desc = (list.description or '').replace('"', '""')
-                row = [
-                    list_id,
-                    f'"{list_name}"',
-                    f'"{list_desc}"',
-                    entry,
-                    created_on,
-                    last_updated,
-                ]
-                csv.append(','.join(row))
+        def lists_as_csv(lists) -> Iterable[str]:
+            for i, list in enumerate(lists):
+                if i == 0:  # Only on first row, make header and format from dict keys
+                    csv_header, csv_format = csv_header_and_format(row)
+                    yield csv_header
+                row["list_id"] = list.key.split('/')[-1]
+                row["list_name"] = (list.name or '').replace('"', '""')
+                row["list_description"] = (list.description or '').replace('"', '""')
+                row["created_on"] = list.created.strftime(self.date_format)
+                if last_updated := list.last_modified or "":
+                    last_updated = last_updated.strftime(self.date_format)
+                row["last_updated"] = last_updated
+                for seed in list.seeds:
+                    row["entry"] = seed if isinstance(seed, str) else seed.key
+                    yield csv_format.format(**row)
 
-        return '\n'.join(csv)
+        return "\n".join(lists_as_csv(lists))
 
     def generate_star_ratings(self, username: str) -> str:
         def format_rating(rating: Mapping) -> dict:
