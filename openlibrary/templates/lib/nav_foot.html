@@ -41,7 +41,7 @@ $def with (page)
         <h2>$:_('Help')</h2>
         <ul>
           <li><a href="/help">$_('Help Center')</a></li>
-          <li><a href="/contact?$:urlencode(dict(path=request.fullpath))" title="$_('Problems')">$_('Report A Problem')</a></li>
+          <li><a href="/contact?$urlencode(dict(path=request.fullpath))" title="$_('Problems')">$_('Report A Problem')</a></li>
           <li><a href="/help/faq/editing" title="$_('Suggest Edits')">$_('Suggesting Edits')</a></li>
         </ul>
         <aside id="footer-icons">
@@ -51,15 +51,7 @@ $def with (page)
       </div>
       <div id="footer-locale-menu">
         <h2>$_('Change Website Language')</h2>
-        <ul id="locale-options">
-          <li><a href="#" lang="cs" data-lang-id="cs" title="$_('Czech')">Čeština (cs)</a> </li>
-          <li><a href="#" lang="de" data-lang-id="de" title="$_('German')">Deutsch (de)</a> </li>
-          <li><a href="#" lang="en" data-lang-id="en" title="$_('English')">English (en)</a></li>
-          <li><a href="#" lang="es" data-lang-id="es" title="$_('Spanish')">Español (es)</a></li>
-          <li><a href="#" lang="fr" data-lang-id="fr" title="$_('French')">Français (fr)</a></li>
-          <li><a href="#" lang="hr" data-lang-id="hr" title="$_('Croatian')">Hrvatski (hr)</a></li>
-          <li><a href="#" lang="te" data-lang-id="te" title="$_('Telugu')">తెలుగు (te)</a></li>
-        </ul>
+        $:render_template('languages/language_list')
       </div>
     </div>
     <hr>

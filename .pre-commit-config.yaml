@@ -20,7 +20,8 @@ repos:
     rev: v4.3.0
     hooks:
       - id: check-yaml
-      # - id: end-of-file-fixer
+      - id: end-of-file-fixer
+        types_or: [python]
       - id: requirements-txt-fixer
       - id: trailing-whitespace
         args:
@@ -33,7 +34,6 @@ repos:
         language_version: python3  # Should be a command that runs python3.6+
         args:
         - --diff
-        - --skip-string-normalization
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.1.0

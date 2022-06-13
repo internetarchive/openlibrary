@@ -120,7 +120,7 @@ $ has_profile = person.get_user() is not None
             <button type="submit" name="action" value="su" style="float: right; background: #ffbbbb;">login as this user</button>
             <div class="small">Activated on <span class="time">$datestr(person.activated_on, relative=False)</span> from <a href="/admin/ip/$v.ip">$v.ip</a>.</div>
         $if person.status == "blocked":
-	        <button type="submit" name="action" value="unblock_account">unblock this account</button>
+            <button type="submit" name="action" value="unblock_account">unblock this account</button>
         $elif person.status == "pending":
             <button type="submit" name="action" value="activate_account">activate account</button>
             <br/>
@@ -133,13 +133,12 @@ $ has_profile = person.get_user() is not None
                     <strong>Activation link expired.</strong>
 
                 <button type="submit" name="action" value="resend_link">Resend activation link</button>.
-                </div>
-            </form>
+            </div>
+        </form>
     </div>
 
   <table id="adminHistory" style="clear: both;">
     <tbody>
-    </tr>
     <tr>
         <td>$_("Name:")</td>
         <td>$person.displayname - <a href="$homepath()$person.username" style="color: #900; text-decoration: none;">view profile</a></td>
@@ -214,9 +213,18 @@ $ has_profile = person.get_user() is not None
                 <a class="tag $cond(person.has_tag(t), 'active')">$t</a>
         </td>
     </tr>
+    <tr>
+        <td>$_("Anonymize Account:")</td>
+        <td>
+            <form method="POST" id="anonymize-form" action="?debug=true">
+                <input type="checkbox" id="dry-run-checkbox" name="dry_run">
+                <label for="dry-run-checkbox">Dry Run</label>
+                <button type="submit" name="action" value="anonymize_account" style="float: right;" class="account-anonymization-button" data-display-name="$person.username">$_("Anonymize Account")</button>
+            </form>
+        </td>
+    </tr>
     </tbody>
   </table>
-
 
 <h2>$_("Loans")</h2>
 <div>

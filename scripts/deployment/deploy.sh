@@ -24,7 +24,7 @@ parallel --quote ssh {1} "echo -e '\n\n{}'; cd {2} && sudo git pull origin maste
 
 # Rebuild & upload docker image for olbase
 cd /opt/openlibrary
-make git
+sudo make git
 docker build -t openlibrary/olbase:latest -f docker/Dockerfile.olbase .
 docker login
 docker push openlibrary/olbase:latest

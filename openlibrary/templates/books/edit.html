@@ -41,7 +41,9 @@ $# the default "enter" action.
     <h2 class="editFormTitle">$:title</h2>
     $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         <span class="adminOnly right">
-            <button type="submit" name="_delete" value="true" id="delete" form="addWork">$_("Delete Record")</button>
+            <form method="post" id="delete-record" name="delete">
+                <button type="submit" name="_delete" value="true" id="delete-btn">$_("Delete Record")</button>
+            </form>
         </span>
     $if not ctx.user:
         $:render_template("lib/not_logged")

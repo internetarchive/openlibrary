@@ -43,7 +43,6 @@
 }
 
 .dataTables_length {
-  width: 50%;
   font-size: 12px;
   color: @grey;
   display: inline-block;
@@ -232,10 +231,10 @@ td.details {
 }
 
 div.dataTables_filter {
-  width: 50%;
   float: right;
   text-align: right;
   font-size: 12px;
+  margin: 0;
   color: @grey;
 }
 
@@ -414,6 +413,11 @@ tr.even.gradeU td.sorting_3 {
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
+  }
+  div.dataTables_filter {
+    float: none;
+    text-align: left;
+    margin: 5px 0 0;
   }
   span.number {
     order: 4;

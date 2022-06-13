@@ -112,12 +112,28 @@ export function init(config) {
         $(window.render_excluded_works_list(excluded, config.works.length)).appendTo(container);
     }
 
+    const defaultFieldRender = field => `OPTIONAL { ?x ${field.relation} ?${field.name}. }`;
+
     const SPARQL_FIELDS = [
         { name: 'ethnic_group', type: 'uri', relation: 'wdt:P172' },
         { name: 'sex', type: 'uri', relation: 'wdt:P21' },
         { name: 'dob', type: 'literal', relation: 'wdt:P569' },
         { name: 'country_of_citizenship', type: 'uri', relation: 'wdt:P27' },
-        { name: 'country_of_birth', type: 'uri', relation: 'wdt:P19/wdt:P131*/wdt:P17' },
+        {
+            name: 'country_of_birth',
+            type: 'uri',
+            relation: 'wdt:P19/wdt:P131*/wdt:P17',
+            render: field => `
+                OPTIONAL {
+                    ?x ${field.relation} ?${field.name}.
+                    OPTIONAL { ?country_of_birth wdt:P571 ?country_inception. }
+                    OPTIONAL { ?country_of_birth wdt:P576 ?country_dissolution. }
+                }
+                # Limit to modern-day countries or the country that existed at the time
+                # of the author's birth
+                FILTER(!BOUND(?country_dissolution) || !BOUND(?dob) || (?dob >= ?country_inception && ?dob <= ?country_dissolution) ).
+            `
+        },
     ];
 
     function buildSparql(authors) {
@@ -132,7 +148,7 @@ export function init(config) {
                  wdt:P648 ?olid.
 
               ${
-    SPARQL_FIELDS.map(f => `OPTIONAL { ?x ${f.relation} ?${f.name}. }`)
+    SPARQL_FIELDS.map(f => (f.render || defaultFieldRender)(f))
         .join('\n')
 }
 

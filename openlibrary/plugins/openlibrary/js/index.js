@@ -256,8 +256,9 @@ jQuery(function () {
 
     const $observationModalLinks = $('.observations-modal-link');
     const $notesModalLinks = $('.notes-modal-link');
-    const $notesPageButtons = $('.note-page-buttons')
-    if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length) {
+    const $notesPageButtons = $('.note-page-buttons');
+    const $shareModalLinks = $('.share-modal-link');
+    if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length || $shareModalLinks) {
         import(/* webpackChunkName: "modal-links" */ './modals')
             .then(module => {
                 if ($observationModalLinks.length) {
@@ -269,8 +270,12 @@ jQuery(function () {
                 if ($notesPageButtons.length) {
                     module.addNotesPageButtonListeners();
                 }
+                if ($shareModalLinks.length) {
+                    module.initShareModal($shareModalLinks)
+                }
             });
     }
+
 
     const manageCoversElement = document.getElementsByClassName('manageCovers').length;
     const addCoversElement = document.getElementsByClassName('imageIntro').length;
@@ -301,9 +306,18 @@ jQuery(function () {
         document.getElementById('password').value = 'admin123'
         document.getElementById('remember').checked = true
     }
-    if (document.getElementById('adminLinks')) {
+    const anonymizationButton = document.querySelector('.account-anonymization-button')
+    const adminLinks = document.getElementById('adminLinks')
+    if (adminLinks || anonymizationButton) {
         import(/* webpackChunkName: "admin" */ './admin')
-            .then((module) => module.initAdmin());
+            .then(module => {
+                if (adminLinks) {
+                    module.initAdmin();
+                }
+                if (anonymizationButton) {
+                    module.initAnonymizationButton(anonymizationButton);
+                }
+            });
     }
 
     if (window.matchMedia('(display-mode: standalone)').matches) {

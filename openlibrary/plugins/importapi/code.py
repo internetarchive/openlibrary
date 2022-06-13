@@ -283,17 +283,17 @@ class ia_importapi(importapi):
                 id_field, id_subfield = local_id_type.id_location.split('$')
 
                 def get_subfield(field, id_subfield):
-                    if isinstance(field, str):
-                        return field
+                    if isinstance(field[1], str):
+                        return field[1]
                     subfields = field[1].get_subfield_values(id_subfield)
                     return subfields[0] if subfields else None
 
-                _ids = [
+                ids = [
                     get_subfield(f, id_subfield)
                     for f in rec.read_fields([id_field])
                     if f and get_subfield(f, id_subfield)
                 ]
-                edition['local_id'] = [f'urn:{prefix}:{_id}' for _id in _ids]
+                edition['local_id'] = [f'urn:{prefix}:{id_}' for id_ in ids]
 
             # Don't add the book if the MARC record is a non-monograph item,
             # unless it is a scanning partner record and/or force_import is set.

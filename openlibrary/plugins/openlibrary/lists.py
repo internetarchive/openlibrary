@@ -2,6 +2,7 @@
 """
 import json
 import random
+import tempfile
 import web
 
 from infogami.utils import delegate
@@ -16,6 +17,8 @@ from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.worksearch import subjects
+from openlibrary.coverstore.code import render_list_preview_image
+
 
 
 class lists_home(delegate.page):
@@ -641,3 +644,12 @@ def get_active_lists_in_random(limit=20, preload=True):
     lists = f(limit=limit, preload=preload)
     # convert rawdata into models.
     return [web.ctx.site.new(xlist['key'], xlist) for xlist in lists]
+
+
+class lists_preview(delegate.page):
+    path = r"(/people/[^/]+/lists/OL\d+L)/preview.png"
+
+    def GET(self, lst_key):
+        image_bytes = render_list_preview_image(lst_key)
+        web.header("Content-Type", "image/png")
+        return delegate.RawText(image_bytes)

@@ -22,3 +22,13 @@ export function initAdmin() {
         $('form.olform').find(':checkbox').prop('checked', this.checked);
     });
 }
+
+export function initAnonymizationButton(button) {
+    const displayName = button.dataset.displayName;
+    const confirmMessage = `Really anonymize ${displayName}'s account? This will delete ${displayName}'s profile page and booknotes, and anonymize ${displayName}'s reading log, reviews, and star ratings.`;
+    button.addEventListener('click', function(event) {
+        if (!confirm(confirmMessage)) {
+            event.preventDefault();
+        }
+    })
+}

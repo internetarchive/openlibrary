@@ -762,50 +762,6 @@ def generic_carousel(
     return storify(books) if books else books
 
 
-@public
-def readonline_carousel():
-    """Return template code for books pulled from search engine.
-    TODO: If problems, use stock list.
-    """
-    try:
-        data = random_ebooks()
-        if len(data) > 30:
-            data = lending.add_availability(random.sample(data, 30))
-            data = [d for d in data if d['availability'].get('is_readable')]
-        return storify(data)
-
-    except Exception:
-        logger.error("Failed to compute data for readonline_carousel", exc_info=True)
-        return None
-
-
-def random_ebooks(limit=2000):
-    solr = search.get_solr()
-    sort = "edition_count desc"
-    result = solr.select(
-        query='has_fulltext:true -public_scan_b:false',
-        rows=limit,
-        sort=sort,
-        fields=[
-            'has_fulltext',
-            'key',
-            'ia',
-            "title",
-            "cover_edition_key",
-            "author_key",
-            "author_name",
-        ],
-    )
-
-    return [format_work_data(doc) for doc in result.get('docs', []) if doc.get('ia')]
-
-
-# cache the results of random_ebooks in memcache for 15 minutes
-random_ebooks = cache.memcache_memoize(
-    random_ebooks, "home.random_ebooks", timeout=15 * 60
-)
-
-
 def format_list_editions(key):
     """Formats the editions of a list suitable for display in carousel."""
     if 'env' not in web.ctx:

@@ -19,7 +19,10 @@ $add_metatag(name="twitter:card", content="homepage_summary")
 
   $:render_template("home/welcome", test=test)
 
-  $:render_template("books/custom_carousel", books=readonline_carousel(), title=_('Classic Books'), url="/read", key="public_domain", test=test)
+  $if not test:
+    $:render_template("books/custom_carousel", books=get_trending_books(books_only=True), title=_('Trending Books'), url="/trending/daily", test=test, load_more={"url": "/trending/daily.json", "mode": "page", "limit": 18})
+
+    $:macros.QueryCarousel(query="ddc:8* first_publish_year:[* TO 1950] publish_year:[2000 TO *] NOT public_scan_b:false", title=_('Classic Books'), key="public_domain", url="/read", sort='random.hourly')
 
   $if monthly_reads and not test:
     $:macros.QueryCarousel(query=monthly_reads['query'], title=monthly_reads['title'], key="monthly_reads", url=monthly_reads['url'], sort='random.hourly')

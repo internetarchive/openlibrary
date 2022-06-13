@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 """
 Daily Cron-audit task (Python) sentry (who watches the watchers)

@@ -1,4 +1,4 @@
-#!/usr/bin/python2.5
+#!/usr/bin/env python
 from openlibrary.catalog.marc.fast_parse import *
 import sys
 from collections import defaultdict
