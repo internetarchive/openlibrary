@@ -1028,6 +1028,7 @@ class account_waitlist(delegate.page):
     def GET(self):
         raise web.seeother("/account/loans")
 
+
 # Disabling because it prevents account_my_books_redirect from working for some reason.
 # The purpose of this class is to not show the "Create" link for /account pages since
 # that doesn't make any sense.
