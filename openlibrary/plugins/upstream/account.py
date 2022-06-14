@@ -34,6 +34,7 @@ from openlibrary.accounts import (
     valid_email,
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
+from openlibrary.utils.dateutil import elapsed_time
 
 import urllib
 
@@ -365,8 +366,7 @@ class account_login(delegate.page):
     def GET(self):
         referer = web.ctx.env.get('HTTP_REFERER', '')
         # Don't set referer if request is from offsite
-        if ('openlibrary.org' not in referer
-            or referer.endswith('openlibrary.org/')):
+        if 'openlibrary.org' not in referer or referer.endswith('openlibrary.org/'):
             referer = None
         i = web.input(redirect=referer)
         f = forms.Login()
@@ -829,16 +829,18 @@ class export_books(delegate.page):
             data = self.generate_reviews(username)
             filename = 'OpenLibrary_Reviews.csv'
         elif i.type == 'lists':
-            data = self.generate_list_overview(user.get_lists(limit=1000))
+            # data = self.generate_list_overview(user.get_lists(limit=1000))
+            with elapsed_time("user.get_lists()"):
+                lists = user.get_lists(limit=1000)
+            with elapsed_time("generate_list_overview()"):
+                data = self.generate_list_overview(lists)
             filename = 'Openlibrary_ListOverview.csv'
         elif i.type == 'ratings':
             data = self.generate_star_ratings(username)
             filename = 'OpenLibrary_Ratings.csv'
 
         web.header('Content-Type', 'text/csv')
-        web.header(
-            'Content-disposition', f'attachment; filename={filename}'
-        )
+        web.header('Content-disposition', f'attachment; filename={filename}')
         return delegate.RawText('' or data, content_type="text/csv")
 
     def generate_reading_log(self, username):
@@ -866,7 +868,7 @@ class export_books(delegate.page):
                 f"OL{note['work_id']}W",
                 f"OL{note['edition_id']}M",
                 f'"{escaped_note}"',
-                note['created'].strftime(self.date_format)
+                note['created'].strftime(self.date_format),
             ]
             csv.append(','.join(row))
 
@@ -882,7 +884,7 @@ class export_books(delegate.page):
                 f"OL{o['work_id']}W",
                 f'"{o["observation_type"]}"',
                 f'"{o["observation_value"]}"',
-                o['created'].strftime(self.date_format)
+                o['created'].strftime(self.date_format),
             ]
             csv.append(','.join(row))
 
@@ -895,25 +897,30 @@ class export_books(delegate.page):
         for list in lists:
             list_id = list.key.split('/')[-1]
             created_on = list.created.strftime(self.date_format)
-            last_updated = list.last_modified.strftime(self.date_format) if list.last_modified else ''
+            last_updated = (
+                list.last_modified.strftime(self.date_format)
+                if list.last_modified
+                else ''
+            )
             for seed in list.seeds:
                 entry = seed
                 if not isinstance(seed, str):
                     entry = seed.key
                 list_name = list.name.replace('"', '""') if list.name else ''
-                list_desc = list.description.replace('"', '""') if list.description else ''
+                list_desc = (
+                    list.description.replace('"', '""') if list.description else ''
+                )
                 row = [
                     list_id,
                     f'"{list_name}"',
                     f'"{list_desc}"',
                     entry,
                     created_on,
-                    last_updated
+                    last_updated,
                 ]
                 csv.append(','.join(row))
 
         return '\n'.join(csv)
-
 
     def generate_star_ratings(self, username):
         csv = []
@@ -925,7 +932,7 @@ class export_books(delegate.page):
                 f"OL{rating['work_id']}W",
                 f"OL{rating['edition_id']}M" if rating['edition_id'] else '',
                 f"{rating['rating']}",
-                rating['created'].strftime(self.date_format)
+                rating['created'].strftime(self.date_format),
             ]
             csv.append(','.join(row))
 
@@ -963,6 +970,7 @@ class account_waitlist(delegate.page):
 
     def GET(self):
         raise web.seeother("/account/loans")
+
 
 # Disabling be cause it prevents account_my_books_redirect from working
 # for some reason. The purpose of this class is to not show the "Create" link for
