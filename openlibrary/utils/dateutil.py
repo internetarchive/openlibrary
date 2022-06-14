@@ -4,6 +4,7 @@
 import calendar
 import datetime
 from contextlib import contextmanager
+from sys import stderr
 from time import perf_counter
 
 
@@ -113,4 +114,4 @@ def elapsed_time(name="elapsed_time"):
     """
     start = perf_counter()
     yield
-    print(f"Elapsed time ({name}): {perf_counter() - start:0.8} seconds")
+    print(f"Elapsed time ({name}): {perf_counter() - start:0.8} seconds", file=stderr)

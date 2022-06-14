@@ -35,6 +35,7 @@ from openlibrary.accounts import (
     valid_email,
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
+from openlibrary.utils.dateutil import elapsed_time
 
 logger = logging.getLogger("openlibrary.account")
 
@@ -816,6 +817,7 @@ def csv_header_and_format(row: Mapping[str, Any]) -> tuple[str, str]:
     )
 
 
+@elapsed_time("csv_string")
 def csv_string(source: Iterable[Mapping], row_formatter: Callable = None) -> str:
     """
     Given an list of dicts, generate comma separated values where each dict is a row.
@@ -871,7 +873,8 @@ class export_books(delegate.page):
             data = self.generate_reviews(username)
             filename = 'OpenLibrary_Reviews.csv'
         elif i.type == 'lists':
-            data = self.generate_list_overview(user.get_lists(limit=1000))
+            with elapsed_time("user.get_lists()"):
+                data = self.generate_list_overview(user.get_lists(limit=1000))
             filename = 'Openlibrary_ListOverview.csv'
         elif i.type == 'ratings':
             data = self.generate_star_ratings(username)
