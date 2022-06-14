@@ -807,6 +807,19 @@ class fetch_goodreads(delegate.page):
         return render['account/import'](books, books_wo_isbns)
 
 
+def csv_header_and_format(row: Mapping[str, Any]) -> tuple[str, str]:
+    """
+    Convert the keys of a dict into csv header and format strings for generating a
+    comma separated values string.  This will only be run on the first row of data.
+    >>> csv_header_and_format({"item_zero": 0, "one_id_id": 1, "t_w_o": 2, "THREE": 3})
+    ('Item Zero,One Id ID,T W O,Three', '{item_zero},{one_id_id},{t_w_o},{THREE}')
+    """
+    return (  # The .replace("_Id,", "_ID,") converts "Edition Id" --> "Edition ID"
+        ",".join(fld.replace("_", " ").title() for fld in row).replace(" Id,", " ID,"),
+        ",".join("{%s}" % field for field in row),
+    )
+
+
 def csv_string(source: Iterable[Mapping], row_formatter: callable = None) -> str:
     """
     Given an list of dicts, generate comma separated values where each dict is a row.
@@ -823,18 +836,6 @@ def csv_string(source: Iterable[Mapping], row_formatter: callable = None) -> str
 
         def row_formatter(row: dict) -> dict:
             return row
-
-    def csv_header_and_format(row: Mapping[str, Any]) -> tuple[str, str]:
-        """
-        Convert the keys of a dict into csv header and format strings for generating a
-        comma separated values string.  This will only be run on the first row of data.
-        >>> csv_header_and_format({"zero": 0, "one_id_id": 1, "t_w_o": 2, "THREE": 3})
-        ('Zero,One Id ID,T W O,Three', '{item_zero},{one_id_id},{t_w_o},{THREE}')
-        """
-        return (  # The .replace("_Id,", "_ID,") converts "Edition Id" --> "Edition ID"
-            ",".join(f.replace("_", " ").title() for f in row).replace(" Id,", " ID,"),
-            ",".join("{%s}" % field for field in row),
-        )
 
     def csv_body() -> Iterable[str]:
         """
@@ -880,9 +881,7 @@ class export_books(delegate.page):
             filename = 'OpenLibrary_Ratings.csv'
 
         web.header('Content-Type', 'text/csv')
-        web.header(
-            'Content-disposition', f'attachment; filename={filename}'
-        )
+        web.header('Content-disposition', f'attachment; filename={filename}')
         return delegate.RawText('' or data, content_type="text/csv")
 
     def generate_reading_log(self, username):
