@@ -874,7 +874,9 @@ class export_books(delegate.page):
             filename = 'OpenLibrary_Reviews.csv'
         elif i.type == 'lists':
             with elapsed_time("user.get_lists()"):
-                data = self.generate_list_overview(user.get_lists(limit=1000))
+                lists = user.get_lists(limit=1000)
+            with elapsed_time("generate_list_overview()"):
+                data = self.generate_list_overview(lists)
             filename = 'Openlibrary_ListOverview.csv'
         elif i.type == 'ratings':
             data = self.generate_star_ratings(username)
@@ -1026,10 +1028,9 @@ class account_waitlist(delegate.page):
     def GET(self):
         raise web.seeother("/account/loans")
 
-
-# Disabling be cause it prevents account_my_books_redirect from working
-# for some reason. The purpose of this class is to not show the "Create" link for
-# /account pages since that doesn't make any sense.
+# Disabling because it prevents account_my_books_redirect from working for some reason.
+# The purpose of this class is to not show the "Create" link for /account pages since
+# that doesn't make any sense.
 # class account_others(delegate.page):
 #     path = "(/account/.*)"
 #
