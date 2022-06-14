@@ -11,6 +11,15 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template
 
 
+def create_request(olids: str, username: str, comment: str = None):
+    work_ids = olids.split(',')
+    return CommunityEditsQueue.submit_work_merge_request(
+        work_ids,
+        submitter=username,
+        comment=comment,
+    )
+
+
 class community_edits_queue(delegate.page):
     path = '/merges'
 

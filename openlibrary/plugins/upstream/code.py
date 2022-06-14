@@ -3,6 +3,7 @@
 import datetime
 import hashlib
 import io
+import json
 import os.path
 import random
 
@@ -23,6 +24,7 @@ from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream import merge_authors
 from openlibrary.plugins.upstream import edits
 from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused imports?
+from openlibrary.plugins.upstream.edits import create_request
 from openlibrary.plugins.upstream.utils import render_component
 
 if not config.get('coverstore_url'):
@@ -99,13 +101,27 @@ class merge_work(delegate.page):
     path = "/works/merge"
 
     def GET(self):
+        i = web.input(records='', comment=None)
         user = web.ctx.site.get_user()
         has_access = user and (
             (user.is_admin() or user.is_librarian())
             and user.is_usergroup_member('/usergroup/librarian-work-merge')
         )
         if not has_access:
-            raise web.HTTPError('403 Forbidden')
+            if user.is_librarian() or user.is_admin():
+                username = user['key'].split('/')[-1]
+                result = create_request(i.records, username, comment=i.comment)
+                response = {
+                    'status': 'ok'
+                } if result else {
+                    'error': 'A request to merge these works has already been submitted'
+                }
+                return delegate.RawText(
+                    json.dumps(response)
+                )
+
+            else:
+                raise web.HTTPError('403 Forbidden')
         i = web.input(mrid="")
         return render_template('merge/works', mrid=i.mrid)
 
