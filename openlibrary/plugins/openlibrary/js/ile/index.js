@@ -36,4 +36,11 @@ export class IntegratedLibrarianEnvironment {
     setStatusText(text) {
         this.$statusText.text(text);
     }
+
+    reset() {
+        for (const elem of $('.ile-selected')) {
+            elem.classList.remove('ile-selected')
+        }
+        $('#ile-drag-actions').empty();
+    }
 }
