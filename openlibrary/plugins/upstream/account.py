@@ -826,7 +826,7 @@ def csv_string(source: Iterable[Mapping], row_formatter: callable = None) -> str
     An optional reformatter function can be provided to transform or enrich each dict.
     The order and names of the formatter's the output dict keys will determine the
     order and header column titles of the resulting csv string.
-    :param source: An iterable of all the rows that should appear in the csv strring.
+    :param source: An iterable of all the rows that should appear in the csv string.
     :param formatter: A callable that accepts a Mapping and returns a dict.
     >>> csv = csv_string([{"row_id": x, "t w o": 2, "upper": x.upper()} for x in "ab"])
     >>> csv.splitlines()
