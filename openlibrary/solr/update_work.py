@@ -3,7 +3,6 @@ import itertools
 import logging
 import os
 import re
-from enum import IntEnum
 from json import JSONDecodeError
 from math import ceil
 from statistics import median
@@ -33,7 +32,7 @@ from openlibrary.solr.data_provider import (
     ExternalDataProvider,
 )
 from openlibrary.solr.solr_types import SolrDocument
-from openlibrary.utils import uniq
+from openlibrary.utils import uniq, OrderedEnum
 from openlibrary.utils.ddc import normalize_ddc, choose_sorting_ddc
 from openlibrary.utils.isbn import opposite_isbn
 from openlibrary.utils.lcc import short_lcc_to_sortable_lcc, choose_sorting_lcc
@@ -311,6 +310,32 @@ def datetimestr_to_int(datestr):
     return int(time.mktime(t.timetuple()))
 
 
+class EbookAccess(OrderedEnum):
+    # Keep in sync with solr/conf/enumsConfig.xml !
+    NO_EBOOK = 0
+    UNCLASSIFIED = 1
+    PRINTDISABLED = 2
+    BORROWABLE = 3
+    PUBLIC = 4
+
+    def to_solr_str(self):
+        return self.name.lower()
+
+
+def get_ia_access_enum(
+    collections: set[str],
+    access_restricted_item: bool,
+) -> EbookAccess:
+    if 'inlibrary' in collections:
+        return EbookAccess.BORROWABLE
+    elif 'printdisabled' in collections:
+        return EbookAccess.PRINTDISABLED
+    elif access_restricted_item or not collections:
+        return EbookAccess.UNCLASSIFIED
+    else:
+        return EbookAccess.PUBLIC
+
+
 class SolrProcessor:
     """Processes data to into a form suitable for adding to works solr."""
 
@@ -364,7 +389,9 @@ class SolrProcessor:
                 e['public_scan'] = ('lendinglibrary' not in collection) and (
                     'printdisabled' not in collection
                 )
-                e['access_restricted_item'] = ia_meta_fields.get('access_restricted_item', False)
+                e['access_restricted_item'] = ia_meta_fields.get(
+                    'access_restricted_item', False
+                )
 
             if 'identifiers' in e:
                 for k, id_list in e['identifiers'].items():
@@ -696,36 +723,18 @@ class SolrProcessor:
         """
         ebook_info: dict[str, Any] = {}
 
-        class AvailabilityEnum(IntEnum):
-            PUBLIC = 1
-            BORROWABLE = 2
-            PRINTDISABLED = 3
-            UNCLASSIFIED = 4
-
-        def get_ia_availability_enum(
-            collections: set[str],
-            access_restricted_item: bool,
-        ) -> AvailabilityEnum:
-            if 'inlibrary' in collections:
-                return AvailabilityEnum.BORROWABLE
-            elif 'printdisabled' in collections:
-                return AvailabilityEnum.PRINTDISABLED
-            elif access_restricted_item or not collections:
-                return AvailabilityEnum.UNCLASSIFIED
-            else:
-                return AvailabilityEnum.PUBLIC
-
-        def get_ia_sorting_key(ed: dict) -> tuple[AvailabilityEnum, str]:
+        def get_ia_sorting_key(ed: dict) -> tuple[int, str]:
             ocaid = ed['ocaid'].strip()
             md = ia_metadata.get(ocaid)
-            availability = AvailabilityEnum.UNCLASSIFIED
+            access = EbookAccess.UNCLASSIFIED
             if md is not None:
-                availability = get_ia_availability_enum(
+                access = get_ia_access_enum(
                     md.get('collection', set()),
                     md.get('access_restricted_item') == "true",
                 )
             return (
-                availability,
+                # -1 to sort in reverse and make public first
+                -1 * access.value,
                 # De-prioritize google scans because they are lower quality
                 '0: non-goog' if not ocaid.endswith('goog') else '1: goog',
             )
@@ -734,16 +743,24 @@ class SolrProcessor:
         ebook_info['ia'] = [e['ocaid'].strip() for e in ia_eds]
         ebook_info["ebook_count_i"] = len(ia_eds)
 
-        # These should always be set, for some reason.
+        # Default values
         ebook_info["has_fulltext"] = False
         ebook_info["public_scan_b"] = False
+        if get_solr_next():
+            ebook_info["ebook_access"] = EbookAccess.NO_EBOOK.to_solr_str()
 
         if ia_eds:
-            best_availability = get_ia_sorting_key(ia_eds[0])[0]
             best_ed = ia_eds[0]
-            if best_availability < AvailabilityEnum.UNCLASSIFIED:
+            best_access = get_ia_access_enum(
+                best_ed.get('ia_collection', []),
+                best_ed.get('access_restricted_item') == "true",
+            )
+            if get_solr_next():
+                ebook_info["ebook_access"] = best_access.to_solr_str()
+
+            if best_access > EbookAccess.UNCLASSIFIED:
                 ebook_info["has_fulltext"] = True
-            if best_availability == AvailabilityEnum.PUBLIC:
+            if best_access == EbookAccess.PUBLIC:
                 ebook_info['public_scan_b'] = True
 
             all_collection = sorted(
@@ -759,7 +776,7 @@ class SolrProcessor:
             if all_collection:
                 ebook_info['ia_collection_s'] = ';'.join(all_collection)
 
-            if best_availability < AvailabilityEnum.PRINTDISABLED:
+            if best_access > EbookAccess.PRINTDISABLED:
                 ebook_info['lending_edition_s'] = extract_edition_olid(best_ed['key'])
                 ebook_info['lending_identifier_s'] = best_ed['ocaid']
 

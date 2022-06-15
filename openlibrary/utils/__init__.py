@@ -1,5 +1,6 @@
 """Generic utilities"""
 
+from enum import Enum
 import re
 from subprocess import PIPE, Popen, STDOUT
 from typing import TypeVar, Iterable, Literal, Callable, Optional
@@ -182,3 +183,26 @@ def is_number(s):
 def get_software_version():  # -> str:
     cmd = "git rev-parse --short HEAD --".split()
     return str(Popen(cmd, stdout=PIPE, stderr=STDOUT).stdout.read().decode().strip())
+
+
+# See https://docs.python.org/3/library/enum.html#orderedenum
+class OrderedEnum(Enum):
+    def __ge__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value >= other.value
+        return NotImplemented
+
+    def __gt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value > other.value
+        return NotImplemented
+
+    def __le__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value <= other.value
+        return NotImplemented
+
+    def __lt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value < other.value
+        return NotImplemented
