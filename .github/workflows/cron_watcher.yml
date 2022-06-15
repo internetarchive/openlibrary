@@ -15,5 +15,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
-      - run: pip install internetarchive
+      - run: pip install internetarchive slack-sdk
+      - shell: python
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL_ABC_TEAM: ${{ secrets.SLACK_CHANNEL_ABC_TEAM }}
+        run: |
+          import os, slack_sdk
+          token = os.getenv("SLACK_TOKEN")
+          channel = os.getenv("SLACK_CHANNEL_ABC_TEAM")
+          if token and channel:
+            slack_sdk.WebClient(token=token).chat_postMessage(channel=channel,
+              text="cron_watcher starting at https://github.com/internetarchive/openlibrary/actions/workflows/cron_watcher.yml",
+            )
+          )
       - run: scripts/cron_watcher.py
