@@ -6,7 +6,7 @@ import re
 from json import JSONDecodeError
 from math import ceil
 from statistics import median
-from typing import Iterable, Literal, List, Optional, cast, TypedDict, Any, Union
+from typing import Iterable, Literal, List, Optional, cast, Any, Union
 
 import httpx
 import requests
@@ -23,6 +23,7 @@ from http.client import HTTPConnection
 import web
 
 from openlibrary import config
+import openlibrary.book_providers as bp
 from openlibrary.catalog.utils.query import set_query_host, base_url as get_ol_base_url
 from openlibrary.core import helpers as h
 from openlibrary.plugins.upstream.utils import safeget
@@ -32,7 +33,7 @@ from openlibrary.solr.data_provider import (
     ExternalDataProvider,
 )
 from openlibrary.solr.solr_types import SolrDocument
-from openlibrary.utils import uniq, OrderedEnum
+from openlibrary.utils import uniq
 from openlibrary.utils.ddc import normalize_ddc, choose_sorting_ddc
 from openlibrary.utils.isbn import opposite_isbn
 from openlibrary.utils.lcc import short_lcc_to_sortable_lcc, choose_sorting_lcc
@@ -100,13 +101,7 @@ def extract_edition_olid(key: str) -> str:
     return m.group(1)
 
 
-class IALiteMetadata(TypedDict):
-    boxid: set[str]
-    collection: set[str]
-    access_restricted_item: Optional[Literal['true', 'false']]
-
-
-def get_ia_collection_and_box_id(ia: str) -> Optional[IALiteMetadata]:
+def get_ia_collection_and_box_id(ia: str) -> Optional['bp.IALiteMetadata']:
     """
     Get the collections and boxids of the provided IA id
 
@@ -308,32 +303,6 @@ def datetimestr_to_int(datestr):
         t = datetime.datetime.utcnow()
 
     return int(time.mktime(t.timetuple()))
-
-
-class EbookAccess(OrderedEnum):
-    # Keep in sync with solr/conf/enumsConfig.xml !
-    NO_EBOOK = 0
-    UNCLASSIFIED = 1
-    PRINTDISABLED = 2
-    BORROWABLE = 3
-    PUBLIC = 4
-
-    def to_solr_str(self):
-        return self.name.lower()
-
-
-def get_ia_access_enum(
-    collections: set[str],
-    access_restricted_item: bool,
-) -> EbookAccess:
-    if 'inlibrary' in collections:
-        return EbookAccess.BORROWABLE
-    elif 'printdisabled' in collections:
-        return EbookAccess.PRINTDISABLED
-    elif access_restricted_item or not collections:
-        return EbookAccess.UNCLASSIFIED
-    else:
-        return EbookAccess.PUBLIC
 
 
 class SolrProcessor:
@@ -562,7 +531,7 @@ class SolrProcessor:
         self,
         w: dict,
         editions: list[dict],
-        ia_metadata: dict[str, Optional[IALiteMetadata]],
+        ia_metadata: dict[str, Optional['bp.IALiteMetadata']],
     ) -> dict:
         """
         Get the Solr document to insert for the provided work.
@@ -716,22 +685,49 @@ class SolrProcessor:
     @staticmethod
     def get_ebook_info(
         editions: list[dict],
-        ia_metadata: dict[str, Optional[IALiteMetadata]],
+        ia_metadata: dict[str, Optional['bp.IALiteMetadata']],
     ) -> dict:
         """
         Add ebook information from the editions to the work Solr document.
         """
         ebook_info: dict[str, Any] = {}
+        ia_provider = cast(
+            bp.InternetArchiveProvider, bp.get_book_provider_by_name('ia')
+        )
+
+        # Default values
+        best_access = bp.EbookAccess.NO_EBOOK
+        ebook_count = 0
+
+        for edition in editions:
+            provider = bp.get_book_provider(edition)
+            if provider is None:
+                continue
+
+            if provider == ia_provider:
+                access = provider.get_access(
+                    edition, ia_metadata.get(edition['ocaid'].strip())
+                )
+            else:
+                access = provider.get_access(edition)
+
+            if access > best_access:
+                best_access = access
+
+            if access > bp.EbookAccess.UNCLASSIFIED:
+                ebook_count += 1
+
+        ebook_info["ebook_count_i"] = ebook_count
+        if get_solr_next():
+            ebook_info["ebook_access"] = best_access.to_solr_str()
+        ebook_info["has_fulltext"] = best_access > bp.EbookAccess.UNCLASSIFIED
+        ebook_info["public_scan_b"] = best_access == bp.EbookAccess.PUBLIC
+
+        # IA-specific stuff
 
         def get_ia_sorting_key(ed: dict) -> tuple[int, str]:
             ocaid = ed['ocaid'].strip()
-            md = ia_metadata.get(ocaid)
-            access = EbookAccess.UNCLASSIFIED
-            if md is not None:
-                access = get_ia_access_enum(
-                    md.get('collection', set()),
-                    md.get('access_restricted_item') == "true",
-                )
+            access = ia_provider.get_access(ed, ia_metadata.get(ocaid))
             return (
                 # -1 to sort in reverse and make public first
                 -1 * access.value,
@@ -739,30 +735,11 @@ class SolrProcessor:
                 '0: non-goog' if not ocaid.endswith('goog') else '1: goog',
             )
 
+        # Store identifiers sorted by most-accessible first.
         ia_eds = sorted((e for e in editions if 'ocaid' in e), key=get_ia_sorting_key)
         ebook_info['ia'] = [e['ocaid'].strip() for e in ia_eds]
-        ebook_info["ebook_count_i"] = len(ia_eds)
-
-        # Default values
-        ebook_info["has_fulltext"] = False
-        ebook_info["public_scan_b"] = False
-        if get_solr_next():
-            ebook_info["ebook_access"] = EbookAccess.NO_EBOOK.to_solr_str()
 
         if ia_eds:
-            best_ed = ia_eds[0]
-            best_access = get_ia_access_enum(
-                best_ed.get('ia_collection', []),
-                best_ed.get('access_restricted_item') == "true",
-            )
-            if get_solr_next():
-                ebook_info["ebook_access"] = best_access.to_solr_str()
-
-            if best_access > EbookAccess.UNCLASSIFIED:
-                ebook_info["has_fulltext"] = True
-            if best_access == EbookAccess.PUBLIC:
-                ebook_info['public_scan_b'] = True
-
             all_collection = sorted(
                 uniq(
                     c
@@ -776,7 +753,11 @@ class SolrProcessor:
             if all_collection:
                 ebook_info['ia_collection_s'] = ';'.join(all_collection)
 
-            if best_access > EbookAccess.PRINTDISABLED:
+            # --- These should be deprecated and removed ---
+            best_ed = ia_eds[0]
+            best_ocaid = best_ed['ocaid'].strip()
+            best_access = ia_provider.get_access(best_ed, ia_metadata.get(best_ocaid))
+            if best_access > bp.EbookAccess.PRINTDISABLED:
                 ebook_info['lending_edition_s'] = extract_edition_olid(best_ed['key'])
                 ebook_info['lending_identifier_s'] = best_ed['ocaid']
 
@@ -787,12 +768,13 @@ class SolrProcessor:
             ]
             if printdisabled:
                 ebook_info['printdisabled_s'] = ';'.join(printdisabled)
+            # ^^^ These should be deprecated and removed ^^^
         return ebook_info
 
 
 async def build_data(
     w: dict,
-    ia_metadata: dict[str, Optional[IALiteMetadata]] = None,
+    ia_metadata: dict[str, Optional['bp.IALiteMetadata']] = None,
 ) -> SolrDocument:
     """
     Construct the Solr document to insert into Solr for the given work
@@ -814,7 +796,10 @@ async def build_data(
 
 
 def build_data2(
-    w: dict, editions: list[dict], authors, ia: dict[str, Optional[IALiteMetadata]]
+    w: dict,
+    editions: list[dict],
+    authors,
+    ia: dict[str, Optional['bp.IALiteMetadata']],
 ) -> SolrDocument:
     """
     Construct the Solr document to insert into Solr for the given work
