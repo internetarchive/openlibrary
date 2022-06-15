@@ -274,14 +274,25 @@ SelectionManager.ACTIONS = [
         elevated_permissions: false,
         click_listener: evt => {
             evt.preventDefault()
-            const comment = prompt('Add a comment and click "OK" to confirm.')
+            const comment = prompt('(Optional) Are there specific details our librarians should note about this Merge Request?')
             if (comment !== null) {
-                const href = document.querySelector('#ile-drag-actions').children[0].href + `&comment=${comment}`
-                $.ajax(href)
+                const href = document.querySelector('#ile-drag-actions').children[0].href
+                const url = new URL(href)
+                const params = new URLSearchParams(url.search)
+                const records = params.get('records')
+                $.ajax({
+                        url: '/merges',
+                        method: 'POST',
+                        data: {
+                            'work_ids': records,
+                            'comment': comment,
+                            'rtype': 'merge-works',
+                            'action': 'create'
+                        }
+                    })
                     .done(function(resp) {
-                        const response = JSON.parse(resp)
-                        let message = response.error ? response.error : 'Merge request submitted!'
-                        if (!response.error) {
+                        let message = resp.error ? resp.error : 'Merge request submitted!'
+                        if (!resp.error) {
                             window.ILE.reset()
                         }
                         new FadingToast(message).show()

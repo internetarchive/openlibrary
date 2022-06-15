@@ -1,7 +1,6 @@
 """Librarian Edits
 """
 
-import re
 import json
 import web
 
@@ -25,10 +24,10 @@ class community_edits_queue(delegate.page):
 
     def POST(self):
         i = web.input(
-            work_ids="",
+            work_ids="",  # Comma-separated OLIDs (OL1W,OL2W,OL3W,...,OL111W)
             rtype="merge-works",
             mrid=None,
-            action=None,  # approve, close, comment
+            action=None,  # create, approve, close, comment
             comment=None
         )
         user = accounts.get_current_user()
@@ -39,24 +38,22 @@ class community_edits_queue(delegate.page):
                 i.mrid, comment=i.comment
             )
         if i.rtype == "merge-works":
-            # normalization
-            work_ids = [
-                w for w in
-                re.split("[ ,]", i.work_ids.replace("/works/", ""))
-                if w
-            ]
-            result = CommunityEditsQueue.submit_work_merge_request(
-                work_ids,
-                submitter=username,
-                comment=i.comment
-            )
-            return delegate.RawText(json.dumps(result), content_type="application/json")
+            if i.action == 'create':
+                result = self.create_merge_works_request(i.work_ids, username, i.comment)
+                return delegate.RawText(json.dumps(result), content_type="application/json")
 
     def GET(self):
         i = web.input(page=1)
         merge_requests = CommunityEditsQueue.get_requests(page=i.page)
         return render_template('merge_queue', merge_requests=merge_requests)
 
+    def create_merge_works_request(self, work_ids, submitter, comment=None):
+        result = create_request(work_ids, submitter, comment)
+        return {
+            'status': 'ok'
+        } if result else {
+            'error': 'A request to merge these works has already been submitted.'
+        }
 
 def setup():
     pass

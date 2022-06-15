@@ -38,6 +38,8 @@ class CommunityEditsQueue:
                 wheres.append("submitter=$submitter")
         if "url" in kwargs:
             wheres.append("url=$url")
+        if "id" in kwargs:
+            wheres.append("id=$id")
         query_kwargs = {
             "limit": limit,
             "offset": limit * (page - 1),
@@ -51,7 +53,6 @@ class CommunityEditsQueue:
     def submit_work_merge_request(cls, work_ids, submitter, comment=None):
         if not comment:
             comment = 'Submitted without comment.'
-        comment_dict = cls.create_comment(submitter, comment)
         # XXX IDs should be santiized & normalized
         # e.g. /works/OL123W -> OL123W
         url = f"/works/merge?records={','.join(work_ids)}"
@@ -129,7 +130,6 @@ class CommunityEditsQueue:
     def comment_request(cls, rid, username, comment):
         oldb = db.get_db()
         comment.setdefault("comments", [])
-        # isoformat to avoid to-json issues
         comment["comments"].append(cls.create_comment(username, comment))
         return oldb.update(
             "community_edits_queue",
@@ -148,6 +148,7 @@ class CommunityEditsQueue:
     @classmethod
     def create_comment(cls, username, message):
         return {
+            # isoformat to avoid to-json issues
             "timestamp": datetime.datetime.utcnow().isoformat(),
             "username": username,
             "message": message,

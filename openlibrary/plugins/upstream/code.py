@@ -108,21 +108,8 @@ class merge_work(delegate.page):
             and user.is_usergroup_member('/usergroup/librarian-work-merge')
         )
         if not has_access:
-            if user.is_librarian() or user.is_admin():
-                username = user['key'].split('/')[-1]
-                result = create_request(i.records, username, comment=i.comment)
-                response = {
-                    'status': 'ok'
-                } if result else {
-                    'error': 'A request to merge these works has already been submitted'
-                }
-                return delegate.RawText(
-                    json.dumps(response)
-                )
-
-            else:
-                raise web.HTTPError('403 Forbidden')
-        i = web.input(mrid="")
+            raise web.HTTPError('403 Forbidden')
+        i = web.input(mrid=None)
         return render_template('merge/works', mrid=i.mrid)
 
 

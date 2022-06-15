@@ -3,6 +3,11 @@
     <MergeTable :olids="url.searchParams.get('records', '').split(',')" ref="mergeTable"/>
 
     <button @click="doMerge" :disabled="mergeStatus == 'Saving...'">Do Merge</button>
+    <span v-if="mrid">
+        <button @click="rejectMerge">Reject Merge</button>
+        <label for="comment">Comment: </label>
+        <input name="comment" v-model="comment" type="text">
+    </span>
     <pre v-if="mergeStatus">{{mergeStatus}}</pre>
   </div>
 </template>
@@ -16,10 +21,18 @@ export default {
     components: {
         MergeTable
     },
+    props: {
+        mrid: {
+            type: [Number, String],
+            required: false,
+            default: ''
+        }
+    },
     data() {
         return {
             url: new URL(location.toString()),
-            mergeStatus: null
+            mergeStatus: null,
+            comment: ''
         }
     },
     methods: {
@@ -35,6 +48,10 @@ export default {
                 this.mergeStatus = e.message;
                 throw e;
             }
+        },
+
+        rejectMerge() {
+            console.log('rejected')
         }
     }
 }
