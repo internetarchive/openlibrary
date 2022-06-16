@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <MergeTable :olids="url.searchParams.get('records', '').split(',')" ref="mergeTable"/>
+    <MergeTable :olids="olids" ref="mergeTable"/>
 
     <div class="btn-group">
         <button class="merge-btn" @click="doMerge" :disabled="mergeStatus == 'Saving...'">Do Merge</button>
@@ -35,6 +35,11 @@ export default {
             url: new URL(location.toString()),
             mergeStatus: null,
             comment: ''
+        }
+    },
+    computed: {
+        olids() {
+            return this.url.searchParams.get('records', '').split(',')
         }
     },
     methods: {
