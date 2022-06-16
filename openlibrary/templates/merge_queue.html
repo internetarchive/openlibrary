@@ -16,10 +16,19 @@ $if merge_requests:
       <th>reviewer</th>
     </tr>
     $for r in merge_requests:
-      <tr title='$r'>
-	$ url = "%s&mrid=%s" % (r['url'], r['id'])
-	<td><a href="$url">$url</a></td>
-	<td>$r['submitter']</td>
-	<td>$r['reviewer']</td>
+      <tr title='$r' id="mrid-$(r['id'])">
+        $ url = "%s&mrid=%s" % (r['url'], r['id'])
+        <td><a href="$url">$url</a></td>
+        <td>$r['submitter']</td>
+        <td>$r['reviewer']</td>
+        <td>$r['status']</td>
+        <td>
+          <details>
+            <summary>$(r['comments'] and r['comments'][-1])</summary>
+            <pre>
+              $(r['comments'] and r['comments'][:-1])
+            </pre>
+          </details>
+        </td>
       </tr>
   </table>
