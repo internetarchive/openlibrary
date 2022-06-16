@@ -28,5 +28,4 @@ jobs:
             slack_sdk.WebClient(token=token).chat_postMessage(channel=channel,
               text="[cron_watcher](https://github.com/internetarchive/openlibrary/actions/workflows/cron_watcher.yml) is starting now.",
             )
-          )
       - run: scripts/cron_watcher.py
