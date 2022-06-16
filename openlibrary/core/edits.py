@@ -99,30 +99,42 @@ class CommunityEditsQueue:
         oldb = db.get_db()
         oldb.update(
             "community_edits_queue",
-            where="rid=$rid",
+            where="id=$rid",
             reviewer=reviewer,
             vars={"rid": rid}
         )
 
     @classmethod
-    def close_request(cls, rid, comment=None):
-        """XXX comment not being used here yet"""
+    def decline_request(cls, rid, reviewer, comment=None):
+        if not comment:
+            comment = 'Request declined without comment.'
+        comments = cls.get_comments(rid)
+        comments['comments'].append(cls.create_comment(reviewer, comment))
+
         oldb = db.get_db()
         oldb.update(
             "community_edits_queue",
-            where="rid=$rid",
+            where="id=$rid",
             status=cls.STATUS['DECLINED'],
+            reviewer=reviewer,
+            comments=json.dumps(comments),
             vars={"rid": rid}
         )
 
     @classmethod
-    def approve_request(cls, rid, comment=None):
-        """XXX comment not being used here yet"""
+    def approve_request(cls, rid, reviewer, comment=None):
+        if not comment:
+            comment = 'Request approved without comment.'
+        comments = cls.get_comments(rid)
+        comments['comments'].append(cls.create_comment(reviewer, comment))
+
         oldb = db.get_db()
         oldb.update(
             "community_edits_queue",
-            where="rid=$rid",
+            where="id=$rid",
             status=cls.STATUS['MERGED'],
+            reviewer=reviewer,
+            comments=json.dumps(comments),
             vars={"rid": rid}
         )
 

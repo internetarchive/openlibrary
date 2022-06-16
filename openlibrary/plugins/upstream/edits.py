@@ -23,37 +23,37 @@ class community_edits_queue(delegate.page):
     path = '/merges'
 
     def POST(self):
+
+        def response(status='ok', **kwargs):
+            return {'status': status, **kwargs}
+
         i = web.input(
             work_ids="",  # Comma-separated OLIDs (OL1W,OL2W,OL3W,...,OL111W)
             rtype="merge-works",
             mrid=None,
-            action=None,  # create, approve, close, comment
+            action=None,  # create, approve, decline, comment
             comment=None
         )
         user = accounts.get_current_user()
         username = user['key'].split('/')[-1]
-        if i.mrid:
-            action = f"{i.action}_request"
-            result = getattr(CommunityEditsQueue, action)(
-                i.mrid, comment=i.comment
-            )
-        if i.rtype == "merge-works":
+        if i.mrid:  # We are updating an existing merge request
+            if i.action == "decline":
+                result = CommunityEditsQueue.decline_request(i.mrid, username, i.comment)
+                return delegate.RawText(json.dumps(response()), content_type="application/json")
+            if i.action == 'approve':
+                result = CommunityEditsQueue.approve_request(i.mrid, username, i.comment)
+                return delegate.RawText(json.dumps(response()), content_type="application/json")
+
+        elif i.rtype == "merge-works":
             if i.action == 'create':
-                result = self.create_merge_works_request(i.work_ids, username, i.comment)
-                return delegate.RawText(json.dumps(result), content_type="application/json")
+                result = create_request(i.work_ids, username, i.comment)
+                resp = response(id=result) if result else response(status='error', error='A request to merge these works has already been submitted.')
+                return delegate.RawText(json.dumps(resp), content_type="application/json")
 
     def GET(self):
         i = web.input(page=1)
         merge_requests = CommunityEditsQueue.get_requests(page=i.page)
         return render_template('merge_queue', merge_requests=merge_requests)
-
-    def create_merge_works_request(self, work_ids, submitter, comment=None):
-        result = create_request(work_ids, submitter, comment)
-        return {
-            'status': 'ok'
-        } if result else {
-            'error': 'A request to merge these works has already been submitted.'
-        }
 
 def setup():
     pass

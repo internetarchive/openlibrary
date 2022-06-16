@@ -124,6 +124,18 @@ export function get_ratings(key) {
     return fetch(`${key}/ratings.json`).then(r => r.json());
 }
 
+export function update_merge_request(mrid, action, comment) {
+    const formData = new FormData();
+    formData.set('mrid', mrid)
+    formData.set('action', action)
+    if (comment) {
+        formData.set('comment', comment)
+    }
+    return fetch('/merges', {
+        method: 'POST',
+        body: formData
+    })
+}
 
 /**
  *
