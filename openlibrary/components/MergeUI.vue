@@ -42,10 +42,10 @@ export default {
 
             this.mergeStatus = 'Saving...';
             try {
-                // const r = await do_merge(master, dupes, editions_to_move);
-                // this.mergeStatus = await r.json();
+                const r = await do_merge(master, dupes, editions_to_move);
+                this.mergeStatus = await r.json();
                 await update_merge_request(this.mrid, 'approve', this.comment)
-                this.mergeStatus = this.mergeStatus + " Merge request closed"
+                this.mergeStatus = `${this.mergeStatus} Merge request closed`
             } catch (e) {
                 this.mergeStatus = e.message;
                 throw e;
@@ -54,8 +54,8 @@ export default {
 
         async rejectMerge() {
             try {
-                const r = await update_merge_request(this.mrid, 'decline', this.comment)
-                this.mergeStatus = "Merge request closed"
+                await update_merge_request(this.mrid, 'decline', this.comment)
+                this.mergeStatus = 'Merge request closed'
             } catch (e) {
                 this.mergeStatus = e.message;
                 throw e;
