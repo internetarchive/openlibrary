@@ -1,20 +1,23 @@
-$def with(merge_requests=None)
+$def with(merge_requests=None, selected="open")
 
 $def format_comment(comment):
   <div title="$comment['timestamp']">
     <span>$comment['username']</span>: <span>$comment['message']</span>
   </div>
 
-<form method="POST">
-  <p>Submit Work Merge Request (test)</p>
-  <input name="work_ids" placeholder="work_ids csv (e.g. OL123W,OL234W,OL345W)">
-  <input type="submit">
-</form>
-
 <h1>Community Edit Requests</h1>
 
+$ show_open = query_param('open', True) in [True, 'true']
+$ show_closed = query_param('closed', False) in [True, 'true']
+
+<ul class="nav-bar">
+  <li class="$('selected' if show_open and not show_closed else '')"><a href="/merges">$_('Open')</a></li>
+  <li class="$('selected' if show_closed and not show_open else '')"><a href="/merges?closed=true&open=false">$_('Closed')</a></li>
+  <li class="$('selected' if show_open and show_closed else '')"><a href="/merges?closed=true">$_('All')</a></li>
+</ul>
+
 $if merge_requests:
-  <table>
+  <table style="padding-top:5px;">
     <tr>
       <th>url</th>
       <th>submitter</th>
@@ -23,13 +26,14 @@ $if merge_requests:
       <th>comments</th>
     </tr>
     $for r in merge_requests:
+      $ status = get_status_for_view(r['status'])
       $ comments = r['comments'] and r['comments']['comments']
       <tr id="mrid-$(r['id'])" title="$r">
         $ url = "%s&mrid=%s" % (r['url'], r['id'])
         <td><a href="$url">$url</a></td>
         <td>$r['submitter']</td>
         <td>$r['reviewer']</td>
-        <td>$r['status']</td>
+        <td>$status</td>
         <td>
           $if comments:
             <details>

@@ -51,8 +51,16 @@ class community_edits_queue(delegate.page):
                 return delegate.RawText(json.dumps(resp), content_type="application/json")
 
     def GET(self):
-        i = web.input(page=1)
-        merge_requests = CommunityEditsQueue.get_requests(page=i.page)
+        i = web.input(page=1, open='true', closed='false')
+
+        show_opened = i.open == 'true'
+        show_closed = i.closed == 'true'
+
+        mode = 'all' if show_opened and show_closed else (
+            'open' if show_opened and not show_closed else 'closed'
+        )
+
+        merge_requests = CommunityEditsQueue.get_requests(page=i.page, mode=mode)
         return render_template('merge_queue', merge_requests=merge_requests)
 
 def setup():

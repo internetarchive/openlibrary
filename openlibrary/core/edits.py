@@ -1,8 +1,18 @@
 import datetime
 import json
 
+from infogami.utils.view import public
+
 from . import db
 
+@public
+def get_status_for_view(status_code):
+    if status_code == CommunityEditsQueue.STATUS['DECLINED']:
+        return 'Declined'
+    if status_code == CommunityEditsQueue.STATUS['PENDING']:
+        return 'Pending'
+    if status_code == CommunityEditsQueue.STATUS['MERGED']:
+        return 'Merged'
 
 class CommunityEditsQueue:
 
@@ -23,8 +33,14 @@ class CommunityEditsQueue:
         'MERGED': 2,
     }
 
+    MODES = {
+        'all': [STATUS['DECLINED'], STATUS['PENDING'], STATUS['MERGED']],
+        'open': [STATUS['PENDING']],
+        'closed': [STATUS['DECLINED'], STATUS['MERGED']]
+    }
+
     @classmethod
-    def get_requests(cls, limit: int = 50, page: int = 1, **kwargs):
+    def get_requests(cls, limit: int = 50, page: int = 1, mode: str = 'all', **kwargs):
         oldb = db.get_db()
         wheres = []
         if kwargs.get("status"):
@@ -40,13 +56,27 @@ class CommunityEditsQueue:
             wheres.append("url=$url")
         if "id" in kwargs:
             wheres.append("id=$id")
+        if "status" in kwargs:
+            wheres.append("status=$status")
+
+        statuses = cls.MODES[mode]
+
+        data = {}
+        status_wheres = []
+
+        for i, status in enumerate(statuses):
+            data[f'status_{i}'] = status
+            status_wheres.append(f'status=$status_{i}')
+
         query_kwargs = {
             "limit": limit,
             "offset": limit * (page - 1),
-            "vars": kwargs
+            "vars": {**kwargs, **data}
         }
+
+        query_kwargs['where'] = f'({" OR ".join(status_wheres)})'
         if wheres:
-            query_kwargs['where'] = " AND ".join(wheres)
+            query_kwargs['where'] = f'{" AND ".join(wheres)} AND {query_kwargs["where"]}'
         return oldb.select("community_edits_queue", **query_kwargs)
 
     @classmethod

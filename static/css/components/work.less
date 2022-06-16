@@ -151,6 +151,7 @@ h2.edition-byline {
   color: @grey;
 }
 
+.nav-bar,
 .work-menu {
   border-bottom: 1px solid @lighter-grey;
   font-weight: bold;
@@ -179,6 +180,7 @@ h2.edition-byline {
 }
 
 @media (min-width: @width-breakpoint-mobile) {
+  .nav-bar.sticky,
   .work-menu.sticky {
     &:before, &:after {
       display: none;
@@ -187,6 +189,7 @@ h2.edition-byline {
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
+  .nav-bar.sticky,
   .work-menu.sticky {
     top: @compact-title-height;
     margin-left: 0;
@@ -195,11 +198,13 @@ h2.edition-byline {
   }
 }
 
+.nav-bar li,
 .work-menu li {
   display: inline;
   font-size: 13px;
 }
 
+.nav-bar li a,
 .work-menu li a {
   text-decoration: none;
   color: @grey;
@@ -210,11 +215,13 @@ h2.edition-byline {
   }
 }
 
+.nav-bar li.selected a,
 .work-menu li.selected a {
   color: @link-blue;
   border-bottom: 2px solid @link-blue;
 }
 
+.nav-bar li:hover a,
 .work-menu li:hover a {
   border-bottom: 2px solid @link-blue;
 }
