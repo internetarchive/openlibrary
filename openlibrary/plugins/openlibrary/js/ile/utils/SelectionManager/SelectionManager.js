@@ -1,7 +1,7 @@
 // @ts-check
 import $ from 'jquery';
 import { move_to_work, move_to_author } from '../ol.js';
-import { FadingToast } from '../../../Toast.js';
+import { PersistentToast } from '../../../Toast.js';
 import './SelectionManager.less';
 
 /**
@@ -292,13 +292,16 @@ SelectionManager.ACTIONS = [
                     })
                     .done(function(resp) {
                         let message = resp.error ? resp.error : 'Merge request submitted!'
-                        if (!resp.error) {
+                        if (resp.error) {
+                            message = resp.error
+                        } else {
                             window.ILE.reset()
+                            message = `Merge request submitted! View request <a href="/merges#mrid-${resp.id}" target="_blank">here</a>.`
                         }
-                        new FadingToast(message).show()
+                        new PersistentToast(message, 'light-yellow').show()
                     })
                     .fail(function() {
-                        new FadingToast('Merge request failed. Please try again in a few moments.').show()
+                        new PersistentToast('Merge request failed. Please try again in a few moments.', 'light-yellow').show()
                     })
             }
         }

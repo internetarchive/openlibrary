@@ -1,5 +1,10 @@
 $def with(merge_requests=None)
 
+$def format_comment(comment):
+  <div title="$comment['timestamp']">
+    <span>$comment['username']</span>: <span>$comment['message']</span>
+  </div>
+
 <form method="POST">
   <p>Submit Work Merge Request (test)</p>
   <input name="work_ids" placeholder="work_ids csv (e.g. OL123W,OL234W,OL345W)">
@@ -14,21 +19,24 @@ $if merge_requests:
       <th>url</th>
       <th>submitter</th>
       <th>reviewer</th>
+      <th>status</th>
+      <th>comments</th>
     </tr>
     $for r in merge_requests:
-      <tr title='$r' id="mrid-$(r['id'])">
+      $ comments = r['comments'] and r['comments']['comments']
+      <tr id="mrid-$(r['id'])" title="$r">
         $ url = "%s&mrid=%s" % (r['url'], r['id'])
         <td><a href="$url">$url</a></td>
         <td>$r['submitter']</td>
         <td>$r['reviewer']</td>
         <td>$r['status']</td>
         <td>
-          <details>
-            <summary>$(r['comments'] and r['comments'][-1])</summary>
-            <pre>
-              $(r['comments'] and r['comments'][:-1])
-            </pre>
-          </details>
+          $if comments:
+            <details>
+              <summary>$:format_comment(comments[-1])</summary>
+              $for c in comments[:-1]:
+                  $:format_comment(c)
+            </details>
         </td>
       </tr>
   </table>

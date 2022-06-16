@@ -77,3 +77,13 @@ export class FadingToast extends Toast {
         }, this.timeout);
     }
 }
+
+export class PersistentToast extends Toast {
+    constructor(message, classes='') {
+        const $toast = $(`<div class="toast ${classes}">
+            <span class="toast__body">${message}</span>
+            <a class="toast__close">&times;<span class="shift">Close</span>
+        </div>`)
+        super($toast)
+    }
+}
