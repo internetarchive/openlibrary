@@ -41,5 +41,6 @@
     "Great Britain. Office for National Statistics"
   ],
   "subjects": ["Statistics", "Periodicals"],
-  "subject_places": ["Great Britain"]
+  "subject_places": ["Great Britain"],
+  "identifiers": {"issn": ["0068-1075"]}
 }
