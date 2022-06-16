@@ -2,12 +2,14 @@
   <div id="app">
     <MergeTable :olids="url.searchParams.get('records', '').split(',')" ref="mergeTable"/>
 
-    <button @click="doMerge" :disabled="mergeStatus == 'Saving...'">Do Merge</button>
-    <span v-if="mrid">
-        <button @click="rejectMerge">Reject Merge</button>
+    <div class="btn-group">
+        <button class="merge-btn" @click="doMerge" :disabled="mergeStatus == 'Saving...'">Do Merge</button>
+        <button class="reject-btn" v-if="mrid" @click="rejectMerge">Reject Merge</button>
+    </div>
+    <div class="comment-input" v-if="mrid">
         <label for="comment">Comment: </label>
         <input name="comment" v-model="comment" type="text">
-    </span>
+    </div>
     <pre v-if="mergeStatus">{{mergeStatus}}</pre>
   </div>
 </template>
@@ -65,8 +67,31 @@ export default {
 }
 </script>
 
-<style>
+<style lang="less">
 #app {
   font-family: Roboto;
+}
+
+.btn-group {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    padding: 5px;
+
+    .merge-btn {
+        background-color: green;
+    }
+
+    .reject-btn {
+        background-color: red;
+    }
+}
+
+.comment-input {
+    padding: 0 5px 5px;
+
+    input {
+        width: 90%;
+    }
 }
 </style>
