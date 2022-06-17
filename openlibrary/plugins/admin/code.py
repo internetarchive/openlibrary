@@ -221,7 +221,7 @@ class resolve_redirects:
             test = True
 
         summary = Work.get_redirect_chain(params.key, test=test)
-            
+
         return delegate.RawText(
             json.dumps(summary), content_type="application/json")
 
