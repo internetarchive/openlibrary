@@ -1,5 +1,7 @@
 """Models of various OL objects.
 """
+import datetime
+import logging
 import web
 import requests
 from collections import defaultdict
@@ -30,6 +32,7 @@ from .waitinglist import WaitingLoan
 from ..accounts import OpenLibraryAccount
 from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
 
+logger = logging.getLogger("openlibrary.core")
 
 def _get_ol_base_url():
     # Anand Oct 2013
@@ -592,6 +595,103 @@ class Work(Thing):
             else:
                 resolved_key = thing.key
         return redirect_chain
+
+    @classmethod
+    def resolve_redirect_chain(cls, work_key: str, test: bool=False):
+        summary = {
+            'key': work_key,
+            'redirect_chain': [],
+            'resolved_key': None
+        }
+        redirect_chain = cls.get_redirect_chain(work_key)
+        summary['redirect_chain'] = [
+            {
+                "key": thing.key,
+                "occurrences": {},
+                "updates": {}
+            } for thing in redirect_chain
+        ]
+        summary['resolved_key'] = redirect_chain[-1].key
+
+        for r in summary['redirect_chain']:
+            olid = r['key'].split('/')[-1][2:-1]
+            new_olid = summary['resolved_key'].split('/')[-1][2:-1]
+
+            # count reading log entries
+            r['occurrences']['readinglog'] = len(
+                Bookshelves.get_works_shelves(olid))
+            r['occurrences']['ratings'] = len(
+                Ratings.get_all_works_ratings(olid))
+            r['occurrences']['booknotes'] = len(
+                Booknotes.get_booknotes_for_work(olid))
+            r['occurrences']['observations'] = len(
+                Observations.get_observations_for_work(olid))
+
+            # track updates
+            r['updates']['readinglog'] = Bookshelves.update_work_id(
+                olid, new_olid, _test=test
+            )
+            r['updates']['ratings'] = Ratings.update_work_id(
+                olid, new_olid, _test=test
+            )
+            r['updates']['booknotes'] = Booknotes.update_work_id(
+                olid, new_olid, _test=test
+            )
+            r['updates']['observations'] = Observations.update_work_id(
+                olid, new_olid, _test=test
+            )
+        return summary
+
+    @classmethod
+    def resolve_redirects_bulk(
+            cls,
+            batch_size=1000,
+            start_offset=0,
+            pages=None,
+            end_date=datetime.datetime.today()-datetime.timedelta(days=7),
+            start_date=datetime.datetime(year=2017, month=1, day=1),
+            test=True
+    ):
+        """
+        batch_size - how many records to fetch per batch
+        start_offset - what offset to start from
+        pages - how many pages of batch_size to process
+        end_date - ignore redirects created after this date
+        start_date - ignore redirects created before this date
+        test - don't resolve stale redirects, just identify them
+        """
+        page = 0
+        offset = start_offset
+        while not pages or page < pages:
+            logger.info(
+                "[resolving-redirects] batch:%i of %i, offset:%i",
+                page+1,
+                pages or "∞",
+                offset
+            )
+            work_redirect_ids = web.ctx.site.things({
+                "type": "/type/redirect",
+                "key~": "/works/*",
+                "limit": batch_size,
+                "offset": offset
+            })
+            work_redirect_batch = web.ctx.site.get_many(work_redirect_ids)
+            for work in work_redirect_batch:
+                if start_date < work.last_modified:
+                    logger.info(
+                        "[resolving-redirects] Reached start_date cutoff: %s",
+                        start_date
+                    )
+                if work.last_modified < end_date:
+                    logger.info(
+                        "[resolving-redirects] <%s> %s",
+                        work.key,
+                        Work.resolve_redirect_chain(
+                            work.key, test=test
+                        )
+                    )
+            page += 1
+            offset = (batch_size * page)
 
 
 class Author(Thing):
