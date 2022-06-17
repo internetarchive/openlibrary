@@ -295,8 +295,9 @@ SelectionManager.ACTIONS = [
                         if (resp.error) {
                             message = resp.error
                         } else {
+                            const username = document.querySelector('body').dataset.username
                             window.ILE.reset()
-                            message = `Merge request submitted! View request <a href="/merges#mrid-${resp.id}" target="_blank">here</a>.`
+                            message = `Merge request submitted! View request <a href="/merges?submitter=${username}#mrid-${resp.id}" target="_blank">here</a>.`
                         }
                         new PersistentToast(message, 'light-yellow').show()
                     })
