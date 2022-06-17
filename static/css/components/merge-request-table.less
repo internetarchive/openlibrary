@@ -1,0 +1,67 @@
+
+.mr-nav-bar {
+  margin: 0 10px;
+}
+
+.table-wrapper {
+  padding: 0 10px;
+}
+
+.title {
+  margin-left: 10px;
+}
+
+.mr-table {
+  table-layout: fixed;
+  border-collapse: collapse;
+  width: 100%;
+  box-shadow: 0 0 20px @boxshadow-black;
+
+  td {
+    padding: 5px;
+  }
+
+  &__header {
+    vertical-align: top;
+    text-align: left;
+    padding: 5px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    background-color: @link-blue;
+    color: @white;
+
+    &.comments-header {
+      width: 50%;
+    }
+
+    &.link-header {
+      width: 7%;
+    }
+  }
+}
+
+.olid-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.comments {
+  width: 90%;
+  padding: 0 5px;
+
+  summary {
+    cursor: pointer;
+
+    > * {
+      display: inline;
+    }
+  }
+
+  .hidden-comment {
+    margin-left: 10px;
+  }
+}
+
+.comment-username {
+  color: @grey;
+}

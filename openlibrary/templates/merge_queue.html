@@ -1,46 +1,75 @@
 $def with(merge_requests=None, selected="open")
 
 $def format_comment(comment):
-  <div title="$comment['timestamp']">
-    <span>$comment['username']</span>: <span>$comment['message']</span>
-  </div>
+  <span class="comment-username" title="$comment['timestamp']">$comment['username']:</span> <span>$comment['message']</span>
 
-<h1>Community Edit Requests</h1>
+$code:
+  def url_to_olids(url):
+    query_str = url.split('?')[1]
+    split_params = query_str.split('&')
+    params = {}
+    for p in split_params:
+      kv = p.split('=')
+      params[kv[0]] = kv[1]
+    return params['records'].split(',')
+
+
+<h1 class="title">Community Edit Requests</h1>
 
 $ show_open = query_param('open', True) in [True, 'true']
 $ show_closed = query_param('closed', False) in [True, 'true']
 
-<ul class="nav-bar">
+<ul class="nav-bar mr-nav-bar">
   <li class="$('selected' if show_open and not show_closed else '')"><a href="/merges">$_('Open')</a></li>
   <li class="$('selected' if show_closed and not show_open else '')"><a href="/merges?closed=true&open=false">$_('Closed')</a></li>
   <li class="$('selected' if show_open and show_closed else '')"><a href="/merges?closed=true">$_('All')</a></li>
 </ul>
 
-$if merge_requests:
-  <table style="padding-top:5px;">
-    <tr>
-      <th>url</th>
-      <th>submitter</th>
-      <th>reviewer</th>
-      <th>status</th>
-      <th>comments</th>
-    </tr>
-    $for r in merge_requests:
-      $ status = get_status_for_view(r['status'])
-      $ comments = r['comments'] and r['comments']['comments']
-      <tr id="mrid-$(r['id'])" title="$r">
+<div class="table-wrapper">
+  $if merge_requests:
+    <table class="mr-table">
+      <thead>
+        <tr>
+          <th class="mr-table__header submitter-header">Submitter</th>
+          <th class="mr-table__header status-header">Status</th>
+          <th class="mr-table__header olids-header">OLIDs</th>
+          <th class="mr-table__header comments-header">Comments</th>
+          <th class="mr-table__header reviewer-header">Reviewer</th>
+          <th class="mr-table__header link-header">Resolve</th>
+        </tr>
+      </thead>
+      <tbody>
+      $for r in merge_requests:
+        $ status = get_status_for_view(r['status'])
+        $ comments = r['comments'] and r['comments']['comments']
         $ url = "%s&mrid=%s" % (r['url'], r['id'])
-        <td><a href="$url">$url</a></td>
-        <td>$r['submitter']</td>
-        <td>$r['reviewer']</td>
-        <td>$status</td>
-        <td>
-          $if comments:
-            <details>
-              <summary>$:format_comment(comments[-1])</summary>
-              $for c in comments[:-1]:
-                  $:format_comment(c)
-            </details>
-        </td>
-      </tr>
-  </table>
+        <tr id="mrid-$(r['id'])">
+          <td>$r['submitter']</td>
+          <td>$status</td>
+          <td title="$r">
+            <div class="olid-container">
+            $for olid in url_to_olids(url):
+              <div>$olid</div>
+            </div>
+          </td>
+          <td>
+            $if comments:
+              <details class="comments" open>
+                <summary>$:format_comment(comments[-1])</summary>
+                $for c in comments[:-1]:
+                  <div class="hidden-comment">
+                    $:format_comment(c)
+                  </div>
+              </details>
+          </td>
+          <td>$r['reviewer']</td>
+          <td>
+            $if status == 'Pending':
+              <a href="$url">Merge</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+$else:
+  <p>No entries here!</p>
+</div>
