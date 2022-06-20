@@ -1,4 +1,4 @@
-from typing import Any, Iterable, Mapping
+from typing import Any, Callable, Iterable, Mapping
 import web
 import logging
 import json
@@ -820,14 +820,14 @@ def csv_header_and_format(row: Mapping[str, Any]) -> tuple[str, str]:
     )
 
 
-def csv_string(source: Iterable[Mapping], row_formatter: callable = None) -> str:
+def csv_string(source: Iterable[Mapping], row_formatter: Callable = None) -> str:
     """
     Given an list of dicts, generate comma separated values where each dict is a row.
     An optional reformatter function can be provided to transform or enrich each dict.
     The order and names of the formatter's the output dict keys will determine the
     order and header column titles of the resulting csv string.
     :param source: An iterable of all the rows that should appear in the csv string.
-    :param formatter: A callable that accepts a Mapping and returns a dict.
+    :param formatter: A Callable that accepts a Mapping and returns a dict.
     >>> csv = csv_string([{"row_id": x, "t w o": 2, "upper": x.upper()} for x in "ab"])
     >>> csv.splitlines()
     ['Row ID,T W O,Upper', 'a,2,A', 'b,2,B']
@@ -842,6 +842,7 @@ def csv_string(source: Iterable[Mapping], row_formatter: callable = None) -> str
         On the first row, use csv_header_and_format() to get and yield the csv_header.
         Then use csv_format to yield each row as a string of comma separated values.
         """
+        assert row_formatter, "Placate mypy."
         for i, row in enumerate(source):
             if i == 0:  # Only on first row, make header and format from the dict keys
                 csv_header, csv_format = csv_header_and_format(row_formatter(row))
