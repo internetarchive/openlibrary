@@ -49,6 +49,7 @@ for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
             assert pt[0].tag == 'a'
             href = pt[0].attrib['href']
             m = re_book_url.match(href)
+            assert m
             found.append(m.group(1))
             total += 1
             producttitle += 1
@@ -59,6 +60,7 @@ for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
             assert td[0].tag == 'a'
             href = td[0].attrib['href']
             m = re_book_url.match(href)
+            assert m
             found.append(m.group(1))
             total += 1
             srtitle += 1

@@ -15,6 +15,8 @@ for line in open('work_file'):
         print("%d %d %.2f%%" % (num, total, (float(num) * 100.0) / total))
     # src_w = json.loads(line[:-1])
     w = eval(line)
-    wkey = int(re_work_key.match(w['key']).group(1))
+    match = re_work_key.match(w['key'])
+    assert match
+    wkey = int(match.group(1))
     vars = {'k': wkey, 'title': w['title']}
     db.query('replace into works (wkey, title) values ($k, $title)', vars=vars)

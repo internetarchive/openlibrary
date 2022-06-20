@@ -5,7 +5,7 @@ import sys
 import codecs
 import re
 
-sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+sys.stdout = codecs.getwriter('utf-8')(sys.stdout)  # type: ignore[arg-type, assignment]
 
 re_subtag = re.compile('\x1f[^\x1b]')
 

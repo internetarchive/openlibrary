@@ -9,7 +9,7 @@ import string
 
 import requests
 import web
-from urllib.parse import splitquery, unquote, unquote_plus
+from urllib.parse import splitquery, unquote, unquote_plus  # type: ignore[attr-defined]
 from urllib.parse import urlencode as real_urlencode
 
 from openlibrary.coverstore import config, oldb

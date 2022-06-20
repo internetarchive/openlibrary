@@ -27,7 +27,7 @@ from openlibrary.core.ratings import Ratings
 try:
     from simplejson.errors import JSONDecodeError
 except ImportError:
-    from json.decoder import JSONDecodeError  # type: ignore
+    from json.decoder import JSONDecodeError  # type: ignore[misc]
 
 logger = logging.getLogger("openlibrary.account.model")
 

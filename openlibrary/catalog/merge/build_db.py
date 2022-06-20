@@ -119,10 +119,10 @@ for archive_id, name, total in sorted(archive, key=lambda x: x[2]):
     t0 = time()
     i = 0
 
-    isbn_map = defaultdict(list)
-    lccn_map = defaultdict(list)
-    title_map = defaultdict(list)
-    oclc_map = defaultdict(list)
+    isbn_map: dict[str, list] = defaultdict(list)
+    lccn_map: dict[str, list] = defaultdict(list)
+    title_map: dict[str, list] = defaultdict(list)
+    oclc_map: dict[str, list] = defaultdict(list)
     print(archive_id)
     for line in open(archive_id):
         rec = eval(line)

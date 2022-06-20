@@ -55,8 +55,9 @@ out_edition = open('edition_file', 'w')
 out_author = open('author_file', 'w')
 out_edition_work = open('edition_work_file', 'w')
 out_work = open('work_file', 'w')
-works = []
-authors = {}
+# 'works' and 'authors' are only used in unreachable code
+works = []  # type: ignore[var-annotated]
+authors = {}  # type: ignore[var-annotated]
 misc_fields = [
     'created',
     'modified',

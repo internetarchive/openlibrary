@@ -60,8 +60,8 @@ class LocalPostgresDataProvider(DataProvider):
         """
         super().__init__()
         self._db_conf = config_section_to_dict(db_conf_file, "postgres")
-        self._conn = None  # type: psycopg2._psycopg.connection
-        self.cache = dict()
+        self._conn: psycopg2._psycopg.connection = None
+        self.cache = {}
         self.cached_work_editions_ranges = []
 
     def __enter__(self):

@@ -45,9 +45,6 @@ repos:
     rev: 'v0.961'
     hooks:
       - id: mypy  # See setup.cfg for args
-        args:
-          - --ignore-missing-imports
-          - --scripts-are-modules
         additional_dependencies:
           - types-all
 
