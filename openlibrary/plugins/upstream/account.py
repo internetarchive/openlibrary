@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import logging
 import re
@@ -974,7 +975,8 @@ class export_books(delegate.page):
                 row["list_description"] = (list.description or '').replace('"', '""')
                 row["created_on"] = list.created.strftime(self.date_format)
                 if last_updated := list.last_modified or "":
-                    last_updated = last_updated.strftime(self.date_format)
+                    if isinstance(last_updated, datetime):  # placate mypy
+                        last_updated = last_updated.strftime(self.date_format)
                 row["last_updated"] = last_updated
                 for seed in list.seeds:
                     row["entry"] = seed if isinstance(seed, str) else seed.key
