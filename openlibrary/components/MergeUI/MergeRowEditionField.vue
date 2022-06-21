@@ -1,6 +1,9 @@
 <template>
     <div class="editions-wrapper">
-        <div class="edition-count" v-if="editions">
+        <div class="field-error" v-if="editions[record.key].error">
+            {{editions[record.key].error}}
+        </div>
+        <div class="edition-count" v-else-if="editions">
             {{editions[record.key].size}} edition{{editions[record.key].size == 1 ? '' : 's'}}
         </div>
         <div class="edition-count" v-else-if="merged && record == merged.record">
