@@ -1,11 +1,11 @@
-#!/usr/bin/python2.5
+#!/usr/bin/env python
 from openlibrary.catalog.marc.fast_parse import *
 from openlibrary.catalog.get_ia import get_from_archive
 import sys
 import codecs
 import re
 
-sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+sys.stdout = codecs.getwriter('utf-8')(sys.stdout)  # type: ignore[assignment, arg-type]
 
 re_subtag = re.compile('\x1f(.)([^\x1f]*)')
 

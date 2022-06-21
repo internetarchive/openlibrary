@@ -75,7 +75,7 @@ async def index_all_subjects(
     skip_id_check=False,
 ):
     done = False
-    active_workers = set()  # type: Set[Future]
+    active_workers: set[Future] = set()
     offset = 0
     while True:
         if done:

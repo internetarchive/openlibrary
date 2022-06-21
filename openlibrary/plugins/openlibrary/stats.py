@@ -7,7 +7,7 @@ import re
 import sys
 import time
 import traceback
-from typing import Optional
+from typing import Any, Optional
 
 from infogami.utils.app import find_page, find_view, find_mode
 from openlibrary.core import stats as graphite_stats
@@ -23,7 +23,7 @@ import openlibrary.plugins.openlibrary.filters as stats_filters
 l = logging.getLogger("openlibrary.stats")
 TIME_BUCKETS = [10, 100, 1000, 5000, 10000, 20000]  # in ms
 
-filters = {}
+filters: dict[str, Any] = {}
 
 
 def evaluate_and_store_stat(name, stat, summary):

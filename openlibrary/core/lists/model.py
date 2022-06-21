@@ -147,13 +147,13 @@ class ListMixin:
 
         # Separate by type each of the keys
         edition_keys = {
-            seed.key for seed in self.seeds if seed and seed.type.key == '/type/edition'
+            seed.key for seed in self.seeds if seed and seed.type.key == '/type/edition'  # type: ignore[attr-defined]
         }
         work_keys = {
-            "/works/%s" % seed.key.split("/")[-1] for seed in self.seeds if seed and seed.type.key == '/type/work'
+            "/works/%s" % seed.key.split("/")[-1] for seed in self.seeds if seed and seed.type.key == '/type/work'  # type: ignore[attr-defined]
         }
         author_keys = {
-            "/authors/%s" % seed.key.split("/")[-1] for seed in self.seeds if seed and seed.type.key == '/type/author'
+            "/authors/%s" % seed.key.split("/")[-1] for seed in self.seeds if seed and seed.type.key == '/type/author'  # type: ignore[attr-defined]
         }
 
         # Create the return dictionary

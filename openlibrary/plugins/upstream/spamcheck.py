@@ -1,34 +1,35 @@
 import re
+from typing import Iterable
 import web
 
 
-def get_spam_words():
+def get_spam_words() -> list[str]:
     doc = web.ctx.site.store.get("spamwords") or {}
     return doc.get("spamwords", [])
 
 
-def get_spam_domains():
+def get_spam_domains() -> list[str]:
     doc = web.ctx.site.store.get("spamwords") or {}
     return doc.get("domains", [])
 
 
-def set_spam_words(words):
+def set_spam_words(words: Iterable[str]) -> None:
     words = [w.strip() for w in words]
     _update_spam_doc(spamwords=words)
 
 
-def set_spam_domains(domains):
+def set_spam_domains(domains: Iterable[str]) -> None:
     domains = [d.strip() for d in domains]
     _update_spam_doc(domains=domains)
 
 
-def _update_spam_doc(**kwargs):
+def _update_spam_doc(**kwargs) -> None:
     doc = web.ctx.site.store.get("spamwords") or {}
     doc.update(_key="spamwords", **kwargs)
     web.ctx.site.store["spamwords"] = doc
 
 
-def is_spam(i=None, allow_privileged_edits=False):
+def is_spam(i=None, allow_privileged_edits: bool = False) -> bool:
     user = web.ctx.site.get_user()
 
     if user:
@@ -58,6 +59,6 @@ def is_spam(i=None, allow_privileged_edits=False):
     return any(re.search(w.lower(), text) for w in spamwords)
 
 
-def is_spam_email(email):
+def is_spam_email(email: str) -> bool:
     domain = email.split("@")[-1].lower()
     return domain in get_spam_domains()

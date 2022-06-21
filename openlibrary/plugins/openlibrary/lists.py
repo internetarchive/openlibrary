@@ -2,6 +2,7 @@
 """
 import json
 import random
+import tempfile
 import web
 
 from infogami.utils import delegate
@@ -10,11 +11,14 @@ from infogami.infobase import client, common
 
 from openlibrary.accounts import get_current_user
 from openlibrary.core import formats, cache
+from openlibrary.core.lists.model import ListMixin
 import openlibrary.core.helpers as h
 from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.worksearch import subjects
+from openlibrary.coverstore.code import render_list_preview_image
+
 
 
 class lists_home(delegate.page):
@@ -422,7 +426,8 @@ class list_subjects_json(delegate.page):
         return {"name": s['name'], "count": s['count'], "url": key}
 
 
-class list_editions_yaml(list_subjects_json):
+# This class is defined twice in this file. Should this be list_subjects_yaml() ?
+class list_editions_yaml(list_subjects_json):    # type: ignore[no-redef]
     encoding = "yml"
     content_type = 'text/yaml; charset="utf-8"'
 
@@ -468,7 +473,7 @@ class export(delegate.page):
         else:
             raise web.notfound()
 
-    def get_exports(self, lst: list, raw: bool = False) -> dict[str, list]:
+    def get_exports(self, lst: ListMixin, raw: bool = False) -> dict[str, list]:
         export_data = lst.get_export_list()
         if "editions" in export_data:
             export_data["editions"] = sorted(
@@ -639,3 +644,12 @@ def get_active_lists_in_random(limit=20, preload=True):
     lists = f(limit=limit, preload=preload)
     # convert rawdata into models.
     return [web.ctx.site.new(xlist['key'], xlist) for xlist in lists]
+
+
+class lists_preview(delegate.page):
+    path = r"(/people/[^/]+/lists/OL\d+L)/preview.png"
+
+    def GET(self, lst_key):
+        image_bytes = render_list_preview_image(lst_key)
+        web.header("Content-Type", "image/png")
+        return delegate.RawText(image_bytes)

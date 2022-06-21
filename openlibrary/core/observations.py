@@ -1103,4 +1103,3 @@ class Observations(db.CommonExtras):
             row['observation_value'] = types_and_values[type_id]['values'][value_id]['name']
 
         return rows
-

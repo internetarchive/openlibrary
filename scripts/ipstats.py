@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 CAUTION: This file should continue to support both Python 2 and Python 3 until
     issues internetarchive/openlibrary#4060 and internetarchive/openlibrary#4252

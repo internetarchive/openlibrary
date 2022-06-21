@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 """
 Utility script to sync templates, macros, css and js files between
 openlibrary website and repository.
@@ -323,4 +323,3 @@ def main(args):
 
 if __name__ == "__main__":
     main(sys.argv)
-

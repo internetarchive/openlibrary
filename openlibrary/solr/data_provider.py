@@ -59,7 +59,7 @@ def batch(items: list, max_batch_len: int):
 
 def batch_until_len(items: Iterable[Sized], max_batch_len: int):
     batch_len = 0
-    batch = []  # type: List[Sized]
+    batch: list[Sized] = []
     for item in items:
         if batch_len + len(item) > max_batch_len and batch:
             yield batch

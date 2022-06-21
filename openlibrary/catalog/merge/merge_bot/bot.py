@@ -1,5 +1,4 @@
-#!/usr/bin/python
-
+#!/usr/bin/env python
 
 import codecs
 import sys
@@ -11,7 +10,7 @@ import openlibrary.catalog.merge.merge_marc as merge_marc
 from openlibrary.catalog.merge.merge_bot.merge import amazon_and_marc, get_record
 from openlibrary.catalog.utils.query import get_mc, query_iter  # set_staging, withKey
 
-sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
+sys.stdout = codecs.getwriter('utf-8')(sys.stdout)  # type: ignore[arg-type, assignment]
 # set_staging(True)
 
 urls = ('/', 'index')

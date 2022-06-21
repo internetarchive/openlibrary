@@ -19,11 +19,15 @@ from infogami.utils.view import render_template, public
 from infogami.infobase.client import ClientException
 
 from openlibrary.core import stats, helpers
+from openlibrary.core.booknotes import Booknotes
+from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.observations import Observations
+from openlibrary.core.ratings import Ratings
 
 try:
     from simplejson.errors import JSONDecodeError
 except ImportError:
-    from json.decoder import JSONDecodeError  # type: ignore
+    from json.decoder import JSONDecodeError  # type: ignore[misc]
 
 logger = logging.getLogger("openlibrary.account.model")
 
@@ -324,6 +328,48 @@ class Account(web.storage):
         """Enables/disables the bot flag."""
         self.bot = flag
         self._save()
+
+    def anonymize(self, test=False):
+        # Generate new unique username for patron:
+        # Note: Cannot test get_activation_link() locally
+        uuid = self.get_activation_link()['code'] if self.get_activation_link() else generate_uuid()
+        new_username = f'anonymous-{uuid}'
+        results = {'new_username': new_username}
+
+        # Delete all of the patron's book notes:
+        results['booknotes_count'] = Booknotes.delete_all_by_username(self.username, _test=test)
+
+        # Anonymize patron's username in OL DB tables:
+        results['ratings_count'] = Ratings.update_username(self.username, new_username, _test=test)
+        results['observations_count'] = Observations.update_username(self.username, new_username, _test=test)
+        results['bookshelves_count'] = Bookshelves.update_username(self.username, new_username, _test=test)
+
+        if not test:
+            patron = self.get_user()
+            email = self.email
+            username = self.username
+
+            # Remove patron from all usergroups:
+            for grp in patron.usergroups:
+                grp.remove_user(patron.key)
+
+            # Set preferences to default:
+            patron.save_preferences({
+                'updates': 'no',
+                'public_readlog': 'no'
+            })
+
+            # Clear patron's profile page:
+            data = {'key': patron.key, 'type': '/type/delete'}
+            patron.set_data(data)
+
+            # Remove account information from store:
+            del web.ctx.site.store[f'account/{username}']
+            del web.ctx.site.store[f'account/{username}/verify']
+            del web.ctx.site.store[f'account/{username}/password']
+            del web.ctx.site.store[f'account-email/{email}']
+
+        return results
 
     @property
     def itemname(self):

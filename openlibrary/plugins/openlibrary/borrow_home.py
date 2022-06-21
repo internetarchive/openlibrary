@@ -17,14 +17,14 @@ from openlibrary.core import statsdb
 from openlibrary.plugins.worksearch.subjects import SubjectEngine
 
 
-class borrow(delegate.page):
+class borrow(delegate.page):  # TODO: Why is this function defined twice?
     path = "/borrow"
 
     def GET(self):
         raise web.seeother('/subjects/in_library#ebooks=true')
 
 
-class borrow(delegate.page):
+class borrow(delegate.page):  # type: ignore[no-redef]
     path = "/borrow"
     encoding = "json"
 
@@ -75,14 +75,14 @@ class borrow(delegate.page):
         return json.dumps(subject)
 
 
-class read(delegate.page):
+class read(delegate.page):  # TODO: Why is this function defined twice?
     path = "/read"
 
     def GET(self):
         web.seeother('/subjects/accessible_book#ebooks=true')
 
 
-class read(delegate.page):
+class read(delegate.page):  # type: ignore[no-redef]
     path = "/read"
     encoding = "json"
 

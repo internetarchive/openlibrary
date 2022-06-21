@@ -149,7 +149,7 @@ def extract_messages(dirs: list[str]):
             d, METHODS, comment_tags=COMMENT_TAGS, strip_comment_tags=True
         )
 
-        counts = {}
+        counts: dict[str, int] = {}
         for filename, lineno, message, comments, context in extracted:
             counts[filename] = counts.get(filename, 0) + 1
             catalog.add(message, None, [(filename, lineno)], auto_comments=comments)
@@ -220,10 +220,10 @@ def check_status(locales: list[str]):
                 }
 
             ids_completed = message_ids.intersection(ids_with_translations)
-            errors = _validate_catalog(catalog)
+            validation_errors = _validate_catalog(catalog)
             total_warnings = 0
             total_errors = 0
-            for message, warnings, errors in errors:
+            for message, warnings, errors in validation_errors:
                 total_warnings += len(warnings)
                 total_errors += len(errors)
 

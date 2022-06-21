@@ -48,7 +48,7 @@ def add_web_ctx_to_event(event: dict, hint: dict) -> dict:
 class Sentry:
     def __init__(self, config: dict) -> None:
         self.config = config
-        self.enabled: bool = config.get('enabled')
+        self.enabled = bool(config.get('enabled'))
         self.logger = logging.getLogger("sentry")
         self.logger.info(f"Setting up sentry (enabled={self.enabled})")
 

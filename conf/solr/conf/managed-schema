@@ -164,6 +164,7 @@
     <field name="ia_count" type="pint"/>
     <field name="oclc" type="text_en_splitting" multiValued="true"/>
     <field name="isbn" type="string" multiValued="true"/>
+    <field name="ebook_access" type="ebookAccessLevel" multiValued="false"/>
 
     <!-- Classifications -->
     <field name="lcc" type="string" multiValued="true" />
@@ -384,6 +385,9 @@
 
     <!--Binary data type. The data should be sent/retrieved in as Base64 encoded Strings -->
     <fieldType name="binary" class="solr.BinaryField"/>
+
+    <!-- Custom field to allow storing sortable access -->
+    <fieldType name="ebookAccessLevel" class="solr.EnumFieldType" docValues="true" enumsConfig="enumsConfig.xml" enumName="ebookAccess"/>
 
     <!-- solr.TextField allows the specification of custom text analyzers
          specified as a tokenizer and a list of token filters. Different

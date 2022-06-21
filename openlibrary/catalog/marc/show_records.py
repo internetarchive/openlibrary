@@ -1,11 +1,11 @@
-#!/usr/bin/python2.5
+#!/usr/bin/env python
 from openlibrary.catalog.marc.fast_parse import *
 import sys
 from collections import defaultdict
 
 # read a MARC binary showing one record at a time
 
-field_counts = defaultdict(int)
+field_counts: dict[str, int] = defaultdict(int)
 
 for data, length in read_file(open(sys.argv[1])):
     print(data[:24])

@@ -39,6 +39,7 @@ want = (
         '010',  # lccn
         '016',  # National Bibliographic Agency Control Number (for DNB)
         '020',  # isbn
+        '022',  # issn
         '035',  # oclc
         '050',  # lc classification
         '082',  # dewey
@@ -79,6 +80,19 @@ def read_dnb(rec):
         (control_number,) = f.get_subfield_values('a') or [None]
         if source == DNB_AGENCY_CODE and control_number:
             return {'dnb': [control_number]}
+
+
+def read_issn(rec):
+    fields = rec.get_fields('022')
+    if not fields:
+        return
+    found = []
+    for f in fields:
+        for k, v in f.get_subfields(['a']):
+            issn = v.strip()
+            if issn:
+                found.append(issn)
+    return {'issn': found}
 
 
 def read_lccn(rec):
@@ -659,6 +673,7 @@ def read_edition(rec):
 
     update_edition(rec, edition, read_lccn, 'lccn')
     update_edition(rec, edition, read_dnb, 'identifiers')
+    update_edition(rec, edition, read_issn, 'identifiers')
     update_edition(rec, edition, read_authors, 'authors')
     update_edition(rec, edition, read_oclc, 'oclc_numbers')
     update_edition(rec, edition, read_lc_classification, 'lc_classifications')
