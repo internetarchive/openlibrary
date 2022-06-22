@@ -588,9 +588,10 @@ def run_solr_query(
                 if field in EDITION_FIELDS:
                     return f'{EDITION_FIELDS[field]}:{val}'
                 elif field in ALL_FIELDS:
-                    return
+                    return None
                 else:
-                    raise ValueError(f'Unknown field: {field}')
+                    # handle invalid fields; eg a search for "flatland: a romance"
+                    return work_field_val
 
             if True or use_dismax:
                 work_q_list = q_list
