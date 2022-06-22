@@ -67,7 +67,7 @@ class community_edits_queue(delegate.page):
         )
 
         merge_requests = CommunityEditsQueue.get_requests(page=i.page, mode=mode, submitter=i.submitter)
-        return render_template('merge_queue', merge_requests=merge_requests)
+        return render_template('merge_queue', merge_requests=merge_requests, submitter=i.submitter)
 
 def setup():
     pass

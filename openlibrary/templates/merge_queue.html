@@ -1,4 +1,4 @@
-$def with(merge_requests=None)
+$def with(merge_requests=None, submitter=None)
 
 $def format_comment(comment):
   <span class="comment-username" title="$comment['timestamp']">$comment['username']:</span> <span>$comment['message']</span>
@@ -20,10 +20,25 @@ $ can_merge = ctx.user and (ctx.user.is_usergroup_member('/usergroup/librarian-w
 $ show_open = query_param('open', True) in [True, 'true']
 $ show_closed = query_param('closed', False) in [True, 'true']
 
+<h1 class="title">Community Edit Requests</h1>
+
+$if submitter:
+  $ desc = _("Showing %(username)s's requests only.", username=submitter)
+  $ link_text = _('Show all requests')
+  $ href = changequery(submitter=None)
+$else:
+  $ desc = _('Showing all requests.')
+  $ link_text = _('Show my requests') if username else ''
+  $ href = changequery(submitter=username) if username else changequery(submitter=None)
+
+<div class="description">
+  $desc <a href="$href">$link_text</a>
+</div>
+
 <ul class="nav-bar mr-nav-bar">
-  <li class="$('selected' if show_open and not show_closed else '')"><a href="/merges">$_('Open')</a></li>
-  <li class="$('selected' if show_closed and not show_open else '')"><a href="/merges?closed=true&open=false">$_('Closed')</a></li>
-  <li class="$('selected' if show_open and show_closed else '')"><a href="/merges?closed=true">$_('All')</a></li>
+  <li class="$('selected' if show_open and not show_closed else '')"><a href="/merges$('?submitter=%s' % submitter if submitter else '')">$_('Open')</a></li>
+  <li class="$('selected' if show_closed and not show_open else '')"><a href="/merges?closed=true&open=false$('&submitter=%s' % submitter if submitter else '')">$_('Closed')</a></li>
+  <li class="$('selected' if show_open and show_closed else '')"><a href="/merges?closed=true$('&submitter=%s' % submitter if submitter else '')">$_('All')</a></li>
 </ul>
 
 <div class="table-wrapper">
