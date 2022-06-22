@@ -792,7 +792,13 @@ def get_doc(doc: SolrDocument):
         id_openstax=doc.get('id_openstax', []),
         # matching_editions=doc.get('editions', {}).get('numFound'),
         editions=[
-            web.storage({**ed, 'url': f"{ed['key']}/{urlsafe(ed['title'])}"})
+            web.storage(
+                {
+                    **ed,
+                    'title': ed.get('title', 'Untitled'),
+                    'url': f"{ed['key']}/{urlsafe(ed.get('title', 'Untitled'))}",
+                }
+            )
             for ed in doc.get('editions', {}).get('docs', [])
         ],
         # editions=[
