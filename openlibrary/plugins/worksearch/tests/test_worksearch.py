@@ -237,6 +237,7 @@ def test_get_doc():
             'id_librivox': [],
             'id_standard_ebooks': [],
             'id_openstax': [],
+            'editions': [],
         }
     )
 
