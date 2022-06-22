@@ -396,4 +396,19 @@ jQuery(function () {
         import(/* webpackChunkName: "compact-title" */ './compact-title')
             .then((module) => module.initCompactTitle(navbar, compactTitle))
     }
+
+    const mergeRequestCloseLinks = document.querySelectorAll('.mr-close-link')
+    const mergeRequestCommentLinks = document.querySelectorAll('.mr-comment-link')
+
+    if (mergeRequestCloseLinks || mergeRequestCommentLinks) {
+        import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
+            .then(module => {
+                if (mergeRequestCloseLinks) {
+                    module.initCloseLinks(mergeRequestCloseLinks)
+                }
+                if (mergeRequestCommentLinks) {
+                    module.initCommentLinks(mergeRequestCommentLinks)
+                }
+            })
+    }
 });

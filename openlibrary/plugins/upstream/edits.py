@@ -38,11 +38,17 @@ class community_edits_queue(delegate.page):
         username = user['key'].split('/')[-1]
         if i.mrid:  # We are updating an existing merge request
             if i.action == "decline":
-                result = CommunityEditsQueue.decline_request(i.mrid, username, i.comment)
+                CommunityEditsQueue.decline_request(i.mrid, username, i.comment)
                 return delegate.RawText(json.dumps(response()), content_type="application/json")
             if i.action == 'approve':
-                result = CommunityEditsQueue.approve_request(i.mrid, username, i.comment)
+                CommunityEditsQueue.approve_request(i.mrid, username, i.comment)
                 return delegate.RawText(json.dumps(response()), content_type="application/json")
+            if i.action == 'comment':
+                if i.comment:
+                    CommunityEditsQueue.comment_request(i.mrid, username, i.comment)
+                    return delegate.RawText(json.dumps(response()), content_type="application/json")
+                else:
+                    return delegate.RawText(json.dumps(response(status='error', error='No comment sent in request.')))
 
         elif i.rtype == "merge-works":
             if i.action == 'create':

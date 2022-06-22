@@ -14,7 +14,8 @@ $code:
     return params['records'].split(',')
 
 
-<h1 class="title">Community Edit Requests</h1>
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+$ can_merge = ctx.user and (ctx.user.is_usergroup_member('/usergroup/librarian-work-merge'))
 
 $ show_open = query_param('open', True) in [True, 'true']
 $ show_closed = query_param('closed', False) in [True, 'true']
@@ -43,6 +44,7 @@ $ show_closed = query_param('closed', False) in [True, 'true']
         $ status = get_status_for_view(r['status'])
         $ comments = r['comments'] and r['comments']['comments']
         $ url = "%s&mrid=%s" % (r['url'], r['id'])
+        $ is_submitter = username == r['submitter']
         <tr id="mrid-$(r['id'])">
           <td>$r['submitter']</td>
           <td>$status</td>
@@ -54,8 +56,9 @@ $ show_closed = query_param('closed', False) in [True, 'true']
           </td>
           <td>
             $if comments:
-              <details class="comments" open>
-                <summary>$:format_comment(comments[-1])</summary>
+              $ comment_link = ' <a href="javascript:;" class="mr-comment-link" data-mrid="%s">Respond</a>' % r['id'] if is_submitter or can_merge else ''
+              <details class="comments">
+                <summary>$:format_comment(comments[-1])$:comment_link</summary>
                 $for c in comments[:-1]:
                   <div class="hidden-comment">
                     $:format_comment(c)
@@ -65,7 +68,10 @@ $ show_closed = query_param('closed', False) in [True, 'true']
           <td>$r['reviewer']</td>
           <td>
             $if status == 'Pending':
-              <a href="$url">Merge</a>
+              $if can_merge:
+                <a href="$url">Merge</a>
+              $elif is_submitter:
+                <a class="mr-close-link" data-mrid="$r['id']" href="javascript:;">Close</a>
           </td>
         </tr>
       </tbody>

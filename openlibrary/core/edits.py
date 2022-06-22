@@ -170,13 +170,15 @@ class CommunityEditsQueue:
 
     @classmethod
     def comment_request(cls, rid, username, comment):
+        comments = cls.get_comments(rid)
+        comments['comments'].append(cls.create_comment(username, comment))
+
         oldb = db.get_db()
-        comment.setdefault("comments", [])
-        comment["comments"].append(cls.create_comment(username, comment))
         return oldb.update(
             "community_edits_queue",
-            where="rid=$rid",
-            vars={"rid": rid, "comments": comment}
+            where="id=$rid",
+            comments=json.dumps(comments),
+            vars={"rid": rid}
         )
 
     @classmethod
