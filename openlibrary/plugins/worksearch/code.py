@@ -594,13 +594,12 @@ def run_solr_query(
                 if work_q_list[0].startswith('text:'):
                     work_q_list[0] = work_q_list[0][len('text:') :]
                 work_query = (
-                    '''{{!edismax q.op="AND" qf="{qf}" bf="{bf}"}}({q})'''.format(
-                        q=' '.join(work_q_list),
+                    '''({{!edismax q.op="AND" qf="{qf}" bf="{bf}" v="{v}"}})'''.format(
                         qf='text alternative_title^20 author_name^20',
                         bf='min(100,edition_count)',
+                        v=' '.join(work_q_list).replace('"', '\\"'),
                     )
                 )
-                params.append(('q', work_query))
 
                 ed_q_list = []
                 for q in q_list:
@@ -640,26 +639,36 @@ def run_solr_query(
 
                 user_lang = convert_iso_to_marc(web.ctx.lang or 'en')
 
+                editions_query = '({!edismax bq="%(bq)s" v="%(v)s" qf="%(qf)s"})' % {
+                    'qf': 'text title^4',
+                    'v': ' '.join(ed_q_list).replace('"', '\\"') or '*:*',
+                    'bq': ' '.join(
+                        (
+                            f'language:{user_lang}^40',
+                            'ebook_access:public^10',
+                            'ebook_access:borrowable^8',
+                            'ebook_access:printdisabled^2',
+                            'cover_i:*^2',
+                        )
+                    ),
+                }
+
+                if ed_q_list:
+                    params.append(('edQuery', editions_query))
+                    q = ' '.join(
+                        (
+                            f'+{work_query}',
+                            '+_query_:"{!parent which=type:work v=$edQuery filters=$editions.fq}"',
+                        )
+                    )
+                    params.append(('q', q))
+                else:
+                    params.append(('q', work_query))
+
                 params.append(
                     (
                         'editions.q',
-                        (
-                            '({!terms f=_root_ v=$row.key}) AND '
-                            '({!edismax bq="%(bq)s" v="%(v)s" qf="%(qf)s"})'
-                            % {
-                                'qf': 'text title^4',
-                                'v': " ".join(ed_q_list).replace('"', '\\"'),
-                                'bq': ' '.join(
-                                    (
-                                        f'language:{user_lang}^40',
-                                        'ebook_access:public^10',
-                                        'ebook_access:borrowable^8',
-                                        'ebook_access:printdisabled^2',
-                                        'cover_i:*^2',
-                                    )
-                                ),
-                            }
-                        ),
+                        f'({{!terms f=_root_ v=$row.key}}) AND {editions_query}',
                     )
                 )
                 params.append(('editions.rows', 1))
