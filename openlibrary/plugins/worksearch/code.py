@@ -569,10 +569,13 @@ def run_solr_query(
                 # Identifiers
                 'isbn': 'isbn',
                 'id_*': 'id_*',
+                'ebook_access': 'ebook_access',
                 # IA
+                'has_fulltext': 'has_fulltext',
                 'ia': 'ia',
                 'ia_collection': 'ia_collection',
                 'ia_box_id': 'ia_box_id',
+                'public_scan_b': 'public_scan_b',
             }
 
             def convert_work_field_to_edition_field(
@@ -646,7 +649,15 @@ def run_solr_query(
                             % {
                                 'qf': 'text title^4',
                                 'v': " ".join(ed_q_list).replace('"', '\\"'),
-                                'bq': f'language:{user_lang}^40 ia:*^10',
+                                'bq': ' '.join(
+                                    (
+                                        f'language:{user_lang}^40',
+                                        'ebook_access:public^10',
+                                        'ebook_access:borrowable^8',
+                                        'ebook_access:printdisabled^2',
+                                        'cover_i:*^2',
+                                    )
+                                ),
                             }
                         ),
                     )
