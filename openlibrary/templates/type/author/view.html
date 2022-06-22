@@ -119,6 +119,10 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
                 <form method="GET" class="olform pagesearchbox">
                   <input type="hidden" name="has_fulltext" value="true"/>
+                  $if (query_param('sort')):
+                    <input type="hidden" name="sort" value="$query_param('sort')"/>
+                  $if (query_param('mode')):
+                    <input type="hidden" name="mode" value="$query_param('mode')"/>
                   <input type="text" placeholder="Search $title Books" name="q" value="$(query_param('q', ''))"/>
                   <input type="submit"/>
                 </form>
