@@ -637,7 +637,7 @@ def run_solr_query(
                     if ed_q:
                         params.append(('editions.fq', ed_q))
 
-                user_lang = convert_iso_to_marc(web.ctx.lang or 'en')
+                user_lang = convert_iso_to_marc(web.ctx.lang or 'en') or 'eng'
 
                 editions_query = '({!edismax bq="%(bq)s" v="%(v)s" qf="%(qf)s"})' % {
                     'qf': 'text title^4',
