@@ -142,6 +142,7 @@
     <field name="has_fulltext" type="boolean"/>
     <field name="title" type="text_en_splitting"/>
     <field name="title_suggest" type="text_general" multiValued="false"/>
+    <field name="title_sortable" type="text_title_sort" multiValued="false"/>
     <field name="subtitle" type="text_en_splitting"/>
     <field name="alternative_title" type="text_en_splitting" stored="false" multiValued="true"/>
     <field name="alternative_subtitle" type="text_en_splitting" stored="false" multiValued="true"/>
@@ -488,6 +489,18 @@
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
         <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
         <filter class="solr.LowerCaseFilterFactory"/>
+      </analyzer>
+    </fieldType>
+
+    <!-- A text field that applies standard title sorting conventions to its content -->
+    <fieldType name="text_title_sort" class="solr.TextField" sortMissingLast="false" omitNorms="true">
+      <analyzer>
+        <tokenizer class="solr.KeywordTokenizerFactory"/>
+        <filter class="solr.LowerCaseFilterFactory" />
+        <filter class="solr.TrimFilterFactory" />
+        <filter class="solr.PatternReplaceFilterFactory"
+                pattern="^(an? |the |l[aeo]s? |l'|de la |el |il |un[ae]? |du |de[imrst]? |das |ein |eine[mnrs]? |bir )(.*)" replacement="$2, $1" replace="all"
+        />
       </analyzer>
     </fieldType>
 
