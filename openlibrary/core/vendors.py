@@ -1,11 +1,11 @@
 import logging
 import re
 import time
-from typing import Optional, Union
+from typing import Iterable, Optional, Union
 
 import requests
+import web
 from dateutil import parser as isoparser
-from infogami.utils.view import public
 from paapi5_python_sdk.api.default_api import DefaultApi
 from paapi5_python_sdk.get_items_request import GetItemsRequest
 from paapi5_python_sdk.get_items_resource import GetItemsResource
@@ -13,6 +13,7 @@ from paapi5_python_sdk.partner_type import PartnerType
 from paapi5_python_sdk.rest import ApiException
 from paapi5_python_sdk.search_items_request import SearchItemsRequest
 
+from infogami.utils.view import public
 from openlibrary import accounts
 from openlibrary.catalog.add_book import load
 from openlibrary.core import cache
@@ -41,6 +42,22 @@ ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 def setup(config):
     global affiliate_server_url
     affiliate_server_url = config.get('affiliate_server')
+
+
+def isbns_not_in_openlibrary(isbns: Iterable[str]) -> Iterable[str]:
+    """
+    https://openlibrary.org/dev/docs/api/books  Returns a HIT for ALL ISBNs :-(
+    curl http://openlibrary.org/api/books?format=json&bibkeys=ISBN:0,ISBN:1,ISBN:123456
+    """
+    query = {"type": "/type/edition", "isbn_": ""}
+    keys = web.ctx.site.things(query)
+    for isbn in isbns or []:
+        isbn = isbn.replace("-", "")  # normalize isbn by stripping hyphens
+        query["isbn_"] = isbn
+        if keys := web.ctx.site.things(query):
+            edition = keys[0]  # noqa: F841 Enhance the existing edition w/ Amazon data
+        else:
+            yield isbn
 
 
 class AmazonAPI:
@@ -102,8 +119,7 @@ class AmazonAPI:
         )
 
     def get_product(self, asin: str, serialize: bool = False, **kwargs):
-        products = self.get_products([asin], **kwargs)
-        if products:
+        if products := self.get_products([asin], **kwargs):
             return next(self.serialize(p) if serialize else p for p in products)
 
     def get_products(
@@ -151,9 +167,9 @@ class AmazonAPI:
 
     @staticmethod
     def serialize(product) -> dict:
-        """Takes a full Amazon product Advertising API returned AmazonProduct
-        with multiple ResponseGroups, and extracts the data we are
-        interested in.
+        """
+        Take a full Amazon product Advertising API returned AmazonProduct with multiple
+        ResponseGroups, and extracts the data we are interested in.
 
         :param AmazonAPI product:
         :return: Amazon metadata for one product
@@ -180,7 +196,6 @@ class AmazonAPI:
           'languages': ['English']
           'edition_num': '1'
         }
-
         """
         if not product:
             return {}  # no match?
@@ -226,7 +241,7 @@ class AmazonAPI:
             'url': "https://www.amazon.com/dp/{}/?tag={}".format(
                 product.asin, h.affiliate_id('amazon')
             ),
-            'source_records': ['amazon:%s' % product.asin],
+            'source_records': [f'amazon:{product.asin}'],
             'isbn_10': [product.asin],
             'isbn_13': [isbn_10_to_isbn_13(product.asin)],
             'price': price and price.display_amount,
@@ -400,12 +415,14 @@ def clean_amazon_metadata_for_load(metadata: dict) -> dict:
         conforming_metadata['subtitle'] = subtitle
     # Record original title if some content has been removed (i.e. parentheses)
     if metadata['title'] != conforming_metadata.get('full_title', title):
-        conforming_metadata['notes'] = "Source title: %s" % metadata['title']
+        conforming_metadata['notes'] = f"Source title: {metadata['title']}"
 
     return conforming_metadata
 
 
-def create_edition_from_amazon_metadata(id_: str, id_type: str = 'isbn') -> Optional[str]:
+def create_edition_from_amazon_metadata(
+    id_: str, id_type: str = 'isbn'
+) -> Optional[str]:
     """Fetches Amazon metadata by id from Amazon Product Advertising API, attempts to
     create OL edition from metadata, and returns the resulting edition key `/key/OL..M`
     if successful or None otherwise.
