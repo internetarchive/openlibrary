@@ -390,8 +390,8 @@ class account_login(delegate.page):
             email,
             i.password,
             require_link=True,
-            s3_access_key=i.access,
-            s3_secret_key=i.secret,
+            s3_access_key=i.access or web.ctx.env.get('HTTP_X_S3_ACCESS'),
+            s3_secret_key=i.secret or web.ctx.env.get('HTTP_X_S3_SECRET'),
             test=i.test,
         )
         error = audit.get('error')

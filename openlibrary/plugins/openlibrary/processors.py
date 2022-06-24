@@ -72,7 +72,16 @@ class CORSProcessor:
             if web.ctx.path.startswith(p):
                 allowed = "OPTIONS"
 
-        web.header("Access-Control-Allow-Origin", "*")
+        if (
+            web.ctx.path == "/account/login.json" and
+            web.input(auth_provider="").auth_provider == "archive"
+        ):
+            allowed += ", POST"
+            web.header('Access-Control-Allow-Credentials', 'true')
+            web.header("Access-Control-Allow-Origin", "https://archive.org")
+        else:
+            web.header("Access-Control-Allow-Origin", "*")
+
         web.header("Access-Control-Allow-Method", allowed)
         web.header("Access-Control-Max-Age", 3600 * 24)  # one day
 
