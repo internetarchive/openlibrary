@@ -8,6 +8,8 @@ $var title: $("Log In")
 
 <div id="contentBody">
   $if not ctx.user:
+      $:render_template("account/ia_thirdparty_logins")
+
       <p>$:_('Please enter your <a href="https://archive.org">Internet Archive</a> email and password to access your Open Library account.')</p>
 
   $if ctx.user:

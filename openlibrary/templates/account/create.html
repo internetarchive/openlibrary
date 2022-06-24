@@ -7,6 +7,8 @@ $var title: $_("Sign Up to Open Library")
 <div id="contentHead">
     <h1>$_("Sign Up")</h1>
     $if not ctx.user:
+        $:render_template("account/ia_thirdparty_logins")
+
         <p class="instruct">$_("Complete the form below to create a new Internet Archive account.")
         <span class="attn remind">$_("Each field is required")</span></p>
 </div>
