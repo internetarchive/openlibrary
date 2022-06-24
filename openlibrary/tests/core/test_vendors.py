@@ -1,9 +1,9 @@
 import pytest
-from openlibrary.core.vendors import (
-    split_amazon_title,
+from openlibrary.core.vendors.amazon import (
     clean_amazon_metadata_for_load,
-    betterworldbooks_fmt,
+    split_amazon_title,
 )
+from openlibrary.core.vendors.betterworldbooks import betterworldbooks_fmt
 
 
 def test_clean_amazon_metadata_for_load_non_ISBN():

@@ -8,7 +8,7 @@ from urllib.parse import urlencode
 from collections import OrderedDict
 from infogami.utils.view import public
 from openlibrary.core import lending
-from openlibrary.core.vendors import get_betterworldbooks_metadata, get_amazon_metadata
+from openlibrary.core.vendors import get_amazon_metadata, get_betterworldbooks_metadata
 from openlibrary import accounts
 from openlibrary.accounts.model import get_internet_archive_id, sendmail
 from openlibrary.core.civicrm import (
