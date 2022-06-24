@@ -1,5 +1,8 @@
 name: codegen_api_docs
 on: workflow_dispatch
+permissions:
+  contents: read
+
 jobs:
   codegen_api_docs:
     runs-on: ubuntu-latest

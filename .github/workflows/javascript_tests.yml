@@ -14,6 +14,9 @@ on:
       - '**.less'
       - '**.css'
   workflow_dispatch:
+permissions:
+  contents: read
+
 jobs:
   javascript_tests:
     runs-on: ubuntu-latest
