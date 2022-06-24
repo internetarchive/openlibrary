@@ -31,7 +31,7 @@ def setup_env():
     sys.path.append('conf')
 
 def start_server():
-    import _init_path
+    import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
     args = sys.argv[1:]
 
     if len(args) < 1 or sys.argv[0] in ['-h', '--help']:
@@ -77,7 +77,7 @@ class BaseWSGIServer(Application):
         pass
 
     def load(self):
-        import _init_path
+        import _init_path  # noqa: F401  Imported for side effect of setting PYTHONPATH
         load_infogami(self.config_file)
 
         import infogami
