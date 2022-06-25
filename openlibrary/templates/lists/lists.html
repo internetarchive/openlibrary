@@ -113,7 +113,7 @@ $else:
                     id="list-$loop.index">$:render_template("lists/preview", list)</li>
             </ul>
         </div>
-    $elif ctx.user and ctx.user.key != doc.key:
+    $elif not ctx.user or ctx.user.key != doc.key:
         <p>$_("This reader hasn't created any lists yet.")</p>
     $else:
         <p>$_("You haven't created any lists yet.")</p>
