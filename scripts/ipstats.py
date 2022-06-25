@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import os
 import subprocess
 import web
-import _init_path
+import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 import infogami  # must be after _init_path
 from openlibrary.config import load_config
 

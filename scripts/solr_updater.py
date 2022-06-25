@@ -7,7 +7,7 @@ Changes:
 2018-02-11: Use newer config method
 """
 from typing import Iterator, Union
-import _init_path
+import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 
 import logging
 import json
