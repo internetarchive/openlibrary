@@ -113,9 +113,11 @@ $else:
                     id="list-$loop.index">$:render_template("lists/preview", list)</li>
             </ul>
         </div>
+    $elif ctx.user and ctx.user.key != doc.key:
+        <p>$_('This reader hasn't created any lists yet.')</p>
     $else:
-        $# <p>$_('No lists yet!')</p>
-     <a href="https://openlibrary.org/help/faq/reading-log#lists">$_('how to create a list?')</a>
+        <p>$_('You have not created any lists yet.')</p>
+        <p><a href="https://openlibrary.org/help/faq/reading-log#lists">$_('Learn how to create your first list.')</a></p>
     <div class="clearfix"></div>
 
     <h2>$_('Recent Activity')</h2>
