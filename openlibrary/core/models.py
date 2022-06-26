@@ -660,9 +660,8 @@ class Work(Thing):
         start_date - ignore redirects created before this date
         test - don't resolve stale redirects, just identify them
         """
-        page = 0
-        offset = start_offset
-        while not pages or page < pages:
+        for page in range(pages):
+            cur_offset = page * batch_size
             logger.info(
                 "[resolving-redirects] batch:%i of %i, offset:%i",
                 page+1,
