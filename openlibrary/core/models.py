@@ -647,7 +647,7 @@ class Work(Thing):
             cls,
             batch_size=1000,
             start_offset=0,
-            pages=None,
+            pages=1,
             end_date=datetime.datetime.today()-datetime.timedelta(days=7),
             start_date=datetime.datetime(year=2017, month=1, day=1),
             test=True
