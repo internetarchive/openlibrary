@@ -1,0 +1,22 @@
+$def with ()
+
+$ q = query_param("q")
+
+<ul class="work-menu">
+  <li class="$('selected' if ctx.path=='/search' else '')">
+    <a data-ol-link-track="Navigation|Search"
+       href="/search?q=$(q)">$_("Books")</a>
+  </li>
+  <li class="$('selected' if ctx.path=='/search/authors' else '')">
+    <a data-ol-link-track="Navigation|SearchAuthors"
+       href="/search/authors?q=$(q)">$_("Authors")</a>
+  </li>
+  <li class="$('selected' if ctx.path=='/search/inside' else '')">
+    <a data-ol-link-track="Navigation|SearchFulltext"
+       href="/search/inside?q=$(q)">$_("Quotes")</a>
+  </li>
+  <li class="$('selected' if ctx.path=='/advancedsearch' else '')">
+    <a data-ol-link-track="Navigation|SearchAdvanced"
+       href="/advancedsearch">$_("Advanced Search")</a>
+  </li>
+</ul>

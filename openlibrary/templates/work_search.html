@@ -43,14 +43,8 @@ $ start_facet_count = 5
 $ facet_inc = 10
 
 <div>
-$if param and not error and num_found:
     <div id="contentHead">
-      $if num_found > 0:
-        <span class="darkgreen"><strong>$ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))</strong></span>
-&nbsp;
-      $if num_found > 1:
-        $:render_template("search/sort_options.html", sort)
-        <span class="advanced-search"><a href="/advancedsearch">$_('Advanced Search')</a></span>
+      <h1>Search</h1>
     </div>
 
 $ facet_map = (
@@ -67,8 +61,8 @@ $    ('public_scan_b', _('Classic eBooks')),
 $ )
 
 <div id="contentBody">
+  $:macros.SearchNavigation()
   <div class="section">
-
     <form method="get" action="/search" class="siteSearch olform">
       <label for="q" class="hidden">$_('Keywords')</label>
       <input type="text" name="q" id="q" value="$q_param" size="100"/>
@@ -157,7 +151,7 @@ $ )
         </center>
 
     $elif param and not error and len(docs):
-        <div class="shift">$ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))</div>
+	<div>$ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))</div>
         <div class="resultsContainer search-results-container">
         <div id="searchResults">
           <ul class="list-books">
