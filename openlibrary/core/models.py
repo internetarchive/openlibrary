@@ -672,7 +672,8 @@ class Work(Thing):
                 "type": "/type/redirect",
                 "key~": "/works/*",
                 "limit": batch_size,
-                "offset": offset
+                "offset": offset,
+                "sort": "-last_modified"
             })
             work_redirect_batch = web.ctx.site.get_many(work_redirect_ids)
             for work in work_redirect_batch:
