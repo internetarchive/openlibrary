@@ -80,14 +80,15 @@ $elif availability.get('is_lendable'):
     $:macros.ReadButton(ocaid, borrow=True, listen=listen)
   $elif availability.get('available_to_waitlist'):
     $if waiting_loan:
-      <p class="waitinglist-message">
+      $if seconday_action:
+        <p class="waitinglist-message">
         $ spot = waiting_loan['position']
         $ wlsize = waiting_loan['wl_size']
         $if spot == 1:
           $:_('You are <strong>next</strong> on the waiting list')
         $else:
           $:_('You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list.', spot=spot, wlsize=wlsize)
-      </p>
+        </p>
       <form method="POST" action="$borrow_link" class="leave-waitlist waitinglist-form">
         <input type="hidden" name="action" value="leave-waitinglist"/>
         <input type="submit" class="cta-btn" id="unwaitlist_ebook"
@@ -96,16 +97,17 @@ $elif availability.get('is_lendable'):
     $else:
       $# "JOIN-WAITLIST" button
       $ wlsize = availability.get('users_on_waitlist') or availability.get('num_waitlist')
-      <p class="waitinglist-message">
-        $if wlsize:
-          $_("Readers waiting for this title: %(count)s", count=wlsize)
-        $else:
-          $_("You'll be next in line.")
-      </p>
       <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
         <input type="hidden" name="action" value="join-waitinglist"/>
         <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="$_('Join Waitlist')"/>
       </form>
+      $if secondary_action:
+        <p class="waitinglist-message">
+          $if wlsize:
+            $_("Readers in line: %(count)s", count=wlsize)
+          $else:
+            $_("You'll be next in line.")
+        </p>
   $else:
     $# Checked out: Show checkout out + preview if secondary, else just preview
     <div class="cta-button-group">
