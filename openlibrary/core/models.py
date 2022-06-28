@@ -614,7 +614,7 @@ class Work(Thing):
         summary['resolved_key'] = redirect_chain[-1].key
 
         for r in summary['redirect_chain']:
-            olid = r['key'].split('/')[-1][2:-1]
+            olid = r['key'].split('/')[-1][2:-1]  # 'OL1234x' --> '1234'
             new_olid = summary['resolved_key'].split('/')[-1][2:-1]
 
             # count reading log entries
