@@ -10,6 +10,7 @@ class SolrDocument(TypedDict):
     has_fulltext: Optional[bool]
     title: Optional[str]
     title_suggest: Optional[str]
+    title_sort: Optional[str]
     subtitle: Optional[str]
     alternative_title: Optional[list[str]]
     alternative_subtitle: Optional[list[str]]

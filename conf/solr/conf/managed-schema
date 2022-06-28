@@ -142,7 +142,7 @@
     <field name="has_fulltext" type="boolean"/>
     <field name="title" type="text_en_splitting"/>
     <field name="title_suggest" type="text_general" multiValued="false"/>
-    <field name="title_sortable" type="text_title_sort" multiValued="false"/>
+    <field name="title_sort" type="text_title_sort" multiValued="false"/>
     <field name="subtitle" type="text_en_splitting"/>
     <field name="alternative_title" type="text_en_splitting" stored="false" multiValued="true"/>
     <field name="alternative_subtitle" type="text_en_splitting" stored="false" multiValued="true"/>
@@ -273,6 +273,7 @@
     <!-- TODO: Can we pare this down for performance and storage? -->
 
     <copyField source="title" dest="title_suggest"/>
+    <copyField source="title" dest="title_sort"/>
     <copyField source="publisher" dest="publisher_facet"/>
     <copyField source="subject" dest="subject_facet"/>
     <copyField source="place" dest="place_facet"/>

@@ -552,7 +552,6 @@ class SolrProcessor:
         add('type', 'work')
         add('seed', BaseDocBuilder().compute_seeds(w, editions))
         add('title', w.get('title'))
-        add('title_sortable', w.get('title'))
         add('subtitle', w.get('subtitle'))
 
         add_list("alternative_title", self.get_alternate_titles((w, *editions)))
