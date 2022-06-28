@@ -597,8 +597,8 @@ class Work(Thing):
         return redirect_chain
 
     @classmethod
-    def resolve_redirect_chain(cls, work_key: str, test: bool=False):
-        summary = {
+    def resolve_redirect_chain(cls, work_key: str, test: bool = False) -> dict[str, Any]:
+        summary: dict[str, Any] = {
             'key': work_key,
             'redirect_chain': [],
             'resolved_key': None
