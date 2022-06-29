@@ -116,6 +116,7 @@ SORTS = {
     'editions': 'edition_count desc',
     'old': 'def(first_publish_year, 9999) asc',
     'new': 'first_publish_year desc',
+    'title': 'title_sort asc',
     'scans': 'ia_count desc',
     # Classifications
     'lcc_sort': 'lcc_sort asc',
@@ -830,7 +831,7 @@ def works_by_author(
     elif sort.startswith('new'):
         params.append(('sort', 'first_publish_year desc'))
     elif sort.startswith('title'):
-        params.append(('sort', 'title asc'))
+        params.append(('sort', 'title_sort asc'))
 
     facet_fields = [
         "author_facet",
