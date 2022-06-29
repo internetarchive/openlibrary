@@ -3,16 +3,18 @@ import json
 
 from infogami.utils.view import public
 
+from openlibrary.i18n import gettext as _
+
 from . import db
 
 @public
 def get_status_for_view(status_code):
     if status_code == CommunityEditsQueue.STATUS['DECLINED']:
-        return 'Declined'
+        return _('Declined')
     if status_code == CommunityEditsQueue.STATUS['PENDING']:
-        return 'Pending'
+        return _('Pending')
     if status_code == CommunityEditsQueue.STATUS['MERGED']:
-        return 'Merged'
+        return _('Merged')
 
 class CommunityEditsQueue:
 
@@ -40,7 +42,7 @@ class CommunityEditsQueue:
     }
 
     @classmethod
-    def get_requests(cls, limit: int = 50, page: int = 1, mode: str = 'all', **kwargs):
+    def get_requests(cls, limit: int = 50, page: int = 1, mode: str = 'all', order: str = None, **kwargs):
         oldb = db.get_db()
         wheres = []
         if kwargs.get("status"):
@@ -77,12 +79,12 @@ class CommunityEditsQueue:
         query_kwargs['where'] = f'({" OR ".join(status_wheres)})'
         if wheres:
             query_kwargs['where'] = f'{" AND ".join(wheres)} AND {query_kwargs["where"]}'
+        if order:
+            query_kwargs['order'] = order
         return oldb.select("community_edits_queue", **query_kwargs)
 
     @classmethod
     def submit_work_merge_request(cls, work_ids, submitter, comment=None):
-        if not comment:
-            comment = 'Submitted without comment.'
         # XXX IDs should be santiized & normalized
         # e.g. /works/OL123W -> OL123W
         url = f"/works/merge?records={','.join(work_ids)}"
@@ -187,7 +189,7 @@ class CommunityEditsQueue:
 
     @classmethod
     def get_comments(cls, rid):
-        return cls.get_requests(id=rid)[0]['comments']
+        return cls.get_requests(id=rid)[0]['comments'] or {'comments': []}
 
     @classmethod
     def create_comment(cls, username, message):

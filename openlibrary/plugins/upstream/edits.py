@@ -66,7 +66,7 @@ class community_edits_queue(delegate.page):
             'open' if show_opened and not show_closed else 'closed'
         )
 
-        merge_requests = CommunityEditsQueue.get_requests(page=i.page, mode=mode, submitter=i.submitter).list()
+        merge_requests = CommunityEditsQueue.get_requests(page=i.page, mode=mode, submitter=i.submitter, order='created').list()
         enriched_requests = self.enrich(merge_requests)
 
         return render_template('merge_queue', merge_requests=enriched_requests, submitter=i.submitter)
@@ -74,13 +74,14 @@ class community_edits_queue(delegate.page):
     def enrich(self, merge_requests):
         results = []
         for r in merge_requests:
+            comments = r['comments']
             obj = {
                 'id': r['id'],
                 'submitter': r['submitter'],
                 'reviewer': r['reviewer'],
                 'url': r['url'],
-                'status': r['status'],  # convert to string?
-                'comments': r['comments'],
+                'status': r['status'],
+                'comments': (comments and comments.get('comments')) or [],
                 'created': r['created'],
                 'updated': r['updated'],
             }

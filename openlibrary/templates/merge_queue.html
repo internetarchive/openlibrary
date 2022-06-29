@@ -57,7 +57,7 @@ $def format_comment(comment):
         <tbody>
         $for r in merge_requests:
           $ work_title = r.get('title', 'an untitled work')
-          $ comments = r['comments'] and r['comments']['comments']
+          $ comments = r['comments']
           $ status = get_status_for_view(r['status'])
           $ url = "%s&mrid=%s" % (r['url'], r['id'])
           $ is_submitter = username == r['submitter']
@@ -70,20 +70,22 @@ $def format_comment(comment):
                 <span>$:_('Merge request for <span class="book-title">%(title)s</span>', title=work_title)</span>
                 <span>$_('Comments'): $len(comments)</span>
               </div>
-              $if comments:
+
+              $if len(comments) > 1:
                 <div class="comment-cell__description">
                   <span>$_('Showing most recent comment only.')</span>
                   <a href="javascript:;" class="comment-expand" data-target-id="hidden-comments-$r['id']">$_('View all')</a>
                 </div>
-                <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
-                  $for c in comments[:-1]:
-                    $:format_comment(c)
-                </div>
-                <div class="comment-cell__newest-comment">
+              <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
+                $for c in comments[:-1]:
+                  $:format_comment(c)
+              </div>
+              <div class="comment-cell__newest-comment">
+                $if comments:
                   $:format_comment(comments[-1])
-                </div>
-              $else:
-                $_('No comments yet.')
+                $else:
+                  <span>$_('No comments yet.')</span>
+              </div>
               $if is_submitter or can_merge:
                 <hr>
                 <div class="comment-cell__input">
@@ -94,8 +96,8 @@ $def format_comment(comment):
 
             <td>$r['reviewer']</td>
             <td>
-              $# TODO: Compare integer value of status here (i18n concern)
-              $if status == 'Pending':
+              $# Status code 1 is used for "Pending" requests
+              $if r['status'] == 1:
                 $if can_merge:
                   <a href="$url">$_('Merge')</a>
                 $elif is_submitter:
