@@ -80,7 +80,7 @@ $elif availability.get('is_lendable'):
     $:macros.ReadButton(ocaid, borrow=True, listen=listen)
   $elif availability.get('available_to_waitlist'):
     $if waiting_loan:
-      $if seconday_action:
+      $if secondary_action:
         <p class="waitinglist-message">
         $ spot = waiting_loan['position']
         $ wlsize = waiting_loan['wl_size']
