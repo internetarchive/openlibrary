@@ -13,7 +13,7 @@ export function initCommentLinks(elems) {
     for (const elem of elems) {
         elem.addEventListener('click', function () {
             const mrid = elem.dataset.mrid
-            onCommentClick(mrid)
+            onCommentClick(elem, mrid)
         })
     }
 }
@@ -34,15 +34,14 @@ async function onCloseClick(mrid, parentRow) {
     }
 }
 
-async function onCommentClick(mrid) {
-    const comment = promptForComment('Please enter your response.')
-    if (comment !== null) {
+async function onCommentClick(elem, mrid) {
+    const comment = elem.previousElementSibling.value;
+
+    if (comment) {
         await commentOnRequest(mrid, comment)
             .then(result => result.json())
             .then(data => {
                 if (data.status === 'ok') {
-                    // We did it!
-                    // Tell the submitter somehow
                     new FadingToast('Comment updated!').show()
                 }
             })
@@ -80,4 +79,28 @@ async function commentOnRequest(mrid, comment) {
 
 function removeRow(row) {
     row.parentNode.removeChild(row)
+}
+
+export function initShowAllCommentsLinks(elems) {
+    for (const elem of elems) {
+        elem.addEventListener('click', function() {
+            toggleAllComments(elem)
+        })
+    }
+}
+
+function toggleAllComments(elem) {
+    const targetId = elem.dataset.targetId;
+    const target = document.querySelector(`#${targetId}`)
+    target.classList.toggle('hidden')
+
+    const isHidden = target.classList.contains('hidden')
+    const prevSibling = elem.previousElementSibling;
+    if (isHidden) {
+        prevSibling.textContent = 'Showing most recent comment only.'
+        elem.textContent = 'View all'
+    } else {
+        prevSibling.textContent = 'Showing all comments.'
+        elem.textContent = 'View most recent only'
+    }
 }

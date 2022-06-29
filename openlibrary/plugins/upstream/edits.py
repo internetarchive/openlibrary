@@ -66,8 +66,44 @@ class community_edits_queue(delegate.page):
             'open' if show_opened and not show_closed else 'closed'
         )
 
-        merge_requests = CommunityEditsQueue.get_requests(page=i.page, mode=mode, submitter=i.submitter)
-        return render_template('merge_queue', merge_requests=merge_requests, submitter=i.submitter)
+        merge_requests = CommunityEditsQueue.get_requests(page=i.page, mode=mode, submitter=i.submitter).list()
+        enriched_requests = self.enrich(merge_requests)
+
+        return render_template('merge_queue', merge_requests=enriched_requests, submitter=i.submitter)
+
+    def enrich(self, merge_requests):
+        results = []
+        for r in merge_requests:
+            obj = {
+                'id': r['id'],
+                'submitter': r['submitter'],
+                'reviewer': r['reviewer'],
+                'url': r['url'],
+                'status': r['status'],  # convert to string?
+                'comments': r['comments'],
+                'created': r['created'],
+                'updated': r['updated'],
+            }
+            olids = self.extract_olids(r['url'])
+            obj['title'] = ''
+            for olid in olids:
+                book = web.ctx.site.get(f'/works/{olid}')
+                if book:
+                    if not obj['title']:
+                        obj['title'] = book.title
+                        break
+
+            results.append(obj)
+        return results
+
+    def extract_olids(self, url):
+        query_string = url.split('?')[1]
+        split_params = query_string.split('&')
+        params = {}
+        for p in split_params:
+            kv = p.split('=')
+            params[kv[0]] = kv[1]
+        return params['records'].split(',')
 
 def setup():
     pass

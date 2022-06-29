@@ -398,16 +398,20 @@ jQuery(function () {
     }
 
     const mergeRequestCloseLinks = document.querySelectorAll('.mr-close-link')
-    const mergeRequestCommentLinks = document.querySelectorAll('.mr-comment-link')
+    const mergeRequestCommentButtons = document.querySelectorAll('.mr-comment-btn')
+    const showCommentsLinks = document.querySelectorAll('.comment-expand')
 
-    if (mergeRequestCloseLinks || mergeRequestCommentLinks) {
+    if (mergeRequestCloseLinks || mergeRequestCommentButtons || showCommentLinks) {
         import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
             .then(module => {
                 if (mergeRequestCloseLinks) {
                     module.initCloseLinks(mergeRequestCloseLinks)
                 }
-                if (mergeRequestCommentLinks) {
-                    module.initCommentLinks(mergeRequestCommentLinks)
+                if (mergeRequestCommentButtons) {
+                    module.initCommentLinks(mergeRequestCommentButtons)
+                }
+                if (showCommentsLinks) {
+                    module.initShowAllCommentsLinks(showCommentsLinks)
                 }
             })
     }

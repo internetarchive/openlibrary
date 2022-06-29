@@ -1,19 +1,9 @@
+.librarian-queue-page {
+  padding: 0 10px 10px;
 
-.mr-nav-bar {
-  margin: 0 10px;
-}
-
-.table-wrapper {
-  padding: 0 10px;
-}
-
-.description {
-  margin-bottom: 10px;
-}
-
-.description,
-.title {
-  margin-left: 10px;
+  .description {
+    margin-bottom: 10px;
+  }
 }
 
 .mr-table {
@@ -24,9 +14,12 @@
 
   td {
     padding: 5px;
+    vertical-align: top;
   }
 
-  &__header {
+  th {
+    position: sticky;
+    top: 0;
     vertical-align: top;
     text-align: left;
     padding: 5px;
@@ -39,34 +32,72 @@
       width: 50%;
     }
 
-    &.link-header {
-      width: 7%;
+    &.resolve-header {
+      width: max-content;
     }
-  }
-}
-
-.olid-container {
-  display: flex;
-  flex-direction: column;
-}
-
-.comments {
-  width: 90%;
-  padding: 0 5px;
-
-  summary {
-    cursor: pointer;
-
-    > * {
-      display: inline;
-    }
-  }
-
-  .hidden-comment {
-    margin-left: 10px;
   }
 }
 
 .comment-username {
   color: @grey;
+}
+
+.comment {
+  border: 1px solid @lightest-grey;
+  background-color: @white;
+  margin: 5px 0;
+  padding: 5px;
+  border-radius: 5px;
+
+  &__header {
+    font-size: 11px;
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    color: @grey;
+  }
+
+  &__username.owner {
+    color: @dark-red;
+  }
+}
+
+.comment-cell {
+  &__summary,
+  &__description {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 5px;
+    margin-bottom: 5px;
+  }
+
+  &__summary {
+    background-color: @link-blue;
+    color: @white;
+    border-radius: 5px;
+
+    .book-title {
+      font-weight: bold;
+    }
+  }
+
+  &__input {
+    display: flex;
+    align-items: flex-end;
+
+    textarea,
+    input {
+      padding: 3px;
+    }
+
+    textarea {
+      border: 1px solid @lightest-grey;
+      width: 100%;
+    }
+
+    input {
+      height: fit-content;
+      margin-left: 10px;
+    }
+  }
 }
