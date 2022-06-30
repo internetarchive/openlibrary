@@ -67,6 +67,7 @@ async function updateCommentsView(mrid, comment) {
         .then(html => {
             // Create new comment element
             const template = document.createElement('template')
+            template.innerHTML = html.trim()
 
             // Remove newest comment (or "No comments yet" message)
             const newestComment = newCommentDiv.firstElementChild
@@ -78,7 +79,7 @@ async function updateCommentsView(mrid, comment) {
                 oldComments.appendChild(newestComment)
             }
 
-            // Display new comment
+            // Display new
             newCommentDiv.appendChild(template.content.firstChild)
         })
 
