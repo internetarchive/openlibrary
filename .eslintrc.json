@@ -12,7 +12,7 @@
     "jquery": true
   },
   "parserOptions": {
-    "parser": "@babel/eslint-parser",
+    "parser": "babel-eslint",
     "sourceType": "module",
     "ecmaVersion": 6
   },

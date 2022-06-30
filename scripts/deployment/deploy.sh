@@ -25,9 +25,11 @@ parallel --quote ssh {1} "echo -e '\n\n{}'; cd {2} && sudo git pull origin maste
 # Rebuild & upload docker image for olbase
 cd /opt/openlibrary
 sudo make git
+set -e
 docker build -t openlibrary/olbase:latest -f docker/Dockerfile.olbase .
 docker login
 docker push openlibrary/olbase:latest
+set +e
 
 # Clone booklending utils
 parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
@@ -40,7 +42,7 @@ parallel --quote ssh {} "echo -e '\n\n{}'; cd /opt/openlibrary && COMPOSE_FILE=\
 
 # Add a git SHA tag to the Docker image to facilitate rapid rollback
 cd /opt/openlibrary
-CUR_SHA=$(git rev-parse HEAD | head -c7)
+CUR_SHA=$(sudo git rev-parse HEAD | head -c7)
 parallel --quote ssh {} "echo -e '\n\n{}'; echo 'FROM openlibrary/olbase:latest' | docker build -t 'openlibrary/olbase:$CUR_SHA' -" ::: $SERVERS
 
 # And tag the deploy!
