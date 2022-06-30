@@ -69,7 +69,7 @@ class community_edits_queue(delegate.page):
         merge_requests = CommunityEditsQueue.get_requests(page=i.page, mode=mode, submitter=i.submitter, order='created').list()
         enriched_requests = self.enrich(merge_requests)
 
-        return render_template('merge_queue', merge_requests=enriched_requests, submitter=i.submitter)
+        return render_template('merge_queue/merge_queue', merge_requests=enriched_requests, submitter=i.submitter)
 
     def enrich(self, merge_requests):
         results = []
@@ -105,6 +105,18 @@ class community_edits_queue(delegate.page):
             kv = p.split('=')
             params[kv[0]] = kv[1]
         return params['records'].split(',')
+
+
+class ui_partials(delegate.page):
+    path = '/merges/partials'
+
+    def GET(self):
+        i = web.input(type=None, comment='')
+        if i.type == 'comment':
+            component = render_template('merge_queue/comment', comment_str=i.comment)
+            return delegate.RawText(component)
+
+
 
 def setup():
     pass

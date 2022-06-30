@@ -15,20 +15,6 @@ $else:
   $ link_text = _('Show my requests') if username else ''
   $ href = changequery(submitter=username) if username else changequery(submitter=None)
 
-$def format_comment(comment):
-  $ comment_timestamp = to_datetime(comment['timestamp'])
-  $ date = comment_timestamp.strftime('%d %b %y')
-  $ time = comment_timestamp.strftime('%X')
-  $ is_commenter = username == comment['username']
-  $ owner = 'owner' if is_commenter else ''
-  <div class="comment">
-    <div class="comment__header">
-      <span class="comment__username $owner">$comment['username']</span>
-      <span class="comment__timestamp">$date $time</span>
-    </div>
-    <div class="comment__body">$comment['message']</div>
-  </div>
-
 <div class="librarian-queue-page">
   <h1>$_('Community Edit Requests')</h1>
 
@@ -65,7 +51,7 @@ $def format_comment(comment):
             <td>$r['submitter']</td>
             <td>$status</td>
 
-            <td class="comment-cell">
+            <td id="comment-cell-$(r['id'])" class="comment-cell">
               <div class="comment-cell__summary">
                 <span>$:_('Merge request for <span class="book-title">%(title)s</span>', title=work_title)</span>
                 <span>$_('Comments'): $len(comments)</span>
@@ -78,11 +64,11 @@ $def format_comment(comment):
                 </div>
               <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
                 $for c in comments[:-1]:
-                  $:format_comment(c)
+                  $:render_template('merge_queue/comment', comment=c)
               </div>
               <div class="comment-cell__newest-comment">
                 $if comments:
-                  $:format_comment(comments[-1])
+                  $:render_template('merge_queue/comment', comment=comments[-1])
                 $else:
                   <span>$_('No comments yet.')</span>
               </div>

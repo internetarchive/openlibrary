@@ -401,14 +401,14 @@ jQuery(function () {
     const mergeRequestCommentButtons = document.querySelectorAll('.mr-comment-btn')
     const showCommentsLinks = document.querySelectorAll('.comment-expand')
 
-    if (mergeRequestCloseLinks || mergeRequestCommentButtons || showCommentLinks) {
+    if (mergeRequestCloseLinks || mergeRequestCommentButtons || showCommentsLinks) {
         import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
             .then(module => {
                 if (mergeRequestCloseLinks) {
                     module.initCloseLinks(mergeRequestCloseLinks)
                 }
                 if (mergeRequestCommentButtons) {
-                    module.initCommentLinks(mergeRequestCommentButtons)
+                    module.initCommenting(mergeRequestCommentButtons)
                 }
                 if (showCommentsLinks) {
                     module.initShowAllCommentsLinks(showCommentsLinks)
