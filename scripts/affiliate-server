@@ -74,6 +74,7 @@ def process_amazon_batch(isbn_10s):
         cache.memcache_cache.set(
             'amazon_product_%s' % cache_key, product, expires=WEEK_SECS
         )
+        web.cached_isbns.put(cache_key)  # put isbn_13 in queue for assimilate_books()
 
 
 def seconds_remaining(start_time):
