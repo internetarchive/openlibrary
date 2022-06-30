@@ -24,15 +24,16 @@ import queue
 import sys
 import threading
 import time
+from datetime import date
 
 import web
-import yaml
 
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 
 import infogami
 from infogami import config
 from openlibrary.core import stats
+from openlibrary.core.imports import Batch
 from openlibrary.core.vendors import AmazonAPI
 from openlibrary.utils.dateutil import WEEK_SECS
 from openlibrary.utils.isbn import (
@@ -40,16 +41,32 @@ from openlibrary.utils.isbn import (
 
 logger = logging.getLogger("affiliate-server")
 
+# fmt: off
 urls = (
     '/isbn/([0-9X-]+)', 'Submit',
     '/status', 'Status',
 )
+# fmt: on
 
 API_MAX_ITEMS_PER_CALL = 10
 API_MAX_WAIT_SECONDS = 0.9
 
+batch_name = ""
+batch: Batch | None = None
+
 web.amazon_queue = queue.Queue()  # a thread-safe multi-producer, multi-consumer queue
 
+
+def get_current_amazon_batch() -> Batch:
+    """
+    At startup or when the month changes, create a new openlibrary.core.imports.Batch()
+    """
+    global batch_name, batch
+    new_batch_name = f"amz-{date.today():%Y%m}"
+    if batch_name != new_batch_name:
+        batch_name = new_batch_name
+        batch = Batch.find(batch_name) or Batch.new(batch_name)
+    return batch
 
 def process_amazon_batch(isbn_10s):
     """
@@ -62,8 +79,10 @@ def process_amazon_batch(isbn_10s):
     try:
         products = web.amazon_api.get_products(isbn_10s, serialize=True)
     except Exception:
-        logger.exception("amazon_api.get_product({}, serialize=True)".format(isbn_10s))
-        products = []
+        logger.exception("amazon_api.get_products({}, serialize=True)".format(isbn_10s))
+        return
+
+    books = []
     for product in products:
         # Make sure we have an isbn_13 for cache key
         cache_key = (
@@ -73,6 +92,15 @@ def process_amazon_batch(isbn_10s):
         cache.memcache_cache.set(
             'amazon_product_%s' % cache_key, product, expires=WEEK_SECS
         )
+        books.append(
+            {
+                "ia_id": f"isbn:{cache_key}",
+                "data": product,
+            }
+        )
+    if books:
+        get_current_amazon_batch().add_items(books)
+
 
 
 def seconds_remaining(start_time):
