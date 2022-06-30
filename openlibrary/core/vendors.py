@@ -32,8 +32,9 @@ BETTERWORLDBOOKS_API_URL = (
     'https://products.betterworldbooks.com/service.aspx?IncludeAmazon=True&ItemId='
 )
 affiliate_server_url = None
-BWB_AFFILIATE_LINK = 'http://www.anrdoezrs.net/links/{}/type/dlg/http://www.betterworldbooks.com/-id-%s'.format(
-    h.affiliate_id('betterworldbooks')
+BWB_AFFILIATE_LINK = (
+    "http://www.anrdoezrs.net/links/{h.affiliate_id('betterworldbooks')}/type/dlg/"
+    "http://www.betterworldbooks.com/-id-%s"
 )
 AMAZON_FULL_DATE_RE = re.compile(r'\d{4}-\d\d-\d\d')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
@@ -44,8 +45,12 @@ def setup(config):
     affiliate_server_url = config.get('affiliate_server')
 
 
+'''
 def isbns_not_in_openlibrary(isbns: Iterable[str]) -> Iterable[str]:
     """
+    :param isbns: Iterable of ISBNs to check to see if they are in OpenLibrary.
+    :return: Iterable of ISBNs of only those books that are not in OpenLibrary.
+
     https://openlibrary.org/dev/docs/api/books  Returns a HIT for ALL ISBNs :-(
     curl http://openlibrary.org/api/books?format=json&bibkeys=ISBN:0,ISBN:1,ISBN:123456
     """
@@ -57,7 +62,35 @@ def isbns_not_in_openlibrary(isbns: Iterable[str]) -> Iterable[str]:
         if keys := web.ctx.site.things(query):
             edition = keys[0]  # noqa: F841 Enhance the existing edition w/ Amazon data
         else:
-            yield isbn
+            yield isbn  # yield isbn if not in OpenLibrary
+
+
+def create_new_books(isbns: Iterable[str]) -> Iterable[str]:
+    """
+    :param isbns: Iterable of ISBNs to create new books for.
+    :return: Iterable of edition keys ('/key/OL..M') for new books.
+    """
+    for isbn in isbns_not_in_openlibrary(isbns):
+        if edition_key := create_edition_from_amazon_metadata(isbn):
+            yield edition_key
+        logger.error(f"Failed to create an Open Library edition for ISBN: {isbn}.")
+'''
+
+
+def assimilate_amazon_book_data(isbn_13: str) -> str | None:
+    """Assimilates Amazon book data into Open Library book data.
+    :param str isbn_13:
+    :return: None
+    """
+    query = {"type": "/type/edition", "isbn_": isbn_13.replace("-", "")}  # no hyphens
+    if keys := web.ctx.site.things(query):
+        edition_key = keys[0]  # noqa: F841 Enhance the existing edition w/ Amazon data
+    else:
+        if edition_key := create_edition_from_amazon_metadata(isbn_13):
+            return edition_key
+        else:
+            logger.error(f"Failed to create an Open Library edition for ISBN: {isbn_13}.")
+    return None
 
 
 class AmazonAPI:
@@ -129,7 +162,7 @@ class AmazonAPI:
         marketplace: str = 'www.amazon.com',
         resources=None,
         **kwargs,
-    ):
+    ) -> list:
         """
         :param asins (string): One or more ItemIds like ASIN that
         uniquely identify an item or product URL. (Max 10) Separated

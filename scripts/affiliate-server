@@ -49,6 +49,7 @@ API_MAX_ITEMS_PER_CALL = 10
 API_MAX_WAIT_SECONDS = 0.9
 
 web.amazon_queue = queue.Queue()  # a thread-safe multi-producer, multi-consumer queue
+web.cached_isbns = queue.Queue()
 
 
 def process_amazon_batch(isbn_10s):
@@ -62,7 +63,7 @@ def process_amazon_batch(isbn_10s):
     try:
         products = web.amazon_api.get_products(isbn_10s, serialize=True)
     except Exception:
-        logger.exception("amazon_api.get_product({}, serialize=True)".format(isbn_10s))
+        logger.exception("amazon_api.get_products({}, serialize=True)".format(isbn_10s))
         products = []
     for product in products:
         # Make sure we have an isbn_13 for cache key
@@ -82,10 +83,8 @@ def seconds_remaining(start_time):
     return max(API_MAX_WAIT_SECONDS - (time.time() - start_time), 0)
 
 
-def amazon_lookup():
+def amazon_lookup() -> None:
     """
-    def amazon_lookup() -> None:
-
     A separate thread of execution that uses the time up to API_MAX_WAIT_SECONDS to
     create a list of isbn_10s that is not larger than API_MAX_ITEMS_PER_CALL and then
     passes them to process_amazon_batch()
@@ -106,6 +105,20 @@ def amazon_lookup():
 
 
 threading.Thread(target=amazon_lookup).start()
+
+def assimilate_books():
+    """
+    A separate thread of execution that pops ISBN 13s from the cached_isbns queue and
+    creates a new edition for each book that is not already in Open Library.
+    """
+    while True:
+        isbn_13 = web.cached_isbns.get()
+        if isbn_13:
+            try:
+                web.get_book(isbn_13)
+            except Exception:
+                logger.exception("web.get_book({})".format(isbn_13))
+    web.amazon_queue.put(isbn_10)
 
 class Status:
     def GET(self):
