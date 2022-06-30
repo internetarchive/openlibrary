@@ -40,7 +40,7 @@ parallel --quote ssh {} "echo -e '\n\n{}'; cd /opt/openlibrary && COMPOSE_FILE=\
 
 # Add a git SHA tag to the Docker image to facilitate rapid rollback
 cd /opt/openlibrary
-CUR_SHA=$(git rev-parse HEAD | head -c7)
+CUR_SHA=$(sudo git rev-parse HEAD | head -c7)
 parallel --quote ssh {} "echo -e '\n\n{}'; echo 'FROM openlibrary/olbase:latest' | docker build -t 'openlibrary/olbase:$CUR_SHA' -" ::: $SERVERS
 
 # And tag the deploy!
