@@ -49,6 +49,9 @@ class community_edits_queue(delegate.page):
                     return delegate.RawText(json.dumps(response()), content_type="application/json")
                 else:
                     return delegate.RawText(json.dumps(response(status='error', error='No comment sent in request.')))
+            if i.action == 'claim':
+                    result = CommunityEditsQueue.assign_request(i.mrid, username)
+                    return delegate.RawText(json.dumps(response(**result)), content_type="application/json")
 
         elif i.rtype == "merge-works":
             if i.action == 'create':
@@ -57,12 +60,14 @@ class community_edits_queue(delegate.page):
                 return delegate.RawText(json.dumps(resp), content_type="application/json")
 
     def GET(self):
-        i = web.input(page=1, open='true', closed='false', submitter=None)
+        i = web.input(page=1, open='true', closed='false', claimed='false', submitter=None)
 
         show_opened = i.open == 'true'
         show_closed = i.closed == 'true'
+        show_claimed = i.claimed == 'true'
 
-        mode = 'all' if show_opened and show_closed else (
+        mode = 'all' if show_opened and show_closed and show_claimed else (
+            'claimed' if show_claimed else
             'open' if show_opened and not show_closed else 'closed'
         )
 
@@ -115,7 +120,6 @@ class ui_partials(delegate.page):
         if i.type == 'comment':
             component = render_template('merge_queue/comment', comment_str=i.comment)
             return delegate.RawText(component)
-
 
 
 def setup():

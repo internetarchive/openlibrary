@@ -138,3 +138,33 @@ function toggleAllComments(elem) {
         elem.textContent = 'View most recent only'
     }
 }
+
+export function initRequestClaiming(elems) {
+    for (const elem of elems) {
+        elem.addEventListener('click', function() {
+            const mrid = elem.dataset.mrid
+            claimRequest(mrid, elem)
+        })
+    }
+}
+
+async function claimRequest(mrid, claimLink) {
+    await updateRequest('claim', mrid)
+        .then(result => result.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                updateRow(mrid, data.newStatus, data.reviewer)
+            }
+        })
+}
+
+function updateRow(mrid, status=null, reviewer=null) {
+    if (status) {
+        const statusCell = document.querySelector(`#status-cell-${mrid}`)
+        statusCell.textContent = status
+    }
+    if (reviewer) {
+        const reviewerCell = document.querySelector(`#reviewer-cell-${mrid}`)
+        reviewerCell.textContent = reviewer
+    }
+}

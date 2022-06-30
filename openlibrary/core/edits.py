@@ -15,6 +15,8 @@ def get_status_for_view(status_code):
         return _('Pending')
     if status_code == CommunityEditsQueue.STATUS['MERGED']:
         return _('Merged')
+    if status_code == CommunityEditsQueue.STATUS['CLAIMED']:
+        return _('Claimed')
 
 class CommunityEditsQueue:
 
@@ -33,12 +35,14 @@ class CommunityEditsQueue:
         'DECLINED': 0,
         'PENDING': 1,
         'MERGED': 2,
+        'CLAIMED': 4,
     }
 
     MODES = {
-        'all': [STATUS['DECLINED'], STATUS['PENDING'], STATUS['MERGED']],
+        'all': [STATUS['DECLINED'], STATUS['PENDING'], STATUS['MERGED'], STATUS['CLAIMED']],
         'open': [STATUS['PENDING']],
-        'closed': [STATUS['DECLINED'], STATUS['MERGED']]
+        'closed': [STATUS['DECLINED'], STATUS['MERGED']],
+        'claimed': [STATUS['CLAIMED']],
     }
 
     @classmethod
@@ -128,13 +132,28 @@ class CommunityEditsQueue:
 
     @classmethod
     def assign_request(cls, rid, reviewer):
-        oldb = db.get_db()
-        oldb.update(
-            "community_edits_queue",
-            where="id=$rid",
-            reviewer=reviewer,
-            vars={"rid": rid}
-        )
+        request = cls.find_by_id(rid)
+
+        if request['status'] not in cls.MODES['closed']:
+            oldb = db.get_db()
+
+            if request['reviewer'] == reviewer:  # Unassign request
+                status = cls.STATUS['PENDING']
+                reviewer = None
+            else:
+                status = cls.STATUS['CLAIMED'] if reviewer else cls.STATUS['PENDING']
+
+            oldb.update(
+                "community_edits_queue",
+                where="id=$rid",
+                reviewer=reviewer,
+                status = status,
+                vars={"rid": rid}
+            )
+            return {
+                'reviewer': reviewer,
+                'newStatus': get_status_for_view(status),
+            }
 
     @classmethod
     def decline_request(cls, rid, reviewer, comment=None):
@@ -182,6 +201,10 @@ class CommunityEditsQueue:
             comments=json.dumps(comments),
             vars={"rid": rid}
         )
+
+    @classmethod
+    def find_by_id(cls, rid):
+        return cls.get_requests(id=rid)[0] or None
 
     @classmethod
     def exists(cls, url):

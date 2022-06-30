@@ -398,10 +398,11 @@ jQuery(function () {
     }
 
     const mergeRequestCloseLinks = document.querySelectorAll('.mr-close-link')
+    const mergeRequestResolveLinks = document.querySelectorAll('.mr-resolve-link')
     const mergeRequestCommentButtons = document.querySelectorAll('.mr-comment-btn')
     const showCommentsLinks = document.querySelectorAll('.comment-expand')
 
-    if (mergeRequestCloseLinks || mergeRequestCommentButtons || showCommentsLinks) {
+    if (mergeRequestCloseLinks || mergeRequestCommentButtons || showCommentsLinks || mergeRequestResolveLinks) {
         import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
             .then(module => {
                 if (mergeRequestCloseLinks) {
@@ -412,6 +413,9 @@ jQuery(function () {
                 }
                 if (showCommentsLinks) {
                     module.initShowAllCommentsLinks(showCommentsLinks)
+                }
+                if (mergeRequestResolveLinks) {
+                    module.initRequestClaiming(mergeRequestResolveLinks)
                 }
             })
     }
