@@ -62,7 +62,7 @@ msgstr "Редактировать"
 
 #: account.html:21
 msgid "Your Profile Page"
-msgstr "Страница вашего профиля"
+msgstr "страницу вашего профиля"
 
 #: account.html:22
 msgid "View or Edit your Reading Log"
@@ -2005,7 +2005,7 @@ msgstr "Года публикации достаточно."
 #: books/add.html:54
 msgid ""
 "And optionally, an ID number &#151; like an ISBN &#151; would be helpful..."
-msgstr "И, необязательно, добавьте ID &#151; например, ISBN &#151;..."
+msgstr "И, необязательно, добавьте ID &#151; например, ISBN..."
 
 #: books/add.html:55
 msgid "ID Type"
@@ -2149,7 +2149,7 @@ msgstr ""
 #: books/edit.html:79 books/edit/addfield.html:100 books/edit/addfield.html:145
 #: type/author/edit.html:29
 msgid "Required field"
-msgstr "Обязательные поля"
+msgstr "Обязательное поле"
 
 #: books/edit.html:86
 msgid ""
@@ -4618,7 +4618,7 @@ msgstr "Удалить этот элемент?"
 #: type/list/view_body.html:178
 #, python-format
 msgid "Last updated <span>%(date)s</span>"
-msgstr "Последний раз обновлён <span>%(date)s</span>"
+msgstr "Последний раз обновлено <span>%(date)s</span>"
 
 #: type/list/view_body.html:189
 msgid "Remove seed"
@@ -4977,7 +4977,7 @@ msgstr "языки"
 #: SearchResultsWork.html:81
 #, python-format
 msgid "%s previewable"
-msgstr "%s есть предпросмотр"
+msgstr "у %s есть предпросмотр"
 
 #: SocialShare.html:16
 msgid "Share this book"
