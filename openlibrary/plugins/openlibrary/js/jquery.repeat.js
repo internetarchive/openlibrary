@@ -64,17 +64,27 @@ export default function($){
          */
         function onAdd(event) {
             var data, newid;
+            const sessionStorageData = sessionStorage.getItem('data');
             event.preventDefault();
 
             // if no index, set it to the number of children
             if (!nextRowId) {
                 nextRowId = elems.display.children().length;
             }
-            data = formdata();
-            data.index = nextRowId;
 
-            if (options.validate && options.validate(data) === false) {
-                return;
+            // If a user confirms adding an ISBN with a failed checksum in
+            // js/edit.js, the {data} object is filled from sessionStorage rather
+            // than the input form.
+            if (sessionStorageData) {
+                data = JSON.parse(sessionStorageData);
+                sessionStorage.removeItem('data');
+            } else {
+                data = formdata();
+                data.index = nextRowId;
+
+                if (options.validate && options.validate(data) === false) {
+                    return;
+                }
             }
 
             $.extend(data, options.vars || {});

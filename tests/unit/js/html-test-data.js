@@ -1,4 +1,5 @@
-export const editionIdentifiersSample = `<fieldset id="identifiers">
+export const editionIdentifiersSample = `<fieldset id="identifiers" data-config="{&quot;Please select an identifier.&quot;: &quot;Please select an identifier.&quot;, &quot;You need to give a value to ID.&quot;: &quot;You need to give a value to ID.&quot;, &quot;ID ids cannot contain whitespace.&quot;: &quot;ID ids cannot contain whitespace.&quot;, &quot;ID must be exactly 10 characters [0-9] or X.&quot;: &quot;ID must be exactly 10 characters [0-9] or X.&quot;, &quot;That ISBN already exists for this edition.&quot;: &quot;That ISBN already exists for this edition.&quot;, &quot;ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4&quot;: &quot;ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4&quot;}">
+<div id="id-errors" class="note" style="display: none"></div>
 <table class="identifiers">
     <tbody><tr id="identifiers-form">
         <td align="right">
@@ -6,6 +7,8 @@ export const editionIdentifiersSample = `<fieldset id="identifiers">
                 <option value="">Select one of many...</option>
                 <option value="google">Google</option>
                 <option value="goodreads">Goodreads</option>
+                <option value="isbn_10">ISBN 10</option>
+                <option value="isbn_13">ISBN 13</option>
             </select>
         </td>
         <td>
@@ -18,9 +21,9 @@ export const editionIdentifiersSample = `<fieldset id="identifiers">
     </tbody><tbody id="identifiers-display">
         <tr id="identifiers-template" style="display: none;" class="repeat-item">
             <td align="right"><strong>{{$("#select-id").find("option[value=" + name + "]").html()}}</strong></td>
-            <td width="380">{{value}}
+            <td>{{value}}
                 <input type="hidden" name="{{prefix}}identifiers--{{index}}--name" value="{{name}}">
-                <input type="hidden" name="{{prefix}}identifiers--{{index}}--value" value="{{value}}">
+                <input type="hidden" name="{{prefix}}identifiers--{{index}}--value" value="{{value}}" class="{{name}}">
             </td>
             <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
         </tr>
@@ -33,7 +36,7 @@ export const editionIdentifiersSample = `<fieldset id="identifiers">
             <td align="right"><strong>Internet Archive</strong></td>
             <td>harrypottersorce00rowl
                 <input type="hidden" name="edition--identifiers--0--name" value="ocaid">
-                <input type="hidden" name="edition--identifiers--0--value" value="harrypottersorce00rowl">
+                <input type="hidden" name="edition--identifiers--0--value" value="harrypottersorce00rowl" class="ocaid">
             </td>
             <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
         </tr>
@@ -41,7 +44,7 @@ export const editionIdentifiersSample = `<fieldset id="identifiers">
             <td align="right"><strong>ISBN 10</strong></td>
             <td>059035342X
                 <input type="hidden" name="edition--identifiers--1--name" value="isbn_10">
-                <input type="hidden" name="edition--identifiers--1--value" value="059035342X">
+                <input type="hidden" name="edition--identifiers--1--value" value="059035342X" class="isbn_10">
             </td>
             <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
         </tr>
@@ -49,7 +52,7 @@ export const editionIdentifiersSample = `<fieldset id="identifiers">
             <td align="right"><strong>ISBN 13</strong></td>
             <td>9780590353427
                 <input type="hidden" name="edition--identifiers--2--name" value="isbn_13">
-                <input type="hidden" name="edition--identifiers--2--value" value="9780590353427">
+                <input type="hidden" name="edition--identifiers--2--value" value="9780590353427" class="isbn_13">
             </td>
             <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
         </tr>
@@ -57,13 +60,12 @@ export const editionIdentifiersSample = `<fieldset id="identifiers">
             <td align="right"><strong>Goodreads</strong></td>
             <td>44415839
                 <input type="hidden" name="edition--identifiers--3--name" value="goodreads">
-                <input type="hidden" name="edition--identifiers--3--value" value="44415839">
+                <input type="hidden" name="edition--identifiers--3--value" value="44415839" class="goodreads">
             </td>
-
             <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
         </tr></tbody>
 </table>
-</div>`;
+</fieldset>`;
 
 /** Part/Simplification of the .widget-add element */
 export const bookDropdownSample = `
@@ -123,4 +125,3 @@ export const clamperSample = `
           <a>fantasy fiction</a>
           <a>England in fiction</a>
       </span>`
-

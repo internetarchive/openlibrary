@@ -38,7 +38,7 @@
     },
     {
       "path": "static/build/user-website.*.js",
-      "maxSize": "3KB"
+      "maxSize": "3.2KB"
     },
     {
       "path": "static/build/page-barcodescanner.*.js",
