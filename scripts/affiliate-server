@@ -34,7 +34,7 @@ import infogami
 from infogami import config
 from openlibrary.core import stats
 from openlibrary.core.imports import Batch
-from openlibrary.core.vendors import AmazonAPI
+from openlibrary.core.vendors import AmazonAPI, clean_amazon_metadata_for_load
 from openlibrary.utils.dateutil import WEEK_SECS
 from openlibrary.utils.isbn import (
     normalize_isbn, isbn_13_to_isbn_10, isbn_10_to_isbn_13)
@@ -68,10 +68,9 @@ def get_current_amazon_batch() -> Batch:
         batch = Batch.find(batch_name) or Batch.new(batch_name)
     return batch
 
-def process_amazon_batch(isbn_10s):
-    """
-    def process_amazon_batch(isbn_10s: list[str]) -> None:
 
+def process_amazon_batch(isbn_10s: list[str]) -> None:
+    """
     Call the Amazon API to get the products for a list of isbn_10s and store
     each product in memcache using amazon_product_{isbn_13} as the cache key.
     """
@@ -82,38 +81,25 @@ def process_amazon_batch(isbn_10s):
         logger.exception("amazon_api.get_products({}, serialize=True)".format(isbn_10s))
         return
 
-    books = []
     for product in products:
-        # Make sure we have an isbn_13 for cache key
-        cache_key = (
+        cache_key = (  # Make sure we have an isbn_13 for cache key
             product.get('isbn_13') and product.get('isbn_13')[0] or
             isbn_10_to_isbn_13(product.get('isbn_10')[0])
         )
-        cache.memcache_cache.set(
+        cache.memcache_cache.set(  # Add each product to memcache
             'amazon_product_%s' % cache_key, product, expires=WEEK_SECS
         )
-        books.append(
-            {
-                "ia_id": f"isbn:{cache_key}",
-                "data": product,
-            }
-        )
-    if books:
+
+    if books := [clean_amazon_metadata_for_load(product) for product in products]:
         get_current_amazon_batch().add_items(books)
 
 
-
-def seconds_remaining(start_time):
-    """
-    def seconds_remaining(start_time: int) -> int:
-    """
+def seconds_remaining(start_time: int) -> int:
     return max(API_MAX_WAIT_SECONDS - (time.time() - start_time), 0)
 
 
-def amazon_lookup():
+def amazon_lookup() -> None:
     """
-    def amazon_lookup() -> None:
-
     A separate thread of execution that uses the time up to API_MAX_WAIT_SECONDS to
     create a list of isbn_10s that is not larger than API_MAX_ITEMS_PER_CALL and then
     passes them to process_amazon_batch()
@@ -135,8 +121,9 @@ def amazon_lookup():
 
 threading.Thread(target=amazon_lookup).start()
 
+
 class Status:
-    def GET(self):
+    def GET(self) -> str:
         return json.dumps({
             "queue_size": web.amazon_queue.qsize(),
             "queue": list(web.amazon_queue.queue),
@@ -144,15 +131,14 @@ class Status:
 
 
 class Submit:
-
     @classmethod
-    def unpack_isbn(cls, isbn):
+    def unpack_isbn(cls, isbn) -> tuple[str, str]:
         isbn = normalize_isbn(isbn.replace('-', ''))
         isbn10 = isbn if len(isbn) == 10 else isbn.startswith('978') and isbn_13_to_isbn_10(isbn)
         isbn13 = isbn if len(isbn) == 13 else isbn_10_to_isbn_13(isbn)
         return isbn10, isbn13
 
-    def GET(self, isbn):
+    def GET(self, isbn: str) -> str:
         """
         If isbn is in memcache then return the `hit`.  If not then queue the isbn to be
         looked up and return the equivalent of a promise as `submitted`
@@ -184,7 +170,7 @@ class Submit:
 def load_config(configfile):
     infogami.load_config(configfile)
 
-    #if 'fastcgi' in d:
+    # if 'fastcgi' in d:
     #    web.config.fastcgi = d['fastcgi']
 
     web.amazon_api = None
