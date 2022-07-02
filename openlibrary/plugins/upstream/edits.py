@@ -37,22 +37,22 @@ class community_edits_queue(delegate.page):
         user = accounts.get_current_user()
         username = user['key'].split('/')[-1]
         if i.mrid:  # We are updating an existing merge request
-            if i.action == "decline":
-                CommunityEditsQueue.decline_request(i.mrid, username, i.comment)
-                return delegate.RawText(json.dumps(response()), content_type="application/json")
-            if i.action == 'approve':
-                CommunityEditsQueue.approve_request(i.mrid, username, i.comment)
-                return delegate.RawText(json.dumps(response()), content_type="application/json")
             if i.action == 'comment':
                 if i.comment:
                     CommunityEditsQueue.comment_request(i.mrid, username, i.comment)
                     return delegate.RawText(json.dumps(response()), content_type="application/json")
                 else:
                     return delegate.RawText(json.dumps(response(status='error', error='No comment sent in request.')))
-            if i.action == 'claim':
+            elif i.action == 'claim':
                     result = CommunityEditsQueue.assign_request(i.mrid, username)
                     return delegate.RawText(json.dumps(response(**result)), content_type="application/json")
-
+            else:
+                if i.action == "decline":
+                    status = CommunityEditsQueue.STATUS['DECLINED']
+                elif i.action == 'approve':
+                    status = CommunityEditsQueue.STATUS['MERGED']
+                CommunityEditsQueue.update_request_status(i.mrid, status, username, comment=i.comment)
+                return delegate.RawText(json.dumps(response()), content_type="application/json")
         elif i.rtype == "merge-works":
             if i.action == 'create':
                 result = create_request(i.work_ids, username, i.comment)

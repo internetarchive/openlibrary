@@ -124,6 +124,15 @@ export function get_ratings(key) {
     return fetch(`${key}/ratings.json`).then(r => r.json());
 }
 
+/**
+ * Composes and POSTs a merge request update.
+ *
+ * @param {Number} mrid The unique ID of the merge request.
+ * @param {'approve' | 'decline'} action What is to be done with this request.
+ * @param {string} comment Optional comment from the reviewer.
+ *
+ * @returns {Promise<Response>} A response to the request
+ */
 export function update_merge_request(mrid, action, comment) {
     const formData = new FormData();
     formData.set('mrid', mrid)

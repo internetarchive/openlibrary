@@ -78,7 +78,14 @@ export class FadingToast extends Toast {
     }
 }
 
+/**
+ * Creates a small pop-up message that must be closed by the viewer.
+ */
 export class PersistentToast extends Toast {
+    /**
+     * @param {string} message String that will be displayed within the toast component
+     * @param {string} classes Additional classes to add to the toast component
+     */
     constructor(message, classes='') {
         const $toast = $(`<div class="toast ${classes}">
             <span class="toast__body">${message}</span>

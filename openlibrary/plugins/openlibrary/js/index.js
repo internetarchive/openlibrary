@@ -397,6 +397,7 @@ jQuery(function () {
             .then((module) => module.initCompactTitle(navbar, compactTitle))
     }
 
+    // Add functionality for librarian merge request table:
     const mergeRequestCloseLinks = document.querySelectorAll('.mr-close-link')
     const mergeRequestResolveLinks = document.querySelectorAll('.mr-resolve-link')
     const mergeRequestCommentButtons = document.querySelectorAll('.mr-comment-btn')

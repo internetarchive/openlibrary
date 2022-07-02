@@ -1,5 +1,10 @@
 import { FadingToast } from '../Toast';
 
+/**
+ * Adds functionality for closing librarian requests.
+ *
+ * @param {NodeList<HTMLElement>} elems Elements that trigger request close updates
+ */
 export function initCloseLinks(elems) {
     for (const elem of elems) {
         elem.addEventListener('click', function () {
@@ -9,17 +14,17 @@ export function initCloseLinks(elems) {
     }
 }
 
-export function initCommenting(elems) {
-    for (const elem of elems) {
-        elem.addEventListener('click', function () {
-            const mrid = elem.dataset.mrid
-            onCommentClick(elem, mrid)
-        })
-    }
-}
-
+/**
+ * Closes librarian request with the given ID.
+ *
+ * Prompts patron for comment and close the given librarian request.
+ * Removes the request's row from the UI on success.
+ *
+ * @param {Number} mrid Unique ID of the record that is being closed
+ * @param {HTMLTableRowElement} parentRow The record's row in the request table
+ */
 async function onCloseClick(mrid, parentRow) {
-    const comment = promptForComment('(Optional) Why are you closing this request?')
+    const comment = prompt('(Optional) Why are you closing this request?')
     if (comment !== null) {
         await closeRequest(mrid, comment)
             .then(result => result.json())
@@ -34,8 +39,38 @@ async function onCloseClick(mrid, parentRow) {
     }
 }
 
-async function onCommentClick(elem, mrid) {
-    const textarea = elem.previousElementSibling
+/**
+ * POSTs update to close a librarian request to Open Library's servers.
+ *
+ * @param {Number} mrid Unique identifier for a librarian request
+ * @param {string} comment Message stating why the request was closed
+ * @returns {Promise<Response>} The results of the update POST
+ */
+async function closeRequest(mrid, comment) {
+    return updateRequest('decline', mrid, comment)
+}
+
+/**
+ * Adds functionality for commenting on librarian requests.
+ *
+ * @param {NodeList<HTMLElement>} elems Elements that trigger comments on requests
+ */
+export function initCommenting(elems) {
+    for (const elem of elems) {
+        elem.addEventListener('click', function () {
+            const mrid = elem.dataset.mrid
+            onCommentClick(elem.previousElementSibling, mrid)
+        })
+    }
+}
+
+/**
+ * Comments on given librarian request and updates the UI.
+ *
+ * @param {HTMLTextAreaElement} textarea The element that contains the comment
+ * @param {Number} mrid Unique identifier for the request that is being commented on
+ */
+async function onCommentClick(textarea, mrid) {
     const comment = textarea.value;
 
     if (comment) {
@@ -56,6 +91,28 @@ async function onCommentClick(elem, mrid) {
     }
 }
 
+/**
+ * POSTs comment update to Open Library's servers.
+ *
+ * @param {Number} mrid Unique identifier for a librarian request
+ * @param {string} comment The new comment
+ * @returns {Promise<Response>} The results of the update POST request
+ */
+async function commentOnRequest(mrid, comment) {
+    return updateRequest('comment', mrid, comment)
+}
+
+/**
+ * Fetches comment HTML from server and updates table with the results.
+ *
+ * In the comment cell of the librarian request table, the most recent comment and
+ * all other comments are in separate containers.  This function moves the previously
+ * newest comment to the end of the old comments container, and adds the new comment
+ * to the empty new comment container.
+ *
+ * @param {Number} mrid Unique identifier for the request that's being commented upon
+ * @param {string} comment The new comment
+ */
 async function updateCommentsView(mrid, comment) {
     const commentCell = document.querySelector(`#comment-cell-${mrid}`)
     const newCommentDiv = commentCell.querySelector('.comment-cell__newest-comment')
@@ -73,7 +130,7 @@ async function updateCommentsView(mrid, comment) {
             const newestComment = newCommentDiv.firstElementChild
             newCommentDiv.removeChild(newestComment)
 
-            if (newestComment.classList.contains('comment')) {  // This is actually a comment
+            if (newestComment.classList.contains('comment')) {  // "No comments yet" element will not have this class
                 // Append newest comment to old comments element
                 const oldComments = document.querySelector('.comment-cell__old-comments')
                 oldComments.appendChild(newestComment)
@@ -82,13 +139,16 @@ async function updateCommentsView(mrid, comment) {
             // Display new
             newCommentDiv.appendChild(template.content.firstChild)
         })
-
 }
 
-function promptForComment(msg) {
-    return prompt(msg)
-}
-
+/**
+ * Updates an existing librarian request.
+ *
+ * @param {'comment'|'claim'|'approve'|'decline'} action Denotes the type of update being sent
+ * @param {Number} mrid Unique ID of the request that's being updated
+ * @param {string} comment Optional comment about the update
+ * @returns
+ */
 async function updateRequest(action, mrid, comment = null) {
     const formData = new FormData();
     formData.set('mrid', mrid)
@@ -103,18 +163,20 @@ async function updateRequest(action, mrid, comment = null) {
     })
 }
 
-async function closeRequest(mrid, comment) {
-    return updateRequest('decline', mrid, comment)
-}
-
-async function commentOnRequest(mrid, comment) {
-    return updateRequest('comment', mrid, comment)
-}
-
+/**
+ * Removes the given row from the requests table.
+ *
+ * @param {HTMLTableRowElement} row The row being removed
+ */
 function removeRow(row) {
     row.parentNode.removeChild(row)
 }
 
+/**
+ * Adds functionality for toggling visibility of older comments.
+ *
+ * @param {NodeList<HTMLElement>} elems Links that toggle comment visibility
+ */
 export function initShowAllCommentsLinks(elems) {
     for (const elem of elems) {
         elem.addEventListener('click', function() {
@@ -123,6 +185,11 @@ export function initShowAllCommentsLinks(elems) {
     }
 }
 
+/**
+ * Toggles visibility of a request's older comments.
+ *
+ * @param {HTMLELement} elem Element which contains a reference to the old comments
+ */
 function toggleAllComments(elem) {
     const targetId = elem.dataset.targetId;
     const target = document.querySelector(`#${targetId}`)
@@ -139,6 +206,11 @@ function toggleAllComments(elem) {
     }
 }
 
+/**
+ * Adds functionality for claiming librarian requests.
+ *
+ * @param {NodeList<HTMLElement>} elems Elements that, on click, initiates a claim
+ */
 export function initRequestClaiming(elems) {
     for (const elem of elems) {
         elem.addEventListener('click', function() {
@@ -148,7 +220,12 @@ export function initRequestClaiming(elems) {
     }
 }
 
-async function claimRequest(mrid, claimLink) {
+/**
+ * Sends a claim request to the server and updates the table on success.
+ *
+ * @param {Number} mrid Unique identifier for the request being claimed
+ */
+async function claimRequest(mrid) {
     await updateRequest('claim', mrid)
         .then(result => result.json())
         .then(data => {
@@ -158,6 +235,13 @@ async function claimRequest(mrid, claimLink) {
         })
 }
 
+/**
+ * Updates status and reviewer of the designated request table row.
+ *
+ * @param {Number} mrid The row's unique identifier
+ * @param {string} status Optional new value for the row's status cell
+ * @param {string} reviewer Optional new value for the row's reviewer cell
+ */
 function updateRow(mrid, status=null, reviewer=null) {
     if (status) {
         const statusCell = document.querySelector(`#status-cell-${mrid}`)
