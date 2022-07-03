@@ -62,7 +62,7 @@ msgstr "Редактировать"
 
 #: account.html:21
 msgid "Your Profile Page"
-msgstr "Страница вашего профиля"
+msgstr "страницу вашего профиля"
 
 #: account.html:22
 msgid "View or Edit your Reading Log"
@@ -1037,7 +1037,7 @@ msgstr "Экспортировать ваш журнал чтения"
 
 #: account/import.html:31
 msgid "Download (.csv format)"
-msgstr "Скачать (формат .csv)"
+msgstr "Загрузить (формат .csv)"
 
 #: account/loans.html:61
 msgid "You've not checked out any books at this moment."
@@ -1782,7 +1782,7 @@ msgstr "HTML"
 
 #: book_providers/gutenberg_download_options.html:16
 msgid "Download a text version from Project Gutenberg"
-msgstr "Скачать текстовую версию с Project Gutenberg"
+msgstr "Загрузить текстовую версию с Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html:16
 #: book_providers/ia_download_options.html:14
@@ -2005,7 +2005,7 @@ msgstr "Года публикации достаточно."
 #: books/add.html:54
 msgid ""
 "And optionally, an ID number &#151; like an ISBN &#151; would be helpful..."
-msgstr "И, необязательно, добавьте ID &#151; например, ISBN &#151;..."
+msgstr "И, необязательно, добавьте ID &#151; например, ISBN..."
 
 #: books/add.html:55
 msgid "ID Type"
@@ -2149,7 +2149,7 @@ msgstr ""
 #: books/edit.html:79 books/edit/addfield.html:100 books/edit/addfield.html:145
 #: type/author/edit.html:29
 msgid "Required field"
-msgstr "Обязательные поля"
+msgstr "Обязательное поле"
 
 #: books/edit.html:86
 msgid ""
@@ -2911,7 +2911,7 @@ msgstr "Посмотреть всех посетителей OpenLibrary.org"
 
 #: home/stats.html:17
 msgid "Unique Visitors"
-msgstr "Уникальные посетители"
+msgstr "Уникальных посетителей"
 
 #: home/stats.html:22 home/stats.html:24
 msgid "How many new Open Library members have we welcomed?"
@@ -2919,7 +2919,7 @@ msgstr "Сколько новых участников мы приняли?"
 
 #: home/stats.html:24
 msgid "New Members"
-msgstr "Новые участники"
+msgstr "Новых участников"
 
 #: home/stats.html:28 home/stats.html:30
 msgid "People are constantly updating the catalog"
@@ -2927,7 +2927,7 @@ msgstr "Люди постоянно обновляющие каталог"
 
 #: home/stats.html:30
 msgid "Catalog Edits"
-msgstr "Редактирование каталога"
+msgstr "Редактирований каталога"
 
 #: home/stats.html:35 home/stats.html:37
 msgid "Members can create Lists"
@@ -2935,7 +2935,7 @@ msgstr "Участники могут создавать списки"
 
 #: home/stats.html:37
 msgid "Lists Created"
-msgstr "Список создан"
+msgstr "Списков создано"
 
 #: home/stats.html:42 home/stats.html:44
 msgid "We're a library, so we lend books, too"
@@ -2984,7 +2984,7 @@ msgstr "Отправьте нам отзыв"
 
 #: home/welcome.html:83
 msgid "Your feedback will help us improve these cards"
-msgstr "Ваш отзыв поможет нам улучшить эти карты"
+msgstr "Ваш отзыв поможет нам улучшить эти карточки"
 
 #: languages/index.html:15
 #, python-format
@@ -3040,7 +3040,7 @@ msgstr[2] "%(count)d редактирований"
 
 #: lib/history.html:44
 msgid "Download catalog record:"
-msgstr "Скачать запись каталога:"
+msgstr "Загрузить запись каталога:"
 
 #: lib/history.html:52
 msgid "Cite this on Wikipedia"
@@ -3056,7 +3056,7 @@ msgstr "Скопируйте и вставьте этот код на стран
 
 #: lib/history.html:83 lib/history.html:85
 msgid "an anonymous user"
-msgstr "анонимный пользователь"
+msgstr "анонимным пользователем"
 
 #: lib/history.html:87
 #, python-format
@@ -3739,7 +3739,7 @@ msgstr "Отзывы сообщества"
 
 #: observations/review_component.html:39
 msgid "No community reviews have been submitted for this work."
-msgstr "Для данной работы ещё не было оставлено отзывов сообществ."
+msgstr "Для данной работы ещё не было оставлено отзывов сообщества."
 
 #: observations/review_component.html:42
 msgid "+ Add your community review"
@@ -4618,7 +4618,7 @@ msgstr "Удалить этот элемент?"
 #: type/list/view_body.html:178
 #, python-format
 msgid "Last updated <span>%(date)s</span>"
-msgstr "Последний раз обновлён <span>%(date)s</span>"
+msgstr "Последний раз обновлено <span>%(date)s</span>"
 
 #: type/list/view_body.html:189
 msgid "Remove seed"
@@ -4977,7 +4977,7 @@ msgstr "языки"
 #: SearchResultsWork.html:81
 #, python-format
 msgid "%s previewable"
-msgstr "%s есть предпросмотр"
+msgstr "у %s есть предпросмотр"
 
 #: SocialShare.html:16
 msgid "Share this book"
@@ -4997,19 +4997,19 @@ msgstr "Очистить мои оценки"
 
 #: StarRatingsStats.html:21
 msgid "Ratings"
-msgstr "Оценки"
+msgstr "Оценок"
 
 #: StarRatingsStats.html:23
 msgid "Want to read"
-msgstr "Хочу прочитать"
+msgstr "Хотят прочитать"
 
 #: StarRatingsStats.html:24
 msgid "Currently reading"
-msgstr "Сейчас читаю"
+msgstr "Сейчас читают"
 
 #: StarRatingsStats.html:25
 msgid "Have read"
-msgstr "Прочитал"
+msgstr "Прочитало"
 
 #: Subnavigation.html:9
 msgid "Developer Center (Home)"
