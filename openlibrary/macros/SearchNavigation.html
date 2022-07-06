@@ -4,12 +4,12 @@ $ q = query_param("q")
 
 <ul class="work-menu">
   <li class="$('selected' if ctx.path=='/search' else '')">
-    <a data-ol-link-track="Navigation|Search"
+    <a data-ol-link-track="SearchNav|Search"
        href="/search?q=$(q)">$_("Books")</a>
   </li>
   <li class="$('selected' if ctx.path=='/search/authors' else '')">
     <a data-ol-link-track="Navigation|SearchAuthors"
-       href="/search/authors?q=$(q)">$_("Authors")</a>
+       href="/search/authors?$urlencode(dict(q=q))">$_("Authors")</a>
   </li>
   <li class="$('selected' if ctx.path=='/search/inside' else '')">
     <a data-ol-link-track="Navigation|SearchFulltext"
