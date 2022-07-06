@@ -1,7 +1,9 @@
-
+$def with (mrid=None)
 $var title: $_('Merge Works')
 
 $ bodyclass = ctx.setdefault('bodyclass', [])
 $ bodyclass.append('full-width')
+
+<input data-mrid="$mrid" type="hidden">
 
 $:render_component('MergeUI')

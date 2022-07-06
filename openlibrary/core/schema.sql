@@ -1,4 +1,5 @@
 
+
 CREATE TABLE ratings (
     username text NOT NULL,
     work_id integer NOT NULL,
@@ -60,4 +61,15 @@ CREATE TABLE observations (
     observation_value INTEGER not null,
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
     primary key (work_id, edition_id, username, observation_value, observation_type)
+);
+
+CREATE TABLE community_edits_queue (
+    id serial not null primary key,
+    submitter text not null,
+    reviewer text default null,
+    url text not null,
+    status int not null default 1,
+    comments json,
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    updated timestamp without time zone default (current_timestamp at time zone 'utc')
 );

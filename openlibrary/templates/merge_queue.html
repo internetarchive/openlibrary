@@ -1,0 +1,25 @@
+$def with(merge_requests=None)
+
+<form method="POST">
+  <p>Submit Work Merge Request (test)</p>
+  <input name="work_ids" placeholder="work_ids csv (e.g. OL123W,OL234W,OL345W)">
+  <input type="submit">
+</form>
+
+<h1>Community Edit Requests</h1>
+
+$if merge_requests:
+  <table>
+    <tr>
+      <th>url</th>
+      <th>submitter</th>
+      <th>reviewer</th>
+    </tr>
+    $for r in merge_requests:
+      <tr title='$r'>
+	$ url = "%s&mrid=%s" % (r['url'], r['id'])
+	<td><a href="$url">$url</a></td>
+	<td>$r['submitter']</td>
+	<td>$r['reviewer']</td>
+      </tr>
+  </table>
