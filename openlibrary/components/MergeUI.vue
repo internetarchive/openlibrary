@@ -50,7 +50,7 @@ export default {
 
             this.mergeStatus = 'Saving...';
             try {
-                const r = await do_merge(master, dupes, editions_to_move);
+                const r = await do_merge(master, dupes, editions_to_move, this.mrid);
                 this.mergeStatus = await r.json();
                 await update_merge_request(this.mrid, 'approve', this.comment)
                 this.mergeStatus = `${this.mergeStatus} Merge request closed`
