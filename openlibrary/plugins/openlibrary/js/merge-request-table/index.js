@@ -230,7 +230,9 @@ async function claimRequest(mrid) {
         .then(result => result.json())
         .then(data => {
             if (data.status === 'ok') {
-                updateRow(mrid, data.newStatus, data.reviewer)
+                const reviewerHtml = `${data.reviewer}
+                    <span class="mr-unassign" data-mrid="${mrid}">&times;</span>`
+                updateRow(mrid, data.newStatus, reviewerHtml)
             }
         })
 }
@@ -249,6 +251,27 @@ function updateRow(mrid, status=null, reviewer=null) {
     }
     if (reviewer) {
         const reviewerCell = document.querySelector(`#reviewer-cell-${mrid}`)
-        reviewerCell.textContent = reviewer
+        reviewerCell.innerHTML = reviewer
+
+        initUnassignment(reviewerCell.querySelectorAll('.mr-unassign'))
     }
+}
+
+export function initUnassignment(elems) {
+    for (const elem of elems) {
+        elem.addEventListener('click', function() {
+            const mrid = elem.dataset.mrid
+            unassign(mrid)
+        })
+    }
+}
+
+async function unassign(mrid) {
+    updateRequest('unassign', mrid)
+        .then(result => result.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                updateRow(mrid, data.newStatus, ' ')
+            }
+        })
 }

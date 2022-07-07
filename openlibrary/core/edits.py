@@ -146,39 +146,50 @@ class CommunityEditsQueue:
 
         This method only modifies requests that are not closed.
 
-        If the given reviewer is `None`, the request is unassigned and
-        placed in a pending state.
-
-        If the given request is already claimed, this method will change the
-        assignee to the given reviewer.
+        If the given reviewer is the same as the request's reviewer, nothing is
+        modified
         """
         request = cls.find_by_id(rid)
 
         if request['status'] not in cls.MODES['closed']:
+            if request['reviewer'] == reviewer:
+                return {
+                    'status': 'error',
+                    'error': f'{reviewer} is already assigned to this request'
+                }
             oldb = db.get_db()
-
-            if request['reviewer'] == reviewer:  # Unassign request
-                status = cls.STATUS['PENDING']
-                reviewer = None
-            else:
-                status = cls.STATUS['CLAIMED'] if reviewer else cls.STATUS['PENDING']
 
             oldb.update(
                 "community_edits_queue",
                 where="id=$rid",
                 reviewer=reviewer,
-                status = status,
+                status = cls.STATUS['CLAIMED'],
                 updated=datetime.datetime.utcnow(),
                 vars={"rid": rid}
             )
             return {
                 'reviewer': reviewer,
-                'newStatus': get_status_for_view(status),
+                'newStatus': get_status_for_view(cls.STATUS['CLAIMED']),
             }
         return {
             'status': 'error',
             'error': 'This request has already been closed'
         }
+
+    @classmethod
+    def unassign_request(cls, rid: int):
+        """
+        Changes status of given request to "Pending", and sets reviewer to None.
+        """
+        oldb = db.get_db()
+        oldb.update(
+            "community_edits_queue",
+            where="id=$rid",
+            status=cls.STATUS['PENDING'],
+            reviewer=None,
+            updated=datetime.datetime.utcnow(),
+            vars={"rid": rid},
+        )
 
     @classmethod
     def update_request_status(cls, rid: int, status: int, reviewer: str, comment: str = None) -> int:

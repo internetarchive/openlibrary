@@ -81,8 +81,12 @@ $else:
                   <input class="mr-comment-btn" type="button" value="Reply" data-mrid="$r['id']">
                 </div>
             </td>
-
-            <td id="reviewer-cell-$(r['id'])">$r['reviewer']</td>
+            <td id="reviewer-cell-$(r['id'])">
+              $if r['reviewer'] == username:
+                $r['reviewer'] <span class="mr-unassign" data-mrid="$r['id']">&times;</span>
+              $else:
+                $r['reviewer']
+            </td>
             <td>
               $# Status code 1 is "Pending"; 4 is "Claimed"
               $if r['status'] == 1 or r['status'] == 4:

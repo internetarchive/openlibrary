@@ -402,8 +402,9 @@ jQuery(function () {
     const mergeRequestResolveLinks = document.querySelectorAll('.mr-resolve-link')
     const mergeRequestCommentButtons = document.querySelectorAll('.mr-comment-btn')
     const showCommentsLinks = document.querySelectorAll('.comment-expand')
+    const unassignElements = document.querySelectorAll('.mr-unassign')
 
-    if (mergeRequestCloseLinks || mergeRequestCommentButtons || showCommentsLinks || mergeRequestResolveLinks) {
+    if (mergeRequestCloseLinks || mergeRequestCommentButtons || showCommentsLinks || mergeRequestResolveLinks || unassignElements) {
         import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
             .then(module => {
                 if (mergeRequestCloseLinks) {
@@ -417,6 +418,9 @@ jQuery(function () {
                 }
                 if (mergeRequestResolveLinks) {
                     module.initRequestClaiming(mergeRequestResolveLinks)
+                }
+                if (unassignElements) {
+                    module.initUnassignment(unassignElements)
                 }
             })
     }

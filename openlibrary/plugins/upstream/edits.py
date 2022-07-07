@@ -5,7 +5,7 @@ import json
 import web
 
 from openlibrary import accounts
-from openlibrary.core.edits import CommunityEditsQueue
+from openlibrary.core.edits import CommunityEditsQueue, get_status_for_view
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 
@@ -46,6 +46,10 @@ class community_edits_queue(delegate.page):
             elif i.action == 'claim':
                     result = CommunityEditsQueue.assign_request(i.mrid, username)
                     return delegate.RawText(json.dumps(response(**result)), content_type="application/json")
+            elif i.action == 'unassign':
+                CommunityEditsQueue.unassign_request(i.mrid)
+                status = get_status_for_view(CommunityEditsQueue.STATUS['PENDING'])
+                return delegate.RawText(json.dumps(response(newStatus=status)))
             else:
                 if i.action == "decline":
                     status = CommunityEditsQueue.STATUS['DECLINED']
