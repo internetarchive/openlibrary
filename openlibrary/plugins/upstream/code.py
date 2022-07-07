@@ -109,6 +109,9 @@ class merge_work(delegate.page):
         )
         if not has_access:
             raise web.HTTPError('403 Forbidden')
+        if not i.mrid:
+            username = user['key'].split('/')[-1]
+            i.mrid = create_request(i.records, username)
         return render_template('merge/works', mrid=i.mrid)
 
 
