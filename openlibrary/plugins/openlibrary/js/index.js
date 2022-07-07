@@ -396,4 +396,32 @@ jQuery(function () {
         import(/* webpackChunkName: "compact-title" */ './compact-title')
             .then((module) => module.initCompactTitle(navbar, compactTitle))
     }
+
+    // Add functionality for librarian merge request table:
+    const mergeRequestCloseLinks = document.querySelectorAll('.mr-close-link')
+    const mergeRequestResolveLinks = document.querySelectorAll('.mr-resolve-link')
+    const mergeRequestCommentButtons = document.querySelectorAll('.mr-comment-btn')
+    const showCommentsLinks = document.querySelectorAll('.comment-expand')
+    const unassignElements = document.querySelectorAll('.mr-unassign')
+
+    if (mergeRequestCloseLinks || mergeRequestCommentButtons || showCommentsLinks || mergeRequestResolveLinks || unassignElements) {
+        import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
+            .then(module => {
+                if (mergeRequestCloseLinks) {
+                    module.initCloseLinks(mergeRequestCloseLinks)
+                }
+                if (mergeRequestCommentButtons) {
+                    module.initCommenting(mergeRequestCommentButtons)
+                }
+                if (showCommentsLinks) {
+                    module.initShowAllCommentsLinks(showCommentsLinks)
+                }
+                if (mergeRequestResolveLinks) {
+                    module.initRequestClaiming(mergeRequestResolveLinks)
+                }
+                if (unassignElements) {
+                    module.initUnassignment(unassignElements)
+                }
+            })
+    }
 });

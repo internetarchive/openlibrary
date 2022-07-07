@@ -86,7 +86,7 @@ export function merge(master, dupes) {
     return [result, sources];
 }
 
-export async function do_merge(merged_record, dupes, editions) {
+export async function do_merge(merged_record, dupes, editions, mrid) {
     editions.forEach(ed => ed.works = [{key: merged_record.key}]);
     const edits = [
         merged_record,
@@ -94,7 +94,12 @@ export async function do_merge(merged_record, dupes, editions) {
         ...editions
     ];
 
-    return await save_many(edits, 'Merge works');
+    let comment = 'Merge works'
+    if (mrid) {
+        comment += ` (MRID: ${mrid})`
+    }
+
+    return await save_many(edits, comment);
 }
 
 export function make_redirect(master_key, dupe) {
@@ -124,6 +129,27 @@ export function get_ratings(key) {
     return fetch(`${key}/ratings.json`).then(r => r.json());
 }
 
+/**
+ * Composes and POSTs a merge request update.
+ *
+ * @param {Number} mrid The unique ID of the merge request.
+ * @param {'approve' | 'decline'} action What is to be done with this request.
+ * @param {string} comment Optional comment from the reviewer.
+ *
+ * @returns {Promise<Response>} A response to the request
+ */
+export function update_merge_request(mrid, action, comment) {
+    const formData = new FormData();
+    formData.set('mrid', mrid)
+    formData.set('action', action)
+    if (comment) {
+        formData.set('comment', comment)
+    }
+    return fetch('/merges', {
+        method: 'POST',
+        body: formData
+    })
+}
 
 /**
  *

@@ -1057,6 +1057,11 @@ def today():
     return datetime.datetime.today()
 
 
+@public
+def to_datetime(time: str):
+    return datetime.datetime.fromisoformat(time)
+
+
 class HTMLTagRemover(HTMLParser):
     def __init__(self):
         super().__init__()

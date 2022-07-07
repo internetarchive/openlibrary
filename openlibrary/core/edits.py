@@ -1,6 +1,25 @@
 import datetime
+import json
+from typing import Optional
+
+from infogami.utils.view import public
+
+from openlibrary.i18n import gettext as _
+
 from . import db
 
+@public
+def get_status_for_view(status_code: int) -> str:
+    """Returns localized status string that corresponds with the given status code."""
+    if status_code == CommunityEditsQueue.STATUS['DECLINED']:
+        return _('Declined')
+    if status_code == CommunityEditsQueue.STATUS['PENDING']:
+        return _('Pending')
+    if status_code == CommunityEditsQueue.STATUS['MERGED']:
+        return _('Merged')
+    if status_code == CommunityEditsQueue.STATUS['CLAIMED']:
+        return _('Claimed')
+    return _('Unknown')
 
 class CommunityEditsQueue:
 
@@ -9,14 +28,28 @@ class CommunityEditsQueue:
     submitter: username of person that made the request
     reviewer: The username of the person who reviewed the request
     url: URL of the merge request
-    status: Either "Pending", "Merged", or "Rejected"
+    status: Either "Pending", "Merged", or "Declined"
     comment: Short note from reviewer (json blobs (can store timestamps, etc))
     created: created timestamp
     updated: update timestamp
     """
 
+    STATUS = {
+        'DECLINED': 0,
+        'PENDING': 1,
+        'MERGED': 2,
+        'CLAIMED': 4,
+    }
+
+    MODES = {
+        'all': [STATUS['DECLINED'], STATUS['PENDING'], STATUS['MERGED'], STATUS['CLAIMED']],
+        'open': [STATUS['PENDING']],
+        'closed': [STATUS['DECLINED'], STATUS['MERGED']],
+        'claimed': [STATUS['CLAIMED']],
+    }
+
     @classmethod
-    def get_requests(cls, limit: int = 50, page: int = 1, **kwargs):
+    def get_requests(cls, limit: int = 50, page: int = 1, mode: str = 'all', order: str = None, **kwargs):
         oldb = db.get_db()
         wheres = []
         if kwargs.get("status"):
@@ -28,24 +61,46 @@ class CommunityEditsQueue:
                 wheres.append("submitter IS NOT NULL")
             else:
                 wheres.append("submitter=$submitter")
+        if "url" in kwargs:
+            wheres.append("url=$url")
+        if "id" in kwargs:
+            wheres.append("id=$id")
+        if "status" in kwargs:
+            wheres.append("status=$status")
+
+        statuses = cls.MODES[mode]
+
+        data = {}
+        status_wheres = []
+
+        for i, status in enumerate(statuses):
+            data[f'status_{i}'] = status
+            status_wheres.append(f'status=$status_{i}')
+
         query_kwargs = {
             "limit": limit,
             "offset": limit * (page - 1),
-            "vars": kwargs
+            "vars": {**kwargs, **data}
         }
+
+        query_kwargs['where'] = f'({" OR ".join(status_wheres)})'
         if wheres:
-            query_kwargs['where'] = " AND ".join(wheres)
+            query_kwargs['where'] = f'{" AND ".join(wheres)} AND {query_kwargs["where"]}'
+        if order:
+            query_kwargs['order'] = order
         return oldb.select("community_edits_queue", **query_kwargs)
 
     @classmethod
-    def submit_work_merge_request(cls, work_ids, submitter, comment=None):
-        if not comment:
-            # some default note from submitter
-            pass
-        # XXX IDs should be santiized & normalized
-        # e.g. /works/OL123W -> OL123W
+    def submit_work_merge_request(cls, work_ids: list[str], submitter: str, comment: str = None):
+        """
+        Creates new work merge requests with the given work olids.
+
+        Precondition: OLIDs in work_ids list must be sanitized and normalized.
+        """
+
         url = f"/works/merge?records={','.join(work_ids)}"
-        cls.submit_request(url, submitter=submitter, comment=comment)
+        if not cls.exists(url):
+            return cls.submit_request(url, submitter=submitter, comment=comment)
 
     @classmethod
     def submit_author_merge_request(cls, author_ids, submitter, comment=None):
@@ -53,7 +108,7 @@ class CommunityEditsQueue:
             # some default note from submitter
             pass
         # XXX IDs should be santiized & normalized
-        url = "/authors/merge?key={'&key='.join(author_ids)}"
+        url = f"/authors/merge?key={'&key='.join(author_ids)}"
         cls.submit_request(url, submitter=submitter, comment=comment)
 
     @classmethod
@@ -65,11 +120,16 @@ class CommunityEditsQueue:
         cls.submit_request(cls, url, submitter=submitter, comment=comment)
 
     @classmethod
-    def submit_request(cls, url, submitter, reviewer=None, status=1, comment=None):
+    def submit_request(cls, url: str, submitter: str, reviewer: str = None, status: int = STATUS['PENDING'], comment: str = None):
+        """
+        Inserts a new record into the table.
+
+        Preconditions: All data validations should be completed before calling this method.
+        """
         oldb = db.get_db()
 
-        # XXX should there be any validation of the url?
-        # i.e. does this represent a valid merge/delete request?
+        comments = [cls.create_comment(submitter, comment)] if comment else []
+        json_comment = json.dumps({"comments": comments})
 
         return oldb.insert(
             "community_edits_queue",
@@ -77,53 +137,127 @@ class CommunityEditsQueue:
             reviewer=reviewer,
             url=url,
             status=status,
-            # XXX comments? TODO
+            comments=json_comment
         )
 
     @classmethod
-    def assign_request(cls, rid, reviewer):
+    def assign_request(cls, rid: int, reviewer: Optional[str]) -> dict[str, Optional[str]]:
+        """Changes assignees to the request with the given ID.
+
+        This method only modifies requests that are not closed.
+
+        If the given reviewer is the same as the request's reviewer, nothing is
+        modified
+        """
+        request = cls.find_by_id(rid)
+
+        if request['status'] not in cls.MODES['closed']:
+            if request['reviewer'] == reviewer:
+                return {
+                    'status': 'error',
+                    'error': f'{reviewer} is already assigned to this request'
+                }
+            oldb = db.get_db()
+
+            oldb.update(
+                "community_edits_queue",
+                where="id=$rid",
+                reviewer=reviewer,
+                status = cls.STATUS['CLAIMED'],
+                updated=datetime.datetime.utcnow(),
+                vars={"rid": rid}
+            )
+            return {
+                'reviewer': reviewer,
+                'newStatus': get_status_for_view(cls.STATUS['CLAIMED']),
+            }
+        return {
+            'status': 'error',
+            'error': 'This request has already been closed'
+        }
+
+    @classmethod
+    def unassign_request(cls, rid: int):
+        """
+        Changes status of given request to "Pending", and sets reviewer to None.
+        """
         oldb = db.get_db()
         oldb.update(
             "community_edits_queue",
-            where="rid=$rid",
-            reviewer=reviewer,
-            vars={"rid": rid}
+            where="id=$rid",
+            status=cls.STATUS['PENDING'],
+            reviewer=None,
+            updated=datetime.datetime.utcnow(),
+            vars={"rid": rid},
         )
 
     @classmethod
-    def close_request(cls, rid, comment=None):
-        """XXX comment not being used here yet"""
-        oldb = db.get_db()
-        oldb.update(
-            "community_edits_queue",
-            where="rid=$rid",
-            status=0,
-            vars={"rid": rid}
-        )
+    def update_request_status(cls, rid: int, status: int, reviewer: str, comment: str = None) -> int:
+        """
+        Changes the status of the request with the given rid.
 
-    @classmethod
-    def approve_request(cls, rid, comment=None):
-        """XXX comment not being used here yet"""
+        If a comment is included, existing comments list for this request are fetched and
+        the new comment is appended.
+        """
         oldb = db.get_db()
-        oldb.update(
-            "community_edits_queue",
-            where="rid=$rid",
-            status=2,
-            vars={"rid": rid}
-        )
 
-    @classmethod
-    def comment_request(cls, rid, username, comment):
-        oldb = db.get_db()
-        comment.setdefault("comments", [])
-        # isoformat to avoid to-json issues
-        comment["comments"].append({
-            "timestamp": datetime.datetime.utcnow().isoformat(),
-            "username": username,
-            "message": comment
-        })
+        update_kwargs = {}
+
+        # XXX Trim whitespace from comment first
+        if comment:
+            comments = cls.get_comments(rid)
+            comments['comments'].append(cls.create_comment(reviewer, comment))
+            update_kwargs['comments'] = json.dumps(comments)
+
         return oldb.update(
             "community_edits_queue",
-            where="rid=$rid",
-            vars={"rid": rid, "comments": comment}
+            where="id=$rid",
+            status=status,
+            reviewer=reviewer,
+            updated=datetime.datetime.utcnow(),
+            vars={"rid": rid},
+            **update_kwargs,
         )
+
+    @classmethod
+    def comment_request(cls, rid: int, username: str, comment: str) -> int:
+        oldb = db.get_db()
+
+        comments = cls.get_comments(rid)
+        comments['comments'].append(cls.create_comment(username, comment))
+
+        return oldb.update(
+            "community_edits_queue",
+            where="id=$rid",
+            comments=json.dumps(comments),
+            updated=datetime.datetime.utcnow(),
+            vars={"rid": rid}
+        )
+
+    @classmethod
+    def find_by_id(cls, rid: int):
+        """Returns the record with the given ID."""
+        return cls.get_requests(id=rid)[0] or None
+
+    @classmethod
+    def exists(cls, url: str) -> bool:
+        """Returns True if a request with the given URL exists in the table."""
+        return len(cls.get_requests(limit=1, url=url)) > 0
+
+    @classmethod
+    def get_comments(cls, rid: int):
+        """Fetches the comments for the given request, or an empty comments object."""
+        return cls.get_requests(id=rid)[0]['comments'] or {'comments': []}
+
+    @classmethod
+    def create_comment(cls, username: str, message: str) -> dict[str, str]:
+        """Creates and returns a new comment with the given name and message.
+        Timestamp set as current time.
+        """
+        return {
+            # isoformat to avoid to-json issues
+            "timestamp": datetime.datetime.utcnow().isoformat(),
+            "username": username,
+            "message": message,
+            # XXX It may be easier to update these comments if they had IDs
+        }

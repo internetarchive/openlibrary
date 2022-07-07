@@ -1,0 +1,28 @@
+$def with(comment=None, comment_str=None)
+
+$if comment_str:
+  $ comment_time = _('Just now')
+  $ commenter = ctx.user and ctx.user.key.split('/')[-1]
+  $ owner = 'owner'
+  $ message = comment_str
+$else:
+  $ comment_timestamp = to_datetime(comment['timestamp'])
+  $ date = comment_timestamp.strftime('%d %b %y')
+  $ time = comment_timestamp.strftime('%X')
+  $ comment_time = '%s %s' % (date, time)
+
+  $ commenter = comment['username']
+
+  $ username = ctx.user and ctx.user.key.split('/')[-1]
+  $ is_commenter = username == commenter
+  $ owner = 'owner' if is_commenter else ''
+
+  $ message = comment['message']
+
+<div class="comment">
+  <div class="comment__header">
+    <span class="comment__username $owner">$commenter</span>
+    <span class="comment__timestamp">$comment_time</span>
+  </div>
+  <div class="comment__body">$message</div>
+</div>

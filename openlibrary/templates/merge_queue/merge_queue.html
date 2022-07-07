@@ -1,0 +1,104 @@
+$def with(merge_requests=None, submitter=None)
+
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+$ can_merge = ctx.user and (ctx.user.is_usergroup_member('/usergroup/librarian-work-merge'))
+
+$ show_open = query_param('open', True) in [True, 'true']
+$ show_closed = query_param('closed', False) in [True, 'true']
+$ show_claimed = query_param('claimed', False) in [True, 'true']
+
+$if submitter:
+  $ desc = _("Showing %(username)s's requests only.", username=submitter)
+  $ link_text = _('Show all requests')
+  $ href = changequery(submitter=None)
+$else:
+  $ desc = _('Showing all requests.')
+  $ link_text = _('Show my requests') if username else ''
+  $ href = changequery(submitter=username) if username else changequery(submitter=None)
+
+<div class="librarian-queue-page">
+  <h1>$_('Community Edit Requests')</h1>
+
+  <div class="description">
+    $desc <a href="$href">$link_text</a>
+  </div>
+
+  <ul class="nav-bar">
+    <li class="$('selected' if show_open and not (show_closed or show_claimed) else '')"><a href="/merges$('?submitter=%s' % submitter if submitter else '')">$_('Open')</a></li>
+    <li class="$('selected' if show_claimed and not show_closed else '')"><a href="/merges?claimed=true$('&submitter=%s' % submitter if submitter else '')">$_('Claimed')</a></li>
+    <li class="$('selected' if show_closed and not show_open else '')"><a href="/merges?closed=true&open=false$('&submitter=%s' % submitter if submitter else '')">$_('Closed')</a></li>
+    <li class="$('selected' if show_open and show_closed and show_claimed else '')"><a href="/merges?closed=true&claimed=true$('&submitter=%s' % submitter if submitter else '')">$_('All')</a></li>
+  </ul>
+
+  <div class="table-wrapper">
+    $if merge_requests:
+      <table class="mr-table">
+        <thead>
+          <tr>
+            <th class="submitter-header">$_('Submitter')</th>
+            <th class="status-header">$_('Status')</th>
+            <th class="comments-header">$_('Comments')</th>
+            <th class="reviewer-header">$_('Reviewer')</th>
+            <th class="resolve-header">$_('Resolve')</th>
+          </tr>
+        </thead>
+        <tbody>
+        $for r in merge_requests:
+          $ work_title = r.get('title', 'an untitled work')
+          $ comments = r['comments']
+          $ status = get_status_for_view(r['status'])
+          $ url = "%s&mrid=%s" % (r['url'], r['id'])
+          $ is_submitter = username == r['submitter']
+          <tr id="mrid-$(r['id'])">
+            <td>$r['submitter']</td>
+            <td id="status-cell-$(r['id'])">$status</td>
+
+            <td id="comment-cell-$(r['id'])" class="comment-cell">
+              <div class="comment-cell__summary">
+                <span>$:_('Merge request for <span class="book-title">%(title)s</span>', title=work_title)</span>
+                <span>$_('Comments'): $len(comments)</span>
+              </div>
+
+              $if len(comments) > 1:
+                <div class="comment-cell__description">
+                  <span>$_('Showing most recent comment only.')</span>
+                  <a href="javascript:;" class="comment-expand" data-target-id="hidden-comments-$r['id']">$_('View all')</a>
+                </div>
+              <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
+                $for c in comments[:-1]:
+                  $:render_template('merge_queue/comment', comment=c)
+              </div>
+              <div class="comment-cell__newest-comment">
+                $if comments:
+                  $:render_template('merge_queue/comment', comment=comments[-1])
+                $else:
+                  <span>$_('No comments yet.')</span>
+              </div>
+              $if is_submitter or can_merge:
+                <hr>
+                <div class="comment-cell__input">
+                  <textarea rows="1" placeholder="$_('Add a comment...')"></textarea>
+                  <input class="mr-comment-btn" type="button" value="Reply" data-mrid="$r['id']">
+                </div>
+            </td>
+            <td id="reviewer-cell-$(r['id'])">
+              $if r['reviewer'] == username:
+                $r['reviewer'] <span class="mr-unassign" data-mrid="$r['id']">&times;</span>
+              $else:
+                $r['reviewer']
+            </td>
+            <td>
+              $# Status code 1 is "Pending"; 4 is "Claimed"
+              $if r['status'] == 1 or r['status'] == 4:
+                $if can_merge:
+                  <a class="mr-resolve-link" data-mrid="$r['id']" href="$url" target="_blank">$_('Merge')</a>
+                $elif is_submitter:
+                  <a class="mr-close-link" data-mrid="$r['id']" href="javascript:;">$_('Close')</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    $else:
+      <p>$_('No entries here!')</p>
+  </div>
+</div>
