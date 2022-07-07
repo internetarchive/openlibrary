@@ -90,6 +90,10 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
             'amazon_product_%s' % cache_key, product, expires=WEEK_SECS
         )
 
+    # Only proceed if config finds infobase db creds
+    if not config.get('db_parameters'):
+        return
+
     if books := [clean_amazon_metadata_for_load(product) for product in products]:
         get_current_amazon_batch().add_items([{
             'ia_id': b['source_records'][0],
