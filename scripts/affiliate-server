@@ -52,7 +52,7 @@ API_MAX_ITEMS_PER_CALL = 10
 API_MAX_WAIT_SECONDS = 0.9
 
 batch_name = ""
-batch: Batch | None = None
+batch: Batch = None
 
 web.amazon_queue = queue.Queue()  # a thread-safe multi-producer, multi-consumer queue
 
