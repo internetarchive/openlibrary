@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 
-import sys
-import web
+import datetime
 import json
 import logging
-import datetime
+import sys
 import time
+
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
+import web
+
+from openlibrary.api import OLError, OpenLibrary
 from openlibrary.config import load_config
-from openlibrary.api import OpenLibrary, OLError
 from openlibrary.core.ia import get_candidate_ocaids
 from openlibrary.core.imports import Batch, ImportItem
 
@@ -26,7 +28,7 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
     """Requests OL to import an item and retries on server errors."""
     # logger uses batch_id:id for item.data identifier if no item.ia_id
     _id = item.ia_id or f"{item.batch_id}:{item.id}"
-    logger.info("importing %s", _id)
+    logger.info(f"importing {_id}")
     for i in range(retries):
         if i != 0:
             logger.info("sleeping for 5 seconds before next attempt.")
@@ -37,11 +39,11 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
                 return ol.import_data(item.data)
             return ol.import_ocaid(item.ia_id, require_marc=require_marc)
         except OSError as e:
-            logger.warning("Failed to contact OL server. error=%s", e)
+            logger.warning(f"Failed to contact OL server. error={e!r}")
         except OLError as e:
+            logger.warning(f"Failed to contact OL server. error={e!r}")
             if e.code < 500:
                 return e.text
-            logger.warning("Failed to contact OL server. error=%s", e)
 
 
 def do_import(item, servername=None, require_marc=True):
@@ -50,14 +52,14 @@ def do_import(item, servername=None, require_marc=True):
         d = json.loads(response)
         if d.get('success') and 'edition' in d:
             edition = d['edition']
-            logger.info("success: %s %s", edition['status'], edition['key'])
+            logger.info(f"success: {edition['status']} {edition['key']}")
             item.set_status(edition['status'], ol_key=edition['key'])
         else:
             error_code = d.get('error_code', 'unknown-error')
-            logger.error("failed with error code: %s", error_code)
+            logger.error(f"failed with error code: {error_code}")
             item.set_status("failed", error=error_code)
     else:
-        logger.error("failed with internal error: %s", response)
+        logger.error(f"failed with internal error: {response}")
         item.set_status("failed", error='internal-error')
 
 
@@ -83,11 +85,11 @@ def import_ocaids(*ocaids, **kwargs):
     date = datetime.date.today()
     if not ocaids:
         raise ValueError("Must provide at least one ocaid")
-    batch_name = "import-%s-%04d%02d" % (ocaids[0], date.year, date.month)
+    batch_name = f"import-{ocaids[0]}-{date.year:04}{date.month:02}"
     try:
         batch = Batch.new(batch_name)
     except Exception as e:
-        logger.info(str(e))
+        logger.info(repr(e))
     try:
         batch.add_items(ocaids)
     except Exception:
@@ -98,7 +100,7 @@ def import_ocaids(*ocaids, **kwargs):
         if item:
             do_import(item, servername=servername, require_marc=require_marc)
         else:
-            logger.error("%s is not found in the import queue", ocaid)
+            logger.error(f"{ocaid} is not found in the import queue")
 
 
 def add_new_scans(args):
@@ -112,7 +114,7 @@ def add_new_scans(args):
         date = datetime.date.today() - datetime.timedelta(days=1)
 
     items = get_candidate_ocaids(since_date=date)
-    batch_name = "new-scans-%04d%02d" % (date.year, date.month)
+    batch_name = f"new-scans-{date.year:04}{date.month:02}"
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.add_items(items)
 
@@ -138,7 +140,7 @@ def import_item(args, **kwargs):
     if item:
         do_import(item, servername=servername, require_marc=require_marc)
     else:
-        logger.error("%s is not found in the import queue", ia_id)
+        logger.error(f"{ia_id} is not found in the import queue")
 
 
 def import_all(args, **kwargs):
@@ -165,7 +167,7 @@ def retroactive_import(start=None, stop=None, servername=None):
         scanned_within_days=None, repub_states=scribe3_repub_states
     )[start:stop]
     date = datetime.date.today()
-    batch_name = "new-scans-%04d%02d" % (date.year, date.month)
+    batch_name = f"new-scans-{date.year:04}{date.month:02}"
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.add_items(items)
     for item in batch.get_items():
@@ -225,7 +227,7 @@ def main():
     elif cmd == "import-item":
         return import_item(args, **flags)
     else:
-        logger.error("Unknown command: %s", cmd)
+        logger.error(f"Unknown command: {cmd}")
 
 
 if __name__ == "__main__":
