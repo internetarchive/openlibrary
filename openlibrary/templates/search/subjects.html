@@ -30,7 +30,7 @@ $if q:
     $if 'error' not in results:
         $ response = results['response']
         $ num_found = int(response['numFound'])
-        <p class="sansserif collapse"><strong>$ungettext('1 hit', '%(count)s hits', response['numFound'], count=commify(response['numFound']))</strong></p>
+        <p class="search-results-stats">$ungettext('1 hit', '%(count)s hits', response['numFound'], count=commify(response['numFound']))</p>
 
 $if q and 'error' in results:
     <strong>

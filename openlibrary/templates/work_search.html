@@ -151,7 +151,7 @@ $ )
         </center>
 
     $elif param and not error and len(docs):
-	<div>$ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))</div>
+	<div class="search-results-stats">$ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))</div>
         <div class="resultsContainer search-results-container">
         <div id="searchResults">
           <ul class="list-books">

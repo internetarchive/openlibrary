@@ -12,40 +12,20 @@ $ offset = (page - 1) * results_per_page
 $var title: Search Open Library for "$q"
 
 <div id="contentHead">
-    $if q:
-        $ results = get_results(q, offset=offset, limit=results_per_page)
-        $if 'error' not in results:
-            $ response = results['response']
-            $ num_found = int(response['numFound'])
-            $if num_found >= 2 and ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()):
-                $ keys = '&'.join('key=%s' % doc['key'] for doc in response['docs'])
-                <div class="mergeThis">
-                    <p class="smaller brown sansserif collapse">$_('Is the same author listed twice?')</p>
-                    <a class="large sansserif" href="/authors/merge?$keys">$_('Merge authors')</a>
-                </div>
     <h1>$_("Search Authors")</h1>
 </div>
 
 <div id="contentBody">
-    $:macros.SearchNavigation()
+  $:macros.SearchNavigation()
+
+  <form class="siteSearch olform" action="">
+    <input type="text" class="larger" name="q" size="100" value="$q"/>
+    <input type="submit"  class="large" value="$_('Search')"/>
+  </form>
 </div>
 
 <div id="contentMeta">
-
-  <div class="section">
-
-    <form class="siteSearch olform" action="">
-        <input type="text" class="larger" name="q" size="100" value="$q"/>
-        <input type="submit"  class="large" value="$_('Search')"/>
-    </form>
-
-  </div>
-
-    $if q and 'error' not in results:
-        $if num_found:
-            <p class="sansserif collapse"><strong>$ungettext('1 hit', '%(count)s hits', response['numFound'], count=commify(response['numFound']))</strong></p>
-        $else:
-            <p class="sansserif red collapse"><strong>$_('No hits')</strong></p>
+    $ results = get_results(q, offset=offset, limit=results_per_page)
 
     $if q and 'error' in results:
         <strong>
@@ -56,6 +36,18 @@ $var title: Search Open Library for "$q"
         </strong>
 
     $if q and 'error' not in results:
+	$ response = results['response']
+        $ num_found = int(response['numFound'])
+
+        $if num_found:
+            <div class="search-results-stats">$ungettext('1 hit', '%(count)s hits', response['numFound'], count=commify(response['numFound']))
+              $if num_found >= 2 and ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()):
+                $ keys = '&'.join('key=%s' % doc['key'] for doc in response['docs'])
+                <div class="mergeThis">$_('Is the same author listed twice?') <a class="large sansserif" href="/authors/merge?$keys">$_('Merge authors')</a></div>
+            </div>
+        $else:
+            <p class="sansserif red collapse">$_('No hits')</p>
+
         <ul class="authorList list-books">
         $for doc in response['docs']:
             $ n = doc['name']
@@ -67,7 +59,7 @@ $var title: Search Open Library for "$q"
             $elif 'date' in doc:
                 $ date = doc['date']
             <li class="searchResultItem">
-	      <img src="https://covers.openlibrary.org/a/olid/$(doc['key'])-M.jpg" itemprop="image" class="cover" alt="Photo of J. K. Rowling">
+	      <img src="$get_coverstore_public_url()/a/olid/$(doc['key'])-M.jpg" itemprop="image" class="cover author" alt="Photo of $n">
 	      <div>
 		<a href="/authors/$doc['key']" class="larger">$n</a>&nbsp;<span class="brown small">$date</span><br />
 		<span class="small grey"><b>$wc</b>

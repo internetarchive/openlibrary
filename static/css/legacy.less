@@ -1191,6 +1191,10 @@ div#searchResults {
     font-size: 1em;
     color: @grey;
   }
+  .cover {
+    width: 120px;
+    border-radius: 4px;
+  }
 }
 
 // openlibrary/templates/languages/index.html
@@ -1801,9 +1805,9 @@ div.addfield {
 // Merge button
 //openlibrary/templates/search/authors.html
 div.mergeThis {
-  float: right;
-  margin: 20px 20px 0 30px;
-  padding-left: 47px;
+  display: inline;
+  padding: 15px 0 0 45px;
+  margin-left: 80px;
   background: url(/images/icons/icon_merge.png) no-repeat 0 0;
 }
 @import (less) "components/merge-form.less";
