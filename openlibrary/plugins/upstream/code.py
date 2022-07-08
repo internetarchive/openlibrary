@@ -352,7 +352,7 @@ def setup():
     addbook.setup()
     covers.setup()
     merge_authors.setup()
-    #merge_works.setup() # ILE code
+    # merge_works.setup() # ILE code
     edits.setup()
 
     from openlibrary.plugins.upstream import data, jsdef
