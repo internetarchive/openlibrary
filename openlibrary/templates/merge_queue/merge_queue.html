@@ -80,14 +80,15 @@ $else:
                 </div>
             </td>
             <td id="reviewer-cell-$(r['id'])">
-              $if r['reviewer'] == username:
+              $# Allow unassigning self if status is "Pending" or "Claimed" (status codes 1 and 4, respectively)
+              $if r['reviewer'] and r['reviewer'] == username and (r['status'] in [1, 4]):
                 $r['reviewer'] <span class="mr-unassign" data-mrid="$r['id']">&times;</span>
               $else:
                 $r['reviewer']
             </td>
             <td>
               $# Status code 1 is "Pending"; 4 is "Claimed"
-              $if r['status'] == 1 or r['status'] == 4:
+              $if r['status'] in [1, 4]:
                 $if can_merge:
                   <a class="mr-resolve-link" data-mrid="$r['id']" href="$url" target="_blank">$_('Merge')</a>
                 $elif is_submitter:
