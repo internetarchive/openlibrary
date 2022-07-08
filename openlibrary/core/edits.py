@@ -43,9 +43,8 @@ class CommunityEditsQueue:
 
     MODES = {
         'all': [STATUS['DECLINED'], STATUS['PENDING'], STATUS['MERGED'], STATUS['CLAIMED']],
-        'open': [STATUS['PENDING']],
+        'open': [STATUS['PENDING'], STATUS['CLAIMED']],
         'closed': [STATUS['DECLINED'], STATUS['MERGED']],
-        'claimed': [STATUS['CLAIMED']],
     }
 
     @classmethod
@@ -72,10 +71,10 @@ class CommunityEditsQueue:
 
         data = {}
         status_wheres = []
-
-        for i, status in enumerate(statuses):
-            data[f'status_{i}'] = status
-            status_wheres.append(f'status=$status_{i}')
+        if mode != 'all':  # No need to add every status to the WHERE clause
+            for i, status in enumerate(statuses):
+                data[f'status_{i}'] = status
+                status_wheres.append(f'status=$status_{i}')
 
         query_kwargs = {
             "limit": limit,
@@ -83,9 +82,14 @@ class CommunityEditsQueue:
             "vars": {**kwargs, **data}
         }
 
-        query_kwargs['where'] = f'({" OR ".join(status_wheres)})'
         if wheres:
-            query_kwargs['where'] = f'{" AND ".join(wheres)} AND {query_kwargs["where"]}'
+            query_kwargs['where'] = f'{" AND ".join(wheres)}'
+        if status_wheres:
+            status_query = f'({" OR ".join(status_wheres)})'
+            if wheres:
+                query_kwargs['where'] = status_query
+            else:
+                query_kwargs['where'] = f'{query_kwargs["where"]} AND {status_query}'
         if order:
             query_kwargs['order'] = order
         return oldb.select("community_edits_queue", **query_kwargs)

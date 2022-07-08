@@ -31,7 +31,7 @@ class community_edits_queue(delegate.page):
             work_ids="",  # Comma-separated OLIDs (OL1W,OL2W,OL3W,...,OL111W)
             rtype="merge-works",
             mrid=None,
-            action=None,  # create, approve, decline, comment
+            action=None,  # create, approve, decline, comment, unassign
             comment=None
         )
         user = accounts.get_current_user()
@@ -64,15 +64,13 @@ class community_edits_queue(delegate.page):
                 return delegate.RawText(json.dumps(resp), content_type="application/json")
 
     def GET(self):
-        i = web.input(page=1, open='true', closed='false', claimed='false', submitter=None)
+        i = web.input(page=1, open='true', closed='false', submitter=None)
 
         show_opened = i.open == 'true'
         show_closed = i.closed == 'true'
-        show_claimed = i.claimed == 'true'
 
-        mode = 'all' if show_opened and show_closed and show_claimed else (
-            'claimed' if show_claimed else
-            'open' if show_opened and not show_closed else 'closed'
+        mode = 'open' if show_opened and not show_closed else (
+            'closed' if not show_opened and show_closed else 'all'
         )
 
         merge_requests = CommunityEditsQueue.get_requests(page=i.page, mode=mode, submitter=i.submitter, order='created').list()
