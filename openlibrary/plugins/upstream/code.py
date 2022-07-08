@@ -101,7 +101,7 @@ class merge_work(delegate.page):
     path = "/works/merge"
 
     def GET(self):
-        i = web.input(records='', comment=None, mrid=None)
+        i = web.input(records='', mrid=None)
         user = web.ctx.site.get_user()
         has_access = user and (
             (user.is_admin() or user.is_librarian())
