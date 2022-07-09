@@ -63,6 +63,7 @@ $ )
 <div id="contentBody">
   $:macros.SearchNavigation()
   <div class="section">
+
     <form method="get" action="/search" class="siteSearch olform">
       <label for="q" class="hidden">$_('Keywords')</label>
       <input type="text" name="q" id="q" value="$q_param" size="100"/>
@@ -75,14 +76,14 @@ $ )
         <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">
         <label for="mode-search-printdisabled">$_('Print Disabled')</label>
       </span>
-        $ sticky = set(['sort', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
+      $ sticky = set(['sort', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
 
-        $for k, values in param.items():
-            $if k not in sticky:
-                $continue
-            $for v in values if isinstance(values, list) else [values]:
-                <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" />
-        </form>
+      $for k, values in param.items():
+        $if k not in sticky:
+          $continue
+        $for v in values if isinstance(values, list) else [values]:
+          <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" />
+    </form>
 
         $if param and not error:
             $ title = []
@@ -151,7 +152,12 @@ $ )
         </center>
 
     $elif param and not error and len(docs):
-	<div class="search-results-stats">$ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))</div>
+        <div class="search-results-stats">
+          $ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))
+
+          $if num_found > 1:
+            $:render_template("search/sort_options.html", sort)
+        </div>
         <div class="resultsContainer search-results-container">
         <div id="searchResults">
           <ul class="list-books">
