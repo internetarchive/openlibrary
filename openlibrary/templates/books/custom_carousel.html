@@ -16,12 +16,19 @@ $def render_carousel_cover(book, lazy):
     $ cover_url = book.get('cover_url')
   $elif book.get('cover_id') or book.get('cover_i'):
     $if book.get('cover_id') == 'undefined' and book.get('cover_i') == 'undefined':
-      $cover_url = False
-    $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, book.get('cover_id') or book.get('cover_i'))
+      $ cover_url = False
+    $else
+      $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, book.get('cover_id') or book.get('cover_i'))
   $elif book.get('ia'):
-    $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia')[0], fallback_cover)
+    $if book.get('ia') == 'undefined':
+      $ cover_url = False
+    $else:
+      $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia')[0], fallback_cover)
   $elif book.get('cover_edition_key'):
-    $ cover_url = '%s/b/olid/%s-M.jpg'%(cover_host, book.get('cover_edition_key'))
+    $if book.get('cover_edition_key') == 'undefined':
+      $ cover_url = False
+    $else:
+      $ cover_url = '%s/b/olid/%s-M.jpg'%(cover_host, book.get('cover_edition_key'))
   $else:
      $ cover_url = False
   $if book.get('authors'):
