@@ -12,24 +12,25 @@ $ url_map = { 'person': 'person:', 'place': 'place:', 'time': 'time:' }
 
 <div id="contentHead">
     <h1>
-        $_("Subject Search")
+        $_("Search Subjects")
     </h1>
-
-$if q:
-    $ results = get_results(q, offset=offset, limit=results_per_page)
-    $if 'error' not in results:
-        $ response = results['response']
-        $ num_found = int(response['numFound'])
-        <p class="sansserif darkgreen collapse"><strong>$ungettext('1 hit', '%(count)s hits', response['numFound'], count=commify(response['numFound']))</strong></p>
 </div>
 
 <div id="contentBody">
+  $:macros.SearchNavigation()
     <div class="section">
         <form class="siteSearch olform" action="">
             <input type="text" class="larger" name="q" size="100" value="$q"/>
             <input type="submit" class="large" value="$_('Search')"/>
         </form>
     </div>
+
+$if q:
+    $ results = get_results(q, offset=offset, limit=results_per_page)
+    $if 'error' not in results:
+        $ response = results['response']
+        $ num_found = int(response['numFound'])
+        <p class="search-results-stats">$ungettext('1 hit', '%(count)s hits', response['numFound'], count=commify(response['numFound']))</p>
 
 $if q and 'error' in results:
     <strong>

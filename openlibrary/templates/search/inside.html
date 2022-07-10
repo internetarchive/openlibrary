@@ -3,11 +3,11 @@ $def with (q, results, search_time, page=1, results_per_page=20)
 $var title: $_('Search Open Library for %s', q)
 
 <div id="contentHead">
-    <h1>$_("Search Inside")</h1>
+  <h1>$_("Search Inside")</h1>
 </div>
 
 <div id="contentBody">
-
+  $:macros.SearchNavigation()
   <form class="siteSearch searchInsideForm" action="/search/inside">
     <input type="text" class="larger" name="q" value="$q"/>
     <input type="submit" class="generic-button" value="$_('Search')">

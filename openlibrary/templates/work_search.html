@@ -43,14 +43,8 @@ $ start_facet_count = 5
 $ facet_inc = 10
 
 <div>
-$if param and not error and num_found:
     <div id="contentHead">
-      $if num_found > 0:
-        <span class="darkgreen"><strong>$ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))</strong></span>
-&nbsp;
-      $if num_found > 1:
-        $:render_template("search/sort_options.html", sort)
-        <span class="advanced-search"><a href="/advancedsearch">$_('Advanced Search')</a></span>
+      <h1>$_("Search")</h1>
     </div>
 
 $ facet_map = (
@@ -67,6 +61,7 @@ $    ('public_scan_b', _('Classic eBooks')),
 $ )
 
 <div id="contentBody">
+  $:macros.SearchNavigation()
   <div class="section">
 
     <form method="get" action="/search" class="siteSearch olform">
@@ -81,14 +76,14 @@ $ )
         <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">
         <label for="mode-search-printdisabled">$_('Print Disabled')</label>
       </span>
-        $ sticky = set(['sort', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
+      $ sticky = set(['sort', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
 
-        $for k, values in param.items():
-            $if k not in sticky:
-                $continue
-            $for v in values if isinstance(values, list) else [values]:
-                <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" />
-        </form>
+      $for k, values in param.items():
+        $if k not in sticky:
+          $continue
+        $for v in values if isinstance(values, list) else [values]:
+          <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" />
+    </form>
 
         $if param and not error:
             $ title = []
@@ -157,7 +152,12 @@ $ )
         </center>
 
     $elif param and not error and len(docs):
-        <div class="shift">$ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))</div>
+        <div class="search-results-stats">
+          $ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))
+
+          $if num_found > 1:
+            $:render_template("search/sort_options.html", sort)
+        </div>
         <div class="resultsContainer search-results-container">
         <div id="searchResults">
           <ul class="list-books">
