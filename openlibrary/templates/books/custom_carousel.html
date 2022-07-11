@@ -17,7 +17,7 @@ $def render_carousel_cover(book, lazy):
   $elif book.get('cover_id') or book.get('cover_i'):
     $if book.get('cover_id') == 'undefined' and book.get('cover_i') == 'undefined':
       $ cover_url = False
-    $else
+    $else:
       $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, book.get('cover_id') or book.get('cover_i'))
   $elif book.get('ia'):
     $if book.get('ia') == 'undefined':
