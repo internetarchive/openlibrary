@@ -663,13 +663,8 @@ def read_edition(rec):
         publish_country = f[15:18]
         if publish_country not in ('|||', '   ', '\x01\x01\x01', '???'):
             edition["publish_country"] = publish_country.strip()
-        lang = f[35:38]
-        if lang not in ('   ', '|||', '', '???', 'zxx'):
-            # diebrokeradical400poll
-            if f[34:37].lower() == 'eng':
-                lang = 'eng'
-            else:
-                lang = lang.lower()
+        lang = f[35:38].lower()
+        if lang not in ('   ', '|||', '', '???', 'zxx', 'n/a'):
             edition['languages'] = [lang_map.get(lang, lang)]
     else:
         assert handle_missing_008
