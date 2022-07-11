@@ -46,8 +46,8 @@ CREATE TABLE observations (
 );
 """
 
-class TestUpdateWorkID:
 
+class TestUpdateWorkID:
     @classmethod
     def setup_class(cls):
         web.config.db_parameters = dict(dbn="sqlite", db=":memory:")
@@ -67,7 +67,7 @@ class TestUpdateWorkID:
             "username": "@cdrini",
             "work_id": "1",
             "edition_id": "1",
-            "bookshelf_id": "1"
+            "bookshelf_id": "1",
         }
         assert not len(list(self.db.select("bookshelves_books")))
         self.db.insert("bookshelves_books", **self.source_book)
@@ -80,22 +80,29 @@ class TestUpdateWorkID:
             "username": "@cdrini",
             "work_id": "2",
             "edition_id": "2",
-            "bookshelf_id": "1"
+            "bookshelf_id": "1",
         }
         self.db.insert("bookshelves_books", **existing_book)
         assert len(list(self.db.select("bookshelves_books"))) == 2
-        Bookshelves.update_work_id(self.source_book['work_id'], existing_book['work_id'])
-        assert len(list(self.db.select("bookshelves_books", where={
-            "username": "@cdrini",
-            "work_id": "2",
-            "edition_id": "2"
-        }))), "failed to update 1 to 2"
-        assert not len(list(self.db.select("bookshelves_books", where={
-            "username": "@cdrini",
-            "work_id": "1",
-            "edition_id": "1"
-        }))), "old work_id 1 present"
-
+        Bookshelves.update_work_id(
+            self.source_book['work_id'], existing_book['work_id']
+        )
+        assert len(
+            list(
+                self.db.select(
+                    "bookshelves_books",
+                    where={"username": "@cdrini", "work_id": "2", "edition_id": "2"},
+                )
+            )
+        ), "failed to update 1 to 2"
+        assert not len(
+            list(
+                self.db.select(
+                    "bookshelves_books",
+                    where={"username": "@cdrini", "work_id": "1", "edition_id": "1"},
+                )
+            )
+        ), "old work_id 1 present"
 
     def test_update_simple(self):
         assert len(list(self.db.select("bookshelves_books"))) == 1
@@ -111,12 +118,28 @@ class TestUpdateWorkID:
         assert resp == {'rows_changed': 0, 'rows_deleted': 0, 'failed_deletes': 1}
         assert [dict(row) for row in self.db.select("booknotes")] == rows
 
+
 class TestUsernameUpdate:
 
     READING_LOG_SETUP_ROWS = [
-        {"username": "@kilgore_trout", "work_id": 1, "edition_id": 1, "bookshelf_id": 1},
-        {"username": "@kilgore_trout", "work_id": 2, "edition_id": 2, "bookshelf_id": 1},
-        {"username": "@billy_pilgrim", "work_id": 1, "edition_id": 1, "bookshelf_id": 2},
+        {
+            "username": "@kilgore_trout",
+            "work_id": 1,
+            "edition_id": 1,
+            "bookshelf_id": 1,
+        },
+        {
+            "username": "@kilgore_trout",
+            "work_id": 2,
+            "edition_id": 2,
+            "bookshelf_id": 1,
+        },
+        {
+            "username": "@billy_pilgrim",
+            "work_id": 1,
+            "edition_id": 1,
+            "bookshelf_id": 2,
+        },
     ]
     BOOKNOTES_SETUP_ROWS = [
         {"username": "@kilgore_trout", "work_id": 1, "edition_id": 1, "notes": "Hello"},
@@ -127,8 +150,20 @@ class TestUsernameUpdate:
         {"username": "@billy_pilgrim", "work_id": 5, "edition_id": 1, "rating": 2},
     ]
     OBSERVATIONS_SETUP_ROWS = [
-        {"username": "@kilgore_trout", "work_id": 1, "edition_id": 3, "observation_type": 1, "observation_value": 2},
-        {"username": "@billy_pilgrim", "work_id": 2, "edition_id": 4, "observation_type": 4, "observation_value": 1},
+        {
+            "username": "@kilgore_trout",
+            "work_id": 1,
+            "edition_id": 3,
+            "observation_type": 1,
+            "observation_value": 2,
+        },
+        {
+            "username": "@billy_pilgrim",
+            "work_id": 2,
+            "edition_id": 4,
+            "observation_type": 4,
+            "observation_value": 1,
+        },
     ]
 
     @classmethod
