@@ -11,7 +11,7 @@
 [tool.black]
 skip-string-normalization = true
 target-version = ['py39', 'py310']
-pyproject.toml = '''
+force-exclude = '''
 (
     ^/openlibrary/accounts/model.py
     | ^/openlibrary/book_providers.py
