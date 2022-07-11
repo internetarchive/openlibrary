@@ -9,7 +9,7 @@ $ q = query_param("q")
   </li>
   <li class="$('selected' if ctx.path=='/search/authors' else '')">
     <a data-ol-link-track="SearchNav|SearchAuthors"
-       href="/search/authors?$urlencode(dict(q=q))">$_("Authors")</a>
+       href="/search/authors?q=$(q)">$_("Authors")</a>
   </li>
   <li class="$('selected' if ctx.path=='/search/inside' else '')">
     <a data-ol-link-track="SearchNav|SearchFulltext"
