@@ -130,6 +130,7 @@ def dicthash(d):
 
 author_olid_embedded_re = re.compile(r'OL\d+A', re.IGNORECASE)
 
+
 def find_author_olid_in_string(s):
     """
     >>> find_author_olid_in_string("ol123a")
@@ -143,6 +144,7 @@ def find_author_olid_in_string(s):
 
 
 work_olid_embedded_re = re.compile(r'OL\d+W', re.IGNORECASE)
+
 
 def find_work_olid_in_string(s):
     """

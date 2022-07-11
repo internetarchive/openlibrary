@@ -112,8 +112,7 @@ class OpenLibrary:
         return unmarshal(response.json())
 
     def get_many(self, keys):
-        """Get multiple documents in a single request as a dictionary.
-        """
+        """Get multiple documents in a single request as a dictionary."""
         if len(keys) > 100:
             # Process in batches to avoid crossing the URL length limit.
             d = {}
@@ -201,12 +200,15 @@ class OpenLibrary:
             return unmarshal(response.json())
 
     def search(self, query, limit=10, offset=0, fields: list[str] = None):
-        return self._request('/search.json', params={
-            'q': query,
-            'limit': limit,
-            'offset': offset,
-            **({'fields': ','.join(fields)} if fields else {})
-        }).json()
+        return self._request(
+            '/search.json',
+            params={
+                'q': query,
+                'limit': limit,
+                'offset': offset,
+                **({'fields': ','.join(fields)} if fields else {}),
+            },
+        ).json()
 
     def import_ocaid(self, ocaid, require_marc=True):
         data = {

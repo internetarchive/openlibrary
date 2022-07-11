@@ -725,7 +725,7 @@ class SaveBookHelper:
             """
             if not subjects:
                 return
-            f = io.StringIO(subjects.replace('\r\n',''))
+            f = io.StringIO(subjects.replace('\r\n', ''))
             dedup = set()
             for s in next(csv.reader(f, dialect='excel', skipinitialspace=True)):
                 if s.lower() not in dedup:

@@ -7,7 +7,8 @@ import openlibrary.catalog.importer.pool as pool
 from openlibrary.catalog.importer.db_read import get_mc, withKey
 import openlibrary.catalog.merge.amazon as amazon_merge
 from openlibrary.catalog.get_ia import (  # type: ignore[attr-defined]
-    get_from_local, get_ia
+    get_from_local,
+    get_ia,
 )
 from openlibrary.catalog.merge.merge_marc import build_marc
 import openlibrary.catalog.marc.fast_parse as fast_parse
