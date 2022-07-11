@@ -23,7 +23,6 @@ class community_edits_queue(delegate.page):
     path = '/merges'
 
     def POST(self):
-
         def response(status='ok', **kwargs):
             return {'status': status, **kwargs}
 
@@ -31,8 +30,8 @@ class community_edits_queue(delegate.page):
             work_ids="",  # Comma-separated OLIDs (OL1W,OL2W,OL3W,...,OL111W)
             rtype="merge-works",
             mrid=None,
-            action=None,  # create, approve, decline, comment
-            comment=None
+            action=None,  # create, approve, decline, comment, unassign
+            comment=None,
         )
         user = accounts.get_current_user()
         username = user['key'].split('/')[-1]
@@ -40,12 +39,22 @@ class community_edits_queue(delegate.page):
             if i.action == 'comment':
                 if i.comment:
                     CommunityEditsQueue.comment_request(i.mrid, username, i.comment)
-                    return delegate.RawText(json.dumps(response()), content_type="application/json")
+                    return delegate.RawText(
+                        json.dumps(response()), content_type="application/json"
+                    )
                 else:
-                    return delegate.RawText(json.dumps(response(status='error', error='No comment sent in request.')))
+                    return delegate.RawText(
+                        json.dumps(
+                            response(
+                                status='error', error='No comment sent in request.'
+                            )
+                        )
+                    )
             elif i.action == 'claim':
-                    result = CommunityEditsQueue.assign_request(i.mrid, username)
-                    return delegate.RawText(json.dumps(response(**result)), content_type="application/json")
+                result = CommunityEditsQueue.assign_request(i.mrid, username)
+                return delegate.RawText(
+                    json.dumps(response(**result)), content_type="application/json"
+                )
             elif i.action == 'unassign':
                 CommunityEditsQueue.unassign_request(i.mrid)
                 status = get_status_for_view(CommunityEditsQueue.STATUS['PENDING'])
@@ -55,30 +64,49 @@ class community_edits_queue(delegate.page):
                     status = CommunityEditsQueue.STATUS['DECLINED']
                 elif i.action == 'approve':
                     status = CommunityEditsQueue.STATUS['MERGED']
-                CommunityEditsQueue.update_request_status(i.mrid, status, username, comment=i.comment)
-                return delegate.RawText(json.dumps(response()), content_type="application/json")
+                CommunityEditsQueue.update_request_status(
+                    i.mrid, status, username, comment=i.comment
+                )
+                return delegate.RawText(
+                    json.dumps(response()), content_type="application/json"
+                )
         elif i.rtype == "merge-works":
             if i.action == 'create':
                 result = create_request(i.work_ids, username, i.comment)
-                resp = response(id=result) if result else response(status='error', error='A request to merge these works has already been submitted.')
-                return delegate.RawText(json.dumps(resp), content_type="application/json")
+                resp = (
+                    response(id=result)
+                    if result
+                    else response(
+                        status='error',
+                        error='A request to merge these works has already been submitted.',
+                    )
+                )
+                return delegate.RawText(
+                    json.dumps(resp), content_type="application/json"
+                )
 
     def GET(self):
-        i = web.input(page=1, open='true', closed='false', claimed='false', submitter=None)
+        i = web.input(page=1, open='true', closed='false', submitter=None)
 
         show_opened = i.open == 'true'
         show_closed = i.closed == 'true'
-        show_claimed = i.claimed == 'true'
 
-        mode = 'all' if show_opened and show_closed and show_claimed else (
-            'claimed' if show_claimed else
-            'open' if show_opened and not show_closed else 'closed'
+        mode = (
+            'open'
+            if show_opened and not show_closed
+            else ('closed' if not show_opened and show_closed else 'all')
         )
 
-        merge_requests = CommunityEditsQueue.get_requests(page=i.page, mode=mode, submitter=i.submitter, order='created').list()
+        merge_requests = CommunityEditsQueue.get_requests(
+            page=i.page, mode=mode, submitter=i.submitter, order='created'
+        ).list()
         enriched_requests = self.enrich(merge_requests)
 
-        return render_template('merge_queue/merge_queue', merge_requests=enriched_requests, submitter=i.submitter)
+        return render_template(
+            'merge_queue/merge_queue',
+            merge_requests=enriched_requests,
+            submitter=i.submitter,
+        )
 
     def enrich(self, merge_requests):
         results = []

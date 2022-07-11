@@ -5,7 +5,6 @@ $ can_merge = ctx.user and (ctx.user.is_usergroup_member('/usergroup/librarian-w
 
 $ show_open = query_param('open', True) in [True, 'true']
 $ show_closed = query_param('closed', False) in [True, 'true']
-$ show_claimed = query_param('claimed', False) in [True, 'true']
 
 $if submitter:
   $ desc = _("Showing %(username)s's requests only.", username=submitter)
@@ -24,10 +23,9 @@ $else:
   </div>
 
   <ul class="nav-bar">
-    <li class="$('selected' if show_open and not (show_closed or show_claimed) else '')"><a href="/merges$('?submitter=%s' % submitter if submitter else '')">$_('Open')</a></li>
-    <li class="$('selected' if show_claimed and not show_closed else '')"><a href="/merges?claimed=true$('&submitter=%s' % submitter if submitter else '')">$_('Claimed')</a></li>
+    <li class="$('selected' if show_open and not show_closed else '')"><a href="/merges$('?submitter=%s' % submitter if submitter else '')">$_('Open')</a></li>
     <li class="$('selected' if show_closed and not show_open else '')"><a href="/merges?closed=true&open=false$('&submitter=%s' % submitter if submitter else '')">$_('Closed')</a></li>
-    <li class="$('selected' if show_open and show_closed and show_claimed else '')"><a href="/merges?closed=true&claimed=true$('&submitter=%s' % submitter if submitter else '')">$_('All')</a></li>
+    <li class="$('selected' if show_open and show_closed else '')"><a href="/merges?closed=true$('&submitter=%s' % submitter if submitter else '')">$_('All')</a></li>
   </ul>
 
   <div class="table-wrapper">
@@ -82,15 +80,16 @@ $else:
                 </div>
             </td>
             <td id="reviewer-cell-$(r['id'])">
-              $if r['reviewer'] == username:
+              $# Allow unassigning self if status is "Pending" or "Claimed" (status codes 1 and 4, respectively)
+              $if r['reviewer'] and r['reviewer'] == username and (r['status'] in [1, 4]):
                 $r['reviewer'] <span class="mr-unassign" data-mrid="$r['id']">&times;</span>
               $else:
                 $r['reviewer']
             </td>
             <td>
               $# Status code 1 is "Pending"; 4 is "Claimed"
-              $if r['status'] == 1 or r['status'] == 4:
-                $if can_merge:
+              $if r['status'] in [1, 4]:
+                $if can_merge and (r['reviewer'] == None or r['reviewer'] == username):
                   <a class="mr-resolve-link" data-mrid="$r['id']" href="$url" target="_blank">$_('Merge')</a>
                 $elif is_submitter:
                   <a class="mr-close-link" data-mrid="$r['id']" href="javascript:;">$_('Close')</a>

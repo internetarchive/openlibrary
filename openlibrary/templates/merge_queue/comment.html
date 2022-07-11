@@ -1,5 +1,18 @@
 $def with(comment=None, comment_str=None)
 
+$# Creates a single comment element for the librarian merge requests table.
+$#
+$# This template excepts comments in either object (`comment`) or string (`comment_str`) form.
+$# If a string is passed, it is assumed that the comment was submitted just now, and that the
+$# commenter is the currently logged-in patron.
+$#
+$# Parameters:
+$# comment : dict : Object that represents a single comment on a merge request.
+$#   comment['message'] : str : The comment
+$#   comment['username'] : str : Username of patron who left the comment
+$#   comment['timestamp'] : datetime : Timestamp of this comment
+$# comment_str : str : The comment
+
 $if comment_str:
   $ comment_time = _('Just now')
   $ commenter = ctx.user and ctx.user.key.split('/')[-1]

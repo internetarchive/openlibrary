@@ -8,6 +8,7 @@ from openlibrary.i18n import gettext as _
 
 from . import db
 
+
 @public
 def get_status_for_view(status_code: int) -> str:
     """Returns localized status string that corresponds with the given status code."""
@@ -20,6 +21,7 @@ def get_status_for_view(status_code: int) -> str:
     if status_code == CommunityEditsQueue.STATUS['CLAIMED']:
         return _('Claimed')
     return _('Unknown')
+
 
 class CommunityEditsQueue:
 
@@ -42,14 +44,25 @@ class CommunityEditsQueue:
     }
 
     MODES = {
-        'all': [STATUS['DECLINED'], STATUS['PENDING'], STATUS['MERGED'], STATUS['CLAIMED']],
-        'open': [STATUS['PENDING']],
+        'all': [
+            STATUS['DECLINED'],
+            STATUS['PENDING'],
+            STATUS['MERGED'],
+            STATUS['CLAIMED'],
+        ],
+        'open': [STATUS['PENDING'], STATUS['CLAIMED']],
         'closed': [STATUS['DECLINED'], STATUS['MERGED']],
-        'claimed': [STATUS['CLAIMED']],
     }
 
     @classmethod
-    def get_requests(cls, limit: int = 50, page: int = 1, mode: str = 'all', order: str = None, **kwargs):
+    def get_requests(
+        cls,
+        limit: int = 50,
+        page: int = 1,
+        mode: str = 'all',
+        order: str = None,
+        **kwargs,
+    ):
         oldb = db.get_db()
         wheres = []
         if kwargs.get("status"):
@@ -71,27 +84,32 @@ class CommunityEditsQueue:
         statuses = cls.MODES[mode]
 
         data = {}
-        status_wheres = []
+        if mode != 'all':  # No need to add every status to the WHERE clause
+            data = {f'status_{i}': status for i, status in enumerate(statuses)}
 
-        for i, status in enumerate(statuses):
-            data[f'status_{i}'] = status
-            status_wheres.append(f'status=$status_{i}')
-
+        status_wheres = [f'status=${status}' for status in data]
         query_kwargs = {
             "limit": limit,
             "offset": limit * (page - 1),
-            "vars": {**kwargs, **data}
+            "vars": {**kwargs, **data},
         }
 
-        query_kwargs['where'] = f'({" OR ".join(status_wheres)})'
         if wheres:
-            query_kwargs['where'] = f'{" AND ".join(wheres)} AND {query_kwargs["where"]}'
+            query_kwargs['where'] = f'{" AND ".join(wheres)}'
+        if status_wheres:
+            status_query = f'({" OR ".join(status_wheres)})'
+            if wheres:
+                query_kwargs['where'] = status_query
+            else:
+                query_kwargs['where'] = f'{query_kwargs["where"]} AND {status_query}'
         if order:
             query_kwargs['order'] = order
         return oldb.select("community_edits_queue", **query_kwargs)
 
     @classmethod
-    def submit_work_merge_request(cls, work_ids: list[str], submitter: str, comment: str = None):
+    def submit_work_merge_request(
+        cls, work_ids: list[str], submitter: str, comment: str = None
+    ):
         """
         Creates new work merge requests with the given work olids.
 
@@ -120,7 +138,14 @@ class CommunityEditsQueue:
         cls.submit_request(cls, url, submitter=submitter, comment=comment)
 
     @classmethod
-    def submit_request(cls, url: str, submitter: str, reviewer: str = None, status: int = STATUS['PENDING'], comment: str = None):
+    def submit_request(
+        cls,
+        url: str,
+        submitter: str,
+        reviewer: str = None,
+        status: int = STATUS['PENDING'],
+        comment: str = None,
+    ):
         """
         Inserts a new record into the table.
 
@@ -137,11 +162,13 @@ class CommunityEditsQueue:
             reviewer=reviewer,
             url=url,
             status=status,
-            comments=json_comment
+            comments=json_comment,
         )
 
     @classmethod
-    def assign_request(cls, rid: int, reviewer: Optional[str]) -> dict[str, Optional[str]]:
+    def assign_request(
+        cls, rid: int, reviewer: Optional[str]
+    ) -> dict[str, Optional[str]]:
         """Changes assignees to the request with the given ID.
 
         This method only modifies requests that are not closed.
@@ -155,7 +182,7 @@ class CommunityEditsQueue:
             if request['reviewer'] == reviewer:
                 return {
                     'status': 'error',
-                    'error': f'{reviewer} is already assigned to this request'
+                    'error': f'{reviewer} is already assigned to this request',
                 }
             oldb = db.get_db()
 
@@ -163,18 +190,15 @@ class CommunityEditsQueue:
                 "community_edits_queue",
                 where="id=$rid",
                 reviewer=reviewer,
-                status = cls.STATUS['CLAIMED'],
+                status=cls.STATUS['CLAIMED'],
                 updated=datetime.datetime.utcnow(),
-                vars={"rid": rid}
+                vars={"rid": rid},
             )
             return {
                 'reviewer': reviewer,
                 'newStatus': get_status_for_view(cls.STATUS['CLAIMED']),
             }
-        return {
-            'status': 'error',
-            'error': 'This request has already been closed'
-        }
+        return {'status': 'error', 'error': 'This request has already been closed'}
 
     @classmethod
     def unassign_request(cls, rid: int):
@@ -192,7 +216,9 @@ class CommunityEditsQueue:
         )
 
     @classmethod
-    def update_request_status(cls, rid: int, status: int, reviewer: str, comment: str = None) -> int:
+    def update_request_status(
+        cls, rid: int, status: int, reviewer: str, comment: str = None
+    ) -> int:
         """
         Changes the status of the request with the given rid.
 
@@ -231,7 +257,7 @@ class CommunityEditsQueue:
             where="id=$rid",
             comments=json.dumps(comments),
             updated=datetime.datetime.utcnow(),
-            vars={"rid": rid}
+            vars={"rid": rid},
         )
 
     @classmethod
