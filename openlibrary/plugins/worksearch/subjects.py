@@ -156,7 +156,7 @@ class subjects_json(delegate.page):
             limit=i.limit,
             sort=i.sort,
             details=i.details.lower() == 'true',
-            **filters
+            **filters,
         )
         if i.has_fulltext:
             subject_results['ebook_count'] = subject_results['work_count']
@@ -256,7 +256,7 @@ class SubjectEngine:
         offset=0,
         limit=DEFAULT_RESULTS,
         sort='first_publish_year desc',
-        **filters
+        **filters,
     ):
         meta = self.get_meta(key)
 

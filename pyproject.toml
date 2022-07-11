@@ -14,41 +14,28 @@ target-version = ['py39', 'py310']
 force-exclude = '''
 (
     ^/openlibrary/accounts/model.py
-    | ^/openlibrary/api.py
     | ^/openlibrary/book_providers.py
-    | ^/openlibrary/catalog/amazon/import.py
-    | ^/openlibrary/catalog/marc/parse.py
     | ^/openlibrary/core/bookshelves.py
-    | ^/openlibrary/core/cache.py
     | ^/openlibrary/core/db.py
     | ^/openlibrary/core/edits.py
-    | ^/openlibrary/core/lending.py
     | ^/openlibrary/core/lists/model.py
     | ^/openlibrary/core/observations.py
-    | ^/openlibrary/core/sponsorships.py
     | ^/openlibrary/core/vendors.py
     | ^/openlibrary/coverstore/code.py
     | ^/openlibrary/plugins/admin/code.py
     | ^/openlibrary/plugins/openlibrary/api.py
-    | ^/openlibrary/plugins/openlibrary/borrow_home.py
-    | ^/openlibrary/plugins/openlibrary/code.py
     | ^/openlibrary/plugins/openlibrary/lists.py
-    | ^/openlibrary/plugins/openlibrary/processors.py
     | ^/openlibrary/plugins/upstream/account.py
-    | ^/openlibrary/plugins/upstream/addbook.py
     | ^/openlibrary/plugins/upstream/covers.py
     | ^/openlibrary/plugins/upstream/edits.py
     | ^/openlibrary/plugins/upstream/models.py
     | ^/openlibrary/plugins/upstream/mybooks.py
     | ^/openlibrary/plugins/worksearch/code.py
-    | ^/openlibrary/plugins/worksearch/subjects.py
     | ^/openlibrary/tests/core/test_db.py
     | ^/openlibrary/tests/core/test_models.py
     | ^/openlibrary/tests/core/test_sponsors.py
     | ^/openlibrary/tests/data/test_dump.py
-    | ^/openlibrary/utils/__init__.py
     | ^/openlibrary/views/loanstats.py
-    | ^/scripts/copydocs.py
     | ^/scripts/coverstore-server
     | ^/scripts/i18n-messages
     | ^/scripts/import_standard_ebooks.py

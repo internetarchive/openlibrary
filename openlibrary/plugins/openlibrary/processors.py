@@ -73,8 +73,8 @@ class CORSProcessor:
                 allowed = "OPTIONS"
 
         if (
-            web.ctx.path == "/account/login.json" and
-            web.input(auth_provider="").auth_provider == "archive"
+            web.ctx.path == "/account/login.json"
+            and web.input(auth_provider="").auth_provider == "archive"
         ):
             allowed += ", POST"
             web.header('Access-Control-Allow-Credentials', 'true')
