@@ -1,6 +1,7 @@
 import json
 import sys
-from typing import Hashable, Iterable, Mapping, Optional
+from typing import Optional
+from collections.abc import Hashable, Iterable, Mapping
 
 import web
 
