@@ -4,7 +4,6 @@ from openlibrary.core.sponsorships import do_we_want_it
 
 
 class TestSponsorship:
-
     def test_get_sponsored_editions(self, monkeypatch):
         user = storage(key='/person/mekBot')
 
@@ -21,12 +20,12 @@ class TestSponsorship:
                 return self
 
         monkeypatch.setattr(
-            sponsorships.requests, 'get', lambda url, **kwargs:
-            RequestMock({'response': {'docs': []}})
+            sponsorships.requests,
+            'get',
+            lambda url, **kwargs: RequestMock({'response': {'docs': []}}),
         )
 
         assert sponsorships.get_sponsored_editions(user) == []
-
 
     def test_get_sponsored_editions_civi(self, monkeypatch):
         user = storage(key='/person/mekBot')
