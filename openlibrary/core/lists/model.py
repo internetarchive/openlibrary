@@ -66,11 +66,13 @@ class ListMixin:
 
     def get_book_keys(self, offset=0, limit=50):
         offset = offset or 0
-        return list({
-            (seed.works[0].key if seed.works else seed.key)
-            for seed in self.seeds
-            if seed.key.startswith(('/books', '/works'))
-        })[offset : offset + limit]
+        return list(
+            {
+                (seed.works[0].key if seed.works else seed.key)
+                for seed in self.seeds
+                if seed.key.startswith(('/books', '/works'))
+            }
+        )[offset : offset + limit]
 
     def get_editions(self, limit=50, offset=0, _raw=False):
         """Returns the editions objects belonged to this list ordered by last_modified.
@@ -136,7 +138,7 @@ class ListMixin:
             for k in doc['edition_key']:
                 yield "/books/" + k
 
-    def get_export_list(self)  -> dict[str, list]:
+    def get_export_list(self) -> dict[str, list]:
         """Returns all the editions, works and authors of this list in arbitrary order.
 
         The return value is an iterator over all the entries. Each entry is a dictionary.
@@ -159,11 +161,17 @@ class ListMixin:
         # Create the return dictionary
         export_list = {}
         if edition_keys:
-            export_list["editions"] = [doc.dict() for doc in web.ctx.site.get_many(list(edition_keys))]
+            export_list["editions"] = [
+                doc.dict() for doc in web.ctx.site.get_many(list(edition_keys))
+            ]
         if work_keys:
-            export_list["works"] = [doc.dict() for doc in web.ctx.site.get_many(list(work_keys))]
+            export_list["works"] = [
+                doc.dict() for doc in web.ctx.site.get_many(list(work_keys))
+            ]
         if author_keys:
-            export_list["authors"] = [doc.dict() for doc in web.ctx.site.get_many(list(author_keys))]
+            export_list["authors"] = [
+                doc.dict() for doc in web.ctx.site.get_many(list(author_keys))
+            ]
 
         return export_list
 

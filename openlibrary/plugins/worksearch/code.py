@@ -105,7 +105,7 @@ FIELD_NAME_MAP = {
     'by': 'author_name',
     'publishers': 'publisher',
     'subtitle': 'alternative_subtitle',
-    #**({'title': 'alternative_title'} if get_solr_next() else {}),
+    # **({'title': 'alternative_title'} if get_solr_next() else {}),
     'work_subtitle': 'subtitle',
     'work_title': 'title',
     # "Private" fields
@@ -1159,6 +1159,7 @@ def rewrite_list_query(q, page, offset, limit):
     can use the solr API to fetch list works and render them in
     carousels in the right format.
     """
+
     def cached_get_list_book_keys(key, offset, limit):
         # make cacheable
         if 'env' not in web.ctx:
@@ -1169,9 +1170,8 @@ def rewrite_list_query(q, page, offset, limit):
     if '/lists/' in q:
         # we're making an assumption that q is just a list key
         book_keys = cache.memcache_memoize(
-            cached_get_list_book_keys,
-            "search.list_books_query",
-            timeout=5*60)(q, offset, limit)
+            cached_get_list_book_keys, "search.list_books_query", timeout=5 * 60
+        )(q, offset, limit)
 
         q = f"key:({' OR '.join(book_keys)})"
 
@@ -1271,9 +1271,7 @@ class search_json(delegate.page):
 
         # If the query is a /list/ key, create custom list_editions_query
         q = query.get('q', '')
-        query['q'], page, offset, limit = rewrite_list_query(
-            q, page, offset, limit
-        )
+        query['q'], page, offset, limit = rewrite_list_query(q, page, offset, limit)
         response = work_search(
             query,
             sort=sort,

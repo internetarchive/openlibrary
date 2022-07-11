@@ -748,7 +748,13 @@ class Observations(db.CommonExtras):
 
     TABLENAME = "observations"
     NULL_EDITION_VALUE = -1
-    PRIMARY_KEY = ["work_id", "edition_id", "username", "observation_value", "observation_type"]
+    PRIMARY_KEY = [
+        "work_id",
+        "edition_id",
+        "username",
+        "observation_value",
+        "observation_type",
+    ]
     ALLOW_DELETE_ON_CONFLICT = True
 
     @classmethod
@@ -1100,6 +1106,8 @@ class Observations(db.CommonExtras):
             type_id = f"{row['observation_type']}"
             value_id = f"{row['observation_value']}"
             row['observation_type'] = types_and_values[type_id]['type']
-            row['observation_value'] = types_and_values[type_id]['values'][value_id]['name']
+            row['observation_value'] = types_and_values[type_id]['values'][value_id][
+                'name'
+            ]
 
         return rows

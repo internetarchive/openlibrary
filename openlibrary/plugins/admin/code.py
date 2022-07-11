@@ -224,11 +224,8 @@ class resolve_redirects:
         if params.key:
             redirect_chain = Work.get_redirect_chain(params.key)
             summary['redirect_chain'] = [
-                {
-                    "key": thing.key,
-                    "occurrences": {},
-                    "updates": {}
-                } for thing in redirect_chain
+                {"key": thing.key, "occurrences": {}, "updates": {}}
+                for thing in redirect_chain
             ]
             summary['resolved_key'] = redirect_chain[-1].key
 
@@ -238,13 +235,15 @@ class resolve_redirects:
 
                 # count reading log entries
                 r['occurrences']['readinglog'] = len(
-                    Bookshelves.get_works_shelves(olid))
-                r['occurrences']['ratings'] = len(
-                    Ratings.get_all_works_ratings(olid))
+                    Bookshelves.get_works_shelves(olid)
+                )
+                r['occurrences']['ratings'] = len(Ratings.get_all_works_ratings(olid))
                 r['occurrences']['booknotes'] = len(
-                    Booknotes.get_booknotes_for_work(olid))
+                    Booknotes.get_booknotes_for_work(olid)
+                )
                 r['occurrences']['observations'] = len(
-                    Observations.get_observations_for_work(olid))
+                    Observations.get_observations_for_work(olid)
+                )
 
                 # track updates
                 r['updates']['readinglog'] = Bookshelves.update_work_id(
@@ -260,8 +259,8 @@ class resolve_redirects:
                     olid, new_olid, _test=test
                 )
 
-        return delegate.RawText(
-            json.dumps(summary), content_type="application/json")
+        return delegate.RawText(json.dumps(summary), content_type="application/json")
+
 
 class sync_ol_ia:
     def GET(self):
@@ -906,7 +905,9 @@ def setup():
     register_admin_page('/admin/permissions', permissions, label="")
     register_admin_page('/admin/solr', solr, label="", librarians=True)
     register_admin_page('/admin/sync', sync_ol_ia, label="", librarians=True)
-    register_admin_page('/admin/resolve_redirects', resolve_redirects, label="Resolve Redirects")
+    register_admin_page(
+        '/admin/resolve_redirects', resolve_redirects, label="Resolve Redirects"
+    )
 
     register_admin_page(
         '/admin/staffpicks', add_work_to_staff_picks, label="", librarians=True
