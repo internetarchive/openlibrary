@@ -89,7 +89,7 @@ $else:
             <td>
               $# Status code 1 is "Pending"; 4 is "Claimed"
               $if r['status'] in [1, 4]:
-                $if can_merge:
+                $if can_merge and (r['reviewer'] == None or r['reviewer'] == username):
                   <a class="mr-resolve-link" data-mrid="$r['id']" href="$url" target="_blank">$_('Merge')</a>
                 $elif is_submitter:
                   <a class="mr-close-link" data-mrid="$r['id']" href="javascript:;">$_('Close')</a>
