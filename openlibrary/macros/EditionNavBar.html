@@ -1,4 +1,6 @@
-$def with (edition_count=1, show_observations=False)
+$def with (reader_observations, edition_count=1, show_observations=False)
+
+$ total_reviews = reader_observations.get('total_respondents', '')
 
 <ul class="work-menu sticky">
   <li class="selected">
@@ -13,7 +15,9 @@ $def with (edition_count=1, show_observations=False)
     <a href="#details">$_("Details")</a>
   </li>
   <li>
-    <a href="#reader-observations">$_("Reviews")</a>
+    <a href="#reader-observations">
+      $ungettext('%(reviews)s Review', '%(reviews)s Reviews', total_reviews, reviews=total_reviews)
+    </a>
   </li>
   <li>
     <a href="#lists-section">$_("Lists")</a>

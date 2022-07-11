@@ -70,7 +70,7 @@ class borrow(delegate.page):  # type: ignore[no-redef]
             limit=i.limit,
             details=i.details.lower() == "true",
             inlibrary=False,
-            **filters
+            **filters,
         )
         return json.dumps(subject)
 
@@ -124,7 +124,7 @@ class read(delegate.page):  # type: ignore[no-redef]
             offset=i.offset,
             limit=i.limit,
             details=i.details.lower() == "true",
-            **filters
+            **filters,
         )
         return json.dumps(subject)
 
