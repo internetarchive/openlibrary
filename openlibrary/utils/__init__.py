@@ -3,7 +3,8 @@
 from enum import Enum
 import re
 from subprocess import PIPE, Popen, STDOUT
-from typing import TypeVar, Iterable, Literal, Callable, Optional
+from typing import TypeVar, Literal, Optional
+from collections.abc import Iterable, Callable
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
 

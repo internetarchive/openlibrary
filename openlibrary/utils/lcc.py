@@ -85,7 +85,7 @@ But it works for subject-related range queries, so we consider it sufficient.
 [2]: https://ejournals.bc.edu/index.php/ital/article/download/11585/9839/
 """
 import re
-from typing import Iterable
+from collections.abc import Iterable
 
 from openlibrary.utils.ddc import collapse_multiple_space
 

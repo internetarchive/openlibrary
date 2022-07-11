@@ -9,7 +9,8 @@ import asyncio
 import itertools
 import logging
 import re
-from typing import Iterable, List, Optional, Sized
+from typing import List, Optional
+from collections.abc import Iterable, Sized
 
 import httpx
 from httpx import HTTPError

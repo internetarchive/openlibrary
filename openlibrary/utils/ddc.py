@@ -8,7 +8,8 @@ https://www.oclc.org/bibformats/en/0xx/082.html
 """
 import re
 from string import printable
-from typing import Iterable, List
+from typing import List
+from collections.abc import Iterable
 
 MULTIPLE_SPACES_RE = re.compile(r'\s+')
 DDC_RE = re.compile(

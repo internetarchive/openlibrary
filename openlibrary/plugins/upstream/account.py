@@ -1,4 +1,5 @@
-from typing import Any, Callable, Iterable, Mapping
+from typing import Any
+from collections.abc import Callable, Iterable, Mapping
 import web
 import logging
 import json

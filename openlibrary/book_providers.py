@@ -1,4 +1,5 @@
-from typing import Optional, TypedDict, Union, Literal, Iterator, cast, TypeVar, Generic
+from typing import Optional, TypedDict, Union, Literal, cast, TypeVar, Generic
+from collections.abc import Iterator
 
 import web
 from web import uniq

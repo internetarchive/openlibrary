@@ -5,7 +5,8 @@ import logging
 import random
 import re
 import string
-from typing import List, Tuple, Any, Union, Optional, Iterable, Dict
+from typing import List, Tuple, Any, Union, Optional, Dict
+from collections.abc import Iterable
 from unicodedata import normalize
 from json import JSONDecodeError
 import requests

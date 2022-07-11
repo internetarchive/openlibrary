@@ -6,7 +6,8 @@ Changes:
 2013-02-25: First version
 2018-02-11: Use newer config method
 """
-from typing import Iterator, Union
+from typing import Union
+from collections.abc import Iterator
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 
 import logging

@@ -1,5 +1,6 @@
 import functools
-from typing import Iterable, List, Union, Tuple, Any
+from typing import List, Union, Tuple, Any
+from collections.abc import Iterable
 import unicodedata
 
 import web

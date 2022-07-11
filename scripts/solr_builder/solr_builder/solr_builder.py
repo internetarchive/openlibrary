@@ -1,5 +1,6 @@
 import json
-from typing import Awaitable, Literal
+from typing import Literal
+from collections.abc import Awaitable
 
 
 from configparser import ConfigParser
