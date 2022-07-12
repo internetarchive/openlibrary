@@ -15,7 +15,6 @@ force-exclude = '''
 (
     ^/openlibrary/accounts/model.py
     | ^/openlibrary/book_providers.py
-    | ^/openlibrary/core/bookshelves.py
     | ^/openlibrary/core/db.py
     | ^/openlibrary/core/lending.py
     | ^/openlibrary/core/lists/model.py
@@ -25,7 +24,6 @@ force-exclude = '''
     | ^/openlibrary/plugins/admin/code.py
     | ^/openlibrary/plugins/openlibrary/api.py
     | ^/openlibrary/plugins/openlibrary/lists.py
-    | ^/openlibrary/plugins/upstream/account.py
     | ^/openlibrary/plugins/upstream/covers.py
     | ^/openlibrary/plugins/upstream/models.py
     | ^/openlibrary/plugins/upstream/mybooks.py
