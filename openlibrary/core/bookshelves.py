@@ -96,7 +96,13 @@ class Bookshelves(db.CommonExtras):
         logger.info("Query: %s", query)
         logged_books = list(
             oldb.query(
-                query, vars={'shelf_id': shelf_id, 'limit': limit, 'offset': offset, 'since': since}
+                query,
+                vars={
+                    'shelf_id': shelf_id,
+                    'limit': limit,
+                    'offset': offset,
+                    'since': since,
+                },
             )
         )
         return cls.fetch(logged_books) if fetch else logged_books
@@ -113,8 +119,7 @@ class Bookshelves(db.CommonExtras):
         # This gives us a dict of all the works representing
         # the logged_books, keyed by work_id
         work_index = get_solr_works(
-            f"/works/OL{i['work_id']}W"
-            for i in readinglog_items
+            f"/works/OL{i['work_id']}W" for i in readinglog_items
         )
 
         # Loop over each work in the index and inject its availability
@@ -221,7 +226,9 @@ class Bookshelves(db.CommonExtras):
         return list(oldb.query(query, vars=data))
 
     @classmethod
-    def get_recently_logged_books(cls, bookshelf_id=None, limit=50, page=1, fetch=False) -> list:
+    def get_recently_logged_books(
+        cls, bookshelf_id=None, limit=50, page=1, fetch=False
+    ) -> list:
         oldb = db.get_db()
         page = int(page or 1)
         data = {
